@@ -1,0 +1,120 @@
+---
+title: Divine ranging potion(1) | OSRS Price Data
+description: "Divine ranging potion(1): 1 dose of divine ranging potion.. High alch: 24 GP, GE limit: 2,000."
+osrs:
+  id: 23742
+  name: Divine ranging potion(1)
+  slug: divine-ranging-potion-1
+  examine: 1 dose of divine ranging potion.
+  members: true
+  icon: Divine ranging potion(1).png
+  value: 40
+  lowalch: 16
+  highalch: 24
+  limit: 2000
+  item:
+    type: potion
+    tradeable: true
+    doses: 1
+  effect:
+    boost:
+      - skill: ranged
+        amount: +4 + 10%
+        duration: 300
+    divine_effect: Stats cannot naturally drain below boosted level during duration
+    health_cost: 10
+  recipes:
+    - skill: herblore
+      level: 74
+      materials:
+        - item_id: 2444
+          item_name: Ranging potion
+          quantity: 1
+        - item_id: 23867
+          item_name: Crystal dust
+          quantity: 1
+  related_items:
+    - item_id: 2444
+      item_name: Ranging potion
+      slug: ranging-potion
+      relationship: component
+      description: Base potion
+    - item_id: 23867
+      item_name: Crystal dust
+      slug: crystal-dust
+      relationship: component
+      description: Ingredient from Gauntlet
+    - item_id: 23685
+      item_name: Divine super combat potion
+      slug: divine-super-combat-potion
+      relationship: alternative
+      description: Melee equivalent
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Potion |
+| Tradeable | Yes |
+| Stackable | No |
+
+## Creation
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore | 74 |
+| XP | Varies |
+
+**Ingredients:**
+- Ranging potion
+- Crystal dust
+
+## Effect
+
+**Stat Boost:** +4 + 10% to Ranged.
+
+**Duration:** 5 minutes.
+
+**Divine Effect:** Stats cannot naturally drain below boosted level during duration.
+
+**Health Cost:** Deals 10 damage when consumed (need 11+ HP).
+
+## Market Strategy
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Price:** ~1.6K gp (1-dose)
+
+**Tips:**
+- Best ranged boost potion
+- Use for bossing
+- Crystal dust from Gauntlet
+
+## Related Items
+
+- [Ranging potion](/osrs/ranging-potion/) - Base potion
+- [Crystal dust](/osrs/crystal-dust/) - Ingredient
+- [Divine super combat potion](/osrs/divine-super-combat-potion/) - Melee equivalent
+
+<Adsense />

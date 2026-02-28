@@ -1,0 +1,37 @@
+---
+title: Ursine chainmace (u) | OSRS Price Data
+description: "Ursine chainmace (u): An ancient and peculiar chainmace, corrupted by the power of Callisto.. High alch: 105,000 GP, GE limit: 8."
+osrs:
+  id: 27657
+  name: Ursine chainmace (u)
+  slug: ursine-chainmace-u
+  examine: An ancient and peculiar chainmace, corrupted by the power of Callisto.
+  members: true
+  icon: Ursine chainmace (u).png
+  value: 175000
+  lowalch: 70000
+  highalch: 105000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Defence potion(3) | OSRS Price Data
+description: "Defence potion(3): 3 doses of Defence potion.. High alch: 72 GP, GE limit: 2,000."
+osrs:
+  id: 133
+  name: Defence potion(3)
+  slug: defence-potion-3
+  examine: 3 doses of Defence potion.
+  members: true
+  icon: Defence potion(3).png
+  value: 120
+  lowalch: 48
+  highalch: 72
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

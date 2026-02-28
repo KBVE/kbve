@@ -1,0 +1,102 @@
+---
+title: Red chinchompa | OSRS Price Data
+description: "Red chinchompa: Even more volatile than its vegetarian counterpart.. High alch: 96 GP, GE limit: 7,000."
+osrs:
+  id: 10034
+  name: Red chinchompa
+  slug: red-chinchompa
+  examine: Even more volatile than its vegetarian counterpart.
+  members: true
+  icon: Red chinchompa.png
+  value: 160
+  lowalch: 64
+  highalch: 96
+  limit: 7000
+  ammunition:
+    type: chinchompa
+    tier: red
+    ranged_strength: 70
+    attack_range: 9
+    aoe: 3x3
+    max_targets: 9
+    requirements:
+      ranged: 55
+  gathering:
+    skill: hunter
+    level: 63
+    xp: 265
+    tool: Box trap
+    location: Feldip Hills / Gwenith
+    members_only: true
+  related_items:
+    - item_id: 11959
+      item_name: Black chinchompa
+      slug: black-chinchompa
+      relationship: upgrade
+      description: Premium option
+    - item_id: 9976
+      item_name: Grey chinchompa
+      slug: grey-chinchompa
+      relationship: alternative
+      description: Entry level
+    - item_id: 10008
+      item_name: Box trap
+      slug: box-trap
+      relationship: component
+      description: Catching tool
+    - item_id: 10499
+      item_name: Ava's accumulator
+      slug: avas-accumulator
+      relationship: component
+      description: Ammo saver
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Method | Level | XP |
+|--------|-------|-----|
+| Catching (Feldip Hills) | 63 Hunter | 265 |
+| Catching (Gwenith) | 63 Hunter | 265 |
+
+## Combat Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged requirement | 55 |
+| Ranged strength | +70 |
+| Attack range | 9 tiles |
+| AoE | 3x3 (up to 9 targets) |
+
+**Budget alternative to black chinchompas.**
+
+## Market Strategy
+
+**Buy Limit:** 7,000 per 4 hours
+
+**Tips:**
+- Feldip Hills safest spot
+- No PK risk vs black chins
+- Good Hunter money
+- Lower Ranged strength
+
+<Adsense />

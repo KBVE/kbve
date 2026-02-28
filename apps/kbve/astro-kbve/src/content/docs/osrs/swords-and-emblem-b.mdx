@@ -1,0 +1,37 @@
+---
+title: Swords and emblem (b) | OSRS Price Data
+description: "Swords and emblem (b): Sadly, the blades are only decorative."
+osrs:
+  id: 31196
+  name: Swords and emblem (b)
+  slug: swords-and-emblem-b
+  examine: Sadly, the blades are only decorative
+  members: true
+  icon: Swords and emblem (b).png
+  value: 100000
+  lowalch: null
+  highalch: null
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+
+
+
+
+<Adsense />

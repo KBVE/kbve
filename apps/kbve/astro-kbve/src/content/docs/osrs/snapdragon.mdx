@@ -1,0 +1,122 @@
+---
+title: Snapdragon | OSRS Price Data
+description: "Snapdragon: A powerful herb.. High alch: 35 GP, GE limit: 11,000."
+osrs:
+  id: 3000
+  name: Snapdragon
+  slug: snapdragon
+  examine: A powerful herb.
+  members: true
+  icon: Snapdragon.png
+  value: 59
+  lowalch: 23
+  highalch: 35
+  limit: 11000
+  herb:
+    type: clean
+    tier: high
+  farming:
+    level: 67
+    xp: 141
+    growth_time: 80
+    seed_id: 5300
+    seed_name: Snapdragon seed
+  herblore:
+    cleaning_level: 59
+    cleaning_xp: 11.8
+    grimy_id: 3051
+    grimy_name: Grimy snapdragon
+  recipes:
+    - skill: herblore
+      level: 63
+      xp: 142.5
+      materials:
+        - item_name: Snapdragon
+          item_id: 3000
+          quantity: 1
+        - item_name: Red spiders' eggs
+          item_id: 223
+          quantity: 1
+      product: Super restore(3)
+      product_id: 3026
+      members_only: true
+  related_items:
+    - item_id: 3051
+      item_name: Grimy snapdragon
+      slug: grimy-snapdragon
+      relationship: component
+      description: Uncleaned version
+    - item_id: 5300
+      item_name: Snapdragon seed
+      slug: snapdragon-seed
+      relationship: component
+      description: For farming
+    - item_id: 223
+      item_name: Red spiders' eggs
+      slug: red-spiders-eggs
+      relationship: component
+      description: Secondary ingredient
+    - item_id: 3024
+      item_name: Super restore(4)
+      slug: super-restore-4
+      relationship: product
+      description: Final product
+    - item_id: 257
+      item_name: Ranarr weed
+      slug: ranarr-weed
+      relationship: alternative
+      description: Alternative herb for prayer pots
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Herblore
+
+Clean Grimy snapdragon to get Snapdragon, then create potions:
+
+| Potion | Secondary | Herblore Level | XP |
+|--------|-----------|----------------|-----|
+| Super restore(3) | Red spiders' eggs | 63 | 142.5 |
+
+## Market Flip Strategy
+
+**Potion Making:**
+1. Buy Grimy snapdragon or clean Snapdragon
+2. Buy Red spiders' eggs
+3. Make Super restore(4)
+4. Calculate: `Super restore price - Snapdragon price - Red spiders' eggs - Vial = Profit`
+
+**Cleaning Profit:**
+- Buy grimy → Clean (3 XP) → Sell clean
+- Check margin between grimy and clean
+
+**Herb Farming:**
+- Snapdragon seed (67 Farming)
+- Profitable alternative to ranarr
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Super restores essential for raids
+- Paired with Sara brews (3:1 ratio)
+- Universal stat recovery potion
+
+<Adsense />

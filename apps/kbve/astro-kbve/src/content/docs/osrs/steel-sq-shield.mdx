@@ -1,0 +1,93 @@
+---
+title: Steel sq shield | OSRS Price Data
+description: "Steel sq shield: A medium square shield.. High alch: 360 GP, GE limit: 125."
+osrs:
+  id: 1177
+  name: Steel sq shield
+  slug: steel-sq-shield
+  examine: A medium square shield.
+  members: false
+  icon: Steel sq shield.png
+  value: 600
+  lowalch: 240
+  highalch: 360
+  limit: 125
+  item_id: 1177
+  item_type: armor
+  slot: shield
+  type: square_shield
+  tradeable: true
+  weight: 3.628
+  requirements:
+    defence: 5
+  stats:
+    stab_defence: 12
+    slash_defence: 13
+    crush_defence: 11
+    magic_defence: 0
+    ranged_defence: 12
+  related_items:
+    - slug: black-sq-shield
+    - slug: steel-kiteshield
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Off Hand |
+| Type | Square Shield |
+| Tradeable | Yes |
+| Weight | 3.628 kg |
+| Requirements | 5 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +12 |
+| Slash Defence | +13 |
+| Crush Defence | +11 |
+| Magic Defence | +0 |
+| Ranged Defence | +12 |
+
+## Obtaining
+
+**Smithing:** 38 Smithing with 2 steel bars (75 XP).
+
+**Shop:** Cassie's Shield Shop, Falador.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~181 gp
+
+Mid-level square shield. F2P accessible.
+
+## Related Items
+
+- [Black sq shield](/osrs/black-sq-shield/) - Upgrade
+- [Steel kiteshield](/osrs/steel-kiteshield/) - More defence
+
+<Adsense />

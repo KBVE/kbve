@@ -1,0 +1,143 @@
+---
+title: Zamorak godsword | OSRS Price Data
+description: "Zamorak godsword is a members two-handed weapon requiring 75 Attack. High alch: 750,000 GP, GE limit: 8."
+osrs:
+  id: 11808
+  name: Zamorak godsword
+  slug: zamorak-godsword
+  examine: A terrifying, heavy sword.
+  members: true
+  icon: Zamorak godsword.png
+  value: 1250000
+  lowalch: 500000
+  highalch: 750000
+  limit: 8
+  equipment:
+    slot: 2h
+    type: godsword
+    attack_style: slash
+    attack_speed: 6
+    requirements:
+      attack: 75
+    stats:
+      attack_slash: 132
+      attack_crush: 80
+      strength: 132
+      prayer: 8
+  special_attack:
+    name: Ice Cleave
+    energy: 50
+    effect: Doubled accuracy, +10% max hit, freezes for 19.2 seconds
+  recipes:
+    - skill: none
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Godsword blade
+          item_id: 11798
+          quantity: 1
+        - item_name: Zamorak hilt
+          item_id: 11816
+          quantity: 1
+      product: Zamorak godsword
+      product_id: 11808
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 11816
+      item_name: Zamorak hilt
+      slug: zamorak-hilt
+      relationship: component
+      description: Hilt component
+    - item_id: 11798
+      item_name: Godsword blade
+      slug: godsword-blade
+      relationship: component
+      description: Blade component
+    - item_id: 11802
+      item_name: Armadyl godsword
+      slug: armadyl-godsword
+      relationship: alternative
+      description: KO spec
+    - item_id: 11804
+      item_name: Bandos godsword
+      slug: bandos-godsword
+      relationship: alternative
+      description: Defence drain
+    - item_id: 11806
+      item_name: Saradomin godsword
+      slug: saradomin-godsword
+      relationship: alternative
+      description: Healing spec
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Attach Zamorak hilt to Godsword blade.
+
+| Component | Source | Price |
+|-----------|--------|-------|
+| Zamorak hilt | K'ril Tsutsaroth (1/508) | ~18M gp |
+| Godsword blade | GWD bosses | ~526K gp |
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Slash attack | +132 |
+| Crush attack | +80 |
+| Strength | +132 |
+| Prayer | +8 |
+| Attack speed | 6 tick (3.6s) |
+| Requirements | 75 Attack |
+
+## Special Attack
+
+**Ice Cleave** (50% energy):
+- Doubled accuracy
+- +10% max hit
+- Freezes target for 19.2 seconds (same as Ice Barrage)
+
+## Usage
+
+**Best For:**
+- Castle Wars (freezing flag carriers)
+- Barrows (freezing brothers)
+- Chambers of Xeric (Muttadiles)
+- PvP (freeze combos)
+
+**Niche Uses:**
+- Preventing boss mechanics (healing, moving)
+- Controlling adds in multi-combat
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Cheapest godsword
+- Niche but useful freeze
+- Good for specific content
+
+<Adsense />

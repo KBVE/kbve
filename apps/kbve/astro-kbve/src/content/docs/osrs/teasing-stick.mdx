@@ -1,0 +1,37 @@
+---
+title: Teasing stick | OSRS Price Data
+description: "Teasing stick: Reduces the risk of hand severage when poking large, vicious carnivores.. High alch: 30 GP, GE limit: 40."
+osrs:
+  id: 10029
+  name: Teasing stick
+  slug: teasing-stick
+  examine: Reduces the risk of hand severage when poking large, vicious carnivores.
+  members: true
+  icon: Teasing stick.png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: 40
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

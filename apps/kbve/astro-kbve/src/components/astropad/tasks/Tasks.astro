@@ -1,0 +1,300 @@
+---
+interface Task {
+	id: string;
+	title: string;
+	description?: string;
+	dueDate?: string | Date;
+	completed: boolean;
+	priority: number;
+	tags?: string[];
+	assignee?: string;
+}
+
+interface Props {
+	tasks: Task[];
+}
+
+const { tasks = [] } = Astro.props;
+
+function getPriorityLabel(priority: number): string {
+	if (priority >= 5) return 'Critical';
+	if (priority >= 4) return 'High';
+	if (priority >= 3) return 'Medium';
+	if (priority >= 2) return 'Low';
+	return 'None';
+}
+
+function getPriorityColor(priority: number): string {
+	if (priority >= 5) return 'var(--sl-color-red)';
+	if (priority >= 4) return 'var(--sl-color-orange)';
+	if (priority >= 3) return 'var(--sl-color-yellow)';
+	if (priority >= 2) return 'var(--sl-color-blue)';
+	return 'var(--sl-color-gray-4)';
+}
+
+function formatDate(date: string | Date | undefined): string {
+	if (!date) return '';
+	const d = new Date(date);
+	return d.toLocaleDateString('en-US', {
+		month: 'short',
+		day: 'numeric',
+		year: 'numeric',
+	});
+}
+---
+
+<div class="tasks-container">
+	<table class="tasks-table">
+		<thead>
+			<tr>
+				<th class="th-status">Status</th>
+				<th class="th-title">Task</th>
+				<th class="th-priority">Priority</th>
+				<th class="th-due">Due</th>
+				<th class="th-assignee">Assignee</th>
+			</tr>
+		</thead>
+		<tbody>
+			{
+				tasks.map((task) => (
+					<tr
+						class:list={['task-row', { completed: task.completed }]}
+						data-task-id={task.id}>
+						<td class="td-status">
+							<button
+								class="status-toggle"
+								data-completed={task.completed.toString()}
+								aria-label={
+									task.completed
+										? 'Mark incomplete'
+										: 'Mark complete'
+								}>
+								<span class="checkmark">
+									{task.completed ? '✓' : ''}
+								</span>
+							</button>
+						</td>
+						<td class="td-title">
+							<div class="task-title">{task.title}</div>
+							{task.description && (
+								<div class="task-description">
+									{task.description}
+								</div>
+							)}
+							{task.tags && task.tags.length > 0 && (
+								<div class="task-tags">
+									{task.tags.map((tag) => (
+										<span class="tag">{tag}</span>
+									))}
+								</div>
+							)}
+						</td>
+						<td class="td-priority">
+							<span
+								class="priority-badge"
+								style={`--priority-color: ${getPriorityColor(task.priority)}`}>
+								{getPriorityLabel(task.priority)}
+							</span>
+						</td>
+						<td class="td-due">{formatDate(task.dueDate)}</td>
+						<td class="td-assignee">{task.assignee || '-'}</td>
+					</tr>
+				))
+			}
+		</tbody>
+	</table>
+	{tasks.length === 0 && <p class="no-tasks">No tasks available.</p>}
+</div>
+
+<style>
+	.tasks-container {
+		margin: 1.5rem 0;
+		overflow-x: auto;
+	}
+
+	.tasks-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.9rem;
+		background: var(--sl-color-bg-nav);
+		border-radius: 8px;
+		overflow: hidden;
+		border: 1px solid var(--sl-color-gray-5);
+	}
+
+	.tasks-table th,
+	.tasks-table td {
+		padding: 0.75rem 1rem;
+		text-align: left;
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.tasks-table th {
+		background: var(--sl-color-bg-sidebar);
+		color: var(--sl-color-text);
+		font-weight: 600;
+		font-size: 0.8rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.tasks-table tbody tr:last-child td {
+		border-bottom: none;
+	}
+
+	.task-row {
+		transition: background-color 0.15s ease;
+	}
+
+	.task-row:hover {
+		background: var(--sl-color-bg-sidebar);
+	}
+
+	.task-row.completed {
+		opacity: 0.6;
+	}
+
+	.task-row.completed .task-title {
+		text-decoration: line-through;
+		color: var(--sl-color-gray-3);
+	}
+
+	.th-status {
+		width: 60px;
+		text-align: center;
+	}
+	.th-priority {
+		width: 100px;
+	}
+	.th-due {
+		width: 120px;
+	}
+	.th-assignee {
+		width: 100px;
+	}
+
+	.td-status {
+		text-align: center;
+	}
+
+	.status-toggle {
+		width: 24px;
+		height: 24px;
+		border-radius: 4px;
+		border: 2px solid var(--sl-color-gray-4);
+		background: transparent;
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.15s ease;
+		color: var(--sl-color-accent);
+		font-size: 14px;
+		font-weight: bold;
+	}
+
+	.status-toggle:hover {
+		border-color: var(--sl-color-accent);
+		background: var(--sl-color-accent-low);
+	}
+
+	.status-toggle[data-completed='true'] {
+		background: var(--sl-color-accent);
+		border-color: var(--sl-color-accent);
+		color: var(--sl-color-white);
+	}
+
+	.task-title {
+		font-weight: 500;
+		color: var(--sl-color-text);
+		margin-bottom: 0.25rem;
+	}
+
+	.task-description {
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-3);
+		margin-bottom: 0.5rem;
+	}
+
+	.task-tags {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.tag {
+		font-size: 0.7rem;
+		padding: 0.15rem 0.5rem;
+		background: var(--sl-color-accent-low);
+		color: var(--sl-color-accent-high);
+		border-radius: 9999px;
+	}
+
+	.priority-badge {
+		display: inline-block;
+		padding: 0.2rem 0.6rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		border-radius: 4px;
+		background: color-mix(in srgb, var(--priority-color) 20%, transparent);
+		color: var(--priority-color);
+		border: 1px solid var(--priority-color);
+	}
+
+	.td-due {
+		color: var(--sl-color-gray-2);
+		font-size: 0.85rem;
+	}
+
+	.td-assignee {
+		color: var(--sl-color-gray-2);
+		font-size: 0.85rem;
+	}
+
+	.no-tasks {
+		text-align: center;
+		color: var(--sl-color-gray-3);
+		padding: 2rem;
+		font-style: italic;
+	}
+
+	/* Responsive adjustments */
+	@media (max-width: 768px) {
+		.th-assignee,
+		.td-assignee {
+			display: none;
+		}
+
+		.tasks-table th,
+		.tasks-table td {
+			padding: 0.5rem 0.75rem;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.th-due,
+		.td-due {
+			display: none;
+		}
+	}
+</style>
+
+<script>
+	document.querySelectorAll('.status-toggle').forEach((btn) => {
+		btn.addEventListener('click', () => {
+			const isCompleted = btn.getAttribute('data-completed') === 'true';
+			const newState = !isCompleted;
+			btn.setAttribute('data-completed', newState.toString());
+
+			const checkmark = btn.querySelector('.checkmark');
+			if (checkmark) {
+				checkmark.textContent = newState ? '✓' : '';
+			}
+
+			const row = btn.closest('.task-row');
+			if (row) {
+				row.classList.toggle('completed', newState);
+			}
+		});
+	});
+</script>

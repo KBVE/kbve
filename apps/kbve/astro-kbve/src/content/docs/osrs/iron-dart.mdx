@@ -1,0 +1,119 @@
+---
+title: Iron dart | OSRS Price Data
+description: "Iron dart is a members weapon slot item. High alch: 1 GP, GE limit: 7,000."
+osrs:
+  id: 807
+  name: Iron dart
+  slug: iron-dart
+  examine: A deadly throwing dart with an iron tip.
+  members: true
+  icon: Iron dart.png
+  value: 2
+  lowalch: 1
+  highalch: 1
+  limit: 7000
+  equipment:
+    slot: weapon
+    type: thrown
+    attack_style: ranged
+    attack_speed: 3
+  requirements:
+    ranged: 1
+  stats:
+    attack:
+      ranged: 0
+    other:
+      ranged_strength: 2
+  fletching:
+    level: 22
+    xp: 3.8
+    method: Attach feathers to iron dart tips
+    quest: Tourist Trap
+  related_items:
+    - item_id: 820
+      item_name: Iron dart tip
+      slug: iron-dart-tip
+      relationship: component
+      description: Fletching material
+    - item_id: 314
+      item_name: Feather
+      slug: feather
+      relationship: component
+      description: Fletching material
+    - item_id: 808
+      item_name: Steel dart
+      slug: steel-dart
+      relationship: upgrade
+      description: Higher tier dart
+    - item_id: 806
+      item_name: Bronze dart
+      slug: bronze-dart
+      relationship: downgrade
+      description: Lower tier dart
+    - item_id: 12924
+      item_name: Toxic blowpipe
+      slug: toxic-blowpipe
+      relationship: alternative
+      description: Uses darts as ammo
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon/Ammo |
+| Type | Thrown |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 1 Ranged |
+
+## Obtaining
+
+**Fletching:** Attach feathers to iron dart tips (22 Fletching, Tourist Trap quest).
+
+**Drops:** Various monsters.
+
+**Shop:** Wilderness Bandit Camp.
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Attack | +0 |
+| Ranged Strength | +2 |
+
+## Market Strategy
+
+**Buy Limit:** 7,000 per 4 hours
+
+**Price:** ~2 gp
+
+Budget blowpipe ammunition. Slight upgrade over bronze.
+
+## Related Items
+
+- [Iron dart tips](/osrs/iron-dart-tips/) - Crafting material
+- [Steel dart](/osrs/steel-dart/) - Upgrade option
+- [Toxic blowpipe](/osrs/toxic-blowpipe/) - Uses darts
+
+<Adsense />

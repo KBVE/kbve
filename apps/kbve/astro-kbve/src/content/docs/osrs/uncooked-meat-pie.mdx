@@ -1,0 +1,37 @@
+---
+title: Uncooked meat pie | OSRS Price Data
+description: "Uncooked meat pie: This would be much healthier cooked.. High alch: 4 GP, GE limit: 13,000."
+osrs:
+  id: 2319
+  name: Uncooked meat pie
+  slug: uncooked-meat-pie
+  examine: This would be much healthier cooked.
+  members: false
+  icon: Uncooked meat pie.png
+  value: 8
+  lowalch: 3
+  highalch: 4
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

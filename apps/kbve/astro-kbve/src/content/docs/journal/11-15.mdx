@@ -1,0 +1,69 @@
+---
+title: 'November: 15th'
+category: Daily
+date: 2024-11-15 12:00:00
+client: Self
+unsplash: 1731562956909-83b33307a156
+img: https://images.unsplash.com/photo-1731562956909-83b33307a156?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: November 15th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2024
+
+-   07:00AM
+
+    **Morning**
+
+    Its so cold, finally the weather is straight hoodie season.
+    I been waiting to rock my shawl collection for a while, this is the perfect weather to do it.
+
+-   09:28AM
+
+    **TSLA**
+
+    Oh Fridays! They are always the best, ending the week and seeing where everything sits within the market.
+    I am thinking we might be able to survive this week without any major problems, other than a pipeline.
+
+-   09:45AM
+
+    **Azure**
+
+    Time to build out the Azure pipeline and in this situation, we want to focus on getting the unity to build the rareicon game and push the code out.
+    Now trying to get this resolved, we first need to fix the azure pipeline and make sure that we can pull from the repo.
+    The best move would be test it within the alpha pull request, so lets go ahead and try that out!
+    If everything goes as planned, we should be able to build the unity game each time there are changes to the `kilonet` readme.
+
+    To verify the files are from the azure repo, we will just run this command:
+
+    ```shell
+
+    cd azure-rareicon
+    echo "Current working directory: $(pwd)"
+    echo "Listing all files in the repository:"
+    find . -type f
+    echo "Listing all contents (including hidden files):"
+    ls -la
+
+    ```
+
+    Okay! We ran into another issue, our current build is `6000.0.26f1` and the gameci only has up to `6000.0.25f1` supported.
+    We will downgrade the game by one version and once the gameci releases the `6000.0.26f1`, we will upgrade back to the LTS.
+
+    Minor tweaks to the action to fix some path errors, this is always the boring and painful guess and check process! Ugh!
+
+    We got the build process started, now I am going to configure the linking with the unity.
+    Yet there seems to be that lack of space issue again, so maybe we need to fix that right now.
+    Both builds, the standard windows and the webgl are running out of space, but I believe that might be because some parts of our original repo are way too large and are not needed.
+    Thus, we could just remove the checkout of our repo, then come back around in the future and remove the extra unity files that are in our repo.
+
+-   05:50PM
+
+    **Home**
+
+    Just got back home from a wild adventure!
+    I love doing a quick exit from parties, but the person hosting the party knows about my Irish exit and gave me a tray to dip with.
+    I got to take my classic one pic & dip, now I can focus on the start screen for the game.

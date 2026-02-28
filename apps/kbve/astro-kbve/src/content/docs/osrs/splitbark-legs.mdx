@@ -1,0 +1,37 @@
+---
+title: Splitbark legs | OSRS Price Data
+description: "Splitbark legs: These should protect my legs.. High alch: 24,000 GP, GE limit: 70."
+osrs:
+  id: 3389
+  name: Splitbark legs
+  slug: splitbark-legs
+  examine: These should protect my legs.
+  members: true
+  icon: Splitbark legs.png
+  value: 40000
+  lowalch: 16000
+  highalch: 24000
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Sliced banana | OSRS Price Data
+description: "Sliced banana: You swear you had more than three slices before.. High alch: 1 GP, GE limit: 15."
+osrs:
+  id: 3162
+  name: Sliced banana
+  slug: sliced-banana
+  examine: You swear you had more than three slices before.
+  members: false
+  icon: Sliced banana.png
+  value: 2
+  lowalch: 1
+  highalch: 1
+  limit: 15
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

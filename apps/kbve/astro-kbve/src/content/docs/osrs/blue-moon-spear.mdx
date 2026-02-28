@@ -1,0 +1,138 @@
+---
+title: Blue moon spear | OSRS Price Data
+description: "Blue moon spear is a members weapon slot item with +71 melee strength requiring 70 Attack. High alch: 60,000 GP, GE limit: 15."
+osrs:
+  id: 28988
+  name: Blue moon spear
+  slug: blue-moon-spear
+  examine: A magical staff of ancient origin...
+  members: true
+  icon: Blue moon spear.png
+  value: 100000
+  lowalch: 40000
+  highalch: 60000
+  limit: 15
+  equipment:
+    slot: weapon
+    weapon_type: staff
+    weight: 3
+    attack_speed: 5
+    attack_range: 1
+    attack_bonus:
+      stab: 70
+      slash: 62
+      crush: 62
+      magic: 30
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 15
+      ranged: 0
+    other_bonus:
+      melee_strength: 71
+      ranged_strength: 0
+      magic_damage: 5
+      prayer: 0
+    requirements:
+      attack: 70
+      magic: 75
+    degradable: false
+    two_handed: true
+  drop_table:
+    primary_source: Lunar Chest (Neypotzli)
+    best_drop_rate: 1/224
+    sources:
+      - source: Lunar Chest
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/224
+        members_only: true
+  related_items:
+    - item_id: 29019
+      item_name: Blue moon helm
+      slug: blue-moon-helm
+      relationship: set-piece
+      description: Required for Frostweaver effect
+    - item_id: 29013
+      item_name: Blue moon chestplate
+      slug: blue-moon-chestplate
+      relationship: set-piece
+      description: Required for Frostweaver effect
+    - item_id: 29016
+      item_name: Blue moon tassets
+      slug: blue-moon-tassets
+      relationship: set-piece
+      description: Required for Frostweaver effect
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+The Blue moon spear is obtained from the Lunar Chest in Neypotzli with a 1/224 drop rate.
+
+**Requirements:** 70 Attack, 75 Magic to equip
+
+## Combat Mechanics
+
+| Property | Value |
+|----------|-------|
+| Attack speed | 5 ticks (3.0s) |
+| Attack range | 1 tile |
+| Combat style | Bladed Staff |
+
+Unique hybrid weapon with both melee and magic capabilities.
+
+## Set Effect
+
+When wearing full Blue moon armour:
+- **Frostweaver:** After casting a bind or freeze spell, 20% chance for next melee attack to be unaffected by action delays
+
+Allows instant follow-up melee attacks after freeze spells.
+
+## Stats
+
+| Bonus | Value |
+|-------|-------|
+| Stab | +70 |
+| Magic | +30 |
+| Strength | +71 |
+| Magic damage | +5% |
+
+## Usage
+
+Powerful for magic-melee hybrid combat:
+- Freeze then stab combos
+- Neypotzli content
+- PvP hybrid builds
+
+## Market Strategy
+
+**Buy Limit:** 15 per 4 hours
+
+**Tips:**
+- Best used with Blue moon armour
+- Unique hybrid playstyle
+- High value for set synergy
+
+<Adsense />

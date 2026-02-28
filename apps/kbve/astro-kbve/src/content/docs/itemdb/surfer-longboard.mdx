@@ -1,0 +1,127 @@
+---
+title: 'Surfer Longboard'
+description: |
+  A sleek, ocean-worn board designed for smooth cruising. 
+  Whether it's sand, boardwalk, or soft metal tiles, this ride flows with tidal grace.
+id: 'surfer-longboard'
+key: 54
+ref: '01JWJGC4NYQ7K4MW6YBVD6GYQ5'
+name: 'Surfer Longboard'
+type: 'Utility'
+category: 4096
+img: '/assets/items/skills/crafting/production/surfer_longboard.png'
+pixelDensity: 32
+sortingLayer: Ground
+sortingOrder: 62
+consumable: false
+stackable: false
+rarity: 'Uncommon'
+weight: 4.0
+effects: 'Boosts mobility and style. Grants temporary water affinity.'
+price: 220
+durability: 180
+equipped: true
+levelRequirement: 3
+cooldown: 8
+action: 'equip'
+credits: |
+    Art by KBVE Pixel Workshop.
+bonuses:
+    speed: 1.15
+    waterAffinity: true
+    stylePoints: true
+scripts:
+    - guid: 'bdf9fa9a29c94492a409c6a3abf0833f'
+      vars:
+            speedMultiplier: 1.15
+            buffDuration: 120
+            traits: 'tidal-grace'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Surfer Longboard** is your laid-back companion in a fast-moving world.
+Whether weaving through coral dunes or gliding across space station promenades, this board speaks of calm waves, sunburnt rebellion, and the path of least resistance.
+
+Once belonged to a pacifist war courier who surfed through post-flood ruins. 
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+<Adsense />
+
+## Usage
+
+- **+{(frontmatter.bonuses.speed * 100 - 100).toFixed(0)}% movement speed**  
+- Grants **Water Affinity** while equipped  
+- Cooldown: **{frontmatter.cooldown} seconds**  
+- Buff lasts **{frontmatter.scripts[0].vars.buffDuration} seconds**
+
+---
+
+## Notes
+
+- Doubles movement bonuses near water or in flooded zones  
+- Slightly improves morale when equipped in sunny areas  
+- Functions as both transport and a vibe amplifier
+
+---
+
+## Lore
+
+> “The board doesn't fight the tide. It listens, then glides.”  
+> - Surfer Sage of Solwave Beach
+
+It's more than a ride—it's a rhythm.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/surfer_longboard.webp"
+  defaultId="01HTXYZSURF001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZSURF001',
+      title: 'Ride the Flow',
+      description: 'You step on the board. The world calms.',
+      image: 'https://images.unsplash.com/photo-1600788907464-1ac2628b6890?q=80&w=500&auto=format&fit=crop',
+      message: 'The momentum hums like a tide behind your heels.',
+      choices: [
+        { label: 'Lean in and ride.', nextId: '01HTXYZSURF002' },
+        { label: 'Hop off and walk.', nextId: '01HTXYZSURF003' }
+      ]
+    },
+    {
+      id: '01HTXYZSURF002',
+      title: 'Tidal Grace',
+      description: 'Your movement becomes effortless.',
+      image: '/images/scene_surf_glide.jpg',
+      message: "You're not skating, you're surfing existence."
+    },
+    {
+      id: '01HTXYZSURF003',
+      title: 'Break the Flow',
+      description: 'You slow down. The board misses you.',
+      image: '/images/scene_surf_stop.jpg',
+      message: 'Not everyone can vibe forever.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/31/2025 - Surfer Longboard added with water-based mobility boosts, stylish utility traits, and spiritual flavor

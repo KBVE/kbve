@@ -1,0 +1,37 @@
+---
+title: Iron dart tip | OSRS Price Data
+description: "Iron dart tip: A deadly looking dart tip made of iron - needs feathers for flight.. High alch: 1 GP, GE limit: 13,000."
+osrs:
+  id: 820
+  name: Iron dart tip
+  slug: iron-dart-tip
+  examine: A deadly looking dart tip made of iron - needs feathers for flight.
+  members: true
+  icon: Iron dart tip.png
+  value: 3
+  lowalch: 1
+  highalch: 1
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

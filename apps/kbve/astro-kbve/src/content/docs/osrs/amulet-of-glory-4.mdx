@@ -1,0 +1,169 @@
+---
+title: Amulet of glory(4) | OSRS Price Data
+description: "Amulet of glory(4) is a members neck slot item. High alch: 10,575 GP, GE limit: 10,000."
+osrs:
+  id: 1712
+  name: Amulet of glory(4)
+  slug: amulet-of-glory-4
+  examine: A dragonstone amulet with 4 magic charges.
+  members: true
+  icon: Amulet of glory(4).png
+  value: 17625
+  lowalch: 7050
+  highalch: 10575
+  limit: 10000
+  equipment:
+    slot: neck
+    type: amulet
+    stats:
+      attack_stab: 10
+      attack_slash: 10
+      attack_crush: 10
+      attack_magic: 10
+      attack_ranged: 10
+      strength: 6
+      defence_all: 3
+      prayer: 3
+  effect:
+    teleports:
+      - destination: Edgeville
+      - destination: Karamja
+      - destination: Draynor Village
+      - destination: Al Kharid
+    charges: 4
+    recharge: Fountain of Heroes (4), Fountain of Rune (6)
+  recipes:
+    - skill: magic
+      level: 68
+      xp: 78
+      materials:
+        - item_id: 1702
+          item_name: Dragonstone amulet
+          quantity: 1
+        - item_id: 555
+          item_name: Water rune
+          quantity: 15
+        - item_id: 557
+          item_name: Earth rune
+          quantity: 15
+        - item_id: 564
+          item_name: Cosmic rune
+          quantity: 1
+      product: Amulet of glory(4)
+      product_id: 1712
+      facility: N/A
+  related_items:
+    - item_id: 6585
+      item_name: Amulet of fury
+      slug: amulet-of-fury
+      relationship: upgrade
+      description: Combat upgrade
+    - item_id: 19707
+      item_name: Amulet of eternal glory
+      slug: amulet-of-eternal-glory
+      relationship: upgrade
+      description: Unlimited charges
+    - item_id: 11105
+      item_name: Skills necklace
+      slug: skills-necklace
+      relationship: alternative
+      description: Different teleports
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Neck |
+| Type | Jewelry (Teleport) |
+| Tradeable | Yes |
+| Weight | 0.01 kg |
+
+## Creation
+
+Enchant [Dragonstone amulet](/osrs/dragonstone-amulet/) with Lvl-5 Enchant.
+
+| Requirement | Value |
+|-------------|-------|
+| Magic | 68 (boostable) |
+| Runes | 15 water, 15 earth, 1 cosmic |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | +10 |
+| Slash | +10 |
+| Crush | +10 |
+| Magic | +10 |
+| Ranged | +10 |
+| Strength | +6 |
+
+| Defence | Value |
+|---------|-------|
+| All | +3 |
+
+| Other | Value |
+|-------|-------|
+| Prayer | +3 |
+
+## Teleports
+
+| Destination | Charges |
+|-------------|---------|
+| Edgeville | 1 |
+| Karamja | 1 |
+| Draynor Village | 1 |
+| Al Kharid | 1 |
+
+**Recharge:** Fountain of Heroes (4), Fountain of Rune (6)
+
+## Usage
+
+Popular for:
+- Early-mid game teleports
+- Gem mining (dragonstone chance)
+- Budget combat amulet
+
+## POH Ornate Jewellery Box
+
+**Required for upgrade:**
+- 8x Amulet of glory(4)
+- 8x [Ring of wealth (5)](/osrs/ring-of-wealth-5/)
+- 2x [Gold leaf](/osrs/gold-leaf/)
+- 91 Construction
+
+Provides unlimited teleports to all glory destinations from POH.
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Price:** ~11K gp (4)
+
+**Tips:**
+- Very affordable
+- Buy 8 for ornate jewellery box
+- Upgrade to fury for combat later
+
+<Adsense />

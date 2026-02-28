@@ -1,0 +1,37 @@
+---
+title: Gloves of silence | OSRS Price Data
+description: "Gloves of silence: Made from dark kebbit fur, these are perfect for tasks of a stealthier nature.. High alch: 360 GP, GE limit: 8,000."
+osrs:
+  id: 10075
+  name: Gloves of silence
+  slug: gloves-of-silence
+  examine: Made from dark kebbit fur, these are perfect for tasks of a stealthier nature.
+  members: true
+  icon: Gloves of silence.png
+  value: 600
+  lowalch: 240
+  highalch: 360
+  limit: 8000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

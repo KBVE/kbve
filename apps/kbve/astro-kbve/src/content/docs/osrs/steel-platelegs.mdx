@@ -1,0 +1,91 @@
+---
+title: Steel platelegs | OSRS Price Data
+description: "Steel platelegs: These look pretty heavy.. High alch: 600 GP, GE limit: 125."
+osrs:
+  id: 1069
+  name: Steel platelegs
+  slug: steel-platelegs
+  examine: These look pretty heavy.
+  members: false
+  icon: Steel platelegs.png
+  value: 1000
+  lowalch: 400
+  highalch: 600
+  limit: 125
+  item_id: 1069
+  item_type: armor
+  slot: legs
+  type: platelegs
+  tradeable: true
+  weight: 9.071
+  requirements:
+    defence: 5
+  stats:
+    stab_defence: 17
+    slash_defence: 16
+    crush_defence: 15
+    ranged_defence: 16
+  related_items:
+    - slug: black-platelegs
+    - slug: steel-platebody
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Legs |
+| Type | Platelegs |
+| Tradeable | Yes |
+| Weight | 9.071 kg |
+| Requirements | 5 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +17 |
+| Slash Defence | +16 |
+| Crush Defence | +15 |
+| Ranged Defence | +16 |
+
+## Obtaining
+
+**Smithing:** 46 Smithing with 3 steel bars (112.5 XP).
+
+**Shop:** Louie's Armoured Legs Bazaar (1,000 gp).
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~411 gp
+
+Mid-level F2P armor. Common smithing product.
+
+## Related Items
+
+- [Black platelegs](/osrs/black-platelegs/) - Upgrade
+- [Steel platebody](/osrs/steel-platebody/) - Set piece
+
+<Adsense />

@@ -1,0 +1,49 @@
+---
+import ReactJayYuki from './ReactJayYuki';
+
+export interface Props {
+	width?: number;
+	height?: number;
+	className?: string;
+}
+
+const { width, height, className = '' } = Astro.props;
+---
+
+<div class={`jay-yuki-container ${className} not-content`}>
+	<ReactJayYuki client:only="react" width={width} height={height} />
+</div>
+
+<style>
+	.jay-yuki-container {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		margin: 0;
+		padding: 0;
+		overflow: hidden;
+		z-index: 9999;
+	}
+
+	:global(body:has(.jay-yuki-container)) {
+		overflow: hidden;
+	}
+
+	:global(body:has(.jay-yuki-container) footer),
+	:global(body:has(.jay-yuki-container) .footer),
+	:global(body:has(.jay-yuki-container) [class*='footer']),
+	:global(body:has(.jay-yuki-container) .sidebar),
+	:global(body:has(.jay-yuki-container) aside),
+	:global(body:has(.jay-yuki-container) .sl-sidebar),
+	:global(body:has(.jay-yuki-container) .page-sidebar) {
+		display: none !important;
+	}
+
+	@media (pointer: coarse) {
+		:global(.jay-yuki-container) {
+			touch-action: manipulation;
+		}
+	}
+</style>

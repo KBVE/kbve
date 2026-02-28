@@ -1,0 +1,48 @@
+---
+title: 'October: 20th'
+category: Daily
+date: 2025-10-20 12:00:00
+client: Self
+unsplash: 1721332154373-17e78d19b4a4
+img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 20th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### Claudia and Codex
+
+-   09:15AM
+
+    The most powerful combination that I have found is using both the codex and claude to really pump out the code.
+    Having both of the LLMs check each others work and focus on refactoring while they write is amazing!
+    Programming is really evolving and I am all here for it.
+
+## 2024
+
+**TamaGui**
+
+We are getting a bit closer at having the `expo-bbq` become a complete package!
+There are about 15 more components pending integration and migration but should be done before the end of the year.
+One of the cool perks that will come with this being complete is that we will be able to fast track app production to almost a weekend.
+The feeling will be amazing, an idea to a production app within 72 hours.
+
+**LCAgents**
+
+Let me update the deployment pipeline so that the beta branch will just push the code out for the expo.
+First we will start the development cycle of the `alpha` branch, which should push our code changes to the `alpha.lc-agents.com` but we still have not yet set that up.
+Since the site already looks like trash, we will just push the code out to main and then rotate out later on, once it gets better metrics.
+
+Okay, updated the lottie animations and the dev branch pipeline!
+This should make it a bit easier for us to have the code migrations occur without breaking the whole cicd.
+
+**Lottie**
+
+Within the `expo-bbq`, we will start with a lottie hero, which will appear on the first load of the application / website.
+I am usually against this type of flow, usually having a heavy website is a bit of a burden but there are some amazing tricks we can utilize in the future to help us out.
+The lottie json is around 200kb but an optimized dot lottie would bring it down to 30kb, however we can only use the optimization on the website because the react native integration for lottie seems to be a bit broken.
+For this aspect of the integration, we will create the hero component and 

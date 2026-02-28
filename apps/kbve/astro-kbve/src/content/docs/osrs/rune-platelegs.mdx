@@ -1,0 +1,95 @@
+---
+title: Rune platelegs | OSRS Price Data
+description: "Rune platelegs: These look pretty heavy.. High alch: 38,400 GP, GE limit: 70."
+osrs:
+  id: 1079
+  name: Rune platelegs
+  slug: rune-platelegs
+  examine: These look pretty heavy.
+  members: false
+  icon: Rune platelegs.png
+  value: 64000
+  lowalch: 25600
+  highalch: 38400
+  limit: 70
+  item_id: 1079
+  item_type: armor
+  slot: legs
+  type: platelegs
+  tradeable: true
+  weight: 9.071
+  requirements:
+    defence: 40
+  stats:
+    stab_defence: 51
+    slash_defence: 49
+    crush_defence: 47
+    magic: -21
+    ranged: -11
+  related_items:
+    - slug: rune-plateskirt
+    - slug: runite-bar
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Legs |
+| Type | Melee Armour |
+| Tradeable | Yes |
+| Weight | 9.071 kg |
+| Requirements | 40 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +51 |
+| Slash Defence | +49 |
+| Crush Defence | +47 |
+| Magic | -21 |
+| Ranged | -11 |
+
+## Obtaining
+
+**Smithing:** Smith from 3 runite bars (99 Smithing, 225 XP).
+
+**Drops:** Gargoyles, K'ril Tsutsaroth, rune dragons.
+
+**Shop:** Champions' Guild, Nardah, Keldagrim.
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+
+**Price:** ~38,014 gp
+
+Best bar-per-alch item. Popular for alching.
+
+## Related Items
+
+- [Rune plateskirt](/osrs/rune-plateskirt/) - Lighter alternative
+- [Runite bar](/osrs/runite-bar/) - Smithing material
+
+<Adsense />

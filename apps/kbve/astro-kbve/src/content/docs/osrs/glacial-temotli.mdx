@@ -1,0 +1,37 @@
+---
+title: Glacial temotli | OSRS Price Data
+description: "Glacial temotli: It's clobbering time.. High alch: 49,800 GP, GE limit: 15."
+osrs:
+  id: 29889
+  name: Glacial temotli
+  slug: glacial-temotli
+  examine: It's clobbering time.
+  members: true
+  icon: Glacial temotli.png
+  value: 83000
+  lowalch: 33200
+  highalch: 49800
+  limit: 15
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

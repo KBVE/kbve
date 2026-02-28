@@ -1,0 +1,37 @@
+---
+title: Compost potion(4) | OSRS Price Data
+description: "Compost potion(4): Pour this on compost to turn it into super-compost.. High alch: 72 GP, GE limit: 50."
+osrs:
+  id: 6470
+  name: Compost potion(4)
+  slug: compost-potion-4
+  examine: Pour this on compost to turn it into super-compost.
+  members: true
+  icon: Compost potion(4).png
+  value: 120
+  lowalch: 48
+  highalch: 72
+  limit: 50
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

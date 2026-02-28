@@ -1,0 +1,93 @@
+---
+title: Black dagger | OSRS Price Data
+description: "Black dagger: A vicious black dagger.. High alch: 144 GP, GE limit: 125."
+osrs:
+  id: 1217
+  name: Black dagger
+  slug: black-dagger
+  examine: A vicious black dagger.
+  members: false
+  icon: Black dagger.png
+  value: 240
+  lowalch: 96
+  highalch: 144
+  limit: 125
+  item_id: 1217
+  item_type: equipment
+  slot: weapon
+  type: dagger
+  attack_style: stab
+  attack_speed: 4
+  tradeable: true
+  weight: 0.453
+  requirements:
+    attack: 10
+  stats:
+    stab_attack: 10
+    slash_attack: 5
+    crush_attack: -4
+    strength: 7
+  related_items:
+    - slug: mithril-dagger
+    - slug: black-sword
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Dagger |
+| Tradeable | Yes |
+| Weight | 0.453 kg |
+| Requirements | 10 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | +10 |
+| Slash Attack | +5 |
+| Crush Attack | -4 |
+| Strength | +7 |
+
+## Obtaining
+
+**Shop:** Varrock Swordshop.
+
+**Drops:** Black knights, H.A.M. members.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~331 gp
+
+Cannot be smithed. Fast attack speed. F2P accessible.
+
+## Related Items
+
+- [Mithril dagger](/osrs/mithril-dagger/) - Upgrade
+- [Black sword](/osrs/black-sword/) - Higher damage
+
+<Adsense />

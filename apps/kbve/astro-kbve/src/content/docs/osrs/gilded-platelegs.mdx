@@ -1,0 +1,133 @@
+---
+title: Gilded platelegs | OSRS Price Data
+description: "Gilded platelegs is a F2P legs slot item requiring 40 Defence. High alch: 38,400 GP, GE limit: 8."
+osrs:
+  id: 3483
+  name: Gilded platelegs
+  slug: gilded-platelegs
+  examine: Rune platelegs with gold plate.
+  members: false
+  icon: Gilded platelegs.png
+  value: 64000
+  lowalch: 25600
+  highalch: 38400
+  limit: 8
+  equipment:
+    slot: legs
+    type: melee armour
+    attack_style: melee
+    requirements:
+      defence: 40
+    stats:
+      defence_stab: 51
+      defence_slash: 49
+      defence_crush: 47
+      defence_magic: -4
+      defence_ranged: 49
+      melee_strength: 0
+      prayer_bonus: 0
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        requirements:
+          clue_type: Hard
+        rarity: Rare
+        description: Rare reward from hard clue scrolls
+  related_items:
+    - item_id: 3486
+      item_name: Gilded full helm
+      slug: gilded-full-helm
+      relationship: set-piece
+      description: Head slot of gilded set
+    - item_id: 3481
+      item_name: Gilded platebody
+      slug: gilded-platebody
+      relationship: set-piece
+      description: Body slot of gilded set
+    - item_id: 3488
+      item_name: Gilded kiteshield
+      slug: gilded-kiteshield
+      relationship: set-piece
+      description: Shield slot of gilded set
+    - item_id: 12389
+      item_name: Gilded scimitar
+      slug: gilded-scimitar
+      relationship: set-piece
+      description: Weapon of gilded set
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Legs |
+| Type | Melee Armour |
+| Tradeable | Yes |
+| Members Only | No |
+| Weight | 9.979 kg |
+
+## Obtaining
+
+| Method | Details |
+|--------|---------|
+| Source | Hard Clue Scrolls |
+| Rarity | Rare (1/35,750) |
+
+## Combat Stats
+
+| Defence | Value |
+|---------|-------|
+| Stab | +51 |
+| Slash | +49 |
+| Crush | +47 |
+| Magic | -4 |
+| Ranged | +49 |
+
+**Requirements:** 40 Defence
+
+## About
+
+The gilded platelegs are a cosmetic variant of rune platelegs with identical stats but a prestigious golden appearance. They require 40 Defence to wear.
+
+Gilded armour is obtained from Treasure Trails and is valued for its appearance rather than stats. It shares the same defensive bonuses as rune armour but costs significantly more due to its rarity and fashionscape appeal.
+
+## Market Strategy
+
+**Investment Notes:**
+- Price driven by cosmetic demand
+- Popular for fashionscape and showing off
+- More accessible than 3rd age but still valuable
+
+**Trading Tips:**
+- Compare prices with rune equivalent for value assessment
+- Watch for dips after clue scroll events
+- Popular with free-to-play players for fashion
+
+## Related Items
+
+- [Gilded full helm](/osrs/gilded-full-helm/) - Head slot of gilded set
+- [Gilded platebody](/osrs/gilded-platebody/) - Body slot of gilded set
+- [Gilded kiteshield](/osrs/gilded-kiteshield/) - Shield slot of gilded set
+- [Gilded scimitar](/osrs/gilded-scimitar/) - Weapon of gilded set
+
+<Adsense />

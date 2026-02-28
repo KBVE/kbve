@@ -1,0 +1,115 @@
+---
+title: Atlatl dart | OSRS Price Data
+description: "Atlatl dart: Quite big for a dart.. High alch: 294 GP, GE limit: 11,000."
+osrs:
+  id: 28991
+  name: Atlatl dart
+  slug: atlatl-dart
+  examine: Quite big for a dart.
+  members: true
+  icon: Atlatl dart 5.png
+  value: 490
+  lowalch: 196
+  highalch: 294
+  limit: 11000
+  material:
+    type: ammunition
+    tier: atlatl
+  drop_table:
+    primary_source: Crafted / Lunar Chest
+    sources:
+      - source: Lunar Chest (Neypotzli)
+        quantity: 72-120
+        rarity: common
+        drop_rate: 6/30
+        members_only: true
+      - source: Crafting
+        quantity: "20"
+        rarity: craftable
+        members_only: true
+  recipes:
+    - skill: fletching
+      level: 74
+      xp: 20
+      materials:
+        - item_name: Headless atlatl dart
+          quantity: 20
+        - item_name: Atlatl dart tips
+          quantity: 20
+      product: Atlatl dart
+      product_id: 28991
+      product_quantity: 20
+      members_only: true
+  related_items:
+    - item_id: 29000
+      item_name: Eclipse atlatl
+      slug: eclipse-atlatl
+      relationship: alternative
+      description: Weapon that uses these darts
+    - item_id: 29010
+      item_name: Eclipse moon helm
+      slug: eclipse-moon-helm
+      relationship: alternative
+      description: Part of Eclipse moon set
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Atlatl darts can be obtained through:
+
+| Method | Amount | Requirements |
+|--------|--------|--------------|
+| Fletching | 20 per craft | 74 Fletching |
+| Lunar Chest | 72-120 | None |
+
+**Crafting Materials:**
+- 20 Headless atlatl darts
+- 20 Atlatl dart tips (from broken antlers)
+
+## Usage
+
+Ammunition for the Eclipse atlatl weapon.
+
+**Unique Mechanic:**
+- Despite being ranged ammunition, damage is calculated using the player's **melee strength bonus**
+- Cannot be used with toxic blowpipe
+- Incompatible with Dizana's quiver
+
+## Properties
+
+| Property | Value |
+|----------|-------|
+| Stackable | Yes |
+| Tradeable | Yes |
+| Members only | Yes |
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Tips:**
+- Required for Eclipse atlatl builds
+- Consumed when attacking
+- Craft or buy from GE
+
+<Adsense />

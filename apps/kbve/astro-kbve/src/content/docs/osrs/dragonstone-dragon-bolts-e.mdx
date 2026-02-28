@@ -1,0 +1,37 @@
+---
+title: Dragonstone dragon bolts (e) | OSRS Price Data
+description: "Dragonstone dragon bolts (e): Enchanted Dragon crossbow bolts, tipped with dragonstone. Double dragon!. High alch: 690 GP, GE limit: 11,000."
+osrs:
+  id: 21948
+  name: Dragonstone dragon bolts (e)
+  slug: dragonstone-dragon-bolts-e
+  examine: Enchanted Dragon crossbow bolts, tipped with dragonstone. Double dragon!
+  members: true
+  icon: Dragonstone dragon bolts (e) 5.png
+  value: 1150
+  lowalch: 460
+  highalch: 690
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

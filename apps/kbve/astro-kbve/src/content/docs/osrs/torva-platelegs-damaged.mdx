@@ -1,0 +1,134 @@
+---
+title: Torva platelegs (damaged) | OSRS Price Data
+description: "Torva platelegs (damaged): An ancient warrior's platelegs.. High alch: 240,000 GP, GE limit: 8."
+osrs:
+  id: 26380
+  name: Torva platelegs (damaged)
+  slug: torva-platelegs-damaged
+  examine: An ancient warrior's platelegs.
+  members: true
+  icon: Torva platelegs (damaged).png
+  value: 400000
+  lowalch: 160000
+  highalch: 240000
+  limit: 8
+  item:
+    type: damaged armour
+    tradeable: true
+    weight: 9.071
+  obtaining:
+    - source: Nex
+      drop_rate: 1/43 per unique roll
+      notes: Requires Bandos tassets to repair
+  recipes:
+    - skill: none
+      level: 0
+      materials:
+        - item_id: 26380
+          item_name: Torva platelegs (damaged)
+          quantity: 1
+        - item_id: 11834
+          item_name: Bandos tassets
+          quantity: 1
+      product: Torva platelegs
+      product_id: 26386
+      notes: No skill requirements
+  related_items:
+    - item_id: 11834
+      item_name: Bandos tassets
+      slug: bandos-tassets
+      relationship: component
+      description: Required to repair
+    - item_id: 26386
+      item_name: Torva platelegs
+      slug: torva-platelegs
+      relationship: product
+      description: Repaired BiS melee legs
+    - item_id: 26376
+      item_name: Torva full helm (damaged)
+      slug: torva-full-helm-damaged
+      relationship: alternative
+      description: Damaged helm from Nex
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Damaged Armour |
+| Tradeable | Yes |
+| Weight | 9.071 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Nex | 1/43 per unique roll |
+
+Nex has a chance to drop damaged Torva pieces as part of her unique drop table.
+
+## Repairing
+
+| Component | Source | Price |
+|-----------|--------|-------|
+| Torva platelegs (damaged) | Nex | ~220M |
+| Bandos tassets | God Wars Dungeon | ~22M |
+
+No skill requirements to combine the items.
+
+## Uses
+
+| Item Created | Materials |
+|--------------|-----------|
+| Torva platelegs | Damaged piece + Bandos tassets |
+
+**Warning:** Bandos tassets are permanently consumed.
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~220M gp
+
+**Tips:**
+- Nex exclusive drop
+- Tassets consumed in repair
+- Creates BiS melee legs
+- Part of Torva set
+
+## Torva Set
+
+Part of the Torva armour set, which provides:
+- Best-in-slot melee stats
+- +6 HP boost (legs piece)
+- +16 total HP with full set
+
+## Related Items
+
+- [Nex](/osrs/nex/) - Boss source
+- [Bandos tassets](/osrs/bandos-tassets/) - Required to repair
+- [Torva platelegs](/osrs/torva-platelegs/) - Repaired version
+- [Torva full helm (damaged)](/osrs/torva-full-helm-damaged/) - Set helm
+- [Torva platebody (damaged)](/osrs/torva-platebody-damaged/) - Set body
+
+<Adsense />

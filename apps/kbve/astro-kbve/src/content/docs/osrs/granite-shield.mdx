@@ -1,0 +1,37 @@
+---
+title: Granite shield | OSRS Price Data
+description: "Granite shield: A solid stone shield.. High alch: 33,600 GP, GE limit: 70."
+osrs:
+  id: 3122
+  name: Granite shield
+  slug: granite-shield
+  examine: A solid stone shield.
+  members: true
+  icon: Granite shield.png
+  value: 56000
+  lowalch: 22400
+  highalch: 33600
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

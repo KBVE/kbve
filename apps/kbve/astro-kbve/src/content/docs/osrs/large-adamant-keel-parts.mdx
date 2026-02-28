@@ -1,0 +1,37 @@
+---
+title: Large adamant keel parts | OSRS Price Data
+description: "Large adamant keel parts: Parts for creating an adamant keel for larger boats.. High alch: 9,375 GP, GE limit: 100."
+osrs:
+  id: 32032
+  name: Large adamant keel parts
+  slug: large-adamant-keel-parts
+  examine: Parts for creating an adamant keel for larger boats.
+  members: true
+  icon: Large adamant keel parts.png
+  value: 15625
+  lowalch: 6250
+  highalch: 9375
+  limit: 100
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Demon tear | OSRS Price Data
+description: "Demon tear: A strange glowing tear.. High alch: 300 GP, GE limit: 13,000."
+osrs:
+  id: 31111
+  name: Demon tear
+  slug: demon-tear
+  examine: A strange glowing tear.
+  members: true
+  icon: Demon tear.png
+  value: 500
+  lowalch: 200
+  highalch: 300
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

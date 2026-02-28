@@ -1,0 +1,119 @@
+---
+title: Acorn | OSRS Price Data
+description: "Acorn: Plant this in a plantpot of soil to grow a sapling.. High alch: 3 GP, GE limit: 200."
+osrs:
+  id: 5312
+  name: Acorn
+  slug: acorn
+  examine: Plant this in a plantpot of soil to grow a sapling.
+  members: true
+  icon: Acorn 5.png
+  value: 6
+  lowalch: 2
+  highalch: 3
+  limit: 200
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    stackable: true
+    weight: 0
+  skilling_source:
+    skill: farming
+    level: 15
+    xp: 14
+    growth_time: 280
+  drop_table:
+    sources:
+      - source: Bird nests (Woodcutting)
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Wintertodt
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: common
+        members_only: true
+  related_items:
+    - item_id: 1521
+      item_name: Oak logs
+      slug: oak-logs
+      relationship: product
+      description: Woodcutting product
+    - item_id: 6016
+      item_name: Basket of tomatoes
+      slug: basket-of-tomatoes
+      relationship: component
+      description: Protection payment (1)
+    - item_id: 5313
+      item_name: Willow seed
+      slug: willow-seed
+      relationship: upgrade
+      description: Higher tier option
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Tree Seed |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 15 Farming |
+
+## Obtaining
+
+Common sources:
+- Bird nests (Woodcutting, Bird houses)
+- Wintertodt supply crates
+- Managing Miscellania
+- Monster drops
+
+## Usage
+
+Plant in **tree patches** to grow oak trees.
+
+**Growth Time:** ~280 minutes (4.6 hours)
+
+**Payment:** 1 basket of tomatoes (optional protection)
+
+**XP:** 14 (planting) + 467.3 (check-health)
+
+## Market Strategy
+
+**Buy Limit:** 200 per 4 hours
+
+**Price:** ~20 gp
+
+Low-value tree seed. Good for early Farming training. Oak trees can be chopped for oak logs.
+
+## Related Items
+
+- [Oak logs](/osrs/oak-logs/) - Woodcutting product
+- [Basket of tomatoes](/osrs/basket-of-tomatoes/) - Protection payment
+- [Willow seed](/osrs/willow-seed/) - Higher tier option
+
+<Adsense />

@@ -1,0 +1,106 @@
+---
+title: Zamorakian spear | OSRS Price Data
+description: "Zamorakian spear is a members weapon slot item requiring 70 Attack. High alch: 60,003 GP, GE limit: 8."
+osrs:
+  id: 11824
+  name: Zamorakian spear
+  slug: zamorakian-spear
+  examine: An evil spear.
+  members: true
+  icon: Zamorakian spear.png
+  value: 100005
+  lowalch: 40002
+  highalch: 60003
+  limit: 8
+  equipment:
+    slot: weapon
+    type: spear
+    tradeable: true
+    weight: 3
+    requirements:
+      attack: 70
+    stats:
+      attack_stab: 85
+      attack_slash: 65
+      attack_crush: 65
+      strength: 75
+      prayer: 2
+  special_attack:
+    name: Shove
+    energy_cost: 25
+    description: Stuns target for 3 seconds
+  related_items:
+    - item_id: 11889
+      item_name: Zamorakian hasta
+      slug: zamorakian-hasta
+      relationship: alternative
+      description: One-hand version after conversion
+    - item_id: 22978
+      item_name: Dragon hunter lance
+      slug: dragon-hunter-lance
+      relationship: upgrade
+      description: Upgraded dragon-slaying weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Two Hand |
+| Type | Spear |
+| Tradeable | Yes |
+| Weight | 3 kg |
+| Requirements | 70 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | +85 |
+| Slash Attack | +65 |
+| Crush Attack | +65 |
+| Strength | +75 |
+| Prayer | +2 |
+
+## Obtaining
+
+**Drops:** K'ril Tsutsaroth (1/127).
+
+## Special Attack
+
+**Shove:** Stuns target for 3 seconds. Costs 25% spec.
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~1,308,315 gp
+
+GWD unique. Converts to hasta at Otto.
+
+## Related Items
+
+- [Zamorakian hasta](/osrs/zamorakian-hasta/) - One-hand version
+- [Dragon hunter lance](/osrs/dragon-hunter-lance/) - Upgrade
+
+<Adsense />

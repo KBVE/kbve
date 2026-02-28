@@ -1,0 +1,125 @@
+---
+title: Bandos boots | OSRS Price Data
+description: "Bandos boots is a members feet slot item requiring 65 Defence. High alch: 173,406 GP, GE limit: 8."
+osrs:
+  id: 11836
+  name: Bandos boots
+  slug: bandos-boots
+  examine: Some sturdy boots.
+  members: true
+  icon: Bandos boots.png
+  value: 289010
+  lowalch: 115604
+  highalch: 173406
+  limit: 8
+  equipment:
+    slot: feet
+    type: melee_boots
+    tradeable: true
+    weight: 6
+    requirements:
+      defence: 65
+    stats:
+      defence_stab: 17
+      defence_slash: 18
+      defence_crush: 19
+      defence_ranged: 15
+      prayer: 1
+  obtaining:
+    methods:
+      - source: General Graardor
+        drop_rate: 1/381
+  related_items:
+    - item_id: 0
+      item_name: General Graardor
+      slug: general-graardor
+      relationship: component
+      description: Boss drop
+    - item_id: 21733
+      item_name: Guardian boots
+      slug: guardian-boots
+      relationship: upgrade
+      description: Upgrade
+    - item_id: 13239
+      item_name: Primordial boots
+      slug: primordial-boots
+      relationship: alternative
+      description: Offensive alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Feet |
+| Type | Melee Boots |
+| Tradeable | Yes |
+| Weight | 6 kg |
+| Requirements | 65 Defence |
+
+## Obtaining
+
+Drop from [General Graardor](/osrs/general-graardor/) (1/381).
+
+## Stats
+
+| Defence | Bonus |
+|---------|-------|
+| Stab | +17 |
+| Slash | +18 |
+| Crush | +19 |
+| Ranged | +15 |
+
+| Other | Bonus |
+|-------|-------|
+| Prayer | +1 |
+
+No strength bonus.
+
+## Usage
+
+Used for:
+- Defensive tank builds
+- Budget boots
+- Upgrades to Guardian boots
+
+**Defence-focused boots (no strength).**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~200K gp
+
+**Tips:**
+- From General Graardor (GWD)
+- No strength bonus
+- Upgrade to Guardian boots
+
+## Related Items
+
+- [General Graardor](/osrs/general-graardor/) - Boss drop
+- [Guardian boots](/osrs/guardian-boots/) - Upgrade
+- [Primordial boots](/osrs/primordial-boots/) - Offensive alternative
+
+<Adsense />

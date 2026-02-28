@@ -1,0 +1,118 @@
+---
+title: Raw shark | OSRS Price Data
+description: "Raw shark: I should try cooking this.. High alch: 102 GP, GE limit: 15,000."
+osrs:
+  id: 383
+  name: Raw shark
+  slug: raw-shark
+  examine: I should try cooking this.
+  members: true
+  icon: Raw shark.png
+  value: 170
+  lowalch: 68
+  highalch: 102
+  limit: 15000
+  material:
+    type: raw_fish
+    tier: high
+  fishing:
+    level: 76
+    xp: 110
+    method: Harpoon
+    locations:
+      - Fishing Guild
+      - Catherby
+      - Jatizso
+  cooking:
+    level: 80
+    xp: 210
+    stop_burn_level: 94
+    stop_burn_level_gauntlets: 89
+    product_id: 385
+    product_name: Shark
+  recipes:
+    - skill: cooking
+      level: 80
+      xp: 210
+      materials:
+        - item_name: Raw shark
+          item_id: 383
+          quantity: 1
+      product: Shark
+      product_id: 385
+      product_quantity: 1
+      facility: Fire or range
+      members_only: true
+  related_items:
+    - item_id: 385
+      item_name: Shark
+      slug: shark
+      relationship: product
+      description: Cooked product
+    - item_id: 377
+      item_name: Raw lobster
+      slug: raw-lobster
+      relationship: downgrade
+      description: Lower tier fish
+    - item_id: 371
+      item_name: Raw swordfish
+      slug: raw-swordfish
+      relationship: downgrade
+      description: Mid-tier fish
+    - item_id: 775
+      item_name: Cooking gauntlets
+      slug: cooking-gauntlets
+      relationship: alternative
+      description: Reduces burn rate
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Cooking
+
+Cook Raw shark on a fire or range to get Shark.
+
+| Stat | Value |
+|------|-------|
+| **Cooking Level** | 80 |
+| **Burn stop level** | 94 (89 with Cooking gauntlets + Hosidius range) |
+| **XP gained** | 210 |
+
+## Market Flip Strategy
+
+**Cook for Profit:**
+- Buy Raw shark → Cook → Sell Shark
+- Calculate: `Shark price - Raw shark price = Cooking profit`
+- Account for burn rate at your level
+
+**Buy Limit:** 15,000 per 4 hours
+
+**Tips:**
+- Use Hosidius kitchen (5% reduced burn rate)
+- Cooking gauntlets significantly reduce burns
+- High volume item, consistent demand
+
+**Burn Rate Consideration:**
+- At level 80: ~20% burn rate
+- At level 89 (gauntlets + Hosidius): 0% burn rate
+- Factor burnt sharks into profit calculation
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: 3rd age cloak | OSRS Price Data
+description: "3rd age cloak: A beautiful cloak woven by ancient tailors.. High alch: 51,000 GP, GE limit: 8."
+osrs:
+  id: 12437
+  name: 3rd age cloak
+  slug: 3rd-age-cloak
+  examine: A beautiful cloak woven by ancient tailors.
+  members: true
+  icon: 3rd age cloak.png
+  value: 85000
+  lowalch: 34000
+  highalch: 51000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

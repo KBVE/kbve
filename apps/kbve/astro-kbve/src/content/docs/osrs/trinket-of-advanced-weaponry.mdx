@@ -1,0 +1,37 @@
+---
+title: Trinket of advanced weaponry | OSRS Price Data
+description: "Trinket of advanced weaponry: A magic rock! This one gives you a random blighted weapon instead.. High alch: 6,000 GP."
+osrs:
+  id: 28567
+  name: Trinket of advanced weaponry
+  slug: trinket-of-advanced-weaponry
+  examine: A magic rock! This one gives you a random blighted weapon instead.
+  members: true
+  icon: Trinket of advanced weaponry.png
+  value: 10000
+  lowalch: 4000
+  highalch: 6000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

@@ -1,0 +1,54 @@
+---
+title: 'October: 7th'
+category: Daily
+date: 2025-10-07 12:00:00
+client: Self
+unsplash: 1693298661836-1206649639ef
+img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 7th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### ClickHouse Postgres
+
+-   04:59PM
+
+    Integration is complete, we are able to query!
+    Our quick command to connect to the service is this below:
+
+    ```shell
+    talos -n clickhouse port-forward svc/clickhouse-clickhouse-cluster 9000:9000 8123:8123
+    ```
+
+    For our quick query, we will do this:
+
+    ```sql
+    SELECT *
+    FROM postgresql(supabase_postgres, schema='auth', table='identities');
+    ```
+
+    This will be a quick test case to make sure that everything works between the external secret and our current query.
+
+
+## 2024
+
+**Unity**
+
+I been diving deeper into Unity 6, preparing the different plugins and getting ready for the stable release next week.
+Since we have about a week to prepare, I am going to go ahead and test more plugins with the pre-release!
+
+**OneJS**
+
+Out of all the plugins that I have installed, it seems that `OneJS` is already setup to be used on unity 6 aka 6000.
+This plugin will help us build some general UI systems using tailwindcss, but those ui components might not work on a mobile release.
+I am thinking the rare icon game should be released for just steam and we can wrap back around with a new game in the future for mobile.
+Or if we need to release to mobile, I can just replace the UI with Unitys library, probably hire a developer to do it for us.
+
+**Auth**
+
+For the Supabase Auth, we will have to finish up the generic endpoint and then build around it.

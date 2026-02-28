@@ -1,0 +1,129 @@
+---
+title: Dharok's platelegs | OSRS Price Data
+description: "Dharok's platelegs is a members legs slot item requiring 70 Defence. High alch: 165,000 GP, GE limit: 15."
+osrs:
+  id: 4722
+  name: Dharok's platelegs
+  slug: dharok-s-platelegs
+  examine: Dharok the Wretched's plate leg armour.
+  members: true
+  icon: Dharok's platelegs.png
+  value: 275000
+  lowalch: 110000
+  highalch: 165000
+  limit: 15
+  equipment:
+    slot: legs
+    type: barrows
+    set: Dharok
+    tradeable: true
+    degradeable: true
+    weight: 9
+    requirements:
+      defence: 70
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: -21
+      attack_ranged: -11
+      defence_stab: 85
+      defence_slash: 82
+      defence_crush: 83
+      defence_magic: -4
+      defence_ranged: 92
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  set_effect:
+    name: Wretched Strength
+    pieces_required: 4
+    description: Damage increases as HP decreases. Up to +98.9% damage at 1 HP with 99 max HP
+  related_items:
+    - item_id: 4716
+      item_name: Dharok's helm
+      slug: dharoks-helm
+      relationship: set-piece
+      description: Head slot set piece
+    - item_id: 4720
+      item_name: Dharok's platebody
+      slug: dharoks-platebody
+      relationship: set-piece
+      description: Body slot set piece
+    - item_id: 4718
+      item_name: Dharok's greataxe
+      slug: dharoks-greataxe
+      relationship: set-piece
+      description: Weapon set piece
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Obtained from the Barrows minigame (1/102.17 for any specific Barrows item).
+
+**Location:** Barrows mounds, east of Mort'ton in Morytania
+
+## Equipment Info
+
+| Stat | Value |
+|------|-------|
+| Slot | Legs |
+| Weight | 9.0 kg |
+| Requirements | 70 Defence |
+
+## Stats
+
+| Bonus | Value |
+|-------|-------|
+| Stab defence | +85 |
+| Slash defence | +82 |
+| Crush defence | +83 |
+| Magic defence | -4 |
+| Ranged defence | +92 |
+| Magic attack | -21 |
+| Ranged attack | -11 |
+
+## Set Effect
+
+**Wretched Strength:**
+When wearing full Dharok's (helm, platebody, platelegs, greataxe):
+- Damage increases as HP decreases
+- Up to +98.9% damage at 1 HP with 99 max HP
+
+## Degradation
+
+- 15 hours of combat use
+- Repair at Bob in Lumbridge or POH armor stand
+
+## Market Strategy
+
+**Buy Limit:** 10 per 4 hours
+
+## Related Items
+
+- [Dharok's helm](/osrs/dharoks-helm/) - Head slot
+- [Dharok's platebody](/osrs/dharoks-platebody/) - Body slot
+- [Dharok's greataxe](/osrs/dharoks-greataxe/) - Weapon
+
+<Adsense />

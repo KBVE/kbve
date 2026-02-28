@@ -1,0 +1,133 @@
+---
+title: Zulrah's scales | OSRS Price Data
+description: "Zulrah's scales: Flakes of toxic snakeskin.. High alch: 12 GP, GE limit: 30,000."
+osrs:
+  id: 12934
+  name: Zulrah's scales
+  slug: zulrah-s-scales
+  examine: Flakes of toxic snakeskin.
+  members: true
+  icon: Zulrah's scales 5.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: 30000
+  material:
+    type: scale
+    tier: zulrah
+  drop_table:
+    primary_source: Zulrah
+    sources:
+      - source: Zulrah
+        source_id: 2042
+        combat_level: 725
+        quantity: 100-299
+        rarity: common
+        members_only: true
+  charges:
+    toxic_blowpipe:
+      per_use: 0.33
+      max_charges: 16383
+    serpentine_helm:
+      per_use: 1
+      max_charges: 11000
+    trident_of_the_swamp:
+      per_use: 1
+      max_charges: 2500
+  recipes:
+    - skill: herblore
+      level: 87
+      xp: 120
+      materials:
+        - item_name: Antidote++(4)
+          item_id: 5952
+          quantity: 1
+        - item_name: Zulrah's scales
+          item_id: 12934
+          quantity: 20
+      product: Anti-venom(4)
+      product_id: 12905
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 12924
+      item_name: Toxic blowpipe
+      slug: toxic-blowpipe
+      relationship: alternative
+      description: Primary consumer
+    - item_id: 12931
+      item_name: Serpentine helm
+      slug: serpentine-helm
+      relationship: alternative
+      description: Defense use
+    - item_id: 12899
+      item_name: Trident of the swamp
+      slug: trident-of-the-swamp
+      relationship: alternative
+      description: Magic use
+    - item_id: 12905
+      item_name: Anti-venom(4)
+      slug: anti-venom-4
+      relationship: product
+      description: Herblore product
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Amount |
+|--------|--------|
+| Zulrah (per kill) | 100-299 (~220 avg) |
+| Sacred eels | Variable (72 Cooking, 87 Fishing) |
+| Dismantling items | 20,000 per item |
+
+## Uses
+
+| Item | Scales per charge | Max charges |
+|------|-------------------|-------------|
+| Toxic blowpipe | 1 per 3 shots | 16,383 |
+| Serpentine helm | 1 per hit taken | 11,000 |
+| Trident of the swamp | 1 per cast | 2,500 |
+| Toxic staff of the dead | 1 per cast | 11,000 |
+
+## Market Flip Strategy
+
+**Scale Trading:**
+- High volume consumable
+- Price tied to Zulrah popularity
+- Blowpipe nerfs affected demand
+
+**Buy Limit:** 30,000 per 4 hours
+
+**Demand Drivers:**
+- Toxic blowpipe users
+- Serpentine helm charges
+- Swamp trident users
+- Anti-venom production
+
+**Tips:**
+- Price correlates with raids activity
+- Blowpipe still popular post-nerf
+- Check GP/scale for gear choices
+- Sacred eel fishing for ironmen
+
+<Adsense />

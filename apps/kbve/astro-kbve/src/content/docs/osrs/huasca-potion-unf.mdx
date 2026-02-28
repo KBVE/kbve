@@ -1,0 +1,37 @@
+---
+title: Huasca potion (unf) | OSRS Price Data
+description: "Huasca potion (unf): I need another ingredient to finish this Huasca potion.. High alch: 15 GP, GE limit: 10,000."
+osrs:
+  id: 30100
+  name: Huasca potion (unf)
+  slug: huasca-potion-unf
+  examine: I need another ingredient to finish this Huasca potion.
+  members: true
+  icon: Huasca potion (unf).png
+  value: 25
+  lowalch: 10
+  highalch: 15
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,113 @@
+---
+title: Rune platebody (g) | OSRS Price Data
+description: "Rune platebody (g) is a F2P body slot item requiring 40 Defence. High alch: 39,000 GP, GE limit: 8."
+osrs:
+  id: 2615
+  name: Rune platebody (g)
+  slug: rune-platebody-g
+  examine: Rune platebody with gold trim.
+  members: false
+  icon: Rune platebody (g).png
+  value: 65000
+  lowalch: 26000
+  highalch: 39000
+  limit: 8
+  equipment:
+    slot: body
+    type: melee_armour
+    tradeable: true
+    weight: 9.9
+    requirements:
+      defence: 40
+    stats:
+      defence_stab: 80
+      defence_slash: 72
+      defence_crush: 63
+      defence_magic: -6
+      defence_ranged: 80
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Hard
+        drop_rate: Rare from reward casket
+  related_items:
+    - item_id: 2617
+      item_name: Rune platelegs (g)
+      slug: rune-platelegs-g
+      relationship: set-piece
+      description: Matching legs
+    - item_id: 1127
+      item_name: Rune platebody
+      slug: rune-platebody
+      relationship: downgrade
+      description: Non-gilded version
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Body |
+| Type | Melee Armour |
+| Tradeable | Yes |
+| Weight | 9.9 kg |
+
+## Obtaining
+
+Reward from hard Treasure Trails.
+
+**Drop Rate:** Rare from reward casket (hard)
+
+## Stats
+
+| Defence | Value |
+|---------|-------|
+| Stab | +80 |
+| Slash | +72 |
+| Crush | +63 |
+| Magic | -6 |
+| Ranged | +80 |
+
+**Requirements:** 40 Defence
+
+## Comparison
+
+Same stats as regular rune platebody with gold trim cosmetic.
+
+| Property | Rune platebody | Rune platebody (g) |
+|----------|----------------|-------------------|
+| Stats | Same | Same |
+| Appearance | Normal | Gold trimmed |
+| Source | Smithing/Shop | Hard clue |
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Hard clue exclusive
+- Purely cosmetic upgrade
+- Popular F2P fashionscape
+- Collection log item
+
+<Adsense />

@@ -1,0 +1,142 @@
+---
+title: Masori chaps | OSRS Price Data
+description: "Masori chaps is a members head slot item requiring 30 Defence. High alch: 600,000 GP, GE limit: 8."
+osrs:
+  id: 27232
+  name: Masori chaps
+  slug: masori-chaps
+  examine: Ancient armour once worn by a powerful ranger.
+  members: true
+  icon: Masori chaps.png
+  value: 1000000
+  lowalch: 400000
+  highalch: 600000
+  limit: 8
+  equipment:
+    slot: head
+    type: masori_armor
+    attack_style: ranged
+    requirements:
+      ranged: 80
+      defence: 30
+    stats:
+      attack_ranged: 16
+      defence_stab: 10
+      defence_slash: 12
+      defence_crush: 14
+      defence_magic: 12
+      defence_ranged: 10
+      ranged_strength: 2
+  set_bonus:
+    with_full_set: true
+    regular_damage: 10
+    fortified_damage: 12.5
+  drop_table:
+    sources:
+      - source: Tombs of Amascut
+        source_id: 11751
+        combat_level: 0
+        quantity: "1"
+        rarity: 1/48 at 150 invocation
+        members_only: true
+  recipes:
+    - skill: crafting
+      level: 90
+      xp: 0
+      materials:
+        - item_name: Masori mask
+          item_id: 27232
+          quantity: 1
+        - item_name: Armadyl helmet
+          item_id: 11826
+          quantity: 1
+      product: Masori mask (f)
+      product_id: 27241
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 27226
+      item_name: Masori body
+      slug: masori-body
+      relationship: alternative
+      description: Body armor
+    - item_id: 27229
+      item_name: Masori chaps
+      slug: masori-chaps
+      relationship: alternative
+      description: Leg armor
+    - item_id: 11825
+      item_name: Armadyl helmet
+      slug: armadyl-helmet
+      relationship: component
+      description: Used for fortifying
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Rare drop from Tombs of Amascut (1/48 at 150 invocation).
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged attack | +16 |
+| Stab defence | +10 |
+| Slash defence | +12 |
+| Crush defence | +14 |
+| Magic defence | +12 |
+| Ranged defence | +10 |
+| Ranged strength | +2 |
+| Requirements | 80 Ranged, 30 Defence |
+
+## Set Bonus
+
+**With full Masori armor (fortified):**
+- +12.5% ranged damage bonus
+
+**With regular Masori:**
+- +10% ranged damage bonus
+
+## Usage
+
+BiS ranged helm for:
+- All ranged combat
+- Raids
+- Bossing
+- When not using Slayer helm
+
+**Fortified version requires Armadyl helmet.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~42M gp (regular), ~48M (fortified)
+
+**Tips:**
+- Regular from ToA
+- Fortify with Armadyl piece
+- Set bonus is massive DPS increase
+
+<Adsense />

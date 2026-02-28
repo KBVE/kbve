@@ -1,0 +1,37 @@
+---
+title: Hood of darkness | OSRS Price Data
+description: "Hood of darkness: A dark power is woven into this hood.. High alch: 6,000 GP, GE limit: 70."
+osrs:
+  id: 20128
+  name: Hood of darkness
+  slug: hood-of-darkness
+  examine: A dark power is woven into this hood.
+  members: true
+  icon: Hood of darkness.png
+  value: 10000
+  lowalch: 4000
+  highalch: 6000
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

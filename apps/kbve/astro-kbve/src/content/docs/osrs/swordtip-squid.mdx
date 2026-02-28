@@ -1,0 +1,37 @@
+---
+title: Swordtip squid | OSRS Price Data
+description: "Swordtip squid: Doesn't look too appetising, but looks can be deceiving.. High alch: 60 GP."
+osrs:
+  id: 31556
+  name: Swordtip squid
+  slug: swordtip-squid
+  examine: Doesn't look too appetising, but looks can be deceiving.
+  members: true
+  icon: Swordtip squid.png
+  value: 100
+  lowalch: 40
+  highalch: 60
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

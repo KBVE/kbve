@@ -1,0 +1,150 @@
+---
+title: Obsidian platelegs | OSRS Price Data
+description: "Obsidian platelegs is a members legs slot item requiring 60 Defence. High alch: 40,200 GP, GE limit: 70."
+osrs:
+  id: 21304
+  name: Obsidian platelegs
+  slug: obsidian-platelegs
+  examine: Provides excellent protection.
+  members: true
+  icon: Obsidian platelegs.png
+  value: 67000
+  lowalch: 26800
+  highalch: 40200
+  limit: 70
+  equipment:
+    slot: legs
+    type: melee_armor
+    tradeable: true
+    weight: 9.071
+    requirements:
+      defence: 60
+    stats:
+      strength: 1
+      stab_def: 46
+      slash_def: 43
+      crush_def: 41
+      magic_def: -10
+      ranged_def: 40
+  set_bonus:
+    set_name: Obsidian
+    requirement: Full set + Obsidian weapon
+    damage_bonus: +10%
+    accuracy_bonus: +10%
+    stacks_with:
+      - item_id: 11128
+        item_name: Berserker necklace
+        additional_bonus: +20%
+  shop:
+    npc: TzHaar-Hur-Zal
+    location: Mor Ul Rek
+    price: 100500
+    currency: Tokkul
+  market:
+    buy_limit: 70
+    price_estimate: 830000
+  related_items:
+    - item_id: 21298
+      item_name: Obsidian helmet
+      slug: obsidian-helmet
+      relationship: set-piece
+      description: Helm slot
+    - item_id: 21301
+      item_name: Obsidian platebody
+      slug: obsidian-platebody
+      relationship: set-piece
+      description: Body armor
+    - item_id: 6525
+      item_name: Toktz-xil-ek
+      slug: toktz-xil-ek
+      relationship: alternative
+      description: Obsidian dagger
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Legs |
+| Type | Melee Armor |
+| Tradeable | Yes |
+| Weight | 9.071 kg |
+
+## Obtaining
+
+Purchase from TzHaar-Hur-Zal in Mor Ul Rek for Tokkul.
+
+| Shop | Price |
+|------|-------|
+| TzHaar-Hur-Zal | 100,500 Tokkul |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Strength | +1 |
+
+| Defence | Value |
+|---------|-------|
+| Stab | +46 |
+| Slash | +43 |
+| Crush | +41 |
+| Magic | -10 |
+| Ranged | +40 |
+
+**Requirements:** 60 Defence
+
+## Set Bonus
+
+**Full Obsidian Set + Obsidian Weapon:**
+- +10% damage bonus
+- +10% accuracy bonus
+- Stacks with [Berserker necklace](/osrs/berserker-necklace/) (+20%)
+
+## Usage
+
+Popular for:
+- Training at TzHaar
+- Budget melee training
+- Fight Caves
+
+**Part of the Obsidian training set.**
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+
+**Price:** ~830K gp
+
+**Tips:**
+- Buy with Tokkul or GE
+- Set bonus is powerful
+- Good for training
+
+## Related Items
+
+- [Obsidian helmet](/osrs/obsidian-helmet/) - Helm slot
+- [Obsidian platebody](/osrs/obsidian-platebody/) - Body armor
+- [Toktz-xil-ek](/osrs/toktz-xil-ek/) - Obsidian dagger
+
+<Adsense />

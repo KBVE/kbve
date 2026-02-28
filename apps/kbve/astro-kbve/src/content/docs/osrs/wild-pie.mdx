@@ -1,0 +1,37 @@
+---
+title: Wild pie | OSRS Price Data
+description: "Wild pie: A triumph of man over nature.. High alch: 109 GP, GE limit: 10,000."
+osrs:
+  id: 7208
+  name: Wild pie
+  slug: wild-pie
+  examine: A triumph of man over nature.
+  members: true
+  icon: Wild pie.png
+  value: 182
+  lowalch: 72
+  highalch: 109
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

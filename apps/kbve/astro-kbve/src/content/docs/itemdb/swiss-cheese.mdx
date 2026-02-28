@@ -1,0 +1,129 @@
+---
+title: 'Swiss Cheese'
+description: |
+    A wedge of holey delight, aged with care and mystery.
+    Smells mild but lingers forever.
+id: 'swiss-cheese'
+key: 37
+ref: '01JWG6FTDT249H8AGN439GEXQQ'
+name: 'Swiss Cheese'
+type: 'Food'
+category: 392
+img: '/assets/items/skills/cooking/materials/swiss_cheese.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 45
+consumable: true
+stackable: true
+rarity: 'Common'
+weight: 0.5
+effects: 'Restores health and slightly improves focus. May attract unwanted attention.'
+price: 55
+durability: 1
+equipped: false
+levelRequirement: 0
+cooldown: 30
+action: 'consume'
+credits: |
+    Art by KBVE Pixel Workshop.
+bonuses:
+    health: 20
+    focus: 2
+    rodentAffinity: true
+scripts:
+    - guid: 'dc19274fa1914cc69a5c7b3dbb5e12f1'
+      vars:
+            healAmount: 20
+            focusBoost: 2
+            npcAffinity: 'rodent'
+            duration: 120
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Swiss Cheese** is more than a snack, it's a conversation starter with rodents and a trusted ration of wandering scholars.
+Aged to perfection, it improves mental clarity (briefly), though it might summon an audience you didn't ask for.
+
+Aged beneath the Alps or replicated in orbital dairy stations.
+KBVE Culinary Division classifies it as "edible and stable."
+
+Made from [fresh milk](/itemdb/fresh-milk/) or using modified milk.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+<Adsense />
+
+## Usage
+
+- Restores **{frontmatter.bonuses.health} health**  
+- Grants temporary **+{frontmatter.bonuses.focus} focus** for **{frontmatter.scripts[0].vars.duration} seconds**  
+- Attracts **rodent-affiliated NPCs** or hidden sewer allies  
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Notes
+
+- Can be offered to ratfolk traders for discounts  
+- Will spoil if exposed to direct gamma radiation
+
+---
+
+## Lore
+
+> “Every hole in the cheese is a memory. Eat too many and you remember someone else's past.”  
+> - The Cheeselord, Issue 3
+
+Some say the holes align when placed under moonlight. Others say that's nonsense. No one agrees. Everyone eats.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/swiss_cheese_slice.webp"
+  defaultId="01HTXYZCHS001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZCHS001',
+      title: 'Rats in the Walls',
+      description: 'You unwrap the cheese.',
+      image: 'https://images.unsplash.com/photo-1616394582181-ecf2a2807f23?q=80&w=500&auto=format&fit=crop',
+      message: 'It is soft. Something stirs nearby.',
+      choices: [
+        { label: 'Eat it now.', nextId: '01HTXYZCHS002' },
+        { label: 'Offer it to the shadows.', nextId: '01HTXYZCHS003' }
+      ]
+    },
+    {
+      id: '01HTXYZCHS002',
+      title: 'Mellowed Mind',
+      description: 'You chew thoughtfully.',
+      image: '/images/scene_cheesebite.jpg',
+      message: 'Focus sharpens. The world narrows.'
+    },
+    {
+      id: '01HTXYZCHS003',
+      title: 'Whiskered Gratitude',
+      description: 'Tiny eyes glint in the dark.',
+      image: '/images/scene_ratgift.jpg',
+      message: 'They accept your offering. Something skitters into your inventory.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/30/2025 - Swiss Cheese added as restorative food with focus bonus and rodent interactions

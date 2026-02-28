@@ -1,0 +1,37 @@
+---
+title: Mithril claws | OSRS Price Data
+description: "Mithril claws: A set of fighting claws.. High alch: 285 GP, GE limit: 125."
+osrs:
+  id: 3099
+  name: Mithril claws
+  slug: mithril-claws
+  examine: A set of fighting claws.
+  members: true
+  icon: Mithril claws.png
+  value: 475
+  lowalch: 190
+  highalch: 285
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

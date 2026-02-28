@@ -1,0 +1,55 @@
+---
+title: 'Decemeber: 02nd'
+category: Daily
+date: 2024-12-02 12:00:00
+client: Self
+unsplash: 1660855551646-05998824038a
+img: https://images.unsplash.com/photo-1660855551646-05998824038a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Decemeber 2nd.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2024
+
+-   01:52AM
+
+    **JavaScript FFI**
+
+    Even though we got the websockets wired, we still have a decent amount of work to do!
+    There is a decent amount of javascript / discord sdk integration that we still have to finish.
+    Ugh, part of me just does not feel like doing it but logically, I need to get it all done asap.
+    Sunday was not a funday.
+    Okay, so the first error we need to address is making sure that everything using the interop is placed inside of if statements.
+
+-   02:50PM
+
+    **Bounty**
+
+    Taking a quick break from the unity sessions and working on the bounty system.
+    I am going to map it out using no code first and then once its functional, I will try to make it in rust.
+    The idea would be to automatically manage the bounties, including the verfication, payments, ect...
+    The bounty system should create a new invoice and keep track of the sessions?
+    Maybe a calendar style integration would make sense too.
+    Under `.github/ISSUE_TEMPLATE/` we will create the `bounty.md` file.
+    Copy over some of the information into that file next.
+    Okay, we got the base of the bounty system out of the way!
+
+-   04:54PM
+
+    **Autopull**
+
+    A new issue ticket to keep track of some chores that need to be done via the Github actions.
+    I believe we need to lock down some of the repos and build a quick system that would handle the pull requests.
+    We should make it so that the pull requests are also not only created but maybe work towards having the pull request accepted too.
+
+-   06:50PM
+
+    **UnityJS**
+
+    The unity js library will help us bridge the unity webgl and the javascript from the browser.
+    We want to make sure that the communication will work on Itch, but that will be in 2025.
+    After creating the library using the nx library generation, we need to add a couple more references and deps.
+    The discord embed sdk and the cross fetch both will be helpful here.

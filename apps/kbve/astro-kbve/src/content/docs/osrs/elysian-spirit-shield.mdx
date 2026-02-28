@@ -1,0 +1,155 @@
+---
+title: Elysian spirit shield | OSRS Price Data
+description: "Elysian spirit shield is a members shield slot item requiring 75 Defence. High alch: 1,200,000 GP, GE limit: 8."
+osrs:
+  id: 12817
+  name: Elysian spirit shield
+  slug: elysian-spirit-shield
+  examine: An ethereal shield with an elysian sigil attached to it.
+  members: true
+  icon: Elysian spirit shield.png
+  value: 2000000
+  lowalch: 800000
+  highalch: 1200000
+  limit: 8
+  equipment:
+    slot: shield
+    type: tank_shield
+    requirements:
+      defence: 75
+      prayer: 75
+    stats:
+      defence_stab: 63
+      defence_slash: 65
+      defence_crush: 75
+      defence_magic: 2
+      defence_ranged: 57
+      prayer: 3
+  effect:
+    divine_protection:
+      proc_chance: 70
+      damage_reduction: 25
+      average_reduction: 17.5
+      exceptions:
+        - dragonfire
+        - poison
+        - special mechanics
+  recipes:
+    - skill: smithing
+      level: 85
+      xp: 0
+      materials:
+        - item_id: 12819
+          item_name: Elysian sigil
+          quantity: 1
+        - item_id: 12831
+          item_name: Blessed spirit shield
+          quantity: 1
+      product: Elysian spirit shield
+      product_id: 12817
+      facility: Anvil
+      members_only: true
+  related_items:
+    - item_id: 12825
+      item_name: Arcane spirit shield
+      slug: arcane-spirit-shield
+      relationship: alternative
+      description: Magic version
+    - item_id: 12821
+      item_name: Spectral spirit shield
+      slug: spectral-spirit-shield
+      relationship: alternative
+      description: Prayer version
+    - item_id: 12819
+      item_name: Elysian sigil
+      slug: elysian-sigil
+      relationship: component
+      description: From Corp
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Shield |
+| Type | Tank Shield |
+| Tradeable | Yes |
+| Weight | 2 kg |
+
+## Creation
+
+Attach [Elysian sigil](/osrs/elysian-sigil/) to [Blessed spirit shield](/osrs/blessed-spirit-shield/).
+
+| Method | Requirements |
+|--------|--------------|
+| Smithing | 90 Prayer, 85 Smithing |
+| Abbot Langley | 1.5M gp fee |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| All | +0 |
+
+| Defence | Value |
+|---------|-------|
+| Stab | +63 |
+| Slash | +65 |
+| Crush | +75 |
+| Magic | +2 |
+| Ranged | +57 |
+
+| Other | Value |
+|-------|-------|
+| Prayer | +3 |
+
+**Requirements:** 75 Defence, 75 Prayer
+
+## Passive Effect
+
+**Divine Protection:**
+- 70% chance to reduce incoming damage by 25%
+- Average damage reduction: ~17.5%
+- Does NOT work on dragonfire, poison, or special mechanics
+
+## Usage
+
+BiS tank shield for:
+- Inferno
+- Tanking roles
+- Survival situations
+
+**Best defensive shield in the game.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~680M gp
+
+**Tips:**
+- Sigil from Corporeal Beast
+- Most expensive shield
+- Ultimate tank upgrade
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Eclipse moon chestplate (broken) | OSRS Price Data
+description: "Eclipse moon chestplate (broken): The chestplate of the Eclipse Moon.. High alch: 174,006 GP, GE limit: 15."
+osrs:
+  id: 29049
+  name: Eclipse moon chestplate (broken)
+  slug: eclipse-moon-chestplate-broken
+  examine: The chestplate of the Eclipse Moon.
+  members: true
+  icon: Eclipse moon chestplate (broken).png
+  value: 290010
+  lowalch: 116004
+  highalch: 174006
+  limit: 15
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

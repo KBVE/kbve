@@ -1,0 +1,37 @@
+---
+title: Energy mix(1) | OSRS Price Data
+description: "Energy mix(1): One dose of fishy energy potion.. High alch: 21 GP, GE limit: 2,000."
+osrs:
+  id: 11455
+  name: Energy mix(1)
+  slug: energy-mix-1
+  examine: One dose of fishy energy potion.
+  members: true
+  icon: Energy mix(1).png
+  value: 36
+  lowalch: 14
+  highalch: 21
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

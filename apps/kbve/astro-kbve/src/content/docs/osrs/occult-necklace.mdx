@@ -1,0 +1,116 @@
+---
+title: Occult necklace | OSRS Price Data
+description: "Occult necklace is a members neck slot item requiring 70 Magic. High alch: 27,000 GP, GE limit: 8."
+osrs:
+  id: 12002
+  name: Occult necklace
+  slug: occult-necklace
+  examine: A smokey evil embodies this amulet.
+  members: true
+  icon: Occult necklace.png
+  value: 45000
+  lowalch: 18000
+  highalch: 27000
+  limit: 8
+  equipment:
+    slot: neck
+    type: amulet
+    requirements:
+      magic: 70
+    stats:
+      attack_magic: 12
+      magic_damage_percent: 5
+      prayer: 2
+  drop_table:
+    sources:
+      - source: Smoke devil
+        source_id: 498
+        combat_level: 160
+        quantity: "1"
+        rarity: 1/512
+        members_only: true
+        notes: 93 Slayer required
+      - source: Thermonuclear smoke devil
+        source_id: 499
+        combat_level: 301
+        quantity: "1"
+        rarity: 1/350
+        members_only: true
+        notes: 93 Slayer required
+  related_items:
+    - item_id: 19544
+      item_name: Tormented bracelet
+      slug: tormented-bracelet
+      relationship: alternative
+      description: +5% magic damage (hands)
+    - item_id: 21018
+      item_name: Ancestral robe top
+      slug: ancestral-robe-top
+      relationship: alternative
+      description: +3% magic damage
+    - item_id: 21006
+      item_name: Kodai wand
+      slug: kodai-wand
+      relationship: alternative
+      description: +15% magic damage
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Dropped by Smoke devils:
+
+| Monster | Combat | Drop Rate |
+|---------|--------|-----------|
+| Smoke devil | 160 | 1/512 |
+| Thermonuclear smoke devil | 301 | 1/350 |
+
+**Requires:** 93 Slayer
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Magic attack | +12 |
+| Magic damage | +5% |
+| Prayer | +2 |
+| Requirements | 70 Magic |
+
+**Only amulet with magic damage bonus.**
+
+## Usage
+
+Essential for magic DPS:
+- Stacks with other magic damage bonuses
+- BiS neck slot for magic
+- Used in all endgame magic content
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- High demand, consistent price
+- Required for efficient magic setups
+- Thermy task is faster source
+
+<Adsense />

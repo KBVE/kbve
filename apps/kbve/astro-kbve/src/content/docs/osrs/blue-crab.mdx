@@ -1,0 +1,37 @@
+---
+title: Blue crab | OSRS Price Data
+description: "Blue crab: You'll need something to break through that shell.. High alch: 75 GP."
+osrs:
+  id: 31674
+  name: Blue crab
+  slug: blue-crab
+  examine: You'll need something to break through that shell.
+  members: true
+  icon: Blue crab.png
+  value: 125
+  lowalch: 50
+  highalch: 75
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

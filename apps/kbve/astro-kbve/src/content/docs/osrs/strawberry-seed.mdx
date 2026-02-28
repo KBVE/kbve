@@ -1,0 +1,37 @@
+---
+title: Strawberry seed | OSRS Price Data
+description: "Strawberry seed: A strawberry seed - plant in an allotment.. High alch: 10 GP, GE limit: 600."
+osrs:
+  id: 5323
+  name: Strawberry seed
+  slug: strawberry-seed
+  examine: A strawberry seed - plant in an allotment.
+  members: true
+  icon: Strawberry seed 5.png
+  value: 18
+  lowalch: 7
+  highalch: 10
+  limit: 600
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

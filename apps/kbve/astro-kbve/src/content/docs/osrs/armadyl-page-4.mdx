@@ -1,0 +1,84 @@
+---
+title: Armadyl page 4 | OSRS Price Data
+description: "Armadyl page 4: This seems to have been torn from a book.... High alch: 240 GP, GE limit: 5."
+osrs:
+  id: 12620
+  name: Armadyl page 4
+  slug: armadyl-page-4
+  examine: This seems to have been torn from a book...
+  members: true
+  icon: Armadyl page 4.png
+  value: 400
+  lowalch: 160
+  highalch: 240
+  limit: 5
+  item:
+    type: god_page
+    god: Armadyl
+    page_number: 4
+    tradeable: true
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Hard/Elite
+        drop_rate: Varies by tier
+  related_items:
+    - item_id: 12617
+      item_name: Armadyl page 1
+      slug: armadyl-page-1
+      relationship: set-piece
+      description: Page 1 of 4
+    - item_id: 12618
+      item_name: Armadyl page 2
+      slug: armadyl-page-2
+      relationship: set-piece
+      description: Page 2 of 4
+    - item_id: 12619
+      item_name: Armadyl page 3
+      slug: armadyl-page-3
+      relationship: set-piece
+      description: Page 3 of 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | God Page |
+| God | Armadyl |
+| Page | 4 of 4 |
+| Tradeable | Yes |
+
+## Obtaining
+
+Reward from Treasure Trails (hard and elite tiers).
+
+## Usage
+
+Add to incomplete Book of law (Armadyl god book) to complete it.
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+<Adsense />

@@ -1,0 +1,148 @@
+---
+title: Uncut ruby | OSRS Price Data
+description: "Uncut ruby: This would be worth more cut.. High alch: 60 GP, GE limit: 10,000."
+osrs:
+  id: 1619
+  name: Uncut ruby
+  slug: uncut-ruby
+  examine: This would be worth more cut.
+  members: false
+  icon: Uncut ruby.png
+  value: 100
+  lowalch: 40
+  highalch: 60
+  limit: 10000
+  material:
+    type: gem
+    tier: mid-high
+  crafting:
+    cutting_level: 34
+    cutting_xp: 85
+    uncut: true
+  drop_table:
+    sources:
+      - source: Gem rocks
+        source_id: 0
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+  recipes:
+    - skill: crafting
+      level: 34
+      xp: 85
+      materials:
+        - item_name: Uncut ruby
+          item_id: 1619
+          quantity: 1
+      product: Ruby
+      product_id: 1603
+      product_quantity: 1
+    - skill: fletching
+      level: 63
+      xp: 6
+      materials:
+        - item_name: Ruby
+          item_id: 1603
+          quantity: 1
+      product: Ruby bolt tips
+      product_id: 9191
+      product_quantity: 12
+      members_only: true
+  related_items:
+    - item_id: 1617
+      item_name: Uncut diamond
+      slug: uncut-diamond
+      relationship: alternative
+      description: Higher tier gem
+    - item_id: 1621
+      item_name: Uncut emerald
+      slug: uncut-emerald
+      relationship: alternative
+      description: Lower tier gem
+    - item_id: 1603
+      item_name: Ruby
+      slug: ruby
+      relationship: product
+      description: Cut version
+    - item_id: 9242
+      item_name: Ruby bolts (e)
+      slug: ruby-bolts-e
+      relationship: product
+      description: Popular ammunition
+    - item_id: 1755
+      item_name: Chisel
+      slug: chisel
+      relationship: component
+      description: For cutting
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Gem rocks | 1/8 chance |
+| Mining (gem bag) | Random |
+| Monster drops | Various |
+| Shooting Stars | Star fragments |
+
+## Crafting
+
+| Product | Level | XP |
+|---------|-------|-----|
+| Ruby | 34 | 85 |
+| Ruby ring | 34 | 70 |
+| Ruby necklace | 40 | 75 |
+| Ruby amulet | 50 | 85 |
+| Ruby bolt tips (12) | 63 | 6 |
+
+## Market Flip Strategy
+
+**Gem Processing:**
+- Buy uncut → Cut → Sell for profit
+- Calculate: `Cut ruby price - Uncut price = Profit`
+- Factor in failure rate below 34 Crafting
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Demand Drivers:**
+- Ruby bolt tips (e) enchanting
+- Jewellery crafting
+- Ring of forging
+- Amulet of strength
+
+**Tips:**
+- Ruby bolt (e) very popular
+- Blood Fury combines with ruby
+- Higher margins than emerald
+- Consistent demand
+
+## Enchanting
+
+| Item | Enchantment | Effect |
+|------|-------------|--------|
+| Ruby ring | Ring of forging | No iron ore fail |
+| Ruby necklace | Digsite pendant | Teleport |
+| Ruby amulet | Amulet of strength | +10 Strength |
+| Ruby bolts | Ruby bolts (e) | Blood Forfeit spec |
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Gold locks | OSRS Price Data
+description: "Gold locks: Perhaps someone can do something with this.. High alch: 19,200 GP, GE limit: 8."
+osrs:
+  id: 25454
+  name: Gold locks
+  slug: gold-locks
+  examine: Perhaps someone can do something with this.
+  members: true
+  icon: Gold locks.png
+  value: 32000
+  lowalch: 12800
+  highalch: 19200
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

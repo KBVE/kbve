@@ -1,0 +1,101 @@
+---
+title: Water battlestaff | OSRS Price Data
+description: "Water battlestaff: It's a slightly magical stick.. High alch: 9,300 GP, GE limit: 18,000."
+osrs:
+  id: 1395
+  name: Water battlestaff
+  slug: water-battlestaff
+  examine: It's a slightly magical stick.
+  members: true
+  icon: Water battlestaff.png
+  value: 15500
+  lowalch: 6200
+  highalch: 9300
+  limit: 18000
+  item_id: 1395
+  item_type: equipment
+  slot: weapon
+  type: battlestaff
+  attack_speed: 5
+  tradeable: true
+  weight: 2.267
+  requirements:
+    attack: 30
+    magic: 30
+  stats:
+    magic_attack: 12
+    crush_attack: 7
+    strength: 3
+  effect:
+    description: Provides unlimited water runes when equipped. Can autocast combat spells.
+  related_items:
+    - slug: water-orb
+    - slug: mystic-water-staff
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Staff |
+| Tradeable | Yes |
+| Weight | 2.267 kg |
+| Requirements | 30 Attack, 30 Magic |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Magic Attack | +12 |
+| Crush Attack | +7 |
+| Strength | +3 |
+
+## Obtaining
+
+**Crafting:** Combine water orb with battlestaff (54 Crafting, 100 XP).
+
+**Drops:** Waterfiends, cave kraken, hydra.
+
+**Alternative:** Purchase from Grand Exchange.
+
+## Effects
+
+Provides unlimited water runes when equipped.
+
+Can autocast combat spells.
+
+## Market Strategy
+
+**Buy Limit:** 18,000 per 4 hours
+
+**Price:** ~9,005 gp
+
+Crafting money maker. Upgrade to mystic for 40k gp.
+
+## Related Items
+
+- [Water orb](/osrs/water-orb/) - Crafting material
+- [Mystic water staff](/osrs/mystic-water-staff/) - Upgrade option
+
+<Adsense />

@@ -1,0 +1,121 @@
+---
+title: Soul rune | OSRS Price Data
+description: "Soul rune: Used for high level curse spells.. High alch: 180 GP, GE limit: 25,000."
+osrs:
+  id: 566
+  name: Soul rune
+  slug: soul-rune
+  examine: Used for high level curse spells.
+  members: true
+  icon: Soul rune.png
+  value: 300
+  lowalch: 120
+  highalch: 180
+  limit: 25000
+  rune:
+    type: catalytic
+    element: soul
+  runecraft:
+    level: 90
+    xp: 29.7
+    altar: Soul Altar
+    altar_location: Arceuus
+    essence_type: dark
+    method: Dark essence fragments
+  recipes:
+    - skill: runecraft
+      level: 90
+      xp: 29.7
+      materials:
+        - item_name: Dark essence fragments
+          item_id: 7938
+          quantity: 1
+      product: Soul rune
+      product_id: 566
+      product_quantity: 1
+      facility: Soul altar
+      members_only: true
+  related_items:
+    - item_id: 565
+      item_name: Blood rune
+      slug: blood-rune
+      relationship: alternative
+      description: Paired for barrages
+    - item_id: 560
+      item_name: Death rune
+      slug: death-rune
+      relationship: alternative
+      description: Ancient magic
+    - item_id: 7938
+      item_name: Dark essence fragments
+      slug: dark-essence-fragments
+      relationship: component
+      description: Crafting material
+    - item_id: 561
+      item_name: Nature rune
+      slug: nature-rune
+      relationship: alternative
+      description: Similar tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Runecrafting
+
+| Requirement | Value |
+|-------------|-------|
+| Runecraft Level | 90 |
+| Method | Dark essence at Soul Altar |
+| XP per rune | 29.7 |
+
+## Key Spells
+
+| Spell | Soul Runes | Spellbook |
+|-------|------------|-----------|
+| Blood Barrage | 1 | Ancient |
+| Shadow Barrage | 2 | Ancient |
+| Teleother spells | 1 | Lunar |
+| Vulnerability | 1 | Standard |
+| Reanimation spells | Varies | Arceuus |
+| Enchant dragonstone | 1 | Standard |
+
+## Market Flip Strategy
+
+**Runecrafting (Zeah):**
+- 90 RC required (high barrier)
+- Dark essence fragments method
+- Profitable but intensive
+
+**Buy Limit:** 25,000 per 4 hours
+
+**Demand Drivers:**
+- Blood Barrage (PvM staple)
+- Shadow spells
+- Arceuus reanimation
+- High-level enchanting
+
+**Tips:**
+- Used with blood runes for barrages
+- Arceuus training creates demand
+- Price relatively stable
+- Fewer suppliers than blood runes
+
+<Adsense />

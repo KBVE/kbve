@@ -1,0 +1,107 @@
+---
+title: Air battlestaff | OSRS Price Data
+description: "Air battlestaff: It's a slightly magical stick.. High alch: 9,300 GP, GE limit: 18,000."
+osrs:
+  id: 1397
+  name: Air battlestaff
+  slug: air-battlestaff
+  examine: It's a slightly magical stick.
+  members: true
+  icon: Air battlestaff.png
+  value: 15500
+  lowalch: 6200
+  highalch: 9300
+  limit: 18000
+  item_id: 1397
+  item_type: equipment
+  slot: weapon
+  type: battlestaff
+  attack_speed: 5
+  tradeable: true
+  weight: 2.267
+  requirements:
+    attack: 30
+    magic: 30
+  stats:
+    stab: 7
+    slash: -1
+    crush: 28
+    magic: 12
+    strength: 35
+  effect:
+    description: Provides unlimited air runes when equipped. Supports autocast for air spells.
+  related_items:
+    - slug: battlestaff
+    - slug: air-orb
+    - slug: mystic-air-staff
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon |
+| Type | Staff |
+| Tradeable | Yes |
+| Weight | 2.267 kg |
+| Requirements | 30 Attack, 30 Magic |
+
+## Obtaining
+
+**Crafting:** Combine air orb + battlestaff (66 Crafting, 137.5 XP)
+
+**Monster drops:** Dust Devils, Killerwatts, Dagannoth Prime, Abyssal Sire
+
+## Stats
+
+| Offence | Bonus |
+|---------|-------|
+| Stab | +7 |
+| Slash | -1 |
+| Crush | +28 |
+| Magic | +12 |
+| Strength | +35 |
+
+**Attack Speed:** 5-tick (3.0s)
+
+## Passive Effect
+
+**Unlimited air runes** when equipped.
+
+Supports autocast for air spells.
+
+## Market Strategy
+
+**Buy Limit:** 18,000 per 4 hours
+
+**Price:** ~9,038 gp
+
+Very high volume. Used for Magic training and Crafting.
+
+## Related Items
+
+- [Battlestaff](/osrs/battlestaff/) - Base material
+- [Air orb](/osrs/air-orb/) - Crafting component
+- [Mystic air staff](/osrs/mystic-air-staff/) - Upgrade
+
+<Adsense />

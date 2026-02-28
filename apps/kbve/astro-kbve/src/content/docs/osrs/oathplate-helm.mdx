@@ -1,0 +1,37 @@
+---
+title: Oathplate helm | OSRS Price Data
+description: "Oathplate helm: A helm forged from infernal metal.. High alch: 120,000 GP."
+osrs:
+  id: 30750
+  name: Oathplate helm
+  slug: oathplate-helm
+  examine: A helm forged from infernal metal.
+  members: true
+  icon: Oathplate helm.png
+  value: 200000
+  lowalch: 80000
+  highalch: 120000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

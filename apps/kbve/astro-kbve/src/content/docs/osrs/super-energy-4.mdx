@@ -1,0 +1,130 @@
+---
+title: Super energy(4) | OSRS Price Data
+description: "Super energy(4) is a 4-dose members potion that restores 20% run energy per dose. High alch: 180 GP, GE limit: 2,000."
+osrs:
+  id: 3016
+  name: Super energy(4)
+  slug: super-energy-4
+  examine: 4 doses of super energy potion.
+  members: true
+  icon: Super energy(4).png
+  value: 300
+  lowalch: 120
+  highalch: 180
+  limit: 2000
+  potion:
+    type: energy
+    tier: super
+    doses: 4
+    effect: Restores 20% run energy per dose
+  recipes:
+    - skill: herblore
+      level: 52
+      xp: 117.5
+      materials:
+        - item_name: Avantoe potion (unf)
+          item_id: 103
+          quantity: 1
+        - item_name: Mort myre fungus
+          item_id: 2970
+          quantity: 1
+      product: Super energy(4)
+      product_id: 3016
+      product_quantity: 1
+      members_only: true
+    - skill: herblore
+      level: 77
+      xp: 102
+      materials:
+        - item_name: Super energy(4)
+          item_id: 3016
+          quantity: 1
+        - item_name: Amylase crystal
+          item_id: 12640
+          quantity: 4
+      product: Stamina potion(4)
+      product_id: 12625
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 261
+      item_name: Avantoe
+      slug: avantoe
+      relationship: component
+      description: Primary herb
+    - item_id: 2970
+      item_name: Mort myre fungus
+      slug: mort-myre-fungus
+      relationship: component
+      description: Secondary
+    - item_id: 12640
+      item_name: Amylase crystal
+      slug: amylase-crystal
+      relationship: component
+      description: Stamina upgrade
+    - item_id: 12625
+      item_name: Stamina potion(4)
+      slug: stamina-potion-4
+      relationship: product
+      description: End product
+    - item_id: 3010
+      item_name: Energy potion(4)
+      slug: energy-potion-4
+      relationship: alternative
+      description: Lower tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Combine [Avantoe potion (unf)](/osrs/avantoe-potion-unf/) + [Mort myre fungus](/osrs/mort-myre-fungus/).
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 52 |
+| XP gained | 117.5 |
+
+## Effects
+
+Restores 20% of run energy per dose.
+
+## Market Flip Strategy
+
+**Making Super Energy:**
+- Calculate: `Super energy(4) - Avantoe potion (unf) - Mort myre fungus = Profit`
+- 52 Herblore required
+- Decent XP method
+
+**Stamina Conversion:**
+- Super energy(4) + 4× [Amylase crystal](/osrs/amylase-crystal/) = [Stamina(4)](/osrs/stamina-potion-4/)
+- Higher profit at 77 Herblore
+- Check both margins
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Tips:**
+- Primary use is stamina making
+- Mort myre fungus from Canifis
+- Mid-level Herblore training
+- Compare to energy potion prices
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Extended antifire(3) | OSRS Price Data
+description: "Extended antifire(3): 3 doses of extended anti-firebreath potion.. High alch: 198 GP, GE limit: 2,000."
+osrs:
+  id: 11953
+  name: Extended antifire(3)
+  slug: extended-antifire-3
+  examine: 3 doses of extended anti-firebreath potion.
+  members: true
+  icon: Extended antifire(3).png
+  value: 330
+  lowalch: 132
+  highalch: 198
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

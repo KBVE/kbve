@@ -1,0 +1,37 @@
+---
+title: Trinket of vengeance | OSRS Price Data
+description: "Trinket of vengeance: A magic rock! This one casts the Vengeance spell.. High alch: 6,000 GP."
+osrs:
+  id: 28561
+  name: Trinket of vengeance
+  slug: trinket-of-vengeance
+  examine: A magic rock! This one casts the Vengeance spell.
+  members: true
+  icon: Trinket of vengeance.png
+  value: 10000
+  lowalch: 4000
+  highalch: 6000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

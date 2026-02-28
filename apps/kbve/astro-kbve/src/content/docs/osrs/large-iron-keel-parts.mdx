@@ -1,0 +1,37 @@
+---
+title: Large iron keel parts | OSRS Price Data
+description: "Large iron keel parts: Parts for creating an iron keel for larger boats.. High alch: 375 GP, GE limit: 100."
+osrs:
+  id: 32023
+  name: Large iron keel parts
+  slug: large-iron-keel-parts
+  examine: Parts for creating an iron keel for larger boats.
+  members: true
+  icon: Large iron keel parts.png
+  value: 625
+  lowalch: 250
+  highalch: 375
+  limit: 100
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

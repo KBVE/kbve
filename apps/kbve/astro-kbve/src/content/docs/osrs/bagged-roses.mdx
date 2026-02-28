@@ -1,0 +1,37 @@
+---
+title: Bagged roses | OSRS Price Data
+description: "Bagged roses: You can plant this in your garden.. High alch: 9,000 GP, GE limit: 10,000."
+osrs:
+  id: 8461
+  name: Bagged roses
+  slug: bagged-roses
+  examine: You can plant this in your garden.
+  members: true
+  icon: Bagged roses.png
+  value: 15000
+  lowalch: 6000
+  highalch: 9000
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

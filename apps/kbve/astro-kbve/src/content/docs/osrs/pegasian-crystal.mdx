@@ -1,0 +1,117 @@
+---
+title: Pegasian crystal | OSRS Price Data
+description: "Pegasian crystal: A powerful crystal of flight.. High alch: 27,000 GP, GE limit: 15."
+osrs:
+  id: 13229
+  name: Pegasian crystal
+  slug: pegasian-crystal
+  examine: A powerful crystal of flight.
+  members: true
+  icon: Pegasian crystal.png
+  value: 45000
+  lowalch: 18000
+  highalch: 27000
+  limit: 15
+  item:
+    type: crafting_material
+    tradeable: true
+  obtaining:
+    methods:
+      - source: Cerberus
+        drop_rate: 1/520
+        requirements:
+          slayer: 91
+  creation:
+    creates:
+      item_id: 13237
+      item_name: Pegasian boots
+      slug: pegasian-boots
+    combine_with:
+      item_id: 2577
+      item_name: Ranger boots
+      slug: ranger-boots
+    requirements:
+      magic: 60
+      runecraft: 60
+    warning: Irreversible process
+  related_items:
+    - item_id: 0
+      item_name: Cerberus
+      slug: cerberus
+      relationship: component
+      description: Boss drop
+    - item_id: 13237
+      item_name: Pegasian boots
+      slug: pegasian-boots
+      relationship: product
+      description: Created item
+    - item_id: 13231
+      item_name: Primordial crystal
+      slug: primordial-crystal
+      relationship: alternative
+      description: Melee version
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Stackable | No |
+
+## Obtaining
+
+Drop from [Cerberus](/osrs/cerberus/) (1/520).
+
+**Requires 91 Slayer.**
+
+## Uses
+
+Combine with [Ranger boots](/osrs/ranger-boots/) to create [Pegasian boots](/osrs/pegasian-boots/).
+
+| Requirement | Level |
+|-------------|-------|
+| Magic | 60 |
+| Runecraft | 60 |
+
+**Warning:** Irreversible process.
+
+## Market Strategy
+
+**Buy Limit:** 15 per 4 hours
+
+**Price:** ~150K gp
+
+**Tips:**
+- Cheapest Cerberus crystal
+- Limited by ranger boots supply
+- Farm Cerberus on task
+
+## Related Items
+
+- [Cerberus](/osrs/cerberus/) - Boss drop
+- [Pegasian boots](/osrs/pegasian-boots/) - Created item
+- [Primordial crystal](/osrs/primordial-crystal/) - Melee version
+
+<Adsense />

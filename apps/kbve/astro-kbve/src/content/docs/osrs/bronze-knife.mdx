@@ -1,0 +1,110 @@
+---
+title: Bronze knife | OSRS Price Data
+description: "Bronze knife is a members weapon slot item. High alch: 1 GP, GE limit: 7,000."
+osrs:
+  id: 864
+  name: Bronze knife
+  slug: bronze-knife
+  examine: A finely balanced throwing knife.
+  members: true
+  icon: Bronze knife.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 7000
+  equipment:
+    slot: weapon
+    type: thrown
+    attack_style: ranged
+    attack_speed: 3
+  requirements:
+    ranged: 1
+  stats:
+    attack:
+      ranged: 4
+    other:
+      ranged_strength: 3
+  smithing:
+    level: 7
+    xp: 12.5
+    method: Bronze bar at anvil
+    bars: 1
+    quantity: 5
+  related_items:
+    - item_id: 2349
+      item_name: Bronze bar
+      slug: bronze-bar
+      relationship: component
+      description: Smithing material
+    - item_id: 863
+      item_name: Iron knife
+      slug: iron-knife
+      relationship: upgrade
+      description: Higher tier knife
+    - item_id: 806
+      item_name: Bronze dart
+      slug: bronze-dart
+      relationship: alternative
+      description: Alternative thrown weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon |
+| Type | Thrown |
+| Tradeable | Yes |
+| Weight | 0.006 kg |
+| Requirements | 1 Ranged |
+
+## Obtaining
+
+**Smithing:** 7 Smithing with bronze bar at anvil (12.5 XP, makes 5).
+
+**Drops:** Various low-level monsters.
+
+**Shop:** Ranging Guild.
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Attack | +4 |
+| Ranged Strength | +3 |
+
+## Market Strategy
+
+**Buy Limit:** 7,000 per 4 hours
+
+**Price:** ~5 gp
+
+Starter throwing knife. Fast attack speed, stackable.
+
+## Related Items
+
+- [Bronze bar](/osrs/bronze-bar/) - Smithing material
+- [Iron knife](/osrs/iron-knife/) - Upgrade option
+- [Bronze dart](/osrs/bronze-dart/) - Alternative thrown
+
+<Adsense />

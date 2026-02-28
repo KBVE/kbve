@@ -1,0 +1,37 @@
+---
+title: Body tiara | OSRS Price Data
+description: "Body tiara: A tiara infused with the properties of the body.. High alch: 60 GP, GE limit: 40."
+osrs:
+  id: 5533
+  name: Body tiara
+  slug: body-tiara
+  examine: A tiara infused with the properties of the body.
+  members: false
+  icon: Body tiara.png
+  value: 100
+  lowalch: 40
+  highalch: 60
+  limit: 40
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

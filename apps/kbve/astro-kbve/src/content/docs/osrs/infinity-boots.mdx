@@ -1,0 +1,103 @@
+---
+title: Infinity boots | OSRS Price Data
+description: "Infinity boots is a members feet slot item. High alch: 7,200 GP, GE limit: 125."
+osrs:
+  id: 6920
+  name: Infinity boots
+  slug: infinity-boots
+  examine: Mystical boots.
+  members: true
+  icon: Infinity boots.png
+  value: 12000
+  lowalch: 4800
+  highalch: 7200
+  limit: 125
+  item_id: 6920
+  type: equipment
+  tradeable: true
+  weight: 0.453
+  buy_limit: 125
+  equipment:
+    slot: feet
+    type: magic_boots
+    requirements:
+      skills:
+        - skill: magic
+          level: 50
+        - skill: defence
+          level: 25
+    stats:
+      attack_magic: 5
+      defence_magic: 5
+  obtaining:
+    minigame:
+      name: Mage Training Arena
+      points_required:
+        telekinetic: 120
+        alchemist: 120
+        enchantment: 1200
+        graveyard: 120
+  related_items:
+    - slug: eternal-boots
+      name: Eternal boots
+      relation: best_upgrade
+    - slug: wizard-boots
+      name: Wizard boots
+      relation: budget_alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Feet |
+| Type | Boots |
+| Tradeable | Yes |
+| Weight | 0.453 kg |
+| Requirements | 50 Magic, 25 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Magic Attack | +5 |
+| Magic Defence | +5 |
+
+## Obtaining
+
+**Mage Training Arena:** Requires pizazz points from all four rooms.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~323,805 gp
+
+Best magic boots before Eternal. MTA sourced.
+
+## Related Items
+
+- [Eternal boots](/osrs/eternal-boots/) - Best-in-slot upgrade
+- [Wizard boots](/osrs/wizard-boots/) - Budget alternative
+
+<Adsense />

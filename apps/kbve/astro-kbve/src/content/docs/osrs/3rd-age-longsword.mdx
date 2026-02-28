@@ -1,0 +1,144 @@
+---
+title: 3rd age longsword | OSRS Price Data
+description: "3rd age longsword is a members weapon slot item requiring 65 Attack. High alch: 90,000 GP, GE limit: 8."
+osrs:
+  id: 12426
+  name: 3rd age longsword
+  slug: 3rd-age-longsword
+  examine: A beautifully crafted sword forged by ancient blacksmiths.
+  members: true
+  icon: 3rd age longsword.png
+  value: 150000
+  lowalch: 60000
+  highalch: 90000
+  limit: 8
+  equipment:
+    slot: weapon
+    type: longsword
+    attack_style: melee
+    attack_speed: 5
+    requirements:
+      attack: 65
+    stats:
+      attack_stab: 58
+      attack_slash: 72
+      attack_crush: -2
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 3
+      defence_crush: 2
+      defence_magic: 0
+      defence_ranged: 0
+      melee_strength: 75
+      prayer_bonus: 0
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        requirements:
+          clue_type: Master
+        rarity: Very Rare
+        description: Extremely rare reward from master clue scrolls
+  related_items:
+    - item_id: 12424
+      item_name: 3rd age bow
+      slug: 3rd-age-bow
+      relationship: alternative
+      description: 3rd age ranged weapon
+    - item_id: 12422
+      item_name: 3rd age wand
+      slug: 3rd-age-wand
+      relationship: alternative
+      description: 3rd age magic weapon
+    - item_id: 20014
+      item_name: 3rd age pickaxe
+      slug: 3rd-age-pickaxe
+      relationship: alternative
+      description: 3rd age skilling tool
+    - item_id: 20011
+      item_name: 3rd age axe
+      slug: 3rd-age-axe
+      relationship: alternative
+      description: 3rd age skilling tool
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Main-hand) |
+| Type | Longsword |
+| Attack Speed | 5 tick (3.0s) |
+| Tradeable | Yes |
+| Members Only | Yes |
+| Weight | 2.267 kg |
+
+## Obtaining
+
+| Method | Details |
+|--------|---------|
+| Source | Master Clue Scrolls |
+| Rarity | Extremely Rare (1/313,168) |
+
+## Combat Stats
+
+| Offence | Value |
+|---------|-------|
+| Stab | +58 |
+| Slash | +72 |
+| Crush | -2 |
+| Strength | +75 |
+
+| Defence | Value |
+|---------|-------|
+| Slash | +3 |
+| Crush | +2 |
+
+**Requirements:** 65 Attack
+
+## About
+
+The 3rd age longsword is a rare weapon obtained from Treasure Trails. It requires 65 Attack to wield and has stats comparable to a dragon longsword but with the prestigious 3rd age appearance.
+
+3rd age weapons are highly sought after due to their extreme rarity and status symbol value. The longsword was added as part of the 3rd age weapon expansion.
+
+## Market Strategy
+
+**Investment Notes:**
+- Extremely valuable due to rarity
+- Price fluctuates based on collector demand
+- More common than druidic but still very rare
+
+**Trading Tips:**
+- Verify authenticity when trading high-value items
+- Use Grand Exchange for secure trades
+- Monitor price trends before purchasing
+
+## Related Items
+
+- [3rd age bow](/osrs/3rd-age-bow/) - 3rd age ranged weapon
+- [3rd age wand](/osrs/3rd-age-wand/) - 3rd age magic weapon
+- [3rd age pickaxe](/osrs/3rd-age-pickaxe/) - 3rd age skilling tool
+- [3rd age axe](/osrs/3rd-age-axe/) - 3rd age skilling tool
+
+<Adsense />

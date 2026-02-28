@@ -1,0 +1,143 @@
+---
+title: Guthan's warspear | OSRS Price Data
+description: "Guthan's warspear is a members two-handed weapon requiring 70 Attack. High alch: 60,000 GP, GE limit: 15."
+osrs:
+  id: 4726
+  name: Guthan's warspear
+  slug: guthan-s-warspear
+  examine: Guthan the Infested's warspear.
+  members: true
+  icon: Guthan's warspear.png
+  value: 100000
+  lowalch: 40000
+  highalch: 60000
+  limit: 15
+  equipment:
+    slot: 2h
+    type: barrows_weapon
+    attack_style: melee
+    attack_speed: 5
+    requirements:
+      attack: 70
+    stats:
+      attack_stab: 75
+      attack_slash: 75
+      attack_crush: 75
+      strength: 75
+    degradeable: true
+    degrade_hours: 15
+  set_bonus:
+    set_name: Guthan's
+    effect: 25% chance to heal HP equal to damage dealt
+  drop_table:
+    sources:
+      - source: Barrows chest
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: 7 × 1/2,448
+        members_only: true
+  related_items:
+    - item_id: 4728
+      item_name: Guthan's platebody
+      slug: guthans-platebody
+      relationship: component
+      description: Set piece
+    - item_id: 4724
+      item_name: Guthan's helm
+      slug: guthans-helm
+      relationship: component
+      description: Set piece
+    - item_id: 4718
+      item_name: Dharok's greataxe
+      slug: dharoks-greataxe
+      relationship: alternative
+      description: Alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Two-handed) |
+| Type | Melee - All Styles |
+| Tradeable | Yes |
+| Weight | 2.267 kg |
+| Attack Speed | 5 tick (3.0s) |
+
+## Obtaining
+
+Drop from Barrows reward chest.
+
+| Source | Drop Rate |
+|--------|-----------|
+| Barrows chest | 7 × 1/2,448 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | +75 |
+| Slash | +75 |
+| Crush | +75 |
+| Strength | +75 |
+
+| Defence | Value |
+|---------|-------|
+| All | +0 |
+
+**Requirements:** 70 Attack
+
+## Set Effect
+
+**Full Guthan's:**
+- 25% chance to heal HP equal to damage dealt
+- No prayer or rune cost
+- Indefinite sustain
+
+## Degradation
+
+Degrades over 15 hours of combat.
+
+## Usage
+
+Essential for:
+- AFK Slayer (with full set)
+- Extended trips
+- Gargoyles/Hellhounds
+- NMZ (alternative to Dharok)
+
+**Best sustain set in the game.**
+
+## Market Strategy
+
+**Buy Limit:** 15 per 4 hours
+
+**Price:** ~350K gp
+
+**Tips:**
+- Full set for healing
+- Great for AFK tasks
+- Popular for ironmen
+
+<Adsense />

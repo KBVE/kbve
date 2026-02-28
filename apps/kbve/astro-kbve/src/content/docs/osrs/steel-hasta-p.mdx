@@ -1,0 +1,37 @@
+---
+title: Steel hasta(p) | OSRS Price Data
+description: "Steel hasta(p): A poison-tipped, one-handed steel hasta.. High alch: 195 GP, GE limit: 125."
+osrs:
+  id: 11393
+  name: Steel hasta(p)
+  slug: steel-hasta-p
+  examine: A poison-tipped, one-handed steel hasta.
+  members: true
+  icon: Steel hasta(p).png
+  value: 325
+  lowalch: 130
+  highalch: 195
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

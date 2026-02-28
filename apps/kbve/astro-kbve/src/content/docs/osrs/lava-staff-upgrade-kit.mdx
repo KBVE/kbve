@@ -1,0 +1,37 @@
+---
+title: Lava staff upgrade kit | OSRS Price Data
+description: "Lava staff upgrade kit: Makes a lava battlestaff or mystic lava staff more beautiful.. High alch: 900 GP, GE limit: 50."
+osrs:
+  id: 21202
+  name: Lava staff upgrade kit
+  slug: lava-staff-upgrade-kit
+  examine: Makes a lava battlestaff or mystic lava staff more beautiful.
+  members: true
+  icon: Lava staff upgrade kit.png
+  value: 1500
+  lowalch: 600
+  highalch: 900
+  limit: 50
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Ham cloak | OSRS Price Data
+description: "Ham cloak: A HAM cape.. High alch: 45 GP, GE limit: 15."
+osrs:
+  id: 4304
+  name: Ham cloak
+  slug: ham-cloak
+  examine: A HAM cape.
+  members: true
+  icon: Ham cloak.png
+  value: 75
+  lowalch: 30
+  highalch: 45
+  limit: 15
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

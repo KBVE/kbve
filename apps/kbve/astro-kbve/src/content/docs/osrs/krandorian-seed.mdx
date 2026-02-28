@@ -1,0 +1,37 @@
+---
+title: Krandorian seed | OSRS Price Data
+description: "Krandorian seed: A Krandorian hop seed - plant in a hops patch.. High alch: 4 GP, GE limit: 2,000."
+osrs:
+  id: 5310
+  name: Krandorian seed
+  slug: krandorian-seed
+  examine: A Krandorian hop seed - plant in a hops patch.
+  members: true
+  icon: Krandorian seed 5.png
+  value: 8
+  lowalch: 3
+  highalch: 4
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

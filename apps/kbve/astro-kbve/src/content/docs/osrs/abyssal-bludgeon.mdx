@@ -1,0 +1,135 @@
+---
+title: Abyssal bludgeon | OSRS Price Data
+description: "Abyssal bludgeon is a members weapon slot item requiring 70 Attack. High alch: 156,000 GP, GE limit: 8."
+osrs:
+  id: 13263
+  name: Abyssal bludgeon
+  slug: abyssal-bludgeon
+  examine: Elements of deceased Abyssal Sires have been fused together.
+  members: true
+  icon: Abyssal bludgeon.png
+  value: 260000
+  lowalch: 104000
+  highalch: 156000
+  limit: 8
+  equipment:
+    slot: weapon
+    type: bludgeon
+    attack_style: melee
+    attack_speed: 4
+    two_handed: true
+    requirements:
+      attack: 70
+      strength: 70
+    stats:
+      attack_crush: 102
+      strength: 85
+  special_attack:
+    name: Penance
+    energy: 50
+    description: Damage increases by 0.5% per missing prayer point, up to +49.5% at 0 prayer
+  related_items:
+    - item_id: 24417
+      item_name: Inquisitor's mace
+      slug: inquisitors-mace
+      relationship: upgrade
+      description: BiS crush upgrade
+    - item_id: 13265
+      item_name: Abyssal dagger
+      slug: abyssal-dagger
+      relationship: alternative
+      description: From same boss
+    - item_id: 13576
+      item_name: Dragon warhammer
+      slug: dragon-warhammer
+      relationship: alternative
+      description: Spec alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Two-handed) |
+| Type | Melee - Crush |
+| Tradeable | Yes |
+| Weight | 6 kg |
+| Attack Speed | 4 tick (2.4s) |
+
+## Creation
+
+Combine 3 components at The Overseer (Abyssal Nexus):
+- Bludgeon axon
+- Bludgeon claw
+- Bludgeon spine
+
+All components from placing [Unsired](/osrs/unsired/) in Font of Consumption.
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Crush | +102 |
+| Strength | +85 |
+
+| Defence | Value |
+|---------|-------|
+| All | +0 |
+
+**Requirements:** 70 Attack, 70 Strength
+
+## Special Attack
+
+**Penance** (50% energy):
+- Damage increases by 0.5% per missing prayer point
+- At 0 prayer (99 max): +49.5% damage
+- Encourages low prayer combat
+
+## Usage
+
+BiS crush weapon for:
+- Cerberus
+- Gargoyles
+- Sarachnis
+- Budget crush option
+
+**Best crush weapon until Inquisitor's mace.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~22M gp
+
+**Tips:**
+- Sire grind for components
+- 3 specific drops needed
+- Very RNG dependent
+
+## Related Items
+
+- [Inquisitor's mace](/osrs/inquisitors-mace/) - BiS crush upgrade
+- [Abyssal dagger](/osrs/abyssal-dagger/) - From same boss
+- [Dragon warhammer](/osrs/dragon-warhammer/) - Spec alternative
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Bob's green shirt | OSRS Price Data
+description: "Bob's green shirt: 'Bob says: Never trade in the wilderness!'. High alch: 1 GP, GE limit: 4."
+osrs:
+  id: 10320
+  name: Bob's green shirt
+  slug: bob-s-green-shirt
+  examine: "'Bob says: Never trade in the wilderness!'"
+  members: true
+  icon: Bob's green shirt.png
+  value: 3
+  lowalch: 1
+  highalch: 1
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

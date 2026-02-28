@@ -1,0 +1,37 @@
+---
+title: Shoulder parrot | OSRS Price Data
+description: "Shoulder parrot: Polly want a cracker?. High alch: 600 GP, GE limit: 4."
+osrs:
+  id: 23300
+  name: Shoulder parrot
+  slug: shoulder-parrot
+  examine: Polly want a cracker?
+  members: false
+  icon: Shoulder parrot.png
+  value: 1000
+  lowalch: 400
+  highalch: 600
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

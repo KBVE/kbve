@@ -1,0 +1,91 @@
+---
+title: Mithril kiteshield | OSRS Price Data
+description: "Mithril kiteshield: A large metal shield.. High alch: 1,326 GP, GE limit: 125."
+osrs:
+  id: 1197
+  name: Mithril kiteshield
+  slug: mithril-kiteshield
+  examine: A large metal shield.
+  members: false
+  icon: Mithril kiteshield.png
+  value: 2210
+  lowalch: 884
+  highalch: 1326
+  limit: 125
+  item_id: 1197
+  item_type: armor
+  slot: shield
+  type: kiteshield
+  tradeable: true
+  weight: 4.535
+  requirements:
+    defence: 20
+  stats:
+    stab_defence: 18
+    slash_defence: 22
+    crush_defence: 20
+    ranged_defence: 20
+  related_items:
+    - slug: adamant-kiteshield
+    - slug: mithril-platebody
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Off Hand |
+| Type | Kiteshield |
+| Tradeable | Yes |
+| Weight | 4.535 kg |
+| Requirements | 20 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +18 |
+| Slash Defence | +22 |
+| Crush Defence | +20 |
+| Ranged Defence | +20 |
+
+## Obtaining
+
+**Smithing:** 62 Smithing with 3 mithril bars (150 XP).
+
+**Drops:** Green dragons, jellies, cyclops.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~1,126 gp
+
+Mid-tier F2P shield. Common smithing product.
+
+## Related Items
+
+- [Adamant kiteshield](/osrs/adamant-kiteshield/) - Upgrade
+- [Mithril platebody](/osrs/mithril-platebody/) - Set piece
+
+<Adsense />

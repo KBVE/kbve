@@ -1,0 +1,127 @@
+---
+title: Dragon hunter wand | OSRS Price Data
+description: "Dragon hunter wand is a members weapon slot item requiring 65 Magic. High alch: 180,000 GP, GE limit: 8."
+osrs:
+  id: 30070
+  name: Dragon hunter wand
+  slug: dragon-hunter-wand
+  examine: A wand that is uniquely attuned to draconic creatures.
+  members: true
+  icon: Dragon hunter wand.png
+  value: 300000
+  lowalch: 120000
+  highalch: 180000
+  limit: 8
+  equipment:
+    slot: weapon
+    type: wand
+    tradeable: true
+    weight: 2
+    requirements:
+      magic: 65
+    stats:
+      attack_magic: 16
+      defence_magic: 16
+      magic_damage: 10
+  effect:
+    name: Dragonbane
+    description: 75% accuracy and damage increase vs dragons, wyrms, wyverns, hydras
+    stacks_with:
+      - Slayer helmet (i)
+      - Elite Void Knight
+  autocasts:
+    - Standard spellbook
+    - Ancient spellbook
+  drop_table:
+    sources:
+      - source: The Hueycoatl
+        rate: 1/105
+  market:
+    buy_limit: 8
+    price_estimate: 16395392
+  related_items:
+    - item_id: 22978
+      item_name: Dragon hunter lance
+      slug: dragon-hunter-lance
+      relationship: alternative
+      description: Melee dragonbane
+    - item_id: 21012
+      item_name: Dragon hunter crossbow
+      slug: dragon-hunter-crossbow
+      relationship: alternative
+      description: Ranged dragonbane
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+The Dragon hunter wand is a powerful magic weapon dropped by The Hueycoatl boss. It requires 65 Magic to wield and serves as the mage counterpart to the Dragon hunter lance and Dragon hunter crossbow.
+
+**Slot:** Main-hand weapon
+**Weight:** 2.0 kg
+**Tradeable:** Yes
+
+## Stats
+
+| Stat | Bonus |
+|------|-------|
+| Magic Attack | +16 |
+| Magic Defence | +16 |
+| Magic Damage | +10% |
+
+## Passive Effect
+
+The Dragon hunter wand possesses the powerful **Dragonbane** effect:
+
+- **75% accuracy boost** against draconic creatures
+- **75% damage boost** against draconic creatures
+- Affects: Dragons, Wyrms, Wyverns, and Hydras
+
+**Stacking:** The dragonbane effect stacks multiplicatively with:
+- Slayer helmet (i) on task
+- Elite Void Knight equipment
+
+## Usage
+
+**Best uses:**
+- Vorkath (mage method)
+- Alchemical Hydra
+- Brutal black dragons
+- Metal dragons
+- Any draconic Slayer tasks
+
+**Autocasting:** Supports both Standard and Ancient spellbook spells.
+
+**Note:** This completes the "Dragon hunter" weapon trilogy, allowing mages to benefit from dragonbane bonuses previously only available to melee and ranged users.
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+**Estimated Price:** ~16.4M GP
+
+**Tips:**
+- High demand from players farming Vorkath
+- Price correlates with Hydra and dragon boss popularity
+- Consider flipping around new content releases featuring dragons
+- Pairs well with other magic gear upgrades
+
+<Adsense />

@@ -1,0 +1,100 @@
+---
+title: Holy mould | OSRS Price Data
+description: "Holy mould: Used to make holy symbols of Saradomin.. High alch: 3 GP, GE limit: 40."
+osrs:
+  id: 1599
+  name: Holy mould
+  slug: holy-mould
+  examine: Used to make holy symbols of Saradomin.
+  members: false
+  icon: Holy mould.png
+  value: 5
+  lowalch: 2
+  highalch: 3
+  limit: 40
+  material:
+    type: mould
+    tier: crafting_tool
+  crafting:
+    use: holy_symbol
+  shops:
+    - shop_name: Crafting shops
+      price: 5
+      currency: Coins
+  uses:
+    - product: Unstrung holy symbol
+      product_id: 1714
+      bar: Silver bar
+      bar_id: 2355
+      crafting_level: 16
+      crafting_xp: 50
+  related_items:
+    - item_id: 2355
+      item_name: Silver bar
+      slug: silver-bar
+      relationship: component
+      description: Material used
+    - item_id: 1714
+      item_name: Unstrung holy symbol
+      slug: unstrung-holy-symbol
+      relationship: product
+      description: Crafted product
+    - item_id: 1718
+      item_name: Holy symbol
+      slug: holy-symbol
+      relationship: product
+      description: Strung version
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Price |
+|--------|-------|
+| Crafting shops | 5 gp |
+| Grand Exchange | Market price |
+
+## Usage
+
+Make holy symbols at a furnace:
+
+| Product | Level | XP | Materials |
+|---------|-------|-----|-----------|
+| Unstrung holy symbol | 16 | 50 | 1 Silver bar |
+
+String with ball of wool for completed holy symbol.
+
+## Market Strategy
+
+**Buy Limit:** 40 per 4 hours
+
+**Demand Drivers:**
+- Holy symbol crafting
+- Prayer item production
+
+**Tips:**
+- One-time purchase
+- Not consumed on use
+- Buy from shop
+- Low demand item
+
+<Adsense />

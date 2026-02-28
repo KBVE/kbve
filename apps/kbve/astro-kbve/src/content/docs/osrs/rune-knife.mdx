@@ -1,0 +1,115 @@
+---
+title: Rune knife | OSRS Price Data
+description: "Rune knife is a members weapon slot item. High alch: 100 GP, GE limit: 11,000."
+osrs:
+  id: 868
+  name: Rune knife
+  slug: rune-knife
+  examine: A finely balanced throwing knife.
+  members: true
+  icon: Rune knife.png
+  value: 167
+  lowalch: 66
+  highalch: 100
+  limit: 11000
+  equipment:
+    slot: weapon
+    type: thrown
+    attack_style: ranged
+    attack_speed: 3
+  requirements:
+    ranged: 40
+  stats:
+    attack:
+      ranged: 25
+    other:
+      ranged_strength: 24
+  smithing:
+    level: 92
+    xp: 75
+    method: Runite bar at anvil
+    bars: 1
+    quantity: 5
+  related_items:
+    - item_id: 2363
+      item_name: Runite bar
+      slug: runite-bar
+      relationship: component
+      description: Smithing material
+    - item_id: 22804
+      item_name: Dragon knife
+      slug: dragon-knife
+      relationship: upgrade
+      description: Best throwing knife
+    - item_id: 867
+      item_name: Adamant knife
+      slug: adamant-knife
+      relationship: downgrade
+      description: Lower tier knife
+    - item_id: 811
+      item_name: Rune dart
+      slug: rune-dart
+      relationship: alternative
+      description: Alternative thrown weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon |
+| Type | Thrown |
+| Tradeable | Yes |
+| Weight | 0.006 kg |
+| Requirements | 40 Ranged |
+
+## Obtaining
+
+**Smithing:** 92 Smithing with runite bar at anvil (75 XP, makes 5).
+
+**Drops:** Various high-level monsters.
+
+**Shop:** Ranging Guild.
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Attack | +25 |
+| Ranged Strength | +24 |
+
+## Market Strategy
+
+**Buy Limit:** 7,000 per 4 hours
+
+**Price:** ~250 gp
+
+Second strongest throwing knife. Good for PvP and training.
+
+## Related Items
+
+- [Runite bar](/osrs/runite-bar/) - Smithing material
+- [Dragon knife](/osrs/dragon-knife/) - Best knife upgrade
+- [Rune dart](/osrs/rune-dart/) - Alternative thrown
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Blue d'hide shield | OSRS Price Data
+description: "Blue d'hide shield: A solid yew shield covered in blue dragon leather.. High alch: 4,500 GP, GE limit: 125."
+osrs:
+  id: 22278
+  name: Blue d'hide shield
+  slug: blue-d-hide-shield
+  examine: A solid yew shield covered in blue dragon leather.
+  members: true
+  icon: Blue d'hide shield.png
+  value: 7500
+  lowalch: 3000
+  highalch: 4500
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,133 @@
+---
+title: Leaf-bladed battleaxe | OSRS Price Data
+description: "Leaf-bladed battleaxe is a members weapon slot item requiring 65 Attack. High alch: 57,600 GP, GE limit: 70."
+osrs:
+  id: 20727
+  name: Leaf-bladed battleaxe
+  slug: leaf-bladed-battleaxe
+  examine: A razor-sharp battleaxe.
+  members: true
+  icon: Leaf-bladed battleaxe.png
+  value: 96000
+  lowalch: 38400
+  highalch: 57600
+  limit: 70
+  equipment:
+    slot: weapon
+    type: leaf_bladed
+    attack_style: melee
+    attack_speed: 5
+    tradeable: true
+    weight: 2.721
+    requirements:
+      attack: 65
+      slayer: 55
+    stats:
+      attack_stab: -2
+      attack_slash: 72
+      attack_crush: 72
+      strength: 92
+  special_effect:
+    name: Leaf-bladed Bonus
+    description: +17.5% damage vs Turoths and Kurasks
+    stacks_with_slayer_helm: true
+  drop_table:
+    sources:
+      - source: Kurask
+        rate: 1/1,026
+  truemarket:
+    buy_limit: 70
+    price_estimate: 70000
+  related_items:
+    - item_id: 11902
+      item_name: Leaf-bladed sword
+      slug: leaf-bladed-sword
+      relationship: alternative
+      description: Faster alternative
+    - item_id: 4151
+      item_name: Abyssal whip
+      slug: abyssal-whip
+      relationship: alternative
+      description: General use
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Main-hand) |
+| Type | Melee - Slash/Crush |
+| Tradeable | Yes |
+| Weight | 2.721 kg |
+| Attack Speed | 5 tick (3.0s) |
+
+## Obtaining
+
+Drop from Kurasks.
+
+| Monster | Drop Rate |
+|---------|-----------|
+| Kurask | 1/1,026 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | -2 |
+| Slash | +72 |
+| Crush | +72 |
+| Strength | +92 |
+
+| Defence | Value |
+|---------|-------|
+| All | +0 |
+
+**Requirements:** 65 Attack, 55 Slayer
+
+## Passive Effect
+
+**Leaf-bladed Bonus:**
+- +17.5% damage vs Turoths and Kurasks
+- Stacks with Slayer helm bonus
+
+## Usage
+
+Best for:
+- Turoth tasks
+- Kurask tasks
+- High strength training
+
+**Highest strength bonus one-handed until rapier-tier.**
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+
+**Price:** ~70K gp
+
+**Tips:**
+- Good for leafy tasks
+- High strength bonus
+- 5-tick is slower than whip
+
+<Adsense />

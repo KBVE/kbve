@@ -1,0 +1,105 @@
+---
+title: Pie dish | OSRS Price Data
+description: "Pie dish: Deceptively pie shaped.. High alch: 1 GP, GE limit: 500."
+osrs:
+  id: 2313
+  name: Pie dish
+  slug: pie-dish
+  examine: Deceptively pie shaped.
+  members: false
+  icon: Pie dish.png
+  value: 3
+  lowalch: 1
+  highalch: 1
+  limit: 500
+  material:
+    type: pottery
+    tier: fired
+  crafting:
+    level: 1
+    xp: 10
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 10
+      materials:
+        - item_name: Unfired pie dish
+          item_id: 1789
+          quantity: 1
+      product: Pie dish
+      product_id: 2313
+      product_quantity: 1
+      facility: Pottery oven
+  related_items:
+    - item_id: 1789
+      item_name: Unfired pie dish
+      slug: unfired-pie-dish
+      relationship: component
+      description: Unfired version
+    - item_id: 1761
+      item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Raw material
+    - item_id: 2327
+      item_name: Meat pie
+      slug: meat-pie
+      relationship: product
+      description: Cooking product
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Method | Level | Materials |
+|--------|-------|-----------|
+| Pottery oven | 1 | 1 Unfired pie dish |
+| XP | 10 | - |
+
+## Usage
+
+| Use | Cooking Level | Product |
+|-----|---------------|---------|
+| Redberry pie | 10 | Redberry pie |
+| Meat pie | 20 | Meat pie |
+| Apple pie | 30 | Apple pie |
+| Garden pie | 34 | Garden pie |
+| Fish pie | 47 | Fish pie |
+| Wild pie | 85 | Wild pie |
+| Summer pie | 95 | Summer pie |
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Demand Drivers:**
+- Pie making
+- Cooking training
+- Summer pie production
+
+**Tips:**
+- Essential for pie cooking
+- Summer pie very popular
+- F2P accessible
+- Buy from shops
+
+<Adsense />

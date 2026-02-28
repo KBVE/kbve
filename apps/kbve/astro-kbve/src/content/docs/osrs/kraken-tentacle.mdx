@@ -1,0 +1,122 @@
+---
+title: Kraken tentacle | OSRS Price Data
+description: "Kraken tentacle: Ewwww... it's still sucky.. High alch: 50,004 GP, GE limit: 70."
+osrs:
+  id: 12004
+  name: Kraken tentacle
+  slug: kraken-tentacle
+  examine: Ewwww... it's still sucky.
+  members: true
+  icon: Kraken tentacle.png
+  value: 83340
+  lowalch: 33336
+  highalch: 50004
+  limit: 70
+  item:
+    type: crafting_material
+    tradeable: true
+  obtaining:
+    methods:
+      - source: Kraken (boss)
+        drop_rate: 1/400
+        requirements:
+          slayer: 87
+      - source: Cave kraken
+        drop_rate: 1/1,200
+        requirements:
+          slayer: 87
+  creation:
+    uses:
+      - item_id: 12006
+        item_name: Abyssal tentacle
+        slug: abyssal-tentacle
+        materials: Abyssal whip + tentacle
+      - item_id: 0
+        item_name: Enhanced trident (seas)
+        slug: enhanced-trident-seas
+        materials: Trident + 10 tentacles
+      - item_id: 0
+        item_name: Enhanced trident (swamp)
+        slug: enhanced-trident-swamp
+        materials: Swamp trident + 10 tentacles
+  related_items:
+    - item_id: 0
+      item_name: Kraken
+      slug: kraken
+      relationship: component
+      description: Boss drop
+    - item_id: 12006
+      item_name: Abyssal tentacle
+      slug: abyssal-tentacle
+      relationship: product
+      description: Created weapon
+    - item_id: 4151
+      item_name: Abyssal whip
+      slug: abyssal-whip
+      relationship: component
+      description: Base weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Stackable | No |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Kraken (boss) | 1/400 |
+| Cave kraken | 1/1,200 |
+
+**Requires 87 Slayer.**
+
+## Uses
+
+| Item Created | Materials |
+|--------------|-----------|
+| Abyssal tentacle | Abyssal whip + tentacle |
+| Enhanced trident (seas) | Trident + 10 tentacles |
+| Enhanced trident (swamp) | Swamp trident + 10 tentacles |
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+
+**Price:** ~308K gp
+
+**Tips:**
+- Farm Kraken boss for best rates
+- Creates abyssal tentacle
+- Used for enhanced tridents
+
+## Related Items
+
+- [Kraken](/osrs/kraken/) - Boss drop
+- [Abyssal tentacle](/osrs/abyssal-tentacle/) - Created weapon
+- [Abyssal whip](/osrs/abyssal-whip/) - Base weapon
+
+<Adsense />

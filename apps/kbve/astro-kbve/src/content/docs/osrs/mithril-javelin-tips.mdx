@@ -1,0 +1,37 @@
+---
+title: Mithril javelin tips | OSRS Price Data
+description: "Mithril javelin tips: Needs a shaft.. High alch: 99 GP, GE limit: 10,000."
+osrs:
+  id: 19576
+  name: Mithril javelin tips
+  slug: mithril-javelin-tips
+  examine: Needs a shaft.
+  members: true
+  icon: Mithril javelin tips 5.png
+  value: 165
+  lowalch: 66
+  highalch: 99
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

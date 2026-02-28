@@ -1,0 +1,108 @@
+---
+title: 'May: 14'
+category: Daily
+date: 2025-05-14 12:00:00
+client: Self
+unsplash: 1612461313144-fc1676a1bf17
+img: https://images.unsplash.com/photo-1612461313144-fc1676a1bf17?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+   May 14th - The Daily Journal
+tags:
+    - daily
+---
+import { Adsense } from '@/components/astropad';
+
+<Adsense />
+
+## 2025
+
+### CICD Astro KBVE
+
+-   01:15AM
+
+    While building out the bento grid, it would make sense to finish up the astro build pipeline between our github repo and the gh pages.
+    Testing this build pipeline would make sense because before the next meeting, I need the updated KBVE website operation with the JSON content.
+    It is a shame that we did not get to resolve the svelte 5 issues but this rewrite was long over due.
+    As for the future of the KBVE website, it is looking great, definitely if we can get the bento operational and get to utilize the droid library.
+
+    Okay slight changes to the cicd, a couple stupid errors but I am also half asleep working on this, ugh.
+    It feels like I am making my own deathstar, except for my soul.
+
+### Andor
+
+-   03:10AM
+
+    Just finished the final episode of Andor season 2!
+    It ends perfectly into the Rogue One and that is exactly what I wanted, now would be a great time to rewatch it and maybe the legacy star wars too.
+    Ahh, a bit excited because its been so long since I seen any of the OG movies and this would be the perfect time to watch it again.
+
+### Bento Droid
+
+-   03:20AM
+
+    The Bento grid module will operate like this:
+
+```
+   Worker Thread (mod-bento.worker.ts)
+        |
+        |  ──> BentoTile → emits → { type: 'injectTile', tile }
+        |
+        ↓
+   Main Thread (uiux.emitFromWorker)
+        |
+        ├─> injectBentoTile(tile)
+        └─> injectBentoCanvasTile(id, options)
+
+```
+
+    This means we need to update the uiux to include a bridge or an emit-style helper function to transfer over objects that get created by the workers.
+    There are three ways we can do this, but for now I am going to try and maybe proxy + transfer the objects.
+    If that fails then we could manually do a post message but that would be outside of the comlink communication and we do not want that.
+
+### KBVE HomePage
+
+-   06:31PM
+
+    The homepage is finally coming along, there still some minor changes that I need to add but I think I can do it both via static astro AND through injection.
+    Okay, this is good because we just need to move over the docs and should be able to launch a solid website within the next 48 hours.
+    
+-   08:40PM
+
+    Docs are next! I am testing the astropad build and there does not seem to be a problem so far.
+    Since it builds, the next move would be to change the vault symbolic link.
+    Okay the movement of the journal entries seemed to not have any major problems, hopefully we can keep it going without any more major problems.
+    I will have to delete the older one
+
+### Droid Canvas Worker
+
+-   06:47PM
+
+    There was an issue with how I was importing the canvas worker on the droid library but I was able to get it resolved.
+    Next issue to handle will be migrating the rest of the doc files over to the new site!
+    Once that is done, I will loop back and fix any of the issues with the new collections, aka journal and arcade.
+    Finally, I will add the discord, contact, support and misc routes and then we can switch over to the new website!
+
+
+## 2024
+
+**GME**
+
+The $60+ pop this morning was insane!
+
+**Lottie**
+
+Updated the [javascript](https://kbve.com/application/javascript/) documentation for Lottie and included a quick lottie-web example.
+
+**RareIcon**
+
+Currently planning out a quick mini game jam for the next couple days!
+We could combine all of the previous games into one unified game and then pipeline it out to Steam.
+The theme for the gamejam is `Aqua` and I am going to head towards a Zelda-style mockup.
+
+**TailwindCSS**
+
+I updated the documentation around the TailwindCSS within the javascript docs, and now it would be time to migrate all the tailwindcss examples into the document.
+Yet before I do that, I need to build a new component to help render the tailwindcss as a preview.
+I am thinking of using this `html-react-parser` library to help render the example tailwindcss code.
+
+We had to add a syntax highlighter and decided to change the default code layout to be "shadesOfPurple", which looks great in both light and dark mode!

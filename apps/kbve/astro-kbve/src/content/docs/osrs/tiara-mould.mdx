@@ -1,0 +1,114 @@
+---
+title: Tiara mould | OSRS Price Data
+description: "Tiara mould: A mould for tiaras.. High alch: 60 GP, GE limit: 40."
+osrs:
+  id: 5523
+  name: Tiara mould
+  slug: tiara-mould
+  examine: A mould for tiaras.
+  members: false
+  icon: Tiara mould.png
+  value: 100
+  lowalch: 40
+  highalch: 60
+  limit: 40
+  material:
+    type: mould
+    tier: crafting_tool
+  crafting:
+    use: tiara
+  shops:
+    - shop_name: Crafting shops
+      price: 100
+      currency: Coins
+  uses:
+    - product: Tiara
+      product_id: 5525
+      bar: Silver bar
+      bar_id: 2355
+      crafting_level: 23
+      crafting_xp: 52.5
+  related_items:
+    - item_id: 2355
+      item_name: Silver bar
+      slug: silver-bar
+      relationship: component
+      description: Material used
+    - item_id: 5525
+      item_name: Tiara
+      slug: tiara
+      relationship: product
+      description: Crafted product
+    - item_id: 5527
+      item_name: Air tiara
+      slug: air-tiara
+      relationship: product
+      description: Imbued version
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Price |
+|--------|-------|
+| Crafting shops | 100 gp |
+| Grand Exchange | Market price |
+
+## Usage
+
+Make tiaras at a furnace:
+
+| Product | Level | XP | Materials |
+|---------|-------|-----|-----------|
+| Tiara | 23 | 52.5 | 1 Silver bar |
+
+Imbue at Runecraft altars:
+
+| Tiara | Altar | XP |
+|-------|-------|-----|
+| Air tiara | Air altar | 25 |
+| Mind tiara | Mind altar | 27.5 |
+| Water tiara | Water altar | 30 |
+| Earth tiara | Earth altar | 32.5 |
+| Fire tiara | Fire altar | 35 |
+| Body tiara | Body altar | 37.5 |
+| Cosmic tiara | Cosmic altar | 40 |
+| Chaos tiara | Chaos altar | 42.5 |
+| Nature tiara | Nature altar | 45 |
+| Law tiara | Law altar | 47.5 |
+| Death tiara | Death altar | 50 |
+
+## Market Strategy
+
+**Buy Limit:** 40 per 4 hours
+
+**Demand Drivers:**
+- Tiara crafting
+- Runecraft training
+
+**Tips:**
+- One-time purchase
+- Not consumed on use
+- Essential for RC tiaras
+- Buy from shop
+
+<Adsense />

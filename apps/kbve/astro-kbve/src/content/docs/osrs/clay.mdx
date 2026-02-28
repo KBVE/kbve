@@ -1,0 +1,128 @@
+---
+title: Clay | OSRS Price Data
+description: "Clay: Some hard dry clay.. High alch: 1 GP, GE limit: 13,000."
+osrs:
+  id: 434
+  name: Clay
+  slug: clay
+  examine: Some hard dry clay.
+  members: false
+  icon: Clay.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 13000
+  material:
+    type: mining
+    tier: basic
+  mining:
+    level: 1
+    xp: 5
+    locations:
+      - Varrock mine
+      - Crafting Guild
+      - South-west Varrock mine
+  processing:
+    method: Use water on clay
+    product_id: 1761
+    product_name: Soft clay
+  drop_table:
+    sources:
+      - source: Imp
+        source_id: 708
+        combat_level: 2
+        quantity: "1"
+        rarity: uncommon
+      - source: Zygomite
+        source_id: 1024
+        combat_level: 74
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Golem
+        source_id: 3916
+        combat_level: 42
+        quantity: "1"
+        rarity: common
+        members_only: true
+  related_items:
+    - item_id: 1761
+      item_name: Soft clay
+      slug: soft-clay
+      relationship: product
+      description: Processed form
+    - item_id: 11074
+      item_name: Bracelet of clay
+      slug: bracelet-of-clay
+      relationship: component
+      description: Auto soft clay
+    - item_id: 227
+      item_name: Vial of water
+      slug: vial-of-water
+      relationship: component
+      description: Water source
+    - item_id: 4692
+      item_name: Crafting cape
+      slug: crafting-cape
+      relationship: alternative
+      description: Unlimited teleport to guild
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Mining Resource |
+| Tradeable | Yes |
+| Weight | 1 kg |
+| Requirements | 1 Mining |
+
+## Obtaining
+
+**Mining:** Mine clay rocks (fastest respawning ore).
+
+**Bracelet of Clay:** Automatically makes soft clay when worn.
+
+**Drops:** Imps, zygomites, golems.
+
+## Usage
+
+Use water on clay to create soft clay.
+
+Soft clay used for Crafting and Construction.
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Price:** ~144 gp
+
+Low-level resource. High demand for soft clay making.
+
+## Related Items
+
+- [Soft clay](/osrs/soft-clay/) - Processed form
+- [Bracelet of clay](/osrs/bracelet-of-clay/) - Mining utility
+
+<Adsense />

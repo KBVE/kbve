@@ -1,0 +1,37 @@
+---
+title: Skills necklace | OSRS Price Data
+description: "Skills necklace: You will need to recharge the necklace at the Legends Guild.. High alch: 12,120 GP, GE limit: 10,000."
+osrs:
+  id: 11113
+  name: Skills necklace
+  slug: skills-necklace
+  examine: You will need to recharge the necklace at the Legends Guild.
+  members: true
+  icon: Skills necklace.png
+  value: 20200
+  lowalch: 8080
+  highalch: 12120
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

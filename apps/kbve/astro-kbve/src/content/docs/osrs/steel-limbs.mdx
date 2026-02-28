@@ -1,0 +1,37 @@
+---
+title: Steel limbs | OSRS Price Data
+description: "Steel limbs: A pair of steel crossbow limbs.. High alch: 150 GP, GE limit: 10,000."
+osrs:
+  id: 9425
+  name: Steel limbs
+  slug: steel-limbs
+  examine: A pair of steel crossbow limbs.
+  members: true
+  icon: Steel limbs.png
+  value: 250
+  lowalch: 100
+  highalch: 150
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

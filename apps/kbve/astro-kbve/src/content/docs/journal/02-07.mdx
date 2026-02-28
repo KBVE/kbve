@@ -1,0 +1,79 @@
+---
+title: 'February: 07'
+category: Daily
+date: 2025-02-07 12:00:00
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 7th for each year!
+tags:
+    - daily
+---
+
+
+import { Adsense } from '@/components/astropad';
+
+
+
+## Notes
+
+## 2025
+
+### Haircut
+
+-   06:45PM
+
+    I just got probably the best haircut ever, the fade is perfect.
+
+<Adsense />
+
+
+## 2024
+
+#### git
+
+There was some gc and lock corruption with my git instance, which really wasted a ton of my time!
+
+The way that I resolved it was by running these commands below, as a reference for myself in the future, when my git objects get messed up again.
+
+```shell
+
+cd .git/refs/remotes/origin/
+rm patch-atomic-kbve-validator-fix-02-06-2024-1707281479
+git gc --prune=now
+
+```
+
+I did have to reset the branch via a hard reset too but lets just make sure everything is back to normal.
+Going to push this through and hope that there are no issues with the pipeline.
+
+
+#### sheet
+
+I was able to finish the general character creation, which is basically inserting a generic character into the database.
+Afterwards, I am pulling that same character by an internal character name and rendering the data into the sheet.
+While the viewing of the character is done in a task style, I believe I might have to go back and do the character creation using that same spawn task style.
+I have not yet checked the performance for the image but that will be something that I want to look into as I expand the image, maybe include more abstract data?
+
+One of the ideas was to show the character sheet's inventory but that would be another query and I am not too sure if I want to do that yet.
+
+#### JWT
+
+Besides the generic character creation via a cookie session, in some cases, we can not store the cookie and need a way to create the character using a JWT.
+Also need to add block control over the character creation.
+
+Okay, so spawn blocking is around all the diesel mysql operatings within the character creation!
+I also updated the validator, so that there would be a character limit in the general input, which we did at the regex level.
+Now the next option would be to double check the base operations around the sheet generation.
+I changed the query parameters to a path based, so that would be easier to unique generate character sheets, but I do need to finish adding more information onto the sheet, itself.
+
+I still have not yet tackled the JWT character creation, which means that I have to create a new function around that too, because the parameters might be different, hmm.
+
+
+#### DnD
+
+Ah, time for Eves Guild DnD Campaign!
+I did not get a chance to get any new gear but currently we are explorering the cave basement, sadly I am not oiled enough for this adventure.
+Damn, the basement is wild, they are filled with fungus spiders, oh boi!
+I wonder if I can turn into Spiderman?! Before I swing, I will have to yet "Turn me into SpiderMeme Already!"
+Now I am thinking if the yeast from these fungal spiders would make some interesting wine.

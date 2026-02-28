@@ -1,0 +1,113 @@
+---
+title: 'June: 17'
+category: Daily
+date: 2025-06-17 12:00:00
+client: Self
+unsplash: 1633356122544-f134324a6cee
+img: https://images.unsplash.com/photo-1633356122544-f134324a6cee?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+  June 17th. DevOps.
+tags:
+  - daily
+---
+
+import { Adsense } from '@/components/astropad';
+
+## 2025
+
+### Dark Mode KBVE
+
+-   04:00AM
+
+    The website looks terrible in light mode, so I am going to try and just strip all that out and keep it dark mode only.
+    This should make things easier on the browser and avoid that terrible flashing that occurs when the site is loading.
+
+### Unity Build failure
+
+-   08:30AM
+
+    Looks like the build failed but I am not too sure why it did, maybe it was because we had those extra files.
+    Maybe it was because I included the assembly files by accident, hmm but that does not make sense.
+    Let me think what else could have been the problem?
+
+-   10:18PM
+
+    Ended up taking a nap, which turned into a whole sleep but damn these two build failures are going to drive me insane.
+    I have officially found the next level of hate in software development.
+    It works in developement but breaks in production, yet the errors do not make sense.
+    One could argue that unit tests would solve this, but this be like higher level testing maybe?
+    When building the game in the unity editor, there is no error that 
+
+### StrudelCC
+
+-   09:17AM
+
+    While I am working on the game, I been just messing with this site, creating some crazy music on the side.
+    Honestly, this is going to become way too much fun if I dont stop soon, but this would be perfect for chips website.
+    Hell, I might even import it into the music player that I was building, so that I could play music ontop of the youtube music that we already have.
+    A jukebox that not only plays music but gives the option to add custom soundtracks.
+
+## 2024
+
+**DevOps**
+
+Okay so for the current v18, there seems to be a build error in `gha` and I think we will just migrate this concept library over to the `devops` library.
+Let us start with the base command to create the library.
+
+```shell
+
+pnpm nx g @nx/js:lib devops --importPath="@kbve/devops" --publishable=true
+
+```
+
+We will keep track of this on [this issue](https://github.com/KBVE/kbve/issues/1955).
+After creating the base of the library, we can go ahead and commit the changes we are planning for this `gha` to `devops` migration.
+
+Finally we got the base of the devops library in operation, just need to finish making sure all the information within the `package.json` is up to date and we will go ahead and trigger a minor bump.
+We can have this move up in the pipeline and while we wait for that to build and process, we can start to expand the library with the various functions.
+For the test case, I went ahead and added the `axios` library, but I noticed that we would have to update the dependencies manually, which is a future painpoint that must be adjusted for.
+
+Looks like the library was built and was published into the NPM registry, now we can move forward with expanding that said library with different functions that we will call within the workflow.
+
+Going to look through the different github actions that we were planning to add and slowly migrate all the custom functions into the `@kbve/devops` library, then go back and activate each one as we see fit.
+Added two more libraries into the monorepo, `marked` and `dompurify`, both of which will be used within the sanitization.ts to help clean up the inputs from the different variables, like the issue ticket's body.
+
+We added the `api.ts` and `sanitization.ts`, with the basic unit testing, and we can now rebuild the issue ticket processing.
+
+There was an error doing the release of the package, maybe it might have been the same version or a version bump error?
+Here is the error:
+
+```
+
+  npm dist-tag add error:
+  Something unexpected went wrong when processing the npm dist-tag add output
+   TypeError: Cannot read properties of undefined (reading 'summary')
+
+```
+
+Let us try going to version `0.0.4` and then seeing if we still get this error.
+
+**Nx**
+
+I made an issue ticket to keep track of the [Nx v19 migration](https://github.com/KBVE/kbve/issues/1954)
+Making sure the `nx.json` was updated to make sure that they dry run does not generate files.
+Before moving forward, we will go ahead and sync these changes and make sure that there will not be any major issues during this process.
+
+## 2023
+
+- 10:00am - Garden time! The blueberries are almost ripe and ready to be eat, that is if the birds do not take them apart. Once that blue hue starts to come out, the crows start to feast.
+- 11:00am - Going to have a nice and relax Saturday, a couple quick H sessions and some general chill vibes until later tonight. The main focus will be to prepare the NodeJS / Python cloud function, which I could turn it into a custom cloud function, with automatic build and deployment? 
+- 3:00pm - I started a great book from Julian Baggini called `The Duck That Won The Lottery`, I will try to include some cute notes and feedback while I am writing these random journal entries. The preface is legendary, I am already loving the starting quote, `Doing things right is simple: just elimin ate all your mistakes and then you'll be perfect.`! I went to highlight the sentence and ended up over highlighting it? To infuse more grace to the fire, the lofi remix vibe added a layer of poetic justice. I am not even looking to backtrack.
+- 8:00pm - Settling down after a couple league sessions, the first concept will be to migrate out the cloud function from being just a python script into the NodePy setup. The main objective will be to migrate certain key components out of the basic setup, hmm this might be a bit tough to write out. The docker image that I will use is from `nikolaik` , under `nikolaik/python-nodejs:latest` and I believe that it is a Debian-based operating system. Based off the Github, it looks like Node 20 and Python 3.11, which I should not as the target for this image? Or should I keep it to the latest? Hmm... That might have to be a future problem for my future self.
+
+
+## Quote
+
+> Be faithful in small things because it is in them that your strength lies.
+> — <cite>Mother Teresa</cite>
+
+---
+
+## Tasks
+
+- [ ] Deploy a basic hybrid cloud function with a load balancer. 

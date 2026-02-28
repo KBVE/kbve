@@ -1,0 +1,37 @@
+---
+title: Extended super antifire(2) | OSRS Price Data
+description: "Extended super antifire(2): 2 doses of extended super anti-firebreath potion.. High alch: 432 GP, GE limit: 2,000."
+osrs:
+  id: 22215
+  name: Extended super antifire(2)
+  slug: extended-super-antifire-2
+  examine: 2 doses of extended super anti-firebreath potion.
+  members: true
+  icon: Extended super antifire(2).png
+  value: 720
+  lowalch: 288
+  highalch: 432
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

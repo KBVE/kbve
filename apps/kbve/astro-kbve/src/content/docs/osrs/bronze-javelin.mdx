@@ -1,0 +1,37 @@
+---
+title: Bronze javelin | OSRS Price Data
+description: "Bronze javelin: A bronze tipped javelin.. High alch: 2 GP, GE limit: 7,000."
+osrs:
+  id: 825
+  name: Bronze javelin
+  slug: bronze-javelin
+  examine: A bronze tipped javelin.
+  members: true
+  icon: Bronze javelin.png
+  value: 4
+  lowalch: 1
+  highalch: 2
+  limit: 7000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

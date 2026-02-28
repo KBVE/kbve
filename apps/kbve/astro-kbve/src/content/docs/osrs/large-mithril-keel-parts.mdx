@@ -1,0 +1,37 @@
+---
+title: Large mithril keel parts | OSRS Price Data
+description: "Large mithril keel parts: Parts for creating a mithril keel for larger boats.. High alch: 3,750 GP, GE limit: 100."
+osrs:
+  id: 32029
+  name: Large mithril keel parts
+  slug: large-mithril-keel-parts
+  examine: Parts for creating a mithril keel for larger boats.
+  members: true
+  icon: Large mithril keel parts.png
+  value: 6250
+  lowalch: 2500
+  highalch: 3750
+  limit: 100
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

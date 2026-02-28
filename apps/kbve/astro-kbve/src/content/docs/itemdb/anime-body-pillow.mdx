@@ -1,0 +1,132 @@
+---
+title: 'Anime Body Pillow'
+description: | 
+    A full-length comfort pillow featuring a vaguely familiar animated figure.
+    One side smiles. The other... doesn't.
+id: 'anime-body-pillow'
+key: 30
+ref: '01JWFA5N2C1SFDP1S7331YF4A6'
+name: 'Anime Body Pillow'
+type: 'Curio'
+category: 418
+img: '/assets/items/set/memes/lewdchat/anime-body-pillow.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 135
+consumable: false
+stackable: false
+rarity: 'Uncommon'
+weight: 3.4
+effects: 'Restores morale. Reduces loneliness debuff. May alter dreams.'
+price: 160
+durability: 999
+equipped: false
+levelRequirement: 0
+cooldown: 69
+action: 'snuggle'
+credits: |
+    Art & Printed by KBVE Pixel Workshop under assumed identity.
+bonuses:
+    moraleBoost: 2
+    sleepQuality: 1
+    dreamInfluence: true
+scripts:
+    - guid: 'dd838b8d3a9442e0a4b0dc3ddcfa71d5'
+      vars:
+            sleepModifier: 1
+            comfortAura: true
+            dreamFlag: 'anime'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Anime Body Pillow** is a long, plush rectangle of suspiciously soft synthetic material, printed with a character whose legal rights were probably lost in the Great Licensing Wars.
+One side is cheerful. The other is intense.
+
+Used for morale restoration, naps, or... "companionship."
+Handle with emotional gloves.
+
+Mass-produced before the Fall, personalized post-Fandom Collapse.
+Fabric recovered from Expo Ruins. 
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+<Adsense />
+
+## Usage
+
+- Grants **+{frontmatter.bonuses.moraleBoost} morale**  
+- Improves **sleep quality** and shortens **panic/fear cooldowns**  
+- May influence dreams with **"anime-tagged memory states"**  
+- Emits a soft aura of **synthetic warmth** and dried tears
+
+---
+
+## Notes
+
+- Not suitable for combat. Probably.  
+- Reactions vary from NPCs - admiration, mockery, envy, confusion.  
+- Wash carefully. Some characters resist detergent.
+
+---
+
+## Lore
+
+> “She was just a print. But in the ruins, she was there for me.”  
+> - Sleep Pod 04 survivor, post-Broadcast Silence
+
+Some say hugging the pillow too long syncs your heart rate with hers.
+Some say it starts talking back.
+Either way, you sleep better.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/pillow_altar.webp"
+  defaultId="01HTXYZPIL001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZPIL001',
+      title: 'Found in Bunker B3',
+      description: 'Wrapped in shrink wrap and devotion.',
+      image: 'https://images.unsplash.com/photo-1642289445181-d3f86083b7b2?q=80&w=500&auto=format&fit=crop',
+      message: 'You feel seen. And deeply judged.',
+      choices: [
+        { label: 'Snuggle it.', nextId: '01HTXYZPIL002' },
+        { label: 'Walk away silently.', nextId: '01HTXYZPIL003' }
+      ]
+    },
+    {
+      id: '01HTXYZPIL002',
+      title: 'Warmth Acquired',
+      description: 'Your anxiety melts a little.',
+      image: '/images/scene_pillowhug.jpg',
+      message: 'You wake up six hours later. Feeling better. Probably.'
+    },
+    {
+      id: '01HTXYZPIL003',
+      title: 'Untouched Devotion',
+      description: 'It stares at the ceiling.',
+      image: '/images/scene_pillowdark.jpg',
+      message: 'Later, someone else takes it. You hear humming.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/28/2025 - Anime Body Pillow added as emotional support curio with morale, sleep, and dream influence.

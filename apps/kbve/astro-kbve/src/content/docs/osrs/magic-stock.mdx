@@ -1,0 +1,37 @@
+---
+title: Magic stock | OSRS Price Data
+description: "Magic stock: A magic crossbow stock.. High alch: 168 GP, GE limit: 10,000."
+osrs:
+  id: 21952
+  name: Magic stock
+  slug: magic-stock
+  examine: A magic crossbow stock.
+  members: true
+  icon: Magic stock.png
+  value: 280
+  lowalch: 112
+  highalch: 168
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

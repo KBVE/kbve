@@ -1,0 +1,37 @@
+---
+title: Sapphire amulet | OSRS Price Data
+description: "Sapphire amulet: I wonder if I can get this enchanted.. High alch: 540 GP, GE limit: 10,000."
+osrs:
+  id: 1694
+  name: Sapphire amulet
+  slug: sapphire-amulet
+  examine: I wonder if I can get this enchanted.
+  members: false
+  icon: Sapphire amulet.png
+  value: 900
+  lowalch: 360
+  highalch: 540
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

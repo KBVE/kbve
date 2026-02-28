@@ -1,0 +1,131 @@
+---
+title: 'Natural Beeswax'
+description: | 
+    Golden, pliable, and faintly fragrant.
+    Harvested from industrious bees and used in candles, salves, and alchemical seals.
+id: 'natural-beeswax'
+key: 16
+ref: '01JWA62X4JRK6MMNJBFEZENK0V'
+name: 'Natural Beeswax'
+type: 'Material'
+category: 404
+img: '/assets/items/skills/farming/materials/natural_beeswax.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 65
+consumable: false
+stackable: true
+rarity: 'Common'
+weight: 0.2
+effects: 'Used for crafting candles, medicine, and magical warding items.'
+price: 80
+durability: 100
+equipped: false
+levelRequirement: 1
+cooldown: 0
+action: 'craft'
+credits: |
+    Concept by h0lybyte and Art by KBVE Pixel Workshop.
+bonuses:
+    candleCrafting: true
+    potionBinding: true
+    scentSoothing: 0.3
+scripts:
+    - guid: 'bbee1f99a3bb4e59be3f91ee1253f010'
+      vars:
+            craftingTags: 'wax'
+            potionStabilityBonus: 0.1
+            aromaValue: 0.3
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Natural Beeswax** is the golden result of tireless bee labor.
+Soft, warm to the touch, and rich with the scent of wildflowers, it's a staple in herbalist recipes and ritual kits.
+Harvested from active hives, refined by hand or centrifuge.
+Known to hold traces of residual pollen and harmony.
+
+From sealing scrolls to calming salves, it's as versatile as it is fragrant.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+## Usage
+
+- Essential for **candle crafting** (e.g., [Spooky Skull Candle](/itemdb/spooky-skull-candle/))
+- Used in **medical salves**, ointments, and minor alchemy
+- Provides **+10% potion stability** and **soothing aroma bonus**
+- Stackable, with gentle degradation over high heat
+
+---
+
+## Sources
+
+Primarily harvested from:
+- **Steel Beehives**
+- Wild hives in **flower-rich biomes**
+- Trade with apiarists and monks
+
+---
+
+## Lore
+
+> “The scent reminds me of home.  
+> The seal reminds me who I left behind.”
+
+Some ancient scrolls were sealed with beeswax so pure, the spells haven't aged a day.
+Others use it to muffle weeping spirits.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/beeswax_infuse.webp"
+  defaultId="01HTXYZWAX001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZWAX001',
+      title: 'Soft & Warm',
+      description: 'The beeswax sits in your palm, gently pliable.',
+      image: 'https://images.unsplash.com/photo-1607453093947-4396f8b88c49?q=80&w=500&auto=format&fit=crop',
+      message: 'It smells like clover and sunlight. Almost too clean for this world.',
+      choices: [
+        { label: 'Use it to seal a scroll.', nextId: '01HTXYZWAX002' },
+        { label: 'Add to your balm mixture.', nextId: '01HTXYZWAX003' }
+      ]
+    },
+    {
+      id: '01HTXYZWAX002',
+      title: 'Scroll Sealed',
+      description: 'The wax bonds like a promise.',
+      image: '/images/scene_waxseal.jpg',
+      message: 'The spell inside feels more stable now.'
+    },
+    {
+      id: '01HTXYZWAX003',
+      title: 'Smooth Blend',
+      description: 'The balm thickens just right.',
+      image: '/images/scene_beebalm.jpg',
+      message: 'You feel calmer just stirring it.'
+    }
+  ]}
+/>
+
+<Adsense />
+
+---
+
+## DevLog
+
+- 05/27/2025 - Natural Beeswax added as core material for candles, salves, and spiritual seals

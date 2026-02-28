@@ -1,0 +1,37 @@
+---
+title: Dagon'hai robes set | OSRS Price Data
+description: "Dagon'hai robes set: A set containing a Dagon'hai hat, robe top and robe bottom.. High alch: 130,200 GP."
+osrs:
+  id: 24333
+  name: Dagon'hai robes set
+  slug: dagon-hai-robes-set
+  examine: A set containing a Dagon'hai hat, robe top and robe bottom.
+  members: true
+  icon: Dagon'hai robes set.png
+  value: 217000
+  lowalch: 86800
+  highalch: 130200
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

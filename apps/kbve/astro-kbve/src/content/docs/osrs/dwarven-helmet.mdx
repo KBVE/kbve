@@ -1,0 +1,37 @@
+---
+title: Dwarven helmet | OSRS Price Data
+description: "Dwarven helmet: A sturdy helmet that belonged to Rupert the Beard.. High alch: 36,000 GP, GE limit: 50."
+osrs:
+  id: 11200
+  name: Dwarven helmet
+  slug: dwarven-helmet
+  examine: A sturdy helmet that belonged to Rupert the Beard.
+  members: true
+  icon: Dwarven helmet.png
+  value: 60000
+  lowalch: 24000
+  highalch: 36000
+  limit: 50
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

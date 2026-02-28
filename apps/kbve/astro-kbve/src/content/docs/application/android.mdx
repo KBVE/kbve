@@ -1,0 +1,458 @@
+---
+title: Android
+description: |
+    Android is an open source operating system based off of Linux that runs within the ARM architecture;
+    the primary use case is within the mobile/tablet eco-system but it has been expanding into server, desktop and embedables.
+    Android utilizes a modified Linux kernel optimized for low power devices and real time performance.
+    Furthermore, the system provides a robust framework for application development through the Android SDK and Java/Kotlin APIs.
+    Android's modular architecture allows hardware vendors to customize drivers, UI layers, and services for specific devices.
+    With the introduction of Project Treble and mainline updates, the OS now supports more consistent long-term maintenance and faster security patches.
+    Beyond consumer devices, Android has also evolved into specialized distributions such as Android TV, Android Auto, and Wear OS, extending its ecosystem across multiple platforms.
+sidebar:
+    label: Android
+    order: 105
+unsplash: 1607252650355-f7fd0460ccdb
+img: https://images.unsplash.com/photo-1607252650355-f7fd0460ccdb?fit=crop&w=1400&h=700&q=75
+tags:
+    - os
+---
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
+import { Giscus, Adsense } from '@/components/astropad';
+
+## Information
+
+Are you ready to step into the heart of a global Android revolution, where millions of users and developers collaborate to improve the open source mobile operating system, giving you endless possibilities to customize your device and operating system.
+Unleash your creativity and make your smartphone, tablet, or smartwatch truly your own with the endless array of apps and features available on Android, tailored to fit your unique needs and preferences.
+Our job at KBVE will be to provide you with everything you need to deploy your own Android application on almost any device!
+
+This one page guide is meant to serve as your resource manual moving forward, we will start with the cheat sheet below, that makes it easy to reference back in the future.
+
+<Adsense />
+
+## Cheatsheet
+
+The ADB cheat sheet is an essential resource for navigating and managing Android operating systems and applications via the Android Debug Bridge (ADB).
+It offers a comprehensive list of basic commands that facilitate various tasks such as installing apps, debugging issues, and accessing device logs.
+While the cheat sheet covers a wide range of functionalities, it's important to note that some commands require root access, and certain Android versions may necessitate specific tweaks to the standard commands.
+This makes the cheat sheet a versatile and indispensable tool for both novice users and experienced developers working with Android devices.
+
+### Device Commands
+
+Android ADB Device commands are commands that you can use to control the Android device over USB from a computer.
+You can use them to list all devices, restart the ADB server, and reboot connected devices.
+
+| Command            | Description                                                                | Notes / Variants                                                               |
+| :----------------- | :------------------------------------------------------------------------- | :----------------------------------------------------------------------------- |
+| `adb devices`      | List all connected devices.                                                |                                                                                |
+| `adb devices -l`   | Query additional information (model, product, transport ID).               | Useful for identifying multiple devices.                                       |
+| `adb get-state`    | Display the current device state (`device`, `offline`, or `unauthorized`). |                                                                                |
+| `adb get-serialno` | Query the device’s serial number.                                          |                                                                                |
+| `adb root`         | Launch the ADB daemon (`adbd`) with root permissions.                      | May fail on production builds: `adbd cannot run as root in production builds`. |
+| `adb start-server` | Start the ADB server daemon.                                               | Runs automatically if missing when using other ADB commands.                   |
+| `adb kill-server`  | Terminate the ADB server process.                                          | Use to restart ADB cleanly if it becomes unresponsive.                         |
+| `adb reboot`       | Reboot the currently connected device.                                     | Accepts optional args like `bootloader` or `recovery`.                         |
+| `adb help`         | Display general help and usage information.                                | Lists all supported subcommands.                                               |
+
+### Shell
+
+<Aside type="danger">
+
+> Warning: Shell commands can brick your operating system, so make sure to double check them before running.
+
+</Aside>
+
+ADB shell is a command-line interface that you can use to access the shell and run various commands on your Android device.
+You can use ADB shell commands to perform actions such as changing the resolution of your device display, uninstalling bloatware or system apps, enabling and disabling features, modifying the system files, ect..
+
+<Aside type="note">
+
+> Remember to keep a backup of the commands that you run via shell, I recommend creating a `log.txt` file and output all the commands to that file.
+
+</Aside>
+
+| Command                                  | Description                                                                           | Notes / Variants                                           |
+| :--------------------------------------- | :------------------------------------------------------------------------------------ | :--------------------------------------------------------- |
+| `adb shell`                              | Launch the interactive shell terminal on the connected device.                        | Equivalent to opening a remote terminal session.           |
+| `adb -s $deviceString $deviceCommand`    | Send a command (`$deviceCommand`) to a specific device identified by `$deviceString`. | Useful when multiple devices are connected.                |
+| `adb shell pwd`                          | Print the current working directory on the device.                                    |                                                            |
+| `adb shell ls`                           | List the contents of the current directory.                                           |                                                            |
+| `adb shell ls -s`                        | List directory contents with file size information.                                   |                                                            |
+| `adb shell ls -R`                        | Recursively list contents of all subdirectories.                                      |                                                            |
+| `adb shell netstat`                      | Display current TCP/IP network connections.                                           | Useful for debugging sockets and ports.                    |
+| `adb shell dumpsys`                      | Dump system service information and status reports.                                   | A powerful diagnostic tool for system introspection.       |
+| `adb shell dumpsys iphonesybinfo`        | Retrieve IMEI and related telephony information.                                      | Typo in some Android versions — should be `iphonesubinfo`. |
+| `adb shell dumpsys battery`              | Display current battery status and related data.                                      |                                                            |
+| `adb shell dumpsys battery set level $v` | Manually set battery level from `0` to `100`.                                         | Useful for testing low-power states.                       |
+| `adb shell dumpsys battery reset`        | Reset battery state to default (real readings).                                       |                                                            |
+| `adb shell dumpsys activity $package`    | Dump activity information for a specific package.                                     |                                                            |
+| `adb shell pm list features`             | List available hardware and software features.                                        |                                                            |
+| `adb shell service list`                 | List all registered Android system services.                                          | Often used before running targeted `dumpsys` queries.      |
+| `adb shell wm`                           | Base command for WindowManager operations.                                            | Placeholder — requires subcommands.                        |
+| `adb shell wm size`                      | Show the current screen resolution.                                                   |                                                            |
+| `adb shell wm size $WxH`                 | Set custom screen resolution (e.g., `1080x1920`).                                     |                                                            |
+| `adb shell wm size reset`                | Reset screen resolution to default.                                                   |                                                            |
+| `adb shell wm density`                   | Show the current display density (DPI).                                               |                                                            |
+| `adb shell wm density reset`             | Reset display density to system default.                                              |                                                            |
+| `adb shell ps`                           | List all running processes on the device.                                             | Similar to Linux `ps` command.                             |
+| `exit`                                   | Exit the current ADB shell session.                                                   | Returns to the host terminal.                              |
+
+### Key Events
+
+Android Key Events - A quick breakdown for each event and how the operating system handles them.
+
+Generic Android Keyevents:
+
+```bash
+  adb shell input keyevent
+```
+
+| Keycode | Command Example               | Description             |
+| :-----: | :---------------------------- | :---------------------- |
+|    0    | `adb shell input keyevent 0`  | Keycode 0               |
+|    1    | `adb shell input keyevent 1`  | Soft Left               |
+|    2    | `adb shell input keyevent 2`  | Soft Right              |
+|    3    | `adb shell input keyevent 3`  | Home Button Event       |
+|    4    | `adb shell input keyevent 4`  | Back Button Event       |
+|    5    | `adb shell input keyevent 5`  | Call Event              |
+|    6    | `adb shell input keyevent 6`  | End Call / Hangup Event |
+|    7    | `adb shell input keyevent 7`  | Keycode 0               |
+|    8    | `adb shell input keyevent 8`  | Keycode 1 — Number 1    |
+|    9    | `adb shell input keyevent 9`  | Keycode 2 — Number 2    |
+|   10    | `adb shell input keyevent 10` | Keycode 3 — Number 3    |
+|   11    | `adb shell input keyevent 11` | Keycode 4 — Number 4    |
+|   12    | `adb shell input keyevent 12` | Keycode 5 — Number 5    |
+|   13    | `adb shell input keyevent 13` | Keycode 6 — Number 6    |
+|   14    | `adb shell input keyevent 14` | Keycode 7 — Number 7    |
+|   15    | `adb shell input keyevent 15` | Keycode 8 — Number 8    |
+|   16    | `adb shell input keyevent 16` | Keycode 9 — Number 9    |
+|   17    | `adb shell input keyevent 17` | STAR (\*) Key           |
+|   18    | `adb shell input keyevent 18` | Pound (#) Key           |
+
+- Koltin: `open class KeyEvent: InputEvent, Parcelable`
+
+- Java: `public class KeyEvent extends InputEvent implements Parcelable`
+
+<Aside>
+	The ADB cheatsheet provides a general list of basic commands for Android
+	operating system and applications. Please note that certain commands require
+	the device to be rooted, furthermore certain Android versions may require a
+	tweak to the commands.
+</Aside>
+
+---
+
+## Android Data Storage
+
+In Android, there are several ways to store data persistently.
+The choice of storage mechanism depends on the nature of the data and the requirements of the app.
+Below are the primary methods for data storage in Android:
+
+**Comparison of Storage Options**
+
+| Storage Method    | Visibility | Persistence            | Complexity  | Best For                                 |
+| ----------------- | ---------- | ---------------------- | ----------- | ---------------------------------------- |
+| SharedPreferences | Private    | Until app uninstall    | Low         | Small key-value pairs                    |
+| Internal Storage  | Private    | Until app uninstall    | Low         | Private files                            |
+| External Storage  | Public     | Until manually deleted | Medium      | Large/shared files                       |
+| SQLite Database   | Private    | Until app uninstall    | High        | Structured data                          |
+| Room              | Private    | Until app uninstall    | Medium-High | Structured data with compile-time safety |
+
+When choosing a storage method, consider the type of data you're storing, how much data you need to store, the required level of security, and the complexity you're willing to manage in your app.
+
+1. SharedPreferences
+
+SharedPreferences is a framework that allows you to save and retrieve key-value pairs of primitive data types.
+
+**Use Cases**
+
+- Storing user preferences.
+- Saving settings or configuration data.
+
+**Advantages:**
+
+- Simple to use for small amounts of data
+- Data persists across app restarts
+
+**Disadvantages:**
+
+- Not suitable for large or complex data structures
+- Not encrypted by default
+
+**Java Code Example**
+
+```java
+// Saving data to SharedPreferences
+SharedPreferences sharedPref = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+SharedPreferences.Editor editor = sharedPref.edit();
+editor.putString("key_name", "value");
+editor.apply();
+
+// Retrieving data from SharedPreferences
+SharedPreferences sharedPref = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+String value = sharedPref.getString("key_name", "default_value");
+```
+
+2. Internal Storage
+
+Internal Storage is used to store private data within the device's internal memory.
+
+**Use Cases**
+
+- Storing sensitive data.
+- Files that should not be accessible to other apps.
+
+**Advantages:**
+
+- Data is private to the app.
+- Files are removed when the app is uninstalled.
+
+**Disadvantages:**
+
+- Limited by device storage.
+- Not easily accessible for backup.
+
+**Java Code Example**
+
+```java
+// Writing to internal storage
+String filename = "myfile";
+String fileContents = "Hello, World!";
+FileOutputStream fos = openFileOutput(filename, Context.MODE_PRIVATE);
+fos.write(fileContents.getBytes());
+fos.close();
+
+// Reading from internal storage
+FileInputStream fis = openFileInput(filename);
+InputStreamReader isr = new InputStreamReader(fis);
+BufferedReader br = new BufferedReader(isr);
+StringBuilder sb = new StringBuilder();
+String line;
+while ((line = br.readLine()) != null) {
+    sb.append(line);
+}
+String fileContents = sb.toString();
+fis.close();
+```
+
+3. External Storage
+
+External Storage is used to store public data on the shared external storage.
+It's typically used for storing larger files.
+
+**Use Cases**
+
+- Storing media files (images, videos, audio)
+- Documents that need to be shared with other apps.
+
+**Advantages:**
+
+- Larger storage capacity
+- Files can be shared with other apps
+
+**Disadvantages:**
+
+- Not secure, as other apps can access the files
+- Files may remain after app uninstallation
+
+**Permissions**
+
+```xml
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+```
+
+**Java Code Example**
+
+```java
+// Writing to external storage
+String filename = "myfile";
+String fileContents = "Hello, World!";
+File file = new File(getExternalFilesDir(null), filename);
+FileOutputStream fos = new FileOutputStream(file);
+fos.write(fileContents.getBytes());
+fos.close();
+
+// Reading from external storage
+File file = new File(getExternalFilesDir(null), filename);
+FileInputStream fis = new FileInputStream(file);
+InputStreamReader isr = new InputStreamReader(fis);
+BufferedReader br = new BufferedReader(isr);
+StringBuilder sb = new StringBuilder();
+String line;
+while ((line = br.readLine()) != null) {
+    sb.append(line);
+}
+String fileContents = sb.toString();
+fis.close();
+```
+
+4. SQLite Database
+
+SQLite is a lightweight relational database embedded within Android.
+
+**Use Cases**
+
+- Structured data storage.
+- Complex querying requirements.
+- Managing complex data relationships
+
+**Advantages:**
+
+- Efficient for complex queries and large datasets
+- Supports transactions and data integrity
+
+**Disadvantages:**
+
+- More complex to set up and use compared to other options
+- Overkill for simple data storage needs
+
+**Java Code Example**
+
+```java
+// Creating a database helper
+public class MyDatabaseHelper extends SQLiteOpenHelper {
+    private static final String DATABASE_NAME = "mydatabase.db";
+    private static final int DATABASE_VERSION = 1;
+
+    public MyDatabaseHelper(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE mytable (id INTEGER PRIMARY KEY, name TEXT)");
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS mytable");
+        onCreate(db);
+    }
+}
+
+// Using the database helper
+MyDatabaseHelper dbHelper = new MyDatabaseHelper(context);
+SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+// Inserting data
+ContentValues values = new ContentValues();
+values.put("name", "John Doe");
+long newRowId = db.insert("mytable", null, values);
+
+// Querying data
+Cursor cursor = db.query("mytable", new String[]{"id", "name"}, null, null, null, null, null);
+while (cursor.moveToNext()) {
+    long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
+    String itemName = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+}
+cursor.close();
+db.close();
+```
+
+5. Room Database
+
+Room is an abstraction layer over SQLite that provides a more robust database access while harnessing the full power of SQLite.
+
+**Use Cases:**
+
+- When you need a robust database solution but want to avoid the complexity of raw SQLite
+
+**Advantages:**
+
+- Compile-time verification of SQL queries
+- Convenient annotations to define database structure
+- Easy integration with other Architecture components
+
+**Disadvantages:**
+
+- Adds additional dependencies to your project
+- May be overkill for very simple data storage needs
+
+**Java Code Example**
+
+```java
+// Define Entity
+@Entity(tableName = "user")
+public class User {
+    @PrimaryKey
+    public int id;
+    public String name;
+}
+
+// Define DAO
+@Dao
+public interface UserDao {
+    @Insert
+    void insert(User user);
+
+    @Query("SELECT * FROM user WHERE id = :id")
+    User getUserById(int id);
+}
+
+// Define Database
+@Database(entities = {User.class}, version = 1)
+public abstract class AppDatabase extends RoomDatabase {
+    public abstract UserDao userDao();
+}
+
+// Using Room
+AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+        AppDatabase.class, "mydatabase").build();
+UserDao userDao = db.userDao();
+
+// Inserting data
+User user = new User();
+user.id = 1;
+user.name = "John Doe";
+userDao.insert(user);
+
+// Querying data
+User user = userDao.getUserById(1);
+```
+
+6. Content Providers
+
+Content Providers manage access to a structured set of data. They encapsulate the data and provide mechanisms for defining data security.
+
+**Use Cases**
+
+- Sharing data between different applications.
+- Accessing data from other applications.
+
+**Java Code Example**
+
+```java
+// Querying a content provider
+Cursor cursor = getContentResolver().query(
+        ContactsContract.Contacts.CONTENT_URI,
+        null,
+        null,
+        null,
+        null);
+
+while (cursor.moveToNext()) {
+    String id = cursor.getString(
+            cursor.getColumnIndex(ContactsContract.Contacts._ID));
+    String name = cursor.getString(
+            cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+}
+cursor.close();
+```
+
+---
+
+## React Native
+
+This part of the guide goes into the specific parts of React Native and Android, we do try to keep all our react native notes into one area.
+We recommend going to the rn section as well, but there might be double notes in this section.
+
+<Giscus />

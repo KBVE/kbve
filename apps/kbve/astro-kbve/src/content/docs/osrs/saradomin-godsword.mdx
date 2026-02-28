@@ -1,0 +1,142 @@
+---
+title: Saradomin godsword | OSRS Price Data
+description: "Saradomin godsword is a members two-handed weapon requiring 75 Attack. High alch: 750,000 GP, GE limit: 8."
+osrs:
+  id: 11806
+  name: Saradomin godsword
+  slug: saradomin-godsword
+  examine: A gracious, heavy sword.
+  members: true
+  icon: Saradomin godsword.png
+  value: 1250000
+  lowalch: 500000
+  highalch: 750000
+  limit: 8
+  equipment:
+    slot: 2h
+    type: godsword
+    attack_style: slash
+    attack_speed: 6
+    requirements:
+      attack: 75
+    stats:
+      attack_slash: 132
+      attack_crush: 80
+      strength: 132
+      prayer: 8
+  special_attack:
+    name: Healing Blade
+    energy: 50
+    effect: Doubled accuracy, +10% max hit, heals 50% of damage, restores 25% Prayer
+  recipes:
+    - skill: none
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Godsword blade
+          item_id: 11798
+          quantity: 1
+        - item_name: Saradomin hilt
+          item_id: 11814
+          quantity: 1
+      product: Saradomin godsword
+      product_id: 11806
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 11814
+      item_name: Saradomin hilt
+      slug: saradomin-hilt
+      relationship: component
+      description: Hilt component
+    - item_id: 11798
+      item_name: Godsword blade
+      slug: godsword-blade
+      relationship: component
+      description: Blade component
+    - item_id: 11802
+      item_name: Armadyl godsword
+      slug: armadyl-godsword
+      relationship: alternative
+      description: KO spec
+    - item_id: 11804
+      item_name: Bandos godsword
+      slug: bandos-godsword
+      relationship: alternative
+      description: Defence drain
+    - item_id: 11808
+      item_name: Zamorak godsword
+      slug: zamorak-godsword
+      relationship: alternative
+      description: Freeze spec
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Attach Saradomin hilt to Godsword blade.
+
+| Component | Source | Price |
+|-----------|--------|-------|
+| Saradomin hilt | Commander Zilyana (1/508) | ~24M gp |
+| Godsword blade | GWD bosses | ~526K gp |
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Slash attack | +132 |
+| Crush attack | +80 |
+| Strength | +132 |
+| Prayer | +8 |
+| Attack speed | 6 tick (3.6s) |
+| Requirements | 75 Attack |
+
+## Special Attack
+
+**Healing Blade** (50% energy):
+- Doubled accuracy
+- +10% max hit
+- Heals HP equal to 50% of damage dealt
+- Restores Prayer equal to 25% of damage dealt
+
+## Usage
+
+**Best For:**
+- Extended PvM trips (Slayer, bossing)
+- Sustain without food/prayer pots
+- GWD trips
+- Budget Inferno attempts
+
+**Strategy:** Swap to SGS for specs, use main weapon otherwise
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Most "practical" godsword for PvM
+- Reduces supply costs significantly
+- Good for learning bosses
+
+<Adsense />

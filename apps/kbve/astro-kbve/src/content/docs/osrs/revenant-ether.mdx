@@ -1,0 +1,151 @@
+---
+title: Revenant ether | OSRS Price Data
+description: "Revenant ether: Ethereal essence of the revenants.. High alch: 150 GP, GE limit: 30,000."
+osrs:
+  id: 21820
+  name: Revenant ether
+  slug: revenant-ether
+  examine: Ethereal essence of the revenants.
+  members: true
+  icon: Revenant ether 5.png
+  value: 250
+  lowalch: 100
+  highalch: 150
+  limit: 30000
+  item_type: currency
+  stackable: true
+  tradeable: true
+  members_only: true
+  uses:
+    - type: charging
+      items:
+        - item_id: 22550
+          item_name: Craw's bow
+        - item_id: 22545
+          item_name: Viggora's chainmace
+        - item_id: 22555
+          item_name: Thammaron's sceptre
+        - item_id: 27655
+          item_name: Webweaver bow
+        - item_id: 27660
+          item_name: Ursine chainmace
+        - item_id: 27665
+          item_name: Accursed sceptre
+        - item_id: 21816
+          item_name: Bracelet of ethereum
+  obtaining:
+    methods:
+      - source: Revenants
+        location: Revenant Caves
+        drop_rate: Always
+      - source: Ancient artefacts
+        method: Use chisel (1 ether per 500 coins value)
+  related_items:
+    - item_id: 22550
+      item_name: Craw's bow
+      slug: craws-bow
+      relationship: variant
+      description: Uses ether for charges
+    - item_id: 22545
+      item_name: Viggora's chainmace
+      slug: viggoras-chainmace
+      relationship: variant
+      description: Uses ether for charges
+    - item_id: 22555
+      item_name: Thammaron's sceptre
+      slug: thammarons-sceptre
+      relationship: variant
+      description: Uses ether for charges
+    - item_id: 21816
+      item_name: Bracelet of ethereum
+      slug: bracelet-of-ethereum
+      relationship: variant
+      description: Uses ether for charges
+    - item_id: 22557
+      item_name: Amulet of avarice
+      slug: amulet-of-avarice
+      relationship: alternative
+      description: Revenant amulet
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Currency |
+| Tradeable | Yes |
+| Stackable | Yes |
+| Weight | 0 kg |
+
+## Obtaining
+
+| Source | Method | Rate |
+|--------|--------|------|
+| Revenants | Combat drop | Always |
+| Ancient artefacts | Chisel | 1 ether per 500 coins value |
+
+## Uses
+
+**Charges Wilderness Weapons:**
+- Craw's bow
+- Viggora's chainmace
+- Thammaron's sceptre
+- Webweaver bow
+- Ursine chainmace
+- Accursed sceptre
+
+**Charges Bracelet of Ethereum:**
+- Provides revenant protection
+- 1 charge consumed per revenant attack
+
+## Charge Costs
+
+| Weapon | Activation | Max Charges |
+|--------|------------|-------------|
+| Craw's bow | 1,000 | 17,000 |
+| Viggora's chainmace | 1,000 | 17,000 |
+| Thammaron's sceptre | 1,000 | 17,000 |
+| Webweaver bow | 1,000 | 17,000 |
+| Ursine chainmace | 1,000 | 17,000 |
+| Accursed sceptre | 1,000 | 17,000 |
+| Bracelet of ethereum | 1 | 16,000 |
+
+## Market Strategy
+
+**Buy Limit:** 30,000 per 4 hours
+
+**Price:** ~176 gp each
+
+**Tips:**
+- Always dropped by revenants
+- Essential for wilderness weapons
+- High daily volume traded
+
+## Related Items
+
+- [Craw's bow](/osrs/craws-bow/) - Ranged wilderness weapon
+- [Viggora's chainmace](/osrs/viggoras-chainmace/) - Melee wilderness weapon
+- [Thammaron's sceptre](/osrs/thammarons-sceptre/) - Magic wilderness weapon
+- [Bracelet of ethereum](/osrs/bracelet-of-ethereum/) - Revenant protection
+
+<Adsense />

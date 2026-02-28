@@ -1,0 +1,125 @@
+---
+title: 'Lobster Soup'
+description: |
+    A rich and creamy soup made from deep-sea lobster, bone broth, and rare roots.
+    It nourishes the body and stirs forgotten tides in the mind.
+id: 'lobster-soup'
+key: 48
+ref: '01JWG9ZCRB9JW5F4DHMRXQ2VM8'
+name: 'Lobster Soup'
+type: 'Food'
+category: 392
+img: '/assets/items/skills/cooking/dish/lobster_soup.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 56
+consumable: true
+stackable: false
+rarity: 'Rare'
+weight: 2.5
+effects: 'Restores large health, boosts regeneration, and grants temporary sea affinity.'
+price: 520
+durability: 1
+equipped: false
+levelRequirement: 6
+cooldown: 120
+action: 'consume'
+credits: |
+    Prepared using ancestral cooking methods, this soup connects landfolk to ocean memory. Served in coastal shrines and submarine kitchens alike. Art by KBVE Pixel Workshop.
+bonuses:
+    health: 90
+    regenRate: 2
+    seaAffinity: true
+scripts:
+    - guid: 'e5cba389843f4d8f973c82459ef10551'
+      vars:
+            buffDuration: 180
+            traits: 'sea-affinity'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+**Lobster Soup** is a delicacy of warmth and memory. 
+Cooked low and long, this dish not only restores major health, but also boosts regeneration and links the consumer briefly to the rhythm of the tides.
+
+Best enjoyed in silence or after battle, be sure to catch more [lobsters](/itemdb/lobster/)
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+<Adsense />
+
+## Usage
+
+- Restores **{frontmatter.bonuses.health} health**  
+- Boosts **regen rate by {frontmatter.bonuses.regenRate}x**  
+- Grants temporary **sea affinity**  
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Notes
+
+- Created using *Lobster*, *Sea Broth Concentrate*, and *Spirit Root*  
+- Eating this near water increases buff duration by 20%  
+- Often used to calm trauma after sea-related events
+
+---
+
+## Lore
+
+> “The soup tasted like home… even though I've never lived in the ocean.”  
+> - Journal scrap, post-shipwreck survivor
+
+It's said the soul of the lobster remains in the broth and it remembers.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/lobster_soup.webp"
+  defaultId="01HTXYZSOUP001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZSOUP001',
+      title: 'Steam Rises',
+      description: 'The soup shimmers with ocean memory.',
+      image: 'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?q=80&w=500&auto=format&fit=crop',
+      message: 'Each breath feels tidal.',
+      choices: [
+        { label: 'Drink deeply.', nextId: '01HTXYZSOUP002' },
+        { label: 'Share with a crew member.', nextId: '01HTXYZSOUP003' }
+      ]
+    },
+    {
+      id: '01HTXYZSOUP002',
+      title: 'Personal Restoration',
+      description: 'Your body warms. Wounds begin to fade.',
+      image: '/images/scene_soup_heal.jpg',
+      message: 'The sea recognizes you.'
+    },
+    {
+      id: '01HTXYZSOUP003',
+      title: 'Shared Calm',
+      description: 'The crew quiets. No one speaks.',
+      image: '/images/scene_soup_share.jpg',
+      message: 'Even silence can be sacred.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/30/2025 - Lobster Soup added as premium healing food with regeneration, sea traits, and lore-driven effects

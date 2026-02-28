@@ -1,0 +1,104 @@
+---
+title: Empty fishbowl | OSRS Price Data
+description: "Empty fishbowl: An empty fishbowl.. High alch: 1 GP, GE limit: 100."
+osrs:
+  id: 6667
+  name: Empty fishbowl
+  slug: empty-fishbowl
+  examine: An empty fishbowl.
+  members: true
+  icon: Empty fishbowl.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 100
+  material:
+    type: glass_product
+    tier: mid
+  crafting:
+    level: 42
+    xp: 42.5
+  recipes:
+    - skill: crafting
+      level: 42
+      xp: 42.5
+      materials:
+        - item_name: Molten glass
+          item_id: 1775
+          quantity: 1
+      product: Empty fishbowl
+      product_id: 6667
+      product_quantity: 1
+      facility: Glassblowing pipe
+      members_only: true
+  related_items:
+    - item_id: 1775
+      item_name: Molten glass
+      slug: molten-glass
+      relationship: component
+      description: Raw material
+    - item_id: 6668
+      item_name: Fishbowl
+      slug: fishbowl
+      relationship: product
+      description: Filled with water
+    - item_id: 6670
+      item_name: Tiny net
+      slug: tiny-net
+      relationship: component
+      description: For catching fish
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Method | Level | Materials |
+|--------|-------|-----------|
+| Glassblowing | 42 | 1 Molten glass |
+| XP | 42.5 | - |
+
+## Usage
+
+Used for pet fish and Rum Deal quest:
+
+| Usage | Result |
+|-------|--------|
+| Fill with water | Fishbowl |
+| Add seaweed | Fishbowl with seaweed |
+| Catch fish | Pet fish |
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Demand Drivers:**
+- Pet fish keeping
+- Rum Deal quest
+- Fish collecting
+
+**Tips:**
+- Niche item
+- Quest requirement
+- Can keep pet fish
+- Low volume market
+
+<Adsense />

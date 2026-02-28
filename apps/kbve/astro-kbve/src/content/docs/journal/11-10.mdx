@@ -1,0 +1,139 @@
+---
+title: 'November: 10th'
+category: Daily
+date: 2024-11-10 12:00:00
+client: Self
+unsplash: 1721332154373-17e78d19b4a4
+img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: November 10th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2024
+
+-   07:13AM
+
+    **Nx Update**
+
+    Updated the monorepo to nx v20.0.12.
+    Also moved up the build process to see where the main branch fails, hopefully we can address that problem tonight.
+
+    **Main**
+
+    The branch seems to build without any major issues, but it did skip a couple libraries from being built.
+    What we could do is try to maybe start changing the triggers to be all via readme updates?
+    Hmm, I will have to think through it again, let me get some coffee and revisit this concept again within the next hour.
+
+    **Package**
+
+    I am going to go through the package again and see if there are any libraries that we need to update or remove.
+    We are no longer supporting `appwrite`, so lets go ahead and remove that one.
+    I believe we can also drop the `preact` libraries as well.
+    `"@astrojs/preact": "^3.5.3"` and `preact` both could be removed.
+
+-   07:30AM
+
+    **Vue**
+
+    We can take out the `vue` package as well, following the same command from the `preact` earlier.
+    ```shell
+    pnpm remove @astrojs/vue vue
+    ```
+
+    However I will run those later when I get back to the monorepo.
+    After we run that, we will need to make sure to clean up the cache.
+    
+    ```shell
+    pnpm nx reset
+    ```
+
+-   08:53AM
+
+    **Unity**
+
+    I grabbed the ERW tilesets from Matos and threw them into the `Rareicon` asset folder.
+    With the generic collection of tilesets, we should have enough to build a couple generic maps.
+    Now the bigger question would be to figure out how to get the hang of the animation.
+
+    **Supabase**
+
+    While making changes to the Unity configuration, I can spend some time thinking through the changes that I want to do with the `user_cards`.
+    One of the goals for the user cards after this base update will be to pull the stats from the character sheet and render them.
+    We want the goal of the card to contain all the public information that a random guest or user would require.
+    So lets take abit of a step back and review the psql for it.
+
+    We will keep parts of the table, like the `CONSTRAINT` for the function, example:
+
+    ```sql
+
+    CONSTRAINT bio_length CHECK (char_length(bio) <= 255), -- Limit bio length to 255 characters
+    CONSTRAINT bio_format CHECK (bio ~ '^[a-zA-Z0-9.!? ]*$'), -- Allow alphanumeric characters, spaces, and basic punctuation
+
+    ```
+
+    Okay, yet the `JSONB` needs to be adjusted within the function because it does not let specific nulls through, like if the user has a github but not a twitter.
+    
+    Wait I am a tart, I can just drop these functions and use the row level security to handle the updating and managing of the table.
+    Thus the PSQL will make this so much easier to manage in the future, yay!
+    Okay so we will just run these and move forward with the current project.
+    
+    ```sql
+
+    BEGIN;
+
+    --  Drop older trigger and function
+    DROP TRIGGER IF EXISTS on_auth_new_card_created ON auth.users;
+    DROP FUNCTION IF EXISTS public.handle_user_card_update();
+    DROP FUNCTION IF EXISTS public.handle_new_user_card();
+    DROP TRIGGER IF EXISTS handle_user_card_update ON public.user_cards;
+
+    COMMIT;
+
+    ```
+
+    Then we can update the command to just handle these directly for us.
+    Oh I made another silly mistake, I have to drop the triggers first then the functions!
+    Let me go ahead and fix that up really quick.
+
+-   11:30AM
+
+    **Expo**
+
+    Okay after migrating both the user profile and the user card out of the sign up process, we can begin building out the onboarding process.
+    This process will have to be done on both the `@kbve/laser` project and also in the `@kbve/expo-bbq`, since we need to include this for both astro and expo.
+    In both situations, I will open four instances of VS Code and tackle them all at the same time!
+    This is the peak of development, my brain is going to be broken as I do this xD
+    Under the current expo, it will be `packages/expo-bbq/src/components/auth/user/TamaOnboard.tsx` and then inside of that we can build out the component!
+    This would be the barebone component, aka, `TamaOnboard`, and it would have two states that it would manage.
+    The first state would be for the `username` and making sure that it is unique before setting it up, however it would be noted that it is the user's public username.
+    The second state would be for the profile card, the core specific here would be preparing the basic information for the init card.
+    Hmm, okay these two states should be enough for us to move forward, I believe we can always go back around and double check the onboarding when it goes live into production.
+
+    I am thinking that for error management, we should push the error up in the component, so that the parent component that calls the Tamaonboard can process the error?
+    This would be easier for us to handle, without having to create multiple error handlers inside of the sub-components, okay let me do that next.
+
+    To keep with the standard, the TamaOnBoard will pass up an `OnError` and `OnSuccess` void, both of which can then be managed by the parent component.
+    This means we can remove the redirect that is hard coded into the component, yet it does mean we can not specifically highlight where the error is exactly in the form?
+
+    Next, we need to create the actual `onboard.tsx` that we will be using in the expo-lcagents?!
+    Since this page will be similar to our login / profile, we can strip them down and grab the components that will be useful for the onboarding.
+    The goal will be to keep it simple enough to push towards production, then we can loop back around and work on resolving the specific bugs.
+    I do know that the username being taken would be a bug or if the username format is off, both of which we can resolve through the onboarding component. 
+    Besides those two additions, I am not too sure what else the onboarding would need?
+    I guess we could have them double check the legal docs as well before moving forward, but that is up to the client as well.
+    Having the legal documents be a combination is a cool future-like concept but there would be a decent amount of work that has to go into setting that up.
+
+    Then there is the actual content that the website would have, maybe since we are already data mining different job sites, we could link that data back into the website.
+    That could be a great way to drive up natural traffic to the site too.
+
+    Updating the `public.create_user_profile` function to return the new username after it gets created.
+    Okay let me push this through as the most recent update!
+
+    **FredAgain**
+
+    While working on the expo component, I am jamming to that radio session with Fred and Jim!
+    The whole work is flames, just nearly a perfect set for this expo work.
+    Here is the link to the [set](https://www.youtube.com/watch?v=DE_yVb3JMD8), which should be thrown into that future music application.

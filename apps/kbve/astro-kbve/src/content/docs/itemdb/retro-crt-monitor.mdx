@@ -1,0 +1,135 @@
+---
+title: 'Retro CRT Monitor'
+description: |
+    A bulky, curved-screen terminal from the golden age of glass and static.
+    Displays 8-bit data streams and shell interfaces with haunting clarity.
+id: 'retro-crt-monitor'
+key: 36
+ref: '01J2GHZQ9CXY89NB7NS5Q2DRRC'
+name: 'Retro CRT Monitor'
+type: 'Tech'
+category: 410
+img: '/assets/items/tools/retro_crt_monitor.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 60
+consumable: false
+stackable: false
+rarity: 'Uncommon'
+weight: 4.8
+effects: 'Enables access to classic shell terminals and renders retro data feeds.'
+price: 200
+durability: 750
+equipped: false
+levelRequirement: 3
+cooldown: 0
+action: 'access'
+credits: |
+    Salvaged from forgotten broadcast towers and basement bunkers. CRT manufactured pre-Singularity by CathoTech Industries. Art by KBVE Pixel Workshop.
+bonuses:
+    terminalAccess: true
+    retroInterface: true
+    glitchImmunity: 1
+scripts:
+    - guid: 'fc0c8a95eb5f4e06ae0875c3b6e0c9cc'
+      vars:
+            enableShell: true
+            displayMode: '8-bit'
+            resolution: '320x240'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Retro CRT Monitor** is a boxy, radiation hugging relic.
+Despite its weight and humming backplate, it still boots. And when it does, it renders systems in crisp blocky fonts with command-line loyalty.
+
+Perfect for running shell-based software, decoding vintage data chips, or watching corrupted public service announcements from before the Collapse.
+
+Burnt into the screen... A message, maybe a cry for help...
+Just a under the namespace of KBVE.MMExtensions.Orchestrator.Core.UI.Toast, inside that monothlic class, oh wait... dont forget to update the monorepo that holds all our code, then pull that code back into our azure repo.
+Oh silly me, the gitlab builds the that other file. 
+Yeah we are a multi-git, monorepo with additional monorepos.
+
+Do not worry if it breaks, it can be recycled for other parts, like [Microchip motherboards](/itemdb/microchip-motherboard/).
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+<Adsense />
+
+## Usage
+
+- Grants **terminal access** to classic shell systems  
+- Renders **8-bit data interfaces** with minimal lag  
+- Slight **glitch resistance** when connected to unstable networks  
+- May unlock **hidden retro OS overlays** or AI logs
+
+---
+
+## Notes
+
+- Emits low-level magnetic field but keep this away from synthetic pets  
+- Compatible with: `datapad-modem`, `shell-core`, and `relic floppy drives`  
+- Makes a satisfying *"thunk"* when turned on
+
+---
+
+## Lore
+
+> “The screen blinked. Static, then green text. It said: _'Hello again.'_”  
+> - Field tech log recovered from Vault 404
+
+Many believe these monitors never truly shut off.
+That the last message always waits to be read in 8-bit purgatory.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/crt_static.webp"
+  defaultId="01HTXYZCRT001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZCRT001',
+      title: 'Power Surge',
+      description: 'The screen flares to life.',
+      image: 'https://images.unsplash.com/photo-1638536531710-ec54aa99c476?q=80&w=500&auto=format&fit=crop',
+      message: 'Lines of green text scroll across a black void.',
+      choices: [
+        { label: 'Enter terminal mode.', nextId: '01HTXYZCRT002' },
+        { label: 'Unplug quickly.', nextId: '01HTXYZCRT003' }
+      ]
+    },
+    {
+      id: '01HTXYZCRT002',
+      title: 'Shell Activated',
+      description: 'You see familiar commands.',
+      image: '/images/scene_terminal.jpg',
+      message: 'It is old. But it listens.'
+    },
+    {
+      id: '01HTXYZCRT003',
+      title: 'Connection Severed',
+      description: 'The screen fades.',
+      image: '/images/scene_crt_dark.jpg',
+      message: 'But not before a final prompt: `Goodbye.`'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/30/2025 - Retro CRT Monitor added as tech tool with terminal access and 8-bit data rendering support

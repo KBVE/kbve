@@ -1,0 +1,115 @@
+---
+title: Serpentine visage | OSRS Price Data
+description: "Serpentine visage: Maybe you could use a chisel to craft this into a helmet.. High alch: 63,000 GP, GE limit: 5."
+osrs:
+  id: 12927
+  name: Serpentine visage
+  slug: serpentine-visage
+  examine: Maybe you could use a chisel to craft this into a helmet.
+  members: true
+  icon: Serpentine visage.png
+  value: 105000
+  lowalch: 42000
+  highalch: 63000
+  limit: 5
+  item:
+    type: crafting_material
+    tradeable: true
+    weight: 1
+  obtaining:
+    methods:
+      - source: Zulrah
+        drop_rate: 2 x 1/1,024
+  creation:
+    creates:
+      item_id: 12929
+      item_name: Serpentine helm (uncharged)
+      slug: serpentine-helm
+    method: Use chisel to create Serpentine helm
+    requirements:
+      crafting: 52
+    xp: 120
+    dismantle:
+      result_id: 12934
+      result_name: Zulrah's scales
+      quantity: 20000
+  related_items:
+    - item_id: 0
+      item_name: Zulrah
+      slug: zulrah
+      relationship: component
+      description: Boss drop
+    - item_id: 12929
+      item_name: Serpentine helm
+      slug: serpentine-helm
+      relationship: product
+      description: Created helm
+    - item_id: 12934
+      item_name: Zulrah's scales
+      slug: zulrahs-scales
+      relationship: downgrade
+      description: Dismantle result
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Weight | 1 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Zulrah | 2 x 1/1,024 |
+
+## Uses
+
+| Item Created | Materials | Requirements |
+|--------------|-----------|--------------|
+| Serpentine helm (uncharged) | Serpentine visage + chisel | 52 Crafting |
+
+Grants 120 Crafting XP when crafted.
+
+Can be dismantled for 20,000 Zulrah's scales.
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~4.5M gp
+
+**Tips:**
+- Zulrah exclusive drop
+- Creates venom-immune helm
+- 52 Crafting to process
+
+## Related Items
+
+- [Zulrah](/osrs/zulrah/) - Boss drop
+- [Serpentine helm](/osrs/serpentine-helm/) - Created helm
+- [Zulrah's scales](/osrs/zulrahs-scales/) - Dismantle result
+
+<Adsense />

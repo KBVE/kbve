@@ -1,0 +1,79 @@
+---
+title: Prayer potion(2) | OSRS Price Data
+description: "Prayer potion(2) is a 2-dose members potion that restores 7-31 prayer points based on prayer level. High alch: 68 GP, GE limit: 2,000."
+osrs:
+  id: 141
+  name: Prayer potion(2)
+  slug: prayer-potion-2
+  examine: 2 doses of Prayer restore potion.
+  members: true
+  icon: Prayer potion(2).png
+  value: 114
+  lowalch: 45
+  highalch: 68
+  limit: 2000
+  potion:
+    doses: 2
+    herblore_level: 38
+    herblore_xp: 87.5
+    effect: Restores 7-31 Prayer points based on Prayer level
+    effects:
+      - stat: Prayer
+        boost_formula: 7 + floor(level / 4)
+  related_items:
+    - item_id: 2434
+      item_name: Prayer potion(4)
+      slug: prayer-potion-4
+      relationship: variant
+      description: 4-dose version
+    - item_id: 139
+      item_name: Prayer potion(3)
+      slug: prayer-potion-3
+      relationship: variant
+      description: 3-dose version
+    - item_id: 143
+      item_name: Prayer potion(1)
+      slug: prayer-potion-1
+      relationship: variant
+      description: 1-dose version
+    - item_id: 3024
+      item_name: Super restore(4)
+      slug: super-restore-4
+      relationship: upgrade
+      description: Also restores stats
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Usage
+
+2-dose variant of Prayer potion.
+
+## Market Flip Strategy
+
+**Dose Manipulation:**
+- Compare to 4-dose price
+- Decanting can profit
+- Use decanting NPC in GE
+
+**Buy Limit:** 2,000 per 4 hours
+
+<Adsense />

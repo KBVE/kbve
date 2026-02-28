@@ -1,0 +1,130 @@
+---
+title: 'Beer'
+description: |
+    A frothy, golden beverage brewed from hops, grain, and patience. 
+    Grants mild strength, courage, and unfortunate honesty.
+id: 'beer'
+key: 50
+ref: '01JWJAVCGHH345RKABKR1D04XF'
+name: 'Beer'
+type: 'Drink'
+category: 400
+img: '/assets/items/skills/cooking/materials/liquor/beer.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 58
+consumable: true
+stackable: true
+rarity: 'Common'
+weight: 0.75
+effects: 'Boosts morale, slightly improves strength, lowers charisma temporarily.'
+price: 35
+durability: 1
+equipped: false
+levelRequirement: 1
+cooldown: 30
+action: 'consume'
+credits: |
+   Pixel art crafted by KBVE Pixel Workshop.
+bonuses:
+    strength: 1
+    charisma: -1
+    buzzed: true
+scripts:
+    - guid: 'cd2023aa19234f07bbf31fbc7265eb1c'
+      vars:
+            buffDuration: 90
+            traits: 'buzzed'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+**Beer** is the beverage of warriors, farmers, space traders, and everyone between. 
+Brewed with care and consumed with questionable judgment, it adds strength, reduces shame, and pairs well with questionable decisions.
+
+Also brewed everywhere from back-alley barrels to floating breweries in the cloud districts. 
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+## Usage
+
+- **+{frontmatter.bonuses.strength} strength**  
+- **-{Math.abs(frontmatter.bonuses.charisma)} charisma** (temporary)  
+- Applies **Buzzed** and **Courage** effects  
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Notes
+
+- Best used in taverns, rebel encampments, or mech mechanic rituals  
+- Can be crafted into **Ale-Braised Stew**, **Explosive Barley Bombs**, or **Liquid Bravery Tonic**
+- May cause **truth exposure** during dialogue encounters
+- Drinking multiple pints quickly may trigger a blurred HUD and bolder conversation choices
+
+---
+
+## Lore
+
+> “After the third one, I told her about the cursed sword. After the sixth… I used it.”  
+> - Field notes of Captain Lorik
+
+Beer is more than a drink. It's a truth serum in a cozy disguise.
+During the Lunar Harvest Festival, master brewers challenge one another to craft
+"starlight ale" that glows faintly under the night sky, guiding travelers back
+to the tavern.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/beer_mug.webp"
+  defaultId="01HTXYZBEER001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZBEER001',
+      title: 'Cold Pint',
+      description: 'Foam rises. The mug feels heavy.',
+      image: 'https://images.unsplash.com/photo-1549887534-158c7ff34d5f?q=80&w=500&auto=format&fit=crop',
+      message: 'You exhale. Then drink deeply.',
+      choices: [
+        { label: 'Order another.', nextId: '01HTXYZBEER002' },
+        { label: 'Walk it off.', nextId: '01HTXYZBEER003' }
+      ]
+    },
+    {
+      id: '01HTXYZBEER002',
+      title: 'Double Down',
+      description: 'You feel lighter. Stronger. Louder.',
+      image: '/images/scene_beer_burst.jpg',
+      message: 'Your courage outpaces your plans.'
+    },
+    {
+      id: '01HTXYZBEER003',
+      title: 'Fuzzy Resolve',
+      description: 'The streets feel warmer.',
+      image: '/images/scene_beer_stroll.jpg',
+      message: "You smile. You'll deal with it later."
+    }
+  ]}
+/>
+
+<Adsense />
+
+---
+
+## DevLog
+
+- 05/31/2025 - Beer added as morale-boosting drink with strength bonus and charisma penalty mechanics

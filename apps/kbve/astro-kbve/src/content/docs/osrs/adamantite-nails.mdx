@@ -1,0 +1,121 @@
+---
+title: Adamantite nails | OSRS Price Data
+description: "Adamantite nails: Keeps things in place fairly permanently.. High alch: 27 GP, GE limit: 13,000."
+osrs:
+  id: 4823
+  name: Adamantite nails
+  slug: adamantite-nails
+  examine: Keeps things in place fairly permanently.
+  members: true
+  icon: Adamantite nails.png
+  value: 45
+  lowalch: 18
+  highalch: 27
+  limit: 13000
+  material:
+    type: nails
+    tier: adamantite
+  smithing:
+    level: 74
+    xp: 62.5
+    bars: 1
+    nails_per_bar: 15
+  construction:
+    bend_rate: Very Low
+    min_level: 1
+  recipes:
+    - skill: smithing
+      level: 74
+      xp: 62.5
+      materials:
+        - item_name: Adamantite bar
+          item_id: 2361
+          quantity: 1
+      product: Adamantite nails
+      product_id: 4823
+      product_quantity: 15
+  related_items:
+    - item_id: 2361
+      item_name: Adamantite bar
+      slug: adamantite-bar
+      relationship: component
+      description: Smelting material
+    - item_id: 4822
+      item_name: Mithril nails
+      slug: mithril-nails
+      relationship: downgrade
+      description: Higher bend rate
+    - item_id: 4824
+      item_name: Rune nails
+      slug: rune-nails
+      relationship: upgrade
+      description: Never bends
+    - item_id: 960
+      item_name: Plank
+      slug: plank
+      relationship: component
+      description: Used with planks
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+**Smithing:**
+- Requires 74 Smithing
+- 1 [Adamantite bar](/osrs/adamantite-bar/) = 15 nails
+- Grants 62.5 XP
+
+**Shops:**
+- Sawmill Operator: 25 GP each
+- Construction supplies shops
+
+## Construction Use
+
+| Property | Value |
+|----------|-------|
+| Bend rate | Very Low |
+| Construction level | 1+ |
+| Used with | [Planks](/osrs/plank/) |
+
+Excellent choice for Construction with very low bend rate.
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Tips:**
+- Almost never bends
+- Good for efficient Construction training
+- Worth the extra cost for reliability
+
+## Nail Tier Comparison
+
+| Nails | Bend Rate | Shop Price |
+|-------|-----------|------------|
+| [Bronze](/osrs/bronze-nails/) | Highest | 1 GP |
+| [Iron](/osrs/iron-nails/) | High | 2 GP |
+| [Steel](/osrs/steel-nails/) | Medium | 5 GP |
+| [Mithril](/osrs/mithril-nails/) | Low | 10 GP |
+| Adamantite | Very Low | 25 GP |
+| [Rune](/osrs/rune-nails/) | Never bends | 100 GP |
+
+<Adsense />

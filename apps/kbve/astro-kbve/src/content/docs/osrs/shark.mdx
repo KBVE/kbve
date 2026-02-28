@@ -1,0 +1,115 @@
+---
+title: Shark | OSRS Price Data
+description: "Shark is a members food item healing 20 HP. High alch: 102 GP, GE limit: 10,000."
+osrs:
+  id: 385
+  name: Shark
+  slug: shark
+  examine: I'd better be careful eating this.
+  members: true
+  icon: Shark.png
+  value: 170
+  lowalch: 68
+  highalch: 102
+  limit: 10000
+  food:
+    heals: 20
+    cooking_level: 80
+    cooking_xp: 210
+    burn_level: 94
+  cooking:
+    level: 80
+    xp: 210
+    stop_burn_level: 99
+    stop_burn_level_gauntlets: 94
+    raw_item_id: 383
+    raw_item_name: Raw shark
+    ticks: 4
+  recipes:
+    - skill: cooking
+      level: 80
+      xp: 210
+      materials:
+        - item_name: Raw shark
+          item_id: 383
+          quantity: 1
+      facility: Fire or range
+      ticks: 4
+  related_items:
+    - item_id: 383
+      item_name: Raw shark
+      slug: raw-shark
+      relationship: component
+      description: Uncooked version
+    - item_id: 391
+      item_name: Manta ray
+      slug: manta-ray
+      relationship: alternative
+      description: Higher healing (22 HP)
+    - item_id: 13441
+      item_name: Anglerfish
+      slug: anglerfish
+      relationship: alternative
+      description: Overheal food
+    - item_id: 379
+      item_name: Lobster
+      slug: lobster
+      relationship: alternative
+      description: Budget alternative (12 HP)
+    - item_id: 373
+      item_name: Swordfish
+      slug: swordfish
+      relationship: alternative
+      description: Mid-tier food (14 HP)
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Cook [Raw shark](/osrs/raw-shark/) on a fire or range.
+
+## Usage
+
+Shark is one of the most popular food items for:
+- Boss fights (GWD, Raids, etc.)
+- PvP combat
+- Slayer tasks
+- General high-level PvM
+
+## Market Flip Strategy
+
+**Cooking Profit:**
+- Buy [Raw shark](/osrs/raw-shark/) → Cook → Sell Shark
+- Popular consistent flip with high volume
+
+**Supply Sources:**
+- Fishing Trawler
+- Player fishing (76+ Fishing)
+- PvM drops (various bosses)
+
+**Demand Drivers:**
+- Raids (ToB, ToA, CoX)
+- Wilderness bosses
+- PvP worlds
+- Inferno attempts
+
+<Adsense />

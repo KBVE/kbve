@@ -1,0 +1,37 @@
+---
+title: Dragon dart(p++) | OSRS Price Data
+description: "Dragon dart(p++): A deadly poisoned dart with a dragon tip.. High alch: 300 GP, GE limit: 11,000."
+osrs:
+  id: 11234
+  name: Dragon dart(p++)
+  slug: dragon-dart-p
+  examine: A deadly poisoned dart with a dragon tip.
+  members: true
+  icon: Dragon dart(p++).png
+  value: 500
+  lowalch: 200
+  highalch: 300
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

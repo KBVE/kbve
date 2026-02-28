@@ -1,0 +1,67 @@
+---
+title: 'November: 01st'
+category: Daily
+date: 2025-11-01 12:00:00
+client: Self
+unsplash: 1721332154373-17e78d19b4a4
+img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: November 01st.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+-   03:40PM
+
+    Spent the whole night trying to fix the pthread issues between rust and godot.
+
+
+## 2024
+
+-   03:24AM
+
+    **Fudster**
+
+    Moving over the java files and preparing the dockerfile for building.
+    Lets create a quick list of the python libraries that we will need?
+
+    - fastapi
+    - uvicorn
+    - broadcaster
+    - websockets (maybe we might not need it?)
+    - anyio
+    - aiohttp
+
+    We will run this command to add fastapi:
+
+    ```shell
+
+    pnpm nx run fudster:add --name "fastapi[standard]"
+
+    ```
+
+    This will grab us a bunch of files that we can use for deploying the api in python.
+    Cleaned up some of the additional files and we got a solid build, yessir!
+
+-   06:01PM
+
+    **Websockets**
+
+    I am currently restructuring the way we would handle the webscokets, because we need to still make it a bit more flexible yet not over do it.
+    Let us start with the base level of the socket management and then we can start to expand upon it.
+
+-   07:33PM
+
+    **Orb**
+
+    To speed up the docker build process, I added a quick orb command.
+
+    ```shell
+    ./kbve.sh -nx fudster:orb
+    ```
+    
+    This command will build the fudster container and then use the docker run command to turn it online.
+    The goal would be to make testing slight changes easier, I might even go a step further and setup live rebuilds and reloads.

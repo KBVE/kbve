@@ -1,0 +1,115 @@
+---
+title: Ranarr potion (unf) | OSRS Price Data
+description: "Ranarr potion (unf) is a 4-dose members potion. High alch: 15 GP, GE limit: 10,000."
+osrs:
+  id: 99
+  name: Ranarr potion (unf)
+  slug: ranarr-potion-unf
+  examine: I need another ingredient to finish this Ranarr potion.
+  members: true
+  icon: Ranarr potion (unf).png
+  value: 25
+  lowalch: 10
+  highalch: 15
+  limit: 10000
+  potion:
+    type: unfinished
+    tier: mid
+  herblore:
+    level: 30
+    xp: 0
+    method: Add ranarr weed to vial of water
+  recipes:
+    - skill: herblore
+      level: 30
+      xp: 0
+      materials:
+        - item_name: Vial of water
+          item_id: 227
+          quantity: 1
+        - item_name: Ranarr weed
+          item_id: 257
+          quantity: 1
+      product: Ranarr potion (unf)
+      product_id: 99
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 257
+      item_name: Ranarr weed
+      slug: ranarr-weed
+      relationship: component
+      description: Herb ingredient
+    - item_id: 227
+      item_name: Vial of water
+      slug: vial-of-water
+      relationship: component
+      description: Base liquid
+    - item_id: 231
+      item_name: Snape grass
+      slug: snape-grass
+      relationship: component
+      description: Secondary for prayer potion
+    - item_id: 2434
+      item_name: Prayer potion(4)
+      slug: prayer-potion-4
+      relationship: product
+      description: Final product
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Unfinished Potion |
+| Tradeable | Yes |
+| Weight | 0.056 kg |
+| Requirements | 30 Herblore |
+
+## Obtaining
+
+**Creation:** Add ranarr weed to vial of water (30 Herblore).
+
+**Alternative:** Purchase from Grand Exchange.
+
+## Usage
+
+Add secondary ingredient to create:
+- **Prayer potion** (+ snape grass)
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Price:** ~5,296 gp
+
+High volume herblore supply. Essential for prayer potion production.
+
+## Related Items
+
+- [Ranarr weed](/osrs/ranarr-weed/) - Herb ingredient
+- [Snape grass](/osrs/snape-grass/) - Secondary
+- [Prayer potion](/osrs/prayer-potion/) - Final product
+
+<Adsense />

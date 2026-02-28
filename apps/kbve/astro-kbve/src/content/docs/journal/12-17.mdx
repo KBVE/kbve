@@ -1,0 +1,94 @@
+---
+title: 'Decemeber: 17th'
+category: Daily
+date: 2024-12-17 12:00:00
+client: Self
+unsplash: 1511512578047-dfb367046420
+img: https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Decemeber 17th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2024
+
+-   02:26AM
+
+    **Kilobase**
+
+    During the migration process, we made a small mistake with the longhorn and now have to redeploy the database.
+    I am going to take that time to see if there are any updates that we need to do as well.
+
+-   03:20AM
+
+    **PvC**
+    
+    We got a couple persistent volume claims that are stuck in a weird loop, where we are not too sure if they can be found or not.
+    To help debug this porblem, we will be running these two commands:
+
+    ```shell
+    kubectl describe pvc pvc-1696b3cc-da05-4753-872c-f88f13e20d0a
+    kubectl get pv | grep pvc-1696b3cc-da05-4753-872c-f88f13e20d0a
+    ```
+
+    Then it returns this:
+
+    ```
+    Error from server (NotFound): persistentvolumeclaims "pvc-1696b3cc-da05-4753-872c-f88f13e20d0a" not found
+    8Gi        RWO            Delete           Terminating   armada/redis-data-redis-master-0                 longhorn       <unset>                          86d
+    ```
+
+    To grab the location for it, we went ahead and did this:
+
+    ```shell
+    kubectl edit pv pvc-1696b3cc-da05-4753-872c-f88f13e20d0a
+    ```
+
+    This will allow us to make a couple quick edits to the `finalizers` that hold that pvc.
+    In this first case we want to just remove the redis data block, so we will strip out the finalizers holding it.
+    Then do this:
+
+    ```shell
+    kubectl delete pv pvc-1696b3cc-da05-4753-872c-f88f13e20d0a --grace-period=0 --force
+    ```
+
+    We need to locate them inside of our longhorn.
+
+    ```
+    orphan-ee68325bd461018c0d1103776ad999b60263d56395c9f9364bc5bd7d2b08a844
+    orphan-7bc0707b775aae99dc1927e76ac1677839a2ef7eacbb6509014aafe5cc81c77e
+    ```
+
+    The next option might be just best to just delete the deployment and start again?
+
+    Okay we know the redis sits in the `armada-naval`, so we will go ahead and rebuild it from there.
+    The first step will be the name, which is going to be `armada-naval` and it will deploy to the `armada` namespace.
+    The repository url will be `https://github.com/KBVE/kbve.git` and the branch will be `dev`.
+    Afterwards, we want to enable the self healing and set the paths to `/migrations/kube/charts/armada`. Hmm, there is another option to keep resources but we can let longhorn handle that for us.
+    While that gets pushed up and prepares to build itself out, we can shift over to the AWS and prepare for the Kilobase launch.
+
+-   03:49AM
+
+    **Kilobase**
+
+    Time to bring the kilobase back around but with more updates and minor fixes as well.
+    We need to pull the s3 backup and do the cluster auto-migration / repair but I did want to deploy a new instance of kilobase, hmm.
+    I will hold off on that rust adaption for now, too many problems can be an issue for us.
+    Same as before but we will swap out the `/migrations/kube/charts/kilobase` path.
+
+-   05:03PM
+
+    **Realtime**
+
+    Now I want to focus on getting the realtime supabase to work, hopefully without having too many errors in this process.
+
+-   11:24PM
+
+    **Redis**
+
+    After getting the long horn and size situation resolved, we will be moving forward with the redis deployment.
+    The goal of the redis deployment is to just get a better understanding of how it will work in our eco-system.
+    Let me push up the phase zero of the deployment and see where it will go from there.
+    Under Armada, I am going to have to add another deployment change.

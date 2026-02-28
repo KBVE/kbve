@@ -1,11 +1,96 @@
 ---
-/**
- * Custom SiteTitle override for Starlight.
- * TODO: Port full implementation from ~/kbve.com/website/astro/src/components/navigation/SiteTitle.astro
- */
-import type { Props } from '@astrojs/starlight/props';
+import NavContainer from '@/components/navigation/NavContainer.astro';
 ---
 
-<a href="/" class="site-title sl-flex">
-	<span>KBVE</span>
-</a>
+<span class="site-title flex">
+	<a href="/" data-astro-prefetch>
+		<img
+			src="/assets/images/brand/letter_logo.webp"
+			aria-label="KBVE Logo"
+			class="logo ease-in-out"
+		/>
+	</a>
+</span>
+
+<NavContainer />
+
+<style>
+	.site-title {
+		gap: 1rem;
+		margin-right: 1rem;
+		overflow: visible;
+	}
+
+	.site-title a {
+		display: flex;
+		position: relative;
+		overflow: visible;
+	}
+
+	.flex {
+		display: flex;
+		align-items: center;
+	}
+
+	.site-title a:focus-visible {
+		outline: 0;
+	}
+
+	.site-title a:focus-visible > :global(*) {
+		transform: translateY(calc(0.1rem * -1));
+		transition: transform 250ms cubic-bezier(0.33, 1, 0.68, 1);
+	}
+
+	.site-title :global(svg) {
+		width: auto;
+		height: auto;
+	}
+
+	.site-title a:hover :global(svg) {
+		transform: translateY(calc(0.1rem * -1));
+		transition: transform 250ms cubic-bezier(0.33, 1, 0.68, 1);
+	}
+
+	/* --- Logo Base Style --- */
+	.logo {
+		height: 2.5rem;
+		width: auto;
+		object-fit: contain;
+		transition:
+			transform 0.25s cubic-bezier(0.33, 1, 0.68, 1),
+			filter 0.25s cubic-bezier(0.33, 1, 0.68, 1);
+	}
+
+	/* --- Minimal Glow --- */
+	.site-title a:hover .logo {
+		transform: scale(1.03);
+		filter: drop-shadow(0 0 3px var(--sl-color-accent))
+			drop-shadow(0 0 6px var(--sl-color-accent-high));
+	}
+
+	/* --- Very Small Halo (barely extends past image) --- */
+	.site-title a::before {
+		content: '';
+		position: absolute;
+		inset: -4px;
+		border-radius: 9999px;
+		background: radial-gradient(
+			circle,
+			var(--sl-color-accent-low) 0%,
+			transparent 60%
+		);
+		filter: blur(4px);
+		opacity: 0;
+		pointer-events: none;
+		z-index: -1;
+		transition:
+			opacity 200ms ease,
+			filter 200ms ease;
+	}
+
+	.site-title a:hover::before,
+	.site-title a:focus-visible::before {
+		opacity: 1;
+		filter: blur(6px);
+	}
+</style>

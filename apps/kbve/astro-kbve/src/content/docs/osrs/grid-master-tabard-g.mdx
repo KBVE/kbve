@@ -1,0 +1,37 @@
+---
+title: Grid master tabard (g) | OSRS Price Data
+description: "Grid master tabard (g): A symbol of grid mastery."
+osrs:
+  id: 31190
+  name: Grid master tabard (g)
+  slug: grid-master-tabard-g
+  examine: A symbol of grid mastery
+  members: true
+  icon: Grid master tabard (g).png
+  value: 100000
+  lowalch: null
+  highalch: null
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+
+
+
+
+<Adsense />

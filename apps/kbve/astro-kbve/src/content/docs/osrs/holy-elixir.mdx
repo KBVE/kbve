@@ -1,0 +1,104 @@
+---
+title: Holy elixir | OSRS Price Data
+description: "Holy elixir: A bottle of holy elixir.. High alch: 450,000 GP, GE limit: 5."
+osrs:
+  id: 12833
+  name: Holy elixir
+  slug: holy-elixir
+  examine: A bottle of holy elixir.
+  members: true
+  icon: Holy elixir.png
+  value: 750000
+  lowalch: 300000
+  highalch: 450000
+  limit: 5
+  item:
+    type: crafting_material
+    tradeable: true
+    weight: 2
+  obtaining:
+    methods:
+      - source: Corporeal Beast
+        drop_rate: 3/512 (~1/171)
+  creation:
+    creates:
+      item_id: 12831
+      item_name: Blessed spirit shield
+      slug: blessed-spirit-shield
+    method: Combine with Spirit shield
+    requirements:
+      prayer: 85
+    note: Blessed spirit shield can then be combined with sigils
+  related_items:
+    - item_id: 0
+      item_name: Corporeal Beast
+      slug: corporeal-beast
+      relationship: component
+      description: Source
+    - item_id: 12829
+      item_name: Spirit shield
+      slug: spirit-shield
+      relationship: component
+      description: Required material
+    - item_id: 12831
+      item_name: Blessed spirit shield
+      slug: blessed-spirit-shield
+      relationship: product
+      description: Created item
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Weight | 2 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Corporeal Beast | 3/512 (~1/171) |
+
+## Usage
+
+| Item Created | Materials | Requirements |
+|--------------|-----------|--------------|
+| Blessed spirit shield | Spirit shield + Holy elixir | 85 Prayer |
+
+Blessed spirit shield can then be combined with sigils.
+
+## Market Strategy
+
+**Buy Limit:** 5 per 4 hours
+
+**Price:** ~600K gp
+
+## Related Items
+
+- [Corporeal Beast](/osrs/corporeal-beast/) - Source
+- [Spirit shield](/osrs/spirit-shield/) - Required material
+- [Blessed spirit shield](/osrs/blessed-spirit-shield/) - Created item
+
+<Adsense />

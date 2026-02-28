@@ -1,0 +1,37 @@
+---
+title: Saradomin d'hide shield | OSRS Price Data
+description: "Saradomin d'hide shield: Saradomin blessed wooden shield covered in dragon leather.. High alch: 17,000 GP, GE limit: 8."
+osrs:
+  id: 23191
+  name: Saradomin d'hide shield
+  slug: saradomin-d-hide-shield
+  examine: Saradomin blessed wooden shield covered in dragon leather.
+  members: true
+  icon: Saradomin d'hide shield.png
+  value: 28334
+  lowalch: 11333
+  highalch: 17000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

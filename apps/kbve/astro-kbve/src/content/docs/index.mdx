@@ -1,17 +1,53 @@
 ---
-title: KBVE
-description: Knowledge Base Virtual Engine — guides, tools, gaming, and more.
+title: KiloByte Virtual Enterprise
+head:
+    - tag: title
+      content: KiloByte Virtual Enterprise | KBVE
+description: |
+    Welcome to KBVE - Kilobyte Virtual Enterprise & Engine.
+    Discover cutting-edge software and automation solutions designed to streamline and enhance your projects.
+    Afterwards, venture into our arcade and see what our studio has been cooking up!
 template: splash
-hero:
-  tagline: Knowledge Base Virtual Engine
-  actions:
-    - text: Get Started
-      link: /guides/
-      icon: right-arrow
-      variant: primary
-    - text: View on GitHub
-      link: https://github.com/kbve/kbve
-      icon: external
+editUrl: false
+lastUpdated: false
+next: false
 ---
 
-Welcome to KBVE — your hub for guides, applications, gaming resources, and developer tools.
+import {
+	Card,
+	CardGrid,
+	LinkCard,
+	Tabs,
+	TabItem,
+} from '@astrojs/starlight/components';
+
+import DeferredAstroGithubHero from '@/components/github/GithubHero/DeferredAstroGithubHero.astro';
+import DeferredSVGLogo from '@/components/kbve/DeferredSVGLogo.astro';
+import DeferredKBVEComicSocials from '@/components/kbve/DeferredKBVEComicSocials.astro';
+import DeferredProjectGallery from '@/components/kbve/DeferredProjectGallery.astro';
+import DeferredFeature from '@/components/kbve/DeferredFeature.astro';
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
+
+<DeferredAstroGithubHero
+    title="Top Contributors"
+    subtitle="Thanks to everyone helping build the platform!"
+    commitsLabel="commits"
+    viewAllLabel="View all contributors"
+    issuesLabel="Issues"
+    projectLabel="Project Board"
+    errorMessage="Unable to load contributors. Please try again later."
+    rank1Label="1st Place"
+    rank2Label="2nd Place"
+    rank3Label="3rd Place"
+    newTabLabel="(opens in new tab)"
+/>
+
+<DeferredSVGLogo />
+
+<DeferredKBVEComicSocials />
+
+<DeferredFeature />
+
+<DeferredProjectGallery />
+
+<Adsense />

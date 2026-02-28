@@ -1,0 +1,37 @@
+---
+title: Zamorak mix(2) | OSRS Price Data
+description: "Zamorak mix(2): Two doses of fishy Zamorak brew.. High alch: 90 GP, GE limit: 2,000."
+osrs:
+  id: 11521
+  name: Zamorak mix(2)
+  slug: zamorak-mix-2
+  examine: Two doses of fishy Zamorak brew.
+  members: true
+  icon: Zamorak mix(2).png
+  value: 150
+  lowalch: 60
+  highalch: 90
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

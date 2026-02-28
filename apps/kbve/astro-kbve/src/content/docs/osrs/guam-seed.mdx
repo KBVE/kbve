@@ -1,0 +1,97 @@
+---
+title: Guam seed | OSRS Price Data
+description: "Guam seed: A guam seed - plant in a herb patch.. High alch: 1 GP, GE limit: 600."
+osrs:
+  id: 5291
+  name: Guam seed
+  slug: guam-seed
+  examine: A guam seed - plant in a herb patch.
+  members: true
+  icon: Guam seed 5.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 600
+  seed:
+    type: herb
+    tier: low
+  farming:
+    level: 9
+    xp_plant: 11
+    xp_harvest: 12.5
+    growth_time: 80
+    patches: 9
+    product_id: 199
+    product_name: Grimy guam leaf
+  related_items:
+    - item_id: 199
+      item_name: Grimy guam leaf
+      slug: grimy-guam-leaf
+      relationship: product
+      description: Harvested product
+    - item_id: 249
+      item_name: Guam leaf
+      slug: guam-leaf
+      relationship: product
+      description: Cleaned herb
+    - item_id: 91
+      item_name: Attack potion(4)
+      slug: attack-potion-4
+      relationship: product
+      description: Made from guam
+    - item_id: 5292
+      item_name: Marrentill seed
+      slug: marrentill-seed
+      relationship: upgrade
+      description: Next tier herb seed
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Farming
+
+Plant in a herb patch to grow Grimy guam leaf.
+
+| Requirement | Value |
+|-------------|-------|
+| Farming Level | 9 |
+| Growth time | 80 minutes |
+| XP (plant) | 11 |
+| XP (harvest) | 12.5 per herb |
+
+## Market Strategy
+
+**Herb Farming:**
+- Beginner herb seed for new farmers
+- Low value but good for learning herb runs
+- Used in many low-level potions
+
+**Yield Boosters:**
+- Ultracompost (essential)
+- Magic secateurs (10% more yield)
+- Farming cape (5% more yield)
+
+**Tips:**
+- 9 herb patches available
+- ~10 minute runs, 80 minute regrowth
+- Good for ironman accounts starting out
+
+<Adsense />

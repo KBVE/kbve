@@ -1,0 +1,37 @@
+---
+title: Adamant halberd | OSRS Price Data
+description: "Adamant halberd: An adamant halberd.. High alch: 3,840 GP, GE limit: 125."
+osrs:
+  id: 3200
+  name: Adamant halberd
+  slug: adamant-halberd
+  examine: An adamant halberd.
+  members: true
+  icon: Adamant halberd.png
+  value: 6400
+  lowalch: 2560
+  highalch: 3840
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

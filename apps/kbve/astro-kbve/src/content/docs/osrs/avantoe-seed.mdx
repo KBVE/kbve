@@ -1,0 +1,102 @@
+---
+title: Avantoe seed | OSRS Price Data
+description: "Avantoe seed: An avantoe seed - plant in a herb patch.. High alch: 4 GP, GE limit: 200."
+osrs:
+  id: 5298
+  name: Avantoe seed
+  slug: avantoe-seed
+  examine: An avantoe seed - plant in a herb patch.
+  members: true
+  icon: Avantoe seed 5.png
+  value: 8
+  lowalch: 3
+  highalch: 4
+  limit: 200
+  seed:
+    type: herb
+    tier: mid
+  farming:
+    level: 50
+    xp_plant: 54.5
+    xp_harvest: 61.5
+    growth_time: 80
+    patches: 9
+    product_id: 211
+    product_name: Grimy avantoe
+  related_items:
+    - item_id: 211
+      item_name: Grimy avantoe
+      slug: grimy-avantoe
+      relationship: product
+      description: Harvested product
+    - item_id: 261
+      item_name: Avantoe
+      slug: avantoe
+      relationship: product
+      description: Cleaned herb
+    - item_id: 2446
+      item_name: Superantifire(4)
+      slug: superantifire-4
+      relationship: product
+      description: Made from avantoe
+    - item_id: 5297
+      item_name: Irit seed
+      slug: irit-seed
+      relationship: alternative
+      description: Lower tier herb seed
+    - item_id: 5299
+      item_name: Kwuarm seed
+      slug: kwuarm-seed
+      relationship: upgrade
+      description: Next tier herb seed
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Farming
+
+Plant in a herb patch to grow Grimy avantoe.
+
+| Requirement | Value |
+|-------------|-------|
+| Farming Level | 50 |
+| Growth time | 80 minutes |
+| XP (plant) | 54.5 |
+| XP (harvest) | 61.5 per herb |
+
+## Market Strategy
+
+**Herb Farming:**
+- Mid-tier herb seed
+- Used for fishing potions and super antifires
+- Decent profit margin
+
+**Yield Boosters:**
+- Ultracompost (essential)
+- Magic secateurs (10% more yield)
+- Farming cape (5% more yield)
+
+**Tips:**
+- 9 herb patches available
+- ~10 minute runs, 80 minute regrowth
+- Super antifires highly valuable for dragon slaying
+
+<Adsense />

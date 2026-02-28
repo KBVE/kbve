@@ -1,0 +1,37 @@
+---
+title: Mirror shield | OSRS Price Data
+description: "Mirror shield: I can just about see things in this shield's reflection.. High alch: 3,000 GP, GE limit: 40."
+osrs:
+  id: 4156
+  name: Mirror shield
+  slug: mirror-shield
+  examine: I can just about see things in this shield's reflection.
+  members: true
+  icon: Mirror shield.png
+  value: 5000
+  lowalch: 2000
+  highalch: 3000
+  limit: 40
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

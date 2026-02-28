@@ -1,0 +1,37 @@
+---
+title: Corrupted twisted bow | OSRS Price Data
+description: "Corrupted twisted bow: A mystical bow carved from the twisted remains of the Great Olm.. High alch: 150,000 GP."
+osrs:
+  id: 28540
+  name: Corrupted twisted bow
+  slug: corrupted-twisted-bow
+  examine: A mystical bow carved from the twisted remains of the Great Olm.
+  members: true
+  icon: Corrupted twisted bow.png
+  value: 250000
+  lowalch: 100000
+  highalch: 150000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

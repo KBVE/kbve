@@ -1,0 +1,108 @@
+---
+title: Adamant longsword | OSRS Price Data
+description: "Adamant longsword is a F2P weapon slot item requiring 30 Attack. High alch: 1,920 GP, GE limit: 125."
+osrs:
+  id: 1301
+  name: Adamant longsword
+  slug: adamant-longsword
+  examine: A razor sharp longsword.
+  members: false
+  icon: Adamant longsword.png
+  value: 3200
+  lowalch: 1280
+  highalch: 1920
+  limit: 125
+  equipment:
+    slot: weapon
+    type: longsword
+    tradeable: true
+    weight: 2.041
+    requirements:
+      attack: 30
+    stats:
+      attack_stab: 20
+      attack_slash: 29
+      attack_crush: -2
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 31
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 1303
+      item_name: Rune longsword
+      slug: rune-longsword
+      relationship: upgrade
+      description: Higher tier longsword
+    - item_id: 1331
+      item_name: Adamant scimitar
+      slug: adamant-scimitar
+      relationship: alternative
+      description: Faster slash alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Longsword |
+| Tradeable | Yes |
+| Weight | 2.041 kg |
+| Requirements | 30 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | +20 |
+| Slash Attack | +29 |
+| Crush Attack | -2 |
+| Strength | +31 |
+
+## Obtaining
+
+**Smithing:** 76 Smithing with 2 adamantite bars (125 XP).
+
+**Shop:** Varrock Swordshop.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~1,712 gp
+
+High-tier longsword. F2P accessible.
+
+## Related Items
+
+- [Rune longsword](/osrs/rune-longsword/) - Upgrade
+- [Adamant scimitar](/osrs/adamant-scimitar/) - Faster slash
+
+<Adsense />

@@ -1,0 +1,134 @@
+---
+title: Chinchompa | OSRS Price Data
+description: "Chinchompa is a members weapon slot item requiring 45 Ranged. High alch: 84 GP, GE limit: 7,000."
+osrs:
+  id: 10033
+  name: Chinchompa
+  slug: chinchompa
+  examine: Handle with care.
+  members: true
+  icon: Chinchompa.png
+  value: 140
+  lowalch: 56
+  highalch: 84
+  limit: 7000
+  equipment:
+    slot: weapon
+    type: chinchompa
+    attack_style: ranged
+    attack_speed: 4
+    requirements:
+      ranged: 45
+    stats:
+      attack_ranged: 45
+  passive_effects:
+    - name: Multi-Target
+      description: Explodes on impact, hits up to 11 targets in 3x3 area, stackable ammo, not recovered by Ava's
+  obtaining:
+    methods:
+      - source: Box trapping
+        requirements:
+          hunter: 53
+        locations: Piscatoris, Kourend, Isle of Souls
+        xp: 198.4
+        quest: Eagles' Peak
+  related_items:
+    - item_id: 11959
+      item_name: Black chinchompa
+      slug: black-chinchompa
+      relationship: upgrade
+      description: Best version
+    - item_id: 10034
+      item_name: Red chinchompa
+      slug: red-chinchompa
+      relationship: upgrade
+      description: Mid-tier
+    - item_id: 0
+      item_name: Eagles' Peak
+      slug: eagles-peak
+      relationship: alternative
+      description: Unlock quest
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Main-hand) |
+| Type | Chinchompa |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Attack Speed | 4 tick (2.4s) |
+
+## Obtaining
+
+| Method | Requirements |
+|--------|--------------|
+| Box trapping | 53 Hunter |
+| Locations | Piscatoris, Kourend, Isle of Souls |
+| XP | 198.4 Hunter per catch |
+| Quest | Eagles' Peak |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Ranged | +45 |
+
+**Requirements:** 45 Ranged
+
+## Passive Effect
+
+**Multi-Target:**
+- Explodes on impact
+- Hits up to 11 targets (3x3 area)
+- Stackable ammo
+- Not recovered by Ava's
+
+## Usage
+
+Good for:
+- Budget AoE training
+- Early ranged training
+- Learning chinning
+
+**Budget chinchompa option.**
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~484 gp each
+
+**Tips:**
+- Eagles' Peak required
+- Much cheaper than black
+- Lower XP rates
+
+## Related Items
+
+- [Black chinchompa](/osrs/black-chinchompa/) - Best version
+- [Red chinchompa](/osrs/red-chinchompa/) - Mid-tier
+- [Eagles' Peak](/osrs/eagles-peak/) - Unlock quest
+
+<Adsense />

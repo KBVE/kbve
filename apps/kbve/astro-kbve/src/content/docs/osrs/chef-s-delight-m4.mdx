@@ -1,0 +1,37 @@
+---
+title: Chef's delight(m4) | OSRS Price Data
+description: "Chef's delight(m4): This keg contains 4 pints of mature Chef's Delight.. High alch: 1 GP, GE limit: 2,000."
+osrs:
+  id: 5913
+  name: Chef's delight(m4)
+  slug: chef-s-delight-m4
+  examine: This keg contains 4 pints of mature Chef's Delight.
+  members: true
+  icon: Chef's delight(m4).png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

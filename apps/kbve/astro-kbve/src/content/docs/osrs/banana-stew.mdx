@@ -1,0 +1,37 @@
+---
+title: Banana stew | OSRS Price Data
+description: "Banana stew: It's a bowl full of mushy banana.. High alch: 180 GP, GE limit: 6,000."
+osrs:
+  id: 4016
+  name: Banana stew
+  slug: banana-stew
+  examine: It's a bowl full of mushy banana.
+  members: true
+  icon: Banana stew.png
+  value: 300
+  lowalch: 120
+  highalch: 180
+  limit: 6000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

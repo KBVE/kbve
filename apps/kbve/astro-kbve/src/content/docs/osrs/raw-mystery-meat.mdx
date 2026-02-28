@@ -1,0 +1,37 @@
+---
+title: Raw mystery meat | OSRS Price Data
+description: "Raw mystery meat: I need to cook this, though I don't know if I want to.. High alch: 1 GP."
+osrs:
+  id: 24782
+  name: Raw mystery meat
+  slug: raw-mystery-meat
+  examine: I need to cook this, though I don't know if I want to.
+  members: true
+  icon: Raw mystery meat.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

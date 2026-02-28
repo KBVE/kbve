@@ -1,0 +1,37 @@
+---
+title: White scimitar | OSRS Price Data
+description: "White scimitar: A vicious, curved sword.. High alch: 460 GP, GE limit: 125."
+osrs:
+  id: 6611
+  name: White scimitar
+  slug: white-scimitar
+  examine: A vicious, curved sword.
+  members: true
+  icon: White scimitar.png
+  value: 768
+  lowalch: 307
+  highalch: 460
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

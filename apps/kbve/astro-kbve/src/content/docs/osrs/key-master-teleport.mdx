@@ -1,0 +1,105 @@
+---
+title: Key master teleport | OSRS Price Data
+description: "Key master teleport is a members none slot item. High alch: 6 GP."
+osrs:
+  id: 13249
+  name: Key master teleport
+  slug: key-master-teleport
+  examine: Teleports you to the Key Master.
+  members: true
+  icon: Key master teleport.png
+  value: 10
+  lowalch: 4
+  highalch: 6
+  limit: null
+  equipment:
+    slot: none
+    weight: 0
+  drop_table:
+    primary_source: Cerberus
+    best_drop_rate: 2/130
+    sources:
+      - source: Cerberus
+        source_id: 5862
+        combat_level: 318
+        quantity: "7"
+        rarity: uncommon
+        drop_rate: 2/130
+        members_only: true
+  related_items:
+    - item_id: 13231
+      item_name: Primordial crystal
+      slug: primordial-crystal
+      relationship: alternative
+      description: Rare Cerberus unique
+    - item_id: 13229
+      item_name: Pegasian crystal
+      slug: pegasian-crystal
+      relationship: alternative
+      description: Rare Cerberus unique
+    - item_id: 13227
+      item_name: Eternal crystal
+      slug: eternal-crystal
+      relationship: alternative
+      description: Rare Cerberus unique
+    - item_id: 13233
+      item_name: Smouldering stone
+      slug: smouldering-stone
+      relationship: alternative
+      description: Rare Cerberus unique
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Obtaining
+
+Dropped by Cerberus in stacks of 7.
+
+**Drop rate:** 2/130 (approximately 1.54%)
+
+**Requirements:**
+- 91 Slayer
+- Hellhound Slayer task
+- Access to Cerberus' Lair
+
+## Usage
+
+**Teleport to Key Master:**
+- Instant teleport to Cerberus entrance
+- Located next to Key Master NPC
+- Single-click access to boss
+
+**Consumable:**
+- One teleport per scroll
+- Drops in stacks of 7
+- Stackable in inventory
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Tips:**
+- Convenience item for Cerberus grind
+- Saves time vs running through dungeon
+- Tradeable for passive income
+- Popular among consistent Cerberus killers
+
+<Adsense />

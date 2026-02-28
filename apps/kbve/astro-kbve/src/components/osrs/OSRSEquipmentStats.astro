@@ -1,0 +1,549 @@
+---
+/**
+ * OSRSEquipmentStats Component
+ *
+ * Displays equipment bonuses in the classic OSRS Wiki style
+ * Shows attack bonuses, defence bonuses, other bonuses, and requirements
+ */
+import type { OSRSEquipment, OSRSSpecialAttack } from '@/data/schema';
+
+interface Props {
+	equipment: OSRSEquipment;
+	specialAttack?: OSRSSpecialAttack;
+}
+
+const { equipment, specialAttack } = Astro.props;
+
+// Format bonus value with + or - prefix
+function formatBonus(value: number | undefined): string {
+	if (value === undefined || value === null) return '0';
+	return value >= 0 ? `+${value}` : `${value}`;
+}
+
+// Format slot name for display
+function formatSlot(slot: string | undefined): string {
+	if (!slot) return 'Unknown';
+	if (slot === '2h') return 'Two-handed';
+	return slot.charAt(0).toUpperCase() + slot.slice(1);
+}
+
+// Format weapon type for display
+function formatWeaponType(type: string | undefined): string {
+	if (!type) return '';
+	return type
+		.split('-')
+		.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+		.join(' ');
+}
+
+const hasAttackBonuses =
+	equipment.attack_bonus &&
+	Object.values(equipment.attack_bonus).some((v) => v !== undefined);
+const hasDefenceBonuses =
+	equipment.defence_bonus &&
+	Object.values(equipment.defence_bonus).some((v) => v !== undefined);
+const hasOtherBonuses =
+	equipment.other_bonus &&
+	Object.values(equipment.other_bonus).some((v) => v !== undefined);
+const hasRequirements =
+	equipment.requirements &&
+	Object.entries(equipment.requirements).some(
+		([k, v]) => v !== undefined && k !== 'quest',
+	);
+---
+
+<div class="osrs-equipment">
+	<div class="osrs-equipment__header">
+		<span class="osrs-equipment__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z">
+				</path>
+			</svg>
+		</span>
+		<h4 class="osrs-equipment__title">Equipment Stats</h4>
+		{
+			equipment.slot && (
+				<span class="osrs-equipment__slot">
+					{formatSlot(equipment.slot)}
+				</span>
+			)
+		}
+	</div>
+
+	<div class="osrs-equipment__grid">
+		<!-- Attack Bonuses -->
+		{
+			hasAttackBonuses && (
+				<div class="osrs-stat-table">
+					<div class="osrs-stat-table__header">Attack Bonuses</div>
+					<div class="osrs-stat-table__row">
+						<span class="osrs-stat-table__label">Stab</span>
+						<span class="osrs-stat-table__value">
+							{formatBonus(equipment.attack_bonus?.stab)}
+						</span>
+					</div>
+					<div class="osrs-stat-table__row">
+						<span class="osrs-stat-table__label">Slash</span>
+						<span class="osrs-stat-table__value">
+							{formatBonus(equipment.attack_bonus?.slash)}
+						</span>
+					</div>
+					<div class="osrs-stat-table__row">
+						<span class="osrs-stat-table__label">Crush</span>
+						<span class="osrs-stat-table__value">
+							{formatBonus(equipment.attack_bonus?.crush)}
+						</span>
+					</div>
+					<div class="osrs-stat-table__row">
+						<span class="osrs-stat-table__label">Magic</span>
+						<span class="osrs-stat-table__value">
+							{formatBonus(equipment.attack_bonus?.magic)}
+						</span>
+					</div>
+					<div class="osrs-stat-table__row">
+						<span class="osrs-stat-table__label">Ranged</span>
+						<span class="osrs-stat-table__value">
+							{formatBonus(equipment.attack_bonus?.ranged)}
+						</span>
+					</div>
+				</div>
+			)
+		}
+
+		<!-- Defence Bonuses -->
+		{
+			hasDefenceBonuses && (
+				<div class="osrs-stat-table">
+					<div class="osrs-stat-table__header">Defence Bonuses</div>
+					<div class="osrs-stat-table__row">
+						<span class="osrs-stat-table__label">Stab</span>
+						<span class="osrs-stat-table__value">
+							{formatBonus(equipment.defence_bonus?.stab)}
+						</span>
+					</div>
+					<div class="osrs-stat-table__row">
+						<span class="osrs-stat-table__label">Slash</span>
+						<span class="osrs-stat-table__value">
+							{formatBonus(equipment.defence_bonus?.slash)}
+						</span>
+					</div>
+					<div class="osrs-stat-table__row">
+						<span class="osrs-stat-table__label">Crush</span>
+						<span class="osrs-stat-table__value">
+							{formatBonus(equipment.defence_bonus?.crush)}
+						</span>
+					</div>
+					<div class="osrs-stat-table__row">
+						<span class="osrs-stat-table__label">Magic</span>
+						<span class="osrs-stat-table__value">
+							{formatBonus(equipment.defence_bonus?.magic)}
+						</span>
+					</div>
+					<div class="osrs-stat-table__row">
+						<span class="osrs-stat-table__label">Ranged</span>
+						<span class="osrs-stat-table__value">
+							{formatBonus(equipment.defence_bonus?.ranged)}
+						</span>
+					</div>
+				</div>
+			)
+		}
+
+		<!-- Other Bonuses -->
+		{
+			hasOtherBonuses && (
+				<div class="osrs-stat-table">
+					<div class="osrs-stat-table__header">Other Bonuses</div>
+					<div class="osrs-stat-table__row">
+						<span class="osrs-stat-table__label">Melee Str</span>
+						<span class="osrs-stat-table__value">
+							{formatBonus(equipment.other_bonus?.melee_strength)}
+						</span>
+					</div>
+					<div class="osrs-stat-table__row">
+						<span class="osrs-stat-table__label">Ranged Str</span>
+						<span class="osrs-stat-table__value">
+							{formatBonus(
+								equipment.other_bonus?.ranged_strength,
+							)}
+						</span>
+					</div>
+					<div class="osrs-stat-table__row">
+						<span class="osrs-stat-table__label">Magic Dmg</span>
+						<span class="osrs-stat-table__value">
+							{equipment.other_bonus?.magic_damage
+								? `${equipment.other_bonus.magic_damage}%`
+								: '0%'}
+						</span>
+					</div>
+					<div class="osrs-stat-table__row">
+						<span class="osrs-stat-table__label">Prayer</span>
+						<span class="osrs-stat-table__value">
+							{formatBonus(equipment.other_bonus?.prayer)}
+						</span>
+					</div>
+				</div>
+			)
+		}
+
+		<!-- Weapon Info -->
+		{
+			(equipment.weapon_type || equipment.attack_speed) && (
+				<div class="osrs-stat-table">
+					<div class="osrs-stat-table__header">Weapon Info</div>
+					{equipment.weapon_type && (
+						<div class="osrs-stat-table__row">
+							<span class="osrs-stat-table__label">Type</span>
+							<span class="osrs-stat-table__value">
+								{formatWeaponType(equipment.weapon_type)}
+							</span>
+						</div>
+					)}
+					{equipment.attack_speed && (
+						<div class="osrs-stat-table__row">
+							<span class="osrs-stat-table__label">Speed</span>
+							<span class="osrs-stat-table__value">
+								{equipment.attack_speed} ticks
+							</span>
+						</div>
+					)}
+					{equipment.attack_range && (
+						<div class="osrs-stat-table__row">
+							<span class="osrs-stat-table__label">Range</span>
+							<span class="osrs-stat-table__value">
+								{equipment.attack_range} tiles
+							</span>
+						</div>
+					)}
+					{equipment.weight && (
+						<div class="osrs-stat-table__row">
+							<span class="osrs-stat-table__label">Weight</span>
+							<span class="osrs-stat-table__value">
+								{equipment.weight} kg
+							</span>
+						</div>
+					)}
+				</div>
+			)
+		}
+	</div>
+
+	<!-- Requirements -->
+	{
+		hasRequirements && (
+			<div class="osrs-requirements">
+				<div class="osrs-requirements__header">Requirements</div>
+				<div class="osrs-requirements__list">
+					{equipment.requirements?.attack && (
+						<span class="osrs-requirements__item">
+							<span class="osrs-requirements__skill">Attack</span>
+							<span class="osrs-requirements__level">
+								{equipment.requirements.attack}
+							</span>
+						</span>
+					)}
+					{equipment.requirements?.strength && (
+						<span class="osrs-requirements__item">
+							<span class="osrs-requirements__skill">
+								Strength
+							</span>
+							<span class="osrs-requirements__level">
+								{equipment.requirements.strength}
+							</span>
+						</span>
+					)}
+					{equipment.requirements?.defence && (
+						<span class="osrs-requirements__item">
+							<span class="osrs-requirements__skill">
+								Defence
+							</span>
+							<span class="osrs-requirements__level">
+								{equipment.requirements.defence}
+							</span>
+						</span>
+					)}
+					{equipment.requirements?.ranged && (
+						<span class="osrs-requirements__item">
+							<span class="osrs-requirements__skill">Ranged</span>
+							<span class="osrs-requirements__level">
+								{equipment.requirements.ranged}
+							</span>
+						</span>
+					)}
+					{equipment.requirements?.magic && (
+						<span class="osrs-requirements__item">
+							<span class="osrs-requirements__skill">Magic</span>
+							<span class="osrs-requirements__level">
+								{equipment.requirements.magic}
+							</span>
+						</span>
+					)}
+					{equipment.requirements?.prayer && (
+						<span class="osrs-requirements__item">
+							<span class="osrs-requirements__skill">Prayer</span>
+							<span class="osrs-requirements__level">
+								{equipment.requirements.prayer}
+							</span>
+						</span>
+					)}
+					{equipment.requirements?.slayer && (
+						<span class="osrs-requirements__item">
+							<span class="osrs-requirements__skill">Slayer</span>
+							<span class="osrs-requirements__level">
+								{equipment.requirements.slayer}
+							</span>
+						</span>
+					)}
+					{equipment.requirements?.quest && (
+						<span class="osrs-requirements__item osrs-requirements__item--quest">
+							<span class="osrs-requirements__skill">Quest</span>
+							<span class="osrs-requirements__level">
+								{equipment.requirements.quest}
+							</span>
+						</span>
+					)}
+				</div>
+			</div>
+		)
+	}
+
+	<!-- Special Attack -->
+	{
+		specialAttack && (
+			<div class="osrs-special">
+				<div class="osrs-special__header">
+					<span class="osrs-special__name">{specialAttack.name}</span>
+					<span class="osrs-special__cost">
+						{specialAttack.energy}% Energy
+					</span>
+				</div>
+				{specialAttack.description && (
+					<p class="osrs-special__desc">
+						{specialAttack.description}
+					</p>
+				)}
+				<div class="osrs-special__effects">
+					{specialAttack.accuracy_modifier && (
+						<span class="osrs-special__effect">
+							Accuracy: {specialAttack.accuracy_modifier}x
+						</span>
+					)}
+					{specialAttack.damage_modifier && (
+						<span class="osrs-special__effect">
+							Damage: {specialAttack.damage_modifier}x
+						</span>
+					)}
+					{specialAttack.heals && (
+						<span class="osrs-special__effect osrs-special__effect--heal">
+							Heals
+						</span>
+					)}
+					{specialAttack.drains_defence && (
+						<span class="osrs-special__effect osrs-special__effect--debuff">
+							Drains Defence
+						</span>
+					)}
+					{specialAttack.freezes && (
+						<span class="osrs-special__effect osrs-special__effect--freeze">
+							Freezes
+							{specialAttack.freeze_duration
+								? ` (${specialAttack.freeze_duration} ticks)`
+								: ''}
+						</span>
+					)}
+				</div>
+			</div>
+		)
+	}
+</div>
+
+<style>
+	.osrs-equipment {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-equipment__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-equipment__icon {
+		color: var(--sl-color-accent);
+	}
+
+	.osrs-equipment__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+		flex: 1;
+	}
+
+	.osrs-equipment__slot {
+		font-size: 0.625rem;
+		font-weight: 500;
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+		background: var(--sl-color-accent-low);
+		color: var(--sl-color-accent-high);
+		text-transform: uppercase;
+	}
+
+	.osrs-equipment__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 1px;
+		background: var(--sl-color-gray-5);
+	}
+
+	.osrs-stat-table {
+		background: var(--sl-color-bg-nav);
+		padding: 0.5rem;
+	}
+
+	.osrs-stat-table__header {
+		font-size: 0.625rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		color: var(--sl-color-accent);
+		margin-bottom: 0.375rem;
+		letter-spacing: 0.025em;
+	}
+
+	.osrs-stat-table__row {
+		display: flex;
+		justify-content: space-between;
+		font-size: 0.75rem;
+		padding: 0.125rem 0;
+	}
+
+	.osrs-stat-table__label {
+		color: var(--sl-color-gray-2);
+	}
+
+	.osrs-stat-table__value {
+		font-weight: 600;
+		color: var(--sl-color-white);
+		font-family: monospace;
+	}
+
+	.osrs-requirements {
+		padding: 0.5rem 0.75rem;
+		border-top: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-requirements__header {
+		font-size: 0.625rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		color: var(--sl-color-accent);
+		margin-bottom: 0.375rem;
+		letter-spacing: 0.025em;
+	}
+
+	.osrs-requirements__list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.375rem;
+	}
+
+	.osrs-requirements__item {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+		background: var(--sl-color-gray-6);
+		font-size: 0.6875rem;
+	}
+
+	.osrs-requirements__item--quest {
+		background: var(--sl-color-accent-low);
+	}
+
+	.osrs-requirements__skill {
+		color: var(--sl-color-gray-2);
+	}
+
+	.osrs-requirements__level {
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+
+	.osrs-special {
+		padding: 0.5rem 0.75rem;
+		border-top: 1px solid var(--sl-color-gray-5);
+		background: linear-gradient(
+			to right,
+			rgba(234, 179, 8, 0.05),
+			transparent
+		);
+	}
+
+	.osrs-special__header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0.25rem;
+	}
+
+	.osrs-special__name {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: #eab308;
+	}
+
+	.osrs-special__cost {
+		font-size: 0.625rem;
+		font-weight: 500;
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+		background: rgba(234, 179, 8, 0.2);
+		color: #eab308;
+	}
+
+	.osrs-special__desc {
+		font-size: 0.6875rem;
+		color: var(--sl-color-gray-2);
+		margin: 0 0 0.375rem;
+		line-height: 1.4;
+	}
+
+	.osrs-special__effects {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+	}
+
+	.osrs-special__effect {
+		font-size: 0.5625rem;
+		padding: 0.0625rem 0.25rem;
+		border-radius: 0.1875rem;
+		background: var(--sl-color-gray-6);
+		color: var(--sl-color-gray-2);
+	}
+
+	.osrs-special__effect--heal {
+		background: rgba(34, 197, 94, 0.2);
+		color: #22c55e;
+	}
+
+	.osrs-special__effect--debuff {
+		background: rgba(239, 68, 68, 0.2);
+		color: #ef4444;
+	}
+
+	.osrs-special__effect--freeze {
+		background: rgba(59, 130, 246, 0.2);
+		color: #3b82f6;
+	}
+</style>

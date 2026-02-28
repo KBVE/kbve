@@ -1,0 +1,37 @@
+---
+title: Super hunter potion(2) | OSRS Price Data
+description: "Super hunter potion(2): 2 doses of super hunter potion.. High alch: 54 GP."
+osrs:
+  id: 31632
+  name: Super hunter potion(2)
+  slug: super-hunter-potion-2
+  examine: 2 doses of super hunter potion.
+  members: true
+  icon: Super hunter potion(2).png
+  value: 90
+  lowalch: 36
+  highalch: 54
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

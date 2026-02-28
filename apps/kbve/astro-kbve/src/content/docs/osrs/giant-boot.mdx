@@ -1,0 +1,37 @@
+---
+title: Giant boot | OSRS Price Data
+description: "Giant boot: Worn on head. Warning: Smelly.. High alch: 8,400 GP, GE limit: 4."
+osrs:
+  id: 23252
+  name: Giant boot
+  slug: giant-boot
+  examine: "Worn on head. Warning: Smelly."
+  members: true
+  icon: Giant boot.png
+  value: 14000
+  lowalch: 5600
+  highalch: 8400
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

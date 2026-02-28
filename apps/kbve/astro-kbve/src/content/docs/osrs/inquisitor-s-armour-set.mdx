@@ -1,0 +1,37 @@
+---
+title: Inquisitor's armour set | OSRS Price Data
+description: "Inquisitor's armour set is a members-only OSRS item. High alch: 300,000 GP."
+osrs:
+  id: 24488
+  name: Inquisitor's armour set
+  slug: inquisitor-s-armour-set
+  examine: A set containing an Inquisitor's great helm, Inquisitor's hauberk and Inquisitor's plateskirt.
+  members: true
+  icon: Inquisitor's armour set.png
+  value: 500000
+  lowalch: 200000
+  highalch: 300000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

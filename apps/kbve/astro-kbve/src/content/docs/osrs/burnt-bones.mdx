@@ -1,0 +1,37 @@
+---
+title: Burnt bones | OSRS Price Data
+description: "Burnt bones: Bones are for burying!. High alch: 1 GP, GE limit: 3,000."
+osrs:
+  id: 528
+  name: Burnt bones
+  slug: burnt-bones
+  examine: Bones are for burying!
+  members: false
+  icon: Burnt bones.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 3000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

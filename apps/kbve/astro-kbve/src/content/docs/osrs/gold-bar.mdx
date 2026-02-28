@@ -1,0 +1,119 @@
+---
+title: Gold bar | OSRS Price Data
+description: "Gold bar: It's a bar of gold.. High alch: 180 GP, GE limit: 10,000."
+osrs:
+  id: 2357
+  name: Gold bar
+  slug: gold-bar
+  examine: It's a bar of gold.
+  members: false
+  icon: Gold bar.png
+  value: 300
+  lowalch: 120
+  highalch: 180
+  limit: 10000
+  material:
+    type: bar
+    tier: gold
+  smithing:
+    level: 40
+    xp: 22.5
+    xp_with_gauntlets: 56.2
+    method: Smelting
+  recipes:
+    - skill: smithing
+      level: 40
+      xp: 22.5
+      materials:
+        - item_name: Gold ore
+          item_id: 444
+          quantity: 1
+      product: Gold bar
+      product_id: 2357
+      product_quantity: 1
+      facility: Furnace
+  related_items:
+    - item_id: 444
+      item_name: Gold ore
+      slug: gold-ore
+      relationship: component
+      description: Raw material
+    - item_id: 776
+      item_name: Goldsmith gauntlets
+      slug: goldsmith-gauntlets
+      relationship: alternative
+      description: 2.5x XP bonus
+    - item_id: 1673
+      item_name: Gold amulet (u)
+      slug: gold-amulet-u
+      relationship: product
+      description: Craftable jewelry
+    - item_id: 1592
+      item_name: Ring mould
+      slug: ring-mould
+      relationship: alternative
+      description: For crafting rings
+    - item_id: 1595
+      item_name: Amulet mould
+      slug: amulet-mould
+      relationship: alternative
+      description: For crafting amulets
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Smelt Gold ore at a furnace.
+
+| Method | Smithing Level | XP |
+|--------|----------------|-----|
+| Regular furnace | 40 | 22.5 |
+| Blast Furnace | 40 | 22.5 |
+| Goldsmith gauntlets | 40 | 56.2 |
+
+## Crafting Products
+
+| Item | Crafting Level | XP | Notes |
+|------|----------------|-----|-------|
+| Gold ring | 5 | 15 | Enchantable |
+| Gold necklace | 6 | 20 | Enchantable |
+| Gold bracelet | 7 | 25 | Enchantable |
+| Gold amulet | 8 | 30 | Enchantable |
+
+## Market Flip Strategy
+
+**Goldsmith Gauntlets Method:**
+- Buy Gold ore → Smelt at Blast Furnace with Goldsmith gauntlets
+- Best Smithing XP in game
+- Calculate: `Gold bar price - Gold ore price = Smelting profit`
+
+**Jewelry Making:**
+1. Gold bar + Mould → Jewelry
+2. String → Unstrung amulet
+3. Enchant → Valuable amulet
+
+**Tips:**
+- Blast Furnace is the meta for gold bars
+- Goldsmith gauntlets from Family Crest quest
+- High volume item for both Smithing and Crafting training
+
+<Adsense />

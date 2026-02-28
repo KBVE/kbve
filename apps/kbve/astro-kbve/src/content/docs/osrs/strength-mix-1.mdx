@@ -1,0 +1,37 @@
+---
+title: Strength mix(1) | OSRS Price Data
+description: "Strength mix(1): One dose of fishy strength potion.. High alch: 6 GP, GE limit: 2,000."
+osrs:
+  id: 11441
+  name: Strength mix(1)
+  slug: strength-mix-1
+  examine: One dose of fishy strength potion.
+  members: true
+  icon: Strength mix(1).png
+  value: 11
+  lowalch: 4
+  highalch: 6
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

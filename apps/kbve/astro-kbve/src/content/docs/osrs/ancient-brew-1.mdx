@@ -1,0 +1,118 @@
+---
+title: Ancient brew(1) | OSRS Price Data
+description: "Ancient brew(1): 1 dose of ancient brew.. High alch: 75 GP, GE limit: 2,000."
+osrs:
+  id: 26346
+  name: Ancient brew(1)
+  slug: ancient-brew-1
+  examine: 1 dose of ancient brew.
+  members: true
+  icon: Ancient brew(1).png
+  value: 125
+  lowalch: 50
+  highalch: 75
+  limit: 2000
+  item:
+    type: potion
+    tradeable: true
+    doses: 1
+  recipes:
+    - skill: herblore
+      level: 85
+      xp: 190
+      materials:
+        - item_name: Dwarf weed potion (unf)
+          quantity: 1
+        - item_name: Nihil dust
+          quantity: 1
+  effect:
+    boost:
+      - skill: magic
+        amount: +2 + 5%
+      - skill: prayer
+        amount: +2 + 10%
+    drain:
+      - skill: attack
+        amount: -2 - 10%
+      - skill: strength
+        amount: -2 - 10%
+      - skill: defence
+        amount: -2 - 10%
+  related_items:
+    - item_id: 26229
+      item_name: Nihil dust
+      slug: nihil-dust
+      relationship: component
+      description: From Nihil shards
+    - item_id: 26348
+      item_name: Forgotten brew
+      slug: forgotten-brew
+      relationship: upgrade
+      description: Enhanced version
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Potion |
+| Tradeable | Yes |
+| Stackable | No |
+
+## Creation
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore | 85 |
+| XP | 190 |
+
+**Ingredients:**
+- Dwarf weed potion (unf)
+- Nihil dust
+
+## Effect
+
+**Magic Boost:** +2 + 5% of Magic level.
+
+**Prayer Restore:** +2 + 10% of Prayer level.
+
+**Stat Drain:** -2 - 10% to Attack, Strength, Defence.
+
+## Market Strategy
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Price:** ~777 gp (1-dose)
+
+**Tips:**
+- Nihil dust from Nex
+- Good for magic-only content
+- Can upgrade to Forgotten brew
+
+## Related Items
+
+- [Nihil dust](/osrs/nihil-dust/) - Ingredient
+- [Forgotten brew](/osrs/forgotten-brew/) - Upgrade
+- [Nex](/osrs/nex/) - Ingredient source
+
+<Adsense />

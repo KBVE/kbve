@@ -1,0 +1,152 @@
+---
+title: Eye of newt | OSRS Price Data
+description: "Eye of newt: It seems to be looking at me.. High alch: 1 GP, GE limit: 13,000."
+osrs:
+  id: 221
+  name: Eye of newt
+  slug: eye-of-newt
+  examine: It seems to be looking at me.
+  members: false
+  icon: Eye of newt.png
+  value: 3
+  lowalch: 1
+  highalch: 1
+  limit: 13000
+  material:
+    type: secondary
+    tier: basic
+  gathering:
+    locations:
+      - Betty's Magic Emporium (Port Sarim)
+      - Jatix's Herblore Shop (Taverley)
+      - Newtroost spawns
+  drop_table:
+    sources:
+      - source: Banshee
+        source_id: 1612
+        combat_level: 23
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Cave bug
+        source_id: 481
+        combat_level: 6
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Cave crawler
+        source_id: 406
+        combat_level: 23
+        quantity: "1"
+        rarity: common
+        members_only: true
+  recipes:
+    - skill: herblore
+      level: 3
+      xp: 25
+      materials:
+        - item_name: Guam potion (unf)
+          item_id: 91
+          quantity: 1
+        - item_name: Eye of newt
+          item_id: 221
+          quantity: 1
+      product: Attack potion(3)
+      product_id: 121
+      product_quantity: 1
+    - skill: herblore
+      level: 45
+      xp: 100
+      materials:
+        - item_name: Irit potion (unf)
+          item_id: 101
+          quantity: 1
+        - item_name: Eye of newt
+          item_id: 221
+          quantity: 1
+      product: Super attack(3)
+      product_id: 2428
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 91
+      item_name: Guam potion (unf)
+      slug: guam-potion-unf
+      relationship: component
+      description: For attack potion
+    - item_id: 121
+      item_name: Attack potion(3)
+      slug: attack-potion-3
+      relationship: product
+      description: Basic combat potion
+    - item_id: 2428
+      item_name: Super attack(3)
+      slug: super-attack-3
+      relationship: product
+      description: Advanced combat potion
+    - item_id: 249
+      item_name: Guam leaf
+      slug: guam-leaf
+      relationship: component
+      description: Partner herb
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Herblore Secondary |
+| Tradeable | Yes |
+| Weight | 0.007 kg |
+
+## Obtaining
+
+Common sources:
+- Shop purchase (Betty's Magic Emporium, Jatix's Herblore Shop)
+- Monster drops (Banshees, Cave bugs, Cave crawlers)
+- Newtroosts (4-10 drops)
+
+## Usage
+
+Secondary ingredient for:
+- **Attack potion** (with guam potion unf)
+- **Super attack** (with irit potion unf)
+
+Essential low-level herblore ingredient.
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Price:** ~4 gp
+
+Extremely high volume. Cheap but heavily traded for potion production.
+
+## Related Items
+
+- [Attack potion](/osrs/attack-potion/) - Primary use
+- [Super attack](/osrs/super-attack/) - Advanced use
+- [Guam leaf](/osrs/guam-leaf/) - Partner herb
+
+<Adsense />

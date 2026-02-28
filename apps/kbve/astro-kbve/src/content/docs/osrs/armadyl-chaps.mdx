@@ -1,0 +1,37 @@
+---
+title: Armadyl chaps | OSRS Price Data
+description: "Armadyl chaps: Armadyl blessed dragonhide chaps.. High alch: 3,600 GP, GE limit: 8."
+osrs:
+  id: 12510
+  name: Armadyl chaps
+  slug: armadyl-chaps
+  examine: Armadyl blessed dragonhide chaps.
+  members: true
+  icon: Armadyl chaps.png
+  value: 6000
+  lowalch: 2400
+  highalch: 3600
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

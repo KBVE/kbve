@@ -1,0 +1,159 @@
+---
+title: Bow of faerdhinen (inactive) | OSRS Price Data
+description: "Bow of faerdhinen (inactive) is a members two-handed weapon requiring 75 Ranged. High alch: 3,000,000 GP."
+osrs:
+  id: 25862
+  name: Bow of faerdhinen (inactive)
+  slug: bow-of-faerdhinen-inactive
+  examine: A magical elven bow.
+  members: true
+  icon: Bow of faerdhinen (inactive).png
+  value: 5000000
+  lowalch: 2000000
+  highalch: 3000000
+  limit: null
+  equipment:
+    slot: 2h
+    type: bow
+    attack_style: ranged
+    attack_speed: 5
+    attack_range: 10
+    requirements:
+      ranged: 75
+      agility: 75
+    stats:
+      attack_ranged: 128
+      ranged_strength: 106
+  effect:
+    corrupted: true
+    never_degrades: true
+    untradeable: true
+    cannot_revert: true
+    no_ammo_required: true
+    crystal_armor_bonus:
+      accuracy_per_piece: 3
+      damage_per_piece: 6
+      full_set_accuracy: 15
+      full_set_damage: 30
+  creation:
+    base_item_id: 25865
+    base_item_name: Bow of faerdhinen
+    material_id: 23962
+    material_name: Crystal shard
+    material_quantity: 2000
+  drop_table:
+    sources:
+      - source: The Gauntlet
+        source_id: 9021
+        combat_level: 0
+        quantity: 1 (Enhanced crystal weapon seed)
+        rarity: Rare
+        members_only: true
+      - source: The Corrupted Gauntlet
+        source_id: 9035
+        combat_level: 0
+        quantity: 1 (Enhanced crystal weapon seed)
+        rarity: Rare
+        members_only: true
+  related_items:
+    - item_id: 25865
+      item_name: Bow of faerdhinen
+      slug: bow-of-faerdhinen
+      relationship: downgrade
+      description: Uncharged version
+    - item_id: 25859
+      item_name: Blade of saeldor (c)
+      slug: blade-of-saeldor-c
+      relationship: alternative
+      description: Melee crystal weapon
+    - item_id: 22325
+      item_name: Twisted bow
+      slug: twisted-bow
+      relationship: alternative
+      description: High magic target alternative
+    - item_id: 23962
+      item_name: Crystal shard
+      slug: crystal-shard
+      relationship: component
+      description: Corruption material
+    - item_id: 23971
+      item_name: Crystal body
+      slug: crystal-body
+      relationship: set-piece
+      description: Set bonus armor
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Obtaining
+
+Created by corrupting with 2,000 crystal shards.
+
+Base bow from Gauntlet (Enhanced crystal weapon seed).
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged attack | +128 |
+| Ranged strength | +106 |
+| Requirements | 75 Ranged, Agility |
+| Attack speed | 5 tick (3s) |
+
+**Highest ranged accuracy in-game (excluding Twisted bow).**
+
+## Effects
+
+**No ammo required** - Uses own arrows.
+
+**Crystal armour bonus:**
+- Each piece adds +3% accuracy, +6% damage
+- Full set: +15% accuracy, +30% damage
+
+## Usage
+
+BiS ranged weapon for:
+- Fight Caves
+- Inferno
+- Slayer
+- Mid-tier bossing
+
+**Outperforms blowpipe with crystal armour.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~125M gp (uncharged)
+
+**Tips:**
+- Enhanced crystal weapon seed from CG
+- Corrupt for permanent use
+- Song of the Elves required
+- Best with crystal armour
+
+## Related Items
+
+- [Blade of saeldor](/osrs/blade-of-saeldor/) - Melee crystal weapon
+- [Crystal armour](/osrs/crystal-armour/) - Set bonus
+- [Twisted bow](/osrs/twisted-bow/) - High magic target alternative
+
+<Adsense />

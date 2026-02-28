@@ -1,0 +1,37 @@
+---
+title: Black spiky vambraces | OSRS Price Data
+description: "Black spiky vambraces: Vambraces made from 100% real dragonhide. Now with added spikiness.. High alch: 2,592 GP, GE limit: 125."
+osrs:
+  id: 10085
+  name: Black spiky vambraces
+  slug: black-spiky-vambraces
+  examine: Vambraces made from 100% real dragonhide. Now with added spikiness.
+  members: true
+  icon: Black spiky vambraces.png
+  value: 4320
+  lowalch: 1728
+  highalch: 2592
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

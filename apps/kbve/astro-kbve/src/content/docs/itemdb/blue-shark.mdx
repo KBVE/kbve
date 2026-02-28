@@ -1,0 +1,86 @@
+---
+title: 'Blue Shark'
+description: "A heavy fish that heals the consumer's health and provides mana."
+id: 'blue-shark'
+key: 2
+ref: '01J263S362R0Q3TV8T4DFMR8Z5'
+name: 'Blue Shark'
+type: 'Food'
+category: 392
+img: '/assets/items/food/blue_shark.png'
+pixelDensity: 32
+sortingLayer: Ground
+sortingOrder: 10
+consumable: true
+stackable: false
+rarity: 'Common'
+weight: 10
+effects: 'Heals 50 health and increases mana by 25 for 10 minutes.'
+price: 500
+durability: 1
+equipped: false
+levelRequirement: 0
+cooldown: 120
+action: 'consume'
+credits: |
+    Shark fish asset was by Roku6 - https://roku6.itch.io/pixelfishes
+bonuses:
+    health: 50
+    mana: 25
+scripts:
+    - guid: 'dd238a91353c4a1991cf275041730ab0'
+      vars:
+          health: 50
+          mana: 25
+          duration: 600
+          tickRate: 5
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+        Aside,
+        Steps,
+	Card,
+	CardGrid,
+	Code,
+        FileTree,
+} from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+
+
+## Overview
+
+The **Blue Shark** is a powerful consumable fish, known for both its restorative health and its mana-boosting properties. While heavy and non-stackable, it offers significant mid-tier utility in combat or exploration.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+<Adsense />
+
+## Usage
+
+- Restores **{frontmatter.bonuses.health} health** and boosts **mana by {frontmatter.bonuses.mana}** for **10 minutes**
+- Cannot be stacked
+- Useful in mana-intensive encounters or boss fights
+
+---
+
+## Crafting / Cooking
+
+Though edible as-is, the Blue Shark might be processed into advanced dishes at higher-tier cooking stations for enhanced effects.
+
+---
+
+## Lore
+
+> "Fierce in the ocean, yet calming in the stomach — the Blue Shark brings both strength and serenity."
+
+---
+
+## DevLog
+
+-   05/25/2025 - TODO - Add a chance of mercury poison if eaten without cooking.

@@ -1,0 +1,37 @@
+---
+title: Diabolic worms | OSRS Price Data
+description: "Diabolic worms: Their subtle, pulsing glow would be great for catching anglerfish.. High alch: 54 GP, GE limit: 8,000."
+osrs:
+  id: 30773
+  name: Diabolic worms
+  slug: diabolic-worms
+  examine: Their subtle, pulsing glow would be great for catching anglerfish.
+  members: true
+  icon: Diabolic worms.png
+  value: 90
+  lowalch: 36
+  highalch: 54
+  limit: 8000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

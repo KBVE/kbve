@@ -1,0 +1,100 @@
+---
+title: Sulliuscep cap | OSRS Price Data
+description: "Sulliuscep cap: A Sulliuscep mushroom cap. Edible? Probably.... High alch: 1 GP, GE limit: 100."
+osrs:
+  id: 21626
+  name: Sulliuscep cap
+  slug: sulliuscep-cap
+  examine: A Sulliuscep mushroom cap. Edible? Probably...
+  members: true
+  icon: Sulliuscep cap.png
+  value: 3
+  lowalch: 1
+  highalch: 1
+  limit: 100
+  material:
+    type: cooking_ingredient
+    tradeable: true
+    weight: 0.907
+  drop_table:
+    sources:
+      - source: Sulliuscep chopping
+        rate: 1/100
+        requirements:
+          woodcutting: 65
+  uses:
+    - result_name: Mushroom pie
+      effect: +4 Crafting boost
+  market:
+    buy_limit: 100
+    price_estimate: 6600
+  related_items:
+    - item_id: 21516
+      item_name: Fossil Island
+      slug: fossil-island
+      relationship: alternative
+      description: Location
+    - item_id: 21670
+      item_name: Mushroom pie
+      slug: mushroom-pie
+      relationship: product
+      description: Created item
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Cooking Ingredient |
+| Tradeable | Yes |
+| Weight | 0.907 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Sulliuscep chopping | 1/100 |
+
+Requires 65 Woodcutting.
+
+Location: Tar Swamp, Fossil Island.
+
+## Uses
+
+| Recipe | Boost |
+|--------|-------|
+| Mushroom pie | +4 Crafting |
+
+## Market Strategy
+
+**Buy Limit:** 100 per 4 hours
+
+**Price:** ~6.6K gp
+
+## Related Items
+
+- [Fossil Island](/osrs/fossil-island/) - Location
+- [Sulliuscep](/osrs/sulliuscep/) - Source
+- [Mushroom pie](/osrs/mushroom-pie/) - Created item
+
+<Adsense />

@@ -1,0 +1,165 @@
+---
+title: Crystal tool seed | OSRS Price Data
+description: "Crystal tool seed: A seed to be sung into the best tools of the craft.. High alch: 300,000 GP, GE limit: 100."
+osrs:
+  id: 23953
+  name: Crystal tool seed
+  slug: crystal-tool-seed
+  examine: A seed to be sung into the best tools of the craft.
+  members: true
+  icon: Crystal tool seed.png
+  value: 500000
+  lowalch: 200000
+  highalch: 300000
+  limit: 100
+  item:
+    type: crafting material
+    tradeable: true
+    weight: 0
+  obtaining:
+    - source: Zalcano
+      drop_rate: 39/8,000 (~1/205)
+  recipes:
+    - skill: smithing
+      level: 76
+      xp: 6000
+      materials:
+        - item_id: 23953
+          item_name: Crystal tool seed
+          quantity: 1
+        - item_id: 6739
+          item_name: Dragon axe
+          quantity: 1
+        - item_id: 23962
+          item_name: Crystal shard
+          quantity: 120
+      facility: Singing bowl
+      product: Crystal axe
+      product_id: 23673
+    - skill: smithing
+      level: 76
+      xp: 6000
+      materials:
+        - item_id: 23953
+          item_name: Crystal tool seed
+          quantity: 1
+        - item_id: 11920
+          item_name: Dragon pickaxe
+          quantity: 1
+        - item_id: 23962
+          item_name: Crystal shard
+          quantity: 120
+      facility: Singing bowl
+      product: Crystal pickaxe
+      product_id: 23680
+    - skill: smithing
+      level: 76
+      xp: 6000
+      materials:
+        - item_id: 23953
+          item_name: Crystal tool seed
+          quantity: 1
+        - item_id: 21028
+          item_name: Dragon harpoon
+          quantity: 1
+        - item_id: 23962
+          item_name: Crystal shard
+          quantity: 120
+      facility: Singing bowl
+      product: Crystal harpoon
+      product_id: 23762
+  related_items:
+    - item_id: 23962
+      item_name: Crystal shard
+      slug: crystal-shard
+      relationship: component
+      description: Required material for crafting
+    - item_id: 6739
+      item_name: Dragon axe
+      slug: dragon-axe
+      relationship: component
+      description: Required base for crystal axe
+    - item_id: 11920
+      item_name: Dragon pickaxe
+      slug: dragon-pickaxe
+      relationship: component
+      description: Required base for crystal pickaxe
+    - item_id: 23673
+      item_name: Crystal axe
+      slug: crystal-axe
+      relationship: product
+      description: Created tool
+    - item_id: 23680
+      item_name: Crystal pickaxe
+      slug: crystal-pickaxe
+      relationship: product
+      description: Created tool
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Weight | 0 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Zalcano | 39/8,000 (~1/205) |
+
+## Uses
+
+Craft at singing bowl with 120 crystal shards + dragon tool:
+
+| Tool Created | Requirements |
+|--------------|--------------|
+| Crystal axe | 76 Smithing, 76 Crafting |
+| Crystal pickaxe | 76 Smithing, 76 Crafting |
+| Crystal harpoon | 76 Smithing, 76 Crafting |
+| Crystal felling axe | 76 Smithing, 76 Crafting |
+
+Grants 6,000 Smithing and 6,000 Crafting XP per tool.
+
+**Alternatives:**
+- Exchange for 100 crystal shards (Amrod)
+- Convert to crystal acorn
+
+**Note:** Pay 60 extra shards for NPC crafting if lacking requirements.
+
+## Market Strategy
+
+**Buy Limit:** 200 per 4 hours
+
+**Price:** ~8.5K gp
+
+## Related Items
+
+- [Zalcano](/osrs/zalcano/) - Source
+- [Crystal shard](/osrs/crystal-shard/) - Required material
+- [Dragon axe](/osrs/dragon-axe/) - Required base
+- [Dragon pickaxe](/osrs/dragon-pickaxe/) - Required base
+
+<Adsense />

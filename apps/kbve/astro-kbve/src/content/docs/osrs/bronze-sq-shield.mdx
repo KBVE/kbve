@@ -1,0 +1,93 @@
+---
+title: Bronze sq shield | OSRS Price Data
+description: "Bronze sq shield: A medium square shield.. High alch: 28 GP, GE limit: 125."
+osrs:
+  id: 1173
+  name: Bronze sq shield
+  slug: bronze-sq-shield
+  examine: A medium square shield.
+  members: false
+  icon: Bronze sq shield.png
+  value: 48
+  lowalch: 19
+  highalch: 28
+  limit: 125
+  item_id: 1173
+  item_type: armor
+  slot: shield
+  type: square_shield
+  tradeable: true
+  weight: 3.628
+  requirements:
+    defence: 0
+  stats:
+    stab_defence: 5
+    slash_defence: 6
+    crush_defence: 4
+    magic_defence: 0
+    ranged_defence: 5
+  related_items:
+    - slug: iron-sq-shield
+    - slug: bronze-kiteshield
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Off Hand |
+| Type | Square Shield |
+| Tradeable | Yes |
+| Weight | 3.628 kg |
+| Requirements | None |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +5 |
+| Slash Defence | +6 |
+| Crush Defence | +4 |
+| Magic Defence | +0 |
+| Ranged Defence | +5 |
+
+## Obtaining
+
+**Smithing:** 8 Smithing with 2 bronze bars (25 XP).
+
+**Shop:** Cassie's Shield Shop, Falador.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~20 gp
+
+Starter square shield. F2P accessible.
+
+## Related Items
+
+- [Iron sq shield](/osrs/iron-sq-shield/) - Upgrade
+- [Bronze kiteshield](/osrs/bronze-kiteshield/) - More defence
+
+<Adsense />

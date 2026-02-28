@@ -1,0 +1,138 @@
+---
+title: Blade of saeldor (inactive) | OSRS Price Data
+description: "Blade of saeldor (inactive) is a members weapon slot item requiring 80 Attack. High alch: 3,000,000 GP, GE limit: 8."
+osrs:
+  id: 23997
+  name: Blade of saeldor (inactive)
+  slug: blade-of-saeldor-inactive
+  examine: A magical elven sword.
+  members: true
+  icon: Blade of saeldor (inactive).png
+  value: 5000000
+  lowalch: 2000000
+  highalch: 3000000
+  limit: 8
+  equipment:
+    slot: weapon
+    type: sword
+    tradeable: true
+    weight: 1.814
+    attack_speed: 4
+    requirements:
+      attack: 80
+    stats:
+      attack_stab: 55
+      attack_slash: 94
+      attack_crush: 0
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 89
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  charging:
+    material_name: Crystal shard
+    charges_per_100_shards: 10000
+    corrupting_shards: 1000
+    corrupted_tradeable: false
+  related_items:
+    - item_id: 25879
+      item_name: Blade of saeldor (c)
+      slug: blade-of-saeldor-c
+      relationship: upgrade
+      description: Charged/corrupted version
+    - item_id: 25859
+      item_name: Enhanced crystal weapon seed
+      slug: enhanced-crystal-weapon-seed
+      relationship: component
+      description: Creation material from Corrupted Gauntlet
+    - item_id: 23962
+      item_name: Crystal shard
+      slug: crystal-shard
+      relationship: component
+      description: Charging material
+    - item_id: 22324
+      item_name: Ghrazi rapier
+      slug: ghrazi-rapier
+      relationship: alternative
+      description: Stab alternative weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Main-hand) |
+| Type | Sword |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Attack Speed | 4 tick (2.4s) |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Slash | +94 |
+| Stab | +55 |
+| Strength | +89 |
+
+**Requirements:** 80 Attack
+
+**Note:** This is the uncharged/inactive version. No combat bonuses until charged with crystal shards.
+
+## Charging
+
+Charge with crystal shards to activate:
+- 100 shards = 10,000 charges
+- Recharge anytime before running out
+- Becomes [Blade of saeldor (c)](/osrs/blade-of-saeldor-c/) when charged
+
+## Corrupting
+
+Use 1,000 crystal shards to make permanently charged:
+- Never needs recharging
+- Becomes untradeable
+- Worth it for consistent use
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Enhanced seed from Corrupted Gauntlet
+- Buy inactive, charge yourself for savings
+- Consider corrupting for convenience
+
+## Related Items
+
+- [Blade of saeldor (c)](/osrs/blade-of-saeldor-c/) - Charged version
+- [Enhanced crystal weapon seed](/osrs/enhanced-crystal-weapon-seed/) - Creation material
+- [Crystal shard](/osrs/crystal-shard/) - Charging material
+- [Ghrazi rapier](/osrs/ghrazi-rapier/) - Stab alternative
+
+<Adsense />

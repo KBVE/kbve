@@ -1,0 +1,37 @@
+---
+title: Snakeskin chaps | OSRS Price Data
+description: "Snakeskin chaps: Made from 100% real snake.. High alch: 705 GP, GE limit: 125."
+osrs:
+  id: 6324
+  name: Snakeskin chaps
+  slug: snakeskin-chaps
+  examine: Made from 100% real snake.
+  members: true
+  icon: Snakeskin chaps.png
+  value: 1175
+  lowalch: 470
+  highalch: 705
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

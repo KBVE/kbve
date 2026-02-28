@@ -1,0 +1,128 @@
+---
+title: Holy blessing | OSRS Price Data
+description: "Holy blessing is a members ammo slot item. High alch: 48 GP, GE limit: 5."
+osrs:
+  id: 20220
+  name: Holy blessing
+  slug: holy-blessing
+  examine: The path of the righteous man is beset on all sides by the inequities of the selfish and the tyranny of evil men.
+  members: true
+  icon: Holy blessing.png
+  value: 80
+  lowalch: 32
+  highalch: 48
+  limit: 5
+  equipment:
+    slot: ammo
+    type: blessing
+    tradeable: true
+    weight: 0.51
+    stats:
+      prayer: 1
+  drop_table:
+    sources:
+      - source: Treasure Trails (Medium)
+        rate: 10/6,820
+      - source: Treasure Trails (Hard)
+        rate: 1/541.7
+      - source: Treasure Trails (Elite)
+        rate: 1/645.8
+      - source: Treasure Trails (Master)
+        rate: 1/606.4
+      - source: Treasure Trails (Easy)
+        rate: 11/23,760
+  special_effect:
+    name: GWD Protection
+    description: Provides protection from Saradomin followers in God Wars Dungeon
+  market:
+    buy_limit: 5
+    price_estimate: 10900
+  related_items:
+    - item_id: 22941
+      item_name: Rada's blessing 4
+      slug: radas-blessing-4
+      relationship: upgrade
+      description: BiS blessing
+    - item_id: 20235
+      item_name: War blessing
+      slug: war-blessing
+      relationship: variant
+      description: Bandos variant
+    - item_id: 20223
+      item_name: Unholy blessing
+      slug: unholy-blessing
+      relationship: variant
+      description: Zamorak variant
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ammunition |
+| Type | Blessing |
+| Tradeable | Yes |
+| Weight | 0.51 kg |
+
+## Obtaining
+
+Treasure Trails reward (all levels except beginner):
+
+| Difficulty | Drop Rate |
+|------------|-----------|
+| Medium | 10/6,820 |
+| Hard | 1/541.7 |
+| Elite | 1/645.8 |
+| Master | 1/606.4 |
+| Easy | 11/23,760 |
+
+## Stats
+
+| Other | Bonus |
+|-------|-------|
+| Prayer | +1 |
+
+## GWD Effect
+
+Provides protection from Saradomin followers in God Wars Dungeon.
+
+## Usage
+
+Used for:
+- Free prayer bonus
+- Ammo slot when not using arrows
+- Saradomin GWD protection
+
+## Market Strategy
+
+**Buy Limit:** 5 per 4 hours
+
+**Price:** ~10.9K gp
+
+## Related Items
+
+- [Rada's blessing 4](/osrs/radas-blessing-4/) - BiS blessing
+- [War blessing](/osrs/war-blessing/) - Bandos variant
+- [Unholy blessing](/osrs/unholy-blessing/) - Zamorak variant
+
+<Adsense />

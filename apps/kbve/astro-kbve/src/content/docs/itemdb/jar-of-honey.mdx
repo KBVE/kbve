@@ -1,0 +1,138 @@
+---
+title: 'Jar of Honey'
+description: | 
+    A golden jar of concentrated sweetness. 
+    Restores health, soothes minds, and binds the tongue of liars.
+id: 'jar-of-honey'
+key: 17
+ref: '01JWAB140RVZX5C7M8622AZXGA'
+name: 'Jar of Honey'
+type: 'Food'
+category: 405
+img: '/assets/items/skills/farming/materials/jar_of_honey.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 70
+consumable: true
+stackable: true
+rarity: 'Common'
+weight: 0.9
+effects: 'Heals and energizes. Used in alchemy, medicine, and mead production.'
+price: 150
+durability: 1
+equipped: false
+levelRequirement: 1
+cooldown: 45
+action: 'consume'
+credits: |
+    concept by h0lybyte and Jar model by KBVE Pixel Workshop.
+bonuses:
+    health: 20
+    stamina: 10
+    sweetnessRating: 100
+scripts:
+    - guid: 'c2a993bc552a4982b54d08ae2191a34e'
+      vars:
+            healthRestore: 20
+            staminaBoost: 10
+            sweetness: 100
+            alchemyBase: true
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Jar of Honey** is more than a sweet treat.
+Revered by alchemists and wanderers alike, it restores health and stamina while offering versatile applications across culinary, medicinal, and magical fields.
+
+Rumors say a drop of this golden nectar forces even the most cunning liar to pause... and taste their words.
+
+
+Harvested from [beehives](/itemdb/steel-beehive/) and wild hives.
+
+Processed by apiarists and monks of the Golden Bloom Order.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+<Adsense />
+
+## Usage
+
+- Restores **{frontmatter.bonuses.health} health** and **{frontmatter.bonuses.stamina} stamina**
+- Can be used in **mead**, **medicine**, or **ritual mixtures**
+- Sweetness Rating: **{frontmatter.bonuses.sweetnessRating}/100**
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Crafting
+
+Crafted by processing raw honey from:
+- **[Steel Beehives](/itemdb/steel-beehive/)**
+- **Wild Apiaries**
+- **Event-based Nectar Groves**
+
+Combine with herbs or wax to create:
+- **Healing salves**
+- **Energy tonics**
+- **Blessed mead**
+
+---
+
+## Lore
+
+> “When words fail, offer honey.  
+> If they still lie, feed them the wax.”
+
+Scribes once used honey to write spells on dry leaves—only the truth would dissolve the glyphs properly.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/honeyjar_blessed.webp"
+  defaultId="01HTXYZHON001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZHON001',
+      title: 'Sticky Find',
+      description: 'You find a sealed jar tucked in tree roots.',
+      image: 'https://images.unsplash.com/photo-1618570155049-3bb62b3b1c92?q=80&w=500&auto=format&fit=crop',
+      message: 'Warm to the touch. The wax seal bears a honeycomb sigil.',
+      choices: [
+        { label: 'Unseal and taste.', nextId: '01HTXYZHON002' },
+        { label: 'Save it for crafting.', nextId: '01HTXYZHON003' }
+      ]
+    },
+    {
+      id: '01HTXYZHON002',
+      title: 'Sweet Relief',
+      description: 'You feel healthier. Clearer.',
+      image: '/images/scene_honeydrip.jpg',
+      message: 'Every wound feels one day further from pain.'
+    },
+    {
+      id: '01HTXYZHON003',
+      title: 'Preserved Potential',
+      description: 'It remains sealed and powerful.',
+      image: '/images/scene_jarvault.jpg',
+      message: 'You know the time will come when this jar will matter.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/27/2025 - Jar of Honey implemented for food, healing, and alchemical utility

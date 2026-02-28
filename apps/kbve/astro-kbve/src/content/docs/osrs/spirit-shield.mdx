@@ -1,0 +1,122 @@
+---
+title: Spirit shield | OSRS Price Data
+description: "Spirit shield is a members shield slot item requiring 45 Defence. High alch: 42,000 GP, GE limit: 8."
+osrs:
+  id: 12829
+  name: Spirit shield
+  slug: spirit-shield
+  examine: An ethereal shield.
+  members: true
+  icon: Spirit shield.png
+  value: 70000
+  lowalch: 28000
+  highalch: 42000
+  limit: 8
+  equipment:
+    slot: shield
+    type: spirit_shield
+    tradeable: true
+    weight: 2
+    requirements:
+      defence: 45
+      prayer: 55
+    stats:
+      defence_stab: 39
+      defence_slash: 41
+      defence_crush: 50
+      defence_magic: 1
+      defence_ranged: 45
+      prayer: 1
+  obtaining:
+    methods:
+      - source: Corporeal Beast
+        drop_rate: 8/512 (1/64)
+  upgrades:
+    - item_name: Blessed spirit shield
+      materials: Spirit shield + Holy elixir
+      requirements:
+        prayer: 85
+  related_items:
+    - item_id: 0
+      item_name: Corporeal Beast
+      slug: corporeal-beast
+      relationship: component
+      description: Source
+    - item_id: 12833
+      item_name: Holy elixir
+      slug: holy-elixir
+      relationship: component
+      description: Upgrade material
+    - item_id: 12831
+      item_name: Blessed spirit shield
+      slug: blessed-spirit-shield
+      relationship: upgrade
+      description: Upgraded version
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Shield |
+| Type | Spirit Shield |
+| Tradeable | Yes |
+| Weight | 2 kg |
+| Requirements | 45 Defence, 55 Prayer |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Corporeal Beast | 8/512 (1/64) |
+
+## Stats
+
+| Defence | Bonus |
+|---------|-------|
+| Stab | +39 |
+| Slash | +41 |
+| Crush | +50 |
+| Magic | +1 |
+| Ranged | +45 |
+| Prayer | +1 |
+
+## Upgrades
+
+| Item | Materials | Requirements |
+|------|-----------|--------------|
+| Blessed spirit shield | Spirit shield + Holy elixir | 85 Prayer |
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~30K gp
+
+## Related Items
+
+- [Corporeal Beast](/osrs/corporeal-beast/) - Source
+- [Holy elixir](/osrs/holy-elixir/) - Upgrade material
+- [Blessed spirit shield](/osrs/blessed-spirit-shield/) - Upgraded version
+
+<Adsense />

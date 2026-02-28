@@ -1,0 +1,37 @@
+---
+title: Green spiky vambraces | OSRS Price Data
+description: "Green spiky vambraces: Vambraces made from 100% real dragonhide. Now with added spikiness.. High alch: 1,500 GP, GE limit: 125."
+osrs:
+  id: 10079
+  name: Green spiky vambraces
+  slug: green-spiky-vambraces
+  examine: Vambraces made from 100% real dragonhide. Now with added spikiness.
+  members: true
+  icon: Green spiky vambraces.png
+  value: 2500
+  lowalch: 1000
+  highalch: 1500
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

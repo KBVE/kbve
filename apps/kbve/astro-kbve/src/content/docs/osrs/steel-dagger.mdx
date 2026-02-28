@@ -1,0 +1,93 @@
+---
+title: Steel dagger | OSRS Price Data
+description: "Steel dagger: Short but pointy.. High alch: 75 GP, GE limit: 125."
+osrs:
+  id: 1207
+  name: Steel dagger
+  slug: steel-dagger
+  examine: Short but pointy.
+  members: false
+  icon: Steel dagger.png
+  value: 125
+  lowalch: 50
+  highalch: 75
+  limit: 125
+  item_id: 1207
+  item_type: equipment
+  slot: weapon
+  type: dagger
+  attack_style: stab
+  attack_speed: 4
+  tradeable: true
+  weight: 0.453
+  requirements:
+    attack: 5
+  stats:
+    stab_attack: 8
+    slash_attack: 4
+    crush_attack: -4
+    strength: 7
+  related_items:
+    - slug: black-dagger
+    - slug: steel-sword
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Dagger |
+| Tradeable | Yes |
+| Weight | 0.453 kg |
+| Requirements | 5 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | +8 |
+| Slash Attack | +4 |
+| Crush Attack | -4 |
+| Strength | +7 |
+
+## Obtaining
+
+**Smithing:** 30 Smithing with 1 steel bar (37.5 XP).
+
+**Shop:** Varrock Swordshop.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~107 gp
+
+Mid-level dagger. Fast attack speed. F2P accessible.
+
+## Related Items
+
+- [Black dagger](/osrs/black-dagger/) - Upgrade
+- [Steel sword](/osrs/steel-sword/) - Higher damage
+
+<Adsense />

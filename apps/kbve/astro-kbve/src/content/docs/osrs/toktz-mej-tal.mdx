@@ -1,0 +1,37 @@
+---
+title: Toktz-mej-tal | OSRS Price Data
+description: "Toktz-mej-tal: A staff of obsidian.. High alch: 21,000 GP, GE limit: 70."
+osrs:
+  id: 6526
+  name: Toktz-mej-tal
+  slug: toktz-mej-tal
+  examine: A staff of obsidian.
+  members: true
+  icon: Toktz-mej-tal.png
+  value: 35000
+  lowalch: 14000
+  highalch: 21000
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

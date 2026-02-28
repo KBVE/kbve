@@ -1,0 +1,130 @@
+---
+title: Black d'hide chaps | OSRS Price Data
+description: "Black d'hide chaps is a members legs slot item. High alch: 3,732 GP, GE limit: 70."
+osrs:
+  id: 2497
+  name: Black d'hide chaps
+  slug: black-d-hide-chaps
+  examine: Made from 100% real dragonhide.
+  members: true
+  icon: Black d'hide chaps.png
+  value: 6220
+  lowalch: 2488
+  highalch: 3732
+  limit: 70
+  equipment:
+    slot: legs
+    type: ranged_armour
+    ranged_requirement: 70
+    defence_requirement: 40
+  attack_bonuses:
+    ranged: 17
+  defence_bonuses:
+    ranged: 30
+    magic: 28
+  crafting:
+    level: 82
+    xp: 172
+  recipes:
+    - skill: crafting
+      level: 82
+      xp: 172
+      materials:
+        - item_name: Black dragon leather
+          item_id: 2509
+          quantity: 2
+        - item_name: Thread
+          item_id: 1734
+          quantity: 1
+      product: Black d'hide chaps
+      product_id: 2497
+      product_quantity: 1
+      facility: Needle and thread
+      members_only: true
+  related_items:
+    - item_id: 1747
+      item_name: Black dragonhide
+      slug: black-dragonhide
+      relationship: component
+      description: Raw material
+    - item_id: 2509
+      item_name: Black dragon leather
+      slug: black-dragon-leather
+      relationship: component
+      description: Tanned hide
+    - item_id: 2503
+      item_name: Black d'hide body
+      slug: black-dhide-body
+      relationship: alternative
+      description: Matching body
+    - item_id: 2491
+      item_name: Black d'hide vambraces
+      slug: black-dhide-vambraces
+      relationship: alternative
+      description: Matching gloves
+    - item_id: 2495
+      item_name: Red d'hide chaps
+      slug: red-dhide-chaps
+      relationship: alternative
+      description: Lower tier chaps
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Method | Level | Materials |
+|--------|-------|-----------|
+| Crafting | 82 | 2 Black dragon leather |
+| XP | 172 | - |
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged requirement | 70 |
+| Defence requirement | 40 |
+| Ranged attack | +17 |
+| Ranged defence | +30 |
+| Magic defence | +28 |
+
+## Market Strategy
+
+**Best D'hide Chaps:**
+- Highest tier standard d'hide legs
+- Popular for Ranged training
+- Wilderness risk gear
+
+**Buy Limit:** 70 per 4 hours
+
+**Demand Drivers:**
+- Ranged training
+- Wilderness activities
+- Budget Ranged gear
+- PvP risk gear
+
+**Tips:**
+- Low buy limit (70)
+- 2 leather per chaps
+- Popular risk gear
+- Best non-degradable ranged legs
+
+<Adsense />

@@ -1,0 +1,122 @@
+---
+title: Black d'hide body | OSRS Price Data
+description: "Black d'hide body is a members body slot item. High alch: 8,088 GP, GE limit: 70."
+osrs:
+  id: 2503
+  name: Black d'hide body
+  slug: black-d-hide-body
+  examine: Made from 100% real dragonhide.
+  members: true
+  icon: Black d'hide body.png
+  value: 13480
+  lowalch: 5392
+  highalch: 8088
+  limit: 70
+  equipment:
+    slot: body
+    type: ranged_armour
+    ranged_requirement: 70
+    defence_requirement: 40
+  attack_bonuses:
+    ranged: 30
+  defence_bonuses:
+    ranged: 50
+    magic: 45
+  crafting:
+    level: 84
+    xp: 258
+  recipes:
+    - skill: crafting
+      level: 84
+      xp: 258
+      materials:
+        - item_name: Black dragon leather
+          item_id: 2509
+          quantity: 3
+      product: Black d'hide body
+      product_id: 2503
+      product_quantity: 1
+      facility: Needle and thread
+      members_only: true
+  related_items:
+    - item_id: 1747
+      item_name: Black dragonhide
+      slug: black-dragonhide
+      relationship: component
+      description: Raw material
+    - item_id: 2509
+      item_name: Black dragon leather
+      slug: black-dragon-leather
+      relationship: component
+      description: Tanned hide
+    - item_id: 2497
+      item_name: Black d'hide chaps
+      slug: black-dhide-chaps
+      relationship: alternative
+      description: Matching legs
+    - item_id: 2491
+      item_name: Black d'hide vambraces
+      slug: black-dhide-vambraces
+      relationship: alternative
+      description: Matching gloves
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Method | Level | Materials |
+|--------|-------|-----------|
+| Crafting | 84 | 3 Black dragon leather |
+| XP | 258 | - |
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged requirement | 70 |
+| Defence requirement | 40 |
+| Ranged attack | +30 |
+| Ranged defence | +50 |
+| Magic defence | +45 |
+
+## Market Flip Strategy
+
+**Best D'hide Body:**
+- Highest tier standard d'hide
+- Popular for Ranged training
+- Wilderness risk gear
+
+**Buy Limit:** 70 per 4 hours
+
+**Demand Drivers:**
+- Ranged training
+- Wilderness activities
+- Budget Ranged gear
+- PvP risk gear
+
+**Tips:**
+- Low buy limit (70)
+- Alch value decent
+- 3 leather per body
+- Popular risk gear
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Black warlock mix (2) | OSRS Price Data
+description: "Black warlock mix (2): There's a black warlock butterfly in here.. High alch: 42 GP."
+osrs:
+  id: 29189
+  name: Black warlock mix (2)
+  slug: black-warlock-mix-2
+  examine: There's a black warlock butterfly in here.
+  members: true
+  icon: Black warlock mix (2).png
+  value: 70
+  lowalch: 28
+  highalch: 42
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

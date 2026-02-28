@@ -1,0 +1,719 @@
+---
+import OSRSPriceWidget from './OSRSPriceWidget.tsx';
+import OSRSCharts from './OSRSCharts.tsx';
+import OSRSEquipmentStats from './OSRSEquipmentStats.astro';
+import OSRSDropSources from './OSRSDropSources.astro';
+import OSRSRecipes from './OSRSRecipes.astro';
+import OSRSRelatedItems from './OSRSRelatedItems.astro';
+import type { OSRSExtended } from '@/data/schema';
+import {
+	hasEquipment,
+	hasSpecialAttack,
+	hasDropSources,
+	hasRecipes,
+	hasRelatedItems,
+	isPotion,
+	isFood,
+} from '@/data/schema';
+
+/**
+ * OSRSItemData interface for the panel component
+ * Uses the OSRSExtended type from the schema for full type safety
+ * All extended fields (equipment, special_attack, etc.) are optional
+ */
+type OSRSItemData = OSRSExtended;
+
+interface Props {
+	data: OSRSItemData;
+}
+
+const { data } = Astro.props;
+const item = data;
+
+// Generate Wiki icon URL
+const iconUrl = `https://oldschool.runescape.wiki/images/${item.icon.replace(/ /g, '_')}`;
+
+// Generate external links
+const wikiUrl = `https://oldschool.runescape.wiki/w/${item.name.replace(/ /g, '_')}`;
+const geUrl = `https://secure.runescape.com/m=itemdb_oldschool/${item.name.replace(/ /g, '_')}/viewitem?obj=${item.id}`;
+
+// Format GP values
+function formatGP(value: number | null | undefined): string {
+	if (value === undefined || value === null) return '—';
+	return value.toLocaleString();
+}
+
+// Check for extended data
+const showEquipment = hasEquipment(item);
+const showSpecialAttack = hasSpecialAttack(item);
+const showDropSources = hasDropSources(item);
+const showRecipes = hasRecipes(item);
+const showRelatedItems = hasRelatedItems(item);
+const showPotion = isPotion(item);
+const showFood = isFood(item);
+---
+
+<section class="osrs-panel not-content">
+	<div class="osrs-panel__container">
+		<!-- Item Header Card - Two Column Layout -->
+		<div class="osrs-card">
+			<div class="osrs-card__main">
+				<!-- Left: Icon + Info -->
+				<div class="osrs-card__left">
+					<!-- Icon with Badge -->
+					<div class="osrs-card__icon-wrap">
+						<div class="osrs-card__icon-box">
+							<img
+								src={iconUrl}
+								alt={item.name}
+								class="osrs-card__icon"
+								loading="lazy"
+							/>
+						</div>
+						<span
+							class={`osrs-card__badge ${item.members ? 'osrs-card__badge--p2p' : 'osrs-card__badge--f2p'}`}>
+							{item.members ? 'P2P' : 'F2P'}
+						</span>
+					</div>
+
+					<!-- Title + Examine + Links -->
+					<div class="osrs-card__info">
+						<div class="osrs-card__title-row">
+							<h3 class="osrs-card__title">{item.name}</h3>
+							<span class="osrs-card__id">#{item.id}</span>
+						</div>
+						<p class="osrs-card__examine">"{item.examine}"</p>
+						<div class="osrs-card__links">
+							<a
+								href={wikiUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="osrs-card__link">
+								<svg
+									class="osrs-card__link-icon"
+									fill="currentColor"
+									viewBox="0 0 24 24">
+									<path
+										d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z">
+									</path>
+								</svg>
+								Wiki
+							</a>
+							<a
+								href={geUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="osrs-card__link osrs-card__link--accent">
+								<svg
+									class="osrs-card__link-icon"
+									fill="currentColor"
+									viewBox="0 0 24 24">
+									<path
+										d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5">
+									</path>
+								</svg>
+								GE
+							</a>
+						</div>
+					</div>
+				</div>
+
+				<!-- Right: Quad Stats Table -->
+				<div class="osrs-card__right">
+					<div class="osrs-quad">
+						<div class="osrs-quad__cell">
+							<span class="osrs-quad__label">High Alch</span>
+							<span class="osrs-quad__value">
+								{formatGP(item.highalch)}<span
+									class="osrs-quad__gp">
+									gp
+								</span>
+							</span>
+						</div>
+						<div class="osrs-quad__cell">
+							<span class="osrs-quad__label">Low Alch</span>
+							<span class="osrs-quad__value">
+								{formatGP(item.lowalch)}<span
+									class="osrs-quad__gp">
+									gp
+								</span>
+							</span>
+						</div>
+						<div class="osrs-quad__cell">
+							<span class="osrs-quad__label">Store Value</span>
+							<span class="osrs-quad__value">
+								{formatGP(item.value)}<span
+									class="osrs-quad__gp">
+									gp
+								</span>
+							</span>
+						</div>
+						<div class="osrs-quad__cell">
+							<span class="osrs-quad__label">GE Limit</span>
+							<span class="osrs-quad__value">
+								{item.limit ? formatGP(item.limit) : '—'}
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Live GE Prices -->
+		<div class="osrs-section">
+			<div class="osrs-section__header">
+				<span class="osrs-section__dot"></span>
+				<h4 class="osrs-section__title">Live GE Prices</h4>
+			</div>
+			<OSRSPriceWidget itemId={item.id} client:load />
+		</div>
+
+		<!-- Price History Chart -->
+		<OSRSCharts itemId={item.id} client:load />
+
+		<!-- Equipment Stats (if available) -->
+		{
+			showEquipment && item.equipment && (
+				<OSRSEquipmentStats
+					equipment={item.equipment}
+					specialAttack={
+						showSpecialAttack ? item.special_attack : undefined
+					}
+				/>
+			)
+		}
+
+		<!-- Drop Sources (if available) -->
+		{
+			showDropSources && item.drop_table && (
+				<OSRSDropSources dropTable={item.drop_table} />
+			)
+		}
+
+		<!-- Creation Recipes (if available) -->
+		{showRecipes && item.recipes && <OSRSRecipes recipes={item.recipes} />}
+
+		<!-- Potion Info (if available) -->
+		{
+			showPotion && item.potion && (
+				<div class="osrs-potion">
+					<div class="osrs-potion__header">
+						<span class="osrs-potion__icon">
+							<svg
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="currentColor">
+								<path d="M6 3h12v2H6V3zm11 18H7c-1.1 0-2-.9-2-2V8c0-.55.22-1.05.59-1.41l.01-.01C5.97 6.21 6.46 6 7 6h10c.55 0 1.05.22 1.41.59C18.78 6.95 19 7.45 19 8v11c0 1.1-.9 2-2 2zM7 8v11h10V8H7zm2 5h6v2H9v-2z" />
+							</svg>
+						</span>
+						<h4 class="osrs-potion__title">Potion Info</h4>
+						{item.potion.doses && (
+							<span class="osrs-potion__doses">
+								{item.potion.doses} dose
+								{item.potion.doses > 1 ? 's' : ''}
+							</span>
+						)}
+					</div>
+					<div class="osrs-potion__content">
+						{item.potion.herblore_level && (
+							<div class="osrs-potion__stat">
+								<span class="osrs-potion__label">
+									Herblore Level
+								</span>
+								<span class="osrs-potion__value">
+									{item.potion.herblore_level}
+								</span>
+							</div>
+						)}
+						{item.potion.herblore_xp && (
+							<div class="osrs-potion__stat">
+								<span class="osrs-potion__label">XP</span>
+								<span class="osrs-potion__value">
+									{item.potion.herblore_xp}
+								</span>
+							</div>
+						)}
+						{item.potion.effects &&
+							item.potion.effects.length > 0 && (
+								<div class="osrs-potion__effects">
+									<span class="osrs-potion__effects-label">
+										Effects:
+									</span>
+									{item.potion.effects.map((effect) => (
+										<span class="osrs-potion__effect">
+											{effect.stat}:{' '}
+											{effect.boost_formula ||
+												(effect.boost_type ===
+												'percentage'
+													? `${effect.boost_value}%`
+													: `+${effect.boost_value}`)}
+										</span>
+									))}
+								</div>
+							)}
+					</div>
+				</div>
+			)
+		}
+
+		<!-- Food Info (if available) -->
+		{
+			showFood && item.food && (
+				<div class="osrs-food">
+					<div class="osrs-food__header">
+						<span class="osrs-food__icon">
+							<svg
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="currentColor">
+								<path d="M18.06 22.99h1.66c.84 0 1.53-.65 1.63-1.48L23 5.05l-6 2V22h.94c.12 0 .12.99.12.99zM1 21.99h15.03c.54 0 .99-.44.99-.98V19.7c-.02-1.2-.28-2.36-.71-3.4-.47-1.15-1.13-2.17-1.95-2.97-1.09-1.06-2.44-1.77-3.9-2.03-.48-.09-.97-.13-1.46-.13-.48 0-.96.04-1.43.13-1.48.26-2.85.99-3.94 2.06-.8.78-1.45 1.77-1.92 2.87-.44 1.04-.7 2.18-.72 3.37V21c0 .54.45.99.99.99H1z" />
+							</svg>
+						</span>
+						<h4 class="osrs-food__title">Food Info</h4>
+					</div>
+					<div class="osrs-food__content">
+						{item.food.heals && (
+							<div class="osrs-food__stat osrs-food__stat--heal">
+								<span class="osrs-food__label">Heals</span>
+								<span class="osrs-food__value">
+									{item.food.heals} HP
+								</span>
+							</div>
+						)}
+						{item.food.heals_formula && (
+							<div class="osrs-food__stat">
+								<span class="osrs-food__label">Healing</span>
+								<span class="osrs-food__value osrs-food__value--formula">
+									{item.food.heals_formula}
+								</span>
+							</div>
+						)}
+						{item.food.overheal && (
+							<span class="osrs-food__overheal">
+								Can overheal
+							</span>
+						)}
+						{item.food.cooking_level && (
+							<div class="osrs-food__stat">
+								<span class="osrs-food__label">
+									Cooking Level
+								</span>
+								<span class="osrs-food__value">
+									{item.food.cooking_level}
+								</span>
+							</div>
+						)}
+						{item.food.cooking_xp && (
+							<div class="osrs-food__stat">
+								<span class="osrs-food__label">Cooking XP</span>
+								<span class="osrs-food__value">
+									{item.food.cooking_xp}
+								</span>
+							</div>
+						)}
+						{item.food.burn_level && (
+							<div class="osrs-food__stat">
+								<span class="osrs-food__label">Stop Burn</span>
+								<span class="osrs-food__value">
+									Level {item.food.burn_level}
+								</span>
+							</div>
+						)}
+					</div>
+				</div>
+			)
+		}
+
+		<!-- Related Items (if available) -->
+		{
+			showRelatedItems && item.related_items && (
+				<OSRSRelatedItems relatedItems={item.related_items} />
+			)
+		}
+	</div>
+</section>
+
+<style>
+	.osrs-panel {
+		padding: 0.75rem;
+	}
+
+	@media (min-width: 640px) {
+		.osrs-panel {
+			padding: 1rem;
+		}
+	}
+
+	.osrs-panel__container {
+		max-width: 56rem;
+		margin: 0 auto;
+	}
+
+	/* Main Card */
+	.osrs-card {
+		border-radius: 0.75rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-card__main {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		padding: 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.osrs-card__main {
+			flex-direction: row;
+			align-items: stretch;
+		}
+	}
+
+	/* Left Section */
+	.osrs-card__left {
+		display: flex;
+		gap: 0.75rem;
+		flex: 1;
+		min-width: 0;
+	}
+
+	/* Icon */
+	.osrs-card__icon-wrap {
+		position: relative;
+		flex-shrink: 0;
+	}
+
+	.osrs-card__icon-box {
+		width: 4rem;
+		height: 4rem;
+		border-radius: 0.5rem;
+		background: var(--sl-color-gray-6);
+		border: 1px solid var(--sl-color-gray-5);
+		padding: 0.375rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.osrs-card__icon {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		image-rendering: pixelated;
+	}
+
+	.osrs-card__badge {
+		position: absolute;
+		bottom: -0.25rem;
+		right: -0.25rem;
+		padding: 0.0625rem 0.25rem;
+		font-size: 0.5rem;
+		font-weight: 700;
+		border-radius: 0.1875rem;
+		text-transform: uppercase;
+	}
+
+	.osrs-card__badge--p2p {
+		background: var(--sl-color-accent);
+		color: var(--sl-color-black);
+	}
+
+	.osrs-card__badge--f2p {
+		background: var(--sl-color-gray-4);
+		color: var(--sl-color-white);
+	}
+
+	/* Info */
+	.osrs-card__info {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.osrs-card__title-row {
+		display: flex;
+		align-items: baseline;
+		gap: 0.375rem;
+		flex-wrap: wrap;
+	}
+
+	.osrs-card__title {
+		font-size: 1rem;
+		font-weight: 700;
+		color: var(--sl-color-white);
+		margin: 0;
+		line-height: 1.2;
+	}
+
+	@media (min-width: 640px) {
+		.osrs-card__title {
+			font-size: 1.125rem;
+		}
+	}
+
+	.osrs-card__id {
+		font-size: 0.625rem;
+		color: var(--sl-color-gray-3);
+		font-family: monospace;
+	}
+
+	.osrs-card__examine {
+		margin: 0.375rem 0 0;
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-2);
+		font-style: italic;
+		line-height: 1.4;
+	}
+
+	.osrs-card__links {
+		margin-top: 0.5rem;
+		display: flex;
+		gap: 0.375rem;
+	}
+
+	.osrs-card__link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.1875rem 0.5rem;
+		font-size: 0.625rem;
+		font-weight: 500;
+		border-radius: 0.25rem;
+		background: var(--sl-color-gray-6);
+		color: var(--sl-color-gray-2);
+		border: 1px solid var(--sl-color-gray-5);
+		text-decoration: none;
+		transition: all 0.15s ease;
+	}
+
+	.osrs-card__link:hover {
+		background: var(--sl-color-gray-5);
+		color: var(--sl-color-white);
+	}
+
+	.osrs-card__link--accent {
+		background: var(--sl-color-accent-low);
+		color: var(--sl-color-accent-high);
+		border-color: var(--sl-color-accent);
+	}
+
+	.osrs-card__link--accent:hover {
+		background: var(--sl-color-accent);
+		color: var(--sl-color-black);
+	}
+
+	.osrs-card__link-icon {
+		width: 0.75rem;
+		height: 0.75rem;
+	}
+
+	/* Right Section - Quad Table */
+	.osrs-card__right {
+		flex-shrink: 0;
+	}
+
+	@media (min-width: 640px) {
+		.osrs-card__right {
+			border-left: 1px solid var(--sl-color-gray-5);
+			padding-left: 1rem;
+		}
+	}
+
+	.osrs-quad {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1px;
+		background: var(--sl-color-gray-5);
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.5rem;
+		overflow: hidden;
+	}
+
+	.osrs-quad__cell {
+		background: var(--sl-color-gray-6);
+		padding: 0.5rem 0.625rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+		min-width: 5rem;
+	}
+
+	.osrs-quad__label {
+		font-size: 0.5rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-quad__value {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		display: flex;
+		align-items: baseline;
+		gap: 0.125rem;
+	}
+
+	.osrs-quad__gp {
+		font-size: 0.625rem;
+		font-weight: 400;
+		color: var(--sl-color-accent);
+	}
+
+	/* Section Headers */
+	.osrs-section {
+		margin-top: 1rem;
+	}
+
+	.osrs-section__header {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		margin-bottom: 0.375rem;
+	}
+
+	.osrs-section__dot {
+		width: 0.375rem;
+		height: 0.375rem;
+		border-radius: 50%;
+		background: #22c55e;
+		animation: pulse 2s infinite;
+	}
+
+	@keyframes pulse {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.4;
+		}
+	}
+
+	.osrs-section__title {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--sl-color-gray-2);
+		margin: 0;
+	}
+
+	/* Potion Info */
+	.osrs-potion,
+	.osrs-food {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-potion__header,
+	.osrs-food__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-potion__icon {
+		color: #22c55e;
+	}
+
+	.osrs-food__icon {
+		color: #f97316;
+	}
+
+	.osrs-potion__title,
+	.osrs-food__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+		flex: 1;
+	}
+
+	.osrs-potion__doses {
+		font-size: 0.625rem;
+		font-weight: 500;
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+		background: rgba(34, 197, 94, 0.2);
+		color: #22c55e;
+	}
+
+	.osrs-potion__content,
+	.osrs-food__content {
+		padding: 0.625rem 0.75rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1rem;
+	}
+
+	.osrs-potion__stat,
+	.osrs-food__stat {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+	}
+
+	.osrs-potion__label,
+	.osrs-food__label {
+		font-size: 0.5625rem;
+		text-transform: uppercase;
+		letter-spacing: 0.025em;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-potion__value,
+	.osrs-food__value {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+
+	.osrs-food__stat--heal .osrs-food__value {
+		color: #22c55e;
+	}
+
+	.osrs-food__value--formula {
+		font-family: monospace;
+		font-size: 0.6875rem;
+	}
+
+	.osrs-food__overheal {
+		font-size: 0.5625rem;
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+		background: rgba(234, 179, 8, 0.2);
+		color: #eab308;
+		align-self: center;
+	}
+
+	.osrs-potion__effects {
+		width: 100%;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem;
+		padding-top: 0.375rem;
+		border-top: 1px solid var(--sl-color-gray-6);
+	}
+
+	.osrs-potion__effects-label {
+		font-size: 0.625rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-potion__effect {
+		font-size: 0.625rem;
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+		background: var(--sl-color-gray-6);
+		color: var(--sl-color-gray-2);
+	}
+</style>

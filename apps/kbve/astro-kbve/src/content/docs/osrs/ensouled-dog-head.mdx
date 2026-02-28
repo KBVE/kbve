@@ -1,0 +1,37 @@
+---
+title: Ensouled dog head | OSRS Price Data
+description: "Ensouled dog head: The creature's soul is still in here.. High alch: 171 GP, GE limit: 3,000."
+osrs:
+  id: 13469
+  name: Ensouled dog head
+  slug: ensouled-dog-head
+  examine: The creature's soul is still in here.
+  members: true
+  icon: Ensouled dog head.png
+  value: 286
+  lowalch: 114
+  highalch: 171
+  limit: 3000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

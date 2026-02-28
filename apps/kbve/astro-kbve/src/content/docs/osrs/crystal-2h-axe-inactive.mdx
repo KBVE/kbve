@@ -1,0 +1,37 @@
+---
+title: Crystal 2h axe (inactive) | OSRS Price Data
+description: "Crystal 2h axe (inactive): A woodcutter's axe.. High alch: 312,000 GP."
+osrs:
+  id: 28223
+  name: Crystal 2h axe (inactive)
+  slug: crystal-2h-axe-inactive
+  examine: A woodcutter's axe.
+  members: false
+  icon: Crystal 2h axe (inactive).png
+  value: 520000
+  lowalch: 208000
+  highalch: 312000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

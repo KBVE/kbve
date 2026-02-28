@@ -1,0 +1,37 @@
+---
+title: Chilli con carne | OSRS Price Data
+description: "Chilli con carne: A bowl of meat in chilli-con-carne sauce.. High alch: 7 GP, GE limit: 13,000."
+osrs:
+  id: 7062
+  name: Chilli con carne
+  slug: chilli-con-carne
+  examine: A bowl of meat in chilli-con-carne sauce.
+  members: true
+  icon: Chilli con carne.png
+  value: 13
+  lowalch: 5
+  highalch: 7
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

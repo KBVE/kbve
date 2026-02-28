@@ -1,0 +1,37 @@
+---
+title: Leprechaun hat | OSRS Price Data
+description: "Leprechaun hat: Top o' the morning!. High alch: 600 GP, GE limit: 4."
+osrs:
+  id: 12359
+  name: Leprechaun hat
+  slug: leprechaun-hat
+  examine: Top o' the morning!
+  members: true
+  icon: Leprechaun hat.png
+  value: 1000
+  lowalch: 400
+  highalch: 600
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

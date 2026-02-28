@@ -1,0 +1,37 @@
+---
+title: Staff of balance | OSRS Price Data
+description: "Staff of balance: A ghastly weapon with evil origins combined with an icon of balance.. High alch: 600,002 GP."
+osrs:
+  id: 24144
+  name: Staff of balance
+  slug: staff-of-balance
+  examine: A ghastly weapon with evil origins combined with an icon of balance.
+  members: true
+  icon: Staff of balance.png
+  value: 1000004
+  lowalch: 400001
+  highalch: 600002
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

@@ -1,0 +1,129 @@
+---
+title: Gold leaf | OSRS Price Data
+description: "Gold leaf: A very delicate sheet of gold.. High alch: 60,000 GP, GE limit: 11,000."
+osrs:
+  id: 8784
+  name: Gold leaf
+  slug: gold-leaf
+  examine: A very delicate sheet of gold.
+  members: true
+  icon: Gold leaf.png
+  value: 100000
+  lowalch: 40000
+  highalch: 60000
+  limit: 11000
+  material:
+    type: construction
+    tier: premium
+  construction:
+    min_level: 50
+    cost: 130000
+    source: Keldagrim Stonemason
+    common_builds:
+      - name: Gilded decorations
+        quantity: 1
+        xp: 582
+      - name: Gilded altar
+        quantity: 4
+        xp: 2230
+      - name: Ornate pool
+        quantity: 5
+        xp: 3200
+  shop_sources:
+    - name: Keldagrim Stonemason
+      price: 130000
+    - name: Stonecutter Supplies
+      price: 130000
+  related_items:
+    - item_id: 8786
+      item_name: Marble block
+      slug: marble-block
+      relationship: alternative
+      description: Premium stone material
+    - item_id: 8790
+      item_name: Bolt of cloth
+      slug: bolt-of-cloth
+      relationship: alternative
+      description: Decoration material
+    - item_id: 8782
+      item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: Often used together
+    - item_id: 11980
+      item_name: Ring of wealth (5)
+      slug: ring-of-wealth-5
+      relationship: component
+      description: For ornate jewellery box
+    - item_id: 1712
+      item_name: Amulet of glory(4)
+      slug: amulet-of-glory-4
+      relationship: component
+      description: For ornate jewellery box
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+**Stonemason (Keldagrim):**
+- Purchase price: 130,000 GP each
+- Located in the Keldagrim marketplace
+- Requires starting The Giant Dwarf quest to access
+
+**Tradeable on Grand Exchange.**
+
+## POH Construction Uses
+
+| Furniture | Gold Leaves | Level | XP |
+|-----------|-------------|-------|-----|
+| Gilded decoration | 1 | 75 | 582 |
+| Gilded altar | 4 | 75 | 2230 |
+| Ornate jewellery box | 2 | 91 | 2680 |
+| Ornate rejuvenation pool | 5 | 90 | 3200 |
+| Spirit tree & fairy ring | 3 | 95 | 2500 |
+
+**Key POH Builds:**
+- **Gilded altar** - 4 gold leaves + 2 [marble blocks](/osrs/marble-block/)
+- **Ornate pool** - 5 gold leaves + 8 marble blocks
+- **Ornate jewellery box** - 2 gold leaves + jewelry
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Investment Required:**
+- Gilded altar: 520,000 GP (4 leaves)
+- Ornate pool: 650,000 GP (5 leaves)
+- Ornate jewellery box: 260,000 GP (2 leaves)
+
+**Tips:**
+- Buy in bulk from Stonemason
+- Most premium builds need both gold leaf and [marble blocks](/osrs/marble-block/)
+- Used for Master STASH units
+
+## Related Items
+
+- [Marble block](/osrs/marble-block/) - Often paired together
+- [Ring of wealth (5)](/osrs/ring-of-wealth-5/) - For ornate jewellery box
+- [Amulet of glory(4)](/osrs/amulet-of-glory-4/) - For ornate jewellery box
+
+<Adsense />

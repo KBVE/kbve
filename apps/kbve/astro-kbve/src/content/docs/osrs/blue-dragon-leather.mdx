@@ -1,0 +1,123 @@
+---
+title: Blue dragon leather | OSRS Price Data
+description: "Blue dragon leather: It's a piece of prepared blue dragonhide.. High alch: 42 GP, GE limit: 13,000."
+osrs:
+  id: 2505
+  name: Blue dragon leather
+  slug: blue-dragon-leather
+  examine: It's a piece of prepared blue dragonhide.
+  members: true
+  icon: Blue dragon leather.png
+  value: 70
+  lowalch: 28
+  highalch: 42
+  limit: 13000
+  material:
+    type: leather
+    tier: mid
+  tanning:
+    cost: 20
+    source_id: 1751
+    source_name: Blue dragonhide
+  crafting_products:
+    - product: Blue d'hide vambraces
+      product_id: 2487
+      level: 66
+      xp: 70
+      leather: 1
+    - product: Blue d'hide chaps
+      product_id: 2493
+      level: 68
+      xp: 140
+      leather: 2
+    - product: Blue d'hide shield
+      product_id: 24373
+      level: 69
+      xp: 140
+      leather: 2
+    - product: Blue d'hide body
+      product_id: 2499
+      level: 71
+      xp: 210
+      leather: 3
+  related_items:
+    - item_id: 1751
+      item_name: Blue dragonhide
+      slug: blue-dragonhide
+      relationship: component
+      description: Raw material
+    - item_id: 2499
+      item_name: Blue d'hide body
+      slug: blue-dhide-body
+      relationship: product
+      description: Main product
+    - item_id: 2507
+      item_name: Red dragon leather
+      slug: red-dragon-leather
+      relationship: alternative
+      description: Higher tier
+    - item_id: 1745
+      item_name: Green dragon leather
+      slug: green-dragon-leather
+      relationship: alternative
+      description: Lower tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Method | Cost |
+|--------|------|
+| Tanner | 20 GP + Blue dragonhide |
+| Tan Leather spell | 78 Magic, runes |
+
+## Crafting
+
+| Product | Level | Leather | XP |
+|---------|-------|---------|-----|
+| Blue d'hide vambraces | 66 | 1 | 70 |
+| Blue d'hide chaps | 68 | 2 | 140 |
+| Blue d'hide shield | 69 | 2 | 140 |
+| Blue d'hide body | 71 | 3 | 210 |
+
+## Market Flip Strategy
+
+**Popular Crafting Material:**
+- Mid-tier dragonhide
+- F2P armor accessible
+- High volume trading
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Demand Drivers:**
+- Crafting training
+- Blue d'hide production
+- Tan Leather profit
+- F2P ranged gear
+
+**Tips:**
+- Tan Leather spell efficient
+- Blue dragons very common
+- Popular training leather
+- F2P bodies usable
+
+<Adsense />

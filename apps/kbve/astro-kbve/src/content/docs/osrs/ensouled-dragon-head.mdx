@@ -1,0 +1,129 @@
+---
+title: Ensouled dragon head | OSRS Price Data
+description: "Ensouled dragon head: The creature's soul is still in here.. High alch: 390 GP, GE limit: 7,500."
+osrs:
+  id: 13511
+  name: Ensouled dragon head
+  slug: ensouled-dragon-head
+  examine: The creature's soul is still in here.
+  members: true
+  icon: Ensouled dragon head.png
+  value: 650
+  lowalch: 260
+  highalch: 390
+  limit: 7500
+  prayer:
+    type: ensouled_head
+    tier: dragon
+    xp_reanimate: 1560
+    magic_level: 93
+    spell: Master Reanimation
+    arceuus_favour: 100
+  drop_table:
+    sources:
+      - source: Black dragon
+        source_id: 252
+        combat_level: 227
+        quantity: "1"
+        rarity: Varies
+        members_only: true
+      - source: Blue dragon
+        source_id: 264
+        combat_level: 111
+        quantity: "1"
+        rarity: Varies
+        members_only: true
+      - source: Red dragon
+        source_id: 247
+        combat_level: 152
+        quantity: "1"
+        rarity: Varies
+        members_only: true
+      - source: King Black Dragon
+        source_id: 239
+        combat_level: 276
+        quantity: "1"
+        rarity: Varies
+        members_only: true
+      - source: Vorkath
+        source_id: 8061
+        combat_level: 732
+        quantity: "1"
+        rarity: Varies
+        members_only: true
+  related_items:
+    - item_id: 13509
+      item_name: Ensouled giant head
+      slug: ensouled-giant-head
+      relationship: alternative
+      description: Lower tier head
+    - item_id: 566
+      item_name: Soul rune
+      slug: soul-rune
+      relationship: component
+      description: Spell component
+    - item_id: 561
+      item_name: Nature rune
+      slug: nature-rune
+      relationship: component
+      description: Spell component
+    - item_id: 565
+      item_name: Blood rune
+      slug: blood-rune
+      relationship: component
+      description: Spell component
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Dropped by various dragon enemies.
+
+| Source | Drop Rate |
+|--------|-----------|
+| Black dragons | Varies |
+| Blue dragons | Varies |
+| Red dragons | Varies |
+| King Black Dragon | Varies |
+| Vorkath | Varies |
+
+## Prayer Training
+
+| Requirement | Value |
+|-------------|-------|
+| Magic Level | 93 (Master Reanimation) |
+| Prayer XP | 1,560 |
+| Arceuus favour | 100% |
+
+**Best ensouled head XP.**
+
+## Market Strategy
+
+**Buy Limit:** 7,500 per 4 hours
+
+**Tips:**
+- Best ensouled head XP
+- 93 Magic required
+- Dark Altar location
+- Combat XP alongside Prayer
+
+<Adsense />

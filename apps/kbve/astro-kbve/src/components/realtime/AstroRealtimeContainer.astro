@@ -1,0 +1,254 @@
+---
+/**
+ * AstroRealtimeContainer
+ * Main Astro component for Supabase Realtime integration
+ * Wraps the React Realtime component with necessary providers
+ */
+
+import { SupaProvider } from '@/components/providers/SupaProvider';
+import { ReactSupaRealtime } from './ReactSupaRealtime';
+import type { RealtimeContainerProps } from './typeRealtime';
+
+export interface Props extends RealtimeContainerProps {
+	/**
+	 * Container width (default: '100%')
+	 */
+	width?: string;
+
+	/**
+	 * Container height (default: '400px')
+	 */
+	height?: string;
+
+	/**
+	 * Background color (default: transparent)
+	 */
+	backgroundColor?: string;
+}
+
+const {
+	className = '',
+	width = '100%',
+	height = '400px',
+	backgroundColor = 'transparent',
+	initialSubscriptions = [],
+	enableOffscreenCanvas = false,
+	canvasId = 'realtime-canvas',
+	showStatusIndicator = true,
+	autoReconnect = true,
+	reconnectDelay = 5000,
+} = Astro.props;
+---
+
+<div
+	class={`astro-realtime-container ${className}`}
+	style={`width: ${width}; height: ${height}; background: ${backgroundColor}; position: relative;`}>
+	<SupaProvider client:load>
+		<ReactSupaRealtime
+			client:only="react"
+			className="astro-realtime-react"
+			initialSubscriptions={initialSubscriptions}
+			enableOffscreenCanvas={enableOffscreenCanvas}
+			canvasId={canvasId}
+			showStatusIndicator={showStatusIndicator}
+			autoReconnect={autoReconnect}
+			reconnectDelay={reconnectDelay}
+		/>
+	</SupaProvider>
+</div>
+
+<style>
+	.astro-realtime-container {
+		display: flex;
+		flex-direction: column;
+		border-radius: 8px;
+		overflow: hidden;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	}
+
+	.astro-realtime-react {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+
+	/* Status indicator animation */
+	:global(.realtime-status) {
+		animation: slideIn 0.3s ease-out;
+	}
+
+	@keyframes slideIn {
+		from {
+			opacity: 0;
+			transform: translateY(-10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	/* Status indicator pulse animation */
+	:global(.status-indicator) {
+		animation: pulse 2s ease-in-out infinite;
+	}
+
+	@keyframes pulse {
+		0%,
+		100% {
+			opacity: 1;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.6;
+			transform: scale(0.95);
+		}
+	}
+
+	/* Canvas styles */
+	:global(#realtime-canvas) {
+		image-rendering: auto;
+		image-rendering: crisp-edges;
+		image-rendering: pixelated;
+	}
+
+	/* Debug info styles */
+	:global(.realtime-debug) {
+		transition: all 0.3s ease;
+	}
+
+	:global(.realtime-debug:hover) {
+		background: rgba(0, 0, 0, 0.8) !important;
+	}
+
+	/* Responsive styles */
+	@media (max-width: 768px) {
+		.astro-realtime-container {
+			border-radius: 0;
+		}
+
+		:global(.realtime-status) {
+			font-size: 0.75rem;
+			padding: 0.375rem 0.75rem;
+		}
+
+		:global(.status-subscriptions),
+		:global(.status-events) {
+			display: none;
+		}
+	}
+
+	/* Dark mode support */
+	@media (prefers-color-scheme: dark) {
+		.astro-realtime-container {
+			box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+		}
+	}
+
+	/* Loading state */
+	:global(.realtime-loading) {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	:global(.realtime-loading-spinner) {
+		width: 40px;
+		height: 40px;
+		border: 3px solid rgba(255, 255, 255, 0.1);
+		border-top-color: #4caf50;
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	/* Error state */
+	:global(.realtime-error) {
+		padding: 1rem;
+		background: rgba(244, 67, 54, 0.1);
+		border: 1px solid rgba(244, 67, 54, 0.3);
+		border-radius: 4px;
+		color: #f44336;
+		text-align: center;
+	}
+
+	/* Success states */
+	:global(.realtime-event-success) {
+		animation: successFlash 0.5s ease-out;
+	}
+
+	@keyframes successFlash {
+		0% {
+			background-color: rgba(76, 175, 80, 0.3);
+		}
+		100% {
+			background-color: transparent;
+		}
+	}
+
+	/* Accessibility */
+	:global(.realtime-container:focus-visible) {
+		outline: 2px solid #4caf50;
+		outline-offset: 2px;
+	}
+
+	/* Print styles */
+	@media print {
+		.astro-realtime-container {
+			display: none;
+		}
+	}
+</style>
+
+<script>
+	/**
+	 * Client-side hydration script
+	 * Handles any additional client-side setup
+	 */
+
+	// Listen for visibility changes to manage worker lifecycle
+	document.addEventListener('visibilitychange', () => {
+		if (document.hidden) {
+			console.log(
+				'Page hidden - realtime worker continues in background',
+			);
+		} else {
+			console.log('Page visible - realtime worker active');
+		}
+	});
+
+	// Handle page unload
+	window.addEventListener('beforeunload', () => {
+		console.log('Page unloading - cleaning up realtime connections');
+	});
+
+	// Detect SharedWorker support
+	if (!('SharedWorker' in window)) {
+		console.warn(
+			'SharedWorker not supported - realtime features may have limited functionality',
+		);
+	}
+
+	// Detect Worker support
+	if (!('Worker' in window)) {
+		console.error(
+			'Web Workers not supported - realtime features unavailable',
+		);
+	}
+
+	// Detect OffscreenCanvas support
+	if (!('OffscreenCanvas' in window)) {
+		console.info(
+			'OffscreenCanvas not supported - canvas rendering will use main thread',
+		);
+	}
+</script>

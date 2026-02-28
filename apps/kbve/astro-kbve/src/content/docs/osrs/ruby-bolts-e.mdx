@@ -1,0 +1,108 @@
+---
+title: Ruby bolts (e) | OSRS Price Data
+description: "Ruby bolts (e) is a members ammo slot item requiring 46 Ranged. High alch: 82 GP, GE limit: 11,000."
+osrs:
+  id: 9242
+  name: Ruby bolts (e)
+  slug: ruby-bolts-e
+  examine: Enchanted Ruby tipped Adamantite Crossbow Bolts.
+  members: true
+  icon: Ruby bolts (e) 5.png
+  value: 138
+  lowalch: 55
+  highalch: 82
+  limit: 11000
+  equipment:
+    slot: ammo
+    type: enchanted_bolts
+    tradeable: true
+    weight: 0
+    requirements:
+      ranged: 46
+  effect:
+    name: Blood Forfeit
+    description: Deals 20% of target's current HP as damage
+    max_damage: 100
+    cost: 10% of your HP
+  enchanting:
+    spell: Enchant Crossbow Bolt (Ruby)
+    magic_level: 49
+    runes:
+      - item_name: Fire rune
+        quantity: 5
+      - item_name: Blood rune
+        quantity: 1
+      - item_name: Cosmic rune
+        quantity: 1
+    bolts_per_cast: 10
+  related_items:
+    - item_id: 9339
+      item_name: Ruby bolts
+      slug: ruby-bolts
+      relationship: component
+      description: Unenchanted version
+    - item_id: 9243
+      item_name: Diamond bolts (e)
+      slug: diamond-bolts-e
+      relationship: alternative
+      description: Alternative for low HP targets
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ammo |
+| Type | Enchanted Bolts |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 46 Ranged |
+
+## Obtaining
+
+**Enchanting:** Cast Enchant Crossbow Bolt (Ruby) at 49 Magic.
+
+**Runes:** 5 fire, 1 blood, 1 cosmic per 10 bolts.
+
+**Alternative:** Purchase from Grand Exchange.
+
+## Effects
+
+**Blood Forfeit:** Deals 20% of target's current HP as damage.
+
+Maximum 100 damage cap. Costs 10% of your HP.
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~195 gp
+
+Essential for high HP bosses. Popular spec weapon ammo.
+
+## Related Items
+
+- [Ruby bolts](/osrs/ruby-bolts/) - Unenchanted version
+- [Diamond bolts (e)](/osrs/diamond-bolts-e/) - Alternative for low HP targets
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Ironwood logs | OSRS Price Data
+description: "Ironwood logs: Logs cut from an ironwood tree.. High alch: 216 GP, GE limit: 12,000."
+osrs:
+  id: 32907
+  name: Ironwood logs
+  slug: ironwood-logs
+  examine: Logs cut from an ironwood tree.
+  members: true
+  icon: Ironwood logs.png
+  value: 360
+  lowalch: 144
+  highalch: 216
+  limit: 12000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

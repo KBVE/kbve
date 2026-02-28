@@ -1,0 +1,133 @@
+---
+title: Pineapple pizza | OSRS Price Data
+description: "Pineapple pizza is a members food item healing 22 HP. High alch: 60 GP, GE limit: 10,000."
+osrs:
+  id: 2301
+  name: Pineapple pizza
+  slug: pineapple-pizza
+  examine: A tropicana pizza.
+  members: true
+  icon: Pineapple pizza.png
+  value: 100
+  lowalch: 40
+  highalch: 60
+  limit: 10000
+  food:
+    heals: 22
+    heals_per_bite: 11
+    bites: 2
+    cooking_level: 65
+    cooking_xp: 45
+  cooking:
+    level: 65
+    xp: 45
+    raw_item_id: 2289
+    raw_item_name: Plain pizza
+    ticks: 2
+  recipes:
+    - skill: cooking
+      level: 65
+      xp: 45
+      materials:
+        - item_name: Plain pizza
+          item_id: 2289
+          quantity: 1
+        - item_name: Pineapple ring
+          item_id: 2118
+          quantity: 1
+      facility: None
+      ticks: 2
+      members_only: true
+  related_items:
+    - item_id: 2289
+      item_name: Plain pizza
+      slug: plain-pizza
+      relationship: component
+      description: Base pizza
+    - item_id: 2118
+      item_name: Pineapple ring
+      slug: pineapple-ring
+      relationship: component
+      description: Topping ingredient
+    - item_id: 2303
+      item_name: 1/2 pineapple pizza
+      slug: half-pineapple-pizza
+      relationship: variant
+      description: Half eaten version
+    - item_id: 7060
+      item_name: Tuna potato
+      slug: tuna-potato
+      relationship: alternative
+      description: Same healing (22 HP)
+    - item_id: 391
+      item_name: Manta ray
+      slug: manta-ray
+      relationship: alternative
+      description: Single bite alternative (22 HP)
+    - item_id: 385
+      item_name: Shark
+      slug: shark
+      relationship: alternative
+      description: Lower tier food (20 HP)
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Add a pineapple ring to a plain pizza (no cooking required).
+
+## Effects
+
+| Effect | Value |
+|--------|-------|
+| Total healing | 22 Hitpoints |
+| Healing per bite | 11 Hitpoints |
+| Bites | 2 |
+
+## Usage
+
+Pineapple pizza is useful for:
+- Budget high-healing food option
+- Training activities where multiple bites are acceptable
+- Ironman food source
+- Situations where inventory space is less critical
+
+## Market Flip Strategy
+
+**Pizza Making:**
+- Plain pizza + Pineapple ring = Pineapple pizza
+- Calculate: `Pineapple pizza - Plain pizza - Pineapple ring`
+- Members-only item
+
+**Comparison:**
+- Same total healing as manta ray, dark crab, tuna potato
+- Requires 2 bites (slower in combat)
+- Generally cheaper than single-bite alternatives
+
+**Buy Limit:** 6,000 per 4 hours
+
+**Tips:**
+- Two bites makes it less ideal for high-intensity PvM
+- Good for activities with downtime between combat
+- Popular for training slayer on easier tasks
+
+<Adsense />

@@ -1,0 +1,164 @@
+---
+import ReactNav from '@/components/navigation/ReactNav.tsx';
+---
+
+<nav class="flex items-center gap-3">
+	{/* Static shell - shown until React hydrates */}
+	<div id="nav-static-shell" class="contents">
+		{/* Status indicator */}
+		<div
+			id="nav-status-icon"
+			data-x-kbve="status-icon"
+			class="inline-flex items-center justify-center w-5 h-5 transition-opacity duration-300">
+			<svg
+				class="w-4 h-4 text-gray-400 animate-spin"
+				xmlns="http://www.w3.org/2000/svg"
+				fill="none"
+				viewBox="0 0 24 24">
+				<circle
+					class="opacity-25"
+					cx="12"
+					cy="12"
+					r="10"
+					stroke="currentColor"
+					stroke-width="4">
+				</circle>
+				<path
+					class="opacity-75"
+					fill="currentColor"
+					d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+				</path>
+			</svg>
+		</div>
+
+		{/* User info */}
+		<span
+			class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+			<div
+				id="nav-avatar-container"
+				data-x-kbve="avatar-container"
+				class="w-5 h-5 transition-opacity duration-300">
+				<svg
+					class="w-5 h-5 opacity-70"
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round">
+					<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+					<circle cx="12" cy="7" r="4"></circle>
+				</svg>
+			</div>
+
+			<span
+				id="nav-username"
+				data-x-kbve="username"
+				class="font-medium transition-opacity duration-300">
+				<span
+					class="inline-block h-4 w-16 rounded-md bg-gray-300 dark:bg-gray-700 animate-pulse">
+				</span>
+			</span>
+		</span>
+	</div>
+
+	{/* React component renders inside the nav */}
+	<ReactNav client:only="react" />
+</nav>
+
+<script>
+	// Vanilla JS navigation update helpers
+	// This runs on the client and provides smooth transitions for nav updates
+
+	const FADE_DURATION = 300;
+
+	// Helper function to fade out, update content, then fade in
+	function fadeTransition(
+		element: HTMLElement,
+		updateFn: () => void,
+		duration = FADE_DURATION,
+	) {
+		// Fade out
+		element.style.opacity = '0';
+
+		// Wait for fade out, update, then fade in
+		setTimeout(() => {
+			updateFn();
+			requestAnimationFrame(() => {
+				element.style.opacity = '1';
+			});
+		}, duration);
+	}
+
+	// Update the status icon with fade transition
+	function updateStatusIcon(
+		tone: 'loading' | 'error' | 'anon' | 'auth',
+		onClick?: () => void,
+	) {
+		const container =
+			document.getElementById('nav-status-icon') ||
+			(document.querySelector(
+				'[data-x-kbve="status-icon"]',
+			) as HTMLElement);
+
+		if (!container) return;
+
+		const iconHTML = {
+			loading:
+				'<svg class="w-4 h-4 text-gray-400 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>',
+			error: '<svg class="w-4 h-4 text-red-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+			anon: '<svg class="w-4 h-4 text-yellow-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>',
+			auth: '<svg class="w-4 h-4 text-green-500 hover:text-red-500 transition-colors" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+		};
+
+		fadeTransition(container, () => {
+			container.innerHTML = iconHTML[tone];
+			if (onClick && tone !== 'loading' && tone !== 'error') {
+				container.style.cursor = 'pointer';
+				container.onclick = onClick;
+			}
+		});
+	}
+
+	// Update the avatar with fade transition
+	function updateAvatar(avatarUrl: string | null, displayName: string) {
+		const container =
+			document.getElementById('nav-avatar-container') ||
+			(document.querySelector(
+				'[data-x-kbve="avatar-container"]',
+			) as HTMLElement);
+
+		if (!container) return;
+
+		fadeTransition(container, () => {
+			if (avatarUrl) {
+				container.innerHTML = `<img src="${avatarUrl}" alt="${displayName}" class="w-5 h-5 rounded-full ring-1 ring-gray-200 dark:ring-gray-700" />`;
+			} else {
+				container.innerHTML =
+					'<svg class="w-5 h-5 opacity-70" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
+			}
+		});
+	}
+
+	// Update the username with fade transition
+	function updateUsername(displayName: string) {
+		const container =
+			document.getElementById('nav-username') ||
+			(document.querySelector('[data-x-kbve="username"]') as HTMLElement);
+
+		if (!container) return;
+
+		fadeTransition(container, () => {
+			container.textContent = displayName;
+		});
+	}
+
+	// Expose helpers globally for React to use
+	(window as any).__navHelpers = {
+		fadeTransition,
+		updateStatusIcon,
+		updateAvatar,
+		updateUsername,
+	};
+</script>

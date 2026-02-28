@@ -1,0 +1,139 @@
+---
+title: Virtus mask | OSRS Price Data
+description: "Virtus mask is a members head slot item requiring 75 Defence. High alch: 120,000 GP, GE limit: 8."
+osrs:
+  id: 26241
+  name: Virtus mask
+  slug: virtus-mask
+  examine: An ancient mage's mask.
+  members: true
+  icon: Virtus mask.png
+  value: 200000
+  lowalch: 80000
+  highalch: 120000
+  limit: 8
+  equipment:
+    slot: head
+    type: magic armour
+    tradeable: true
+    weight: 1.206
+    requirements:
+      magic: 78
+      defence: 75
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: 8
+      attack_ranged: 0
+      defence_stab: 15
+      defence_slash: 14
+      defence_crush: 16
+      defence_magic: 6
+      defence_ranged: 0
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 2
+      prayer: 1
+  obtaining:
+    - source: The Whisperer
+      drop_rate: 1/1,536
+    - source: Duke Sucellus
+      drop_rate: 1/2,160
+    - source: The Leviathan
+      drop_rate: 1/2,304
+    - source: Vardorvis
+      drop_rate: 1/3,264
+  set_bonus:
+    name: Virtus Set
+    standard: +2% magic damage per piece (6% total)
+    ancient_magicks: +5% magic damage per piece (15% total)
+  related_items:
+    - item_id: 26243
+      item_name: Virtus robe top
+      slug: virtus-robe-top
+      relationship: alternative
+      description: Set body piece
+    - item_id: 26245
+      item_name: Virtus robe bottom
+      slug: virtus-robe-bottom
+      relationship: alternative
+      description: Set legs piece
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Head |
+| Type | Magic Armour |
+| Tradeable | Yes |
+| Weight | 1.206 kg |
+| Requirements | 78 Magic, 75 Defence |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| The Whisperer | 1/1,536 |
+| Duke Sucellus | 1/2,160 |
+| The Leviathan | 1/2,304 |
+| Vardorvis | 1/3,264 |
+
+## Stats
+
+| Offence | Bonus |
+|---------|-------|
+| Magic | +8 |
+| Magic Damage | +2% |
+
+| Defence | Bonus |
+|---------|-------|
+| Stab | +15 |
+| Slash | +14 |
+| Crush | +16 |
+| Magic | +6 |
+
+| Other | Bonus |
+|-------|-------|
+| Prayer | +1 |
+
+## Set Effect
+
+**Magic Damage Bonus:**
+- Standard: +2% per piece (6% total)
+- Ancient Magicks: +5% per piece (15% total)
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~8.9M gp
+
+## Related Items
+
+- [Virtus robe top](/osrs/virtus-robe-top/) - Set body
+- [Virtus robe bottom](/osrs/virtus-robe-bottom/) - Set legs
+- [The Whisperer](/osrs/the-whisperer/) - Best drop rate
+
+<Adsense />

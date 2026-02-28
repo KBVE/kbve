@@ -1,0 +1,112 @@
+---
+title: Burnt page | OSRS Price Data
+description: "Burnt page: It's still warm to the touch.. High alch: 120 GP, GE limit: 11,000."
+osrs:
+  id: 20718
+  name: Burnt page
+  slug: burnt-page
+  examine: It's still warm to the touch.
+  members: true
+  icon: Burnt page.png
+  value: 200
+  lowalch: 80
+  highalch: 120
+  limit: 11000
+  material:
+    type: charging_material
+    tradeable: true
+    stackable: true
+    weight: 0
+  drop_table:
+    sources:
+      - source: Wintertodt reward cart
+        notes: Random drop
+      - source: Book of Eternal Flame
+        notes: Desiccated pages + 50 Runecraft
+      - source: Ignisia exchange
+        notes: 250 for empty Tome of fire
+  uses:
+    - target_id: 20714
+      target_name: Tome of fire
+      effect: 20 charges per page
+    - target_id: 28920
+      target_name: Searing page
+      effect: Converts with 100 sunfire runes per page
+  market:
+    buy_limit: 11000
+    price_estimate: 5600
+  related_items:
+    - item_id: 20704
+      item_name: Wintertodt
+      slug: wintertodt
+      relationship: component
+      description: Source minigame
+    - item_id: 20714
+      item_name: Tome of fire
+      slug: tome-of-fire
+      relationship: product
+      description: Charging target
+    - item_id: 28920
+      item_name: Searing page
+      slug: searing-page
+      relationship: upgrade
+      description: Upgraded version
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Charging Material |
+| Tradeable | Yes |
+| Stackable | Yes |
+| Weight | 0 kg |
+
+## Obtaining
+
+| Source | Notes |
+|--------|-------|
+| Wintertodt reward cart | Random drop |
+| Book of Eternal Flame | Desiccated pages + 50 Runecraft |
+| Ignisia exchange | 250 for empty Tome of fire |
+
+## Uses
+
+| Use | Effect |
+|-----|--------|
+| Tome of fire | 20 charges per page |
+| Searing page conversion | 100 sunfire runes per page |
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~5.6K gp
+
+## Related Items
+
+- [Wintertodt](/osrs/wintertodt/) - Source
+- [Tome of fire](/osrs/tome-of-fire/) - Charging target
+- [Searing page](/osrs/searing-page/) - Upgrade
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Spined chaps | OSRS Price Data
+description: "Spined chaps: Stylish leg armour for rangers with a lingering smell of raw fish.... High alch: 2,340 GP, GE limit: 70."
+osrs:
+  id: 6135
+  name: Spined chaps
+  slug: spined-chaps
+  examine: Stylish leg armour for rangers with a lingering smell of raw fish...
+  members: true
+  icon: Spined chaps.png
+  value: 3900
+  lowalch: 1560
+  highalch: 2340
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

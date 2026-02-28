@@ -1,0 +1,37 @@
+---
+title: Tortoise shell | OSRS Price Data
+description: "Tortoise shell: A word in your shell-like.. High alch: 600 GP, GE limit: 7,500."
+osrs:
+  id: 7939
+  name: Tortoise shell
+  slug: tortoise-shell
+  examine: A word in your shell-like.
+  members: true
+  icon: Tortoise shell.png
+  value: 1000
+  lowalch: 400
+  highalch: 600
+  limit: 7500
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

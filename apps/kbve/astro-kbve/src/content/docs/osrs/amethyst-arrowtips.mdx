@@ -1,0 +1,127 @@
+---
+title: Amethyst arrowtips | OSRS Price Data
+description: "Amethyst arrowtips: I can make some arrows with these.. High alch: 147 GP, GE limit: 10,000."
+osrs:
+  id: 21350
+  name: Amethyst arrowtips
+  slug: amethyst-arrowtips
+  examine: I can make some arrows with these.
+  members: true
+  icon: Amethyst arrowtips.png
+  value: 245
+  lowalch: 98
+  highalch: 147
+  limit: 10000
+  material:
+    type: ammunition_component
+    tradeable: true
+    stackable: true
+    weight: 0
+  creation:
+    method: Crafting
+    requirements:
+      crafting: 85
+    materials:
+      - item_id: 21347
+        item_name: Amethyst
+        quantity: 1
+    product_quantity: 15
+    xp: 60
+  uses:
+    - result_id: 21326
+      result_name: Amethyst arrows
+      materials:
+        - Headless arrows
+        - Amethyst arrowtips
+      requirements:
+        fletching: 82
+      xp: 202.5
+  money_making:
+    gp_per_hour: 638000
+    activity: Cutting amethyst arrowtips
+    requirements:
+      crafting: 85
+  market:
+    buy_limit: 10000
+    price_estimate: 245
+    daily_volume: 17800000
+  related_items:
+    - item_id: 21347
+      item_name: Amethyst
+      slug: amethyst
+      relationship: component
+      description: Raw material
+    - item_id: 53
+      item_name: Headless arrow
+      slug: headless-arrow
+      relationship: component
+      description: Base item
+    - item_id: 21326
+      item_name: Amethyst arrow
+      slug: amethyst-arrow
+      relationship: product
+      description: Created item
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Ammunition Component |
+| Tradeable | Yes |
+| Stackable | Yes |
+| Weight | 0 kg |
+
+## Obtaining
+
+**Crafting (85 Crafting):**
+- Cut amethyst with chisel → 15 arrowtips
+- 60 XP per gem
+
+## Uses
+
+| Arrow Created | Materials | Requirements |
+|---------------|-----------|--------------|
+| Amethyst arrows | Headless arrows + Amethyst arrowtips | 82 Fletching |
+
+202.5 Fletching XP per 15 arrows.
+
+## Money Making
+
+~638K gp/hr profit cutting amethyst arrowtips at 85 Crafting.
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Price:** ~245 gp
+
+**Daily Volume:** ~17.8M trades
+
+## Related Items
+
+- [Amethyst](/osrs/amethyst/) - Raw material
+- [Headless arrow](/osrs/headless-arrow/) - Base item
+- [Amethyst arrow](/osrs/amethyst-arrow/) - Created item
+
+<Adsense />

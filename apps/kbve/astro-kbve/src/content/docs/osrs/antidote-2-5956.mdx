@@ -1,0 +1,37 @@
+---
+title: Antidote++(2) | OSRS Price Data
+description: "Antidote++(2): 2 doses of super strong antipoison potion.. High alch: 129 GP, GE limit: 4,000."
+osrs:
+  id: 5956
+  name: Antidote++(2)
+  slug: antidote-2
+  examine: 2 doses of super strong antipoison potion.
+  members: true
+  icon: Antidote++(2).png
+  value: 216
+  lowalch: 86
+  highalch: 129
+  limit: 4000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

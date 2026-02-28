@@ -1,0 +1,37 @@
+---
+title: Rune scimitar ornament kit (saradomin) | OSRS Price Data
+description: "Rune scimitar ornament kit (saradomin): Use on a rune scimitar to make it look fancier!. High alch: 3,000 GP, GE limit: 4."
+osrs:
+  id: 23324
+  name: Rune scimitar ornament kit (saradomin)
+  slug: rune-scimitar-ornament-kit-saradomin
+  examine: Use on a rune scimitar to make it look fancier!
+  members: false
+  icon: Rune scimitar ornament kit (saradomin).png
+  value: 5000
+  lowalch: 2000
+  highalch: 3000
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

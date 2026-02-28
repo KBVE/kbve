@@ -1,0 +1,37 @@
+---
+title: Inoculation bracelet | OSRS Price Data
+description: "Inoculation bracelet: It eases diseases!. High alch: 1,536 GP, GE limit: 10,000."
+osrs:
+  id: 11088
+  name: Inoculation bracelet
+  slug: inoculation-bracelet
+  examine: It eases diseases!
+  members: true
+  icon: Inoculation bracelet.png
+  value: 2560
+  lowalch: 1024
+  highalch: 1536
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

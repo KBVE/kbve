@@ -1,0 +1,37 @@
+---
+title: Silver bolts | OSRS Price Data
+description: "Silver bolts: Silver crossbow bolts.. High alch: 3 GP, GE limit: 11,000."
+osrs:
+  id: 9145
+  name: Silver bolts
+  slug: silver-bolts
+  examine: Silver crossbow bolts.
+  members: true
+  icon: Silver bolts 5.png
+  value: 5
+  lowalch: 2
+  highalch: 3
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

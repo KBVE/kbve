@@ -1,0 +1,103 @@
+---
+title: Soaked page | OSRS Price Data
+description: "Soaked page: It feels clammy, like second-hand toilet paper.. High alch: 102 GP, GE limit: 11,000."
+osrs:
+  id: 25578
+  name: Soaked page
+  slug: soaked-page
+  examine: It feels clammy, like second-hand toilet paper.
+  members: true
+  icon: Soaked page.png
+  value: 170
+  lowalch: 68
+  highalch: 102
+  limit: 11000
+  item:
+    type: charging material
+    tradeable: true
+    stackable: true
+    weight: 0
+  obtaining:
+    - source: Tempoross reward pool
+      notes: Fishing with permits
+    - source: Book of Storms
+      notes: Desiccated pages + 50 Runecraft
+    - source: Retired sailor exchange
+      notes: 25 for various items
+  uses:
+    - item: Tome of water
+      charges_per_page: 20
+  effect:
+    damaging_spells: +10% accuracy/damage
+    non_damaging_spells: +20% accuracy
+    curse_spells: +50% stat drain
+  related_items:
+    - item_id: 25574
+      item_name: Tome of water
+      slug: tome-of-water
+      relationship: alternative
+      description: Charging target
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Charging Material |
+| Tradeable | Yes |
+| Stackable | Yes |
+| Weight | 0 kg |
+
+## Obtaining
+
+| Source | Notes |
+|--------|-------|
+| Tempoross reward pool | Fishing with permits |
+| Book of Storms | Desiccated pages + 50 Runecraft |
+| Retired sailor exchange | 25 for various items |
+
+## Uses
+
+| Use | Effect |
+|-----|--------|
+| Tome of water | 20 charges per page |
+
+**Spell Effects (per charge):**
+- Damaging spells: +10% accuracy/damage
+- Non-damaging spells: +20% accuracy
+- Curse spells: +50% stat drain
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~1.9K gp
+
+**Daily Volume:** ~168K trades
+
+## Related Items
+
+- [Tempoross](/osrs/tempoross/) - Source
+- [Tome of water](/osrs/tome-of-water/) - Charging target
+
+<Adsense />

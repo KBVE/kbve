@@ -1,0 +1,173 @@
+---
+title: Sapphire | OSRS Price Data
+description: "Sapphire: This looks valuable.. High alch: 150 GP, GE limit: 13,000."
+osrs:
+  id: 1607
+  name: Sapphire
+  slug: sapphire
+  examine: This looks valuable.
+  members: false
+  icon: Sapphire.png
+  value: 250
+  lowalch: 100
+  highalch: 150
+  limit: 13000
+  material:
+    type: gem
+    tier: low
+  crafting:
+    level: 20
+    xp: 50
+  recipes:
+    - skill: crafting
+      level: 20
+      xp: 40
+      materials:
+        - item_name: Sapphire
+          item_id: 1607
+          quantity: 1
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      product: Sapphire ring
+      product_id: 1637
+      product_quantity: 1
+      facility: Furnace
+    - skill: crafting
+      level: 22
+      xp: 55
+      materials:
+        - item_name: Sapphire
+          item_id: 1607
+          quantity: 1
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      product: Sapphire necklace
+      product_id: 1656
+      product_quantity: 1
+      facility: Furnace
+    - skill: crafting
+      level: 24
+      xp: 65
+      materials:
+        - item_name: Sapphire
+          item_id: 1607
+          quantity: 1
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      product: Sapphire amulet (u)
+      product_id: 1675
+      product_quantity: 1
+      facility: Furnace
+    - skill: crafting
+      level: 23
+      xp: 60
+      materials:
+        - item_name: Sapphire
+          item_id: 1607
+          quantity: 1
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      product: Sapphire bracelet
+      product_id: 11072
+      product_quantity: 1
+      facility: Furnace
+      members_only: true
+    - skill: fletching
+      level: 56
+      xp: 4
+      materials:
+        - item_name: Sapphire
+          item_id: 1607
+          quantity: 1
+      product: Sapphire bolt tips
+      product_id: 9189
+      product_quantity: 12
+      members_only: true
+  related_items:
+    - item_id: 1623
+      item_name: Uncut sapphire
+      slug: uncut-sapphire
+      relationship: component
+      description: Raw gem
+    - item_id: 2550
+      item_name: Ring of recoil
+      slug: ring-of-recoil
+      relationship: product
+      description: Enchanted ring
+    - item_id: 3853
+      item_name: Games necklace
+      slug: games-necklace
+      relationship: product
+      description: Enchanted necklace
+    - item_id: 1605
+      item_name: Emerald
+      slug: emerald
+      relationship: alternative
+      description: Higher tier gem
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Method |
+|--------|--------|
+| Cutting uncut sapphire | 20 Crafting, 50 XP |
+| Grand Exchange | Purchase |
+
+## Crafting Products
+
+| Product | Level | XP |
+|---------|-------|-----|
+| Sapphire ring | 20 | 40 |
+| Sapphire necklace | 22 | 55 |
+| Sapphire bracelet | 23 | 60 |
+| Sapphire amulet | 24 | 65 |
+| Sapphire bolt tips (12) | 56 Fletching | 4 |
+
+## Enchanted Jewelry
+
+| Item | Effect |
+|------|--------|
+| Ring of recoil | Reflects 10% damage |
+| Games necklace | Minigame teleports |
+| Bracelet of clay | Soft clay mining |
+| Amulet of magic | +10 Magic attack |
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Ring of recoil production
+- Games necklace production
+- Crafting training
+
+**Tips:**
+- Lowest tier cut gem
+- High volume trading
+- Ring of recoil always needed
+
+<Adsense />

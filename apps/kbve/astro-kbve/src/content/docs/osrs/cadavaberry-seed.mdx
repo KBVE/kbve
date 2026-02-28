@@ -1,0 +1,37 @@
+---
+title: Cadavaberry seed | OSRS Price Data
+description: "Cadavaberry seed: A cadavaberry bush seed - plant in a bush patch.. High alch: 5 GP, GE limit: 600."
+osrs:
+  id: 5102
+  name: Cadavaberry seed
+  slug: cadavaberry-seed
+  examine: A cadavaberry bush seed - plant in a bush patch.
+  members: true
+  icon: Cadavaberry seed 5.png
+  value: 9
+  lowalch: 3
+  highalch: 5
+  limit: 600
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

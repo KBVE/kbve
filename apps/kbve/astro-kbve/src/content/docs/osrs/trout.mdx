@@ -1,0 +1,113 @@
+---
+title: Trout | OSRS Price Data
+description: "Trout is a F2P food item healing 7 HP. High alch: 6 GP, GE limit: 6,000."
+osrs:
+  id: 333
+  name: Trout
+  slug: trout
+  examine: Some nicely cooked trout.
+  members: false
+  icon: Trout.png
+  value: 10
+  lowalch: 4
+  highalch: 6
+  limit: 6000
+  food:
+    heals: 7
+    type: fish
+  cooking:
+    level: 15
+    xp: 70
+    stop_burn: 50
+    stop_burn_gauntlets: 40
+  recipes:
+    - skill: cooking
+      level: 15
+      xp: 70
+      materials:
+        - item_name: Raw trout
+          item_id: 335
+          quantity: 1
+      product: Trout
+      product_id: 333
+      product_quantity: 1
+      facility: Range/Fire
+  related_items:
+    - item_id: 335
+      item_name: Raw trout
+      slug: raw-trout
+      relationship: component
+      description: Uncooked version
+    - item_id: 329
+      item_name: Salmon
+      slug: salmon
+      relationship: alternative
+      description: Upgrade food
+    - item_id: 379
+      item_name: Lobster
+      slug: lobster
+      relationship: alternative
+      description: Better food
+    - item_id: 775
+      item_name: Cooking gauntlets
+      slug: cooking-gauntlets
+      relationship: alternative
+      description: Reduce burn
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Method | Level | XP |
+|--------|-------|-----|
+| Cooking raw trout | 15 Cooking | 70 |
+| Stop burning | 50 (40 with gauntlets) | - |
+
+## Stats
+
+| Effect | Value |
+|--------|-------|
+| Heals | 7 HP |
+| Buy limit | 6,000 |
+
+## Market Flip Strategy
+
+**Entry-Level Food:**
+- Cheapest useful food
+- F2P accessible
+- Very low level requirement
+
+**Buy Limit:** 6,000 per 4 hours
+
+**Demand Drivers:**
+- Low-level combat
+- F2P content
+- Budget healing
+- Wintertodt supplies
+
+**Tips:**
+- Very cheap food
+- First fly fishing catch
+- Good for low HP content
+- Often power-fished
+
+<Adsense />

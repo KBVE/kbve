@@ -1,0 +1,130 @@
+---
+title: Primordial boots | OSRS Price Data
+description: "Primordial boots is a members feet slot item requiring 60 Magic. High alch: 45,000 GP, GE limit: 15."
+osrs:
+  id: 13239
+  name: Primordial boots
+  slug: primordial-boots
+  examine: A pair of upgraded dragon boots.
+  members: true
+  icon: Primordial boots.png
+  value: 75000
+  lowalch: 30000
+  highalch: 45000
+  limit: 15
+  equipment:
+    slot: feet
+    type: boots
+    attack_style: melee
+    requirements:
+      magic: 60
+      runecraft: 60
+    stats:
+      attack_stab: 2
+      attack_slash: 2
+      attack_crush: 2
+      defence_stab: 22
+      defence_slash: 22
+      defence_crush: 22
+      defence_ranged: 22
+      attack_magic: -4
+      attack_ranged: -1
+      strength: 5
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 200
+      materials:
+        - item_name: Dragon boots
+          item_id: 11840
+          quantity: 1
+        - item_name: Primordial crystal
+          item_id: 13231
+          quantity: 1
+      product: Primordial boots
+      product_id: 13239
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 13235
+      item_name: Eternal boots
+      slug: eternal-boots
+      relationship: alternative
+      description: Magic variant
+    - item_id: 13237
+      item_name: Pegasian boots
+      slug: pegasian-boots
+      relationship: alternative
+      description: Ranged variant
+    - item_id: 13231
+      item_name: Primordial crystal
+      slug: primordial-crystal
+      relationship: component
+      description: From Cerberus
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Combine Dragon boots + Primordial crystal.
+
+| Requirement | Value |
+|-------------|-------|
+| Magic | 60 |
+| Runecraft | 60 |
+| XP | 200 Magic, 200 Runecraft |
+
+**Process is irreversible.**
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Stab/Slash/Crush attack | +2 |
+| All melee defence | +22 |
+| Strength | +5 |
+| Magic attack | -4 |
+| Ranged attack | -1 |
+
+**Second-best melee boots** (behind Avernic treads)
+
+## Usage
+
+BiS melee boots for:
+- All melee combat
+- Slayer
+- Bossing
+- Raids
+
+## Market Strategy
+
+**Buy Limit:** 15 per 4 hours
+
+**Price:** ~26.6M gp
+
+**Tips:**
+- Crystal from Cerberus
+- Dragon boots are cheap base
+- Essential for melee setups
+
+<Adsense />

@@ -1,0 +1,143 @@
+---
+title: Mithril ore | OSRS Price Data
+description: "Mithril ore: This needs refining.. High alch: 97 GP, GE limit: 13,000."
+osrs:
+  id: 447
+  name: Mithril ore
+  slug: mithril-ore
+  examine: This needs refining.
+  members: false
+  icon: Mithril ore.png
+  value: 162
+  lowalch: 64
+  highalch: 97
+  limit: 13000
+  material:
+    type: ore
+    tier: mithril
+  mining:
+    level: 55
+    xp: 80
+    rocks: Mithril rock
+    respawn_time: 120
+    locations:
+      - Mining Guild
+      - Al Kharid mine
+      - Motherlode Mine
+  smithing:
+    level: 50
+    xp: 30
+    method: Smelting
+    coal_required: 4
+    coal_required_bf: 2
+  recipes:
+    - skill: smithing
+      level: 50
+      xp: 30
+      materials:
+        - item_name: Mithril ore
+          item_id: 447
+          quantity: 1
+        - item_name: Coal
+          item_id: 453
+          quantity: 4
+      product: Mithril bar
+      product_id: 2359
+      product_quantity: 1
+      facility: Furnace
+    - skill: smithing
+      level: 50
+      xp: 30
+      materials:
+        - item_name: Mithril ore
+          item_id: 447
+          quantity: 1
+        - item_name: Coal
+          item_id: 453
+          quantity: 2
+      product: Mithril bar
+      product_id: 2359
+      product_quantity: 1
+      facility: Blast Furnace
+      members_only: true
+  related_items:
+    - item_id: 2359
+      item_name: Mithril bar
+      slug: mithril-bar
+      relationship: product
+      description: Smelting product
+    - item_id: 453
+      item_name: Coal
+      slug: coal
+      relationship: component
+      description: Required for smelting
+    - item_id: 449
+      item_name: Adamantite ore
+      slug: adamantite-ore
+      relationship: upgrade
+      description: Higher tier ore
+    - item_id: 2353
+      item_name: Steel bar
+      slug: steel-bar
+      relationship: downgrade
+      description: Lower tier bar
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Level | XP |
+|--------|-------|-----|
+| Mining mithril rocks | 55 | 80 |
+| Motherlode Mine | 30 | Variable |
+| Shooting Stars | N/A | N/A |
+
+**Respawn Time:** 2 minutes
+
+## Smithing
+
+| Product | Coal Required | Smithing Level | XP |
+|---------|---------------|----------------|-----|
+| Mithril bar | 4 (2 at Blast Furnace) | 50 | 30 |
+
+## Market Flip Strategy
+
+**Mid-Tier Ore:**
+- Decent Mining XP
+- Requires significant coal
+- Blast Furnace halves coal
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Demand Drivers:**
+- Mithril bar production
+- Smithing training
+- Cannonball alternatives
+- Ironman progression
+
+**Tips:**
+- Blast Furnace saves coal
+- Mining Guild for extra ore
+- 2 minute respawn limits spots
+- Motherlode Mine alternative
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Blighted entangle sack | OSRS Price Data
+description: "Blighted entangle sack is a members-only OSRS item. High alch: 18 GP, GE limit: 15,000."
+osrs:
+  id: 24613
+  name: Blighted entangle sack
+  slug: blighted-entangle-sack
+  examine: Enough power for an Entangle, blighted so it can be used only in the Wilderness.
+  members: true
+  icon: Blighted entangle sack.png
+  value: 30
+  lowalch: 12
+  highalch: 18
+  limit: 15000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,123 @@
+---
+title: Orange tree seed | OSRS Price Data
+description: "Orange tree seed: Plant in a plantpot of soil to grow a sapling.. High alch: 18 GP, GE limit: 200."
+osrs:
+  id: 5285
+  name: Orange tree seed
+  slug: orange-tree-seed
+  examine: Plant in a plantpot of soil to grow a sapling.
+  members: true
+  icon: Orange tree seed 5.png
+  value: 31
+  lowalch: 12
+  highalch: 18
+  limit: 200
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    stackable: true
+    weight: 0
+  skilling_source:
+    skill: farming
+    level: 39
+    xp: 35.5
+    growth_time: 960
+  drop_table:
+    sources:
+      - source: Bird nests (Woodcutting)
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Wintertodt
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: common
+        members_only: true
+  related_items:
+    - item_id: 2108
+      item_name: Orange
+      slug: orange
+      relationship: product
+      description: Harvested fruit
+    - item_id: 5980
+      item_name: Basket of strawberries
+      slug: basket-of-strawberries
+      relationship: component
+      description: Protection payment (3)
+    - item_id: 5284
+      item_name: Banana tree seed
+      slug: banana-tree-seed
+      relationship: alternative
+      description: Lower tier option
+    - item_id: 5286
+      item_name: Curry tree seed
+      slug: curry-tree-seed
+      relationship: upgrade
+      description: Higher tier option
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Fruit Tree Seed |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 39 Farming |
+
+## Obtaining
+
+Common sources:
+- Bird nests (Woodcutting, Bird houses)
+- Wintertodt supply crates
+- Monster drops
+
+## Usage
+
+Plant in **fruit tree patches** to grow orange trees.
+
+**Growth Time:** 16 hours
+
+**Payment:** 3 baskets of strawberries (optional protection)
+
+**XP:** 35.5 (planting) + 2,470.2 (check-health)
+
+## Market Strategy
+
+**Buy Limit:** 200 per 4 hours
+
+**Price:** ~10 gp
+
+Mid-tier fruit tree seed. Oranges used for protection payments on maple trees. Good for mid-level Farming training.
+
+## Related Items
+
+- [Orange](/osrs/orange/) - Harvested fruit
+- [Basket of strawberries](/osrs/basket-of-strawberries/) - Protection payment
+- [Curry tree seed](/osrs/curry-tree-seed/) - Higher tier option
+
+<Adsense />

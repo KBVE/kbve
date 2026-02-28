@@ -1,0 +1,93 @@
+---
+title: Mithril sword | OSRS Price Data
+description: "Mithril sword: A razor sharp sword.. High alch: 507 GP, GE limit: 125."
+osrs:
+  id: 1285
+  name: Mithril sword
+  slug: mithril-sword
+  examine: A razor sharp sword.
+  members: false
+  icon: Mithril sword.png
+  value: 845
+  lowalch: 338
+  highalch: 507
+  limit: 125
+  item_id: 1285
+  item_type: equipment
+  slot: weapon
+  type: sword
+  attack_style: stab
+  attack_speed: 4
+  tradeable: true
+  weight: 1.587
+  requirements:
+    attack: 20
+  stats:
+    stab_attack: 16
+    slash_attack: 11
+    crush_attack: -2
+    strength: 17
+  related_items:
+    - slug: adamant-sword
+    - slug: mithril-scimitar
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Sword |
+| Tradeable | Yes |
+| Weight | 1.587 kg |
+| Requirements | 20 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | +16 |
+| Slash Attack | +11 |
+| Crush Attack | -2 |
+| Strength | +17 |
+
+## Obtaining
+
+**Smithing:** 54 Smithing with 1 mithril bar (50 XP).
+
+**Shop:** Varrock Swordshop.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~304 gp
+
+Mid-tier stab weapon. F2P accessible.
+
+## Related Items
+
+- [Adamant sword](/osrs/adamant-sword/) - Upgrade
+- [Mithril scimitar](/osrs/mithril-scimitar/) - Higher slash
+
+<Adsense />

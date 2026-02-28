@@ -1,0 +1,37 @@
+---
+title: Spider on stick | OSRS Price Data
+description: "Spider on stick: A nicely roasted spider threaded onto a skewer stick.. High alch: 30 GP, GE limit: 6,000."
+osrs:
+  id: 6297
+  name: Spider on stick
+  slug: spider-on-stick
+  examine: A nicely roasted spider threaded onto a skewer stick.
+  members: true
+  icon: Spider on stick.png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: 6000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

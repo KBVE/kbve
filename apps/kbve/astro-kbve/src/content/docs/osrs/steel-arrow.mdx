@@ -1,0 +1,110 @@
+---
+title: Steel arrow | OSRS Price Data
+description: "Steel arrow is a F2P ammo slot item. High alch: 7 GP, GE limit: 7,000."
+osrs:
+  id: 886
+  name: Steel arrow
+  slug: steel-arrow
+  examine: Arrows with steel heads.
+  members: false
+  icon: Steel arrow 5.png
+  value: 12
+  lowalch: 4
+  highalch: 7
+  limit: 7000
+  equipment:
+    slot: ammo
+    type: arrow
+    attack_style: ranged
+  requirements:
+    ranged: 5
+  stats:
+    other:
+      ranged_strength: 16
+  fletching:
+    level: 30
+    xp: 5
+    method: Steel arrowtips + headless arrows
+  shops:
+    - shop_name: Lowe's Archery Emporium
+      location: Varrock
+      price: 32
+  related_items:
+    - item_id: 888
+      item_name: Mithril arrow
+      slug: mithril-arrow
+      relationship: upgrade
+      description: Higher tier arrow
+    - item_id: 884
+      item_name: Iron arrow
+      slug: iron-arrow
+      relationship: downgrade
+      description: Lower tier arrow
+    - item_id: 41
+      item_name: Steel arrowtips
+      slug: steel-arrowtips
+      relationship: component
+      description: Fletching material
+    - item_id: 53
+      item_name: Headless arrow
+      slug: headless-arrow
+      relationship: component
+      description: Fletching material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ammo |
+| Type | Arrow |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 5 Ranged |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Strength | +16 |
+
+## Obtaining
+
+**Fletching:** 30 Fletching with steel arrowtips + headless arrows (5 XP each).
+
+**Shop:** Lowe's Archery Emporium, Varrock.
+
+## Market Strategy
+
+**Buy Limit:** 7,000 per 4 hours
+
+**Price:** ~30 gp
+
+Mid-level ammo. F2P accessible.
+
+## Related Items
+
+- [Mithril arrow](/osrs/mithril-arrow/) - Upgrade
+- [Oak shortbow](/osrs/oak-shortbow/) - Compatible bow
+
+<Adsense />

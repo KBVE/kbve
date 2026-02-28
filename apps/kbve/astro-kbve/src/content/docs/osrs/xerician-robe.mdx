@@ -1,0 +1,37 @@
+---
+title: Xerician robe | OSRS Price Data
+description: "Xerician robe: The forgotten magicks of Xeric imbue this garment with a little power.. High alch: 42 GP, GE limit: 125."
+osrs:
+  id: 13389
+  name: Xerician robe
+  slug: xerician-robe
+  examine: The forgotten magicks of Xeric imbue this garment with a little power.
+  members: true
+  icon: Xerician robe.png
+  value: 70
+  lowalch: 28
+  highalch: 42
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

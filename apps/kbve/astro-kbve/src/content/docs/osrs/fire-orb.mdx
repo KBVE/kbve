@@ -1,0 +1,124 @@
+---
+title: Fire orb | OSRS Price Data
+description: "Fire orb: A magic glowing orb.. High alch: 180 GP, GE limit: 11,000."
+osrs:
+  id: 569
+  name: Fire orb
+  slug: fire-orb
+  examine: A magic glowing orb.
+  members: true
+  icon: Fire orb.png
+  value: 300
+  lowalch: 120
+  highalch: 180
+  limit: 11000
+  material:
+    type: orb
+    tier: charged
+  magic:
+    charge_level: 63
+    charge_xp: 73
+    runes:
+      - item_name: Fire rune
+        item_id: 554
+        quantity: 30
+      - item_name: Cosmic rune
+        item_id: 564
+        quantity: 3
+    obelisk: Fire Obelisk
+    location: Taverley Dungeon
+  recipes:
+    - skill: crafting
+      level: 62
+      xp: 125
+      materials:
+        - item_name: Battlestaff
+          item_id: 1391
+          quantity: 1
+        - item_name: Fire orb
+          item_id: 569
+          quantity: 1
+      product: Fire battlestaff
+      product_id: 1393
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 1393
+      item_name: Fire battlestaff
+      slug: fire-battlestaff
+      relationship: product
+      description: Final product
+    - item_id: 567
+      item_name: Unpowered orb
+      slug: unpowered-orb
+      relationship: component
+      description: Base item
+    - item_id: 564
+      item_name: Cosmic rune
+      slug: cosmic-rune
+      relationship: component
+      description: Spell component
+    - item_id: 1391
+      item_name: Battlestaff
+      slug: battlestaff
+      relationship: component
+      description: Attachment base
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Method | Level | Runes |
+|--------|-------|-------|
+| Charge Fire Orb | 63 Magic | 30 Fire, 3 Cosmic |
+| Location | Fire Obelisk (Taverley Dungeon) | - |
+| XP | 73 Magic | - |
+
+## Crafting
+
+| Product | Level | XP |
+|---------|-------|-----|
+| Fire battlestaff | 62 Crafting | 125 |
+
+## Market Flip Strategy
+
+**Safe Money Maker:**
+- No Wilderness risk
+- Taverley Dungeon location
+- Fire battlestaff production
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Fire battlestaff crafting
+- Crafting training
+- Tome of fire combo
+- Safe alternative to air orbs
+
+**Tips:**
+- Safe location (no PKers)
+- Lower Magic requirement
+- Fire runes cheap
+- Less profit than air orbs
+
+<Adsense />

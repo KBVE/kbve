@@ -1,0 +1,37 @@
+---
+title: Raw wild pie | OSRS Price Data
+description: "Raw wild pie: Good as it looks, I'd better cook it.. High alch: 54 GP, GE limit: 13,000."
+osrs:
+  id: 7206
+  name: Raw wild pie
+  slug: raw-wild-pie
+  examine: Good as it looks, I'd better cook it.
+  members: true
+  icon: Raw wild pie.png
+  value: 91
+  lowalch: 36
+  highalch: 54
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

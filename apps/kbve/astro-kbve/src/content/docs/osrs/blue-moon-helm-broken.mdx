@@ -1,0 +1,37 @@
+---
+title: Blue moon helm (broken) | OSRS Price Data
+description: "Blue moon helm (broken): The helm of the Blue Moon.. High alch: 61,800 GP, GE limit: 15."
+osrs:
+  id: 29064
+  name: Blue moon helm (broken)
+  slug: blue-moon-helm-broken
+  examine: The helm of the Blue Moon.
+  members: true
+  icon: Blue moon helm (broken).png
+  value: 103000
+  lowalch: 41200
+  highalch: 61800
+  limit: 15
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

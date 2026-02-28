@@ -1,0 +1,37 @@
+---
+title: Attack mix(2) | OSRS Price Data
+description: "Attack mix(2): Two doses of fishy Attack potion.. High alch: 5 GP, GE limit: 2,000."
+osrs:
+  id: 11429
+  name: Attack mix(2)
+  slug: attack-mix-2
+  examine: Two doses of fishy Attack potion.
+  members: true
+  icon: Attack mix(2).png
+  value: 9
+  lowalch: 3
+  highalch: 5
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

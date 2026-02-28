@@ -1,0 +1,108 @@
+---
+title: Steel battleaxe | OSRS Price Data
+description: "Steel battleaxe is a F2P weapon slot item requiring 5 Attack. High alch: 390 GP, GE limit: 125."
+osrs:
+  id: 1365
+  name: Steel battleaxe
+  slug: steel-battleaxe
+  examine: A vicious looking axe.
+  members: false
+  icon: Steel battleaxe.png
+  value: 650
+  lowalch: 260
+  highalch: 390
+  limit: 125
+  equipment:
+    slot: weapon
+    type: battleaxe
+    tradeable: true
+    weight: 2.721
+    requirements:
+      attack: 5
+    stats:
+      attack_stab: -2
+      attack_slash: 16
+      attack_crush: 11
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 20
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 1367
+      item_name: Black battleaxe
+      slug: black-battleaxe
+      relationship: upgrade
+      description: Higher tier battleaxe
+    - item_id: 1281
+      item_name: Steel sword
+      slug: steel-sword
+      relationship: alternative
+      description: Better accuracy alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Battleaxe |
+| Tradeable | Yes |
+| Weight | 2.721 kg |
+| Requirements | 5 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | -2 |
+| Slash Attack | +16 |
+| Crush Attack | +11 |
+| Strength | +20 |
+
+## Obtaining
+
+**Smithing:** 40 Smithing with 3 steel bars (112.5 XP).
+
+**Shop:** Bob's Brilliant Axes, Lumbridge.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~228 gp
+
+Mid-level battleaxe. F2P accessible.
+
+## Related Items
+
+- [Black battleaxe](/osrs/black-battleaxe/) - Upgrade
+- [Steel sword](/osrs/steel-sword/) - Better accuracy
+
+<Adsense />

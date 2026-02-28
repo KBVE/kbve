@@ -1,0 +1,146 @@
+---
+title: Oak logs | OSRS Price Data
+description: "Oak logs: Logs cut from an oak tree.. High alch: 12 GP, GE limit: 15,000."
+osrs:
+  id: 1521
+  name: Oak logs
+  slug: oak-logs
+  examine: Logs cut from an oak tree.
+  members: false
+  icon: Oak logs.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: 15000
+  material:
+    type: log
+    tier: low
+  woodcutting:
+    level: 15
+    xp: 37.5
+    locations:
+      - Varrock
+      - Draynor
+      - Lumbridge
+      - Grand Exchange area
+  farming:
+    level: 15
+    seed_id: 5370
+    seed_name: Oak sapling
+  processing:
+    method: Sawmill
+    product_id: 8778
+    product_name: Oak plank
+    cost: 250
+  recipes:
+    - skill: fletching
+      level: 20
+      xp: 16.5
+      materials:
+        - item_name: Oak logs
+          item_id: 1521
+          quantity: 1
+      product: Oak shortbow (u)
+      product_id: 54
+      product_quantity: 1
+    - skill: fletching
+      level: 25
+      xp: 25
+      materials:
+        - item_name: Oak logs
+          item_id: 1521
+          quantity: 1
+      product: Oak longbow (u)
+      product_id: 56
+      product_quantity: 1
+  drop_table:
+    sources:
+      - source: Ent
+        source_id: 2594
+        combat_level: 86
+        quantity: "1"
+        rarity: common
+        members_only: true
+  related_items:
+    - item_id: 8778
+      item_name: Oak plank
+      slug: oak-plank
+      relationship: product
+      description: Processed form for Construction
+    - item_id: 1519
+      item_name: Willow logs
+      slug: willow-logs
+      relationship: upgrade
+      description: Higher tier logs
+    - item_id: 1511
+      item_name: Logs
+      slug: logs
+      relationship: downgrade
+      description: Lower tier logs
+    - item_id: 54
+      item_name: Oak shortbow (u)
+      slug: oak-shortbow-u
+      relationship: product
+      description: Fletching output
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Logs |
+| Tradeable | Yes |
+| Weight | 2 kg |
+| Requirements | 15 Woodcutting |
+
+## Obtaining
+
+**Woodcutting:** Cut oak trees (15 WC, 37.5 XP).
+
+**Locations:** Varrock, Draynor, Lumbridge, Grand Exchange area.
+
+**Drops:** Ents.
+
+**Farming:** Grow oak trees (15 Farming).
+
+## Usage
+
+Convert to oak planks for Construction (250 gp at sawmill).
+
+Popular for low-level Construction training.
+
+## Market Strategy
+
+**Buy Limit:** 15,000 per 4 hours
+
+**Price:** ~26 gp
+
+Budget Construction material. F2P accessible.
+
+## Related Items
+
+- [Oak plank](/osrs/oak-plank/) - Processed form
+- [Willow logs](/osrs/willow-logs/) - Higher tier
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Dagon'hai robe bottom | OSRS Price Data
+description: "Dagon'hai robe bottom: A robe worn by members of the Dagon'hai.. High alch: 54,000 GP."
+osrs:
+  id: 24294
+  name: Dagon'hai robe bottom
+  slug: dagon-hai-robe-bottom
+  examine: A robe worn by members of the Dagon'hai.
+  members: true
+  icon: Dagon'hai robe bottom.png
+  value: 90000
+  lowalch: 36000
+  highalch: 54000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Raw sunlight antelope | OSRS Price Data
+description: "Raw sunlight antelope: I should probably cook this first.. High alch: 1 GP, GE limit: 13,000."
+osrs:
+  id: 29116
+  name: Raw sunlight antelope
+  slug: raw-sunlight-antelope
+  examine: I should probably cook this first.
+  members: true
+  icon: Raw sunlight antelope.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

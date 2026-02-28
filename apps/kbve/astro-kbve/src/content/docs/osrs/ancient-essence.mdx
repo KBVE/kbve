@@ -1,0 +1,113 @@
+---
+title: Ancient essence | OSRS Price Data
+description: "Ancient essence: Pure magical energy filled with a dark power.. High alch: 16 GP, GE limit: 300,000."
+osrs:
+  id: 27616
+  name: Ancient essence
+  slug: ancient-essence
+  examine: Pure magical energy filled with a dark power.
+  members: true
+  icon: Ancient essence 500.png
+  value: 28
+  lowalch: 11
+  highalch: 16
+  limit: 300000
+  item:
+    type: currency
+    tradeable: true
+    stackable: true
+    weight: 0
+  drop_table:
+    sources:
+      - source: Phantom Muspah
+        rate: 60/100
+      - source: Mining crystals (75 Mining)
+  obtaining:
+    - method: Venator shard breakdown
+      amount: 50000
+    - method: Ancient icon breakdown
+      amount: 5000
+  uses:
+    - item: Venator bow charges
+    - item: Forgotten brew (91 Herblore)
+      amount: 20-80 per dose
+    - item: Saturated heart
+      amount: 150000
+  related_items:
+    - item_id: 27610
+      item_name: Venator bow
+      slug: venator-bow
+      relationship: alternative
+      description: Charging use
+    - item_id: 27638
+      item_name: Forgotten brew
+      slug: forgotten-brew
+      relationship: alternative
+      description: Herblore use
+    - item_id: 24514
+      item_name: Saturated heart
+      slug: saturated-heart
+      relationship: alternative
+      description: Magic use - 150,000 essence
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Currency |
+| Tradeable | Yes |
+| Stackable | Yes |
+| Weight | 0 kg |
+
+## Obtaining
+
+| Source | Amount |
+|--------|--------|
+| Phantom Muspah | 540-599 (60/100) |
+| Mining crystals (75 Mining) | 13.5 XP each |
+| Venator shard breakdown | 50,000 |
+| Ancient icon breakdown | 5,000 |
+
+## Uses
+
+| Use | Amount |
+|-----|--------|
+| Venator bow charges | Various |
+| Forgotten brew (91 Herblore) | 20-80 per dose |
+| Saturated heart | 150,000 |
+
+## Market Strategy
+
+**Buy Limit:** 25,000 per 4 hours
+
+**Price:** ~9 gp
+
+## Related Items
+
+- [Phantom Muspah](/osrs/phantom-muspah/) - Source
+- [Venator bow](/osrs/venator-bow/) - Charging use
+- [Forgotten brew](/osrs/forgotten-brew/) - Herblore use
+- [Saturated heart](/osrs/saturated-heart/) - Magic use
+
+<Adsense />

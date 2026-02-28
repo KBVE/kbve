@@ -1,0 +1,37 @@
+---
+title: Topaz dragon bolts | OSRS Price Data
+description: "Topaz dragon bolts: Dragon crossbow bolts, tipped with red topaz.. High alch: 420 GP, GE limit: 11,000."
+osrs:
+  id: 21961
+  name: Topaz dragon bolts
+  slug: topaz-dragon-bolts
+  examine: Dragon crossbow bolts, tipped with red topaz.
+  members: true
+  icon: Topaz dragon bolts 5.png
+  value: 700
+  lowalch: 280
+  highalch: 420
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

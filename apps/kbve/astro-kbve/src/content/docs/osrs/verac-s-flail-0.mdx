@@ -1,0 +1,37 @@
+---
+title: Verac's flail 0 | OSRS Price Data
+description: "Verac's flail 0: Verac the Defiled's flail.. High alch: 96,000 GP, GE limit: 15."
+osrs:
+  id: 4986
+  name: Verac's flail 0
+  slug: verac-s-flail-0
+  examine: Verac the Defiled's flail.
+  members: true
+  icon: Verac's flail 0.png
+  value: 160000
+  lowalch: 64000
+  highalch: 96000
+  limit: 15
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

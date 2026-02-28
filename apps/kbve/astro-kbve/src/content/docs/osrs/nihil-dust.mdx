@@ -1,0 +1,37 @@
+---
+title: Nihil dust | OSRS Price Data
+description: "Nihil dust: Dust from a crushed magical shard.. High alch: 300 GP, GE limit: 11,000."
+osrs:
+  id: 26368
+  name: Nihil dust
+  slug: nihil-dust
+  examine: Dust from a crushed magical shard.
+  members: true
+  icon: Nihil dust.png
+  value: 500
+  lowalch: 200
+  highalch: 300
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

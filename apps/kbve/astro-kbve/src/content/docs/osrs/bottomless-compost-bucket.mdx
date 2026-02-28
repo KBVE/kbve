@@ -1,0 +1,103 @@
+---
+title: Bottomless compost bucket | OSRS Price Data
+description: "Bottomless compost bucket: It's a bucket that can hold a lot of compost at once.. High alch: 27,000 GP, GE limit: 5."
+osrs:
+  id: 22994
+  name: Bottomless compost bucket
+  slug: bottomless-compost-bucket
+  examine: It's a bucket that can hold a lot of compost at once.
+  members: true
+  icon: Bottomless compost bucket.png
+  value: 45000
+  lowalch: 18000
+  highalch: 27000
+  limit: 5
+  item:
+    type: farming tool
+    tradeable: true
+    weight:
+      empty: 1
+      full: 3
+    capacity: 10000
+  effect:
+    description: Stores up to 10,000 charges of a single compost type. Each bucket added grants 2 charges (doubles compost).
+    compatible_compost:
+      - Compost
+      - Supercompost
+      - Ultracompost
+  related_items:
+    - item_id: 6420
+      item_name: Ultracompost
+      slug: ultracompost
+      relationship: alternative
+      description: Best compost for use with bottomless bucket
+    - item_id: 6032
+      item_name: Compost bucket
+      slug: compost-bucket
+      relationship: alternative
+      description: Regular compost container
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Farming Tool |
+| Tradeable | Yes (empty only) |
+| Weight | 1 kg (empty), 3 kg (full) |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Hespori | 1/35 |
+
+Requires 65 Farming to access Hespori.
+
+## Effect
+
+**Capacity:** 10,000 charges maximum (single compost type).
+
+**Efficiency:** Each bucket added grants 2 charges (doubles compost).
+
+**Compatible:** Compost, supercompost, ultracompost.
+
+## Usage
+
+- Store with Tool Leprechaun in dedicated slot
+- Cannot transfer compost back to empty buckets
+- Untradeable when filled
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~800K gp
+
+## Related Items
+
+- [Hespori](/osrs/hespori/) - Source boss
+- [Ultracompost](/osrs/ultracompost/) - Best compost
+- [Compost bucket](/osrs/compost-bucket/) - Regular version
+
+<Adsense />

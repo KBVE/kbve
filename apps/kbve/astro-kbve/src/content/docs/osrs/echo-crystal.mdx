@@ -1,0 +1,120 @@
+---
+title: Echo crystal | OSRS Price Data
+description: "Echo crystal: A crystal of rebounding potential.. High alch: 90,000 GP, GE limit: 8."
+osrs:
+  id: 28942
+  name: Echo crystal
+  slug: echo-crystal
+  examine: A crystal of rebounding potential.
+  members: true
+  icon: Echo crystal.png
+  value: 150000
+  lowalch: 60000
+  highalch: 90000
+  limit: 8
+  item:
+    type: material
+    tradeable: true
+    weight: 0.5
+  drop_table:
+    primary_source: Fortis Colosseum
+    best_drop_rate: Varies
+    sources:
+      - source: Fortis Colosseum
+        quantity: "1"
+        rarity: varies
+        drop_rate: Varies (waves 4-12)
+        members_only: true
+  market:
+    buy_limit: 8
+    price_estimate: 1798350
+  related_items:
+    - item_id: 28945
+      item_name: Echo boots
+      slug: echo-boots
+      relationship: product
+      description: Upgrades guardian boots
+    - item_id: 21733
+      item_name: Guardian boots
+      slug: guardian-boots
+      relationship: component
+      description: Base item for upgrade
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+The Echo crystal is a rare material dropped from the Fortis Colosseum used to upgrade Guardian boots into the powerful Echo boots. This shimmering crystal contains the echoes of battles fought in the arena.
+
+**Type:** Material
+**Stackable:** No
+**Tradeable:** Yes
+**Weight:** 0.5 kg
+
+## Obtaining
+
+Echo crystals are obtained exclusively from the Fortis Colosseum:
+
+- **Drop Location:** Waves 4-12
+- **Drop Rate:** Varies based on wave reached
+- Higher waves have better drop rates
+- Guaranteed at certain completion milestones
+
+**Note:** You must survive to receive the crystal as a reward. Dying will forfeit potential drops.
+
+## Usage
+
+Echo crystals have a single purpose:
+
+### Creating Echo Boots
+Combine with Guardian boots to create Echo boots:
+
+**Materials Required:**
+- 1x Guardian boots (Item ID: 21733)
+- 1x Echo crystal (Item ID: 28942)
+
+**Result:** Echo boots (Item ID: 28945) - Untradeable
+
+**Important:** This is a one-way upgrade. Echo boots cannot be reverted to Guardian boots.
+
+## Echo Boots Benefits
+
+The upgrade provides:
+- **+4 Prayer bonus** (Guardian boots have 0)
+- **Recoil effect:** Deals 1 damage to attackers in 3x3 area
+- **60,000 charges** on the recoil effect
+- Best-in-slot melee boots for prayer builds
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+**Estimated Price:** ~1.8M GP
+
+**Tips:**
+- Price largely determined by Guardian boots price
+- Calculate total upgrade cost: Echo crystal + Guardian boots
+- Consider if untradeable result is worth investment
+- High demand from players seeking BiS melee boots
+- Price fluctuates with Colosseum activity levels
+- More valuable earlier in the week (fresh restocks)
+
+<Adsense />

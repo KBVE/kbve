@@ -1,0 +1,146 @@
+---
+title: Tumeken's shadow (uncharged) | OSRS Price Data
+description: "Tumeken's shadow (uncharged) is a members two-handed weapon requiring 85 Magic. High alch: 4,200,000 GP, GE limit: 8."
+osrs:
+  id: 27277
+  name: Tumeken's shadow (uncharged)
+  slug: tumeken-s-shadow-uncharged
+  examine: An ancient staff created using a higher power.
+  members: true
+  icon: Tumeken's shadow (uncharged).png
+  value: 7000000
+  lowalch: 2800000
+  highalch: 4200000
+  limit: 8
+  equipment:
+    slot: 2h
+    type: powered_staff
+    attack_style: magic
+    attack_speed: 5
+    attack_range: 8
+    requirements:
+      magic: 85
+    stats:
+      attack_magic: 35
+      defence_magic: 20
+      prayer: 1
+    degradeable: true
+  effect:
+    magic_multiplier: 3
+    magic_multiplier_toa: 4
+    damage_cap: 100
+  charging:
+    material_id: 566
+    material_name: Soul rune
+    soul_per_cast: 2
+    chaos_per_cast: 5
+    max_charges: 20000
+  drop_table:
+    sources:
+      - source: Tombs of Amascut
+        source_id: 11751
+        combat_level: 0
+        quantity: "1"
+        rarity: 1/24
+        members_only: true
+  related_items:
+    - item_id: 566
+      item_name: Soul rune
+      slug: soul-rune
+      relationship: component
+      description: Charging material
+    - item_id: 562
+      item_name: Chaos rune
+      slug: chaos-rune
+      relationship: component
+      description: Charging material
+    - item_id: 22323
+      item_name: Sanguinesti staff
+      slug: sanguinesti-staff
+      relationship: alternative
+      description: Budget alternative
+    - item_id: 21018
+      item_name: Ancestral robe top
+      slug: ancestral-robe-top
+      relationship: component
+      description: BiS magic armor
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Rare drop from Tombs of Amascut (1/24 from reward chest).
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Magic attack | +35 |
+| Magic defence | +20 |
+| Prayer | +1 |
+| Attack speed | 5 tick (3.0s) |
+| Range | 8 tiles |
+| Requirements | 85 Magic |
+
+## Special Effect
+
+**Magic Bonus Tripling:**
+- Multiplies magic attack bonus by 3x
+- Multiplies magic damage by 3x
+- Cap: 100% magic damage bonus
+- Inside ToA: multiplier increases to 4x
+
+**Does NOT multiply:**
+- Void Knight equipment
+- Salve amulet variants
+
+## Charging
+
+| Resource | Per Cast | Cost |
+|----------|----------|------|
+| Soul rune | 2 | - |
+| Chaos rune | 5 | - |
+| **Total** | - | ~935 gp |
+
+- Max charges: 20,000
+- Full charge: ~18.7M gp
+- Hourly cost: ~1.1M gp
+
+## Usage
+
+**Best-in-slot magic weapon for:**
+- Tombs of Amascut
+- Theatre of Blood (some rooms)
+- Any magic-focused bossing
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours (uncharged)
+
+**Price:** ~896M gp
+
+**Tips:**
+- Second most expensive weapon
+- Requires good magic gear to maximize
+- Charging costs significant
+
+<Adsense />

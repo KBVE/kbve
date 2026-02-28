@@ -1,0 +1,75 @@
+---
+title: 'October: 2nd'
+category: Daily
+date: 2025-10-02 12:00:00
+client: Self
+unsplash: 1693298661836-1206649639ef
+img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 2nd. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### Unity ECS Resources
+
+-   07:15AM
+
+    Completed the basic migration of the map resources into the ECS, but still need to finish up the map schema.
+    Our goal will be to have the vault and map database be our single source of truth for all the objects that would appear on the map, then build around that.
+    This means we want the basic resources to first load without any major drawbacks, then we can slowly scale it out.
+    Now the other issue was making it so that item drops could remain being game objects or if we should also move those into the ECS?
+    I am thinking we spend most of the time focused on getting the static resources rendered onto the map, specifically the tree and stones.
+    Then once they are fully rendered on the map, we could add the R3 + Sync, so that when the player hovers over the entities, they can easily see what is being displayed.
+    For a cluster of around 1,000,000 units, we could create a kd tree that would then be chunked for each of the regions on the map, then have that be the cache that holds the data.
+    Afterwards we could handle a combination of an off thread look up and a main thread aka UI render of the different objects that are being moused over.
+    Mouse does a ray cast over the position that it is near and then the UI does a label over the different objects that are within the screen?
+    I suppose another move would be to move the character closer to the said object, allowing them to maybe extract the said object.
+    The question would be if we want those resources have to have collision boxes or not.
+
+-   09:00PM
+
+    Ending the night off with the basic map object schema done and two trees were added on the astro side.
+    We did a simple oak tree and redwood tree, both of those should be a good start under the map database's resources, yet we still need to do the structures.
+    For the structures, I am thinking we could do the crypt and maybe orc barracks, both of those can then start to summon different entities onto the map for us to fight.
+    I also do need to look more into the map, maybe figure out the best way to handle the general bullet hell / star dew flow before getting a demo of the game released.
+    Now that I am thinking about it, we could get the demo out before the end of the month.
+
+
+
+## 2024
+
+**Dashboard**
+
+To grab the dashboard password for quick development work!
+This is just a note for myself in the future.
+
+```shell
+
+kubectl get secret supabase-secret-dashboard -n supabase -o jsonpath="{.data.password}" | base64 --decode
+
+```
+
+Yesterday, I added two base schemas and now I want to test them out!
+We still need to update the dashboard's logging connections, as it is unable to see the auth logs and a couple other areas.
+
+
+**Extensions**
+
+While testing out the schemas for Supabase, I need to wrap back around and finish up the Redis extension for KBVE.
+Part of the reason that I hate working on it is because if it fails then I have to go through a multi-stage recovery process, ugh.
+The big issue we had last time was passing of the sealed secret but I believe that was just a mistake on my end with the permissions and nothing related to the code.
+
+**CNPG**
+
+Updated the `sql.mdx` notes with the CNPG Backup.
+The rolling recovery still needs to be tested but I think we can find a creative way to help us handle that.
+
+**MDX**
+
+To help with the build of `kbve.com`, I had to go through all our `MDX` references and remove them.
+Furthermore, I had to remove some of the deadcode that was lurking around all our monorepo.
+It was over 400 files that I had to change and fix today, what a wild ride!

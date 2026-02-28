@@ -1,0 +1,37 @@
+---
+title: Accursed sceptre (u) | OSRS Price Data
+description: "Accursed sceptre (u) is a members-only OSRS item. High alch: 105,000 GP, GE limit: 8."
+osrs:
+  id: 27662
+  name: Accursed sceptre (u)
+  slug: accursed-sceptre-u
+  examine: A mighty sceptre from long forgotten battles, corrupted by the power of Vet'ion.
+  members: true
+  icon: Accursed sceptre (u).png
+  value: 175000
+  lowalch: 70000
+  highalch: 105000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,140 @@
+---
+title: Odium ward | OSRS Price Data
+description: "Odium ward is a members shield slot item requiring 60 Defence. High alch: 27,000 GP, GE limit: 8."
+osrs:
+  id: 11926
+  name: Odium ward
+  slug: odium-ward
+  examine: An ancient, evil shield forged by Volcanic heat.
+  members: true
+  icon: Odium ward.png
+  value: 45000
+  lowalch: 18000
+  highalch: 27000
+  limit: 8
+  equipment:
+    slot: shield
+    type: ranged_shield
+    requirements:
+      defence: 60
+    stats:
+      attack_ranged: 12
+      defence_magic: 24
+      defence_ranged: 52
+  drop_table:
+    sources:
+      - source: Volcanic Forge
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: N/A
+        members_only: true
+  recipes:
+    - skill: N/A
+      level: 0
+      xp: 0
+      materials:
+        - item_id: 11928
+          item_name: Odium shard 1
+          quantity: 1
+        - item_id: 11929
+          item_name: Odium shard 2
+          quantity: 1
+        - item_id: 11930
+          item_name: Odium shard 3
+          quantity: 1
+      product: Odium ward
+      product_id: 11926
+      facility: Volcanic Forge
+      members_only: true
+  related_items:
+    - item_id: 11924
+      item_name: Malediction ward
+      slug: malediction-ward
+      relationship: alternative
+      description: Magic version
+    - item_id: 22002
+      item_name: Dragonfire ward
+      slug: dragonfire-ward
+      relationship: upgrade
+      description: BiS ranged shield
+    - item_id: 21000
+      item_name: Twisted buckler
+      slug: twisted-buckler
+      relationship: alternative
+      description: Alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Shield |
+| Type | Ranged Shield |
+| Tradeable | Yes |
+| Weight | 3.628 kg |
+
+## Creation
+
+Combine 3 shards at Volcanic Forge (NE Wilderness):
+
+| Shard | Source | Price |
+|-------|--------|-------|
+| Odium shard 1 | Chaos Fanatic | ~1.4M |
+| Odium shard 2 | Crazy Archaeologist | ~1.9M |
+| Odium shard 3 | Scorpia | ~131K |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Ranged attack | +12 |
+
+| Defence | Value |
+|---------|-------|
+| Magic | +24 |
+| Ranged | +52 |
+
+**Requirements:** 60 Defence
+
+## Usage
+
+Budget ranged shield for:
+- Ranged training
+- Slayer tasks
+- Mid-game bossing
+
+**Good magic defence for ranged setups.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~4.3M gp
+
+**Tips:**
+- Wilderness bosses for shards
+- Cheaper to buy complete
+- Upgrade to dragonfire ward
+
+<Adsense />

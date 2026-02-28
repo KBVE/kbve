@@ -1,0 +1,147 @@
+---
+title: Toxic blowpipe (empty) | OSRS Price Data
+description: "Toxic blowpipe (empty) is a members two-handed weapon requiring 75 Ranged. High alch: 72,000 GP, GE limit: 8."
+osrs:
+  id: 12924
+  name: Toxic blowpipe (empty)
+  slug: toxic-blowpipe-empty
+  examine: Fires darts while coating them with venom.
+  members: true
+  icon: Toxic blowpipe (empty).png
+  value: 120000
+  lowalch: 48000
+  highalch: 72000
+  limit: 8
+  equipment:
+    slot: 2h
+    type: blowpipe
+    attack_style: ranged
+    attack_speed: 3
+    attack_range: 5
+    requirements:
+      ranged: 75
+    stats:
+      attack_ranged: 30
+      ranged_strength: 20
+    degradeable: true
+  effect:
+    venom_chance: 25
+    venom_with_serp: 100
+  charging:
+    material_id: 12934
+    material_name: Zulrah's scales
+    max_scales: 16383
+    requires_darts: true
+  special_attack:
+    name: Toxic Siphon
+    energy: 50
+    effect: Heals 50% of damage dealt
+  recipes:
+    - skill: fletching
+      level: 78
+      xp: 120
+      materials:
+        - item_name: Tanzanite fang
+          item_id: 12922
+          quantity: 1
+      product: Toxic blowpipe (empty)
+      product_id: 12924
+      product_quantity: 1
+      facility: Chisel
+      members_only: true
+  related_items:
+    - item_id: 12934
+      item_name: Zulrah's scales
+      slug: zulrahs-scales
+      relationship: component
+      description: Charging material
+    - item_id: 12922
+      item_name: Tanzanite fang
+      slug: tanzanite-fang
+      relationship: component
+      description: Creation material
+    - item_id: 11230
+      item_name: Dragon dart
+      slug: dragon-dart
+      relationship: component
+      description: Best ammo
+    - item_id: 12931
+      item_name: Serpentine helm
+      slug: serpentine-helm
+      relationship: alternative
+      description: 100% venom
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Use chisel on Tanzanite fang (78 Fletching, 120 XP).
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged attack | +30 |
+| Ranged strength | +20 |
+| Attack speed | 3 tick (1.8s) PvM / 4 tick PvP |
+| Range | 5 tiles (7 with Longrange) |
+| Requirements | 75 Ranged |
+
+## Charging
+
+**Requires:**
+- Zulrah's scales (max 16,383)
+- Any unpoisoned darts (max 16,383)
+
+**Scale Usage:**
+- 2/3 chance to consume scale per shot
+- Average: 2 scales per 3 shots
+
+## Venom Effect
+
+- 25% chance to inflict venom per hit
+- 100% chance with Serpentine helm vs NPCs
+
+## Special Attack
+
+**Toxic Siphon** (50% energy):
+- Heals 50% of damage dealt
+- No accuracy/damage boost
+
+## Usage
+
+**Best For:**
+- Fast attack speed content
+- Slayer tasks
+- Fight Caves/Inferno
+- General PvM
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours (empty)
+
+**Tips:**
+- Factor in scale + dart costs
+- High DPS but expensive to use
+- Tanzanite fang from Zulrah
+
+<Adsense />

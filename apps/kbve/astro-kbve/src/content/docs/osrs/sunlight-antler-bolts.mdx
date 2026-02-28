@@ -1,0 +1,37 @@
+---
+title: Sunlight antler bolts | OSRS Price Data
+description: "Sunlight antler bolts: Bolts made from the antlers of a sunlight antelope.. High alch: 18 GP, GE limit: 11,000."
+osrs:
+  id: 28872
+  name: Sunlight antler bolts
+  slug: sunlight-antler-bolts
+  examine: Bolts made from the antlers of a sunlight antelope.
+  members: true
+  icon: Sunlight antler bolts 5.png
+  value: 31
+  lowalch: 12
+  highalch: 18
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

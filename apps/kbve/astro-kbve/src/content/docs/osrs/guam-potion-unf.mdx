@@ -1,0 +1,114 @@
+---
+title: Guam potion (unf) | OSRS Price Data
+description: "Guam potion (unf) is a 4-dose members potion. High alch: 1 GP, GE limit: 10,000."
+osrs:
+  id: 91
+  name: Guam potion (unf)
+  slug: guam-potion-unf
+  examine: I need another ingredient to finish this Guam potion.
+  members: true
+  icon: Guam potion (unf).png
+  value: 3
+  lowalch: 1
+  highalch: 1
+  limit: 10000
+  potion:
+    type: unfinished
+    tier: basic
+  herblore:
+    level: 3
+    xp: 0
+    method: Add guam leaf to vial of water
+  recipes:
+    - skill: herblore
+      level: 3
+      xp: 0
+      materials:
+        - item_name: Vial of water
+          item_id: 227
+          quantity: 1
+        - item_name: Guam leaf
+          item_id: 249
+          quantity: 1
+      product: Guam potion (unf)
+      product_id: 91
+      product_quantity: 1
+  related_items:
+    - item_id: 249
+      item_name: Guam leaf
+      slug: guam-leaf
+      relationship: component
+      description: Herb ingredient
+    - item_id: 227
+      item_name: Vial of water
+      slug: vial-of-water
+      relationship: component
+      description: Base liquid
+    - item_id: 221
+      item_name: Eye of newt
+      slug: eye-of-newt
+      relationship: component
+      description: Secondary for attack potion
+    - item_id: 121
+      item_name: Attack potion(3)
+      slug: attack-potion-3
+      relationship: product
+      description: Basic combat potion
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Unfinished Potion |
+| Tradeable | Yes |
+| Weight | 0.056 kg |
+| Requirements | 3 Herblore |
+
+## Obtaining
+
+**Creation:** Add guam leaf to vial of water (3 Herblore).
+
+**Alternative:** Purchase from Grand Exchange.
+
+## Usage
+
+Add secondary ingredient to create:
+- **Attack potion** (+ eye of newt)
+
+The most basic unfinished potion for herblore training.
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+High volume for early herblore training. Key for attack potion production.
+
+## Related Items
+
+- [Guam leaf](/osrs/guam-leaf/) - Herb ingredient
+- [Eye of newt](/osrs/eye-of-newt/) - Secondary
+- [Attack potion](/osrs/attack-potion/) - Final product
+
+<Adsense />

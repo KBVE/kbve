@@ -1,0 +1,117 @@
+---
+title: Saradomin brew(3) | OSRS Price Data
+description: "Saradomin brew(3) is a 3-dose members potion. High alch: 105 GP, GE limit: 2,000."
+osrs:
+  id: 6687
+  name: Saradomin brew(3)
+  slug: saradomin-brew-3
+  examine: 3 doses of Saradomin brew.
+  members: true
+  icon: Saradomin brew(3).png
+  value: 175
+  lowalch: 70
+  highalch: 105
+  limit: 2000
+  item_id: 6687
+  type: potion
+  tradeable: true
+  buy_limit: 2000
+  potion:
+    doses: 3
+    base_item: Saradomin brew(4)
+    base_item_id: 6685
+    herblore_level: 81
+    herblore_xp: 180
+    effects:
+      - stat: Hitpoints
+        boost_formula: floor(level * 0.15) + 2
+        description: Heals 15% + 2 of max HP
+      - stat: Defence
+        boost_formula: floor(level * 0.20) + 2
+        description: Boosts Defence by 20% + 2
+      - stat: Attack
+        boost_formula: -(floor(level * 0.10) + 2)
+        description: Lowers Attack by 10% + 2
+      - stat: Strength
+        boost_formula: -(floor(level * 0.10) + 2)
+        description: Lowers Strength by 10% + 2
+      - stat: Magic
+        boost_formula: -(floor(level * 0.10) + 2)
+        description: Lowers Magic by 10% + 2
+      - stat: Ranged
+        boost_formula: -(floor(level * 0.10) + 2)
+        description: Lowers Ranged by 10% + 2
+  related_items:
+    - slug: saradomin-brew-4
+      name: Saradomin brew(4)
+      relation: full_dose_variant
+    - slug: super-restore-4
+      name: Super restore(4)
+      relation: counters_stat_drain
+    - slug: crushed-nest
+      name: Crushed nest
+      relation: creation_material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+3-dose variant of [Saradomin brew(4)](/osrs/saradomin-brew4/).
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 81 |
+| XP gained | 180 (when making 4-dose) |
+
+## Effects
+
+Per dose:
+- **Heals:** 15% + 2 of max HP (max +16 at 99 HP)
+- **Boosts Defence:** 20% + 2 of base level (max +21 at 99)
+- **Lowers:** Attack, Strength, Magic, Ranged by 10% + 2
+
+## Usage
+
+Essential for high-level PvM:
+- Raids (CoX, ToB, ToA)
+- Inferno attempts
+- Boss fights (GWD, Nex, etc.)
+- PvP (combo with [Super restore](/osrs/super-restore4/))
+
+**Brew to Restore Ratio:** Use 3 doses of brew per 1 dose of super restore to maintain combat stats.
+
+## Market Strategy
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Tips:**
+- Decants to/from 4-dose version
+- High demand from raiders
+- Often more expensive per dose than 4-dose
+
+## Related Items
+
+- [Saradomin brew(4)](/osrs/saradomin-brew4/) - Full dose variant
+- [Super restore(4)](/osrs/super-restore4/) - Counters stat drain
+- [Crushed nest](/osrs/crushed-nest/) - Creation material
+
+<Adsense />

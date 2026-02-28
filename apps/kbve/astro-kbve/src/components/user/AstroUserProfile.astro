@@ -1,0 +1,386 @@
+---
+/**
+ * AstroUserProfile - Modern profile page with hero banner
+ * Features:
+ * - Unsplash banner with parallax effect
+ * - Profile hero section with avatar
+ * - Reorganized card sections
+ * - Full accessibility support
+ * - Askama-compatible structure for SSR
+ */
+
+import UnsplashBanner from './UnsplashBanner';
+import ProfileHero from './ProfileHero';
+import ReactUserProfile from './ReactUserProfile';
+
+interface Props {
+	class?: string;
+	/** Unsplash photo ID for banner (optional) */
+	bannerId?: string;
+}
+
+const { class: className = '', bannerId = '1594671581654-cc7ed83167bb' } =
+	Astro.props;
+---
+
+<section
+	id="user-profile-wrapper"
+	class:list={['user-profile-wrapper', className]}
+	aria-label="User profile page">
+	<!-- Skip link for keyboard users -->
+	<a href="#profile-content" class="skip-to-content">
+		Skip to profile content
+	</a>
+
+	<!-- Sticky parallax hero with profile capsule -->
+	<UnsplashBanner client:load photoId={bannerId} altText="Profile banner">
+		<!-- Profile Hero nested inside the parallax capsule area -->
+		<ProfileHero
+			client:load
+			username="Loading..."
+			badges={['KBVE Member']}
+		/>
+	</UnsplashBanner>
+
+	<!-- Main content area - sits on top of sticky hero -->
+	<div id="profile-content" class="profile-content profile-main-wrapper">
+		<div class="profile-grid">
+			<!-- Main Profile Card (takes 2 cols on desktop) -->
+			<div class="profile-main">
+				<ReactUserProfile client:load />
+			</div>
+
+			<!-- Sidebar (1 col on desktop) -->
+			<aside class="profile-sidebar" aria-label="Profile sidebar">
+				<!-- Quick Stats Card -->
+				<section class="sidebar-card" aria-labelledby="stats-heading">
+					<h3 id="stats-heading" class="sidebar-title">
+						Quick Stats
+					</h3>
+					<div class="stats-grid" role="list">
+						<div class="stat-item" role="listitem">
+							<span
+								class="stat-value"
+								aria-label="Projects count">
+								--
+							</span>
+							<span class="stat-label">Projects</span>
+						</div>
+						<div class="stat-item" role="listitem">
+							<span class="stat-value" aria-label="Commits count">
+								--
+							</span>
+							<span class="stat-label">Commits</span>
+						</div>
+						<div class="stat-item" role="listitem">
+							<span
+								class="stat-value"
+								aria-label="Contributions count">
+								--
+							</span>
+							<span class="stat-label">Contributions</span>
+						</div>
+						<div class="stat-item" role="listitem">
+							<span
+								class="stat-value"
+								aria-label="Followers count">
+								--
+							</span>
+							<span class="stat-label">Followers</span>
+						</div>
+					</div>
+				</section>
+
+				<!-- Activity Card -->
+				<section
+					class="sidebar-card"
+					aria-labelledby="activity-heading">
+					<h3 id="activity-heading" class="sidebar-title">
+						Recent Activity
+					</h3>
+					<div class="activity-list">
+						<p class="activity-empty">
+							Sign in to view your activity
+						</p>
+					</div>
+				</section>
+
+				<!-- Quick Links Card -->
+				<section class="sidebar-card" aria-labelledby="links-heading">
+					<h3 id="links-heading" class="sidebar-title">
+						Quick Links
+					</h3>
+					<nav
+						class="quick-links"
+						aria-label="Quick navigation links">
+						<a href="/application" class="quick-link">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true">
+								<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z">
+								</path>
+							</svg>
+							<span>Applications</span>
+						</a>
+						<a href="/discord" class="quick-link">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true">
+								<path
+									d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2">
+								</path><circle cx="9" cy="7" r="4">
+								</circle><path d="M22 21v-2a4 4 0 0 0-3-3.87">
+								</path><path d="M16 3.13a4 4 0 0 1 0 7.75">
+								</path>
+							</svg>
+							<span>Discord Community</span>
+						</a>
+						<a href="/projects" class="quick-link">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true">
+								<polygon
+									points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+								</polygon>
+							</svg>
+							<span>Projects</span>
+						</a>
+					</nav>
+				</section>
+			</aside>
+		</div>
+	</div>
+</section>
+
+<style>
+	/* Skip link for accessibility */
+	.skip-to-content {
+		position: absolute;
+		left: -9999px;
+		top: 0;
+		z-index: 100;
+		padding: 0.75rem 1.25rem;
+		background: var(--sl-color-accent, #a78bfa);
+		color: white;
+		font-weight: 600;
+		text-decoration: none;
+		border-radius: 0 0 0.5rem 0;
+	}
+
+	.skip-to-content:focus {
+		left: 0;
+	}
+
+	.user-profile-wrapper {
+		background: transparent;
+		min-height: 100vh;
+		position: relative;
+		/* Break out of any parent container constraints */
+		width: 100vw;
+		margin-left: calc(-50vw + 50%);
+	}
+
+	/* Main content wrapper - sits on top of sticky parallax hero */
+	.profile-main-wrapper {
+		position: relative;
+		z-index: 1;
+		background: var(--sl-color-bg, #0a0a0a);
+		min-height: 100vh;
+		width: 100%;
+	}
+
+	/* Main content area */
+	.profile-content {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2rem 1rem;
+	}
+
+	.profile-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1.5rem;
+		width: 100%;
+	}
+
+	.profile-main {
+		display: flex;
+		justify-content: center;
+	}
+
+	.profile-sidebar {
+		display: none;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	/* Sidebar cards */
+	.sidebar-card {
+		background: linear-gradient(
+			180deg,
+			var(--sl-color-bg-nav, #111111) 0%,
+			var(--sl-color-bg-card, #161616) 100%
+		);
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		border-radius: 16px;
+		padding: 1.25rem;
+		box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+	}
+
+	.sidebar-title {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--sl-color-gray-3, #737373);
+		margin: 0 0 1rem;
+	}
+
+	/* Stats grid */
+	.stats-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 0.75rem;
+	}
+
+	.stat-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 0.625rem;
+		background: rgba(0, 0, 0, 0.2);
+		border-radius: 10px;
+		border: 1px solid var(--sl-color-gray-5, #262626);
+	}
+
+	.stat-value {
+		font-size: 1.25rem;
+		font-weight: 700;
+		color: var(--sl-color-accent, #a78bfa);
+	}
+
+	.stat-label {
+		font-size: 0.625rem;
+		color: var(--sl-color-gray-3, #737373);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	/* Activity */
+	.activity-list {
+		min-height: 4rem;
+	}
+
+	.activity-empty {
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-3, #737373);
+		text-align: center;
+		padding: 1rem 0;
+		margin: 0;
+	}
+
+	/* Quick links */
+	.quick-links {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.quick-link {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 0.75rem 1rem;
+		background: rgba(0, 0, 0, 0.2);
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		border-radius: 10px;
+		color: var(--sl-color-text, #f5f5f5);
+		text-decoration: none;
+		font-size: 0.875rem;
+		transition: all 0.2s ease;
+	}
+
+	.quick-link:hover,
+	.quick-link:focus {
+		background: rgba(167, 139, 250, 0.1);
+		border-color: var(--sl-color-accent, #a78bfa);
+		color: var(--sl-color-accent, #a78bfa);
+	}
+
+	.quick-link svg {
+		color: var(--sl-color-gray-3, #737373);
+		transition: color 0.2s ease;
+		flex-shrink: 0;
+	}
+
+	.quick-link:hover svg,
+	.quick-link:focus svg {
+		color: var(--sl-color-accent, #a78bfa);
+	}
+
+	/* Focus styles for a11y */
+	.quick-link:focus-visible,
+	.sidebar-card:focus-within {
+		outline: 2px solid var(--sl-color-accent, #a78bfa);
+		outline-offset: 2px;
+	}
+
+	/* Tablet and up: Show sidebar */
+	@media (min-width: 768px) {
+		.profile-content {
+			padding: 2rem 1.5rem;
+		}
+
+		.profile-grid {
+			grid-template-columns: minmax(320px, 560px) 1fr;
+			align-items: start;
+		}
+
+		.profile-main {
+			justify-content: flex-start;
+		}
+
+		.profile-sidebar {
+			display: flex;
+		}
+	}
+
+	/* Large desktop: Better proportions */
+	@media (min-width: 1024px) {
+		.profile-grid {
+			grid-template-columns: 560px 1fr;
+			gap: 2rem;
+		}
+	}
+
+	/* Reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		.quick-link {
+			transition: none;
+		}
+	}
+</style>

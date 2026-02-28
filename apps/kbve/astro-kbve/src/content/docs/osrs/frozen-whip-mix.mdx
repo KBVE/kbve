@@ -1,0 +1,95 @@
+---
+title: Frozen whip mix | OSRS Price Data
+description: "Frozen whip mix is a members none slot item. High alch: 1 GP, GE limit: 4."
+osrs:
+  id: 12769
+  name: Frozen whip mix
+  slug: frozen-whip-mix
+  examine: Cold to the touch.
+  members: true
+  icon: Frozen whip mix.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 4
+  equipment:
+    slot: none
+    weight: 0.001
+  drop_table:
+    primary_source: Last Man Standing shop
+    best_drop_rate: N/A
+    sources:
+      - source: Justine's stuff for the Last Shopper Standing
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: shop
+        drop_rate: 25 LMS points
+  related_items:
+    - item_id: 12771
+      item_name: Volcanic whip mix
+      slug: volcanic-whip-mix
+      relationship: alternative
+      description: Red whip cosmetic variant
+    - item_id: 4151
+      item_name: Abyssal whip
+      slug: abyssal-whip
+      relationship: component
+      description: Required base weapon
+    - item_id: 4179
+      item_name: Frozen abyssal whip
+      slug: frozen-abyssal-whip
+      relationship: upgrade
+      description: Final frozen whip product
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Purchased from Justine's stuff for the Last Shopper Standing.
+
+**Cost:** 25 Last Man Standing points
+
+**Location:** Last Man Standing lobby
+
+## Usage
+
+**Creates Frozen abyssal whip:**
+- Use on Abyssal whip
+- Purely cosmetic change (blue/ice color)
+- Stats remain identical to regular whip
+
+**Reversible:**
+- Can be reverted at any time
+- Returns whip mix when removed
+
+## Market Strategy
+
+**Buy Limit:** 4 per 4 hours
+
+**Tips:**
+- Cosmetic item only
+- Popular for fashion
+- Requires LMS gameplay to obtain directly
+- Alternative: Buy from GE
+
+<Adsense />

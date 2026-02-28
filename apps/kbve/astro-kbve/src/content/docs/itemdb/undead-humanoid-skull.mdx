@@ -1,0 +1,129 @@
+---
+title: 'Undead Humanoid Skull'
+description: |
+    The cranium of a fallen being, drained of soul but rich in residue.
+    Still warm in places it shouldn’t be.
+id: 'undead-humanoid-skull'
+key: 10
+ref: '01J2GHZQ9CXY89NB7NS5Q2DRSK'
+name: 'Undead Humanoid Skull'
+type: 'Material'
+category: 398
+img: '/assets/items/set/bones/undead_humanoid_skull.png'
+pixelDensity: 32
+sortingLayer: Ground
+sortingOrder: 35
+consumable: false
+stackable: true
+rarity: 'Uncommon'
+weight: 2.3
+effects: 'Used in necromantic rituals, dark crafting, or calcium-based agriculture.'
+price: 220
+durability: 666
+equipped: false
+levelRequirement: 3
+cooldown: 0
+action: 'ritual'
+credits: |
+    Commonly found in cursed lands or battlefield remnants. Asset by CraftPix (https://free-game-assets.itch.io/free-undead-loot-pixel-art-icons).
+bonuses:
+    necroAffinity: true
+    boneDustYield: 5
+    ritualPower: 0.4
+scripts:
+    - guid: 'ae331c1f28b94be2afdabf3e5b82d992'
+      vars:
+            yieldType: 'bone_dust'
+            yieldAmount: 5
+            ritualPower: 0.4
+            necroTrigger: true
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Undead Humanoid Skull** is more than just a grim trophy, it carries echoes of its former life, and residue of the energy that reanimated it.
+Alchemists grind it into powder for calcium-rich plant accelerants. 
+Necromancers use it as a sympathetic focus to channel spirits long severed from flesh.
+
+Some whisper that in the right soil, with the right words, it grows more skulls.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+<Adsense />
+
+## Usage
+
+- Yields **{frontmatter.bonuses.boneDustYield} bone dust** per grind
+- Boosts **ritual power** by {frontmatter.bonuses.ritualPower * 100}%
+- Compatible with **necromantic catalysts** and **fungal soil treatments**
+- Cooldown: None - passive material
+
+---
+
+## Harvesting
+
+Usually obtained from **undead humanoids**, such as cursed villagers, revenants, or failed experiments. 
+Must be collected before the corpse dissolves into ash.
+
+---
+
+## Lore
+
+> “Skulls are strange. You’d think they’re dead.  
+> But when the moon’s wrong, and the dirt’s fresh…  
+> They listen.”
+
+Some say the skulls hum in unison beneath certain ruins. 
+Scholars call it subsonic resonance; cultists call it the `Choir of the Bone`.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/skull_altar.webp"
+  defaultId="01HTXYZSKL001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZSKL001',
+      title: 'Bone Garden',
+      description: 'You find a mound of skulls arranged like crop rows.',
+      image: 'https://images.unsplash.com/photo-1587929651402-63c0fe2e8752?q=80&w=500&auto=format&fit=crop',
+      message: 'Each skull has a carved rune. They hum as one.',
+      choices: [
+        { label: 'Harvest them.', nextId: '01HTXYZSKL002' },
+        { label: 'Leave the formation.', nextId: '01HTXYZSKL003' }
+      ]
+    },
+    {
+      id: '01HTXYZSKL002',
+      title: 'Disturbance',
+      description: 'As you lift the first skull, the others shift.',
+      image: '/images/scene_skullmove.jpg',
+      message: 'A hand breaks through the soil. Then another.'
+    },
+    {
+      id: '01HTXYZSKL003',
+      title: 'Unbroken Silence',
+      description: 'The humming fades as you walk away.',
+      image: '/images/scene_skullrest.jpg',
+      message: 'But the feeling of being watched lingers.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/27/2025 – Ritual and agricultural properties documented for Undead Humanoid Skull

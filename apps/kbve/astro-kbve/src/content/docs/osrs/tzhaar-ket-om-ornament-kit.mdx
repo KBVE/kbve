@@ -1,0 +1,37 @@
+---
+title: Tzhaar-ket-om ornament kit | OSRS Price Data
+description: "Tzhaar-ket-om ornament kit: Use on the TzHaar-ket-om to trim and spike it.. High alch: 3,000 GP, GE limit: 4."
+osrs:
+  id: 23232
+  name: Tzhaar-ket-om ornament kit
+  slug: tzhaar-ket-om-ornament-kit
+  examine: Use on the TzHaar-ket-om to trim and spike it.
+  members: true
+  icon: Tzhaar-ket-om ornament kit.png
+  value: 5000
+  lowalch: 2000
+  highalch: 3000
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

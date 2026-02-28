@@ -1,0 +1,37 @@
+---
+title: Twisted coat (t2) | OSRS Price Data
+description: "Twisted coat (t2): The coat of a twisted relic hunter.. High alch: 6,000 GP, GE limit: 5."
+osrs:
+  id: 24399
+  name: Twisted coat (t2)
+  slug: twisted-coat-t2
+  examine: The coat of a twisted relic hunter.
+  members: true
+  icon: Twisted coat (t2).png
+  value: 10000
+  lowalch: 4000
+  highalch: 6000
+  limit: 5
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

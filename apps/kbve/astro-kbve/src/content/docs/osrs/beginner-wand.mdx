@@ -1,0 +1,37 @@
+---
+title: Beginner wand | OSRS Price Data
+description: "Beginner wand: A beginner level wand.. High alch: 720 GP, GE limit: 125."
+osrs:
+  id: 6908
+  name: Beginner wand
+  slug: beginner-wand
+  examine: A beginner level wand.
+  members: true
+  icon: Beginner wand.png
+  value: 1200
+  lowalch: 480
+  highalch: 720
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,126 @@
+---
+title: Raw swordfish | OSRS Price Data
+description: "Raw swordfish: I should try cooking this.. High alch: 48 GP, GE limit: 15,000."
+osrs:
+  id: 371
+  name: Raw swordfish
+  slug: raw-swordfish
+  examine: I should try cooking this.
+  members: false
+  icon: Raw swordfish.png
+  value: 80
+  lowalch: 32
+  highalch: 48
+  limit: 15000
+  material:
+    type: raw_fish
+    tier: mid
+  fishing:
+    level: 50
+    xp: 100
+    method: Harpoon
+    locations:
+      - Catherby
+      - Fishing Guild
+      - Musa Point
+  cooking:
+    level: 45
+    xp: 140
+    stop_burn_level: 86
+    stop_burn_level_gauntlets: 76
+    product_id: 373
+    product_name: Swordfish
+  recipes:
+    - skill: cooking
+      level: 45
+      xp: 140
+      materials:
+        - item_name: Raw swordfish
+          item_id: 371
+          quantity: 1
+      product: Swordfish
+      product_id: 373
+      product_quantity: 1
+      facility: Fire or range
+  related_items:
+    - item_id: 373
+      item_name: Swordfish
+      slug: swordfish
+      relationship: product
+      description: Cooked version (heals 14 HP)
+    - item_id: 383
+      item_name: Raw shark
+      slug: raw-shark
+      relationship: upgrade
+      description: Higher tier fish
+    - item_id: 359
+      item_name: Raw tuna
+      slug: raw-tuna
+      relationship: downgrade
+      description: Lower tier fish
+    - item_id: 311
+      item_name: Harpoon
+      slug: harpoon
+      relationship: alternative
+      description: Fishing tool
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Method | Level | XP |
+|--------|-------|-----|
+| Harpoon fishing | 50 Fishing | 100 |
+| Drift net fishing | 44 Fishing | Variable |
+| Tempoross | 35 Fishing | Variable |
+
+## Cooking
+
+| Requirement | Value |
+|-------------|-------|
+| Cooking Level | 45 |
+| XP per fish | 140 |
+| Stop burning | 86 (76 with gauntlets) |
+| Heals | 14 HP |
+
+## Market Flip Strategy
+
+**Popular Mid-Tier Fish:**
+- Solid healing food
+- F2P staple
+- Good Cooking XP
+
+**Buy Limit:** 15,000 per 4 hours
+
+**Demand Drivers:**
+- Combat training
+- F2P PvM/PvP
+- Mid-level healing
+- Cooking training
+
+**Tips:**
+- Burns until high Cooking
+- Cooking gauntlets essential
+- Popular F2P food
+- Caught alongside tuna
+
+<Adsense />

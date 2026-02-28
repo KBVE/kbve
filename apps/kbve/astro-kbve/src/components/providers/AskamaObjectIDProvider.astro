@@ -1,0 +1,156 @@
+---
+// AskamaObjectIDProvider - Mirrors the Askama debug_object.html template
+// This component renders the same structure that the Axum server uses
+const rawHTMLString = `
+<style>
+    body {
+        font-family: 'Courier New', monospace;
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+        padding: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    h1 {
+        color: #4CAF50;
+        border-bottom: 2px solid #4CAF50;
+        padding-bottom: 10px;
+    }
+    .section {
+        background-color: #2a2a2a;
+        border-left: 4px solid #4CAF50;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+    }
+    .section h2 {
+        margin-top: 0;
+        color: #64B5F6;
+    }
+    .property {
+        display: flex;
+        padding: 8px 0;
+        border-bottom: 1px solid #3a3a3a;
+    }
+    .property:last-child {
+        border-bottom: none;
+    }
+    .key {
+        font-weight: bold;
+        color: #FFA726;
+        min-width: 200px;
+    }
+    .value {
+        color: #AED581;
+    }
+    .vector {
+        font-family: monospace;
+        background-color: #1e1e1e;
+        padding: 4px 8px;
+        border-radius: 3px;
+    }
+    .highlight {
+        color: #FFD54F;
+        font-weight: bold;
+    }
+    a {
+        color: #64B5F6;
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+    .back-link {
+        display: inline-block;
+        margin-bottom: 20px;
+        padding: 8px 16px;
+        background-color: #424242;
+        border-radius: 4px;
+    }
+</style>
+
+<a href="/" class="back-link" data-astro-prefetch>← Back to Home</a>
+
+<h1>Environment Object Debug</h1>
+
+<div class="section">
+    <h2>Identity</h2>
+    <div class="property">
+        <span class="key">Object ID:</span>
+        <span class="value highlight">{{ object_id }}</span>
+    </div>
+    <div class="property">
+        <span class="key">Asset Name:</span>
+        <span class="value">{{ asset_name }}</span>
+    </div>
+    <div class="property">
+        <span class="key">Object Type:</span>
+        <span class="value">{{ object_type }}</span>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Transform</h2>
+    <div class="property">
+        <span class="key">Position:</span>
+        <span class="value vector">x: {{ position_x }}, y: {{ position_y }}, z: {{ position_z }}</span>
+    </div>
+    <div class="property">
+        <span class="key">Rotation (Quaternion):</span>
+        <span class="value vector">x: {{ rotation_x }}, y: {{ rotation_y }}, z: {{ rotation_z }}, w: {{ rotation_w }}</span>
+    </div>
+    <div class="property">
+        <span class="key">Scale:</span>
+        <span class="value vector">x: {{ scale_x }}, y: {{ scale_y }}, z: {{ scale_z }}</span>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Resource Data</h2>
+    <div class="property">
+        <span class="key">Resource Type:</span>
+        <span class="value">{{ resource_type }}</span>
+    </div>
+    <div class="property">
+        <span class="key">Resource Amount:</span>
+        <span class="value">{{ resource_amount }}</span>
+    </div>
+    <div class="property">
+        <span class="key">Harvest Time:</span>
+        <span class="value">{{ harvest_time }}s</span>
+    </div>
+    <div class="property">
+        <span class="key">Is Harvested:</span>
+        <span class="value">{{ is_harvested }}</span>
+    </div>
+    <div class="property">
+        <span class="key">Harvested At:</span>
+        <span class="value">{{ harvested_at }}</span>
+    </div>
+    <div class="property">
+        <span class="key">Respawn Time:</span>
+        <span class="value">{{ respawn_time_seconds }}s</span>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Quick Analysis</h2>
+    <div class="property">
+        <span class="key">Y Position (Terrain Height):</span>
+        <span class="value highlight">{{ position_y }}</span>
+    </div>
+    <div class="property">
+        <span class="key">Scale Y Multiplier:</span>
+        <span class="value highlight">{{ scale_y }}</span>
+    </div>
+    {% if has_scale_note %}
+    <div class="property">
+        <span class="key">Note:</span>
+        <span class="value">{{ scale_note }}</span>
+    </div>
+    {% endif %}
+</div>
+`;
+---
+
+<Fragment set:html={rawHTMLString} />

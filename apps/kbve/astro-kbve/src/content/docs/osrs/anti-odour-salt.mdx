@@ -1,0 +1,37 @@
+---
+title: Anti-odour salt | OSRS Price Data
+description: "Anti-odour salt: A special salt used by experienced hunters to remove their sent from traps.. High alch: 6 GP."
+osrs:
+  id: 31712
+  name: Anti-odour salt
+  slug: anti-odour-salt
+  examine: A special salt used by experienced hunters to remove their sent from traps.
+  members: true
+  icon: Anti-odour salt.png
+  value: 11
+  lowalch: 4
+  highalch: 6
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

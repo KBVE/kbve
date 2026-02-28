@@ -1,0 +1,100 @@
+---
+title: Rune essence | OSRS Price Data
+description: "Rune essence: An unimbued rune.. High alch: 2 GP, GE limit: 20,000."
+osrs:
+  id: 1436
+  name: Rune essence
+  slug: rune-essence
+  examine: An unimbued rune.
+  members: false
+  icon: Rune essence.png
+  value: 4
+  lowalch: 1
+  highalch: 2
+  limit: 20000
+  item:
+    type: material
+    tradeable: true
+  recipes:
+    - skill: runecraft
+      level: 1
+      xp: 5
+      materials:
+        - item_id: 1436
+          item_name: Rune essence
+          quantity: 1
+      product: Elemental runes
+      product_id: 0
+  related_items:
+    - item_id: 7936
+      item_name: Pure essence
+      slug: pure-essence
+      relationship: upgrade
+      description: Members upgrade for more rune types
+    - item_id: 556
+      item_name: Air rune
+      slug: air-rune
+      relationship: product
+      description: Crafted product
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Runecraft Material |
+| Tradeable | Yes |
+| Weight | 0.002 kg |
+| Requirements | Rune Mysteries quest |
+
+## Obtaining
+
+**Mining:** Mine at Rune Essence mine (1 Mining, 5 XP).
+
+**Shop:** Dom Onion's Reward Shop (60 gp).
+
+**Drops:** Ankou, minotaur, catablepon.
+
+## Usage
+
+Used to craft elemental runes (air, water, earth, fire).
+
+Free-to-play runecrafting material.
+
+Members get pure essence at 30+ Mining instead.
+
+## Market Strategy
+
+**Buy Limit:** 20,000 per 4 hours
+
+**Price:** ~12 gp
+
+Low value. F2P runecrafting material.
+
+## Related Items
+
+- [Pure essence](/osrs/pure-essence/) - Members upgrade
+- [Air rune](/osrs/air-rune/) - Crafted product
+
+<Adsense />

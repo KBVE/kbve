@@ -1,0 +1,37 @@
+---
+title: Adamant knife(p++) | OSRS Price Data
+description: "Adamant knife(p++): A finely balanced throwing knife.. High alch: 39 GP, GE limit: 7,000."
+osrs:
+  id: 5666
+  name: Adamant knife(p++)
+  slug: adamant-knife-p
+  examine: A finely balanced throwing knife.
+  members: true
+  icon: Adamant knife(p++).png
+  value: 66
+  lowalch: 26
+  highalch: 39
+  limit: 7000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

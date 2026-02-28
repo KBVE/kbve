@@ -1,0 +1,134 @@
+---
+title: Rune boots | OSRS Price Data
+description: "Rune boots is a members feet slot item. High alch: 7,500 GP, GE limit: 70."
+osrs:
+  id: 4131
+  name: Rune boots
+  slug: rune-boots
+  examine: These will protect my feet.
+  members: true
+  icon: Rune boots.png
+  value: 12500
+  lowalch: 5000
+  highalch: 7500
+  limit: 70
+  equipment:
+    slot: feet
+    type: melee_boots
+    stats:
+      defence_stab: 9
+      defence_slash: 10
+      defence_crush: 11
+  drop_table:
+    primary_source: Nechryael
+    best_drop_rate: 1/128
+    sources:
+      - source: Nechryael
+        source_id: 8
+        combat_level: 115
+        quantity: "1"
+        rarity: 1/128
+        members_only: true
+      - source: Greater Nechryael
+        source_id: 7411
+        combat_level: 200
+        quantity: "1"
+        rarity: 1/128
+        members_only: true
+      - source: Greater Nechryael (Catacombs)
+        source_id: 7278
+        combat_level: 200
+        quantity: "1"
+        rarity: 1/128
+        members_only: true
+  related_items:
+    - item_id: 11840
+      item_name: Dragon boots
+      slug: dragon-boots
+      relationship: upgrade
+      description: Better melee boots with strength bonus
+    - item_id: 21643
+      item_name: Granite boots
+      slug: granite-boots
+      relationship: upgrade
+      description: Better defensive boots
+    - item_id: 2577
+      item_name: Ranger boots
+      slug: ranger-boots
+      relationship: alternative
+      description: Best-in-slot ranged boots
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Feet |
+| Type | Armor |
+| Tradeable | Yes |
+| Weight | 1 kg |
+
+## Obtaining
+
+Drop from Nechryael in Slayer dungeons.
+
+**Requirements:** 80 Slayer to kill Nechryael
+
+**Locations:**
+- Slayer Tower
+- Catacombs of Kourend
+
+| Monster | Drop Rate |
+|---------|-----------|
+| Nechryael | 1/128 |
+| Greater Nechryael | 1/128 |
+
+## Stats
+
+| Defence | Value |
+|---------|-------|
+| Stab | +9 |
+| Slash | +10 |
+| Crush | +11 |
+
+**Requirements:** None
+
+## Usage
+
+Budget boots used for:
+- Iron accounts before Dragon boots
+- Low-level melee setups
+- F2P-style builds (still members only)
+
+**No requirements make them accessible to any account.**
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Tips:**
+- Very affordable
+- Used mainly by early-game ironmen
+- Outclassed by Dragon boots in most scenarios
+
+<Adsense />

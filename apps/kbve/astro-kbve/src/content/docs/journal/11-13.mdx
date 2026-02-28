@@ -1,0 +1,52 @@
+---
+title: 'November: 13th'
+category: Daily
+date: 2024-11-13 12:00:00
+client: Self
+unsplash: 1729691692870-a957012d616a
+img: https://images.unsplash.com/photo-1729691692870-a957012d616a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: November 13th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2024
+
+-   06:15AM
+
+    **Hooks**
+
+    We are going to migrate in the different hooks to help streamline the app development.
+    Here is the list again of the new hooks that we want to add:
+
+    -   `useIdleCallback`
+    -   `useCache`
+    -   `useMemory`
+    -   `useLazyMemory`
+    -   `useOffScreen`
+    -   `useVirtual`
+
+    These hooks can then be used in the [Register/Onboard page](https://github.com/KBVE/kbve/issues/2212).
+
+    All of these hooks have to be built in a way that will ensure that they can work in both mobile and web, so there might be a bit of a nested ifs to handle the different platforms.
+    This feels like we are moving closer to our own useless million concept, but its okay, that is part of the learning process.
+
+    Okay let me first tackle the `useCache` and the `useIdleCallback` for the `expo-bbq`.
+    We will create both files under the `/packages/expo-bbq/src/core`
+
+-   04:00PM
+
+    **SpaceEngineer**
+
+    Playing a bunch of Space Engineer with the boys, while trying to get a better understanding of custom hooks within the React/ReactNative realm.
+    My goal will be to eventually get to `useWASM()` hook, that would automatically wrap a wasm with the right parameters to be used for both web and mobile.
+    However there will be a long time until I get to a working demo of the hook.
+
+-   11:50PM
+
+    **TrueDetective**
+
+    The first season of true detective, oh man is it so good!
+    I forgot how amazing this season was, it is a master piece of art.

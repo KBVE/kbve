@@ -1,0 +1,131 @@
+---
+title: "Ed's Jelly Jam"
+description: |
+    Jar of rich, purple jelly jam made from mysterious grapes and questionable sugar ratios.
+    Sweet, strange, and wildly energizing.
+id: 'eds-jelly-jam'
+key: 41
+ref: '01J2GHZQ9CXY89NB7NS5Q2DRJJ'
+name: "Ed's Jelly Jam"
+type: 'Food'
+category: 392
+img: '/assets/items/skills/cooking/materials/sauce/eds_jelly_jam.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 49
+consumable: true
+stackable: true
+rarity: 'Uncommon'
+weight: 0.5
+effects: 'Restores energy, improves sugar-tolerance, and makes you jittery.'
+price: 88
+durability: 1
+equipped: false
+levelRequirement: 0
+cooldown: 30
+action: 'consume'
+credits: |
+    Originally concocted by Ed and Art by KBVE Pixel Workshop.
+bonuses:
+    energy: 30
+    speed: 2
+    sugarSync: true
+scripts:
+    - guid: '3af2a457d47b42ba845f3e9f5ff23192'
+      vars:
+            energyBoost: 30
+            speedModifier: 2
+            sugarBuff: true
+            duration: 90
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+**Ed's Jelly Jam** is a syrupy, chaotic spread known for waking people up and confusing small machines.
+Slather it on bread, drop it into a stew, or sip it like forbidden wine.
+
+It's sticky and energetic, hint of flora and hibiscus, then you know it's Eddies.
+
+Made in a solar-powered food truck from synthetic grapes or whatever was growing near the anomaly field.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+<Adsense />
+
+## Usage
+
+- Restores **{frontmatter.bonuses.energy} energy**  
+- Increases **speed by {frontmatter.bonuses.speed}** for **{frontmatter.scripts[0].vars.duration} seconds**  
+- Grants temporary **sugar synchronization** with glitchy devices  
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Notes
+
+- May attract *jammites* if consumed near tech  
+- Can be used in snack-crafting (e.g. *PB&J Quantum Bars*)  
+- Overconsumption may lead to wild bouncing
+
+---
+
+## Lore
+
+> “Ed never wrote down the recipe. Claimed it came to him in a sugar dream during the jellyquake.”  
+> - Notes from the Jam Manifesto, Volume 2
+
+Legends say Ed once powered a motorbike with this jam.
+No one has disproven it.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/jam_burst.webp"
+  defaultId="01HTXYZJAM001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZJAM001',
+      title: 'Spread the Jam',
+      description: 'You twist the cap. A sugary vapor escapes.',
+      image: 'https://images.unsplash.com/photo-1600855922323-dfa523c5b78f?q=80&w=500&auto=format&fit=crop',
+      message: 'Your heart beats in triple time.',
+      choices: [
+        { label: 'Eat a spoonful.', nextId: '01HTXYZJAM002' },
+        { label: 'Smear on bread.', nextId: '01HTXYZJAM003' }
+      ]
+    },
+    {
+      id: '01HTXYZJAM002',
+      title: 'Jam Rush',
+      description: 'You vibrate with fruity purpose.',
+      image: '/images/scene_jam_burst.jpg',
+      message: 'You feel unstoppable. And sticky.'
+    },
+    {
+      id: '01HTXYZJAM003',
+      title: 'Snack Boost',
+      description: 'The flavor is cosmic.',
+      image: '/images/scene_jam_toast.jpg',
+      message: 'You feel nourished… and slightly chaotic.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/30/2025 - Ed's Jelly Jam added as energy-boosting food with speed buff and sugar-related scripting interaction

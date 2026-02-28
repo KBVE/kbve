@@ -1,0 +1,37 @@
+---
+title: Calquat tree seed | OSRS Price Data
+description: "Calquat tree seed: Plant in a plantpot of soil to grow a sapling.. High alch: 204 GP, GE limit: 200."
+osrs:
+  id: 5290
+  name: Calquat tree seed
+  slug: calquat-tree-seed
+  examine: Plant in a plantpot of soil to grow a sapling.
+  members: true
+  icon: Calquat tree seed 5.png
+  value: 340
+  lowalch: 136
+  highalch: 204
+  limit: 200
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

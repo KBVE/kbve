@@ -1,0 +1,123 @@
+---
+title: Black dragon leather | OSRS Price Data
+description: "Black dragon leather: It's a piece of prepared black dragonhide.. High alch: 66 GP, GE limit: 11,000."
+osrs:
+  id: 2509
+  name: Black dragon leather
+  slug: black-dragon-leather
+  examine: It's a piece of prepared black dragonhide.
+  members: true
+  icon: Black dragon leather.png
+  value: 110
+  lowalch: 44
+  highalch: 66
+  limit: 11000
+  material:
+    type: leather
+    tier: highest
+  tanning:
+    cost: 20
+    source_id: 1747
+    source_name: Black dragonhide
+  crafting_products:
+    - product: Black d'hide vambraces
+      product_id: 2491
+      level: 79
+      xp: 86
+      leather: 1
+    - product: Black d'hide chaps
+      product_id: 2497
+      level: 82
+      xp: 172
+      leather: 2
+    - product: Black d'hide shield
+      product_id: 2503
+      level: 83
+      xp: 172
+      leather: 2
+    - product: Black d'hide body
+      product_id: 2503
+      level: 84
+      xp: 258
+      leather: 3
+  related_items:
+    - item_id: 1747
+      item_name: Black dragonhide
+      slug: black-dragonhide
+      relationship: component
+      description: Raw material
+    - item_id: 2503
+      item_name: Black d'hide body
+      slug: black-dhide-body
+      relationship: product
+      description: Main product
+    - item_id: 2507
+      item_name: Red dragon leather
+      slug: red-dragon-leather
+      relationship: alternative
+      description: Lower tier
+    - item_id: 2505
+      item_name: Blue dragon leather
+      slug: blue-dragon-leather
+      relationship: alternative
+      description: Lower tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Method | Cost |
+|--------|------|
+| Tanner | 20 GP + Black dragonhide |
+| Tan Leather spell | 78 Magic, runes |
+
+## Crafting
+
+| Product | Level | Leather | XP |
+|---------|-------|---------|-----|
+| Black d'hide vambraces | 79 | 1 | 86 |
+| Black d'hide chaps | 82 | 2 | 172 |
+| Black d'hide shield | 83 | 2 | 172 |
+| Black d'hide body | 84 | 3 | 258 |
+
+## Market Flip Strategy
+
+**High-Tier Crafting Material:**
+- Best dragonhide leather
+- Good Crafting XP
+- Tan Leather profit
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Crafting training
+- D'hide armor production
+- Tan Leather profit
+- High alch targets
+
+**Tips:**
+- Tan Leather spell efficient
+- 20 GP tanner fee
+- Black dragons drop hide
+- Bodies best XP
+
+<Adsense />

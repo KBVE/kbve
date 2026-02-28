@@ -1,0 +1,119 @@
+---
+title: Black d'hide body (g) | OSRS Price Data
+description: "Black d'hide body (g) is a members body slot item requiring 40 Defence. High alch: 8,088 GP, GE limit: 8."
+osrs:
+  id: 12381
+  name: Black d'hide body (g)
+  slug: black-d-hide-body-g
+  examine: Made from 100% real dragonhide. With colourful trim!
+  members: true
+  icon: Black d'hide body (g).png
+  value: 13480
+  lowalch: 5392
+  highalch: 8088
+  limit: 8
+  equipment:
+    slot: body
+    type: ranged_armour
+    tradeable: true
+    weight: 5.4
+    requirements:
+      ranged: 40
+      defence: 40
+    stats:
+      attack_ranged: 15
+      defence_stab: 40
+      defence_slash: 32
+      defence_crush: 45
+      defence_magic: 50
+      defence_ranged: 40
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Hard
+        drop_rate: Rare from reward casket
+  related_items:
+    - item_id: 12383
+      item_name: Black d'hide chaps (g)
+      slug: black-dhide-chaps-g
+      relationship: set-piece
+      description: Matching legs
+    - item_id: 2503
+      item_name: Black d'hide body
+      slug: black-dhide-body
+      relationship: downgrade
+      description: Non-gilded version
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Body |
+| Type | Ranged Armour |
+| Tradeable | Yes |
+| Weight | 5.4 kg |
+
+## Obtaining
+
+Reward from hard Treasure Trails.
+
+**Drop Rate:** Rare from reward casket (hard)
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Ranged attack | +15 |
+
+| Defence | Value |
+|---------|-------|
+| Stab | +40 |
+| Slash | +32 |
+| Crush | +45 |
+| Magic | +50 |
+| Ranged | +40 |
+
+**Requirements:** 40 Ranged, 40 Defence
+
+## Comparison
+
+Same stats as regular black d'hide body with gold trim cosmetic.
+
+| Property | Black d'hide body | Black d'hide body (g) |
+|----------|-------------------|----------------------|
+| Stats | Same | Same |
+| Appearance | Normal | Gold trimmed |
+| Source | Crafting | Hard clue |
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Hard clue exclusive
+- Purely cosmetic upgrade
+- Collection log item
+- Fashionscape value
+
+<Adsense />

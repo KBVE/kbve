@@ -1,0 +1,62 @@
+---
+title: 'November: 12th'
+category: Daily
+date: 2024-11-12 12:00:00
+client: Self
+unsplash: 1729691692870-a957012d616a
+img: https://images.unsplash.com/photo-1729691692870-a957012d616a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: November 12th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2024
+
+-   05:15AM
+
+    **Early**
+
+    Nothing feels so great like a great new day!
+    Today is going to be a big day, I am going to go ham with the publishing and see if I can resolve a bunch of abstract bugs.
+    Ugh, I went to check if I had react hook form and the resolves installed and I completely forgot that I did!
+    We really need to make sure our package json is cleaned up and ready for these future updates.
+
+    Let me start by making more issue tickets with things that I need to resolve.
+    The joys of waking up early and running the greatest command.
+
+    ```shell
+
+    ./kbve.sh -nx expo-lcagents:start
+    
+    ```
+
+-   06:28PM
+
+    **EXPO**
+
+    The next plan is to adjust the error situation because it seems that the error is not passing up.
+    Which means that we have two additional options, one being using an event system and the other using a worklet, hmm, maybe a combo of both?
+    Lets go ahead and tackle this right now before I forgot.
+
+    There are six areas that we need to test out, the first is improving the memo utilization and memory usage.
+    React should be able to handle the memory management, but we should look at maybe adding our own ways to make this easier, hmm.
+    The second part was the `React.lazy` and having it help us offset some of the loading of the more complex animations and components, I suppose that can be used with our offscreen objects.
+    The third part would be the `React Context API` but that might be too much of an issue for us to utilize right now, but it does make sense to have it pass some objects.
+    The fourth part will be having the useTransitions to help smooth out the hicups and then there are the other additional libraries, ugh!
+    I need to becareful not to bloat up the application as well, maybe we can keep these noted and tackle the optimization later on.
+    
+    So the goal would be to build these components out:
+
+    -   `useIdleCallback`
+    -   `useCache`
+    -   `useMemory`
+    -   `useLazyMemory`
+    -   `useOffScreen`
+    -   `useVirtual`
+
+    All of them can then be placed into the `core` of our expo package, making it so that we can use them in the future to help us handle some of the future issues that will require optimization.
+    
+
+<Adsense />

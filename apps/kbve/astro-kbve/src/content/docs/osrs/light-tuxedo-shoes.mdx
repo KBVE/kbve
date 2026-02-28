@@ -1,0 +1,37 @@
+---
+title: Light tuxedo shoes | OSRS Price Data
+description: "Light tuxedo shoes: Light shoes to match your light tuxedo.. High alch: 1,800 GP, GE limit: 4."
+osrs:
+  id: 19982
+  name: Light tuxedo shoes
+  slug: light-tuxedo-shoes
+  examine: Light shoes to match your light tuxedo.
+  members: true
+  icon: Light tuxedo shoes.png
+  value: 3000
+  lowalch: 1200
+  highalch: 1800
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

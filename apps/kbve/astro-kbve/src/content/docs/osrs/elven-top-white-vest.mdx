@@ -1,0 +1,37 @@
+---
+title: Elven top (white vest) | OSRS Price Data
+description: "Elven top (white vest): Clothing from the elven city of Prifddinas.. High alch: 3,000 GP."
+osrs:
+  id: 24027
+  name: Elven top (white vest)
+  slug: elven-top-white-vest
+  examine: Clothing from the elven city of Prifddinas.
+  members: false
+  icon: Elven top (white vest).png
+  value: 5000
+  lowalch: 2000
+  highalch: 3000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

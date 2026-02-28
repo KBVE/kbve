@@ -1,0 +1,37 @@
+---
+title: Grey wolf fur | OSRS Price Data
+description: "Grey wolf fur: This would make warm clothing.. High alch: 30 GP, GE limit: 18,000."
+osrs:
+  id: 958
+  name: Grey wolf fur
+  slug: grey-wolf-fur
+  examine: This would make warm clothing.
+  members: true
+  icon: Grey wolf fur.png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: 18000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

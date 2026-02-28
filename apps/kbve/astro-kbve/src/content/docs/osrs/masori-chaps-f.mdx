@@ -1,0 +1,127 @@
+---
+title: Masori chaps (f) | OSRS Price Data
+description: "Masori chaps (f) is a members legs slot item requiring 80 Defence. High alch: 780,000 GP, GE limit: 8."
+osrs:
+  id: 27241
+  name: Masori chaps (f)
+  slug: masori-chaps-f
+  examine: Fortified armour once worn by a powerful ranger.
+  members: true
+  icon: Masori chaps (f).png
+  value: 1300000
+  lowalch: 520000
+  highalch: 780000
+  limit: 8
+  equipment:
+    slot: legs
+    type: ranged_armour
+    requirements:
+      ranged: 80
+      defence: 80
+    stats:
+      defence_stab: 35
+      defence_slash: 30
+      defence_crush: 39
+      defence_magic: 46
+      defence_ranged: 37
+      attack_ranged: 27
+      ranged_strength: 2
+      prayer: 1
+  recipes:
+    - skill: crafting
+      level: 90
+      xp: 830
+      materials:
+        - item_name: Masori chaps
+          item_id: 27232
+          quantity: 1
+        - item_name: Armadylean plate
+          item_id: 27232
+          quantity: 1
+      product: Masori chaps (f)
+      product_id: 27241
+      product_quantity: 1
+      facility: Hammer
+      members_only: true
+  related_items:
+    - item_id: 27235
+      item_name: Masori mask (f)
+      slug: masori-mask-f
+      relationship: set-piece
+      description: Head slot
+    - item_id: 27238
+      item_name: Masori body (f)
+      slug: masori-body-f
+      relationship: set-piece
+      description: Body slot
+    - item_id: 11830
+      item_name: Armadyl chainskirt
+      slug: armadyl-chainskirt
+      relationship: alternative
+      description: Budget option
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Combine Masori chaps with Armadylean plate using a hammer (90 Crafting).
+
+| Component | Source | Price |
+|-----------|--------|-------|
+| Masori chaps | Tombs of Amascut | ~60M gp |
+| Armadylean plate | Armadyl armour | ~1M gp |
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged attack | +27 |
+| Ranged strength | +2 |
+| Defence bonuses | +30 to +46 |
+| Prayer bonus | +1 |
+| Requirements | 80 Ranged, 80 Defence |
+
+## Set Information
+
+Part of the Masori armour (fortified) set:
+- Masori mask (f) (head)
+- Masori body (f) (body)
+- Masori chaps (f) (legs)
+
+## Usage
+
+**PvM:**
+- Best-in-slot ranged legs
+- Tombs of Amascut
+- Theatre of Blood
+- General ranged content
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- ToA completions affect supply
+- BiS ranged legs
+- Fortified has better defence
+
+<Adsense />

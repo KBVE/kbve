@@ -1,0 +1,104 @@
+---
+title: Lantern lens | OSRS Price Data
+description: "Lantern lens: A roughly circular disc of glass.. High alch: 42 GP, GE limit: 10,000."
+osrs:
+  id: 4542
+  name: Lantern lens
+  slug: lantern-lens
+  examine: A roughly circular disc of glass.
+  members: true
+  icon: Lantern lens.png
+  value: 70
+  lowalch: 28
+  highalch: 42
+  limit: 10000
+  material:
+    type: glass_product
+    tier: mid-high
+  crafting:
+    level: 49
+    xp: 55
+  recipes:
+    - skill: crafting
+      level: 49
+      xp: 55
+      materials:
+        - item_name: Molten glass
+          item_id: 1775
+          quantity: 1
+      product: Lantern lens
+      product_id: 4542
+      product_quantity: 1
+      facility: Glassblowing pipe
+      members_only: true
+  related_items:
+    - item_id: 1775
+      item_name: Molten glass
+      slug: molten-glass
+      relationship: component
+      description: Raw material
+    - item_id: 4527
+      item_name: Bullseye lantern (unf)
+      slug: bullseye-lantern-unf
+      relationship: product
+      description: Lantern component
+    - item_id: 4548
+      item_name: Bullseye lantern
+      slug: bullseye-lantern
+      relationship: product
+      description: Final product
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Method | Level | Materials |
+|--------|-------|-----------|
+| Glassblowing | 49 | 1 Molten glass |
+| XP | 55 | - |
+
+## Usage
+
+Used to make bullseye lanterns:
+
+| Step | Item |
+|------|------|
+| 1 | Bullseye lantern (unf) + Lantern lens |
+| 2 | Add oil |
+| 3 | Light with tinderbox |
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Demand Drivers:**
+- Bullseye lantern production
+- Cave exploration
+- Quest requirements
+
+**Tips:**
+- Required for some quests
+- Used in dark areas
+- Good crafting XP
+- Niche market
+
+<Adsense />

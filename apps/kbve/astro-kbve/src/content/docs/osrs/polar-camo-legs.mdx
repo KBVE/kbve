@@ -1,0 +1,37 @@
+---
+title: Polar camo legs | OSRS Price Data
+description: "Polar camo legs: These should make me harder to spot in polar areas.. High alch: 12 GP."
+osrs:
+  id: 10067
+  name: Polar camo legs
+  slug: polar-camo-legs
+  examine: These should make me harder to spot in polar areas.
+  members: true
+  icon: Polar camo legs.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Mystic robe top | OSRS Price Data
+description: "Mystic robe top: The upper half of a magical robe.. High alch: 72,000 GP, GE limit: 125."
+osrs:
+  id: 4091
+  name: Mystic robe top
+  slug: mystic-robe-top
+  examine: The upper half of a magical robe.
+  members: true
+  icon: Mystic robe top.png
+  value: 120000
+  lowalch: 48000
+  highalch: 72000
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Villager hat (brown) | OSRS Price Data
+description: "Villager hat (brown): A brightly coloured hat prized by the Tai Bwo Wannai peoples.. High alch: 120 GP, GE limit: 150."
+osrs:
+  id: 6345
+  name: Villager hat (brown)
+  slug: villager-hat-brown
+  examine: A brightly coloured hat prized by the Tai Bwo Wannai peoples.
+  members: true
+  icon: Villager hat (brown).png
+  value: 200
+  lowalch: 80
+  highalch: 120
+  limit: 150
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

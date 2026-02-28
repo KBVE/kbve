@@ -1,0 +1,37 @@
+---
+title: Shattered relic hunter (t2) armour set | OSRS Price Data
+description: "Shattered relic hunter (t2) armour set is a members-only OSRS item. High alch: 30,000 GP."
+osrs:
+  id: 26557
+  name: Shattered relic hunter (t2) armour set
+  slug: shattered-relic-hunter-t2-armour-set
+  examine: A set containing Shattered boots (t2), Shattered trousers (t2), Shattered top (t2) and Shattered hood (t2).
+  members: true
+  icon: Shattered relic hunter (t2) armour set.png
+  value: 50000
+  lowalch: 20000
+  highalch: 30000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

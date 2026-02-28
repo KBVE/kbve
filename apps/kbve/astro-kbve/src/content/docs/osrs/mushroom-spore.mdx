@@ -1,0 +1,37 @@
+---
+title: Mushroom spore | OSRS Price Data
+description: "Mushroom spore: A Bittercap mushroom spore - plant in a mushroom patch.. High alch: 51 GP, GE limit: 200."
+osrs:
+  id: 5282
+  name: Mushroom spore
+  slug: mushroom-spore
+  examine: A Bittercap mushroom spore - plant in a mushroom patch.
+  members: true
+  icon: Mushroom spore 5.png
+  value: 86
+  lowalch: 34
+  highalch: 51
+  limit: 200
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

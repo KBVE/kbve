@@ -1,0 +1,141 @@
+---
+title: Abyssal whip | OSRS Price Data
+description: "Abyssal whip is a members weapon slot item with +82 melee strength requiring 70 Attack. High alch: 72,000 GP, GE limit: 70."
+osrs:
+  id: 4151
+  name: Abyssal whip
+  slug: abyssal-whip
+  examine: A weapon from the Abyss.
+  members: true
+  icon: Abyssal whip.png
+  value: 120001
+  lowalch: 48000
+  highalch: 72000
+  limit: 70
+  equipment:
+    slot: weapon
+    weapon_type: whip
+    weight: 0.453
+    attack_speed: 4
+    attack_range: 1
+    attack_bonus:
+      stab: 0
+      slash: 82
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 82
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      attack: 70
+    degradable: false
+  special_attack:
+    name: Energy Drain
+    energy: 50
+    description: Hits with 25% increased accuracy and transfers 10% of the opponent's run energy to you
+    accuracy_modifier: 1.25
+  drop_table:
+    primary_source: Abyssal demon
+    best_drop_rate: 1/512
+    sources:
+      - source: Abyssal demon
+        source_id: 415
+        combat_level: 124
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/512
+        members_only: true
+      - source: Abyssal Sire
+        source_id: 5886
+        combat_level: 350
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: 1/100
+        members_only: true
+  related_items:
+    - item_id: 12773
+      item_name: Abyssal tentacle
+      slug: abyssal-tentacle
+      relationship: upgrade
+      description: Upgraded version with +8 attack/str, degrades
+    - item_id: 12774
+      item_name: Kraken tentacle
+      slug: kraken-tentacle
+      relationship: component
+      description: Required to create Abyssal tentacle
+    - item_id: 4178
+      item_name: Volcanic abyssal whip
+      slug: volcanic-abyssal-whip
+      relationship: variant
+      description: Red cosmetic recolor (untradeable)
+    - item_id: 4179
+      item_name: Frozen abyssal whip
+      slug: frozen-abyssal-whip
+      relationship: variant
+      description: Blue cosmetic recolor (untradeable)
+    - item_id: 13265
+      item_name: Abyssal dagger
+      slug: abyssal-dagger
+      relationship: alternative
+      description: Alternative Abyssal weapon for Strength training
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Dropped by Abyssal demons (1/512 drop rate).
+
+**Requirements:** 85 Slayer to kill Abyssal demons
+
+**Locations:**
+- Slayer Tower
+- Catacombs of Kourend
+- Abyssal Area (via fairy ring)
+
+## Usage
+
+Best-in-slot for:
+- 70 Attack training
+- Slayer tasks
+- Budget melee setup
+
+**Note:** Cannot train Strength (controlled only gives shared XP)
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+
+**Tips:**
+- High volume item
+- Steady demand from Slayer
+- Tentacle upgrade consumes whip
+
+<Adsense />

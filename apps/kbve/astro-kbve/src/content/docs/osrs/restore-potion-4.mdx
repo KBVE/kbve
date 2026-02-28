@@ -1,0 +1,37 @@
+---
+title: Restore potion(4) | OSRS Price Data
+description: "Restore potion(4): 4 doses of restore potion.. High alch: 66 GP, GE limit: 2,000."
+osrs:
+  id: 2430
+  name: Restore potion(4)
+  slug: restore-potion-4
+  examine: 4 doses of restore potion.
+  members: true
+  icon: Restore potion(4).png
+  value: 110
+  lowalch: 44
+  highalch: 66
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

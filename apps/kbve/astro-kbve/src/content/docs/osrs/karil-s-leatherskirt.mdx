@@ -1,0 +1,141 @@
+---
+title: Karil's leatherskirt | OSRS Price Data
+description: "Karil's leatherskirt is a members legs slot item requiring 70 Defence. High alch: 28,200 GP, GE limit: 15."
+osrs:
+  id: 4738
+  name: Karil's leatherskirt
+  slug: karil-s-leatherskirt
+  examine: Karil the Tainted's leather skirt.
+  members: true
+  icon: Karil's leatherskirt.png
+  value: 47000
+  lowalch: 18800
+  highalch: 28200
+  limit: 15
+  equipment:
+    slot: legs
+    type: barrows
+    set: Karil
+    tradeable: true
+    degradeable: true
+    weight: 4.5
+    requirements:
+      defence: 70
+      ranged: 70
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: -10
+      attack_ranged: 17
+      defence_stab: 26
+      defence_slash: 20
+      defence_crush: 28
+      defence_magic: 35
+      defence_ranged: 33
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  set_effect:
+    name: Tainted Shot
+    pieces_required: 4
+    description: 25% chance to lower opponent's Agility by 20%
+    amulet_of_damned: 25% chance to hit twice (second hit at 50% damage)
+  related_items:
+    - item_id: 4732
+      item_name: Karil's coif
+      slug: karils-coif
+      relationship: set-piece
+      description: Head slot set piece
+    - item_id: 4736
+      item_name: Karil's leathertop
+      slug: karils-leathertop
+      relationship: set-piece
+      description: Body slot set piece
+    - item_id: 4734
+      item_name: Karil's crossbow
+      slug: karils-crossbow
+      relationship: set-piece
+      description: Weapon set piece
+    - item_id: 11830
+      item_name: Armadyl chainskirt
+      slug: armadyl-chainskirt
+      relationship: upgrade
+      description: Upgrade path
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Obtained from the Barrows minigame (1/102.17 for any specific Barrows item).
+
+**Location:** Barrows mounds, east of Mort'ton in Morytania
+
+## Equipment Info
+
+| Stat | Value |
+|------|-------|
+| Slot | Legs |
+| Weight | 4.5 kg |
+| Requirements | 70 Defence, 70 Ranged |
+
+## Stats
+
+| Bonus | Value |
+|-------|-------|
+| Ranged attack | +17 |
+| Stab defence | +26 |
+| Slash defence | +20 |
+| Crush defence | +28 |
+| Magic defence | +35 |
+| Ranged defence | +33 |
+| Magic attack | -10 |
+
+**Note:** Third highest magic defence for leg slot (+35).
+
+## Set Effect
+
+**Tainted Shot:**
+When wearing full Karil's (coif, leathertop, leatherskirt, crossbow):
+- 25% chance to lower opponent's Agility by 20%
+
+**With Amulet of the Damned:**
+- 25% chance to hit twice (second hit at 50% damage)
+
+## Degradation
+
+- 15 hours of combat use
+- Repair at Bob in Lumbridge or POH armor stand
+
+## Market Strategy
+
+**Buy Limit:** 10 per 4 hours
+
+## Related Items
+
+- [Karil's coif](/osrs/karils-coif/) - Head slot
+- [Karil's leathertop](/osrs/karils-leathertop/) - Body slot
+- [Karil's crossbow](/osrs/karils-crossbow/) - Weapon
+- [Armadyl chainskirt](/osrs/armadyl-chainskirt/) - Upgrade
+
+<Adsense />

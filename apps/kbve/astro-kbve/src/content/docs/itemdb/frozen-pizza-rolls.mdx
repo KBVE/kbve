@@ -1,0 +1,130 @@
+---
+title: 'Frozen Pizza Rolls'
+description: |
+    A bag of bite-sized molten pockets of faux-Italian fury. 
+    Caution: may cause tongue trauma when overheated.
+id: 'frozen-pizza-rolls'
+key: 21
+ref: '01JWAXYK9QWKYVTDG21614F3KT'
+name: 'Frozen Pizza Rolls'
+type: 'Food'
+category: 409
+img: '/assets/items/skills/cooking/materials/frozen_pizza_rolls.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 90
+consumable: true
+stackable: true
+rarity: 'Common'
+weight: 0.8
+effects: 'Restores health and stamina. Can be cooked for enhanced effects.'
+price: 95
+durability: 1
+equipped: false
+levelRequirement: 0
+cooldown: 30
+action: 'consume'
+credits: |
+    Concept by Chip, h0lybyte and Art by KBVE Pixel Workshop.
+bonuses:
+    health: 15
+    stamina: 10
+    tasteTempVariance: true
+scripts:
+    - guid: 'a912c38f3f514b76afcce028b1c09cb2'
+      vars:
+            healthRestore: 15
+            staminaRestore: 10
+            burnChance: 0.1
+            cookable: true
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+**Frozen Pizza Rolls** are the ultimate paradox: too cold to eat, too hot to handle, and somehow always slightly overcooked in one corner. 
+Despite that, or maybe because of it, they're beloved by scavengers, students, and survivors alike.
+
+Eat them frozen in desperation, or cook them for better buffs and a lower chance of tongue incineration.
+
+They are a culinary relic from the late Plastonomy Age. 
+Found in frozen bunkers, old vending rigs, or deep freezer caches.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+<Adsense />
+
+## Usage
+
+- Restores **{frontmatter.bonuses.health} health** and **{frontmatter.bonuses.stamina} stamina**
+- May cause **burn damage** if consumed too soon after cooking *(10% chance)*
+- Can be enhanced by cooking (use with **[Krispee Air Fryer](/itemdb/krispee-air-fryer/)** or similar)
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Crafting
+
+Can be:
+- **Cooked** for +25% effect boost
+- **Combined** with spices or sauces for gourmet variations (e.g., Basil Byte, Volcanic Marinara)
+
+---
+
+## Lore
+
+> “Every single bite is either frozen solid or hotter than a reactor core. There is no in-between. Only love.”
+
+Once a mass-market snack, now a ration-treat of nostalgic power. 
+Some claim eating one helps recall your childhood... or last week's regrets.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/pizza_rolls_vengeance.webp"
+  defaultId="01HTXYZPZA001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZPZA001',
+      title: 'Kitchen Find',
+      description: 'You find a sealed bag in a freezer unit.',
+      image: 'https://images.unsplash.com/photo-1580810734427-c1d7c7712951?q=80&w=500&auto=format&fit=crop',
+      message: 'They clink like edible ice cubes. The label’s faded but legible.',
+      choices: [
+        { label: 'Eat one frozen.', nextId: '01HTXYZPZA002' },
+        { label: 'Cook before eating.', nextId: '01HTXYZPZA003' }
+      ]
+    },
+    {
+      id: '01HTXYZPZA002',
+      title: 'Cracked Molar',
+      description: 'You bite down. Hard.',
+      image: '/images/scene_freezechew.jpg',
+      message: 'You gain cold resistance. And dental trauma.'
+    },
+    {
+      id: '01HTXYZPZA003',
+      title: 'Melted Perfection',
+      description: 'You wait patiently. It pays off.',
+      image: '/images/scene_airfry_rolls.jpg',
+      message: 'The flavor explodes. You gain a brief speed buff.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/27/2025 - Frozen Pizza Rolls added with edible risk-reward logic and cooking bonus system

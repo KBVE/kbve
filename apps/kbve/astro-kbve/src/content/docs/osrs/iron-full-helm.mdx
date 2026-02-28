@@ -1,0 +1,91 @@
+---
+title: Iron full helm | OSRS Price Data
+description: "Iron full helm: A full face helmet.. High alch: 92 GP, GE limit: 125."
+osrs:
+  id: 1153
+  name: Iron full helm
+  slug: iron-full-helm
+  examine: A full face helmet.
+  members: false
+  icon: Iron full helm.png
+  value: 154
+  lowalch: 61
+  highalch: 92
+  limit: 125
+  item_id: 1153
+  item_type: armor
+  slot: head
+  type: full_helm
+  tradeable: true
+  weight: 2.721
+  requirements:
+    defence: 0
+  stats:
+    stab_defence: 6
+    slash_defence: 7
+    crush_defence: 5
+    ranged_defence: 6
+  related_items:
+    - slug: steel-full-helm
+    - slug: iron-platebody
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Head |
+| Type | Full Helm |
+| Tradeable | Yes |
+| Weight | 2.721 kg |
+| Requirements | None |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +6 |
+| Slash Defence | +7 |
+| Crush Defence | +5 |
+| Ranged Defence | +6 |
+
+## Obtaining
+
+**Smithing:** 22 Smithing with 2 iron bars (50 XP).
+
+**Shop:** Helmet Shop, Barbarian Village (154 gp).
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~74 gp
+
+Early game helm. F2P accessible.
+
+## Related Items
+
+- [Steel full helm](/osrs/steel-full-helm/) - Upgrade
+- [Iron platebody](/osrs/iron-platebody/) - Set piece
+
+<Adsense />

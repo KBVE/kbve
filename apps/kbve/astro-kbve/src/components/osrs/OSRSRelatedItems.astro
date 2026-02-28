@@ -1,0 +1,180 @@
+---
+/**
+ * OSRSRelatedItems Component
+ *
+ * Displays related items with links and relationship badges
+ * Uses slug field for proper internal linking
+ */
+import type { OSRSRelatedItem } from '@/data/schema';
+
+interface Props {
+	relatedItems: OSRSRelatedItem[];
+}
+
+const { relatedItems } = Astro.props;
+
+// Get relationship color and label
+function getRelationshipStyle(relationship: string): {
+	color: string;
+	label: string;
+} {
+	switch (relationship) {
+		case 'upgrade':
+			return { color: '#22c55e', label: 'Upgrade' };
+		case 'downgrade':
+			return { color: '#ef4444', label: 'Downgrade' };
+		case 'variant':
+			return { color: '#a855f7', label: 'Variant' };
+		case 'component':
+			return { color: '#3b82f6', label: 'Component' };
+		case 'product':
+			return { color: '#f97316', label: 'Product' };
+		case 'set-piece':
+			return { color: '#eab308', label: 'Set Piece' };
+		case 'alternative':
+			return { color: '#64748b', label: 'Alternative' };
+		default:
+			return { color: 'var(--sl-color-gray-3)', label: relationship };
+	}
+}
+
+// Generate URL from slug
+function getItemUrl(item: OSRSRelatedItem): string {
+	if (item.slug) {
+		return `/osrs/${item.slug}/`;
+	}
+	// Fallback: generate slug from name
+	const slug = item.item_name
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-|-$/g, '');
+	return `/osrs/${slug}/`;
+}
+---
+
+<div class="osrs-related">
+	<div class="osrs-related__header">
+		<span class="osrs-related__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z">
+				</path>
+			</svg>
+		</span>
+		<h4 class="osrs-related__title">Related Items</h4>
+	</div>
+
+	<div class="osrs-related__list">
+		{
+			relatedItems.map((item) => {
+				const style = getRelationshipStyle(item.relationship);
+				return (
+					<a href={getItemUrl(item)} class="osrs-related__item">
+						<div class="osrs-related__item-main">
+							<span class="osrs-related__item-name">
+								{item.item_name}
+							</span>
+							<span
+								class="osrs-related__badge"
+								style={`--badge-color: ${style.color}`}>
+								{style.label}
+							</span>
+						</div>
+						{item.description && (
+							<span class="osrs-related__item-desc">
+								{item.description}
+							</span>
+						)}
+					</a>
+				);
+			})
+		}
+	</div>
+</div>
+
+<style>
+	.osrs-related {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-related__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-related__icon {
+		color: var(--sl-color-accent);
+	}
+
+	.osrs-related__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+	}
+
+	.osrs-related__list {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.osrs-related__item {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+		padding: 0.5rem 0.75rem;
+		border-bottom: 1px solid var(--sl-color-gray-6);
+		text-decoration: none;
+		transition: background-color 0.15s ease;
+	}
+
+	.osrs-related__item:last-child {
+		border-bottom: none;
+	}
+
+	.osrs-related__item:hover {
+		background: var(--sl-color-gray-6);
+	}
+
+	.osrs-related__item-main {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.osrs-related__item-name {
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--sl-color-accent);
+	}
+
+	.osrs-related__item:hover .osrs-related__item-name {
+		text-decoration: underline;
+	}
+
+	.osrs-related__badge {
+		font-size: 0.5rem;
+		font-weight: 600;
+		padding: 0.0625rem 0.25rem;
+		border-radius: 0.125rem;
+		text-transform: uppercase;
+		letter-spacing: 0.025em;
+		background: color-mix(in srgb, var(--badge-color) 20%, transparent);
+		color: var(--badge-color);
+	}
+
+	.osrs-related__item-desc {
+		font-size: 0.625rem;
+		color: var(--sl-color-gray-3);
+		line-height: 1.3;
+	}
+</style>

@@ -1,0 +1,139 @@
+---
+title: Eclipse atlatl | OSRS Price Data
+description: "Eclipse atlatl is a members weapon slot item with +40 melee strength requiring 50 Attack. High alch: 96,000 GP, GE limit: 15."
+osrs:
+  id: 29000
+  name: Eclipse atlatl
+  slug: eclipse-atlatl
+  examine: A powerful thrown weapon forged from an eclipse.
+  members: true
+  icon: Eclipse atlatl.png
+  value: 160000
+  lowalch: 64000
+  highalch: 96000
+  limit: 15
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    weight: 2
+    attack_speed: 4
+    attack_range: 6
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 87
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 40
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      ranged: 75
+      attack: 50
+      strength: 50
+    degradable: false
+    two_handed: true
+  special_attack:
+    name: Eclipse
+    energy: 50
+    description: Requires full eclipse moon armour. Magic-based attack at melee distance with 50% accuracy bonus, consumes burn damage on target to boost damage.
+  drop_table:
+    primary_source: Lunar Chest (Neypotzli)
+    best_drop_rate: 1/224
+    sources:
+      - source: Lunar Chest
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/224
+        members_only: true
+  related_items:
+    - item_id: 29010
+      item_name: Eclipse moon helm
+      slug: eclipse-moon-helm
+      relationship: set-piece
+      description: Required for Eclipse special attack
+    - item_id: 29004
+      item_name: Eclipse moon chestplate
+      slug: eclipse-moon-chestplate
+      relationship: set-piece
+      description: Required for Eclipse special attack
+    - item_id: 29007
+      item_name: Eclipse moon tassets
+      slug: eclipse-moon-tassets
+      relationship: set-piece
+      description: Required for Eclipse special attack
+    - item_id: 28991
+      item_name: Atlatl dart
+      slug: atlatl-dart
+      relationship: component
+      description: Required ammunition for Eclipse atlatl
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+The Eclipse atlatl is obtained from the Lunar Chest in Neypotzli with a 1/224 drop rate.
+
+**Requirements:** 75 Ranged, 50 Attack, 50 Strength to equip
+
+## Combat Mechanics
+
+The Eclipse atlatl is unique among ranged weapons:
+- Uses the player's **melee strength bonus** for damage calculation
+- Ranged bonus still determines accuracy
+- Attack speed: 4 ticks (3 ticks on rapid)
+
+**Set Effect:** When wearing full eclipse moon armour, successful hits have a 20% chance to inflict burn damage on targets.
+
+## Special Attack
+
+**Eclipse** (50% energy):
+- Requires full eclipse moon armour set
+- Magic-based attack at melee distance
+- 50% accuracy bonus
+- Consumes remaining burn damage on target to boost damage output
+
+## Usage
+
+Best-in-slot for hybrid setups where melee strength gear is worn:
+- Neypotzli content
+- Unique DPS setups combining melee gear with ranged attacks
+- Specialized boss strategies
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Value tied to full set synergy
+- Requires atlatl darts as ammunition
+- Unique hybrid mechanics make it situational but powerful
+
+<Adsense />

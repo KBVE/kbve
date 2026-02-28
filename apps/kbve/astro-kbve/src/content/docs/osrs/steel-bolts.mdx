@@ -1,0 +1,102 @@
+---
+title: Steel bolts | OSRS Price Data
+description: "Steel bolts is a members ammo slot item requiring 31 Ranged. High alch: 4 GP, GE limit: 7,000."
+osrs:
+  id: 9141
+  name: Steel bolts
+  slug: steel-bolts
+  examine: Steel crossbow bolts.
+  members: true
+  icon: Steel bolts 5.png
+  value: 8
+  lowalch: 3
+  highalch: 4
+  limit: 7000
+  item_id: 9141
+  type: ammunition
+  tradeable: true
+  weight: 0
+  buy_limit: 7000
+  equipment:
+    slot: ammo
+    type: bolts
+    requirements:
+      ranged: 31
+    stats:
+      ranged_strength: 64
+  fletching:
+    level: 46
+    xp: 3.5
+    materials:
+      - item: Steel bolts (unf)
+        quantity: 1
+      - item: Feathers
+        quantity: 1
+  obtaining:
+    fletching: 46 Fletching with steel bolts (unf) + feathers
+    shop: Crossbow Shop, Keldagrim
+  related_items:
+    - slug: mithril-bolts
+      name: Mithril bolts
+      relation: upgrade
+    - slug: steel-crossbow
+      name: Steel crossbow
+      relation: compatible_weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ammo |
+| Type | Bolts |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 31 Ranged |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Strength | +64 |
+
+## Obtaining
+
+**Fletching:** 46 Fletching with steel bolts (unf) + feathers (3.5 XP each).
+
+**Shop:** Crossbow Shop, Keldagrim.
+
+## Market Strategy
+
+**Buy Limit:** 7,000 per 4 hours
+
+**Price:** ~67 gp
+
+Mid-level crossbow ammo. Used with steel crossbow or better.
+
+## Related Items
+
+- [Mithril bolts](/osrs/mithril-bolts/) - Upgrade
+- [Steel crossbow](/osrs/steel-crossbow/) - Compatible crossbow
+
+<Adsense />

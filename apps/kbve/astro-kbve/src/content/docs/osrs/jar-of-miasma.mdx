@@ -1,0 +1,99 @@
+---
+title: Jar of miasma | OSRS Price Data
+description: "Jar of miasma: It smells abysmal.. High alch: 1 GP, GE limit: 4."
+osrs:
+  id: 13277
+  name: Jar of miasma
+  slug: jar-of-miasma
+  examine: It smells abysmal.
+  members: true
+  icon: Jar of miasma.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 4
+  item:
+    type: jar
+    tradeable: true
+    weight: 0.04
+  obtaining:
+    methods:
+      - source: Font of Consumption
+        method: Use unsired on Font of Consumption
+        chance: 13/128
+        effective_rate: ~1/984 from Abyssal Sire
+  usage:
+    description: Decoration for Achievement Gallery boss lair display
+    requirements: Defeating Abyssal Sire at least once to place
+    cosmetic: true
+  related_items:
+    - item_id: 13273
+      item_name: Unsired
+      slug: unsired
+      relationship: component
+      description: Required to obtain
+    - item_id: 13263
+      item_name: Abyssal bludgeon
+      slug: abyssal-bludgeon
+      relationship: alternative
+      description: Same source
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Jar |
+| Tradeable | Yes |
+| Weight | 0.04 kg |
+| Requirements | None |
+
+## Obtaining
+
+**Source:** Use unsired on Font of Consumption (13/128 chance).
+
+**Effective Rate:** ~1/984 from Abyssal Sire.
+
+## Usage
+
+Decoration for Achievement Gallery boss lair display.
+
+Requires defeating Abyssal Sire at least once to place.
+
+Cosmetic/collectible item.
+
+## Market Strategy
+
+**Buy Limit:** 4 per 4 hours
+
+**Price:** ~32,540 gp
+
+Common jar from Sire farming. Lower value than most jars.
+
+## Related Items
+
+- [Unsired](/osrs/unsired/) - Required to obtain
+- [Abyssal bludgeon](/osrs/abyssal-bludgeon/) - Same source
+
+<Adsense />

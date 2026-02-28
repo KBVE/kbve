@@ -1,0 +1,37 @@
+---
+title: Trailblazer rug | OSRS Price Data
+description: "Trailblazer rug: A rug which can be built into a rug hotspot in your PoH League Trophy Room.. High alch: 30,000 GP, GE limit: 5."
+osrs:
+  id: 25096
+  name: Trailblazer rug
+  slug: trailblazer-rug
+  examine: A rug which can be built into a rug hotspot in your PoH League Trophy Room.
+  members: true
+  icon: Trailblazer rug.png
+  value: 50000
+  lowalch: 20000
+  highalch: 30000
+  limit: 5
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

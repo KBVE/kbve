@@ -1,0 +1,104 @@
+---
+title: 'October: 3rd'
+category: Daily
+date: 2025-10-03 12:00:00
+client: Self
+unsplash: 1693298661836-1206649639ef
+img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 3rd. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### Tracker SQL User Providers
+
+-   09:05AM
+
+    There was an issue or well a mistake in our tracker sql, we ended up creating an additional table to keep track of the user and their identities.
+    This table was under the tracker schema, `trackers.user_providers` and after building it out and making some functions for it, I figured out that the auth schema already has it.
+    Since the auth schema has an isolated table for exactly what we need, it would make more sense to just have a function compare against those!
+    Later on I will add a LRU for the application side, to help offset the queries to the sql database.
+    Anyhow, we updated the tracker sql file and dropped that useless data table and everything is good to go!
+
+### Nvidia Roll $185
+
+-   10:01AM
+    
+    Made the call to roll a couple of the $185 covered calls into next week for a quick couple thousand.
+    This is because I am not too sure if it might be worth having the assignment over the weekend, we could hold off for another week and see if that helps us out.
+    If I am correct with the planning, we might be able to move back up to $190 before the end of the month.
+
+### Resource ID ULIDs
+
+-   11:18AM
+
+    Under the common folder for DOTS, I created a basic Ulid.cs helper class.
+    I do want to swap that out with the CySharp Ulid library, yet the time is not yet here for that!
+    Maybe we do a combination of a big int and ulid, or a dual ulid, with one ulid representing the actual type and another for that exact instance of the entity on the map.
+    I will have to look at the performance concerns with this method because it could easily surpass 1,000,000 entity problems, very quickly.
+    We can see that it might be around 140MB usage when dealing with all these data points within our resource pool.
+
+
+## 2024
+
+**Auth**
+
+It is always a great day when dealing with auth!
+I been at it all night, just double checking possible bugs and concepts but we are getting closer to something that I would enjoy using and seeing.
+There are still some minor changes that we need to work out but I am proud with what we have so far!
+
+**NVDA**
+
+Good to see our sleeper cell stock moving back up towards the $150 mark, I am going to dump some of my 2025 calls ealier because I need the money for a project.
+However, I am looking at the 2026 calls already and they are priced decently well considering their growth potential.
+I am thinking of just having a couple thousand on standby for the day that nvidia hits another double digit negative, then I am going to sweep in and grab those 2026 calls.
+
+**Kilobase**
+
+The plan is to wrap around the Supabase client with our own javascript library, eventually moving a decent chunk of the HTTP requests into our own webworker.
+I am going to start small and slowly migrate the different functions and concepts into the web worker, like dexie but not nanostore.
+We need to be careful because parts of the Supabase because it utilizes the localstoage and the web worker would not have access to that, but that is why we want to make sure dexie can communicate between the two types of storage.
+Furthermore, we will want to test case the WASM communication but that will be when we do Unity development.
+
+**Atoms**
+
+The peristable generic wrapped around the nanostore will be our next test case for the laser package.
+I am going to migrate some of the older `khashvault` code over to the dashboard.
+We would also have to include a bunch of helper functions, maybe we could expand it a bit and have some additional helper functions for each generic atom, hmm.
+
+**EventHandler**
+
+Next update would be to integrate our event handler from the Phaser-base into something that can work in svelte too.
+It should but let me use this time to double check, we need to add a function into astropad to help logout or signout the user.
+Using the event handler for this as a start would make the most sense, we already have the signout in our removeProfile function, thus the only left would be to have the eventhandler handle the execution and verification of the event. 
+
+The first thing we should is create the base object, `MetaData` and then extend that out into all of the `User` specific events that would involve the Auth or anything major.
+This would help us keep some level of data integrity from the client-side, thus making some of the future updates a bit easier to manage.
+
+The peristable atoms are still giving us some issues but I think we are getting a bit closer towards moving a good chunk of the react appwrite / rust code back into using the kilobase/supabase.
+
+**Monodon**
+
+Looks like `Monodon` just updated and now has napi v3 support too!
+Lets gooo!
+I believe this means we can upgrade our nx monorepo again towards v19?
+We are still in v18 but there were a couple errors that have been holding us off before upgrading.
+
+**Fudster**
+
+I need to update the pip package for the `fudster` and add some more libraries and deps to it all!
+The first major thing to include would be the pgvector + haystack integrations.
+
+
+**HAMi**
+
+While Charles is being prepared to be operational under the kubnernetes, I figured it would make sense to start up HAMi within the armada namespace.
+This would give us access to our GPU worker nodes and let us schedule some of the mlOps that we will need to do in the future.
+
+For now, we will just add the base chart and the yaml configuration.
+
+https://github.com/Project-HAMi/HAMi

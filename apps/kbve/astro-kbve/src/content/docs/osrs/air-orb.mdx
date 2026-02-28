@@ -1,0 +1,124 @@
+---
+title: Air orb | OSRS Price Data
+description: "Air orb: A magic glowing orb.. High alch: 180 GP, GE limit: 11,000."
+osrs:
+  id: 573
+  name: Air orb
+  slug: air-orb
+  examine: A magic glowing orb.
+  members: true
+  icon: Air orb.png
+  value: 300
+  lowalch: 120
+  highalch: 180
+  limit: 11000
+  material:
+    type: orb
+    tier: charged
+  magic:
+    charge_level: 66
+    charge_xp: 76
+    runes:
+      - item_name: Air rune
+        item_id: 556
+        quantity: 30
+      - item_name: Cosmic rune
+        item_id: 564
+        quantity: 3
+    obelisk: Air Obelisk
+    location: Edgeville Dungeon (Wilderness)
+  recipes:
+    - skill: crafting
+      level: 66
+      xp: 137.5
+      materials:
+        - item_name: Battlestaff
+          item_id: 1391
+          quantity: 1
+        - item_name: Air orb
+          item_id: 573
+          quantity: 1
+      product: Air battlestaff
+      product_id: 1397
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 1397
+      item_name: Air battlestaff
+      slug: air-battlestaff
+      relationship: product
+      description: Final product
+    - item_id: 567
+      item_name: Unpowered orb
+      slug: unpowered-orb
+      relationship: component
+      description: Base item
+    - item_id: 564
+      item_name: Cosmic rune
+      slug: cosmic-rune
+      relationship: component
+      description: Spell component
+    - item_id: 1391
+      item_name: Battlestaff
+      slug: battlestaff
+      relationship: component
+      description: Attachment base
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Method | Level | Runes |
+|--------|-------|-------|
+| Charge Air Orb | 66 Magic | 30 Air, 3 Cosmic |
+| Location | Air Obelisk (Edgeville Dungeon) | - |
+| XP | 76 Magic | - |
+
+## Crafting
+
+| Product | Level | XP |
+|---------|-------|-----|
+| Air battlestaff | 66 Crafting | 137.5 |
+
+## Market Flip Strategy
+
+**Popular Money Maker:**
+- Charge orbs for profit
+- Wilderness location risk
+- Air battlestaff production
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Air battlestaff crafting
+- Crafting training
+- Staff of air alternative
+- Daily battlestaff stock
+
+**Tips:**
+- Wilderness obelisk (danger)
+- Cosmic runes main cost
+- Charge spell staff saves air
+- Most profitable orb
+
+<Adsense />

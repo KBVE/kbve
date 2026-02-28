@@ -1,0 +1,109 @@
+---
+title: Tomato | OSRS Price Data
+description: "Tomato: This would make good ketchup.. High alch: 2 GP, GE limit: 13,000."
+osrs:
+  id: 1982
+  name: Tomato
+  slug: tomato
+  examine: This would make good ketchup.
+  members: false
+  icon: Tomato.png
+  value: 4
+  lowalch: 1
+  highalch: 2
+  limit: 13000
+  produce:
+    type: allotment
+    tier: low
+  farming:
+    seed_id: 5322
+    seed_name: Tomato seed
+    level: 12
+    xp_plant: 12.5
+    xp_harvest: 14
+    growth_time: 40
+    patches: 8
+  related_items:
+    - item_id: 5322
+      item_name: Tomato seed
+      slug: tomato-seed
+      relationship: component
+      description: Planted to grow tomatoes
+    - item_id: 6016
+      item_name: Basket of tomatoes
+      slug: basket-of-tomatoes
+      relationship: product
+      description: 5 tomatoes in a basket
+    - item_id: 1965
+      item_name: Cabbage
+      slug: cabbage
+      relationship: alternative
+      description: Alternative allotment produce
+    - item_id: 5986
+      item_name: Sweetcorn
+      slug: sweetcorn
+      relationship: upgrade
+      description: Higher tier allotment crop
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+**Farming:** Harvest from allotment patches after planting tomato seeds (12 Farming).
+
+**Other Sources:**
+- Monster drops
+- Market stalls
+
+## Farming Info
+
+| Requirement | Value |
+|-------------|-------|
+| Farming Level | 12 |
+| Growth time | 40 minutes |
+| XP (plant) | 12.5 |
+| XP (harvest) | 14 per tomato |
+
+## Uses
+
+- Basket of tomatoes used for oak tree protection
+- Ingredient in cooking recipes
+- Can be thrown at players in pillory (cosmetic)
+
+## Market Strategy
+
+**Allotment Farming:**
+- Low-tier crop
+- Moderate value due to protection payment use
+- Good for early-mid farming training
+
+**Basket Making:**
+- 5 tomatoes make a basket
+- Baskets used for tree protection payments
+- Good passive income from farming
+
+**Ironman Notes:**
+- Important for oak tree protection
+- Stock up for tree runs
+- Easy to farm in large quantities
+
+<Adsense />

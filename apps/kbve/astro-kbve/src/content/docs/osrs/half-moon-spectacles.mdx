@@ -1,0 +1,37 @@
+---
+title: Half moon spectacles | OSRS Price Data
+description: "Half moon spectacles: The two halfs would surely make a full moon?. High alch: 11,670 GP, GE limit: 4."
+osrs:
+  id: 20053
+  name: Half moon spectacles
+  slug: half-moon-spectacles
+  examine: The two halfs would surely make a full moon?
+  members: true
+  icon: Half moon spectacles.png
+  value: 19450
+  lowalch: 7780
+  highalch: 11670
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

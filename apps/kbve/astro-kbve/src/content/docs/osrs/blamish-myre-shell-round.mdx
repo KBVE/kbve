@@ -1,0 +1,37 @@
+---
+title: Blamish myre shell (round) | OSRS Price Data
+description: "Blamish myre shell (round): A large 'Myre' coloured blamish snail shell, looks protective.. High alch: 90 GP, GE limit: 13,000."
+osrs:
+  id: 3345
+  name: Blamish myre shell (round)
+  slug: blamish-myre-shell-round
+  examine: A large 'Myre' coloured blamish snail shell, looks protective.
+  members: true
+  icon: Blamish myre shell (round).png
+  value: 150
+  lowalch: 60
+  highalch: 90
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

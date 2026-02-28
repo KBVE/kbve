@@ -1,0 +1,37 @@
+---
+title: Evil chicken wings | OSRS Price Data
+description: "Evil chicken wings: I look evil and fowl in this.. High alch: 1 GP, GE limit: 4."
+osrs:
+  id: 20436
+  name: Evil chicken wings
+  slug: evil-chicken-wings
+  examine: I look evil and fowl in this.
+  members: true
+  icon: Evil chicken wings.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

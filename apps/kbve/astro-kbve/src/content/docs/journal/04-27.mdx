@@ -1,0 +1,86 @@
+---
+title: 'April: 27'
+category: Daily
+date: 2025-04-27 12:00:00
+client: Self
+unsplash: 1640552435388-a54879e72b28
+img: https://images.unsplash.com/photo-1640552435388-a54879e72b28?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    Daily Log for April 27th of each year.
+tags:
+    - daily
+---
+import { Adsense } from '@/components/astropad';
+
+<Adsense />
+
+
+## 2025
+
+### Redis XADD XREAD
+
+-   01:02PM
+
+    Time to update the protos to include the ability to XADD and XREAD aka Streaming!
+    Since we have the fred crate, the streaming code is already in place and we just need to wire it up.
+    The goal will be to shift all the binary over to another protobuf called RedisBinary or RedisStream, then just handle it like that.
+    This means any binary that comes into the websocket would be treated as stream data and we can move the non-binary to the JSON commands.
+    This should give us the best of both worlds without running too deep into issues.
+    There would be room for improvements, we could also introduce a CapnProto later on too.
+    Okay let me update the `redis.proto` within the Jedi package to include the Redis Binary stream!
+    Afterwards we can update the redis wrapper to include the new stream data.
+
+-   04:14PM
+
+    After generating the new redis xdata streaming protos and adding them into the jedi crate, I am going to write them up on the rust side.
+    The initial plan is to keep the basic redis commands within JSON, as stated earlier and I am just recapping my memory but we will process the binary first and in a different loop.
+    New protos get converted to rust code using `./kbve.sh -nx jedi:proto` and afterwards we will import them to the `redis_wrapper.rs`.
+    Now the fun begins with the functions!
+    
+
+
+### Unity Buffers
+
+-   02:52PM
+
+    We are currently building it around using json but once we get the basic debugging out of the way, we will just stick with binary.
+    The goal might be to just serialize the NPC Manager and send it over the wire but that might not work either.
+    Damn, multiplayer can become a pain to do the first round, I am thinking that it might be too much data that is moving back and fourth, ugh.
+    I am getting a headache just thinking about it, gahhh.
+
+## 2024
+
+**Shrek**
+
+I believe it is time to rewatch the whole Shrek series from start to finish!
+Not just the three main movies but all the side movies!
+I will become one with the shrek universe.
+
+**DockerFile**
+
+Oh let me swap the Ubuntu version to 22.04 and see if it works with that version!
+Let us push the build up from this point and see if it works.
+
+
+**Webmaster**
+
+The webmaster tool has only a couple links for an average website owner, I am going through the notes and looking for any other additional tools to add into it.
+Hmm, maybe afterward getting through the basics, we could add some special AI tooling? 
+Like a tool that could go through the website and offer possible changes or improvements to the website?
+
+**Legal**
+
+The legal documents are still on the older template, I am going to swap them over to the new template.
+Afterwards, I will still have to dive deep and replace some of the static content from the template system, which I been doing slowly.
+
+
+## 2023
+
+- Spent most of the day cleaning up and preparing my luggage for the trip back to India.
+- Parker sent me this open source lawn mower, [Open Mower](https://github.com/ClemensElflein/OpenMower) and it really seems like a great idea down the line to look into. Imagine launching a landscaping business where you use robots to manage all the lawn care for your clients!
+- AppWrite integration test casing is probably where I will spend most of my time today on. I ran into some issues with the GraphQL and sending out verification emails. It seems that Ezoic keeps removing our SendGrid CNAME / information, thus putting our emails back into the spam folder.
+
+## Quote
+
+> The world makes way for the man who knows where he is going.
+> — <cite>Ralph Waldo Emerson</cite>

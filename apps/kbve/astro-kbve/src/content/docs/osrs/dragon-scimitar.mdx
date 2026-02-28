@@ -1,0 +1,133 @@
+---
+title: Dragon scimitar | OSRS Price Data
+description: "Dragon scimitar is a members weapon slot item with +66 melee strength requiring 60 Attack. High alch: 60,000 GP, GE limit: 70."
+osrs:
+  id: 4587
+  name: Dragon scimitar
+  slug: dragon-scimitar
+  examine: A vicious, curved sword.
+  members: true
+  icon: Dragon scimitar.png
+  value: 100000
+  lowalch: 40000
+  highalch: 60000
+  limit: 70
+  equipment:
+    slot: weapon
+    weapon_type: slash-sword
+    weight: 1.814
+    attack_speed: 4
+    attack_range: 1
+    attack_bonus:
+      stab: 8
+      slash: 67
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 66
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      attack: 60
+      quest: Monkey Madness I
+  special_attack:
+    name: Sever
+    energy: 55
+    description: Disables opponent's protection prayers and prevents prayer use for 4.8 seconds
+    accuracy_modifier: 1
+  drop_table:
+    primary_source: Scorpia
+    best_drop_rate: 1/128
+    sources:
+      - source: Scorpia
+        combat_level: 225
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/128
+        members_only: true
+        wilderness: true
+  shops:
+    - shop_name: Daga's Scimitar Smithy
+      location: Ape Atoll
+      price: 100000
+      stock: 1
+      members_only: true
+      requirements: Monkey Madness I completion
+  related_items:
+    - item_id: 4151
+      item_name: Abyssal whip
+      slug: abyssal-whip
+      relationship: upgrade
+      description: 70 Attack upgrade
+    - item_id: 1305
+      item_name: Dragon longsword
+      slug: dragon-longsword
+      relationship: alternative
+      description: Alternative spec weapon
+    - item_id: 21742
+      item_name: Granite hammer
+      slug: granite-hammer
+      relationship: alternative
+      description: 50 Attack option
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+**Shop:** Daga's Scimitar Smithy (Ape Atoll) - 100,000 gp
+- Requires Monkey Madness I completion
+
+**Drop:** Scorpia (1/128 drop rate, Wilderness)
+
+## Quest Requirements
+
+- **Monkey Madness I** required to wield
+- Must complete quest to access Ape Atoll shop
+
+## Usage
+
+Best-in-slot for:
+- 60 Attack builds
+- F2P-to-members transition
+- PvP (prayer disable)
+- Training to 70 Attack
+
+**Training Note:** Best Strength training weapon until 70 Attack
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+
+**Tips:**
+- Shop is cheapest source
+- Scorpia drop is wilderness risk
+- Essential for pures
+
+<Adsense />

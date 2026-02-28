@@ -1,0 +1,126 @@
+---
+title: Eternal boots | OSRS Price Data
+description: "Eternal boots is a members feet slot item requiring 60 Magic. High alch: 45,000 GP, GE limit: 15."
+osrs:
+  id: 13235
+  name: Eternal boots
+  slug: eternal-boots
+  examine: A pair of upgraded infinity boots.
+  members: true
+  icon: Eternal boots.png
+  value: 75000
+  lowalch: 30000
+  highalch: 45000
+  limit: 15
+  equipment:
+    slot: feet
+    type: boots
+    attack_style: magic
+    requirements:
+      magic: 60
+      runecraft: 60
+    stats:
+      attack_magic: 8
+      defence_magic: 8
+      defence_stab: 5
+      defence_slash: 5
+      defence_crush: 5
+      defence_ranged: 5
+      magic_damage: 1
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 200
+      materials:
+        - item_name: Infinity boots
+          item_id: 6920
+          quantity: 1
+        - item_name: Eternal crystal
+          item_id: 13227
+          quantity: 1
+      product: Eternal boots
+      product_id: 13235
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 13239
+      item_name: Primordial boots
+      slug: primordial-boots
+      relationship: alternative
+      description: Melee variant
+    - item_id: 13237
+      item_name: Pegasian boots
+      slug: pegasian-boots
+      relationship: alternative
+      description: Ranged variant
+    - item_id: 13227
+      item_name: Eternal crystal
+      slug: eternal-crystal
+      relationship: component
+      description: From Cerberus
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Combine Infinity boots + Eternal crystal.
+
+| Requirement | Value |
+|-------------|-------|
+| Magic | 60 |
+| Runecraft | 60 |
+| XP | 200 Magic, 200 Runecraft |
+
+**Process is irreversible.**
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Magic attack | +8 |
+| Magic defence | +8 |
+| Magic damage | 1% |
+| All defence | +5 |
+
+**Second-best magic boots** (behind Avernic treads)
+
+## Usage
+
+BiS magic boots for:
+- All magic combat
+- Raids
+- Bossing
+- Barrage Slayer
+
+## Market Strategy
+
+**Buy Limit:** 15 per 4 hours
+
+**Price:** ~6.3M gp
+
+**Tips:**
+- Crystal from Cerberus
+- Infinity boots from MTA or GE
+- Popular for magic setups
+
+<Adsense />

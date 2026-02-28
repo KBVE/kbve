@@ -1,0 +1,37 @@
+---
+title: Blighted vengeance sack | OSRS Price Data
+description: "Blighted vengeance sack is a members-only OSRS item. High alch: 18 GP, GE limit: 10,000."
+osrs:
+  id: 24621
+  name: Blighted vengeance sack
+  slug: blighted-vengeance-sack
+  examine: Enough power for a Vengeance, blighted so it can be used only in the Wilderness.
+  members: true
+  icon: Blighted vengeance sack.png
+  value: 31
+  lowalch: 12
+  highalch: 18
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

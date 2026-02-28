@@ -1,0 +1,113 @@
+---
+title: Berserker ring | OSRS Price Data
+description: "Berserker ring is a members ring slot item. High alch: 6,000 GP, GE limit: 8."
+osrs:
+  id: 6737
+  name: Berserker ring
+  slug: berserker-ring
+  examine: A ring reputed to bring out a berserk fury in its wearer.
+  members: true
+  icon: Berserker ring.png
+  value: 10000
+  lowalch: 4000
+  highalch: 6000
+  limit: 8
+  equipment:
+    slot: ring
+    type: ring
+    stats:
+      strength: 4
+    imbue:
+      location: Soul Wars/Nightmare Zone
+      imbued_strength: 8
+  drop_table:
+    sources:
+      - source: Dagannoth Rex
+        source_id: 2267
+        combat_level: 303
+        quantity: "1"
+        rarity: 1/128
+        members_only: true
+  related_items:
+    - item_id: 6733
+      item_name: Archers ring
+      slug: archers-ring
+      relationship: alternative
+      description: Ranged equivalent
+    - item_id: 6731
+      item_name: Seers ring
+      slug: seers-ring
+      relationship: alternative
+      description: Magic equivalent
+    - item_id: 19550
+      item_name: Ring of suffering
+      slug: ring-of-suffering
+      relationship: alternative
+      description: Defensive alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Drop from Dagannoth Rex in the Waterbirth Island Dungeon.
+
+| Boss | Drop Rate |
+|------|-----------|
+| Dagannoth Rex | 1/128 |
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Strength | +4 |
+| Requirements | None |
+
+**Best-in-slot strength bonus ring.**
+
+## Imbue
+
+Imbue at Soul Wars or Nightmare Zone for doubled stats:
+
+| Stat | Imbued |
+|------|--------|
+| Strength | +8 |
+
+## Usage
+
+BiS melee ring for:
+- All melee combat
+- Bossing
+- Slayer
+- Max strength setups
+
+**Imbue is essential - doubles the bonus.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- DKs are efficient to farm
+- Imbue immediately
+- BiS for all melee
+
+<Adsense />

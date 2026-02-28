@@ -1,0 +1,37 @@
+---
+title: Super str. mix(1) | OSRS Price Data
+description: "Super str. mix(1): One dose of fishy super Strength potion.. High alch: 66 GP, GE limit: 2,000."
+osrs:
+  id: 11487
+  name: Super str. mix(1)
+  slug: super-str-mix-1
+  examine: One dose of fishy super Strength potion.
+  members: true
+  icon: Super str. mix(1).png
+  value: 110
+  lowalch: 44
+  highalch: 66
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

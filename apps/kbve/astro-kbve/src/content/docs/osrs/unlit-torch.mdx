@@ -1,0 +1,37 @@
+---
+title: Unlit torch | OSRS Price Data
+description: "Unlit torch: An unlit home-made torch.. High alch: 2 GP, GE limit: 40."
+osrs:
+  id: 596
+  name: Unlit torch
+  slug: unlit-torch
+  examine: An unlit home-made torch.
+  members: true
+  icon: Unlit torch.png
+  value: 4
+  lowalch: 1
+  highalch: 2
+  limit: 40
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,104 @@
+---
+title: Lobster | OSRS Price Data
+description: "Lobster is a F2P food item healing 12 HP. High alch: 42 GP, GE limit: 6,000."
+osrs:
+  id: 379
+  name: Lobster
+  slug: lobster
+  examine: This looks tricky to eat.
+  members: false
+  icon: Lobster.png
+  value: 70
+  lowalch: 28
+  highalch: 42
+  limit: 6000
+  food:
+    heals: 12
+    cooking_level: 40
+    cooking_xp: 120
+    burn_level: 74
+  cooking:
+    level: 40
+    xp: 120
+    stop_burn_level: 74
+    stop_burn_level_gauntlets: 64
+    raw_item_id: 377
+    raw_item_name: Raw lobster
+    ticks: 4
+  recipes:
+    - skill: cooking
+      level: 40
+      xp: 120
+      materials:
+        - item_name: Raw lobster
+          item_id: 377
+          quantity: 1
+      facility: Fire or range
+      ticks: 4
+  related_items:
+    - item_id: 377
+      item_name: Raw lobster
+      slug: raw-lobster
+      relationship: component
+      description: Uncooked version
+    - item_id: 373
+      item_name: Swordfish
+      slug: swordfish
+      relationship: upgrade
+      description: Next tier (14 HP)
+    - item_id: 385
+      item_name: Shark
+      slug: shark
+      relationship: upgrade
+      description: High tier (20 HP)
+    - item_id: 361
+      item_name: Tuna
+      slug: tuna
+      relationship: downgrade
+      description: Lower tier (10 HP)
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Cook [Raw lobster](/osrs/raw-lobster/) on a fire or range.
+
+## Usage
+
+Lobster is a popular mid-level food for:
+- Mid-level slayer
+- Quest bosses
+- Budget PvP
+- Ironman progression
+
+## Market Flip Strategy
+
+**Cooking Profit:**
+- High volume, consistent demand
+- Good margins for cooking bots/alts
+- Very liquid market
+
+**Budget Food Option:**
+- Cheaper than shark/swordfish
+- Popular for activities where food is expendable
+
+<Adsense />

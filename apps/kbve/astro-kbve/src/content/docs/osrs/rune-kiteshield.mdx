@@ -1,0 +1,95 @@
+---
+title: Rune kiteshield | OSRS Price Data
+description: "Rune kiteshield: A large metal shield.. High alch: 32,640 GP, GE limit: 70."
+osrs:
+  id: 1201
+  name: Rune kiteshield
+  slug: rune-kiteshield
+  examine: A large metal shield.
+  members: false
+  icon: Rune kiteshield.png
+  value: 54400
+  lowalch: 21760
+  highalch: 32640
+  limit: 70
+  item_id: 1201
+  item_type: armor
+  slot: shield
+  type: kiteshield
+  tradeable: true
+  weight: 5.443
+  requirements:
+    defence: 40
+  stats:
+    stab_defence: 44
+    slash_defence: 48
+    crush_defence: 46
+    ranged_defence: 46
+    magic: -8
+  related_items:
+    - slug: dragon-kiteshield
+    - slug: runite-bar
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Off-hand |
+| Type | Shield |
+| Tradeable | Yes |
+| Weight | 5.443 kg |
+| Requirements | 40 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +44 |
+| Slash Defence | +48 |
+| Crush Defence | +46 |
+| Ranged Defence | +46 |
+| Magic | -8 |
+
+## Obtaining
+
+**Smithing:** Smith from 3 runite bars (97 Smithing, 225 XP).
+
+**Shop:** Blast Furnace Armour Store (54,400 gp).
+
+**Drops:** Rare drop table monsters, various bosses.
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+
+**Price:** ~32,285 gp
+
+Best F2P shield. Good alch value.
+
+## Related Items
+
+- [Dragon kiteshield](/osrs/dragon-kiteshield/) - Upgrade
+- [Runite bar](/osrs/runite-bar/) - Smithing material
+
+<Adsense />

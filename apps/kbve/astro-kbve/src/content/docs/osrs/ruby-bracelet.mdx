@@ -1,0 +1,37 @@
+---
+title: Ruby bracelet | OSRS Price Data
+description: "Ruby bracelet: I wonder if this is valuable.. High alch: 1,395 GP, GE limit: 10,000."
+osrs:
+  id: 11085
+  name: Ruby bracelet
+  slug: ruby-bracelet
+  examine: I wonder if this is valuable.
+  members: true
+  icon: Ruby bracelet.png
+  value: 2325
+  lowalch: 930
+  highalch: 1395
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

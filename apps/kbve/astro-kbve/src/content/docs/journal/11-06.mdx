@@ -1,0 +1,68 @@
+---
+title: 'November: 6th'
+category: Daily
+date: 2025-11-06 12:00:00
+client: Self
+unsplash: 1721332154373-17e78d19b4a4
+img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: November 6th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### CityVote Docker Image
+
+-	05:45PM
+
+	While working out the bugs within the combat loop, I am going to also look into handling the docker image for the game.
+	The website should be built the same way that we did the other ones, using astro and axum would make the most sense.
+	`astro-cityvote` and then have it build into `cityvote-deployment` or something of that nature, and finally setup the kube deployment.
+
+## 2024
+
+-	03:38AM
+
+	**PostTrump**
+
+	Looks like the elections are over and we can all finally move on.
+	It was way too long of a process and I am so glad this poopfest is officially over.
+	Too many people, too many opinions, just a massive rat nest with emotional baggage in each nanometer.
+
+	**Astro**
+
+	To test case the astro migration, I think it would make sense to start with an example repo?
+	Let us try to use the rareicon as an example repo that we can build around.
+	Eventually we want to either swap it out with a tamagui interface or maybe keep the astro for the landing page.
+	Then release an app.rareicon.com for the expo build, but regardless, we will need to migrate and replace the nx extension.
+	To get started, we will have to replace the `tsconfig.json` and manually handle some of the linking.
+	We can replace this: `"extends": "../../tsconfig.base.json",` with a direct reference to astro's ts base.
+	Okay this fix seems to work for `rareicon.com`
+	We could also update the `.gitignore` to not add in the `src` folder that gets created.
+
+-	09:51PM
+
+	**BrighterShores**
+
+	Working on a quick proof of concept for a python automation script, hmm, there might be some adjustments that I will have to do but it should work fine.
+	The way that I am thinking about it would be to keep it simple, a small auto combat bot and maybe a small cooking bot?
+	Both of these would be an easy task to automate and it would be a fun challenge.
+	Now that would mean setting up the python auto gui for the `fudster` library, hmm, I wonder if there might be a way around it without using python directly?
+	It might just be too much for this test casing, I will stick with the base python library.
+	We would have to automate the steam login, hmm, I am thinking we can skip that part too and just have it focus on the general gameplay.
+	Now to install and run steam will be interesting, damn, that would mean adding the `steam` package into the container as well.
+
+	Okay when going into the 2nd episode of the brightershores, there is a bit of a skill adjustment, with combating being reset? 
+	I am thinking there might be a reason for having the split combat but the fact that the items are also split by the episode makes this way too annoying.
+	After spending a solid day playing through the game and giving it a fair shot, I am going to say that it might be best to let the game go.
+	I will come back around when the game leaves beta and makes a bit more adjustments, it is definitely not worth the $6 a month either.
+
+-	11:08PM
+
+	**League**
+
+	Time for a quick league match, while I am playing brighter shores on the side.
+	The new aram map looks amazing, they did a great job with it!

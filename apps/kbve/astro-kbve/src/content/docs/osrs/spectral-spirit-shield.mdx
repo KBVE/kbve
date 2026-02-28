@@ -1,0 +1,155 @@
+---
+title: Spectral spirit shield | OSRS Price Data
+description: "Spectral spirit shield is a members shield slot item requiring 75 Defence. High alch: 1,200,000 GP, GE limit: 8."
+osrs:
+  id: 12821
+  name: Spectral spirit shield
+  slug: spectral-spirit-shield
+  examine: An ethereal shield with a spectral sigil attached to it.
+  members: true
+  icon: Spectral spirit shield.png
+  value: 2000000
+  lowalch: 800000
+  highalch: 1200000
+  limit: 8
+  equipment:
+    slot: shield
+    type: magic_shield
+    requirements:
+      defence: 75
+      magic: 65
+      prayer: 70
+    stats:
+      attack_magic: 0
+      defence_stab: 53
+      defence_slash: 55
+      defence_crush: 73
+      defence_magic: 30
+      defence_ranged: 52
+      prayer: 3
+  effect:
+    prayer_protection:
+      drain_reduction: 50
+      pvm_only: true
+      works_against:
+        - Cerberus ghosts
+        - K'ril smash
+  recipes:
+    - skill: smithing
+      level: 85
+      xp: 0
+      materials:
+        - item_id: 12823
+          item_name: Spectral sigil
+          quantity: 1
+        - item_id: 12831
+          item_name: Blessed spirit shield
+          quantity: 1
+      product: Spectral spirit shield
+      product_id: 12821
+      facility: Anvil
+      members_only: true
+  related_items:
+    - item_id: 12825
+      item_name: Arcane spirit shield
+      slug: arcane-spirit-shield
+      relationship: alternative
+      description: Magic DPS version
+    - item_id: 12817
+      item_name: Elysian spirit shield
+      slug: elysian-spirit-shield
+      relationship: alternative
+      description: Tank version
+    - item_id: 12823
+      item_name: Spectral sigil
+      slug: spectral-sigil
+      relationship: component
+      description: From Corp
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Shield |
+| Type | Magic Shield |
+| Tradeable | Yes |
+| Weight | 2 kg |
+
+## Creation
+
+Attach [Spectral sigil](/osrs/spectral-sigil/) to [Blessed spirit shield](/osrs/blessed-spirit-shield/).
+
+| Method | Requirements |
+|--------|--------------|
+| Smithing | 90 Prayer, 85 Smithing |
+| Abbot Langley | 1.5M gp fee |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Magic attack | +0 |
+
+| Defence | Value |
+|---------|-------|
+| Stab | +53 |
+| Slash | +55 |
+| Crush | +73 |
+| Magic | +30 |
+| Ranged | +52 |
+
+| Other | Value |
+|-------|-------|
+| Prayer | +3 |
+
+**Requirements:** 75 Defence, 65 Magic, 70 Prayer
+
+## Passive Effect
+
+**Prayer Protection:**
+- 50% reduction to prayer-draining attacks (PvM only)
+- Works on Cerberus ghosts, K'ril smash
+- Does NOT work in PvP
+
+## Usage
+
+Essential for:
+- Cerberus (reduces ghost prayer drain)
+- K'ril Tsutsaroth
+- Prayer-draining content
+
+**Niche but powerful for specific bosses.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~32M gp
+
+**Tips:**
+- Sigil from Corporeal Beast
+- Essential for Cerberus
+- Cheapest spirit shield
+
+<Adsense />

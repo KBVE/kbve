@@ -1,0 +1,101 @@
+---
+title: Hard leather | OSRS Price Data
+description: "Hard leather: It's a piece of hard leather.. High alch: 1 GP, GE limit: 13,000."
+osrs:
+  id: 1743
+  name: Hard leather
+  slug: hard-leather
+  examine: It's a piece of hard leather.
+  members: false
+  icon: Hard leather.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 13000
+  material:
+    type: leather
+    tier: low-mid
+  crafting:
+    level: 28
+    xp: 35
+    method: Crafting with needle and thread
+  recipes:
+    - skill: crafting
+      level: 28
+      xp: 35
+      materials:
+        - item_name: Hard leather
+          item_id: 1743
+          quantity: 1
+        - item_name: Thread
+          item_id: 1734
+          quantity: 1
+      product: Hard leather body
+      product_id: 1131
+      product_quantity: 1
+  related_items:
+    - item_id: 1739
+      item_name: Cowhide
+      slug: cowhide
+      relationship: component
+      description: Raw material
+    - item_id: 1131
+      item_name: Hardleather body
+      slug: hardleather-body
+      relationship: product
+      description: Crafted armor
+    - item_id: 1734
+      item_name: Thread
+      slug: thread
+      relationship: component
+      description: Crafting supply
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Method |
+|--------|--------|
+| Tanning cowhide | 3 gp at tanner |
+| Grand Exchange | Purchase |
+
+## Crafting Products
+
+| Product | Level | XP |
+|---------|-------|-----|
+| Hardleather body | 28 | 35 |
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Demand Drivers:**
+- Hardleather body crafting
+- Mid-level F2P armor
+
+**Tips:**
+- Upgrade from regular leather
+- Higher tanning cost (3 gp)
+- Good for mid-level crafting
+- F2P accessible
+
+<Adsense />

@@ -1,0 +1,116 @@
+---
+title: Armadyl hilt | OSRS Price Data
+description: "Armadyl hilt: Brimming with potential.. High alch: 300,000 GP, GE limit: 10,000."
+osrs:
+  id: 11810
+  name: Armadyl hilt
+  slug: armadyl-hilt
+  examine: Brimming with potential.
+  members: true
+  icon: Armadyl hilt.png
+  value: 500000
+  lowalch: 200000
+  highalch: 300000
+  limit: 10000
+  material:
+    type: hilt
+    tier: boss
+  drop_table:
+    sources:
+      - source: Kree'arra
+        source_id: 3162
+        combat_level: 580
+        quantity: "1"
+        rarity: 1/508
+        members_only: true
+  recipes:
+    - skill: none
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Godsword blade
+          item_id: 11798
+          quantity: 1
+        - item_name: Armadyl hilt
+          item_id: 11810
+          quantity: 1
+      product: Armadyl godsword
+      product_id: 11802
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 11802
+      item_name: Armadyl godsword
+      slug: armadyl-godsword
+      relationship: product
+      description: Created weapon
+    - item_id: 11798
+      item_name: Godsword blade
+      slug: godsword-blade
+      relationship: component
+      description: Blade component
+    - item_id: 11812
+      item_name: Bandos hilt
+      slug: bandos-hilt
+      relationship: alternative
+      description: Defence drain hilt
+    - item_id: 11814
+      item_name: Saradomin hilt
+      slug: saradomin-hilt
+      relationship: alternative
+      description: Healing hilt
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Weight | 2.5 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Kree'arra | 1/508 |
+
+## Uses
+
+| Item Created | Materials |
+|--------------|-----------|
+| Armadyl godsword | Godsword blade + Armadyl hilt |
+
+No skill requirements.
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Tips:**
+- Farm Kree'arra
+- Most valuable hilt
+- Creates spec weapon
+
+<Adsense />

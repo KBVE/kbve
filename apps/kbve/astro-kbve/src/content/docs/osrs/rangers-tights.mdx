@@ -1,0 +1,128 @@
+---
+title: Rangers' tights | OSRS Price Data
+description: "Rangers' tights is a members legs slot item requiring 40 Ranged. High alch: 12,000 GP, GE limit: 8."
+osrs:
+  id: 23249
+  name: Rangers' tights
+  slug: rangers-tights
+  examine: Lightweight legwear ideal for rangers.
+  members: true
+  icon: Rangers' tights.png
+  value: 20000
+  lowalch: 8000
+  highalch: 12000
+  limit: 8
+  equipment:
+    slot: legs
+    type: ranged_armour
+    tradeable: true
+    weight: 4
+    requirements:
+      ranged: 40
+    stats:
+      attack_ranged: 11
+      defence_stab: 8
+      defence_slash: 6
+      defence_crush: 10
+      defence_magic: 6
+      defence_ranged: 8
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Beginner
+        drop_rate: Rare from reward casket
+  related_items:
+    - item_id: 2581
+      item_name: Robin hood hat
+      slug: robin-hood-hat
+      relationship: set-piece
+      description: Matching headgear
+    - item_id: 12596
+      item_name: Rangers' tunic
+      slug: rangers-tunic
+      relationship: set-piece
+      description: Matching body armour
+    - item_id: 2577
+      item_name: Ranger boots
+      slug: ranger-boots
+      relationship: set-piece
+      description: Matching boots
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Legs |
+| Type | Ranged Armour |
+| Tradeable | Yes |
+| Weight | 4 kg |
+
+## Obtaining
+
+Reward from beginner Treasure Trails.
+
+**Drop Rate:** Rare from reward casket (beginner)
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Ranged attack | +11 |
+
+| Defence | Value |
+|---------|-------|
+| Stab | +8 |
+| Slash | +6 |
+| Crush | +10 |
+| Magic | +6 |
+| Ranged | +8 |
+
+**Requirements:** 40 Ranged
+
+## Usage
+
+Part of ranger set:
+- +11 ranged attack bonus
+- Beginner clue exclusive
+- Fashionscape with ranger set
+
+## Ranger Set
+
+Complete the ranger set with:
+- [Robin hood hat](/osrs/robin-hood-hat/) (hard clue)
+- [Rangers' tunic](/osrs/rangers-tunic/) (hard clue)
+- [Ranger gloves](/osrs/ranger-gloves/) (master clue)
+- [Ranger boots](/osrs/ranger-boots/) (medium clue)
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Beginner clue exclusive
+- Part of ranger outfit
+- Collection log item
+- Fashionscape value
+
+<Adsense />

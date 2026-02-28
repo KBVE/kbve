@@ -1,0 +1,39 @@
+---
+title: Twitch
+description: Watch KBVE live streams and join the chat on our official Twitch channel.
+template: splash
+sidebar:
+  label: Twitch
+  order: 5
+editUrl: false
+lastUpdated: false
+tableOfContents: false
+---
+
+import TwitchEmbed from '@/components/twitch/TwitchEmbed.astro';
+import TwitchChat from '@/components/twitch/TwitchChat.astro';
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
+
+Catch our live streams, dev sessions, and gaming content. Join the chat and hang out with the community!
+
+<div class="space-y-4">
+  <TwitchEmbed
+    channel="kbve"
+    type="stream"
+    theme="auto"
+    height={500}
+    showControls={true}
+    autosize={true}
+    autoplay={true}
+    muted={true}
+  />
+
+  <TwitchChat
+    channel="kbve"
+    theme="auto"
+    height={400}
+    darkpopout={true}
+  />
+</div>
+
+<Adsense />

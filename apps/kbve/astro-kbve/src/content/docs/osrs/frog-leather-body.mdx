@@ -1,0 +1,37 @@
+---
+title: Frog-leather body | OSRS Price Data
+description: "Frog-leather body: Armour made out of frog hide.. High alch: 600 GP, GE limit: 70."
+osrs:
+  id: 10954
+  name: Frog-leather body
+  slug: frog-leather-body
+  examine: Armour made out of frog hide.
+  members: true
+  icon: Frog-leather body.png
+  value: 1000
+  lowalch: 400
+  highalch: 600
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

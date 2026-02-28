@@ -1,0 +1,56 @@
+---
+id: "01K77XRVXZCQP3Z9KG8KNX91GE"
+guid: "0bd550495256428f9155b42477e330d9"
+drafted: false
+title: "Coal Vein"
+name: "Coal Vein"
+description: "A compressed seam of coal embedded within stratified shale"
+type: "resource"
+resourceType: "stone"
+imagePath: "/assets/mapdb/stone/coal/coal_vein.png"
+pixelsPerUnit: 64
+pivot: "Center"
+pivotX: 0.5
+pivotY: 0.5
+meshType: "FullRect"
+extrudeEdges: 1
+sortingLayer: "Foreground"
+sortingIndex: 0
+staticSorting: true
+wrapMode: "Clamp"
+amount: 160
+maxAmount: 160
+harvestYield: 8
+harvestTime: 3.5
+isHarvestable: true
+isDepleted: false
+spawnWeight: 0.35
+spawnCount: 18
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+# Coal Vein
+
+Thick, soot-stained veins of coal that break apart into dense fuel chunks. These deposits form near ancient forest beds that were
+compressed under volcanic pressure.
+
+<MapDBPanel data={frontmatter} />
+
+<Adsense />
+
+## Mining Notes
+- Harvestable with standard pickaxe or reinforced shovel
+- Produces 8 coal per cycle, making it a reliable fuel source
+- Rapid extraction time but veins deplete if left unmaintained
+- Emits coal dust clouds; respirators mitigate vision penalties
+
+## Crafting Applications
+- Primary fuel for smelters, forges, and steam-powered machinery
+- Processed into coke for high-temperature metallurgical work
+- Combined with reagents to craft smoke bombs and signal flares
+
+## Lore
+Old miners whisper that coal veins remember the forests they once were; burning offerings of sap can reveal hidden seams within
+the darkest tunnels.

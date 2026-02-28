@@ -1,0 +1,119 @@
+---
+title: Armadyl crossbow | OSRS Price Data
+description: "Armadyl crossbow is a members two-handed weapon requiring 70 Ranged. High alch: 594,000 GP, GE limit: 8."
+osrs:
+  id: 11785
+  name: Armadyl crossbow
+  slug: armadyl-crossbow
+  examine: A weapon originally developed for Armadyl's forces.
+  members: true
+  icon: Armadyl crossbow.png
+  value: 990000
+  lowalch: 396000
+  highalch: 594000
+  limit: 8
+  equipment:
+    slot: 2h
+    type: crossbow
+    attack_style: ranged
+    attack_speed: 6
+    attack_range: 8
+    requirements:
+      ranged: 70
+    stats:
+      attack_ranged: 100
+      prayer: 1
+  special_attack:
+    name: Armadyl Eye
+    energy: 50
+    effect: Doubles accuracy, doubles enchanted bolt proc chance
+  drop_table:
+    sources:
+      - source: Commander Zilyana
+        source_id: 2205
+        combat_level: 596
+        quantity: "1"
+        rarity: 1/508
+        members_only: true
+  related_items:
+    - item_id: 26374
+      item_name: Zaryte crossbow
+      slug: zaryte-crossbow
+      relationship: upgrade
+      description: Upgraded version
+    - item_id: 21012
+      item_name: Dragon hunter crossbow
+      slug: dragon-hunter-crossbow
+      relationship: alternative
+      description: Dragon specialist
+    - item_id: 21944
+      item_name: Ruby dragon bolts (e)
+      slug: ruby-dragon-bolts-e
+      relationship: component
+      description: Best bolt pairing
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Dropped by Commander Zilyana (1/508 drop rate) in God Wars Dungeon.
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged attack | +100 |
+| Prayer | +1 |
+| Attack speed | 6 tick (3.6s) |
+| Range | 8 tiles (10 with Longrange) |
+| Requirements | 70 Ranged |
+
+## Special Attack
+
+**Armadyl Eye** (50% energy):
+- Doubles accuracy
+- Doubles enchanted bolt proc chance
+- Great with ruby/diamond bolts
+
+## Upgrades
+
+| Upgrade | Requirements |
+|---------|--------------|
+| Zaryte crossbow | + Nihil horn + 250 nihil shards |
+
+## Usage
+
+**Best For:**
+- Bossing with enchanted bolts
+- Spec weapon for bolt procs
+- Pre-Zaryte ranged option
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Only crossbow with prayer bonus
+- Great spec for ruby bolt procs
+- Upgrade path to Zaryte
+
+<Adsense />

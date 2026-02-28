@@ -1,0 +1,37 @@
+---
+title: Frog-leather boots | OSRS Price Data
+description: "Frog-leather boots: Boots made out of frog hide.. High alch: 120 GP, GE limit: 70."
+osrs:
+  id: 10958
+  name: Frog-leather boots
+  slug: frog-leather-boots
+  examine: Boots made out of frog hide.
+  members: true
+  icon: Frog-leather boots.png
+  value: 200
+  lowalch: 80
+  highalch: 120
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,133 @@
+---
+title: Iron ore | OSRS Price Data
+description: "Iron ore: This needs refining.. High alch: 10 GP, GE limit: 13,000."
+osrs:
+  id: 440
+  name: Iron ore
+  slug: iron-ore
+  examine: This needs refining.
+  members: false
+  icon: Iron ore.png
+  value: 17
+  lowalch: 6
+  highalch: 10
+  limit: 13000
+  material:
+    type: ore
+    tier: iron
+  mining:
+    level: 15
+    xp: 35
+    rocks: Iron rock
+    locations:
+      - Mining Guild
+      - Motherlode Mine
+      - Al Kharid mine
+  smithing:
+    level: 15
+    xp: 12.5
+    method: Smelting
+    success_rate: 50
+  recipes:
+    - skill: smithing
+      level: 15
+      xp: 12.5
+      materials:
+        - item_name: Iron ore
+          item_id: 440
+          quantity: 1
+      product: Iron bar
+      product_id: 2351
+      product_quantity: 1
+      facility: Furnace
+      success_rate: 50% (100% at Blast Furnace)
+    - skill: smithing
+      level: 30
+      xp: 17.5
+      materials:
+        - item_name: Iron ore
+          item_id: 440
+          quantity: 1
+        - item_name: Coal
+          item_id: 453
+          quantity: 2
+      product: Steel bar
+      product_id: 2353
+      product_quantity: 1
+      facility: Furnace
+  related_items:
+    - item_id: 2351
+      item_name: Iron bar
+      slug: iron-bar
+      relationship: product
+      description: Basic product
+    - item_id: 2353
+      item_name: Steel bar
+      slug: steel-bar
+      relationship: product
+      description: Higher tier product
+    - item_id: 453
+      item_name: Coal
+      slug: coal
+      relationship: component
+      description: For steel bars
+    - item_id: 2568
+      item_name: Ring of forging
+      slug: ring-of-forging
+      relationship: alternative
+      description: 100% smelting success
+    - item_id: 436
+      item_name: Copper ore
+      slug: copper-ore
+      relationship: alternative
+      description: For bronze bars
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Smithing
+
+Smelt to create bars:
+
+| Product | Other Materials | Smithing Level | XP |
+|---------|-----------------|----------------|-----|
+| Iron bar | None (50% success) | 15 | 12.5 |
+| Iron bar | Ring of forging (100%) | 15 | 12.5 |
+| Steel bar | 2 Coal | 30 | 17.5 |
+
+## Market Flip Strategy
+
+**Blast Furnace Iron Bars:**
+- 100% success rate at Blast Furnace
+- No ring of forging needed
+- Calculate: `Iron bar price - Iron ore price = Profit`
+
+**Steel Bar Production:**
+- Iron ore + Coal → Steel bar
+- At Blast Furnace: Only 1 coal needed
+- Compare margins between iron and steel bars
+
+**Tips:**
+- Iron ore has very high supply from bots/players
+- Ring of forging provides 140 charges at 100% success
+- Blast Furnace is always more profitable
+
+<Adsense />

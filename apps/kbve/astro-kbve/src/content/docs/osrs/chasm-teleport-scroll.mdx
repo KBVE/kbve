@@ -1,0 +1,37 @@
+---
+title: Chasm teleport scroll | OSRS Price Data
+description: "Chasm teleport scroll: Ancient glyphs cover the paper, resembling those in the chasm of fire.. High alch: 6 GP."
+osrs:
+  id: 30775
+  name: Chasm teleport scroll
+  slug: chasm-teleport-scroll
+  examine: Ancient glyphs cover the paper, resembling those in the chasm of fire.
+  members: true
+  icon: Chasm teleport scroll.png
+  value: 10
+  lowalch: 4
+  highalch: 6
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

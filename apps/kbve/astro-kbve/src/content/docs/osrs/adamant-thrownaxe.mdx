@@ -1,0 +1,37 @@
+---
+title: Adamant thrownaxe | OSRS Price Data
+description: "Adamant thrownaxe: A finely balanced throwing axe.. High alch: 105 GP, GE limit: 11,000."
+osrs:
+  id: 804
+  name: Adamant thrownaxe
+  slug: adamant-thrownaxe
+  examine: A finely balanced throwing axe.
+  members: true
+  icon: Adamant thrownaxe.png
+  value: 176
+  lowalch: 70
+  highalch: 105
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Bracelet mould | OSRS Price Data
+description: "Bracelet mould: Used to make gold bracelets.. High alch: 3 GP, GE limit: 40."
+osrs:
+  id: 11065
+  name: Bracelet mould
+  slug: bracelet-mould
+  examine: Used to make gold bracelets.
+  members: true
+  icon: Bracelet mould.png
+  value: 5
+  lowalch: 2
+  highalch: 3
+  limit: 40
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

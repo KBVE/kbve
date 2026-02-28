@@ -1,0 +1,37 @@
+---
+title: Rosewood hull parts | OSRS Price Data
+description: "Rosewood hull parts: Parts for creating a rosewood hull for a boat.. High alch: 11,250 GP, GE limit: 100."
+osrs:
+  id: 32059
+  name: Rosewood hull parts
+  slug: rosewood-hull-parts
+  examine: Parts for creating a rosewood hull for a boat.
+  members: true
+  icon: Rosewood hull parts.png
+  value: 18750
+  lowalch: 7500
+  highalch: 11250
+  limit: 100
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

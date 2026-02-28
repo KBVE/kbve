@@ -1,0 +1,116 @@
+---
+title: Skeletal visage | OSRS Price Data
+description: "Skeletal visage: It looks like this could be attached to a shield somehow.. High alch: 900,000 GP, GE limit: 5."
+osrs:
+  id: 22006
+  name: Skeletal visage
+  slug: skeletal-visage
+  examine: It looks like this could be attached to a shield somehow.
+  members: true
+  icon: Skeletal visage.png
+  value: 1500000
+  lowalch: 600000
+  highalch: 900000
+  limit: 5
+  material:
+    type: visage
+    tradeable: true
+    weight: 1.814
+  drop_table:
+    sources:
+      - source: Vorkath
+        rate: 1/5,000
+        notes: Vorkath exclusive drop
+  uses:
+    - result_id: 22002
+      result_name: Dragonfire ward
+      materials:
+        - Anti-dragon shield
+        - Skeletal visage
+      requirements:
+        smithing: 90
+        alternative: Pay Oziach 1.25M
+      xp: 2000
+  market:
+    buy_limit: 8
+    price_estimate: 16300000
+  related_items:
+    - item_id: 22002
+      item_name: Dragonfire ward
+      slug: dragonfire-ward
+      relationship: product
+      description: Created shield
+    - item_id: 1540
+      item_name: Anti-dragon shield
+      slug: anti-dragon-shield
+      relationship: component
+      description: Base material
+    - item_id: 8061
+      item_name: Vorkath
+      slug: vorkath
+      relationship: component
+      description: Only source
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Vorkath | 1/5,000 |
+
+**Vorkath exclusive drop.**
+
+## Uses
+
+| Item Created | Materials | Method |
+|--------------|-----------|--------|
+| Dragonfire ward | Anti-dragon shield + visage | 90 Smithing or Oziach (1.25M) |
+
+Grants 2,000 Smithing XP when crafted.
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~16.3M gp
+
+**Tips:**
+- Vorkath exclusive
+- Creates BiS ranged anti-dragon shield
+- More valuable than draconic visage
+
+## Related Items
+
+- [Dragonfire ward](/osrs/dragonfire-ward/) - Created shield
+- [Anti-dragon shield](/osrs/anti-dragon-shield/) - Base material
+- [Vorkath](/osrs/vorkath/) - Only source
+
+<Adsense />

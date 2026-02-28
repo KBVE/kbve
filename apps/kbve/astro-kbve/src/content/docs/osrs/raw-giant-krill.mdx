@@ -1,0 +1,37 @@
+---
+title: Raw giant krill | OSRS Price Data
+description: "Raw giant krill: I should try cooking this.. High alch: 102 GP."
+osrs:
+  id: 32309
+  name: Raw giant krill
+  slug: raw-giant-krill
+  examine: I should try cooking this.
+  members: true
+  icon: Raw giant krill.png
+  value: 170
+  lowalch: 68
+  highalch: 102
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

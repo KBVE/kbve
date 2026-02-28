@@ -1,0 +1,37 @@
+---
+title: Sigil of the infernal smith | OSRS Price Data
+description: "Sigil of the infernal smith: A power enhancing sigil not yet attuned to you."
+osrs:
+  id: 28505
+  name: Sigil of the infernal smith
+  slug: sigil-of-the-infernal-smith
+  examine: A power enhancing sigil not yet attuned to you.
+  members: true
+  icon: Sigil of the infernal smith.png
+  value: 10000
+  lowalch: null
+  highalch: null
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+
+
+
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Steel javelin tips | OSRS Price Data
+description: "Steel javelin tips: Needs a shaft.. High alch: 54 GP, GE limit: 10,000."
+osrs:
+  id: 19574
+  name: Steel javelin tips
+  slug: steel-javelin-tips
+  examine: Needs a shaft.
+  members: true
+  icon: Steel javelin tips 5.png
+  value: 90
+  lowalch: 36
+  highalch: 54
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

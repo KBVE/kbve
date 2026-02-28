@@ -1,0 +1,191 @@
+---
+title: Sigil of resilience | OSRS Price Data
+description: "Sigil of resilience is a members shield slot item requiring 80 Defence. High alch: 6,000 GP, GE limit: 10."
+osrs:
+  id: 25991
+  name: Sigil of resilience
+  slug: sigil-of-resilience
+  examine: A power enhancing sigil not yet attuned to you.
+  members: true
+  icon: Sigil of resilience.png
+  value: 10000
+  lowalch: 4000
+  highalch: 6000
+  limit: 10
+  equipment:
+    slot: shield
+    type: magic shield
+    tradeable: true
+    weight: 0.708
+    requirements:
+      magic: 80
+      defence: 80
+      prayer: 80
+      smithing: 90
+    stats:
+      attack_magic: 25
+      magic_damage_percent: 5
+      defence_stab: 51
+      defence_slash: 52
+      defence_crush: 48
+      defence_magic: 12
+      defence_ranged: 50
+      prayer: 3
+  creation:
+    materials:
+      - item_id: 25985
+        item_name: Elidinis' ward
+        quantity: 1
+      - item_id: 12827
+        item_name: Arcane sigil
+        quantity: 1
+      - item_id: 566
+        item_name: Soul rune
+        quantity: 10000
+    requirements:
+      prayer: 90
+      smithing: 90
+    notes: 90 Prayer and 90 Smithing required. Process cannot be reversed.
+  drop_table:
+    sources:
+      - source: Creation
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: N/A
+        members_only: true
+        notes: Created from Elidinis' ward + Arcane sigil + 10k Soul runes
+  market:
+    buy_limit: 8
+    price_estimate: 550000000
+  related_items:
+    - item_id: 25985
+      item_name: Elidinis' ward
+      slug: elidinis-ward
+      relationship: component
+      description: Base ward from ToA
+    - item_id: 12827
+      item_name: Arcane sigil
+      slug: arcane-sigil
+      relationship: component
+      description: From Corporeal Beast
+    - item_id: 12825
+      item_name: Arcane spirit shield
+      slug: arcane-spirit-shield
+      relationship: alternative
+      description: Previous BiS magic shield
+    - item_id: 27255
+      item_name: Menaphite ornament kit
+      slug: menaphite-ornament-kit
+      relationship: alternative
+      description: Cosmetic upgrade kit
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Shield |
+| Type | Magic Shield |
+| Tradeable | Yes |
+| Weight | 0.708 kg |
+
+## Creation
+
+Combine at an anvil with 90 Prayer and 90 Smithing:
+- [Elidinis' ward](/osrs/elidinis-ward/)
+- [Arcane sigil](/osrs/arcane-sigil/)
+- 10,000 soul runes
+
+**Warning:** Process cannot be reversed. Components are permanently consumed.
+
+| Component | Source | Price |
+|-----------|--------|-------|
+| Elidinis' ward | Tombs of Amascut | ~3.6M |
+| Arcane sigil | Corporeal Beast | ~100M |
+| 10,000 Soul runes | GE/RC | ~4.5M |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Magic attack | +25 |
+| Magic damage | +5% |
+
+| Defence | Value |
+|---------|-------|
+| Stab | +51 |
+| Slash | +52 |
+| Crush | +48 |
+| Magic | +12 |
+| Ranged | +50 |
+
+| Other | Value |
+|-------|-------|
+| Prayer | +3 |
+
+**Requirements:** 80 Magic, 80 Defence, 80 Prayer
+
+## Usage
+
+**Best-in-slot magic shield for:**
+- All magic content
+- Tombs of Amascut
+- Theatre of Blood
+- Inferno
+- Any shield slot magic combat
+
+Outperforms Arcane spirit shield in every category.
+
+## Comparison to Arcane Spirit Shield
+
+| Stat | Elidinis' ward (f) | Arcane spirit shield |
+|------|-------------------|---------------------|
+| Magic attack | +25 | +20 |
+| Magic damage | +5% | +0% |
+| Prayer | +3 | +3 |
+| Defence | Higher | Lower |
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~550M gp (combined value)
+
+**Tips:**
+- Requires high skill levels to create
+- Most expensive shield in game
+- Essential for max magic setups
+- Arcane sigil is major cost
+
+## Cosmetic Variant
+
+Can be upgraded with [Menaphite ornament kit](/osrs/menaphite-ornament-kit/) to create Elidinis' ward (or) - cosmetic only.
+
+## Related Items
+
+- [Elidinis' ward](/osrs/elidinis-ward/) - Base component
+- [Arcane sigil](/osrs/arcane-sigil/) - From Corp
+- [Arcane spirit shield](/osrs/arcane-spirit-shield/) - Previous BiS
+
+<Adsense />

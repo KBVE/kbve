@@ -1,0 +1,131 @@
+---
+title: 'September: 22nd'
+category: Daily
+date: 2025-09-22 12:00:00
+client: Self
+unsplash: 1694191711762-6ed1400d7b86
+img: https://images.unsplash.com/photo-1694191711762-6ed1400d7b86?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: September 22nd. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### Github Workflows
+
+-   08:20PM
+
+    Need to adjust the workflows for a couple of the github actions because they are a bit outdated and need some tweaks.
+    When going to the workflows on the github repo, they do not display their name and that might be because I am missing something.
+    For example, we have this issue with the workflows, where it shows "Rust DLL Tower Defense Build" as ".github/workflows/rust-dll-tower-defense-build.yml".
+    I find that to be a bit annoying and really confusing, so maybe I need to wrap the name in quotes.
+
+### Moving away from WebGL on RI
+
+-   09:18PM
+
+    Officially we ware no longer going to support the webgl build for the RareIcon.
+    As we continue to build out the steam game, maybe once the demo is out and we have positive feedback, we could begin Android/iOS.
+    For now, the focus will be just to get popular enough on Steam.
+
+### Jobless Animu
+
+-   11:59PM
+
+    Time to finish up the second season of the show since its just been sitting on my todo list.
+    After I can finish that up, I can cross that out of my ever growing rewatch.
+    I did want to finish silicon valley and then finish up mr robot afterwards. 
+    Maybe I could do some security work while watching the robot show, it would match perfectly.
+
+## 2024
+
+**Fleet**
+
+4am, fleet, fleet, fleet, mental beats.
+Okay, after dunkin my head deep into the water, some quick waterboarding and we can move forward.
+I believe I need to add the paths to the additional folders, hopefully that should resolve some of the sealed secret issues.
+Okay so we ended up just moving it into the templates folder, what a terrible waste of a night.
+Anyhow, next we need to adjust the redis labels so that the data gets exported out.
+The redis exporter also might need a password when its exporting out the data, so lets try to include that in this situation too.
+Now that I am looking back at the issue, it might be within the realm of the configuration of the exporter, since we are using bitnami charts, it might be under the metrics label.
+Let us go ahead with updating that part and see if it deploys!
+A decent chunk of these errors are just because of a bit of mismatch with the type of older docker swarm stacks and the latest charts.
+I believe this will start to get even more complex once we start to import more 3rd party charts.
+
+**Redis**
+
+Our goal for now is to make sure that the data for the redis instance will be displayed inside of the native grafana.
+Changing the `name` to `name: redis-armada-monitor` so that it be eaiser to double check the logs.
+After getting a nice fresh start of the day, I am back at the bench, doing more of the `redis metrics memes`.
+The next update will be around `redis-service-monitor.yaml`, I believe the issue might be in the `relabel_configs`? or the `matchLabels`?.
+Well the only way to find out is by continuing to mess around with the fleet, keep-on learning!
+
+For the `redisLegendInput: 'Redis Input'` and `redisLegendOutput: 'Redis Output'`, I think it would make sense to just strip them out and move them directly into the configmap.
+Next maybe we can pass through the `redis.addr: redis-master:6379` into the env variables and see if that can help with the values.yaml?
+
+We know the metrics are running because we ran this command:
+
+```shell
+
+kubectl port-forward svc/redis-metrics 9121:9121 -n armada
+
+```
+
+**RBAC**
+
+Maybe the issue was not the redis or prom, but rather the rbac?
+Let us look at the options for adding them into the fleet stack.
+These are the base YAML configurations for the RBAC that we are looking at:
+
+```yaml
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: armada
+  name: prometheus-scrape
+rules:
+- apiGroups: ["monitoring.coreos.com"]
+  resources: ["servicemonitors"]
+  verbs: ["get", "list", "watch"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: prometheus-scrape-binding
+  namespace: armada
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: prometheus-scrape
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: cattle-monitoring-system
+
+```
+
+All of this was overkill, it was a simple 2-3 lines and we are now good to go!
+
+<Adsense />
+
+## 2023
+
+MIA.
+
+
+## Quote
+
+> People may doubt what you say, but they will believe what you do.
+> — <cite>Lewis Cass</cite>
+
+---
+
+## Tasks
+
+- [ ]

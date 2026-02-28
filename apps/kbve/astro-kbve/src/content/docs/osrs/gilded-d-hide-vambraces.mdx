@@ -1,0 +1,37 @@
+---
+title: Gilded d'hide vambraces | OSRS Price Data
+description: "Gilded d'hide vambraces: Made with 100% golden dragonhide.. High alch: 24,000 GP, GE limit: 8."
+osrs:
+  id: 23261
+  name: Gilded d'hide vambraces
+  slug: gilded-d-hide-vambraces
+  examine: Made with 100% golden dragonhide.
+  members: false
+  icon: Gilded d'hide vambraces.png
+  value: 40000
+  lowalch: 16000
+  highalch: 24000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

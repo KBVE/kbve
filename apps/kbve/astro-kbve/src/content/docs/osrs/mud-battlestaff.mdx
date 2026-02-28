@@ -1,0 +1,37 @@
+---
+title: Mud battlestaff | OSRS Price Data
+description: "Mud battlestaff: It's a slightly magical stick.. High alch: 10,200 GP, GE limit: 8."
+osrs:
+  id: 6562
+  name: Mud battlestaff
+  slug: mud-battlestaff
+  examine: It's a slightly magical stick.
+  members: true
+  icon: Mud battlestaff.png
+  value: 17000
+  lowalch: 6800
+  highalch: 10200
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

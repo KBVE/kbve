@@ -1,0 +1,147 @@
+---
+title: Dragon harpoon | OSRS Price Data
+description: "Dragon harpoon is a members weapon slot item requiring 60 Attack. High alch: 33,000 GP, GE limit: 5."
+osrs:
+  id: 21028
+  name: Dragon harpoon
+  slug: dragon-harpoon
+  examine: A very powerful harpoon.
+  members: true
+  icon: Dragon harpoon.png
+  value: 55000
+  lowalch: 22000
+  highalch: 33000
+  limit: 5
+  equipment:
+    slot: weapon
+    type: harpoon
+    attack_style: stab
+    tradeable: true
+    weight: 2.267
+    requirements:
+      attack: 60
+      fishing: 61
+    stats:
+      attack_stab: 38
+      attack_slash: 32
+      strength: 42
+  special_attack:
+    name: Fishstabber
+    energy: 100
+    effect: +3 visible Fishing levels
+  special_effect:
+    name: Fishing Bonus
+    description: +20% catch rate vs regular harpoon, +5% at Tempoross
+  drop_table:
+    sources:
+      - source: Wyrm
+        rate: 1/2,000
+        notes: On task
+      - source: Shadow Wyrm
+        rate: 1/2,000
+  market:
+    buy_limit: 8
+    price_estimate: 2400000
+  related_items:
+    - item_id: 23762
+      item_name: Crystal harpoon
+      slug: crystal-harpoon
+      relationship: upgrade
+      description: Speed upgrade
+    - item_id: 21031
+      item_name: Infernal harpoon
+      slug: infernal-harpoon
+      relationship: upgrade
+      description: Auto-cook upgrade
+    - item_id: 8610
+      item_name: Wyrm
+      slug: wyrm
+      relationship: component
+      description: Drop source
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Main-hand) |
+| Type | Harpoon |
+| Tradeable | Yes |
+| Weight | 2.267 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Wyrm | 1/2,000 (on task) |
+| Shadow Wyrm | 1/2,000 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | +38 |
+| Slash | +32 |
+| Strength | +42 |
+
+**Requirements:** 60 Attack, 61 Fishing
+
+## Fishing Bonus
+
+**Catch Rate:**
+- +20% vs regular harpoon
+- +5% at Tempoross
+
+## Special Attack
+
+**Fishstabber** (100% energy):
+- +3 Fishing levels
+- Visible boost
+
+## Usage
+
+Essential for:
+- All harpoon fishing
+- Tempoross
+- Upgrade to infernal/crystal
+
+**Best harpoon (base) in the game.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~2.4M gp
+
+**Tips:**
+- Wyrms on task best source
+- 62 Slayer required
+- Upgrade options available
+
+## Related Items
+
+- [Crystal harpoon](/osrs/crystal-harpoon/) - Speed upgrade
+- [Infernal harpoon](/osrs/infernal-harpoon/) - Auto-cook upgrade
+- [Wyrm](/osrs/wyrm/) - Drop source
+
+<Adsense />

@@ -1,0 +1,93 @@
+---
+title: Bronze med helm | OSRS Price Data
+description: "Bronze med helm: A medium sized helmet.. High alch: 14 GP, GE limit: 125."
+osrs:
+  id: 1139
+  name: Bronze med helm
+  slug: bronze-med-helm
+  examine: A medium sized helmet.
+  members: false
+  icon: Bronze med helm.png
+  value: 24
+  lowalch: 9
+  highalch: 14
+  limit: 125
+  item_id: 1139
+  item_type: armor
+  slot: head
+  type: med_helm
+  tradeable: true
+  weight: 1.814
+  requirements:
+    defence: 0
+  stats:
+    stab_defence: 3
+    slash_defence: 4
+    crush_defence: 2
+    magic_defence: -1
+    ranged_defence: 3
+  related_items:
+    - slug: iron-med-helm
+    - slug: bronze-full-helm
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Head |
+| Type | Med Helm |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | None |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +3 |
+| Slash Defence | +4 |
+| Crush Defence | +2 |
+| Magic Defence | -1 |
+| Ranged Defence | +3 |
+
+## Obtaining
+
+**Smithing:** 3 Smithing with 1 bronze bar (12.5 XP).
+
+**Shop:** Peksa's Helmet Shop, Barbarian Village.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~52 gp
+
+Starter helmet. F2P accessible.
+
+## Related Items
+
+- [Iron med helm](/osrs/iron-med-helm/) - Upgrade
+- [Bronze full helm](/osrs/bronze-full-helm/) - More defence
+
+<Adsense />

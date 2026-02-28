@@ -1,0 +1,37 @@
+---
+title: Sigil of escaping | OSRS Price Data
+description: "Sigil of escaping: A power enhancing sigil not yet attuned to you.. High alch: 12,000 GP, GE limit: 8."
+osrs:
+  id: 26069
+  name: Sigil of escaping
+  slug: sigil-of-escaping
+  examine: A power enhancing sigil not yet attuned to you.
+  members: true
+  icon: Sigil of escaping.png
+  value: 20000
+  lowalch: 8000
+  highalch: 12000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,91 @@
+---
+title: Black platelegs | OSRS Price Data
+description: "Black platelegs: Big, black and heavy looking.. High alch: 1,152 GP, GE limit: 125."
+osrs:
+  id: 1077
+  name: Black platelegs
+  slug: black-platelegs
+  examine: Big, black and heavy looking.
+  members: false
+  icon: Black platelegs.png
+  value: 1920
+  lowalch: 768
+  highalch: 1152
+  limit: 125
+  item_id: 1077
+  item_type: armor
+  slot: legs
+  type: platelegs
+  tradeable: true
+  weight: 9.071
+  requirements:
+    defence: 10
+  stats:
+    stab_defence: 21
+    slash_defence: 20
+    crush_defence: 19
+    ranged_defence: 20
+  related_items:
+    - slug: mithril-platelegs
+    - slug: black-platebody
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Legs |
+| Type | Platelegs |
+| Tradeable | Yes |
+| Weight | 9.071 kg |
+| Requirements | 10 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +21 |
+| Slash Defence | +20 |
+| Crush Defence | +19 |
+| Ranged Defence | +20 |
+
+## Obtaining
+
+**Shop:** Louie's Armoured Legs Bazaar, Al Kharid.
+
+**Drops:** Animated Black Armour, spectres.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~1,594 gp
+
+Cannot be smithed. F2P accessible.
+
+## Related Items
+
+- [Mithril platelegs](/osrs/mithril-platelegs/) - Upgrade
+- [Black platebody](/osrs/black-platebody/) - Set piece
+
+<Adsense />

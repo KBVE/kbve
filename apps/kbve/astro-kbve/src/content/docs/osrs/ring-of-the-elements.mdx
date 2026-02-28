@@ -1,0 +1,117 @@
+---
+title: Ring of the elements | OSRS Price Data
+description: "Ring of the elements is a members ring slot item. High alch: 1,200 GP."
+osrs:
+  id: 26815
+  name: Ring of the elements
+  slug: ring-of-the-elements
+  examine: A mystical ring.
+  members: true
+  icon: Ring of the elements.png
+  value: 2000
+  lowalch: 800
+  highalch: 1200
+  limit: null
+  equipment:
+    slot: ring
+    type: utility ring
+    tradeable: true
+    weight: 0.01
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  obtaining:
+    - source: Temple Supplies
+      cost: 400 abyssal pearls
+  charging:
+    max_charges: 10000
+    cost_per_charge: 136 gp
+    materials: "1 each: Air, Water, Earth, Fire + Law rune"
+    notes: Becomes untradeable when charged
+  effect:
+    wintertodt: Counts as warm clothing (only ring with this effect)
+    teleports:
+      - Air altar
+      - Water altar
+      - Earth altar
+      - Fire altar
+  related_items:
+    - item_id: 26792
+      item_name: Abyssal pearl
+      slug: abyssal-pearl
+      relationship: component
+      description: Currency for purchase
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ring |
+| Type | Utility Ring |
+| Tradeable | Yes (uncharged) |
+| Weight | 0.01 kg |
+
+## Obtaining
+
+Purchase from Temple Supplies for 400 abyssal pearls.
+
+## Stats
+
+No combat bonuses.
+
+## Passive Effect
+
+**Wintertodt:** Counts as warm clothing (only ring with this effect).
+
+**Teleports:** Air, Water, Earth, and Fire altars.
+
+## Charging
+
+| Property | Value |
+|----------|-------|
+| Max charges | 10,000 |
+| Cost per charge | 136 gp |
+| Materials | 1 each: Air, Water, Earth, Fire + Law rune |
+
+Becomes untradeable when charged.
+
+## Related Items
+
+- [Guardians of the Rift](/osrs/guardians-of-the-rift/) - Source
+- [Abyssal pearl](/osrs/abyssal-pearl/) - Currency
+- [Raiments of the Eye](/osrs/raiments-of-the-eye/) - Related set
+
+<Adsense />

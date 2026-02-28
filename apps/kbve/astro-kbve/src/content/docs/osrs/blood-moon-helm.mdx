@@ -1,0 +1,124 @@
+---
+title: Blood moon helm | OSRS Price Data
+description: "Blood moon helm is a members head slot item with +4 melee strength requiring 50 Defence. High alch: 61,800 GP, GE limit: 15."
+osrs:
+  id: 29028
+  name: Blood moon helm
+  slug: blood-moon-helm
+  examine: The helm of the Blood Moon.
+  members: true
+  icon: Blood moon helm.png
+  value: 103000
+  lowalch: 41200
+  highalch: 61800
+  limit: 15
+  equipment:
+    slot: head
+    weight: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 20
+      slash: 31
+      crush: 34
+      magic: 7
+      ranged: 29
+    other_bonus:
+      melee_strength: 4
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      strength: 75
+      defence: 50
+    degradable: true
+    charges: 3000
+  drop_table:
+    primary_source: Lunar Chest (Neypotzli)
+    best_drop_rate: 1/224
+    sources:
+      - source: Lunar Chest
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/224
+        members_only: true
+  related_items:
+    - item_id: 28997
+      item_name: Dual macuahuitl
+      slug: dual-macuahuitl
+      relationship: set-piece
+      description: Weapon for Bloodrager set effect
+    - item_id: 29022
+      item_name: Blood moon chestplate
+      slug: blood-moon-chestplate
+      relationship: set-piece
+      description: Body armour in set
+    - item_id: 29025
+      item_name: Blood moon tassets
+      slug: blood-moon-tassets
+      relationship: set-piece
+      description: Leg armour in set
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+The Blood moon helm is obtained from the Lunar Chest in Neypotzli with a 1/224 drop rate.
+
+**Requirements:** 75 Strength, 50 Defence to equip
+
+## Set Effect
+
+When wearing the full Blood moon armour set with the Dual macuahuitl:
+- **Bloodrager:** 33% chance upon successful hit to attack one tick earlier
+
+## Degradation
+
+| Property | Value |
+|----------|-------|
+| Total charges | 3,000 |
+| Charge rate | 1 per 54 seconds |
+| Combat duration | ~45 hours |
+| NPC repair cost | 1,500,000 coins |
+| Repair at 99 Smithing | 757,500 coins |
+
+## Usage
+
+Best-in-slot strength helm for Blood moon builds:
+- High strength bonus (+4)
+- Strong defensive stats
+- Melee DPS optimization
+
+## Market Strategy
+
+**Buy Limit:** 15 per 4 hours
+
+**Tips:**
+- Value tied to full set synergy
+- Factor in repair costs
+- Part of Varlamore content
+
+<Adsense />

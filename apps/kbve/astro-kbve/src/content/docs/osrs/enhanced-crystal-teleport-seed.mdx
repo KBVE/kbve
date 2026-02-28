@@ -1,0 +1,37 @@
+---
+title: Enhanced crystal teleport seed | OSRS Price Data
+description: "Enhanced crystal teleport seed: A seed to be sung into a infinite teleport crystal.. High alch: 60,000 GP, GE limit: 100."
+osrs:
+  id: 23959
+  name: Enhanced crystal teleport seed
+  slug: enhanced-crystal-teleport-seed
+  examine: A seed to be sung into a infinite teleport crystal.
+  members: true
+  icon: Enhanced crystal teleport seed.png
+  value: 100000
+  lowalch: 40000
+  highalch: 60000
+  limit: 100
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Admiral pie | OSRS Price Data
+description: "Admiral pie: Much tastier than a normal fish pie.. High alch: 186 GP, GE limit: 10,000."
+osrs:
+  id: 7198
+  name: Admiral pie
+  slug: admiral-pie
+  examine: Much tastier than a normal fish pie.
+  members: true
+  icon: Admiral pie.png
+  value: 310
+  lowalch: 124
+  highalch: 186
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,93 @@
+---
+title: Steel sword | OSRS Price Data
+description: "Steel sword: A razor sharp sword.. High alch: 195 GP, GE limit: 125."
+osrs:
+  id: 1281
+  name: Steel sword
+  slug: steel-sword
+  examine: A razor sharp sword.
+  members: false
+  icon: Steel sword.png
+  value: 325
+  lowalch: 130
+  highalch: 195
+  limit: 125
+  item_id: 1281
+  item_type: equipment
+  slot: weapon
+  type: sword
+  attack_style: stab
+  attack_speed: 4
+  tradeable: true
+  weight: 1.814
+  requirements:
+    attack: 5
+  stats:
+    stab_attack: 11
+    slash_attack: 8
+    crush_attack: -2
+    strength: 12
+  related_items:
+    - slug: black-sword
+    - slug: steel-scimitar
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Sword |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | 5 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | +11 |
+| Slash Attack | +8 |
+| Crush Attack | -2 |
+| Strength | +12 |
+
+## Obtaining
+
+**Smithing:** 34 Smithing with 1 steel bar (37.5 XP).
+
+**Shop:** Varrock Swordshop.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~98 gp
+
+Mid-level stab weapon. F2P accessible.
+
+## Related Items
+
+- [Black sword](/osrs/black-sword/) - Upgrade
+- [Steel scimitar](/osrs/steel-scimitar/) - Higher slash
+
+<Adsense />

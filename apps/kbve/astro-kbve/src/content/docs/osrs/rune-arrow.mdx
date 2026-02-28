@@ -1,0 +1,142 @@
+---
+title: Rune arrow | OSRS Price Data
+description: "Rune arrow is a members ammo slot item with +49 ranged strength requiring 40 Ranged. High alch: 240 GP, GE limit: 11,000."
+osrs:
+  id: 892
+  name: Rune arrow
+  slug: rune-arrow
+  examine: Arrows with rune heads.
+  members: true
+  icon: Rune arrow 5.png
+  value: 400
+  lowalch: 160
+  highalch: 240
+  limit: 11000
+  ammunition:
+    type: arrow
+    ranged_strength: 49
+    slot: ammo
+  equipment:
+    slot: ammo
+    weight: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 49
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      ranged: 40
+  fletching:
+    level: 75
+    xp: 12.5
+    product: Rune arrow
+    product_id: 892
+    quantity_per_action: 15
+  recipes:
+    - skill: fletching
+      level: 75
+      xp: 187.5
+      materials:
+        - item_name: Headless arrow
+          item_id: 53
+          quantity: 15
+        - item_name: Rune arrowtips
+          item_id: 44
+          quantity: 15
+      product: Rune arrow
+      product_id: 892
+      product_quantity: 15
+      members_only: true
+  related_items:
+    - item_id: 53
+      item_name: Headless arrow
+      slug: headless-arrow
+      relationship: component
+      description: Arrow shaft component
+    - item_id: 44
+      item_name: Rune arrowtips
+      slug: rune-arrowtips
+      relationship: component
+      description: Rune tip component
+    - item_id: 890
+      item_name: Adamant arrow
+      slug: adamant-arrow
+      relationship: downgrade
+      description: Lower tier arrow
+    - item_id: 11212
+      item_name: Dragon arrow
+      slug: dragon-arrow
+      relationship: upgrade
+      description: Higher tier arrow
+    - item_id: 21326
+      item_name: Amethyst arrow
+      slug: amethyst-arrow
+      relationship: alternative
+      description: Alternative high-tier arrow
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Combat Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged Strength | +49 |
+| Best with | Shortbow or better |
+
+## Market Flip Strategy
+
+**Fletching Profit:**
+- Calculate: `(Rune arrow × 15) - (Headless arrow × 15) - (Rune arrowtips × 15) = Profit`
+- 75 Fletching required
+- Check arrowtip vs arrow margins
+
+**Component Chain:**
+- Arrow shaft + Feather = Headless arrow
+- Runite bar → Rune arrowtips
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- High-level ranged training
+- Crystal bow alternative ammo
+- PKing (cheaper than dragon)
+- General PvM
+
+**Tips:**
+- Dragon arrows are often cheaper
+- Popular for ironmen
+- Check dragon arrow prices first
+- Used in ballista
+
+<Adsense />

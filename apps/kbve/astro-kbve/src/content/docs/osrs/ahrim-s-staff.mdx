@@ -1,0 +1,141 @@
+---
+title: Ahrim's staff | OSRS Price Data
+description: "Ahrim's staff is a members weapon slot item requiring 70 Attack. High alch: 51,000 GP, GE limit: 15."
+osrs:
+  id: 4710
+  name: Ahrim's staff
+  slug: ahrim-s-staff
+  examine: Ahrim the Blighted's quarterstaff.
+  members: true
+  icon: Ahrim's staff.png
+  value: 85000
+  lowalch: 34000
+  highalch: 51000
+  limit: 15
+  equipment:
+    slot: weapon
+    type: barrows_weapon
+    attack_style: magic
+    attack_speed: 5
+    requirements:
+      magic: 70
+      attack: 70
+    stats:
+      attack_magic: 15
+      magic_damage: 5
+    degradeable: true
+    degrade_hours: 15
+  set_bonus:
+    set_name: Ahrim's
+    effect: Chance to lower target's Strength
+    aotd_effect: 25% chance for +30% damage with Ancient Magicks
+  drop_table:
+    sources:
+      - source: Barrows chest
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: 7 × 1/2,448
+        members_only: true
+  related_items:
+    - item_id: 4712
+      item_name: Ahrim's robetop
+      slug: ahrims-robetop
+      relationship: component
+      description: Set piece
+    - item_id: 12851
+      item_name: Amulet of the damned
+      slug: amulet-of-the-damned
+      relationship: component
+      description: Enhanced effect
+    - item_id: 21006
+      item_name: Kodai wand
+      slug: kodai-wand
+      relationship: upgrade
+      description: BiS upgrade
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Main-hand) |
+| Type | Magic Staff |
+| Tradeable | Yes |
+| Weight | 2.267 kg |
+| Attack Speed | 5 tick casting |
+
+## Obtaining
+
+Drop from Barrows reward chest.
+
+| Source | Drop Rate |
+|--------|-----------|
+| Barrows chest | 7 × 1/2,448 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Magic attack | +15 |
+| Magic damage | +5% |
+
+| Defence | Value |
+|---------|-------|
+| All | +0 |
+
+**Requirements:** 70 Magic, 70 Attack
+
+## Set Effect
+
+**Full Ahrim's:**
+- Chance to lower target's Strength
+
+**With Amulet of the Damned:**
+- 25% chance for +30% damage with Ancient Magicks
+
+## Degradation
+
+Degrades over 15 hours of combat.
+
+## Usage
+
+Popular for:
+- Ancient Magicks with AotD
+- Budget magic weapon
+- Barrows set completion
+
+**+5% magic damage is valuable.**
+
+## Market Strategy
+
+**Buy Limit:** 15 per 4 hours
+
+**Price:** ~190K gp
+
+**Tips:**
+- Barrows grind
+- Good with AotD
+- Degrades with use
+
+<Adsense />

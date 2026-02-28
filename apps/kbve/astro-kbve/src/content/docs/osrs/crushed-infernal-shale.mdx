@@ -1,0 +1,37 @@
+---
+title: Crushed infernal shale | OSRS Price Data
+description: "Crushed infernal shale: Speckled with smouldering rock.. High alch: 48 GP, GE limit: 25,000."
+osrs:
+  id: 30848
+  name: Crushed infernal shale
+  slug: crushed-infernal-shale
+  examine: Speckled with smouldering rock.
+  members: true
+  icon: Crushed infernal shale 5.png
+  value: 80
+  lowalch: 32
+  highalch: 48
+  limit: 25000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

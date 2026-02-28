@@ -1,0 +1,37 @@
+---
+title: Rune plateskirt (g) | OSRS Price Data
+description: "Rune plateskirt (g): Rune plateskirt with gold trim.. High alch: 38,400 GP, GE limit: 8."
+osrs:
+  id: 3476
+  name: Rune plateskirt (g)
+  slug: rune-plateskirt-g
+  examine: Rune plateskirt with gold trim.
+  members: false
+  icon: Rune plateskirt (g).png
+  value: 64000
+  lowalch: 25600
+  highalch: 38400
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

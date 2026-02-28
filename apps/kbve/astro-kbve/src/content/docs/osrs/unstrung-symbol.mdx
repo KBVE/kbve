@@ -1,0 +1,37 @@
+---
+title: Unstrung symbol | OSRS Price Data
+description: "Unstrung symbol: It needs a string so I can wear it.. High alch: 120 GP, GE limit: 10,000."
+osrs:
+  id: 1714
+  name: Unstrung symbol
+  slug: unstrung-symbol
+  examine: It needs a string so I can wear it.
+  members: false
+  icon: Unstrung symbol.png
+  value: 200
+  lowalch: 80
+  highalch: 120
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

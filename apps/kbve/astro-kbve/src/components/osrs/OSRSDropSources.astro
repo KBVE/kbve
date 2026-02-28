@@ -1,0 +1,297 @@
+---
+/**
+ * OSRSDropSources Component
+ *
+ * Displays monster drop sources in a compact table format
+ * Shows source name, combat level, quantity, and drop rate
+ */
+import type { OSRSDropTable } from '@/data/schema';
+
+interface Props {
+	dropTable: OSRSDropTable;
+}
+
+const { dropTable } = Astro.props;
+
+// Get rarity color class
+function getRarityClass(rarity: string | undefined): string {
+	switch (rarity) {
+		case 'always':
+			return 'osrs-drop__rarity--always';
+		case 'common':
+			return 'osrs-drop__rarity--common';
+		case 'uncommon':
+			return 'osrs-drop__rarity--uncommon';
+		case 'rare':
+			return 'osrs-drop__rarity--rare';
+		case 'very-rare':
+			return 'osrs-drop__rarity--very-rare';
+		default:
+			return '';
+	}
+}
+
+// Format rarity display
+function formatRarity(rarity: string | undefined): string {
+	if (!rarity) return '—';
+	return rarity
+		.split('-')
+		.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+		.join(' ');
+}
+
+const sources = dropTable.sources || [];
+const displaySources = sources.slice(0, 10); // Limit to 10 sources
+const hasMore = sources.length > 10;
+---
+
+<div class="osrs-drops">
+	<div class="osrs-drops__header">
+		<span class="osrs-drops__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z">
+				</path>
+			</svg>
+		</span>
+		<h4 class="osrs-drops__title">Drop Sources</h4>
+		{
+			dropTable.primary_source && (
+				<span class="osrs-drops__primary">
+					Primary: {dropTable.primary_source}
+				</span>
+			)
+		}
+	</div>
+
+	{
+		dropTable.best_drop_rate && (
+			<div class="osrs-drops__best">
+				Best rate: <strong>{dropTable.best_drop_rate}</strong>
+			</div>
+		)
+	}
+
+	<div class="osrs-drops__table-wrap">
+		<table class="osrs-drops__table">
+			<thead>
+				<tr>
+					<th>Source</th>
+					<th>Combat</th>
+					<th>Qty</th>
+					<th>Rate</th>
+					<th>Rarity</th>
+				</tr>
+			</thead>
+			<tbody>
+				{
+					displaySources.map((source) => (
+						<tr
+							class={
+								source.wilderness ? 'osrs-drops__row--wild' : ''
+							}>
+							<td class="osrs-drops__source">
+								{source.source}
+								{source.members_only && (
+									<span class="osrs-drops__p2p">P2P</span>
+								)}
+								{source.wilderness && (
+									<span class="osrs-drops__wild">Wildy</span>
+								)}
+							</td>
+							<td class="osrs-drops__combat">
+								{source.combat_level || '—'}
+							</td>
+							<td class="osrs-drops__qty">
+								{source.quantity || '1'}
+							</td>
+							<td class="osrs-drops__rate">
+								{source.drop_rate || '—'}
+							</td>
+							<td>
+								<span
+									class={`osrs-drop__rarity ${getRarityClass(source.rarity)}`}>
+									{formatRarity(source.rarity)}
+								</span>
+							</td>
+						</tr>
+					))
+				}
+			</tbody>
+		</table>
+	</div>
+
+	{
+		hasMore && (
+			<div class="osrs-drops__more">
+				+{sources.length - 10} more sources
+			</div>
+		)
+	}
+</div>
+
+<style>
+	.osrs-drops {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-drops__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-drops__icon {
+		color: var(--sl-color-accent);
+	}
+
+	.osrs-drops__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+		flex: 1;
+	}
+
+	.osrs-drops__primary {
+		font-size: 0.625rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-drops__best {
+		padding: 0.375rem 0.75rem;
+		font-size: 0.6875rem;
+		color: var(--sl-color-gray-2);
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-drops__best strong {
+		color: var(--sl-color-accent);
+	}
+
+	.osrs-drops__table-wrap {
+		overflow-x: auto;
+	}
+
+	.osrs-drops__table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.6875rem;
+	}
+
+	.osrs-drops__table th {
+		text-align: left;
+		padding: 0.375rem 0.5rem;
+		font-size: 0.5625rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.025em;
+		color: var(--sl-color-gray-3);
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-drops__table td {
+		padding: 0.375rem 0.5rem;
+		border-bottom: 1px solid var(--sl-color-gray-6);
+		color: var(--sl-color-gray-2);
+	}
+
+	.osrs-drops__table tr:last-child td {
+		border-bottom: none;
+	}
+
+	.osrs-drops__row--wild {
+		background: rgba(239, 68, 68, 0.05);
+	}
+
+	.osrs-drops__source {
+		color: var(--sl-color-white);
+		font-weight: 500;
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		flex-wrap: wrap;
+	}
+
+	.osrs-drops__p2p,
+	.osrs-drops__wild {
+		font-size: 0.5rem;
+		font-weight: 600;
+		padding: 0.0625rem 0.1875rem;
+		border-radius: 0.125rem;
+		text-transform: uppercase;
+	}
+
+	.osrs-drops__p2p {
+		background: var(--sl-color-accent-low);
+		color: var(--sl-color-accent-high);
+	}
+
+	.osrs-drops__wild {
+		background: rgba(239, 68, 68, 0.2);
+		color: #ef4444;
+	}
+
+	.osrs-drops__combat {
+		font-family: monospace;
+	}
+
+	.osrs-drops__qty {
+		font-family: monospace;
+	}
+
+	.osrs-drops__rate {
+		font-family: monospace;
+		color: var(--sl-color-white);
+	}
+
+	.osrs-drop__rarity {
+		font-size: 0.5625rem;
+		padding: 0.0625rem 0.25rem;
+		border-radius: 0.1875rem;
+		font-weight: 500;
+	}
+
+	.osrs-drop__rarity--always {
+		background: rgba(34, 197, 94, 0.2);
+		color: #22c55e;
+	}
+
+	.osrs-drop__rarity--common {
+		background: rgba(34, 197, 94, 0.1);
+		color: #86efac;
+	}
+
+	.osrs-drop__rarity--uncommon {
+		background: rgba(234, 179, 8, 0.2);
+		color: #eab308;
+	}
+
+	.osrs-drop__rarity--rare {
+		background: rgba(239, 68, 68, 0.2);
+		color: #ef4444;
+	}
+
+	.osrs-drop__rarity--very-rare {
+		background: rgba(168, 85, 247, 0.2);
+		color: #a855f7;
+	}
+
+	.osrs-drops__more {
+		padding: 0.375rem 0.75rem;
+		font-size: 0.625rem;
+		color: var(--sl-color-gray-3);
+		text-align: center;
+		background: var(--sl-color-gray-6);
+		border-top: 1px solid var(--sl-color-gray-5);
+	}
+</style>

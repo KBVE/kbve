@@ -1,0 +1,37 @@
+---
+title: Silver locks | OSRS Price Data
+description: "Silver locks: Perhaps someone can do something with this.. High alch: 11,520 GP, GE limit: 8."
+osrs:
+  id: 25451
+  name: Silver locks
+  slug: silver-locks
+  examine: Perhaps someone can do something with this.
+  members: true
+  icon: Silver locks.png
+  value: 19200
+  lowalch: 7680
+  highalch: 11520
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

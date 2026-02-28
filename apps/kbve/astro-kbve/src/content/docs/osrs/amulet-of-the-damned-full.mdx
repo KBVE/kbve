@@ -1,0 +1,138 @@
+---
+title: Amulet of the damned (full) | OSRS Price Data
+description: "Amulet of the damned (full) is a members neck slot item. High alch: 34,800 GP, GE limit: 8."
+osrs:
+  id: 12851
+  name: Amulet of the damned (full)
+  slug: amulet-of-the-damned-full
+  examine: Heirloom of an ancient family of Morytania.
+  members: true
+  icon: Amulet of the damned (full).png
+  value: 58001
+  lowalch: 23200
+  highalch: 34800
+  limit: 8
+  equipment:
+    slot: neck
+    type: amulet
+    stats:
+      attack_stab: 10
+      attack_slash: 10
+      attack_crush: 10
+      attack_magic: 10
+      attack_ranged: 10
+      strength: 6
+      defence_all: 3
+      prayer: 3
+  barrows_set_effects:
+    - set: Dharok's
+      bonus: 25% reflect 15% damage
+    - set: Verac's
+      bonus: +7 Prayer bonus
+    - set: Torag's
+      bonus: +1% Def per missing HP
+    - set: Guthan's
+      bonus: Heal up to +10 over max
+    - set: Karil's
+      bonus: 25% double hit (half dmg)
+    - set: Ahrim's
+      bonus: Autocast Ancients, +25% dmg
+  related_items:
+    - item_id: 0
+      item_name: Dharok's set
+      slug: dharoks-set
+      relationship: alternative
+      description: Reflect bonus
+    - item_id: 0
+      item_name: Ahrim's set
+      slug: ahrims-set
+      relationship: alternative
+      description: Magic boost
+    - item_id: 0
+      item_name: Shade Catacombs
+      slug: shade-catacombs
+      relationship: component
+      description: Drop source
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Neck |
+| Type | Amulet |
+| Tradeable | Yes (full only) |
+| Weight | 0.02 kg |
+
+## Obtaining
+
+| Source | Notes |
+|--------|-------|
+| Shade Catacombs | Silver/gold chests |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | +10 |
+| Slash | +10 |
+| Crush | +10 |
+| Magic | +10 |
+| Ranged | +10 |
+| Strength | +6 |
+
+| Defence | Value |
+|---------|-------|
+| All | +3 |
+
+| Other | Value |
+|-------|-------|
+| Prayer | +3 |
+
+## Barrows Set Effects
+
+| Set | Bonus |
+|-----|-------|
+| Dharok's | 25% reflect 15% damage |
+| Verac's | +7 Prayer bonus |
+| Torag's | +1% Def per missing HP |
+| Guthan's | Heal up to +10 over max |
+| Karil's | 25% double hit (half dmg) |
+| Ahrim's | Autocast Ancients, +25% dmg |
+
+## Usage
+
+Essential for:
+- Barrows set bonuses
+- Enhanced Barrows armour
+- Niche uses
+
+**Unlocks unique Barrows set effects.**
+
+## Related Items
+
+- [Dharok's set](/osrs/dharoks-set/) - Reflect bonus
+- [Ahrim's set](/osrs/ahrims-set/) - Magic boost
+- [Shade Catacombs](/osrs/shade-catacombs/) - Drop source
+
+<Adsense />

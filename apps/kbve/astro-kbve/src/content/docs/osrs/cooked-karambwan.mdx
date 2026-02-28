@@ -1,0 +1,123 @@
+---
+title: Cooked karambwan | OSRS Price Data
+description: "Cooked karambwan is a members food item healing 18 HP. High alch: 150 GP, GE limit: 10,000."
+osrs:
+  id: 3144
+  name: Cooked karambwan
+  slug: cooked-karambwan
+  examine: Cooked octopus. It looks very nutritious.
+  members: true
+  icon: Cooked karambwan.png
+  value: 250
+  lowalch: 100
+  highalch: 150
+  limit: 10000
+  food:
+    heals: 18
+    type: fish
+    combo_food: true
+  cooking:
+    level: 30
+    xp: 190
+    quest_required: Tai Bwo Wannai Trio
+    cook_ticks: 4
+  recipes:
+    - skill: cooking
+      level: 30
+      xp: 190
+      materials:
+        - item_name: Raw karambwan
+          item_id: 3142
+          quantity: 1
+      product: Cooked karambwan
+      product_id: 3144
+      product_quantity: 1
+      facility: Range/Fire
+      members_only: true
+  related_items:
+    - item_id: 3142
+      item_name: Raw karambwan
+      slug: raw-karambwan
+      relationship: component
+      description: Uncooked version
+    - item_id: 385
+      item_name: Shark
+      slug: shark
+      relationship: alternative
+      description: Combo partner
+    - item_id: 13441
+      item_name: Anglerfish
+      slug: anglerfish
+      relationship: alternative
+      description: Overheal food
+    - item_id: 391
+      item_name: Manta ray
+      slug: manta-ray
+      relationship: alternative
+      description: Alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Method | Level | XP |
+|--------|-------|-----|
+| Cooking raw karambwan | 30 Cooking | 190 |
+| Quest | Tai Bwo Wannai Trio | - |
+| Cook time | 4 ticks (2.4s) | - |
+
+## Stats
+
+| Effect | Value |
+|--------|-------|
+| Heals | 18 HP |
+| Buy limit | 10,000 |
+
+## Combat Use
+
+**Combo Eating:**
+- Eat same tick as other food
+- Essential for high-level PvM
+- Used with shark/anglerfish
+
+## Market Flip Strategy
+
+**PvM Essential:**
+- Tick eating meta
+- Raids/Inferno staple
+- High demand always
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Demand Drivers:**
+- Combo eating (PvM/PvP)
+- Theatre of Blood
+- Inferno attempts
+- Cox/ToA raids
+
+**Tips:**
+- 1-tick karambwan technique
+- Eat with shark for 38 HP
+- Quest required to cook
+- Always in demand
+
+<Adsense />

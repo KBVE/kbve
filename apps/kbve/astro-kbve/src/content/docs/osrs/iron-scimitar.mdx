@@ -1,0 +1,92 @@
+---
+title: Iron scimitar | OSRS Price Data
+description: "Iron scimitar: A vicious, curved sword.. High alch: 67 GP, GE limit: 125."
+osrs:
+  id: 1323
+  name: Iron scimitar
+  slug: iron-scimitar
+  examine: A vicious, curved sword.
+  members: false
+  icon: Iron scimitar.png
+  value: 112
+  lowalch: 44
+  highalch: 67
+  limit: 125
+  item_id: 1323
+  item_type: equipment
+  slot: weapon
+  type: scimitar
+  attack_style: slash
+  attack_speed: 4
+  tradeable: true
+  weight: 1.814
+  requirements:
+    attack: 1
+  stats:
+    slash_attack: 10
+    strength: 9
+  related_items:
+    - slug: steel-scimitar
+    - slug: iron-bar
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Melee Weapon |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | 1 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Slash Attack | +10 |
+| Strength | +9 |
+| Attack Speed | 4 ticks |
+
+## Obtaining
+
+**Smithing:** Smith from 2 iron bars (20 Smithing, 50 XP).
+
+**Shop:** Zeke's Superior Scimitars, various shops.
+
+**Drops:** Skeletons, bandits.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~87 gp
+
+Starting training weapon. F2P accessible.
+
+## Related Items
+
+- [Steel scimitar](/osrs/steel-scimitar/) - Upgrade
+- [Iron bar](/osrs/iron-bar/) - Smithing material
+
+<Adsense />

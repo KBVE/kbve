@@ -1,0 +1,93 @@
+---
+title: Iron sword | OSRS Price Data
+description: "Iron sword: A razor sharp sword.. High alch: 54 GP, GE limit: 125."
+osrs:
+  id: 1279
+  name: Iron sword
+  slug: iron-sword
+  examine: A razor sharp sword.
+  members: false
+  icon: Iron sword.png
+  value: 91
+  lowalch: 36
+  highalch: 54
+  limit: 125
+  item_id: 1279
+  item_type: equipment
+  slot: weapon
+  type: sword
+  attack_style: stab
+  attack_speed: 4
+  tradeable: true
+  weight: 1.814
+  requirements:
+    attack: 1
+  stats:
+    stab_attack: 6
+    slash_attack: 4
+    crush_attack: -2
+    strength: 7
+  related_items:
+    - slug: steel-sword
+    - slug: iron-scimitar
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Sword |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | 1 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | +6 |
+| Slash Attack | +4 |
+| Crush Attack | -2 |
+| Strength | +7 |
+
+## Obtaining
+
+**Smithing:** 19 Smithing with 1 iron bar (25 XP).
+
+**Shop:** Varrock Swordshop.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~89 gp
+
+Early game stab weapon. F2P accessible.
+
+## Related Items
+
+- [Steel sword](/osrs/steel-sword/) - Upgrade
+- [Iron scimitar](/osrs/iron-scimitar/) - Higher slash
+
+<Adsense />

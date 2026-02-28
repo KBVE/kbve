@@ -1,0 +1,37 @@
+---
+title: Uncooked apple pie | OSRS Price Data
+description: "Uncooked apple pie: This would be much tastier cooked.. High alch: 9 GP, GE limit: 13,000."
+osrs:
+  id: 2317
+  name: Uncooked apple pie
+  slug: uncooked-apple-pie
+  examine: This would be much tastier cooked.
+  members: false
+  icon: Uncooked apple pie.png
+  value: 16
+  lowalch: 6
+  highalch: 9
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

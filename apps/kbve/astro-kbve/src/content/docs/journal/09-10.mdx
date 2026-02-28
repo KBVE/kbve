@@ -1,0 +1,88 @@
+---
+title: 'September: 10th'
+category: Daily
+date: 2025-09-10 12:00:00
+client: Self
+unsplash: 1693884642068-98443d05b78f
+img: https://images.unsplash.com/photo-1693884642068-98443d05b78f?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: September 10th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### Wheel and Deal
+
+-   05:35AM
+
+    The war chest is still pretty solid and if we can continue to provide better growth and deployment, it could mean a huge surge in our development cycle.
+    I am thinking that the next focus might be ditching the react native eco-system and migrating to unity for the app/desktop development, basically turning all our apps into games.
+    This could be a great way to not only build out the user base but provide a way to grow the whole company as a whole.
+    A dating app that is also a card game would be crazy!
+
+## 2024
+
+**Kilobase**
+
+The goal for today is to build out the base image for kilobase and include a small custom postgres extension.
+This will be my third attempt at doing ffi inside of rust!
+The rust extension will ffi into C and during the docker build, we will add it into the exisiting supabase dir.
+
+**MSG**
+
+The first night of madison square garden and kill tony was perfect, a nice blend of the favorites and some really solid performances all around.
+Now I am excited to see the next night, hopefully it comes out this Friday.
+
+**Postgres**
+The next update to the image will be barman cloud, which will help us with the automatic backups!
+What an adventure, having to change the python version to 3.11 and then making sure the barman cloud works too, ugh.
+The build was successful but we still have to figure out how to arrange the deployment, which means getting github action to build and publish the image onto dockerhub.
+For setting up barman, we had to make sure the `requirements.txt` was included in the dockerfile, so we created a custom command for it.
+
+```json
+
+    "copy-requirements": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cp apps/kilobase/requirements.txt dist/target/kilobase/requirements.txt"
+      }
+    },
+
+```
+
+This copies over the requirements.txt from the kilobase folder into the distribution folder.
+Now we can start building out the basic pgrx extension, which will be a bit empty for now, just to make sure everything works before we add more heavy lifting into it.
+Before getting started, we will need a couple of predefined libraries to help us build the rust extension, including additional libraries that will help us ffi into c.
+
+```shell
+
+sudo apt-get install build-essential libreadline-dev zlib1g-dev flex bison libxml2-dev libxslt-dev libssl-dev libxml2-utils xsltproc ccache pkg-config libclang-dev
+
+```
+
+This command should grab everything we would need within an Ubuntu 20/22/24 instance.
+Side note, on my macbook, I had to do `brew install git icu4c pkg-config`.
+
+
+
+## 2023
+
+- 10:30am - Minor updates to the current issue tickets that are open. I definitely want to integrate some of the GPT-style concepts into the issues and then get to the point where I can have it patch, pull and merge different edits to the main repo! Think of it like Sweep but a bit more geared towards content generation and general clean up.
+
+- 4:05pm - Coffee! I require some damn coffee.
+
+- 9:37pm - The amount of memes that this is requiring. Ugh, I am diving deep into the caffeine binge. My basement has skyrocketed in temp, its actually super scary how hot it is getting in here.
+
+## Quote
+
+> The journey of a thousand miles begins with one step.
+> — <cite>Laozi</cite>
+
+---
+
+## Tasks
+
+- [ ]

@@ -1,0 +1,37 @@
+---
+title: Grid master altar icon scroll | OSRS Price Data
+description: Grid master altar icon scroll is a members-only OSRS item.
+osrs:
+  id: 31205
+  name: Grid master altar icon scroll
+  slug: grid-master-altar-icon-scroll
+  examine: Used to construct an icon to the iconic entrance into the world of Gielinor inside your Player owned house.
+  members: true
+  icon: Grid master altar icon scroll.png
+  value: 2500000
+  lowalch: null
+  highalch: null
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+
+
+
+
+<Adsense />

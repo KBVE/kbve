@@ -1,0 +1,37 @@
+---
+title: Raw jumbo squid | OSRS Price Data
+description: "Raw jumbo squid: I should try cooking this.. High alch: 96 GP."
+osrs:
+  id: 31561
+  name: Raw jumbo squid
+  slug: raw-jumbo-squid
+  examine: I should try cooking this.
+  members: true
+  icon: Raw jumbo squid.png
+  value: 160
+  lowalch: 64
+  highalch: 96
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />
