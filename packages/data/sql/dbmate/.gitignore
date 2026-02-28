@@ -3,4 +3,6 @@ schema.sql
 
 # Local test artifacts — production schema dumps, docker volumes
 init/00-supabase-schema.sql
+init/00-supabase-schema.sh
+init/supabase-schema-dump.*
 docker-compose.yml
