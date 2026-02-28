@@ -5,6 +5,7 @@ import logging
 
 logger = logging.getLogger("uvicorn")
 
+
 class CoinDeskClient(APIConnector):
     """
     A client for fetching Bitcoin price data from the CoinDesk API.
