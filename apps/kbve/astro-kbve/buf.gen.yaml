@@ -1,0 +1,16 @@
+version: v2
+plugins:
+    - remote: buf.build/community/stephenh-ts-proto
+      out: src/generated/proto
+      opt:
+          - useZod=true
+          - esModuleInterop=true
+          - importSuffix=.js
+          - outputServices=false
+          - oneof=unions
+          - enumsAsLiterals=true
+          - stringEnums=true
+          - useOptionals=messages
+          - useExactTypes=true
+          - exportCommonSymbols=true
+          - removeEnumPrefix=true

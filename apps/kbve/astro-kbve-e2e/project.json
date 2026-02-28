@@ -1,0 +1,32 @@
+{
+	"name": "astro-kbve-e2e",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/kbve/astro-kbve-e2e/e2e",
+	"implicitDependencies": ["astro-kbve"],
+	"targets": {
+		"e2e": {
+			"executor": "@nx/playwright:playwright",
+			"cache": false,
+			"options": {
+				"config": "apps/kbve/astro-kbve-e2e/playwright.config.ts"
+			}
+		},
+		"e2e:preview": {
+			"executor": "@nx/playwright:playwright",
+			"cache": false,
+			"dependsOn": ["astro-kbve:build"],
+			"options": {
+				"config": "apps/kbve/astro-kbve-e2e/playwright.preview.config.ts"
+			}
+		},
+		"e2e:docker": {
+			"executor": "@nx/playwright:playwright",
+			"cache": false,
+			"options": {
+				"config": "apps/kbve/astro-kbve-e2e/playwright.docker.config.ts"
+			}
+		}
+	},
+	"tags": []
+}
