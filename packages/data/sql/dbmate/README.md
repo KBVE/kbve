@@ -84,7 +84,7 @@ dbmate/
 
 ## Important Notes
 
-- `search_path=dbmate,public` in DATABASE_URL ensures `schema_migrations` lives in the `dbmate` schema, not `public`. This prevents the migration table from being exposed via PostgREST/Supabase API.
+- `search_path=dbmate,public` in DATABASE_URL: the `dbmate` part ensures `schema_migrations` is created in the `dbmate` schema only (isolated from PostgREST/Supabase API). The `public` part is only a lookup fallback so migrations can resolve references like `gen_ulid()` during execution — nothing is stored in `public` by dbmate itself.
 - The `gen_ulid()` function is created in `public` schema so all roles can access it regardless of their search_path.
 - `init/` scripts only run on first container start (empty data volume). They provide the Supabase role/schema stubs that migrations depend on.
 - The production CNPG image is x86-only; use `platform: linux/amd64` for ARM Macs.
