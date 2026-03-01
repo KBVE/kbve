@@ -479,10 +479,19 @@ impl GameCardTemplate {
 
 /// Pre-computed display values for a single tile in the map SVG grid.
 pub struct MapTileDisplay {
-    pub grid_x: i32,
-    pub grid_y: i32,
+    /// Tile top-left X: 20 + grid_x * 52
+    pub tx: i32,
+    /// Tile top-left Y: 44 + grid_y * 52
+    pub ty: i32,
+    /// Tile center X: tx + 24
+    pub cx: i32,
+    /// Tile center Y: ty + 24
+    pub cy: i32,
     pub fill_color: String,
-    pub icon: String,
+    /// Room type identifier for SVG shape rendering: "combat", "boss", etc.
+    pub icon_id: String,
+    /// Icon stroke/fill color (white for visited, gray for unvisited).
+    pub icon_color: String,
     pub is_current: bool,
     pub is_visited: bool,
     pub is_discovered: bool,
@@ -520,17 +529,17 @@ fn room_type_color(room_type: &RoomType) -> &'static str {
     }
 }
 
-fn room_type_icon(room_type: &RoomType) -> &'static str {
+fn room_type_icon_id(room_type: &RoomType) -> &'static str {
     match room_type {
-        RoomType::Combat => "\u{2694}",          // crossed swords
-        RoomType::Boss => "\u{2620}",            // skull
-        RoomType::Treasure => "\u{25C6}",        // diamond
-        RoomType::RestShrine => "\u{2665}",      // heart
-        RoomType::Merchant => "\u{2696}",        // scales
-        RoomType::UndergroundCity => "\u{2302}", // house
-        RoomType::Story => "\u{266B}",           // scroll-like
-        RoomType::Trap => "\u{26A0}",            // warning
-        RoomType::Hallway => "\u{2500}",         // horizontal line
+        RoomType::Combat => "combat",
+        RoomType::Boss => "boss",
+        RoomType::Treasure => "treasure",
+        RoomType::RestShrine => "rest",
+        RoomType::Merchant => "merchant",
+        RoomType::UndergroundCity => "city",
+        RoomType::Story => "story",
+        RoomType::Trap => "trap",
+        RoomType::Hallway => "hallway",
     }
 }
 
@@ -576,17 +585,32 @@ pub fn build_map_card(session: &SessionState) -> MapCardTemplate {
                     "#333344".to_owned()
                 };
 
-                let icon = if is_visited {
-                    room_type_icon(&tile.room_type).to_owned()
+                let icon_id = if is_visited {
+                    room_type_icon_id(&tile.room_type).to_owned()
                 } else {
-                    "?".to_owned()
+                    "unknown".to_owned()
                 };
 
+                let icon_color = if is_visited {
+                    "#ffffff".to_owned()
+                } else {
+                    "#888899".to_owned()
+                };
+
+                // Pre-compute pixel positions for SVG rendering
+                let gxi = gx as i32;
+                let gyi = gy as i32;
+                let tx = 20 + gxi * 52;
+                let ty = 44 + gyi * 52;
+
                 tiles.push(MapTileDisplay {
-                    grid_x: gx as i32,
-                    grid_y: gy as i32,
+                    tx,
+                    ty,
+                    cx: tx + 24,
+                    cy: ty + 24,
                     fill_color,
-                    icon,
+                    icon_id,
+                    icon_color,
                     is_current,
                     is_visited,
                     is_discovered,
@@ -668,8 +692,9 @@ mod tests {
 
     fn test_fontdb() -> FontDb {
         let mut db = FontDb::new();
-        // Try project font; tests still pass without it
+        // Try project fonts; tests still pass without them
         let _ = db.load_font_file("../../../alagard.ttf");
+        let _ = db.load_font_file("../../../NotoSansSymbols-Regular.ttf");
         db
     }
 
@@ -984,5 +1009,136 @@ mod tests {
         assert_eq!(t3.players[0].y_name, 62);
         assert_eq!(t3.players[1].y_name, 152);
         assert_eq!(t3.players[2].y_name, 242);
+    }
+
+    // ── Map card SVG tests ──────────────────────────────────────────
+
+    #[test]
+    fn test_build_map_card_template() {
+        let session = test_session();
+        let template = build_map_card(&session);
+
+        // Origin tile should be present
+        assert!(!template.tiles.is_empty(), "map should have visible tiles");
+        assert_eq!(template.player_x, 0);
+        assert_eq!(template.player_y, 0);
+        assert!(template.tiles_explored >= 1);
+
+        // Current tile should be flagged
+        let current = template.tiles.iter().find(|t| t.is_current);
+        assert!(current.is_some(), "current tile should be in the grid");
+        let current = current.unwrap();
+        assert!(current.is_visited);
+        assert!(!current.icon_id.is_empty());
+    }
+
+    #[test]
+    fn test_map_card_has_correct_icon_ids() {
+        // Verify all icon_ids are valid SVG icon types
+        let valid_ids = [
+            "combat", "boss", "treasure", "rest", "merchant", "city", "story", "trap", "hallway",
+            "unknown",
+        ];
+        let session = test_session();
+        let template = build_map_card(&session);
+        for tile in &template.tiles {
+            assert!(
+                valid_ids.contains(&tile.icon_id.as_str()),
+                "unexpected icon_id: {}",
+                tile.icon_id
+            );
+        }
+    }
+
+    #[test]
+    fn test_map_card_tile_coordinates() {
+        let session = test_session();
+        let template = build_map_card(&session);
+        for tile in &template.tiles {
+            // tx/ty should be within the 400x400 SVG viewport
+            assert!(tile.tx >= 20, "tx should be >= 20, got {}", tile.tx);
+            assert!(tile.ty >= 44, "ty should be >= 44, got {}", tile.ty);
+            assert!(
+                tile.tx + 48 <= 400,
+                "tile right edge should fit in viewport"
+            );
+            assert!(
+                tile.ty + 48 <= 400,
+                "tile bottom edge should fit in viewport"
+            );
+            // cx/cy should be tile center
+            assert_eq!(tile.cx, tile.tx + 24);
+            assert_eq!(tile.cy, tile.ty + 24);
+        }
+    }
+
+    #[test]
+    fn test_map_card_svg_renders_valid_svg() {
+        let session = test_session();
+        let template = build_map_card(&session);
+        let svg = template.render().expect("SVG template should render");
+        assert!(svg.starts_with("<svg"), "should start with <svg");
+        assert!(svg.contains("</svg>"), "should contain closing </svg>");
+        // Verify SVG shape icons are present (not Unicode text)
+        assert!(
+            svg.contains("stroke-linecap") || svg.contains("stroke-width"),
+            "should contain SVG shape attributes"
+        );
+        // No Unicode icon characters should be in the output
+        assert!(
+            !svg.contains('\u{2694}'),
+            "should not contain Unicode sword icon"
+        );
+        assert!(
+            !svg.contains('\u{2620}'),
+            "should not contain Unicode skull icon"
+        );
+    }
+
+    #[test]
+    fn test_map_card_renders_to_png() {
+        let db = test_fontdb();
+        let session = test_session();
+        let png = render_map_card_blocking(&session, &db);
+        assert!(png.is_ok(), "Map render failed: {:?}", png.err());
+        let bytes = png.unwrap();
+        assert!(!bytes.is_empty());
+        assert_eq!(
+            &bytes[0..4],
+            &[0x89, 0x50, 0x4E, 0x47],
+            "should be valid PNG"
+        );
+    }
+
+    #[test]
+    fn test_map_card_renders_without_fonts() {
+        // Simulate Docker environment: no system fonts, no custom fonts.
+        // SVG shape icons should still render correctly since they don't need fonts.
+        let db = FontDb::new(); // empty fontdb — no fonts loaded
+        let session = test_session();
+        let png = render_map_card_blocking(&session, &db);
+        assert!(
+            png.is_ok(),
+            "Map render should succeed without fonts: {:?}",
+            png.err()
+        );
+        let bytes = png.unwrap();
+        assert!(!bytes.is_empty());
+        assert_eq!(&bytes[0..4], &[0x89, 0x50, 0x4E, 0x47]);
+    }
+
+    #[test]
+    fn test_game_card_renders_without_fonts() {
+        // Docker smoke test: game card should also render without system fonts
+        let db = FontDb::new(); // empty fontdb
+        let session = test_session();
+        let png = render_game_card_blocking(&session, &db);
+        assert!(
+            png.is_ok(),
+            "Game card render should succeed without fonts: {:?}",
+            png.err()
+        );
+        let bytes = png.unwrap();
+        assert_eq!(&bytes[0..4], &[0x89, 0x50, 0x4E, 0x47]);
     }
 }

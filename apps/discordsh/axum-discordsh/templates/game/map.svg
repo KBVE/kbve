@@ -19,58 +19,114 @@
 
   {% for tile in tiles %}
   {% if tile.is_discovered || tile.is_visited %}
-  <!-- Tile at grid ({{ tile.grid_x }}, {{ tile.grid_y }}) -->
-
-  {# Calculate pixel positions: base_x = 20 + grid_x * 52, base_y = 44 + grid_y * 52 #}
 
   <!-- Tile background -->
-  <rect x="{{ 20 + tile.grid_x * 52 }}" y="{{ 44 + tile.grid_y * 52 }}" width="48" height="48" rx="4"
+  <rect x="{{ tile.tx }}" y="{{ tile.ty }}" width="48" height="48" rx="6"
     fill="{{ tile.fill_color }}"
-    {% if !tile.is_visited %}opacity="0.4"{% else %}opacity="0.85"{% endif %}/>
+    {% if !tile.is_visited %}opacity="0.35"{% else %}opacity="0.8"{% endif %}/>
 
   {% if tile.is_current %}
   <!-- Current position highlight -->
-  <rect x="{{ 18 + tile.grid_x * 52 }}" y="{{ 42 + tile.grid_y * 52 }}" width="52" height="52" rx="6"
+  <rect x="{{ tile.tx - 2 }}" y="{{ tile.ty - 2 }}" width="52" height="52" rx="8"
     fill="none" stroke="#ffd700" stroke-width="2.5"/>
   {% endif %}
 
-  <!-- Icon -->
-  <text x="{{ 44 + tile.grid_x * 52 }}" y="{{ 74 + tile.grid_y * 52 }}"
-    text-anchor="middle" font-family="Alagard, sans-serif" font-size="{% if tile.is_visited %}16{% else %}14{% endif %}"
-    fill="{% if tile.is_visited %}#ffffff{% else %}#888899{% endif %}">{{ tile.icon }}</text>
+  <!-- Room type SVG icon (font-independent) -->
+  {% if tile.icon_id == "combat" %}
+  <!-- Crossed swords -->
+  <line x1="{{ tile.cx - 5 }}" y1="{{ tile.cy - 5 }}" x2="{{ tile.cx + 5 }}" y2="{{ tile.cy + 5 }}" stroke="{{ tile.icon_color }}" stroke-width="2" stroke-linecap="round"/>
+  <line x1="{{ tile.cx + 5 }}" y1="{{ tile.cy - 5 }}" x2="{{ tile.cx - 5 }}" y2="{{ tile.cy + 5 }}" stroke="{{ tile.icon_color }}" stroke-width="2" stroke-linecap="round"/>
+  {% endif %}
+
+  {% if tile.icon_id == "boss" %}
+  <!-- Skull -->
+  <circle cx="{{ tile.cx }}" cy="{{ tile.cy - 1 }}" r="6" fill="none" stroke="{{ tile.icon_color }}" stroke-width="1.5"/>
+  <circle cx="{{ tile.cx - 2 }}" cy="{{ tile.cy - 2 }}" r="1.2" fill="{{ tile.icon_color }}"/>
+  <circle cx="{{ tile.cx + 2 }}" cy="{{ tile.cy - 2 }}" r="1.2" fill="{{ tile.icon_color }}"/>
+  <line x1="{{ tile.cx - 3 }}" y1="{{ tile.cy + 4 }}" x2="{{ tile.cx + 3 }}" y2="{{ tile.cy + 4 }}" stroke="{{ tile.icon_color }}" stroke-width="1.5" stroke-linecap="round"/>
+  {% endif %}
+
+  {% if tile.icon_id == "treasure" %}
+  <!-- Diamond -->
+  <polygon points="{{ tile.cx }},{{ tile.cy - 7 }} {{ tile.cx + 6 }},{{ tile.cy }} {{ tile.cx }},{{ tile.cy + 7 }} {{ tile.cx - 6 }},{{ tile.cy }}" fill="none" stroke="{{ tile.icon_color }}" stroke-width="1.5" stroke-linejoin="round"/>
+  {% endif %}
+
+  {% if tile.icon_id == "rest" %}
+  <!-- Plus/cross (healing) -->
+  <line x1="{{ tile.cx }}" y1="{{ tile.cy - 6 }}" x2="{{ tile.cx }}" y2="{{ tile.cy + 6 }}" stroke="{{ tile.icon_color }}" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="{{ tile.cx - 6 }}" y1="{{ tile.cy }}" x2="{{ tile.cx + 6 }}" y2="{{ tile.cy }}" stroke="{{ tile.icon_color }}" stroke-width="2.5" stroke-linecap="round"/>
+  {% endif %}
+
+  {% if tile.icon_id == "merchant" %}
+  <!-- Coin with line -->
+  <circle cx="{{ tile.cx }}" cy="{{ tile.cy }}" r="6" fill="none" stroke="{{ tile.icon_color }}" stroke-width="1.5"/>
+  <line x1="{{ tile.cx }}" y1="{{ tile.cy - 3 }}" x2="{{ tile.cx }}" y2="{{ tile.cy + 3 }}" stroke="{{ tile.icon_color }}" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="{{ tile.cx - 2 }}" y1="{{ tile.cy - 2 }}" x2="{{ tile.cx + 2 }}" y2="{{ tile.cy - 2 }}" stroke="{{ tile.icon_color }}" stroke-width="1" stroke-linecap="round"/>
+  <line x1="{{ tile.cx - 2 }}" y1="{{ tile.cy + 2 }}" x2="{{ tile.cx + 2 }}" y2="{{ tile.cy + 2 }}" stroke="{{ tile.icon_color }}" stroke-width="1" stroke-linecap="round"/>
+  {% endif %}
+
+  {% if tile.icon_id == "city" %}
+  <!-- House -->
+  <polygon points="{{ tile.cx }},{{ tile.cy - 7 }} {{ tile.cx + 7 }},{{ tile.cy }} {{ tile.cx - 7 }},{{ tile.cy }}" fill="none" stroke="{{ tile.icon_color }}" stroke-width="1.5" stroke-linejoin="round"/>
+  <rect x="{{ tile.cx - 5 }}" y="{{ tile.cy }}" width="10" height="7" fill="none" stroke="{{ tile.icon_color }}" stroke-width="1.5"/>
+  {% endif %}
+
+  {% if tile.icon_id == "story" %}
+  <!-- Scroll/book -->
+  <rect x="{{ tile.cx - 4 }}" y="{{ tile.cy - 6 }}" width="8" height="12" rx="1" fill="none" stroke="{{ tile.icon_color }}" stroke-width="1.5"/>
+  <line x1="{{ tile.cx - 2 }}" y1="{{ tile.cy - 3 }}" x2="{{ tile.cx + 2 }}" y2="{{ tile.cy - 3 }}" stroke="{{ tile.icon_color }}" stroke-width="1"/>
+  <line x1="{{ tile.cx - 2 }}" y1="{{ tile.cy }}" x2="{{ tile.cx + 2 }}" y2="{{ tile.cy }}" stroke="{{ tile.icon_color }}" stroke-width="1"/>
+  <line x1="{{ tile.cx - 2 }}" y1="{{ tile.cy + 3 }}" x2="{{ tile.cx + 2 }}" y2="{{ tile.cy + 3 }}" stroke="{{ tile.icon_color }}" stroke-width="1"/>
+  {% endif %}
+
+  {% if tile.icon_id == "trap" %}
+  <!-- Warning triangle -->
+  <polygon points="{{ tile.cx }},{{ tile.cy - 7 }} {{ tile.cx + 7 }},{{ tile.cy + 5 }} {{ tile.cx - 7 }},{{ tile.cy + 5 }}" fill="none" stroke="{{ tile.icon_color }}" stroke-width="1.5" stroke-linejoin="round"/>
+  <line x1="{{ tile.cx }}" y1="{{ tile.cy - 3 }}" x2="{{ tile.cx }}" y2="{{ tile.cy + 1 }}" stroke="{{ tile.icon_color }}" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="{{ tile.cx }}" cy="{{ tile.cy + 3 }}" r="1" fill="{{ tile.icon_color }}"/>
+  {% endif %}
+
+  {% if tile.icon_id == "hallway" %}
+  <!-- Horizontal dash -->
+  <line x1="{{ tile.cx - 6 }}" y1="{{ tile.cy }}" x2="{{ tile.cx + 6 }}" y2="{{ tile.cy }}" stroke="{{ tile.icon_color }}" stroke-width="2" stroke-linecap="round"/>
+  {% endif %}
+
+  {% if tile.icon_id == "unknown" %}
+  <!-- Question mark (discovered but unvisited) -->
+  <text x="{{ tile.cx }}" y="{{ tile.cy + 5 }}" text-anchor="middle" font-family="Alagard, sans-serif" font-size="14" fill="{{ tile.icon_color }}">?</text>
+  {% endif %}
 
   {% if tile.cleared && tile.is_visited %}
-  <!-- Cleared checkmark -->
-  <text x="{{ 60 + tile.grid_x * 52 }}" y="{{ 54 + tile.grid_y * 52 }}"
-    text-anchor="middle" font-family="sans-serif" font-size="10" fill="#44cc44">&#x2713;</text>
+  <!-- Cleared indicator (small green dot) -->
+  <circle cx="{{ tile.tx + 42 }}" cy="{{ tile.ty + 6 }}" r="3" fill="#44cc44" opacity="0.9"/>
   {% endif %}
 
-  <!-- Exit paths -->
+  <!-- Exit path connectors (lines between tiles) -->
   {% if tile.has_exit_n && tile.is_visited %}
-  <line x1="{{ 44 + tile.grid_x * 52 }}" y1="{{ 44 + tile.grid_y * 52 }}"
-        x2="{{ 44 + tile.grid_x * 52 }}" y2="{{ 40 + tile.grid_y * 52 }}"
-        stroke="#556677" stroke-width="2" stroke-linecap="round"/>
+  <line x1="{{ tile.cx }}" y1="{{ tile.ty }}"
+        x2="{{ tile.cx }}" y2="{{ tile.ty - 4 }}"
+        stroke="#667788" stroke-width="3" stroke-linecap="round"/>
   {% endif %}
   {% if tile.has_exit_s && tile.is_visited %}
-  <line x1="{{ 44 + tile.grid_x * 52 }}" y1="{{ 92 + tile.grid_y * 52 }}"
-        x2="{{ 44 + tile.grid_x * 52 }}" y2="{{ 96 + tile.grid_y * 52 }}"
-        stroke="#556677" stroke-width="2" stroke-linecap="round"/>
+  <line x1="{{ tile.cx }}" y1="{{ tile.ty + 48 }}"
+        x2="{{ tile.cx }}" y2="{{ tile.ty + 52 }}"
+        stroke="#667788" stroke-width="3" stroke-linecap="round"/>
   {% endif %}
   {% if tile.has_exit_e && tile.is_visited %}
-  <line x1="{{ 68 + tile.grid_x * 52 }}" y1="{{ 68 + tile.grid_y * 52 }}"
-        x2="{{ 72 + tile.grid_x * 52 }}" y2="{{ 68 + tile.grid_y * 52 }}"
-        stroke="#556677" stroke-width="2" stroke-linecap="round"/>
+  <line x1="{{ tile.tx + 48 }}" y1="{{ tile.cy }}"
+        x2="{{ tile.tx + 52 }}" y2="{{ tile.cy }}"
+        stroke="#667788" stroke-width="3" stroke-linecap="round"/>
   {% endif %}
   {% if tile.has_exit_w && tile.is_visited %}
-  <line x1="{{ 20 + tile.grid_x * 52 }}" y1="{{ 68 + tile.grid_y * 52 }}"
-        x2="{{ 16 + tile.grid_x * 52 }}" y2="{{ 68 + tile.grid_y * 52 }}"
-        stroke="#556677" stroke-width="2" stroke-linecap="round"/>
+  <line x1="{{ tile.tx }}" y1="{{ tile.cy }}"
+        x2="{{ tile.tx - 4 }}" y2="{{ tile.cy }}"
+        stroke="#667788" stroke-width="3" stroke-linecap="round"/>
   {% endif %}
 
   {% endif %}
   {% endfor %}
 
   <!-- Footer -->
-  <text x="20" y="392" font-family="Alagard, sans-serif" font-size="10" fill="#555555">Tiles explored: {{ tiles_explored }}</text>
-  <text x="380" y="392" text-anchor="end" font-family="Alagard, sans-serif" font-size="10" fill="#555555">Depth: {{ depth }}</text>
+  <text x="20" y="392" font-family="Alagard, sans-serif" font-size="10" fill="#667788">Tiles: {{ tiles_explored }}</text>
+  <text x="380" y="392" text-anchor="end" font-family="Alagard, sans-serif" font-size="10" fill="#667788">Depth: {{ depth }}</text>
 </svg>

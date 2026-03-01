@@ -9,7 +9,7 @@ use axum::{
 use serde::Deserialize;
 
 use super::HttpState;
-use crate::discord::game::card::GameCardTemplate;
+use crate::discord::game::card::{self, GameCardTemplate};
 use crate::discord::game::types::SessionState;
 
 // ── Query parameters ───────────────────────────────────────────────
@@ -64,6 +64,8 @@ pub fn router() -> Router<HttpState> {
         .route("/svg/game/{session_id}", get(game_card))
         .route("/svg/game/png/{session_id}", get(game_card_png))
         .route("/svg/game/svg/{session_id}", get(game_card_svg))
+        .route("/svg/map/png/{session_id}", get(map_card_png))
+        .route("/svg/map/svg/{session_id}", get(map_card_svg))
 }
 
 // ── Handlers ───────────────────────────────────────────────────────
@@ -95,6 +97,61 @@ async fn game_card_svg(
     Path(session_id): Path<String>,
 ) -> Result<Response, SvgError> {
     render_svg_response(&state, &session_id)
+}
+
+/// `GET /svg/map/png/{session_id}` — map card as PNG.
+async fn map_card_png(
+    State(state): State<HttpState>,
+    Path(session_id): Path<String>,
+) -> Result<Response, SvgError> {
+    let session = snapshot_session(&state, &session_id)?;
+    let fontdb = state.app.fontdb.clone();
+
+    let png_bytes = tokio::task::spawn_blocking(move || {
+        card::render_map_card_blocking(&session, &fontdb)
+            .map_err(|e| SvgError::Render(format!("Map PNG render: {e}")))
+    })
+    .await
+    .map_err(|e| SvgError::Render(format!("Task panicked: {e}")))??;
+
+    Ok((
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "image/png"),
+            (
+                header::CACHE_CONTROL,
+                "public, max-age=5, stale-while-revalidate=10",
+            ),
+        ],
+        png_bytes,
+    )
+        .into_response())
+}
+
+/// `GET /svg/map/svg/{session_id}` — map card as SVG.
+async fn map_card_svg(
+    State(state): State<HttpState>,
+    Path(session_id): Path<String>,
+) -> Result<Response, SvgError> {
+    let session = snapshot_session(&state, &session_id)?;
+
+    let template = card::build_map_card(&session);
+    let svg_string = template
+        .render()
+        .map_err(|e| SvgError::Render(format!("Map SVG template: {e}")))?;
+
+    Ok((
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "image/svg+xml; charset=utf-8"),
+            (
+                header::CACHE_CONTROL,
+                "public, max-age=5, stale-while-revalidate=10",
+            ),
+        ],
+        svg_string,
+    )
+        .into_response())
 }
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -347,5 +404,86 @@ mod tests {
             response.headers().get(header::CONTENT_TYPE).unwrap(),
             "image/svg+xml; charset=utf-8"
         );
+    }
+
+    // ── Map card endpoint tests ──────────────────────────────────
+
+    #[tokio::test]
+    async fn test_map_card_png_200() {
+        let state = test_state();
+        let sid = seed_session(&state);
+        let app = test_app(state);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri(&format!("/svg/map/png/{sid}"))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(
+            response.headers().get(header::CONTENT_TYPE).unwrap(),
+            "image/png"
+        );
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        assert!(!body.is_empty());
+        // PNG magic bytes
+        assert_eq!(&body[..4], &[0x89, 0x50, 0x4E, 0x47]);
+    }
+
+    #[tokio::test]
+    async fn test_map_card_svg_200() {
+        let state = test_state();
+        let sid = seed_session(&state);
+        let app = test_app(state);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri(&format!("/svg/map/svg/{sid}"))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(
+            response.headers().get(header::CONTENT_TYPE).unwrap(),
+            "image/svg+xml; charset=utf-8"
+        );
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let svg = String::from_utf8_lossy(&body);
+        assert!(svg.contains("<svg"), "should be valid SVG");
+        assert!(svg.contains("</svg>"));
+        // Verify SVG shape icons (not Unicode text)
+        assert!(
+            svg.contains("stroke-linecap") || svg.contains("stroke-width"),
+            "map SVG should contain shape attributes"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_map_card_not_found() {
+        let state = test_state();
+        let app = test_app(state);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/svg/map/png/nonexist")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
     }
 }
