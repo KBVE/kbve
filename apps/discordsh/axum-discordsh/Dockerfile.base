@@ -1,0 +1,97 @@
+# Dockerfile.base — Pre-built Rust base image for discordsh builds
+# Bakes Rust toolchain + cargo-chef + third-party deps + foundation crates (kbve + jedi).
+# Only needs rebuilding when Cargo.toml/Cargo.lock or foundation source changes.
+#
+# Build:
+#   docker build -f apps/discordsh/axum-discordsh/Dockerfile.base -t ghcr.io/kbve/discordsh-build-base:latest .
+#
+# Usage in Dockerfile:
+#   ARG BUILD_BASE=ghcr.io/kbve/discordsh-build-base:latest
+#   FROM ${BUILD_BASE} AS foundation
+
+# ============================================================================
+# [STAGE 1] - Rust Toolchain + cargo-chef (NO source code)
+# ============================================================================
+FROM --platform=linux/amd64 rust:1.90-slim AS chef
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        pkg-config \
+        libssl-dev \
+        libpq-dev \
+        protobuf-compiler \
+        libprotobuf-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN rustup target add x86_64-unknown-linux-gnu && \
+    cargo install cargo-chef --locked && \
+    rm -rf /usr/local/cargo/registry/src /usr/local/cargo/registry/cache
+
+WORKDIR /app
+
+# ============================================================================
+# [STAGE 2] - Cargo Chef Planner (needs Cargo.tomls to generate recipe)
+# ============================================================================
+FROM chef AS planner
+
+# Minimal workspace with only discordsh's actual dependencies
+COPY apps/discordsh/axum-discordsh/Cargo.workspace.toml Cargo.toml
+COPY Cargo.lock ./
+
+# Copy only the 3 crate manifests
+COPY apps/discordsh/axum-discordsh/Cargo.toml apps/discordsh/axum-discordsh/Cargo.toml
+COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
+COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
+
+# Proto files (needed for jedi build.rs during chef prepare)
+COPY packages/data/proto packages/data/proto
+
+# Create stubs for cargo chef
+RUN mkdir -p apps/discordsh/axum-discordsh/src && echo "fn main() {}" > apps/discordsh/axum-discordsh/src/main.rs && \
+    mkdir -p packages/rust/jedi/src && echo "" > packages/rust/jedi/src/lib.rs && \
+    mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs
+
+RUN cargo chef prepare --recipe-path recipe.json
+
+# ============================================================================
+# [STAGE 3] - Cargo Chef Cook (cache all external dependencies)
+# ============================================================================
+FROM chef AS deps
+
+COPY --from=planner /app/recipe.json recipe.json
+COPY --from=planner /app/Cargo.toml /app/Cargo.lock ./
+COPY --from=planner /app/apps apps
+COPY --from=planner /app/packages packages
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    cargo chef cook --release --recipe-path recipe.json -p axum-discordsh
+
+# ============================================================================
+# [STAGE 4] - Foundation (compile kbve + jedi from real source)
+#
+# This is the FINAL stage — downstream Dockerfiles inherit from here.
+# External deps are pre-compiled; kbve + jedi are built from source.
+# Only axum-discordsh needs recompilation downstream.
+# ============================================================================
+FROM deps AS foundation
+
+# Restore real workspace manifest (chef cook may strip lints/metadata)
+COPY apps/discordsh/axum-discordsh/Cargo.workspace.toml Cargo.toml
+COPY Cargo.lock ./
+
+# App Cargo.toml (workspace resolution) + stub main
+COPY apps/discordsh/axum-discordsh/Cargo.toml apps/discordsh/axum-discordsh/Cargo.toml
+RUN mkdir -p apps/discordsh/axum-discordsh/src && \
+    echo "fn main() {}" > apps/discordsh/axum-discordsh/src/main.rs
+
+# Proto files (jedi build.rs generates protobuf code)
+COPY packages/data/proto packages/data/proto
+
+# Foundation crate source (changes less frequently than app code)
+COPY packages/rust/jedi packages/rust/jedi
+COPY packages/rust/kbve packages/rust/kbve
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    cargo build --release -p kbve -p jedi

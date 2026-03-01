@@ -318,7 +318,8 @@ jobs:
         with:
             items: |
                 [
-                  { "name": "mc", "target": "base", "condition": "${{ needs.alter.outputs.mc_base }}", "image": "ghcr.io/kbve/mc-rust-base" }
+                  { "name": "mc", "target": "base", "condition": "${{ needs.alter.outputs.mc_base }}", "image": "ghcr.io/kbve/mc-rust-base" },
+                  { "name": "discordsh", "target": "base", "condition": "${{ needs.alter.outputs.discordsh_base }}", "image": "ghcr.io/kbve/discordsh-build-base" }
                 ]
 
     build_base_images:

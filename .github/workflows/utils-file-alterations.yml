@@ -109,6 +109,9 @@ on:
             mc_base:
                 description: 'MC base image dependencies changed'
                 value: ${{ jobs.alter.outputs.mc_base }}
+            discordsh_base:
+                description: 'Discordsh build base image dependencies changed'
+                value: ${{ jobs.alter.outputs.discordsh_base }}
             edge:
                 description: 'Edge functions changed'
                 value: ${{ jobs.alter.outputs.edge }}
@@ -151,6 +154,7 @@ jobs:
             mc_server: ${{ steps.delta.outputs.mc_server_any_changed }}
             mc_plugin: ${{ steps.delta.outputs.mc_plugin_any_changed }}
             mc_base: ${{ steps.delta.outputs.mc_base_any_changed }}
+            discordsh_base: ${{ steps.delta.outputs.discordsh_base_any_changed }}
             edge: ${{ steps.delta.outputs.edge_any_changed }}
 
         steps:
@@ -241,6 +245,16 @@ jobs:
                           - 'apps/mc/pumpkin/pumpkin-protocol/**'
                           - 'apps/mc/pumpkin/pumpkin-inventory/**'
                           - 'apps/mc/Dockerfile.base'
+                      discordsh_base:
+                          - 'packages/rust/kbve/Cargo.toml'
+                          - 'packages/rust/kbve/src/**'
+                          - 'packages/rust/jedi/Cargo.toml'
+                          - 'packages/rust/jedi/src/**'
+                          - 'packages/data/proto/**'
+                          - 'apps/discordsh/axum-discordsh/Cargo.toml'
+                          - 'apps/discordsh/axum-discordsh/Cargo.workspace.toml'
+                          - 'apps/discordsh/axum-discordsh/Dockerfile.base'
+                          - 'Cargo.lock'
                       edge:
                           - 'apps/kbve/edge/functions/**'
                           - 'apps/kbve/edge/Dockerfile'
