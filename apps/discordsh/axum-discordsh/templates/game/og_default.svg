@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="og-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0f0f1a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#og-bg)" rx="0"/>
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.04">
+    <line x1="0" y1="0" x2="0" y2="630" stroke="#fff" stroke-width="1"/>
+    <line x1="100" y1="0" x2="100" y2="630" stroke="#fff" stroke-width="1"/>
+    <line x1="200" y1="0" x2="200" y2="630" stroke="#fff" stroke-width="1"/>
+    <line x1="300" y1="0" x2="300" y2="630" stroke="#fff" stroke-width="1"/>
+    <line x1="400" y1="0" x2="400" y2="630" stroke="#fff" stroke-width="1"/>
+    <line x1="500" y1="0" x2="500" y2="630" stroke="#fff" stroke-width="1"/>
+    <line x1="600" y1="0" x2="600" y2="630" stroke="#fff" stroke-width="1"/>
+    <line x1="700" y1="0" x2="700" y2="630" stroke="#fff" stroke-width="1"/>
+    <line x1="800" y1="0" x2="800" y2="630" stroke="#fff" stroke-width="1"/>
+    <line x1="900" y1="0" x2="900" y2="630" stroke="#fff" stroke-width="1"/>
+    <line x1="1000" y1="0" x2="1000" y2="630" stroke="#fff" stroke-width="1"/>
+    <line x1="1100" y1="0" x2="1100" y2="630" stroke="#fff" stroke-width="1"/>
+    <line x1="1200" y1="0" x2="1200" y2="630" stroke="#fff" stroke-width="1"/>
+    <line x1="0" y1="100" x2="1200" y2="100" stroke="#fff" stroke-width="1"/>
+    <line x1="0" y1="200" x2="1200" y2="200" stroke="#fff" stroke-width="1"/>
+    <line x1="0" y1="300" x2="1200" y2="300" stroke="#fff" stroke-width="1"/>
+    <line x1="0" y1="400" x2="1200" y2="400" stroke="#fff" stroke-width="1"/>
+    <line x1="0" y1="500" x2="1200" y2="500" stroke="#fff" stroke-width="1"/>
+    <line x1="0" y1="600" x2="1200" y2="600" stroke="#fff" stroke-width="1"/>
+  </g>
+
+  <!-- Star/compass logo (scaled from favicon 128x128 → 160x160, centered at x=600 y=200) -->
+  <g transform="translate(520, 120) scale(1.25)" fill="#8b5cf6" opacity="0.9">
+    <path fill-rule="evenodd" d="M81 36 64 0 47 36l-1 2-9-10a6 6 0 0 0-9 9l10 10h-2L0 64l36 17h2L28 91a6 6 0 1 0 9 9l9-10 1 2 17 36 17-36v-2l9 10a6 6 0 1 0 9-9l-9-9 2-1 36-17-36-17-2-1 9-9a6 6 0 1 0-9-9l-9 10v-2Zm-17 2-2 5c-4 8-11 15-19 19l-5 2 5 2c8 4 15 11 19 19l2 5 2-5c4-8 11-15 19-19l5-2-5-2c-8-4-15-11-19-19l-2-5Z" clip-rule="evenodd"/>
+    <path d="M118 19a6 6 0 0 0-9-9l-3 3a6 6 0 1 0 9 9l3-3Zm-96 4c-2 2-6 2-9 0l-3-3a6 6 0 1 1 9-9l3 3c3 2 3 6 0 9Zm0 82c-2-2-6-2-9 0l-3 3a6 6 0 1 0 9 9l3-3c3-2 3-6 0-9Zm96 4a6 6 0 0 1-9 9l-3-3a6 6 0 1 1 9-9l3 3Z"/>
+  </g>
+
+  <!-- Title -->
+  <text x="600" y="380" text-anchor="middle" font-family="Alagard, sans-serif" font-size="72" fill="#ffffff" font-weight="bold">Discord.sh</text>
+
+  <!-- Tagline -->
+  <text x="600" y="430" text-anchor="middle" font-family="Alagard, sans-serif" font-size="28" fill="#a0a0b8">Discord Bot &amp; Tools</text>
+
+  <!-- Accent bar -->
+  <rect x="400" y="460" width="400" height="4" rx="2" fill="url(#accent)" opacity="0.6"/>
+
+  <!-- URL -->
+  <text x="600" y="530" text-anchor="middle" font-family="Alagard, sans-serif" font-size="24" fill="#6d6d8a">https://discord.sh</text>
+
+  <!-- Border glow -->
+  <rect x="2" y="2" width="1196" height="626" rx="0" fill="none" stroke="#8b5cf6" stroke-width="2" opacity="0.15"/>
+</svg>

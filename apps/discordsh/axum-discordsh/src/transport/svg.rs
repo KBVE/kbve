@@ -66,6 +66,7 @@ pub fn router() -> Router<HttpState> {
         .route("/svg/game/svg/{session_id}", get(game_card_svg))
         .route("/svg/map/png/{session_id}", get(map_card_png))
         .route("/svg/map/svg/{session_id}", get(map_card_svg))
+        .route("/og/default.png", get(og_default_png))
 }
 
 // ── Handlers ───────────────────────────────────────────────────────
@@ -150,6 +151,28 @@ async fn map_card_svg(
             ),
         ],
         svg_string,
+    )
+        .into_response())
+}
+
+/// `GET /og/default.png` — branded default Open Graph image (1200x630).
+async fn og_default_png(State(state): State<HttpState>) -> Result<Response, SvgError> {
+    let fontdb = state.app.fontdb.clone();
+
+    let png_bytes = tokio::task::spawn_blocking(move || {
+        card::render_og_default_blocking(&fontdb)
+            .map_err(|e| SvgError::Render(format!("OG PNG render: {e}")))
+    })
+    .await
+    .map_err(|e| SvgError::Render(format!("Task panicked: {e}")))??;
+
+    Ok((
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "image/png"),
+            (header::CACHE_CONTROL, "public, max-age=3600"),
+        ],
+        png_bytes,
     )
         .into_response())
 }
@@ -485,5 +508,38 @@ mod tests {
             .unwrap();
 
         assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    }
+
+    // ── OG default image tests ───────────────────────────────────
+
+    #[tokio::test]
+    async fn test_og_default_png_200() {
+        let state = test_state();
+        let app = test_app(state);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/og/default.png")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(
+            response.headers().get(header::CONTENT_TYPE).unwrap(),
+            "image/png"
+        );
+        assert_eq!(
+            response.headers().get(header::CACHE_CONTROL).unwrap(),
+            "public, max-age=3600"
+        );
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        assert!(!body.is_empty());
+        // PNG magic bytes
+        assert_eq!(&body[..4], &[0x89, 0x50, 0x4E, 0x47]);
     }
 }
