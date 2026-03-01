@@ -446,25 +446,37 @@ fn resolve_player_attack(
 
     let accuracy = effective_accuracy(session, actor);
 
-    // Read player stats we need
-    let player_name = session.player(actor).name.clone();
-    let player_class = session.player(actor).class.clone();
-    let base_damage_bonus = session.player(actor).base_damage_bonus;
-    let crit_chance = session.player(actor).crit_chance;
-    let weapon_id = session.player(actor).weapon.clone();
-    let sharp_stacks = session.player(actor).effect_stacks(&EffectKind::Sharpened);
-    let is_weakened = session.player(actor).has_effect(&EffectKind::Weakened);
+    // Read player stats in a single borrow
+    let (player_name, player_class, base_damage_bonus, crit_chance, weapon_id, sharp_stacks, is_weakened) = {
+        let p = session.player(actor);
+        (
+            p.name.clone(),
+            p.class.clone(),
+            p.base_damage_bonus,
+            p.crit_chance,
+            p.weapon.clone(),
+            p.effect_stacks(&EffectKind::Sharpened),
+            p.has_effect(&EffectKind::Weakened),
+        )
+    };
+
+    // Look up weapon gear data once (used for bonus damage, crit bonus, lifesteal)
+    let weapon_gear = weapon_id.as_ref().and_then(|id| content::find_gear(id));
+    let weapon_bonus = weapon_gear.map(|g| g.bonus_damage).unwrap_or(0);
+    let gear_crit_bonus = weapon_gear
+        .and_then(|g| match &g.special {
+            Some(GearSpecial::CritBonus { percent }) => Some(*percent as f32 / 100.0),
+            _ => None,
+        })
+        .unwrap_or(0.0);
+    let lifesteal_pct = weapon_gear
+        .and_then(|g| match &g.special {
+            Some(GearSpecial::LifeSteal { percent }) => Some(*percent as f32 / 100.0),
+            _ => None,
+        });
 
     // Calculate base damage
-    let base_dmg = rng.gen_range(6..=12) + base_damage_bonus;
-
-    // Add weapon bonus
-    let weapon_bonus = weapon_id
-        .as_ref()
-        .and_then(|id| content::find_gear(id))
-        .map(|g| g.bonus_damage)
-        .unwrap_or(0);
-    let mut dmg = base_dmg + weapon_bonus;
+    let mut dmg = rng.gen_range(6..=12) + base_damage_bonus + weapon_bonus;
 
     // Sharpened effect bonus
     dmg += 3 * sharp_stacks as i32;
@@ -474,101 +486,68 @@ fn resolve_player_attack(
         dmg = (dmg as f32 * 0.7) as i32;
     }
 
-    // Find the enemy
-    let enemy = if let Some(e) = session.enemy_at_mut(target_idx) {
-        e
-    } else if let Some(e) = session.primary_enemy_mut() {
-        e
+    // Resolve the target enemy index for Vec access
+    let enemy_vec_idx = if session.enemy_at(target_idx).is_some() {
+        session.enemies.iter().position(|e| e.index == target_idx)
     } else {
-        return logs;
+        if session.enemies.is_empty() { None } else { Some(0) }
+    };
+    let enemy_vec_idx = match enemy_vec_idx {
+        Some(i) => i,
+        None => return logs,
     };
 
-    let enemy_name = enemy.name.clone();
+    let enemy_name = session.enemies[enemy_vec_idx].name.clone();
 
     // Accuracy check
     if rng.gen_range(0.0f32..1.0) > accuracy {
         logs.push(format!("{}'s attack missed!", player_name));
-    } else {
-        // Critical hit check
-        let gear_crit_bonus = weapon_id
-            .as_ref()
-            .and_then(|id| content::find_gear(id))
-            .and_then(|g| match &g.special {
-                Some(GearSpecial::CritBonus { percent }) => Some(*percent as f32 / 100.0),
-                _ => None,
-            })
-            .unwrap_or(0.0);
-        let crit = rng.r#gen::<f32>() < (crit_chance + gear_crit_bonus);
-        if crit {
-            dmg *= 2;
-        }
-
-        dmg = (dmg - enemy.armor).max(1);
-        enemy.hp -= dmg;
-
-        let crit_msg = if crit { " Critical hit!" } else { "" };
-        logs.push(format!(
-            "{} strikes {} for {} damage!{}",
-            player_name, enemy_name, dmg, crit_msg
-        ));
-
-        // Warrior passive: 20% chance to stagger (apply Stunned 1 turn)
-        if player_class == ClassType::Warrior && rng.r#gen::<f32>() < 0.20 {
-            enemy.effects.push(EffectInstance {
-                kind: EffectKind::Stunned,
-                stacks: 1,
-                turns_left: 1,
-            });
-            logs.push(format!("{} staggers the enemy!", player_name));
-        }
-
-        // Boss enrage check
-        if enemy.hp > 0
-            && enemy.hp <= enemy.max_hp / 2
-            && !enemy.enraged
-            && session.room.room_type == RoomType::Boss
-        {
-            // Need to re-borrow since we used enemy above
-            // We'll set enraged after the borrow ends
-        }
-
-        // LifeSteal from weapon
-        if let Some(ref wep_id) = weapon_id {
-            if let Some(gear) = content::find_gear(wep_id) {
-                if let Some(GearSpecial::LifeSteal { percent }) = &gear.special {
-                    let heal = (dmg as f32 * (*percent as f32 / 100.0)) as i32;
-                    let player = session.player_mut(actor);
-                    player.hp = (player.hp + heal).min(player.max_hp);
-                    if heal > 0 {
-                        logs.push(format!("Life steal! +{} HP", heal));
-                    }
-                }
-            }
-        }
+        return logs;
     }
 
-    // Boss enrage check (done outside enemy borrow)
-    let should_enrage = if let Some(e) = session.enemy_at(target_idx) {
-        e.hp > 0
-            && e.hp <= e.max_hp / 2
-            && !e.enraged
-            && session.room.room_type == RoomType::Boss
-    } else if let Some(e) = session.primary_enemy() {
-        e.hp > 0
-            && e.hp <= e.max_hp / 2
-            && !e.enraged
-            && session.room.room_type == RoomType::Boss
-    } else {
-        false
-    };
+    // Critical hit check
+    let crit = rng.r#gen::<f32>() < (crit_chance + gear_crit_bonus);
+    if crit {
+        dmg *= 2;
+    }
 
-    if should_enrage {
-        if let Some(e) = session.enemy_at_mut(target_idx) {
-            e.enraged = true;
-            logs.push("The boss enters a furious rage!".to_owned());
-        } else if let Some(e) = session.primary_enemy_mut() {
-            e.enraged = true;
-            logs.push("The boss enters a furious rage!".to_owned());
+    let enemy = &mut session.enemies[enemy_vec_idx];
+    dmg = (dmg - enemy.armor).max(1);
+    enemy.hp -= dmg;
+
+    let crit_msg = if crit { " Critical hit!" } else { "" };
+    logs.push(format!(
+        "{} strikes {} for {} damage!{}",
+        player_name, enemy_name, dmg, crit_msg
+    ));
+
+    // Warrior passive: 20% chance to stagger (apply Stunned 1 turn)
+    if player_class == ClassType::Warrior && rng.r#gen::<f32>() < 0.20 {
+        enemy.effects.push(EffectInstance {
+            kind: EffectKind::Stunned,
+            stacks: 1,
+            turns_left: 1,
+        });
+        logs.push(format!("{} staggers the enemy!", player_name));
+    }
+
+    // Boss enrage check
+    if enemy.hp > 0
+        && enemy.hp <= enemy.max_hp / 2
+        && !enemy.enraged
+        && session.room.room_type == RoomType::Boss
+    {
+        enemy.enraged = true;
+        logs.push("The boss enters a furious rage!".to_owned());
+    }
+
+    // LifeSteal from weapon
+    if let Some(pct) = lifesteal_pct {
+        let heal = (dmg as f32 * pct) as i32;
+        if heal > 0 {
+            let player = session.player_mut(actor);
+            player.hp = (player.hp + heal).min(player.max_hp);
+            logs.push(format!("Life steal! +{} HP", heal));
         }
     }
 
@@ -629,19 +608,31 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
         // Increment lifetime kills for the actor
         session.player_mut(actor).lifetime_kills += 1;
 
+        // Determine loot recipient: round-robin among alive players in party mode
+        let loot_recipient = if alive_ids.len() > 1 {
+            alive_ids[i % alive_ids.len()]
+        } else {
+            actor
+        };
+        let recipient_name = session.player(loot_recipient).name.clone();
+
         // Roll item loot drop
         if i < dead_loot_tables.len() {
             let loot_id = dead_loot_tables[i];
             logs.extend(roll_and_add_loot(
                 loot_id,
-                &mut session.player_mut(actor).inventory,
+                &mut session.player_mut(loot_recipient).inventory,
             ));
 
             // Roll gear loot
             if let Some(gear_id) = content::roll_gear_loot(loot_id) {
-                add_item_to_inventory(&mut session.player_mut(actor).inventory, gear_id);
+                add_item_to_inventory(&mut session.player_mut(loot_recipient).inventory, gear_id);
                 if let Some(gear) = content::find_gear(gear_id) {
-                    logs.push(format!("Dropped gear: {}!", gear.name));
+                    if alive_ids.len() > 1 {
+                        logs.push(format!("{} received gear: {}!", recipient_name, gear.name));
+                    } else {
+                        logs.push(format!("Dropped gear: {}!", gear.name));
+                    }
                 }
             }
         }
@@ -904,18 +895,17 @@ fn single_enemy_turn(
 /// Execute all enemies' turns (convenience wrapper for solo mode).
 fn enemy_turns(session: &mut SessionState, default_target: serenity::UserId) -> Vec<String> {
     let mut logs = Vec::new();
-    let enemy_count = session.enemies.len();
 
     // Process enemies in order; use index-based iteration since enemies can be removed (flee)
     let mut idx = 0;
     while idx < session.enemies.len() {
+        let pre_len = session.enemies.len();
         let target = pick_enemy_target(session, default_target);
         let turn_logs = single_enemy_turn(session, idx, target);
         logs.extend(turn_logs);
 
         // If enemy fled, it was removed so don't increment index
-        if session.enemies.len() < enemy_count {
-            // An enemy was removed, recalculate
+        if session.enemies.len() < pre_len {
             continue;
         }
         idx += 1;
@@ -1306,7 +1296,6 @@ fn apply_equip(
     let gear = content::find_gear(gear_id).ok_or("Unknown gear.")?;
     let gear_name = gear.name.to_owned();
     let gear_slot = gear.slot.clone();
-    let _gear_bonus_damage = gear.bonus_damage;
     let gear_bonus_armor = gear.bonus_armor;
     let gear_bonus_hp = gear.bonus_hp;
 
@@ -1323,9 +1312,6 @@ fn apply_equip(
         EquipSlot::Weapon => {
             if let Some(old) = player.weapon.take() {
                 add_item_to_inventory(&mut player.inventory, &old);
-                if let Some(old_gear) = content::find_gear(&old) {
-                    player.base_damage_bonus -= old_gear.bonus_damage;
-                }
             }
             player.weapon = Some(gear_id.to_owned());
         }
@@ -2572,5 +2558,56 @@ mod tests {
                 kills_before + 1
             );
         }
+    }
+
+    #[test]
+    fn enemy_turns_with_flee_does_not_loop() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+
+        // Two enemies: one that will flee, one that attacks
+        let mut enemy_flee = test_enemy();
+        enemy_flee.intent = Intent::Flee;
+        enemy_flee.index = 0;
+
+        let mut enemy_attack = test_enemy();
+        enemy_attack.intent = Intent::Attack { dmg: 1 };
+        enemy_attack.index = 1;
+
+        session.enemies = vec![enemy_flee, enemy_attack];
+        session.player_mut(OWNER).hp = 200;
+        session.player_mut(OWNER).max_hp = 200;
+
+        // This should NOT loop infinitely
+        let logs = enemy_turns(&mut session, OWNER);
+        // After enemy flees, at most 1 enemy should remain
+        assert!(session.enemies.len() <= 1);
+        assert!(!logs.is_empty());
+    }
+
+    #[test]
+    fn weapon_equip_swap_preserves_base_damage() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+
+        let base_dmg = session.player(OWNER).base_damage_bonus;
+
+        // Give player two weapons
+        add_item_to_inventory(&mut session.player_mut(OWNER).inventory, "rusty_sword");
+        add_item_to_inventory(&mut session.player_mut(OWNER).inventory, "shadow_dagger");
+
+        // Equip first weapon
+        let result = apply_action(&mut session, GameAction::Equip("rusty_sword".to_owned()), OWNER);
+        assert!(result.is_ok());
+        assert_eq!(session.player(OWNER).weapon.as_deref(), Some("rusty_sword"));
+        // base_damage_bonus should be unchanged — weapon bonus is dynamic
+        assert_eq!(session.player(OWNER).base_damage_bonus, base_dmg);
+
+        // Swap to second weapon
+        let result = apply_action(&mut session, GameAction::Equip("shadow_dagger".to_owned()), OWNER);
+        assert!(result.is_ok());
+        assert_eq!(session.player(OWNER).weapon.as_deref(), Some("shadow_dagger"));
+        // base_damage_bonus should STILL be unchanged (no asymmetric subtraction)
+        assert_eq!(session.player(OWNER).base_damage_bonus, base_dmg);
     }
 }
