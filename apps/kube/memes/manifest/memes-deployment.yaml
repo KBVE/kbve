@@ -13,14 +13,14 @@ spec:
   template:
     metadata:
       annotations:
-        rollout-restart: "2026-02-27T22:55:47Z"
+        rollout-restart: "2026-03-01T09:17:46Z"
       labels:
         app: memes
-        version: "0.1.1"
+        version: "0.1.2"
     spec:
       containers:
       - name: memes
-        image: ghcr.io/kbve/memes:0.1.1
+        image: ghcr.io/kbve/memes:0.1.2
         imagePullPolicy: Always
         ports:
         - containerPort: 4321

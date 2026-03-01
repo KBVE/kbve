@@ -300,4 +300,94 @@ mod tests {
         assert!(parse_action("unknown").is_none());
         assert!(parse_action("").is_none());
     }
+
+    #[test]
+    fn test_parse_action_all_variants() {
+        // Verify all valid parse_action mappings
+        assert_eq!(parse_action("atk"), Some(GameAction::Attack));
+        assert_eq!(parse_action("def"), Some(GameAction::Defend));
+        assert_eq!(parse_action("explore"), Some(GameAction::Explore));
+        assert_eq!(parse_action("flee"), Some(GameAction::Flee));
+        assert_eq!(parse_action("rest"), Some(GameAction::Rest));
+        assert_eq!(parse_action("item"), Some(GameAction::ToggleItems));
+
+        // Unknown strings should return None
+        assert_eq!(parse_action("xyz"), None);
+        assert_eq!(parse_action("attack"), None);
+        assert_eq!(parse_action("defend"), None);
+        assert_eq!(parse_action("buy"), None);
+        assert_eq!(parse_action("sell"), None);
+    }
+
+    #[test]
+    fn test_parse_action_case_sensitivity() {
+        // Parser is case-sensitive — only lowercase works
+        assert!(parse_action("ATK").is_none(), "ATK should not match");
+        assert!(parse_action("Atk").is_none(), "Atk should not match");
+        assert!(parse_action("aTk").is_none(), "aTk should not match");
+        assert!(parse_action("DEF").is_none(), "DEF should not match");
+        assert!(parse_action("Def").is_none(), "Def should not match");
+        assert!(
+            parse_action("EXPLORE").is_none(),
+            "EXPLORE should not match"
+        );
+        assert!(parse_action("Flee").is_none(), "Flee should not match");
+        assert!(parse_action("REST").is_none(), "REST should not match");
+        assert!(parse_action("ITEM").is_none(), "ITEM should not match");
+
+        // Confirm lowercase still works
+        assert!(parse_action("atk").is_some());
+        assert!(parse_action("def").is_some());
+        assert!(parse_action("explore").is_some());
+        assert!(parse_action("flee").is_some());
+        assert!(parse_action("rest").is_some());
+        assert!(parse_action("item").is_some());
+    }
+
+    #[test]
+    fn test_useitem_value_parsing() {
+        // The useitem handler parses select menu values with format "item_id|..."
+        // using: value.split('|').next().unwrap_or(value)
+        // Simulate the same parsing logic used in handle_game_component
+
+        // "bomb|1" — item_id should be "bomb"
+        let value = "bomb|1";
+        let item_id = value.split('|').next().unwrap_or(value);
+        assert_eq!(item_id, "bomb");
+
+        // "potion|" — item_id should be "potion"
+        let value = "potion|";
+        let item_id = value.split('|').next().unwrap_or(value);
+        assert_eq!(item_id, "potion");
+
+        // "ward|0" — item_id should be "ward"
+        let value = "ward|0";
+        let item_id = value.split('|').next().unwrap_or(value);
+        assert_eq!(item_id, "ward");
+
+        // Plain value with no delimiter — item_id should be the whole string
+        let value = "elixir";
+        let item_id = value.split('|').next().unwrap_or(value);
+        assert_eq!(item_id, "elixir");
+
+        // Verify that the parsed item_id can construct a valid GameAction::UseItem
+        let action = GameAction::UseItem("bomb".to_owned(), None);
+        assert_eq!(action, GameAction::UseItem("bomb".to_owned(), None));
+
+        // Verify target parsing from the second segment
+        let value = "bomb|1";
+        let parts: Vec<&str> = value.split('|').collect();
+        let target: Option<u8> = parts.get(1).and_then(|s| s.parse().ok());
+        assert_eq!(target, Some(1));
+
+        let value = "potion|";
+        let parts: Vec<&str> = value.split('|').collect();
+        let target: Option<u8> = parts.get(1).and_then(|s| s.parse().ok());
+        assert_eq!(target, None); // empty string doesn't parse as u8
+
+        let value = "ward|0";
+        let parts: Vec<&str> = value.split('|').collect();
+        let target: Option<u8> = parts.get(1).and_then(|s| s.parse().ok());
+        assert_eq!(target, Some(0));
+    }
 }
