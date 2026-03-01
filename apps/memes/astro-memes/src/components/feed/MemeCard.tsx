@@ -10,16 +10,34 @@ interface MemeCardProps {
 	onReact: (memeId: string, reaction: number) => void;
 	onSave: (memeId: string) => void;
 	onUnsave: (memeId: string) => void;
+	onComment: (memeId: string) => void;
+	onShare: (memeId: string) => void;
+	onReport: (memeId: string) => void;
 	lazy?: boolean;
 }
 
 const MemeCard = forwardRef<HTMLDivElement, MemeCardProps>(
-	({ meme, userReaction, isSaved, onReact, onSave, onUnsave, lazy }, ref) => {
+	(
+		{
+			meme,
+			userReaction,
+			isSaved,
+			onReact,
+			onSave,
+			onUnsave,
+			onComment,
+			onShare,
+			onReport,
+			lazy,
+		},
+		ref,
+	) => {
 		const isVideo = meme.format === 3 || meme.format === 2;
 
 		return (
 			<div
 				ref={ref}
+				data-meme-id={meme.id}
 				className="relative flex items-center justify-center"
 				style={{
 					height: '100dvh',
@@ -66,12 +84,37 @@ const MemeCard = forwardRef<HTMLDivElement, MemeCardProps>(
 					)}
 
 					<div className="flex items-center gap-2">
-						{meme.author_avatar ? (
-							<img
-								src={meme.author_avatar}
-								alt={meme.author_name || ''}
-								className="w-7 h-7 rounded-full"
-							/>
+						{meme.author_name ? (
+							<a
+								href={`https://kbve.com/@${meme.author_name}`}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-2 group">
+								{meme.author_avatar ? (
+									<img
+										src={meme.author_avatar}
+										alt={meme.author_name}
+										className="w-7 h-7 rounded-full transition-shadow group-hover:shadow-[0_0_0_2px_var(--sl-color-accent,#0ea5e9)]"
+									/>
+								) : (
+									<div
+										className="w-7 h-7 rounded-full flex items-center justify-center"
+										style={{
+											backgroundColor:
+												'var(--sl-color-accent-low, #164e63)',
+										}}>
+										<User
+											size={14}
+											style={{
+												color: 'var(--sl-color-text-accent, #22d3ee)',
+											}}
+										/>
+									</div>
+								)}
+								<span className="text-white/80 text-sm font-medium group-hover:text-white transition-colors">
+									@{meme.author_name}
+								</span>
+							</a>
 						) : (
 							<div
 								className="w-7 h-7 rounded-full flex items-center justify-center"
@@ -86,11 +129,6 @@ const MemeCard = forwardRef<HTMLDivElement, MemeCardProps>(
 									}}
 								/>
 							</div>
-						)}
-						{meme.author_name && (
-							<span className="text-white/80 text-sm font-medium">
-								@{meme.author_name}
-							</span>
 						)}
 					</div>
 
@@ -118,11 +156,16 @@ const MemeCard = forwardRef<HTMLDivElement, MemeCardProps>(
 						memeId={meme.id}
 						reactionCount={meme.reaction_count}
 						saveCount={meme.save_count}
+						commentCount={meme.comment_count}
+						shareCount={meme.share_count}
 						userReaction={userReaction}
 						isSaved={isSaved}
 						onReact={onReact}
 						onSave={onSave}
 						onUnsave={onUnsave}
+						onComment={onComment}
+						onShare={onShare}
+						onReport={onReport}
 					/>
 				</div>
 			</div>
