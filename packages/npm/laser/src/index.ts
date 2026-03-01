@@ -18,3 +18,16 @@ export { usePhaserEvent } from './lib/phaser/use-phaser-event';
 export { Stage } from './lib/r3f/components/Stage';
 export type { StageProps } from './lib/r3f/components/Stage';
 export { useGameLoop } from './lib/r3f/hooks/use-game-loop';
+
+// ECS (bitecs)
+export {
+	createWorld,
+	addEntity,
+	removeEntity,
+	addComponent,
+	hasComponent,
+	query,
+} from './lib/ecs/bitecs';
+
+// Physics (Rapier)
+export { RAPIER, createRapierPhysics } from './lib/physics/rapier';
