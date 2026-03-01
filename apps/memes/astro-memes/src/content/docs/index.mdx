@@ -6,7 +6,13 @@ hero:
   title: Meme.sh
   tagline: Discover the Best Memes
   actions:
-    - text: Get Started
-      link: /guides/getting-started/
+    - text: Browse Feed
+      link: /feed
       icon: right-arrow
 ---
+
+import ReactMemeContent from '../../components/feed/ReactMemeContent';
+
+<div style="margin-left: calc(-1 * var(--sl-content-pad-x, 1rem)); margin-right: calc(-1 * var(--sl-content-pad-x, 1rem)); margin-top: 2rem;">
+  <ReactMemeContent client:only="react" />
+</div>
