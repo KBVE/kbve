@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import type { IMapObject } from '@/data/schema/IMapSchema';
+import type {
+	IMapObject,
+	IResource,
+	IStructure,
+} from '@/data/schema/IMapSchema';
 import { ServiceMapDB, type TooltipData } from './ServiceMapDB';
 
 interface TooltipProps {
@@ -75,7 +79,7 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 	const mapObject = data;
 
 	// Define tooltip messages for each data-tooltip attribute
-	const TOOLTIP_MESSAGES = {
+	const TOOLTIP_MESSAGES: Record<string, TooltipData> = {
 		// Header tooltips
 		image: {
 			content: `Visual representation of ${mapObject.name} - this is how it appears in-game`,
@@ -94,91 +98,103 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 		},
 
 		// Resource-specific tooltips
-		...(mapObject.type === 'resource' && {
-			resourceType: {
-				content: `${mapObject.resourceType.toUpperCase()} resource - essential for crafting and building`,
-				ariaLabel: `Resource type: ${mapObject.resourceType}`,
-				priority: 'high' as const,
-			},
-			amount: {
-				content: `${((mapObject.amount / mapObject.maxAmount) * 100).toFixed(0)}% remaining - harvest before it's depleted!`,
-				ariaLabel: `Resource amount: ${mapObject.amount} out of ${mapObject.maxAmount}`,
-				priority: 'high' as const,
-			},
-			harvestYield: {
-				content: `Yields ${mapObject.harvestYield} ${mapObject.resourceType} per harvest action`,
-				ariaLabel: `Harvest yield: ${mapObject.harvestYield} per action`,
-				priority: 'high' as const,
-			},
-			harvestTime: {
-				content: `Takes ${mapObject.harvestTime}s per harvest - plan your gathering time accordingly`,
-				ariaLabel: `Harvest time: ${mapObject.harvestTime} seconds`,
-				priority: 'medium' as const,
-			},
-			harvestable: {
-				content: mapObject.isHarvestable
-					? '✅ Ready to harvest - start gathering resources!'
-					: '❌ Depleted - find another resource node',
-				ariaLabel: `Harvestable status: ${mapObject.isHarvestable ? 'available' : 'depleted'}`,
-				priority: mapObject.isHarvestable ? 'high' : ('low' as const),
-			},
-			spawnWeight: {
-				content: `${(mapObject.spawnWeight! * 100).toFixed(0)}% spawn chance - indicates rarity in the world`,
-				ariaLabel: `Spawn weight: ${(mapObject.spawnWeight! * 100).toFixed(0)} percent`,
-				priority: 'low' as const,
-			},
-			spawnCount: {
-				content: `~${mapObject.spawnCount} nodes per map - affects resource availability`,
-				ariaLabel: `Spawn count: ${mapObject.spawnCount} per map`,
-				priority: 'low' as const,
-			},
-		}),
+		...(mapObject.type === 'resource'
+			? (() => {
+					const res = mapObject as IResource;
+					return {
+						resourceType: {
+							content: `${res.resourceType.toUpperCase()} resource - essential for crafting and building`,
+							ariaLabel: `Resource type: ${res.resourceType}`,
+							priority: 'high' as const,
+						},
+						amount: {
+							content: `${((res.amount / res.maxAmount) * 100).toFixed(0)}% remaining - harvest before it's depleted!`,
+							ariaLabel: `Resource amount: ${res.amount} out of ${res.maxAmount}`,
+							priority: 'high' as const,
+						},
+						harvestYield: {
+							content: `Yields ${res.harvestYield} ${res.resourceType} per harvest action`,
+							ariaLabel: `Harvest yield: ${res.harvestYield} per action`,
+							priority: 'high' as const,
+						},
+						harvestTime: {
+							content: `Takes ${res.harvestTime}s per harvest - plan your gathering time accordingly`,
+							ariaLabel: `Harvest time: ${res.harvestTime} seconds`,
+							priority: 'medium' as const,
+						},
+						harvestable: {
+							content: res.isHarvestable
+								? '✅ Ready to harvest - start gathering resources!'
+								: '❌ Depleted - find another resource node',
+							ariaLabel: `Harvestable status: ${res.isHarvestable ? 'available' : 'depleted'}`,
+							priority: (res.isHarvestable ? 'high' : 'low') as
+								| 'high'
+								| 'low',
+						},
+						spawnWeight: {
+							content: `${(res.spawnWeight! * 100).toFixed(0)}% spawn chance - indicates rarity in the world`,
+							ariaLabel: `Spawn weight: ${(res.spawnWeight! * 100).toFixed(0)} percent`,
+							priority: 'low' as const,
+						},
+						spawnCount: {
+							content: `~${res.spawnCount} nodes per map - affects resource availability`,
+							ariaLabel: `Spawn count: ${res.spawnCount} per map`,
+							priority: 'low' as const,
+						},
+					};
+				})()
+			: {}),
 
 		// Structure-specific tooltips
-		...(mapObject.type === 'structure' && {
-			structureType: {
-				content: `${mapObject.structureType.toUpperCase()} - ${
-					mapObject.structureType === 'building'
-						? 'provides shelter and storage'
-						: mapObject.structureType === 'wall'
-							? 'defensive barrier for protection'
-							: mapObject.structureType === 'tower'
-								? 'elevated defensive position'
-								: 'decorative element for aesthetics'
-				}`,
-				ariaLabel: `Structure type: ${mapObject.structureType}`,
-				priority: 'high' as const,
-			},
-			footprint: {
-				content: `Occupies ${mapObject.footprintWidth}×${mapObject.footprintHeight} tiles - plan your layout carefully`,
-				ariaLabel: `Footprint: ${mapObject.footprintWidth} by ${mapObject.footprintHeight} tiles`,
-				priority: 'medium' as const,
-			},
-			health: {
-				content: `${mapObject.maxHealth} HP - can withstand significant damage before destruction`,
-				ariaLabel: `Maximum health: ${mapObject.maxHealth} hit points`,
-				priority: 'high' as const,
-			},
-			constructionTime: {
-				content: `${mapObject.constructionTime}s build time - gather materials before starting construction`,
-				ariaLabel: `Construction time: ${mapObject.constructionTime} seconds`,
-				priority: 'medium' as const,
-			},
-			walkable: {
-				content: mapObject.isWalkable
-					? "🚶 Units can pass through - won't block movement"
-					: '🚫 Blocks movement - creates impassable barrier',
-				ariaLabel: `Walkable: ${mapObject.isWalkable ? 'yes' : 'no'}`,
-				priority: 'medium' as const,
-			},
-			placement: {
-				content: mapObject.blocksPlacement
-					? '🚫 Exclusive placement - no other structures allowed here'
-					: '✅ Allows stacking - other structures can share this space',
-				ariaLabel: `Blocks placement: ${mapObject.blocksPlacement ? 'yes' : 'no'}`,
-				priority: 'medium' as const,
-			},
-		}),
+		...(mapObject.type === 'structure'
+			? (() => {
+					const str = mapObject as IStructure;
+					return {
+						structureType: {
+							content: `${str.structureType.toUpperCase()} - ${
+								str.structureType === 'building'
+									? 'provides shelter and storage'
+									: str.structureType === 'wall'
+										? 'defensive barrier for protection'
+										: str.structureType === 'tower'
+											? 'elevated defensive position'
+											: 'decorative element for aesthetics'
+							}`,
+							ariaLabel: `Structure type: ${str.structureType}`,
+							priority: 'high' as const,
+						},
+						footprint: {
+							content: `Occupies ${str.footprintWidth}×${str.footprintHeight} tiles - plan your layout carefully`,
+							ariaLabel: `Footprint: ${str.footprintWidth} by ${str.footprintHeight} tiles`,
+							priority: 'medium' as const,
+						},
+						health: {
+							content: `${str.maxHealth} HP - can withstand significant damage before destruction`,
+							ariaLabel: `Maximum health: ${str.maxHealth} hit points`,
+							priority: 'high' as const,
+						},
+						constructionTime: {
+							content: `${str.constructionTime}s build time - gather materials before starting construction`,
+							ariaLabel: `Construction time: ${str.constructionTime} seconds`,
+							priority: 'medium' as const,
+						},
+						walkable: {
+							content: str.isWalkable
+								? "🚶 Units can pass through - won't block movement"
+								: '🚫 Blocks movement - creates impassable barrier',
+							ariaLabel: `Walkable: ${str.isWalkable ? 'yes' : 'no'}`,
+							priority: 'medium' as const,
+						},
+						placement: {
+							content: str.blocksPlacement
+								? '🚫 Exclusive placement - no other structures allowed here'
+								: '✅ Allows stacking - other structures can share this space',
+							ariaLabel: `Blocks placement: ${str.blocksPlacement ? 'yes' : 'no'}`,
+							priority: 'medium' as const,
+						},
+					};
+				})()
+			: {}),
 
 		// Technical tooltips
 		technical: {
@@ -334,10 +350,16 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 		const tooltipElements = document.querySelectorAll('[data-tooltip]');
 
 		tooltipElements.forEach((element) => {
-			element.addEventListener('mouseenter', handleMouseEnter);
-			element.addEventListener('mouseleave', handleMouseLeave);
-			element.addEventListener('click', handleClick);
-			element.addEventListener('keydown', handleKeyDown);
+			element.addEventListener(
+				'mouseenter',
+				handleMouseEnter as EventListener,
+			);
+			element.addEventListener(
+				'mouseleave',
+				handleMouseLeave as EventListener,
+			);
+			element.addEventListener('click', handleClick as EventListener);
+			element.addEventListener('keydown', handleKeyDown as EventListener);
 
 			// Add cursor pointer and subtle hover effect
 			(element as HTMLElement).style.cursor = 'help';
@@ -371,10 +393,22 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 			ServiceMapDB.unregisterEventListeners();
 
 			tooltipElements.forEach((element) => {
-				element.removeEventListener('mouseenter', handleMouseEnter);
-				element.removeEventListener('mouseleave', handleMouseLeave);
-				element.removeEventListener('click', handleClick);
-				element.removeEventListener('keydown', handleKeyDown);
+				element.removeEventListener(
+					'mouseenter',
+					handleMouseEnter as EventListener,
+				);
+				element.removeEventListener(
+					'mouseleave',
+					handleMouseLeave as EventListener,
+				);
+				element.removeEventListener(
+					'click',
+					handleClick as EventListener,
+				);
+				element.removeEventListener(
+					'keydown',
+					handleKeyDown as EventListener,
+				);
 			});
 		};
 	}, [mapObject]);

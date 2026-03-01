@@ -1,8 +1,6 @@
 /// <reference lib="webworker" />
 // Simplified DB worker for debugging
 
-declare const self: DedicatedWorkerGlobalScope;
-
 console.log('[DB Worker Simple] Starting...');
 
 self.onmessage = (e) => {

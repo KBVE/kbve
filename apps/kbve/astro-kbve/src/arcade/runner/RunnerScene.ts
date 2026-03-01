@@ -74,9 +74,6 @@ export class RunnerScene extends Phaser.Scene {
 	// World generation tracking
 	private worldExtentX: number = 0;
 
-	// Track if pointer click was consumed (for grapple vs jump)
-	private pointerClickConsumed: boolean = false;
-
 	private get width(): number {
 		return this.scale.width;
 	}
@@ -412,7 +409,6 @@ export class RunnerScene extends Phaser.Scene {
 			);
 			if (success) {
 				this.grappleLine.setVisible(true);
-				this.pointerClickConsumed = true;
 				return true;
 			}
 		}
@@ -423,7 +419,6 @@ export class RunnerScene extends Phaser.Scene {
 				{ ...this.inputSystem.getCommands(), jump: true },
 				0,
 			);
-			this.pointerClickConsumed = true;
 		}
 
 		return false;
@@ -647,8 +642,6 @@ export class RunnerScene extends Phaser.Scene {
 	}
 
 	private processPointerInput() {
-		this.pointerClickConsumed = false;
-
 		if (this.inputSystem.isPointerDown()) {
 			const pos = this.inputSystem.getPointerPosition();
 

@@ -8,6 +8,7 @@ import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import type { FC } from 'react';
 import { useSupa, useSession } from '@/components/providers/SupaProvider';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supa';
+import { WorkerMessageType } from './typeRealtime';
 import type {
 	RealtimeContainerProps,
 	RealtimeStatus,
@@ -15,7 +16,6 @@ import type {
 	ChannelSubscription,
 	WorkerInboundMessage,
 	WorkerOutboundMessage,
-	WorkerMessageType,
 	RealtimeConnectionState,
 	SubscriptionCallback,
 } from './typeRealtime';
@@ -77,20 +77,20 @@ export const ReactSupaRealtime: FC<RealtimeContainerProps> = ({
 			const message = event.data;
 
 			switch (message.type) {
-				case 'INIT_SUCCESS' as WorkerMessageType:
+				case WorkerMessageType.INIT_SUCCESS:
 					setStatus('CONNECTED' as RealtimeStatus);
 					setLastConnected(Date.now());
 					setError(null);
 					onStatusChange?.('CONNECTED' as RealtimeStatus);
 					break;
 
-				case 'INIT_ERROR' as WorkerMessageType:
+				case WorkerMessageType.INIT_ERROR:
 					setStatus('ERROR' as RealtimeStatus);
 					setError(message.payload.error);
 					onStatusChange?.('ERROR' as RealtimeStatus);
 					break;
 
-				case 'STATUS_CHANGE' as WorkerMessageType:
+				case WorkerMessageType.STATUS_CHANGE:
 					setStatus(message.payload.status);
 					if (message.payload.error) {
 						setError(message.payload.error.message);
@@ -98,13 +98,13 @@ export const ReactSupaRealtime: FC<RealtimeContainerProps> = ({
 					onStatusChange?.(message.payload.status);
 					break;
 
-				case 'SUBSCRIBE_SUCCESS' as WorkerMessageType:
+				case WorkerMessageType.SUBSCRIBE_SUCCESS:
 					console.log(
 						`Subscription ${message.payload.id} successful`,
 					);
 					break;
 
-				case 'SUBSCRIBE_ERROR' as WorkerMessageType:
+				case WorkerMessageType.SUBSCRIBE_ERROR:
 					console.error(
 						`Subscription ${message.payload.id} failed:`,
 						message.payload.error,
@@ -112,25 +112,28 @@ export const ReactSupaRealtime: FC<RealtimeContainerProps> = ({
 					setError(`Subscription error: ${message.payload.error}`);
 					break;
 
-				case 'REALTIME_EVENT' as WorkerMessageType:
+				case WorkerMessageType.REALTIME_EVENT: {
 					setEventCount((prev) => prev + 1);
-					const event = message.payload;
+					const realtimeEvent = message.payload;
 
 					// Call subscription-specific callback
-					const callback = callbacksRef.current.get(event.channelId);
+					const callback = callbacksRef.current.get(
+						realtimeEvent.channelId,
+					);
 					if (callback) {
-						callback(event);
+						callback(realtimeEvent);
 					}
 
 					// Call global callback
-					onRealtimeEvent?.(event);
+					onRealtimeEvent?.(realtimeEvent);
 					break;
+				}
 
-				case 'UNSUBSCRIBE_SUCCESS' as WorkerMessageType:
+				case WorkerMessageType.UNSUBSCRIBE_SUCCESS:
 					console.log(`Unsubscribed from ${message.payload.id}`);
 					break;
 
-				case 'RENDER_UPDATE' as WorkerMessageType:
+				case WorkerMessageType.RENDER_UPDATE:
 					// Canvas rendering update (optional handling)
 					break;
 
@@ -169,7 +172,7 @@ export const ReactSupaRealtime: FC<RealtimeContainerProps> = ({
 
 		// Initialize worker with Supabase credentials
 		const initMessage: WorkerInboundMessage = {
-			type: 'INIT' as WorkerMessageType,
+			type: WorkerMessageType.INIT,
 			payload: {
 				url: SUPABASE_URL,
 				anonKey: SUPABASE_ANON_KEY,
@@ -181,7 +184,7 @@ export const ReactSupaRealtime: FC<RealtimeContainerProps> = ({
 			// Cleanup worker
 			if (workerRef.current) {
 				workerRef.current.postMessage({
-					type: 'TERMINATE' as WorkerMessageType,
+					type: WorkerMessageType.TERMINATE,
 				});
 				workerRef.current.terminate();
 				workerRef.current = null;
@@ -199,7 +202,7 @@ export const ReactSupaRealtime: FC<RealtimeContainerProps> = ({
 				const offscreen = canvas.transferControlToOffscreen();
 
 				const message: WorkerInboundMessage = {
-					type: 'CANVAS_TRANSFER' as WorkerMessageType,
+					type: WorkerMessageType.CANVAS_TRANSFER,
 					payload: {
 						canvas: offscreen,
 						width: canvas.width,
@@ -254,7 +257,7 @@ export const ReactSupaRealtime: FC<RealtimeContainerProps> = ({
 
 			// Send subscription message to worker
 			const message: WorkerInboundMessage = {
-				type: 'SUBSCRIBE' as WorkerMessageType,
+				type: WorkerMessageType.SUBSCRIBE,
 				payload: fullSubscription,
 			};
 			workerRef.current.postMessage(message);
@@ -278,7 +281,7 @@ export const ReactSupaRealtime: FC<RealtimeContainerProps> = ({
 
 			// Send unsubscribe message to worker
 			const message: WorkerInboundMessage = {
-				type: 'UNSUBSCRIBE' as WorkerMessageType,
+				type: WorkerMessageType.UNSUBSCRIBE,
 				payload: { id: subscriptionId },
 			};
 			workerRef.current.postMessage(message);

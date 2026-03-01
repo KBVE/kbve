@@ -319,7 +319,7 @@ export class AISystem {
 		config: AIConfig,
 		state: AIState,
 		commands: KnightCommands,
-		time: number,
+		_time: number,
 	): void {
 		const target = state.currentTarget;
 		if (!target) {
@@ -428,10 +428,6 @@ export class AISystem {
 				Math.pow(px - knight.x, 2) + Math.pow(py - knight.y, 2),
 			);
 
-			const distFromTarget = Math.sqrt(
-				Math.pow(px - target.x, 2) + Math.pow(py - target.y, 2),
-			);
-
 			// Must be reachable
 			if (distFromKnight > 350 || distFromKnight < 50) continue;
 
@@ -462,7 +458,7 @@ export class AISystem {
 
 	private processPatrolBehavior(
 		knight: Knight,
-		config: AIConfig,
+		_config: AIConfig,
 		state: AIState,
 		commands: KnightCommands,
 	): void {
@@ -644,7 +640,7 @@ export class AISystem {
 		}
 
 		// Find a platform above and ahead
-		const { Position, Platform } = getComponents(this.world);
+		const { Position } = getComponents(this.world);
 		const platforms = getPlatforms(this.world);
 
 		for (const eid of platforms) {
@@ -746,7 +742,6 @@ export class AISystem {
 			// Check vertical overlap with knight
 			if (knightBottom > surfaceTop && knightTop < surfaceBottom) {
 				// Platform is blocking our path
-				const platformHeight = surfaceBottom - surfaceTop;
 				const gapBelow = knightBottom - surfaceBottom; // Space below platform
 
 				// Low obstacle: can crouch under it
@@ -772,10 +767,10 @@ export class AISystem {
 
 	private handleObstacleAvoidance(
 		knight: Knight,
-		config: AIConfig,
+		_config: AIConfig,
 		state: AIState,
 		commands: KnightCommands,
-		time: number,
+		_time: number,
 	): void {
 		switch (state.obstacleAhead) {
 			case 'low':
@@ -818,7 +813,7 @@ export class AISystem {
 
 		// If we have a tactical platform target (for combat), prioritize that
 		if (state.tacticalPlatformEid !== null && state.combatMode) {
-			const { Position, Platform } = getComponents(this.world);
+			const { Position } = getComponents(this.world);
 			const platforms = getPlatforms(this.world);
 
 			// Check if tactical platform still exists

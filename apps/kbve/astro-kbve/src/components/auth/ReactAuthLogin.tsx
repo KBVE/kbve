@@ -8,7 +8,7 @@ export default function ReactAuthLogin() {
 	const handleGitHubLogin = async () => {
 		try {
 			setIsLoading('github');
-			await authBridge.signInWithProvider('github');
+			await authBridge.signInWithOAuth('github');
 		} catch (error) {
 			console.error('GitHub sign-in error:', error);
 			setIsLoading(null);
@@ -18,7 +18,7 @@ export default function ReactAuthLogin() {
 	const handleDiscordLogin = async () => {
 		try {
 			setIsLoading('discord');
-			await authBridge.signInWithProvider('discord');
+			await authBridge.signInWithOAuth('discord');
 		} catch (error) {
 			console.error('Discord sign-in error:', error);
 			setIsLoading(null);
