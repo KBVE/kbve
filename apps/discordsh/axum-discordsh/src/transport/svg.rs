@@ -214,6 +214,9 @@ mod tests {
             log: vec!["Test session".to_owned()],
             show_items: false,
             pending_actions: std::collections::HashMap::new(),
+            map: content::generate_initial_map(&id),
+            show_map: false,
+            pending_destination: None,
         };
         state.app.sessions.create(session);
         short_id

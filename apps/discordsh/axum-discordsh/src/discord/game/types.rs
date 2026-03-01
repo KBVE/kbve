@@ -5,6 +5,137 @@ use std::time::Instant;
 
 use poise::serenity_prelude as serenity;
 
+// ── Map types ──────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct MapPos {
+    pub x: i16,
+    pub y: i16,
+}
+
+impl MapPos {
+    pub fn new(x: i16, y: i16) -> Self {
+        Self { x, y }
+    }
+
+    /// Manhattan distance from origin (0,0) — used as difficulty depth.
+    pub fn depth(&self) -> u32 {
+        (self.x.unsigned_abs() as u32) + (self.y.unsigned_abs() as u32)
+    }
+
+    /// Get the adjacent position in the given direction.
+    pub fn neighbor(&self, dir: Direction) -> Self {
+        match dir {
+            Direction::North => Self {
+                x: self.x,
+                y: self.y - 1,
+            },
+            Direction::South => Self {
+                x: self.x,
+                y: self.y + 1,
+            },
+            Direction::East => Self {
+                x: self.x + 1,
+                y: self.y,
+            },
+            Direction::West => Self {
+                x: self.x - 1,
+                y: self.y,
+            },
+        }
+    }
+
+    /// Manhattan distance to another position.
+    pub fn distance(&self, other: &MapPos) -> u32 {
+        ((self.x - other.x).unsigned_abs() as u32) + ((self.y - other.y).unsigned_abs() as u32)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Direction {
+    North,
+    South,
+    East,
+    West,
+}
+
+impl Direction {
+    pub fn code(&self) -> &'static str {
+        match self {
+            Direction::North => "n",
+            Direction::South => "s",
+            Direction::East => "e",
+            Direction::West => "w",
+        }
+    }
+
+    pub fn from_code(code: &str) -> Option<Self> {
+        match code {
+            "n" => Some(Direction::North),
+            "s" => Some(Direction::South),
+            "e" => Some(Direction::East),
+            "w" => Some(Direction::West),
+            _ => None,
+        }
+    }
+
+    pub fn opposite(&self) -> Self {
+        match self {
+            Direction::North => Direction::South,
+            Direction::South => Direction::North,
+            Direction::East => Direction::West,
+            Direction::West => Direction::East,
+        }
+    }
+
+    pub fn label(&self) -> &'static str {
+        match self {
+            Direction::North => "North",
+            Direction::South => "South",
+            Direction::East => "East",
+            Direction::West => "West",
+        }
+    }
+
+    pub fn emoji(&self) -> &'static str {
+        match self {
+            Direction::North => "\u{2B06}",
+            Direction::South => "\u{2B07}",
+            Direction::East => "\u{27A1}",
+            Direction::West => "\u{2B05}",
+        }
+    }
+
+    pub fn all() -> &'static [Direction] {
+        &[
+            Direction::North,
+            Direction::South,
+            Direction::East,
+            Direction::West,
+        ]
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct MapTile {
+    pub pos: MapPos,
+    pub room_type: RoomType,
+    pub name: String,
+    pub description: String,
+    pub exits: Vec<Direction>,
+    pub visited: bool,
+    pub cleared: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct MapState {
+    pub seed: u64,
+    pub position: MapPos,
+    pub tiles: HashMap<MapPos, MapTile>,
+    pub tiles_visited: u32,
+    pub boss_positions: Vec<MapPos>,
+}
+
 // ── Short session ID ────────────────────────────────────────────────
 
 /// First 8 hex characters of a UUID, used as the session identifier
@@ -393,6 +524,9 @@ pub enum GameAction {
     StoryChoice(usize),
     HealAlly(serenity::UserId),
     Equip(String),
+    Move(Direction),
+    ViewMap,
+    Revive(serenity::UserId),
 }
 
 // ── Session mode ────────────────────────────────────────────────────
@@ -433,6 +567,9 @@ pub struct SessionState {
     pub log: Vec<String>,
     pub show_items: bool,
     pub pending_actions: HashMap<serenity::UserId, GameAction>,
+    pub map: MapState,
+    pub show_map: bool,
+    pub pending_destination: Option<MapPos>,
 }
 
 impl SessionState {
@@ -534,6 +671,37 @@ impl SessionState {
     }
 }
 
+/// Create a default MapState for use in tests.
+#[cfg(test)]
+pub fn test_map_default() -> MapState {
+    let origin = MapPos::new(0, 0);
+    let mut tiles = HashMap::new();
+    tiles.insert(
+        origin,
+        MapTile {
+            pos: origin,
+            room_type: RoomType::UndergroundCity,
+            name: "Test City".to_owned(),
+            description: "A test city.".to_owned(),
+            exits: vec![
+                Direction::North,
+                Direction::South,
+                Direction::East,
+                Direction::West,
+            ],
+            visited: true,
+            cleared: true,
+        },
+    );
+    MapState {
+        seed: 42,
+        position: origin,
+        tiles,
+        tiles_visited: 1,
+        boss_positions: Vec::new(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -607,6 +775,9 @@ mod tests {
             log: Vec::new(),
             show_items: false,
             pending_actions: HashMap::new(),
+            map: test_map_default(),
+            show_map: false,
+            pending_destination: None,
         };
         let roster = session.roster();
         assert_eq!(roster.len(), 2);
@@ -684,6 +855,9 @@ mod tests {
             log: Vec::new(),
             show_items: false,
             pending_actions: HashMap::new(),
+            map: test_map_default(),
+            show_map: false,
+            pending_destination: None,
         };
 
         assert!(session.has_enemies());
@@ -697,5 +871,58 @@ mod tests {
         assert_eq!(dead[0], "slime");
         assert_eq!(session.enemies.len(), 1);
         assert_eq!(session.primary_enemy().unwrap().name, "Bat");
+    }
+
+    // ── Map type tests ─────────────────────────────────────────────
+
+    #[test]
+    fn map_pos_depth() {
+        assert_eq!(MapPos::new(0, 0).depth(), 0);
+        assert_eq!(MapPos::new(3, 4).depth(), 7);
+        assert_eq!(MapPos::new(-2, 5).depth(), 7);
+        assert_eq!(MapPos::new(-3, -4).depth(), 7);
+    }
+
+    #[test]
+    fn map_pos_neighbor() {
+        let pos = MapPos::new(2, 3);
+        assert_eq!(pos.neighbor(Direction::North), MapPos::new(2, 2));
+        assert_eq!(pos.neighbor(Direction::South), MapPos::new(2, 4));
+        assert_eq!(pos.neighbor(Direction::East), MapPos::new(3, 3));
+        assert_eq!(pos.neighbor(Direction::West), MapPos::new(1, 3));
+    }
+
+    #[test]
+    fn map_pos_distance() {
+        let a = MapPos::new(0, 0);
+        let b = MapPos::new(3, 4);
+        assert_eq!(a.distance(&b), 7);
+        assert_eq!(b.distance(&a), 7);
+        assert_eq!(a.distance(&a), 0);
+    }
+
+    #[test]
+    fn direction_code_roundtrip() {
+        for &dir in Direction::all() {
+            let code = dir.code();
+            let parsed = Direction::from_code(code);
+            assert_eq!(parsed, Some(dir));
+        }
+        assert_eq!(Direction::from_code("x"), None);
+    }
+
+    #[test]
+    fn direction_opposite() {
+        assert_eq!(Direction::North.opposite(), Direction::South);
+        assert_eq!(Direction::South.opposite(), Direction::North);
+        assert_eq!(Direction::East.opposite(), Direction::West);
+        assert_eq!(Direction::West.opposite(), Direction::East);
+    }
+
+    #[test]
+    fn direction_labels_and_emojis() {
+        assert_eq!(Direction::North.label(), "North");
+        assert!(!Direction::North.emoji().is_empty());
+        assert_eq!(Direction::all().len(), 4);
     }
 }

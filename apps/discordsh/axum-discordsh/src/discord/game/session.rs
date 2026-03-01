@@ -127,6 +127,9 @@ mod tests {
             log: Vec::new(),
             show_items: false,
             pending_actions: std::collections::HashMap::new(),
+            map: test_map_default(),
+            show_map: false,
+            pending_destination: None,
         }
     }
 
