@@ -1,17 +1,9 @@
 ---
 import { IMapObjectSchema } from '@/data/schema';
-import { z } from 'astro:content';
 import ReactMapDBPanel from './ReactMapDBPanel';
 
 const { data } = Astro.props;
 const mapObject = IMapObjectSchema.parse(data);
-
-function formatKey(key: string): string {
-	return key
-		.replace(/_/g, ' ')
-		.replace(/([a-z])([A-Z])/g, '$1 $2')
-		.replace(/\b\w/g, (char) => char.toUpperCase());
-}
 
 // Type-specific icons
 const typeIcons = {

@@ -44,7 +44,7 @@ function getItemUrl(item: OSRSRelatedItem): string {
 		return `/osrs/${item.slug}/`;
 	}
 	// Fallback: generate slug from name
-	const slug = item.item_name
+	const slug = (item.item_name ?? '')
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, '-')
 		.replace(/^-|-$/g, '');
@@ -67,7 +67,9 @@ function getItemUrl(item: OSRSRelatedItem): string {
 	<div class="osrs-related__list">
 		{
 			relatedItems.map((item) => {
-				const style = getRelationshipStyle(item.relationship);
+				const style = getRelationshipStyle(
+					item.relationship ?? 'alternative',
+				);
 				return (
 					<a href={getItemUrl(item)} class="osrs-related__item">
 						<div class="osrs-related__item-main">

@@ -250,7 +250,7 @@ export type WorkerInboundMessage =
 	| WorkerSubscribeMessage
 	| WorkerUnsubscribeMessage
 	| WorkerCanvasMessage
-	| { type: WorkerMessageType.TERMINATE };
+	| { type: WorkerMessageType.TERMINATE; payload?: undefined };
 
 /**
  * Union type of all worker messages from worker to main thread
@@ -258,7 +258,7 @@ export type WorkerInboundMessage =
 export type WorkerOutboundMessage =
 	| WorkerRealtimeEventMessage
 	| WorkerStatusMessage
-	| { type: WorkerMessageType.INIT_SUCCESS }
+	| { type: WorkerMessageType.INIT_SUCCESS; payload?: undefined }
 	| { type: WorkerMessageType.INIT_ERROR; payload: { error: string } }
 	| { type: WorkerMessageType.SUBSCRIBE_SUCCESS; payload: { id: string } }
 	| {

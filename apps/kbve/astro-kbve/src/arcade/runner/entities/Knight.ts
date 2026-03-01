@@ -1,13 +1,12 @@
 import Phaser from 'phaser';
 import {
-	KNIGHT_FRAME,
 	KNIGHT_HITBOX,
 	KNIGHT_CROUCH_HITBOX,
 	KNIGHT_HANG_HITBOX,
 	KNIGHT_FEET_OFFSET,
 	KNIGHT_ANIMATIONS,
 } from '../sprites';
-import { GAME_CONFIG, COLORS } from '../config';
+import { GAME_CONFIG } from '../config';
 import { getComponents, type GameWorld } from '../ecs';
 
 // ============================================================================

@@ -165,9 +165,7 @@ export class ServiceMapDB {
 		try {
 			// Use predefined event types from eventEngine
 			const eventTypeMap = {
-				tooltip_show:
-					eventEngine.constructor.EventTypes?.UI_TOOLTIP_SHOW ||
-					'ui:tooltip:show',
+				tooltip_show: 'ui:tooltip:show',
 				tooltip_hide: 'ui:tooltip:hide',
 				object_focus: 'mapdb:object:focus',
 				object_interact: 'mapdb:object:interact',
@@ -242,9 +240,7 @@ export class ServiceMapDB {
 	static registerEventListeners(): void {
 		// Register MapDB-specific event listeners for each event type using mapped event names
 		const eventTypeMap = {
-			tooltip_show:
-				eventEngine.constructor.EventTypes?.UI_TOOLTIP_SHOW ||
-				'ui:tooltip:show',
+			tooltip_show: 'ui:tooltip:show',
 			tooltip_hide: 'ui:tooltip:hide',
 			object_focus: 'mapdb:object:focus',
 			object_interact: 'mapdb:object:interact',
@@ -272,9 +268,7 @@ export class ServiceMapDB {
 	static unregisterEventListeners(): void {
 		// Remove listeners for all MapDB event types using mapped event names
 		const eventTypeMap = {
-			tooltip_show:
-				eventEngine.constructor.EventTypes?.UI_TOOLTIP_SHOW ||
-				'ui:tooltip:show',
+			tooltip_show: 'ui:tooltip:show',
 			tooltip_hide: 'ui:tooltip:hide',
 			object_focus: 'mapdb:object:focus',
 			object_interact: 'mapdb:object:interact',

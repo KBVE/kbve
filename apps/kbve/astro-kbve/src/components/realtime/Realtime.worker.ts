@@ -5,10 +5,14 @@
  * Processes incoming data and can handle offscreen canvas rendering
  */
 
+import {
+	WorkerMessageType,
+	RealtimeStatus as RealtimeStatusEnum,
+	RealtimeEventType as RealtimeEventTypeEnum,
+} from './typeRealtime';
 import type {
 	WorkerInboundMessage,
 	WorkerOutboundMessage,
-	WorkerMessageType,
 	ChannelSubscription,
 	RealtimeEvent,
 	RealtimeStatus,
@@ -53,7 +57,7 @@ function postToMain(message: WorkerOutboundMessage) {
 function updateStatus(status: RealtimeStatus, message?: string, error?: Error) {
 	state.status = status;
 	postToMain({
-		type: 'STATUS_CHANGE' as WorkerMessageType,
+		type: WorkerMessageType.STATUS_CHANGE,
 		payload: { status, message, error },
 	});
 }
@@ -91,7 +95,7 @@ async function initializeSharedWorker(
 		updateStatus('CONNECTED' as RealtimeStatus, 'Connected to Supabase');
 
 		postToMain({
-			type: 'INIT_SUCCESS' as WorkerMessageType,
+			type: WorkerMessageType.INIT_SUCCESS,
 		});
 	} catch (error) {
 		console.error('Failed to initialize SharedWorker:', error);
@@ -102,7 +106,7 @@ async function initializeSharedWorker(
 		);
 
 		postToMain({
-			type: 'INIT_ERROR' as WorkerMessageType,
+			type: WorkerMessageType.INIT_ERROR,
 			payload: { error: (error as Error).message },
 		});
 	}
@@ -152,13 +156,13 @@ async function subscribe(subscription: ChannelSubscription) {
 		state.unsubscribeFunctions.set(subscription.id, unsubscribe);
 
 		postToMain({
-			type: 'SUBSCRIBE_SUCCESS' as WorkerMessageType,
+			type: WorkerMessageType.SUBSCRIBE_SUCCESS,
 			payload: { id: subscription.id },
 		});
 	} catch (error) {
 		console.error('Failed to subscribe:', error);
 		postToMain({
-			type: 'SUBSCRIBE_ERROR' as WorkerMessageType,
+			type: WorkerMessageType.SUBSCRIBE_ERROR,
 			payload: {
 				id: subscription.id,
 				error: (error as Error).message,
@@ -180,7 +184,7 @@ async function unsubscribe(subscriptionId: string) {
 		}
 
 		postToMain({
-			type: 'UNSUBSCRIBE_SUCCESS' as WorkerMessageType,
+			type: WorkerMessageType.UNSUBSCRIBE_SUCCESS,
 			payload: { id: subscriptionId },
 		});
 	} catch (error) {
@@ -226,7 +230,7 @@ function processRealtimeEvent(channelId: string, payload: any) {
 
 		// Send to main thread
 		postToMain({
-			type: 'REALTIME_EVENT' as WorkerMessageType,
+			type: WorkerMessageType.REALTIME_EVENT,
 			payload: realtimeEvent,
 		});
 
@@ -319,7 +323,7 @@ function renderToCanvas(event: RealtimeEvent) {
 
 		// Notify main thread of render update
 		postToMain({
-			type: 'RENDER_UPDATE' as WorkerMessageType,
+			type: WorkerMessageType.RENDER_UPDATE,
 			payload: {
 				timestamp: Date.now(),
 				eventType: event.type,
@@ -337,7 +341,7 @@ self.onmessage = async (event: MessageEvent<WorkerInboundMessage>) => {
 	const message = event.data;
 
 	switch (message.type) {
-		case 'INIT' as WorkerMessageType:
+		case WorkerMessageType.INIT:
 			await initializeSharedWorker(
 				message.payload.url,
 				message.payload.anonKey,
@@ -345,15 +349,15 @@ self.onmessage = async (event: MessageEvent<WorkerInboundMessage>) => {
 			);
 			break;
 
-		case 'SUBSCRIBE' as WorkerMessageType:
+		case WorkerMessageType.SUBSCRIBE:
 			await subscribe(message.payload);
 			break;
 
-		case 'UNSUBSCRIBE' as WorkerMessageType:
+		case WorkerMessageType.UNSUBSCRIBE:
 			await unsubscribe(message.payload.id);
 			break;
 
-		case 'CANVAS_TRANSFER' as WorkerMessageType:
+		case WorkerMessageType.CANVAS_TRANSFER:
 			setupOffscreenCanvas(
 				message.payload.canvas,
 				message.payload.width,
@@ -361,7 +365,7 @@ self.onmessage = async (event: MessageEvent<WorkerInboundMessage>) => {
 			);
 			break;
 
-		case 'TERMINATE' as WorkerMessageType:
+		case WorkerMessageType.TERMINATE:
 			// Cleanup all subscriptions
 			for (const [id, unsubscribeFn] of state.unsubscribeFunctions) {
 				try {
