@@ -55,8 +55,7 @@ test.describe('Smoke: Cache-Control Headers', () => {
 			if (new URL(resp.url()).pathname.startsWith('/_astro/')) {
 				astroRequests.push({
 					url: resp.url(),
-					cacheControl:
-						resp.headers()['cache-control'] ?? '',
+					cacheControl: resp.headers()['cache-control'] ?? '',
 				});
 			}
 		});
@@ -70,6 +69,63 @@ test.describe('Smoke: Cache-Control Headers', () => {
 				expect(req.cacheControl).toContain('31536000');
 			}
 		}
+	});
+});
+
+test.describe('Smoke: Feed Page', () => {
+	test('feed page loads with 200', async ({ page }) => {
+		const response = await page.goto('/feed');
+		expect(response).not.toBeNull();
+		expect(response!.status()).toBe(200);
+	});
+
+	test('feed page contains React mount point', async ({ page }) => {
+		await page.goto('/feed');
+		await page.waitForLoadState('domcontentloaded');
+		const html = await page.content();
+		expect(html).toContain('astro-island');
+	});
+});
+
+test.describe('Smoke: Profile Page', () => {
+	test('profile page loads with 200', async ({ page }) => {
+		const response = await page.goto('/profile');
+		expect(response).not.toBeNull();
+		expect(response!.status()).toBe(200);
+	});
+
+	test('profile page contains React mount point', async ({ page }) => {
+		await page.goto('/profile');
+		await page.waitForLoadState('domcontentloaded');
+		const html = await page.content();
+		expect(html).toContain('astro-island');
+	});
+});
+
+test.describe('Smoke: Footer', () => {
+	test('footer renders with legal links', async ({ page }) => {
+		await page.goto('/');
+		await page.waitForLoadState('domcontentloaded');
+
+		const footer = page.locator('footer').last();
+		await expect(footer).toBeVisible({ timeout: 5_000 });
+
+		const footerText = await footer.textContent();
+		expect(footerText).toContain('KBVE');
+		expect(footerText).toContain('Privacy');
+		expect(footerText).toContain('Terms');
+	});
+
+	test('footer social links are present', async ({ page }) => {
+		await page.goto('/');
+		await page.waitForLoadState('domcontentloaded');
+
+		const footer = page.locator('footer').last();
+		const githubLink = footer.locator('a[aria-label="GitHub"]');
+		const discordLink = footer.locator('a[aria-label="Discord"]');
+
+		await expect(githubLink).toBeVisible({ timeout: 5_000 });
+		await expect(discordLink).toBeVisible({ timeout: 5_000 });
 	});
 });
 
@@ -92,7 +148,10 @@ test.describe('Smoke: Sitemap Routes', () => {
 
 		test.info().annotations.push(
 			{ type: 'core_routes', description: core.join(', ') },
-			{ type: 'sampled_routes', description: sampled.join(', ') || '(none)' },
+			{
+				type: 'sampled_routes',
+				description: sampled.join(', ') || '(none)',
+			},
 			{
 				type: 'seed',
 				description: process.env['GITHUB_RUN_ID'] || '42 (local)',
