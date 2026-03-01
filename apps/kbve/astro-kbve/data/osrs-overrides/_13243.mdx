@@ -1,0 +1,117 @@
+---
+equipment:
+  slot: "weapon"
+  type: "pickaxe"
+  attack_style: "melee"
+  requirements:
+    attack: 60
+    mining: 61
+    smithing: 85
+  stats:
+    attack_stab: 38
+    attack_slash: -2
+    attack_crush: 32
+    strength: 42
+  degradeable: true
+  tradeable: false
+effect:
+  auto_smelt_chance: 33
+  smithing_xp_percent: 50
+charging:
+  max_charges: 5000
+  recharge_with: "Smouldering stone or Dragon pickaxe"
+recipes:
+  - skill: smithing
+    level: 85
+    xp: 350
+    materials:
+      - item_name: "Dragon pickaxe"
+        item_id: 11920
+        quantity: 1
+      - item_name: "Smouldering stone"
+        item_id: 13245
+        quantity: 1
+    product: "Infernal pickaxe"
+    product_id: 13243
+    product_quantity: 1
+    facility: "None"
+    members_only: true
+related_items:
+  - item_id: 11920
+    item_name: "Dragon pickaxe"
+    slug: "dragon-pickaxe"
+    relationship: component
+    description: "Base pickaxe"
+  - item_id: 13245
+    item_name: "Smouldering stone"
+    slug: "smouldering-stone"
+    relationship: component
+    description: "From Cerberus"
+  - item_id: 23680
+    item_name: "Crystal pickaxe"
+    slug: "crystal-pickaxe"
+    relationship: alternative
+    description: "Speed alternative"
+---
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Main-hand) |
+| Type | Pickaxe |
+| Tradeable | No (untradeable) |
+| Weight | 2.4 kg |
+
+## Creation
+
+Combine Dragon pickaxe + Smouldering stone.
+
+| Requirement | Value |
+|-------------|-------|
+| Smithing | 85 (non-boostable) |
+| Mining XP | 200 |
+| Smithing XP | 350 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | +38 |
+| Crush | +32 |
+| Slash | -2 |
+| Strength | +42 |
+
+**Requirements:** 60 Attack, 61 Mining
+
+## Passive Effect
+
+**Auto-Smelt:**
+- 33% chance to smelt ore instantly
+- Consumes 1 charge
+- Grants ~50% Smithing XP
+- 5,000 charges (rechargeable)
+
+## Charging
+
+Recharge with:
+- Smouldering stone (5,000 charges)
+- Dragon pickaxe (5,000 charges)
+
+## Usage
+
+Great for:
+- Mining training with Smithing XP
+- Ironman ore processing
+- AFK mining
+
+**Saves banking time, grants bonus XP.**
+
+## Market Strategy
+
+**Untradeable** - Creation cost ~10M
+
+**Tips:**
+- Stone from Cerberus
+- Good for ironmen
+- Crystal is faster for pure mining

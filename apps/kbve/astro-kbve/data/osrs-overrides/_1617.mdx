@@ -1,0 +1,106 @@
+---
+material:
+  type: "gem"
+  tier: "high"
+crafting:
+  cutting_level: 43
+  cutting_xp: 107.5
+  uncut: true
+drop_table:
+  sources:
+    - source: "Gem rocks"
+      source_id: 0
+      quantity: "1"
+      rarity: uncommon
+      members_only: true
+recipes:
+  - skill: crafting
+    level: 43
+    xp: 107.5
+    materials:
+      - item_name: "Uncut diamond"
+        item_id: 1617
+        quantity: 1
+    product: "Diamond"
+    product_id: 1601
+    product_quantity: 1
+  - skill: fletching
+    level: 65
+    xp: 7
+    materials:
+      - item_name: "Diamond"
+        item_id: 1601
+        quantity: 1
+    product: "Diamond bolt tips"
+    product_id: 9192
+    product_quantity: 12
+    members_only: true
+related_items:
+  - item_id: 1601
+    item_name: "Diamond"
+    slug: "diamond"
+    relationship: product
+    description: "Cut version"
+  - item_id: 9192
+    item_name: "Diamond bolt tips"
+    slug: "diamond-bolt-tips"
+    relationship: product
+    description: "Fletching product"
+  - item_id: 1619
+    item_name: "Uncut ruby"
+    slug: "uncut-ruby"
+    relationship: alternative
+    description: "Lower tier gem"
+  - item_id: 1631
+    item_name: "Uncut dragonstone"
+    slug: "uncut-dragonstone"
+    relationship: alternative
+    description: "Higher tier gem"
+  - item_id: 1755
+    item_name: "Chisel"
+    slug: "chisel"
+    relationship: component
+    description: "Required tool"
+---
+
+## Cutting
+
+Use a [Chisel](/osrs/chisel/) on Uncut diamond to cut it.
+
+| Requirement | Value |
+|-------------|-------|
+| Crafting Level | 43 |
+| XP gained | 107.5 |
+
+## Products
+
+| Product | Crafting Level | XP |
+|---------|----------------|-----|
+| [Diamond](/osrs/diamond/) | 43 | 107.5 |
+| [Diamond bolt tips](/osrs/diamond-bolt-tips/) | 65 | 7 per tip |
+
+## Market Flip Strategy
+
+**Gem Cutting:**
+- Buy uncut → Cut → Sell cut
+- Calculate: `Diamond - Uncut diamond = Profit`
+- Fast XP, check margins before bulk buying
+
+**Bolt Tips:**
+- 1 diamond = 12 bolt tips
+- Calculate: `(Bolt tips × 12) - Uncut diamond = Profit`
+- [Diamond bolts (e)](/osrs/diamond-bolts-e/) are popular for PvM
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Drop Sources:**
+- Gem rocks (Shilo Village)
+- Various monsters
+- Clue scrolls
+
+## Jewelry
+
+Diamonds craft into high-tier jewelry:
+- [Diamond ring](/osrs/diamond-ring/) → [Ring of life](/osrs/ring-of-life/)
+- [Diamond necklace](/osrs/diamond-necklace/) → [Phoenix necklace](/osrs/phoenix-necklace/)
+- [Diamond amulet](/osrs/diamond-amulet/) → [Amulet of power](/osrs/amulet-of-power/)

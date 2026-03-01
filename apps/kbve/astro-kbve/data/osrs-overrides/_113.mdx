@@ -1,0 +1,103 @@
+---
+potion:
+  doses: 4
+  type: "combat"
+  boost_stat: "strength"
+  boost_formula: "3 + 10%"
+recipes:
+  - skill: herblore
+    level: 12
+    xp: 50
+    materials:
+      - item_name: "Tarromin potion (unf)"
+        item_id: 95
+        quantity: 1
+      - item_name: "Limpwurt root"
+        item_id: 225
+        quantity: 1
+    product: "Strength potion (4)"
+    product_id: 113
+    product_quantity: 1
+    facility: "None"
+    members_only: true
+  - skill: none
+    level: 1
+    xp: 0
+    materials:
+      - item_name: "Limpwurt root"
+        item_id: 225
+        quantity: 1
+      - item_name: "Red spiders' eggs"
+        item_id: 223
+        quantity: 1
+      - item_name: "Coins"
+        item_id: 995
+        quantity: 5
+    product: "Strength potion (4)"
+    product_id: 113
+    product_quantity: 1
+    facility: "Apothecary"
+related_items:
+  - item_id: 253
+    item_name: "Tarromin"
+    slug: "tarromin"
+    relationship: component
+    description: "Primary herb"
+  - item_id: 225
+    item_name: "Limpwurt root"
+    slug: "limpwurt-root"
+    relationship: component
+    description: "Secondary ingredient"
+  - item_id: 2440
+    item_name: "Super strength (4)"
+    slug: "super-strength-4"
+    relationship: upgrade
+    description: "Stronger version"
+  - item_id: 2428
+    item_name: "Attack potion (4)"
+    slug: "attack-potion-4"
+    relationship: alternative
+    description: "Pairs for melee"
+---
+
+## Creation
+
+**Members (Herblore):**
+Mix Tarromin potion (unf) + Limpwurt root.
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 12 |
+| XP gained | 50 |
+
+**F2P (Apothecary):**
+Bring Limpwurt root + Red spiders' eggs + 5 gp to Apothecary in Varrock.
+
+## Effect
+
+Temporarily boosts Strength by 3 + 10% of level:
+
+| Strength Level | Boost |
+|----------------|-------|
+| 1-9 | +3 |
+| 10-19 | +4 |
+| 50-59 | +8 |
+| 90-99 | +12 |
+
+Boost decays 1 point per minute. Preserve prayer extends to 90 seconds.
+
+## Usage
+
+Budget Strength boost for:
+- F2P combat (via Apothecary)
+- Early-game members
+- Ironman accounts
+
+## Market Strategy
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Tips:**
+- Low level requirement, accessible early
+- Apothecary method doesn't require Herblore
+- Popular for F2P PKing

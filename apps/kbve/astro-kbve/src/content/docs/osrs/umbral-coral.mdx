@@ -1,6 +1,6 @@
 ---
 title: Umbral coral | OSRS Price Data
-description: "Umbral coral: Seems to absorb light from all around it.. High alch: 93 GP."
+description: "Umbral coral: Seems to absorb light from all around it.. High alch: 93 GP, GE limit: 11,000."
 osrs:
   id: 31487
   name: Umbral coral
@@ -11,7 +11,7 @@ osrs:
   value: 156
   lowalch: 62
   highalch: 93
-  limit: null
+  limit: 11000
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

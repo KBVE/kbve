@@ -1,0 +1,107 @@
+---
+ammunition:
+  type: "arrow"
+  ranged_strength: 60
+  slot: ammo
+fletching:
+  level: 90
+  xp: 15
+  product: "Dragon arrow"
+  product_id: 11212
+  quantity_per_action: 15
+equipment:
+  slot: ammo
+  weight: 0
+  attack_bonus:
+    stab: 0
+    slash: 0
+    crush: 0
+    magic: 0
+    ranged: 0
+  defence_bonus:
+    stab: 0
+    slash: 0
+    crush: 0
+    magic: 0
+    ranged: 0
+  other_bonus:
+    melee_strength: 0
+    ranged_strength: 60
+    magic_damage: 0
+    prayer: 0
+  requirements:
+    ranged: 60
+recipes:
+  - skill: fletching
+    level: 90
+    xp: 225
+    materials:
+      - item_name: "Headless arrow"
+        item_id: 53
+        quantity: 15
+      - item_name: "Dragon arrowtips"
+        item_id: 11237
+        quantity: 15
+    product: "Dragon arrow"
+    product_id: 11212
+    product_quantity: 15
+    members_only: true
+related_items:
+  - item_id: 53
+    item_name: "Headless arrow"
+    slug: "headless-arrow"
+    relationship: component
+    description: "Arrow shaft component"
+  - item_id: 11237
+    item_name: "Dragon arrowtips"
+    slug: "dragon-arrowtips"
+    relationship: component
+    description: "Dragon tip component"
+  - item_id: 892
+    item_name: "Rune arrow"
+    slug: "rune-arrow"
+    relationship: downgrade
+    description: "Lower tier arrow"
+  - item_id: 21326
+    item_name: "Amethyst arrow"
+    slug: "amethyst-arrow"
+    relationship: alternative
+    description: "Alternative high-tier arrow"
+  - item_id: 20997
+    item_name: "Twisted bow"
+    slug: "twisted-bow"
+    relationship: alternative
+    description: "Primary user of dragon arrows"
+---
+
+## Combat Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged Strength | +60 |
+| Best with | Dark bow, Twisted bow |
+
+## Market Flip Strategy
+
+**Fletching Profit:**
+- Calculate: `(Dragon arrow × 15) - (Headless × 15) - (Dragon arrowtips × 15) = Profit`
+- 90 Fletching required
+- Check arrowtip vs arrow margins
+
+**Arrowtip Sources:**
+- Dragon arrowtips from Vorkath, Zulrah
+- High volume from boss farming
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Twisted bow primary ammo
+- Dark bow spec attacks
+- High-level ranged training
+- Cox/ToB raids
+
+**Tips:**
+- Best arrows in game
+- Twisted bow users = huge demand
+- Often cheaper than rune arrows
+- Check Vorkath supply levels

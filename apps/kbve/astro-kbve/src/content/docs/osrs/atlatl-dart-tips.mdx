@@ -1,6 +1,6 @@
 ---
 title: Atlatl dart tips | OSRS Price Data
-description: "Atlatl dart tips: I can make some atlatl darts with these.. High alch: 147 GP."
+description: "Atlatl dart tips: I can make some atlatl darts with these.. High alch: 147 GP, GE limit: 10,000."
 osrs:
   id: 30998
   name: Atlatl dart tips
@@ -11,7 +11,7 @@ osrs:
   value: 245
   lowalch: 98
   highalch: 147
-  limit: null
+  limit: 10000
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

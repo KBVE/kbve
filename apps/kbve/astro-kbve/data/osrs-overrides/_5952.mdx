@@ -1,0 +1,71 @@
+---
+potion:
+  doses: 4
+  type: "antidote"
+  cures_poison: true
+  poison_immunity_minutes: 12
+  venom_immunity_seconds: 36
+recipes:
+  - skill: herblore
+    level: 79
+    xp: 155
+    materials:
+      - item_name: "Irit potion (unf)"
+        item_id: 97
+        quantity: 1
+      - item_name: "Magic roots"
+        item_id: 6051
+        quantity: 1
+    product: "Antidote++ (4)"
+    product_id: 5952
+    product_quantity: 1
+    facility: "None"
+    members_only: true
+related_items:
+  - item_id: 12913
+    item_name: "Anti-venom"
+    slug: "anti-venom"
+    relationship: upgrade
+    description: "Upgrade potion"
+  - item_id: 12934
+    item_name: "Zulrah's scales"
+    slug: "zulrahs-scales"
+    relationship: component
+    description: "For anti-venom"
+  - item_id: 259
+    item_name: "Irit leaf"
+    slug: "irit-leaf"
+    relationship: component
+    description: "Base herb"
+  - item_id: 6051
+    item_name: "Magic roots"
+    slug: "magic-roots"
+    relationship: component
+    description: "Secondary ingredient"
+---
+
+## Creating
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 79 |
+| XP | 155 |
+| Ingredients | Irit potion (unf) + Magic roots |
+
+## Effects
+
+| Effect | Duration |
+|--------|----------|
+| Cures poison | Instant |
+| Poison immunity | 12 minutes |
+| Venom immunity | 18-36 seconds |
+
+## Market Strategy
+
+**Buy Limit:** 4,000 per 4 hours
+
+**Tips:**
+- 2 doses cures venom
+- 87 Herblore for anti-venom
+- Magic roots from farming
+- Cheaper than anti-venom

@@ -1,0 +1,77 @@
+---
+item:
+  type: "key_item"
+  tradeable: false
+  weight: 0.009
+obtaining:
+  methods:
+    - source: "Superior slayer monsters"
+      drop_rate: "100%"
+    - source: "Regular Catacombs monsters"
+      drop_rate_formula: "1/(500-HP)"
+    - source: "Skotizo"
+      drop_rate: "1/128"
+      variant: "complete totem"
+creation:
+  method: "Combine all three pieces (no requirements)"
+  pieces:
+    - "Dark totem base"
+    - "Dark totem middle"
+    - "Dark totem top"
+uses:
+  - action: "Access Skotizo"
+    method: "Use on altar in Catacombs center"
+    consumed: true
+related_items:
+  - item_id: 0
+    item_name: "Skotizo"
+    slug: "skotizo"
+    relationship: "alternative"
+    description: "Boss access"
+  - item_id: 0
+    item_name: "Dark totem base"
+    slug: "dark-totem-base"
+    relationship: "component"
+    description: "Component"
+  - item_id: 0
+    item_name: "Catacombs of Kourend"
+    slug: "catacombs-of-kourend"
+    relationship: "alternative"
+    description: "Farm location"
+---
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Key Item |
+| Tradeable | No |
+| Weight | 0.009 kg |
+
+## Obtaining
+
+Assembled from three pieces (base, middle, top).
+
+All pieces drop in Catacombs of Kourend.
+
+| Source | Rate |
+|--------|------|
+| Superior slayer | 100% |
+| Regular monsters | 1/(500-HP) |
+| Skotizo | 1/128 (complete) |
+
+## Uses
+
+**Access Skotizo:** Use on altar in Catacombs center.
+
+Consumed on use regardless of fight outcome.
+
+## Creation
+
+Combine all three pieces (no requirements).
+
+## Related Items
+
+- [Skotizo](/osrs/skotizo/) - Boss access
+- [Dark totem base](/osrs/dark-totem-base/) - Component
+- [Catacombs of Kourend](/osrs/catacombs-of-kourend/) - Farm location

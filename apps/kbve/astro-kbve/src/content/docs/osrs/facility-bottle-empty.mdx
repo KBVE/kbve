@@ -1,6 +1,6 @@
 ---
 title: Facility bottle (empty) | OSRS Price Data
-description: Facility bottle (empty) is a members-only OSRS item.
+description: "Facility bottle (empty) is a members-only OSRS item. High alch: 34,615 GP."
 osrs:
   id: 33074
   name: Facility bottle (empty)
@@ -8,9 +8,9 @@ osrs:
   examine: With proper application of directed exhalations, this complicated technology doubles as a folk instrument.
   members: true
   icon: Facility bottle (empty).png
-  value: 500
-  lowalch: null
-  highalch: null
+  value: 57693
+  lowalch: 23077
+  highalch: 34615
   limit: null
 ---
 
@@ -30,8 +30,8 @@ import { Adsense } from '@/components/astropad';
 - **Item ID:** {frontmatter.osrs.id}
 - **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-
-
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
 
 
 <Adsense />

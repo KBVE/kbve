@@ -1,0 +1,88 @@
+---
+material:
+  type: "bar"
+  tier: "steel"
+smithing:
+  level: 30
+  xp: 17.5
+  method: "Smelting"
+recipes:
+  - skill: smithing
+    level: 30
+    xp: 17.5
+    materials:
+      - item_name: "Iron ore"
+        item_id: 440
+        quantity: 1
+      - item_name: "Coal"
+        item_id: 453
+        quantity: 2
+    product: "Steel bar"
+    product_id: 2353
+    product_quantity: 1
+    facility: "Furnace"
+  - skill: smithing
+    level: 30
+    xp: 17.5
+    materials:
+      - item_name: "Iron ore"
+        item_id: 440
+        quantity: 1
+      - item_name: "Coal"
+        item_id: 453
+        quantity: 1
+    product: "Steel bar"
+    product_id: 2353
+    product_quantity: 1
+    facility: "Blast Furnace"
+    members_only: true
+related_items:
+  - item_id: 440
+    item_name: "Iron ore"
+    slug: "iron-ore"
+    relationship: component
+    description: "Primary ore"
+  - item_id: 453
+    item_name: "Coal"
+    slug: "coal"
+    relationship: component
+    description: "Required for smelting"
+  - item_id: 2
+    item_name: "Cannonball"
+    slug: "cannonball"
+    relationship: product
+    description: "Popular product (4 per bar)"
+  - item_id: 2359
+    item_name: "Mithril bar"
+    slug: "mithril-bar"
+    relationship: upgrade
+    description: "Next tier bar"
+  - item_id: 4
+    item_name: "Ammo mould"
+    slug: "ammo-mould"
+    relationship: alternative
+    description: "For cannonballs"
+---
+
+## Smithing Products
+
+| Item | Bars | Smithing Level | High Alch |
+|------|------|----------------|-----------|
+| Steel dagger | 1 | 30 | 150 GP |
+| Steel axe | 1 | 31 | 240 GP |
+| Steel mace | 1 | 32 | 270 GP |
+| Steel sword | 1 | 34 | 240 GP |
+| Steel scimitar | 2 | 35 | 480 GP |
+| Steel platebody | 5 | 48 | 1,200 GP |
+| Cannonball | 1 | 35 | N/A |
+
+## Market Flip Strategy
+
+**Cannonball Production:**
+- 1 Steel bar = 4 Cannonballs
+- Very slow but AFK
+- Calculate: `(Cannonball price × 4) - Steel bar price = Profit`
+
+**Blast Furnace Smelting:**
+- Half coal requirement = significant savings
+- Compare: `Steel bar price - Iron ore - Coal` at both furnaces

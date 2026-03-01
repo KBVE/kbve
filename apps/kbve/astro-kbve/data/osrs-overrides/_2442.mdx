@@ -1,0 +1,87 @@
+---
+potion:
+  doses: 3
+  type: "boost"
+  skill: "defence"
+  boost_min: 5
+  boost_max: 19
+  boost_formula: "15% + 5"
+  duration: 60
+herblore:
+  level: 66
+  xp: 150
+recipes:
+  - skill: herblore
+    level: 66
+    xp: 150
+    materials:
+      - item_name: "Cadantine potion (unf)"
+        item_id: 103
+        quantity: 1
+      - item_name: "White berries"
+        item_id: 239
+        quantity: 1
+    product: "Super defence(3)"
+    product_id: 2442
+    product_quantity: 1
+    facility: "None"
+    members_only: true
+related_items:
+  - item_id: 265
+    item_name: "Cadantine"
+    slug: "cadantine"
+    relationship: component
+    description: "Primary herb"
+  - item_id: 239
+    item_name: "White berries"
+    slug: "white-berries"
+    relationship: component
+    description: "Secondary"
+  - item_id: 12695
+    item_name: "Super combat potion(4)"
+    slug: "super-combat-potion-4"
+    relationship: product
+    description: "Combined potion"
+  - item_id: 2432
+    item_name: "Defence potion(3)"
+    slug: "defence-potion-3"
+    relationship: alternative
+    description: "Lower tier"
+---
+
+## Creating
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 66 |
+| XP | 150 |
+| Ingredients | Cadantine + White berries |
+
+## Effects
+
+| Effect | Value |
+|--------|-------|
+| Defence boost | +5 to +19 (15% + 5) |
+| Duration | 60s per level lost |
+| Preserve prayer | 90s per level lost |
+
+## Market Flip Strategy
+
+**Combat Potion Component:**
+- Super combat ingredient
+- Standalone defence boost
+- Moderate demand
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Demand Drivers:**
+- Super combat production
+- Tank builds
+- Bossing preparation
+- Defence training
+
+**Tips:**
+- Low buy limit (2,000)
+- Cadantine herb
+- White berries secondary
+- Component for super combat

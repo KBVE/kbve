@@ -1,0 +1,91 @@
+---
+title: Callback
+description: Learn about the KBVE login callback process and its implementation for secure user authentication.
+tableOfContents: true
+graph:
+  visible: false
+sidebar:
+  label: Webmaster
+  order: 3
+image:
+  src: https://images.unsplash.com/photo-1522071820081-009f0129c71c?fit=crop&w=1400&h=700&q=75
+  alt: Secure authentication interface
+  credit: Unsplash
+tags:
+  - authentication
+  - login
+  - callback
+  - security
+  - webmaster
+---
+
+import AstroCallback from '@/components/auth/AstroCallback.astro';
+import { Card, CardGrid, Aside} from '@astrojs/starlight/components';
+
+<AstroCallback  />
+
+## Supabase Authentication Callback
+
+The [Supabase](/application/supabase/) callback handles the authentication flow after users complete login through various providers (GitHub, Google, Discord, etc.). This endpoint processes the authentication tokens and establishes secure user sessions.
+
+<Aside type="tip">
+Supabase callback URLs must be registered in your Supabase project's Authentication settings under "Site URL" and "Redirect URLs".
+</Aside>
+
+<CardGrid>
+  <Card title="Supabase Auth Features" icon="shield">
+    - JWT token validation via Supabase Auth
+    - Automatic session management
+    - Row Level Security (RLS) integration
+    - Built-in PKCE flow protection
+  </Card>
+  
+  <Card title="Provider Support" icon="globe">
+    - GitHub OAuth integration
+    - Google OAuth integration
+    - Discord OAuth integration
+    - Magic link authentication
+  </Card>
+  
+  <Card title="Session Handling" icon="laptop">
+    - Automatic token refresh
+    - Server-side session validation
+    - Cookie-based persistence
+    - Secure httpOnly cookies
+  </Card>
+  
+  <Card title="Supabase Integration" icon="database">
+    - Direct user profile creation
+    - Automatic user metadata sync
+    - Real-time subscription setup
+    - Database trigger activation
+  </Card>
+</CardGrid>
+
+## Supabase Configuration
+
+<Aside type="caution">
+Ensure your callback URL is added to both "Site URL" and "Redirect URLs" in your Supabase project settings.
+</Aside>
+
+### Required Supabase Environment Variables
+
+Configure these environment variables for Supabase authentication:
+
+- `PUBLIC_SUPABASE_URL` - Your Supabase project URL
+- `PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon/public key
+- `SUPABASE_SERVICE_KEY` - Your Supabase service role key (server-side only)
+- `SUPABASE_JWT_SECRET` - JWT secret for token verification
+
+### Supabase Callback Flow
+
+1. **Provider Authentication**: User completes OAuth with GitHub/Google/Discord
+2. **Supabase Redirect**: Provider redirects to your Supabase callback URL
+3. **Token Processing**: Supabase Auth exchanges code for access/refresh tokens
+4. **User Creation**: Supabase automatically creates user record in auth.users
+5. **Session Establishment**: Client receives session with JWT tokens
+6. **Profile Sync**: User metadata synced to your profiles table via triggers
+
+<Aside type="note">
+Supabase handles token refresh automatically. Sessions are valid for 1 hour by default and refresh tokens last 30 days.
+</Aside>

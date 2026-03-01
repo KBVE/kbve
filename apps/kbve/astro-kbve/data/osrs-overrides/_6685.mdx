@@ -1,0 +1,94 @@
+---
+potion:
+  doses: 4
+  herblore_level: 81
+  herblore_xp: 180
+  effect: "Heals 15% + 2 of max HP, boosts Defence, lowers other combat stats"
+  effects:
+    - stat: "Hitpoints"
+      boost_formula: "floor(level * 0.15) + 2"
+      description: "Heals 15% + 2 of max HP"
+    - stat: "Defence"
+      boost_formula: "floor(level * 0.20) + 2"
+      description: "Boosts Defence by 20% + 2"
+    - stat: "Attack"
+      boost_formula: "-(floor(level * 0.10) + 2)"
+      description: "Lowers Attack by 10% + 2"
+    - stat: "Strength"
+      boost_formula: "-(floor(level * 0.10) + 2)"
+      description: "Lowers Strength by 10% + 2"
+    - stat: "Magic"
+      boost_formula: "-(floor(level * 0.10) + 2)"
+      description: "Lowers Magic by 10% + 2"
+    - stat: "Ranged"
+      boost_formula: "-(floor(level * 0.10) + 2)"
+      description: "Lowers Ranged by 10% + 2"
+recipes:
+  - skill: herblore
+    level: 81
+    xp: 180
+    materials:
+      - item_name: "Toadflax potion (unf)"
+        item_id: 3002
+        quantity: 1
+      - item_name: "Crushed nest"
+        item_id: 6693
+        quantity: 1
+    ticks: 2
+    members_only: true
+related_items:
+  - item_id: 2152
+    item_name: "Toadflax"
+    slug: "toadflax"
+    relationship: component
+    description: "Primary herb"
+  - item_id: 6693
+    item_name: "Crushed nest"
+    slug: "crushed-nest"
+    relationship: component
+    description: "Secondary ingredient"
+  - item_id: 3024
+    item_name: "Super restore(4)"
+    slug: "super-restore-4"
+    relationship: alternative
+    description: "Used with brews (3:1 ratio)"
+  - item_id: 13441
+    item_name: "Anglerfish"
+    slug: "anglerfish"
+    relationship: alternative
+    description: "Alternative healing"
+  - item_id: 6687
+    item_name: "Saradomin brew(3)"
+    slug: "saradomin-brew-3"
+    relationship: variant
+    description: "3-dose version"
+---
+
+## Effects
+
+Per dose:
+- **Heals:** 15% + 2 of max HP
+- **Boosts Defence:** 20% + 2 of base level
+- **Lowers:** Attack, Strength, Magic, Ranged by 10% + 2
+
+## Usage
+
+Essential for high-level PvM:
+- Raids (CoX, ToB, ToA)
+- Inferno attempts
+- Boss fights (GWD, Nex, etc.)
+- PvP (often combo'd with Super restore)
+
+## Market Flip Strategy
+
+**Potion Making:**
+- Toadflax + Vial of water → Unfinished potion
+- Add Crushed nest → Saradomin brew
+- Calculate: `Brew price - Toadflax - Crushed nest - Vial = Profit`
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Tips:**
+- High demand from raiders
+- Crushed nest price drives margins
+- Often paired with Super restores (3:1 ratio)

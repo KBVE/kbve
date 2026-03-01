@@ -1,0 +1,96 @@
+---
+potion:
+  doses: 4
+  herblore_level: 85
+  herblore_xp: 190
+  effect: "Boosts Magic by 2, restores Prayer, drains Attack/Strength/Defence"
+  effects:
+    - stat: "Magic"
+      boost_type: boost
+      boost_value: 2
+    - stat: "Prayer"
+      boost_formula: "2 + floor(level / 4)"
+    - stat: "Attack"
+      boost_type: drain
+      drain_value: "10% + 2"
+    - stat: "Strength"
+      boost_type: drain
+      drain_value: "10% + 2"
+    - stat: "Defence"
+      boost_type: drain
+      drain_value: "10% + 2"
+recipes:
+  - skill: herblore
+    level: 85
+    xp: 190
+    materials:
+      - item_name: "Dwarf weed"
+        item_id: 267
+        quantity: 1
+      - item_name: "Nihil dust"
+        item_id: 26370
+        quantity: 1
+      - item_name: "Vial of water"
+        item_id: 227
+        quantity: 1
+        consumed: true
+    ticks: 2
+    members_only: true
+related_items:
+  - item_id: 267
+    item_name: "Dwarf weed"
+    slug: "dwarf-weed"
+    relationship: component
+    description: "Primary herb"
+  - item_id: 26370
+    item_name: "Nihil dust"
+    slug: "nihil-dust"
+    relationship: component
+    description: "Secondary ingredient"
+  - item_id: 2434
+    item_name: "Prayer potion(4)"
+    slug: "prayer-potion-4"
+    relationship: alternative
+    description: "Pure prayer restore"
+  - item_id: 3024
+    item_name: "Super restore(4)"
+    slug: "super-restore-4"
+    relationship: alternative
+    description: "Restores all stats"
+  - item_id: 26342
+    item_name: "Ancient brew(3)"
+    slug: "ancient-brew-3"
+    relationship: variant
+    description: "3-dose version"
+---
+
+## Usage
+
+Ancient brew provides unique effects:
+- **Boost:** +2 Magic level
+- **Restore:** Prayer points (like super restore)
+- **Drain:** Attack, Strength, Defence by 10%+2
+
+Best for:
+- Magic-focused PvM
+- Situations where melee stats don't matter
+- Raids (ToA especially)
+
+## Market Flip Strategy
+
+**Niche Potion:**
+- Unique Magic boost + Prayer restore
+- ToA increased demand significantly
+- Compare to super restore prices
+
+**Potion Making Profit:**
+- Calculate: `Ancient brew - Dwarf weed - Nihil dust`
+- High Herblore requirement (85)
+- Nihil dust from Nex
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Tips:**
+- ToA drives demand
+- Nex farming provides nihil dust
+- Magic boost useful for boosting

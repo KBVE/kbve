@@ -1,6 +1,6 @@
 ---
 title: Haemostatic dressing (4) | OSRS Price Data
-description: "Haemostatic dressing (4): 4 applications of haemostatic dressing.. High alch: 150 GP."
+description: "Haemostatic dressing (4): 4 applications of haemostatic dressing.. High alch: 150 GP, GE limit: 2,000."
 osrs:
   id: 31590
   name: Haemostatic dressing (4)
@@ -11,7 +11,7 @@ osrs:
   value: 250
   lowalch: 100
   highalch: 150
-  limit: null
+  limit: 2000
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

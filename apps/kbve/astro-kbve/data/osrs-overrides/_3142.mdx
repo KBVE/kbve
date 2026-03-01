@@ -1,0 +1,97 @@
+---
+food:
+  heals: 18
+  type: "fish"
+  combo_food: true
+  cooked_version: 3144
+  cooked_name: "Cooked karambwan"
+gathering:
+  skill: fishing
+  level: 65
+  xp: 50
+  tool: "Karambwan vessel"
+  bait: "Raw karambwanji"
+  location: "Karamja"
+  quest_required: "Tai Bwo Wannai Trio"
+  members_only: true
+recipes:
+  - skill: cooking
+    level: 30
+    xp: 190
+    materials:
+      - item_name: "Raw karambwan"
+        item_id: 3142
+        quantity: 1
+    product: "Cooked karambwan"
+    product_id: 3144
+    product_quantity: 1
+    facility: "Range/Fire"
+    members_only: true
+  - skill: cooking
+    level: 1
+    xp: 80
+    materials:
+      - item_name: "Raw karambwan"
+        item_id: 3142
+        quantity: 1
+    product: "Poison karambwan"
+    product_id: 3146
+    product_quantity: 1
+    facility: "Range/Fire"
+    members_only: true
+related_items:
+  - item_id: 3144
+    item_name: "Cooked karambwan"
+    slug: "cooked-karambwan"
+    relationship: product
+    description: "Cooked version"
+  - item_id: 3150
+    item_name: "Raw karambwanji"
+    slug: "raw-karambwanji"
+    relationship: component
+    description: "Bait for fishing"
+  - item_id: 383
+    item_name: "Raw shark"
+    slug: "raw-shark"
+    relationship: alternative
+    description: "Combo partner"
+  - item_id: 13441
+    item_name: "Anglerfish"
+    slug: "anglerfish"
+    relationship: alternative
+    description: "Overheal food"
+---
+
+## Obtaining
+
+| Method | Level | XP |
+|--------|-------|-----|
+| Karambwan vessel fishing | 65 Fishing | 50 |
+| Requires Tai Bwo Wannai Trio | - | - |
+| Bait: Raw karambwanji | - | - |
+
+## Cooking
+
+| Method | Level | XP |
+|--------|-------|-----|
+| Thoroughly cooked | 30 Cooking | 190 |
+| Poison karambwan | 1 Cooking | 80 |
+
+**Heals:** 18 HP (cooked), Poison (raw/poison)
+
+## Usage
+
+**Tick-Eating Staple:**
+- Can be eaten same tick as other food
+- Essential for high-level PvM
+- Quest locked fishing
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Tips:**
+- Combo eat with shark/angler
+- 1-tick karambwans for DPS
+- Tai Bwo Wannai Trio required
+- High demand, good prices

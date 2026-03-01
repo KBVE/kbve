@@ -1,0 +1,86 @@
+---
+item:
+  type: "crafting material"
+  tradeable: true
+obtaining:
+  - source: "Vyrewatch Sentinels"
+    drop_rate: "1/1,500"
+  - source: "Pickpocket Vyres (82 Thieving)"
+    drop_rate: "1/5,000"
+recipes:
+  - skill: "crafting"
+    level: 1
+    materials:
+      - item_id: 24777
+        item_name: "Blood shard"
+        quantity: 1
+      - item_id: 6585
+        item_name: "Amulet of fury"
+        quantity: 1
+    product: "Amulet of blood fury"
+    product_id: 24780
+effect:
+  charges: 10000
+  consumed_on_depletion: true
+  lifesteal:
+    chance: "20%"
+    amount: "30% of damage dealt"
+    average: "~6% healing per attack"
+    melee_only: true
+related_items:
+  - item_id: 6585
+    item_name: "Amulet of fury"
+    slug: "amulet-of-fury"
+    relationship: "component"
+    description: "Base item for upgrade"
+  - item_id: 24780
+    item_name: "Amulet of blood fury"
+    slug: "amulet-of-blood-fury"
+    relationship: "product"
+    description: "Created lifesteal amulet"
+---
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Stackable | No |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Vyrewatch Sentinels | 1/1,500 |
+| Pickpocket Vyres (82 Thieving) | 1/5,000 |
+
+## Uses
+
+Combine with [Amulet of fury](/osrs/amulet-of-fury/) to create [Amulet of blood fury](/osrs/amulet-of-blood-fury/).
+
+**Charges:** 10,000 per shard (consumed when depleted).
+
+## Passive Effect (Blood Fury)
+
+**Melee Lifesteal:**
+- 20% chance to heal 30% of damage dealt
+- ~6% average lifesteal
+- Only works with melee
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Price:** ~7M gp
+
+**Tips:**
+- Great for melee sustain
+- Consumes shard on depletion
+- Farm Vyres in Darkmeyer
+
+## Related Items
+
+- [Amulet of fury](/osrs/amulet-of-fury/) - Base item
+- [Amulet of blood fury](/osrs/amulet-of-blood-fury/) - Created item
+- [Vyrewatch Sentinel](/osrs/vyrewatch-sentinel/) - Drop source

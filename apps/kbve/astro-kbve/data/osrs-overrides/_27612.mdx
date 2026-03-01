@@ -1,0 +1,111 @@
+---
+equipment:
+  slot: "weapon"
+  type: "bow"
+  tradeable: true
+  weight: 4.5
+  requirements:
+    ranged: 80
+  stats:
+    attack_stab: 0
+    attack_slash: 0
+    attack_crush: 0
+    attack_magic: 0
+    attack_ranged: 90
+    defence_stab: 0
+    defence_slash: 0
+    defence_crush: 0
+    defence_magic: 0
+    defence_ranged: 0
+    strength: 0
+    ranged_strength: 25
+    magic_damage: 0
+    prayer: 0
+passive_effect:
+  name: "Multi-Bounce"
+  description: "In multicombat, arrows bounce to nearby targets (up to 2 additional hits at 66% damage)"
+  requires_charges: true
+charging:
+  resource: "Ancient essence"
+  max_charges: 50000
+  cost_per_attack: "~18 gp"
+drop_table:
+  sources:
+    - source: "Leviathan"
+      rate: "Via Venator shards"
+recipes:
+  - skill: "crafting"
+    materials:
+      - item_id: 27614
+        item_name: "Venator shard"
+        quantity: 5
+    product: "Venator bow"
+    product_id: 27612
+related_items:
+  - item_id: 27614
+    item_name: "Venator shard"
+    slug: "venator-shard"
+    relationship: component
+    description: "Required for creation"
+  - item_id: 27616
+    item_name: "Ancient essence"
+    slug: "ancient-essence"
+    relationship: alternative
+    description: "Charge material"
+---
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Two-handed |
+| Type | Bow |
+| Tradeable | Yes |
+| Weight | 4.5 kg |
+| Requirements | 80 Ranged |
+
+## Obtaining
+
+**Crafting:** Combine 5 Venator shards
+
+| Source | Drop |
+|--------|------|
+| Leviathan | Venator shard |
+
+## Stats
+
+| Offence | Bonus |
+|---------|-------|
+| Ranged | +90 |
+| Ranged strength | +25 |
+
+**Attack Speed:** 5-tick (3.0s) standard, 4-tick (2.4s) rapid
+
+**Range:** 6 tiles (8 with Longrange)
+
+## Passive Effect
+
+**Multi-Bounce:** In multicombat, arrows bounce to nearby targets (up to 2 additional hits). Secondary hits deal 66% damage.
+
+Requires ancient essence charges.
+
+## Charging
+
+| Property | Value |
+|----------|-------|
+| Max charges | 50,000 |
+| Charge source | Ancient essence |
+| Cost per attack | ~18 gp |
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~69.5M gp
+
+## Related Items
+
+- [Leviathan](/osrs/leviathan/) - Shard source
+- [Venator shard](/osrs/venator-shard/) - Component
+- [Ancient essence](/osrs/ancient-essence/) - Charge material
+

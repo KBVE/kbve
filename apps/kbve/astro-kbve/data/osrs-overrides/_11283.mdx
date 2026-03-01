@@ -1,0 +1,130 @@
+---
+equipment:
+  slot: "shield"
+  type: "melee_shield"
+  tradeable: true
+  weight: 7.257
+  requirements:
+    defence: 75
+    quest: "Dragon Slayer I"
+  stats:
+    defence_stab: 20
+    defence_slash: 25
+    defence_crush: 22
+    defence_magic: 10
+    defence_ranged: 22
+    strength: 7
+creation:
+  materials:
+    - item_id: 1540
+      item_name: "Anti-dragon shield"
+      slug: "anti-dragon-shield"
+    - item_id: 11286
+      item_name: "Draconic visage"
+      slug: "draconic-visage"
+  methods:
+    - source: "Player"
+      requirements:
+        smithing: 90
+    - source: "Oziach"
+      cost: 1250000
+charging:
+  max_charges: 50
+  method: "Absorbs dragon/wyvern breath attacks"
+  bonus_per_charge: "+1 to melee and ranged defence"
+special_ability:
+  name: "Dragonfire Discharge"
+  damage: 25
+  cooldown: "~2 minutes"
+  consumes_charges: true
+passive_effects:
+  - name: "Dragonfire Protection"
+    description: "Provides dragonfire protection"
+related_items:
+  - item_id: 11286
+    item_name: "Draconic visage"
+    slug: "draconic-visage"
+    relationship: "component"
+    description: "Creation material"
+  - item_id: 1540
+    item_name: "Anti-dragon shield"
+    slug: "anti-dragon-shield"
+    relationship: "component"
+    description: "Base shield"
+  - item_id: 12817
+    item_name: "Elysian spirit shield"
+    slug: "elysian-spirit-shield"
+    relationship: "upgrade"
+    description: "BiS upgrade"
+---
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Shield |
+| Type | Melee Shield |
+| Tradeable | Yes |
+| Weight | 7.257 kg |
+| Requirements | 75 Defence, Dragon Slayer I |
+
+## Obtaining
+
+Created from:
+- Anti-dragon shield + Draconic visage
+
+**Methods:**
+- 90 Smithing at anvil
+- Pay Oziach 1,250,000 gp
+
+## Stats (Uncharged)
+
+| Defence | Bonus |
+|---------|-------|
+| Stab | +20 |
+| Slash | +25 |
+| Crush | +22 |
+| Magic | +10 |
+| Ranged | +22 |
+
+| Other | Bonus |
+|-------|-------|
+| Strength | +7 |
+
+## Charging
+
+Absorbs dragon/wyvern breath attacks (max 50 charges).
+
+Each charge: +1 to melee and ranged defence.
+
+Fully charged: +50 additional defence.
+
+## Special Ability
+
+**Dragonfire Discharge:**
+- Up to 25 damage
+- ~2 minute cooldown
+- Consumes charges
+
+Also provides dragonfire protection.
+
+## Usage
+
+Used for:
+- Dragon killing
+- Melee tanking
+- Strength bonus shield
+
+**One of the best melee shields.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~3.6M gp
+
+## Related Items
+
+- [Draconic visage](/osrs/draconic-visage/) - Creation material
+- [Anti-dragon shield](/osrs/anti-dragon-shield/) - Base shield
+- [Elysian spirit shield](/osrs/elysian-spirit-shield/) - BiS upgrade

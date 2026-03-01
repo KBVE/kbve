@@ -1,0 +1,124 @@
+---
+material:
+  type: "plank"
+  tier: "basic"
+construction:
+  xp_per_plank: 29
+  min_level: 1
+  sawmill_cost: 100
+  common_builds:
+    - name: "Crude wooden chair"
+      planks: 2
+      xp: 58
+    - name: "Wooden bookcase"
+      planks: 4
+      xp: 115
+recipes:
+  - skill: construction
+    materials:
+      - item_name: "Logs"
+        item_id: 1511
+        quantity: 1
+    product: "Plank"
+    product_id: 960
+    product_quantity: 1
+    facility: "Sawmill"
+    cost: 100
+    members_only: true
+  - skill: magic
+    level: 86
+    xp: 90
+    materials:
+      - item_name: "Logs"
+        item_id: 1511
+        quantity: 1
+      - item_name: "Astral rune"
+        item_id: 9075
+        quantity: 2
+      - item_name: "Nature rune"
+        item_id: 561
+        quantity: 1
+      - item_name: "Earth rune"
+        item_id: 557
+        quantity: 15
+    product: "Plank"
+    product_id: 960
+    product_quantity: 1
+    cost: 70
+    members_only: true
+    spell: "Plank Make"
+related_items:
+  - item_id: 1511
+    item_name: "Logs"
+    slug: "logs"
+    relationship: component
+    description: "Raw material"
+  - item_id: 8778
+    item_name: "Oak plank"
+    slug: "oak-plank"
+    relationship: upgrade
+    description: "Better XP per plank"
+  - item_id: 8780
+    item_name: "Teak plank"
+    slug: "teak-plank"
+    relationship: upgrade
+    description: "Mid tier plank"
+  - item_id: 8782
+    item_name: "Mahogany plank"
+    slug: "mahogany-plank"
+    relationship: upgrade
+    description: "Highest tier plank"
+  - item_id: 1539
+    item_name: "Steel nails"
+    slug: "steel-nails"
+    relationship: component
+    description: "Required for some builds"
+---
+
+## Obtaining
+
+Convert [Logs](/osrs/logs/) at a Sawmill:
+
+| Method | Cost |
+|--------|------|
+| Sawmill operator | 100 GP per plank |
+| Plank Make spell | 70 GP + runes |
+| Woodcutting Guild sawmill | 90 GP per plank |
+
+**Spawns:** Port Khazard, Barbarian Outpost, various locations.
+
+**Note:** Regular planks are the only plank type that sometimes requires [nails](/osrs/steel-nails/) for construction.
+
+## Construction
+
+| XP per plank | 29 |
+|--------------|-----|
+| Buy limit | 13,000 per 4 hours |
+| Min Construction level | 1 |
+
+**Early Training (levels 1-33):**
+- Crude wooden chairs (2 planks, 58 XP)
+- Wooden bookcases (4 planks, 115 XP)
+- Exit room to reset furniture
+
+**Note:** Requires nails for some furniture - bring extras as they can bend.
+
+## Market Strategy
+
+**Why Use Regular Planks:**
+- Cheapest plank option
+- Required for early Construction training
+- Used in some Mahogany Homes contracts
+- Required for Dragon Slayer I and other quests
+
+**Upgrade Path:**
+1. Regular planks (29 XP) - levels 1-33
+2. [Oak planks](/osrs/oak-plank/) (60 XP) - levels 33-52
+3. [Teak planks](/osrs/teak-plank/) (90 XP) - levels 52-99
+4. [Mahogany planks](/osrs/mahogany-plank/) (140 XP) - fastest 99
+
+## Related Items
+
+- [Logs](/osrs/logs/) - Raw material for planks
+- [Steel nails](/osrs/steel-nails/) - Required for some furniture
+- [Oak plank](/osrs/oak-plank/) - Upgrade option

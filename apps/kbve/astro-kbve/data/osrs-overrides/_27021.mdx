@@ -1,0 +1,89 @@
+---
+equipment:
+  slot: "weapon"
+  type: "two-handed crush weapon"
+  tradeable: false
+  weight: 30
+  requirements:
+    attack: 60
+  stats:
+    attack_stab: -4
+    attack_slash: 98
+    attack_crush: 65
+    attack_magic: -4
+    attack_ranged: 0
+    defence_stab: 0
+    defence_slash: 0
+    defence_crush: 0
+    defence_magic: 0
+    defence_ranged: -1
+    strength: 100
+    ranged_strength: 0
+    magic_damage: 0
+    prayer: 0
+passive_effect:
+  name: "Size Bonus"
+  description: "+2 max hit per monster size (max +10 for 5x5 monsters)"
+  formula: "MaxHit + [2 x min(MonsterSize, 5)]"
+obtaining:
+  source: "Giants' Foundry"
+  cost: "5,000 Foundry Reputation"
+  reclaim: "300,000 gp from Perdu"
+related_items:
+  - item_id: 10887
+    item_name: "Barrelchest anchor"
+    slug: "barrelchest-anchor"
+    relationship: alternative
+    description: "Similar two-handed crush weapon"
+---
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Two-handed |
+| Type | Crush Weapon |
+| Tradeable | No |
+| Weight | 30 kg |
+| Requirements | 60 Attack |
+
+## Obtaining
+
+Purchase from Giants' Foundry for 5,000 Foundry Reputation.
+
+**Reclaim:** 300,000 gp from Perdu.
+
+## Stats
+
+| Offence | Bonus |
+|---------|-------|
+| Stab | -4 |
+| Slash | +98 |
+| Crush | +65 |
+| Magic | -4 |
+| Strength | +100 |
+
+| Defence | Bonus |
+|---------|-------|
+| Ranged | -1 |
+
+## Passive Effect
+
+**Size Bonus:** +2 max hit per monster size (max +10 for 5x5 monsters).
+
+Formula: `MaxHit + [2 x min(MonsterSize, 5)]`
+
+Stacks with Slayer helmet/Black mask.
+
+## Usage
+
+Effective against large monsters:
+- Corporeal Beast
+- Cerberus
+- Obor/Bryophyta
+
+## Related Items
+
+- [Giants' Foundry](/osrs/giants-foundry/) - Source
+- [Barrelchest anchor](/osrs/barrelchest-anchor/) - Similar weapon
+

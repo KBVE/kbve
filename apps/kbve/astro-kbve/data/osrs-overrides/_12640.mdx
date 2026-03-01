@@ -1,0 +1,76 @@
+---
+material:
+  type: "crystal"
+  tier: "agility"
+shops:
+  - shop_name: "Grace"
+    location: "Rogues' Den"
+    currency: "Marks of Grace"
+    rate: "10 marks = 100 crystals"
+recipes:
+  - skill: herblore
+    level: 77
+    xp: 102
+    materials:
+      - item_name: "Super energy(4)"
+        item_id: 3018
+        quantity: 1
+      - item_name: "Amylase crystal"
+        item_id: 12640
+        quantity: 4
+    product: "Stamina potion(4)"
+    product_id: 12625
+    product_quantity: 1
+    members_only: true
+related_items:
+  - item_id: 3018
+    item_name: "Super energy(4)"
+    slug: "super-energy-4"
+    relationship: component
+    description: "Stamina base"
+  - item_id: 12625
+    item_name: "Stamina potion(4)"
+    slug: "stamina-potion-4"
+    relationship: product
+    description: "End product"
+  - item_id: 21752
+    item_name: "Ring of endurance"
+    slug: "ring-of-endurance"
+    relationship: alternative
+    description: "Uses staminas"
+---
+
+## Obtaining
+
+| Source | Currency |
+|--------|----------|
+| Grace (Rogues' Den) | Marks of Grace |
+| Worm Tongue | Brimhaven vouchers |
+| Pirate Jackie | Termites |
+
+Sold in packs of 100 crystals.
+
+## Usage
+
+| Potion | Crystals | Herblore Level | XP per crystal |
+|--------|----------|----------------|----------------|
+| [Stamina potion(4)](/osrs/stamina-potion-4/) | 4 | 77 | 25.5 |
+
+## Market Flip Strategy
+
+**Marks of Grace Conversion:**
+- 10 Marks = 100 Amylase crystals
+- Calculate: `(Amylase × 100) / 10 = GP per Mark`
+- Compare to Graceful recoloring value
+
+**Stamina Profit:**
+- 4 crystals + [Super energy(4)](/osrs/super-energy-4/) = [Stamina(4)](/osrs/stamina-potion-4/)
+- Calculate: `Stamina(4) - Super energy(4) - (Amylase × 4) = Profit`
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Tips:**
+- Rooftop agility best source
+- Marks untradeable, crystals tradeable
+- Consistent stamina demand
+- Check GP/Mark vs outfit pieces

@@ -1,0 +1,96 @@
+---
+material:
+  type: "herblore_base"
+  tier: "mid"
+recipes:
+  - skill: crafting
+    level: 0
+    xp: 0
+    materials:
+      - item_name: "Half coconut"
+        item_id: 5976
+        quantity: 1
+      - item_name: "Vial"
+        item_id: 229
+        quantity: 1
+    product: "Coconut milk"
+    product_id: 5935
+    product_quantity: 1
+    byproduct: "Coconut shell"
+    byproduct_id: 5978
+    members_only: true
+  - skill: herblore
+    level: 79
+    xp: 155
+    materials:
+      - item_name: "Coconut milk"
+        item_id: 5935
+        quantity: 1
+      - item_name: "Irit leaf"
+        item_id: 259
+        quantity: 1
+      - item_name: "Magic roots"
+        item_id: 6051
+        quantity: 1
+    product: "Antidote++(3)"
+    product_id: 5954
+    members_only: true
+related_items:
+  - item_id: 5976
+    item_name: "Half coconut"
+    slug: "half-coconut"
+    relationship: component
+    description: "Cracked coconut"
+  - item_id: 5974
+    item_name: "Coconut"
+    slug: "coconut"
+    relationship: component
+    description: "Source coconut"
+  - item_id: 5952
+    item_name: "Antidote++(4)"
+    slug: "antidote-4"
+    relationship: product
+    description: "Main herblore product"
+  - item_id: 229
+    item_name: "Vial"
+    slug: "vial"
+    relationship: component
+    description: "Empty vial needed"
+---
+
+## Creation
+
+Make coconut milk in two steps:
+
+1. Use hammer on coconut to get half coconut
+2. Use half coconut on empty vial
+
+This produces:
+- 1 Coconut milk (vial)
+- 1 Coconut shell (supercompost material)
+
+## Herblore Uses
+
+| Potion | Ingredients | Level | XP |
+|--------|-------------|-------|-----|
+| Antidote++(3) | Coconut milk + Irit + Magic roots | 79 | 155 |
+
+Coconut milk replaces the standard vial of water for antidote++ potions.
+
+## Market Strategy
+
+**Coconut Supply:**
+- Coconuts from palm tree farming
+- Also from Tai Bwo Wannai cleanup
+- Kingdom of Miscellania (hardwood workers)
+
+**Profit Chain:**
+1. Coconut (crack) -> Half coconut
+2. Half coconut + Vial -> Coconut milk + Shell
+3. Coconut milk -> Antidote++
+
+**Supercompost Bonus:**
+- Coconut shell makes supercompost
+- Added value from byproduct
+
+**Buy Limit:** 10,000 per 4 hours

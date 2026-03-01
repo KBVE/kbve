@@ -1,0 +1,111 @@
+---
+equipment:
+  slot: "weapon"
+  weight: 3.628
+  attack_bonus:
+    stab: -4
+    slash: 80
+    crush: 80
+    magic: -4
+    ranged: 0
+  defence_bonus:
+    stab: 0
+    slash: 0
+    crush: 0
+    magic: 0
+    ranged: 0
+  other_bonus:
+    melee_strength: 70
+    ranged_strength: 0
+    magic_damage: 0
+    prayer: 0
+  requirements:
+    attack: 40
+  attack_speed: 7
+recipes:
+  - skill: smithing
+    level: 99
+    xp: 225
+    materials:
+      - item_name: "Runite bar"
+        item_id: 2363
+        quantity: 3
+    product: "Rune 2h sword"
+    product_id: 1319
+    product_quantity: 1
+    facility: "Anvil"
+alchemy:
+  high: 38400
+  low: 25600
+drop_table:
+  sources:
+    - source: "Greater demon"
+      source_id: 2026
+      combat_level: 92
+      quantity: "1"
+      rarity: rare
+    - source: "Fire giant"
+      source_id: 2078
+      combat_level: 86
+      quantity: "1"
+      rarity: rare
+    - source: "Obor"
+      source_id: 7416
+      combat_level: 106
+      quantity: "1"
+      rarity: uncommon
+related_items:
+  - item_id: 2363
+    item_name: "Runite bar"
+    slug: "runite-bar"
+    relationship: component
+    description: "Raw material (×3)"
+  - item_id: 1127
+    item_name: "Rune platebody"
+    slug: "rune-platebody"
+    relationship: alternative
+    description: "Alternative alch item"
+  - item_id: 1079
+    item_name: "Rune platelegs"
+    slug: "rune-platelegs"
+    relationship: alternative
+    description: "Same bar cost"
+  - item_id: 561
+    item_name: "Nature rune"
+    slug: "nature-rune"
+    relationship: component
+    description: "For High Alchemy"
+---
+
+## Creation
+
+Smith 3 [Runite bars](/osrs/runite-bar/) on an anvil.
+
+| Requirement | Value |
+|-------------|-------|
+| Smithing Level | 99 |
+| XP gained | 225 |
+
+## High Alchemy
+
+| Alch Type | Value |
+|-----------|-------|
+| **High Alch** | **38,400 GP** |
+| Low Alch | 25,600 GP |
+
+## Market Flip Strategy
+
+**Alch Flipping:**
+- High Alch value: **38,400 GP**
+- Only 3 bars required (vs 5 for platebody)
+- Calculate: `38,400 - Rune 2h price - Nature rune = Profit`
+
+**Comparison to Platebody:**
+- Rune 2h: 3 bars → 38,400 GP alch
+- Rune platebody: 5 bars → 39,000 GP alch
+- 2h gives better GP per bar for alching
+
+**Drop Sources:**
+- Greater demons, Fire giants, Moss giants
+- Obor (Hill Giant Boss)
+- Clue scrolls

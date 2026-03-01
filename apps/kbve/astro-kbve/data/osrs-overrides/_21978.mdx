@@ -1,0 +1,81 @@
+---
+potion:
+  doses: 4
+  herblore_level: 92
+  herblore_xp: 130
+  effect: "Complete dragonfire immunity for 3 minutes"
+  effects:
+    - stat: "Dragonfire protection"
+      boost_type: immunity
+      duration: 180
+      description: "Full immunity to all dragonfire forms"
+recipes:
+  - skill: herblore
+    level: 92
+    xp: 130
+    materials:
+      - item_name: "Antifire potion(4)"
+        item_id: 2452
+        quantity: 1
+      - item_name: "Crushed superior dragon bones"
+        item_id: 21975
+        quantity: 1
+    ticks: 2
+    members_only: true
+related_items:
+  - item_id: 2452
+    item_name: "Antifire(4)"
+    slug: "antifire-4"
+    relationship: component
+    description: "Base potion"
+  - item_id: 21975
+    item_name: "Crushed superior dragon bones"
+    slug: "crushed-superior-dragon-bones"
+    relationship: component
+    description: "Secondary ingredient"
+  - item_id: 22209
+    item_name: "Extended super antifire(4)"
+    slug: "extended-super-antifire-4"
+    relationship: upgrade
+    description: "6 minute duration"
+  - item_id: 11951
+    item_name: "Extended antifire(4)"
+    slug: "extended-antifire-4"
+    relationship: alternative
+    description: "12 min partial protection"
+---
+
+## Usage
+
+Super antifire provides **complete dragonfire immunity** for 3 minutes:
+- No anti-dragon shield required
+- Works against all dragonfire variants
+- Essential for efficient dragon killing
+
+## Creation
+
+| Input | Output | Herblore Level | XP |
+|-------|--------|----------------|-----|
+| Antifire(4) + Crushed superior dragon bones | Super antifire(4) | 92 | 130 |
+
+## Market Strategy
+
+**Superior Dragon Bones:**
+- Dropped by Fossil Island wyverns
+- Must be crushed with pestle and mortar
+- Primary cost driver
+
+**Comparison:**
+| Potion | Duration | Protection |
+|--------|----------|------------|
+| Antifire | 6 min | Partial (need shield) |
+| Extended antifire | 12 min | Partial (need shield) |
+| Super antifire | 3 min | Complete |
+| Extended super antifire | 6 min | Complete |
+
+**Best Use:**
+- Vorkath (2-handed weapons)
+- KBD with max gear
+- Any dragon with spec weapon
+
+**Buy Limit:** 2,000 per 4 hours

@@ -1,0 +1,117 @@
+---
+material:
+  type: "log"
+  tier: "mid"
+woodcutting:
+  level: 45
+  xp: 100
+  locations:
+    - "Seers' Village"
+    - "Corsair Cove"
+    - "Miscellania"
+recipes:
+  - skill: fletching
+    level: 45
+    xp: 20
+    materials:
+      - item_name: "Maple logs"
+        item_id: 1517
+        quantity: 1
+    product: "Arrow shaft"
+    product_id: 52
+    product_quantity: 60
+  - skill: fletching
+    level: 50
+    xp: 50
+    materials:
+      - item_name: "Maple logs"
+        item_id: 1517
+        quantity: 1
+    product: "Maple shortbow (u)"
+    product_id: 62
+    product_quantity: 1
+  - skill: fletching
+    level: 55
+    xp: 58.3
+    materials:
+      - item_name: "Maple logs"
+        item_id: 1517
+        quantity: 1
+    product: "Maple longbow (u)"
+    product_id: 58
+    product_quantity: 1
+  - skill: fletching
+    level: 54
+    xp: 32
+    materials:
+      - item_name: "Maple logs"
+        item_id: 1517
+        quantity: 1
+    product: "Maple stock"
+    product_id: 9444
+    product_quantity: 1
+    members_only: true
+related_items:
+  - item_id: 52
+    item_name: "Arrow shaft"
+    slug: "arrow-shaft"
+    relationship: product
+    description: "Primary output (×60)"
+  - item_id: 58
+    item_name: "Maple longbow (u)"
+    slug: "maple-longbow-u"
+    relationship: product
+    description: "Bow output"
+  - item_id: 851
+    item_name: "Maple longbow"
+    slug: "maple-longbow"
+    relationship: product
+    description: "Finished bow"
+  - item_id: 1519
+    item_name: "Willow logs"
+    slug: "willow-logs"
+    relationship: alternative
+    description: "Lower tier"
+  - item_id: 1515
+    item_name: "Yew logs"
+    slug: "yew-logs"
+    relationship: alternative
+    description: "Higher tier"
+---
+
+## Woodcutting
+
+| Requirement | Value |
+|-------------|-------|
+| Woodcutting Level | 45 |
+| XP per log | 100 |
+
+## Fletching
+
+Use a [Knife](/osrs/knife/) on Maple logs:
+
+| Output | Qty | Fletching Level | XP |
+|--------|-----|-----------------|-----|
+| [Arrow shaft](/osrs/arrow-shaft/) | 60 | 45 | 20 |
+| [Maple shortbow (u)](/osrs/maple-shortbow-u/) | 1 | 50 | 50 |
+| [Maple longbow (u)](/osrs/maple-longbow-u/) | 1 | 55 | 58.3 |
+| [Maple stock](/osrs/maple-stock/) | 1 | 54 | 32 |
+
+## Market Flip Strategy
+
+**Arrow Shaft Processing:**
+- 1 Maple log = 60 arrow shafts
+- Calculate: `(Arrow shaft × 60) - Maple log = Profit`
+- Good volume, mid-tier processing
+
+**Bow Making:**
+- Maple longbow (u) + [Bow string](/osrs/bow-string/) = [Maple longbow](/osrs/maple-longbow/)
+- High Alch: 576 GP
+- Compare crafting cost to alch value
+
+**Buy Limit:** 15,000 per 4 hours
+
+**Tips:**
+- Popular F2P Woodcutting training
+- Seers' Village maple trees
+- Mid-tier fletching option

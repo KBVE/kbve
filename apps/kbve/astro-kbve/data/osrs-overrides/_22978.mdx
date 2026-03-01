@@ -1,0 +1,107 @@
+---
+equipment:
+  slot: "2h"
+  type: "scythe"
+  attack_style: "melee"
+  attack_speed: 5
+  requirements:
+    attack: 75
+    strength: 75
+  stats:
+    attack_slash: 125
+    attack_stab: 70
+    attack_crush: 30
+    strength: 75
+  degradeable: true
+effect:
+  multi_hit: true
+  hit_pattern: "1x3 arc"
+  hit_count_2x2: 2
+  hit_count_3x3: 3
+  damage_falloff: 50
+charging:
+  material_id: 22446
+  material_name: "Vial of blood"
+  charges_per_material: 100
+  max_charges: 20000
+  alternate_material_id: 565
+  alternate_material_name: "Blood rune"
+  alternate_charges_per_material: 0.5
+drop_table:
+  sources:
+    - source: "Theatre of Blood"
+      source_id: 8370
+      combat_level: 0
+      quantity: "1"
+      rarity: "Rare"
+      members_only: true
+related_items:
+  - item_id: 22446
+    item_name: "Vial of blood"
+    slug: "vial-of-blood"
+    relationship: component
+    description: "Charging material"
+  - item_id: 565
+    item_name: "Blood rune"
+    slug: "blood-rune"
+    relationship: component
+    description: "Charging material"
+  - item_id: 22324
+    item_name: "Ghrazi rapier"
+    slug: "ghrazi-rapier"
+    relationship: alternative
+    description: "ToB stab weapon"
+  - item_id: 22323
+    item_name: "Sanguinesti staff"
+    slug: "sanguinesti-staff"
+    relationship: alternative
+    description: "ToB mage weapon"
+---
+
+## Obtaining
+
+Rare drop from Theatre of Blood raid.
+
+## Stats
+
+| Stat | Charged | Uncharged |
+|------|---------|-----------|
+| Slash attack | +125 | +75 |
+| Stab attack | +70 | +50 |
+| Crush attack | +30 | +10 |
+| Strength | +75 | +50 |
+
+**Requirements:** 75 Attack, 75 Strength
+
+## Special Mechanics
+
+**3-Hit Attack:**
+- Attacks in 1x3 arc in front of player
+- Hits multiple times on large enemies:
+  - 2x2 monsters: 2 hits
+  - 3x3+ monsters: 3 hits
+- Each successive hit deals 50% less damage
+
+**Best Against:**
+- Large bosses (Verzik, Nightmare, Nex)
+- Multi-target scenarios
+
+## Charging
+
+| Resource | Amount | Charges |
+|----------|--------|---------|
+| Vial of blood | 1 | 100 |
+| Blood rune | 200 | 100 |
+
+- Max charges: 20,000
+- Cost per attack: ~535 gp
+- Only uses charges on successful hits
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Most expensive melee weapon
+- Essential for efficient ToB/high-level PvM
+- Charging costs add up - factor into profit calcs

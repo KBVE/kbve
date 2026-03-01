@@ -1,0 +1,100 @@
+---
+material:
+  type: "secondary"
+  tier: "high"
+recipes:
+  - skill: herblore
+    level: 0
+    xp: 0
+    materials:
+      - item_name: "Superior dragon bones"
+        item_id: 22124
+        quantity: 1
+    product: "Crushed superior dragon bones"
+    product_id: 21975
+    product_quantity: 1
+    tool: "Pestle and mortar"
+    members_only: true
+  - skill: herblore
+    level: 92
+    xp: 130
+    materials:
+      - item_name: "Antifire(4)"
+        item_id: 2452
+        quantity: 1
+      - item_name: "Crushed superior dragon bones"
+        item_id: 21975
+        quantity: 1
+    product: "Super antifire(4)"
+    product_id: 21978
+    product_quantity: 1
+    members_only: true
+  - skill: herblore
+    level: 98
+    xp: 160
+    materials:
+      - item_name: "Extended antifire(4)"
+        item_id: 11951
+        quantity: 1
+      - item_name: "Crushed superior dragon bones"
+        item_id: 21975
+        quantity: 1
+    product: "Extended super antifire(4)"
+    product_id: 22209
+    product_quantity: 1
+    members_only: true
+related_items:
+  - item_id: 22124
+    item_name: "Superior dragon bones"
+    slug: "superior-dragon-bones"
+    relationship: component
+    description: "Crushed from these bones"
+  - item_id: 21978
+    item_name: "Super antifire(4)"
+    slug: "super-antifire-4"
+    relationship: product
+    description: "Made at 92 Herblore"
+  - item_id: 22209
+    item_name: "Extended super antifire(4)"
+    slug: "extended-super-antifire-4"
+    relationship: product
+    description: "Made at 98 Herblore"
+  - item_id: 233
+    item_name: "Pestle and mortar"
+    slug: "pestle-and-mortar"
+    relationship: component
+    description: "Tool for crushing"
+---
+
+## Creation
+
+Use a pestle and mortar on superior dragon bones:
+- No skill requirement to crush
+- 1 bone = 1 crushed bones
+
+## Herblore Uses
+
+| Potion | Base | Level | XP |
+|--------|------|-------|-----|
+| Super antifire(4) | Antifire(4) | 92 | 130 |
+| Extended super antifire(4) | Extended antifire(4) | 98 | 160 |
+
+Both potions provide complete dragonfire immunity.
+
+## Market Strategy
+
+**Supply Chain:**
+- Superior dragon bones from Vorkath (2 per kill)
+- Rare drop from frost dragons
+- Crush bones for herblore use
+
+**Price Comparison:**
+- Compare bone price vs crushed price
+- Crushing is instant, no XP loss
+- Usually minimal price difference
+
+**Potion Economics:**
+- Calculate: `Super antifire - Antifire - Crushed bones = Profit`
+- High demand from Vorkath and dragon killers
+
+**Buy Limit:** 10,000 per 4 hours

@@ -1,0 +1,77 @@
+---
+food:
+  heals: 16
+  type: "fish"
+  cooked_version: 7946
+  cooked_name: "Monkfish"
+gathering:
+  skill: fishing
+  level: 62
+  xp: 120
+  tool: "Small fishing net"
+  location: "Piscatoris Fishing Colony"
+  quest_required: "Swan Song"
+  members_only: true
+recipes:
+  - skill: cooking
+    level: 62
+    xp: 150
+    materials:
+      - item_name: "Raw monkfish"
+        item_id: 7944
+        quantity: 1
+    product: "Monkfish"
+    product_id: 7946
+    product_quantity: 1
+    facility: "Range/Fire"
+    members_only: true
+    burn_stop: 92
+    burn_stop_gauntlets: 82
+related_items:
+  - item_id: 7946
+    item_name: "Monkfish"
+    slug: "monkfish"
+    relationship: product
+    description: "Cooked version"
+  - item_id: 383
+    item_name: "Raw shark"
+    slug: "raw-shark"
+    relationship: alternative
+    description: "Higher tier fish"
+  - item_id: 371
+    item_name: "Raw swordfish"
+    slug: "raw-swordfish"
+    relationship: alternative
+    description: "Lower tier fish"
+  - item_id: 303
+    item_name: "Small fishing net"
+    slug: "small-fishing-net"
+    relationship: component
+    description: "Fishing tool"
+---
+
+## Obtaining
+
+| Method | Level | XP |
+|--------|-------|-----|
+| Net fishing (Piscatoris) | 62 Fishing | 120 |
+| Requires Swan Song quest | - | - |
+
+## Cooking
+
+| Requirement | Value |
+|-------------|-------|
+| Cooking Level | 62 |
+| XP per fish | 150 |
+| Stop burning | 92 (82 with gauntlets) |
+| Heals | 16 HP |
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Tips:**
+- Swan Song quest required
+- Piscatoris Fishing Colony only
+- Good GP/hour fishing
+- Burns until high Cooking

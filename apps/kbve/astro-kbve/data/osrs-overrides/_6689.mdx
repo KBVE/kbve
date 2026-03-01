@@ -1,0 +1,83 @@
+---
+item_id: 6689
+name: "Saradomin brew(2)"
+type: "potion"
+tradeable: true
+buy_limit: 2000
+potion:
+  doses: 2
+  base_item: "Saradomin brew(4)"
+  base_item_id: 6685
+  herblore_level: 81
+  herblore_xp: 180
+  effects:
+    - stat: "Hitpoints"
+      boost_formula: "floor(level * 0.15) + 2"
+      description: "Heals 15% + 2 of max HP"
+    - stat: "Defence"
+      boost_formula: "floor(level * 0.20) + 2"
+      description: "Boosts Defence by 20% + 2"
+    - stat: "Attack"
+      boost_formula: "-(floor(level * 0.10) + 2)"
+      description: "Lowers Attack by 10% + 2"
+    - stat: "Strength"
+      boost_formula: "-(floor(level * 0.10) + 2)"
+      description: "Lowers Strength by 10% + 2"
+    - stat: "Magic"
+      boost_formula: "-(floor(level * 0.10) + 2)"
+      description: "Lowers Magic by 10% + 2"
+    - stat: "Ranged"
+      boost_formula: "-(floor(level * 0.10) + 2)"
+      description: "Lowers Ranged by 10% + 2"
+related_items:
+  - slug: "saradomin-brew-4"
+    name: "Saradomin brew(4)"
+    relation: "full_dose_variant"
+  - slug: "super-restore-4"
+    name: "Super restore(4)"
+    relation: "counters_stat_drain"
+  - slug: "crushed-nest"
+    name: "Crushed nest"
+    relation: "creation_material"
+---
+
+## Creation
+
+2-dose variant of [Saradomin brew(4)](/osrs/saradomin-brew4/).
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 81 |
+| XP gained | 180 (when making 4-dose) |
+
+## Effects
+
+Per dose:
+- **Heals:** 15% + 2 of max HP (max +16 at 99 HP)
+- **Boosts Defence:** 20% + 2 of base level (max +21 at 99)
+- **Lowers:** Attack, Strength, Magic, Ranged by 10% + 2
+
+## Usage
+
+Essential for high-level PvM:
+- Raids (CoX, ToB, ToA)
+- Inferno attempts
+- Boss fights (GWD, Nex, etc.)
+- PvP (combo with [Super restore](/osrs/super-restore4/))
+
+**Brew to Restore Ratio:** Use 3 doses of brew per 1 dose of super restore to maintain combat stats.
+
+## Market Strategy
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Tips:**
+- Decants to/from 4-dose version
+- Lower doses often used for inventory optimization
+- Bob Barter in GE can decant potions
+
+## Related Items
+
+- [Saradomin brew(4)](/osrs/saradomin-brew4/) - Full dose variant
+- [Super restore(4)](/osrs/super-restore4/) - Counters stat drain
+- [Crushed nest](/osrs/crushed-nest/) - Creation material

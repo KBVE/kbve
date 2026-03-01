@@ -1,6 +1,6 @@
 ---
 title: Annihilation weapon scroll | OSRS Price Data
-description: Annihilation weapon scroll is a members-only OSRS item.
+description: "Annihilation weapon scroll is a members-only OSRS item. GE limit: 5."
 osrs:
   id: 33012
   name: Annihilation weapon scroll
@@ -11,7 +11,7 @@ osrs:
   value: 0
   lowalch: null
   highalch: null
-  limit: null
+  limit: 5
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 
 
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

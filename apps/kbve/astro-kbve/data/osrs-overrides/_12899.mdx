@@ -1,0 +1,105 @@
+---
+equipment:
+  slot: "weapon"
+  type: "powered_staff"
+  attack_style: "magic"
+  attack_speed: 4
+  requirements:
+    magic: 78
+  stats:
+    attack_magic: 25
+  max_hit: 28
+  degradeable: true
+effect:
+  venom_chance: 25
+  built_in_spell: true
+charging:
+  coins_per_cast: 10
+  death_runes_per_cast: 1
+  chaos_runes_per_cast: 1
+  scales_per_cast: 1
+recipes:
+  - skill: crafting
+    level: 59
+    xp: 0
+    materials:
+      - item_name: "Trident of the seas (full)"
+        item_id: 11905
+        quantity: 1
+      - item_name: "Magic fang"
+        item_id: 12932
+        quantity: 1
+    product: "Trident of the swamp"
+    product_id: 12899
+    product_quantity: 1
+    facility: "None"
+    members_only: true
+related_items:
+  - item_id: 22323
+    item_name: "Sanguinesti staff"
+    slug: "sanguinesti-staff"
+    relationship: upgrade
+    description: "Superior powered staff"
+  - item_id: 11905
+    item_name: "Trident of the seas"
+    slug: "trident-of-the-seas"
+    relationship: component
+    description: "Base trident"
+  - item_id: 12932
+    item_name: "Magic fang"
+    slug: "magic-fang"
+    relationship: component
+    description: "From Zulrah"
+---
+
+## Creation
+
+Upgrade Trident of the seas with Magic fang.
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Magic attack | +25 |
+| Magic damage | Built-in spell |
+| Requirements | 78 Magic |
+
+**Powered staff with built-in spell.**
+
+## Effects
+
+**Built-in spell:**
+- Max hit scales with Magic level
+- Base max hit: 28 at 99 Magic
+- Consumes coins, scales, and runes per cast
+
+**Venom:**
+- 25% chance to inflict venom on target
+
+## Charging
+
+| Resource | Per Cast |
+|----------|----------|
+| Coins | 10 |
+| Death rune | 1 |
+| Chaos rune | 1 |
+| Zulrah's scales | 1 |
+
+## Usage
+
+Popular for:
+- Zulrah
+- Barrows
+- Slayer (Kraken, etc.)
+- Budget bossing
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~2M gp (uncharged)
+
+**Tips:**
+- From Zulrah (fang) or crafting
+- Cheaper than Sanguinesti
+- Venom is useful

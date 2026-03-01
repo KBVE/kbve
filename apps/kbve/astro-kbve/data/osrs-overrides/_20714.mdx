@@ -1,0 +1,105 @@
+---
+equipment:
+  slot: "shield"
+  type: "magic_book"
+  tradeable: true
+  weight: 1.0
+  requirements:
+    magic: 50
+  stats:
+    magic_attack: 8
+    magic_def: 8
+charging:
+  material_id: 20718
+  material_name: "Burnt page"
+  charges_per_material: 20
+  max_charges: 20000
+  alternative_materials:
+    - material_id: 28920
+      material_name: "Searing page"
+      charges_per_material: 20
+special_effect:
+  name: "Infinite Fire Runes"
+  description: "Acts as unlimited fire rune source"
+  combat_boost:
+    npc_damage: "+10%"
+    pvp_damage: "+50%"
+    multiplier_type: "multiplicative"
+  notes:
+    - "Non-combat fire spells consume no charges"
+drop_table:
+  sources:
+    - source: "Wintertodt reward cart"      rate: "1/1,000"market:
+  buy_limit: 8
+  price_estimate: 780000
+related_items:
+  - item_id: 20704
+    item_name: "Wintertodt"
+    slug: "wintertodt"
+    relationship: component
+    description: "Source minigame"
+  - item_id: 20718
+    item_name: "Burnt page"
+    slug: "burnt-page"
+    relationship: component
+    description: "Charging material"
+  - item_id: 25574
+    item_name: "Tome of water"
+    slug: "tome-of-water"
+    relationship: variant
+    description: "Water equivalent"
+---
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Shield |
+| Type | Magic Book |
+| Tradeable | Yes |
+| Weight | 1 kg |
+| Requirements | 50 Magic |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Wintertodt reward cart | 1/1,000 |
+
+## Stats
+
+| Offence | Bonus |
+|---------|-------|
+| Magic | +8 |
+
+| Defence | Bonus |
+|---------|-------|
+| Magic | +8 |
+
+## Passive Effect
+
+**Infinite Fire Runes:** Acts as unlimited fire rune source.
+
+**Fire Spell Boost:** +10% damage vs NPCs, +50% vs players (multiplicative).
+
+Non-combat fire spells consume no charges.
+
+## Charging
+
+| Pages | Charges |
+|-------|---------|
+| Burnt page | 20 per page |
+| Searing page | 20 per page |
+| Max charges | 20,000 |
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~780K gp (empty)
+
+## Related Items
+
+- [Wintertodt](/osrs/wintertodt/) - Source
+- [Burnt page](/osrs/burnt-page/) - Charging
+- [Tome of water](/osrs/tome-of-water/) - Water equivalent
