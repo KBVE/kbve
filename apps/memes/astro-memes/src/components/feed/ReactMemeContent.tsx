@@ -27,6 +27,99 @@ import type { FeedMeme } from '../../lib/memeService';
 
 const SIGNIN_MODAL = 'signin';
 
+const PLACEHOLDER_MEMES: FeedMeme[] = [
+	{
+		id: 'placeholder-1',
+		title: 'Welcome to Meme.sh',
+		format: 1,
+		asset_url: 'https://picsum.photos/seed/meme1/800/800',
+		thumbnail_url: 'https://picsum.photos/seed/meme1/400/400',
+		width: 800,
+		height: 800,
+		tags: ['welcome', 'demo'],
+		view_count: 42,
+		reaction_count: 7,
+		comment_count: 0,
+		save_count: 3,
+		share_count: 1,
+		created_at: new Date().toISOString(),
+		author_name: null,
+		author_avatar: null,
+	},
+	{
+		id: 'placeholder-2',
+		title: 'Fresh memes incoming...',
+		format: 1,
+		asset_url: 'https://picsum.photos/seed/meme2/800/1000',
+		thumbnail_url: 'https://picsum.photos/seed/meme2/400/500',
+		width: 800,
+		height: 1000,
+		tags: ['fresh', 'placeholder'],
+		view_count: 128,
+		reaction_count: 15,
+		comment_count: 2,
+		save_count: 5,
+		share_count: 3,
+		created_at: new Date().toISOString(),
+		author_name: null,
+		author_avatar: null,
+	},
+	{
+		id: 'placeholder-3',
+		title: 'Upload your first meme!',
+		format: 1,
+		asset_url: 'https://picsum.photos/seed/meme3/800/600',
+		thumbnail_url: 'https://picsum.photos/seed/meme3/400/300',
+		width: 800,
+		height: 600,
+		tags: ['getstarted'],
+		view_count: 256,
+		reaction_count: 22,
+		comment_count: 4,
+		save_count: 8,
+		share_count: 6,
+		created_at: new Date().toISOString(),
+		author_name: null,
+		author_avatar: null,
+	},
+	{
+		id: 'placeholder-4',
+		title: 'Meme.sh — Discover the Best Memes',
+		format: 1,
+		asset_url: 'https://picsum.photos/seed/meme4/800/900',
+		thumbnail_url: 'https://picsum.photos/seed/meme4/400/450',
+		width: 800,
+		height: 900,
+		tags: ['discover', 'trending'],
+		view_count: 512,
+		reaction_count: 34,
+		comment_count: 6,
+		save_count: 12,
+		share_count: 9,
+		created_at: new Date().toISOString(),
+		author_name: null,
+		author_avatar: null,
+	},
+	{
+		id: 'placeholder-5',
+		title: 'Stay tuned for more content',
+		format: 1,
+		asset_url: 'https://picsum.photos/seed/meme5/800/800',
+		thumbnail_url: 'https://picsum.photos/seed/meme5/400/400',
+		width: 800,
+		height: 800,
+		tags: ['comingsoon'],
+		view_count: 64,
+		reaction_count: 9,
+		comment_count: 1,
+		save_count: 2,
+		share_count: 0,
+		created_at: new Date().toISOString(),
+		author_name: null,
+		author_avatar: null,
+	},
+];
+
 export default function ReactMemeContent() {
 	const auth = useStore($auth);
 
@@ -35,7 +128,6 @@ export default function ReactMemeContent() {
 	const [hasMore, setHasMore] = useState(true);
 	const [loading, setLoading] = useState(true);
 	const [loadingMore, setLoadingMore] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 
 	const [userReactions, setUserReactions] = useState<Map<string, number>>(
 		new Map(),
@@ -67,18 +159,18 @@ export default function ReactMemeContent() {
 			try {
 				const page = await fetchFeed({ limit: 5 });
 				if (cancelled) return;
-				setMemes(page.memes);
-				setCursor(page.nextCursor);
-				setHasMore(page.hasMore);
+				if (page.memes.length > 0) {
+					setMemes(page.memes);
+					setCursor(page.nextCursor);
+					setHasMore(page.hasMore);
+				} else {
+					setMemes(PLACEHOLDER_MEMES);
+					setHasMore(false);
+				}
 			} catch {
 				if (!cancelled) {
-					setError('Failed to load feed');
-					addToast({
-						id: `feed-err-${Date.now()}`,
-						message: 'Could not load memes. Try again later.',
-						severity: 'error',
-						duration: 5000,
-					});
+					setMemes(PLACEHOLDER_MEMES);
+					setHasMore(false);
 				}
 			} finally {
 				if (!cancelled) setLoading(false);
@@ -418,30 +510,6 @@ export default function ReactMemeContent() {
 	// ── Render ───────────────────────────────────────────────────────
 
 	if (loading) return <FeedSkeleton />;
-
-	if (error) {
-		return (
-			<div
-				className="flex flex-col items-center justify-center gap-4"
-				style={{
-					height: '100dvh',
-					backgroundColor: 'var(--sl-color-bg, #0a0a0a)',
-					color: 'var(--sl-color-gray-2, #a1a1aa)',
-				}}>
-				<p className="text-sm">{error}</p>
-				<button
-					type="button"
-					onClick={() => window.location.reload()}
-					className="text-sm px-4 py-2 rounded-lg transition-colors"
-					style={{
-						backgroundColor: 'var(--sl-color-accent, #0ea5e9)',
-						color: '#fff',
-					}}>
-					Retry
-				</button>
-			</div>
-		);
-	}
 
 	return (
 		<>

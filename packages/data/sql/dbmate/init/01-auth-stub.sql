@@ -23,3 +23,19 @@ RETURNS UUID
 LANGUAGE sql
 STABLE
 AS $$ SELECT NULL::UUID; $$;
+
+-- Stub auth.jwt() — returns empty JSON locally
+-- Used by vault functions and trigger bypass checks
+CREATE OR REPLACE FUNCTION auth.jwt()
+RETURNS JSONB
+LANGUAGE sql
+STABLE
+AS $$ SELECT '{}'::JSONB; $$;
+
+-- Stub auth.role() — returns 'service_role' locally so trigger
+-- bypasses (protect_servers_columns) work during testing
+CREATE OR REPLACE FUNCTION auth.role()
+RETURNS TEXT
+LANGUAGE sql
+STABLE
+AS $$ SELECT 'service_role'::TEXT; $$;

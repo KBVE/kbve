@@ -112,6 +112,9 @@ on:
             discordsh_base:
                 description: 'Discordsh build base image dependencies changed'
                 value: ${{ jobs.alter.outputs.discordsh_base }}
+            kbve_base:
+                description: 'KBVE build base image dependencies changed'
+                value: ${{ jobs.alter.outputs.kbve_base }}
             edge:
                 description: 'Edge functions changed'
                 value: ${{ jobs.alter.outputs.edge }}
@@ -155,6 +158,7 @@ jobs:
             mc_plugin: ${{ steps.delta.outputs.mc_plugin_any_changed }}
             mc_base: ${{ steps.delta.outputs.mc_base_any_changed }}
             discordsh_base: ${{ steps.delta.outputs.discordsh_base_any_changed }}
+            kbve_base: ${{ steps.delta.outputs.kbve_base_any_changed }}
             edge: ${{ steps.delta.outputs.edge_any_changed }}
 
         steps:
@@ -254,6 +258,16 @@ jobs:
                           - 'apps/discordsh/axum-discordsh/Cargo.toml'
                           - 'apps/discordsh/axum-discordsh/Cargo.workspace.toml'
                           - 'apps/discordsh/axum-discordsh/Dockerfile.base'
+                          - 'Cargo.lock'
+                      kbve_base:
+                          - 'packages/rust/kbve/Cargo.toml'
+                          - 'packages/rust/kbve/src/**'
+                          - 'packages/rust/jedi/Cargo.toml'
+                          - 'packages/rust/jedi/src/**'
+                          - 'packages/data/proto/**'
+                          - 'apps/kbve/axum-kbve/Cargo.toml'
+                          - 'apps/kbve/axum-kbve/Cargo.workspace.toml'
+                          - 'apps/kbve/axum-kbve/Dockerfile.base'
                           - 'Cargo.lock'
                       edge:
                           - 'apps/kbve/edge/functions/**'
