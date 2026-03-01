@@ -40,6 +40,17 @@
   <rect x="30" y="{{ p.y_bar }}" width="340" height="22" rx="4" fill="#2a2a3a"/>
   {% if p.alive %}<rect x="30" y="{{ p.y_bar }}" width="{{ p.hp_width }}" height="22" rx="4" fill="{{ p.hp_color }}"/>{% endif %}
   <text x="200" y="{{ p.y_bar_text }}" text-anchor="middle" font-family="Alagard, sans-serif" font-size="14" fill="#ffffff">HP {{ p.hp }}/{{ p.max_hp }}</text>
+  <!-- XP bar (full mode) -->
+  <rect x="30" y="{{ p.y_xp_bar }}" width="340" height="4" rx="2" fill="#2a2a3a"/>
+  <rect x="30" y="{{ p.y_xp_bar }}" width="{{ p.xp_width }}" height="4" rx="2" fill="#9b59b6"/>
+  <text x="375" y="{{ p.y_xp_bar_text }}" text-anchor="end" font-family="Alagard, sans-serif" font-size="9" fill="#9b59b6">Lv.{{ p.level }} {{ p.class_label }}</text>
+  <!-- Equipment display -->
+  {% if !p.weapon_display.is_empty() %}
+  <text x="30" y="{{ p.y_gear }}" font-family="Alagard, sans-serif" font-size="11" fill="#e67e22">{{ p.weapon_display }}</text>
+  {% endif %}
+  {% if !p.armor_display.is_empty() %}
+  <text x="200" y="{{ p.y_gear }}" font-family="Alagard, sans-serif" font-size="11" fill="#3498db">{{ p.armor_display }}</text>
+  {% endif %}
   <text x="30" y="{{ p.y_stats }}" font-family="Alagard, sans-serif" font-size="14" fill="#5dade2">DEF {{ p.armor }}</text>
   <text x="140" y="{{ p.y_stats }}" font-family="Alagard, sans-serif" font-size="14" fill="#f1c40f">Gold {{ p.gold }}</text>
   {% for effect in p.effects %}
@@ -53,29 +64,24 @@
   <!-- Divider -->
   <line x1="400" y1="62" x2="400" y2="325" stroke="#3a3a5a" stroke-width="1" stroke-dasharray="4,4"/>
 
-  <!-- ─── Enemy Panel (right) ─── -->
-  <text x="430" y="85" font-family="Alagard, sans-serif" font-size="18" fill="#ff6b6b">{{ enemy_name }}</text>
-  <text x="770" y="85" text-anchor="end" font-family="Alagard, sans-serif" font-size="14" fill="#999999">Lv.{{ enemy_level }}</text>
+  <!-- ─── Enemy Panels (right) ─── -->
+  {% for e in enemies %}
+  <text x="430" y="{{ e.y_name }}" font-family="Alagard, sans-serif" font-size="{{ e.font_size_name }}" fill="#ff6b6b">{{ e.name }}</text>
+  <text x="770" y="{{ e.y_name }}" text-anchor="end" font-family="Alagard, sans-serif" font-size="{{ e.font_size_stats }}" fill="#999999">Lv.{{ e.level }}</text>
 
-  <!-- Enemy HP bar -->
-  <rect x="430" y="96" width="340" height="22" rx="4" fill="#2a2a3a"/>
-  <rect x="430" y="96" width="{{ enemy_hp_width }}" height="22" rx="4" fill="#e74c3c"/>
-  <text x="600" y="112" text-anchor="middle" font-family="Alagard, sans-serif" font-size="14" fill="#ffffff">
-    HP {{ enemy_hp }}/{{ enemy_max_hp }}
-  </text>
+  <rect x="430" y="{{ e.y_hp_bar }}" width="340" height="{{ e.hp_bar_height }}" rx="4" fill="#2a2a3a"/>
+  <rect x="430" y="{{ e.y_hp_bar }}" width="{{ e.hp_width }}" height="{{ e.hp_bar_height }}" rx="4" fill="#e74c3c"/>
+  <text x="600" y="{{ e.y_hp_text }}" text-anchor="middle" font-family="Alagard, sans-serif" font-size="{{ e.font_size_stats }}" fill="#ffffff">HP {{ e.hp }}/{{ e.max_hp }}</text>
 
-  <!-- Enemy DEF -->
-  <path d="M442,140 L430,148 L430,155 C430,162 436,168 442,170 C448,168 454,162 454,155 L454,148 Z" fill="#5dade2" opacity="0.8"/>
-  <text x="460" y="160" font-family="Alagard, sans-serif" font-size="14" fill="#5dade2">DEF {{ enemy_armor }}</text>
+  <text x="430" y="{{ e.y_def }}" font-family="Alagard, sans-serif" font-size="{{ e.font_size_stats }}" fill="#5dade2">DEF {{ e.armor }}</text>
 
-  <!-- Enemy intent -->
-  <rect x="430" y="175" width="340" height="28" rx="6" fill="#2a2a3a" opacity="0.6"/>
-  <text x="440" y="194" font-family="Alagard, sans-serif" font-size="13" fill="#ffd700">{{ intent_icon }} {{ intent_text }}</text>
+  <rect x="430" y="{{ e.y_intent_box }}" width="340" height="22" rx="6" fill="#2a2a3a" opacity="0.6"/>
+  <text x="440" y="{{ e.y_intent_text }}" font-family="Alagard, sans-serif" font-size="{{ e.font_size_stats }}" fill="#ffd700">{{ e.intent_icon }} {{ e.intent_text }}</text>
 
-  <!-- Enemy effects -->
-  {% for effect in enemy_effects %}
-  <circle cx="{{ effect.x }}" cy="222" r="7" fill="{{ effect.color }}"/>
-  <text x="{{ effect.label_x }}" y="226" font-family="Alagard, sans-serif" font-size="10" fill="#cccccc">{{ effect.label }} {{ effect.turns }}t</text>
+  {% for effect in e.effects %}
+  <circle cx="{{ effect.x }}" cy="{{ e.y_effects }}" r="6" fill="{{ effect.color }}"/>
+  <text x="{{ effect.label_x }}" y="{{ e.y_effects_text }}" font-family="Alagard, sans-serif" font-size="9" fill="#cccccc">{{ effect.label }} {{ effect.turns }}t</text>
+  {% endfor %}
   {% endfor %}
   {% endif %}
 
