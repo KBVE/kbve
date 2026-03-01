@@ -1,3 +1,6 @@
+# Pre-built Rust base image (override with --build-arg BASE_IMAGE=...)
+ARG BASE_IMAGE=ghcr.io/kbve/mc-rust-base:latest
+
 # ============================================================================
 # [STAGE A] - Build Astro Static Site
 # ============================================================================
@@ -54,7 +57,6 @@ RUN find . -type f \( \
 # ============================================================================
 # Rust build stages — use pre-built base image (foundation + core cached)
 # ============================================================================
-ARG BASE_IMAGE=ghcr.io/kbve/mc-rust-base:latest
 FROM ${BASE_IMAGE} AS core
 
 # --- Pumpkin: build server (parallel with plugin) ---

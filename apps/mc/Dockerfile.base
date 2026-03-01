@@ -44,7 +44,12 @@ RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     cargo chef cook --release --recipe-path recipe.json
 
 # --- Foundation: leaf + data crates (rarely change) ---
+#     cargo-chef cook strips workspace.lints, so restore the real manifests.
+#     assets/ is needed for pumpkin-util include_str! (translations).
 FROM deps AS foundation
+COPY ./apps/mc/pumpkin/Cargo.toml /pumpkin/Cargo.toml
+COPY ./apps/mc/pumpkin/Cargo.lock /pumpkin/Cargo.lock
+COPY ./apps/mc/pumpkin/assets /pumpkin/assets
 COPY ./apps/mc/pumpkin/pumpkin-nbt /pumpkin/pumpkin-nbt
 COPY ./apps/mc/pumpkin/pumpkin-api-macros /pumpkin/pumpkin-api-macros
 COPY ./apps/mc/pumpkin/pumpkin-util /pumpkin/pumpkin-util
