@@ -189,14 +189,5 @@ diesel::table! {
 }
 
 diesel::allow_tables_to_appear_in_same_query!(
-    apikey,
-    appwrite,
-    auth,
-    characters,
-    globals,
-    invoice,
-    n8n,
-    profile,
-    settings,
-    users,
+    apikey, appwrite, auth, characters, globals, invoice, n8n, profile, settings, users,
 );

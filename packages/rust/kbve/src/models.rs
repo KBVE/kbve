@@ -3,9 +3,8 @@
 #![allow(unused)]
 #![allow(clippy::all)]
 use diesel::prelude::*;
-use serde_json::{ Value as Json};
-use serde::{ Serialize, Deserialize};
-
+use serde::{Deserialize, Serialize};
+use serde_json::Value as Json;
 
 use chrono::NaiveDateTime;
 #[derive(Queryable, Serialize, Deserialize, Debug)]
@@ -147,4 +146,3 @@ pub struct User {
     pub exp: i32,
     pub created_at: NaiveDateTime,
 }
-

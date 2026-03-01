@@ -1,9 +1,4 @@
-use axum::{
-    extract::Request,
-    http::HeaderValue,
-    middleware::Next,
-    response::Response,
-};
+use axum::{extract::Request, http::HeaderValue, middleware::Next, response::Response};
 
 /// Axum middleware that adds standard security headers to every response.
 ///
@@ -48,11 +43,11 @@ pub async fn security_headers_middleware(req: Request, next: Next) -> Response {
 mod tests {
     use super::*;
     use axum::{
+        Router,
         body::Body,
         http::{Request as HttpRequest, StatusCode},
         middleware,
         routing::get,
-        Router,
     };
     use tower::ServiceExt;
 
@@ -70,10 +65,7 @@ mod tests {
     async fn test_sets_all_security_headers() {
         let app = build_app();
 
-        let req = HttpRequest::builder()
-            .uri("/")
-            .body(Body::empty())
-            .unwrap();
+        let req = HttpRequest::builder().uri("/").body(Body::empty()).unwrap();
 
         let resp = app.oneshot(req).await.unwrap();
 
@@ -81,15 +73,9 @@ mod tests {
 
         let headers = resp.headers();
 
-        assert_eq!(
-            headers.get("x-content-type-options").unwrap(),
-            "nosniff"
-        );
+        assert_eq!(headers.get("x-content-type-options").unwrap(), "nosniff");
         assert_eq!(headers.get("x-frame-options").unwrap(), "DENY");
-        assert_eq!(
-            headers.get("x-xss-protection").unwrap(),
-            "1; mode=block"
-        );
+        assert_eq!(headers.get("x-xss-protection").unwrap(), "1; mode=block");
         assert_eq!(
             headers.get("referrer-policy").unwrap(),
             "strict-origin-when-cross-origin"
@@ -104,10 +90,7 @@ mod tests {
     async fn test_removes_server_header() {
         let app = build_app();
 
-        let req = HttpRequest::builder()
-            .uri("/")
-            .body(Body::empty())
-            .unwrap();
+        let req = HttpRequest::builder().uri("/").body(Body::empty()).unwrap();
 
         let resp = app.oneshot(req).await.unwrap();
 

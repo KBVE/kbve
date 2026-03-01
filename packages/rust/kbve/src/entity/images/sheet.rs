@@ -1,8 +1,8 @@
 use axum::{
-	extract::{ Query, Path },
-	response::{ Response, IntoResponse },
-	http::{ StatusCode, header, HeaderMap },
-	body::Body,
+    body::Body,
+    extract::Path,
+    http::{StatusCode, header},
+    response::{IntoResponse, Response},
 };
 
 use axum::Extension;
@@ -13,23 +13,15 @@ use serde::Deserialize;
 
 use serde_json::json;
 
-use std::collections::HashMap;
+use crate::db::Pool;
 
-use ammonia::clean;
-
-use crate::db::{ Pool };
-
-use crate::response::{ GenericResponse, HeaderResponse };
-
-use crate::entity::{ hazardous_blocking_character_viewer_from_name };
-
-use crate::models::{ Character };
+use crate::entity::hazardous_blocking_character_viewer_from_name;
 
 use jedi::builder::ValidatorBuilder;
 
 #[derive(Deserialize)]
 pub struct TextParams {
-	pub text: String,
+    pub text: String,
 }
 
 #[derive(Deserialize)]
@@ -37,64 +29,57 @@ pub struct PathParams {
     pub character: String,
 }
 
-
 pub async fn sheet_controller(
-	Extension(pool): Extension<Arc<Pool>>,
-    Path(params): Path<PathParams>
+    Extension(pool): Extension<Arc<Pool>>,
+    Path(params): Path<PathParams>,
 ) -> impl IntoResponse {
-	let validation_result = ValidatorBuilder::<String, String>
-		::new()
-		.clean_or_fail()
-		.username()
-		.validate(params.character.clone());
+    let validation_result = ValidatorBuilder::<String, String>::new()
+        .clean_or_fail()
+        .username()
+        .validate(params.character.clone());
 
-	let sanitized_text = match validation_result {
-		Ok(sanitized_text) => sanitized_text,
-		Err(validation_errors) => {
-			let error_body =
-				json!({
+    let sanitized_text = match validation_result {
+        Ok(sanitized_text) => sanitized_text,
+        Err(validation_errors) => {
+            let error_body = json!({
                 "error": "Validation failed",
                 "details": validation_errors
-            }).to_string();
+            })
+            .to_string();
 
-			let response = Response::builder()
-				.status(StatusCode::BAD_REQUEST)
-				.header(header::CONTENT_TYPE, "application/json")
-				.body(Body::from(error_body))
-				.unwrap();
-			return response.into_response();
-		}
-	};
+            let response = Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .header(header::CONTENT_TYPE, "application/json")
+                .body(Body::from(error_body))
+                .unwrap();
+            return response.into_response();
+        }
+    };
 
-	let character_data = match
-		hazardous_blocking_character_viewer_from_name(
-			sanitized_text.clone(),
-			pool
-		).await
-	{
-		Ok(character) => character,
-		Err(error_msg) => {
-			let error_body =
-				json!({
-                "error": "Character was not found",
-                "details": error_msg
-            }).to_string();
+    let character_data =
+        match hazardous_blocking_character_viewer_from_name(sanitized_text.clone(), pool).await {
+            Ok(character) => character,
+            Err(error_msg) => {
+                let error_body = json!({
+                    "error": "Character was not found",
+                    "details": error_msg
+                })
+                .to_string();
 
-			let response = Response::builder()
-				.status(StatusCode::BAD_REQUEST)
-				.header(header::CONTENT_TYPE, "application/json")
-				.body(Body::from(error_body))
-				.unwrap();
-			return response.into_response();
-		}
-	};
+                let response = Response::builder()
+                    .status(StatusCode::BAD_REQUEST)
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(Body::from(error_body))
+                    .unwrap();
+                return response.into_response();
+            }
+        };
 
-	let _sanitized_bg_l = "#000000";
-	let _sanitized_bg_m = "#000000";
-	let _sanitized_bg_r = "#000000";
+    let _sanitized_bg_l = "#000000";
+    let _sanitized_bg_m = "#000000";
+    let _sanitized_bg_r = "#000000";
 
-	let svg_template =
-		r#"<svg width="1080" height="1080" xmlns="http://www.w3.org/2000/svg">
+    let svg_template = r#"<svg width="1080" height="1080" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" style="stop-color:{bg_color_1};stop-opacity:1" />
@@ -144,44 +129,42 @@ pub async fn sheet_controller(
      </svg>
      "#;
 
-	let svg_data = svg_template
-		.replace("{bg_color_1}", &_sanitized_bg_l)
-		.replace("{bg_color_2}", &_sanitized_bg_m)
-		.replace("{bg_color_3}", &_sanitized_bg_r)
-		.replace("{character_name}", &character_data.name)
-		.replace("{character_hp}", &character_data.hp.to_string())
-		.replace("{character_mp}", &character_data.mp.to_string())
-		.replace("{character_ep}", &character_data.ep.to_string())
-		.replace("{character_health}", &character_data.health.to_string())
-		.replace("{character_mana}", &character_data.mana.to_string())
-		.replace("{character_energy}", &character_data.energy.to_string())
-		.replace("{character_armour}", &character_data.armour.to_string())
-		.replace("{character_agility}", &character_data.agility.to_string())
-		.replace("{character_strength}", &character_data.strength.to_string())
-		.replace(
-			"{character_intelligence}",
-			&character_data.intelligence.to_string()
-		)
-		.replace(
-			"{character_reputation}",
-			&character_data.reputation.to_string()
-		)
-		.replace(
-			"{character_experience}",
-			&character_data.experience.to_string()
-		)
-		.replace("{character_faith}", &character_data.faith.to_string())
-        .replace("{character_description}", &character_data.description)
-        
-        ;
+    let svg_data = svg_template
+        .replace("{bg_color_1}", _sanitized_bg_l)
+        .replace("{bg_color_2}", _sanitized_bg_m)
+        .replace("{bg_color_3}", _sanitized_bg_r)
+        .replace("{character_name}", &character_data.name)
+        .replace("{character_hp}", &character_data.hp.to_string())
+        .replace("{character_mp}", &character_data.mp.to_string())
+        .replace("{character_ep}", &character_data.ep.to_string())
+        .replace("{character_health}", &character_data.health.to_string())
+        .replace("{character_mana}", &character_data.mana.to_string())
+        .replace("{character_energy}", &character_data.energy.to_string())
+        .replace("{character_armour}", &character_data.armour.to_string())
+        .replace("{character_agility}", &character_data.agility.to_string())
+        .replace("{character_strength}", &character_data.strength.to_string())
+        .replace(
+            "{character_intelligence}",
+            &character_data.intelligence.to_string(),
+        )
+        .replace(
+            "{character_reputation}",
+            &character_data.reputation.to_string(),
+        )
+        .replace(
+            "{character_experience}",
+            &character_data.experience.to_string(),
+        )
+        .replace("{character_faith}", &character_data.faith.to_string())
+        .replace("{character_description}", &character_data.description);
 
-	let svg_body = Body::from(svg_data);
+    let svg_body = Body::from(svg_data);
 
-	let response = Response::builder()
-		.status(StatusCode::OK)
-		.header(header::CONTENT_TYPE, "image/svg+xml")
-		.body(svg_body)
-		.unwrap();
+    let response = Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, "image/svg+xml")
+        .body(svg_body)
+        .unwrap();
 
-	response.into_response()
+    response.into_response()
 }

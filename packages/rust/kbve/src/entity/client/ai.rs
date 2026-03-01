@@ -1,11 +1,10 @@
 use axum::{Json, extract::Extension, response::IntoResponse};
-use jedi::groq::{GroqClient, GroqMessage, GroqRequestBody, GroqResponse};
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use jedi::groq::{GroqClient, GroqMessage, GroqRequestBody};
+use serde::Deserialize;
 use std::sync::Arc;
 use tokio::task;
 use tokio::time::Duration;
-use tracing::{error, info, warn};
+use tracing::error;
 
 #[derive(Deserialize)]
 pub struct AiGroqRequest {
