@@ -6,8 +6,9 @@
 --
 -- Security:
 --   - anon/authenticated can SELECT active servers (status=1)
---   - authenticated can UPDATE own display fields (via RLS)
---   - INSERT gated through proxy_submit_server (rate-limited, no direct INSERT)
+--   - No direct INSERT or UPDATE for authenticated — all writes gated through proxy functions
+--   - INSERT gated through proxy_submit_server (rate-limited)
+--   - UPDATE gated through proxy_update_server (ownership-verified)
 --   - status, counters, bumped_at, is_online, owner_id frozen from client writes
 --   - service_role has full access via RLS bypass + trigger bypass
 --   - All SECURITY DEFINER functions: search_path='', REVOKE from PUBLIC
@@ -375,7 +376,6 @@ ALTER TABLE discordsh.servers ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "service_role_full_access" ON discordsh.servers;
 DROP POLICY IF EXISTS "anon_select_active" ON discordsh.servers;
 DROP POLICY IF EXISTS "authenticated_select_active_and_own" ON discordsh.servers;
-DROP POLICY IF EXISTS "authenticated_update_own" ON discordsh.servers;
 
 CREATE POLICY "service_role_full_access" ON discordsh.servers
     FOR ALL TO service_role USING (true) WITH CHECK (true);
@@ -388,15 +388,10 @@ CREATE POLICY "authenticated_select_active_and_own" ON discordsh.servers
     FOR SELECT TO authenticated
     USING (status = 1 OR owner_id = auth.uid());
 
--- Owners can update display fields only (status/counters/owner_id frozen by trigger)
-CREATE POLICY "authenticated_update_own" ON discordsh.servers
-    FOR UPDATE TO authenticated
-    USING (owner_id = auth.uid())
-    WITH CHECK (owner_id = auth.uid());
-
--- No INSERT policy for authenticated — submission gated through proxy_submit_server
+-- No INSERT or UPDATE policy for authenticated — all writes gated through proxy functions
+-- INSERT via proxy_submit_server, UPDATE via proxy_update_server
 GRANT SELECT ON discordsh.servers TO anon;
-GRANT SELECT, UPDATE ON discordsh.servers TO authenticated;
+GRANT SELECT ON discordsh.servers TO authenticated;
 
 -- ===========================================
 -- SERVICE FUNCTION: Submit server (internal, service_role only)
@@ -540,6 +535,197 @@ ALTER FUNCTION discordsh.proxy_submit_server(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT,
     OWNER TO service_role;
 
 -- ===========================================
+-- SERVICE FUNCTION: Update server (internal, service_role only)
+--
+-- Validates ownership, enforces advisory lock, updates only
+-- allowed display fields. Server-managed columns (status,
+-- counters, owner_id, bumped_at, is_online) are untouched.
+-- ===========================================
+
+CREATE OR REPLACE FUNCTION discordsh.service_update_server(
+    p_owner_id    UUID,
+    p_server_id   TEXT,
+    p_name        TEXT,
+    p_summary     TEXT,
+    p_invite_code TEXT,
+    p_description TEXT DEFAULT NULL,
+    p_icon_url    TEXT DEFAULT NULL,
+    p_banner_url  TEXT DEFAULT NULL,
+    p_categories  SMALLINT[] DEFAULT '{}',
+    p_tags        TEXT[] DEFAULT '{}'
+)
+RETURNS TABLE(success BOOLEAN, server_id TEXT, message TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_current_owner UUID;
+BEGIN
+    -- Validate server_id format (Discord snowflake)
+    IF p_server_id IS NULL OR p_server_id !~ '^\d{17,20}$' THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Invalid server ID format.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Validate invite_code format
+    IF p_invite_code IS NULL OR p_invite_code !~ '^[a-zA-Z0-9_-]{2,32}$' THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Invalid invite code format.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Validate required text fields
+    IF p_name IS NULL OR char_length(p_name) NOT BETWEEN 1 AND 100 THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Name must be 1-100 characters.'::TEXT;
+        RETURN;
+    END IF;
+
+    IF p_summary IS NULL OR char_length(p_summary) NOT BETWEEN 1 AND 200 THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Summary must be 1-200 characters.'::TEXT;
+        RETURN;
+    END IF;
+
+    IF p_description IS NOT NULL AND char_length(p_description) > 2000 THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Description must be 2000 characters or fewer.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Text safety validation
+    IF NOT discordsh.is_safe_text(p_name) OR NOT discordsh.is_safe_text(p_summary) THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Text contains invalid characters.'::TEXT;
+        RETURN;
+    END IF;
+
+    IF p_description IS NOT NULL AND NOT discordsh.is_safe_text(p_description) THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Description contains invalid characters.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- URL validation
+    IF NOT discordsh.is_safe_url(p_icon_url) THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Invalid icon URL.'::TEXT;
+        RETURN;
+    END IF;
+
+    IF NOT discordsh.is_safe_url(p_banner_url) THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Invalid banner URL.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Category/tag validation
+    IF NOT discordsh.are_valid_categories(p_categories) THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Invalid categories.'::TEXT;
+        RETURN;
+    END IF;
+
+    IF NOT discordsh.are_valid_tags(p_tags) THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Invalid tags.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Advisory lock on server to prevent concurrent updates
+    PERFORM pg_advisory_xact_lock(hashtext('update:' || p_server_id));
+
+    -- Verify server exists and check ownership
+    SELECT s.owner_id INTO v_current_owner
+    FROM discordsh.servers s
+    WHERE s.server_id = p_server_id;
+
+    IF v_current_owner IS NULL THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Server not found.'::TEXT;
+        RETURN;
+    END IF;
+
+    IF v_current_owner <> p_owner_id THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Not the server owner.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Update display fields only (status, counters, owner_id, bumped_at, is_online untouched)
+    UPDATE discordsh.servers s
+    SET name        = p_name,
+        summary     = p_summary,
+        invite_code = p_invite_code,
+        description = p_description,
+        icon_url    = p_icon_url,
+        banner_url  = p_banner_url,
+        categories  = p_categories,
+        tags        = p_tags
+    WHERE s.server_id = p_server_id;
+
+    RETURN QUERY SELECT true, p_server_id, 'Server updated.'::TEXT;
+
+EXCEPTION
+    WHEN check_violation THEN
+        RETURN QUERY SELECT false, NULL::TEXT,
+            ('Validation failed: ' || SQLERRM)::TEXT;
+    WHEN unique_violation THEN
+        RETURN QUERY SELECT false, NULL::TEXT,
+            'Invite code already in use by another server.'::TEXT;
+END;
+$$;
+
+COMMENT ON FUNCTION discordsh.service_update_server IS
+    'Internal: update server display fields with full validation. Verifies ownership. Called by proxy_update_server.';
+
+REVOKE ALL ON FUNCTION discordsh.service_update_server(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, SMALLINT[], TEXT[])
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION discordsh.service_update_server(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, SMALLINT[], TEXT[])
+    TO service_role;
+ALTER FUNCTION discordsh.service_update_server(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, SMALLINT[], TEXT[])
+    OWNER TO service_role;
+
+-- ===========================================
+-- PROXY FUNCTION: Update server (public, authenticated only)
+--
+-- Derives user identity from JWT via auth.uid().
+-- Prevents ownership spoofing — always uses caller's identity.
+-- ===========================================
+
+CREATE OR REPLACE FUNCTION discordsh.proxy_update_server(
+    p_server_id   TEXT,
+    p_name        TEXT,
+    p_summary     TEXT,
+    p_invite_code TEXT,
+    p_description TEXT DEFAULT NULL,
+    p_icon_url    TEXT DEFAULT NULL,
+    p_banner_url  TEXT DEFAULT NULL,
+    p_categories  SMALLINT[] DEFAULT '{}',
+    p_tags        TEXT[] DEFAULT '{}'
+)
+RETURNS TABLE(success BOOLEAN, server_id TEXT, message TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_uid UUID;
+BEGIN
+    v_uid := auth.uid();
+    IF v_uid IS NULL THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Not authenticated.'::TEXT;
+        RETURN;
+    END IF;
+
+    RETURN QUERY
+    SELECT * FROM discordsh.service_update_server(
+        v_uid, p_server_id, p_name, p_summary, p_invite_code,
+        p_description, p_icon_url, p_banner_url, p_categories, p_tags
+    );
+END;
+$$;
+
+COMMENT ON FUNCTION discordsh.proxy_update_server IS
+    'Public: update server display fields. Derives owner from JWT. Validates inputs and ownership.';
+
+REVOKE ALL ON FUNCTION discordsh.proxy_update_server(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, SMALLINT[], TEXT[])
+    FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION discordsh.proxy_update_server(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, SMALLINT[], TEXT[])
+    TO authenticated, service_role;
+ALTER FUNCTION discordsh.proxy_update_server(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, SMALLINT[], TEXT[])
+    OWNER TO service_role;
+
+-- ===========================================
 -- VERIFICATION
 -- ===========================================
 
@@ -578,6 +764,8 @@ BEGIN
     -- Verify service/proxy functions exist
     PERFORM 'discordsh.service_submit_server(uuid, text, text, text, text, text, text, text, smallint[], text[])'::regprocedure;
     PERFORM 'discordsh.proxy_submit_server(text, text, text, text, text, text, text, smallint[], text[])'::regprocedure;
+    PERFORM 'discordsh.service_update_server(uuid, text, text, text, text, text, text, text, smallint[], text[])'::regprocedure;
+    PERFORM 'discordsh.proxy_update_server(text, text, text, text, text, text, text, smallint[], text[])'::regprocedure;
 
     -- Verify anon CANNOT execute anything
     IF has_function_privilege('anon', 'discordsh.is_safe_text(text)', 'EXECUTE') THEN
@@ -592,9 +780,17 @@ BEGIN
         RAISE EXCEPTION 'anon must NOT have execute on discordsh.proxy_submit_server';
     END IF;
 
+    IF has_function_privilege('anon', 'discordsh.proxy_update_server(text, text, text, text, text, text, text, smallint[], text[])', 'EXECUTE') THEN
+        RAISE EXCEPTION 'anon must NOT have execute on discordsh.proxy_update_server';
+    END IF;
+
     -- Verify authenticated CANNOT execute service functions directly
     IF has_function_privilege('authenticated', 'discordsh.service_submit_server(uuid, text, text, text, text, text, text, text, smallint[], text[])', 'EXECUTE') THEN
         RAISE EXCEPTION 'authenticated must NOT have execute on discordsh.service_submit_server';
+    END IF;
+
+    IF has_function_privilege('authenticated', 'discordsh.service_update_server(uuid, text, text, text, text, text, text, text, smallint[], text[])', 'EXECUTE') THEN
+        RAISE EXCEPTION 'authenticated must NOT have execute on discordsh.service_update_server';
     END IF;
 
     -- Verify authenticated CAN execute proxy functions
@@ -602,9 +798,17 @@ BEGIN
         RAISE EXCEPTION 'authenticated must have execute on discordsh.proxy_submit_server';
     END IF;
 
-    -- Verify authenticated CANNOT insert directly (no INSERT grant)
+    IF NOT has_function_privilege('authenticated', 'discordsh.proxy_update_server(text, text, text, text, text, text, text, smallint[], text[])', 'EXECUTE') THEN
+        RAISE EXCEPTION 'authenticated must have execute on discordsh.proxy_update_server';
+    END IF;
+
+    -- Verify authenticated CANNOT insert or update directly
     IF has_table_privilege('authenticated', 'discordsh.servers', 'INSERT') THEN
         RAISE EXCEPTION 'authenticated must NOT have INSERT on discordsh.servers — use proxy_submit_server';
+    END IF;
+
+    IF has_table_privilege('authenticated', 'discordsh.servers', 'UPDATE') THEN
+        RAISE EXCEPTION 'authenticated must NOT have UPDATE on discordsh.servers — use proxy_update_server';
     END IF;
 
     -- Verify ownership
@@ -648,7 +852,23 @@ BEGIN
         RAISE EXCEPTION 'discordsh.proxy_submit_server must be owned by service_role';
     END IF;
 
-    RAISE NOTICE 'discordsh_servers.sql: schema, servers table, and submit functions verified successfully.';
+    IF EXISTS (
+        SELECT 1 FROM pg_proc
+        WHERE oid = 'discordsh.service_update_server(uuid, text, text, text, text, text, text, text, smallint[], text[])'::regprocedure
+          AND pg_get_userbyid(proowner) <> 'service_role'
+    ) THEN
+        RAISE EXCEPTION 'discordsh.service_update_server must be owned by service_role';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM pg_proc
+        WHERE oid = 'discordsh.proxy_update_server(text, text, text, text, text, text, text, smallint[], text[])'::regprocedure
+          AND pg_get_userbyid(proowner) <> 'service_role'
+    ) THEN
+        RAISE EXCEPTION 'discordsh.proxy_update_server must be owned by service_role';
+    END IF;
+
+    RAISE NOTICE 'discordsh_servers.sql: schema, servers table, submit + update functions verified successfully.';
 END;
 $$ LANGUAGE plpgsql;
 

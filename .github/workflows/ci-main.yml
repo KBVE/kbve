@@ -311,6 +311,36 @@ jobs:
         secrets:
             CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 
+    ## Base Docker images (built before downstream images that depend on them)
+    generate_base_docker_matrix:
+        needs: ['deploy', 'alter', 'globals']
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                  { "name": "mc", "target": "base", "condition": "${{ needs.alter.outputs.mc_base }}", "image": "ghcr.io/kbve/mc-rust-base" }
+                ]
+
+    build_base_images:
+        needs: ['generate_base_docker_matrix']
+        name: Build Base Images
+        if: ${{ needs.generate_base_docker_matrix.outputs.matrix != 'null' }}
+        permissions:
+            contents: read
+            packages: write
+        strategy:
+            fail-fast: false
+            matrix: ${{ fromJson(needs.generate_base_docker_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/utils-publish-docker-image.yml@main
+        with:
+            project: ${{ matrix.name }}
+            target: ${{ matrix.target }}
+            image: ${{ matrix.image }}
+        secrets:
+            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+            DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+            MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     generate_docker_matrix:
         needs: ['deploy', 'alter', 'globals']
         uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
@@ -323,7 +353,7 @@ jobs:
                   { "name": "irc-gateway", "target": "container", "condition": "${{ needs.alter.outputs.irc_gateway }}", "e2e_name": "irc", "image": "kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml" },
                   { "name": "discordsh", "target": "container", "condition": "${{ needs.alter.outputs.discordsh }}", "e2e_name": "discordsh", "image": "kbve/discordsh", "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml" },
                   { "name": "mc", "target": "container", "condition": "${{ needs.alter.outputs.mc }}", "e2e_name": "mc", "image": "kbve/mc" },
-                  { "name": "edge", "target": "container", "condition": "${{ needs.alter.outputs.edge }}", "e2e_name": "edge", "image": "kbve/edge" }
+                  { "name": "edge", "target": "container", "condition": "${{ needs.alter.outputs.edge }}", "e2e_name": "edge", "image": "kbve/edge", "cargo_toml": "apps/kbve/edge/version.toml" }
                 ]
 
     generate_e2e_docker_matrix:
@@ -341,9 +371,9 @@ jobs:
                 ]
 
     test_docker:
-        needs: ['generate_e2e_docker_matrix']
+        needs: ['generate_e2e_docker_matrix', 'build_base_images']
         name: Test Docker Apps
-        if: ${{ needs.generate_e2e_docker_matrix.outputs.matrix != 'null' }}
+        if: ${{ always() && !cancelled() && !failure() && needs.generate_e2e_docker_matrix.outputs.matrix != 'null' }}
         permissions:
             contents: read
         strategy:
@@ -422,7 +452,8 @@ jobs:
                   { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}", "e2e_name": "memes", "image_name": "ghcr.io/kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml", "deployment_yaml": "apps/kube/memes/manifest/memes-deployment.yaml" },
                   { "name": "irc-gateway", "condition": "${{ needs.alter.outputs.irc_gateway }}", "e2e_name": "irc", "image_name": "ghcr.io/kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml", "deployment_yaml": "apps/kube/irc/manifests/irc-gateway-deployment.yaml" },
                   { "name": "discordsh", "condition": "${{ needs.alter.outputs.discordsh }}", "e2e_name": "discordsh", "image_name": "ghcr.io/kbve/discordsh", "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml", "deployment_yaml": "apps/kube/discordsh/manifest/deployment.yaml" },
-                  { "name": "mc", "condition": "${{ needs.alter.outputs.mc }}", "e2e_name": "mc", "image_name": "ghcr.io/kbve/mc", "cargo_toml": "apps/mc/plugins/kbve-mc-plugin/Cargo.toml", "deployment_yaml": "apps/kube/mc/manifest/deployment.yaml" }
+                  { "name": "mc", "condition": "${{ needs.alter.outputs.mc }}", "e2e_name": "mc", "image_name": "ghcr.io/kbve/mc", "cargo_toml": "apps/mc/plugins/kbve-mc-plugin/Cargo.toml", "deployment_yaml": "apps/kube/mc/manifest/deployment.yaml" },
+                  { "name": "edge", "condition": "${{ needs.alter.outputs.edge }}", "e2e_name": "edge", "image_name": "ghcr.io/kbve/edge", "cargo_toml": "apps/kbve/edge/version.toml", "deployment_yaml": "apps/kube/functions/manifests/functions-deployment.yaml" }
                 ]
 
     collect_kube_results:

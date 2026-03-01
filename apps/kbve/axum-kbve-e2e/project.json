@@ -1,0 +1,26 @@
+{
+	"name": "axum-kbve-e2e",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"implicitDependencies": ["axum-kbve"],
+	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f axum-kbve-e2e 2>/dev/null || true",
+					"docker run -d --name axum-kbve-e2e -p 4323:4321 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4321 -e RUST_LOG=info kbve/kbve:latest",
+					"npx vitest run; EC=$?; docker rm -f axum-kbve-e2e 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false,
+				"cwd": "apps/kbve/axum-kbve-e2e"
+			}
+		}
+	},
+	"tags": []
+}

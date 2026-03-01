@@ -12,11 +12,15 @@
 			},
 			"configurations": {
 				"local": {
-					"commands": ["./kbve.sh -nx edge:containerx"]
+					"commands": [
+						"./kbve.sh -nx edge:containerx",
+						"VERSION=$(grep '^version' apps/kbve/edge/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/edge:latest kbve/edge:$VERSION && echo \"Tagged kbve/edge:$VERSION\""
+					]
 				},
 				"production": {
 					"commands": [
-						"./kbve.sh -nx edge:containerx --configuration=production"
+						"./kbve.sh -nx edge:containerx --configuration=production",
+						"VERSION=$(grep '^version' apps/kbve/edge/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/edge:latest kbve/edge:$VERSION && docker tag ghcr.io/kbve/edge:latest ghcr.io/kbve/edge:$VERSION && echo \"Tagged kbve/edge:$VERSION\""
 					]
 				},
 				"ci": {
