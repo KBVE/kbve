@@ -1,0 +1,14 @@
+---
+title: Profile
+description: Your profile on Meme.sh
+template: splash
+hero:
+  title: Profile
+  tagline: Your meme collection and stats
+---
+
+import ProfilePage from '../../components/profile/ProfilePage';
+
+<div style="margin-left: calc(-1 * var(--sl-content-pad-x, 1rem)); margin-right: calc(-1 * var(--sl-content-pad-x, 1rem)); margin-top: 2rem;">
+  <ProfilePage client:only="react" />
+</div>
