@@ -3,38 +3,40 @@ use crate::entity::response::GenericResponse;
 use std::str::FromStr;
 
 use axum::{
-    http::{StatusCode, HeaderMap, header::{HeaderName, HeaderValue, SET_COOKIE}},
-    response::{IntoResponse, Response, Json},
+    http::{
+        HeaderMap, StatusCode,
+        header::{HeaderName, HeaderValue, SET_COOKIE},
+    },
+    response::{IntoResponse, Json, Response},
 };
 
-use serde_json::{json, Value as JsonValue};
-
+use serde_json::json;
 
 use axum_extra::extract::cookie::{Cookie, SameSite};
 use time::Duration;
 
 pub struct HeaderResponse {
-	pub body: GenericResponse,
-	pub headers: HeaderMap,
+    pub body: GenericResponse,
+    pub headers: HeaderMap,
 }
 
 impl HeaderResponse {
-	pub fn new(body: GenericResponse, headers: HeaderMap) -> Self {
-		Self { body, headers }
-	}
-	pub fn add_header(mut self, name: HeaderName, value: HeaderValue) -> Self {
-		self.headers.insert(name, value);
-		self
-	}
+    pub fn new(body: GenericResponse, headers: HeaderMap) -> Self {
+        Self { body, headers }
+    }
+    pub fn add_header(mut self, name: HeaderName, value: HeaderValue) -> Self {
+        self.headers.insert(name, value);
+        self
+    }
 
     pub fn with_cookie(
-        mut self, 
-        name: &str, 
-        value: &str, 
-        duration: Duration, 
-        path: &str, 
+        mut self,
+        name: &str,
+        value: &str,
+        duration: Duration,
+        path: &str,
         http_only: bool,
-        same_site: SameSite
+        same_site: SameSite,
     ) -> Self {
         let cookie = Cookie::build((name, value))
             .path(path)
@@ -44,21 +46,25 @@ impl HeaderResponse {
             .build();
 
         let cookie_value = cookie.to_string();
-        self.headers.insert(SET_COOKIE, cookie_value.parse().unwrap());
+        self.headers
+            .insert(SET_COOKIE, cookie_value.parse().unwrap());
         self
     }
 }
 
 impl IntoResponse for HeaderResponse {
-	fn into_response(self) -> Response {
-		let mut response = Json(self.body).into_response();
-		*response.headers_mut() = self.headers;
-		response
-	}
+    fn into_response(self) -> Response {
+        let mut response = Json(self.body).into_response();
+        *response.headers_mut() = self.headers;
+        response
+    }
 }
 
-
-pub fn create_error_response(header_key: &str, header_value_suffix: &str, error_message: &str) -> Response {
+pub fn create_error_response(
+    header_key: &str,
+    header_value_suffix: &str,
+    error_message: &str,
+) -> Response {
     let mut headers = HeaderMap::new();
     let header_name = HeaderName::from_str(header_key).unwrap();
     let header_value = HeaderValue::from_str(&format!("shield_{}", header_value_suffix)).unwrap();
@@ -70,11 +76,17 @@ pub fn create_error_response(header_key: &str, header_value_suffix: &str, error_
         Json(json!({
             "data": {"status": "error"},
             "message": {"error": error_message}
-        }))
-    ).into_response()
+        })),
+    )
+        .into_response()
 }
 
-pub fn create_custom_response(status: StatusCode, header_key: &str, header_value_suffix: &str, error_message: &str) -> Response {
+pub fn create_custom_response(
+    status: StatusCode,
+    header_key: &str,
+    header_value_suffix: &str,
+    error_message: &str,
+) -> Response {
     let mut headers = HeaderMap::new();
     let header_name = HeaderName::from_str(header_key).unwrap();
     let header_value = HeaderValue::from_str(&format!("shield_{}", header_value_suffix)).unwrap();
@@ -86,6 +98,7 @@ pub fn create_custom_response(status: StatusCode, header_key: &str, header_value
         Json(json!({
             "data": {"status": "error"},
             "message": {"error": error_message}
-        }))
-    ).into_response()
+        })),
+    )
+        .into_response()
 }

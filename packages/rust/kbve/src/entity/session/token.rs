@@ -1,14 +1,13 @@
-use serde::{ Serialize, Deserialize };
-use rand_core::{RngCore, OsRng};
-
+use rand_core::{OsRng, RngCore};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TokenJWT {
-	pub userid: String,
-	pub email: String,
-	pub username: String,
-	pub iat: usize,
-	pub exp: usize,
+    pub userid: String,
+    pub email: String,
+    pub username: String,
+    pub iat: usize,
+    pub exp: usize,
 }
 
 /// Generates a random alphanumeric string of a given length
@@ -25,7 +24,7 @@ pub fn generate_random_token(length: usize) -> String {
     const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
                              abcdefghijklmnopqrstuvwxyz\
                              0123456789";
-    let mut rng = OsRng::default();
+    let mut rng = OsRng;
     let mut result = Vec::with_capacity(length);
     for _ in 0..length {
         let idx = (rng.next_u32() as usize) % CHARSET.len();

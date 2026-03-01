@@ -1,18 +1,11 @@
-use crate::proto::redis::{
-    RedisStream,
-    redis_stream::Payload as ProtoPayload,
-    XAddPayload,
-    XReadPayload,
-    XReadResponse,
-    StreamEntry,
-    StreamMessages,
-    Field,
-};
-use flexbuffers::{Reader, MapReader, VectorReader, FlexBufferType};
 use crate::error::JediError;
+use crate::proto::redis::{
+    Field, RedisStream, StreamEntry, StreamMessages, XAddPayload, XReadPayload, XReadResponse,
+    redis_stream::Payload as ProtoPayload,
+};
 use bytes::Bytes;
 use flexbuffers::FlexbufferSerializer;
-use serde::{Serialize, Deserialize};
+use flexbuffers::{MapReader, Reader, VectorReader};
 use std::sync::Arc;
 
 /// This module defines structures and functions to parse and represent Redis Stream data.
@@ -45,7 +38,9 @@ impl<'a> XAddData<'a> {
     pub fn to_xadd_args_bytes(&self) -> (Bytes, Option<Bytes>, Vec<(Bytes, Bytes)>) {
         let stream = Bytes::copy_from_slice(self.stream.as_bytes());
         let id = self.id.map(|id| Bytes::copy_from_slice(id.as_bytes()));
-        let fields = self.fields.iter()
+        let fields = self
+            .fields
+            .iter()
             .map(|f| (f.key.to_bytes(), f.value.to_bytes()))
             .collect();
         (stream, id, fields)
@@ -54,10 +49,13 @@ impl<'a> XAddData<'a> {
     /// - stream: Stream key as &[u8].
     /// - id: Message ID as Option<&[u8]> ("*" if None).
     /// - fields: Vec of (key, value) pairs as (&[u8], &[u8]).
+    #[allow(clippy::type_complexity)]
     pub fn to_xadd_args(&self) -> (&[u8], Option<&[u8]>, Vec<(&[u8], &[u8])>) {
         let stream = self.stream.as_bytes();
         let id = self.id.map(|id| id.as_bytes());
-        let fields = self.fields.iter()
+        let fields = self
+            .fields
+            .iter()
             .map(|f| (f.key.as_slice(), f.value.as_slice()))
             .collect();
         (stream, id, fields)
@@ -107,7 +105,6 @@ pub enum BytesCow<'a> {
 }
 
 impl<'a> BytesCow<'a> {
-
     #[inline]
     pub fn to_bytes(&self) -> Bytes {
         match self {
@@ -126,7 +123,7 @@ impl<'a> BytesCow<'a> {
 
     #[inline]
     pub fn into_static(self) -> BytesCow<'static> {
-        BytesCow::Owned(self.to_bytes()) 
+        BytesCow::Owned(self.to_bytes())
     }
 
     #[inline]
@@ -158,13 +155,19 @@ impl<'a> RedisStreamData<'a> {
     pub fn from_flex(map: &MapReader<&'a [u8]>) -> Result<Self, JediError> {
         if !map.idx("xadd").flexbuffer_type().is_null() {
             let payload = XAddData::from_flex(map.idx("xadd").get_map()?)?;
-            Ok(Self { payload: RedisStreamPayload::XAdd(payload) })
+            Ok(Self {
+                payload: RedisStreamPayload::XAdd(payload),
+            })
         } else if !map.idx("xread").flexbuffer_type().is_null() {
             let payload = XReadData::from_flex(map.idx("xread").get_map()?)?;
-            Ok(Self { payload: RedisStreamPayload::XRead(payload) })
+            Ok(Self {
+                payload: RedisStreamPayload::XRead(payload),
+            })
         } else if !map.idx("xread_response").flexbuffer_type().is_null() {
             let payload = XReadResponseData::from_flex(map.idx("xread_response").get_map()?)?;
-            Ok(Self { payload: RedisStreamPayload::XReadResponse(payload) })
+            Ok(Self {
+                payload: RedisStreamPayload::XReadResponse(payload),
+            })
         } else {
             Err(JediError::Parse("Unknown RedisStream payload type".into()))
         }
@@ -227,24 +230,22 @@ pub fn parse_fields<'a>(vec: VectorReader<&'a [u8]>) -> Vec<FieldData<'a>> {
 
 #[inline]
 fn extract_bytescow<'a>(reader: Reader<&'a [u8]>) -> Option<BytesCow<'a>> {
-	if let Ok(blob) = reader.get_blob() {
-		return Some(BytesCow::Borrowed(blob.0));
-	}
+    if let Ok(blob) = reader.get_blob() {
+        return Some(BytesCow::Borrowed(blob.0));
+    }
 
-	if let Ok(vec_reader) = reader.get_vector() {
-		let bytes = Bytes::copy_from_slice(
-			&vec_reader.iter().map(|r| r.as_u8()).collect::<Vec<u8>>()
-		);
-		return Some(BytesCow::Owned(bytes));
-	}
+    if let Ok(vec_reader) = reader.get_vector() {
+        let bytes =
+            Bytes::copy_from_slice(&vec_reader.iter().map(|r| r.as_u8()).collect::<Vec<u8>>());
+        return Some(BytesCow::Owned(bytes));
+    }
 
-	if let Ok(string) = reader.get_str() {
-		return Some(BytesCow::Owned(Bytes::copy_from_slice(string.as_bytes())));
-	}
+    if let Ok(string) = reader.get_str() {
+        return Some(BytesCow::Owned(Bytes::copy_from_slice(string.as_bytes())));
+    }
 
-	None
+    None
 }
-
 
 fn parse_stream_read_requests<'a>(vec: VectorReader<&'a [u8]>) -> Vec<StreamReadRequestData<'a>> {
     vec.iter()
@@ -257,7 +258,6 @@ fn parse_stream_read_requests<'a>(vec: VectorReader<&'a [u8]>) -> Vec<StreamRead
         })
         .collect()
 }
-
 
 fn parse_stream_messages<'a>(vec: VectorReader<&'a [u8]>) -> Vec<StreamMessagesData<'a>> {
     vec.iter()
@@ -287,7 +287,9 @@ impl<'a> From<XAddData<'a>> for XAddPayload {
     fn from(data: XAddData<'a>) -> Self {
         XAddPayload {
             stream: data.stream.as_bytes().to_vec(),
-            fields: data.fields.into_iter()
+            fields: data
+                .fields
+                .into_iter()
                 .map(|f| Field {
                     key: f.key.to_vec(),
                     value: f.value.to_vec(),
@@ -301,7 +303,9 @@ impl<'a> From<XAddData<'a>> for XAddPayload {
 impl<'a> From<XReadData<'a>> for XReadPayload {
     fn from(data: XReadData<'a>) -> Self {
         XReadPayload {
-            streams: data.streams.into_iter()
+            streams: data
+                .streams
+                .into_iter()
                 .map(|s| crate::proto::redis::StreamReadRequest {
                     stream: s.stream.as_bytes().to_vec(),
                     id: s.id.as_bytes().to_vec(),
@@ -319,7 +323,9 @@ impl<'a> From<RedisStreamData<'a>> for RedisStream {
             payload: Some(match data.payload {
                 RedisStreamPayload::XAdd(inner) => ProtoPayload::Xadd(inner.into()),
                 RedisStreamPayload::XRead(inner) => ProtoPayload::Xread(inner.into()),
-                RedisStreamPayload::XReadResponse(inner) => ProtoPayload::XreadResponse(inner.into()),
+                RedisStreamPayload::XReadResponse(inner) => {
+                    ProtoPayload::XreadResponse(inner.into())
+                }
             }),
         }
     }
@@ -328,13 +334,19 @@ impl<'a> From<RedisStreamData<'a>> for RedisStream {
 impl<'a> From<XReadResponseData<'a>> for XReadResponse {
     fn from(data: XReadResponseData<'a>) -> Self {
         XReadResponse {
-            streams: data.streams.into_iter()
+            streams: data
+                .streams
+                .into_iter()
                 .map(|s| StreamMessages {
                     stream: s.stream.as_bytes().to_vec(),
-                    entries: s.entries.into_iter()
+                    entries: s
+                        .entries
+                        .into_iter()
                         .map(|e| StreamEntry {
                             id: e.id.as_bytes().to_vec(),
-                            fields: e.fields.into_iter()
+                            fields: e
+                                .fields
+                                .into_iter()
                                 .map(|f| Field {
                                     key: f.key.to_vec(),
                                     value: f.value.to_vec(),
@@ -354,48 +366,73 @@ impl<'a> From<&RedisStreamData<'a>> for RedisStream {
             payload: Some(match &data.payload {
                 RedisStreamPayload::XAdd(inner) => ProtoPayload::Xadd(XAddPayload {
                     stream: inner.stream.as_bytes().to_vec(),
-                    fields: inner.fields.iter().map(|f| Field {
-                        key: f.key.to_vec(),
-                        value: f.value.to_vec(),
-                    }).collect(),
+                    fields: inner
+                        .fields
+                        .iter()
+                        .map(|f| Field {
+                            key: f.key.to_vec(),
+                            value: f.value.to_vec(),
+                        })
+                        .collect(),
                     id: inner.id.map(|id| id.as_bytes().to_vec()),
                 }),
                 RedisStreamPayload::XRead(inner) => ProtoPayload::Xread(XReadPayload {
-                    streams: inner.streams.iter().map(|s| crate::proto::redis::StreamReadRequest {
-                        stream: s.stream.as_bytes().to_vec(),
-                        id: s.id.as_bytes().to_vec(),
-                    }).collect(),
+                    streams: inner
+                        .streams
+                        .iter()
+                        .map(|s| crate::proto::redis::StreamReadRequest {
+                            stream: s.stream.as_bytes().to_vec(),
+                            id: s.id.as_bytes().to_vec(),
+                        })
+                        .collect(),
                     count: inner.count,
                     block: inner.block,
                 }),
-                RedisStreamPayload::XReadResponse(inner) => ProtoPayload::XreadResponse(XReadResponse {
-                    streams: inner.streams.iter().map(|s| StreamMessages {
-                        stream: s.stream.as_bytes().to_vec(),
-                        entries: s.entries.iter().map(|e| StreamEntry {
-                            id: e.id.as_bytes().to_vec(),
-                            fields: e.fields.iter().map(|f| Field {
-                                key: f.key.to_vec(),
-                                value: f.value.to_vec(),
-                            }).collect(),
-                        }).collect(),
-                    }).collect(),
-                }),
+                RedisStreamPayload::XReadResponse(inner) => {
+                    ProtoPayload::XreadResponse(XReadResponse {
+                        streams: inner
+                            .streams
+                            .iter()
+                            .map(|s| StreamMessages {
+                                stream: s.stream.as_bytes().to_vec(),
+                                entries: s
+                                    .entries
+                                    .iter()
+                                    .map(|e| StreamEntry {
+                                        id: e.id.as_bytes().to_vec(),
+                                        fields: e
+                                            .fields
+                                            .iter()
+                                            .map(|f| Field {
+                                                key: f.key.to_vec(),
+                                                value: f.value.to_vec(),
+                                            })
+                                            .collect(),
+                                    })
+                                    .collect(),
+                            })
+                            .collect(),
+                    })
+                }
             }),
         }
     }
 }
 
 /// Function to serialize a value to Flexbuffer bytes
-
 pub fn serialize_to_flex_bytes<T: serde::Serialize>(value: &T) -> Result<Bytes, JediError> {
     let mut serializer = FlexbufferSerializer::new();
-    value.serialize(&mut serializer)
+    value
+        .serialize(&mut serializer)
         .map_err(|e| JediError::Parse(format!("Flexbuffer serialization failed: {e}")))?;
     Ok(Bytes::from(serializer.take_buffer()))
 }
 
-pub fn deserialize_from_flex_bytes<'a, T: serde::de::Deserialize<'a>>(bytes: &'a [u8]) -> Result<T, JediError> {
+pub fn deserialize_from_flex_bytes<'a, T: serde::de::Deserialize<'a>>(
+    bytes: &'a [u8],
+) -> Result<T, JediError> {
     let reader = flexbuffers::Reader::get_root(bytes)
         .map_err(|e| JediError::Parse(format!("Flexbuffer root parse failed: {e}")))?;
-    T::deserialize(reader).map_err(|e| JediError::Parse(format!("Flexbuffer deserialization failed: {e}")))
+    T::deserialize(reader)
+        .map_err(|e| JediError::Parse(format!("Flexbuffer deserialization failed: {e}")))
 }

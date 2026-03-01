@@ -136,20 +136,13 @@ pub async fn rate_limit_middleware(
     let (allowed, remaining, reset) = check_rate_limit(&store, &ip, &config);
 
     if !allowed {
-        let mut resp = (
-            StatusCode::TOO_MANY_REQUESTS,
-            "Rate limit exceeded",
-        )
-            .into_response();
+        let mut resp = (StatusCode::TOO_MANY_REQUESTS, "Rate limit exceeded").into_response();
 
         let headers = resp.headers_mut();
-        headers.insert(
-            "x-ratelimit-limit",
-            HeaderValue::from(config.max_requests),
-        );
+        headers.insert("x-ratelimit-limit", HeaderValue::from(config.max_requests));
         headers.insert("x-ratelimit-remaining", HeaderValue::from(0u32));
-        headers.insert("x-ratelimit-reset", HeaderValue::from(reset as u64));
-        headers.insert("retry-after", HeaderValue::from(reset as u64));
+        headers.insert("x-ratelimit-reset", HeaderValue::from(reset));
+        headers.insert("retry-after", HeaderValue::from(reset));
 
         return resp;
     }
@@ -157,15 +150,9 @@ pub async fn rate_limit_middleware(
     let mut resp = next.run(req).await;
 
     let headers = resp.headers_mut();
-    headers.insert(
-        "x-ratelimit-limit",
-        HeaderValue::from(config.max_requests),
-    );
-    headers.insert(
-        "x-ratelimit-remaining",
-        HeaderValue::from(remaining),
-    );
-    headers.insert("x-ratelimit-reset", HeaderValue::from(reset as u64));
+    headers.insert("x-ratelimit-limit", HeaderValue::from(config.max_requests));
+    headers.insert("x-ratelimit-remaining", HeaderValue::from(remaining));
+    headers.insert("x-ratelimit-reset", HeaderValue::from(reset));
 
     resp
 }
@@ -286,9 +273,7 @@ mod tests {
 
     #[test]
     fn test_get_client_ip_fallback() {
-        let req = HttpRequest::builder()
-            .body(Body::empty())
-            .unwrap();
+        let req = HttpRequest::builder().body(Body::empty()).unwrap();
         let req: Request = req.into();
 
         assert_eq!(get_client_ip(&req), "unknown");

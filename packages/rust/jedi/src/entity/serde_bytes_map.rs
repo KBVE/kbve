@@ -1,7 +1,6 @@
 use bytes::Bytes;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::HashMap;
-use std::fmt;
 
 pub fn serialize<S>(map: &HashMap<Bytes, Bytes>, serializer: S) -> Result<S::Ok, S::Error>
 where

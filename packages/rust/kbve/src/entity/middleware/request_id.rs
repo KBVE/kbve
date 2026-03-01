@@ -1,9 +1,4 @@
-use axum::{
-    extract::Request,
-    http::HeaderValue,
-    middleware::Next,
-    response::Response,
-};
+use axum::{extract::Request, http::HeaderValue, middleware::Next, response::Response};
 
 /// Typed wrapper for a request ID, stored in request extensions.
 ///
@@ -39,11 +34,11 @@ pub async fn request_id_middleware(mut req: Request, next: Next) -> Response {
 mod tests {
     use super::*;
     use axum::{
+        Router,
         body::Body,
         http::{Request as HttpRequest, StatusCode},
         middleware,
         routing::get,
-        Router,
     };
     use tower::ServiceExt;
 
@@ -61,10 +56,7 @@ mod tests {
     async fn test_adds_request_id_to_response_header() {
         let app = build_app();
 
-        let req = HttpRequest::builder()
-            .uri("/")
-            .body(Body::empty())
-            .unwrap();
+        let req = HttpRequest::builder().uri("/").body(Body::empty()).unwrap();
 
         let resp = app.oneshot(req).await.unwrap();
 
@@ -76,10 +68,7 @@ mod tests {
     async fn test_request_id_is_valid_ulid() {
         let app = build_app();
 
-        let req = HttpRequest::builder()
-            .uri("/")
-            .body(Body::empty())
-            .unwrap();
+        let req = HttpRequest::builder().uri("/").body(Body::empty()).unwrap();
 
         let resp = app.oneshot(req).await.unwrap();
 
@@ -99,10 +88,7 @@ mod tests {
     async fn test_each_request_gets_unique_id() {
         let app = build_app();
 
-        let req1 = HttpRequest::builder()
-            .uri("/")
-            .body(Body::empty())
-            .unwrap();
+        let req1 = HttpRequest::builder().uri("/").body(Body::empty()).unwrap();
         let resp1 = app.clone().oneshot(req1).await.unwrap();
         let id1 = resp1
             .headers()
@@ -112,10 +98,7 @@ mod tests {
             .unwrap()
             .to_string();
 
-        let req2 = HttpRequest::builder()
-            .uri("/")
-            .body(Body::empty())
-            .unwrap();
+        let req2 = HttpRequest::builder().uri("/").body(Body::empty()).unwrap();
         let resp2 = app.oneshot(req2).await.unwrap();
         let id2 = resp2
             .headers()
