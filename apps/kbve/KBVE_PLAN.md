@@ -916,29 +916,33 @@ Runtime env: `HTTP_HOST=0.0.0.0`, `HTTP_PORT=4321`, `RUST_LOG=info`, jemalloc wi
 - [x] Add precompressed `.gz` + `.br` support
 - [x] Add cache-control headers for static assets (long-lived for hashed, short for HTML)
 
-#### Phase 3 — Askama SSR (POC: `/@username` renders profile page)
+#### Phase 3 — Askama SSR (POC: `/@username` renders profile page) ✅ PR #7433
 
-- [ ] Port Askama templates from `~/kbve.com/website/axum/templates/askama/` (health, error, profile, profile_not_found)
-- [ ] Wire `askama.rs` template rendering (ref: `~/kbve.com/website/axum/src/astro/askama.rs`)
-- [ ] Add `/@{username}` route
-- [ ] Note: kbve.com uses askama 0.13, monorepo uses 0.15. Template syntax is the same; only Cargo.toml version differs.
+- [x] Port Askama templates from `~/kbve.com/website/axum/templates/askama/` (health, error, profile, profile_not_found)
+- [x] Wire `askama.rs` template rendering (ref: `~/kbve.com/website/axum/src/astro/askama.rs`)
+- [x] Add `/@{username}` route with full enrichment pipeline
+- [x] Add `/health.html` route with Askama SSR
+- [x] Note: kbve.com uses askama 0.13, monorepo uses 0.15. Template syntax identical; no code changes needed.
 
-#### Phase 4 — Proto + API Routes (POC: `/api/v1/profile/*` returns proto-validated data)
+#### Phase 4 — Proto + API Routes (POC: `/api/v1/profile/*` returns proto-validated data) ✅ PR #7433
 
-- [ ] Write `build.rs` for prost-build proto compilation (ref: `~/kbve.com/website/axum/build.rs`)
-- [ ] Port API routes: `/api/status`, `/api/v1/osrs/{item_id}`, `/api/v1/profile/*`, `POST /api/v1/profile/username`
-- [ ] Wire proto types for request/response validation
-- [ ] Add gRPC health + reflection services (tonic-health, tonic-reflection)
+- [x] Write `build.rs` for prost-build proto compilation (monorepo path: `../../../packages/data/proto/kbve/`)
+- [x] Compile 6 proto files: common, enums, snapshot, pool, schema, osrs
+- [x] Port API routes: `/api/status`, `/api/v1/osrs/{item_id}`, `/api/v1/profile/*`, `POST /api/v1/profile/username`
+- [x] Add OSRS routes: `/osrs/{item}`, `/osrs/{item}/` with slug normalization + redirects
+- [ ] Add gRPC health + reflection services (tonic-health, tonic-reflection) — deferred to Phase 6
 
-#### Phase 5 — Database + Auth (POC: JWT-protected endpoints work)
+#### Phase 5 — Database + Auth (POC: JWT-protected endpoints work) ✅ PR #7433
 
-- [ ] Create `state.rs` with `AppState` struct (DB pool, caches, clients)
-- [ ] Port DB layer: `profile.rs`, `cache.rs` (ProfileCache actor), `osrs.rs` (OSRS cache) — ref: `~/kbve.com/website/axum/src/db/`
-- [ ] Port JWT cache with cleanup task — ref: `~/kbve.com/website/axum/src/auth/jwt_cache.rs`
-- [ ] Add auth middleware for protected routes
-- [ ] Port Discord enrichment (`db/discord.rs`) — optional
-- [ ] Port Twitch enrichment (`db/twitch.rs`) — optional
-- [ ] Port RentEarth service — optional
+- [x] Add `AppState` struct with `start_time` + `version` (Arc-wrapped inner pattern)
+- [x] Port DB layer: `supabase.rs`, `profile.rs`, `cache.rs` (ProfileCache actor), `osrs.rs` (OSRS cache)
+- [x] Port JWT cache with cleanup task (`auth/jwt_cache.rs`)
+- [x] Port Discord enrichment (`db/discord.rs`) — guild member, roles, avatar
+- [x] Port Twitch enrichment (`db/twitch.rs`) — OAuth auto-refresh, live status
+- [x] Port RentEarth service (`db/rentearth.rs`) — character data
+- [x] Wire service initialization in main.rs (graceful degradation without env vars)
+- [x] Complete all route handlers with full enrichment pipeline
+- [x] 15 tests pass (build, health, health.html, api/status, profile, OSRS, security headers, cache headers, TS mime)
 
 #### Phase 6 — Docker (POC: `docker build` produces working image)
 

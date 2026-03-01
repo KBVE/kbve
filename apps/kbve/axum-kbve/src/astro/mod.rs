@@ -1,3 +1,5 @@
+pub mod askama;
+
 use axum::{
     Router,
     http::{StatusCode, header},

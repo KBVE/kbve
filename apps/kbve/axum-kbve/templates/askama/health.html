@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health - KBVE</title>
+    <style>
+        :root {
+            --sl-color-bg: #0a0a0a;
+            --sl-color-bg-nav: #141414;
+            --sl-color-text: #e5e5e5;
+            --sl-color-text-accent: #c4b5fd;
+            --sl-color-accent: #a78bfa;
+            --sl-color-green: #22c55e;
+            --sl-color-gray-2: #9ca3af;
+            --sl-color-gray-5: #374151;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--sl-color-bg);
+            color: var(--sl-color-text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: var(--sl-color-bg-nav);
+            border: 1px solid var(--sl-color-gray-5);
+            border-radius: 12px;
+            padding: 2rem;
+            min-width: 300px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--sl-color-green);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        h1 {
+            font-size: 1.25rem;
+            color: var(--sl-color-text-accent);
+        }
+        .info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--sl-color-gray-5);
+        }
+        .row:last-child { border-bottom: none; }
+        .label { color: var(--sl-color-gray-2); }
+        .value { color: var(--sl-color-text); font-weight: 500; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <div class="status-dot"></div>
+            <h1>System Health</h1>
+        </div>
+        <div class="info">
+            <div class="row">
+                <span class="label">Status</span>
+                <span class="value">{{ status }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Version</span>
+                <span class="value">{{ version }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Uptime</span>
+                <span class="value">{{ uptime_seconds }}s</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
