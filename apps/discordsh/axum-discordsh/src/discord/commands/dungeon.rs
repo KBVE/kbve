@@ -50,20 +50,10 @@ async fn start(
     };
 
     let (id, short_id) = game::new_short_sid();
-    let room = content::generate_room(0);
-
-    // First room is combat — spawn enemies
-    let enemies = if room.room_type == RoomType::Combat {
-        content::spawn_enemies(0)
-    } else {
-        Vec::new()
-    };
-
-    let phase = if !enemies.is_empty() {
-        GamePhase::Combat
-    } else {
-        GamePhase::Exploring
-    };
+    let map = content::generate_initial_map(&id);
+    let room = content::room_from_tile(map.tiles.get(&map.position).unwrap());
+    let phase = GamePhase::City;
+    let enemies = Vec::new();
 
     // Membership lookup (cached, gracefully degrades to Guest)
     let member_status_raw = ctx.data().app.members.lookup(user.get()).await;
@@ -116,9 +106,15 @@ async fn start(
         players: HashMap::from([(user, player)]),
         enemies,
         room,
-        log: vec!["You descend into The Glass Catacombs...".to_owned()],
+        log: vec![
+            "You arrive at the Underground City. Prepare your party before venturing out..."
+                .to_owned(),
+        ],
         show_items: false,
         pending_actions: HashMap::new(),
+        map,
+        show_map: true,
+        pending_destination: None,
     };
 
     let components = render::render_components(&session_state);

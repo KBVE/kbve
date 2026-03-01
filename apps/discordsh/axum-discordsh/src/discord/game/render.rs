@@ -437,6 +437,39 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
 
 // ── Component builders ──────────────────────────────────────────────
 
+/// Build the direction navigation buttons row.
+/// Each direction is Primary if the current tile has that exit, otherwise disabled Secondary.
+/// The Map button toggles the map overlay.
+fn direction_buttons(session: &SessionState) -> serenity::CreateActionRow {
+    let sid = &session.short_id;
+    let current_tile = session.map.tiles.get(&session.map.position);
+    let exits: Vec<Direction> = current_tile.map(|t| t.exits.clone()).unwrap_or_default();
+
+    let mut buttons: Vec<serenity::CreateButton> = Direction::all()
+        .iter()
+        .map(|dir| {
+            let has_exit = exits.contains(dir);
+            serenity::CreateButton::new(format!("dng|{sid}|mv|{}", dir.code()))
+                .label(dir.emoji())
+                .style(if has_exit {
+                    serenity::ButtonStyle::Primary
+                } else {
+                    serenity::ButtonStyle::Secondary
+                })
+                .disabled(!has_exit)
+        })
+        .collect();
+
+    // Map toggle button
+    buttons.push(
+        serenity::CreateButton::new(format!("dng|{sid}|map"))
+            .label("Map")
+            .style(serenity::ButtonStyle::Secondary),
+    );
+
+    serenity::CreateActionRow::Buttons(buttons)
+}
+
 /// Build the action rows (buttons + optional item select) for the game message.
 pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRow> {
     let sid = &session.short_id;
@@ -446,6 +479,16 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
         GamePhase::Combat | GamePhase::WaitingForActions
     );
     let in_city = session.phase == GamePhase::City;
+    let is_exploring_phase = session.phase == GamePhase::Exploring;
+    let is_room_phase = matches!(
+        session.phase,
+        GamePhase::Trap
+            | GamePhase::Treasure
+            | GamePhase::Hallway
+            | GamePhase::Rest
+            | GamePhase::Event
+            | GamePhase::Merchant
+    );
     let exploring = matches!(
         session.phase,
         GamePhase::Exploring
@@ -458,7 +501,75 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
 
     let owner = session.owner_player();
 
-    // Primary button row — no emojis, clean labels, color conveys meaning
+    // ── Exploring phase: direction buttons as Row 1 ──────────────
+    if is_exploring_phase && !game_over {
+        let mut rows = vec![direction_buttons(session)];
+
+        // Item select menu (if toggled)
+        if session.show_items {
+            let options: Vec<serenity::CreateSelectMenuOption> = owner
+                .inventory
+                .iter()
+                .filter(|s| s.qty > 0)
+                .filter_map(|s| {
+                    super::content::find_item(&s.item_id).map(|def| {
+                        let rarity_label = format!("{:?}", def.rarity);
+                        serenity::CreateSelectMenuOption::new(
+                            format!("{} (x{})", def.name, s.qty),
+                            format!("{}|{}", s.item_id, s.qty),
+                        )
+                        .description(format!("[{}] {}", rarity_label, def.description))
+                    })
+                })
+                .collect();
+
+            if !options.is_empty() {
+                let select = serenity::CreateSelectMenu::new(
+                    format!("dng|{sid}|useitem|select"),
+                    serenity::CreateSelectMenuKind::String { options },
+                )
+                .placeholder("Select an item...");
+                rows.push(serenity::CreateActionRow::SelectMenu(select));
+            }
+        }
+
+        // Gear equip select menu
+        let gear_items: Vec<_> = owner
+            .inventory
+            .iter()
+            .filter(|s| s.qty > 0 && super::content::find_gear(&s.item_id).is_some())
+            .collect();
+        if !gear_items.is_empty() {
+            let mut options = Vec::new();
+            for stack in &gear_items {
+                if let Some(gear) = super::content::find_gear(&stack.item_id) {
+                    let slot_label = match gear.slot {
+                        EquipSlot::Weapon => "Weapon",
+                        EquipSlot::Armor => "Armor",
+                    };
+                    options.push(serenity::CreateSelectMenuOption::new(
+                        format!("{} {} [{}]", gear.emoji, gear.name, slot_label),
+                        &stack.item_id,
+                    ));
+                }
+            }
+            if !options.is_empty() {
+                let menu = serenity::CreateSelectMenu::new(
+                    format!("dng|{sid}|equip"),
+                    serenity::CreateSelectMenuKind::String { options },
+                )
+                .placeholder("Equip gear...");
+                rows.push(serenity::CreateActionRow::SelectMenu(menu));
+            }
+        }
+
+        return rows;
+    }
+
+    // ── Primary button row for non-exploring phases ──────────────
+    // In room phases (Trap/Treasure/Hallway/Rest/Event/Merchant), label changes to "Continue"
+    let explore_label = if is_room_phase { "Continue" } else { "Explore" };
+
     let buttons = vec![
         serenity::CreateButton::new(format!("dng|{sid}|atk|"))
             .label("Attack")
@@ -473,7 +584,7 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
             .style(serenity::ButtonStyle::Secondary)
             .disabled(game_over || owner.inventory.iter().all(|s| s.qty == 0)),
         serenity::CreateButton::new(format!("dng|{sid}|explore|"))
-            .label("Explore")
+            .label(explore_label)
             .style(serenity::ButtonStyle::Success)
             .disabled(game_over || !exploring),
         serenity::CreateButton::new(format!("dng|{sid}|flee|"))
@@ -517,6 +628,39 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
             .style(serenity::ButtonStyle::Success);
 
         rows.push(serenity::CreateActionRow::Buttons(vec![rest_button]));
+    }
+
+    // City hospital — revive dead party members
+    if in_city && !game_over && session.mode == SessionMode::Party {
+        let dead_members: Vec<(serenity::UserId, &PlayerState)> = session
+            .roster()
+            .into_iter()
+            .filter(|(_, p)| !p.alive)
+            .collect();
+
+        if !dead_members.is_empty() {
+            let depth = session.map.position.depth();
+            let cost = 25 + (depth * 5) as i32;
+            let options: Vec<serenity::CreateSelectMenuOption> = dead_members
+                .iter()
+                .take(25) // Discord max 25 select options
+                .map(|(uid, p)| {
+                    serenity::CreateSelectMenuOption::new(
+                        format!("Revive {} ({} gold)", p.name, cost),
+                        format!("{}", uid.get()),
+                    )
+                })
+                .collect();
+
+            if !options.is_empty() {
+                let select = serenity::CreateSelectMenu::new(
+                    format!("dng|{sid}|revive"),
+                    serenity::CreateSelectMenuKind::String { options },
+                )
+                .placeholder(format!("Revive at Hospital (cost: {} gold)", cost));
+                rows.push(serenity::CreateActionRow::SelectMenu(select));
+            }
+        }
     }
 
     // Item select menu (only shown when toggled)
@@ -814,6 +958,11 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
         }
     }
 
+    // City phase — direction buttons as the LAST row (max 5 rows total)
+    if in_city && !game_over && rows.len() < 5 {
+        rows.push(direction_buttons(session));
+    }
+
     rows
 }
 
@@ -848,6 +997,9 @@ mod tests {
             log: Vec::new(),
             show_items: false,
             pending_actions: HashMap::new(),
+            map: test_map_default(),
+            show_map: false,
+            pending_destination: None,
         }
     }
 

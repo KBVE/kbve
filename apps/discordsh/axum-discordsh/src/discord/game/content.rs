@@ -1,4 +1,5 @@
-use rand::Rng;
+use rand::prelude::*;
+use rand_chacha::ChaCha8Rng;
 
 use super::types::*;
 
@@ -172,7 +173,7 @@ fn city_rooms() -> &'static [RoomTemplate] {
 }
 
 fn pick_template(pool: &[RoomTemplate], rng: &mut impl Rng) -> (String, String) {
-    let t = &pool[rng.gen_range(0..pool.len())];
+    let t = &pool[rng.random_range(0..pool.len())];
     (t.name.to_owned(), t.description.to_owned())
 }
 
@@ -493,16 +494,16 @@ fn loot_tables() -> &'static [LootTable] {
 
 /// Roll a loot drop from the given table. Returns item_id or None.
 pub fn roll_loot(table_id: &str) -> Option<&'static str> {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let table = loot_tables().iter().find(|t| t.id == table_id)?;
-    if rng.gen_range(0.0f32..1.0) >= table.drop_chance {
+    if rng.random_range(0.0f32..1.0) >= table.drop_chance {
         return None;
     }
     let total_weight: u32 = table.entries.iter().map(|e| e.weight).sum();
     if total_weight == 0 {
         return None;
     }
-    let mut roll = rng.gen_range(0..total_weight);
+    let mut roll = rng.random_range(0..total_weight);
     for entry in table.entries {
         if roll < entry.weight {
             return Some(entry.item_id);
@@ -589,16 +590,16 @@ fn gear_loot_tables() -> &'static [GearLootTable] {
 
 /// Roll a gear loot drop from the given table. Returns gear_id or None.
 pub fn roll_gear_loot(table_id: &str) -> Option<&'static str> {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let table = gear_loot_tables().iter().find(|t| t.id == table_id)?;
-    if rng.gen_range(0.0f32..1.0) >= table.drop_chance {
+    if rng.random_range(0.0f32..1.0) >= table.drop_chance {
         return None;
     }
     let total_weight: u32 = table.entries.iter().map(|e| e.weight).sum();
     if total_weight == 0 {
         return None;
     }
-    let mut roll = rng.gen_range(0..total_weight);
+    let mut roll = rng.random_range(0..total_weight);
     for entry in table.entries {
         if roll < entry.weight {
             return Some(entry.gear_id);
@@ -613,9 +614,9 @@ pub fn roll_gear_loot(table_id: &str) -> Option<&'static str> {
 /// Spawn an enemy scaled to the current room index.
 /// Picks randomly from a pool per difficulty bracket.
 pub fn spawn_enemy(room_index: u32) -> EnemyState {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     match room_index {
-        0..=1 => match rng.gen_range(0..4) {
+        0..=1 => match rng.random_range(0..4) {
             0 => EnemyState {
                 name: "Glass Slime".to_owned(),
                 level: 1,
@@ -669,7 +670,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 index: 0,
             },
         },
-        2..=3 => match rng.gen_range(0..4) {
+        2..=3 => match rng.random_range(0..4) {
             0 => EnemyState {
                 name: "Skeleton Guard".to_owned(),
                 level: 2,
@@ -723,7 +724,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 index: 0,
             },
         },
-        4..=5 => match rng.gen_range(0..4) {
+        4..=5 => match rng.random_range(0..4) {
             0 => EnemyState {
                 name: "Shadow Wraith".to_owned(),
                 level: 3,
@@ -778,7 +779,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
             },
         },
         _ => {
-            if rng.gen_range(0..2) == 0 {
+            if rng.random_range(0..2) == 0 {
                 EnemyState {
                     name: "Glass Golem".to_owned(),
                     level: 5,
@@ -816,11 +817,11 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
 /// - Rooms 3-5: 25% chance of 2 enemies, each at 70% HP.
 /// - Boss rooms (index >= 6): always 1 boss.
 pub fn spawn_enemies(room_index: u32) -> Vec<EnemyState> {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     match room_index {
         0..=2 => vec![spawn_enemy(room_index)],
         3..=5 => {
-            if rng.gen_range(0.0f32..1.0) < 0.25 {
+            if rng.random_range(0.0f32..1.0) < 0.25 {
                 let mut e1 = spawn_enemy(room_index);
                 let mut e2 = spawn_enemy(room_index);
                 // Reduce each to 70% HP
@@ -883,7 +884,7 @@ fn room_type_for_index(index: u32, rng: &mut impl Rng) -> RoomType {
     if index == 0 {
         return RoomType::Combat;
     }
-    let roll: f32 = rng.r#gen();
+    let roll: f32 = rng.random();
     match roll {
         x if x < 0.35 => RoomType::Combat,
         x if x < 0.50 => RoomType::Treasure,
@@ -901,18 +902,18 @@ fn generate_modifiers(index: u32, room_type: &RoomType, rng: &mut impl Rng) -> V
     }
     let mut mods = Vec::new();
     if *room_type == RoomType::Combat || *room_type == RoomType::Boss {
-        if rng.gen_range(0.0f32..1.0) < 0.25 {
+        if rng.random_range(0.0f32..1.0) < 0.25 {
             mods.push(RoomModifier::Fog {
-                accuracy_penalty: 0.1 + rng.gen_range(0.0..0.1),
+                accuracy_penalty: 0.1 + rng.random_range(0.0..0.1),
             });
         }
-        if rng.gen_range(0.0f32..1.0) < 0.15 {
+        if rng.random_range(0.0f32..1.0) < 0.15 {
             mods.push(RoomModifier::Cursed {
                 dmg_multiplier: 1.25,
             });
         }
     }
-    if *room_type == RoomType::RestShrine && rng.gen_range(0.0f32..1.0) < 0.30 {
+    if *room_type == RoomType::RestShrine && rng.random_range(0.0f32..1.0) < 0.30 {
         mods.push(RoomModifier::Blessing { heal_bonus: 5 });
     }
     mods
@@ -922,7 +923,7 @@ fn generate_hazards(index: u32, room_type: &RoomType, rng: &mut impl Rng) -> Vec
     let mut hazards = Vec::new();
     match room_type {
         RoomType::Trap => {
-            if rng.gen_bool(0.5) {
+            if rng.random_bool(0.5) {
                 hazards.push(Hazard::Spikes {
                     dmg: 5 + index as i32 / 2,
                 });
@@ -935,7 +936,7 @@ fn generate_hazards(index: u32, room_type: &RoomType, rng: &mut impl Rng) -> Vec
             }
         }
         RoomType::Combat if index >= 5 => {
-            if rng.gen_range(0.0f32..1.0) < 0.20 {
+            if rng.random_range(0.0f32..1.0) < 0.20 {
                 hazards.push(Hazard::Gas {
                     effect: EffectKind::Burning,
                     stacks: 1,
@@ -950,7 +951,7 @@ fn generate_hazards(index: u32, room_type: &RoomType, rng: &mut impl Rng) -> Vec
 
 /// Generate a room for the given index with randomized content.
 pub fn generate_room(index: u32) -> RoomState {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let room_type = room_type_for_index(index, &mut rng);
 
     let pool: &[RoomTemplate] = match &room_type {
@@ -982,7 +983,7 @@ pub fn generate_room(index: u32) -> RoomState {
 
 /// Generate a hallway room (safe passage after fleeing combat).
 pub fn generate_hallway_room(index: u32) -> RoomState {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let (name, description) = pick_template(hallway_rooms(), &mut rng);
     RoomState {
         index,
@@ -1000,13 +1001,13 @@ pub fn generate_hallway_room(index: u32) -> RoomState {
 
 /// Generate 3 random items for sale, priced by rarity + room depth.
 pub fn generate_merchant_stock(room_index: u32) -> Vec<MerchantOffer> {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let all_items = item_registry();
     let mut indices: Vec<usize> = (0..all_items.len()).collect();
 
     // Fisher-Yates shuffle
     for i in (1..indices.len()).rev() {
-        let j = rng.gen_range(0..=i);
+        let j = rng.random_range(0..=i);
         indices.swap(i, j);
     }
 
@@ -1034,10 +1035,10 @@ pub fn generate_merchant_stock(room_index: u32) -> Vec<MerchantOffer> {
     let all_gear = gear_registry();
     let mut gear_indices: Vec<usize> = (0..all_gear.len()).collect();
     for i in (1..gear_indices.len()).rev() {
-        let j = rng.gen_range(0..=i);
+        let j = rng.random_range(0..=i);
         gear_indices.swap(i, j);
     }
-    let gear_count = rng.gen_range(1..=2usize);
+    let gear_count = rng.random_range(1..=2usize);
     for &idx in gear_indices.iter().take(gear_count) {
         let gear = &all_gear[idx];
         let base_price = match gear.rarity {
@@ -1089,7 +1090,7 @@ pub fn sell_price_for_gear(gear_id: &str) -> Option<i32> {
 
 /// Generate a random story event for a Story room.
 pub fn generate_story_event() -> StoryEvent {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let events = [
         StoryEvent {
             prompt: "A mirror whispers your name...".to_owned(),
@@ -1217,7 +1218,7 @@ pub fn generate_story_event() -> StoryEvent {
             ],
         },
     ];
-    events[rng.gen_range(0..events.len())].clone()
+    events[rng.random_range(0..events.len())].clone()
 }
 
 /// Resolve a story event choice. Returns the outcome for the given event index and choice.
@@ -1468,6 +1469,251 @@ pub fn resolve_story_choice(
             item_gain: None,
             effect_gain: None,
         },
+    }
+}
+
+// ── Map generation ──────────────────────────────────────────────────
+
+/// Create a deterministic RNG for a specific tile position.
+fn tile_rng(seed: u64, pos: &MapPos) -> ChaCha8Rng {
+    let hash = seed ^ ((pos.x as u64) << 32 | (pos.y as u16 as u64));
+    ChaCha8Rng::seed_from_u64(hash)
+}
+
+/// Generate exits for a tile (2-4 directions, at least 2 to avoid dead ends).
+fn generate_exits(rng: &mut impl RngExt) -> Vec<Direction> {
+    let all = Direction::all();
+    let count = rng.random_range(2..=4usize);
+    let mut exits: Vec<Direction> = all.to_vec();
+    // Shuffle and take `count`
+    for i in (1..exits.len()).rev() {
+        let j = rng.random_range(0..=i);
+        exits.swap(i, j);
+    }
+    exits.truncate(count);
+    exits
+}
+
+/// Determine room type for a map tile based on position and depth.
+fn tile_type_for_position(
+    pos: &MapPos,
+    depth: u32,
+    boss_positions: &[MapPos],
+    rng: &mut impl RngExt,
+) -> RoomType {
+    // Origin is always city
+    if pos.x == 0 && pos.y == 0 {
+        return RoomType::UndergroundCity;
+    }
+
+    // Boss positions
+    if boss_positions.contains(pos) {
+        return RoomType::Boss;
+    }
+
+    // Weight table (same probabilities as linear system)
+    let roll: f32 = rng.random();
+    if depth <= 1 {
+        // Near city: mostly safe rooms
+        if roll < 0.40 {
+            RoomType::Combat
+        } else if roll < 0.55 {
+            RoomType::RestShrine
+        } else if roll < 0.70 {
+            RoomType::Merchant
+        } else if roll < 0.85 {
+            RoomType::Treasure
+        } else {
+            RoomType::Story
+        }
+    } else {
+        // Deeper: standard distribution
+        if roll < 0.35 {
+            RoomType::Combat
+        } else if roll < 0.50 {
+            RoomType::Treasure
+        } else if roll < 0.62 {
+            RoomType::Trap
+        } else if roll < 0.72 {
+            RoomType::RestShrine
+        } else if roll < 0.82 {
+            RoomType::Merchant
+        } else if roll < 0.92 {
+            RoomType::Story
+        } else {
+            RoomType::Hallway
+        }
+    }
+}
+
+/// Compute boss positions — one boss per Manhattan distance ring of 7.
+fn compute_boss_positions(seed: u64) -> Vec<MapPos> {
+    let mut rng = ChaCha8Rng::seed_from_u64(seed.wrapping_add(0xB055));
+    let mut positions = Vec::new();
+    for ring in 1..=5u32 {
+        let depth = ring * 7;
+        // Pick a random position at this Manhattan distance
+        let x = rng.random_range(0..=depth as i16);
+        let y = (depth as i16) - x;
+        // Randomize sign
+        let x = if rng.random_bool(0.5) { x } else { -x };
+        let y = if rng.random_bool(0.5) { y } else { -y };
+        positions.push(MapPos::new(x, y));
+    }
+    positions
+}
+
+/// Generate a single map tile at the given position.
+fn generate_tile_at(seed: u64, pos: &MapPos, boss_positions: &[MapPos]) -> MapTile {
+    let mut rng = tile_rng(seed, pos);
+    let depth = pos.depth();
+    let room_type = tile_type_for_position(pos, depth, boss_positions, &mut rng);
+
+    let pool: &[RoomTemplate] = match &room_type {
+        RoomType::Combat => combat_rooms(),
+        RoomType::Treasure => treasure_rooms(),
+        RoomType::Trap => trap_rooms(),
+        RoomType::RestShrine => rest_rooms(),
+        RoomType::Boss => boss_rooms(),
+        RoomType::Merchant => merchant_rooms(),
+        RoomType::Story => story_rooms(),
+        RoomType::Hallway => hallway_rooms(),
+        RoomType::UndergroundCity => city_rooms(),
+    };
+    let (name, description) = pick_template(pool, &mut rng);
+    let exits = generate_exits(&mut rng);
+
+    MapTile {
+        pos: *pos,
+        room_type,
+        name,
+        description,
+        exits,
+        visited: false,
+        cleared: false,
+    }
+}
+
+/// Generate the initial map for a new session.
+pub fn generate_initial_map(session_id: &uuid::Uuid) -> MapState {
+    let seed = session_id.as_u128() as u64;
+    let boss_positions = compute_boss_positions(seed);
+    let origin = MapPos::new(0, 0);
+
+    let mut tiles = std::collections::HashMap::new();
+
+    // Origin tile = UndergroundCity
+    let origin_tile = MapTile {
+        pos: origin,
+        room_type: RoomType::UndergroundCity,
+        name: "The Underground City".to_owned(),
+        description: "A bustling settlement beneath the earth. Merchants hawk wares and a hospital offers healing.".to_owned(),
+        exits: vec![Direction::North, Direction::South, Direction::East, Direction::West],
+        visited: true,
+        cleared: true,
+    };
+    tiles.insert(origin, origin_tile);
+
+    // Reveal the 4 adjacent tiles
+    for &dir in Direction::all() {
+        let neighbor = origin.neighbor(dir);
+        let mut tile = generate_tile_at(seed, &neighbor, &boss_positions);
+        // Ensure bidirectional connectivity: neighbor must have exit back to origin
+        let back = dir.opposite();
+        if !tile.exits.contains(&back) {
+            tile.exits.push(back);
+        }
+        tiles.insert(neighbor, tile);
+    }
+
+    MapState {
+        seed,
+        position: origin,
+        tiles,
+        tiles_visited: 1,
+        boss_positions,
+    }
+}
+
+/// Reveal a tile on the map. If it doesn't exist, generate it.
+/// Ensures bidirectional exit consistency.
+pub fn reveal_tile(map: &mut MapState, pos: MapPos, from_dir: Option<Direction>) {
+    if !map.tiles.contains_key(&pos) {
+        let mut tile = generate_tile_at(map.seed, &pos, &map.boss_positions);
+        // Ensure bidirectional exit: tile must have exit back to where we came from
+        if let Some(dir) = from_dir {
+            let back = dir.opposite();
+            if !tile.exits.contains(&back) {
+                tile.exits.push(back);
+            }
+        }
+        map.tiles.insert(pos, tile);
+    }
+}
+
+/// Reveal all neighbors of a position.
+pub fn reveal_neighbors(map: &mut MapState, pos: MapPos) {
+    let tile_exits: Vec<Direction> = map
+        .tiles
+        .get(&pos)
+        .map(|t| t.exits.clone())
+        .unwrap_or_default();
+
+    for dir in tile_exits {
+        let neighbor = pos.neighbor(dir);
+        reveal_tile(map, neighbor, Some(dir));
+    }
+}
+
+/// Build a RoomState from a MapTile (bridge to existing combat/merchant/etc systems).
+pub fn room_from_tile(tile: &MapTile) -> RoomState {
+    let depth = tile.pos.depth();
+    let mut rng = tile_rng(0, &tile.pos); // Use a consistent seed for the tile
+
+    let modifiers = generate_modifiers(depth, &tile.room_type, &mut rng);
+    let hazards = generate_hazards(depth, &tile.room_type, &mut rng);
+
+    let merchant_stock =
+        if tile.room_type == RoomType::Merchant || tile.room_type == RoomType::UndergroundCity {
+            generate_merchant_stock(depth)
+        } else {
+            Vec::new()
+        };
+
+    let story_event = if tile.room_type == RoomType::Story {
+        Some(generate_story_event())
+    } else {
+        None
+    };
+
+    RoomState {
+        index: depth,
+        room_type: tile.room_type.clone(),
+        name: tile.name.clone(),
+        description: tile.description.clone(),
+        modifiers,
+        hazards,
+        merchant_stock,
+        story_event,
+    }
+}
+
+/// Generate a lightweight encounter room for random travel encounters.
+pub fn generate_encounter_room(depth: u32) -> RoomState {
+    let mut rng = rand::rng();
+    let (name, description) = pick_template(combat_rooms(), &mut rng);
+    let modifiers = generate_modifiers(depth, &RoomType::Combat, &mut rng);
+    let hazards = generate_hazards(depth, &RoomType::Combat, &mut rng);
+
+    RoomState {
+        index: depth,
+        room_type: RoomType::Combat,
+        name,
+        description,
+        modifiers,
+        hazards,
+        merchant_stock: Vec::new(),
+        story_event: None,
     }
 }
 
@@ -1790,13 +2036,15 @@ mod tests {
     #[test]
     fn test_story_choice_resolve_outcomes() {
         // Mirror event, choice 0 (Listen): grants +10 HP
-        let outcome = resolve_story_choice("A mirror whispers your name...", 0, &ClassType::Warrior);
+        let outcome =
+            resolve_story_choice("A mirror whispers your name...", 0, &ClassType::Warrior);
         assert_eq!(outcome.hp_change, 10);
         assert_eq!(outcome.gold_change, 0);
         assert!(outcome.item_gain.is_none());
 
         // Mirror event, choice 1 (Smash): -5 HP, gets bomb, gets bleed
-        let outcome = resolve_story_choice("A mirror whispers your name...", 1, &ClassType::Warrior);
+        let outcome =
+            resolve_story_choice("A mirror whispers your name...", 1, &ClassType::Warrior);
         assert_eq!(outcome.hp_change, -5);
         assert_eq!(outcome.item_gain, Some("bomb"));
         assert!(outcome.effect_gain.is_some());
@@ -1921,5 +2169,115 @@ mod tests {
             min_level_boss,
             max_level_room3
         );
+    }
+
+    // ── Map generation tests ─────────────────────────────────────
+
+    #[test]
+    fn test_generate_initial_map() {
+        let id = uuid::Uuid::new_v4();
+        let map = generate_initial_map(&id);
+        let origin = MapPos::new(0, 0);
+
+        // Origin must exist and be an UndergroundCity
+        let origin_tile = map.tiles.get(&origin).unwrap();
+        assert_eq!(origin_tile.room_type, RoomType::UndergroundCity);
+        assert!(origin_tile.visited);
+        assert!(origin_tile.cleared);
+        assert_eq!(origin_tile.exits.len(), 4);
+
+        // All 4 neighbors must be revealed
+        for &dir in Direction::all() {
+            let neighbor = origin.neighbor(dir);
+            assert!(
+                map.tiles.contains_key(&neighbor),
+                "missing neighbor {:?}",
+                dir
+            );
+            let neighbor_tile = map.tiles.get(&neighbor).unwrap();
+            // Neighbor must have exit back to origin
+            assert!(
+                neighbor_tile.exits.contains(&dir.opposite()),
+                "neighbor {:?} missing exit back to origin",
+                dir
+            );
+        }
+
+        assert_eq!(map.position, origin);
+        assert_eq!(map.tiles_visited, 1);
+        assert!(map.tiles.len() >= 5); // origin + 4 neighbors
+    }
+
+    #[test]
+    fn test_map_deterministic() {
+        let id = uuid::Uuid::new_v4();
+        let map1 = generate_initial_map(&id);
+        let map2 = generate_initial_map(&id);
+
+        // Same session ID should produce same map
+        assert_eq!(map1.seed, map2.seed);
+        assert_eq!(map1.boss_positions, map2.boss_positions);
+
+        // Tiles at same positions should have same room types
+        for (pos, tile1) in &map1.tiles {
+            let tile2 = map2.tiles.get(pos).unwrap();
+            assert_eq!(tile1.room_type, tile2.room_type);
+            assert_eq!(tile1.name, tile2.name);
+        }
+    }
+
+    #[test]
+    fn test_reveal_tile_bidirectional() {
+        let id = uuid::Uuid::new_v4();
+        let mut map = generate_initial_map(&id);
+        let new_pos = MapPos::new(2, 0);
+
+        reveal_tile(&mut map, new_pos, Some(Direction::East));
+        let tile = map.tiles.get(&new_pos).unwrap();
+        // Must have exit back to west (where we came from)
+        assert!(tile.exits.contains(&Direction::West));
+    }
+
+    #[test]
+    fn test_room_from_tile() {
+        let tile = MapTile {
+            pos: MapPos::new(3, 4),
+            room_type: RoomType::Combat,
+            name: "Test Room".to_owned(),
+            description: "A test.".to_owned(),
+            exits: vec![Direction::North],
+            visited: true,
+            cleared: false,
+        };
+        let room = room_from_tile(&tile);
+        assert_eq!(room.room_type, RoomType::Combat);
+        assert_eq!(room.name, "Test Room");
+        assert_eq!(room.index, 7); // depth = |3| + |4| = 7
+    }
+
+    #[test]
+    fn test_encounter_room() {
+        let room = generate_encounter_room(5);
+        assert_eq!(room.room_type, RoomType::Combat);
+        assert_eq!(room.index, 5);
+        assert!(!room.name.is_empty());
+    }
+
+    #[test]
+    fn test_boss_positions() {
+        let positions = compute_boss_positions(42);
+        assert_eq!(positions.len(), 5);
+        // Each boss should be at a depth that's a multiple of 7
+        for (i, pos) in positions.iter().enumerate() {
+            let expected_depth = (i as u32 + 1) * 7;
+            assert_eq!(
+                pos.depth(),
+                expected_depth,
+                "Boss {} at {:?} should be at depth {}",
+                i,
+                pos,
+                expected_depth
+            );
+        }
     }
 }

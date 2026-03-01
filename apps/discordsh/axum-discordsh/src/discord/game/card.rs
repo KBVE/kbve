@@ -476,6 +476,165 @@ impl GameCardTemplate {
     }
 }
 
+// ── Map card display types ──────────────────────────────────────────
+
+/// Pre-computed display values for a single tile in the map SVG grid.
+pub struct MapTileDisplay {
+    pub grid_x: i32,
+    pub grid_y: i32,
+    pub fill_color: String,
+    pub icon: String,
+    pub is_current: bool,
+    pub is_visited: bool,
+    pub is_discovered: bool,
+    pub has_exit_n: bool,
+    pub has_exit_s: bool,
+    pub has_exit_e: bool,
+    pub has_exit_w: bool,
+    pub cleared: bool,
+}
+
+/// Askama SVG template for the dungeon map card.
+#[derive(Template)]
+#[template(path = "game/map.svg")]
+pub struct MapCardTemplate {
+    pub tiles: Vec<MapTileDisplay>,
+    pub player_x: i32,
+    pub player_y: i32,
+    pub grid_size: i32,
+    pub tiles_explored: u32,
+    pub depth: u32,
+}
+
+// ── Map helpers ─────────────────────────────────────────────────────
+
+fn room_type_color(room_type: &RoomType) -> &'static str {
+    match room_type {
+        RoomType::Combat => "#cc3333",
+        RoomType::Boss => "#ff4444",
+        RoomType::Treasure => "#ffaa00",
+        RoomType::RestShrine => "#44cc44",
+        RoomType::Merchant => "#aa88ff",
+        RoomType::UndergroundCity => "#4488ff",
+        RoomType::Story => "#ff88ff",
+        RoomType::Trap => "#ff8800",
+        RoomType::Hallway => "#666666",
+    }
+}
+
+fn room_type_icon(room_type: &RoomType) -> &'static str {
+    match room_type {
+        RoomType::Combat => "\u{2694}",          // crossed swords
+        RoomType::Boss => "\u{2620}",            // skull
+        RoomType::Treasure => "\u{25C6}",        // diamond
+        RoomType::RestShrine => "\u{2665}",      // heart
+        RoomType::Merchant => "\u{2696}",        // scales
+        RoomType::UndergroundCity => "\u{2302}", // house
+        RoomType::Story => "\u{266B}",           // scroll-like
+        RoomType::Trap => "\u{26A0}",            // warning
+        RoomType::Hallway => "\u{2500}",         // horizontal line
+    }
+}
+
+/// Build a `MapCardTemplate` from the current session state.
+///
+/// Creates a 7x7 grid centred on the player's current position.
+/// Only tiles that are visited or adjacent to a visited tile (discovered)
+/// are included; everything else is left blank (dark background).
+pub fn build_map_card(session: &SessionState) -> MapCardTemplate {
+    let pos = &session.map.position;
+    let half = 3i16; // 7x7 grid, center at index 3
+    let mut tiles = Vec::new();
+
+    for gy in 0..7i16 {
+        for gx in 0..7i16 {
+            let world_x = pos.x + (gx - half);
+            let world_y = pos.y + (gy - half);
+            let world_pos = MapPos::new(world_x, world_y);
+
+            if let Some(tile) = session.map.tiles.get(&world_pos) {
+                let is_current = world_pos == *pos;
+                let is_visited = tile.visited;
+
+                // A tile is "discovered" if it is adjacent to a visited tile
+                // but hasn't been visited itself.
+                let is_discovered = if !is_visited {
+                    Direction::all().iter().any(|dir| {
+                        let neighbor = world_pos.neighbor(*dir);
+                        session.map.tiles.get(&neighbor).is_some_and(|t| t.visited)
+                    })
+                } else {
+                    false
+                };
+
+                // Only render visited or discovered tiles
+                if !is_visited && !is_discovered {
+                    continue;
+                }
+
+                let fill_color = if is_visited {
+                    room_type_color(&tile.room_type).to_owned()
+                } else {
+                    "#333344".to_owned()
+                };
+
+                let icon = if is_visited {
+                    room_type_icon(&tile.room_type).to_owned()
+                } else {
+                    "?".to_owned()
+                };
+
+                tiles.push(MapTileDisplay {
+                    grid_x: gx as i32,
+                    grid_y: gy as i32,
+                    fill_color,
+                    icon,
+                    is_current,
+                    is_visited,
+                    is_discovered,
+                    has_exit_n: tile.exits.contains(&Direction::North),
+                    has_exit_s: tile.exits.contains(&Direction::South),
+                    has_exit_e: tile.exits.contains(&Direction::East),
+                    has_exit_w: tile.exits.contains(&Direction::West),
+                    cleared: tile.cleared,
+                });
+            }
+        }
+    }
+
+    MapCardTemplate {
+        tiles,
+        player_x: pos.x as i32,
+        player_y: pos.y as i32,
+        grid_size: 7,
+        tiles_explored: session.map.tiles_visited,
+        depth: pos.depth(),
+    }
+}
+
+// ── Public render function (map) ────────────────────────────────────
+
+/// Render the map card as PNG bytes (CPU-bound).
+pub fn render_map_card_blocking(
+    session: &SessionState,
+    fontdb: &FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_map_card(session);
+    let svg_string = template
+        .render()
+        .map_err(|e| format!("Map SVG template error: {e}"))?;
+
+    render_svg_to_png(&svg_string, fontdb).map_err(|e| format!("Map SVG render error: {e}"))
+}
+
+/// Async wrapper — clones session and renders the map on a blocking thread.
+pub async fn render_map_card(session: &SessionState, fontdb: FontDb) -> Result<Vec<u8>, String> {
+    let session_clone = session.clone();
+    tokio::task::spawn_blocking(move || render_map_card_blocking(&session_clone, &fontdb))
+        .await
+        .map_err(|e| format!("Map render task panicked: {e}"))?
+}
+
 // ── Public render function ──────────────────────────────────────────
 
 /// Render the game card as PNG bytes (CPU-bound, ~5-40ms).
@@ -537,6 +696,9 @@ mod tests {
             log: Vec::new(),
             show_items: false,
             pending_actions: HashMap::new(),
+            map: test_map_default(),
+            show_map: false,
+            pending_destination: None,
         }
     }
 
@@ -694,7 +856,8 @@ mod tests {
             "Should have 3 enemies in the template"
         );
         assert_eq!(
-            template.enemies.len(), 3,
+            template.enemies.len(),
+            3,
             "Enemy panels should have 3 entries"
         );
 
