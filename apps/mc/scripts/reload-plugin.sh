@@ -2,7 +2,7 @@
 # Build plugin natively, copy into running dev container, restart
 set -e
 CONTAINER=${1:-kbve-mc-dev}
-PLUGIN_SO="apps/mc/pumpkin/target/release/libkbve_mc_plugin.so"
+PLUGIN_SO="apps/mc/plugins/kbve-mc-plugin/target/release/libkbve_mc_plugin.so"
 
 echo "Building plugin..."
 cargo build --release --manifest-path apps/mc/plugins/kbve-mc-plugin/Cargo.toml
