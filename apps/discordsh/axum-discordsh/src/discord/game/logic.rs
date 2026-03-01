@@ -5,6 +5,7 @@ use super::content;
 use super::types::*;
 
 const CLERIC_HEALS_PER_COMBAT: u8 = 1;
+const PARTY_ACTION_TIMEOUT_SECS: u64 = 60;
 
 // ── Enemy targeting ─────────────────────────────────────────────────
 
@@ -128,7 +129,7 @@ fn validate_action(
                 return Err("No room choice available.".to_owned());
             }
         }
-        GameAction::UseItem(_) | GameAction::ToggleItems => {
+        GameAction::UseItem(_, _) | GameAction::ToggleItems => {
             // UseItem and ToggleItems allowed in WaitingForActions too
         }
     }
@@ -139,7 +140,7 @@ fn validate_action(
             GameAction::Attack
             | GameAction::AttackTarget(_)
             | GameAction::Defend
-            | GameAction::UseItem(_)
+            | GameAction::UseItem(_, _)
             | GameAction::ToggleItems
             | GameAction::HealAlly(_) => {}
             _ => {
@@ -166,6 +167,22 @@ pub fn apply_action(
     validate_actor(session, actor)?;
     validate_action(session, &action, actor)?;
 
+    // Party mode timeout: auto-defend for inactive players
+    if session.mode == SessionMode::Party
+        && session.phase == GamePhase::WaitingForActions
+        && session.last_action_at.elapsed().as_secs() >= PARTY_ACTION_TIMEOUT_SECS
+    {
+        let alive_ids = session.alive_player_ids();
+        for uid in alive_ids {
+            if !session.pending_actions.contains_key(&uid) {
+                session.pending_actions.insert(uid, GameAction::Defend);
+            }
+        }
+        session
+            .log
+            .push("Action timeout! Defaulting to Defend for inactive players.".to_owned());
+    }
+
     let logs = match action {
         GameAction::Attack => resolve_combat_turn(session, GameAction::Attack, actor),
         GameAction::AttackTarget(idx) => {
@@ -186,8 +203,8 @@ pub fn apply_action(
             let msg = apply_equip(session, gear_id, actor)?;
             vec![msg]
         }
-        GameAction::UseItem(ref item_id) => {
-            let msg = apply_item(session, item_id, actor)?;
+        GameAction::UseItem(ref item_id, target_opt) => {
+            let msg = apply_item(session, item_id, actor, target_opt)?;
             let mut logs = vec![msg];
             if session.phase == GamePhase::Combat {
                 let target = pick_enemy_target(session, actor);
@@ -376,10 +393,12 @@ fn resolve_combat_turn_party(
                 player.defending = true;
                 logs.push(format!("{} braces for impact!", player.name));
             }
-            GameAction::UseItem(item_id) => match apply_item(session, item_id, *uid) {
-                Ok(msg) => logs.push(msg),
-                Err(e) => logs.push(format!("[{}] {}", session.player(*uid).name, e)),
-            },
+            GameAction::UseItem(item_id, target_opt) => {
+                match apply_item(session, item_id, *uid, *target_opt) {
+                    Ok(msg) => logs.push(msg),
+                    Err(e) => logs.push(format!("[{}] {}", session.player(*uid).name, e)),
+                }
+            }
             GameAction::HealAlly(target_uid) => match apply_heal_ally(session, *target_uid, *uid) {
                 Ok(msg) => logs.push(msg),
                 Err(e) => logs.push(format!("[{}] {}", session.player(*uid).name, e)),
@@ -691,6 +710,122 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
     logs
 }
 
+/// Generate a new intent for an enemy based on its level tier.
+fn roll_new_intent(enemy: &EnemyState, rng: &mut impl rand::Rng) -> Intent {
+    let is_enraged = enemy.enraged;
+
+    let mut intent = if enemy.level >= 4 {
+        // Boss tier: full pool (0..10)
+        match rng.gen_range(0..10) {
+            0 => Intent::Attack {
+                dmg: 5 + enemy.level as i32,
+            },
+            1 => Intent::HeavyAttack {
+                dmg: 8 + enemy.level as i32 * 2,
+            },
+            2 => Intent::Defend { armor: 3 },
+            3 => Intent::Charge,
+            4 => Intent::Flee,
+            5 => {
+                if rng.gen_bool(0.5) {
+                    Intent::Debuff {
+                        effect: EffectKind::Weakened,
+                        stacks: 1,
+                        turns: rng.gen_range(2..=3),
+                    }
+                } else {
+                    Intent::Debuff {
+                        effect: EffectKind::Poison,
+                        stacks: 1,
+                        turns: rng.gen_range(2..=3),
+                    }
+                }
+            }
+            6 => Intent::Debuff {
+                effect: EffectKind::Burning,
+                stacks: 1,
+                turns: 2,
+            },
+            7 => Intent::AoeAttack {
+                dmg: rng.gen_range(4..=7),
+            },
+            8 | 9 => Intent::HealSelf {
+                amount: rng.gen_range(8..=15),
+            },
+            _ => Intent::Attack {
+                dmg: 5 + enemy.level as i32,
+            },
+        }
+    } else if enemy.level >= 2 {
+        // Tier 2-3: same 5 + debuffs (0..7)
+        match rng.gen_range(0..7) {
+            0 => Intent::Attack {
+                dmg: 5 + enemy.level as i32,
+            },
+            1 => Intent::HeavyAttack {
+                dmg: 8 + enemy.level as i32 * 2,
+            },
+            2 => Intent::Defend { armor: 3 },
+            3 => Intent::Charge,
+            4 => Intent::Flee,
+            5 => {
+                if rng.gen_bool(0.5) {
+                    Intent::Debuff {
+                        effect: EffectKind::Weakened,
+                        stacks: 1,
+                        turns: rng.gen_range(2..=3),
+                    }
+                } else {
+                    Intent::Debuff {
+                        effect: EffectKind::Poison,
+                        stacks: 1,
+                        turns: rng.gen_range(2..=3),
+                    }
+                }
+            }
+            6 => Intent::Debuff {
+                effect: EffectKind::Burning,
+                stacks: 1,
+                turns: 2,
+            },
+            _ => Intent::Attack {
+                dmg: 5 + enemy.level as i32,
+            },
+        }
+    } else {
+        // Tier 1: basic pool (0..5)
+        match rng.gen_range(0..5) {
+            0 => Intent::Attack {
+                dmg: rng.gen_range(5..=8),
+            },
+            1 => Intent::HeavyAttack {
+                dmg: rng.gen_range(8..=12),
+            },
+            2 => Intent::Defend { armor: 3 },
+            3 => Intent::Charge,
+            _ => Intent::Flee,
+        }
+    };
+
+    // Apply enrage multiplier to damage intents
+    if is_enraged {
+        intent = match intent {
+            Intent::Attack { dmg } => Intent::Attack {
+                dmg: (dmg as f32 * 1.5) as i32,
+            },
+            Intent::HeavyAttack { dmg } => Intent::HeavyAttack {
+                dmg: (dmg as f32 * 1.5) as i32,
+            },
+            Intent::AoeAttack { dmg } => Intent::AoeAttack {
+                dmg: (dmg as f32 * 1.5) as i32,
+            },
+            other => other,
+        };
+    }
+
+    intent
+}
+
 /// Execute a single enemy's turn against a target player.
 fn single_enemy_turn(
     session: &mut SessionState,
@@ -749,9 +884,26 @@ fn single_enemy_turn(
 
     // Compute damage/effect from enemy intent
     enum EnemyAction {
-        DealDamage { dmg: i32, msg: String },
+        DealDamage {
+            dmg: i32,
+            msg: String,
+        },
         BuffSelf,
         Flee,
+        DebuffPlayer {
+            effect: EffectKind,
+            stacks: u8,
+            turns: u8,
+            msg: String,
+        },
+        AoeDamage {
+            dmg: i32,
+            msg: String,
+        },
+        HealEnemy {
+            amount: i32,
+            msg: String,
+        },
     }
 
     let enemy = &mut session.enemies[enemy_vec_idx];
@@ -824,6 +976,30 @@ fn single_enemy_turn(
             logs.push(format!("The {} flees!", enemy.name));
             EnemyAction::Flee
         }
+        Intent::Debuff {
+            effect,
+            stacks,
+            turns,
+        } => {
+            let msg = format!("{} inflicts {:?} on {}!", enemy.name, effect, target_name);
+            EnemyAction::DebuffPlayer {
+                effect: effect.clone(),
+                stacks: *stacks,
+                turns: *turns,
+                msg,
+            }
+        }
+        Intent::AoeAttack { dmg } => {
+            let msg = format!("{} unleashes area attack for {} damage!", enemy.name, dmg);
+            EnemyAction::AoeDamage { dmg: *dmg, msg }
+        }
+        Intent::HealSelf { amount } => {
+            let enemy_max_hp = enemy.max_hp;
+            let heal = *amount;
+            enemy.hp = (enemy.hp + heal).min(enemy_max_hp);
+            let msg = format!("{} heals for {}!", enemy.name, heal);
+            EnemyAction::HealEnemy { amount: heal, msg }
+        }
     };
 
     // Apply damage to player
@@ -865,57 +1041,74 @@ fn single_enemy_turn(
             return logs;
         }
         EnemyAction::BuffSelf => {}
+        EnemyAction::DebuffPlayer {
+            effect,
+            stacks,
+            turns,
+            msg,
+        } => {
+            logs.push(msg);
+            session.player_mut(target).effects.push(EffectInstance {
+                kind: effect,
+                stacks,
+                turns_left: turns,
+            });
+        }
+        EnemyAction::AoeDamage { dmg, msg } => {
+            logs.push(msg);
+            let alive_ids = session.alive_player_ids();
+            for uid in alive_ids {
+                let player = session.player(uid);
+                let p_armor = player.armor;
+                let p_shielded = player.has_effect(&EffectKind::Shielded);
+                let p_defending = player.defending;
+
+                let mut actual = (dmg - p_armor).max(1);
+                if p_shielded || p_defending {
+                    actual /= 2;
+                }
+
+                let player = session.player_mut(uid);
+                player.hp -= actual;
+                if player.hp <= 0 {
+                    player.alive = false;
+                }
+            }
+            // No thorns reflect for AoE
+        }
+        EnemyAction::HealEnemy { amount: _, msg } => {
+            logs.push(msg);
+        }
     }
 
     // Generate new intent for this enemy
     if enemy_vec_idx < session.enemies.len() {
         let enemy = &mut session.enemies[enemy_vec_idx];
-        let is_enraged = enemy.enraged;
         if enemy.charged {
             enemy.charged = false;
             let mut heavy_dmg = 12 + enemy.level as i32 * 3;
-            if is_enraged {
+            if enemy.enraged {
                 heavy_dmg = (heavy_dmg as f32 * 1.5) as i32;
             }
             enemy.intent = Intent::HeavyAttack { dmg: heavy_dmg };
         } else {
-            let mut intent = match rng.gen_range(0..5) {
-                0 => Intent::Attack {
-                    dmg: 5 + enemy.level as i32,
-                },
-                1 => Intent::HeavyAttack {
-                    dmg: 8 + enemy.level as i32 * 2,
-                },
-                2 => Intent::Defend { armor: 3 },
-                3 => Intent::Charge,
-                _ => Intent::Attack {
-                    dmg: 4 + enemy.level as i32,
-                },
-            };
-            if is_enraged {
-                intent = match intent {
-                    Intent::Attack { dmg } => Intent::Attack {
-                        dmg: (dmg as f32 * 1.5) as i32,
-                    },
-                    Intent::HeavyAttack { dmg } => Intent::HeavyAttack {
-                        dmg: (dmg as f32 * 1.5) as i32,
-                    },
-                    other => other,
-                };
-            }
-            enemy.intent = intent;
+            let new_intent = roll_new_intent(enemy, &mut rng);
+            enemy.intent = new_intent;
         }
     }
 
-    // Check target player death
-    let player = session.player_mut(target);
-    if player.hp <= 0 {
-        player.alive = false;
-        let defeated_name = player.name.clone();
-        if session.all_players_dead() {
-            session.phase = GamePhase::GameOver(GameOverReason::Defeated);
+    // Check all player deaths (covers both single-target and AoE)
+    let all_uids: Vec<serenity::UserId> = session.players.keys().copied().collect();
+    for uid in all_uids {
+        let player = session.player_mut(uid);
+        if player.hp <= 0 && player.alive {
+            player.alive = false;
+            let defeated_name = player.name.clone();
+            logs.push(format!("{} has been defeated...", defeated_name));
         }
-        logs.push(format!("{} has been defeated...", defeated_name));
+    }
+    if session.all_players_dead() {
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
     }
 
     logs
@@ -979,6 +1172,7 @@ fn apply_item(
     session: &mut SessionState,
     item_id: &str,
     actor: serenity::UserId,
+    target_idx: Option<u8>,
 ) -> Result<String, String> {
     let player = session.player_mut(actor);
     let stack = player
@@ -1000,7 +1194,18 @@ fn apply_item(
             format!("Used {}! Restored {} HP.", def.name, amount)
         }
         Some(UseEffect::DamageEnemy { amount }) => {
-            if let Some(enemy) = session.primary_enemy_mut() {
+            // Determine which enemy to target: specific index, fallback to primary
+            let has_target = if let Some(idx) = target_idx {
+                session.enemy_at(idx).is_some()
+            } else {
+                false
+            };
+            let enemy = if has_target {
+                session.enemy_at_mut(target_idx.unwrap())
+            } else {
+                session.primary_enemy_mut()
+            };
+            if let Some(enemy) = enemy {
                 enemy.hp -= amount;
                 format!(
                     "Used {}! Dealt {} damage to {}.",
@@ -1458,7 +1663,18 @@ fn apply_story_choice(
         return Err("Invalid choice.".to_owned());
     }
 
-    let outcome = content::resolve_story_choice(&event.prompt, idx);
+    let class = session.player(actor).class.clone();
+    let outcome = content::resolve_story_choice(&event.prompt, idx, &class);
+
+    // Check if player can afford the gold cost
+    if outcome.gold_change < 0 {
+        let cost = (-outcome.gold_change) as i32;
+        if session.player(actor).gold < cost {
+            session.phase = GamePhase::Exploring;
+            return Ok(vec!["You don't have enough gold.".to_owned()]);
+        }
+    }
+
     let mut logs = vec![outcome.log_message];
 
     let player = session.player_mut(actor);
@@ -1918,7 +2134,7 @@ mod tests {
         session.player_mut(OWNER).hp = 30;
         let result = apply_action(
             &mut session,
-            GameAction::UseItem("potion".to_owned()),
+            GameAction::UseItem("potion".to_owned(), None),
             OWNER,
         );
         assert!(result.is_ok());
@@ -1931,7 +2147,7 @@ mod tests {
         session.player_mut(OWNER).hp = 48;
         let _ = apply_action(
             &mut session,
-            GameAction::UseItem("potion".to_owned()),
+            GameAction::UseItem("potion".to_owned(), None),
             OWNER,
         );
         assert_eq!(session.player(OWNER).hp, 50); // capped at max_hp
@@ -3130,6 +3346,374 @@ mod tests {
         assert_eq!(session.phase, GamePhase::Exploring);
     }
 
+    // ── Tier 3 tests ──────────────────────────────────────────────────
+
+    #[test]
+    fn test_story_class_specific_sealed_door() {
+        // Rogue picks lock -> +10 gold
+        let mut session = test_session();
+        session.phase = GamePhase::Event;
+        session.player_mut(OWNER).class = ClassType::Rogue;
+        session.player_mut(OWNER).gold = 0;
+        session.room.story_event = Some(StoryEvent {
+            prompt: "A sealed door with ancient locks blocks the way...".to_owned(),
+            choices: vec![
+                StoryChoice {
+                    label: "Pick Lock".to_owned(),
+                    description: "Try to pick the ancient lock.".to_owned(),
+                },
+                StoryChoice {
+                    label: "Force Open".to_owned(),
+                    description: "Smash through the door.".to_owned(),
+                },
+                StoryChoice {
+                    label: "Sense Traps".to_owned(),
+                    description: "Feel for hidden mechanisms.".to_owned(),
+                },
+            ],
+        });
+        let result = apply_action(&mut session, GameAction::StoryChoice(0), OWNER);
+        assert!(result.is_ok());
+        assert_eq!(session.player(OWNER).gold, 10);
+
+        // Warrior forces open -> HP decreased
+        let mut session2 = test_session();
+        session2.phase = GamePhase::Event;
+        session2.player_mut(OWNER).class = ClassType::Warrior;
+        let hp_before = session2.player(OWNER).hp;
+        session2.room.story_event = Some(StoryEvent {
+            prompt: "A sealed door with ancient locks blocks the way...".to_owned(),
+            choices: vec![
+                StoryChoice {
+                    label: "Pick Lock".to_owned(),
+                    description: "Try to pick the ancient lock.".to_owned(),
+                },
+                StoryChoice {
+                    label: "Force Open".to_owned(),
+                    description: "Smash through the door.".to_owned(),
+                },
+                StoryChoice {
+                    label: "Sense Traps".to_owned(),
+                    description: "Feel for hidden mechanisms.".to_owned(),
+                },
+            ],
+        });
+        let result = apply_action(&mut session2, GameAction::StoryChoice(1), OWNER);
+        assert!(result.is_ok());
+        assert!(
+            session2.player(OWNER).hp < hp_before,
+            "Warrior should take damage forcing door open"
+        );
+    }
+
+    #[test]
+    fn test_story_class_specific_shrine() {
+        // Warrior prays -> gets Sharpened
+        let mut session = test_session();
+        session.phase = GamePhase::Event;
+        session.player_mut(OWNER).class = ClassType::Warrior;
+        session.room.story_event = Some(StoryEvent {
+            prompt: "You discover a hidden shrine...".to_owned(),
+            choices: vec![
+                StoryChoice {
+                    label: "Pray".to_owned(),
+                    description: "Kneel and offer a prayer.".to_owned(),
+                },
+                StoryChoice {
+                    label: "Pass".to_owned(),
+                    description: "Continue on your way.".to_owned(),
+                },
+            ],
+        });
+        let result = apply_action(&mut session, GameAction::StoryChoice(0), OWNER);
+        assert!(result.is_ok());
+        assert!(
+            session.player(OWNER).has_effect(&EffectKind::Sharpened),
+            "Warrior should have Sharpened after praying at shrine"
+        );
+
+        // Cleric prays -> HP increased
+        let mut session2 = test_session();
+        session2.phase = GamePhase::Event;
+        session2.player_mut(OWNER).class = ClassType::Cleric;
+        session2.player_mut(OWNER).hp = 20;
+        session2.player_mut(OWNER).max_hp = 100;
+        session2.room.story_event = Some(StoryEvent {
+            prompt: "You discover a hidden shrine...".to_owned(),
+            choices: vec![
+                StoryChoice {
+                    label: "Pray".to_owned(),
+                    description: "Kneel and offer a prayer.".to_owned(),
+                },
+                StoryChoice {
+                    label: "Pass".to_owned(),
+                    description: "Continue on your way.".to_owned(),
+                },
+            ],
+        });
+        let result = apply_action(&mut session2, GameAction::StoryChoice(0), OWNER);
+        assert!(result.is_ok());
+        assert_eq!(
+            session2.player(OWNER).hp,
+            50,
+            "Cleric should heal 30 HP (20 + 30 = 50)"
+        );
+    }
+
+    #[test]
+    fn test_enemy_debuff_intent() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.player_mut(OWNER).hp = 200;
+        session.player_mut(OWNER).max_hp = 200;
+
+        let mut enemy = test_enemy();
+        enemy.hp = 200;
+        enemy.max_hp = 200;
+        enemy.intent = Intent::Debuff {
+            effect: EffectKind::Weakened,
+            stacks: 1,
+            turns: 2,
+        };
+        session.enemies = vec![enemy];
+
+        // Run enemy turn directly
+        let logs = single_enemy_turn(&mut session, 0, OWNER);
+
+        assert!(
+            session.player(OWNER).has_effect(&EffectKind::Weakened),
+            "Player should have Weakened effect after enemy debuff. Logs: {:?}",
+            logs
+        );
+    }
+
+    #[test]
+    fn test_enemy_aoe_damage() {
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        session.phase = GamePhase::Combat;
+
+        let member_id = serenity::UserId::new(42);
+        session.party.push(member_id);
+        session.players.insert(
+            member_id,
+            PlayerState {
+                name: "PartyMember".to_owned(),
+                hp: 200,
+                max_hp: 200,
+                inventory: content::starting_inventory(),
+                ..PlayerState::default()
+            },
+        );
+        session.player_mut(OWNER).hp = 200;
+        session.player_mut(OWNER).max_hp = 200;
+
+        let mut enemy = test_enemy();
+        enemy.hp = 200;
+        enemy.max_hp = 200;
+        enemy.intent = Intent::AoeAttack { dmg: 10 };
+        session.enemies = vec![enemy];
+
+        let owner_hp_before = session.player(OWNER).hp;
+        let member_hp_before = session.player(member_id).hp;
+
+        let logs = single_enemy_turn(&mut session, 0, OWNER);
+
+        assert!(
+            session.player(OWNER).hp < owner_hp_before,
+            "Owner should have taken AoE damage. Logs: {:?}",
+            logs
+        );
+        assert!(
+            session.player(member_id).hp < member_hp_before,
+            "Party member should have taken AoE damage. Logs: {:?}",
+            logs
+        );
+    }
+
+    #[test]
+    fn test_enemy_heal_self() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.player_mut(OWNER).hp = 200;
+        session.player_mut(OWNER).max_hp = 200;
+
+        let mut enemy = test_enemy();
+        enemy.hp = 10;
+        enemy.max_hp = 30;
+        enemy.intent = Intent::HealSelf { amount: 12 };
+        session.enemies = vec![enemy];
+
+        let logs = single_enemy_turn(&mut session, 0, OWNER);
+
+        assert_eq!(
+            session.enemies[0].hp, 22,
+            "Enemy should have healed from 10 to 22. Logs: {:?}",
+            logs
+        );
+    }
+
+    #[test]
+    fn test_party_timeout_auto_defend() {
+        use std::time::Duration;
+
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        session.phase = GamePhase::WaitingForActions;
+
+        let member_id = serenity::UserId::new(42);
+        session.party.push(member_id);
+        session.players.insert(
+            member_id,
+            PlayerState {
+                name: "PartyMember".to_owned(),
+                hp: 200,
+                max_hp: 200,
+                inventory: content::starting_inventory(),
+                ..PlayerState::default()
+            },
+        );
+        session.player_mut(OWNER).hp = 200;
+        session.player_mut(OWNER).max_hp = 200;
+
+        // Set up a combat enemy
+        let mut enemy = test_enemy();
+        enemy.hp = 200;
+        enemy.max_hp = 200;
+        session.enemies = vec![enemy];
+
+        // Set last_action_at to 61 seconds ago
+        session.last_action_at = Instant::now() - Duration::from_secs(61);
+
+        // Owner submits action, member does not
+        let result = apply_action(&mut session, GameAction::Attack, OWNER);
+        assert!(result.is_ok());
+
+        // The timeout logic should have auto-defended the member
+        // Since all actions are submitted, the party resolution should have occurred
+        // Check that the member got a defend action (they should not be waiting)
+        assert_ne!(
+            session.phase,
+            GamePhase::WaitingForActions,
+            "Phase should have progressed past WaitingForActions after timeout"
+        );
+    }
+
+    #[test]
+    fn test_item_targeting_specific_enemy() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+
+        let enemy0 = EnemyState {
+            name: "Slime A".to_owned(),
+            level: 1,
+            hp: 200,
+            max_hp: 200,
+            armor: 0,
+            effects: Vec::new(),
+            intent: Intent::Attack { dmg: 1 },
+            charged: false,
+            loot_table_id: "slime",
+            enraged: false,
+            index: 0,
+        };
+        let enemy1 = EnemyState {
+            name: "Slime B".to_owned(),
+            level: 1,
+            hp: 200,
+            max_hp: 200,
+            armor: 0,
+            effects: Vec::new(),
+            intent: Intent::Attack { dmg: 1 },
+            charged: false,
+            loot_table_id: "slime",
+            enraged: false,
+            index: 1,
+        };
+        session.enemies = vec![enemy0, enemy1];
+        session.player_mut(OWNER).hp = 200;
+        session.player_mut(OWNER).max_hp = 200;
+
+        // Add a bomb to player inventory
+        add_item_to_inventory(&mut session.player_mut(OWNER).inventory, "bomb");
+
+        let enemy0_hp_before = session.enemies[0].hp;
+        let enemy1_hp_before = session.enemies[1].hp;
+
+        // Use bomb targeting enemy at index 1
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("bomb".to_owned(), Some(1)),
+            OWNER,
+        );
+        assert!(result.is_ok());
+
+        // Enemy at index 0 should be untouched, enemy at index 1 should have taken damage
+        assert_eq!(
+            session.enemies[0].hp, enemy0_hp_before,
+            "Enemy 0 should not have taken damage"
+        );
+        assert!(
+            session.enemies[1].hp < enemy1_hp_before,
+            "Enemy 1 should have taken bomb damage"
+        );
+    }
+
+    #[test]
+    fn test_item_targeting_default() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+
+        let enemy0 = EnemyState {
+            name: "Slime A".to_owned(),
+            level: 1,
+            hp: 200,
+            max_hp: 200,
+            armor: 0,
+            effects: Vec::new(),
+            intent: Intent::Attack { dmg: 1 },
+            charged: false,
+            loot_table_id: "slime",
+            enraged: false,
+            index: 0,
+        };
+        let enemy1 = EnemyState {
+            name: "Slime B".to_owned(),
+            level: 1,
+            hp: 200,
+            max_hp: 200,
+            armor: 0,
+            effects: Vec::new(),
+            intent: Intent::Attack { dmg: 1 },
+            charged: false,
+            loot_table_id: "slime",
+            enraged: false,
+            index: 1,
+        };
+        session.enemies = vec![enemy0, enemy1];
+        session.player_mut(OWNER).hp = 200;
+        session.player_mut(OWNER).max_hp = 200;
+
+        // Add a bomb to player inventory
+        add_item_to_inventory(&mut session.player_mut(OWNER).inventory, "bomb");
+
+        let enemy0_hp_before = session.enemies[0].hp;
+
+        // Use bomb with None target (should default to primary enemy at index 0)
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("bomb".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+
+        // Primary enemy (index 0) should have taken damage
+        assert!(
+            session.enemies[0].hp < enemy0_hp_before,
+            "Primary enemy should have taken bomb damage"
+        );
+    }
+
     // ── Group 1: Hazard & Modifier Tests ────────────────────────────
 
     #[test]
@@ -3407,7 +3991,7 @@ mod tests {
     fn test_empty_inventory_use_item() {
         let mut session = test_session();
         // Try to use an item the player doesn't have
-        let result = apply_action(&mut session, GameAction::UseItem("ward".to_owned()), OWNER);
+        let result = apply_action(&mut session, GameAction::UseItem("ward".to_owned(), None), OWNER);
         // Starting inventory has potion, bandage, bomb - but NOT ward
         assert!(
             result.is_err(),
@@ -3431,7 +4015,7 @@ mod tests {
         // Use potion which heals 15. 48 + 15 = 63, but should cap at 50.
         let result = apply_action(
             &mut session,
-            GameAction::UseItem("potion".to_owned()),
+            GameAction::UseItem("potion".to_owned(), None),
             OWNER,
         );
         assert!(result.is_ok());
@@ -3954,4 +4538,5 @@ mod tests {
             "Should have fled successfully at least once in 50 attempts"
         );
     }
+
 }

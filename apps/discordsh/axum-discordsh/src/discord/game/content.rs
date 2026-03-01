@@ -1143,12 +1143,89 @@ pub fn generate_story_event() -> StoryEvent {
                 },
             ],
         },
+        StoryEvent {
+            prompt: "A sealed door with ancient locks blocks the way...".to_owned(),
+            choices: vec![
+                StoryChoice {
+                    label: "Pick Lock".to_owned(),
+                    description: "Try to pick the ancient lock.".to_owned(),
+                },
+                StoryChoice {
+                    label: "Force Open".to_owned(),
+                    description: "Smash through the door.".to_owned(),
+                },
+                StoryChoice {
+                    label: "Sense Traps".to_owned(),
+                    description: "Feel for hidden mechanisms.".to_owned(),
+                },
+            ],
+        },
+        StoryEvent {
+            prompt: "A dying adventurer reaches out for help...".to_owned(),
+            choices: vec![
+                StoryChoice {
+                    label: "Help Them".to_owned(),
+                    description: "Tend to their wounds.".to_owned(),
+                },
+                StoryChoice {
+                    label: "Take Gear".to_owned(),
+                    description: "Claim their equipment.".to_owned(),
+                },
+                StoryChoice {
+                    label: "Search Pockets".to_owned(),
+                    description: "Rifle through their belongings.".to_owned(),
+                },
+            ],
+        },
+        StoryEvent {
+            prompt: "A narrow bridge spans a dark chasm...".to_owned(),
+            choices: vec![
+                StoryChoice {
+                    label: "Cross Carefully".to_owned(),
+                    description: "Move slowly and steadily.".to_owned(),
+                },
+                StoryChoice {
+                    label: "Sprint Across".to_owned(),
+                    description: "Run before it collapses.".to_owned(),
+                },
+            ],
+        },
+        StoryEvent {
+            prompt: "You discover a hidden shrine...".to_owned(),
+            choices: vec![
+                StoryChoice {
+                    label: "Pray".to_owned(),
+                    description: "Kneel and offer a prayer.".to_owned(),
+                },
+                StoryChoice {
+                    label: "Pass".to_owned(),
+                    description: "Continue on your way.".to_owned(),
+                },
+            ],
+        },
+        StoryEvent {
+            prompt: "A translucent merchant ghost materializes...".to_owned(),
+            choices: vec![
+                StoryChoice {
+                    label: "Trade".to_owned(),
+                    description: "Offer 20 gold for spectral protection.".to_owned(),
+                },
+                StoryChoice {
+                    label: "Decline".to_owned(),
+                    description: "Politely refuse.".to_owned(),
+                },
+            ],
+        },
     ];
     events[rng.gen_range(0..events.len())].clone()
 }
 
 /// Resolve a story event choice. Returns the outcome for the given event index and choice.
-pub fn resolve_story_choice(event_prompt: &str, choice_idx: usize) -> StoryOutcome {
+pub fn resolve_story_choice(
+    event_prompt: &str,
+    choice_idx: usize,
+    class: &ClassType,
+) -> StoryOutcome {
     // Match outcomes by prompt + choice index
     match (event_prompt, choice_idx) {
         ("A mirror whispers your name...", 0) => StoryOutcome {
@@ -1204,6 +1281,181 @@ pub fn resolve_story_choice(event_prompt: &str, choice_idx: usize) -> StoryOutco
         },
         (p, _) if p.starts_with("Ancient runes") => StoryOutcome {
             log_message: "You step around the runes. Nothing happens.".to_owned(),
+            hp_change: 0,
+            gold_change: 0,
+            item_gain: None,
+            effect_gain: None,
+        },
+        // ── Event 5: Sealed door ──────────────────────────────────────
+        (p, 0) if p.starts_with("A sealed door") => match class {
+            ClassType::Rogue => StoryOutcome {
+                log_message: "Your nimble fingers make quick work of the ancient lock. Gold gleams inside!".to_owned(),
+                hp_change: 0,
+                gold_change: 10,
+                item_gain: None,
+                effect_gain: None,
+            },
+            _ => StoryOutcome {
+                log_message: "You fumble with the lock mechanism, triggering a needle trap.".to_owned(),
+                hp_change: -3,
+                gold_change: 0,
+                item_gain: None,
+                effect_gain: None,
+            },
+        },
+        (p, 1) if p.starts_with("A sealed door") => match class {
+            ClassType::Warrior => StoryOutcome {
+                log_message: "You smash through the door! Splinters cut you, but the impact sharpens your resolve.".to_owned(),
+                hp_change: -8,
+                gold_change: 0,
+                item_gain: None,
+                effect_gain: Some((EffectKind::Sharpened, 2, 3)),
+            },
+            _ => StoryOutcome {
+                log_message: "You throw yourself against the door, bruising your shoulder.".to_owned(),
+                hp_change: -8,
+                gold_change: 0,
+                item_gain: None,
+                effect_gain: None,
+            },
+        },
+        (p, _) if p.starts_with("A sealed door") => match class {
+            ClassType::Cleric => StoryOutcome {
+                log_message: "Your divine senses detect a hidden trap. You disarm it and feel blessed.".to_owned(),
+                hp_change: 5,
+                gold_change: 0,
+                item_gain: None,
+                effect_gain: Some((EffectKind::Shielded, 1, 3)),
+            },
+            _ => StoryOutcome {
+                log_message: "You sense something but can't quite make it out. Nothing happens.".to_owned(),
+                hp_change: 0,
+                gold_change: 0,
+                item_gain: None,
+                effect_gain: None,
+            },
+        },
+        // ── Event 6: Dying adventurer ─────────────────────────────────
+        (p, 0) if p.starts_with("A dying adventurer") => match class {
+            ClassType::Cleric => StoryOutcome {
+                log_message: "Your healing touch saves the adventurer. They bless you with divine protection.".to_owned(),
+                hp_change: 0,
+                gold_change: 0,
+                item_gain: None,
+                effect_gain: Some((EffectKind::Shielded, 1, 3)),
+            },
+            _ => StoryOutcome {
+                log_message: "You do your best to help. The adventurer thanks you weakly.".to_owned(),
+                hp_change: 0,
+                gold_change: 0,
+                item_gain: None,
+                effect_gain: None,
+            },
+        },
+        (p, 1) if p.starts_with("A dying adventurer") => match class {
+            ClassType::Warrior => StoryOutcome {
+                log_message: "You claim the fallen warrior's weapon. A whetstone falls from their belt.".to_owned(),
+                hp_change: 0,
+                gold_change: 0,
+                item_gain: Some("whetstone"),
+                effect_gain: Some((EffectKind::Sharpened, 1, 3)),
+            },
+            _ => StoryOutcome {
+                log_message: "You take their gear. It's mostly worn out.".to_owned(),
+                hp_change: 0,
+                gold_change: 5,
+                item_gain: None,
+                effect_gain: None,
+            },
+        },
+        (p, _) if p.starts_with("A dying adventurer") => match class {
+            ClassType::Rogue => StoryOutcome {
+                log_message: "Your quick fingers find a hidden coin purse. Not bad.".to_owned(),
+                hp_change: 0,
+                gold_change: 25,
+                item_gain: None,
+                effect_gain: None,
+            },
+            _ => StoryOutcome {
+                log_message: "You search but find only lint and regret.".to_owned(),
+                hp_change: 0,
+                gold_change: 3,
+                item_gain: None,
+                effect_gain: None,
+            },
+        },
+        // ── Event 7: Narrow bridge ────────────────────────────────────
+        (p, 0) if p.starts_with("A narrow bridge") => match class {
+            ClassType::Rogue => StoryOutcome {
+                log_message: "Your light feet carry you safely across the bridge.".to_owned(),
+                hp_change: 0,
+                gold_change: 0,
+                item_gain: None,
+                effect_gain: None,
+            },
+            ClassType::Cleric => StoryOutcome {
+                log_message: "A prayer steadies your nerves. You cross safely, feeling protected.".to_owned(),
+                hp_change: 0,
+                gold_change: 0,
+                item_gain: None,
+                effect_gain: Some((EffectKind::Shielded, 1, 2)),
+            },
+            ClassType::Warrior => StoryOutcome {
+                log_message: "You cross the bridge carefully. The planks creak but hold.".to_owned(),
+                hp_change: 0,
+                gold_change: 0,
+                item_gain: None,
+                effect_gain: None,
+            },
+        },
+        (p, _) if p.starts_with("A narrow bridge") => StoryOutcome {
+            log_message: "You sprint across! A plank snaps underfoot, scraping your leg, but you grab some coins on the other side.".to_owned(),
+            hp_change: -5,
+            gold_change: 5,
+            item_gain: None,
+            effect_gain: None,
+        },
+        // ── Event 8: Hidden shrine ────────────────────────────────────
+        (p, 0) if p.starts_with("You discover a hidden shrine") => match class {
+            ClassType::Warrior => StoryOutcome {
+                log_message: "The shrine empowers your blade with divine fury.".to_owned(),
+                hp_change: 0,
+                gold_change: 0,
+                item_gain: None,
+                effect_gain: Some((EffectKind::Sharpened, 2, 4)),
+            },
+            ClassType::Rogue => StoryOutcome {
+                log_message: "The shrine wraps you in a protective shimmer.".to_owned(),
+                hp_change: 0,
+                gold_change: 0,
+                item_gain: None,
+                effect_gain: Some((EffectKind::Shielded, 1, 4)),
+            },
+            ClassType::Cleric => StoryOutcome {
+                log_message: "The shrine resonates with your faith. Warmth floods through you.".to_owned(),
+                hp_change: 30,
+                gold_change: 0,
+                item_gain: None,
+                effect_gain: None,
+            },
+        },
+        (p, _) if p.starts_with("You discover a hidden shrine") => StoryOutcome {
+            log_message: "You pass the shrine without stopping.".to_owned(),
+            hp_change: 0,
+            gold_change: 0,
+            item_gain: None,
+            effect_gain: None,
+        },
+        // ── Event 9: Ghost merchant ───────────────────────────────────
+        (p, 0) if p.starts_with("A translucent merchant ghost") => StoryOutcome {
+            log_message: "The ghost accepts your gold and wraps you in spectral armor.".to_owned(),
+            hp_change: 0,
+            gold_change: -20,
+            item_gain: None,
+            effect_gain: Some((EffectKind::Shielded, 2, 4)),
+        },
+        (p, _) if p.starts_with("A translucent merchant ghost") => StoryOutcome {
+            log_message: "The ghost fades away with a disappointed sigh.".to_owned(),
             hp_change: 0,
             gold_change: 0,
             item_gain: None,
@@ -1446,14 +1698,16 @@ mod tests {
     fn story_event_generated() {
         let event = generate_story_event();
         assert!(!event.prompt.is_empty());
-        assert_eq!(event.choices.len(), 2);
+        assert!(event.choices.len() >= 2 && event.choices.len() <= 3);
     }
 
     #[test]
     fn story_outcome_resolved() {
-        let outcome = resolve_story_choice("A mirror whispers your name...", 0);
+        let outcome =
+            resolve_story_choice("A mirror whispers your name...", 0, &ClassType::Warrior);
         assert_eq!(outcome.hp_change, 10);
-        let outcome2 = resolve_story_choice("A mirror whispers your name...", 1);
+        let outcome2 =
+            resolve_story_choice("A mirror whispers your name...", 1, &ClassType::Warrior);
         assert_eq!(outcome2.hp_change, -5);
         assert!(outcome2.item_gain.is_some());
     }
@@ -1536,13 +1790,13 @@ mod tests {
     #[test]
     fn test_story_choice_resolve_outcomes() {
         // Mirror event, choice 0 (Listen): grants +10 HP
-        let outcome = resolve_story_choice("A mirror whispers your name...", 0);
+        let outcome = resolve_story_choice("A mirror whispers your name...", 0, &ClassType::Warrior);
         assert_eq!(outcome.hp_change, 10);
         assert_eq!(outcome.gold_change, 0);
         assert!(outcome.item_gain.is_none());
 
         // Mirror event, choice 1 (Smash): -5 HP, gets bomb, gets bleed
-        let outcome = resolve_story_choice("A mirror whispers your name...", 1);
+        let outcome = resolve_story_choice("A mirror whispers your name...", 1, &ClassType::Warrior);
         assert_eq!(outcome.hp_change, -5);
         assert_eq!(outcome.item_gain, Some("bomb"));
         assert!(outcome.effect_gain.is_some());
@@ -1551,6 +1805,7 @@ mod tests {
         let outcome = resolve_story_choice(
             "A rusty chest sits in the corner, vines crawling over its lock.",
             0,
+            &ClassType::Warrior,
         );
         assert_eq!(outcome.gold_change, 20);
         assert_eq!(outcome.hp_change, 0);
@@ -1559,6 +1814,7 @@ mod tests {
         let outcome = resolve_story_choice(
             "A spectral figure offers a glowing vial in exchange for your gold.",
             0,
+            &ClassType::Warrior,
         );
         assert_eq!(outcome.gold_change, -15);
         assert_eq!(outcome.item_gain, Some("ward"));
@@ -1567,6 +1823,7 @@ mod tests {
         let outcome = resolve_story_choice(
             "Ancient runes glow on the floor. They pulse with energy.",
             0,
+            &ClassType::Warrior,
         );
         assert_eq!(outcome.hp_change, 15);
         assert!(outcome.effect_gain.is_some());
@@ -1574,7 +1831,7 @@ mod tests {
         assert_eq!(kind, EffectKind::Shielded);
 
         // Unknown event falls through to default
-        let outcome = resolve_story_choice("completely unknown prompt", 0);
+        let outcome = resolve_story_choice("completely unknown prompt", 0, &ClassType::Warrior);
         assert_eq!(outcome.hp_change, 0);
         assert_eq!(outcome.gold_change, 0);
         assert!(outcome.item_gain.is_none());

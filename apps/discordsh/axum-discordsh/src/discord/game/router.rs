@@ -50,7 +50,7 @@ pub async fn handle_game_component(
             if let Some(value) = values.first() {
                 // Value format: "item_id|qty"
                 let item_id = value.split('|').next().unwrap_or(value);
-                GameAction::UseItem(item_id.to_owned())
+                GameAction::UseItem(item_id.to_owned(), None)
             } else {
                 return send_ephemeral(component, ctx, "No item selected.").await;
             }
@@ -112,6 +112,31 @@ pub async fn handle_game_component(
             Err(_) => {
                 return send_ephemeral(component, ctx, "Invalid story choice.").await;
             }
+        }
+    } else if action_str == "useitem_t" {
+        // Targeted item use select menu — value format: "item_id|target_idx"
+        if let serenity::ComponentInteractionDataKind::StringSelect { values } =
+            &component.data.kind
+        {
+            if let Some(value) = values.first() {
+                let mut parts_iter = value.splitn(2, '|');
+                let item_id = parts_iter.next().unwrap_or("").to_owned();
+                let target_idx = parts_iter.next().and_then(|s| {
+                    if s.is_empty() {
+                        None
+                    } else {
+                        s.parse::<u8>().ok()
+                    }
+                });
+                if item_id.is_empty() {
+                    return send_ephemeral(component, ctx, "Invalid item.").await;
+                }
+                GameAction::UseItem(item_id, target_idx)
+            } else {
+                return send_ephemeral(component, ctx, "No item selected.").await;
+            }
+        } else {
+            return send_ephemeral(component, ctx, "Invalid select menu interaction.").await;
         }
     } else if action_str == "sell" {
         if let serenity::ComponentInteractionDataKind::StringSelect { values } =
@@ -346,8 +371,8 @@ mod tests {
         assert_eq!(item_id, "elixir");
 
         // Verify that the parsed item_id can construct a valid GameAction::UseItem
-        let action = GameAction::UseItem("bomb".to_owned());
-        assert_eq!(action, GameAction::UseItem("bomb".to_owned()));
+        let action = GameAction::UseItem("bomb".to_owned(), None);
+        assert_eq!(action, GameAction::UseItem("bomb".to_owned(), None));
 
         // Verify target parsing from the second segment
         let value = "bomb|1";

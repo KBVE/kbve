@@ -41,6 +41,41 @@ pub struct PlayerPanel {
     pub y_stats: u32,
     pub y_effects: u32,
     pub y_effects_text: u32,
+    // XP progress bar (full mode only)
+    pub xp_width: u32,
+    pub level: u8,
+    pub class_label: String,
+    pub y_xp_bar: u32,
+    pub y_xp_bar_text: u32,
+    // Equipment display (full mode only)
+    pub weapon_display: String,
+    pub armor_display: String,
+    pub y_gear: u32,
+}
+
+/// Pre-computed display values for a single enemy panel in the SVG card.
+pub struct EnemyPanel {
+    pub name: String,
+    pub level: u8,
+    pub hp: i32,
+    pub max_hp: i32,
+    pub hp_width: u32,
+    pub armor: i32,
+    pub y_name: u32,
+    pub y_hp_bar: u32,
+    pub y_hp_text: u32,
+    pub y_def: u32,
+    pub y_intent: u32,
+    pub y_intent_box: u32,
+    pub y_intent_text: u32,
+    pub y_effects: u32,
+    pub y_effects_text: u32,
+    pub intent_icon: String,
+    pub intent_text: String,
+    pub effects: Vec<EffectBadge>,
+    pub font_size_name: u32,
+    pub font_size_stats: u32,
+    pub hp_bar_height: u32,
 }
 
 // ── Askama SVG template ─────────────────────────────────────────────
@@ -58,17 +93,10 @@ pub struct GameCardTemplate {
     // Players (1–4 panels)
     pub players: Vec<PlayerPanel>,
 
-    // Enemy (conditional)
+    // Enemies (conditional, multi-enemy)
     pub has_enemy: bool,
-    pub enemy_name: String,
-    pub enemy_level: u8,
-    pub enemy_hp: i32,
-    pub enemy_max_hp: i32,
-    pub enemy_hp_width: u32,
-    pub enemy_armor: i32,
-    pub intent_icon: String,
-    pub intent_text: String,
-    pub enemy_effects: Vec<EffectBadge>,
+    pub enemies: Vec<EnemyPanel>,
+    pub enemy_count: usize,
 
     // Room
     pub room_badges: Vec<RoomBadge>,
@@ -186,6 +214,16 @@ fn intent_to_icon_and_text(intent: &Intent) -> (String, String) {
         Intent::Defend { armor } => ("\u{1F6E1}".into(), format!("Brace (+{armor})")),
         Intent::Charge => ("\u{2605}".into(), "Charging...".into()),
         Intent::Flee => ("\u{2192}".into(), "Retreating".into()),
+        Intent::Debuff {
+            effect,
+            stacks,
+            turns,
+        } => (
+            "\u{2622}".into(),
+            format!("{:?} x{} ({}t)", effect, stacks, turns),
+        ),
+        Intent::AoeAttack { dmg } => ("\u{1F4A5}".into(), format!("AoE ({dmg})")),
+        Intent::HealSelf { amount } => ("\u{2764}".into(), format!("Heal (+{amount})")),
     }
 }
 
@@ -247,6 +285,16 @@ fn player_y_offsets(count: usize) -> (Vec<u32>, bool) {
     }
 }
 
+/// Y offsets for enemy panels based on enemy count.
+/// Returns (y_name_offsets, font_size_name, font_size_stats, hp_bar_height).
+fn enemy_y_layout(count: usize) -> (Vec<u32>, u32, u32, u32) {
+    match count {
+        1 => (vec![85], 18, 14, 22),
+        2 => (vec![70, 200], 16, 12, 18),
+        _ => (vec![65, 155, 245], 14, 11, 14),
+    }
+}
+
 impl GameCardTemplate {
     pub fn from_session(session: &SessionState) -> Self {
         let (phase_color, phase_color_dark) = phase_colors(session);
@@ -260,6 +308,29 @@ impl GameCardTemplate {
             .enumerate()
             .map(|(i, (_, player))| {
                 let y = offsets[i];
+
+                // Build weapon/armor display strings
+                let weapon_display = player
+                    .weapon
+                    .as_ref()
+                    .and_then(|wid| super::content::find_gear(wid))
+                    .map(|g| format!("\u{2694} {}", g.name))
+                    .unwrap_or_default();
+                let armor_display = player
+                    .armor_gear
+                    .as_ref()
+                    .and_then(|aid| super::content::find_gear(aid))
+                    .map(|g| format!("\u{1F6E1} {}", g.name))
+                    .unwrap_or_default();
+
+                // XP progress
+                let xp_width = if player.xp_to_next > 0 {
+                    (player.xp as f32 / player.xp_to_next as f32 * HP_BAR_MAX_WIDTH as f32)
+                        .min(HP_BAR_MAX_WIDTH as f32) as u32
+                } else {
+                    0
+                };
+
                 if compact {
                     // Compact: name → HP bar (16px) → DEF/Gold text → effects
                     PlayerPanel {
@@ -279,9 +350,24 @@ impl GameCardTemplate {
                         y_stats: y + 36,
                         y_effects: y + 50,
                         y_effects_text: y + 53,
+                        // XP/equipment not shown in compact mode, but set defaults
+                        xp_width,
+                        level: player.level,
+                        class_label: player.class.label().to_string(),
+                        y_xp_bar: y + 24,
+                        y_xp_bar_text: y + 28,
+                        weapon_display: String::new(),
+                        armor_display: String::new(),
+                        y_gear: 0,
                     }
                 } else {
-                    // Full: name → HP bar (22px) → DEF/Gold text → effects
+                    // Full: name → HP bar (22px) → XP bar → gear → DEF/Gold text → effects
+                    let y_bar = y + 11;
+                    let hp_bar_h: u32 = 22;
+                    let y_xp_bar = y_bar + hp_bar_h + 2;
+                    let y_gear = y_xp_bar + 16;
+                    let y_stats = y_gear + 18;
+                    let y_effects = y_stats + 30;
                     PlayerPanel {
                         name: player.name.clone(),
                         hp: player.hp.max(0),
@@ -294,62 +380,77 @@ impl GameCardTemplate {
                         alive: player.alive,
                         compact: false,
                         y_name: y,
-                        y_bar: y + 11,
+                        y_bar,
                         y_bar_text: y + 27,
-                        y_stats: y + 75,
-                        y_effects: y + 105,
-                        y_effects_text: y + 109,
+                        y_stats,
+                        y_effects,
+                        y_effects_text: y_effects + 4,
+                        xp_width,
+                        level: player.level,
+                        class_label: player.class.label().to_string(),
+                        y_xp_bar,
+                        y_xp_bar_text: y_xp_bar + 4,
+                        weapon_display,
+                        armor_display,
+                        y_gear,
                     }
                 }
             })
             .collect();
 
-        // Use primary enemy for card display (multi-enemy shows first)
-        let (
-            has_enemy,
-            enemy_name,
-            enemy_level,
-            enemy_hp,
-            enemy_max_hp,
-            enemy_hp_width,
-            enemy_armor,
-            intent_icon,
-            intent_text,
-            enemy_effects,
-        ) = if let Some(enemy) = session.primary_enemy() {
-            let (icon, text) = intent_to_icon_and_text(&enemy.intent);
-            let display_name = if enemy.enraged {
-                format!("{} \u{1F525}", enemy.name)
-            } else if session.enemies.len() > 1 {
-                format!("{} (+{})", enemy.name, session.enemies.len() - 1)
-            } else {
-                enemy.name.clone()
-            };
-            (
-                true,
-                display_name,
-                enemy.level,
-                enemy.hp,
-                enemy.max_hp,
-                hp_bar_width(enemy.hp, enemy.max_hp),
-                enemy.armor,
-                icon,
-                text,
-                build_effect_badges(&enemy.effects, 430),
-            )
+        // Build multi-enemy panels
+        let has_enemy = !session.enemies.is_empty();
+        let enemy_count = session.enemies.len();
+        let enemies: Vec<EnemyPanel> = if has_enemy {
+            let (y_offsets, font_size_name, font_size_stats, hp_bar_height) =
+                enemy_y_layout(enemy_count);
+
+            session
+                .enemies
+                .iter()
+                .enumerate()
+                .map(|(i, enemy)| {
+                    let y_name = y_offsets[i.min(y_offsets.len() - 1)];
+                    let y_hp_bar = y_name + 11;
+                    let y_hp_text = y_hp_bar + (hp_bar_height * 3 / 4);
+                    let y_def = y_hp_bar + hp_bar_height + 20;
+                    let y_intent = y_def + 20;
+                    let y_effects = y_intent + 30;
+
+                    let (icon, text) = intent_to_icon_and_text(&enemy.intent);
+                    let display_name = if enemy.enraged {
+                        format!("{} \u{1F525}", enemy.name)
+                    } else {
+                        enemy.name.clone()
+                    };
+
+                    EnemyPanel {
+                        name: display_name,
+                        level: enemy.level,
+                        hp: enemy.hp.max(0),
+                        max_hp: enemy.max_hp,
+                        hp_width: hp_bar_width(enemy.hp, enemy.max_hp),
+                        armor: enemy.armor,
+                        y_name,
+                        y_hp_bar,
+                        y_hp_text,
+                        y_def,
+                        y_intent,
+                        y_intent_box: y_intent - 4,
+                        y_intent_text: y_intent + 8,
+                        y_effects,
+                        y_effects_text: y_effects + 4,
+                        intent_icon: icon,
+                        intent_text: text,
+                        effects: build_effect_badges(&enemy.effects, 430),
+                        font_size_name,
+                        font_size_stats,
+                        hp_bar_height,
+                    }
+                })
+                .collect()
         } else {
-            (
-                false,
-                String::new(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                String::new(),
-                String::new(),
-                Vec::new(),
-            )
+            Vec::new()
         };
 
         Self {
@@ -362,15 +463,8 @@ impl GameCardTemplate {
             players,
 
             has_enemy,
-            enemy_name,
-            enemy_level,
-            enemy_hp: enemy_hp.max(0),
-            enemy_max_hp,
-            enemy_hp_width,
-            enemy_armor,
-            intent_icon,
-            intent_text,
-            enemy_effects,
+            enemies,
+            enemy_count,
 
             room_badges: build_room_badges(session),
             turn: session.turn,
@@ -505,6 +599,7 @@ mod tests {
         let template = GameCardTemplate::from_session(&session);
         assert_eq!(template.turn, 3);
         assert!(!template.has_enemy);
+        assert!(template.enemies.is_empty());
     }
 
     #[test]
@@ -514,7 +609,8 @@ mod tests {
         session.enemies = vec![super::super::content::spawn_enemy(0)];
         let template = GameCardTemplate::from_session(&session);
         assert!(template.has_enemy);
-        assert!(!template.enemy_name.is_empty());
+        assert_eq!(template.enemy_count, 1);
+        assert!(!template.enemies[0].name.is_empty());
     }
 
     #[test]
@@ -592,11 +688,14 @@ mod tests {
         let template = GameCardTemplate::from_session(&session);
         // The template shows has_enemy when enemies exist
         assert!(template.has_enemy);
-        // Multi-enemy display: primary enemy name includes count of others
-        assert!(
-            template.enemy_name.contains("+2"),
-            "Multi-enemy display should show (+2), got: {}",
-            template.enemy_name
+        // Multi-enemy display: template should contain all 3 enemies
+        assert_eq!(
+            template.enemy_count, 3,
+            "Should have 3 enemies in the template"
+        );
+        assert_eq!(
+            template.enemies.len(), 3,
+            "Enemy panels should have 3 entries"
         );
 
         // Player panels should have distinct y_name offsets (no overlap)

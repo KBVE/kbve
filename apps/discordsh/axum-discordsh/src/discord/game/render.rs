@@ -86,6 +86,18 @@ pub fn intent_description(intent: &Intent) -> String {
         }
         Intent::Charge => "\u{2605} Charging...".to_owned(),
         Intent::Flee => "\u{2663} Retreating...".to_owned(),
+        Intent::Debuff {
+            effect,
+            stacks,
+            turns,
+        } => {
+            format!(
+                "\u{2622} Debuff ({:?} x{}, {} turns)",
+                effect, stacks, turns
+            )
+        }
+        Intent::AoeAttack { dmg } => format!("\u{1F4A5} AoE Attack ({dmg} dmg)"),
+        Intent::HealSelf { amount } => format!("\u{2764} Heal Self (+{amount} HP)"),
     }
 }
 
@@ -509,30 +521,91 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
 
     // Item select menu (only shown when toggled)
     if session.show_items && !game_over {
-        let options: Vec<serenity::CreateSelectMenuOption> = owner
-            .inventory
-            .iter()
-            .filter(|s| s.qty > 0)
-            .filter_map(|s| {
-                super::content::find_item(&s.item_id).map(|def| {
-                    let rarity_label = format!("{:?}", def.rarity);
-                    serenity::CreateSelectMenuOption::new(
-                        format!("{} (x{})", def.name, s.qty),
-                        format!("{}|{}", s.item_id, s.qty),
-                    )
-                    .description(format!("[{}] {}", rarity_label, def.description))
+        let multi_enemy_combat = in_combat && session.enemies.len() > 1;
+
+        if multi_enemy_combat {
+            // Multi-enemy targeted item menu: damage items get one option per alive enemy,
+            // non-damage items use the regular untargeted action.
+            let mut targeted_options: Vec<serenity::CreateSelectMenuOption> = Vec::new();
+            let mut untargeted_options: Vec<serenity::CreateSelectMenuOption> = Vec::new();
+
+            for stack in owner.inventory.iter().filter(|s| s.qty > 0) {
+                if let Some(def) = super::content::find_item(&stack.item_id) {
+                    let is_damage = matches!(def.use_effect, Some(UseEffect::DamageEnemy { .. }));
+                    if is_damage {
+                        // One option per alive enemy
+                        for enemy in &session.enemies {
+                            targeted_options.push(
+                                serenity::CreateSelectMenuOption::new(
+                                    format!("{} -> {} (x{})", def.name, enemy.name, stack.qty),
+                                    format!("{}|{}", stack.item_id, enemy.index),
+                                )
+                                .description(format!("[{:?}] {}", def.rarity, def.description)),
+                            );
+                        }
+                    } else {
+                        let rarity_label = format!("{:?}", def.rarity);
+                        untargeted_options.push(
+                            serenity::CreateSelectMenuOption::new(
+                                format!("{} (x{})", def.name, stack.qty),
+                                format!("{}|{}", stack.item_id, stack.qty),
+                            )
+                            .description(format!("[{}] {}", rarity_label, def.description)),
+                        );
+                    }
+                }
+            }
+
+            // Targeted items use useitem_t action
+            if !targeted_options.is_empty() {
+                let select = serenity::CreateSelectMenu::new(
+                    format!("dng|{sid}|useitem_t|select"),
+                    serenity::CreateSelectMenuKind::String {
+                        options: targeted_options,
+                    },
+                )
+                .placeholder("Use item on target...");
+                rows.push(serenity::CreateActionRow::SelectMenu(select));
+            }
+
+            // Non-damage items use regular useitem action
+            if !untargeted_options.is_empty() {
+                let select = serenity::CreateSelectMenu::new(
+                    format!("dng|{sid}|useitem|select"),
+                    serenity::CreateSelectMenuKind::String {
+                        options: untargeted_options,
+                    },
+                )
+                .placeholder("Use item...");
+                rows.push(serenity::CreateActionRow::SelectMenu(select));
+            }
+        } else {
+            // Single enemy or non-combat: standard item menu
+            let options: Vec<serenity::CreateSelectMenuOption> = owner
+                .inventory
+                .iter()
+                .filter(|s| s.qty > 0)
+                .filter_map(|s| {
+                    super::content::find_item(&s.item_id).map(|def| {
+                        let rarity_label = format!("{:?}", def.rarity);
+                        serenity::CreateSelectMenuOption::new(
+                            format!("{} (x{})", def.name, s.qty),
+                            format!("{}|{}", s.item_id, s.qty),
+                        )
+                        .description(format!("[{}] {}", rarity_label, def.description))
+                    })
                 })
-            })
-            .collect();
+                .collect();
 
-        if !options.is_empty() {
-            let select = serenity::CreateSelectMenu::new(
-                format!("dng|{sid}|useitem|select"),
-                serenity::CreateSelectMenuKind::String { options },
-            )
-            .placeholder("Select an item...");
+            if !options.is_empty() {
+                let select = serenity::CreateSelectMenu::new(
+                    format!("dng|{sid}|useitem|select"),
+                    serenity::CreateSelectMenuKind::String { options },
+                )
+                .placeholder("Select an item...");
 
-            rows.push(serenity::CreateActionRow::SelectMenu(select));
+                rows.push(serenity::CreateActionRow::SelectMenu(select));
+            }
         }
     }
 
