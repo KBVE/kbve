@@ -34,14 +34,14 @@ use pumpkin_inventory::player::player_inventory::PlayerInventory;
 use pumpkin_inventory::screen_handler::{
     BoxFuture as ScreenBoxFuture, InventoryPlayer, ScreenHandlerFactory, SharedScreenHandler,
 };
+use pumpkin_protocol::codec::var_int::VarInt;
 use pumpkin_protocol::java::client::play::{
     CRemoveEntities, CSetEntityMetadata, CSpawnEntity, Metadata,
 };
 use pumpkin_protocol::java::server::play::ActionType;
-use pumpkin_protocol::codec::var_int::VarInt;
 use pumpkin_util::math::vector3::Vector3;
-use pumpkin_util::text::color::NamedColor;
 use pumpkin_util::text::TextComponent;
+use pumpkin_util::text::color::NamedColor;
 use pumpkin_util::version::MinecraftVersion;
 use pumpkin_world::inventory::{Clearable, Inventory, InventoryFuture};
 use pumpkin_world::item::ItemStack;
@@ -49,7 +49,7 @@ use tokio::sync::Mutex;
 use tracing::{debug, info};
 use uuid::Uuid;
 
-use crate::{build_item_stack, ITEM_REGISTRY};
+use crate::{ITEM_REGISTRY, build_item_stack};
 
 // ── State ──────────────────────────────────────────────────────────────────
 
@@ -199,22 +199,14 @@ fn build_npc_metadata() -> Box<[u8]> {
     .unwrap();
 
     // Custom name visible
-    Metadata::new(
-        TrackedData::DATA_NAME_VISIBLE,
-        MetaDataType::BOOLEAN,
-        true,
-    )
-    .write(&mut buf, &version)
-    .unwrap();
+    Metadata::new(TrackedData::DATA_NAME_VISIBLE, MetaDataType::BOOLEAN, true)
+        .write(&mut buf, &version)
+        .unwrap();
 
     // No gravity
-    Metadata::new(
-        TrackedData::DATA_NO_GRAVITY,
-        MetaDataType::BOOLEAN,
-        true,
-    )
-    .write(&mut buf, &version)
-    .unwrap();
+    Metadata::new(TrackedData::DATA_NO_GRAVITY, MetaDataType::BOOLEAN, true)
+        .write(&mut buf, &version)
+        .unwrap();
 
     // ArmorStand marker flag (invulnerable, no hitbox)
     Metadata::new(

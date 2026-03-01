@@ -111,10 +111,7 @@
 				"local": {
 					"load": true,
 					"push": false,
-					"tags": ["kbve/discordsh:latest"],
-					"build-args": [
-						"BUILD_BASE=ghcr.io/kbve/discordsh-build-base:latest"
-					]
+					"tags": ["kbve/discordsh:latest"]
 				},
 				"production": {
 					"load": true,
