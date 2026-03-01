@@ -311,6 +311,36 @@ jobs:
         secrets:
             CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 
+    ## Base Docker images (built before downstream images that depend on them)
+    generate_base_docker_matrix:
+        needs: ['deploy', 'alter', 'globals']
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                  { "name": "mc", "target": "base", "condition": "${{ needs.alter.outputs.mc_base }}", "image": "ghcr.io/kbve/mc-rust-base" }
+                ]
+
+    build_base_images:
+        needs: ['generate_base_docker_matrix']
+        name: Build Base Images
+        if: ${{ needs.generate_base_docker_matrix.outputs.matrix != 'null' }}
+        permissions:
+            contents: read
+            packages: write
+        strategy:
+            fail-fast: false
+            matrix: ${{ fromJson(needs.generate_base_docker_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/utils-publish-docker-image.yml@main
+        with:
+            project: ${{ matrix.name }}
+            target: ${{ matrix.target }}
+            image: ${{ matrix.image }}
+        secrets:
+            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+            DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+            MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     generate_docker_matrix:
         needs: ['deploy', 'alter', 'globals']
         uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
@@ -341,9 +371,9 @@ jobs:
                 ]
 
     test_docker:
-        needs: ['generate_e2e_docker_matrix']
+        needs: ['generate_e2e_docker_matrix', 'build_base_images']
         name: Test Docker Apps
-        if: ${{ needs.generate_e2e_docker_matrix.outputs.matrix != 'null' }}
+        if: ${{ always() && !cancelled() && !failure() && needs.generate_e2e_docker_matrix.outputs.matrix != 'null' }}
         permissions:
             contents: read
         strategy:

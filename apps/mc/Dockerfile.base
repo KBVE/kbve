@@ -1,0 +1,66 @@
+# Dockerfile.base — Pre-built Rust base image for MC builds
+# Bakes Rust toolchain + cargo-chef + third-party deps + foundation + core crates.
+# Only needs rebuilding when Cargo.toml/Cargo.lock or foundation/core source changes.
+#
+# Build:
+#   docker build -f apps/mc/Dockerfile.base -t ghcr.io/kbve/mc-rust-base:latest .
+#
+# Usage in Dockerfile / Dockerfile.dev:
+#   FROM ghcr.io/kbve/mc-rust-base:latest AS core
+
+# --- Toolchain: install cargo-chef + rust toolchain (NO source) ---
+FROM rust:1-alpine3.23 AS chef
+ENV RUSTFLAGS="-C target-feature=-crt-static"
+RUN apk add --no-cache musl-dev git
+RUN cargo install cargo-chef --locked
+WORKDIR /pumpkin
+COPY ./apps/mc/pumpkin/rust-toolchain.toml /pumpkin/rust-toolchain.toml
+RUN rustup show active-toolchain || rustup toolchain install
+RUN rustup component add rustfmt
+
+# --- Planner: needs full source to generate recipe, but this is a dead-end stage ---
+FROM chef AS planner
+COPY ./apps/mc/pumpkin /pumpkin
+RUN cargo chef prepare --recipe-path recipe.json
+
+# --- Deps: FROM chef (clean, no source), only recipe matters ---
+FROM chef AS deps
+COPY --from=planner /pumpkin/recipe.json recipe.json
+COPY ./apps/mc/pumpkin/Cargo.toml /pumpkin/Cargo.toml
+COPY ./apps/mc/pumpkin/Cargo.lock /pumpkin/Cargo.lock
+COPY ./apps/mc/pumpkin/pumpkin-nbt/Cargo.toml /pumpkin/pumpkin-nbt/Cargo.toml
+COPY ./apps/mc/pumpkin/pumpkin-api-macros/Cargo.toml /pumpkin/pumpkin-api-macros/Cargo.toml
+COPY ./apps/mc/pumpkin/pumpkin-util/Cargo.toml /pumpkin/pumpkin-util/Cargo.toml
+COPY ./apps/mc/pumpkin/pumpkin-data/Cargo.toml /pumpkin/pumpkin-data/Cargo.toml
+COPY ./apps/mc/pumpkin/pumpkin-macros/Cargo.toml /pumpkin/pumpkin-macros/Cargo.toml
+COPY ./apps/mc/pumpkin/pumpkin-config/Cargo.toml /pumpkin/pumpkin-config/Cargo.toml
+COPY ./apps/mc/pumpkin/pumpkin-codegen/Cargo.toml /pumpkin/pumpkin-codegen/Cargo.toml
+COPY ./apps/mc/pumpkin/pumpkin-world/Cargo.toml /pumpkin/pumpkin-world/Cargo.toml
+COPY ./apps/mc/pumpkin/pumpkin-protocol/Cargo.toml /pumpkin/pumpkin-protocol/Cargo.toml
+COPY ./apps/mc/pumpkin/pumpkin-inventory/Cargo.toml /pumpkin/pumpkin-inventory/Cargo.toml
+COPY ./apps/mc/pumpkin/pumpkin/Cargo.toml /pumpkin/pumpkin/Cargo.toml
+RUN --mount=type=cache,target=/usr/local/cargo/git/db \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo chef cook --release --recipe-path recipe.json
+
+# --- Foundation: leaf + data crates (rarely change) ---
+FROM deps AS foundation
+COPY ./apps/mc/pumpkin/pumpkin-nbt /pumpkin/pumpkin-nbt
+COPY ./apps/mc/pumpkin/pumpkin-api-macros /pumpkin/pumpkin-api-macros
+COPY ./apps/mc/pumpkin/pumpkin-util /pumpkin/pumpkin-util
+COPY ./apps/mc/pumpkin/pumpkin-data /pumpkin/pumpkin-data
+COPY ./apps/mc/pumpkin/pumpkin-macros /pumpkin/pumpkin-macros
+COPY ./apps/mc/pumpkin/pumpkin-config /pumpkin/pumpkin-config
+COPY ./apps/mc/pumpkin/pumpkin-codegen /pumpkin/pumpkin-codegen
+RUN --mount=type=cache,target=/usr/local/cargo/git/db \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo build --release
+
+# --- Core: engine crates (protocol, world, inventory) ---
+FROM foundation AS core
+COPY ./apps/mc/pumpkin/pumpkin-world /pumpkin/pumpkin-world
+COPY ./apps/mc/pumpkin/pumpkin-protocol /pumpkin/pumpkin-protocol
+COPY ./apps/mc/pumpkin/pumpkin-inventory /pumpkin/pumpkin-inventory
+RUN --mount=type=cache,target=/usr/local/cargo/git/db \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo build --release

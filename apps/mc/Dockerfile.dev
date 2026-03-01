@@ -7,10 +7,6 @@
 #
 # Logs are written to the mounted logs/ directory (gitignored).
 # World data persists in the mounted world/ directory (gitignored).
-#
-# Granular cargo-chef layers cache deps aggressively — only the crate
-# you actually changed triggers a recompile:
-#   docker build -f apps/mc/Dockerfile.dev -t kbve-mc:dev .
 
 # ============================================================================
 # [STAGE A] - Build Astro Static Site
@@ -59,52 +55,10 @@ RUN find . -type f \( \
     echo "Precompression complete (brotli-11 + gzip-9)"
 
 # ============================================================================
-# Rust build stages (Pumpkin server + plugin)
+# Rust build stages — use pre-built base image (foundation + core cached)
 # ============================================================================
-FROM rust:1-alpine3.23 AS chef
-ENV RUSTFLAGS="-C target-feature=-crt-static"
-RUN apk add --no-cache musl-dev git
-RUN cargo install cargo-chef --locked
-WORKDIR /pumpkin
-COPY ./apps/mc/pumpkin /pumpkin
-RUN rustup show active-toolchain || rustup toolchain install
-RUN rustup component add rustfmt
-
-# --- Plan: hash dependency tree (only Cargo.toml/lock matter) ---
-FROM chef AS planner
-RUN cargo chef prepare --recipe-path recipe.json
-
-# --- Cook: compile third-party deps (cached until Cargo.toml/lock changes) ---
-FROM chef AS deps
-COPY --from=planner /pumpkin/recipe.json recipe.json
-RUN --mount=type=cache,target=/usr/local/cargo/git/db \
-    --mount=type=cache,target=/usr/local/cargo/registry/ \
-    cargo chef cook --release --recipe-path recipe.json
-
-# --- Foundation: leaf + data crates (rarely change, cached aggressively) ---
-#     cargo-chef cook strips workspace.lints, so restore the real manifests.
-#     Full workspace build ensures feature unification is correct.
-FROM deps AS foundation
-COPY ./apps/mc/pumpkin/Cargo.toml /pumpkin/Cargo.toml
-COPY ./apps/mc/pumpkin/Cargo.lock /pumpkin/Cargo.lock
-COPY ./apps/mc/pumpkin/pumpkin-nbt /pumpkin/pumpkin-nbt
-COPY ./apps/mc/pumpkin/pumpkin-api-macros /pumpkin/pumpkin-api-macros
-COPY ./apps/mc/pumpkin/pumpkin-util /pumpkin/pumpkin-util
-COPY ./apps/mc/pumpkin/pumpkin-data /pumpkin/pumpkin-data
-COPY ./apps/mc/pumpkin/pumpkin-macros /pumpkin/pumpkin-macros
-COPY ./apps/mc/pumpkin/pumpkin-config /pumpkin/pumpkin-config
-RUN --mount=type=cache,target=/usr/local/cargo/git/db \
-    --mount=type=cache,target=/usr/local/cargo/registry/ \
-    cargo build --release
-
-# --- Core: engine crates (protocol, world, inventory) ---
-FROM foundation AS core
-COPY ./apps/mc/pumpkin/pumpkin-world /pumpkin/pumpkin-world
-COPY ./apps/mc/pumpkin/pumpkin-protocol /pumpkin/pumpkin-protocol
-COPY ./apps/mc/pumpkin/pumpkin-inventory /pumpkin/pumpkin-inventory
-RUN --mount=type=cache,target=/usr/local/cargo/git/db \
-    --mount=type=cache,target=/usr/local/cargo/registry/ \
-    cargo build --release
+ARG BASE_IMAGE=ghcr.io/kbve/mc-rust-base:latest
+FROM ${BASE_IMAGE} AS core
 
 # --- Pumpkin: build server (parallel with plugin) ---
 FROM core AS builder
