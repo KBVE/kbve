@@ -113,6 +113,26 @@ pub async fn handle_game_component(
                 return send_ephemeral(component, ctx, "Invalid story choice.").await;
             }
         }
+    } else if action_str == "sell" {
+        if let serenity::ComponentInteractionDataKind::StringSelect { values } =
+            &component.data.kind
+        {
+            if let Some(item_id) = values.first() {
+                GameAction::Sell(item_id.to_owned())
+            } else {
+                return send_ephemeral(component, ctx, "No item selected.").await;
+            }
+        } else {
+            return send_ephemeral(component, ctx, "Invalid interaction.").await;
+        }
+    } else if action_str == "room" {
+        let idx_str = parts.get(3).unwrap_or(&"0");
+        match idx_str.parse::<u8>() {
+            Ok(idx) => GameAction::RoomChoice(idx),
+            Err(_) => {
+                return send_ephemeral(component, ctx, "Invalid room choice.").await;
+            }
+        }
     } else {
         match parse_action(action_str) {
             Some(a) => a,
