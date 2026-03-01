@@ -45,10 +45,13 @@ serve(async (req: Request) => {
       }
     } catch (e) {
       console.error(e);
-      return new Response(JSON.stringify({ msg: String(e) }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ msg: "Authentication failed" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     }
   }
 
@@ -86,10 +89,13 @@ serve(async (req: Request) => {
     });
     return await worker.fetch(req);
   } catch (e) {
-    const error = { msg: String(e) };
-    return new Response(JSON.stringify(error), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.error("Worker error:", e);
+    return new Response(
+      JSON.stringify({ msg: "Internal server error" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
 });
