@@ -12,7 +12,8 @@
 FROM rust:1-alpine3.23 AS chef
 ENV RUSTFLAGS="-C target-feature=-crt-static"
 RUN apk add --no-cache musl-dev git
-RUN cargo install cargo-chef --locked
+RUN cargo install cargo-chef --locked \
+    && rm -rf /usr/local/cargo/registry/src /usr/local/cargo/registry/cache
 WORKDIR /pumpkin
 COPY ./apps/mc/pumpkin/rust-toolchain.toml /pumpkin/rust-toolchain.toml
 RUN rustup show active-toolchain || rustup toolchain install
