@@ -408,17 +408,28 @@ jobs:
               env:
                   PUBLISH_MATRIX: ${{ needs.generate_docker_matrix.outputs.matrix }}
               run: |
+                  echo "::group::Debug test-results directory"
                   if [ -d "./test-results" ]; then
+                    echo "Directory exists, contents:"
+                    ls -la ./test-results/
                     PASSED=$(ls ./test-results/ | sed 's/test-passed-docker-//')
+                    echo "PASSED entries:"
+                    echo "$PASSED"
                   else
+                    echo "Directory does not exist"
                     PASSED=""
                   fi
+                  echo "::endgroup::"
+                  echo "::group::Debug matrix filter"
+                  echo "PUBLISH_MATRIX=$PUBLISH_MATRIX"
                   FILTERED=$(echo "$PUBLISH_MATRIX" | jq -c --arg passed "$PASSED" '{
                     include: [.include[] | select(
                       (.e2e_name | not) or
                       (.e2e_name as $e | $passed | split("\n") | any(. == $e))
                     )]
                   } | if (.include | length) == 0 then null else . end')
+                  echo "FILTERED=$FILTERED"
+                  echo "::endgroup::"
                   echo "publish_matrix=$FILTERED" >> "$GITHUB_OUTPUT"
 
     publish_docker:
@@ -481,17 +492,28 @@ jobs:
               env:
                   KUBE_MATRIX: ${{ needs.generate_kube_update_matrix.outputs.matrix }}
               run: |
+                  echo "::group::Debug test-results directory"
                   if [ -d "./test-results" ]; then
+                    echo "Directory exists, contents:"
+                    ls -la ./test-results/
                     PASSED=$(ls ./test-results/ | sed 's/test-passed-docker-//')
+                    echo "PASSED entries:"
+                    echo "$PASSED"
                   else
+                    echo "Directory does not exist"
                     PASSED=""
                   fi
+                  echo "::endgroup::"
+                  echo "::group::Debug matrix filter"
+                  echo "KUBE_MATRIX=$KUBE_MATRIX"
                   FILTERED=$(echo "$KUBE_MATRIX" | jq -c --arg passed "$PASSED" '{
                     include: [.include[] | select(
                       (.e2e_name | not) or
                       (.e2e_name as $e | $passed | split("\n") | any(. == $e))
                     )]
                   } | if (.include | length) == 0 then null else . end')
+                  echo "FILTERED=$FILTERED"
+                  echo "::endgroup::"
                   echo "matrix=$FILTERED" >> "$GITHUB_OUTPUT"
 
     update_kube_manifests:

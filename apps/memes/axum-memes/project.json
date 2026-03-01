@@ -93,7 +93,7 @@
         "production": {
           "commands": [
             "./kbve.sh -nx axum-memes:containerx --configuration=production",
-            "VERSION=$(grep '^version' apps/memes/axum-memes/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/memes:latest kbve/memes:$VERSION && docker tag ghcr.io/kbve/memes:latest ghcr.io/kbve/memes:$VERSION && echo \"Tagged kbve/memes:$VERSION\""
+            "VERSION=$(grep '^version' apps/memes/axum-memes/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/memes:latest kbve/memes:$VERSION && docker tag kbve/memes:latest ghcr.io/kbve/memes:$VERSION && echo \"Tagged kbve/memes:$VERSION and ghcr.io/kbve/memes:$VERSION\""
           ]
         }
       }
