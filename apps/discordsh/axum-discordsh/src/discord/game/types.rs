@@ -220,6 +220,8 @@ pub struct PlayerState {
     pub armor_gear: Option<String>,
     pub defending: bool,
     pub stunned_turns: u8,
+    pub first_attack_in_combat: bool,
+    pub heals_used_this_combat: u8,
     pub lifetime_kills: u32,
     pub lifetime_gold_earned: u32,
     pub lifetime_rooms_cleared: u32,
@@ -249,6 +251,8 @@ impl Default for PlayerState {
             armor_gear: None,
             defending: false,
             stunned_turns: 0,
+            first_attack_in_combat: true,
+            heals_used_this_combat: 0,
             lifetime_kills: 0,
             lifetime_gold_earned: 0,
             lifetime_rooms_cleared: 0,
@@ -501,7 +505,9 @@ impl SessionState {
     /// Check if all alive players have submitted pending actions.
     pub fn all_actions_submitted(&self) -> bool {
         let alive = self.alive_player_ids();
-        alive.iter().all(|uid| self.pending_actions.contains_key(uid))
+        alive
+            .iter()
+            .all(|uid| self.pending_actions.contains_key(uid))
     }
 }
 

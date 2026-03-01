@@ -255,11 +255,7 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
             .map(|p| p.name.clone())
             .collect();
         if !pending.is_empty() {
-            embed = embed.field(
-                "-- Waiting For --",
-                pending.join(", "),
-                false,
-            );
+            embed = embed.field("-- Waiting For --", pending.join(", "), false);
         }
     }
 
@@ -498,6 +494,69 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
             .placeholder("Select an item...");
 
             rows.push(serenity::CreateActionRow::SelectMenu(select));
+        }
+    }
+
+    // Gear equip select menu
+    let gear_items: Vec<_> = owner
+        .inventory
+        .iter()
+        .filter(|s| s.qty > 0 && super::content::find_gear(&s.item_id).is_some())
+        .collect();
+    if !gear_items.is_empty() && !game_over {
+        let mut options = Vec::new();
+        for stack in &gear_items {
+            if let Some(gear) = super::content::find_gear(&stack.item_id) {
+                let slot_label = match gear.slot {
+                    EquipSlot::Weapon => "Weapon",
+                    EquipSlot::Armor => "Armor",
+                };
+                options.push(serenity::CreateSelectMenuOption::new(
+                    format!("{} {} [{}]", gear.emoji, gear.name, slot_label),
+                    &stack.item_id,
+                ));
+            }
+        }
+        if !options.is_empty() {
+            let menu = serenity::CreateSelectMenu::new(
+                format!("dng|{sid}|equip"),
+                serenity::CreateSelectMenuKind::String { options },
+            )
+            .placeholder("Equip gear...");
+            rows.push(serenity::CreateActionRow::SelectMenu(menu));
+        }
+    }
+
+    // Cleric heal target menu (show if any party Cleric has heals remaining)
+    let is_combat_phase =
+        session.phase == GamePhase::Combat || session.phase == GamePhase::WaitingForActions;
+    let has_cleric_with_heals = session
+        .players
+        .values()
+        .any(|p| p.class == ClassType::Cleric && p.alive && p.heals_used_this_combat < 1);
+    if is_combat_phase && has_cleric_with_heals {
+        let heal_targets: Vec<_> = session
+            .roster()
+            .iter()
+            .filter(|(_, p)| p.alive)
+            .map(|(uid, p)| (*uid, p.name.clone(), p.hp, p.max_hp))
+            .collect();
+        if !heal_targets.is_empty() {
+            let options: Vec<_> = heal_targets
+                .iter()
+                .map(|(uid, name, hp, max_hp)| {
+                    serenity::CreateSelectMenuOption::new(
+                        format!("Heal {} (HP {}/{})", name, hp, max_hp),
+                        format!("{}", uid.get()),
+                    )
+                })
+                .collect();
+            let menu = serenity::CreateSelectMenu::new(
+                format!("dng|{sid}|heal"),
+                serenity::CreateSelectMenuKind::String { options },
+            )
+            .placeholder("Heal ally (Cleric)...");
+            rows.push(serenity::CreateActionRow::SelectMenu(menu));
         }
     }
 
