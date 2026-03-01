@@ -2,12 +2,13 @@
 
 pub mod jwt_cache;
 
-pub use jwt_cache::{JwtCache, JwtCacheError, TokenInfo, get_jwt_cache, init_jwt_cache};
+pub use jwt_cache::{JwtCacheError, get_jwt_cache, init_jwt_cache};
 
 use jsonwebtoken::{Algorithm, DecodingKey, TokenData, Validation, decode};
 use serde::{Deserialize, Serialize};
 
 /// JWT Claims from Supabase
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
     /// Subject (user ID as UUID)
@@ -33,6 +34,7 @@ pub struct Claims {
 }
 
 /// Authenticated user information
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct AuthUser {
     pub id: String,
@@ -51,6 +53,7 @@ impl From<Claims> for AuthUser {
 }
 
 /// Authentication errors
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum AuthError {
     MissingToken,
@@ -73,6 +76,7 @@ impl std::fmt::Display for AuthError {
 impl std::error::Error for AuthError {}
 
 /// Validate a JWT token using the Supabase JWT secret
+#[allow(dead_code)]
 pub fn validate_token(token: &str, jwt_secret: &str) -> Result<TokenData<Claims>, AuthError> {
     let key = DecodingKey::from_secret(jwt_secret.as_bytes());
 
@@ -94,6 +98,7 @@ pub fn extract_bearer_token(auth_header: &str) -> Option<&str> {
 }
 
 /// Check if a token is expired (with optional grace period in seconds)
+#[allow(dead_code)]
 pub fn is_token_expired(claims: &Claims, grace_seconds: i64) -> bool {
     let now = chrono::Utc::now().timestamp();
     claims.exp + grace_seconds < now

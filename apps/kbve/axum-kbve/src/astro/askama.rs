@@ -53,6 +53,7 @@ pub struct ErrorTemplate {
 }
 
 /// RentEarth character summary for template display
+#[allow(dead_code)]
 #[derive(Clone)]
 pub struct RentEarthCharacterDisplay {
     pub id: String,
@@ -85,9 +86,13 @@ pub struct ProfileTemplate {
     pub discord_username: Option<String>,
     pub discord_avatar: Option<String>,
     pub discord_is_guild_member: Option<bool>,
+    #[allow(dead_code)]
     pub discord_id: Option<String>,
+    #[allow(dead_code)]
     pub discord_guild_nickname: Option<String>,
+    #[allow(dead_code)]
     pub discord_joined_at: Option<String>,
+    #[allow(dead_code)]
     pub discord_is_boosting: Option<bool>,
     pub discord_role_count: usize,
     pub discord_role_names: Vec<String>,
@@ -101,6 +106,7 @@ pub struct ProfileTemplate {
     // RentEarth fields
     pub rentearth_characters: Vec<RentEarthCharacterDisplay>,
     pub rentearth_total_playtime_hours: Option<i64>,
+    #[allow(dead_code)]
     pub rentearth_last_activity: Option<String>,
 }
 

@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::{mpsc, oneshot};
 
-use super::profile::{DiscordInfo, UserProfile};
+use super::profile::UserProfile;
 
 /// Cache configuration
 const CACHE_TTL: Duration = Duration::from_secs(300); // 5 minutes
@@ -51,13 +51,16 @@ pub enum CacheCommand {
     /// Store a profile in the cache
     Set {
         username: String,
-        profile: UserProfile,
+        profile: Box<UserProfile>,
     },
     /// Invalidate a specific profile
+    #[allow(dead_code)]
     Invalidate { username: String },
     /// Clear all cached profiles
+    #[allow(dead_code)]
     Clear,
     /// Get cache statistics
+    #[allow(dead_code)]
     Stats { reply: oneshot::Sender<CacheStats> },
 }
 
@@ -97,7 +100,7 @@ impl ProfileCache {
     pub async fn set(&self, username: &str, profile: UserProfile) {
         let cmd = CacheCommand::Set {
             username: username.to_lowercase(),
-            profile,
+            profile: Box::new(profile),
         };
 
         if let Err(e) = self.tx.send(cmd).await {
@@ -106,6 +109,7 @@ impl ProfileCache {
     }
 
     /// Invalidate a cached profile
+    #[allow(dead_code)]
     pub async fn invalidate(&self, username: &str) {
         let cmd = CacheCommand::Invalidate {
             username: username.to_lowercase(),
@@ -115,11 +119,13 @@ impl ProfileCache {
     }
 
     /// Clear entire cache
+    #[allow(dead_code)]
     pub async fn clear(&self) {
         let _ = self.tx.send(CacheCommand::Clear).await;
     }
 
     /// Get cache statistics
+    #[allow(dead_code)]
     pub async fn stats(&self) -> Option<CacheStats> {
         let (reply_tx, reply_rx) = oneshot::channel();
         let cmd = CacheCommand::Stats { reply: reply_tx };
@@ -184,7 +190,7 @@ async fn cache_actor_loop(mut rx: mpsc::Receiver<CacheCommand>) {
                     evict_lru(&cache, &mut stats);
                 }
 
-                cache.insert(username, CacheEntry::new(profile));
+                cache.insert(username, CacheEntry::new(*profile));
                 stats.size = cache.len();
             }
 

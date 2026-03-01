@@ -248,6 +248,7 @@ impl DiscordClient {
 
     /// Get user by ID (doesn't require guild membership)
     /// GET /users/{user.id}
+    #[allow(dead_code)]
     pub async fn get_user(&self, user_id: &str) -> Result<Option<DiscordUser>, String> {
         let url = format!("{}/users/{}", DISCORD_API_BASE, user_id);
 
@@ -456,6 +457,7 @@ pub fn get_role_names(role_ids: &[String]) -> Vec<String> {
 }
 
 /// Get the cached role map (for debugging/inspection)
+#[allow(dead_code)]
 pub fn get_cached_roles() -> Option<&'static std::collections::HashMap<String, String>> {
     GUILD_ROLES_CACHE.get()
 }
