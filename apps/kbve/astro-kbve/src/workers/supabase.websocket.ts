@@ -34,7 +34,9 @@ type WorkerResponse =
 	| { id: string; ok: true; data?: any }
 	| { id: string; ok: false; error: string };
 
-declare const self: DedicatedWorkerGlobalScope;
+type WorkerResponseBody =
+	| { ok: true; data?: any }
+	| { ok: false; error: string };
 
 // Supabase client
 let client: SupabaseClient | null = null;
@@ -299,7 +301,7 @@ function getWebSocketStatus() {
 		return { status: 'disconnected', readyState: null };
 	}
 
-	const readyStateMap = {
+	const readyStateMap: Record<number, string> = {
 		[WebSocket.CONNECTING]: 'connecting',
 		[WebSocket.OPEN]: 'connected',
 		[WebSocket.CLOSING]: 'closing',
@@ -315,7 +317,7 @@ function getWebSocketStatus() {
 // Handle incoming messages
 self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 	const msg = e.data;
-	const { id, type, payload } = msg;
+	const { id, type } = msg;
 
 	try {
 		switch (type) {
@@ -325,7 +327,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 			}
 
 			case 'init': {
-				const { url, anonKey, options } = payload;
+				const { url, anonKey, options } = msg.payload;
 
 				console.log('[WebSocket Worker] Initializing Supabase client');
 
@@ -387,7 +389,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 			case 'signInWithPassword': {
 				if (!client) throw new Error('Client not initialized');
 
-				const { email, password } = payload;
+				const { email, password } = msg.payload;
 				const { data, error } = await client.auth.signInWithPassword({
 					email,
 					password,
@@ -411,7 +413,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 			case 'realtime.subscribe': {
 				if (!client) throw new Error('Client not initialized');
 
-				const { key, params } = payload;
+				const { key, params } = msg.payload;
 
 				const channel = client
 					.channel(key)
@@ -439,10 +441,10 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 			}
 
 			case 'realtime.unsubscribe': {
-				const sub = subscriptions.get(payload.key);
+				const sub = subscriptions.get(msg.payload.key);
 				if (sub) {
 					await sub.unsubscribe();
-					subscriptions.delete(payload.key);
+					subscriptions.delete(msg.payload.key);
 				}
 
 				respond(id, { ok: true });
@@ -450,7 +452,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 			}
 
 			case 'ws.connect': {
-				await connectWebSocket(payload?.wsUrl);
+				await connectWebSocket(msg.payload?.wsUrl);
 				respond(id, { ok: true, data: getWebSocketStatus() });
 				break;
 			}
@@ -462,7 +464,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 			}
 
 			case 'ws.send': {
-				sendWebSocketMessage(payload.data);
+				sendWebSocketMessage(msg.payload.data);
 				respond(id, { ok: true });
 				break;
 			}
@@ -484,7 +486,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 	}
 };
 
-function respond(id: string, response: Omit<WorkerResponse, 'id'>) {
+function respond(id: string, response: WorkerResponseBody) {
 	self.postMessage({ id, ...response });
 }
 

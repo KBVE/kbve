@@ -88,7 +88,7 @@ export default function ReactNav() {
 					lastAuthUpdateRef.current = now;
 
 					// Only update if session actually changed to prevent unnecessary re-renders
-					setSession((prev) => {
+					setSession((prev: Session | null) => {
 						const newSession = msg.session ?? null;
 						// Compare by user ID to avoid object reference issues
 						const prevUserId = prev?.user?.id;

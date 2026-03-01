@@ -65,7 +65,6 @@ pub struct EnemyPanel {
     pub y_hp_bar: u32,
     pub y_hp_text: u32,
     pub y_def: u32,
-    pub y_intent: u32,
     pub y_intent_box: u32,
     pub y_intent_text: u32,
     pub y_effects: u32,
@@ -96,6 +95,7 @@ pub struct GameCardTemplate {
     // Enemies (conditional, multi-enemy)
     pub has_enemy: bool,
     pub enemies: Vec<EnemyPanel>,
+    #[allow(dead_code)] // used in tests but not in the SVG template
     pub enemy_count: usize,
 
     // Room
@@ -435,7 +435,6 @@ impl GameCardTemplate {
                         y_hp_bar,
                         y_hp_text,
                         y_def,
-                        y_intent,
                         y_intent_box: y_intent - 4,
                         y_intent_text: y_intent + 8,
                         y_effects,
@@ -476,6 +475,187 @@ impl GameCardTemplate {
     }
 }
 
+// ── Map card display types ──────────────────────────────────────────
+
+/// Pre-computed display values for a single tile in the map SVG grid.
+pub struct MapTileDisplay {
+    /// Tile top-left X: 20 + grid_x * 52
+    pub tx: i32,
+    /// Tile top-left Y: 44 + grid_y * 52
+    pub ty: i32,
+    /// Tile center X: tx + 24
+    pub cx: i32,
+    /// Tile center Y: ty + 24
+    pub cy: i32,
+    pub fill_color: String,
+    /// Room type identifier for SVG shape rendering: "combat", "boss", etc.
+    pub icon_id: String,
+    /// Icon stroke/fill color (white for visited, gray for unvisited).
+    pub icon_color: String,
+    pub is_current: bool,
+    pub is_visited: bool,
+    pub is_discovered: bool,
+    pub has_exit_n: bool,
+    pub has_exit_s: bool,
+    pub has_exit_e: bool,
+    pub has_exit_w: bool,
+    pub cleared: bool,
+}
+
+/// Askama SVG template for the dungeon map card.
+#[derive(Template)]
+#[template(path = "game/map.svg")]
+pub struct MapCardTemplate {
+    pub tiles: Vec<MapTileDisplay>,
+    pub player_x: i32,
+    pub player_y: i32,
+    pub tiles_explored: u32,
+    pub depth: u32,
+}
+
+// ── Map helpers ─────────────────────────────────────────────────────
+
+fn room_type_color(room_type: &RoomType) -> &'static str {
+    match room_type {
+        RoomType::Combat => "#cc3333",
+        RoomType::Boss => "#ff4444",
+        RoomType::Treasure => "#ffaa00",
+        RoomType::RestShrine => "#44cc44",
+        RoomType::Merchant => "#aa88ff",
+        RoomType::UndergroundCity => "#4488ff",
+        RoomType::Story => "#ff88ff",
+        RoomType::Trap => "#ff8800",
+        RoomType::Hallway => "#666666",
+    }
+}
+
+fn room_type_icon_id(room_type: &RoomType) -> &'static str {
+    match room_type {
+        RoomType::Combat => "combat",
+        RoomType::Boss => "boss",
+        RoomType::Treasure => "treasure",
+        RoomType::RestShrine => "rest",
+        RoomType::Merchant => "merchant",
+        RoomType::UndergroundCity => "city",
+        RoomType::Story => "story",
+        RoomType::Trap => "trap",
+        RoomType::Hallway => "hallway",
+    }
+}
+
+/// Build a `MapCardTemplate` from the current session state.
+///
+/// Creates a 7x7 grid centred on the player's current position.
+/// Only tiles that are visited or adjacent to a visited tile (discovered)
+/// are included; everything else is left blank (dark background).
+pub fn build_map_card(session: &SessionState) -> MapCardTemplate {
+    let pos = &session.map.position;
+    let half = 3i16; // 7x7 grid, center at index 3
+    let mut tiles = Vec::new();
+
+    for gy in 0..7i16 {
+        for gx in 0..7i16 {
+            let world_x = pos.x + (gx - half);
+            let world_y = pos.y + (gy - half);
+            let world_pos = MapPos::new(world_x, world_y);
+
+            if let Some(tile) = session.map.tiles.get(&world_pos) {
+                let is_current = world_pos == *pos;
+                let is_visited = tile.visited;
+
+                // A tile is "discovered" if it is adjacent to a visited tile
+                // but hasn't been visited itself.
+                let is_discovered = if !is_visited {
+                    Direction::all().iter().any(|dir| {
+                        let neighbor = world_pos.neighbor(*dir);
+                        session.map.tiles.get(&neighbor).is_some_and(|t| t.visited)
+                    })
+                } else {
+                    false
+                };
+
+                // Only render visited or discovered tiles
+                if !is_visited && !is_discovered {
+                    continue;
+                }
+
+                let fill_color = if is_visited {
+                    room_type_color(&tile.room_type).to_owned()
+                } else {
+                    "#333344".to_owned()
+                };
+
+                let icon_id = if is_visited {
+                    room_type_icon_id(&tile.room_type).to_owned()
+                } else {
+                    "unknown".to_owned()
+                };
+
+                let icon_color = if is_visited {
+                    "#ffffff".to_owned()
+                } else {
+                    "#888899".to_owned()
+                };
+
+                // Pre-compute pixel positions for SVG rendering
+                let gxi = gx as i32;
+                let gyi = gy as i32;
+                let tx = 20 + gxi * 52;
+                let ty = 44 + gyi * 52;
+
+                tiles.push(MapTileDisplay {
+                    tx,
+                    ty,
+                    cx: tx + 24,
+                    cy: ty + 24,
+                    fill_color,
+                    icon_id,
+                    icon_color,
+                    is_current,
+                    is_visited,
+                    is_discovered,
+                    has_exit_n: tile.exits.contains(&Direction::North),
+                    has_exit_s: tile.exits.contains(&Direction::South),
+                    has_exit_e: tile.exits.contains(&Direction::East),
+                    has_exit_w: tile.exits.contains(&Direction::West),
+                    cleared: tile.cleared,
+                });
+            }
+        }
+    }
+
+    MapCardTemplate {
+        tiles,
+        player_x: pos.x as i32,
+        player_y: pos.y as i32,
+        tiles_explored: session.map.tiles_visited,
+        depth: pos.depth(),
+    }
+}
+
+// ── Public render function (map) ────────────────────────────────────
+
+/// Render the map card as PNG bytes (CPU-bound).
+pub fn render_map_card_blocking(
+    session: &SessionState,
+    fontdb: &FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_map_card(session);
+    let svg_string = template
+        .render()
+        .map_err(|e| format!("Map SVG template error: {e}"))?;
+
+    render_svg_to_png(&svg_string, fontdb).map_err(|e| format!("Map SVG render error: {e}"))
+}
+
+/// Async wrapper — clones session and renders the map on a blocking thread.
+pub async fn render_map_card(session: &SessionState, fontdb: FontDb) -> Result<Vec<u8>, String> {
+    let session_clone = session.clone();
+    tokio::task::spawn_blocking(move || render_map_card_blocking(&session_clone, &fontdb))
+        .await
+        .map_err(|e| format!("Map render task panicked: {e}"))?
+}
+
 // ── Public render function ──────────────────────────────────────────
 
 /// Render the game card as PNG bytes (CPU-bound, ~5-40ms).
@@ -512,8 +692,9 @@ mod tests {
 
     fn test_fontdb() -> FontDb {
         let mut db = FontDb::new();
-        // Try project font; tests still pass without it
+        // Try project fonts; tests still pass without them
         let _ = db.load_font_file("../../../alagard.ttf");
+        let _ = db.load_font_file("../../../NotoSansSymbols-Regular.ttf");
         db
     }
 
@@ -537,6 +718,9 @@ mod tests {
             log: Vec::new(),
             show_items: false,
             pending_actions: HashMap::new(),
+            map: test_map_default(),
+            show_map: false,
+            pending_destination: None,
         }
     }
 
@@ -694,7 +878,8 @@ mod tests {
             "Should have 3 enemies in the template"
         );
         assert_eq!(
-            template.enemies.len(), 3,
+            template.enemies.len(),
+            3,
             "Enemy panels should have 3 entries"
         );
 
@@ -824,5 +1009,136 @@ mod tests {
         assert_eq!(t3.players[0].y_name, 62);
         assert_eq!(t3.players[1].y_name, 152);
         assert_eq!(t3.players[2].y_name, 242);
+    }
+
+    // ── Map card SVG tests ──────────────────────────────────────────
+
+    #[test]
+    fn test_build_map_card_template() {
+        let session = test_session();
+        let template = build_map_card(&session);
+
+        // Origin tile should be present
+        assert!(!template.tiles.is_empty(), "map should have visible tiles");
+        assert_eq!(template.player_x, 0);
+        assert_eq!(template.player_y, 0);
+        assert!(template.tiles_explored >= 1);
+
+        // Current tile should be flagged
+        let current = template.tiles.iter().find(|t| t.is_current);
+        assert!(current.is_some(), "current tile should be in the grid");
+        let current = current.unwrap();
+        assert!(current.is_visited);
+        assert!(!current.icon_id.is_empty());
+    }
+
+    #[test]
+    fn test_map_card_has_correct_icon_ids() {
+        // Verify all icon_ids are valid SVG icon types
+        let valid_ids = [
+            "combat", "boss", "treasure", "rest", "merchant", "city", "story", "trap", "hallway",
+            "unknown",
+        ];
+        let session = test_session();
+        let template = build_map_card(&session);
+        for tile in &template.tiles {
+            assert!(
+                valid_ids.contains(&tile.icon_id.as_str()),
+                "unexpected icon_id: {}",
+                tile.icon_id
+            );
+        }
+    }
+
+    #[test]
+    fn test_map_card_tile_coordinates() {
+        let session = test_session();
+        let template = build_map_card(&session);
+        for tile in &template.tiles {
+            // tx/ty should be within the 400x400 SVG viewport
+            assert!(tile.tx >= 20, "tx should be >= 20, got {}", tile.tx);
+            assert!(tile.ty >= 44, "ty should be >= 44, got {}", tile.ty);
+            assert!(
+                tile.tx + 48 <= 400,
+                "tile right edge should fit in viewport"
+            );
+            assert!(
+                tile.ty + 48 <= 400,
+                "tile bottom edge should fit in viewport"
+            );
+            // cx/cy should be tile center
+            assert_eq!(tile.cx, tile.tx + 24);
+            assert_eq!(tile.cy, tile.ty + 24);
+        }
+    }
+
+    #[test]
+    fn test_map_card_svg_renders_valid_svg() {
+        let session = test_session();
+        let template = build_map_card(&session);
+        let svg = template.render().expect("SVG template should render");
+        assert!(svg.starts_with("<svg"), "should start with <svg");
+        assert!(svg.contains("</svg>"), "should contain closing </svg>");
+        // Verify SVG shape icons are present (not Unicode text)
+        assert!(
+            svg.contains("stroke-linecap") || svg.contains("stroke-width"),
+            "should contain SVG shape attributes"
+        );
+        // No Unicode icon characters should be in the output
+        assert!(
+            !svg.contains('\u{2694}'),
+            "should not contain Unicode sword icon"
+        );
+        assert!(
+            !svg.contains('\u{2620}'),
+            "should not contain Unicode skull icon"
+        );
+    }
+
+    #[test]
+    fn test_map_card_renders_to_png() {
+        let db = test_fontdb();
+        let session = test_session();
+        let png = render_map_card_blocking(&session, &db);
+        assert!(png.is_ok(), "Map render failed: {:?}", png.err());
+        let bytes = png.unwrap();
+        assert!(!bytes.is_empty());
+        assert_eq!(
+            &bytes[0..4],
+            &[0x89, 0x50, 0x4E, 0x47],
+            "should be valid PNG"
+        );
+    }
+
+    #[test]
+    fn test_map_card_renders_without_fonts() {
+        // Simulate Docker environment: no system fonts, no custom fonts.
+        // SVG shape icons should still render correctly since they don't need fonts.
+        let db = FontDb::new(); // empty fontdb — no fonts loaded
+        let session = test_session();
+        let png = render_map_card_blocking(&session, &db);
+        assert!(
+            png.is_ok(),
+            "Map render should succeed without fonts: {:?}",
+            png.err()
+        );
+        let bytes = png.unwrap();
+        assert!(!bytes.is_empty());
+        assert_eq!(&bytes[0..4], &[0x89, 0x50, 0x4E, 0x47]);
+    }
+
+    #[test]
+    fn test_game_card_renders_without_fonts() {
+        // Docker smoke test: game card should also render without system fonts
+        let db = FontDb::new(); // empty fontdb
+        let session = test_session();
+        let png = render_game_card_blocking(&session, &db);
+        assert!(
+            png.is_ok(),
+            "Game card render should succeed without fonts: {:?}",
+            png.err()
+        );
+        let bytes = png.unwrap();
+        assert_eq!(&bytes[0..4], &[0x89, 0x50, 0x4E, 0x47]);
     }
 }

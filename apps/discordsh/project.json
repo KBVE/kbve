@@ -1,32 +1,48 @@
 {
-  "name": "discordsh",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "projectType": "application",
-  "sourceRoot": "apps/discordsh",
-  "targets": {
-    "e2e": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": [
-          "nx test axum-discordsh",
-          "nx container axum-discordsh",
-          "nx e2e:docker discordsh-e2e"
-        ],
-        "parallel": false
-      }
-    },
-    "container": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": ["nx container axum-discordsh"],
-        "parallel": false
-      },
-      "configurations": {
-        "production": {
-          "commands": ["nx container axum-discordsh --configuration=production"]
-        }
-      }
-    }
-  },
-  "tags": []
+	"name": "discordsh",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/discordsh",
+	"targets": {
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"nx test axum-discordsh",
+					"nx container axum-discordsh",
+					"nx e2e:docker discordsh-e2e"
+				],
+				"parallel": false
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx container axum-discordsh"],
+				"parallel": false
+			},
+			"configurations": {
+				"production": {
+					"commands": [
+						"nx container axum-discordsh --configuration=production"
+					]
+				}
+			}
+		},
+		"base": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx base axum-discordsh"],
+				"parallel": false
+			},
+			"configurations": {
+				"production": {
+					"commands": [
+						"nx base axum-discordsh --configuration=production"
+					]
+				}
+			}
+		}
+	},
+	"tags": []
 }

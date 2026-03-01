@@ -417,7 +417,7 @@ function getWebSocketStatus() {
 		return { status: 'disconnected', readyState: null };
 	}
 
-	const readyStateMap = {
+	const readyStateMap: Record<number, string> = {
 		[WebSocket.CONNECTING]: 'connecting',
 		[WebSocket.OPEN]: 'connected',
 		[WebSocket.CLOSING]: 'closing',
@@ -613,7 +613,7 @@ function reply(port: MessagePort, msg: Res) {
 							}
 						});
 
-					await channel.subscribe();
+					channel.subscribe();
 					subscriptions.set(key, {
 						unsubscribe: async () => {
 							await channel.unsubscribe();

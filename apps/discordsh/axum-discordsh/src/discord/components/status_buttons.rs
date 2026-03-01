@@ -1,5 +1,5 @@
 use poise::serenity_prelude as serenity;
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 use crate::discord::bot::{Data, Error};
 use crate::discord::embeds::{StatusSnapshot, StatusState, build_status_embed};

@@ -11,10 +11,19 @@ interface Props {
 	dropTable: OSRSDropTable;
 }
 
-const { dropTable } = Astro.props;
+const { dropTable: rawDropTable } = Astro.props;
+
+// Normalize the union type: if it's an array, wrap it in the object format
+const dropTable = Array.isArray(rawDropTable)
+	? {
+			sources: rawDropTable,
+			primary_source: undefined,
+			best_drop_rate: undefined,
+		}
+	: rawDropTable;
 
 // Get rarity color class
-function getRarityClass(rarity: string | undefined): string {
+function getRarityClass(rarity: string | null | undefined): string {
 	switch (rarity) {
 		case 'always':
 			return 'osrs-drop__rarity--always';
@@ -32,7 +41,7 @@ function getRarityClass(rarity: string | undefined): string {
 }
 
 // Format rarity display
-function formatRarity(rarity: string | undefined): string {
+function formatRarity(rarity: string | null | undefined): string {
 	if (!rarity) return '—';
 	return rarity
 		.split('-')

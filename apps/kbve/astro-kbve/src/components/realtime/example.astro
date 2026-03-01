@@ -4,7 +4,7 @@
  * This is a demonstration of how to use the AstroRealtimeContainer component
  */
 
-import { AstroRealtimeContainer } from './AstroRealtimeContainer.astro';
+import AstroRealtimeContainer from './AstroRealtimeContainer.astro';
 import type { ChannelSubscription } from './typeRealtime';
 
 // Example: Subscribe to game events
@@ -216,9 +216,9 @@ const initialSubscriptions = [
       <div class="example-section">
         <h2>📚 Usage in Your Project</h2>
         <div class="code-block">
-          <pre>---
+          <pre set:html={`---
 // In your Astro file:
-import { AstroRealtimeContainer } from '@/components/realtime/AstroRealtimeContainer.astro';
+import AstroRealtimeContainer from '@/components/realtime/AstroRealtimeContainer.astro';
 
 const subscriptions = [
   {
@@ -237,7 +237,7 @@ const subscriptions = [
   enableOffscreenCanvas={false}
   width="100%"
   height="400px"
-/&gt;</pre>
+/&gt;`} />
         </div>
       </div>
 

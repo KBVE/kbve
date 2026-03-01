@@ -1,3 +1,6 @@
+# Pre-built Rust build base image (override with --build-arg BUILD_BASE=...)
+ARG BUILD_BASE=ghcr.io/kbve/discordsh-build-base:latest
+
 # ============================================================================
 # [STAGE A] - Build Astro Static Site
 # ============================================================================
@@ -52,109 +55,13 @@ RUN find . -type f \( \
     echo "Precompression complete (brotli-11 + gzip-9)"
 
 # ============================================================================
-# [STAGE C] - Rust Base Image
-# ============================================================================
-FROM --platform=linux/amd64 rust:1.90-slim AS rust-base
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        pkg-config \
-        libssl-dev \
-        libpq-dev \
-        protobuf-compiler \
-        libprotobuf-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN rustup target add x86_64-unknown-linux-gnu && \
-    cargo install cargo-chef --locked
-
-WORKDIR /app
-
-# ============================================================================
-# [STAGE D] - Cargo Chef Planner
-# ============================================================================
-FROM rust-base AS planner
-
-# Minimal workspace with only discordsh's actual dependencies
-COPY apps/discordsh/axum-discordsh/Cargo.workspace.toml Cargo.toml
-COPY Cargo.lock ./
-
-# Copy only the 3 crates we need
-COPY apps/discordsh/axum-discordsh/Cargo.toml apps/discordsh/axum-discordsh/Cargo.toml
-COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
-COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
-
-# Proto files (needed for jedi build.rs during chef prepare)
-COPY packages/data/proto packages/data/proto
-
-# Create stubs for cargo chef
-RUN mkdir -p apps/discordsh/axum-discordsh/src && echo "fn main() {}" > apps/discordsh/axum-discordsh/src/main.rs && \
-    mkdir -p packages/rust/jedi/src && echo "" > packages/rust/jedi/src/lib.rs && \
-    mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs
-
-RUN cargo chef prepare --recipe-path recipe.json
-
-# ============================================================================
-# [STAGE E] - Cargo Chef Cook (Cache External Dependencies)
-# ============================================================================
-FROM rust-base AS builder-deps
-
-COPY --from=planner /app/recipe.json recipe.json
-COPY --from=planner /app/Cargo.toml /app/Cargo.lock ./
-COPY --from=planner /app/apps apps
-COPY --from=planner /app/packages packages
-
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/usr/local/cargo/git \
-    cargo chef cook --release --recipe-path recipe.json -p axum-discordsh
-
-# ============================================================================
-# [STAGE E2] - Foundation Layer (Compile kbve + jedi from real source)
+# [STAGE C] - Build Application
 #
-# This layer is cached when only axum-discordsh application code changes,
-# avoiding expensive recompilation of foundation crates (~60% of build time).
+# Uses pre-built base image with Rust toolchain + all external deps +
+# foundation crates (kbve + jedi) already compiled in release mode.
+# Only axum-discordsh needs recompilation here.
 # ============================================================================
-FROM rust-base AS builder-foundation
-
-# Cached deps from chef cook
-COPY --from=builder-deps /app/target target
-COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
-
-# Workspace + lockfile
-COPY --from=planner /app/Cargo.toml ./
-COPY Cargo.lock ./
-
-# App Cargo.toml (workspace resolution) + stub main
-COPY apps/discordsh/axum-discordsh/Cargo.toml apps/discordsh/axum-discordsh/Cargo.toml
-RUN mkdir -p apps/discordsh/axum-discordsh/src && \
-    echo "fn main() {}" > apps/discordsh/axum-discordsh/src/main.rs
-
-# Proto files (jedi build.rs generates protobuf code)
-COPY packages/data/proto packages/data/proto
-
-# Foundation crate source (changes less frequently than app code)
-COPY packages/rust/jedi packages/rust/jedi
-COPY packages/rust/kbve packages/rust/kbve
-
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --release -p kbve -p jedi
-
-# ============================================================================
-# [STAGE F] - Build Application
-#
-# Only axum-discordsh needs recompilation here; kbve + jedi are pre-built
-# in the foundation layer above.
-# ============================================================================
-FROM rust-base AS builder
-
-# Pre-built foundation (kbve + jedi + all external deps)
-COPY --from=builder-foundation /app/target target
-COPY --from=builder-foundation /usr/local/cargo /usr/local/cargo
-
-# Workspace + lockfile
-COPY --from=planner /app/Cargo.toml ./
-COPY Cargo.lock ./
+FROM ${BUILD_BASE} AS builder
 
 # Astro build output (precompressed) → placed into templates/dist
 COPY --from=astro-precompressor /static /app/apps/discordsh/axum-discordsh/templates/dist
@@ -173,7 +80,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     strip target/release/axum-discordsh
 
 # ============================================================================
-# [STAGE G] - Chisel Ubuntu Base (Minimal Runtime)
+# [STAGE D] - Chisel Ubuntu Base (Minimal Runtime)
 # ============================================================================
 FROM --platform=linux/amd64 ubuntu:24.04 AS chisel-builder
 
@@ -198,7 +105,7 @@ RUN chisel cut --release ubuntu-24.04 --root /rootfs \
         openssl_config
 
 # ============================================================================
-# [STAGE H] - Jemalloc
+# [STAGE E] - Jemalloc
 # ============================================================================
 FROM --platform=linux/amd64 ubuntu:24.04 AS jemalloc
 
@@ -209,7 +116,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================================================
-# [STAGE I] - libpq runtime (needed by diesel postgres)
+# [STAGE F] - libpq runtime (needed by diesel postgres)
 # ============================================================================
 FROM --platform=linux/amd64 ubuntu:24.04 AS libpq-runtime
 
@@ -235,8 +142,9 @@ COPY --from=builder /app/target/release/axum-discordsh /app/axum-discordsh
 COPY --from=builder /app/apps/discordsh/axum-discordsh/templates/dist /app/templates/dist
 COPY --from=builder /app/apps/discordsh/axum-discordsh/templates/askama /app/templates/askama
 
-# Game card font (SVG → PNG rendering via resvg)
+# Game card fonts (SVG → PNG rendering via resvg)
 COPY apps/discordsh/axum-discordsh/alagard.ttf /app/alagard.ttf
+COPY apps/discordsh/axum-discordsh/NotoSansSymbols-Regular.ttf /app/NotoSansSymbols-Regular.ttf
 
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:10000,muzzy_decay_ms:10000,lg_tcache_max:32,oversize_threshold:4194304"
@@ -244,6 +152,7 @@ ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4321
 ENV RUST_LOG=info
 ENV FONT_PATH=/app/alagard.ttf
+ENV SYMBOL_FONT_PATH=/app/NotoSansSymbols-Regular.ttf
 
 EXPOSE 4321
 

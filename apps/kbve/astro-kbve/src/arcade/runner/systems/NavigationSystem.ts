@@ -3,23 +3,6 @@ import { KNIGHT_HITBOX } from '../sprites';
 import { GAME_CONFIG } from '../config';
 
 // ============================================================================
-// Navigation Node - represents a navigable position
-// ============================================================================
-
-interface NavNode {
-	x: number;
-	y: number;
-	platformEid: number | null; // null = ground
-	connections: NavConnection[];
-}
-
-interface NavConnection {
-	targetNode: number; // Index in nodes array
-	type: 'walk' | 'jump' | 'fall';
-	cost: number;
-}
-
-// ============================================================================
 // Path Result
 // ============================================================================
 
@@ -88,7 +71,6 @@ export class NavigationSystem {
 		const dx = toX - fromX;
 		const dy = toY - fromY;
 		const horizontalDist = Math.abs(dx);
-		const verticalDist = Math.abs(dy);
 
 		// Check if we're on the ground
 		const onGround = fromY >= this.groundY - KNIGHT_HITBOX.height / 2 - 10;
@@ -147,7 +129,7 @@ export class NavigationSystem {
 		targetY: number,
 		targetIsGrounded: boolean, // Whether the TARGET is grounded (not the AI)
 		isGrounded: boolean,
-		time: number,
+		_time: number,
 	): { moveLeft: boolean; moveRight: boolean; jump: boolean } {
 		const result = { moveLeft: false, moveRight: false, jump: false };
 
@@ -256,7 +238,7 @@ export class NavigationSystem {
 
 	private findPlatformInDirection(
 		fromX: number,
-		fromY: number,
+		_fromY: number,
 		direction: number,
 	): { x: number; y: number; width: number } | null {
 		const searchDist = 200;

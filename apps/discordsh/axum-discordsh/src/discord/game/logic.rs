@@ -1,5 +1,5 @@
 use poise::serenity_prelude as serenity;
-use rand::Rng;
+use rand::prelude::*;
 
 use super::content;
 use super::types::*;
@@ -27,8 +27,8 @@ fn pick_enemy_target(session: &SessionState, actor: serenity::UserId) -> serenit
         return actor;
     }
 
-    let mut rng = rand::thread_rng();
-    if rng.gen_bool(0.5)
+    let mut rng = rand::rng();
+    if rng.random_bool(0.5)
         && session
             .players
             .get(&actor)
@@ -38,7 +38,7 @@ fn pick_enemy_target(session: &SessionState, actor: serenity::UserId) -> serenit
         return actor;
     }
 
-    alive_players[rng.gen_range(0..alive_players.len())]
+    alive_players[rng.random_range(0..alive_players.len())]
 }
 
 // ── Action validation ───────────────────────────────────────────────
@@ -132,6 +132,19 @@ fn validate_action(
         GameAction::UseItem(_, _) | GameAction::ToggleItems => {
             // UseItem and ToggleItems allowed in WaitingForActions too
         }
+        GameAction::Move(_) => {
+            if session.phase != GamePhase::Exploring && session.phase != GamePhase::City {
+                return Err("You can only move while exploring or in a city.".to_owned());
+            }
+        }
+        GameAction::ViewMap => {
+            // Allowed anytime except GameOver (already checked above)
+        }
+        GameAction::Revive(_) => {
+            if session.phase != GamePhase::City {
+                return Err("You can only revive at a city hospital.".to_owned());
+            }
+        }
     }
 
     // WaitingForActions phase: only allow Attack, AttackTarget, Defend, UseItem, ToggleItems
@@ -212,7 +225,14 @@ pub fn apply_action(
             }
             logs
         }
-        GameAction::Explore => advance_room(session),
+        GameAction::Explore => {
+            // Mark current tile as cleared and transition to Exploring
+            if let Some(tile) = session.map.tiles.get_mut(&session.map.position) {
+                tile.cleared = true;
+            }
+            session.phase = GamePhase::Exploring;
+            vec!["You survey the area. Choose a direction to travel.".to_owned()]
+        }
         GameAction::Flee => resolve_flee(session, actor),
         GameAction::Rest => {
             let cost = 10 + (session.room.index as i32 * 2);
@@ -245,6 +265,12 @@ pub fn apply_action(
             session.show_items = !session.show_items;
             return Ok(Vec::new());
         }
+        GameAction::Move(dir) => apply_move(session, dir, actor)?,
+        GameAction::ViewMap => {
+            session.show_map = !session.show_map;
+            return Ok(Vec::new());
+        }
+        GameAction::Revive(target_uid) => apply_revive(session, target_uid, actor)?,
     };
 
     session.turn += 1;
@@ -434,8 +460,8 @@ fn resolve_combat_turn_party(
         let target = if alive_ids.is_empty() {
             session.owner
         } else {
-            let mut rng = rand::thread_rng();
-            alive_ids[rng.gen_range(0..alive_ids.len())]
+            let mut rng = rand::rng();
+            alive_ids[rng.random_range(0..alive_ids.len())]
         };
         logs.extend(single_enemy_turn(session, enemy_idx, target));
     }
@@ -473,7 +499,7 @@ fn resolve_player_attack(
     target_idx: u8,
 ) -> Vec<String> {
     let mut logs = Vec::new();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     let accuracy = effective_accuracy(session, actor);
 
@@ -516,7 +542,7 @@ fn resolve_player_attack(
     });
 
     // Calculate base damage
-    let mut dmg = rng.gen_range(6..=12) + base_damage_bonus + weapon_bonus;
+    let mut dmg = rng.random_range(6..=12) + base_damage_bonus + weapon_bonus;
 
     // Sharpened effect bonus
     dmg += 3 * sharp_stacks as i32;
@@ -544,7 +570,7 @@ fn resolve_player_attack(
     let enemy_name = session.enemies[enemy_vec_idx].name.clone();
 
     // Accuracy check
-    if rng.gen_range(0.0f32..1.0) > accuracy {
+    if rng.random_range(0.0f32..1.0) > accuracy {
         logs.push(format!("{}'s attack missed!", player_name));
         return logs;
     }
@@ -554,7 +580,7 @@ fn resolve_player_attack(
     if player_class == ClassType::Rogue && first_attack {
         effective_crit = 1.0; // Rogue guaranteed crit on first attack
     }
-    let crit = rng.r#gen::<f32>() < effective_crit;
+    let crit = rng.random::<f32>() < effective_crit;
     if crit {
         dmg *= 2;
     }
@@ -570,7 +596,7 @@ fn resolve_player_attack(
     ));
 
     // Warrior passive: 20% chance to stagger (apply Stunned 1 turn)
-    if player_class == ClassType::Warrior && rng.r#gen::<f32>() < 0.20 {
+    if player_class == ClassType::Warrior && rng.random::<f32>() < 0.20 {
         enemy.effects.push(EffectInstance {
             kind: EffectKind::Stunned,
             stacks: 1,
@@ -608,7 +634,7 @@ fn resolve_player_attack(
 /// Handle death of enemies: remove dead, grant loot/xp/gold, check phase transition.
 fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> Vec<String> {
     let mut logs = Vec::new();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // Collect info about dead enemies before removing them
     let dead_enemies: Vec<(String, &'static str, u8)> = session
@@ -628,7 +654,7 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
     let alive_count = alive_ids.len().max(1) as i32;
 
     for (i, (enemy_name, _loot_table, enemy_level)) in dead_enemies.iter().enumerate() {
-        let gold = rng.gen_range(5..=15);
+        let gold = rng.random_range(5..=15);
         let gold_per_player = (gold as f32 / alive_count as f32).ceil() as i32;
         let xp = content::xp_for_enemy(*enemy_level);
         let xp_per_player = xp / alive_ids.len().max(1) as u32;
@@ -700,10 +726,16 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
             for &uid in &alive_ids {
                 session.player_mut(uid).lifetime_bosses_defeated += 1;
             }
-            session.phase = GamePhase::GameOver(GameOverReason::Victory);
-            logs.push("You have conquered The Glass Catacombs!".to_owned());
-        } else {
+            // Boss defeated — mark cleared and return to exploring
+            if let Some(tile) = session.map.tiles.get_mut(&session.map.position) {
+                tile.cleared = true;
+            }
             session.phase = GamePhase::Exploring;
+            logs.push("The boss is defeated! The path ahead is clear.".to_owned());
+        } else {
+            // Complete pending travel (encounter won) or return to exploring
+            let travel_logs = complete_pending_travel(session);
+            logs.extend(travel_logs);
         }
     }
 
@@ -716,7 +748,7 @@ fn roll_new_intent(enemy: &EnemyState, rng: &mut impl rand::Rng) -> Intent {
 
     let mut intent = if enemy.level >= 4 {
         // Boss tier: full pool (0..10)
-        match rng.gen_range(0..10) {
+        match rng.random_range(0..10) {
             0 => Intent::Attack {
                 dmg: 5 + enemy.level as i32,
             },
@@ -727,17 +759,17 @@ fn roll_new_intent(enemy: &EnemyState, rng: &mut impl rand::Rng) -> Intent {
             3 => Intent::Charge,
             4 => Intent::Flee,
             5 => {
-                if rng.gen_bool(0.5) {
+                if rng.random_bool(0.5) {
                     Intent::Debuff {
                         effect: EffectKind::Weakened,
                         stacks: 1,
-                        turns: rng.gen_range(2..=3),
+                        turns: rng.random_range(2..=3),
                     }
                 } else {
                     Intent::Debuff {
                         effect: EffectKind::Poison,
                         stacks: 1,
-                        turns: rng.gen_range(2..=3),
+                        turns: rng.random_range(2..=3),
                     }
                 }
             }
@@ -747,10 +779,10 @@ fn roll_new_intent(enemy: &EnemyState, rng: &mut impl rand::Rng) -> Intent {
                 turns: 2,
             },
             7 => Intent::AoeAttack {
-                dmg: rng.gen_range(4..=7),
+                dmg: rng.random_range(4..=7),
             },
             8 | 9 => Intent::HealSelf {
-                amount: rng.gen_range(8..=15),
+                amount: rng.random_range(8..=15),
             },
             _ => Intent::Attack {
                 dmg: 5 + enemy.level as i32,
@@ -758,7 +790,7 @@ fn roll_new_intent(enemy: &EnemyState, rng: &mut impl rand::Rng) -> Intent {
         }
     } else if enemy.level >= 2 {
         // Tier 2-3: same 5 + debuffs (0..7)
-        match rng.gen_range(0..7) {
+        match rng.random_range(0..7) {
             0 => Intent::Attack {
                 dmg: 5 + enemy.level as i32,
             },
@@ -769,17 +801,17 @@ fn roll_new_intent(enemy: &EnemyState, rng: &mut impl rand::Rng) -> Intent {
             3 => Intent::Charge,
             4 => Intent::Flee,
             5 => {
-                if rng.gen_bool(0.5) {
+                if rng.random_bool(0.5) {
                     Intent::Debuff {
                         effect: EffectKind::Weakened,
                         stacks: 1,
-                        turns: rng.gen_range(2..=3),
+                        turns: rng.random_range(2..=3),
                     }
                 } else {
                     Intent::Debuff {
                         effect: EffectKind::Poison,
                         stacks: 1,
-                        turns: rng.gen_range(2..=3),
+                        turns: rng.random_range(2..=3),
                     }
                 }
             }
@@ -794,12 +826,12 @@ fn roll_new_intent(enemy: &EnemyState, rng: &mut impl rand::Rng) -> Intent {
         }
     } else {
         // Tier 1: basic pool (0..5)
-        match rng.gen_range(0..5) {
+        match rng.random_range(0..5) {
             0 => Intent::Attack {
-                dmg: rng.gen_range(5..=8),
+                dmg: rng.random_range(5..=8),
             },
             1 => Intent::HeavyAttack {
-                dmg: rng.gen_range(8..=12),
+                dmg: rng.random_range(8..=12),
             },
             2 => Intent::Defend { armor: 3 },
             3 => Intent::Charge,
@@ -833,7 +865,7 @@ fn single_enemy_turn(
     target: serenity::UserId,
 ) -> Vec<String> {
     let mut logs = Vec::new();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     if enemy_vec_idx >= session.enemies.len() {
         return logs;
@@ -901,7 +933,6 @@ fn single_enemy_turn(
             msg: String,
         },
         HealEnemy {
-            amount: i32,
             msg: String,
         },
     }
@@ -998,7 +1029,7 @@ fn single_enemy_turn(
             let heal = *amount;
             enemy.hp = (enemy.hp + heal).min(enemy_max_hp);
             let msg = format!("{} heals for {}!", enemy.name, heal);
-            EnemyAction::HealEnemy { amount: heal, msg }
+            EnemyAction::HealEnemy { msg }
         }
     };
 
@@ -1076,7 +1107,7 @@ fn single_enemy_turn(
             }
             // No thorns reflect for AoE
         }
-        EnemyAction::HealEnemy { amount: _, msg } => {
+        EnemyAction::HealEnemy { msg } => {
             logs.push(msg);
         }
     }
@@ -1139,7 +1170,7 @@ fn enemy_turns(session: &mut SessionState, default_target: serenity::UserId) -> 
 // ── Flee resolution ─────────────────────────────────────────────────
 
 fn resolve_flee(session: &mut SessionState, actor: serenity::UserId) -> Vec<String> {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // Base 60% success, -5% per room depth, min 30%
     let mut flee_chance = (0.60 - session.room.index as f32 * 0.05).max(0.30);
@@ -1149,7 +1180,7 @@ fn resolve_flee(session: &mut SessionState, actor: serenity::UserId) -> Vec<Stri
         flee_chance = (flee_chance + 0.15).min(1.0);
     }
 
-    let roll: f32 = rng.r#gen();
+    let roll: f32 = rng.random();
 
     if roll < flee_chance {
         // Success — escape to hallway
@@ -1283,18 +1314,95 @@ fn apply_item(
     Ok(msg)
 }
 
-// ── Room advancement ────────────────────────────────────────────────
+// ── Map navigation ─────────────────────────────────────────────────
 
-fn advance_room(session: &mut SessionState) -> Vec<String> {
+/// Move the party in a direction on the map.
+fn apply_move(
+    session: &mut SessionState,
+    dir: Direction,
+    _actor: serenity::UserId,
+) -> Result<Vec<String>, String> {
+    let current_pos = session.map.position;
+    let current_tile = session
+        .map
+        .tiles
+        .get(&current_pos)
+        .ok_or_else(|| "Current tile not found on map.".to_owned())?;
+
+    // Verify exit exists
+    if !current_tile.exits.contains(&dir) {
+        return Err(format!("There is no exit to the {}.", dir.label()));
+    }
+
+    let target_pos = current_pos.neighbor(dir);
+
+    // Generate target tile if not discovered
+    content::reveal_tile(&mut session.map, target_pos, Some(dir));
+
+    let target_tile = session.map.tiles.get(&target_pos).unwrap();
+    let target_visited = target_tile.visited;
+    let target_room_type = target_tile.room_type.clone();
+
+    // Random encounter check: 25% on unvisited non-safe tiles
+    let is_safe_tile = matches!(
+        target_room_type,
+        RoomType::UndergroundCity | RoomType::RestShrine
+    );
+
+    if !target_visited && !is_safe_tile {
+        let mut rng = rand::rng();
+        if rng.random_range(0..4) == 0 {
+            // Travel encounter!
+            let depth = target_pos.depth();
+            session.room = content::generate_encounter_room(depth);
+            let enemies = content::spawn_enemies(depth);
+            let mut logs = vec![format!(
+                "While traveling {}, enemies ambush you!",
+                dir.label().to_lowercase()
+            )];
+            for enemy in &enemies {
+                logs.push(format!("A {} (Lv.{}) attacks!", enemy.name, enemy.level));
+            }
+            session.enemies = enemies;
+            session.phase = GamePhase::Combat;
+            session.pending_destination = Some(target_pos);
+            // Reset per-combat state
+            for player in session.players.values_mut() {
+                player.first_attack_in_combat = true;
+                player.heals_used_this_combat = 0;
+            }
+            return Ok(logs);
+        }
+    }
+
+    // No encounter — arrive at destination
+    Ok(arrive_at_tile(session, target_pos))
+}
+
+/// Complete arrival at a tile: update position, mark visited, reveal neighbors,
+/// build RoomState, apply hazards, transition phase.
+fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
     let mut logs = Vec::new();
-    let next_index = session.room.index + 1;
-    session.room = content::generate_room(next_index);
 
-    logs.push(format!(
-        "You enter Room {}: {}.",
-        next_index + 1,
-        session.room.name
-    ));
+    // Update position
+    session.map.position = pos;
+
+    // Mark visited
+    if let Some(tile) = session.map.tiles.get_mut(&pos) {
+        if !tile.visited {
+            tile.visited = true;
+            session.map.tiles_visited += 1;
+        }
+    }
+
+    // Reveal neighbors
+    content::reveal_neighbors(&mut session.map, pos);
+
+    // Build RoomState from tile
+    let tile = session.map.tiles.get(&pos).unwrap();
+    session.room = content::room_from_tile(tile);
+
+    logs.push(format!("You arrive at: {}.", session.room.name));
 
     // Increment lifetime_rooms_cleared for all alive players
     let alive_ids = session.alive_player_ids();
@@ -1302,7 +1410,7 @@ fn advance_room(session: &mut SessionState) -> Vec<String> {
         session.player_mut(uid).lifetime_rooms_cleared += 1;
     }
 
-    // Apply room hazards on entry to ALL alive players
+    // Apply room hazards
     let hazards = session.room.hazards.clone();
     let alive_ids: Vec<serenity::UserId> = session
         .players
@@ -1333,7 +1441,7 @@ fn advance_room(session: &mut SessionState) -> Vec<String> {
                         turns_left: *turns,
                     });
                     logs.push(format!(
-                        "A cloud of noxious gas fills the room! {} gained {:?}.",
+                        "Noxious gas! {} gained {:?}.",
                         session.player(uid).name,
                         effect
                     ));
@@ -1355,9 +1463,11 @@ fn advance_room(session: &mut SessionState) -> Vec<String> {
         return logs;
     }
 
+    // Transition phase based on room type
     match session.room.room_type {
         RoomType::Combat | RoomType::Boss => {
-            let enemies = content::spawn_enemies(next_index);
+            let depth = pos.depth();
+            let enemies = content::spawn_enemies(depth);
             for enemy in &enemies {
                 logs.push(format!(
                     "A {} (Lv.{}) blocks your path!",
@@ -1366,14 +1476,13 @@ fn advance_room(session: &mut SessionState) -> Vec<String> {
             }
             session.enemies = enemies;
             session.phase = GamePhase::Combat;
-            // Reset per-combat state for all players
             for player in session.players.values_mut() {
                 player.first_attack_in_combat = true;
                 player.heals_used_this_combat = 0;
             }
         }
         RoomType::Treasure => {
-            logs.push("A treasure chest sits before you. How do you open it?".to_owned());
+            logs.push("A treasure chest sits before you.".to_owned());
             session.phase = GamePhase::Treasure;
         }
         RoomType::RestShrine => {
@@ -1381,15 +1490,12 @@ fn advance_room(session: &mut SessionState) -> Vec<String> {
             session.phase = GamePhase::Rest;
         }
         RoomType::Trap => {
-            logs.push("The room is rigged with traps. What do you do?".to_owned());
+            logs.push("The room is rigged with traps!".to_owned());
             session.phase = GamePhase::Trap;
         }
         RoomType::Merchant => {
-            session.room.merchant_stock = content::generate_merchant_stock(next_index);
-            logs.push(
-                "A cloaked merchant gestures at wares spread across a weathered blanket."
-                    .to_owned(),
-            );
+            session.room.merchant_stock = content::generate_merchant_stock(pos.depth());
+            logs.push("A cloaked merchant gestures at wares.".to_owned());
             session.phase = GamePhase::Merchant;
         }
         RoomType::Story => {
@@ -1400,20 +1506,81 @@ fn advance_room(session: &mut SessionState) -> Vec<String> {
             session.phase = GamePhase::Event;
         }
         RoomType::Hallway => {
-            logs.push("A passage stretches before you. The air is still.".to_owned());
+            logs.push("A passage stretches before you.".to_owned());
             session.phase = GamePhase::Hallway;
         }
         RoomType::UndergroundCity => {
-            session.room.merchant_stock = content::generate_merchant_stock(next_index);
+            session.room.merchant_stock = content::generate_merchant_stock(pos.depth());
             logs.push(
-                "You emerge into an underground city. Torches flicker along carved stone walls."
-                    .to_owned(),
+                "You enter an underground city. Torches flicker along carved walls.".to_owned(),
             );
             session.phase = GamePhase::City;
         }
     }
 
     logs
+}
+
+/// Revive a dead party member at a city hospital.
+fn apply_revive(
+    session: &mut SessionState,
+    target_uid: serenity::UserId,
+    actor: serenity::UserId,
+) -> Result<Vec<String>, String> {
+    let depth = session.map.position.depth();
+    let cost = 25 + (depth as i32 * 5);
+
+    let actor_gold = session.player(actor).gold;
+    if actor_gold < cost {
+        return Err(format!(
+            "Reviving costs {} gold. You have {}.",
+            cost, actor_gold
+        ));
+    }
+
+    let target_player = session
+        .players
+        .get(&target_uid)
+        .ok_or_else(|| "Player not found in session.".to_owned())?;
+
+    if target_player.alive {
+        return Err("That player is already alive!".to_owned());
+    }
+
+    let target_name = target_player.name.clone();
+    let revive_hp = target_player.max_hp / 2;
+
+    session.player_mut(actor).gold -= cost;
+    let target = session.player_mut(target_uid);
+    target.alive = true;
+    target.hp = revive_hp;
+    target.effects.clear();
+
+    Ok(vec![format!(
+        "{} revived {} at the hospital! ({} HP, -{} gold)",
+        session.player(actor).name,
+        target_name,
+        revive_hp,
+        cost
+    )])
+}
+
+/// After winning a travel encounter, complete the journey to pending_destination.
+pub fn complete_pending_travel(session: &mut SessionState) -> Vec<String> {
+    if let Some(dest) = session.pending_destination.take() {
+        // Mark current tile as cleared
+        if let Some(tile) = session.map.tiles.get_mut(&session.map.position) {
+            tile.cleared = true;
+        }
+        arrive_at_tile(session, dest)
+    } else {
+        // Normal combat — mark tile as cleared, go back to exploring
+        if let Some(tile) = session.map.tiles.get_mut(&session.map.position) {
+            tile.cleared = true;
+        }
+        session.phase = GamePhase::Exploring;
+        Vec::new()
+    }
 }
 
 // ── Effect ticking ──────────────────────────────────────────────────
@@ -1732,7 +1899,7 @@ fn apply_trap_choice(
     actor: serenity::UserId,
 ) -> Result<Vec<String>, String> {
     let mut logs = Vec::new();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let dmg = 5 + session.room.index as i32;
 
     match choice {
@@ -1743,7 +1910,7 @@ fn apply_trap_choice(
                 ClassType::Warrior => 0.50,
                 ClassType::Cleric => 0.40,
             };
-            let roll: f32 = rng.r#gen();
+            let roll: f32 = rng.random();
             if roll < success_chance {
                 logs.push("You carefully disarm the trap. Safe!".to_owned());
             } else {
@@ -1796,7 +1963,7 @@ fn apply_treasure_choice(
     _actor: serenity::UserId,
 ) -> Result<Vec<String>, String> {
     let mut logs = Vec::new();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let room_index = session.room.index;
     let standard_gold = 10 + room_index as i32 * 3;
 
@@ -1816,7 +1983,7 @@ fn apply_treasure_choice(
         }
         1 => {
             // Force Open: 60% chance 1.5x gold, 40% chance trap + standard gold
-            let roll: f32 = rng.r#gen();
+            let roll: f32 = rng.random();
             if roll < 0.60 {
                 let bonus_gold = (standard_gold as f32 * 1.5) as i32;
                 let alive_ids = session.alive_player_ids();
@@ -1866,7 +2033,7 @@ fn apply_hallway_choice(
     _actor: serenity::UserId,
 ) -> Result<Vec<String>, String> {
     let mut logs = Vec::new();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let room_index = session.room.index;
 
     match choice {
@@ -1877,7 +2044,7 @@ fn apply_hallway_choice(
         }
         1 => {
             // Search: random outcome
-            let roll: f32 = rng.r#gen();
+            let roll: f32 = rng.random();
             if roll < 0.50 {
                 let gold = 5 + room_index as i32 * 2;
                 let alive_ids = session.alive_player_ids();
@@ -1917,7 +2084,7 @@ fn apply_rest_choice(
     _actor: serenity::UserId,
 ) -> Result<Vec<String>, String> {
     let mut logs = Vec::new();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     match choice {
         0 => {
@@ -1939,7 +2106,7 @@ fn apply_rest_choice(
         1 => {
             // Meditate: small heal + random buff
             let heal = 8;
-            let buff = if rng.gen_bool(0.5) {
+            let buff = if rng.random_bool(0.5) {
                 EffectKind::Sharpened
             } else {
                 EffectKind::Shielded
@@ -2036,6 +2203,9 @@ mod tests {
             log: Vec::new(),
             show_items: false,
             pending_actions: HashMap::new(),
+            map: test_map_default(),
+            show_map: false,
+            pending_destination: None,
         }
     }
 
@@ -2064,12 +2234,15 @@ mod tests {
     }
 
     #[test]
-    fn explore_advances_room() {
+    fn explore_marks_tile_cleared() {
         let mut session = test_session();
         session.phase = GamePhase::Exploring;
         let result = apply_action(&mut session, GameAction::Explore, OWNER);
         assert!(result.is_ok());
-        assert_eq!(session.room.index, 1);
+        // Explore should mark current tile as cleared and stay in Exploring
+        assert_eq!(session.phase, GamePhase::Exploring);
+        let current = session.map.tiles.get(&session.map.position).unwrap();
+        assert!(current.cleared);
     }
 
     #[test]
@@ -3991,7 +4164,11 @@ mod tests {
     fn test_empty_inventory_use_item() {
         let mut session = test_session();
         // Try to use an item the player doesn't have
-        let result = apply_action(&mut session, GameAction::UseItem("ward".to_owned(), None), OWNER);
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("ward".to_owned(), None),
+            OWNER,
+        );
         // Starting inventory has potion, bandage, bomb - but NOT ward
         assert!(
             result.is_err(),
@@ -4083,18 +4260,18 @@ mod tests {
 
     #[test]
     fn test_smoke_full_dungeon_run() {
-        // Smoke test: run through a dungeon without panicking.
-        // Cap iterations to avoid infinite loops.
+        // Smoke test: navigate the map, fight enemies, visit rooms.
         let mut session = test_session();
         session.player_mut(OWNER).hp = 500;
         session.player_mut(OWNER).max_hp = 500;
-        session.player_mut(OWNER).base_damage_bonus = 20; // Strong player for reliable kills
+        session.player_mut(OWNER).base_damage_bonus = 20;
         session.player_mut(OWNER).crit_chance = 0.0;
         session.player_mut(OWNER).gold = 100;
 
-        let mut highest_room = session.room.index;
+        let mut tiles_visited = 0u32;
         let mut total_iterations = 0;
         let max_iterations = 500;
+        let mut dir_idx = 0;
 
         while total_iterations < max_iterations {
             total_iterations += 1;
@@ -4111,36 +4288,60 @@ mod tests {
                         GameAction::Attack
                     }
                 }
-                GamePhase::Exploring => GameAction::Explore,
+                GamePhase::Exploring => {
+                    // Try to move in an available exit direction
+                    let current_tile = session.map.tiles.get(&session.map.position);
+                    if let Some(tile) = current_tile {
+                        if let Some(&dir) = tile.exits.get(dir_idx % tile.exits.len()) {
+                            dir_idx += 1;
+                            GameAction::Move(dir)
+                        } else {
+                            dir_idx += 1;
+                            GameAction::Move(Direction::North)
+                        }
+                    } else {
+                        GameAction::Move(Direction::North)
+                    }
+                }
                 GamePhase::Trap | GamePhase::Treasure | GamePhase::Hallway | GamePhase::Rest => {
                     GameAction::RoomChoice(0)
                 }
-                GamePhase::Merchant | GamePhase::City => GameAction::Explore,
+                GamePhase::Merchant | GamePhase::City => {
+                    // Leave by moving in an available exit direction
+                    let current_tile = session.map.tiles.get(&session.map.position);
+                    if let Some(tile) = current_tile {
+                        if let Some(&dir) = tile.exits.get(dir_idx % tile.exits.len()) {
+                            dir_idx += 1;
+                            GameAction::Move(dir)
+                        } else {
+                            dir_idx += 1;
+                            GameAction::Move(Direction::North)
+                        }
+                    } else {
+                        GameAction::Move(Direction::North)
+                    }
+                }
                 GamePhase::Looting => GameAction::Explore,
                 GamePhase::Event => GameAction::StoryChoice(0),
                 GamePhase::GameOver(_) => break,
             };
 
             let result = apply_action(&mut session, action, OWNER);
-            // Some actions might fail (e.g., Explore during combat) - that's OK
             if result.is_err() {
-                // If Explore failed during combat, try attack instead
                 if matches!(session.phase, GamePhase::Combat) {
                     let _ = apply_action(&mut session, GameAction::Attack, OWNER);
                 }
+                // Move failed (no exit)? Try next direction
             }
 
-            if session.room.index > highest_room {
-                highest_room = session.room.index;
-            }
+            tiles_visited = session.map.tiles_visited;
         }
 
-        // We should have progressed at least past room 3
-        // (with 500 HP and +20 damage bonus, this is very likely)
+        // Should have visited at least one tile beyond origin
         assert!(
-            highest_room >= 3 || matches!(session.phase, GamePhase::GameOver(_)),
-            "Should reach at least room 3 or game over, reached room {}",
-            highest_room
+            tiles_visited >= 2 || matches!(session.phase, GamePhase::GameOver(_)),
+            "Should visit at least 2 tiles or game over, visited {}",
+            tiles_visited
         );
         // Main assertion: no panic occurred during the run
     }
@@ -4425,9 +4626,16 @@ mod tests {
         session.player_mut(OWNER).accuracy = 1.0;
 
         // Attack WITHOUT sharpened first to get baseline
-        let hp_before_no_sharp = session.enemies[0].hp;
         let _ = apply_action(&mut session, GameAction::Attack, OWNER);
-        let _dmg_no_sharp = hp_before_no_sharp - session.enemies[0].hp;
+        if session.enemies.is_empty() {
+            // Enemy died from first attack, re-add for sharpened test
+            session.enemies = vec![test_enemy()];
+            session.enemies[0].hp = 200;
+            session.enemies[0].max_hp = 200;
+            session.enemies[0].armor = 0;
+            session.enemies[0].intent = Intent::Defend { armor: 1 };
+            session.phase = GamePhase::Combat;
+        }
 
         // Reset enemy HP and add Sharpened(2 stacks)
         session.enemies[0].hp = 200;
@@ -4539,4 +4747,160 @@ mod tests {
         );
     }
 
+    // ── Map navigation tests ─────────────────────────────────────
+
+    #[test]
+    fn test_move_to_valid_exit() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        // test_map_default has origin with all 4 exits
+        let result = apply_action(&mut session, GameAction::Move(Direction::North), OWNER);
+        assert!(result.is_ok());
+        // Either moved to new position OR triggered a travel encounter
+        if session.phase == GamePhase::Combat {
+            // Travel encounter — position stays at origin, pending_destination set
+            assert_eq!(session.map.position, MapPos::new(0, 0));
+            assert_eq!(session.pending_destination, Some(MapPos::new(0, -1)));
+        } else {
+            // Direct move — position changed
+            assert_eq!(session.map.position, MapPos::new(0, -1));
+        }
+    }
+
+    #[test]
+    fn test_move_to_invalid_exit() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        // Move north first
+        let _ = apply_action(&mut session, GameAction::Move(Direction::North), OWNER);
+        // Reset phase to Exploring so we can try another move
+        session.phase = GamePhase::Exploring;
+        session.enemies.clear();
+        session.pending_destination = None;
+        // Now at a new position. Find a direction without an exit
+        let current_tile = session
+            .map
+            .tiles
+            .get(&session.map.position)
+            .unwrap()
+            .clone();
+        let blocked_dir = Direction::all()
+            .iter()
+            .find(|d| !current_tile.exits.contains(d))
+            .copied();
+        if let Some(dir) = blocked_dir {
+            let result = apply_action(&mut session, GameAction::Move(dir), OWNER);
+            assert!(result.is_err(), "Move to blocked direction should fail");
+            let err = result.unwrap_err();
+            assert!(
+                err.contains("no exit") || err.contains("No exit"),
+                "Error should mention exit, got: {}",
+                err
+            );
+        }
+    }
+
+    #[test]
+    fn test_move_not_allowed_in_combat() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![test_enemy()];
+        let result = apply_action(&mut session, GameAction::Move(Direction::North), OWNER);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_move_allowed_in_city() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let result = apply_action(&mut session, GameAction::Move(Direction::North), OWNER);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_view_map_toggle() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        assert!(!session.show_map);
+        let _ = apply_action(&mut session, GameAction::ViewMap, OWNER);
+        assert!(session.show_map);
+        let _ = apply_action(&mut session, GameAction::ViewMap, OWNER);
+        assert!(!session.show_map);
+    }
+
+    #[test]
+    fn test_revive_at_city() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        session.mode = SessionMode::Party;
+
+        let member_id = serenity::UserId::new(42);
+        session.party.push(member_id);
+        let mut member = PlayerState::default();
+        member.name = "DeadPlayer".to_owned();
+        member.alive = false;
+        member.hp = 0;
+        member.max_hp = 50;
+        session.players.insert(member_id, member);
+
+        session.player_mut(OWNER).gold = 100;
+
+        let result = apply_action(&mut session, GameAction::Revive(member_id), OWNER);
+        assert!(result.is_ok());
+        assert!(session.player(member_id).alive);
+        assert_eq!(session.player(member_id).hp, 25); // 50% of max
+        assert!(session.player(OWNER).gold < 100); // gold spent
+    }
+
+    #[test]
+    fn test_revive_not_in_combat() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        let result = apply_action(&mut session, GameAction::Revive(OWNER), OWNER);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_revive_alive_player_fails() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        session.player_mut(OWNER).gold = 100;
+        let result = apply_action(&mut session, GameAction::Revive(OWNER), OWNER);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("already alive"));
+    }
+
+    #[test]
+    fn test_pending_destination_after_encounter() {
+        // Force a travel encounter by creating the right conditions
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        session.player_mut(OWNER).hp = 500;
+        session.player_mut(OWNER).max_hp = 500;
+        session.player_mut(OWNER).base_damage_bonus = 50;
+
+        // Try moving many times to trigger a travel encounter
+        let mut found_encounter = false;
+        for _ in 0..100 {
+            let mut s = test_session();
+            s.phase = GamePhase::Exploring;
+            s.player_mut(OWNER).hp = 500;
+            s.player_mut(OWNER).max_hp = 500;
+            s.player_mut(OWNER).base_damage_bonus = 50;
+
+            let result = apply_action(&mut s, GameAction::Move(Direction::North), OWNER);
+            if result.is_ok() && s.phase == GamePhase::Combat && s.pending_destination.is_some() {
+                found_encounter = true;
+                // Verify pending destination is set
+                assert_eq!(s.pending_destination, Some(MapPos::new(0, -1)));
+                break;
+            }
+        }
+        // 25% chance per move, in 100 tries we should find one
+        // (probabilistic but extremely unlikely to fail)
+        assert!(
+            found_encounter,
+            "Should trigger a travel encounter in 100 moves"
+        );
+    }
 }

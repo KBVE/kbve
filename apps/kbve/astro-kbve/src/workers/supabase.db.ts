@@ -62,7 +62,9 @@ type WorkerResponse =
 	| { id: string; ok: true; data?: any }
 	| { id: string; ok: false; error: string };
 
-declare const self: DedicatedWorkerGlobalScope;
+type WorkerResponseBody =
+	| { ok: true; data?: any }
+	| { ok: false; error: string };
 
 // Supabase client instance
 let client: SupabaseClient | null = null;
@@ -310,7 +312,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 	}
 };
 
-function respond(id: string, response: Omit<WorkerResponse, 'id'>) {
+function respond(id: string, response: WorkerResponseBody) {
 	self.postMessage({ id, ...response });
 }
 

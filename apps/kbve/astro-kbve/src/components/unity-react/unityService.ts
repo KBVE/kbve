@@ -332,7 +332,7 @@ class UnityService {
 		await this.saveToSupabase({
 			action: 'save',
 			table: 'player_data',
-			data: playerData,
+			data: playerData as unknown as Record<string, unknown>,
 			userId: playerData.id,
 		});
 	}

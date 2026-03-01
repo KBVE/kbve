@@ -318,7 +318,8 @@ jobs:
         with:
             items: |
                 [
-                  { "name": "mc", "target": "base", "condition": "${{ needs.alter.outputs.mc_base }}", "image": "ghcr.io/kbve/mc-rust-base" }
+                  { "name": "mc", "target": "base", "condition": "${{ needs.alter.outputs.mc_base }}", "image": "ghcr.io/kbve/mc-rust-base" },
+                  { "name": "discordsh", "target": "base", "condition": "${{ needs.alter.outputs.discordsh_base }}", "image": "ghcr.io/kbve/discordsh-build-base" }
                 ]
 
     build_base_images:
@@ -435,7 +436,7 @@ jobs:
     publish_docker:
         needs: ['collect_docker_results']
         name: Publish Docker Images
-        if: ${{ needs.collect_docker_results.outputs.publish_matrix != 'null' }}
+        if: ${{ !cancelled() && needs.collect_docker_results.result == 'success' && needs.collect_docker_results.outputs.publish_matrix != 'null' && needs.collect_docker_results.outputs.publish_matrix != '' }}
         permissions:
             contents: read
             packages: write
@@ -519,7 +520,7 @@ jobs:
     update_kube_manifests:
         needs: ['collect_kube_results']
         name: Update Kube Manifests
-        if: ${{ needs.collect_kube_results.outputs.matrix != 'null' }}
+        if: ${{ !cancelled() && needs.collect_kube_results.result == 'success' && needs.collect_kube_results.outputs.matrix != 'null' && needs.collect_kube_results.outputs.matrix != '' }}
         permissions:
             contents: write
             pull-requests: write
