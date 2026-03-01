@@ -1,0 +1,121 @@
+---
+equipment:
+  slot: shield
+  weight: 6.803
+  attack_bonus:
+    stab: 0
+    slash: 0
+    crush: 0
+    magic: 5
+    ranged: 0
+  defence_bonus:
+    stab: 50
+    slash: 55
+    crush: 52
+    magic: 20
+    ranged: 52
+  other_bonus:
+    melee_strength: 0
+    ranged_strength: 0
+    magic_damage: 0
+    prayer: 0
+  requirements:
+    defence: 75
+    magic: 70
+special_effect:
+  name: "Wyvern Protection"
+  description: "Provides protection against wyvern icy breath when charged. Absorbs icy breath to gain charges."
+  triggers: "passive"
+recipes:
+  - skill: smithing
+    level: 66
+    xp: 2000
+    materials:
+      - item_name: "Elemental shield"
+        item_id: 2890
+        quantity: 1
+      - item_name: "Wyvern visage"
+        item_id: 21637
+        quantity: 1
+    facility: "Anvil"
+    members_only: true
+related_items:
+  - item_id: 2890
+    item_name: "Elemental shield"
+    slug: "elemental-shield"
+    relationship: component
+    description: "Base shield component"
+  - item_id: 21637
+    item_name: "Wyvern visage"
+    slug: "wyvern-visage"
+    relationship: component
+    description: "Ancient wyvern drop"
+  - item_id: 11284
+    item_name: "Dragonfire shield"
+    slug: "dragonfire-shield"
+    relationship: alternative
+    description: "Dragon protection variant"
+  - item_id: 22003
+    item_name: "Dragonfire ward"
+    slug: "dragonfire-ward"
+    relationship: alternative
+    description: "Ranged variant"
+---
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Shield |
+| Requirements | 75 Defence, 70 Magic |
+| Tradeable | Yes (uncharged) |
+| Weight | 6.803 kg |
+
+## Stats
+
+| Offence | Bonus |
+|---------|-------|
+| Magic | +5 |
+
+| Defence | Bonus |
+|---------|-------|
+| Stab | +50 |
+| Slash | +55 |
+| Crush | +52 |
+| Magic | +20 |
+| Ranged | +52 |
+
+## Creation
+
+| Requirement | Value |
+|-------------|-------|
+| Smithing | 66 |
+| Materials | Elemental shield + Wyvern visage |
+| XP | 2,000 |
+
+## Wyvern Protection
+
+Provides full protection against wyvern icy breath when charged.
+
+**Charging:** Absorb icy breath attacks to charge (max 50 charges).
+
+**Discharge:** Right-click to release stored icy breath.
+
+## Market Flip Strategy
+
+**Magic Shield for Wyverns:**
+- Required for ancient wyverns
+- Good magic defence
+- Niche but useful
+
+**Buy Limit:** 8 per 4 hours
+
+**Demand Drivers:**
+- Ancient wyvern tasks
+- Magic-focused builds
+- Wyvern farming
+
+**Tips:**
+- Uncharged is tradeable
+- Charged version untradeable
+- Create from wyvern visage for profit

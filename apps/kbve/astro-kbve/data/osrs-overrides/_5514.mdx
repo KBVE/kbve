@@ -1,0 +1,102 @@
+---
+properties:
+  tradeable: false
+  weight: 1
+  requirements:
+    runecraft: 75
+special_effect:
+  name: "Essence Storage"
+  description: "Holds 12 rune, pure, daeyalt, or guardian essence"
+  capacity: 12
+  degrades: true
+  degrade_rate: "~130 essence stored"
+drop_table:
+  primary_source: "Abyss creatures"
+  best_drop_rate: "1/42"
+  sources:
+    - source: "Abyssal leech"
+      source_id: 2263
+      combat_level: 41
+      quantity: "1"
+      rarity: uncommon
+      drop_rate: "1/42"
+      members_only: true
+    - source: "Abyssal guardian"
+      source_id: 2264
+      combat_level: 59
+      quantity: "1"
+      rarity: uncommon
+      drop_rate: "1/42"
+      members_only: true
+    - source: "Abyssal walker"
+      source_id: 2265
+      combat_level: 81
+      quantity: "1"
+      rarity: uncommon
+      drop_rate: "1/42"
+      members_only: true
+    - source: "Guardians of the Rift"
+      source_id: 0
+      combat_level: 0
+      quantity: "1"
+      rarity: common
+      drop_rate: "15/140"
+      members_only: true
+related_items:
+  - item_id: 26906
+    item_name: "Colossal pouch"
+    slug: colossal-pouch
+    relationship: upgrade
+    description: "Larger capacity pouch"
+  - item_id: 5512
+    item_name: "Large pouch"
+    slug: large-pouch
+    relationship: alternative
+    description: "Lower tier pouch"
+  - item_id: 26786
+    item_name: "Abyssal needle"
+    slug: abyssal-needle
+    relationship: component
+    description: "Upgrade material for colossal"
+---
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Runecraft Tool |
+| Tradeable | No |
+| Weight | 1 kg |
+| Requirements | 75 Runecraft |
+
+## Capacity
+
+Holds 12 rune, pure, daeyalt, or guardian essence.
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Abyssal leech | 1/42 |
+| Abyssal guardian | 1/42 |
+| Abyssal walker | 1/42 |
+| Guardians of the Rift | 15/140 |
+
+## Degradation
+
+Degrades after ~130 essence stored (~11 uses). Loses capacity until broken.
+
+**No degradation with:** Runecraft cape or Max cape.
+
+## Repair
+
+| NPC | Cost |
+|-----|------|
+| Dark Mage (Abyss) | Free |
+| Cordelia (Temple of the Eye) | 1 abyssal pearl |
+
+## Related Items
+
+- [Colossal pouch](/osrs/colossal-pouch/) - Upgrade
+- [Large pouch](/osrs/large-pouch/) - Lower tier
+- [Abyssal needle](/osrs/abyssal-needle/) - Upgrade material

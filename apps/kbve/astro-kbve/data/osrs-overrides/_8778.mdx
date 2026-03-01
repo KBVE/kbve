@@ -1,0 +1,112 @@
+---
+material:
+  type: "plank"
+  tier: "low"
+construction:
+  xp_per_plank: 60
+  common_builds:
+    - name: "Oak larders"
+      planks: 8
+      xp: 480
+    - name: "Oak dungeon doors"
+      planks: 10
+      xp: 600
+recipes:
+  - skill: construction
+    materials:
+      - item_name: "Oak logs"
+        item_id: 1521
+        quantity: 1
+    product: "Oak plank"
+    product_id: 8778
+    product_quantity: 1
+    facility: "Sawmill"
+    cost: 250
+    members_only: true
+  - skill: magic
+    level: 86
+    xp: 90
+    materials:
+      - item_name: "Oak logs"
+        item_id: 1521
+        quantity: 1
+      - item_name: "Astral rune"
+        item_id: 9075
+        quantity: 2
+      - item_name: "Nature rune"
+        item_id: 561
+        quantity: 1
+      - item_name: "Earth rune"
+        item_id: 557
+        quantity: 15
+    product: "Oak plank"
+    product_id: 8778
+    product_quantity: 1
+    cost: 175
+    members_only: true
+    spell: "Plank Make"
+related_items:
+  - item_id: 1521
+    item_name: "Oak logs"
+    slug: "oak-logs"
+    relationship: component
+    description: "Raw material"
+  - item_id: 960
+    item_name: "Plank"
+    slug: "plank"
+    relationship: alternative
+    description: "Lower tier (regular logs)"
+  - item_id: 8780
+    item_name: "Teak plank"
+    slug: "teak-plank"
+    relationship: alternative
+    description: "Mid tier"
+  - item_id: 8782
+    item_name: "Mahogany plank"
+    slug: "mahogany-plank"
+    relationship: alternative
+    description: "Highest tier"
+  - item_id: 9075
+    item_name: "Astral rune"
+    slug: "astral-rune"
+    relationship: component
+    description: "For Plank Make"
+---
+
+## Obtaining
+
+Convert [Oak logs](/osrs/oak-logs/) at a Sawmill:
+
+| Method | Cost |
+|--------|------|
+| Sawmill operator | 250 GP per plank |
+| Plank Make spell | 175 GP + runes |
+| Woodcutting Guild sawmill | 225 GP per plank |
+
+## Construction
+
+| XP per plank | 60 |
+|--------------|-----|
+| Buy limit | 13,000 per 4 hours |
+
+**Common builds:**
+- Oak larders (8 planks, 480 XP) - popular training method
+- Oak dungeon doors (10 planks, 600 XP)
+- Mahogany Homes contracts (~variable XP)
+
+## Market Flip Strategy
+
+**Plank Making Profit:**
+- Buy [Oak logs](/osrs/oak-logs/) → Sawmill → Sell Oak planks
+- Calculate: `Oak plank price - Oak log price - 250 GP = Profit`
+
+**Plank Make Spell:**
+- 86 Magic required
+- Uses: 2 [Astral rune](/osrs/astral-rune/), 1 [Nature rune](/osrs/nature-rune/), 15 [Earth rune](/osrs/earth-rune/)
+- Only 175 GP per plank (cheaper than sawmill)
+- Can profit if rune costs are lower than 75 GP savings
+
+**Tips:**
+- High volume item for Construction training
+- Steady demand from Mahogany Homes
+- Compare sawmill vs Plank Make profitability

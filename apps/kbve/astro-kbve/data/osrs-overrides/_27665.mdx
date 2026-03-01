@@ -1,0 +1,114 @@
+---
+equipment:
+  slot: "2h"
+  type: "powered_staff"
+  attack_style: "magic"
+  attack_speed: 4
+  requirements:
+    magic: 70
+  stats:
+    attack_magic: 22
+    defence_magic: 20
+passive_effects:
+  - name: "Wilderness Effect"
+    description: "50% magic accuracy and damage boost against NPCs in the Wilderness when charged with revenant ether"
+  - name: "Powered Staff"
+    description: "Built-in spell that scales with Magic level, consumes 1 ether per cast"
+special_attack:
+  name: "Condemn"
+  cost: 50
+  description: "Deals 50% increased damage and accuracy, drains target's Defence and Magic by 15% on successful hit"
+obtaining:
+  methods:
+    - source: "Creation"
+      requirements:
+        crafting: 85
+      materials:
+        - item_name: "Thammaron's sceptre (u)"
+          item_id: 22552
+          quantity: 1
+        - item_name: "Skull of Vet'ion"
+          item_id: 27674
+          quantity: 1
+    - source: "Phabelle Bile"
+      cost: "500,000 coins"
+related_items:
+  - item_id: 27662
+    item_name: "Accursed sceptre (u)"
+    slug: "accursed-sceptre-u"
+    relationship: "variant"
+    description: "Uncharged version"
+  - item_id: 22555
+    item_name: "Thammaron's sceptre"
+    slug: "thammarons-sceptre"
+    relationship: "downgrade"
+    description: "Base version"
+  - item_id: 27674
+    item_name: "Skull of Vet'ion"
+    slug: "skull-of-vetion"
+    relationship: "component"
+    description: "Upgrade material"
+  - item_id: 21820
+    item_name: "Revenant ether"
+    slug: "revenant-ether"
+    relationship: "component"
+    description: "Required to charge"
+---
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Two-handed |
+| Type | Powered Staff |
+| Tradeable | Yes (uncharged) |
+| Weight | 0.198 kg |
+| Attack Speed | 4 tick (2.4s) |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Magic | +22 |
+
+| Defense | Value |
+|---------|-------|
+| Magic | +20 |
+
+**Requirements:** 70 Magic
+
+## Special Attack
+
+**Condemn (50% spec, 1 ether):**
+- 50% increased damage and accuracy
+- Drains target's Defence by 15% on hit
+- Drains target's Magic by 15% on hit
+
+## Passive Effects
+
+**Wilderness Effect:**
+- 50% magic accuracy and damage boost
+- Only active against NPCs in Wilderness
+- Stacks with Slayer helmet (i) and Salve amulet
+
+## Creating
+
+| Method | Requirements | Materials |
+|--------|--------------|-----------|
+| Crafting | 85 Crafting | Thammaron's sceptre (u) + Skull of Vet'ion |
+| Phabelle Bile | None | 500,000 coins |
+
+## Usage
+
+Best for:
+- Wilderness Slayer tasks
+- Revenant hunting
+- Wilderness bossing (magic)
+
+**Upgraded Thammaron's sceptre with special attack.**
+
+## Related Items
+
+- [Thammaron's sceptre](/osrs/thammarons-sceptre/) - Base version
+- [Skull of Vet'ion](/osrs/skull-of-vetion/) - Upgrade material
+- [Revenant ether](/osrs/revenant-ether/) - Charge material

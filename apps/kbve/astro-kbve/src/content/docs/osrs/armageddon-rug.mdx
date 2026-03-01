@@ -1,6 +1,6 @@
 ---
 title: Armageddon rug | OSRS Price Data
-description: "Armageddon rug: A fearsome yet stylish souvenir from Deadman: Armageddon.. High alch: 15,000 GP."
+description: "Armageddon rug: A fearsome yet stylish souvenir from Deadman: Armageddon.. High alch: 15,000 GP, GE limit: 5."
 osrs:
   id: 29619
   name: Armageddon rug
@@ -11,7 +11,7 @@ osrs:
   value: 25000
   lowalch: 10000
   highalch: 15000
-  limit: null
+  limit: 5
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

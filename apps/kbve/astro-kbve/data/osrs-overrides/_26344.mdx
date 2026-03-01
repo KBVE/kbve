@@ -1,0 +1,42 @@
+---
+potion:
+  doses: 2
+  herblore_level: 85
+  herblore_xp: 190
+  effect: "Boosts Magic by 2, restores Prayer, drains Attack/Strength/Defence"
+  effects:
+    - stat: "Magic"
+      boost_type: boost
+      boost_value: 2
+    - stat: "Prayer"
+      boost_formula: "2 + floor(level / 4)"
+related_items:
+  - item_id: 26340
+    item_name: "Ancient brew(4)"
+    slug: "ancient-brew-4"
+    relationship: variant
+    description: "4-dose version"
+  - item_id: 26342
+    item_name: "Ancient brew(3)"
+    slug: "ancient-brew-3"
+    relationship: variant
+    description: "3-dose version"
+  - item_id: 26346
+    item_name: "Ancient brew(1)"
+    slug: "ancient-brew-1"
+    relationship: variant
+    description: "1-dose version"
+---
+
+## Usage
+
+2-dose variant of Ancient brew.
+
+## Market Flip Strategy
+
+**Dose Manipulation:**
+- Compare to 4-dose price
+- Decanting can profit
+- Use decanting NPC in GE
+
+**Buy Limit:** 2,000 per 4 hours

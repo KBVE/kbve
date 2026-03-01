@@ -1,0 +1,45 @@
+---
+title: Sign Out
+description: Sign out from your KBVE account
+tableOfContents: true
+graph:
+  visible: false
+sidebar:
+  label: Logout
+  order: 4
+tags:
+  - authentication
+  - logout
+  - security
+---
+
+import AstroLogout from '@/components/auth/AstroLogout.astro';
+import { Aside } from '@astrojs/starlight/components';
+
+<AstroLogout />
+
+## What's Happening?
+
+When you sign out, we ensure your session is completely removed:
+
+1. **Clear your session** from the authentication bridge
+2. **Delete session data** from IndexedDB
+3. **Remove tokens** from localStorage
+4. **Redirect you** to the home page
+
+<Aside type="tip">
+Signing out on one device does not affect sessions on other devices.
+</Aside>
+
+## Your Data is Safe
+
+Signing out removes your authentication session from this browser, but:
+
+- Your account data remains safely stored on our servers
+- You can sign back in anytime to resume where you left off
+- Your profile at `kbve.com/@username` remains accessible
+- Your linked accounts (Discord, GitHub) stay connected
+
+## Sign Back In
+
+Ready to continue? Head to the [authentication page](/auth) to sign back in with your preferred provider.

@@ -1,0 +1,87 @@
+---
+potion:
+  doses: 3
+  type: restore
+  effect: "Restores all stats (except Hitpoints) and Prayer"
+  effects:
+    - stat: "All stats"
+      boost_formula: "8 + floor(level / 4)"
+    - stat: "Prayer"
+      boost_formula: "8 + floor(level / 4)"
+properties:
+  tradeable: true
+  tradeable_ge: true
+  weight: 0.035
+recipes:
+  - skill: herblore
+    level: 63
+    xp: 142.5
+    materials:
+      - item_name: "Snapdragon potion (unf)"
+        item_id: 3004
+        quantity: 1
+      - item_name: "Red spiders' eggs"
+        item_id: 223
+        quantity: 1
+    members_only: true
+related_items:
+  - item_id: 3024
+    item_name: "Super restore(4)"
+    slug: super-restore-4
+    relationship: variant
+    description: "Full dose variant"
+  - item_id: 3000
+    item_name: "Snapdragon"
+    slug: snapdragon
+    relationship: component
+    description: "Primary herb"
+  - item_id: 6685
+    item_name: "Saradomin brew(4)"
+    slug: saradomin-brew-4
+    relationship: alternative
+    description: "Paired consumable (3:1 ratio)"
+---
+
+## Creation
+
+Mix [Snapdragon potion (unf)](/osrs/snapdragon-potion-unf/) + [Red spiders' eggs](/osrs/red-spiders-eggs/).
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 63 |
+| XP gained | 142.5 |
+
+## Effects
+
+Per dose restores:
+- All stats except Hitpoints
+- Prayer points: 8 + 25% of level
+- Other stats: 8 + 25% of level
+
+**At 99 Prayer:** Restores 32 prayer points per dose.
+
+## Usage
+
+Essential for high-level PvM:
+- Raids (CoX, ToB, ToA)
+- Bossing (GWD, Nex, etc.)
+- Inferno attempts
+- Used with [Saradomin brew](/osrs/saradomin-brew4/) (3:1 ratio)
+
+**Note:** Counters stat drain from Saradomin brews.
+
+## Market Strategy
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Tips:**
+- High demand from raiders
+- Price tied to Snapdragon
+- Essential consumable
+
+## Related Items
+
+- [Super restore(4)](/osrs/super-restore4/) - Full dose variant
+- [Saradomin brew(4)](/osrs/saradomin-brew4/) - Paired consumable
+- [Snapdragon](/osrs/snapdragon/) - Primary herb
+- [Sanfew serum](/osrs/sanfew-serum/) - Upgraded version

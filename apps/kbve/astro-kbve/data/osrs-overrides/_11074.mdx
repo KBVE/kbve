@@ -1,0 +1,114 @@
+---
+equipment:
+  slot: hands
+  weight: 0.007
+  attack_bonus:
+    stab: 0
+    slash: 0
+    crush: 0
+    magic: 0
+    ranged: 0
+  defence_bonus:
+    stab: 0
+    slash: 0
+    crush: 0
+    magic: 0
+    ranged: 0
+  other_bonus:
+    melee_strength: 0
+    ranged_strength: 0
+    magic_damage: 0
+    prayer: 0
+charges:
+  current: 28
+  max: 28
+  recharge: "Not rechargeable - breaks after use"
+special_effect:
+  name: "Soft Clay Effect"
+  description: "Mining clay while worn gives soft clay directly instead of clay"
+  triggers: "on_mine_clay"
+recipes:
+  - skill: magic
+    level: 23
+    xp: 37
+    spell: "Lvl-2 Enchant"
+    materials:
+      - item_name: "Sapphire bracelet"
+        item_id: 11072
+        quantity: 1
+      - item_name: "Cosmic rune"
+        item_id: 564
+        quantity: 1
+      - item_name: "Air rune"
+        item_id: 556
+        quantity: 3
+    members_only: true
+related_items:
+  - item_id: 11072
+    item_name: "Sapphire bracelet"
+    slug: "sapphire-bracelet"
+    relationship: component
+    description: "Unenchanted version"
+  - item_id: 1761
+    item_name: "Soft clay"
+    slug: "soft-clay"
+    relationship: product
+    description: "Produced when mining clay"
+  - item_id: 434
+    item_name: "Clay"
+    slug: "clay"
+    relationship: alternative
+    description: "Normal mining result"
+---
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Hands |
+| Type | Utility Bracelet |
+| Tradeable | Yes |
+| Weight | 0.007 kg |
+
+## Charges
+
+| State | Charges |
+|-------|---------|
+| New | 28 |
+| Depleted | Crumbles to dust |
+
+## Special Effect
+
+**Soft Clay Effect:**
+- Mining clay while wearing gives soft clay directly
+- Saves time on water bucket step
+- 28 uses before bracelet crumbles
+
+## Creation
+
+| Requirement | Value |
+|-------------|-------|
+| Magic | 23 |
+| Spell | Lvl-2 Enchant |
+| Materials | Sapphire bracelet + 3 air + 1 cosmic |
+
+## Market Flip Strategy
+
+**Essential Crafting Utility:**
+- Saves time making soft clay
+- Popular for Crafting training
+- Low cost per use
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Demand Drivers:**
+- Crafting training
+- Pottery makers
+- Ironmen
+- Efficient players
+
+**Tips:**
+- Very cheap per soft clay
+- Essential for efficient clay gathering
+- Popular among crafters
+- Crumbles after 28 uses

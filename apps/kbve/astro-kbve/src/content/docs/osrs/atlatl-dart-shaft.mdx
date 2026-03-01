@@ -1,6 +1,6 @@
 ---
 title: Atlatl dart shaft | OSRS Price Data
-description: "Atlatl dart shaft: An atlatl dart shaft.. High alch: 132 GP."
+description: "Atlatl dart shaft: An atlatl dart shaft.. High alch: 132 GP, GE limit: 11,000."
 osrs:
   id: 31004
   name: Atlatl dart shaft
@@ -11,7 +11,7 @@ osrs:
   value: 220
   lowalch: 88
   highalch: 132
-  limit: null
+  limit: 11000
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

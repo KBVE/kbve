@@ -1,0 +1,94 @@
+---
+equipment:
+  slot: "head"
+  type: "helm"
+  requirements:
+    defence: 75
+  stats:
+    defence_stab: 52
+    defence_slash: 55
+    defence_crush: 58
+    defence_ranged: 50
+    attack_magic: -5
+    attack_ranged: -5
+    strength: 5
+  degradeable: true
+effect:
+  venom_immunity: true
+  venom_infliction_normal: 16.7
+  venom_infliction_poison: 50
+  venom_infliction_toxic: 100
+charging:
+  material_id: 12934
+  material_name: "Zulrah's scales"
+  full_charge: 11000
+recipes:
+  - skill: crafting
+    level: 52
+    xp: 120
+    materials:
+      - item_name: "Serpentine visage"
+        item_id: 12927
+        quantity: 1
+    product: "Serpentine helm"
+    product_id: 12931
+    product_quantity: 1
+    facility: "Chisel"
+    members_only: true
+related_items:
+  - item_id: 12927
+    item_name: "Serpentine visage"
+    slug: "serpentine-visage"
+    relationship: component
+    description: "From Zulrah"
+  - item_id: 12934
+    item_name: "Zulrah's scales"
+    slug: "zulrahs-scales"
+    relationship: component
+    description: "Charging material"
+  - item_id: 12924
+    item_name: "Toxic blowpipe"
+    slug: "toxic-blowpipe"
+    relationship: alternative
+    description: "100% venom with helm"
+---
+
+## Creation
+
+Use chisel on Serpentine visage (52 Crafting, 120 XP).
+
+## Stats (Charged)
+
+| Stat | Value |
+|------|-------|
+| Stab defence | +52 |
+| Slash defence | +55 |
+| Crush defence | +58 |
+| Ranged defence | +50 |
+| Strength | +5 |
+| Magic/Ranged attack | -5 |
+
+## Effects
+
+**Venom Immunity:**
+- Complete immunity to venom and poison when charged
+
+**Venom Infliction:**
+- 16.7% chance with normal weapons
+- 50% chance with poisoned weapons
+- 100% chance with toxic weapons (blowpipe)
+
+## Charging
+
+| Resource | Amount |
+|----------|--------|
+| Zulrah's scales | 11,000 |
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours (uncharged)
+
+**Tips:**
+- Visage from Zulrah
+- Great for tasks with venom
+- Pairs well with toxic blowpipe

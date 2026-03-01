@@ -1,0 +1,106 @@
+---
+equipment:
+  slot: "weapon"
+  type: "staff"
+  attack_style: "magic"
+  attack_speed: 4
+  requirements:
+    magic: 75
+    attack: 75
+  stats:
+    attack_magic: 25
+    attack_stab: 55
+    attack_slash: 70
+    strength: 72
+    magic_damage_percent: 15
+  degradeable: true
+effect:
+  venom_infliction: 25
+special_attack:
+  name: "Power of Death"
+  energy: 100
+  effect: "Halves melee damage received for 1 minute"
+charging:
+  material_id: 12934
+  material_name: "Zulrah's scales"
+  full_charge: 11000
+recipes:
+  - skill: crafting
+    level: 59
+    xp: 0
+    materials:
+      - item_name: "Staff of the dead"
+        item_id: 11791
+        quantity: 1
+      - item_name: "Magic fang"
+        item_id: 12932
+        quantity: 1
+    product: "Toxic staff of the dead"
+    product_id: 12902
+    product_quantity: 1
+    facility: "None"
+    members_only: true
+related_items:
+  - item_id: 11791
+    item_name: "Staff of the dead"
+    slug: "staff-of-the-dead"
+    relationship: component
+    description: "Base staff"
+  - item_id: 12932
+    item_name: "Magic fang"
+    slug: "magic-fang"
+    relationship: component
+    description: "From Zulrah"
+  - item_id: 21006
+    item_name: "Kodai wand"
+    slug: "kodai-wand"
+    relationship: alternative
+    description: "Higher magic attack"
+---
+
+## Creation
+
+Attach Magic fang to Staff of the dead (59 Crafting).
+
+| Component | Source | Price |
+|-----------|--------|-------|
+| Staff of the dead | K'ril Tsutsaroth | ~8M gp |
+| Magic fang | Zulrah | ~3M gp |
+
+## Stats (Charged)
+
+| Stat | Value |
+|------|-------|
+| Magic attack | +25 |
+| Magic damage | +15% |
+| Stab attack | +55 |
+| Slash attack | +70 |
+| Strength bonus | +72 |
+| Requirements | 75 Magic, 75 Attack |
+
+## Effects
+
+**Venom Infliction:**
+- 25% chance to inflict venom
+- Works on magic and melee attacks
+
+## Special Attack
+
+**Power of Death** (100% energy):
+- Halves melee damage received
+- Lasts 1 minute
+
+## Charging
+
+| Resource | Amount |
+|----------|--------|
+| Zulrah's scales | 11,000 |
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Higher magic bonus than base
+- Venom is useful for Slayer
+- Degrades over time

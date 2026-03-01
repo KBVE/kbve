@@ -1,0 +1,37 @@
+---
+title: Zuriel's hood | OSRS Price Data
+description: "Zuriel's hood: A powerful hood.. High alch: 150,000 GP, GE limit: 10."
+osrs:
+  id: 22650
+  name: Zuriel's hood
+  slug: zuriel-s-hood
+  examine: A powerful hood.
+  members: true
+  icon: Zuriel's hood.png
+  value: 250000
+  lowalch: 100000
+  highalch: 150000
+  limit: 10
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

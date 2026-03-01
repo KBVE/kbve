@@ -1,0 +1,82 @@
+---
+potion:
+  doses: 4
+  herblore_level: 63
+  herblore_xp: 142.5
+  effect: "Restores 8-32 Prayer points and all reduced stats except Hitpoints"
+  effects:
+    - stat: "Prayer"
+      boost_formula: "8 + floor(level / 4)"
+    - stat: "All stats"
+      boost_type: restore
+      boost_value: 0
+      description: "Restores all reduced stats except Hitpoints"
+recipes:
+  - skill: herblore
+    level: 63
+    xp: 142.5
+    materials:
+      - item_name: "Snapdragon"
+        item_id: 3000
+        quantity: 1
+      - item_name: "Red spiders' eggs"
+        item_id: 223
+        quantity: 1
+      - item_name: "Vial of water"
+        item_id: 227
+        quantity: 1
+        consumed: true
+    ticks: 2
+    members_only: true
+related_items:
+  - item_id: 3000
+    item_name: "Snapdragon"
+    slug: "snapdragon"
+    relationship: component
+    description: "Primary herb ingredient"
+  - item_id: 223
+    item_name: "Red spiders' eggs"
+    slug: "red-spiders-eggs"
+    relationship: component
+    description: "Secondary ingredient"
+  - item_id: 2434
+    item_name: "Prayer potion(4)"
+    slug: "prayer-potion-4"
+    relationship: alternative
+    description: "Cheaper alternative (prayer only)"
+  - item_id: 10925
+    item_name: "Sanfew serum(4)"
+    slug: "sanfew-serum-4"
+    relationship: upgrade
+    description: "Also cures poison/venom"
+  - item_id: 3026
+    item_name: "Super restore(3)"
+    slug: "super-restore-3"
+    relationship: variant
+    description: "3-dose version"
+---
+
+## Usage
+
+Super restore is preferred over prayer potions because it:
+- Restores ALL reduced stats (not just prayer)
+- Essential for raids where stats get drained
+- Required for high-level PvM
+
+## Market Flip Strategy
+
+**Potion Making Profit:**
+- Calculate: `Super restore(4) - Snapdragon - Red spiders' eggs - Vial`
+- Higher margin than prayer potions
+- Consistent raid demand
+
+**Comparison to Prayer Potion:**
+- Super restore costs more but restores stats
+- Raid tax creates premium demand
+- Check relative margins between both
+
+**Dose Manipulation:**
+- Compare 4-dose vs 3-dose prices
+- Decanting can profit in either direction
+
+**Buy Limit:** 2,000 per 4 hours

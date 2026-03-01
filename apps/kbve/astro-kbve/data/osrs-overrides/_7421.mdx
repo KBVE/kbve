@@ -1,0 +1,73 @@
+---
+item_id: 7421
+name: "Fungicide spray"
+type: "slayer_tool"
+tradeable: false
+weight: 2
+obtaining:
+  shop:
+    name: "Any Slayer Master"
+    price: 300
+  drops:
+    - "Zygomites"
+  refill:
+    item: "Fungicide"
+    cost: 10
+charges:
+  capacity: 10
+  per_kill: 1
+effect:
+  description: "Kills Zygomites when they have under 8 HP remaining"
+  targets:
+    - "Mutated Zygomites (Zanaris)"
+    - "Ancient Zygomites (Fossil Island)"
+related_items:
+  - slug: "mutated-zygomite"
+    name: "Mutated zygomite"
+    relation: "target_monster"
+  - slug: "fungicide"
+    name: "Fungicide"
+    relation: "refill_item"
+  - slug: "slayer"
+    name: "Slayer"
+    relation: "related_skill"
+---
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Slayer Tool |
+| Tradeable | No |
+| Weight | 2 kg |
+
+## Obtaining
+
+Purchase from any Slayer Master for 300 gp.
+
+**Refill:** 10 gp per canister.
+
+Also dropped by Zygomites.
+
+## Effect
+
+**Kills Zygomites** when they have under 8 HP remaining.
+
+Required for:
+- Mutated Zygomites (Zanaris)
+- Ancient Zygomites (Fossil Island)
+
+## Charges
+
+| Property | Value |
+|----------|-------|
+| Capacity | 10 |
+| Per kill | 1 charge |
+
+Multiple sprays share charges.
+
+## Related Items
+
+- [Mutated zygomite](/osrs/mutated-zygomite/) - Target monster
+- [Fungicide](/osrs/fungicide/) - Refill item
+- [Slayer](/osrs/slayer/) - Related skill

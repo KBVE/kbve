@@ -1,0 +1,104 @@
+---
+equipment:
+  slot: "weapon"
+  type: "sword"
+  tradeable: false
+  weight: 1.814
+  requirements:
+    attack: 75
+  stats:
+    attack_stab: 10
+    attack_slash: 38
+    strength: 8
+charging:
+  initial_charges: 1000
+  max_charges: 10000
+  per_shard: 1000
+  total_shards_for_max: 30
+  consumed_on: "successful hits only"
+passive_effects:
+  - name: "Demonbane"
+    description: "+70% accuracy and damage vs demons (49% vs Duke Sucellus due to 30% resistance)"
+creation:
+  method: "Created at Catacombs of Kourend altar"
+  materials:
+    - item_id: 0
+      item_name: "Darklight"
+      slug: "darklight"
+    - item_id: 19677
+      item_name: "Ancient shard"
+      slug: "ancient-shard"
+      quantity: 3
+related_items:
+  - item_id: 0
+    item_name: "Darklight"
+    slug: "darklight"
+    relationship: "downgrade"
+    description: "Base weapon"
+  - item_id: 19677
+    item_name: "Ancient shard"
+    slug: "ancient-shard"
+    relationship: "component"
+    description: "Charging material"
+  - item_id: 0
+    item_name: "Emberlight"
+    slug: "emberlight"
+    relationship: "upgrade"
+    description: "Upgrade"
+---
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon |
+| Type | Sword |
+| Tradeable | No |
+| Weight | 1.814 kg |
+| Requirements | 75 Attack |
+
+## Obtaining
+
+Created at Catacombs of Kourend altar:
+- Darklight + 3 Ancient shards
+
+## Stats
+
+| Offence | Bonus |
+|---------|-------|
+| Stab | +10 |
+| Slash | +38 |
+| Strength | +8 |
+
+## Passive Effect
+
+**Demonbane:** +70% accuracy and damage vs demons.
+
+(49% vs Duke Sucellus due to 30% resistance)
+
+## Charges
+
+| Property | Value |
+|----------|-------|
+| Initial | 1,000 |
+| Max | 10,000 |
+| Per shard | 1,000 |
+| Total shards | 30 (for max) |
+
+Consumed on successful hits only.
+
+## Usage
+
+Used for:
+- Demonic gorillas
+- Abyssal Sire
+- K'ril Tsutsaroth
+- Duke Sucellus
+
+**BiS for demon content.**
+
+## Related Items
+
+- [Darklight](/osrs/darklight/) - Base weapon
+- [Ancient shard](/osrs/ancient-shard/) - Charging material
+- [Emberlight](/osrs/emberlight/) - Upgrade

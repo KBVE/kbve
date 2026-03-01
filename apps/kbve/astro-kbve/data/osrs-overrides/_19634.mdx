@@ -1,0 +1,85 @@
+---
+item:
+  type: "utility_item"
+  tradeable: false
+  weight: 0.45
+obtaining:
+  methods:
+    - source: "Bear Your Soul"
+      type: "Miniquest"
+  reclaim: "Dig in Arceuus church crypt with spade"
+effect:
+  name: "Ensouled Head Transport"
+  description: "Sends ensouled heads from inventory to bank"
+  option: "Use 'Fill' option to transfer all heads at once"
+charging:
+  per_head: 1
+  per_charge:
+    - item: "Blood rune"
+      quantity: 1
+    - item: "Soul rune"
+      quantity: 1
+  max_charges: 1000
+  configure: "Can configure charges in bank"
+use_cases:
+  - "Extended Slayer trips"
+  - "Works with all ensouled head types (goblin to dragon)"
+related_items:
+  - item_id: 0
+    item_name: "Bear Your Soul"
+    slug: "bear-your-soul"
+    relationship: "component"
+    description: "Source miniquest"
+  - item_id: 0
+    item_name: "Ensouled heads"
+    slug: "ensouled-heads"
+    relationship: "alternative"
+    description: "Transported items"
+  - item_id: 0
+    item_name: "Prayer training"
+    slug: "prayer-training"
+    relationship: "alternative"
+    description: "Related content"
+---
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Utility Item |
+| Tradeable | No |
+| Weight | 0.45 kg |
+
+## Obtaining
+
+Complete **Bear Your Soul** miniquest.
+
+**Reclaim:** Dig in Arceuus church crypt with spade.
+
+## Effect
+
+**Sends ensouled heads** from inventory to bank.
+
+Use 'Fill' option to transfer all heads at once.
+
+## Charges
+
+| Property | Value |
+|----------|-------|
+| Per head | 1 charge |
+| Per charge | 1 Blood rune + 1 Soul rune |
+| Max capacity | 1,000 |
+
+Can configure charges in bank.
+
+## Usage
+
+Useful for extended Slayer trips.
+
+Works with all ensouled head types (goblin to dragon).
+
+## Related Items
+
+- [Bear Your Soul](/osrs/bear-your-soul/) - Source miniquest
+- [Ensouled heads](/osrs/ensouled-heads/) - Transported items
+- [Prayer training](/osrs/prayer-training/) - Related content

@@ -1,0 +1,103 @@
+---
+item:
+  type: "potion"
+  tradeable: true
+  doses: 4
+effect:
+  divine_boost:
+    skills: ["Attack", "Strength", "Defence"]
+    formula: "floor(level * 0.15) + 5"
+    duration_seconds: 300
+    no_decay: true
+    self_damage: 10
+recipes:
+  - skill: "herblore"
+    level: 97
+    xp: 2
+    materials:
+      - item_id: 12695
+        item_name: "Super combat potion (4)"
+        quantity: 1
+      - item_id: 23964
+        item_name: "Crystal dust"
+        quantity: 4
+    product: "Divine super combat potion (4)"
+    product_id: 23694
+    facility: "N/A"
+    members_only: true
+related_items:
+  - item_id: 12695
+    item_name: "Super combat potion"
+    slug: "super-combat-potion"
+    relationship: component
+    description: "Base potion"
+  - item_id: 23964
+    item_name: "Crystal dust"
+    slug: "crystal-dust"
+    relationship: component
+    description: "From crystal shards"
+  - item_id: 23733
+    item_name: "Divine ranging potion"
+    slug: "divine-ranging-potion"
+    relationship: alternative
+    description: "Ranged version"
+---
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Potion |
+| Tradeable | Yes |
+| Weight | 0.035 kg (4-dose) |
+
+## Creation
+
+Combine [Super combat potion](/osrs/super-combat-potion/) + [Crystal dust](/osrs/crystal-dust/).
+
+| Component | Amount (4-dose) |
+|-----------|-----------------|
+| Super combat (4) | 1 |
+| Crystal dust | 4 |
+
+**Herblore:** 97
+**XP:** 2
+
+## Effects
+
+Boosts Attack, Strength, and Defence for 5 minutes.
+
+| Level | Boost |
+|-------|-------|
+| 1-6 | +5 |
+| 80-86 | +17 |
+| 94-99 | +19 |
+
+**Formula:** ⌊Level × 15%⌋ + 5
+
+**NO DECAY for 5 minutes!**
+
+## Side Effect
+
+**Damage:** Deals 10 HP damage on drink.
+
+## Usage
+
+BiS for:
+- ToB
+- CoX
+- High-level bossing
+- Any 5+ minute fight
+
+**Non-draining boost is massive DPS increase.**
+
+## Market Strategy
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Price:** ~18.5K gp (4-dose)
+
+**Tips:**
+- Crystal dust from Prifddinas
+- Worth the 10 HP cost
+- Essential for raids

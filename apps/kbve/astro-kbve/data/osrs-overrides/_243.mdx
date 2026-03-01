@@ -1,0 +1,91 @@
+---
+material:
+  type: "secondary"
+  tier: "basic"
+gathering:
+  locations:
+    - "Taverley Dungeon"
+    - "Corsair Cove Dungeon"
+    - "Myths' Guild Dungeon"
+shops:
+  - shop_name: "Durrik's Goods"
+    price: 125
+    currency: "Coins"
+drop_table:
+  sources:
+    - source: "Blue dragon"
+      source_id: 264
+      combat_level: 111
+      quantity: "1"
+      rarity: always
+    - source: "Brutal blue dragon"
+      source_id: 7273
+      combat_level: 271
+      quantity: "2"
+      rarity: always
+      members_only: true
+processing:
+  method: "Crush with pestle and mortar"
+  product_id: 241
+  product_name: "Dragon scale dust"
+related_items:
+  - item_id: 241
+    item_name: "Dragon scale dust"
+    slug: "dragon-scale-dust"
+    relationship: product
+    description: "Crushed form"
+  - item_id: 2454
+    item_name: "Antifire potion(3)"
+    slug: "antifire-potion-3"
+    relationship: product
+    description: "End product via dust"
+  - item_id: 233
+    item_name: "Pestle and mortar"
+    slug: "pestle-and-mortar"
+    relationship: component
+    description: "Processing tool"
+  - item_id: 7827
+    item_name: "Scaly blue dragonhide"
+    slug: "scaly-blue-dragonhide"
+    relationship: alternative
+    description: "50 scales per knife"
+---
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Herblore Secondary |
+| Tradeable | Yes |
+| Weight | 0.01 kg |
+
+## Obtaining
+
+Common sources:
+- Ground spawns near blue dragons (Taverley, Corsair Cove, Myths' Guild)
+- Brutal blue dragon drops
+- Knife on scaly blue dragonhide (50 noted scales)
+- Durrik's Goods shop (125 gp)
+
+## Usage
+
+Crushed with pestle and mortar to make **dragon scale dust**.
+
+Dragon scale dust used for:
+- Antifire potions
+- Weapon poison
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Price:** ~16 gp
+
+Very cheap but high volume. Can be processed for profit.
+
+## Related Items
+
+- [Dragon scale dust](/osrs/dragon-scale-dust/) - Processed form
+- [Antifire potion](/osrs/antifire-potion/) - End product
+- [Blue dragon](/osrs/blue-dragon/) - Drop source

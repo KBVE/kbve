@@ -1,0 +1,117 @@
+---
+equipment:
+  slot: "weapon"
+  type: "axe"
+  attack_style: "melee"
+  requirements:
+    attack: 60
+    woodcutting: 61
+    firemaking: 85
+  stats:
+    attack_stab: -2
+    attack_slash: 38
+    attack_crush: 32
+    strength: 42
+  degradeable: true
+  tradeable: false
+effect:
+  auto_burn_chance: 33
+  firemaking_xp_percent: 50
+charging:
+  max_charges: 5000
+  recharge_with: "Smouldering stone or Dragon axe"
+recipes:
+  - skill: firemaking
+    level: 85
+    xp: 350
+    materials:
+      - item_name: "Dragon axe"
+        item_id: 6739
+        quantity: 1
+      - item_name: "Smouldering stone"
+        item_id: 13245
+        quantity: 1
+    product: "Infernal axe"
+    product_id: 13241
+    product_quantity: 1
+    facility: "None"
+    members_only: true
+related_items:
+  - item_id: 6739
+    item_name: "Dragon axe"
+    slug: "dragon-axe"
+    relationship: component
+    description: "Base axe"
+  - item_id: 13245
+    item_name: "Smouldering stone"
+    slug: "smouldering-stone"
+    relationship: component
+    description: "From Cerberus"
+  - item_id: 23673
+    item_name: "Crystal axe"
+    slug: "crystal-axe"
+    relationship: alternative
+    description: "Speed alternative"
+---
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Main-hand) |
+| Type | Axe |
+| Tradeable | No (untradeable) |
+| Weight | 1.814 kg |
+
+## Creation
+
+Combine Dragon axe + Smouldering stone.
+
+| Requirement | Value |
+|-------------|-------|
+| Firemaking | 85 (non-boostable) |
+| Woodcutting XP | 200 |
+| Firemaking XP | 350 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | -2 |
+| Slash | +38 |
+| Crush | +32 |
+| Strength | +42 |
+
+**Requirements:** 60 Attack, 61 Woodcutting
+
+## Passive Effect
+
+**Auto-Burn:**
+- 33% chance to burn logs instantly
+- Grants 50% Firemaking XP
+- 5,000 charges (rechargeable)
+- Does NOT work at Wintertodt
+
+## Charging
+
+Recharge with:
+- Smouldering stone (5,000 charges)
+- Dragon axe (5,000 charges)
+
+## Usage
+
+Great for:
+- Woodcutting + Firemaking XP
+- Inventory efficiency
+- AFK woodcutting
+
+**Saves banking time, grants bonus XP.**
+
+## Market Strategy
+
+**Untradeable** - Creation cost ~4.5M
+
+**Tips:**
+- Stone from Cerberus
+- Crystal is faster for pure WC
+- Good for Firemaking XP

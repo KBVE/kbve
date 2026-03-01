@@ -1,0 +1,84 @@
+---
+potion:
+  doses: 4
+  herblore_level: 77
+  herblore_xp: 102
+  effect: "Restores 20% run energy and reduces drain by 70% for 2 minutes"
+  effects:
+    - stat: "Run energy"
+      boost_value: 20
+      boost_type: percentage
+      description: "Restores 20% run energy"
+    - stat: "Run energy drain"
+      boost_value: -70
+      boost_type: percentage
+      description: "Reduces drain by 70% for 2 minutes"
+recipes:
+  - skill: herblore
+    level: 77
+    xp: 102
+    materials:
+      - item_name: "Super energy(4)"
+        item_id: 3016
+        quantity: 1
+      - item_name: "Amylase crystal"
+        item_id: 12640
+        quantity: 4
+    ticks: 2
+    members_only: true
+related_items:
+  - item_id: 3016
+    item_name: "Super energy(4)"
+    slug: "super-energy-4"
+    relationship: component
+    description: "Base potion"
+  - item_id: 12640
+    item_name: "Amylase crystal"
+    slug: "amylase-crystal"
+    relationship: component
+    description: "Key ingredient (4 needed)"
+  - item_id: 11849
+    item_name: "Mark of grace"
+    slug: "mark-of-grace"
+    relationship: component
+    description: "Source of amylase"
+  - item_id: 3008
+    item_name: "Energy potion(4)"
+    slug: "energy-potion-4"
+    relationship: downgrade
+    description: "Budget alternative"
+  - item_id: 12627
+    item_name: "Stamina potion(3)"
+    slug: "stamina-potion-3"
+    relationship: variant
+    description: "3-dose version"
+---
+
+## Effects
+
+Per dose:
+- **Restores:** 20% run energy
+- **Reduces:** Run energy drain by 70% for 2 minutes
+- Effect resets (doesn't stack) with additional doses
+
+## Usage
+
+Essential for:
+- Runecrafting (especially blood/soul runes)
+- Agility training
+- Raids (constant running)
+- Hunter (tracking)
+- General efficiency
+
+## Market Flip Strategy
+
+**Potion Making:**
+- Buy Super energy(4) + 4 Amylase crystal
+- Make Stamina potion(4)
+- Calculate: `Stamina(4) - Super energy(4) - (Amylase × 4) = Profit`
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Amylase Source:**
+- Marks of grace from Rooftop Agility (10 marks = 100 crystals)
+- Controls stamina potion supply

@@ -1,0 +1,102 @@
+---
+equipment:
+  slot: "weapon"
+  type: "harpoon"
+  tradeable: false
+  weight: 2.267
+  requirements:
+    fishing: 75
+    cooking: 85
+  stats:
+    attack_stab: 38
+    attack_slash: 32
+    strength: 42
+    slash_def: 1
+creation:
+  method: "Combine dragon harpoon with smouldering stone"
+  requirements:
+    cooking: 85
+    boostable: false
+  xp_granted:
+    fishing: 200
+    cooking: 350
+charging:
+  material_id: 13233
+  material_name: "Smouldering stone"
+  starting_charges: 5000
+  recharge_options:
+    - "Smouldering stone"
+    - "Dragon harpoon"
+special_effect:
+  name: "Auto-Cook"
+  description: "1/3 (33%) chance to cook and destroy caught fish"
+  charge_cost: 1
+  xp_granted: "Half normal Cooking XP"
+  notes:
+    - "When depleted, functions as regular dragon harpoon"
+related_items:
+  - item_id: 21028
+    item_name: "Dragon harpoon"
+    slug: "dragon-harpoon"
+    relationship: component
+    description: "Base item"
+  - item_id: 13233
+    item_name: "Smouldering stone"
+    slug: "smouldering-stone"
+    relationship: component
+    description: "Creation/recharge material"
+  - item_id: 13243
+    item_name: "Infernal pickaxe"
+    slug: "infernal-pickaxe"
+    relationship: alternative
+    description: "Similar tool"
+---
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon |
+| Type | Harpoon |
+| Tradeable | No |
+| Weight | 2.267 kg |
+| Requirements | 75 Fishing, 85 Cooking |
+
+## Creating
+
+Combine dragon harpoon with smouldering stone.
+- 85 Cooking (unboostable)
+- Grants 200 Fishing XP, 350 Cooking XP
+
+## Stats
+
+| Offence | Bonus |
+|---------|-------|
+| Stab | +38 |
+| Slash | +32 |
+| Strength | +42 |
+
+| Defence | Bonus |
+|---------|-------|
+| Slash | +1 |
+
+## Effect
+
+**Auto-Cook:** 1/3 (33%) chance to cook and destroy caught fish.
+- Consumes 1 charge per proc
+- Grants half normal Cooking XP
+
+When depleted, functions as regular dragon harpoon.
+
+## Charges
+
+| Property | Value |
+|----------|-------|
+| Starting | 5,000 |
+| Recharge | Smouldering stone or dragon harpoon |
+
+## Related Items
+
+- [Dragon harpoon](/osrs/dragon-harpoon/) - Base item
+- [Smouldering stone](/osrs/smouldering-stone/) - Creation/recharge material
+- [Infernal pickaxe](/osrs/infernal-pickaxe/) - Similar tool
