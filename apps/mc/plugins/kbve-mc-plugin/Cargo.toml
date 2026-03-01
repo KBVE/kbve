@@ -1,6 +1,6 @@
 [package]
 name = "kbve-mc-plugin"
-version = "0.1.13"
+version = "0.1.14"
 edition = "2024"
 rust-version = "1.89"
 
@@ -16,7 +16,9 @@ pumpkin-macros = { path = "../../pumpkin/pumpkin-macros" }
 pumpkin-util = { path = "../../pumpkin/pumpkin-util" }
 pumpkin-data = { path = "../../pumpkin/pumpkin-data" }
 pumpkin-protocol = { path = "../../pumpkin/pumpkin-protocol" }
+pumpkin-inventory = { path = "../../pumpkin/pumpkin-inventory" }
 pumpkin-world = { path = "../../pumpkin/pumpkin-world" }
+tracing = "0.1"
 tokio = { version = "1", features = ["rt-multi-thread"] }
 axum = "0.8"
 askama = "0.15.4"
