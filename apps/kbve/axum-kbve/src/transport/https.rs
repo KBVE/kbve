@@ -1347,9 +1347,7 @@ async fn set_username_handler(
             );
 
             // Determine appropriate status code based on error
-            let status = if e.contains("already taken") {
-                StatusCode::CONFLICT
-            } else if e.contains("already have") {
+            let status = if e.contains("already taken") || e.contains("already have") {
                 StatusCode::CONFLICT
             } else if e.contains("Invalid") {
                 StatusCode::BAD_REQUEST
@@ -1372,6 +1370,7 @@ async fn set_username_handler(
 // Utility helpers
 // ---------------------------------------------------------------------------
 
+#[allow(dead_code)]
 fn format_duration(d: Duration) -> String {
     let secs = d.as_secs();
     let hours = secs / 3600;
