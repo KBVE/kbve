@@ -119,3 +119,93 @@ export function requireAuthenticated(claims: JwtClaims): Response | null {
 	}
 	return null;
 }
+
+// UUID format validation
+const UUID_RE =
+	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function validateUserId(
+	id: unknown,
+	field = 'user_id',
+): Response | null {
+	if (!id || typeof id !== 'string') {
+		return jsonResponse({ error: `${field} is required` }, 400);
+	}
+	if (!UUID_RE.test(id)) {
+		return jsonResponse({ error: `${field} must be a valid UUID` }, 400);
+	}
+	return null;
+}
+
+// Comment body: 1-500 characters, non-empty
+export function validateCommentBody(body: unknown): Response | null {
+	if (!body || typeof body !== 'string') {
+		return jsonResponse({ error: 'body is required' }, 400);
+	}
+	const trimmed = body.trim();
+	if (trimmed.length < 1 || trimmed.length > 500) {
+		return jsonResponse(
+			{ error: 'body must be between 1 and 500 characters' },
+			400,
+		);
+	}
+	return null;
+}
+
+// Report reason: integer 1-7 (matching meme_reports CHECK constraint)
+export function validateReportReason(reason: unknown): Response | null {
+	const num = Number(reason);
+	if (
+		reason === undefined ||
+		reason === null ||
+		!Number.isFinite(num) ||
+		!Number.isInteger(num) ||
+		num < 1 ||
+		num > 7
+	) {
+		return jsonResponse(
+			{ error: 'reason must be an integer between 1 and 7' },
+			400,
+		);
+	}
+	return null;
+}
+
+// Report detail: optional, max 2000 characters
+export function validateReportDetail(detail: unknown): Response | null {
+	if (detail === undefined || detail === null) return null;
+	if (typeof detail !== 'string' || detail.length > 2000) {
+		return jsonResponse(
+			{ error: 'detail must be a string of at most 2000 characters' },
+			400,
+		);
+	}
+	return null;
+}
+
+// Pagination limit: integer 1-50, returns validated number
+export function validateLimit(limit: unknown): {
+	value: number;
+	error: Response | null;
+} {
+	if (limit === undefined || limit === null) {
+		return { value: 20, error: null };
+	}
+	const num = Number(limit);
+	if (!Number.isInteger(num) || num < 1 || num > 50) {
+		return {
+			value: 20,
+			error: jsonResponse(
+				{ error: 'limit must be an integer between 1 and 50' },
+				400,
+			),
+		};
+	}
+	return { value: num, error: null };
+}
+
+// Pagination cursor: optional ULID
+export function validateCursor(cursor: unknown): Response | null {
+	if (cursor === undefined || cursor === null) return null;
+	return validateMemeId(cursor, 'cursor');
+}
