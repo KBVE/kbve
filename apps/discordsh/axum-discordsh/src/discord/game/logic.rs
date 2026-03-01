@@ -178,6 +178,12 @@ fn resolve_combat_turn(
     player_action: GameAction,
     actor: serenity::UserId,
 ) -> Vec<String> {
+    // In party mode, ALL alive party members perform the same action.
+    // In solo mode, only the actor acts.
+    if session.mode == SessionMode::Party {
+        return resolve_party_combat_turn(session, player_action, actor);
+    }
+
     let mut logs = Vec::new();
     let mut rng = rand::thread_rng();
 
@@ -283,6 +289,149 @@ fn resolve_combat_turn(
     // Reset temporary defend bonus
     if player_action == GameAction::Defend {
         session.player_mut(actor).armor -= 3;
+    }
+
+    logs
+}
+
+/// Party combat: ALL alive members perform the same action, then the enemy
+/// takes ONE turn. This is triggered by any party member clicking a button.
+fn resolve_party_combat_turn(
+    session: &mut SessionState,
+    player_action: GameAction,
+    actor: serenity::UserId,
+) -> Vec<String> {
+    let mut logs = Vec::new();
+    let mut rng = rand::thread_rng();
+
+    // Collect alive player IDs in roster order (owner first)
+    let alive_ids: Vec<serenity::UserId> = session
+        .roster()
+        .iter()
+        .filter(|(_, p)| p.alive)
+        .map(|(uid, _)| *uid)
+        .collect();
+
+    let mut defenders: Vec<serenity::UserId> = Vec::new();
+
+    // Each alive player performs the action
+    for &uid in &alive_ids {
+        let player_name = session.player(uid).name.clone();
+        let accuracy = effective_accuracy(session, uid);
+
+        match player_action {
+            GameAction::Attack => {
+                if let Some(ref mut enemy) = session.enemy {
+                    let mut dmg = rng.gen_range(6..=12);
+                    if rng.gen_range(0.0f32..1.0) > accuracy {
+                        logs.push(format!("{}'s attack missed!", player_name));
+                    } else {
+                        dmg = (dmg - enemy.armor).max(1);
+                        enemy.hp -= dmg;
+                        logs.push(format!(
+                            "{} strikes the {} for {} damage!",
+                            player_name, enemy.name, dmg
+                        ));
+                    }
+                }
+            }
+            GameAction::Defend => {
+                session.player_mut(uid).armor += 3;
+                defenders.push(uid);
+                logs.push(format!("{} raises their guard. (+3 armor)", player_name));
+            }
+            _ => {}
+        }
+    }
+
+    // Check enemy death from party attacks
+    let enemy_dead = session.enemy.as_ref().is_some_and(|e| e.hp <= 0);
+    if enemy_dead {
+        let enemy_name = session.enemy.as_ref().unwrap().name.clone();
+        let loot_id = session.enemy.as_ref().unwrap().loot_table_id;
+        let gold = rng.gen_range(5..=15);
+        // Gold goes to the triggering player
+        session.player_mut(actor).gold += gold;
+        logs.push(format!("The {} is defeated! (+{} gold)", enemy_name, gold));
+
+        logs.extend(roll_and_add_loot(
+            loot_id,
+            &mut session.player_mut(actor).inventory,
+        ));
+
+        session.enemy = None;
+        session.phase = GamePhase::Exploring;
+
+        if session.room.room_type == RoomType::Boss {
+            session.phase = GamePhase::GameOver(GameOverReason::Victory);
+            logs.push("You have conquered The Glass Catacombs!".to_owned());
+        }
+
+        // Reset defend bonuses before returning
+        for &uid in &defenders {
+            session.player_mut(uid).armor -= 3;
+        }
+        return logs;
+    }
+
+    // Enemy takes ONE turn — picks a random target
+    let target = pick_enemy_target(session, actor);
+    logs.extend(enemy_turn(session, target));
+
+    // Tick ALL alive players' effects
+    for &uid in &alive_ids {
+        let player_name = session.player(uid).name.clone();
+        let (effect_logs, tick_dmg) = tick_effects(&mut session.player_mut(uid).effects);
+        for log in &effect_logs {
+            logs.push(format!("[{}] {}", player_name, log));
+        }
+        if tick_dmg > 0 {
+            let player = session.player_mut(uid);
+            player.hp -= tick_dmg;
+            if player.hp <= 0 {
+                player.alive = false;
+                logs.push(format!("{} succumbed to their afflictions...", player_name));
+            }
+        }
+    }
+    if session.all_players_dead() {
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
+    }
+
+    // Tick enemy effects (DoT damage)
+    if let Some(ref mut enemy) = session.enemy {
+        let (enemy_effect_logs, enemy_tick_dmg) = tick_effects(&mut enemy.effects);
+        for log in enemy_effect_logs {
+            logs.push(format!("[{}] {}", enemy.name, log));
+        }
+        if enemy_tick_dmg > 0 {
+            enemy.hp -= enemy_tick_dmg;
+        }
+    }
+    // Check enemy death from DoT
+    let enemy_dot_dead = session.enemy.as_ref().is_some_and(|e| e.hp <= 0);
+    if enemy_dot_dead {
+        let enemy_name = session.enemy.as_ref().unwrap().name.clone();
+        let loot_id = session.enemy.as_ref().unwrap().loot_table_id;
+        let gold = rand::thread_rng().gen_range(5..=15);
+        session.player_mut(actor).gold += gold;
+        logs.push(format!(
+            "The {} succumbed to its afflictions! (+{} gold)",
+            enemy_name, gold
+        ));
+        logs.extend(roll_and_add_loot(
+            loot_id,
+            &mut session.player_mut(actor).inventory,
+        ));
+        session.enemy = None;
+        session.phase = GamePhase::Exploring;
+    }
+
+    // Reset temporary defend bonuses
+    for &uid in &defenders {
+        if session.players.contains_key(&uid) {
+            session.player_mut(uid).armor -= 3;
+        }
     }
 
     logs

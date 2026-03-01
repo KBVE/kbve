@@ -23,7 +23,7 @@ spec:
                 fsGroup: 2613
             containers:
                 - name: mc
-                  image: ghcr.io/kbve/mc:0.1.9
+                  image: ghcr.io/kbve/mc:0.1.10
                   imagePullPolicy: Always
                   env:
                       - name: RUST_LOG
@@ -32,6 +32,15 @@ spec:
                         value: '1'
                       - name: RESOURCE_PACK_URL
                         value: 'https://mc.kbve.com/kbve-resource-pack.zip'
+                      - name: SUPABASE_URL
+                        value: 'https://api.kbve.com'
+                      - name: SUPABASE_SERVICE_ROLE_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: service-role-key
+                      - name: MC_SERVER_ID
+                        value: 'kbve-mc-1'
                   ports:
                       - name: java
                         containerPort: 25565

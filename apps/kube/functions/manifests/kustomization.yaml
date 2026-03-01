@@ -4,16 +4,6 @@ kind: Kustomization
 namespace: kilobase
 
 resources:
-  - functions-deployment.yaml
-  - functions-service.yaml
-  - functions-externalsecret.yaml
-
-configMapGenerator:
-  - name: custom-functions
-    files:
-      - main-index.ts=custom-functions/main/index.ts
-      - vault-reader-index.ts=custom-functions/vault-reader/index.ts
-      - shared-cors.ts=custom-functions/_shared/cors.ts
-
-generatorOptions:
-  disableNameSuffixHash: true
+    - functions-deployment.yaml
+    - functions-service.yaml
+    - functions-externalsecret.yaml
