@@ -1473,4 +1473,196 @@ mod tests {
         assert!(room.modifiers.is_empty());
         assert!(!room.name.is_empty());
     }
+
+    #[test]
+    fn test_sell_price_for_item() {
+        // Known items should return a positive sell price
+        let potion_price = sell_price_for_item("potion");
+        assert!(potion_price.is_some());
+        assert!(
+            potion_price.unwrap() > 0,
+            "potion sell price should be positive"
+        );
+
+        let bandage_price = sell_price_for_item("bandage");
+        assert!(bandage_price.is_some());
+        assert!(
+            bandage_price.unwrap() > 0,
+            "bandage sell price should be positive"
+        );
+
+        // Unknown item should return None
+        let unknown_price = sell_price_for_item("nonexistent");
+        assert!(
+            unknown_price.is_none(),
+            "nonexistent item should return None"
+        );
+    }
+
+    #[test]
+    fn test_sell_price_for_gear() {
+        // Known gear should return a positive sell price
+        let sword_price = sell_price_for_gear("rusty_sword");
+        assert!(sword_price.is_some());
+        assert!(
+            sword_price.unwrap() > 0,
+            "rusty_sword sell price should be positive"
+        );
+
+        // Unknown gear should return None
+        let unknown_price = sell_price_for_gear("nonexistent");
+        assert!(
+            unknown_price.is_none(),
+            "nonexistent gear should return None"
+        );
+    }
+
+    #[test]
+    fn test_story_events_variety() {
+        use std::collections::HashSet;
+        let mut prompts = HashSet::new();
+        for _ in 0..100 {
+            let event = generate_story_event();
+            prompts.insert(event.prompt.clone());
+        }
+        // There are 4 different events; in 100 rolls we should see at least 3
+        assert!(
+            prompts.len() >= 3,
+            "Expected at least 3 unique story events in 100 rolls, got {}",
+            prompts.len()
+        );
+    }
+
+    #[test]
+    fn test_story_choice_resolve_outcomes() {
+        // Mirror event, choice 0 (Listen): grants +10 HP
+        let outcome = resolve_story_choice("A mirror whispers your name...", 0);
+        assert_eq!(outcome.hp_change, 10);
+        assert_eq!(outcome.gold_change, 0);
+        assert!(outcome.item_gain.is_none());
+
+        // Mirror event, choice 1 (Smash): -5 HP, gets bomb, gets bleed
+        let outcome = resolve_story_choice("A mirror whispers your name...", 1);
+        assert_eq!(outcome.hp_change, -5);
+        assert_eq!(outcome.item_gain, Some("bomb"));
+        assert!(outcome.effect_gain.is_some());
+
+        // Rusty chest, choice 0 (Open): +20 gold
+        let outcome = resolve_story_choice(
+            "A rusty chest sits in the corner, vines crawling over its lock.",
+            0,
+        );
+        assert_eq!(outcome.gold_change, 20);
+        assert_eq!(outcome.hp_change, 0);
+
+        // Spectral figure, choice 0 (Accept): -15 gold, gets ward
+        let outcome = resolve_story_choice(
+            "A spectral figure offers a glowing vial in exchange for your gold.",
+            0,
+        );
+        assert_eq!(outcome.gold_change, -15);
+        assert_eq!(outcome.item_gain, Some("ward"));
+
+        // Ancient runes, choice 0 (Step In): +15 HP, shielded effect
+        let outcome = resolve_story_choice(
+            "Ancient runes glow on the floor. They pulse with energy.",
+            0,
+        );
+        assert_eq!(outcome.hp_change, 15);
+        assert!(outcome.effect_gain.is_some());
+        let (kind, _, _) = outcome.effect_gain.unwrap();
+        assert_eq!(kind, EffectKind::Shielded);
+
+        // Unknown event falls through to default
+        let outcome = resolve_story_choice("completely unknown prompt", 0);
+        assert_eq!(outcome.hp_change, 0);
+        assert_eq!(outcome.gold_change, 0);
+        assert!(outcome.item_gain.is_none());
+    }
+
+    #[test]
+    fn test_merchant_stock_prices_positive() {
+        let stock = generate_merchant_stock(3);
+        // All prices must be positive
+        for offer in &stock {
+            assert!(
+                offer.price > 0,
+                "offer {} price should be > 0",
+                offer.item_id
+            );
+        }
+        // At least one item should be gear
+        assert!(
+            stock.iter().any(|o| o.is_gear),
+            "merchant stock should contain at least one gear item"
+        );
+    }
+
+    #[test]
+    fn test_spawn_enemies_boss_room() {
+        // Boss rooms (index >= 6) should always spawn exactly 1 enemy
+        for _ in 0..20 {
+            let enemies = spawn_enemies(6);
+            assert_eq!(enemies.len(), 1, "boss room should have exactly 1 enemy");
+            let boss = &enemies[0];
+            assert!(
+                boss.level >= 4,
+                "boss level should be >= 4, got {}",
+                boss.level
+            );
+            // Boss HP should be higher than regular early enemies (max 20)
+            assert!(
+                boss.hp > 20,
+                "boss HP ({}) should be higher than regular enemies",
+                boss.hp
+            );
+        }
+    }
+
+    #[test]
+    fn test_spawn_enemies_scaling() {
+        // Collect level ranges from multiple spawns
+        let mut min_level_room0 = u8::MAX;
+        let mut max_level_room0 = 0u8;
+        let mut min_level_room3 = u8::MAX;
+        let mut max_level_room3 = 0u8;
+        let mut min_level_boss = u8::MAX;
+        let mut max_level_boss = 0u8;
+
+        for _ in 0..50 {
+            let e0 = spawn_enemies(0);
+            for e in &e0 {
+                min_level_room0 = min_level_room0.min(e.level);
+                max_level_room0 = max_level_room0.max(e.level);
+            }
+
+            let e3 = spawn_enemies(3);
+            for e in &e3 {
+                min_level_room3 = min_level_room3.min(e.level);
+                max_level_room3 = max_level_room3.max(e.level);
+            }
+
+            let e6 = spawn_enemies(6);
+            for e in &e6 {
+                min_level_boss = min_level_boss.min(e.level);
+                max_level_boss = max_level_boss.max(e.level);
+            }
+        }
+
+        // Room 3 enemies should have higher level than room 0
+        assert!(
+            max_level_room3 > max_level_room0,
+            "room 3 max level ({}) should be higher than room 0 max level ({})",
+            max_level_room3,
+            max_level_room0
+        );
+
+        // Boss room should have the highest level
+        assert!(
+            min_level_boss > max_level_room3,
+            "boss min level ({}) should be higher than room 3 max level ({})",
+            min_level_boss,
+            max_level_room3
+        );
+    }
 }
