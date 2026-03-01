@@ -190,7 +190,11 @@
 			"prettier --write"
 		],
 		"*.rs": [
-			"rustfmt --check"
+			"rustfmt"
+		],
+		"*.py": [
+			"autopep8 --in-place",
+			"flake8 --max-line-length 120"
 		]
 	},
 	"nx": {
