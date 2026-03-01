@@ -2,7 +2,6 @@ use crate::db::Pool;
 use reqwest::Client;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde_json::json;
-use std::error::Error;
 use std::sync::Arc;
 
 use crate::entity::session::handle_recovery_process;

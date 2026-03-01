@@ -3,17 +3,15 @@
 
 #[macro_export]
 macro_rules! spellbook_create_jwt {
-  ($ulid:expr, $email:expr, $username:expr, $secret:expr, $hours:expr) => {
-		{
-
-		use jsonwebtoken::{encode, EncodingKey, Header};
+    ($ulid:expr, $email:expr, $username:expr, $secret:expr, $hours:expr) => {{
+        use jsonwebtoken::{EncodingKey, Header, encode};
 
         let now = chrono::Utc::now();
         let exp = now + chrono::Duration::minutes($hours * 60);
 
         let jwt_token = encode(
             &Header::default(),
-            &crate::runes::TokenRune {
+            &$crate::runes::TokenRune {
                 userid: $ulid.to_string(),
                 email: $email.to_string(),
                 username: $username.to_string(),
@@ -21,36 +19,36 @@ macro_rules! spellbook_create_jwt {
                 exp: exp.timestamp() as usize,
             },
             &EncodingKey::from_secret($secret.as_bytes()),
-        ).unwrap(); 
+        )
+        .unwrap();
 
-		jwt_token
-		}
-  };
+        jwt_token
+    }};
 }
 
 #[macro_export]
 macro_rules! spellbook_create_cookie {
-  ($name:expr, $token:expr, $duration:expr) => {
-		axum_extra::extract::cookie::Cookie::build(($name, $token))
-			.path("/")
-			.max_age(time::Duration::hours($duration))
-			.same_site(axum_extra::extract::cookie::SameSite::Lax)
-			.http_only(true)
-			.build()
-  };
+    ($name:expr, $token:expr, $duration:expr) => {
+        axum_extra::extract::cookie::Cookie::build(($name, $token))
+            .path("/")
+            .max_age(time::Duration::hours($duration))
+            .same_site(axum_extra::extract::cookie::SameSite::Lax)
+            .http_only(true)
+            .build()
+    };
 }
 
 #[macro_export]
 macro_rules! spellbook_get_global {
-  ($key:expr, $err:expr) => {
-        match crate::runes::GLOBAL.get() {
+    ($key:expr, $err:expr) => {
+        match $crate::runes::GLOBAL.get() {
             Some(global_map) => match global_map.get($key) {
                 Some(value) => Ok(value.value().clone()), // Assuming you want to clone the value
                 None => Err($err),
             },
             None => Err("invalid_global_map"),
         }
-  };
+    };
 }
 
 // The `spellbook_error` macro is designed for use in Axum-based web applications.
@@ -94,13 +92,12 @@ macro_rules! spellbook_error {
 // 	};
 // }
 
-/** 
-	This macro is a utility for working with database connection pools.
-	It tries to retrieve a connection from the provided pool.
-	If successful, the connection is returned for further use.
-	If there's an error in obtaining a connection, it handles the error by immediately returning an HTTP response with an appropriate error message and status code. This macro ensures a uniform way of handling database pool errors across different parts of an Axum application.
+/**
+    This macro is a utility for working with database connection pools.
+    It tries to retrieve a connection from the provided pool.
+    If successful, the connection is returned for further use.
+    If there's an error in obtaining a connection, it handles the error by immediately returning an HTTP response with an appropriate error message and status code. This macro ensures a uniform way of handling database pool errors across different parts of an Axum application.
 **/
-
 // The `spellbook_pool` macro is defined using Rust's macro_rules! system.
 // This macro is designed to simplify the process of obtaining a database connection from a connection pool.
 #[macro_export]
@@ -131,12 +128,12 @@ macro_rules! spellbook_pool {
 
 #[macro_export]
 macro_rules! spellbook_pool_conn {
-  ($pool:expr) => {
+    ($pool:expr) => {
         match $pool.get() {
             Ok(conn) => conn,
             Err(_) => return Err("Failed to get a connection from the pool!"),
         }
-  };
+    };
 }
 
 #[macro_export]
@@ -149,7 +146,7 @@ macro_rules! spellbook_complete {
 #[macro_export]
 macro_rules! spellbook_username {
   ($username:expr) => {
-        match crate::utility::sanitize_username($username) {
+        match $crate::utility::sanitize_username($username) {
             Ok(username) => username,
             Err(e) => return (axum::http::StatusCode::UNAUTHORIZED, axum::Json(serde_json::json!({"error": format!("{}",e)}))).into_response()
         }
@@ -159,7 +156,7 @@ macro_rules! spellbook_username {
 #[macro_export]
 macro_rules! spellbook_ulid {
   ($ulid:expr) => {
-        match crate::utility::sanitizie_ulid($ulid) {
+        match $crate::utility::sanitizie_ulid($ulid) {
             Ok(ulid) => ulid,
             Err(e) => return (axum::http::StatusCode::UNAUTHORIZED, axum::Json(serde_json::json!({"error": format!("{}",e)}))).into_response()
         }
@@ -169,7 +166,7 @@ macro_rules! spellbook_ulid {
 #[macro_export]
 macro_rules! spellbook_email {
   ($email:expr) => {
-        match crate::utility::sanitize_email($email) {
+        match $crate::utility::sanitize_email($email) {
             Ok(email) => email,
             Err(e) => return (axum::http::StatusCode::UNAUTHORIZED, axum::Json(serde_json::json!({"error": format!("{}",e)}))).into_response()
         }
@@ -178,34 +175,28 @@ macro_rules! spellbook_email {
 
 #[macro_export]
 macro_rules! spellbook_generate_ulid_bytes {
-  () => {
-        {
-            // Call the generate_ulid_as_bytes function
-            crate::utility::generate_ulid_as_bytes()
-        }
-  };
+    () => {{
+        // Call the generate_ulid_as_bytes function
+        $crate::utility::generate_ulid_as_bytes()
+    }};
 }
 
 #[macro_export]
 macro_rules! spellbook_generate_ulid_string {
-  () => {
-        {
-            // Call the generate_ulid_as_string function
-            crate::utility::generate_ulid_as_string()
-        }
-  };
+    () => {{
+        // Call the generate_ulid_as_string function
+        $crate::utility::generate_ulid_as_string()
+    }};
 }
 
 /**
-
 In the spellbook_sanitize_fields macro:
-	- It takes any struct ($struct) and a list of fields within that struct.
-	- For each field, if it is an Option<String> and currently has a value (Some), that value is sanitized using the crate::utility::sanitize_string_limit function.
-	- The macro is designed to be reusable for any struct with fields that need sanitizing and can handle multiple fields at once.
-	- This macro simplifies the process of sanitizing multiple fields in a struct, ensuring that each specified field is sanitized if it contains a value. 
-	It reduces code repetition and improves readability by abstracting the common pattern of sanitizing multiple optional fields.
+    - It takes any struct ($struct) and a list of fields within that struct.
+    - For each field, if it is an Option<String> and currently has a value (Some), that value is sanitized using the crate::utility::sanitize_string_limit function.
+    - The macro is designed to be reusable for any struct with fields that need sanitizing and can handle multiple fields at once.
+    - This macro simplifies the process of sanitizing multiple fields in a struct, ensuring that each specified field is sanitized if it contains a value.
+    It reduces code repetition and improves readability by abstracting the common pattern of sanitizing multiple optional fields.
 **/
-
 // This is a macro definition using Rust's macro_rules! system.
 // It is designed to generalize the process of sanitizing fields in a struct.
 #[macro_export]
@@ -221,21 +212,20 @@ macro_rules! spellbook_sanitize_fields {
                 // `*value` dereferences the Option to get a mutable reference to the contained String.
                 // `crate::utility::sanitize_string_limit` is called to sanitize the value.
                 // This could include operations like trimming, removing special characters, etc.
-                *value = crate::utility::sanitize_string_limit(value);
+                *value = $crate::utility::sanitize_string_limit(value);
             }
         )+
   };
 }
 
 ///     !   [Hazardous]
-///     ?	Macro -> Hazardous_Booleans
-
+///     ?   Macro -> Hazardous_Booleans
 #[macro_export]
 macro_rules! spellbook_hazardous_boolean_exist_via_ulid {
-  ($func_name:ident, $table:ident, $column:ident, $param:ident, $param_type:ty) => {
+    ($func_name:ident, $table:ident, $column:ident, $param:ident, $param_type:ty) => {
         pub async fn $func_name(
             $param: $param_type,
-            pool: Arc<Pool>
+            pool: Arc<Pool>,
         ) -> Result<bool, &'static str> {
             let mut conn = spellbook_pool_conn!(pool);
 
@@ -249,14 +239,13 @@ macro_rules! spellbook_hazardous_boolean_exist_via_ulid {
                 Err(_) => Err("db_error"),
             }
         }
-  };
+    };
 }
 
 ///     ?       Macro -> Hazardous Task Fetch
-
 #[macro_export]
 macro_rules! spellbook_hazardous_task_fetch {
-  (
+    (
     $func_name:ident,
     $table:ident,
     $column:ident,
@@ -264,67 +253,63 @@ macro_rules! spellbook_hazardous_task_fetch {
     $param_type:ty,
     $return_type:ty
   ) => {
-		pub async fn $func_name(
-			$param: $param_type,
-			pool: Arc<Pool>
-		) -> Result<$return_type, &'static str> {
-			let mut conn = spellbook_pool_conn!(pool);
+        pub async fn $func_name(
+            $param: $param_type,
+            pool: Arc<Pool>,
+        ) -> Result<$return_type, &'static str> {
+            let mut conn = spellbook_pool_conn!(pool);
 
-			match $table::table
-				.filter($table::$param.eq($param))
-				.select($table::$column)
-				.first::<$return_type>(&mut conn)
-				{
-					Ok(data) => Ok(data),
-					Err(diesel::NotFound) => Err("db_error"),
-					Err(_) => Err("db_error"),
-				}
-
-		}
-  };
+            match $table::table
+                .filter($table::$param.eq($param))
+                .select($table::$column)
+                .first::<$return_type>(&mut conn)
+            {
+                Ok(data) => Ok(data),
+                Err(diesel::NotFound) => Err("db_error"),
+                Err(_) => Err("db_error"),
+            }
+        }
+    };
 }
 
 #[macro_export]
 macro_rules! spellbook_env_load {
-  ($var_name:expr, $default:expr) => {
-        {
-            let env_val = std::env::var($var_name).unwrap_or_else(|_| $default.to_string());
-            let file_var_name = format!("{}_FILE", $var_name);
-            if let Ok(file_path) = std::env::var(&file_var_name) {
-                std::fs::read_to_string(file_path)
-                    .unwrap_or(env_val)
-                    .trim()
-                    .to_string()
-                    .parse()
-                    .unwrap_or($default)
-            } else {
-                env_val.parse().unwrap_or($default)
-            }
+    ($var_name:expr, $default:expr) => {{
+        let env_val = std::env::var($var_name).unwrap_or_else(|_| $default.to_string());
+        let file_var_name = format!("{}_FILE", $var_name);
+        if let Ok(file_path) = std::env::var(&file_var_name) {
+            std::fs::read_to_string(file_path)
+                .unwrap_or(env_val)
+                .trim()
+                .to_string()
+                .parse()
+                .unwrap_or($default)
+        } else {
+            env_val.parse().unwrap_or($default)
         }
-  };
+    }};
 }
 
 #[macro_export]
 macro_rules! spellbook_env_load_duration {
-  ($var_name:expr, $default:expr) => {
-        {
-            let default_secs = $default.as_secs().to_string();
-            let env_val = std::env::var($var_name).unwrap_or_else(|_| default_secs);
-            
-            let file_var_name = format!("{}_FILE", $var_name);
-            if let Ok(file_path) = std::env::var(&file_var_name) {
-                std::fs::read_to_string(file_path)
-                    .unwrap_or(env_val)
-                    .trim()
-                    .to_string()
-                    .parse::<u64>()
-                    .map(Duration::from_secs)
-                    .unwrap_or($default)
-            } else {
-                env_val.parse::<u64>()
-                    .map(Duration::from_secs)
-                    .unwrap_or($default)
-            }
+    ($var_name:expr, $default:expr) => {{
+        let default_secs = $default.as_secs().to_string();
+        let env_val = std::env::var($var_name).unwrap_or_else(|_| default_secs);
+
+        let file_var_name = format!("{}_FILE", $var_name);
+        if let Ok(file_path) = std::env::var(&file_var_name) {
+            std::fs::read_to_string(file_path)
+                .unwrap_or(env_val)
+                .trim()
+                .to_string()
+                .parse::<u64>()
+                .map(Duration::from_secs)
+                .unwrap_or($default)
+        } else {
+            env_val
+                .parse::<u64>()
+                .map(Duration::from_secs)
+                .unwrap_or($default)
         }
-  };
+    }};
 }

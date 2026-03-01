@@ -1,19 +1,22 @@
 use diesel::prelude::*;
 
-use axum::{ http::{ StatusCode }, response::{ Json, IntoResponse, Response } };
+use axum::{
+    http::StatusCode,
+    response::{IntoResponse, Json, Response},
+};
 
-use serde::{ Serialize, Deserialize };
+use serde::{Deserialize, Serialize};
 
 use dashmap::DashMap;
 
 //	use once_cell::sync::Lazy;
 
-use std::sync::{ Arc, OnceLock };
+use std::sync::{Arc, OnceLock};
 
-use crate::{ spellbook_sanitize_fields };
+use crate::spellbook_sanitize_fields;
 
 //			*Schema
-use crate::schema::{ profile };
+use crate::schema::profile;
 
 //			*ValidationBuilder
 // use crate::utils::sanitization::{ ValidationBuilder };
@@ -21,7 +24,7 @@ use crate::schema::{ profile };
 use jedi::ValidatorBuilder;
 
 //			*Captcha
-use crate::utils::captcha::{ verify_token_via_hcaptcha };
+use crate::utils::captcha::verify_token_via_hcaptcha;
 
 //         [GLOBALS]
 pub type GlobalStore = DashMap<String, String>;
@@ -31,295 +34,290 @@ pub static GLOBAL: OnceLock<Arc<GlobalStore>> = OnceLock::new();
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TokenRune {
-  pub userid: String,
-  pub email: String,
-  pub username: String,
-  pub iat: usize,
-  pub exp: usize,
+    pub userid: String,
+    pub email: String,
+    pub username: String,
+    pub iat: usize,
+    pub exp: usize,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct APIRune {
-  pub sub: String,
-  pub iat: usize,
-  pub exp: usize,
-  pub key: String,
-  pub uid: String,
-  pub kbve: String,
+    pub sub: String,
+    pub iat: usize,
+    pub exp: usize,
+    pub key: String,
+    pub uid: String,
+    pub kbve: String,
 }
 
 //         [Schema]
 
 #[derive(Debug, Deserialize)]
 pub struct LoginUserSchema {
-  pub email: String,
-  pub password: String,
+    pub email: String,
+    pub password: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct RegisterUserSchema {
-  pub username: String,
-  pub email: String,
-  pub password: String,
-  pub captcha: String,
+    pub username: String,
+    pub email: String,
+    pub password: String,
+    pub captcha: String,
 }
 
 #[derive(Debug, Queryable, Deserialize, Serialize, Clone)]
 pub struct AuthVerificationSchema {
-  pub username: String,
-  pub email: String,
-  pub userid: Vec<u8>,
-  pub hash: String,
+    pub username: String,
+    pub email: String,
+    pub userid: Vec<u8>,
+    pub hash: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct RecoverUserSchema {
-  pub email: String,
-  pub service: String,
-  pub captcha: String,
+    pub email: String,
+    pub service: String,
+    pub captcha: String,
 }
 
 impl RecoverUserSchema {
-  pub fn sanitize(&mut self) -> Result<(), String> {
-    // Initialize and configure the validator for the email
-    let email_result = ValidatorBuilder::<String, String>
-      ::new()
-      .clean_or_fail()
-      .email()
-      .validate(self.email.clone()); // Clone `&str` to `String`
+    pub fn sanitize(&mut self) -> Result<(), String> {
+        // Initialize and configure the validator for the email
+        let email_result = ValidatorBuilder::<String, String>::new()
+            .clean_or_fail()
+            .email()
+            .validate(self.email.clone()); // Clone `&str` to `String`
 
-    match email_result {
-      Ok(_) => (),
-      Err(errors) => {
-        return Err(format!("Email validation error: {}", errors.join(", ")));
-      }
+        match email_result {
+            Ok(_) => (),
+            Err(errors) => {
+                return Err(format!("Email validation error: {}", errors.join(", ")));
+            }
+        }
+
+        // Initialize and configure the validator for the service
+        let service_result = ValidatorBuilder::<String, String>::new()
+            .clean_or_fail()
+            .service()
+            .validate(self.service.clone()); // Clone `&str` to `String`
+
+        match service_result {
+            Ok(_) => (),
+            Err(errors) => {
+                return Err(format!("Service validation error: {}", errors.join(", ")));
+            }
+        }
+
+        // Initialize and configure the validator for the captcha
+        let captcha_result = ValidatorBuilder::<String, String>::new()
+            .captcha_token()
+            .validate(self.captcha.clone()); // Clone `&str` to `String`
+
+        match captcha_result {
+            Ok(_) => (),
+            Err(errors) => {
+                return Err(format!("Captcha validation error: {}", errors.join(", ")));
+            }
+        }
+
+        Ok(())
     }
 
-    // Initialize and configure the validator for the service
-    let service_result = ValidatorBuilder::<String, String>
-      ::new()
-      .clean_or_fail()
-      .service()
-      .validate(self.service.clone()); // Clone `&str` to `String`
-
-    match service_result {
-      Ok(_) => (),
-      Err(errors) => {
-        return Err(format!("Service validation error: {}", errors.join(", ")));
-      }
+    pub async fn captcha_verify(&self) -> Result<bool, String> {
+        verify_token_via_hcaptcha(&self.captcha)
+            .await
+            .map_err(|e| format!("Captcha verification error: {}", e))
     }
-
-    // Initialize and configure the validator for the captcha
-    let captcha_result = ValidatorBuilder::<String, String>
-      ::new()
-      .captcha_token()
-      .validate(self.captcha.clone()); // Clone `&str` to `String`
-
-    match captcha_result {
-      Ok(_) => (),
-      Err(errors) => {
-        return Err(format!("Captcha validation error: {}", errors.join(", ")));
-      }
-    }
-
-    Ok(())
-  }
-
-  pub async fn captcha_verify(&self) -> Result<bool, String> {
-    verify_token_via_hcaptcha(&self.captcha).await.map_err(|e|
-      format!("Captcha verification error: {}", e)
-    )
-  }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct PasswordRecoveryRequestSchema {
-  pub email: String,
-  pub password: String,
-  pub token: String,
+    pub email: String,
+    pub password: String,
+    pub token: String,
 }
 
 impl PasswordRecoveryRequestSchema {
-  pub fn sanitize(&mut self) -> Result<(), String> {
-    let email_result = ValidatorBuilder::<String, String>
-      ::new()
-      .clean_or_fail()
-      .email()
-      .validate(self.email.clone());
+    pub fn sanitize(&mut self) -> Result<(), String> {
+        let email_result = ValidatorBuilder::<String, String>::new()
+            .clean_or_fail()
+            .email()
+            .validate(self.email.clone());
 
-    match email_result {
-      Ok(_) => (),
-      Err(errors) => {
-        return Err(format!("Email validation error: {}", errors.join(", ")));
-      }
+        match email_result {
+            Ok(_) => (),
+            Err(errors) => {
+                return Err(format!("Email validation error: {}", errors.join(", ")));
+            }
+        }
+
+        // Initialize and configure the validator for the token
+        let token_result = ValidatorBuilder::<String, String>::new()
+            .clean_or_fail()
+            .service()
+            .validate(self.token.clone());
+
+        match token_result {
+            Ok(_) => (),
+            Err(errors) => {
+                return Err(format!("Token validation error: {}", errors.join(", ")));
+            }
+        }
+
+        Ok(())
     }
-
-    // Initialize and configure the validator for the token
-    let token_result = ValidatorBuilder::<String, String>
-      ::new()
-      .clean_or_fail()
-      .service()
-      .validate(self.token.clone());
-
-    match token_result {
-      Ok(_) => (),
-      Err(errors) => {
-        return Err(format!("Token validation error: {}", errors.join(", ")));
-      }
-    }
-
-    Ok(())
-  }
 }
 
 /**
-	- UpdateProfileSchema is a struct used to represent the data for updating a user profile. 
-	Each field is optional, allowing partial updates.
-	- It implements AsChangeset and Queryable from Diesel to facilitate database operations, 
-	and Serialize and Deserialize from Serde for JSON (de)serialization.
-	- The sanitize method is responsible for cleaning and validating the fields. 
-	It likely performs operations like trimming, escaping, or validating the format.
-	- extract_usernames method further processes specific fields (like github, instagram, and unsplash) to extract meaningful information, such as usernames or IDs. 
-	If the extraction process fails (e.g., if the input is invalid), the corresponding field is reset to an empty string to avoid storing invalid data.
-	**/
+- UpdateProfileSchema is a struct used to represent the data for updating a user profile.
+  Each field is optional, allowing partial updates.
+- It implements AsChangeset and Queryable from Diesel to facilitate database operations,
+  and Serialize and Deserialize from Serde for JSON (de)serialization.
+- The sanitize method is responsible for cleaning and validating the fields.
+  It likely performs operations like trimming, escaping, or validating the format.
+- extract_usernames method further processes specific fields (like github, instagram, and unsplash) to extract meaningful information, such as usernames or IDs.
+  If the extraction process fails (e.g., if the input is invalid), the corresponding field is reset to an empty string to avoid storing invalid data.
+**/
 
 // Derive macros to add functionality to the UpdateProfileSchema struct.
 // Specifies the corresponding table name in the database for the Diesel ORM.
 #[derive(AsChangeset, Queryable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = profile)]
 pub struct UpdateProfileSchema {
-  // Define optional fields for the user profile.
-  // Option is used to represent that each field might or might not be present.
-  pub name: Option<String>,
-  pub bio: Option<String>,
-  pub unsplash: Option<String>,
-  pub github: Option<String>,
-  pub instagram: Option<String>,
-  pub discord: Option<String>,
+    // Define optional fields for the user profile.
+    // Option is used to represent that each field might or might not be present.
+    pub name: Option<String>,
+    pub bio: Option<String>,
+    pub unsplash: Option<String>,
+    pub github: Option<String>,
+    pub instagram: Option<String>,
+    pub discord: Option<String>,
 }
 
 // Implement methods for the UpdateProfileSchema struct.
 impl UpdateProfileSchema {
-  // Define a method named `sanitize` to clean and validate the fields.
-  pub fn sanitize(&mut self) {
-    // Sanitize the fields using a custom macro or function.
-    // This likely includes trimming whitespace, escaping special characters, etc.
-    spellbook_sanitize_fields!(self, bio, name, unsplash, github, instagram, discord);
-    // Further process specific fields to extract usernames or IDs.
-    self.extract_usernames();
-  }
-
-  // Define a method to extract and validate usernames or IDs from certain fields.
-  fn extract_usernames(&mut self) {
-    // For the GitHub field, extract the username and validate it.
-    if let Some(ref mut github) = self.github {
-      if let Some(username) = crate::utility::extract_github_username(github) {
-        *github = username;
-      } else {
-        // If the input is invalid, reset the field to an empty string.
-        *github = String::new();
-      }
-    }
-    // Similar logic for Instagram.
-    if let Some(ref mut instagram) = self.instagram {
-      if let Some(username) = crate::utility::extract_instagram_username(instagram) {
-        *instagram = username;
-      } else {
-        *instagram = String::new();
-      }
+    // Define a method named `sanitize` to clean and validate the fields.
+    pub fn sanitize(&mut self) {
+        // Sanitize the fields using a custom macro or function.
+        // This likely includes trimming whitespace, escaping special characters, etc.
+        spellbook_sanitize_fields!(self, bio, name, unsplash, github, instagram, discord);
+        // Further process specific fields to extract usernames or IDs.
+        self.extract_usernames();
     }
 
-    // Similar logic for Unsplash.
-    if let Some(ref mut unsplash) = self.unsplash {
-      if let Some(url) = crate::utility::extract_unsplash_photo_id(unsplash) {
-        *unsplash = url;
-      } else {
-        *unsplash = String::new();
-      }
+    // Define a method to extract and validate usernames or IDs from certain fields.
+    fn extract_usernames(&mut self) {
+        // For the GitHub field, extract the username and validate it.
+        if let Some(ref mut github) = self.github {
+            if let Some(username) = crate::utility::extract_github_username(github) {
+                *github = username;
+            } else {
+                // If the input is invalid, reset the field to an empty string.
+                *github = String::new();
+            }
+        }
+        // Similar logic for Instagram.
+        if let Some(ref mut instagram) = self.instagram {
+            if let Some(username) = crate::utility::extract_instagram_username(instagram) {
+                *instagram = username;
+            } else {
+                *instagram = String::new();
+            }
+        }
+
+        // Similar logic for Unsplash.
+        if let Some(ref mut unsplash) = self.unsplash {
+            if let Some(url) = crate::utility::extract_unsplash_photo_id(unsplash) {
+                *unsplash = url;
+            } else {
+                *unsplash = String::new();
+            }
+        }
     }
-  }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AuthPlayerRegisterSchema {
-  pub username: String,
-  pub email: String,
-  pub password: String,
-  pub token: String,
-  pub invite: Option<String>,
+    pub username: String,
+    pub email: String,
+    pub password: String,
+    pub token: String,
+    pub invite: Option<String>,
 }
 
 impl AuthPlayerRegisterSchema {
-  pub fn sanitize(&mut self) -> Result<(), String> {
-    //	Sanitize the Username - Part 1 - Cleaning the string / turncating using Ammonia crate.
-    let limited_username = crate::utility::sanitize_string_limit(&self.username);
+    pub fn sanitize(&mut self) -> Result<(), String> {
+        //	Sanitize the Username - Part 1 - Cleaning the string / turncating using Ammonia crate.
+        let limited_username = crate::utility::sanitize_string_limit(&self.username);
 
-    //	Sanitize the Username - Part 2 - Additional safety checks.
-    match crate::utility::sanitize_username(&limited_username) {
-      Ok(clean_username) => {
-        self.username = clean_username;
-      }
-      Err(e) => {
-        return Err(e.to_string());
-      }
+        //	Sanitize the Username - Part 2 - Additional safety checks.
+        match crate::utility::sanitize_username(&limited_username) {
+            Ok(clean_username) => {
+                self.username = clean_username;
+            }
+            Err(e) => {
+                return Err(e.to_string());
+            }
+        }
+
+        //	Sanitize the Email - Part 1 - Cleaning the string and limiting it using Ammonia Crate.
+        let limited_email = crate::utility::sanitize_string_limit(&self.email);
+
+        //	Sanitize the Email - Part 2 - Regex and additional checks in place from the utility crate.
+        match crate::utility::sanitize_email(&limited_email) {
+            Ok(clean_email) => {
+                self.email = clean_email;
+            }
+            Err(e) => {
+                return Err(e.to_string());
+            }
+        }
+
+        //	Validation of the Password
+        match crate::utility::validate_password(&self.password) {
+            Ok(_) => {}
+            Err(e) => {
+                return Err(e.to_string());
+            }
+        }
+
+        //	Apply sanitization to the invite if it is in Schema.
+        if let Some(invite) = &self.invite {
+            // Perform necessary sanitization on the invite
+            let sanitized_invite = crate::utility::sanitize_string_limit(invite);
+
+            // TODO: Additional validation logic for invite can go here, if needed
+
+            // Update the invite field with the sanitized value
+            self.invite = Some(sanitized_invite);
+        }
+
+        //	Sanitization is complete.
+        Ok(())
     }
-
-    //	Sanitize the Email - Part 1 - Cleaning the string and limiting it using Ammonia Crate.
-    let limited_email = crate::utility::sanitize_string_limit(&self.email);
-
-    //	Sanitize the Email - Part 2 - Regex and additional checks in place from the utility crate.
-    match crate::utility::sanitize_email(&limited_email) {
-      Ok(clean_email) => {
-        self.email = clean_email;
-      }
-      Err(e) => {
-        return Err(e.to_string());
-      }
-    }
-
-    //	Validation of the Password
-    match crate::utility::validate_password(&self.password) {
-      Ok(_) => {}
-      Err(e) => {
-        return Err(e.to_string());
-      }
-    }
-
-    //	Apply sanitization to the invite if it is in Schema.
-    if let Some(invite) = &self.invite {
-      // Perform necessary sanitization on the invite
-      let sanitized_invite = crate::utility::sanitize_string_limit(invite);
-
-      // TODO: Additional validation logic for invite can go here, if needed
-
-      // Update the invite field with the sanitized value
-      self.invite = Some(sanitized_invite);
-    }
-
-    //	Sanitization is complete.
-    Ok(())
-  }
 }
 
 //?         [Response]
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct WizardResponse {
-  pub data: serde_json::Value,
-  pub message: serde_json::Value,
+    pub data: serde_json::Value,
+    pub message: serde_json::Value,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct CaptchaResponse {
-  pub success: bool,
+    pub success: bool,
 }
 
 impl IntoResponse for WizardResponse {
-  fn into_response(self) -> Response {
-    // You can customize the status code and response format as needed
-    let status_code = StatusCode::OK; // Example status code
-    let json_body = Json(self); // Convert the struct into a JSON body
+    fn into_response(self) -> Response {
+        // You can customize the status code and response format as needed
+        let status_code = StatusCode::OK; // Example status code
+        let json_body = Json(self); // Convert the struct into a JSON body
 
-    (status_code, json_body).into_response()
-  }
+        (status_code, json_body).into_response()
+    }
 }

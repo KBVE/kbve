@@ -3,7 +3,6 @@ use dashmap::DashMap;
 use regex::Regex;
 use std::sync::{Arc, RwLock};
 
-
 #[derive(Debug)]
 pub enum RegexBuilderError {
     InvalidRegex(String),
@@ -37,6 +36,12 @@ pub struct RegexBuilder {
     patterns: DashMap<String, Arc<RegexEntry>>,
 }
 
+impl Default for RegexBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RegexBuilder {
     pub fn new() -> Self {
         RegexBuilder {
@@ -62,9 +67,12 @@ impl RegexBuilder {
         }
     }
 
-	pub fn bootup(&self) {
+    pub fn bootup(&self) {
         let patterns = vec![
-            ("email".to_string(), r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$".to_string()),
+            (
+                "email".to_string(),
+                r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$".to_string(),
+            ),
             ("phone".to_string(), r"^\+?[0-9]{10,15}$".to_string()),
         ];
 

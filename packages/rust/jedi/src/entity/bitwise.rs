@@ -1,10 +1,8 @@
-use crate::proto::jedi::{MessageKind, PayloadFormat};
+use crate::proto::jedi::MessageKind;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
-
 impl MessageKind {
-
     pub fn try_from_valid(kind: i32) -> bool {
         if Self::try_from(kind).is_ok() {
             return true;
@@ -25,7 +23,10 @@ impl MessageKind {
 
     #[inline(always)]
     pub fn is_stream_xadd(kind: i32) -> bool {
-        Self::has_flags(kind, &[MessageKind::Redis, MessageKind::Stream, MessageKind::Add])
+        Self::has_flags(
+            kind,
+            &[MessageKind::Redis, MessageKind::Stream, MessageKind::Add],
+        )
     }
 }
 
@@ -108,16 +109,16 @@ define_flag_checks!(
 );
 
 define_multi_flag_checks!(
-    (rget,      RGET,      [Redis, Get]),
-    (rset,      RSET,      [Redis, Set]),
-    (rdel,      RDEL,      [Redis, Del]),
-    (xadd,      XADD,      [Redis, Stream, Add]),
-    (xread,     XREAD,     [Redis, Stream, Read]),
-    (watch,     WATCH,     [Redis, Heartbeat, Read, Info]),
-    (unwatch,   UNWATCH,   [Redis, Heartbeat, Del, Info]),
-    (publish,   PUBLISH,   [Redis, Message, Action]),
+    (rget, RGET, [Redis, Get]),
+    (rset, RSET, [Redis, Set]),
+    (rdel, RDEL, [Redis, Del]),
+    (xadd, XADD, [Redis, Stream, Add]),
+    (xread, XREAD, [Redis, Stream, Read]),
+    (watch, WATCH, [Redis, Heartbeat, Read, Info]),
+    (unwatch, UNWATCH, [Redis, Heartbeat, Del, Info]),
+    (publish, PUBLISH, [Redis, Message, Action]),
     (subscribe, SUBSCRIBE, [Redis, Message, Read]),
-    (ch_insert,  CH_INSERT,  [Clickhouse, Add]),
-    (ch_select,  CH_SELECT,  [Clickhouse, Read]),
-    (ch_ddl,     CH_DDL,     [Clickhouse, Action, Set]),
+    (ch_insert, CH_INSERT, [Clickhouse, Add]),
+    (ch_select, CH_SELECT, [Clickhouse, Read]),
+    (ch_ddl, CH_DDL, [Clickhouse, Action, Set]),
 );

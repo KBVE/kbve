@@ -1,8 +1,8 @@
+use flexbuffers::{FlexbufferSerializer, Reader};
 ///  packages/rust/jedi/src/entity/hash.rs
 use rustc_hash::FxHasher;
-use std::hash::{ Hash, Hasher };
-use serde::{ Serialize, Deserialize };
-use flexbuffers::{ FlexbufferSerializer, Reader };
+use serde::{Deserialize, Serialize};
+use std::hash::{Hash, Hasher};
 
 /// Computes a 64-bit hash value for any type that implements [`Hash`], using `FxHasher`.
 ///
@@ -24,9 +24,9 @@ use flexbuffers::{ FlexbufferSerializer, Reader };
 /// but **not suitable** for cryptographic use cases.
 ///
 pub fn hash_key<T: Hash>(value: &T) -> u64 {
-  let mut hasher = FxHasher::default();
-  value.hash(&mut hasher);
-  hasher.finish()
+    let mut hasher = FxHasher::default();
+    value.hash(&mut hasher);
+    hasher.finish()
 }
 
 /// Serializes any Serde-compatible value into a Flexbuffers `Vec<u8>`.
@@ -55,9 +55,11 @@ pub fn hash_key<T: Hash>(value: &T) -> u64 {
 /// assert!(!encoded.is_empty());
 /// ```
 pub fn encode_flex<T: Serialize>(value: &T) -> Vec<u8> {
-  let mut serializer = FlexbufferSerializer::new();
-  value.serialize(&mut serializer).expect("Flexbuffer serialization failed");
-  serializer.take_buffer()
+    let mut serializer = FlexbufferSerializer::new();
+    value
+        .serialize(&mut serializer)
+        .expect("Flexbuffer serialization failed");
+    serializer.take_buffer()
 }
 
 /// Deserializes a Flexbuffers byte slice back into a Serde-compatible value.
@@ -88,8 +90,8 @@ pub fn encode_flex<T: Serialize>(value: &T) -> Vec<u8> {
 /// assert_eq!(original, decoded);
 /// ```
 pub fn decode_flex<T: for<'de> Deserialize<'de>>(bytes: &[u8]) -> T {
-  let reader = Reader::get_root(bytes).expect("Invalid Flexbuffer payload");
-  T::deserialize(reader).expect("Flexbuffer deserialization failed")
+    let reader = Reader::get_root(bytes).expect("Invalid Flexbuffer payload");
+    T::deserialize(reader).expect("Flexbuffer deserialization failed")
 }
 
 /// A utility wrapper for working with Flexbuffers-encoded payloads.
@@ -135,42 +137,40 @@ pub fn decode_flex<T: for<'de> Deserialize<'de>>(bytes: &[u8]) -> T {
 /// let vec = payload.into_vec();
 /// assert_eq!(slice, vec);
 /// ```
-
 pub struct HashPayload {
-  pub bytes: Vec<u8>,
+    pub bytes: Vec<u8>,
 }
 
 impl HashPayload {
-  
-  /// Creates a new `HashPayload` by encoding any Serde-compatible value into Flexbuffers.
-  pub fn from<T: Serialize>(value: &T) -> Self {
-    Self {
-      bytes: encode_flex(value),
+    /// Creates a new `HashPayload` by encoding any Serde-compatible value into Flexbuffers.
+    pub fn from<T: Serialize>(value: &T) -> Self {
+        Self {
+            bytes: encode_flex(value),
+        }
     }
-  }
 
-  /// Decodes the internal Flexbuffers bytes into a Serde-compatible Rust type.
-  ///
-  /// # Panics
-  /// This will panic if the payload is invalid or doesn't match the target type.
-  pub fn decode<T: for<'de> Deserialize<'de>>(&self) -> T {
-    decode_flex(&self.bytes)
-  }
+    /// Decodes the internal Flexbuffers bytes into a Serde-compatible Rust type.
+    ///
+    /// # Panics
+    /// This will panic if the payload is invalid or doesn't match the target type.
+    pub fn decode<T: for<'de> Deserialize<'de>>(&self) -> T {
+        decode_flex(&self.bytes)
+    }
 
-  /// Computes a fast `u64` hash of the internal payload using [`FxHasher`].
-  ///
-  /// This is useful for deduplication, cache keys, or quick comparisons.
-  pub fn hash(&self) -> u64 {
-    hash_key(&self.bytes)
-  }
+    /// Computes a fast `u64` hash of the internal payload using [`FxHasher`].
+    ///
+    /// This is useful for deduplication, cache keys, or quick comparisons.
+    pub fn hash(&self) -> u64 {
+        hash_key(&self.bytes)
+    }
 
-  /// Returns a byte slice reference to the internal encoded payload.
-  pub fn as_slice(&self) -> &[u8] {
-    &self.bytes
-  }
+    /// Returns a byte slice reference to the internal encoded payload.
+    pub fn as_slice(&self) -> &[u8] {
+        &self.bytes
+    }
 
-  /// Consumes the wrapper and returns the inner byte vector.
-  pub fn into_vec(self) -> Vec<u8> {
-    self.bytes
-  }
+    /// Consumes the wrapper and returns the inner byte vector.
+    pub fn into_vec(self) -> Vec<u8> {
+        self.bytes
+    }
 }
