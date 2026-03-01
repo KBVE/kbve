@@ -74,6 +74,17 @@ impl AppState {
             );
         }
 
+        // Load symbol font for Unicode fallback (covers ⚔☠◆♥⚖⌂♫⚠ etc.)
+        let symbol_font_path = std::env::var("SYMBOL_FONT_PATH")
+            .unwrap_or_else(|_| "NotoSansSymbols-Regular.ttf".to_owned());
+        if let Err(e) = fontdb.load_font_file(&symbol_font_path) {
+            tracing::warn!(
+                error = %e,
+                path = %symbol_font_path,
+                "Failed to load symbol font; Unicode symbols may not render"
+            );
+        }
+
         tracing::info!(fonts = fontdb.len(), "Font database initialized");
 
         Self {
