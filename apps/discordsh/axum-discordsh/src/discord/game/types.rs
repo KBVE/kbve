@@ -29,6 +29,7 @@ pub enum GamePhase {
     Rest,
     Merchant,
     City,
+    WaitingForActions,
     GameOver(GameOverReason),
 }
 
@@ -76,6 +77,8 @@ pub enum EffectKind {
     Shielded,
     Weakened,
     Stunned,
+    Sharpened,
+    Thorns,
 }
 
 #[derive(Debug, Clone)]
@@ -105,6 +108,9 @@ pub enum UseEffect {
     RemoveEffect {
         kind: EffectKind,
     },
+    GuaranteedFlee,
+    FullHeal,
+    RemoveAllNegativeEffects,
 }
 
 // ── Item rarity ────────────────────────────────────────────────────
@@ -135,6 +141,61 @@ pub struct ItemStack {
     pub qty: u16,
 }
 
+// ── Equipment / Gear ────────────────────────────────────────────────
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum EquipSlot {
+    Weapon,
+    Armor,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum GearSpecial {
+    LifeSteal { percent: u8 },
+    Thorns { damage: i32 },
+    CritBonus { percent: u8 },
+}
+
+#[derive(Debug, Clone)]
+pub struct GearDef {
+    pub id: &'static str,
+    pub name: &'static str,
+    pub emoji: &'static str,
+    pub slot: EquipSlot,
+    pub rarity: ItemRarity,
+    pub bonus_damage: i32,
+    pub bonus_armor: i32,
+    pub bonus_hp: i32,
+    pub special: Option<GearSpecial>,
+}
+
+// ── Player class ────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ClassType {
+    Warrior,
+    Rogue,
+    Cleric,
+}
+
+impl ClassType {
+    pub fn emoji(&self) -> &'static str {
+        match self {
+            ClassType::Warrior => "\u{2694}",
+            ClassType::Rogue => "\u{1F5E1}",
+            ClassType::Cleric => "\u{271A}",
+        }
+    }
+
+    pub fn label(&self) -> &'static str {
+        match self {
+            ClassType::Warrior => "Warrior",
+            ClassType::Rogue => "Rogue",
+            ClassType::Cleric => "Cleric",
+        }
+    }
+}
+
 // ── Player state ────────────────────────────────────────────────────
 
 #[derive(Debug, Clone)]
@@ -149,6 +210,20 @@ pub struct PlayerState {
     pub accuracy: f32,
     pub alive: bool,
     pub member_status: MemberStatusTag,
+    pub class: ClassType,
+    pub level: u8,
+    pub xp: u32,
+    pub xp_to_next: u32,
+    pub crit_chance: f32,
+    pub base_damage_bonus: i32,
+    pub weapon: Option<String>,
+    pub armor_gear: Option<String>,
+    pub defending: bool,
+    pub stunned_turns: u8,
+    pub lifetime_kills: u32,
+    pub lifetime_gold_earned: u32,
+    pub lifetime_rooms_cleared: u32,
+    pub lifetime_bosses_defeated: u32,
 }
 
 impl Default for PlayerState {
@@ -164,7 +239,37 @@ impl Default for PlayerState {
             accuracy: 1.0,
             alive: true,
             member_status: MemberStatusTag::Guest,
+            class: ClassType::Warrior,
+            level: 1,
+            xp: 0,
+            xp_to_next: 100,
+            crit_chance: 0.10,
+            base_damage_bonus: 0,
+            weapon: None,
+            armor_gear: None,
+            defending: false,
+            stunned_turns: 0,
+            lifetime_kills: 0,
+            lifetime_gold_earned: 0,
+            lifetime_rooms_cleared: 0,
+            lifetime_bosses_defeated: 0,
         }
+    }
+}
+
+impl PlayerState {
+    /// Check if the player has a specific effect active.
+    pub fn has_effect(&self, kind: &EffectKind) -> bool {
+        self.effects.iter().any(|e| &e.kind == kind)
+    }
+
+    /// Get total stacks of a specific effect.
+    pub fn effect_stacks(&self, kind: &EffectKind) -> u8 {
+        self.effects
+            .iter()
+            .filter(|e| &e.kind == kind)
+            .map(|e| e.stacks)
+            .sum()
     }
 }
 
@@ -181,6 +286,8 @@ pub struct EnemyState {
     pub intent: Intent,
     pub charged: bool,
     pub loot_table_id: &'static str,
+    pub enraged: bool,
+    pub index: u8,
 }
 
 // ── Room state ──────────────────────────────────────────────────────
@@ -248,6 +355,7 @@ pub struct RoomState {
 #[derive(Debug, Clone, PartialEq)]
 pub enum GameAction {
     Attack,
+    AttackTarget(u8),
     Defend,
     UseItem(ItemId),
     Explore,
@@ -256,6 +364,8 @@ pub enum GameAction {
     ToggleItems,
     Buy(ItemId),
     StoryChoice(usize),
+    HealAlly(serenity::UserId),
+    Equip(String),
 }
 
 // ── Session mode ────────────────────────────────────────────────────
@@ -291,10 +401,11 @@ pub struct SessionState {
     pub last_action_at: Instant,
     pub turn: u32,
     pub players: HashMap<serenity::UserId, PlayerState>,
-    pub enemy: Option<EnemyState>,
+    pub enemies: Vec<EnemyState>,
     pub room: RoomState,
     pub log: Vec<String>,
     pub show_items: bool,
+    pub pending_actions: HashMap<serenity::UserId, GameAction>,
 }
 
 impl SessionState {
@@ -335,6 +446,63 @@ impl SessionState {
         }
         result
     }
+
+    /// Whether the session has any enemies alive.
+    pub fn has_enemies(&self) -> bool {
+        !self.enemies.is_empty()
+    }
+
+    /// Get the primary (first) enemy, if any.
+    pub fn primary_enemy(&self) -> Option<&EnemyState> {
+        self.enemies.first()
+    }
+
+    /// Get a mutable reference to the primary enemy.
+    pub fn primary_enemy_mut(&mut self) -> Option<&mut EnemyState> {
+        self.enemies.first_mut()
+    }
+
+    /// Get an enemy by index.
+    pub fn enemy_at(&self, idx: u8) -> Option<&EnemyState> {
+        self.enemies.iter().find(|e| e.index == idx)
+    }
+
+    /// Get a mutable enemy by index.
+    pub fn enemy_at_mut(&mut self, idx: u8) -> Option<&mut EnemyState> {
+        self.enemies.iter_mut().find(|e| e.index == idx)
+    }
+
+    /// Remove dead enemies and return their loot_table_ids.
+    pub fn remove_dead_enemies(&mut self) -> Vec<&'static str> {
+        let dead: Vec<&'static str> = self
+            .enemies
+            .iter()
+            .filter(|e| e.hp <= 0)
+            .map(|e| e.loot_table_id)
+            .collect();
+        self.enemies.retain(|e| e.hp > 0);
+        dead
+    }
+
+    /// Get alive player IDs in roster order.
+    pub fn alive_player_ids(&self) -> Vec<serenity::UserId> {
+        let mut ids = Vec::new();
+        if self.players.get(&self.owner).is_some_and(|p| p.alive) {
+            ids.push(self.owner);
+        }
+        for &uid in &self.party {
+            if self.players.get(&uid).is_some_and(|p| p.alive) {
+                ids.push(uid);
+            }
+        }
+        ids
+    }
+
+    /// Check if all alive players have submitted pending actions.
+    pub fn all_actions_submitted(&self) -> bool {
+        let alive = self.alive_player_ids();
+        alive.iter().all(|uid| self.pending_actions.contains_key(uid))
+    }
 }
 
 #[cfg(test)]
@@ -366,6 +534,16 @@ mod tests {
         assert!(p.effects.is_empty());
         assert!(p.alive);
         assert_eq!(p.member_status, MemberStatusTag::Guest);
+        assert_eq!(p.class, ClassType::Warrior);
+        assert_eq!(p.level, 1);
+        assert_eq!(p.xp, 0);
+        assert_eq!(p.xp_to_next, 100);
+        assert!((p.crit_chance - 0.10).abs() < f32::EPSILON);
+        assert_eq!(p.base_damage_bonus, 0);
+        assert!(p.weapon.is_none());
+        assert!(p.armor_gear.is_none());
+        assert!(!p.defending);
+        assert_eq!(p.stunned_turns, 0);
     }
 
     #[test]
@@ -395,14 +573,100 @@ mod tests {
             last_action_at: Instant::now(),
             turn: 0,
             players,
-            enemy: None,
+            enemies: Vec::new(),
             room: super::super::content::generate_room(0),
             log: Vec::new(),
             show_items: false,
+            pending_actions: HashMap::new(),
         };
         let roster = session.roster();
         assert_eq!(roster.len(), 2);
         assert_eq!(roster[0].0, owner);
         assert_eq!(roster[1].0, member);
+    }
+
+    #[test]
+    fn class_type_labels() {
+        assert_eq!(ClassType::Warrior.label(), "Warrior");
+        assert_eq!(ClassType::Rogue.label(), "Rogue");
+        assert_eq!(ClassType::Cleric.label(), "Cleric");
+    }
+
+    #[test]
+    fn player_has_effect() {
+        let mut p = PlayerState::default();
+        assert!(!p.has_effect(&EffectKind::Poison));
+        p.effects.push(EffectInstance {
+            kind: EffectKind::Poison,
+            stacks: 2,
+            turns_left: 3,
+        });
+        assert!(p.has_effect(&EffectKind::Poison));
+        assert_eq!(p.effect_stacks(&EffectKind::Poison), 2);
+    }
+
+    #[test]
+    fn session_enemy_helpers() {
+        let owner = serenity::UserId::new(1);
+        let mut players = HashMap::new();
+        players.insert(owner, PlayerState::default());
+        let mut session = SessionState {
+            id: uuid::Uuid::new_v4(),
+            short_id: "test1234".to_owned(),
+            owner,
+            party: Vec::new(),
+            mode: SessionMode::Solo,
+            phase: GamePhase::Combat,
+            channel_id: serenity::ChannelId::new(1),
+            message_id: serenity::MessageId::new(1),
+            created_at: Instant::now(),
+            last_action_at: Instant::now(),
+            turn: 0,
+            players,
+            enemies: vec![
+                EnemyState {
+                    name: "Slime".to_owned(),
+                    level: 1,
+                    hp: 20,
+                    max_hp: 20,
+                    armor: 0,
+                    effects: Vec::new(),
+                    intent: Intent::Attack { dmg: 5 },
+                    charged: false,
+                    loot_table_id: "slime",
+                    enraged: false,
+                    index: 0,
+                },
+                EnemyState {
+                    name: "Bat".to_owned(),
+                    level: 1,
+                    hp: 15,
+                    max_hp: 15,
+                    armor: 0,
+                    effects: Vec::new(),
+                    intent: Intent::Attack { dmg: 4 },
+                    charged: false,
+                    loot_table_id: "slime",
+                    enraged: false,
+                    index: 1,
+                },
+            ],
+            room: super::super::content::generate_room(0),
+            log: Vec::new(),
+            show_items: false,
+            pending_actions: HashMap::new(),
+        };
+
+        assert!(session.has_enemies());
+        assert_eq!(session.primary_enemy().unwrap().name, "Slime");
+        assert_eq!(session.enemy_at(1).unwrap().name, "Bat");
+
+        // Kill slime
+        session.enemies[0].hp = 0;
+        let dead = session.remove_dead_enemies();
+        assert_eq!(dead.len(), 1);
+        assert_eq!(dead[0], "slime");
+        assert_eq!(session.enemies.len(), 1);
+        assert_eq!(session.primary_enemy().unwrap().name, "Bat");
     }
 }

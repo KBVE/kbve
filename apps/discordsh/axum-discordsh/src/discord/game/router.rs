@@ -70,6 +70,40 @@ pub async fn handle_game_component(
         } else {
             return send_ephemeral(component, ctx, "Invalid select menu interaction.").await;
         }
+    } else if action_str == "atkt" {
+        // Attack target select menu — enemy index from selected value
+        if let serenity::ComponentInteractionDataKind::StringSelect { values } =
+            &component.data.kind
+        {
+            if let Some(idx_str) = values.first() {
+                match idx_str.parse::<u8>() {
+                    Ok(idx) => GameAction::AttackTarget(idx),
+                    Err(_) => {
+                        return send_ephemeral(component, ctx, "Invalid target.").await;
+                    }
+                }
+            } else {
+                return send_ephemeral(component, ctx, "No target selected.").await;
+            }
+        } else {
+            return send_ephemeral(component, ctx, "Invalid select menu interaction.").await;
+        }
+    } else if action_str == "equip" {
+        // Equip gear — gear_id from parts[3]
+        let gear_id = parts.get(3).unwrap_or(&"");
+        if gear_id.is_empty() {
+            return send_ephemeral(component, ctx, "No gear specified.").await;
+        }
+        GameAction::Equip(gear_id.to_string())
+    } else if action_str == "heal" {
+        // Cleric heal ally — user_id from parts[3]
+        let uid_str = parts.get(3).unwrap_or(&"0");
+        match uid_str.parse::<u64>() {
+            Ok(uid) => GameAction::HealAlly(serenity::UserId::new(uid)),
+            Err(_) => {
+                return send_ephemeral(component, ctx, "Invalid heal target.").await;
+            }
+        }
     } else if action_str == "story" {
         // Story choice button — index is in parts[3]
         let idx_str = parts.get(3).unwrap_or(&"0");

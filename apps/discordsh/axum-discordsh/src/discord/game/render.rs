@@ -18,7 +18,7 @@ fn phase_color(session: &SessionState) -> u32 {
         GamePhase::GameOver(GameOverReason::Victory) => COLOR_VICTORY,
         GamePhase::GameOver(_) => COLOR_GAME_OVER,
         _ if owner.hp <= owner.max_hp / 4 => COLOR_CRITICAL,
-        GamePhase::Combat => COLOR_COMBAT,
+        GamePhase::Combat | GamePhase::WaitingForActions => COLOR_COMBAT,
         GamePhase::Rest => COLOR_REST,
         GamePhase::City => COLOR_CITY,
         _ => COLOR_SAFE,
@@ -102,6 +102,8 @@ fn format_effects(effects: &[EffectInstance]) -> Option<String> {
                 EffectKind::Shielded => "\u{2726} Shielded", // ✦
                 EffectKind::Weakened => "\u{2727} Weakened", // ✧
                 EffectKind::Stunned => "\u{2620} Stunned",   // ☠
+                EffectKind::Sharpened => "\u{2742} Sharp",   // ❂
+                EffectKind::Thorns => "\u{2748} Thorns",     // ❈
             };
             if e.stacks > 1 {
                 format!("{label} x{} ({} turns)", e.stacks, e.turns_left)
@@ -158,10 +160,23 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
     // Player stats — unified roster in party mode, owner-only in solo
     if session.mode == SessionMode::Party && session.players.len() > 1 {
         for (_, player) in session.roster() {
+            let class_badge = format!("{} {}", player.class.emoji(), player.class.label());
             let mut lines = vec![
+                format!("{} Lv.{}", class_badge, player.level),
                 hp_bar(player.hp, player.max_hp, 10),
                 format!("DEF `{}`  Gold `{}`", player.armor, player.gold),
+                progress_bar("\u{2726}", player.xp as i32, player.xp_to_next as i32, 8),
             ];
+            if let Some(ref wep) = player.weapon {
+                if let Some(gear) = super::content::find_gear(wep) {
+                    lines.push(format!("Weapon: {} {}", gear.emoji, gear.name));
+                }
+            }
+            if let Some(ref arm) = player.armor_gear {
+                if let Some(gear) = super::content::find_gear(arm) {
+                    lines.push(format!("Armor: {} {}", gear.emoji, gear.name));
+                }
+            }
             if let Some(fx) = format_effects(&player.effects) {
                 lines.push(format!("Status: {fx}"));
             }
@@ -180,10 +195,23 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
         }
     } else {
         let owner = session.owner_player();
+        let class_badge = format!("{} {}", owner.class.emoji(), owner.class.label());
         let mut player_lines = vec![
+            format!("{} Lv.{}", class_badge, owner.level),
             hp_bar(owner.hp, owner.max_hp, 10),
             format!("DEF `{}`  Gold `{}`", owner.armor, owner.gold),
+            progress_bar("\u{2726}", owner.xp as i32, owner.xp_to_next as i32, 8),
         ];
+        if let Some(ref wep) = owner.weapon {
+            if let Some(gear) = super::content::find_gear(wep) {
+                player_lines.push(format!("Weapon: {} {}", gear.emoji, gear.name));
+            }
+        }
+        if let Some(ref arm) = owner.armor_gear {
+            if let Some(gear) = super::content::find_gear(arm) {
+                player_lines.push(format!("Armor: {} {}", gear.emoji, gear.name));
+            }
+        }
         if let Some(fx) = format_effects(&owner.effects) {
             player_lines.push(format!("Status: {fx}"));
         }
@@ -197,10 +225,11 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
         );
     }
 
-    // Enemy field (if in combat)
-    if let Some(ref enemy) = session.enemy {
+    // Enemy fields (multi-enemy support)
+    for enemy in &session.enemies {
+        let enrage_tag = if enemy.enraged { " \u{1F525}" } else { "" };
         let mut enemy_lines = vec![
-            format!("**{}** (Lv.{})", enemy.name, enemy.level),
+            format!("**{}{}** (Lv.{})", enemy.name, enrage_tag, enemy.level),
             hp_bar(enemy.hp, enemy.max_hp, 10),
             format!("DEF `{}`", enemy.armor),
             intent_description(&enemy.intent),
@@ -208,7 +237,30 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
         if let Some(fx) = format_effects(&enemy.effects) {
             enemy_lines.push(format!("Status: {fx}"));
         }
-        embed = embed.field("-- Enemy --", enemy_lines.join("\n"), true);
+        let label = if session.enemies.len() > 1 {
+            format!("-- Enemy #{} --", enemy.index + 1)
+        } else {
+            "-- Enemy --".to_owned()
+        };
+        embed = embed.field(label, enemy_lines.join("\n"), true);
+    }
+
+    // Waiting for actions indicator (party mode)
+    if session.phase == GamePhase::WaitingForActions {
+        let pending: Vec<String> = session
+            .alive_player_ids()
+            .iter()
+            .filter(|uid| !session.pending_actions.contains_key(uid))
+            .filter_map(|uid| session.players.get(uid))
+            .map(|p| p.name.clone())
+            .collect();
+        if !pending.is_empty() {
+            embed = embed.field(
+                "-- Waiting For --",
+                pending.join(", "),
+                false,
+            );
+        }
     }
 
     // Room modifiers + hazards
@@ -342,7 +394,10 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
 pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRow> {
     let sid = &session.short_id;
     let game_over = matches!(session.phase, GamePhase::GameOver(_));
-    let in_combat = session.phase == GamePhase::Combat;
+    let in_combat = matches!(
+        session.phase,
+        GamePhase::Combat | GamePhase::WaitingForActions
+    );
     let in_city = session.phase == GamePhase::City;
     let exploring = matches!(
         session.phase,
@@ -381,6 +436,32 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
     ];
 
     let mut rows = vec![serenity::CreateActionRow::Buttons(buttons)];
+
+    // Multi-enemy target select menu
+    if in_combat && session.enemies.len() > 1 && !game_over {
+        let target_options: Vec<serenity::CreateSelectMenuOption> = session
+            .enemies
+            .iter()
+            .map(|e| {
+                serenity::CreateSelectMenuOption::new(
+                    format!("{} (HP {}/{})", e.name, e.hp.max(0), e.max_hp),
+                    format!("{}", e.index),
+                )
+            })
+            .collect();
+
+        if !target_options.is_empty() {
+            let select = serenity::CreateSelectMenu::new(
+                format!("dng|{sid}|atkt|select"),
+                serenity::CreateSelectMenuKind::String {
+                    options: target_options,
+                },
+            )
+            .placeholder("Target an enemy...");
+
+            rows.push(serenity::CreateActionRow::SelectMenu(select));
+        }
+    }
 
     // City rest button
     if in_city && !game_over {
@@ -499,10 +580,11 @@ mod tests {
             last_action_at: Instant::now(),
             turn: 0,
             players,
-            enemy: None,
+            enemies: Vec::new(),
             room: super::super::content::generate_room(0),
             log: Vec::new(),
             show_items: false,
+            pending_actions: HashMap::new(),
         }
     }
 
@@ -574,7 +656,7 @@ mod tests {
     fn render_embed_combat() {
         let mut session = test_session();
         session.phase = GamePhase::Combat;
-        session.enemy = Some(super::super::content::spawn_enemy(0));
+        session.enemies = vec![super::super::content::spawn_enemy(0)];
         let _embed = render_embed(&session, false);
     }
 
