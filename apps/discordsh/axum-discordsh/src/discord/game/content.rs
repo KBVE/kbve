@@ -615,174 +615,168 @@ pub fn roll_gear_loot(table_id: &str) -> Option<&'static str> {
 pub fn spawn_enemy(room_index: u32) -> EnemyState {
     let mut rng = rand::thread_rng();
     match room_index {
-        0..=1 => {
-            match rng.gen_range(0..4) {
-                0 => EnemyState {
-                    name: "Glass Slime".to_owned(),
-                    level: 1,
-                    hp: 20,
-                    max_hp: 20,
-                    armor: 0,
-                    effects: Vec::new(),
-                    intent: Intent::Attack { dmg: 5 },
-                    charged: false,
-                    loot_table_id: "slime",
-                    enraged: false,
-                    index: 0,
-                },
-                1 => EnemyState {
-                    name: "Crystal Bat".to_owned(),
-                    level: 1,
-                    hp: 15,
-                    max_hp: 15,
-                    armor: 0,
-                    effects: Vec::new(),
-                    intent: Intent::Attack { dmg: 4 },
-                    charged: false,
-                    loot_table_id: "slime",
-                    enraged: false,
-                    index: 0,
-                },
-                2 => EnemyState {
-                    name: "Mushroom Sprite".to_owned(),
-                    level: 1,
-                    hp: 18,
-                    max_hp: 18,
-                    armor: 0,
-                    effects: Vec::new(),
-                    intent: Intent::Attack { dmg: 4 },
-                    charged: false,
-                    loot_table_id: "slime",
-                    enraged: false,
-                    index: 0,
-                },
-                _ => EnemyState {
-                    name: "Dust Mite".to_owned(),
-                    level: 1,
-                    hp: 12,
-                    max_hp: 12,
-                    armor: 0,
-                    effects: Vec::new(),
-                    intent: Intent::Attack { dmg: 6 },
-                    charged: false,
-                    loot_table_id: "slime",
-                    enraged: false,
-                    index: 0,
-                },
-            }
-        }
-        2..=3 => {
-            match rng.gen_range(0..4) {
-                0 => EnemyState {
-                    name: "Skeleton Guard".to_owned(),
-                    level: 2,
-                    hp: 30,
-                    max_hp: 30,
-                    armor: 3,
-                    effects: Vec::new(),
-                    intent: Intent::Defend { armor: 5 },
-                    charged: false,
-                    loot_table_id: "skeleton",
-                    enraged: false,
-                    index: 0,
-                },
-                1 => EnemyState {
-                    name: "Bone Archer".to_owned(),
-                    level: 2,
-                    hp: 22,
-                    max_hp: 22,
-                    armor: 1,
-                    effects: Vec::new(),
-                    intent: Intent::Attack { dmg: 7 },
-                    charged: false,
-                    loot_table_id: "skeleton",
-                    enraged: false,
-                    index: 0,
-                },
-                2 => EnemyState {
-                    name: "Cursed Knight".to_owned(),
-                    level: 2,
-                    hp: 35,
-                    max_hp: 35,
-                    armor: 5,
-                    effects: Vec::new(),
-                    intent: Intent::Defend { armor: 5 },
-                    charged: false,
-                    loot_table_id: "skeleton",
-                    enraged: false,
-                    index: 0,
-                },
-                _ => EnemyState {
-                    name: "Fire Imp".to_owned(),
-                    level: 2,
-                    hp: 18,
-                    max_hp: 18,
-                    armor: 0,
-                    effects: Vec::new(),
-                    intent: Intent::Attack { dmg: 8 },
-                    charged: false,
-                    loot_table_id: "skeleton",
-                    enraged: false,
-                    index: 0,
-                },
-            }
-        }
-        4..=5 => {
-            match rng.gen_range(0..4) {
-                0 => EnemyState {
-                    name: "Shadow Wraith".to_owned(),
-                    level: 3,
-                    hp: 25,
-                    max_hp: 25,
-                    armor: 2,
-                    effects: Vec::new(),
-                    intent: Intent::HeavyAttack { dmg: 12 },
-                    charged: false,
-                    loot_table_id: "wraith",
-                    enraged: false,
-                    index: 0,
-                },
-                1 => EnemyState {
-                    name: "Phantom Knight".to_owned(),
-                    level: 3,
-                    hp: 28,
-                    max_hp: 28,
-                    armor: 4,
-                    effects: Vec::new(),
-                    intent: Intent::Charge,
-                    charged: false,
-                    loot_table_id: "wraith",
-                    enraged: false,
-                    index: 0,
-                },
-                2 => EnemyState {
-                    name: "Void Walker".to_owned(),
-                    level: 3,
-                    hp: 30,
-                    max_hp: 30,
-                    armor: 3,
-                    effects: Vec::new(),
-                    intent: Intent::HeavyAttack { dmg: 10 },
-                    charged: false,
-                    loot_table_id: "wraith",
-                    enraged: false,
-                    index: 0,
-                },
-                _ => EnemyState {
-                    name: "Stone Sentinel".to_owned(),
-                    level: 3,
-                    hp: 40,
-                    max_hp: 40,
-                    armor: 6,
-                    effects: Vec::new(),
-                    intent: Intent::Attack { dmg: 6 },
-                    charged: false,
-                    loot_table_id: "wraith",
-                    enraged: false,
-                    index: 0,
-                },
-            }
-        }
+        0..=1 => match rng.gen_range(0..4) {
+            0 => EnemyState {
+                name: "Glass Slime".to_owned(),
+                level: 1,
+                hp: 20,
+                max_hp: 20,
+                armor: 0,
+                effects: Vec::new(),
+                intent: Intent::Attack { dmg: 5 },
+                charged: false,
+                loot_table_id: "slime",
+                enraged: false,
+                index: 0,
+            },
+            1 => EnemyState {
+                name: "Crystal Bat".to_owned(),
+                level: 1,
+                hp: 15,
+                max_hp: 15,
+                armor: 0,
+                effects: Vec::new(),
+                intent: Intent::Attack { dmg: 4 },
+                charged: false,
+                loot_table_id: "slime",
+                enraged: false,
+                index: 0,
+            },
+            2 => EnemyState {
+                name: "Mushroom Sprite".to_owned(),
+                level: 1,
+                hp: 18,
+                max_hp: 18,
+                armor: 0,
+                effects: Vec::new(),
+                intent: Intent::Attack { dmg: 4 },
+                charged: false,
+                loot_table_id: "slime",
+                enraged: false,
+                index: 0,
+            },
+            _ => EnemyState {
+                name: "Dust Mite".to_owned(),
+                level: 1,
+                hp: 12,
+                max_hp: 12,
+                armor: 0,
+                effects: Vec::new(),
+                intent: Intent::Attack { dmg: 6 },
+                charged: false,
+                loot_table_id: "slime",
+                enraged: false,
+                index: 0,
+            },
+        },
+        2..=3 => match rng.gen_range(0..4) {
+            0 => EnemyState {
+                name: "Skeleton Guard".to_owned(),
+                level: 2,
+                hp: 30,
+                max_hp: 30,
+                armor: 3,
+                effects: Vec::new(),
+                intent: Intent::Defend { armor: 5 },
+                charged: false,
+                loot_table_id: "skeleton",
+                enraged: false,
+                index: 0,
+            },
+            1 => EnemyState {
+                name: "Bone Archer".to_owned(),
+                level: 2,
+                hp: 22,
+                max_hp: 22,
+                armor: 1,
+                effects: Vec::new(),
+                intent: Intent::Attack { dmg: 7 },
+                charged: false,
+                loot_table_id: "skeleton",
+                enraged: false,
+                index: 0,
+            },
+            2 => EnemyState {
+                name: "Cursed Knight".to_owned(),
+                level: 2,
+                hp: 35,
+                max_hp: 35,
+                armor: 5,
+                effects: Vec::new(),
+                intent: Intent::Defend { armor: 5 },
+                charged: false,
+                loot_table_id: "skeleton",
+                enraged: false,
+                index: 0,
+            },
+            _ => EnemyState {
+                name: "Fire Imp".to_owned(),
+                level: 2,
+                hp: 18,
+                max_hp: 18,
+                armor: 0,
+                effects: Vec::new(),
+                intent: Intent::Attack { dmg: 8 },
+                charged: false,
+                loot_table_id: "skeleton",
+                enraged: false,
+                index: 0,
+            },
+        },
+        4..=5 => match rng.gen_range(0..4) {
+            0 => EnemyState {
+                name: "Shadow Wraith".to_owned(),
+                level: 3,
+                hp: 25,
+                max_hp: 25,
+                armor: 2,
+                effects: Vec::new(),
+                intent: Intent::HeavyAttack { dmg: 12 },
+                charged: false,
+                loot_table_id: "wraith",
+                enraged: false,
+                index: 0,
+            },
+            1 => EnemyState {
+                name: "Phantom Knight".to_owned(),
+                level: 3,
+                hp: 28,
+                max_hp: 28,
+                armor: 4,
+                effects: Vec::new(),
+                intent: Intent::Charge,
+                charged: false,
+                loot_table_id: "wraith",
+                enraged: false,
+                index: 0,
+            },
+            2 => EnemyState {
+                name: "Void Walker".to_owned(),
+                level: 3,
+                hp: 30,
+                max_hp: 30,
+                armor: 3,
+                effects: Vec::new(),
+                intent: Intent::HeavyAttack { dmg: 10 },
+                charged: false,
+                loot_table_id: "wraith",
+                enraged: false,
+                index: 0,
+            },
+            _ => EnemyState {
+                name: "Stone Sentinel".to_owned(),
+                level: 3,
+                hp: 40,
+                max_hp: 40,
+                armor: 6,
+                effects: Vec::new(),
+                intent: Intent::Attack { dmg: 6 },
+                charged: false,
+                loot_table_id: "wraith",
+                enraged: false,
+                index: 0,
+            },
+        },
         _ => {
             if rng.gen_range(0..2) == 0 {
                 EnemyState {
@@ -1016,7 +1010,7 @@ pub fn generate_merchant_stock(room_index: u32) -> Vec<MerchantOffer> {
         indices.swap(i, j);
     }
 
-    indices
+    let mut offers: Vec<MerchantOffer> = indices
         .iter()
         .take(3)
         .map(|&idx| {
@@ -1031,9 +1025,64 @@ pub fn generate_merchant_stock(room_index: u32) -> Vec<MerchantOffer> {
             MerchantOffer {
                 item_id: item.id.to_owned(),
                 price: base_price + (room_index as i32 * 2),
+                is_gear: false,
             }
         })
-        .collect()
+        .collect();
+
+    // Append 1-2 random gear items at higher prices
+    let all_gear = gear_registry();
+    let mut gear_indices: Vec<usize> = (0..all_gear.len()).collect();
+    for i in (1..gear_indices.len()).rev() {
+        let j = rng.gen_range(0..=i);
+        gear_indices.swap(i, j);
+    }
+    let gear_count = rng.gen_range(1..=2usize);
+    for &idx in gear_indices.iter().take(gear_count) {
+        let gear = &all_gear[idx];
+        let base_price = match gear.rarity {
+            ItemRarity::Common => 25,
+            ItemRarity::Uncommon => 50,
+            ItemRarity::Rare => 100,
+            ItemRarity::Epic => 200,
+            ItemRarity::Legendary => 400,
+        };
+        offers.push(MerchantOffer {
+            item_id: gear.id.to_owned(),
+            price: base_price + (room_index as i32 * 3),
+            is_gear: true,
+        });
+    }
+
+    offers
+}
+
+/// Compute sell price for a consumable item (50% of rarity base price).
+pub fn sell_price_for_item(item_id: &str) -> Option<i32> {
+    find_item(item_id).map(|def| {
+        let base = match def.rarity {
+            ItemRarity::Common => 10,
+            ItemRarity::Uncommon => 20,
+            ItemRarity::Rare => 40,
+            ItemRarity::Epic => 80,
+            ItemRarity::Legendary => 150,
+        };
+        base / 2
+    })
+}
+
+/// Compute sell price for a gear item (50% of rarity base price).
+pub fn sell_price_for_gear(gear_id: &str) -> Option<i32> {
+    find_gear(gear_id).map(|def| {
+        let base = match def.rarity {
+            ItemRarity::Common => 10,
+            ItemRarity::Uncommon => 20,
+            ItemRarity::Rare => 40,
+            ItemRarity::Epic => 80,
+            ItemRarity::Legendary => 150,
+        };
+        base / 2
+    })
 }
 
 // ── Story events ────────────────────────────────────────────────────
@@ -1228,10 +1277,7 @@ mod tests {
 
         let vamp = find_gear("vampiric_blade").unwrap();
         assert_eq!(vamp.rarity, ItemRarity::Epic);
-        assert_eq!(
-            vamp.special,
-            Some(GearSpecial::LifeSteal { percent: 20 })
-        );
+        assert_eq!(vamp.special, Some(GearSpecial::LifeSteal { percent: 20 }));
     }
 
     #[test]
@@ -1378,12 +1424,21 @@ mod tests {
     }
 
     #[test]
-    fn merchant_stock_has_3_items() {
+    fn merchant_stock_has_items_and_gear() {
         let stock = generate_merchant_stock(3);
-        assert_eq!(stock.len(), 3);
-        for offer in &stock {
+        // 3 consumables + 1-2 gear = 4 or 5 total
+        assert!(stock.len() >= 4 && stock.len() <= 5);
+        let consumables: Vec<_> = stock.iter().filter(|o| !o.is_gear).collect();
+        let gear: Vec<_> = stock.iter().filter(|o| o.is_gear).collect();
+        assert_eq!(consumables.len(), 3);
+        assert!(gear.len() >= 1 && gear.len() <= 2);
+        for offer in &consumables {
             assert!(offer.price > 0);
             assert!(find_item(&offer.item_id).is_some());
+        }
+        for offer in &gear {
+            assert!(offer.price > 0);
+            assert!(find_gear(&offer.item_id).is_some());
         }
     }
 
