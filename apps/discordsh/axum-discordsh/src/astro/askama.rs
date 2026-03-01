@@ -11,6 +11,9 @@ pub struct AstroTemplate<'a> {
     pub path: &'a str,
     pub title: &'a str,
     pub description: &'a str,
+    pub og_type: &'a str,
+    pub og_url: &'a str,
+    pub og_image: &'a str,
 }
 
 impl<'a> AstroTemplate<'a> {
@@ -20,7 +23,22 @@ impl<'a> AstroTemplate<'a> {
             path,
             title,
             description,
+            og_type: "website",
+            og_url: "https://discord.sh",
+            og_image: "https://discord.sh/og/default.png",
         }
+    }
+
+    pub fn with_og(
+        mut self,
+        og_type: &'a str,
+        og_url: &'a str,
+        og_image: &'a str,
+    ) -> Self {
+        self.og_type = og_type;
+        self.og_url = og_url;
+        self.og_image = og_image;
+        self
     }
 }
 
