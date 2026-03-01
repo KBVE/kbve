@@ -159,7 +159,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     strip target/release/axum-discordsh
 
 # ============================================================================
-# [STAGE G] - Chisel Ubuntu Base (Minimal Runtime)
+# [STAGE D] - Chisel Ubuntu Base (Minimal Runtime)
 # ============================================================================
 FROM --platform=linux/amd64 ubuntu:24.04 AS chisel-builder
 
@@ -184,7 +184,7 @@ RUN chisel cut --release ubuntu-24.04 --root /rootfs \
         openssl_config
 
 # ============================================================================
-# [STAGE H] - Jemalloc
+# [STAGE E] - Jemalloc
 # ============================================================================
 FROM --platform=linux/amd64 ubuntu:24.04 AS jemalloc
 
@@ -195,7 +195,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================================================
-# [STAGE I] - libpq runtime (needed by diesel postgres)
+# [STAGE F] - libpq runtime (needed by diesel postgres)
 # ============================================================================
 FROM --platform=linux/amd64 ubuntu:24.04 AS libpq-runtime
 

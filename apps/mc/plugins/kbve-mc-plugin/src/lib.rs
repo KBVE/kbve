@@ -3,6 +3,7 @@
 #[macro_use]
 mod macros;
 mod edge;
+mod npc;
 mod stats;
 mod web;
 
@@ -350,6 +351,9 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                 }
             }
 
+            // Project per-player Traveling Merchant NPC
+            npc::project_merchant(&player, &server).await;
+
             // Initialize character stats — show defaults instantly, load from edge in background
             let uuid_bits = player.gameprofile.id.as_u128();
             let char_data = stats::CharacterData::default();
@@ -362,20 +366,16 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
             if edge::is_configured() {
                 let uuid_str = player.gameprofile.id.to_string();
                 let bg_name = name.to_string();
-                std::thread::spawn(move || {
-                    match edge::load_character_sync(&uuid_str) {
-                        Ok(Some(data)) => {
-                            info!("Loaded character from edge for {bg_name}");
-                            stats::PLAYER_STATS.insert(uuid_bits, data);
-                        }
-                        Ok(None) => {
-                            info!(
-                                "No character found in edge for {bg_name}, keeping defaults"
-                            );
-                        }
-                        Err(e) => {
-                            info!("Edge load failed for {bg_name}: {e}, keeping defaults");
-                        }
+                std::thread::spawn(move || match edge::load_character_sync(&uuid_str) {
+                    Ok(Some(data)) => {
+                        info!("Loaded character from edge for {bg_name}");
+                        stats::PLAYER_STATS.insert(uuid_bits, data);
+                    }
+                    Ok(None) => {
+                        info!("No character found in edge for {bg_name}, keeping defaults");
+                    }
+                    Err(e) => {
+                        info!("Edge load failed for {bg_name}: {e}, keeping defaults");
                     }
                 });
             }
@@ -405,6 +405,8 @@ impl EventHandler<PlayerLeaveEvent> for LeaveHandler {
             let name = &player.gameprofile.name;
             let uuid_bits = player.gameprofile.id.as_u128();
             web::ONLINE_PLAYERS.remove(name);
+            npc::remove_merchant(&player).await;
+            npc::cleanup_player(uuid_bits);
             stats::remove_xp_bossbar(&player).await;
             stats::cleanup_player(uuid_bits);
             info!(
@@ -421,7 +423,7 @@ impl EventHandler<PlayerLeaveEvent> for LeaveHandler {
 
 /// Build an `ItemStack` from an `ItemDef`. Returns `None` if the base item
 /// key is not in the vanilla registry.
-fn build_item_stack(def: &ItemDef) -> Option<ItemStack> {
+pub(crate) fn build_item_stack(def: &ItemDef) -> Option<ItemStack> {
     let item = Item::from_registry_key(def.base_item_key)?;
     let mut stack = ItemStack::new(1, item);
 
@@ -493,22 +495,22 @@ fn build_item_stack(def: &ItemDef) -> Option<ItemStack> {
 // Item registry — DashMap keyed by command name
 // ---------------------------------------------------------------------------
 
-struct PotionEffects {
-    custom_color: i32,
-    effects: &'static [(i32, i32, i32)], // (effect_id, amplifier, duration_ticks)
+pub(crate) struct PotionEffects {
+    pub(crate) custom_color: i32,
+    pub(crate) effects: &'static [(i32, i32, i32)], // (effect_id, amplifier, duration_ticks)
 }
 
-struct ItemDef {
-    base_item_key: &'static str,
-    model: &'static str,
-    display_name: &'static str,
-    message_color: NamedColor,
-    particle: Option<(Particle, i32)>,
-    max_damage: Option<i32>,
-    potion: Option<PotionEffects>,
+pub(crate) struct ItemDef {
+    pub(crate) base_item_key: &'static str,
+    pub(crate) model: &'static str,
+    pub(crate) display_name: &'static str,
+    pub(crate) message_color: NamedColor,
+    pub(crate) particle: Option<(Particle, i32)>,
+    pub(crate) max_damage: Option<i32>,
+    pub(crate) potion: Option<PotionEffects>,
 }
 
-static ITEM_REGISTRY: LazyLock<DashMap<&'static str, ItemDef>> = LazyLock::new(|| {
+pub(crate) static ITEM_REGISTRY: LazyLock<DashMap<&'static str, ItemDef>> = LazyLock::new(|| {
     let map = DashMap::new();
 
     item_registry!(map;
@@ -780,10 +782,21 @@ fn kbve_command_tree() -> CommandTree {
             ),
         );
     }
+
+    // /kbve buy <item> — purchase from Traveling Merchant
+    let mut buy = literal("buy");
+    for key in npc::shop_item_keys() {
+        buy = buy.then(literal(key).execute(npc::BuyItemExecutor { item_key: key }));
+    }
+
     let stats_cmd = literal("stats").execute(stats::StatsCommandExecutor);
+    let shop_cmd = literal("shop").execute(npc::ShopCommandExecutor);
+
     CommandTree::new(["kbve"], "KBVE custom items")
         .then(give)
+        .then(buy)
         .then(stats_cmd)
+        .then(shop_cmd)
 }
 
 // ---------------------------------------------------------------------------
@@ -1578,6 +1591,15 @@ impl KbveMcPlugin {
             .await;
         context
             .register_event(Arc::new(LeaveHandler), EventPriority::Normal, false)
+            .await;
+        // Merchant NPC interact handler — highest priority + blocking so we can
+        // cancel attack events (prevents kick for projected entities)
+        context
+            .register_event(
+                Arc::new(npc::MerchantInteractHandler),
+                EventPriority::Highest,
+                true,
+            )
             .await;
         info!("Event handlers registered");
 

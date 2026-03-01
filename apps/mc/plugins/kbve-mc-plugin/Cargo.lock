@@ -1303,7 +1303,7 @@ dependencies = [
 
 [[package]]
 name = "kbve-mc-plugin"
-version = "0.1.10"
+version = "0.1.14"
 dependencies = [
  "askama",
  "axum",
@@ -1311,6 +1311,7 @@ dependencies = [
  "pumpkin",
  "pumpkin-api-macros",
  "pumpkin-data",
+ "pumpkin-inventory",
  "pumpkin-macros",
  "pumpkin-protocol",
  "pumpkin-util",
@@ -1319,6 +1320,7 @@ dependencies = [
  "tokio",
  "tower",
  "tower-http",
+ "tracing",
  "ureq",
  "uuid",
 ]
