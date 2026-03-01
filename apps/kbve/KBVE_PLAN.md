@@ -944,12 +944,13 @@ Runtime env: `HTTP_HOST=0.0.0.0`, `HTTP_PORT=4321`, `RUST_LOG=info`, jemalloc wi
 - [x] Complete all route handlers with full enrichment pipeline
 - [x] 15 tests pass (build, health, health.html, api/status, profile, OSRS, security headers, cache headers, TS mime)
 
-#### Phase 6 — Docker (POC: `docker build` produces working image)
+#### Phase 6 — Docker (POC: `docker build` produces working image) ✅
 
-- [ ] Write multi-stage Dockerfile (7-stage: Astro build → cargo-chef → Rust build → chisel rootfs → scratch) — ref: `~/kbve.com/Dockerfile`
-- [ ] Add Jemalloc with LD_PRELOAD for production
-- [ ] Wire docker-build Nx target with `dependsOn: ["astro-kbve:build"]`
-- [ ] Verify container runs: `/health` returns 200, static files served, API routes functional
+- [x] Write multi-stage Dockerfile (9-stage: Astro build → precompress → cargo-chef planner/cook → Rust build → chisel rootfs → jemalloc → scratch)
+- [x] Create `Cargo.workspace.toml` for isolated Docker workspace (axum-kbve + jedi + kbve crates)
+- [x] Add Jemalloc with LD_PRELOAD + MALLOC_CONF for production
+- [x] Nx `containerx` target already wired in project.json (from Phase 1)
+- [x] Verify container runs: `/health` 200, `/health.html` 200, `/api/status` 200, `/@user` 404
 
 ---
 
