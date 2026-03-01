@@ -5,11 +5,7 @@
  * Processes incoming data and can handle offscreen canvas rendering
  */
 
-import {
-	WorkerMessageType,
-	RealtimeStatus as RealtimeStatusEnum,
-	RealtimeEventType as RealtimeEventTypeEnum,
-} from './typeRealtime';
+import { WorkerMessageType } from './typeRealtime';
 import type {
 	WorkerInboundMessage,
 	WorkerOutboundMessage,
