@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <defs>
+    <linearGradient id="map-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0f0f1a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="400" fill="url(#map-bg)" rx="12"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="400" height="36" fill="#2a2a4a" rx="12"/>
+  <rect x="0" y="18" width="400" height="18" fill="#2a2a4a"/>
+  <text x="200" y="25" text-anchor="middle" font-family="Alagard, sans-serif" font-size="14" fill="#e0e0e0" font-weight="bold">Dungeon Map ({{ player_x }}, {{ player_y }})</text>
+
+  <!-- Grid: 7x7, each cell 48x48 with 4px spacing = 52px pitch -->
+  <!-- Total grid: 7*52 - 4 = 360px wide, offset x=20 y=44 to center -->
+
+  {% for tile in tiles %}
+  {% if tile.is_discovered || tile.is_visited %}
+  <!-- Tile at grid ({{ tile.grid_x }}, {{ tile.grid_y }}) -->
+
+  {# Calculate pixel positions: base_x = 20 + grid_x * 52, base_y = 44 + grid_y * 52 #}
+
+  <!-- Tile background -->
+  <rect x="{{ 20 + tile.grid_x * 52 }}" y="{{ 44 + tile.grid_y * 52 }}" width="48" height="48" rx="4"
+    fill="{{ tile.fill_color }}"
+    {% if !tile.is_visited %}opacity="0.4"{% else %}opacity="0.85"{% endif %}/>
+
+  {% if tile.is_current %}
+  <!-- Current position highlight -->
+  <rect x="{{ 18 + tile.grid_x * 52 }}" y="{{ 42 + tile.grid_y * 52 }}" width="52" height="52" rx="6"
+    fill="none" stroke="#ffd700" stroke-width="2.5"/>
+  {% endif %}
+
+  <!-- Icon -->
+  <text x="{{ 44 + tile.grid_x * 52 }}" y="{{ 74 + tile.grid_y * 52 }}"
+    text-anchor="middle" font-family="Alagard, sans-serif" font-size="{% if tile.is_visited %}16{% else %}14{% endif %}"
+    fill="{% if tile.is_visited %}#ffffff{% else %}#888899{% endif %}">{{ tile.icon }}</text>
+
+  {% if tile.cleared && tile.is_visited %}
+  <!-- Cleared checkmark -->
+  <text x="{{ 60 + tile.grid_x * 52 }}" y="{{ 54 + tile.grid_y * 52 }}"
+    text-anchor="middle" font-family="sans-serif" font-size="10" fill="#44cc44">&#x2713;</text>
+  {% endif %}
+
+  <!-- Exit paths -->
+  {% if tile.has_exit_n && tile.is_visited %}
+  <line x1="{{ 44 + tile.grid_x * 52 }}" y1="{{ 44 + tile.grid_y * 52 }}"
+        x2="{{ 44 + tile.grid_x * 52 }}" y2="{{ 40 + tile.grid_y * 52 }}"
+        stroke="#556677" stroke-width="2" stroke-linecap="round"/>
+  {% endif %}
+  {% if tile.has_exit_s && tile.is_visited %}
+  <line x1="{{ 44 + tile.grid_x * 52 }}" y1="{{ 92 + tile.grid_y * 52 }}"
+        x2="{{ 44 + tile.grid_x * 52 }}" y2="{{ 96 + tile.grid_y * 52 }}"
+        stroke="#556677" stroke-width="2" stroke-linecap="round"/>
+  {% endif %}
+  {% if tile.has_exit_e && tile.is_visited %}
+  <line x1="{{ 68 + tile.grid_x * 52 }}" y1="{{ 68 + tile.grid_y * 52 }}"
+        x2="{{ 72 + tile.grid_x * 52 }}" y2="{{ 68 + tile.grid_y * 52 }}"
+        stroke="#556677" stroke-width="2" stroke-linecap="round"/>
+  {% endif %}
+  {% if tile.has_exit_w && tile.is_visited %}
+  <line x1="{{ 20 + tile.grid_x * 52 }}" y1="{{ 68 + tile.grid_y * 52 }}"
+        x2="{{ 16 + tile.grid_x * 52 }}" y2="{{ 68 + tile.grid_y * 52 }}"
+        stroke="#556677" stroke-width="2" stroke-linecap="round"/>
+  {% endif %}
+
+  {% endif %}
+  {% endfor %}
+
+  <!-- Footer -->
+  <text x="20" y="392" font-family="Alagard, sans-serif" font-size="10" fill="#555555">Tiles explored: {{ tiles_explored }}</text>
+  <text x="380" y="392" text-anchor="end" font-family="Alagard, sans-serif" font-size="10" fill="#555555">Depth: {{ depth }}</text>
+</svg>

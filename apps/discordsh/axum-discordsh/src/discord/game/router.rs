@@ -5,7 +5,7 @@ use crate::discord::bot::{Data, Error};
 
 use super::logic;
 use super::render;
-use super::types::GameAction;
+use super::types::{Direction, GameAction, GamePhase};
 
 /// Handle a component interaction whose `custom_id` starts with `"dng|"`.
 ///
@@ -158,6 +158,35 @@ pub async fn handle_game_component(
                 return send_ephemeral(component, ctx, "Invalid room choice.").await;
             }
         }
+    } else if action_str == "mv" {
+        // Direction movement button — direction code is in parts[3]
+        let dir_code = parts.get(3).unwrap_or(&"");
+        match Direction::from_code(dir_code) {
+            Some(dir) => GameAction::Move(dir),
+            None => {
+                return send_ephemeral(component, ctx, "Invalid direction.").await;
+            }
+        }
+    } else if action_str == "map" {
+        GameAction::ViewMap
+    } else if action_str == "revive" {
+        // Hospital revival select menu — user_id from selected value
+        if let serenity::ComponentInteractionDataKind::StringSelect { values } =
+            &component.data.kind
+        {
+            if let Some(uid_str) = values.first() {
+                match uid_str.parse::<u64>() {
+                    Ok(uid) => GameAction::Revive(serenity::UserId::new(uid)),
+                    Err(_) => {
+                        return send_ephemeral(component, ctx, "Invalid revive target.").await;
+                    }
+                }
+            } else {
+                return send_ephemeral(component, ctx, "No player selected.").await;
+            }
+        } else {
+            return send_ephemeral(component, ctx, "Invalid select menu interaction.").await;
+        }
     } else {
         match parse_action(action_str) {
             Some(a) => a,
@@ -202,7 +231,7 @@ pub async fn handle_game_component(
 
             // Render game card PNG on a blocking thread
             let fontdb = data.app.fontdb.clone();
-            let card_png = super::card::render_game_card(&session_clone, fontdb).await;
+            let card_png = super::card::render_game_card(&session_clone, fontdb.clone()).await;
             if let Err(ref e) = card_png {
                 tracing::warn!(
                     error = %e,
@@ -219,6 +248,25 @@ pub async fn handle_game_component(
 
             if let Ok(png) = card_png {
                 edit = edit.new_attachment(serenity::CreateAttachment::bytes(png, "game_card.png"));
+            }
+
+            // Render map card PNG when exploring or map toggle is on
+            if session_clone.show_map || session_clone.phase == GamePhase::Exploring {
+                match super::card::render_map_card(&session_clone, fontdb).await {
+                    Ok(map_png) => {
+                        edit = edit.new_attachment(serenity::CreateAttachment::bytes(
+                            map_png,
+                            "map_card.png",
+                        ));
+                    }
+                    Err(e) => {
+                        tracing::warn!(
+                            error = %e,
+                            session = sid,
+                            "Failed to render map card"
+                        );
+                    }
+                }
             }
 
             if let Err(e) = component.edit_response(&ctx.http, edit).await {
@@ -259,6 +307,7 @@ fn parse_action(s: &str) -> Option<GameAction> {
         "explore" => Some(GameAction::Explore),
         "flee" => Some(GameAction::Flee),
         "rest" => Some(GameAction::Rest),
+        "map" => Some(GameAction::ViewMap),
         _ => None,
     }
 }
