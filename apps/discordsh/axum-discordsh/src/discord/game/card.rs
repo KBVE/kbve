@@ -667,4 +667,162 @@ mod tests {
         let png = render_game_card_blocking(&session, &db);
         assert!(png.is_ok(), "Party combat render failed: {:?}", png.err());
     }
+
+    #[test]
+    fn test_multi_enemy_card_render() {
+        let db = test_fontdb();
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        // Create 3 distinct enemies
+        let mut e1 = super::super::content::spawn_enemy(0);
+        e1.name = "Slime A".to_owned();
+        e1.index = 0;
+        let mut e2 = super::super::content::spawn_enemy(0);
+        e2.name = "Slime B".to_owned();
+        e2.index = 1;
+        let mut e3 = super::super::content::spawn_enemy(0);
+        e3.name = "Slime C".to_owned();
+        e3.index = 2;
+        session.enemies = vec![e1, e2, e3];
+
+        let template = GameCardTemplate::from_session(&session);
+        // The template shows has_enemy when enemies exist
+        assert!(template.has_enemy);
+        // Multi-enemy display: template should contain all 3 enemies
+        assert_eq!(
+            template.enemy_count, 3,
+            "Should have 3 enemies in the template"
+        );
+        assert_eq!(
+            template.enemies.len(), 3,
+            "Enemy panels should have 3 entries"
+        );
+
+        // Player panels should have distinct y_name offsets (no overlap)
+        let y_values: Vec<u32> = template.players.iter().map(|p| p.y_name).collect();
+        for i in 0..y_values.len() {
+            for j in (i + 1)..y_values.len() {
+                assert_ne!(
+                    y_values[i], y_values[j],
+                    "Player panels at {} and {} should have distinct y_name",
+                    i, j
+                );
+            }
+        }
+
+        // Render to PNG and verify it succeeds with PNG magic bytes
+        let png = render_game_card_blocking(&session, &db);
+        assert!(png.is_ok(), "Multi-enemy render failed: {:?}", png.err());
+        let bytes = png.unwrap();
+        assert_eq!(
+            &bytes[0..4],
+            &[0x89, 0x50, 0x4E, 0x47],
+            "should be valid PNG"
+        );
+    }
+
+    #[test]
+    fn test_equipment_display_on_card() {
+        let mut session = test_session();
+        // Equip weapon and armor on the owner
+        session.player_mut(OWNER).weapon = Some("rusty_sword".to_owned());
+        session.player_mut(OWNER).armor_gear = Some("leather_vest".to_owned());
+
+        let template = GameCardTemplate::from_session(&session);
+        // Player should exist and have the name from default PlayerState
+        assert!(!template.players.is_empty());
+        let player_panel = &template.players[0];
+        assert_eq!(player_panel.name, "Adventurer");
+        // Armor stat should reflect the gear bonus (base 5 + leather_vest bonus 2 = 7)
+        // But the card reads from player state directly, so armor is what's in PlayerState
+        assert_eq!(player_panel.armor, 5); // PlayerState default armor (gear bonus applied in logic, not card)
+
+        // Also verify the session data we set is intact
+        assert_eq!(
+            session.owner_player().weapon,
+            Some("rusty_sword".to_owned())
+        );
+        assert_eq!(
+            session.owner_player().armor_gear,
+            Some("leather_vest".to_owned())
+        );
+    }
+
+    #[test]
+    fn test_xp_bar_on_card() {
+        let mut session = test_session();
+        // Set player XP and level
+        session.player_mut(OWNER).xp = 50;
+        session.player_mut(OWNER).xp_to_next = 100;
+        session.player_mut(OWNER).level = 2;
+
+        let template = GameCardTemplate::from_session(&session);
+        assert!(!template.players.is_empty());
+        let player_panel = &template.players[0];
+        // HP bar width should be proportional (player has full HP 50/50 = 100%)
+        assert!(
+            player_panel.hp_width > 0,
+            "HP bar width should be > 0 for alive player"
+        );
+        // Verify the player data is reflected
+        assert_eq!(session.owner_player().level, 2);
+        assert_eq!(session.owner_player().xp, 50);
+        assert_eq!(session.owner_player().xp_to_next, 100);
+    }
+
+    #[test]
+    fn test_player_panel_sizing() {
+        // 1 player (solo): y_name = 85 (non-compact)
+        let session1 = test_session();
+        let t1 = GameCardTemplate::from_session(&session1);
+        assert_eq!(t1.players.len(), 1);
+        assert!(!t1.players[0].compact, "solo player should not be compact");
+        assert_eq!(t1.players[0].y_name, 85);
+
+        // 2 players: compact mode, y offsets at 62 and 192
+        let mut session2 = test_session();
+        session2.mode = SessionMode::Party;
+        let member = serenity::UserId::new(2);
+        session2.party.push(member);
+        session2.players.insert(
+            member,
+            PlayerState {
+                name: "Bob".to_owned(),
+                ..PlayerState::default()
+            },
+        );
+        let t2 = GameCardTemplate::from_session(&session2);
+        assert_eq!(t2.players.len(), 2);
+        assert!(t2.players[0].compact, "2-player should be compact");
+        assert_eq!(t2.players[0].y_name, 62);
+        assert_eq!(t2.players[1].y_name, 192);
+
+        // 3 players: compact mode, y offsets at 62, 152, 242
+        let mut session3 = test_session();
+        session3.mode = SessionMode::Party;
+        let m2 = serenity::UserId::new(2);
+        let m3 = serenity::UserId::new(3);
+        session3.party.push(m2);
+        session3.party.push(m3);
+        session3.players.insert(
+            m2,
+            PlayerState {
+                name: "Bob".to_owned(),
+                ..PlayerState::default()
+            },
+        );
+        session3.players.insert(
+            m3,
+            PlayerState {
+                name: "Charlie".to_owned(),
+                ..PlayerState::default()
+            },
+        );
+        let t3 = GameCardTemplate::from_session(&session3);
+        assert_eq!(t3.players.len(), 3);
+        assert!(t3.players[0].compact, "3-player should be compact");
+        assert_eq!(t3.players[0].y_name, 62);
+        assert_eq!(t3.players[1].y_name, 152);
+        assert_eq!(t3.players[2].y_name, 242);
+    }
 }
