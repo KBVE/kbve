@@ -245,3 +245,4 @@ jobs:
                           - 'apps/kbve/edge/functions/**'
                           - 'apps/kbve/edge/Dockerfile'
                           - 'apps/kbve/edge/project.json'
+                          - 'apps/kbve/edge/version.toml'

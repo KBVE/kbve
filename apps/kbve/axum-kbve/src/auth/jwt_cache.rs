@@ -10,6 +10,7 @@ use tracing::{debug, info, warn};
 
 const MAX_CACHE_SIZE: usize = 10_000;
 const CLEANUP_INTERVAL: Duration = Duration::from_secs(60);
+#[allow(dead_code)]
 const TOKEN_GRACE_PERIOD: i64 = 300; // 5 minutes grace before expiry
 
 /// Cached token information
@@ -28,6 +29,7 @@ impl TokenInfo {
         now >= self.expires_at
     }
 
+    #[allow(dead_code)]
     pub fn is_near_expiry(&self) -> bool {
         let now = chrono::Utc::now().timestamp();
         (self.expires_at - now) <= TOKEN_GRACE_PERIOD
@@ -160,15 +162,8 @@ impl JwtCache {
             .to_string();
 
         // Parse JWT to get expiry (without signature validation since Supabase verified it)
-        use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
-        let mut validation = Validation::new(Algorithm::HS256);
-        validation.validate_exp = false;
-        validation.validate_aud = false;
-        validation.insecure_disable_signature_validation();
-
-        let token_data =
-            decode::<serde_json::Value>(token, &DecodingKey::from_secret(&[]), &validation)
-                .map_err(|e| JwtCacheError::InvalidToken(e.to_string()))?;
+        let token_data = jsonwebtoken::dangerous::insecure_decode::<serde_json::Value>(token)
+            .map_err(|e| JwtCacheError::InvalidToken(e.to_string()))?;
 
         let expires_at = token_data.claims["exp"]
             .as_i64()
@@ -259,6 +254,7 @@ impl JwtCache {
     }
 
     /// Get current cache size
+    #[allow(dead_code)]
     pub fn size(&self) -> usize {
         self.tokens.len()
     }

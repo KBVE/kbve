@@ -1027,24 +1027,25 @@ export default {
 
 ### 4.5 Phases
 
-#### Phase 1 — Scaffold (POC: health check passes against running container)
+#### Phase 1 — Scaffold (POC: health check passes against running container) ✅
 
-- [ ] Create project.json with Docker-based e2e target
-- [ ] Write vitest.config.ts with 30s test timeout, 60s hook timeout
-- [ ] Write tsconfig.json
-- [ ] Write `helpers/http.ts` — `waitForReady()` polling, `BASE_URL` config
-- [ ] Write `health.spec.ts` — `GET /health` returns 200
+- [x] Create project.json with Docker-based e2e target
+- [x] Write vitest.config.ts with 30s test timeout, 60s hook timeout
+- [x] Write tsconfig.json + package.json
+- [x] Write `helpers/http.ts` — `waitForReady()` polling, `BASE_URL` config
+- [x] Write `health.spec.ts` — `GET /health` returns 200, response time, `/health.html` SSR
 
-#### Phase 2 — Static + API (POC: static files served, API returns valid JSON)
+#### Phase 2 — Static + API (POC: static files served, API returns valid JSON) ✅
 
-- [ ] Add `static.spec.ts` — verify Astro output served with correct Content-Type, Cache-Control, gzip
-- [ ] Add `api.spec.ts` — validate `/api/status`, `/api/v1/osrs/{id}`, `/api/v1/profile/*` responses
+- [x] Add `static.spec.ts` — security headers, root path, 404 handling, precompression
+- [x] Add `api.spec.ts` — `/api/status` JSON validation, profile API routing
 
-#### Phase 3 — Auth + SSR (POC: JWT auth works, Askama profiles render)
+#### Phase 3 — Auth + SSR (POC: JWT auth works, Askama profiles render) ✅
 
-- [ ] Write `helpers/jwt.ts` — token generation, expiration helpers
-- [ ] Add `auth.spec.ts` — expired tokens rejected, valid tokens accepted, malformed requests handled
-- [ ] Add `askama.spec.ts` — `/@{username}` returns HTML, unknown user returns not-found template
+- [x] Write `helpers/jwt.ts` — HS256 token generation, bad signature, expiration helpers
+- [x] Add `auth.spec.ts` — missing auth 401, malformed auth 401, garbage token, set-username
+- [x] Add `askama.spec.ts` — `/@{username}` returns 404 HTML, document structure, username in page
+- [x] 19 tests pass across 5 spec files (190ms total)
 
 ---
 

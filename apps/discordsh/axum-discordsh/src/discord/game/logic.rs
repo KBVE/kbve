@@ -4,6 +4,8 @@ use rand::Rng;
 use super::content;
 use super::types::*;
 
+const CLERIC_HEALS_PER_COMBAT: u8 = 1;
+
 // ── Enemy targeting ─────────────────────────────────────────────────
 
 /// Pick an enemy target: 50% the acting player, 50% a random alive party member.
@@ -71,16 +73,12 @@ fn validate_action(
 
     match action {
         GameAction::Attack | GameAction::AttackTarget(_) | GameAction::Defend => {
-            if session.phase != GamePhase::Combat
-                && session.phase != GamePhase::WaitingForActions
-            {
+            if session.phase != GamePhase::Combat && session.phase != GamePhase::WaitingForActions {
                 return Err("You can only fight during combat.".to_owned());
             }
         }
         GameAction::HealAlly(_) => {
-            if session.phase != GamePhase::Combat
-                && session.phase != GamePhase::WaitingForActions
-            {
+            if session.phase != GamePhase::Combat && session.phase != GamePhase::WaitingForActions {
                 return Err("You can only heal during combat.".to_owned());
             }
             if let Some(player) = session.players.get(&actor) {
@@ -93,9 +91,7 @@ fn validate_action(
             // Allowed anytime except GameOver (already checked above)
         }
         GameAction::Explore => {
-            if session.phase == GamePhase::Combat
-                || session.phase == GamePhase::WaitingForActions
-            {
+            if session.phase == GamePhase::Combat || session.phase == GamePhase::WaitingForActions {
                 return Err("You can't explore during combat!".to_owned());
             }
         }
@@ -110,15 +106,26 @@ fn validate_action(
             }
         }
         GameAction::Flee => {
-            if session.phase != GamePhase::Combat
-                && session.phase != GamePhase::WaitingForActions
-            {
+            if session.phase != GamePhase::Combat && session.phase != GamePhase::WaitingForActions {
                 return Err("You can only flee during combat.".to_owned());
             }
         }
         GameAction::Rest => {
             if session.phase != GamePhase::City {
                 return Err("You can only rest in a city.".to_owned());
+            }
+        }
+        GameAction::Sell(_) => {
+            if session.phase != GamePhase::Merchant && session.phase != GamePhase::City {
+                return Err("You can only sell at a merchant.".to_owned());
+            }
+        }
+        GameAction::RoomChoice(_) => {
+            if !matches!(
+                session.phase,
+                GamePhase::Trap | GamePhase::Treasure | GamePhase::Hallway | GamePhase::Rest
+            ) {
+                return Err("No room choice available.".to_owned());
             }
         }
         GameAction::UseItem(_) | GameAction::ToggleItems => {
@@ -136,7 +143,9 @@ fn validate_action(
             | GameAction::ToggleItems
             | GameAction::HealAlly(_) => {}
             _ => {
-                return Err("Waiting for all players to act. Only combat actions allowed.".to_owned());
+                return Err(
+                    "Waiting for all players to act. Only combat actions allowed.".to_owned(),
+                );
             }
         }
     }
@@ -209,6 +218,11 @@ pub fn apply_action(
             let msg = apply_buy(session, item_id, actor)?;
             vec![msg]
         }
+        GameAction::Sell(ref item_id) => {
+            let msg = apply_sell(session, item_id, actor)?;
+            vec![msg]
+        }
+        GameAction::RoomChoice(choice) => apply_room_choice(session, choice, actor)?,
         GameAction::StoryChoice(idx) => apply_story_choice(session, idx, actor)?,
         GameAction::ToggleItems => {
             session.show_items = !session.show_items;
@@ -334,8 +348,7 @@ fn resolve_combat_turn_party(
     let mut logs = Vec::new();
 
     // Collect all pending actions
-    let actions: Vec<(serenity::UserId, GameAction)> =
-        session.pending_actions.drain().collect();
+    let actions: Vec<(serenity::UserId, GameAction)> = session.pending_actions.drain().collect();
 
     // Resolve each player's action
     for (uid, action) in &actions {
@@ -363,18 +376,14 @@ fn resolve_combat_turn_party(
                 player.defending = true;
                 logs.push(format!("{} braces for impact!", player.name));
             }
-            GameAction::UseItem(item_id) => {
-                match apply_item(session, item_id, *uid) {
-                    Ok(msg) => logs.push(msg),
-                    Err(e) => logs.push(format!("[{}] {}", session.player(*uid).name, e)),
-                }
-            }
-            GameAction::HealAlly(target_uid) => {
-                match apply_heal_ally(session, *target_uid, *uid) {
-                    Ok(msg) => logs.push(msg),
-                    Err(e) => logs.push(format!("[{}] {}", session.player(*uid).name, e)),
-                }
-            }
+            GameAction::UseItem(item_id) => match apply_item(session, item_id, *uid) {
+                Ok(msg) => logs.push(msg),
+                Err(e) => logs.push(format!("[{}] {}", session.player(*uid).name, e)),
+            },
+            GameAction::HealAlly(target_uid) => match apply_heal_ally(session, *target_uid, *uid) {
+                Ok(msg) => logs.push(msg),
+                Err(e) => logs.push(format!("[{}] {}", session.player(*uid).name, e)),
+            },
             GameAction::ToggleItems => {
                 session.show_items = !session.show_items;
             }
@@ -383,7 +392,10 @@ fn resolve_combat_turn_party(
     }
 
     // Handle enemy deaths from player attacks
-    let first_actor = actions.first().map(|(uid, _)| *uid).unwrap_or(session.owner);
+    let first_actor = actions
+        .first()
+        .map(|(uid, _)| *uid)
+        .unwrap_or(session.owner);
     logs.extend(handle_enemy_deaths(session, first_actor));
 
     if !session.has_enemies() {
@@ -447,7 +459,16 @@ fn resolve_player_attack(
     let accuracy = effective_accuracy(session, actor);
 
     // Read player stats in a single borrow
-    let (player_name, player_class, base_damage_bonus, crit_chance, weapon_id, sharp_stacks, is_weakened) = {
+    let (
+        player_name,
+        player_class,
+        base_damage_bonus,
+        crit_chance,
+        weapon_id,
+        sharp_stacks,
+        is_weakened,
+        first_attack,
+    ) = {
         let p = session.player(actor);
         (
             p.name.clone(),
@@ -457,6 +478,7 @@ fn resolve_player_attack(
             p.weapon.clone(),
             p.effect_stacks(&EffectKind::Sharpened),
             p.has_effect(&EffectKind::Weakened),
+            p.first_attack_in_combat,
         )
     };
 
@@ -469,11 +491,10 @@ fn resolve_player_attack(
             _ => None,
         })
         .unwrap_or(0.0);
-    let lifesteal_pct = weapon_gear
-        .and_then(|g| match &g.special {
-            Some(GearSpecial::LifeSteal { percent }) => Some(*percent as f32 / 100.0),
-            _ => None,
-        });
+    let lifesteal_pct = weapon_gear.and_then(|g| match &g.special {
+        Some(GearSpecial::LifeSteal { percent }) => Some(*percent as f32 / 100.0),
+        _ => None,
+    });
 
     // Calculate base damage
     let mut dmg = rng.gen_range(6..=12) + base_damage_bonus + weapon_bonus;
@@ -490,7 +511,11 @@ fn resolve_player_attack(
     let enemy_vec_idx = if session.enemy_at(target_idx).is_some() {
         session.enemies.iter().position(|e| e.index == target_idx)
     } else {
-        if session.enemies.is_empty() { None } else { Some(0) }
+        if session.enemies.is_empty() {
+            None
+        } else {
+            Some(0)
+        }
     };
     let enemy_vec_idx = match enemy_vec_idx {
         Some(i) => i,
@@ -506,7 +531,11 @@ fn resolve_player_attack(
     }
 
     // Critical hit check
-    let crit = rng.r#gen::<f32>() < (crit_chance + gear_crit_bonus);
+    let mut effective_crit = crit_chance + gear_crit_bonus;
+    if player_class == ClassType::Rogue && first_attack {
+        effective_crit = 1.0; // Rogue guaranteed crit on first attack
+    }
+    let crit = rng.r#gen::<f32>() < effective_crit;
     if crit {
         dmg *= 2;
     }
@@ -550,6 +579,9 @@ fn resolve_player_attack(
             logs.push(format!("Life steal! +{} HP", heal));
         }
     }
+
+    // Mark first attack as used
+    session.player_mut(actor).first_attack_in_combat = false;
 
     logs
 }
@@ -819,10 +851,7 @@ fn single_enemy_turn(
             let total_thorns = thorns_dmg_effect + thorns_dmg_gear;
             if total_thorns > 0 && enemy_vec_idx < session.enemies.len() {
                 session.enemies[enemy_vec_idx].hp -= total_thorns;
-                logs.push(format!(
-                    "Thorns reflect {} damage back!",
-                    total_thorns
-                ));
+                logs.push(format!("Thorns reflect {} damage back!", total_thorns));
             }
         }
         EnemyAction::Flee => {
@@ -1132,51 +1161,23 @@ fn advance_room(session: &mut SessionState) -> Vec<String> {
             }
             session.enemies = enemies;
             session.phase = GamePhase::Combat;
+            // Reset per-combat state for all players
+            for player in session.players.values_mut() {
+                player.first_attack_in_combat = true;
+                player.heals_used_this_combat = 0;
+            }
         }
         RoomType::Treasure => {
-            let gold = 10 + next_index as i32 * 3;
-            // Give gold to all alive players
-            for player in session.players.values_mut() {
-                if player.alive {
-                    player.gold += gold;
-                }
-            }
-            logs.push(format!("You found a treasure chest! (+{} gold)", gold));
-            session.phase = GamePhase::Exploring;
+            logs.push("A treasure chest sits before you. How do you open it?".to_owned());
+            session.phase = GamePhase::Treasure;
         }
         RoomType::RestShrine => {
-            let mut heal = 15;
-            for m in &session.room.modifiers {
-                if let RoomModifier::Blessing { heal_bonus } = m {
-                    heal += heal_bonus;
-                }
-            }
-            // Heal all alive players
-            for player in session.players.values_mut() {
-                if player.alive {
-                    player.hp = (player.hp + heal).min(player.max_hp);
-                }
-            }
-            logs.push(format!("The shrine's warmth restores {} HP.", heal));
+            logs.push("A warm shrine glows before you.".to_owned());
             session.phase = GamePhase::Rest;
         }
         RoomType::Trap => {
-            let dmg = 5 + next_index as i32;
-            for player in session.players.values_mut() {
-                if player.alive {
-                    player.hp -= dmg;
-                    if player.hp <= 0 {
-                        player.alive = false;
-                    }
-                }
-            }
-            logs.push(format!("A trap springs! You take {} damage.", dmg));
-            if session.all_players_dead() {
-                session.phase = GamePhase::GameOver(GameOverReason::Defeated);
-                logs.push("The trap proved fatal...".to_owned());
-            } else {
-                session.phase = GamePhase::Exploring;
-            }
+            logs.push("The room is rigged with traps. What do you do?".to_owned());
+            session.phase = GamePhase::Trap;
         }
         RoomType::Merchant => {
             session.room.merchant_stock = content::generate_merchant_stock(next_index);
@@ -1194,8 +1195,8 @@ fn advance_room(session: &mut SessionState) -> Vec<String> {
             session.phase = GamePhase::Event;
         }
         RoomType::Hallway => {
-            // Hallways are safe — just exploring
-            session.phase = GamePhase::Exploring;
+            logs.push("A passage stretches before you. The air is still.".to_owned());
+            session.phase = GamePhase::Hallway;
         }
         RoomType::UndergroundCity => {
             session.room.merchant_stock = content::generate_merchant_stock(next_index);
@@ -1302,7 +1303,10 @@ fn apply_equip(
     let player = session.player_mut(actor);
 
     // Check player has gear in inventory
-    let has_gear = player.inventory.iter().any(|s| s.item_id == gear_id && s.qty > 0);
+    let has_gear = player
+        .inventory
+        .iter()
+        .any(|s| s.item_id == gear_id && s.qty > 0);
     if !has_gear {
         return Err("You don't have that gear.".to_owned());
     }
@@ -1349,6 +1353,9 @@ fn apply_heal_ally(
     if session.player(actor).class != ClassType::Cleric {
         return Err("Only Clerics can heal allies.".to_owned());
     }
+    if session.player(actor).heals_used_this_combat >= CLERIC_HEALS_PER_COMBAT {
+        return Err("You have already used your heal this combat.".to_owned());
+    }
     let target = session
         .players
         .get(&target_uid)
@@ -1359,6 +1366,7 @@ fn apply_heal_ally(
     let target_name = target.name.clone();
     let target = session.player_mut(target_uid);
     target.hp = (target.hp + 10).min(target.max_hp);
+    session.player_mut(actor).heals_used_this_combat += 1;
     Ok(format!("Healed {} for 10 HP!", target_name))
 }
 
@@ -1385,13 +1393,52 @@ fn apply_buy(
     }
 
     let price = offer.price;
+    let is_gear = offer.is_gear;
     let player = session.player_mut(actor);
     player.gold -= price;
 
     add_item_to_inventory(&mut session.player_mut(actor).inventory, item_id);
 
-    let name = content::find_item(item_id).map(|d| d.name).unwrap_or("???");
+    let name = if is_gear {
+        content::find_gear(item_id).map(|g| g.name).unwrap_or("???")
+    } else {
+        content::find_item(item_id).map(|d| d.name).unwrap_or("???")
+    };
     Ok(format!("Purchased {} for {} gold.", name, price))
+}
+
+fn apply_sell(
+    session: &mut SessionState,
+    item_id: &str,
+    actor: serenity::UserId,
+) -> Result<String, String> {
+    let player = session.player(actor);
+    let has_item = player
+        .inventory
+        .iter()
+        .any(|s| s.item_id == item_id && s.qty > 0);
+    if !has_item {
+        return Err("You don't have that item.".to_owned());
+    }
+
+    let (sell_price, name) = if let Some(price) = content::sell_price_for_gear(item_id) {
+        let name = content::find_gear(item_id).map(|g| g.name).unwrap_or("???");
+        (price, name)
+    } else if let Some(price) = content::sell_price_for_item(item_id) {
+        let name = content::find_item(item_id).map(|d| d.name).unwrap_or("???");
+        (price, name)
+    } else {
+        return Err("That item cannot be sold.".to_owned());
+    };
+
+    let player = session.player_mut(actor);
+    if let Some(stack) = player.inventory.iter_mut().find(|s| s.item_id == item_id) {
+        stack.qty -= 1;
+    }
+    player.gold += sell_price;
+    player.lifetime_gold_earned += sell_price as u32;
+
+    Ok(format!("Sold {} for {} gold.", name, sell_price))
 }
 
 // ── Story events ────────────────────────────────────────────────────
@@ -1442,6 +1489,262 @@ fn apply_story_choice(
         logs.push("The choice proved fatal...".to_owned());
     } else {
         session.phase = GamePhase::Exploring;
+    }
+
+    Ok(logs)
+}
+
+// ── Room choices ────────────────────────────────────────────────────
+
+fn apply_room_choice(
+    session: &mut SessionState,
+    choice: u8,
+    actor: serenity::UserId,
+) -> Result<Vec<String>, String> {
+    match session.room.room_type {
+        RoomType::Trap => apply_trap_choice(session, choice, actor),
+        RoomType::Treasure => apply_treasure_choice(session, choice, actor),
+        RoomType::Hallway => apply_hallway_choice(session, choice, actor),
+        RoomType::RestShrine => apply_rest_choice(session, choice, actor),
+        _ => Err("No room choice available for this room type.".to_owned()),
+    }
+}
+
+fn apply_trap_choice(
+    session: &mut SessionState,
+    choice: u8,
+    actor: serenity::UserId,
+) -> Result<Vec<String>, String> {
+    let mut logs = Vec::new();
+    let mut rng = rand::thread_rng();
+    let dmg = 5 + session.room.index as i32;
+
+    match choice {
+        0 => {
+            // Disarm: class-based success chance
+            let success_chance = match session.player(actor).class {
+                ClassType::Rogue => 0.80,
+                ClassType::Warrior => 0.50,
+                ClassType::Cleric => 0.40,
+            };
+            let roll: f32 = rng.r#gen();
+            if roll < success_chance {
+                logs.push("You carefully disarm the trap. Safe!".to_owned());
+            } else {
+                logs.push(format!(
+                    "You fumble the mechanism! The trap triggers for {} damage!",
+                    dmg
+                ));
+                let alive_ids = session.alive_player_ids();
+                for &uid in &alive_ids {
+                    let player = session.player_mut(uid);
+                    player.hp -= dmg;
+                    if player.hp <= 0 {
+                        player.alive = false;
+                    }
+                }
+            }
+        }
+        1 => {
+            // Brace: take 50% damage
+            let reduced = dmg / 2;
+            logs.push(format!(
+                "You brace yourself. The trap hits for {} damage (reduced).",
+                reduced
+            ));
+            let alive_ids = session.alive_player_ids();
+            for &uid in &alive_ids {
+                let player = session.player_mut(uid);
+                player.hp -= reduced;
+                if player.hp <= 0 {
+                    player.alive = false;
+                }
+            }
+        }
+        _ => return Err("Invalid trap choice.".to_owned()),
+    }
+
+    if session.all_players_dead() {
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
+        logs.push("The trap proved fatal...".to_owned());
+    } else {
+        session.phase = GamePhase::Exploring;
+    }
+
+    Ok(logs)
+}
+
+fn apply_treasure_choice(
+    session: &mut SessionState,
+    choice: u8,
+    _actor: serenity::UserId,
+) -> Result<Vec<String>, String> {
+    let mut logs = Vec::new();
+    let mut rng = rand::thread_rng();
+    let room_index = session.room.index;
+    let standard_gold = 10 + room_index as i32 * 3;
+
+    match choice {
+        0 => {
+            // Open Carefully: standard gold
+            let alive_ids = session.alive_player_ids();
+            for &uid in &alive_ids {
+                let player = session.player_mut(uid);
+                player.gold += standard_gold;
+                player.lifetime_gold_earned += standard_gold as u32;
+            }
+            logs.push(format!(
+                "You carefully open the chest. (+{} gold)",
+                standard_gold
+            ));
+        }
+        1 => {
+            // Force Open: 60% chance 1.5x gold, 40% chance trap + standard gold
+            let roll: f32 = rng.r#gen();
+            if roll < 0.60 {
+                let bonus_gold = (standard_gold as f32 * 1.5) as i32;
+                let alive_ids = session.alive_player_ids();
+                for &uid in &alive_ids {
+                    let player = session.player_mut(uid);
+                    player.gold += bonus_gold;
+                    player.lifetime_gold_earned += bonus_gold as u32;
+                }
+                logs.push(format!(
+                    "You force it open and find a bounty! (+{} gold)",
+                    bonus_gold
+                ));
+            } else {
+                let trap_dmg = 5 + room_index as i32;
+                let alive_ids = session.alive_player_ids();
+                for &uid in &alive_ids {
+                    let player = session.player_mut(uid);
+                    player.hp -= trap_dmg;
+                    player.gold += standard_gold;
+                    player.lifetime_gold_earned += standard_gold as u32;
+                    if player.hp <= 0 {
+                        player.alive = false;
+                    }
+                }
+                logs.push(format!(
+                    "A trap springs! {} damage! But you still grab the gold. (+{} gold)",
+                    trap_dmg, standard_gold
+                ));
+            }
+        }
+        _ => return Err("Invalid treasure choice.".to_owned()),
+    }
+
+    if session.all_players_dead() {
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
+        logs.push("The trap proved fatal...".to_owned());
+    } else {
+        session.phase = GamePhase::Exploring;
+    }
+
+    Ok(logs)
+}
+
+fn apply_hallway_choice(
+    session: &mut SessionState,
+    choice: u8,
+    _actor: serenity::UserId,
+) -> Result<Vec<String>, String> {
+    let mut logs = Vec::new();
+    let mut rng = rand::thread_rng();
+    let room_index = session.room.index;
+
+    match choice {
+        0 => {
+            // Move Quickly: safe passage
+            logs.push("You move quickly through the passage.".to_owned());
+            session.phase = GamePhase::Exploring;
+        }
+        1 => {
+            // Search: random outcome
+            let roll: f32 = rng.r#gen();
+            if roll < 0.50 {
+                let gold = 5 + room_index as i32 * 2;
+                let alive_ids = session.alive_player_ids();
+                for &uid in &alive_ids {
+                    let player = session.player_mut(uid);
+                    player.gold += gold;
+                    player.lifetime_gold_earned += gold as u32;
+                }
+                logs.push(format!("You find a hidden cache! (+{} gold)", gold));
+                session.phase = GamePhase::Exploring;
+            } else if roll < 0.80 {
+                logs.push("You search thoroughly but find nothing.".to_owned());
+                session.phase = GamePhase::Exploring;
+            } else {
+                // Ambush!
+                logs.push("An enemy ambushes you from the shadows!".to_owned());
+                let enemy = content::spawn_enemy(room_index);
+                logs.push(format!("A {} (Lv.{}) appears!", enemy.name, enemy.level));
+                session.enemies = vec![enemy];
+                session.phase = GamePhase::Combat;
+                // Reset combat state
+                for player in session.players.values_mut() {
+                    player.first_attack_in_combat = true;
+                    player.heals_used_this_combat = 0;
+                }
+            }
+        }
+        _ => return Err("Invalid hallway choice.".to_owned()),
+    }
+
+    Ok(logs)
+}
+
+fn apply_rest_choice(
+    session: &mut SessionState,
+    choice: u8,
+    _actor: serenity::UserId,
+) -> Result<Vec<String>, String> {
+    let mut logs = Vec::new();
+    let mut rng = rand::thread_rng();
+
+    match choice {
+        0 => {
+            // Rest: standard heal with blessing bonus
+            let mut heal = 15;
+            for m in &session.room.modifiers {
+                if let RoomModifier::Blessing { heal_bonus } = m {
+                    heal += heal_bonus;
+                }
+            }
+            let alive_ids = session.alive_player_ids();
+            for &uid in &alive_ids {
+                let player = session.player_mut(uid);
+                player.hp = (player.hp + heal).min(player.max_hp);
+            }
+            logs.push(format!("The shrine's warmth restores {} HP.", heal));
+            session.phase = GamePhase::Exploring;
+        }
+        1 => {
+            // Meditate: small heal + random buff
+            let heal = 8;
+            let buff = if rng.gen_bool(0.5) {
+                EffectKind::Sharpened
+            } else {
+                EffectKind::Shielded
+            };
+            let alive_ids = session.alive_player_ids();
+            for &uid in &alive_ids {
+                let player = session.player_mut(uid);
+                player.hp = (player.hp + heal).min(player.max_hp);
+                player.effects.push(EffectInstance {
+                    kind: buff.clone(),
+                    stacks: 1,
+                    turns_left: 3,
+                });
+            }
+            logs.push(format!(
+                "You meditate at the shrine. +{} HP and gained {:?}!",
+                heal, buff
+            ));
+            session.phase = GamePhase::Exploring;
+        }
+        _ => return Err("Invalid rest choice.".to_owned()),
     }
 
     Ok(logs)
@@ -1719,10 +2022,7 @@ mod tests {
             turns_left: 3,
         });
         let _ = apply_action(&mut session, GameAction::Defend, OWNER);
-        assert_eq!(
-            session.phase,
-            GamePhase::GameOver(GameOverReason::Defeated)
-        );
+        assert_eq!(session.phase, GamePhase::GameOver(GameOverReason::Defeated));
     }
 
     #[test]
@@ -1733,6 +2033,7 @@ mod tests {
         session.room.merchant_stock = vec![MerchantOffer {
             item_id: "potion".to_owned(),
             price: 10,
+            is_gear: false,
         }];
         let result = apply_action(&mut session, GameAction::Buy("potion".to_owned()), OWNER);
         assert!(result.is_ok());
@@ -1747,6 +2048,7 @@ mod tests {
         session.room.merchant_stock = vec![MerchantOffer {
             item_id: "potion".to_owned(),
             price: 10,
+            is_gear: false,
         }];
         let result = apply_action(&mut session, GameAction::Buy("potion".to_owned()), OWNER);
         assert!(result.is_err());
@@ -1865,6 +2167,7 @@ mod tests {
         session.room.merchant_stock = vec![MerchantOffer {
             item_id: "potion".to_owned(),
             price: 10,
+            is_gear: false,
         }];
         let result = apply_action(&mut session, GameAction::Buy("potion".to_owned()), OWNER);
         assert!(result.is_ok());
@@ -2099,9 +2402,7 @@ mod tests {
         let result = apply_equip(&mut session, "nonexistent_gear", OWNER);
         assert!(result.is_err());
         let err_msg = result.unwrap_err();
-        assert!(
-            err_msg.contains("Unknown gear") || err_msg.contains("don't have")
-        );
+        assert!(err_msg.contains("Unknown gear") || err_msg.contains("don't have"));
     }
 
     #[test]
@@ -2339,11 +2640,7 @@ mod tests {
 
         // Non-cleric trying to heal should fail
         session.player_mut(OWNER).class = ClassType::Warrior;
-        let result = apply_action(
-            &mut session,
-            GameAction::HealAlly(OWNER),
-            OWNER,
-        );
+        let result = apply_action(&mut session, GameAction::HealAlly(OWNER), OWNER);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Cleric"));
     }
@@ -2420,19 +2717,22 @@ mod tests {
     fn test_guaranteed_flee_clears_enemies() {
         let mut session = test_session();
         session.phase = GamePhase::Combat;
-        session.enemies = vec![test_enemy(), EnemyState {
-            name: "Bat".to_owned(),
-            level: 1,
-            hp: 15,
-            max_hp: 15,
-            armor: 0,
-            effects: Vec::new(),
-            intent: Intent::Attack { dmg: 3 },
-            charged: false,
-            loot_table_id: "slime",
-            enraged: false,
-            index: 1,
-        }];
+        session.enemies = vec![
+            test_enemy(),
+            EnemyState {
+                name: "Bat".to_owned(),
+                level: 1,
+                hp: 15,
+                max_hp: 15,
+                armor: 0,
+                effects: Vec::new(),
+                intent: Intent::Attack { dmg: 3 },
+                charged: false,
+                loot_table_id: "slime",
+                enraged: false,
+                index: 1,
+            },
+        ];
 
         // Simulate GuaranteedFlee effect
         let hallway = content::generate_hallway_room(session.room.index);
@@ -2553,10 +2853,7 @@ mod tests {
 
         // Enemy should be dead, lifetime kills should increment
         if session.enemies.is_empty() {
-            assert_eq!(
-                session.player(OWNER).lifetime_kills,
-                kills_before + 1
-            );
+            assert_eq!(session.player(OWNER).lifetime_kills, kills_before + 1);
         }
     }
 
@@ -2597,17 +2894,239 @@ mod tests {
         add_item_to_inventory(&mut session.player_mut(OWNER).inventory, "shadow_dagger");
 
         // Equip first weapon
-        let result = apply_action(&mut session, GameAction::Equip("rusty_sword".to_owned()), OWNER);
+        let result = apply_action(
+            &mut session,
+            GameAction::Equip("rusty_sword".to_owned()),
+            OWNER,
+        );
         assert!(result.is_ok());
         assert_eq!(session.player(OWNER).weapon.as_deref(), Some("rusty_sword"));
         // base_damage_bonus should be unchanged — weapon bonus is dynamic
         assert_eq!(session.player(OWNER).base_damage_bonus, base_dmg);
 
         // Swap to second weapon
-        let result = apply_action(&mut session, GameAction::Equip("shadow_dagger".to_owned()), OWNER);
+        let result = apply_action(
+            &mut session,
+            GameAction::Equip("shadow_dagger".to_owned()),
+            OWNER,
+        );
         assert!(result.is_ok());
-        assert_eq!(session.player(OWNER).weapon.as_deref(), Some("shadow_dagger"));
+        assert_eq!(
+            session.player(OWNER).weapon.as_deref(),
+            Some("shadow_dagger")
+        );
         // base_damage_bonus should STILL be unchanged (no asymmetric subtraction)
         assert_eq!(session.player(OWNER).base_damage_bonus, base_dmg);
+    }
+
+    #[test]
+    fn test_rogue_first_attack_guaranteed_crit() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![test_enemy()];
+        // Make player a Rogue with 0% crit chance to isolate first-attack mechanic
+        let player = session.player_mut(OWNER);
+        player.class = ClassType::Rogue;
+        player.crit_chance = 0.0;
+        player.hp = 200;
+        player.max_hp = 200;
+        player.first_attack_in_combat = true;
+        session.enemies[0].hp = 200;
+        session.enemies[0].max_hp = 200;
+
+        let result = apply_action(&mut session, GameAction::Attack, OWNER);
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        // First attack should always crit for a Rogue
+        let has_crit = logs.iter().any(|l| l.contains("Critical hit"));
+        assert!(
+            has_crit,
+            "Rogue first attack should guarantee crit. Logs: {:?}",
+            logs
+        );
+        // Flag should be consumed
+        assert!(!session.player(OWNER).first_attack_in_combat);
+    }
+
+    #[test]
+    fn test_cleric_heal_limit() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.mode = SessionMode::Party;
+        session.enemies = vec![test_enemy()];
+
+        let cleric_id = serenity::UserId::new(2);
+        let mut cleric = PlayerState::default();
+        cleric.class = ClassType::Cleric;
+        cleric.name = "TestCleric".to_owned();
+        session.players.insert(cleric_id, cleric);
+        session.party.push(cleric_id);
+
+        // First heal should succeed
+        let result = apply_heal_ally(&mut session, OWNER, cleric_id);
+        assert!(result.is_ok());
+        assert_eq!(session.player(cleric_id).heals_used_this_combat, 1);
+
+        // Second heal should fail
+        let result = apply_heal_ally(&mut session, OWNER, cleric_id);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("already used"));
+    }
+
+    #[test]
+    fn test_combat_state_resets_on_new_room() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        // Simulate used-up combat state
+        let player = session.player_mut(OWNER);
+        player.first_attack_in_combat = false;
+        player.heals_used_this_combat = 1;
+
+        // Advance to a new room (may or may not be combat)
+        let _ = apply_action(&mut session, GameAction::Explore, OWNER);
+
+        // If new room is combat, flags should be reset
+        if session.phase == GamePhase::Combat {
+            assert!(session.player(OWNER).first_attack_in_combat);
+            assert_eq!(session.player(OWNER).heals_used_this_combat, 0);
+        }
+    }
+
+    #[test]
+    fn test_sell_at_merchant() {
+        let mut session = test_session();
+        session.phase = GamePhase::Merchant;
+        session.player_mut(OWNER).gold = 10;
+        // Player already has "potion" from starting_inventory
+        let gold_before = session.player(OWNER).gold;
+        let result = apply_action(&mut session, GameAction::Sell("potion".to_owned()), OWNER);
+        assert!(result.is_ok());
+        // Potion is Common -> base 10 / 2 = 5 gold
+        assert_eq!(session.player(OWNER).gold, gold_before + 5);
+        // Verify qty decreased
+        let potion_stack = session
+            .player(OWNER)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion");
+        // Starting inventory has 2 potions, so after selling 1 we should have 1
+        assert!(potion_stack.is_some());
+        assert_eq!(potion_stack.unwrap().qty, 1);
+    }
+
+    #[test]
+    fn test_sell_not_at_merchant() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        let result = apply_action(&mut session, GameAction::Sell("potion".to_owned()), OWNER);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("only sell at a merchant"));
+    }
+
+    #[test]
+    fn test_buy_gear_at_merchant() {
+        let mut session = test_session();
+        session.phase = GamePhase::Merchant;
+        session.player_mut(OWNER).gold = 100;
+        session.room.merchant_stock = vec![MerchantOffer {
+            item_id: "rusty_sword".to_owned(),
+            price: 25,
+            is_gear: true,
+        }];
+        let result = apply_action(
+            &mut session,
+            GameAction::Buy("rusty_sword".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        assert_eq!(session.player(OWNER).gold, 75);
+        let has_sword = session
+            .player(OWNER)
+            .inventory
+            .iter()
+            .any(|s| s.item_id == "rusty_sword" && s.qty > 0);
+        assert!(has_sword);
+    }
+
+    #[test]
+    fn test_trap_brace_half_damage() {
+        let mut session = test_session();
+        session.room.room_type = RoomType::Trap;
+        session.room.index = 5;
+        session.phase = GamePhase::Trap;
+        session.player_mut(OWNER).hp = 50;
+        session.player_mut(OWNER).max_hp = 50;
+
+        let result = apply_action(&mut session, GameAction::RoomChoice(1), OWNER);
+        assert!(result.is_ok());
+        // Damage = (5 + 5) / 2 = 5
+        assert_eq!(session.player(OWNER).hp, 45);
+        assert_eq!(session.phase, GamePhase::Exploring);
+    }
+
+    #[test]
+    fn test_treasure_open_carefully() {
+        let mut session = test_session();
+        session.room.room_type = RoomType::Treasure;
+        session.room.index = 3;
+        session.phase = GamePhase::Treasure;
+        session.player_mut(OWNER).gold = 0;
+
+        let result = apply_action(&mut session, GameAction::RoomChoice(0), OWNER);
+        assert!(result.is_ok());
+        // Gold = 10 + 3 * 3 = 19
+        assert_eq!(session.player(OWNER).gold, 19);
+        assert_eq!(session.phase, GamePhase::Exploring);
+    }
+
+    #[test]
+    fn test_hallway_move_quickly() {
+        let mut session = test_session();
+        session.room.room_type = RoomType::Hallway;
+        session.phase = GamePhase::Hallway;
+
+        let result = apply_action(&mut session, GameAction::RoomChoice(0), OWNER);
+        assert!(result.is_ok());
+        assert_eq!(session.phase, GamePhase::Exploring);
+    }
+
+    #[test]
+    fn test_rest_shrine_rest_choice() {
+        let mut session = test_session();
+        session.room.room_type = RoomType::RestShrine;
+        session.phase = GamePhase::Rest;
+        session.player_mut(OWNER).hp = 30;
+        session.player_mut(OWNER).max_hp = 50;
+
+        let result = apply_action(&mut session, GameAction::RoomChoice(0), OWNER);
+        assert!(result.is_ok());
+        // Heal = 15, so 30 + 15 = 45
+        assert_eq!(session.player(OWNER).hp, 45);
+        assert_eq!(session.phase, GamePhase::Exploring);
+    }
+
+    #[test]
+    fn test_rest_shrine_meditate() {
+        let mut session = test_session();
+        session.room.room_type = RoomType::RestShrine;
+        session.phase = GamePhase::Rest;
+        session.player_mut(OWNER).hp = 30;
+        session.player_mut(OWNER).max_hp = 50;
+
+        let result = apply_action(&mut session, GameAction::RoomChoice(1), OWNER);
+        assert!(result.is_ok());
+        // Heal = 8, so 30 + 8 = 38
+        assert_eq!(session.player(OWNER).hp, 38);
+        // Should have at least one effect (Sharpened or Shielded)
+        let has_buff = session
+            .player(OWNER)
+            .effects
+            .iter()
+            .any(|e| matches!(e.kind, EffectKind::Sharpened | EffectKind::Shielded));
+        assert!(
+            has_buff,
+            "Player should have Sharpened or Shielded buff after meditate"
+        );
+        assert_eq!(session.phase, GamePhase::Exploring);
     }
 }
