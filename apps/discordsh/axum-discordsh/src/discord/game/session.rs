@@ -122,10 +122,11 @@ mod tests {
             last_action_at: Instant::now(),
             turn: 0,
             players: std::collections::HashMap::from([(owner_id, player)]),
-            enemy: None,
+            enemies: Vec::new(),
             room: content::generate_room(0),
             log: Vec::new(),
             show_items: false,
+            pending_actions: std::collections::HashMap::new(),
         }
     }
 
