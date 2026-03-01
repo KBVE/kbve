@@ -2,7 +2,11 @@
 // Supabase Edge Function Client
 //
 // Mirrors the VaultClient pattern from packages/rust/kbve but uses ureq
-// (sync HTTP, already in deps) wrapped in spawn_blocking.
+// (sync HTTP, already in deps) on a plain OS thread.
+//
+// IMPORTANT: cdylib plugins have separate tokio thread-locals from the host.
+// tokio::task::spawn_blocking panics ("no reactor running"). We use
+// std::thread::spawn + tokio::sync::oneshot instead.
 //
 // Env vars:
 //   SUPABASE_URL              — e.g. "https://api.kbve.com"
@@ -50,7 +54,7 @@ pub struct AddXpResult {
 }
 
 // ---------------------------------------------------------------------------
-// Core HTTP helper (blocking, runs inside spawn_blocking)
+// Core HTTP helper (blocking, runs on a plain OS thread)
 // ---------------------------------------------------------------------------
 
 fn edge_post(command: &str, extra: serde_json::Value) -> Result<serde_json::Value, String> {
@@ -88,6 +92,20 @@ fn edge_post(command: &str, extra: serde_json::Value) -> Result<serde_json::Valu
         .map_err(|e| format!("Failed to parse edge response: {e} — body: {text}"))
 }
 
+/// Run a blocking closure on a plain OS thread and await the result.
+/// cdylib plugins can't use tokio::task::spawn_blocking (no reactor).
+async fn run_blocking<F, T>(f: F) -> Result<T, String>
+where
+    F: FnOnce() -> T + Send + 'static,
+    T: Send + 'static,
+{
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    std::thread::spawn(move || {
+        let _ = tx.send(f());
+    });
+    rx.await.map_err(|_| "OS thread died".to_string())
+}
+
 // ---------------------------------------------------------------------------
 // Public async API
 // ---------------------------------------------------------------------------
@@ -97,7 +115,7 @@ pub async fn load_character(player_uuid: &str) -> Result<Option<CharacterData>, 
     let uuid = player_uuid.to_string();
     let server_id = MC_SERVER_ID.clone();
 
-    let result = tokio::task::spawn_blocking(move || {
+    let result = run_blocking(move || {
         edge_post(
             "character.load",
             serde_json::json!({
@@ -106,8 +124,7 @@ pub async fn load_character(player_uuid: &str) -> Result<Option<CharacterData>, 
             }),
         )
     })
-    .await
-    .map_err(|e| format!("spawn_blocking failed: {e}"))?;
+    .await?;
 
     let json = result?;
 
@@ -130,7 +147,7 @@ pub async fn save_character(player_uuid: &str, data: &CharacterData) -> Result<(
     let server_id = MC_SERVER_ID.clone();
     let data = data.clone();
 
-    let result = tokio::task::spawn_blocking(move || {
+    let result = run_blocking(move || {
         edge_post(
             "character.save",
             serde_json::json!({
@@ -150,8 +167,7 @@ pub async fn save_character(player_uuid: &str, data: &CharacterData) -> Result<(
             }),
         )
     })
-    .await
-    .map_err(|e| format!("spawn_blocking failed: {e}"))?;
+    .await?;
 
     let json = result?;
 
@@ -176,7 +192,7 @@ pub async fn add_xp(player_uuid: &str, amount: i64) -> Result<AddXpResult, Strin
     let uuid = player_uuid.to_string();
     let server_id = MC_SERVER_ID.clone();
 
-    let result = tokio::task::spawn_blocking(move || {
+    let result = run_blocking(move || {
         edge_post(
             "character.add_xp",
             serde_json::json!({
@@ -186,8 +202,7 @@ pub async fn add_xp(player_uuid: &str, amount: i64) -> Result<AddXpResult, Strin
             }),
         )
     })
-    .await
-    .map_err(|e| format!("spawn_blocking failed: {e}"))?;
+    .await?;
 
     let json = result?;
 
