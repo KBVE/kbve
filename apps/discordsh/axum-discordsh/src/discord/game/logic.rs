@@ -933,7 +933,6 @@ fn single_enemy_turn(
             msg: String,
         },
         HealEnemy {
-            amount: i32,
             msg: String,
         },
     }
@@ -1030,7 +1029,7 @@ fn single_enemy_turn(
             let heal = *amount;
             enemy.hp = (enemy.hp + heal).min(enemy_max_hp);
             let msg = format!("{} heals for {}!", enemy.name, heal);
-            EnemyAction::HealEnemy { amount: heal, msg }
+            EnemyAction::HealEnemy { msg }
         }
     };
 
@@ -1108,7 +1107,7 @@ fn single_enemy_turn(
             }
             // No thorns reflect for AoE
         }
-        EnemyAction::HealEnemy { amount: _, msg } => {
+        EnemyAction::HealEnemy { msg } => {
             logs.push(msg);
         }
     }
@@ -4272,12 +4271,6 @@ mod tests {
         let mut tiles_visited = 0u32;
         let mut total_iterations = 0;
         let max_iterations = 500;
-        let directions = [
-            Direction::North,
-            Direction::East,
-            Direction::South,
-            Direction::West,
-        ];
         let mut dir_idx = 0;
 
         while total_iterations < max_iterations {
@@ -4633,7 +4626,6 @@ mod tests {
         session.player_mut(OWNER).accuracy = 1.0;
 
         // Attack WITHOUT sharpened first to get baseline
-        let hp_before_no_sharp = session.enemies[0].hp;
         let _ = apply_action(&mut session, GameAction::Attack, OWNER);
         if session.enemies.is_empty() {
             // Enemy died from first attack, re-add for sharpened test

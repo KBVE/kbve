@@ -877,6 +877,8 @@ pub fn class_starting_stats(class: &ClassType) -> (i32, i32, i32, f32, i32) {
 // ── Room generation ─────────────────────────────────────────────────
 
 /// Weighted random room type. Boss guaranteed every 7th room, room 0 always Combat.
+/// (Legacy linear room gen — kept for test helpers.)
+#[allow(dead_code)]
 fn room_type_for_index(index: u32, rng: &mut impl Rng) -> RoomType {
     if index > 0 && index % 7 == 6 {
         return RoomType::Boss;
@@ -950,6 +952,8 @@ fn generate_hazards(index: u32, room_type: &RoomType, rng: &mut impl Rng) -> Vec
 }
 
 /// Generate a room for the given index with randomized content.
+/// (Legacy linear room gen — kept for test helpers.)
+#[allow(dead_code)]
 pub fn generate_room(index: u32) -> RoomState {
     let mut rng = rand::rng();
     let room_type = room_type_for_index(index, &mut rng);
