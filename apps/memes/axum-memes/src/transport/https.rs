@@ -2,12 +2,12 @@ use anyhow::Result;
 use std::{net::SocketAddr, time::Duration};
 
 use axum::{
+    Router,
     extract::Request,
-    http::{header, HeaderName, HeaderValue},
+    http::{HeaderName, HeaderValue, header},
     middleware::Next,
     response::{IntoResponse, Response},
     routing::get,
-    Router,
 };
 use tokio::net::TcpListener;
 use tower_http::set_header::SetResponseHeaderLayer;
@@ -64,10 +64,16 @@ fn router() -> Router {
                 if err.is::<tower::timeout::error::Elapsed>() {
                     (axum::http::StatusCode::REQUEST_TIMEOUT, "request timed out")
                 } else if err.is::<tower::load_shed::error::Overloaded>() {
-                    (axum::http::StatusCode::SERVICE_UNAVAILABLE, "service overloaded")
+                    (
+                        axum::http::StatusCode::SERVICE_UNAVAILABLE,
+                        "service overloaded",
+                    )
                 } else {
                     tracing::warn!(error = %err, "middleware error");
-                    (axum::http::StatusCode::INTERNAL_SERVER_ERROR, "internal server error")
+                    (
+                        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                        "internal server error",
+                    )
                 }
             },
         ))
@@ -80,14 +86,11 @@ fn router() -> Router {
         .layer(axum::middleware::from_fn(fix_ts_mime))
         .layer(axum::middleware::from_fn(cache_headers));
 
-    let public_router = Router::new()
-        .route("/health", get(health));
+    let public_router = Router::new().route("/health", get(health));
 
     let dynamic_router = public_router;
 
-    static_router
-        .merge(dynamic_router)
-        .layer(middleware)
+    static_router.merge(dynamic_router).layer(middleware)
 }
 
 async fn health() -> impl IntoResponse {
@@ -112,10 +115,9 @@ async fn cache_headers(request: Request, next: Next) -> Response {
         "public, max-age=86400"
     };
 
-    response.headers_mut().insert(
-        header::CACHE_CONTROL,
-        HeaderValue::from_static(cache_value),
-    );
+    response
+        .headers_mut()
+        .insert(header::CACHE_CONTROL, HeaderValue::from_static(cache_value));
 
     response
 }
@@ -135,7 +137,7 @@ async fn fix_ts_mime(request: Request, next: Next) -> Response {
 }
 
 fn tuned_listener(addr: SocketAddr) -> Result<TcpListener> {
-    use socket2::{Socket, Domain, Type, Protocol};
+    use socket2::{Domain, Protocol, Socket, Type};
 
     let domain = match addr {
         SocketAddr::V4(_) => Domain::IPV4,
@@ -231,10 +233,7 @@ mod tests {
             response.headers().get("x-content-type-options").unwrap(),
             "nosniff"
         );
-        assert_eq!(
-            response.headers().get("x-frame-options").unwrap(),
-            "DENY"
-        );
+        assert_eq!(response.headers().get("x-frame-options").unwrap(), "DENY");
         assert_eq!(
             response.headers().get("referrer-policy").unwrap(),
             "strict-origin-when-cross-origin"
@@ -274,12 +273,7 @@ mod tests {
             .layer(axum::middleware::from_fn(cache_headers));
 
         let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
+            .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
             .await
             .unwrap();
 
@@ -330,5 +324,148 @@ mod tests {
             .get(header::CONTENT_TYPE)
             .map(|v| v.to_str().unwrap().to_string());
         assert!(ct.is_none() || !ct.unwrap().contains("application/javascript"));
+    }
+
+    #[tokio::test]
+    async fn test_cache_headers_pagefind_path() {
+        let app = Router::new()
+            .route("/pagefind/{*path}", get(|| async { "search" }))
+            .layer(axum::middleware::from_fn(cache_headers));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/pagefind/pagefind.js")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        let cc = response
+            .headers()
+            .get(header::CACHE_CONTROL)
+            .unwrap()
+            .to_str()
+            .unwrap();
+        assert!(cc.contains("86400"));
+    }
+
+    #[tokio::test]
+    async fn test_cache_headers_extensionless_path() {
+        let app = Router::new()
+            .route("/feed", get(|| async { "page" }))
+            .route("/profile", get(|| async { "page" }))
+            .layer(axum::middleware::from_fn(cache_headers));
+
+        for path in ["/feed", "/profile"] {
+            let response = app
+                .clone()
+                .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
+                .await
+                .unwrap();
+
+            let cc = response
+                .headers()
+                .get(header::CACHE_CONTROL)
+                .unwrap()
+                .to_str()
+                .unwrap();
+            assert!(
+                cc.contains("86400"),
+                "expected 86400 cache for {path}, got: {cc}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn test_cache_headers_images_path() {
+        let app = Router::new()
+            .route("/images/{*path}", get(|| async { "image" }))
+            .layer(axum::middleware::from_fn(cache_headers));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/images/logo.png")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        let cc = response
+            .headers()
+            .get(header::CACHE_CONTROL)
+            .unwrap()
+            .to_str()
+            .unwrap();
+        assert!(cc.contains("86400"));
+    }
+
+    #[tokio::test]
+    async fn test_fix_ts_mime_ignores_css() {
+        let app = Router::new()
+            .route("/style.css", get(|| async { "body{}" }))
+            .layer(axum::middleware::from_fn(fix_ts_mime));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/style.css")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        let ct = response
+            .headers()
+            .get(header::CONTENT_TYPE)
+            .map(|v| v.to_str().unwrap().to_string());
+        // .css should NOT be rewritten to application/javascript
+        assert!(ct.is_none() || !ct.unwrap().contains("application/javascript"),);
+    }
+
+    #[tokio::test]
+    async fn test_health_returns_plain_text() {
+        let app = test_router();
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/health")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let text = std::str::from_utf8(&body).unwrap();
+        assert_eq!(text, "OK");
+        assert_eq!(text.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn test_unknown_route_through_middleware() {
+        let app = test_router();
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/nonexistent-path")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        // Without static file serving, unknown routes return 404
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+        // Security headers should still be present
+        assert_eq!(
+            response.headers().get("x-content-type-options").unwrap(),
+            "nosniff"
+        );
     }
 }
