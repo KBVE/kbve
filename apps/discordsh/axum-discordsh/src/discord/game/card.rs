@@ -65,7 +65,6 @@ pub struct EnemyPanel {
     pub y_hp_bar: u32,
     pub y_hp_text: u32,
     pub y_def: u32,
-    pub y_intent: u32,
     pub y_intent_box: u32,
     pub y_intent_text: u32,
     pub y_effects: u32,
@@ -96,6 +95,7 @@ pub struct GameCardTemplate {
     // Enemies (conditional, multi-enemy)
     pub has_enemy: bool,
     pub enemies: Vec<EnemyPanel>,
+    #[allow(dead_code)] // used in tests but not in the SVG template
     pub enemy_count: usize,
 
     // Room
@@ -435,7 +435,6 @@ impl GameCardTemplate {
                         y_hp_bar,
                         y_hp_text,
                         y_def,
-                        y_intent,
                         y_intent_box: y_intent - 4,
                         y_intent_text: y_intent + 8,
                         y_effects,
@@ -501,7 +500,6 @@ pub struct MapCardTemplate {
     pub tiles: Vec<MapTileDisplay>,
     pub player_x: i32,
     pub player_y: i32,
-    pub grid_size: i32,
     pub tiles_explored: u32,
     pub depth: u32,
 }
@@ -606,7 +604,6 @@ pub fn build_map_card(session: &SessionState) -> MapCardTemplate {
         tiles,
         player_x: pos.x as i32,
         player_y: pos.y as i32,
-        grid_size: 7,
         tiles_explored: session.map.tiles_visited,
         depth: pos.depth(),
     }
