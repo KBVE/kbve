@@ -1,4 +1,13 @@
 use std::path::Path;
+use std::process::Command;
+
+fn protoc_available() -> bool {
+    Command::new("protoc")
+        .arg("--version")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Proto file locations
@@ -15,6 +24,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("cargo:warning=Proto directory not found, skipping protobuf compilation");
         return Ok(());
     };
+
+    if !protoc_available() {
+        println!("cargo:warning=protoc not found, skipping protobuf compilation");
+        return Ok(());
+    }
 
     let proto_files = vec![
         proto_dir.join("common.proto"),
