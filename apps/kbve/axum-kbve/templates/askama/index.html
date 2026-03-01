@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{ description }}">
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="{{ description }}">
+    <title>{{ title }} - KBVE</title>
+    <style>
+        :root {
+            --sl-color-bg: #0a0a0a;
+            --sl-color-bg-nav: #141414;
+            --sl-color-bg-sidebar: #1a1a1a;
+            --sl-color-text: #e5e5e5;
+            --sl-color-text-accent: #c4b5fd;
+            --sl-color-accent: #a78bfa;
+            --sl-color-accent-low: rgba(167, 139, 250, 0.1);
+            --sl-color-gray-2: #9ca3af;
+            --sl-color-gray-3: #6b7280;
+            --sl-color-gray-4: #4b5563;
+            --sl-color-gray-5: #374151;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--sl-color-bg);
+            color: var(--sl-color-text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h1 { color: var(--sl-color-text-accent); margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="container" data-path="{{ path }}">
+        <h1>{{ title }}</h1>
+        <div>{{ content }}</div>
+    </div>
+</body>
+</html>
