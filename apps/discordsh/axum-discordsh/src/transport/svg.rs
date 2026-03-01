@@ -209,10 +209,11 @@ mod tests {
             last_action_at: Instant::now(),
             turn: 1,
             players: std::collections::HashMap::from([(owner, PlayerState::default())]),
-            enemy: None,
+            enemies: Vec::new(),
             room: content::generate_room(0),
             log: vec!["Test session".to_owned()],
             show_items: false,
+            pending_actions: std::collections::HashMap::new(),
         };
         state.app.sessions.create(session);
         short_id

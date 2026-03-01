@@ -19,6 +19,7 @@ pub async fn dungeon(_ctx: Context<'_>) -> Result<(), Error> {
 async fn start(
     ctx: Context<'_>,
     #[description = "Session mode"] mode: Option<String>,
+    #[description = "Choose your class (warrior/rogue/cleric)"] class: Option<String>,
 ) -> Result<(), Error> {
     let user = ctx.author().id;
     let channel = ctx.channel_id();
@@ -42,17 +43,23 @@ async fn start(
         _ => SessionMode::Solo,
     };
 
+    let player_class = match class.as_deref() {
+        Some("rogue") => ClassType::Rogue,
+        Some("cleric") => ClassType::Cleric,
+        _ => ClassType::Warrior,
+    };
+
     let (id, short_id) = game::new_short_sid();
     let room = content::generate_room(0);
 
-    // First room is combat — spawn enemy
-    let enemy = if room.room_type == RoomType::Combat {
-        Some(content::spawn_enemy(0))
+    // First room is combat — spawn enemies
+    let enemies = if room.room_type == RoomType::Combat {
+        content::spawn_enemies(0)
     } else {
-        None
+        Vec::new()
     };
 
-    let phase = if enemy.is_some() {
+    let phase = if !enemies.is_empty() {
         GamePhase::Combat
     } else {
         GamePhase::Exploring
@@ -76,10 +83,20 @@ async fn start(
         MemberStatus::Guest { .. } => (ctx.author().name.clone(), MemberStatusTag::Guest),
     };
 
+    let (class_hp, class_armor, class_dmg, class_crit, class_gold) =
+        content::class_starting_stats(&player_class);
+
     let player = PlayerState {
         name: player_name,
         inventory: content::starting_inventory(),
         member_status: member_tag,
+        class: player_class,
+        max_hp: class_hp,
+        hp: class_hp,
+        armor: class_armor,
+        gold: class_gold,
+        base_damage_bonus: class_dmg,
+        crit_chance: class_crit,
         ..PlayerState::default()
     };
 
@@ -97,10 +114,11 @@ async fn start(
         last_action_at: Instant::now(),
         turn: 0,
         players: HashMap::from([(user, player)]),
-        enemy,
+        enemies,
         room,
         log: vec!["You descend into The Glass Catacombs...".to_owned()],
         show_items: false,
+        pending_actions: HashMap::new(),
     };
 
     let components = render::render_components(&session_state);
@@ -162,7 +180,10 @@ async fn start(
 
 /// Join an active party session in this channel.
 #[poise::command(slash_command)]
-async fn join(ctx: Context<'_>) -> Result<(), Error> {
+async fn join(
+    ctx: Context<'_>,
+    #[description = "Choose your class (warrior/rogue/cleric)"] class: Option<String>,
+) -> Result<(), Error> {
     let user = ctx.author().id;
     let channel = ctx.channel_id();
 
@@ -272,10 +293,25 @@ async fn join(ctx: Context<'_>) -> Result<(), Error> {
 
     session.party.push(user);
 
+    let joiner_class = match class.as_deref() {
+        Some("rogue") => ClassType::Rogue,
+        Some("cleric") => ClassType::Cleric,
+        _ => ClassType::Warrior,
+    };
+    let (class_hp, class_armor, class_dmg, class_crit, class_gold) =
+        content::class_starting_stats(&joiner_class);
+
     let joiner_player = PlayerState {
         name: joiner_name,
         inventory: content::starting_inventory(),
         member_status: joiner_tag,
+        class: joiner_class,
+        max_hp: class_hp,
+        hp: class_hp,
+        armor: class_armor,
+        gold: class_gold,
+        base_damage_bonus: class_dmg,
+        crit_chance: class_crit,
         ..PlayerState::default()
     };
     session.players.insert(user, joiner_player);

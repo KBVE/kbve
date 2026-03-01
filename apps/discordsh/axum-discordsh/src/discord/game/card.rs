@@ -111,6 +111,7 @@ fn phase_label(phase: &GamePhase) -> &'static str {
         GamePhase::GameOver(GameOverReason::Defeated) => "Defeated",
         GamePhase::GameOver(GameOverReason::Escaped) => "Escaped",
         GamePhase::GameOver(GameOverReason::Expired) => "Expired",
+        GamePhase::WaitingForActions => "Waiting",
     }
 }
 
@@ -122,6 +123,8 @@ fn effect_color(kind: &EffectKind) -> &'static str {
         EffectKind::Shielded => "#3498db",
         EffectKind::Weakened => "#9b59b6",
         EffectKind::Stunned => "#95a5a6",
+        EffectKind::Sharpened => "#f39c12",
+        EffectKind::Thorns => "#d35400",
     }
 }
 
@@ -133,6 +136,8 @@ fn effect_label(kind: &EffectKind) -> &'static str {
         EffectKind::Shielded => "SHD",
         EffectKind::Weakened => "WKN",
         EffectKind::Stunned => "STN",
+        EffectKind::Sharpened => "SHP",
+        EffectKind::Thorns => "THR",
     }
 }
 
@@ -217,6 +222,7 @@ impl GameCardTemplate {
 
         let player_effects = build_effect_badges(&owner.effects, 30);
 
+        // Use primary enemy for card display (multi-enemy shows first)
         let (
             has_enemy,
             enemy_name,
@@ -228,11 +234,18 @@ impl GameCardTemplate {
             intent_icon,
             intent_text,
             enemy_effects,
-        ) = if let Some(ref enemy) = session.enemy {
+        ) = if let Some(enemy) = session.primary_enemy() {
             let (icon, text) = intent_to_icon_and_text(&enemy.intent);
+            let display_name = if enemy.enraged {
+                format!("{} \u{1F525}", enemy.name)
+            } else if session.enemies.len() > 1 {
+                format!("{} (+{})", enemy.name, session.enemies.len() - 1)
+            } else {
+                enemy.name.clone()
+            };
             (
                 true,
-                enemy.name.clone(),
+                display_name,
                 enemy.level,
                 enemy.hp,
                 enemy.max_hp,
@@ -350,10 +363,11 @@ mod tests {
             last_action_at: Instant::now(),
             turn: 3,
             players: HashMap::from([(OWNER, PlayerState::default())]),
-            enemy: None,
+            enemies: Vec::new(),
             room: super::super::content::generate_room(0),
             log: Vec::new(),
             show_items: false,
+            pending_actions: HashMap::new(),
         }
     }
 
@@ -373,7 +387,7 @@ mod tests {
         let db = test_fontdb();
         let mut session = test_session();
         session.phase = GamePhase::Combat;
-        session.enemy = Some(super::super::content::spawn_enemy(0));
+        session.enemies = vec![super::super::content::spawn_enemy(0)];
         let png = render_game_card_blocking(&session, &db).unwrap();
         assert!(!png.is_empty());
         assert_eq!(&png[0..4], &[0x89, 0x50, 0x4E, 0x47]);
@@ -393,7 +407,7 @@ mod tests {
         let db = test_fontdb();
         let mut session = test_session();
         session.phase = GamePhase::Combat;
-        session.enemy = Some(super::super::content::spawn_enemy(2));
+        session.enemies = vec![super::super::content::spawn_enemy(2)];
         session.player_mut(OWNER).effects = vec![
             EffectInstance {
                 kind: EffectKind::Poison,
@@ -422,7 +436,7 @@ mod tests {
     fn template_from_session_combat() {
         let mut session = test_session();
         session.phase = GamePhase::Combat;
-        session.enemy = Some(super::super::content::spawn_enemy(0));
+        session.enemies = vec![super::super::content::spawn_enemy(0)];
         let template = GameCardTemplate::from_session(&session);
         assert!(template.has_enemy);
         assert!(!template.enemy_name.is_empty());

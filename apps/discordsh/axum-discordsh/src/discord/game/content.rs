@@ -230,6 +230,59 @@ pub fn item_registry() -> &'static [ItemDef] {
             rarity: ItemRarity::Common,
             use_effect: Some(UseEffect::Heal { amount: 8 }),
         },
+        ItemDef {
+            id: "smoke_bomb",
+            name: "Smoke Bomb",
+            emoji: "\u{1F4A8}",
+            description: "Guaranteed escape from combat",
+            max_stack: 1,
+            rarity: ItemRarity::Rare,
+            use_effect: Some(UseEffect::GuaranteedFlee),
+        },
+        ItemDef {
+            id: "elixir",
+            name: "Elixir",
+            emoji: "\u{2728}",
+            description: "Fully restores HP",
+            max_stack: 1,
+            rarity: ItemRarity::Legendary,
+            use_effect: Some(UseEffect::FullHeal),
+        },
+        ItemDef {
+            id: "whetstone",
+            name: "Whetstone",
+            emoji: "\u{1FAA8}",
+            description: "Sharpens weapon for 3 turns (+3 dmg)",
+            max_stack: 2,
+            rarity: ItemRarity::Uncommon,
+            use_effect: Some(UseEffect::ApplyEffect {
+                kind: EffectKind::Sharpened,
+                stacks: 1,
+                turns: 3,
+            }),
+        },
+        ItemDef {
+            id: "antidote",
+            name: "Antidote",
+            emoji: "\u{1F9F4}",
+            description: "Removes all negative effects",
+            max_stack: 2,
+            rarity: ItemRarity::Uncommon,
+            use_effect: Some(UseEffect::RemoveAllNegativeEffects),
+        },
+        ItemDef {
+            id: "trap_kit",
+            name: "Trap Kit",
+            emoji: "\u{1FAA4}",
+            description: "Sets a trap that damages attackers",
+            max_stack: 2,
+            rarity: ItemRarity::Uncommon,
+            use_effect: Some(UseEffect::ApplyEffect {
+                kind: EffectKind::Thorns,
+                stacks: 5,
+                turns: 2,
+            }),
+        },
     ];
     ITEMS
 }
@@ -255,6 +308,108 @@ pub fn starting_inventory() -> Vec<ItemStack> {
             qty: 1,
         },
     ]
+}
+
+// ── Gear registry ───────────────────────────────────────────────────
+
+/// Static gear definitions for the dungeon.
+pub fn gear_registry() -> &'static [GearDef] {
+    static GEAR: &[GearDef] = &[
+        GearDef {
+            id: "rusty_sword",
+            name: "Rusty Sword",
+            emoji: "\u{2694}",
+            slot: EquipSlot::Weapon,
+            rarity: ItemRarity::Common,
+            bonus_damage: 2,
+            bonus_armor: 0,
+            bonus_hp: 0,
+            special: None,
+        },
+        GearDef {
+            id: "shadow_dagger",
+            name: "Shadow Dagger",
+            emoji: "\u{1F5E1}",
+            slot: EquipSlot::Weapon,
+            rarity: ItemRarity::Uncommon,
+            bonus_damage: 3,
+            bonus_armor: 0,
+            bonus_hp: 0,
+            special: Some(GearSpecial::CritBonus { percent: 5 }),
+        },
+        GearDef {
+            id: "flame_axe",
+            name: "Flame Axe",
+            emoji: "\u{1FA93}",
+            slot: EquipSlot::Weapon,
+            rarity: ItemRarity::Rare,
+            bonus_damage: 4,
+            bonus_armor: 0,
+            bonus_hp: 0,
+            special: None,
+        },
+        GearDef {
+            id: "vampiric_blade",
+            name: "Vampiric Blade",
+            emoji: "\u{1FA78}",
+            slot: EquipSlot::Weapon,
+            rarity: ItemRarity::Epic,
+            bonus_damage: 3,
+            bonus_armor: 0,
+            bonus_hp: 0,
+            special: Some(GearSpecial::LifeSteal { percent: 20 }),
+        },
+        GearDef {
+            id: "leather_vest",
+            name: "Leather Vest",
+            emoji: "\u{1F9BA}",
+            slot: EquipSlot::Armor,
+            rarity: ItemRarity::Common,
+            bonus_damage: 0,
+            bonus_armor: 2,
+            bonus_hp: 0,
+            special: None,
+        },
+        GearDef {
+            id: "chain_mail",
+            name: "Chain Mail",
+            emoji: "\u{26D3}",
+            slot: EquipSlot::Armor,
+            rarity: ItemRarity::Uncommon,
+            bonus_damage: 0,
+            bonus_armor: 4,
+            bonus_hp: 5,
+            special: None,
+        },
+        GearDef {
+            id: "spiked_plate",
+            name: "Spiked Plate",
+            emoji: "\u{1F6E1}",
+            slot: EquipSlot::Armor,
+            rarity: ItemRarity::Rare,
+            bonus_damage: 0,
+            bonus_armor: 5,
+            bonus_hp: 0,
+            special: Some(GearSpecial::Thorns { damage: 3 }),
+        },
+        GearDef {
+            id: "crystal_armor",
+            name: "Crystal Armor",
+            emoji: "\u{1F48E}",
+            slot: EquipSlot::Armor,
+            rarity: ItemRarity::Epic,
+            bonus_damage: 0,
+            bonus_armor: 6,
+            bonus_hp: 10,
+            special: None,
+        },
+    ];
+    GEAR
+}
+
+/// Look up a gear definition by ID.
+pub fn find_gear(id: &str) -> Option<&'static GearDef> {
+    gear_registry().iter().find(|g| g.id == id)
 }
 
 // ── Loot tables ────────────────────────────────────────────────────
@@ -357,6 +512,102 @@ pub fn roll_loot(table_id: &str) -> Option<&'static str> {
     None
 }
 
+// ── Gear loot tables ───────────────────────────────────────────────
+
+struct GearLootEntry {
+    gear_id: &'static str,
+    weight: u32,
+}
+
+struct GearLootTable {
+    id: &'static str,
+    entries: &'static [GearLootEntry],
+    drop_chance: f32,
+}
+
+fn gear_loot_tables() -> &'static [GearLootTable] {
+    static TABLES: &[GearLootTable] = &[
+        GearLootTable {
+            id: "slime",
+            entries: &[
+                GearLootEntry {
+                    gear_id: "rusty_sword",
+                    weight: 5,
+                },
+                GearLootEntry {
+                    gear_id: "leather_vest",
+                    weight: 5,
+                },
+            ],
+            drop_chance: 0.10,
+        },
+        GearLootTable {
+            id: "skeleton",
+            entries: &[
+                GearLootEntry {
+                    gear_id: "shadow_dagger",
+                    weight: 4,
+                },
+                GearLootEntry {
+                    gear_id: "chain_mail",
+                    weight: 4,
+                },
+            ],
+            drop_chance: 0.15,
+        },
+        GearLootTable {
+            id: "wraith",
+            entries: &[
+                GearLootEntry {
+                    gear_id: "flame_axe",
+                    weight: 3,
+                },
+                GearLootEntry {
+                    gear_id: "spiked_plate",
+                    weight: 3,
+                },
+            ],
+            drop_chance: 0.20,
+        },
+        GearLootTable {
+            id: "boss",
+            entries: &[
+                GearLootEntry {
+                    gear_id: "vampiric_blade",
+                    weight: 3,
+                },
+                GearLootEntry {
+                    gear_id: "crystal_armor",
+                    weight: 3,
+                },
+            ],
+            drop_chance: 0.50,
+        },
+    ];
+    TABLES
+}
+
+/// Roll a gear loot drop from the given table. Returns gear_id or None.
+pub fn roll_gear_loot(table_id: &str) -> Option<&'static str> {
+    let mut rng = rand::thread_rng();
+    let table = gear_loot_tables().iter().find(|t| t.id == table_id)?;
+    if rng.gen_range(0.0f32..1.0) >= table.drop_chance {
+        return None;
+    }
+    let total_weight: u32 = table.entries.iter().map(|e| e.weight).sum();
+    if total_weight == 0 {
+        return None;
+    }
+    let mut roll = rng.gen_range(0..total_weight);
+    for entry in table.entries {
+        if roll < entry.weight {
+            return Some(entry.gear_id);
+        }
+        roll -= entry.weight;
+    }
+    None
+}
+
 // ── Enemy spawning ──────────────────────────────────────────────────
 
 /// Spawn an enemy scaled to the current room index.
@@ -365,8 +616,8 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
     let mut rng = rand::thread_rng();
     match room_index {
         0..=1 => {
-            if rng.gen_bool(0.5) {
-                EnemyState {
+            match rng.gen_range(0..4) {
+                0 => EnemyState {
                     name: "Glass Slime".to_owned(),
                     level: 1,
                     hp: 20,
@@ -376,9 +627,10 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                     intent: Intent::Attack { dmg: 5 },
                     charged: false,
                     loot_table_id: "slime",
-                }
-            } else {
-                EnemyState {
+                    enraged: false,
+                    index: 0,
+                },
+                1 => EnemyState {
                     name: "Crystal Bat".to_owned(),
                     level: 1,
                     hp: 15,
@@ -388,12 +640,40 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                     intent: Intent::Attack { dmg: 4 },
                     charged: false,
                     loot_table_id: "slime",
-                }
+                    enraged: false,
+                    index: 0,
+                },
+                2 => EnemyState {
+                    name: "Mushroom Sprite".to_owned(),
+                    level: 1,
+                    hp: 18,
+                    max_hp: 18,
+                    armor: 0,
+                    effects: Vec::new(),
+                    intent: Intent::Attack { dmg: 4 },
+                    charged: false,
+                    loot_table_id: "slime",
+                    enraged: false,
+                    index: 0,
+                },
+                _ => EnemyState {
+                    name: "Dust Mite".to_owned(),
+                    level: 1,
+                    hp: 12,
+                    max_hp: 12,
+                    armor: 0,
+                    effects: Vec::new(),
+                    intent: Intent::Attack { dmg: 6 },
+                    charged: false,
+                    loot_table_id: "slime",
+                    enraged: false,
+                    index: 0,
+                },
             }
         }
         2..=3 => {
-            if rng.gen_bool(0.5) {
-                EnemyState {
+            match rng.gen_range(0..4) {
+                0 => EnemyState {
                     name: "Skeleton Guard".to_owned(),
                     level: 2,
                     hp: 30,
@@ -403,9 +683,10 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                     intent: Intent::Defend { armor: 5 },
                     charged: false,
                     loot_table_id: "skeleton",
-                }
-            } else {
-                EnemyState {
+                    enraged: false,
+                    index: 0,
+                },
+                1 => EnemyState {
                     name: "Bone Archer".to_owned(),
                     level: 2,
                     hp: 22,
@@ -415,12 +696,40 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                     intent: Intent::Attack { dmg: 7 },
                     charged: false,
                     loot_table_id: "skeleton",
-                }
+                    enraged: false,
+                    index: 0,
+                },
+                2 => EnemyState {
+                    name: "Cursed Knight".to_owned(),
+                    level: 2,
+                    hp: 35,
+                    max_hp: 35,
+                    armor: 5,
+                    effects: Vec::new(),
+                    intent: Intent::Defend { armor: 5 },
+                    charged: false,
+                    loot_table_id: "skeleton",
+                    enraged: false,
+                    index: 0,
+                },
+                _ => EnemyState {
+                    name: "Fire Imp".to_owned(),
+                    level: 2,
+                    hp: 18,
+                    max_hp: 18,
+                    armor: 0,
+                    effects: Vec::new(),
+                    intent: Intent::Attack { dmg: 8 },
+                    charged: false,
+                    loot_table_id: "skeleton",
+                    enraged: false,
+                    index: 0,
+                },
             }
         }
         4..=5 => {
-            if rng.gen_bool(0.5) {
-                EnemyState {
+            match rng.gen_range(0..4) {
+                0 => EnemyState {
                     name: "Shadow Wraith".to_owned(),
                     level: 3,
                     hp: 25,
@@ -430,9 +739,10 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                     intent: Intent::HeavyAttack { dmg: 12 },
                     charged: false,
                     loot_table_id: "wraith",
-                }
-            } else {
-                EnemyState {
+                    enraged: false,
+                    index: 0,
+                },
+                1 => EnemyState {
                     name: "Phantom Knight".to_owned(),
                     level: 3,
                     hp: 28,
@@ -442,20 +752,130 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                     intent: Intent::Charge,
                     charged: false,
                     loot_table_id: "wraith",
+                    enraged: false,
+                    index: 0,
+                },
+                2 => EnemyState {
+                    name: "Void Walker".to_owned(),
+                    level: 3,
+                    hp: 30,
+                    max_hp: 30,
+                    armor: 3,
+                    effects: Vec::new(),
+                    intent: Intent::HeavyAttack { dmg: 10 },
+                    charged: false,
+                    loot_table_id: "wraith",
+                    enraged: false,
+                    index: 0,
+                },
+                _ => EnemyState {
+                    name: "Stone Sentinel".to_owned(),
+                    level: 3,
+                    hp: 40,
+                    max_hp: 40,
+                    armor: 6,
+                    effects: Vec::new(),
+                    intent: Intent::Attack { dmg: 6 },
+                    charged: false,
+                    loot_table_id: "wraith",
+                    enraged: false,
+                    index: 0,
+                },
+            }
+        }
+        _ => {
+            if rng.gen_range(0..2) == 0 {
+                EnemyState {
+                    name: "Glass Golem".to_owned(),
+                    level: 5,
+                    hp: 60,
+                    max_hp: 60,
+                    armor: 8,
+                    effects: Vec::new(),
+                    intent: Intent::Charge,
+                    charged: false,
+                    loot_table_id: "boss",
+                    enraged: false,
+                    index: 0,
+                }
+            } else {
+                EnemyState {
+                    name: "Corrupted Warden".to_owned(),
+                    level: 5,
+                    hp: 50,
+                    max_hp: 50,
+                    armor: 10,
+                    effects: Vec::new(),
+                    intent: Intent::Charge,
+                    charged: false,
+                    loot_table_id: "boss",
+                    enraged: false,
+                    index: 0,
                 }
             }
         }
-        _ => EnemyState {
-            name: "Glass Golem".to_owned(),
-            level: 5,
-            hp: 60,
-            max_hp: 60,
-            armor: 8,
-            effects: Vec::new(),
-            intent: Intent::Charge,
-            charged: false,
-            loot_table_id: "boss",
-        },
+    }
+}
+
+/// Spawn one or more enemies for a room, scaling count by depth.
+/// - Rooms 0-2: always 1 enemy.
+/// - Rooms 3-5: 25% chance of 2 enemies, each at 70% HP.
+/// - Boss rooms (index >= 6): always 1 boss.
+pub fn spawn_enemies(room_index: u32) -> Vec<EnemyState> {
+    let mut rng = rand::thread_rng();
+    match room_index {
+        0..=2 => vec![spawn_enemy(room_index)],
+        3..=5 => {
+            if rng.gen_range(0.0f32..1.0) < 0.25 {
+                let mut e1 = spawn_enemy(room_index);
+                let mut e2 = spawn_enemy(room_index);
+                // Reduce each to 70% HP
+                e1.max_hp = (e1.max_hp as f32 * 0.7) as i32;
+                e1.hp = e1.max_hp;
+                e1.index = 0;
+                e2.max_hp = (e2.max_hp as f32 * 0.7) as i32;
+                e2.hp = e2.max_hp;
+                e2.index = 1;
+                vec![e1, e2]
+            } else {
+                vec![spawn_enemy(room_index)]
+            }
+        }
+        _ => vec![spawn_enemy(room_index)],
+    }
+}
+
+// ── XP tables ───────────────────────────────────────────────────────
+
+/// XP awarded for defeating an enemy of the given level.
+pub fn xp_for_enemy(level: u8) -> u32 {
+    match level {
+        1 => 15,
+        2 => 30,
+        3 => 50,
+        5 => 100,
+        _ => 20,
+    }
+}
+
+/// XP required to advance from the given level to the next.
+pub fn xp_to_level(level: u8) -> u32 {
+    match level {
+        1 => 100,
+        2 => 200,
+        3 => 350,
+        _ => 500,
+    }
+}
+
+// ── Class starting stats ────────────────────────────────────────────
+
+/// Returns (max_hp, armor, base_damage_bonus, crit_chance, gold) for the class.
+pub fn class_starting_stats(class: &ClassType) -> (i32, i32, i32, f32, i32) {
+    match class {
+        ClassType::Warrior => (65, 7, 1, 0.10, 0),
+        ClassType::Rogue => (50, 5, 2, 0.20, 10),
+        ClassType::Cleric => (55, 6, 0, 0.10, 5),
     }
 }
 
@@ -755,8 +1175,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn item_registry_has_5_items() {
-        assert_eq!(item_registry().len(), 5);
+    fn item_registry_has_10_items() {
+        assert_eq!(item_registry().len(), 10);
     }
 
     #[test]
@@ -788,22 +1208,131 @@ mod tests {
     }
 
     #[test]
+    fn gear_registry_test() {
+        assert_eq!(gear_registry().len(), 8);
+        // Verify a weapon and an armor piece exist
+        let sword = find_gear("rusty_sword").unwrap();
+        assert_eq!(sword.slot, EquipSlot::Weapon);
+        assert_eq!(sword.rarity, ItemRarity::Common);
+
+        let vest = find_gear("leather_vest").unwrap();
+        assert_eq!(vest.slot, EquipSlot::Armor);
+        assert_eq!(vest.bonus_armor, 2);
+    }
+
+    #[test]
+    fn find_gear_test() {
+        assert!(find_gear("vampiric_blade").is_some());
+        assert!(find_gear("crystal_armor").is_some());
+        assert!(find_gear("nonexistent").is_none());
+
+        let vamp = find_gear("vampiric_blade").unwrap();
+        assert_eq!(vamp.rarity, ItemRarity::Epic);
+        assert_eq!(
+            vamp.special,
+            Some(GearSpecial::LifeSteal { percent: 20 })
+        );
+    }
+
+    #[test]
     fn enemy_scaling() {
         let e0 = spawn_enemy(0);
         assert_eq!(e0.level, 1);
         assert!(e0.hp <= 20);
+        assert!(!e0.enraged);
 
         let e2 = spawn_enemy(2);
         assert_eq!(e2.level, 2);
+        assert!(!e2.enraged);
 
         let e4 = spawn_enemy(4);
         assert_eq!(e4.level, 3);
+        assert!(!e4.enraged);
 
         let boss = spawn_enemy(7);
-        assert_eq!(boss.name, "Glass Golem");
-        assert_eq!(boss.hp, 60);
+        assert_eq!(boss.level, 5);
+        assert!(boss.hp >= 50);
         assert!(!boss.charged);
         assert_eq!(boss.loot_table_id, "boss");
+        assert!(!boss.enraged);
+    }
+
+    #[test]
+    fn spawn_enemies_test() {
+        // Early rooms: always 1
+        for _ in 0..20 {
+            let enemies = spawn_enemies(0);
+            assert_eq!(enemies.len(), 1);
+            assert_eq!(enemies[0].index, 0);
+        }
+
+        // Boss rooms: always 1
+        for _ in 0..20 {
+            let enemies = spawn_enemies(6);
+            assert_eq!(enemies.len(), 1);
+        }
+
+        // Mid rooms (3-5): can be 1 or 2
+        let mut saw_two = false;
+        let mut saw_one = false;
+        for _ in 0..200 {
+            let enemies = spawn_enemies(4);
+            match enemies.len() {
+                1 => saw_one = true,
+                2 => {
+                    saw_two = true;
+                    assert_eq!(enemies[0].index, 0);
+                    assert_eq!(enemies[1].index, 1);
+                    // Check HP is reduced (70% of max)
+                    assert!(enemies[0].hp < 30); // Even the tankiest enemy at 40 HP * 0.7 = 28
+                }
+                _ => panic!("unexpected enemy count"),
+            }
+            if saw_one && saw_two {
+                break;
+            }
+        }
+        assert!(saw_one, "should see single-enemy rooms");
+        assert!(saw_two, "should see double-enemy rooms");
+    }
+
+    #[test]
+    fn xp_tables_test() {
+        assert_eq!(xp_for_enemy(1), 15);
+        assert_eq!(xp_for_enemy(2), 30);
+        assert_eq!(xp_for_enemy(3), 50);
+        assert_eq!(xp_for_enemy(5), 100);
+        assert_eq!(xp_for_enemy(4), 20); // fallback
+
+        assert_eq!(xp_to_level(1), 100);
+        assert_eq!(xp_to_level(2), 200);
+        assert_eq!(xp_to_level(3), 350);
+        assert_eq!(xp_to_level(4), 500); // fallback
+        assert_eq!(xp_to_level(10), 500); // fallback
+    }
+
+    #[test]
+    fn class_stats_test() {
+        let (hp, armor, dmg, crit, gold) = class_starting_stats(&ClassType::Warrior);
+        assert_eq!(hp, 65);
+        assert_eq!(armor, 7);
+        assert_eq!(dmg, 1);
+        assert!((crit - 0.10).abs() < f32::EPSILON);
+        assert_eq!(gold, 0);
+
+        let (hp, armor, dmg, crit, gold) = class_starting_stats(&ClassType::Rogue);
+        assert_eq!(hp, 50);
+        assert_eq!(armor, 5);
+        assert_eq!(dmg, 2);
+        assert!((crit - 0.20).abs() < f32::EPSILON);
+        assert_eq!(gold, 10);
+
+        let (hp, armor, dmg, crit, gold) = class_starting_stats(&ClassType::Cleric);
+        assert_eq!(hp, 55);
+        assert_eq!(armor, 6);
+        assert_eq!(dmg, 0);
+        assert!((crit - 0.10).abs() < f32::EPSILON);
+        assert_eq!(gold, 5);
     }
 
     #[test]
