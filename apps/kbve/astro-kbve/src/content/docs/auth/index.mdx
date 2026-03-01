@@ -1,0 +1,66 @@
+---
+title: Authentication
+description: Learn about authentication in KBVE
+tableOfContents: true
+graph:
+  visible: false
+sidebar:
+  label: Auth
+  order: 1
+tags:
+  - authentication
+  - login
+  - security
+---
+
+import AstroLogin from '@/components/auth/AstroLogin.astro';
+import { Card, CardGrid, Aside } from '@astrojs/starlight/components';
+
+KBVE uses Supabase authentication to securely manage user accounts and sessions.
+
+## Sign In
+
+Choose your preferred authentication provider to get started:
+
+<AstroLogin />
+
+## Features
+
+<CardGrid>
+  <Card title="Save Your Progress" icon="rocket">
+    Your game progress, achievements, and preferences are automatically saved to your account.
+  </Card>
+
+  <Card title="Public Profile" icon="user">
+    Get your own profile page at `kbve.com/@username` showcasing your linked accounts.
+  </Card>
+
+  <Card title="Cross-Device Sync" icon="laptop">
+    Access your account from any device - your data follows you everywhere.
+  </Card>
+
+  <Card title="Community Features" icon="discord">
+    Connect with Discord and GitHub to unlock community features and integrations.
+  </Card>
+</CardGrid>
+
+## Privacy & Security
+
+<Aside type="tip">
+Your authentication is handled securely through Supabase with industry-standard encryption.
+</Aside>
+
+Your data is protected:
+
+- Passwords are never stored in plain text
+- OAuth providers (GitHub, Discord) follow industry-standard security practices
+- Your session data is encrypted and stored locally using IndexedDB
+- You can sign out at any time from the [logout page](/auth/logout)
+
+## Need Help?
+
+If you're experiencing issues with authentication, try:
+
+1. Clearing your browser cache and cookies
+2. Signing out completely and signing back in
+3. Checking that third-party cookies are enabled for OAuth providers

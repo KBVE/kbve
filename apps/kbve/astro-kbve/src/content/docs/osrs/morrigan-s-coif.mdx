@@ -1,0 +1,37 @@
+---
+title: Morrigan's coif | OSRS Price Data
+description: "Morrigan's coif: A powerful coif.. High alch: 150,000 GP, GE limit: 10."
+osrs:
+  id: 22638
+  name: Morrigan's coif
+  slug: morrigan-s-coif
+  examine: A powerful coif.
+  members: true
+  icon: Morrigan's coif.png
+  value: 250000
+  lowalch: 100000
+  highalch: 150000
+  limit: 10
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

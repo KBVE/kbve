@@ -1,0 +1,89 @@
+---
+potion:
+  doses: 4
+  herblore_level: 90
+  herblore_xp: 150
+  effect: "Boosts Attack, Strength, and Defence by 5 + 15% of level"
+  effects:
+    - stat: "Attack"
+      boost_formula: "5 + floor(level * 0.15)"
+    - stat: "Strength"
+      boost_formula: "5 + floor(level * 0.15)"
+    - stat: "Defence"
+      boost_formula: "5 + floor(level * 0.15)"
+recipes:
+  - skill: herblore
+    level: 90
+    xp: 150
+    materials:
+      - item_name: "Torstol"
+        item_id: 269
+        quantity: 1
+      - item_name: "Super attack(4)"
+        item_id: 2436
+        quantity: 1
+      - item_name: "Super strength(4)"
+        item_id: 2440
+        quantity: 1
+      - item_name: "Super defence(4)"
+        item_id: 2442
+        quantity: 1
+    ticks: 2
+    members_only: true
+related_items:
+  - item_id: 269
+    item_name: "Torstol"
+    slug: "torstol"
+    relationship: component
+    description: "Primary herb"
+  - item_id: 2436
+    item_name: "Super attack(4)"
+    slug: "super-attack-4"
+    relationship: component
+    description: "Attack component"
+  - item_id: 2440
+    item_name: "Super strength(4)"
+    slug: "super-strength-4"
+    relationship: component
+    description: "Strength component"
+  - item_id: 2442
+    item_name: "Super defence(4)"
+    slug: "super-defence-4"
+    relationship: component
+    description: "Defence component"
+  - item_id: 12697
+    item_name: "Super combat potion(3)"
+    slug: "super-combat-potion-3"
+    relationship: variant
+    description: "3-dose version"
+---
+
+## Effects
+
+| Effect | Value |
+|--------|-------|
+| Attack boost | +5 to +19 (15% + 5) |
+| Strength boost | +5 to +19 (15% + 5) |
+| Defence boost | +5 to +19 (15% + 5) |
+| Duration | 60s per level lost |
+
+## Market Flip Strategy
+
+**Best Combat Potion:**
+- Combines 3 super potions
+- Essential for melee PvM
+- High demand always
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Demand Drivers:**
+- All melee PvM
+- Raids preparation
+- Bossing
+- Slayer tasks
+
+**Tips:**
+- Low buy limit (2,000)
+- Torstol very expensive
+- Combines 3 potions in 1
+- 90 Herblore required

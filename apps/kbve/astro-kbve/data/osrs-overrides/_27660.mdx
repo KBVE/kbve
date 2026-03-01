@@ -1,0 +1,114 @@
+---
+equipment:
+  slot: "weapon"
+  type: "mace"
+  attack_style: "melee"
+  attack_speed: 4
+  attack_range: 1
+  requirements:
+    attack: 70
+  stats:
+    attack_stab: 53
+    attack_slash: -2
+    attack_crush: 71
+    melee_strength: 74
+    prayer: 2
+passive_effects:
+  - name: "Wilderness Effect"
+    description: "50% melee accuracy and damage boost against NPCs in the Wilderness when charged with revenant ether"
+  - name: "Ether Consumption"
+    description: "Consumes 1 revenant ether per attack"
+special_attack:
+  name: "Bear Down"
+  cost: 50
+  description: "Special attack requiring weapon to be charged"
+obtaining:
+  methods:
+    - source: "Creation"
+      requirements:
+        smithing: 85
+      materials:
+        - item_name: "Viggora's chainmace (u)"
+          item_id: 22542
+          quantity: 1
+        - item_name: "Claws of Callisto"
+          item_id: 27671
+          quantity: 1
+related_items:
+  - item_id: 27657
+    item_name: "Ursine chainmace (u)"
+    slug: "ursine-chainmace-u"
+    relationship: "variant"
+    description: "Uncharged version"
+  - item_id: 22545
+    item_name: "Viggora's chainmace"
+    slug: "viggoras-chainmace"
+    relationship: "downgrade"
+    description: "Base version"
+  - item_id: 27671
+    item_name: "Claws of Callisto"
+    slug: "claws-of-callisto"
+    relationship: "component"
+    description: "Upgrade material"
+  - item_id: 21820
+    item_name: "Revenant ether"
+    slug: "revenant-ether"
+    relationship: "component"
+    description: "Required to charge"
+---
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Main-hand) |
+| Type | Mace |
+| Tradeable | Yes (uncharged) |
+| Weight | 2 kg |
+| Attack Speed | 4 tick (2.4s) |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | +53 |
+| Slash | -2 |
+| Crush | +71 |
+| Melee Strength | +74 |
+| Prayer | +2 |
+
+**Requirements:** 70 Attack
+
+## Special Attack
+
+**Bear Down (50% spec):**
+- Requires weapon to be charged
+- Special melee attack
+
+## Passive Effects
+
+**Wilderness Effect:**
+- 50% melee accuracy and damage boost
+- Only active against NPCs in Wilderness
+- Stacks with Slayer helmet (i) and Salve amulet
+
+## Creating
+
+| Method | Requirements | Materials |
+|--------|--------------|-----------|
+| Smithing | 85 Smithing | Viggora's chainmace (u) + Claws of Callisto |
+
+## Usage
+
+Best for:
+- Wilderness Slayer tasks
+- Revenant hunting
+- Wilderness bossing (melee)
+
+**Upgraded Viggora's chainmace with special attack.**
+
+## Related Items
+
+- [Viggora's chainmace](/osrs/viggoras-chainmace/) - Base version
+- [Claws of Callisto](/osrs/claws-of-callisto/) - Upgrade material
+- [Revenant ether](/osrs/revenant-ether/) - Charge material

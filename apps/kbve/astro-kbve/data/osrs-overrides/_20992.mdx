@@ -1,0 +1,109 @@
+---
+potion:
+  type: "raid_potion"
+  tradeable: false
+  doses: 1
+creation:
+  location: "Chambers of Xeric"
+  requirements:
+    herblore: 75
+    boostable: true
+  ingredients:
+    - item_id: 20986
+      item_name: "Noxifer"
+      quantity: 1
+    - item_id: 20970
+      item_name: "Elder potion (4)"
+      quantity: 1
+    - item_id: 20977
+      item_name: "Twisted potion (4)"
+      quantity: 1
+    - item_id: 20984
+      item_name: "Kodai potion (4)"
+      quantity: 1
+effect:
+  combat_boost:
+    stats: "All combat"
+    base_boost: 5
+    percent_boost: 13
+    duration_minutes: 5
+    reapply_interval_seconds: 15
+  damage:
+    initial_damage: 50
+    heal_at_end: 50
+variants:
+  - name: "Overload (-)"
+    herblore_req: 60
+  - name: "Overload"
+    herblore_req: 75
+  - name: "Overload (+)"
+    herblore_req: 90
+related_items:
+  - item_id: 7554
+    item_name: "Chambers of Xeric"
+    slug: "chambers-of-xeric"
+    relationship: product
+    description: "Raid content"
+  - item_id: 20970
+    item_name: "Elder potion"
+    slug: "elder-potion"
+    relationship: component
+    description: "Component potion"
+  - item_id: 20977
+    item_name: "Twisted potion"
+    slug: "twisted-potion"
+    relationship: component
+    description: "Component potion"
+---
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Raid Potion |
+| Tradeable | No (Chambers only) |
+| Stackable | No |
+
+## Creation
+
+Made within [Chambers of Xeric](/osrs/chambers-of-xeric/).
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore | 75 (boostable) |
+| Noxifer | 1 |
+| Elder potion (4) | 1 |
+| Twisted potion (4) | 1 |
+| Kodai potion (4) | 1 |
+
+## Effects
+
+**Combat Boost:**
+- All combat stats: +5 + 13%
+- Reapplies every 15 seconds
+- Lasts 5 minutes
+- Damages 50 HP initially
+- Heals 50 HP at end
+
+## Variants
+
+| Variant | Herblore Req |
+|---------|--------------|
+| Overload (-) | 60 |
+| Overload | 75 |
+| Overload (+) | 90 |
+
+## Usage
+
+Essential for:
+- Chambers of Xeric
+- All raid rooms
+- Boss fights
+
+**Mandatory for efficient raids.**
+
+## Related Items
+
+- [Chambers of Xeric](/osrs/chambers-of-xeric/) - Raid content
+- [Elder potion](/osrs/elder-potion/) - Component
+- [Twisted potion](/osrs/twisted-potion/) - Component

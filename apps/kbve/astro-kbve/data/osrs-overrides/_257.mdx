@@ -1,0 +1,87 @@
+---
+herb:
+  type: "clean"
+  tier: "mid-high"
+farming:
+  level: 32
+  xp: 91
+  growth_time: 80
+  seed_id: 5295
+  seed_name: "Ranarr seed"
+herblore:
+  cleaning_level: 25
+  cleaning_xp: 7.5
+  grimy_id: 207
+  grimy_name: "Grimy ranarr weed"
+recipes:
+  - skill: herblore
+    level: 38
+    xp: 87.5
+    materials:
+      - item_name: "Ranarr weed"
+        item_id: 257
+        quantity: 1
+      - item_name: "Snape grass"
+        item_id: 231
+        quantity: 1
+    product: "Prayer potion(3)"
+    product_id: 139
+    members_only: true
+related_items:
+  - item_id: 207
+    item_name: "Grimy ranarr weed"
+    slug: "grimy-ranarr-weed"
+    relationship: component
+    description: "Uncleaned version"
+  - item_id: 5295
+    item_name: "Ranarr seed"
+    slug: "ranarr-seed"
+    relationship: component
+    description: "For farming"
+  - item_id: 231
+    item_name: "Snape grass"
+    slug: "snape-grass"
+    relationship: component
+    description: "Secondary ingredient"
+  - item_id: 2434
+    item_name: "Prayer potion(4)"
+    slug: "prayer-potion-4"
+    relationship: product
+    description: "Final product"
+  - item_id: 227
+    item_name: "Vial of water"
+    slug: "vial-of-water"
+    relationship: component
+    description: "Required for potion"
+---
+
+## Herblore
+
+Clean Grimy ranarr weed to get Ranarr weed, then create potions:
+
+| Potion | Secondary | Herblore Level | XP |
+|--------|-----------|----------------|-----|
+| Prayer potion(3) | Snape grass | 38 | 87.5 |
+
+## Market Flip Strategy
+
+**Potion Making:**
+1. Buy Grimy ranarr weed or clean Ranarr weed
+2. Buy Snape grass
+3. Make Prayer potion(4)
+4. Calculate: `Prayer potion price - Ranarr price - Snape grass price - Vial = Profit`
+
+**Cleaning Profit:**
+- Buy grimy → Clean → Sell clean
+- Small margin but high volume
+
+**Herb Farming:**
+- Ranarr seed → Grow → Harvest
+- One of the most profitable herbs to farm
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Prayer potions used by every account
+- Essential for all PvM content
+- High volume, stable prices

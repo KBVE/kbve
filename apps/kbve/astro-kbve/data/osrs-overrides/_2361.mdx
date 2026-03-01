@@ -1,0 +1,113 @@
+---
+material:
+  type: "bar"
+  tier: "mid-high"
+smithing:
+  level: 70
+  xp: 37.5
+  primary_ore: 449
+  primary_ore_name: "Adamantite ore"
+  coal_required: 6
+  blast_furnace_coal: 3
+recipes:
+  - skill: smithing
+    level: 70
+    xp: 37.5
+    materials:
+      - item_name: "Adamantite ore"
+        item_id: 449
+        quantity: 1
+      - item_name: "Coal"
+        item_id: 453
+        quantity: 6
+    product: "Adamantite bar"
+    product_id: 2361
+    product_quantity: 1
+    facility: "Furnace"
+  - skill: smithing
+    level: 70
+    xp: 37.5
+    materials:
+      - item_name: "Adamantite ore"
+        item_id: 449
+        quantity: 1
+      - item_name: "Coal"
+        item_id: 453
+        quantity: 3
+    product: "Adamantite bar"
+    product_id: 2361
+    product_quantity: 1
+    facility: "Blast Furnace"
+    members_only: true
+  - skill: smithing
+    level: 74
+    xp: 62.5
+    materials:
+      - item_name: "Adamantite bar"
+        item_id: 2361
+        quantity: 1
+    product: "Adamant dart tip"
+    product_id: 823
+    product_quantity: 10
+    facility: "Anvil"
+    members_only: true
+related_items:
+  - item_id: 449
+    item_name: "Adamantite ore"
+    slug: "adamantite-ore"
+    relationship: component
+    description: "Primary ore"
+  - item_id: 453
+    item_name: "Coal"
+    slug: "coal"
+    relationship: component
+    description: "Required for smelting"
+  - item_id: 2359
+    item_name: "Mithril bar"
+    slug: "mithril-bar"
+    relationship: alternative
+    description: "Lower tier"
+  - item_id: 2363
+    item_name: "Runite bar"
+    slug: "runite-bar"
+    relationship: alternative
+    description: "Higher tier"
+  - item_id: 823
+    item_name: "Adamant dart tip"
+    slug: "adamant-dart-tip"
+    relationship: product
+    description: "Popular product"
+---
+
+## Creation
+
+Smelt 1 [Adamantite ore](/osrs/adamantite-ore/) + 6 [Coal](/osrs/coal/) (3 coal at Blast Furnace).
+
+| Method | Coal Required | Smithing Level | XP |
+|--------|---------------|----------------|-----|
+| Regular furnace | 6 | 70 | 37.5 |
+| Blast Furnace | 3 | 70 | 37.5 |
+
+## Smithing Products
+
+| Item | Bars | Smithing Level | High Alch |
+|------|------|----------------|-----------|
+| [Adamant dagger](/osrs/adamant-dagger/) | 1 | 70 | 960 GP |
+| [Adamant scimitar](/osrs/adamant-scimitar/) | 2 | 75 | 1,920 GP |
+| [Adamant platebody](/osrs/adamant-platebody/) | 5 | 88 | 4,800 GP |
+| [Adamant platelegs](/osrs/adamant-platelegs/) | 3 | 86 | 2,880 GP |
+| [Adamant dart tip](/osrs/adamant-dart-tip/) | 1 | 74 | N/A |
+
+## Market Flip Strategy
+
+**Blast Furnace Smelting:**
+- Half coal = significant savings
+- Calculate: `Adamant bar - Adamantite ore - (Coal × 3) = Profit`
+- Popular mid-level Blast Furnace method
+
+**Dart Tip Making:**
+- 1 bar = 10 [Adamant dart tips](/osrs/adamant-dart-tip/)
+- High demand for Fletching training
+- Check dart tip vs bar margins
+
+**Buy Limit:** 10,000 per 4 hours

@@ -1,0 +1,93 @@
+---
+ammunition:
+  type: "cannonball"
+smithing:
+  level: 35
+  xp: 25.6
+  method: "Ammo mould"
+  bars_per_craft: 1
+  output_quantity: 4
+recipes:
+  - skill: smithing
+    level: 35
+    xp: 25.6
+    materials:
+      - item_name: "Steel bar"
+        item_id: 2353
+        quantity: 1
+    product: "Cannonball"
+    product_id: 2
+    product_quantity: 4
+    facility: "Furnace"
+    tool: "Ammo mould"
+    members_only: true
+related_items:
+  - item_id: 2353
+    item_name: "Steel bar"
+    slug: "steel-bar"
+    relationship: component
+    description: "Raw material"
+  - item_id: 4
+    item_name: "Ammo mould"
+    slug: "ammo-mould"
+    relationship: component
+    description: "Required tool"
+  - item_id: 6
+    item_name: "Dwarf cannon set"
+    slug: "dwarf-cannon-set"
+    relationship: alternative
+    description: "Uses cannonballs"
+  - item_id: 21728
+    item_name: "Granite cannonball"
+    slug: "granite-cannonball"
+    relationship: upgrade
+    description: "Upgraded version"
+  - item_id: 27010
+    item_name: "Double ammo mould"
+    slug: "double-ammo-mould"
+    relationship: alternative
+    description: "2x production speed"
+---
+
+## Smithing
+
+Smith Steel bars with an Ammo mould to create cannonballs.
+
+| Requirement | Value |
+|-------------|-------|
+| Smithing Level | 35 |
+| Bars per craft | 1 |
+| Cannonballs produced | 4 |
+| XP per bar | 25.6 |
+
+**Double Ammo Mould:**
+- Obtained from Giants' Foundry
+- Produces 8 cannonballs from 2 bars at same speed
+- Effectively doubles production rate
+
+## Market Flip Strategy
+
+**Steel Bar Processing:**
+- Buy Steel bar → Smith → Sell cannonballs
+- 1 bar = 4 cannonballs
+- Calculate: `(Cannonball price × 4) - Steel bar price = Profit`
+
+**Profit Estimate:**
+- ~306 GP profit per steel bar (after GE tax)
+- ~179,400 GP/hour at optimal speed
+- Very AFK method - popular for alts
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Tips:**
+- Extremely AFK - good for mobile/alts
+- High daily volume (~206M traded)
+- Consistent demand from slayer/PvM
+
+## Upgrade Path
+
+Cannonballs can be upgraded with granite dust:
+
+| Upgrade | Smithing Level | Result |
+|---------|----------------|--------|
+| + Granite dust | 50 | Granite cannonball |

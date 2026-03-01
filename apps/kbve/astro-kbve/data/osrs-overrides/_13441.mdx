@@ -1,0 +1,84 @@
+---
+food:
+  heals: 22
+  cooking_level: 84
+  cooking_xp: 230
+  burn_level: 99
+  special_effect: "Can overheal above max HP (outside PvP)"
+cooking:
+  level: 84
+  xp: 230
+  stop_burn_level: 99
+  stop_burn_level_gauntlets: 84
+  raw_item_id: 13439
+  raw_item_name: "Raw anglerfish"
+  ticks: 4
+fishing:
+  level: 82
+  xp: 120
+  method: "Fishing rod"
+  location: "Port Piscarilius"
+  bait: "Sandworms"
+recipes:
+  - skill: cooking
+    level: 84
+    xp: 230
+    materials:
+      - item_name: "Raw anglerfish"
+        item_id: 13439
+        quantity: 1
+    facility: "Fire or range"
+    ticks: 4
+    members_only: true
+related_items:
+  - item_id: 13439
+    item_name: "Raw anglerfish"
+    slug: "raw-anglerfish"
+    relationship: component
+    description: "Uncooked version"
+  - item_id: 385
+    item_name: "Shark"
+    slug: "shark"
+    relationship: alternative
+    description: "Standard high-tier food (20 HP)"
+  - item_id: 391
+    item_name: "Manta ray"
+    slug: "manta-ray"
+    relationship: alternative
+    description: "Alternative (22 HP, no overheal)"
+  - item_id: 6685
+    item_name: "Saradomin brew(4)"
+    slug: "saradomin-brew-4"
+    relationship: alternative
+    description: "Percentage-based healing"
+---
+
+## Overheal Effect
+
+Anglerfish can **overheal** above max HP (outside PvP):
+
+| Hitpoints Level | Heal Amount | Max HP |
+|-----------------|-------------|--------|
+| 75 | 19 | 94 |
+| 85 | 20 | 105 |
+| 93+ | 22 | 115+ |
+| 99 | 22 | 121 |
+
+## Market Flip Strategy
+
+**Cooking Profit:**
+- Buy Raw anglerfish → Cook → Sell
+- 84+ Cooking required, burns until 99 without gauntlets
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Demand Drivers:**
+- Pre-fight overheal for bosses
+- Inferno attempts
+- Raids preparation
+- High-level Slayer
+
+**Tips:**
+- Premium price over sharks
+- Essential for difficult PvM
+- Caught at Port Piscarilius (Kourend)

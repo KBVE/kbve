@@ -1,0 +1,84 @@
+---
+material:
+  type: "ammunition_component"
+  tradeable: true
+  stackable: true
+  weight: 0
+creation:
+  method: "Crafting"
+  requirements:
+    crafting: 83
+  materials:
+    - item_id: 21347
+      item_name: "Amethyst"
+      quantity: 1
+  product_quantity: 15
+  xp: 60
+uses:
+  - result_id: 21316
+    result_name: "Amethyst broad bolts"
+    materials:
+      - "Broad bolts"
+      - "Amethyst bolt tips"
+    requirements:
+      fletching: 76
+      unlock: "Broader fletching"
+    xp: 106
+market:
+  buy_limit: 11000
+  price_estimate: 202
+  daily_volume: 343000
+related_items:
+  - item_id: 21347
+    item_name: "Amethyst"
+    slug: "amethyst"
+    relationship: component
+    description: "Raw material"
+  - item_id: 21318
+    item_name: "Broad bolts"
+    slug: "broad-bolts"
+    relationship: component
+    description: "Base item"
+  - item_id: 21316
+    item_name: "Amethyst broad bolts"
+    slug: "amethyst-broad-bolts"
+    relationship: product
+    description: "Created item"
+---
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Ammunition Component |
+| Tradeable | Yes |
+| Stackable | Yes |
+| Weight | 0 kg |
+
+## Obtaining
+
+**Crafting (83 Crafting):**
+- Cut amethyst with chisel → 15 tips
+- 60 XP per gem
+
+## Uses
+
+| Bolt Created | Materials | Requirements |
+|--------------|-----------|--------------|
+| Amethyst broad bolts | Broad bolts + Amethyst bolt tips | 76 Fletching + Broader fletching |
+
+106 Fletching XP per 10 bolts.
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~202 gp
+
+**Daily Volume:** ~343K trades
+
+## Related Items
+
+- [Amethyst](/osrs/amethyst/) - Raw material
+- [Broad bolts](/osrs/broad-bolts/) - Base item
+- [Amethyst broad bolts](/osrs/amethyst-broad-bolts/) - Created item

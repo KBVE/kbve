@@ -1,0 +1,71 @@
+---
+material:
+  type: "pottery"
+  tier: "unfired"
+crafting:
+  level: 8
+  xp: 18
+recipes:
+  - skill: crafting
+    level: 8
+    xp: 18
+    materials:
+      - item_name: "Soft clay"
+        item_id: 1761
+        quantity: 1
+    product: "Unfired bowl"
+    product_id: 1791
+    product_quantity: 1
+    facility: "Potter's wheel"
+  - skill: crafting
+    level: 1
+    xp: 15
+    materials:
+      - item_name: "Unfired bowl"
+        item_id: 1791
+        quantity: 1
+    product: "Bowl"
+    product_id: 1923
+    product_quantity: 1
+    facility: "Pottery oven"
+related_items:
+  - item_id: 1761
+    item_name: "Soft clay"
+    slug: "soft-clay"
+    relationship: component
+    description: "Raw material"
+  - item_id: 1923
+    item_name: "Bowl"
+    slug: "bowl"
+    relationship: product
+    description: "Fired version"
+---
+
+## Creating
+
+| Method | Level | Materials |
+|--------|-------|-----------|
+| Potter's wheel | 8 | 1 Soft clay |
+| XP | 18 | - |
+
+## Firing
+
+| Method | Level | XP |
+|--------|-------|-----|
+| Pottery oven | 1 | 15 |
+| Success rate | 100% at 13+ | - |
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Demand Drivers:**
+- Bowl crafting
+- Cooking skill
+- F2P accessible
+
+**Tips:**
+- Highest XP pottery item
+- May crack below level 13
+- Guaranteed success at 13+
+- F2P accessible

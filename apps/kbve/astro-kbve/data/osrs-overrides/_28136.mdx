@@ -1,0 +1,102 @@
+---
+item:
+  type: "storage"
+  tradeable: false
+  weight: 0.95
+obtaining:
+  source: "Forestry Shop"
+  cost: "Free"
+  locations:
+    - "Draynor Village"
+    - "Seers' Village"
+    - "Prifddinas"
+    - "Nemus Retreat"
+storage:
+  - "Leaves"
+  - "Anima-infused bark"
+  - "Nature offerings"
+  - "Forester's rations"
+passive_effect:
+  name: "Run Energy Restore"
+  description: "30% chance to restore 20% run energy when below 90% (requires rations + equipped axe)"
+recipes:
+  - skill: "crafting"
+    materials:
+      - item_id: 28136
+        item_name: "Forestry kit"
+        quantity: 1
+      - item_id: 28140
+        item_name: "Log basket"
+        quantity: 1
+      - item_id: 28149
+        item_name: "Sturdy harness"
+        quantity: 1
+    product: "Forestry basket"
+    product_id: 28142
+related_items:
+  - item_id: 28140
+    item_name: "Log basket"
+    slug: "log-basket"
+    relationship: component
+    description: "Combine material for upgrade"
+  - item_id: 28149
+    item_name: "Sturdy harness"
+    slug: "sturdy-harness"
+    relationship: component
+    description: "Combine material for upgrade"
+  - item_id: 28142
+    item_name: "Forestry basket"
+    slug: "forestry-basket"
+    relationship: upgrade
+    description: "Combined storage item"
+---
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Storage Container |
+| Tradeable | No |
+| Weight | 0.95 kg |
+
+## Obtaining
+
+Free from Forestry Shop in:
+- Draynor Village
+- Seers' Village
+- Prifddinas
+- Nemus Retreat
+
+## Functions
+
+**Storage:**
+- Leaves
+- Anima-infused bark
+- Nature offerings
+- Forester's rations
+
+**Run Energy Restore:**
+- 30% chance to restore 20% run energy
+- Requires rations + equipped axe
+- Only triggers below 90% energy
+
+**XP Bonus Storage:**
+- Store outfit pieces via clothes pouch
+- Gain bonuses without wearing
+
+## Upgrades
+
+| Item Created | Materials |
+|--------------|-----------|
+| Forestry basket | Forestry kit + Log basket + Sturdy harness |
+
+## Notes
+
+One player must have kit to spawn forestry events.
+
+## Related Items
+
+- [Forestry](/osrs/forestry/) - Activity
+- [Log basket](/osrs/log-basket/) - Combine material
+- [Forester's ration](/osrs/foresters-ration/) - Stored item
+

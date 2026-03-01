@@ -1,0 +1,123 @@
+---
+title: "@{{ username }} | KBVE"
+head:
+    # Primary title
+    - tag: title
+      content: "@{{ username }} - KBVE Profile"
+
+    # Primary meta description - pre-computed from Rust for performance
+    - tag: meta
+      attrs:
+        name: description
+        content: "{{ profile_description }}"
+
+    # Canonical URL
+    - tag: link
+      attrs:
+        rel: canonical
+        href: "https://kbve.com/@{{ username }}"
+
+    # Open Graph - Basic
+    - tag: meta
+      attrs:
+        property: "og:type"
+        content: "profile"
+    - tag: meta
+      attrs:
+        property: "og:title"
+        content: "@{{ username }} - KBVE Profile"
+    - tag: meta
+      attrs:
+        property: "og:description"
+        content: "{{ profile_description }}"
+    - tag: meta
+      attrs:
+        property: "og:url"
+        content: "https://kbve.com/@{{ username }}"
+    - tag: meta
+      attrs:
+        property: "og:site_name"
+        content: "KBVE"
+
+    # Open Graph - Profile type specific
+    - tag: meta
+      attrs:
+        property: "profile:username"
+        content: "{{ username }}"
+
+    # Open Graph - Image (prioritize Discord > GitHub > Twitch avatar)
+    - tag: meta
+      attrs:
+        property: "og:image"
+        content: "{% if let Some(avatar) = discord_avatar %}{{ avatar }}{% elif let Some(avatar) = github_avatar %}{{ avatar }}{% elif let Some(avatar) = twitch_avatar %}{{ avatar }}{% else %}https://kbve.com/assets/images/brand/kbve-social.png{% endif %}"
+    - tag: meta
+      attrs:
+        property: "og:image:alt"
+        content: "{{ username }}'s profile avatar"
+    - tag: meta
+      attrs:
+        property: "og:image:width"
+        content: "256"
+    - tag: meta
+      attrs:
+        property: "og:image:height"
+        content: "256"
+
+    # Twitter Card
+    - tag: meta
+      attrs:
+        name: "twitter:card"
+        content: "summary"
+    - tag: meta
+      attrs:
+        name: "twitter:title"
+        content: "@{{ username }} - KBVE Profile"
+    - tag: meta
+      attrs:
+        name: "twitter:description"
+        content: "{{ profile_description }}"
+    - tag: meta
+      attrs:
+        name: "twitter:image"
+        content: "{% if let Some(avatar) = discord_avatar %}{{ avatar }}{% elif let Some(avatar) = github_avatar %}{{ avatar }}{% elif let Some(avatar) = twitch_avatar %}{{ avatar }}{% else %}https://kbve.com/assets/images/brand/kbve-social.png{% endif %}"
+
+    # Additional SEO
+    - tag: meta
+      attrs:
+        name: "robots"
+        content: "index, follow"
+    - tag: meta
+      attrs:
+        name: "author"
+        content: "{{ username }}"
+
+description: "{{ profile_description }}"
+template: splash
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
+sidebar:
+    hidden: true
+---
+
+import AskamaProfileProvider from '@/components/providers/AskamaProfileProvider.astro';
+
+{/* JSON-LD Structured Data for Person/Profile */}
+<script type="application/ld+json" set:html={`{
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  "mainEntity": {
+    "@type": "Person",
+    "name": "{{ username }}",
+    "url": "https://kbve.com/@{{ username }}",
+    "image": "{% if let Some(avatar) = discord_avatar %}{{ avatar }}{% elif let Some(avatar) = github_avatar %}{{ avatar }}{% elif let Some(avatar) = twitch_avatar %}{{ avatar }}{% else %}{% endif %}"{% if let Some(github) = github_username %},
+    "sameAs": [
+      "https://github.com/{{ github }}"{% if let Some(twitch) = twitch_username %},
+      "https://twitch.tv/{{ twitch }}"{% endif %}
+    ]{% endif %}
+  },
+  "dateModified": "${new Date().toISOString()}"
+}`} />
+
+<AskamaProfileProvider />

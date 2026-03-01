@@ -1,5 +1,10 @@
 # Pre-built Rust build base image (override with --build-arg BUILD_BASE=...)
-ARG BUILD_BASE=ghcr.io/kbve/discordsh-build-base:latest
+#
+# CI mode:   BUILD_BASE=ghcr.io/kbve/discordsh-build-base:latest
+#             → skips inline Rust stages, pulls pre-built foundation from GHCR
+# Local mode: BUILD_BASE=foundation (default)
+#             → builds everything inline (no external image needed)
+ARG BUILD_BASE=foundation
 
 # ============================================================================
 # [STAGE A] - Build Astro Static Site
@@ -55,11 +60,86 @@ RUN find . -type f \( \
     echo "Precompression complete (brotli-11 + gzip-9)"
 
 # ============================================================================
-# [STAGE C] - Build Application
+# Inline Rust build stages (used when BUILD_BASE=foundation, i.e. local mode)
+# When BUILD_BASE points to an external image, these stages are skipped entirely.
+# ============================================================================
+
+# [STAGE C] - Rust Base Image
+FROM --platform=linux/amd64 rust:1.90-slim AS rust-base
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+        pkg-config \
+        libssl-dev \
+        libpq-dev \
+        protobuf-compiler \
+        libprotobuf-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN rustup target add x86_64-unknown-linux-gnu && \
+    cargo install cargo-chef --locked
+
+WORKDIR /app
+
+# [STAGE D] - Cargo Chef Planner
+FROM rust-base AS planner
+
+COPY apps/discordsh/axum-discordsh/Cargo.workspace.toml Cargo.toml
+COPY Cargo.lock ./
+
+COPY apps/discordsh/axum-discordsh/Cargo.toml apps/discordsh/axum-discordsh/Cargo.toml
+COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
+COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
+
+COPY packages/data/proto packages/data/proto
+
+RUN mkdir -p apps/discordsh/axum-discordsh/src && echo "fn main() {}" > apps/discordsh/axum-discordsh/src/main.rs && \
+    mkdir -p packages/rust/jedi/src && echo "" > packages/rust/jedi/src/lib.rs && \
+    mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs
+
+RUN cargo chef prepare --recipe-path recipe.json
+
+# [STAGE E] - Cargo Chef Cook (Cache External Dependencies)
+FROM rust-base AS builder-deps
+
+COPY --from=planner /app/recipe.json recipe.json
+COPY --from=planner /app/Cargo.toml /app/Cargo.lock ./
+COPY --from=planner /app/apps apps
+COPY --from=planner /app/packages packages
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    cargo chef cook --release --recipe-path recipe.json -p axum-discordsh
+
+# [STAGE E2] - Foundation Layer (Compile kbve + jedi from real source)
+FROM rust-base AS foundation
+
+COPY --from=builder-deps /app/target target
+COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
+
+COPY --from=planner /app/Cargo.toml ./
+COPY Cargo.lock ./
+
+COPY apps/discordsh/axum-discordsh/Cargo.toml apps/discordsh/axum-discordsh/Cargo.toml
+RUN mkdir -p apps/discordsh/axum-discordsh/src && \
+    echo "fn main() {}" > apps/discordsh/axum-discordsh/src/main.rs
+
+COPY packages/data/proto packages/data/proto
+
+COPY packages/rust/jedi packages/rust/jedi
+COPY packages/rust/kbve packages/rust/kbve
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    cargo build --release -p kbve -p jedi
+
+# ============================================================================
+# [STAGE F] - Build Application
 #
-# Uses pre-built base image with Rust toolchain + all external deps +
-# foundation crates (kbve + jedi) already compiled in release mode.
-# Only axum-discordsh needs recompilation here.
+# Uses BUILD_BASE (default: "foundation" = inline stages above).
+# In CI, set BUILD_BASE=ghcr.io/kbve/discordsh-build-base:latest to skip
+# all inline Rust stages and use the pre-built GHCR image instead.
 # ============================================================================
 FROM ${BUILD_BASE} AS builder
 

@@ -1,0 +1,112 @@
+---
+material:
+  type: "secondary"
+  tier: "mid"
+processing:
+  method: "Crush blue dragon scale with pestle and mortar"
+  source_id: 243
+  source_name: "Blue dragon scale"
+  npc_service: "Wesley in Nardah (50 gp per item)"
+drop_table:
+  sources:
+    - source: "Blue dragon"
+      source_id: 264
+      combat_level: 111
+      quantity: "1"
+      rarity: always
+    - source: "Brutal blue dragon"
+      source_id: 7273
+      combat_level: 271
+      quantity: "2"
+      rarity: always
+      members_only: true
+recipes:
+  - skill: herblore
+    level: 60
+    xp: 137.5
+    materials:
+      - item_name: "Kwuarm potion (unf)"
+        item_id: 105
+        quantity: 1
+      - item_name: "Dragon scale dust"
+        item_id: 241
+        quantity: 1
+    product: "Weapon poison(3)"
+    product_id: 187
+    product_quantity: 1
+    members_only: true
+  - skill: herblore
+    level: 69
+    xp: 157.5
+    materials:
+      - item_name: "Lantadyme potion (unf)"
+        item_id: 2483
+        quantity: 1
+      - item_name: "Dragon scale dust"
+        item_id: 241
+        quantity: 1
+    product: "Antifire potion(3)"
+    product_id: 2454
+    product_quantity: 1
+    members_only: true
+related_items:
+  - item_id: 243
+    item_name: "Blue dragon scale"
+    slug: "blue-dragon-scale"
+    relationship: component
+    description: "Raw material"
+  - item_id: 2454
+    item_name: "Antifire potion(3)"
+    slug: "antifire-potion-3"
+    relationship: product
+    description: "Primary end product"
+  - item_id: 187
+    item_name: "Weapon poison(3)"
+    slug: "weapon-poison-3"
+    relationship: product
+    description: "Combat product"
+  - item_id: 233
+    item_name: "Pestle and mortar"
+    slug: "pestle-and-mortar"
+    relationship: component
+    description: "Processing tool"
+---
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Herblore Secondary |
+| Tradeable | Yes |
+| Weight | 0.007 kg |
+
+## Obtaining
+
+**Primary method:** Use pestle and mortar on blue dragon scale.
+
+**Alternative:** Wesley in Nardah crushes items for 50 gp each.
+
+## Usage
+
+Secondary ingredient for:
+- **Weapon poison** (with kwuarm potion unf)
+- **Weapon poison+** (with cactus spine)
+- **Antifire** (with lantadyme potion unf)
+- **Extended antifire** (with lava scale shard)
+
+Essential for antifire potion production.
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Price:** ~73 gp
+
+Very high volume. Profit margin when crafting from blue dragon scales.
+
+## Related Items
+
+- [Blue dragon scale](/osrs/blue-dragon-scale/) - Raw material
+- [Antifire potion](/osrs/antifire-potion/) - Primary use
+- [Weapon poison](/osrs/weapon-poison/) - Combat use

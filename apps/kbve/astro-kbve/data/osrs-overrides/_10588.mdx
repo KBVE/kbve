@@ -1,0 +1,105 @@
+---
+equipment:
+  slot: neck
+  weight: 0.01
+  attack_bonus:
+    stab: 0
+    slash: 0
+    crush: 0
+    magic: 0
+    ranged: 0
+  defence_bonus:
+    stab: 0
+    slash: 0
+    crush: 0
+    magic: 0
+    ranged: 0
+  other_bonus:
+    melee_strength: 0
+    ranged_strength: 0
+    magic_damage: 0
+    prayer: 0
+special_effect:
+  name: "Enhanced Salve Effect"
+  description: "20% accuracy and damage boost against undead monsters (does not stack with Slayer helmet)"
+  triggers: "passive"
+recipes:
+  - skill: magic
+    level: 0
+    xp: 0
+    materials:
+      - item_name: "Salve amulet"
+        item_id: 4081
+        quantity: 1
+      - item_name: "Tarn's diary"
+        item_id: 10587
+        quantity: 1
+    facility: "Salve graveyard"
+    members_only: true
+related_items:
+  - item_id: 4081
+    item_name: "Salve amulet"
+    slug: "salve-amulet"
+    relationship: downgrade
+    description: "Base version (15%)"
+  - item_id: 12018
+    item_name: "Salve amulet(ei)"
+    slug: "salve-amulet-ei"
+    relationship: upgrade
+    description: "Imbued enchanted version"
+  - item_id: 10587
+    item_name: "Tarn's diary"
+    slug: "tarns-diary"
+    relationship: component
+    description: "Required for enchantment"
+---
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Neck |
+| Type | Amulet |
+| Tradeable | No |
+| Weight | 0.01 kg |
+
+## Special Effect
+
+**Enhanced Salve Effect:**
+- +20% accuracy against undead
+- +20% damage against undead
+- Does NOT stack with Slayer helmet
+
+## Creation
+
+Enchant Salve amulet at the stalagmite in Tarn's Lair after completing Haunted Mine.
+
+**Requires:** Tarn's diary (obtained after killing Tarn Razorlor)
+
+## Affected Monsters
+
+Works on undead including:
+- Vorkath
+- Skeletal Wyverns
+- Revenants
+- Zombies
+- Ghosts
+- Skeletons
+
+## Market Flip Strategy
+
+**Untradeable Undead Slayer:**
+- Essential for undead content
+- Better than regular salve
+- Worth imbuing for ranged/magic
+
+**Demand Drivers:**
+- Vorkath farming
+- Undead Slayer tasks
+- Barrows
+
+**Tips:**
+- Complete Haunted Mine first
+- Enchant immediately after obtaining
+- Consider imbuing for ranged/magic
+- Does NOT stack with Slayer helm

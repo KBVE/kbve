@@ -1,0 +1,108 @@
+---
+item:
+  type: "runecraft tool"
+  tradeable: false
+  weight: 1
+  requirements:
+    runecraft: 25
+    crafting: 56
+capacity:
+  scaling:
+    - level: 25
+      capacity: 8
+      uses: 40
+    - level: 50
+      capacity: 16
+      uses: 20
+    - level: 75
+      capacity: 27
+      uses: 12
+    - level: 85
+      capacity: 40
+      uses: 8
+recipes:
+  - skill: "crafting"
+    level: 56
+    xp: 1000
+    materials:
+      - item_name: "Small pouch"
+        quantity: 1
+      - item_name: "Medium pouch"
+        quantity: 1
+      - item_name: "Large pouch"
+        quantity: 1
+      - item_name: "Giant pouch"
+        quantity: 1
+      - item_id: 26813
+        item_name: "Abyssal needle"
+        quantity: 1
+degradation:
+  notes: "At 85 RC: 320 essence before decay"
+  no_degradation:
+    - "Runecraft cape or Max cape"
+    - "Abyssal lantern with redwood logs"
+repair:
+  - npc: "Dark Mage (Abyss)"
+    cost: "Free"
+  - npc: "Cordelia"
+    cost: "1 abyssal pearl"
+related_items:
+  - item_id: 5515
+    item_name: "Giant pouch"
+    slug: "giant-pouch"
+    relationship: "component"
+    description: "Component for creation"
+  - item_id: 26813
+    item_name: "Abyssal needle"
+    slug: "abyssal-needle"
+    relationship: "component"
+    description: "Creation tool"
+---
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Runecraft Tool |
+| Tradeable | No |
+| Weight | 1 kg |
+| Requirements | 25 Runecraft, 56 Crafting |
+
+## Capacity
+
+Scales with Runecraft level:
+
+| Runecraft | Capacity | Uses Before Decay |
+|-----------|----------|-------------------|
+| 25 | 8 | 40 |
+| 50 | 16 | 20 |
+| 75 | 27 | 12 |
+| 85 | 40 | 8 |
+
+## Obtaining
+
+**Crafting:** Use abyssal needle on Small + Medium + Large + Giant pouches.
+
+Grants 1,000 Crafting XP.
+
+## Degradation
+
+Degrades based on essence stored. At 85 RC: 320 essence before decay.
+
+**No degradation with:**
+- Runecraft cape or Max cape
+- Abyssal lantern with redwood logs
+
+## Repair
+
+| NPC | Cost |
+|-----|------|
+| Dark Mage (Abyss) | Free |
+| Cordelia | 1 abyssal pearl |
+
+## Related Items
+
+- [Giant pouch](/osrs/giant-pouch/) - Component
+- [Abyssal needle](/osrs/abyssal-needle/) - Creation tool
+- [Guardians of the Rift](/osrs/guardians-of-the-rift/) - Source
+

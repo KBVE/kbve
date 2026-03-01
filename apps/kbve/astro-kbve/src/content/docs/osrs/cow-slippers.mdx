@@ -1,0 +1,37 @@
+---
+title: Cow slippers | OSRS Price Data
+description: "Cow slippers: Cute cow slippers.. High alch: 600 GP, GE limit: 4."
+osrs:
+  id: 33093
+  name: Cow slippers
+  slug: cow-slippers
+  examine: Cute cow slippers.
+  members: true
+  icon: Cow slippers (1).png
+  value: 1000
+  lowalch: 400
+  highalch: 600
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

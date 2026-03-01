@@ -1,0 +1,93 @@
+---
+material:
+  type: "compost"
+  tier: "highest"
+  tradeable: true
+  weight: 0.5
+farming_effect:
+  disease_reduction: 90
+  min_herb_yield: 6
+  avg_herb_yield: 8.6
+  applies_to:
+    - "Allotments"
+    - "Hops"
+    - "Herbs"
+creation:
+  method: "Combine with volcanic ash"
+  materials:
+    - item_id: 6034
+      item_name: "Supercompost"
+      quantity: 1
+    - item_id: 21622
+      item_name: "Volcanic ash"
+      quantity: 1
+market:
+  buy_limit: 2000
+  price_estimate: 700
+related_items:
+  - item_id: 6034
+    item_name: "Supercompost"
+    slug: "supercompost"
+    relationship: component
+    description: "Lower tier"
+  - item_id: 21622
+    item_name: "Volcanic ash"
+    slug: "volcanic-ash"
+    relationship: component
+    description: "Crafting material"
+  - item_id: 22997
+    item_name: "Bottomless compost bucket"
+    slug: "bottomless-compost-bucket"
+    relationship: alternative
+    description: "Container"
+  - item_id: 5295
+    item_name: "Ranarr seed"
+    slug: "ranarr-seed"
+    relationship: alternative
+    description: "Farming companion"
+---
+
+## Creating
+
+| Method | Requirements |
+|--------|--------------|
+| Volcanic ash + Supercompost | 1 ash per bucket |
+| Bottomless bucket | Doubles doses |
+
+## Effects
+
+| Effect | Value |
+|--------|-------|
+| Disease reduction | 90% per stage |
+| Minimum herb yield | 6 |
+| Average herb yield | ~8.6 |
+| Works on | Allotments, hops, herbs |
+
+## Comparison
+
+| Compost | Disease Reduction | Min Herbs |
+|---------|-------------------|-----------|
+| Regular | 50% | 3 |
+| Supercompost | 80% | 5 |
+| Ultracompost | 90% | 6 |
+
+## Market Flip Strategy
+
+**Best Compost:**
+- Essential for herb runs
+- Significantly better yields
+- Volcanic ash crafting
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Demand Drivers:**
+- Herb run efficiency
+- Farming profit maximization
+- Ironman farming
+- High-level farmers
+
+**Tips:**
+- Bottomless bucket saves money
+- Volcanic ash from Fossil Island
+- ~20% more yield than super
+- Low buy limit (2,000)

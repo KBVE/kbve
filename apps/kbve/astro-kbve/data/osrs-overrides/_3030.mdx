@@ -1,0 +1,98 @@
+---
+potion:
+  doses: 1
+  type: restore
+  effect: "Restores all stats (except Hitpoints) and Prayer"
+  effects:
+    - stat: "All stats"
+      boost_formula: "8 + floor(level / 4)"
+    - stat: "Prayer"
+      boost_formula: "8 + floor(level / 4)"
+properties:
+  tradeable: true
+  tradeable_ge: true
+  weight: 0.035
+recipes:
+  - skill: herblore
+    level: 63
+    xp: 142.5
+    materials:
+      - item_name: "Snapdragon potion (unf)"
+        item_id: 3004
+        quantity: 1
+      - item_name: "Red spiders' eggs"
+        item_id: 223
+        quantity: 1
+    members_only: true
+related_items:
+  - item_id: 3024
+    item_name: "Super restore(4)"
+    slug: super-restore-4
+    relationship: variant
+    description: "Full dose variant"
+  - item_id: 3000
+    item_name: "Snapdragon"
+    slug: snapdragon
+    relationship: component
+    description: "Primary herb"
+  - item_id: 223
+    item_name: "Red spiders' eggs"
+    slug: red-spiders-eggs
+    relationship: component
+    description: "Secondary ingredient"
+  - item_id: 6685
+    item_name: "Saradomin brew(4)"
+    slug: saradomin-brew-4
+    relationship: alternative
+    description: "Paired consumable"
+---
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Potion |
+| Tradeable | Yes |
+| Weight | 0.035 kg |
+
+## Creation
+
+Combine [Snapdragon potion (unf)](/osrs/snapdragon-potion-unf/) + [Red spiders' eggs](/osrs/red-spiders-eggs/).
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore | 63 |
+| XP | 142.5 |
+
+## Effects
+
+**Stat + Prayer Restoration:**
+- All stats: floor(Level x 0.25) + 8
+- Prayer with Holy wrench: floor(Level x 0.27) + 8
+- Does NOT restore Hitpoints
+
+## Usage
+
+Essential for:
+- Raids
+- Bossing
+- Any stat-draining content
+
+**Better than prayer potion for most content.**
+
+## Market Strategy
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Price:** ~11,271 gp (4-dose)
+
+**Tips:**
+- Restores all drained stats
+- Essential for Sara brews
+- Core raid consumable
+
+## Related Items
+
+- [Prayer potion](/osrs/prayer-potion/) - Prayer only
+- [Saradomin brew](/osrs/saradomin-brew/) - Pairs with this
+- [Sanfew serum](/osrs/sanfew-serum/) - With antipoison

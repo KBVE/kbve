@@ -1,0 +1,114 @@
+---
+equipment:
+  slot: "2h"
+  type: "bow"
+  attack_style: "ranged"
+  attack_speed: 4
+  attack_range: 9
+  requirements:
+    ranged: 70
+  stats:
+    attack_ranged: 85
+    ranged_strength: 65
+passive_effects:
+  - name: "Wilderness Effect"
+    description: "50% ranged accuracy and damage boost against NPCs in the Wilderness when charged with revenant ether"
+  - name: "Self-Ammo"
+    description: "Generates its own ammunition, consumes 1 ether per shot"
+special_attack:
+  name: "Swarm"
+  cost: 50
+  description: "Four successive hits with doubled accuracy, each dealing up to 40% of max hit, with chance to poison target"
+obtaining:
+  methods:
+    - source: "Creation"
+      requirements:
+        fletching: 85
+      materials:
+        - item_name: "Craw's bow (u)"
+          item_id: 22547
+          quantity: 1
+        - item_name: "Fangs of Venenatis"
+          item_id: 27668
+          quantity: 1
+    - source: "Derse Venator"
+      cost: "500,000 coins"
+related_items:
+  - item_id: 27652
+    item_name: "Webweaver bow (u)"
+    slug: "webweaver-bow-u"
+    relationship: "variant"
+    description: "Uncharged version"
+  - item_id: 22550
+    item_name: "Craw's bow"
+    slug: "craws-bow"
+    relationship: "downgrade"
+    description: "Base version"
+  - item_id: 27668
+    item_name: "Fangs of Venenatis"
+    slug: "fangs-of-venenatis"
+    relationship: "component"
+    description: "Upgrade material"
+  - item_id: 21820
+    item_name: "Revenant ether"
+    slug: "revenant-ether"
+    relationship: "component"
+    description: "Required to charge"
+---
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Two-handed |
+| Type | Bow |
+| Tradeable | Yes (uncharged) |
+| Weight | 3.175 kg |
+| Attack Speed | 4 tick (2.4s) |
+| Attack Range | 9 tiles |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Ranged | +85 |
+| Ranged Strength | +65 |
+
+**Requirements:** 70 Ranged
+
+## Special Attack
+
+**Swarm (50% spec):**
+- Four successive hits
+- Doubled accuracy
+- Each hit deals up to 40% of max hit
+- Chance to poison target
+
+## Passive Effects
+
+**Wilderness Effect:**
+- 50% ranged accuracy and damage boost
+- Only active against NPCs in Wilderness
+- Stacks with Slayer helmet (i) and Salve amulet
+
+## Creating
+
+| Method | Requirements | Materials |
+|--------|--------------|-----------|
+| Fletching | 85 Fletching | Craw's bow (u) + Fangs of Venenatis |
+| Derse Venator | None | 500,000 coins |
+
+## Usage
+
+Best for:
+- Wilderness Slayer tasks
+- Revenant hunting
+- Wilderness bossing
+
+**Upgraded Craw's bow with special attack.**
+
+## Related Items
+
+- [Craw's bow](/osrs/craws-bow/) - Base version
+- [Fangs of Venenatis](/osrs/fangs-of-venenatis/) - Upgrade material
+- [Revenant ether](/osrs/revenant-ether/) - Charge material

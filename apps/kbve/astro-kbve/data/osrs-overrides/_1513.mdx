@@ -1,0 +1,106 @@
+---
+material:
+  type: "log"
+  tier: "high"
+woodcutting:
+  level: 75
+  xp: 250
+  locations:
+    - "Woodcutting Guild"
+    - "Sorcerer's Tower"
+    - "Mage Training Arena"
+recipes:
+  - skill: fletching
+    level: 75
+    xp: 5
+    materials:
+      - item_name: "Magic logs"
+        item_id: 1513
+        quantity: 1
+    product: "Arrow shaft"
+    product_id: 52
+    product_quantity: 90
+    members_only: true
+  - skill: fletching
+    level: 80
+    xp: 83.3
+    materials:
+      - item_name: "Magic logs"
+        item_id: 1513
+        quantity: 1
+    product: "Magic shortbow (u)"
+    product_id: 64
+    product_quantity: 1
+    members_only: true
+  - skill: fletching
+    level: 85
+    xp: 91.5
+    materials:
+      - item_name: "Magic logs"
+        item_id: 1513
+        quantity: 1
+    product: "Magic longbow (u)"
+    product_id: 66
+    product_quantity: 1
+    members_only: true
+  - skill: fletching
+    level: 78
+    xp: 70
+    materials:
+      - item_name: "Magic logs"
+        item_id: 1513
+        quantity: 1
+    product: "Magic stock"
+    product_id: 9448
+    product_quantity: 1
+    members_only: true
+related_items:
+  - item_id: 66
+    item_name: "Magic longbow (u)"
+    slug: "magic-longbow-u"
+    relationship: product
+    description: "Unstrung output"
+  - item_id: 859
+    item_name: "Magic longbow"
+    slug: "magic-longbow"
+    relationship: product
+    description: "Strung bow"
+  - item_id: 1777
+    item_name: "Bow string"
+    slug: "bow-string"
+    relationship: component
+    description: "Required for stringing"
+  - item_id: 1515
+    item_name: "Yew logs"
+    slug: "yew-logs"
+    relationship: alternative
+    description: "Lower tier logs"
+  - item_id: 561
+    item_name: "Nature rune"
+    slug: "nature-rune"
+    relationship: component
+    description: "For High Alchemy"
+---
+
+## Fletching
+
+Use a [Knife](/osrs/knife/) on **Magic logs** to create unstrung bows or arrow shafts.
+
+| Output | Fletching Level | XP | Qty |
+|--------|-----------------|-----|-----|
+| [Arrow shaft](/osrs/arrow-shaft/) | 75 | 5 | 90 |
+| [Magic shortbow (u)](/osrs/magic-shortbow-u/) | 80 | 83.3 | 1 |
+| [Magic longbow (u)](/osrs/magic-longbow-u/) | 85 | 91.5 | 1 |
+| [Magic stock](/osrs/magic-stock/) | 78 | 70 | 1 |
+
+## Market Flip Strategy
+
+**Magic Longbow Processing:**
+1. Buy [Magic logs](/osrs/magic-logs/) on GE
+2. Fletch into [Magic longbow (u)](/osrs/magic-longbow-u/)
+3. Add [Bow string](/osrs/bow-string/) for [Magic longbow](/osrs/magic-longbow/)
+4. High Alch for 1,536 GP
+
+**Profit Calculation:**
+- `1,536 - Magic log - Bow string - Nature rune = Alch profit`
+- Higher margins than yew, but slower sell speed

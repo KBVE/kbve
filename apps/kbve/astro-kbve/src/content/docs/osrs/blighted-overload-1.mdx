@@ -1,6 +1,6 @@
 ---
 title: Blighted overload (1) | OSRS Price Data
-description: "Blighted overload (1): 1 dose of blighted overload potion.. High alch: 30 GP."
+description: "Blighted overload (1): 1 dose of blighted overload potion.. High alch: 30 GP, GE limit: 50."
 osrs:
   id: 29640
   name: Blighted overload (1)
@@ -11,7 +11,7 @@ osrs:
   value: 50
   lowalch: 20
   highalch: 30
-  limit: null
+  limit: 50
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

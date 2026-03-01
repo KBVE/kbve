@@ -1,0 +1,79 @@
+---
+item:
+  type: "crafting_material"
+  tradeable: false
+  stackable: true
+  weight: 0
+obtaining:
+  methods:
+    - source: "Catacombs of Kourend monsters"
+      drop_rate_formula: "32 x (500 - min(HP, 400))"
+      examples:
+        - monster: "Brutal black dragon"
+          rate: "1/123"
+        - monster: "Greater nechryael"
+          rate: "1/196"
+        - monster: "Abyssal demon"
+          rate: "1/233"
+uses:
+  - action: "Create Arclight"
+    materials: "Darklight + 3 shards at altar"
+  - action: "Charge Arclight"
+    details: "1 shard = 333 charges, 3 shards = 1,000 charges, max 10,000 charges (30 shards)"
+  - action: "Teleport"
+    details: "Use 1 shard at altar for catacombs teleport"
+related_items:
+  - item_id: 19675
+    item_name: "Arclight"
+    slug: "arclight"
+    relationship: "product"
+    description: "Created weapon"
+  - item_id: 0
+    item_name: "Darklight"
+    slug: "darklight"
+    relationship: "component"
+    description: "Base weapon"
+  - item_id: 0
+    item_name: "Catacombs of Kourend"
+    slug: "catacombs-of-kourend"
+    relationship: "alternative"
+    description: "Farm location"
+---
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | No |
+| Stackable | Yes |
+| Weight | 0 kg |
+
+## Obtaining
+
+Dropped by monsters in Catacombs of Kourend.
+
+Drop rate: 32 x (500 - min(HP,400))
+
+| Monster | Rate |
+|---------|------|
+| Brutal black dragon | 1/123 |
+| Greater nechryael | 1/196 |
+| Abyssal demon | 1/233 |
+
+## Uses
+
+**Create Arclight:** Darklight + 3 shards at altar.
+
+**Charge Arclight:**
+- 1 shard = 333 charges
+- 3 shards = 1,000 charges
+- Max 10,000 charges (30 shards)
+
+**Teleport:** Use 1 shard at altar for catacombs teleport.
+
+## Related Items
+
+- [Arclight](/osrs/arclight/) - Created weapon
+- [Darklight](/osrs/darklight/) - Base weapon
+- [Catacombs of Kourend](/osrs/catacombs-of-kourend/) - Farm location

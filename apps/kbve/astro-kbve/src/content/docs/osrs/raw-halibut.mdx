@@ -1,6 +1,6 @@
 ---
 title: Raw halibut | OSRS Price Data
-description: "Raw halibut: I should try cooking this.. High alch: 102 GP."
+description: "Raw halibut: I should try cooking this.. High alch: 102 GP, GE limit: 15,000."
 osrs:
   id: 32333
   name: Raw halibut
@@ -11,7 +11,7 @@ osrs:
   value: 170
   lowalch: 68
   highalch: 102
-  limit: null
+  limit: 15000
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

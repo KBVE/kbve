@@ -1,0 +1,84 @@
+---
+potion:
+  doses: 4
+  herblore_level: 98
+  herblore_xp: 160
+  effect: "6 minutes of complete dragonfire immunity (all dragons)"
+  effects:
+    - stat: "Dragonfire protection"
+      boost_type: immunity
+      description: "Complete immunity to all forms of dragonfire"
+recipes:
+  - skill: herblore
+    level: 98
+    xp: 160
+    materials:
+      - item_name: "Super antifire potion(4)"
+        item_id: 21978
+        quantity: 1
+      - item_name: "Lava scale shard"
+        item_id: 11994
+        quantity: 4
+    ticks: 2
+    members_only: true
+  - skill: herblore
+    level: 98
+    xp: 160
+    materials:
+      - item_name: "Extended antifire(4)"
+        item_id: 11951
+        quantity: 1
+      - item_name: "Crushed superior dragon bones"
+        item_id: 21975
+        quantity: 1
+    ticks: 2
+    members_only: true
+related_items:
+  - item_id: 21978
+    item_name: "Super antifire potion(4)"
+    slug: "super-antifire-potion-4"
+    relationship: component
+    description: "Base potion for lava scale method"
+  - item_id: 11994
+    item_name: "Lava scale shard"
+    slug: "lava-scale-shard"
+    relationship: component
+    description: "Secondary ingredient"
+  - item_id: 11951
+    item_name: "Extended antifire(4)"
+    slug: "extended-antifire-4"
+    relationship: component
+    description: "Base potion for dragon bone method"
+  - item_id: 2452
+    item_name: "Antifire(4)"
+    slug: "antifire-4"
+    relationship: alternative
+    description: "Basic antifire option"
+---
+
+## Usage
+
+Extended super antifire provides **complete dragonfire immunity** for 6 minutes per dose, making it essential for:
+- Vorkath (elite void method)
+- King Black Dragon
+- Brutal black dragons
+- Any dragon without requiring anti-dragon shield
+
+## Creation Methods
+
+Two methods available at 98 Herblore:
+
+| Method | Base Potion | Secondary |
+|--------|-------------|-----------|
+| Lava scale | Super antifire(4) | 4 Lava scale shards |
+| Dragon bone | Extended antifire(4) | 1 Crushed superior dragon bones |
+
+## Market Strategy
+
+**PvM Demand:**
+- Essential for efficient Vorkath kills
+- Compare ingredient costs between both methods
+- Lava scale shards from lava dragons/infernal eels
+- Superior dragon bones from fossil island wyverns
+
+**Buy Limit:** 2,000 per 4 hours

@@ -1,0 +1,101 @@
+---
+material:
+  type: "fletching"
+  tier: "basic"
+fletching:
+  level: 1
+  xp: 0.33
+  method: "Knife on logs"
+recipes:
+  - skill: fletching
+    level: 1
+    xp: 5
+    materials:
+      - item_name: "Logs"
+        item_id: 1511
+        quantity: 1
+    product: "Arrow shaft"
+    product_id: 52
+    product_quantity: 15
+    tool: "Knife"
+  - skill: fletching
+    level: 15
+    xp: 10
+    materials:
+      - item_name: "Oak logs"
+        item_id: 1521
+        quantity: 1
+    product: "Arrow shaft"
+    product_id: 52
+    product_quantity: 30
+    tool: "Knife"
+  - skill: fletching
+    level: 30
+    xp: 15
+    materials:
+      - item_name: "Willow logs"
+        item_id: 1519
+        quantity: 1
+    product: "Arrow shaft"
+    product_id: 52
+    product_quantity: 45
+    tool: "Knife"
+related_items:
+  - item_id: 1511
+    item_name: "Logs"
+    slug: "logs"
+    relationship: component
+    description: "Basic source (15 shafts)"
+  - item_id: 314
+    item_name: "Feather"
+    slug: "feather"
+    relationship: component
+    description: "For headless arrows"
+  - item_id: 53
+    item_name: "Headless arrow"
+    slug: "headless-arrow"
+    relationship: product
+    description: "Next step"
+  - item_id: 39
+    item_name: "Bronze arrowtips"
+    slug: "bronze-arrowtips"
+    relationship: component
+    description: "Basic tips"
+  - item_id: 40
+    item_name: "Iron arrowtips"
+    slug: "iron-arrowtips"
+    relationship: component
+    description: "Common tips"
+---
+
+## Creation
+
+Use a Knife on any logs to create Arrow shafts.
+
+| Log Type | Shafts per Log | Fletching Level |
+|----------|----------------|-----------------|
+| Logs | 15 | 1 |
+| Oak logs | 30 | 15 |
+| Willow logs | 45 | 30 |
+| Maple logs | 60 | 45 |
+| Yew logs | 75 | 60 |
+| Magic logs | 90 | 75 |
+
+## Usage
+
+Add feathers and arrowtips to create arrows:
+
+1. Arrow shaft + Feather = Headless arrow
+2. Headless arrow + Arrowtips = Finished arrows
+
+## Market Flip Strategy
+
+**Bulk Processing:**
+- High volume, low margin item
+- Compare: `Log price` vs `Arrow shaft price × shafts per log`
+- Best margins often with regular Logs
+
+**Headless Arrow Flipping:**
+- Buy Arrow shafts + Feathers
+- Fletch into Headless arrows
+- Sell to fletchers making finished arrows

@@ -366,20 +366,16 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
             if edge::is_configured() {
                 let uuid_str = player.gameprofile.id.to_string();
                 let bg_name = name.to_string();
-                std::thread::spawn(move || {
-                    match edge::load_character_sync(&uuid_str) {
-                        Ok(Some(data)) => {
-                            info!("Loaded character from edge for {bg_name}");
-                            stats::PLAYER_STATS.insert(uuid_bits, data);
-                        }
-                        Ok(None) => {
-                            info!(
-                                "No character found in edge for {bg_name}, keeping defaults"
-                            );
-                        }
-                        Err(e) => {
-                            info!("Edge load failed for {bg_name}: {e}, keeping defaults");
-                        }
+                std::thread::spawn(move || match edge::load_character_sync(&uuid_str) {
+                    Ok(Some(data)) => {
+                        info!("Loaded character from edge for {bg_name}");
+                        stats::PLAYER_STATS.insert(uuid_bits, data);
+                    }
+                    Ok(None) => {
+                        info!("No character found in edge for {bg_name}, keeping defaults");
+                    }
+                    Err(e) => {
+                        info!("Edge load failed for {bg_name}: {e}, keeping defaults");
                     }
                 });
             }

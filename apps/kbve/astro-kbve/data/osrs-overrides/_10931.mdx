@@ -1,0 +1,42 @@
+---
+potion:
+  doses: 1
+  herblore_level: 65
+  herblore_xp: 160
+  effect: "Restores 4-16 Prayer points, cures poison/venom, restores stats"
+  effects:
+    - stat: "Prayer"
+      boost_formula: "4 + floor(level / 4)"
+    - stat: "Cure poison"
+      boost_type: cure
+      description: "Cures poison and venom"
+related_items:
+  - item_id: 10925
+    item_name: "Sanfew serum(4)"
+    slug: "sanfew-serum-4"
+    relationship: variant
+    description: "4-dose version"
+  - item_id: 10927
+    item_name: "Sanfew serum(3)"
+    slug: "sanfew-serum-3"
+    relationship: variant
+    description: "3-dose version"
+  - item_id: 10929
+    item_name: "Sanfew serum(2)"
+    slug: "sanfew-serum-2"
+    relationship: variant
+    description: "2-dose version"
+---
+
+## Usage
+
+1-dose variant of Sanfew serum.
+
+## Market Flip Strategy
+
+**Dose Manipulation:**
+- Compare to 4-dose price
+- Decanting can profit
+- Use decanting NPC in GE
+
+**Buy Limit:** 2,000 per 4 hours

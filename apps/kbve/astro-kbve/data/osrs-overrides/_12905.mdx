@@ -1,0 +1,81 @@
+---
+potion:
+  doses: 4
+  herblore_level: 87
+  herblore_xp: 120
+  effect: "Cures venom and provides 12 minutes of venom immunity"
+  effects:
+    - stat: "Venom"
+      boost_type: cure
+      description: "Instantly cures venom"
+    - stat: "Venom immunity"
+      boost_type: immunity
+      duration: 720
+      description: "12 minutes immunity per dose"
+recipes:
+  - skill: herblore
+    level: 87
+    xp: 120
+    materials:
+      - item_name: "Antidote++(4)"
+        item_id: 5952
+        quantity: 1
+      - item_name: "Zulrah's scales"
+        item_id: 12934
+        quantity: 20
+    ticks: 2
+    members_only: true
+related_items:
+  - item_id: 5952
+    item_name: "Antidote++(4)"
+    slug: "antidote-4"
+    relationship: component
+    description: "Base potion"
+  - item_id: 12934
+    item_name: "Zulrah's scales"
+    slug: "zulrahs-scales"
+    relationship: component
+    description: "Secondary ingredient"
+  - item_id: 12913
+    item_name: "Anti-venom+(4)"
+    slug: "anti-venom-4"
+    relationship: upgrade
+    description: "Upgraded version"
+  - item_id: 12931
+    item_name: "Serpentine helm"
+    slug: "serpentine-helm"
+    relationship: alternative
+    description: "Passive venom immunity"
+---
+
+## Usage
+
+Anti-venom provides:
+- Instant venom cure
+- 12 minutes of venom immunity per dose
+
+Essential for fighting venomous creatures without serpentine helm.
+
+## Creation
+
+| Input | Output | Herblore Level | XP |
+|-------|--------|----------------|-----|
+| Antidote++(4) + 20 Zulrah's scales | Anti-venom(4) | 87 | 120 |
+
+## Market Strategy
+
+**Zulrah Scale Cost:**
+- 20 scales per potion is significant
+- Compare anti-venom cost vs serpentine helm charges
+- Scale price drives potion economics
+
+**Upgrade Path:**
+1. Anti-venom(4) (venom immunity)
+2. Add Torstol for Anti-venom+(4) (super antipoison + venom)
+
+**Usage Scenarios:**
+- Zulrah (if not using serp helm)
+- Theatre of Blood (Maiden, Xarpus)
+- Vorkath (post-acid phase)
+
+**Buy Limit:** 2,000 per 4 hours

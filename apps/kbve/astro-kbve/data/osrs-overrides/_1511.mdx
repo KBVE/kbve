@@ -1,0 +1,86 @@
+---
+material:
+  type: "log"
+  tier: "basic"
+woodcutting:
+  level: 1
+  xp: 25
+  locations:
+    - "Lumbridge"
+    - "Draynor"
+    - "Varrock"
+recipes:
+  - skill: fletching
+    level: 1
+    xp: 5
+    materials:
+      - item_name: "Logs"
+        item_id: 1511
+        quantity: 1
+    product: "Arrow shaft"
+    product_id: 52
+    product_quantity: 15
+  - skill: fletching
+    level: 5
+    xp: 5
+    materials:
+      - item_name: "Logs"
+        item_id: 1511
+        quantity: 1
+    product: "Shortbow (u)"
+    product_id: 50
+    product_quantity: 1
+  - skill: fletching
+    level: 10
+    xp: 10
+    materials:
+      - item_name: "Logs"
+        item_id: 1511
+        quantity: 1
+    product: "Longbow (u)"
+    product_id: 48
+    product_quantity: 1
+related_items:
+  - item_id: 52
+    item_name: "Arrow shaft"
+    slug: "arrow-shaft"
+    relationship: product
+    description: "Primary fletching output"
+  - item_id: 50
+    item_name: "Shortbow (u)"
+    slug: "shortbow-u"
+    relationship: product
+    description: "Unstrung shortbow"
+  - item_id: 48
+    item_name: "Longbow (u)"
+    slug: "longbow-u"
+    relationship: product
+    description: "Unstrung longbow"
+  - item_id: 1521
+    item_name: "Oak logs"
+    slug: "oak-logs"
+    relationship: alternative
+    description: "Next tier logs"
+  - item_id: 946
+    item_name: "Knife"
+    slug: "knife"
+    relationship: component
+    description: "Required tool"
+---
+
+## Fletching
+
+Use a [Knife](/osrs/knife/) on **Logs** to create [Arrow shafts](/osrs/arrow-shaft/).
+
+| Output | Qty | Fletching Level | XP |
+|--------|-----|-----------------|-----|
+| [Arrow shaft](/osrs/arrow-shaft/) | 15 | 1 | 5 |
+| [Shortbow (u)](/osrs/shortbow-u/) | 1 | 5 | 5 |
+| [Longbow (u)](/osrs/longbow-u/) | 1 | 10 | 10 |
+
+## Market Flip Strategy
+
+**Arrow Shaft Processing:**
+- 1 Log = 15 Arrow shafts
+- Compare `Log price` vs `Arrow shaft price × 15`
+- High volume, low margin flip - good for bulk processing

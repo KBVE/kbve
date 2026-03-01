@@ -1,0 +1,96 @@
+---
+potion:
+  doses: 3
+  type: "combat"
+  boost_stat: "attack"
+  boost_formula: "3 + 10%"
+  f2p: true
+herblore:
+  level: 3
+  xp: 25
+recipes:
+  - skill: herblore
+    level: 3
+    xp: 25
+    materials:
+      - item_name: "Guam potion (unf)"
+        item_id: 91
+        quantity: 1
+      - item_name: "Eye of newt"
+        item_id: 221
+        quantity: 1
+    product: "Attack potion(3)"
+    product_id: 2454
+    product_quantity: 1
+    facility: "None"
+related_items:
+  - item_id: 249
+    item_name: "Guam leaf"
+    slug: "guam-leaf"
+    relationship: component
+    description: "Primary herb"
+  - item_id: 221
+    item_name: "Eye of newt"
+    slug: "eye-of-newt"
+    relationship: component
+    description: "Secondary"
+  - item_id: 2436
+    item_name: "Super attack(3)"
+    slug: "super-attack-3"
+    relationship: upgrade
+    description: "Stronger version"
+  - item_id: 2458
+    item_name: "Strength potion(3)"
+    slug: "strength-potion-3"
+    relationship: alternative
+    description: "Pairs for combat"
+---
+
+## Creation
+
+Mix Guam potion (unf) + Eye of newt.
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 3 |
+| XP gained | 25 |
+
+## Effect
+
+Temporarily boosts Attack by 3 + 10% of level:
+
+| Attack Level | Boost |
+|--------------|-------|
+| 1-9 | +3 |
+| 10-19 | +4 |
+| 50-59 | +8 |
+| 90-99 | +12 |
+
+Boost decays 1 point per minute.
+
+## Usage
+
+Basic Attack boost for:
+- Early-game combat
+- F2P players (tradeable)
+- Budget training
+
+## Upgrades
+
+| Potion | Boost | Level |
+|--------|-------|-------|
+| Attack potion(4) | 3 + 10% | 3 |
+| Super attack(4) | 5 + 15% | 45 |
+| Super combat(4) | Combined | 90 |
+
+## Market Strategy
+
+**Potion Making:**
+- Beginner Herblore training
+- Buy limit: 2,000 per 4 hours
+- Low profit margin - train for XP, not profit
+
+**Attack Mix:**
+- Add Roe or Caviar at level 4 Herblore
+- Heals 3 HP + Attack boost
+- Useful for Barbarian fishing
