@@ -10,7 +10,9 @@ import {
 // Meme Feed Module
 //
 // Actions:
-//   list  -- Fetch published memes feed with keyset pagination
+//   list   -- Fetch published memes feed with keyset pagination
+//   view   -- Increment view count on a published meme (anonymous OK)
+//   share  -- Increment share count on a published meme (anonymous OK)
 // ---------------------------------------------------------------------------
 
 type Handler = (memeReq: MemeRequest) => Promise<Response>;
@@ -65,6 +67,40 @@ const handlers: Record<string, Handler> = {
 				: null;
 
 		return jsonResponse({ memes, nextCursor, hasMore });
+	},
+
+	async view({ body }) {
+		const { meme_id } = body;
+		const memeErr = validateMemeId(meme_id);
+		if (memeErr) return memeErr;
+
+		const supabase = createServiceClient();
+		const { error } = await supabase.rpc('service_increment_view', {
+			p_meme_id: meme_id as string,
+		});
+
+		if (error) {
+			return jsonResponse({ success: false, error: error.message }, 400);
+		}
+
+		return jsonResponse({ success: true });
+	},
+
+	async share({ body }) {
+		const { meme_id } = body;
+		const memeErr = validateMemeId(meme_id);
+		if (memeErr) return memeErr;
+
+		const supabase = createServiceClient();
+		const { error } = await supabase.rpc('service_increment_share', {
+			p_meme_id: meme_id as string,
+		});
+
+		if (error) {
+			return jsonResponse({ success: false, error: error.message }, 400);
+		}
+
+		return jsonResponse({ success: true });
 	},
 };
 
