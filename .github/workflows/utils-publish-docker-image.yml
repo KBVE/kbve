@@ -14,7 +14,7 @@ on:
                 type: string
                 default: ''
             cargo_toml:
-                description: 'Path to Cargo.toml to read version from'
+                description: 'Path to TOML file with version = "x.y.z" (Cargo.toml or version.toml)'
                 required: false
                 type: string
                 default: ''
