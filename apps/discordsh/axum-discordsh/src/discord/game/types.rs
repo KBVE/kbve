@@ -59,17 +59,6 @@ pub enum RoomType {
     UndergroundCity,
 }
 
-// ── Enemy intent (telegraph) ────────────────────────────────────────
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum Intent {
-    Attack { dmg: i32 },
-    HeavyAttack { dmg: i32 },
-    Defend { armor: i32 },
-    Charge,
-    Flee,
-}
-
 // ── Effects ─────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, PartialEq)]
@@ -89,6 +78,34 @@ pub struct EffectInstance {
     pub kind: EffectKind,
     pub stacks: u8,
     pub turns_left: u8,
+}
+
+// ── Enemy intent (telegraph) ────────────────────────────────────────
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Intent {
+    Attack {
+        dmg: i32,
+    },
+    HeavyAttack {
+        dmg: i32,
+    },
+    Defend {
+        armor: i32,
+    },
+    Charge,
+    Flee,
+    Debuff {
+        effect: EffectKind,
+        stacks: u8,
+        turns: u8,
+    },
+    AoeAttack {
+        dmg: i32,
+    },
+    HealSelf {
+        amount: i32,
+    },
 }
 
 // ── Items ───────────────────────────────────────────────────────────
@@ -365,7 +382,7 @@ pub enum GameAction {
     Attack,
     AttackTarget(u8),
     Defend,
-    UseItem(ItemId),
+    UseItem(ItemId, Option<u8>),
     Explore,
     Flee,
     Rest,
