@@ -1,7 +1,13 @@
 import { useCallback } from 'react';
 import { useStore } from '@nanostores/react';
 import { $auth, openModal } from '@kbve/astro';
-import { Bookmark, BookmarkCheck } from 'lucide-react';
+import {
+	Bookmark,
+	BookmarkCheck,
+	MessageCircle,
+	Share2,
+	MoreHorizontal,
+} from 'lucide-react';
 import { REACTIONS } from '../../lib/memeService';
 
 const SIGNIN_MODAL = 'signin';
@@ -10,22 +16,32 @@ interface ReactionBarProps {
 	memeId: string;
 	reactionCount: number;
 	saveCount: number;
+	commentCount: number;
+	shareCount: number;
 	userReaction: number | null;
 	isSaved: boolean;
 	onReact: (memeId: string, reaction: number) => void;
 	onSave: (memeId: string) => void;
 	onUnsave: (memeId: string) => void;
+	onComment: (memeId: string) => void;
+	onShare: (memeId: string) => void;
+	onReport: (memeId: string) => void;
 }
 
 export default function ReactionBar({
 	memeId,
 	reactionCount,
 	saveCount,
+	commentCount,
+	shareCount,
 	userReaction,
 	isSaved,
 	onReact,
 	onSave,
 	onUnsave,
+	onComment,
+	onShare,
+	onReport,
 }: ReactionBarProps) {
 	const auth = useStore($auth);
 
@@ -118,6 +134,45 @@ export default function ReactionBar({
 				<span className="text-[10px] text-white/60">
 					{formatCount(saveCount)}
 				</span>
+			</button>
+
+			{/* Divider */}
+			<div className="w-6 h-px bg-white/10" />
+
+			{/* Comment */}
+			<button
+				type="button"
+				onClick={() => onComment(memeId)}
+				className="flex flex-col items-center gap-0.5 transition-transform duration-150 active:scale-110"
+				aria-label="Comments"
+				title="Comments">
+				<MessageCircle size={22} className="text-white/70" />
+				<span className="text-[10px] text-white/60">
+					{formatCount(commentCount)}
+				</span>
+			</button>
+
+			{/* Share */}
+			<button
+				type="button"
+				onClick={() => onShare(memeId)}
+				className="flex flex-col items-center gap-0.5 transition-transform duration-150 active:scale-110"
+				aria-label="Share"
+				title="Share">
+				<Share2 size={22} className="text-white/70" />
+				<span className="text-[10px] text-white/60">
+					{formatCount(shareCount)}
+				</span>
+			</button>
+
+			{/* More / Report */}
+			<button
+				type="button"
+				onClick={() => onReport(memeId)}
+				className="flex flex-col items-center gap-0.5 transition-transform duration-150 active:scale-110"
+				aria-label="More options"
+				title="More">
+				<MoreHorizontal size={22} className="text-white/70" />
 			</button>
 		</div>
 	);
