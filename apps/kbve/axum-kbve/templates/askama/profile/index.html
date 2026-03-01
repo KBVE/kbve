@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@{{ username }} | KBVE</title>
+    <meta name="description" content="{{ profile_description }}">
+    <!-- Preconnect for faster Unsplash image loading -->
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+    <link rel="dns-prefetch" href="https://images.unsplash.com">
+    <!-- Preload critical banner image -->
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-{{ unsplash_banner_id }}?q=80&w=1920&auto=format&fit=crop&fm=webp" fetchpriority="high">
+    <style>
+        :root {
+            --sl-color-bg: #0a0a0a;
+            --sl-color-bg-nav: #111111;
+            --sl-color-bg-card: #161616;
+            --sl-color-bg-card-hover: #1c1c1c;
+            --sl-color-text: #f5f5f5;
+            --sl-color-text-accent: #c4b5fd;
+            --sl-color-accent: #a78bfa;
+            --sl-color-accent-glow: rgba(167, 139, 250, 0.15);
+            --sl-color-gray-1: #d4d4d4;
+            --sl-color-gray-2: #a3a3a3;
+            --sl-color-gray-3: #737373;
+            --sl-color-gray-5: #262626;
+            --sl-color-gray-6: #1a1a1a;
+            --sl-color-discord: #5865F2;
+            --sl-color-github: #238636;
+            --sl-color-twitch: #9146FF;
+            --sl-color-warning: #f59e0b;
+            --sl-color-success: #22c55e;
+            --navbar-height: 64px;
+            --focus-ring: 0 0 0 2px var(--sl-color-accent);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* Focus styles for a11y */
+        :focus-visible {
+            outline: 2px solid var(--sl-color-accent);
+            outline-offset: 2px;
+        }
+
+        /* Skip link for a11y */
+        .skip-link {
+            position: absolute;
+            top: -100%;
+            left: 0;
+            background: var(--sl-color-accent);
+            color: white;
+            padding: 0.5rem 1rem;
+            z-index: 1000;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 0 0 0.5rem 0;
+        }
+        .skip-link:focus {
+            top: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: var(--sl-color-bg);
+            color: var(--sl-color-text);
+            min-height: 100vh;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        /* ============================================
+           FULL-PAGE STICKY PARALLAX HERO
+           ============================================ */
+
+        /* Sticky parallax container - stays in viewport */
+        .parallax-hero {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            width: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        /* Background image layer */
+        .parallax-hero__bg {
+            position: absolute;
+            inset: -10%;
+            width: 120%;
+            height: 120%;
+            background-size: cover;
+            background-position: center;
+            will-change: transform;
+        }
+
+        /* Gradient overlay for readability - balanced for centered content */
+        .parallax-hero__overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to bottom,
+                rgba(10, 10, 10, 0.3) 0%,
+                rgba(10, 10, 10, 0.35) 30%,
+                rgba(10, 10, 10, 0.35) 70%,
+                rgba(10, 10, 10, 0.7) 100%
+            );
+        }
+
+        /* Profile capsule card - centered in parallax hero */
+        .profile-capsule {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 1rem;
+            z-index: 10;
+        }
+
+        @media (min-width: 768px) {
+            .profile-capsule {
+                padding: 0 1.5rem;
+            }
+        }
+
+        /* Glassmorphism capsule container */
+        .profile-capsule__card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow:
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .profile-capsule__card {
+                flex-direction: row;
+                align-items: flex-end;
+                gap: 1.5rem;
+                text-align: left;
+                padding: 2rem;
+            }
+        }
+
+        /* Avatar in capsule */
+        .profile-capsule__avatar {
+            flex-shrink: 0;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--sl-color-accent) 0%, #8b5cf6 100%);
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+            .profile-capsule__avatar {
+                width: 120px;
+                height: 120px;
+            }
+        }
+
+        .profile-capsule__avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-capsule__avatar-letter {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        /* Info section in capsule */
+        .profile-capsule__info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .profile-capsule__username {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 0 0 0.25rem;
+            line-height: 1.2;
+            /* Transparent text with background showing through */
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0.1) 0%,
+                rgba(255, 255, 255, 0.05) 100%
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            /* Text stroke for visibility */
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.3);
+            text-shadow:
+                0 0 30px rgba(167, 139, 250, 0.5),
+                0 0 60px rgba(167, 139, 250, 0.3);
+        }
+
+        @media (min-width: 768px) {
+            .profile-capsule__username {
+                font-size: 2.5rem;
+                -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.4);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .profile-capsule__username {
+                font-size: 3rem;
+            }
+        }
+
+        .profile-capsule__status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.875rem;
+            color: var(--sl-color-accent);
+            margin: 0 0 0.5rem;
+        }
+
+        .profile-capsule__status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--sl-color-success);
+            border-radius: 50%;
+            animation: status-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes status-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .profile-capsule__bio {
+            font-size: 0.875rem;
+            color: var(--sl-color-gray-1);
+            margin: 0 0 0.75rem;
+            max-width: 500px;
+            line-height: 1.5;
+        }
+
+        .profile-capsule__badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+            .profile-capsule__badges {
+                justify-content: flex-start;
+            }
+        }
+
+        .profile-capsule__badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.625rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            background: rgba(167, 139, 250, 0.15);
+            color: var(--sl-color-accent);
+            border: 1px solid rgba(167, 139, 250, 0.3);
+        }
+
+        .profile-capsule__badge.discord {
+            background: rgba(88, 101, 242, 0.15);
+            color: var(--sl-color-discord);
+            border-color: rgba(88, 101, 242, 0.3);
+        }
+
+        /* Main content sits below the sticky hero - semi-transparent */
+        .profile-main {
+            position: relative;
+            z-index: 1;
+            /* Semi-transparent background so parallax bleeds through */
+            background: linear-gradient(
+                to bottom,
+                rgba(10, 10, 10, 0.85) 0%,
+                rgba(10, 10, 10, 0.92) 10%,
+                rgba(10, 10, 10, 0.95) 30%,
+                var(--sl-color-bg) 100%
+            );
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            min-height: 100vh;
+        }
+
+        /* Reduced motion for a11y - parallax */
+        @media (prefers-reduced-motion: reduce) {
+            .parallax-hero__bg {
+                inset: 0;
+                width: 100%;
+                height: 100%;
+            }
+        }
+
+        /* ============================================
+           MAIN CONTENT AREA
+           ============================================ */
+        .profile-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .profile-content {
+                padding: 2rem 1.5rem;
+            }
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+
+        @media (min-width: 768px) {
+            .profile-grid {
+                grid-template-columns: minmax(320px, 560px) 1fr;
+                align-items: start;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .profile-grid {
+                grid-template-columns: 560px 1fr;
+                gap: 2rem;
+            }
+        }
+
+        /* ============================================
+           PROFILE CARDS
+           ============================================ */
+        .profile-card {
+            background: linear-gradient(180deg, var(--sl-color-bg-nav) 0%, var(--sl-color-bg-card) 100%);
+            border: 1px solid var(--sl-color-gray-5);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+        }
+
+        .section-title {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--sl-color-gray-3);
+            margin-bottom: 0.75rem;
+        }
+
+        .providers {
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem;
+        }
+
+        .provider-card {
+            background: var(--sl-color-bg-card);
+            border: 1px solid var(--sl-color-gray-5);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .provider-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+        }
+
+        .provider-card:hover,
+        .provider-card:focus-within {
+            background: var(--sl-color-bg-card-hover);
+            border-color: var(--sl-color-gray-3);
+            transform: translateY(-1px);
+        }
+
+        .provider-card.discord::before { background: var(--sl-color-discord); }
+        .provider-card.github::before { background: var(--sl-color-github); }
+        .provider-card.twitch::before { background: var(--sl-color-twitch); }
+
+        .provider-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--sl-color-gray-5);
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .provider-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .provider-avatar svg {
+            width: 20px;
+            height: 20px;
+            opacity: 0.5;
+        }
+
+        .provider-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .provider-name {
+            font-size: 0.6875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--sl-color-gray-3);
+            margin-bottom: 0.125rem;
+        }
+
+        .provider-username {
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--sl-color-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .provider-icon {
+            width: 20px;
+            height: 20px;
+            opacity: 0.4;
+            flex-shrink: 0;
+        }
+
+        /* Guild membership badge */
+        .guild-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.625rem;
+            font-weight: 500;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            margin-left: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .guild-badge.member {
+            background: rgba(88, 101, 242, 0.15);
+            color: var(--sl-color-discord);
+            border: 1px solid rgba(88, 101, 242, 0.3);
+        }
+
+        .guild-badge.not-member {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--sl-color-warning);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* Twitch live badge */
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.625rem;
+            font-weight: 600;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            margin-left: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            background: rgba(255, 0, 0, 0.15);
+            color: #ff4444;
+            border: 1px solid rgba(255, 0, 0, 0.4);
+            animation: pulse-live 2s ease-in-out infinite;
+        }
+
+        .live-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ff4444;
+            animation: blink-live 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse-live {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        @keyframes blink-live {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .no-providers {
+            text-align: center;
+            color: var(--sl-color-gray-3);
+            padding: 1.25rem 1rem;
+            background: var(--sl-color-bg-card);
+            border: 1px dashed var(--sl-color-gray-5);
+            border-radius: 12px;
+            font-size: 0.875rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1.25rem;
+            padding: 0.625rem 1rem;
+            color: var(--sl-color-gray-2);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 10px;
+            transition: color 0.2s ease, background-color 0.2s ease;
+            width: 100%;
+        }
+
+        .back-link:hover,
+        .back-link:focus {
+            color: var(--sl-color-text);
+            background: var(--sl-color-gray-6);
+        }
+
+        .back-link svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* ============================================
+           SIDEBAR CARDS
+           ============================================ */
+        .sidebar-column {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .sidebar-column {
+                display: flex;
+            }
+        }
+
+        .sidebar-card {
+            background: linear-gradient(180deg, var(--sl-color-bg-nav) 0%, var(--sl-color-bg-card) 100%);
+            border: 1px solid var(--sl-color-gray-5);
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-title {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--sl-color-gray-3);
+            margin: 0 0 1rem;
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.625rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border: 1px solid var(--sl-color-gray-5);
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--sl-color-accent);
+        }
+
+        .stat-label {
+            font-size: 0.625rem;
+            color: var(--sl-color-gray-3);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Quick links */
+        .quick-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .quick-link {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            padding: 0.75rem 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--sl-color-gray-5);
+            border-radius: 10px;
+            color: var(--sl-color-text);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .quick-link:hover,
+        .quick-link:focus {
+            background: rgba(167, 139, 250, 0.1);
+            border-color: var(--sl-color-accent);
+            color: var(--sl-color-accent);
+        }
+
+        .quick-link svg {
+            width: 16px;
+            height: 16px;
+            color: var(--sl-color-gray-3);
+            transition: color 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .quick-link:hover svg,
+        .quick-link:focus svg {
+            color: var(--sl-color-accent);
+        }
+
+        /* ============================================
+           ADDITIONAL PROVIDER CARDS (GitHub, Discord, etc.)
+           Keep existing styles from the original template
+           ============================================ */
+        .github-profile-card,
+        .discord-profile-card,
+        .twitch-profile-card,
+        .rentearth-profile-card {
+            background: linear-gradient(180deg, var(--sl-color-bg-nav) 0%, var(--sl-color-bg-card) 100%);
+            border: 1px solid var(--sl-color-gray-5);
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Include all the original provider card styles... */
+        {# Keeping all original card styles for GitHub, Discord, Twitch, RentEarth #}
+
+        /* Tablet and up */
+        @media (min-width: 480px) {
+            .profile-card,
+            .github-profile-card,
+            .discord-profile-card,
+            .twitch-profile-card,
+            .rentearth-profile-card {
+                padding: 1.5rem;
+                border-radius: 20px;
+            }
+        }
+
+        /* Reduced motion for a11y */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .parallax-hero__bg {
+                transform: none !important;
+            }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .provider-card,
+            .profile-card,
+            .sidebar-card {
+                border-width: 2px;
+            }
+            .guild-badge {
+                border-width: 2px;
+            }
+        }
+
+        /* Screen reader only utility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- STICKY PARALLAX HERO - stays visible as you scroll -->
+    <div class="parallax-hero" role="img" aria-label="Profile banner image">
+        <!-- Background image with parallax effect -->
+        <div
+            class="parallax-hero__bg"
+            id="parallax-bg"
+            style="background-image: url('https://images.unsplash.com/photo-{{ unsplash_banner_id }}?q=80&w=1920&auto=format&fit=crop&fm=webp');"
+            aria-hidden="true"
+        ></div>
+        <!-- Gradient overlay -->
+        <div class="parallax-hero__overlay" aria-hidden="true"></div>
+
+        <!-- Profile Capsule Card - floating on parallax -->
+        <div class="profile-capsule">
+            <div class="profile-capsule__card">
+                <!-- Avatar -->
+                <figure class="profile-capsule__avatar" role="img" aria-label="Profile avatar for {{ username }}">
+                    {% if let Some(avatar) = primary_avatar_url %}
+                    <img src="{{ avatar }}" alt="{{ username }}'s avatar" loading="eager">
+                    {% else %}
+                    <span class="profile-capsule__avatar-letter">{{ username_first_char }}</span>
+                    {% endif %}
+                </figure>
+
+                <!-- User Info -->
+                <div class="profile-capsule__info">
+                    <h1 id="profile-username" class="profile-capsule__username">@{{ username }}</h1>
+
+                    {% if let Some(status_text) = status %}
+                    <p class="profile-capsule__status" role="status" aria-live="polite">
+                        <span class="profile-capsule__status-dot" aria-hidden="true"></span>
+                        {{ status_text }}
+                    </p>
+                    {% endif %}
+
+                    {% if let Some(bio_text) = bio %}
+                    <p class="profile-capsule__bio">{{ bio_text }}</p>
+                    {% endif %}
+
+                    <!-- Badges -->
+                    <ul class="profile-capsule__badges" aria-label="User badges" role="list">
+                        <li class="profile-capsule__badge">KBVE Member</li>
+                        {% if let Some(is_member) = discord_is_guild_member %}
+                            {% if is_member %}
+                            <li class="profile-capsule__badge discord">Discord Member</li>
+                            {% endif %}
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT - sits on top of sticky hero -->
+    <main id="main-content" class="profile-main" role="main">
+        <div class="profile-content">
+        <div class="profile-grid">
+            <!-- Primary column: Connected Accounts -->
+            <div class="main-column">
+                <article class="profile-card" aria-labelledby="accounts-heading">
+                    <h2 id="accounts-heading" class="section-title">Connected Accounts</h2>
+                    <div class="providers" role="list">
+                        {% if discord_username.is_some() || github_username.is_some() || twitch_username.is_some() %}
+                            {% if let Some(discord) = discord_username %}
+                            <div class="provider-card discord" role="listitem">
+                                <div class="provider-avatar" aria-hidden="true">
+                                    {% if let Some(avatar) = discord_avatar %}
+                                    <img src="{{ avatar }}" alt="" loading="lazy">
+                                    {% else %}
+                                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+                                    {% endif %}
+                                </div>
+                                <div class="provider-info">
+                                    <p class="provider-name">
+                                        Discord
+                                        {% if let Some(is_member) = discord_is_guild_member %}
+                                            {% if is_member %}
+                                            <span class="guild-badge member" title="Member of KBVE Discord">KBVE</span>
+                                            {% else %}
+                                            <span class="guild-badge not-member" title="Not in KBVE Discord">Not in Server</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </p>
+                                    <p class="provider-username">{{ discord }}</p>
+                                </div>
+                                <svg class="provider-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+                            </div>
+                            {% endif %}
+
+                            {% if let Some(github) = github_username %}
+                            <div class="provider-card github" role="listitem">
+                                <div class="provider-avatar" aria-hidden="true">
+                                    {% if let Some(avatar) = github_avatar %}
+                                    <img src="{{ avatar }}" alt="" loading="lazy">
+                                    {% else %}
+                                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+                                    {% endif %}
+                                </div>
+                                <div class="provider-info">
+                                    <p class="provider-name">GitHub</p>
+                                    <p class="provider-username">{{ github }}</p>
+                                </div>
+                                <svg class="provider-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+                            </div>
+                            {% endif %}
+
+                            {% if let Some(twitch) = twitch_username %}
+                            <div class="provider-card twitch" role="listitem">
+                                <div class="provider-avatar" aria-hidden="true">
+                                    {% if let Some(avatar) = twitch_avatar %}
+                                    <img src="{{ avatar }}" alt="" loading="lazy">
+                                    {% else %}
+                                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+                                    {% endif %}
+                                </div>
+                                <div class="provider-info">
+                                    <p class="provider-name">
+                                        Twitch
+                                        {% if let Some(is_live) = twitch_is_live %}
+                                            {% if is_live %}
+                                            <span class="live-badge" title="Currently streaming">LIVE</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </p>
+                                    <p class="provider-username">{{ twitch }}</p>
+                                </div>
+                                <svg class="provider-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <p class="no-providers">No connected accounts</p>
+                        {% endif %}
+                    </div>
+
+                    <a href="/" class="back-link" aria-label="Go back to KBVE homepage">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                        Back to KBVE
+                    </a>
+                </article>
+            </div>
+
+            <!-- Sidebar column -->
+            <aside class="sidebar-column" aria-label="Profile sidebar">
+                <!-- Quick Stats -->
+                <section class="sidebar-card" aria-labelledby="stats-heading">
+                    <h3 id="stats-heading" class="sidebar-title">Quick Stats</h3>
+                    <div class="stats-grid" role="list">
+                        <div class="stat-item" role="listitem">
+                            <span class="stat-value">{{ discord_role_count }}</span>
+                            <span class="stat-label">Roles</span>
+                        </div>
+                        <div class="stat-item" role="listitem">
+                            <span class="stat-value">{% if rentearth_characters.len() > 0 %}{{ rentearth_characters.len() }}{% else %}0{% endif %}</span>
+                            <span class="stat-label">Characters</span>
+                        </div>
+                        <div class="stat-item" role="listitem">
+                            <span class="stat-value">{% if let Some(hours) = rentearth_total_playtime_hours %}{{ hours }}h{% else %}--{% endif %}</span>
+                            <span class="stat-label">Playtime</span>
+                        </div>
+                        <div class="stat-item" role="listitem">
+                            <span class="stat-value">--</span>
+                            <span class="stat-label">Contributions</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Quick Links -->
+                <section class="sidebar-card" aria-labelledby="links-heading">
+                    <h3 id="links-heading" class="sidebar-title">Quick Links</h3>
+                    <nav class="quick-links" aria-label="Quick navigation links">
+                        <a href="/application" class="quick-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            <span>Applications</span>
+                        </a>
+                        <a href="/discord" class="quick-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            <span>Discord Community</span>
+                        </a>
+                        <a href="/projects" class="quick-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            <span>Projects</span>
+                        </a>
+                    </nav>
+                </section>
+
+                <!-- Discord Roles (if member) -->
+                {% if let Some(is_member) = discord_is_guild_member %}
+                {% if is_member && !discord_role_names.is_empty() %}
+                <section class="sidebar-card" aria-labelledby="roles-heading">
+                    <h3 id="roles-heading" class="sidebar-title">Discord Roles</h3>
+                    <div class="quick-links" aria-label="Discord roles">
+                        {% for role in discord_role_names %}
+                        <span class="guild-badge member" style="margin: 0.25rem;">{{ role }}</span>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+                {% endif %}
+            </aside>
+        </div>
+        </div>
+    </main>
+
+    <script>
+    // Smooth parallax scroll effect with lerp interpolation
+    (function() {
+        const parallaxBg = document.getElementById('parallax-bg');
+        if (!parallaxBg) return;
+
+        // Check for reduced motion preference
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (prefersReducedMotion) {
+            parallaxBg.style.transform = 'none';
+            return;
+        }
+
+        // Smooth interpolation values
+        let currentY = 0;
+        let targetY = 0;
+        const ease = 0.08; // Lower = smoother but slower (0.05-0.15 range)
+        const parallaxSpeed = 0.3;
+
+        // Linear interpolation
+        function lerp(start, end, factor) {
+            return start + (end - start) * factor;
+        }
+
+        // Animation loop for smooth updates
+        function animate() {
+            // Calculate target based on scroll
+            targetY = window.pageYOffset * parallaxSpeed;
+
+            // Smoothly interpolate current toward target
+            currentY = lerp(currentY, targetY, ease);
+
+            // Only update DOM if there's meaningful change (reduces jitter)
+            if (Math.abs(currentY - targetY) > 0.01) {
+                parallaxBg.style.transform = `translate3d(0, ${currentY}px, 0)`;
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Start animation loop
+        requestAnimationFrame(animate);
+
+        // Ensure GPU acceleration
+        parallaxBg.style.willChange = 'transform';
+    })();
+    </script>
+</body>
+</html>
