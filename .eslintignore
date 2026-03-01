@@ -1,1 +1,4 @@
 node_modules
+
+# Deno edge functions — use Deno imports, not Node
+apps/kbve/edge/
