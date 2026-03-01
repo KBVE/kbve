@@ -350,31 +350,36 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                 }
             }
 
-            // Initialize character stats — try loading from edge, fall back to defaults
+            // Show defaults immediately — never block join on edge requests
             let uuid_bits = player.gameprofile.id.as_u128();
-            let uuid_str = player.gameprofile.id.to_string();
-            let char_data = if edge::is_configured() {
-                match edge::load_character(&uuid_str).await {
-                    Ok(Some(data)) => {
-                        info!("Loaded character from edge for {name}");
-                        data
-                    }
-                    Ok(None) => {
-                        info!("No character found in edge for {name}, using defaults");
-                        stats::CharacterData::default()
-                    }
-                    Err(e) => {
-                        info!("Edge load failed for {name}: {e}, using defaults");
-                        stats::CharacterData::default()
-                    }
-                }
-            } else {
-                stats::CharacterData::default()
-            };
+            let char_data = stats::CharacterData::default();
             stats::PLAYER_STATS.insert(uuid_bits, char_data.clone());
             stats::send_stats_sidebar(&player, &char_data).await;
             stats::SIDEBAR_VISIBLE.insert(uuid_bits, true);
             stats::send_xp_bossbar(&player, &char_data).await;
+
+            // Fire edge load in background — updates stats when response arrives
+            if edge::is_configured() {
+                let uuid_str = player.gameprofile.id.to_string();
+                let bg_name = name.to_string();
+                let bg_player = Arc::clone(&player);
+                std::thread::spawn(move || {
+                    match edge::load_character_sync(&uuid_str) {
+                        Ok(Some(data)) => {
+                            info!("Loaded character from edge for {bg_name}");
+                            stats::PLAYER_STATS.insert(uuid_bits, data);
+                        }
+                        Ok(None) => {
+                            info!("No character found in edge for {bg_name}, keeping defaults");
+                        }
+                        Err(e) => {
+                            info!("Edge load failed for {bg_name}: {e}");
+                        }
+                    }
+                    // bg_player kept alive so the Arc doesn't dangle during the request
+                    let _ = &bg_player;
+                });
+            }
 
             info!(
                 "WelcomeHandler for {name} completed in {:.1?}",

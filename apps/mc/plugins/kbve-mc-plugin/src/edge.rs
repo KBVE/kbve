@@ -2,11 +2,12 @@
 // Supabase Edge Function Client
 //
 // Mirrors the VaultClient pattern from packages/rust/kbve but uses ureq
-// (sync HTTP, already in deps) on a plain OS thread.
+// (sync HTTP, already in deps).
 //
 // IMPORTANT: cdylib plugins have separate tokio thread-locals from the host.
-// tokio::task::spawn_blocking panics ("no reactor running"). We use
-// std::thread::spawn + tokio::sync::oneshot instead.
+// All functions here are synchronous — callers should run them on a
+// background OS thread via std::thread::spawn to avoid blocking the
+// game loop.
 //
 // Env vars:
 //   SUPABASE_URL              — e.g. "https://api.kbve.com"
@@ -54,7 +55,7 @@ pub struct AddXpResult {
 }
 
 // ---------------------------------------------------------------------------
-// Core HTTP helper (blocking, runs on a plain OS thread)
+// Core HTTP helper (blocking)
 // ---------------------------------------------------------------------------
 
 fn edge_post(command: &str, extra: serde_json::Value) -> Result<serde_json::Value, String> {
@@ -92,41 +93,19 @@ fn edge_post(command: &str, extra: serde_json::Value) -> Result<serde_json::Valu
         .map_err(|e| format!("Failed to parse edge response: {e} — body: {text}"))
 }
 
-/// Run a blocking closure on a plain OS thread and await the result.
-/// cdylib plugins can't use tokio::task::spawn_blocking (no reactor).
-async fn run_blocking<F, T>(f: F) -> Result<T, String>
-where
-    F: FnOnce() -> T + Send + 'static,
-    T: Send + 'static,
-{
-    let (tx, rx) = tokio::sync::oneshot::channel();
-    std::thread::spawn(move || {
-        let _ = tx.send(f());
-    });
-    rx.await.map_err(|_| "OS thread died".to_string())
-}
-
 // ---------------------------------------------------------------------------
-// Public async API
+// Public sync API — call from background OS threads only
 // ---------------------------------------------------------------------------
 
-/// Load a character from the edge function. Returns `None` if not found.
-pub async fn load_character(player_uuid: &str) -> Result<Option<CharacterData>, String> {
-    let uuid = player_uuid.to_string();
-    let server_id = MC_SERVER_ID.clone();
-
-    let result = run_blocking(move || {
-        edge_post(
-            "character.load",
-            serde_json::json!({
-                "player_uuid": uuid,
-                "server_id": server_id,
-            }),
-        )
-    })
-    .await?;
-
-    let json = result?;
+/// Load a character. Returns `None` if not found.
+pub fn load_character_sync(player_uuid: &str) -> Result<Option<CharacterData>, String> {
+    let json = edge_post(
+        "character.load",
+        serde_json::json!({
+            "player_uuid": player_uuid,
+            "server_id": &*MC_SERVER_ID,
+        }),
+    )?;
 
     let found = json.get("found").and_then(|v| v.as_bool()).unwrap_or(false);
 
@@ -141,35 +120,26 @@ pub async fn load_character(player_uuid: &str) -> Result<Option<CharacterData>, 
     Ok(Some(CharacterData::from_edge_json(character)))
 }
 
-/// Save a character to the edge function.
-pub async fn save_character(player_uuid: &str, data: &CharacterData) -> Result<(), String> {
-    let uuid = player_uuid.to_string();
-    let server_id = MC_SERVER_ID.clone();
-    let data = data.clone();
-
-    let result = run_blocking(move || {
-        edge_post(
-            "character.save",
-            serde_json::json!({
-                "character": {
-                    "player_uuid": uuid,
-                    "server_id": server_id,
-                    "experience": data.experience,
-                    "base_stats": {
-                        "strength": data.strength,
-                        "dexterity": data.dexterity,
-                        "constitution": data.constitution,
-                        "intelligence": data.intelligence,
-                        "wisdom": data.wisdom,
-                        "charisma": data.charisma,
-                    }
+/// Save a character.
+pub fn save_character_sync(player_uuid: &str, data: &CharacterData) -> Result<(), String> {
+    let json = edge_post(
+        "character.save",
+        serde_json::json!({
+            "character": {
+                "player_uuid": player_uuid,
+                "server_id": &*MC_SERVER_ID,
+                "experience": data.experience,
+                "base_stats": {
+                    "strength": data.strength,
+                    "dexterity": data.dexterity,
+                    "constitution": data.constitution,
+                    "intelligence": data.intelligence,
+                    "wisdom": data.wisdom,
+                    "charisma": data.charisma,
                 }
-            }),
-        )
-    })
-    .await?;
-
-    let json = result?;
+            }
+        }),
+    )?;
 
     let success = json
         .get("success")
@@ -187,24 +157,16 @@ pub async fn save_character(player_uuid: &str, data: &CharacterData) -> Result<(
     Ok(())
 }
 
-/// Add XP to a character via the edge function (atomic level-up).
-pub async fn add_xp(player_uuid: &str, amount: i64) -> Result<AddXpResult, String> {
-    let uuid = player_uuid.to_string();
-    let server_id = MC_SERVER_ID.clone();
-
-    let result = run_blocking(move || {
-        edge_post(
-            "character.add_xp",
-            serde_json::json!({
-                "player_uuid": uuid,
-                "server_id": server_id,
-                "xp_amount": amount,
-            }),
-        )
-    })
-    .await?;
-
-    let json = result?;
+/// Add XP to a character (atomic level-up).
+pub fn add_xp_sync(player_uuid: &str, amount: i64) -> Result<AddXpResult, String> {
+    let json = edge_post(
+        "character.add_xp",
+        serde_json::json!({
+            "player_uuid": player_uuid,
+            "server_id": &*MC_SERVER_ID,
+            "xp_amount": amount,
+        }),
+    )?;
 
     let success = json
         .get("success")
