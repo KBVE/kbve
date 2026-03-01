@@ -93,6 +93,7 @@ pub fn item_name_to_url(name: &str) -> String {
 /// "Dragon hunter crossbow.png" -> "Dragon_hunter_crossbow.png"
 /// Note: OSRS Wiki uses underscores for spaces in image URLs
 #[inline]
+#[allow(dead_code)]
 pub fn encode_icon_url(icon: &str) -> String {
     icon.replace(' ', "_")
 }
@@ -134,6 +135,7 @@ pub struct OSRSPrice {
 pub struct OSRSItemWithPrice {
     pub item: Arc<OSRSItem>,
     pub price: OSRSPrice,
+    #[allow(dead_code)]
     pub canonical_url: String,
 }
 
@@ -150,11 +152,12 @@ pub enum OSRSCacheCommand {
         reply: oneshot::Sender<Option<OSRSItemWithPrice>>,
     },
     /// Get cache statistics
+    #[allow(dead_code)]
     Stats {
         reply: oneshot::Sender<OSRSCacheStats>,
     },
     /// Force refresh prices now
-    RefreshPrices,
+    RefreshPrices, // used by price_refresh_loop
 }
 
 /// Cache statistics
@@ -210,6 +213,7 @@ impl OSRSCache {
     }
 
     /// Get cache statistics
+    #[allow(dead_code)]
     pub async fn stats(&self) -> Option<OSRSCacheStats> {
         let (reply_tx, reply_rx) = oneshot::channel();
         let cmd = OSRSCacheCommand::Stats { reply: reply_tx };
@@ -222,6 +226,7 @@ impl OSRSCache {
     }
 
     /// Force a price refresh
+    #[allow(dead_code)]
     pub async fn refresh_prices(&self) {
         let _ = self.tx.send(OSRSCacheCommand::RefreshPrices).await;
     }

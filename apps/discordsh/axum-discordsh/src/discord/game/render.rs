@@ -19,6 +19,9 @@ fn phase_color(session: &SessionState) -> u32 {
         GamePhase::GameOver(_) => COLOR_GAME_OVER,
         _ if owner.hp <= owner.max_hp / 4 => COLOR_CRITICAL,
         GamePhase::Combat | GamePhase::WaitingForActions => COLOR_COMBAT,
+        GamePhase::Trap => COLOR_COMBAT,
+        GamePhase::Treasure => COLOR_VICTORY,
+        GamePhase::Hallway => COLOR_SAFE,
         GamePhase::Rest => COLOR_REST,
         GamePhase::City => COLOR_CITY,
         _ => COLOR_SAFE,
@@ -155,6 +158,29 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
     // Attach game card image when available
     if with_card {
         embed = embed.image("attachment://game_card.png");
+    }
+
+    // Game Over stats summary
+    if matches!(session.phase, GamePhase::GameOver(_)) {
+        let owner = session.owner_player();
+        let mut stats = vec![
+            format!("Rooms Cleared: {}", owner.lifetime_rooms_cleared),
+            format!("Enemies Killed: {}", owner.lifetime_kills),
+            format!("Gold Earned: {}", owner.lifetime_gold_earned),
+            format!("Bosses Defeated: {}", owner.lifetime_bosses_defeated),
+            format!("Final Level: {}", owner.level),
+        ];
+        if let Some(ref wep) = owner.weapon {
+            if let Some(gear) = super::content::find_gear(wep) {
+                stats.push(format!("Weapon: {} {}", gear.emoji, gear.name));
+            }
+        }
+        if let Some(ref arm) = owner.armor_gear {
+            if let Some(gear) = super::content::find_gear(arm) {
+                stats.push(format!("Armor: {} {}", gear.emoji, gear.name));
+            }
+        }
+        embed = embed.field("-- Final Stats --", stats.join("\n"), false);
     }
 
     // Player stats — unified roster in party mode, owner-only in solo
@@ -302,8 +328,21 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
             .merchant_stock
             .iter()
             .filter_map(|offer| {
-                super::content::find_item(&offer.item_id)
-                    .map(|def| format!("{} -- {} gold", def.name, offer.price))
+                if offer.is_gear {
+                    super::content::find_gear(&offer.item_id).map(|def| {
+                        let slot_label = match def.slot {
+                            EquipSlot::Weapon => "Weapon",
+                            EquipSlot::Armor => "Armor",
+                        };
+                        format!(
+                            "{} {} [{}] -- {} gold",
+                            def.emoji, def.name, slot_label, offer.price
+                        )
+                    })
+                } else {
+                    super::content::find_item(&offer.item_id)
+                        .map(|def| format!("{} -- {} gold", def.name, offer.price))
+                }
             })
             .collect();
         let label = if session.phase == GamePhase::City {
@@ -567,13 +606,33 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
             .merchant_stock
             .iter()
             .filter_map(|offer| {
-                super::content::find_item(&offer.item_id).map(|def| {
-                    serenity::CreateSelectMenuOption::new(
-                        format!("{} -- {} gold", def.name, offer.price),
-                        offer.item_id.clone(),
-                    )
-                    .description(format!("[{:?}] {}", def.rarity, def.description))
-                })
+                if offer.is_gear {
+                    super::content::find_gear(&offer.item_id).map(|def| {
+                        let slot_label = match def.slot {
+                            EquipSlot::Weapon => "Weapon",
+                            EquipSlot::Armor => "Armor",
+                        };
+                        serenity::CreateSelectMenuOption::new(
+                            format!(
+                                "{} {} [{}] -- {} gold",
+                                def.emoji, def.name, slot_label, offer.price
+                            ),
+                            offer.item_id.clone(),
+                        )
+                        .description(format!(
+                            "[{:?}] +{}dmg +{}def +{}hp",
+                            def.rarity, def.bonus_damage, def.bonus_armor, def.bonus_hp
+                        ))
+                    })
+                } else {
+                    super::content::find_item(&offer.item_id).map(|def| {
+                        serenity::CreateSelectMenuOption::new(
+                            format!("{} -- {} gold", def.name, offer.price),
+                            offer.item_id.clone(),
+                        )
+                        .description(format!("[{:?}] {}", def.rarity, def.description))
+                    })
+                }
             })
             .collect();
 
@@ -586,6 +645,40 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
             )
             .placeholder("Buy an item...");
 
+            rows.push(serenity::CreateActionRow::SelectMenu(select));
+        }
+    }
+
+    // Sell select menu at merchant/city
+    if matches!(session.phase, GamePhase::Merchant | GamePhase::City) && !game_over {
+        let sell_options: Vec<serenity::CreateSelectMenuOption> = owner
+            .inventory
+            .iter()
+            .filter(|s| s.qty > 0)
+            .filter_map(|s| {
+                let (name, sell_price) = if let Some(gear) = super::content::find_gear(&s.item_id) {
+                    let price = super::content::sell_price_for_gear(&s.item_id)?;
+                    (format!("{} {} (x{})", gear.emoji, gear.name, s.qty), price)
+                } else {
+                    let def = super::content::find_item(&s.item_id)?;
+                    let price = super::content::sell_price_for_item(&s.item_id)?;
+                    (format!("{} (x{})", def.name, s.qty), price)
+                };
+                Some(serenity::CreateSelectMenuOption::new(
+                    format!("{} -- {} gold", name, sell_price),
+                    s.item_id.clone(),
+                ))
+            })
+            .collect();
+
+        if !sell_options.is_empty() {
+            let select = serenity::CreateSelectMenu::new(
+                format!("dng|{sid}|sell|select"),
+                serenity::CreateSelectMenuKind::String {
+                    options: sell_options,
+                },
+            )
+            .placeholder("Sell an item...");
             rows.push(serenity::CreateActionRow::SelectMenu(select));
         }
     }
@@ -606,6 +699,44 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
 
             if !story_buttons.is_empty() {
                 rows.push(serenity::CreateActionRow::Buttons(story_buttons));
+            }
+        }
+    }
+
+    // Room choice buttons (Trap, Treasure, Rest, Hallway)
+    if !game_over {
+        let room_choices: Option<Vec<(&str, serenity::ButtonStyle)>> = match session.phase {
+            GamePhase::Trap => Some(vec![
+                ("Disarm", serenity::ButtonStyle::Primary),
+                ("Brace", serenity::ButtonStyle::Secondary),
+            ]),
+            GamePhase::Treasure => Some(vec![
+                ("Open Carefully", serenity::ButtonStyle::Primary),
+                ("Force Open", serenity::ButtonStyle::Danger),
+            ]),
+            GamePhase::Rest if session.room.room_type == RoomType::RestShrine => Some(vec![
+                ("Rest", serenity::ButtonStyle::Success),
+                ("Meditate", serenity::ButtonStyle::Primary),
+            ]),
+            GamePhase::Hallway => Some(vec![
+                ("Move Quickly", serenity::ButtonStyle::Success),
+                ("Search", serenity::ButtonStyle::Primary),
+            ]),
+            _ => None,
+        };
+
+        if let Some(choices) = room_choices {
+            let choice_buttons: Vec<serenity::CreateButton> = choices
+                .iter()
+                .enumerate()
+                .map(|(i, (label, style))| {
+                    serenity::CreateButton::new(format!("dng|{sid}|room|{i}"))
+                        .label(*label)
+                        .style(*style)
+                })
+                .collect();
+            if !choice_buttons.is_empty() {
+                rows.push(serenity::CreateActionRow::Buttons(choice_buttons));
             }
         }
     }

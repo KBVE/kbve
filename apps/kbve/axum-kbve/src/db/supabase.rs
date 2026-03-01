@@ -7,8 +7,10 @@ use std::time::Duration;
 #[derive(Clone)]
 pub struct SupabaseConfig {
     pub url: String,
+    #[allow(dead_code)]
     pub anon_key: String,
     pub service_role_key: Option<String>,
+    #[allow(dead_code)]
     pub jwt_secret: Option<String>,
 }
 
@@ -39,6 +41,7 @@ impl SupabaseConfig {
     }
 
     /// Get the REST API base URL
+    #[allow(dead_code)]
     pub fn rest_url(&self) -> String {
         format!("{}/rest/v1", self.url)
     }
@@ -49,6 +52,7 @@ impl SupabaseConfig {
     }
 
     /// Get the auth API base URL
+    #[allow(dead_code)]
     pub fn auth_url(&self) -> String {
         format!("{}/auth/v1", self.url)
     }
@@ -83,6 +87,7 @@ impl SupabaseClient {
     }
 
     /// Build headers for read operations (using anon key)
+    #[allow(dead_code)]
     pub fn read_headers(&self) -> HeaderMap {
         let mut headers = HeaderMap::new();
         headers.insert(
@@ -97,6 +102,7 @@ impl SupabaseClient {
     }
 
     /// Build headers for read operations with a specific schema
+    #[allow(dead_code)]
     pub fn read_headers_with_schema(&self, schema: &str) -> HeaderMap {
         let mut headers = self.read_headers();
         headers.insert("Accept-Profile", HeaderValue::from_str(schema).unwrap());
@@ -136,6 +142,7 @@ impl SupabaseClient {
 
     /// Build headers for RPC calls using a user's JWT token
     /// This allows auth.uid() to work in the RPC function
+    #[allow(dead_code)]
     pub fn rpc_headers_with_user_token(&self, schema: &str, user_token: &str) -> HeaderMap {
         let mut headers = HeaderMap::new();
         headers.insert(

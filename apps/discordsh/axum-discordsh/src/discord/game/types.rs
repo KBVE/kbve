@@ -29,6 +29,9 @@ pub enum GamePhase {
     Rest,
     Merchant,
     City,
+    Trap,
+    Treasure,
+    Hallway,
     WaitingForActions,
     GameOver(GameOverReason),
 }
@@ -319,6 +322,7 @@ pub enum Hazard {
 pub struct MerchantOffer {
     pub item_id: ItemId,
     pub price: i32,
+    pub is_gear: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -367,6 +371,8 @@ pub enum GameAction {
     Rest,
     ToggleItems,
     Buy(ItemId),
+    Sell(ItemId),
+    RoomChoice(u8),
     StoryChoice(usize),
     HealAlly(serenity::UserId),
     Equip(String),

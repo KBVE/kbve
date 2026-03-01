@@ -7,9 +7,11 @@ import {
 	type RefObject,
 } from 'react';
 import { useStore } from '@nanostores/react';
-import { $auth, addToast } from '@kbve/astro';
+import { $auth, openModal, addToast } from '@kbve/astro';
 import MemeCard from './MemeCard';
 import FeedSkeleton from './FeedSkeleton';
+import CommentsDrawer from './CommentsDrawer';
+import ReportModal from './ReportModal';
 import {
 	fetchFeed,
 	reactToMeme,
@@ -18,8 +20,12 @@ import {
 	unsaveMeme,
 	getUserReactions,
 	getUserSaves,
+	trackView,
+	trackShare,
 } from '../../lib/memeService';
 import type { FeedMeme } from '../../lib/memeService';
+
+const SIGNIN_MODAL = 'signin';
 
 export default function ReactMemeContent() {
 	const auth = useStore($auth);
@@ -36,10 +42,15 @@ export default function ReactMemeContent() {
 	);
 	const [userSaves, setUserSaves] = useState<Set<string>>(new Set());
 
+	// Overlay state
+	const [commentsMemeId, setCommentsMemeId] = useState<string | null>(null);
+	const [reportMemeId, setReportMemeId] = useState<string | null>(null);
+
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const cardRefs = useRef<RefObject<HTMLDivElement | null>[]>([]);
 	const sentinelRef = useRef<HTMLDivElement>(null);
 	const activeIndex = useRef(0);
+	const viewedRef = useRef<Set<string>>(new Set());
 
 	// Keep cardRefs in sync with memes length
 	if (cardRefs.current.length !== memes.length) {
@@ -186,6 +197,33 @@ export default function ReactMemeContent() {
 		return () => container.removeEventListener('scroll', handleScroll);
 	}, [memes.length]);
 
+	// ── View tracking via IntersectionObserver ────────────────────────
+	useEffect(() => {
+		const container = scrollRef.current;
+		if (!container || memes.length === 0) return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (!entry.isIntersecting) continue;
+					const memeId =
+						entry.target.getAttribute('data-meme-id');
+					if (memeId && !viewedRef.current.has(memeId)) {
+						viewedRef.current.add(memeId);
+						trackView(memeId).catch(() => {});
+					}
+				}
+			},
+			{ root: container, threshold: 0.5 },
+		);
+
+		for (const ref of cardRefs.current) {
+			if (ref.current) observer.observe(ref.current);
+		}
+
+		return () => observer.disconnect();
+	}, [memes.length]);
+
 	// ── Reaction handler (optimistic) ────────────────────────────────
 	const handleReact = useCallback(
 		(memeId: string, reaction: number) => {
@@ -291,6 +329,92 @@ export default function ReactMemeContent() {
 		});
 	}, []);
 
+	// ── Share handler (optimistic) ──────────────────────────────────
+	const handleShare = useCallback(
+		async (memeId: string) => {
+			const meme = memes.find((m) => m.id === memeId);
+			const url = `${window.location.origin}/meme/${memeId}`;
+			const title = meme?.title || 'Check out this meme on Meme.sh';
+
+			// Optimistic increment
+			setMemes((list) =>
+				list.map((m) =>
+					m.id === memeId
+						? { ...m, share_count: m.share_count + 1 }
+						: m,
+				),
+			);
+
+			try {
+				if (navigator.share) {
+					await navigator.share({ title, url });
+					addToast({
+						id: `share-ok-${Date.now()}`,
+						message: 'Shared!',
+						severity: 'success',
+						duration: 3000,
+					});
+				} else {
+					await navigator.clipboard.writeText(url);
+					addToast({
+						id: `share-copy-${Date.now()}`,
+						message: 'Link copied!',
+						severity: 'success',
+						duration: 3000,
+					});
+				}
+			} catch {
+				// User cancelled share or clipboard failed — rollback
+				setMemes((list) =>
+					list.map((m) =>
+						m.id === memeId
+							? { ...m, share_count: m.share_count - 1 }
+							: m,
+					),
+				);
+				return;
+			}
+
+			// Track share (fire-and-forget)
+			trackShare(memeId).catch(() => {});
+		},
+		[memes],
+	);
+
+	// ── Comment handler ─────────────────────────────────────────────
+	const handleComment = useCallback((memeId: string) => {
+		setCommentsMemeId(memeId);
+	}, []);
+
+	// ── Report handler (auth-gated) ─────────────────────────────────
+	const handleReport = useCallback(
+		(memeId: string) => {
+			if (auth.tone !== 'auth') {
+				openModal(SIGNIN_MODAL);
+				return;
+			}
+			setReportMemeId(memeId);
+		},
+		[auth.tone],
+	);
+
+	// ── Comment count change (optimistic from drawer) ───────────────
+	const handleCommentCountChange = useCallback(
+		(memeId: string, delta: number) => {
+			setMemes((list) =>
+				list.map((m) =>
+					m.id === memeId
+						? {
+								...m,
+								comment_count: m.comment_count + delta,
+							}
+						: m,
+				),
+			);
+		},
+		[],
+	);
+
 	// ── Render ───────────────────────────────────────────────────────
 
 	if (loading) return <FeedSkeleton />;
@@ -320,49 +444,81 @@ export default function ReactMemeContent() {
 	}
 
 	return (
-		<div
-			ref={scrollRef}
-			className="w-full"
-			style={{
-				height: '100dvh',
-				overflowY: 'scroll',
-				scrollSnapType: 'y mandatory',
-				WebkitOverflowScrolling: 'touch',
-				backgroundColor: 'var(--sl-color-bg, #0a0a0a)',
-			}}>
-			{memes.map((meme, i) => (
-				<MemeCard
-					key={meme.id}
-					ref={cardRefs.current[i]}
-					meme={meme}
-					userReaction={userReactions.get(meme.id) ?? null}
-					isSaved={userSaves.has(meme.id)}
-					onReact={handleReact}
-					onSave={handleSave}
-					onUnsave={handleUnsave}
-					lazy={i > 1}
+		<>
+			<div
+				ref={scrollRef}
+				className="w-full"
+				style={{
+					height: '100dvh',
+					overflowY: 'scroll',
+					scrollSnapType: 'y mandatory',
+					WebkitOverflowScrolling: 'touch',
+					backgroundColor: 'var(--sl-color-bg, #0a0a0a)',
+				}}>
+				{memes.map((meme, i) => (
+					<MemeCard
+						key={meme.id}
+						ref={cardRefs.current[i]}
+						meme={meme}
+						userReaction={userReactions.get(meme.id) ?? null}
+						isSaved={userSaves.has(meme.id)}
+						onReact={handleReact}
+						onSave={handleSave}
+						onUnsave={handleUnsave}
+						onComment={handleComment}
+						onShare={handleShare}
+						onReport={handleReport}
+						lazy={i > 1}
+					/>
+				))}
+
+				{/* Sentinel for infinite scroll */}
+				{hasMore && (
+					<div
+						ref={sentinelRef}
+						style={{ height: 1 }}
+						aria-hidden
+					/>
+				)}
+
+				{loadingMore && <FeedSkeleton />}
+
+				{!hasMore && memes.length > 0 && (
+					<div
+						className="flex items-center justify-center py-8"
+						style={{
+							height: '30dvh',
+							scrollSnapAlign: 'start',
+							backgroundColor: 'var(--sl-color-bg, #0a0a0a)',
+							color: 'var(--sl-color-gray-3, #71717a)',
+						}}>
+						<p className="text-sm">
+							You've seen them all — for now.
+						</p>
+					</div>
+				)}
+			</div>
+
+			{/* Comments drawer */}
+			{commentsMemeId && (
+				<CommentsDrawer
+					memeId={commentsMemeId}
+					commentCount={
+						memes.find((m) => m.id === commentsMemeId)
+							?.comment_count ?? 0
+					}
+					onClose={() => setCommentsMemeId(null)}
+					onCommentCountChange={handleCommentCountChange}
 				/>
-			))}
-
-			{/* Sentinel for infinite scroll */}
-			{hasMore && (
-				<div ref={sentinelRef} style={{ height: 1 }} aria-hidden />
 			)}
 
-			{loadingMore && <FeedSkeleton />}
-
-			{!hasMore && memes.length > 0 && (
-				<div
-					className="flex items-center justify-center py-8"
-					style={{
-						height: '30dvh',
-						scrollSnapAlign: 'start',
-						backgroundColor: 'var(--sl-color-bg, #0a0a0a)',
-						color: 'var(--sl-color-gray-3, #71717a)',
-					}}>
-					<p className="text-sm">You've seen them all — for now.</p>
-				</div>
+			{/* Report modal */}
+			{reportMemeId && (
+				<ReportModal
+					memeId={reportMemeId}
+					onClose={() => setReportMemeId(null)}
+				/>
 			)}
-		</div>
+		</>
 	);
 }

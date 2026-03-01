@@ -19,6 +19,7 @@ const TOKEN_REFRESH_BUFFER_SECS: u64 = 3600;
 struct TokenResponse {
     access_token: String,
     expires_in: u64,
+    #[allow(dead_code)]
     token_type: String,
 }
 
@@ -211,6 +212,7 @@ impl TwitchClient {
     }
 
     /// Get user by ID
+    #[allow(dead_code)]
     pub async fn get_user_by_id(&self, user_id: &str) -> Result<Option<TwitchUser>, String> {
         let token = self.get_token().await?;
         let url = format!("{}/users?id={}", TWITCH_API_BASE, user_id);
@@ -251,6 +253,7 @@ impl TwitchClient {
     }
 
     /// Check if a user is currently live streaming
+    #[allow(dead_code)]
     pub async fn get_stream_by_user_id(
         &self,
         user_id: &str,
