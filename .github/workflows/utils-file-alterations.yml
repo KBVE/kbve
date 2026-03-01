@@ -100,6 +100,15 @@ on:
             mc:
                 description: 'MC Pumpkin server changed'
                 value: ${{ jobs.alter.outputs.mc }}
+            mc_server:
+                description: 'MC server binary changed'
+                value: ${{ jobs.alter.outputs.mc_server }}
+            mc_plugin:
+                description: 'MC plugin changed'
+                value: ${{ jobs.alter.outputs.mc_plugin }}
+            mc_base:
+                description: 'MC base image dependencies changed'
+                value: ${{ jobs.alter.outputs.mc_base }}
             edge:
                 description: 'Edge functions changed'
                 value: ${{ jobs.alter.outputs.edge }}
@@ -139,6 +148,9 @@ jobs:
             laser: ${{ steps.delta.outputs.laser_any_changed }}
             asteroids: ${{ steps.delta.outputs.asteroids_any_changed }}
             mc: ${{ steps.delta.outputs.mc_any_changed }}
+            mc_server: ${{ steps.delta.outputs.mc_server_any_changed }}
+            mc_plugin: ${{ steps.delta.outputs.mc_plugin_any_changed }}
+            mc_base: ${{ steps.delta.outputs.mc_base_any_changed }}
             edge: ${{ steps.delta.outputs.edge_any_changed }}
 
         steps:
@@ -204,6 +216,31 @@ jobs:
                           - 'apps/gamejam/brackeys/13/**'
                       mc:
                           - 'apps/mc/**'
+                      mc_server:
+                          - 'apps/mc/pumpkin/**'
+                          - 'apps/mc/data/**'
+                          - 'apps/mc/entrypoint.sh'
+                          - 'apps/mc/Dockerfile'
+                          - 'apps/mc/SERVER_VERSION'
+                      mc_plugin:
+                          - 'apps/mc/pumpkin/**'
+                          - 'apps/mc/plugins/**'
+                          - 'apps/mc/astro-mc/**'
+                          - 'apps/mc/Dockerfile'
+                      mc_base:
+                          - 'apps/mc/pumpkin/**/Cargo.toml'
+                          - 'apps/mc/pumpkin/Cargo.lock'
+                          - 'apps/mc/pumpkin/pumpkin-nbt/**'
+                          - 'apps/mc/pumpkin/pumpkin-api-macros/**'
+                          - 'apps/mc/pumpkin/pumpkin-util/**'
+                          - 'apps/mc/pumpkin/pumpkin-data/**'
+                          - 'apps/mc/pumpkin/pumpkin-macros/**'
+                          - 'apps/mc/pumpkin/pumpkin-config/**'
+                          - 'apps/mc/pumpkin/pumpkin-codegen/**'
+                          - 'apps/mc/pumpkin/pumpkin-world/**'
+                          - 'apps/mc/pumpkin/pumpkin-protocol/**'
+                          - 'apps/mc/pumpkin/pumpkin-inventory/**'
+                          - 'apps/mc/Dockerfile.base'
                       edge:
                           - 'apps/kbve/edge/functions/**'
                           - 'apps/kbve/edge/Dockerfile'

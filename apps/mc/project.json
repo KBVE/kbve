@@ -57,6 +57,7 @@
 						"tags": ["latest"]
 					},
 					"cache-from": [
+						"type=gha",
 						"type=registry,ref=ghcr.io/kbve/mc:buildcache"
 					],
 					"cache-to": [
@@ -67,7 +68,10 @@
 					"load": true,
 					"push": false,
 					"tags": ["kbve/mc:latest"],
-					"cache-from": ["type=gha"],
+					"cache-from": [
+						"type=gha",
+						"type=registry,ref=ghcr.io/kbve/mc:buildcache"
+					],
 					"cache-to": ["type=gha,mode=max"]
 				}
 			}
@@ -178,6 +182,60 @@
 					"commands": [
 						"nx container mc --configuration=ci --no-cloud",
 						"nx e2e mc-e2e --no-cloud"
+					]
+				}
+			}
+		},
+		"build-plugin": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo build --release --manifest-path apps/mc/plugins/kbve-mc-plugin/Cargo.toml"
+				],
+				"parallel": false
+			}
+		},
+		"reload-plugin": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["sh apps/mc/scripts/reload-plugin.sh"],
+				"parallel": false
+			}
+		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"./kbve.sh -nx mc:build-plugin --no-cloud",
+					"./kbve.sh -nx mc:reload-plugin --no-cloud"
+				],
+				"parallel": false
+			}
+		},
+		"base": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/mc/Dockerfile.base",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["ghcr.io/kbve/mc-rust-base:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"tags": ["ghcr.io/kbve/mc-rust-base:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/mc-rust-base:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/mc-rust-base:buildcache,mode=max"
 					]
 				}
 			}
