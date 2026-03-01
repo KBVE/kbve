@@ -14,6 +14,7 @@ Manages PostgreSQL schema migrations for the KBVE Supabase cluster (`supabase-cl
 | `20260228220000` | `osrs_schema_init` | `osrs` | 9 tables, 11 functions |
 | `20260228230000` | `discordsh_update_server` | `discordsh` | +2 functions, removes direct UPDATE |
 | `20260301210000` | `meme_rpcs_v2` | `meme` | +12 service RPC functions |
+| `20260302000000` | `discordsh_guild_vault` | `discordsh` | 1 table, 7 functions (guild token vault) |
 
 Migration state is tracked in `dbmate.schema_migrations` (not `public`) to isolate it from PostgREST/RPC.
 
@@ -35,12 +36,13 @@ Migration state is tracked in `dbmate.schema_migrations` (not `public`) to isola
 
 ### `discordsh` — Discord server directory
 
-2 tables (`servers`, `votes`), 15 functions (4 validation, 5 trigger, 2 service, 2 proxy submit, 2 proxy update). Server listing directory with voting, categorization, and moderation.
+3 tables (`servers`, `votes`, `guild_tokens`), 22 functions. Server listing directory with voting, categorization, moderation, and per-guild encrypted token vault.
 
-- **Source**: `../schema/discordsh/`
-- **Access**: anon/authenticated can SELECT active servers; all writes gated through proxy functions (`proxy_submit_server`, `proxy_update_server`, `proxy_cast_vote`)
-- **Rate limits**: 5 pending submissions per user, 12h per-server vote cooldown, 50 votes/day global cap
+- **Source**: `../schema/discordsh/` + `../schema/vault/guild_tokens.sql`
+- **Access**: anon/authenticated can SELECT active servers; all writes gated through proxy functions (`proxy_submit_server`, `proxy_update_server`, `proxy_cast_vote`). Guild vault is service_role only — no proxy functions, accessed via edge functions.
+- **Rate limits**: 5 pending submissions per user, 12h per-server vote cooldown, 50 votes/day global cap, 10 tokens per guild
 - **Validation**: `is_safe_text()`, `is_safe_url()`, `are_valid_tags()`, `are_valid_categories()` — blocks control chars, zero-width/bidi abuse, whitespace-only text
+- **Guild vault**: `guild_tokens` stores FK pointers to `vault.secrets`. Tokens encrypted via Supabase Vault, decrypted values only accessible to service_role. Ownership verified against `servers.owner_id`.
 
 ### `osrs` — Old School RuneScape item database
 
@@ -90,6 +92,10 @@ schema/
   discordsh/             # Discord server directory
     discordsh_servers.sql  # Schema, servers table, submit + update functions
     discordsh_votes.sql    # Votes table, cast_vote functions
+  vault/                 # Vault token storage
+    api_tokens.sql         # User-scoped API token vault (private.api_tokens)
+    service_proxy.sql      # Service-role wrappers for user tokens
+    guild_tokens.sql       # Guild-scoped token vault (discordsh.guild_tokens)
   osrs/                  # OSRS item database
     osrs_core.sql          # 9 tables, triggers, RLS
     osrs_rpcs.sql          # 4 service functions
@@ -180,8 +186,8 @@ dbmate/
   README.md
   init/                   # Docker entrypoint scripts (run alphabetically on first start)
     00-roles.sql            # Supabase-compatible roles (service_role, anon, authenticated, etc.)
-    01-auth-stub.sql        # Minimal auth.users + auth.uid() for FK references
-    02-extensions-stub.sql  # extensions schema + pgcrypto for gen_ulid()
+    01-auth-stub.sql        # Minimal auth.users + auth.uid() + auth.jwt() + auth.role()
+    02-extensions-stub.sql  # extensions schema + pgcrypto + vault schema stub
     pgsodium_getkey.sh      # Dummy key for production image testing
   migrations/
     20260227210000_mc_schema_init.sql
@@ -192,6 +198,7 @@ dbmate/
     20260228220000_osrs_schema_init.sql
     20260228230000_discordsh_update_server.sql
     20260301210000_meme_rpcs_v2.sql
+    20260302000000_discordsh_guild_vault.sql
 ```
 
 ## Important Notes
