@@ -4,9 +4,9 @@ import * as jose from "https://deno.land/x/jose@v4.14.4/index.ts";
 
 console.log("main function started");
 
-const EDGE_VERSION = Deno.env.get("EDGE_VERSION") ?? "0.1.8";
 const JWT_SECRET = Deno.env.get("JWT_SECRET");
 const VERIFY_JWT = Deno.env.get("VERIFY_JWT") === "true";
+const PUBLIC_ROUTES = new Set(["health"]);
 
 function getAuthToken(req: Request) {
   const authHeader = req.headers.get("authorization");
@@ -36,22 +36,9 @@ serve(async (req: Request) => {
   const url = new URL(req.url);
   const service_name = url.pathname.split("/")[1];
 
-  // Public health endpoint — no auth required
-  if (service_name === "health") {
-    return new Response(
-      JSON.stringify({
-        status: "ok",
-        version: EDGE_VERSION,
-        timestamp: new Date().toISOString(),
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-  }
-
-  if (req.method !== "OPTIONS" && VERIFY_JWT) {
+  if (
+    req.method !== "OPTIONS" && VERIFY_JWT && !PUBLIC_ROUTES.has(service_name)
+  ) {
     try {
       const token = getAuthToken(req);
       const isValidJWT = await verifyJWT(token);
