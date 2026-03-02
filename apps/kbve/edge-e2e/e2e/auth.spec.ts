@@ -15,7 +15,7 @@ describe('JWT Authentication', () => {
 		});
 		expect(res.status).toBe(401);
 		const body = await res.json();
-		expect(body.msg).toContain('Missing authorization header');
+		expect(body.msg).toContain('Authentication failed');
 	});
 
 	it('should reject requests with a malformed Authorization header', async () => {
@@ -29,7 +29,7 @@ describe('JWT Authentication', () => {
 		});
 		expect(res.status).toBe(401);
 		const body = await res.json();
-		expect(body.msg).toContain("not 'Bearer {token}'");
+		expect(body.msg).toContain('Authentication failed');
 	});
 
 	it('should reject a JWT signed with the wrong secret', async () => {

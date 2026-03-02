@@ -5,14 +5,19 @@
 -- to Discord server guild IDs. Tokens are encrypted via Supabase
 -- Vault (vault.secrets / vault.decrypted_secrets).
 --
--- Security:
---   - ALL functions are service_role only — no proxy functions
---   - No anon/authenticated access to table or functions
---   - Access flow: user → edge function → createServiceClient()
+-- Security (quadruple belt-and-suspenders):
+--   Belt 1: REVOKE ALL from PUBLIC/anon/authenticated on table + functions
+--   Belt 2: GRANT EXECUTE to service_role only
+--   Belt 3: Runtime auth.role() check in every service function
+--   Belt 4: Ownership verification via verify_guild_owner() in every function
+--   + SECURITY DEFINER + SET search_path = '' on all functions
+--   + RLS with service_role_full_access only
+--   + Rate limit: max 10 tokens per guild
+--   + Verification DO block with positive + negative permission checks
+--
+-- Access flow:
+--   user → edge function → createServiceClient()
 --     → discordsh.service_* RPC → vault.secrets
---   - Ownership verified against discordsh.servers.owner_id
---   - SECURITY DEFINER + SET search_path = '' on all functions
---   - Rate limit: max 10 tokens per guild
 --
 -- Prerequisite: discordsh schema + servers table must exist
 -- ============================================================
@@ -27,12 +32,12 @@ CREATE TABLE IF NOT EXISTS discordsh.guild_tokens (
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     server_id   TEXT NOT NULL REFERENCES discordsh.servers(server_id) ON DELETE CASCADE,
     token_name  TEXT NOT NULL
-                CHECK (token_name ~ '^[a-zA-Z0-9_-]{3,64}$'),
+                CHECK (token_name ~ '^[a-z0-9_-]{3,64}$'),
     service     TEXT NOT NULL
                 CHECK (service ~ '^[a-z0-9_]{2,32}$'),
     vault_key   TEXT NOT NULL,
     description TEXT
-                CHECK (description IS NULL OR char_length(description) <= 500),
+                CHECK (description IS NULL OR (char_length(description) <= 500 AND discordsh.is_safe_text(description))),
     is_active   BOOLEAN NOT NULL DEFAULT true,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMPTZ,
@@ -59,7 +64,9 @@ CREATE INDEX IF NOT EXISTS idx_discordsh_guild_tokens_active
 -- TRIGGERS
 -- ===========================================
 
--- Cleanup vault secret when guild_tokens row is deleted (including cascade)
+-- Cleanup vault secret when guild_tokens row is deleted (including cascade).
+-- Fires on direct DELETE and on CASCADE from discordsh.servers FK.
+-- Raises WARNING if vault secret is missing (stale vault_key diagnostic).
 CREATE OR REPLACE FUNCTION discordsh.trg_guild_tokens_cleanup_vault()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -68,6 +75,9 @@ SET search_path = ''
 AS $$
 BEGIN
     DELETE FROM vault.secrets WHERE name = OLD.vault_key;
+    IF NOT FOUND THEN
+        RAISE WARNING 'guild_tokens cleanup: vault secret not found for token % (key: %)', OLD.id, OLD.vault_key;
+    END IF;
     RETURN OLD;
 END;
 $$;
@@ -129,6 +139,7 @@ BEGIN
         SELECT 1 FROM discordsh.servers s
         WHERE s.server_id = p_server_id
           AND s.owner_id  = p_owner_id
+          AND s.status <> 4  -- Reject banned servers
     );
 END;
 $$;
@@ -169,15 +180,20 @@ DECLARE
     v_clean_service    TEXT;
     v_token_count      INTEGER;
 BEGIN
+    -- Belt 3: Runtime role verification
+    IF auth.role() <> 'service_role' THEN
+        RAISE EXCEPTION 'Access denied: service_role required';
+    END IF;
+
     -- Validate server_id format (Discord snowflake)
     IF p_server_id IS NULL OR p_server_id !~ '^\d{17,20}$' THEN
         RETURN QUERY SELECT false, NULL::UUID, 'Invalid server ID format.'::TEXT;
         RETURN;
     END IF;
 
-    -- Validate token_name format
-    IF p_token_name IS NULL OR p_token_name !~ '^[a-zA-Z0-9_-]{3,64}$' THEN
-        RETURN QUERY SELECT false, NULL::UUID, 'Invalid token name. Use 3-64 chars: a-z, A-Z, 0-9, underscore, dash.'::TEXT;
+    -- Validate token_name format (lowercase only)
+    IF p_token_name IS NULL OR p_token_name !~ '^[a-z0-9_-]{3,64}$' THEN
+        RETURN QUERY SELECT false, NULL::UUID, 'Invalid token name. Use 3-64 lowercase chars: a-z, 0-9, underscore, dash.'::TEXT;
         RETURN;
     END IF;
 
@@ -202,7 +218,7 @@ BEGIN
     v_clean_token_name := lower(trim(p_token_name));
     v_clean_service    := lower(trim(p_service));
 
-    -- Verify guild ownership
+    -- Belt 4: Verify guild ownership (also rejects banned servers)
     IF NOT discordsh.verify_guild_owner(p_server_id, p_owner_id) THEN
         RETURN QUERY SELECT false, NULL::UUID, 'Not the server owner.'::TEXT;
         RETURN;
@@ -276,10 +292,12 @@ ALTER FUNCTION discordsh.service_set_guild_token(UUID, TEXT, TEXT, TEXT, TEXT, T
 -- SERVICE FUNCTION: Get guild token (decrypted)
 --
 -- Returns the decrypted token value from vault.
+-- Verifies ownership before returning secrets.
 -- service_role only — tokens never reach the browser.
 -- ===========================================
 
 CREATE OR REPLACE FUNCTION discordsh.service_get_guild_token(
+    p_owner_id  UUID,
     p_server_id TEXT,
     p_token_id  UUID
 )
@@ -292,6 +310,16 @@ DECLARE
     v_vault_key    TEXT;
     v_token_value  TEXT;
 BEGIN
+    -- Belt 3: Runtime role verification
+    IF auth.role() <> 'service_role' THEN
+        RAISE EXCEPTION 'Access denied: service_role required';
+    END IF;
+
+    -- Belt 4: Verify guild ownership (also rejects banned servers)
+    IF NOT discordsh.verify_guild_owner(p_server_id, p_owner_id) THEN
+        RAISE EXCEPTION 'Not the server owner.';
+    END IF;
+
     -- Get vault key and validate token belongs to server
     SELECT gt.vault_key INTO v_vault_key
     FROM discordsh.guild_tokens gt
@@ -317,13 +345,13 @@ END;
 $$;
 
 COMMENT ON FUNCTION discordsh.service_get_guild_token IS
-    'Retrieve decrypted guild token. service_role only — tokens never reach the browser.';
+    'Retrieve decrypted guild token. Verifies ownership. service_role only — tokens never reach the browser.';
 
-REVOKE ALL ON FUNCTION discordsh.service_get_guild_token(TEXT, UUID)
+REVOKE ALL ON FUNCTION discordsh.service_get_guild_token(UUID, TEXT, UUID)
     FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION discordsh.service_get_guild_token(TEXT, UUID)
+GRANT EXECUTE ON FUNCTION discordsh.service_get_guild_token(UUID, TEXT, UUID)
     TO service_role;
-ALTER FUNCTION discordsh.service_get_guild_token(TEXT, UUID)
+ALTER FUNCTION discordsh.service_get_guild_token(UUID, TEXT, UUID)
     OWNER TO service_role;
 
 -- ===========================================
@@ -351,7 +379,12 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 BEGIN
-    -- Verify guild ownership
+    -- Belt 3: Runtime role verification
+    IF auth.role() <> 'service_role' THEN
+        RAISE EXCEPTION 'Access denied: service_role required';
+    END IF;
+
+    -- Belt 4: Verify guild ownership (also rejects banned servers)
     IF NOT discordsh.verify_guild_owner(p_server_id, p_owner_id) THEN
         RAISE EXCEPTION 'Not the server owner.';
     END IF;
@@ -386,6 +419,13 @@ ALTER FUNCTION discordsh.service_list_guild_tokens(UUID, TEXT)
 --
 -- Removes the token reference and the encrypted vault secret.
 -- Verifies ownership before deletion.
+--
+-- Defense-in-depth: vault secret is deleted BOTH manually here
+-- AND by the BEFORE DELETE trigger (trg_guild_tokens_cleanup_vault).
+-- The manual delete is the primary path; the trigger is the safety
+-- net for CASCADE deletes from discordsh.servers FK. On direct
+-- service_delete calls, the trigger's second delete is a harmless
+-- no-op (0 rows, WARNING raised).
 -- ===========================================
 
 CREATE OR REPLACE FUNCTION discordsh.service_delete_guild_token(
@@ -401,7 +441,13 @@ AS $$
 DECLARE
     v_vault_key TEXT;
 BEGIN
-    -- Verify guild ownership
+    -- Belt 3: Runtime role verification
+    IF auth.role() <> 'service_role' THEN
+        RETURN QUERY SELECT false, 'Access denied: service_role required.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Belt 4: Verify guild ownership (also rejects banned servers)
     IF NOT discordsh.verify_guild_owner(p_server_id, p_owner_id) THEN
         RETURN QUERY SELECT false, 'Not the server owner.'::TEXT;
         RETURN;
@@ -418,10 +464,10 @@ BEGIN
         RETURN;
     END IF;
 
-    -- Delete from vault first
+    -- Primary vault cleanup (trigger provides secondary safety net)
     DELETE FROM vault.secrets WHERE name = v_vault_key;
 
-    -- Delete the reference
+    -- Delete the reference (fires cleanup trigger — harmless no-op since vault already cleared)
     DELETE FROM discordsh.guild_tokens gt
     WHERE gt.id = p_token_id
       AND gt.server_id = p_server_id;
@@ -431,7 +477,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION discordsh.service_delete_guild_token IS
-    'Delete a guild token from vault and reference table. Verifies ownership.';
+    'Delete a guild token from vault and reference table. Verifies ownership. Double-delete pattern for defense-in-depth.';
 
 REVOKE ALL ON FUNCTION discordsh.service_delete_guild_token(UUID, TEXT, UUID)
     FROM PUBLIC, anon, authenticated;
@@ -459,7 +505,13 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 BEGIN
-    -- Verify guild ownership
+    -- Belt 3: Runtime role verification
+    IF auth.role() <> 'service_role' THEN
+        RETURN QUERY SELECT false, 'Access denied: service_role required.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Belt 4: Verify guild ownership (also rejects banned servers)
     IF NOT discordsh.verify_guild_owner(p_server_id, p_owner_id) THEN
         RETURN QUERY SELECT false, 'Not the server owner.'::TEXT;
         RETURN;
@@ -510,7 +562,7 @@ BEGIN
     PERFORM 'discordsh.trg_guild_tokens_cleanup_vault()'::regprocedure;
     PERFORM 'discordsh.verify_guild_owner(text,uuid)'::regprocedure;
     PERFORM 'discordsh.service_set_guild_token(uuid,text,text,text,text,text)'::regprocedure;
-    PERFORM 'discordsh.service_get_guild_token(text,uuid)'::regprocedure;
+    PERFORM 'discordsh.service_get_guild_token(uuid,text,uuid)'::regprocedure;
     PERFORM 'discordsh.service_list_guild_tokens(uuid,text)'::regprocedure;
     PERFORM 'discordsh.service_delete_guild_token(uuid,text,uuid)'::regprocedure;
     PERFORM 'discordsh.service_toggle_guild_token_status(uuid,text,uuid,boolean)'::regprocedure;
@@ -522,7 +574,7 @@ BEGIN
     IF NOT has_function_privilege('service_role', 'discordsh.service_set_guild_token(uuid,text,text,text,text,text)', 'EXECUTE') THEN
         RAISE EXCEPTION 'service_role must have EXECUTE on discordsh.service_set_guild_token';
     END IF;
-    IF NOT has_function_privilege('service_role', 'discordsh.service_get_guild_token(text,uuid)', 'EXECUTE') THEN
+    IF NOT has_function_privilege('service_role', 'discordsh.service_get_guild_token(uuid,text,uuid)', 'EXECUTE') THEN
         RAISE EXCEPTION 'service_role must have EXECUTE on discordsh.service_get_guild_token';
     END IF;
     IF NOT has_function_privilege('service_role', 'discordsh.service_list_guild_tokens(uuid,text)', 'EXECUTE') THEN
@@ -542,7 +594,7 @@ BEGIN
     IF has_function_privilege('anon', 'discordsh.service_set_guild_token(uuid,text,text,text,text,text)', 'EXECUTE') THEN
         RAISE EXCEPTION 'anon must NOT have EXECUTE on discordsh.service_set_guild_token';
     END IF;
-    IF has_function_privilege('anon', 'discordsh.service_get_guild_token(text,uuid)', 'EXECUTE') THEN
+    IF has_function_privilege('anon', 'discordsh.service_get_guild_token(uuid,text,uuid)', 'EXECUTE') THEN
         RAISE EXCEPTION 'anon must NOT have EXECUTE on discordsh.service_get_guild_token';
     END IF;
     IF has_function_privilege('anon', 'discordsh.service_list_guild_tokens(uuid,text)', 'EXECUTE') THEN
@@ -562,7 +614,7 @@ BEGIN
     IF has_function_privilege('authenticated', 'discordsh.service_set_guild_token(uuid,text,text,text,text,text)', 'EXECUTE') THEN
         RAISE EXCEPTION 'authenticated must NOT have EXECUTE on discordsh.service_set_guild_token';
     END IF;
-    IF has_function_privilege('authenticated', 'discordsh.service_get_guild_token(text,uuid)', 'EXECUTE') THEN
+    IF has_function_privilege('authenticated', 'discordsh.service_get_guild_token(uuid,text,uuid)', 'EXECUTE') THEN
         RAISE EXCEPTION 'authenticated must NOT have EXECUTE on discordsh.service_get_guild_token';
     END IF;
     IF has_function_privilege('authenticated', 'discordsh.service_list_guild_tokens(uuid,text)', 'EXECUTE') THEN
@@ -575,7 +627,21 @@ BEGIN
         RAISE EXCEPTION 'authenticated must NOT have EXECUTE on discordsh.service_toggle_guild_token_status';
     END IF;
 
-    -- Verify authenticated has NO table access
+    -- Verify anon has NO table access (all 4 privileges)
+    IF has_table_privilege('anon', 'discordsh.guild_tokens', 'SELECT') THEN
+        RAISE EXCEPTION 'anon must NOT have SELECT on discordsh.guild_tokens';
+    END IF;
+    IF has_table_privilege('anon', 'discordsh.guild_tokens', 'INSERT') THEN
+        RAISE EXCEPTION 'anon must NOT have INSERT on discordsh.guild_tokens';
+    END IF;
+    IF has_table_privilege('anon', 'discordsh.guild_tokens', 'UPDATE') THEN
+        RAISE EXCEPTION 'anon must NOT have UPDATE on discordsh.guild_tokens';
+    END IF;
+    IF has_table_privilege('anon', 'discordsh.guild_tokens', 'DELETE') THEN
+        RAISE EXCEPTION 'anon must NOT have DELETE on discordsh.guild_tokens';
+    END IF;
+
+    -- Verify authenticated has NO table access (all 4 privileges)
     IF has_table_privilege('authenticated', 'discordsh.guild_tokens', 'SELECT') THEN
         RAISE EXCEPTION 'authenticated must NOT have SELECT on discordsh.guild_tokens';
     END IF;
@@ -587,11 +653,6 @@ BEGIN
     END IF;
     IF has_table_privilege('authenticated', 'discordsh.guild_tokens', 'DELETE') THEN
         RAISE EXCEPTION 'authenticated must NOT have DELETE on discordsh.guild_tokens';
-    END IF;
-
-    -- Verify anon has NO table access
-    IF has_table_privilege('anon', 'discordsh.guild_tokens', 'SELECT') THEN
-        RAISE EXCEPTION 'anon must NOT have SELECT on discordsh.guild_tokens';
     END IF;
 
     -- Verify all functions owned by service_role
@@ -618,7 +679,7 @@ BEGIN
     END IF;
     IF EXISTS (
         SELECT 1 FROM pg_proc
-        WHERE oid = 'discordsh.service_get_guild_token(text,uuid)'::regprocedure
+        WHERE oid = 'discordsh.service_get_guild_token(uuid,text,uuid)'::regprocedure
           AND pg_get_userbyid(proowner) <> 'service_role'
     ) THEN
         RAISE EXCEPTION 'discordsh.service_get_guild_token must be owned by service_role';
@@ -645,7 +706,7 @@ BEGIN
         RAISE EXCEPTION 'discordsh.service_toggle_guild_token_status must be owned by service_role';
     END IF;
 
-    RAISE NOTICE 'guild_tokens: table, 7 functions, all permissions verified successfully.';
+    RAISE NOTICE 'guild_tokens: table, 7 functions, all permissions verified successfully (quadruple belt-and-suspenders).';
 END;
 $$ LANGUAGE plpgsql;
 

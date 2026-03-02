@@ -307,9 +307,9 @@ create_worktree() {
     # Clean description for branch/dir name
     local clean_name
     clean_name=$(echo "$description" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/[^a-z0-9-]//g')
-    local date_suffix
-    date_suffix=$(date +'%m-%d-%Y')
-    local branch_name="trunk/${clean_name}-${date_suffix}"
+    local timestamp
+    timestamp=$(date +%s)
+    local branch_name="trunk/${clean_name}-${timestamp}"
     local worktree_dir="${main_repo}-${clean_name}"
 
     # Check if worktree dir already exists
