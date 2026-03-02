@@ -1,5 +1,16 @@
+use std::fs;
 use std::path::Path;
 use std::process::Command;
+
+/// Proto module names that src/proto/mod.rs expects via include!()
+const PROTO_MODULES: &[&str] = &[
+    "kbve.common",
+    "kbve.enums",
+    "kbve.snapshot",
+    "kbve.pool",
+    "kbve.schema",
+    "kbve.osrs",
+];
 
 fn protoc_available() -> bool {
     Command::new("protoc")
@@ -9,7 +20,22 @@ fn protoc_available() -> bool {
         .unwrap_or(false)
 }
 
+/// Write empty stubs so `include!(concat!(env!("OUT_DIR"), "/kbve.X.rs"))` compiles
+fn write_proto_stubs(out_dir: &str) {
+    for module in PROTO_MODULES {
+        let path = Path::new(out_dir).join(format!("{module}.rs"));
+        if !path.exists() {
+            let _ = fs::write(
+                &path,
+                "// proto stub — protoc was not available at build time\n",
+            );
+        }
+    }
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let out_dir = std::env::var("OUT_DIR").unwrap();
+
     // Proto file locations
     // Docker/CI: /proto/kbve/
     // Monorepo local dev: ../../../packages/data/proto/kbve/
@@ -22,11 +48,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         (local_proto_dir, Path::new("../../../packages/data/proto"))
     } else {
         println!("cargo:warning=Proto directory not found, skipping protobuf compilation");
+        write_proto_stubs(&out_dir);
         return Ok(());
     };
 
     if !protoc_available() {
         println!("cargo:warning=protoc not found, skipping protobuf compilation");
+        write_proto_stubs(&out_dir);
         return Ok(());
     }
 
@@ -42,6 +70,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for proto in &proto_files {
         if !proto.exists() {
             println!("cargo:warning=Proto file not found: {:?}", proto);
+            write_proto_stubs(&out_dir);
             return Ok(());
         }
     }
