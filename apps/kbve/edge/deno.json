@@ -1,9 +1,17 @@
 {
-	"compilerOptions": {
-		"lib": ["deno.window"],
-		"strict": true
-	},
-	"imports": {
-		"@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
-	}
+  "compilerOptions": {
+    "lib": ["deno.window"],
+    "strict": true
+  },
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 80,
+    "indentWidth": 2,
+    "singleQuote": false,
+    "proseWrap": "preserve",
+    "include": ["functions/"]
+  }
 }
