@@ -1,0 +1,64 @@
+# Production-replica Postgres + n8n for pre-deployment validation.
+#
+# Uses the CNPG production image (x86-only, Rosetta on ARM Macs)
+# with the `supabase` database — same as production. Validates:
+#   - All dbmate migrations apply cleanly on production image
+#   - n8n boots with DB_POSTGRESDB_SCHEMA=n8n on `supabase` db
+#   - TypeORM creates all tables in the n8n schema
+#   - Existing schemas (mc, meme, discordsh, osrs) are unaffected
+#   - n8n editor is accessible at http://localhost:5678
+#
+# Usage:
+#   cp n8n-prod-docker-compose.yml docker-compose.yml
+#   docker compose up -d
+#   # Wait for postgres to be healthy, then apply migrations:
+#   DATABASE_URL="postgresql://postgres:postgres@localhost:54322/supabase?sslmode=disable&search_path=dbmate,public" \
+#     dbmate --no-dump-schema --migrations-dir migrations up
+#   # Wait ~30s for n8n to run TypeORM migrations, then verify:
+#   psql "postgresql://postgres:postgres@localhost:54322/supabase" -c "\dt n8n.*"
+#   # Open n8n editor:
+#   open http://localhost:5678
+#   # Tear down:
+#   docker compose down -v
+
+services:
+    postgres:
+        image: ghcr.io/kbve/postgres:17.4.1.069-kilobase
+        platform: linux/amd64
+        ports:
+            - '54322:5432'
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: supabase
+        volumes:
+            - ./init:/docker-entrypoint-initdb.d
+            - pgdata:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U postgres']
+            interval: 5s
+            timeout: 3s
+            retries: 10
+
+    n8n:
+        image: n8nio/n8n:2.9.4
+        ports:
+            - '5678:5678'
+        environment:
+            - DB_TYPE=postgresdb
+            - DB_POSTGRESDB_HOST=postgres
+            - DB_POSTGRESDB_PORT=5432
+            - DB_POSTGRESDB_DATABASE=supabase
+            - DB_POSTGRESDB_USER=postgres
+            - DB_POSTGRESDB_PASSWORD=postgres
+            - DB_POSTGRESDB_SCHEMA=n8n
+            - DB_POSTGRESDB_POOL_SIZE=5
+            - N8N_PORT=5678
+            - N8N_ENCRYPTION_KEY=local-test-key-do-not-use-in-production-0000
+            - GENERIC_TIMEZONE=UTC
+        depends_on:
+            postgres:
+                condition: service_healthy
+
+volumes:
+    pgdata:
