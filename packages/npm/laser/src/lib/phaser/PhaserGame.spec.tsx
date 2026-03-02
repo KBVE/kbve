@@ -30,7 +30,7 @@ vi.mock('phaser', () => ({
 	AUTO: 0,
 }));
 
-import { render, cleanup, act, waitFor } from '@testing-library/react';
+import { render, cleanup, waitFor } from '@testing-library/react';
 import { PhaserGame } from './PhaserGame';
 import { usePhaserGame } from './use-phaser';
 
