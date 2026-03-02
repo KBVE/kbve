@@ -1,0 +1,399 @@
+{
+	"exclude": [
+		"kbve.osrs.UpsertItemRequest",
+		"kbve.osrs.UpsertItemResponse",
+		"kbve.osrs.SavePricesRequest",
+		"kbve.osrs.SavePricesResponse",
+		"kbve.osrs.GetItemRequest",
+		"kbve.osrs.GetItemResponse",
+		"kbve.osrs.SearchItemsRequest",
+		"kbve.osrs.SearchItemsResponse"
+	],
+
+	"renames": {
+		"kbve.osrs.OSRSItem.ge_limit": "limit",
+		"kbve.osrs.OSRSItem.drop_sources": "drop_table",
+		"kbve.osrs.OSRSItem.consumable": "potion",
+		"kbve.osrs.OSRSCooking.cooking_level": "level",
+		"kbve.osrs.OSRSCooking.cooking_xp": "xp",
+		"kbve.osrs.OSRSCookingBurnRate.fire_success": "fire_rate",
+		"kbve.osrs.OSRSCookingBurnRate.range_success": "range_rate",
+		"kbve.osrs.OSRSCookingBurnRate.gauntlets_success": "gauntlets_rate",
+		"kbve.osrs.OSRSConsumable.cooking_level": "herblore_level"
+	},
+
+	"schemaNames": {
+		"kbve.osrs.OSRSConsumable": "OSRSPotionSchema",
+		"kbve.osrs.OSRSItem": "OSRSExtendedSchema",
+		"kbve.osrs.OSRSRecipeMaterial": "OSRSMaterialSchema"
+	},
+
+	"typeNames": {
+		"kbve.osrs.OSRSConsumable": "OSRSPotion",
+		"kbve.osrs.OSRSItem": "OSRSExtended",
+		"kbve.osrs.OSRSRecipeMaterial": "OSRSMaterial"
+	},
+
+	"passthrough": [
+		"kbve.osrs.OSRSEquipment",
+		"kbve.osrs.OSRSSpecialAttack",
+		"kbve.osrs.OSRSDropSource",
+		"kbve.osrs.OSRSRecipe",
+		"kbve.osrs.OSRSConsumable",
+		"kbve.osrs.OSRSFood",
+		"kbve.osrs.OSRSCooking",
+		"kbve.osrs.OSRSEffect",
+		"kbve.osrs.OSRSCookingBurnRate"
+	],
+
+	"nullable": [
+		"kbve.osrs.OSRSEquipment.*",
+		"kbve.osrs.OSRSDropSource.combat_level",
+		"kbve.osrs.OSRSDropSource.quantity",
+		"kbve.osrs.OSRSDropSource.rarity",
+		"kbve.osrs.OSRSDropSource.drop_rate",
+		"kbve.osrs.OSRSDropSource.members_only",
+		"kbve.osrs.OSRSDropSource.wilderness",
+		"kbve.osrs.OSRSEffect.*",
+		"kbve.osrs.OSRSConsumable.*",
+		"kbve.osrs.OSRSFood.*",
+		"kbve.osrs.OSRSCookingBurnRate.*",
+		"kbve.osrs.OSRSCooking.*",
+		"kbve.osrs.OSRSRecipe.*",
+		"kbve.osrs.OSRSPrice.*"
+	],
+
+	"refinements": {
+		"kbve.osrs.OSRSMeta.description": ".max(160)",
+		"kbve.osrs.OSRSMeta.canonical": ".url()",
+		"kbve.osrs.OSRSRequirements.attack": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.strength": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.defence": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.ranged": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.prayer": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.magic": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.runecraft": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.hitpoints": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.crafting": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.mining": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.smithing": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.fishing": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.cooking": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.firemaking": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.woodcutting": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.agility": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.herblore": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.thieving": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.fletching": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.slayer": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.farming": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.construction": ".min(1).max(99)",
+		"kbve.osrs.OSRSRequirements.hunter": ".min(1).max(99)",
+		"kbve.osrs.OSRSEquipment.attack_speed": ".min(1).max(10)",
+		"kbve.osrs.OSRSEquipment.attack_range": ".min(1).max(10)",
+		"kbve.osrs.OSRSSpecialAttack.energy": ".min(0).max(100)",
+		"kbve.osrs.OSRSSetBonus.pieces_required": ".min(2).max(5)",
+		"kbve.osrs.OSRSCooking.cooking_level": ".min(0).max(99)",
+		"kbve.osrs.OSRSRecipe.level": ".min(0).max(99)",
+		"kbve.osrs.OSRSFood.cooking_level": ".min(1).max(99)"
+	},
+
+	"enums": {
+		"kbve.osrs.OSRSSlot": {
+			"mode": "const_array",
+			"stripPrefix": "OSRS_SLOT_",
+			"caseTransform": "lowercase",
+			"valueOverrides": {
+				"OSRS_SLOT_TWO_HANDED": "2h"
+			}
+		},
+		"kbve.osrs.OSRSWeaponType": {
+			"mode": "const_array",
+			"stripPrefix": "OSRS_WEAPON_TYPE_",
+			"caseTransform": "kebab-case"
+		},
+		"kbve.osrs.OSRSSkill": {
+			"mode": "const_array",
+			"stripPrefix": "OSRS_SKILL_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.osrs.OSRSRarity": {
+			"mode": "const_array",
+			"stripPrefix": "OSRS_RARITY_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.osrs.OSRSRecipeSkill": {
+			"mode": "const_array",
+			"stripPrefix": "OSRS_RECIPE_SKILL_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.osrs.OSRSFacility": {
+			"mode": "string"
+		},
+		"kbve.osrs.OSRSRelationship": {
+			"mode": "string"
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "OSRSEquipmentSlots",
+			"sourceEnum": "kbve.osrs.OSRSSlot",
+			"typeName": "OSRSEquipmentSlot",
+			"zodSchemaName": "OSRSEquipmentSlotSchema"
+		},
+		{
+			"name": "OSRSWeaponTypes",
+			"sourceEnum": "kbve.osrs.OSRSWeaponType",
+			"typeName": "OSRSWeaponType",
+			"zodSchemaName": "OSRSWeaponTypeSchema"
+		},
+		{
+			"name": "OSRSSkills",
+			"sourceEnum": "kbve.osrs.OSRSSkill",
+			"typeName": "OSRSSkill"
+		},
+		{
+			"name": "OSRSDropRarities",
+			"sourceEnum": "kbve.osrs.OSRSRarity",
+			"typeName": "OSRSDropRarity"
+		},
+		{
+			"name": "OSRSCreationSkills",
+			"sourceEnum": "kbve.osrs.OSRSRecipeSkill",
+			"typeName": "OSRSCreationSkill"
+		}
+	],
+
+	"extraFields": {
+		"kbve.osrs.OSRSItemProperties": [
+			{ "name": "league_region", "zodExpr": "z.string().optional()" }
+		],
+		"kbve.osrs.OSRSDropSource": [
+			{
+				"name": "source_id",
+				"zodExpr": "z.number().nullable().optional()"
+			},
+			{
+				"name": "drop_rate_decimal",
+				"zodExpr": "z.number().nullable().optional()"
+			}
+		],
+		"kbve.osrs.OSRSShopSource": [
+			{ "name": "members_only", "zodExpr": "z.boolean().optional()" }
+		],
+		"kbve.osrs.OSRSRecipe": [
+			{
+				"name": "tools",
+				"zodExpr": "z.array(z.string()).nullable().optional()"
+			},
+			{
+				"name": "quest_required",
+				"zodExpr": "z.string().nullable().optional()"
+			},
+			{
+				"name": "members_only",
+				"zodExpr": "z.boolean().nullable().optional()"
+			},
+			{
+				"name": "output_quantity",
+				"zodExpr": "z.number().nullable().optional()"
+			}
+		],
+		"kbve.osrs.OSRSConsumable": [
+			{
+				"name": "herblore_xp",
+				"zodExpr": "z.number().nullable().optional()"
+			}
+		],
+		"kbve.osrs.OSRSFood": [
+			{
+				"name": "cooking_xp",
+				"zodExpr": "z.number().nullable().optional()"
+			},
+			{
+				"name": "burn_level",
+				"zodExpr": "z.number().nullable().optional()"
+			}
+		],
+		"kbve.osrs.OSRSMeta": [
+			{ "name": "og_image_alt", "zodExpr": "z.string().optional()" },
+			{
+				"name": "og_type",
+				"zodExpr": "z.enum(['article', 'website', 'product']).optional()"
+			},
+			{
+				"name": "twitter_card",
+				"zodExpr": "z.enum(['summary', 'summary_large_image']).optional()"
+			},
+			{
+				"name": "head",
+				"zodExpr": "z.array(OSRSHeadTagSchema).optional()"
+			},
+			{ "name": "noindex", "zodExpr": "z.boolean().optional()" }
+		],
+		"kbve.osrs.OSRSRelatedItem": [
+			{ "name": "description", "zodExpr": "z.string().optional()" }
+		]
+	},
+
+	"fieldOverrides": {
+		"kbve.osrs.OSRSEquipment.slot": "z.string().nullable().optional()",
+		"kbve.osrs.OSRSEquipment.weapon_type": "z.string().nullable().optional()",
+		"kbve.osrs.OSRSDropSource.rarity": "z.string().nullable().optional()",
+		"kbve.osrs.OSRSShopSource.shop_name": "z.string()",
+		"kbve.osrs.OSRSShopSource.price": "z.union([z.number(), z.string()]).optional()",
+		"kbve.osrs.OSRSShopSource.stock": "z.union([z.number(), z.string()]).optional()",
+		"kbve.osrs.OSRSSkillingSource.skill": "z.string().transform((s) => s.toLowerCase())",
+		"kbve.osrs.OSRSSkillingSource.level": "z.number().min(1).max(99)",
+		"kbve.osrs.OSRSTreasureTrail.tier": "z.enum(['beginner', 'easy', 'medium', 'hard', 'elite', 'master'])",
+		"kbve.osrs.OSRSTreasureTrail.reward_tiers": "z.array(z.enum(['beginner', 'easy', 'medium', 'hard', 'elite', 'master'])).optional()",
+		"kbve.osrs.OSRSRelatedItem.relationship": "z.enum(['variant', 'upgrade', 'downgrade', 'component', 'product', 'set_piece', 'alternative']).optional()",
+		"kbve.osrs.OSRSRecipeMaterial.quantity": "z.number().default(1)",
+		"kbve.osrs.OSRSRecipeMaterial.consumed": "z.boolean().default(true)",
+		"kbve.osrs.OSRSCookingBurnRate.level": "z.number().nullable().optional()",
+		"kbve.osrs.OSRSEffect.stat": "z.string().transform((s) => s.toLowerCase()).nullable().optional()",
+		"kbve.osrs.OSRSConsumable.heals": "z.number().nullable().optional()",
+		"kbve.osrs.OSRSConsumable.doses": "z.number().min(0).max(4).nullable().optional()",
+		"kbve.osrs.OSRSConsumable.cooking_level": "z.number().min(1).max(99).nullable().optional()",
+		"kbve.osrs.OSRSRecipe.skill": "z.string().transform((s) => s.toLowerCase()).nullable().optional()",
+		"kbve.osrs.OSRSItem.lowalch": "z.number().nullable()",
+		"kbve.osrs.OSRSItem.highalch": "z.number().nullable()",
+		"kbve.osrs.OSRSItem.ge_limit": "z.number().nullable()",
+		"kbve.osrs.OSRSItem.drop_sources": "z.lazy(() => OSRSDropTableSchema).nullable().optional()"
+	},
+
+	"preamble": [
+		"export const OSRSHeadTagSchema = z.object({\n\ttag: z.enum(['meta', 'link', 'script', 'style', 'title', 'base', 'noscript', 'template']),\n\tattrs: z.record(z.union([z.string(), z.boolean()])).optional(),\n\tcontent: z.string().optional(),\n});\n\nexport type OSRSHeadTag = z.infer<typeof OSRSHeadTagSchema>;",
+		"export const OSRSCombatStyles = [\n\t'stab',\n\t'slash',\n\t'crush',\n\t'magic',\n\t'ranged',\n\t'defensive',\n\t'controlled',\n\t'accurate',\n\t'aggressive',\n\t'rapid',\n\t'longrange',\n] as const;\n\nexport type OSRSCombatStyle = (typeof OSRSCombatStyles)[number];\n\nexport const OSRSCombatStyleSchema = z.enum(OSRSCombatStyles);"
+	],
+
+	"postamble": [
+		{
+			"name": "OSRSDropTableSchema",
+			"code": "export const OSRSDropTableSchema = z.union([\n\tz.object({\n\t\tsources: z.array(OSRSDropSourceSchema).optional(),\n\t\tprimary_source: z.string().optional(),\n\t\tbest_drop_rate: z.string().optional(),\n\t}),\n\tz.array(OSRSDropSourceSchema),\n]);\n\nexport type OSRSDropTable = z.infer<typeof OSRSDropTableSchema>;"
+		}
+	],
+
+	"typeGuards": [
+		{
+			"name": "hasEquipment",
+			"inputType": "OSRSExtended",
+			"returnType": "item is OSRSExtended & { equipment: OSRSEquipment }",
+			"isTypePredicate": true,
+			"body": "return item.equipment !== undefined;"
+		},
+		{
+			"name": "isWeapon",
+			"inputType": "OSRSExtended",
+			"returnType": "boolean",
+			"isTypePredicate": false,
+			"body": "return item.equipment?.slot === 'weapon' || item.equipment?.slot === '2h';"
+		},
+		{
+			"name": "hasSpecialAttack",
+			"inputType": "OSRSExtended",
+			"returnType": "item is OSRSExtended & { special_attack: OSRSSpecialAttack }",
+			"isTypePredicate": true,
+			"body": "return item.special_attack !== undefined;"
+		},
+		{
+			"name": "hasSetBonus",
+			"inputType": "OSRSExtended",
+			"returnType": "item is OSRSExtended & { set_bonus: OSRSSetBonus }",
+			"isTypePredicate": true,
+			"body": "return item.set_bonus !== undefined;"
+		},
+		{
+			"name": "isPotion",
+			"inputType": "OSRSExtended",
+			"returnType": "item is OSRSExtended & { potion: OSRSPotion }",
+			"isTypePredicate": true,
+			"body": "return item.potion !== undefined;"
+		},
+		{
+			"name": "isFood",
+			"inputType": "OSRSExtended",
+			"returnType": "item is OSRSExtended & { food: OSRSFood }",
+			"isTypePredicate": true,
+			"body": "return item.food !== undefined;"
+		},
+		{
+			"name": "hasCooking",
+			"inputType": "OSRSExtended",
+			"returnType": "item is OSRSExtended & { cooking: OSRSCooking }",
+			"isTypePredicate": true,
+			"body": "return item.cooking !== undefined;"
+		},
+		{
+			"name": "hasDropSources",
+			"inputType": "OSRSExtended",
+			"returnType": "item is OSRSExtended & { drop_table: OSRSDropTable }",
+			"isTypePredicate": true,
+			"body": "if (item.drop_table === undefined) return false;\nif (Array.isArray(item.drop_table)) {\n\treturn item.drop_table.length > 0;\n}\nreturn (item.drop_table.sources?.length ?? 0) > 0;"
+		},
+		{
+			"name": "hasShopSources",
+			"inputType": "OSRSExtended",
+			"returnType": "boolean",
+			"isTypePredicate": false,
+			"body": "return (item.shops?.length ?? 0) > 0;"
+		},
+		{
+			"name": "hasRecipes",
+			"inputType": "OSRSExtended",
+			"returnType": "boolean",
+			"isTypePredicate": false,
+			"body": "return (item.recipes?.length ?? 0) > 0;"
+		},
+		{
+			"name": "isTreasureTrailItem",
+			"inputType": "OSRSExtended",
+			"returnType": "item is OSRSExtended & { treasure_trail: OSRSTreasureTrail }",
+			"isTypePredicate": true,
+			"body": "return item.treasure_trail !== undefined;"
+		},
+		{
+			"name": "hasMeta",
+			"inputType": "OSRSExtended",
+			"returnType": "item is OSRSExtended & { meta: OSRSMeta }",
+			"isTypePredicate": true,
+			"body": "return item.meta !== undefined;"
+		},
+		{
+			"name": "hasProperties",
+			"inputType": "OSRSExtended",
+			"returnType": "item is OSRSExtended & { properties: OSRSItemProperties }",
+			"isTypePredicate": true,
+			"body": "return item.properties !== undefined;"
+		},
+		{
+			"name": "isTradeable",
+			"inputType": "OSRSExtended",
+			"returnType": "boolean",
+			"isTypePredicate": false,
+			"body": "return (\n\titem.properties?.tradeable === true ||\n\titem.properties?.tradeable_ge === true\n);"
+		},
+		{
+			"name": "isQuestItem",
+			"inputType": "OSRSExtended",
+			"returnType": "boolean",
+			"isTypePredicate": false,
+			"body": "return item.properties?.quest_item === true;"
+		},
+		{
+			"name": "hasRelatedItems",
+			"inputType": "OSRSExtended",
+			"returnType": "boolean",
+			"isTypePredicate": false,
+			"body": "return (item.related_items?.length ?? 0) > 0;"
+		}
+	],
+
+	"helpers": [
+		{
+			"name": "generateMetaDescription",
+			"code": "export function generateMetaDescription(item: OSRSExtended): string {\n\tconst parts: string[] = [item.name];\n\n\tif (item.members) {\n\t\tparts.push('(P2P)');\n\t}\n\n\tif (hasEquipment(item) && item.equipment.slot) {\n\t\tparts.push(`- ${item.equipment.slot} slot equipment`);\n\t} else if (isPotion(item)) {\n\t\tparts.push('- potion');\n\t} else if (isFood(item)) {\n\t\tparts.push(`- heals ${item.food.heals ?? '?'} HP`);\n\t}\n\n\tparts.push(`in Old School RuneScape. ${item.examine}`);\n\n\tconst description = parts.join(' ');\n\treturn description.length > 160\n\t\t? description.substring(0, 157) + '...'\n\t\t: description;\n}"
+		}
+	]
+}
