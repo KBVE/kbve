@@ -65,6 +65,11 @@ spec:
                             secretKeyRef:
                                 name: n8n-encryption-secret
                                 key: encryption-key
+                      - name: N8N_LICENSE_ACTIVATION_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: n8n-license-secret
+                                key: activation-key
                   resources:
                       requests:
                           memory: '512Mi'
