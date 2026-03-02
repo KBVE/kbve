@@ -124,6 +124,24 @@ dbmate --no-dump-schema --migrations-dir migrations rollback  # test rollback
 docker compose down -v
 ```
 
+### n8n integration test (Postgres + n8n)
+
+Runs both Postgres and n8n to verify the full integration — n8n boots, TypeORM creates tables in the `n8n` schema, and existing schemas are unaffected.
+
+```bash
+cp n8n-docker-compose.yml docker-compose.yml
+docker compose up -d
+# Wait for postgres health check, then apply migrations:
+DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres?sslmode=disable&search_path=dbmate,public" \
+  dbmate --no-dump-schema --migrations-dir migrations up
+# Wait ~30s for n8n TypeORM migrations, then verify:
+psql "postgresql://postgres:postgres@localhost:54322/postgres" -c "\dt n8n.*"
+# n8n editor: http://localhost:5678
+docker compose down -v
+```
+
+**When to run this**: After bumping the n8n image version, before updating the kube manifest. Verifies TypeORM migrations still work with the `n8n` custom schema.
+
 ### Production-replica test (CNPG image)
 
 Use `docker-compose.yml` with the production image (`ghcr.io/kbve/postgres:17.4.1.069-kilobase`). Requires `platform: linux/amd64` on ARM Macs (Rosetta via OrbStack/Docker Desktop).
@@ -193,6 +211,7 @@ dbmate/
   .env                    # Connection string (gitignored)
   .gitignore              # Excludes .env, docker-compose.yml, schema dump artifacts
   dev-docker-compose.yml  # Committed template (vanilla postgres:17-alpine)
+  n8n-docker-compose.yml  # Committed template (postgres + n8n for integration testing)
   docker-compose.yml      # Local override (gitignored)
   README.md
   init/                   # Docker entrypoint scripts (run alphabetically on first start)
