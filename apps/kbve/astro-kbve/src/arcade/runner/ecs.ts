@@ -5,7 +5,7 @@ import {
 	addComponent,
 	hasComponent,
 	query,
-} from 'bitecs';
+} from '@kbve/laser';
 
 // ============================================================================
 // Components (bitecs 0.4+ - plain arrays/objects stored in world)

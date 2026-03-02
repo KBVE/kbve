@@ -681,6 +681,22 @@ pub async fn render_game_card(session: &SessionState, fontdb: FontDb) -> Result<
         .map_err(|e| format!("Render task panicked: {e}"))?
 }
 
+// ── Default OG image ────────────────────────────────────────────────
+
+/// Static branded OG image template (1200x630) for social media sharing.
+#[derive(Template)]
+#[template(path = "game/og_default.svg")]
+pub struct OgDefaultTemplate;
+
+/// Render the default OG image as PNG bytes.
+pub fn render_og_default_blocking(fontdb: &FontDb) -> Result<Vec<u8>, String> {
+    let template = OgDefaultTemplate;
+    let svg_string = template
+        .render()
+        .map_err(|e| format!("OG SVG template error: {e}"))?;
+    render_svg_to_png(&svg_string, fontdb).map_err(|e| format!("OG PNG render error: {e}"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

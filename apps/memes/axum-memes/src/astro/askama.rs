@@ -11,6 +11,8 @@ pub struct AstroTemplate<'a> {
     pub path: &'a str,
     pub title: &'a str,
     pub description: &'a str,
+    pub canonical_url: &'a str,
+    pub og_image: &'a str,
 }
 
 impl<'a> AstroTemplate<'a> {
@@ -19,8 +21,10 @@ impl<'a> AstroTemplate<'a> {
         path: &'a str,
         title: &'a str,
         description: &'a str,
+        canonical_url: &'a str,
+        og_image: &'a str,
     ) -> Self {
-        Self { content, path, title, description }
+        Self { content, path, title, description, canonical_url, og_image }
     }
 }
 
@@ -44,6 +48,8 @@ pub async fn fallback_handler() -> Response {
         "/404",
         "404 - Not Found",
         "Page not found",
+        "https://meme.sh/404",
+        "",
     );
     (StatusCode::NOT_FOUND, TemplateResponse(template)).into_response()
 }

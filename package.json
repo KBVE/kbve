@@ -195,6 +195,9 @@
 		"*.py": [
 			"autopep8 --in-place",
 			"flake8 --max-line-length 120"
+		],
+		"apps/kbve/edge/functions/**/*.ts": [
+			"deno fmt"
 		]
 	},
 	"nx": {
