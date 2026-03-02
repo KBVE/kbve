@@ -21,4 +21,20 @@ describe('Edge Runtime Health', () => {
 		const body = await res.json();
 		expect(body.msg).toContain('missing function name in request');
 	});
+
+	it('should return health and version JSON without auth', async () => {
+		const res = await fetch(`${BASE_URL}/health`);
+		expect(res.status).toBe(200);
+		const body = await res.json();
+		expect(body.status).toBe('ok');
+		expect(body.version).toBeDefined();
+		expect(body.timestamp).toBeDefined();
+	});
+
+	it('should return a valid ISO timestamp in health response', async () => {
+		const res = await fetch(`${BASE_URL}/health`);
+		const body = await res.json();
+		const parsed = new Date(body.timestamp);
+		expect(parsed.getTime()).not.toBeNaN();
+	});
 });
