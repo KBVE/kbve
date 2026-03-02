@@ -134,30 +134,33 @@ enum OSRSRelationship {
 }
 
 // =============================================================================
-// Equipment & Bonuses
+// Equipment & Bonuses (Weapons + Armor)
 // =============================================================================
 
-// 14 combat bonus fields (5 attack, 5 defence, 4 other)
-message OSRSBonuses {
-  // Attack bonuses
-  int32 attack_stab   = 1;
-  int32 attack_slash  = 2;
-  int32 attack_crush  = 3;
-  int32 attack_magic  = 4;
-  int32 attack_ranged = 5;
+// Offensive bonuses — primarily for weapons
+message OSRSAttackBonus {
+  optional int32 stab   = 1;
+  optional int32 slash  = 2;
+  optional int32 crush  = 3;
+  optional int32 magic  = 4;
+  optional int32 ranged = 5;
+}
 
-  // Defence bonuses
-  int32 defence_stab   = 6;
-  int32 defence_slash  = 7;
-  int32 defence_crush  = 8;
-  int32 defence_magic  = 9;
-  int32 defence_ranged = 10;
+// Defensive bonuses — primarily for armor
+message OSRSDefenceBonus {
+  optional int32 stab   = 1;
+  optional int32 slash  = 2;
+  optional int32 crush  = 3;
+  optional int32 magic  = 4;
+  optional int32 ranged = 5;
+}
 
-  // Other bonuses
-  int32 melee_strength  = 11;
-  int32 ranged_strength = 12;
-  int32 magic_damage    = 13;  // Percentage (e.g., 5 = 5%)
-  int32 prayer          = 14;
+// Other bonuses — strength, prayer, magic damage
+message OSRSOtherBonus {
+  optional int32 melee_strength  = 1;
+  optional int32 ranged_strength = 2;
+  optional int32 magic_damage    = 3;  // Percentage (e.g., 5 = 5%)
+  optional int32 prayer          = 4;
 }
 
 // Skill requirements for equipment (all 23 skills + quest)
@@ -188,17 +191,43 @@ message OSRSRequirements {
   optional string quest       = 24;
 }
 
-// Equipment stats for wearable items
+// Equipment stats for wearable/wieldable items (weapons + armor)
 message OSRSEquipment {
-  OSRSSlot slot                  = 1;
-  OSRSWeaponType weapon_type     = 2;
-  optional float weight          = 3;   // kg
-  optional int32 attack_speed    = 4;   // Game ticks (1-10)
-  optional int32 attack_range    = 5;   // Tiles (1-10)
-  optional bool tradeable        = 6;
-  optional bool degradable       = 7;
-  optional OSRSBonuses bonuses   = 8;
-  optional OSRSRequirements requirements = 9;
+  OSRSSlot slot                            = 1;
+  OSRSWeaponType weapon_type               = 2;
+  optional float weight                    = 3;   // kg
+  optional int32 attack_speed              = 4;   // Game ticks (1-10), weapons
+  optional int32 attack_range              = 5;   // Tiles (1-10), weapons
+  optional bool tradeable                  = 6;
+  optional bool degradable                 = 7;
+  optional float degrade_hours             = 8;   // Hours of combat before degrading
+  optional OSRSRequirements requirements   = 9;
+  // Bonus groups — nested to match component access pattern
+  optional OSRSAttackBonus attack_bonus    = 10;  // Weapon offensive stats
+  optional OSRSDefenceBonus defence_bonus  = 11;  // Armor defensive stats
+  optional OSRSOtherBonus other_bonus      = 12;  // Strength, prayer, etc.
+}
+
+// Weapon special attack (e.g., Dragon dagger, AGS, Abyssal whip)
+message OSRSSpecialAttack {
+  optional string name                = 1;
+  optional int32 energy               = 2;   // Percentage 0-100
+  optional string description         = 3;
+  optional float accuracy_modifier    = 4;   // Multiplier (2 = double accuracy)
+  optional float damage_modifier      = 5;   // Multiplier (1.25 = +25% damage)
+  optional bool heals                 = 6;
+  optional bool drains_defence        = 7;
+  optional bool drains_stats          = 8;
+  optional bool freezes               = 9;
+  optional int32 freeze_duration      = 10;  // Ticks
+}
+
+// Armor set bonuses (Barrows, Void, Inquisitor's, etc.)
+message OSRSSetBonus {
+  optional string set_name            = 1;
+  optional int32 pieces_required      = 2;   // Min pieces for bonus (2-5)
+  optional string description         = 3;
+  repeated int32 pieces               = 4;   // Item IDs in the set
 }
 
 // =============================================================================
@@ -239,7 +268,7 @@ message OSRSRecipe {
 }
 
 // =============================================================================
-// Consumables
+// Consumables (Potions + Food)
 // =============================================================================
 
 // Potion/buff effect per dose
@@ -251,12 +280,123 @@ message OSRSEffect {
   optional int32 duration         = 5;   // Ticks
 }
 
-// Consumable item data (potions and food)
+// Potion data (Super combat, Prayer, etc.)
 message OSRSConsumable {
   optional int32 heals            = 1;   // HP healed (food)
   optional int32 doses            = 2;   // Potion doses (0-4)
   optional int32 cooking_level    = 3;   // Required cooking level
   repeated OSRSEffect effects     = 4;   // Potion effects per dose
+}
+
+// Food-specific data (separate from generic consumable)
+message OSRSFood {
+  optional int32 heals            = 1;   // HP healed
+  optional string heals_formula   = 2;   // e.g., "floor(max_hp * 0.06)"
+  optional bool overheal          = 3;   // Can heal above max HP (e.g., Anglerfish)
+  optional int32 cooking_level    = 4;   // Required cooking level
+}
+
+// Cooking burn rate at a specific level
+message OSRSCookingBurnRate {
+  int32 level                     = 1;
+  optional float fire_success     = 2;   // Success rate on fire (0.0-1.0)
+  optional float range_success    = 3;   // Success rate on range
+  optional float gauntlets_success = 4;  // Success rate with cooking gauntlets
+}
+
+// Cooking data (burn rates, stop-burn levels, etc.)
+message OSRSCooking {
+  optional int32 cooking_level    = 1;
+  optional float cooking_xp       = 2;
+  optional int32 stop_burn_level  = 3;   // Level at which burning stops (fire)
+  optional int32 stop_burn_level_gauntlets = 4; // With cooking gauntlets
+  optional int32 stop_burn_level_hosidius  = 5; // With Hosidius range
+  optional int32 raw_item_id      = 6;
+  optional string raw_item_name   = 7;
+  optional int32 burnt_item_id    = 8;
+  optional int32 ticks            = 9;   // Game ticks per cook
+  repeated OSRSCookingBurnRate burn_rates = 10;
+}
+
+// =============================================================================
+// Shops & Obtaining
+// =============================================================================
+
+// Shop purchase source
+message OSRSShopSource {
+  optional string shop_name       = 1;
+  optional string location        = 2;
+  optional string price           = 3;   // String to handle "Free", "N/A"
+  optional int32 stock            = 4;
+  optional string currency        = 5;   // "coins", "tokkul", etc.
+}
+
+// Skilling source (fishing, mining, hunter, etc.)
+message OSRSSkillingSource {
+  optional string skill           = 1;
+  optional int32 level            = 2;
+  optional float xp               = 3;
+  optional string location        = 4;
+  optional string method          = 5;   // e.g., "Net fishing", "Barb-tail harpoon"
+  optional float catch_rate       = 6;
+  optional float success_rate     = 7;
+  optional string tool            = 8;
+  optional string bait            = 9;
+  optional bool members_only      = 10;
+}
+
+// =============================================================================
+// Treasure Trails (Clue Scrolls)
+// =============================================================================
+
+message OSRSTreasureTrail {
+  optional string tier            = 1;   // beginner/easy/medium/hard/elite/master
+  repeated string emotes          = 2;
+  optional string stash_location  = 3;
+  repeated string required_items  = 4;
+  optional bool is_reward         = 5;
+  repeated string reward_tiers    = 6;
+}
+
+// =============================================================================
+// Related Items
+// =============================================================================
+
+message OSRSRelatedItem {
+  optional int32 item_id          = 1;
+  optional string item_name       = 2;
+  optional string relationship    = 3;   // variant/upgrade/downgrade/component/product/set-piece/alternative
+  optional string slug            = 4;
+}
+
+// =============================================================================
+// Item Properties & Metadata
+// =============================================================================
+
+// Wiki infobox properties
+message OSRSItemProperties {
+  optional string release_date    = 1;
+  optional string update          = 2;
+  optional bool tradeable         = 3;
+  optional bool tradeable_ge      = 4;
+  optional bool stackable         = 5;
+  optional bool noteable          = 6;
+  optional bool equipable         = 7;
+  optional bool edible            = 8;
+  optional bool quest_item        = 9;
+  optional string quest           = 10;
+  repeated string options         = 11;  // Right-click options
+  optional bool bankable          = 12;
+  optional bool placeholder       = 13;
+  optional float weight           = 14;  // kg (for non-equipment items)
+}
+
+// SEO and page metadata
+message OSRSMeta {
+  optional string description     = 1;   // Max ~160 chars
+  repeated string keywords        = 2;
+  optional string og_image        = 3;
+  optional string canonical       = 4;
 }
 
 // =============================================================================
@@ -277,6 +417,7 @@ message OSRSPrice {
 
 // Complete OSRS item with all optional nested data
 message OSRSItem {
+  // Base fields (from Wiki API)
   int64 id                            = 1;   // OSRS item ID
   string name                         = 2;
   string slug                         = 3;   // URL-safe slug
@@ -288,12 +429,32 @@ message OSRSItem {
   optional int32 highalch             = 9;
   optional int32 ge_limit             = 10;  // GE buy limit per 4 hours
 
-  // Nested optional data
+  // Equipment (weapons + armor)
   optional OSRSEquipment equipment    = 11;
-  repeated OSRSDropSource drop_sources = 12;
-  repeated OSRSRecipe recipes         = 13;
-  optional OSRSConsumable consumable  = 14;
-  optional OSRSPrice price            = 15;
+  optional OSRSSpecialAttack special_attack = 12;
+  optional OSRSSetBonus set_bonus     = 13;
+
+  // Sources (where to get it)
+  repeated OSRSDropSource drop_sources = 14;
+  repeated OSRSShopSource shops       = 15;
+  optional OSRSSkillingSource skilling_source = 16;
+
+  // Creation (how to make it)
+  repeated OSRSRecipe recipes         = 17;
+
+  // Consumable data
+  optional OSRSConsumable consumable  = 18;
+  optional OSRSFood food              = 19;
+  optional OSRSCooking cooking        = 20;
+
+  // Relationships & classification
+  repeated OSRSRelatedItem related_items = 21;
+  optional OSRSTreasureTrail treasure_trail = 22;
+
+  // Metadata
+  optional OSRSItemProperties properties = 23;
+  optional OSRSMeta meta              = 24;
+  optional OSRSPrice price            = 25;
 }
 
 // =============================================================================
