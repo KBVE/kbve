@@ -57,7 +57,7 @@ jobs:
 
             - name: Upload pinned Dockerfiles
               if: steps.resolve.outputs.digests_changed == 'true'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: pinned-dockerfiles
                   path: |
@@ -73,7 +73,7 @@ jobs:
 
             - name: Upload digest report
               if: steps.resolve.outputs.digests_changed == 'true'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: digest-report
                   path: /tmp/digest-report.md
