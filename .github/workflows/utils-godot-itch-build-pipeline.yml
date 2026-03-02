@@ -86,7 +86,7 @@ jobs:
                   godot --headless --verbose --export-release "Web" "$EXPORT_DIR/web/index.html"
 
             - name: Upload Build Artifact
-              uses: actions/upload-artifact@v6
+              uses: actions/upload-artifact@v7
               with:
                   name: ${{ inputs.build_artifact_name }}
                   path: build/web
