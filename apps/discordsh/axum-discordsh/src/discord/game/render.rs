@@ -266,8 +266,9 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
     // Enemy fields (multi-enemy support)
     for enemy in &session.enemies {
         let enrage_tag = if enemy.enraged { " \u{1F525}" } else { "" };
+        let strike_tag = if enemy.first_strike { " \u{26A1}" } else { "" };
         let mut enemy_lines = vec![
-            format!("**{}{}** (Lv.{})", enemy.name, enrage_tag, enemy.level),
+            format!("**{}{}{}** (Lv.{})", enemy.name, enrage_tag, strike_tag, enemy.level),
             hp_bar(enemy.hp, enemy.max_hp, 10),
             format!("DEF `{}`", enemy.armor),
             intent_description(&enemy.intent),
@@ -1001,6 +1002,7 @@ mod tests {
             map: test_map_default(),
             show_map: false,
             pending_destination: None,
+            enemies_had_first_strike: false,
         }
     }
 
@@ -1174,6 +1176,7 @@ mod tests {
             loot_table_id: "",
             enraged: false,
             index: 0,
+            first_strike: false,
         }];
         let components = render_components(&session);
         // First row should be combat buttons (Attack/Defend/Items/Explore/Flee), not direction buttons

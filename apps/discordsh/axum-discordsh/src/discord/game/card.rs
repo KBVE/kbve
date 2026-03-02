@@ -737,6 +737,7 @@ mod tests {
             map: test_map_default(),
             show_map: false,
             pending_destination: None,
+            enemies_had_first_strike: false,
         }
     }
 

@@ -297,6 +297,7 @@ mod tests {
             map: content::generate_initial_map(&id),
             show_map: false,
             pending_destination: None,
+            enemies_had_first_strike: false,
         };
         state.app.sessions.create(session);
         short_id

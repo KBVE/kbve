@@ -115,6 +115,7 @@ async fn start(
         map,
         show_map: true,
         pending_destination: None,
+        enemies_had_first_strike: false,
     };
 
     let components = render::render_components(&session_state);

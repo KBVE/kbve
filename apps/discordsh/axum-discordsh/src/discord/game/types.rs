@@ -443,6 +443,7 @@ pub struct EnemyState {
     pub loot_table_id: &'static str,
     pub enraged: bool,
     pub index: u8,
+    pub first_strike: bool,
 }
 
 // ── Room state ──────────────────────────────────────────────────────
@@ -570,6 +571,7 @@ pub struct SessionState {
     pub map: MapState,
     pub show_map: bool,
     pub pending_destination: Option<MapPos>,
+    pub enemies_had_first_strike: bool,
 }
 
 impl SessionState {
@@ -660,6 +662,11 @@ impl SessionState {
             }
         }
         ids
+    }
+
+    /// Whether any alive enemy has the first_strike trait.
+    pub fn any_enemy_has_first_strike(&self) -> bool {
+        self.enemies.iter().any(|e| e.first_strike && e.hp > 0)
     }
 
     /// Check if all alive players have submitted pending actions.
@@ -778,6 +785,7 @@ mod tests {
             map: test_map_default(),
             show_map: false,
             pending_destination: None,
+            enemies_had_first_strike: false,
         };
         let roster = session.roster();
         assert_eq!(roster.len(), 2);
@@ -836,6 +844,7 @@ mod tests {
                     loot_table_id: "slime",
                     enraged: false,
                     index: 0,
+                    first_strike: false,
                 },
                 EnemyState {
                     name: "Bat".to_owned(),
@@ -849,6 +858,7 @@ mod tests {
                     loot_table_id: "slime",
                     enraged: false,
                     index: 1,
+                    first_strike: false,
                 },
             ],
             room: super::super::content::generate_room(0),
@@ -858,6 +868,7 @@ mod tests {
             map: test_map_default(),
             show_map: false,
             pending_destination: None,
+            enemies_had_first_strike: false,
         };
 
         assert!(session.has_enemies());
