@@ -1,0 +1,85 @@
+# ServiceAccount used by the n8n Deployment pod
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: n8n-sa
+    namespace: n8n
+---
+# Role: Allow n8n ExternalSecrets SA to read redis-auth secret
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: n8n-redis-access
+    namespace: redis
+rules:
+    - apiGroups: ['']
+      resources: ['services', 'endpoints']
+      verbs: ['get', 'list']
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['redis-auth']
+      verbs: ['get']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: n8n-redis-access-binding
+    namespace: redis
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: n8n-redis-access
+subjects:
+    - kind: ServiceAccount
+      name: n8n-external-secrets
+      namespace: n8n
+---
+# Role: Allow n8n ExternalSecrets SA to read supabase-postgres secret
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: n8n-supabase-access
+    namespace: kilobase
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['supabase-postgres']
+      verbs: ['get']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: n8n-supabase-access-binding
+    namespace: kilobase
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: n8n-supabase-access
+subjects:
+    - kind: ServiceAccount
+      name: n8n-external-secrets
+      namespace: n8n
+---
+# NetworkPolicy: Allow n8n pods to reach Redis on port 6379
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: allow-n8n-to-redis
+    namespace: redis
+spec:
+    podSelector:
+        matchLabels:
+            app.kubernetes.io/name: redis
+    policyTypes:
+        - Ingress
+    ingress:
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        name: n8n
+              - podSelector:
+                    matchLabels:
+                        app: n8n
+          ports:
+              - protocol: TCP
+                port: 6379
