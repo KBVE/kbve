@@ -1,0 +1,14 @@
+---
+title: Sign In
+description: Sign in to Meme.sh with your favorite provider
+template: splash
+hero:
+  title: Sign In
+  tagline: Sign in to Meme.sh
+---
+
+import SignInPage from '../../components/auth/SignInPage';
+
+<div style="margin-left: calc(-1 * var(--sl-content-pad-x, 1rem)); margin-right: calc(-1 * var(--sl-content-pad-x, 1rem)); margin-top: 2rem;">
+  <SignInPage client:only="react" />
+</div>
