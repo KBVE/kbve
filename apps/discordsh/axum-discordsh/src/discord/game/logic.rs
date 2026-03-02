@@ -4510,6 +4510,9 @@ mod tests {
             if session.enemies.is_empty() || !matches!(session.phase, GamePhase::Combat) {
                 break;
             }
+            // Clear player effects each iteration so Battle Fury Sharpened procs
+            // from previous turns don't inflate damage beyond the base range.
+            session.player_mut(OWNER).effects.clear();
             let hp_before = session.enemies[0].hp;
             let _ = apply_action(&mut session, GameAction::Attack, OWNER);
             if !session.enemies.is_empty() {
