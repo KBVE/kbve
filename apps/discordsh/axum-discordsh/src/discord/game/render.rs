@@ -959,7 +959,8 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
     }
 
     // City phase — direction buttons as the LAST row (max 5 rows total)
-    if in_city && !game_over && rows.len() < 5 {
+    // Skip on turn 0 (game start) so players interact with the city first
+    if in_city && !game_over && session.turn > 0 && rows.len() < 5 {
         rows.push(direction_buttons(session));
     }
 
@@ -1155,5 +1156,59 @@ mod tests {
         let components = render_components(&session);
         // Button row + rest button row + buy select menu
         assert!(components.len() >= 2);
+    }
+
+    #[test]
+    fn render_components_combat_no_direction_buttons() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![EnemyState {
+            name: "Goblin".to_owned(),
+            level: 1,
+            hp: 10,
+            max_hp: 10,
+            armor: 0,
+            intent: Intent::Attack { dmg: 3 },
+            effects: Vec::new(),
+            charged: false,
+            loot_table_id: "",
+            enraged: false,
+            index: 0,
+        }];
+        let components = render_components(&session);
+        // First row should be combat buttons (Attack/Defend/Items/Explore/Flee), not direction buttons
+        assert!(!components.is_empty());
+        // Direction button custom IDs contain "mv|" — verify none are present
+        let all_json = format!("{:?}", components);
+        assert!(
+            !all_json.contains("|mv|"),
+            "combat phase should not contain direction buttons"
+        );
+    }
+
+    #[test]
+    fn render_components_city_no_direction_at_start() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        session.turn = 0; // game start
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            !all_json.contains("|mv|"),
+            "city phase at turn 0 should not show direction buttons"
+        );
+    }
+
+    #[test]
+    fn render_components_city_has_direction_after_exploring() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        session.turn = 5; // player has explored
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            all_json.contains("|mv|"),
+            "city phase after turn 0 should show direction buttons"
+        );
     }
 }
