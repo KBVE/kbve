@@ -5,7 +5,6 @@ use super::content;
 use super::types::*;
 
 const CLERIC_HEALS_PER_COMBAT: u8 = 1;
-const PARTY_ACTION_TIMEOUT_SECS: u64 = 60;
 
 // ── Enemy targeting ─────────────────────────────────────────────────
 
@@ -179,22 +178,6 @@ pub fn apply_action(
 ) -> Result<Vec<String>, String> {
     validate_actor(session, actor)?;
     validate_action(session, &action, actor)?;
-
-    // Party mode timeout: auto-defend for inactive players
-    if session.mode == SessionMode::Party
-        && session.phase == GamePhase::WaitingForActions
-        && session.last_action_at.elapsed().as_secs() >= PARTY_ACTION_TIMEOUT_SECS
-    {
-        let alive_ids = session.alive_player_ids();
-        for uid in alive_ids {
-            if !session.pending_actions.contains_key(&uid) {
-                session.pending_actions.insert(uid, GameAction::Defend);
-            }
-        }
-        session
-            .log
-            .push("Action timeout! Defaulting to Defend for inactive players.".to_owned());
-    }
 
     let logs = match action {
         GameAction::Attack => resolve_combat_turn(session, GameAction::Attack, actor),
@@ -372,22 +355,26 @@ fn resolve_combat_turn_solo(
     logs
 }
 
-/// Party mode combat: store pending actions, resolve when all submitted.
+/// Party mode combat: resolve immediately, auto-defending for other players.
 fn resolve_combat_turn_party(
     session: &mut SessionState,
     player_action: GameAction,
     actor: serenity::UserId,
 ) -> Vec<String> {
-    // Store the action
+    // Store the acting player's action
     session.pending_actions.insert(actor, player_action);
 
-    // Check if all alive players have submitted
-    if !session.all_actions_submitted() {
-        session.phase = GamePhase::WaitingForActions;
-        return vec!["Waiting for other players...".to_owned()];
+    // Auto-defend for any alive party member who hasn't submitted
+    let alive_ids = session.alive_player_ids();
+    let mut auto_defended = Vec::new();
+    for uid in alive_ids {
+        if !session.pending_actions.contains_key(&uid) {
+            session.pending_actions.insert(uid, GameAction::Defend);
+            auto_defended.push(uid);
+        }
     }
 
-    // All actions submitted — resolve them all
+    // All actions resolved — process them
     let mut logs = Vec::new();
 
     // Collect all pending actions
@@ -417,7 +404,14 @@ fn resolve_combat_turn_party(
             GameAction::Defend => {
                 let player = session.player_mut(*uid);
                 player.defending = true;
-                logs.push(format!("{} braces for impact!", player.name));
+                if auto_defended.contains(uid) {
+                    logs.push(format!(
+                        "{} takes a defensive stance, covering the party's flank!",
+                        player.name
+                    ));
+                } else {
+                    logs.push(format!("{} braces for impact!", player.name));
+                }
             }
             GameAction::UseItem(item_id, target_opt) => {
                 match apply_item(session, item_id, *uid, *target_opt) {
@@ -552,6 +546,12 @@ fn resolve_player_attack(
         dmg = (dmg as f32 * 0.7) as i32;
     }
 
+    // Warrior charge: +4 bonus damage on first attack
+    let is_charge = player_class == ClassType::Warrior && first_attack;
+    if is_charge {
+        dmg += 4;
+    }
+
     // Resolve the target enemy index for Vec access
     let enemy_vec_idx = if session.enemy_at(target_idx).is_some() {
         session.enemies.iter().position(|e| e.index == target_idx)
@@ -590,19 +590,40 @@ fn resolve_player_attack(
     enemy.hp -= dmg;
 
     let crit_msg = if crit { " Critical hit!" } else { "" };
-    logs.push(format!(
-        "{} strikes {} for {} damage!{}",
-        player_name, enemy_name, dmg, crit_msg
-    ));
 
-    // Warrior passive: 20% chance to stagger (apply Stunned 1 turn)
-    if player_class == ClassType::Warrior && rng.random::<f32>() < 0.20 {
+    if is_charge {
+        // Warrior charge: guaranteed stun + flavor text
+        logs.push(format!(
+            "{} spots an opening and charges into {}! {} damage!{}",
+            player_name, enemy_name, dmg, crit_msg
+        ));
         enemy.effects.push(EffectInstance {
             kind: EffectKind::Stunned,
             stacks: 1,
             turns_left: 1,
         });
-        logs.push(format!("{} staggers the enemy!", player_name));
+        logs.push(format!("The {} is stunned from the charge!", enemy_name));
+    } else if player_class == ClassType::Rogue && first_attack && crit {
+        // Rogue ambush: guaranteed crit on first attack
+        logs.push(format!(
+            "{} strikes from the shadows, ambushing {}! {} damage! Critical hit!",
+            player_name, enemy_name, dmg
+        ));
+    } else {
+        logs.push(format!(
+            "{} strikes {} for {} damage!{}",
+            player_name, enemy_name, dmg, crit_msg
+        ));
+
+        // Warrior passive: 20% chance to stagger (apply Stunned 1 turn)
+        if player_class == ClassType::Warrior && rng.random::<f32>() < 0.20 {
+            enemy.effects.push(EffectInstance {
+                kind: EffectKind::Stunned,
+                stacks: 1,
+                turns_left: 1,
+            });
+            logs.push(format!("{} staggers the {}!", player_name, enemy_name));
+        }
     }
 
     // Boss enrage check
@@ -2733,6 +2754,7 @@ mod tests {
         });
         session.player_mut(OWNER).base_damage_bonus = 0;
         session.player_mut(OWNER).crit_chance = 0.0; // no crits
+        session.player_mut(OWNER).first_attack_in_combat = false; // no charge bonus
 
         let hp_before = session.enemies[0].hp;
         let _ = apply_action(&mut session, GameAction::Attack, OWNER);
@@ -3326,11 +3348,48 @@ mod tests {
         let result = apply_action(&mut session, GameAction::Attack, OWNER);
         assert!(result.is_ok());
         let logs = result.unwrap();
-        // First attack should always crit for a Rogue
-        let has_crit = logs.iter().any(|l| l.contains("Critical hit"));
+        // First attack should always crit for a Rogue with ambush flavor
+        let has_ambush = logs.iter().any(|l| l.contains("ambush") || l.contains("Critical hit"));
         assert!(
-            has_crit,
-            "Rogue first attack should guarantee crit. Logs: {:?}",
+            has_ambush,
+            "Rogue first attack should guarantee crit/ambush. Logs: {:?}",
+            logs
+        );
+        // Flag should be consumed
+        assert!(!session.player(OWNER).first_attack_in_combat);
+    }
+
+    #[test]
+    fn test_warrior_charge_first_attack() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![test_enemy()];
+        let player = session.player_mut(OWNER);
+        player.class = ClassType::Warrior;
+        player.crit_chance = 0.0;
+        player.hp = 200;
+        player.max_hp = 200;
+        player.first_attack_in_combat = true;
+        session.enemies[0].hp = 200;
+        session.enemies[0].max_hp = 200;
+        session.enemies[0].armor = 0;
+
+        let result = apply_action(&mut session, GameAction::Attack, OWNER);
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+
+        // Should have charge flavor text
+        let has_charge = logs.iter().any(|l| l.contains("charges into"));
+        assert!(
+            has_charge,
+            "Warrior first attack should be a charge. Logs: {:?}",
+            logs
+        );
+        // Enemy should be stunned from charge
+        let has_stun = logs.iter().any(|l| l.contains("stunned from the charge"));
+        assert!(
+            has_stun,
+            "Charge should stun the enemy. Logs: {:?}",
             logs
         );
         // Flag should be consumed
@@ -3727,12 +3786,12 @@ mod tests {
     }
 
     #[test]
-    fn test_party_timeout_auto_defend() {
-        use std::time::Duration;
-
+    fn test_party_auto_defend_resolves_immediately() {
+        // When one player acts in party mode, others auto-defend.
+        // The turn resolves immediately without waiting.
         let mut session = test_session();
         session.mode = SessionMode::Party;
-        session.phase = GamePhase::WaitingForActions;
+        session.phase = GamePhase::Combat;
 
         let member_id = serenity::UserId::new(42);
         session.party.push(member_id);
@@ -3749,26 +3808,29 @@ mod tests {
         session.player_mut(OWNER).hp = 200;
         session.player_mut(OWNER).max_hp = 200;
 
-        // Set up a combat enemy
         let mut enemy = test_enemy();
         enemy.hp = 200;
         enemy.max_hp = 200;
         session.enemies = vec![enemy];
 
-        // Set last_action_at to 61 seconds ago
-        session.last_action_at = Instant::now() - Duration::from_secs(61);
-
-        // Owner submits action, member does not
+        // Owner submits attack — member should auto-defend, turn resolves
         let result = apply_action(&mut session, GameAction::Attack, OWNER);
         assert!(result.is_ok());
 
-        // The timeout logic should have auto-defended the member
-        // Since all actions are submitted, the party resolution should have occurred
-        // Check that the member got a defend action (they should not be waiting)
+        let logs = result.unwrap();
+        let log_text = logs.join(" ");
+        // The party member should have auto-defended
+        assert!(
+            log_text.contains("defensive stance") || log_text.contains("braces"),
+            "Party member should auto-defend. Logs: {:?}",
+            logs
+        );
+
+        // Turn resolved — no WaitingForActions
         assert_ne!(
             session.phase,
             GamePhase::WaitingForActions,
-            "Phase should have progressed past WaitingForActions after timeout"
+            "Should never enter WaitingForActions"
         );
     }
 
@@ -4347,9 +4409,8 @@ mod tests {
     }
 
     #[test]
-    fn test_smoke_party_combat_full_turn() {
-        // Create a party session with 2 players in Combat.
-        // Both submit Attack via pending_actions. Resolve the turn.
+    fn test_smoke_party_combat_auto_resolve() {
+        // Party mode: one player attacks, the other auto-defends immediately.
         let mut session = test_session();
         session.mode = SessionMode::Party;
 
@@ -4381,36 +4442,32 @@ mod tests {
         let enemy_hp_before = session.enemies[0].hp;
         let turn_before = session.turn;
 
-        // Player 1 submits Attack - should go to WaitingForActions
-        let result1 = apply_action(&mut session, GameAction::Attack, OWNER);
-        assert!(result1.is_ok());
-        assert_eq!(
+        // Player 1 submits Attack — party member auto-defends, full turn resolves
+        let result = apply_action(&mut session, GameAction::Attack, OWNER);
+        assert!(result.is_ok());
+
+        // Turn should resolve immediately (no WaitingForActions)
+        assert_ne!(
             session.phase,
             GamePhase::WaitingForActions,
-            "Should be waiting for second player"
+            "Should NOT wait for second player — auto-defend resolves immediately"
         );
 
-        // Player 2 submits Attack - should resolve the full turn
-        let result2 = apply_action(&mut session, GameAction::Attack, member_id);
-        assert!(result2.is_ok());
-
-        // After both attacks resolve:
+        // Enemy should have taken damage from player 1's attack
         if !session.enemies.is_empty() {
-            // Enemy should have taken damage from both attacks
             assert!(
                 session.enemies[0].hp < enemy_hp_before,
-                "Enemy should have taken damage from at least one attack"
+                "Enemy should have taken damage from the attack"
             );
         }
 
-        // Turn counter should have incremented (apply_action increments it twice,
-        // once for each player's call)
+        // Turn counter should have incremented
         assert!(
             session.turn > turn_before,
             "Turn counter should have incremented"
         );
 
-        // Phase should be Combat (enemy alive) or Exploring (enemy dead)
+        // Phase should be Combat (enemy alive) or Exploring/GameOver (enemy dead)
         assert!(
             matches!(
                 session.phase,
