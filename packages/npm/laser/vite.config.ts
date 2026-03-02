@@ -39,6 +39,8 @@ export default defineConfig({
 				'three',
 				'@react-three/fiber',
 				'@react-three/drei',
+				'bitecs',
+				'@phaserjs/rapier-connector',
 			],
 			output: {
 				globals: {

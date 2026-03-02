@@ -39,6 +39,7 @@ jobs:
                     apps/mc/Dockerfile \
                     apps/herbmail/axum-herbmail/Dockerfile \
                     apps/memes/axum-memes/Dockerfile \
+                    apps/kbve/axum-kbve/Dockerfile \
                     apps/discordsh/axum-discordsh/Dockerfile \
                     apps/irc/irc-gateway/Dockerfile \
                     apps/discordsh/notification-bot/Dockerfile \
@@ -63,6 +64,7 @@ jobs:
                       apps/mc/Dockerfile
                       apps/herbmail/axum-herbmail/Dockerfile
                       apps/memes/axum-memes/Dockerfile
+                      apps/kbve/axum-kbve/Dockerfile
                       apps/discordsh/axum-discordsh/Dockerfile
                       apps/irc/irc-gateway/Dockerfile
                       apps/discordsh/notification-bot/Dockerfile
@@ -117,6 +119,11 @@ jobs:
                       dockerfile: apps/discordsh/notification-bot/Dockerfile
                       context: apps/discordsh/notification-bot
                       cache_scope: smoke-notification-bot
+                      submodules: false
+                    - name: kbve
+                      dockerfile: apps/kbve/axum-kbve/Dockerfile
+                      context: .
+                      cache_scope: smoke-kbve
                       submodules: false
                     - name: kilobase
                       dockerfile: apps/kbve/kilobase/Dockerfile
@@ -193,6 +200,7 @@ jobs:
                     apps/mc/Dockerfile \
                     apps/herbmail/axum-herbmail/Dockerfile \
                     apps/memes/axum-memes/Dockerfile \
+                    apps/kbve/axum-kbve/Dockerfile \
                     apps/discordsh/axum-discordsh/Dockerfile \
                     apps/irc/irc-gateway/Dockerfile \
                     apps/discordsh/notification-bot/Dockerfile \

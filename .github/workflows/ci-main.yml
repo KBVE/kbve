@@ -319,7 +319,8 @@ jobs:
             items: |
                 [
                   { "name": "mc", "target": "base", "condition": "${{ needs.alter.outputs.mc_base }}", "image": "ghcr.io/kbve/mc-rust-base" },
-                  { "name": "discordsh", "target": "base", "condition": "${{ needs.alter.outputs.discordsh_base }}", "image": "ghcr.io/kbve/discordsh-build-base" }
+                  { "name": "discordsh", "target": "base", "condition": "${{ needs.alter.outputs.discordsh_base }}", "image": "ghcr.io/kbve/discordsh-build-base" },
+                  { "name": "axum-kbve", "target": "base", "condition": "${{ needs.alter.outputs.kbve_base }}", "image": "ghcr.io/kbve/kbve-build-base" }
                 ]
 
     build_base_images:
@@ -372,9 +373,9 @@ jobs:
                 ]
 
     test_docker:
-        needs: ['generate_e2e_docker_matrix', 'build_base_images']
+        needs: ['generate_e2e_docker_matrix']
         name: Test Docker Apps
-        if: ${{ always() && !cancelled() && !failure() && needs.generate_e2e_docker_matrix.outputs.matrix != 'null' }}
+        if: ${{ needs.generate_e2e_docker_matrix.outputs.matrix != 'null' }}
         permissions:
             contents: read
         strategy:

@@ -1,0 +1,14 @@
+---
+title: Feed
+description: Swipe through the freshest memes
+template: splash
+hero:
+  title: Feed
+  tagline: Swipe through the freshest memes
+---
+
+import ReactMemeContent from '../../components/feed/ReactMemeContent';
+
+<div style="margin-left: calc(-1 * var(--sl-content-pad-x, 1rem)); margin-right: calc(-1 * var(--sl-content-pad-x, 1rem)); margin-top: 2rem;">
+  <ReactMemeContent client:only="react" />
+</div>

@@ -376,27 +376,21 @@ export const CreateCollectionRequestSchema = z.object({
 	description: z.string().optional(),
 	is_public: z.boolean(),
 });
-export type CreateCollectionRequest = z.infer<
-	typeof CreateCollectionRequestSchema
->;
+export type CreateCollectionRequest = z.infer<typeof CreateCollectionRequestSchema>;
 
 export const ListCollectionsRequestSchema = z.object({
 	owner_id: z.string(),
 	limit: z.number().int(),
 	cursor: z.string().optional(),
 });
-export type ListCollectionsRequest = z.infer<
-	typeof ListCollectionsRequestSchema
->;
+export type ListCollectionsRequest = z.infer<typeof ListCollectionsRequestSchema>;
 
 export const GetCollectionMemesRequestSchema = z.object({
 	collection_id: z.string(),
 	limit: z.number().int(),
 	cursor: z.string().optional(),
 });
-export type GetCollectionMemesRequest = z.infer<
-	typeof GetCollectionMemesRequestSchema
->;
+export type GetCollectionMemesRequest = z.infer<typeof GetCollectionMemesRequestSchema>;
 
 export const GetTemplateRequestSchema = z.object({
 	id: z.string(),
@@ -507,9 +501,7 @@ export const ListBattleHistoryRequestSchema = z.object({
 	limit: z.number().int(),
 	cursor: z.string().optional(),
 });
-export type ListBattleHistoryRequest = z.infer<
-	typeof ListBattleHistoryRequestSchema
->;
+export type ListBattleHistoryRequest = z.infer<typeof ListBattleHistoryRequestSchema>;
 
 export const SubmitMemeRequestSchema = z.object({
 	title: z.string().optional(),
@@ -573,18 +565,14 @@ export const CreateCollectionResponseSchema = z.object({
 	result: ResultSchema,
 	collection: MemeCollectionSchema.optional(),
 });
-export type CreateCollectionResponse = z.infer<
-	typeof CreateCollectionResponseSchema
->;
+export type CreateCollectionResponse = z.infer<typeof CreateCollectionResponseSchema>;
 
 export const ListCollectionsResponseSchema = z.object({
 	collections: z.array(MemeCollectionSchema),
 	next_cursor: z.string().optional(),
 	has_more: z.boolean(),
 });
-export type ListCollectionsResponse = z.infer<
-	typeof ListCollectionsResponseSchema
->;
+export type ListCollectionsResponse = z.infer<typeof ListCollectionsResponseSchema>;
 
 export const MemeUserProfileSchema = z.object({
 	user_id: z.string(),
@@ -680,9 +668,7 @@ export const GetMemeProfileResponseSchema = z.object({
 	found: z.boolean(),
 	profile: MemeUserProfileSchema.optional(),
 });
-export type GetMemeProfileResponse = z.infer<
-	typeof GetMemeProfileResponseSchema
->;
+export type GetMemeProfileResponse = z.infer<typeof GetMemeProfileResponseSchema>;
 
 export const ListFollowersResponseSchema = z.object({
 	followers: z.array(MemeUserProfileSchema),
@@ -726,9 +712,7 @@ export const ListBattleHistoryResponseSchema = z.object({
 	next_cursor: z.string().optional(),
 	has_more: z.boolean(),
 });
-export type ListBattleHistoryResponse = z.infer<
-	typeof ListBattleHistoryResponseSchema
->;
+export type ListBattleHistoryResponse = z.infer<typeof ListBattleHistoryResponseSchema>;
 
 export const FeedResponseSchema = z.object({
 	memes: z.array(MemeSchema),
@@ -760,6 +744,4 @@ export const GetCollectionMemesResponseSchema = z.object({
 	next_cursor: z.string().optional(),
 	has_more: z.boolean(),
 });
-export type GetCollectionMemesResponse = z.infer<
-	typeof GetCollectionMemesResponseSchema
->;
+export type GetCollectionMemesResponse = z.infer<typeof GetCollectionMemesResponseSchema>;

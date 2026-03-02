@@ -12,6 +12,12 @@ export default defineConfig({
       defaultLocale: 'en',
       locales: { en: { label: 'English' } },
       favicon: '/favicon.svg',
+      head: [
+        { tag: 'meta', attrs: { property: 'og:image', content: 'https://discord.sh/og/default.png' } },
+        { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
+        { tag: 'meta', attrs: { name: 'twitter:image', content: 'https://discord.sh/og/default.png' } },
+        { tag: 'link', attrs: { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' } },
+      ],
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/kbve/kbve' },
         { icon: 'discord', label: 'Discord', href: 'https://kbve.com/discord' },
