@@ -23,13 +23,11 @@ import { authBridge, initSupa } from '../../lib/supa';
 import {
 	Home,
 	BookOpen,
-	LayoutDashboard,
 	Flame,
 	LogIn,
 	LogOut,
 	X,
 	User,
-	Settings,
 	UserCircle,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -47,13 +45,10 @@ const NAV_ITEMS: NavItem[] = [
 	{ label: 'Home', href: '/', icon: Home },
 	{ label: 'Feed', href: '/feed', icon: Flame },
 	{ label: 'Docs', href: '/guides/getting-started', icon: BookOpen },
-	{ label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
 ];
 
 const USER_MENU_ITEMS: NavItem[] = [
 	{ label: 'Profile', href: '/profile', icon: UserCircle },
-	{ label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-	{ label: 'Settings', href: '/settings', icon: Settings },
 ];
 
 function isActive(href: string, path: string): boolean {
