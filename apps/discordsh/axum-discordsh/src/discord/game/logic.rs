@@ -323,7 +323,26 @@ fn resolve_combat_turn_solo(
         GameAction::Defend => {
             let player = session.player_mut(actor);
             player.defending = true;
-            logs.push(format!("{} braces for impact!", player.name));
+            let pname = player.name.clone();
+            let pclass = player.class.clone();
+            logs.push(format!("{} braces for impact!", pname));
+
+            // Cleric defend proc: Prayer of Healing (25% chance, heal 5-10 HP)
+            if pclass == ClassType::Cleric {
+                let mut rng = rand::rng();
+                if rng.random::<f32>() < 0.25 {
+                    let heal = rng.random_range(5..=10);
+                    let player = session.player_mut(actor);
+                    let healed = heal.min(player.max_hp - player.hp);
+                    player.hp = (player.hp + heal).min(player.max_hp);
+                    if healed > 0 {
+                        logs.push(format!(
+                            "{} whispers a prayer, restoring {} HP!",
+                            pname, healed
+                        ));
+                    }
+                }
+            }
         }
         _ => {}
     }
@@ -376,6 +395,7 @@ fn resolve_combat_turn_party(
 
     // All actions resolved — process them
     let mut logs = Vec::new();
+    let mut rng = rand::rng();
 
     // Collect all pending actions
     let actions: Vec<(serenity::UserId, GameAction)> = session.pending_actions.drain().collect();
@@ -404,13 +424,31 @@ fn resolve_combat_turn_party(
             GameAction::Defend => {
                 let player = session.player_mut(*uid);
                 player.defending = true;
+                let pname = player.name.clone();
+                let pclass = player.class.clone();
                 if auto_defended.contains(uid) {
                     logs.push(format!(
                         "{} takes a defensive stance, covering the party's flank!",
-                        player.name
+                        pname
                     ));
                 } else {
-                    logs.push(format!("{} braces for impact!", player.name));
+                    logs.push(format!("{} braces for impact!", pname));
+                }
+
+                // Cleric defend proc: Prayer of Healing (25% chance)
+                if pclass == ClassType::Cleric {
+                    if rng.random::<f32>() < 0.25 {
+                        let heal = rng.random_range(5..=10);
+                        let player = session.player_mut(*uid);
+                        let healed = heal.min(player.max_hp - player.hp);
+                        player.hp = (player.hp + heal).min(player.max_hp);
+                        if healed > 0 {
+                            logs.push(format!(
+                                "{} whispers a prayer, restoring {} HP!",
+                                pname, healed
+                            ));
+                        }
+                    }
                 }
             }
             GameAction::UseItem(item_id, target_opt) => {
@@ -585,26 +623,28 @@ fn resolve_player_attack(
         dmg *= 2;
     }
 
-    let enemy = &mut session.enemies[enemy_vec_idx];
-    dmg = (dmg - enemy.armor).max(1);
-    enemy.hp -= dmg;
+    // Apply damage to enemy (scoped borrow)
+    {
+        let enemy = &mut session.enemies[enemy_vec_idx];
+        dmg = (dmg - enemy.armor).max(1);
+        enemy.hp -= dmg;
+    }
 
     let crit_msg = if crit { " Critical hit!" } else { "" };
 
+    // Attack flavor text + immediate enemy effects (charge stun, stagger)
     if is_charge {
-        // Warrior charge: guaranteed stun + flavor text
         logs.push(format!(
             "{} spots an opening and charges into {}! {} damage!{}",
             player_name, enemy_name, dmg, crit_msg
         ));
-        enemy.effects.push(EffectInstance {
+        session.enemies[enemy_vec_idx].effects.push(EffectInstance {
             kind: EffectKind::Stunned,
             stacks: 1,
             turns_left: 1,
         });
         logs.push(format!("The {} is stunned from the charge!", enemy_name));
     } else if player_class == ClassType::Rogue && first_attack && crit {
-        // Rogue ambush: guaranteed crit on first attack
         logs.push(format!(
             "{} strikes from the shadows, ambushing {}! {} damage! Critical hit!",
             player_name, enemy_name, dmg
@@ -617,7 +657,7 @@ fn resolve_player_attack(
 
         // Warrior passive: 20% chance to stagger (apply Stunned 1 turn)
         if player_class == ClassType::Warrior && rng.random::<f32>() < 0.20 {
-            enemy.effects.push(EffectInstance {
+            session.enemies[enemy_vec_idx].effects.push(EffectInstance {
                 kind: EffectKind::Stunned,
                 stacks: 1,
                 turns_left: 1,
@@ -626,14 +666,101 @@ fn resolve_player_attack(
         }
     }
 
+    // ── Class combat procs (random buffs on attack) ────────────────
+    let enemy_alive = session.enemies[enemy_vec_idx].hp > 0;
+    match player_class {
+        ClassType::Warrior => {
+            // Battle Fury: 15% chance to gain Sharpened (+3 dmg) for 2 turns
+            if rng.random::<f32>() < 0.15 {
+                session.player_mut(actor).effects.push(EffectInstance {
+                    kind: EffectKind::Sharpened,
+                    stacks: 1,
+                    turns_left: 2,
+                });
+                logs.push(format!(
+                    "{} feels a surge of battle fury! (+3 attack for 2 turns)",
+                    player_name
+                ));
+            }
+            // Iron Resolve: 12% chance to gain Shielded for 2 turns
+            if rng.random::<f32>() < 0.12 {
+                session.player_mut(actor).effects.push(EffectInstance {
+                    kind: EffectKind::Shielded,
+                    stacks: 1,
+                    turns_left: 2,
+                });
+                logs.push(format!(
+                    "{}'s resolve hardens like iron! (Shielded for 2 turns)",
+                    player_name
+                ));
+            }
+        }
+        ClassType::Rogue => {
+            // Envenom: 20% chance to poison the enemy for 3 turns
+            if enemy_alive && rng.random::<f32>() < 0.20 {
+                session.enemies[enemy_vec_idx].effects.push(EffectInstance {
+                    kind: EffectKind::Poison,
+                    stacks: 1,
+                    turns_left: 3,
+                });
+                logs.push(format!(
+                    "{}'s blade leaves a poisoned wound on the {}!",
+                    player_name, enemy_name
+                ));
+            }
+            // Shadow Step: 10% chance to gain Shielded for 1 turn
+            if rng.random::<f32>() < 0.10 {
+                session.player_mut(actor).effects.push(EffectInstance {
+                    kind: EffectKind::Shielded,
+                    stacks: 1,
+                    turns_left: 1,
+                });
+                logs.push(format!(
+                    "{} melts into the shadows! (Shielded for 1 turn)",
+                    player_name
+                ));
+            }
+        }
+        ClassType::Cleric => {
+            // Blessing of Light: 20% chance to gain Shielded for 2 turns
+            if rng.random::<f32>() < 0.20 {
+                session.player_mut(actor).effects.push(EffectInstance {
+                    kind: EffectKind::Shielded,
+                    stacks: 1,
+                    turns_left: 2,
+                });
+                logs.push(format!(
+                    "A divine blessing shields {}! (Shielded for 2 turns)",
+                    player_name
+                ));
+            }
+            // Holy Smite: 15% chance to weaken the enemy for 2 turns
+            if enemy_alive && rng.random::<f32>() < 0.15 {
+                session.enemies[enemy_vec_idx].effects.push(EffectInstance {
+                    kind: EffectKind::Weakened,
+                    stacks: 1,
+                    turns_left: 2,
+                });
+                logs.push(format!(
+                    "{}'s holy strike weakens the {}!",
+                    player_name, enemy_name
+                ));
+            }
+        }
+    }
+
     // Boss enrage check
-    if enemy.hp > 0
-        && enemy.hp <= enemy.max_hp / 2
-        && !enemy.enraged
-        && session.room.room_type == RoomType::Boss
     {
-        enemy.enraged = true;
-        logs.push("The boss enters a furious rage!".to_owned());
+        let is_boss_room = session.room.room_type == RoomType::Boss;
+        let enemy = &mut session.enemies[enemy_vec_idx];
+        if enemy.hp > 0
+            && enemy.hp <= enemy.max_hp / 2
+            && !enemy.enraged
+            && is_boss_room
+        {
+            enemy.enraged = true;
+            logs.push("The boss enters a furious rage!".to_owned());
+        }
     }
 
     // LifeSteal from weapon
