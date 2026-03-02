@@ -4,6 +4,7 @@ import * as jose from "https://deno.land/x/jose@v4.14.4/index.ts";
 
 console.log("main function started");
 
+const EDGE_VERSION = Deno.env.get("EDGE_VERSION") ?? "0.1.8";
 const JWT_SECRET = Deno.env.get("JWT_SECRET");
 const VERIFY_JWT = Deno.env.get("VERIFY_JWT") === "true";
 
@@ -32,6 +33,24 @@ async function verifyJWT(jwt: string): Promise<boolean> {
 }
 
 serve(async (req: Request) => {
+  const url = new URL(req.url);
+  const service_name = url.pathname.split("/")[1];
+
+  // Public health endpoint — no auth required
+  if (service_name === "health") {
+    return new Response(
+      JSON.stringify({
+        status: "ok",
+        version: EDGE_VERSION,
+        timestamp: new Date().toISOString(),
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
+
   if (req.method !== "OPTIONS" && VERIFY_JWT) {
     try {
       const token = getAuthToken(req);
@@ -54,11 +73,6 @@ serve(async (req: Request) => {
       );
     }
   }
-
-  const url = new URL(req.url);
-  const { pathname } = url;
-  const path_parts = pathname.split("/");
-  const service_name = path_parts[1];
 
   if (!service_name || service_name === "") {
     const error = { msg: "missing function name in request" };
