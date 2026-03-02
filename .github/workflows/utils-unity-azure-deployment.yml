@@ -121,7 +121,7 @@ jobs:
                   targetPlatform: ${{ matrix.target_platform }}
 
             - name: Upload Artifact
-              uses: actions/upload-artifact@v6
+              uses: actions/upload-artifact@v7
               with:
                   name: Build-${{ matrix.target_platform }}
                   path: build/${{ matrix.target_platform }}
@@ -135,7 +135,7 @@ jobs:
 
         steps:
             - name: Download WebGL Build
-              uses: actions/download-artifact@v7
+              uses: actions/download-artifact@v8
               id: download
               with:
                   name: Build-WebGL
@@ -158,7 +158,7 @@ jobs:
         timeout-minutes: 10
         steps:
             - name: Download WebGL Build
-              uses: actions/download-artifact@v7
+              uses: actions/download-artifact@v8
               id: download
               with:
                   name: Build-WebGL

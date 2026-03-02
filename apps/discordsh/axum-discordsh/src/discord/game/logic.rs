@@ -5,7 +5,6 @@ use super::content;
 use super::types::*;
 
 const CLERIC_HEALS_PER_COMBAT: u8 = 1;
-const PARTY_ACTION_TIMEOUT_SECS: u64 = 60;
 
 // ── Enemy targeting ─────────────────────────────────────────────────
 
@@ -180,22 +179,6 @@ pub fn apply_action(
     validate_actor(session, actor)?;
     validate_action(session, &action, actor)?;
 
-    // Party mode timeout: auto-defend for inactive players
-    if session.mode == SessionMode::Party
-        && session.phase == GamePhase::WaitingForActions
-        && session.last_action_at.elapsed().as_secs() >= PARTY_ACTION_TIMEOUT_SECS
-    {
-        let alive_ids = session.alive_player_ids();
-        for uid in alive_ids {
-            if !session.pending_actions.contains_key(&uid) {
-                session.pending_actions.insert(uid, GameAction::Defend);
-            }
-        }
-        session
-            .log
-            .push("Action timeout! Defaulting to Defend for inactive players.".to_owned());
-    }
-
     let logs = match action {
         GameAction::Attack => resolve_combat_turn(session, GameAction::Attack, actor),
         GameAction::AttackTarget(idx) => {
@@ -207,8 +190,12 @@ pub fn apply_action(
             let mut logs = vec![msg];
             // In solo mode or if all actions resolved, continue with enemy turns
             if session.mode == SessionMode::Solo {
-                let target = pick_enemy_target(session, actor);
-                logs.extend(enemy_turns(session, target));
+                let (fs_logs, first_strike_fired) = maybe_first_strike(session, actor);
+                logs.extend(fs_logs);
+                if !first_strike_fired {
+                    let target = pick_enemy_target(session, actor);
+                    logs.extend(enemy_turns(session, target));
+                }
             }
             logs
         }
@@ -220,8 +207,12 @@ pub fn apply_action(
             let msg = apply_item(session, item_id, actor, target_opt)?;
             let mut logs = vec![msg];
             if session.phase == GamePhase::Combat {
-                let target = pick_enemy_target(session, actor);
-                logs.extend(enemy_turns(session, target));
+                let (fs_logs, first_strike_fired) = maybe_first_strike(session, actor);
+                logs.extend(fs_logs);
+                if !first_strike_fired {
+                    let target = pick_enemy_target(session, actor);
+                    logs.extend(enemy_turns(session, target));
+                }
             }
             logs
         }
@@ -288,6 +279,28 @@ pub fn apply_action(
     Ok(logs)
 }
 
+// ── First-strike initiative ─────────────────────────────────────────
+
+/// If any enemy has `first_strike` and it hasn't fired yet this combat,
+/// run enemy turns first. Returns (log entries, whether first strike fired).
+fn maybe_first_strike(
+    session: &mut SessionState,
+    actor: serenity::UserId,
+) -> (Vec<String>, bool) {
+    if session.enemies_had_first_strike {
+        return (Vec::new(), false);
+    }
+    if !session.any_enemy_has_first_strike() {
+        return (Vec::new(), false);
+    }
+
+    session.enemies_had_first_strike = true;
+    let mut logs = vec!["The enemy strikes first!".to_owned()];
+    let target = pick_enemy_target(session, actor);
+    logs.extend(enemy_turns(session, target));
+    (logs, true)
+}
+
 // ── Combat resolution ───────────────────────────────────────────────
 
 fn resolve_combat_turn(
@@ -312,15 +325,26 @@ fn resolve_combat_turn_solo(
 ) -> Vec<String> {
     let mut logs = Vec::new();
 
+    // First-strike: enemies with initiative attack before the player
+    let (fs_logs, first_strike_fired) = maybe_first_strike(session, actor);
+    logs.extend(fs_logs);
+
+    // If first strike killed the player, bail
+    if session.all_players_dead() {
+        return logs;
+    }
+
     // Stunned check
     {
         let player = session.player_mut(actor);
         if player.stunned_turns > 0 {
             player.stunned_turns -= 1;
             logs.push(format!("{} is stunned and cannot act!", player.name));
-            // Enemy still takes turn
-            let target = pick_enemy_target(session, actor);
-            logs.extend(enemy_turns(session, target));
+            // Enemy still takes turn (unless first strike already covered it)
+            if !first_strike_fired {
+                let target = pick_enemy_target(session, actor);
+                logs.extend(enemy_turns(session, target));
+            }
             logs.extend(tick_all_effects(session, actor));
             return logs;
         }
@@ -340,7 +364,26 @@ fn resolve_combat_turn_solo(
         GameAction::Defend => {
             let player = session.player_mut(actor);
             player.defending = true;
-            logs.push(format!("{} braces for impact!", player.name));
+            let pname = player.name.clone();
+            let pclass = player.class.clone();
+            logs.push(format!("{} braces for impact!", pname));
+
+            // Cleric defend proc: Prayer of Healing (25% chance, heal 5-10 HP)
+            if pclass == ClassType::Cleric {
+                let mut rng = rand::rng();
+                if rng.random::<f32>() < 0.25 {
+                    let heal = rng.random_range(5..=10);
+                    let player = session.player_mut(actor);
+                    let healed = heal.min(player.max_hp - player.hp);
+                    player.hp = (player.hp + heal).min(player.max_hp);
+                    if healed > 0 {
+                        logs.push(format!(
+                            "{} whispers a prayer, restoring {} HP!",
+                            pname, healed
+                        ));
+                    }
+                }
+            }
         }
         _ => {}
     }
@@ -353,9 +396,11 @@ fn resolve_combat_turn_solo(
         return logs;
     }
 
-    // Enemy phase — all enemies take turns
-    let target = pick_enemy_target(session, actor);
-    logs.extend(enemy_turns(session, target));
+    // Enemy phase — skip if first strike already ran enemy turns this round
+    if !first_strike_fired {
+        let target = pick_enemy_target(session, actor);
+        logs.extend(enemy_turns(session, target));
+    }
 
     // Tick effects for all alive players
     logs.extend(tick_all_effects(session, actor));
@@ -372,23 +417,36 @@ fn resolve_combat_turn_solo(
     logs
 }
 
-/// Party mode combat: store pending actions, resolve when all submitted.
+/// Party mode combat: resolve immediately, auto-defending for other players.
 fn resolve_combat_turn_party(
     session: &mut SessionState,
     player_action: GameAction,
     actor: serenity::UserId,
 ) -> Vec<String> {
-    // Store the action
+    // Store the acting player's action
     session.pending_actions.insert(actor, player_action);
 
-    // Check if all alive players have submitted
-    if !session.all_actions_submitted() {
-        session.phase = GamePhase::WaitingForActions;
-        return vec!["Waiting for other players...".to_owned()];
+    // Auto-defend for any alive party member who hasn't submitted
+    let alive_ids = session.alive_player_ids();
+    let mut auto_defended = Vec::new();
+    for uid in alive_ids {
+        if !session.pending_actions.contains_key(&uid) {
+            session.pending_actions.insert(uid, GameAction::Defend);
+            auto_defended.push(uid);
+        }
     }
 
-    // All actions submitted — resolve them all
+    // All actions resolved — process them
     let mut logs = Vec::new();
+    let mut rng = rand::rng();
+
+    // First-strike: enemies with initiative attack before the players
+    let (fs_logs, first_strike_fired) = maybe_first_strike(session, actor);
+    logs.extend(fs_logs);
+
+    if session.all_players_dead() {
+        return logs;
+    }
 
     // Collect all pending actions
     let actions: Vec<(serenity::UserId, GameAction)> = session.pending_actions.drain().collect();
@@ -417,7 +475,32 @@ fn resolve_combat_turn_party(
             GameAction::Defend => {
                 let player = session.player_mut(*uid);
                 player.defending = true;
-                logs.push(format!("{} braces for impact!", player.name));
+                let pname = player.name.clone();
+                let pclass = player.class.clone();
+                if auto_defended.contains(uid) {
+                    logs.push(format!(
+                        "{} takes a defensive stance, covering the party's flank!",
+                        pname
+                    ));
+                } else {
+                    logs.push(format!("{} braces for impact!", pname));
+                }
+
+                // Cleric defend proc: Prayer of Healing (25% chance)
+                if pclass == ClassType::Cleric {
+                    if rng.random::<f32>() < 0.25 {
+                        let heal = rng.random_range(5..=10);
+                        let player = session.player_mut(*uid);
+                        let healed = heal.min(player.max_hp - player.hp);
+                        player.hp = (player.hp + heal).min(player.max_hp);
+                        if healed > 0 {
+                            logs.push(format!(
+                                "{} whispers a prayer, restoring {} HP!",
+                                pname, healed
+                            ));
+                        }
+                    }
+                }
             }
             GameAction::UseItem(item_id, target_opt) => {
                 match apply_item(session, item_id, *uid, *target_opt) {
@@ -451,19 +534,21 @@ fn resolve_combat_turn_party(
         return logs;
     }
 
-    // All enemies take turns, targeting random alive players
-    let alive_ids = session.alive_player_ids();
-    for enemy_idx in 0..session.enemies.len() {
-        if session.enemies[enemy_idx].hp <= 0 {
-            continue;
+    // All enemies take turns — skip if first strike already ran enemy turns
+    if !first_strike_fired {
+        let alive_ids = session.alive_player_ids();
+        for enemy_idx in 0..session.enemies.len() {
+            if session.enemies[enemy_idx].hp <= 0 {
+                continue;
+            }
+            let target = if alive_ids.is_empty() {
+                session.owner
+            } else {
+                let mut rng = rand::rng();
+                alive_ids[rng.random_range(0..alive_ids.len())]
+            };
+            logs.extend(single_enemy_turn(session, enemy_idx, target));
         }
-        let target = if alive_ids.is_empty() {
-            session.owner
-        } else {
-            let mut rng = rand::rng();
-            alive_ids[rng.random_range(0..alive_ids.len())]
-        };
-        logs.extend(single_enemy_turn(session, enemy_idx, target));
     }
 
     // Tick effects for all alive players
@@ -552,6 +637,16 @@ fn resolve_player_attack(
         dmg = (dmg as f32 * 0.7) as i32;
     }
 
+    // Warrior charge: +4 bonus damage on first attack (50% chance, blocked by first-strike enemies)
+    let first_strike_blocked = session.any_enemy_has_first_strike();
+    let is_charge = player_class == ClassType::Warrior
+        && first_attack
+        && !first_strike_blocked
+        && rng.random::<f32>() < 0.50;
+    if is_charge {
+        dmg += 4;
+    }
+
     // Resolve the target enemy index for Vec access
     let enemy_vec_idx = if session.enemy_at(target_idx).is_some() {
         session.enemies.iter().position(|e| e.index == target_idx)
@@ -577,42 +672,152 @@ fn resolve_player_attack(
 
     // Critical hit check
     let mut effective_crit = crit_chance + gear_crit_bonus;
-    if player_class == ClassType::Rogue && first_attack {
-        effective_crit = 1.0; // Rogue guaranteed crit on first attack
+    if player_class == ClassType::Rogue && first_attack && !first_strike_blocked && rng.random::<f32>() < 0.50 {
+        effective_crit = 1.0; // Rogue ambush: guaranteed crit (50% chance, blocked by first-strike)
     }
     let crit = rng.random::<f32>() < effective_crit;
     if crit {
         dmg *= 2;
     }
 
-    let enemy = &mut session.enemies[enemy_vec_idx];
-    dmg = (dmg - enemy.armor).max(1);
-    enemy.hp -= dmg;
+    // Apply damage to enemy (scoped borrow)
+    {
+        let enemy = &mut session.enemies[enemy_vec_idx];
+        dmg = (dmg - enemy.armor).max(1);
+        enemy.hp -= dmg;
+    }
 
     let crit_msg = if crit { " Critical hit!" } else { "" };
-    logs.push(format!(
-        "{} strikes {} for {} damage!{}",
-        player_name, enemy_name, dmg, crit_msg
-    ));
 
-    // Warrior passive: 20% chance to stagger (apply Stunned 1 turn)
-    if player_class == ClassType::Warrior && rng.random::<f32>() < 0.20 {
-        enemy.effects.push(EffectInstance {
+    // Attack flavor text + immediate enemy effects (charge stun, stagger)
+    if is_charge {
+        logs.push(format!(
+            "{} spots an opening and charges into {}! {} damage!{}",
+            player_name, enemy_name, dmg, crit_msg
+        ));
+        session.enemies[enemy_vec_idx].effects.push(EffectInstance {
             kind: EffectKind::Stunned,
             stacks: 1,
             turns_left: 1,
         });
-        logs.push(format!("{} staggers the enemy!", player_name));
+        logs.push(format!("The {} is stunned from the charge!", enemy_name));
+    } else if player_class == ClassType::Rogue && first_attack && crit {
+        logs.push(format!(
+            "{} strikes from the shadows, ambushing {}! {} damage! Critical hit!",
+            player_name, enemy_name, dmg
+        ));
+    } else {
+        logs.push(format!(
+            "{} strikes {} for {} damage!{}",
+            player_name, enemy_name, dmg, crit_msg
+        ));
+
+        // Warrior passive: 20% chance to stagger (apply Stunned 1 turn)
+        if player_class == ClassType::Warrior && rng.random::<f32>() < 0.20 {
+            session.enemies[enemy_vec_idx].effects.push(EffectInstance {
+                kind: EffectKind::Stunned,
+                stacks: 1,
+                turns_left: 1,
+            });
+            logs.push(format!("{} staggers the {}!", player_name, enemy_name));
+        }
+    }
+
+    // ── Class combat procs (random buffs on attack) ────────────────
+    let enemy_alive = session.enemies[enemy_vec_idx].hp > 0;
+    match player_class {
+        ClassType::Warrior => {
+            // Battle Fury: 15% chance to gain Sharpened (+3 dmg) for 2 turns
+            if rng.random::<f32>() < 0.15 {
+                session.player_mut(actor).effects.push(EffectInstance {
+                    kind: EffectKind::Sharpened,
+                    stacks: 1,
+                    turns_left: 2,
+                });
+                logs.push(format!(
+                    "{} feels a surge of battle fury! (+3 attack for 2 turns)",
+                    player_name
+                ));
+            }
+            // Iron Resolve: 12% chance to gain Shielded for 2 turns
+            if rng.random::<f32>() < 0.12 {
+                session.player_mut(actor).effects.push(EffectInstance {
+                    kind: EffectKind::Shielded,
+                    stacks: 1,
+                    turns_left: 2,
+                });
+                logs.push(format!(
+                    "{}'s resolve hardens like iron! (Shielded for 2 turns)",
+                    player_name
+                ));
+            }
+        }
+        ClassType::Rogue => {
+            // Envenom: 20% chance to poison the enemy for 3 turns
+            if enemy_alive && rng.random::<f32>() < 0.20 {
+                session.enemies[enemy_vec_idx].effects.push(EffectInstance {
+                    kind: EffectKind::Poison,
+                    stacks: 1,
+                    turns_left: 3,
+                });
+                logs.push(format!(
+                    "{}'s blade leaves a poisoned wound on the {}!",
+                    player_name, enemy_name
+                ));
+            }
+            // Shadow Step: 10% chance to gain Shielded for 1 turn
+            if rng.random::<f32>() < 0.10 {
+                session.player_mut(actor).effects.push(EffectInstance {
+                    kind: EffectKind::Shielded,
+                    stacks: 1,
+                    turns_left: 1,
+                });
+                logs.push(format!(
+                    "{} melts into the shadows! (Shielded for 1 turn)",
+                    player_name
+                ));
+            }
+        }
+        ClassType::Cleric => {
+            // Blessing of Light: 20% chance to gain Shielded for 2 turns
+            if rng.random::<f32>() < 0.20 {
+                session.player_mut(actor).effects.push(EffectInstance {
+                    kind: EffectKind::Shielded,
+                    stacks: 1,
+                    turns_left: 2,
+                });
+                logs.push(format!(
+                    "A divine blessing shields {}! (Shielded for 2 turns)",
+                    player_name
+                ));
+            }
+            // Holy Smite: 15% chance to weaken the enemy for 2 turns
+            if enemy_alive && rng.random::<f32>() < 0.15 {
+                session.enemies[enemy_vec_idx].effects.push(EffectInstance {
+                    kind: EffectKind::Weakened,
+                    stacks: 1,
+                    turns_left: 2,
+                });
+                logs.push(format!(
+                    "{}'s holy strike weakens the {}!",
+                    player_name, enemy_name
+                ));
+            }
+        }
     }
 
     // Boss enrage check
-    if enemy.hp > 0
-        && enemy.hp <= enemy.max_hp / 2
-        && !enemy.enraged
-        && session.room.room_type == RoomType::Boss
     {
-        enemy.enraged = true;
-        logs.push("The boss enters a furious rage!".to_owned());
+        let is_boss_room = session.room.room_type == RoomType::Boss;
+        let enemy = &mut session.enemies[enemy_vec_idx];
+        if enemy.hp > 0
+            && enemy.hp <= enemy.max_hp / 2
+            && !enemy.enraged
+            && is_boss_room
+        {
+            enemy.enraged = true;
+            logs.push("The boss enters a furious rage!".to_owned());
+        }
     }
 
     // LifeSteal from weapon
@@ -1170,6 +1375,15 @@ fn enemy_turns(session: &mut SessionState, default_target: serenity::UserId) -> 
 // ── Flee resolution ─────────────────────────────────────────────────
 
 fn resolve_flee(session: &mut SessionState, actor: serenity::UserId) -> Vec<String> {
+    let mut logs = Vec::new();
+
+    // First-strike: enemies strike before the flee attempt
+    let (fs_logs, _) = maybe_first_strike(session, actor);
+    logs.extend(fs_logs);
+    if session.all_players_dead() {
+        return logs;
+    }
+
     let mut rng = rand::rng();
 
     // Base 60% success, -5% per room depth, min 30%
@@ -1188,10 +1402,11 @@ fn resolve_flee(session: &mut SessionState, actor: serenity::UserId) -> Vec<Stri
         session.room = hallway;
         session.enemies.clear();
         session.phase = GamePhase::Exploring;
-        vec!["You dash through a narrow passage, escaping the fight!".to_owned()]
+        logs.push("You dash through a narrow passage, escaping the fight!".to_owned());
+        logs
     } else {
         // Failure — enemy gets a free hit on the fleeing player
-        let mut logs = vec!["You stumble trying to flee! The enemy strikes!".to_owned()];
+        logs.push("You stumble trying to flee! The enemy strikes!".to_owned());
         logs.extend(enemy_turns(session, actor)); // Always hits the fleeing player
         logs
     }
@@ -1366,6 +1581,7 @@ fn apply_move(
             session.enemies = enemies;
             session.phase = GamePhase::Combat;
             session.pending_destination = Some(target_pos);
+            session.enemies_had_first_strike = false;
             // Reset per-combat state
             for player in session.players.values_mut() {
                 player.first_attack_in_combat = true;
@@ -1476,6 +1692,7 @@ fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
             }
             session.enemies = enemies;
             session.phase = GamePhase::Combat;
+            session.enemies_had_first_strike = false;
             for player in session.players.values_mut() {
                 player.first_attack_in_combat = true;
                 player.heals_used_this_combat = 0;
@@ -2065,6 +2282,7 @@ fn apply_hallway_choice(
                 logs.push(format!("A {} (Lv.{}) appears!", enemy.name, enemy.level));
                 session.enemies = vec![enemy];
                 session.phase = GamePhase::Combat;
+                session.enemies_had_first_strike = false;
                 // Reset combat state
                 for player in session.players.values_mut() {
                     player.first_attack_in_combat = true;
@@ -2206,6 +2424,7 @@ mod tests {
             map: test_map_default(),
             show_map: false,
             pending_destination: None,
+            enemies_had_first_strike: false,
         }
     }
 
@@ -2222,6 +2441,7 @@ mod tests {
             loot_table_id: "slime",
             enraged: false,
             index: 0,
+            first_strike: false,
         }
     }
 
@@ -2733,6 +2953,7 @@ mod tests {
         });
         session.player_mut(OWNER).base_damage_bonus = 0;
         session.player_mut(OWNER).crit_chance = 0.0; // no crits
+        session.player_mut(OWNER).first_attack_in_combat = false; // no charge bonus
 
         let hp_before = session.enemies[0].hp;
         let _ = apply_action(&mut session, GameAction::Attack, OWNER);
@@ -2812,6 +3033,7 @@ mod tests {
             loot_table_id: "slime",
             enraged: false,
             index: 0,
+            first_strike: false,
         };
         session.enemies = vec![enemy];
 
@@ -2882,11 +3104,12 @@ mod tests {
             max_hp: 200,
             armor: 0,
             effects: Vec::new(),
-            intent: Intent::Attack { dmg: 3 },
+            intent: Intent::Attack { dmg: 20 },
             charged: false,
             loot_table_id: "slime",
             enraged: false,
             index: 0,
+            first_strike: false,
         };
         let enemy2 = EnemyState {
             name: "Slime B".to_owned(),
@@ -2895,11 +3118,12 @@ mod tests {
             max_hp: 200,
             armor: 0,
             effects: Vec::new(),
-            intent: Intent::Attack { dmg: 3 },
+            intent: Intent::Attack { dmg: 20 },
             charged: false,
             loot_table_id: "slime",
             enraged: false,
             index: 1,
+            first_strike: false,
         };
         session.enemies = vec![enemy1, enemy2];
 
@@ -2910,11 +3134,10 @@ mod tests {
         let hp_before = session.player(OWNER).hp;
         let _ = apply_action(&mut session, GameAction::Attack, OWNER);
 
-        // Both enemies should have taken turns (player should have taken damage from both)
+        // Both enemies should have taken turns (player should have taken damage)
         let hp_after = session.player(OWNER).hp;
-        // Two enemies attacking: each deals (3 - 5 armor).max(1) = 1 minimum
-        // But one enemy may be stunned by Warrior's stagger passive (20%)
-        // So player should have taken at least 1 damage
+        // Two enemies attacking: each deals (20 - 5 armor).max(1) = 15
+        // One may be stunned by Warrior's charge/stagger, but at least one should hit
         assert!(
             hp_before - hp_after >= 1,
             "Expected at least 1 damage from enemies, got {}",
@@ -2945,6 +3168,7 @@ mod tests {
             loot_table_id: "boss",
             enraged: false,
             index: 0,
+            first_strike: false,
         };
         session.enemies = vec![boss];
 
@@ -2990,6 +3214,7 @@ mod tests {
             loot_table_id: "slime",
             enraged: false,
             index: 0,
+            first_strike: false,
         };
         let enemy1 = EnemyState {
             name: "Slime B".to_owned(),
@@ -3003,6 +3228,7 @@ mod tests {
             loot_table_id: "slime",
             enraged: false,
             index: 1,
+            first_strike: false,
         };
         session.enemies = vec![enemy0, enemy1];
         session.player_mut(OWNER).hp = 200;
@@ -3120,6 +3346,7 @@ mod tests {
                 loot_table_id: "slime",
                 enraged: false,
                 index: 1,
+                first_strike: false,
             },
         ];
 
@@ -3232,6 +3459,7 @@ mod tests {
             loot_table_id: "slime",
             enraged: false,
             index: 0,
+            first_strike: false,
         };
         session.enemies = vec![enemy];
         session.player_mut(OWNER).hp = 200;
@@ -3309,32 +3537,76 @@ mod tests {
     }
 
     #[test]
-    fn test_rogue_first_attack_guaranteed_crit() {
-        let mut session = test_session();
-        session.phase = GamePhase::Combat;
-        session.enemies = vec![test_enemy()];
-        // Make player a Rogue with 0% crit chance to isolate first-attack mechanic
-        let player = session.player_mut(OWNER);
-        player.class = ClassType::Rogue;
-        player.crit_chance = 0.0;
-        player.hp = 200;
-        player.max_hp = 200;
-        player.first_attack_in_combat = true;
-        session.enemies[0].hp = 200;
-        session.enemies[0].max_hp = 200;
+    fn test_rogue_ambush_50_percent() {
+        // Rogue ambush is now 50% on first attack (blocked by first_strike enemies)
+        let mut ambush_count = 0;
+        let trials = 200;
+        for _ in 0..trials {
+            let mut session = test_session();
+            session.phase = GamePhase::Combat;
+            let mut enemy = test_enemy();
+            enemy.hp = 200;
+            enemy.max_hp = 200;
+            session.enemies = vec![enemy];
+            let player = session.player_mut(OWNER);
+            player.class = ClassType::Rogue;
+            player.crit_chance = 0.0;
+            player.hp = 200;
+            player.max_hp = 200;
+            player.first_attack_in_combat = true;
 
-        let result = apply_action(&mut session, GameAction::Attack, OWNER);
-        assert!(result.is_ok());
-        let logs = result.unwrap();
-        // First attack should always crit for a Rogue
-        let has_crit = logs.iter().any(|l| l.contains("Critical hit"));
+            let result = apply_action(&mut session, GameAction::Attack, OWNER);
+            assert!(result.is_ok());
+            let logs = result.unwrap();
+            if logs.iter().any(|l| l.contains("ambush") || l.contains("Critical hit")) {
+                ambush_count += 1;
+            }
+            // Flag should always be consumed
+            assert!(!session.player(OWNER).first_attack_in_combat);
+        }
+        // 50% rate over 200 trials: expect 60-140 (30%-70%)
         assert!(
-            has_crit,
-            "Rogue first attack should guarantee crit. Logs: {:?}",
-            logs
+            ambush_count >= 60 && ambush_count <= 140,
+            "Rogue ambush rate should be ~50%, got {}/{}",
+            ambush_count, trials
         );
-        // Flag should be consumed
-        assert!(!session.player(OWNER).first_attack_in_combat);
+    }
+
+    #[test]
+    fn test_warrior_charge_50_percent() {
+        // Warrior charge is now 50% on first attack (blocked by first_strike enemies)
+        let mut charge_count = 0;
+        let trials = 200;
+        for _ in 0..trials {
+            let mut session = test_session();
+            session.phase = GamePhase::Combat;
+            let mut enemy = test_enemy();
+            enemy.hp = 200;
+            enemy.max_hp = 200;
+            enemy.armor = 0;
+            session.enemies = vec![enemy];
+            let player = session.player_mut(OWNER);
+            player.class = ClassType::Warrior;
+            player.crit_chance = 0.0;
+            player.hp = 200;
+            player.max_hp = 200;
+            player.first_attack_in_combat = true;
+
+            let result = apply_action(&mut session, GameAction::Attack, OWNER);
+            assert!(result.is_ok());
+            let logs = result.unwrap();
+            if logs.iter().any(|l| l.contains("charges into")) {
+                charge_count += 1;
+            }
+            // Flag should always be consumed
+            assert!(!session.player(OWNER).first_attack_in_combat);
+        }
+        // 50% rate over 200 trials: expect 60-140 (30%-70%)
+        assert!(
+            charge_count >= 60 && charge_count <= 140,
+            "Warrior charge rate should be ~50%, got {}/{}",
+            charge_count, trials
+        );
     }
 
     #[test]
@@ -3727,12 +3999,12 @@ mod tests {
     }
 
     #[test]
-    fn test_party_timeout_auto_defend() {
-        use std::time::Duration;
-
+    fn test_party_auto_defend_resolves_immediately() {
+        // When one player acts in party mode, others auto-defend.
+        // The turn resolves immediately without waiting.
         let mut session = test_session();
         session.mode = SessionMode::Party;
-        session.phase = GamePhase::WaitingForActions;
+        session.phase = GamePhase::Combat;
 
         let member_id = serenity::UserId::new(42);
         session.party.push(member_id);
@@ -3749,26 +4021,29 @@ mod tests {
         session.player_mut(OWNER).hp = 200;
         session.player_mut(OWNER).max_hp = 200;
 
-        // Set up a combat enemy
         let mut enemy = test_enemy();
         enemy.hp = 200;
         enemy.max_hp = 200;
         session.enemies = vec![enemy];
 
-        // Set last_action_at to 61 seconds ago
-        session.last_action_at = Instant::now() - Duration::from_secs(61);
-
-        // Owner submits action, member does not
+        // Owner submits attack — member should auto-defend, turn resolves
         let result = apply_action(&mut session, GameAction::Attack, OWNER);
         assert!(result.is_ok());
 
-        // The timeout logic should have auto-defended the member
-        // Since all actions are submitted, the party resolution should have occurred
-        // Check that the member got a defend action (they should not be waiting)
+        let logs = result.unwrap();
+        let log_text = logs.join(" ");
+        // The party member should have auto-defended
+        assert!(
+            log_text.contains("defensive stance") || log_text.contains("braces"),
+            "Party member should auto-defend. Logs: {:?}",
+            logs
+        );
+
+        // Turn resolved — no WaitingForActions
         assert_ne!(
             session.phase,
             GamePhase::WaitingForActions,
-            "Phase should have progressed past WaitingForActions after timeout"
+            "Should never enter WaitingForActions"
         );
     }
 
@@ -3789,6 +4064,7 @@ mod tests {
             loot_table_id: "slime",
             enraged: false,
             index: 0,
+            first_strike: false,
         };
         let enemy1 = EnemyState {
             name: "Slime B".to_owned(),
@@ -3802,6 +4078,7 @@ mod tests {
             loot_table_id: "slime",
             enraged: false,
             index: 1,
+            first_strike: false,
         };
         session.enemies = vec![enemy0, enemy1];
         session.player_mut(OWNER).hp = 200;
@@ -3849,6 +4126,7 @@ mod tests {
             loot_table_id: "slime",
             enraged: false,
             index: 0,
+            first_strike: false,
         };
         let enemy1 = EnemyState {
             name: "Slime B".to_owned(),
@@ -3862,6 +4140,7 @@ mod tests {
             loot_table_id: "slime",
             enraged: false,
             index: 1,
+            first_strike: false,
         };
         session.enemies = vec![enemy0, enemy1];
         session.player_mut(OWNER).hp = 200;
@@ -4048,6 +4327,7 @@ mod tests {
             loot_table_id: "slime",
             enraged: false,
             index: 0,
+            first_strike: false,
         };
         let enemy1 = EnemyState {
             name: "Live Slime".to_owned(),
@@ -4061,6 +4341,7 @@ mod tests {
             loot_table_id: "slime",
             enraged: false,
             index: 1,
+            first_strike: false,
         };
         session.enemies = vec![enemy0, enemy1];
         session.player_mut(OWNER).hp = 200;
@@ -4220,6 +4501,7 @@ mod tests {
         session.player_mut(OWNER).max_hp = 200;
         session.player_mut(OWNER).base_damage_bonus = 0;
         session.player_mut(OWNER).crit_chance = 0.0; // No crits for determinism
+        session.player_mut(OWNER).first_attack_in_combat = false; // No charge bonus
 
         // Run multiple attacks to get reliable results
         let mut total_damage = 0;
@@ -4228,6 +4510,9 @@ mod tests {
             if session.enemies.is_empty() || !matches!(session.phase, GamePhase::Combat) {
                 break;
             }
+            // Clear player effects each iteration so Battle Fury Sharpened procs
+            // from previous turns don't inflate damage beyond the base range.
+            session.player_mut(OWNER).effects.clear();
             let hp_before = session.enemies[0].hp;
             let _ = apply_action(&mut session, GameAction::Attack, OWNER);
             if !session.enemies.is_empty() {
@@ -4347,9 +4632,8 @@ mod tests {
     }
 
     #[test]
-    fn test_smoke_party_combat_full_turn() {
-        // Create a party session with 2 players in Combat.
-        // Both submit Attack via pending_actions. Resolve the turn.
+    fn test_smoke_party_combat_auto_resolve() {
+        // Party mode: one player attacks, the other auto-defends immediately.
         let mut session = test_session();
         session.mode = SessionMode::Party;
 
@@ -4381,36 +4665,32 @@ mod tests {
         let enemy_hp_before = session.enemies[0].hp;
         let turn_before = session.turn;
 
-        // Player 1 submits Attack - should go to WaitingForActions
-        let result1 = apply_action(&mut session, GameAction::Attack, OWNER);
-        assert!(result1.is_ok());
-        assert_eq!(
+        // Player 1 submits Attack — party member auto-defends, full turn resolves
+        let result = apply_action(&mut session, GameAction::Attack, OWNER);
+        assert!(result.is_ok());
+
+        // Turn should resolve immediately (no WaitingForActions)
+        assert_ne!(
             session.phase,
             GamePhase::WaitingForActions,
-            "Should be waiting for second player"
+            "Should NOT wait for second player — auto-defend resolves immediately"
         );
 
-        // Player 2 submits Attack - should resolve the full turn
-        let result2 = apply_action(&mut session, GameAction::Attack, member_id);
-        assert!(result2.is_ok());
-
-        // After both attacks resolve:
+        // Enemy should have taken damage from player 1's attack
         if !session.enemies.is_empty() {
-            // Enemy should have taken damage from both attacks
             assert!(
                 session.enemies[0].hp < enemy_hp_before,
-                "Enemy should have taken damage from at least one attack"
+                "Enemy should have taken damage from the attack"
             );
         }
 
-        // Turn counter should have incremented (apply_action increments it twice,
-        // once for each player's call)
+        // Turn counter should have incremented
         assert!(
             session.turn > turn_before,
             "Turn counter should have incremented"
         );
 
-        // Phase should be Combat (enemy alive) or Exploring (enemy dead)
+        // Phase should be Combat (enemy alive) or Exploring/GameOver (enemy dead)
         assert!(
             matches!(
                 session.phase,
@@ -4901,6 +5181,290 @@ mod tests {
         assert!(
             found_encounter,
             "Should trigger a travel encounter in 100 moves"
+        );
+    }
+
+    // ── Initiative system tests ──────────────────────────────────────
+
+    fn test_first_strike_enemy() -> EnemyState {
+        EnemyState {
+            name: "Cave Spider".to_owned(),
+            level: 1,
+            hp: 14,
+            max_hp: 14,
+            armor: 0,
+            effects: Vec::new(),
+            intent: Intent::Attack { dmg: 5 },
+            charged: false,
+            loot_table_id: "slime",
+            enraged: false,
+            index: 0,
+            first_strike: true,
+        }
+    }
+
+    #[test]
+    fn test_first_strike_fires_before_player() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![test_first_strike_enemy()];
+        session.player_mut(OWNER).hp = 200;
+        session.player_mut(OWNER).max_hp = 200;
+
+        let hp_before = session.player(OWNER).hp;
+        let result = apply_action(&mut session, GameAction::Defend, OWNER);
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+
+        // Should see "The enemy strikes first!" log
+        assert!(
+            logs.iter().any(|l| l.contains("strikes first")),
+            "Expected first-strike log. Logs: {:?}",
+            logs
+        );
+        // Player should have taken damage from first-strike
+        assert!(
+            session.player(OWNER).hp < hp_before,
+            "Player should take damage from first-strike enemy"
+        );
+    }
+
+    #[test]
+    fn test_first_strike_fires_only_once() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        let mut enemy = test_first_strike_enemy();
+        enemy.hp = 200;
+        enemy.max_hp = 200;
+        session.enemies = vec![enemy];
+        session.player_mut(OWNER).hp = 200;
+        session.player_mut(OWNER).max_hp = 200;
+
+        // First action should trigger first-strike
+        let result1 = apply_action(&mut session, GameAction::Defend, OWNER);
+        assert!(result1.is_ok());
+        let logs1 = result1.unwrap();
+        assert!(
+            logs1.iter().any(|l| l.contains("strikes first")),
+            "First turn should trigger first-strike"
+        );
+
+        // Second action should NOT trigger first-strike again
+        if matches!(session.phase, GamePhase::Combat) {
+            let result2 = apply_action(&mut session, GameAction::Defend, OWNER);
+            assert!(result2.is_ok());
+            let logs2 = result2.unwrap();
+            assert!(
+                !logs2.iter().any(|l| l.contains("strikes first")),
+                "Second turn should NOT re-trigger first-strike. Logs: {:?}",
+                logs2
+            );
+        }
+    }
+
+    #[test]
+    fn test_first_strike_resets_on_new_combat() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        let mut enemy = test_first_strike_enemy();
+        enemy.hp = 1; // will die in one hit
+        session.enemies = vec![enemy];
+        session.player_mut(OWNER).hp = 200;
+        session.player_mut(OWNER).max_hp = 200;
+
+        // Kill enemy (first combat)
+        let _ = apply_action(&mut session, GameAction::Attack, OWNER);
+
+        // enemies_had_first_strike should have been set
+        // Now enter new combat — reset should happen
+        session.phase = GamePhase::Combat;
+        session.enemies_had_first_strike = false; // simulate reset from combat entry
+        let mut new_enemy = test_first_strike_enemy();
+        new_enemy.hp = 200;
+        new_enemy.max_hp = 200;
+        session.enemies = vec![new_enemy];
+        for player in session.players.values_mut() {
+            player.first_attack_in_combat = true;
+            player.heals_used_this_combat = 0;
+        }
+
+        let result = apply_action(&mut session, GameAction::Defend, OWNER);
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        assert!(
+            logs.iter().any(|l| l.contains("strikes first")),
+            "First-strike should fire in new combat. Logs: {:?}",
+            logs
+        );
+    }
+
+    #[test]
+    fn test_no_first_strike_normal_flow() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        let mut enemy = test_enemy(); // no first_strike
+        enemy.hp = 200;
+        enemy.max_hp = 200;
+        session.enemies = vec![enemy];
+        session.player_mut(OWNER).hp = 200;
+        session.player_mut(OWNER).max_hp = 200;
+
+        let result = apply_action(&mut session, GameAction::Attack, OWNER);
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        assert!(
+            !logs.iter().any(|l| l.contains("strikes first")),
+            "Non-first-strike enemy should not trigger initiative. Logs: {:?}",
+            logs
+        );
+    }
+
+    #[test]
+    fn test_charge_blocked_by_first_strike() {
+        // When enemies have first_strike, Warrior charge should NEVER proc
+        let mut charge_count = 0;
+        let trials = 100;
+        for _ in 0..trials {
+            let mut session = test_session();
+            session.phase = GamePhase::Combat;
+            let mut enemy = test_first_strike_enemy();
+            enemy.hp = 200;
+            enemy.max_hp = 200;
+            session.enemies = vec![enemy];
+            let player = session.player_mut(OWNER);
+            player.class = ClassType::Warrior;
+            player.crit_chance = 0.0;
+            player.hp = 200;
+            player.max_hp = 200;
+            player.first_attack_in_combat = true;
+
+            let result = apply_action(&mut session, GameAction::Attack, OWNER);
+            if let Ok(logs) = result {
+                if logs.iter().any(|l| l.contains("charges into")) {
+                    charge_count += 1;
+                }
+            }
+        }
+        assert_eq!(
+            charge_count, 0,
+            "Warrior charge should never proc against first-strike enemies, got {}/{}",
+            charge_count, trials
+        );
+    }
+
+    #[test]
+    fn test_ambush_blocked_by_first_strike() {
+        // When enemies have first_strike, Rogue ambush should NEVER proc
+        let mut ambush_count = 0;
+        let trials = 100;
+        for _ in 0..trials {
+            let mut session = test_session();
+            session.phase = GamePhase::Combat;
+            let mut enemy = test_first_strike_enemy();
+            enemy.hp = 200;
+            enemy.max_hp = 200;
+            session.enemies = vec![enemy];
+            let player = session.player_mut(OWNER);
+            player.class = ClassType::Rogue;
+            player.crit_chance = 0.0;
+            player.hp = 200;
+            player.max_hp = 200;
+            player.first_attack_in_combat = true;
+
+            let result = apply_action(&mut session, GameAction::Attack, OWNER);
+            if let Ok(logs) = result {
+                if logs.iter().any(|l| l.contains("ambush")) {
+                    ambush_count += 1;
+                }
+            }
+        }
+        assert_eq!(
+            ambush_count, 0,
+            "Rogue ambush should never proc against first-strike enemies, got {}/{}",
+            ambush_count, trials
+        );
+    }
+
+    #[test]
+    fn test_monster_variety_first_strike_at_each_tier() {
+        // Verify that each tier has at least one first_strike enemy
+        let mut has_first_strike_t1 = false;
+        let mut has_first_strike_t2 = false;
+        let mut has_first_strike_t3 = false;
+        let mut has_first_strike_boss = false;
+
+        for _ in 0..200 {
+            let e = content::spawn_enemy(0);
+            if e.first_strike {
+                has_first_strike_t1 = true;
+            }
+            let e = content::spawn_enemy(2);
+            if e.first_strike {
+                has_first_strike_t2 = true;
+            }
+            let e = content::spawn_enemy(4);
+            if e.first_strike {
+                has_first_strike_t3 = true;
+            }
+            let e = content::spawn_enemy(6);
+            if e.first_strike {
+                has_first_strike_boss = true;
+            }
+        }
+
+        assert!(
+            has_first_strike_t1,
+            "Tier 1 should have first-strike enemies"
+        );
+        assert!(
+            has_first_strike_t2,
+            "Tier 2 should have first-strike enemies"
+        );
+        assert!(
+            has_first_strike_t3,
+            "Tier 3 should have first-strike enemies"
+        );
+        assert!(
+            has_first_strike_boss,
+            "Boss tier should have first-strike enemies"
+        );
+    }
+
+    #[test]
+    fn test_triple_spawn_at_room_5() {
+        // Room 5 has a 10% chance of 3 enemies — verify it can happen
+        let mut found_triple = false;
+        for _ in 0..300 {
+            let enemies = content::spawn_enemies(5);
+            if enemies.len() == 3 {
+                found_triple = true;
+                // Verify indices are correct
+                assert_eq!(enemies[0].index, 0);
+                assert_eq!(enemies[1].index, 1);
+                assert_eq!(enemies[2].index, 2);
+                break;
+            }
+        }
+        assert!(
+            found_triple,
+            "Room 5 should be able to spawn 3 enemies (10% chance)"
+        );
+    }
+
+    #[test]
+    fn test_room_2_double_spawn() {
+        // Room 2 has 15% chance of 2 enemies
+        let mut found_double = false;
+        for _ in 0..200 {
+            let enemies = content::spawn_enemies(2);
+            if enemies.len() == 2 {
+                found_double = true;
+                break;
+            }
+        }
+        assert!(
+            found_double,
+            "Room 2 should be able to spawn 2 enemies (15% chance)"
         );
     }
 }

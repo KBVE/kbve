@@ -28,7 +28,7 @@ jobs:
                   submodules: true
 
             - name: Install crane
-              uses: imjasonh/setup-crane@v0.4
+              uses: imjasonh/setup-crane@v0.5
 
             - name: Resolve digests
               id: resolve
@@ -57,7 +57,7 @@ jobs:
 
             - name: Upload pinned Dockerfiles
               if: steps.resolve.outputs.digests_changed == 'true'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: pinned-dockerfiles
                   path: |
@@ -73,7 +73,7 @@ jobs:
 
             - name: Upload digest report
               if: steps.resolve.outputs.digests_changed == 'true'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: digest-report
                   path: /tmp/digest-report.md
@@ -139,7 +139,7 @@ jobs:
 
             - name: Download pinned Dockerfiles
               if: needs.resolve_digests.outputs.digests_changed == 'true'
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: pinned-dockerfiles
                   path: .
@@ -175,13 +175,13 @@ jobs:
                   ref: dev
 
             - name: Download pinned Dockerfiles
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: pinned-dockerfiles
                   path: .
 
             - name: Download digest report
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: digest-report
                   path: /tmp

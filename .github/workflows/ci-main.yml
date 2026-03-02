@@ -190,7 +190,7 @@ jobs:
             matrix: ${{ steps.filter.outputs.matrix }}
         steps:
             - name: Download test markers
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   pattern: test-passed-npm-*
                   path: ./test-results
@@ -271,7 +271,7 @@ jobs:
             matrix: ${{ steps.filter.outputs.matrix }}
         steps:
             - name: Download test markers
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   pattern: test-passed-crate-*
                   path: ./test-results
@@ -399,7 +399,7 @@ jobs:
             publish_matrix: ${{ steps.filter.outputs.publish_matrix }}
         steps:
             - name: Download test markers
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   pattern: test-passed-docker-*
                   path: ./test-results
@@ -483,7 +483,7 @@ jobs:
             matrix: ${{ steps.filter.outputs.matrix }}
         steps:
             - name: Download test markers
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   pattern: test-passed-docker-*
                   path: ./test-results
@@ -645,7 +645,7 @@ jobs:
             matrix: ${{ steps.filter.outputs.matrix }}
         steps:
             - name: Download test markers
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   pattern: test-passed-python-*
                   path: ./test-results

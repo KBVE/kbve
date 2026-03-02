@@ -55,7 +55,7 @@ jobs:
 
             - name: Upload test result marker
               if: success()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: test-passed-npm-${{ inputs.project }}
                   path: /tmp/test-result.txt

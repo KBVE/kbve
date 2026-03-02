@@ -74,7 +74,8 @@ export default function ReactionBar({
 	);
 
 	return (
-		<div className="flex flex-col items-center gap-3">
+		<div className="flex flex-col items-center gap-2.5 rounded-2xl p-2.5 backdrop-blur-md"
+			style={{ backgroundColor: 'rgba(0,0,0,0.35)' }}>
 			{visibleReactions.map((r) => {
 				const isActive = userReaction === r.key;
 				return (
@@ -86,10 +87,9 @@ export default function ReactionBar({
 						aria-label={r.label}
 						title={r.label}>
 						<span
-							className="text-2xl leading-none select-none"
+							className="text-[26px] leading-none select-none transition-opacity"
 							style={{
-								filter: isActive ? 'none' : 'grayscale(0.5)',
-								opacity: isActive ? 1 : 0.7,
+								opacity: isActive ? 1 : 0.6,
 							}}>
 							{r.emoji}
 						</span>
@@ -110,9 +110,6 @@ export default function ReactionBar({
 			<span className="text-xs font-medium text-white/60">
 				{formatCount(reactionCount)}
 			</span>
-
-			{/* Divider */}
-			<div className="w-6 h-px bg-white/10" />
 
 			{/* Save / Bookmark */}
 			<button
@@ -136,9 +133,6 @@ export default function ReactionBar({
 				</span>
 			</button>
 
-			{/* Divider */}
-			<div className="w-6 h-px bg-white/10" />
-
 			{/* Comment */}
 			<button
 				type="button"
@@ -146,7 +140,7 @@ export default function ReactionBar({
 				className="flex flex-col items-center gap-0.5 transition-transform duration-150 active:scale-110"
 				aria-label="Comments"
 				title="Comments">
-				<MessageCircle size={22} className="text-white/70" />
+				<MessageCircle size={24} className="text-white/70" />
 				<span className="text-[10px] text-white/60">
 					{formatCount(commentCount)}
 				</span>
@@ -159,7 +153,7 @@ export default function ReactionBar({
 				className="flex flex-col items-center gap-0.5 transition-transform duration-150 active:scale-110"
 				aria-label="Share"
 				title="Share">
-				<Share2 size={22} className="text-white/70" />
+				<Share2 size={24} className="text-white/70" />
 				<span className="text-[10px] text-white/60">
 					{formatCount(shareCount)}
 				</span>
@@ -172,7 +166,7 @@ export default function ReactionBar({
 				className="flex flex-col items-center gap-0.5 transition-transform duration-150 active:scale-110"
 				aria-label="More options"
 				title="More">
-				<MoreHorizontal size={22} className="text-white/70" />
+				<MoreHorizontal size={24} className="text-white/70" />
 			</button>
 		</div>
 	);

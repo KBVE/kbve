@@ -616,7 +616,7 @@ pub fn roll_gear_loot(table_id: &str) -> Option<&'static str> {
 pub fn spawn_enemy(room_index: u32) -> EnemyState {
     let mut rng = rand::rng();
     match room_index {
-        0..=1 => match rng.random_range(0..4) {
+        0..=1 => match rng.random_range(0..6) {
             0 => EnemyState {
                 name: "Glass Slime".to_owned(),
                 level: 1,
@@ -629,6 +629,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 loot_table_id: "slime",
                 enraged: false,
                 index: 0,
+                first_strike: false,
             },
             1 => EnemyState {
                 name: "Crystal Bat".to_owned(),
@@ -642,6 +643,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 loot_table_id: "slime",
                 enraged: false,
                 index: 0,
+                first_strike: false,
             },
             2 => EnemyState {
                 name: "Mushroom Sprite".to_owned(),
@@ -655,8 +657,9 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 loot_table_id: "slime",
                 enraged: false,
                 index: 0,
+                first_strike: false,
             },
-            _ => EnemyState {
+            3 => EnemyState {
                 name: "Dust Mite".to_owned(),
                 level: 1,
                 hp: 12,
@@ -668,9 +671,42 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 loot_table_id: "slime",
                 enraged: false,
                 index: 0,
+                first_strike: false,
+            },
+            4 => EnemyState {
+                name: "Cave Spider".to_owned(),
+                level: 1,
+                hp: 14,
+                max_hp: 14,
+                armor: 0,
+                effects: Vec::new(),
+                intent: Intent::Debuff {
+                    effect: EffectKind::Poison,
+                    stacks: 1,
+                    turns: 2,
+                },
+                charged: false,
+                loot_table_id: "slime",
+                enraged: false,
+                index: 0,
+                first_strike: true,
+            },
+            _ => EnemyState {
+                name: "Crumbling Statue".to_owned(),
+                level: 1,
+                hp: 22,
+                max_hp: 22,
+                armor: 2,
+                effects: Vec::new(),
+                intent: Intent::Defend { armor: 3 },
+                charged: false,
+                loot_table_id: "slime",
+                enraged: false,
+                index: 0,
+                first_strike: false,
             },
         },
-        2..=3 => match rng.random_range(0..4) {
+        2..=3 => match rng.random_range(0..7) {
             0 => EnemyState {
                 name: "Skeleton Guard".to_owned(),
                 level: 2,
@@ -683,6 +719,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 loot_table_id: "skeleton",
                 enraged: false,
                 index: 0,
+                first_strike: false,
             },
             1 => EnemyState {
                 name: "Bone Archer".to_owned(),
@@ -696,6 +733,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 loot_table_id: "skeleton",
                 enraged: false,
                 index: 0,
+                first_strike: false,
             },
             2 => EnemyState {
                 name: "Cursed Knight".to_owned(),
@@ -709,8 +747,9 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 loot_table_id: "skeleton",
                 enraged: false,
                 index: 0,
+                first_strike: false,
             },
-            _ => EnemyState {
+            3 => EnemyState {
                 name: "Fire Imp".to_owned(),
                 level: 2,
                 hp: 18,
@@ -722,9 +761,56 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 loot_table_id: "skeleton",
                 enraged: false,
                 index: 0,
+                first_strike: false,
+            },
+            4 => EnemyState {
+                name: "Shade Stalker".to_owned(),
+                level: 2,
+                hp: 20,
+                max_hp: 20,
+                armor: 1,
+                effects: Vec::new(),
+                intent: Intent::Attack { dmg: 8 },
+                charged: false,
+                loot_table_id: "skeleton",
+                enraged: false,
+                index: 0,
+                first_strike: true,
+            },
+            5 => EnemyState {
+                name: "Fungal Brute".to_owned(),
+                level: 2,
+                hp: 38,
+                max_hp: 38,
+                armor: 2,
+                effects: Vec::new(),
+                intent: Intent::HeavyAttack { dmg: 10 },
+                charged: false,
+                loot_table_id: "skeleton",
+                enraged: false,
+                index: 0,
+                first_strike: false,
+            },
+            _ => EnemyState {
+                name: "Ember Wisp".to_owned(),
+                level: 2,
+                hp: 16,
+                max_hp: 16,
+                armor: 0,
+                effects: Vec::new(),
+                intent: Intent::Debuff {
+                    effect: EffectKind::Burning,
+                    stacks: 1,
+                    turns: 3,
+                },
+                charged: false,
+                loot_table_id: "skeleton",
+                enraged: false,
+                index: 0,
+                first_strike: false,
             },
         },
-        4..=5 => match rng.random_range(0..4) {
+        4..=5 => match rng.random_range(0..7) {
             0 => EnemyState {
                 name: "Shadow Wraith".to_owned(),
                 level: 3,
@@ -737,6 +823,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 loot_table_id: "wraith",
                 enraged: false,
                 index: 0,
+                first_strike: false,
             },
             1 => EnemyState {
                 name: "Phantom Knight".to_owned(),
@@ -750,6 +837,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 loot_table_id: "wraith",
                 enraged: false,
                 index: 0,
+                first_strike: false,
             },
             2 => EnemyState {
                 name: "Void Walker".to_owned(),
@@ -763,8 +851,9 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 loot_table_id: "wraith",
                 enraged: false,
                 index: 0,
+                first_strike: false,
             },
-            _ => EnemyState {
+            3 => EnemyState {
                 name: "Stone Sentinel".to_owned(),
                 level: 3,
                 hp: 40,
@@ -776,55 +865,159 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 loot_table_id: "wraith",
                 enraged: false,
                 index: 0,
+                first_strike: false,
+            },
+            4 => EnemyState {
+                name: "Glass Assassin".to_owned(),
+                level: 3,
+                hp: 22,
+                max_hp: 22,
+                armor: 1,
+                effects: Vec::new(),
+                intent: Intent::Attack { dmg: 10 },
+                charged: false,
+                loot_table_id: "wraith",
+                enraged: false,
+                index: 0,
+                first_strike: true,
+            },
+            5 => EnemyState {
+                name: "Venomfang Lurker".to_owned(),
+                level: 3,
+                hp: 26,
+                max_hp: 26,
+                armor: 3,
+                effects: Vec::new(),
+                intent: Intent::Debuff {
+                    effect: EffectKind::Poison,
+                    stacks: 2,
+                    turns: 3,
+                },
+                charged: false,
+                loot_table_id: "wraith",
+                enraged: false,
+                index: 0,
+                first_strike: true,
+            },
+            _ => EnemyState {
+                name: "Crystal Golem".to_owned(),
+                level: 3,
+                hp: 45,
+                max_hp: 45,
+                armor: 8,
+                effects: Vec::new(),
+                intent: Intent::Charge,
+                charged: false,
+                loot_table_id: "wraith",
+                enraged: false,
+                index: 0,
+                first_strike: false,
             },
         },
-        _ => {
-            if rng.random_range(0..2) == 0 {
-                EnemyState {
-                    name: "Glass Golem".to_owned(),
-                    level: 5,
-                    hp: 60,
-                    max_hp: 60,
-                    armor: 8,
-                    effects: Vec::new(),
-                    intent: Intent::Charge,
-                    charged: false,
-                    loot_table_id: "boss",
-                    enraged: false,
-                    index: 0,
-                }
-            } else {
-                EnemyState {
-                    name: "Corrupted Warden".to_owned(),
-                    level: 5,
-                    hp: 50,
-                    max_hp: 50,
-                    armor: 10,
-                    effects: Vec::new(),
-                    intent: Intent::Charge,
-                    charged: false,
-                    loot_table_id: "boss",
-                    enraged: false,
-                    index: 0,
-                }
-            }
-        }
+        _ => match rng.random_range(0..3) {
+            0 => EnemyState {
+                name: "Glass Golem".to_owned(),
+                level: 5,
+                hp: 60,
+                max_hp: 60,
+                armor: 8,
+                effects: Vec::new(),
+                intent: Intent::Charge,
+                charged: false,
+                loot_table_id: "boss",
+                enraged: false,
+                index: 0,
+                first_strike: false,
+            },
+            1 => EnemyState {
+                name: "Corrupted Warden".to_owned(),
+                level: 5,
+                hp: 50,
+                max_hp: 50,
+                armor: 10,
+                effects: Vec::new(),
+                intent: Intent::Charge,
+                charged: false,
+                loot_table_id: "boss",
+                enraged: false,
+                index: 0,
+                first_strike: false,
+            },
+            _ => EnemyState {
+                name: "The Shattered King".to_owned(),
+                level: 5,
+                hp: 55,
+                max_hp: 55,
+                armor: 6,
+                effects: Vec::new(),
+                intent: Intent::AoeAttack { dmg: 8 },
+                charged: false,
+                loot_table_id: "boss",
+                enraged: false,
+                index: 0,
+                first_strike: true,
+            },
+        },
     }
 }
 
 /// Spawn one or more enemies for a room, scaling count by depth.
-/// - Rooms 0-2: always 1 enemy.
-/// - Rooms 3-5: 25% chance of 2 enemies, each at 70% HP.
+/// - Rooms 0-1: always 1 enemy.
+/// - Room 2: 15% chance of 2 enemies at 80% HP.
+/// - Rooms 3-4: 30% chance of 2 enemies at 70% HP.
+/// - Room 5: 30% chance of 2 at 70% HP, 10% chance of 3 at 55% HP.
 /// - Boss rooms (index >= 6): always 1 boss.
 pub fn spawn_enemies(room_index: u32) -> Vec<EnemyState> {
     let mut rng = rand::rng();
     match room_index {
-        0..=2 => vec![spawn_enemy(room_index)],
-        3..=5 => {
-            if rng.random_range(0.0f32..1.0) < 0.25 {
+        0..=1 => vec![spawn_enemy(room_index)],
+        2 => {
+            if rng.random_range(0.0f32..1.0) < 0.15 {
                 let mut e1 = spawn_enemy(room_index);
                 let mut e2 = spawn_enemy(room_index);
-                // Reduce each to 70% HP
+                e1.max_hp = (e1.max_hp as f32 * 0.8) as i32;
+                e1.hp = e1.max_hp;
+                e1.index = 0;
+                e2.max_hp = (e2.max_hp as f32 * 0.8) as i32;
+                e2.hp = e2.max_hp;
+                e2.index = 1;
+                vec![e1, e2]
+            } else {
+                vec![spawn_enemy(room_index)]
+            }
+        }
+        3..=4 => {
+            if rng.random_range(0.0f32..1.0) < 0.30 {
+                let mut e1 = spawn_enemy(room_index);
+                let mut e2 = spawn_enemy(room_index);
+                e1.max_hp = (e1.max_hp as f32 * 0.7) as i32;
+                e1.hp = e1.max_hp;
+                e1.index = 0;
+                e2.max_hp = (e2.max_hp as f32 * 0.7) as i32;
+                e2.hp = e2.max_hp;
+                e2.index = 1;
+                vec![e1, e2]
+            } else {
+                vec![spawn_enemy(room_index)]
+            }
+        }
+        5 => {
+            let roll = rng.random_range(0.0f32..1.0);
+            if roll < 0.10 {
+                // 10% chance: 3 enemies at 55% HP
+                let mut e1 = spawn_enemy(room_index);
+                let mut e2 = spawn_enemy(room_index);
+                let mut e3 = spawn_enemy(room_index);
+                for (i, e) in [&mut e1, &mut e2, &mut e3].iter_mut().enumerate() {
+                    e.max_hp = (e.max_hp as f32 * 0.55) as i32;
+                    e.hp = e.max_hp;
+                    e.index = i as u8;
+                }
+                vec![e1, e2, e3]
+            } else if roll < 0.40 {
+                // 30% chance: 2 enemies at 70% HP
+                let mut e1 = spawn_enemy(room_index);
+                let mut e2 = spawn_enemy(room_index);
                 e1.max_hp = (e1.max_hp as f32 * 0.7) as i32;
                 e1.hp = e1.max_hp;
                 e1.index = 0;
@@ -1786,7 +1979,7 @@ mod tests {
     fn enemy_scaling() {
         let e0 = spawn_enemy(0);
         assert_eq!(e0.level, 1);
-        assert!(e0.hp <= 20);
+        assert!(e0.hp <= 25); // Crumbling Statue is the tankiest tier-1 at 22 HP
         assert!(!e0.enraged);
 
         let e2 = spawn_enemy(2);
@@ -1820,7 +2013,7 @@ mod tests {
             assert_eq!(enemies.len(), 1);
         }
 
-        // Mid rooms (3-5): can be 1 or 2
+        // Mid rooms (3-4): can be 1 or 2
         let mut saw_two = false;
         let mut saw_one = false;
         for _ in 0..200 {
@@ -1832,9 +2025,10 @@ mod tests {
                     assert_eq!(enemies[0].index, 0);
                     assert_eq!(enemies[1].index, 1);
                     // Check HP is reduced (70% of max)
-                    assert!(enemies[0].hp < 30); // Even the tankiest enemy at 40 HP * 0.7 = 28
+                    // Crystal Golem is the tankiest at 45 HP * 0.7 = 31
+                    assert!(enemies[0].hp < 35);
                 }
-                _ => panic!("unexpected enemy count"),
+                _ => panic!("unexpected enemy count at room 4"),
             }
             if saw_one && saw_two {
                 break;
