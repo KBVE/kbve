@@ -1,20 +1,22 @@
 # Ingress: n8n.kbve.com routing
 #
 # Split into two ingress resources:
-#   1. Webhook ingress — open, no auth (GitHub, external triggers)
-#   2. Editor ingress — basic auth + CORS (double layer with n8n login)
+#   1. Open ingress — webhooks, API, assets, static files (no auth)
+#   2. Editor ingress — basic auth on the root HTML page only
 #
-# CORS is required on the editor ingress so that OPTIONS preflight
-# requests pass through before the basic auth check. Without it,
-# the browser's preflight gets 401'd and all fetch() calls fail.
+# n8n's SPA makes fetch() calls to /rest/*, loads JS from /assets/*,
+# etc. These must bypass basic auth because n8n's own 401 responses
+# (login flow) conflict with NGINX basic auth 401 and cause infinite
+# re-prompts. By routing all SPA paths through the open ingress,
+# only the initial page load triggers the basic auth prompt.
 #
 # Basic auth credentials stored in n8n-basic-auth SealedSecret.
 
-# --- Webhook ingress (open) ---
+# --- Open ingress (webhooks + SPA assets/API) ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-    name: n8n-webhook-ingress
+    name: n8n-open-ingress
     namespace: n8n
     annotations:
         kubernetes.io/ingress.class: nginx
@@ -31,6 +33,7 @@ spec:
         - host: n8n.kbve.com
           http:
               paths:
+                  # Webhooks (external triggers)
                   - path: /webhook
                     pathType: Prefix
                     backend:
@@ -45,8 +48,51 @@ spec:
                             name: n8n
                             port:
                                 number: 5678
+                  # SPA API + assets (must bypass basic auth)
+                  - path: /rest
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: n8n
+                            port:
+                                number: 5678
+                  - path: /assets
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: n8n
+                            port:
+                                number: 5678
+                  - path: /static
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: n8n
+                            port:
+                                number: 5678
+                  - path: /healthz
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: n8n
+                            port:
+                                number: 5678
+                  - path: /icons
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: n8n
+                            port:
+                                number: 5678
+                  - path: /types
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: n8n
+                            port:
+                                number: 5678
 ---
-# --- Editor ingress (basic auth + CORS) ---
+# --- Editor ingress (basic auth on root page only) ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -58,10 +104,6 @@ metadata:
         nginx.ingress.kubernetes.io/auth-type: basic
         nginx.ingress.kubernetes.io/auth-secret: n8n-basic-auth
         nginx.ingress.kubernetes.io/auth-realm: 'n8n - Authentication Required'
-        nginx.ingress.kubernetes.io/enable-cors: 'true'
-        nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
-        nginx.ingress.kubernetes.io/cors-allow-methods: 'GET, PUT, POST, DELETE, PATCH, OPTIONS'
-        nginx.ingress.kubernetes.io/cors-allow-headers: 'DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,browser-id,push-ref'
         nginx.ingress.kubernetes.io/proxy-body-size: '16m'
         nginx.ingress.kubernetes.io/proxy-read-timeout: '300'
         nginx.ingress.kubernetes.io/proxy-send-timeout: '300'
