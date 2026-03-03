@@ -1,20 +1,22 @@
-# Local Postgres + Redis + n8n for testing n8n integration.
+# Production-replica Postgres + Redis + n8n for pre-deployment validation.
 #
-# Runs all services together so you can verify:
-#   - n8n boots with DB_POSTGRESDB_SCHEMA=n8n
+# Uses the CNPG production image (x86-only, Rosetta on ARM Macs)
+# with the `supabase` database — same as production. Validates:
+#   - All dbmate migrations apply cleanly on production image
+#   - n8n boots with DB_POSTGRESDB_SCHEMA=n8n on `supabase` db
 #   - TypeORM creates all tables in the n8n schema
 #   - Queue mode works with Redis (EXECUTIONS_MODE=queue)
-#   - n8n editor is accessible at http://localhost:5678
 #   - Existing schemas (mc, meme, discordsh, osrs) are unaffected
+#   - n8n editor is accessible at http://localhost:5678
 #
 # Usage:
-#   cp n8n-docker-compose.yml docker-compose.yml
+#   cp n8n-prod-docker-compose.yml docker-compose.yml
 #   docker compose up -d
 #   # Wait for postgres to be healthy, then apply migrations:
-#   DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres?sslmode=disable&search_path=dbmate,public" \
+#   DATABASE_URL="postgresql://postgres:postgres@localhost:54322/supabase?sslmode=disable&search_path=dbmate,public" \
 #     dbmate --no-dump-schema --migrations-dir migrations up
 #   # Wait ~30s for n8n to run TypeORM migrations, then verify:
-#   psql "postgresql://postgres:postgres@localhost:54322/postgres" -c "\dt n8n.*"
+#   psql "postgresql://postgres:postgres@localhost:54322/supabase" -c "\dt n8n.*"
 #   # Open n8n editor:
 #   open http://localhost:5678
 #   # Tear down:
@@ -22,13 +24,14 @@
 
 services:
     postgres:
-        image: postgres:17-alpine
+        image: ghcr.io/kbve/postgres:17.4.1.069-kilobase
+        platform: linux/amd64
         ports:
             - '54322:5432'
         environment:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: postgres
-            POSTGRES_DB: postgres
+            POSTGRES_DB: supabase
         volumes:
             - ./init:/docker-entrypoint-initdb.d
             - pgdata:/var/lib/postgresql/data
@@ -36,7 +39,7 @@ services:
             test: ['CMD-SHELL', 'pg_isready -U postgres']
             interval: 5s
             timeout: 3s
-            retries: 5
+            retries: 10
 
     redis:
         image: redis:7-alpine
@@ -56,7 +59,7 @@ services:
             - DB_TYPE=postgresdb
             - DB_POSTGRESDB_HOST=postgres
             - DB_POSTGRESDB_PORT=5432
-            - DB_POSTGRESDB_DATABASE=postgres
+            - DB_POSTGRESDB_DATABASE=supabase
             - DB_POSTGRESDB_USER=postgres
             - DB_POSTGRESDB_PASSWORD=postgres
             - DB_POSTGRESDB_SCHEMA=n8n
