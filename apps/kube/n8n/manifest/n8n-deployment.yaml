@@ -91,11 +91,11 @@ spec:
                                 key: auth-token
                   resources:
                       requests:
-                          memory: '512Mi'
-                          cpu: '500m'
+                          memory: '2Gi'
+                          cpu: '2000m'
                       limits:
-                          memory: '1024Mi'
-                          cpu: '1000m'
+                          memory: '8Gi'
+                          cpu: '4000m'
                   livenessProbe:
                       httpGet:
                           path: /healthz
@@ -132,11 +132,11 @@ spec:
                         value: '5'
                   resources:
                       requests:
-                          memory: '256Mi'
-                          cpu: '250m'
-                      limits:
                           memory: '512Mi'
                           cpu: '500m'
+                      limits:
+                          memory: '1Gi'
+                          cpu: '1000m'
                   livenessProbe:
                       httpGet:
                           path: /healthz
