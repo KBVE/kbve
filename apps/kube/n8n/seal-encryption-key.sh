@@ -49,7 +49,7 @@ fi
 
 echo "Generating n8n encryption key and sealing..."
 
-openssl rand -hex 32 \
+openssl rand -hex 32 | tr -d '\n' \
 | kubectl create secret generic n8n-encryption-secret \
     --namespace=n8n \
     --from-file=encryption-key=/dev/stdin \

@@ -52,7 +52,7 @@ fi
 
 echo "Generating n8n task runner auth token and sealing..."
 
-openssl rand -hex 32 \
+openssl rand -hex 32 | tr -d '\n' \
 | kubectl create secret generic n8n-runner-auth \
     --namespace=n8n \
     --from-file=auth-token=/dev/stdin \
