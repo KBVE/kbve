@@ -78,14 +78,20 @@ export interface UserProfile {
 }
 
 /** Reaction types matching ReactionType enum (1-indexed, 0 = unspecified) */
-export const REACTIONS = [
-	{ key: 1, emoji: '👍', label: 'Like' },
-	{ key: 2, emoji: '👎', label: 'Dislike' },
-	{ key: 3, emoji: '🔥', label: 'Fire' },
-	{ key: 4, emoji: '💀', label: 'Skull' },
-	{ key: 5, emoji: '😢', label: 'Cry' },
-	{ key: 6, emoji: '🧢', label: 'Cap' },
-] as const;
+export interface Reaction {
+	key: number;
+	icon: string;
+	label: string;
+}
+
+export const REACTIONS: Reaction[] = [
+	{ key: 1, icon: 'ThumbsUp', label: 'Like' },
+	{ key: 2, icon: 'ThumbsDown', label: 'Dislike' },
+	{ key: 3, icon: 'Flame', label: 'Fire' },
+	{ key: 4, icon: 'Skull', label: 'Skull' },
+	{ key: 5, icon: 'Frown', label: 'Cry' },
+	{ key: 6, icon: 'ShieldAlert', label: 'Cap' },
+];
 
 /** Report reasons matching ReportReason enum (1-7) */
 export const REPORT_REASONS = [
@@ -167,9 +173,7 @@ interface EdgeReportResponse {
 
 // ── Feed ─────────────────────────────────────────────────────────────────
 
-export async function fetchFeed(
-	params: FeedParams = {},
-): Promise<FeedPage> {
+export async function fetchFeed(params: FeedParams = {}): Promise<FeedPage> {
 	const data = await callEdge<EdgeFeedResponse>('meme', {
 		command: 'feed.list',
 		limit: params.limit ?? 5,
@@ -196,6 +200,19 @@ export async function trackShare(memeId: string): Promise<void> {
 		command: 'feed.share',
 		meme_id: memeId,
 	});
+}
+
+export async function fetchMemeById(id: string): Promise<FeedMeme | null> {
+	try {
+		const data = await callEdge<EdgeFeedResponse>('meme', {
+			command: 'feed.list',
+			limit: 1,
+			meme_id: id,
+		});
+		return data.memes[0] ?? null;
+	} catch {
+		return null;
+	}
 }
 
 // ── Reactions ────────────────────────────────────────────────────────────
@@ -251,9 +268,7 @@ export async function getUserReactions(
 	return map;
 }
 
-export async function getUserSaves(
-	memeIds: string[],
-): Promise<Set<string>> {
+export async function getUserSaves(memeIds: string[]): Promise<Set<string>> {
 	const data = await callEdge<EdgeUserSavesResponse>('meme', {
 		command: 'user.saves',
 		meme_ids: memeIds,
@@ -311,9 +326,7 @@ export async function deleteComment(commentId: string): Promise<void> {
 
 // ── Profiles ─────────────────────────────────────────────────────────────
 
-export async function getProfile(
-	userId: string,
-): Promise<UserProfile | null> {
+export async function getProfile(userId: string): Promise<UserProfile | null> {
 	const data = await callEdge<EdgeProfileResponse>('meme', {
 		command: 'profile.get',
 		user_id: userId,

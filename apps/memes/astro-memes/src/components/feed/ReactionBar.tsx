@@ -2,15 +2,31 @@ import { useCallback } from 'react';
 import { useStore } from '@nanostores/react';
 import { $auth, openModal } from '@kbve/astro';
 import {
+	ThumbsUp,
+	ThumbsDown,
+	Flame,
+	Skull,
+	Frown,
+	ShieldAlert,
 	Bookmark,
 	BookmarkCheck,
 	MessageCircle,
 	Share2,
 	MoreHorizontal,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { REACTIONS } from '../../lib/memeService';
 
 const SIGNIN_MODAL = 'signin';
+
+const ICON_MAP: Record<string, LucideIcon> = {
+	ThumbsUp,
+	ThumbsDown,
+	Flame,
+	Skull,
+	Frown,
+	ShieldAlert,
+};
 
 interface ReactionBarProps {
 	memeId: string;
@@ -74,10 +90,13 @@ export default function ReactionBar({
 	);
 
 	return (
-		<div className="flex flex-col items-center gap-2.5 rounded-2xl p-2.5 backdrop-blur-md"
+		<div
+			className="flex flex-col items-center gap-2.5 rounded-2xl p-2.5 backdrop-blur-md"
 			style={{ backgroundColor: 'rgba(0,0,0,0.35)' }}>
 			{visibleReactions.map((r) => {
 				const isActive = userReaction === r.key;
+				const Icon = ICON_MAP[r.icon];
+				if (!Icon) return null;
 				return (
 					<button
 						key={r.key}
@@ -86,13 +105,21 @@ export default function ReactionBar({
 						className="flex flex-col items-center gap-0.5 transition-transform duration-150 active:scale-110"
 						aria-label={r.label}
 						title={r.label}>
-						<span
-							className="text-[26px] leading-none select-none transition-opacity"
-							style={{
-								opacity: isActive ? 1 : 0.6,
-							}}>
-							{r.emoji}
-						</span>
+						<Icon
+							size={22}
+							className={
+								isActive
+									? 'transition-colors'
+									: 'text-white/60 transition-colors'
+							}
+							style={
+								isActive
+									? {
+											color: 'var(--sl-color-text-accent, #22d3ee)',
+										}
+									: undefined
+							}
+						/>
 						{isActive && (
 							<span
 								className="text-[10px] font-bold"

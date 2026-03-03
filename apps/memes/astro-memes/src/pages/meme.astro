@@ -1,0 +1,55 @@
+---
+// Dedicated meme page — renders a single meme by ?id= query param
+// Uses client:only to avoid SSR (no adapter configured)
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Meme — Meme.sh</title>
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="description" content="View and share memes on Meme.sh" />
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+			:root {
+				--sl-color-bg: #0a0a0a;
+				--sl-color-white: #e2e8f0;
+				--sl-color-gray-2: #a1a1aa;
+				--sl-color-gray-3: #71717a;
+				--sl-color-gray-6: #1c1c1e;
+				--sl-color-text-accent: #22d3ee;
+				--sl-color-accent-low: #164e63;
+				--sl-color-hairline: rgba(255, 255, 255, 0.06);
+			}
+			body {
+				font-family:
+					system-ui,
+					-apple-system,
+					'Segoe UI',
+					Roboto,
+					sans-serif;
+				background-color: var(--sl-color-bg);
+				color: var(--sl-color-white);
+				min-height: 100dvh;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="meme-root"></div>
+
+		<script>
+			import { createElement } from 'react';
+			import { createRoot } from 'react-dom/client';
+			import MemePage from '../components/meme/MemePage';
+
+			const root = createRoot(document.getElementById('meme-root')!);
+			root.render(createElement(MemePage));
+		</script>
+	</body>
+</html>
