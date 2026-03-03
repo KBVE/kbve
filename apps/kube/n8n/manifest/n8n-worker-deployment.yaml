@@ -25,6 +25,9 @@ spec:
                       - name: health
                         containerPort: 5678
                         protocol: TCP
+                      - name: broker
+                        containerPort: 5679
+                        protocol: TCP
                   envFrom:
                       - secretRef:
                             name: n8n-redis-secret
@@ -59,8 +62,14 @@ spec:
                       # Worker configuration
                       - name: QUEUE_WORKER_CONCURRENCY
                         value: '10'
+                      - name: QUEUE_HEALTH_CHECK_ACTIVE
+                        value: 'true'
+                      - name: QUEUE_RECOVERY_INTERVAL
+                        value: '10'
                       - name: GENERIC_TIMEZONE
                         value: 'UTC'
+                      - name: WEBHOOK_URL
+                        value: 'https://n8n.kbve.com/'
                       - name: N8N_ENCRYPTION_KEY
                         valueFrom:
                             secretKeyRef:
