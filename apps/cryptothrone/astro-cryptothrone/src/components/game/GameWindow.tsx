@@ -9,6 +9,7 @@ import { GameStoreProvider, useGameStore } from './store/GameStoreContext';
 import { useEventBridge } from './store/useEventBridge';
 import { CharacterDialog } from './ui/CharacterDialog';
 import { NotificationToast } from './ui/NotificationToast';
+import { StickySidebar } from './ui/StickySidebar';
 
 function GameWindowInner() {
 	const gameRef = useRef<PhaserGameRef>(null);
@@ -44,6 +45,7 @@ function GameWindowInner() {
 				}}
 				onReady={handleReady}
 			/>
+			<StickySidebar />
 			<CharacterDialog />
 			<NotificationToast />
 		</>
