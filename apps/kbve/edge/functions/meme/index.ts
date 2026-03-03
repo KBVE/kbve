@@ -15,6 +15,7 @@ import { COMMENT_ACTIONS, handleComment } from "./comment.ts";
 import { handleProfile, PROFILE_ACTIONS } from "./profile.ts";
 import { FOLLOW_ACTIONS, handleFollow } from "./follow.ts";
 import { handleReport, REPORT_ACTIONS } from "./report.ts";
+import { ADMIN_ACTIONS, handleAdmin } from "./admin.ts";
 
 // ---------------------------------------------------------------------------
 // Meme Edge Function — Unified Router
@@ -28,6 +29,7 @@ import { handleReport, REPORT_ACTIONS } from "./report.ts";
 //   profile:  get, update, memes
 //   follow:   add, remove
 //   report:   create
+//   admin:    create              (service_role only)
 // ---------------------------------------------------------------------------
 
 const MODULES: Record<
@@ -45,6 +47,7 @@ const MODULES: Record<
   profile: { handler: handleProfile, actions: PROFILE_ACTIONS },
   follow: { handler: handleFollow, actions: FOLLOW_ACTIONS },
   report: { handler: handleReport, actions: REPORT_ACTIONS },
+  admin: { handler: handleAdmin, actions: ADMIN_ACTIONS },
 };
 
 function buildHelpText(): string {
