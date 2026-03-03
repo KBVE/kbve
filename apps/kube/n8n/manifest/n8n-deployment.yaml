@@ -56,6 +56,8 @@ spec:
                       - name: QUEUE_BULL_REDIS_PORT
                         value: '6379'
                       # n8n configuration
+                      - name: N8N_TRUST_PROXY
+                        value: 'true'
                       - name: N8N_PORT
                         value: '5678'
                       - name: WEBHOOK_URL
