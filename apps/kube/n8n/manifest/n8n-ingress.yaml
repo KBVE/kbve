@@ -31,14 +31,14 @@ spec:
                     pathType: Prefix
                     backend:
                         service:
-                            name: n8n-service
+                            name: n8n
                             port:
                                 number: 5678
                   - path: /webhook-test
                     pathType: Prefix
                     backend:
                         service:
-                            name: n8n-service
+                            name: n8n
                             port:
                                 number: 5678
 ---
@@ -70,6 +70,6 @@ spec:
                     pathType: Prefix
                     backend:
                         service:
-                            name: n8n-service
+                            name: n8n
                             port:
                                 number: 5678
