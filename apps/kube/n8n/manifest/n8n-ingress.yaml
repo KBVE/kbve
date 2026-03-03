@@ -1,20 +1,67 @@
 # Ingress: n8n.kbve.com routing
 #
-# Single ingress — n8n's built-in auth (owner account) protects the
-# editor. Webhook paths are open by design for external triggers.
+# Split into two ingress resources:
+#   1. Webhook ingress — open, no auth (GitHub, external triggers)
+#   2. Editor ingress — basic auth + CORS (double layer with n8n login)
 #
-# Basic auth was removed because it breaks n8n's SPA: modern fetch()
-# calls don't inherit browser-cached basic auth credentials, causing
-# all /rest/* API calls to 401.
+# CORS is required on the editor ingress so that OPTIONS preflight
+# requests pass through before the basic auth check. Without it,
+# the browser's preflight gets 401'd and all fetch() calls fail.
+#
+# Basic auth credentials stored in n8n-basic-auth SealedSecret.
 
+# --- Webhook ingress (open) ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-    name: n8n-ingress
+    name: n8n-webhook-ingress
     namespace: n8n
     annotations:
         kubernetes.io/ingress.class: nginx
         cert-manager.io/cluster-issuer: letsencrypt-http
+        nginx.ingress.kubernetes.io/proxy-body-size: '16m'
+        nginx.ingress.kubernetes.io/proxy-read-timeout: '300'
+        nginx.ingress.kubernetes.io/proxy-send-timeout: '300'
+spec:
+    tls:
+        - hosts:
+              - n8n.kbve.com
+          secretName: n8n-kbve-tls
+    rules:
+        - host: n8n.kbve.com
+          http:
+              paths:
+                  - path: /webhook
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: n8n
+                            port:
+                                number: 5678
+                  - path: /webhook-test
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: n8n
+                            port:
+                                number: 5678
+---
+# --- Editor ingress (basic auth + CORS) ---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: n8n-editor-ingress
+    namespace: n8n
+    annotations:
+        kubernetes.io/ingress.class: nginx
+        cert-manager.io/cluster-issuer: letsencrypt-http
+        nginx.ingress.kubernetes.io/auth-type: basic
+        nginx.ingress.kubernetes.io/auth-secret: n8n-basic-auth
+        nginx.ingress.kubernetes.io/auth-realm: 'n8n - Authentication Required'
+        nginx.ingress.kubernetes.io/enable-cors: 'true'
+        nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+        nginx.ingress.kubernetes.io/cors-allow-methods: 'GET, PUT, POST, DELETE, PATCH, OPTIONS'
+        nginx.ingress.kubernetes.io/cors-allow-headers: 'DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,browser-id,push-ref'
         nginx.ingress.kubernetes.io/proxy-body-size: '16m'
         nginx.ingress.kubernetes.io/proxy-read-timeout: '300'
         nginx.ingress.kubernetes.io/proxy-send-timeout: '300'
