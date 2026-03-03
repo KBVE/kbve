@@ -68,6 +68,8 @@ services:
             - QUEUE_BULL_REDIS_HOST=redis
             - QUEUE_BULL_REDIS_PORT=6379
             - N8N_PORT=5678
+            - N8N_PATH_PREFIX=/n8n/
+            - WEBHOOK_URL=http://localhost:5678/n8n/
             - N8N_ENCRYPTION_KEY=local-test-key-do-not-use-in-production-0000
             - GENERIC_TIMEZONE=UTC
         depends_on:

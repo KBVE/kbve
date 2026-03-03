@@ -1,0 +1,36 @@
+# Ingress: Route kbve.com/n8n/* to n8n service
+#
+# NGINX Ingress controller merges path rules from multiple namespaces
+# for the same host. The existing kbve namespace handles kbve.com/,
+# this ingress handles kbve.com/n8n/*.
+#
+# Auth model:
+#   - /n8n/webhook/* : open (external triggers from GitHub, etc.)
+#   - /n8n/*         : n8n built-in auth (login page gates access)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: n8n-ingress
+    namespace: n8n
+    annotations:
+        kubernetes.io/ingress.class: nginx
+        cert-manager.io/cluster-issuer: letsencrypt-http
+        nginx.ingress.kubernetes.io/proxy-body-size: '16m'
+        nginx.ingress.kubernetes.io/proxy-read-timeout: '300'
+        nginx.ingress.kubernetes.io/proxy-send-timeout: '300'
+spec:
+    tls:
+        - hosts:
+              - kbve.com
+          secretName: n8n-kbve-tls
+    rules:
+        - host: kbve.com
+          http:
+              paths:
+                  - path: /n8n
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: n8n-service
+                            port:
+                                number: 5678
