@@ -12,6 +12,7 @@ import { NotificationToast } from './ui/NotificationToast';
 import { StickySidebar } from './ui/StickySidebar';
 import { ActionMenu } from './ui/ActionMenu';
 import { DialogueModal } from './ui/DialogueModal';
+import { DiceRollModal } from './ui/DiceRollModal';
 
 function GameWindowInner() {
 	const gameRef = useRef<PhaserGameRef>(null);
@@ -50,6 +51,7 @@ function GameWindowInner() {
 			<StickySidebar />
 			<ActionMenu />
 			<DialogueModal />
+			<DiceRollModal />
 			<CharacterDialog />
 			<NotificationToast />
 		</>
