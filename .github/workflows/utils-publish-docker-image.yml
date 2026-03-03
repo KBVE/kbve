@@ -41,9 +41,32 @@ jobs:
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v6
+              continue-on-error: true
               with:
                   ref: ${{ inputs.branch }}
                   submodules: true
+
+            - name: Init submodules (with retry)
+              continue-on-error: true
+              run: |
+                  for i in 1 2 3; do
+                    git submodule update --init --recursive && break
+                    echo "Attempt $i failed, retrying in 10s..."
+                    sleep 10
+                  done
+
+            - name: Verify critical submodules
+              run: |
+                  failed=0
+                  for mod in apps/mc/pumpkin apps/postgres; do
+                    if [ ! -f "$mod/.git" ] && [ ! -d "$mod/.git" ]; then
+                      echo "::error::Critical submodule missing: $mod"
+                      failed=1
+                    else
+                      echo "OK: $mod"
+                    fi
+                  done
+                  exit $failed
 
             - name: Check version against Docker Hub
               id: version_check

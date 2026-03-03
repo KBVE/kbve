@@ -4,7 +4,7 @@
 	branch = develop
 [submodule "apps/irc/ergo"]
 	path = apps/irc/ergo
-	url = https://github.com/kbve/ergo
+	url = https://github.com/KBVE/ergo.git
 [submodule "apps/mc/pumpkin"]
 	path = apps/mc/pumpkin
 	url = https://github.com/KBVE/Pumpkin
