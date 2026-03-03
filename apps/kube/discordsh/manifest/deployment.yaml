@@ -38,7 +38,7 @@ spec:
             serviceAccountName: discordsh-sa
             containers:
                 - name: discordsh
-                  image: ghcr.io/kbve/discordsh:0.1.25
+                  image: ghcr.io/kbve/discordsh:0.1.26
                   imagePullPolicy: Always
                   ports:
                       - name: http
