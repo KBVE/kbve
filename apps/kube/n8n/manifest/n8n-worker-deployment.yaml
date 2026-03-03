@@ -1,0 +1,149 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: n8n-worker
+    namespace: n8n
+    labels:
+        app: n8n-worker
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: n8n-worker
+    template:
+        metadata:
+            labels:
+                app: n8n-worker
+        spec:
+            serviceAccountName: n8n-sa
+            containers:
+                - name: n8n-worker
+                  image: n8nio/n8n:2.9.4
+                  imagePullPolicy: IfNotPresent
+                  command: ['n8n', 'worker']
+                  ports:
+                      - name: health
+                        containerPort: 5678
+                        protocol: TCP
+                  envFrom:
+                      - secretRef:
+                            name: n8n-redis-secret
+                  env:
+                      # PostgreSQL (same DB as main instance)
+                      - name: DB_TYPE
+                        value: 'postgresdb'
+                      - name: DB_POSTGRESDB_HOST
+                        value: 'supabase-cluster-rw.kilobase.svc.cluster.local'
+                      - name: DB_POSTGRESDB_PORT
+                        value: '5432'
+                      - name: DB_POSTGRESDB_DATABASE
+                        value: 'supabase'
+                      - name: DB_POSTGRESDB_USER
+                        value: 'postgres'
+                      - name: DB_POSTGRESDB_SCHEMA
+                        value: 'n8n'
+                      - name: DB_POSTGRESDB_POOL_SIZE
+                        value: '10'
+                      - name: DB_POSTGRESDB_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: n8n-supabase-shared
+                                key: db-password
+                      # Redis (pull jobs from queue)
+                      - name: EXECUTIONS_MODE
+                        value: 'queue'
+                      - name: QUEUE_BULL_REDIS_HOST
+                        value: 'redis-master.redis.svc.cluster.local'
+                      - name: QUEUE_BULL_REDIS_PORT
+                        value: '6379'
+                      # Worker configuration
+                      - name: QUEUE_WORKER_CONCURRENCY
+                        value: '10'
+                      - name: GENERIC_TIMEZONE
+                        value: 'UTC'
+                      - name: N8N_ENCRYPTION_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: n8n-encryption-secret
+                                key: encryption-key
+                      - name: N8N_LICENSE_ACTIVATION_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: n8n-license-secret
+                                key: activation-key
+                      # Task runner (external mode — sidecar container)
+                      - name: N8N_RUNNERS_ENABLED
+                        value: 'true'
+                      - name: N8N_RUNNERS_MODE
+                        value: 'external'
+                      - name: N8N_RUNNERS_BROKER_LISTEN_ADDRESS
+                        value: '0.0.0.0'
+                      - name: N8N_RUNNERS_AUTH_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: n8n-runner-auth
+                                key: auth-token
+                  resources:
+                      requests:
+                          memory: '1Gi'
+                          cpu: '1000m'
+                      limits:
+                          memory: '4Gi'
+                          cpu: '2000m'
+                  livenessProbe:
+                      httpGet:
+                          path: /healthz
+                          port: health
+                      initialDelaySeconds: 30
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+                  readinessProbe:
+                      httpGet:
+                          path: /healthz
+                          port: health
+                      initialDelaySeconds: 10
+                      periodSeconds: 5
+                      timeoutSeconds: 3
+                      failureThreshold: 3
+                # Task runner sidecar (executes Code node JS/Python)
+                - name: n8n-runner
+                  image: n8nio/runners:2.9.4
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                      - name: launcher-health
+                        containerPort: 5680
+                        protocol: TCP
+                  env:
+                      - name: N8N_RUNNERS_AUTH_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: n8n-runner-auth
+                                key: auth-token
+                      - name: N8N_RUNNERS_TASK_BROKER_URI
+                        value: 'http://localhost:5679'
+                      - name: N8N_RUNNERS_MAX_CONCURRENCY
+                        value: '5'
+                  resources:
+                      requests:
+                          memory: '512Mi'
+                          cpu: '500m'
+                      limits:
+                          memory: '1Gi'
+                          cpu: '1000m'
+                  livenessProbe:
+                      httpGet:
+                          path: /healthz
+                          port: launcher-health
+                      initialDelaySeconds: 10
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+                  readinessProbe:
+                      httpGet:
+                          path: /healthz
+                          port: launcher-health
+                      initialDelaySeconds: 5
+                      periodSeconds: 5
+                      timeoutSeconds: 3
+                      failureThreshold: 3
