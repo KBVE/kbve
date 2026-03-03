@@ -58,6 +58,8 @@ spec:
                         value: 'redis-master.redis.svc.cluster.local'
                       - name: QUEUE_BULL_REDIS_PORT
                         value: '6379'
+                      - name: QUEUE_HEALTH_CHECK_ACTIVE
+                        value: 'true'
                       # n8n configuration
                       - name: N8N_TRUST_PROXY
                         value: 'true'

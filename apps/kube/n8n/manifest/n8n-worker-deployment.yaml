@@ -20,10 +20,13 @@ spec:
                 - name: n8n-worker
                   image: n8nio/n8n:2.9.4
                   imagePullPolicy: IfNotPresent
-                  command: ['n8n', 'worker']
+                  command: ['n8n', 'worker', '--concurrency=10']
                   ports:
                       - name: health
                         containerPort: 5678
+                        protocol: TCP
+                      - name: broker
+                        containerPort: 5679
                         protocol: TCP
                   envFrom:
                       - secretRef:
@@ -57,8 +60,10 @@ spec:
                       - name: QUEUE_BULL_REDIS_PORT
                         value: '6379'
                       # Worker configuration
-                      - name: QUEUE_WORKER_CONCURRENCY
-                        value: '10'
+                      - name: QUEUE_HEALTH_CHECK_ACTIVE
+                        value: 'true'
+                      - name: QUEUE_WORKER_STALLED_INTERVAL
+                        value: '15000'
                       - name: GENERIC_TIMEZONE
                         value: 'UTC'
                       - name: N8N_ENCRYPTION_KEY
