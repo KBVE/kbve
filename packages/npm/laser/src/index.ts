@@ -6,13 +6,29 @@ export type {
 	LaserEventMap,
 	Point2D,
 	Bounds2D,
+	Bounds,
+	Range,
+	GridDirection,
+	CharacterEventData,
+	NotificationEventData,
 } from './lib/core/types';
+
+// Spatial
+export { Quadtree } from './lib/spatial/quadtree';
 
 // Phaser
 export { PhaserGame } from './lib/phaser/PhaserGame';
 export type { PhaserGameProps, PhaserGameRef } from './lib/phaser/PhaserGame';
 export { PhaserContext, usePhaserGame } from './lib/phaser/use-phaser';
 export { usePhaserEvent } from './lib/phaser/use-phaser-event';
+export { PlayerController } from './lib/phaser/player-controller';
+export {
+	getBirdNum,
+	isBird,
+	createBirdSprites,
+	createShadowSprites,
+	createBirdAnimation,
+} from './lib/phaser/monsters/bird';
 
 // R3F
 export { Stage } from './lib/r3f/components/Stage';
