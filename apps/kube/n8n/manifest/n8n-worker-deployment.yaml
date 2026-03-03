@@ -20,7 +20,7 @@ spec:
                 - name: n8n-worker
                   image: n8nio/n8n:2.9.4
                   imagePullPolicy: IfNotPresent
-                  command: ['n8n', 'worker']
+                  command: ['n8n', 'worker', '--concurrency=10']
                   ports:
                       - name: health
                         containerPort: 5678
@@ -60,16 +60,12 @@ spec:
                       - name: QUEUE_BULL_REDIS_PORT
                         value: '6379'
                       # Worker configuration
-                      - name: QUEUE_WORKER_CONCURRENCY
-                        value: '10'
                       - name: QUEUE_HEALTH_CHECK_ACTIVE
                         value: 'true'
-                      - name: QUEUE_RECOVERY_INTERVAL
-                        value: '10'
+                      - name: QUEUE_WORKER_STALLED_INTERVAL
+                        value: '15000'
                       - name: GENERIC_TIMEZONE
                         value: 'UTC'
-                      - name: WEBHOOK_URL
-                        value: 'https://n8n.kbve.com/'
                       - name: N8N_ENCRYPTION_KEY
                         valueFrom:
                             secretKeyRef:
