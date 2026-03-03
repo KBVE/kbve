@@ -6,6 +6,7 @@ console.log("main function started");
 
 const JWT_SECRET = Deno.env.get("JWT_SECRET");
 const VERIFY_JWT = Deno.env.get("VERIFY_JWT") === "true";
+const PUBLIC_ROUTES = new Set(["health"]);
 
 function getAuthToken(req: Request) {
   const authHeader = req.headers.get("authorization");
@@ -32,7 +33,12 @@ async function verifyJWT(jwt: string): Promise<boolean> {
 }
 
 serve(async (req: Request) => {
-  if (req.method !== "OPTIONS" && VERIFY_JWT) {
+  const url = new URL(req.url);
+  const service_name = url.pathname.split("/")[1];
+
+  if (
+    req.method !== "OPTIONS" && VERIFY_JWT && !PUBLIC_ROUTES.has(service_name)
+  ) {
     try {
       const token = getAuthToken(req);
       const isValidJWT = await verifyJWT(token);
@@ -54,11 +60,6 @@ serve(async (req: Request) => {
       );
     }
   }
-
-  const url = new URL(req.url);
-  const { pathname } = url;
-  const path_parts = pathname.split("/");
-  const service_name = path_parts[1];
 
   if (!service_name || service_name === "") {
     const error = { msg: "missing function name in request" };

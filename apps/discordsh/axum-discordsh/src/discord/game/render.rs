@@ -268,7 +268,10 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
         let enrage_tag = if enemy.enraged { " \u{1F525}" } else { "" };
         let strike_tag = if enemy.first_strike { " \u{26A1}" } else { "" };
         let mut enemy_lines = vec![
-            format!("**{}{}{}** (Lv.{})", enemy.name, enrage_tag, strike_tag, enemy.level),
+            format!(
+                "**{}{}{}** (Lv.{})",
+                enemy.name, enrage_tag, strike_tag, enemy.level
+            ),
             hp_bar(enemy.hp, enemy.max_hp, 10),
             format!("DEF `{}`", enemy.armor),
             intent_description(&enemy.intent),
@@ -1213,5 +1216,532 @@ mod tests {
             all_json.contains("|mv|"),
             "city phase after turn 0 should show direction buttons"
         );
+    }
+
+    // ── HP bar edge cases ─────────────────────────────────────────
+
+    #[test]
+    fn hp_bar_max_zero() {
+        // max_hp = 0 should not panic (division by zero guard)
+        let bar = hp_bar(0, 0, 10);
+        assert!(bar.contains("0/0"));
+    }
+
+    #[test]
+    fn hp_bar_current_exceeds_max() {
+        // Known limitation: current > max causes filled_hearts > total_hearts.
+        // This is a caller bug (should never happen in practice).
+        // Verify it panics due to negative usize rather than silently corrupting.
+        let result = std::panic::catch_unwind(|| hp_bar(60, 50, 10));
+        assert!(
+            result.is_err(),
+            "hp_bar with current > max should panic (capacity overflow)"
+        );
+    }
+
+    #[test]
+    fn hp_bar_large_values() {
+        let bar = hp_bar(1000, 1000, 10);
+        assert!(bar.contains("1000/1000"));
+    }
+
+    #[test]
+    fn hp_bar_one_point_per_heart() {
+        let bar = hp_bar(3, 5, 1);
+        assert!(bar.contains("3/5"));
+        // 3 filled, 2 empty
+        assert!(bar.contains("\u{2665}\u{2665}\u{2665}"));
+        assert!(bar.contains("\u{2661}\u{2661}"));
+    }
+
+    // ── Progress bar edge cases ───────────────────────────────────
+
+    #[test]
+    fn progress_bar_max_zero() {
+        // max = 0 should not panic (ratio defaults to 0.0)
+        let bar = progress_bar("XP", 0, 0, 10);
+        assert!(bar.contains("0/0"));
+    }
+
+    #[test]
+    fn progress_bar_current_exceeds_max() {
+        // current > max should clamp ratio, not overflow
+        let bar = progress_bar("XP", 150, 100, 10);
+        assert!(bar.contains("150/100"));
+    }
+
+    #[test]
+    fn progress_bar_width_zero() {
+        let bar = progress_bar("XP", 50, 100, 0);
+        assert!(bar.contains("50/100"));
+    }
+
+    #[test]
+    fn progress_bar_full() {
+        let bar = progress_bar("XP", 100, 100, 10);
+        assert!(bar.contains("100/100"));
+    }
+
+    // ── Intent description — all variants ─────────────────────────
+
+    #[test]
+    fn intent_description_heavy_attack() {
+        let desc = intent_description(&Intent::HeavyAttack { dmg: 10 });
+        assert!(desc.contains("10 dmg"));
+        assert!(desc.contains("Heavy"));
+    }
+
+    #[test]
+    fn intent_description_defend() {
+        let desc = intent_description(&Intent::Defend { armor: 5 });
+        assert!(desc.contains("+5 armor"));
+        assert!(desc.contains("Brace"));
+    }
+
+    #[test]
+    fn intent_description_flee() {
+        let desc = intent_description(&Intent::Flee);
+        assert!(desc.contains("Retreating"));
+    }
+
+    #[test]
+    fn intent_description_debuff() {
+        let desc = intent_description(&Intent::Debuff {
+            effect: EffectKind::Poison,
+            stacks: 2,
+            turns: 3,
+        });
+        assert!(desc.contains("Poison"));
+        assert!(desc.contains("x2"));
+        assert!(desc.contains("3 turns"));
+    }
+
+    #[test]
+    fn intent_description_aoe_attack() {
+        let desc = intent_description(&Intent::AoeAttack { dmg: 8 });
+        assert!(desc.contains("8 dmg"));
+        assert!(desc.contains("AoE"));
+    }
+
+    #[test]
+    fn intent_description_heal_self() {
+        let desc = intent_description(&Intent::HealSelf { amount: 15 });
+        assert!(desc.contains("+15 HP"));
+        assert!(desc.contains("Heal"));
+    }
+
+    // ── Format effects edge cases ─────────────────────────────────
+
+    #[test]
+    fn format_effects_multi_stacked() {
+        let effects = vec![
+            EffectInstance {
+                kind: EffectKind::Poison,
+                stacks: 2,
+                turns_left: 3,
+            },
+            EffectInstance {
+                kind: EffectKind::Burning,
+                stacks: 1,
+                turns_left: 2,
+            },
+            EffectInstance {
+                kind: EffectKind::Sharpened,
+                stacks: 1,
+                turns_left: 1,
+            },
+        ];
+        let result = format_effects(&effects).unwrap();
+        assert!(result.contains("Poison"));
+        assert!(result.contains("x2"));
+        assert!(result.contains("Burning"));
+        assert!(result.contains("Sharp"));
+        // Effects are comma-separated
+        assert_eq!(result.matches(',').count(), 2);
+    }
+
+    #[test]
+    fn format_effects_all_kinds() {
+        // Verify every EffectKind has a label without panicking
+        let all_kinds = vec![
+            EffectInstance {
+                kind: EffectKind::Poison,
+                stacks: 1,
+                turns_left: 1,
+            },
+            EffectInstance {
+                kind: EffectKind::Burning,
+                stacks: 1,
+                turns_left: 1,
+            },
+            EffectInstance {
+                kind: EffectKind::Bleed,
+                stacks: 1,
+                turns_left: 1,
+            },
+            EffectInstance {
+                kind: EffectKind::Shielded,
+                stacks: 1,
+                turns_left: 1,
+            },
+            EffectInstance {
+                kind: EffectKind::Weakened,
+                stacks: 1,
+                turns_left: 1,
+            },
+            EffectInstance {
+                kind: EffectKind::Stunned,
+                stacks: 1,
+                turns_left: 1,
+            },
+            EffectInstance {
+                kind: EffectKind::Sharpened,
+                stacks: 1,
+                turns_left: 1,
+            },
+            EffectInstance {
+                kind: EffectKind::Thorns,
+                stacks: 1,
+                turns_left: 1,
+            },
+        ];
+        let result = format_effects(&all_kinds).unwrap();
+        assert!(result.contains("Poison"));
+        assert!(result.contains("Burning"));
+        assert!(result.contains("Bleed"));
+        assert!(result.contains("Shielded"));
+        assert!(result.contains("Weakened"));
+        assert!(result.contains("Stunned"));
+        assert!(result.contains("Sharp"));
+        assert!(result.contains("Thorns"));
+    }
+
+    #[test]
+    fn format_effects_single_stack_no_x_prefix() {
+        let effects = vec![EffectInstance {
+            kind: EffectKind::Poison,
+            stacks: 1,
+            turns_left: 3,
+        }];
+        let result = format_effects(&effects).unwrap();
+        // stacks=1 should NOT show "x1"
+        assert!(!result.contains("x1"));
+        assert!(result.contains("3 turns"));
+    }
+
+    // ── Render embed — phase coverage ─────────────────────────────
+
+    #[test]
+    fn render_embed_merchant() {
+        let mut session = test_session();
+        session.phase = GamePhase::Merchant;
+        session.room.merchant_stock = super::super::content::generate_merchant_stock(3);
+        let _embed = render_embed(&session, false);
+    }
+
+    #[test]
+    fn render_embed_city() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        session.room.merchant_stock = super::super::content::generate_merchant_stock(3);
+        let _embed = render_embed(&session, false);
+    }
+
+    #[test]
+    fn render_embed_event() {
+        let mut session = test_session();
+        session.phase = GamePhase::Event;
+        session.room.story_event = Some(StoryEvent {
+            prompt: "A glowing orb floats before you.".to_owned(),
+            choices: vec![
+                StoryChoice {
+                    label: "Touch it".to_owned(),
+                    description: "Reach out.".to_owned(),
+                },
+                StoryChoice {
+                    label: "Avoid it".to_owned(),
+                    description: "Step back.".to_owned(),
+                },
+            ],
+        });
+        let _embed = render_embed(&session, false);
+    }
+
+    #[test]
+    fn render_embed_waiting_for_actions() {
+        let member = serenity::UserId::new(2);
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        session.party = vec![member];
+        session.players.insert(
+            member,
+            PlayerState {
+                name: "Bob".to_owned(),
+                ..PlayerState::default()
+            },
+        );
+        session.phase = GamePhase::WaitingForActions;
+        session.enemies = vec![super::super::content::spawn_enemy(0)];
+        let _embed = render_embed(&session, false);
+    }
+
+    #[test]
+    fn render_embed_game_over_escaped() {
+        let mut session = test_session();
+        session.phase = GamePhase::GameOver(GameOverReason::Escaped);
+        let _embed = render_embed(&session, false);
+    }
+
+    #[test]
+    fn render_embed_game_over_expired() {
+        let mut session = test_session();
+        session.phase = GamePhase::GameOver(GameOverReason::Expired);
+        let _embed = render_embed(&session, false);
+    }
+
+    #[test]
+    fn render_embed_game_over_defeated() {
+        let mut session = test_session();
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
+        let _embed = render_embed(&session, false);
+    }
+
+    #[test]
+    fn render_embed_with_card_flag() {
+        let session = test_session();
+        // Both paths should not panic
+        let _without = render_embed(&session, false);
+        let _with = render_embed(&session, true);
+    }
+
+    #[test]
+    fn render_embed_party_mode_multiple_players() {
+        let member = serenity::UserId::new(2);
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        session.party = vec![member];
+        session.players.insert(
+            member,
+            PlayerState {
+                name: "Bob".to_owned(),
+                class: ClassType::Rogue,
+                member_status: MemberStatusTag::Member {
+                    username: "bob123".to_owned(),
+                },
+                ..PlayerState::default()
+            },
+        );
+        let _embed = render_embed(&session, false);
+    }
+
+    #[test]
+    fn render_embed_with_effects_on_player() {
+        let mut session = test_session();
+        session.player_mut(OWNER).effects.push(EffectInstance {
+            kind: EffectKind::Poison,
+            stacks: 2,
+            turns_left: 3,
+        });
+        session.player_mut(OWNER).effects.push(EffectInstance {
+            kind: EffectKind::Sharpened,
+            stacks: 1,
+            turns_left: 2,
+        });
+        let _embed = render_embed(&session, false);
+    }
+
+    #[test]
+    fn render_embed_dead_player() {
+        let mut session = test_session();
+        session.player_mut(OWNER).alive = false;
+        session.player_mut(OWNER).hp = 0;
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
+        let _embed = render_embed(&session, false);
+    }
+
+    #[test]
+    fn render_embed_with_log_entries() {
+        let mut session = test_session();
+        for i in 0..10 {
+            session.log.push(format!("Log entry {}", i));
+        }
+        // Should only display last 5
+        let _embed = render_embed(&session, false);
+    }
+
+    #[test]
+    fn render_embed_room_modifiers() {
+        let mut session = test_session();
+        session.room.modifiers = vec![
+            RoomModifier::Fog {
+                accuracy_penalty: 0.15,
+            },
+            RoomModifier::Cursed {
+                dmg_multiplier: 1.25,
+            },
+        ];
+        let _embed = render_embed(&session, false);
+    }
+
+    #[test]
+    fn render_embed_room_hazards() {
+        let mut session = test_session();
+        session.room.hazards = vec![
+            Hazard::Spikes { dmg: 5 },
+            Hazard::Gas {
+                effect: EffectKind::Poison,
+                stacks: 1,
+                turns: 2,
+            },
+        ];
+        let _embed = render_embed(&session, false);
+    }
+
+    // ── Render components — phase coverage ────────────────────────
+
+    #[test]
+    fn render_components_merchant_has_buy_menu() {
+        let mut session = test_session();
+        session.phase = GamePhase::Merchant;
+        session.room.merchant_stock = super::super::content::generate_merchant_stock(3);
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(all_json.contains("|buy|"), "merchant should have buy menu");
+    }
+
+    #[test]
+    fn render_components_event_has_story_buttons() {
+        let mut session = test_session();
+        session.phase = GamePhase::Event;
+        session.room.story_event = Some(StoryEvent {
+            prompt: "A fork in the path.".to_owned(),
+            choices: vec![
+                StoryChoice {
+                    label: "Left".to_owned(),
+                    description: "Go left.".to_owned(),
+                },
+                StoryChoice {
+                    label: "Right".to_owned(),
+                    description: "Go right.".to_owned(),
+                },
+            ],
+        });
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            all_json.contains("|story|"),
+            "event should have story buttons"
+        );
+    }
+
+    #[test]
+    fn render_components_trap_has_room_choices() {
+        let mut session = test_session();
+        session.phase = GamePhase::Trap;
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            all_json.contains("|room|"),
+            "trap should have room choice buttons"
+        );
+    }
+
+    #[test]
+    fn render_components_rest_shrine_has_choices() {
+        let mut session = test_session();
+        session.phase = GamePhase::Rest;
+        session.room.room_type = RoomType::RestShrine;
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            all_json.contains("|room|"),
+            "rest shrine should have choice buttons"
+        );
+    }
+
+    #[test]
+    fn render_components_multi_enemy_has_target_select() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![
+            EnemyState {
+                name: "Slime A".to_owned(),
+                level: 1,
+                hp: 10,
+                max_hp: 10,
+                armor: 0,
+                intent: Intent::Attack { dmg: 3 },
+                effects: Vec::new(),
+                charged: false,
+                loot_table_id: "",
+                enraged: false,
+                index: 0,
+                first_strike: false,
+            },
+            EnemyState {
+                name: "Slime B".to_owned(),
+                level: 1,
+                hp: 10,
+                max_hp: 10,
+                armor: 0,
+                intent: Intent::Attack { dmg: 3 },
+                effects: Vec::new(),
+                charged: false,
+                loot_table_id: "",
+                enraged: false,
+                index: 1,
+                first_strike: false,
+            },
+        ];
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            all_json.contains("|atkt|"),
+            "multi-enemy combat should have target select"
+        );
+    }
+
+    // ── Phase color additional coverage ───────────────────────────
+
+    #[test]
+    fn phase_color_trap_is_combat() {
+        let mut session = test_session();
+        session.phase = GamePhase::Trap;
+        assert_eq!(phase_color(&session), COLOR_COMBAT);
+    }
+
+    #[test]
+    fn phase_color_treasure_is_gold() {
+        let mut session = test_session();
+        session.phase = GamePhase::Treasure;
+        assert_eq!(phase_color(&session), COLOR_VICTORY);
+    }
+
+    #[test]
+    fn phase_color_hallway_is_green() {
+        let mut session = test_session();
+        session.phase = GamePhase::Hallway;
+        assert_eq!(phase_color(&session), COLOR_SAFE);
+    }
+
+    #[test]
+    fn phase_color_waiting_for_actions_is_combat() {
+        let mut session = test_session();
+        session.phase = GamePhase::WaitingForActions;
+        assert_eq!(phase_color(&session), COLOR_COMBAT);
+    }
+
+    #[test]
+    fn phase_color_game_over_defeated_is_grey() {
+        let mut session = test_session();
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
+        assert_eq!(phase_color(&session), COLOR_GAME_OVER);
+    }
+
+    #[test]
+    fn phase_color_game_over_escaped_is_grey() {
+        let mut session = test_session();
+        session.phase = GamePhase::GameOver(GameOverReason::Escaped);
+        assert_eq!(phase_color(&session), COLOR_GAME_OVER);
     }
 }

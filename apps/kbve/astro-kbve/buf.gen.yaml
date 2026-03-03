@@ -1,9 +1,9 @@
 version: v2
 plugins:
+    # TypeScript interfaces (snake_case field names)
     - remote: buf.build/community/stephenh-ts-proto
       out: apps/kbve/astro-kbve/src/generated/proto
       opt:
-          - useZod=true
           - esModuleInterop=true
           - importSuffix=.js
           - outputServices=false
@@ -14,3 +14,7 @@ plugins:
           - useExactTypes=true
           - exportCommonSymbols=true
           - removeEnumPrefix=true
+          - snakeToCamel=false
+    # JSON Schema generation (uncomment when codegen pipeline is automated)
+    # - remote: buf.build/bufbuild/protoschema-jsonschema
+    #   out: apps/kbve/astro-kbve/src/generated/jsonschema

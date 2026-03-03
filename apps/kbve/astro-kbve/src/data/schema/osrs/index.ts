@@ -1,1 +1,1 @@
-export * from './IOSRSSchema';
+export * from './generated';

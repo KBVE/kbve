@@ -4,17 +4,18 @@ Manages PostgreSQL schema migrations for the KBVE Supabase cluster (`supabase-cl
 
 ## Applied Migrations
 
-| Version | Name | Schema | Objects |
-|---------|------|--------|---------|
-| `20260227210000` | `mc_schema_init` | `mc` | 6 tables, 28 functions |
-| `20260227215000` | `gen_ulid` | `public` | 1 function (`gen_ulid()`) |
-| `20260227220000` | `meme_schema_init` | `meme` | 14 tables, 18 functions |
-| `20260228000000` | `discordsh_schema_init` | `discordsh` | 2 tables, 13 functions |
-| `20260228210000` | `meme_rpcs` | `meme` | +7 service RPC functions |
-| `20260228220000` | `osrs_schema_init` | `osrs` | 9 tables, 11 functions |
-| `20260228230000` | `discordsh_update_server` | `discordsh` | +2 functions, removes direct UPDATE |
-| `20260301210000` | `meme_rpcs_v2` | `meme` | +12 service RPC functions |
-| `20260302000000` | `discordsh_guild_vault` | `discordsh` | 1 table, 7 functions (guild token vault) |
+| Version          | Name                      | Schema      | Objects                                  |
+| ---------------- | ------------------------- | ----------- | ---------------------------------------- |
+| `20260227210000` | `mc_schema_init`          | `mc`        | 6 tables, 28 functions                   |
+| `20260227215000` | `gen_ulid`                | `public`    | 1 function (`gen_ulid()`)                |
+| `20260227220000` | `meme_schema_init`        | `meme`      | 14 tables, 18 functions                  |
+| `20260228000000` | `discordsh_schema_init`   | `discordsh` | 2 tables, 13 functions                   |
+| `20260228210000` | `meme_rpcs`               | `meme`      | +7 service RPC functions                 |
+| `20260228220000` | `osrs_schema_init`        | `osrs`      | 9 tables, 11 functions                   |
+| `20260228230000` | `discordsh_update_server` | `discordsh` | +2 functions, removes direct UPDATE      |
+| `20260301210000` | `meme_rpcs_v2`            | `meme`      | +12 service RPC functions                |
+| `20260302000000` | `discordsh_guild_vault`   | `discordsh` | 1 table, 7 functions (guild token vault) |
+| `20260302100000` | `n8n_schema_init`         | `n8n`       | Schema creation for n8n workflow engine  |
 
 Migration state is tracked in `dbmate.schema_migrations` (not `public`) to isolate it from PostgREST/RPC.
 
@@ -52,6 +53,14 @@ Migration state is tracked in `dbmate.schema_migrations` (not `public`) to isola
 - **Access**: service_role only (data ingestion from OSRS APIs)
 - **Extensions**: `pg_trgm` for fuzzy item name search via `service_search_items()`
 
+### `n8n` — n8n workflow engine
+
+Schema container only — n8n TypeORM manages its own 23 tables (workflows, executions, credentials, webhooks, users, etc.) within this schema. We create the schema and grants; n8n handles all DDL on boot.
+
+- **Source**: `../schema/n8n/`
+- **Access**: postgres (superuser) + service_role (read); anon/authenticated blocked entirely
+- **Integration**: n8n workflows call KBVE service functions directly via SQL (no HTTP hop)
+
 ### `public` — Shared utilities
 
 `gen_ulid()` function for ULID primary key generation. Available to all roles.
@@ -64,7 +73,7 @@ All schemas follow the **belt-and-suspenders** pattern:
 2. **RLS on every table**: `service_role_full_access` policy, restrictive policies for other roles
 3. **Function lockdown**: Every function gets `REVOKE ALL FROM PUBLIC, anon, authenticated` + `GRANT EXECUTE TO service_role` + `OWNER TO service_role`
 4. **SECURITY DEFINER + SET search_path = ''**: On all service/proxy functions and sensitive triggers
-5. **Service/proxy pattern**: `service_*` functions take explicit `user_id` (service_role only); `proxy_*` functions derive identity from `auth.uid()` (authenticated users)
+5. **Service/proxy pattern**: `service_*` functions take explicit `user_id` (service*role only); `proxy*\*`functions derive identity from`auth.uid()` (authenticated users)
 6. **ALTER DEFAULT PRIVILEGES**: Both `IN SCHEMA` and `FOR ROLE postgres IN SCHEMA` variants ensure future objects get correct grants
 7. **Verification DO blocks**: Each migration validates function existence, privilege grants, ownership, and negative checks (anon must NOT have EXECUTE)
 
@@ -99,6 +108,8 @@ schema/
   osrs/                  # OSRS item database
     osrs_core.sql          # 9 tables, triggers, RLS
     osrs_rpcs.sql          # 4 service functions
+  n8n/                   # n8n workflow engine
+    n8n_init.sql           # Schema creation + grants (n8n TypeORM manages tables)
 ```
 
 ## Local Testing
@@ -112,6 +123,24 @@ dbmate --no-dump-schema --migrations-dir migrations up       # apply all
 dbmate --no-dump-schema --migrations-dir migrations rollback  # test rollback
 docker compose down -v
 ```
+
+### n8n integration test (Postgres + n8n)
+
+Runs both Postgres and n8n to verify the full integration — n8n boots, TypeORM creates tables in the `n8n` schema, and existing schemas are unaffected.
+
+```bash
+cp n8n-docker-compose.yml docker-compose.yml
+docker compose up -d
+# Wait for postgres health check, then apply migrations:
+DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres?sslmode=disable&search_path=dbmate,public" \
+  dbmate --no-dump-schema --migrations-dir migrations up
+# Wait ~30s for n8n TypeORM migrations, then verify:
+psql "postgresql://postgres:postgres@localhost:54322/postgres" -c "\dt n8n.*"
+# n8n editor: http://localhost:5678
+docker compose down -v
+```
+
+**When to run this**: After bumping the n8n image version, before updating the kube manifest. Verifies TypeORM migrations still work with the `n8n` custom schema.
 
 ### Production-replica test (CNPG image)
 
@@ -134,7 +163,7 @@ DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:54322/supabase?sslmode=di
   dbmate --no-dump-schema --migrations-dir migrations up
 
 # 3. Verify
-psql "postgresql://postgres:postgres@127.0.0.1:54322/supabase" -c "\dt mc.*; \dt meme.*; \dt discordsh.*; \dt osrs.*"
+psql "postgresql://postgres:postgres@127.0.0.1:54322/supabase" -c "\dt mc.*; \dt meme.*; \dt discordsh.*; \dt osrs.*; \dn n8n"
 ```
 
 **Tip**: The port-forward can be flaky — if `dbmate status` fails with "connection refused", kill the port-forward (`kill $(lsof -ti:54322)`) and restart it. Avoid making test psql queries before running dbmate, as the port-forward may drop after the first connection.
@@ -182,12 +211,14 @@ dbmate/
   .env                    # Connection string (gitignored)
   .gitignore              # Excludes .env, docker-compose.yml, schema dump artifacts
   dev-docker-compose.yml  # Committed template (vanilla postgres:17-alpine)
+  n8n-docker-compose.yml  # Committed template (postgres + n8n for integration testing)
   docker-compose.yml      # Local override (gitignored)
   README.md
   init/                   # Docker entrypoint scripts (run alphabetically on first start)
     00-roles.sql            # Supabase-compatible roles (service_role, anon, authenticated, etc.)
     01-auth-stub.sql        # Minimal auth.users + auth.uid() + auth.jwt() + auth.role()
     02-extensions-stub.sql  # extensions schema + pgcrypto + vault schema stub
+    03-n8n-stub.sql         # n8n schema stub (TypeORM manages tables)
     pgsodium_getkey.sh      # Dummy key for production image testing
   migrations/
     20260227210000_mc_schema_init.sql
@@ -199,6 +230,7 @@ dbmate/
     20260228230000_discordsh_update_server.sql
     20260301210000_meme_rpcs_v2.sql
     20260302000000_discordsh_guild_vault.sql
+    20260302100000_n8n_schema_init.sql
 ```
 
 ## Important Notes

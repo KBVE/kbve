@@ -30,6 +30,8 @@ export default defineConfig({
 		},
 		rollupOptions: {
 			external: [
+				'@bufbuild/protobuf',
+				'@bufbuild/protobuf/wkt',
 				'axios',
 				'jsdom',
 				'marked',
