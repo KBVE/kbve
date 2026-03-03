@@ -2,10 +2,20 @@
 	"name": "@kbve/devops",
 	"version": "0.0.19",
 	"description": "A DevOps helper library, providing better functions and extensions.",
-	"keywords": ["github", "actions", "helper", "devops"],
+	"keywords": [
+		"github",
+		"actions",
+		"helper",
+		"devops"
+	],
 	"homepage": "https://kbve.com/application/git#devops",
-	"bugs": { "url": "https://github.com/KBVE/kbve/issues" },
-	"repository": { "type": "git", "url": "git+https://github.com/KBVE/kbve.git" },
+	"bugs": {
+		"url": "https://github.com/KBVE/kbve/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/KBVE/kbve.git"
+	},
 	"author": "KBVE <hello@kbve.com>",
 	"license": "MIT",
 	"type": "module",
@@ -25,6 +35,7 @@
 		"*.md"
 	],
 	"dependencies": {
+		"@bufbuild/protobuf": "^2.11.0",
 		"axios": "^1.6.7",
 		"jsdom": "^22.1.0",
 		"marked": "^13.0.0",
