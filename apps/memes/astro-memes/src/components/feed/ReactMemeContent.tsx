@@ -9,6 +9,7 @@ import {
 import { useStore } from '@nanostores/react';
 import { $auth, openModal, addToast } from '@kbve/astro';
 import MemeCard from './MemeCard';
+import BentoFeed from './BentoFeed';
 import FeedSkeleton from './FeedSkeleton';
 import CommentsDrawer from './CommentsDrawer';
 import ReportModal from './ReportModal';
@@ -134,6 +135,9 @@ export default function ReactMemeContent() {
 	);
 	const [userSaves, setUserSaves] = useState<Set<string>>(new Set());
 
+	// Viewport detection for responsive layout
+	const [isDesktop, setIsDesktop] = useState(false);
+
 	// Overlay state
 	const [commentsMemeId, setCommentsMemeId] = useState<string | null>(null);
 	const [reportMemeId, setReportMemeId] = useState<string | null>(null);
@@ -150,6 +154,15 @@ export default function ReactMemeContent() {
 			(_, i) => cardRefs.current[i] ?? createRef<HTMLDivElement>(),
 		);
 	}
+
+	// ── Viewport detection ───────────────────────────────────────────
+	useEffect(() => {
+		const mq = window.matchMedia('(min-width: 768px)');
+		setIsDesktop(mq.matches);
+		const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+		mq.addEventListener('change', handler);
+		return () => mq.removeEventListener('change', handler);
+	}, []);
 
 	// ── Initial load ──────────────────────────────────────────────────
 	useEffect(() => {
@@ -298,8 +311,7 @@ export default function ReactMemeContent() {
 			(entries) => {
 				for (const entry of entries) {
 					if (!entry.isIntersecting) continue;
-					const memeId =
-						entry.target.getAttribute('data-meme-id');
+					const memeId = entry.target.getAttribute('data-meme-id');
 					if (memeId && !viewedRef.current.has(memeId)) {
 						viewedRef.current.add(memeId);
 						trackView(memeId).catch(() => {});
@@ -373,9 +385,7 @@ export default function ReactMemeContent() {
 		setUserSaves((s) => new Set(s).add(memeId));
 		setMemes((list) =>
 			list.map((m) =>
-				m.id === memeId
-					? { ...m, save_count: m.save_count + 1 }
-					: m,
+				m.id === memeId ? { ...m, save_count: m.save_count + 1 } : m,
 			),
 		);
 
@@ -403,9 +413,7 @@ export default function ReactMemeContent() {
 		});
 		setMemes((list) =>
 			list.map((m) =>
-				m.id === memeId
-					? { ...m, save_count: m.save_count - 1 }
-					: m,
+				m.id === memeId ? { ...m, save_count: m.save_count - 1 } : m,
 			),
 		);
 
@@ -425,7 +433,7 @@ export default function ReactMemeContent() {
 	const handleShare = useCallback(
 		async (memeId: string) => {
 			const meme = memes.find((m) => m.id === memeId);
-			const url = `${window.location.origin}/meme/${memeId}`;
+			const url = `${window.location.origin}/meme?id=${memeId}`;
 			const title = meme?.title || 'Check out this meme on Meme.sh';
 
 			// Optimistic increment
@@ -509,63 +517,81 @@ export default function ReactMemeContent() {
 
 	// ── Render ───────────────────────────────────────────────────────
 
-	if (loading) return <FeedSkeleton />;
+	if (loading)
+		return <FeedSkeleton variant={isDesktop ? 'desktop' : 'mobile'} />;
 
 	return (
 		<>
-			<div
-				ref={scrollRef}
-				className="w-full"
-				style={{
-					height: '100dvh',
-					overflowY: 'scroll',
-					scrollSnapType: 'y mandatory',
-					WebkitOverflowScrolling: 'touch',
-					backgroundColor: 'var(--sl-color-bg, #0a0a0a)',
-				}}>
-				{memes.map((meme, i) => (
-					<MemeCard
-						key={meme.id}
-						ref={cardRefs.current[i]}
-						meme={meme}
-						userReaction={userReactions.get(meme.id) ?? null}
-						isSaved={userSaves.has(meme.id)}
-						onReact={handleReact}
-						onSave={handleSave}
-						onUnsave={handleUnsave}
-						onComment={handleComment}
-						onShare={handleShare}
-						onReport={handleReport}
-						lazy={i > 1}
-					/>
-				))}
+			{isDesktop ? (
+				<BentoFeed
+					memes={memes}
+					hasMore={hasMore}
+					loadingMore={loadingMore}
+					userReactions={userReactions}
+					userSaves={userSaves}
+					onReact={handleReact}
+					onSave={handleSave}
+					onUnsave={handleUnsave}
+					onComment={handleComment}
+					onShare={handleShare}
+					onReport={handleReport}
+					onLoadMore={loadMore}
+				/>
+			) : (
+				<div
+					ref={scrollRef}
+					className="w-full"
+					style={{
+						height: '100dvh',
+						overflowY: 'scroll',
+						scrollSnapType: 'y mandatory',
+						WebkitOverflowScrolling: 'touch',
+						backgroundColor: 'var(--sl-color-bg, #0a0a0a)',
+					}}>
+					{memes.map((meme, i) => (
+						<MemeCard
+							key={meme.id}
+							ref={cardRefs.current[i]}
+							meme={meme}
+							userReaction={userReactions.get(meme.id) ?? null}
+							isSaved={userSaves.has(meme.id)}
+							onReact={handleReact}
+							onSave={handleSave}
+							onUnsave={handleUnsave}
+							onComment={handleComment}
+							onShare={handleShare}
+							onReport={handleReport}
+							lazy={i > 1}
+						/>
+					))}
 
-				{/* Sentinel for infinite scroll */}
-				{hasMore && (
-					<div
-						ref={sentinelRef}
-						style={{ height: 1 }}
-						aria-hidden
-					/>
-				)}
+					{/* Sentinel for infinite scroll */}
+					{hasMore && (
+						<div
+							ref={sentinelRef}
+							style={{ height: 1 }}
+							aria-hidden
+						/>
+					)}
 
-				{loadingMore && <FeedSkeleton />}
+					{loadingMore && <FeedSkeleton variant="mobile" />}
 
-				{!hasMore && memes.length > 0 && (
-					<div
-						className="flex items-center justify-center py-8"
-						style={{
-							height: '30dvh',
-							scrollSnapAlign: 'start',
-							backgroundColor: 'var(--sl-color-bg, #0a0a0a)',
-							color: 'var(--sl-color-gray-3, #71717a)',
-						}}>
-						<p className="text-sm">
-							You've seen them all — for now.
-						</p>
-					</div>
-				)}
-			</div>
+					{!hasMore && memes.length > 0 && (
+						<div
+							className="flex items-center justify-center py-8"
+							style={{
+								height: '30dvh',
+								scrollSnapAlign: 'start',
+								backgroundColor: 'var(--sl-color-bg, #0a0a0a)',
+								color: 'var(--sl-color-gray-3, #71717a)',
+							}}>
+							<p className="text-sm">
+								You've seen them all — for now.
+							</p>
+						</div>
+					)}
+				</div>
+			)}
 
 			{/* Comments drawer */}
 			{commentsMemeId && (
