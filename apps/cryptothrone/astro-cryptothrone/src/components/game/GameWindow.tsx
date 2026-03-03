@@ -10,6 +10,8 @@ import { useEventBridge } from './store/useEventBridge';
 import { CharacterDialog } from './ui/CharacterDialog';
 import { NotificationToast } from './ui/NotificationToast';
 import { StickySidebar } from './ui/StickySidebar';
+import { ActionMenu } from './ui/ActionMenu';
+import { DialogueModal } from './ui/DialogueModal';
 
 function GameWindowInner() {
 	const gameRef = useRef<PhaserGameRef>(null);
@@ -46,6 +48,8 @@ function GameWindowInner() {
 				onReady={handleReady}
 			/>
 			<StickySidebar />
+			<ActionMenu />
+			<DialogueModal />
 			<CharacterDialog />
 			<NotificationToast />
 		</>
