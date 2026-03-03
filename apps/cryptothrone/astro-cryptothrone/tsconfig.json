@@ -8,7 +8,7 @@
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["src/*"],
-			"@kbve/laser": ["../../packages/npm/laser/src/index.ts"]
+			"@kbve/laser": ["../../../packages/npm/laser/src/index.ts"]
 		}
 	}
 }

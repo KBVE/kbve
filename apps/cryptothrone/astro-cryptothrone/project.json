@@ -1,14 +1,14 @@
 {
-	"name": "cryptothrone",
-	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"name": "astro-cryptothrone",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
-	"sourceRoot": "apps/cryptothrone/src",
+	"sourceRoot": "apps/cryptothrone/astro-cryptothrone/src",
 	"tags": [],
 	"targets": {
 		"dev": {
 			"executor": "nx:run-commands",
 			"options": {
-				"cwd": "apps/cryptothrone",
+				"cwd": "apps/cryptothrone/astro-cryptothrone",
 				"commands": [
 					"rm -rf .astro",
 					"nx exec -- astro sync",
@@ -20,7 +20,7 @@
 		"build": {
 			"executor": "nx:run-commands",
 			"options": {
-				"cwd": "apps/cryptothrone",
+				"cwd": "apps/cryptothrone/astro-cryptothrone",
 				"commands": [
 					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
 				],
@@ -36,7 +36,7 @@
 			],
 			"executor": "nx:run-commands",
 			"options": {
-				"cwd": "apps/cryptothrone",
+				"cwd": "apps/cryptothrone/astro-cryptothrone",
 				"commands": ["nx exec -- astro preview"],
 				"parallel": false
 			}
@@ -44,7 +44,7 @@
 		"check": {
 			"executor": "nx:run-commands",
 			"options": {
-				"cwd": "apps/cryptothrone",
+				"cwd": "apps/cryptothrone/astro-cryptothrone",
 				"commands": ["nx exec -- astro check"],
 				"parallel": false
 			}
@@ -52,7 +52,7 @@
 		"sync": {
 			"executor": "nx:run-commands",
 			"options": {
-				"cwd": "apps/cryptothrone",
+				"cwd": "apps/cryptothrone/astro-cryptothrone",
 				"commands": ["nx exec -- astro sync"],
 				"parallel": false
 			}

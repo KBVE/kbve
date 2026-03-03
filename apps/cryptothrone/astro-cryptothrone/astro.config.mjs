@@ -8,7 +8,7 @@ export default defineConfig({
 	site: 'https://cryptothrone.com',
 	output: 'static',
 	trailingSlash: 'always',
-	outDir: '../../dist/apps/cryptothrone',
+	outDir: '../../../dist/apps/astro-cryptothrone',
 	integrations: [
 		starlight({
 			title: 'CryptoThrone',
