@@ -1,4 +1,38 @@
-export default function FeedSkeleton() {
+interface FeedSkeletonProps {
+	variant?: 'mobile' | 'desktop';
+}
+
+export default function FeedSkeleton({
+	variant = 'mobile',
+}: FeedSkeletonProps) {
+	if (variant === 'desktop') {
+		return (
+			<div
+				className="w-full min-h-screen px-4 py-6"
+				style={{
+					backgroundColor: 'var(--sl-color-bg, #0a0a0a)',
+				}}>
+				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-w-7xl mx-auto">
+					{[...Array(8)].map((_, i) => (
+						<div
+							key={i}
+							className={`rounded-xl animate-pulse ${
+								i % 7 === 3
+									? 'md:col-span-2 aspect-video'
+									: 'aspect-[4/3]'
+							}`}
+							style={{
+								backgroundColor:
+									'var(--sl-color-gray-6, #1c1c1e)',
+								border: '1px solid rgba(255,255,255,0.04)',
+							}}
+						/>
+					))}
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<div
 			className="relative flex flex-col items-center justify-center gap-6"
@@ -53,8 +87,7 @@ export default function FeedSkeleton() {
 						key={i}
 						className="w-10 h-10 rounded-full animate-pulse"
 						style={{
-							backgroundColor:
-								'var(--sl-color-gray-6, #1c1c1e)',
+							backgroundColor: 'var(--sl-color-gray-6, #1c1c1e)',
 						}}
 					/>
 				))}

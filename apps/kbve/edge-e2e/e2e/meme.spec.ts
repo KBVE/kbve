@@ -96,6 +96,7 @@ describe('Meme — Smoke Tests', () => {
 		expect(body.error).toContain('profile');
 		expect(body.error).toContain('follow');
 		expect(body.error).toContain('report');
+		expect(body.error).toContain('admin');
 	});
 
 	it('should return 500 for malformed JSON body', async () => {
@@ -131,5 +132,92 @@ describe('Meme — Smoke Tests', () => {
 		});
 		expect(res.status).not.toBe(401);
 		expect(res.status).not.toBe(405);
+	});
+
+	// -- Admin module (service_role only) --
+
+	it('should reject admin.create without service_role', async () => {
+		const anonToken = createJwt({ role: 'authenticated', extraClaims: { sub: '00000000-0000-0000-0000-000000000001' } });
+		const res = await fetch(`${BASE_URL}/meme`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${anonToken}`,
+			},
+			body: JSON.stringify({ command: 'admin.create', asset_url: 'https://example.com/meme.png' }),
+		});
+		expect(res.status).toBe(403);
+		const body = await res.json();
+		expect(body.error).toContain('service_role');
+	});
+
+	it('should reject admin.create with missing asset_url', async () => {
+		const res = await fetch(`${BASE_URL}/meme`, {
+			method: 'POST',
+			headers: headers(),
+			body: JSON.stringify({
+				command: 'admin.create',
+				author_id: '00000000-0000-0000-0000-000000000001',
+			}),
+		});
+		expect(res.status).toBe(400);
+		const body = await res.json();
+		expect(body.error).toContain('asset_url');
+	});
+
+	it('should reject admin.create with missing author_id', async () => {
+		const res = await fetch(`${BASE_URL}/meme`, {
+			method: 'POST',
+			headers: headers(),
+			body: JSON.stringify({
+				command: 'admin.create',
+				asset_url: 'https://example.com/meme.png',
+			}),
+		});
+		expect(res.status).toBe(400);
+		const body = await res.json();
+		expect(body.error).toContain('author_id');
+	});
+
+	it('should reject admin.create with non-HTTPS asset_url', async () => {
+		const res = await fetch(`${BASE_URL}/meme`, {
+			method: 'POST',
+			headers: headers(),
+			body: JSON.stringify({
+				command: 'admin.create',
+				author_id: '00000000-0000-0000-0000-000000000001',
+				asset_url: 'http://example.com/meme.png',
+			}),
+		});
+		expect(res.status).toBe(400);
+		const body = await res.json();
+		expect(body.error).toContain('HTTPS');
+	});
+
+	it('should reject admin.create with invalid format', async () => {
+		const res = await fetch(`${BASE_URL}/meme`, {
+			method: 'POST',
+			headers: headers(),
+			body: JSON.stringify({
+				command: 'admin.create',
+				author_id: '00000000-0000-0000-0000-000000000001',
+				asset_url: 'https://example.com/meme.png',
+				format: 99,
+			}),
+		});
+		expect(res.status).toBe(400);
+		const body = await res.json();
+		expect(body.error).toContain('format');
+	});
+
+	it('should return 400 for unknown admin action', async () => {
+		const res = await fetch(`${BASE_URL}/meme`, {
+			method: 'POST',
+			headers: headers(),
+			body: JSON.stringify({ command: 'admin.nonexistent' }),
+		});
+		expect(res.status).toBe(400);
+		const body = await res.json();
+		expect(body.error).toContain('Unknown admin action');
 	});
 });
