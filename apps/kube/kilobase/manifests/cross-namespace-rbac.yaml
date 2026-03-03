@@ -59,6 +59,9 @@ subjects:
     - kind: ServiceAccount
       name: mc-external-secrets
       namespace: mc
+    - kind: ServiceAccount
+      name: n8n-external-secrets
+      namespace: n8n
 ---
 # Additional role for reading services/endpoints if needed
 apiVersion: rbac.authorization.k8s.io/v1
