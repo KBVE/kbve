@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: mc-rcon-restrict
+    namespace: mc
+    labels:
+        app: mc
+spec:
+    podSelector:
+        matchLabels:
+            app: mc
+    policyTypes:
+        - Ingress
+    ingress:
+        # Allow game, bedrock, and resource-pack traffic from anywhere
+        - ports:
+              - port: 25565
+                protocol: TCP
+              - port: 19132
+                protocol: UDP
+              - port: 8080
+                protocol: TCP
+        # Allow RCON only from kilobase and mc namespaces
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: kilobase
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: mc
+          ports:
+              - port: 25575
+                protocol: TCP
