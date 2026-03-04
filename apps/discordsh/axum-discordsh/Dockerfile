@@ -230,7 +230,7 @@ ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:10000,muzzy_decay_ms:10000,lg_tcache_max:32,oversize_threshold:4194304"
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4321
-ENV RUST_LOG=info
+ENV RUST_LOG=axum_discordsh=debug,tower_http=debug,kbve=debug
 ENV FONT_PATH=/app/alagard.ttf
 ENV SYMBOL_FONT_PATH=/app/NotoSansSymbols-Regular.ttf
 

@@ -1,5 +1,6 @@
 use poise::serenity_prelude as serenity;
 use rand::prelude::*;
+use tracing::debug;
 
 use super::content;
 use super::types::*;
@@ -179,9 +180,19 @@ pub fn apply_action(
     validate_actor(session, actor)?;
     validate_action(session, &action, actor)?;
 
+    debug!(
+        user = %actor,
+        action = ?action,
+        phase = ?session.phase,
+        enemy_count = session.enemies.len(),
+        turn = session.turn,
+        "Applying game action"
+    );
+
     let logs = match action {
         GameAction::Attack => resolve_combat_turn(session, GameAction::Attack, actor),
         GameAction::AttackTarget(idx) => {
+            debug!(target_idx = idx, "Attack targeting enemy index");
             resolve_combat_turn(session, GameAction::AttackTarget(idx), actor)
         }
         GameAction::Defend => resolve_combat_turn(session, GameAction::Defend, actor),
@@ -347,11 +358,19 @@ fn resolve_combat_turn_solo(
         }
     }
 
-    // Determine target enemy index
+    // Determine target enemy index — auto-select first alive enemy when no
+    // explicit target was chosen (e.g., player pressed the Attack button
+    // instead of using the target dropdown with multiple enemies).
     let target_idx = match &player_action {
         GameAction::AttackTarget(idx) => *idx,
-        _ => 0, // Default to primary enemy
+        _ => session.enemies.first().map(|e| e.index).unwrap_or(0),
     };
+    debug!(
+        target_idx,
+        enemy_count = session.enemies.len(),
+        enemy_indices = ?session.enemies.iter().map(|e| e.index).collect::<Vec<_>>(),
+        "Solo combat target resolution"
+    );
 
     // Player phase
     match player_action {
@@ -462,8 +481,15 @@ fn resolve_combat_turn_party(
 
         let target_idx = match action {
             GameAction::AttackTarget(idx) => *idx,
-            _ => 0,
+            _ => session.enemies.first().map(|e| e.index).unwrap_or(0),
         };
+        debug!(
+            user = %uid,
+            action = ?action,
+            target_idx,
+            enemy_count = session.enemies.len(),
+            "Party combat action resolution"
+        );
 
         match action {
             GameAction::Attack | GameAction::AttackTarget(_) => {
@@ -648,6 +674,12 @@ fn resolve_player_attack(
     let enemy_vec_idx = if session.enemy_at(target_idx).is_some() {
         session.enemies.iter().position(|e| e.index == target_idx)
     } else {
+        debug!(
+            target_idx,
+            enemies_alive = session.enemies.len(),
+            enemy_indices = ?session.enemies.iter().map(|e| e.index).collect::<Vec<_>>(),
+            "Target index not found, falling back to first alive enemy"
+        );
         if session.enemies.is_empty() {
             None
         } else {
@@ -6209,5 +6241,255 @@ mod tests {
         session2.room.room_type = RoomType::Hallway;
         let r1 = apply_action(&mut session2, GameAction::RoomChoice(1), OWNER);
         assert!(r1.is_ok(), "Hallway Search failed: {:?}", r1);
+    }
+
+    // ── Multi-enemy auto-targeting combat tests ─────────────────────
+
+    /// Plain Attack with 2 enemies should auto-target the first alive enemy
+    /// and resolve without error.
+    #[test]
+    fn test_attack_auto_targets_first_enemy_with_two_enemies() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+
+        let mut e0 = test_enemy();
+        e0.name = "Goblin A".to_owned();
+        e0.hp = 200;
+        e0.max_hp = 200;
+        e0.index = 0;
+        e0.intent = Intent::Defend { armor: 3 }; // won't damage player
+
+        let mut e1 = test_enemy();
+        e1.name = "Goblin B".to_owned();
+        e1.hp = 200;
+        e1.max_hp = 200;
+        e1.index = 1;
+        e1.intent = Intent::Defend { armor: 3 };
+
+        session.enemies = vec![e0, e1];
+        session.player_mut(OWNER).hp = 200;
+        session.player_mut(OWNER).max_hp = 200;
+        session.player_mut(OWNER).accuracy = 1.0; // guaranteed hit
+
+        let e0_hp_before = session.enemies[0].hp;
+        let e1_hp_before = session.enemies[1].hp;
+
+        let result = apply_action(&mut session, GameAction::Attack, OWNER);
+        assert!(
+            result.is_ok(),
+            "Attack with 2 enemies should not error: {:?}",
+            result.err()
+        );
+
+        // Only enemy 0 (first) should have taken damage
+        assert!(
+            session.enemies[0].hp < e0_hp_before,
+            "First enemy should take damage from auto-targeted Attack"
+        );
+        assert_eq!(
+            session.enemies[1].hp, e1_hp_before,
+            "Second enemy should be untouched by auto-targeted Attack"
+        );
+    }
+
+    /// After enemy 0 dies and is removed, plain Attack should auto-target the
+    /// remaining enemy (index 1, now at vec position 0).
+    #[test]
+    fn test_attack_auto_targets_remaining_enemy_after_first_dies() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+
+        let mut e0 = test_enemy();
+        e0.name = "Dead Slime".to_owned();
+        e0.hp = 1; // will die from one hit
+        e0.max_hp = 20;
+        e0.armor = 0;
+        e0.index = 0;
+        e0.intent = Intent::Defend { armor: 3 };
+
+        let mut e1 = test_enemy();
+        e1.name = "Live Slime".to_owned();
+        e1.hp = 200;
+        e1.max_hp = 200;
+        e1.armor = 0;
+        e1.index = 1;
+        e1.intent = Intent::Defend { armor: 3 };
+
+        session.enemies = vec![e0, e1];
+        session.player_mut(OWNER).hp = 200;
+        session.player_mut(OWNER).max_hp = 200;
+        session.player_mut(OWNER).accuracy = 1.0;
+        session.player_mut(OWNER).first_attack_in_combat = false; // no charge
+
+        // First attack — kills enemy 0, handle_enemy_deaths removes it
+        let result1 = apply_action(&mut session, GameAction::Attack, OWNER);
+        assert!(
+            result1.is_ok(),
+            "First attack should succeed: {:?}",
+            result1.err()
+        );
+        assert_eq!(
+            session.enemies.len(),
+            1,
+            "Dead enemy should have been removed"
+        );
+        assert_eq!(session.enemies[0].name, "Live Slime");
+        assert_eq!(session.enemies[0].index, 1);
+
+        // Second attack — plain Attack should auto-target the remaining enemy
+        // even though its index is 1, not 0
+        let e1_hp_before = session.enemies[0].hp;
+        let result2 = apply_action(&mut session, GameAction::Attack, OWNER);
+        assert!(
+            result2.is_ok(),
+            "Attack after first enemy died should not error: {:?}",
+            result2.err()
+        );
+        if !session.enemies.is_empty() {
+            assert!(
+                session.enemies[0].hp < e1_hp_before,
+                "Remaining enemy should have taken damage"
+            );
+        }
+    }
+
+    /// Attack with zero enemies in combat should not panic or crash.
+    #[test]
+    fn test_attack_with_no_enemies_does_not_panic() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = Vec::new();
+
+        let result = apply_action(&mut session, GameAction::Attack, OWNER);
+        // May error or succeed — the key assertion is no panic
+        let _ = result;
+    }
+
+    /// AttackTarget with an invalid enemy index should gracefully fall back
+    /// to the first alive enemy instead of panicking.
+    #[test]
+    fn test_attack_target_invalid_index_falls_back() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+
+        let mut enemy = test_enemy();
+        enemy.hp = 200;
+        enemy.max_hp = 200;
+        enemy.index = 0;
+        enemy.intent = Intent::Defend { armor: 3 };
+        session.enemies = vec![enemy];
+
+        session.player_mut(OWNER).hp = 200;
+        session.player_mut(OWNER).max_hp = 200;
+        session.player_mut(OWNER).accuracy = 1.0;
+
+        let hp_before = session.enemies[0].hp;
+        // Target index 99 doesn't exist — should fall back to first enemy
+        let result = apply_action(&mut session, GameAction::AttackTarget(99), OWNER);
+        assert!(
+            result.is_ok(),
+            "Invalid target should not error: {:?}",
+            result.err()
+        );
+        assert!(
+            session.enemies[0].hp < hp_before,
+            "Fallback target should still take damage"
+        );
+    }
+
+    /// Party mode: plain Attack with multiple enemies should auto-target
+    /// the first alive enemy and resolve the full turn.
+    #[test]
+    fn test_party_mode_attack_auto_targets_with_two_enemies() {
+        let member = serenity::UserId::new(2);
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        session.party = vec![member];
+        session.players.insert(member, PlayerState::default());
+        session.phase = GamePhase::Combat;
+
+        let mut e0 = test_enemy();
+        e0.name = "Rat A".to_owned();
+        e0.hp = 200;
+        e0.max_hp = 200;
+        e0.index = 0;
+        e0.intent = Intent::Defend { armor: 3 };
+
+        let mut e1 = test_enemy();
+        e1.name = "Rat B".to_owned();
+        e1.hp = 200;
+        e1.max_hp = 200;
+        e1.index = 1;
+        e1.intent = Intent::Defend { armor: 3 };
+
+        session.enemies = vec![e0, e1];
+        session.player_mut(OWNER).hp = 200;
+        session.player_mut(OWNER).max_hp = 200;
+        session.player_mut(OWNER).accuracy = 1.0;
+        session.player_mut(member).hp = 200;
+        session.player_mut(member).max_hp = 200;
+
+        let e0_hp_before = session.enemies[0].hp;
+
+        // Owner submits Attack — party member auto-defends, turn resolves
+        let result = apply_action(&mut session, GameAction::Attack, OWNER);
+        assert!(
+            result.is_ok(),
+            "Party Attack with 2 enemies should not error: {:?}",
+            result.err()
+        );
+        // Owner's attack should have hit enemy 0
+        assert!(
+            session.enemies[0].hp < e0_hp_before,
+            "Party auto-target should hit first enemy"
+        );
+    }
+
+    /// Repeatedly attack through multi-enemy combat until all enemies die —
+    /// verifies no panics or stale index errors across multiple turns.
+    #[test]
+    fn test_multi_enemy_attack_until_all_dead() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+
+        let mut e0 = test_enemy();
+        e0.name = "Weak Slime A".to_owned();
+        e0.hp = 10;
+        e0.max_hp = 10;
+        e0.armor = 0;
+        e0.index = 0;
+        e0.intent = Intent::Defend { armor: 0 };
+
+        let mut e1 = test_enemy();
+        e1.name = "Weak Slime B".to_owned();
+        e1.hp = 10;
+        e1.max_hp = 10;
+        e1.armor = 0;
+        e1.index = 1;
+        e1.intent = Intent::Defend { armor: 0 };
+
+        session.enemies = vec![e0, e1];
+        session.player_mut(OWNER).hp = 500;
+        session.player_mut(OWNER).max_hp = 500;
+        session.player_mut(OWNER).accuracy = 1.0;
+        session.player_mut(OWNER).base_damage_bonus = 20; // ensure kills
+
+        for turn in 0..20 {
+            if session.enemies.is_empty() || !matches!(session.phase, GamePhase::Combat) {
+                break;
+            }
+            let result = apply_action(&mut session, GameAction::Attack, OWNER);
+            assert!(
+                result.is_ok(),
+                "Attack on turn {} should not error: {:?}",
+                turn,
+                result.err()
+            );
+        }
+
+        assert!(
+            session.enemies.is_empty(),
+            "All enemies should be dead after enough attacks"
+        );
     }
 }
