@@ -1,0 +1,21 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+    name: n8n-pdb
+    namespace: n8n
+spec:
+    minAvailable: 1
+    selector:
+        matchLabels:
+            app: n8n
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+    name: n8n-worker-pdb
+    namespace: n8n
+spec:
+    minAvailable: 1
+    selector:
+        matchLabels:
+            app: n8n-worker
