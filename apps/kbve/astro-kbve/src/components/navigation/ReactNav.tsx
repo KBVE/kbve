@@ -1,13 +1,14 @@
 // src/components/ReactNav.tsx
 // This component hydrates the static nav shell from NavContainer.astro
-import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { initSupa, getSupa } from '@/lib/supa';
+import { initSupa } from '@/lib/supa';
 import { useAuthBridge } from '@/components/auth';
+import { $auth } from '@kbve/droid';
+import { useStore } from '@nanostores/react';
 import { cn } from '@/lib/utils';
 import NavDropdown from './NavDropdown';
 
-type Session = any;
 type OAuthProvider = 'github' | 'twitch' | 'discord';
 
 // Failsafe: Track render count to detect infinite loops
@@ -33,17 +34,12 @@ export default function ReactNav() {
 		lastRenderTime = now;
 	}
 
-	const [ready, setReady] = useState(false);
-	const [session, setSession] = useState<Session | null>(null);
+	// Reactive auth state from droid's $auth nanostore (populated by bootAuth)
+	const auth = useStore($auth);
+
 	const [error, setError] = useState<string | null>(null);
 	const [modalOpen, setModalOpen] = useState(false);
 	const [mounted, setMounted] = useState(false);
-
-	// Failsafe: Track if already initialized to prevent double init
-	const initRef = useRef(false);
-	// Failsafe: Debounce auth updates
-	const lastAuthUpdateRef = useRef<number>(0);
-	const AUTH_DEBOUNCE_MS = 100;
 
 	// Use the auth bridge for OAuth flows
 	const { signInWithOAuth, loading: authLoading } = useAuthBridge();
@@ -53,110 +49,24 @@ export default function ReactNav() {
 		setMounted(true);
 	}, []);
 
+	// Initialize Supabase gateway (bootAuth populates $auth)
 	useEffect(() => {
-		// Failsafe: Prevent double initialization
-		if (initRef.current) {
-			console.warn('[ReactNav] Double initialization prevented');
-			return;
-		}
-		initRef.current = true;
-
-		let off: (() => void) | null = null;
-		let isCancelled = false;
-
-		(async () => {
-			try {
-				await initSupa();
-				if (isCancelled) return;
-
-				const supa = getSupa();
-
-				const s = await supa.getSession().catch(() => null);
-				if (isCancelled) return;
-
-				setSession(s?.session ?? null);
-
-				off = supa.on('auth', (msg: any) => {
-					if (isCancelled) return;
-
-					// Failsafe: Debounce rapid auth updates
-					const now = Date.now();
-					if (now - lastAuthUpdateRef.current < AUTH_DEBOUNCE_MS) {
-						console.warn('[ReactNav] Rapid auth update debounced');
-						return;
-					}
-					lastAuthUpdateRef.current = now;
-
-					// Only update if session actually changed to prevent unnecessary re-renders
-					setSession((prev: Session | null) => {
-						const newSession = msg.session ?? null;
-						// Compare by user ID to avoid object reference issues
-						const prevUserId = prev?.user?.id;
-						const newUserId = newSession?.user?.id;
-						if (prevUserId === newUserId) {
-							return prev; // Return same reference to prevent re-render
-						}
-						return newSession;
-					});
-				});
-				setReady(true);
-			} catch (e: any) {
-				if (isCancelled) return;
-				const errorMsg = e?.message ?? 'Failed to initialize Supabase';
-				console.error('[ReactNav] Initialization error:', errorMsg);
-				setError(errorMsg);
-				setReady(true);
-			}
-		})();
-
-		return () => {
-			isCancelled = true;
-			off?.();
-		};
+		initSupa().catch((e: any) => {
+			console.error('[ReactNav] Initialization error:', e?.message);
+			setError(e?.message ?? 'Failed to initialize Supabase');
+		});
 	}, []);
 
 	const busy = authLoading;
 
-	const state = useMemo(() => {
-		if (!ready)
-			return {
-				tone: 'loading' as const,
-				label: 'Loading…',
-				displayName: 'KBVE',
-				avatarUrl: undefined,
-			};
-		if (error)
-			return {
-				tone: 'error' as const,
-				label: `Error: ${error}`,
-				displayName: 'KBVE',
-				avatarUrl: undefined,
-			};
-		if (!session?.user) {
-			return {
-				tone: 'anon' as const,
-				label: 'Anonymous user',
-				displayName: 'KBVE Guest',
-				avatarUrl: undefined,
-			};
-		}
-
-		const user = session.user;
-		const displayName =
-			user.user_metadata?.full_name ||
-			user.user_metadata?.name ||
-			user.email?.split('@')[0] ||
-			'User';
-		const avatarUrl =
-			user.user_metadata?.avatar_url || user.user_metadata?.picture;
-
-		return {
-			tone: 'auth' as const,
-			label: `Logged in as ${user.email}`,
-			displayName,
-			avatarUrl,
-		};
-	}, [ready, error, session]);
+	const tone = auth.tone === 'loading' && error ? 'error' : auth.tone;
+	const displayName =
+		auth.tone === 'auth'
+			? auth.name
+			: auth.tone === 'loading'
+				? 'Loading…'
+				: 'KBVE Guest';
+	const avatarUrl = auth.avatar;
 
 	async function handleOAuthSignIn(provider: OAuthProvider) {
 		setError(null);
@@ -195,9 +105,9 @@ export default function ReactNav() {
 		<>
 			{/* NavDropdown renders directly - React component is inside the nav */}
 			<NavDropdown
-				tone={state.tone}
-				displayName={state.displayName}
-				avatarUrl={state.avatarUrl}
+				tone={tone}
+				displayName={displayName}
+				avatarUrl={avatarUrl}
 				onLogin={handleLogin}
 				onLogout={handleLogout}
 			/>

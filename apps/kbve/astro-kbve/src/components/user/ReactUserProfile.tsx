@@ -1,10 +1,9 @@
 // ReactUserProfile - User profile dashboard with Supabase auth
 // Fetches enriched profile data from /api/v1/profile/me
-// Uses Dexie (via WorkerCommunication) for client-side caching
+// Uses localStorage for client-side caching
 import React, { useEffect, useState, useRef } from 'react';
 import { initSupa, getSupa } from '@/lib/supa';
 import { useAuthBridge } from '@/components/auth';
-import { getWorkerCommunication } from '@/lib/gateway/WorkerCommunication';
 import {
 	User,
 	Settings,
@@ -183,36 +182,21 @@ export default function ReactUserProfile() {
 		setConnectionHealth({ status, apiOk, workerOk, message });
 	}
 
-	// Get cached profile from Dexie (via WorkerCommunication)
-	async function getCachedProfile(
-		userId: string,
-	): Promise<ApiProfile | null> {
+	// Get cached profile from localStorage
+	function getCachedProfile(userId: string): ApiProfile | null {
 		try {
-			const comm = getWorkerCommunication();
-			const cached =
-				await comm.getState<CachedProfile>(PROFILE_CACHE_KEY);
+			const raw = localStorage.getItem(PROFILE_CACHE_KEY);
+			if (!raw) return null;
 
-			if (!cached) {
-				console.log('[ReactUserProfile] No cached profile found');
-				return null;
-			}
+			const cached: CachedProfile = JSON.parse(raw);
 
-			// Verify user_id matches (in case of account switch)
 			if (cached.user_id !== userId) {
-				console.log(
-					'[ReactUserProfile] Cache user_id mismatch, invalidating',
-				);
-				await comm.removeState(PROFILE_CACHE_KEY);
+				localStorage.removeItem(PROFILE_CACHE_KEY);
 				return null;
 			}
 
-			// Check TTL
 			const age = Date.now() - cached.cached_at;
 			if (age > CACHE_TTL_MS) {
-				console.log(
-					'[ReactUserProfile] Cache expired (age: %dms)',
-					age,
-				);
 				return null;
 			}
 
@@ -224,31 +208,24 @@ export default function ReactUserProfile() {
 		}
 	}
 
-	// Save profile to Dexie cache
-	async function setCachedProfile(profile: ApiProfile): Promise<void> {
+	// Save profile to localStorage
+	function setCachedProfile(profile: ApiProfile): void {
 		try {
-			const comm = getWorkerCommunication();
 			const cached: CachedProfile = {
 				profile,
 				cached_at: Date.now(),
 				user_id: profile.user_id,
 			};
-			await comm.setState(PROFILE_CACHE_KEY, cached);
-			console.log(
-				'[ReactUserProfile] Profile cached for user:',
-				profile.username,
-			);
+			localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(cached));
 		} catch (e: any) {
 			console.warn('[ReactUserProfile] Cache write error:', e?.message);
 		}
 	}
 
 	// Clear profile cache (on logout)
-	async function clearProfileCache(): Promise<void> {
+	function clearProfileCache(): void {
 		try {
-			const comm = getWorkerCommunication();
-			await comm.removeState(PROFILE_CACHE_KEY);
-			console.log('[ReactUserProfile] Profile cache cleared');
+			localStorage.removeItem(PROFILE_CACHE_KEY);
 		} catch (e: any) {
 			console.warn('[ReactUserProfile] Cache clear error:', e?.message);
 		}
@@ -284,7 +261,7 @@ export default function ReactUserProfile() {
 			);
 
 			// Cache the fresh profile
-			await setCachedProfile(data);
+			setCachedProfile(data);
 
 			return data;
 		} catch (e: any) {
@@ -307,21 +284,16 @@ export default function ReactUserProfile() {
 
 		// 1. Try cache first for instant display
 		try {
-			const cached = await getCachedProfile(userId);
+			const cached = getCachedProfile(userId);
 			if (cached) {
 				setApiProfile(cached);
 				setFromCache(true);
-				workerOk = true; // Cache read succeeded
-				console.log('[ReactUserProfile] Worker/Dexie OK - cache hit');
-			} else {
-				// No cache but worker is still functional
 				workerOk = true;
-				console.log(
-					'[ReactUserProfile] Worker/Dexie OK - no cached data',
-				);
+			} else {
+				workerOk = true;
 			}
 		} catch (e) {
-			console.warn('[ReactUserProfile] Worker/Dexie FAILED');
+			console.warn('[ReactUserProfile] Cache FAILED');
 			workerOk = false;
 		}
 
@@ -399,7 +371,7 @@ export default function ReactUserProfile() {
 						// Clear cache and state on sign out
 						setApiProfile(null);
 						setFromCache(false);
-						await clearProfileCache();
+						clearProfileCache();
 					}
 				});
 			} catch (e: any) {
@@ -428,7 +400,7 @@ export default function ReactUserProfile() {
 	async function handleLogout() {
 		try {
 			// Clear profile cache before signing out
-			await clearProfileCache();
+			clearProfileCache();
 			const supa = getSupa();
 			await supa.signOut();
 			window.location.href = '/';
@@ -451,9 +423,9 @@ export default function ReactUserProfile() {
 			setApiProfile(profile);
 			apiOk = true;
 
-			// Try to update cache - this tests worker health
+			// Try to update cache
 			try {
-				await setCachedProfile(profile);
+				setCachedProfile(profile);
 				workerOk = true;
 			} catch {
 				workerOk = false;

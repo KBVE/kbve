@@ -3,7 +3,7 @@
 // Dedicated WebSocket worker for mobile/Android (replaces SharedWorker role)
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { getWorkerCommunication } from '../lib/gateway/WorkerCommunication';
+import { getWorkerCommunication } from '../lib/worker-comm';
 
 type WorkerMessage =
 	| { id: string; type: 'ping'; payload?: any }
