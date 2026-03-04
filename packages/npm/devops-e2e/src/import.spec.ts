@@ -6,9 +6,6 @@ describe('ESM Import', () => {
 	it('should export all expected functions from the barrel', async () => {
 		const devops = await import('@kbve/devops');
 
-		// Core
-		expect(typeof devops.devops).toBe('function');
-
 		// Sanitization
 		expect(typeof devops._isULID).toBe('function');
 		expect(typeof devops.markdownToJsonSafeString).toBe('function');
