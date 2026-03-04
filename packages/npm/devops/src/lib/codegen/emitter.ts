@@ -10,7 +10,7 @@ import type {
 	HelperConfig,
 	PostambleConfig,
 } from './types.js';
-import { mapField } from './field-mapper.js';
+import { mapField, mapOneof } from './field-mapper.js';
 import { emitConstArray } from './enum-mapper.js';
 
 export interface EmitOptions {
@@ -20,6 +20,8 @@ export interface EmitOptions {
 	zodImport: string;
 	protoSource?: string;
 	configSource?: string;
+	/** Type names that need z.lazy() due to circular references */
+	lazyRefs?: Set<string>;
 }
 
 /** Get the schema const name for a message */
@@ -50,7 +52,11 @@ function getFieldName(
 }
 
 /** Emit a single message schema + type */
-function emitSchema(msg: DescMessage, config: ProtoZodConfig): string[] {
+function emitSchema(
+	msg: DescMessage,
+	config: ProtoZodConfig,
+	lazyRefs?: Set<string>,
+): string[] {
 	const schemaName = getSchemaName(msg.typeName, config);
 	const typeName = getTypeName(msg.typeName, config);
 	const usePassthrough = config.passthrough?.includes(msg.typeName) ?? false;
@@ -61,11 +67,42 @@ function emitSchema(msg: DescMessage, config: ProtoZodConfig): string[] {
 	lines.push(`export const ${schemaName} = z`);
 	lines.push('\t.object({');
 
-	// Proto fields
-	for (const field of msg.fields) {
-		const name = getFieldName(msg.typeName, field.name, config);
-		const expr = mapField(field, msg.typeName, config);
-		lines.push(`\t\t${name}: ${expr},`);
+	// Check for rename conflicts (two fields mapping to the same output name)
+	const outputNames = new Set<string>();
+	for (const member of msg.members) {
+		let name: string;
+		if (member.kind === 'oneof') {
+			name =
+				config.renames?.[`${msg.typeName}.${member.name}`] ??
+				member.name;
+		} else {
+			if (member.oneof) continue;
+			name = getFieldName(msg.typeName, member.name, config);
+		}
+		if (outputNames.has(name)) {
+			throw new Error(
+				`Rename conflict in ${msg.typeName}: multiple fields map to "${name}"`,
+			);
+		}
+		outputNames.add(name);
+	}
+
+	// Proto fields and oneofs (via members for correct ordering)
+	for (const member of msg.members) {
+		if (member.kind === 'oneof') {
+			// Emit oneof as a single union field named after the oneof group
+			const oneofName =
+				config.renames?.[`${msg.typeName}.${member.name}`] ??
+				member.name;
+			const expr = mapOneof(member, msg.typeName, config, lazyRefs);
+			lines.push(`\t\t${oneofName}: ${expr},`);
+		} else {
+			// Regular field — skip if it belongs to a oneof (handled above)
+			if (member.oneof) continue;
+			const name = getFieldName(msg.typeName, member.name, config);
+			const expr = mapField(member, msg.typeName, config, lazyRefs);
+			lines.push(`\t\t${name}: ${expr},`);
+		}
 	}
 
 	// Extra fields (MDX-only)
@@ -117,7 +154,7 @@ function emitTypeGuard(guard: TypeGuardConfig): string[] {
  * Assemble the complete output file.
  */
 export function emit(options: EmitOptions): string {
-	const { sortedMessages, enums, config, zodImport } = options;
+	const { sortedMessages, enums, config, zodImport, lazyRefs } = options;
 	const lines: string[] = [];
 
 	// Header
@@ -160,7 +197,7 @@ export function emit(options: EmitOptions): string {
 	// Generated schemas (in topo order)
 	for (const msg of sortedMessages) {
 		lines.push(`// ${msg.typeName.split('.').pop() ?? msg.typeName}`);
-		lines.push(...emitSchema(msg, config));
+		lines.push(...emitSchema(msg, config, lazyRefs));
 		lines.push('');
 	}
 
