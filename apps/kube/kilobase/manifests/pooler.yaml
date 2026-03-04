@@ -1,0 +1,45 @@
+---
+# CNPG Pooler — PgBouncer in front of supabase-cluster
+#
+# Phase 1: Deploy only. No services are switched to use the pooler yet.
+# Services continue connecting directly to supabase-cluster-rw.
+#
+# Once validated, services can be migrated in phases by changing
+# DB_HOST from supabase-cluster-rw to supabase-cluster-pooler-rw.
+#
+# Ref: https://cloudnative-pg.io/docs/1.28/connection_pooling/
+# Tracking: https://github.com/KBVE/kbve/issues/7593
+
+# Read-write pooler (transaction mode) — for stateless HTTP services
+apiVersion: postgresql.cnpg.io/v1
+kind: Pooler
+metadata:
+    name: supabase-cluster-pooler-rw
+    namespace: kilobase
+spec:
+    cluster:
+        name: supabase-cluster
+    instances: 3
+    type: rw
+    pgbouncer:
+        poolMode: transaction
+        parameters:
+            max_client_conn: '1000'
+            default_pool_size: '25'
+---
+# Read-only pooler (transaction mode) — for analytics and read-heavy workloads
+apiVersion: postgresql.cnpg.io/v1
+kind: Pooler
+metadata:
+    name: supabase-cluster-pooler-ro
+    namespace: kilobase
+spec:
+    cluster:
+        name: supabase-cluster
+    instances: 2
+    type: ro
+    pgbouncer:
+        poolMode: transaction
+        parameters:
+            max_client_conn: '500'
+            default_pool_size: '15'
