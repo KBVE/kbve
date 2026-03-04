@@ -1,0 +1,140 @@
+{
+	"name": "axum-cryptothrone",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/cryptothrone/axum-cryptothrone/src",
+	"targets": {
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"./kbve.sh -nx astro-cryptothrone:build",
+					"STATIC_DIR=./dist/apps/astro-cryptothrone STATIC_PRECOMPRESSED=false cargo run -p axum-cryptothrone"
+				],
+				"parallel": false
+			}
+		},
+		"build": {
+			"executor": "@monodon/rust:build",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/axum-cryptothrone"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"test": {
+			"executor": "@monodon/rust:test",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/axum-cryptothrone"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"lint": {
+			"executor": "@monodon/rust:lint",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/axum-cryptothrone"
+			}
+		},
+		"run": {
+			"executor": "@monodon/rust:run",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/axum-cryptothrone"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"nx test axum-cryptothrone",
+					"nx e2e astro-cryptothrone-e2e"
+				],
+				"parallel": false
+			}
+		},
+		"container-prep": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"./kbve.sh -nx astro-cryptothrone:build",
+					"rm -rf ./apps/cryptothrone/axum-cryptothrone/dist/",
+					"mkdir -p ./apps/cryptothrone/axum-cryptothrone/dist/",
+					"cp -a ./dist/apps/astro-cryptothrone/. ./apps/cryptothrone/axum-cryptothrone/dist/"
+				],
+				"parallel": false
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["container-prep"],
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx axum-cryptothrone:containerx",
+						"VERSION=$(grep '^version' apps/cryptothrone/axum-cryptothrone/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/cryptothrone:latest kbve/cryptothrone:$VERSION && echo \"Tagged kbve/cryptothrone:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx axum-cryptothrone:containerx --configuration=production",
+						"VERSION=$(grep '^version' apps/cryptothrone/axum-cryptothrone/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/cryptothrone:latest kbve/cryptothrone:$VERSION && docker tag kbve/cryptothrone:latest ghcr.io/kbve/cryptothrone:$VERSION && echo \"Tagged kbve/cryptothrone:$VERSION and ghcr.io/kbve/cryptothrone:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/cryptothrone/axum-cryptothrone/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/cryptothrone:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": [
+							"ghcr.io/kbve/cryptothrone",
+							"kbve/cryptothrone"
+						],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/cryptothrone:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/cryptothrone:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	},
+	"tags": []
+}
