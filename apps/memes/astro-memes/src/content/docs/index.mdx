@@ -2,17 +2,14 @@
 title: Meme.sh
 description: Discover the Best Memes
 template: splash
-hero:
-  title: Meme.sh
-  tagline: Discover the Best Memes
-  actions:
-    - text: Browse Feed
-      link: /feed
-      icon: right-arrow
 ---
 
+import AstroHeroSection from '../../components/hero/AstroHeroSection.astro';
+import HeroDitherCycle from '../../components/hero/HeroDitherCycle';
 import ReactMemeContent from '../../components/feed/ReactMemeContent';
 
-<div style="margin-left: calc(-1 * var(--sl-content-pad-x, 1rem)); margin-right: calc(-1 * var(--sl-content-pad-x, 1rem)); margin-top: 2rem;">
+<div class="not-content">
+  <AstroHeroSection />
+  <HeroDitherCycle client:idle />
   <ReactMemeContent client:only="react" />
 </div>
