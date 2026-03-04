@@ -3,7 +3,7 @@
  */
 
 import { ScalarType } from '@bufbuild/protobuf';
-import type { DescField, DescEnum } from '@bufbuild/protobuf';
+import type { DescField, DescEnum, DescOneof } from '@bufbuild/protobuf';
 import type { ProtoZodConfig } from './types.js';
 
 /** Map a proto scalar type to a Zod expression */
@@ -46,14 +46,52 @@ function isNullable(fieldFqn: string, config: ProtoZodConfig): boolean {
 	return false;
 }
 
-/** Resolve schema name for a referenced message type */
-function resolveSchemaName(typeName: string, config: ProtoZodConfig): string {
-	if (config.schemaNames?.[typeName]) {
-		return config.schemaNames[typeName];
+/** Well-known Google protobuf types → inline Zod expressions */
+const WELL_KNOWN_TYPES: Record<string, string> = {
+	'google.protobuf.Timestamp': 'z.string().datetime()',
+	'google.protobuf.Duration': 'z.string()',
+	'google.protobuf.Struct': 'z.record(z.string(), z.unknown())',
+	'google.protobuf.Value': 'z.unknown()',
+	'google.protobuf.ListValue': 'z.array(z.unknown())',
+	'google.protobuf.Empty': 'z.object({})',
+	'google.protobuf.Any':
+		'z.object({ typeUrl: z.string(), value: z.string() })',
+	'google.protobuf.StringValue': 'z.string()',
+	'google.protobuf.BytesValue': 'z.string()',
+	'google.protobuf.BoolValue': 'z.boolean()',
+	'google.protobuf.Int32Value': 'z.number()',
+	'google.protobuf.UInt32Value': 'z.number()',
+	'google.protobuf.Int64Value': 'z.number()',
+	'google.protobuf.UInt64Value': 'z.number()',
+	'google.protobuf.FloatValue': 'z.number()',
+	'google.protobuf.DoubleValue': 'z.number()',
+	'google.protobuf.FieldMask': 'z.string()',
+};
+
+/** Check if a type name is a well-known Google protobuf type */
+export function isWellKnownType(typeName: string): boolean {
+	return typeName in WELL_KNOWN_TYPES;
+}
+
+/** Resolve schema name for a referenced message type, wrapping in z.lazy() for cycles */
+function resolveSchemaName(
+	typeName: string,
+	config: ProtoZodConfig,
+	lazyRefs?: Set<string>,
+): string {
+	// Well-known types get inlined as Zod expressions
+	if (WELL_KNOWN_TYPES[typeName]) {
+		return WELL_KNOWN_TYPES[typeName];
 	}
-	// Default: MessageName + "Schema"
-	const shortName = typeName.split('.').pop() ?? typeName;
-	return `${shortName}Schema`;
+
+	const schemaName =
+		config.schemaNames?.[typeName] ??
+		`${typeName.split('.').pop() ?? typeName}Schema`;
+
+	if (lazyRefs?.has(typeName)) {
+		return `z.lazy(() => ${schemaName})`;
+	}
+	return schemaName;
 }
 
 /**
@@ -68,10 +106,11 @@ export function mapField(
 	field: DescField,
 	parentFqn: string,
 	config: ProtoZodConfig,
+	lazyRefs?: Set<string>,
 ): string {
 	const fieldFqn = `${parentFqn}.${field.name}`;
 
-	// Check for complete field override
+	// Check for complete field override (takes precedence over auto z.lazy())
 	if (config.fieldOverrides?.[fieldFqn]) {
 		return config.fieldOverrides[fieldFqn];
 	}
@@ -88,15 +127,15 @@ export function mapField(
 			break;
 
 		case 'message':
-			expr = resolveSchemaName(field.message.typeName, config);
+			expr = resolveSchemaName(field.message.typeName, config, lazyRefs);
 			break;
 
 		case 'list':
-			expr = mapList(field, config);
+			expr = mapList(field, config, lazyRefs);
 			break;
 
 		case 'map':
-			expr = mapMap(field, config);
+			expr = mapMap(field, config, lazyRefs);
 			break;
 
 		default:
@@ -143,6 +182,7 @@ function mapEnumRef(enumDesc: DescEnum, config: ProtoZodConfig): string {
 function mapList(
 	field: DescField & { fieldKind: 'list' },
 	config: ProtoZodConfig,
+	lazyRefs?: Set<string>,
 ): string {
 	let itemExpr: string;
 
@@ -154,7 +194,11 @@ function mapList(
 			itemExpr = mapEnumRef(field.enum, config);
 			break;
 		case 'message':
-			itemExpr = resolveSchemaName(field.message.typeName, config);
+			itemExpr = resolveSchemaName(
+				field.message.typeName,
+				config,
+				lazyRefs,
+			);
 			break;
 		default:
 			itemExpr = 'z.unknown()';
@@ -167,6 +211,7 @@ function mapList(
 function mapMap(
 	field: DescField & { fieldKind: 'map' },
 	config: ProtoZodConfig,
+	lazyRefs?: Set<string>,
 ): string {
 	const keyExpr = mapScalar(field.mapKey);
 	let valExpr: string;
@@ -179,13 +224,101 @@ function mapMap(
 			valExpr = mapEnumRef(field.enum, config);
 			break;
 		case 'message':
-			valExpr = resolveSchemaName(field.message.typeName, config);
+			valExpr = resolveSchemaName(
+				field.message.typeName,
+				config,
+				lazyRefs,
+			);
 			break;
 		default:
 			valExpr = 'z.unknown()';
 	}
 
 	return `z.record(${keyExpr}, ${valExpr})`;
+}
+
+/**
+ * Map a oneof group to a Zod z.union() expression.
+ *
+ * - Message-only oneofs → z.union([SchemaA, SchemaB, ...])
+ * - Scalar/mixed oneofs → z.union([z.object({name: expr}), ...])
+ * - Always wrapped with .optional()
+ */
+export function mapOneof(
+	oneof: DescOneof,
+	parentFqn: string,
+	config: ProtoZodConfig,
+	lazyRefs?: Set<string>,
+): string {
+	// First pass: determine if all fields are message type (for flat union style)
+	const allMessages = oneof.fields.every(
+		(f) =>
+			f.fieldKind === 'message' &&
+			!config.fieldOverrides?.[`${parentFqn}.${f.name}`],
+	);
+
+	const variants: string[] = [];
+
+	for (const field of oneof.fields) {
+		const fieldFqn = `${parentFqn}.${field.name}`;
+
+		// Check for complete field override
+		if (config.fieldOverrides?.[fieldFqn]) {
+			const name = config.renames?.[fieldFqn] ?? field.name;
+			variants.push(
+				`z.object({ ${name}: ${config.fieldOverrides[fieldFqn]} })`,
+			);
+			continue;
+		}
+
+		let expr: string;
+		switch (field.fieldKind) {
+			case 'scalar':
+				expr = mapScalar(field.scalar);
+				break;
+			case 'enum':
+				expr = mapEnumRef(field.enum, config);
+				break;
+			case 'message':
+				expr = resolveSchemaName(
+					field.message.typeName,
+					config,
+					lazyRefs,
+				);
+				break;
+			default:
+				expr = 'z.unknown()';
+		}
+
+		// Apply refinements
+		if (config.refinements?.[fieldFqn]) {
+			expr += config.refinements[fieldFqn];
+		}
+
+		// Apply transforms
+		if (config.transforms?.[fieldFqn]) {
+			expr += `.transform(${config.transforms[fieldFqn]})`;
+		}
+
+		if (allMessages) {
+			// Message-only: push bare schema reference
+			variants.push(expr);
+		} else {
+			// Mixed/scalar: wrap in z.object({fieldName: expr})
+			const name = config.renames?.[fieldFqn] ?? field.name;
+			variants.push(`z.object({ ${name}: ${expr} })`);
+		}
+	}
+
+	if (variants.length === 0) {
+		return 'z.never().optional()';
+	}
+
+	if (variants.length === 1) {
+		return `${variants[0]}.optional()`;
+	}
+
+	return `z.union([${variants.join(', ')}]).optional()`;
 }
 
 /** Apply optionality (.optional() or .nullable().optional()) */

@@ -15,6 +15,7 @@ import { FileDescriptorSetSchema } from '@bufbuild/protobuf/wkt';
 import type { ProtoZodConfig, GenerateZodOptions } from './types.js';
 import { topoSortMessages } from './topo-sort.js';
 import { emit } from './emitter.js';
+import { isWellKnownType } from './field-mapper.js';
 
 /**
  * Load and parse a FileDescriptorSet binary (.binpb).
@@ -33,19 +34,29 @@ function loadConfig(configPath: string): ProtoZodConfig {
 	return JSON.parse(raw) as ProtoZodConfig;
 }
 
+/** Normalize protoPackage to a Set for O(1) lookup */
+function normalizePackages(
+	protoPackage?: string | string[],
+): Set<string> | undefined {
+	if (!protoPackage) return undefined;
+	if (typeof protoPackage === 'string') return new Set([protoPackage]);
+	if (protoPackage.length === 0) return undefined;
+	return new Set(protoPackage);
+}
+
 /**
- * Collect all messages from the registry, optionally filtered by package.
+ * Collect all messages from the registry, optionally filtered by package(s).
  */
 function collectMessages(
 	registry: FileRegistry,
 	config: ProtoZodConfig,
-	protoPackage?: string,
+	packages?: Set<string>,
 ): DescMessage[] {
 	const messages: DescMessage[] = [];
 
 	for (const file of registry.files) {
 		// Filter by package if specified
-		if (protoPackage && file.proto.package !== protoPackage) {
+		if (packages && !packages.has(file.proto.package ?? '')) {
 			continue;
 		}
 
@@ -53,6 +64,9 @@ function collectMessages(
 		const queue: DescMessage[] = [...file.messages];
 		while (queue.length > 0) {
 			const msg = queue.pop()!;
+
+			// Skip well-known types (they're inlined as Zod expressions)
+			if (isWellKnownType(msg.typeName)) continue;
 
 			// Apply include/exclude filters
 			if (config.include && config.include.length > 0) {
@@ -75,16 +89,16 @@ function collectMessages(
 }
 
 /**
- * Collect all enums from the registry, optionally filtered by package.
+ * Collect all enums from the registry, optionally filtered by package(s).
  */
 function collectEnums(
 	registry: FileRegistry,
-	protoPackage?: string,
+	packages?: Set<string>,
 ): Map<string, DescEnum> {
 	const enums = new Map<string, DescEnum>();
 
 	for (const file of registry.files) {
-		if (protoPackage && file.proto.package !== protoPackage) {
+		if (packages && !packages.has(file.proto.package ?? '')) {
 			continue;
 		}
 
@@ -128,12 +142,15 @@ export async function generateZodFromProto(
 	const registry = loadDescriptor(resolve(descriptorPath));
 	const config = loadConfig(resolve(configPath));
 
-	// Collect types
-	const messages = collectMessages(registry, config, protoPackage);
-	const enums = collectEnums(registry, protoPackage);
+	// Normalize package filter
+	const packages = normalizePackages(protoPackage);
 
-	// Topological sort
-	const sortedMessages = topoSortMessages(messages);
+	// Collect types
+	const messages = collectMessages(registry, config, packages);
+	const enums = collectEnums(registry, packages);
+
+	// Topological sort with cycle detection
+	const { sorted: sortedMessages, lazyRefs } = topoSortMessages(messages);
 
 	// Emit output
 	const output = emit({
@@ -141,6 +158,7 @@ export async function generateZodFromProto(
 		enums,
 		config,
 		zodImport,
+		lazyRefs,
 		protoSource: relative(dirname(options.outputPath), descriptorPath),
 		configSource: relative(dirname(options.outputPath), configPath),
 	});
