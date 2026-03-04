@@ -1,0 +1,43 @@
+---
+// Custom PageTitle override — skip the h1 on splash pages since
+// those render their own hero/title via custom components.
+// A hidden marker + head-hoisted global CSS hides the parent content-panel
+// before first paint — zero layout shift.
+const route = Astro.locals.starlightRoute;
+const isSplash = route.entry.data.template === 'splash';
+---
+
+{
+	isSplash ? (
+		<span data-splash-no-title aria-hidden="true" style="display:none" />
+	) : (
+		<h1 id="_top">{route.entry.data.title}</h1>
+	)
+}
+
+<style>
+	@layer starlight.core {
+		h1 {
+			margin-top: 1rem;
+			font-size: var(--sl-text-h1);
+			line-height: var(--sl-line-height-headings);
+			font-weight: 600;
+			color: var(--sl-color-white);
+		}
+	}
+</style>
+
+<style is:global>
+	/* Selectors scope to [data-splash-no-title] — no effect on non-splash pages */
+	.content-panel:has([data-splash-no-title]) {
+		display: none !important;
+	}
+	.content-panel:has([data-splash-no-title]) + .content-panel {
+		padding: 0;
+	}
+	.content-panel:has([data-splash-no-title])
+		+ .content-panel
+		> .sl-container {
+		max-width: none;
+	}
+</style>
