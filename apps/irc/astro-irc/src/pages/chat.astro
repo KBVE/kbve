@@ -1,18 +1,22 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import ChatRoom from '../components/chat/ChatRoom.astro';
 ---
 
-<Layout title="Chat - KBVE IRC" description="Real-time IRC chat powered by Ergo">
-  <main class="chat-page">
-    <ChatRoom wsUrl="wss://chat.kbve.com/ws" />
-  </main>
-</Layout>
+<StarlightPage
+	frontmatter={{ title: 'Chat', template: 'splash', pagefind: false }}
+	hasSidebar={false}>
+	<div class="chat-page-wrapper">
+		<ChatRoom wsUrl="wss://chat.kbve.com/ws" />
+	</div>
+</StarlightPage>
 
-<style>
-  .chat-page {
-    max-width: 72rem;
-    margin: 0 auto;
-    padding: 1.5rem 1rem;
-  }
+<style is:global>
+	.content-panel:has(.chat-page-wrapper) {
+		max-width: 100%;
+		padding-inline: 0.5rem;
+	}
+	.sl-container:has(.chat-page-wrapper) {
+		max-width: 100%;
+	}
 </style>
