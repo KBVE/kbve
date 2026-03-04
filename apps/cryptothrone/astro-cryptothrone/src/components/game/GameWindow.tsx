@@ -5,18 +5,26 @@ import { PhaserGame } from '@kbve/laser';
 import type { PhaserGameRef } from '@kbve/laser';
 import { PreloaderScene } from './scenes/PreloaderScene';
 import { CloudCityScene } from './scenes/CloudCityScene';
+import { GameStoreProvider, useGameStore } from './store/GameStoreContext';
+import { useEventBridge } from './store/useEventBridge';
 import { CharacterDialog } from './ui/CharacterDialog';
 import { NotificationToast } from './ui/NotificationToast';
+import { StickySidebar } from './ui/StickySidebar';
+import { ActionMenu } from './ui/ActionMenu';
+import { DialogueModal } from './ui/DialogueModal';
+import { DiceRollModal } from './ui/DiceRollModal';
 
-export default function GameWindow() {
+function GameWindowInner() {
 	const gameRef = useRef<PhaserGameRef>(null);
+	const { dispatch } = useGameStore();
+	useEventBridge(dispatch);
 
 	const handleReady = useCallback((game: Phaser.Game) => {
 		console.log('[CryptoThrone] Game ready', game.config.gameTitle);
 	}, []);
 
 	return (
-		<div className="relative flex justify-center items-center w-full">
+		<>
 			<PhaserGame
 				ref={gameRef}
 				config={{
@@ -40,8 +48,22 @@ export default function GameWindow() {
 				}}
 				onReady={handleReady}
 			/>
+			<StickySidebar />
+			<ActionMenu />
+			<DialogueModal />
+			<DiceRollModal />
 			<CharacterDialog />
 			<NotificationToast />
-		</div>
+		</>
+	);
+}
+
+export default function GameWindow() {
+	return (
+		<GameStoreProvider>
+			<div className="relative flex justify-center items-center w-full">
+				<GameWindowInner />
+			</div>
+		</GameStoreProvider>
 	);
 }
