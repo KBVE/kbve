@@ -27,7 +27,10 @@ spec:
             max_client_conn: '1000'
             default_pool_size: '25'
 ---
-# Read-only pooler (transaction mode) — for analytics and read-heavy workloads
+# Read-only pooler (session mode) — for analytics and read-heavy workloads
+# Session mode is better for RO because queries are often longer-running
+# (reports, analytics, bulk reads) and there's no write contention to
+# benefit from transaction-level multiplexing.
 apiVersion: postgresql.cnpg.io/v1
 kind: Pooler
 metadata:
@@ -39,7 +42,7 @@ spec:
     instances: 2
     type: ro
     pgbouncer:
-        poolMode: transaction
+        poolMode: session
         parameters:
             max_client_conn: '500'
             default_pool_size: '15'
