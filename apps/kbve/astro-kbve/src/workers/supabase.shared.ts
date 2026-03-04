@@ -3,7 +3,7 @@
 /* eslint-disable no-restricted-globals */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import Dexie, { type Table } from 'dexie';
-import { getWorkerCommunication } from '../lib/gateway/WorkerCommunication';
+import { getWorkerCommunication } from '../lib/worker-comm';
 
 type Req =
 	| {

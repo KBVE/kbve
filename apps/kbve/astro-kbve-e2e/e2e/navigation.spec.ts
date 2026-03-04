@@ -28,7 +28,7 @@ test.describe('sidebar navigation', () => {
 	test('sidebar contains Guides link', async ({ page }) => {
 		await page.goto('/guides/');
 		const sidebar = page.locator('nav[aria-label="Main"]');
-		await expect(sidebar.getByText('Guides')).toBeVisible();
+		await expect(sidebar.getByText('Guides').first()).toBeVisible();
 	});
 
 	test('sidebar contains Applications link', async ({ page }) => {

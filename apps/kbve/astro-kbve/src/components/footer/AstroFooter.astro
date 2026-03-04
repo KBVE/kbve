@@ -1,6 +1,7 @@
 ---
 // React component for dynamic footer content
 import ReactFooter from './ReactFooter.tsx';
+import { DroidOverlays } from '@/components/providers/DroidOverlays';
 
 // Legal Links
 const legalLinks = [
@@ -237,6 +238,9 @@ const socialLinks = [
 
 	<!-- React Footer Component - Handles dynamic content -->
 	<ReactFooter client:only="react" />
+
+	<!-- Droid overlay system (toasts, modals) -->
+	<DroidOverlays client:only="react" />
 </footer>
 
 <style>

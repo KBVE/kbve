@@ -13,7 +13,14 @@ test.describe('JSON API endpoints', () => {
 			expect(contentType).toContain('application/json');
 
 			const body = await response.json();
-			expect(Array.isArray(body)).toBe(true);
+			expect(body).toBeTruthy();
+			expect(typeof body).toBe('object');
+
+			// Each endpoint wraps its data in an object with a primary key
+			// containing an array (e.g. { applications: [...], key: ... })
+			const values = Object.values(body);
+			const hasArray = values.some((v) => Array.isArray(v));
+			expect(hasArray).toBe(true);
 		});
 	}
 });
