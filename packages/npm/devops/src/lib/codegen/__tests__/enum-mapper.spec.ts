@@ -4,11 +4,7 @@ import {
 	getEnumValues,
 	emitConstArray,
 } from '../enum-mapper.js';
-import {
-	makeDescEnum,
-	makeDescEnumValue,
-	resetFieldCounter,
-} from './test-factories.js';
+import { makeDescEnum, resetFieldCounter } from './test-factories.js';
 import type { EnumConfig, ConstArrayConfig } from '../types.js';
 
 describe('transformEnumValue', () => {
