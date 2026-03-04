@@ -103,8 +103,12 @@ describe('Sanitization Integration', () => {
 	describe('_md_safe_row', () => {
 		it('escapes markdown special characters', () => {
 			const result = _md_safe_row('hello | world * [test]');
-			expect(result).not.toContain('|');
-			expect(result).not.toContain('*');
+			// The function escapes | to \| and * to \* — check for unescaped chars
+			expect(result).toContain('\\|');
+			expect(result).toContain('\\*');
+			expect(result).toContain('\\[');
+			expect(result).not.toMatch(/(?<!\\)\|/);
+			expect(result).not.toMatch(/(?<!\\)\*/);
 		});
 	});
 });
