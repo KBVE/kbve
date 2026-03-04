@@ -75,6 +75,9 @@ export interface ProtoZodConfig {
 	/** Fully qualified message names to exclude. */
 	exclude?: string[];
 
+	/** How to emit oneof groups. Default: 'flattened_union'. */
+	oneofMode?: 'flattened_union' | 'discriminated_objects';
+
 	/** Field renames: "pkg.Message.field" → "new_name" */
 	renames?: Record<string, string>;
 
@@ -130,6 +133,6 @@ export interface GenerateZodOptions {
 	outputPath: string;
 	/** Zod import source. Default: 'zod' */
 	zodImport?: string;
-	/** Filter to a specific proto package, e.g., 'kbve.osrs' */
-	protoPackage?: string;
+	/** Filter to proto package(s), e.g., 'kbve.osrs' or ['kbve.osrs', 'kbve.common'] */
+	protoPackage?: string | string[];
 }

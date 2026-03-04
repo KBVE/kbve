@@ -1,45 +1,55 @@
-import { useState, useEffect, useCallback } from 'react';
-import { laserEvents } from '@kbve/laser';
-import type { CharacterEventData } from '@kbve/laser';
+import { useGameStore } from '../store/GameStoreContext';
 
 export function CharacterDialog() {
-	const [dialog, setDialog] = useState<CharacterEventData | null>(null);
+	const { state, dispatch } = useGameStore();
+	const modal = state.activeModal;
 
-	const handleClose = useCallback(() => setDialog(null), []);
+	if (!modal) return null;
 
-	useEffect(() => {
-		const unsub = laserEvents.on('char:event', (data) => {
-			setDialog(data);
-		});
-		return unsub;
-	}, []);
-
-	if (!dialog) return null;
+	const handleClose = () => dispatch({ type: 'SET_MODAL', payload: null });
 
 	return (
-		<div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 w-[700px] max-w-[90vw]">
-			<div className="bg-gray-900/95 border border-gray-600 rounded-lg p-4 text-white flex gap-4">
-				{dialog.character_image && (
-					<img
-						src={dialog.character_image}
-						alt={dialog.character_name ?? 'NPC'}
-						className="w-16 h-16 rounded-full object-cover flex-shrink-0"
-					/>
-				)}
-				<div className="flex-1 min-w-0">
-					{dialog.character_name && (
-						<p className="font-bold text-yellow-300 text-sm mb-1">
-							{dialog.character_name}
-						</p>
+		<div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/50">
+			<div
+				className="flex flex-col lg:flex-row bg-zinc-950 border border-yellow-500 shadow-sm rounded-xl bg-cover min-w-[700px] max-w-[900px] min-h-[400px]"
+				style={{
+					backgroundImage: modal.backgroundImage
+						? `url(${modal.backgroundImage})`
+						: undefined,
+				}}>
+				<div className="w-full lg:w-1/3 p-4 rounded-l-xl flex flex-col items-center justify-center relative">
+					<h3 className="font-bold text-yellow-400 bg-zinc-950/80 rounded-2xl text-center mb-4 p-2">
+						{modal.characterName || 'NPC'}
+					</h3>
+					{modal.characterImage && (
+						<img
+							src={modal.characterImage}
+							alt={modal.characterName || 'NPC'}
+							className="w-full h-auto rounded-md"
+						/>
 					)}
-					<p className="text-sm leading-relaxed">{dialog.message}</p>
 				</div>
-				<button
-					onClick={handleClose}
-					className="text-gray-400 hover:text-white text-xl leading-none flex-shrink-0"
-					aria-label="Close dialog">
-					&times;
-				</button>
+				<div className="w-full lg:w-2/3 p-4 flex flex-col justify-between">
+					<div className="flex justify-end">
+						<button
+							onClick={handleClose}
+							className="text-yellow-400 hover:bg-gray-100/10 rounded-full p-1 text-xl">
+							&times;
+						</button>
+					</div>
+					<div className="p-4 overflow-y-auto flex-1">
+						<p className="text-yellow-400 bg-zinc-950/80 rounded-xl p-4">
+							{modal.message}
+						</p>
+					</div>
+					<div className="flex justify-end py-3 px-4 border-t border-gray-700">
+						<button
+							onClick={handleClose}
+							className="px-5 py-2 bg-yellow-500 hover:bg-yellow-400 text-white rounded transition-all">
+							Okay
+						</button>
+					</div>
+				</div>
 			</div>
 		</div>
 	);

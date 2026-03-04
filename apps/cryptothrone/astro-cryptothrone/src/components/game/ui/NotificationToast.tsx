@@ -1,51 +1,58 @@
-import { useState, useEffect, useCallback } from 'react';
-import { laserEvents } from '@kbve/laser';
-import type { NotificationEventData } from '@kbve/laser';
+import { useEffect } from 'react';
+import { useGameStore } from '../store/GameStoreContext';
+
+const BORDER_COLORS: Record<string, string> = {
+	danger: 'border-red-500',
+	success: 'border-green-500',
+	info: 'border-blue-500',
+	warning: 'border-yellow-500',
+};
 
 export function NotificationToast() {
-	const [notification, setNotification] =
-		useState<NotificationEventData | null>(null);
-
-	const handleClose = useCallback(() => setNotification(null), []);
+	const { state, dispatch } = useGameStore();
+	const { notifications } = state;
 
 	useEffect(() => {
-		const unsub = laserEvents.on('notification', (data) => {
-			setNotification(data);
-			setTimeout(() => setNotification(null), 4000);
-		});
-		return unsub;
-	}, []);
+		if (notifications.length === 0) return;
+		const latest = notifications[notifications.length - 1];
+		const timer = setTimeout(() => {
+			dispatch({
+				type: 'REMOVE_NOTIFICATION',
+				payload: { id: latest.id },
+			});
+		}, 5000);
+		return () => clearTimeout(timer);
+	}, [notifications, dispatch]);
 
-	if (!notification) return null;
-
-	const borderColor =
-		notification.notificationType === 'danger'
-			? 'border-red-500'
-			: notification.notificationType === 'success'
-				? 'border-green-500'
-				: 'border-blue-500';
+	if (notifications.length === 0) return null;
 
 	return (
-		<div className="absolute top-4 right-4 z-50">
-			<div
-				className={`bg-gray-900/95 border-l-4 ${borderColor} rounded p-3 text-white min-w-[250px]`}>
-				<div className="flex justify-between items-start">
-					<div>
-						<p className="font-bold text-sm">
-							{notification.title}
-						</p>
-						<p className="text-xs mt-1 text-gray-300">
-							{notification.message}
-						</p>
+		<div className="fixed inset-x-0 bottom-4 z-50 flex flex-col items-center gap-2 pointer-events-none">
+			{notifications.map((n) => (
+				<div
+					key={n.id}
+					className={`pointer-events-auto bg-gray-900/95 border-l-4 ${BORDER_COLORS[n.type] ?? 'border-blue-500'} rounded p-3 text-white min-w-[250px] max-w-[400px]`}>
+					<div className="flex justify-between items-start">
+						<div>
+							<p className="font-bold text-sm">{n.title}</p>
+							<p className="text-xs mt-1 text-gray-300">
+								{n.message}
+							</p>
+						</div>
+						<button
+							onClick={() =>
+								dispatch({
+									type: 'REMOVE_NOTIFICATION',
+									payload: { id: n.id },
+								})
+							}
+							className="text-gray-400 hover:text-white ml-2"
+							aria-label="Close">
+							&times;
+						</button>
 					</div>
-					<button
-						onClick={handleClose}
-						className="text-gray-400 hover:text-white ml-2"
-						aria-label="Close notification">
-						&times;
-					</button>
 				</div>
-			</div>
+			))}
 		</div>
 	);
 }
