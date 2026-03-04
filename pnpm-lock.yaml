@@ -377,9 +377,6 @@ importers:
             '@vitejs/plugin-react':
                 specifier: 4.2.1
                 version: 4.2.1(vite@7.3.1(@types/node@18.19.17)(jiti@2.4.2)(less@4.1.3)(lightningcss@1.30.2)(sass-embedded@1.85.1)(sass@1.85.1)(stylus@0.64.0)(terser@5.44.1)(yaml@2.8.2))
-            '@vitest/coverage-c8':
-                specifier: ~0.32.4
-                version: 0.32.4(vitest@4.0.9)
             '@vitest/coverage-v8':
                 specifier: 4.0.9
                 version: 4.0.9(vitest@4.0.9)
@@ -9413,15 +9410,6 @@ packages:
         peerDependencies:
             vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0
 
-    '@vitest/coverage-c8@0.32.4':
-        resolution:
-            {
-                integrity: sha512-ahJowPxgSBnaI2J+L/xmzM2oWFkk/+HtjnRfkQZrZd7H80JyG1/D6Xp6UPSZk8MXnoa90NThoyXRDBt12tNBRg==,
-            }
-        deprecated: v8 coverage is moved to @vitest/coverage-v8 package
-        peerDependencies:
-            vitest: '>=0.30.0 <1'
-
     '@vitest/coverage-v8@4.0.9':
         resolution:
             {
@@ -11223,14 +11211,6 @@ packages:
             }
         engines: { node: '>= 0.8' }
 
-    c8@7.14.0:
-        resolution:
-            {
-                integrity: sha512-i04rtkkcNcCf7zsQcSv/T9EbUn4RXQ6mropeMcjFOsQXQ0iGLAr/xT6TImQg4+U9hmNpN9XdvPkjUL1IzbgxJw==,
-            }
-        engines: { node: '>=10.12.0' }
-        hasBin: true
-
     cacheable-lookup@7.0.0:
         resolution:
             {
@@ -11653,12 +11633,6 @@ packages:
         resolution:
             {
                 integrity: sha512-t6wbgtoCXvAzst7QgXxJYqPt0usEfbgQdftEPbLL/cvv6HPE5VgvqCuAIDR0NgU52ds6rFwqrgakNLrHEjCbrQ==,
-            }
-
-    cliui@7.0.4:
-        resolution:
-            {
-                integrity: sha512-OcRE68cOsVMXp1Yvonl/fzkQOyjLSu/8bhPDfQt0e0/Eb283TKP20Fs2MqoPsr9SwA595rRCA+QMzYc9nBP+JQ==,
             }
 
     cliui@8.0.1:
@@ -14734,13 +14708,6 @@ packages:
             }
         engines: { node: '>=12' }
 
-    foreground-child@2.0.0:
-        resolution:
-            {
-                integrity: sha512-dCIq9FpEcyQyXKCkyzmlPTFNgrCzPudOe+mhvJU5zAtlBnGVy2yKxtfsxK2tQBThwq225jcvBjpw1Gr40uzZCA==,
-            }
-        engines: { node: '>=8.0.0' }
-
     foreground-child@3.3.0:
         resolution:
             {
@@ -16780,13 +16747,6 @@ packages:
                 integrity: sha512-yg2d+Em4KizZC5niWhQaIomgf5WlL4vOOjZ5xGCmF8SnPE/mDWWXgvRExdcpCgh9lLRRa1/fSYp2ymmbJ1pI+A==,
             }
         engines: { node: '>=10' }
-
-    istanbul-reports@3.1.7:
-        resolution:
-            {
-                integrity: sha512-BewmUXImeuRk2YY0PVbxgKAysvhRPUQE0h5QRM++nVWyubKGV0l8qQ5op8+B2DOmwSe63Jivj0BjkPQVf8fP5g==,
-            }
-        engines: { node: '>=8' }
 
     istanbul-reports@3.2.0:
         resolution:
@@ -23451,12 +23411,6 @@ packages:
                 integrity: sha512-5GS12FdOZNliM5mAOxFRg7Ir0pWz8MdpYm6AY6VPkGpbA7ZzmbzNcBJQ0GPvvyWgcY7QAhCgf9Uy89I03faLkg==,
             }
 
-    std-env@3.9.0:
-        resolution:
-            {
-                integrity: sha512-UGvjygr6F6tpH7o2qyqR6QYpwraIjKSdtzyBdyytFOHmPZY917kwdwLG0RbOjWOnKmnm3PeHjaoLLMie7kPLQw==,
-            }
-
     steno@0.4.4:
         resolution:
             {
@@ -26309,13 +26263,6 @@ packages:
             }
         engines: { node: '>=6' }
 
-    yargs-parser@20.2.9:
-        resolution:
-            {
-                integrity: sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==,
-            }
-        engines: { node: '>=10' }
-
     yargs-parser@21.1.1:
         resolution:
             {
@@ -26329,13 +26276,6 @@ packages:
                 integrity: sha512-aePbxDmcYW++PaqBsJ+HYUFwCdv4LVvdnhBy78E57PIor8/OVvhMrADFFEDh8DHDFRv/O9i3lPhsENjO7QX0+A==,
             }
         engines: { node: '>=8' }
-
-    yargs@16.2.0:
-        resolution:
-            {
-                integrity: sha512-D1mvvtDG0L5ft/jGWkLpG1+m0eQxOfaBvTNELraWj22wSVUMWxZUvYgJYcKh6jGGIkJFhH4IZPQhR4TKpc8mBw==,
-            }
-        engines: { node: '>=10' }
 
     yargs@17.7.2:
         resolution:
@@ -33969,15 +33909,6 @@ snapshots:
         transitivePeerDependencies:
             - supports-color
 
-    '@vitest/coverage-c8@0.32.4(vitest@4.0.9)':
-        dependencies:
-            '@ampproject/remapping': 2.3.0
-            c8: 7.14.0
-            magic-string: 0.30.17
-            picocolors: 1.1.1
-            std-env: 3.9.0
-            vitest: 4.0.9(@types/debug@4.1.12)(@types/node@18.19.17)(@vitest/ui@4.0.9)(happy-dom@20.6.1)(jiti@2.4.2)(jsdom@22.1.0)(less@4.1.3)(lightningcss@1.30.2)(sass-embedded@1.85.1)(sass@1.85.1)(stylus@0.64.0)(terser@5.44.1)(yaml@2.8.2)
-
     '@vitest/coverage-v8@4.0.9(vitest@4.0.9)':
         dependencies:
             '@bcoe/v8-coverage': 1.0.2
@@ -35526,21 +35457,6 @@ snapshots:
 
     bytes@3.1.2: {}
 
-    c8@7.14.0:
-        dependencies:
-            '@bcoe/v8-coverage': 0.2.3
-            '@istanbuljs/schema': 0.1.3
-            find-up: 5.0.0
-            foreground-child: 2.0.0
-            istanbul-lib-coverage: 3.2.2
-            istanbul-lib-report: 3.0.1
-            istanbul-reports: 3.1.7
-            rimraf: 3.0.2
-            test-exclude: 6.0.0
-            v8-to-istanbul: 9.3.0
-            yargs: 16.2.0
-            yargs-parser: 20.2.9
-
     cacheable-lookup@7.0.0: {}
 
     cacheable-request@10.2.14:
@@ -35799,12 +35715,6 @@ snapshots:
             strip-ansi: 6.0.1
             wrap-ansi: 6.2.0
         optional: true
-
-    cliui@7.0.4:
-        dependencies:
-            string-width: 4.2.3
-            strip-ansi: 6.0.1
-            wrap-ansi: 7.0.0
 
     cliui@8.0.1:
         dependencies:
@@ -37910,11 +37820,6 @@ snapshots:
             kapsule: 1.16.3
             lodash-es: 4.17.21
 
-    foreground-child@2.0.0:
-        dependencies:
-            cross-spawn: 7.0.6
-            signal-exit: 3.0.7
-
     foreground-child@3.3.0:
         dependencies:
             cross-spawn: 7.0.6
@@ -39283,11 +39188,6 @@ snapshots:
             istanbul-lib-coverage: 3.2.2
         transitivePeerDependencies:
             - supports-color
-
-    istanbul-reports@3.1.7:
-        dependencies:
-            html-escaper: 2.0.2
-            istanbul-lib-report: 3.0.1
 
     istanbul-reports@3.2.0:
         dependencies:
@@ -44261,8 +44161,6 @@ snapshots:
 
     std-env@3.10.0: {}
 
-    std-env@3.9.0: {}
-
     steno@0.4.4:
         dependencies:
             graceful-fs: 4.2.11
@@ -46227,8 +46125,6 @@ snapshots:
             decamelize: 1.2.0
         optional: true
 
-    yargs-parser@20.2.9: {}
-
     yargs-parser@21.1.1: {}
 
     yargs@15.4.1:
@@ -46245,16 +46141,6 @@ snapshots:
             y18n: 4.0.3
             yargs-parser: 18.1.3
         optional: true
-
-    yargs@16.2.0:
-        dependencies:
-            cliui: 7.0.4
-            escalade: 3.2.0
-            get-caller-file: 2.0.5
-            require-directory: 2.1.1
-            string-width: 4.2.3
-            y18n: 5.0.8
-            yargs-parser: 20.2.9
 
     yargs@17.7.2:
         dependencies:
