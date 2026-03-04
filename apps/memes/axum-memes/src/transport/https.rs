@@ -1,19 +1,36 @@
 use anyhow::Result;
-use std::{net::SocketAddr, time::Duration};
+use std::{net::SocketAddr, sync::Arc, time::Duration};
 
 use axum::{
-    Router,
-    extract::Request,
-    http::{HeaderName, HeaderValue, header},
+    Json, Router,
+    extract::{Path, Query, Request, State},
+    http::{HeaderName, HeaderValue, StatusCode, header},
     middleware::Next,
     response::{IntoResponse, Response},
     routing::get,
 };
+use serde::Deserialize;
 use tokio::net::TcpListener;
 use tower_http::set_header::SetResponseHeaderLayer;
-use tracing::info;
+use tracing::{info, warn};
 
-pub async fn serve() -> Result<()> {
+use crate::astro::askama::{MemeNotFoundTemplate, MemeTemplate, TemplateResponse};
+use crate::meme::{Meme, MemeCache, MemeSupabaseClient};
+
+#[derive(Clone)]
+pub struct AppState {
+    pub meme_cache: Arc<MemeCache>,
+    pub supabase: Option<Arc<MemeSupabaseClient>>,
+}
+
+#[derive(Deserialize)]
+pub struct FeedQuery {
+    pub cursor: Option<String>,
+    pub tag: Option<String>,
+    pub limit: Option<i32>,
+}
+
+pub async fn serve(state: AppState) -> Result<()> {
     let host = std::env::var("HTTP_HOST").unwrap_or_else(|_| "0.0.0.0".into());
     let port: u16 = std::env::var("HTTP_PORT")
         .ok()
@@ -25,7 +42,7 @@ pub async fn serve() -> Result<()> {
 
     info!("HTTP listening on http://{addr}");
 
-    let app = router();
+    let app = router(state);
 
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
@@ -34,7 +51,7 @@ pub async fn serve() -> Result<()> {
     Ok(())
 }
 
-fn router() -> Router {
+fn router(state: AppState) -> Router {
     let max_inflight: usize = num_cpus::get().max(1) * 1024;
 
     let static_config = crate::astro::StaticConfig::from_env();
@@ -86,11 +103,18 @@ fn router() -> Router {
         .layer(axum::middleware::from_fn(fix_ts_mime))
         .layer(axum::middleware::from_fn(cache_headers));
 
+    let meme_router = Router::new()
+        .route("/meme/{id}", get(meme_page_handler))
+        .route("/api/v1/meme/{id}", get(meme_api_handler))
+        .route("/api/v1/feed", get(feed_api_handler))
+        .with_state(state);
+
     let public_router = Router::new().route("/health", get(health));
 
-    let dynamic_router = public_router;
-
-    static_router.merge(dynamic_router).layer(middleware)
+    static_router
+        .merge(meme_router)
+        .merge(public_router)
+        .layer(middleware)
 }
 
 async fn health() -> impl IntoResponse {
@@ -134,6 +158,163 @@ async fn fix_ts_mime(request: Request, next: Next) -> Response {
         );
     }
     response
+}
+
+/// Validate ULID format: 26 alphanumeric characters.
+fn is_valid_ulid(id: &str) -> bool {
+    id.len() == 26 && id.bytes().all(|b| b.is_ascii_alphanumeric())
+}
+
+/// Resolve a meme by ID: cache-first, then Supabase fallback.
+async fn resolve_meme(state: &AppState, id: &str) -> Result<Option<Meme>, String> {
+    if let Some(cached) = state.meme_cache.get_meme(id) {
+        return Ok(Some((*cached).clone()));
+    }
+
+    let supabase = match &state.supabase {
+        Some(s) => s,
+        None => return Ok(None),
+    };
+
+    let meme = supabase.get_meme_by_id(id).await?;
+    if let Some(ref m) = meme {
+        state.meme_cache.put_meme(m.clone());
+    }
+    Ok(meme)
+}
+
+/// GET /meme/{id} — server-rendered HTML page with OG meta tags.
+async fn meme_page_handler(State(state): State<AppState>, Path(id): Path<String>) -> Response {
+    if !is_valid_ulid(&id) {
+        return (StatusCode::BAD_REQUEST, "Invalid meme ID").into_response();
+    }
+
+    match resolve_meme(&state, &id).await {
+        Ok(Some(meme)) => {
+            let template = MemeTemplate {
+                meme_id: meme.id.clone(),
+                title: meme.display_title().to_string(),
+                description: meme.og_description(),
+                canonical_url: meme.canonical_url(),
+                og_image: meme.og_image().to_string(),
+                og_width: meme.width.unwrap_or(0),
+                og_height: meme.height.unwrap_or(0),
+                asset_url: meme.asset_url.clone(),
+                format_label: meme.format_label().to_string(),
+                width: meme.width.unwrap_or(0),
+                height: meme.height.unwrap_or(0),
+                author_name: meme.author_name.clone().unwrap_or_default(),
+                tags: meme.tags.clone(),
+            };
+            TemplateResponse(template).into_response()
+        }
+        Ok(None) => (
+            StatusCode::NOT_FOUND,
+            TemplateResponse(MemeNotFoundTemplate),
+        )
+            .into_response(),
+        Err(e) => {
+            warn!(error = %e, meme_id = %id, "failed to fetch meme");
+            (StatusCode::INTERNAL_SERVER_ERROR, "Failed to load meme").into_response()
+        }
+    }
+}
+
+/// GET /api/v1/meme/{id} — JSON response for a single meme.
+async fn meme_api_handler(State(state): State<AppState>, Path(id): Path<String>) -> Response {
+    if !is_valid_ulid(&id) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "Invalid meme ID"})),
+        )
+            .into_response();
+    }
+
+    match resolve_meme(&state, &id).await {
+        Ok(Some(meme)) => {
+            let mut resp = Json(&meme).into_response();
+            resp.headers_mut().insert(
+                header::CACHE_CONTROL,
+                HeaderValue::from_static("public, max-age=30"),
+            );
+            resp
+        }
+        Ok(None) => (
+            StatusCode::NOT_FOUND,
+            Json(serde_json::json!({"error": "Meme not found"})),
+        )
+            .into_response(),
+        Err(e) => {
+            warn!(error = %e, meme_id = %id, "failed to fetch meme");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({"error": "Internal error"})),
+            )
+                .into_response()
+        }
+    }
+}
+
+/// GET /api/v1/feed — paginated meme feed as JSON.
+async fn feed_api_handler(
+    State(state): State<AppState>,
+    Query(params): Query<FeedQuery>,
+) -> Response {
+    let limit = params.limit.unwrap_or(20).clamp(1, 50);
+    let cursor = params.cursor.as_deref();
+    let tag = params.tag.as_deref();
+
+    // Check cache first
+    if let Some(cached) = state.meme_cache.get_feed(cursor, tag) {
+        let mut resp = Json(&*cached).into_response();
+        resp.headers_mut().insert(
+            header::CACHE_CONTROL,
+            HeaderValue::from_static("public, max-age=10"),
+        );
+        return resp;
+    }
+
+    let supabase = match &state.supabase {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({"error": "Meme service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+
+    match supabase.fetch_feed(limit, cursor, tag).await {
+        Ok(page) => {
+            // Populate individual meme cache from feed results
+            for meme in &page.memes {
+                state.meme_cache.put_meme(meme.clone());
+            }
+
+            // Cache the feed page
+            state.meme_cache.put_feed(
+                cursor.map(|s| s.to_string()),
+                tag.map(|s| s.to_string()),
+                page.clone(),
+            );
+
+            let mut resp = Json(&page).into_response();
+            resp.headers_mut().insert(
+                header::CACHE_CONTROL,
+                HeaderValue::from_static("public, max-age=10"),
+            );
+            resp
+        }
+        Err(e) => {
+            warn!(error = %e, "failed to fetch feed");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({"error": "Failed to fetch feed"})),
+            )
+                .into_response()
+        }
+    }
 }
 
 fn tuned_listener(addr: SocketAddr) -> Result<TcpListener> {
@@ -467,5 +648,214 @@ mod tests {
             response.headers().get("x-content-type-options").unwrap(),
             "nosniff"
         );
+    }
+
+    // --- Meme route tests ---
+
+    use crate::meme::{FeedPage, Meme, MemeCache};
+
+    fn test_state() -> AppState {
+        AppState {
+            meme_cache: Arc::new(MemeCache::new()),
+            supabase: None,
+        }
+    }
+
+    fn make_test_meme(id: &str) -> Meme {
+        Meme {
+            id: id.to_string(),
+            title: Some("Test Meme".into()),
+            format: 1,
+            asset_url: "https://cdn.meme.sh/m/test.jpg".into(),
+            thumbnail_url: Some("https://cdn.meme.sh/t/test.jpg".into()),
+            width: Some(800),
+            height: Some(600),
+            tags: vec!["funny".into()],
+            view_count: 42,
+            reaction_count: 7,
+            comment_count: 3,
+            save_count: 1,
+            share_count: 2,
+            created_at: "2026-03-01T00:00:00Z".into(),
+            author_name: Some("TestUser".into()),
+            author_avatar: None,
+        }
+    }
+
+    fn meme_app(state: AppState) -> Router {
+        Router::new()
+            .route("/meme/{id}", get(meme_page_handler))
+            .route("/api/v1/meme/{id}", get(meme_api_handler))
+            .route("/api/v1/feed", get(feed_api_handler))
+            .with_state(state)
+    }
+
+    #[tokio::test]
+    async fn test_meme_api_returns_json() {
+        let state = test_state();
+        let meme_id = "01ABCDEFGHJKMNPQRSTVWXYZ01";
+        state.meme_cache.put_meme(make_test_meme(meme_id));
+
+        let app = meme_app(state);
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri(&format!("/api/v1/meme/{meme_id}"))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let meme: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(meme["id"], meme_id);
+        assert_eq!(meme["title"], "Test Meme");
+    }
+
+    #[tokio::test]
+    async fn test_meme_api_cache_control() {
+        let state = test_state();
+        let meme_id = "01ABCDEFGHJKMNPQRSTVWXYZ01";
+        state.meme_cache.put_meme(make_test_meme(meme_id));
+
+        let app = meme_app(state);
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri(&format!("/api/v1/meme/{meme_id}"))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        let cc = response
+            .headers()
+            .get(header::CACHE_CONTROL)
+            .unwrap()
+            .to_str()
+            .unwrap();
+        assert!(cc.contains("max-age=30"));
+    }
+
+    #[tokio::test]
+    async fn test_meme_page_returns_html_with_og() {
+        let state = test_state();
+        let meme_id = "01ABCDEFGHJKMNPQRSTVWXYZ01";
+        state.meme_cache.put_meme(make_test_meme(meme_id));
+
+        let app = meme_app(state);
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri(&format!("/meme/{meme_id}"))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let html = std::str::from_utf8(&body).unwrap();
+        assert!(html.contains("og:image"));
+        assert!(html.contains("https://cdn.meme.sh/t/test.jpg"));
+        assert!(html.contains("Test Meme"));
+        assert!(html.contains("data-meme-id"));
+    }
+
+    #[tokio::test]
+    async fn test_meme_api_not_found() {
+        let state = test_state();
+        let app = meme_app(state);
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/v1/meme/01ABCDEFGHJKMNPQRSTVWXYZ01")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn test_meme_api_invalid_ulid() {
+        let state = test_state();
+        let app = meme_app(state);
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/v1/meme/short")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn test_feed_api_with_cached_data() {
+        let state = test_state();
+        let page = FeedPage {
+            memes: vec![make_test_meme("01ABCDEFGHJKMNPQRSTVWXYZ01")],
+            next_cursor: Some("01ABCDEFGHJKMNPQRSTVWXYZ01".into()),
+        };
+        state.meme_cache.put_feed(None, None, page);
+
+        let app = meme_app(state);
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/v1/feed")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let cc = response
+            .headers()
+            .get(header::CACHE_CONTROL)
+            .unwrap()
+            .to_str()
+            .unwrap();
+        assert!(cc.contains("max-age=10"));
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let feed: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(feed["memes"].as_array().unwrap().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn test_feed_api_no_supabase_returns_503() {
+        let state = test_state(); // supabase: None
+        let app = meme_app(state);
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/v1/feed")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[test]
+    fn test_ulid_validation() {
+        assert!(is_valid_ulid("01ABCDEFGHJKMNPQRSTVWXYZ01"));
+        assert!(!is_valid_ulid("short"));
+        assert!(!is_valid_ulid("01ABCDEFGHJKMNPQRSTVWXY!")); // non-alphanumeric
+        assert!(!is_valid_ulid("")); // empty
     }
 }

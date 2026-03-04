@@ -1,7 +1,7 @@
 [package]
 name = "axum-memes"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 publish = false
 
@@ -25,6 +25,8 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 axum = { version = "0.8.5", features = ["ws", "macros"] }
 axum-extra = { version = "0.12.1", features = ["cookie"] }
 askama = "0.15.4"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+dashmap = "6.1"
 socket2 = "0.6.1"
 num_cpus = "1.17.0"
 dotenvy = "0.15"
