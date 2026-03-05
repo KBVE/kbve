@@ -39,6 +39,7 @@ jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 dashmap = { version = "6.1", features = ["rayon"] }
 rayon = "1.10"
 regex = "1.11"
+lru = "0.16"
 
 # Workspace path dependencies
 jedi = { path = "../../../packages/rust/jedi" }

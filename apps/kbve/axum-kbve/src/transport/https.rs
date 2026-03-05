@@ -22,9 +22,9 @@ use crate::astro::askama::{
 };
 use crate::auth::{extract_bearer_token, get_jwt_cache};
 use crate::db::{
-    DiscordClient, UserProfile, get_discord_client, get_osrs_cache, get_profile_cache,
-    get_profile_service, get_rentearth_service, get_role_names, get_twitch_client,
-    validate_username,
+    DiscordClient, UserProfile, get_discord_client, get_mc_service, get_osrs_cache,
+    get_profile_cache, get_profile_service, get_rentearth_service, get_role_names,
+    get_twitch_client, validate_username,
 };
 
 #[derive(Clone)]
@@ -145,6 +145,7 @@ fn router(state: AppState) -> Router {
         .route("/health.html", get(health_html))
         .route("/api/status", get(api_status))
         .route("/api/v1/osrs/{item_id}", get(osrs_api_handler))
+        .route("/api/v1/mc/players", get(mc_players_handler))
         .route("/api/v1/profile/me", get(profile_me_handler))
         .route("/api/v1/profile/username", post(set_username_handler))
         .route("/api/v1/profile/{username}", get(profile_api_handler))
@@ -956,6 +957,41 @@ async fn osrs_api_handler(Path(item_id): Path<String>) -> impl IntoResponse {
         )
             .into_response(),
     }
+}
+
+// ---------------------------------------------------------------------------
+// MC API handlers
+// ---------------------------------------------------------------------------
+
+/// MC players API endpoint - returns online player list with UUIDs and skin URLs.
+/// GET /api/v1/mc/players
+///
+/// Data is LRU-cached and refreshed every 15s via RCON background task.
+async fn mc_players_handler() -> impl IntoResponse {
+    let svc = match get_mc_service() {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({
+                    "error": "MC player service not configured"
+                })),
+            )
+                .into_response();
+        }
+    };
+
+    let players = svc.get_players().await;
+
+    (
+        StatusCode::OK,
+        [(
+            header::CACHE_CONTROL,
+            "public, max-age=10, stale-while-revalidate=10",
+        )],
+        Json(json!(players)),
+    )
+        .into_response()
 }
 
 // ---------------------------------------------------------------------------

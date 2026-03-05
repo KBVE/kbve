@@ -20,11 +20,14 @@ spec:
                 protocol: UDP
               - port: 8080
                 protocol: TCP
-        # Allow RCON only from kilobase and mc namespaces
+        # Allow RCON only from kilobase, kbve, and mc namespaces
         - from:
               - namespaceSelector:
                     matchLabels:
                         kubernetes.io/metadata.name: kilobase
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: kbve
               - namespaceSelector:
                     matchLabels:
                         kubernetes.io/metadata.name: mc

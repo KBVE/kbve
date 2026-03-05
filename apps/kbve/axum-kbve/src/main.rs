@@ -69,6 +69,13 @@ async fn main() -> anyhow::Result<()> {
     let _osrs_cache = db::init_osrs_cache().await;
     info!("OSRS cache actor started");
 
+    // Initialize MC RCON service (optional - for player list API)
+    if db::init_mc_service() {
+        info!("MC RCON service initialized - player API enabled");
+    } else {
+        info!("MC RCON not configured - player API disabled");
+    }
+
     // Initialize JWT cache for authenticated endpoints
     if let (Ok(supabase_url), Ok(supabase_anon_key)) = (
         std::env::var("SUPABASE_URL"),
