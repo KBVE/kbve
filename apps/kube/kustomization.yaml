@@ -19,6 +19,7 @@ resources:
     - cert-manager/application.yaml
     - sealed-secrets/application.yaml
     - keda/application.yaml
+    - crossplane/application.yaml
     - external-secrets/application.yaml
     - monitoring/application.yaml
     - redis/application.yaml
