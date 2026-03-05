@@ -12,9 +12,13 @@ test.describe('Worker Initialization', () => {
 		page.on('pageerror', (err) => errors.push(err.message));
 
 		// Wait for initialization to complete
-		await expect(page.getByTestId('worker-initialized')).toHaveAttribute('data-value', 'true', {
-			timeout: 10_000,
-		});
+		await expect(page.getByTestId('worker-initialized')).toHaveAttribute(
+			'data-value',
+			'true',
+			{
+				timeout: 10_000,
+			},
+		);
 
 		// Filter out expected warnings (e.g., missing Supabase config)
 		const criticalErrors = errors.filter(
@@ -24,24 +28,85 @@ test.describe('Worker Initialization', () => {
 	});
 
 	test('event bus is available after init', async ({ page }) => {
-		await expect(page.getByTestId('worker-has-events')).toHaveAttribute('data-value', 'true', {
-			timeout: 10_000,
-		});
+		await expect(page.getByTestId('worker-has-events')).toHaveAttribute(
+			'data-value',
+			'true',
+			{
+				timeout: 10_000,
+			},
+		);
 	});
 
 	test('uiux system is available after init', async ({ page }) => {
-		await expect(page.getByTestId('worker-has-uiux')).toHaveAttribute('data-value', 'true', {
-			timeout: 10_000,
-		});
+		await expect(page.getByTestId('worker-has-uiux')).toHaveAttribute(
+			'data-value',
+			'true',
+			{
+				timeout: 10_000,
+			},
+		);
 	});
 
 	test('no worker error is displayed', async ({ page }) => {
 		// Wait for init to settle
-		await expect(page.getByTestId('worker-initialized')).toHaveAttribute('data-value', 'true', {
-			timeout: 10_000,
-		});
+		await expect(page.getByTestId('worker-initialized')).toHaveAttribute(
+			'data-value',
+			'true',
+			{
+				timeout: 10_000,
+			},
+		);
 
 		// Verify no error element is visible
 		await expect(page.getByTestId('worker-error')).not.toBeVisible();
+	});
+
+	test('API worker is available after init', async ({ page }) => {
+		await expect(page.getByTestId('worker-has-api')).toHaveAttribute(
+			'data-value',
+			'true',
+			{
+				timeout: 10_000,
+			},
+		);
+	});
+
+	test('WebSocket worker is available after init', async ({ page }) => {
+		await expect(page.getByTestId('worker-has-ws')).toHaveAttribute(
+			'data-value',
+			'true',
+			{
+				timeout: 10_000,
+			},
+		);
+	});
+
+	test('all workers initialize simultaneously', async ({ page }) => {
+		// All subsystems should be ready once initialized is true
+		await expect(page.getByTestId('worker-initialized')).toHaveAttribute(
+			'data-value',
+			'true',
+			{
+				timeout: 10_000,
+			},
+		);
+
+		// Verify all subsystems are available
+		await expect(page.getByTestId('worker-has-api')).toHaveAttribute(
+			'data-value',
+			'true',
+		);
+		await expect(page.getByTestId('worker-has-uiux')).toHaveAttribute(
+			'data-value',
+			'true',
+		);
+		await expect(page.getByTestId('worker-has-ws')).toHaveAttribute(
+			'data-value',
+			'true',
+		);
+		await expect(page.getByTestId('worker-has-events')).toHaveAttribute(
+			'data-value',
+			'true',
+		);
 	});
 });

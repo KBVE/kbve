@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { droid } from '@kbve/droid';
+import { droid, workerURLs } from '@kbve/droid';
 
 interface WorkerStatus {
 	initialized: boolean;
@@ -25,7 +25,7 @@ export function WorkerTest() {
 
 		async function init() {
 			try {
-				const result = await droid();
+				const result = await droid({ workerURLs, initTimeout: 10_000 });
 				if (cancelled) return;
 
 				const kbve = (window as any).kbve;
@@ -53,18 +53,30 @@ export function WorkerTest() {
 	}, []);
 
 	return (
-		<div data-testid="worker-test" style={{ border: '1px solid #ccc', padding: '1rem', marginBottom: '1rem' }}>
+		<div
+			data-testid="worker-test"
+			style={{
+				border: '1px solid #ccc',
+				padding: '1rem',
+				marginBottom: '1rem',
+			}}>
 			<h2>Worker Initialization</h2>
 
-			<div data-testid="worker-initialized" data-value={String(status.initialized)}>
+			<div
+				data-testid="worker-initialized"
+				data-value={String(status.initialized)}>
 				Initialized: {status.initialized ? 'Yes' : 'No'}
 			</div>
 
-			<div data-testid="worker-has-api" data-value={String(status.hasApi)}>
+			<div
+				data-testid="worker-has-api"
+				data-value={String(status.hasApi)}>
 				API Worker: {status.hasApi ? 'Ready' : 'Not loaded'}
 			</div>
 
-			<div data-testid="worker-has-uiux" data-value={String(status.hasUiux)}>
+			<div
+				data-testid="worker-has-uiux"
+				data-value={String(status.hasUiux)}>
 				UIUX: {status.hasUiux ? 'Ready' : 'Not loaded'}
 			</div>
 
@@ -72,7 +84,9 @@ export function WorkerTest() {
 				WebSocket Worker: {status.hasWs ? 'Ready' : 'Not loaded'}
 			</div>
 
-			<div data-testid="worker-has-events" data-value={String(status.hasEvents)}>
+			<div
+				data-testid="worker-has-events"
+				data-value={String(status.hasEvents)}>
 				Event Bus: {status.hasEvents ? 'Ready' : 'Not loaded'}
 			</div>
 
