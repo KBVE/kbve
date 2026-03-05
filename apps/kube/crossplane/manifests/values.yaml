@@ -1,0 +1,44 @@
+replicas: 1
+
+resourcesCrossplane:
+    requests:
+        cpu: 100m
+        memory: 256Mi
+    limits:
+        cpu: 500m
+        memory: 1Gi
+
+resourcesRBACManager:
+    requests:
+        cpu: 100m
+        memory: 256Mi
+    limits:
+        cpu: 100m
+        memory: 512Mi
+
+securityContextCrossplane:
+    runAsUser: 65532
+    runAsGroup: 65532
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+
+securityContextRBACManager:
+    runAsUser: 65532
+    runAsGroup: 65532
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+
+podSecurityContextCrossplane:
+    runAsNonRoot: true
+
+podSecurityContextRBACManager:
+    runAsNonRoot: true
+
+metrics:
+    enabled: true
+
+rbacManager:
+    deploy: true
+
+webhooks:
+    enabled: true
