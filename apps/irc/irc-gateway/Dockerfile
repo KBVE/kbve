@@ -160,7 +160,10 @@ RUN chisel cut --release ubuntu-24.04 --root /rootfs \
         libgcc-s1_libs \
         libc6_libs \
         libstdc++6_libs \
-        openssl_config
+        openssl_config && \
+    echo 'appuser:x:10001:10001::/nonexistent:/usr/sbin/nologin' >> /rootfs/etc/passwd && \
+    echo 'appgroup:x:10001:' >> /rootfs/etc/group && \
+    mkdir -p /rootfs/app && chown 10001:10001 /rootfs/app
 
 # ============================================================================
 # [STAGE H] - Jemalloc
@@ -184,9 +187,9 @@ COPY --from=jemalloc /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/irc-gateway /app/irc-gateway
+COPY --from=builder --chown=10001:10001 /app/target/release/irc-gateway /app/irc-gateway
 
-COPY --from=builder /app/apps/irc/irc-gateway/templates/dist /app/templates/dist
+COPY --from=builder --chown=10001:10001 /app/apps/irc/irc-gateway/templates/dist /app/templates/dist
 
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:10000,muzzy_decay_ms:10000,lg_tcache_max:32,oversize_threshold:4194304"
@@ -196,5 +199,7 @@ ENV RUST_LOG=info
 
 EXPOSE 4321
 EXPOSE 6667
+
+USER 10001:10001
 
 ENTRYPOINT ["/app/irc-gateway"]
