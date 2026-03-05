@@ -17,7 +17,7 @@ export function initSupa(): Promise<void> {
 	_gateway = new SupabaseGateway();
 	_initPromise = _gateway
 		.init(SUPABASE_URL, SUPABASE_ANON_KEY)
-		.then(() => bootAuth(_gateway!))
+		.then(() => bootAuth(_gateway!, authBridge))
 		.catch((e) => {
 			_initPromise = null;
 			throw e;
