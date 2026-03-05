@@ -11,7 +11,7 @@ fn main() {
 
     fs::create_dir_all(out_dir).unwrap();
 
-    tonic_build::configure()
+    tonic_prost_build::configure()
         .build_client(true)
         .build_server(true)
         .out_dir(out_dir)
@@ -142,7 +142,7 @@ fn main() {
             "groq.GroqUsage",
             "#[derive(serde::Serialize, serde::Deserialize)]",
         )
-        .bytes([".jedi"])
+        .bytes(".jedi")
         // Jedi
         .type_attribute(
             "jedi.MessageKind",
