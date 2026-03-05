@@ -114,6 +114,11 @@ export default defineConfig({
 					autogenerate: { directory: 'memes' },
 				},
 				{
+					label: 'Minecraft',
+					collapsed: false,
+					autogenerate: { directory: 'mc' },
+				},
+				{
 					label: 'Gaming',
 					collapsed: true,
 					autogenerate: { directory: 'gaming' },

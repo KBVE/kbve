@@ -119,10 +119,17 @@ pub fn init_mc_service() -> bool {
         return false;
     }
 
-    // Spawn background refresh task
+    // Spawn background refresh task with panic recovery
     tokio::spawn(async move {
         loop {
-            svc.refresh_player_list().await;
+            let svc_ref = svc.clone();
+            let result = tokio::task::spawn(async move {
+                svc_ref.refresh_player_list().await;
+            })
+            .await;
+            if let Err(e) = result {
+                warn!("MC refresh task recovered from panic: {e}");
+            }
             tokio::time::sleep(REFRESH_INTERVAL).await;
         }
     });
@@ -198,7 +205,7 @@ impl McService {
 
         // Check cache
         {
-            let mut cache = self.uuid_cache.lock().unwrap();
+            let mut cache = self.uuid_cache.lock().unwrap_or_else(|e| e.into_inner());
             if let Some(entry) = cache.get(&lower) {
                 if !entry.is_expired() {
                     return Some(entry.value.clone());
@@ -218,7 +225,7 @@ impl McService {
 
         // Store in cache
         {
-            let mut cache = self.uuid_cache.lock().unwrap();
+            let mut cache = self.uuid_cache.lock().unwrap_or_else(|e| e.into_inner());
             cache.put(lower, TimedEntry::new(uuid.clone(), UUID_TTL));
         }
 
@@ -229,7 +236,7 @@ impl McService {
     async fn resolve_skin(&self, uuid: &str) -> Option<String> {
         // Check cache
         {
-            let mut cache = self.texture_cache.lock().unwrap();
+            let mut cache = self.texture_cache.lock().unwrap_or_else(|e| e.into_inner());
             if let Some(entry) = cache.get(uuid) {
                 if !entry.is_expired() {
                     return entry.value.clone();
@@ -242,7 +249,7 @@ impl McService {
         let resp = self.http.get(&url).send().await.ok()?;
         if !resp.status().is_success() {
             // Cache the miss to avoid hammering Mojang
-            let mut cache = self.texture_cache.lock().unwrap();
+            let mut cache = self.texture_cache.lock().unwrap_or_else(|e| e.into_inner());
             cache.put(uuid.to_string(), TimedEntry::new(None, TEXTURE_TTL));
             return None;
         }
@@ -252,7 +259,7 @@ impl McService {
 
         // Store in cache
         {
-            let mut cache = self.texture_cache.lock().unwrap();
+            let mut cache = self.texture_cache.lock().unwrap_or_else(|e| e.into_inner());
             cache.put(
                 uuid.to_string(),
                 TimedEntry::new(skin_url.clone(), TEXTURE_TTL),
