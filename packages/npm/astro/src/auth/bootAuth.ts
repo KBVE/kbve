@@ -1,4 +1,5 @@
 import { $auth, type SupabaseGateway } from '@kbve/droid';
+import type { AuthBridge } from './AuthBridge';
 
 let _booted = false;
 
@@ -30,13 +31,35 @@ function pushSession(session: any) {
 	});
 }
 
-export async function bootAuth(gateway: SupabaseGateway): Promise<void> {
+/**
+ * Boot the auth state from the gateway, then optionally fall back to
+ * an AuthBridge's IndexedDB session if the gateway (localStorage) had
+ * no session. This bridges the storage mismatch between the two clients
+ * so any app using both gets seamless OAuth session propagation.
+ */
+export async function bootAuth(
+	gateway: SupabaseGateway,
+	bridge?: AuthBridge,
+): Promise<void> {
 	if (_booted) return;
 	_booted = true;
 
 	try {
 		const s = await gateway.getSession().catch(() => null);
 		pushSession(s?.session ?? null);
+
+		// If the gateway found no session but an AuthBridge is provided,
+		// check its IDB storage as a fallback (OAuth sessions land there).
+		if ($auth.get().tone !== 'auth' && bridge) {
+			try {
+				const bridgeSession = await bridge.getSession();
+				if (bridgeSession?.user) {
+					pushSession(bridgeSession);
+				}
+			} catch {
+				// Bridge has no session either — stay anonymous
+			}
+		}
 
 		gateway.on('auth', (msg: any) => pushSession(msg.session ?? null));
 	} catch (e: any) {

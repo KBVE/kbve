@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: crossplane
+    namespace: argocd
+spec:
+    project: default
+    sources:
+        - repoURL: https://charts.crossplane.io/stable
+          targetRevision: 2.2.0
+          chart: crossplane
+          helm:
+              releaseName: crossplane
+              valueFiles:
+                  - $values/apps/kube/crossplane/manifests/values.yaml
+        - repoURL: https://github.com/kbve/kbve
+          targetRevision: main
+          ref: values
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: crossplane-system
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+            - RespectIgnoreDifferences=true
+        retry:
+            limit: 3
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m
