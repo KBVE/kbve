@@ -24,6 +24,7 @@ RUN pnpm install --frozen-lockfile
 # Copy workspace package sources (TypeScript path aliases resolve to these)
 COPY packages/npm/astro/ packages/npm/astro/
 COPY packages/npm/droid/ packages/npm/droid/
+COPY packages/npm/laser/ packages/npm/laser/
 
 # Copy astro-kbve source
 COPY apps/kbve/astro-kbve/ apps/kbve/astro-kbve/
