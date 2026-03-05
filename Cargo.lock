@@ -931,6 +931,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "axum-cryptothrone"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "askama",
+ "axum 0.8.8",
+ "axum-extra",
+ "dotenvy",
+ "http-body-util",
+ "jedi",
+ "kbve",
+ "num_cpus",
+ "serde",
+ "serde_json",
+ "serial_test",
+ "socket2 0.6.2",
+ "thiserror 2.0.18",
+ "tikv-jemallocator",
+ "tokio",
+ "tower 0.5.3",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "axum-discordsh"
 version = "0.1.26"
 dependencies = [
@@ -1068,17 +1094,19 @@ dependencies = [
 
 [[package]]
 name = "axum-memes"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "anyhow",
  "askama",
  "axum 0.8.8",
  "axum-extra",
+ "dashmap 6.1.0",
  "dotenvy",
  "http-body-util",
  "jedi",
  "kbve",
  "num_cpus",
+ "reqwest 0.12.28",
  "serde",
  "serde_json",
  "serial_test",
@@ -4790,7 +4818,7 @@ checksum = "469fb0b9cefa57e3ef31275ee7cacb78f2fdca44e4765491884a2b119d4eb130"
 
 [[package]]
 name = "irc-gateway"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "axum 0.8.8",

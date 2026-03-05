@@ -1158,4 +1158,115 @@ mod tests {
         let bytes = png.unwrap();
         assert_eq!(&bytes[0..4], &[0x89, 0x50, 0x4E, 0x47]);
     }
+
+    // ── Font file validation tests ───────────────────────────────
+
+    #[test]
+    fn test_alagard_font_is_valid_ttf() {
+        let path = "alagard.ttf";
+        let data = std::fs::read(path).expect("alagard.ttf should exist next to Cargo.toml");
+        // TrueType files start with 0x00010000 or "true" (0x74727565)
+        // OpenType files start with "OTTO" (0x4F54544F)
+        assert!(
+            data.len() > 4,
+            "Font file is too small ({} bytes) to be a valid font",
+            data.len()
+        );
+        let magic = &data[0..4];
+        let is_ttf = magic == [0x00, 0x01, 0x00, 0x00] || magic == b"true";
+        let is_otf = magic == b"OTTO";
+        assert!(
+            is_ttf || is_otf,
+            "alagard.ttf has invalid magic bytes {:02x?} — expected TrueType or OpenType header, \
+             not HTML or other non-font content",
+            magic
+        );
+        // Verify fontdb can actually load it
+        let mut db = FontDb::new();
+        let result = db.load_font_file(path);
+        assert!(
+            result.is_ok(),
+            "fontdb should load alagard.ttf without error: {:?}",
+            result.err()
+        );
+        assert!(
+            db.len() > 0,
+            "fontdb should contain at least 1 face after loading alagard.ttf"
+        );
+    }
+
+    #[test]
+    fn test_noto_sans_symbols_is_valid_ttf() {
+        let path = "NotoSansSymbols-Regular.ttf";
+        let data = std::fs::read(path)
+            .expect("NotoSansSymbols-Regular.ttf should exist next to Cargo.toml");
+        assert!(
+            data.len() > 4,
+            "Font file is too small ({} bytes) to be a valid font",
+            data.len()
+        );
+        let magic = &data[0..4];
+        // Guard against the old bug: file was an HTML page (starts with "<!DO")
+        assert_ne!(
+            &data[0..4],
+            b"<!DO",
+            "NotoSansSymbols-Regular.ttf is an HTML page, not a font file — re-download it"
+        );
+        let is_ttf = magic == [0x00, 0x01, 0x00, 0x00] || magic == b"true";
+        let is_otf = magic == b"OTTO";
+        assert!(
+            is_ttf || is_otf,
+            "NotoSansSymbols-Regular.ttf has invalid magic bytes {:02x?} — expected TrueType or \
+             OpenType header",
+            magic
+        );
+        // Verify fontdb can actually load it
+        let mut db = FontDb::new();
+        let result = db.load_font_file(path);
+        assert!(
+            result.is_ok(),
+            "fontdb should load NotoSansSymbols-Regular.ttf without error: {:?}",
+            result.err()
+        );
+        assert!(
+            db.len() > 0,
+            "fontdb should contain at least 1 face after loading NotoSansSymbols"
+        );
+    }
+
+    #[test]
+    fn test_render_with_both_fonts_loaded() {
+        // Verify that rendering succeeds with both project fonts loaded (mirrors production)
+        let mut db = FontDb::new();
+        db.load_font_file("alagard.ttf")
+            .expect("alagard.ttf must load");
+        db.load_font_file("NotoSansSymbols-Regular.ttf")
+            .expect("NotoSansSymbols-Regular.ttf must load");
+
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![EnemyState {
+            name: "Test Slime".to_owned(),
+            level: 1,
+            hp: 20,
+            max_hp: 20,
+            armor: 0,
+            effects: Vec::new(),
+            intent: Intent::Attack { dmg: 5 },
+            charged: false,
+            loot_table_id: "slime",
+            enraged: false,
+            index: 0,
+            first_strike: false,
+        }];
+
+        let png = render_game_card_blocking(&session, &db);
+        assert!(
+            png.is_ok(),
+            "Render with both fonts should succeed: {:?}",
+            png.err()
+        );
+        let bytes = png.unwrap();
+        assert_eq!(&bytes[0..4], &[0x89, 0x50, 0x4E, 0x47]);
+    }
 }
