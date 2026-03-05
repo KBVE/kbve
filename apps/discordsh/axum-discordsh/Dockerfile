@@ -182,7 +182,10 @@ RUN chisel cut --release ubuntu-24.04 --root /rootfs \
         libgcc-s1_libs \
         libc6_libs \
         libstdc++6_libs \
-        openssl_config
+        openssl_config && \
+    echo 'appuser:x:10001:10001::/nonexistent:/usr/sbin/nologin' >> /rootfs/etc/passwd && \
+    echo 'appgroup:x:10001:' >> /rootfs/etc/group && \
+    mkdir -p /rootfs/app && chown 10001:10001 /rootfs/app
 
 # ============================================================================
 # [STAGE E] - Jemalloc
@@ -217,14 +220,14 @@ COPY --from=libpq-runtime /usr/lib/x86_64-linux-gnu/libpq.so.5* /usr/lib/x86_64-
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/axum-discordsh /app/axum-discordsh
+COPY --from=builder --chown=10001:10001 /app/target/release/axum-discordsh /app/axum-discordsh
 
-COPY --from=builder /app/apps/discordsh/axum-discordsh/templates/dist /app/templates/dist
-COPY --from=builder /app/apps/discordsh/axum-discordsh/templates/askama /app/templates/askama
+COPY --from=builder --chown=10001:10001 /app/apps/discordsh/axum-discordsh/templates/dist /app/templates/dist
+COPY --from=builder --chown=10001:10001 /app/apps/discordsh/axum-discordsh/templates/askama /app/templates/askama
 
 # Game card fonts (SVG → PNG rendering via resvg)
-COPY apps/discordsh/axum-discordsh/alagard.ttf /app/alagard.ttf
-COPY apps/discordsh/axum-discordsh/NotoSansSymbols-Regular.ttf /app/NotoSansSymbols-Regular.ttf
+COPY --chown=10001:10001 apps/discordsh/axum-discordsh/alagard.ttf /app/alagard.ttf
+COPY --chown=10001:10001 apps/discordsh/axum-discordsh/NotoSansSymbols-Regular.ttf /app/NotoSansSymbols-Regular.ttf
 
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:10000,muzzy_decay_ms:10000,lg_tcache_max:32,oversize_threshold:4194304"
@@ -235,5 +238,7 @@ ENV FONT_PATH=/app/alagard.ttf
 ENV SYMBOL_FONT_PATH=/app/NotoSansSymbols-Regular.ttf
 
 EXPOSE 4321
+
+USER 10001:10001
 
 ENTRYPOINT ["/app/axum-discordsh"]
