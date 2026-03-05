@@ -1,0 +1,10 @@
+# Crossplane AWS S3 family provider
+# Auto-installs provider-family-aws as a dependency (shared ClusterProviderConfig CRDs)
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+    name: upbound-provider-aws-s3
+    annotations:
+        argocd.argoproj.io/sync-wave: '0'
+spec:
+    package: xpkg.upbound.io/upbound/provider-aws-s3:v2.4.0

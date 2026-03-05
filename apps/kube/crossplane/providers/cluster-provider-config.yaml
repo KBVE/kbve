@@ -1,0 +1,16 @@
+# ClusterProviderConfig: shared AWS authentication for all Crossplane AWS providers
+# Depends on provider-aws-s3 being healthy (registers the CRD)
+# sync-wave 5 gives the provider time to start and register CRDs
+apiVersion: aws.m.upbound.io/v1beta1
+kind: ClusterProviderConfig
+metadata:
+    name: default
+    annotations:
+        argocd.argoproj.io/sync-wave: '5'
+spec:
+    credentials:
+        source: Secret
+        secretRef:
+            namespace: crossplane-system
+            name: aws-secret
+            key: creds
