@@ -1,4 +1,4 @@
-import { AuthBridge, SupabaseGateway, bootAuth, $auth } from '@kbve/astro';
+import { AuthBridge, SupabaseGateway, bootAuth } from '@kbve/astro';
 
 export const SUPABASE_URL = 'https://supabase.kbve.com';
 export const SUPABASE_ANON_KEY =
@@ -11,47 +11,13 @@ export const authBridge = new AuthBridge(SUPABASE_URL, SUPABASE_ANON_KEY);
 let _gateway: SupabaseGateway | null = null;
 let _initPromise: Promise<void> | null = null;
 
-/**
- * Fallback: if the gateway didn't find a session (it uses localStorage),
- * check AuthBridge which stores the OAuth session in IndexedDB.
- * This bridges the storage mismatch between the two clients.
- */
-async function syncAuthBridgeSession(): Promise<void> {
-	const current = $auth.get();
-	if (current.tone === 'auth') return;
-
-	try {
-		const session = await authBridge.getSession();
-		if (session?.user) {
-			const u = session.user;
-			$auth.set({
-				tone: 'auth',
-				name:
-					u.user_metadata?.full_name ||
-					u.user_metadata?.name ||
-					u.email?.split('@')[0] ||
-					'User',
-				avatar:
-					u.user_metadata?.avatar_url ||
-					u.user_metadata?.picture ||
-					undefined,
-				id: u.id ?? '',
-				error: undefined,
-			});
-		}
-	} catch {
-		// AuthBridge has no session either — stay anonymous
-	}
-}
-
 export function initSupa(): Promise<void> {
 	if (_initPromise) return _initPromise;
 
 	_gateway = new SupabaseGateway();
 	_initPromise = _gateway
 		.init(SUPABASE_URL, SUPABASE_ANON_KEY)
-		.then(() => bootAuth(_gateway!))
-		.then(() => syncAuthBridgeSession())
+		.then(() => bootAuth(_gateway!, authBridge))
 		.catch((e) => {
 			_initPromise = null;
 			throw e;
