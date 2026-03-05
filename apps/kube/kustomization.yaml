@@ -20,6 +20,7 @@ resources:
     - sealed-secrets/application.yaml
     - keda/application.yaml
     - crossplane/application.yaml
+    - crossplane/providers-application.yaml
     - external-secrets/application.yaml
     - monitoring/application.yaml
     - redis/application.yaml

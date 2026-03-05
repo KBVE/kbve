@@ -1,0 +1,25 @@
+{
+	"name": "astro-cryptothrone-e2e",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/cryptothrone/astro-cryptothrone-e2e/e2e",
+	"implicitDependencies": ["astro-cryptothrone"],
+	"targets": {
+		"e2e": {
+			"executor": "@nx/playwright:playwright",
+			"cache": false,
+			"options": {
+				"config": "apps/cryptothrone/astro-cryptothrone-e2e/playwright.config.ts"
+			}
+		},
+		"e2e:preview": {
+			"executor": "@nx/playwright:playwright",
+			"cache": false,
+			"dependsOn": ["astro-cryptothrone:build"],
+			"options": {
+				"config": "apps/cryptothrone/astro-cryptothrone-e2e/playwright.preview.config.ts"
+			}
+		}
+	},
+	"tags": []
+}
