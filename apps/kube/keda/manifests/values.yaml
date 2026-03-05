@@ -1,0 +1,67 @@
+operator:
+    replicaCount: 1
+
+metricsServer:
+    replicaCount: 1
+
+resources:
+    operator:
+        requests:
+            cpu: 100m
+            memory: 128Mi
+        limits:
+            cpu: 500m
+            memory: 512Mi
+    metricServer:
+        requests:
+            cpu: 100m
+            memory: 128Mi
+        limits:
+            cpu: 500m
+            memory: 512Mi
+
+logging:
+    operator:
+        level: info
+    metricServer:
+        level: '0'
+
+prometheus:
+    operator:
+        enabled: true
+        podMonitor:
+            enabled: true
+            namespace: monitoring
+            labels:
+                release: prometheus
+    metricServer:
+        enabled: true
+        podMonitor:
+            enabled: true
+            namespace: monitoring
+            labels:
+                release: prometheus
+
+podSecurityContext:
+    operator:
+        runAsNonRoot: true
+    metricServer:
+        runAsNonRoot: true
+
+securityContext:
+    operator:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+            drop:
+                - ALL
+    metricServer:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+            drop:
+                - ALL
+
+nodeSelector: {}
+affinity: {}
+tolerations: []
