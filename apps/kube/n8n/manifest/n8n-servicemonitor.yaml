@@ -1,0 +1,35 @@
+# ServiceMonitor: scrape n8n main instance metrics
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+    name: n8n-metrics
+    namespace: n8n
+    labels:
+        app: n8n
+        release: prometheus
+spec:
+    selector:
+        matchLabels:
+            app: n8n
+    endpoints:
+        - port: http
+          interval: 30s
+          path: /metrics
+---
+# PodMonitor: scrape n8n-worker metrics (no Service exists for worker)
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+    name: n8n-worker-metrics
+    namespace: n8n
+    labels:
+        app: n8n-worker
+        release: prometheus
+spec:
+    selector:
+        matchLabels:
+            app: n8n-worker
+    podMetricsEndpoints:
+        - port: health
+          interval: 30s
+          path: /metrics
