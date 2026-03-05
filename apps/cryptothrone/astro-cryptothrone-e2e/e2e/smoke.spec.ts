@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { CONTENT_ROUTES, GAME_ROUTES, SPLASH_ROUTES } from './helpers/routes';
+import { CONTENT_ROUTES, GAME_ROUTES } from './helpers/routes';
 
 test.describe('astro-cryptothrone smoke tests', () => {
 	test('homepage loads with 200', async ({ page }) => {
