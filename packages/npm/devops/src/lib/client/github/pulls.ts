@@ -288,7 +288,7 @@ export function _$gha_categorizeApiCommits(
 	) as (keyof CommitCategory)[];
 	const categories = Object.fromEntries(
 		keys.map((k) => [k, [] as string[]]),
-	) as CommitCategory;
+	) as unknown as CommitCategory;
 	const prRefs = new Set<string>();
 
 	for (const { message, sha } of commits) {
