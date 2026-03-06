@@ -1,16 +1,16 @@
 grafana:
     ingress:
-        enabled: true
-        ingressClassName: nginx
-        annotations:
-            cert-manager.io/cluster-issuer: letsencrypt-http
-            nginx.ingress.kubernetes.io/backend-protocol: 'HTTP'
-        hosts:
-            - grafana.kbve.com
-        tls:
-            - hosts:
-                  - grafana.kbve.com
-              secretName: grafana-tls
+        enabled: false
+
+    grafana.ini:
+        server:
+            root_url: 'https://kbve.com/dashboard/grafana'
+            serve_from_sub_path: true
+        auth.anonymous:
+            enabled: true
+            org_role: Viewer
+        auth:
+            disable_login_form: true
 
     admin:
         existingSecret: grafana-admin
@@ -31,7 +31,7 @@ grafana:
                       path: /var/lib/grafana/dashboards/default
 
     dashboardsConfigMaps:
-        default: "grafana-dashboards"
+        default: 'grafana-dashboards'
 
 prometheus-node-exporter:
     tolerations:
@@ -40,22 +40,22 @@ prometheus-node-exporter:
           effect: NoSchedule
         - operator: Exists
           effect: NoSchedule
-        - operator: Exists 
+        - operator: Exists
           effect: NoExecute
     podAnnotations:
         pod-security.kubernetes.io/enforce: privileged
         pod-security.kubernetes.io/audit: privileged
         pod-security.kubernetes.io/warn: privileged
-    
+
     hostNetwork: true
     hostPID: true
-    
+
     securityContext:
         fsGroup: 65534
         runAsGroup: 65534
         runAsNonRoot: true
         runAsUser: 65534
-    
+
     containerSecurityContext:
         allowPrivilegeEscalation: false
         capabilities:
