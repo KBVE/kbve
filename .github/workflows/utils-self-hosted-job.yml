@@ -1,0 +1,63 @@
+name: Self-Hosted Runner Job
+
+on:
+    workflow_call:
+        inputs:
+            command:
+                description: 'Shell command to execute on the self-hosted runner'
+                required: true
+                type: string
+            timeout:
+                description: 'Job timeout in minutes'
+                required: false
+                type: number
+                default: 30
+            runner:
+                description: 'Runner label (default: arc-runner-set)'
+                required: false
+                type: string
+                default: 'arc-runner-set'
+
+jobs:
+    guard:
+        name: Fork Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            allowed: ${{ steps.check.outputs.allowed }}
+        steps:
+            - name: Check fork status
+              id: check
+              run: |
+                  if [ "${{ github.event_name }}" = "pull_request" ] || [ "${{ github.event_name }}" = "pull_request_target" ]; then
+                    HEAD_REPO="${{ github.event.pull_request.head.repo.full_name }}"
+                    BASE_REPO="${{ github.repository }}"
+                    if [ "$HEAD_REPO" != "$BASE_REPO" ]; then
+                      echo "::error::Blocked: fork PR from $HEAD_REPO cannot use self-hosted runners"
+                      echo "allowed=false" >> "$GITHUB_OUTPUT"
+                      exit 0
+                    fi
+                  fi
+                  echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+    run:
+        name: Self-Hosted Run
+        needs: guard
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: ${{ inputs.runner }}
+        timeout-minutes: ${{ inputs.timeout }}
+        permissions:
+            contents: read
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+
+            - name: Execute command
+              run: ${{ inputs.command }}
+
+            - name: Cleanup workspace
+              if: always()
+              run: |
+                  echo "Cleaning up workspace..."
+                  rm -rf "$GITHUB_WORKSPACE"/* "$GITHUB_WORKSPACE"/.[!.]* 2>/dev/null || true
+                  docker system prune -f 2>/dev/null || true
