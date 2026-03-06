@@ -12,6 +12,13 @@
 				"config": "apps/cryptothrone/astro-cryptothrone-e2e/playwright.config.ts"
 			}
 		},
+		"e2e:docker": {
+			"executor": "@nx/playwright:playwright",
+			"cache": false,
+			"options": {
+				"config": "apps/cryptothrone/astro-cryptothrone-e2e/playwright.docker.config.ts"
+			}
+		},
 		"e2e:preview": {
 			"executor": "@nx/playwright:playwright",
 			"cache": false,

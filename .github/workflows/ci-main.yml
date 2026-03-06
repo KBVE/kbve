@@ -355,7 +355,8 @@ jobs:
                   { "name": "irc-gateway", "target": "container", "condition": "${{ needs.alter.outputs.irc_gateway }}", "e2e_name": "irc", "image": "kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml" },
                   { "name": "discordsh", "target": "container", "condition": "${{ needs.alter.outputs.discordsh }}", "e2e_name": "discordsh", "image": "kbve/discordsh", "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml" },
                   { "name": "mc", "target": "container", "condition": "${{ needs.alter.outputs.mc }}", "e2e_name": "mc", "image": "kbve/mc" },
-                  { "name": "edge", "target": "container", "condition": "${{ needs.alter.outputs.edge }}", "e2e_name": "edge", "image": "kbve/edge", "cargo_toml": "apps/kbve/edge/version.toml" }
+                  { "name": "edge", "target": "container", "condition": "${{ needs.alter.outputs.edge }}", "e2e_name": "edge", "image": "kbve/edge", "cargo_toml": "apps/kbve/edge/version.toml" },
+                  { "name": "cryptothrone", "target": "container", "condition": "${{ needs.alter.outputs.cryptothrone }}", "e2e_name": "cryptothrone", "image": "kbve/cryptothrone", "cargo_toml": "apps/cryptothrone/axum-cryptothrone/Cargo.toml" }
                 ]
 
     generate_e2e_docker_matrix:
@@ -369,7 +370,8 @@ jobs:
                   { "name": "irc", "condition": "${{ needs.alter.outputs.irc_gateway }}" },
                   { "name": "discordsh", "condition": "${{ needs.alter.outputs.discordsh }}" },
                   { "name": "mc", "condition": "${{ needs.alter.outputs.mc }}" },
-                  { "name": "edge", "condition": "${{ needs.alter.outputs.edge }}" }
+                  { "name": "edge", "condition": "${{ needs.alter.outputs.edge }}" },
+                  { "name": "cryptothrone", "condition": "${{ needs.alter.outputs.cryptothrone }}" }
                 ]
 
     test_docker:
@@ -534,73 +536,6 @@ jobs:
             image_name: ${{ matrix.image_name }}
             cargo_toml: ${{ matrix.cargo_toml }}
             deployment_yaml: ${{ matrix.deployment_yaml }}
-
-    #   ! Everything below this line will be removed and replaced with the matrix setup.
-
-    #   [CryptoThrone]
-    cryptothrone_build_process:
-        needs: ['deploy', 'alter', 'globals']
-        name: CryptoThrone Build and Deployment
-        if: needs.alter.outputs.cryptothrone == 'true'
-        runs-on: 'ubuntu-latest'
-        timeout-minutes: 30
-        permissions:
-            contents: read
-            id-token: write
-        steps:
-            - name: Checkout the monorepo using git
-              uses: actions/checkout@v6
-              with:
-                  fetch-depth: 0
-
-            - name: Setup Node v24
-              uses: actions/setup-node@v6
-              with:
-                  node-version: 24
-
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v4
-              with:
-                  version: 9
-                  run_install: false
-
-            - name: Get pnpm Store
-              id: pnpm-store
-              shell: bash
-              run: |
-                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
-
-            - name: Setup pnpm Cache
-              uses: actions/cache@v5
-              with:
-                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
-                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
-                  restore-keys: |
-                      ${{ runner.os }}-pnpm-store-
-
-            - name: Install pnpm dependencies
-              shell: bash
-              run: |
-                  pnpm install
-
-            - name: Build CryptoThrone.com
-              shell: bash
-              run: |
-                  pnpm nx build cryptothrone.com
-            - name: CryptoThrone.com -> Deployment
-              uses: dobbelina/copy_file_to_another_repo_action@main
-              env:
-                  API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
-              with:
-                  source_file: 'dist/apps/cryptothrone.com/'
-                  destination_repo: 'KBVE/cryptothrone.com'
-                  destination_folder: '/docs'
-                  destination_branch: 'main'
-                  destination_branch_create: 'patch-cryptothrone-deploy-${{ needs.globals.outputs.sha256head }}'
-                  user_email: '5599058+h0lybyte@users.noreply.github.com'
-                  user_name: 'h0lybyte'
-                  commit_message: ${{ github.event.head_commit.message }}
-                  rsync_option: '-avrh --delete'
 
     ## Python
     generate_python_matrix:

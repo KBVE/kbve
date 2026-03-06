@@ -1,0 +1,34 @@
+{
+	"name": "cryptothrone",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/cryptothrone",
+	"targets": {
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"nx test axum-cryptothrone",
+					"nx container axum-cryptothrone",
+					"nx e2e:docker astro-cryptothrone-e2e"
+				],
+				"parallel": false
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx container axum-cryptothrone"],
+				"parallel": false
+			},
+			"configurations": {
+				"production": {
+					"commands": [
+						"nx container axum-cryptothrone --configuration=production"
+					]
+				}
+			}
+		}
+	},
+	"tags": []
+}
