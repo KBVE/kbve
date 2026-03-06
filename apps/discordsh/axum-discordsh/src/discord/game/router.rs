@@ -252,7 +252,7 @@ pub async fn handle_game_component(
 
             // Render map card PNG when exploring or map toggle is on
             if session_clone.show_map || session_clone.phase == GamePhase::Exploring {
-                match super::card::render_map_card(&session_clone, fontdb).await {
+                match super::card::render_map_card(&session_clone, fontdb.clone()).await {
                     Ok(map_png) => {
                         edit = edit.new_attachment(serenity::CreateAttachment::bytes(
                             map_png,
@@ -264,6 +264,25 @@ pub async fn handle_game_component(
                             error = %e,
                             session = sid,
                             "Failed to render map card"
+                        );
+                    }
+                }
+            }
+
+            // Render inventory card PNG when inventory toggle is on
+            if session_clone.show_inventory {
+                match super::card::render_inventory_card(&session_clone, fontdb).await {
+                    Ok(inv_png) => {
+                        edit = edit.new_attachment(serenity::CreateAttachment::bytes(
+                            inv_png,
+                            "inventory_card.png",
+                        ));
+                    }
+                    Err(e) => {
+                        tracing::warn!(
+                            error = %e,
+                            session = sid,
+                            "Failed to render inventory card"
                         );
                     }
                 }
@@ -308,6 +327,7 @@ fn parse_action(s: &str) -> Option<GameAction> {
         "flee" => Some(GameAction::Flee),
         "rest" => Some(GameAction::Rest),
         "map" => Some(GameAction::ViewMap),
+        "inv" => Some(GameAction::ViewInventory),
         _ => None,
     }
 }

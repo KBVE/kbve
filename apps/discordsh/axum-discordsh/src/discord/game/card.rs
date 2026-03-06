@@ -697,6 +697,198 @@ pub fn render_og_default_blocking(fontdb: &FontDb) -> Result<Vec<u8>, String> {
     render_svg_to_png(&svg_string, fontdb).map_err(|e| format!("OG PNG render error: {e}"))
 }
 
+// ── Inventory card ──────────────────────────────────────────────────
+
+pub struct InventorySlotDisplay {
+    pub x: i32,
+    pub y: i32,
+    pub occupied: bool,
+    pub item_name: String,
+    pub qty: u16,
+    pub rarity_color: String,
+    pub is_gear: bool,
+}
+
+pub struct EquipSlotDisplay {
+    pub equipped: bool,
+    pub gear_name: String,
+    pub stat_line: String,
+    pub special_line: String,
+    pub rarity_color: String,
+}
+
+#[derive(Template)]
+#[template(path = "game/inventory.svg")]
+pub struct InventoryCardTemplate {
+    pub player_name: String,
+    pub slots_used: usize,
+    pub slots_max: usize,
+    pub gold: i32,
+    pub weapon_slot: EquipSlotDisplay,
+    pub armor_slot: EquipSlotDisplay,
+    pub items: Vec<InventorySlotDisplay>,
+}
+
+fn rarity_color(rarity: &ItemRarity) -> &'static str {
+    match rarity {
+        ItemRarity::Common => "#95a5a6",
+        ItemRarity::Uncommon => "#2ecc71",
+        ItemRarity::Rare => "#3498db",
+        ItemRarity::Epic => "#9b59b6",
+        ItemRarity::Legendary => "#f1c40f",
+    }
+}
+
+fn build_equip_slot_display(gear_id: Option<&str>) -> EquipSlotDisplay {
+    match gear_id.and_then(super::content::find_gear) {
+        Some(gear) => {
+            let mut stat_parts = Vec::new();
+            if gear.bonus_damage > 0 {
+                stat_parts.push(format!("+{} DMG", gear.bonus_damage));
+            }
+            if gear.bonus_armor > 0 {
+                stat_parts.push(format!("+{} DEF", gear.bonus_armor));
+            }
+            if gear.bonus_hp > 0 {
+                stat_parts.push(format!("+{} HP", gear.bonus_hp));
+            }
+            let special_line = match &gear.special {
+                Some(GearSpecial::LifeSteal { percent }) => format!("{}% Lifesteal", percent),
+                Some(GearSpecial::Thorns { damage }) => format!("{} Thorns", damage),
+                Some(GearSpecial::CritBonus { percent }) => format!("+{}% Crit", percent),
+                None => String::new(),
+            };
+            EquipSlotDisplay {
+                equipped: true,
+                gear_name: truncate_name(gear.name, 14),
+                stat_line: stat_parts.join(" "),
+                special_line,
+                rarity_color: rarity_color(&gear.rarity).to_owned(),
+            }
+        }
+        None => EquipSlotDisplay {
+            equipped: false,
+            gear_name: String::new(),
+            stat_line: String::new(),
+            special_line: String::new(),
+            rarity_color: "#3a3a5a".to_owned(),
+        },
+    }
+}
+
+fn truncate_name(name: &str, max_len: usize) -> String {
+    if name.len() <= max_len {
+        name.to_owned()
+    } else {
+        format!("{}..", &name[..max_len - 2])
+    }
+}
+
+/// Build the inventory card template from a session.
+pub fn build_inventory_card(session: &SessionState) -> InventoryCardTemplate {
+    let owner = session.owner_player();
+
+    let weapon_slot = build_equip_slot_display(owner.weapon.as_deref());
+    let armor_slot = build_equip_slot_display(owner.armor_gear.as_deref());
+
+    let mut items = Vec::with_capacity(MAX_INVENTORY_SLOTS);
+
+    // Occupied slots
+    for stack in owner.inventory.iter().filter(|s| s.qty > 0) {
+        if items.len() >= MAX_INVENTORY_SLOTS {
+            break;
+        }
+        let idx = items.len();
+        let col = idx % 4;
+        let row = idx / 4;
+        let x = 16 + (col as i32) * 93;
+        let y = 152 + (row as i32) * 74;
+
+        let is_gear = super::content::find_gear(&stack.item_id).is_some();
+        let color = if is_gear {
+            super::content::find_gear(&stack.item_id)
+                .map(|g| rarity_color(&g.rarity))
+                .unwrap_or("#95a5a6")
+        } else {
+            super::content::find_item(&stack.item_id)
+                .map(|d| rarity_color(&d.rarity))
+                .unwrap_or("#95a5a6")
+        };
+
+        let name = if is_gear {
+            super::content::find_gear(&stack.item_id)
+                .map(|g| g.name)
+                .unwrap_or("???")
+        } else {
+            super::content::find_item(&stack.item_id)
+                .map(|d| d.name)
+                .unwrap_or("???")
+        };
+
+        items.push(InventorySlotDisplay {
+            x,
+            y,
+            occupied: true,
+            item_name: truncate_name(name, 12),
+            qty: stack.qty,
+            rarity_color: color.to_owned(),
+            is_gear,
+        });
+    }
+
+    // Pad with empty slots
+    while items.len() < MAX_INVENTORY_SLOTS {
+        let idx = items.len();
+        let col = idx % 4;
+        let row = idx / 4;
+        let x = 16 + (col as i32) * 93;
+        let y = 152 + (row as i32) * 74;
+        items.push(InventorySlotDisplay {
+            x,
+            y,
+            occupied: false,
+            item_name: String::new(),
+            qty: 0,
+            rarity_color: "#3a3a5a".to_owned(),
+            is_gear: false,
+        });
+    }
+
+    InventoryCardTemplate {
+        player_name: owner.name.clone(),
+        slots_used: owner.inventory_slots_used(),
+        slots_max: MAX_INVENTORY_SLOTS,
+        gold: owner.gold,
+        weapon_slot,
+        armor_slot,
+        items,
+    }
+}
+
+/// Render the inventory card as PNG bytes (CPU-bound).
+pub fn render_inventory_card_blocking(
+    session: &SessionState,
+    fontdb: &FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_inventory_card(session);
+    let svg_string = template
+        .render()
+        .map_err(|e| format!("Inventory SVG template error: {e}"))?;
+
+    render_svg_to_png(&svg_string, fontdb).map_err(|e| format!("Inventory SVG render error: {e}"))
+}
+
+/// Async wrapper — renders the inventory card on a blocking thread.
+pub async fn render_inventory_card(
+    session: &SessionState,
+    fontdb: FontDb,
+) -> Result<Vec<u8>, String> {
+    let session_clone = session.clone();
+    tokio::task::spawn_blocking(move || render_inventory_card_blocking(&session_clone, &fontdb))
+        .await
+        .map_err(|e| format!("Inventory render task panicked: {e}"))?
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -736,6 +928,7 @@ mod tests {
             pending_actions: HashMap::new(),
             map: test_map_default(),
             show_map: false,
+            show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
         }

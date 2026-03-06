@@ -241,6 +241,8 @@ pub enum Intent {
 
 // ── Items ───────────────────────────────────────────────────────────
 
+pub const MAX_INVENTORY_SLOTS: usize = 16;
+
 pub type ItemId = String;
 
 #[derive(Debug, Clone)]
@@ -426,6 +428,16 @@ impl PlayerState {
             .map(|e| e.stacks)
             .sum()
     }
+
+    /// Number of occupied inventory slots (stacks with qty > 0).
+    pub fn inventory_slots_used(&self) -> usize {
+        self.inventory.iter().filter(|s| s.qty > 0).count()
+    }
+
+    /// Whether the inventory is at capacity.
+    pub fn inventory_full(&self) -> bool {
+        self.inventory_slots_used() >= MAX_INVENTORY_SLOTS
+    }
 }
 
 // ── Enemy state ─────────────────────────────────────────────────────
@@ -527,6 +539,7 @@ pub enum GameAction {
     Equip(String),
     Move(Direction),
     ViewMap,
+    ViewInventory,
     Revive(serenity::UserId),
 }
 
@@ -570,6 +583,7 @@ pub struct SessionState {
     pub pending_actions: HashMap<serenity::UserId, GameAction>,
     pub map: MapState,
     pub show_map: bool,
+    pub show_inventory: bool,
     pub pending_destination: Option<MapPos>,
     pub enemies_had_first_strike: bool,
 }
@@ -784,6 +798,7 @@ mod tests {
             pending_actions: HashMap::new(),
             map: test_map_default(),
             show_map: false,
+            show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
         };
@@ -867,6 +882,7 @@ mod tests {
             pending_actions: HashMap::new(),
             map: test_map_default(),
             show_map: false,
+            show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
         };

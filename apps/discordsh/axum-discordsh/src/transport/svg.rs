@@ -66,6 +66,8 @@ pub fn router() -> Router<HttpState> {
         .route("/svg/game/svg/{session_id}", get(game_card_svg))
         .route("/svg/map/png/{session_id}", get(map_card_png))
         .route("/svg/map/svg/{session_id}", get(map_card_svg))
+        .route("/svg/inventory/png/{session_id}", get(inventory_card_png))
+        .route("/svg/inventory/svg/{session_id}", get(inventory_card_svg))
         .route("/og/default.png", get(og_default_png))
 }
 
@@ -140,6 +142,61 @@ async fn map_card_svg(
     let svg_string = template
         .render()
         .map_err(|e| SvgError::Render(format!("Map SVG template: {e}")))?;
+
+    Ok((
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "image/svg+xml; charset=utf-8"),
+            (
+                header::CACHE_CONTROL,
+                "public, max-age=5, stale-while-revalidate=10",
+            ),
+        ],
+        svg_string,
+    )
+        .into_response())
+}
+
+/// `GET /svg/inventory/png/{session_id}` — inventory card as PNG.
+async fn inventory_card_png(
+    State(state): State<HttpState>,
+    Path(session_id): Path<String>,
+) -> Result<Response, SvgError> {
+    let session = snapshot_session(&state, &session_id)?;
+    let fontdb = state.app.fontdb.clone();
+
+    let png_bytes = tokio::task::spawn_blocking(move || {
+        card::render_inventory_card_blocking(&session, &fontdb)
+            .map_err(|e| SvgError::Render(format!("Inventory PNG render: {e}")))
+    })
+    .await
+    .map_err(|e| SvgError::Render(format!("Task panicked: {e}")))??;
+
+    Ok((
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "image/png"),
+            (
+                header::CACHE_CONTROL,
+                "public, max-age=5, stale-while-revalidate=10",
+            ),
+        ],
+        png_bytes,
+    )
+        .into_response())
+}
+
+/// `GET /svg/inventory/svg/{session_id}` — inventory card as SVG.
+async fn inventory_card_svg(
+    State(state): State<HttpState>,
+    Path(session_id): Path<String>,
+) -> Result<Response, SvgError> {
+    let session = snapshot_session(&state, &session_id)?;
+
+    let template = card::build_inventory_card(&session);
+    let svg_string = template
+        .render()
+        .map_err(|e| SvgError::Render(format!("Inventory SVG template: {e}")))?;
 
     Ok((
         StatusCode::OK,
@@ -296,6 +353,7 @@ mod tests {
             pending_actions: std::collections::HashMap::new(),
             map: content::generate_initial_map(&id),
             show_map: false,
+            show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
         };

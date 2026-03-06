@@ -137,7 +137,7 @@ fn validate_action(
                 return Err("You can only move while exploring or in a city.".to_owned());
             }
         }
-        GameAction::ViewMap => {
+        GameAction::ViewMap | GameAction::ViewInventory => {
             // Allowed anytime except GameOver (already checked above)
         }
         GameAction::Revive(_) => {
@@ -270,6 +270,10 @@ pub fn apply_action(
         GameAction::Move(dir) => apply_move(session, dir, actor)?,
         GameAction::ViewMap => {
             session.show_map = !session.show_map;
+            return Ok(Vec::new());
+        }
+        GameAction::ViewInventory => {
+            session.show_inventory = !session.show_inventory;
             return Ok(Vec::new());
         }
         GameAction::Revive(target_uid) => apply_revive(session, target_uid, actor)?,
@@ -937,13 +941,17 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
 
             // Roll gear loot
             if let Some(gear_id) = content::roll_gear_loot(loot_id) {
-                add_item_to_inventory(&mut session.player_mut(loot_recipient).inventory, gear_id);
-                if let Some(gear) = content::find_gear(gear_id) {
-                    if alive_ids.len() > 1 {
-                        logs.push(format!("{} received gear: {}!", recipient_name, gear.name));
-                    } else {
-                        logs.push(format!("Dropped gear: {}!", gear.name));
+                if add_item_to_inventory(&mut session.player_mut(loot_recipient).inventory, gear_id)
+                {
+                    if let Some(gear) = content::find_gear(gear_id) {
+                        if alive_ids.len() > 1 {
+                            logs.push(format!("{} received gear: {}!", recipient_name, gear.name));
+                        } else {
+                            logs.push(format!("Dropped gear: {}!", gear.name));
+                        }
                     }
+                } else if let Some(gear) = content::find_gear(gear_id) {
+                    logs.push(format!("Inventory full! Lost gear: {}", gear.name));
                 }
             }
         }
@@ -2009,6 +2017,9 @@ fn apply_buy(
             offer.price, player.gold
         ));
     }
+    if player.inventory_full() && !player.inventory.iter().any(|s| s.item_id == item_id) {
+        return Err("Inventory full! Sell or use items first.".to_owned());
+    }
 
     let price = offer.price;
     let is_gear = offer.is_gear;
@@ -2095,9 +2106,12 @@ fn apply_story_choice(
     player.gold += outcome.gold_change;
 
     if let Some(item_id) = outcome.item_gain {
-        add_item_to_inventory(&mut session.player_mut(actor).inventory, item_id);
-        if let Some(def) = content::find_item(item_id) {
-            logs.push(format!("Gained: {}!", def.name));
+        if add_item_to_inventory(&mut session.player_mut(actor).inventory, item_id) {
+            if let Some(def) = content::find_item(item_id) {
+                logs.push(format!("Gained: {}!", def.name));
+            }
+        } else if let Some(def) = content::find_item(item_id) {
+            logs.push(format!("Inventory full! Could not carry {}", def.name));
         }
     }
 
@@ -2386,22 +2400,30 @@ fn roll_and_add_loot(loot_table_id: &str, inventory: &mut Vec<ItemStack>) -> Vec
     let mut logs = Vec::new();
     if let Some(item_id) = content::roll_loot(loot_table_id) {
         if let Some(def) = content::find_item(item_id) {
-            add_item_to_inventory(inventory, item_id);
-            logs.push(format!("Dropped: {}!", def.name));
+            if add_item_to_inventory(inventory, item_id) {
+                logs.push(format!("Dropped: {}!", def.name));
+            } else {
+                logs.push(format!("Inventory full! Dropped: {}", def.name));
+            }
         }
     }
     logs
 }
 
-fn add_item_to_inventory(inventory: &mut Vec<ItemStack>, item_id: &str) {
+fn add_item_to_inventory(inventory: &mut Vec<ItemStack>, item_id: &str) -> bool {
     if let Some(stack) = inventory.iter_mut().find(|s| s.item_id == item_id) {
         stack.qty = stack.qty.saturating_add(1);
-    } else {
-        inventory.push(ItemStack {
-            item_id: item_id.to_owned(),
-            qty: 1,
-        });
+        return true;
     }
+    let occupied = inventory.iter().filter(|s| s.qty > 0).count();
+    if occupied >= MAX_INVENTORY_SLOTS {
+        return false;
+    }
+    inventory.push(ItemStack {
+        item_id: item_id.to_owned(),
+        qty: 1,
+    });
+    true
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -2452,6 +2474,7 @@ mod tests {
             pending_actions: HashMap::new(),
             map: test_map_default(),
             show_map: false,
+            show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
         }
