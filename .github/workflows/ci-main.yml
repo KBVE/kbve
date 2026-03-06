@@ -407,6 +407,7 @@ jobs:
               with:
                   pattern: test-passed-docker-*
                   path: ./test-results
+                  merge-multiple: false
               continue-on-error: true
 
             - name: Build filtered publish matrix
@@ -492,6 +493,7 @@ jobs:
               with:
                   pattern: test-passed-docker-*
                   path: ./test-results
+                  merge-multiple: false
               continue-on-error: true
 
             - name: Build filtered kube matrix
