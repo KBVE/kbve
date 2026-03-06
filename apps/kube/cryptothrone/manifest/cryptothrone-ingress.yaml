@@ -12,20 +12,9 @@ spec:
     tls:
         - hosts:
               - cryptothrone.com
-              - www.cryptothrone.com
           secretName: cryptothrone-tls
     rules:
         - host: cryptothrone.com
-          http:
-              paths:
-                  - path: /
-                    pathType: Prefix
-                    backend:
-                        service:
-                            name: cryptothrone-service
-                            port:
-                                number: 4321
-        - host: www.cryptothrone.com
           http:
               paths:
                   - path: /
