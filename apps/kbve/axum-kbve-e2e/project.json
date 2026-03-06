@@ -10,6 +10,7 @@
 		},
 		"e2e": {
 			"executor": "nx:run-commands",
+			"dependsOn": ["axum-kbve:container"],
 			"cache": false,
 			"options": {
 				"commands": [
@@ -19,6 +20,9 @@
 				],
 				"parallel": false,
 				"cwd": "apps/kbve/axum-kbve-e2e"
+			},
+			"configurations": {
+				"ci": {}
 			}
 		}
 	},
