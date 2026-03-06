@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: cryptothrone
+
+resources:
+    - cryptothrone-serviceaccount.yaml
+    - cryptothrone-deployment.yaml
+    - cryptothrone-ingress.yaml
