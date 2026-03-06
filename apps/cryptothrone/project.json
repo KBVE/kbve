@@ -28,6 +28,20 @@
 					]
 				}
 			}
+		},
+		"base": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx base axum-cryptothrone"],
+				"parallel": false
+			},
+			"configurations": {
+				"production": {
+					"commands": [
+						"nx base axum-cryptothrone --configuration=production"
+					]
+				}
+			}
 		}
 	},
 	"tags": []
