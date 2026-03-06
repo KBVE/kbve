@@ -32,10 +32,11 @@ COPY packages/npm/laser/ packages/npm/laser/
 COPY apps/kbve/astro-kbve/ apps/kbve/astro-kbve/
 
 # Build astro site (cache .astro dir for incremental content collection builds)
+# Memory capped at 4096MB to stay within CI runner limits inside buildkit
 WORKDIR /app/apps/kbve/astro-kbve
 RUN --mount=type=cache,target=/app/apps/kbve/astro-kbve/.astro,id=astro-cache \
     npx astro sync && \
-    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" npx astro build
+    UV_THREADPOOL_SIZE=2 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
 
 # ============================================================================
 # [STAGE B] - Precompress Static Assets
