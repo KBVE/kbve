@@ -216,6 +216,12 @@ jobs:
                           - 'packages/khashvault/package.json'
                       devops:
                           - 'packages/npm/devops/package.json'
+                      astro_kbve:
+                          - 'apps/kbve/astro-kbve/**'
+                          - 'apps/kbve/axum-kbve/**'
+                          - 'packages/npm/astro/**'
+                          - 'packages/npm/droid/**'
+                          - 'packages/npm/laser/**'
                       cryptothrone:
                           - 'apps/cryptothrone/**'
                       laser:
