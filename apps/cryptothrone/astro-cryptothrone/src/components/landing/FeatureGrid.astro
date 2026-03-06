@@ -1,0 +1,79 @@
+---
+import FeatureCard from './FeatureCard.astro';
+
+const features = [
+	{
+		icon: '\u2694\uFE0F',
+		title: 'Real-Time Combat',
+		description:
+			'Battle bird monsters and hostile NPCs with dice-based mechanics and strategic encounters.',
+	},
+	{
+		icon: '\uD83C\uDFD9\uFE0F',
+		title: 'Cloud Cities',
+		description:
+			'Explore sprawling tile-based worlds built with GridEngine and richly layered tilesets.',
+	},
+	{
+		icon: '\uD83C\uDFB2',
+		title: 'Dice Rolls',
+		description:
+			'Steal, negotiate, and gamble your way through encounters with animated dice mechanics.',
+	},
+	{
+		icon: '\uD83D\uDEE1\uFE0F',
+		title: 'Inventory & Equipment',
+		description:
+			'Collect loot, manage your backpack, and equip gear to strengthen your character.',
+	},
+	{
+		icon: '\uD83D\uDCAC',
+		title: 'NPC Dialogue',
+		description:
+			'Engage in branching conversations with typewriter-style text and meaningful choices.',
+	},
+	{
+		icon: '\u26A1',
+		title: 'Phaser + React',
+		description:
+			'Built on Phaser 3 with a React overlay — buttery smooth rendering meets modern UI.',
+	},
+];
+---
+
+<section class="ct-features">
+	<h2 class="ct-features__heading">Features</h2>
+	<div class="ct-features__grid">
+		{
+			features.map((f) => (
+				<FeatureCard
+					title={f.title}
+					description={f.description}
+					icon={f.icon}
+				/>
+			))
+		}
+	</div>
+</section>
+
+<style>
+	.ct-features {
+		max-width: 900px;
+		margin: 0 auto;
+		padding: 4rem 1.5rem;
+	}
+
+	.ct-features__heading {
+		font-size: 1.75rem;
+		font-weight: 700;
+		color: #fbbf24;
+		text-align: center;
+		margin: 0 0 2.5rem;
+	}
+
+	.ct-features__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+		gap: 1.25rem;
+	}
+</style>

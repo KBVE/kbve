@@ -1,0 +1,153 @@
+---
+interface Props {
+	title?: string;
+	tagline?: string;
+	playLink?: string;
+	guidesLink?: string;
+}
+
+const {
+	title = 'CryptoThrone',
+	tagline = 'Explore cloud cities, battle bird monsters, and claim the throne.',
+	playLink = '/game/play/',
+	guidesLink = '/guides/getting-started/',
+} = Astro.props;
+---
+
+<section class="ct-hero">
+	<div class="ct-hero__overlay"></div>
+	<div class="ct-hero__content">
+		<h1 class="ct-hero__title">{title}</h1>
+		<p class="ct-hero__tagline">{tagline}</p>
+		<div class="ct-hero__actions">
+			<a href={playLink} class="ct-btn ct-btn--primary">Play Now</a>
+			<a href={guidesLink} class="ct-btn ct-btn--ghost">View Guides</a>
+		</div>
+	</div>
+	<div class="ct-hero__scroll-hint" aria-hidden="true">
+		<svg
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2">
+			<path d="M12 5v14M5 12l7 7 7-7"></path>
+		</svg>
+	</div>
+</section>
+
+<style>
+	.ct-hero {
+		position: relative;
+		min-height: 80vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: url('/assets/background/chip-background.webp') center /
+			cover no-repeat;
+		overflow: hidden;
+	}
+
+	.ct-hero__overlay {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			180deg,
+			rgba(26, 26, 46, 0.85) 0%,
+			rgba(26, 26, 46, 0.6) 50%,
+			rgba(26, 26, 46, 0.9) 100%
+		);
+	}
+
+	.ct-hero__content {
+		position: relative;
+		z-index: 1;
+		text-align: center;
+		padding: 2rem;
+		max-width: 700px;
+	}
+
+	.ct-hero__title {
+		font-size: clamp(2.5rem, 6vw, 4.5rem);
+		font-weight: 800;
+		letter-spacing: -0.02em;
+		background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+		margin: 0 0 1rem;
+		line-height: 1.1;
+	}
+
+	.ct-hero__tagline {
+		font-size: clamp(1rem, 2vw, 1.25rem);
+		color: #d1d5db;
+		margin: 0 0 2.5rem;
+		line-height: 1.6;
+	}
+
+	.ct-hero__actions {
+		display: flex;
+		gap: 1rem;
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+
+	.ct-btn {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.75rem 2rem;
+		border-radius: 0.5rem;
+		font-weight: 600;
+		font-size: 1rem;
+		text-decoration: none;
+		transition: all 0.2s ease;
+	}
+
+	.ct-btn--primary {
+		background: linear-gradient(135deg, #f59e0b, #d97706);
+		color: #1a1a2e;
+	}
+
+	.ct-btn--primary:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
+	}
+
+	.ct-btn--ghost {
+		border: 1px solid rgba(251, 191, 36, 0.4);
+		color: #fbbf24;
+		background: transparent;
+	}
+
+	.ct-btn--ghost:hover {
+		background: rgba(251, 191, 36, 0.1);
+		border-color: #fbbf24;
+	}
+
+	.ct-hero__scroll-hint {
+		position: absolute;
+		bottom: 2rem;
+		left: 50%;
+		transform: translateX(-50%);
+		color: rgba(251, 191, 36, 0.5);
+		animation: bounce 2s infinite;
+	}
+
+	@keyframes bounce {
+		0%,
+		20%,
+		50%,
+		80%,
+		100% {
+			transform: translateX(-50%) translateY(0);
+		}
+		40% {
+			transform: translateX(-50%) translateY(-8px);
+		}
+		60% {
+			transform: translateX(-50%) translateY(-4px);
+		}
+	}
+</style>

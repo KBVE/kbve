@@ -1,0 +1,50 @@
+---
+interface Props {
+	title: string;
+	description: string;
+	icon: string;
+}
+
+const { title, description, icon } = Astro.props;
+---
+
+<div class="ct-card">
+	<div class="ct-card__icon">{icon}</div>
+	<h3 class="ct-card__title">{title}</h3>
+	<p class="ct-card__desc">{description}</p>
+</div>
+
+<style>
+	.ct-card {
+		background: rgba(39, 39, 42, 0.6);
+		border: 1px solid rgba(251, 191, 36, 0.15);
+		border-radius: 0.75rem;
+		padding: 1.5rem;
+		transition: all 0.3s ease;
+	}
+
+	.ct-card:hover {
+		border-color: rgba(251, 191, 36, 0.4);
+		transform: translateY(-4px);
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+	}
+
+	.ct-card__icon {
+		font-size: 2rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.ct-card__title {
+		font-size: 1.125rem;
+		font-weight: 700;
+		color: #fbbf24;
+		margin: 0 0 0.5rem;
+	}
+
+	.ct-card__desc {
+		font-size: 0.875rem;
+		color: #9ca3af;
+		line-height: 1.6;
+		margin: 0;
+	}
+</style>
