@@ -10,7 +10,13 @@
 		},
 		"e2e": {
 			"executor": "nx:run-commands",
-			"dependsOn": ["axum-kbve:container"],
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["axum-kbve"],
+					"params": "forward"
+				}
+			],
 			"cache": false,
 			"options": {
 				"commands": [
