@@ -14,7 +14,7 @@ test.describe('astro-cryptothrone smoke tests', () => {
 
 	test('homepage hero has Play Now link', async ({ page }) => {
 		await page.goto('/');
-		const playLink = page.locator('a[href="/game/play/"]');
+		const playLink = page.locator('a[href="/game/play/"]').first();
 		await expect(playLink).toBeVisible();
 	});
 

@@ -35,7 +35,7 @@ COPY apps/kbve/astro-kbve/ apps/kbve/astro-kbve/
 WORKDIR /app/apps/kbve/astro-kbve
 RUN --mount=type=cache,target=/app/apps/kbve/astro-kbve/.astro,id=astro-cache \
     npx astro sync && \
-    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
+    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" npx astro build
 
 # ============================================================================
 # [STAGE B] - Precompress Static Assets
