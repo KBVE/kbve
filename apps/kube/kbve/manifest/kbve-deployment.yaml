@@ -7,6 +7,11 @@ metadata:
         app: kbve
 spec:
     replicas: 1
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 0
     selector:
         matchLabels:
             app: kbve
@@ -16,15 +21,32 @@ spec:
                 rollout-restart: '2026-01-31T17:38:01Z'
             labels:
                 app: kbve
-                version: '1.0.19'
+                version: '1.0.20'
         spec:
             containers:
                 - name: kbve
-                  image: ghcr.io/kbve/kbve.com:1.0.19
+                  image: ghcr.io/kbve/kbve:1.0.20
                   imagePullPolicy: Always
                   ports:
-                      - containerPort: 4321
+                      - name: http
+                        containerPort: 4321
                         protocol: TCP
+                  livenessProbe:
+                      httpGet:
+                          path: /health
+                          port: http
+                      initialDelaySeconds: 30
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+                  readinessProbe:
+                      httpGet:
+                          path: /health
+                          port: http
+                      initialDelaySeconds: 10
+                      periodSeconds: 5
+                      timeoutSeconds: 3
+                      failureThreshold: 3
                   env:
                       - name: PORT
                         value: '4321'
