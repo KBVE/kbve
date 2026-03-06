@@ -1,3 +1,5 @@
+import { useState, useCallback } from 'react';
+import { useSpring, animated, config } from '@react-spring/web';
 import { ExternalLink, Eye, Flame } from 'lucide-react';
 import type { FeedMeme } from '../../lib/memeService';
 
@@ -5,29 +7,69 @@ interface BentoMemeCardProps {
 	meme: FeedMeme;
 	featured?: boolean;
 	onExpand: (meme: FeedMeme) => void;
+	style?: React.CSSProperties;
 }
 
 export default function BentoMemeCard({
 	meme,
 	featured,
 	onExpand,
+	style,
 }: BentoMemeCardProps) {
 	const isVideo = meme.format === 2 || meme.format === 3;
+	const [hovered, setHovered] = useState(false);
+	const [imgLoaded, setImgLoaded] = useState(false);
+
+	const hoverSpring = useSpring({
+		scale: hovered ? 1.02 : 1,
+		shadow: hovered ? 20 : 0,
+		overlayOpacity: hovered ? 1 : 0,
+		config: config.gentle,
+	});
+
+	const imgSpring = useSpring({
+		opacity: imgLoaded ? 1 : 0,
+		config: { duration: 300 },
+	});
+
+	const handleMouseEnter = useCallback(() => setHovered(true), []);
+	const handleMouseLeave = useCallback(() => setHovered(false), []);
 
 	return (
-		<button
+		<animated.button
 			type="button"
 			onClick={() => onExpand(meme)}
-			className={`group relative overflow-hidden rounded-xl transition-shadow duration-200 hover:shadow-lg hover:shadow-black/30 focus:outline-none ${
+			onMouseEnter={handleMouseEnter}
+			onMouseLeave={handleMouseLeave}
+			className={`relative overflow-hidden rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 ${
 				featured ? 'md:col-span-2' : ''
 			}`}
 			style={{
-				border: '1px solid var(--sl-color-hairline, rgba(255,255,255,0.06))',
+				...style,
+				transform: hoverSpring.scale.to((s) => `scale(${s})`),
+				boxShadow: hoverSpring.shadow.to(
+					(s) =>
+						`0 ${s * 0.5}px ${s}px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.06)`,
+				),
 				backgroundColor: 'var(--sl-color-gray-6, #1c1c1e)',
+				willChange: 'transform',
 			}}>
 			{/* Thumbnail */}
 			<div
 				className={`w-full ${featured ? 'aspect-video' : 'aspect-[4/3]'}`}>
+				{/* Shimmer placeholder */}
+				{!imgLoaded && (
+					<div
+						className="absolute inset-0 overflow-hidden"
+						style={{
+							background:
+								'linear-gradient(110deg, var(--sl-color-gray-6, #1c1c1e) 30%, var(--sl-color-gray-5, #27272a) 50%, var(--sl-color-gray-6, #1c1c1e) 70%)',
+							backgroundSize: '200% 100%',
+							animation: 'shimmer 1.5s ease-in-out infinite',
+						}}
+					/>
+				)}
+
 				{isVideo ? (
 					<video
 						src={meme.asset_url}
@@ -35,85 +77,108 @@ export default function BentoMemeCard({
 						muted
 						playsInline
 						preload="metadata"
+						onLoadedData={() => setImgLoaded(true)}
 					/>
 				) : (
-					<img
+					<animated.img
 						src={meme.thumbnail_url || meme.asset_url}
 						alt={meme.title || 'Meme'}
 						className="w-full h-full object-cover select-none"
 						loading="lazy"
 						draggable={false}
+						onLoad={() => setImgLoaded(true)}
+						style={{ opacity: imgSpring.opacity }}
 					/>
 				)}
 			</div>
 
 			{/* Hover overlay */}
-			<div className="absolute inset-0 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+			<animated.div
+				className="absolute inset-0 flex flex-col justify-end"
+				style={{ opacity: hoverSpring.overlayOpacity }}>
 				{/* Gradient */}
 				<div
 					className="absolute inset-0"
 					style={{
 						background:
-							'linear-gradient(transparent 30%, rgba(0,0,0,0.75))',
+							'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 40%, transparent 70%)',
 					}}
 				/>
 
 				{/* Content */}
-				<div className="relative p-3">
+				<div className="relative p-3.5 pb-3">
 					{meme.title && (
-						<h3 className="text-white text-sm font-semibold leading-tight line-clamp-2 mb-1.5">
+						<h3 className="text-white text-sm font-semibold leading-snug line-clamp-2 mb-1.5 text-left">
 							{meme.title}
 						</h3>
 					)}
 
-					{meme.author_name && (
-						<p className="text-white/60 text-xs mb-2">
-							@{meme.author_name}
-						</p>
-					)}
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							{meme.author_name && (
+								<p className="text-white/50 text-xs">
+									@{meme.author_name}
+								</p>
+							)}
+						</div>
 
-					{/* Stats row */}
-					<div className="flex items-center gap-3 text-white/50 text-xs">
-						<span className="inline-flex items-center gap-1">
-							<Eye size={12} />
-							{formatCount(meme.view_count)}
-						</span>
-						<span className="inline-flex items-center gap-1">
-							<Flame size={12} />
-							{formatCount(meme.reaction_count)}
-						</span>
+						{/* Stats */}
+						<div className="flex items-center gap-2.5 text-white/40 text-[11px]">
+							<span className="inline-flex items-center gap-1">
+								<Eye size={11} />
+								{formatCount(meme.view_count)}
+							</span>
+							<span className="inline-flex items-center gap-1">
+								<Flame size={11} />
+								{formatCount(meme.reaction_count)}
+							</span>
+						</div>
 					</div>
 				</div>
-			</div>
+			</animated.div>
 
-			{/* Share button — always visible top-right */}
-			<a
-				href={`/meme?id=${meme.id}`}
-				target="_blank"
-				rel="noopener noreferrer"
-				onClick={(e) => e.stopPropagation()}
-				className="absolute top-2 right-2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 backdrop-blur-sm"
-				style={{
-					backgroundColor: 'rgba(0,0,0,0.4)',
-				}}
-				title="Open in new tab"
-				aria-label="Open meme in new tab">
-				<ExternalLink size={14} className="text-white/80" />
-			</a>
+			{/* Share button — top-right, visible on hover */}
+			<animated.div
+				className="absolute top-2.5 right-2.5"
+				style={{ opacity: hoverSpring.overlayOpacity }}>
+				<a
+					href={`/meme?id=${meme.id}`}
+					target="_blank"
+					rel="noopener noreferrer"
+					onClick={(e) => e.stopPropagation()}
+					className="block p-1.5 rounded-lg backdrop-blur-md transition-colors hover:bg-white/20"
+					style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+					title="Open in new tab"
+					aria-label="Open meme in new tab">
+					<ExternalLink size={13} className="text-white/90" />
+				</a>
+			</animated.div>
 
-			{/* Tags — bottom-left, visible without hover */}
+			{/* Tags — bottom-left on hover */}
 			{meme.tags.length > 0 && (
-				<div className="absolute bottom-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+				<animated.div
+					className="absolute bottom-2.5 left-3 flex gap-1.5"
+					style={{ opacity: hoverSpring.overlayOpacity }}>
 					{meme.tags.slice(0, 2).map((tag) => (
 						<span
 							key={tag}
-							className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/50 backdrop-blur-sm">
+							className="text-[10px] px-2 py-0.5 rounded-full backdrop-blur-md text-white/60"
+							style={{
+								backgroundColor: 'rgba(255,255,255,0.1)',
+							}}>
 							#{tag}
 						</span>
 					))}
-				</div>
+				</animated.div>
 			)}
-		</button>
+
+			<style>{`
+				@keyframes shimmer {
+					0% { background-position: 200% 0; }
+					100% { background-position: -200% 0; }
+				}
+			`}</style>
+		</animated.button>
 	);
 }
 

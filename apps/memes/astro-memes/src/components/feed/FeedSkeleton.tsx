@@ -8,27 +8,36 @@ export default function FeedSkeleton({
 	if (variant === 'desktop') {
 		return (
 			<div
-				className="w-full min-h-screen px-4 py-6"
+				className="w-full min-h-screen px-4 md:px-6 lg:px-8 py-8"
 				style={{
 					backgroundColor: 'var(--sl-color-bg, #0a0a0a)',
 				}}>
-				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-w-7xl mx-auto">
+				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 max-w-7xl mx-auto">
 					{[...Array(8)].map((_, i) => (
 						<div
 							key={i}
-							className={`rounded-xl animate-pulse ${
+							className={`rounded-2xl overflow-hidden ${
 								i % 7 === 3
 									? 'md:col-span-2 aspect-video'
 									: 'aspect-[4/3]'
 							}`}
 							style={{
-								backgroundColor:
-									'var(--sl-color-gray-6, #1c1c1e)',
+								background:
+									'linear-gradient(110deg, var(--sl-color-gray-6, #1c1c1e) 30%, var(--sl-color-gray-5, #27272a) 50%, var(--sl-color-gray-6, #1c1c1e) 70%)',
+								backgroundSize: '200% 100%',
+								animation: 'shimmer 1.5s ease-in-out infinite',
+								animationDelay: `${i * 80}ms`,
 								border: '1px solid rgba(255,255,255,0.04)',
 							}}
 						/>
 					))}
 				</div>
+				<style>{`
+					@keyframes shimmer {
+						0% { background-position: 200% 0; }
+						100% { background-position: -200% 0; }
+					}
+				`}</style>
 			</div>
 		);
 	}
