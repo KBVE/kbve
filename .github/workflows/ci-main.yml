@@ -202,7 +202,7 @@ jobs:
                   FULL_MATRIX: ${{ needs.generate_npm_matrix.outputs.matrix }}
               run: |
                   if [ -d "./test-results" ]; then
-                    PASSED=$(ls ./test-results/ | sed 's/test-passed-npm-//')
+                    PASSED=$(find ./test-results -name 'test-result.txt' -exec cat {} \;)
                   else
                     PASSED=""
                   fi
@@ -283,7 +283,7 @@ jobs:
                   FULL_MATRIX: ${{ needs.generate_crates_matrix.outputs.matrix }}
               run: |
                   if [ -d "./test-results" ]; then
-                    PASSED=$(ls ./test-results/ | sed 's/test-passed-crate-//')
+                    PASSED=$(find ./test-results -name 'test-result.txt' -exec cat {} \;)
                   else
                     PASSED=""
                   fi
@@ -418,8 +418,8 @@ jobs:
                   echo "::group::Debug test-results directory"
                   if [ -d "./test-results" ]; then
                     echo "Directory exists, contents:"
-                    ls -la ./test-results/
-                    PASSED=$(ls ./test-results/ | sed 's/test-passed-docker-//')
+                    find ./test-results -type f -ls
+                    PASSED=$(find ./test-results -name 'test-result.txt' -exec cat {} \;)
                     echo "PASSED entries:"
                     echo "$PASSED"
                   else
@@ -504,8 +504,8 @@ jobs:
                   echo "::group::Debug test-results directory"
                   if [ -d "./test-results" ]; then
                     echo "Directory exists, contents:"
-                    ls -la ./test-results/
-                    PASSED=$(ls ./test-results/ | sed 's/test-passed-docker-//')
+                    find ./test-results -type f -ls
+                    PASSED=$(find ./test-results -name 'test-result.txt' -exec cat {} \;)
                     echo "PASSED entries:"
                     echo "$PASSED"
                   else
@@ -597,7 +597,7 @@ jobs:
                   FULL_MATRIX: ${{ needs.generate_python_matrix.outputs.matrix }}
               run: |
                   if [ -d "./test-results" ]; then
-                    PASSED=$(ls ./test-results/ | sed 's/test-passed-python-//')
+                    PASSED=$(find ./test-results -name 'test-result.txt' -exec cat {} \;)
                   else
                     PASSED=""
                   fi
