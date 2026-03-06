@@ -36,17 +36,10 @@ spec:
         size: 40Gi
         storageClass: longhorn
 
-    # Certificate configuration
-    # Certificates are auto-renewed by CNPG operator
-    # These settings ensure longer validity and earlier renewal
-    certificates:
-        # Server certificate for TLS connections
-        serverTLSSecret: supabase-cluster-server
-        serverCASecret: supabase-cluster-ca
-        # Replication certificate for streaming replication
-        replicationTLSSecret: supabase-cluster-replication
-        # Client CA for client certificate authentication
-        clientCASecret: supabase-cluster-ca
+    # TLS certificates are auto-managed by CNPG operator (default behavior)
+    # Do NOT specify explicit certificate secret names — CNPG treats them as
+    # externally-managed and will NOT auto-renew, causing expiry failures.
+    # Phase 2: migrate to cert-manager-issued certs for external lifecycle management.
 
     monitoring:
         enablePodMonitor: true
@@ -104,47 +97,45 @@ spec:
             supautils.reserved_roles: 'supabase_admin, supabase_auth_admin, supabase_storage_admin, supabase_read_only_user, supabase_realtime_admin, supabase_replication_admin, dashboard_user, pgbouncer, service_role*, authenticator*, authenticated*, anon*'
 
         pg_hba:
-          # ripped from supabase/posgres/ansible/files/postgresql_config/pg_hba.conf
-          - local all  supabase_admin       scram-sha-256
-          - local all  all                  peer map=supabase_map
-          - host  all  all  127.0.0.1/32    trust
-          - host  all  all  ::1/128         trust
-          - host  all  all  10.0.0.0/8      scram-sha-256
-          - host  all  all  172.16.0.0/12   scram-sha-256
-          - host  all  all  192.168.0.0/16  scram-sha-256
-          - host  all  all  0.0.0.0/0       scram-sha-256
-          - host  all  all  ::0/0           scram-sha-256
-        
-        pg_ident:
-          # ripped from supabase/posgres/ansible/files/postgresql_config/pg_ident.conf
-          - supabase_map  postgres   postgres
-          - supabase_map  gotrue     supabase_auth_admin
-          - supabase_map  postgrest  authenticator
-          - supabase_map  adminapi   postgres
-        # ripped from supabase/posgres/ansible/files/postgresql_config/postgresql.conf
-        
-        shared_preload_libraries:
-          [
-            pg_stat_statements,
-            pg_stat_monitor,
-            pgaudit,
-            plpgsql,
-            plpgsql_check,
-            pg_cron,
-            pg_net,
-            # orioledb,
-            # timescaledb,
-            auto_explain,
-            pg_tle,
-            supautils,
-            pgsodium,
-            supabase_vault,
-            plan_filter,
-            # Kilobase
-            kilobase,
-            pg_failover_slots
-          ]
+            # ripped from supabase/posgres/ansible/files/postgresql_config/pg_hba.conf
+            - local all  supabase_admin       scram-sha-256
+            - local all  all                  peer map=supabase_map
+            - host  all  all  127.0.0.1/32    trust
+            - host  all  all  ::1/128         trust
+            - host  all  all  10.0.0.0/8      scram-sha-256
+            - host  all  all  172.16.0.0/12   scram-sha-256
+            - host  all  all  192.168.0.0/16  scram-sha-256
+            - host  all  all  0.0.0.0/0       scram-sha-256
+            - host  all  all  ::0/0           scram-sha-256
 
+        pg_ident:
+            # ripped from supabase/posgres/ansible/files/postgresql_config/pg_ident.conf
+            - supabase_map  postgres   postgres
+            - supabase_map  gotrue     supabase_auth_admin
+            - supabase_map  postgrest  authenticator
+            - supabase_map  adminapi   postgres
+        # ripped from supabase/posgres/ansible/files/postgresql_config/postgresql.conf
+
+        shared_preload_libraries: [
+                pg_stat_statements,
+                pg_stat_monitor,
+                pgaudit,
+                plpgsql,
+                plpgsql_check,
+                pg_cron,
+                pg_net,
+                # orioledb,
+                # timescaledb,
+                auto_explain,
+                pg_tle,
+                supautils,
+                pgsodium,
+                supabase_vault,
+                plan_filter,
+                # Kilobase
+                kilobase,
+                pg_failover_slots,
+            ]
 
     env:
         - name: JWT_SECRET
@@ -164,20 +155,20 @@ spec:
               serverName: kilobase-postgres-backup
 
     bootstrap:
-      recovery:
-        source: kilobase-postgres-backup
+        recovery:
+            source: kilobase-postgres-backup
 
     externalClusters:
-      - name: kilobase-postgres-backup
-        barmanObjectStore:
-          destinationPath: s3://kilobase/barman/backup
-          serverName: kilobase-postgres-backup
-          s3Credentials:
-            accessKeyId:
-              name: kilobase-s3-secret
-              key: keyId
-            secretAccessKey:
-              name: kilobase-s3-secret
-              key: accessKey
-          wal:
-            compression: gzip
+        - name: kilobase-postgres-backup
+          barmanObjectStore:
+              destinationPath: s3://kilobase/barman/backup
+              serverName: kilobase-postgres-backup
+              s3Credentials:
+                  accessKeyId:
+                      name: kilobase-s3-secret
+                      key: keyId
+                  secretAccessKey:
+                      name: kilobase-s3-secret
+                      key: accessKey
+              wal:
+                  compression: gzip

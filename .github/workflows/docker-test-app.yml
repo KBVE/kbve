@@ -6,11 +6,17 @@ on:
             project:
                 required: true
                 type: string
+            runner:
+                description: 'Runner label (default: ubuntu-latest)'
+                required: false
+                type: string
+                default: 'ubuntu-latest'
 
 jobs:
     test:
         name: Test ${{ inputs.project }} Docker App
-        runs-on: ubuntu-latest
+        runs-on: ${{ inputs.runner }}
+        timeout-minutes: 60
         permissions:
             contents: read
 
