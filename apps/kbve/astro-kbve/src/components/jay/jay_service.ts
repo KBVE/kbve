@@ -31,36 +31,42 @@ export const hardSkills: Skill[] = [
 		description:
 			'Full-stack development with TypeScript, Python, Rust, and more',
 		level: 'expert',
+		link: '/theory/programming/',
 	},
 	{
 		id: 'devops',
 		name: 'DevOps & Cloud',
 		description: 'AWS, GCP, Docker, Kubernetes, CI/CD pipelines',
 		level: 'advanced',
+		link: '/application/docker/',
 	},
 	{
 		id: 'databases',
 		name: 'Databases',
 		description: 'PostgreSQL, MongoDB, Redis, Supabase',
 		level: 'advanced',
+		link: '/application/sql/',
 	},
 	{
 		id: 'gamedev',
 		name: 'Game Development',
 		description: 'Unity, Phaser, Godot, and custom engines',
 		level: 'intermediate',
+		link: '/application/unity/',
 	},
 	{
 		id: 'security',
 		name: 'Cybersecurity',
 		description: 'Penetration testing, security audits, CTF competitions',
 		level: 'intermediate',
+		link: '/application/nmap/',
 	},
 	{
 		id: 'ml',
 		name: 'Machine Learning',
 		description: 'TensorFlow, PyTorch, LLM integration',
 		level: 'intermediate',
+		link: '/application/ml/',
 	},
 ];
 
@@ -70,36 +76,42 @@ export const softSkills: Skill[] = [
 		name: 'Leadership',
 		description: 'Team management and project coordination',
 		level: 'advanced',
+		link: '/webmaster/',
 	},
 	{
 		id: 'communication',
 		name: 'Communication',
 		description: 'Technical writing, presentations, and documentation',
 		level: 'advanced',
+		link: '/guides/intro/',
 	},
 	{
 		id: 'problemsolving',
 		name: 'Problem Solving',
 		description: 'Analytical thinking and creative solutions',
 		level: 'expert',
+		link: '/theory/automation/',
 	},
 	{
 		id: 'collaboration',
 		name: 'Collaboration',
 		description: 'Cross-functional teamwork and open source contribution',
 		level: 'advanced',
+		link: '/project/api/',
 	},
 	{
 		id: 'adaptability',
 		name: 'Adaptability',
 		description: 'Quick learner, embraces new technologies',
 		level: 'expert',
+		link: '/guides/first-project-checklist/',
 	},
 	{
 		id: 'mentoring',
 		name: 'Mentoring',
 		description: 'Teaching and guiding junior developers',
 		level: 'intermediate',
+		link: '/guides/getting-started/',
 	},
 ];
 

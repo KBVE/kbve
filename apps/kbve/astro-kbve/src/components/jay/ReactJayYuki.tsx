@@ -20,6 +20,7 @@ import {
 	type CharacterKeyPoint,
 	type MagicalRune,
 } from './jay_service';
+import { getSkillDocs, type SkillDoc } from './jay_docs';
 
 interface ReactJayYukiProps {
 	width?: number;
@@ -949,6 +950,7 @@ function BookModal({
 }) {
 	const [showDetails, setShowDetails] = useState(false);
 	const [isClosing, setIsClosing] = useState(false);
+	const relatedDocs = skill ? getSkillDocs(skill.id) : [];
 
 	const handleClose = useCallback(() => {
 		setIsClosing(true);
@@ -1149,6 +1151,109 @@ function BookModal({
 					}}>
 					{skill.description}
 				</p>
+
+				{relatedDocs.length > 0 && (
+					<div
+						style={{
+							marginTop: '1rem',
+							paddingTop: '0.75rem',
+							borderTop: '1px solid rgba(139, 119, 101, 0.3)',
+						}}>
+						<div
+							style={{
+								fontSize: '0.75rem',
+								color: '#8b7765',
+								fontFamily: 'Georgia, "Times New Roman", serif',
+								fontStyle: 'italic',
+								marginBottom: '0.5rem',
+							}}>
+							Related scrolls:
+						</div>
+						<div
+							style={{
+								display: 'flex',
+								flexWrap: 'wrap',
+								gap: '0.375rem',
+							}}>
+							{relatedDocs.map((doc) => (
+								<a
+									key={doc.path}
+									href={doc.path}
+									target="_blank"
+									rel="noopener noreferrer"
+									title={doc.description}
+									style={{
+										fontSize: '0.7rem',
+										color: '#6b5344',
+										fontFamily:
+											'Georgia, "Times New Roman", serif',
+										padding: '0.2rem 0.5rem',
+										borderRadius: '0.25rem',
+										border: '1px solid rgba(139, 119, 101, 0.3)',
+										background: 'rgba(139, 119, 101, 0.08)',
+										textDecoration: 'none',
+										transition: 'all 0.2s',
+										cursor: 'pointer',
+									}}
+									onMouseEnter={(e) => {
+										e.currentTarget.style.background =
+											'rgba(139, 119, 101, 0.2)';
+										e.currentTarget.style.borderColor =
+											'rgba(139, 119, 101, 0.5)';
+									}}
+									onMouseLeave={(e) => {
+										e.currentTarget.style.background =
+											'rgba(139, 119, 101, 0.08)';
+										e.currentTarget.style.borderColor =
+											'rgba(139, 119, 101, 0.3)';
+									}}>
+									{doc.title}
+								</a>
+							))}
+						</div>
+					</div>
+				)}
+
+				{skill.link && (
+					<div
+						style={{
+							marginTop: '1rem',
+							textAlign: 'center',
+						}}>
+						<a
+							href={skill.link}
+							target="_blank"
+							rel="noopener noreferrer"
+							style={{
+								display: 'inline-block',
+								padding: '0.4rem 1.25rem',
+								fontSize: '0.85rem',
+								fontFamily: 'Georgia, "Times New Roman", serif',
+								color: '#3d2914',
+								background: 'rgba(139, 119, 101, 0.15)',
+								border: '1px solid rgba(139, 119, 101, 0.4)',
+								borderRadius: '0.25rem',
+								textDecoration: 'none',
+								cursor: 'pointer',
+								transition: 'all 0.2s',
+								fontWeight: 600,
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.background =
+									'rgba(139, 119, 101, 0.3)';
+								e.currentTarget.style.borderColor =
+									'rgba(139, 119, 101, 0.6)';
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.background =
+									'rgba(139, 119, 101, 0.15)';
+								e.currentTarget.style.borderColor =
+									'rgba(139, 119, 101, 0.4)';
+							}}>
+							Read More
+						</a>
+					</div>
+				)}
 
 				<div
 					onClick={handleClose}
