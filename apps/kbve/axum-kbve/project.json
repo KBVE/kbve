@@ -88,6 +88,12 @@
 						"./kbve.sh -nx axum-kbve:containerx --configuration=production",
 						"VERSION=$(grep '^version' apps/kbve/axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve:latest kbve/kbve:$VERSION && docker tag kbve/kbve:latest ghcr.io/kbve/kbve:latest && docker tag kbve/kbve:latest ghcr.io/kbve/kbve:$VERSION && echo \"Tagged kbve/kbve:$VERSION and ghcr.io/kbve/kbve:$VERSION\""
 					]
+				},
+				"ci": {
+					"commands": [
+						"./kbve.sh -nx axum-kbve:containerx --configuration=ci",
+						"VERSION=$(grep '^version' apps/kbve/axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve:latest kbve/kbve:$VERSION && echo \"Tagged kbve/kbve:$VERSION\""
+					]
 				}
 			}
 		},
@@ -117,11 +123,25 @@
 						"BUILD_BASE=ghcr.io/kbve/kbve-build-base:latest"
 					],
 					"cache-from": [
+						"type=gha",
 						"type=registry,ref=ghcr.io/kbve/kbve:buildcache"
 					],
 					"cache-to": [
 						"type=registry,ref=ghcr.io/kbve/kbve:buildcache,mode=max"
 					]
+				},
+				"ci": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/kbve:latest"],
+					"build-args": [
+						"BUILD_BASE=ghcr.io/kbve/kbve-build-base:latest"
+					],
+					"cache-from": [
+						"type=gha",
+						"type=registry,ref=ghcr.io/kbve/kbve:buildcache"
+					],
+					"cache-to": ["type=gha,mode=max"]
 				}
 			}
 		},

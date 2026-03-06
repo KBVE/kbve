@@ -4,11 +4,28 @@ metadata:
     name: cryptothrone-ingress
     namespace: cryptothrone
     annotations:
-        kubernetes.io/ingress.class: nginx
         nginx.ingress.kubernetes.io/rewrite-target: /
+        nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+        cert-manager.io/cluster-issuer: 'letsencrypt-http'
 spec:
+    ingressClassName: nginx
+    tls:
+        - hosts:
+              - cryptothrone.com
+              - www.cryptothrone.com
+          secretName: cryptothrone-tls
     rules:
         - host: cryptothrone.com
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: cryptothrone-service
+                            port:
+                                number: 4321
+        - host: www.cryptothrone.com
           http:
               paths:
                   - path: /

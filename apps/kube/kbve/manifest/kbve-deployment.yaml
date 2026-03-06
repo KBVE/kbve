@@ -21,11 +21,11 @@ spec:
                 rollout-restart: '2026-01-31T17:38:01Z'
             labels:
                 app: kbve
-                version: '1.0.20'
+                version: '1.0.22'
         spec:
             containers:
                 - name: kbve
-                  image: ghcr.io/kbve/kbve:1.0.20
+                  image: ghcr.io/kbve/kbve:1.0.22
                   imagePullPolicy: Always
                   ports:
                       - name: http
@@ -78,6 +78,8 @@ spec:
                         value: '25575'
                       - name: MC_RCON_PASSWORD
                         value: 'kbve-rcon'
+                      - name: GRAFANA_UPSTREAM_URL
+                        value: 'http://monitoring-grafana.monitoring.svc.cluster.local:80'
                   resources:
                       requests:
                           memory: '512Mi'
