@@ -13,7 +13,12 @@
 // ---------------------------------------------------------------------------
 
 /** Routes that are always tested regardless of sampling. */
-export const CORE_ROUTES = ['/', '/guides/getting-started', '/auth/callback'];
+export const CORE_ROUTES = [
+	'/',
+	'/guides/getting-started',
+	'/auth/callback',
+	'/servers/',
+];
 
 /** Prefix → weight.  0 = exclude entirely. */
 const PREFIX_WEIGHTS: [string, number][] = [

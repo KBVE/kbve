@@ -217,7 +217,7 @@ jobs:
                       devops:
                           - 'packages/npm/devops/package.json'
                       cryptothrone:
-                          - 'apps/cryptothrone.com/src/**'
+                          - 'apps/cryptothrone/**'
                       laser:
                           - 'packages/npm/laser/package.json'
                       asteroids:

@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { ArrowBigUp, Users, ExternalLink } from 'lucide-react';
 import type { ServerCard } from '@/lib/servers/types';
 import { CATEGORY_MAP, buildInviteUrl, formatMemberCount } from '@/lib/servers';
+import { ExpandButton } from './ExpandButton';
 
 interface Props {
 	server: ServerCard;
@@ -184,68 +185,28 @@ export function ReactServerCard({ server, onVote }: Props) {
 					gap: '0.375rem',
 					minWidth: '3.5rem',
 				}}>
-				<button
+				<ExpandButton
+					icon={
+						<ArrowBigUp
+							size={18}
+							fill={voted ? 'currentColor' : 'none'}
+						/>
+					}
+					label="Vote"
+					badge={String(server.vote_count + (voted ? 1 : 0))}
 					onClick={handleVote}
 					disabled={voted || voting}
-					aria-label={`Vote for ${server.name}`}
-					style={{
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						justifyContent: 'center',
-						padding: '0.375rem 0.5rem',
-						borderRadius: '0.5rem',
-						border: voted
-							? `1px solid ${slVar('accent', '#8b5cf6')}`
-							: `1px solid ${slVar('gray-5', '#374151')}`,
-						backgroundColor: voted
-							? slVar('accent-low', '#1e1033')
-							: 'transparent',
-						color: voted
-							? slVar('accent', '#8b5cf6')
-							: slVar('gray-3', '#9ca3af'),
-						cursor: voted || voting ? 'default' : 'pointer',
-						opacity: voting ? 0.6 : 1,
-						transition: 'all 0.15s',
-						fontSize: '0.75rem',
-						fontWeight: 600,
-						lineHeight: 1,
-					}}>
-					<ArrowBigUp
-						size={18}
-						fill={voted ? 'currentColor' : 'none'}
-					/>
-					<span>{server.vote_count + (voted ? 1 : 0)}</span>
-				</button>
+					ariaLabel={`Vote for ${server.name}`}
+				/>
 
-				<a
+				<ExpandButton
+					icon={<ExternalLink size={16} />}
+					label="Join"
 					href={buildInviteUrl(server.invite_code)}
 					target="_blank"
 					rel="noopener noreferrer"
-					aria-label={`Join ${server.name}`}
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-						padding: '0.25rem',
-						borderRadius: '0.375rem',
-						color: slVar('gray-3', '#9ca3af'),
-						transition: 'color 0.15s',
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.color = slVar(
-							'accent',
-							'#8b5cf6',
-						);
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.color = slVar(
-							'gray-3',
-							'#9ca3af',
-						);
-					}}>
-					<ExternalLink size={16} />
-				</a>
+					ariaLabel={`Join ${server.name}`}
+				/>
 			</div>
 		</div>
 	);
