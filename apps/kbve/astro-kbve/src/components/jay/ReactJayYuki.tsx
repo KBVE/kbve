@@ -22,6 +22,30 @@ import {
 } from './jay_service';
 import { getSkillDocs, type SkillDoc } from './jay_docs';
 
+interface DocMeta {
+	title: string;
+	description: string;
+	path: string;
+	img: string | null;
+	tags: string[];
+	category: string;
+}
+
+let _docsMetaCache: Record<string, DocMeta> | null = null;
+
+async function fetchDocsMeta(): Promise<Record<string, DocMeta>> {
+	if (_docsMetaCache) return _docsMetaCache;
+	try {
+		const resp = await fetch('/api/docs-meta.json');
+		if (!resp.ok) return {};
+		const json = await resp.json();
+		_docsMetaCache = json.docs ?? {};
+		return _docsMetaCache!;
+	} catch {
+		return {};
+	}
+}
+
 interface ReactJayYukiProps {
 	width?: number;
 	height?: number;
@@ -950,7 +974,21 @@ function BookModal({
 }) {
 	const [showDetails, setShowDetails] = useState(false);
 	const [isClosing, setIsClosing] = useState(false);
+	const [docMeta, setDocMeta] = useState<DocMeta | null>(null);
 	const relatedDocs = skill ? getSkillDocs(skill.id) : [];
+
+	useEffect(() => {
+		if (!skill) return;
+		let cancelled = false;
+		fetchDocsMeta().then((docs) => {
+			if (cancelled) return;
+			const link = skill.link?.replace(/^\/|\/$/g, '') ?? '';
+			setDocMeta(docs[link] ?? null);
+		});
+		return () => {
+			cancelled = true;
+		};
+	}, [skill]);
 
 	const handleClose = useCallback(() => {
 		setIsClosing(true);
@@ -1139,6 +1177,27 @@ function BookModal({
 					</div>
 				)}
 
+				{docMeta?.img && (
+					<div
+						style={{
+							margin: '0 -2.5rem 1rem -2.5rem',
+							height: '120px',
+							overflow: 'hidden',
+							borderBottom: '1px solid rgba(139, 119, 101, 0.3)',
+						}}>
+						<img
+							src={docMeta.img}
+							alt={skill.name}
+							style={{
+								width: '100%',
+								height: '100%',
+								objectFit: 'cover',
+								opacity: 0.7,
+							}}
+						/>
+					</div>
+				)}
+
 				<p
 					style={{
 						margin: 0,
@@ -1149,8 +1208,35 @@ function BookModal({
 						textAlign: 'justify',
 						textIndent: '1.5rem',
 					}}>
-					{skill.description}
+					{docMeta?.description || skill.description}
 				</p>
+
+				{docMeta?.tags && docMeta.tags.length > 0 && (
+					<div
+						style={{
+							display: 'flex',
+							flexWrap: 'wrap',
+							gap: '0.3rem',
+							marginTop: '0.75rem',
+						}}>
+						{docMeta.tags.map((tag) => (
+							<span
+								key={tag}
+								style={{
+									fontSize: '0.65rem',
+									color: '#8b7765',
+									fontFamily:
+										'Georgia, "Times New Roman", serif',
+									padding: '0.1rem 0.4rem',
+									borderRadius: '0.2rem',
+									border: '1px solid rgba(139, 119, 101, 0.25)',
+									background: 'rgba(139, 119, 101, 0.06)',
+								}}>
+								{tag}
+							</span>
+						))}
+					</div>
+				)}
 
 				{relatedDocs.length > 0 && (
 					<div
