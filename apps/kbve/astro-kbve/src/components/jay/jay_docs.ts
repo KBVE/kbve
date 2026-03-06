@@ -10,44 +10,170 @@ export interface SkillDocsEntry {
 }
 
 export const skillDocs: SkillDocsEntry[] = [
+	// --- Hard Skills (Left Shelf) ---
 	{
-		skillId: 'programming',
+		skillId: 'javascript',
 		docs: [
-			{
-				title: 'Programming',
-				path: '/theory/programming/',
-				description: 'Core programming concepts and paradigms',
-			},
-			{
-				title: 'JavaScript',
-				path: '/application/javascript/',
-				description: 'Web development with JS and TypeScript',
-			},
 			{
 				title: 'Python',
 				path: '/application/python/',
-				description: 'Scripting, automation, and data processing',
+				description: 'Scripting and data processing',
 			},
 			{
 				title: 'Rust',
 				path: '/application/rust/',
-				description: 'Systems programming and performance',
+				description: 'Systems programming',
+			},
+			{
+				title: 'Programming',
+				path: '/theory/programming/',
+				description: 'Core concepts',
 			},
 		],
 	},
 	{
-		skillId: 'devops',
+		skillId: 'python',
+		docs: [
+			{
+				title: 'JavaScript',
+				path: '/application/javascript/',
+				description: 'Web development',
+			},
+			{
+				title: 'Machine Learning',
+				path: '/application/ml/',
+				description: 'ML frameworks',
+			},
+			{
+				title: 'Automation',
+				path: '/theory/automation/',
+				description: 'Workflow automation',
+			},
+		],
+	},
+	{
+		skillId: 'rust',
+		docs: [
+			{
+				title: 'JavaScript',
+				path: '/application/javascript/',
+				description: 'Web development',
+			},
+			{
+				title: 'Linux',
+				path: '/application/linux/',
+				description: 'Server administration',
+			},
+			{
+				title: 'Programming',
+				path: '/theory/programming/',
+				description: 'Core concepts',
+			},
+		],
+	},
+	{
+		skillId: 'php',
+		docs: [
+			{
+				title: 'JavaScript',
+				path: '/application/javascript/',
+				description: 'Web development',
+			},
+			{
+				title: 'SQL',
+				path: '/application/sql/',
+				description: 'Database queries',
+			},
+			{
+				title: 'Nginx',
+				path: '/application/nginx/',
+				description: 'Web serving',
+			},
+		],
+	},
+	{
+		skillId: 'dotnet',
+		docs: [
+			{
+				title: 'SQL',
+				path: '/application/sql/',
+				description: 'Database design',
+			},
+			{
+				title: 'Docker',
+				path: '/application/docker/',
+				description: 'Containerization',
+			},
+			{
+				title: 'Unity',
+				path: '/application/unity/',
+				description: 'Game engine',
+			},
+		],
+	},
+	{
+		skillId: 'docker',
+		docs: [
+			{
+				title: 'Kubernetes',
+				path: '/application/kubernetes/',
+				description: 'Container orchestration',
+			},
+			{
+				title: 'Linux',
+				path: '/application/linux/',
+				description: 'Server administration',
+			},
+			{
+				title: 'Traefik',
+				path: '/application/traefik/',
+				description: 'Edge router',
+			},
+		],
+	},
+	{
+		skillId: 'kubernetes',
 		docs: [
 			{
 				title: 'Docker',
 				path: '/application/docker/',
-				description: 'Containerization and image management',
+				description: 'Containerization',
+			},
+			{
+				title: 'Terraform',
+				path: '/application/terraform/',
+				description: 'Infrastructure as code',
+			},
+			{
+				title: 'Technical Specs',
+				path: '/advanced/technical-specifications/',
+				description: 'Architecture',
+			},
+		],
+	},
+	{
+		skillId: 'terraform',
+		docs: [
+			{
+				title: 'Ansible',
+				path: '/application/ansible/',
+				description: 'Configuration management',
+			},
+			{
+				title: 'GCloud',
+				path: '/application/gcloud/',
+				description: 'Google Cloud',
 			},
 			{
 				title: 'Kubernetes',
 				path: '/application/kubernetes/',
-				description: 'Container orchestration at scale',
+				description: 'Container orchestration',
 			},
+		],
+	},
+	{
+		skillId: 'ansible',
+		docs: [
 			{
 				title: 'Terraform',
 				path: '/application/terraform/',
@@ -56,72 +182,222 @@ export const skillDocs: SkillDocsEntry[] = [
 			{
 				title: 'Linux',
 				path: '/application/linux/',
-				description: 'Server administration and shell scripting',
+				description: 'Server administration',
+			},
+			{
+				title: 'Docker',
+				path: '/application/docker/',
+				description: 'Containerization',
 			},
 		],
 	},
 	{
-		skillId: 'databases',
+		skillId: 'linux',
 		docs: [
 			{
-				title: 'SQL',
-				path: '/application/sql/',
-				description: 'Relational database design and queries',
+				title: 'Docker',
+				path: '/application/docker/',
+				description: 'Containerization',
 			},
 			{
-				title: 'Supabase',
-				path: '/application/supabase/',
-				description: 'Open-source Firebase alternative',
-			},
-			{
-				title: 'Redis',
-				path: '/application/redis/',
-				description: 'In-memory caching and data structures',
-			},
-		],
-	},
-	{
-		skillId: 'gamedev',
-		docs: [
-			{
-				title: 'Unity',
-				path: '/application/unity/',
-				description: 'Cross-platform game engine',
-			},
-			{
-				title: 'Godot',
-				path: '/application/godot/',
-				description: 'Open-source 2D and 3D game engine',
-			},
-			{
-				title: 'Brackeys GameJam',
-				path: '/project/brackeys/',
-				description: 'Game jam projects and prototypes',
-			},
-			{
-				title: 'RareIcon',
-				path: '/project/rareicon/',
-				description: 'Collectible game project',
-			},
-		],
-	},
-	{
-		skillId: 'security',
-		docs: [
-			{
-				title: 'Nmap',
-				path: '/application/nmap/',
-				description: 'Network scanning and reconnaissance',
+				title: 'Nginx',
+				path: '/application/nginx/',
+				description: 'Web serving',
 			},
 			{
 				title: 'WireGuard',
 				path: '/application/wireguard/',
-				description: 'VPN tunneling and secure networking',
+				description: 'VPN tunneling',
+			},
+		],
+	},
+	{
+		skillId: 'nginx',
+		docs: [
+			{
+				title: 'Traefik',
+				path: '/application/traefik/',
+				description: 'Edge router',
 			},
 			{
-				title: 'Authelia',
-				path: '/application/authelia/',
-				description: 'Authentication and access control',
+				title: 'Linux',
+				path: '/application/linux/',
+				description: 'Server administration',
+			},
+			{
+				title: 'Docker',
+				path: '/application/docker/',
+				description: 'Containerization',
+			},
+		],
+	},
+	{
+		skillId: 'traefik',
+		docs: [
+			{
+				title: 'Nginx',
+				path: '/application/nginx/',
+				description: 'Web serving',
+			},
+			{
+				title: 'Docker',
+				path: '/application/docker/',
+				description: 'Containerization',
+			},
+			{
+				title: 'Kubernetes',
+				path: '/application/kubernetes/',
+				description: 'Container orchestration',
+			},
+		],
+	},
+	{
+		skillId: 'sql',
+		docs: [
+			{
+				title: 'Supabase',
+				path: '/application/supabase/',
+				description: 'PostgreSQL platform',
+			},
+			{
+				title: 'Redis',
+				path: '/application/redis/',
+				description: 'In-memory caching',
+			},
+			{
+				title: 'Python',
+				path: '/application/python/',
+				description: 'Data processing',
+			},
+		],
+	},
+	{
+		skillId: 'supabase',
+		docs: [
+			{
+				title: 'SQL',
+				path: '/application/sql/',
+				description: 'Database queries',
+			},
+			{
+				title: 'JavaScript',
+				path: '/application/javascript/',
+				description: 'Web development',
+			},
+			{
+				title: 'API',
+				path: '/project/api/',
+				description: 'API integrations',
+			},
+		],
+	},
+	{
+		skillId: 'redis',
+		docs: [
+			{
+				title: 'SQL',
+				path: '/application/sql/',
+				description: 'Relational databases',
+			},
+			{
+				title: 'Docker',
+				path: '/application/docker/',
+				description: 'Containerization',
+			},
+			{
+				title: 'N8N',
+				path: '/application/n8n/',
+				description: 'Workflow automation',
+			},
+		],
+	},
+	{
+		skillId: 'git',
+		docs: [
+			{
+				title: 'Getting Started',
+				path: '/guides/getting-started/',
+				description: 'Contributor guide',
+			},
+			{
+				title: 'Linux',
+				path: '/application/linux/',
+				description: 'Command line',
+			},
+			{
+				title: 'API',
+				path: '/project/api/',
+				description: 'Collaborative development',
+			},
+		],
+	},
+	{
+		skillId: 'unity',
+		docs: [
+			{
+				title: 'Godot',
+				path: '/application/godot/',
+				description: 'Open-source engine',
+			},
+			{
+				title: 'Brackeys Jam',
+				path: '/project/brackeys/',
+				description: 'Game jams',
+			},
+			{
+				title: 'RareIcon',
+				path: '/project/rareicon/',
+				description: 'Game project',
+			},
+		],
+	},
+	{
+		skillId: 'godot',
+		docs: [
+			{
+				title: 'Unity',
+				path: '/application/unity/',
+				description: 'Game engine',
+			},
+			{
+				title: 'Pirate Jam',
+				path: '/project/pirate/',
+				description: 'Game jam entry',
+			},
+			{
+				title: 'Brackeys Jam',
+				path: '/project/brackeys/',
+				description: 'Game jams',
+			},
+		],
+	},
+	{
+		skillId: 'nmap',
+		docs: [
+			{
+				title: 'WireGuard',
+				path: '/application/wireguard/',
+				description: 'VPN tunneling',
+			},
+			{
+				title: 'Linux',
+				path: '/application/linux/',
+				description: 'Server administration',
+			},
+		],
+	},
+	{
+		skillId: 'wireguard',
+		docs: [
+			{
+				title: 'Nmap',
+				path: '/application/nmap/',
+				description: 'Network scanning',
+			},
+			{
+				title: 'Linux',
+				path: '/application/linux/',
+				description: 'Server administration',
 			},
 		],
 	},
@@ -129,84 +405,457 @@ export const skillDocs: SkillDocsEntry[] = [
 		skillId: 'ml',
 		docs: [
 			{
-				title: 'Machine Learning',
-				path: '/application/ml/',
-				description: 'ML frameworks and AI integration',
+				title: 'Python',
+				path: '/application/python/',
+				description: 'ML scripting language',
+			},
+			{
+				title: 'Charles',
+				path: '/project/charles/',
+				description: 'AI assistant project',
 			},
 		],
 	},
 	{
-		skillId: 'leadership',
-		docs: [
-			{
-				title: 'Webmaster',
-				path: '/webmaster/',
-				description: 'Project management and site operations',
-			},
-		],
-	},
-	{
-		skillId: 'communication',
-		docs: [
-			{
-				title: 'Introduction',
-				path: '/guides/intro/',
-				description: 'KBVE services overview and documentation',
-			},
-			{
-				title: 'Getting Started',
-				path: '/guides/getting-started/',
-				description: 'Onboarding guide for new contributors',
-			},
-		],
-	},
-	{
-		skillId: 'problemsolving',
+		skillId: 'n8n',
 		docs: [
 			{
 				title: 'Automation',
 				path: '/theory/automation/',
-				description: 'Automating workflows and processes',
+				description: 'Workflow concepts',
 			},
 			{
-				title: 'Technical Specifications',
-				path: '/advanced/technical-specifications/',
-				description: 'Architecture and design decisions',
+				title: 'Docker',
+				path: '/application/docker/',
+				description: 'Containerization',
+			},
+			{
+				title: 'API',
+				path: '/project/api/',
+				description: 'Service integrations',
 			},
 		],
 	},
 	{
-		skillId: 'collaboration',
+		skillId: 'gcloud',
 		docs: [
 			{
-				title: 'API',
-				path: '/project/api/',
-				description: 'Shared API design and integrations',
+				title: 'Terraform',
+				path: '/application/terraform/',
+				description: 'Infrastructure as code',
+			},
+			{
+				title: 'Kubernetes',
+				path: '/application/kubernetes/',
+				description: 'Container orchestration',
+			},
+			{
+				title: 'Docker',
+				path: '/application/docker/',
+				description: 'Containerization',
+			},
+		],
+	},
+	{
+		skillId: 'flutter',
+		docs: [
+			{
+				title: 'JavaScript',
+				path: '/application/javascript/',
+				description: 'Web development',
+			},
+			{
+				title: 'Godot',
+				path: '/application/godot/',
+				description: 'Cross-platform engine',
+			},
+		],
+	},
+	// --- Soft Skills / Right Shelf ---
+	{
+		skillId: 'getting-started',
+		docs: [
+			{
+				title: 'Introduction',
+				path: '/guides/intro/',
+				description: 'Platform overview',
+			},
+			{
+				title: 'First Project',
+				path: '/guides/first-project-checklist/',
+				description: 'Launch checklist',
 			},
 			{
 				title: 'Git',
 				path: '/application/git/',
-				description: 'Version control and collaboration',
+				description: 'Version control',
 			},
 		],
 	},
 	{
-		skillId: 'adaptability',
-		docs: [
-			{
-				title: 'First Project Checklist',
-				path: '/guides/first-project-checklist/',
-				description: 'Getting up to speed on new projects',
-			},
-		],
-	},
-	{
-		skillId: 'mentoring',
+		skillId: 'intro',
 		docs: [
 			{
 				title: 'Getting Started',
 				path: '/guides/getting-started/',
-				description: 'Guiding newcomers through the codebase',
+				description: 'Onboarding',
+			},
+			{
+				title: 'Webmaster',
+				path: '/webmaster/',
+				description: 'Site operations',
+			},
+		],
+	},
+	{
+		skillId: 'first-project',
+		docs: [
+			{
+				title: 'Getting Started',
+				path: '/guides/getting-started/',
+				description: 'Onboarding',
+			},
+			{
+				title: 'Git',
+				path: '/application/git/',
+				description: 'Version control',
+			},
+			{
+				title: 'Docker',
+				path: '/application/docker/',
+				description: 'Dev environments',
+			},
+		],
+	},
+	{
+		skillId: 'programming-theory',
+		docs: [
+			{
+				title: 'JavaScript',
+				path: '/application/javascript/',
+				description: 'Web development',
+			},
+			{
+				title: 'Python',
+				path: '/application/python/',
+				description: 'Scripting',
+			},
+			{
+				title: 'Rust',
+				path: '/application/rust/',
+				description: 'Systems programming',
+			},
+			{
+				title: 'Automation',
+				path: '/theory/automation/',
+				description: 'Workflow automation',
+			},
+		],
+	},
+	{
+		skillId: 'automation',
+		docs: [
+			{
+				title: 'N8N',
+				path: '/application/n8n/',
+				description: 'Workflow automation',
+			},
+			{
+				title: 'Ansible',
+				path: '/application/ansible/',
+				description: 'Configuration management',
+			},
+			{
+				title: 'Programming',
+				path: '/theory/programming/',
+				description: 'Core concepts',
+			},
+		],
+	},
+	{
+		skillId: 'emulation',
+		docs: [
+			{
+				title: 'Programming',
+				path: '/theory/programming/',
+				description: 'Core concepts',
+			},
+			{
+				title: 'Linux',
+				path: '/application/linux/',
+				description: 'System administration',
+			},
+		],
+	},
+	{
+		skillId: 'solarpunk',
+		docs: [
+			{
+				title: 'Automation',
+				path: '/theory/automation/',
+				description: 'Sustainable workflows',
+			},
+		],
+	},
+	{
+		skillId: 'tech-specs',
+		docs: [
+			{
+				title: 'Kubernetes',
+				path: '/application/kubernetes/',
+				description: 'Container orchestration',
+			},
+			{ title: 'API', path: '/project/api/', description: 'API design' },
+			{
+				title: 'Automation',
+				path: '/theory/automation/',
+				description: 'Workflow automation',
+			},
+		],
+	},
+	{
+		skillId: 'webmaster',
+		docs: [
+			{
+				title: 'Introduction',
+				path: '/guides/intro/',
+				description: 'Platform overview',
+			},
+			{
+				title: 'Technical Specs',
+				path: '/advanced/technical-specifications/',
+				description: 'Architecture',
+			},
+		],
+	},
+	{
+		skillId: 'api',
+		docs: [
+			{
+				title: 'Supabase',
+				path: '/application/supabase/',
+				description: 'Backend platform',
+			},
+			{
+				title: 'JavaScript',
+				path: '/application/javascript/',
+				description: 'Web development',
+			},
+			{
+				title: 'Technical Specs',
+				path: '/advanced/technical-specifications/',
+				description: 'Architecture',
+			},
+		],
+	},
+	{
+		skillId: 'cryptothrone',
+		docs: [
+			{
+				title: 'JavaScript',
+				path: '/application/javascript/',
+				description: 'Web development',
+			},
+			{
+				title: 'Supabase',
+				path: '/application/supabase/',
+				description: 'Backend',
+			},
+			{ title: 'API', path: '/project/api/', description: 'API design' },
+		],
+	},
+	{
+		skillId: 'rareicon',
+		docs: [
+			{
+				title: 'Unity',
+				path: '/application/unity/',
+				description: 'Game engine',
+			},
+			{
+				title: 'Godot',
+				path: '/application/godot/',
+				description: 'Game engine',
+			},
+		],
+	},
+	{
+		skillId: 'cityvote',
+		docs: [
+			{
+				title: 'JavaScript',
+				path: '/application/javascript/',
+				description: 'Web development',
+			},
+			{
+				title: 'Supabase',
+				path: '/application/supabase/',
+				description: 'Backend',
+			},
+		],
+	},
+	{
+		skillId: 'discordsh',
+		docs: [
+			{
+				title: 'Python',
+				path: '/application/python/',
+				description: 'Bot scripting',
+			},
+			{
+				title: 'API',
+				path: '/project/api/',
+				description: 'API integrations',
+			},
+			{
+				title: 'Docker',
+				path: '/application/docker/',
+				description: 'Deployment',
+			},
+		],
+	},
+	{
+		skillId: 'brackeys',
+		docs: [
+			{
+				title: 'Unity',
+				path: '/application/unity/',
+				description: 'Game engine',
+			},
+			{
+				title: 'Godot',
+				path: '/application/godot/',
+				description: 'Game engine',
+			},
+			{
+				title: 'Pirate Jam',
+				path: '/project/pirate/',
+				description: 'Another game jam',
+			},
+		],
+	},
+	{
+		skillId: 'pirate',
+		docs: [
+			{
+				title: 'Godot',
+				path: '/application/godot/',
+				description: 'Game engine',
+			},
+			{
+				title: 'Brackeys Jam',
+				path: '/project/brackeys/',
+				description: 'Game jams',
+			},
+		],
+	},
+	{
+		skillId: 'herbmail',
+		docs: [
+			{
+				title: 'N8N',
+				path: '/application/n8n/',
+				description: 'Email automation',
+			},
+			{
+				title: 'JavaScript',
+				path: '/application/javascript/',
+				description: 'Web development',
+			},
+		],
+	},
+	{
+		skillId: 'lofifocus',
+		docs: [
+			{
+				title: 'JavaScript',
+				path: '/application/javascript/',
+				description: 'Web development',
+			},
+		],
+	},
+	{
+		skillId: 'atlas',
+		docs: [
+			{
+				title: 'JavaScript',
+				path: '/application/javascript/',
+				description: 'Web development',
+			},
+			{
+				title: 'API',
+				path: '/project/api/',
+				description: 'Data integration',
+			},
+		],
+	},
+	{
+		skillId: 'charles',
+		docs: [
+			{
+				title: 'Machine Learning',
+				path: '/application/ml/',
+				description: 'ML frameworks',
+			},
+			{
+				title: 'Python',
+				path: '/application/python/',
+				description: 'AI scripting',
+			},
+		],
+	},
+	{
+		skillId: 'bitcraft',
+		docs: [
+			{
+				title: 'RareIcon',
+				path: '/project/rareicon/',
+				description: 'Game project',
+			},
+			{
+				title: 'Unity',
+				path: '/application/unity/',
+				description: 'Game engine',
+			},
+		],
+	},
+	{
+		skillId: 'lol',
+		docs: [
+			{
+				title: 'World of Warcraft',
+				path: '/gaming/wow/',
+				description: 'MMO',
+			},
+		],
+	},
+	{
+		skillId: 'wow',
+		docs: [
+			{
+				title: 'League of Legends',
+				path: '/gaming/lol/',
+				description: 'MOBA',
+			},
+			{
+				title: 'RimWorld',
+				path: '/gaming/rimworld/',
+				description: 'Colony sim',
+			},
+		],
+	},
+	{
+		skillId: 'rimworld',
+		docs: [
+			{
+				title: 'BitCraft',
+				path: '/gaming/bitcraft/',
+				description: 'Sandbox MMO',
+			},
+			{
+				title: 'Godot',
+				path: '/application/godot/',
+				description: 'Modding tools',
 			},
 		],
 	},
