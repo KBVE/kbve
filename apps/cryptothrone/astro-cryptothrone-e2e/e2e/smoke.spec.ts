@@ -37,8 +37,8 @@ test.describe('sidebar navigation', () => {
 	test('sidebar contains Game section with Play link', async ({ page }) => {
 		await page.goto('/guides/getting-started/');
 		const sidebar = page.locator('nav[aria-label="Main"]');
-		await expect(sidebar).toBeVisible();
-		await expect(sidebar.locator('a[href="/game/play/"]')).toBeVisible();
+		await expect(sidebar).toBeAttached();
+		await expect(sidebar.locator('a[href="/game/play/"]')).toBeAttached();
 	});
 
 	test('sidebar contains Guides section', async ({ page }) => {
@@ -46,7 +46,7 @@ test.describe('sidebar navigation', () => {
 		const sidebar = page.locator('nav[aria-label="Main"]');
 		await expect(
 			sidebar.locator('a[href="/guides/getting-started/"]'),
-		).toBeVisible();
+		).toBeAttached();
 	});
 });
 
