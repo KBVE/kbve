@@ -7,11 +7,39 @@
 ARG BUILD_BASE=foundation
 
 # ============================================================================
-# [STAGE A+B] - Precompress Pre-built Astro Static Assets
-#
-# Astro is built by the `container-prep` nx target BEFORE Docker runs.
-# The pre-built output lives at apps/kbve/axum-kbve/dist/ in the build context.
-# This eliminates the node:24-slim stage (~150s+ Astro build inside Docker).
+# [STAGE A] - Build Astro Static Site
+# ============================================================================
+FROM --platform=linux/amd64 node:24-slim AS astro-builder
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+# Copy root dependency and config files (layer-cached separately from source)
+COPY package.json pnpm-lock.yaml .npmrc tsconfig.base.json ./
+
+# Install all dependencies (hoisted mode - all go to root node_modules)
+# Cache pnpm content-addressable store across builds to skip re-downloading
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3,id=pnpm-store \
+    pnpm install --frozen-lockfile
+
+# Copy workspace package sources (TypeScript path aliases resolve to these)
+COPY packages/npm/astro/ packages/npm/astro/
+COPY packages/npm/droid/ packages/npm/droid/
+COPY packages/npm/laser/ packages/npm/laser/
+
+# Copy astro-kbve source
+COPY apps/kbve/astro-kbve/ apps/kbve/astro-kbve/
+
+# Build astro site (cache .astro dir for incremental content collection builds)
+# Memory capped at 4096MB to stay within CI runner limits inside buildkit
+WORKDIR /app/apps/kbve/astro-kbve
+RUN --mount=type=cache,target=/app/apps/kbve/astro-kbve/.astro,id=astro-cache \
+    npx astro sync && \
+    UV_THREADPOOL_SIZE=2 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
+
+# ============================================================================
+# [STAGE B] - Precompress Static Assets
 # ============================================================================
 FROM --platform=linux/amd64 ubuntu:24.04 AS astro-precompressor
 
@@ -19,7 +47,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends gzip brotli && \
     rm -rf /var/lib/apt/lists/*
 
-COPY apps/kbve/axum-kbve/dist/ /static
+COPY --from=astro-builder /app/dist/apps/astro-kbve /static
 
 WORKDIR /static
 RUN find . -type f \( \
