@@ -50,6 +50,7 @@ resources:
     - memes/application.yaml
     - n8n/application.yaml
     - rentearth/application.yaml
+    - cryptothrone/application.yaml
     # GitHub Actions Runner Controller (ARC)
     # Consolidated: controller includes helm chart + sealed secret + RBAC
     # Consolidated: runners includes helm chart + ExternalSecret/SecretStore
