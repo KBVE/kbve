@@ -1,4 +1,5 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
+import { useSpring, animated, config } from '@react-spring/web';
 import { X, ChevronLeft, ChevronRight, ExternalLink, User } from 'lucide-react';
 import ReactionBar from './ReactionBar';
 import type { FeedMeme } from '../../lib/memeService';
@@ -33,14 +34,42 @@ export default function MemeLightbox({
 	onNext,
 }: MemeLightboxProps) {
 	const isVideo = meme.format === 2 || meme.format === 3;
+	const [closing, setClosing] = useState(false);
+
+	// Backdrop fade
+	const backdropSpring = useSpring({
+		opacity: closing ? 0 : 1,
+		config: { duration: 200 },
+	});
+
+	// Content scale + fade
+	const contentSpring = useSpring({
+		opacity: closing ? 0 : 1,
+		scale: closing ? 0.95 : 1,
+		config: config.stiff,
+	});
+
+	// Animate meme transitions (prev/next navigation)
+	const memeSpring = useSpring({
+		opacity: 1,
+		from: { opacity: 0.6 },
+		reset: true,
+		config: { tension: 300, friction: 28 },
+		key: meme.id,
+	});
+
+	const handleClose = useCallback(() => {
+		setClosing(true);
+		setTimeout(onClose, 180);
+	}, [onClose]);
 
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
-			if (e.key === 'Escape') onClose();
+			if (e.key === 'Escape') handleClose();
 			else if (e.key === 'ArrowLeft' && onPrev) onPrev();
 			else if (e.key === 'ArrowRight' && onNext) onNext();
 		},
-		[onClose, onPrev, onNext],
+		[handleClose, onPrev, onNext],
 	);
 
 	useEffect(() => {
@@ -53,25 +82,26 @@ export default function MemeLightbox({
 	}, [handleKeyDown]);
 
 	return (
-		<div
+		<animated.div
 			className="fixed inset-0 z-50 flex items-center justify-center"
+			style={{ opacity: backdropSpring.opacity }}
 			role="dialog"
 			aria-modal="true"
 			aria-label={meme.title || 'Meme viewer'}>
 			{/* Backdrop */}
 			<div
-				className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-				onClick={onClose}
+				className="absolute inset-0 bg-black/75 backdrop-blur-md"
+				onClick={handleClose}
 			/>
 
 			{/* Close button */}
 			<button
 				type="button"
-				onClick={onClose}
-				className="absolute top-4 right-4 z-10 p-2 rounded-full backdrop-blur-md transition-colors hover:bg-white/10"
-				style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+				onClick={handleClose}
+				className="absolute top-4 right-4 z-10 p-2.5 rounded-full backdrop-blur-md transition-colors hover:bg-white/15"
+				style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
 				aria-label="Close">
-				<X size={20} className="text-white" />
+				<X size={18} className="text-white" />
 			</button>
 
 			{/* Open in new tab */}
@@ -79,11 +109,11 @@ export default function MemeLightbox({
 				href={`/meme?id=${meme.id}`}
 				target="_blank"
 				rel="noopener noreferrer"
-				className="absolute top-4 right-16 z-10 p-2 rounded-full backdrop-blur-md transition-colors hover:bg-white/10"
-				style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+				className="absolute top-4 right-16 z-10 p-2.5 rounded-full backdrop-blur-md transition-colors hover:bg-white/15"
+				style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
 				title="Open in new tab"
 				aria-label="Open meme in new tab">
-				<ExternalLink size={18} className="text-white/80" />
+				<ExternalLink size={16} className="text-white/80" />
 			</a>
 
 			{/* Prev arrow */}
@@ -91,10 +121,10 @@ export default function MemeLightbox({
 				<button
 					type="button"
 					onClick={onPrev}
-					className="absolute left-4 z-10 p-2 rounded-full backdrop-blur-md transition-colors hover:bg-white/10"
-					style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+					className="absolute left-4 z-10 p-2.5 rounded-full backdrop-blur-md transition-colors hover:bg-white/15"
+					style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
 					aria-label="Previous meme">
-					<ChevronLeft size={24} className="text-white" />
+					<ChevronLeft size={22} className="text-white" />
 				</button>
 			)}
 
@@ -103,25 +133,33 @@ export default function MemeLightbox({
 				<button
 					type="button"
 					onClick={onNext}
-					className="absolute right-4 z-10 p-2 rounded-full backdrop-blur-md transition-colors hover:bg-white/10"
-					style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+					className="absolute right-4 z-10 p-2.5 rounded-full backdrop-blur-md transition-colors hover:bg-white/15"
+					style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
 					aria-label="Next meme">
-					<ChevronRight size={24} className="text-white" />
+					<ChevronRight size={22} className="text-white" />
 				</button>
 			)}
 
 			{/* Content area */}
-			<div className="relative flex items-start gap-4 max-w-5xl w-full mx-4 max-h-[90vh]">
+			<animated.div
+				className="relative flex items-start gap-4 max-w-5xl w-full mx-4 max-h-[90vh]"
+				style={{
+					opacity: contentSpring.opacity,
+					transform: contentSpring.scale.to((s) => `scale(${s})`),
+				}}>
 				{/* Main image + info */}
-				<div className="flex-1 min-w-0 flex flex-col items-center">
+				<animated.div
+					className="flex-1 min-w-0 flex flex-col items-center"
+					style={{ opacity: memeSpring.opacity }}>
 					{/* Meme asset */}
 					<div className="max-h-[75vh] flex items-center justify-center w-full">
 						{isVideo ? (
 							<video
 								src={meme.asset_url}
-								className="max-w-full max-h-[75vh] object-contain rounded-xl"
+								className="max-w-full max-h-[75vh] object-contain rounded-2xl"
 								style={{
-									border: '1px solid rgba(255,255,255,0.06)',
+									border: '1px solid rgba(255,255,255,0.08)',
+									boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
 								}}
 								autoPlay
 								loop
@@ -132,9 +170,10 @@ export default function MemeLightbox({
 							<img
 								src={meme.asset_url}
 								alt={meme.title || 'Meme'}
-								className="max-w-full max-h-[75vh] object-contain rounded-xl select-none"
+								className="max-w-full max-h-[75vh] object-contain rounded-2xl select-none"
 								style={{
-									border: '1px solid rgba(255,255,255,0.06)',
+									border: '1px solid rgba(255,255,255,0.08)',
+									boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
 								}}
 								draggable={false}
 							/>
@@ -142,10 +181,10 @@ export default function MemeLightbox({
 					</div>
 
 					{/* Info below image */}
-					<div className="w-full mt-3 px-2">
+					<div className="w-full mt-4 px-2">
 						{meme.title && (
 							<h2
-								className="text-base font-semibold leading-tight mb-2 line-clamp-2"
+								className="text-base font-semibold leading-tight mb-2.5 line-clamp-2"
 								style={{
 									color: 'var(--sl-color-white, #e2e8f0)',
 								}}>
@@ -165,6 +204,10 @@ export default function MemeLightbox({
 											src={meme.author_avatar}
 											alt={meme.author_name}
 											className="w-7 h-7 rounded-full"
+											style={{
+												boxShadow:
+													'0 0 0 2px rgba(255,255,255,0.1)',
+											}}
 										/>
 									) : (
 										<div
@@ -207,18 +250,22 @@ export default function MemeLightbox({
 						</div>
 
 						{meme.tags.length > 0 && (
-							<div className="flex flex-wrap gap-1.5 mt-2">
+							<div className="flex flex-wrap gap-1.5 mt-2.5">
 								{meme.tags.slice(0, 5).map((tag) => (
 									<span
 										key={tag}
-										className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-white/50">
+										className="text-[11px] px-2.5 py-0.5 rounded-full text-white/50"
+										style={{
+											backgroundColor:
+												'rgba(255,255,255,0.08)',
+										}}>
 										#{tag}
 									</span>
 								))}
 							</div>
 						)}
 					</div>
-				</div>
+				</animated.div>
 
 				{/* Reaction bar — right side */}
 				<div className="flex-shrink-0 pt-4">
@@ -238,7 +285,7 @@ export default function MemeLightbox({
 						onReport={onReport}
 					/>
 				</div>
-			</div>
-		</div>
+			</animated.div>
+		</animated.div>
 	);
 }
