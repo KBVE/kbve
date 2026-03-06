@@ -9,7 +9,7 @@ ARG BUILD_BASE=foundation
 # ============================================================================
 # [STAGE A] - Build Astro Static Site
 # ============================================================================
-FROM --platform=linux/amd64 node:24-alpine AS astro-builder
+FROM --platform=linux/amd64 node:24-slim AS astro-builder
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
