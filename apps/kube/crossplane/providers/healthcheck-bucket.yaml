@@ -1,0 +1,20 @@
+# Healthcheck: temporary S3 bucket to verify Crossplane AWS integration
+# Delete this resource (and the bucket) after confirming Crossplane works
+apiVersion: s3.aws.m.upbound.io/v1beta1
+kind: Bucket
+metadata:
+    name: kbve-crossplane-healthcheck
+    namespace: crossplane-system
+    annotations:
+        argocd.argoproj.io/sync-wave: '10'
+spec:
+    deletionPolicy: Delete
+    forProvider:
+        region: us-east-2
+        tags:
+            Environment: test
+            ManagedBy: crossplane
+            Purpose: healthcheck
+    providerConfigRef:
+        name: default
+        kind: ClusterProviderConfig
