@@ -3,9 +3,12 @@ title: Play CryptoThrone
 description: Launch the CryptoThrone game.
 template: splash
 hero:
-  tagline: ''
+  title: ' '
+  tagline: ' '
 ---
 
 import GameWindowLoader from '../../../components/game/GameWindowLoader';
 
-<GameWindowLoader client:only="react" />
+<div class="game-fullscreen">
+  <GameWindowLoader client:only="react" />
+</div>

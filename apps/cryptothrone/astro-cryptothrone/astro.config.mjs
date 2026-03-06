@@ -32,8 +32,16 @@ export default defineConfig({
 	vite: {
 		plugins: [tailwindcss()],
 		build: {
+			chunkSizeWarningLimit: 1200,
 			rollupOptions: {
 				external: ['fsevents'],
+				output: {
+					manualChunks(id) {
+						if (id.includes('node_modules/phaser')) return 'phaser';
+						if (id.includes('node_modules/grid-engine'))
+							return 'grid-engine';
+					},
+				},
 			},
 		},
 		optimizeDeps: {

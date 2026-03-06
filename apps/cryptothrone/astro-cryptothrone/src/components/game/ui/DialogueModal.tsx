@@ -1,12 +1,12 @@
 import { useState, useCallback } from 'react';
-import { useGameStore } from '../store/GameStoreContext';
+import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
 import { getDialogueById } from '../data/npcs';
 import { TypewriterText } from './TypewriterText';
 import type { DialogueOption } from '../types';
 
 export function DialogueModal() {
-	const { state, dispatch } = useGameStore();
-	const dialogue = state.dialogue;
+	const dialogue = useGameSelector((s) => s.dialogue);
+	const dispatch = useGameDispatch();
 
 	const [playerTypingDone, setPlayerTypingDone] = useState(false);
 	const [npcTypingDone, setNpcTypingDone] = useState(false);
