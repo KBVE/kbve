@@ -20,7 +20,8 @@ RUN apt-get update && \
         pkg-config \
         libssl-dev \
         protobuf-compiler \
-        libprotobuf-dev && \
+        libprotobuf-dev \
+        mold && \
     rm -rf /var/lib/apt/lists/*
 
 RUN rustup target add x86_64-unknown-linux-gnu && \
@@ -75,6 +76,8 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # Only axum-kbve needs recompilation downstream.
 # ============================================================================
 FROM deps AS foundation
+
+ENV RUSTFLAGS="-C link-arg=-fuse-ld=mold"
 
 # Restore real workspace manifest (chef cook may strip lints/metadata)
 COPY apps/kbve/axum-kbve/Cargo.workspace.toml Cargo.toml

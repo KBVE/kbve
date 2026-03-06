@@ -19,7 +19,9 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml .npmrc tsconfig.base.json ./
 
 # Install all dependencies (hoisted mode - all go to root node_modules)
-RUN pnpm install --frozen-lockfile
+# Cache pnpm content-addressable store across builds to skip re-downloading
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3,id=pnpm-store \
+    pnpm install --frozen-lockfile
 
 # Copy workspace package sources (TypeScript path aliases resolve to these)
 COPY packages/npm/astro/ packages/npm/astro/
@@ -29,9 +31,10 @@ COPY packages/npm/laser/ packages/npm/laser/
 # Copy astro-kbve source
 COPY apps/kbve/astro-kbve/ apps/kbve/astro-kbve/
 
-# Build astro site
+# Build astro site (cache .astro dir for incremental content collection builds)
 WORKDIR /app/apps/kbve/astro-kbve
-RUN rm -rf .astro && npx astro sync && \
+RUN --mount=type=cache,target=/app/apps/kbve/astro-kbve/.astro,id=astro-cache \
+    npx astro sync && \
     UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" npx astro build
 
 # ============================================================================
@@ -73,7 +76,8 @@ RUN apt-get update && \
         pkg-config \
         libssl-dev \
         protobuf-compiler \
-        libprotobuf-dev && \
+        libprotobuf-dev \
+        mold && \
     rm -rf /var/lib/apt/lists/*
 
 RUN rustup target add x86_64-unknown-linux-gnu && \
@@ -141,6 +145,8 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # all inline Rust stages and use the pre-built GHCR image instead.
 # ============================================================================
 FROM ${BUILD_BASE} AS builder
+
+ENV RUSTFLAGS="-C link-arg=-fuse-ld=mold"
 
 # Astro build output (precompressed) -> placed into templates/dist
 COPY --from=astro-precompressor /static /app/apps/kbve/axum-kbve/templates/dist
