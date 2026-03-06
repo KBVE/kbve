@@ -90,7 +90,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Initialize Grafana reverse proxy (optional - for /dashboard/grafana)
     if transport::proxy::init_grafana_proxy() {
-        info!("Grafana proxy initialized - /dashboard/grafana enabled");
+        info!("Grafana proxy initialized - /dashboard/grafana/proxy enabled");
     } else {
         info!("Grafana proxy not configured (GRAFANA_UPSTREAM_URL not set)");
     }

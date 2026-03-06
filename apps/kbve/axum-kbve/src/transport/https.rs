@@ -167,11 +167,11 @@ fn router(state: AppState) -> Router {
     // Grafana proxy routes bypass global middleware (no 10s timeout, no 1MB body limit)
     let proxy_router = Router::new()
         .route(
-            "/dashboard/grafana/{*path}",
+            "/dashboard/grafana/proxy/{*path}",
             any(super::proxy::grafana_proxy_handler),
         )
         .route(
-            "/dashboard/grafana",
+            "/dashboard/grafana/proxy",
             any(super::proxy::grafana_proxy_handler),
         );
 

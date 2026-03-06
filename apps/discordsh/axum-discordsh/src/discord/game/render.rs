@@ -537,6 +537,18 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
             }
         }
 
+        // Utility buttons row: Items + Inv
+        let util_buttons = vec![
+            serenity::CreateButton::new(format!("dng|{sid}|item|"))
+                .label("Items")
+                .style(serenity::ButtonStyle::Secondary)
+                .disabled(owner.inventory.iter().all(|s| s.qty == 0)),
+            serenity::CreateButton::new(format!("dng|{sid}|inv"))
+                .label("Inv")
+                .style(serenity::ButtonStyle::Secondary),
+        ];
+        rows.push(serenity::CreateActionRow::Buttons(util_buttons));
+
         // Gear equip select menu
         let gear_items: Vec<_> = owner
             .inventory
@@ -625,13 +637,23 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
         }
     }
 
-    // City rest button
+    // City rest button + Inv button
     if in_city && !game_over {
-        let rest_button = serenity::CreateButton::new(format!("dng|{sid}|rest|"))
-            .label("Rest at Inn")
-            .style(serenity::ButtonStyle::Success);
-
-        rows.push(serenity::CreateActionRow::Buttons(vec![rest_button]));
+        let city_buttons = vec![
+            serenity::CreateButton::new(format!("dng|{sid}|rest|"))
+                .label("Rest at Inn")
+                .style(serenity::ButtonStyle::Success),
+            serenity::CreateButton::new(format!("dng|{sid}|inv"))
+                .label("Inv")
+                .style(serenity::ButtonStyle::Secondary),
+        ];
+        rows.push(serenity::CreateActionRow::Buttons(city_buttons));
+    } else if !game_over {
+        // Inv button for non-city, non-exploring phases
+        let inv_button = serenity::CreateButton::new(format!("dng|{sid}|inv"))
+            .label("Inv")
+            .style(serenity::ButtonStyle::Secondary);
+        rows.push(serenity::CreateActionRow::Buttons(vec![inv_button]));
     }
 
     // City hospital — revive dead party members
@@ -1004,6 +1026,7 @@ mod tests {
             pending_actions: HashMap::new(),
             map: test_map_default(),
             show_map: false,
+            show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
         }
@@ -1092,7 +1115,7 @@ mod tests {
     fn render_components_exploring() {
         let session = test_session();
         let components = render_components(&session);
-        assert_eq!(components.len(), 1);
+        assert_eq!(components.len(), 2); // direction row + utility row (Items + Inv)
     }
 
     #[test]
@@ -1101,7 +1124,7 @@ mod tests {
         session.show_items = true;
         session.player_mut(OWNER).inventory = super::super::content::starting_inventory();
         let components = render_components(&session);
-        assert_eq!(components.len(), 2); // button row + select menu
+        assert_eq!(components.len(), 3); // direction row + utility row + item select menu
     }
 
     #[test]
@@ -1743,5 +1766,76 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::GameOver(GameOverReason::Escaped);
         assert_eq!(phase_color(&session), COLOR_GAME_OVER);
+    }
+
+    // ── Inventory button tests ──────────────────────────────────────
+
+    #[test]
+    fn render_components_exploring_has_inv_button() {
+        let session = test_session();
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            all_json.contains("|inv"),
+            "exploring should have Inv button"
+        );
+    }
+
+    #[test]
+    fn render_components_combat_has_inv_button() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![EnemyState {
+            name: "Slime".to_owned(),
+            level: 1,
+            hp: 20,
+            max_hp: 20,
+            armor: 0,
+            intent: Intent::Attack { dmg: 5 },
+            effects: Vec::new(),
+            charged: false,
+            loot_table_id: "slime",
+            enraged: false,
+            index: 0,
+            first_strike: false,
+        }];
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(all_json.contains("|inv"), "combat should have Inv button");
+    }
+
+    #[test]
+    fn render_components_city_has_inv_button() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(all_json.contains("|inv"), "city should have Inv button");
+    }
+
+    #[test]
+    fn render_components_merchant_has_inv_button() {
+        let mut session = test_session();
+        session.phase = GamePhase::Merchant;
+        session.room.merchant_stock = vec![MerchantOffer {
+            item_id: "potion".to_owned(),
+            price: 10,
+            is_gear: false,
+        }];
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(all_json.contains("|inv"), "merchant should have Inv button");
+    }
+
+    #[test]
+    fn render_components_game_over_no_inv_button() {
+        let mut session = test_session();
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            !all_json.contains("|inv"),
+            "game over should NOT have Inv button"
+        );
     }
 }
