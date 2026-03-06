@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: cryptothrone-deployment
+    namespace: cryptothrone
+    labels:
+        app: cryptothrone
+spec:
+    replicas: 1
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 0
+    selector:
+        matchLabels:
+            app: cryptothrone
+    template:
+        metadata:
+            labels:
+                app: cryptothrone
+                version: '0.1.0'
+        spec:
+            containers:
+                - name: cryptothrone
+                  image: ghcr.io/kbve/cryptothrone:0.1.0
+                  imagePullPolicy: Always
+                  ports:
+                      - name: http
+                        containerPort: 4321
+                        protocol: TCP
+                  livenessProbe:
+                      httpGet:
+                          path: /health
+                          port: http
+                      initialDelaySeconds: 30
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+                  readinessProbe:
+                      httpGet:
+                          path: /health
+                          port: http
+                      initialDelaySeconds: 10
+                      periodSeconds: 5
+                      timeoutSeconds: 3
+                      failureThreshold: 3
+                  env:
+                      - name: HTTP_PORT
+                        value: '4321'
+                  resources:
+                      requests:
+                          memory: '256Mi'
+                          cpu: '500m'
+                      limits:
+                          memory: '512Mi'
+                          cpu: '2000m'
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: cryptothrone-service
+    namespace: cryptothrone
+    labels:
+        app: cryptothrone
+spec:
+    type: ClusterIP
+    selector:
+        app: cryptothrone
+    ports:
+        - port: 4321
+          targetPort: 4321
+          protocol: TCP
