@@ -6515,4 +6515,197 @@ mod tests {
             "All enemies should be dead after enough attacks"
         );
     }
+
+    // ── Inventory cap tests ─────────────────────────────────────────
+
+    #[test]
+    fn test_add_item_to_inventory_stacks_existing() {
+        let mut inv = vec![ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 1,
+        }];
+        assert!(add_item_to_inventory(&mut inv, "potion"));
+        assert_eq!(inv.len(), 1);
+        assert_eq!(inv[0].qty, 2);
+    }
+
+    #[test]
+    fn test_add_item_to_inventory_new_item() {
+        let mut inv = Vec::new();
+        assert!(add_item_to_inventory(&mut inv, "bomb"));
+        assert_eq!(inv.len(), 1);
+        assert_eq!(inv[0].item_id, "bomb");
+        assert_eq!(inv[0].qty, 1);
+    }
+
+    #[test]
+    fn test_add_item_to_inventory_full_rejects_new() {
+        let mut inv: Vec<ItemStack> = (0..MAX_INVENTORY_SLOTS)
+            .map(|i| ItemStack {
+                item_id: format!("item_{i}"),
+                qty: 1,
+            })
+            .collect();
+        // New item should be rejected
+        assert!(!add_item_to_inventory(&mut inv, "overflow_item"));
+        assert_eq!(inv.len(), MAX_INVENTORY_SLOTS);
+    }
+
+    #[test]
+    fn test_add_item_to_inventory_full_allows_stacking() {
+        let mut inv: Vec<ItemStack> = (0..MAX_INVENTORY_SLOTS)
+            .map(|i| ItemStack {
+                item_id: format!("item_{i}"),
+                qty: 1,
+            })
+            .collect();
+        // Stacking on existing item should succeed even at capacity
+        assert!(add_item_to_inventory(&mut inv, "item_0"));
+        assert_eq!(inv[0].qty, 2);
+    }
+
+    #[test]
+    fn test_add_item_ignores_zero_qty_stacks_for_capacity() {
+        let mut inv = vec![ItemStack {
+            item_id: "depleted".to_owned(),
+            qty: 0,
+        }];
+        // Zero-qty stacks don't count as occupied slots
+        for i in 0..MAX_INVENTORY_SLOTS {
+            assert!(
+                add_item_to_inventory(&mut inv, &format!("new_{i}")),
+                "Should add item {i}"
+            );
+        }
+        // Now at capacity (16 items with qty > 0 + 1 with qty 0)
+        assert!(!add_item_to_inventory(&mut inv, "one_more"));
+    }
+
+    #[test]
+    fn test_view_inventory_toggles_flag() {
+        let mut session = test_session();
+        assert!(!session.show_inventory);
+
+        let result = apply_action(&mut session, GameAction::ViewInventory, OWNER);
+        assert!(result.is_ok());
+        assert!(session.show_inventory, "should toggle on");
+
+        let result = apply_action(&mut session, GameAction::ViewInventory, OWNER);
+        assert!(result.is_ok());
+        assert!(!session.show_inventory, "should toggle off");
+    }
+
+    #[test]
+    fn test_view_inventory_returns_empty_logs() {
+        let mut session = test_session();
+        let logs = apply_action(&mut session, GameAction::ViewInventory, OWNER).unwrap();
+        assert!(logs.is_empty(), "ViewInventory should produce no logs");
+    }
+
+    #[test]
+    fn test_view_inventory_allowed_in_combat() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![test_enemy()];
+        let result = apply_action(&mut session, GameAction::ViewInventory, OWNER);
+        assert!(result.is_ok());
+        assert!(session.show_inventory);
+    }
+
+    #[test]
+    fn test_view_inventory_allowed_in_city() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let result = apply_action(&mut session, GameAction::ViewInventory, OWNER);
+        assert!(result.is_ok());
+        assert!(session.show_inventory);
+    }
+
+    #[test]
+    fn test_view_inventory_allowed_in_merchant() {
+        let mut session = test_session();
+        session.phase = GamePhase::Merchant;
+        let result = apply_action(&mut session, GameAction::ViewInventory, OWNER);
+        assert!(result.is_ok());
+        assert!(session.show_inventory);
+    }
+
+    #[test]
+    fn test_view_inventory_blocked_in_game_over() {
+        let mut session = test_session();
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
+        let result = apply_action(&mut session, GameAction::ViewInventory, OWNER);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_buy_blocked_when_inventory_full() {
+        let mut session = test_session();
+        session.phase = GamePhase::Merchant;
+        session.room.merchant_stock = vec![MerchantOffer {
+            item_id: "potion".to_owned(),
+            price: 10,
+            is_gear: false,
+        }];
+
+        let player = session.player_mut(OWNER);
+        player.gold = 1000;
+        // Fill inventory to capacity with unique items
+        player.inventory.clear();
+        for i in 0..MAX_INVENTORY_SLOTS {
+            player.inventory.push(ItemStack {
+                item_id: format!("filler_{i}"),
+                qty: 1,
+            });
+        }
+
+        let result = apply_action(&mut session, GameAction::Buy("potion".to_owned()), OWNER);
+        assert!(result.is_err());
+        assert!(
+            result.unwrap_err().contains("Inventory full"),
+            "should mention inventory full"
+        );
+        // Gold should not have been deducted
+        assert_eq!(session.player(OWNER).gold, 1000);
+    }
+
+    #[test]
+    fn test_buy_allowed_when_stacking_at_full_inventory() {
+        let mut session = test_session();
+        session.phase = GamePhase::Merchant;
+        session.room.merchant_stock = vec![MerchantOffer {
+            item_id: "potion".to_owned(),
+            price: 10,
+            is_gear: false,
+        }];
+
+        let player = session.player_mut(OWNER);
+        player.gold = 1000;
+        player.inventory.clear();
+        // Fill inventory, including a "potion" stack
+        player.inventory.push(ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 1,
+        });
+        for i in 1..MAX_INVENTORY_SLOTS {
+            player.inventory.push(ItemStack {
+                item_id: format!("filler_{i}"),
+                qty: 1,
+            });
+        }
+
+        // Buying potion should succeed (stacks on existing)
+        let result = apply_action(&mut session, GameAction::Buy("potion".to_owned()), OWNER);
+        assert!(result.is_ok(), "stacking buy should succeed: {:?}", result);
+        assert_eq!(
+            session
+                .player(OWNER)
+                .inventory
+                .iter()
+                .find(|s| s.item_id == "potion")
+                .unwrap()
+                .qty,
+            2
+        );
+    }
 }

@@ -952,4 +952,108 @@ mod tests {
         assert!(!Direction::North.emoji().is_empty());
         assert_eq!(Direction::all().len(), 4);
     }
+
+    // ── Inventory helper tests ──────────────────────────────────────
+
+    #[test]
+    fn inventory_slots_used_empty() {
+        let p = PlayerState::default();
+        assert_eq!(p.inventory_slots_used(), 0);
+        assert!(!p.inventory_full());
+    }
+
+    #[test]
+    fn inventory_slots_used_counts_nonzero_qty() {
+        let mut p = PlayerState::default();
+        p.inventory.push(ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 3,
+        });
+        p.inventory.push(ItemStack {
+            item_id: "bomb".to_owned(),
+            qty: 0,
+        });
+        p.inventory.push(ItemStack {
+            item_id: "ward".to_owned(),
+            qty: 1,
+        });
+        assert_eq!(p.inventory_slots_used(), 2);
+        assert!(!p.inventory_full());
+    }
+
+    #[test]
+    fn inventory_full_at_max_slots() {
+        let mut p = PlayerState::default();
+        for i in 0..MAX_INVENTORY_SLOTS {
+            p.inventory.push(ItemStack {
+                item_id: format!("item_{i}"),
+                qty: 1,
+            });
+        }
+        assert_eq!(p.inventory_slots_used(), MAX_INVENTORY_SLOTS);
+        assert!(p.inventory_full());
+    }
+
+    #[test]
+    fn inventory_full_boundary() {
+        let mut p = PlayerState::default();
+        // Fill to MAX - 1
+        for i in 0..(MAX_INVENTORY_SLOTS - 1) {
+            p.inventory.push(ItemStack {
+                item_id: format!("item_{i}"),
+                qty: 1,
+            });
+        }
+        assert!(!p.inventory_full(), "should not be full at MAX-1");
+        // Add one more
+        p.inventory.push(ItemStack {
+            item_id: "last_item".to_owned(),
+            qty: 1,
+        });
+        assert!(p.inventory_full(), "should be full at MAX");
+    }
+
+    #[test]
+    fn max_inventory_slots_is_16() {
+        assert_eq!(MAX_INVENTORY_SLOTS, 16);
+    }
+
+    #[test]
+    fn view_inventory_action_equality() {
+        assert_eq!(GameAction::ViewInventory, GameAction::ViewInventory);
+        assert_ne!(GameAction::ViewInventory, GameAction::ViewMap);
+    }
+
+    #[test]
+    fn show_inventory_default_false() {
+        use std::time::Instant;
+        let owner = serenity::UserId::new(1);
+        let mut players = HashMap::new();
+        players.insert(owner, PlayerState::default());
+        let session = SessionState {
+            id: uuid::Uuid::new_v4(),
+            short_id: "test1234".to_owned(),
+            owner,
+            party: Vec::new(),
+            mode: SessionMode::Solo,
+            phase: GamePhase::Exploring,
+            channel_id: serenity::ChannelId::new(1),
+            message_id: serenity::MessageId::new(1),
+            created_at: Instant::now(),
+            last_action_at: Instant::now(),
+            turn: 0,
+            players,
+            enemies: Vec::new(),
+            room: super::super::content::generate_room(0),
+            log: Vec::new(),
+            show_items: false,
+            pending_actions: HashMap::new(),
+            map: test_map_default(),
+            show_map: false,
+            show_inventory: false,
+            pending_destination: None,
+            enemies_had_first_strike: false,
+        };
+        assert!(!session.show_inventory);
+    }
 }

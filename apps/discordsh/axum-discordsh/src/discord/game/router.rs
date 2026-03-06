@@ -414,6 +414,17 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_action_inv_and_map() {
+        assert_eq!(parse_action("inv"), Some(GameAction::ViewInventory));
+        assert_eq!(parse_action("map"), Some(GameAction::ViewMap));
+        // Case sensitivity
+        assert!(parse_action("INV").is_none());
+        assert!(parse_action("Inv").is_none());
+        assert!(parse_action("MAP").is_none());
+        assert!(parse_action("Map").is_none());
+    }
+
+    #[test]
     fn test_useitem_value_parsing() {
         // The useitem handler parses select menu values with format "item_id|..."
         // using: value.split('|').next().unwrap_or(value)

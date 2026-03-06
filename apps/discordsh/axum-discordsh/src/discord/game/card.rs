@@ -1462,4 +1462,182 @@ mod tests {
         let bytes = png.unwrap();
         assert_eq!(&bytes[0..4], &[0x89, 0x50, 0x4E, 0x47]);
     }
+
+    // ── Inventory card tests ────────────────────────────────────────
+
+    #[test]
+    fn test_rarity_color_all_variants() {
+        assert_eq!(rarity_color(&ItemRarity::Common), "#95a5a6");
+        assert_eq!(rarity_color(&ItemRarity::Uncommon), "#2ecc71");
+        assert_eq!(rarity_color(&ItemRarity::Rare), "#3498db");
+        assert_eq!(rarity_color(&ItemRarity::Epic), "#9b59b6");
+        assert_eq!(rarity_color(&ItemRarity::Legendary), "#f1c40f");
+    }
+
+    #[test]
+    fn test_truncate_name_short() {
+        assert_eq!(truncate_name("Potion", 12), "Potion");
+        assert_eq!(truncate_name("Sword", 12), "Sword");
+    }
+
+    #[test]
+    fn test_truncate_name_exact() {
+        assert_eq!(truncate_name("TwelveChars!", 12), "TwelveChars!");
+    }
+
+    #[test]
+    fn test_truncate_name_long() {
+        assert_eq!(truncate_name("SomeVeryLongItemName", 12), "SomeVeryLo..");
+    }
+
+    #[test]
+    fn test_truncate_name_empty() {
+        assert_eq!(truncate_name("", 12), "");
+    }
+
+    #[test]
+    fn test_build_equip_slot_empty() {
+        let slot = build_equip_slot_display(None);
+        assert!(!slot.equipped);
+        assert!(slot.gear_name.is_empty());
+        assert!(slot.stat_line.is_empty());
+        assert!(slot.special_line.is_empty());
+        assert_eq!(slot.rarity_color, "#3a3a5a");
+    }
+
+    #[test]
+    fn test_build_equip_slot_with_weapon() {
+        let slot = build_equip_slot_display(Some("rusty_sword"));
+        assert!(slot.equipped);
+        assert!(!slot.gear_name.is_empty());
+        assert!(!slot.stat_line.is_empty());
+    }
+
+    #[test]
+    fn test_build_inventory_card_empty_inventory() {
+        let session = test_session();
+        let template = build_inventory_card(&session);
+        assert_eq!(template.player_name, "Adventurer");
+        assert_eq!(template.slots_used, 0);
+        assert_eq!(template.slots_max, MAX_INVENTORY_SLOTS);
+        assert_eq!(template.items.len(), MAX_INVENTORY_SLOTS);
+        // All slots should be empty
+        for item in &template.items {
+            assert!(!item.occupied);
+        }
+        assert!(!template.weapon_slot.equipped);
+        assert!(!template.armor_slot.equipped);
+    }
+
+    #[test]
+    fn test_build_inventory_card_with_items() {
+        let mut session = test_session();
+        session.player_mut(OWNER).inventory = vec![
+            ItemStack {
+                item_id: "potion".to_owned(),
+                qty: 3,
+            },
+            ItemStack {
+                item_id: "bomb".to_owned(),
+                qty: 1,
+            },
+        ];
+        let template = build_inventory_card(&session);
+        assert_eq!(template.slots_used, 2);
+        assert!(template.items[0].occupied);
+        assert_eq!(template.items[0].qty, 3);
+        assert!(template.items[1].occupied);
+        assert_eq!(template.items[1].qty, 1);
+        // Rest should be empty
+        for item in &template.items[2..] {
+            assert!(!item.occupied);
+        }
+    }
+
+    #[test]
+    fn test_build_inventory_card_with_equipment() {
+        let mut session = test_session();
+        session.player_mut(OWNER).weapon = Some("rusty_sword".to_owned());
+        session.player_mut(OWNER).armor_gear = Some("leather_vest".to_owned());
+        let template = build_inventory_card(&session);
+        assert!(template.weapon_slot.equipped);
+        assert!(template.armor_slot.equipped);
+    }
+
+    #[test]
+    fn test_inventory_card_grid_coordinates() {
+        let session = test_session();
+        let template = build_inventory_card(&session);
+        // 4 columns, starting x=16, pitch=93
+        for (idx, item) in template.items.iter().enumerate() {
+            let col = idx % 4;
+            let row = idx / 4;
+            assert_eq!(item.x, 16 + (col as i32) * 93);
+            assert_eq!(item.y, 152 + (row as i32) * 74);
+        }
+    }
+
+    #[test]
+    fn test_inventory_card_svg_renders_valid_svg() {
+        let session = test_session();
+        let template = build_inventory_card(&session);
+        let svg = template.render().expect("SVG template should render");
+        assert!(svg.starts_with("<svg"), "should start with <svg");
+        assert!(svg.contains("</svg>"), "should contain closing </svg>");
+        assert!(svg.contains("Inventory"), "should contain Inventory text");
+    }
+
+    #[test]
+    fn test_inventory_card_renders_to_png() {
+        let db = test_fontdb();
+        let session = test_session();
+        let png = render_inventory_card_blocking(&session, &db);
+        assert!(png.is_ok(), "Inventory render failed: {:?}", png.err());
+        let bytes = png.unwrap();
+        assert!(!bytes.is_empty());
+        assert_eq!(
+            &bytes[0..4],
+            &[0x89, 0x50, 0x4E, 0x47],
+            "should be valid PNG"
+        );
+    }
+
+    #[test]
+    fn test_inventory_card_renders_without_fonts() {
+        let db = FontDb::new();
+        let session = test_session();
+        let png = render_inventory_card_blocking(&session, &db);
+        assert!(
+            png.is_ok(),
+            "Inventory render should succeed without fonts: {:?}",
+            png.err()
+        );
+        let bytes = png.unwrap();
+        assert_eq!(&bytes[0..4], &[0x89, 0x50, 0x4E, 0x47]);
+    }
+
+    #[test]
+    fn test_inventory_card_with_full_inventory() {
+        let mut session = test_session();
+        let player = session.player_mut(OWNER);
+        player.gold = 42;
+        for i in 0..MAX_INVENTORY_SLOTS {
+            player.inventory.push(ItemStack {
+                item_id: format!("item_{i}"),
+                qty: (i as u16) + 1,
+            });
+        }
+        player.weapon = Some("rusty_sword".to_owned());
+        let template = build_inventory_card(&session);
+        assert_eq!(template.slots_used, MAX_INVENTORY_SLOTS);
+        assert_eq!(template.gold, 42);
+        // All 16 slots occupied
+        for item in &template.items {
+            assert!(item.occupied);
+        }
+        // Render should still succeed
+        let db = test_fontdb();
+        let png = render_inventory_card_blocking(&session, &db);
+        assert!(png.is_ok(), "Full inventory render failed: {:?}", png.err());
+    }
 }

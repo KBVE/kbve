@@ -1767,4 +1767,75 @@ mod tests {
         session.phase = GamePhase::GameOver(GameOverReason::Escaped);
         assert_eq!(phase_color(&session), COLOR_GAME_OVER);
     }
+
+    // ── Inventory button tests ──────────────────────────────────────
+
+    #[test]
+    fn render_components_exploring_has_inv_button() {
+        let session = test_session();
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            all_json.contains("|inv"),
+            "exploring should have Inv button"
+        );
+    }
+
+    #[test]
+    fn render_components_combat_has_inv_button() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![EnemyState {
+            name: "Slime".to_owned(),
+            level: 1,
+            hp: 20,
+            max_hp: 20,
+            armor: 0,
+            intent: Intent::Attack { dmg: 5 },
+            effects: Vec::new(),
+            charged: false,
+            loot_table_id: "slime",
+            enraged: false,
+            index: 0,
+            first_strike: false,
+        }];
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(all_json.contains("|inv"), "combat should have Inv button");
+    }
+
+    #[test]
+    fn render_components_city_has_inv_button() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(all_json.contains("|inv"), "city should have Inv button");
+    }
+
+    #[test]
+    fn render_components_merchant_has_inv_button() {
+        let mut session = test_session();
+        session.phase = GamePhase::Merchant;
+        session.room.merchant_stock = vec![MerchantOffer {
+            item_id: "potion".to_owned(),
+            price: 10,
+            is_gear: false,
+        }];
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(all_json.contains("|inv"), "merchant should have Inv button");
+    }
+
+    #[test]
+    fn render_components_game_over_no_inv_button() {
+        let mut session = test_session();
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            !all_json.contains("|inv"),
+            "game over should NOT have Inv button"
+        );
+    }
 }
