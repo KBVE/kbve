@@ -129,6 +129,7 @@ mod tests {
             pending_actions: std::collections::HashMap::new(),
             map: test_map_default(),
             show_map: false,
+            show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
         }

@@ -114,6 +114,7 @@ async fn start(
         pending_actions: HashMap::new(),
         map,
         show_map: true,
+        show_inventory: false,
         pending_destination: None,
         enemies_had_first_strike: false,
     };
