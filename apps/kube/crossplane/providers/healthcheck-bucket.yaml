@@ -8,7 +8,8 @@ metadata:
     annotations:
         argocd.argoproj.io/sync-wave: '10'
 spec:
-    deletionPolicy: Delete
+    managementPolicies:
+        - '*'
     forProvider:
         region: us-east-2
         tags:

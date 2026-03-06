@@ -300,6 +300,9 @@ impl McService {
 }
 
 /// Send an RCON packet: [length:4][req_id:4][type:4][body + \0][pad \0]
+///
+/// The entire packet is buffered and sent in a single write to avoid
+/// TCP segmentation issues with RCON servers that expect atomic reads.
 async fn rcon_send(
     stream: &mut TcpStream,
     req_id: i32,
@@ -309,11 +312,14 @@ async fn rcon_send(
     let body_bytes = body.as_bytes();
     let length = 4 + 4 + body_bytes.len() as i32 + 2; // req_id + type + body + 2 nulls
 
-    stream.write_all(&length.to_le_bytes()).await?;
-    stream.write_all(&req_id.to_le_bytes()).await?;
-    stream.write_all(&ptype.to_le_bytes()).await?;
-    stream.write_all(body_bytes).await?;
-    stream.write_all(&[0, 0]).await?;
+    let mut buf = Vec::with_capacity(4 + length as usize);
+    buf.extend_from_slice(&length.to_le_bytes());
+    buf.extend_from_slice(&req_id.to_le_bytes());
+    buf.extend_from_slice(&ptype.to_le_bytes());
+    buf.extend_from_slice(body_bytes);
+    buf.extend_from_slice(&[0, 0]);
+
+    stream.write_all(&buf).await?;
     stream.flush().await?;
     Ok(())
 }
