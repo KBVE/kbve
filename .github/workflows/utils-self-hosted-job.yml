@@ -3,6 +3,7 @@ name: Self-Hosted Runner Job
 on:
     workflow_call:
         inputs:
+            # ── Existing (backward-compatible) ────────────────────
             command:
                 description: 'Shell command to execute on the self-hosted runner'
                 required: true
@@ -18,6 +19,78 @@ on:
                 type: string
                 default: 'arc-runner-set'
 
+            # ── Multi-step support ────────────────────────────────
+            pre_command:
+                description: 'Shell command to run BEFORE the main command'
+                required: false
+                type: string
+                default: ''
+            post_command:
+                description: 'Shell command to run AFTER the main command'
+                required: false
+                type: string
+                default: ''
+
+            # ── Working directory ─────────────────────────────────
+            working_directory:
+                description: 'Working directory for commands (relative to repo root)'
+                required: false
+                type: string
+                default: '.'
+
+            # ── Toolchain toggles ─────────────────────────────────
+            setup_node:
+                description: 'Install Node v24 + pnpm v10 + run pnpm install'
+                required: false
+                type: boolean
+                default: false
+            setup_rust:
+                description: 'Install stable Rust toolchain with cargo cache'
+                required: false
+                type: boolean
+                default: false
+            setup_docker:
+                description: 'Set up QEMU + Docker Buildx'
+                required: false
+                type: boolean
+                default: false
+
+            # ── Checkout options ──────────────────────────────────
+            checkout_submodules:
+                description: 'Enable recursive submodule checkout with retry'
+                required: false
+                type: boolean
+                default: false
+            checkout_ref:
+                description: 'Git ref to check out (default: triggering ref)'
+                required: false
+                type: string
+                default: ''
+            fetch_depth:
+                description: 'Git fetch depth (0 = full history)'
+                required: false
+                type: number
+                default: 1
+
+            # ── Artifacts ─────────────────────────────────────────
+            artifact_name:
+                description: 'Name for uploaded artifact (empty = no upload)'
+                required: false
+                type: string
+                default: ''
+            artifact_path:
+                description: 'Path(s) to upload as artifact'
+                required: false
+                type: string
+                default: ''
+            artifact_retention:
+                description: 'Artifact retention in days'
+                required: false
+                type: number
+                default: 7
+
+permissions: {}
+
 jobs:
     guard:
         name: Fork Guard
@@ -26,19 +99,41 @@ jobs:
         outputs:
             allowed: ${{ steps.check.outputs.allowed }}
         steps:
-            - name: Check fork status
+            - name: Verify origin and actor
               id: check
-              run: |
-                  if [ "${{ github.event_name }}" = "pull_request" ] || [ "${{ github.event_name }}" = "pull_request_target" ]; then
-                    HEAD_REPO="${{ github.event.pull_request.head.repo.full_name }}"
-                    BASE_REPO="${{ github.repository }}"
-                    if [ "$HEAD_REPO" != "$BASE_REPO" ]; then
-                      echo "::error::Blocked: fork PR from $HEAD_REPO cannot use self-hosted runners"
-                      echo "allowed=false" >> "$GITHUB_OUTPUT"
-                      exit 0
-                    fi
-                  fi
-                  echo "allowed=true" >> "$GITHUB_OUTPUT"
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      // 1. Fork check — block PRs from external repositories
+                      if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
+                        const headRepo = context.payload.pull_request?.head?.repo?.full_name;
+                        const baseRepo = context.payload.repository?.full_name;
+                        if (headRepo && headRepo !== baseRepo) {
+                          core.error(`Blocked: fork PR from ${headRepo} cannot use self-hosted runners`);
+                          core.setOutput('allowed', 'false');
+                          return;
+                        }
+                      }
+
+                      // 2. Actor collaborator check — require write or admin access
+                      try {
+                        const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          username: context.actor,
+                        });
+                        const level = data.permission;
+                        if (level === 'admin' || level === 'write') {
+                          core.info(`Actor ${context.actor} has ${level} access — allowed`);
+                          core.setOutput('allowed', 'true');
+                        } else {
+                          core.error(`Actor ${context.actor} has ${level} access — insufficient for self-hosted runners`);
+                          core.setOutput('allowed', 'false');
+                        }
+                      } catch (err) {
+                        core.error(`Failed to verify actor permissions: ${err.message}`);
+                        core.setOutput('allowed', 'false');
+                      }
 
     run:
         name: Self-Hosted Run
@@ -49,12 +144,136 @@ jobs:
         permissions:
             contents: read
         steps:
+            # ── Audit & Checkout ──────────────────────────────────
+            - name: Audit log
+              run: |
+                  echo "::notice::Self-hosted job audit: actor=${{ github.actor }}, event=${{ github.event_name }}, ref=${{ github.ref }}, sha=${{ github.sha }}, runner=${{ inputs.runner }}, run_id=${{ github.run_id }}, time=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
             - name: Checkout repository
               uses: actions/checkout@v6
+              with:
+                  ref: ${{ inputs.checkout_ref || github.ref }}
+                  submodules: ${{ inputs.checkout_submodules }}
+                  fetch-depth: ${{ inputs.fetch_depth }}
+
+            - name: Init submodules (with retry)
+              if: inputs.checkout_submodules
+              continue-on-error: true
+              run: |
+                  for i in 1 2 3; do
+                    git submodule update --init --recursive && break
+                    echo "Attempt $i failed, retrying in 10s..."
+                    sleep 10
+                  done
+
+            - name: Verify critical submodules
+              if: inputs.checkout_submodules
+              run: |
+                  failed=0
+                  for mod in apps/mc/pumpkin apps/postgres; do
+                    if [ ! -f "$mod/.git" ] && [ ! -d "$mod/.git" ]; then
+                      echo "::error::Critical submodule missing: $mod"
+                      failed=1
+                    else
+                      echo "OK: $mod"
+                    fi
+                  done
+                  exit $failed
+
+            # ── Toolchain: Node v24 + pnpm v10 ───────────────────
+            - name: Setup Node v24
+              if: inputs.setup_node
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              if: inputs.setup_node
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              if: inputs.setup_node
+              id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              if: inputs.setup_node
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              if: inputs.setup_node
+              run: pnpm install
+
+            # ── Toolchain: Rust ───────────────────────────────────
+            - name: Rust ToolChain
+              if: inputs.setup_rust
+              uses: dtolnay/rust-toolchain@stable
+
+            - name: Setup Cargo Cache
+              if: inputs.setup_rust
+              uses: actions/cache@v5
+              with:
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                  key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-cargo-
+
+            # ── Toolchain: Docker ─────────────────────────────────
+            - name: Set up QEMU
+              if: inputs.setup_docker
+              uses: docker/setup-qemu-action@v3
+
+            - name: Set up Docker Buildx
+              if: inputs.setup_docker
+              uses: docker/setup-buildx-action@v3
+
+            # ── Command Execution ─────────────────────────────────
+            - name: Pre-command
+              if: inputs.pre_command != ''
+              working-directory: ${{ inputs.working_directory }}
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  ${{ inputs.pre_command }}
 
             - name: Execute command
-              run: ${{ inputs.command }}
+              working-directory: ${{ inputs.working_directory }}
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  ${{ inputs.command }}
 
+            - name: Post-command
+              if: inputs.post_command != ''
+              working-directory: ${{ inputs.working_directory }}
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  ${{ inputs.post_command }}
+
+            # ── Artifacts ─────────────────────────────────────────
+            - name: Upload artifact
+              if: inputs.artifact_name != '' && inputs.artifact_path != ''
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.artifact_name }}
+                  path: ${{ inputs.artifact_path }}
+                  retention-days: ${{ inputs.artifact_retention }}
+
+            # ── Cleanup ───────────────────────────────────────────
             - name: Cleanup workspace
               if: always()
               run: |
