@@ -1,0 +1,197 @@
+# Recurring S3 healthcheck: creates a temporary bucket via Crossplane,
+# verifies SYNCED + READY, then deletes it. Runs every 12 hours.
+# Proves end-to-end AWS integration (credentials, IAM, provider) stays healthy.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: s3-healthcheck
+    namespace: crossplane-system
+    labels:
+        app.kubernetes.io/name: crossplane
+        app.kubernetes.io/component: s3-healthcheck
+        app.kubernetes.io/managed-by: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '10'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+    name: s3-healthcheck
+    labels:
+        app.kubernetes.io/name: crossplane
+        app.kubernetes.io/component: s3-healthcheck
+        app.kubernetes.io/managed-by: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '10'
+rules:
+    - apiGroups: ['s3.aws.m.upbound.io']
+      resources: ['buckets']
+      verbs: ['create', 'get', 'list', 'delete']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+    name: s3-healthcheck
+    labels:
+        app.kubernetes.io/name: crossplane
+        app.kubernetes.io/component: s3-healthcheck
+        app.kubernetes.io/managed-by: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '10'
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: s3-healthcheck
+subjects:
+    - kind: ServiceAccount
+      name: s3-healthcheck
+      namespace: crossplane-system
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: s3-healthcheck
+    namespace: crossplane-system
+    labels:
+        app.kubernetes.io/name: crossplane
+        app.kubernetes.io/component: s3-healthcheck
+        app.kubernetes.io/managed-by: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '10'
+spec:
+    schedule: '0 */12 * * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        metadata:
+            labels:
+                app.kubernetes.io/name: crossplane
+                app.kubernetes.io/component: s3-healthcheck
+        spec:
+            activeDeadlineSeconds: 600
+            ttlSecondsAfterFinished: 86400
+            backoffLimit: 0
+            template:
+                metadata:
+                    labels:
+                        app.kubernetes.io/name: crossplane
+                        app.kubernetes.io/component: s3-healthcheck
+                spec:
+                    serviceAccountName: s3-healthcheck
+                    automountServiceAccountToken: true
+                    restartPolicy: Never
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1001
+                        runAsGroup: 1001
+                        fsGroup: 1001
+                        seccompProfile:
+                            type: RuntimeDefault
+                    containers:
+                        - name: healthcheck
+                          image: bitnami/kubectl:1.31.5
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL
+                          resources:
+                              limits:
+                                  cpu: 100m
+                                  memory: 128Mi
+                              requests:
+                                  cpu: 50m
+                                  memory: 64Mi
+                          command:
+                              - /bin/bash
+                              - -c
+                              - |
+                                  set -euo pipefail
+
+                                  BUCKET_NAME="kbve-crossplane-healthcheck-$(date +%s)"
+                                  TIMEOUT=300
+                                  POLL_INTERVAL=10
+
+                                  echo "=== Crossplane S3 Healthcheck ==="
+                                  echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                                  echo "Bucket: ${BUCKET_NAME}"
+                                  echo ""
+
+                                  # ── Cleanup (always runs via trap) ──────────
+                                  cleanup() {
+                                      echo ""
+                                      echo "=== Cleanup ==="
+                                      echo "Deleting bucket CR ${BUCKET_NAME}..."
+                                      kubectl delete bucket.s3.aws.m.upbound.io "${BUCKET_NAME}" \
+                                          --ignore-not-found --timeout=120s || true
+                                      echo "Cleanup complete."
+                                  }
+                                  trap cleanup EXIT
+
+                                  # ── Pre-cleanup: remove leftover resources ──
+                                  echo "Pre-cleanup: removing any leftover healthcheck buckets..."
+                                  kubectl delete bucket.s3.aws.m.upbound.io \
+                                      -l app.kubernetes.io/component=s3-healthcheck \
+                                      --ignore-not-found --wait=false || true
+                                  sleep 5
+
+                                  # ── Step 1: Create bucket CR ────────────────
+                                  echo "Step 1: Creating S3 bucket via Crossplane..."
+                                  cat <<BUCKET_EOF | kubectl apply -f -
+                                  apiVersion: s3.aws.m.upbound.io/v1beta1
+                                  kind: Bucket
+                                  metadata:
+                                      name: ${BUCKET_NAME}
+                                      labels:
+                                          app.kubernetes.io/component: s3-healthcheck
+                                  spec:
+                                      managementPolicies:
+                                          - "*"
+                                      forProvider:
+                                          region: us-east-2
+                                          tags:
+                                              Environment: test
+                                              ManagedBy: crossplane
+                                              Purpose: healthcheck
+                                      providerConfigRef:
+                                          name: default
+                                          kind: ClusterProviderConfig
+                                  BUCKET_EOF
+                                  echo "Bucket CR created."
+
+                                  # ── Step 2: Wait for SYNCED + READY ─────────
+                                  echo ""
+                                  echo "Step 2: Waiting for bucket to become SYNCED + READY (timeout: ${TIMEOUT}s)..."
+                                  elapsed=0
+                                  while true; do
+                                      synced=$(kubectl get bucket.s3.aws.m.upbound.io "${BUCKET_NAME}" \
+                                          -o jsonpath='{.status.conditions[?(@.type=="Synced")].status}' 2>/dev/null || echo "Unknown")
+
+                                      ready=$(kubectl get bucket.s3.aws.m.upbound.io "${BUCKET_NAME}" \
+                                          -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || echo "Unknown")
+
+                                      echo "  [${elapsed}s] Synced: ${synced}, Ready: ${ready}"
+
+                                      if [ "${synced}" = "True" ] && [ "${ready}" = "True" ]; then
+                                          echo "Bucket is SYNCED and READY!"
+                                          break
+                                      fi
+
+                                      if [ ${elapsed} -ge ${TIMEOUT} ]; then
+                                          echo "ERROR: Timeout waiting for bucket to become ready"
+                                          kubectl get bucket.s3.aws.m.upbound.io "${BUCKET_NAME}" -o yaml 2>/dev/null || true
+                                          exit 1
+                                      fi
+
+                                      sleep ${POLL_INTERVAL}
+                                      elapsed=$((elapsed + POLL_INTERVAL))
+                                  done
+
+                                  echo ""
+                                  echo "=== Crossplane S3 Healthcheck PASSED ==="
+                                  echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                                  echo "Bucket ${BUCKET_NAME} created and verified successfully."
+                                  echo "Cleanup will delete the bucket now..."
