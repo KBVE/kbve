@@ -1,0 +1,37 @@
+---
+/**
+ * Askama<T> — Astro-side bridge to the Rust AstroTemplate pattern.
+ *
+ * Mirrors the Rust `AstroTemplate<'a>` struct (axum-discordsh/src/astro/askama.rs)
+ * and provides a reusable content wrapper for Starlight MDX pages that need
+ * structured layout, OG metadata hints, and consistent styling.
+ *
+ * Usage in MDX:
+ *   import Askama from '../../../components/askama/Askama.astro';
+ *   <Askama title="Page Title" description="...">
+ *     <MyComponent />
+ *   </Askama>
+ */
+
+interface Props {
+	/** Page title (mirrors AstroTemplate.title) */
+	title: string;
+	/** Meta description (mirrors AstroTemplate.description) */
+	description?: string;
+	/** Max-width class — defaults to 72rem */
+	maxWidth?: string;
+}
+
+const { title, description = '', maxWidth = '72rem' } = Astro.props;
+---
+
+<div class="askama-wrapper" style={`max-width: ${maxWidth};`}>
+	<slot />
+</div>
+
+<style>
+	.askama-wrapper {
+		margin: 0 auto;
+		padding: 2rem 1rem;
+	}
+</style>

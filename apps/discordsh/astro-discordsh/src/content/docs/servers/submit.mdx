@@ -1,0 +1,51 @@
+---
+title: Submit Your Server
+description: >-
+  Submit your Discord server to the Discord.sh directory and get discovered by
+  thousands of users.
+---
+
+import Askama from '../../../components/askama/Askama.astro';
+import { ReactSubmitForm } from '../../../components/servers/ReactSubmitForm';
+
+<Askama title="Submit Your Server" description="Add your Discord server to the directory." maxWidth="40rem">
+  <p>Add your Discord server to the directory. Submissions are reviewed before going live.</p>
+  <div class="submit-form-wrapper">
+    <ReactSubmitForm client:visible />
+  </div>
+  <noscript>
+    <div class="submit-placeholder">
+      <p>JavaScript is required to submit a server.</p>
+      <a href="/servers/">Browse Servers</a>
+    </div>
+  </noscript>
+</Askama>
+
+<style>{`
+  .submit-form-wrapper {
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--sl-color-gray-5, #374151);
+    background: var(--sl-color-gray-7, #1f2937);
+  }
+  .submit-placeholder {
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--sl-color-gray-5, #374151);
+    background: var(--sl-color-gray-7, #1f2937);
+  }
+  .submit-placeholder p {
+    color: var(--sl-color-gray-3, #9ca3af);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    margin: 0 0 1rem;
+  }
+  .submit-placeholder a {
+    color: var(--sl-color-accent, #8b5cf6);
+    font-size: 0.875rem;
+    text-decoration: none;
+  }
+  .submit-placeholder a:hover {
+    text-decoration: underline;
+  }
+`}</style>
