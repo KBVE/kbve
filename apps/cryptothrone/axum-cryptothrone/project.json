@@ -126,11 +126,63 @@
 						],
 						"tags": ["latest"]
 					},
+					"build-args": [
+						"BUILD_BASE=ghcr.io/kbve/cryptothrone-build-base:latest"
+					],
 					"cache-from": [
 						"type=registry,ref=ghcr.io/kbve/cryptothrone:buildcache"
 					],
 					"cache-to": [
 						"type=registry,ref=ghcr.io/kbve/cryptothrone:buildcache,mode=max"
+					]
+				}
+			}
+		},
+		"basex": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/cryptothrone/axum-cryptothrone/Dockerfile.base",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["ghcr.io/kbve/cryptothrone-build-base:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"tags": ["ghcr.io/kbve/cryptothrone-build-base:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/cryptothrone-build-base:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/cryptothrone-build-base:buildcache,mode=max"
+					]
+				}
+			}
+		},
+		"base": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx axum-cryptothrone:basex",
+						"VERSION=$(grep '^version' apps/cryptothrone/axum-cryptothrone/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag ghcr.io/kbve/cryptothrone-build-base:latest ghcr.io/kbve/cryptothrone-build-base:$VERSION && echo \"Tagged ghcr.io/kbve/cryptothrone-build-base:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx axum-cryptothrone:basex --configuration=production",
+						"VERSION=$(grep '^version' apps/cryptothrone/axum-cryptothrone/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag ghcr.io/kbve/cryptothrone-build-base:latest ghcr.io/kbve/cryptothrone-build-base:$VERSION && echo \"Tagged ghcr.io/kbve/cryptothrone-build-base:$VERSION\""
 					]
 				}
 			}
