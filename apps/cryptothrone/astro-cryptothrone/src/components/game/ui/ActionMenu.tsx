@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useGameStore } from '../store/GameStoreContext';
+import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
 import { getNPCById, getDialogueById } from '../data/npcs';
 import type { NPCAction } from '../types';
 
 export function ActionMenu() {
-	const { state, dispatch } = useGameStore();
-	const npc = state.npcInteraction;
+	const npc = useGameSelector((s) => s.npcInteraction);
+	const dispatch = useGameDispatch();
 	const menuRef = useRef<HTMLDivElement>(null);
 	const [position, setPosition] = useState({ x: 0, y: 0 });
 

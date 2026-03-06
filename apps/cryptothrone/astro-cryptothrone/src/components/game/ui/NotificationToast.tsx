@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useGameStore } from '../store/GameStoreContext';
+import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
 
 const BORDER_COLORS: Record<string, string> = {
 	danger: 'border-red-500',
@@ -9,8 +9,8 @@ const BORDER_COLORS: Record<string, string> = {
 };
 
 export function NotificationToast() {
-	const { state, dispatch } = useGameStore();
-	const { notifications } = state;
+	const notifications = useGameSelector((s) => s.notifications);
+	const dispatch = useGameDispatch();
 
 	useEffect(() => {
 		if (notifications.length === 0) return;

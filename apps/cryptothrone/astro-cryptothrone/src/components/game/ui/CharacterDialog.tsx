@@ -1,8 +1,8 @@
-import { useGameStore } from '../store/GameStoreContext';
+import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
 
 export function CharacterDialog() {
-	const { state, dispatch } = useGameStore();
-	const modal = state.activeModal;
+	const modal = useGameSelector((s) => s.activeModal);
+	const dispatch = useGameDispatch();
 
 	if (!modal) return null;
 

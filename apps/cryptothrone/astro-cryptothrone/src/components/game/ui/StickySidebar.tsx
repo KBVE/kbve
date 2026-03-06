@@ -1,12 +1,13 @@
-import { useGameStore } from '../store/GameStoreContext';
+import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
 import { StatsSection } from './StatsSection';
 import { ToggleButton } from './ToggleButton';
 import { InventoryGrid } from './InventoryGrid';
 import { getItemById } from '../data/items';
 
 export function StickySidebar() {
-	const { state, dispatch } = useGameStore();
-	const { player, settings } = state;
+	const player = useGameSelector((s) => s.player);
+	const settings = useGameSelector((s) => s.settings);
+	const dispatch = useGameDispatch();
 
 	return (
 		<div className="fixed top-24 left-3 w-[350px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-20 transition duration-500 opacity-50 hover:opacity-100 max-h-[80vh] overflow-y-auto">

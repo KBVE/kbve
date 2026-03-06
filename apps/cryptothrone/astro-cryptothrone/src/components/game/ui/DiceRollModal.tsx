@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useGameStore } from '../store/GameStoreContext';
+import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
 
 function rollDie(): number {
 	return Math.floor(Math.random() * 6) + 1;
@@ -15,8 +15,8 @@ const DICE_FACES: Record<number, string> = {
 };
 
 export function DiceRollModal() {
-	const { state, dispatch } = useGameStore();
-	const diceRoll = state.diceRoll;
+	const diceRoll = useGameSelector((s) => s.diceRoll);
+	const dispatch = useGameDispatch();
 	const [rolling, setRolling] = useState(false);
 
 	const handleRoll = useCallback(() => {
