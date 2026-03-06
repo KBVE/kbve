@@ -212,6 +212,16 @@ jobs:
               if: inputs.setup_node
               run: pnpm install
 
+            - name: Setup Nx Cache
+              if: inputs.setup_node
+              uses: actions/cache@v5
+              with:
+                  path: .nx/cache
+                  key: ${{ runner.os }}-nx-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-nx-${{ hashFiles('**/pnpm-lock.yaml') }}-
+                      ${{ runner.os }}-nx-
+
             # ── Toolchain: Rust ───────────────────────────────────
             - name: Rust ToolChain
               if: inputs.setup_rust
@@ -240,11 +250,22 @@ jobs:
               if: inputs.setup_docker
               uses: docker/setup-buildx-action@v3
 
+            - name: Restore Docker Buildx Cache
+              if: inputs.setup_docker
+              uses: actions/cache@v5
+              with:
+                  path: /tmp/.buildx-cache
+                  key: ${{ runner.os }}-buildx-${{ github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-buildx-
+
             # ── Command Execution ─────────────────────────────────
             - name: Pre-command
               if: inputs.pre_command != ''
               working-directory: ${{ inputs.working_directory }}
               shell: bash
+              env:
+                  BUILDX_CACHE_DIR: /tmp/.buildx-cache
               run: |
                   set -euo pipefail
                   ${{ inputs.pre_command }}
@@ -252,6 +273,8 @@ jobs:
             - name: Execute command
               working-directory: ${{ inputs.working_directory }}
               shell: bash
+              env:
+                  BUILDX_CACHE_DIR: /tmp/.buildx-cache
               run: |
                   set -euo pipefail
                   ${{ inputs.command }}
@@ -260,9 +283,20 @@ jobs:
               if: inputs.post_command != ''
               working-directory: ${{ inputs.working_directory }}
               shell: bash
+              env:
+                  BUILDX_CACHE_DIR: /tmp/.buildx-cache
               run: |
                   set -euo pipefail
                   ${{ inputs.post_command }}
+
+            # ── Cache Housekeeping ────────────────────────────────
+            - name: Rotate Docker Buildx Cache
+              if: inputs.setup_docker && always()
+              run: |
+                  if [ -d /tmp/.buildx-cache-new ]; then
+                    rm -rf /tmp/.buildx-cache
+                    mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+                  fi
 
             # ── Artifacts ─────────────────────────────────────────
             - name: Upload artifact
