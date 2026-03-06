@@ -2,9 +2,14 @@
 
 /* ── Game full-bleed layout ── */
 
-/* Lock body scroll when the game overlay is active */
+/* Lock body scroll and hide footer when the game overlay is active */
 body:has(.game-fullscreen) {
 	overflow: hidden;
+}
+
+body:has(.game-fullscreen) footer,
+body:has(.game-fullscreen) .ct-footer {
+	display: none;
 }
 
 /* Full-viewport game overlay — covers Starlight header/hero */

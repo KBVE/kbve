@@ -13,6 +13,9 @@ export default defineConfig({
 		starlight({
 			title: 'CryptoThrone',
 			customCss: ['./src/styles/global.css'],
+			components: {
+				Footer: './src/components/starlight/Footer.astro',
+			},
 			sidebar: [
 				{
 					label: 'Game',
