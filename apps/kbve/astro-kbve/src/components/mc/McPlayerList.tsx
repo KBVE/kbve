@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+
+const McSkinViewer = lazy(() => import('./McSkinViewer'));
 
 interface McPlayer {
 	name: string;
@@ -66,6 +68,12 @@ const styles = {
 		borderRadius: '0.375rem',
 		background: 'var(--sl-color-bg)',
 		border: '1px solid var(--sl-color-gray-6)',
+		cursor: 'pointer',
+		transition: 'border-color 0.15s, background 0.15s',
+	} as React.CSSProperties,
+	playerCardHover: {
+		borderColor: 'rgb(34, 197, 94)',
+		background: 'rgba(34, 197, 94, 0.05)',
 	} as React.CSSProperties,
 	avatar: {
 		width: '32px',
@@ -127,6 +135,99 @@ const styles = {
 		fontSize: '0.75rem',
 		marginTop: '0.5rem',
 	} as React.CSSProperties,
+	backdrop: {
+		position: 'fixed' as const,
+		inset: 0,
+		background: 'rgba(0, 0, 0, 0.4)',
+		zIndex: 9998,
+		transition: 'opacity 0.3s ease',
+	} as React.CSSProperties,
+	panel: {
+		position: 'fixed' as const,
+		top: 0,
+		right: 0,
+		width: '360px',
+		maxWidth: '90vw',
+		height: '100vh',
+		background: 'var(--sl-color-bg-nav)',
+		borderLeft: '1px solid var(--sl-color-gray-5)',
+		zIndex: 9999,
+		display: 'flex',
+		flexDirection: 'column' as const,
+		transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+	} as React.CSSProperties,
+	panelHeader: {
+		display: 'flex',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		padding: '1rem 1.25rem',
+		borderBottom: '1px solid var(--sl-color-gray-6)',
+	} as React.CSSProperties,
+	panelTitle: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: '0.75rem',
+	} as React.CSSProperties,
+	panelPlayerName: {
+		fontSize: '1.125rem',
+		fontWeight: 600,
+		color: 'var(--sl-color-white)',
+	} as React.CSSProperties,
+	panelCloseBtn: {
+		cursor: 'pointer',
+		background: 'none',
+		border: '1px solid var(--sl-color-gray-5)',
+		borderRadius: '0.375rem',
+		color: 'var(--sl-color-gray-3)',
+		padding: '0.25rem 0.5rem',
+		fontSize: '1rem',
+		lineHeight: 1,
+	} as React.CSSProperties,
+	panelBody: {
+		flex: 1,
+		display: 'flex',
+		flexDirection: 'column' as const,
+		alignItems: 'center',
+		justifyContent: 'center',
+		padding: '1rem',
+		overflow: 'hidden',
+	} as React.CSSProperties,
+	panelFooter: {
+		padding: '0.75rem 1.25rem',
+		borderTop: '1px solid var(--sl-color-gray-6)',
+		fontSize: '0.75rem',
+		color: 'var(--sl-color-gray-4)',
+		textAlign: 'center' as const,
+	} as React.CSSProperties,
+	panelUuid: {
+		fontFamily: 'monospace',
+		fontSize: '0.7rem',
+		color: 'var(--sl-color-gray-4)',
+		wordBreak: 'break-all' as const,
+	} as React.CSSProperties,
+	panelOnlineBadge: {
+		display: 'inline-block',
+		width: '8px',
+		height: '8px',
+		borderRadius: '50%',
+		background: 'rgb(34, 197, 94)',
+		flexShrink: 0,
+	} as React.CSSProperties,
+	skinLoading: {
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		width: '100%',
+		height: '300px',
+		color: 'var(--sl-color-gray-3)',
+		fontSize: '0.875rem',
+	} as React.CSSProperties,
+	noSkinMsg: {
+		textAlign: 'center' as const,
+		padding: '2rem',
+		color: 'var(--sl-color-gray-3)',
+		fontSize: '0.875rem',
+	} as React.CSSProperties,
 };
 
 function craftHeadUrl(uuid: string | null): string {
@@ -144,6 +245,130 @@ function formatCachedAt(epoch: number): string {
 	return `${Math.floor(diff / 3600)}h ago`;
 }
 
+function PlayerCard({
+	player,
+	onSelect,
+}: {
+	player: McPlayer;
+	onSelect: (p: McPlayer) => void;
+}) {
+	const [hovered, setHovered] = useState(false);
+
+	return (
+		<div
+			style={{
+				...styles.playerCard,
+				...(hovered ? styles.playerCardHover : {}),
+			}}
+			onClick={() => onSelect(player)}
+			onMouseEnter={() => setHovered(true)}
+			onMouseLeave={() => setHovered(false)}>
+			{player.uuid ? (
+				<img
+					src={craftHeadUrl(player.uuid)}
+					alt={player.name}
+					style={styles.avatar}
+					loading="lazy"
+				/>
+			) : (
+				<div style={styles.avatar} />
+			)}
+			<span style={styles.playerName}>{player.name}</span>
+		</div>
+	);
+}
+
+function PlayerPanel({
+	player,
+	visible,
+	onClose,
+}: {
+	player: McPlayer;
+	visible: boolean;
+	onClose: () => void;
+}) {
+	useEffect(() => {
+		const handleKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') onClose();
+		};
+		if (visible) {
+			document.addEventListener('keydown', handleKey);
+			return () => document.removeEventListener('keydown', handleKey);
+		}
+	}, [visible, onClose]);
+
+	return (
+		<>
+			<div
+				style={{
+					...styles.backdrop,
+					opacity: visible ? 1 : 0,
+					pointerEvents: visible ? 'auto' : 'none',
+				}}
+				onClick={onClose}
+			/>
+			<div
+				style={{
+					...styles.panel,
+					transform: visible ? 'translateX(0)' : 'translateX(100%)',
+				}}>
+				<div style={styles.panelHeader}>
+					<div style={styles.panelTitle}>
+						{player.uuid && (
+							<img
+								src={craftHeadUrl(player.uuid)}
+								alt={player.name}
+								style={{
+									...styles.avatar,
+									width: '24px',
+									height: '24px',
+								}}
+							/>
+						)}
+						<span style={styles.panelPlayerName}>
+							{player.name}
+						</span>
+						<span style={styles.panelOnlineBadge} />
+					</div>
+					<button
+						type="button"
+						style={styles.panelCloseBtn}
+						onClick={onClose}>
+						&#x2715;
+					</button>
+				</div>
+
+				<div style={styles.panelBody}>
+					{player.uuid ? (
+						<Suspense
+							fallback={
+								<div style={styles.skinLoading}>
+									Loading 3D model...
+								</div>
+							}>
+							<McSkinViewer
+								uuid={player.uuid}
+								width={320}
+								height={420}
+							/>
+						</Suspense>
+					) : (
+						<div style={styles.noSkinMsg}>
+							No skin data available for this player.
+						</div>
+					)}
+				</div>
+
+				<div style={styles.panelFooter}>
+					{player.uuid && (
+						<span style={styles.panelUuid}>{player.uuid}</span>
+					)}
+				</div>
+			</div>
+		</>
+	);
+}
+
 export default function McPlayerList({
 	apiBaseUrl = '',
 	refreshInterval = 20000,
@@ -151,6 +376,8 @@ export default function McPlayerList({
 	const [data, setData] = useState<McPlayerListData | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [selectedPlayer, setSelectedPlayer] = useState<McPlayer | null>(null);
+	const [panelVisible, setPanelVisible] = useState(false);
 
 	const fetchPlayers = useCallback(async () => {
 		try {
@@ -181,6 +408,16 @@ export default function McPlayerList({
 			return () => clearInterval(interval);
 		}
 	}, [fetchPlayers, refreshInterval]);
+
+	const openPanel = useCallback((player: McPlayer) => {
+		setSelectedPlayer(player);
+		requestAnimationFrame(() => setPanelVisible(true));
+	}, []);
+
+	const closePanel = useCallback(() => {
+		setPanelVisible(false);
+		setTimeout(() => setSelectedPlayer(null), 300);
+	}, []);
 
 	if (loading) {
 		return (
@@ -237,19 +474,11 @@ export default function McPlayerList({
 			) : (
 				<div style={styles.playerGrid}>
 					{data.players.map((player) => (
-						<div key={player.name} style={styles.playerCard}>
-							{player.uuid ? (
-								<img
-									src={craftHeadUrl(player.uuid)}
-									alt={player.name}
-									style={styles.avatar}
-									loading="lazy"
-								/>
-							) : (
-								<div style={styles.avatar} />
-							)}
-							<span style={styles.playerName}>{player.name}</span>
-						</div>
+						<PlayerCard
+							key={player.name}
+							player={player}
+							onSelect={openPanel}
+						/>
 					))}
 				</div>
 			)}
@@ -258,6 +487,14 @@ export default function McPlayerList({
 				<span>Updated {formatCachedAt(data.cached_at)}</span>
 				<span>Auto-refreshes every {refreshInterval / 1000}s</span>
 			</div>
+
+			{selectedPlayer && (
+				<PlayerPanel
+					player={selectedPlayer}
+					visible={panelVisible}
+					onClose={closePanel}
+				/>
+			)}
 		</div>
 	);
 }
