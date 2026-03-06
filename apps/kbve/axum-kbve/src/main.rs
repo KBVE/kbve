@@ -88,6 +88,13 @@ async fn main() -> anyhow::Result<()> {
         warn!("JWT cache not initialized - SUPABASE_URL or SUPABASE_ANON_KEY not set");
     }
 
+    // Initialize Grafana reverse proxy (optional - for /dashboard/grafana)
+    if transport::proxy::init_grafana_proxy() {
+        info!("Grafana proxy initialized - /dashboard/grafana enabled");
+    } else {
+        info!("Grafana proxy not configured (GRAFANA_UPSTREAM_URL not set)");
+    }
+
     // Shared application state
     let state = transport::https::AppState::new();
 

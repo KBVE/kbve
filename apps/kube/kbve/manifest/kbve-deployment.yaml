@@ -78,6 +78,8 @@ spec:
                         value: '25575'
                       - name: MC_RCON_PASSWORD
                         value: 'kbve-rcon'
+                      - name: GRAFANA_UPSTREAM_URL
+                        value: 'http://monitoring-grafana.monitoring.svc.cluster.local:80'
                   resources:
                       requests:
                           memory: '512Mi'

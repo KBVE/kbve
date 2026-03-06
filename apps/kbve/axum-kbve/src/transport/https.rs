@@ -8,7 +8,7 @@ use axum::{
     http::{HeaderMap, HeaderName, HeaderValue, StatusCode, header},
     middleware::Next,
     response::{IntoResponse, Redirect, Response},
-    routing::{get, post},
+    routing::{any, get, post},
 };
 use serde::Serialize;
 use serde_json::json;
@@ -162,7 +162,20 @@ fn router(state: AppState) -> Router {
         )
         .with_state(state);
 
-    static_router.merge(public_router).layer(middleware)
+    let main_app = static_router.merge(public_router).layer(middleware);
+
+    // Grafana proxy routes bypass global middleware (no 10s timeout, no 1MB body limit)
+    let proxy_router = Router::new()
+        .route(
+            "/dashboard/grafana/{*path}",
+            any(super::proxy::grafana_proxy_handler),
+        )
+        .route(
+            "/dashboard/grafana",
+            any(super::proxy::grafana_proxy_handler),
+        );
+
+    proxy_router.merge(main_app)
 }
 
 // ---------------------------------------------------------------------------
