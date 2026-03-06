@@ -27,7 +27,7 @@ metadata:
 rules:
     - apiGroups: ['s3.aws.m.upbound.io']
       resources: ['buckets']
-      verbs: ['create', 'get', 'list', 'delete', 'patch']
+      verbs: ['create', 'get', 'list', 'delete']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -70,6 +70,7 @@ spec:
                 app.kubernetes.io/name: crossplane
                 app.kubernetes.io/component: s3-healthcheck
         spec:
+            activeDeadlineSeconds: 600
             ttlSecondsAfterFinished: 86400
             backoffLimit: 0
             template:
@@ -79,10 +80,24 @@ spec:
                         app.kubernetes.io/component: s3-healthcheck
                 spec:
                     serviceAccountName: s3-healthcheck
+                    automountServiceAccountToken: true
                     restartPolicy: Never
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1001
+                        runAsGroup: 1001
+                        fsGroup: 1001
+                        seccompProfile:
+                            type: RuntimeDefault
                     containers:
                         - name: healthcheck
-                          image: bitnami/kubectl:1.31
+                          image: bitnami/kubectl:1.31.5
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL
                           resources:
                               limits:
                                   cpu: 100m
@@ -111,21 +126,7 @@ spec:
                                       echo "=== Cleanup ==="
                                       echo "Deleting bucket CR ${BUCKET_NAME}..."
                                       kubectl delete bucket.s3.aws.m.upbound.io "${BUCKET_NAME}" \
-                                          --ignore-not-found --wait=false || true
-
-                                      local i=0
-                                      while kubectl get bucket.s3.aws.m.upbound.io "${BUCKET_NAME}" &>/dev/null; do
-                                          sleep 5
-                                          i=$((i + 5))
-                                          if [ $i -ge 120 ]; then
-                                              echo "WARNING: Bucket CR still exists after 120s, removing finalizers"
-                                              kubectl patch bucket.s3.aws.m.upbound.io "${BUCKET_NAME}" \
-                                                  --type=merge -p '{"metadata":{"finalizers":[]}}' 2>/dev/null || true
-                                              sleep 5
-                                              break
-                                          fi
-                                          echo "  Waiting for bucket deletion... (${i}s)"
-                                      done
+                                          --ignore-not-found --timeout=120s || true
                                       echo "Cleanup complete."
                                   }
                                   trap cleanup EXIT
