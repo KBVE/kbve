@@ -4,7 +4,7 @@ grafana:
 
     grafana.ini:
         server:
-            root_url: 'https://kbve.com/dashboard/grafana'
+            root_url: 'https://kbve.com/dashboard/grafana/proxy'
             serve_from_sub_path: true
         auth.anonymous:
             enabled: true

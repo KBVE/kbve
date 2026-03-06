@@ -96,6 +96,11 @@ export default defineConfig({
 			],
 			sidebar: [
 				{
+					label: 'Dashboard',
+					collapsed: false,
+					autogenerate: { directory: 'dashboard' },
+				},
+				{
 					label: 'Guides',
 					autogenerate: { directory: 'guides' },
 				},
