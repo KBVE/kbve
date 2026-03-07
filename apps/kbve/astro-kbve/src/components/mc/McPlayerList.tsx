@@ -348,6 +348,7 @@ function PlayerPanel({
 							}>
 							<McSkinViewer
 								uuid={player.uuid}
+								skinUrl={player.skin_url}
 								width={320}
 								height={420}
 							/>

@@ -1,12 +1,11 @@
-// MC RCON client with LRU-cached player list and Mojang profile enrichment.
+// MC RCON client with DashMap-cached player data and Mojang profile enrichment.
 //
 // Background task polls RCON `list` every 15s, resolves UUIDs + textures
-// via Mojang API, and stores results for instant API responses.
+// via Mojang API, and stores results in a single DashMap for instant lookups.
 
-use lru::LruCache;
+use dashmap::DashMap;
 use serde::Serialize;
-use std::num::NonZeroUsize;
-use std::sync::{Arc, Mutex, OnceLock};
+use std::sync::{Arc, OnceLock};
 use std::time::{Duration, Instant};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
@@ -17,10 +16,7 @@ use tracing::{debug, warn};
 // ---------------------------------------------------------------------------
 
 const REFRESH_INTERVAL: Duration = Duration::from_secs(15);
-const UUID_CACHE_CAP: usize = 500;
-const TEXTURE_CACHE_CAP: usize = 500;
-const UUID_TTL: Duration = Duration::from_secs(86400); // 24h
-const TEXTURE_TTL: Duration = Duration::from_secs(3600); // 1h
+const PLAYER_TTL: Duration = Duration::from_secs(3600); // 1h
 const RCON_TIMEOUT: Duration = Duration::from_secs(5);
 
 const MOJANG_API: &str = "https://api.mojang.com/users/profiles/minecraft";
@@ -30,6 +26,7 @@ const MOJANG_SESSION: &str = "https://sessionserver.mojang.com/session/minecraft
 // Types
 // ---------------------------------------------------------------------------
 
+/// API response model — serialized to JSON for `/api/v1/mc/players`.
 #[derive(Clone, Debug, Serialize)]
 pub struct McPlayer {
     pub name: String,
@@ -45,23 +42,22 @@ pub struct McPlayerList {
     pub cached_at: u64,
 }
 
-struct TimedEntry<T> {
-    value: T,
-    inserted: Instant,
-    ttl: Duration,
+/// Single cache entry holding all resolved data for a Minecraft player.
+/// Keyed by lowercase player name in the DashMap.
+#[derive(Clone, Debug)]
+struct CachedPlayer {
+    #[allow(dead_code)]
+    name: String,
+    uuid: String,
+    skin_url: Option<String>,
+    /// Lazily populated when the texture proxy endpoint is hit.
+    texture_bytes: Option<Vec<u8>>,
+    resolved_at: Instant,
 }
 
-impl<T> TimedEntry<T> {
-    fn new(value: T, ttl: Duration) -> Self {
-        Self {
-            value,
-            inserted: Instant::now(),
-            ttl,
-        }
-    }
-
+impl CachedPlayer {
     fn is_expired(&self) -> bool {
-        self.inserted.elapsed() > self.ttl
+        self.resolved_at.elapsed() > PLAYER_TTL
     }
 }
 
@@ -72,9 +68,8 @@ pub struct McService {
     http: reqwest::Client,
     // Cached player list (refreshed by background task)
     player_list: Arc<tokio::sync::RwLock<Option<McPlayerList>>>,
-    // LRU caches for Mojang lookups
-    uuid_cache: Arc<Mutex<LruCache<String, TimedEntry<String>>>>,
-    texture_cache: Arc<Mutex<LruCache<String, TimedEntry<Option<String>>>>>,
+    // Single cache for all player data (name → uuid + skin_url + texture_bytes)
+    players: Arc<DashMap<String, CachedPlayer>>,
 }
 
 // ---------------------------------------------------------------------------
@@ -107,12 +102,7 @@ pub fn init_mc_service() -> bool {
             .build()
             .unwrap_or_default(),
         player_list: Arc::new(tokio::sync::RwLock::new(None)),
-        uuid_cache: Arc::new(Mutex::new(LruCache::new(
-            NonZeroUsize::new(UUID_CACHE_CAP).unwrap(),
-        ))),
-        texture_cache: Arc::new(Mutex::new(LruCache::new(
-            NonZeroUsize::new(TEXTURE_CACHE_CAP).unwrap(),
-        ))),
+        players: Arc::new(DashMap::new()),
     });
 
     if MC_SERVICE.set(svc.clone()).is_err() {
@@ -154,6 +144,45 @@ impl McService {
                 cached_at: now_epoch(),
             })
     }
+
+    /// Proxy-fetch a skin texture PNG from textures.minecraft.net.
+    /// `hash` must be a 60-64 character hex string (validated by caller).
+    /// Caches bytes in the player's DashMap entry for subsequent requests.
+    pub async fn fetch_texture(&self, hash: &str) -> Option<Vec<u8>> {
+        let target_suffix = format!("/texture/{hash}");
+
+        // Check if any cached player already has the bytes
+        for entry in self.players.iter() {
+            if let Some(ref url) = entry.skin_url {
+                if url.ends_with(&target_suffix) {
+                    if let Some(ref bytes) = entry.texture_bytes {
+                        return Some(bytes.clone());
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Fetch from Mojang
+        let url = format!("https://textures.minecraft.net/texture/{hash}");
+        let resp = self.http.get(&url).send().await.ok()?;
+        if !resp.status().is_success() {
+            return None;
+        }
+        let bytes = resp.bytes().await.ok()?.to_vec();
+
+        // Store in matching player's entry (if found)
+        for mut entry in self.players.iter_mut() {
+            if let Some(ref skin_url) = entry.skin_url {
+                if skin_url.ends_with(&target_suffix) {
+                    entry.texture_bytes = Some(bytes.clone());
+                    break;
+                }
+            }
+        }
+
+        Some(bytes)
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -175,16 +204,11 @@ impl McService {
         let mut players = Vec::with_capacity(names.len());
 
         for name in &names {
-            let uuid = self.resolve_uuid(name).await;
-            let skin_url = if let Some(ref uuid) = uuid {
-                self.resolve_skin(uuid).await
-            } else {
-                None
-            };
+            let cached = self.resolve_player(name).await;
             players.push(McPlayer {
                 name: name.clone(),
-                uuid,
-                skin_url,
+                uuid: cached.as_ref().map(|c| c.uuid.clone()),
+                skin_url: cached.and_then(|c| c.skin_url),
             });
         }
 
@@ -196,25 +220,26 @@ impl McService {
         };
 
         *self.player_list.write().await = Some(list);
+
+        // Evict expired entries
+        self.players.retain(|_, v| !v.is_expired());
+
         debug!("MC player list refreshed ({} players)", names.len());
     }
 
-    /// Resolve player name → UUID via LRU cache or Mojang API.
-    async fn resolve_uuid(&self, name: &str) -> Option<String> {
+    /// Resolve player name → full profile (UUID + skin URL) via DashMap cache
+    /// or Mojang API. Returns the cached entry if fresh, otherwise fetches.
+    async fn resolve_player(&self, name: &str) -> Option<CachedPlayer> {
         let lower = name.to_lowercase();
 
         // Check cache
-        {
-            let mut cache = self.uuid_cache.lock().unwrap_or_else(|e| e.into_inner());
-            if let Some(entry) = cache.get(&lower) {
-                if !entry.is_expired() {
-                    return Some(entry.value.clone());
-                }
-                // Expired — will re-fetch below
+        if let Some(entry) = self.players.get(&lower) {
+            if !entry.is_expired() {
+                return Some(entry.clone());
             }
         }
 
-        // Fetch from Mojang
+        // Fetch UUID from Mojang
         let url = format!("{MOJANG_API}/{name}");
         let resp = self.http.get(&url).send().await.ok()?;
         if !resp.status().is_success() {
@@ -223,50 +248,39 @@ impl McService {
         let body: serde_json::Value = resp.json().await.ok()?;
         let uuid = body.get("id")?.as_str()?.to_string();
 
-        // Store in cache
-        {
-            let mut cache = self.uuid_cache.lock().unwrap_or_else(|e| e.into_inner());
-            cache.put(lower, TimedEntry::new(uuid.clone(), UUID_TTL));
-        }
+        // Fetch skin URL from Mojang session server
+        let skin_url = self.fetch_skin_url(&uuid).await;
 
-        Some(uuid)
+        // Preserve existing texture_bytes if the skin_url hasn't changed
+        let texture_bytes = self.players.get(&lower).and_then(|old| {
+            if old.skin_url == skin_url {
+                old.texture_bytes.clone()
+            } else {
+                None
+            }
+        });
+
+        let player = CachedPlayer {
+            name: name.to_string(),
+            uuid,
+            skin_url,
+            texture_bytes,
+            resolved_at: Instant::now(),
+        };
+
+        self.players.insert(lower, player.clone());
+        Some(player)
     }
 
-    /// Resolve UUID → skin texture URL via LRU cache or Mojang session API.
-    async fn resolve_skin(&self, uuid: &str) -> Option<String> {
-        // Check cache
-        {
-            let mut cache = self.texture_cache.lock().unwrap_or_else(|e| e.into_inner());
-            if let Some(entry) = cache.get(uuid) {
-                if !entry.is_expired() {
-                    return entry.value.clone();
-                }
-            }
-        }
-
-        // Fetch from Mojang session server
+    /// Fetch skin texture URL from Mojang session server.
+    async fn fetch_skin_url(&self, uuid: &str) -> Option<String> {
         let url = format!("{MOJANG_SESSION}/{uuid}");
         let resp = self.http.get(&url).send().await.ok()?;
         if !resp.status().is_success() {
-            // Cache the miss to avoid hammering Mojang
-            let mut cache = self.texture_cache.lock().unwrap_or_else(|e| e.into_inner());
-            cache.put(uuid.to_string(), TimedEntry::new(None, TEXTURE_TTL));
             return None;
         }
-
         let body: serde_json::Value = resp.json().await.ok()?;
-        let skin_url = extract_skin_url(&body);
-
-        // Store in cache
-        {
-            let mut cache = self.texture_cache.lock().unwrap_or_else(|e| e.into_inner());
-            cache.put(
-                uuid.to_string(),
-                TimedEntry::new(skin_url.clone(), TEXTURE_TTL),
-            );
-        }
-
-        skin_url
+        extract_skin_url(&body)
     }
 }
 
