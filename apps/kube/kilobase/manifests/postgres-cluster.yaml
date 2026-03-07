@@ -36,10 +36,15 @@ spec:
         size: 40Gi
         storageClass: longhorn
 
-    # TLS certificates are auto-managed by CNPG operator (default behavior)
-    # Do NOT specify explicit certificate secret names — CNPG treats them as
-    # externally-managed and will NOT auto-renew, causing expiry failures.
-    # Phase 2: migrate to cert-manager-issued certs for external lifecycle management.
+    # TLS certificates issued by cert-manager via Crossplane provider-kubernetes
+    # cert-manager handles renewal (30 days before expiry); CNPG treats these as
+    # externally-managed and will use them without auto-generating its own certs.
+    # Rollback: remove this certificates block to revert to CNPG auto-managed TLS.
+    certificates:
+        serverTLSSecret: supabase-server-tls
+        serverCASecret: internal-ca-key-pair
+        replicationTLSSecret: supabase-replication-tls
+        clientCASecret: internal-ca-key-pair
 
     monitoring:
         enablePodMonitor: true
