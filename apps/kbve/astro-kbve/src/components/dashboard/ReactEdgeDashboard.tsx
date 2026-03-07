@@ -101,10 +101,7 @@ async function checkFunctionHealth(
 
 	try {
 		const controller = new AbortController();
-		const timeout = setTimeout(
-			() => controller.abort(),
-			FETCH_TIMEOUT_MS,
-		);
+		const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
 		// Health endpoint is a simple GET, other functions expect POST
 		// We use OPTIONS (preflight) for non-health functions to avoid
@@ -282,9 +279,7 @@ export default function ReactEdgeDashboard() {
 			<header style={styles.header}>
 				<div>
 					<h1 style={styles.title}>Edge Functions</h1>
-					{fromCache && (
-						<span style={styles.cacheBadge}>cached</span>
-					)}
+					{fromCache && <span style={styles.cacheBadge}>cached</span>}
 				</div>
 				<button
 					onClick={handleRefresh}
