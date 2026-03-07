@@ -4,10 +4,11 @@ use std::collections::HashMap;
 use std::time::Instant;
 
 use poise::serenity_prelude as serenity;
+use serde::ser::SerializeMap;
 
 // ── Map types ──────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize)]
 pub struct MapPos {
     pub x: i16,
     pub y: i16,
@@ -51,7 +52,7 @@ impl MapPos {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 pub enum Direction {
     North,
     South,
@@ -116,7 +117,7 @@ impl Direction {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct MapTile {
     pub pos: MapPos,
     pub room_type: RoomType,
@@ -127,13 +128,41 @@ pub struct MapTile {
     pub cleared: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct MapState {
     pub seed: u64,
     pub position: MapPos,
+    #[serde(serialize_with = "serialize_tiles")]
     pub tiles: HashMap<MapPos, MapTile>,
     pub tiles_visited: u32,
     pub boss_positions: Vec<MapPos>,
+}
+
+// ── Serde helpers ──────────────────────────────────────────────────
+
+/// Serialize `HashMap<MapPos, MapTile>` as a flat `Vec<MapTile>`.
+fn serialize_tiles<S: serde::Serializer>(
+    tiles: &HashMap<MapPos, MapTile>,
+    s: S,
+) -> Result<S::Ok, S::Error> {
+    use serde::ser::SerializeSeq;
+    let mut seq = s.serialize_seq(Some(tiles.len()))?;
+    for tile in tiles.values() {
+        seq.serialize_element(tile)?;
+    }
+    seq.end()
+}
+
+/// Serialize `HashMap<UserId, PlayerState>` with string keys.
+fn serialize_players<S: serde::Serializer>(
+    players: &HashMap<serenity::UserId, PlayerState>,
+    s: S,
+) -> Result<S::Ok, S::Error> {
+    let mut map = s.serialize_map(Some(players.len()))?;
+    for (uid, player) in players {
+        map.serialize_entry(&uid.get().to_string(), player)?;
+    }
+    map.end()
 }
 
 // ── Short session ID ────────────────────────────────────────────────
@@ -151,7 +180,7 @@ pub fn new_short_sid() -> (uuid::Uuid, ShortSid) {
 
 // ── Game phase ──────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum GamePhase {
     Exploring,
     Combat,
@@ -167,7 +196,7 @@ pub enum GamePhase {
     GameOver(GameOverReason),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum GameOverReason {
     Defeated,
     Escaped,
@@ -177,7 +206,7 @@ pub enum GameOverReason {
 
 // ── Room types ──────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum RoomType {
     Combat,
     Treasure,
@@ -192,7 +221,7 @@ pub enum RoomType {
 
 // ── Effects ─────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum EffectKind {
     Poison,
     Burning,
@@ -204,7 +233,7 @@ pub enum EffectKind {
     Thorns,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct EffectInstance {
     pub kind: EffectKind,
     pub stacks: u8,
@@ -213,7 +242,7 @@ pub struct EffectInstance {
 
 // ── Enemy intent (telegraph) ────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum Intent {
     Attack {
         dmg: i32,
@@ -245,7 +274,7 @@ pub const MAX_INVENTORY_SLOTS: usize = 16;
 
 pub type ItemId = String;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum UseEffect {
     Heal {
         amount: i32,
@@ -268,7 +297,7 @@ pub enum UseEffect {
 
 // ── Item rarity ────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
 pub enum ItemRarity {
     Common,
     Uncommon,
@@ -288,7 +317,7 @@ pub struct ItemDef {
     pub use_effect: Option<UseEffect>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct ItemStack {
     pub item_id: ItemId,
     pub qty: u16,
@@ -296,17 +325,18 @@ pub struct ItemStack {
 
 // ── Equipment / Gear ────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum EquipSlot {
     Weapon,
     Armor,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum GearSpecial {
     LifeSteal { percent: u8 },
     Thorns { damage: i32 },
     CritBonus { percent: u8 },
+    DamageReduction { percent: u8 },
 }
 
 #[derive(Debug, Clone)]
@@ -324,7 +354,7 @@ pub struct GearDef {
 
 // ── Player class ────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum ClassType {
     Warrior,
     Rogue,
@@ -351,7 +381,7 @@ impl ClassType {
 
 // ── Player state ────────────────────────────────────────────────────
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct PlayerState {
     pub name: String,
     pub hp: i32,
@@ -442,7 +472,7 @@ impl PlayerState {
 
 // ── Enemy state ─────────────────────────────────────────────────────
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct EnemyState {
     pub name: String,
     pub level: u8,
@@ -460,14 +490,14 @@ pub struct EnemyState {
 
 // ── Room state ──────────────────────────────────────────────────────
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum RoomModifier {
     Fog { accuracy_penalty: f32 },
     Blessing { heal_bonus: i32 },
     Cursed { dmg_multiplier: f32 },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum Hazard {
     Spikes {
         dmg: i32,
@@ -479,26 +509,26 @@ pub enum Hazard {
     },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct MerchantOffer {
     pub item_id: ItemId,
     pub price: i32,
     pub is_gear: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct StoryChoice {
     pub label: String,
     pub description: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct StoryEvent {
     pub prompt: String,
     pub choices: Vec<StoryChoice>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct StoryOutcome {
     pub log_message: String,
     pub hp_change: i32,
@@ -507,7 +537,7 @@ pub struct StoryOutcome {
     pub effect_gain: Option<(EffectKind, u8, u8)>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct RoomState {
     pub index: u32,
     pub room_type: RoomType,
@@ -545,7 +575,7 @@ pub enum GameAction {
 
 // ── Session mode ────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum SessionMode {
     Solo,
     Party,
@@ -554,7 +584,7 @@ pub enum SessionMode {
 // ── Member status tag ────────────────────────────────────────────────
 
 /// Lightweight membership tag stored in the session.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum MemberStatusTag {
     Member { username: String },
     Guest,
@@ -562,7 +592,7 @@ pub enum MemberStatusTag {
 
 // ── Session state ───────────────────────────────────────────────────
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct SessionState {
     pub id: uuid::Uuid,
     pub short_id: ShortSid,
@@ -572,18 +602,23 @@ pub struct SessionState {
     pub phase: GamePhase,
     pub channel_id: serenity::ChannelId,
     pub message_id: serenity::MessageId,
+    #[serde(skip)]
     pub created_at: Instant,
+    #[serde(skip)]
     pub last_action_at: Instant,
     pub turn: u32,
+    #[serde(serialize_with = "serialize_players")]
     pub players: HashMap<serenity::UserId, PlayerState>,
     pub enemies: Vec<EnemyState>,
     pub room: RoomState,
     pub log: Vec<String>,
     pub show_items: bool,
+    #[serde(skip)]
     pub pending_actions: HashMap<serenity::UserId, GameAction>,
     pub map: MapState,
     pub show_map: bool,
     pub show_inventory: bool,
+    #[serde(skip)]
     pub pending_destination: Option<MapPos>,
     pub enemies_had_first_strike: bool,
 }

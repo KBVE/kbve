@@ -33,7 +33,7 @@ poise = "0.6.1"
 sysinfo = "0.38.2"
 reqwest = { version = "0.13.2", default-features = false, features = ["json", "rustls"] }
 dashmap = "6.1"
-uuid = { version = "1", features = ["v4"] }
+uuid = { version = "1", features = ["v4", "serde"] }
 rand = "0.10"
 rand_chacha = "0.10"
 

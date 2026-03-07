@@ -413,28 +413,31 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
         embed = embed.field(label, log_display, false);
     }
 
-    // Footer — party roster with membership badges
+    // Party roster — embed field supports markdown links (footer does not)
     let roster_parts: Vec<String> = session
         .roster()
         .iter()
         .enumerate()
-        .map(|(i, (_, player))| {
-            let badge = match &player.member_status {
-                MemberStatusTag::Member { username } => {
-                    format!("{} -- kbve.com/@{}", player.name, username)
-                }
-                MemberStatusTag::Guest => format!("{} (Guest)", player.name),
-            };
-            format!("[{}] {}", i + 1, badge)
+        .map(|(i, (_, player))| match &player.member_status {
+            MemberStatusTag::Member { username } => {
+                format!(
+                    "[{}] {} — [kbve.com/@{}](https://kbve.com/@{})",
+                    i + 1,
+                    player.name,
+                    username,
+                    username
+                )
+            }
+            MemberStatusTag::Guest => format!("[{}] {} (Guest)", i + 1, player.name),
         })
         .collect();
-    let footer_text = format!(
-        "Turn {}  //  Session {}\n{}",
-        session.turn,
-        session.short_id,
-        roster_parts.join("  |  ")
-    );
-    embed = embed.footer(serenity::CreateEmbedFooter::new(footer_text));
+    embed = embed.field("\u{2014} Party \u{2014}", roster_parts.join("\n"), false);
+
+    // Footer — turn/session only
+    embed = embed.footer(serenity::CreateEmbedFooter::new(format!(
+        "Turn {}  //  Session {}",
+        session.turn, session.short_id
+    )));
 
     embed
 }
