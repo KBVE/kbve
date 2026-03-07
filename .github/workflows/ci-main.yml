@@ -378,11 +378,12 @@ jobs:
                 ]
 
     test_docker:
-        needs: ['generate_e2e_docker_matrix']
+        needs: ['generate_e2e_docker_matrix', 'build_base_images']
         name: Test Docker Apps
-        if: ${{ needs.generate_e2e_docker_matrix.outputs.matrix != 'null' }}
+        if: ${{ always() && needs.generate_e2e_docker_matrix.outputs.matrix != 'null' && !failure() && !cancelled() }}
         permissions:
             contents: read
+            packages: read
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.generate_e2e_docker_matrix.outputs.matrix) }}
