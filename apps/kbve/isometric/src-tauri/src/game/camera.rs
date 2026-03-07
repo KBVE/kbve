@@ -27,6 +27,11 @@ fn setup_camera(mut commands: Commands) {
         }),
         Transform::from_translation(camera_pos).looking_at(Vec3::ZERO, Vec3::Y),
         IsometricCamera,
-        PixelateSettings { pixel_size: 4.0 },
+        PixelateSettings {
+            pixel_size: 4.0,
+            edge_strength: 0.5,
+            depth_edge_strength: 0.3,
+            scale_factor: 1.0, // auto-updated from window each frame
+        },
     ));
 }

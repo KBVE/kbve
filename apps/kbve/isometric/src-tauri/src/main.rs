@@ -14,6 +14,7 @@ use tauri_plugin::TauriPlugin;
 use game::camera::IsometricCameraPlugin;
 use game::pixelate::PixelatePlugin;
 use game::player::PlayerPlugin;
+use game::scene_objects::SceneObjectsPlugin;
 use game::state::GameStatePlugin;
 use game::tilemap::TilemapPlugin;
 
@@ -50,6 +51,7 @@ fn main() {
         IsometricCameraPlugin,
         TilemapPlugin,
         PlayerPlugin,
+        SceneObjectsPlugin,
         PixelatePlugin,
     ));
 

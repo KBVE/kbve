@@ -1,3 +1,4 @@
+use bevy::light::{CascadeShadowConfigBuilder, DirectionalLightShadowMap};
 use bevy::prelude::*;
 
 pub const TILE_SIZE: f32 = 1.0;
@@ -52,20 +53,32 @@ fn spawn_tilemap(
         }
     }
 
-    // Ambient light
+    // Ambient light — keep low so shadows are clearly visible
     commands.insert_resource(GlobalAmbientLight {
         color: Color::WHITE,
-        brightness: 500.0,
+        brightness: 100.0,
         ..default()
     });
 
-    // Directional light (sun)
+    // Higher resolution shadow map
+    commands.insert_resource(DirectionalLightShadowMap { size: 4096 });
+
+    // Directional light (sun) — offset from camera axis so shadows cast visibly
+    // Camera is at (15,20,15); light at (12,15,-5) casts shadows towards +Z,
+    // making them clearly visible in the isometric view.
     commands.spawn((
         DirectionalLight {
-            illuminance: 3000.0,
+            illuminance: 8000.0,
             shadows_enabled: true,
             ..default()
         },
-        Transform::from_xyz(10.0, 20.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Transform::from_xyz(12.0, 15.0, -5.0).looking_at(Vec3::ZERO, Vec3::Y),
+        CascadeShadowConfigBuilder {
+            num_cascades: 4,
+            minimum_distance: 0.1,
+            maximum_distance: 50.0,
+            ..default()
+        }
+        .build(),
     ));
 }
