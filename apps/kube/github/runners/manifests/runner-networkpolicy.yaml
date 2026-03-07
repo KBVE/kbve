@@ -1,0 +1,32 @@
+# Egress restriction for self-hosted GitHub Actions runners
+# Allows only the ports needed for CI/CD (DNS, HTTPS, HTTP, SSH)
+# Blocks direct access to internal cluster services on non-standard ports
+# (e.g., PostgreSQL 5432, Redis 6379, RCON 25575)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: arc-runner-egress
+    namespace: arc-runners
+spec:
+    podSelector: {}
+    policyTypes:
+        - Egress
+    egress:
+        # DNS resolution (kube-dns)
+        - ports:
+              - port: 53
+                protocol: UDP
+              - port: 53
+                protocol: TCP
+        # HTTPS (GitHub API, container registries, npm/cargo registries)
+        - ports:
+              - port: 443
+                protocol: TCP
+        # HTTP (some registries, apt/apk repos)
+        - ports:
+              - port: 80
+                protocol: TCP
+        # SSH (git clone via SSH)
+        - ports:
+              - port: 22
+                protocol: TCP
