@@ -35,5 +35,5 @@ roleRef:
     name: crossplane-cert-manager-access
 subjects:
     - kind: ServiceAccount
-      name: crossplane-contrib-provider-kubernetes
+      name: crossplane-contrib-provider-kubernetes-f6665ef36536
       namespace: crossplane-system
