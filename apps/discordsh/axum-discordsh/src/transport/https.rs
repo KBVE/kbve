@@ -93,6 +93,7 @@ fn router(state: HttpState) -> Router {
         .layer(axum::middleware::from_fn(cache_headers));
 
     let svg_router = super::svg::router().with_state(state.clone());
+    let api_router = super::api::router().with_state(state.clone());
 
     let dynamic_router = Router::new()
         .route("/health", get(health))
@@ -105,6 +106,7 @@ fn router(state: HttpState) -> Router {
 
     static_router
         .merge(svg_router)
+        .merge(api_router)
         .merge(dynamic_router)
         .layer(middleware)
 }

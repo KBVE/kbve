@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
 import { User } from 'lucide-react';
 import ReactionBar from './ReactionBar';
 import type { FeedMeme } from '../../lib/memeService';
@@ -33,6 +33,11 @@ const MemeCard = forwardRef<HTMLDivElement, MemeCardProps>(
 		ref,
 	) => {
 		const isVideo = meme.format === 3 || meme.format === 2;
+		const [imgLoaded, setImgLoaded] = useState(false);
+
+		// Pre-calculate aspect ratio for stable sizing before image loads
+		const aspectRatio =
+			meme.width && meme.height ? meme.width / meme.height : 1;
 
 		return (
 			<div
@@ -46,39 +51,68 @@ const MemeCard = forwardRef<HTMLDivElement, MemeCardProps>(
 					backgroundColor: 'var(--sl-color-bg, #0a0a0a)',
 				}}>
 				{/* Meme asset — constrained with rounded corners */}
-				<div className="relative flex items-center justify-center w-full px-4"
+				<div
+					className="relative flex items-center justify-center w-full px-4"
 					style={{ maxHeight: '82dvh' }}>
-					{isVideo ? (
-						<video
-							src={meme.asset_url}
-							className="max-w-full max-h-full object-contain rounded-xl"
-							style={{
-								border: '1px solid rgba(255,255,255,0.06)',
-							}}
-							autoPlay
-							loop
-							muted
-							playsInline
-						/>
-					) : (
-						<img
-							src={meme.thumbnail_url || meme.asset_url}
-							alt={meme.title || 'Meme'}
-							className="max-w-full max-h-full object-contain select-none rounded-xl"
-							style={{
-								border: '1px solid rgba(255,255,255,0.06)',
-							}}
-							loading={lazy ? 'lazy' : 'eager'}
-							draggable={false}
-						/>
-					)}
+					{/* Stable-size container using known aspect ratio */}
+					<div
+						className="relative rounded-xl overflow-hidden"
+						style={{
+							width: '100%',
+							maxWidth: `min(calc(82dvh * ${aspectRatio}), 100%)`,
+							aspectRatio: `${aspectRatio}`,
+							maxHeight: '82dvh',
+							border: '1px solid rgba(255,255,255,0.06)',
+							backgroundColor: 'var(--sl-color-gray-6, #1c1c1e)',
+						}}>
+						{isVideo ? (
+							<video
+								src={meme.asset_url}
+								className="absolute inset-0 w-full h-full object-cover"
+								autoPlay
+								loop
+								muted
+								playsInline
+							/>
+						) : (
+							<img
+								src={meme.thumbnail_url || meme.asset_url}
+								alt={meme.title || 'Meme'}
+								className="absolute inset-0 w-full h-full object-cover select-none"
+								loading={lazy ? 'lazy' : 'eager'}
+								draggable={false}
+								onLoad={() => setImgLoaded(true)}
+								style={{
+									opacity: imgLoaded ? 1 : 0,
+									transition: 'opacity 0.3s ease',
+								}}
+							/>
+						)}
+
+						{/* Shimmer overlay for image loading */}
+						{!isVideo && (
+							<div
+								className="absolute inset-0 pointer-events-none"
+								style={{
+									opacity: imgLoaded ? 0 : 1,
+									transition: 'opacity 0.4s ease',
+									background:
+										'linear-gradient(110deg, var(--sl-color-gray-6, #1c1c1e) 30%, var(--sl-color-gray-5, #27272a) 50%, var(--sl-color-gray-6, #1c1c1e) 70%)',
+									backgroundSize: '200% 100%',
+									animation:
+										'shimmer 1.5s ease-in-out infinite',
+								}}
+							/>
+						)}
+					</div>
 				</div>
 
 				{/* Bottom info card — frosted glass */}
 				<div
 					className="absolute bottom-0 left-0 right-0 px-4 pb-5 pt-10 pointer-events-none"
 					style={{
-						background: 'linear-gradient(transparent, rgba(0,0,0,0.7) 40%)',
+						background:
+							'linear-gradient(transparent, rgba(0,0,0,0.7) 40%)',
 					}}>
 					<div className="pointer-events-auto max-w-lg">
 						{meme.title && (
@@ -169,6 +203,13 @@ const MemeCard = forwardRef<HTMLDivElement, MemeCardProps>(
 						onReport={onReport}
 					/>
 				</div>
+
+				<style>{`
+					@keyframes shimmer {
+						0% { background-position: 200% 0; }
+						100% { background-position: -200% 0; }
+					}
+				`}</style>
 			</div>
 		);
 	},

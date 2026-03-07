@@ -4,10 +4,11 @@ use std::collections::HashMap;
 use std::time::Instant;
 
 use poise::serenity_prelude as serenity;
+use serde::ser::SerializeMap;
 
 // ── Map types ──────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize)]
 pub struct MapPos {
     pub x: i16,
     pub y: i16,
@@ -51,7 +52,7 @@ impl MapPos {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 pub enum Direction {
     North,
     South,
@@ -116,7 +117,7 @@ impl Direction {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct MapTile {
     pub pos: MapPos,
     pub room_type: RoomType,
@@ -127,13 +128,41 @@ pub struct MapTile {
     pub cleared: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct MapState {
     pub seed: u64,
     pub position: MapPos,
+    #[serde(serialize_with = "serialize_tiles")]
     pub tiles: HashMap<MapPos, MapTile>,
     pub tiles_visited: u32,
     pub boss_positions: Vec<MapPos>,
+}
+
+// ── Serde helpers ──────────────────────────────────────────────────
+
+/// Serialize `HashMap<MapPos, MapTile>` as a flat `Vec<MapTile>`.
+fn serialize_tiles<S: serde::Serializer>(
+    tiles: &HashMap<MapPos, MapTile>,
+    s: S,
+) -> Result<S::Ok, S::Error> {
+    use serde::ser::SerializeSeq;
+    let mut seq = s.serialize_seq(Some(tiles.len()))?;
+    for tile in tiles.values() {
+        seq.serialize_element(tile)?;
+    }
+    seq.end()
+}
+
+/// Serialize `HashMap<UserId, PlayerState>` with string keys.
+fn serialize_players<S: serde::Serializer>(
+    players: &HashMap<serenity::UserId, PlayerState>,
+    s: S,
+) -> Result<S::Ok, S::Error> {
+    let mut map = s.serialize_map(Some(players.len()))?;
+    for (uid, player) in players {
+        map.serialize_entry(&uid.get().to_string(), player)?;
+    }
+    map.end()
 }
 
 // ── Short session ID ────────────────────────────────────────────────
@@ -151,7 +180,7 @@ pub fn new_short_sid() -> (uuid::Uuid, ShortSid) {
 
 // ── Game phase ──────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum GamePhase {
     Exploring,
     Combat,
@@ -167,7 +196,7 @@ pub enum GamePhase {
     GameOver(GameOverReason),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum GameOverReason {
     Defeated,
     Escaped,
@@ -177,7 +206,7 @@ pub enum GameOverReason {
 
 // ── Room types ──────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum RoomType {
     Combat,
     Treasure,
@@ -192,7 +221,7 @@ pub enum RoomType {
 
 // ── Effects ─────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum EffectKind {
     Poison,
     Burning,
@@ -204,7 +233,7 @@ pub enum EffectKind {
     Thorns,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct EffectInstance {
     pub kind: EffectKind,
     pub stacks: u8,
@@ -213,7 +242,7 @@ pub struct EffectInstance {
 
 // ── Enemy intent (telegraph) ────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum Intent {
     Attack {
         dmg: i32,
@@ -245,7 +274,7 @@ pub const MAX_INVENTORY_SLOTS: usize = 16;
 
 pub type ItemId = String;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum UseEffect {
     Heal {
         amount: i32,
@@ -268,7 +297,7 @@ pub enum UseEffect {
 
 // ── Item rarity ────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
 pub enum ItemRarity {
     Common,
     Uncommon,
@@ -288,7 +317,7 @@ pub struct ItemDef {
     pub use_effect: Option<UseEffect>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct ItemStack {
     pub item_id: ItemId,
     pub qty: u16,
@@ -296,17 +325,18 @@ pub struct ItemStack {
 
 // ── Equipment / Gear ────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum EquipSlot {
     Weapon,
     Armor,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum GearSpecial {
     LifeSteal { percent: u8 },
     Thorns { damage: i32 },
     CritBonus { percent: u8 },
+    DamageReduction { percent: u8 },
 }
 
 #[derive(Debug, Clone)]
@@ -324,7 +354,7 @@ pub struct GearDef {
 
 // ── Player class ────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum ClassType {
     Warrior,
     Rogue,
@@ -351,7 +381,7 @@ impl ClassType {
 
 // ── Player state ────────────────────────────────────────────────────
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct PlayerState {
     pub name: String,
     pub hp: i32,
@@ -442,7 +472,7 @@ impl PlayerState {
 
 // ── Enemy state ─────────────────────────────────────────────────────
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct EnemyState {
     pub name: String,
     pub level: u8,
@@ -460,14 +490,14 @@ pub struct EnemyState {
 
 // ── Room state ──────────────────────────────────────────────────────
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum RoomModifier {
     Fog { accuracy_penalty: f32 },
     Blessing { heal_bonus: i32 },
     Cursed { dmg_multiplier: f32 },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum Hazard {
     Spikes {
         dmg: i32,
@@ -479,26 +509,26 @@ pub enum Hazard {
     },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct MerchantOffer {
     pub item_id: ItemId,
     pub price: i32,
     pub is_gear: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct StoryChoice {
     pub label: String,
     pub description: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct StoryEvent {
     pub prompt: String,
     pub choices: Vec<StoryChoice>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct StoryOutcome {
     pub log_message: String,
     pub hp_change: i32,
@@ -507,7 +537,7 @@ pub struct StoryOutcome {
     pub effect_gain: Option<(EffectKind, u8, u8)>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct RoomState {
     pub index: u32,
     pub room_type: RoomType,
@@ -545,7 +575,7 @@ pub enum GameAction {
 
 // ── Session mode ────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum SessionMode {
     Solo,
     Party,
@@ -554,7 +584,7 @@ pub enum SessionMode {
 // ── Member status tag ────────────────────────────────────────────────
 
 /// Lightweight membership tag stored in the session.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum MemberStatusTag {
     Member { username: String },
     Guest,
@@ -562,7 +592,7 @@ pub enum MemberStatusTag {
 
 // ── Session state ───────────────────────────────────────────────────
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct SessionState {
     pub id: uuid::Uuid,
     pub short_id: ShortSid,
@@ -572,18 +602,23 @@ pub struct SessionState {
     pub phase: GamePhase,
     pub channel_id: serenity::ChannelId,
     pub message_id: serenity::MessageId,
+    #[serde(skip)]
     pub created_at: Instant,
+    #[serde(skip)]
     pub last_action_at: Instant,
     pub turn: u32,
+    #[serde(serialize_with = "serialize_players")]
     pub players: HashMap<serenity::UserId, PlayerState>,
     pub enemies: Vec<EnemyState>,
     pub room: RoomState,
     pub log: Vec<String>,
     pub show_items: bool,
+    #[serde(skip)]
     pub pending_actions: HashMap<serenity::UserId, GameAction>,
     pub map: MapState,
     pub show_map: bool,
     pub show_inventory: bool,
+    #[serde(skip)]
     pub pending_destination: Option<MapPos>,
     pub enemies_had_first_strike: bool,
 }
@@ -1055,5 +1090,230 @@ mod tests {
             enemies_had_first_strike: false,
         };
         assert!(!session.show_inventory);
+    }
+
+    // ── Serde serialization tests ──────────────────────────────────
+
+    #[test]
+    fn serde_session_state_round_trip() {
+        use std::time::Instant;
+        let owner = serenity::UserId::new(42);
+        let mut players = HashMap::new();
+        let mut player = PlayerState::default();
+        player.name = "TestHero".to_owned();
+        player.gold = 100;
+        player.weapon = Some("rusty_sword".to_owned());
+        player.armor_gear = Some("leather_vest".to_owned());
+        player.effects.push(EffectInstance {
+            kind: EffectKind::Poison,
+            stacks: 2,
+            turns_left: 3,
+        });
+        player.inventory.push(ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 5,
+        });
+        players.insert(owner, player);
+
+        let session = SessionState {
+            id: uuid::Uuid::new_v4(),
+            short_id: "serde123".to_owned(),
+            owner,
+            party: Vec::new(),
+            mode: SessionMode::Solo,
+            phase: GamePhase::Combat,
+            channel_id: serenity::ChannelId::new(999),
+            message_id: serenity::MessageId::new(888),
+            created_at: Instant::now(),
+            last_action_at: Instant::now(),
+            turn: 7,
+            players,
+            enemies: vec![EnemyState {
+                name: "Goblin".to_owned(),
+                level: 3,
+                hp: 30,
+                max_hp: 40,
+                armor: 2,
+                effects: Vec::new(),
+                intent: Intent::HeavyAttack { dmg: 12 },
+                charged: false,
+                loot_table_id: "skeleton",
+                enraged: false,
+                index: 0,
+                first_strike: false,
+            }],
+            room: super::super::content::generate_room(5),
+            log: vec!["Turn begins.".to_owned(), "Goblin attacks!".to_owned()],
+            show_items: true,
+            pending_actions: HashMap::new(),
+            map: test_map_default(),
+            show_map: false,
+            show_inventory: true,
+            pending_destination: Some(MapPos::new(1, 0)),
+            enemies_had_first_strike: false,
+        };
+
+        let json = serde_json::to_string(&session).unwrap();
+        let val: serde_json::Value = serde_json::from_str(&json).unwrap();
+
+        // Core fields present
+        assert_eq!(val["short_id"], "serde123");
+        assert_eq!(val["turn"], 7);
+        assert_eq!(val["mode"], "Solo");
+        assert_eq!(val["phase"], "Combat");
+        assert_eq!(val["show_inventory"], true);
+
+        // Players map uses string keys
+        let players_obj = val["players"].as_object().unwrap();
+        assert_eq!(players_obj.len(), 1);
+        assert!(players_obj.contains_key("42"));
+        let p = &players_obj["42"];
+        assert_eq!(p["name"], "TestHero");
+        assert_eq!(p["gold"], 100);
+        assert_eq!(p["weapon"], "rusty_sword");
+        assert_eq!(p["inventory"][0]["item_id"], "potion");
+        assert_eq!(p["inventory"][0]["qty"], 5);
+        assert_eq!(p["effects"][0]["kind"], "Poison");
+
+        // Enemies
+        assert_eq!(val["enemies"][0]["name"], "Goblin");
+        assert_eq!(val["enemies"][0]["hp"], 30);
+
+        // Skipped fields should be absent
+        assert!(val.get("created_at").is_none());
+        assert!(val.get("last_action_at").is_none());
+        assert!(val.get("pending_actions").is_none());
+        assert!(val.get("pending_destination").is_none());
+
+        // Tiles serialized as array
+        assert!(val["map"]["tiles"].is_array());
+
+        // Log preserved
+        assert_eq!(val["log"].as_array().unwrap().len(), 2);
+    }
+
+    #[test]
+    fn serde_gear_special_all_variants() {
+        let variants = vec![
+            GearSpecial::LifeSteal { percent: 20 },
+            GearSpecial::Thorns { damage: 5 },
+            GearSpecial::CritBonus { percent: 15 },
+            GearSpecial::DamageReduction { percent: 10 },
+        ];
+
+        for variant in &variants {
+            let json = serde_json::to_string(variant).unwrap();
+            let val: serde_json::Value = serde_json::from_str(&json).unwrap();
+            // Each variant serializes as an object with the variant name as key
+            assert!(
+                val.is_object(),
+                "GearSpecial variant should be an object: {json}"
+            );
+        }
+
+        // Verify specific field values
+        let dr_json = serde_json::to_string(&GearSpecial::DamageReduction { percent: 10 }).unwrap();
+        let dr_val: serde_json::Value = serde_json::from_str(&dr_json).unwrap();
+        assert_eq!(dr_val["DamageReduction"]["percent"], 10);
+    }
+
+    #[test]
+    fn serde_game_phase_variants() {
+        let phases = vec![
+            GamePhase::Exploring,
+            GamePhase::Combat,
+            GamePhase::Looting,
+            GamePhase::Event,
+            GamePhase::Rest,
+            GamePhase::Merchant,
+            GamePhase::GameOver(GameOverReason::Victory),
+            GamePhase::GameOver(GameOverReason::Defeated),
+        ];
+
+        for phase in &phases {
+            let json = serde_json::to_string(phase).unwrap();
+            // Should not panic and produce valid JSON
+            let _: serde_json::Value = serde_json::from_str(&json).unwrap();
+        }
+
+        // Simple variants serialize as strings
+        let json = serde_json::to_string(&GamePhase::Exploring).unwrap();
+        assert_eq!(json, "\"Exploring\"");
+
+        // Nested variants serialize with data
+        let json = serde_json::to_string(&GamePhase::GameOver(GameOverReason::Victory)).unwrap();
+        let val: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(val["GameOver"], "Victory");
+    }
+
+    #[test]
+    fn serde_map_tiles_serialized_as_array() {
+        let mut tiles = HashMap::new();
+        tiles.insert(
+            MapPos::new(0, 0),
+            MapTile {
+                pos: MapPos::new(0, 0),
+                room_type: RoomType::UndergroundCity,
+                name: "City".to_owned(),
+                description: "A city.".to_owned(),
+                exits: vec![Direction::North],
+                visited: true,
+                cleared: true,
+            },
+        );
+        tiles.insert(
+            MapPos::new(1, 0),
+            MapTile {
+                pos: MapPos::new(1, 0),
+                room_type: RoomType::Combat,
+                name: "Arena".to_owned(),
+                description: "A fight.".to_owned(),
+                exits: vec![Direction::West, Direction::East],
+                visited: false,
+                cleared: false,
+            },
+        );
+
+        let map = MapState {
+            seed: 42,
+            position: MapPos::new(0, 0),
+            tiles,
+            tiles_visited: 1,
+            boss_positions: vec![MapPos::new(5, 5)],
+        };
+
+        let json = serde_json::to_string(&map).unwrap();
+        let val: serde_json::Value = serde_json::from_str(&json).unwrap();
+
+        // tiles is an array, not an object
+        let tiles_arr = val["tiles"].as_array().unwrap();
+        assert_eq!(tiles_arr.len(), 2);
+
+        // Each tile has its pos embedded
+        let names: Vec<&str> = tiles_arr
+            .iter()
+            .map(|t| t["name"].as_str().unwrap())
+            .collect();
+        assert!(names.contains(&"City"));
+        assert!(names.contains(&"Arena"));
+
+        // boss_positions serializes normally
+        assert_eq!(val["boss_positions"][0]["x"], 5);
+        assert_eq!(val["boss_positions"][0]["y"], 5);
+    }
+
+    #[test]
+    fn serde_member_status_tag_variants() {
+        let member = MemberStatusTag::Member {
+            username: "fudster".to_owned(),
+        };
+        let guest = MemberStatusTag::Guest;
+
+        let member_json = serde_json::to_string(&member).unwrap();
+        let val: serde_json::Value = serde_json::from_str(&member_json).unwrap();
+        assert_eq!(val["Member"]["username"], "fudster");
+
+        let guest_json = serde_json::to_string(&guest).unwrap();
+        assert_eq!(guest_json, "\"Guest\"");
     }
 }

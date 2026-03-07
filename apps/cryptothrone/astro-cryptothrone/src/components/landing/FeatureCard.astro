@@ -16,15 +16,19 @@ const { title, description, icon } = Astro.props;
 
 <style>
 	.ct-card {
-		background: rgba(39, 39, 42, 0.6);
-		border: 1px solid rgba(251, 191, 36, 0.15);
+		background: color-mix(
+			in srgb,
+			var(--sl-color-gray-6, #27272a) 60%,
+			transparent
+		);
+		border: 1px solid color-mix(in srgb, var(--ct-accent) 15%, transparent);
 		border-radius: 0.75rem;
 		padding: 1.5rem;
 		transition: all 0.3s ease;
 	}
 
 	.ct-card:hover {
-		border-color: rgba(251, 191, 36, 0.4);
+		border-color: color-mix(in srgb, var(--ct-accent) 40%, transparent);
 		transform: translateY(-4px);
 		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 	}
@@ -37,13 +41,13 @@ const { title, description, icon } = Astro.props;
 	.ct-card__title {
 		font-size: 1.125rem;
 		font-weight: 700;
-		color: #fbbf24;
+		color: var(--ct-accent);
 		margin: 0 0 0.5rem;
 	}
 
 	.ct-card__desc {
 		font-size: 0.875rem;
-		color: #9ca3af;
+		color: var(--sl-color-gray-3, #9ca3af);
 		line-height: 1.6;
 		margin: 0;
 	}

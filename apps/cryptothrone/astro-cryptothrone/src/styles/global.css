@@ -1,5 +1,13 @@
 @import 'tailwindcss';
 
+/* ── CryptoThrone theme tokens ── */
+:root {
+	--ct-accent: #fbbf24;
+	--ct-accent-mid: #f59e0b;
+	--ct-accent-dark: #d97706;
+	--ct-bg-deep: #1a1a2e;
+}
+
 /* ── Game full-bleed layout ── */
 
 /* Lock body scroll and hide footer when the game overlay is active */
@@ -17,7 +25,7 @@ body:has(.game-fullscreen) .ct-footer {
 	position: fixed;
 	inset: 0;
 	z-index: 50;
-	background: #1a1a2e;
+	background: var(--ct-bg-deep);
 	display: flex;
 	align-items: center;
 	justify-content: center;

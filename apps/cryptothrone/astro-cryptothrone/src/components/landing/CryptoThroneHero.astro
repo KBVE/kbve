@@ -72,7 +72,12 @@ const {
 		font-size: clamp(2.5rem, 6vw, 4.5rem);
 		font-weight: 800;
 		letter-spacing: -0.02em;
-		background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+		background: linear-gradient(
+			135deg,
+			var(--ct-accent),
+			var(--ct-accent-mid),
+			var(--ct-accent-dark)
+		);
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
 		background-clip: text;
@@ -82,7 +87,7 @@ const {
 
 	.ct-hero__tagline {
 		font-size: clamp(1rem, 2vw, 1.25rem);
-		color: #d1d5db;
+		color: var(--sl-color-gray-2, #d1d5db);
 		margin: 0 0 2.5rem;
 		line-height: 1.6;
 	}
@@ -106,8 +111,12 @@ const {
 	}
 
 	.ct-btn--primary {
-		background: linear-gradient(135deg, #f59e0b, #d97706);
-		color: #1a1a2e;
+		background: linear-gradient(
+			135deg,
+			var(--ct-accent-mid),
+			var(--ct-accent-dark)
+		);
+		color: var(--ct-bg-deep);
 	}
 
 	.ct-btn--primary:hover {
@@ -116,14 +125,14 @@ const {
 	}
 
 	.ct-btn--ghost {
-		border: 1px solid rgba(251, 191, 36, 0.4);
-		color: #fbbf24;
+		border: 1px solid color-mix(in srgb, var(--ct-accent) 40%, transparent);
+		color: var(--ct-accent);
 		background: transparent;
 	}
 
 	.ct-btn--ghost:hover {
-		background: rgba(251, 191, 36, 0.1);
-		border-color: #fbbf24;
+		background: color-mix(in srgb, var(--ct-accent) 10%, transparent);
+		border-color: var(--ct-accent);
 	}
 
 	.ct-hero__scroll-hint {
@@ -131,7 +140,7 @@ const {
 		bottom: 2rem;
 		left: 50%;
 		transform: translateX(-50%);
-		color: rgba(251, 191, 36, 0.5);
+		color: color-mix(in srgb, var(--ct-accent) 50%, transparent);
 		animation: bounce 2s infinite;
 	}
 

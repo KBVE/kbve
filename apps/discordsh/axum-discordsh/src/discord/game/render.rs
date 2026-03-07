@@ -413,28 +413,31 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
         embed = embed.field(label, log_display, false);
     }
 
-    // Footer — party roster with membership badges
+    // Party roster — embed field supports markdown links (footer does not)
     let roster_parts: Vec<String> = session
         .roster()
         .iter()
         .enumerate()
-        .map(|(i, (_, player))| {
-            let badge = match &player.member_status {
-                MemberStatusTag::Member { username } => {
-                    format!("{} -- kbve.com/@{}", player.name, username)
-                }
-                MemberStatusTag::Guest => format!("{} (Guest)", player.name),
-            };
-            format!("[{}] {}", i + 1, badge)
+        .map(|(i, (_, player))| match &player.member_status {
+            MemberStatusTag::Member { username } => {
+                format!(
+                    "[{}] {} — [kbve.com/@{}](https://kbve.com/@{})",
+                    i + 1,
+                    player.name,
+                    username,
+                    username
+                )
+            }
+            MemberStatusTag::Guest => format!("[{}] {} (Guest)", i + 1, player.name),
         })
         .collect();
-    let footer_text = format!(
-        "Turn {}  //  Session {}\n{}",
-        session.turn,
-        session.short_id,
-        roster_parts.join("  |  ")
-    );
-    embed = embed.footer(serenity::CreateEmbedFooter::new(footer_text));
+    embed = embed.field("\u{2014} Party \u{2014}", roster_parts.join("\n"), false);
+
+    // Footer — turn/session only
+    embed = embed.footer(serenity::CreateEmbedFooter::new(format!(
+        "Turn {}  //  Session {}",
+        session.turn, session.short_id
+    )));
 
     embed
 }
@@ -1837,5 +1840,111 @@ mod tests {
             !all_json.contains("|inv"),
             "game over should NOT have Inv button"
         );
+    }
+
+    // ── Roster / embed field format tests ───────────────────────────
+
+    /// Build roster parts the same way render_embed does, for testing.
+    fn build_roster_parts(session: &SessionState) -> Vec<String> {
+        session
+            .roster()
+            .iter()
+            .enumerate()
+            .map(|(i, (_, player))| match &player.member_status {
+                MemberStatusTag::Member { username } => {
+                    format!(
+                        "[{}] {} — [kbve.com/@{}](https://kbve.com/@{})",
+                        i + 1,
+                        player.name,
+                        username,
+                        username
+                    )
+                }
+                MemberStatusTag::Guest => format!("[{}] {} (Guest)", i + 1, player.name),
+            })
+            .collect()
+    }
+
+    #[test]
+    fn roster_field_member_has_clickable_link() {
+        let mut session = test_session();
+        session.player_mut(OWNER).name = "Fudster".to_owned();
+        session.player_mut(OWNER).member_status = MemberStatusTag::Member {
+            username: "fudster".to_owned(),
+        };
+
+        let parts = build_roster_parts(&session);
+        assert_eq!(parts.len(), 1);
+        assert!(
+            parts[0].contains("[kbve.com/@fudster](https://kbve.com/@fudster)"),
+            "member should have markdown link, got: {}",
+            parts[0]
+        );
+        assert!(parts[0].starts_with("[1]"), "should start with [1]");
+        assert!(parts[0].contains("Fudster"), "should contain player name");
+    }
+
+    #[test]
+    fn roster_field_guest_no_link() {
+        let mut session = test_session();
+        session.player_mut(OWNER).name = "RandomGuy".to_owned();
+        session.player_mut(OWNER).member_status = MemberStatusTag::Guest;
+
+        let parts = build_roster_parts(&session);
+        assert_eq!(parts.len(), 1);
+        assert!(
+            parts[0].contains("(Guest)"),
+            "guest should show (Guest), got: {}",
+            parts[0]
+        );
+        assert!(
+            !parts[0].contains("kbve.com"),
+            "guest should not have kbve link"
+        );
+    }
+
+    #[test]
+    fn roster_field_party_ordering_and_mixed_status() {
+        let mut session = test_session();
+        session.player_mut(OWNER).name = "Leader".to_owned();
+        session.player_mut(OWNER).member_status = MemberStatusTag::Member {
+            username: "leader".to_owned(),
+        };
+
+        // Add party member (guest)
+        let p2 = serenity::UserId::new(2);
+        let mut player2 = PlayerState::default();
+        player2.name = "GuestBob".to_owned();
+        player2.member_status = MemberStatusTag::Guest;
+        session.players.insert(p2, player2);
+        session.party.push(p2);
+
+        // Add party member (member)
+        let p3 = serenity::UserId::new(3);
+        let mut player3 = PlayerState::default();
+        player3.name = "MemberAlice".to_owned();
+        player3.member_status = MemberStatusTag::Member {
+            username: "alice".to_owned(),
+        };
+        session.players.insert(p3, player3);
+        session.party.push(p3);
+
+        let parts = build_roster_parts(&session);
+        assert_eq!(parts.len(), 3);
+
+        // Owner is always [1]
+        assert!(parts[0].starts_with("[1]"));
+        assert!(parts[0].contains("Leader"));
+        assert!(parts[0].contains("kbve.com/@leader"));
+
+        // Second player is [2] guest
+        assert!(parts[1].starts_with("[2]"));
+        assert!(parts[1].contains("GuestBob"));
+        assert!(parts[1].contains("(Guest)"));
+
+        // Third player is [3] member
+        assert!(parts[2].starts_with("[3]"));
+        assert!(parts[2].contains("MemberAlice"));
+        assert!(parts[2].contains("kbve.com/@alice"));
     }
 }

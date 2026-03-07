@@ -1277,7 +1277,23 @@ fn single_enemy_turn(
 
     // Apply damage to player
     match action {
-        EnemyAction::DealDamage { dmg, msg } => {
+        EnemyAction::DealDamage { mut dmg, msg } => {
+            // DamageReduction from armor gear
+            let dr_pct = session
+                .player(target)
+                .armor_gear
+                .as_ref()
+                .and_then(|id| content::find_gear(id))
+                .and_then(|g| match &g.special {
+                    Some(GearSpecial::DamageReduction { percent }) => Some(*percent as f32 / 100.0),
+                    _ => None,
+                })
+                .unwrap_or(0.0);
+            if dr_pct > 0.0 {
+                dmg = ((dmg as f32) * (1.0 - dr_pct)).ceil() as i32;
+                dmg = dmg.max(1);
+            }
+
             let player = session.player_mut(target);
             player.hp -= dmg;
             logs.push(msg);
@@ -1339,6 +1355,23 @@ fn single_enemy_turn(
                 let mut actual = (dmg - p_armor).max(1);
                 if p_shielded || p_defending {
                     actual /= 2;
+                }
+
+                // DamageReduction from armor gear
+                let dr_pct = player
+                    .armor_gear
+                    .as_ref()
+                    .and_then(|id| content::find_gear(id))
+                    .and_then(|g| match &g.special {
+                        Some(GearSpecial::DamageReduction { percent }) => {
+                            Some(*percent as f32 / 100.0)
+                        }
+                        _ => None,
+                    })
+                    .unwrap_or(0.0);
+                if dr_pct > 0.0 {
+                    actual = ((actual as f32) * (1.0 - dr_pct)).ceil() as i32;
+                    actual = actual.max(1);
                 }
 
                 let player = session.player_mut(uid);
@@ -6707,5 +6740,93 @@ mod tests {
                 .qty,
             2
         );
+    }
+
+    // ── DamageReduction gear tests ──────────────────────────────────
+
+    #[test]
+    fn test_damage_reduction_reduces_single_target_damage() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+
+        // Equip dragon_scale (10% DamageReduction)
+        session.player_mut(OWNER).armor_gear = Some("dragon_scale".to_owned());
+        // Set armor to 0 so we isolate DamageReduction
+        session.player_mut(OWNER).armor = 0;
+
+        let hp_before = session.player(OWNER).hp;
+
+        // Enemy deals 20 damage
+        let mut enemy = test_enemy();
+        enemy.intent = Intent::Attack { dmg: 20 };
+        session.enemies = vec![enemy];
+
+        // Process enemy turn
+        let _ = single_enemy_turn(&mut session, 0, OWNER);
+
+        let hp_after = session.player(OWNER).hp;
+        let damage_taken = hp_before - hp_after;
+
+        // 20 base - 0 armor = 20, then 10% DR: ceil(20 * 0.9) = 18
+        assert_eq!(damage_taken, 18, "10% DR should reduce 20 damage to 18");
+    }
+
+    #[test]
+    fn test_damage_reduction_minimum_one_damage() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+
+        session.player_mut(OWNER).armor_gear = Some("dragon_scale".to_owned());
+        // High armor so raw damage is 1
+        session.player_mut(OWNER).armor = 100;
+
+        let hp_before = session.player(OWNER).hp;
+
+        let mut enemy = test_enemy();
+        enemy.intent = Intent::Attack { dmg: 10 };
+        session.enemies = vec![enemy];
+
+        let _ = single_enemy_turn(&mut session, 0, OWNER);
+
+        let hp_after = session.player(OWNER).hp;
+        let damage_taken = hp_before - hp_after;
+
+        // (10 - 100).max(1) = 1, then ceil(1 * 0.9) = 1, max(1) = 1
+        assert_eq!(damage_taken, 1, "DR should never reduce below 1 damage");
+    }
+
+    #[test]
+    fn test_damage_reduction_aoe_attack() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+
+        // Add a second player to verify AoE applies DR per-player
+        let p2 = serenity::UserId::new(2);
+        let mut player2 = PlayerState::default();
+        player2.armor = 0;
+        player2.armor_gear = Some("dragon_scale".to_owned()); // 10% DR
+        session.players.insert(p2, player2);
+        session.party.push(p2);
+
+        // Owner has no DR
+        session.player_mut(OWNER).armor = 0;
+        session.player_mut(OWNER).armor_gear = None;
+
+        let hp_owner_before = session.player(OWNER).hp;
+        let hp_p2_before = session.player(p2).hp;
+
+        let mut enemy = test_enemy();
+        enemy.intent = Intent::AoeAttack { dmg: 20 };
+        session.enemies = vec![enemy];
+
+        let _ = single_enemy_turn(&mut session, 0, OWNER);
+
+        let owner_dmg = hp_owner_before - session.player(OWNER).hp;
+        let p2_dmg = hp_p2_before - session.player(p2).hp;
+
+        // Owner: no DR, 0 armor → takes full 20
+        assert_eq!(owner_dmg, 20, "Owner without DR should take full damage");
+        // P2: 10% DR → ceil(20 * 0.9) = 18
+        assert_eq!(p2_dmg, 18, "P2 with DR should take reduced damage");
     }
 }
