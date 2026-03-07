@@ -16,7 +16,9 @@
 		},
 		"build": {
 			"executor": "@monodon/rust:build",
-			"outputs": ["{options.target-dir}"],
+			"outputs": [
+				"{options.target-dir}"
+			],
 			"options": {
 				"target-dir": "dist/target/axum-kbve"
 			},
@@ -28,7 +30,9 @@
 		},
 		"test": {
 			"executor": "@monodon/rust:test",
-			"outputs": ["{options.target-dir}"],
+			"outputs": [
+				"{options.target-dir}"
+			],
 			"options": {
 				"target-dir": "dist/target/axum-kbve"
 			},
@@ -40,14 +44,18 @@
 		},
 		"lint": {
 			"executor": "@monodon/rust:lint",
-			"outputs": ["{options.target-dir}"],
+			"outputs": [
+				"{options.target-dir}"
+			],
 			"options": {
 				"target-dir": "dist/target/axum-kbve"
 			}
 		},
 		"run": {
 			"executor": "@monodon/rust:run",
-			"outputs": ["{options.target-dir}"],
+			"outputs": [
+				"{options.target-dir}"
+			],
 			"options": {
 				"target-dir": "dist/target/axum-kbve"
 			},
@@ -71,7 +79,9 @@
 		},
 		"container": {
 			"executor": "nx:run-commands",
-			"dependsOn": ["container-prep"],
+			"dependsOn": [
+				"container-prep"
+			],
 			"defaultConfiguration": "local",
 			"options": {
 				"parallel": false
@@ -91,7 +101,7 @@
 				},
 				"ci": {
 					"commands": [
-						"echo '=== Pre-build diagnostics ===' && df -h 2>/dev/null && free -m 2>/dev/null || true && docker system df 2>/dev/null || true",
+						"echo '=== Pre-build diagnostics ===' && df -h 2>/dev/null && echo '--- cgroup memory ---' && cat /sys/fs/cgroup/memory.max 2>/dev/null && cat /sys/fs/cgroup/memory.current 2>/dev/null || true && docker system df 2>/dev/null || true && docker buildx ls 2>/dev/null || true",
 						"BUILDKIT_PROGRESS=plain ./kbve.sh -nx axum-kbve:containerx --configuration=ci",
 						"VERSION=$(grep '^version' apps/kbve/axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve:latest kbve/kbve:$VERSION && echo \"Tagged kbve/kbve:$VERSION\""
 					]
@@ -111,14 +121,21 @@
 				"local": {
 					"load": true,
 					"push": false,
-					"tags": ["kbve/kbve:latest"]
+					"tags": [
+						"kbve/kbve:latest"
+					]
 				},
 				"production": {
 					"load": true,
 					"push": false,
 					"metadata": {
-						"images": ["ghcr.io/kbve/kbve", "kbve/kbve"],
-						"tags": ["latest"]
+						"images": [
+							"ghcr.io/kbve/kbve",
+							"kbve/kbve"
+						],
+						"tags": [
+							"latest"
+						]
 					},
 					"build-args": [
 						"BUILD_BASE=ghcr.io/kbve/kbve-build-base:latest"
@@ -134,15 +151,16 @@
 				"ci": {
 					"load": true,
 					"push": false,
-					"tags": ["kbve/kbve:latest"],
+					"tags": [
+						"kbve/kbve:latest"
+					],
 					"build-args": [
 						"BUILD_BASE=ghcr.io/kbve/kbve-build-base:latest"
 					],
 					"cache-from": [
-						"type=gha",
 						"type=registry,ref=ghcr.io/kbve/kbve:buildcache"
 					],
-					"cache-to": ["type=gha,mode=max"]
+					"cache-to": []
 				}
 			}
 		},
@@ -159,12 +177,16 @@
 				"local": {
 					"load": true,
 					"push": false,
-					"tags": ["ghcr.io/kbve/kbve-build-base:latest"]
+					"tags": [
+						"ghcr.io/kbve/kbve-build-base:latest"
+					]
 				},
 				"production": {
 					"load": true,
 					"push": false,
-					"tags": ["ghcr.io/kbve/kbve-build-base:latest"],
+					"tags": [
+						"ghcr.io/kbve/kbve-build-base:latest"
+					],
 					"cache-from": [
 						"type=registry,ref=ghcr.io/kbve/kbve-build-base:buildcache"
 					],
