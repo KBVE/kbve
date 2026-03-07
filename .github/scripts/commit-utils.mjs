@@ -120,7 +120,7 @@ export function formatDevToMainBody(categories, totalCommits) {
 		}
 	}
 
-	body += `---\n*This PR is automatically maintained by CI*`;
+	body += `---\n*This PR is automatically maintained by CI — [KBVE Studio](https://kbve.com)*`;
 	return body;
 }
 

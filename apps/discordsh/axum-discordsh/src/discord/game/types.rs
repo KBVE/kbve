@@ -567,6 +567,7 @@ pub enum GameAction {
     StoryChoice(usize),
     HealAlly(serenity::UserId),
     Equip(String),
+    Unequip(String),
     Move(Direction),
     ViewMap,
     ViewInventory,
