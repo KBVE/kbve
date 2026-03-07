@@ -27,13 +27,23 @@ export default function BentoMemeCard({
 		config: config.gentle,
 	});
 
-	const imgSpring = useSpring({
-		opacity: imgLoaded ? 1 : 0,
-		config: { duration: 300 },
+	// Shimmer fades OUT smoothly instead of being conditionally removed
+	const shimmerSpring = useSpring({
+		opacity: imgLoaded ? 0 : 1,
+		config: { duration: 400 },
 	});
 
 	const handleMouseEnter = useCallback(() => setHovered(true), []);
 	const handleMouseLeave = useCallback(() => setHovered(false), []);
+
+	// Merge trail transform (from parent style) with hover scale
+	const mergedTransform = hoverSpring.scale.to((s) => {
+		const parentTransform =
+			style?.transform && typeof style.transform === 'string'
+				? style.transform
+				: '';
+		return `${parentTransform} scale(${s})`.trim();
+	});
 
 	return (
 		<animated.button
@@ -46,7 +56,7 @@ export default function BentoMemeCard({
 			}`}
 			style={{
 				...style,
-				transform: hoverSpring.scale.to((s) => `scale(${s})`),
+				transform: mergedTransform,
 				boxShadow: hoverSpring.shadow.to(
 					(s) =>
 						`0 ${s * 0.5}px ${s}px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.06)`,
@@ -54,42 +64,41 @@ export default function BentoMemeCard({
 				backgroundColor: 'var(--sl-color-gray-6, #1c1c1e)',
 				willChange: 'transform',
 			}}>
-			{/* Thumbnail */}
+			{/* Aspect-ratio container — dimensions are stable before image loads */}
 			<div
-				className={`w-full ${featured ? 'aspect-video' : 'aspect-[4/3]'}`}>
-				{/* Shimmer placeholder */}
-				{!imgLoaded && (
-					<div
-						className="absolute inset-0 overflow-hidden"
-						style={{
-							background:
-								'linear-gradient(110deg, var(--sl-color-gray-6, #1c1c1e) 30%, var(--sl-color-gray-5, #27272a) 50%, var(--sl-color-gray-6, #1c1c1e) 70%)',
-							backgroundSize: '200% 100%',
-							animation: 'shimmer 1.5s ease-in-out infinite',
-						}}
-					/>
-				)}
-
+				className={`w-full ${featured ? 'aspect-video' : 'aspect-[4/3]'} relative`}>
+				{/* Image — always rendered, fills container immediately */}
 				{isVideo ? (
 					<video
 						src={meme.asset_url}
-						className="w-full h-full object-cover"
+						className="absolute inset-0 w-full h-full object-cover"
 						muted
 						playsInline
 						preload="metadata"
 						onLoadedData={() => setImgLoaded(true)}
 					/>
 				) : (
-					<animated.img
+					<img
 						src={meme.thumbnail_url || meme.asset_url}
 						alt={meme.title || 'Meme'}
-						className="w-full h-full object-cover select-none"
+						className="absolute inset-0 w-full h-full object-cover select-none"
 						loading="lazy"
 						draggable={false}
 						onLoad={() => setImgLoaded(true)}
-						style={{ opacity: imgSpring.opacity }}
 					/>
 				)}
+
+				{/* Shimmer overlay — fades out smoothly after image loads */}
+				<animated.div
+					className="absolute inset-0 overflow-hidden pointer-events-none"
+					style={{
+						opacity: shimmerSpring.opacity,
+						background:
+							'linear-gradient(110deg, var(--sl-color-gray-6, #1c1c1e) 30%, var(--sl-color-gray-5, #27272a) 50%, var(--sl-color-gray-6, #1c1c1e) 70%)',
+						backgroundSize: '200% 100%',
+						animation: 'shimmer 1.5s ease-in-out infinite',
+					}}
+				/>
 			</div>
 
 			{/* Hover overlay */}

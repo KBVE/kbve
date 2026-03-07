@@ -2584,4 +2584,117 @@ mod tests {
             );
         }
     }
+
+    // ── New gear item validation tests ─────────────────────────────
+
+    #[test]
+    fn new_gear_items_all_exist() {
+        let new_ids = [
+            "iron_mace",
+            "glass_stiletto",
+            "excalibur",
+            "void_scythe",
+            "shadow_cloak",
+            "runeguard_plate",
+            "dragon_scale",
+        ];
+        for id in &new_ids {
+            assert!(
+                find_gear(id).is_some(),
+                "gear '{}' should exist in registry",
+                id
+            );
+        }
+    }
+
+    #[test]
+    fn legendary_gear_stats_correct() {
+        let excalibur = find_gear("excalibur").unwrap();
+        assert_eq!(excalibur.rarity, ItemRarity::Legendary);
+        assert_eq!(excalibur.slot, EquipSlot::Weapon);
+        assert_eq!(excalibur.bonus_damage, 6);
+        assert_eq!(excalibur.bonus_hp, 5);
+        assert_eq!(
+            excalibur.special,
+            Some(GearSpecial::CritBonus { percent: 10 })
+        );
+
+        let void_scythe = find_gear("void_scythe").unwrap();
+        assert_eq!(void_scythe.rarity, ItemRarity::Legendary);
+        assert_eq!(void_scythe.bonus_damage, 7);
+        assert_eq!(
+            void_scythe.special,
+            Some(GearSpecial::LifeSteal { percent: 15 })
+        );
+
+        let dragon_scale = find_gear("dragon_scale").unwrap();
+        assert_eq!(dragon_scale.rarity, ItemRarity::Legendary);
+        assert_eq!(dragon_scale.slot, EquipSlot::Armor);
+        assert_eq!(dragon_scale.bonus_armor, 8);
+        assert_eq!(dragon_scale.bonus_hp, 15);
+        assert_eq!(
+            dragon_scale.special,
+            Some(GearSpecial::DamageReduction { percent: 10 })
+        );
+    }
+
+    #[test]
+    fn gear_loot_tables_reference_valid_gear() {
+        // Every gear_id in loot tables must exist in the gear registry
+        let tables = gear_loot_tables();
+        for table in tables {
+            for entry in table.entries {
+                assert!(
+                    find_gear(entry.gear_id).is_some(),
+                    "gear loot table '{}' references non-existent gear '{}'",
+                    table.id,
+                    entry.gear_id
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn gear_registry_unique_ids() {
+        let registry = gear_registry();
+        let mut seen = std::collections::HashSet::new();
+        for gear in registry {
+            assert!(
+                seen.insert(gear.id),
+                "duplicate gear id '{}' in registry",
+                gear.id
+            );
+        }
+    }
+
+    #[test]
+    fn gear_rarity_distribution() {
+        let registry = gear_registry();
+        let common = registry
+            .iter()
+            .filter(|g| g.rarity == ItemRarity::Common)
+            .count();
+        let uncommon = registry
+            .iter()
+            .filter(|g| g.rarity == ItemRarity::Uncommon)
+            .count();
+        let rare = registry
+            .iter()
+            .filter(|g| g.rarity == ItemRarity::Rare)
+            .count();
+        let epic = registry
+            .iter()
+            .filter(|g| g.rarity == ItemRarity::Epic)
+            .count();
+        let legendary = registry
+            .iter()
+            .filter(|g| g.rarity == ItemRarity::Legendary)
+            .count();
+
+        assert!(common >= 2, "should have at least 2 Common gear");
+        assert!(uncommon >= 2, "should have at least 2 Uncommon gear");
+        assert!(rare >= 2, "should have at least 2 Rare gear");
+        assert!(epic >= 1, "should have at least 1 Epic gear");
+        assert!(legendary >= 3, "should have at least 3 Legendary gear");
+    }
 }
