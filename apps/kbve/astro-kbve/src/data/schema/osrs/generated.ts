@@ -395,6 +395,7 @@ export const OSRSShopSourceSchema = z.object({
 	stock: z.union([z.number(), z.string()]).optional(),
 	members_only: z.boolean().optional(), // MDX-only
 	currency: z.string().optional(),
+	requirements: z.string().optional(), // Quest or skill required to access shop
 });
 
 export type OSRSShopSource = z.infer<typeof OSRSShopSourceSchema>;
@@ -464,6 +465,9 @@ export const OSRSRecipeSchema = z
 		quest_required: z.string().nullable().optional(), // MDX-only
 		members_only: z.boolean().nullable().optional(), // MDX-only
 		output_quantity: z.number().nullable().optional(), // MDX-only
+		product: z.string().nullable().optional(), // Output item name
+		product_id: z.number().nullable().optional(), // Output item ID
+		product_quantity: z.number().nullable().optional(), // Output quantity (alias for output_quantity)
 	})
 	.passthrough();
 
@@ -479,6 +483,7 @@ export const OSRSPotionSchema = z
 		doses: z.number().min(0).max(4).nullable().optional(),
 		herblore_level: z.number().min(1).max(99).nullable().optional(),
 		herblore_xp: z.number().nullable().optional(),
+		effect: z.string().nullable().optional(), // Human-readable effect summary
 		effects: z
 			.array(
 				z
@@ -492,6 +497,7 @@ export const OSRSPotionSchema = z
 						boost_value: z.number().nullable().optional(),
 						boost_formula: z.string().nullable().optional(),
 						duration: z.number().nullable().optional(),
+						description: z.string().nullable().optional(), // Human-readable effect description
 					})
 					.passthrough(),
 			)
@@ -514,6 +520,10 @@ export const OSRSFoodSchema = z
 		cooking_level: z.number().min(1).max(99).nullable().optional(),
 		cooking_xp: z.number().nullable().optional(), // MDX-only
 		burn_level: z.number().nullable().optional(), // MDX-only
+
+		// Classification
+		type: z.string().nullable().optional(), // e.g., "fish", "pie", "cake"
+		combo_food: z.boolean().nullable().optional(), // Can be eaten same tick as other food
 	})
 	.passthrough();
 
@@ -547,6 +557,9 @@ export const OSRSCookingSchema = z
 		raw_item_name: z.string().nullable().optional(),
 		ticks: z.number().nullable().optional(),
 		burnt_item_id: z.number().nullable().optional(),
+
+		// Quest requirement
+		quest_required: z.string().nullable().optional(), // Quest needed to cook
 	})
 	.passthrough();
 

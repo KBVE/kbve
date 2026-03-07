@@ -180,6 +180,7 @@ export const OSRSShopSourceSchema = z.object({
 	stock: z.union([z.number(), z.string()]).optional(), // Default stock amount (can be string like "Unlimited")
 	members_only: z.boolean().optional(),
 	currency: z.string().optional(), // Default "coins", could be "tokkul", etc.
+	requirements: z.string().optional(), // Quest or skill required to access shop
 });
 
 export type OSRSShopSource = z.infer<typeof OSRSShopSourceSchema>;
@@ -251,8 +252,11 @@ export const OSRSRecipeSchema = z
 
 		// Output
 		output_quantity: z.number().nullable().optional(),
+		product: z.string().nullable().optional(), // Output item name
+		product_id: z.number().nullable().optional(), // Output item ID
+		product_quantity: z.number().nullable().optional(), // Output quantity (alias for output_quantity)
 	})
-	.passthrough(); // Allow additional fields like product, product_id, location, etc.
+	.passthrough();
 
 export type OSRSRecipe = z.infer<typeof OSRSRecipeSchema>;
 
@@ -325,6 +329,9 @@ export const OSRSCookingSchema = z
 
 		// Burnt version
 		burnt_item_id: z.number().nullable().optional(),
+
+		// Quest requirement
+		quest_required: z.string().nullable().optional(), // Quest needed to cook (e.g., "Tai Bwo Wannai Trio")
 	})
 	.passthrough();
 
@@ -672,6 +679,8 @@ export const OSRSPotionSchema = z
 		// Creation info
 		herblore_level: z.number().min(1).max(99).nullable().optional(),
 		herblore_xp: z.number().nullable().optional(),
+		// Human-readable effect summary
+		effect: z.string().nullable().optional(), // e.g., "Boosts Attack, Strength, and Defence by 5 + 15% of level"
 		// Effects per dose
 		effects: z
 			.array(
@@ -686,6 +695,7 @@ export const OSRSPotionSchema = z
 						boost_value: z.number().nullable().optional(),
 						boost_formula: z.string().nullable().optional(), // e.g., "floor(level * 0.15) + 2"
 						duration: z.number().nullable().optional(), // Ticks
+						description: z.string().nullable().optional(), // Human-readable effect description
 					})
 					.passthrough(),
 			)
@@ -711,6 +721,10 @@ export const OSRSFoodSchema = z
 		cooking_level: z.number().min(1).max(99).nullable().optional(),
 		cooking_xp: z.number().nullable().optional(),
 		burn_level: z.number().nullable().optional(), // Level to stop burning
+
+		// Classification
+		type: z.string().nullable().optional(), // e.g., "fish", "pie", "cake"
+		combo_food: z.boolean().nullable().optional(), // Can be eaten same tick as other food (karambwan)
 	})
 	.passthrough();
 
@@ -826,6 +840,13 @@ export function isFood(
 	item: OSRSExtended,
 ): item is OSRSExtended & { food: OSRSFood } {
 	return item.food !== undefined;
+}
+
+/**
+ * Check if an OSRS food item can be combo-eaten (same tick as other food)
+ */
+export function isComboFood(item: OSRSExtended): boolean {
+	return item.food?.combo_food === true;
 }
 
 /**
