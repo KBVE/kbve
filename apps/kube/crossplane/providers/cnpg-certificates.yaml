@@ -1,0 +1,73 @@
+# CNPG TLS certificates managed by cert-manager via Crossplane provider-kubernetes
+# Creates cert-manager Certificate CRDs that issue TLS certs signed by internal-ca-issuer
+# These write to NEW secret names (supabase-server-tls, supabase-replication-tls)
+# to avoid conflicting with CNPG's auto-managed secrets during transition
+apiVersion: kubernetes.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    name: cnpg-server-certificate
+    annotations:
+        argocd.argoproj.io/sync-wave: '15'
+        argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+    forProvider:
+        manifest:
+            apiVersion: cert-manager.io/v1
+            kind: Certificate
+            metadata:
+                name: supabase-server-tls
+                namespace: kilobase
+            spec:
+                secretName: supabase-server-tls
+                duration: 2160h # 90 days
+                renewBefore: 720h # 30 days before expiry
+                issuerRef:
+                    name: internal-ca-issuer
+                    kind: ClusterIssuer
+                commonName: supabase-cluster-rw
+                dnsNames:
+                    - supabase-cluster-rw
+                    - supabase-cluster-rw.kilobase
+                    - supabase-cluster-rw.kilobase.svc
+                    - supabase-cluster-rw.kilobase.svc.cluster.local
+                    - supabase-cluster-r
+                    - supabase-cluster-r.kilobase
+                    - supabase-cluster-r.kilobase.svc
+                    - supabase-cluster-r.kilobase.svc.cluster.local
+                    - supabase-cluster-ro
+                    - supabase-cluster-ro.kilobase
+                    - supabase-cluster-ro.kilobase.svc
+                    - supabase-cluster-ro.kilobase.svc.cluster.local
+                usages:
+                    - server auth
+                    - client auth
+    providerConfigRef:
+        name: kubernetes-provider
+---
+apiVersion: kubernetes.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    name: cnpg-replication-certificate
+    annotations:
+        argocd.argoproj.io/sync-wave: '15'
+        argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+    forProvider:
+        manifest:
+            apiVersion: cert-manager.io/v1
+            kind: Certificate
+            metadata:
+                name: supabase-replication-tls
+                namespace: kilobase
+            spec:
+                secretName: supabase-replication-tls
+                duration: 2160h # 90 days
+                renewBefore: 720h # 30 days before expiry
+                issuerRef:
+                    name: internal-ca-issuer
+                    kind: ClusterIssuer
+                commonName: streaming_replica
+                usages:
+                    - client auth
+    providerConfigRef:
+        name: kubernetes-provider
