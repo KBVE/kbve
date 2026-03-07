@@ -1,18 +1,22 @@
 apiVersion: barmancloud.cnpg.io/v1
 kind: ObjectStore
 metadata:
-  name: kilobase-backup-store
-  namespace: kilobase
+    name: kilobase-backup-store
+    namespace: kilobase
 spec:
-  retentionPolicy: '3d'
-  configuration:
-    destinationPath: s3://kilobase/barman/backup
-    s3Credentials:
-      accessKeyId:
-        name: kilobase-s3-secret
-        key: keyId
-      secretAccessKey:
-        name: kilobase-s3-secret
-        key: accessKey
-    wal:
-      compression: gzip
+    retentionPolicy: '7d'
+    instanceSidecarConfiguration:
+        # Run retention cleanup every 30 minutes — deletes base backups AND WAL
+        # files older than the retention window (7 days)
+        retentionPolicyIntervalSeconds: 1800
+    configuration:
+        destinationPath: s3://kilobase/barman/backup
+        s3Credentials:
+            accessKeyId:
+                name: kilobase-s3-secret
+                key: keyId
+            secretAccessKey:
+                name: kilobase-s3-secret
+                key: accessKey
+        wal:
+            compression: gzip
