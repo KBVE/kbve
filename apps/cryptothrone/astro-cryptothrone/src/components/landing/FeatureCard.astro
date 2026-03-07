@@ -2,53 +2,93 @@
 interface Props {
 	title: string;
 	description: string;
-	icon: string;
 }
 
-const { title, description, icon } = Astro.props;
+const { title, description } = Astro.props;
 ---
 
-<div class="ct-card">
-	<div class="ct-card__icon">{icon}</div>
+<div class="ct-card group">
+	<div class="ct-card__watermark">
+		<slot name="icon" />
+	</div>
+	<div class="ct-card__icon">
+		<slot name="icon" />
+	</div>
 	<h3 class="ct-card__title">{title}</h3>
 	<p class="ct-card__desc">{description}</p>
 </div>
 
 <style>
 	.ct-card {
-		background: color-mix(
-			in srgb,
-			var(--sl-color-gray-6, #27272a) 60%,
-			transparent
-		);
-		border: 1px solid color-mix(in srgb, var(--ct-accent) 15%, transparent);
-		border-radius: 0.75rem;
-		padding: 1.5rem;
-		transition: all 0.3s ease;
+		position: relative;
+		overflow: hidden;
+		background: rgba(255, 255, 255, 0.03);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		padding: 2rem 1.75rem;
+		transition: all 0.5s ease;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.ct-card:hover {
-		border-color: color-mix(in srgb, var(--ct-accent) 40%, transparent);
-		transform: translateY(-4px);
-		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+		border-color: rgba(251, 191, 36, 0.4);
+		background: rgba(255, 255, 255, 0.04);
+		transform: translateY(-2px);
+	}
+
+	.ct-card__watermark {
+		position: absolute;
+		top: 0.75rem;
+		right: 0.75rem;
+		opacity: 0.06;
+		transition: opacity 0.5s ease;
+		color: var(--ct-accent);
+		pointer-events: none;
+	}
+
+	.ct-card__watermark :global(svg) {
+		width: 4.5rem;
+		height: 4.5rem;
+		stroke-width: 1;
+	}
+
+	.ct-card:hover .ct-card__watermark {
+		opacity: 0.15;
 	}
 
 	.ct-card__icon {
-		font-size: 2rem;
-		margin-bottom: 0.75rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		margin-bottom: 1rem;
+		color: var(--ct-accent);
+	}
+
+	.ct-card__icon :global(svg) {
+		width: 1.5rem;
+		height: 1.5rem;
+		stroke-width: 1.5;
 	}
 
 	.ct-card__title {
-		font-size: 1.125rem;
-		font-weight: 700;
+		font-size: 1.2rem;
+		font-weight: 400;
+		color: white;
+		margin: 0 0 0.75rem;
+		transition: color 0.3s ease;
+	}
+
+	.ct-card:hover .ct-card__title {
 		color: var(--ct-accent);
-		margin: 0 0 0.5rem;
 	}
 
 	.ct-card__desc {
-		font-size: 0.875rem;
-		color: var(--sl-color-gray-3, #9ca3af);
-		line-height: 1.6;
+		font-size: 0.85rem;
+		color: rgba(255, 255, 255, 0.4);
+		line-height: 1.7;
 		margin: 0;
+		font-weight: 300;
 	}
 </style>

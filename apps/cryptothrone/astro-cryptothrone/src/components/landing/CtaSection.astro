@@ -1,0 +1,193 @@
+---
+
+---
+
+<section class="ct-cta">
+	<div class="ct-cta__glow ct-cta__glow--right" aria-hidden="true"></div>
+	<div class="ct-cta__glow ct-cta__glow--left" aria-hidden="true"></div>
+
+	<div class="ct-cta__card">
+		<span class="ct-cta__label">Ready?</span>
+		<h2 class="ct-cta__heading">Enter the Cloud Cities</h2>
+		<p class="ct-cta__desc">
+			Jump in and start your adventure. No download required — play
+			directly in your browser.
+		</p>
+
+		<div class="ct-cta__actions">
+			<a href="/game/play/" class="ct-cta__btn ct-cta__btn--primary">
+				Play Now
+			</a>
+			<a
+				href="/guides/getting-started/"
+				class="ct-cta__btn ct-cta__btn--ghost">
+				Read the Guides
+			</a>
+		</div>
+
+		<div class="ct-cta__links">
+			<a
+				href="https://github.com/kbve/kbve"
+				target="_blank"
+				rel="noopener noreferrer">
+				GitHub
+			</a>
+			<span class="ct-cta__dot" aria-hidden="true"></span>
+			<a
+				href="https://discord.gg/kbve"
+				target="_blank"
+				rel="noopener noreferrer">
+				Discord
+			</a>
+			<span class="ct-cta__dot" aria-hidden="true"></span>
+			<a href="https://kbve.com">KBVE Studio</a>
+		</div>
+	</div>
+</section>
+
+<style>
+	.ct-cta {
+		position: relative;
+		padding: 6rem 1.5rem;
+		overflow: hidden;
+		background: linear-gradient(135deg, #0d0d0d 0%, var(--ct-bg-deep) 100%);
+	}
+
+	.ct-cta__glow {
+		position: absolute;
+		width: 24rem;
+		height: 24rem;
+		border-radius: 50%;
+		filter: blur(120px);
+		pointer-events: none;
+	}
+
+	.ct-cta__glow--right {
+		top: -5rem;
+		right: -5rem;
+		background: rgba(251, 191, 36, 0.08);
+	}
+
+	.ct-cta__glow--left {
+		bottom: -5rem;
+		left: -5rem;
+		background: rgba(251, 191, 36, 0.04);
+	}
+
+	.ct-cta__card {
+		position: relative;
+		z-index: 1;
+		max-width: 42rem;
+		margin: 0 auto;
+		text-align: center;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		padding: 3.5rem 2.5rem;
+		backdrop-filter: blur(10px);
+		background: rgba(255, 255, 255, 0.03);
+	}
+
+	.ct-cta__label {
+		display: block;
+		color: var(--ct-accent);
+		font-size: 0.7rem;
+		letter-spacing: 0.3em;
+		text-transform: uppercase;
+		margin-bottom: 1.5rem;
+	}
+
+	.ct-cta__heading {
+		font-size: clamp(2rem, 5vw, 3.25rem);
+		font-weight: 300;
+		color: white;
+		margin: 0 0 1rem;
+	}
+
+	.ct-cta__desc {
+		font-size: 0.9rem;
+		color: rgba(255, 255, 255, 0.4);
+		font-weight: 300;
+		line-height: 1.7;
+		margin: 0 0 2.5rem;
+		max-width: 26rem;
+		margin-inline: auto;
+	}
+
+	.ct-cta__actions {
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.ct-cta__btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.9rem 2.5rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
+		text-decoration: none;
+		transition: all 0.3s ease;
+	}
+
+	.ct-cta__btn--primary {
+		background: var(--ct-accent);
+		color: black;
+	}
+
+	.ct-cta__btn--primary:hover {
+		background: white;
+	}
+
+	.ct-cta__btn--ghost {
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		color: white;
+		background: transparent;
+	}
+
+	.ct-cta__btn--ghost:hover {
+		background: white;
+		color: black;
+	}
+
+	.ct-cta__links {
+		margin-top: 2.5rem;
+		padding-top: 2rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.08);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 1rem;
+	}
+
+	.ct-cta__links a {
+		font-size: 0.8rem;
+		color: rgba(255, 255, 255, 0.4);
+		text-decoration: none;
+		transition: color 0.2s ease;
+	}
+
+	.ct-cta__links a:hover {
+		color: var(--ct-accent);
+	}
+
+	.ct-cta__dot {
+		width: 3px;
+		height: 3px;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.15);
+	}
+
+	@media (max-width: 640px) {
+		.ct-cta__card {
+			padding: 2.5rem 1.5rem;
+		}
+
+		.ct-cta__actions {
+			flex-direction: column;
+		}
+	}
+</style>

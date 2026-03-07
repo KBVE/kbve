@@ -9,7 +9,7 @@ const currentYear = new Date().getFullYear();
 
 <div class="ct-footer not-content">
 	<div class="ct-footer__divider" aria-hidden="true">
-		<span class="ct-footer__divider-icon">&#x2694;&#xFE0F;</span>
+		<div class="ct-footer__divider-line"></div>
 	</div>
 
 	<div class="ct-footer__main">
@@ -111,15 +111,10 @@ const currentYear = new Date().getFullYear();
 	}
 
 	.ct-footer {
-		margin-top: 2.5rem;
+		margin-top: 0;
 		padding: 0 1.5rem;
-		border-top: 1px solid
-			color-mix(in srgb, var(--ct-accent) 15%, transparent);
-		background: linear-gradient(
-			180deg,
-			transparent 0%,
-			color-mix(in srgb, var(--ct-bg-deep) 40%, transparent) 100%
-		);
+		border-top: 1px solid rgba(255, 255, 255, 0.06);
+		background: #0d0d0d;
 	}
 
 	/* Decorative divider */
@@ -130,9 +125,16 @@ const currentYear = new Date().getFullYear();
 		padding: 1.25rem 0 0;
 	}
 
-	.ct-footer__divider-icon {
-		font-size: 1.25rem;
-		opacity: 0.6;
+	.ct-footer__divider-line {
+		width: 3rem;
+		height: 1px;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			var(--ct-accent),
+			transparent
+		);
+		opacity: 0.4;
 	}
 
 	/* Main grid */
@@ -151,16 +153,10 @@ const currentYear = new Date().getFullYear();
 	}
 
 	.ct-footer__logo-text {
-		font-size: 1.25rem;
-		font-weight: 800;
-		background: linear-gradient(
-			135deg,
-			var(--ct-accent),
-			var(--ct-accent-dark)
-		);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
+		font-size: 1.1rem;
+		font-weight: 300;
+		letter-spacing: 0.05em;
+		color: white;
 	}
 
 	.ct-footer__brand-desc {
@@ -178,10 +174,10 @@ const currentYear = new Date().getFullYear();
 	}
 
 	.ct-footer__title {
-		font-size: 0.75rem;
-		font-weight: 700;
+		font-size: 0.65rem;
+		font-weight: 500;
 		text-transform: uppercase;
-		letter-spacing: 0.08em;
+		letter-spacing: 0.2em;
 		color: var(--ct-accent);
 		margin-bottom: 0.25rem;
 	}
