@@ -212,7 +212,7 @@ export type OSRSCreationSkill = (typeof OSRSCreationSkills)[number];
 export const OSRSMaterialSchema = z.object({
 	item_id: z.number().optional(),
 	item_name: z.string(),
-	quantity: z.number().default(1),
+	quantity: z.union([z.number(), z.string()]).default(1), // May be range like "2-3"
 	consumed: z.boolean().default(true), // Is the material consumed?
 });
 
@@ -254,7 +254,10 @@ export const OSRSRecipeSchema = z
 		output_quantity: z.number().nullable().optional(),
 		product: z.string().nullable().optional(), // Output item name
 		product_id: z.number().nullable().optional(), // Output item ID
-		product_quantity: z.number().nullable().optional(), // Output quantity (alias for output_quantity)
+		product_quantity: z
+			.union([z.number(), z.string()])
+			.nullable()
+			.optional(), // Output quantity, may be range like "3-6"
 	})
 	.passthrough();
 
