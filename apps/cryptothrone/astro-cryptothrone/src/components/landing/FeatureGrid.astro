@@ -1,79 +1,198 @@
 ---
 import FeatureCard from './FeatureCard.astro';
-
-const features = [
-	{
-		icon: '\u2694\uFE0F',
-		title: 'Real-Time Combat',
-		description:
-			'Battle bird monsters and hostile NPCs with dice-based mechanics and strategic encounters.',
-	},
-	{
-		icon: '\uD83C\uDFD9\uFE0F',
-		title: 'Cloud Cities',
-		description:
-			'Explore sprawling tile-based worlds built with GridEngine and richly layered tilesets.',
-	},
-	{
-		icon: '\uD83C\uDFB2',
-		title: 'Dice Rolls',
-		description:
-			'Steal, negotiate, and gamble your way through encounters with animated dice mechanics.',
-	},
-	{
-		icon: '\uD83D\uDEE1\uFE0F',
-		title: 'Inventory & Equipment',
-		description:
-			'Collect loot, manage your backpack, and equip gear to strengthen your character.',
-	},
-	{
-		icon: '\uD83D\uDCAC',
-		title: 'NPC Dialogue',
-		description:
-			'Engage in branching conversations with typewriter-style text and meaningful choices.',
-	},
-	{
-		icon: '\u26A1',
-		title: 'Phaser + React',
-		description:
-			'Built on Phaser 3 with a React overlay — buttery smooth rendering meets modern UI.',
-	},
-];
 ---
 
 <section class="ct-features">
-	<h2 class="ct-features__heading">Features</h2>
-	<div class="ct-features__grid">
-		{
-			features.map((f) => (
-				<FeatureCard
-					title={f.title}
-					description={f.description}
-					icon={f.icon}
-				/>
-			))
-		}
+	<div class="ct-features__inner">
+		<div class="ct-features__header">
+			<span class="ct-features__label">What's Inside</span>
+			<h2 class="ct-features__heading">Game Features</h2>
+			<p class="ct-features__sub">
+				Everything you need for an epic cloud-city RPG adventure.
+			</p>
+		</div>
+
+		<div class="ct-features__grid">
+			<FeatureCard
+				title="Real-Time Combat"
+				description="Battle bird monsters and hostile NPCs with dice-based mechanics and strategic encounters.">
+				<svg
+					slot="icon"
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-linecap="round"
+					stroke-linejoin="round">
+					<polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5">
+					</polyline>
+					<line x1="13" x2="19" y1="19" y2="13"></line>
+					<line x1="16" x2="20" y1="16" y2="20"></line>
+					<line x1="19" x2="21" y1="21" y2="19"></line>
+					<polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5">
+					</polyline>
+					<line x1="5" x2="9" y1="14" y2="18"></line>
+					<line x1="7" x2="4" y1="17" y2="20"></line>
+					<line x1="3" x2="5" y1="19" y2="21"></line>
+				</svg>
+			</FeatureCard>
+
+			<FeatureCard
+				title="Cloud Cities"
+				description="Explore sprawling tile-based worlds built with GridEngine and richly layered tilesets.">
+				<svg
+					slot="icon"
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-linecap="round"
+					stroke-linejoin="round">
+					<path d="M2 22V6l5-4 5 4v2h6l4 4v10"></path>
+					<path d="M2 22h20"></path>
+					<path d="M11 8v2"></path>
+					<path d="M6 10V6"></path>
+					<path d="M6 14v-2"></path>
+					<path d="M6 18v-2"></path>
+					<path d="M11 14v-2"></path>
+					<path d="M11 18v-2"></path>
+					<path d="M16 18v-4"></path>
+				</svg>
+			</FeatureCard>
+
+			<FeatureCard
+				title="Dice Rolls"
+				description="Steal, negotiate, and gamble your way through encounters with animated dice mechanics.">
+				<svg
+					slot="icon"
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-linecap="round"
+					stroke-linejoin="round">
+					<rect width="12" height="12" x="2" y="10" rx="2" ry="2">
+					</rect>
+					<path
+						d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6">
+					</path>
+					<path d="M6 18h.01"></path>
+					<path d="M10 14h.01"></path>
+					<path d="M15 6h.01"></path>
+					<path d="M18 9h.01"></path>
+				</svg>
+			</FeatureCard>
+
+			<FeatureCard
+				title="Inventory & Equipment"
+				description="Collect loot, manage your backpack, and equip gear to strengthen your character.">
+				<svg
+					slot="icon"
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-linecap="round"
+					stroke-linejoin="round">
+					<path
+						d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z">
+					</path>
+				</svg>
+			</FeatureCard>
+
+			<FeatureCard
+				title="NPC Dialogue"
+				description="Engage in branching conversations with typewriter-style text and meaningful choices.">
+				<svg
+					slot="icon"
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-linecap="round"
+					stroke-linejoin="round">
+					<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"></path>
+					<path d="M8 12h.01"></path>
+					<path d="M12 12h.01"></path>
+					<path d="M16 12h.01"></path>
+				</svg>
+			</FeatureCard>
+
+			<FeatureCard
+				title="Phaser + React"
+				description="Built on Phaser 3 with a React overlay — buttery smooth rendering meets modern UI.">
+				<svg
+					slot="icon"
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-linecap="round"
+					stroke-linejoin="round">
+					<path
+						d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z">
+					</path>
+				</svg>
+			</FeatureCard>
+		</div>
 	</div>
 </section>
 
 <style>
 	.ct-features {
-		max-width: 900px;
+		background: var(--ct-bg-alt);
+		padding: 6rem 1.5rem;
+	}
+
+	.ct-features__inner {
+		max-width: 72rem;
 		margin: 0 auto;
-		padding: 4rem 1.5rem;
+	}
+
+	.ct-features__header {
+		text-align: center;
+		margin-bottom: 3rem;
+	}
+
+	.ct-features__label {
+		display: block;
+		color: var(--ct-accent);
+		font-size: 0.7rem;
+		letter-spacing: 0.2em;
+		text-transform: uppercase;
+		margin-bottom: 1rem;
 	}
 
 	.ct-features__heading {
-		font-size: 1.75rem;
-		font-weight: 700;
-		color: var(--ct-accent);
-		text-align: center;
-		margin: 0 0 2.5rem;
+		font-size: clamp(1.75rem, 4vw, 2.75rem);
+		font-weight: 300;
+		color: white;
+		margin: 0 0 1rem;
+		letter-spacing: -0.01em;
+	}
+
+	.ct-features__sub {
+		font-size: 0.95rem;
+		color: rgba(255, 255, 255, 0.35);
+		margin: 0;
+		font-weight: 300;
 	}
 
 	.ct-features__grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-		gap: 1.25rem;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1rem;
+	}
+
+	@media (max-width: 768px) {
+		.ct-features__grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (min-width: 769px) and (max-width: 1024px) {
+		.ct-features__grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
 	}
 </style>

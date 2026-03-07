@@ -15,86 +15,97 @@ const {
 ---
 
 <section class="ct-hero">
-	<div class="ct-hero__overlay"></div>
+	<div class="ct-hero__bg">
+		<div class="ct-hero__overlay"></div>
+	</div>
+
 	<div class="ct-hero__content">
-		<h1 class="ct-hero__title">{title}</h1>
+		<p class="ct-hero__label">Browser-Based RPG</p>
+		<h1 class="ct-hero__title">
+			Claim the<br />
+			<span class="ct-hero__title--accent">Throne</span>
+		</h1>
 		<p class="ct-hero__tagline">{tagline}</p>
 		<div class="ct-hero__actions">
-			<a href={playLink} class="ct-btn ct-btn--primary">Play Now</a>
+			<a href={playLink} class="ct-btn ct-btn--primary">
+				<span class="ct-btn__fill"></span>
+				<span class="ct-btn__text">Play Now</span>
+			</a>
 			<a href={guidesLink} class="ct-btn ct-btn--ghost">View Guides</a>
 		</div>
 	</div>
-	<div class="ct-hero__scroll-hint" aria-hidden="true">
-		<svg
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2">
-			<path d="M12 5v14M5 12l7 7 7-7"></path>
-		</svg>
+
+	<div class="ct-hero__scroll" aria-hidden="true">
+		<span class="ct-hero__scroll-label">Scroll</span>
+		<div class="ct-hero__scroll-line"></div>
 	</div>
 </section>
 
 <style>
 	.ct-hero {
 		position: relative;
-		width: 100vw;
+		width: 100%;
 		min-height: 100vh;
-		margin-left: calc(-50vw + 50%);
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		overflow: hidden;
+	}
+
+	.ct-hero__bg {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
 		background: url('/assets/background/chip-background.webp') center /
 			cover no-repeat;
-		background-attachment: fixed;
-		overflow: hidden;
 	}
 
 	.ct-hero__overlay {
 		position: absolute;
 		inset: 0;
-		background: linear-gradient(
-			180deg,
-			rgba(26, 26, 46, 0.75) 0%,
-			rgba(26, 26, 46, 0.65) 40%,
-			rgba(26, 26, 46, 0.85) 100%
-		);
+		background: rgba(0, 0, 0, 0.45);
+		z-index: 1;
 	}
 
 	.ct-hero__content {
 		position: relative;
-		z-index: 1;
+		z-index: 2;
 		text-align: center;
 		padding: 2rem;
-		max-width: 720px;
+		max-width: 54rem;
+		margin: 0 auto;
+	}
+
+	.ct-hero__label {
+		color: var(--ct-accent);
+		font-size: 0.7rem;
+		letter-spacing: 0.3em;
+		text-transform: uppercase;
+		margin: 0 0 1.5rem;
 	}
 
 	.ct-hero__title {
-		font-size: clamp(3rem, 7vw, 5rem);
-		font-weight: 800;
+		font-size: clamp(3rem, 8vw, 7rem);
+		font-weight: 300;
+		color: white;
+		margin: 0 0 1.5rem;
+		line-height: 1.05;
 		letter-spacing: -0.02em;
-		background: linear-gradient(
-			135deg,
-			var(--ct-accent),
-			var(--ct-accent-mid),
-			var(--ct-accent-dark)
-		);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-		margin: 0 0 1rem;
-		line-height: 1.1;
-		text-shadow: 0 2px 40px rgba(251, 191, 36, 0.25);
+	}
+
+	.ct-hero__title--accent {
+		font-style: italic;
+		color: var(--ct-accent);
 	}
 
 	.ct-hero__tagline {
-		font-size: clamp(1.05rem, 2.2vw, 1.35rem);
-		color: rgba(255, 255, 255, 0.9);
+		font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+		color: rgba(255, 255, 255, 0.55);
+		font-weight: 300;
 		margin: 0 0 2.5rem;
-		line-height: 1.6;
-		text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+		line-height: 1.7;
+		max-width: 28rem;
+		margin-inline: auto;
 	}
 
 	.ct-hero__actions {
@@ -104,65 +115,103 @@ const {
 		flex-wrap: wrap;
 	}
 
+	/* ── Buttons ── */
 	.ct-btn {
+		position: relative;
 		display: inline-flex;
 		align-items: center;
-		padding: 0.85rem 2.25rem;
-		border-radius: 0.5rem;
-		font-weight: 600;
-		font-size: 1.05rem;
+		justify-content: center;
+		padding: 0.9rem 2.5rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
 		text-decoration: none;
-		transition: all 0.2s ease;
+		transition: all 0.3s ease;
+		overflow: hidden;
 	}
 
 	.ct-btn--primary {
-		background: linear-gradient(
-			135deg,
-			var(--ct-accent-mid),
-			var(--ct-accent-dark)
-		);
-		color: var(--ct-bg-deep);
+		background: white;
+		color: black;
 	}
 
 	.ct-btn--primary:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35);
+		background: white;
+	}
+
+	.ct-btn__fill {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		width: 150%;
+		height: 150%;
+		background: var(--ct-accent);
+		transform: translate(-110%, 60%) rotate(45deg);
+		transition: transform 0.5s ease;
+	}
+
+	.ct-btn--primary:hover .ct-btn__fill {
+		transform: translate(-10%, -10%) rotate(45deg);
+	}
+
+	.ct-btn__text {
+		position: relative;
+		z-index: 1;
+		transition: color 0.3s ease;
+	}
+
+	.ct-btn--primary:hover .ct-btn__text {
+		color: white;
 	}
 
 	.ct-btn--ghost {
-		border: 1px solid rgba(251, 191, 36, 0.45);
+		border: 1px solid var(--ct-accent);
 		color: var(--ct-accent);
-		background: rgba(26, 26, 46, 0.4);
-		backdrop-filter: blur(4px);
+		background: transparent;
 	}
 
 	.ct-btn--ghost:hover {
-		background: rgba(251, 191, 36, 0.12);
-		border-color: var(--ct-accent);
+		background: var(--ct-accent);
+		color: black;
 	}
 
-	.ct-hero__scroll-hint {
+	/* ── Scroll indicator ── */
+	.ct-hero__scroll {
 		position: absolute;
-		bottom: 2rem;
+		bottom: 2.5rem;
 		left: 50%;
 		transform: translateX(-50%);
-		color: rgba(251, 191, 36, 0.5);
-		animation: bounce 2s infinite;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		opacity: 0.6;
+		animation: fade-bounce 3s infinite;
 	}
 
-	@keyframes bounce {
+	.ct-hero__scroll-label {
+		font-size: 0.55rem;
+		letter-spacing: 0.2em;
+		text-transform: uppercase;
+		color: rgba(255, 255, 255, 0.5);
+		margin-bottom: 0.5rem;
+	}
+
+	.ct-hero__scroll-line {
+		width: 1px;
+		height: 3rem;
+		background: linear-gradient(to bottom, var(--ct-accent), transparent);
+	}
+
+	@keyframes fade-bounce {
 		0%,
-		20%,
-		50%,
-		80%,
 		100% {
+			opacity: 0.6;
 			transform: translateX(-50%) translateY(0);
 		}
-		40% {
-			transform: translateX(-50%) translateY(-8px);
-		}
-		60% {
-			transform: translateX(-50%) translateY(-4px);
+		50% {
+			opacity: 0.3;
+			transform: translateX(-50%) translateY(6px);
 		}
 	}
 </style>
