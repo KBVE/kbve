@@ -15,12 +15,16 @@ members = [
 	'apps/discordsh/axum-discordsh',
 	'apps/kbve/axum-kbve',
 	'apps/cryptothrone/axum-cryptothrone',
+	'apps/kbve/isometric/src-tauri',
 ]
 
 [profile.dev]
 opt-level = 1
 
 [profile.dev.overrides.kilobase]
+panic = 'unwind'
+
+[profile.dev.overrides.isometric-game]
 panic = 'unwind'
 
 [profile.release]
@@ -31,6 +35,12 @@ codegen-units = 1
 panic = 'abort'
 
 [profile.release.overrides.kilobase]
+panic = 'unwind'
+opt-level = 3
+lto = 'fat'
+codegen-units = 1
+
+[profile.release.overrides.isometric-game]
 panic = 'unwind'
 opt-level = 3
 lto = 'fat'
