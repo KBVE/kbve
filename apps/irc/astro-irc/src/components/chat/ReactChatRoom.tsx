@@ -342,6 +342,7 @@ const UserList: React.FC = () => {
 
 interface StatusBarProps {
 	wsUrl: string;
+	token: string;
 	onToggleSidebar: () => void;
 	onToggleUsers: () => void;
 	sidebarOpen: boolean;
@@ -350,6 +351,7 @@ interface StatusBarProps {
 
 const StatusBar: React.FC<StatusBarProps> = ({
 	wsUrl,
+	token,
 	onToggleSidebar,
 	onToggleUsers,
 	sidebarOpen,
@@ -363,9 +365,9 @@ const StatusBar: React.FC<StatusBarProps> = ({
 		if (status === 'connected') {
 			disconnect();
 		} else {
-			connect(wsUrl);
+			connect(wsUrl, token);
 		}
-	}, [status, wsUrl]);
+	}, [status, wsUrl, token]);
 
 	return (
 		<div className="flex items-center gap-3 px-3 py-2 border-b border-[var(--sl-color-border)] bg-[var(--sl-color-bg-accent)]/50">
@@ -454,6 +456,57 @@ const StatusBar: React.FC<StatusBarProps> = ({
 	);
 };
 
+type OAuthProvider = 'github' | 'discord' | 'twitch';
+
+const PROVIDERS: { id: OAuthProvider; label: string }[] = [
+	{ id: 'github', label: 'GitHub' },
+	{ id: 'discord', label: 'Discord' },
+	{ id: 'twitch', label: 'Twitch' },
+];
+
+const LoginPrompt: React.FC = () => {
+	const [loading, setLoading] = useState(false);
+
+	const handleLogin = useCallback(async (provider: OAuthProvider) => {
+		setLoading(true);
+		try {
+			const { authBridge } = await import('../../lib/supa');
+			await authBridge.signInWithOAuth(provider);
+		} catch {
+			setLoading(false);
+		}
+	}, []);
+
+	return (
+		<div className="flex flex-col items-center justify-center gap-6 p-8 text-center h-full">
+			<div>
+				<h2 className="text-xl font-bold text-[var(--sl-color-text)] mb-2">
+					Sign in to chat
+				</h2>
+				<p className="text-sm text-[var(--sl-color-gray-3)]">
+					You need a valid account to join the IRC chat.
+				</p>
+			</div>
+			<div className="flex flex-col gap-3 w-full max-w-xs">
+				{PROVIDERS.map(({ id, label }) => (
+					<button
+						key={id}
+						onClick={() => handleLogin(id)}
+						disabled={loading}
+						className={cn(
+							'w-full px-4 py-3 rounded-lg text-sm font-medium transition-colors',
+							'bg-[var(--sl-color-accent)] text-white',
+							'hover:opacity-90',
+							loading && 'opacity-50 cursor-not-allowed',
+						)}>
+						{loading ? 'Redirecting...' : `Sign in with ${label}`}
+					</button>
+				))}
+			</div>
+		</div>
+	);
+};
+
 export interface ReactChatRoomProps {
 	wsUrl?: string;
 }
@@ -463,6 +516,47 @@ export const ReactChatRoom: React.FC<ReactChatRoomProps> = ({
 }) => {
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const [usersOpen, setUsersOpen] = useState(false);
+	const [authState, setAuthState] = useState<'loading' | 'auth' | 'anon'>(
+		'loading',
+	);
+	const [token, setToken] = useState('');
+
+	// Check for existing Supabase session on mount
+	useEffect(() => {
+		let cancelled = false;
+		(async () => {
+			try {
+				const { authBridge } = await import('../../lib/supa');
+				const session = await authBridge.getSession();
+				if (cancelled) return;
+				if (session?.access_token) {
+					setToken(session.access_token);
+					setAuthState('auth');
+				} else {
+					setAuthState('anon');
+				}
+			} catch {
+				if (!cancelled) setAuthState('anon');
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
+	// Graceful disconnect on unmount or page unload
+	useEffect(() => {
+		const handleUnload = () => {
+			if ($connectionStatus.get() === 'connected') {
+				disconnect();
+			}
+		};
+		window.addEventListener('beforeunload', handleUnload);
+		return () => {
+			window.removeEventListener('beforeunload', handleUnload);
+			handleUnload();
+		};
+	}, []);
 
 	const toggleSidebar = useCallback(() => {
 		setSidebarOpen((prev) => !prev);
@@ -475,6 +569,42 @@ export const ReactChatRoom: React.FC<ReactChatRoomProps> = ({
 	}, []);
 
 	const closeSidebar = useCallback(() => setSidebarOpen(false), []);
+
+	if (authState === 'loading') {
+		return (
+			<div
+				className={cn(
+					'flex flex-col items-center justify-center',
+					'w-full h-full',
+					'rounded-xl overflow-hidden',
+					'border border-[var(--sl-color-border)]',
+					'border-t-2 border-t-[var(--sl-color-accent)]',
+					'bg-[var(--sl-color-bg)]',
+					'shadow-lg shadow-black/10',
+				)}>
+				<span className="text-sm text-[var(--sl-color-gray-3)]">
+					Loading...
+				</span>
+			</div>
+		);
+	}
+
+	if (authState === 'anon') {
+		return (
+			<div
+				className={cn(
+					'flex flex-col',
+					'w-full h-full',
+					'rounded-xl overflow-hidden',
+					'border border-[var(--sl-color-border)]',
+					'border-t-2 border-t-[var(--sl-color-accent)]',
+					'bg-[var(--sl-color-bg)]',
+					'shadow-lg shadow-black/10',
+				)}>
+				<LoginPrompt />
+			</div>
+		);
+	}
 
 	return (
 		<div
@@ -489,6 +619,7 @@ export const ReactChatRoom: React.FC<ReactChatRoomProps> = ({
 			)}>
 			<StatusBar
 				wsUrl={wsUrl}
+				token={token}
 				onToggleSidebar={toggleSidebar}
 				onToggleUsers={toggleUsers}
 				sidebarOpen={sidebarOpen}
