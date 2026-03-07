@@ -102,7 +102,7 @@
 				"ci": {
 					"commands": [
 						"echo '=== Pre-build diagnostics ===' && df -h 2>/dev/null && echo '--- cgroup memory ---' && cat /sys/fs/cgroup/memory.max 2>/dev/null && cat /sys/fs/cgroup/memory.current 2>/dev/null || true && docker system df 2>/dev/null || true && docker buildx ls 2>/dev/null || true",
-						"BUILDKIT_PROGRESS=plain ./kbve.sh -nx axum-kbve:containerx --configuration=ci",
+						"BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --build-arg BUILD_BASE=ghcr.io/kbve/kbve-build-base:latest --cache-from type=registry,ref=ghcr.io/kbve/kbve:buildcache --file apps/kbve/axum-kbve/Dockerfile .",
 						"VERSION=$(grep '^version' apps/kbve/axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve:latest kbve/kbve:$VERSION && echo \"Tagged kbve/kbve:$VERSION\""
 					]
 				}

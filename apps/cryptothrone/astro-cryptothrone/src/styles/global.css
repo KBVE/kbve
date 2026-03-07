@@ -5,7 +5,42 @@
 	--ct-accent: #fbbf24;
 	--ct-accent-mid: #f59e0b;
 	--ct-accent-dark: #d97706;
-	--ct-bg-deep: #1a1a2e;
+	--ct-bg-deep: #121212;
+	--ct-bg-alt: #1a1a1a;
+
+	/* ── Starlight overrides: obsidian-gold ── */
+	--sl-color-white: #f5f5f0;
+	--sl-color-gray-1: #e5e5e5;
+	--sl-color-gray-2: #b3b3b3;
+	--sl-color-gray-3: #737373;
+	--sl-color-gray-4: #404040;
+	--sl-color-gray-5: #262626;
+	--sl-color-gray-6: #1a1a1a;
+	--sl-color-black: #121212;
+
+	--sl-color-accent-low: #3d2800;
+	--sl-color-accent: #fbbf24;
+	--sl-color-accent-high: #fcd34d;
+
+	--sl-color-bg: var(--ct-bg-deep);
+	--sl-color-bg-nav: rgba(18, 18, 18, 0.85);
+	--sl-color-bg-sidebar: var(--ct-bg-alt);
+	--sl-color-bg-inline-code: var(--ct-bg-alt);
+
+	--sl-color-hairline-light: #2d2d2d;
+	--sl-color-hairline: #242424;
+	--sl-color-hairline-shade: var(--ct-bg-deep);
+
+	--sl-color-text: var(--sl-color-gray-2);
+	--sl-color-text-accent: var(--ct-accent);
+	--sl-color-backdrop-overlay: rgba(0, 0, 0, 0.75);
+
+	--sl-font: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── Splash page: zero main padding ── */
+[data-page-type='splash'] main {
+	padding: 0 !important;
 }
 
 /* ── Game full-bleed layout ── */
