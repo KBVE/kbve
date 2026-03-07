@@ -404,6 +404,84 @@ pub fn gear_registry() -> &'static [GearDef] {
             bonus_hp: 10,
             special: None,
         },
+        // ── New gear ──────────────────────────────────────────
+        GearDef {
+            id: "iron_mace",
+            name: "Iron Mace",
+            emoji: "\u{1F528}",
+            slot: EquipSlot::Weapon,
+            rarity: ItemRarity::Uncommon,
+            bonus_damage: 3,
+            bonus_armor: 0,
+            bonus_hp: 0,
+            special: None,
+        },
+        GearDef {
+            id: "glass_stiletto",
+            name: "Glass Stiletto",
+            emoji: "\u{1F52A}",
+            slot: EquipSlot::Weapon,
+            rarity: ItemRarity::Rare,
+            bonus_damage: 3,
+            bonus_armor: 0,
+            bonus_hp: 0,
+            special: Some(GearSpecial::CritBonus { percent: 15 }),
+        },
+        GearDef {
+            id: "excalibur",
+            name: "Excalibur",
+            emoji: "\u{2694}",
+            slot: EquipSlot::Weapon,
+            rarity: ItemRarity::Legendary,
+            bonus_damage: 6,
+            bonus_armor: 0,
+            bonus_hp: 5,
+            special: Some(GearSpecial::CritBonus { percent: 10 }),
+        },
+        GearDef {
+            id: "void_scythe",
+            name: "Void Scythe",
+            emoji: "\u{1F300}",
+            slot: EquipSlot::Weapon,
+            rarity: ItemRarity::Legendary,
+            bonus_damage: 7,
+            bonus_armor: 0,
+            bonus_hp: 0,
+            special: Some(GearSpecial::LifeSteal { percent: 15 }),
+        },
+        GearDef {
+            id: "shadow_cloak",
+            name: "Shadow Cloak",
+            emoji: "\u{1F9E5}",
+            slot: EquipSlot::Armor,
+            rarity: ItemRarity::Uncommon,
+            bonus_damage: 1,
+            bonus_armor: 3,
+            bonus_hp: 0,
+            special: None,
+        },
+        GearDef {
+            id: "runeguard_plate",
+            name: "Runeguard Plate",
+            emoji: "\u{1F6E1}",
+            slot: EquipSlot::Armor,
+            rarity: ItemRarity::Rare,
+            bonus_damage: 0,
+            bonus_armor: 5,
+            bonus_hp: 5,
+            special: Some(GearSpecial::Thorns { damage: 2 }),
+        },
+        GearDef {
+            id: "dragon_scale",
+            name: "Dragon Scale",
+            emoji: "\u{1F409}",
+            slot: EquipSlot::Armor,
+            rarity: ItemRarity::Legendary,
+            bonus_damage: 0,
+            bonus_armor: 8,
+            bonus_hp: 15,
+            special: Some(GearSpecial::DamageReduction { percent: 10 }),
+        },
     ];
     GEAR
 }
@@ -553,6 +631,14 @@ fn gear_loot_tables() -> &'static [GearLootTable] {
                     gear_id: "chain_mail",
                     weight: 4,
                 },
+                GearLootEntry {
+                    gear_id: "iron_mace",
+                    weight: 3,
+                },
+                GearLootEntry {
+                    gear_id: "shadow_cloak",
+                    weight: 3,
+                },
             ],
             drop_chance: 0.15,
         },
@@ -567,6 +653,14 @@ fn gear_loot_tables() -> &'static [GearLootTable] {
                     gear_id: "spiked_plate",
                     weight: 3,
                 },
+                GearLootEntry {
+                    gear_id: "glass_stiletto",
+                    weight: 2,
+                },
+                GearLootEntry {
+                    gear_id: "runeguard_plate",
+                    weight: 2,
+                },
             ],
             drop_chance: 0.20,
         },
@@ -580,6 +674,18 @@ fn gear_loot_tables() -> &'static [GearLootTable] {
                 GearLootEntry {
                     gear_id: "crystal_armor",
                     weight: 3,
+                },
+                GearLootEntry {
+                    gear_id: "excalibur",
+                    weight: 1,
+                },
+                GearLootEntry {
+                    gear_id: "void_scythe",
+                    weight: 1,
+                },
+                GearLootEntry {
+                    gear_id: "dragon_scale",
+                    weight: 1,
                 },
             ],
             drop_chance: 0.50,
@@ -1953,7 +2059,7 @@ mod tests {
 
     #[test]
     fn gear_registry_test() {
-        assert_eq!(gear_registry().len(), 8);
+        assert_eq!(gear_registry().len(), 15);
         // Verify a weapon and an armor piece exist
         let sword = find_gear("rusty_sword").unwrap();
         assert_eq!(sword.slot, EquipSlot::Weapon);

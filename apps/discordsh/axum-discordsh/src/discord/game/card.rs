@@ -756,6 +756,7 @@ fn build_equip_slot_display(gear_id: Option<&str>) -> EquipSlotDisplay {
                 Some(GearSpecial::LifeSteal { percent }) => format!("{}% Lifesteal", percent),
                 Some(GearSpecial::Thorns { damage }) => format!("{} Thorns", damage),
                 Some(GearSpecial::CritBonus { percent }) => format!("+{}% Crit", percent),
+                Some(GearSpecial::DamageReduction { percent }) => format!("-{}% Dmg", percent),
                 None => String::new(),
             };
             EquipSlotDisplay {

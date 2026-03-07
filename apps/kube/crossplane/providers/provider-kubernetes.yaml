@@ -1,0 +1,10 @@
+# provider-kubernetes: manages in-cluster Kubernetes resources via Crossplane
+# Used for cert-manager Certificate lifecycle management (CNPG TLS, etc.)
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+    name: crossplane-contrib-provider-kubernetes
+    annotations:
+        argocd.argoproj.io/sync-wave: '0'
+spec:
+    package: xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v1.2.1

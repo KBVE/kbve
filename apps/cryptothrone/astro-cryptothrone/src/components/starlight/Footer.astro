@@ -113,11 +113,12 @@ const currentYear = new Date().getFullYear();
 	.ct-footer {
 		margin-top: 2.5rem;
 		padding: 0 1.5rem;
-		border-top: 1px solid rgba(251, 191, 36, 0.15);
+		border-top: 1px solid
+			color-mix(in srgb, var(--ct-accent) 15%, transparent);
 		background: linear-gradient(
 			180deg,
 			transparent 0%,
-			rgba(26, 26, 46, 0.4) 100%
+			color-mix(in srgb, var(--ct-bg-deep) 40%, transparent) 100%
 		);
 	}
 
@@ -152,7 +153,11 @@ const currentYear = new Date().getFullYear();
 	.ct-footer__logo-text {
 		font-size: 1.25rem;
 		font-weight: 800;
-		background: linear-gradient(135deg, #fbbf24, #d97706);
+		background: linear-gradient(
+			135deg,
+			var(--ct-accent),
+			var(--ct-accent-dark)
+		);
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
 		background-clip: text;
@@ -177,7 +182,7 @@ const currentYear = new Date().getFullYear();
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
-		color: #fbbf24;
+		color: var(--ct-accent);
 		margin-bottom: 0.25rem;
 	}
 
@@ -189,7 +194,7 @@ const currentYear = new Date().getFullYear();
 	}
 
 	.ct-footer__col a:hover {
-		color: #fbbf24;
+		color: var(--ct-accent);
 	}
 
 	/* Bottom bar */
@@ -200,7 +205,8 @@ const currentYear = new Date().getFullYear();
 		max-width: 72rem;
 		margin: 0 auto;
 		padding: 1.25rem 0;
-		border-top: 1px solid rgba(251, 191, 36, 0.1);
+		border-top: 1px solid
+			color-mix(in srgb, var(--ct-accent) 10%, transparent);
 	}
 
 	.ct-footer__bottom span {
@@ -216,7 +222,7 @@ const currentYear = new Date().getFullYear();
 	}
 
 	.ct-footer__bottom a:hover {
-		color: #fbbf24;
+		color: var(--ct-accent);
 	}
 
 	/* Social badges */
@@ -234,15 +240,15 @@ const currentYear = new Date().getFullYear();
 		height: 2rem;
 		border-radius: 0.5rem;
 		color: var(--sl-color-gray-2, #a1a1aa);
-		background: rgba(251, 191, 36, 0.08);
-		border: 1px solid rgba(251, 191, 36, 0.15);
+		background: color-mix(in srgb, var(--ct-accent) 8%, transparent);
+		border: 1px solid color-mix(in srgb, var(--ct-accent) 15%, transparent);
 		transition: all 200ms ease;
 	}
 
 	.ct-footer__badge:hover {
-		color: #fbbf24;
-		border-color: rgba(251, 191, 36, 0.4);
-		background: rgba(251, 191, 36, 0.15);
+		color: var(--ct-accent);
+		border-color: color-mix(in srgb, var(--ct-accent) 40%, transparent);
+		background: color-mix(in srgb, var(--ct-accent) 15%, transparent);
 		transform: translateY(-2px);
 	}
 

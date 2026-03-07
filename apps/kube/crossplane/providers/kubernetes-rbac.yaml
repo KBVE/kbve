@@ -1,0 +1,39 @@
+# RBAC for provider-kubernetes to manage cert-manager Certificates and Secrets
+# The provider SA needs permissions to create/update Certificate CRDs and
+# the resulting TLS secrets in target namespaces (kilobase, etc.)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+    name: crossplane-cert-manager-access
+    labels:
+        app.kubernetes.io/name: crossplane
+        app.kubernetes.io/component: provider-kubernetes
+        app.kubernetes.io/managed-by: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '1'
+rules:
+    - apiGroups: ['cert-manager.io']
+      resources: ['certificates', 'certificates/status']
+      verbs: ['create', 'get', 'list', 'watch', 'update', 'delete', 'patch']
+    - apiGroups: ['']
+      resources: ['secrets']
+      verbs: ['create', 'get', 'list', 'watch', 'update', 'delete', 'patch']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+    name: crossplane-cert-manager-access
+    labels:
+        app.kubernetes.io/name: crossplane
+        app.kubernetes.io/component: provider-kubernetes
+        app.kubernetes.io/managed-by: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '1'
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: crossplane-cert-manager-access
+subjects:
+    - kind: ServiceAccount
+      name: crossplane-contrib-provider-kubernetes
+      namespace: crossplane-system

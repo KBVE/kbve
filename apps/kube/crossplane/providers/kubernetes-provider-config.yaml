@@ -1,0 +1,11 @@
+# ProviderConfig for provider-kubernetes: in-cluster ServiceAccount auth
+# No kubeconfig needed — uses the provider pod's injected identity
+apiVersion: kubernetes.crossplane.io/v1alpha1
+kind: ProviderConfig
+metadata:
+    name: kubernetes-provider
+    annotations:
+        argocd.argoproj.io/sync-wave: '5'
+spec:
+    credentials:
+        source: InjectedIdentity
