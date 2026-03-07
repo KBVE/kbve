@@ -53,10 +53,10 @@ fn spawn_tilemap(
         }
     }
 
-    // Ambient light — keep low so shadows are clearly visible
+    // Ambient light — raised to soften shadows
     commands.insert_resource(GlobalAmbientLight {
         color: Color::WHITE,
-        brightness: 100.0,
+        brightness: 200.0,
         ..default()
     });
 
@@ -68,7 +68,7 @@ fn spawn_tilemap(
     // making them clearly visible in the isometric view.
     commands.spawn((
         DirectionalLight {
-            illuminance: 8000.0,
+            illuminance: 6000.0,
             shadows_enabled: true,
             ..default()
         },

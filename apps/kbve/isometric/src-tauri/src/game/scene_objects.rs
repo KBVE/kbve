@@ -1,7 +1,10 @@
+use bevy::picking::events::{Out, Over, Pointer};
 use bevy::prelude::*;
-use std::f32::consts::PI;
 
 use super::player::Player;
+
+// Re-export EntityEvent so event_target() is available
+use bevy::ecs::event::EntityEvent;
 
 /// Axis-aligned bounding box collider (half-extents on X and Z).
 #[derive(Component)]
@@ -14,9 +17,23 @@ pub struct Collider {
 #[derive(Component)]
 pub struct Occludable;
 
+/// Stores the original emissive color so we can restore it after hover.
+#[derive(Component)]
+pub(crate) struct OriginalEmissive(pub(crate) LinearRgba);
+
+/// Marker added when the mouse pointer is hovering over an object.
+#[derive(Component)]
+struct Hovered;
+
+/// Visual half-extents for the hover outline gizmo.
+#[derive(Component)]
+pub(crate) struct HoverOutline {
+    pub(crate) half_extents: Vec3,
+}
+
 #[derive(Component)]
 pub struct AnimatedCrystal {
-    base_y: f32,
+    pub(crate) base_y: f32,
 }
 
 #[derive(Component)]
@@ -26,125 +43,25 @@ pub struct SceneObjectsPlugin;
 
 impl Plugin for SceneObjectsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_scene_objects);
-        app.add_systems(Update, (animate_crystal, rotate_boxes, update_occlusion));
+        app.add_systems(
+            Update,
+            (
+                animate_crystal,
+                rotate_boxes,
+                update_occlusion,
+                update_hover_highlight,
+                draw_hover_outline,
+            ),
+        );
     }
 }
 
-fn spawn_scene_objects(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    // Box 1 — checker-style two-tone crate
-    commands.spawn((
-        Mesh3d(meshes.add(Cuboid::new(2.0, 2.0, 2.0))),
-        MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::srgb(0.8, 0.65, 0.4),
-            perceptual_roughness: 0.9,
-            ..default()
-        })),
-        Transform::from_xyz(3.0, 1.0, -2.0).with_rotation(Quat::from_rotation_y(PI / 4.0)),
-        RotatingBox,
-        Collider {
-            half_x: 1.0,
-            half_z: 1.0,
-        },
-        Occludable,
-    ));
+pub(crate) fn on_pointer_over(trigger: On<Pointer<Over>>, mut commands: Commands) {
+    commands.entity(trigger.event_target()).insert(Hovered);
+}
 
-    // Box 2 — darker crate
-    commands.spawn((
-        Mesh3d(meshes.add(Cuboid::new(2.5, 2.5, 2.5))),
-        MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::srgb(0.55, 0.45, 0.35),
-            perceptual_roughness: 0.8,
-            ..default()
-        })),
-        Transform::from_xyz(-3.0, 1.25, -3.0).with_rotation(Quat::from_rotation_y(PI / 6.0)),
-        RotatingBox,
-        Collider {
-            half_x: 1.25,
-            half_z: 1.25,
-        },
-        Occludable,
-    ));
-
-    // Crystal — icosphere with emissive glow (floats at y=4, no ground collider)
-    let crystal_y = 4.0;
-    commands.spawn((
-        Mesh3d(meshes.add(Sphere::new(1.0).mesh().ico(2).unwrap())),
-        MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::srgb(0.41, 0.72, 0.91),
-            emissive: LinearRgba::new(0.31, 0.49, 0.55, 1.0),
-            metallic: 0.3,
-            perceptual_roughness: 0.2,
-            ..default()
-        })),
-        Transform::from_xyz(0.0, crystal_y, 0.0),
-        AnimatedCrystal { base_y: crystal_y },
-        Occludable,
-    ));
-
-    // Pillar — tall cylinder-like box
-    commands.spawn((
-        Mesh3d(meshes.add(Cuboid::new(0.8, 4.0, 0.8))),
-        MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::srgb(0.7, 0.7, 0.75),
-            metallic: 0.1,
-            perceptual_roughness: 0.6,
-            ..default()
-        })),
-        Transform::from_xyz(-5.0, 2.0, 2.0),
-        Collider {
-            half_x: 0.4,
-            half_z: 0.4,
-        },
-        Occludable,
-    ));
-
-    // Metallic sphere
-    commands.spawn((
-        Mesh3d(meshes.add(Sphere::new(0.8).mesh().ico(3).unwrap())),
-        MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::srgb(0.9, 0.85, 0.7),
-            metallic: 1.0,
-            perceptual_roughness: 0.1,
-            ..default()
-        })),
-        Transform::from_xyz(4.0, 0.8, 3.0),
-        Collider {
-            half_x: 0.8,
-            half_z: 0.8,
-        },
-        Occludable,
-    ));
-
-    // Spot light — amber accent
-    commands.spawn((
-        SpotLight {
-            color: Color::srgb(1.0, 0.76, 0.0),
-            intensity: 80000.0,
-            range: 30.0,
-            outer_angle: PI / 8.0,
-            inner_angle: PI / 16.0,
-            shadows_enabled: true,
-            ..default()
-        },
-        Transform::from_xyz(6.0, 10.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y),
-    ));
-
-    // Point light — soft blue fill
-    commands.spawn((
-        PointLight {
-            color: Color::srgb(0.5, 0.6, 0.9),
-            intensity: 40000.0,
-            range: 20.0,
-            shadows_enabled: true,
-            ..default()
-        },
-        Transform::from_xyz(-4.0, 6.0, 4.0),
-    ));
+pub(crate) fn on_pointer_out(trigger: On<Pointer<Out>>, mut commands: Commands) {
+    commands.entity(trigger.event_target()).remove::<Hovered>();
 }
 
 fn animate_crystal(time: Res<Time>, mut query: Query<(&mut Transform, &AnimatedCrystal)>) {
@@ -159,6 +76,55 @@ fn animate_crystal(time: Res<Time>, mut query: Query<(&mut Transform, &AnimatedC
 fn rotate_boxes(time: Res<Time>, mut query: Query<&mut Transform, With<RotatingBox>>) {
     for mut transform in &mut query {
         transform.rotate_y(time.delta_secs() * 0.3);
+    }
+}
+
+/// Boost emissive glow on hovered objects so the pixelation edge detection
+/// naturally creates a stronger outline (selection highlight).
+fn update_hover_highlight(
+    hovered: Query<
+        (&MeshMaterial3d<StandardMaterial>, &OriginalEmissive),
+        (With<Hovered>, With<Occludable>),
+    >,
+    unhovered: Query<
+        (&MeshMaterial3d<StandardMaterial>, &OriginalEmissive),
+        (Without<Hovered>, With<Occludable>),
+    >,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    for (mat_handle, original) in &hovered {
+        if let Some(mat) = materials.get_mut(&mat_handle.0) {
+            mat.emissive = LinearRgba::new(
+                original.0.red + 0.5,
+                original.0.green + 0.5,
+                original.0.blue + 0.5,
+                1.0,
+            );
+        }
+    }
+    for (mat_handle, original) in &unhovered {
+        if let Some(mat) = materials.get_mut(&mat_handle.0) {
+            mat.emissive = original.0;
+        }
+    }
+}
+
+/// Draw a wireframe outline around hovered objects using gizmos.
+/// The pixelation shader will pixelate the lines into chunky pixel-art borders.
+fn draw_hover_outline(
+    mut gizmos: Gizmos,
+    query: Query<(&GlobalTransform, &HoverOutline), With<Hovered>>,
+) {
+    let outline_color = Color::srgba(1.0, 0.85, 0.2, 0.9);
+    for (gt, outline) in &query {
+        let base = gt.compute_transform();
+        let outline_transform = Transform {
+            translation: base.translation,
+            rotation: base.rotation,
+            // Scale to match visual size + 10% margin
+            scale: outline.half_extents * 2.2,
+        };
+        gizmos.cube(outline_transform, outline_color);
     }
 }
 

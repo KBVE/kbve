@@ -1552,6 +1552,7 @@ dependencies = [
  "bevy_ecs",
  "bevy_input",
  "bevy_math",
+ "bevy_picking",
  "bevy_reflect",
  "bevy_window",
  "log",
@@ -1578,10 +1579,12 @@ dependencies = [
  "bevy_gizmos_render",
  "bevy_image",
  "bevy_input",
+ "bevy_input_focus",
  "bevy_light",
  "bevy_math",
  "bevy_mesh",
  "bevy_pbr",
+ "bevy_picking",
  "bevy_platform",
  "bevy_ptr",
  "bevy_reflect",
@@ -1737,6 +1740,30 @@ dependencies = [
  "static_assertions",
  "thiserror 2.0.18",
  "tracing",
+]
+
+[[package]]
+name = "bevy_picking"
+version = "0.18.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b7d524dbc8f2c9e73f7ab70c148c8f7886f3c24b8aa8c252a38ba68ed06cbf10"
+dependencies = [
+ "bevy_app",
+ "bevy_asset",
+ "bevy_camera",
+ "bevy_derive",
+ "bevy_ecs",
+ "bevy_input",
+ "bevy_math",
+ "bevy_mesh",
+ "bevy_platform",
+ "bevy_reflect",
+ "bevy_time",
+ "bevy_transform",
+ "bevy_window",
+ "crossbeam-channel",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -6273,6 +6300,7 @@ name = "isometric-game"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "dashmap 6.1.0",
  "pollster",
  "serde",
  "serde_json",

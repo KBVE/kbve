@@ -1,3 +1,4 @@
+use crate::game::object_registry::{OBJECT_REGISTRY_SNAPSHOT, ObjectRegistrySnapshot};
 use crate::game::state::{PLAYER_STATE_SNAPSHOT, PlayerState};
 use crate::tauri_plugin::AVERAGE_FRAME_RATE;
 use std::sync::atomic::Ordering;
@@ -10,10 +11,14 @@ pub fn get_fps() -> usize {
 #[tauri::command]
 pub fn get_player_state() -> PlayerState {
     PLAYER_STATE_SNAPSHOT
-        .lock()
-        .ok()
-        .and_then(|s| s.clone())
+        .get(&())
+        .map(|r| r.value().clone())
         .unwrap_or_default()
+}
+
+#[tauri::command]
+pub fn get_object_registry() -> Option<ObjectRegistrySnapshot> {
+    OBJECT_REGISTRY_SNAPSHOT.get(&()).map(|r| r.value().clone())
 }
 
 #[tauri::command]

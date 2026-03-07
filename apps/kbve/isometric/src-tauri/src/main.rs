@@ -8,10 +8,12 @@ mod tauri_plugin;
 
 use bevy::DefaultPlugins;
 use bevy::app::App;
+use bevy::picking::mesh_picking::MeshPickingPlugin;
 use bevy::prelude::*;
 use tauri_plugin::TauriPlugin;
 
 use game::camera::IsometricCameraPlugin;
+use game::object_registry::ObjectRegistryPlugin;
 use game::pixelate::PixelatePlugin;
 use game::player::PlayerPlugin;
 use game::scene_objects::SceneObjectsPlugin;
@@ -31,6 +33,7 @@ fn main() {
             .invoke_handler(tauri::generate_handler![
                 commands::get_fps,
                 commands::get_player_state,
+                commands::get_object_registry,
                 commands::greet,
             ])
     }));
@@ -45,12 +48,16 @@ fn main() {
         ..default()
     }));
 
+    // Mesh picking backend for mouse hover detection on 3D objects
+    app.add_plugins(MeshPickingPlugin);
+
     // Game plugins
     app.add_plugins((
         GameStatePlugin,
         IsometricCameraPlugin,
         TilemapPlugin,
         PlayerPlugin,
+        ObjectRegistryPlugin,
         SceneObjectsPlugin,
         PixelatePlugin,
     ));

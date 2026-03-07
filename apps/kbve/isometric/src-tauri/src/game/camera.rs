@@ -29,8 +29,8 @@ fn setup_camera(mut commands: Commands) {
         IsometricCamera,
         PixelateSettings {
             pixel_size: 4.0,
-            edge_strength: 0.5,
-            depth_edge_strength: 0.3,
+            edge_strength: 0.15,
+            depth_edge_strength: 0.1,
             scale_factor: 1.0, // auto-updated from window each frame
         },
     ));

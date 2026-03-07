@@ -1,8 +1,9 @@
 use bevy::prelude::*;
+use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
-use std::sync::Mutex;
+use std::sync::LazyLock;
 
-pub static PLAYER_STATE_SNAPSHOT: Mutex<Option<PlayerState>> = Mutex::new(None);
+pub static PLAYER_STATE_SNAPSHOT: LazyLock<DashMap<(), PlayerState>> = LazyLock::new(DashMap::new);
 
 #[derive(Resource, Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerState {
@@ -38,8 +39,6 @@ impl Plugin for GameStatePlugin {
 
 fn snapshot_player_state(state: Res<PlayerState>) {
     if state.is_changed() {
-        if let Ok(mut snapshot) = PLAYER_STATE_SNAPSHOT.lock() {
-            *snapshot = Some(state.clone());
-        }
+        PLAYER_STATE_SNAPSHOT.insert((), state.clone());
     }
 }
