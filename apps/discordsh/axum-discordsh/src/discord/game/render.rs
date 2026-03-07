@@ -447,6 +447,38 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
 /// Build the direction navigation buttons row.
 /// Each direction is Primary if the current tile has that exit, otherwise disabled Secondary.
 /// The Map button toggles the map overlay.
+/// Build an unequip select menu from currently equipped weapon/armor.
+fn build_unequip_menu(owner: &PlayerState, sid: &str, rows: &mut Vec<serenity::CreateActionRow>) {
+    let mut options = Vec::new();
+
+    if let Some(ref weapon_id) = owner.weapon {
+        if let Some(gear) = super::content::find_gear(weapon_id) {
+            options.push(serenity::CreateSelectMenuOption::new(
+                format!("{} {} [Weapon]", gear.emoji, gear.name),
+                "weapon",
+            ));
+        }
+    }
+
+    if let Some(ref armor_id) = owner.armor_gear {
+        if let Some(gear) = super::content::find_gear(armor_id) {
+            options.push(serenity::CreateSelectMenuOption::new(
+                format!("{} {} [Armor]", gear.emoji, gear.name),
+                "armor",
+            ));
+        }
+    }
+
+    if !options.is_empty() {
+        let menu = serenity::CreateSelectMenu::new(
+            format!("dng|{sid}|unequip"),
+            serenity::CreateSelectMenuKind::String { options },
+        )
+        .placeholder("Unequip gear...");
+        rows.push(serenity::CreateActionRow::SelectMenu(menu));
+    }
+}
+
 fn direction_buttons(session: &SessionState) -> serenity::CreateActionRow {
     let sid = &session.short_id;
     let current_tile = session.map.tiles.get(&session.map.position);
@@ -581,6 +613,9 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
                 rows.push(serenity::CreateActionRow::SelectMenu(menu));
             }
         }
+
+        // Gear unequip select menu
+        build_unequip_menu(owner, sid, &mut rows);
 
         return rows;
     }
@@ -810,6 +845,11 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
             .placeholder("Equip gear...");
             rows.push(serenity::CreateActionRow::SelectMenu(menu));
         }
+    }
+
+    // Gear unequip select menu
+    if !game_over {
+        build_unequip_menu(owner, sid, &mut rows);
     }
 
     // Cleric heal target menu (show if any party Cleric has heals remaining)
