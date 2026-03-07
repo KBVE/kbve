@@ -7,6 +7,8 @@ import { useEffect } from 'react';
 const UNSPLASH_IDS = [
 	'1443890923422-7819ed4101c0',
 	'1706076463257-20b41d9519f0',
+	'1716045168176-15d310a01dc0',
+	'1600758208050-a22f17dc5bb9',
 ];
 
 function unsplashUrl(id: string, w = 1400): string {
