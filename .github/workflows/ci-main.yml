@@ -374,7 +374,7 @@ jobs:
                   { "name": "mc", "condition": "${{ needs.alter.outputs.mc }}" },
                   { "name": "edge", "condition": "${{ needs.alter.outputs.edge }}" },
                   { "name": "cryptothrone", "condition": "${{ needs.alter.outputs.cryptothrone }}" },
-                  { "name": "axum-kbve-e2e", "condition": "${{ needs.alter.outputs.astro_kbve }}" }
+                  { "name": "axum-kbve-e2e", "condition": "${{ needs.alter.outputs.astro_kbve }}", "runner": "arc-runner-set" }
                 ]
 
     test_docker:
