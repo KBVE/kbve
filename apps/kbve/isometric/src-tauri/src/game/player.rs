@@ -65,7 +65,7 @@ fn sync_player_state(
     query: Query<&Transform, With<Player>>,
     mut player_state: ResMut<PlayerState>,
 ) {
-    if let Ok(transform) = query.get_single() {
+    if let Ok(transform) = query.single() {
         let pos = transform.translation;
         player_state.position = [pos.x, pos.y, pos.z];
     }

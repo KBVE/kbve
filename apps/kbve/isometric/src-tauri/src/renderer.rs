@@ -3,7 +3,7 @@ use bevy::render::RenderPlugin;
 use bevy::render::renderer::{
     RenderAdapter, RenderAdapterInfo, RenderDevice, RenderInstance, RenderQueue, WgpuWrapper,
 };
-use bevy::render::settings::RenderCreation;
+use bevy::render::settings::{RenderCreation, RenderResources};
 use tauri::WebviewWindow;
 
 /// Plugin that creates a wgpu surface from a Tauri WebviewWindow
@@ -14,7 +14,7 @@ pub struct CustomRendererPlugin {
 
 impl Plugin for CustomRendererPlugin {
     fn build(&self, app: &mut bevy::app::App) {
-        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
             ..Default::default()
         });
@@ -32,15 +32,12 @@ impl Plugin for CustomRendererPlugin {
 
         let adapter_info = adapter.get_info();
 
-        let (device, queue) = pollster::block_on(adapter.request_device(
-            &wgpu::DeviceDescriptor {
-                label: Some("isometric-game-device"),
-                required_features: wgpu::Features::empty(),
-                required_limits: wgpu::Limits::default(),
-                ..Default::default()
-            },
-            None,
-        ))
+        let (device, queue) = pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor {
+            label: Some("isometric-game-device"),
+            required_features: wgpu::Features::empty(),
+            required_limits: wgpu::Limits::default(),
+            ..Default::default()
+        }))
         .expect("Failed to create wgpu device");
 
         let render_device = RenderDevice::from(device);
@@ -50,13 +47,13 @@ impl Plugin for CustomRendererPlugin {
         let render_instance = RenderInstance(std::sync::Arc::new(WgpuWrapper::new(instance)));
 
         app.add_plugins(RenderPlugin {
-            render_creation: RenderCreation::Manual(
+            render_creation: RenderCreation::Manual(RenderResources(
                 render_device,
                 render_queue,
                 render_adapter_info,
                 render_adapter,
                 render_instance,
-            ),
+            )),
             ..Default::default()
         });
     }

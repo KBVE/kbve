@@ -53,9 +53,10 @@ fn spawn_tilemap(
     }
 
     // Ambient light
-    commands.insert_resource(AmbientLight {
+    commands.insert_resource(GlobalAmbientLight {
         color: Color::WHITE,
         brightness: 500.0,
+        ..default()
     });
 
     // Directional light (sun)

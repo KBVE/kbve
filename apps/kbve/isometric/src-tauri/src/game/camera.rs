@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use super::pixelate::PixelateSettings;
+
 #[derive(Component)]
 pub struct IsometricCamera;
 
@@ -18,12 +20,13 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn((
         Camera3d::default(),
         Projection::from(OrthographicProjection {
-            scaling_mode: bevy::render::camera::ScalingMode::FixedVertical {
+            scaling_mode: bevy::camera::ScalingMode::FixedVertical {
                 viewport_height: 20.0,
             },
             ..OrthographicProjection::default_3d()
         }),
         Transform::from_translation(camera_pos).looking_at(Vec3::ZERO, Vec3::Y),
         IsometricCamera,
+        PixelateSettings { pixel_size: 4.0 },
     ));
 }

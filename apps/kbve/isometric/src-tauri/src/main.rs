@@ -12,6 +12,7 @@ use bevy::prelude::*;
 use tauri_plugin::TauriPlugin;
 
 use game::camera::IsometricCameraPlugin;
+use game::pixelate::PixelatePlugin;
 use game::player::PlayerPlugin;
 use game::state::GameStatePlugin;
 use game::tilemap::TilemapPlugin;
@@ -37,7 +38,7 @@ fn main() {
     app.add_plugins(DefaultPlugins.set(bevy::window::WindowPlugin {
         primary_window: Some(bevy::window::Window {
             title: "KBVE Isometric".to_string(),
-            resolution: bevy::window::WindowResolution::new(1024.0, 768.0),
+            resolution: bevy::window::WindowResolution::new(1024, 768),
             ..default()
         }),
         ..default()
@@ -49,6 +50,7 @@ fn main() {
         IsometricCameraPlugin,
         TilemapPlugin,
         PlayerPlugin,
+        PixelatePlugin,
     ));
 
     app.run();
