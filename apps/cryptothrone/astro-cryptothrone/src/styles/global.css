@@ -8,6 +8,19 @@
 	--ct-bg-deep: #1a1a2e;
 }
 
+/* ── Splash page full-bleed ── */
+
+/* Strip Starlight splash padding so the hero spans edge-to-edge */
+[data-page-type='splash'] .sl-markdown-content,
+[data-page-type='splash'] main {
+	padding: 0 !important;
+	max-width: 100% !important;
+}
+
+[data-page-type='splash'] .content-panel {
+	padding: 0 !important;
+}
+
 /* ── Game full-bleed layout ── */
 
 /* Lock body scroll and hide footer when the game overlay is active */

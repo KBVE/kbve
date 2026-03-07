@@ -40,12 +40,15 @@ const {
 <style>
 	.ct-hero {
 		position: relative;
-		min-height: 80vh;
+		width: 100vw;
+		min-height: 100vh;
+		margin-left: calc(-50vw + 50%);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		background: url('/assets/background/chip-background.webp') center /
 			cover no-repeat;
+		background-attachment: fixed;
 		overflow: hidden;
 	}
 
@@ -54,9 +57,9 @@ const {
 		inset: 0;
 		background: linear-gradient(
 			180deg,
-			rgba(26, 26, 46, 0.85) 0%,
-			rgba(26, 26, 46, 0.6) 50%,
-			rgba(26, 26, 46, 0.9) 100%
+			rgba(26, 26, 46, 0.75) 0%,
+			rgba(26, 26, 46, 0.65) 40%,
+			rgba(26, 26, 46, 0.85) 100%
 		);
 	}
 
@@ -65,11 +68,11 @@ const {
 		z-index: 1;
 		text-align: center;
 		padding: 2rem;
-		max-width: 700px;
+		max-width: 720px;
 	}
 
 	.ct-hero__title {
-		font-size: clamp(2.5rem, 6vw, 4.5rem);
+		font-size: clamp(3rem, 7vw, 5rem);
 		font-weight: 800;
 		letter-spacing: -0.02em;
 		background: linear-gradient(
@@ -83,13 +86,15 @@ const {
 		background-clip: text;
 		margin: 0 0 1rem;
 		line-height: 1.1;
+		text-shadow: 0 2px 40px rgba(251, 191, 36, 0.25);
 	}
 
 	.ct-hero__tagline {
-		font-size: clamp(1rem, 2vw, 1.25rem);
-		color: var(--sl-color-gray-2, #d1d5db);
+		font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+		color: rgba(255, 255, 255, 0.9);
 		margin: 0 0 2.5rem;
 		line-height: 1.6;
+		text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
 	}
 
 	.ct-hero__actions {
@@ -102,10 +107,10 @@ const {
 	.ct-btn {
 		display: inline-flex;
 		align-items: center;
-		padding: 0.75rem 2rem;
+		padding: 0.85rem 2.25rem;
 		border-radius: 0.5rem;
 		font-weight: 600;
-		font-size: 1rem;
+		font-size: 1.05rem;
 		text-decoration: none;
 		transition: all 0.2s ease;
 	}
@@ -121,17 +126,18 @@ const {
 
 	.ct-btn--primary:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
+		box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35);
 	}
 
 	.ct-btn--ghost {
-		border: 1px solid color-mix(in srgb, var(--ct-accent) 40%, transparent);
+		border: 1px solid rgba(251, 191, 36, 0.45);
 		color: var(--ct-accent);
-		background: transparent;
+		background: rgba(26, 26, 46, 0.4);
+		backdrop-filter: blur(4px);
 	}
 
 	.ct-btn--ghost:hover {
-		background: color-mix(in srgb, var(--ct-accent) 10%, transparent);
+		background: rgba(251, 191, 36, 0.12);
 		border-color: var(--ct-accent);
 	}
 
@@ -140,7 +146,7 @@ const {
 		bottom: 2rem;
 		left: 50%;
 		transform: translateX(-50%);
-		color: color-mix(in srgb, var(--ct-accent) 50%, transparent);
+		color: rgba(251, 191, 36, 0.5);
 		animation: bounce 2s infinite;
 	}
 
