@@ -378,6 +378,6 @@ export function _$gha_formatDevBody(
 		}
 	}
 
-	body += `---\n*This PR is automatically maintained by CI*`;
+	body += `---\n*This PR is automatically maintained by CI — [KBVE Studio](https://kbve.com)*`;
 	return body;
 }
