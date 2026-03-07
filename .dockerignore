@@ -1,0 +1,34 @@
+# Monorepo build context exclusions
+# Only include what the Dockerfile COPY commands actually need
+
+# Version control
+.git
+.gitmodules
+
+# Node
+node_modules
+
+# Rust build artifacts
+target
+
+# Environment / Secrets
+**/.env*
+*.local
+
+# IDE / Editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# CI / Config
+.github
+.claude
+.nx
+
+# Large / irrelevant app directories not needed by any Dockerfile
+apps/mc/pumpkin
+apps/postgres
+apps/irc
+apps/godot
+apps/unity
