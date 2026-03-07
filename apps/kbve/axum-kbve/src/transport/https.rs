@@ -146,6 +146,7 @@ fn router(state: AppState) -> Router {
         .route("/api/status", get(api_status))
         .route("/api/v1/osrs/{item_id}", get(osrs_api_handler))
         .route("/api/v1/mc/players", get(mc_players_handler))
+        .route("/api/v1/mc/textures/{hash}", get(mc_texture_handler))
         .route("/api/v1/profile/me", get(profile_me_handler))
         .route("/api/v1/profile/username", post(set_username_handler))
         .route("/api/v1/profile/{username}", get(profile_api_handler))
@@ -1005,6 +1006,36 @@ async fn mc_players_handler() -> impl IntoResponse {
         Json(json!(players)),
     )
         .into_response()
+}
+
+/// MC skin texture proxy — fetches PNG from textures.minecraft.net.
+/// GET /api/v1/mc/textures/{hash}
+///
+/// The hash must be a 60-64 char hex string (Mojang texture hash).
+/// Returns the raw PNG with long-lived cache headers (skins are immutable).
+async fn mc_texture_handler(Path(hash): Path<String>) -> impl IntoResponse {
+    // Validate hash: 60-64 hex chars only
+    if hash.len() < 60 || hash.len() > 64 || !hash.chars().all(|c| c.is_ascii_hexdigit()) {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
+
+    let svc = match get_mc_service() {
+        Some(s) => s,
+        None => return StatusCode::SERVICE_UNAVAILABLE.into_response(),
+    };
+
+    match svc.fetch_texture(&hash).await {
+        Some(bytes) => (
+            StatusCode::OK,
+            [
+                (header::CONTENT_TYPE, "image/png"),
+                (header::CACHE_CONTROL, "public, max-age=86400, immutable"),
+            ],
+            bytes,
+        )
+            .into_response(),
+        None => StatusCode::NOT_FOUND.into_response(),
+    }
 }
 
 // ---------------------------------------------------------------------------
