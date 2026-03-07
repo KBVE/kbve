@@ -1091,4 +1091,229 @@ mod tests {
         };
         assert!(!session.show_inventory);
     }
+
+    // ── Serde serialization tests ──────────────────────────────────
+
+    #[test]
+    fn serde_session_state_round_trip() {
+        use std::time::Instant;
+        let owner = serenity::UserId::new(42);
+        let mut players = HashMap::new();
+        let mut player = PlayerState::default();
+        player.name = "TestHero".to_owned();
+        player.gold = 100;
+        player.weapon = Some("rusty_sword".to_owned());
+        player.armor_gear = Some("leather_vest".to_owned());
+        player.effects.push(EffectInstance {
+            kind: EffectKind::Poison,
+            stacks: 2,
+            turns_left: 3,
+        });
+        player.inventory.push(ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 5,
+        });
+        players.insert(owner, player);
+
+        let session = SessionState {
+            id: uuid::Uuid::new_v4(),
+            short_id: "serde123".to_owned(),
+            owner,
+            party: Vec::new(),
+            mode: SessionMode::Solo,
+            phase: GamePhase::Combat,
+            channel_id: serenity::ChannelId::new(999),
+            message_id: serenity::MessageId::new(888),
+            created_at: Instant::now(),
+            last_action_at: Instant::now(),
+            turn: 7,
+            players,
+            enemies: vec![EnemyState {
+                name: "Goblin".to_owned(),
+                level: 3,
+                hp: 30,
+                max_hp: 40,
+                armor: 2,
+                effects: Vec::new(),
+                intent: Intent::HeavyAttack { dmg: 12 },
+                charged: false,
+                loot_table_id: "skeleton",
+                enraged: false,
+                index: 0,
+                first_strike: false,
+            }],
+            room: super::super::content::generate_room(5),
+            log: vec!["Turn begins.".to_owned(), "Goblin attacks!".to_owned()],
+            show_items: true,
+            pending_actions: HashMap::new(),
+            map: test_map_default(),
+            show_map: false,
+            show_inventory: true,
+            pending_destination: Some(MapPos::new(1, 0)),
+            enemies_had_first_strike: false,
+        };
+
+        let json = serde_json::to_string(&session).unwrap();
+        let val: serde_json::Value = serde_json::from_str(&json).unwrap();
+
+        // Core fields present
+        assert_eq!(val["short_id"], "serde123");
+        assert_eq!(val["turn"], 7);
+        assert_eq!(val["mode"], "Solo");
+        assert_eq!(val["phase"], "Combat");
+        assert_eq!(val["show_inventory"], true);
+
+        // Players map uses string keys
+        let players_obj = val["players"].as_object().unwrap();
+        assert_eq!(players_obj.len(), 1);
+        assert!(players_obj.contains_key("42"));
+        let p = &players_obj["42"];
+        assert_eq!(p["name"], "TestHero");
+        assert_eq!(p["gold"], 100);
+        assert_eq!(p["weapon"], "rusty_sword");
+        assert_eq!(p["inventory"][0]["item_id"], "potion");
+        assert_eq!(p["inventory"][0]["qty"], 5);
+        assert_eq!(p["effects"][0]["kind"], "Poison");
+
+        // Enemies
+        assert_eq!(val["enemies"][0]["name"], "Goblin");
+        assert_eq!(val["enemies"][0]["hp"], 30);
+
+        // Skipped fields should be absent
+        assert!(val.get("created_at").is_none());
+        assert!(val.get("last_action_at").is_none());
+        assert!(val.get("pending_actions").is_none());
+        assert!(val.get("pending_destination").is_none());
+
+        // Tiles serialized as array
+        assert!(val["map"]["tiles"].is_array());
+
+        // Log preserved
+        assert_eq!(val["log"].as_array().unwrap().len(), 2);
+    }
+
+    #[test]
+    fn serde_gear_special_all_variants() {
+        let variants = vec![
+            GearSpecial::LifeSteal { percent: 20 },
+            GearSpecial::Thorns { damage: 5 },
+            GearSpecial::CritBonus { percent: 15 },
+            GearSpecial::DamageReduction { percent: 10 },
+        ];
+
+        for variant in &variants {
+            let json = serde_json::to_string(variant).unwrap();
+            let val: serde_json::Value = serde_json::from_str(&json).unwrap();
+            // Each variant serializes as an object with the variant name as key
+            assert!(
+                val.is_object(),
+                "GearSpecial variant should be an object: {json}"
+            );
+        }
+
+        // Verify specific field values
+        let dr_json = serde_json::to_string(&GearSpecial::DamageReduction { percent: 10 }).unwrap();
+        let dr_val: serde_json::Value = serde_json::from_str(&dr_json).unwrap();
+        assert_eq!(dr_val["DamageReduction"]["percent"], 10);
+    }
+
+    #[test]
+    fn serde_game_phase_variants() {
+        let phases = vec![
+            GamePhase::Exploring,
+            GamePhase::Combat,
+            GamePhase::Looting,
+            GamePhase::Event,
+            GamePhase::Rest,
+            GamePhase::Merchant,
+            GamePhase::GameOver(GameOverReason::Victory),
+            GamePhase::GameOver(GameOverReason::Defeated),
+        ];
+
+        for phase in &phases {
+            let json = serde_json::to_string(phase).unwrap();
+            // Should not panic and produce valid JSON
+            let _: serde_json::Value = serde_json::from_str(&json).unwrap();
+        }
+
+        // Simple variants serialize as strings
+        let json = serde_json::to_string(&GamePhase::Exploring).unwrap();
+        assert_eq!(json, "\"Exploring\"");
+
+        // Nested variants serialize with data
+        let json = serde_json::to_string(&GamePhase::GameOver(GameOverReason::Victory)).unwrap();
+        let val: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(val["GameOver"], "Victory");
+    }
+
+    #[test]
+    fn serde_map_tiles_serialized_as_array() {
+        let mut tiles = HashMap::new();
+        tiles.insert(
+            MapPos::new(0, 0),
+            MapTile {
+                pos: MapPos::new(0, 0),
+                room_type: RoomType::UndergroundCity,
+                name: "City".to_owned(),
+                description: "A city.".to_owned(),
+                exits: vec![Direction::North],
+                visited: true,
+                cleared: true,
+            },
+        );
+        tiles.insert(
+            MapPos::new(1, 0),
+            MapTile {
+                pos: MapPos::new(1, 0),
+                room_type: RoomType::Combat,
+                name: "Arena".to_owned(),
+                description: "A fight.".to_owned(),
+                exits: vec![Direction::West, Direction::East],
+                visited: false,
+                cleared: false,
+            },
+        );
+
+        let map = MapState {
+            seed: 42,
+            position: MapPos::new(0, 0),
+            tiles,
+            tiles_visited: 1,
+            boss_positions: vec![MapPos::new(5, 5)],
+        };
+
+        let json = serde_json::to_string(&map).unwrap();
+        let val: serde_json::Value = serde_json::from_str(&json).unwrap();
+
+        // tiles is an array, not an object
+        let tiles_arr = val["tiles"].as_array().unwrap();
+        assert_eq!(tiles_arr.len(), 2);
+
+        // Each tile has its pos embedded
+        let names: Vec<&str> = tiles_arr
+            .iter()
+            .map(|t| t["name"].as_str().unwrap())
+            .collect();
+        assert!(names.contains(&"City"));
+        assert!(names.contains(&"Arena"));
+
+        // boss_positions serializes normally
+        assert_eq!(val["boss_positions"][0]["x"], 5);
+        assert_eq!(val["boss_positions"][0]["y"], 5);
+    }
+
+    #[test]
+    fn serde_member_status_tag_variants() {
+        let member = MemberStatusTag::Member {
+            username: "fudster".to_owned(),
+        };
+        let guest = MemberStatusTag::Guest;
+
+        let member_json = serde_json::to_string(&member).unwrap();
+        let val: serde_json::Value = serde_json::from_str(&member_json).unwrap();
+        assert_eq!(val["Member"]["username"], "fudster");
+
+        let guest_json = serde_json::to_string(&guest).unwrap();
+        assert_eq!(guest_json, "\"Guest\"");
+    }
 }
