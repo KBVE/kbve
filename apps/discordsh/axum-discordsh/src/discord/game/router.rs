@@ -89,12 +89,31 @@ pub async fn handle_game_component(
             return send_ephemeral(component, ctx, "Invalid select menu interaction.").await;
         }
     } else if action_str == "equip" {
-        // Equip gear — gear_id from parts[3]
-        let gear_id = parts.get(3).unwrap_or(&"");
-        if gear_id.is_empty() {
-            return send_ephemeral(component, ctx, "No gear specified.").await;
+        // Equip gear — gear_id from select menu value
+        if let serenity::ComponentInteractionDataKind::StringSelect { values } =
+            &component.data.kind
+        {
+            if let Some(gear_id) = values.first() {
+                GameAction::Equip(gear_id.to_owned())
+            } else {
+                return send_ephemeral(component, ctx, "No gear selected.").await;
+            }
+        } else {
+            return send_ephemeral(component, ctx, "Invalid select menu interaction.").await;
         }
-        GameAction::Equip(gear_id.to_string())
+    } else if action_str == "unequip" {
+        // Unequip gear — slot from select menu value
+        if let serenity::ComponentInteractionDataKind::StringSelect { values } =
+            &component.data.kind
+        {
+            if let Some(slot_str) = values.first() {
+                GameAction::Unequip(slot_str.to_owned())
+            } else {
+                return send_ephemeral(component, ctx, "No slot selected.").await;
+            }
+        } else {
+            return send_ephemeral(component, ctx, "Invalid select menu interaction.").await;
+        }
     } else if action_str == "heal" {
         // Cleric heal ally — user_id from parts[3]
         let uid_str = parts.get(3).unwrap_or(&"0");
@@ -469,5 +488,37 @@ mod tests {
         let parts: Vec<&str> = value.split('|').collect();
         let target: Option<u8> = parts.get(1).and_then(|s| s.parse().ok());
         assert_eq!(target, Some(0));
+    }
+
+    #[test]
+    fn test_equip_unequip_not_in_parse_action() {
+        // equip and unequip are select-menu actions handled before parse_action,
+        // so they must NOT be recognized by parse_action (avoids double dispatch)
+        assert!(parse_action("equip").is_none());
+        assert!(parse_action("unequip").is_none());
+    }
+
+    #[test]
+    fn test_equip_action_from_select_value() {
+        // Simulate the corrected equip flow: gear_id comes from select menu value
+        let select_value = "rusty_sword";
+        let action = GameAction::Equip(select_value.to_owned());
+        assert_eq!(action, GameAction::Equip("rusty_sword".to_owned()));
+
+        let select_value = "leather_vest";
+        let action = GameAction::Equip(select_value.to_owned());
+        assert_eq!(action, GameAction::Equip("leather_vest".to_owned()));
+    }
+
+    #[test]
+    fn test_unequip_action_from_select_value() {
+        // Unequip values are slot strings ("weapon" or "armor")
+        let select_value = "weapon";
+        let action = GameAction::Unequip(select_value.to_owned());
+        assert_eq!(action, GameAction::Unequip("weapon".to_owned()));
+
+        let select_value = "armor";
+        let action = GameAction::Unequip(select_value.to_owned());
+        assert_eq!(action, GameAction::Unequip("armor".to_owned()));
     }
 }

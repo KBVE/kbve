@@ -88,7 +88,7 @@ fn validate_action(
                 }
             }
         }
-        GameAction::Equip(_) => {
+        GameAction::Equip(_) | GameAction::Unequip(_) => {
             // Allowed anytime except GameOver (already checked above)
         }
         GameAction::Explore => {
@@ -212,6 +212,10 @@ pub fn apply_action(
         }
         GameAction::Equip(ref gear_id) => {
             let msg = apply_equip(session, gear_id, actor)?;
+            vec![msg]
+        }
+        GameAction::Unequip(ref slot_str) => {
+            let msg = apply_unequip(session, slot_str, actor)?;
             vec![msg]
         }
         GameAction::UseItem(ref item_id, target_opt) => {
@@ -2000,6 +2004,42 @@ fn apply_equip(
     }
 
     Ok(format!("Equipped {}!", gear_name))
+}
+
+// ── Unequip gear ────────────────────────────────────────────────────
+
+fn apply_unequip(
+    session: &mut SessionState,
+    slot_str: &str,
+    actor: serenity::UserId,
+) -> Result<String, String> {
+    let player = session.player_mut(actor);
+
+    match slot_str {
+        "weapon" => {
+            let old_id = player.weapon.take().ok_or("No weapon equipped.")?;
+            let name = content::find_gear(&old_id)
+                .map(|g| g.name.to_owned())
+                .unwrap_or_else(|| old_id.clone());
+            add_item_to_inventory(&mut player.inventory, &old_id);
+            Ok(format!("Unequipped {}.", name))
+        }
+        "armor" => {
+            let old_id = player.armor_gear.take().ok_or("No armor equipped.")?;
+            let gear = content::find_gear(&old_id);
+            let name = gear
+                .map(|g| g.name.to_owned())
+                .unwrap_or_else(|| old_id.clone());
+            if let Some(g) = gear {
+                player.armor -= g.bonus_armor;
+                player.max_hp -= g.bonus_hp;
+                player.hp = player.hp.min(player.max_hp);
+            }
+            add_item_to_inventory(&mut player.inventory, &old_id);
+            Ok(format!("Unequipped {}.", name))
+        }
+        _ => Err("Invalid equipment slot.".to_owned()),
+    }
 }
 
 // ── Heal ally (Cleric) ──────────────────────────────────────────────
@@ -4924,6 +4964,112 @@ mod tests {
             old_sword_qty, 1,
             "Old weapon (rusty_sword) should be returned to inventory"
         );
+    }
+
+    #[test]
+    fn test_unequip_weapon() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+
+        // Give and equip a weapon
+        add_item_to_inventory(&mut session.player_mut(OWNER).inventory, "rusty_sword");
+        let equip = apply_action(
+            &mut session,
+            GameAction::Equip("rusty_sword".to_owned()),
+            OWNER,
+        );
+        assert!(equip.is_ok());
+        assert_eq!(session.player(OWNER).weapon.as_deref(), Some("rusty_sword"));
+
+        // Unequip weapon
+        let result = apply_action(
+            &mut session,
+            GameAction::Unequip("weapon".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        assert!(
+            session.player(OWNER).weapon.is_none(),
+            "Weapon slot should be empty after unequip"
+        );
+
+        // Weapon should be back in inventory
+        let qty = session
+            .player(OWNER)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "rusty_sword")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(qty, 1, "Unequipped weapon should return to inventory");
+    }
+
+    #[test]
+    fn test_unequip_armor() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+
+        // Give and equip armor
+        add_item_to_inventory(&mut session.player_mut(OWNER).inventory, "leather_vest");
+        let base_armor = session.player(OWNER).armor;
+        let equip = apply_action(
+            &mut session,
+            GameAction::Equip("leather_vest".to_owned()),
+            OWNER,
+        );
+        assert!(equip.is_ok());
+        assert!(session.player(OWNER).armor > base_armor);
+
+        let armor_while_equipped = session.player(OWNER).armor;
+
+        // Unequip armor
+        let result = apply_action(&mut session, GameAction::Unequip("armor".to_owned()), OWNER);
+        assert!(result.is_ok());
+        assert!(
+            session.player(OWNER).armor_gear.is_none(),
+            "Armor slot should be empty after unequip"
+        );
+        assert!(
+            session.player(OWNER).armor < armor_while_equipped,
+            "Armor stat should decrease after unequipping"
+        );
+
+        // Armor should be back in inventory
+        let qty = session
+            .player(OWNER)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "leather_vest")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(qty, 1, "Unequipped armor should return to inventory");
+    }
+
+    #[test]
+    fn test_unequip_empty_slot_fails() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+
+        // No weapon equipped — unequip should fail
+        let result = apply_action(
+            &mut session,
+            GameAction::Unequip("weapon".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_err());
+
+        // No armor equipped — unequip should fail
+        let result = apply_action(&mut session, GameAction::Unequip("armor".to_owned()), OWNER);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_unequip_invalid_slot_fails() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+
+        let result = apply_action(&mut session, GameAction::Unequip("ring".to_owned()), OWNER);
+        assert!(result.is_err());
     }
 
     // ── Group 4: Combat Mechanic Tests ──────────────────────────────

@@ -889,7 +889,7 @@ dependencies = [
 
 [[package]]
 name = "axum-discordsh"
-version = "0.1.27"
+version = "0.1.28"
 dependencies = [
  "anyhow",
  "askama",
@@ -980,7 +980,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.24"
+version = "1.0.28"
 dependencies = [
  "anyhow",
  "askama",
