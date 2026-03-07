@@ -3,11 +3,11 @@
 
 # IMPORTANT: This name becomes the `runs-on` label in your workflows
 # Example: runs-on: arc-runner-set
-runnerScaleSetName: "arc-runner-set"
+runnerScaleSetName: 'arc-runner-set'
 
 # GitHub configuration
 # Use organization URL for org-wide runners, or repo URL for repo-specific
-githubConfigUrl: "https://github.com/kbve"
+githubConfigUrl: 'https://github.com/kbve'
 
 # Authentication - reference existing Kubernetes secret with GitHub PAT
 # The secret is created by ExternalSecret from arc-systems namespace
@@ -16,8 +16,8 @@ githubConfigSecret: github-arc-token
 
 # Controller service account reference
 controllerServiceAccount:
-  name: arc-controller
-  namespace: arc-systems
+    name: arc-controller
+    namespace: arc-systems
 
 # Scaling configuration
 minRunners: 0
@@ -28,83 +28,99 @@ maxRunners: 10
 
 # Runner container configuration with Docker-in-Docker support
 template:
-  spec:
-    # Init container to copy externals for DinD
-    initContainers:
-      - name: init-dind-externals
-        image: ghcr.io/actions/actions-runner:latest
-        command: ["cp", "-r", "-v", "/home/runner/externals/.", "/home/runner/tmpDir/"]
-        volumeMounts:
-          - name: dind-externals
-            mountPath: /home/runner/tmpDir
-    containers:
-      - name: runner
-        image: ghcr.io/actions/actions-runner:latest
-        # Fix sudoers for root before starting runner (Unity builder uses sudo)
-        command: ["/bin/bash", "-c", "echo 'root ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && /home/runner/run.sh"]
-        env:
-          - name: DOCKER_HOST
-            value: tcp://localhost:2376
-          - name: RUNNER_ALLOW_RUNASROOT
-            value: "1"
-        resources:
-          limits:
-            cpu: "12"
-            memory: 24Gi
-          requests:
-            cpu: "4"
-            memory: 8Gi
-        securityContext:
-          # Run as root for sudo/apt-get (Unity builder requirement)
-          # Not privileged - no host access, just root inside container
-          runAsUser: 0
-          runAsGroup: 0
-        volumeMounts:
-          - name: work
-            mountPath: /home/runner/_work
-          - name: dind-sock
-            mountPath: /var/run
-          - name: dind-externals
-            mountPath: /home/runner/externals
-          - name: runner-cache
-            mountPath: /home/runner/_cache
-      # Docker-in-Docker sidecar
-      # Note: Unity builds request high resources, DinD needs headroom
-      - name: dind
-        image: docker:dind
-        args:
-          - dockerd
-          - --host=unix:///var/run/docker.sock
-          - --host=tcp://0.0.0.0:2376
-          - --tls=false
-        securityContext:
-          privileged: true
-        resources:
-          limits:
-            cpu: "12"
-            memory: 32Gi
-          requests:
-            cpu: "2"
-            memory: 4Gi
-        volumeMounts:
-          - name: work
-            mountPath: /home/runner/_work
-          - name: dind-sock
-            mountPath: /var/run
-          - name: dind-externals
-            mountPath: /home/runner/externals
-          - name: runner-cache
-            mountPath: /home/runner/_cache
-    volumes:
-      - name: work
-        emptyDir: {}
-      - name: dind-sock
-        emptyDir: {}
-      - name: dind-externals
-        emptyDir: {}
-      - name: runner-cache
-        persistentVolumeClaim:
-          claimName: arc-runner-cache
+    spec:
+        # Init container to copy externals for DinD
+        initContainers:
+            - name: init-dind-externals
+              image: ghcr.io/actions/actions-runner:latest
+              command:
+                  [
+                      'cp',
+                      '-r',
+                      '-v',
+                      '/home/runner/externals/.',
+                      '/home/runner/tmpDir/',
+                  ]
+              volumeMounts:
+                  - name: dind-externals
+                    mountPath: /home/runner/tmpDir
+        containers:
+            - name: runner
+              image: ghcr.io/actions/actions-runner:latest
+              # Fix sudoers for root before starting runner (Unity builder uses sudo)
+              command:
+                  [
+                      '/bin/bash',
+                      '-c',
+                      "echo 'root ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && /home/runner/run.sh",
+                  ]
+              env:
+                  - name: DOCKER_HOST
+                    value: tcp://localhost:2376
+                  - name: RUNNER_ALLOW_RUNASROOT
+                    value: '1'
+              resources:
+                  limits:
+                      cpu: '12'
+                      memory: 24Gi
+                  requests:
+                      cpu: '4'
+                      memory: 8Gi
+              securityContext:
+                  # Run as root for sudo/apt-get (Unity builder requirement)
+                  # Not privileged - no host access, just root inside container
+                  runAsUser: 0
+                  runAsGroup: 0
+              volumeMounts:
+                  - name: work
+                    mountPath: /home/runner/_work
+                  - name: dind-sock
+                    mountPath: /var/run
+                  - name: dind-externals
+                    mountPath: /home/runner/externals
+                  - name: runner-cache
+                    mountPath: /home/runner/_cache
+            # Docker-in-Docker sidecar
+            # Note: Unity builds request high resources, DinD needs headroom
+            - name: dind
+              image: docker:dind
+              args:
+                  - dockerd
+                  - --host=unix:///var/run/docker.sock
+                  - --host=tcp://0.0.0.0:2376
+                  - --tls=false
+              securityContext:
+                  privileged: true
+              resources:
+                  limits:
+                      cpu: '12'
+                      memory: 32Gi
+                  requests:
+                      cpu: '2'
+                      memory: 4Gi
+              volumeMounts:
+                  - name: work
+                    mountPath: /home/runner/_work
+                  - name: dind-sock
+                    mountPath: /var/run
+                  - name: dind-externals
+                    mountPath: /home/runner/externals
+                  - name: runner-cache
+                    mountPath: /home/runner/_cache
+                  - name: dind-storage
+                    mountPath: /var/lib/docker
+        volumes:
+            - name: work
+              emptyDir: {}
+            - name: dind-sock
+              emptyDir: {}
+            - name: dind-externals
+              emptyDir: {}
+            - name: dind-storage
+              emptyDir: {}
+            - name: runner-cache
+              persistentVolumeClaim:
+                  claimName: arc-runner-cache
 
 # Pod-level configuration
 # nodeSelector: {}
@@ -113,20 +129,20 @@ template:
 
 # Listener pod configuration (the component that listens for jobs)
 listenerTemplate:
-  spec:
-    containers:
-      - name: listener
-        resources:
-          limits:
-            cpu: 250m
-            memory: 256Mi
-          requests:
-            cpu: 50m
-            memory: 64Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          capabilities:
-            drop:
-              - ALL
+    spec:
+        containers:
+            - name: listener
+              resources:
+                  limits:
+                      cpu: 250m
+                      memory: 256Mi
+                  requests:
+                      cpu: 50m
+                      memory: 64Mi
+              securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  runAsNonRoot: true
+                  capabilities:
+                      drop:
+                          - ALL
