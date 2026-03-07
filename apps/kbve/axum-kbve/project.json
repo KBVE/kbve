@@ -91,7 +91,8 @@
 				},
 				"ci": {
 					"commands": [
-						"./kbve.sh -nx axum-kbve:containerx --configuration=ci",
+						"echo '=== Pre-build diagnostics ===' && df -h 2>/dev/null && free -m 2>/dev/null || true && docker system df 2>/dev/null || true",
+						"BUILDKIT_PROGRESS=plain ./kbve.sh -nx axum-kbve:containerx --configuration=ci",
 						"VERSION=$(grep '^version' apps/kbve/axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve:latest kbve/kbve:$VERSION && echo \"Tagged kbve/kbve:$VERSION\""
 					]
 				}
