@@ -108,6 +108,8 @@ jobs:
               run: pnpm exec playwright install --with-deps chromium
 
             - name: Nx e2e ${{ inputs.project }}
+              env:
+                  BUILDKIT_PROGRESS: plain
               run: pnpm nx e2e ${{ inputs.project }} --configuration=ci --no-cloud
 
             - name: Mark test passed
