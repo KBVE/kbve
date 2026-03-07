@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Session {{ short_id }} - Discord.sh</title>
+    <meta name="description" content="Live dungeon session {{ short_id }} on Discord.sh" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://discord.sh/session/{{ short_id }}" />
+    <meta property="og:title" content="Session {{ short_id }} — Discord.sh Dungeon" />
+    <meta property="og:description" content="Live dungeon crawl session on Discord.sh" />
+    <meta property="og:image" content="https://discord.sh/svg/game/png/{{ short_id }}" />
+    <meta property="og:site_name" content="Discord.sh" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Session {{ short_id }} — Discord.sh Dungeon" />
+    <meta name="twitter:description" content="Live dungeon crawl session on Discord.sh" />
+    <meta name="twitter:image" content="https://discord.sh/svg/game/png/{{ short_id }}" />
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0d1117;
+            color: #c9d1d9;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        h1 {
+            color: #58a6ff;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        h1 span { color: #8b949e; font-weight: normal; }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .cards img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+        }
+        #session-data {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        #session-data h2 {
+            color: #58a6ff;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .info-card {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 1rem;
+        }
+        .info-card .label { color: #8b949e; font-size: 0.85rem; }
+        .info-card .value { color: #c9d1d9; font-size: 1.1rem; margin-top: 0.25rem; }
+        .player-list { list-style: none; padding: 0; }
+        .player-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #21262d;
+        }
+        .player-list li:last-child { border-bottom: none; }
+        .hp-bar {
+            display: inline-block;
+            background: #21262d;
+            border-radius: 3px;
+            width: 100px;
+            height: 8px;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+        .hp-bar-fill {
+            display: block;
+            background: #3fb950;
+            border-radius: 3px;
+            height: 100%;
+        }
+        .dead { color: #f85149; }
+        .log-list {
+            list-style: none;
+            padding: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+        }
+        .log-list li {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #21262d;
+        }
+        .loading { color: #8b949e; font-style: italic; }
+        .error { color: #f85149; }
+        a { color: #58a6ff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Session Viewer <span>// {{ short_id }}</span></h1>
+
+        <div class="cards">
+            <img src="/svg/game/png/{{ short_id }}" alt="Game Card" loading="lazy" />
+            <img src="/svg/map/png/{{ short_id }}" alt="Map Card" loading="lazy" />
+            <img src="/svg/inventory/png/{{ short_id }}" alt="Inventory Card" loading="lazy" />
+        </div>
+
+        <div id="session-data">
+            <p class="loading">Loading session data...</p>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        var sid = '{{ short_id }}';
+        var container = document.getElementById('session-data');
+
+        fetch('/api/session/' + sid)
+            .then(function(r) {
+                if (!r.ok) throw new Error('Session not found');
+                return r.json();
+            })
+            .then(function(d) {
+                var players = Object.entries(d.players || {});
+                var playerHtml = players.map(function(entry) {
+                    var p = entry[1];
+                    var pct = p.max_hp > 0 ? Math.max(0, (p.hp / p.max_hp) * 100) : 0;
+                    var cls = p.alive ? '' : ' class="dead"';
+                    var status = p.alive ? p.hp + '/' + p.max_hp : 'Dead';
+                    return '<li' + cls + '>'
+                        + '<strong>' + esc(p.name) + '</strong> '
+                        + '<span>Lv.' + p.level + ' ' + esc(p.class) + '</span> '
+                        + status
+                        + '<span class="hp-bar"><span class="hp-bar-fill" style="width:' + pct + '%"></span></span>'
+                        + '</li>';
+                }).join('');
+
+                var logHtml = (d.log || []).slice(-20).map(function(l) {
+                    return '<li>' + esc(l) + '</li>';
+                }).join('');
+
+                var enemies = (d.enemies || []).map(function(e) {
+                    return esc(e.name) + ' (HP: ' + e.hp + '/' + e.max_hp + ')';
+                }).join(', ') || 'None';
+
+                container.innerHTML =
+                    '<h2>Session Info</h2>'
+                    + '<div class="info-grid">'
+                    + '<div class="info-card"><div class="label">Phase</div><div class="value">' + esc(JSON.stringify(d.phase)) + '</div></div>'
+                    + '<div class="info-card"><div class="label">Turn</div><div class="value">' + d.turn + '</div></div>'
+                    + '<div class="info-card"><div class="label">Mode</div><div class="value">' + esc(d.mode) + '</div></div>'
+                    + '<div class="info-card"><div class="label">Room</div><div class="value">' + esc(d.room.name) + '</div></div>'
+                    + '<div class="info-card"><div class="label">Enemies</div><div class="value">' + enemies + '</div></div>'
+                    + '<div class="info-card"><div class="label">Tiles Visited</div><div class="value">' + d.map.tiles_visited + '</div></div>'
+                    + '</div>'
+                    + '<h2 style="margin-top:1.5rem">Party</h2>'
+                    + '<ul class="player-list">' + playerHtml + '</ul>'
+                    + '<h2 style="margin-top:1.5rem">Combat Log</h2>'
+                    + '<ul class="log-list">' + logHtml + '</ul>';
+            })
+            .catch(function(err) {
+                container.innerHTML = '<p class="error">' + esc(err.message) + '</p>';
+            });
+
+        function esc(s) {
+            if (s == null) return '';
+            var d = document.createElement('div');
+            d.textContent = String(s);
+            return d.innerHTML;
+        }
+    })();
+    </script>
+</body>
+</html>
