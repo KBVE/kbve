@@ -21,22 +21,25 @@ fn main() {
 
     app.insert_resource(ClearColor(Color::srgb(0.1, 0.1, 0.15)));
 
-    // Add Tauri plugin with IPC command handlers
-    app.add_plugins(TauriPlugin::new(|| {
-        tauri::Builder::default()
+    // Tauri runs alongside Bevy for IPC (FPS, player state, etc.)
+    // The custom runner interleaves Tauri event processing with Bevy updates.
+    app.add_plugins(TauriPlugin::new(|builder| {
+        builder
             .plugin(tauri_plugin_opener::init())
             .invoke_handler(tauri::generate_handler![
                 commands::get_fps,
                 commands::get_player_state,
                 commands::greet,
             ])
-            .build(tauri::generate_context!())
-            .expect("error while building tauri application")
     }));
 
-    // Add Bevy default plugins (rendering, input, etc.)
+    // Bevy renders to its own window via DefaultPlugins
     app.add_plugins(DefaultPlugins.set(bevy::window::WindowPlugin {
-        primary_window: None, // Tauri manages the window
+        primary_window: Some(bevy::window::Window {
+            title: "KBVE Isometric".to_string(),
+            resolution: bevy::window::WindowResolution::new(1024.0, 768.0),
+            ..default()
+        }),
         ..default()
     }));
 

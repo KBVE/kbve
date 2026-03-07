@@ -1,31 +1,45 @@
 use bevy::app::{App, AppExit, Plugin};
-use bevy::window::{WindowResized, WindowScaleFactorChanged};
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::Mutex;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
-use tauri::{Manager, RunEvent, WebviewWindow};
+use tauri::RunEvent;
 
 pub static AVERAGE_FRAME_RATE: AtomicUsize = AtomicUsize::new(0);
 
+type BuilderFn = Box<dyn FnOnce(tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::Wry> + Send>;
+
 pub struct TauriPlugin {
-    setup: Box<dyn Fn() -> tauri::App + Send + Sync>,
+    builder_fn: Mutex<Option<BuilderFn>>,
 }
 
 impl TauriPlugin {
-    pub fn new<F>(setup: F) -> Self
+    pub fn new<F>(builder_fn: F) -> Self
     where
-        F: Fn() -> tauri::App + Send + Sync + 'static,
+        F: FnOnce(tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::Wry> + Send + 'static,
     {
         Self {
-            setup: Box::new(setup),
+            builder_fn: Mutex::new(Some(Box::new(builder_fn))),
         }
     }
 }
 
 impl Plugin for TauriPlugin {
     fn build(&self, app: &mut App) {
-        let tauri_app = (self.setup)();
+        let builder_fn = self
+            .builder_fn
+            .lock()
+            .unwrap()
+            .take()
+            .expect("TauriPlugin::build called twice");
+
+        let configured_builder = builder_fn(tauri::Builder::default());
+
+        let tauri_app = configured_builder
+            .build(tauri::generate_context!())
+            .expect("error while building tauri application");
+
         app.insert_non_send_resource(TauriAppResource(Some(tauri_app)));
         app.set_runner(run_tauri_app);
     }
@@ -53,20 +67,29 @@ fn run_tauri_app(app: App) -> AppExit {
     loop {
         let frame_start = Instant::now();
 
-        // Process Tauri events
+        // Process Tauri events (keeps the IPC channel alive)
         let exit_requested = Rc::new(RefCell::new(false));
         let exit_clone = exit_requested.clone();
-        let app_for_event = app.clone();
 
+        #[allow(deprecated)]
         tauri_app.run_iteration(move |_app_handle, event| {
-            handle_tauri_events(&app_for_event, event, &exit_clone);
+            if matches!(
+                event,
+                RunEvent::ExitRequested { .. }
+                    | RunEvent::WindowEvent {
+                        event: tauri::WindowEvent::CloseRequested { .. },
+                        ..
+                    }
+            ) {
+                *exit_clone.borrow_mut() = true;
+            }
         });
 
         if *exit_requested.borrow() {
             break;
         }
 
-        // Update Bevy
+        // Update Bevy (renders to its own window)
         app.borrow_mut().update();
 
         // FPS tracking
@@ -85,58 +108,4 @@ fn run_tauri_app(app: App) -> AppExit {
     }
 
     AppExit::Success
-}
-
-fn handle_tauri_events(
-    app: &Rc<RefCell<App>>,
-    event: RunEvent,
-    exit_requested: &Rc<RefCell<bool>>,
-) {
-    match event {
-        RunEvent::Ready => {
-            handle_ready_event(app);
-        }
-        RunEvent::WindowEvent {
-            event: tauri::WindowEvent::Resized(size),
-            ..
-        } => {
-            let mut app_ref = app.borrow_mut();
-            app_ref.world_mut().send_event(WindowResized {
-                window: bevy::ecs::entity::Entity::PLACEHOLDER,
-                width: size.width as f32,
-                height: size.height as f32,
-            });
-        }
-        RunEvent::WindowEvent {
-            event: tauri::WindowEvent::ScaleFactorChanged { scale_factor, .. },
-            ..
-        } => {
-            let mut app_ref = app.borrow_mut();
-            app_ref.world_mut().send_event(WindowScaleFactorChanged {
-                window: bevy::ecs::entity::Entity::PLACEHOLDER,
-                scale_factor,
-            });
-        }
-        RunEvent::WindowEvent {
-            event: tauri::WindowEvent::CloseRequested { .. },
-            ..
-        } => {
-            *exit_requested.borrow_mut() = true;
-        }
-        RunEvent::ExitRequested { .. } => {
-            *exit_requested.borrow_mut() = true;
-        }
-        _ => {}
-    }
-}
-
-fn handle_ready_event(app: &Rc<RefCell<App>>) {
-    // The ready event fires once Tauri is initialized.
-    // Additional rendering setup can be done here if needed.
-    let _ = app;
-}
-
-/// Helper to get the main webview window from a Tauri app handle.
-pub fn get_webview_window(app_handle: &tauri::AppHandle) -> Option<WebviewWindow> {
-    app_handle.webview_windows().into_values().next()
 }

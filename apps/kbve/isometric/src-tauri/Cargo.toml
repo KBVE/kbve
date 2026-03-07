@@ -20,6 +20,7 @@ bevy = { version = "0.15.1", default-features = false, features = [
     "bevy_state",
     "bevy_color",
     "bevy_winit",
+    "tonemapping_luts",
     "png",
     "x11",
     "wayland",
