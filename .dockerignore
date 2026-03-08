@@ -28,7 +28,21 @@ target
 
 # Large / irrelevant app directories not needed by any Dockerfile
 apps/mc/pumpkin
+!apps/mc/pumpkin/Cargo.toml
+!apps/mc/pumpkin/Cargo.lock
+!apps/mc/pumpkin/rust-toolchain.toml
+!apps/mc/pumpkin/assets
 !apps/mc/pumpkin/pumpkin
+!apps/mc/pumpkin/pumpkin-nbt
+!apps/mc/pumpkin/pumpkin-api-macros
+!apps/mc/pumpkin/pumpkin-util
+!apps/mc/pumpkin/pumpkin-data
+!apps/mc/pumpkin/pumpkin-macros
+!apps/mc/pumpkin/pumpkin-config
+!apps/mc/pumpkin/pumpkin-codegen
+!apps/mc/pumpkin/pumpkin-world
+!apps/mc/pumpkin/pumpkin-protocol
+!apps/mc/pumpkin/pumpkin-inventory
 apps/postgres
 apps/irc/ergo
 apps/godot
