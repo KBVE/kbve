@@ -1,0 +1,44 @@
+# S3 lifecycle policy for the kilobase backup bucket
+# Acts as a belt-and-suspenders safety net alongside barman's retention policy.
+# If CNPG/barman cleanup stops working (e.g., cert expiry, operator crash),
+# S3 will still expire old objects and prevent unbounded storage growth.
+#
+# Layers of backup retention:
+# 1. barman retentionPolicy (7d) — deletes old base backups
+# 2. barman instanceSidecar (every 30min) — cleans WALs beyond retention
+# 3. THIS lifecycle policy — S3-native expiry as a last resort
+apiVersion: s3.aws.m.upbound.io/v1beta1
+kind: BucketLifecycleConfiguration
+metadata:
+    name: kilobase-backup-lifecycle
+    annotations:
+        argocd.argoproj.io/sync-wave: '10'
+        argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+    forProvider:
+        bucket: kilobase
+        region: us-east-1
+        rule:
+            # WAL files — expire after 14 days (barman should clean at 7d)
+            - id: expire-old-wals
+              filter:
+                  prefix: barman/backup/kilobase-postgres-backup/wals/
+              status: Enabled
+              expiration:
+                  days: 14
+            # Base backups — expire after 30 days (barman should clean at 7d)
+            # Longer retention than WALs since full backups are more valuable
+            - id: expire-old-base-backups
+              filter:
+                  prefix: barman/backup/kilobase-postgres-backup/base/
+              status: Enabled
+              expiration:
+                  days: 30
+            # Abort incomplete multipart uploads after 3 days
+            # Prevents orphaned partial uploads from accumulating
+            - id: cleanup-incomplete-uploads
+              filter:
+                  prefix: barman/
+              status: Enabled
+              abortIncompleteMultipartUpload:
+                  daysAfterInitiation: 3
