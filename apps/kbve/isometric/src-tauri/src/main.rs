@@ -10,6 +10,7 @@ use bevy::DefaultPlugins;
 use bevy::app::App;
 use bevy::picking::mesh_picking::MeshPickingPlugin;
 use bevy::prelude::*;
+use bevy_rapier3d::prelude::*;
 use tauri_plugin::TauriPlugin;
 
 use game::camera::IsometricCameraPlugin;
@@ -51,6 +52,10 @@ fn main() {
 
     // Mesh picking backend for mouse hover detection on 3D objects
     app.add_plugins(MeshPickingPlugin);
+
+    // Rapier physics engine
+    app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
+    app.add_plugins(RapierDebugRenderPlugin::default());
 
     // Game plugins
     app.add_plugins((
