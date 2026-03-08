@@ -18,6 +18,7 @@ use game::pixelate::PixelatePlugin;
 use game::player::PlayerPlugin;
 use game::scene_objects::SceneObjectsPlugin;
 use game::state::GameStatePlugin;
+use game::terrain::TerrainPlugin;
 use game::tilemap::TilemapPlugin;
 
 fn main() {
@@ -54,6 +55,7 @@ fn main() {
     // Game plugins
     app.add_plugins((
         GameStatePlugin,
+        TerrainPlugin,
         IsometricCameraPlugin,
         TilemapPlugin,
         PlayerPlugin,

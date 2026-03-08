@@ -62,6 +62,7 @@ pub struct PixelatePlugin;
 impl Plugin for PixelatePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(FullscreenMaterialPlugin::<PixelateSettings>::default());
-        app.add_systems(Update, sync_scale_factor);
+        // scale_factor sync disabled — when rendering to a low-res texture,
+        // there's no DPI scaling and scale_factor must stay 1.0.
     }
 }
