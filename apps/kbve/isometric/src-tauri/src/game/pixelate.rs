@@ -21,9 +21,9 @@ pub struct PixelateSettings {
 impl Default for PixelateSettings {
     fn default() -> Self {
         Self {
-            pixel_size: 4.0,
-            edge_strength: 0.6,
-            depth_edge_strength: 0.4,
+            pixel_size: 2.0,
+            edge_strength: 0.3,
+            depth_edge_strength: 0.2,
             scale_factor: 1.0,
         }
     }
@@ -62,7 +62,6 @@ pub struct PixelatePlugin;
 impl Plugin for PixelatePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(FullscreenMaterialPlugin::<PixelateSettings>::default());
-        // scale_factor sync disabled — when rendering to a low-res texture,
-        // there's no DPI scaling and scale_factor must stay 1.0.
+        app.add_systems(Update, sync_scale_factor);
     }
 }

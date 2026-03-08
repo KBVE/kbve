@@ -43,7 +43,6 @@ fn main() {
 
     // Rapier physics engine
     app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
-    app.add_plugins(RapierDebugRenderPlugin::default());
 
     // Game plugins
     app.add_plugins(GamePluginGroup);
