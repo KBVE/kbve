@@ -1,0 +1,34 @@
+---
+import ReactArgoDashboard from './ReactArgoDashboard';
+---
+
+<section
+	id="argo-dashboard-wrapper"
+	class="argo-dashboard-wrapper"
+	aria-label="ArgoCD deployment dashboard">
+	<div id="dashboard-content" class="dashboard-content">
+		<ReactArgoDashboard client:only="react" />
+	</div>
+</section>
+
+<style>
+	.argo-dashboard-wrapper {
+		background: transparent;
+		min-height: 100vh;
+		position: relative;
+		width: 100vw;
+		margin-left: calc(-50vw + 50%);
+	}
+
+	.dashboard-content {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2rem 1rem;
+	}
+
+	@media (min-width: 768px) {
+		.dashboard-content {
+			padding: 2rem 1.5rem;
+		}
+	}
+</style>
