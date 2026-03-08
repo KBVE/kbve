@@ -1,45 +1,22 @@
+import { GlassPanel } from '../ui/shared/GlassPanel';
+
 const GRID_COLS = 4;
 const GRID_ROWS = 4;
-const SLOT_SIZE = 44;
-const GAP = 4;
 
 export function Inventory() {
 	const slots = Array.from({ length: GRID_COLS * GRID_ROWS });
 
 	return (
-		<div
-			style={{
-				position: 'absolute',
-				bottom: 16,
-				right: 16,
-				padding: 10,
-				background: 'rgba(0,0,0,0.55)',
-				borderRadius: 8,
-				backdropFilter: 'blur(4px)',
-				pointerEvents: 'auto',
-			}}>
-			<div style={{ fontSize: 11, marginBottom: 6, textAlign: 'center' }}>
-				Inventory
-			</div>
-			<div
-				style={{
-					display: 'grid',
-					gridTemplateColumns: `repeat(${GRID_COLS}, ${SLOT_SIZE}px)`,
-					gap: GAP,
-				}}>
+		<GlassPanel className="absolute bottom-4 right-4 p-2.5">
+			<div className="text-[11px] mb-1.5 text-center">Inventory</div>
+			<div className="grid grid-cols-4 gap-1">
 				{slots.map((_, i) => (
 					<div
 						key={i}
-						style={{
-							width: SLOT_SIZE,
-							height: SLOT_SIZE,
-							background: 'rgba(255,255,255,0.08)',
-							border: '1px solid rgba(255,255,255,0.15)',
-							borderRadius: 4,
-						}}
+						className="w-11 h-11 bg-glass-light border border-glass-border rounded-slot"
 					/>
 				))}
 			</div>
-		</div>
+		</GlassPanel>
 	);
 }

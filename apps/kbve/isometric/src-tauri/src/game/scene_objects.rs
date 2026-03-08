@@ -6,19 +6,6 @@ use super::player::Player;
 // Re-export EntityEvent so event_target() is available
 use bevy::ecs::event::EntityEvent;
 
-/// Collision shape for scene objects.
-#[derive(Component)]
-pub enum Collider {
-    /// Axis-aligned bounding box (half-extents on X, Y, Z).
-    Aabb {
-        half_x: f32,
-        half_y: f32,
-        half_z: f32,
-    },
-    /// Cylinder — circular in XZ, box in Y. Rotation-independent.
-    Cylinder { radius: f32, half_y: f32 },
-}
-
 /// Marker for objects that become semi-transparent when occluding the player.
 #[derive(Component)]
 pub struct Occludable;
