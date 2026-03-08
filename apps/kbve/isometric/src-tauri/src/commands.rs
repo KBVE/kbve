@@ -32,6 +32,30 @@ pub fn get_object_registry() -> Option<ObjectRegistrySnapshot> {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tauri::command]
+pub fn on_input_frame(
+    keys_pressed: Vec<String>,
+    keys_released: Vec<String>,
+    cursor_x: f32,
+    cursor_y: f32,
+    cursor_valid: bool,
+    mouse_pressed: Vec<u8>,
+    mouse_released: Vec<u8>,
+    scroll_y: f32,
+) {
+    crate::game::input_bridge::receive_input(
+        keys_pressed,
+        keys_released,
+        cursor_x,
+        cursor_y,
+        cursor_valid,
+        mouse_pressed,
+        mouse_released,
+        scroll_y,
+    );
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
 pub fn greet(name: &str) -> String {
     format!("Welcome to the Isometric realm, {}!", name)
 }
