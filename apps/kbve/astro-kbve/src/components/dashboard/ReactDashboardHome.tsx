@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { initSupa, getSupa } from '@/lib/supa';
 import {
 	BarChart3,
@@ -9,10 +9,6 @@ import {
 	ArrowRight,
 	Activity,
 	RefreshCw,
-	Server,
-	Cpu,
-	HardDrive,
-	Box,
 	CheckCircle2,
 	XCircle,
 	AlertCircle,
