@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useAuthBridge } from '@/components/auth';
+import { initSupa, getSupa } from '@/lib/supa';
 import {
 	Activity,
 	RefreshCw,
@@ -514,7 +514,10 @@ function ApplicationRow({
 // ---------------------------------------------------------------------------
 
 export default function ReactArgoDashboard() {
-	const { session, isLoading: authLoading } = useAuthBridge();
+	const [authState, setAuthState] = useState<
+		'loading' | 'authenticated' | 'unauthenticated'
+	>('loading');
+	const [accessToken, setAccessToken] = useState<string | null>(null);
 
 	const [applications, setApplications] = useState<ArgoApplication[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -522,8 +525,6 @@ export default function ReactArgoDashboard() {
 	const [accessDenied, setAccessDenied] = useState(false);
 	const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 	const [expandedApp, setExpandedApp] = useState<string | null>(null);
-
-	const token = session?.access_token;
 
 	const fetchData = useCallback(async (tkn: string) => {
 		try {
@@ -543,9 +544,39 @@ export default function ReactArgoDashboard() {
 		}
 	}, []);
 
-	// Initial load + auto-refresh
+	// Auth init — same pattern as Grafana dashboard
 	useEffect(() => {
-		if (!token) return;
+		let cancelled = false;
+
+		(async () => {
+			try {
+				await initSupa();
+				const supa = getSupa();
+				const sessionResult = await supa.getSession().catch(() => null);
+				const session = sessionResult?.session ?? null;
+
+				if (cancelled) return;
+
+				if (!session?.access_token) {
+					setAuthState('unauthenticated');
+					return;
+				}
+
+				setAccessToken(session.access_token as string);
+				setAuthState('authenticated');
+			} catch {
+				if (!cancelled) setAuthState('unauthenticated');
+			}
+		})();
+
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
+	// Data load + auto-refresh
+	useEffect(() => {
+		if (!accessToken) return;
 
 		// Try cache first
 		const cached = loadCache();
@@ -555,20 +586,20 @@ export default function ReactArgoDashboard() {
 			setLoading(false);
 		}
 
-		fetchData(token);
+		fetchData(accessToken);
 
 		const interval = setInterval(
-			() => fetchData(token),
+			() => fetchData(accessToken),
 			REFRESH_INTERVAL_MS,
 		);
 		return () => clearInterval(interval);
-	}, [token, fetchData]);
+	}, [accessToken, fetchData]);
 
 	// -----------------------------------------------------------------------
 	// Auth states
 	// -----------------------------------------------------------------------
 
-	if (authLoading) {
+	if (authState === 'loading') {
 		return (
 			<div style={fullCenter}>
 				<Loader2
@@ -583,7 +614,7 @@ export default function ReactArgoDashboard() {
 		);
 	}
 
-	if (!session || !token) {
+	if (authState === 'unauthenticated' || !accessToken) {
 		return (
 			<div style={fullCenter}>
 				<LogIn
@@ -685,9 +716,9 @@ export default function ReactArgoDashboard() {
 				</div>
 				<button
 					onClick={() => {
-						if (token) {
+						if (accessToken) {
 							setLoading(true);
-							fetchData(token);
+							fetchData(accessToken);
 						}
 					}}
 					disabled={loading}
@@ -834,7 +865,7 @@ export default function ReactArgoDashboard() {
 						<ApplicationRow
 							key={app.metadata.name}
 							app={app}
-							token={token}
+							token={accessToken}
 							expanded={expandedApp === app.metadata.name}
 							onToggle={() =>
 								setExpandedApp(

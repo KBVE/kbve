@@ -6,14 +6,13 @@ import React, {
 	useMemo,
 	Suspense,
 } from 'react';
-import { useAuthBridge } from '@/components/auth';
+import { initSupa, getSupa } from '@/lib/supa';
 import {
 	BarChart3,
 	GitBranch,
 	Zap,
 	Loader2,
 	LogIn,
-	ShieldOff,
 	ArrowRight,
 	Activity,
 } from 'lucide-react';
@@ -351,23 +350,54 @@ function StatItem({
 // ---------------------------------------------------------------------------
 
 export default function ReactDashboardHome() {
-	const { session, isLoading: authLoading } = useAuthBridge();
+	const [authState, setAuthState] = useState<
+		'loading' | 'authenticated' | 'unauthenticated'
+	>('loading');
+	const [accessToken, setAccessToken] = useState<string | null>(null);
 	const [grafana, setGrafana] = useState<GrafanaSummary | null>(null);
 	const [argo, setArgo] = useState<ArgoSummary | null>(null);
 	const [edge, setEdge] = useState<EdgeSummary | null>(null);
 	const [loading, setLoading] = useState(true);
 	const containerRef = useRef<HTMLDivElement>(null);
 
-	const token = session?.access_token;
+	// Auth init — same pattern as Grafana dashboard
+	useEffect(() => {
+		let cancelled = false;
+
+		(async () => {
+			try {
+				await initSupa();
+				const supa = getSupa();
+				const sessionResult = await supa.getSession().catch(() => null);
+				const session = sessionResult?.session ?? null;
+
+				if (cancelled) return;
+
+				if (!session?.access_token) {
+					setAuthState('unauthenticated');
+					return;
+				}
+
+				setAccessToken(session.access_token as string);
+				setAuthState('authenticated');
+			} catch {
+				if (!cancelled) setAuthState('unauthenticated');
+			}
+		})();
+
+		return () => {
+			cancelled = true;
+		};
+	}, []);
 
 	const fetchAll = useCallback(async () => {
 		setLoading(true);
 		const edgePromise = fetchEdgeSummary();
 
-		if (token) {
+		if (accessToken) {
 			const [g, a, e] = await Promise.all([
-				fetchGrafanaSummary(token),
-				fetchArgoSummary(token),
+				fetchGrafanaSummary(accessToken),
+				fetchArgoSummary(accessToken),
 				edgePromise,
 			]);
 			setGrafana(g);
@@ -378,16 +408,16 @@ export default function ReactDashboardHome() {
 			setEdge(e);
 		}
 		setLoading(false);
-	}, [token]);
+	}, [accessToken]);
 
 	useEffect(() => {
-		if (!authLoading) fetchAll();
-	}, [authLoading, fetchAll]);
+		if (authState === 'authenticated') fetchAll();
+	}, [authState, fetchAll]);
 
 	// GSAP entrance animation
 	useGSAP(
 		() => {
-			if (authLoading || !containerRef.current) return;
+			if (authState !== 'authenticated' || !containerRef.current) return;
 
 			const header =
 				containerRef.current.querySelector('.dashboard-header');
@@ -414,14 +444,14 @@ export default function ReactDashboardHome() {
 				});
 			}
 		},
-		{ scope: containerRef, dependencies: [authLoading, loading] },
+		{ scope: containerRef, dependencies: [authState, loading] },
 	);
 
 	// -----------------------------------------------------------------------
 	// Auth states
 	// -----------------------------------------------------------------------
 
-	if (authLoading) {
+	if (authState === 'loading') {
 		return (
 			<div className="not-content" style={styles.centeredMessage}>
 				<Loader2
@@ -434,7 +464,7 @@ export default function ReactDashboardHome() {
 		);
 	}
 
-	if (!session) {
+	if (authState === 'unauthenticated') {
 		return (
 			<div className="not-content" style={styles.centeredMessage}>
 				<LogIn
