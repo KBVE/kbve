@@ -89,6 +89,13 @@ spec:
             pg_net.database_name: supabase
             vault.getkey_script: '/projected/postgresql-custom/pgsodium_getkey.sh'
             pgsodium.getkey_script: '/projected/postgresql-custom/pgsodium_getkey.sh'
+            # Cap WAL retained for stale replication slots to 10 GB.
+            # Default is -1 (unlimited) which lets inactive slots bloat pg_wal
+            # until the volume fills. 10 GB is ~25% of the 40 Gi PVC — enough
+            # headroom for a replica to catch up, but prevents runaway growth.
+            # When a slot exceeds this, PostgreSQL marks it "lost" and the
+            # CNPG operator will automatically recreate the replica.
+            max_slot_wal_keep_size: 10GB
             auto_explain.log_min_duration: 10s
             supautils.extensions_parameter_overrides: '{"pg_cron":{"schema":"pg_catalog"}}'
             supautils.policy_grants: '{"postgres":["auth.audit_log_entries","auth.identities","auth.refresh_tokens","auth.sessions","auth.users","realtime.messages","storage.buckets","storage.migrations","storage.objects","storage.s3_multipart_uploads","storage.s3_multipart_uploads_parts"]}'
