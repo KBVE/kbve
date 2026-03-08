@@ -4,8 +4,9 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
+		"build:wasm": "cd src-tauri && wasm-pack build --target web --out-dir ../wasm-pkg --out-name isometric_game",
 		"dev": "vite",
-		"build": "tsc && vite build",
+		"build": "npm run build:wasm && tsc && vite build",
 		"preview": "vite preview"
 	},
 	"dependencies": {
@@ -21,6 +22,8 @@
 		"@vitejs/plugin-react": "^4.0.0",
 		"tailwindcss": "^4.1.3",
 		"typescript": "^5.0.0",
-		"vite": "^6.0.0"
+		"vite": "^6.0.0",
+		"vite-plugin-wasm": "^3.3.0",
+		"vite-plugin-top-level-await": "^1.4.4"
 	}
 }

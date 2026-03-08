@@ -15,14 +15,12 @@
 				"label": "main",
 				"title": "KBVE Isometric",
 				"width": 1024,
-				"height": 768,
-				"transparent": true
+				"height": 768
 			}
 		],
 		"security": {
 			"csp": null
-		},
-		"macOSPrivateApi": true
+		}
 	},
 	"bundle": {
 		"active": true,
