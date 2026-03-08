@@ -5,9 +5,11 @@ use std::collections::HashMap;
 use std::f32::consts::PI;
 use std::sync::LazyLock;
 
+use bevy_rapier3d::prelude::*;
+
 use super::scene_objects::{
-    AnimatedCrystal, Collider, HoverOutline, Occludable, OriginalEmissive, RotatingBox,
-    on_pointer_out, on_pointer_over,
+    AnimatedCrystal, HoverOutline, Occludable, OriginalEmissive, RotatingBox, on_pointer_out,
+    on_pointer_over,
 };
 use super::terrain::TerrainMap;
 
@@ -298,11 +300,8 @@ fn spawn_object_entity(
                     kind,
                     ObjectInstance { registry_id },
                     RotatingBox,
-                    // Cylinder collider — snug fit with slight buffer for rotation
-                    Collider::Cylinder {
-                        radius: half * 1.2,
-                        half_y: half,
-                    },
+                    RigidBody::Fixed,
+                    Collider::cylinder(half, half * 1.2),
                     Occludable,
                     OriginalEmissive(LinearRgba::BLACK),
                     HoverOutline {
@@ -329,10 +328,8 @@ fn spawn_object_entity(
                     kind,
                     ObjectInstance { registry_id },
                     RotatingBox,
-                    Collider::Cylinder {
-                        radius: half * 1.2,
-                        half_y: half,
-                    },
+                    RigidBody::Fixed,
+                    Collider::cylinder(half, half * 1.2),
                     Occludable,
                     OriginalEmissive(LinearRgba::BLACK),
                     HoverOutline {
@@ -381,11 +378,8 @@ fn spawn_object_entity(
                 Transform::from_translation(position),
                 kind,
                 ObjectInstance { registry_id },
-                Collider::Aabb {
-                    half_x: 0.4,
-                    half_y: 2.0,
-                    half_z: 0.4,
-                },
+                RigidBody::Fixed,
+                Collider::cuboid(0.4, 2.0, 0.4),
                 Occludable,
                 OriginalEmissive(LinearRgba::BLACK),
                 HoverOutline {
@@ -409,10 +403,8 @@ fn spawn_object_entity(
                     Transform::from_translation(position),
                     kind,
                     ObjectInstance { registry_id },
-                    Collider::Cylinder {
-                        radius,
-                        half_y: radius,
-                    },
+                    RigidBody::Fixed,
+                    Collider::ball(radius),
                     Occludable,
                     OriginalEmissive(LinearRgba::BLACK),
                     HoverOutline {

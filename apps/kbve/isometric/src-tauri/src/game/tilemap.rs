@@ -1,6 +1,8 @@
 use bevy::light::{CascadeShadowConfigBuilder, DirectionalLightShadowMap};
 use bevy::prelude::*;
 
+use bevy_rapier3d::prelude::*;
+
 use super::terrain::{CHUNK_SIZE, TerrainMap};
 
 pub const TILE_SIZE: f32 = 1.0;
@@ -184,6 +186,8 @@ fn process_chunk_spawns_and_despawns(
                             body_h / 2.0,
                             tz as f32 * TILE_SIZE,
                         ),
+                        RigidBody::Fixed,
+                        Collider::cuboid(TILE_SIZE / 2.0, body_h / 2.0, TILE_SIZE / 2.0),
                     ))
                     .id();
                 entities.push(body_entity);
