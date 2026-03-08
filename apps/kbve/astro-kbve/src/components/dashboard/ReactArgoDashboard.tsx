@@ -9,7 +9,6 @@ import {
 	ShieldOff,
 	CheckCircle2,
 	XCircle,
-	Clock,
 	GitBranch,
 	ChevronDown,
 	ChevronRight,
