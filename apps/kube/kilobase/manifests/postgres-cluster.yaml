@@ -96,6 +96,9 @@ spec:
             # When a slot exceeds this, PostgreSQL marks it "lost" and the
             # CNPG operator will automatically recreate the replica.
             max_slot_wal_keep_size: 10GB
+            # Compress WAL records on disk using lz4 (fast, negligible CPU).
+            # Reduces pg_wal footprint and replication bandwidth.
+            wal_compression: lz4
             auto_explain.log_min_duration: 10s
             supautils.extensions_parameter_overrides: '{"pg_cron":{"schema":"pg_catalog"}}'
             supautils.policy_grants: '{"postgres":["auth.audit_log_entries","auth.identities","auth.refresh_tokens","auth.sessions","auth.users","realtime.messages","storage.buckets","storage.migrations","storage.objects","storage.s3_multipart_uploads","storage.s3_multipart_uploads_parts"]}'
