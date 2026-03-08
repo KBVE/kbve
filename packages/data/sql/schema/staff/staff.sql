@@ -148,7 +148,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_log_actor
     ON staff.audit_log (actor_id, created_at DESC);
 
 -- ===========================================
--- TRIGGERS
+-- TRIGGERS (idempotent: DROP IF EXISTS before CREATE)
 -- ===========================================
 
 -- Audit log is append-only: block UPDATE and DELETE
@@ -161,10 +161,12 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
 ALTER FUNCTION staff.audit_log_immutable() OWNER TO postgres;
 
+DROP TRIGGER IF EXISTS trg_audit_log_no_update ON staff.audit_log;
 CREATE TRIGGER trg_audit_log_no_update
     BEFORE UPDATE ON staff.audit_log
     FOR EACH ROW EXECUTE FUNCTION staff.audit_log_immutable();
 
+DROP TRIGGER IF EXISTS trg_audit_log_no_delete ON staff.audit_log;
 CREATE TRIGGER trg_audit_log_no_delete
     BEFORE DELETE ON staff.audit_log
     FOR EACH ROW EXECUTE FUNCTION staff.audit_log_immutable();
@@ -182,6 +184,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
 ALTER FUNCTION staff.protect_created_at() OWNER TO postgres;
 
+DROP TRIGGER IF EXISTS trg_protect_created_at ON staff.members;
 CREATE TRIGGER trg_protect_created_at
     BEFORE UPDATE ON staff.members
     FOR EACH ROW EXECUTE FUNCTION staff.protect_created_at();
@@ -190,13 +193,14 @@ CREATE TRIGGER trg_protect_created_at
 CREATE OR REPLACE FUNCTION staff.update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at := NOW();
+    NEW.updated_at := pg_catalog.now();
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
 ALTER FUNCTION staff.update_updated_at() OWNER TO postgres;
 
+DROP TRIGGER IF EXISTS trg_update_updated_at ON staff.members;
 CREATE TRIGGER trg_update_updated_at
     BEFORE UPDATE ON staff.members
     FOR EACH ROW EXECUTE FUNCTION staff.update_updated_at();
@@ -259,6 +263,7 @@ END $$;
 -- Grant permissions to a user (OR's flags into existing).
 -- Privilege escalation guard: actor cannot grant flags they don't hold
 -- (unless superadmin or service_role direct call).
+-- Uses FOR UPDATE row locking to prevent lost updates under concurrency.
 CREATE OR REPLACE FUNCTION staff.service_grant(
     p_user_id    UUID,
     p_perms      INTEGER,
@@ -298,22 +303,35 @@ BEGIN
         END IF;
     END IF;
 
-    -- Get current permissions (or 0 for new member)
-    SELECT COALESCE(permissions, 0) INTO v_old_perms
-    FROM staff.members WHERE user_id = p_user_id;
+    -- Lock existing row to prevent concurrent lost updates.
+    -- If row does not exist, SELECT FOR UPDATE returns nothing (no lock needed
+    -- for new inserts — PK constraint serializes concurrent INSERTs).
+    SELECT permissions INTO v_old_perms
+    FROM staff.members WHERE user_id = p_user_id FOR UPDATE;
 
     IF v_old_perms IS NULL THEN
+        -- New member
         v_old_perms := 0;
-    END IF;
+        v_new_perms := p_perms;
 
-    v_new_perms := v_old_perms | p_perms;
+        -- ON CONFLICT handles the rare race where two concurrent grants
+        -- both see no existing row: one INSERT wins, the other falls through
+        -- to the UPDATE path which atomically OR's using the actual row value.
+        INSERT INTO staff.members (user_id, permissions, last_granted_by)
+        VALUES (p_user_id, v_new_perms, p_actor_id)
+        ON CONFLICT (user_id) DO UPDATE
+            SET permissions      = staff.members.permissions | EXCLUDED.permissions,
+                last_granted_by  = COALESCE(EXCLUDED.last_granted_by, staff.members.last_granted_by)
+        RETURNING permissions INTO v_new_perms;
+    ELSE
+        -- Existing member: row is locked, safe to compute
+        v_new_perms := v_old_perms | p_perms;
 
-    -- Upsert
-    INSERT INTO staff.members (user_id, permissions, last_granted_by)
-    VALUES (p_user_id, v_new_perms, p_actor_id)
-    ON CONFLICT (user_id) DO UPDATE
+        UPDATE staff.members
         SET permissions      = v_new_perms,
-            last_granted_by  = COALESCE(p_actor_id, staff.members.last_granted_by);
+            last_granted_by  = COALESCE(p_actor_id, staff.members.last_granted_by)
+        WHERE user_id = p_user_id;
+    END IF;
 
     -- Audit log
     INSERT INTO staff.audit_log (target_id, actor_id, action, old_perms, new_perms)
@@ -337,6 +355,7 @@ END $$;
 -- Revoke permissions from a user (AND NOT's flags from existing).
 -- Scope guard: actor cannot revoke flags they don't hold (unless superadmin).
 -- Actor cannot revoke/remove a superadmin unless actor is also superadmin.
+-- Uses FOR UPDATE row locking to prevent lost updates under concurrency.
 CREATE OR REPLACE FUNCTION staff.service_revoke(
     p_user_id    UUID,
     p_perms      INTEGER,
@@ -355,6 +374,9 @@ BEGIN
     IF p_perms IS NULL OR p_perms = 0 THEN
         RAISE EXCEPTION 'permissions must be non-zero';
     END IF;
+    IF p_perms < 0 THEN
+        RAISE EXCEPTION 'permissions must be a positive bitmask';
+    END IF;
 
     -- Verify actor has STAFF_REVOKE permission
     PERFORM staff._check_actor_permission(p_actor_id, x'00020000'::int);
@@ -366,8 +388,9 @@ BEGIN
         END IF;
     END IF;
 
+    -- Lock target row to prevent concurrent lost updates
     SELECT permissions INTO v_old_perms
-    FROM staff.members WHERE user_id = p_user_id;
+    FROM staff.members WHERE user_id = p_user_id FOR UPDATE;
 
     IF v_old_perms IS NULL THEN
         RAISE EXCEPTION 'User % is not a staff member', p_user_id;
@@ -423,6 +446,7 @@ END $$;
 
 -- Remove a staff member entirely.
 -- Scope guard: actor cannot remove a target whose permissions exceed their own.
+-- Uses FOR UPDATE row locking to prevent concurrent state changes.
 CREATE OR REPLACE FUNCTION staff.service_remove(
     p_user_id    UUID,
     p_actor_id   UUID DEFAULT NULL
@@ -445,8 +469,9 @@ BEGIN
         RAISE EXCEPTION 'Cannot remove yourself from staff';
     END IF;
 
+    -- Lock target row to prevent concurrent state changes
     SELECT permissions INTO v_old_perms
-    FROM staff.members WHERE user_id = p_user_id;
+    FROM staff.members WHERE user_id = p_user_id FOR UPDATE;
 
     IF v_old_perms IS NULL THEN
         RETURN;  -- Idempotent: not a staff member, nothing to do
@@ -542,6 +567,12 @@ DECLARE
     v_user_id UUID;
     v_perms   INTEGER;
 BEGIN
+    -- Reject NULL, zero, and negative masks — prevents silent authorization
+    -- (e.g. p_flag=0 would make (v_perms & 0) = 0, which is always true).
+    IF p_flag IS NULL OR p_flag <= 0 THEN
+        RETURN false;
+    END IF;
+
     v_user_id := auth.uid();
     IF v_user_id IS NULL THEN
         RETURN false;
