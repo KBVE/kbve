@@ -11,7 +11,8 @@ use bevy::app::{PluginGroup, PluginGroupBuilder};
 
 use camera::IsometricCameraPlugin;
 use object_registry::ObjectRegistryPlugin;
-use pixelate::PixelatePlugin;
+// PixelatePlugin disabled — two-stage render-to-texture pipeline handles pixelation.
+// use pixelate::PixelatePlugin;
 use player::PlayerPlugin;
 use scene_objects::SceneObjectsPlugin;
 use state::GameStatePlugin;
@@ -32,6 +33,5 @@ impl PluginGroup for GamePluginGroup {
             .add(PlayerPlugin)
             .add(ObjectRegistryPlugin)
             .add(SceneObjectsPlugin)
-            .add(PixelatePlugin)
     }
 }
