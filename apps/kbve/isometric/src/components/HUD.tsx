@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { get_player_state_json } from '../../wasm-pkg/isometric_game.js';
 import { GlassPanel } from '../ui/shared/GlassPanel';
 import { ProgressBar } from '../ui/shared/ProgressBar';
 
@@ -16,12 +16,12 @@ export function HUD() {
 	const [state, setState] = useState<PlayerState | null>(null);
 
 	useEffect(() => {
-		const interval = setInterval(async () => {
+		const interval = setInterval(() => {
 			try {
-				const s = await invoke<PlayerState>('get_player_state');
-				setState(s);
+				const json = get_player_state_json();
+				if (json) setState(JSON.parse(json));
 			} catch {
-				// IPC not ready
+				// WASM not ready
 			}
 		}, 250);
 		return () => clearInterval(interval);

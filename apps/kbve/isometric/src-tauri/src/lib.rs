@@ -40,9 +40,20 @@ pub fn wasm_main() {
             }),
             ..default()
         }))
+        .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
         .add_plugins(bevy::picking::mesh_picking::MeshPickingPlugin)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugins(RapierDebugRenderPlugin::default())
         .add_plugins(GamePluginGroup)
+        .add_systems(Update, update_fps_counter)
         .run();
+}
+
+#[cfg(target_arch = "wasm32")]
+fn update_fps_counter(diagnostics: bevy::prelude::Res<bevy::diagnostic::DiagnosticsStore>) {
+    use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+    if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
+        if let Some(avg) = fps.smoothed() {
+            AVERAGE_FRAME_RATE.store(avg as usize, std::sync::atomic::Ordering::Relaxed);
+        }
+    }
 }

@@ -1,16 +1,15 @@
 import { useEffect, useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { get_fps } from '../../wasm-pkg/isometric_game.js';
 
 export function FPSCounter() {
 	const [fps, setFps] = useState(0);
 
 	useEffect(() => {
-		const interval = setInterval(async () => {
+		const interval = setInterval(() => {
 			try {
-				const value = await invoke<number>('get_fps');
-				setFps(value);
+				setFps(get_fps());
 			} catch {
-				// IPC not ready yet
+				// WASM not ready yet
 			}
 		}, 1000);
 		return () => clearInterval(interval);
