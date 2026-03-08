@@ -22,23 +22,23 @@ spec:
             # WAL files — expire after 14 days (barman should clean at 7d)
             - id: expire-old-wals
               filter:
-                  prefix: barman/backup/kilobase-postgres-backup/wals/
+                  - prefix: barman/backup/kilobase-postgres-backup/wals/
               status: Enabled
               expiration:
-                  days: 14
+                  - days: 14
             # Base backups — expire after 30 days (barman should clean at 7d)
             # Longer retention than WALs since full backups are more valuable
             - id: expire-old-base-backups
               filter:
-                  prefix: barman/backup/kilobase-postgres-backup/base/
+                  - prefix: barman/backup/kilobase-postgres-backup/base/
               status: Enabled
               expiration:
-                  days: 30
+                  - days: 30
             # Abort incomplete multipart uploads after 3 days
             # Prevents orphaned partial uploads from accumulating
             - id: cleanup-incomplete-uploads
               filter:
-                  prefix: barman/
+                  - prefix: barman/
               status: Enabled
               abortIncompleteMultipartUpload:
-                  daysAfterInitiation: 3
+                  - daysAfterInitiation: 3
