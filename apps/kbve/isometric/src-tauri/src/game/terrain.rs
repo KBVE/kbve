@@ -18,7 +18,7 @@ pub const TERRAIN_SEED: u32 = 42;
 // ---------------------------------------------------------------------------
 
 /// Deterministic hash of two integers to a float in [0.0, 1.0).
-fn hash2d(x: i32, z: i32) -> f32 {
+pub fn hash2d(x: i32, z: i32) -> f32 {
     let mut h = (x.wrapping_mul(374761393)) ^ (z.wrapping_mul(668265263));
     h = (h ^ (h >> 13)).wrapping_mul(1274126177);
     h = h ^ (h >> 16);
