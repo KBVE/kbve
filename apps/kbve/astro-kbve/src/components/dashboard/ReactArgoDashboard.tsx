@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { initSupa, getSupa } from '@/lib/supa';
-import { useAuthBridge } from '@/components/auth';
 import {
 	Activity,
 	RefreshCw,
@@ -515,8 +514,6 @@ function ApplicationRow({
 // ---------------------------------------------------------------------------
 
 export default function ReactArgoDashboard() {
-	const { signInWithOAuth, loading: oauthLoading } = useAuthBridge();
-
 	const [authState, setAuthState] = useState<
 		'loading' | 'authenticated' | 'unauthenticated'
 	>('loading');
