@@ -17,17 +17,7 @@ export function FPSCounter() {
 	}, []);
 
 	return (
-		<div
-			style={{
-				position: 'absolute',
-				top: 8,
-				right: 8,
-				padding: '4px 10px',
-				background: 'rgba(0,0,0,0.5)',
-				borderRadius: 4,
-				fontSize: 13,
-				pointerEvents: 'auto',
-			}}>
+		<div className="absolute top-2 right-2 px-2.5 py-1 bg-glass rounded-slot text-[13px] pointer-events-auto">
 			{fps} FPS
 		</div>
 	);
