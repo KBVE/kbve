@@ -1,8 +1,11 @@
 use bevy::prelude::*;
-use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::f32::consts::PI;
+
+#[cfg(not(target_arch = "wasm32"))]
+use dashmap::DashMap;
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::LazyLock;
 
 use bevy_rapier3d::prelude::*;
@@ -122,8 +125,27 @@ pub struct ObjectRegistrySnapshot {
     pub count: usize,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub static OBJECT_REGISTRY_SNAPSHOT: LazyLock<DashMap<(), ObjectRegistrySnapshot>> =
     LazyLock::new(DashMap::new);
+
+#[cfg(target_arch = "wasm32")]
+thread_local! {
+    pub static OBJECT_REGISTRY_SNAPSHOT_WASM: std::cell::RefCell<Option<ObjectRegistrySnapshot>> =
+        const { std::cell::RefCell::new(None) };
+}
+
+/// Read the latest object registry snapshot (platform-independent).
+pub fn get_registry_snapshot() -> Option<ObjectRegistrySnapshot> {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        OBJECT_REGISTRY_SNAPSHOT.get(&()).map(|r| r.value().clone())
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        OBJECT_REGISTRY_SNAPSHOT_WASM.with(|cell| cell.borrow().clone())
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Events
@@ -266,7 +288,16 @@ fn snapshot_object_registry(registry: Res<ObjectRegistry>) {
             count: placements.len(),
             objects: placements,
         };
-        OBJECT_REGISTRY_SNAPSHOT.insert((), snapshot);
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            OBJECT_REGISTRY_SNAPSHOT.insert((), snapshot);
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            OBJECT_REGISTRY_SNAPSHOT_WASM.with(|cell| {
+                *cell.borrow_mut() = Some(snapshot);
+            });
+        }
     }
 }
 

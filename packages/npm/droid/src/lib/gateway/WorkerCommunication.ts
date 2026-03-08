@@ -1,42 +1,26 @@
 // Unified communication layer for all workers (SharedWorker, WebWorker, main thread)
-// Uses BroadcastChannel for real-time events + Dexie for persistent state
+// Uses BroadcastChannel for real-time events
 
-import Dexie, { type Table } from 'dexie';
 import type { BroadcastEvent } from './types';
-
-interface KVPair {
-	key: string;
-	value: string;
-}
-
-class StateDB extends Dexie {
-	kv!: Table<KVPair>;
-
-	constructor() {
-		super('sb-auth-v2');
-		this.version(1).stores({
-			kv: 'key',
-		});
-	}
-}
 
 /**
  * WorkerCommunication: Unified communication layer for workers
  *
  * Features:
  * - BroadcastChannel for real-time events
- * - Dexie for persistent state storage
  * - Works in SharedWorker, WebWorker, and main thread
+ *
+ * Note: This layer does NOT open IndexedDB. The SharedWorker is the single
+ * writer to the auth database (sb-auth-v2). All other contexts receive
+ * auth state via BroadcastChannel or postMessage.
  */
 export class WorkerCommunication {
 	private bc: BroadcastChannel | null = null;
-	private db: StateDB;
 	private listeners = new Map<string, Set<(payload: unknown) => void>>();
 	private channelName: string;
 
 	constructor(channelName = 'supabase_events') {
 		this.channelName = channelName;
-		this.db = new StateDB();
 		this.initBroadcastChannel();
 	}
 
@@ -112,36 +96,6 @@ export class WorkerCommunication {
 				}
 			});
 		}
-	}
-
-	/**
-	 * Persist state to IndexedDB (accessible across all workers and tabs)
-	 */
-	async setState(key: string, value: unknown): Promise<void> {
-		const serialized =
-			typeof value === 'string' ? value : JSON.stringify(value);
-		await this.db.kv.put({ key, value: serialized });
-	}
-
-	/**
-	 * Get state from IndexedDB
-	 */
-	async getState<T = unknown>(key: string): Promise<T | null> {
-		const item = await this.db.kv.get(key);
-		if (!item) return null;
-
-		try {
-			return JSON.parse(item.value) as T;
-		} catch {
-			return item.value as T;
-		}
-	}
-
-	/**
-	 * Remove state from IndexedDB
-	 */
-	async removeState(key: string): Promise<void> {
-		await this.db.kv.delete(key);
 	}
 
 	/**

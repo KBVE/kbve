@@ -121,6 +121,10 @@ on:
             edge:
                 description: 'Edge functions changed'
                 value: ${{ jobs.alter.outputs.edge }}
+            # ? Tauri
+            isometric:
+                description: 'Isometric game changed'
+                value: ${{ jobs.alter.outputs.isometric }}
 
 jobs:
     alter:
@@ -164,6 +168,7 @@ jobs:
             kbve_base: ${{ steps.delta.outputs.kbve_base_any_changed }}
             cryptothrone_base: ${{ steps.delta.outputs.cryptothrone_base_any_changed }}
             edge: ${{ steps.delta.outputs.edge_any_changed }}
+            isometric: ${{ steps.delta.outputs.isometric_any_changed }}
 
         steps:
             - name: Checkout the repository
@@ -294,3 +299,10 @@ jobs:
                           - 'apps/kbve/edge/Dockerfile'
                           - 'apps/kbve/edge/project.json'
                           - 'apps/kbve/edge/version.toml'
+                      isometric:
+                          - 'apps/kbve/isometric/src/**'
+                          - 'apps/kbve/isometric/src-tauri/src/**'
+                          - 'apps/kbve/isometric/src-tauri/Cargo.toml'
+                          - 'apps/kbve/isometric/src-tauri/tauri.conf.json'
+                          - 'apps/kbve/isometric/package.json'
+                          - 'apps/kbve/isometric/vite.config.ts'

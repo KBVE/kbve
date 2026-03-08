@@ -1,26 +1,14 @@
 // Prevents additional console window on Windows in release
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod commands;
-mod game;
-mod renderer;
-mod tauri_plugin;
-
 use bevy::DefaultPlugins;
 use bevy::app::App;
 use bevy::picking::mesh_picking::MeshPickingPlugin;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
-use tauri_plugin::TauriPlugin;
 
-use game::camera::IsometricCameraPlugin;
-use game::object_registry::ObjectRegistryPlugin;
-use game::pixelate::PixelatePlugin;
-use game::player::PlayerPlugin;
-use game::scene_objects::SceneObjectsPlugin;
-use game::state::GameStatePlugin;
-use game::terrain::TerrainPlugin;
-use game::tilemap::TilemapPlugin;
+use isometric_game::game::GamePluginGroup;
+use isometric_game::tauri_plugin::TauriPlugin;
 
 fn main() {
     let mut app = App::new();
@@ -33,10 +21,10 @@ fn main() {
         builder
             .plugin(tauri_plugin_opener::init())
             .invoke_handler(tauri::generate_handler![
-                commands::get_fps,
-                commands::get_player_state,
-                commands::get_object_registry,
-                commands::greet,
+                isometric_game::commands::get_fps,
+                isometric_game::commands::get_player_state,
+                isometric_game::commands::get_object_registry,
+                isometric_game::commands::greet,
             ])
     }));
 
@@ -55,19 +43,9 @@ fn main() {
 
     // Rapier physics engine
     app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
-    app.add_plugins(RapierDebugRenderPlugin::default());
 
     // Game plugins
-    app.add_plugins((
-        GameStatePlugin,
-        TerrainPlugin,
-        IsometricCameraPlugin,
-        TilemapPlugin,
-        PlayerPlugin,
-        ObjectRegistryPlugin,
-        SceneObjectsPlugin,
-        PixelatePlugin,
-    ));
+    app.add_plugins(GamePluginGroup);
 
     app.run();
 }

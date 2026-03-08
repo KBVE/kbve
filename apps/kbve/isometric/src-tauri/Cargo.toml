@@ -3,12 +3,20 @@ name = "isometric-game"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "isometric_game"
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[[bin]]
+name = "isometric-game"
+path = "src/main.rs"
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
+# --- Shared dependencies ---
 [dependencies]
-tauri = { version = "2", features = ["macos-private-api"] }
-tauri-plugin-opener = "2"
 bevy = { version = "0.18", default-features = false, features = [
     "bevy_asset",
     "bevy_render",
@@ -22,16 +30,33 @@ bevy = { version = "0.18", default-features = false, features = [
     "bevy_winit",
     "tonemapping_luts",
     "png",
-    "x11",
-    "wayland",
     "zstd_rust",
     "bevy_picking",
     "mesh_picking",
     "bevy_gizmos",
 ] }
-wgpu = "27"
-pollster = "0.4"
-dashmap = "6"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 bevy_rapier3d = { version = "0.33", features = ["debug-render-3d"] }
+log = "0.4"
+
+# --- Desktop-only dependencies ---
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tauri = { version = "2", features = ["macos-private-api"] }
+tauri-plugin-opener = "2"
+wgpu = "27"
+pollster = "0.4"
+dashmap = "6"
+
+# --- Linux-only Bevy features (x11/wayland) ---
+[target.'cfg(target_os = "linux")'.dependencies.bevy]
+version = "0.18"
+features = ["x11", "wayland"]
+
+# --- WASM-only dependencies ---
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = ["Document", "Window", "HtmlCanvasElement"] }
+console_error_panic_hook = "0.1"
+console_log = { version = "1", features = ["color"] }

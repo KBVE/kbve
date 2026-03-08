@@ -1,0 +1,34 @@
+---
+import ReactDashboardHome from './ReactDashboardHome';
+---
+
+<section
+	id="dashboard-home-wrapper"
+	class="dashboard-home-wrapper"
+	aria-label="Dashboard home">
+	<div id="dashboard-home-content" class="dashboard-home-content">
+		<ReactDashboardHome client:only="react" />
+	</div>
+</section>
+
+<style>
+	.dashboard-home-wrapper {
+		background: transparent;
+		min-height: 100vh;
+		position: relative;
+		width: 100vw;
+		margin-left: calc(-50vw + 50%);
+	}
+
+	.dashboard-home-content {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2rem 1rem;
+	}
+
+	@media (min-width: 768px) {
+		.dashboard-home-content {
+			padding: 2rem 1.5rem;
+		}
+	}
+</style>

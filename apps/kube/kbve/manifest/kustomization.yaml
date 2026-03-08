@@ -3,7 +3,8 @@ kind: Kustomization
 namespace: kbve
 
 resources:
-  - kbve-serviceaccount.yaml
-  - kbve-externalsecret.yaml
-  - kbve-deployment.yaml
-  - nginx-ingress.yaml
+    - kbve-serviceaccount.yaml
+    - kbve-externalsecret.yaml
+    - argocd-auth-sealedsecret.yaml
+    - kbve-deployment.yaml
+    - nginx-ingress.yaml

@@ -95,6 +95,13 @@ async fn main() -> anyhow::Result<()> {
         info!("Grafana proxy not configured (GRAFANA_UPSTREAM_URL not set)");
     }
 
+    // Initialize ArgoCD reverse proxy (optional - for /dashboard/argo)
+    if transport::proxy::init_argo_proxy() {
+        info!("ArgoCD proxy initialized - /dashboard/argo/proxy enabled");
+    } else {
+        info!("ArgoCD proxy not configured (ARGOCD_UPSTREAM_URL not set)");
+    }
+
     // Shared application state
     let state = transport::https::AppState::new();
 
