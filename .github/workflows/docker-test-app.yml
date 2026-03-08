@@ -11,6 +11,11 @@ on:
                 required: false
                 type: string
                 default: 'ubuntu-latest'
+            image:
+                description: 'Docker image name (e.g. kbve/kbve). If set, pushes CI image to GHCR after e2e passes.'
+                required: false
+                type: string
+                default: ''
 
 jobs:
     test:
@@ -19,7 +24,7 @@ jobs:
         timeout-minutes: 60
         permissions:
             contents: read
-            packages: read
+            packages: write
 
         steps:
             - name: Checkout the monorepo
@@ -123,3 +128,12 @@ jobs:
                   name: test-passed-docker-${{ inputs.project }}
                   path: /tmp/test-result.txt
                   retention-days: 1
+
+            - name: Push CI image to GHCR
+              if: success() && inputs.image != ''
+              run: |
+                  SHORT_SHA="${GITHUB_SHA::8}"
+                  CI_TAG="ci-${SHORT_SHA}"
+                  docker tag "${{ inputs.image }}:latest" "ghcr.io/${{ inputs.image }}:${CI_TAG}"
+                  docker push "ghcr.io/${{ inputs.image }}:${CI_TAG}"
+                  echo "Pushed ghcr.io/${{ inputs.image }}:${CI_TAG}"
