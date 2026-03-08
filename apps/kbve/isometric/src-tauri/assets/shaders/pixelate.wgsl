@@ -21,14 +21,10 @@ fn sample_block(uv: vec2<f32>, resolution: vec2<f32>) -> vec4<f32> {
 fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     let resolution = vec2<f32>(textureDimensions(screen_texture));
 
-    // Work in logical pixel space (like Three.js / CSS pixels).
-    // This gives the SAME block count on any display regardless of DPI.
-    //   MacBook 2x: logical = 2048/2 = 1024, blocks = 1024/4 = 256
-    //   LG 4K 1x:   logical = 1024/1 = 1024, blocks = 1024/4 = 256
     let logical_res = resolution / max(settings.scale_factor, 1.0);
     let block_count = floor(logical_res / max(settings.pixel_size, 1.0));
 
-    // Current block in the grid (resolution-independent)
+    // Current block in the grid
     let block = floor(in.uv * block_count);
     let block_uv = (block + 0.5) / block_count;
 
@@ -63,13 +59,21 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
 
     let edge_factor = min(max(normal_edge, depth_edge), 1.0);
 
-    // Edge outline — fixed proportion of each block (same on all displays)
-    let block_pos = fract(in.uv * block_count);
-    let edge_width = 1.0 / settings.pixel_size; // same fraction regardless of DPI
-    let at_edge = select(0.0, 1.0,
-        block_pos.x < edge_width || block_pos.y < edge_width);
+    // Edge application depends on mode:
+    var final_edge: f32;
+    if settings.pixel_size < 1.5 {
+        // Low-res render-to-texture mode: each pixel IS one block.
+        // Apply edge darkening directly to edge pixels (no block outline).
+        final_edge = edge_factor;
+    } else {
+        // Normal post-process mode: darken only at block boundaries.
+        let block_pos = fract(in.uv * block_count);
+        let edge_width = 1.0 / settings.pixel_size;
+        let at_edge = select(0.0, 1.0,
+            block_pos.x < edge_width || block_pos.y < edge_width);
+        final_edge = edge_factor * at_edge;
+    }
 
-    let final_edge = edge_factor * at_edge;
     let result = mix(color.rgb, color.rgb * 0.35, final_edge);
     return vec4(result, color.a);
 }

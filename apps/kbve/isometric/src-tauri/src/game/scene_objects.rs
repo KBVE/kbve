@@ -6,11 +6,17 @@ use super::player::Player;
 // Re-export EntityEvent so event_target() is available
 use bevy::ecs::event::EntityEvent;
 
-/// Axis-aligned bounding box collider (half-extents on X and Z).
+/// Collision shape for scene objects.
 #[derive(Component)]
-pub struct Collider {
-    pub half_x: f32,
-    pub half_z: f32,
+pub enum Collider {
+    /// Axis-aligned bounding box (half-extents on X, Y, Z).
+    Aabb {
+        half_x: f32,
+        half_y: f32,
+        half_z: f32,
+    },
+    /// Cylinder — circular in XZ, box in Y. Rotation-independent.
+    Cylinder { radius: f32, half_y: f32 },
 }
 
 /// Marker for objects that become semi-transparent when occluding the player.

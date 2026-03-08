@@ -9,6 +9,7 @@ use super::scene_objects::{
     AnimatedCrystal, Collider, HoverOutline, Occludable, OriginalEmissive, RotatingBox,
     on_pointer_out, on_pointer_over,
 };
+use super::terrain::TerrainMap;
 
 // ---------------------------------------------------------------------------
 // Object Kind
@@ -217,12 +218,17 @@ fn handle_spawn_messages(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut registry: ResMut<ObjectRegistry>,
+    mut terrain: ResMut<TerrainMap>,
     mut messages: MessageReader<SpawnObjectMessage>,
 ) {
     for msg in messages.read() {
+        // Y is terrain-relative: adjust to absolute position
+        let terrain_h = terrain.height_at_world(msg.position.x, msg.position.z);
+        let absolute_pos = Vec3::new(msg.position.x, terrain_h + msg.position.y, msg.position.z);
+
         let placement = ObjectPlacement {
             kind: msg.kind,
-            position: [msg.position.x, msg.position.y, msg.position.z],
+            position: [absolute_pos.x, absolute_pos.y, absolute_pos.z],
             rotation_y: msg.rotation_y,
         };
         let id = registry.insert(placement);
@@ -231,7 +237,7 @@ fn handle_spawn_messages(
             &mut meshes,
             &mut materials,
             msg.kind,
-            msg.position,
+            absolute_pos,
             msg.rotation_y,
             id,
         );
@@ -292,9 +298,10 @@ fn spawn_object_entity(
                     kind,
                     ObjectInstance { registry_id },
                     RotatingBox,
-                    Collider {
-                        half_x: half,
-                        half_z: half,
+                    // Cylinder collider — snug fit with slight buffer for rotation
+                    Collider::Cylinder {
+                        radius: half * 1.2,
+                        half_y: half,
                     },
                     Occludable,
                     OriginalEmissive(LinearRgba::BLACK),
@@ -322,9 +329,9 @@ fn spawn_object_entity(
                     kind,
                     ObjectInstance { registry_id },
                     RotatingBox,
-                    Collider {
-                        half_x: half,
-                        half_z: half,
+                    Collider::Cylinder {
+                        radius: half * 1.2,
+                        half_y: half,
                     },
                     Occludable,
                     OriginalEmissive(LinearRgba::BLACK),
@@ -374,8 +381,9 @@ fn spawn_object_entity(
                 Transform::from_translation(position),
                 kind,
                 ObjectInstance { registry_id },
-                Collider {
+                Collider::Aabb {
                     half_x: 0.4,
+                    half_y: 2.0,
                     half_z: 0.4,
                 },
                 Occludable,
@@ -401,9 +409,9 @@ fn spawn_object_entity(
                     Transform::from_translation(position),
                     kind,
                     ObjectInstance { registry_id },
-                    Collider {
-                        half_x: radius,
-                        half_z: radius,
+                    Collider::Cylinder {
+                        radius,
+                        half_y: radius,
                     },
                     Occludable,
                     OriginalEmissive(LinearRgba::BLACK),
