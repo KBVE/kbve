@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { GlassPanel } from '../ui/shared/GlassPanel';
+import { ProgressBar } from '../ui/shared/ProgressBar';
 
 interface PlayerState {
 	health: number;
@@ -8,50 +10,6 @@ interface PlayerState {
 	max_mana: number;
 	position: [number, number, number];
 	inventory_slots: number;
-}
-
-function Bar({
-	value,
-	max,
-	color,
-	label,
-}: {
-	value: number;
-	max: number;
-	color: string;
-	label: string;
-}) {
-	const pct = max > 0 ? (value / max) * 100 : 0;
-	return (
-		<div style={{ marginBottom: 6 }}>
-			<div
-				style={{
-					fontSize: 11,
-					marginBottom: 2,
-					textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-				}}>
-				{label}: {value}/{max}
-			</div>
-			<div
-				style={{
-					width: 180,
-					height: 14,
-					background: 'rgba(0,0,0,0.6)',
-					borderRadius: 3,
-					overflow: 'hidden',
-					border: '1px solid rgba(255,255,255,0.15)',
-				}}>
-				<div
-					style={{
-						width: `${pct}%`,
-						height: '100%',
-						background: color,
-						transition: 'width 0.3s ease',
-					}}
-				/>
-			</div>
-		</div>
-	);
 }
 
 export function HUD() {
@@ -72,32 +30,22 @@ export function HUD() {
 	if (!state) return null;
 
 	return (
-		<div
-			style={{
-				position: 'absolute',
-				bottom: 16,
-				left: 16,
-				padding: '12px 16px',
-				background: 'rgba(0,0,0,0.55)',
-				borderRadius: 8,
-				backdropFilter: 'blur(4px)',
-				pointerEvents: 'auto',
-			}}>
-			<Bar
+		<GlassPanel className="absolute bottom-4 left-4 px-4 py-3">
+			<ProgressBar
 				label="HP"
 				value={state.health}
 				max={state.max_health}
-				color="#c0392b"
+				color="bg-hp"
 			/>
-			<Bar
+			<ProgressBar
 				label="MP"
 				value={state.mana}
 				max={state.max_mana}
-				color="#2980b9"
+				color="bg-mp"
 			/>
-			<div style={{ fontSize: 10, opacity: 0.6, marginTop: 4 }}>
+			<div className="text-[10px] opacity-60 mt-1">
 				Pos: {state.position.map((v) => v.toFixed(1)).join(', ')}
 			</div>
-		</div>
+		</GlassPanel>
 	);
 }

@@ -1,0 +1,71 @@
+@import 'tailwindcss';
+
+@theme {
+	/* --- Game Color Palette --- */
+	--color-glass: oklch(0% 0 0 / 0.55);
+	--color-glass-light: oklch(100% 0 0 / 0.08);
+	--color-glass-border: oklch(100% 0 0 / 0.15);
+	--color-glass-hover: oklch(100% 0 0 / 0.12);
+
+	--color-hp: oklch(55% 0.2 25);
+	--color-mp: oklch(55% 0.18 250);
+	--color-xp: oklch(70% 0.18 145);
+
+	--color-toast-info: oklch(65% 0.15 250);
+	--color-toast-success: oklch(65% 0.18 145);
+	--color-toast-warning: oklch(75% 0.18 80);
+	--color-toast-error: oklch(55% 0.2 25);
+	--color-toast-loot: oklch(75% 0.18 85);
+
+	--color-overlay: oklch(0% 0 0 / 0.6);
+
+	/* --- Shadows --- */
+	--shadow-glass: 0 4px 16px oklch(0% 0 0 / 0.3);
+	--shadow-toast: 0 2px 8px oklch(0% 0 0 / 0.4);
+
+	/* --- Border Radius --- */
+	--radius-panel: 8px;
+	--radius-slot: 4px;
+	--radius-toast: 6px;
+
+	/* --- Font --- */
+	--font-game: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+	/* --- Animation Durations --- */
+	--animate-toast-in: toast-slide-in 300ms ease-out forwards;
+	--animate-toast-out: toast-slide-out 200ms ease-in forwards;
+	--animate-modal-in: modal-fade-in 200ms ease-out forwards;
+}
+
+@keyframes toast-slide-in {
+	from {
+		opacity: 0;
+		transform: translateX(100%);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes toast-slide-out {
+	from {
+		opacity: 1;
+		transform: translateX(0);
+	}
+	to {
+		opacity: 0;
+		transform: translateX(100%);
+	}
+}
+
+@keyframes modal-fade-in {
+	from {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
