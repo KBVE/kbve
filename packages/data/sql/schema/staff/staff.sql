@@ -113,6 +113,7 @@ ALTER TABLE staff.members ENABLE ROW LEVEL SECURITY;
 -- SECURITY DEFINER proxy functions + EXECUTE grants. Authenticated users
 -- never hit these tables directly — all reads/writes go through functions.
 -- Table-level RLS is a defence-in-depth layer, not the primary control plane.
+DROP POLICY IF EXISTS "service_role_full_access" ON staff.members;
 CREATE POLICY "service_role_full_access" ON staff.members
     FOR ALL TO service_role USING (true) WITH CHECK (true);
 
@@ -135,6 +136,7 @@ COMMENT ON TABLE staff.audit_log IS
 
 ALTER TABLE staff.audit_log ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "service_role_full_access" ON staff.audit_log;
 CREATE POLICY "service_role_full_access" ON staff.audit_log
     FOR ALL TO service_role USING (true) WITH CHECK (true);
 
@@ -303,9 +305,13 @@ BEGIN
         END IF;
     END IF;
 
-    -- Lock existing row to prevent concurrent lost updates.
-    -- If row does not exist, SELECT FOR UPDATE returns nothing (no lock needed
-    -- for new inserts — PK constraint serializes concurrent INSERTs).
+    -- Advisory lock serializes all operations on this target user, even when
+    -- the row doesn't exist yet. This prevents the first-insert audit race
+    -- where two concurrent grants both log old_perms=0 / action='create'.
+    -- The lock is automatically released at transaction end.
+    PERFORM pg_advisory_xact_lock(hashtext(p_user_id::text));
+
+    -- Lock existing row (belt-and-suspenders with advisory lock above).
     SELECT permissions INTO v_old_perms
     FROM staff.members WHERE user_id = p_user_id FOR UPDATE;
 
@@ -416,20 +422,22 @@ BEGIN
 
     v_new_perms := v_old_perms & ~p_perms;
 
-    UPDATE staff.members
-    SET permissions = v_new_perms
-    WHERE user_id = p_user_id;
-
-    -- Audit log
-    INSERT INTO staff.audit_log (target_id, actor_id, action, old_perms, new_perms)
-    VALUES (p_user_id, p_actor_id, 'revoke', v_old_perms, v_new_perms);
-
     -- INVARIANT: zero-permission rows are deleted, not tombstoned.
     -- "Not staff" is represented by absence, not permissions = 0.
     -- This is consistent with proxy_* functions treating absence as non-staff.
     IF v_new_perms = 0 THEN
+        -- Skip the pointless UPDATE → delete directly (avoids extra trigger
+        -- churn and WAL writes on a row that is about to be removed).
         DELETE FROM staff.members WHERE user_id = p_user_id;
+    ELSE
+        UPDATE staff.members
+        SET permissions = v_new_perms
+        WHERE user_id = p_user_id;
     END IF;
+
+    -- Audit log
+    INSERT INTO staff.audit_log (target_id, actor_id, action, old_perms, new_perms)
+    VALUES (p_user_id, p_actor_id, 'revoke', v_old_perms, v_new_perms);
 
     RETURN v_new_perms;
 END;
