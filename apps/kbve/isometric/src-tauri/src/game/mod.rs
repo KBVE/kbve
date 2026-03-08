@@ -1,4 +1,5 @@
 pub mod camera;
+pub mod input_bridge;
 pub mod object_registry;
 pub mod pixelate;
 pub mod player;

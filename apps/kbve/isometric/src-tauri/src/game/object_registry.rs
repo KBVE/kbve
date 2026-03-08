@@ -8,8 +8,7 @@ use std::sync::LazyLock;
 use bevy_rapier3d::prelude::*;
 
 use super::scene_objects::{
-    AnimatedCrystal, HoverOutline, Occludable, OriginalEmissive, RotatingBox, on_pointer_out,
-    on_pointer_over,
+    AnimatedCrystal, HoverOutline, Occludable, OriginalEmissive, RotatingBox,
 };
 use super::terrain::TerrainMap;
 
@@ -308,8 +307,6 @@ fn spawn_object_entity(
                         half_extents: Vec3::splat(half),
                     },
                 ))
-                .observe(on_pointer_over)
-                .observe(on_pointer_out)
                 .id()
         }
         ObjectKind::DarkCrate => {
@@ -336,8 +333,6 @@ fn spawn_object_entity(
                         half_extents: Vec3::splat(half),
                     },
                 ))
-                .observe(on_pointer_over)
-                .observe(on_pointer_out)
                 .id()
         }
         ObjectKind::Crystal => {
@@ -362,8 +357,6 @@ fn spawn_object_entity(
                         half_extents: Vec3::splat(1.0),
                     },
                 ))
-                .observe(on_pointer_over)
-                .observe(on_pointer_out)
                 .id()
         }
         ObjectKind::Pillar => commands
@@ -386,8 +379,6 @@ fn spawn_object_entity(
                     half_extents: Vec3::new(0.4, 2.0, 0.4),
                 },
             ))
-            .observe(on_pointer_over)
-            .observe(on_pointer_out)
             .id(),
         ObjectKind::MetallicSphere => {
             let radius = 0.8;
@@ -411,8 +402,6 @@ fn spawn_object_entity(
                         half_extents: Vec3::splat(radius),
                     },
                 ))
-                .observe(on_pointer_over)
-                .observe(on_pointer_out)
                 .id()
         }
         ObjectKind::SpotLight => commands

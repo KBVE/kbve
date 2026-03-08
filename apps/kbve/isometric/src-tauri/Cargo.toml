@@ -19,14 +19,9 @@ bevy = { version = "0.18", default-features = false, features = [
     "bevy_ui",
     "bevy_state",
     "bevy_color",
-    "bevy_winit",
     "tonemapping_luts",
     "png",
-    "x11",
-    "wayland",
     "zstd_rust",
-    "bevy_picking",
-    "mesh_picking",
     "bevy_gizmos",
 ] }
 wgpu = "27"

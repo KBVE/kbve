@@ -6,16 +6,13 @@ mod game;
 mod renderer;
 mod tauri_plugin;
 
-use bevy::DefaultPlugins;
-use bevy::app::App;
-use bevy::picking::mesh_picking::MeshPickingPlugin;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use tauri_plugin::TauriPlugin;
 
 use game::camera::IsometricCameraPlugin;
+use game::input_bridge::InputBridgePlugin;
 use game::object_registry::ObjectRegistryPlugin;
-use game::pixelate::PixelatePlugin;
 use game::player::PlayerPlugin;
 use game::scene_objects::SceneObjectsPlugin;
 use game::state::GameStatePlugin;
@@ -27,8 +24,30 @@ fn main() {
 
     app.insert_resource(ClearColor(Color::srgb(0.1, 0.1, 0.15)));
 
-    // Tauri runs alongside Bevy for IPC (FPS, player state, etc.)
-    // The custom runner interleaves Tauri event processing with Bevy updates.
+    // --- Non-rendering core plugins (registered upfront) ---
+    app.add_plugins((
+        bevy::app::PanicHandlerPlugin::default(),
+        bevy::app::TaskPoolPlugin::default(),
+        bevy::diagnostic::FrameCountPlugin,
+        bevy::time::TimePlugin,
+        bevy::transform::TransformPlugin,
+        bevy::diagnostic::DiagnosticsPlugin,
+        bevy::input::InputPlugin,
+        bevy::asset::AssetPlugin::default(),
+        bevy::state::app::StatesPlugin,
+    ));
+
+    // Window entity (Bevy tracks it; actual OS window is Tauri's)
+    app.add_plugins(bevy::window::WindowPlugin {
+        primary_window: Some(bevy::window::Window {
+            title: "KBVE Isometric".to_string(),
+            resolution: bevy::window::WindowResolution::new(1024, 768),
+            ..default()
+        }),
+        ..default()
+    });
+
+    // Tauri (builds app, sets custom runner, defers render plugins to Ready event)
     app.add_plugins(TauriPlugin::new(|builder| {
         builder
             .plugin(tauri_plugin_opener::init())
@@ -36,28 +55,16 @@ fn main() {
                 commands::get_fps,
                 commands::get_player_state,
                 commands::get_object_registry,
+                commands::on_input_frame,
                 commands::greet,
             ])
     }));
 
-    // Bevy renders to its own window via DefaultPlugins
-    app.add_plugins(DefaultPlugins.set(bevy::window::WindowPlugin {
-        primary_window: Some(bevy::window::Window {
-            title: "KBVE Isometric".to_string(),
-            resolution: bevy::window::WindowResolution::new(1024, 768),
-            ..default()
-        }),
-        ..default()
-    }));
-
-    // Mesh picking backend for mouse hover detection on 3D objects
-    app.add_plugins(MeshPickingPlugin);
-
-    // Rapier physics engine
+    // Physics (no render dependency)
     app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
-    app.add_plugins(RapierDebugRenderPlugin::default());
 
-    // Game plugins
+    // Game plugins (Startup systems run on first update after Ready handler
+    // adds render plugins, so Assets<Mesh>/Assets<StandardMaterial> exist by then)
     app.add_plugins((
         GameStatePlugin,
         TerrainPlugin,
@@ -66,7 +73,9 @@ fn main() {
         PlayerPlugin,
         ObjectRegistryPlugin,
         SceneObjectsPlugin,
-        PixelatePlugin,
+        InputBridgePlugin,
+        // PixelatePlugin + RapierDebugRenderPlugin are added by TauriPlugin
+        // after render init (they need RenderApp)
     ));
 
     app.run();
