@@ -64,15 +64,40 @@ RUN find . -type f \( \
 FROM ${BASE_IMAGE} AS core
 
 # --- Pumpkin: build server (parallel with plugin) ---
+#     Copy full workspace so source is always fresh even if the base image is stale.
 FROM core AS builder
+COPY ./apps/mc/pumpkin/Cargo.toml ./apps/mc/pumpkin/Cargo.lock /pumpkin/
+COPY ./apps/mc/pumpkin/assets /pumpkin/assets
 COPY ./apps/mc/pumpkin/pumpkin /pumpkin/pumpkin
+COPY ./apps/mc/pumpkin/pumpkin-nbt /pumpkin/pumpkin-nbt
+COPY ./apps/mc/pumpkin/pumpkin-api-macros /pumpkin/pumpkin-api-macros
+COPY ./apps/mc/pumpkin/pumpkin-util /pumpkin/pumpkin-util
+COPY ./apps/mc/pumpkin/pumpkin-data /pumpkin/pumpkin-data
+COPY ./apps/mc/pumpkin/pumpkin-macros /pumpkin/pumpkin-macros
+COPY ./apps/mc/pumpkin/pumpkin-config /pumpkin/pumpkin-config
+COPY ./apps/mc/pumpkin/pumpkin-codegen /pumpkin/pumpkin-codegen
+COPY ./apps/mc/pumpkin/pumpkin-world /pumpkin/pumpkin-world
+COPY ./apps/mc/pumpkin/pumpkin-protocol /pumpkin/pumpkin-protocol
+COPY ./apps/mc/pumpkin/pumpkin-inventory /pumpkin/pumpkin-inventory
 RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
     cargo build --release && cp target/release/pumpkin ./pumpkin.release
 
 # --- Plugin: build (parallel with pumpkin, reuses all pre-compiled crates) ---
 FROM core AS plugin-builder
+COPY ./apps/mc/pumpkin/Cargo.toml ./apps/mc/pumpkin/Cargo.lock /pumpkin/
+COPY ./apps/mc/pumpkin/assets /pumpkin/assets
 COPY ./apps/mc/pumpkin/pumpkin /pumpkin/pumpkin
+COPY ./apps/mc/pumpkin/pumpkin-nbt /pumpkin/pumpkin-nbt
+COPY ./apps/mc/pumpkin/pumpkin-api-macros /pumpkin/pumpkin-api-macros
+COPY ./apps/mc/pumpkin/pumpkin-util /pumpkin/pumpkin-util
+COPY ./apps/mc/pumpkin/pumpkin-data /pumpkin/pumpkin-data
+COPY ./apps/mc/pumpkin/pumpkin-macros /pumpkin/pumpkin-macros
+COPY ./apps/mc/pumpkin/pumpkin-config /pumpkin/pumpkin-config
+COPY ./apps/mc/pumpkin/pumpkin-codegen /pumpkin/pumpkin-codegen
+COPY ./apps/mc/pumpkin/pumpkin-world /pumpkin/pumpkin-world
+COPY ./apps/mc/pumpkin/pumpkin-protocol /pumpkin/pumpkin-protocol
+COPY ./apps/mc/pumpkin/pumpkin-inventory /pumpkin/pumpkin-inventory
 COPY ./apps/mc/plugins /plugins
 # Inject Astro-built players page as Askama template (compiled into the .so)
 COPY --from=astro-builder /app/dist/apps/astro-mc/players/index.html /plugins/kbve-mc-plugin/templates/askama/players.html
