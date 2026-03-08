@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { initSupa, getSupa } from '@/lib/supa';
 import { useAuthBridge } from '@/components/auth';
 import {
 	Activity,
