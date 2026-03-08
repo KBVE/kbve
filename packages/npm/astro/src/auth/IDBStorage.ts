@@ -37,4 +37,12 @@ export class IDBStorage {
 	async removeItem(key: string): Promise<void> {
 		await this.db.kv.delete(key);
 	}
+
+	async clearAll(): Promise<void> {
+		await this.db.kv.clear();
+	}
+
+	close(): void {
+		this.db.close();
+	}
 }

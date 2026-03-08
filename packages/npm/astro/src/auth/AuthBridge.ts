@@ -55,6 +55,20 @@ export class AuthBridge {
 		if (error) throw error;
 	}
 
+	/**
+	 * Full cleanup: clear all auth data from IndexedDB and close the connection.
+	 * Call this during logout to avoid blocking `deleteDatabase` from other tabs.
+	 */
+	async destroy() {
+		try {
+			await this.storage.clearAll();
+		} catch {
+			// best-effort
+		}
+		this.storage.close();
+		this.client = null;
+	}
+
 	async getSession() {
 		const client = this.ensureClient();
 		const { data, error } = await client.auth.getSession();
