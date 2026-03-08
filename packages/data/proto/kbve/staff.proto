@@ -18,8 +18,8 @@ package kbve.staff;
 //   Bits  0–7   Core access tiers
 //   Bits  8–15  Feature-scoped permissions
 //   Bits 16–23  Administrative operations
-//   Bits 24–30  Reserved for future use
-//   Bit  31     Superadmin (bypasses all checks)
+//   Bits 24–29  Reserved for future use
+//   Bit  30     Superadmin (bypasses all checks)
 //
 enum StaffPermission {
   STAFF_PERM_NONE              = 0;
@@ -43,7 +43,7 @@ enum StaffPermission {
   STAFF_PERM_SYSTEM_CONFIG     = 0x00040000;  // Modify system configuration
   STAFF_PERM_AUDIT_VIEW        = 0x00080000;  // View audit logs
 
-  // ── Superadmin (bit 31) ──
+  // ── Superadmin (bit 30) ──
   STAFF_PERM_SUPERADMIN        = 0x40000000;  // Bypasses all permission checks
 }
 
@@ -63,7 +63,7 @@ enum StaffPermission {
 //                     | STAFF_REVOKE | AUDIT_VIEW
 //                   = 0x000B3F07
 //
-// PRESET_SUPERADMIN = SUPERADMIN (bit 31, bypasses everything)
+// PRESET_SUPERADMIN = SUPERADMIN (bit 30, bypasses everything)
 //                   = 0x40000000
 
 // A staff member record
@@ -72,7 +72,7 @@ message StaffMember {
   int32 permissions   = 2;  // Bitwise OR of StaffPermission flags
   string created_at   = 3;  // ISO 8601 timestamp
   string updated_at   = 4;  // ISO 8601 timestamp
-  optional string granted_by = 5;  // UUID of the admin who granted access
+  optional string last_granted_by = 5;  // UUID of the actor who last granted permissions
 }
 
 // Audit log entry for permission changes

@@ -6,19 +6,28 @@
 --
 -- Source of truth: packages/data/proto/kbve/staff.proto
 --
--- Permission layout (from proto):
+-- Permission layout (from proto, zero-indexed bit positions):
 --   Bits  0–7   Core tiers     (STAFF=0x1, MODERATOR=0x2, ADMIN=0x4)
 --   Bits  8–15  Features       (DASHBOARD_VIEW=0x100, etc.)
 --   Bits 16–23  Admin ops      (STAFF_GRANT=0x10000, etc.)
---   Bit  31     Superadmin     (0x40000000, bypasses all checks)
+--   Bits 24–29  Reserved
+--   Bit  30     Superadmin     (0x40000000, bypasses all checks)
+--
+-- NOTE: INTEGER is signed 32-bit. Bit 31 (0x80000000) would be negative,
+-- so we cap at bit 30 for the highest usable flag. The CHECK constraint
+-- (permissions >= 0) enforces this invariant.
 --
 -- Tables: members, audit_log
--- Functions: 11 (3 trigger, 1 internal, 3 service, 3 proxy, 2 public RPC)
+-- Functions: 12 (3 trigger, 1 internal, 3 service, 3 proxy, 2 public RPC)
 --
 -- Depends on: auth.users (Supabase), public.gen_ulid()
 --
--- To add the first superadmin after deployment:
+-- To add the first superadmin after deployment (service_role only):
 --   SELECT staff.service_grant('<user-uuid>', x'40000001'::int, NULL);
+--
+-- NOTE: NULL actor_id is a privileged bypass for bootstrap only.
+-- Only service_role can call service functions. Ensure only tightly
+-- controlled backend code uses the NULL actor path.
 -- ============================================================
 
 BEGIN;
@@ -76,28 +85,34 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA staff
 --   0x00010000  STAFF_GRANT        0x00080000  AUDIT_VIEW
 --   0x00020000  STAFF_REVOKE       0x00040000  SYSTEM_CONFIG
 --
---   0x40000000  SUPERADMIN (bypasses all checks)
+--   0x40000000  SUPERADMIN (bit 30, bypasses all checks)
 
 -- ===========================================
 -- TABLE: staff.members
 -- ===========================================
 
 CREATE TABLE IF NOT EXISTS staff.members (
-    user_id      UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    permissions  INTEGER NOT NULL DEFAULT 0
-                     CHECK (permissions >= 0),
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    granted_by   UUID REFERENCES auth.users(id) ON DELETE SET NULL
+    user_id          UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    permissions      INTEGER NOT NULL DEFAULT 0
+                         CHECK (permissions >= 0),
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    last_granted_by  UUID REFERENCES auth.users(id) ON DELETE SET NULL
 );
 
 COMMENT ON TABLE staff.members IS
     'Staff membership with bitwise permission flags. See proto kbve.staff.StaffPermission.';
 COMMENT ON COLUMN staff.members.permissions IS
     'Bitwise OR of StaffPermission flags. 0 = no permissions (inactive entry).';
+COMMENT ON COLUMN staff.members.last_granted_by IS
+    'UUID of the actor who last granted permissions to this member. Updated on each grant, not on revoke.';
 
 ALTER TABLE staff.members ENABLE ROW LEVEL SECURITY;
 
+-- NOTE: RLS here is belt-and-suspenders. The real access control is through
+-- SECURITY DEFINER proxy functions + EXECUTE grants. Authenticated users
+-- never hit these tables directly — all reads/writes go through functions.
+-- Table-level RLS is a defence-in-depth layer, not the primary control plane.
 CREATE POLICY "service_role_full_access" ON staff.members
     FOR ALL TO service_role USING (true) WITH CHECK (true);
 
@@ -116,7 +131,7 @@ CREATE TABLE IF NOT EXISTS staff.audit_log (
 );
 
 COMMENT ON TABLE staff.audit_log IS
-    'Immutable log of all staff permission changes.';
+    'Immutable log of all staff permission changes. Append-only — UPDATE and DELETE are blocked by triggers.';
 
 ALTER TABLE staff.audit_log ENABLE ROW LEVEL SECURITY;
 
@@ -144,6 +159,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
+ALTER FUNCTION staff.audit_log_immutable() OWNER TO postgres;
+
 CREATE TRIGGER trg_audit_log_no_update
     BEFORE UPDATE ON staff.audit_log
     FOR EACH ROW EXECUTE FUNCTION staff.audit_log_immutable();
@@ -163,6 +180,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
+ALTER FUNCTION staff.protect_created_at() OWNER TO postgres;
+
 CREATE TRIGGER trg_protect_created_at
     BEFORE UPDATE ON staff.members
     FOR EACH ROW EXECUTE FUNCTION staff.protect_created_at();
@@ -175,6 +194,8 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+ALTER FUNCTION staff.update_updated_at() OWNER TO postgres;
 
 CREATE TRIGGER trg_update_updated_at
     BEFORE UPDATE ON staff.members
@@ -217,10 +238,12 @@ BEGIN
     -- Check required permission
     IF (v_actor_perms & p_required) = 0 THEN
         RAISE EXCEPTION 'Actor % lacks required permission 0x%',
-            p_actor_id, to_hex(p_required);
+            p_actor_id, pg_catalog.to_hex(p_required);
     END IF;
 END;
 $$;
+
+ALTER FUNCTION staff._check_actor_permission(UUID, INTEGER) OWNER TO postgres;
 
 DO $$ BEGIN
     REVOKE ALL ON FUNCTION staff._check_actor_permission(UUID, INTEGER)
@@ -270,7 +293,7 @@ BEGIN
         IF (v_actor_perms & x'40000000'::int) = 0 THEN
             IF (p_perms & ~v_actor_perms) != 0 THEN
                 RAISE EXCEPTION 'Cannot grant permissions you do not hold (requested=0x%, yours=0x%)',
-                    to_hex(p_perms), to_hex(v_actor_perms);
+                    pg_catalog.to_hex(p_perms), pg_catalog.to_hex(v_actor_perms);
             END IF;
         END IF;
     END IF;
@@ -286,11 +309,11 @@ BEGIN
     v_new_perms := v_old_perms | p_perms;
 
     -- Upsert
-    INSERT INTO staff.members (user_id, permissions, granted_by)
+    INSERT INTO staff.members (user_id, permissions, last_granted_by)
     VALUES (p_user_id, v_new_perms, p_actor_id)
     ON CONFLICT (user_id) DO UPDATE
-        SET permissions = v_new_perms,
-            granted_by  = COALESCE(p_actor_id, staff.members.granted_by);
+        SET permissions      = v_new_perms,
+            last_granted_by  = COALESCE(p_actor_id, staff.members.last_granted_by);
 
     -- Audit log
     INSERT INTO staff.audit_log (target_id, actor_id, action, old_perms, new_perms)
@@ -302,6 +325,8 @@ BEGIN
 END;
 $$;
 
+ALTER FUNCTION staff.service_grant(UUID, INTEGER, UUID) OWNER TO postgres;
+
 DO $$ BEGIN
     REVOKE ALL ON FUNCTION staff.service_grant(UUID, INTEGER, UUID)
         FROM PUBLIC, anon, authenticated;
@@ -310,6 +335,8 @@ DO $$ BEGIN
 END $$;
 
 -- Revoke permissions from a user (AND NOT's flags from existing).
+-- Scope guard: actor cannot revoke flags they don't hold (unless superadmin).
+-- Actor cannot revoke/remove a superadmin unless actor is also superadmin.
 CREATE OR REPLACE FUNCTION staff.service_revoke(
     p_user_id    UUID,
     p_perms      INTEGER,
@@ -318,8 +345,9 @@ CREATE OR REPLACE FUNCTION staff.service_revoke(
 RETURNS INTEGER  -- new permissions after revoke
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_old_perms INTEGER;
-    v_new_perms INTEGER;
+    v_old_perms   INTEGER;
+    v_new_perms   INTEGER;
+    v_actor_perms INTEGER;
 BEGIN
     IF p_user_id IS NULL THEN
         RAISE EXCEPTION 'user_id is required';
@@ -345,6 +373,24 @@ BEGIN
         RAISE EXCEPTION 'User % is not a staff member', p_user_id;
     END IF;
 
+    -- Scope guard: actor cannot revoke bits they don't hold (unless superadmin)
+    IF p_actor_id IS NOT NULL THEN
+        SELECT permissions INTO v_actor_perms
+        FROM staff.members WHERE user_id = p_actor_id;
+
+        IF (v_actor_perms & x'40000000'::int) = 0 THEN
+            -- Cannot revoke flags you don't hold
+            IF (p_perms & ~v_actor_perms) != 0 THEN
+                RAISE EXCEPTION 'Cannot revoke permissions you do not hold (requested=0x%, yours=0x%)',
+                    pg_catalog.to_hex(p_perms), pg_catalog.to_hex(v_actor_perms);
+            END IF;
+            -- Cannot touch a superadmin target
+            IF (v_old_perms & x'40000000'::int) != 0 THEN
+                RAISE EXCEPTION 'Cannot revoke permissions from a superadmin — requires SUPERADMIN';
+            END IF;
+        END IF;
+    END IF;
+
     v_new_perms := v_old_perms & ~p_perms;
 
     UPDATE staff.members
@@ -355,7 +401,9 @@ BEGIN
     INSERT INTO staff.audit_log (target_id, actor_id, action, old_perms, new_perms)
     VALUES (p_user_id, p_actor_id, 'revoke', v_old_perms, v_new_perms);
 
-    -- Remove entry entirely if no permissions remain
+    -- INVARIANT: zero-permission rows are deleted, not tombstoned.
+    -- "Not staff" is represented by absence, not permissions = 0.
+    -- This is consistent with proxy_* functions treating absence as non-staff.
     IF v_new_perms = 0 THEN
         DELETE FROM staff.members WHERE user_id = p_user_id;
     END IF;
@@ -363,6 +411,8 @@ BEGIN
     RETURN v_new_perms;
 END;
 $$;
+
+ALTER FUNCTION staff.service_revoke(UUID, INTEGER, UUID) OWNER TO postgres;
 
 DO $$ BEGIN
     REVOKE ALL ON FUNCTION staff.service_revoke(UUID, INTEGER, UUID)
@@ -372,6 +422,7 @@ DO $$ BEGIN
 END $$;
 
 -- Remove a staff member entirely.
+-- Scope guard: actor cannot remove a target whose permissions exceed their own.
 CREATE OR REPLACE FUNCTION staff.service_remove(
     p_user_id    UUID,
     p_actor_id   UUID DEFAULT NULL
@@ -379,7 +430,8 @@ CREATE OR REPLACE FUNCTION staff.service_remove(
 RETURNS VOID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_old_perms INTEGER;
+    v_old_perms   INTEGER;
+    v_actor_perms INTEGER;
 BEGIN
     IF p_user_id IS NULL THEN
         RAISE EXCEPTION 'user_id is required';
@@ -400,6 +452,23 @@ BEGIN
         RETURN;  -- Idempotent: not a staff member, nothing to do
     END IF;
 
+    -- Scope guard: actor cannot remove target with perms above their own
+    IF p_actor_id IS NOT NULL THEN
+        SELECT permissions INTO v_actor_perms
+        FROM staff.members WHERE user_id = p_actor_id;
+
+        IF (v_actor_perms & x'40000000'::int) = 0 THEN
+            -- Cannot remove a target who holds flags the actor lacks
+            IF (v_old_perms & ~v_actor_perms) != 0 THEN
+                RAISE EXCEPTION 'Cannot remove staff member with permissions above your own';
+            END IF;
+            -- Cannot remove a superadmin
+            IF (v_old_perms & x'40000000'::int) != 0 THEN
+                RAISE EXCEPTION 'Cannot remove a superadmin — requires SUPERADMIN';
+            END IF;
+        END IF;
+    END IF;
+
     DELETE FROM staff.members WHERE user_id = p_user_id;
 
     -- Audit log
@@ -407,6 +476,8 @@ BEGIN
     VALUES (p_user_id, p_actor_id, 'remove', v_old_perms, 0);
 END;
 $$;
+
+ALTER FUNCTION staff.service_remove(UUID, UUID) OWNER TO postgres;
 
 DO $$ BEGIN
     REVOKE ALL ON FUNCTION staff.service_remove(UUID, UUID)
@@ -453,12 +524,17 @@ BEGIN
 END;
 $$;
 
+ALTER FUNCTION staff.proxy_check_staff() OWNER TO postgres;
+
 DO $$ BEGIN
     REVOKE ALL ON FUNCTION staff.proxy_check_staff() FROM PUBLIC, anon;
     GRANT EXECUTE ON FUNCTION staff.proxy_check_staff() TO authenticated;
 END $$;
 
--- Check if the calling user has a specific permission flag.
+-- Check if the calling user holds ALL bits in the given flag mask.
+-- For single-flag checks (the common case), "any" and "all" are equivalent.
+-- For composite masks, this requires ALL bits present — use multiple calls
+-- or proxy_check_staff() if you need "any of these flags" semantics.
 CREATE OR REPLACE FUNCTION staff.proxy_has_permission(p_flag INTEGER)
 RETURNS BOOLEAN
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
@@ -484,9 +560,12 @@ BEGIN
         RETURN true;
     END IF;
 
-    RETURN (v_perms & p_flag) != 0;
+    -- Require ALL bits in p_flag to be present
+    RETURN (v_perms & p_flag) = p_flag;
 END;
 $$;
+
+ALTER FUNCTION staff.proxy_has_permission(INTEGER) OWNER TO postgres;
 
 DO $$ BEGIN
     REVOKE ALL ON FUNCTION staff.proxy_has_permission(INTEGER) FROM PUBLIC, anon;
@@ -541,6 +620,8 @@ BEGIN
 END;
 $$;
 
+ALTER FUNCTION staff.proxy_audit_log(INTEGER, UUID) OWNER TO postgres;
+
 DO $$ BEGIN
     REVOKE ALL ON FUNCTION staff.proxy_audit_log(INTEGER, UUID) FROM PUBLIC, anon;
     GRANT EXECUTE ON FUNCTION staff.proxy_audit_log(INTEGER, UUID) TO authenticated;
@@ -569,6 +650,8 @@ BEGIN
 END;
 $$;
 
+ALTER FUNCTION public.is_staff() OWNER TO postgres;
+
 DO $$ BEGIN
     REVOKE ALL ON FUNCTION public.is_staff() FROM PUBLIC, anon;
     GRANT EXECUTE ON FUNCTION public.is_staff() TO authenticated;
@@ -595,6 +678,8 @@ BEGIN
     RETURN COALESCE(v_perms, 0);
 END;
 $$;
+
+ALTER FUNCTION public.staff_permissions() OWNER TO postgres;
 
 DO $$ BEGIN
     REVOKE ALL ON FUNCTION public.staff_permissions() FROM PUBLIC, anon;
