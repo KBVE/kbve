@@ -1,0 +1,41 @@
+# Restrict CronJob pod egress to kube-apiserver + DNS only.
+# CronJobs in crossplane-system (s3-healthcheck) only need kubectl access.
+# Blocks all other outbound traffic (database, internet, other services).
+#
+# Resolves: https://github.com/KBVE/kbve/issues/7656
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: cronjob-egress-apiserver-only
+    namespace: crossplane-system
+    labels:
+        app.kubernetes.io/name: crossplane
+        app.kubernetes.io/component: network-policy
+        app.kubernetes.io/managed-by: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '10'
+spec:
+    podSelector:
+        matchLabels:
+            app.kubernetes.io/component: s3-healthcheck
+    policyTypes:
+        - Egress
+    egress:
+        # kube-apiserver (kubectl commands)
+        - to:
+              - ipBlock:
+                    cidr: 10.96.0.1/32
+          ports:
+              - protocol: TCP
+                port: 443
+        # DNS resolution (required for kubectl to resolve kubernetes.default.svc)
+        - to:
+              - namespaceSelector: {}
+                podSelector:
+                    matchLabels:
+                        k8s-app: kube-dns
+          ports:
+              - protocol: UDP
+                port: 53
+              - protocol: TCP
+                port: 53
