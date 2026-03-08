@@ -10,7 +10,7 @@ use reqwest::Client;
 use serde_json::json;
 use tracing::{debug, warn};
 
-use crate::auth::{extract_bearer_token, get_jwt_cache};
+use crate::auth::{extract_bearer_token, get_jwt_cache, jwt_cache::staff_perm};
 
 // ---------------------------------------------------------------------------
 // GrafanaProxy singleton
@@ -95,11 +95,31 @@ pub async fn grafana_proxy_handler(
         }
     };
 
-    if let Err(e) = jwt_cache.verify_and_cache(&token).await {
-        warn!("Grafana proxy JWT rejected: {e}");
+    let token_info = match jwt_cache.verify_and_cache(&token).await {
+        Ok(info) => info,
+        Err(e) => {
+            warn!("Grafana proxy JWT rejected: {e}");
+            return (
+                StatusCode::UNAUTHORIZED,
+                axum::Json(json!({"error": "Invalid or expired token"})),
+            )
+                .into_response();
+        }
+    };
+
+    // --- Staff gate: require DASHBOARD_VIEW permission ---
+    if !token_info.has_permission(staff_perm::DASHBOARD_VIEW) {
+        warn!(
+            user_id = %token_info.user_id,
+            permissions = format!("0x{:08x}", token_info.staff_permissions),
+            "Grafana proxy access denied — missing DASHBOARD_VIEW permission"
+        );
         return (
-            StatusCode::UNAUTHORIZED,
-            axum::Json(json!({"error": "Invalid or expired token"})),
+            StatusCode::FORBIDDEN,
+            axum::Json(json!({
+                "error": "Access restricted",
+                "message": "You do not have permission to access the monitoring dashboard"
+            })),
         )
             .into_response();
     }

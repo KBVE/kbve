@@ -1,250 +1,468 @@
-import { useRef, useMemo, useState, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
+import { useMemo, useEffect, useState } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 
 interface McSkinViewerProps {
 	uuid: string;
+	skinUrl?: string | null;
 	width?: number;
 	height?: number;
 }
 
-const SKIN_W = 64;
-const SKIN_H = 64;
-const S = 1 / 16; // Scale: 32px total height → 2 units
+// ---------------------------------------------------------------------------
+// UV helpers (ported from working MinecraftSkin.tsx in apps/mc)
+// ---------------------------------------------------------------------------
 
-// Pixel regions for each body part face: [x1, y1, x2, y2]
-// Face order: [+X(left), -X(right), +Y(top), -Y(bottom), +Z(back), -Z(front)]
-type FaceUVs = [number, number, number, number][];
-
-const HEAD_UVS: FaceUVs = [
-	[16, 8, 24, 16],
-	[0, 8, 8, 16],
-	[8, 0, 16, 8],
-	[16, 0, 24, 8],
-	[24, 8, 32, 16],
-	[8, 8, 16, 16],
-];
-
-const BODY_UVS: FaceUVs = [
-	[28, 20, 32, 32],
-	[16, 20, 20, 32],
-	[20, 16, 28, 20],
-	[28, 16, 36, 20],
-	[32, 20, 40, 32],
-	[20, 20, 28, 32],
-];
-
-const R_ARM_UVS: FaceUVs = [
-	[48, 20, 52, 32],
-	[40, 20, 44, 32],
-	[44, 16, 48, 20],
-	[48, 16, 52, 20],
-	[52, 20, 56, 32],
-	[44, 20, 48, 32],
-];
-
-const L_ARM_UVS: FaceUVs = [
-	[40, 52, 44, 64],
-	[32, 52, 36, 64],
-	[36, 48, 40, 52],
-	[40, 48, 44, 52],
-	[44, 52, 48, 64],
-	[36, 52, 40, 64],
-];
-
-const R_LEG_UVS: FaceUVs = [
-	[8, 20, 12, 32],
-	[0, 20, 4, 32],
-	[4, 16, 8, 20],
-	[8, 16, 12, 20],
-	[12, 20, 16, 32],
-	[4, 20, 8, 32],
-];
-
-const L_LEG_UVS: FaceUVs = [
-	[24, 52, 28, 64],
-	[16, 52, 20, 64],
-	[20, 48, 24, 52],
-	[24, 48, 28, 52],
-	[28, 52, 32, 64],
-	[20, 52, 24, 64],
-];
-
-// Faces 0 (+X/left) and 5 (-Z/front) need horizontal UV flip
-// due to Three.js BoxGeometry vertex winding vs MC skin convention
-const FLIP_U = [true, false, false, false, false, true];
-
-function applyUVs(geometry: THREE.BoxGeometry, faceUVs: FaceUVs): void {
-	const uv = geometry.getAttribute('uv');
-	const uvArray = uv.array as Float32Array;
-
-	for (let face = 0; face < 6; face++) {
-		const [px1, py1, px2, py2] = faceUVs[face];
-		let u1 = px1 / SKIN_W;
-		let u2 = px2 / SKIN_W;
-		const v1 = 1 - py2 / SKIN_H;
-		const v2 = 1 - py1 / SKIN_H;
-
-		if (FLIP_U[face]) {
-			const tmp = u1;
-			u1 = u2;
-			u2 = tmp;
-		}
-
-		const offset = face * 8;
-		uvArray[offset + 0] = u1;
-		uvArray[offset + 1] = v2;
-		uvArray[offset + 2] = u2;
-		uvArray[offset + 3] = v2;
-		uvArray[offset + 4] = u1;
-		uvArray[offset + 5] = v1;
-		uvArray[offset + 6] = u2;
-		uvArray[offset + 7] = v1;
-	}
-
-	uv.needsUpdate = true;
+/**
+ * Converts a pixel rect on the 64×64 skin into UV bounds [u0, v0, u1, v1].
+ * With flipY=false: image row 0 (top of PNG) → V=0, row 63 → V=1.
+ */
+function uvRect(
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+	texW = 64,
+	texH = 64,
+): [number, number, number, number] {
+	return [x / texW, y / texH, (x + w) / texW, (y + h) / texH];
 }
 
-function SkinModel({ texture }: { texture: THREE.Texture }) {
-	const groupRef = useRef<THREE.Group>(null);
+/**
+ * Applies per-face UVs to a BoxGeometry.
+ * Face order: +X, -X, +Y, -Y, +Z, -Z
+ * Each face has 4 vertices: top-left, top-right, bottom-left, bottom-right.
+ */
+function applyBoxUVs(
+	geom: THREE.BoxGeometry,
+	faceUVs: [number, number, number, number][],
+): void {
+	const uvAttr = geom.attributes.uv as THREE.BufferAttribute;
+	for (let face = 0; face < 6; face++) {
+		const [u0, v0, u1, v1] = faceUVs[face];
+		const base = face * 4;
+		uvAttr.setXY(base + 0, u0, v0);
+		uvAttr.setXY(base + 1, u1, v0);
+		uvAttr.setXY(base + 2, u0, v1);
+		uvAttr.setXY(base + 3, u1, v1);
+	}
+	uvAttr.needsUpdate = true;
+}
 
-	const geometries = useMemo(() => {
-		const head = new THREE.BoxGeometry(8 * S, 8 * S, 8 * S);
-		applyUVs(head, HEAD_UVS);
+// ---------------------------------------------------------------------------
+// Inner-layer UV definitions
+// ---------------------------------------------------------------------------
 
-		const body = new THREE.BoxGeometry(8 * S, 12 * S, 4 * S);
-		applyUVs(body, BODY_UVS);
+function headUVs(): [number, number, number, number][] {
+	return [
+		uvRect(16, 8, 8, 8),
+		uvRect(0, 8, 8, 8),
+		uvRect(8, 0, 8, 8),
+		uvRect(16, 0, 8, 8),
+		uvRect(8, 8, 8, 8),
+		uvRect(24, 8, 8, 8),
+	];
+}
 
-		const rArm = new THREE.BoxGeometry(4 * S, 12 * S, 4 * S);
-		applyUVs(rArm, R_ARM_UVS);
+function bodyUVs(): [number, number, number, number][] {
+	return [
+		uvRect(28, 20, 4, 12),
+		uvRect(16, 20, 4, 12),
+		uvRect(20, 16, 8, 4),
+		uvRect(28, 16, 8, 4),
+		uvRect(20, 20, 8, 12),
+		uvRect(32, 20, 8, 12),
+	];
+}
 
-		const lArm = new THREE.BoxGeometry(4 * S, 12 * S, 4 * S);
-		applyUVs(lArm, L_ARM_UVS);
+function rightArmUVs(): [number, number, number, number][] {
+	return [
+		uvRect(48, 20, 4, 12),
+		uvRect(40, 20, 4, 12),
+		uvRect(44, 16, 4, 4),
+		uvRect(48, 16, 4, 4),
+		uvRect(44, 20, 4, 12),
+		uvRect(52, 20, 4, 12),
+	];
+}
 
-		const rLeg = new THREE.BoxGeometry(4 * S, 12 * S, 4 * S);
-		applyUVs(rLeg, R_LEG_UVS);
+function leftArmUVs(): [number, number, number, number][] {
+	return [
+		uvRect(40, 52, 4, 12),
+		uvRect(32, 52, 4, 12),
+		uvRect(36, 48, 4, 4),
+		uvRect(40, 48, 4, 4),
+		uvRect(36, 52, 4, 12),
+		uvRect(44, 52, 4, 12),
+	];
+}
 
-		const lLeg = new THREE.BoxGeometry(4 * S, 12 * S, 4 * S);
-		applyUVs(lLeg, L_LEG_UVS);
+function rightLegUVs(): [number, number, number, number][] {
+	return [
+		uvRect(8, 20, 4, 12),
+		uvRect(0, 20, 4, 12),
+		uvRect(4, 16, 4, 4),
+		uvRect(8, 16, 4, 4),
+		uvRect(4, 20, 4, 12),
+		uvRect(12, 20, 4, 12),
+	];
+}
 
-		return { head, body, rArm, lArm, rLeg, lLeg };
-	}, []);
+function leftLegUVs(): [number, number, number, number][] {
+	return [
+		uvRect(24, 52, 4, 12),
+		uvRect(16, 52, 4, 12),
+		uvRect(20, 48, 4, 4),
+		uvRect(24, 48, 4, 4),
+		uvRect(20, 52, 4, 12),
+		uvRect(28, 52, 4, 12),
+	];
+}
 
-	const material = useMemo(() => {
-		return new THREE.MeshStandardMaterial({
-			map: texture,
-			side: THREE.FrontSide,
-			alphaTest: 0.1,
-		});
+// ---------------------------------------------------------------------------
+// Outer-layer (overlay) UV definitions
+// ---------------------------------------------------------------------------
+
+function headOverlayUVs(): [number, number, number, number][] {
+	return [
+		uvRect(48, 8, 8, 8),
+		uvRect(32, 8, 8, 8),
+		uvRect(40, 0, 8, 8),
+		uvRect(48, 0, 8, 8),
+		uvRect(40, 8, 8, 8),
+		uvRect(56, 8, 8, 8),
+	];
+}
+
+function bodyOverlayUVs(): [number, number, number, number][] {
+	return [
+		uvRect(28, 36, 4, 12),
+		uvRect(16, 36, 4, 12),
+		uvRect(20, 32, 8, 4),
+		uvRect(28, 32, 8, 4),
+		uvRect(20, 36, 8, 12),
+		uvRect(32, 36, 8, 12),
+	];
+}
+
+function rightArmOverlayUVs(): [number, number, number, number][] {
+	return [
+		uvRect(48, 36, 4, 12),
+		uvRect(40, 36, 4, 12),
+		uvRect(44, 32, 4, 4),
+		uvRect(48, 32, 4, 4),
+		uvRect(44, 36, 4, 12),
+		uvRect(52, 36, 4, 12),
+	];
+}
+
+function leftArmOverlayUVs(): [number, number, number, number][] {
+	return [
+		uvRect(56, 52, 4, 12),
+		uvRect(48, 52, 4, 12),
+		uvRect(52, 48, 4, 4),
+		uvRect(56, 48, 4, 4),
+		uvRect(52, 52, 4, 12),
+		uvRect(60, 52, 4, 12),
+	];
+}
+
+function rightLegOverlayUVs(): [number, number, number, number][] {
+	return [
+		uvRect(8, 36, 4, 12),
+		uvRect(0, 36, 4, 12),
+		uvRect(4, 32, 4, 4),
+		uvRect(8, 32, 4, 4),
+		uvRect(4, 36, 4, 12),
+		uvRect(12, 36, 4, 12),
+	];
+}
+
+function leftLegOverlayUVs(): [number, number, number, number][] {
+	return [
+		uvRect(8, 52, 4, 12),
+		uvRect(0, 52, 4, 12),
+		uvRect(4, 48, 4, 4),
+		uvRect(8, 48, 4, 4),
+		uvRect(4, 52, 4, 12),
+		uvRect(12, 52, 4, 12),
+	];
+}
+
+// ---------------------------------------------------------------------------
+// Skin part mesh component
+// ---------------------------------------------------------------------------
+
+function SkinPart({
+	position,
+	size,
+	uvs,
+	texture,
+	overlay,
+}: {
+	position: [number, number, number];
+	size: [number, number, number];
+	uvs: [number, number, number, number][];
+	texture: THREE.Texture;
+	overlay?: boolean;
+}) {
+	const geom = useMemo(() => {
+		const g = new THREE.BoxGeometry(...size);
+		applyBoxUVs(g, uvs);
+		return g;
+	}, [size, uvs]);
+
+	const mat = useMemo(
+		() =>
+			new THREE.MeshStandardMaterial({
+				map: texture,
+				transparent: true,
+				alphaTest: overlay ? 0.1 : 0,
+				side: overlay ? THREE.DoubleSide : THREE.FrontSide,
+			}),
+		[texture, overlay],
+	);
+
+	return <mesh geometry={geom} material={mat} position={position} />;
+}
+
+// ---------------------------------------------------------------------------
+// Full player model (inner + overlay layers)
+// ---------------------------------------------------------------------------
+
+const S = 1 / 8;
+
+function MinecraftPlayer({ skinDataUrl }: { skinDataUrl: string }) {
+	const texture = useMemo(() => {
+		const tex = new THREE.TextureLoader().load(skinDataUrl);
+		tex.magFilter = THREE.NearestFilter;
+		tex.minFilter = THREE.NearestFilter;
+		tex.generateMipmaps = false;
+		tex.flipY = false;
+		tex.colorSpace = THREE.SRGBColorSpace;
+		return tex;
+	}, [skinDataUrl]);
+
+	useEffect(() => {
+		return () => {
+			texture.dispose();
+		};
 	}, [texture]);
 
-	useFrame((_, delta) => {
-		if (groupRef.current) {
-			groupRef.current.rotation.y += delta * 0.4;
-		}
-	});
-
 	return (
-		<group ref={groupRef} position={[0, -1, 0]}>
-			<mesh
-				geometry={geometries.head}
-				material={material}
-				position={[0, 28 * S, 0]}
+		<group scale={[S, S, S]}>
+			{/* Head */}
+			<SkinPart
+				position={[0, 28, 0]}
+				size={[8, 8, 8]}
+				uvs={headUVs()}
+				texture={texture}
 			/>
-			<mesh
-				geometry={geometries.body}
-				material={material}
-				position={[0, 18 * S, 0]}
+			<SkinPart
+				position={[0, 28, 0]}
+				size={[9, 9, 9]}
+				uvs={headOverlayUVs()}
+				texture={texture}
+				overlay
 			/>
-			<mesh
-				geometry={geometries.rArm}
-				material={material}
-				position={[-6 * S, 18 * S, 0]}
+
+			{/* Body */}
+			<SkinPart
+				position={[0, 18, 0]}
+				size={[8, 12, 4]}
+				uvs={bodyUVs()}
+				texture={texture}
 			/>
-			<mesh
-				geometry={geometries.lArm}
-				material={material}
-				position={[6 * S, 18 * S, 0]}
+			<SkinPart
+				position={[0, 18, 0]}
+				size={[8.5, 12.5, 4.5]}
+				uvs={bodyOverlayUVs()}
+				texture={texture}
+				overlay
 			/>
-			<mesh
-				geometry={geometries.rLeg}
-				material={material}
-				position={[-2 * S, 6 * S, 0]}
+
+			{/* Right Arm */}
+			<SkinPart
+				position={[-6, 18, 0]}
+				size={[4, 12, 4]}
+				uvs={rightArmUVs()}
+				texture={texture}
 			/>
-			<mesh
-				geometry={geometries.lLeg}
-				material={material}
-				position={[2 * S, 6 * S, 0]}
+			<SkinPart
+				position={[-6, 18, 0]}
+				size={[4.5, 12.5, 4.5]}
+				uvs={rightArmOverlayUVs()}
+				texture={texture}
+				overlay
+			/>
+
+			{/* Left Arm */}
+			<SkinPart
+				position={[6, 18, 0]}
+				size={[4, 12, 4]}
+				uvs={leftArmUVs()}
+				texture={texture}
+			/>
+			<SkinPart
+				position={[6, 18, 0]}
+				size={[4.5, 12.5, 4.5]}
+				uvs={leftArmOverlayUVs()}
+				texture={texture}
+				overlay
+			/>
+
+			{/* Right Leg */}
+			<SkinPart
+				position={[-2, 6, 0]}
+				size={[4, 12, 4]}
+				uvs={rightLegUVs()}
+				texture={texture}
+			/>
+			<SkinPart
+				position={[-2, 6, 0]}
+				size={[4.5, 12.5, 4.5]}
+				uvs={rightLegOverlayUVs()}
+				texture={texture}
+				overlay
+			/>
+
+			{/* Left Leg */}
+			<SkinPart
+				position={[2, 6, 0]}
+				size={[4, 12, 4]}
+				uvs={leftLegUVs()}
+				texture={texture}
+			/>
+			<SkinPart
+				position={[2, 6, 0]}
+				size={[4.5, 12.5, 4.5]}
+				uvs={leftLegOverlayUVs()}
+				texture={texture}
+				overlay
 			/>
 		</group>
 	);
 }
 
-function FallbackCube() {
-	const ref = useRef<THREE.Mesh>(null);
-	useFrame((_, delta) => {
-		if (ref.current) ref.current.rotation.y += delta * 0.5;
+// ---------------------------------------------------------------------------
+// Skin data URL fetching (via KBVE Axum texture proxy)
+// ---------------------------------------------------------------------------
+
+function extractTextureHash(url: string): string | null {
+	const match = url.match(/\/texture\/([0-9a-f]{60,64})$/i);
+	return match ? match[1] : null;
+}
+
+function blobToDataUrl(blob: Blob): Promise<string | null> {
+	return new Promise((resolve) => {
+		const reader = new FileReader();
+		reader.onloadend = () => resolve(reader.result as string);
+		reader.onerror = () => resolve(null);
+		reader.readAsDataURL(blob);
 	});
-	return (
-		<mesh ref={ref}>
-			<boxGeometry args={[0.5, 0.5, 0.5]} />
-			<meshStandardMaterial color="#4a5568" wireframe />
-		</mesh>
-	);
 }
 
-function SkinScene({ uuid }: { uuid: string }) {
-	const [texture, setTexture] = useState<THREE.Texture | null>(null);
-	const [failed, setFailed] = useState(false);
+async function fetchSkinAsDataUrl(
+	_uuid: string,
+	skinUrl?: string | null,
+): Promise<string | null> {
+	if (!skinUrl) return null;
 
-	useEffect(() => {
-		setTexture(null);
-		setFailed(false);
+	const hash = extractTextureHash(skinUrl);
+	if (!hash) return null;
 
-		const cleanUuid = uuid.replace(/-/g, '');
-		const url = `https://crafatar.com/skins/${cleanUuid}`;
-		const loader = new THREE.TextureLoader();
-		loader.setCrossOrigin('anonymous');
-		loader.load(
-			url,
-			(tex) => {
-				tex.magFilter = THREE.NearestFilter;
-				tex.minFilter = THREE.NearestFilter;
-				tex.generateMipmaps = false;
-				setTexture(tex);
-			},
-			undefined,
-			() => setFailed(true),
-		);
-	}, [uuid]);
-
-	if (failed) return <FallbackCube />;
-	if (!texture) return <FallbackCube />;
-	return <SkinModel texture={texture} />;
+	try {
+		const res = await fetch(`/api/v1/mc/textures/${hash}`);
+		if (!res.ok) return null;
+		const blob = await res.blob();
+		return blobToDataUrl(blob);
+	} catch {
+		return null;
+	}
 }
+
+// ---------------------------------------------------------------------------
+// Exported viewer component
+// ---------------------------------------------------------------------------
 
 export default function McSkinViewer({
 	uuid,
+	skinUrl,
 	width = 300,
 	height = 400,
 }: McSkinViewerProps) {
+	const [skinDataUrl, setSkinDataUrl] = useState<string | null>(null);
+	const [failed, setFailed] = useState(false);
+
+	useEffect(() => {
+		setSkinDataUrl(null);
+		setFailed(false);
+
+		let cancelled = false;
+		fetchSkinAsDataUrl(uuid, skinUrl).then((url) => {
+			if (cancelled) return;
+			if (url) {
+				setSkinDataUrl(url);
+			} else {
+				setFailed(true);
+			}
+		});
+
+		return () => {
+			cancelled = true;
+		};
+	}, [uuid, skinUrl]);
+
+	if (failed) {
+		return (
+			<div
+				style={{
+					width,
+					height,
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					color: 'var(--sl-color-gray-3, #71717a)',
+					fontSize: '0.875rem',
+				}}>
+				Could not load skin
+			</div>
+		);
+	}
+
+	if (!skinDataUrl) {
+		return (
+			<div
+				style={{
+					width,
+					height,
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					color: 'var(--sl-color-gray-3, #71717a)',
+					fontSize: '0.875rem',
+				}}>
+				Loading skin...
+			</div>
+		);
+	}
+
 	return (
-		<div style={{ width, height }}>
-			<Canvas
-				camera={{ position: [0, 0.2, 2.8], fov: 45 }}
-				style={{ background: 'transparent' }}>
-				<ambientLight intensity={1.8} />
-				<directionalLight position={[5, 8, 5]} intensity={1.2} />
-				<directionalLight position={[-3, 4, -3]} intensity={0.5} />
-				<SkinScene uuid={uuid} />
-				<OrbitControls
-					enablePan={false}
-					enableZoom={false}
-					minPolarAngle={Math.PI / 6}
-					maxPolarAngle={(Math.PI * 5) / 6}
-				/>
-			</Canvas>
-		</div>
+		<Canvas
+			camera={{ position: [3, 2.5, 3], fov: 45 }}
+			style={{ width, height }}
+			gl={{ antialias: true, alpha: true }}>
+			<ambientLight intensity={0.8} />
+			<directionalLight position={[5, 5, 5]} intensity={0.6} />
+			<MinecraftPlayer skinDataUrl={skinDataUrl} />
+			<OrbitControls
+				enablePan={false}
+				enableZoom={false}
+				target={[0, 2.5, 0]}
+				minPolarAngle={Math.PI / 6}
+				maxPolarAngle={(5 * Math.PI) / 6}
+			/>
+		</Canvas>
 	);
 }

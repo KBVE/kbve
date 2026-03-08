@@ -16,9 +16,7 @@
 		},
 		"build": {
 			"executor": "@monodon/rust:build",
-			"outputs": [
-				"{options.target-dir}"
-			],
+			"outputs": ["{options.target-dir}"],
 			"options": {
 				"target-dir": "dist/target/axum-kbve"
 			},
@@ -30,9 +28,7 @@
 		},
 		"test": {
 			"executor": "@monodon/rust:test",
-			"outputs": [
-				"{options.target-dir}"
-			],
+			"outputs": ["{options.target-dir}"],
 			"options": {
 				"target-dir": "dist/target/axum-kbve"
 			},
@@ -44,18 +40,14 @@
 		},
 		"lint": {
 			"executor": "@monodon/rust:lint",
-			"outputs": [
-				"{options.target-dir}"
-			],
+			"outputs": ["{options.target-dir}"],
 			"options": {
 				"target-dir": "dist/target/axum-kbve"
 			}
 		},
 		"run": {
 			"executor": "@monodon/rust:run",
-			"outputs": [
-				"{options.target-dir}"
-			],
+			"outputs": ["{options.target-dir}"],
 			"options": {
 				"target-dir": "dist/target/axum-kbve"
 			},
@@ -79,9 +71,7 @@
 		},
 		"container": {
 			"executor": "nx:run-commands",
-			"dependsOn": [
-				"container-prep"
-			],
+			"dependsOn": ["container-prep"],
 			"defaultConfiguration": "local",
 			"options": {
 				"parallel": false
@@ -121,21 +111,14 @@
 				"local": {
 					"load": true,
 					"push": false,
-					"tags": [
-						"kbve/kbve:latest"
-					]
+					"tags": ["kbve/kbve:latest"]
 				},
 				"production": {
 					"load": true,
 					"push": false,
 					"metadata": {
-						"images": [
-							"ghcr.io/kbve/kbve",
-							"kbve/kbve"
-						],
-						"tags": [
-							"latest"
-						]
+						"images": ["ghcr.io/kbve/kbve", "kbve/kbve"],
+						"tags": ["latest"]
 					},
 					"build-args": [
 						"BUILD_BASE=ghcr.io/kbve/kbve-build-base:latest"
@@ -151,9 +134,7 @@
 				"ci": {
 					"load": true,
 					"push": false,
-					"tags": [
-						"kbve/kbve:latest"
-					],
+					"tags": ["kbve/kbve:latest"],
 					"build-args": [
 						"BUILD_BASE=ghcr.io/kbve/kbve-build-base:latest"
 					],
@@ -177,16 +158,12 @@
 				"local": {
 					"load": true,
 					"push": false,
-					"tags": [
-						"ghcr.io/kbve/kbve-build-base:latest"
-					]
+					"tags": ["ghcr.io/kbve/kbve-build-base:latest"]
 				},
 				"production": {
 					"load": true,
 					"push": false,
-					"tags": [
-						"ghcr.io/kbve/kbve-build-base:latest"
-					],
+					"tags": ["ghcr.io/kbve/kbve-build-base:latest"],
 					"cache-from": [
 						"type=registry,ref=ghcr.io/kbve/kbve-build-base:buildcache"
 					],
