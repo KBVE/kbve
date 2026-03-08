@@ -328,3 +328,56 @@ jobs:
                   name: test-passed-tauri-${{ inputs.app_name }}-windows
                   path: test-result.txt
                   retention-days: 1
+
+    # --- WASM build ---
+    build-wasm:
+        name: Build WASM
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            contents: read
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+                  submodules: recursive
+
+            - name: Setup Rust
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: wasm32-unknown-unknown
+
+            - name: Rust Cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  cache-on-failure: true
+
+            - name: Install Trunk
+              run: cargo install trunk --locked
+
+            - name: Build WASM
+              working-directory: ${{ inputs.project_path }}/src-tauri
+              run: trunk build --release
+
+            - name: Upload WASM artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ inputs.app_name }}-wasm
+                  path: ${{ inputs.project_path }}/dist-wasm/
+                  if-no-files-found: warn
+                  retention-days: 14
+
+            - name: Create test marker
+              if: success()
+              run: echo "${{ inputs.app_name }}" > test-result.txt
+
+            - name: Upload test marker
+              if: success()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-passed-tauri-${{ inputs.app_name }}-wasm
+                  path: test-result.txt
+                  retention-days: 1
