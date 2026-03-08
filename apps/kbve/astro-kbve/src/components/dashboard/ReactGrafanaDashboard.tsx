@@ -10,6 +10,13 @@ import {
 	Loader2,
 	LogIn,
 	AlertCircle,
+	ShieldOff,
+	Network,
+	Box,
+	RotateCcw,
+	AlertTriangle,
+	Clock,
+	Layers,
 } from 'lucide-react';
 import {
 	AreaChart,
@@ -31,23 +38,49 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 const PROXY_BASE = '/dashboard/grafana/proxy';
 
 const QUERIES = {
+	// Node Resources
 	cpu: 'avg(100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100))',
 	memory: '(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100',
+	disk: '(1 - (node_filesystem_avail_bytes{mountpoint="/",fstype!="rootfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"})) * 100',
+	networkRx:
+		'sum(rate(node_network_receive_bytes_total{device!~"lo|veth.*|docker.*|flannel.*|cali.*|cbr.*"}[5m]))',
+	networkTx:
+		'sum(rate(node_network_transmit_bytes_total{device!~"lo|veth.*|docker.*|flannel.*|cali.*|cbr.*"}[5m]))',
+	// Kubernetes
 	pods: 'sum(kube_pod_status_phase{phase="Running"})',
 	nodes: 'count(kube_node_info)',
+	containers: 'sum(kube_pod_container_status_running)',
+	podRestarts: 'sum(increase(kube_pod_container_status_restarts_total[1h]))',
+	failedPods: 'sum(kube_pod_status_phase{phase="Failed"})',
+	pendingPods: 'sum(kube_pod_status_phase{phase="Pending"})',
+	deployments: 'count(kube_deployment_created)',
 } as const;
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type DashboardState = 'loading' | 'authenticated' | 'unauthenticated';
+type DashboardState =
+	| 'loading'
+	| 'authenticated'
+	| 'unauthenticated'
+	| 'forbidden';
 
 interface MetricSnapshot {
+	// Node
 	cpu: number | null;
 	memory: number | null;
+	disk: number | null;
+	networkRx: number | null;
+	networkTx: number | null;
+	// Kubernetes
 	pods: number | null;
 	nodes: number | null;
+	containers: number | null;
+	podRestarts: number | null;
+	failedPods: number | null;
+	pendingPods: number | null;
+	deployments: number | null;
 }
 
 interface TimeSeriesPoint {
@@ -56,12 +89,58 @@ interface TimeSeriesPoint {
 	memory: number | null;
 }
 
+interface K8sTimeSeriesPoint {
+	timestamp: number;
+	pods: number | null;
+}
+
 interface CachedDashboard {
 	snapshot: MetricSnapshot;
 	timeSeries: TimeSeriesPoint[];
+	k8sTimeSeries: K8sTimeSeriesPoint[];
 	cached_at: number;
 	user_id: string;
 }
+
+// ---------------------------------------------------------------------------
+// Errors
+// ---------------------------------------------------------------------------
+
+class AccessRestrictedError extends Error {
+	constructor() {
+		super('Access restricted');
+		this.name = 'AccessRestrictedError';
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function formatBytes(bytesPerSec: number | null): string {
+	if (bytesPerSec == null) return '--';
+	if (bytesPerSec >= 1_000_000_000)
+		return `${(bytesPerSec / 1_000_000_000).toFixed(1)} GB/s`;
+	if (bytesPerSec >= 1_000_000)
+		return `${(bytesPerSec / 1_000_000).toFixed(1)} MB/s`;
+	if (bytesPerSec >= 1_000) return `${(bytesPerSec / 1_000).toFixed(1)} KB/s`;
+	return `${bytesPerSec.toFixed(0)} B/s`;
+}
+
+const EMPTY_SNAPSHOT: MetricSnapshot = {
+	cpu: null,
+	memory: null,
+	disk: null,
+	networkRx: null,
+	networkTx: null,
+	pods: null,
+	nodes: null,
+	containers: null,
+	podRestarts: null,
+	failedPods: null,
+	pendingPods: null,
+	deployments: null,
+};
 
 // ---------------------------------------------------------------------------
 // Cache helpers
@@ -110,6 +189,9 @@ async function findPrometheusDatasourceId(
 		const resp = await fetch(`${PROXY_BASE}/api/datasources`, {
 			headers: { Authorization: `Bearer ${token}` },
 		});
+		if (resp.status === 403) {
+			throw new AccessRestrictedError();
+		}
 		if (!resp.ok) return null;
 		const sources: Array<{ id: number; type: string; name: string }> =
 			await resp.json();
@@ -123,7 +205,8 @@ async function findPrometheusDatasourceId(
 			/* ignore */
 		}
 		return prom.id;
-	} catch {
+	} catch (e) {
+		if (e instanceof AccessRestrictedError) throw e;
 		return null;
 	}
 }
@@ -191,24 +274,55 @@ function StatCard({
 	label,
 	value,
 	unit,
+	displayValue,
 }: {
 	icon: React.ReactNode;
 	label: string;
 	value: number | null;
 	unit?: string;
+	displayValue?: string;
 }) {
 	return (
 		<div style={styles.statCard}>
 			<div style={styles.statIcon}>{icon}</div>
 			<div style={styles.statValue}>
-				{value != null
-					? `${Number.isInteger(value) ? value : value.toFixed(1)}${unit || ''}`
-					: '--'}
+				{displayValue
+					? displayValue
+					: value != null
+						? `${Number.isInteger(value) ? value : value.toFixed(1)}${unit || ''}`
+						: '--'}
 			</div>
 			<div style={styles.statLabel}>{label}</div>
 		</div>
 	);
 }
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+	return <h2 style={styles.sectionTitle}>{children}</h2>;
+}
+
+// ---------------------------------------------------------------------------
+// Chart helpers
+// ---------------------------------------------------------------------------
+
+const tickFormatter = (t: number) =>
+	new Date(t * 1000).toLocaleTimeString([], {
+		hour: '2-digit',
+		minute: '2-digit',
+	});
+
+const tooltipLabelFormatter = (t: number) =>
+	new Date(t * 1000).toLocaleString();
+
+const tooltipStyle = {
+	background: 'var(--sl-color-bg-nav, #111)',
+	border: '1px solid var(--sl-color-gray-5, #262626)',
+	borderRadius: '8px',
+	color: 'var(--sl-color-text, #e6edf3)',
+};
+
+const axisStroke = 'var(--sl-color-gray-3, #8b949e)';
+const gridStroke = 'var(--sl-color-gray-5, #262626)';
 
 // ---------------------------------------------------------------------------
 // Main component
@@ -216,13 +330,11 @@ function StatCard({
 
 export default function ReactGrafanaDashboard() {
 	const [state, setState] = useState<DashboardState>('loading');
-	const [snapshot, setSnapshot] = useState<MetricSnapshot>({
-		cpu: null,
-		memory: null,
-		pods: null,
-		nodes: null,
-	});
+	const [snapshot, setSnapshot] = useState<MetricSnapshot>(EMPTY_SNAPSHOT);
 	const [timeSeries, setTimeSeries] = useState<TimeSeriesPoint[]>([]);
+	const [k8sTimeSeries, setK8sTimeSeries] = useState<K8sTimeSeriesPoint[]>(
+		[],
+	);
 	const [fromCache, setFromCache] = useState(false);
 	const [refreshing, setRefreshing] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -239,6 +351,7 @@ export default function ReactGrafanaDashboard() {
 				if (cached) {
 					setSnapshot(cached.snapshot);
 					setTimeSeries(cached.timeSeries);
+					setK8sTimeSeries(cached.k8sTimeSeries ?? []);
 					setFromCache(true);
 					return;
 				}
@@ -255,23 +368,58 @@ export default function ReactGrafanaDashboard() {
 					return;
 				}
 
-				// Fetch all 4 instant metrics in parallel
-				const [cpu, memory, pods, nodes] = await Promise.all([
+				// Fetch all 12 instant metrics in parallel
+				const [
+					cpu,
+					memory,
+					disk,
+					networkRx,
+					networkTx,
+					pods,
+					nodes,
+					containers,
+					podRestarts,
+					failedPods,
+					pendingPods,
+					deployments,
+				] = await Promise.all([
 					queryInstant(token, dsId, QUERIES.cpu),
 					queryInstant(token, dsId, QUERIES.memory),
+					queryInstant(token, dsId, QUERIES.disk),
+					queryInstant(token, dsId, QUERIES.networkRx),
+					queryInstant(token, dsId, QUERIES.networkTx),
 					queryInstant(token, dsId, QUERIES.pods),
 					queryInstant(token, dsId, QUERIES.nodes),
+					queryInstant(token, dsId, QUERIES.containers),
+					queryInstant(token, dsId, QUERIES.podRestarts),
+					queryInstant(token, dsId, QUERIES.failedPods),
+					queryInstant(token, dsId, QUERIES.pendingPods),
+					queryInstant(token, dsId, QUERIES.deployments),
 				]);
 
-				const snap: MetricSnapshot = { cpu, memory, pods, nodes };
+				const snap: MetricSnapshot = {
+					cpu,
+					memory,
+					disk,
+					networkRx,
+					networkTx,
+					pods,
+					nodes,
+					containers,
+					podRestarts:
+						podRestarts != null ? Math.round(podRestarts) : null,
+					failedPods,
+					pendingPods,
+					deployments,
+				};
 				setSnapshot(snap);
 
-				// Fetch range data for chart (6h, 5-min step)
+				// Fetch range data for charts (6h, 5-min step)
 				const now = Math.floor(Date.now() / 1000);
 				const sixHoursAgo = now - 6 * 3600;
 				const step = 300;
 
-				const [cpuRange, memRange] = await Promise.all([
+				const [cpuRange, memRange, podRange] = await Promise.all([
 					queryRange(
 						token,
 						dsId,
@@ -284,6 +432,14 @@ export default function ReactGrafanaDashboard() {
 						token,
 						dsId,
 						QUERIES.memory,
+						sixHoursAgo,
+						now,
+						step,
+					),
+					queryRange(
+						token,
+						dsId,
+						QUERIES.pods,
 						sixHoursAgo,
 						now,
 						step,
@@ -316,15 +472,29 @@ export default function ReactGrafanaDashboard() {
 				);
 				setTimeSeries(ts);
 
+				// Build k8s pod time series
+				const k8sTs: K8sTimeSeriesPoint[] = podRange.map(
+					([t, val]) => ({
+						timestamp: t,
+						pods: parseFloat(val),
+					}),
+				);
+				setK8sTimeSeries(k8sTs);
+
 				// Cache
 				setCachedDashboard({
 					snapshot: snap,
 					timeSeries: ts,
+					k8sTimeSeries: k8sTs,
 					cached_at: Date.now(),
 					user_id: uid,
 				});
 				setFromCache(false);
 			} catch (e: unknown) {
+				if (e instanceof AccessRestrictedError) {
+					setState('forbidden');
+					return;
+				}
 				setError(
 					e instanceof Error ? e.message : 'Failed to fetch metrics',
 				);
@@ -445,7 +615,25 @@ export default function ReactGrafanaDashboard() {
 		);
 	}
 
-	// --- Authenticated ---
+	// --- Forbidden (not staff) ---
+	if (state === 'forbidden') {
+		return (
+			<div className="not-content" style={styles.centered}>
+				<ShieldOff
+					size={48}
+					style={{ color: 'var(--sl-color-gray-3)' }}
+				/>
+				<h2 style={styles.authTitle}>Access Restricted</h2>
+				<p style={styles.mutedText}>
+					Your account does not have permission to view the monitoring
+					dashboard. Contact an administrator if you believe this is
+					an error.
+				</p>
+			</div>
+		);
+	}
+
+	// --- Authenticated + Staff ---
 	return (
 		<div className="not-content" style={styles.dashboard}>
 			{/* Header */}
@@ -478,90 +666,165 @@ export default function ReactGrafanaDashboard() {
 				</div>
 			)}
 
-			{/* Stat Cards */}
-			<div style={styles.statsGrid}>
-				<StatCard
-					icon={<Cpu size={20} />}
-					label="CPU Usage"
-					value={snapshot.cpu}
-					unit="%"
-				/>
-				<StatCard
-					icon={<HardDrive size={20} />}
-					label="Memory"
-					value={snapshot.memory}
-					unit="%"
-				/>
-				<StatCard
-					icon={<Activity size={20} />}
-					label="Running Pods"
-					value={snapshot.pods}
-				/>
-				<StatCard
-					icon={<Server size={20} />}
-					label="Nodes"
-					value={snapshot.nodes}
-				/>
-			</div>
+			{/* ── Nodes Section ── */}
+			<section>
+				<SectionHeader>Nodes</SectionHeader>
+				<div style={styles.statsGrid}>
+					<StatCard
+						icon={<Cpu size={20} />}
+						label="CPU Usage"
+						value={snapshot.cpu}
+						unit="%"
+					/>
+					<StatCard
+						icon={<HardDrive size={20} />}
+						label="Memory"
+						value={snapshot.memory}
+						unit="%"
+					/>
+					<StatCard
+						icon={<HardDrive size={20} />}
+						label="Disk"
+						value={snapshot.disk}
+						unit="%"
+					/>
+					<StatCard
+						icon={<Network size={20} />}
+						label="Net RX"
+						value={snapshot.networkRx}
+						displayValue={formatBytes(snapshot.networkRx)}
+					/>
+					<StatCard
+						icon={<Network size={20} />}
+						label="Net TX"
+						value={snapshot.networkTx}
+						displayValue={formatBytes(snapshot.networkTx)}
+					/>
+					<StatCard
+						icon={<Server size={20} />}
+						label="Nodes"
+						value={snapshot.nodes}
+					/>
+				</div>
 
-			{/* Time-series chart */}
-			{timeSeries.length > 0 && (
-				<section style={styles.chartSection}>
-					<h2 style={styles.chartTitle}>Resource Usage (6h)</h2>
-					<ResponsiveContainer width="100%" height={300}>
-						<AreaChart data={timeSeries}>
-							<CartesianGrid
-								strokeDasharray="3 3"
-								stroke="var(--sl-color-gray-5, #262626)"
-							/>
-							<XAxis
-								dataKey="timestamp"
-								tickFormatter={(t: number) =>
-									new Date(t * 1000).toLocaleTimeString([], {
-										hour: '2-digit',
-										minute: '2-digit',
-									})
-								}
-								stroke="var(--sl-color-gray-3, #8b949e)"
-								fontSize={12}
-							/>
-							<YAxis
-								unit="%"
-								domain={[0, 100]}
-								stroke="var(--sl-color-gray-3, #8b949e)"
-								fontSize={12}
-							/>
-							<Tooltip
-								contentStyle={{
-									background: 'var(--sl-color-bg-nav, #111)',
-									border: '1px solid var(--sl-color-gray-5, #262626)',
-									borderRadius: '8px',
-									color: 'var(--sl-color-text, #e6edf3)',
-								}}
-								labelFormatter={(t: number) =>
-									new Date(t * 1000).toLocaleString()
-								}
-							/>
-							<Area
-								type="monotone"
-								dataKey="cpu"
-								stroke="#06b6d4"
-								fill="rgba(6,182,212,0.15)"
-								name="CPU %"
-								strokeWidth={2}
-							/>
-							<Area
-								type="monotone"
-								dataKey="memory"
-								stroke="#8b5cf6"
-								fill="rgba(139,92,246,0.15)"
-								name="Memory %"
-								strokeWidth={2}
-							/>
-						</AreaChart>
-					</ResponsiveContainer>
-				</section>
-			)}
+				{/* CPU & Memory time-series chart */}
+				{timeSeries.length > 0 && (
+					<div style={{ ...styles.chartSection, marginTop: '1rem' }}>
+						<h3 style={styles.chartTitle}>CPU &amp; Memory (6h)</h3>
+						<ResponsiveContainer width="100%" height={300}>
+							<AreaChart data={timeSeries}>
+								<CartesianGrid
+									strokeDasharray="3 3"
+									stroke={gridStroke}
+								/>
+								<XAxis
+									dataKey="timestamp"
+									tickFormatter={tickFormatter}
+									stroke={axisStroke}
+									fontSize={12}
+								/>
+								<YAxis
+									unit="%"
+									domain={[0, 100]}
+									stroke={axisStroke}
+									fontSize={12}
+								/>
+								<Tooltip
+									contentStyle={tooltipStyle}
+									labelFormatter={tooltipLabelFormatter}
+								/>
+								<Area
+									type="monotone"
+									dataKey="cpu"
+									stroke="#06b6d4"
+									fill="rgba(6,182,212,0.15)"
+									name="CPU %"
+									strokeWidth={2}
+								/>
+								<Area
+									type="monotone"
+									dataKey="memory"
+									stroke="#8b5cf6"
+									fill="rgba(139,92,246,0.15)"
+									name="Memory %"
+									strokeWidth={2}
+								/>
+							</AreaChart>
+						</ResponsiveContainer>
+					</div>
+				)}
+			</section>
+
+			{/* ── Kubernetes Section ── */}
+			<section>
+				<SectionHeader>Kubernetes</SectionHeader>
+				<div style={styles.statsGrid}>
+					<StatCard
+						icon={<Activity size={20} />}
+						label="Running Pods"
+						value={snapshot.pods}
+					/>
+					<StatCard
+						icon={<Clock size={20} />}
+						label="Pending Pods"
+						value={snapshot.pendingPods}
+					/>
+					<StatCard
+						icon={<AlertTriangle size={20} />}
+						label="Failed Pods"
+						value={snapshot.failedPods}
+					/>
+					<StatCard
+						icon={<Box size={20} />}
+						label="Containers"
+						value={snapshot.containers}
+					/>
+					<StatCard
+						icon={<RotateCcw size={20} />}
+						label="Restarts (1h)"
+						value={snapshot.podRestarts}
+					/>
+					<StatCard
+						icon={<Layers size={20} />}
+						label="Deployments"
+						value={snapshot.deployments}
+					/>
+				</div>
+
+				{/* Running Pods time-series chart */}
+				{k8sTimeSeries.length > 0 && (
+					<div style={{ ...styles.chartSection, marginTop: '1rem' }}>
+						<h3 style={styles.chartTitle}>Running Pods (6h)</h3>
+						<ResponsiveContainer width="100%" height={250}>
+							<AreaChart data={k8sTimeSeries}>
+								<CartesianGrid
+									strokeDasharray="3 3"
+									stroke={gridStroke}
+								/>
+								<XAxis
+									dataKey="timestamp"
+									tickFormatter={tickFormatter}
+									stroke={axisStroke}
+									fontSize={12}
+								/>
+								<YAxis stroke={axisStroke} fontSize={12} />
+								<Tooltip
+									contentStyle={tooltipStyle}
+									labelFormatter={tooltipLabelFormatter}
+								/>
+								<Area
+									type="monotone"
+									dataKey="pods"
+									stroke="#10b981"
+									fill="rgba(16,185,129,0.15)"
+									name="Pods"
+									strokeWidth={2}
+								/>
+							</AreaChart>
+						</ResponsiveContainer>
+					</div>
+				)}
+			</section>
 
 			<style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 		</div>
@@ -661,9 +924,17 @@ const styles: Record<string, React.CSSProperties> = {
 		color: '#fca5a5',
 		fontSize: '0.875rem',
 	},
+	sectionTitle: {
+		color: 'var(--sl-color-text, #e6edf3)',
+		margin: '0 0 1rem 0',
+		fontSize: '1.3rem',
+		fontWeight: 600,
+		paddingBottom: '0.5rem',
+		borderBottom: '1px solid var(--sl-color-gray-5, #262626)',
+	},
 	statsGrid: {
 		display: 'grid',
-		gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+		gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
 		gap: '1rem',
 	},
 	statCard: {

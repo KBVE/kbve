@@ -13,12 +13,32 @@ const CLEANUP_INTERVAL: Duration = Duration::from_secs(60);
 #[allow(dead_code)]
 const TOKEN_GRACE_PERIOD: i64 = 300; // 5 minutes grace before expiry
 
+/// Staff permission bitflags — mirrors kbve.staff.StaffPermission proto enum.
+#[allow(dead_code)]
+pub mod staff_perm {
+    pub const STAFF: i32 = 0x0000_0001;
+    pub const MODERATOR: i32 = 0x0000_0002;
+    pub const ADMIN: i32 = 0x0000_0004;
+    pub const DASHBOARD_VIEW: i32 = 0x0000_0100;
+    pub const DASHBOARD_MANAGE: i32 = 0x0000_0200;
+    pub const USER_VIEW: i32 = 0x0000_0400;
+    pub const USER_MANAGE: i32 = 0x0000_0800;
+    pub const CONTENT_MODERATE: i32 = 0x0000_1000;
+    pub const CONTENT_DELETE: i32 = 0x0000_2000;
+    pub const STAFF_GRANT: i32 = 0x0001_0000;
+    pub const STAFF_REVOKE: i32 = 0x0002_0000;
+    pub const SYSTEM_CONFIG: i32 = 0x0004_0000;
+    pub const AUDIT_VIEW: i32 = 0x0008_0000;
+    pub const SUPERADMIN: i32 = 0x4000_0000;
+}
+
 /// Cached token information
 #[derive(Debug, Clone)]
 pub struct TokenInfo {
     pub user_id: String,
     pub email: Option<String>,
     pub role: String,
+    pub staff_permissions: i32,
     pub expires_at: i64,
     pub verified_at: Instant,
 }
@@ -33,6 +53,20 @@ impl TokenInfo {
     pub fn is_near_expiry(&self) -> bool {
         let now = chrono::Utc::now().timestamp();
         (self.expires_at - now) <= TOKEN_GRACE_PERIOD
+    }
+
+    /// Check if user is any kind of staff member (has any permission).
+    pub fn is_staff(&self) -> bool {
+        self.staff_permissions > 0
+    }
+
+    /// Check if user holds a specific permission flag (or is superadmin).
+    #[allow(dead_code)]
+    pub fn has_permission(&self, flag: i32) -> bool {
+        if self.staff_permissions & staff_perm::SUPERADMIN != 0 {
+            return true;
+        }
+        self.staff_permissions & flag != 0
     }
 }
 
@@ -169,10 +203,14 @@ impl JwtCache {
             .as_i64()
             .ok_or_else(|| JwtCacheError::InvalidToken("Missing exp claim".to_string()))?;
 
+        // Check staff permissions via PostgREST RPC (public.staff_permissions)
+        let staff_permissions = self.fetch_staff_permissions(token).await;
+
         info!(
             user_id = %user_id,
             email = ?email,
             role = %role,
+            staff_permissions = format!("0x{:08x}", staff_permissions),
             expires_in_seconds = %(expires_at - chrono::Utc::now().timestamp()),
             "JWT verified successfully"
         );
@@ -181,9 +219,47 @@ impl JwtCache {
             user_id,
             email,
             role,
+            staff_permissions,
             expires_at,
             verified_at: Instant::now(),
         })
+    }
+
+    /// Fetch the user's staff permission bitmask via PostgREST RPC.
+    /// Returns 0 on any error (no permissions by default).
+    async fn fetch_staff_permissions(&self, token: &str) -> i32 {
+        let url = format!("{}/rest/v1/rpc/staff_permissions", self.supabase_url);
+
+        let response = self
+            .http_client
+            .post(&url)
+            .header("apikey", &self.supabase_anon_key)
+            .header("Content-Type", "application/json")
+            .bearer_auth(token)
+            .body("{}")
+            .send()
+            .await;
+
+        match response {
+            Ok(resp) if resp.status().is_success() => {
+                // PostgREST returns the integer directly for scalar functions
+                match resp.text().await {
+                    Ok(body) => body.trim().parse::<i32>().unwrap_or(0),
+                    Err(_) => 0,
+                }
+            }
+            Ok(resp) => {
+                debug!(
+                    status = %resp.status(),
+                    "Staff permissions RPC returned non-success (function may not exist yet)"
+                );
+                0
+            }
+            Err(e) => {
+                debug!(error = %e, "Staff permissions RPC failed (function may not exist yet)");
+                0
+            }
+        }
     }
 
     /// Insert token into cache

@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+package kbve.staff;
+
+// =============================================================================
+// Staff — Bitwise permission system for staff access control
+//
+// Permissions are stored as a single INTEGER column and checked with
+// bitwise AND:  (permissions & REQUIRED_FLAG) != 0
+//
+// Flags are combinable — a user can hold any combination of permissions.
+// Higher-level roles are just conventional groupings of flags.
+// =============================================================================
+
+// Staff permission bitflags (combinable via bitwise OR)
+//
+// Layout:
+//   Bits  0–7   Core access tiers
+//   Bits  8–15  Feature-scoped permissions
+//   Bits 16–23  Administrative operations
+//   Bits 24–30  Reserved for future use
+//   Bit  31     Superadmin (bypasses all checks)
+//
+enum StaffPermission {
+  STAFF_PERM_NONE              = 0;
+
+  // ── Core access tiers (bits 0–7) ──
+  STAFF_PERM_STAFF             = 0x00000001;  // Basic staff flag
+  STAFF_PERM_MODERATOR         = 0x00000002;  // Content moderation
+  STAFF_PERM_ADMIN             = 0x00000004;  // Administrative access
+
+  // ── Feature-scoped permissions (bits 8–15) ──
+  STAFF_PERM_DASHBOARD_VIEW    = 0x00000100;  // View monitoring dashboards
+  STAFF_PERM_DASHBOARD_MANAGE  = 0x00000200;  // Modify dashboards/alerts
+  STAFF_PERM_USER_VIEW         = 0x00000400;  // View user profiles/data
+  STAFF_PERM_USER_MANAGE       = 0x00000800;  // Modify user accounts
+  STAFF_PERM_CONTENT_MODERATE  = 0x00001000;  // Moderate user content
+  STAFF_PERM_CONTENT_DELETE    = 0x00002000;  // Delete user content
+
+  // ── Administrative operations (bits 16–23) ──
+  STAFF_PERM_STAFF_GRANT       = 0x00010000;  // Grant staff permissions to others
+  STAFF_PERM_STAFF_REVOKE      = 0x00020000;  // Revoke staff permissions from others
+  STAFF_PERM_SYSTEM_CONFIG     = 0x00040000;  // Modify system configuration
+  STAFF_PERM_AUDIT_VIEW        = 0x00080000;  // View audit logs
+
+  // ── Superadmin (bit 31) ──
+  STAFF_PERM_SUPERADMIN        = 0x40000000;  // Bypasses all permission checks
+}
+
+// Conventional role presets (bitwise OR of individual permissions)
+// These are NOT stored — they're convenience constants for granting.
+//
+// PRESET_STAFF      = STAFF | DASHBOARD_VIEW
+//                   = 0x00000101
+//
+// PRESET_MODERATOR  = STAFF | MODERATOR | DASHBOARD_VIEW | USER_VIEW
+//                     | CONTENT_MODERATE | CONTENT_DELETE
+//                   = 0x00003503
+//
+// PRESET_ADMIN      = STAFF | MODERATOR | ADMIN | DASHBOARD_VIEW
+//                     | DASHBOARD_MANAGE | USER_VIEW | USER_MANAGE
+//                     | CONTENT_MODERATE | CONTENT_DELETE | STAFF_GRANT
+//                     | STAFF_REVOKE | AUDIT_VIEW
+//                   = 0x000B3F07
+//
+// PRESET_SUPERADMIN = SUPERADMIN (bit 31, bypasses everything)
+//                   = 0x40000000
+
+// A staff member record
+message StaffMember {
+  string user_id      = 1;  // UUID from Supabase auth
+  int32 permissions   = 2;  // Bitwise OR of StaffPermission flags
+  string created_at   = 3;  // ISO 8601 timestamp
+  string updated_at   = 4;  // ISO 8601 timestamp
+  optional string granted_by = 5;  // UUID of the admin who granted access
+}
+
+// Audit log entry for permission changes
+message StaffAuditEntry {
+  string id           = 1;  // ULID
+  string target_id    = 2;  // UUID of the affected user
+  string actor_id     = 3;  // UUID of who made the change
+  string action       = 4;  // "grant", "revoke", "remove"
+  int32 old_perms     = 5;  // Permissions before the change
+  int32 new_perms     = 6;  // Permissions after the change
+  string created_at   = 7;  // ISO 8601 timestamp
+}
+
+// =============================================================================
+// Staff RPC Messages
+// =============================================================================
+
+// Check if the calling user has a specific permission
+message CheckPermissionRequest {
+  int32 required_permission = 1;  // Single flag or OR'd combination to check
+}
+
+message CheckPermissionResponse {
+  bool has_permission   = 1;
+  int32 permissions     = 2;  // Caller's full permission mask
+}
+
+// Check if the calling user is staff (any permission set)
+message CheckStaffRequest {}
+
+message CheckStaffResponse {
+  bool is_staff     = 1;
+  int32 permissions = 2;
+}
+
+// Grant permissions to a user (requires STAFF_GRANT or SUPERADMIN)
+message GrantPermissionsRequest {
+  string user_id        = 1;  // UUID of target user
+  int32 permissions     = 2;  // Flags to add (OR'd into existing)
+}
+
+// Revoke permissions from a user (requires STAFF_REVOKE or SUPERADMIN)
+message RevokePermissionsRequest {
+  string user_id        = 1;  // UUID of target user
+  int32 permissions     = 2;  // Flags to remove (AND NOT'd from existing)
+}
+
+// Remove a staff member entirely (requires STAFF_REVOKE or SUPERADMIN)
+message RemoveStaffMemberRequest {
+  string user_id = 1;  // UUID
+}
+
+// List all staff members (requires STAFF_GRANT or SUPERADMIN)
+message ListStaffResponse {
+  repeated StaffMember members = 1;
+}
