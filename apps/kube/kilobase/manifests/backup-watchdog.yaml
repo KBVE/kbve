@@ -1,0 +1,244 @@
+# Backup watchdog — daily health check + metadata cleanup for CNPG backups.
+#
+# Runs daily at 3:30 AM UTC (after 2 AM backup, before 4 AM Sunday fire drill).
+#
+# 1. Health check: verifies a backup succeeded in the last 48 hours.
+#    If not → exits non-zero (Job shows as Failed in ArgoCD/monitoring).
+#    This catches silent failure streaks like the cert expiry incident.
+#
+# 2. Metadata cleanup: prunes old Backup CRDs to keep the namespace tidy.
+#    - Failed backups older than 7 days (no useful data)
+#    - Completed backups older than 60 days (keeps 2 months for audit)
+#
+# 3. Status report: logs a summary of backup health.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: backup-watchdog
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: backup-watchdog
+        app.kubernetes.io/managed-by: argocd
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: backup-watchdog
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: backup-watchdog
+        app.kubernetes.io/managed-by: argocd
+rules:
+    - apiGroups: ['postgresql.cnpg.io']
+      resources: ['backups']
+      verbs: ['get', 'list', 'delete']
+    - apiGroups: ['postgresql.cnpg.io']
+      resources: ['scheduledbackups']
+      verbs: ['get', 'list']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: backup-watchdog
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: backup-watchdog
+        app.kubernetes.io/managed-by: argocd
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: backup-watchdog
+subjects:
+    - kind: ServiceAccount
+      name: backup-watchdog
+      namespace: kilobase
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: backup-watchdog
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: backup-watchdog
+        app.kubernetes.io/managed-by: argocd
+spec:
+    schedule: '30 3 * * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        metadata:
+            labels:
+                app.kubernetes.io/name: kilobase
+                app.kubernetes.io/component: backup-watchdog
+        spec:
+            activeDeadlineSeconds: 300
+            ttlSecondsAfterFinished: 86400
+            backoffLimit: 0
+            template:
+                metadata:
+                    labels:
+                        app.kubernetes.io/name: kilobase
+                        app.kubernetes.io/component: backup-watchdog
+                spec:
+                    serviceAccountName: backup-watchdog
+                    automountServiceAccountToken: true
+                    restartPolicy: Never
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1000
+                        runAsGroup: 1000
+                        fsGroup: 1000
+                        seccompProfile:
+                            type: RuntimeDefault
+                    containers:
+                        - name: watchdog
+                          image: bitnami/kubectl:1.31.5
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL
+                          resources:
+                              limits:
+                                  cpu: 100m
+                                  memory: 128Mi
+                              requests:
+                                  cpu: 50m
+                                  memory: 64Mi
+                          command:
+                              - /bin/bash
+                              - -c
+                              - |
+                                  set -euo pipefail
+
+                                  NAMESPACE="kilobase"
+                                  MAX_FAILED_AGE_DAYS=7
+                                  MAX_COMPLETED_AGE_DAYS=60
+                                  HEALTH_WINDOW_SECONDS=$((48 * 3600))
+
+                                  echo "=== Backup Watchdog ==="
+                                  echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                                  echo ""
+
+                                  # ── Step 1: Health Check ──────────────────────
+                                  echo "Step 1: Checking backup health (48h window)..."
+
+                                  NOW=$(date +%s)
+                                  HEALTHY=false
+
+                                  # Get all completed backups with their completion times
+                                  COMPLETED_BACKUPS=$(kubectl get backups.postgresql.cnpg.io \
+                                      -n "${NAMESPACE}" \
+                                      -o jsonpath='{range .items[?(@.status.phase=="completed")]}{.metadata.name},{.status.startedAt}{"\n"}{end}' \
+                                      2>/dev/null || echo "")
+
+                                  if [ -z "${COMPLETED_BACKUPS}" ]; then
+                                      echo "  WARNING: No completed backups found at all!"
+                                  else
+                                      LATEST_COMPLETED=""
+                                      LATEST_AGE_HUMAN=""
+
+                                      while IFS=',' read -r name timestamp; do
+                                          [ -z "${timestamp}" ] && continue
+                                          # Parse ISO timestamp to epoch
+                                          BACKUP_EPOCH=$(date -d "${timestamp}" +%s 2>/dev/null || \
+                                                         date -j -f "%Y-%m-%dT%H:%M:%SZ" "${timestamp}" +%s 2>/dev/null || \
+                                                         echo "0")
+                                          AGE_SECONDS=$((NOW - BACKUP_EPOCH))
+
+                                          if [ "${AGE_SECONDS}" -lt "${HEALTH_WINDOW_SECONDS}" ]; then
+                                              HEALTHY=true
+                                              LATEST_COMPLETED="${name}"
+                                              LATEST_AGE_HUMAN="$((AGE_SECONDS / 3600))h ago"
+                                              break
+                                          fi
+
+                                          # Track the most recent even if outside window
+                                          if [ -z "${LATEST_COMPLETED}" ]; then
+                                              LATEST_COMPLETED="${name}"
+                                              LATEST_AGE_HUMAN="$((AGE_SECONDS / 3600))h ago"
+                                          fi
+                                      done <<< "$(echo "${COMPLETED_BACKUPS}" | sort -t',' -k2 -r)"
+                                  fi
+
+                                  if [ "${HEALTHY}" = "true" ]; then
+                                      echo "  HEALTHY: Last successful backup: ${LATEST_COMPLETED} (${LATEST_AGE_HUMAN})"
+                                  else
+                                      echo "  UNHEALTHY: No successful backup in the last 48 hours!"
+                                      echo "  Last known successful: ${LATEST_COMPLETED:-none} (${LATEST_AGE_HUMAN:-unknown})"
+                                      echo ""
+                                      echo "  Recent backup statuses:"
+                                      kubectl get backups.postgresql.cnpg.io -n "${NAMESPACE}" \
+                                          --sort-by=.metadata.creationTimestamp \
+                                          --no-headers | tail -5
+                                      echo ""
+                                      echo "CRITICAL: Backup health check failed — no successful backup in 48h window"
+                                      exit 1
+                                  fi
+
+                                  echo ""
+
+                                  # ── Step 2: Metadata Cleanup ───────────────────
+                                  echo "Step 2: Cleaning up old Backup CRDs..."
+
+                                  DELETED_FAILED=0
+                                  DELETED_COMPLETED=0
+
+                                  # Get all backups with status and creation timestamp
+                                  ALL_BACKUPS=$(kubectl get backups.postgresql.cnpg.io \
+                                      -n "${NAMESPACE}" \
+                                      -o jsonpath='{range .items[*]}{.metadata.name},{.status.phase},{.metadata.creationTimestamp}{"\n"}{end}' \
+                                      2>/dev/null || echo "")
+
+                                  while IFS=',' read -r name phase created; do
+                                      [ -z "${name}" ] && continue
+                                      [ -z "${created}" ] && continue
+
+                                      CREATED_EPOCH=$(date -d "${created}" +%s 2>/dev/null || \
+                                                      date -j -f "%Y-%m-%dT%H:%M:%SZ" "${created}" +%s 2>/dev/null || \
+                                                      echo "0")
+                                      AGE_DAYS=$(( (NOW - CREATED_EPOCH) / 86400 ))
+
+                                      if [ "${phase}" = "failed" ] && [ "${AGE_DAYS}" -ge "${MAX_FAILED_AGE_DAYS}" ]; then
+                                          echo "  Deleting failed backup: ${name} (${AGE_DAYS}d old)"
+                                          kubectl delete backup.postgresql.cnpg.io "${name}" \
+                                              -n "${NAMESPACE}" --ignore-not-found
+                                          DELETED_FAILED=$((DELETED_FAILED + 1))
+                                      elif [ "${phase}" = "completed" ] && [ "${AGE_DAYS}" -ge "${MAX_COMPLETED_AGE_DAYS}" ]; then
+                                          echo "  Deleting old completed backup: ${name} (${AGE_DAYS}d old)"
+                                          kubectl delete backup.postgresql.cnpg.io "${name}" \
+                                              -n "${NAMESPACE}" --ignore-not-found
+                                          DELETED_COMPLETED=$((DELETED_COMPLETED + 1))
+                                      fi
+                                  done <<< "${ALL_BACKUPS}"
+
+                                  echo "  Deleted: ${DELETED_FAILED} failed, ${DELETED_COMPLETED} completed"
+                                  echo ""
+
+                                  # ── Step 3: Status Report ──────────────────────
+                                  echo "Step 3: Backup status summary"
+
+                                  TOTAL=$(kubectl get backups.postgresql.cnpg.io -n "${NAMESPACE}" --no-headers 2>/dev/null | wc -l | tr -d ' ')
+                                  COMPLETED_COUNT=$(kubectl get backups.postgresql.cnpg.io -n "${NAMESPACE}" --no-headers 2>/dev/null | grep -c "completed" || echo "0")
+                                  FAILED_COUNT=$(kubectl get backups.postgresql.cnpg.io -n "${NAMESPACE}" --no-headers 2>/dev/null | grep -c "failed" || echo "0")
+
+                                  echo "  Total Backup CRDs: ${TOTAL}"
+                                  echo "  Completed: ${COMPLETED_COUNT}"
+                                  echo "  Failed: ${FAILED_COUNT}"
+                                  echo "  Cleaned this run: ${DELETED_FAILED} failed + ${DELETED_COMPLETED} completed"
+                                  echo ""
+
+                                  # Check ScheduledBackup is active
+                                  SB_COUNT=$(kubectl get scheduledbackups.postgresql.cnpg.io -n "${NAMESPACE}" --no-headers 2>/dev/null | wc -l | tr -d ' ')
+                                  echo "  Active ScheduledBackups: ${SB_COUNT}"
+
+                                  echo ""
+                                  echo "=== Backup Watchdog PASSED ==="
+                                  echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
