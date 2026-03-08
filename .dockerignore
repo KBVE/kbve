@@ -28,6 +28,7 @@ target
 
 # Large / irrelevant app directories not needed by any Dockerfile
 apps/mc/pumpkin
+!apps/mc/pumpkin/pumpkin
 apps/postgres
 apps/irc/ergo
 apps/godot
