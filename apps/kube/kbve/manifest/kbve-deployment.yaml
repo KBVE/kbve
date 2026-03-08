@@ -85,7 +85,7 @@ spec:
                       - name: ARGOCD_AUTH_TOKEN
                         valueFrom:
                             secretKeyRef:
-                                name: supabase-shared
+                                name: argocd-auth
                                 key: argocd-auth-token
                   resources:
                       requests:

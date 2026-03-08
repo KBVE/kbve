@@ -3,6 +3,7 @@ kind: ConfigMap
 metadata:
     name: argocd-cm
 data:
+    accounts.admin: apiKey, login
     resource.customizations.health.cert-manager.io_Certificate: |
         hs = {}
         if obj.status and obj.status.conditions then
