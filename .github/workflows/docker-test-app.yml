@@ -16,6 +16,11 @@ on:
                 required: false
                 type: string
                 default: ''
+            install_playwright:
+                description: 'Install Playwright browsers on host (default: true). Set false for vitest-only e2e projects.'
+                required: false
+                type: boolean
+                default: true
 
 jobs:
     test:
@@ -67,22 +72,6 @@ jobs:
                   username: ${{ github.actor }}
                   password: ${{ github.token }}
 
-            - name: Rust ToolChain
-              uses: dtolnay/rust-toolchain@stable
-
-            - name: Setup Cargo Cache
-              uses: actions/cache@v5
-              with:
-                  path: |
-                      ~/.cargo/bin/
-                      ~/.cargo/registry/index/
-                      ~/.cargo/registry/cache/
-                      ~/.cargo/git/db/
-                      target/
-                  key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-cargo-
-
             - name: Setup Node v24
               uses: actions/setup-node@v6
               with:
@@ -110,6 +99,7 @@ jobs:
               run: pnpm install
 
             - name: Install Playwright Browsers
+              if: ${{ inputs.install_playwright }}
               run: pnpm exec playwright install --with-deps chromium
 
             - name: Nx e2e ${{ inputs.project }}

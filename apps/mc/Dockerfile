@@ -8,6 +8,10 @@ FROM node:24-alpine AS astro-builder
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
+# Prevent Playwright from downloading browser binaries during pnpm install —
+# they are never used in the Docker build and waste ~600MB + cause timeouts.
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+
 WORKDIR /app
 
 # Copy root dependency and config files (layer-cached separately from source)
