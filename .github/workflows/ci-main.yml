@@ -139,6 +139,37 @@ jobs:
         secrets:
             butler_api: ${{ secrets.ITCH_API }}
 
+    ## Tauri
+    generate_tauri_matrix:
+        needs: ['deploy', 'alter', 'globals']
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                    {
+                        "name": "isometric",
+                        "condition": "${{ needs.alter.outputs.isometric == 'true' }}",
+                        "project": "isometric",
+                        "project_path": "apps/kbve/isometric",
+                        "app_name": "isometric-game"
+                    }
+                ]
+
+    build_tauri:
+        name: Build Tauri Apps
+        needs: ['generate_tauri_matrix']
+        if: ${{ needs.generate_tauri_matrix.outputs.matrix != 'null' }}
+        permissions:
+            contents: read
+        strategy:
+            fail-fast: false
+            matrix: ${{ fromJson(needs.generate_tauri_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/utils-tauri-build.yml@main
+        with:
+            project: ${{ matrix.project }}
+            project_path: ${{ matrix.project_path }}
+            app_name: ${{ matrix.app_name }}
+
     ## NPM
     generate_npm_matrix:
         needs: ['deploy', 'alter', 'globals']

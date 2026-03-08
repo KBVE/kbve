@@ -1,0 +1,330 @@
+name: Utils Tauri Build
+
+on:
+    workflow_call:
+        inputs:
+            project:
+                description: 'Nx project name'
+                required: true
+                type: string
+            project_path:
+                description: 'Path to the Tauri app (e.g., apps/kbve/isometric)'
+                required: true
+                type: string
+            app_name:
+                description: 'Application name for artifact naming'
+                required: true
+                type: string
+            linux_runner:
+                description: 'Runner for Linux builds (default: arc-runner-set for persistent cache)'
+                required: false
+                type: string
+                default: 'arc-runner-set'
+
+jobs:
+    # --- Fork guard for self-hosted runners ---
+    guard:
+        name: Fork Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            allowed: ${{ steps.check.outputs.allowed }}
+        steps:
+            - name: Verify origin and actor
+              id: check
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
+                        const headRepo = context.payload.pull_request?.head?.repo?.full_name;
+                        const baseRepo = context.payload.repository?.full_name;
+                        if (headRepo && headRepo !== baseRepo) {
+                          core.error(`Blocked: fork PR from ${headRepo} cannot use self-hosted runners`);
+                          core.setOutput('allowed', 'false');
+                          return;
+                        }
+                      }
+                      try {
+                        const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          username: context.actor,
+                        });
+                        const level = data.permission;
+                        if (level === 'admin' || level === 'write') {
+                          core.setOutput('allowed', 'true');
+                        } else {
+                          core.error(`Actor ${context.actor} has ${level} access — insufficient`);
+                          core.setOutput('allowed', 'false');
+                        }
+                      } catch (err) {
+                        core.error(`Permission check failed: ${err.message}`);
+                        core.setOutput('allowed', 'false');
+                      }
+
+    # --- Linux build on self-hosted runner (persistent Cargo cache) ---
+    build-linux:
+        name: Build Linux
+        needs: guard
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: ${{ inputs.linux_runner }}
+        timeout-minutes: 60
+        permissions:
+            contents: read
+
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::Tauri Linux build: actor=${{ github.actor }}, ref=${{ github.ref }}, runner=${{ inputs.linux_runner }}"
+
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+                  submodules: recursive
+
+            - name: Install Linux system dependencies
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends \
+                    pkg-config libgtk-3-dev libwebkit2gtk-4.1-dev \
+                    libayatana-appindicator3-dev libxdo-dev \
+                    libasound2-dev libudev-dev libvulkan-dev
+
+            - name: Setup Rust
+              uses: dtolnay/rust-toolchain@stable
+
+            - name: Setup Cargo Cache
+              uses: actions/cache@v5
+              with:
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                  key: ${{ runner.os }}-cargo-tauri-${{ hashFiles('**/Cargo.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-cargo-tauri-
+                      ${{ runner.os }}-cargo-
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install
+
+            - name: Build Tauri App
+              shell: bash
+              working-directory: ${{ inputs.project_path }}
+              run: cargo tauri build
+              env:
+                  CI: true
+
+            - name: Upload Linux artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ inputs.app_name }}-linux
+                  path: |
+                      ${{ inputs.project_path }}/src-tauri/target/release/bundle/deb/*.deb
+                      ${{ inputs.project_path }}/src-tauri/target/release/bundle/appimage/*.AppImage
+                  if-no-files-found: warn
+                  retention-days: 14
+
+            - name: Create test marker
+              if: success()
+              run: echo "${{ inputs.app_name }}" > test-result.txt
+
+            - name: Upload test marker
+              if: success()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-passed-tauri-${{ inputs.app_name }}-linux
+                  path: test-result.txt
+                  retention-days: 1
+
+            - name: Cleanup workspace
+              if: always()
+              run: rm -rf "$GITHUB_WORKSPACE"/* "$GITHUB_WORKSPACE"/.[!.]* 2>/dev/null || true
+
+    # --- macOS build on GitHub-hosted runner ---
+    build-macos:
+        name: Build macOS
+        runs-on: macos-latest
+        timeout-minutes: 60
+        permissions:
+            contents: read
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+                  submodules: recursive
+
+            - name: Setup Rust
+              uses: dtolnay/rust-toolchain@stable
+
+            - name: Rust Cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  cache-on-failure: true
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              shell: bash
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install
+
+            - name: Build Tauri App
+              shell: bash
+              working-directory: ${{ inputs.project_path }}
+              run: cargo tauri build
+              env:
+                  CI: true
+
+            - name: Upload macOS artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ inputs.app_name }}-macos
+                  path: |
+                      ${{ inputs.project_path }}/src-tauri/target/release/bundle/dmg/*.dmg
+                      ${{ inputs.project_path }}/src-tauri/target/release/bundle/macos/*.app
+                  if-no-files-found: warn
+                  retention-days: 14
+
+            - name: Create test marker
+              if: success()
+              shell: bash
+              run: echo "${{ inputs.app_name }}" > test-result.txt
+
+            - name: Upload test marker
+              if: success()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-passed-tauri-${{ inputs.app_name }}-macos
+                  path: test-result.txt
+                  retention-days: 1
+
+    # --- Windows build on GitHub-hosted runner ---
+    build-windows:
+        name: Build Windows
+        runs-on: windows-latest
+        timeout-minutes: 60
+        permissions:
+            contents: read
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+                  submodules: recursive
+
+            - name: Setup Rust
+              uses: dtolnay/rust-toolchain@stable
+
+            - name: Rust Cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  cache-on-failure: true
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              shell: bash
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install
+
+            - name: Build Tauri App
+              shell: bash
+              working-directory: ${{ inputs.project_path }}
+              run: cargo tauri build
+              env:
+                  CI: true
+
+            - name: Upload Windows artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ inputs.app_name }}-windows
+                  path: |
+                      ${{ inputs.project_path }}/src-tauri/target/release/bundle/msi/*.msi
+                      ${{ inputs.project_path }}/src-tauri/target/release/bundle/nsis/*.exe
+                  if-no-files-found: warn
+                  retention-days: 14
+
+            - name: Create test marker
+              if: success()
+              shell: bash
+              run: echo "${{ inputs.app_name }}" > test-result.txt
+
+            - name: Upload test marker
+              if: success()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-passed-tauri-${{ inputs.app_name }}-windows
+                  path: test-result.txt
+                  retention-days: 1
