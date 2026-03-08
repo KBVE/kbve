@@ -7,7 +7,7 @@
 -- Source of truth: packages/data/proto/kbve/staff.proto
 --
 -- Permission layout (from proto, zero-indexed bit positions):
---   Bits  0–7   Core tiers     (STAFF=0x1, MODERATOR=0x2, ADMIN=0x4)
+--   Bits  0–7   Core role flags     (STAFF=0x1, MODERATOR=0x2, ADMIN=0x4)
 --   Bits  8–15  Features       (DASHBOARD_VIEW=0x100, etc.)
 --   Bits 16–23  Admin ops      (STAFF_GRANT=0x10000, etc.)
 --   Bits 24–29  Reserved
@@ -126,6 +126,7 @@ CREATE TABLE IF NOT EXISTS staff.audit_log (
     target_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     actor_id     UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     action       TEXT NOT NULL CHECK (action IN ('grant', 'revoke', 'remove', 'create')),
+    requested_perms INTEGER NOT NULL DEFAULT 0,
     old_perms    INTEGER NOT NULL DEFAULT 0,
     new_perms    INTEGER NOT NULL DEFAULT 0,
     created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -308,8 +309,13 @@ BEGIN
     -- Advisory lock serializes all operations on this target user, even when
     -- the row doesn't exist yet. This prevents the first-insert audit race
     -- where two concurrent grants both log old_perms=0 / action='create'.
+    -- Uses two-key lock derived from UUID halves (64-bit total) instead of
+    -- hashtext() which is only 32-bit and collision-prone.
     -- The lock is automatically released at transaction end.
-    PERFORM pg_advisory_xact_lock(hashtext(p_user_id::text));
+    PERFORM pg_advisory_xact_lock(
+        ('x' || substr(replace(p_user_id::text, '-', ''), 1, 8))::bit(32)::int,
+        ('x' || substr(replace(p_user_id::text, '-', ''), 9, 8))::bit(32)::int
+    );
 
     -- Lock existing row (belt-and-suspenders with advisory lock above).
     SELECT permissions INTO v_old_perms
@@ -340,10 +346,10 @@ BEGIN
     END IF;
 
     -- Audit log
-    INSERT INTO staff.audit_log (target_id, actor_id, action, old_perms, new_perms)
+    INSERT INTO staff.audit_log (target_id, actor_id, action, requested_perms, old_perms, new_perms)
     VALUES (p_user_id, p_actor_id,
             CASE WHEN v_old_perms = 0 THEN 'create' ELSE 'grant' END,
-            v_old_perms, v_new_perms);
+            p_perms, v_old_perms, v_new_perms);
 
     RETURN v_new_perms;
 END;
@@ -436,8 +442,8 @@ BEGIN
     END IF;
 
     -- Audit log
-    INSERT INTO staff.audit_log (target_id, actor_id, action, old_perms, new_perms)
-    VALUES (p_user_id, p_actor_id, 'revoke', v_old_perms, v_new_perms);
+    INSERT INTO staff.audit_log (target_id, actor_id, action, requested_perms, old_perms, new_perms)
+    VALUES (p_user_id, p_actor_id, 'revoke', p_perms, v_old_perms, v_new_perms);
 
     RETURN v_new_perms;
 END;
@@ -505,8 +511,8 @@ BEGIN
     DELETE FROM staff.members WHERE user_id = p_user_id;
 
     -- Audit log
-    INSERT INTO staff.audit_log (target_id, actor_id, action, old_perms, new_perms)
-    VALUES (p_user_id, p_actor_id, 'remove', v_old_perms, 0);
+    INSERT INTO staff.audit_log (target_id, actor_id, action, requested_perms, old_perms, new_perms)
+    VALUES (p_user_id, p_actor_id, 'remove', v_old_perms, v_old_perms, 0);
 END;
 $$;
 
@@ -619,8 +625,8 @@ CREATE OR REPLACE FUNCTION staff.proxy_audit_log(
 )
 RETURNS TABLE (
     id TEXT, target_id UUID, actor_id UUID,
-    action TEXT, old_perms INTEGER, new_perms INTEGER,
-    created_at TIMESTAMPTZ
+    action TEXT, requested_perms INTEGER, old_perms INTEGER,
+    new_perms INTEGER, created_at TIMESTAMPTZ
 )
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
@@ -651,7 +657,8 @@ BEGIN
 
     RETURN QUERY
         SELECT a.id, a.target_id, a.actor_id,
-               a.action, a.old_perms, a.new_perms, a.created_at
+               a.action, a.requested_perms, a.old_perms,
+               a.new_perms, a.created_at
         FROM staff.audit_log a
         WHERE (p_target_id IS NULL OR a.target_id = p_target_id)
         ORDER BY a.created_at DESC

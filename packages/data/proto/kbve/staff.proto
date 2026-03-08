@@ -15,7 +15,7 @@ package kbve.staff;
 // Staff permission bitflags (combinable via bitwise OR)
 //
 // Layout:
-//   Bits  0–7   Core access tiers
+//   Bits  0–7   Core role flags
 //   Bits  8–15  Feature-scoped permissions
 //   Bits 16–23  Administrative operations
 //   Bits 24–29  Reserved for future use
@@ -24,7 +24,7 @@ package kbve.staff;
 enum StaffPermission {
   STAFF_PERM_NONE              = 0;
 
-  // ── Core access tiers (bits 0–7) ──
+  // ── Core role flags (bits 0–7) ──
   STAFF_PERM_STAFF             = 0x00000001;  // Basic staff flag
   STAFF_PERM_MODERATOR         = 0x00000002;  // Content moderation
   STAFF_PERM_ADMIN             = 0x00000004;  // Administrative access
@@ -77,13 +77,14 @@ message StaffMember {
 
 // Audit log entry for permission changes
 message StaffAuditEntry {
-  string id           = 1;  // ULID
-  string target_id    = 2;  // UUID of the affected user
-  string actor_id     = 3;  // UUID of who made the change
-  string action       = 4;  // "grant", "revoke", "remove"
-  int32 old_perms     = 5;  // Permissions before the change
-  int32 new_perms     = 6;  // Permissions after the change
-  string created_at   = 7;  // ISO 8601 timestamp
+  string id              = 1;  // ULID
+  string target_id       = 2;  // UUID of the affected user
+  string actor_id        = 3;  // UUID of who made the change
+  string action          = 4;  // "grant", "revoke", "remove", "create"
+  int32 requested_perms  = 5;  // Mask the actor attempted to grant/revoke
+  int32 old_perms        = 6;  // Permissions before the change
+  int32 new_perms        = 7;  // Permissions after the change
+  string created_at      = 8;  // ISO 8601 timestamp
 }
 
 // =============================================================================
