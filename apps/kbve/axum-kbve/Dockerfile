@@ -32,10 +32,14 @@ COPY packages/npm/laser/ packages/npm/laser/
 COPY apps/kbve/astro-kbve/ apps/kbve/astro-kbve/
 
 # Build astro site (cache .astro dir for incremental content collection builds)
+# NOTE: Mount cache to a staging path, then copy in/out. Mounting directly on
+# .astro/ causes EBUSY when Astro tries to rmdir the mount point after build.
 WORKDIR /app/apps/kbve/astro-kbve
-RUN --mount=type=cache,target=/app/apps/kbve/astro-kbve/.astro,id=astro-cache \
+RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-cache \
+    cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
     npx astro sync && \
-    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" npx astro build
+    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" npx astro build && \
+    cp -a .astro/. /tmp/astro-cache/ 2>/dev/null || true
 
 # ============================================================================
 # [STAGE B] - Precompress Static Assets

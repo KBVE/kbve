@@ -110,7 +110,7 @@ jobs:
             - name: Nx e2e ${{ inputs.project }}
               env:
                   BUILDKIT_PROGRESS: plain
-              run: pnpm nx e2e ${{ inputs.project }} --configuration=ci --no-cloud
+              run: pnpm nx e2e ${{ inputs.project }} --configuration=ci --no-cloud --output-style=stream
 
             - name: Mark test passed
               if: success()

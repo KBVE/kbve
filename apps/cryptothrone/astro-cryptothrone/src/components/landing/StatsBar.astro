@@ -1,0 +1,96 @@
+---
+const stats = [
+	{ value: '2D', label: 'Tile-Based World' },
+	{ value: '6', label: 'Feature Modules' },
+	{ value: '∞', label: 'Replayability' },
+];
+---
+
+<section class="ct-stats">
+	<div class="ct-stats__overlay"></div>
+	<div class="ct-stats__inner">
+		<h2 class="ct-stats__quote">
+			"Forge alliances.<br />
+			<span class="ct-stats__quote--accent">Conquer the skies.</span>"
+		</h2>
+		<div class="ct-stats__grid">
+			{
+				stats.map((s) => (
+					<div class="ct-stats__item">
+						<span class="ct-stats__value">{s.value}</span>
+						<span class="ct-stats__label">{s.label}</span>
+					</div>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.ct-stats {
+		position: relative;
+		padding: 8rem 1.5rem;
+		background: url('/assets/background/chip-background.webp') center /
+			cover no-repeat;
+	}
+
+	.ct-stats__overlay {
+		position: absolute;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.65);
+	}
+
+	.ct-stats__inner {
+		position: relative;
+		z-index: 1;
+		max-width: 54rem;
+		margin: 0 auto;
+		text-align: center;
+	}
+
+	.ct-stats__quote {
+		font-size: clamp(1.75rem, 4vw, 3.25rem);
+		font-weight: 300;
+		font-style: italic;
+		color: white;
+		margin: 0 0 4rem;
+		line-height: 1.3;
+	}
+
+	.ct-stats__quote--accent {
+		color: var(--ct-accent);
+	}
+
+	.ct-stats__grid {
+		display: flex;
+		justify-content: center;
+		gap: 5rem;
+	}
+
+	.ct-stats__item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.ct-stats__value {
+		font-size: clamp(2rem, 5vw, 3rem);
+		font-weight: 300;
+		color: var(--ct-accent);
+	}
+
+	.ct-stats__label {
+		margin-top: 0.5rem;
+		font-size: 0.65rem;
+		letter-spacing: 0.2em;
+		text-transform: uppercase;
+		color: rgba(255, 255, 255, 0.6);
+	}
+
+	@media (max-width: 640px) {
+		.ct-stats__grid {
+			flex-direction: column;
+			gap: 2.5rem;
+		}
+	}
+</style>

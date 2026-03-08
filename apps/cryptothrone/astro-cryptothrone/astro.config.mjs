@@ -14,7 +14,9 @@ export default defineConfig({
 			title: 'CryptoThrone',
 			customCss: ['./src/styles/global.css'],
 			components: {
+				Header: './src/components/starlight/Header.astro',
 				Footer: './src/components/starlight/Footer.astro',
+				PageTitle: './src/components/starlight/PageTitle.astro',
 			},
 			sidebar: [
 				{
