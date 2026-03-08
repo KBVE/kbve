@@ -26,11 +26,15 @@ pub struct Tile {
 struct TileMaterials {
     cap: [[Handle<StandardMaterial>; 2]; 4],
     body: [Handle<StandardMaterial>; 4],
-    grass_caps: [Handle<StandardMaterial>; 8],
+    grass_caps: [Handle<StandardMaterial>; 12],
     grass_tuft_mat: Handle<StandardMaterial>,
     grass_tall_mat: Handle<StandardMaterial>,
+    grass_blade_mat: Handle<StandardMaterial>,
     grass_tuft_mesh: Handle<Mesh>,
     grass_tall_mesh: Handle<Mesh>,
+    grass_blade_mesh: Handle<Mesh>,
+    flower_mats: [Handle<StandardMaterial>; 4],
+    flower_mesh: Handle<Mesh>,
 }
 
 pub struct TilemapPlugin;
@@ -119,6 +123,34 @@ fn make_grass_mesh(hw: f32, h: f32) -> Mesh {
     .with_inserted_indices(Indices::U32(indices))
 }
 
+/// Build a single tapered blade (one quad, narrower at top).
+fn make_blade_mesh(hw: f32, h: f32) -> Mesh {
+    let taper = 0.6;
+    #[rustfmt::skip]
+    let positions: Vec<[f32; 3]> = vec![
+        [-hw, 0.0, 0.0], [hw, 0.0, 0.0],
+        [hw * taper, h, 0.0], [-hw * taper, h, 0.0],
+    ];
+    #[rustfmt::skip]
+    let normals: Vec<[f32; 3]> = vec![
+        [0.0, 0.0, 1.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0],
+    ];
+    #[rustfmt::skip]
+    let uvs: Vec<[f32; 2]> = vec![
+        [0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0],
+    ];
+    let indices: Vec<u32> = vec![0, 1, 2, 0, 2, 3];
+
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
+    .with_inserted_indices(Indices::U32(indices))
+}
+
 fn setup_tile_materials(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -132,8 +164,8 @@ fn setup_tile_materials(
         (0.9, 0.9, 0.95),
     ];
 
-    // 8 noise-varied grass shades (dark forest → dry/yellow)
-    let grass_shades: [(f32, f32, f32); 8] = [
+    // 12 noise-varied grass shades (dark forest → dry/yellow)
+    let grass_shades: [(f32, f32, f32); 12] = [
         (0.22, 0.50, 0.15),
         (0.28, 0.55, 0.18),
         (0.30, 0.60, 0.20),
@@ -142,31 +174,44 @@ fn setup_tile_materials(
         (0.42, 0.58, 0.20),
         (0.35, 0.52, 0.18),
         (0.45, 0.55, 0.25),
+        (0.26, 0.48, 0.16), // mossy dark
+        (0.40, 0.60, 0.18), // warm meadow
+        (0.32, 0.58, 0.24), // lush green
+        (0.48, 0.52, 0.22), // dry patch
     ];
 
-    let grass_caps: [Handle<StandardMaterial>; 8] = grass_shades.map(|(r, g, b)| {
+    let grass_caps: [Handle<StandardMaterial>; 12] = grass_shades.map(|(r, g, b)| {
         materials.add(StandardMaterial {
             base_color: Color::srgb(r, g, b),
             ..default()
         })
     });
 
-    let grass_tuft_mat = materials.add(StandardMaterial {
-        base_color: Color::srgb(0.25, 0.55, 0.15),
-        cull_mode: None,
-        double_sided: true,
-        ..default()
-    });
+    let make_vegetation_mat =
+        |mats: &mut Assets<StandardMaterial>, r: f32, g: f32, b: f32| -> Handle<StandardMaterial> {
+            mats.add(StandardMaterial {
+                base_color: Color::srgb(r, g, b),
+                cull_mode: None,
+                double_sided: true,
+                ..default()
+            })
+        };
 
-    let grass_tall_mat = materials.add(StandardMaterial {
-        base_color: Color::srgb(0.20, 0.50, 0.12),
-        cull_mode: None,
-        double_sided: true,
-        ..default()
-    });
+    let grass_tuft_mat = make_vegetation_mat(&mut materials, 0.25, 0.55, 0.15);
+    let grass_tall_mat = make_vegetation_mat(&mut materials, 0.20, 0.50, 0.12);
+    let grass_blade_mat = make_vegetation_mat(&mut materials, 0.22, 0.48, 0.14);
+
+    let flower_mats: [Handle<StandardMaterial>; 4] = [
+        make_vegetation_mat(&mut materials, 0.95, 0.95, 0.90), // white daisy
+        make_vegetation_mat(&mut materials, 0.90, 0.55, 0.65), // pink
+        make_vegetation_mat(&mut materials, 0.85, 0.35, 0.45), // rose
+        make_vegetation_mat(&mut materials, 0.95, 0.85, 0.30), // yellow
+    ];
 
     let grass_tuft_mesh = meshes.add(make_grass_mesh(0.15, 0.25));
     let grass_tall_mesh = meshes.add(make_grass_mesh(0.10, 0.45));
+    let grass_blade_mesh = meshes.add(make_blade_mesh(0.08, 0.35));
+    let flower_mesh = meshes.add(make_grass_mesh(0.08, 0.12));
 
     commands.insert_resource(TileMaterials {
         cap: [
@@ -184,8 +229,12 @@ fn setup_tile_materials(
         grass_caps,
         grass_tuft_mat,
         grass_tall_mat,
+        grass_blade_mat,
         grass_tuft_mesh,
         grass_tall_mesh,
+        grass_blade_mesh,
+        flower_mats,
+        flower_mesh,
     });
 }
 
@@ -293,7 +342,7 @@ fn process_chunk_spawns_and_despawns(
 
                 // Grass band: use noise-varied shade; others: checkerboard
                 let cap_material = if band == 0 {
-                    let shade_idx = (hash2d(tx + 1337, tz) * 8.0) as usize % 8;
+                    let shade_idx = (hash2d(tx + 1337, tz) * 12.0) as usize % 12;
                     tile_materials.grass_caps[shade_idx].clone()
                 } else {
                     let checker = ((tx + tz) & 1) as usize;
@@ -320,25 +369,25 @@ fn process_chunk_spawns_and_despawns(
                 entities.push(cap_entity);
 
                 // --- Grass pieces (multiple per tile with variety) ---
+                // kind: 0=tuft, 1=tall, 2=blade, 3=flower
                 if band == 0 {
-                    // Each slot uses different noise seeds for independent placement
-                    let grass_slots: [(i32, i32, f32, bool); 3] = [
-                        (7919, 3571, 0.45, false), // short tuft, ~45%
-                        (2131, 8461, 0.20, true),  // tall blade, ~20%
-                        (4253, 6173, 0.30, false), // short tuft, ~30%
+                    let grass_slots: [(i32, i32, f32, u8); 5] = [
+                        (7919, 3571, 0.40, 0), // short tuft ~40%
+                        (2131, 8461, 0.18, 1), // tall grass ~18%
+                        (4253, 6173, 0.25, 0), // short tuft ~25%
+                        (6091, 1429, 0.30, 2), // blade grass ~30%
+                        (9371, 2749, 0.08, 3), // flower ~8%
                     ];
 
-                    for (seed_x, seed_z, density, tall) in grass_slots {
+                    for (seed_x, seed_z, density, kind) in grass_slots {
                         let noise = hash2d(tx + seed_x, tz + seed_z);
                         if noise >= density {
                             continue;
                         }
 
-                        // Full-tile jitter with unique seeds per slot
                         let jx = (hash2d(tx + seed_x + 100, tz + seed_z) - 0.5) * 0.85;
                         let jz = (hash2d(tx + seed_x, tz + seed_z + 100) - 0.5) * 0.85;
 
-                        // Per-instance scale variation (0.7 to 1.4)
                         let scale_noise = hash2d(tx + seed_x + 200, tz + seed_z + 200);
                         let scale = 0.7 + scale_noise * 0.7;
 
@@ -346,16 +395,30 @@ fn process_chunk_spawns_and_despawns(
                         let rot_y =
                             hash2d(tx + seed_x + 300, tz + seed_z + 300) * std::f32::consts::TAU;
 
-                        let (mesh, mat) = if tall {
-                            (
+                        let (mesh, mat, y_offset) = match kind {
+                            1 => (
                                 tile_materials.grass_tall_mesh.clone(),
                                 tile_materials.grass_tall_mat.clone(),
-                            )
-                        } else {
-                            (
+                                0.0,
+                            ),
+                            2 => (
+                                tile_materials.grass_blade_mesh.clone(),
+                                tile_materials.grass_blade_mat.clone(),
+                                0.0,
+                            ),
+                            3 => {
+                                let flower_idx = (hash2d(tx + seed_x + 400, tz) * 4.0) as usize % 4;
+                                (
+                                    tile_materials.flower_mesh.clone(),
+                                    tile_materials.flower_mats[flower_idx].clone(),
+                                    0.15, // raised on a stem
+                                )
+                            }
+                            _ => (
                                 tile_materials.grass_tuft_mesh.clone(),
                                 tile_materials.grass_tuft_mat.clone(),
-                            )
+                                0.0,
+                            ),
                         };
 
                         let tuft = commands
@@ -364,7 +427,7 @@ fn process_chunk_spawns_and_despawns(
                                 MeshMaterial3d(mat),
                                 Transform::from_xyz(
                                     tx as f32 * TILE_SIZE + jx,
-                                    body_h + CAP_HEIGHT,
+                                    body_h + CAP_HEIGHT + y_offset,
                                     tz as f32 * TILE_SIZE + jz,
                                 )
                                 .with_rotation(Quat::from_rotation_y(rot_y))
