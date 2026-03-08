@@ -1,8 +1,8 @@
 /// <reference lib="webworker" />
 // Database worker for Supabase operations (used in worker pool)
+// Uses in-memory storage — the SharedWorker is the single auth writer to IndexedDB.
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import Dexie, { type Table } from 'dexie';
 
 type WorkerMessage =
 	| { id: string; type: 'ping'; payload?: unknown }
@@ -64,59 +64,24 @@ type WorkerMessage =
 declare const self: DedicatedWorkerGlobalScope;
 
 let client: SupabaseClient | null = null;
-let workerId: number | null = null;
-
-// IDB-backed namespaced storage using Dexie 4
-interface KVPair {
-	key: string;
-	value: string;
-}
-
-class StateDB extends Dexie {
-	kv!: Table<KVPair>;
-
-	constructor() {
-		super('sb-auth-v2');
-		this.version(1).stores({
-			kv: 'key',
-		});
-	}
-}
-
-const db = new StateDB();
 
 /**
- * Namespaced storage adapter for worker isolation
- *
- * - Reads: shared auth state from SharedWorker
- * - Writes: worker-namespaced keys to prevent conflicts
+ * In-memory storage for DB workers.
+ * DB workers only need the access token to make authenticated API calls.
+ * The SharedWorker is the single writer to IndexedDB (sb-auth-v2).
  */
-function createWorkerStorage(id: number) {
-	return {
-		async getItem(key: string): Promise<string | null> {
-			try {
-				const workerKey = `worker:${id}:${key}`;
-				let item = await db.kv.get(workerKey);
-				if (!item) {
-					const authKey = `auth:${key}`;
-					item = await db.kv.get(authKey);
-				}
-				return item?.value ?? null;
-			} catch (err) {
-				console.error(`[DB Worker ${id}] getItem error:`, err);
-				return null;
-			}
-		},
-		async setItem(key: string, value: string): Promise<void> {
-			const workerKey = `worker:${id}:${key}`;
-			await db.kv.put({ key: workerKey, value });
-		},
-		async removeItem(key: string): Promise<void> {
-			const workerKey = `worker:${id}:${key}`;
-			await db.kv.delete(workerKey);
-		},
-	};
-}
+const memoryStore = new Map<string, string>();
+const memoryStorage = {
+	async getItem(key: string): Promise<string | null> {
+		return memoryStore.get(key) ?? null;
+	},
+	async setItem(key: string, value: string): Promise<void> {
+		memoryStore.set(key, value);
+	},
+	async removeItem(key: string): Promise<void> {
+		memoryStore.delete(key);
+	},
+};
 
 console.log('[DB Worker] Initializing...');
 
@@ -133,15 +98,6 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 			case 'init': {
 				const { url, anonKey, options } = payload;
 
-				if (self.name && self.name.includes('db-worker-')) {
-					workerId = parseInt(self.name.split('db-worker-')[1], 10);
-				} else {
-					workerId = Math.floor(Math.random() * 1000);
-				}
-
-				console.log(`[DB Worker] Assigned ID: ${workerId}`);
-				const workerStorage = createWorkerStorage(workerId);
-
 				const authOverrides =
 					options?.['auth'] && typeof options['auth'] === 'object'
 						? (options['auth'] as Record<string, unknown>)
@@ -151,7 +107,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 					...options,
 					auth: {
 						...authOverrides,
-						storage: workerStorage,
+						storage: memoryStorage,
 						storageKey: 'sb-auth-token',
 						autoRefreshToken: true,
 						persistSession: true,

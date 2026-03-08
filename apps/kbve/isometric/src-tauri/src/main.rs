@@ -1,23 +1,12 @@
 // Prevents additional console window on Windows in release
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod commands;
-mod game;
-mod renderer;
-mod tauri_plugin;
-
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
-use tauri_plugin::TauriPlugin;
 
-use game::camera::IsometricCameraPlugin;
-use game::input_bridge::InputBridgePlugin;
-use game::object_registry::ObjectRegistryPlugin;
-use game::player::PlayerPlugin;
-use game::scene_objects::SceneObjectsPlugin;
-use game::state::GameStatePlugin;
-use game::terrain::TerrainPlugin;
-use game::tilemap::TilemapPlugin;
+use isometric_game::game::GamePluginGroup;
+use isometric_game::game::input_bridge::InputBridgePlugin;
+use isometric_game::tauri_plugin::TauriPlugin;
 
 fn main() {
     let mut app = App::new();
@@ -25,6 +14,7 @@ fn main() {
     app.insert_resource(ClearColor(Color::srgb(0.1, 0.1, 0.15)));
 
     // --- Non-rendering core plugins (registered upfront) ---
+    // WinitPlugin is skipped — Tauri manages the OS window.
     app.add_plugins((
         bevy::app::PanicHandlerPlugin::default(),
         bevy::app::TaskPoolPlugin::default(),
@@ -52,11 +42,11 @@ fn main() {
         builder
             .plugin(tauri_plugin_opener::init())
             .invoke_handler(tauri::generate_handler![
-                commands::get_fps,
-                commands::get_player_state,
-                commands::get_object_registry,
-                commands::on_input_frame,
-                commands::greet,
+                isometric_game::commands::get_fps,
+                isometric_game::commands::get_player_state,
+                isometric_game::commands::get_object_registry,
+                isometric_game::commands::on_input_frame,
+                isometric_game::commands::greet,
             ])
     }));
 
@@ -65,18 +55,11 @@ fn main() {
 
     // Game plugins (Startup systems run on first update after Ready handler
     // adds render plugins, so Assets<Mesh>/Assets<StandardMaterial> exist by then)
-    app.add_plugins((
-        GameStatePlugin,
-        TerrainPlugin,
-        IsometricCameraPlugin,
-        TilemapPlugin,
-        PlayerPlugin,
-        ObjectRegistryPlugin,
-        SceneObjectsPlugin,
-        InputBridgePlugin,
-        // PixelatePlugin + RapierDebugRenderPlugin are added by TauriPlugin
-        // after render init (they need RenderApp)
-    ));
+    app.add_plugins(GamePluginGroup);
+
+    // Input bridge: forwards keyboard/mouse from webview JS to Bevy messages
+    // (desktop-only, not needed for WASM which has WinitPlugin)
+    app.add_plugins(InputBridgePlugin);
 
     app.run();
 }

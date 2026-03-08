@@ -6,14 +6,7 @@ import { useInputBridge } from './hooks/useInputBridge';
 function App() {
 	useInputBridge();
 	return (
-		<div
-			style={{
-				position: 'fixed',
-				inset: 0,
-				pointerEvents: 'none',
-				fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-				color: '#fff',
-			}}>
+		<div className="fixed inset-0 pointer-events-none font-game text-white">
 			<FPSCounter />
 			<HUD />
 			<Inventory />

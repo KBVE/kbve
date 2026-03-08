@@ -25,7 +25,7 @@ spec:
         spec:
             containers:
                 - name: kbve
-                  image: ghcr.io/kbve/kbve:1.0.32
+                  image: ghcr.io/kbve/kbve:1.0.34
                   imagePullPolicy: Always
                   ports:
                       - name: http
@@ -80,6 +80,13 @@ spec:
                         value: 'kbve-rcon'
                       - name: GRAFANA_UPSTREAM_URL
                         value: 'http://monitoring-grafana.monitoring.svc.cluster.local:80'
+                      - name: ARGOCD_UPSTREAM_URL
+                        value: 'https://argocd-server.argocd.svc.cluster.local:443'
+                      - name: ARGOCD_AUTH_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: argocd-auth
+                                key: argocd-auth-token
                   resources:
                       requests:
                           memory: '512Mi'

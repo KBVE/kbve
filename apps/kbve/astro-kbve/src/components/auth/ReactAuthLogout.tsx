@@ -12,7 +12,7 @@ export default function ReactAuthLogout() {
 			try {
 				console.log('[Logout] Starting sign-out process...');
 
-				// Try to sign out from AuthBridge first (window client)
+				// Sign out via AuthBridge (tells Supabase to revoke the session)
 				try {
 					await authBridge.signOut();
 					console.log('[Logout] AuthBridge sign-out complete');
@@ -23,83 +23,30 @@ export default function ReactAuthLogout() {
 					);
 				}
 
-				// DON'T initialize SharedWorker - we need to keep it closed so IndexedDB can be deleted
-				console.log(
-					'[Logout] Skipping SharedWorker initialization to allow IndexedDB deletion',
-				);
-
-				// Wait a moment for any active connections to close
-				await new Promise((resolve) => setTimeout(resolve, 100));
-
-				// Clear IndexedDB manually to ensure session is gone
-				console.log('[Logout] Clearing IndexedDB...');
-
-				// First, list all databases
-				if ('databases' in indexedDB) {
-					const dbs = await indexedDB.databases();
-					console.log(
-						'[Logout] Existing databases:',
-						dbs.map((db) => db.name),
-					);
-				}
-
-				// Delete the auth database completely
+				// Clear all auth data from IndexedDB and close the local
+				// Dexie connection. This avoids the race condition where
+				// deleteDatabase() gets blocked by open connections held by
+				// SharedWorker, DB workers, and WorkerCommunication.
 				try {
-					await new Promise((resolve, reject) => {
-						const deleteRequest =
-							indexedDB.deleteDatabase('sb-auth-v2');
-						deleteRequest.onsuccess = () => {
-							console.log(
-								'[Logout] Successfully deleted IndexedDB: sb-auth-v2',
-							);
-							resolve(true);
-						};
-						deleteRequest.onerror = () => {
-							console.error(
-								'[Logout] Error deleting sb-auth-v2:',
-								deleteRequest.error,
-							);
-							reject(deleteRequest.error);
-						};
-						deleteRequest.onblocked = () => {
-							console.warn(
-								'[Logout] IndexedDB sb-auth-v2 deletion blocked - trying to continue anyway',
-							);
-							// Wait a bit and resolve anyway
-							setTimeout(() => resolve(true), 200);
-						};
-					});
-				} catch (err) {
-					console.warn('[Logout] Failed to clear sb-auth-v2:', err);
-				}
-
-				// Verify deletion
-				if ('databases' in indexedDB) {
-					const dbsAfter = await indexedDB.databases();
+					await authBridge.destroy();
 					console.log(
-						'[Logout] Remaining databases after deletion:',
-						dbsAfter.map((db) => db.name),
+						'[Logout] AuthBridge destroyed (IDB data cleared, connection closed)',
 					);
+				} catch (err) {
+					console.warn('[Logout] AuthBridge destroy error:', err);
 				}
 
-				// Also clear localStorage as a precaution
+				// Clear localStorage as a precaution
 				Object.keys(localStorage).forEach((key) => {
 					if (key.includes('supabase') || key.includes('sb-')) {
 						localStorage.removeItem(key);
-						console.log(`[Logout] Cleared localStorage: ${key}`);
 					}
 				});
 
-				// Success! Show message
 				setIsLoading(false);
 				setMessage('Signed out successfully');
 				setSubMessage('Redirecting to home...');
 
-				console.log(
-					'[Logout] Sign-out complete! Redirecting to home page...',
-				);
-
-				// Wait a moment to show the success message, then redirect
 				setTimeout(() => {
 					window.location.href = '/?_=' + Date.now();
 				}, 500);
@@ -109,7 +56,6 @@ export default function ReactAuthLogout() {
 				setMessage('Sign-out error occurred');
 				setSubMessage('Redirecting to home...');
 
-				// Even on error, redirect to home after a moment
 				setTimeout(() => {
 					window.location.href = '/?_=' + Date.now();
 				}, 1000);

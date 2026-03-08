@@ -1,14 +1,18 @@
 use bevy::prelude::*;
-use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::f32::consts::PI;
+
+#[cfg(not(target_arch = "wasm32"))]
+use dashmap::DashMap;
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::LazyLock;
 
 use bevy_rapier3d::prelude::*;
 
 use super::scene_objects::{
-    AnimatedCrystal, HoverOutline, Occludable, OriginalEmissive, RotatingBox,
+    AnimatedCrystal, HoverOutline, Occludable, OriginalEmissive, RotatingBox, on_pointer_out,
+    on_pointer_over,
 };
 use super::terrain::TerrainMap;
 
@@ -121,8 +125,27 @@ pub struct ObjectRegistrySnapshot {
     pub count: usize,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub static OBJECT_REGISTRY_SNAPSHOT: LazyLock<DashMap<(), ObjectRegistrySnapshot>> =
     LazyLock::new(DashMap::new);
+
+#[cfg(target_arch = "wasm32")]
+thread_local! {
+    pub static OBJECT_REGISTRY_SNAPSHOT_WASM: std::cell::RefCell<Option<ObjectRegistrySnapshot>> =
+        const { std::cell::RefCell::new(None) };
+}
+
+/// Read the latest object registry snapshot (platform-independent).
+pub fn get_registry_snapshot() -> Option<ObjectRegistrySnapshot> {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        OBJECT_REGISTRY_SNAPSHOT.get(&()).map(|r| r.value().clone())
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        OBJECT_REGISTRY_SNAPSHOT_WASM.with(|cell| cell.borrow().clone())
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Events
@@ -265,7 +288,16 @@ fn snapshot_object_registry(registry: Res<ObjectRegistry>) {
             count: placements.len(),
             objects: placements,
         };
-        OBJECT_REGISTRY_SNAPSHOT.insert((), snapshot);
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            OBJECT_REGISTRY_SNAPSHOT.insert((), snapshot);
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            OBJECT_REGISTRY_SNAPSHOT_WASM.with(|cell| {
+                *cell.borrow_mut() = Some(snapshot);
+            });
+        }
     }
 }
 
@@ -307,6 +339,8 @@ fn spawn_object_entity(
                         half_extents: Vec3::splat(half),
                     },
                 ))
+                .observe(on_pointer_over)
+                .observe(on_pointer_out)
                 .id()
         }
         ObjectKind::DarkCrate => {
@@ -333,6 +367,8 @@ fn spawn_object_entity(
                         half_extents: Vec3::splat(half),
                     },
                 ))
+                .observe(on_pointer_over)
+                .observe(on_pointer_out)
                 .id()
         }
         ObjectKind::Crystal => {
@@ -357,6 +393,8 @@ fn spawn_object_entity(
                         half_extents: Vec3::splat(1.0),
                     },
                 ))
+                .observe(on_pointer_over)
+                .observe(on_pointer_out)
                 .id()
         }
         ObjectKind::Pillar => commands
@@ -379,6 +417,8 @@ fn spawn_object_entity(
                     half_extents: Vec3::new(0.4, 2.0, 0.4),
                 },
             ))
+            .observe(on_pointer_over)
+            .observe(on_pointer_out)
             .id(),
         ObjectKind::MetallicSphere => {
             let radius = 0.8;
@@ -402,6 +442,8 @@ fn spawn_object_entity(
                         half_extents: Vec3::splat(radius),
                     },
                 ))
+                .observe(on_pointer_over)
+                .observe(on_pointer_out)
                 .id()
         }
         ObjectKind::SpotLight => commands

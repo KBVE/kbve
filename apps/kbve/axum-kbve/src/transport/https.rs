@@ -165,7 +165,7 @@ fn router(state: AppState) -> Router {
 
     let main_app = static_router.merge(public_router).layer(middleware);
 
-    // Grafana proxy routes bypass global middleware (no 10s timeout, no 1MB body limit)
+    // Proxy routes bypass global middleware (no 10s timeout, no 1MB body limit)
     let proxy_router = Router::new()
         .route(
             "/dashboard/grafana/proxy/{*path}",
@@ -174,6 +174,14 @@ fn router(state: AppState) -> Router {
         .route(
             "/dashboard/grafana/proxy",
             any(super::proxy::grafana_proxy_handler),
+        )
+        .route(
+            "/dashboard/argo/proxy/{*path}",
+            any(super::proxy::argo_proxy_handler),
+        )
+        .route(
+            "/dashboard/argo/proxy",
+            any(super::proxy::argo_proxy_handler),
         );
 
     proxy_router.merge(main_app)

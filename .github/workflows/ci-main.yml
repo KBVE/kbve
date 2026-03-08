@@ -139,6 +139,37 @@ jobs:
         secrets:
             butler_api: ${{ secrets.ITCH_API }}
 
+    ## Tauri
+    generate_tauri_matrix:
+        needs: ['deploy', 'alter', 'globals']
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                    {
+                        "name": "isometric",
+                        "condition": "${{ needs.alter.outputs.isometric == 'true' }}",
+                        "project": "isometric",
+                        "project_path": "apps/kbve/isometric",
+                        "app_name": "isometric-game"
+                    }
+                ]
+
+    build_tauri:
+        name: Build Tauri Apps
+        needs: ['generate_tauri_matrix']
+        if: ${{ needs.generate_tauri_matrix.outputs.matrix != 'null' }}
+        permissions:
+            contents: read
+        strategy:
+            fail-fast: false
+            matrix: ${{ fromJson(needs.generate_tauri_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/utils-tauri-build.yml@main
+        with:
+            project: ${{ matrix.project }}
+            project_path: ${{ matrix.project_path }}
+            app_name: ${{ matrix.app_name }}
+
     ## NPM
     generate_npm_matrix:
         needs: ['deploy', 'alter', 'globals']
@@ -367,14 +398,14 @@ jobs:
         with:
             items: |
                 [
-                  { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}" },
-                  { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}" },
-                  { "name": "irc", "condition": "${{ needs.alter.outputs.irc_gateway }}" },
-                  { "name": "discordsh", "condition": "${{ needs.alter.outputs.discordsh }}" },
-                  { "name": "mc", "condition": "${{ needs.alter.outputs.mc }}" },
-                  { "name": "edge", "condition": "${{ needs.alter.outputs.edge }}" },
-                  { "name": "cryptothrone", "condition": "${{ needs.alter.outputs.cryptothrone }}" },
-                  { "name": "axum-kbve-e2e", "condition": "${{ needs.alter.outputs.astro_kbve }}", "runner": "arc-runner-set" }
+                  { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}", "image": "kbve/herbmail" },
+                  { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}", "image": "kbve/memes" },
+                  { "name": "irc", "condition": "${{ needs.alter.outputs.irc_gateway }}", "image": "kbve/irc-gateway" },
+                  { "name": "discordsh", "condition": "${{ needs.alter.outputs.discordsh }}", "image": "kbve/discordsh" },
+                  { "name": "mc", "condition": "${{ needs.alter.outputs.mc }}", "image": "kbve/mc" },
+                  { "name": "edge", "condition": "${{ needs.alter.outputs.edge }}", "image": "kbve/edge" },
+                  { "name": "cryptothrone", "condition": "${{ needs.alter.outputs.cryptothrone }}", "image": "kbve/cryptothrone" },
+                  { "name": "axum-kbve-e2e", "condition": "${{ needs.alter.outputs.astro_kbve }}", "runner": "arc-runner-set", "image": "kbve/kbve" }
                 ]
 
     test_docker:
@@ -383,7 +414,7 @@ jobs:
         if: ${{ always() && needs.generate_e2e_docker_matrix.outputs.matrix != 'null' && !failure() && !cancelled() }}
         permissions:
             contents: read
-            packages: read
+            packages: write
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.generate_e2e_docker_matrix.outputs.matrix) }}
@@ -391,6 +422,7 @@ jobs:
         with:
             project: ${{ matrix.name }}
             runner: ${{ matrix.runner || 'ubuntu-latest' }}
+            image: ${{ matrix.image || '' }}
 
     collect_docker_results:
         needs:

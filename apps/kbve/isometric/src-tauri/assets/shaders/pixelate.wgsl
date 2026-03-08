@@ -59,14 +59,11 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
 
     let edge_factor = min(max(normal_edge, depth_edge), 1.0);
 
-    // Edge application depends on mode:
+    // Darken at block boundaries where edges are detected
     var final_edge: f32;
     if settings.pixel_size < 1.5 {
-        // Low-res render-to-texture mode: each pixel IS one block.
-        // Apply edge darkening directly to edge pixels (no block outline).
         final_edge = edge_factor;
     } else {
-        // Normal post-process mode: darken only at block boundaries.
         let block_pos = fract(in.uv * block_count);
         let edge_width = 1.0 / settings.pixel_size;
         let at_edge = select(0.0, 1.0,

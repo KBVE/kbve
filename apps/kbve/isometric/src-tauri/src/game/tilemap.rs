@@ -1,9 +1,12 @@
+use bevy::asset::RenderAssetUsages;
 use bevy::light::{CascadeShadowConfigBuilder, DirectionalLightShadowMap};
+use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
 use bevy_rapier3d::prelude::*;
 
-use super::terrain::{CHUNK_SIZE, TerrainMap};
+use super::grass::GrassTuft;
+use super::terrain::{CHUNK_SIZE, TerrainMap, hash2d};
 
 pub const TILE_SIZE: f32 = 1.0;
 /// Thin cap on top of each column — bright surface that contrasts with darker body.
@@ -18,13 +21,20 @@ pub struct Tile {
     pub height: f32,
 }
 
-/// Pre-created materials for all tiles.
-/// - `cap`: checkerboard pair for the bright top surface
-/// - `body`: darker material for cliff/side faces
+/// Pre-created materials and meshes for all tiles.
 #[derive(Resource)]
 struct TileMaterials {
     cap: [[Handle<StandardMaterial>; 2]; 4],
     body: [Handle<StandardMaterial>; 4],
+    grass_caps: [Handle<StandardMaterial>; 12],
+    grass_tuft_mat: Handle<StandardMaterial>,
+    grass_tall_mat: Handle<StandardMaterial>,
+    grass_blade_mat: Handle<StandardMaterial>,
+    grass_tuft_mesh: Handle<Mesh>,
+    grass_tall_mesh: Handle<Mesh>,
+    grass_blade_mesh: Handle<Mesh>,
+    flower_mats: [Handle<StandardMaterial>; 4],
+    flower_mesh: Handle<Mesh>,
 }
 
 pub struct TilemapPlugin;
@@ -70,7 +80,82 @@ fn make_body(
     })
 }
 
-fn setup_tile_materials(mut commands: Commands, mut materials: ResMut<Assets<StandardMaterial>>) {
+/// Build a crossed-plane mesh (two quads at 90° forming an X shape).
+fn make_grass_mesh(hw: f32, h: f32) -> Mesh {
+    // Plane 1: along X axis (vertices at ±hw X, 0..h Y, Z=0)
+    // Plane 2: along Z axis (vertices at X=0, 0..h Y, ±hw Z)
+    #[rustfmt::skip]
+    let positions: Vec<[f32; 3]> = vec![
+        // Plane 1
+        [-hw, 0.0, 0.0], [ hw, 0.0, 0.0], [ hw,  h, 0.0], [-hw,  h, 0.0],
+        // Plane 2
+        [0.0, 0.0, -hw], [0.0, 0.0,  hw], [0.0,  h,  hw], [0.0,  h, -hw],
+    ];
+
+    #[rustfmt::skip]
+    let normals: Vec<[f32; 3]> = vec![
+        // Plane 1 normals (face +Z)
+        [0.0, 0.0, 1.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0],
+        // Plane 2 normals (face +X)
+        [1.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0],
+    ];
+
+    #[rustfmt::skip]
+    let uvs: Vec<[f32; 2]> = vec![
+        [0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0],
+        [0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0],
+    ];
+
+    // Double-sided via material cull_mode: None, so we only need front-facing tris
+    #[rustfmt::skip]
+    let indices: Vec<u32> = vec![
+        0, 1, 2,  0, 2, 3, // Plane 1
+        4, 5, 6,  4, 6, 7, // Plane 2
+    ];
+
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
+    .with_inserted_indices(Indices::U32(indices))
+}
+
+/// Build a single tapered blade (one quad, narrower at top).
+fn make_blade_mesh(hw: f32, h: f32) -> Mesh {
+    let taper = 0.6;
+    #[rustfmt::skip]
+    let positions: Vec<[f32; 3]> = vec![
+        [-hw, 0.0, 0.0], [hw, 0.0, 0.0],
+        [hw * taper, h, 0.0], [-hw * taper, h, 0.0],
+    ];
+    #[rustfmt::skip]
+    let normals: Vec<[f32; 3]> = vec![
+        [0.0, 0.0, 1.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0],
+    ];
+    #[rustfmt::skip]
+    let uvs: Vec<[f32; 2]> = vec![
+        [0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0],
+    ];
+    let indices: Vec<u32> = vec![0, 1, 2, 0, 2, 3];
+
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
+    .with_inserted_indices(Indices::U32(indices))
+}
+
+fn setup_tile_materials(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+) {
     // Base colors per height band: grass, dirt, stone, snow
     let bands: [(f32, f32, f32); 4] = [
         (0.3, 0.6, 0.2),
@@ -78,6 +163,55 @@ fn setup_tile_materials(mut commands: Commands, mut materials: ResMut<Assets<Sta
         (0.5, 0.5, 0.5),
         (0.9, 0.9, 0.95),
     ];
+
+    // 12 noise-varied grass shades (dark forest → dry/yellow)
+    let grass_shades: [(f32, f32, f32); 12] = [
+        (0.22, 0.50, 0.15),
+        (0.28, 0.55, 0.18),
+        (0.30, 0.60, 0.20),
+        (0.34, 0.62, 0.22),
+        (0.38, 0.65, 0.22),
+        (0.42, 0.58, 0.20),
+        (0.35, 0.52, 0.18),
+        (0.45, 0.55, 0.25),
+        (0.26, 0.48, 0.16), // mossy dark
+        (0.40, 0.60, 0.18), // warm meadow
+        (0.32, 0.58, 0.24), // lush green
+        (0.48, 0.52, 0.22), // dry patch
+    ];
+
+    let grass_caps: [Handle<StandardMaterial>; 12] = grass_shades.map(|(r, g, b)| {
+        materials.add(StandardMaterial {
+            base_color: Color::srgb(r, g, b),
+            ..default()
+        })
+    });
+
+    let make_vegetation_mat =
+        |mats: &mut Assets<StandardMaterial>, r: f32, g: f32, b: f32| -> Handle<StandardMaterial> {
+            mats.add(StandardMaterial {
+                base_color: Color::srgb(r, g, b),
+                cull_mode: None,
+                double_sided: true,
+                ..default()
+            })
+        };
+
+    let grass_tuft_mat = make_vegetation_mat(&mut materials, 0.25, 0.55, 0.15);
+    let grass_tall_mat = make_vegetation_mat(&mut materials, 0.20, 0.50, 0.12);
+    let grass_blade_mat = make_vegetation_mat(&mut materials, 0.22, 0.48, 0.14);
+
+    let flower_mats: [Handle<StandardMaterial>; 4] = [
+        make_vegetation_mat(&mut materials, 0.95, 0.95, 0.90), // white daisy
+        make_vegetation_mat(&mut materials, 0.90, 0.55, 0.65), // pink
+        make_vegetation_mat(&mut materials, 0.85, 0.35, 0.45), // rose
+        make_vegetation_mat(&mut materials, 0.95, 0.85, 0.30), // yellow
+    ];
+
+    let grass_tuft_mesh = meshes.add(make_grass_mesh(0.15, 0.25));
+    let grass_tall_mesh = meshes.add(make_grass_mesh(0.10, 0.45));
+    let grass_blade_mesh = meshes.add(make_blade_mesh(0.08, 0.35));
+    let flower_mesh = meshes.add(make_grass_mesh(0.08, 0.12));
 
     commands.insert_resource(TileMaterials {
         cap: [
@@ -92,6 +226,15 @@ fn setup_tile_materials(mut commands: Commands, mut materials: ResMut<Assets<Sta
             make_body(&mut materials, bands[2].0, bands[2].1, bands[2].2),
             make_body(&mut materials, bands[3].0, bands[3].1, bands[3].2),
         ],
+        grass_caps,
+        grass_tuft_mat,
+        grass_tall_mat,
+        grass_blade_mat,
+        grass_tuft_mesh,
+        grass_tall_mesh,
+        grass_blade_mesh,
+        flower_mats,
+        flower_mesh,
     });
 }
 
@@ -125,12 +268,6 @@ fn spawn_lighting(mut commands: Commands) {
 }
 
 /// Spawn/despawn tile entities based on terrain chunk updates.
-///
-/// Each tile is two meshes:
-/// - **body**: the tall column (darker material) showing cliff/side faces
-/// - **cap**: a thin slab on top (bright checkerboard material) for the walkable surface
-///
-/// The color difference between cap and body creates a visible edge at elevation changes.
 fn process_chunk_spawns_and_despawns(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -165,14 +302,13 @@ fn process_chunk_spawns_and_despawns(
                 // Minimum column height so ground-level tiles are still visible
                 let column_h = h.max(0.5);
 
-                // Height band index + checkerboard
+                // Height band index
                 let band = match h as i32 {
                     0..=1 => 0,
                     2..=3 => 1,
                     4..=5 => 2,
                     _ => 3,
                 };
-                let checker = ((tx + tz) & 1) as usize;
 
                 // --- Body (tall column, darker cliff faces) ---
                 let body_h = column_h - CAP_HEIGHT;
@@ -193,23 +329,31 @@ fn process_chunk_spawns_and_despawns(
                 entities.push(body_entity);
 
                 // --- Cap (thin bright top surface) ---
-                // Inset only on the specific edges that face a lower neighbor (cliff edges).
                 let inset = |nh: f32| if h - nh >= 1.0 { EDGE_INSET } else { 0.0 };
-                let inset_nx = inset(terrain.height_at(tx - 1, tz)); // -X side
-                let inset_px = inset(terrain.height_at(tx + 1, tz)); // +X side
-                let inset_nz = inset(terrain.height_at(tx, tz - 1)); // -Z side
-                let inset_pz = inset(terrain.height_at(tx, tz + 1)); // +Z side
+                let inset_nx = inset(terrain.height_at(tx - 1, tz));
+                let inset_px = inset(terrain.height_at(tx + 1, tz));
+                let inset_nz = inset(terrain.height_at(tx, tz - 1));
+                let inset_pz = inset(terrain.height_at(tx, tz + 1));
 
                 let cap_w = TILE_SIZE - inset_nx - inset_px;
                 let cap_d = TILE_SIZE - inset_nz - inset_pz;
                 let cap_offset_x = (inset_nx - inset_px) / 2.0;
                 let cap_offset_z = (inset_nz - inset_pz) / 2.0;
 
+                // Grass band: use noise-varied shade; others: checkerboard
+                let cap_material = if band == 0 {
+                    let shade_idx = (hash2d(tx + 1337, tz) * 12.0) as usize % 12;
+                    tile_materials.grass_caps[shade_idx].clone()
+                } else {
+                    let checker = ((tx + tz) & 1) as usize;
+                    tile_materials.cap[band][checker].clone()
+                };
+
                 let cap_mesh = meshes.add(Cuboid::new(cap_w, CAP_HEIGHT, cap_d));
                 let cap_entity = commands
                     .spawn((
                         Mesh3d(cap_mesh),
-                        MeshMaterial3d(tile_materials.cap[band][checker].clone()),
+                        MeshMaterial3d(cap_material),
                         Transform::from_xyz(
                             tx as f32 * TILE_SIZE + cap_offset_x,
                             body_h + CAP_HEIGHT / 2.0,
@@ -223,6 +367,80 @@ fn process_chunk_spawns_and_despawns(
                     ))
                     .id();
                 entities.push(cap_entity);
+
+                // --- Grass pieces (multiple per tile with variety) ---
+                // kind: 0=tuft, 1=tall, 2=blade, 3=flower
+                if band == 0 {
+                    let grass_slots: [(i32, i32, f32, u8); 5] = [
+                        (7919, 3571, 0.40, 0), // short tuft ~40%
+                        (2131, 8461, 0.18, 1), // tall grass ~18%
+                        (4253, 6173, 0.25, 0), // short tuft ~25%
+                        (6091, 1429, 0.30, 2), // blade grass ~30%
+                        (9371, 2749, 0.08, 3), // flower ~8%
+                    ];
+
+                    for (seed_x, seed_z, density, kind) in grass_slots {
+                        let noise = hash2d(tx + seed_x, tz + seed_z);
+                        if noise >= density {
+                            continue;
+                        }
+
+                        let jx = (hash2d(tx + seed_x + 100, tz + seed_z) - 0.5) * 0.85;
+                        let jz = (hash2d(tx + seed_x, tz + seed_z + 100) - 0.5) * 0.85;
+
+                        let scale_noise = hash2d(tx + seed_x + 200, tz + seed_z + 200);
+                        let scale = 0.7 + scale_noise * 0.7;
+
+                        let wind_phase = noise * std::f32::consts::TAU;
+                        let rot_y =
+                            hash2d(tx + seed_x + 300, tz + seed_z + 300) * std::f32::consts::TAU;
+
+                        let (mesh, mat, y_offset) = match kind {
+                            1 => (
+                                tile_materials.grass_tall_mesh.clone(),
+                                tile_materials.grass_tall_mat.clone(),
+                                0.0,
+                            ),
+                            2 => (
+                                tile_materials.grass_blade_mesh.clone(),
+                                tile_materials.grass_blade_mat.clone(),
+                                0.0,
+                            ),
+                            3 => {
+                                let flower_idx = (hash2d(tx + seed_x + 400, tz) * 4.0) as usize % 4;
+                                (
+                                    tile_materials.flower_mesh.clone(),
+                                    tile_materials.flower_mats[flower_idx].clone(),
+                                    0.15, // raised on a stem
+                                )
+                            }
+                            _ => (
+                                tile_materials.grass_tuft_mesh.clone(),
+                                tile_materials.grass_tuft_mat.clone(),
+                                0.0,
+                            ),
+                        };
+
+                        let tuft = commands
+                            .spawn((
+                                Mesh3d(mesh),
+                                MeshMaterial3d(mat),
+                                Transform::from_xyz(
+                                    tx as f32 * TILE_SIZE + jx,
+                                    body_h + CAP_HEIGHT + y_offset,
+                                    tz as f32 * TILE_SIZE + jz,
+                                )
+                                .with_rotation(Quat::from_rotation_y(rot_y))
+                                .with_scale(Vec3::splat(scale)),
+                                GrassTuft {
+                                    wind_phase,
+                                    flatten: 0.0,
+                                },
+                            ))
+                            .id();
+                        entities.push(tuft);
+                    }
+                }
             }
         }
 

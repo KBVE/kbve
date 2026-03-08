@@ -1,10 +1,17 @@
+use bevy::picking::events::{Out, Over, Pointer};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_rapier3d::prelude::*;
 
 use super::camera::IsometricCamera;
-use super::input_bridge::BridgedCursorPosition;
 use super::player::Player;
+
+// Desktop: bridged cursor for Rapier raycast hover detection
+#[cfg(not(target_arch = "wasm32"))]
+use super::input_bridge::BridgedCursorPosition;
+
+// Re-export EntityEvent so event_target() is available
+use bevy::ecs::event::EntityEvent;
 
 /// Marker for objects that become semi-transparent when occluding the player.
 #[derive(Component)]
@@ -39,7 +46,6 @@ impl Plugin for SceneObjectsPlugin {
         app.add_systems(
             Update,
             (
-                raycast_hover_detection,
                 animate_crystal,
                 rotate_boxes,
                 update_occlusion,
@@ -47,12 +53,27 @@ impl Plugin for SceneObjectsPlugin {
                 draw_hover_outline,
             ),
         );
+
+        // Desktop: use Rapier raycast hover (no MeshPickingPlugin without WinitPlugin)
+        #[cfg(not(target_arch = "wasm32"))]
+        app.add_systems(Update, raycast_hover_detection);
     }
 }
 
+/// Pointer-event observer: add Hovered on pointer over (used by WASM + MeshPickingPlugin).
+pub(crate) fn on_pointer_over(trigger: On<Pointer<Over>>, mut commands: Commands) {
+    commands.entity(trigger.event_target()).insert(Hovered);
+}
+
+/// Pointer-event observer: remove Hovered on pointer out (used by WASM + MeshPickingPlugin).
+pub(crate) fn on_pointer_out(trigger: On<Pointer<Out>>, mut commands: Commands) {
+    commands.entity(trigger.event_target()).remove::<Hovered>();
+}
+
 /// Custom hover detection using Rapier raycasting through the scene camera.
-/// Replaces MeshPickingPlugin which can't work with the two-stage render pipeline
+/// Replaces MeshPickingPlugin which can't work without WinitPlugin on desktop
 /// (scene camera renders to offscreen texture, not the window).
+#[cfg(not(target_arch = "wasm32"))]
 fn raycast_hover_detection(
     windows: Query<&Window, With<PrimaryWindow>>,
     cursor: Res<BridgedCursorPosition>,
