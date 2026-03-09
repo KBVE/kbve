@@ -59,10 +59,10 @@ dashmap = "6"
 version = "0.18"
 features = ["x11", "wayland"]
 
-# --- WASM-only Bevy features (WebGL2 backend) ---
+# --- WASM-only Bevy features (WebGPU backend) ---
 [target.'cfg(target_arch = "wasm32")'.dependencies.bevy]
 version = "0.18"
-features = ["webgl2"]
+features = ["webgpu"]
 
 # --- WASM-only dependencies ---
 [target.'cfg(target_arch = "wasm32")'.dependencies]

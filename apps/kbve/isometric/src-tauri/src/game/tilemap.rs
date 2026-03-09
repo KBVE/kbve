@@ -1,14 +1,14 @@
 use bevy::asset::RenderAssetUsages;
-use bevy::image::ImageSampler;
 use bevy::light::{CascadeShadowConfigBuilder, DirectionalLightShadowMap};
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
-use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 
 use bevy_rapier3d::prelude::*;
 
-use super::grass::GrassTuft;
 use super::player::Player;
+use super::scene_objects::{
+    HoverOutline, Occludable, OriginalEmissive, on_pointer_out, on_pointer_over,
+};
 use super::terrain::{CHUNK_SIZE, TerrainMap, hash2d};
 
 pub const TILE_SIZE: f32 = 1.0;
@@ -17,31 +17,395 @@ const CAP_HEIGHT: f32 = 0.06;
 /// Per-side inset on the cap where a cliff edge faces a lower neighbor.
 const EDGE_INSET: f32 = 0.10;
 
-#[derive(Component)]
-pub struct Tile {
-    pub x: i32,
-    pub z: i32,
-    pub height: f32,
+// ---------------------------------------------------------------------------
+// Vertex color constants (replaces per-tile materials)
+// ---------------------------------------------------------------------------
+
+/// Height-band base colors: grass, dirt, stone, snow
+const BAND_COLORS: [(f32, f32, f32); 4] = [
+    (0.3, 0.6, 0.2),
+    (0.55, 0.4, 0.25),
+    (0.5, 0.5, 0.5),
+    (0.9, 0.9, 0.95),
+];
+
+/// Body darkness factor (45% darker than cap).
+const BODY_DARKEN: f32 = 0.55;
+
+/// 12 noise-varied grass cap shades.
+const GRASS_SHADES: [(f32, f32, f32); 12] = [
+    (0.22, 0.50, 0.15),
+    (0.28, 0.55, 0.18),
+    (0.30, 0.60, 0.20),
+    (0.34, 0.62, 0.22),
+    (0.38, 0.65, 0.22),
+    (0.42, 0.58, 0.20),
+    (0.35, 0.52, 0.18),
+    (0.45, 0.55, 0.25),
+    (0.26, 0.48, 0.16),
+    (0.40, 0.60, 0.18),
+    (0.32, 0.58, 0.24),
+    (0.48, 0.52, 0.22),
+];
+
+/// Convert a single sRGB channel to linear (matches Bevy's Color::srgb internal conversion).
+fn srgb_to_linear(c: f32) -> f32 {
+    if c <= 0.04045 {
+        c / 12.92
+    } else {
+        ((c + 0.055) / 1.055).powf(2.4)
+    }
 }
 
-/// Pre-created materials and meshes for all tiles.
+fn body_vertex_color(band: usize) -> [f32; 4] {
+    let (r, g, b) = BAND_COLORS[band];
+    [
+        srgb_to_linear(r * BODY_DARKEN),
+        srgb_to_linear(g * BODY_DARKEN),
+        srgb_to_linear(b * BODY_DARKEN),
+        1.0,
+    ]
+}
+
+fn cap_vertex_color(band: usize, tx: i32, tz: i32) -> [f32; 4] {
+    if band == 0 {
+        let idx = (hash2d(tx + 1337, tz) * 12.0) as usize % 12;
+        let (r, g, b) = GRASS_SHADES[idx];
+        [srgb_to_linear(r), srgb_to_linear(g), srgb_to_linear(b), 1.0]
+    } else {
+        let (r, g, b) = BAND_COLORS[band];
+        let d: f32 = 0.04;
+        let sign = if (tx + tz) & 1 == 0 { 1.0 } else { -1.0 };
+        [
+            srgb_to_linear(r + d * sign),
+            srgb_to_linear(g + d * sign),
+            srgb_to_linear(b + d * sign),
+            1.0,
+        ]
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Vegetation vertex color constants
+// ---------------------------------------------------------------------------
+
+/// Grass type colors (sRGB, converted to linear at use).
+const VEG_GRASS_TUFT: (f32, f32, f32) = (0.25, 0.55, 0.15);
+const VEG_GRASS_TALL: (f32, f32, f32) = (0.20, 0.50, 0.12);
+const VEG_GRASS_BLADE: (f32, f32, f32) = (0.22, 0.48, 0.14);
+const VEG_FLOWER_COLORS: [(f32, f32, f32); 4] = [
+    (0.95, 0.95, 0.90),
+    (0.90, 0.55, 0.65),
+    (0.85, 0.35, 0.45),
+    (0.95, 0.85, 0.30),
+];
+
+/// Tree colors (sRGB, averaged from procedural textures).
+const TREE_BARK: (f32, f32, f32) = (0.40, 0.27, 0.16);
+const TREE_CANOPY_COLORS: [(f32, f32, f32); 3] =
+    [(0.22, 0.47, 0.16), (0.27, 0.59, 0.18), (0.33, 0.51, 0.16)];
+
+fn srgb_color(r: f32, g: f32, b: f32) -> [f32; 4] {
+    [srgb_to_linear(r), srgb_to_linear(g), srgb_to_linear(b), 1.0]
+}
+
+// ---------------------------------------------------------------------------
+// Combined mesh helpers
+// ---------------------------------------------------------------------------
+
+/// Push exposed faces of a terrain body column. Skips:
+/// - Bottom (-Y): underground, never visible from isometric camera
+/// - Side faces hidden by equal/taller neighbor columns (eliminates z-fighting)
+/// Top (+Y) is kept because the cap has edge insets at cliffs that expose it.
+fn push_terrain_body(
+    pos: &mut Vec<[f32; 3]>,
+    nor: &mut Vec<[f32; 3]>,
+    col: &mut Vec<[f32; 4]>,
+    idx: &mut Vec<u32>,
+    center: Vec3,
+    half: Vec3,
+    color: [f32; 4],
+    this_body_h: f32,
+    neighbor_body_h: [f32; 4], // [+x, -x, +z, -z]
+) {
+    let (cx, cy, cz) = (center.x, center.y, center.z);
+    let (hx, hy, hz) = (half.x, half.y, half.z);
+
+    // +Y (top): always kept — visible through cap edge insets at cliffs.
+    // Cap is offset +0.001 upward to prevent z-fighting with this face.
+    {
+        let base = pos.len() as u32;
+        pos.extend_from_slice(&[
+            [cx - hx, cy + hy, cz - hz],
+            [cx + hx, cy + hy, cz - hz],
+            [cx + hx, cy + hy, cz + hz],
+            [cx - hx, cy + hy, cz + hz],
+        ]);
+        nor.extend_from_slice(&[[0.0, 1.0, 0.0]; 4]);
+        col.extend(std::iter::repeat(color).take(4));
+        idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
+    }
+
+    // +X face: only if neighbor is shorter
+    if neighbor_body_h[0] < this_body_h {
+        let base = pos.len() as u32;
+        pos.extend_from_slice(&[
+            [cx + hx, cy - hy, cz - hz],
+            [cx + hx, cy - hy, cz + hz],
+            [cx + hx, cy + hy, cz + hz],
+            [cx + hx, cy + hy, cz - hz],
+        ]);
+        nor.extend_from_slice(&[[1.0, 0.0, 0.0]; 4]);
+        col.extend(std::iter::repeat(color).take(4));
+        idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
+    }
+
+    // -X face
+    if neighbor_body_h[1] < this_body_h {
+        let base = pos.len() as u32;
+        pos.extend_from_slice(&[
+            [cx - hx, cy - hy, cz + hz],
+            [cx - hx, cy - hy, cz - hz],
+            [cx - hx, cy + hy, cz - hz],
+            [cx - hx, cy + hy, cz + hz],
+        ]);
+        nor.extend_from_slice(&[[-1.0, 0.0, 0.0]; 4]);
+        col.extend(std::iter::repeat(color).take(4));
+        idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
+    }
+
+    // +Z face
+    if neighbor_body_h[2] < this_body_h {
+        let base = pos.len() as u32;
+        pos.extend_from_slice(&[
+            [cx + hx, cy - hy, cz + hz],
+            [cx - hx, cy - hy, cz + hz],
+            [cx - hx, cy + hy, cz + hz],
+            [cx + hx, cy + hy, cz + hz],
+        ]);
+        nor.extend_from_slice(&[[0.0, 0.0, 1.0]; 4]);
+        col.extend(std::iter::repeat(color).take(4));
+        idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
+    }
+
+    // -Z face
+    if neighbor_body_h[3] < this_body_h {
+        let base = pos.len() as u32;
+        pos.extend_from_slice(&[
+            [cx - hx, cy - hy, cz - hz],
+            [cx + hx, cy - hy, cz - hz],
+            [cx + hx, cy + hy, cz - hz],
+            [cx - hx, cy + hy, cz - hz],
+        ]);
+        nor.extend_from_slice(&[[0.0, 0.0, -1.0]; 4]);
+        col.extend(std::iter::repeat(color).take(4));
+        idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
+    }
+}
+
+/// Append one axis-aligned cuboid (24 vertices, 36 indices) to shared buffers.
+fn push_cuboid(
+    pos: &mut Vec<[f32; 3]>,
+    nor: &mut Vec<[f32; 3]>,
+    col: &mut Vec<[f32; 4]>,
+    idx: &mut Vec<u32>,
+    center: Vec3,
+    half: Vec3,
+    color: [f32; 4],
+) {
+    let base = pos.len() as u32;
+    let (cx, cy, cz) = (center.x, center.y, center.z);
+    let (hx, hy, hz) = (half.x, half.y, half.z);
+
+    // +Y (top)
+    pos.extend_from_slice(&[
+        [cx - hx, cy + hy, cz - hz],
+        [cx + hx, cy + hy, cz - hz],
+        [cx + hx, cy + hy, cz + hz],
+        [cx - hx, cy + hy, cz + hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, 1.0, 0.0]; 4]);
+
+    // -Y (bottom)
+    pos.extend_from_slice(&[
+        [cx - hx, cy - hy, cz + hz],
+        [cx + hx, cy - hy, cz + hz],
+        [cx + hx, cy - hy, cz - hz],
+        [cx - hx, cy - hy, cz - hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, -1.0, 0.0]; 4]);
+
+    // +X (right)
+    pos.extend_from_slice(&[
+        [cx + hx, cy - hy, cz - hz],
+        [cx + hx, cy - hy, cz + hz],
+        [cx + hx, cy + hy, cz + hz],
+        [cx + hx, cy + hy, cz - hz],
+    ]);
+    nor.extend_from_slice(&[[1.0, 0.0, 0.0]; 4]);
+
+    // -X (left)
+    pos.extend_from_slice(&[
+        [cx - hx, cy - hy, cz + hz],
+        [cx - hx, cy - hy, cz - hz],
+        [cx - hx, cy + hy, cz - hz],
+        [cx - hx, cy + hy, cz + hz],
+    ]);
+    nor.extend_from_slice(&[[-1.0, 0.0, 0.0]; 4]);
+
+    // +Z (front)
+    pos.extend_from_slice(&[
+        [cx + hx, cy - hy, cz + hz],
+        [cx - hx, cy - hy, cz + hz],
+        [cx - hx, cy + hy, cz + hz],
+        [cx + hx, cy + hy, cz + hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, 0.0, 1.0]; 4]);
+
+    // -Z (back)
+    pos.extend_from_slice(&[
+        [cx - hx, cy - hy, cz - hz],
+        [cx + hx, cy - hy, cz - hz],
+        [cx + hx, cy + hy, cz - hz],
+        [cx - hx, cy + hy, cz - hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, 0.0, -1.0]; 4]);
+
+    col.extend(std::iter::repeat(color).take(24));
+
+    // 6 faces × 2 triangles (CCW winding for Bevy front-faces)
+    for face in 0..6u32 {
+        let f = base + face * 4;
+        idx.extend_from_slice(&[f, f + 2, f + 1, f, f + 3, f + 2]);
+    }
+}
+
+/// Append a crossed-plane (2 quads at 90°) with rotation and scale baked into vertices.
+fn push_crossed_planes(
+    pos: &mut Vec<[f32; 3]>,
+    nor: &mut Vec<[f32; 3]>,
+    col: &mut Vec<[f32; 4]>,
+    idx: &mut Vec<u32>,
+    origin: Vec3,
+    hw: f32,
+    h: f32,
+    scale: f32,
+    rot_y: f32,
+    color: [f32; 4],
+) {
+    let base = pos.len() as u32;
+    let (sin_r, cos_r) = rot_y.sin_cos();
+    let s = scale;
+
+    let xform = |lx: f32, ly: f32, lz: f32| -> [f32; 3] {
+        let sx = lx * s;
+        let sz = lz * s;
+        [
+            origin.x + sx * cos_r - sz * sin_r,
+            origin.y + ly * s,
+            origin.z + sx * sin_r + sz * cos_r,
+        ]
+    };
+
+    // Quad 1: along local X
+    pos.extend_from_slice(&[
+        xform(-hw, 0.0, 0.0),
+        xform(hw, 0.0, 0.0),
+        xform(hw, h, 0.0),
+        xform(-hw, h, 0.0),
+    ]);
+    let n1 = [sin_r, 0.0, cos_r];
+    nor.extend_from_slice(&[n1; 4]);
+
+    // Quad 2: along local Z
+    pos.extend_from_slice(&[
+        xform(0.0, 0.0, -hw),
+        xform(0.0, 0.0, hw),
+        xform(0.0, h, hw),
+        xform(0.0, h, -hw),
+    ]);
+    let n2 = [cos_r, 0.0, -sin_r];
+    nor.extend_from_slice(&[n2; 4]);
+
+    col.extend(std::iter::repeat(color).take(8));
+
+    for q in 0..2u32 {
+        let f = base + q * 4;
+        idx.extend_from_slice(&[f, f + 2, f + 1, f, f + 3, f + 2]);
+    }
+}
+
+/// Append a single tapered blade (1 quad) with rotation and scale baked into vertices.
+fn push_blade(
+    pos: &mut Vec<[f32; 3]>,
+    nor: &mut Vec<[f32; 3]>,
+    col: &mut Vec<[f32; 4]>,
+    idx: &mut Vec<u32>,
+    origin: Vec3,
+    hw: f32,
+    h: f32,
+    scale: f32,
+    rot_y: f32,
+    color: [f32; 4],
+) {
+    let base = pos.len() as u32;
+    let (sin_r, cos_r) = rot_y.sin_cos();
+    let s = scale;
+    let taper = 0.6;
+
+    let xform = |lx: f32, ly: f32, lz: f32| -> [f32; 3] {
+        let sx = lx * s;
+        let sz = lz * s;
+        [
+            origin.x + sx * cos_r - sz * sin_r,
+            origin.y + ly * s,
+            origin.z + sx * sin_r + sz * cos_r,
+        ]
+    };
+
+    pos.extend_from_slice(&[
+        xform(-hw, 0.0, 0.0),
+        xform(hw, 0.0, 0.0),
+        xform(hw * taper, h, 0.0),
+        xform(-hw * taper, h, 0.0),
+    ]);
+    let n = [sin_r, 0.0, cos_r];
+    nor.extend_from_slice(&[n; 4]);
+    col.extend(std::iter::repeat(color).take(4));
+
+    let f = base;
+    idx.extend_from_slice(&[f, f + 2, f + 1, f, f + 3, f + 2]);
+}
+
+/// Assemble a Bevy Mesh from the combined vertex buffers.
+fn build_chunk_mesh(
+    positions: Vec<[f32; 3]>,
+    normals: Vec<[f32; 3]>,
+    colors: Vec<[f32; 4]>,
+    indices: Vec<u32>,
+) -> Mesh {
+    let uv_count = positions.len();
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_COLOR, colors)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, vec![[0.0f32, 0.0]; uv_count])
+    .with_inserted_indices(Indices::U32(indices))
+}
+
+// ---------------------------------------------------------------------------
+// Pre-created materials
+// ---------------------------------------------------------------------------
+
 #[derive(Resource)]
 struct TileMaterials {
-    cap: [[Handle<StandardMaterial>; 2]; 4],
-    body: [Handle<StandardMaterial>; 4],
-    grass_caps: [Handle<StandardMaterial>; 12],
-    grass_tuft_mat: Handle<StandardMaterial>,
-    grass_tall_mat: Handle<StandardMaterial>,
-    grass_blade_mat: Handle<StandardMaterial>,
-    grass_tuft_mesh: Handle<Mesh>,
-    grass_tall_mesh: Handle<Mesh>,
-    grass_blade_mesh: Handle<Mesh>,
-    flower_mats: [Handle<StandardMaterial>; 4],
-    flower_mesh: Handle<Mesh>,
-    tree_trunk_mat: Handle<StandardMaterial>,
-    tree_canopy_mats: [Handle<StandardMaterial>; 3],
-    tree_trunk_mesh: Handle<Mesh>,
-    tree_canopy_mesh: Handle<Mesh>,
+    chunk_body_mat: Handle<StandardMaterial>,
+    chunk_cap_mat: Handle<StandardMaterial>,
+    /// Double-sided, vertex-colored material for grass/flower crossed-planes.
+    chunk_veg_mat: Handle<StandardMaterial>,
 }
 
 pub struct TilemapPlugin;
@@ -53,292 +417,40 @@ impl Plugin for TilemapPlugin {
     }
 }
 
-/// Create light/dark material pair with a subtle brightness offset for checkerboard.
-fn make_cap_pair(
-    materials: &mut Assets<StandardMaterial>,
-    r: f32,
-    g: f32,
-    b: f32,
-) -> [Handle<StandardMaterial>; 2] {
-    let d = 0.04; // ~4% brightness shift
-    [
-        materials.add(StandardMaterial {
-            base_color: Color::srgb(r + d, g + d, b + d),
-            ..default()
-        }),
-        materials.add(StandardMaterial {
-            base_color: Color::srgb(r - d, g - d, b - d),
-            ..default()
-        }),
-    ]
-}
+// ---------------------------------------------------------------------------
+// Setup
+// ---------------------------------------------------------------------------
 
-/// Create a darker material for the column body (cliff faces).
-fn make_body(
-    materials: &mut Assets<StandardMaterial>,
-    r: f32,
-    g: f32,
-    b: f32,
-) -> Handle<StandardMaterial> {
-    let k = 0.55; // 45% darker than the cap
-    materials.add(StandardMaterial {
-        base_color: Color::srgb(r * k, g * k, b * k),
-        ..default()
-    })
-}
-
-/// Build a crossed-plane mesh (two quads at 90° forming an X shape).
-fn make_grass_mesh(hw: f32, h: f32) -> Mesh {
-    // Plane 1: along X axis (vertices at ±hw X, 0..h Y, Z=0)
-    // Plane 2: along Z axis (vertices at X=0, 0..h Y, ±hw Z)
-    #[rustfmt::skip]
-    let positions: Vec<[f32; 3]> = vec![
-        // Plane 1
-        [-hw, 0.0, 0.0], [ hw, 0.0, 0.0], [ hw,  h, 0.0], [-hw,  h, 0.0],
-        // Plane 2
-        [0.0, 0.0, -hw], [0.0, 0.0,  hw], [0.0,  h,  hw], [0.0,  h, -hw],
-    ];
-
-    #[rustfmt::skip]
-    let normals: Vec<[f32; 3]> = vec![
-        // Plane 1 normals (face +Z)
-        [0.0, 0.0, 1.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0],
-        // Plane 2 normals (face +X)
-        [1.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0],
-    ];
-
-    #[rustfmt::skip]
-    let uvs: Vec<[f32; 2]> = vec![
-        [0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0],
-        [0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0],
-    ];
-
-    // Double-sided via material cull_mode: None, so we only need front-facing tris
-    #[rustfmt::skip]
-    let indices: Vec<u32> = vec![
-        0, 1, 2,  0, 2, 3, // Plane 1
-        4, 5, 6,  4, 6, 7, // Plane 2
-    ];
-
-    Mesh::new(
-        PrimitiveTopology::TriangleList,
-        RenderAssetUsages::default(),
-    )
-    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
-    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
-    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
-    .with_inserted_indices(Indices::U32(indices))
-}
-
-/// Build a single tapered blade (one quad, narrower at top).
-fn make_blade_mesh(hw: f32, h: f32) -> Mesh {
-    let taper = 0.6;
-    #[rustfmt::skip]
-    let positions: Vec<[f32; 3]> = vec![
-        [-hw, 0.0, 0.0], [hw, 0.0, 0.0],
-        [hw * taper, h, 0.0], [-hw * taper, h, 0.0],
-    ];
-    #[rustfmt::skip]
-    let normals: Vec<[f32; 3]> = vec![
-        [0.0, 0.0, 1.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0],
-    ];
-    #[rustfmt::skip]
-    let uvs: Vec<[f32; 2]> = vec![
-        [0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0],
-    ];
-    let indices: Vec<u32> = vec![0, 1, 2, 0, 2, 3];
-
-    Mesh::new(
-        PrimitiveTopology::TriangleList,
-        RenderAssetUsages::default(),
-    )
-    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
-    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
-    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
-    .with_inserted_indices(Indices::U32(indices))
-}
-
-/// Generate an 8x8 pixel-art bark texture with vertical grain.
-fn make_bark_texture() -> Image {
-    let (w, h) = (8u32, 8u32);
-    let base: [u8; 3] = [110, 75, 45];
-    let dark: [u8; 3] = [80, 55, 30];
-    let mut data = Vec::with_capacity((w * h * 4) as usize);
-    for y in 0..h {
-        for x in 0..w {
-            // Vertical grain: deterministic columns get dark streaks
-            let grain = hash2d(x as i32 + 9999, y as i32 + 7777);
-            let rgb = if grain < 0.30 { dark } else { base };
-            data.extend_from_slice(&[rgb[0], rgb[1], rgb[2], 255]);
-        }
-    }
-    let mut img = Image::new(
-        Extent3d {
-            width: w,
-            height: h,
-            depth_or_array_layers: 1,
-        },
-        TextureDimension::D2,
-        data,
-        TextureFormat::Rgba8UnormSrgb,
-        RenderAssetUsages::default(),
-    );
-    img.sampler = ImageSampler::nearest();
-    img
-}
-
-/// Generate an 8x8 pixel-art leaf canopy texture with dappled shading.
-fn make_leaf_texture(variant: u32) -> Image {
-    let (w, h) = (8u32, 8u32);
-    let palettes: [[[u8; 3]; 3]; 3] = [
-        [[45, 100, 30], [55, 120, 40], [65, 140, 50]], // dark forest
-        [[60, 130, 35], [70, 150, 45], [80, 160, 55]], // bright meadow
-        [[75, 120, 30], [85, 130, 40], [95, 110, 35]], // warm autumn
-    ];
-    let pal = &palettes[variant as usize % 3];
-    let mut data = Vec::with_capacity((w * h * 4) as usize);
-    for y in 0..h {
-        for x in 0..w {
-            let shade = (hash2d(x as i32 + variant as i32 * 100, y as i32) * 3.0) as usize % 3;
-            let rgb = pal[shade];
-            data.extend_from_slice(&[rgb[0], rgb[1], rgb[2], 255]);
-        }
-    }
-    let mut img = Image::new(
-        Extent3d {
-            width: w,
-            height: h,
-            depth_or_array_layers: 1,
-        },
-        TextureDimension::D2,
-        data,
-        TextureFormat::Rgba8UnormSrgb,
-        RenderAssetUsages::default(),
-    );
-    img.sampler = ImageSampler::nearest();
-    img
-}
-
-fn setup_tile_materials(
-    mut commands: Commands,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut images: ResMut<Assets<Image>>,
-) {
-    // Base colors per height band: grass, dirt, stone, snow
-    let bands: [(f32, f32, f32); 4] = [
-        (0.3, 0.6, 0.2),
-        (0.55, 0.4, 0.25),
-        (0.5, 0.5, 0.5),
-        (0.9, 0.9, 0.95),
-    ];
-
-    // 12 noise-varied grass shades (dark forest → dry/yellow)
-    let grass_shades: [(f32, f32, f32); 12] = [
-        (0.22, 0.50, 0.15),
-        (0.28, 0.55, 0.18),
-        (0.30, 0.60, 0.20),
-        (0.34, 0.62, 0.22),
-        (0.38, 0.65, 0.22),
-        (0.42, 0.58, 0.20),
-        (0.35, 0.52, 0.18),
-        (0.45, 0.55, 0.25),
-        (0.26, 0.48, 0.16), // mossy dark
-        (0.40, 0.60, 0.18), // warm meadow
-        (0.32, 0.58, 0.24), // lush green
-        (0.48, 0.52, 0.22), // dry patch
-    ];
-
-    let grass_caps: [Handle<StandardMaterial>; 12] = grass_shades.map(|(r, g, b)| {
-        materials.add(StandardMaterial {
-            base_color: Color::srgb(r, g, b),
-            ..default()
-        })
-    });
-
-    let make_vegetation_mat =
-        |mats: &mut Assets<StandardMaterial>, r: f32, g: f32, b: f32| -> Handle<StandardMaterial> {
-            mats.add(StandardMaterial {
-                base_color: Color::srgb(r, g, b),
-                cull_mode: None,
-                double_sided: true,
-                ..default()
-            })
-        };
-
-    let grass_tuft_mat = make_vegetation_mat(&mut materials, 0.25, 0.55, 0.15);
-    let grass_tall_mat = make_vegetation_mat(&mut materials, 0.20, 0.50, 0.12);
-    let grass_blade_mat = make_vegetation_mat(&mut materials, 0.22, 0.48, 0.14);
-
-    let flower_mats: [Handle<StandardMaterial>; 4] = [
-        make_vegetation_mat(&mut materials, 0.95, 0.95, 0.90), // white daisy
-        make_vegetation_mat(&mut materials, 0.90, 0.55, 0.65), // pink
-        make_vegetation_mat(&mut materials, 0.85, 0.35, 0.45), // rose
-        make_vegetation_mat(&mut materials, 0.95, 0.85, 0.30), // yellow
-    ];
-
-    let grass_tuft_mesh = meshes.add(make_grass_mesh(0.15, 0.25));
-    let grass_tall_mesh = meshes.add(make_grass_mesh(0.10, 0.45));
-    let grass_blade_mesh = meshes.add(make_blade_mesh(0.08, 0.35));
-    let flower_mesh = meshes.add(make_grass_mesh(0.08, 0.12));
-
-    // Tree materials with procedural pixel-art textures
-    let bark_img = images.add(make_bark_texture());
-    let tree_trunk_mat = materials.add(StandardMaterial {
-        base_color_texture: Some(bark_img),
+fn setup_tile_materials(mut commands: Commands, mut materials: ResMut<Assets<StandardMaterial>>) {
+    let chunk_body_mat = materials.add(StandardMaterial {
+        base_color: Color::WHITE,
         ..default()
     });
-    let tree_canopy_mats: [Handle<StandardMaterial>; 3] = [0u32, 1, 2].map(|v| {
-        let img = images.add(make_leaf_texture(v));
-        materials.add(StandardMaterial {
-            base_color_texture: Some(img),
-            ..default()
-        })
+    let chunk_cap_mat = materials.add(StandardMaterial {
+        base_color: Color::WHITE,
+        ..default()
     });
-    let tree_trunk_mesh = meshes.add(Cuboid::new(0.15, 0.7, 0.15));
-    let tree_canopy_mesh = meshes.add(Cuboid::new(0.55, 0.45, 0.55));
+    let chunk_veg_mat = materials.add(StandardMaterial {
+        base_color: Color::WHITE,
+        cull_mode: None,
+        double_sided: true,
+        ..default()
+    });
 
     commands.insert_resource(TileMaterials {
-        cap: [
-            make_cap_pair(&mut materials, bands[0].0, bands[0].1, bands[0].2),
-            make_cap_pair(&mut materials, bands[1].0, bands[1].1, bands[1].2),
-            make_cap_pair(&mut materials, bands[2].0, bands[2].1, bands[2].2),
-            make_cap_pair(&mut materials, bands[3].0, bands[3].1, bands[3].2),
-        ],
-        body: [
-            make_body(&mut materials, bands[0].0, bands[0].1, bands[0].2),
-            make_body(&mut materials, bands[1].0, bands[1].1, bands[1].2),
-            make_body(&mut materials, bands[2].0, bands[2].1, bands[2].2),
-            make_body(&mut materials, bands[3].0, bands[3].1, bands[3].2),
-        ],
-        grass_caps,
-        grass_tuft_mat,
-        grass_tall_mat,
-        grass_blade_mat,
-        grass_tuft_mesh,
-        grass_tall_mesh,
-        grass_blade_mesh,
-        flower_mats,
-        flower_mesh,
-        tree_trunk_mat,
-        tree_canopy_mats,
-        tree_trunk_mesh,
-        tree_canopy_mesh,
+        chunk_body_mat,
+        chunk_cap_mat,
+        chunk_veg_mat,
     });
 }
 
 fn spawn_lighting(mut commands: Commands) {
-    // Ambient light
     commands.insert_resource(GlobalAmbientLight {
         color: Color::WHITE,
         brightness: 200.0,
         ..default()
     });
-
-    // Shadow map resolution
     commands.insert_resource(DirectionalLightShadowMap { size: 4096 });
-
-    // Directional light (sun)
     commands.spawn((
         DirectionalLight {
             illuminance: 6000.0,
@@ -356,7 +468,10 @@ fn spawn_lighting(mut commands: Commands) {
     ));
 }
 
-/// Spawn/despawn tile entities based on terrain chunk updates.
+// ---------------------------------------------------------------------------
+// Chunk spawn / despawn (combined meshes + compound collider)
+// ---------------------------------------------------------------------------
+
 fn process_chunk_spawns_and_despawns(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -376,13 +491,15 @@ fn process_chunk_spawns_and_despawns(
         }
     }
 
-    // Find the player's chunk so we can prioritize nearby chunks for colliders
+    // Rate-limiting: always spawn player's chunk + neighbors immediately,
+    // rate-limit distant chunks to avoid frame spikes.
     let player_chunk = player_query.single().ok().map(|tf| {
-        TerrainMap::tile_to_chunk(tf.translation.x.round() as i32, tf.translation.z.round() as i32)
+        TerrainMap::tile_to_chunk(
+            tf.translation.x.round() as i32,
+            tf.translation.z.round() as i32,
+        )
     });
 
-    // Spawn chunks — always spawn player's chunk + neighbors immediately,
-    // rate-limit distant chunks to avoid frame spikes.
     #[cfg(target_arch = "wasm32")]
     const MAX_DISTANT_SPAWNS: usize = 1;
     #[cfg(not(target_arch = "wasm32"))]
@@ -394,28 +511,47 @@ fn process_chunk_spawns_and_despawns(
         let is_near = player_chunk
             .map(|(pcx, pcz)| (cx - pcx).abs() <= 1 && (cz - pcz).abs() <= 1)
             .unwrap_or(true);
-        if is_near { near.push((cx, cz)); } else { far.push((cx, cz)); }
+        if is_near {
+            near.push((cx, cz));
+        } else {
+            far.push((cx, cz));
+        }
     }
-    // Near chunks: always spawn (player needs colliders)
-    // Far chunks: rate-limit (terrain system re-queues un-spawned ones next frame)
     far.truncate(MAX_DISTANT_SPAWNS);
     let mut spawns = near;
     spawns.extend(far);
+
     for (cx, cz) in &spawns {
         let mut entities = Vec::new();
         let base_x = cx * CHUNK_SIZE;
         let base_z = cz * CHUNK_SIZE;
+
+        // ---- Build combined body, cap, vegetation meshes + compound collider ----
+        let tile_count = (CHUNK_SIZE * CHUNK_SIZE) as usize;
+        let mut body_pos = Vec::with_capacity(tile_count * 24);
+        let mut body_nor = Vec::with_capacity(tile_count * 24);
+        let mut body_col = Vec::with_capacity(tile_count * 24);
+        let mut body_idx = Vec::with_capacity(tile_count * 36);
+
+        let mut cap_pos = Vec::with_capacity(tile_count * 24);
+        let mut cap_nor = Vec::with_capacity(tile_count * 24);
+        let mut cap_col = Vec::with_capacity(tile_count * 24);
+        let mut cap_idx = Vec::with_capacity(tile_count * 36);
+
+        let mut veg_pos: Vec<[f32; 3]> = Vec::new();
+        let mut veg_nor: Vec<[f32; 3]> = Vec::new();
+        let mut veg_col: Vec<[f32; 4]> = Vec::new();
+        let mut veg_idx: Vec<u32> = Vec::new();
+
+        let mut collider_shapes: Vec<(Vec3, Quat, Collider)> = Vec::with_capacity(tile_count);
 
         for dx in 0..CHUNK_SIZE {
             for dz in 0..CHUNK_SIZE {
                 let tx = base_x + dx;
                 let tz = base_z + dz;
                 let h = terrain.height_at(tx, tz);
-
-                // Minimum column height so ground-level tiles are still visible
                 let column_h = h.max(0.5);
 
-                // Height band index
                 let band = match h as i32 {
                     0..=1 => 0,
                     2..=3 => 1,
@@ -423,25 +559,40 @@ fn process_chunk_spawns_and_despawns(
                     _ => 3,
                 };
 
-                // --- Body (tall column, darker cliff faces) ---
-                let body_h = column_h - CAP_HEIGHT;
-                let body_mesh = meshes.add(Cuboid::new(TILE_SIZE, body_h, TILE_SIZE));
-                let body_entity = commands
-                    .spawn((
-                        Mesh3d(body_mesh),
-                        MeshMaterial3d(tile_materials.body[band].clone()),
-                        Transform::from_xyz(
-                            tx as f32 * TILE_SIZE,
-                            body_h / 2.0,
-                            tz as f32 * TILE_SIZE,
-                        ),
-                        RigidBody::Fixed,
-                        Collider::cuboid(TILE_SIZE / 2.0, body_h / 2.0, TILE_SIZE / 2.0),
-                    ))
-                    .id();
-                entities.push(body_entity);
+                // Chunk-local position
+                let lx = dx as f32 * TILE_SIZE;
+                let lz = dz as f32 * TILE_SIZE;
 
-                // --- Cap (thin bright top surface) ---
+                // --- Body column (face-culled: skip top/bottom + hidden sides) ---
+                let body_h = column_h - CAP_HEIGHT;
+                let mut nb = |ntx: i32, ntz: i32| -> f32 {
+                    terrain.height_at(ntx, ntz).max(0.5) - CAP_HEIGHT
+                };
+                push_terrain_body(
+                    &mut body_pos,
+                    &mut body_nor,
+                    &mut body_col,
+                    &mut body_idx,
+                    Vec3::new(lx, body_h / 2.0, lz),
+                    Vec3::new(TILE_SIZE / 2.0, body_h / 2.0, TILE_SIZE / 2.0),
+                    body_vertex_color(band),
+                    body_h,
+                    [
+                        nb(tx + 1, tz),
+                        nb(tx - 1, tz),
+                        nb(tx, tz + 1),
+                        nb(tx, tz - 1),
+                    ],
+                );
+
+                // Collider sub-shape (relative to chunk entity)
+                collider_shapes.push((
+                    Vec3::new(lx, body_h / 2.0, lz),
+                    Quat::IDENTITY,
+                    Collider::cuboid(TILE_SIZE / 2.0, body_h / 2.0, TILE_SIZE / 2.0),
+                ));
+
+                // --- Cap cuboid (with edge insets) ---
                 let inset = |nh: f32| if h - nh >= 1.0 { EDGE_INSET } else { 0.0 };
                 let inset_nx = inset(terrain.height_at(tx - 1, tz));
                 let inset_px = inset(terrain.height_at(tx + 1, tz));
@@ -453,43 +604,28 @@ fn process_chunk_spawns_and_despawns(
                 let cap_offset_x = (inset_nx - inset_px) / 2.0;
                 let cap_offset_z = (inset_nz - inset_pz) / 2.0;
 
-                // Grass band: use noise-varied shade; others: checkerboard
-                let cap_material = if band == 0 {
-                    let shade_idx = (hash2d(tx + 1337, tz) * 12.0) as usize % 12;
-                    tile_materials.grass_caps[shade_idx].clone()
-                } else {
-                    let checker = ((tx + tz) & 1) as usize;
-                    tile_materials.cap[band][checker].clone()
-                };
+                push_cuboid(
+                    &mut cap_pos,
+                    &mut cap_nor,
+                    &mut cap_col,
+                    &mut cap_idx,
+                    Vec3::new(
+                        lx + cap_offset_x,
+                        body_h + CAP_HEIGHT / 2.0 + 0.001,
+                        lz + cap_offset_z,
+                    ),
+                    Vec3::new(cap_w / 2.0, CAP_HEIGHT / 2.0, cap_d / 2.0),
+                    cap_vertex_color(band, tx, tz),
+                );
 
-                let cap_mesh = meshes.add(Cuboid::new(cap_w, CAP_HEIGHT, cap_d));
-                let cap_entity = commands
-                    .spawn((
-                        Mesh3d(cap_mesh),
-                        MeshMaterial3d(cap_material),
-                        Transform::from_xyz(
-                            tx as f32 * TILE_SIZE + cap_offset_x,
-                            body_h + CAP_HEIGHT / 2.0,
-                            tz as f32 * TILE_SIZE + cap_offset_z,
-                        ),
-                        Tile {
-                            x: tx,
-                            z: tz,
-                            height: h,
-                        },
-                    ))
-                    .id();
-                entities.push(cap_entity);
-
-                // --- Grass pieces (multiple per tile with variety) ---
-                // kind: 0=tuft, 1=tall, 2=blade, 3=flower
+                // --- Vegetation (grass band only) ---
                 if band == 0 {
                     let grass_slots: [(i32, i32, f32, u8); 5] = [
-                        (7919, 3571, 0.40, 0), // short tuft ~40%
-                        (2131, 8461, 0.18, 1), // tall grass ~18%
-                        (4253, 6173, 0.25, 0), // short tuft ~25%
-                        (6091, 1429, 0.30, 2), // blade grass ~30%
-                        (9371, 2749, 0.08, 3), // flower ~8%
+                        (7919, 3571, 0.40, 0),
+                        (2131, 8461, 0.18, 1),
+                        (4253, 6173, 0.25, 0),
+                        (6091, 1429, 0.30, 2),
+                        (9371, 2749, 0.08, 3),
                     ];
 
                     for (seed_x, seed_z, density, kind) in grass_slots {
@@ -503,61 +639,85 @@ fn process_chunk_spawns_and_despawns(
 
                         let jx = (hash2d(tx + seed_x + 100, tz + seed_z) - 0.5) * 0.85;
                         let jz = (hash2d(tx + seed_x, tz + seed_z + 100) - 0.5) * 0.85;
-
                         let scale_noise = hash2d(tx + seed_x + 200, tz + seed_z + 200);
                         let scale = 0.7 + scale_noise * 0.7;
-
-                        let wind_phase = noise * std::f32::consts::TAU;
                         let rot_y =
                             hash2d(tx + seed_x + 300, tz + seed_z + 300) * std::f32::consts::TAU;
 
-                        let (mesh, mat, y_offset) = match kind {
-                            1 => (
-                                tile_materials.grass_tall_mesh.clone(),
-                                tile_materials.grass_tall_mat.clone(),
-                                0.0,
-                            ),
-                            2 => (
-                                tile_materials.grass_blade_mesh.clone(),
-                                tile_materials.grass_blade_mat.clone(),
-                                0.0,
-                            ),
-                            3 => {
-                                let flower_idx = (hash2d(tx + seed_x + 400, tz) * 4.0) as usize % 4;
-                                (
-                                    tile_materials.flower_mesh.clone(),
-                                    tile_materials.flower_mats[flower_idx].clone(),
-                                    0.15, // raised on a stem
-                                )
+                        // World-space origin for this grass piece
+                        let y_offset = match kind {
+                            3 => 0.15,
+                            _ => 0.0,
+                        };
+                        let origin =
+                            Vec3::new(lx + jx, body_h + CAP_HEIGHT + y_offset + 0.002, lz + jz);
+
+                        let color = match kind {
+                            1 => srgb_color(VEG_GRASS_TALL.0, VEG_GRASS_TALL.1, VEG_GRASS_TALL.2),
+                            2 => {
+                                srgb_color(VEG_GRASS_BLADE.0, VEG_GRASS_BLADE.1, VEG_GRASS_BLADE.2)
                             }
-                            _ => (
-                                tile_materials.grass_tuft_mesh.clone(),
-                                tile_materials.grass_tuft_mat.clone(),
-                                0.0,
-                            ),
+                            3 => {
+                                let fi = (hash2d(tx + seed_x + 400, tz) * 4.0) as usize % 4;
+                                let (r, g, b) = VEG_FLOWER_COLORS[fi];
+                                srgb_color(r, g, b)
+                            }
+                            _ => srgb_color(VEG_GRASS_TUFT.0, VEG_GRASS_TUFT.1, VEG_GRASS_TUFT.2),
                         };
 
-                        let tuft = commands
-                            .spawn((
-                                Mesh3d(mesh),
-                                MeshMaterial3d(mat),
-                                Transform::from_xyz(
-                                    tx as f32 * TILE_SIZE + jx,
-                                    body_h + CAP_HEIGHT + y_offset,
-                                    tz as f32 * TILE_SIZE + jz,
-                                )
-                                .with_rotation(Quat::from_rotation_y(rot_y))
-                                .with_scale(Vec3::splat(scale)),
-                                GrassTuft {
-                                    wind_phase,
-                                    flatten: 0.0,
-                                },
-                            ))
-                            .id();
-                        entities.push(tuft);
+                        match kind {
+                            2 => push_blade(
+                                &mut veg_pos,
+                                &mut veg_nor,
+                                &mut veg_col,
+                                &mut veg_idx,
+                                origin,
+                                0.08,
+                                0.35,
+                                scale,
+                                rot_y,
+                                color,
+                            ),
+                            1 => push_crossed_planes(
+                                &mut veg_pos,
+                                &mut veg_nor,
+                                &mut veg_col,
+                                &mut veg_idx,
+                                origin,
+                                0.10,
+                                0.45,
+                                scale,
+                                rot_y,
+                                color,
+                            ),
+                            3 => push_crossed_planes(
+                                &mut veg_pos,
+                                &mut veg_nor,
+                                &mut veg_col,
+                                &mut veg_idx,
+                                origin,
+                                0.08,
+                                0.12,
+                                scale,
+                                rot_y,
+                                color,
+                            ),
+                            _ => push_crossed_planes(
+                                &mut veg_pos,
+                                &mut veg_nor,
+                                &mut veg_col,
+                                &mut veg_idx,
+                                origin,
+                                0.15,
+                                0.25,
+                                scale,
+                                rot_y,
+                                color,
+                            ),
+                        }
                     }
 
-                    // --- Tree (sparse, pixel-art textured) ---
+                    // --- Trees (individual entities for selectability) ---
                     let tree_noise = hash2d(tx + 11317, tz + 5471);
                     if tree_noise < 0.06 {
                         let trunk_h: f32 = 0.7;
@@ -566,38 +726,114 @@ fn process_chunk_spawns_and_despawns(
                         let jz = (hash2d(tx + 11317, tz + 5571) - 0.5) * 0.3;
                         let leaf_variant = (hash2d(tx + 11517, tz + 5671) * 3.0) as usize % 3;
 
-                        let trunk = commands
-                            .spawn((
-                                Mesh3d(tile_materials.tree_trunk_mesh.clone()),
-                                MeshMaterial3d(tile_materials.tree_trunk_mat.clone()),
-                                Transform::from_xyz(
-                                    tx as f32 * TILE_SIZE + jx,
-                                    body_h + CAP_HEIGHT + trunk_h / 2.0,
-                                    tz as f32 * TILE_SIZE + jz,
-                                ),
-                                RigidBody::Fixed,
-                                Collider::cuboid(0.075, trunk_h / 2.0, 0.075),
-                            ))
-                            .id();
-                        entities.push(trunk);
+                        let world_x = tx as f32 * TILE_SIZE + jx;
+                        let world_z = tz as f32 * TILE_SIZE + jz;
+                        let tree_base_y = column_h + 0.002;
 
-                        let canopy = commands
+                        // Build per-tree mesh (trunk + canopy cuboids with vertex colors)
+                        let mut tp = Vec::with_capacity(48);
+                        let mut tn = Vec::with_capacity(48);
+                        let mut tc = Vec::with_capacity(48);
+                        let mut ti = Vec::with_capacity(72);
+
+                        let (br, bg, bb) = TREE_BARK;
+                        push_cuboid(
+                            &mut tp,
+                            &mut tn,
+                            &mut tc,
+                            &mut ti,
+                            Vec3::new(0.0, trunk_h / 2.0, 0.0),
+                            Vec3::new(0.075, trunk_h / 2.0, 0.075),
+                            srgb_color(br, bg, bb),
+                        );
+
+                        let (cr, cg, cb) = TREE_CANOPY_COLORS[leaf_variant];
+                        push_cuboid(
+                            &mut tp,
+                            &mut tn,
+                            &mut tc,
+                            &mut ti,
+                            Vec3::new(0.0, trunk_h + canopy_h / 2.0, 0.0),
+                            Vec3::new(0.275, canopy_h / 2.0, 0.275),
+                            srgb_color(cr, cg, cb),
+                        );
+
+                        let tree_mesh = meshes.add(build_chunk_mesh(tp, tn, tc, ti));
+                        let tree_entity = commands
                             .spawn((
-                                Mesh3d(tile_materials.tree_canopy_mesh.clone()),
-                                MeshMaterial3d(
-                                    tile_materials.tree_canopy_mats[leaf_variant].clone(),
-                                ),
-                                Transform::from_xyz(
-                                    tx as f32 * TILE_SIZE + jx,
-                                    body_h + CAP_HEIGHT + trunk_h + canopy_h / 2.0,
-                                    tz as f32 * TILE_SIZE + jz,
-                                ),
+                                Mesh3d(tree_mesh),
+                                MeshMaterial3d(tile_materials.chunk_body_mat.clone()),
+                                Transform::from_xyz(world_x, tree_base_y, world_z),
+                                RigidBody::Fixed,
+                                Collider::compound(vec![
+                                    (
+                                        Vec3::new(0.0, trunk_h / 2.0, 0.0),
+                                        Quat::IDENTITY,
+                                        Collider::cuboid(0.075, trunk_h / 2.0, 0.075),
+                                    ),
+                                    (
+                                        Vec3::new(0.0, trunk_h + canopy_h / 2.0, 0.0),
+                                        Quat::IDENTITY,
+                                        Collider::cuboid(0.275, canopy_h / 2.0, 0.275),
+                                    ),
+                                ]),
+                                Occludable,
+                                OriginalEmissive(LinearRgba::BLACK),
+                                HoverOutline {
+                                    half_extents: Vec3::new(
+                                        0.275,
+                                        (trunk_h + canopy_h) / 2.0,
+                                        0.275,
+                                    ),
+                                },
                             ))
+                            .observe(on_pointer_over)
+                            .observe(on_pointer_out)
                             .id();
-                        entities.push(canopy);
+                        entities.push(tree_entity);
                     }
                 }
             }
+        }
+
+        // Spawn body entity (combined mesh + compound collider)
+        let body_mesh = meshes.add(build_chunk_mesh(body_pos, body_nor, body_col, body_idx));
+        let body_entity = commands
+            .spawn((
+                Mesh3d(body_mesh),
+                MeshMaterial3d(tile_materials.chunk_body_mat.clone()),
+                Transform::from_xyz(base_x as f32 * TILE_SIZE, 0.0, base_z as f32 * TILE_SIZE),
+                Pickable::IGNORE,
+                RigidBody::Fixed,
+                Collider::compound(collider_shapes),
+            ))
+            .id();
+        entities.push(body_entity);
+
+        // Spawn cap entity (combined mesh, no collider)
+        let cap_mesh = meshes.add(build_chunk_mesh(cap_pos, cap_nor, cap_col, cap_idx));
+        let cap_entity = commands
+            .spawn((
+                Mesh3d(cap_mesh),
+                MeshMaterial3d(tile_materials.chunk_cap_mat.clone()),
+                Transform::from_xyz(base_x as f32 * TILE_SIZE, 0.0, base_z as f32 * TILE_SIZE),
+                Pickable::IGNORE,
+            ))
+            .id();
+        entities.push(cap_entity);
+
+        // Spawn vegetation entity (combined crossed-plane mesh)
+        if !veg_pos.is_empty() {
+            let veg_mesh = meshes.add(build_chunk_mesh(veg_pos, veg_nor, veg_col, veg_idx));
+            let veg_entity = commands
+                .spawn((
+                    Mesh3d(veg_mesh),
+                    MeshMaterial3d(tile_materials.chunk_veg_mat.clone()),
+                    Transform::from_xyz(base_x as f32 * TILE_SIZE, 0.0, base_z as f32 * TILE_SIZE),
+                    Pickable::IGNORE,
+                ))
+                .id();
+            entities.push(veg_entity);
         }
 
         terrain.link_chunk_entities(*cx, *cz, entities);
