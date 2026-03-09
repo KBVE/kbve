@@ -19,22 +19,22 @@ export function ToastItem({ toast, onDismiss }: ToastItemProps) {
 	return (
 		<div
 			className={`
-				pointer-events-auto mb-2 px-3 py-2.5 min-w-[220px] max-w-[320px]
-				bg-glass backdrop-blur-[4px] rounded-toast shadow-toast
-				border border-glass-border border-l-4 ${borderClass}
+				pointer-events-auto mb-2 px-3 py-2 min-w-[220px] max-w-[320px]
+				bg-panel shadow-toast
+				border-2 border-panel-border border-l-4 ${borderClass}
 				${toast.exiting ? 'animate-toast-out' : 'animate-toast-in'}
 				flex items-start gap-2
 			`}
 			onAnimationEnd={() => {
 				if (toast.exiting) onDismiss(toast.id);
 			}}>
-			<span className="text-[13px] leading-snug flex-1">
+			<span className="text-[8px] leading-relaxed flex-1">
 				{toast.message}
 			</span>
 			<button
 				onClick={() => onDismiss(toast.id)}
-				className="text-white/50 hover:text-white text-sm leading-none mt-0.5 cursor-pointer">
-				&times;
+				className="text-text-muted hover:text-text text-[8px] leading-none mt-0.5 cursor-pointer">
+				&#x2715;
 			</button>
 		</div>
 	);

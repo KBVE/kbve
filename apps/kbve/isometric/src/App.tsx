@@ -7,7 +7,7 @@ function App() {
 	useObjectSelection();
 
 	return (
-		<div className="fixed inset-0 pointer-events-none font-game text-white">
+		<div className="fixed inset-0 pointer-events-none font-game text-text rpg-text-shadow">
 			<FPSCounter />
 			<HUD />
 			<Inventory />

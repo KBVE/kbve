@@ -1,40 +1,75 @@
 @import 'tailwindcss';
 
 @theme {
-	/* --- Game Color Palette --- */
+	/* --- RPG Panel Colors --- */
+	--color-panel: #2b1d0e;
+	--color-panel-inner: #3d2b14;
+	--color-panel-border: #8b6914;
+	--color-panel-border-dark: #5a4a2a;
+
+	/* --- Glass (kept for HUD, FPS, Toasts) --- */
 	--color-glass: oklch(0% 0 0 / 0.55);
 	--color-glass-light: oklch(100% 0 0 / 0.08);
 	--color-glass-border: oklch(100% 0 0 / 0.15);
 	--color-glass-hover: oklch(100% 0 0 / 0.12);
 
-	--color-hp: oklch(55% 0.2 25);
-	--color-mp: oklch(55% 0.18 250);
-	--color-xp: oklch(70% 0.18 145);
+	/* --- RPG Button Colors --- */
+	--color-btn: #4a7a3a;
+	--color-btn-hover: #5a9a4a;
+	--color-btn-active: #3a6a2a;
+	--color-btn-border: #2d5a1f;
 
-	--color-toast-info: oklch(65% 0.15 250);
-	--color-toast-success: oklch(65% 0.18 145);
-	--color-toast-warning: oklch(75% 0.18 80);
-	--color-toast-error: oklch(55% 0.2 25);
-	--color-toast-loot: oklch(75% 0.18 85);
+	/* --- RPG Text Colors --- */
+	--color-text: #e8d8b8;
+	--color-text-muted: #a89878;
 
-	--color-overlay: oklch(0% 0 0 / 0.6);
+	/* --- Stat Bars --- */
+	--color-hp: #b83030;
+	--color-mp: #3060b8;
+	--color-xp: #4a7a3a;
+
+	/* --- Toast Severity --- */
+	--color-toast-info: #3060b8;
+	--color-toast-success: #4a7a3a;
+	--color-toast-warning: #b89030;
+	--color-toast-error: #b83030;
+	--color-toast-loot: #c8a832;
+
+	/* --- Overlay --- */
+	--color-overlay: rgba(0, 0, 0, 0.7);
+
+	/* --- Slot --- */
+	--color-slot: #1e1408;
+	--color-slot-border: #5a4a2a;
 
 	/* --- Shadows --- */
+	--shadow-panel:
+		inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 12px rgba(0, 0, 0, 0.6);
 	--shadow-glass: 0 4px 16px oklch(0% 0 0 / 0.3);
-	--shadow-toast: 0 2px 8px oklch(0% 0 0 / 0.4);
+	--shadow-toast: 0 2px 8px rgba(0, 0, 0, 0.5);
 
 	/* --- Border Radius --- */
-	--radius-panel: 8px;
-	--radius-slot: 4px;
-	--radius-toast: 6px;
+	--radius-panel: 0px;
+	--radius-slot: 0px;
+	--radius-toast: 0px;
+	--radius-glass: 6px;
 
 	/* --- Font --- */
-	--font-game: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	--font-game: 'Press Start 2P', monospace;
 
-	/* --- Animation Durations --- */
+	/* --- Animations --- */
 	--animate-toast-in: toast-slide-in 300ms ease-out forwards;
 	--animate-toast-out: toast-slide-out 200ms ease-in forwards;
 	--animate-modal-in: modal-fade-in 200ms ease-out forwards;
+}
+
+/* RPG pixel-art text outline */
+.rpg-text-shadow {
+	text-shadow:
+		-1px 0 #000,
+		0 1px #000,
+		1px 0 #000,
+		0 -1px #000;
 }
 
 @keyframes toast-slide-in {
