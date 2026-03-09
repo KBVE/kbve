@@ -4,6 +4,12 @@
 	"projectType": "application",
 	"sourceRoot": "apps/kbve/isometric",
 	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": ["apps/kbve/isometric/src/**/*.{ts,tsx}"]
+			}
+		},
 		"dev": {
 			"executor": "nx:run-commands",
 			"options": {

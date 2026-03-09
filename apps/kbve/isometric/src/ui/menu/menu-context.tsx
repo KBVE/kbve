@@ -32,9 +32,9 @@ function menuReducer(state: MenuState, action: MenuAction): MenuState {
 
 // --- Contexts (split) ---
 export const MenuStateContext = createContext<MenuState>(initialState);
-export const MenuDispatchContext = createContext<Dispatch<MenuAction>>(
-	() => {},
-);
+export const MenuDispatchContext = createContext<Dispatch<MenuAction>>(() => {
+	/* noop default */
+});
 
 // --- Provider ---
 export function MenuProvider({ children }: { children: ReactNode }) {

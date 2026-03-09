@@ -12,6 +12,7 @@ class EventBus<TMap extends { [key: string]: unknown }> {
 		if (!this.listeners.has(event)) {
 			this.listeners.set(event, new Set());
 		}
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const set = this.listeners.get(event)!;
 		const fn = listener as Listener<never>;
 		set.add(fn);
