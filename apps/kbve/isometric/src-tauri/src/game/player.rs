@@ -60,7 +60,9 @@ impl Plugin for PlayerPlugin {
         app.add_systems(Startup, spawn_player);
         app.add_systems(
             Update,
-            (move_player, sync_player_state).chain().in_set(PlayerMovement),
+            (move_player, sync_player_state)
+                .chain()
+                .in_set(PlayerMovement),
         );
         app.add_systems(
             PostUpdate,
@@ -119,7 +121,14 @@ fn spawn_player(
 fn move_player(
     keyboard: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
-    mut query: Query<(&mut KinematicCharacterController, &mut PlayerPhysics, &Transform), With<Player>>,
+    mut query: Query<
+        (
+            &mut KinematicCharacterController,
+            &mut PlayerPhysics,
+            &Transform,
+        ),
+        With<Player>,
+    >,
 ) {
     for (mut controller, mut physics, transform) in &mut query {
         // WASD isometric directions
@@ -201,7 +210,10 @@ fn process_player_physics_output(
 // State sync
 // ---------------------------------------------------------------------------
 
-fn sync_player_state(query: Query<&Transform, With<Player>>, mut player_state: ResMut<PlayerState>) {
+fn sync_player_state(
+    query: Query<&Transform, With<Player>>,
+    mut player_state: ResMut<PlayerState>,
+) {
     if let Ok(transform) = query.single() {
         let pos = transform.translation;
         player_state.position = [pos.x, pos.y, pos.z];
