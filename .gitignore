@@ -3,6 +3,7 @@
 # 04-23-2025
 
 **/dev-dist/
+**/wasm-pkg/
 
 # Rust build artifacts
 **/target/
