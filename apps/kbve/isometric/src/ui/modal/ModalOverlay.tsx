@@ -15,7 +15,7 @@ export function ModalOverlay() {
 
 	return createPortal(
 		<div
-			className="fixed inset-0 bg-overlay backdrop-blur-[8px] flex items-center justify-center pointer-events-auto"
+			className="fixed inset-0 bg-overlay flex items-center justify-center pointer-events-auto"
 			onClick={() => {
 				if (topModal.closeOnOverlayClick !== false) {
 					dispatch({ type: 'CLOSE' });
@@ -24,21 +24,23 @@ export function ModalOverlay() {
 			<div
 				className={`
 					${sizeClass} w-full mx-4
-					bg-glass backdrop-blur-[4px] rounded-panel border border-glass-border shadow-glass
+					bg-panel border-2 border-panel-border shadow-panel
 					animate-modal-in
 				`}
 				onClick={(e) => e.stopPropagation()}>
 				{/* Title bar */}
-				<div className="flex items-center justify-between px-4 py-3 border-b border-glass-border">
-					<h2 className="text-sm font-semibold">{topModal.title}</h2>
+				<div className="flex items-center justify-between px-3 py-2 border-b-2 border-panel-border bg-panel-inner">
+					<h2 className="text-[10px]">{topModal.title}</h2>
 					<button
 						onClick={() => dispatch({ type: 'CLOSE' })}
-						className="text-white/50 hover:text-white text-lg leading-none cursor-pointer">
-						&times;
+						className="text-text-muted hover:text-text text-[10px] leading-none cursor-pointer">
+						&#x2715;
 					</button>
 				</div>
 				{/* Content */}
-				<div className="p-4">{topModal.content}</div>
+				<div className="p-3 bg-panel-inner text-[8px]">
+					{topModal.content}
+				</div>
 			</div>
 		</div>,
 		getPortalRoot('modal-root'),

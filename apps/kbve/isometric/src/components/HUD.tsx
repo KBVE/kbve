@@ -30,7 +30,7 @@ export function HUD() {
 	if (!state) return null;
 
 	return (
-		<GlassPanel className="absolute bottom-4 left-4 px-4 py-3">
+		<GlassPanel className="absolute bottom-4 left-4 px-3 py-2">
 			<ProgressBar
 				label="HP"
 				value={state.health}
@@ -43,7 +43,7 @@ export function HUD() {
 				max={state.max_mana}
 				color="bg-mp"
 			/>
-			<div className="text-[10px] opacity-60 mt-1">
+			<div className="text-[7px] text-text-muted mt-1">
 				Pos: {state.position.map((v) => v.toFixed(1)).join(', ')}
 			</div>
 		</GlassPanel>

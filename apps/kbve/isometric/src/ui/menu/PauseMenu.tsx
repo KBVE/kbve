@@ -16,10 +16,8 @@ function SettingsContent({ category }: { category: SettingsCategory }) {
 		case 'general':
 			return (
 				<div className="space-y-3">
-					<h3 className="text-sm font-semibold mb-2">
-						General Settings
-					</h3>
-					<div className="text-[13px] text-white/60">
+					<h3 className="text-[9px] mb-2">General Settings</h3>
+					<div className="text-[8px] text-text-muted">
 						Game settings will be added here.
 					</div>
 				</div>
@@ -27,10 +25,8 @@ function SettingsContent({ category }: { category: SettingsCategory }) {
 		case 'audio':
 			return (
 				<div className="space-y-3">
-					<h3 className="text-sm font-semibold mb-2">
-						Audio Settings
-					</h3>
-					<div className="text-[13px] text-white/60">
+					<h3 className="text-[9px] mb-2">Audio Settings</h3>
+					<div className="text-[8px] text-text-muted">
 						Volume controls will be added here.
 					</div>
 				</div>
@@ -38,10 +34,8 @@ function SettingsContent({ category }: { category: SettingsCategory }) {
 		case 'video':
 			return (
 				<div className="space-y-3">
-					<h3 className="text-sm font-semibold mb-2">
-						Video Settings
-					</h3>
-					<div className="text-[13px] text-white/60">
+					<h3 className="text-[9px] mb-2">Video Settings</h3>
+					<div className="text-[8px] text-text-muted">
 						Resolution and display options will be added here.
 					</div>
 				</div>
@@ -49,8 +43,8 @@ function SettingsContent({ category }: { category: SettingsCategory }) {
 		case 'controls':
 			return (
 				<div className="space-y-3">
-					<h3 className="text-sm font-semibold mb-2">Controls</h3>
-					<div className="text-[13px] text-white/60 space-y-1">
+					<h3 className="text-[9px] mb-2">Controls</h3>
+					<div className="text-[8px] text-text-muted space-y-1">
 						<div>W / A / S / D — Move</div>
 						<div>Space — Jump</div>
 						<div>Escape — Toggle Menu</div>
@@ -67,22 +61,22 @@ export function PauseMenu() {
 	if (!isOpen) return null;
 
 	return createPortal(
-		<div className="fixed inset-0 bg-overlay backdrop-blur-[8px] flex items-center justify-center pointer-events-auto">
-			<div className="bg-glass backdrop-blur-[4px] rounded-panel border border-glass-border shadow-glass w-full max-w-lg mx-4 animate-modal-in">
+		<div className="fixed inset-0 bg-overlay flex items-center justify-center pointer-events-auto">
+			<div className="bg-panel border-2 border-panel-border shadow-panel w-full max-w-lg mx-4 animate-modal-in">
 				{/* Header */}
-				<div className="flex items-center justify-between px-4 py-3 border-b border-glass-border">
-					<h2 className="text-sm font-semibold">Settings</h2>
+				<div className="flex items-center justify-between px-3 py-2 border-b-2 border-panel-border bg-panel-inner">
+					<h2 className="text-[10px]">Settings</h2>
 					<button
 						onClick={() => dispatch({ type: 'CLOSE' })}
-						className="text-white/50 hover:text-white text-lg leading-none cursor-pointer">
-						&times;
+						className="text-text-muted hover:text-text text-[10px] leading-none cursor-pointer">
+						&#x2715;
 					</button>
 				</div>
 
 				{/* Body: sidebar + content */}
 				<div className="flex min-h-[240px]">
 					{/* Sidebar */}
-					<div className="w-32 border-r border-glass-border p-2 flex flex-col gap-1">
+					<div className="w-32 border-r-2 border-panel-border p-2 flex flex-col gap-1 bg-panel-inner">
 						{CATEGORIES.map(({ key, label }) => (
 							<button
 								key={key}
@@ -93,8 +87,8 @@ export function PauseMenu() {
 									})
 								}
 								className={`
-									text-left text-[13px] px-3 py-1.5 rounded-slot cursor-pointer transition-colors
-									${activeCategory === key ? 'bg-glass-light text-white' : 'text-white/60 hover:text-white hover:bg-glass-hover'}
+									text-left text-[8px] px-3 py-1.5 cursor-pointer transition-colors
+									${activeCategory === key ? 'bg-btn text-text' : 'text-text-muted hover:text-text hover:bg-btn/30'}
 								`}>
 								{label}
 							</button>
@@ -102,16 +96,16 @@ export function PauseMenu() {
 					</div>
 
 					{/* Content */}
-					<div className="flex-1 p-4">
+					<div className="flex-1 p-4 bg-panel-inner">
 						<SettingsContent category={activeCategory} />
 					</div>
 				</div>
 
 				{/* Footer */}
-				<div className="flex justify-end px-4 py-3 border-t border-glass-border">
+				<div className="flex justify-end px-3 py-2 border-t-2 border-panel-border bg-panel-inner">
 					<button
 						onClick={() => dispatch({ type: 'CLOSE' })}
-						className="px-4 py-1.5 text-[13px] bg-glass-light border border-glass-border rounded-slot hover:bg-glass-hover cursor-pointer transition-colors">
+						className="px-4 py-1.5 text-[8px] bg-btn border border-btn-border hover:bg-btn-hover cursor-pointer transition-colors text-text">
 						Resume
 					</button>
 				</div>

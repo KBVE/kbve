@@ -47,6 +47,11 @@ spec:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: db-url
+                      - name: SUPABASE_DB_URL_RO
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: db-url-ro
                       - name: HCAPTCHA_SECRET
                         valueFrom:
                             secretKeyRef:
