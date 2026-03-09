@@ -6,7 +6,9 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 use super::player::Player;
-use super::scene_objects::{HoverOutline, on_pointer_out, on_pointer_over};
+use super::scene_objects::{
+    HoverOutline, Interactable, InteractableKind, on_pointer_out, on_pointer_over,
+};
 use super::terrain::{CHUNK_SIZE, TerrainMap, hash2d};
 
 pub const TILE_SIZE: f32 = 1.0;
@@ -781,6 +783,9 @@ fn process_chunk_spawns_and_despawns(
                                         (trunk_h + canopy_h) / 2.0,
                                         0.275,
                                     ),
+                                },
+                                Interactable {
+                                    kind: InteractableKind::Tree,
                                 },
                             ))
                             .observe(on_pointer_over)
