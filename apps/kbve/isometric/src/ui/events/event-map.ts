@@ -2,6 +2,13 @@ import type { ReactNode } from 'react';
 
 export type ToastSeverity = 'info' | 'success' | 'warning' | 'error' | 'loot';
 
+export type InteractableKind =
+	| 'tree'
+	| 'crate'
+	| 'crystal'
+	| 'pillar'
+	| 'sphere';
+
 export type GameEventMap = {
 	// Toast events
 	'toast:show': {
@@ -32,6 +39,13 @@ export type GameEventMap = {
 	'game:item-pickup': { name: string; quantity: number };
 	'game:achievement': { title: string; description: string };
 	'game:death': void;
+
+	// Object selection (from Bevy game via snapshot polling)
+	'game:object-selected': {
+		kind: InteractableKind;
+		position: [number, number, number];
+		entity_id: number;
+	};
 
 	// Settings
 	'settings:changed': { key: string; value: unknown };

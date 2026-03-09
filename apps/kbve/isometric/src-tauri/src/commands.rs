@@ -1,10 +1,13 @@
 use crate::AVERAGE_FRAME_RATE;
 use crate::game::object_registry::get_registry_snapshot;
+use crate::game::scene_objects::get_selected_snapshot;
 use crate::game::state::get_player_snapshot;
 use std::sync::atomic::Ordering;
 
 #[cfg(not(target_arch = "wasm32"))]
 use crate::game::object_registry::ObjectRegistrySnapshot;
+#[cfg(not(target_arch = "wasm32"))]
+use crate::game::scene_objects::SelectedObject;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::game::state::PlayerState;
 
@@ -28,6 +31,12 @@ pub fn get_player_state() -> PlayerState {
 #[tauri::command]
 pub fn get_object_registry() -> Option<ObjectRegistrySnapshot> {
     get_registry_snapshot()
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn get_selected_object() -> Option<SelectedObject> {
+    get_selected_snapshot()
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -84,6 +93,12 @@ pub fn get_player_state_json() -> String {
 #[wasm_bindgen]
 pub fn get_object_registry_json() -> Option<String> {
     get_registry_snapshot().map(|s| serde_json::to_string(&s).unwrap_or_default())
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn get_selected_object_json() -> Option<String> {
+    get_selected_snapshot().map(|s| serde_json::to_string(&s).unwrap_or_default())
 }
 
 #[cfg(target_arch = "wasm32")]
