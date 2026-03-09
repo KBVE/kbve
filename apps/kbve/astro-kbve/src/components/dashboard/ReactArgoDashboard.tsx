@@ -876,9 +876,7 @@ export default function ReactArgoDashboard() {
 						<div
 							style={{
 								fontSize: '0.75rem',
-								color: errorReason
-									? 'rgba(252, 211, 77, 0.7)'
-									: 'rgba(252, 165, 165, 0.7)',
+								color: 'rgba(252, 211, 77, 0.7)',
 								paddingLeft: 24,
 							}}>
 							{errorReason === 'connection timed out'
