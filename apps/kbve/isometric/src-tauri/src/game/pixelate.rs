@@ -10,21 +10,44 @@ use bevy::shader::ShaderRef;
 pub struct PixelateSettings {
     /// Size of each pixel block (in logical pixels).
     pub pixel_size: f32,
-    /// Strength of normal-like edge outlines (0.0 = off, 1.0 = full).
-    pub edge_strength: f32,
-    /// Strength of depth-like edge outlines (0.0 = off, 1.0 = full).
-    pub depth_edge_strength: f32,
+    /// Strength of highlight edges from color-direction shifts (0.0 = off, 1.0 = full).
+    pub highlight_strength: f32,
+    /// Strength of shadow edges from luminance jumps (0.0 = off, 1.0 = full).
+    pub shadow_strength: f32,
     /// Window DPI scale factor (auto-updated from the window).
     pub scale_factor: f32,
+    /// How dark shadow edges get (0.0 = black, 1.0 = original color).
+    pub shadow_darkness: f32,
+    /// How bright highlight edges get (0.0 = no brightening, 1.0 = full white).
+    pub highlight_brightness: f32,
+    /// Smoothstep low threshold for normal (hue) edge detection.
+    pub normal_threshold_low: f32,
+    /// Smoothstep high threshold for normal (hue) edge detection.
+    pub normal_threshold_high: f32,
+    /// Smoothstep low threshold for depth (luminance) edge detection.
+    pub depth_threshold_low: f32,
+    /// Smoothstep high threshold for depth (luminance) edge detection.
+    pub depth_threshold_high: f32,
+    /// Suppresses highlights at hard depth edges to avoid double-lining.
+    pub artifact_suppression: f32,
+    pub _padding: f32,
 }
 
 impl Default for PixelateSettings {
     fn default() -> Self {
         Self {
             pixel_size: 2.0,
-            edge_strength: 0.3,
-            depth_edge_strength: 0.2,
+            highlight_strength: 0.6,
+            shadow_strength: 0.5,
             scale_factor: 1.0,
+            shadow_darkness: 0.3,
+            highlight_brightness: 0.35,
+            normal_threshold_low: 0.12,
+            normal_threshold_high: 0.40,
+            depth_threshold_low: 0.25,
+            depth_threshold_high: 0.65,
+            artifact_suppression: 1.0,
+            _padding: 0.0,
         }
     }
 }
