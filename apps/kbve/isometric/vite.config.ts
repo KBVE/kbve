@@ -10,6 +10,15 @@ export default defineConfig(async () => ({
 	plugins: [react(), tailwindcss(), wasm(), topLevelAwait()],
 	base: '/isometric/',
 	clearScreen: false,
+	build: {
+		rollupOptions: {
+			output: {
+				entryFileNames: 'assets/index.js',
+				chunkFileNames: 'assets/[name].js',
+				assetFileNames: 'assets/[name].[ext]',
+			},
+		},
+	},
 	server: {
 		port: 1420,
 		strictPort: true,

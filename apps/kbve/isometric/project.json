@@ -29,8 +29,8 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-					"rm -rf ../../astro-kbve/public/isometric",
-					"cp -r dist ../../astro-kbve/public/isometric"
+					"rm -rf ../astro-kbve/public/isometric",
+					"cp -r dist ../astro-kbve/public/isometric"
 				],
 				"cwd": "apps/kbve/isometric"
 			}

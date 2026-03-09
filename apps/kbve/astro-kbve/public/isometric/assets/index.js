@@ -18695,7 +18695,7 @@ async function __wbg_init(a) {
 				)),
 		a === void 0 &&
 			(a = new URL(
-				'/isometric/assets/isometric_game_bg-BPyPwmg1.wasm',
+				'/isometric/assets/isometric_game_bg.wasm',
 				import.meta.url,
 			));
 	const c = __wbg_get_imports();
