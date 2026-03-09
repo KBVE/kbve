@@ -19,7 +19,7 @@ export function ToastItem({ toast, onDismiss }: ToastItemProps) {
 	return (
 		<div
 			className={`
-				pointer-events-auto mb-2 px-3 py-2 min-w-[220px] max-w-[320px]
+				pointer-events-auto mb-2 px-3 py-2 md:px-4 md:py-3 min-w-[180px] md:min-w-[260px] max-w-[280px] md:max-w-[380px]
 				bg-panel shadow-toast
 				border-2 border-panel-border border-l-4 ${borderClass}
 				${toast.exiting ? 'animate-toast-out' : 'animate-toast-in'}
@@ -28,12 +28,12 @@ export function ToastItem({ toast, onDismiss }: ToastItemProps) {
 			onAnimationEnd={() => {
 				if (toast.exiting) onDismiss(toast.id);
 			}}>
-			<span className="text-[8px] leading-relaxed flex-1">
+			<span className="text-[8px] md:text-xs leading-relaxed flex-1">
 				{toast.message}
 			</span>
 			<button
 				onClick={() => onDismiss(toast.id)}
-				className="text-text-muted hover:text-text text-[8px] leading-none mt-0.5 cursor-pointer">
+				className="text-text-muted hover:text-text text-[8px] md:text-xs leading-none mt-0.5 cursor-pointer">
 				&#x2715;
 			</button>
 		</div>
