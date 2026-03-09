@@ -117,13 +117,28 @@ pub struct SelectedObject {
     pub sub_kind: Option<String>,
 }
 
+/// Snapshot of the currently hovered interactable (overwritten each frame).
+#[derive(Clone, Serialize, Deserialize)]
+pub struct HoveredObject {
+    pub kind: InteractableKind,
+    pub position: [f32; 3],
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sub_kind: Option<String>,
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 pub static SELECTED_OBJECT_SNAPSHOT: LazyLock<Mutex<Option<SelectedObject>>> =
+    LazyLock::new(|| Mutex::new(None));
+
+#[cfg(not(target_arch = "wasm32"))]
+pub static HOVERED_OBJECT_SNAPSHOT: LazyLock<Mutex<Option<HoveredObject>>> =
     LazyLock::new(|| Mutex::new(None));
 
 #[cfg(target_arch = "wasm32")]
 thread_local! {
     pub static SELECTED_OBJECT_SNAPSHOT_WASM: RefCell<Option<SelectedObject>> =
+        const { RefCell::new(None) };
+    pub static HOVERED_OBJECT_SNAPSHOT_WASM: RefCell<Option<HoveredObject>> =
         const { RefCell::new(None) };
 }
 
@@ -139,6 +154,18 @@ pub fn get_selected_snapshot() -> Option<SelectedObject> {
     }
 }
 
+/// Read the hovered object snapshot (peek — does not clear).
+pub fn get_hovered_snapshot() -> Option<HoveredObject> {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        HOVERED_OBJECT_SNAPSHOT.lock().unwrap().clone()
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        HOVERED_OBJECT_SNAPSHOT_WASM.with(|cell| cell.borrow().clone())
+    }
+}
+
 pub struct SceneObjectsPlugin;
 
 impl Plugin for SceneObjectsPlugin {
@@ -151,6 +178,7 @@ impl Plugin for SceneObjectsPlugin {
                 update_occlusion,
                 update_hover_highlight,
                 draw_hover_outline,
+                update_hovered_snapshot,
                 detect_click_selection,
             ),
         );
@@ -404,6 +432,37 @@ fn update_hover_highlight(
                 }
             }
         }
+    }
+}
+
+/// Each frame, write the hovered interactable (if any) to the snapshot for React labels.
+fn update_hovered_snapshot(
+    hovered_query: Query<
+        (&GlobalTransform, &Interactable, Option<&FlowerArchetype>),
+        With<Hovered>,
+    >,
+) {
+    let snapshot = hovered_query
+        .iter()
+        .next()
+        .map(|(gt, interactable, flower)| {
+            let pos = gt.translation();
+            HoveredObject {
+                kind: interactable.kind,
+                position: [pos.x, pos.y, pos.z],
+                sub_kind: flower.map(|f| f.as_str().to_owned()),
+            }
+        });
+
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        *HOVERED_OBJECT_SNAPSHOT.lock().unwrap() = snapshot;
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        HOVERED_OBJECT_SNAPSHOT_WASM.with(|cell| {
+            *cell.borrow_mut() = snapshot;
+        });
     }
 }
 
