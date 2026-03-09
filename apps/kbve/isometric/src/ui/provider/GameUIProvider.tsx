@@ -1,4 +1,10 @@
-import { useContext, useCallback, type ReactNode } from 'react';
+import {
+	useContext,
+	useCallback,
+	useEffect,
+	useRef,
+	type ReactNode,
+} from 'react';
 import { ToastProvider } from '../toast/toast-context';
 import { ModalProvider } from '../modal/modal-context';
 import { MenuProvider } from '../menu/menu-context';
@@ -12,11 +18,27 @@ import {
 import { MenuStateContext, MenuDispatchContext } from '../menu/menu-context';
 import { useKeyboard } from '../shared/use-keyboard';
 
+/** Re-focus the Bevy canvas so winit receives keyboard events again. */
+function focusCanvas() {
+	document.getElementById('bevy-canvas')?.focus();
+}
+
 function KeyboardRouter() {
 	const modalState = useContext(ModalStateContext);
 	const modalDispatch = useContext(ModalDispatchContext);
 	const menuState = useContext(MenuStateContext);
 	const menuDispatch = useContext(MenuDispatchContext);
+
+	// Track previous overlay state to detect close transitions
+	const prevOverlay = useRef(false);
+	const overlayActive = modalState.isOpen || menuState.isOpen;
+
+	useEffect(() => {
+		if (prevOverlay.current && !overlayActive) {
+			focusCanvas();
+		}
+		prevOverlay.current = overlayActive;
+	}, [overlayActive]);
 
 	const handleEscape = useCallback(() => {
 		if (modalState.isOpen) {
