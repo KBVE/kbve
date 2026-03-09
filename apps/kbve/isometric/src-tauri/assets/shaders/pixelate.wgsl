@@ -12,7 +12,10 @@ struct PixelateSettings {
     depth_threshold_low: f32,
     depth_threshold_high: f32,
     artifact_suppression: f32,
-    _padding: f32,
+    toon_bands: f32,
+    color_levels: f32,
+    color_noise: f32,
+    _pad1: f32,
 }
 
 @group(0) @binding(0) var screen_texture: texture_2d<f32>;
@@ -30,6 +33,27 @@ fn luminance(c: vec3<f32>) -> f32 {
     return dot(c, vec3(0.2126, 0.7152, 0.0722));
 }
 
+// Toon/cel-shade: quantize brightness into discrete bands while preserving hue.
+fn toon_quantize(c: vec3<f32>, bands: f32) -> vec3<f32> {
+    if bands <= 1.0 { return c; }
+    let lum = luminance(c);
+    if lum < 0.001 { return c; }
+    let quantized = floor(lum * bands + 0.5) / bands;
+    return c * (quantized / lum);
+}
+
+// Palette quantization: snap each channel to N discrete levels.
+fn palette_quantize(c: vec3<f32>, levels: f32) -> vec3<f32> {
+    if levels <= 1.0 { return c; }
+    return floor(c * levels + 0.5) / levels;
+}
+
+// Deterministic per-pixel noise from screen coordinates.
+fn screen_hash(p: vec2<f32>) -> f32 {
+    let h = dot(p, vec2(127.1, 311.7));
+    return fract(sin(h) * 43758.5453);
+}
+
 @fragment
 fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     let resolution = vec2<f32>(textureDimensions(screen_texture));
@@ -42,16 +66,22 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     let block_uv = (block + 0.5) / block_count;
 
     // Sample center of current block
-    let color = sample_block(block_uv, resolution);
+    let color_raw = sample_block(block_uv, resolution);
 
     // Sample 4 neighbor blocks
-    let color_left   = sample_block(((block + vec2(-1.0,  0.0)) + 0.5) / block_count, resolution);
-    let color_right  = sample_block(((block + vec2( 1.0,  0.0)) + 0.5) / block_count, resolution);
-    let color_top    = sample_block(((block + vec2( 0.0, -1.0)) + 0.5) / block_count, resolution);
-    let color_bottom = sample_block(((block + vec2( 0.0,  1.0)) + 0.5) / block_count, resolution);
+    let left_raw   = sample_block(((block + vec2(-1.0,  0.0)) + 0.5) / block_count, resolution);
+    let right_raw  = sample_block(((block + vec2( 1.0,  0.0)) + 0.5) / block_count, resolution);
+    let top_raw    = sample_block(((block + vec2( 0.0, -1.0)) + 0.5) / block_count, resolution);
+    let bottom_raw = sample_block(((block + vec2( 0.0,  1.0)) + 0.5) / block_count, resolution);
+
+    // ── TOON PASS (cel-shade: quantize brightness bands) ─────────────────
+    let color  = vec4(toon_quantize(color_raw.rgb,  settings.toon_bands), color_raw.a);
+    let color_left   = vec4(toon_quantize(left_raw.rgb,   settings.toon_bands), left_raw.a);
+    let color_right  = vec4(toon_quantize(right_raw.rgb,  settings.toon_bands), right_raw.a);
+    let color_top    = vec4(toon_quantize(top_raw.rgb,    settings.toon_bands), top_raw.a);
+    let color_bottom = vec4(toon_quantize(bottom_raw.rgb, settings.toon_bands), bottom_raw.a);
 
     // ── HIGHLIGHT EDGES (color direction shift) ──────────────────────────
-    // Normalized color vectors detect hue changes independent of brightness.
     let eps = vec3(0.001);
     let norm_c = normalize(color.rgb + eps);
     let norm_l = normalize(color_left.rgb + eps);
@@ -70,27 +100,22 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     ) * settings.highlight_strength;
 
     // ── SHADOW EDGES (luminance-based depth proxy, two-sided) ────────────
-    // Luminance better approximates depth discontinuities than raw RGB
-    // distance because brightness correlates with light-facing vs occluded.
     let lum_c = luminance(color.rgb);
     let lum_l = luminance(color_left.rgb);
     let lum_r = luminance(color_right.rgb);
     let lum_t = luminance(color_top.rgb);
     let lum_b = luminance(color_bottom.rgb);
 
-    // Positive: neighbor brighter (outer silhouette, center in shadow)
     let pos_depth = max(
         max(lum_l - lum_c, lum_r - lum_c),
         max(lum_t - lum_c, lum_b - lum_c)
     );
 
-    // Negative: center brighter (inner edge, center lit)
     let neg_depth = max(
         max(lum_c - lum_l, lum_c - lum_r),
         max(lum_c - lum_t, lum_c - lum_b)
     );
 
-    // Either direction means a depth-like boundary
     let depth_raw = max(pos_depth, neg_depth);
     let depth_edge = smoothstep(
         settings.depth_threshold_low,
@@ -99,8 +124,6 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     ) * settings.shadow_strength;
 
     // ── ARTIFACT SUPPRESSION ─────────────────────────────────────────────
-    // Where depth and normal edges coincide, suppress highlights to avoid
-    // double-lining (dark shadow + bright highlight side by side).
     let neg_depth_edge = smoothstep(
         settings.depth_threshold_low,
         settings.depth_threshold_high,
@@ -113,8 +136,6 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     );
 
     // ── BLOCK-BOUNDARY GATING ────────────────────────────────────────────
-    // For pixel_size >= 1.5, edges only render at block borders for a
-    // classic pixel-art grid-aligned outline look.
     var at_edge: f32;
     if settings.pixel_size < 1.5 {
         at_edge = 1.0;
@@ -129,13 +150,34 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     let final_highlight = suppressed_highlight * at_edge;
 
     // ── DUAL-TONE COMPOSITING ────────────────────────────────────────────
-    // Shadow first: depth edges darken toward (color * shadow_darkness).
     let shadow_color = color.rgb * settings.shadow_darkness;
     var result = mix(color.rgb, shadow_color, final_shadow);
 
-    // Highlight on top: normal edges brighten toward white.
     let highlight_color = mix(result, vec3(1.0), settings.highlight_brightness);
     result = mix(result, highlight_color, final_highlight);
+
+    // ── PALETTE QUANTIZATION (reduce color variation → painted look) ─────
+    result = palette_quantize(result, settings.color_levels);
+
+    // ── SCENE COLOR GRADE (warm highlights, cool shadows, lifted darks) ──
+    let lum_final = luminance(result);
+    // Warm shift for highlights (push toward golden), cool shift for shadows (push toward blue)
+    let warm = vec3(1.04, 1.01, 0.94);   // highlights: slightly warm
+    let cool = vec3(0.92, 0.96, 1.06);   // shadows: slightly cool
+    let grade_t = smoothstep(0.15, 0.55, lum_final);
+    result *= mix(cool, warm, grade_t);
+    // Lift darks: prevent pure black, add atmosphere
+    result = max(result, vec3(0.018, 0.020, 0.028));
+    // Slight desaturation in deep shadow
+    let desat_t = smoothstep(0.12, 0.0, lum_final) * 0.35;
+    let gray = vec3(luminance(result));
+    result = mix(result, gray, desat_t);
+
+    // ── COLOR NOISE (break banding, add texture) ─────────────────────────
+    if settings.color_noise > 0.0 {
+        let noise = (screen_hash(block) - 0.5) * settings.color_noise;
+        result += vec3(noise);
+    }
 
     return vec4(result, color.a);
 }
