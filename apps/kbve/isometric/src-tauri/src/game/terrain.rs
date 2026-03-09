@@ -8,7 +8,12 @@ use super::player::Player;
 // ---------------------------------------------------------------------------
 
 pub const CHUNK_SIZE: i32 = 16;
+
+#[cfg(not(target_arch = "wasm32"))]
 pub const LOAD_RADIUS: i32 = 3;
+
+#[cfg(target_arch = "wasm32")]
+pub const LOAD_RADIUS: i32 = 2;
 pub const MAX_HEIGHT: f32 = 6.0;
 pub const NOISE_SCALE: f32 = 6.0;
 pub const TERRAIN_SEED: u32 = 42;
@@ -186,6 +191,10 @@ impl TerrainMap {
     /// Returns lists of chunks to spawn and despawn.
     pub fn update_around_player(&mut self, player_x: f32, player_z: f32) {
         let (pcx, pcz) = Self::tile_to_chunk(player_x.round() as i32, player_z.round() as i32);
+
+        // Rebuild spawn queue fresh each frame (avoids duplicates when
+        // rate-limited spawning leaves chunks un-spawned across frames).
+        self.chunks_to_spawn.clear();
 
         // Determine which chunks should be loaded
         let mut desired: Vec<(i32, i32)> = Vec::new();
