@@ -36,11 +36,17 @@ export function useInputBridge() {
 			cursorValid = true;
 		};
 
+		// Only forward mouse clicks on the game canvas — not on UI overlays.
+		// Without this filter, clicking a modal overlay to close it also
+		// sends a left-click to Bevy, which can immediately re-select an
+		// object and reopen the modal.
 		const onMouseDown = (e: MouseEvent) => {
+			if (!(e.target instanceof HTMLCanvasElement)) return;
 			pendingMousePressed.push(e.button);
 		};
 
 		const onMouseUp = (e: MouseEvent) => {
+			if (!(e.target instanceof HTMLCanvasElement)) return;
 			pendingMouseReleased.push(e.button);
 		};
 
