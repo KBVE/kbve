@@ -9,7 +9,7 @@ use bevy_rapier3d::prelude::*;
 
 use super::player::Player;
 use super::scene_objects::{
-    HoverOutline, Interactable, InteractableKind, on_pointer_out, on_pointer_over,
+    FlowerArchetype, HoverOutline, Interactable, InteractableKind, on_pointer_out, on_pointer_over,
 };
 use super::terrain::{CHUNK_SIZE, TerrainMap, hash2d};
 
@@ -100,6 +100,22 @@ const VEG_FLOWER_COLORS: [(f32, f32, f32); 4] = [
     (0.90, 0.55, 0.65),
     (0.85, 0.35, 0.45),
     (0.95, 0.85, 0.30),
+];
+
+/// Collectible flower archetype colors (sRGB).
+const FLOWER_TULIP: (f32, f32, f32) = (0.85, 0.30, 0.35);
+const FLOWER_DAISY: (f32, f32, f32) = (0.95, 0.95, 0.85);
+const FLOWER_LAVENDER: (f32, f32, f32) = (0.60, 0.45, 0.75);
+const FLOWER_BELL: (f32, f32, f32) = (0.40, 0.60, 0.85);
+const FLOWER_WILDFLOWER: (f32, f32, f32) = (0.95, 0.75, 0.20);
+
+/// (color, radius) per archetype index — order matches FlowerArchetype variants.
+const FLOWER_ARCHETYPES: [((f32, f32, f32), f32); 5] = [
+    (FLOWER_TULIP, 0.15),
+    (FLOWER_DAISY, 0.13),
+    (FLOWER_LAVENDER, 0.12),
+    (FLOWER_BELL, 0.14),
+    (FLOWER_WILDFLOWER, 0.13),
 ];
 
 /// Tree colors (sRGB, averaged from procedural textures).
@@ -485,6 +501,10 @@ struct TileMaterials {
     chunk_cap_mat: Handle<StandardMaterial>,
     /// Double-sided, vertex-colored material for grass/flower crossed-planes.
     chunk_veg_mat: Handle<StandardMaterial>,
+    /// Shared icosphere mesh for collectible flower entities.
+    flower_mesh: Handle<Mesh>,
+    /// One material per flower archetype (Tulip, Daisy, Lavender, Bell, Wildflower).
+    flower_mats: [Handle<StandardMaterial>; 5],
 }
 
 pub struct TilemapPlugin;
@@ -504,7 +524,11 @@ impl Plugin for TilemapPlugin {
 // Setup
 // ---------------------------------------------------------------------------
 
-fn setup_tile_materials(mut commands: Commands, mut materials: ResMut<Assets<StandardMaterial>>) {
+fn setup_tile_materials(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
     let chunk_body_mat = materials.add(StandardMaterial {
         base_color: Color::WHITE,
         ..default()
@@ -520,10 +544,23 @@ fn setup_tile_materials(mut commands: Commands, mut materials: ResMut<Assets<Sta
         ..default()
     });
 
+    // Shared flower assets: one icosphere mesh, 5 archetype materials
+    let flower_mesh = meshes.add(Sphere::new(1.0).mesh().ico(1).unwrap());
+    let flower_mats = FLOWER_ARCHETYPES.map(|((r, g, b), _)| {
+        materials.add(StandardMaterial {
+            base_color: Color::srgb(r, g, b),
+            emissive: LinearRgba::new(r * 0.3, g * 0.3, b * 0.3, 1.0),
+            perceptual_roughness: 0.6,
+            ..default()
+        })
+    });
+
     commands.insert_resource(TileMaterials {
         chunk_body_mat,
         chunk_cap_mat,
         chunk_veg_mat,
+        flower_mesh,
+        flower_mats,
     });
 }
 
@@ -979,6 +1016,46 @@ fn process_chunk_spawns_and_despawns(
                             .observe(on_pointer_out)
                             .id();
                         entities.push(tree_entity);
+                    }
+
+                    // --- Collectible flowers (individual entities for selectability) ---
+                    let flower_noise = hash2d(tx + 13721, tz + 8293);
+                    if flower_noise < 0.08 {
+                        let arch_idx = (hash2d(tx + 13821, tz + 8393) * 5.0) as usize % 5;
+                        let (_, radius) = FLOWER_ARCHETYPES[arch_idx];
+                        let archetype = match arch_idx {
+                            0 => FlowerArchetype::Tulip,
+                            1 => FlowerArchetype::Daisy,
+                            2 => FlowerArchetype::Lavender,
+                            3 => FlowerArchetype::Bell,
+                            _ => FlowerArchetype::Wildflower,
+                        };
+
+                        let jx = (hash2d(tx + 13921, tz + 8293) - 0.5) * 0.6;
+                        let jz = (hash2d(tx + 13721, tz + 8493) - 0.5) * 0.6;
+                        let world_x = tx as f32 * TILE_SIZE + jx;
+                        let world_z = tz as f32 * TILE_SIZE + jz;
+                        let flower_y = column_h + radius + 0.002;
+
+                        let flower_entity = commands
+                            .spawn((
+                                Mesh3d(tile_materials.flower_mesh.clone()),
+                                MeshMaterial3d(tile_materials.flower_mats[arch_idx].clone()),
+                                Transform::from_xyz(world_x, flower_y, world_z)
+                                    .with_scale(Vec3::splat(radius)),
+                                Collider::ball(radius * 1.5),
+                                HoverOutline {
+                                    half_extents: Vec3::splat(radius),
+                                },
+                                Interactable {
+                                    kind: InteractableKind::Flower,
+                                },
+                                archetype,
+                            ))
+                            .observe(on_pointer_over)
+                            .observe(on_pointer_out)
+                            .id();
+                        entities.push(flower_entity);
                     }
                 }
             }

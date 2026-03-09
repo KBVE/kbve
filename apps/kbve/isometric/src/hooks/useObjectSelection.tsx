@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { get_selected_object_json } from '../../wasm-pkg/isometric_game.js';
 import { gameEvents } from '../ui/events/event-bus';
-import type { InteractableKind } from '../ui/events/event-map';
+import type { FlowerArchetype, InteractableKind } from '../ui/events/event-map';
 
 interface ObjectInfo {
 	title: string;
@@ -35,15 +35,40 @@ const OBJECT_INFO: Record<InteractableKind, ObjectInfo> = {
 		description: 'A mysterious metallic sphere.',
 		action: 'Examine',
 	},
+	flower: {
+		title: 'Flower',
+		description: 'A beautiful flower.',
+		action: 'Collect Flower',
+	},
 };
 
-function ActionContent({
-	info,
-	kind,
-}: {
-	info: ObjectInfo;
-	kind: InteractableKind;
-}) {
+const FLOWER_INFO: Record<
+	FlowerArchetype,
+	{ title: string; description: string }
+> = {
+	tulip: {
+		title: 'Tulip',
+		description: 'A vibrant tulip with soft petals.',
+	},
+	daisy: {
+		title: 'Daisy',
+		description: 'A cheerful white daisy swaying gently.',
+	},
+	lavender: {
+		title: 'Lavender',
+		description: 'A fragrant lavender sprig.',
+	},
+	bell: {
+		title: 'Bellflower',
+		description: 'A delicate bellflower with drooping petals.',
+	},
+	wildflower: {
+		title: 'Wildflower',
+		description: 'A bright wildflower growing freely.',
+	},
+};
+
+function ActionContent({ info }: { info: ObjectInfo }) {
 	return (
 		<div className="space-y-3">
 			<p className="text-sm opacity-80">{info.description}</p>
@@ -80,16 +105,30 @@ export function useObjectSelection() {
 					kind: InteractableKind;
 					position: [number, number, number];
 					entity_id: number;
+					sub_kind?: string;
 				};
 
-				const info = OBJECT_INFO[selected.kind];
+				let info = OBJECT_INFO[selected.kind];
 				if (!info) return;
+
+				// For flowers, override with archetype-specific details
+				if (selected.kind === 'flower' && selected.sub_kind) {
+					const flower =
+						FLOWER_INFO[selected.sub_kind as FlowerArchetype];
+					if (flower) {
+						info = {
+							...info,
+							title: flower.title,
+							description: flower.description,
+						};
+					}
+				}
 
 				modalOpenRef.current = true;
 
 				gameEvents.emit('modal:open', {
 					title: info.title,
-					content: <ActionContent info={info} kind={selected.kind} />,
+					content: <ActionContent info={info} />,
 					onClose: () => {
 						modalOpenRef.current = false;
 					},

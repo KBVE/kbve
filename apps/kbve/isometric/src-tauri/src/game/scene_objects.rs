@@ -52,7 +52,7 @@ pub struct RotatingBox;
 // Generic interactable system
 // ---------------------------------------------------------------------------
 
-/// Discriminated union of all clickable object types.
+/// Discriminated union of all clickable object categories.
 /// React maps each variant to typed modal content + actions.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -62,6 +62,31 @@ pub enum InteractableKind {
     Crystal,
     Pillar,
     Sphere,
+    Flower,
+}
+
+/// Sub-type for collectible flowers (composition pattern).
+/// Attach alongside `Interactable { kind: Flower }` for flower-specific data.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FlowerArchetype {
+    Tulip,
+    Daisy,
+    Lavender,
+    Bell,
+    Wildflower,
+}
+
+impl FlowerArchetype {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Tulip => "tulip",
+            Self::Daisy => "daisy",
+            Self::Lavender => "lavender",
+            Self::Bell => "bell",
+            Self::Wildflower => "wildflower",
+        }
+    }
 }
 
 /// Marker: this entity can be clicked to open an interaction modal.
@@ -77,6 +102,9 @@ pub struct SelectedObject {
     pub kind: InteractableKind,
     pub position: [f32; 3],
     pub entity_id: u64,
+    /// Optional sub-type detail (e.g. flower archetype name).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sub_kind: Option<String>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -373,21 +401,31 @@ fn update_hover_highlight(
 /// React polls this snapshot to open a modal with object-specific content.
 fn detect_click_selection(
     mouse: Res<ButtonInput<MouseButton>>,
-    hovered_query: Query<(Entity, &GlobalTransform, &Interactable), With<Hovered>>,
+    hovered_query: Query<
+        (
+            Entity,
+            &GlobalTransform,
+            &Interactable,
+            Option<&FlowerArchetype>,
+        ),
+        With<Hovered>,
+    >,
 ) {
     if !mouse.just_pressed(MouseButton::Left) {
         return;
     }
 
-    let Some((entity, gt, interactable)) = hovered_query.iter().next() else {
+    let Some((entity, gt, interactable, flower)) = hovered_query.iter().next() else {
         return;
     };
 
     let pos = gt.translation();
+    let sub_kind = flower.map(|f| f.as_str().to_owned());
     let snapshot = SelectedObject {
         kind: interactable.kind,
         position: [pos.x, pos.y, pos.z],
         entity_id: entity.to_bits(),
+        sub_kind,
     };
 
     #[cfg(not(target_arch = "wasm32"))]

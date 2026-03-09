@@ -7,7 +7,15 @@ export type InteractableKind =
 	| 'crate'
 	| 'crystal'
 	| 'pillar'
-	| 'sphere';
+	| 'sphere'
+	| 'flower';
+
+export type FlowerArchetype =
+	| 'tulip'
+	| 'daisy'
+	| 'lavender'
+	| 'bell'
+	| 'wildflower';
 
 export type GameEventMap = {
 	// Toast events
