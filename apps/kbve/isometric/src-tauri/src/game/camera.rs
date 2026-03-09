@@ -171,12 +171,14 @@ fn camera_follow_player(
     let up_proj = desired.dot(up);
     let forward_proj = desired.dot(forward);
 
-    // Snap camera to texel grid — pixels stay locked to fixed world positions (no swimming).
-    // No sub-pixel offset: at PIXEL_SCALE=2, nearest-neighbor upscaling makes sub-pixel
-    // quad shifts cause texel swimming (50% of display pixels flip between texels).
-    // Pixel-grid-locked movement is the standard pixel-art camera approach.
+    // Snap camera to texel grid on ALL axes — prevents texel swimming.
+    // Right/Up snapping locks the pixel grid for geometry.
+    // Forward snapping stabilizes the shadow cascade alignment (shadow maps
+    // recompute from the camera frustum — unsnapped depth causes shadow edges
+    // to swim by 1-2 pixels as the camera glides smoothly along the view axis).
     let snapped_right = (right_proj / pixel_world_size).round() * pixel_world_size;
     let snapped_up = (up_proj / pixel_world_size).round() * pixel_world_size;
+    let snapped_forward = (forward_proj / pixel_world_size).round() * pixel_world_size;
 
-    camera_tf.translation = snapped_right * right + snapped_up * up + forward_proj * forward;
+    camera_tf.translation = snapped_right * right + snapped_up * up + snapped_forward * forward;
 }

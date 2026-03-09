@@ -1,5 +1,7 @@
 use bevy::asset::RenderAssetUsages;
-use bevy::light::{CascadeShadowConfigBuilder, DirectionalLightShadowMap};
+use bevy::light::{
+    CascadeShadowConfigBuilder, Cascades, DirectionalLightShadowMap, SimulationLightSystems,
+};
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
@@ -102,6 +104,83 @@ const VEG_FLOWER_COLORS: [(f32, f32, f32); 4] = [
 const TREE_BARK: (f32, f32, f32) = (0.40, 0.27, 0.16);
 const TREE_CANOPY_COLORS: [(f32, f32, f32); 3] =
     [(0.22, 0.47, 0.16), (0.27, 0.59, 0.18), (0.33, 0.51, 0.16)];
+
+/// Darker canopy shade for lower/inner layers (sRGB).
+const TREE_CANOPY_DARK: [(f32, f32, f32); 3] =
+    [(0.15, 0.35, 0.10), (0.19, 0.44, 0.12), (0.24, 0.38, 0.10)];
+
+/// Tree shape presets: (trunk_height, trunk_radius, layers)
+/// Each layer: (half_width, height, y_overlap)
+/// y_overlap is how much this layer dips into the one below for denser foliage.
+struct TreePreset {
+    trunk_h: f32,
+    trunk_r: f32,
+    layers: &'static [(f32, f32, f32)], // (half_width, height, y_overlap)
+}
+
+const TREE_CONIFER: TreePreset = TreePreset {
+    trunk_h: 1.2,
+    trunk_r: 0.10,
+    layers: &[
+        (0.55, 0.50, 0.0),  // bottom — widest
+        (0.42, 0.45, 0.08), // middle
+        (0.28, 0.40, 0.08), // upper
+        (0.14, 0.35, 0.06), // tip
+    ],
+};
+
+const TREE_TALL_PINE: TreePreset = TreePreset {
+    trunk_h: 1.6,
+    trunk_r: 0.12,
+    layers: &[
+        (0.50, 0.55, 0.0),
+        (0.38, 0.50, 0.10),
+        (0.26, 0.45, 0.08),
+        (0.16, 0.40, 0.06),
+        (0.08, 0.30, 0.04),
+    ],
+};
+
+const TREE_BUSHY: TreePreset = TreePreset {
+    trunk_h: 0.8,
+    trunk_r: 0.12,
+    layers: &[
+        (0.60, 0.55, 0.0),  // wide bottom
+        (0.50, 0.50, 0.10), // still wide
+        (0.35, 0.40, 0.08), // tapers
+    ],
+};
+
+/// Deciduous oak-like tree — wide canopy, offset blobs added procedurally.
+const TREE_OAK: TreePreset = TreePreset {
+    trunk_h: 1.0,
+    trunk_r: 0.14,
+    layers: &[
+        (0.50, 0.45, 0.0),  // base crown
+        (0.55, 0.50, 0.10), // widest in middle
+        (0.48, 0.45, 0.10), // upper crown
+        (0.30, 0.35, 0.08), // top
+    ],
+};
+
+/// Compact round deciduous tree — shorter, rounder.
+const TREE_ROUND: TreePreset = TreePreset {
+    trunk_h: 0.7,
+    trunk_r: 0.10,
+    layers: &[
+        (0.45, 0.40, 0.0),  // base
+        (0.50, 0.45, 0.10), // widest
+        (0.35, 0.35, 0.08), // top
+    ],
+};
+
+const TREE_PRESETS: [&TreePreset; 5] = [
+    &TREE_CONIFER,
+    &TREE_TALL_PINE,
+    &TREE_BUSHY,
+    &TREE_OAK,
+    &TREE_ROUND,
+];
 
 fn srgb_color(r: f32, g: f32, b: f32) -> [f32; 4] {
     [srgb_to_linear(r), srgb_to_linear(g), srgb_to_linear(b), 1.0]
@@ -412,6 +491,10 @@ impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, (setup_tile_materials, spawn_lighting));
         app.add_systems(Update, process_chunk_spawns_and_despawns);
+        app.add_systems(
+            PostUpdate,
+            stabilize_shadow_cascades.after(SimulationLightSystems::UpdateDirectionalLightCascades),
+        );
     }
 }
 
@@ -448,6 +531,10 @@ fn spawn_lighting(mut commands: Commands) {
         brightness: 200.0,
         ..default()
     });
+    // Single cascade + high-res shadow map + texel-snapping stabilisation.
+    // The `stabilize_shadow_cascades` system (PostUpdate) snaps the cascade's
+    // clip-space projection to shadow-texel boundaries so the shadow grid
+    // stays locked to the world regardless of camera movement.
     commands.insert_resource(DirectionalLightShadowMap { size: 4096 });
     commands.spawn((
         DirectionalLight {
@@ -457,13 +544,39 @@ fn spawn_lighting(mut commands: Commands) {
         },
         Transform::from_xyz(12.0, 15.0, -5.0).looking_at(Vec3::ZERO, Vec3::Y),
         CascadeShadowConfigBuilder {
-            num_cascades: 4,
+            num_cascades: 1,
             minimum_distance: 0.1,
             maximum_distance: 80.0,
             ..default()
         }
         .build(),
     ));
+}
+
+/// Stabilise directional shadow maps by texel-snapping the cascade projection.
+///
+/// Bevy recomputes the cascade frustum from the camera every frame. When the
+/// frustum centre moves by sub-texel amounts, shadow edges land on different
+/// texels → visible 1-2 px "swimming" on the low-res render target.
+///
+/// Fix: snap the clip-space translation of each cascade's `clip_from_world`
+/// matrix to shadow-texel boundaries so the shadow grid stays locked to the
+/// world.
+fn stabilize_shadow_cascades(
+    shadow_map: Res<DirectionalLightShadowMap>,
+    mut query: Query<&mut Cascades, With<DirectionalLight>>,
+) {
+    let texel_clip = 2.0 / shadow_map.size as f32;
+    for mut cascades in query.iter_mut() {
+        for cascade_list in cascades.cascades.values_mut() {
+            for cascade in cascade_list.iter_mut() {
+                let mut m = cascade.clip_from_world;
+                m.w_axis.x = (m.w_axis.x / texel_clip).floor() * texel_clip;
+                m.w_axis.y = (m.w_axis.y / texel_clip).floor() * texel_clip;
+                cascade.clip_from_world = m;
+            }
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -718,22 +831,30 @@ fn process_chunk_spawns_and_despawns(
                     // --- Trees (individual entities for selectability) ---
                     let tree_noise = hash2d(tx + 11317, tz + 5471);
                     if tree_noise < 0.06 {
-                        let trunk_h: f32 = 0.7;
-                        let canopy_h: f32 = 0.45;
                         let jx = (hash2d(tx + 11417, tz + 5471) - 0.5) * 0.3;
                         let jz = (hash2d(tx + 11317, tz + 5571) - 0.5) * 0.3;
                         let leaf_variant = (hash2d(tx + 11517, tz + 5671) * 3.0) as usize % 3;
+                        let preset_idx = (hash2d(tx + 11617, tz + 5771) * 5.0) as usize % 5;
+                        let size_scale = 0.85 + hash2d(tx + 11717, tz + 5871) * 0.35; // 0.85–1.20
+
+                        let preset = TREE_PRESETS[preset_idx];
+                        let trunk_h = preset.trunk_h * size_scale;
+                        let trunk_r = preset.trunk_r * size_scale;
 
                         let world_x = tx as f32 * TILE_SIZE + jx;
                         let world_z = tz as f32 * TILE_SIZE + jz;
                         let tree_base_y = column_h + 0.002;
 
-                        // Build per-tree mesh (trunk + canopy cuboids with vertex colors)
-                        let mut tp = Vec::with_capacity(48);
-                        let mut tn = Vec::with_capacity(48);
-                        let mut tc = Vec::with_capacity(48);
-                        let mut ti = Vec::with_capacity(72);
+                        // Build per-tree mesh: trunk + layered canopy
+                        let layer_count = preset.layers.len();
+                        let vert_cap = (1 + layer_count) * 24;
+                        let idx_cap = (1 + layer_count) * 36;
+                        let mut tp = Vec::with_capacity(vert_cap);
+                        let mut tn = Vec::with_capacity(vert_cap);
+                        let mut tc = Vec::with_capacity(vert_cap);
+                        let mut ti = Vec::with_capacity(idx_cap);
 
+                        // Trunk
                         let (br, bg, bb) = TREE_BARK;
                         push_cuboid(
                             &mut tp,
@@ -741,20 +862,101 @@ fn process_chunk_spawns_and_despawns(
                             &mut tc,
                             &mut ti,
                             Vec3::new(0.0, trunk_h / 2.0, 0.0),
-                            Vec3::new(0.075, trunk_h / 2.0, 0.075),
+                            Vec3::new(trunk_r, trunk_h / 2.0, trunk_r),
                             srgb_color(br, bg, bb),
                         );
 
-                        let (cr, cg, cb) = TREE_CANOPY_COLORS[leaf_variant];
-                        push_cuboid(
-                            &mut tp,
-                            &mut tn,
-                            &mut tc,
-                            &mut ti,
-                            Vec3::new(0.0, trunk_h + canopy_h / 2.0, 0.0),
-                            Vec3::new(0.275, canopy_h / 2.0, 0.275),
-                            srgb_color(cr, cg, cb),
-                        );
+                        // Layered canopy — each layer stacks on top, getting narrower
+                        let (light_r, light_g, light_b) = TREE_CANOPY_COLORS[leaf_variant];
+                        let (dark_r, dark_g, dark_b) = TREE_CANOPY_DARK[leaf_variant];
+                        let mut layer_y = trunk_h;
+                        let mut max_hw: f32 = trunk_r;
+                        let mut total_h: f32 = trunk_h;
+
+                        for (i, &(hw, lh, overlap)) in preset.layers.iter().enumerate() {
+                            let hw_s = hw * size_scale;
+                            let lh_s = lh * size_scale;
+                            let overlap_s = overlap * size_scale;
+                            layer_y -= overlap_s;
+                            let center_y = layer_y + lh_s / 2.0;
+
+                            // Bottom layers darker, top layers brighter
+                            let t = i as f32 / (layer_count - 1).max(1) as f32;
+                            let cr = dark_r + (light_r - dark_r) * t;
+                            let cg = dark_g + (light_g - dark_g) * t;
+                            let cb = dark_b + (light_b - dark_b) * t;
+
+                            push_cuboid(
+                                &mut tp,
+                                &mut tn,
+                                &mut tc,
+                                &mut ti,
+                                Vec3::new(0.0, center_y, 0.0),
+                                Vec3::new(hw_s, lh_s / 2.0, hw_s),
+                                srgb_color(cr, cg, cb),
+                            );
+
+                            max_hw = max_hw.max(hw_s);
+                            layer_y += lh_s;
+                            total_h = total_h.max(layer_y);
+                        }
+
+                        // Deciduous trees (oak, round) get extra offset blobs for organic shape
+                        if preset_idx >= 3 {
+                            let blob_count = if preset_idx == 3 { 4 } else { 3 };
+                            let canopy_mid_y = trunk_h + (total_h - trunk_h) * 0.45;
+                            for bi in 0..blob_count {
+                                let bx =
+                                    (hash2d(tx + 12000 + bi * 137, tz + 6000) - 0.5) * max_hw * 1.4;
+                                let bz =
+                                    (hash2d(tx + 12100 + bi * 137, tz + 6100) - 0.5) * max_hw * 1.4;
+                                let by_offset = (hash2d(tx + 12200 + bi * 137, tz + 6200) - 0.5)
+                                    * (total_h - trunk_h)
+                                    * 0.5;
+                                let blob_hw = (0.18
+                                    + hash2d(tx + 12300 + bi * 137, tz + 6300) * 0.14)
+                                    * size_scale;
+                                let blob_hh = (0.16
+                                    + hash2d(tx + 12400 + bi * 137, tz + 6400) * 0.12)
+                                    * size_scale;
+                                let blob_cy = canopy_mid_y + by_offset;
+
+                                // Lighter blobs on top, darker on bottom
+                                let shade = if by_offset > 0.0 { 0.8 } else { 0.3 };
+                                let cr = dark_r + (light_r - dark_r) * shade;
+                                let cg = dark_g + (light_g - dark_g) * shade;
+                                let cb = dark_b + (light_b - dark_b) * shade;
+
+                                push_cuboid(
+                                    &mut tp,
+                                    &mut tn,
+                                    &mut tc,
+                                    &mut ti,
+                                    Vec3::new(bx, blob_cy, bz),
+                                    Vec3::new(blob_hw, blob_hh, blob_hw),
+                                    srgb_color(cr, cg, cb),
+                                );
+
+                                max_hw = max_hw.max((bx.abs() + blob_hw).max(bz.abs() + blob_hw));
+                                total_h = total_h.max(blob_cy + blob_hh);
+                            }
+                        }
+
+                        // Simple 2-shape collider: trunk + single canopy envelope.
+                        // Avoids overlapping sub-shapes that cause Rapier contact jitter.
+                        let canopy_h = total_h - trunk_h;
+                        let collider_shapes = vec![
+                            (
+                                Vec3::new(0.0, trunk_h / 2.0, 0.0),
+                                Quat::IDENTITY,
+                                Collider::cuboid(trunk_r, trunk_h / 2.0, trunk_r),
+                            ),
+                            (
+                                Vec3::new(0.0, trunk_h + canopy_h / 2.0, 0.0),
+                                Quat::IDENTITY,
+                                Collider::cuboid(max_hw * 0.7, canopy_h / 2.0, max_hw * 0.7),
+                            ),
+                        ];
 
                         let tree_mesh = meshes.add(build_chunk_mesh(tp, tn, tc, ti));
                         let tree_entity = commands
@@ -763,24 +965,9 @@ fn process_chunk_spawns_and_despawns(
                                 MeshMaterial3d(tile_materials.chunk_body_mat.clone()),
                                 Transform::from_xyz(world_x, tree_base_y, world_z),
                                 RigidBody::Fixed,
-                                Collider::compound(vec![
-                                    (
-                                        Vec3::new(0.0, trunk_h / 2.0, 0.0),
-                                        Quat::IDENTITY,
-                                        Collider::cuboid(0.075, trunk_h / 2.0, 0.075),
-                                    ),
-                                    (
-                                        Vec3::new(0.0, trunk_h + canopy_h / 2.0, 0.0),
-                                        Quat::IDENTITY,
-                                        Collider::cuboid(0.275, canopy_h / 2.0, 0.275),
-                                    ),
-                                ]),
+                                Collider::compound(collider_shapes),
                                 HoverOutline {
-                                    half_extents: Vec3::new(
-                                        0.275,
-                                        (trunk_h + canopy_h) / 2.0,
-                                        0.275,
-                                    ),
+                                    half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
                                 },
                             ))
                             .observe(on_pointer_over)
