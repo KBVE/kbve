@@ -80,7 +80,7 @@ fn raycast_hover_detection_desktop(
     cursor: Res<BridgedCursorPosition>,
     camera_query: Query<(&GlobalTransform, &Projection), With<IsometricCamera>>,
     rapier_context: ReadRapierContext,
-    occludable: Query<(), With<Occludable>>,
+    hoverable: Query<(), With<HoverOutline>>,
     current_hovered: Query<Entity, With<Hovered>>,
     player_query: Query<Entity, With<Player>>,
     mut commands: Commands,
@@ -129,14 +129,14 @@ fn raycast_hover_detection_desktop(
         filter = filter.exclude_rigid_body(player_entity);
     }
 
-    // Cast ray and check if hit entity is Occludable
+    // Cast ray and check if hit entity has HoverOutline
     let Ok(context) = rapier_context.single() else {
         return;
     };
     let new_hovered = context
         .cast_ray(ray_origin, ray_dir, 1000.0, false, filter)
         .and_then(|(entity, _)| {
-            if occludable.get(entity).is_ok() {
+            if hoverable.get(entity).is_ok() {
                 Some(entity)
             } else {
                 None
@@ -162,7 +162,7 @@ fn raycast_hover_detection_wasm(
     windows: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&GlobalTransform, &Projection), With<IsometricCamera>>,
     rapier_context: ReadRapierContext,
-    occludable: Query<(), With<Occludable>>,
+    hoverable: Query<(), With<HoverOutline>>,
     current_hovered: Query<Entity, With<Hovered>>,
     player_query: Query<Entity, With<Player>>,
     mut commands: Commands,
@@ -212,7 +212,7 @@ fn raycast_hover_detection_wasm(
     let new_hovered = context
         .cast_ray(ray_origin, ray_dir, 1000.0, false, filter)
         .and_then(|(entity, _)| {
-            if occludable.get(entity).is_ok() {
+            if hoverable.get(entity).is_ok() {
                 Some(entity)
             } else {
                 None
@@ -246,36 +246,6 @@ fn rotate_boxes(time: Res<Time>, mut query: Query<&mut Transform, With<RotatingB
     }
 }
 
-/// Boost emissive glow on hovered objects so the pixelation edge detection
-/// naturally creates a stronger outline (selection highlight).
-fn update_hover_highlight(
-    hovered: Query<
-        (&MeshMaterial3d<StandardMaterial>, &OriginalEmissive),
-        (With<Hovered>, With<Occludable>),
-    >,
-    unhovered: Query<
-        (&MeshMaterial3d<StandardMaterial>, &OriginalEmissive),
-        (Without<Hovered>, With<Occludable>),
-    >,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    for (mat_handle, original) in &hovered {
-        if let Some(mat) = materials.get_mut(&mat_handle.0) {
-            mat.emissive = LinearRgba::new(
-                original.0.red + 0.5,
-                original.0.green + 0.5,
-                original.0.blue + 0.5,
-                1.0,
-            );
-        }
-    }
-    for (mat_handle, original) in &unhovered {
-        if let Some(mat) = materials.get_mut(&mat_handle.0) {
-            mat.emissive = original.0;
-        }
-    }
-}
-
 /// Draw a wireframe outline around hovered objects using gizmos.
 /// The pixelation shader will pixelate the lines into chunky pixel-art borders.
 fn draw_hover_outline(
@@ -295,7 +265,49 @@ fn draw_hover_outline(
     }
 }
 
-/// Make objects semi-transparent when they occlude the player from the camera's view.
+/// Boost emissive glow on hovered objects (only affects Occludable entities —
+/// object_registry objects have unique materials, so this is safe).
+/// Only calls get_mut when the value actually changes to avoid triggering
+/// Bevy change detection / GPU re-uploads every frame.
+fn update_hover_highlight(
+    hovered: Query<
+        (&MeshMaterial3d<StandardMaterial>, &OriginalEmissive),
+        (With<Hovered>, With<Occludable>),
+    >,
+    unhovered: Query<
+        (&MeshMaterial3d<StandardMaterial>, &OriginalEmissive),
+        (Without<Hovered>, With<Occludable>),
+    >,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    for (mat_handle, original) in &hovered {
+        let target = LinearRgba::new(
+            original.0.red + 0.5,
+            original.0.green + 0.5,
+            original.0.blue + 0.5,
+            1.0,
+        );
+        if let Some(mat) = materials.get(&mat_handle.0) {
+            if mat.emissive != target {
+                if let Some(mat) = materials.get_mut(&mat_handle.0) {
+                    mat.emissive = target;
+                }
+            }
+        }
+    }
+    for (mat_handle, original) in &unhovered {
+        if let Some(mat) = materials.get(&mat_handle.0) {
+            if mat.emissive != original.0 {
+                if let Some(mat) = materials.get_mut(&mat_handle.0) {
+                    mat.emissive = original.0;
+                }
+            }
+        }
+    }
+}
+
+/// Make Occludable objects semi-transparent when they block the player from the camera.
+/// Only object_registry objects have Occludable (each with unique materials), so this is safe.
 fn update_occlusion(
     camera_query: Query<&GlobalTransform, With<IsometricCamera>>,
     player_query: Query<&GlobalTransform, With<Player>>,
@@ -315,35 +327,33 @@ fn update_occlusion(
     let cam_pos = cam_gt.translation();
     let player_pos = player_gt.translation();
 
-    // View direction from camera into the scene
     let view_dir = (cam_gt.rotation() * Vec3::NEG_Z).normalize();
-
-    // Player depth along view direction
     let player_depth = (player_pos - cam_pos).dot(view_dir);
-
-    // Player lateral position (perpendicular to view)
     let player_offset = player_pos - cam_pos;
     let player_lateral = player_offset - player_depth * view_dir;
 
     for (obj_gt, mat_handle) in &occludable_query {
         let obj_pos = obj_gt.translation();
         let obj_depth = (obj_pos - cam_pos).dot(view_dir);
-
         let obj_offset = obj_pos - cam_pos;
         let obj_lateral = obj_offset - obj_depth * view_dir;
-
         let lateral_dist = (player_lateral - obj_lateral).length();
 
-        // Object occludes player if it's closer to the camera AND laterally nearby
         let occludes = obj_depth < player_depth && lateral_dist < 2.0;
 
-        if let Some(mat) = materials.get_mut(&mat_handle.0) {
-            if occludes {
-                mat.base_color = mat.base_color.with_alpha(0.3);
-                mat.alpha_mode = AlphaMode::Blend;
-            } else {
-                mat.base_color = mat.base_color.with_alpha(1.0);
-                mat.alpha_mode = AlphaMode::Opaque;
+        if let Some(mat) = materials.get(&mat_handle.0) {
+            let needs_blend = occludes && mat.alpha_mode != AlphaMode::Blend;
+            let needs_opaque = !occludes && mat.alpha_mode != AlphaMode::Opaque;
+            if needs_blend || needs_opaque {
+                if let Some(mat) = materials.get_mut(&mat_handle.0) {
+                    if occludes {
+                        mat.base_color = mat.base_color.with_alpha(0.3);
+                        mat.alpha_mode = AlphaMode::Blend;
+                    } else {
+                        mat.base_color = mat.base_color.with_alpha(1.0);
+                        mat.alpha_mode = AlphaMode::Opaque;
+                    }
+                }
             }
         }
     }
