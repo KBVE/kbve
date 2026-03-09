@@ -6,6 +6,7 @@ use bevy::render::render_resource::TextureFormat;
 use bevy::window::PrimaryWindow;
 use bevy_rapier3d::prelude::PhysicsSet;
 
+use super::pixelate::PixelateSettings;
 use super::player::{Player, PlayerMovement};
 
 const CAMERA_OFFSET: Vec3 = Vec3::new(15.0, 20.0, 15.0);
@@ -122,6 +123,7 @@ fn setup_camera(
         }),
         Transform::from_xyz(0.0, 0.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
         RenderLayers::layer(DISPLAY_LAYER),
+        PixelateSettings::default(),
     ));
 
     // Fullscreen quad with the render texture (unlit = display pixels as-is).
