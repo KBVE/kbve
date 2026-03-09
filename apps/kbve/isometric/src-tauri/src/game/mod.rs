@@ -12,7 +12,6 @@ pub mod tilemap;
 use bevy::app::{PluginGroup, PluginGroupBuilder};
 
 use camera::IsometricCameraPlugin;
-use grass::GrassPlugin;
 use object_registry::ObjectRegistryPlugin;
 // PixelatePlugin disabled — two-stage render-to-texture pipeline handles pixelation.
 // use pixelate::PixelatePlugin;
@@ -33,7 +32,6 @@ impl PluginGroup for GamePluginGroup {
             .add(TerrainPlugin)
             .add(IsometricCameraPlugin)
             .add(TilemapPlugin)
-            .add(GrassPlugin)
             .add(PlayerPlugin)
             .add(ObjectRegistryPlugin)
             .add(SceneObjectsPlugin)

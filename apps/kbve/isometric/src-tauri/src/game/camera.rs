@@ -15,6 +15,29 @@ const PIXEL_SCALE: u32 = 2;
 /// RenderLayer for the display quad (separate from the 3D scene on layer 0).
 const DISPLAY_LAYER: usize = 1;
 
+/// Precomputed stable camera axes derived from the initial look-at orientation.
+/// Using these instead of reading from the mutated transform avoids frame-to-frame
+/// drift that causes visible pixel jitter (especially along LEFT/RIGHT movement).
+struct StableCameraAxes {
+    right: Vec3,
+    up: Vec3,
+    forward: Vec3,
+}
+
+impl StableCameraAxes {
+    fn new() -> Self {
+        let tf = Transform::from_translation(CAMERA_OFFSET).looking_at(Vec3::ZERO, Vec3::Y);
+        Self {
+            right: tf.right().as_vec3(),
+            up: tf.up().as_vec3(),
+            forward: tf.forward().as_vec3(),
+        }
+    }
+}
+
+static STABLE_AXES: std::sync::LazyLock<StableCameraAxes> =
+    std::sync::LazyLock::new(StableCameraAxes::new);
+
 #[derive(Component)]
 pub struct IsometricCamera;
 
@@ -112,15 +135,8 @@ fn setup_camera(
 }
 
 fn camera_follow_player(
-    player_query: Query<&Transform, (With<Player>, Without<IsometricCamera>, Without<DisplayQuad>)>,
-    mut camera_query: Query<
-        &mut Transform,
-        (With<IsometricCamera>, Without<Player>, Without<DisplayQuad>),
-    >,
-    mut quad_query: Query<
-        &mut Transform,
-        (With<DisplayQuad>, Without<IsometricCamera>, Without<Player>),
-    >,
+    player_query: Query<&Transform, (With<Player>, Without<IsometricCamera>)>,
+    mut camera_query: Query<&mut Transform, (With<IsometricCamera>, Without<Player>)>,
     windows: Query<&Window, With<PrimaryWindow>>,
 ) {
     let Ok(player_tf) = player_query.single() else {
@@ -145,28 +161,22 @@ fn camera_follow_player(
 
     let pixel_world_size = VIEWPORT_HEIGHT / render_h;
 
-    // Decompose desired position along camera axes
-    let right = camera_tf.right().as_vec3();
-    let up = camera_tf.up().as_vec3();
-    let forward = camera_tf.forward().as_vec3();
+    // Use precomputed stable axes to avoid drift from reading mutated transform
+    let axes = &*STABLE_AXES;
+    let right = axes.right;
+    let up = axes.up;
+    let forward = axes.forward;
 
     let right_proj = desired.dot(right);
     let up_proj = desired.dot(up);
     let forward_proj = desired.dot(forward);
 
     // Snap camera to texel grid — pixels stay locked to fixed world positions (no swimming).
+    // No sub-pixel offset: at PIXEL_SCALE=2, nearest-neighbor upscaling makes sub-pixel
+    // quad shifts cause texel swimming (50% of display pixels flip between texels).
+    // Pixel-grid-locked movement is the standard pixel-art camera approach.
     let snapped_right = (right_proj / pixel_world_size).round() * pixel_world_size;
     let snapped_up = (up_proj / pixel_world_size).round() * pixel_world_size;
 
     camera_tf.translation = snapped_right * right + snapped_up * up + forward_proj * forward;
-
-    // Sub-pixel offset: shift display quad by the fractional remainder.
-    // This makes movement appear smooth despite the camera snapping to a grid.
-    // The display camera has viewport_height=1.0, so divide by VIEWPORT_HEIGHT.
-    if let Ok(mut quad_tf) = quad_query.single_mut() {
-        let remainder_right = right_proj - snapped_right;
-        let remainder_up = up_proj - snapped_up;
-        quad_tf.translation.x = -remainder_right / VIEWPORT_HEIGHT;
-        quad_tf.translation.y = -remainder_up / VIEWPORT_HEIGHT;
-    }
 }
