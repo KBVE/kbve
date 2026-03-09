@@ -8,6 +8,7 @@ use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 use bevy_rapier3d::prelude::*;
 
 use super::grass::GrassTuft;
+use super::player::Player;
 use super::terrain::{CHUNK_SIZE, TerrainMap, hash2d};
 
 pub const TILE_SIZE: f32 = 1.0;
@@ -361,12 +362,13 @@ fn process_chunk_spawns_and_despawns(
     mut meshes: ResMut<Assets<Mesh>>,
     mut terrain: ResMut<TerrainMap>,
     tile_materials: Option<Res<TileMaterials>>,
+    player_query: Query<&Transform, With<Player>>,
 ) {
     let Some(tile_materials) = tile_materials else {
         return;
     };
 
-    // Despawn chunks
+    // Despawn chunks (all at once — despawning is cheap)
     let despawns: Vec<(i32, i32, Vec<Entity>)> = terrain.chunks_to_despawn.drain(..).collect();
     for (_cx, _cz, entities) in despawns {
         for entity in entities {
@@ -374,8 +376,31 @@ fn process_chunk_spawns_and_despawns(
         }
     }
 
-    // Spawn chunks
-    let spawns: Vec<(i32, i32)> = terrain.chunks_to_spawn.drain(..).collect();
+    // Find the player's chunk so we can prioritize nearby chunks for colliders
+    let player_chunk = player_query.single().ok().map(|tf| {
+        TerrainMap::tile_to_chunk(tf.translation.x.round() as i32, tf.translation.z.round() as i32)
+    });
+
+    // Spawn chunks — always spawn player's chunk + neighbors immediately,
+    // rate-limit distant chunks to avoid frame spikes.
+    #[cfg(target_arch = "wasm32")]
+    const MAX_DISTANT_SPAWNS: usize = 1;
+    #[cfg(not(target_arch = "wasm32"))]
+    const MAX_DISTANT_SPAWNS: usize = 2;
+
+    let mut near: Vec<(i32, i32)> = Vec::new();
+    let mut far: Vec<(i32, i32)> = Vec::new();
+    for (cx, cz) in terrain.chunks_to_spawn.drain(..) {
+        let is_near = player_chunk
+            .map(|(pcx, pcz)| (cx - pcx).abs() <= 1 && (cz - pcz).abs() <= 1)
+            .unwrap_or(true);
+        if is_near { near.push((cx, cz)); } else { far.push((cx, cz)); }
+    }
+    // Near chunks: always spawn (player needs colliders)
+    // Far chunks: rate-limit (terrain system re-queues un-spawned ones next frame)
+    far.truncate(MAX_DISTANT_SPAWNS);
+    let mut spawns = near;
+    spawns.extend(far);
     for (cx, cz) in &spawns {
         let mut entities = Vec::new();
         let base_x = cx * CHUNK_SIZE;
@@ -468,6 +493,9 @@ fn process_chunk_spawns_and_despawns(
                     ];
 
                     for (seed_x, seed_z, density, kind) in grass_slots {
+                        #[cfg(target_arch = "wasm32")]
+                        let density = density * 0.5;
+
                         let noise = hash2d(tx + seed_x, tz + seed_z);
                         if noise >= density {
                             continue;
