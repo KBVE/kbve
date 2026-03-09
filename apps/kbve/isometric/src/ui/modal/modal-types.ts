@@ -7,7 +7,7 @@ export interface ModalConfig {
 	onClose?: () => void;
 	closeOnOverlayClick?: boolean;
 	closeOnEscape?: boolean;
-	size?: 'sm' | 'md' | 'lg';
+	size?: 'xs' | 'sm' | 'md' | 'lg';
 }
 
 export interface ModalState {
@@ -16,6 +16,7 @@ export interface ModalState {
 }
 
 export const MODAL_SIZE_CLASSES: Record<string, string> = {
+	xs: 'max-w-xs',
 	sm: 'max-w-sm',
 	md: 'max-w-md',
 	lg: 'max-w-lg',

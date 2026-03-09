@@ -128,6 +128,7 @@ export function useObjectSelection() {
 
 				gameEvents.emit('modal:open', {
 					title: info.title,
+					size: 'xs' as const,
 					content: <ActionContent info={info} />,
 					onClose: () => {
 						modalOpenRef.current = false;
