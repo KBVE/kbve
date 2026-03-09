@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>KBVE Isometric</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                background: #1a1a26;
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+            }
+            #bevy-canvas {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 0;
+            }
+            #root {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1;
+                pointer-events: none;
+            }
+            /* pointer-events managed per-component via Tailwind pointer-events-auto */
+        </style>
+      <script type="module" crossorigin src="/isometric/assets/index.js"></script>
+      <link rel="stylesheet" crossorigin href="/isometric/assets/index.css">
+    </head>
+    <body>
+        <canvas id="bevy-canvas"></canvas>
+        <div id="root"></div>
+    </body>
+</html>
