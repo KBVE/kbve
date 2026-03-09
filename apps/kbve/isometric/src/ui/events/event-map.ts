@@ -32,6 +32,7 @@ export type GameEventMap = {
 		id?: string;
 		title: string;
 		content: ReactNode;
+		size?: 'xs' | 'sm' | 'md' | 'lg';
 		onClose?: () => void;
 	};
 	'modal:close': void;
