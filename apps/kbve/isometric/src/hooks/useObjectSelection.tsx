@@ -70,21 +70,31 @@ const FLOWER_INFO: Record<
 
 function ActionContent({ info }: { info: ObjectInfo }) {
 	return (
-		<div className="space-y-3">
-			<p className="text-[8px] text-text-muted">{info.description}</p>
-			<button
-				className="w-full px-3 py-2 text-[8px] bg-btn border border-btn-border
-					hover:bg-btn-hover active:bg-btn-active
-					transition-colors cursor-pointer text-text"
-				onClick={() => {
-					gameEvents.emit('toast:show', {
-						message: `${info.action}: ${info.title}`,
-						severity: 'info',
-					});
-					gameEvents.emit('modal:close');
-				}}>
-				{info.action}
-			</button>
+		<div className="space-y-2">
+			{/* Description in inset panel */}
+			<div className="px-2 py-1.5 bg-[#1e1408] border border-[#5a4a2a]">
+				<p className="text-[8px] text-text leading-relaxed">
+					{info.description}
+				</p>
+			</div>
+			{/* Centered RPG button */}
+			<div className="flex justify-center pt-1">
+				<button
+					className="px-4 py-1.5 text-[8px] text-text
+						bg-btn border-2 border-btn-border
+						shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_2px_0_#1a3a10]
+						hover:bg-btn-hover active:bg-btn-active active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]
+						transition-colors cursor-pointer"
+					onClick={() => {
+						gameEvents.emit('toast:show', {
+							message: `${info.action}: ${info.title}`,
+							severity: 'info',
+						});
+						gameEvents.emit('modal:close');
+					}}>
+					{info.action}
+				</button>
+			</div>
 		</div>
 	);
 }

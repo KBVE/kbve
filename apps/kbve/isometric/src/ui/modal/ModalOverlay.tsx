@@ -21,25 +21,35 @@ export function ModalOverlay() {
 					dispatch({ type: 'CLOSE' });
 				}
 			}}>
+			{/* Outer frame — golden border with dark shadow inset */}
 			<div
 				className={`
-					${sizeClass} w-full mx-4
-					bg-panel border-2 border-panel-border shadow-panel
+					${sizeClass} mx-4
+					border-[3px] border-panel-border
+					shadow-[0_0_0_1px_#1a1008,0_6px_20px_rgba(0,0,0,0.8)]
 					animate-modal-in
 				`}
 				onClick={(e) => e.stopPropagation()}>
-				{/* Title bar */}
-				<div className="flex items-center justify-between px-3 py-2 border-b-2 border-panel-border bg-panel-inner">
-					<h2 className="text-[10px]">{topModal.title}</h2>
-					<button
-						onClick={() => dispatch({ type: 'CLOSE' })}
-						className="text-text-muted hover:text-text text-[10px] leading-none cursor-pointer">
-						&#x2715;
-					</button>
-				</div>
-				{/* Content */}
-				<div className="p-3 bg-panel-inner text-[8px]">
-					{topModal.content}
+				{/* Inner frame — dark inset border for depth */}
+				<div className="border-2 border-[#1a1008]">
+					{/* Title bar — darker strip with centered title */}
+					<div className="flex items-center justify-between px-3 py-2 bg-[#1e1408] border-b border-[#5a4a2a]">
+						<h2 className="text-[10px] text-[#c8a832]">
+							{topModal.title}
+						</h2>
+						<button
+							onClick={() => dispatch({ type: 'CLOSE' })}
+							className="w-5 h-5 flex items-center justify-center
+								bg-[#3d2b14] border border-[#5a4a2a]
+								text-text-muted hover:text-[#c8a832] hover:border-panel-border
+								text-[8px] leading-none cursor-pointer transition-colors">
+							&#x2715;
+						</button>
+					</div>
+					{/* Content area — wood panel background */}
+					<div className="p-3 bg-panel-inner text-[8px]">
+						{topModal.content}
+					</div>
 				</div>
 			</div>
 		</div>,
