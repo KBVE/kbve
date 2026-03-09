@@ -11,8 +11,8 @@ use std::sync::LazyLock;
 use bevy_rapier3d::prelude::*;
 
 use super::scene_objects::{
-    AnimatedCrystal, HoverOutline, Occludable, OriginalEmissive, RotatingBox, on_pointer_out,
-    on_pointer_over,
+    AnimatedCrystal, HoverOutline, Interactable, InteractableKind, Occludable, OriginalEmissive,
+    RotatingBox, on_pointer_out, on_pointer_over,
 };
 use super::terrain::TerrainMap;
 
@@ -338,6 +338,9 @@ fn spawn_object_entity(
                     HoverOutline {
                         half_extents: Vec3::splat(half),
                     },
+                    Interactable {
+                        kind: InteractableKind::Crate,
+                    },
                 ))
                 .observe(on_pointer_over)
                 .observe(on_pointer_out)
@@ -366,6 +369,9 @@ fn spawn_object_entity(
                     HoverOutline {
                         half_extents: Vec3::splat(half),
                     },
+                    Interactable {
+                        kind: InteractableKind::Crate,
+                    },
                 ))
                 .observe(on_pointer_over)
                 .observe(on_pointer_out)
@@ -393,6 +399,9 @@ fn spawn_object_entity(
                     HoverOutline {
                         half_extents: Vec3::splat(1.0),
                     },
+                    Interactable {
+                        kind: InteractableKind::Crystal,
+                    },
                 ))
                 .observe(on_pointer_over)
                 .observe(on_pointer_out)
@@ -416,6 +425,9 @@ fn spawn_object_entity(
                 OriginalEmissive(LinearRgba::BLACK),
                 HoverOutline {
                     half_extents: Vec3::new(0.4, 2.0, 0.4),
+                },
+                Interactable {
+                    kind: InteractableKind::Pillar,
                 },
             ))
             .observe(on_pointer_over)
@@ -441,6 +453,9 @@ fn spawn_object_entity(
                     OriginalEmissive(LinearRgba::BLACK),
                     HoverOutline {
                         half_extents: Vec3::splat(radius),
+                    },
+                    Interactable {
+                        kind: InteractableKind::Sphere,
                     },
                 ))
                 .observe(on_pointer_over)
