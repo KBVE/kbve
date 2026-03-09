@@ -10,21 +10,53 @@ use bevy::shader::ShaderRef;
 pub struct PixelateSettings {
     /// Size of each pixel block (in logical pixels).
     pub pixel_size: f32,
-    /// Strength of normal-like edge outlines (0.0 = off, 1.0 = full).
-    pub edge_strength: f32,
-    /// Strength of depth-like edge outlines (0.0 = off, 1.0 = full).
-    pub depth_edge_strength: f32,
+    /// Strength of highlight edges from color-direction shifts (0.0 = off, 1.0 = full).
+    pub highlight_strength: f32,
+    /// Strength of shadow edges from luminance jumps (0.0 = off, 1.0 = full).
+    pub shadow_strength: f32,
     /// Window DPI scale factor (auto-updated from the window).
     pub scale_factor: f32,
+    /// How dark shadow edges get (0.0 = black, 1.0 = original color).
+    pub shadow_darkness: f32,
+    /// How bright highlight edges get (0.0 = no brightening, 1.0 = full white).
+    pub highlight_brightness: f32,
+    /// Smoothstep low threshold for normal (hue) edge detection.
+    pub normal_threshold_low: f32,
+    /// Smoothstep high threshold for normal (hue) edge detection.
+    pub normal_threshold_high: f32,
+    /// Smoothstep low threshold for depth (luminance) edge detection.
+    pub depth_threshold_low: f32,
+    /// Smoothstep high threshold for depth (luminance) edge detection.
+    pub depth_threshold_high: f32,
+    /// Suppresses highlights at hard depth edges to avoid double-lining.
+    pub artifact_suppression: f32,
+    /// Toon/cel-shading: number of discrete brightness bands (0 = off, 3-4 = typical).
+    pub toon_bands: f32,
+    /// Palette quantization: number of color levels per channel (0 = off, 6-8 = typical).
+    pub color_levels: f32,
+    /// Per-pixel color noise to break banding (0.0 = off, 0.01-0.03 = subtle).
+    pub color_noise: f32,
+    pub _pad1: f32,
 }
 
 impl Default for PixelateSettings {
     fn default() -> Self {
         Self {
             pixel_size: 2.0,
-            edge_strength: 0.3,
-            depth_edge_strength: 0.2,
+            highlight_strength: 0.65, // stronger highlight edges (was 0.5)
+            shadow_strength: 0.70,    // stronger shadow edges for crispness (was 0.55)
             scale_factor: 1.0,
+            shadow_darkness: 0.22,       // darker shadow lines (was 0.3)
+            highlight_brightness: 0.40,  // brighter highlight lines (was 0.35)
+            normal_threshold_low: 0.08,  // catch subtler color shifts (was 0.12)
+            normal_threshold_high: 0.32, // sharper edge transition (was 0.40)
+            depth_threshold_low: 0.18,   // catch subtler depth changes (was 0.25)
+            depth_threshold_high: 0.50,  // sharper falloff (was 0.65)
+            artifact_suppression: 1.2,   // slightly more suppression (was 1.0)
+            toon_bands: 5.0,             // one more band for richer shading (was 4.0)
+            color_levels: 6.0,           // slightly more color variety (was 5.0)
+            color_noise: 0.015,          // subtler noise (was 0.02)
+            _pad1: 0.0,
         }
     }
 }

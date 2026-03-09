@@ -1,8 +1,8 @@
 use std::sync::Mutex;
 
+use bevy::input::ButtonState;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::input::mouse::{MouseButtonInput, MouseWheel};
-use bevy::input::ButtonState;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
@@ -60,7 +60,10 @@ pub fn receive_input(
         cursor_x,
         cursor_y,
         cursor_valid,
-        mouse_buttons_pressed: mouse_pressed.iter().map(|&b| js_to_mouse_button(b)).collect(),
+        mouse_buttons_pressed: mouse_pressed
+            .iter()
+            .map(|&b| js_to_mouse_button(b))
+            .collect(),
         mouse_buttons_released: mouse_released
             .iter()
             .map(|&b| js_to_mouse_button(b))

@@ -6,12 +6,17 @@ use bevy::render::render_resource::TextureFormat;
 use bevy::window::PrimaryWindow;
 use bevy_rapier3d::prelude::PhysicsSet;
 
+use super::pixelate::PixelateSettings;
 use super::player::{Player, PlayerMovement};
 
 const CAMERA_OFFSET: Vec3 = Vec3::new(15.0, 20.0, 15.0);
 const VIEWPORT_HEIGHT: f32 = 20.0;
-/// Downscale factor: render at 1/PIXEL_SCALE resolution, nearest-neighbor upscale.
-const PIXEL_SCALE: u32 = 2;
+/// Pixel Density: render pixels per world unit.
+/// 1 tile = 1.0 world unit = 32 render pixels.
+/// Camera snap step = 1/32 = 0.03125 world units.
+pub const PIXEL_DENSITY: u32 = 32;
+/// World size of one render pixel (1 / PIXEL_DENSITY).
+const PIXEL_STEP: f32 = 1.0 / PIXEL_DENSITY as f32;
 /// RenderLayer for the display quad (separate from the 3D scene on layer 0).
 const DISPLAY_LAYER: usize = 1;
 
@@ -66,8 +71,12 @@ fn setup_camera(
     windows: Query<&Window, With<PrimaryWindow>>,
 ) {
     let Ok(window) = windows.single() else { return };
-    let render_w = ((window.width() / PIXEL_SCALE as f32) as u32).max(1);
-    let render_h = ((window.height() / PIXEL_SCALE as f32) as u32).max(1);
+    let aspect = window.width() / window.height();
+
+    // Fixed render buffer: height locked to VIEWPORT_HEIGHT * PIXEL_DENSITY,
+    // width adapts to window aspect ratio.  Exactly 32 pixels per world unit.
+    let render_h = (VIEWPORT_HEIGHT * PIXEL_DENSITY as f32) as u32; // 640
+    let render_w = (render_h as f32 * aspect) as u32;
 
     // Low-res render target with nearest-neighbor sampling for crisp pixel art
     let mut render_img =
@@ -98,7 +107,6 @@ fn setup_camera(
 
     // --- Stage 2: Display camera renders a textured quad to the window ---
     // Uses RenderLayers(DISPLAY_LAYER) so it only sees the display quad.
-    let aspect = window.width() / window.height();
     commands.spawn((
         Camera3d::default(),
         Camera {
@@ -115,6 +123,7 @@ fn setup_camera(
         }),
         Transform::from_xyz(0.0, 0.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
         RenderLayers::layer(DISPLAY_LAYER),
+        PixelateSettings::default(),
     ));
 
     // Fullscreen quad with the render texture (unlit = display pixels as-is).
@@ -137,7 +146,6 @@ fn setup_camera(
 fn camera_follow_player(
     player_query: Query<&Transform, (With<Player>, Without<IsometricCamera>)>,
     mut camera_query: Query<&mut Transform, (With<IsometricCamera>, Without<Player>)>,
-    windows: Query<&Window, With<PrimaryWindow>>,
 ) {
     let Ok(player_tf) = player_query.single() else {
         return;
@@ -147,19 +155,6 @@ fn camera_follow_player(
     };
 
     let desired = player_tf.translation + CAMERA_OFFSET;
-
-    let Ok(window) = windows.single() else {
-        camera_tf.translation = desired;
-        return;
-    };
-
-    let render_h = (window.height() / PIXEL_SCALE as f32).floor();
-    if render_h < 1.0 {
-        camera_tf.translation = desired;
-        return;
-    }
-
-    let pixel_world_size = VIEWPORT_HEIGHT / render_h;
 
     // Use precomputed stable axes to avoid drift from reading mutated transform
     let axes = &*STABLE_AXES;
@@ -171,14 +166,12 @@ fn camera_follow_player(
     let up_proj = desired.dot(up);
     let forward_proj = desired.dot(forward);
 
-    // Snap camera to texel grid on ALL axes — prevents texel swimming.
+    // Snap camera to pixel grid on ALL axes using fixed PIXEL_STEP (1/32).
     // Right/Up snapping locks the pixel grid for geometry.
-    // Forward snapping stabilizes the shadow cascade alignment (shadow maps
-    // recompute from the camera frustum — unsnapped depth causes shadow edges
-    // to swim by 1-2 pixels as the camera glides smoothly along the view axis).
-    let snapped_right = (right_proj / pixel_world_size).round() * pixel_world_size;
-    let snapped_up = (up_proj / pixel_world_size).round() * pixel_world_size;
-    let snapped_forward = (forward_proj / pixel_world_size).round() * pixel_world_size;
+    // Forward snapping stabilizes the shadow cascade alignment.
+    let snapped_right = (right_proj / PIXEL_STEP).round() * PIXEL_STEP;
+    let snapped_up = (up_proj / PIXEL_STEP).round() * PIXEL_STEP;
+    let snapped_forward = (forward_proj / PIXEL_STEP).round() * PIXEL_STEP;
 
     camera_tf.translation = snapped_right * right + snapped_up * up + snapped_forward * forward;
 }

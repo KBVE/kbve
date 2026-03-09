@@ -1,4 +1,5 @@
 use bevy::asset::RenderAssetUsages;
+use bevy::image::ImageSampler;
 use bevy::light::{
     CascadeShadowConfigBuilder, Cascades, DirectionalLightShadowMap, SimulationLightSystems,
 };
@@ -12,6 +13,7 @@ use super::scene_objects::{
     FlowerArchetype, HoverOutline, Interactable, InteractableKind, on_pointer_out, on_pointer_over,
 };
 use super::terrain::{CHUNK_SIZE, TerrainMap, hash2d};
+use super::water::{WATER_LEVEL, WaterMaterial};
 
 pub const TILE_SIZE: f32 = 1.0;
 /// Thin cap on top of each column — bright surface that contrasts with darker body.
@@ -91,6 +93,10 @@ fn cap_vertex_color(band: usize, tx: i32, tz: i32) -> [f32; 4] {
 // Vegetation vertex color constants
 // ---------------------------------------------------------------------------
 
+/// Snap vegetation jitter to the pixel grid (1/PIXEL_DENSITY = 1/32 world units).
+/// Matches the camera snap step so edges never land between pixels.
+const VEG_SNAP: f32 = 1.0 / 32.0;
+
 /// Grass type colors (sRGB, converted to linear at use).
 const VEG_GRASS_TUFT: (f32, f32, f32) = (0.25, 0.55, 0.15);
 const VEG_GRASS_TALL: (f32, f32, f32) = (0.20, 0.50, 0.12);
@@ -102,106 +108,135 @@ const VEG_FLOWER_COLORS: [(f32, f32, f32); 4] = [
     (0.95, 0.85, 0.30),
 ];
 
-/// Collectible flower archetype colors (sRGB).
-const FLOWER_TULIP: (f32, f32, f32) = (0.85, 0.30, 0.35);
-const FLOWER_DAISY: (f32, f32, f32) = (0.95, 0.95, 0.85);
-const FLOWER_LAVENDER: (f32, f32, f32) = (0.60, 0.45, 0.75);
-const FLOWER_BELL: (f32, f32, f32) = (0.40, 0.60, 0.85);
-const FLOWER_WILDFLOWER: (f32, f32, f32) = (0.95, 0.75, 0.20);
+/// 4-shade bark palette (sRGB): dark shadow → highlight.
+const BARK_DARK: (f32, f32, f32) = (0.25, 0.16, 0.08);
+const BARK_MID_DARK: (f32, f32, f32) = (0.35, 0.22, 0.12);
+const BARK_MID_LIGHT: (f32, f32, f32) = (0.42, 0.29, 0.17);
+const BARK_HIGHLIGHT: (f32, f32, f32) = (0.52, 0.36, 0.22);
 
-/// (color, radius) per archetype index — order matches FlowerArchetype variants.
-const FLOWER_ARCHETYPES: [((f32, f32, f32), f32); 5] = [
-    (FLOWER_TULIP, 0.15),
-    (FLOWER_DAISY, 0.13),
-    (FLOWER_LAVENDER, 0.12),
-    (FLOWER_BELL, 0.14),
-    (FLOWER_WILDFLOWER, 0.13),
+/// Per-tree canopy hue variants (sRGB). More variation = painterly forest.
+/// Ghibli-style midtone greens (warm/cool shift applied per-tone in spawn).
+const TREE_CANOPY_COLORS: [(f32, f32, f32); 5] = [
+    (0.28, 0.54, 0.18), // neutral forest green
+    (0.34, 0.62, 0.22), // mid green
+    (0.32, 0.56, 0.17), // warm olive
+    (0.30, 0.58, 0.24), // cool green
+    (0.36, 0.52, 0.18), // yellow-green
 ];
 
-/// Tree colors (sRGB, averaged from procedural textures).
-const TREE_BARK: (f32, f32, f32) = (0.40, 0.27, 0.16);
-const TREE_CANOPY_COLORS: [(f32, f32, f32); 3] =
-    [(0.22, 0.47, 0.16), (0.27, 0.59, 0.18), (0.33, 0.51, 0.16)];
+/// Canopy volume shape for scattered leaf card distribution.
+#[derive(Clone, Copy)]
+enum CanopyShape {
+    Cone {
+        radius: f32,
+        height: f32,
+        center_y_offset: f32,
+    },
+    Ellipsoid {
+        rx: f32,
+        ry: f32,
+        rz: f32,
+        center_y_offset: f32,
+    },
+}
 
-/// Darker canopy shade for lower/inner layers (sRGB).
-const TREE_CANOPY_DARK: [(f32, f32, f32); 3] =
-    [(0.15, 0.35, 0.10), (0.19, 0.44, 0.12), (0.24, 0.38, 0.10)];
-
-/// Tree shape presets: (trunk_height, trunk_radius, layers)
-/// Each layer: (half_width, height, y_overlap)
-/// y_overlap is how much this layer dips into the one below for denser foliage.
+#[derive(Clone, Copy)]
 struct TreePreset {
     trunk_h: f32,
     trunk_r: f32,
-    layers: &'static [(f32, f32, f32)], // (half_width, height, y_overlap)
+    canopy: CanopyShape,
 }
 
-const TREE_CONIFER: TreePreset = TreePreset {
-    trunk_h: 1.2,
-    trunk_r: 0.10,
-    layers: &[
-        (0.55, 0.50, 0.0),  // bottom — widest
-        (0.42, 0.45, 0.08), // middle
-        (0.28, 0.40, 0.08), // upper
-        (0.14, 0.35, 0.06), // tip
-    ],
-};
-
-const TREE_TALL_PINE: TreePreset = TreePreset {
-    trunk_h: 1.6,
-    trunk_r: 0.12,
-    layers: &[
-        (0.50, 0.55, 0.0),
-        (0.38, 0.50, 0.10),
-        (0.26, 0.45, 0.08),
-        (0.16, 0.40, 0.06),
-        (0.08, 0.30, 0.04),
-    ],
-};
-
-const TREE_BUSHY: TreePreset = TreePreset {
-    trunk_h: 0.8,
-    trunk_r: 0.12,
-    layers: &[
-        (0.60, 0.55, 0.0),  // wide bottom
-        (0.50, 0.50, 0.10), // still wide
-        (0.35, 0.40, 0.08), // tapers
-    ],
-};
-
-/// Deciduous oak-like tree — wide canopy, offset blobs added procedurally.
-const TREE_OAK: TreePreset = TreePreset {
-    trunk_h: 1.0,
-    trunk_r: 0.14,
-    layers: &[
-        (0.50, 0.45, 0.0),  // base crown
-        (0.55, 0.50, 0.10), // widest in middle
-        (0.48, 0.45, 0.10), // upper crown
-        (0.30, 0.35, 0.08), // top
-    ],
-};
-
-/// Compact round deciduous tree — shorter, rounder.
-const TREE_ROUND: TreePreset = TreePreset {
-    trunk_h: 0.7,
-    trunk_r: 0.10,
-    layers: &[
-        (0.45, 0.40, 0.0),  // base
-        (0.50, 0.45, 0.10), // widest
-        (0.35, 0.35, 0.08), // top
-    ],
-};
-
-const TREE_PRESETS: [&TreePreset; 5] = [
-    &TREE_CONIFER,
-    &TREE_TALL_PINE,
-    &TREE_BUSHY,
-    &TREE_OAK,
-    &TREE_ROUND,
+const TREE_PRESETS: [TreePreset; 5] = [
+    // Conifer: tall trunk, narrower cone — distinct but still has canopy
+    TreePreset {
+        trunk_h: 1.60,
+        trunk_r: 0.10,
+        canopy: CanopyShape::Cone {
+            radius: 0.75, // narrower than bushy but still visible
+            height: 2.2,
+            center_y_offset: -0.15,
+        },
+    },
+    // Tall: tall trunk, upright crown
+    TreePreset {
+        trunk_h: 1.50,
+        trunk_r: 0.12,
+        canopy: CanopyShape::Ellipsoid {
+            rx: 0.90, // moderate width
+            ry: 1.05,
+            rz: 0.85,
+            center_y_offset: 0.40,
+        },
+    },
+    // Bushy: shorter trunk, widest crown
+    TreePreset {
+        trunk_h: 1.10,
+        trunk_r: 0.14,
+        canopy: CanopyShape::Ellipsoid {
+            rx: 1.20,
+            ry: 0.75,
+            rz: 1.25,
+            center_y_offset: 0.30,
+        },
+    },
+    // Oak: thick trunk, broad crown
+    TreePreset {
+        trunk_h: 1.30,
+        trunk_r: 0.16,
+        canopy: CanopyShape::Ellipsoid {
+            rx: 1.10,
+            ry: 0.90,
+            rz: 1.00,
+            center_y_offset: 0.40,
+        },
+    },
+    // Round: medium trunk, compact ball
+    TreePreset {
+        trunk_h: 1.05,
+        trunk_r: 0.12,
+        canopy: CanopyShape::Ellipsoid {
+            rx: 0.85, // compact but not tiny
+            ry: 0.80,
+            rz: 0.85,
+            center_y_offset: 0.35,
+        },
+    },
 ];
 
 fn srgb_color(r: f32, g: f32, b: f32) -> [f32; 4] {
     [srgb_to_linear(r), srgb_to_linear(g), srgb_to_linear(b), 1.0]
+}
+
+fn lerp3(a: (f32, f32, f32), b: (f32, f32, f32), t: f32) -> (f32, f32, f32) {
+    (
+        a.0 + (b.0 - a.0) * t,
+        a.1 + (b.1 - a.1) * t,
+        a.2 + (b.2 - a.2) * t,
+    )
+}
+
+/// Per-face bark colors based on vertical position along trunk.
+/// `y_frac`: 0.0 = base, 1.0 = top. Returns `[+Y, -Y, +X, -X, +Z, -Z]`.
+fn bark_face_colors(y_frac: f32) -> [[f32; 4]; 6] {
+    // Root darkening: bottom 15% of trunk gets 15% darker
+    let root = if y_frac < 0.15 { 0.85 } else { 1.0 };
+    let apply = |c: (f32, f32, f32)| srgb_color(c.0 * root, c.1 * root, c.2 * root);
+
+    let top = lerp3(BARK_MID_LIGHT, BARK_HIGHLIGHT, y_frac);
+    let lit = lerp3(BARK_MID_LIGHT, BARK_HIGHLIGHT, y_frac); // +X sun-facing
+    let shadow = lerp3(BARK_DARK, BARK_MID_DARK, y_frac); // -X shadowed
+    let semi_s = lerp3(BARK_MID_DARK, BARK_MID_LIGHT, y_frac); // +Z partial shadow
+    let semi_l = lerp3(BARK_MID_LIGHT, BARK_HIGHLIGHT, y_frac * 0.7); // -Z partial lit
+
+    [
+        apply(top),
+        apply(BARK_DARK),
+        apply(lit),
+        apply(shadow),
+        apply(semi_s),
+        apply(semi_l),
+    ]
 }
 
 // ---------------------------------------------------------------------------
@@ -375,6 +410,337 @@ fn push_cuboid(
     }
 }
 
+/// Like `push_cuboid` but each face gets its own color.
+/// `face_colors` order: `[+Y, -Y, +X, -X, +Z, -Z]`.
+fn push_cuboid_multicolor(
+    pos: &mut Vec<[f32; 3]>,
+    nor: &mut Vec<[f32; 3]>,
+    col: &mut Vec<[f32; 4]>,
+    idx: &mut Vec<u32>,
+    center: Vec3,
+    half: Vec3,
+    face_colors: [[f32; 4]; 6],
+) {
+    let base = pos.len() as u32;
+    let (cx, cy, cz) = (center.x, center.y, center.z);
+    let (hx, hy, hz) = (half.x, half.y, half.z);
+
+    // +Y
+    pos.extend_from_slice(&[
+        [cx - hx, cy + hy, cz - hz],
+        [cx + hx, cy + hy, cz - hz],
+        [cx + hx, cy + hy, cz + hz],
+        [cx - hx, cy + hy, cz + hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, 1.0, 0.0]; 4]);
+    col.extend(std::iter::repeat(face_colors[0]).take(4));
+
+    // -Y
+    pos.extend_from_slice(&[
+        [cx - hx, cy - hy, cz + hz],
+        [cx + hx, cy - hy, cz + hz],
+        [cx + hx, cy - hy, cz - hz],
+        [cx - hx, cy - hy, cz - hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, -1.0, 0.0]; 4]);
+    col.extend(std::iter::repeat(face_colors[1]).take(4));
+
+    // +X
+    pos.extend_from_slice(&[
+        [cx + hx, cy - hy, cz - hz],
+        [cx + hx, cy - hy, cz + hz],
+        [cx + hx, cy + hy, cz + hz],
+        [cx + hx, cy + hy, cz - hz],
+    ]);
+    nor.extend_from_slice(&[[1.0, 0.0, 0.0]; 4]);
+    col.extend(std::iter::repeat(face_colors[2]).take(4));
+
+    // -X
+    pos.extend_from_slice(&[
+        [cx - hx, cy - hy, cz + hz],
+        [cx - hx, cy - hy, cz - hz],
+        [cx - hx, cy + hy, cz - hz],
+        [cx - hx, cy + hy, cz + hz],
+    ]);
+    nor.extend_from_slice(&[[-1.0, 0.0, 0.0]; 4]);
+    col.extend(std::iter::repeat(face_colors[3]).take(4));
+
+    // +Z
+    pos.extend_from_slice(&[
+        [cx + hx, cy - hy, cz + hz],
+        [cx - hx, cy - hy, cz + hz],
+        [cx - hx, cy + hy, cz + hz],
+        [cx + hx, cy + hy, cz + hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, 0.0, 1.0]; 4]);
+    col.extend(std::iter::repeat(face_colors[4]).take(4));
+
+    // -Z
+    pos.extend_from_slice(&[
+        [cx - hx, cy - hy, cz - hz],
+        [cx + hx, cy - hy, cz - hz],
+        [cx + hx, cy + hy, cz - hz],
+        [cx - hx, cy + hy, cz - hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, 0.0, -1.0]; 4]);
+    col.extend(std::iter::repeat(face_colors[5]).take(4));
+
+    for face in 0..6u32 {
+        let f = base + face * 4;
+        idx.extend_from_slice(&[f, f + 2, f + 1, f, f + 3, f + 2]);
+    }
+}
+
+/// Two-section 8-sided trunk: flared trapezoid base + straight upper section.
+///
+/// ```text
+///    |  |       ← top_r (narrow)
+///    |  |       ← upper section (70% of height)
+///    |  |
+///   /    \      ← mid_r at flare point
+///  /      \     ← flared base section (30% of height)
+/// /________\    ← base_r (wide)
+/// ```
+///
+/// Per-face bark ridges (alternating brightness) + radial wobble for organic feel.
+/// Buttress root quads extend from the flare outward.
+fn push_tapered_trunk(
+    pos: &mut Vec<[f32; 3]>,
+    nor: &mut Vec<[f32; 3]>,
+    col: &mut Vec<[f32; 4]>,
+    idx: &mut Vec<u32>,
+    base_y: f32,
+    height: f32,
+    base_r: f32,
+    top_r: f32,
+    root_count: i32,
+    seed: f32,
+) {
+    const SIDES: usize = 8;
+    let tau = std::f32::consts::TAU;
+
+    // Flare split: bottom 30% is the wide trapezoid base
+    let flare_frac = 0.30;
+    let flare_h = height * flare_frac;
+    let upper_h = height * (1.0 - flare_frac);
+    // Mid radius where flare meets upper trunk — much narrower than base
+    let mid_r = top_r * 1.15; // just slightly wider than top
+
+    let wobble = |i: usize, section: u8| -> f32 {
+        let s = seed * 11.3 + i as f32 * 2.7 + section as f32 * 5.0;
+        1.0 + s.sin() * 0.08
+    };
+
+    let tint = |c: [f32; 4], ridge: f32, hue: f32| -> [f32; 4] {
+        [
+            (c[0] * ridge + hue).max(0.0).min(1.0),
+            (c[1] * ridge).max(0.0).min(1.0),
+            (c[2] * ridge - hue * 0.5).max(0.0).min(1.0),
+            1.0,
+        ]
+    };
+
+    // Emit an 8-sided prism section between two Y levels with two radii
+    let mut emit_section = |y_bot: f32,
+                            y_top: f32,
+                            r_bot: f32,
+                            r_top: f32,
+                            bark_bot_frac: f32,
+                            bark_top_frac: f32,
+                            wobble_bot: u8,
+                            wobble_top: u8| {
+        for i in 0..SIDES {
+            let a0 = (i as f32) / (SIDES as f32) * tau;
+            let a1 = ((i + 1) as f32) / (SIDES as f32) * tau;
+            let (c0, s0) = (a0.cos(), a0.sin());
+            let (c1, s1) = (a1.cos(), a1.sin());
+
+            let wb0 = wobble(i, wobble_bot);
+            let wb1 = wobble(i + 1, wobble_bot);
+            let wt0 = wobble(i, wobble_top);
+            let wt1 = wobble(i + 1, wobble_top);
+
+            let ridge = if i % 2 == 0 { 1.12 } else { 0.88 };
+            let face_hue = ((seed * 3.1 + i as f32 * 1.7).sin()) * 0.04;
+            let fc_bot = tint(bark_face_colors(bark_bot_frac)[2], ridge, face_hue);
+            let fc_top = tint(bark_face_colors(bark_top_frac)[2], ridge, face_hue);
+
+            let b = pos.len() as u32;
+            pos.extend_from_slice(&[
+                [c0 * r_bot * wb0, y_bot, s0 * r_bot * wb0],
+                [c1 * r_bot * wb1, y_bot, s1 * r_bot * wb1],
+                [c1 * r_top * wt1, y_top, s1 * r_top * wt1],
+                [c0 * r_top * wt0, y_top, s0 * r_top * wt0],
+            ]);
+            let nx = (c0 + c1) * 0.5;
+            let nz = (s0 + s1) * 0.5;
+            let len = (nx * nx + nz * nz).sqrt().max(0.001);
+            nor.extend_from_slice(&[[nx / len, 0.0, nz / len]; 4]);
+            col.extend_from_slice(&[fc_bot, fc_bot, fc_top, fc_top]);
+            idx.extend_from_slice(&[b, b + 2, b + 1, b, b + 3, b + 2]);
+        }
+    };
+
+    // Section 1: Flared base (wide → narrow) — the trapezoid
+    emit_section(base_y, base_y + flare_h, base_r, mid_r, 0.05, 0.25, 0, 1);
+    // Section 2: Upper trunk (narrow → slightly narrower)
+    emit_section(
+        base_y + flare_h,
+        base_y + height,
+        mid_r,
+        top_r,
+        0.30,
+        0.80,
+        1,
+        2,
+    );
+
+    // Top cap
+    let cap_base = pos.len() as u32;
+    let top_col = bark_face_colors(0.9)[0];
+    for i in 0..SIDES {
+        let a = (i as f32) / (SIDES as f32) * tau;
+        let w = wobble(i, 2);
+        pos.push([a.cos() * top_r * w, base_y + height, a.sin() * top_r * w]);
+        nor.push([0.0, 1.0, 0.0]);
+        col.push(top_col);
+    }
+    for i in 1..(SIDES as u32 - 1) {
+        idx.extend_from_slice(&[cap_base, cap_base + i, cap_base + i + 1]);
+    }
+
+    // Buttress roots: quad ridges from flare outward, tapering to ground
+    let root_phase = seed * 3.7;
+    for ri in 0..root_count {
+        let angle = root_phase
+            + (ri as f32 / root_count as f32) * tau
+            + ((seed * 7.3 + ri as f32 * 2.1).sin()) * 0.50;
+        let (rc, rs) = (angle.cos(), angle.sin());
+        let fin_len = base_r * (1.5 + ((seed * 5.1 + ri as f32 * 3.3).sin()) * 0.5);
+        let fin_h = flare_h * (0.7 + ((seed * 4.7 + ri as f32 * 1.9).cos()) * 0.2); // root height tied to flare
+        let fin_thick_base = base_r * 0.30;
+        let fin_thick_tip = base_r * 0.06;
+
+        let root_dark = bark_face_colors(0.02)[2];
+        let root_light = bark_face_colors(0.10)[2];
+        let perp_x = -rs;
+        let perp_z = rc;
+        // Trunk radius at root attachment height — interpolate along the flare taper
+        // so root connects flush to the trunk surface, not floating at base_r
+        let flare_t = (fin_h / flare_h).min(1.0);
+        let attach_r = base_r + (mid_r - base_r) * flare_t;
+        let b = pos.len() as u32;
+        pos.extend_from_slice(&[
+            [
+                rc * attach_r + perp_x * fin_thick_base,
+                base_y + fin_h,
+                rs * attach_r + perp_z * fin_thick_base,
+            ],
+            [
+                rc * attach_r - perp_x * fin_thick_base,
+                base_y + fin_h,
+                rs * attach_r - perp_z * fin_thick_base,
+            ],
+            [
+                rc * fin_len - perp_x * fin_thick_tip,
+                base_y,
+                rs * fin_len - perp_z * fin_thick_tip,
+            ],
+            [
+                rc * fin_len + perp_x * fin_thick_tip,
+                base_y,
+                rs * fin_len + perp_z * fin_thick_tip,
+            ],
+        ]);
+        nor.extend_from_slice(&[[0.0, 0.5, 0.0]; 4]);
+        col.extend_from_slice(&[root_light, root_light, root_dark, root_dark]);
+        idx.extend_from_slice(&[b, b + 1, b + 2, b + 1, b + 3, b + 2]);
+        idx.extend_from_slice(&[b, b + 2, b + 1, b + 1, b + 2, b + 3]);
+    }
+}
+
+/// Sheared cuboid for branch stubs — bottom vertices anchored, top shifted by `(sx, sz)`.
+fn push_branch_stub(
+    pos: &mut Vec<[f32; 3]>,
+    nor: &mut Vec<[f32; 3]>,
+    col: &mut Vec<[f32; 4]>,
+    idx: &mut Vec<u32>,
+    base_center: Vec3,
+    half: Vec3,
+    shear: (f32, f32),
+    face_colors: [[f32; 4]; 6],
+) {
+    let base = pos.len() as u32;
+    let (cx, cy, cz) = (base_center.x, base_center.y, base_center.z);
+    let (hx, hy, hz) = (half.x, half.y, half.z);
+    let (sx, sz) = shear;
+
+    // +Y (top, sheared)
+    pos.extend_from_slice(&[
+        [cx - hx + sx, cy + hy, cz - hz + sz],
+        [cx + hx + sx, cy + hy, cz - hz + sz],
+        [cx + hx + sx, cy + hy, cz + hz + sz],
+        [cx - hx + sx, cy + hy, cz + hz + sz],
+    ]);
+    nor.extend_from_slice(&[[0.0, 1.0, 0.0]; 4]);
+    col.extend(std::iter::repeat(face_colors[0]).take(4));
+
+    // -Y (bottom, anchored)
+    pos.extend_from_slice(&[
+        [cx - hx, cy - hy, cz + hz],
+        [cx + hx, cy - hy, cz + hz],
+        [cx + hx, cy - hy, cz - hz],
+        [cx - hx, cy - hy, cz - hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, -1.0, 0.0]; 4]);
+    col.extend(std::iter::repeat(face_colors[1]).take(4));
+
+    // +X (bottom→top sheared)
+    pos.extend_from_slice(&[
+        [cx + hx, cy - hy, cz - hz],
+        [cx + hx, cy - hy, cz + hz],
+        [cx + hx + sx, cy + hy, cz + hz + sz],
+        [cx + hx + sx, cy + hy, cz - hz + sz],
+    ]);
+    nor.extend_from_slice(&[[1.0, 0.0, 0.0]; 4]);
+    col.extend(std::iter::repeat(face_colors[2]).take(4));
+
+    // -X
+    pos.extend_from_slice(&[
+        [cx - hx, cy - hy, cz + hz],
+        [cx - hx, cy - hy, cz - hz],
+        [cx - hx + sx, cy + hy, cz - hz + sz],
+        [cx - hx + sx, cy + hy, cz + hz + sz],
+    ]);
+    nor.extend_from_slice(&[[-1.0, 0.0, 0.0]; 4]);
+    col.extend(std::iter::repeat(face_colors[3]).take(4));
+
+    // +Z
+    pos.extend_from_slice(&[
+        [cx + hx, cy - hy, cz + hz],
+        [cx - hx, cy - hy, cz + hz],
+        [cx - hx + sx, cy + hy, cz + hz + sz],
+        [cx + hx + sx, cy + hy, cz + hz + sz],
+    ]);
+    nor.extend_from_slice(&[[0.0, 0.0, 1.0]; 4]);
+    col.extend(std::iter::repeat(face_colors[4]).take(4));
+
+    // -Z
+    pos.extend_from_slice(&[
+        [cx - hx, cy - hy, cz - hz],
+        [cx + hx, cy - hy, cz - hz],
+        [cx + hx + sx, cy + hy, cz - hz + sz],
+        [cx - hx + sx, cy + hy, cz - hz + sz],
+    ]);
+    nor.extend_from_slice(&[[0.0, 0.0, -1.0]; 4]);
+    col.extend(std::iter::repeat(face_colors[5]).take(4));
+
+    for face in 0..6u32 {
+        let f = base + face * 4;
+        idx.extend_from_slice(&[f, f + 2, f + 1, f, f + 3, f + 2]);
+    }
+}
+
 /// Append a crossed-plane (2 quads at 90°) with rotation and scale baked into vertices.
 fn push_crossed_planes(
     pos: &mut Vec<[f32; 3]>,
@@ -492,6 +858,773 @@ fn build_chunk_mesh(
 }
 
 // ---------------------------------------------------------------------------
+// Procedural pixel flora: mask-based sprite generation
+// ---------------------------------------------------------------------------
+
+/// Pixel roles in a flower mask.
+/// 0 = transparent, 1 = stem, 2 = petal, 3 = center/pistil
+const FLORA_TRANSPARENT: u8 = 0;
+const FLORA_STEM: u8 = 1;
+const FLORA_PETAL: u8 = 2;
+const FLORA_CENTER: u8 = 3;
+
+/// 16×16 species masks (row 0 = top of texture = top of flower).
+/// Each mask defines the silhouette + part mapping for one species.
+#[rustfmt::skip]
+const MASK_POPPY: [[u8; 16]; 16] = [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0],
+    [0,0,0,0,0,2,2,2,2,2,2,0,0,0,0,0],
+    [0,0,0,0,2,2,2,3,3,2,2,2,0,0,0,0],
+    [0,0,0,0,2,2,3,3,3,3,2,2,0,0,0,0],
+    [0,0,0,0,2,2,2,3,3,2,2,2,0,0,0,0],
+    [0,0,0,0,0,2,2,2,2,2,2,0,0,0,0,0],
+    [0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+];
+
+#[rustfmt::skip]
+const MASK_DAISY: [[u8; 16]; 16] = [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,2,2,3,2,2,0,0,0,0,0,0],
+    [0,0,0,0,2,2,3,3,3,2,2,0,0,0,0,0],
+    [0,0,0,0,0,2,2,3,2,2,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+];
+
+#[rustfmt::skip]
+const MASK_LAVENDER: [[u8; 16]; 16] = [
+    [0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,3,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,2,2,2,2,2,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,3,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,2,2,2,2,2,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,3,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+];
+
+#[rustfmt::skip]
+const MASK_BELL: [[u8; 16]; 16] = [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,2,2,3,2,2,0,0,0,0,0,0],
+    [0,0,0,0,2,2,2,2,2,2,2,0,0,0,0,0],
+    [0,0,0,0,2,2,0,0,0,2,2,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+];
+
+#[rustfmt::skip]
+const MASK_WILDFLOWER: [[u8; 16]; 16] = [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0],
+    [0,0,0,0,2,2,2,0,2,2,2,0,0,0,0,0],
+    [0,0,0,0,0,2,3,0,3,2,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,2,2,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,2,3,2,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,2,1,1,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+];
+
+/// Sunflower: tall flower with large round head, thick stem
+#[rustfmt::skip]
+const MASK_SUNFLOWER: [[u8; 16]; 16] = [
+    [0,0,0,0,0,2,2,2,2,2,2,0,0,0,0,0],
+    [0,0,0,0,2,2,2,2,2,2,2,2,0,0,0,0],
+    [0,0,0,2,2,2,3,3,3,3,2,2,2,0,0,0],
+    [0,0,0,2,2,3,3,3,3,3,3,2,2,0,0,0],
+    [0,0,0,2,2,3,3,3,3,3,3,2,2,0,0,0],
+    [0,0,0,2,2,2,3,3,3,3,2,2,2,0,0,0],
+    [0,0,0,0,2,2,2,2,2,2,2,2,0,0,0,0],
+    [0,0,0,0,0,2,2,1,2,2,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+];
+
+/// Rose: classic rose shape — tight spiral petals, thorny stem
+#[rustfmt::skip]
+const MASK_ROSE: [[u8; 16]; 16] = [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,2,2,3,2,2,0,0,0,0,0,0],
+    [0,0,0,0,2,2,3,3,3,2,2,0,0,0,0,0],
+    [0,0,0,0,2,3,3,3,3,3,2,0,0,0,0,0],
+    [0,0,0,0,2,2,3,3,3,2,2,0,0,0,0,0],
+    [0,0,0,0,0,2,2,3,2,2,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+];
+
+/// Cornflower: spiky star-shaped petals on thin stem
+#[rustfmt::skip]
+const MASK_CORNFLOWER: [[u8; 16]; 16] = [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,2,0,2,0,2,0,0,0,0,0,0],
+    [0,0,0,0,0,2,2,3,2,2,0,0,0,0,0,0],
+    [0,0,0,0,2,2,3,3,3,2,2,0,0,0,0,0],
+    [0,0,0,0,0,2,2,3,2,2,0,0,0,0,0,0],
+    [0,0,0,0,0,2,0,2,0,2,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+];
+
+/// Allium: round pom-pom head on long thin stem
+#[rustfmt::skip]
+const MASK_ALLIUM: [[u8; 16]; 16] = [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,2,2,2,2,2,0,0,0,0,0,0],
+    [0,0,0,0,2,2,3,2,3,2,2,0,0,0,0,0],
+    [0,0,0,0,2,2,2,3,2,2,2,0,0,0,0,0],
+    [0,0,0,0,0,2,3,2,3,2,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+];
+
+/// Blue Orchid: three petals fanning outward on curved stem
+#[rustfmt::skip]
+const MASK_BLUE_ORCHID: [[u8; 16]; 16] = [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,3,2,2,0,0,0,0,0,0],
+    [0,0,0,0,0,2,2,3,3,2,2,0,0,0,0,0],
+    [0,0,0,0,2,2,3,3,3,2,0,0,0,0,0,0],
+    [0,0,0,0,0,2,2,3,2,2,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+];
+
+const NUM_FLORA_SPECIES: usize = 10;
+
+const FLORA_MASKS: [&[[u8; 16]; 16]; NUM_FLORA_SPECIES] = [
+    &MASK_POPPY,
+    &MASK_DAISY,
+    &MASK_LAVENDER,
+    &MASK_BELL,
+    &MASK_WILDFLOWER,
+    &MASK_SUNFLOWER,
+    &MASK_ROSE,
+    &MASK_CORNFLOWER,
+    &MASK_ALLIUM,
+    &MASK_BLUE_ORCHID,
+];
+
+/// Flora palette: (stem_rgb, petal_rgb, center_rgb) in sRGB 0–255.
+struct FloraPalette {
+    stem: [u8; 3],
+    petal: [u8; 3],
+    center: [u8; 3],
+}
+
+/// One palette per archetype — order matches FLORA_MASKS / FlowerArchetype.
+const FLORA_PALETTES: [FloraPalette; NUM_FLORA_SPECIES] = [
+    FloraPalette {
+        stem: [45, 100, 30],
+        petal: [210, 55, 65],
+        center: [60, 45, 20],
+    }, // 0 Poppy/Tulip — red
+    FloraPalette {
+        stem: [50, 110, 35],
+        petal: [240, 240, 220],
+        center: [220, 190, 50],
+    }, // 1 Daisy — white
+    FloraPalette {
+        stem: [45, 105, 30],
+        petal: [140, 100, 180],
+        center: [180, 140, 210],
+    }, // 2 Lavender — purple
+    FloraPalette {
+        stem: [40, 100, 28],
+        petal: [80, 140, 210],
+        center: [50, 100, 160],
+    }, // 3 Bell — blue
+    FloraPalette {
+        stem: [50, 105, 35],
+        petal: [240, 200, 50],
+        center: [200, 140, 30],
+    }, // 4 Wildflower — gold
+    FloraPalette {
+        stem: [55, 120, 40],
+        petal: [255, 210, 30],
+        center: [100, 70, 25],
+    }, // 5 Sunflower — bright yellow
+    FloraPalette {
+        stem: [40, 90, 25],
+        petal: [190, 30, 45],
+        center: [130, 20, 35],
+    }, // 6 Rose — deep red
+    FloraPalette {
+        stem: [45, 100, 30],
+        petal: [70, 100, 200],
+        center: [90, 80, 160],
+    }, // 7 Cornflower — blue
+    FloraPalette {
+        stem: [45, 110, 30],
+        petal: [180, 120, 200],
+        center: [220, 180, 240],
+    }, // 8 Allium — pink-purple
+    FloraPalette {
+        stem: [40, 105, 35],
+        petal: [60, 160, 220],
+        center: [240, 230, 200],
+    }, // 9 Blue Orchid — cyan
+];
+
+/// Generate the flower texture atlas: (N×16)×16 RGBA (N species × 16×16).
+/// Pure procedural — no external assets.
+fn generate_flora_atlas() -> (Vec<u8>, u32, u32) {
+    let atlas_w: u32 = NUM_FLORA_SPECIES as u32 * 16;
+    let atlas_h: u32 = 16;
+    let mut pixels = vec![0u8; (atlas_w * atlas_h * 4) as usize];
+
+    for (species, (mask, palette)) in FLORA_MASKS.iter().zip(FLORA_PALETTES.iter()).enumerate() {
+        let x_offset = species as u32 * 16;
+        for row in 0..16u32 {
+            for col in 0..16u32 {
+                let role = mask[row as usize][col as usize];
+                if role == FLORA_TRANSPARENT {
+                    continue; // stays [0,0,0,0]
+                }
+                let rgb = match role {
+                    FLORA_STEM => palette.stem,
+                    FLORA_PETAL => palette.petal,
+                    FLORA_CENTER => palette.center,
+                    _ => [255, 0, 255], // debug magenta
+                };
+                let px = ((x_offset + col) + row * atlas_w) as usize * 4;
+                pixels[px] = rgb[0];
+                pixels[px + 1] = rgb[1];
+                pixels[px + 2] = rgb[2];
+                pixels[px + 3] = 255;
+            }
+        }
+    }
+
+    (pixels, atlas_w, atlas_h)
+}
+
+// ---------------------------------------------------------------------------
+// Alpha-masked leaf cluster canopy (t3ssel8r style)
+// ---------------------------------------------------------------------------
+
+/// Number of procedural canopy blob variants in the atlas.
+const NUM_BLOB_VARIANTS: usize = 8;
+/// Pixel size of each blob tile in the atlas.
+const BLOB_TILE: usize = 48;
+
+/// Cheap pseudo-noise for silhouette wobble.
+fn blob_noise(x: f32, y: f32, seed: f32) -> f32 {
+    let n1 = ((x * 3.0 + seed * 0.37).sin() * (y * 3.0 + seed * 0.73).cos()) * 0.12;
+    let n2 = ((x * 7.0 - seed * 0.19).cos() * (y * 7.0 + seed * 0.53).sin()) * 0.06;
+    let n3 = ((x * 13.0 + seed * 0.91).sin() * (y * 11.0 - seed * 0.41).cos()) * 0.03;
+    n1 + n2 + n3
+}
+
+fn blob_hash(x: f32, y: f32) -> f32 {
+    ((x * 127.1 + y * 311.7).sin() * 43758.5453).fract().abs()
+}
+
+fn blob_smoothstep(edge0: f32, edge1: f32, x: f32) -> f32 {
+    let t = ((x - edge0) / (edge1 - edge0)).clamp(0.0, 1.0);
+    t * t * (3.0 - 2.0 * t)
+}
+
+/// Generate procedural canopy blob atlas: N variants × BLOB_TILE × BLOB_TILE.
+/// Each blob = grayscale brightness (top bright, bottom dark, interior AO) + alpha silhouette.
+/// GPU multiplies texture × vertex_color for per-tree hue.
+fn generate_blob_atlas() -> (Vec<u8>, u32, u32) {
+    let atlas_w = (NUM_BLOB_VARIANTS * BLOB_TILE) as u32;
+    let atlas_h = BLOB_TILE as u32;
+    let mut pixels = vec![0u8; (atlas_w * atlas_h * 4) as usize];
+
+    for variant in 0..NUM_BLOB_VARIANTS {
+        let seed = variant as f32;
+        // Per-variant shape variation: wide range of aspect ratios
+        let rx = 0.72 + blob_hash(seed * 7.0, 1.0) * 0.22;
+        let ry = 0.65 + blob_hash(seed * 13.0, 2.0) * 0.25;
+        let x_off = variant * BLOB_TILE;
+
+        for py in 0..BLOB_TILE {
+            for px_local in 0..BLOB_TILE {
+                let u = (px_local as f32 / (BLOB_TILE - 1) as f32) * 2.0 - 1.0;
+                let v = (py as f32 / (BLOB_TILE - 1) as f32) * 2.0 - 1.0;
+
+                // Stronger asymmetry skew
+                let skew_x = 0.14 * (v * 1.7 + seed * 0.13).sin();
+                let skew_y = 0.10 * (u * 1.1 - seed * 0.07).cos();
+
+                let sx = (u + skew_x) / rx;
+                let sy = (v + skew_y) / ry;
+                let base_r = (sx * sx + sy * sy).sqrt();
+
+                // Irregular silhouette wobble
+                let wobble = blob_noise(u, v, seed);
+                let threshold = 1.0 + wobble;
+
+                // Soft alpha edge (wider feather for painterly feel)
+                let alpha = 1.0 - blob_smoothstep(threshold - 0.14, threshold, base_r);
+                if alpha <= 0.001 {
+                    continue;
+                }
+
+                // Height gradient: bright top, dark bottom (stronger for painterly depth)
+                let top_to_bottom = py as f32 / (BLOB_TILE - 1) as f32;
+                let vertical_light = 1.15 + (0.55 - 1.15) * top_to_bottom;
+
+                // Interior darkening (center is deeper into canopy)
+                let center_factor = 1.0 - base_r.clamp(0.0, 1.0);
+                let interior_shade = 1.0 - center_factor * 0.18;
+
+                // Edge breakup speckles
+                let edge_dist = (threshold - base_r).clamp(0.0, 1.0);
+                let edge_zone = 1.0 - blob_smoothstep(0.0, 0.18, edge_dist);
+                let breakup_rand =
+                    blob_hash(px_local as f32 + seed * 11.0, py as f32 + seed * 17.0);
+                let breakup = if breakup_rand < 0.06 * edge_zone {
+                    0.85
+                } else {
+                    1.0
+                };
+
+                // Subtle noise tint to avoid flat fill
+                let noise_tint =
+                    0.96 + blob_hash(px_local as f32 + seed * 3.0, py as f32 + seed * 5.0) * 0.08;
+
+                let shade =
+                    (vertical_light * interior_shade * breakup * noise_tint).clamp(0.0, 1.0);
+                let g = (shade * 255.0) as u8;
+                let a = (alpha.clamp(0.0, 1.0) * 255.0) as u8;
+
+                let pixel_idx = ((x_off + px_local) + py * atlas_w as usize) * 4;
+                pixels[pixel_idx] = g;
+                pixels[pixel_idx + 1] = g;
+                pixels[pixel_idx + 2] = g;
+                pixels[pixel_idx + 3] = a;
+            }
+        }
+    }
+    (pixels, atlas_w, atlas_h)
+}
+
+/// Push a 3-zone canopy dome with clean flat band colors and per-dome tilt.
+/// Zones: sun plate (~8%), foliage body (~65%), underside (~27%).
+/// NO per-vertex color variation — depth from overlapping masses only.
+/// Per-dome XZ tilt breaks spherical symmetry — highlights shift off-center.
+fn push_dome(
+    pos: &mut Vec<[f32; 3]>,
+    nor: &mut Vec<[f32; 3]>,
+    col: &mut Vec<[f32; 4]>,
+    idx: &mut Vec<u32>,
+    center: Vec3,
+    rx: f32,
+    ry: f32,
+    rz: f32,
+    color_top: [f32; 4],    // sun plate
+    color_mid: [f32; 4],    // foliage body
+    color_bottom: [f32; 4], // underside volume
+) {
+    const SEGMENTS: u32 = 12;
+    let tau = std::f32::consts::TAU;
+
+    // Wobble: scales up with ring height for irregular silhouettes
+    let wobble = |angle: f32, ring: u32| -> f32 {
+        let seed = center.x * 5.0 + center.z * 7.0 + ring as f32 * 3.0;
+        let strength = 1.0 + ring as f32 * 0.5;
+        // Stronger wobble (18%+12%) breaks circular outlines into chunky lumps
+        1.0 + ((angle * 1.5 + seed).sin() * 0.18 + (angle * 2.3 - seed * 0.6).cos() * 0.12)
+            * strength
+    };
+
+    // ── PER-DOME TILT ────────────────────────────────────────────────────
+    // Small XZ tilt breaks spherical symmetry — shifts the entire dome
+    // geometry off-axis so highlights land on sides, not always on top.
+    let tilt_seed = center.x * 4.1 + center.z * 6.7;
+    let tilt_x = ((tilt_seed * 2.9).sin()) * 0.12; // ±0.12 radians (~7°)
+    let tilt_z = ((tilt_seed * 3.7).cos()) * 0.12;
+
+    // ── HIGHLIGHT DIRECTION OFFSET ───────────────────────────────────────
+    // Per-dome randomized cap — side/split/small highlights, not centered
+    let hl_seed = center.x * 3.7 + center.z * 5.3;
+    let hl_angle = ((hl_seed * 2.1).sin() * 0.5 + 0.5) * tau;
+    let hl_dist = 0.20 + ((hl_seed * 4.3).cos() * 0.5 + 0.5) * 0.25; // 0.20-0.45
+    let cap_ox = hl_angle.cos() * rx * hl_dist;
+    let cap_oz = hl_angle.sin() * rz * hl_dist;
+
+    // ── RING GEOMETRY ────────────────────────────────────────────────────
+    // Substantial underside for "heavy" feel, dominant body, thin sun plate
+    // Target: ~18% underside, ~55% body, ~17% sun cap, ~10% cap fan
+    let ring_geo: [(f32, f32); 3] = [
+        (0.0, 1.0),   // equator
+        (0.18, 0.95), // low ring — visible underside, "hanging" weight
+        (0.73, 0.68), // mid ring — body→sun plate
+    ];
+
+    // ── EMIT RING — FLAT BAND COLOR + TILT ───────────────────────────────
+    let mut emit_ring = |ring_idx: u32, y_frac: f32, r_scale: f32, band_color: [f32; 4]| -> u32 {
+        let base = pos.len() as u32;
+        for i in 0..SEGMENTS {
+            let angle = (i as f32 / SEGMENTS as f32) * tau;
+            let (s, c) = angle.sin_cos();
+            let w = wobble(angle, ring_idx);
+            // Local dome position before tilt
+            let lx = c * rx * r_scale * w;
+            let ly = ry * y_frac;
+            let lz = s * rz * r_scale * w;
+            // Apply small XZ tilt: rotate vertex position around dome center
+            // tilt_x rotates around X axis (tilts forward/back)
+            // tilt_z rotates around Z axis (tilts left/right)
+            let ty = ly * (1.0 - tilt_x.abs() * 0.5) + lz * tilt_x;
+            let tz = lz * (1.0 - tilt_x.abs() * 0.5) - ly * tilt_x;
+            let tx = lx * (1.0 - tilt_z.abs() * 0.5) + ty * tilt_z;
+            let final_y = ty * (1.0 - tilt_z.abs() * 0.5) - lx * tilt_z;
+            pos.push([center.x + tx, center.y + final_y, center.z + tz]);
+            let nx = c * r_scale;
+            let ny = y_frac + 0.1;
+            let nz = s * r_scale;
+            let nlen = (nx * nx + ny * ny + nz * nz).sqrt().max(0.001);
+            nor.push([nx / nlen, ny / nlen, nz / nlen]);
+            col.push(band_color);
+        }
+        base
+    };
+
+    // Band 0: equator→ring1 — underside volume (thin)
+    let b0_bot = emit_ring(0, ring_geo[0].0, ring_geo[0].1, color_bottom);
+    let b0_top = emit_ring(1, ring_geo[1].0, ring_geo[1].1, color_bottom);
+    for i in 0..SEGMENTS {
+        let j = (i + 1) % SEGMENTS;
+        idx.extend_from_slice(&[
+            b0_bot + i,
+            b0_top + i,
+            b0_bot + j,
+            b0_bot + j,
+            b0_top + i,
+            b0_top + j,
+        ]);
+    }
+
+    // Band 1: ring1→ring2 — foliage body (dominant, ~60% coverage)
+    let b1_bot = emit_ring(1, ring_geo[1].0, ring_geo[1].1, color_mid);
+    let b1_top = emit_ring(2, ring_geo[2].0, ring_geo[2].1, color_mid);
+    for i in 0..SEGMENTS {
+        let j = (i + 1) % SEGMENTS;
+        idx.extend_from_slice(&[
+            b1_bot + i,
+            b1_top + i,
+            b1_bot + j,
+            b1_bot + j,
+            b1_top + i,
+            b1_top + j,
+        ]);
+    }
+
+    // Band 2: ring2→cap — sun cap (thin, directional)
+    let b2_bot = emit_ring(2, ring_geo[2].0, ring_geo[2].1, color_top);
+    let cap_vi = pos.len() as u32;
+    pos.push([center.x + cap_ox, center.y + ry, center.z + cap_oz]);
+    nor.push([0.0, 1.0, 0.0]);
+    col.push(color_top);
+    for i in 0..SEGMENTS {
+        let j = (i + 1) % SEGMENTS;
+        idx.extend_from_slice(&[b2_bot + i, cap_vi, b2_bot + j]);
+    }
+
+    // Bottom disc (seals dome)
+    let bot_vi = pos.len() as u32;
+    pos.push([center.x, center.y, center.z]);
+    nor.push([0.0, -1.0, 0.0]);
+    col.push(color_bottom);
+    for i in 0..SEGMENTS {
+        let j = (i + 1) % SEGMENTS;
+        idx.extend_from_slice(&[bot_vi, b0_bot + j, b0_bot + i]);
+    }
+}
+
+/// Push a UV-mapped leaf card (crossed planes, double-sided).
+/// UV maps into the leaf atlas based on mask_idx.
+fn push_leaf_card(
+    pos: &mut Vec<[f32; 3]>,
+    nor: &mut Vec<[f32; 3]>,
+    col: &mut Vec<[f32; 4]>,
+    uvs: &mut Vec<[f32; 2]>,
+    idx: &mut Vec<u32>,
+    center: Vec3,
+    hw: f32,
+    h: f32,
+    rot_y: f32,
+    mask_idx: usize,
+    color: [f32; 4],
+) {
+    let u0 = mask_idx as f32 / NUM_BLOB_VARIANTS as f32;
+    let u1 = (mask_idx + 1) as f32 / NUM_BLOB_VARIANTS as f32;
+
+    let (sin_r, cos_r) = rot_y.sin_cos();
+    let sin45 = std::f32::consts::FRAC_1_SQRT_2;
+
+    for &(bx, bz) in &[(sin45, sin45), (sin45, -sin45)] {
+        let dx = bx * cos_r - bz * sin_r;
+        let dz = bx * sin_r + bz * cos_r;
+        let nx = -dz;
+        let nz = dx;
+
+        // Front face
+        let base = pos.len() as u32;
+        pos.extend_from_slice(&[
+            [center.x - hw * dx, center.y, center.z - hw * dz],
+            [center.x + hw * dx, center.y, center.z + hw * dz],
+            [center.x + hw * dx, center.y + h, center.z + hw * dz],
+            [center.x - hw * dx, center.y + h, center.z - hw * dz],
+        ]);
+        nor.extend_from_slice(&[[nx, 0.0, nz]; 4]);
+        col.extend_from_slice(&[color; 4]);
+        uvs.extend_from_slice(&[[u0, 1.0], [u1, 1.0], [u1, 0.0], [u0, 0.0]]);
+        idx.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
+
+        // Back face
+        let base = pos.len() as u32;
+        pos.extend_from_slice(&[
+            [center.x - hw * dx, center.y, center.z - hw * dz],
+            [center.x + hw * dx, center.y, center.z + hw * dz],
+            [center.x + hw * dx, center.y + h, center.z + hw * dz],
+            [center.x - hw * dx, center.y + h, center.z - hw * dz],
+        ]);
+        nor.extend_from_slice(&[[-nx, 0.0, -nz]; 4]);
+        col.extend_from_slice(&[color; 4]);
+        uvs.extend_from_slice(&[[u1, 1.0], [u0, 1.0], [u0, 0.0], [u1, 0.0]]);
+        idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
+    }
+}
+
+/// Push a UV-mapped horizontal leaf card (XZ plane, double-sided).
+/// Supports asymmetric x/z half-widths and rotation for organic silhouettes.
+fn push_leaf_cap(
+    pos: &mut Vec<[f32; 3]>,
+    nor: &mut Vec<[f32; 3]>,
+    col: &mut Vec<[f32; 4]>,
+    uvs: &mut Vec<[f32; 2]>,
+    idx: &mut Vec<u32>,
+    center: Vec3,
+    hx: f32,
+    hz: f32,
+    rot_y: f32,
+    mask_idx: usize,
+    color: [f32; 4],
+) {
+    let u0 = mask_idx as f32 / NUM_BLOB_VARIANTS as f32;
+    let u1 = (mask_idx + 1) as f32 / NUM_BLOB_VARIANTS as f32;
+
+    let (sin_r, cos_r) = rot_y.sin_cos();
+    // 4 corners in local space, then rotate around Y
+    let corners: [(f32, f32); 4] = [(-hx, -hz), (hx, -hz), (hx, hz), (-hx, hz)];
+    let rot_corners: Vec<(f32, f32)> = corners
+        .iter()
+        .map(|&(lx, lz)| (lx * cos_r - lz * sin_r, lx * sin_r + lz * cos_r))
+        .collect();
+
+    // Top face
+    let base = pos.len() as u32;
+    for &(rx, rz) in &rot_corners {
+        pos.push([center.x + rx, center.y, center.z + rz]);
+    }
+    nor.extend_from_slice(&[[0.0, 1.0, 0.0]; 4]);
+    col.extend_from_slice(&[color; 4]);
+    uvs.extend_from_slice(&[[u0, 0.0], [u1, 0.0], [u1, 1.0], [u0, 1.0]]);
+    idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
+
+    // Bottom face (reversed winding)
+    let base = pos.len() as u32;
+    for &(rx, rz) in rot_corners.iter().rev() {
+        pos.push([center.x + rx, center.y, center.z + rz]);
+    }
+    nor.extend_from_slice(&[[0.0, -1.0, 0.0]; 4]);
+    col.extend_from_slice(&[color; 4]);
+    uvs.extend_from_slice(&[[u0, 1.0], [u1, 1.0], [u1, 0.0], [u0, 0.0]]);
+    idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
+}
+
+/// Build canopy mesh with real UVs for alpha-masked leaf atlas.
+fn build_canopy_mesh(
+    positions: Vec<[f32; 3]>,
+    normals: Vec<[f32; 3]>,
+    colors: Vec<[f32; 4]>,
+    uvs: Vec<[f32; 2]>,
+    indices: Vec<u32>,
+) -> Mesh {
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_COLOR, colors)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
+    .with_inserted_indices(Indices::U32(indices))
+}
+
+/// Leaf card vertex color with strong height-based ambient occlusion.
+/// Bottom cards get very dark (deep canopy shadow), top cards get bright.
+fn leaf_card_color(base: (f32, f32, f32), height_frac: f32) -> [f32; 4] {
+    // Extreme AO: 0.20 at bottom → 1.15 at top (deep canopy shadow → bright crown)
+    let brightness = 0.20 + height_frac * 0.95;
+    srgb_color(
+        (base.0 * brightness).min(1.0),
+        (base.1 * brightness).min(1.0),
+        (base.2 * brightness).min(1.0),
+    )
+}
+
+// ---------------------------------------------------------------------------
+// Flower mesh (UV-mapped billboard cards)
+// ---------------------------------------------------------------------------
+
+/// Build a UV-mapped flower mesh: two crossed planes (MC-style X pattern)
+/// textured from the procedural flora atlas.  `arch_idx` selects which 16×16
+/// region of the 80×16 atlas to sample (0–4).
+///
+/// At 32 px/unit: 16 texels = 0.5 world units.
+/// Each plane is 0.5 wide × 0.5 tall, centered at origin, base at y=0.
+fn build_flower_mesh(arch_idx: usize) -> Mesh {
+    let hw = 0.25; // half-width = 8/32
+    let h = 0.5; // height = 16/32
+
+    // UV region for this archetype in the N×16 atlas
+    let u0 = arch_idx as f32 / NUM_FLORA_SPECIES as f32;
+    let u1 = (arch_idx + 1) as f32 / NUM_FLORA_SPECIES as f32;
+
+    let mut positions: Vec<[f32; 3]> = Vec::with_capacity(16);
+    let mut normals: Vec<[f32; 3]> = Vec::with_capacity(16);
+    let mut uvs: Vec<[f32; 2]> = Vec::with_capacity(16);
+    let mut indices: Vec<u32> = Vec::with_capacity(24);
+
+    // Two crossed planes at 45° (MC flower X pattern).
+    // Each plane rendered double-sided via duplicate reversed-winding face.
+    let sin45 = std::f32::consts::FRAC_1_SQRT_2;
+    for &(dx, dz) in &[(sin45, sin45), (sin45, -sin45)] {
+        let nx = -dz;
+        let nz = dx;
+
+        // Front face
+        let base = positions.len() as u32;
+        positions.extend_from_slice(&[
+            [-hw * dx, 0.0, -hw * dz],
+            [hw * dx, 0.0, hw * dz],
+            [hw * dx, h, hw * dz],
+            [-hw * dx, h, -hw * dz],
+        ]);
+        normals.extend_from_slice(&[[nx, 0.0, nz]; 4]);
+        uvs.extend_from_slice(&[[u0, 1.0], [u1, 1.0], [u1, 0.0], [u0, 0.0]]);
+        indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
+
+        // Back face (reversed winding for double-sided)
+        let base = positions.len() as u32;
+        positions.extend_from_slice(&[
+            [-hw * dx, 0.0, -hw * dz],
+            [hw * dx, 0.0, hw * dz],
+            [hw * dx, h, hw * dz],
+            [-hw * dx, h, -hw * dz],
+        ]);
+        normals.extend_from_slice(&[[-nx, 0.0, -nz]; 4]);
+        uvs.extend_from_slice(&[[u1, 1.0], [u0, 1.0], [u0, 0.0], [u1, 0.0]]);
+        indices.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
+    }
+
+    let vert_count = positions.len();
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
+    .with_inserted_attribute(
+        Mesh::ATTRIBUTE_COLOR,
+        vec![[1.0f32, 1.0, 1.0, 1.0]; vert_count],
+    )
+    .with_inserted_indices(Indices::U32(indices))
+}
+
+// ---------------------------------------------------------------------------
 // Pre-created materials
 // ---------------------------------------------------------------------------
 
@@ -499,12 +1632,31 @@ fn build_chunk_mesh(
 struct TileMaterials {
     chunk_body_mat: Handle<StandardMaterial>,
     chunk_cap_mat: Handle<StandardMaterial>,
-    /// Double-sided, vertex-colored material for grass/flower crossed-planes.
+    /// Unlit, matte material for tree trunk+canopy domes — vertex colors carry all tonal info.
+    tree_body_mat: Handle<StandardMaterial>,
+    /// Double-sided, vertex-colored material for grass crossed-planes.
     chunk_veg_mat: Handle<StandardMaterial>,
-    /// Shared icosphere mesh for collectible flower entities.
-    flower_mesh: Handle<Mesh>,
-    /// One material per flower archetype (Tulip, Daisy, Lavender, Bell, Wildflower).
-    flower_mats: [Handle<StandardMaterial>; 5],
+    /// Per-archetype flower meshes (UV-mapped crossed planes into atlas).
+    flower_meshes: [Handle<Mesh>; NUM_FLORA_SPECIES],
+    /// Shared material for all flowers: atlas texture + alpha cutoff.
+    flower_mat: Handle<StandardMaterial>,
+    /// Animated water surface material.
+    water_mat: Handle<WaterMaterial>,
+}
+
+/// Per-group vegetation vertex buffers (3 groups per chunk for wind animation).
+struct VegBuffers {
+    pos: Vec<[f32; 3]>,
+    nor: Vec<[f32; 3]>,
+    col: Vec<[f32; 4]>,
+    idx: Vec<u32>,
+}
+
+/// Attached to each vegetation group entity for wind sway animation.
+#[derive(Component)]
+struct WindSway {
+    base_translation: Vec3,
+    phase: f32,
 }
 
 pub struct TilemapPlugin;
@@ -528,39 +1680,78 @@ fn setup_tile_materials(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut water_materials: ResMut<Assets<WaterMaterial>>,
+    mut images: ResMut<Assets<Image>>,
 ) {
     let chunk_body_mat = materials.add(StandardMaterial {
         base_color: Color::WHITE,
+        perceptual_roughness: 0.95,
+        reflectance: 0.0,
         ..default()
     });
     let chunk_cap_mat = materials.add(StandardMaterial {
         base_color: Color::WHITE,
+        perceptual_roughness: 0.95,
+        reflectance: 0.0,
+        ..default()
+    });
+    // Unlit tree material: vertex colors carry all tonal info (highlight/mid/shadow/deep).
+    // No PBR lighting means the toon post-process bands cleanly painted colors.
+    let tree_body_mat = materials.add(StandardMaterial {
+        base_color: Color::WHITE,
+        unlit: true,
         ..default()
     });
     let chunk_veg_mat = materials.add(StandardMaterial {
         base_color: Color::WHITE,
+        perceptual_roughness: 0.95,
+        reflectance: 0.0,
         cull_mode: None,
         double_sided: true,
         ..default()
     });
 
-    // Shared flower assets: one icosphere mesh, 5 archetype materials
-    let flower_mesh = meshes.add(Sphere::new(1.0).mesh().ico(1).unwrap());
-    let flower_mats = FLOWER_ARCHETYPES.map(|((r, g, b), _)| {
-        materials.add(StandardMaterial {
-            base_color: Color::srgb(r, g, b),
-            emissive: LinearRgba::new(r * 0.3, g * 0.3, b * 0.3, 1.0),
-            perceptual_roughness: 0.6,
-            ..default()
-        })
+    // Generate procedural flower atlas (80×16 RGBA, 5 species × 16×16)
+    let (atlas_pixels, aw, ah) = generate_flora_atlas();
+    let mut atlas_img = Image::new(
+        bevy::render::render_resource::Extent3d {
+            width: aw,
+            height: ah,
+            depth_or_array_layers: 1,
+        },
+        bevy::render::render_resource::TextureDimension::D2,
+        atlas_pixels,
+        bevy::render::render_resource::TextureFormat::Rgba8UnormSrgb,
+        RenderAssetUsages::default(),
+    );
+    atlas_img.sampler = ImageSampler::nearest();
+    let atlas_handle = images.add(atlas_img);
+
+    // Shared flower material: atlas texture, alpha cutoff, double-sided
+    let flower_mat = materials.add(StandardMaterial {
+        base_color_texture: Some(atlas_handle),
+        alpha_mode: AlphaMode::Mask(0.5),
+        cull_mode: None,
+        double_sided: true,
+        unlit: false,
+        perceptual_roughness: 0.95,
+        reflectance: 0.0,
+        ..default()
     });
+
+    // Per-archetype meshes: crossed planes with UVs into the atlas
+    let flower_meshes = std::array::from_fn(|i| meshes.add(build_flower_mesh(i)));
+
+    let water_mat = water_materials.add(WaterMaterial::default());
 
     commands.insert_resource(TileMaterials {
         chunk_body_mat,
         chunk_cap_mat,
+        tree_body_mat,
         chunk_veg_mat,
-        flower_mesh,
-        flower_mats,
+        flower_meshes,
+        flower_mat,
+        water_mat,
     });
 }
 
@@ -615,6 +1806,22 @@ fn stabilize_shadow_cascades(
                 cascade.clip_from_world = m;
             }
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Wind animation for vegetation groups
+// ---------------------------------------------------------------------------
+
+fn animate_wind(time: Res<Time>, mut query: Query<(&mut Transform, &WindSway)>) {
+    let t = time.elapsed_secs();
+    for (mut tf, wind) in &mut query {
+        // Amplitude = 1 pixel, snapped to pixel grid so edges never land sub-pixel.
+        let raw_dx = (t * 1.2 + wind.phase).sin() * VEG_SNAP;
+        let raw_dz = (t * 0.9 + wind.phase * 1.4).cos() * VEG_SNAP;
+        let dx = (raw_dx / VEG_SNAP).round() * VEG_SNAP;
+        let dz = (raw_dz / VEG_SNAP).round() * VEG_SNAP;
+        tf.translation = wind.base_translation + Vec3::new(dx, 0.0, dz);
     }
 }
 
@@ -688,12 +1895,20 @@ fn process_chunk_spawns_and_despawns(
         let mut cap_col = Vec::with_capacity(tile_count * 24);
         let mut cap_idx = Vec::with_capacity(tile_count * 36);
 
-        let mut veg_pos: Vec<[f32; 3]> = Vec::new();
-        let mut veg_nor: Vec<[f32; 3]> = Vec::new();
-        let mut veg_col: Vec<[f32; 4]> = Vec::new();
-        let mut veg_idx: Vec<u32> = Vec::new();
+        let mut veg_groups: [VegBuffers; 3] = std::array::from_fn(|_| VegBuffers {
+            pos: Vec::new(),
+            nor: Vec::new(),
+            col: Vec::new(),
+            idx: Vec::new(),
+        });
 
         let mut collider_shapes: Vec<(Vec3, Quat, Collider)> = Vec::with_capacity(tile_count);
+
+        // Water surface quads for tiles below water level
+        let mut water_pos: Vec<[f32; 3]> = Vec::new();
+        let mut water_nor: Vec<[f32; 3]> = Vec::new();
+        let mut water_col: Vec<[f32; 4]> = Vec::new();
+        let mut water_idx: Vec<u32> = Vec::new();
 
         for dx in 0..CHUNK_SIZE {
             for dz in 0..CHUNK_SIZE {
@@ -768,6 +1983,50 @@ fn process_chunk_spawns_and_despawns(
                     cap_vertex_color(band, tx, tz),
                 );
 
+                // --- Water surface (tiles below water level) ---
+                if h < WATER_LEVEL {
+                    let wy = WATER_LEVEL;
+                    let half = TILE_SIZE / 2.0;
+                    let base_vert = water_pos.len() as u32;
+
+                    // Flat quad facing up at water level
+                    // Check neighbors to set foam alpha (1.0 = no foam, < 1.0 = foam edge)
+                    let mut is_edge =
+                        |ntx: i32, ntz: i32| -> bool { terrain.height_at(ntx, ntz) >= WATER_LEVEL };
+                    let has_land_neighbor = is_edge(tx - 1, tz)
+                        || is_edge(tx + 1, tz)
+                        || is_edge(tx, tz - 1)
+                        || is_edge(tx, tz + 1);
+                    let foam_alpha = if has_land_neighbor { 0.3 } else { 1.0 };
+
+                    water_pos.extend_from_slice(&[
+                        [lx - half, wy, lz - half],
+                        [lx + half, wy, lz - half],
+                        [lx + half, wy, lz + half],
+                        [lx - half, wy, lz + half],
+                    ]);
+                    water_nor.extend_from_slice(&[
+                        [0.0, 1.0, 0.0],
+                        [0.0, 1.0, 0.0],
+                        [0.0, 1.0, 0.0],
+                        [0.0, 1.0, 0.0],
+                    ]);
+                    water_col.extend_from_slice(&[
+                        [1.0, 1.0, 1.0, foam_alpha],
+                        [1.0, 1.0, 1.0, foam_alpha],
+                        [1.0, 1.0, 1.0, foam_alpha],
+                        [1.0, 1.0, 1.0, foam_alpha],
+                    ]);
+                    water_idx.extend_from_slice(&[
+                        base_vert,
+                        base_vert + 1,
+                        base_vert + 2,
+                        base_vert,
+                        base_vert + 2,
+                        base_vert + 3,
+                    ]);
+                }
+
                 // --- Vegetation (grass band only) ---
                 if band == 0 {
                     let grass_slots: [(i32, i32, f32, u8); 5] = [
@@ -778,7 +2037,9 @@ fn process_chunk_spawns_and_despawns(
                         (9371, 2749, 0.08, 3),
                     ];
 
-                    for (seed_x, seed_z, density, kind) in grass_slots {
+                    for (slot_idx, &(seed_x, seed_z, density, kind)) in
+                        grass_slots.iter().enumerate()
+                    {
                         #[cfg(target_arch = "wasm32")]
                         let density = density * 0.5;
 
@@ -787,14 +2048,18 @@ fn process_chunk_spawns_and_despawns(
                             continue;
                         }
 
-                        let jx = (hash2d(tx + seed_x + 100, tz + seed_z) - 0.5) * 0.85;
-                        let jz = (hash2d(tx + seed_x, tz + seed_z + 100) - 0.5) * 0.85;
+                        // Quantize jitter to pixel grid for stable edges
+                        let jx = ((hash2d(tx + seed_x + 100, tz + seed_z) - 0.5) * 0.85 / VEG_SNAP)
+                            .round()
+                            * VEG_SNAP;
+                        let jz = ((hash2d(tx + seed_x, tz + seed_z + 100) - 0.5) * 0.85 / VEG_SNAP)
+                            .round()
+                            * VEG_SNAP;
                         let scale_noise = hash2d(tx + seed_x + 200, tz + seed_z + 200);
                         let scale = 0.7 + scale_noise * 0.7;
                         let rot_y =
                             hash2d(tx + seed_x + 300, tz + seed_z + 300) * std::f32::consts::TAU;
 
-                        // World-space origin for this grass piece
                         let y_offset = match kind {
                             3 => 0.15,
                             _ => 0.0,
@@ -815,51 +2080,54 @@ fn process_chunk_spawns_and_despawns(
                             _ => srgb_color(VEG_GRASS_TUFT.0, VEG_GRASS_TUFT.1, VEG_GRASS_TUFT.2),
                         };
 
+                        // Route to one of 3 wind groups
+                        let group = &mut veg_groups[slot_idx % 3];
+
                         match kind {
                             2 => push_blade(
-                                &mut veg_pos,
-                                &mut veg_nor,
-                                &mut veg_col,
-                                &mut veg_idx,
+                                &mut group.pos,
+                                &mut group.nor,
+                                &mut group.col,
+                                &mut group.idx,
                                 origin,
-                                0.08,
-                                0.35,
+                                0.10,
+                                0.40,
                                 scale,
                                 rot_y,
                                 color,
                             ),
                             1 => push_crossed_planes(
-                                &mut veg_pos,
-                                &mut veg_nor,
-                                &mut veg_col,
-                                &mut veg_idx,
+                                &mut group.pos,
+                                &mut group.nor,
+                                &mut group.col,
+                                &mut group.idx,
                                 origin,
-                                0.10,
-                                0.45,
+                                0.13,
+                                0.50,
                                 scale,
                                 rot_y,
                                 color,
                             ),
                             3 => push_crossed_planes(
-                                &mut veg_pos,
-                                &mut veg_nor,
-                                &mut veg_col,
-                                &mut veg_idx,
+                                &mut group.pos,
+                                &mut group.nor,
+                                &mut group.col,
+                                &mut group.idx,
                                 origin,
-                                0.08,
-                                0.12,
+                                0.10,
+                                0.16,
                                 scale,
                                 rot_y,
                                 color,
                             ),
                             _ => push_crossed_planes(
-                                &mut veg_pos,
-                                &mut veg_nor,
-                                &mut veg_col,
-                                &mut veg_idx,
+                                &mut group.pos,
+                                &mut group.nor,
+                                &mut group.col,
+                                &mut group.idx,
                                 origin,
-                                0.15,
-                                0.25,
+                                0.20,
+                                0.30,
                                 scale,
                                 rot_y,
                                 color,
@@ -869,120 +2137,329 @@ fn process_chunk_spawns_and_despawns(
 
                     // --- Trees (individual entities for selectability) ---
                     let tree_noise = hash2d(tx + 11317, tz + 5471);
-                    if tree_noise < 0.06 {
+                    if tree_noise < 0.055 {
                         let jx = (hash2d(tx + 11417, tz + 5471) - 0.5) * 0.3;
                         let jz = (hash2d(tx + 11317, tz + 5571) - 0.5) * 0.3;
-                        let leaf_variant = (hash2d(tx + 11517, tz + 5671) * 3.0) as usize % 3;
+                        let leaf_variant = (hash2d(tx + 11517, tz + 5671) * 5.0) as usize % 5;
                         let preset_idx = (hash2d(tx + 11617, tz + 5771) * 5.0) as usize % 5;
-                        let size_scale = 0.85 + hash2d(tx + 11717, tz + 5871) * 0.35; // 0.85–1.20
+                        let size_scale = 1.10 + hash2d(tx + 11717, tz + 5871) * 1.10; // 1.10–2.20
 
                         let preset = TREE_PRESETS[preset_idx];
-                        let trunk_h = preset.trunk_h * size_scale;
-                        let trunk_r = preset.trunk_r * size_scale;
+                        // Bump count determined early so trunk scales with canopy mass
+                        let bump_count =
+                            3 + (hash2d(tx * 31337 + tz * 17389 + 80, 6080) * 3.99) as i32; // 3–6
+                        // More canopy lobes → thicker, taller trunk to support the mass
+                        let mass_scale = 1.0 + (bump_count - 3) as f32 * 0.12; // 1.0 at 3 bumps, 1.24 at 5
+                        let trunk_h = preset.trunk_h * size_scale * mass_scale;
+                        let trunk_r =
+                            preset.trunk_r * size_scale * (1.0 + (bump_count - 3) as f32 * 0.08);
 
                         let world_x = tx as f32 * TILE_SIZE + jx;
                         let world_z = tz as f32 * TILE_SIZE + jz;
                         let tree_base_y = column_h + 0.002;
 
-                        // Build per-tree mesh: trunk + layered canopy
-                        let layer_count = preset.layers.len();
-                        let vert_cap = (1 + layer_count) * 24;
-                        let idx_cap = (1 + layer_count) * 36;
-                        let mut tp = Vec::with_capacity(vert_cap);
-                        let mut tn = Vec::with_capacity(vert_cap);
-                        let mut tc = Vec::with_capacity(vert_cap);
-                        let mut ti = Vec::with_capacity(idx_cap);
+                        // Build trunk mesh: root flare + trunk + branches (max ~6 cuboids)
+                        let max_cuboids = 2 + 4; // root flare + trunk + up to 4 branches
+                        let mut tp = Vec::with_capacity(max_cuboids * 24);
+                        let mut tn = Vec::with_capacity(max_cuboids * 24);
+                        let mut tc = Vec::with_capacity(max_cuboids * 24);
+                        let mut ti = Vec::with_capacity(max_cuboids * 36);
 
-                        // Trunk
-                        let (br, bg, bb) = TREE_BARK;
-                        push_cuboid(
+                        // --- Tapered trunk with buttress roots ---
+                        let root_count = 3 + (hash2d(tx + 12017, tz + 6171) * 2.0) as i32; // 3–4 roots
+                        let trunk_seed = tx as f32 * 0.137 + tz as f32 * 0.293;
+                        push_tapered_trunk(
                             &mut tp,
                             &mut tn,
                             &mut tc,
                             &mut ti,
-                            Vec3::new(0.0, trunk_h / 2.0, 0.0),
-                            Vec3::new(trunk_r, trunk_h / 2.0, trunk_r),
-                            srgb_color(br, bg, bb),
+                            0.0,            // base_y
+                            trunk_h,        // height
+                            trunk_r * 2.2,  // base radius (wide trapezoid flare)
+                            trunk_r * 0.70, // top radius (narrow at canopy)
+                            root_count,
+                            trunk_seed,
                         );
 
-                        // Layered canopy — each layer stacks on top, getting narrower
-                        let (light_r, light_g, light_b) = TREE_CANOPY_COLORS[leaf_variant];
-                        let (dark_r, dark_g, dark_b) = TREE_CANOPY_DARK[leaf_variant];
-                        let mut layer_y = trunk_h;
-                        let mut max_hw: f32 = trunk_r;
-                        let mut total_h: f32 = trunk_h;
-
-                        for (i, &(hw, lh, overlap)) in preset.layers.iter().enumerate() {
-                            let hw_s = hw * size_scale;
-                            let lh_s = lh * size_scale;
-                            let overlap_s = overlap * size_scale;
-                            layer_y -= overlap_s;
-                            let center_y = layer_y + lh_s / 2.0;
-
-                            // Bottom layers darker, top layers brighter
-                            let t = i as f32 / (layer_count - 1).max(1) as f32;
-                            let cr = dark_r + (light_r - dark_r) * t;
-                            let cg = dark_g + (light_g - dark_g) * t;
-                            let cb = dark_b + (light_b - dark_b) * t;
-
-                            push_cuboid(
+                        // --- Branches: scale with tree size ---
+                        // Small trees: 2-3 thin stubs. Large trees: 3-5 thick limbs.
+                        let branch_count = if size_scale > 1.6 {
+                            3 + (hash2d(tx + 11817, tz + 5971) * 2.99) as i32 // 3-5
+                        } else {
+                            2 + (hash2d(tx + 11817, tz + 5971) * 2.0) as i32 // 2-3
+                        };
+                        let branch_zone_base = trunk_h * 0.50;
+                        let branch_zone_h = trunk_h * 0.40;
+                        for bi in 0..branch_count {
+                            let angle =
+                                hash2d(tx + 13000 + bi * 173, tz + 7000) * std::f32::consts::TAU;
+                            let y_pos = branch_zone_base
+                                + hash2d(tx + 13100 + bi * 173, tz + 7100) * branch_zone_h;
+                            // Larger trees get longer, thicker branches
+                            let len_base = if size_scale > 1.6 { 0.14 } else { 0.10 };
+                            let len_range = if size_scale > 1.6 { 0.16 } else { 0.12 };
+                            let branch_len = (len_base
+                                + hash2d(tx + 13200 + bi * 173, tz + 7200) * len_range)
+                                * size_scale;
+                            let thick_scale = if size_scale > 1.6 { 0.55 } else { 0.45 };
+                            let branch_thick = trunk_r * thick_scale;
+                            push_branch_stub(
                                 &mut tp,
                                 &mut tn,
                                 &mut tc,
                                 &mut ti,
-                                Vec3::new(0.0, center_y, 0.0),
-                                Vec3::new(hw_s, lh_s / 2.0, hw_s),
-                                srgb_color(cr, cg, cb),
+                                Vec3::new(
+                                    angle.cos() * trunk_r * 0.8,
+                                    y_pos,
+                                    angle.sin() * trunk_r * 0.8,
+                                ),
+                                Vec3::new(branch_thick, branch_thick * 0.7, branch_thick),
+                                (angle.cos() * branch_len, angle.sin() * branch_len),
+                                bark_face_colors(y_pos / trunk_h),
                             );
-
-                            max_hw = max_hw.max(hw_s);
-                            layer_y += lh_s;
-                            total_h = total_h.max(layer_y);
                         }
 
-                        // Deciduous trees (oak, round) get extra offset blobs for organic shape
-                        if preset_idx >= 3 {
-                            let blob_count = if preset_idx == 3 { 4 } else { 3 };
-                            let canopy_mid_y = trunk_h + (total_h - trunk_h) * 0.45;
-                            for bi in 0..blob_count {
-                                let bx =
-                                    (hash2d(tx + 12000 + bi * 137, tz + 6000) - 0.5) * max_hw * 1.4;
-                                let bz =
-                                    (hash2d(tx + 12100 + bi * 137, tz + 6100) - 0.5) * max_hw * 1.4;
-                                let by_offset = (hash2d(tx + 12200 + bi * 137, tz + 6200) - 0.5)
-                                    * (total_h - trunk_h)
-                                    * 0.5;
-                                let blob_hw = (0.18
-                                    + hash2d(tx + 12300 + bi * 137, tz + 6300) * 0.14)
-                                    * size_scale;
-                                let blob_hh = (0.16
-                                    + hash2d(tx + 12400 + bi * 137, tz + 6400) * 0.12)
-                                    * size_scale;
-                                let blob_cy = canopy_mid_y + by_offset;
+                        // --- 3-dome canopy volumes + edge breakup cards ---
+                        let canopy_base = TREE_CANOPY_COLORS[leaf_variant];
+                        let seed_base = tx * 31337 + tz * 17389;
+                        let mut max_hw: f32 = trunk_r;
+                        let mut total_h: f32 = trunk_h;
 
-                                // Lighter blobs on top, darker on bottom
-                                let shade = if by_offset > 0.0 { 0.8 } else { 0.3 };
-                                let cr = dark_r + (light_r - dark_r) * shade;
-                                let cg = dark_g + (light_g - dark_g) * shade;
-                                let cb = dark_b + (light_b - dark_b) * shade;
+                        // Derive canopy dimensions from shape
+                        // IMPORTANT: dome bottom = canopy_center_y (dome extends upward only).
+                        // So canopy_center_y must sit BELOW trunk top to avoid floating canopy.
+                        // Trunk penetrates 35-50% into canopy (visible trunk = 50-65%).
+                        // Canopy width scales slightly super-linearly with size:
+                        // bigger trees get proportionally wider canopies.
+                        // Small tree (1.1×): no boost. Large tree (2.2×): +18% extra spread.
+                        let canopy_spread = 1.0 + (size_scale - 1.1).max(0.0) * 0.16;
+                        let (canopy_rx, canopy_ry) = match preset.canopy {
+                            CanopyShape::Cone { radius, height, .. } => (
+                                radius * size_scale * canopy_spread,
+                                height * size_scale * 0.5,
+                            ),
+                            CanopyShape::Ellipsoid { rx, ry, .. } => {
+                                (rx * size_scale * canopy_spread, ry * size_scale)
+                            }
+                        };
+                        // Canopy base sits at 85-94% of trunk height.
+                        // Top 6-15% of trunk hidden — connected but trunk clearly visible.
+                        let base_frac = match preset_idx {
+                            0 => 0.94, // Conifer: cone sits near trunk top
+                            1 => 0.90, // Tall: slight overlap
+                            2 => 0.85, // Bushy: a bit more overlap
+                            3 => 0.87, // Oak: moderate
+                            4 => 0.87, // Round: moderate
+                            _ => 0.88,
+                        };
+                        let canopy_center_y = trunk_h * base_frac;
 
-                                push_cuboid(
+                        // Per-tree hue/brightness jitter — moderate for cohesive forest
+                        let tree_bright = 0.82 + hash2d(seed_base + 500, 7700) * 0.28; // 0.82–1.10
+                        let tree_hj = (hash2d(seed_base + 501, 7701) - 0.5) * 0.20; // ±0.10 hue
+                        let tb = (
+                            (canopy_base.0 + tree_hj) * tree_bright,
+                            (canopy_base.1 + tree_hj * 0.3) * tree_bright,
+                            (canopy_base.2 - tree_hj * 0.5) * tree_bright,
+                        );
+
+                        // 4-zone banded canopy — sharp steps, NOT smooth gradient.
+                        // Each band is a distinct readable tone like painted foliage.
+                        // Sun cap: warm, clearly brighter than body
+                        let c_highlight = srgb_color(
+                            (tb.0 * 1.15 + 0.03).min(1.0),
+                            (tb.1 * 1.10 + 0.02).min(1.0),
+                            (tb.2 * 0.88).min(1.0),
+                        );
+                        // Mid: base color — used as sun cap on main mass
+                        let c_mid = srgb_color(tb.0, tb.1, tb.2);
+                        // Underside: clearly darker + cooler — visible step down
+                        let c_shadow = srgb_color(tb.0 * 0.45, tb.1 * 0.58, tb.2 * 0.65);
+
+                        // Per-tree rotation (all offsets rotated for variety)
+                        let tree_rot = hash2d(seed_base + 72, 6072) * std::f32::consts::TAU;
+                        let (rot_sin, rot_cos) = tree_rot.sin_cos();
+                        let rot = |ox: f32, oz: f32| -> (f32, f32) {
+                            (ox * rot_cos - oz * rot_sin, ox * rot_sin + oz * rot_cos)
+                        };
+                        // Per-tree shape jitter — enough asymmetry for organic feel
+                        let jit_sx = 0.84 + hash2d(seed_base + 70, 6070) * 0.32; // 0.84–1.16
+                        let jit_sz = 0.84 + hash2d(seed_base + 71, 6071) * 0.32;
+
+                        // Foliage body: clear step down from mid, dominates ~55%
+                        // Halfway between mid and shadow — readable as its own band
+                        let c_body = srgb_color(tb.0 * 0.72, tb.1 * 0.78, tb.2 * 0.82);
+
+                        // ═══════════════════════════════════════════════════════
+                        // CLUSTER VOLUME: big main dome + 3-5 edge bumps that
+                        // overlap the rim to break the circular silhouette.
+                        // Lobes overlap ~50% with main mass — connected, not separated.
+                        // ═══════════════════════════════════════════════════════
+
+                        // Per-tree canopy Y jitter (symmetric, small — anchoring is already correct)
+                        let canopy_center_y =
+                            canopy_center_y + (hash2d(seed_base + 81, 6081) - 0.5) * trunk_h * 0.10;
+
+                        // bump_count already computed above (tied to trunk scaling)
+                        let has_top = hash2d(seed_base + 17, 6017) < 0.60;
+
+                        // --- Main mass: big solid dome — the core canopy volume ---
+                        // Tall vertical radius so it reads as one cohesive mass,
+                        // not a pancake. Trunk should disappear ~40-50% into this.
+                        let main_rx =
+                            canopy_rx * (0.88 + hash2d(seed_base + 20, 6020) * 0.12) * jit_sx;
+                        let main_ry = canopy_ry * (0.60 + hash2d(seed_base + 22, 6022) * 0.15);
+                        let main_rz =
+                            canopy_rx * (0.85 + hash2d(seed_base + 21, 6021) * 0.14) * jit_sz;
+                        let main_y = canopy_center_y;
+                        push_dome(
+                            &mut tp,
+                            &mut tn,
+                            &mut tc,
+                            &mut ti,
+                            Vec3::new(0.0, main_y, 0.0),
+                            main_rx,
+                            main_ry,
+                            main_rz,
+                            c_mid,
+                            c_body,
+                            c_shadow,
+                        );
+                        max_hw = max_hw.max(main_rx.max(main_rz));
+                        total_h = total_h.max(main_y + main_ry);
+
+                        // --- Edge bumps: overlapping lobes that break the silhouette ---
+                        // Offset close enough to merge with main mass, but big enough
+                        // to create visible rim breakup. Think "leaf clusters" not "blobs."
+                        for li in 0..bump_count {
+                            let li_seed = seed_base + 200 + li * 137;
+
+                            // Fully independent angle per lobe
+                            let angle = hash2d(li_seed + 50, 6150) * std::f32::consts::TAU;
+
+                            // Offset: 35–60% — heavily inside main, poking out at rim
+                            let dist = canopy_rx * (0.35 + hash2d(li_seed + 1, 6101) * 0.25);
+                            let lx = angle.cos() * dist;
+                            let lz = angle.sin() * dist;
+
+                            // Height: centered on main mass, ±20% spread for variety
+                            let ly_frac = -0.20 + hash2d(li_seed + 2, 6102) * 0.40;
+                            let ly_raw = canopy_center_y + canopy_ry * ly_frac;
+
+                            // Size: 50–80% of canopy radius — substantial bumps
+                            let size_t = hash2d(li_seed + 8, 6108);
+                            let l_rx = canopy_rx * (0.50 + size_t * 0.30) * jit_sx;
+                            let l_rz = canopy_rx * (0.48 + size_t * 0.28) * jit_sz;
+                            // Vertical: 30-50% of canopy ry — chunky, not flat
+                            let squash = 0.60 + hash2d(li_seed + 3, 6103) * 0.25;
+                            let l_ry =
+                                canopy_ry * (0.30 + hash2d(li_seed + 5, 6105) * 0.20) * squash;
+
+                            let ly = ly_raw;
+
+                            let (ct, cm, cb) = if hash2d(li_seed + 7, 6107) < 0.50 {
+                                (c_mid, c_body, c_shadow)
+                            } else {
+                                (c_body, c_shadow, c_shadow)
+                            };
+
+                            push_dome(
+                                &mut tp,
+                                &mut tn,
+                                &mut tc,
+                                &mut ti,
+                                Vec3::new(lx, ly, lz),
+                                l_rx,
+                                l_ry,
+                                l_rz,
+                                ct,
+                                cm,
+                                cb,
+                            );
+                            max_hw = max_hw.max(lx.abs() + l_rx.max(l_rz));
+                            total_h = total_h.max(ly + l_ry);
+                        }
+
+                        // --- Top shelf: highlight cap merged INTO main mass ---
+                        // Sits inside the canopy, not above it. Creates a bright
+                        // sun-facing zone within the foliage volume.
+                        if has_top {
+                            let (ts_ox, ts_oz) = rot(
+                                (hash2d(seed_base + 10, 6010) - 0.5) * canopy_rx * 0.30,
+                                (hash2d(seed_base + 11, 6011) - 0.5) * canopy_rx * 0.30,
+                            );
+                            let stretch = 0.65 + hash2d(seed_base + 15, 6015) * 0.55;
+                            let inv_stretch = 1.30 - stretch;
+                            let ts_rx =
+                                canopy_rx * (0.40 + hash2d(seed_base + 12, 6012) * 0.25) * stretch;
+                            let ts_ry = canopy_ry * (0.15 + hash2d(seed_base + 18, 6018) * 0.12);
+                            let ts_rz = canopy_rx
+                                * (0.35 + hash2d(seed_base + 13, 6013) * 0.25)
+                                * inv_stretch;
+                            // Sit inside upper third of main mass, NOT above it
+                            let ts_y = main_y + main_ry * 0.15;
+                            push_dome(
+                                &mut tp,
+                                &mut tn,
+                                &mut tc,
+                                &mut ti,
+                                Vec3::new(ts_ox, ts_y, ts_oz),
+                                ts_rx,
+                                ts_ry,
+                                ts_rz,
+                                c_highlight,
+                                c_highlight,
+                                c_mid,
+                            );
+                            max_hw = max_hw.max(ts_ox.abs() + ts_rx.max(ts_rz));
+                            total_h = total_h.max(ts_y + ts_ry);
+                        }
+
+                        // --- Primary branch sub-canopies (large trees only) ---
+                        // Trees above 1.5× scale get 1-2 visible primary branches
+                        // with their own canopy domes that overlap the main mass.
+                        // This fills in gaps and adds natural volume/density.
+                        if size_scale > 1.50 {
+                            let pb_count = 1 + (hash2d(seed_base + 300, 7300) * 1.99) as i32; // 1-2
+                            for pi in 0..pb_count {
+                                let pi_seed = seed_base + 400 + pi * 191;
+                                let pb_angle = hash2d(pi_seed + 1, 7401) * std::f32::consts::TAU;
+                                // Branch exits trunk at 60-80% height
+                                let pb_y_frac = 0.60 + hash2d(pi_seed + 2, 7402) * 0.20;
+                                let pb_y = trunk_h * pb_y_frac;
+                                // Branch extends outward 40-65% of canopy radius
+                                let pb_reach =
+                                    canopy_rx * (0.40 + hash2d(pi_seed + 3, 7403) * 0.25);
+                                let pb_cx = pb_angle.cos() * pb_reach;
+                                let pb_cz = pb_angle.sin() * pb_reach;
+                                // Sub-canopy dome: 35-55% of main canopy size
+                                let pb_size = 0.35 + hash2d(pi_seed + 4, 7404) * 0.20;
+                                let pb_rx = canopy_rx * pb_size * jit_sx;
+                                let pb_rz = canopy_rx * pb_size * jit_sz;
+                                let pb_ry = canopy_ry * pb_size * 0.70; // slightly squashed
+                                // Center the sub-canopy at branch tip height,
+                                // overlapping with the main canopy bottom
+                                let pb_dome_y = pb_y + pb_ry * 0.5;
+
+                                push_dome(
                                     &mut tp,
                                     &mut tn,
                                     &mut tc,
                                     &mut ti,
-                                    Vec3::new(bx, blob_cy, bz),
-                                    Vec3::new(blob_hw, blob_hh, blob_hw),
-                                    srgb_color(cr, cg, cb),
+                                    Vec3::new(pb_cx, pb_dome_y, pb_cz),
+                                    pb_rx,
+                                    pb_ry,
+                                    pb_rz,
+                                    c_body,
+                                    c_shadow,
+                                    c_shadow,
                                 );
-
-                                max_hw = max_hw.max((bx.abs() + blob_hw).max(bz.abs() + blob_hw));
-                                total_h = total_h.max(blob_cy + blob_hh);
+                                max_hw = max_hw.max(pb_cx.abs() + pb_rx.max(pb_rz));
+                                total_h = total_h.max(pb_dome_y + pb_ry);
                             }
                         }
 
-                        // Simple 2-shape collider: trunk + single canopy envelope.
-                        // Avoids overlapping sub-shapes that cause Rapier contact jitter.
+                        // 2-shape collider: trunk + canopy envelope
                         let canopy_h = total_h - trunk_h;
                         let collider_shapes = vec![
                             (
@@ -1001,8 +2478,21 @@ fn process_chunk_spawns_and_despawns(
                         let tree_entity = commands
                             .spawn((
                                 Mesh3d(tree_mesh),
-                                MeshMaterial3d(tile_materials.chunk_body_mat.clone()),
-                                Transform::from_xyz(world_x, tree_base_y, world_z),
+                                MeshMaterial3d(tile_materials.tree_body_mat.clone()),
+                                {
+                                    let tilt_x = (hash2d(tx * 4591 + 1277, tz * 3307) - 0.5) * 0.26; // ±7.5°
+                                    let tilt_z = (hash2d(tx * 5303, tz * 4219 + 1901) - 0.5) * 0.26;
+                                    // Full Y rotation so canopy elongation faces random direction
+                                    let rot_y = hash2d(tx * 6737 + 3119, tz * 5417 + 2309)
+                                        * std::f32::consts::TAU;
+                                    Transform::from_xyz(world_x, tree_base_y, world_z)
+                                        .with_rotation(Quat::from_euler(
+                                            EulerRot::XYZ,
+                                            tilt_x,
+                                            rot_y,
+                                            tilt_z,
+                                        ))
+                                },
                                 RigidBody::Fixed,
                                 Collider::compound(collider_shapes),
                                 HoverOutline {
@@ -1018,42 +2508,39 @@ fn process_chunk_spawns_and_despawns(
                         entities.push(tree_entity);
                     }
 
-                    // --- Collectible flowers (individual entities for selectability) ---
+                    // --- Flowers (pass-through billboard cards) ---
                     let flower_noise = hash2d(tx + 13721, tz + 8293);
-                    if flower_noise < 0.08 {
-                        let arch_idx = (hash2d(tx + 13821, tz + 8393) * 5.0) as usize % 5;
-                        let (_, radius) = FLOWER_ARCHETYPES[arch_idx];
+                    if flower_noise < 0.12 {
+                        let arch_idx = (hash2d(tx + 13821, tz + 8393) * NUM_FLORA_SPECIES as f32)
+                            as usize
+                            % NUM_FLORA_SPECIES;
                         let archetype = match arch_idx {
                             0 => FlowerArchetype::Tulip,
                             1 => FlowerArchetype::Daisy,
                             2 => FlowerArchetype::Lavender,
                             3 => FlowerArchetype::Bell,
-                            _ => FlowerArchetype::Wildflower,
+                            4 => FlowerArchetype::Wildflower,
+                            5 => FlowerArchetype::Sunflower,
+                            6 => FlowerArchetype::Rose,
+                            7 => FlowerArchetype::Cornflower,
+                            8 => FlowerArchetype::Allium,
+                            _ => FlowerArchetype::BlueOrchid,
                         };
 
                         let jx = (hash2d(tx + 13921, tz + 8293) - 0.5) * 0.6;
                         let jz = (hash2d(tx + 13721, tz + 8493) - 0.5) * 0.6;
                         let world_x = tx as f32 * TILE_SIZE + jx;
                         let world_z = tz as f32 * TILE_SIZE + jz;
-                        let flower_y = column_h + radius + 0.002;
+                        let flower_y = column_h + 0.002;
 
                         let flower_entity = commands
                             .spawn((
-                                Mesh3d(tile_materials.flower_mesh.clone()),
-                                MeshMaterial3d(tile_materials.flower_mats[arch_idx].clone()),
-                                Transform::from_xyz(world_x, flower_y, world_z)
-                                    .with_scale(Vec3::splat(radius)),
-                                Collider::ball(radius * 1.5),
-                                HoverOutline {
-                                    half_extents: Vec3::splat(radius),
-                                },
-                                Interactable {
-                                    kind: InteractableKind::Flower,
-                                },
+                                Mesh3d(tile_materials.flower_meshes[arch_idx].clone()),
+                                MeshMaterial3d(tile_materials.flower_mat.clone()),
+                                Transform::from_xyz(world_x, flower_y, world_z),
+                                Pickable::IGNORE,
                                 archetype,
                             ))
-                            .observe(on_pointer_over)
-                            .observe(on_pointer_out)
                             .id();
                         entities.push(flower_entity);
                     }
@@ -1087,15 +2574,38 @@ fn process_chunk_spawns_and_despawns(
             .id();
         entities.push(cap_entity);
 
-        // Spawn vegetation entity (combined crossed-plane mesh)
-        if !veg_pos.is_empty() {
-            let veg_mesh = meshes.add(build_chunk_mesh(veg_pos, veg_nor, veg_col, veg_idx));
+        // Spawn water entity (combined mesh, transparent material)
+        if !water_pos.is_empty() {
+            let water_mesh =
+                meshes.add(build_chunk_mesh(water_pos, water_nor, water_col, water_idx));
+            let water_entity = commands
+                .spawn((
+                    Mesh3d(water_mesh),
+                    MeshMaterial3d(tile_materials.water_mat.clone()),
+                    Transform::from_xyz(base_x as f32 * TILE_SIZE, 0.0, base_z as f32 * TILE_SIZE),
+                    Pickable::IGNORE,
+                ))
+                .id();
+            entities.push(water_entity);
+        }
+
+        // Spawn vegetation entities (3 wind groups per chunk)
+        let base_veg = Vec3::new(base_x as f32 * TILE_SIZE, 0.0, base_z as f32 * TILE_SIZE);
+        for (group_idx, veg) in veg_groups.into_iter().enumerate() {
+            if veg.pos.is_empty() {
+                continue;
+            }
+            let veg_mesh = meshes.add(build_chunk_mesh(veg.pos, veg.nor, veg.col, veg.idx));
             let veg_entity = commands
                 .spawn((
                     Mesh3d(veg_mesh),
                     MeshMaterial3d(tile_materials.chunk_veg_mat.clone()),
-                    Transform::from_xyz(base_x as f32 * TILE_SIZE, 0.0, base_z as f32 * TILE_SIZE),
+                    Transform::from_translation(base_veg),
                     Pickable::IGNORE,
+                    WindSway {
+                        base_translation: base_veg,
+                        phase: group_idx as f32 * 2.1,
+                    },
                 ))
                 .id();
             entities.push(veg_entity);

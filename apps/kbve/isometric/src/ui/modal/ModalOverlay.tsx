@@ -15,30 +15,42 @@ export function ModalOverlay() {
 
 	return createPortal(
 		<div
-			className="fixed inset-0 bg-overlay backdrop-blur-[8px] flex items-center justify-center pointer-events-auto"
+			className="fixed inset-0 bg-overlay flex items-center justify-center pointer-events-auto"
 			onClick={() => {
 				if (topModal.closeOnOverlayClick !== false) {
 					dispatch({ type: 'CLOSE' });
 				}
 			}}>
+			{/* Outer frame — golden border with dark shadow inset */}
 			<div
 				className={`
-					${sizeClass} w-full mx-4
-					bg-glass backdrop-blur-[4px] rounded-panel border border-glass-border shadow-glass
+					${sizeClass} mx-4
+					border-[3px] border-panel-border
+					shadow-[0_0_0_1px_#1a1008,0_6px_20px_rgba(0,0,0,0.8)]
 					animate-modal-in
 				`}
 				onClick={(e) => e.stopPropagation()}>
-				{/* Title bar */}
-				<div className="flex items-center justify-between px-4 py-3 border-b border-glass-border">
-					<h2 className="text-sm font-semibold">{topModal.title}</h2>
-					<button
-						onClick={() => dispatch({ type: 'CLOSE' })}
-						className="text-white/50 hover:text-white text-lg leading-none cursor-pointer">
-						&times;
-					</button>
+				{/* Inner frame — dark inset border for depth */}
+				<div className="border-2 border-[#1a1008]">
+					{/* Title bar */}
+					<div className="flex items-center justify-between px-3 py-2 md:px-4 md:py-3 bg-[#1e1408] border-b border-[#5a4a2a]">
+						<h2 className="text-[10px] md:text-sm text-[#c8a832]">
+							{topModal.title}
+						</h2>
+						<button
+							onClick={() => dispatch({ type: 'CLOSE' })}
+							className="w-5 h-5 md:w-7 md:h-7 flex items-center justify-center
+								bg-[#3d2b14] border border-[#5a4a2a]
+								text-text-muted hover:text-[#c8a832] hover:border-panel-border
+								text-[8px] md:text-xs leading-none cursor-pointer transition-colors">
+							&#x2715;
+						</button>
+					</div>
+					{/* Content area */}
+					<div className="p-3 md:p-4 bg-panel-inner text-[8px] md:text-xs">
+						{topModal.content}
+					</div>
 				</div>
-				{/* Content */}
-				<div className="p-4">{topModal.content}</div>
 			</div>
 		</div>,
 		getPortalRoot('modal-root'),

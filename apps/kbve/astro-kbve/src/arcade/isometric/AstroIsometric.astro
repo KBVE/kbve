@@ -1,0 +1,64 @@
+---
+
+---
+
+<div class="isometric-game-container not-content">
+	<canvas id="bevy-canvas"></canvas>
+	<div id="root"></div>
+	<link rel="stylesheet" crossorigin href="/isometric/assets/index.css" />
+	<script is:inline type="module" src="/isometric/assets/index.js"></script>
+</div>
+
+<style>
+	.isometric-game-container {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		margin: 0;
+		padding: 0;
+		overflow: hidden;
+		z-index: 9999;
+		background: #1a1a26;
+	}
+
+	.isometric-game-container canvas#bevy-canvas {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 0;
+	}
+
+	.isometric-game-container #root {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 1;
+		pointer-events: none;
+	}
+
+	:global(body:has(.isometric-game-container)) {
+		overflow: hidden;
+	}
+
+	:global(body:has(.isometric-game-container) footer),
+	:global(body:has(.isometric-game-container) .footer),
+	:global(body:has(.isometric-game-container) [class*='footer']),
+	:global(body:has(.isometric-game-container) .sidebar),
+	:global(body:has(.isometric-game-container) aside),
+	:global(body:has(.isometric-game-container) .sl-sidebar),
+	:global(body:has(.isometric-game-container) .page-sidebar) {
+		display: none !important;
+	}
+
+	@media (pointer: coarse) {
+		:global(.isometric-game-container) {
+			touch-action: manipulation;
+		}
+	}
+</style>

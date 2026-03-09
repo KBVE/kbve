@@ -13,11 +13,29 @@
 		"dev": {
 			"executor": "nx:run-commands",
 			"options": {
-				"commands": ["cargo tauri dev"],
+				"commands": ["pnpm build:wasm && pnpm dev"],
 				"cwd": "apps/kbve/isometric"
 			}
 		},
 		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["pnpm build"],
+				"cwd": "apps/kbve/isometric"
+			}
+		},
+		"deploy": {
+			"dependsOn": ["build"],
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"rm -rf ../astro-kbve/public/isometric",
+					"cp -r dist ../astro-kbve/public/isometric"
+				],
+				"cwd": "apps/kbve/isometric"
+			}
+		},
+		"build:tauri": {
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": ["cargo tauri build"],
