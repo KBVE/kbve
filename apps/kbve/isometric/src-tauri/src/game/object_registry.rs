@@ -387,6 +387,7 @@ fn spawn_object_entity(
                     kind,
                     ObjectInstance { registry_id },
                     AnimatedCrystal { base_y: position.y },
+                    Collider::ball(1.0),
                     Occludable,
                     OriginalEmissive(emissive),
                     HoverOutline {

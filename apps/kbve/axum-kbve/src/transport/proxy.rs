@@ -8,6 +8,7 @@ use axum::{
 };
 use reqwest::Client;
 use serde_json::json;
+use std::time::Duration;
 use tracing::{debug, warn};
 
 use crate::auth::{extract_bearer_token, get_jwt_cache, jwt_cache::staff_perm};
@@ -86,17 +87,33 @@ impl ServiceProxy {
 
         let upstream_req = self
             .client
-            .request(method, upstream_url)
+            .request(method.clone(), upstream_url)
             .headers(reqwest_headers(headers))
             .body(body_bytes);
 
         let upstream_resp = match upstream_req.send().await {
             Ok(r) => r,
             Err(e) => {
-                warn!("{} upstream error: {e}", self.name);
+                let reason = if e.is_connect() {
+                    "connection failed"
+                } else if e.is_timeout() {
+                    "connection timed out"
+                } else if e.is_request() {
+                    "request error"
+                } else {
+                    "unknown error"
+                };
+                warn!(
+                    %upstream_url, %method, %reason,
+                    "{} upstream error: {e}", self.name
+                );
                 return (
                     StatusCode::BAD_GATEWAY,
-                    axum::Json(json!({"error": format!("{} upstream unreachable", self.name)})),
+                    axum::Json(json!({
+                        "error": format!("{} upstream unreachable", self.name),
+                        "reason": reason,
+                        "detail": format!("{e}"),
+                    })),
                 )
                     .into_response();
             }
@@ -237,6 +254,8 @@ pub fn init_grafana_proxy() -> bool {
 
     let client = Client::builder()
         .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(5))
+        .timeout(Duration::from_secs(15))
         .build()
         .expect("failed to build reqwest client for grafana proxy");
 
@@ -281,6 +300,8 @@ pub fn init_argo_proxy() -> bool {
     let client = Client::builder()
         .redirect(reqwest::redirect::Policy::none())
         .danger_accept_invalid_certs(true)
+        .connect_timeout(Duration::from_secs(5))
+        .timeout(Duration::from_secs(15))
         .build()
         .expect("failed to build reqwest client for argo proxy");
 

@@ -54,9 +54,11 @@ impl Plugin for SceneObjectsPlugin {
             ),
         );
 
-        // Desktop: use Rapier raycast hover (no MeshPickingPlugin without WinitPlugin)
+        // Rapier raycast hover — MeshPickingPlugin can't work with offscreen render target
         #[cfg(not(target_arch = "wasm32"))]
-        app.add_systems(Update, raycast_hover_detection);
+        app.add_systems(Update, raycast_hover_detection_desktop);
+        #[cfg(target_arch = "wasm32")]
+        app.add_systems(Update, raycast_hover_detection_wasm);
     }
 }
 
@@ -71,21 +73,22 @@ pub(crate) fn on_pointer_out(trigger: On<Pointer<Out>>, mut commands: Commands) 
 }
 
 /// Custom hover detection using Rapier raycasting through the scene camera.
-/// Replaces MeshPickingPlugin which can't work without WinitPlugin on desktop
-/// (scene camera renders to offscreen texture, not the window).
+/// Scene camera renders to offscreen texture, so MeshPickingPlugin can't map cursor.
 #[cfg(not(target_arch = "wasm32"))]
-fn raycast_hover_detection(
+fn raycast_hover_detection_desktop(
     windows: Query<&Window, With<PrimaryWindow>>,
     cursor: Res<BridgedCursorPosition>,
     camera_query: Query<(&GlobalTransform, &Projection), With<IsometricCamera>>,
     rapier_context: ReadRapierContext,
-    occludable: Query<(), With<Occludable>>,
+    hoverable: Query<(), With<HoverOutline>>,
     current_hovered: Query<Entity, With<Hovered>>,
     player_query: Query<Entity, With<Player>>,
     mut commands: Commands,
 ) {
     let Ok(window) = windows.single() else { return };
-    let Ok((cam_gt, projection)) = camera_query.single() else { return };
+    let Ok((cam_gt, projection)) = camera_query.single() else {
+        return;
+    };
 
     // Remove hover if cursor is outside window
     let Some(cursor_pos) = cursor.position else {
@@ -96,7 +99,9 @@ fn raycast_hover_detection(
     };
 
     // Extract orthographic half-extents from the scene camera's projection
-    let Projection::Orthographic(ortho) = projection else { return };
+    let Projection::Orthographic(ortho) = projection else {
+        return;
+    };
     let viewport_height = match ortho.scaling_mode {
         bevy::camera::ScalingMode::FixedVertical { viewport_height } => viewport_height,
         _ => return,
@@ -124,12 +129,14 @@ fn raycast_hover_detection(
         filter = filter.exclude_rigid_body(player_entity);
     }
 
-    // Cast ray and check if hit entity is Occludable
-    let Ok(context) = rapier_context.single() else { return };
+    // Cast ray and check if hit entity has HoverOutline
+    let Ok(context) = rapier_context.single() else {
+        return;
+    };
     let new_hovered = context
         .cast_ray(ray_origin, ray_dir, 1000.0, false, filter)
         .and_then(|(entity, _)| {
-            if occludable.get(entity).is_ok() {
+            if hoverable.get(entity).is_ok() {
                 Some(entity)
             } else {
                 None
@@ -137,6 +144,81 @@ fn raycast_hover_detection(
         });
 
     // Update Hovered components
+    for entity in &current_hovered {
+        if Some(entity) != new_hovered {
+            commands.entity(entity).remove::<Hovered>();
+        }
+    }
+    if let Some(entity) = new_hovered {
+        if current_hovered.get(entity).is_err() {
+            commands.entity(entity).insert(Hovered);
+        }
+    }
+}
+
+/// WASM hover detection: same Rapier raycast approach but reads cursor from the Window.
+#[cfg(target_arch = "wasm32")]
+fn raycast_hover_detection_wasm(
+    windows: Query<&Window, With<PrimaryWindow>>,
+    camera_query: Query<(&GlobalTransform, &Projection), With<IsometricCamera>>,
+    rapier_context: ReadRapierContext,
+    hoverable: Query<(), With<HoverOutline>>,
+    current_hovered: Query<Entity, With<Hovered>>,
+    player_query: Query<Entity, With<Player>>,
+    mut commands: Commands,
+) {
+    let Ok(window) = windows.single() else { return };
+    let Ok((cam_gt, projection)) = camera_query.single() else {
+        return;
+    };
+
+    let Some(cursor_pos) = window.cursor_position() else {
+        for entity in &current_hovered {
+            commands.entity(entity).remove::<Hovered>();
+        }
+        return;
+    };
+
+    let Projection::Orthographic(ortho) = projection else {
+        return;
+    };
+    let viewport_height = match ortho.scaling_mode {
+        bevy::camera::ScalingMode::FixedVertical { viewport_height } => viewport_height,
+        _ => return,
+    };
+    let half_h = viewport_height / 2.0;
+    let aspect = window.width() / window.height();
+    let half_w = half_h * aspect;
+
+    let ndc_x = (cursor_pos.x / window.width()) * 2.0 - 1.0;
+    let ndc_y = 1.0 - (cursor_pos.y / window.height()) * 2.0;
+
+    let cam_tf = cam_gt.compute_transform();
+    let right = cam_tf.right().as_vec3();
+    let up = cam_tf.up().as_vec3();
+    let forward = cam_tf.forward().as_vec3();
+
+    let ray_origin = cam_tf.translation + right * (ndc_x * half_w) + up * (ndc_y * half_h);
+    let ray_dir = forward;
+
+    let mut filter = QueryFilter::new();
+    if let Ok(player_entity) = player_query.single() {
+        filter = filter.exclude_rigid_body(player_entity);
+    }
+
+    let Ok(context) = rapier_context.single() else {
+        return;
+    };
+    let new_hovered = context
+        .cast_ray(ray_origin, ray_dir, 1000.0, false, filter)
+        .and_then(|(entity, _)| {
+            if hoverable.get(entity).is_ok() {
+                Some(entity)
+            } else {
+                None
+            }
+        });
+
     for entity in &current_hovered {
         if Some(entity) != new_hovered {
             commands.entity(entity).remove::<Hovered>();
@@ -164,36 +246,6 @@ fn rotate_boxes(time: Res<Time>, mut query: Query<&mut Transform, With<RotatingB
     }
 }
 
-/// Boost emissive glow on hovered objects so the pixelation edge detection
-/// naturally creates a stronger outline (selection highlight).
-fn update_hover_highlight(
-    hovered: Query<
-        (&MeshMaterial3d<StandardMaterial>, &OriginalEmissive),
-        (With<Hovered>, With<Occludable>),
-    >,
-    unhovered: Query<
-        (&MeshMaterial3d<StandardMaterial>, &OriginalEmissive),
-        (Without<Hovered>, With<Occludable>),
-    >,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    for (mat_handle, original) in &hovered {
-        if let Some(mat) = materials.get_mut(&mat_handle.0) {
-            mat.emissive = LinearRgba::new(
-                original.0.red + 0.5,
-                original.0.green + 0.5,
-                original.0.blue + 0.5,
-                1.0,
-            );
-        }
-    }
-    for (mat_handle, original) in &unhovered {
-        if let Some(mat) = materials.get_mut(&mat_handle.0) {
-            mat.emissive = original.0;
-        }
-    }
-}
-
 /// Draw a wireframe outline around hovered objects using gizmos.
 /// The pixelation shader will pixelate the lines into chunky pixel-art borders.
 fn draw_hover_outline(
@@ -213,7 +265,49 @@ fn draw_hover_outline(
     }
 }
 
-/// Make objects semi-transparent when they occlude the player from the camera's view.
+/// Boost emissive glow on hovered objects (only affects Occludable entities —
+/// object_registry objects have unique materials, so this is safe).
+/// Only calls get_mut when the value actually changes to avoid triggering
+/// Bevy change detection / GPU re-uploads every frame.
+fn update_hover_highlight(
+    hovered: Query<
+        (&MeshMaterial3d<StandardMaterial>, &OriginalEmissive),
+        (With<Hovered>, With<Occludable>),
+    >,
+    unhovered: Query<
+        (&MeshMaterial3d<StandardMaterial>, &OriginalEmissive),
+        (Without<Hovered>, With<Occludable>),
+    >,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    for (mat_handle, original) in &hovered {
+        let target = LinearRgba::new(
+            original.0.red + 0.5,
+            original.0.green + 0.5,
+            original.0.blue + 0.5,
+            1.0,
+        );
+        if let Some(mat) = materials.get(&mat_handle.0) {
+            if mat.emissive != target {
+                if let Some(mat) = materials.get_mut(&mat_handle.0) {
+                    mat.emissive = target;
+                }
+            }
+        }
+    }
+    for (mat_handle, original) in &unhovered {
+        if let Some(mat) = materials.get(&mat_handle.0) {
+            if mat.emissive != original.0 {
+                if let Some(mat) = materials.get_mut(&mat_handle.0) {
+                    mat.emissive = original.0;
+                }
+            }
+        }
+    }
+}
+
+/// Make Occludable objects semi-transparent when they block the player from the camera.
+/// Only object_registry objects have Occludable (each with unique materials), so this is safe.
 fn update_occlusion(
     camera_query: Query<&GlobalTransform, With<IsometricCamera>>,
     player_query: Query<&GlobalTransform, With<Player>>,
@@ -233,35 +327,33 @@ fn update_occlusion(
     let cam_pos = cam_gt.translation();
     let player_pos = player_gt.translation();
 
-    // View direction from camera into the scene
     let view_dir = (cam_gt.rotation() * Vec3::NEG_Z).normalize();
-
-    // Player depth along view direction
     let player_depth = (player_pos - cam_pos).dot(view_dir);
-
-    // Player lateral position (perpendicular to view)
     let player_offset = player_pos - cam_pos;
     let player_lateral = player_offset - player_depth * view_dir;
 
     for (obj_gt, mat_handle) in &occludable_query {
         let obj_pos = obj_gt.translation();
         let obj_depth = (obj_pos - cam_pos).dot(view_dir);
-
         let obj_offset = obj_pos - cam_pos;
         let obj_lateral = obj_offset - obj_depth * view_dir;
-
         let lateral_dist = (player_lateral - obj_lateral).length();
 
-        // Object occludes player if it's closer to the camera AND laterally nearby
         let occludes = obj_depth < player_depth && lateral_dist < 2.0;
 
-        if let Some(mat) = materials.get_mut(&mat_handle.0) {
-            if occludes {
-                mat.base_color = mat.base_color.with_alpha(0.3);
-                mat.alpha_mode = AlphaMode::Blend;
-            } else {
-                mat.base_color = mat.base_color.with_alpha(1.0);
-                mat.alpha_mode = AlphaMode::Opaque;
+        if let Some(mat) = materials.get(&mat_handle.0) {
+            let needs_blend = occludes && mat.alpha_mode != AlphaMode::Blend;
+            let needs_opaque = !occludes && mat.alpha_mode != AlphaMode::Opaque;
+            if needs_blend || needs_opaque {
+                if let Some(mat) = materials.get_mut(&mat_handle.0) {
+                    if occludes {
+                        mat.base_color = mat.base_color.with_alpha(0.3);
+                        mat.alpha_mode = AlphaMode::Blend;
+                    } else {
+                        mat.base_color = mat.base_color.with_alpha(1.0);
+                        mat.alpha_mode = AlphaMode::Opaque;
+                    }
+                }
             }
         }
     }
