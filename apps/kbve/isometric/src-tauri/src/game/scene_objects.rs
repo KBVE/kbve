@@ -75,6 +75,11 @@ pub enum FlowerArchetype {
     Lavender,
     Bell,
     Wildflower,
+    Sunflower,
+    Rose,
+    Cornflower,
+    Allium,
+    BlueOrchid,
 }
 
 impl FlowerArchetype {
@@ -85,6 +90,11 @@ impl FlowerArchetype {
             Self::Lavender => "lavender",
             Self::Bell => "bell",
             Self::Wildflower => "wildflower",
+            Self::Sunflower => "sunflower",
+            Self::Rose => "rose",
+            Self::Cornflower => "cornflower",
+            Self::Allium => "allium",
+            Self::BlueOrchid => "blue_orchid",
         }
     }
 }
