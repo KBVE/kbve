@@ -32,22 +32,22 @@ export function ModalOverlay() {
 				onClick={(e) => e.stopPropagation()}>
 				{/* Inner frame — dark inset border for depth */}
 				<div className="border-2 border-[#1a1008]">
-					{/* Title bar — darker strip with centered title */}
-					<div className="flex items-center justify-between px-3 py-2 bg-[#1e1408] border-b border-[#5a4a2a]">
-						<h2 className="text-[10px] text-[#c8a832]">
+					{/* Title bar */}
+					<div className="flex items-center justify-between px-3 py-2 md:px-4 md:py-3 bg-[#1e1408] border-b border-[#5a4a2a]">
+						<h2 className="text-[10px] md:text-sm text-[#c8a832]">
 							{topModal.title}
 						</h2>
 						<button
 							onClick={() => dispatch({ type: 'CLOSE' })}
-							className="w-5 h-5 flex items-center justify-center
+							className="w-5 h-5 md:w-7 md:h-7 flex items-center justify-center
 								bg-[#3d2b14] border border-[#5a4a2a]
 								text-text-muted hover:text-[#c8a832] hover:border-panel-border
-								text-[8px] leading-none cursor-pointer transition-colors">
+								text-[8px] md:text-xs leading-none cursor-pointer transition-colors">
 							&#x2715;
 						</button>
 					</div>
-					{/* Content area — wood panel background */}
-					<div className="p-3 bg-panel-inner text-[8px]">
+					{/* Content area */}
+					<div className="p-3 md:p-4 bg-panel-inner text-[8px] md:text-xs">
 						{topModal.content}
 					</div>
 				</div>

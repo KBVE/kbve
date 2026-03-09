@@ -16,7 +16,7 @@ export function FPSCounter() {
 	}, []);
 
 	return (
-		<div className="absolute top-2 right-2 px-2 py-1 bg-panel border border-panel-border text-[7px] text-text-muted pointer-events-auto">
+		<div className="absolute top-2 right-2 md:top-3 md:right-3 px-2 py-1 md:px-3 md:py-1.5 bg-panel border border-panel-border text-[7px] md:text-[10px] text-text-muted pointer-events-auto">
 			{fps} FPS
 		</div>
 	);
