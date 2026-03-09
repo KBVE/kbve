@@ -30,15 +30,21 @@ pub struct PixelateSettings {
     pub depth_threshold_high: f32,
     /// Suppresses highlights at hard depth edges to avoid double-lining.
     pub artifact_suppression: f32,
-    pub _padding: f32,
+    /// Toon/cel-shading: number of discrete brightness bands (0 = off, 3-4 = typical).
+    pub toon_bands: f32,
+    /// Palette quantization: number of color levels per channel (0 = off, 6-8 = typical).
+    pub color_levels: f32,
+    /// Per-pixel color noise to break banding (0.0 = off, 0.01-0.03 = subtle).
+    pub color_noise: f32,
+    pub _pad1: f32,
 }
 
 impl Default for PixelateSettings {
     fn default() -> Self {
         Self {
             pixel_size: 2.0,
-            highlight_strength: 0.6,
-            shadow_strength: 0.5,
+            highlight_strength: 0.5,
+            shadow_strength: 0.55,
             scale_factor: 1.0,
             shadow_darkness: 0.3,
             highlight_brightness: 0.35,
@@ -47,7 +53,10 @@ impl Default for PixelateSettings {
             depth_threshold_low: 0.25,
             depth_threshold_high: 0.65,
             artifact_suppression: 1.0,
-            _padding: 0.0,
+            toon_bands: 4.0,
+            color_levels: 5.0,
+            color_noise: 0.02,
+            _pad1: 0.0,
         }
     }
 }
