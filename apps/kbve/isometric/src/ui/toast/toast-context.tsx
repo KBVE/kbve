@@ -51,9 +51,9 @@ function toastReducer(state: ToastState, action: ToastAction): ToastState {
 
 // --- Contexts (split for performance) ---
 export const ToastStateContext = createContext<ToastState>({ toasts: [] });
-export const ToastDispatchContext = createContext<Dispatch<ToastAction>>(
-	() => {},
-);
+export const ToastDispatchContext = createContext<Dispatch<ToastAction>>(() => {
+	/* noop default */
+});
 
 // --- Provider ---
 export function ToastProvider({ children }: { children: ReactNode }) {
