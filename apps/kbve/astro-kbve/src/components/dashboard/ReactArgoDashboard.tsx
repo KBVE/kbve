@@ -99,6 +99,17 @@ class AccessRestrictedError extends Error {
 	}
 }
 
+class UpstreamUnavailableError extends Error {
+	reason: string;
+	detail: string;
+	constructor(reason: string, detail: string) {
+		super(`ArgoCD upstream unreachable: ${reason}`);
+		this.name = 'UpstreamUnavailableError';
+		this.reason = reason;
+		this.detail = detail;
+	}
+}
+
 // ---------------------------------------------------------------------------
 // API helpers
 // ---------------------------------------------------------------------------
@@ -110,6 +121,18 @@ async function fetchApplications(token: string): Promise<ArgoApplication[]> {
 	});
 
 	if (resp.status === 403) throw new AccessRestrictedError();
+	if (resp.status === 502) {
+		try {
+			const body = await resp.json();
+			throw new UpstreamUnavailableError(
+				body.reason ?? 'unknown',
+				body.detail ?? '',
+			);
+		} catch (e) {
+			if (e instanceof UpstreamUnavailableError) throw e;
+			throw new UpstreamUnavailableError('unknown', 'Bad gateway');
+		}
+	}
 	if (!resp.ok) throw new Error(`ArgoCD API error: ${resp.status}`);
 
 	const data = await resp.json();
@@ -537,6 +560,7 @@ export default function ReactArgoDashboard() {
 	const [applications, setApplications] = useState<ArgoApplication[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [errorReason, setErrorReason] = useState<string | null>(null);
 	const [accessDenied, setAccessDenied] = useState(false);
 	const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 	const [expandedApp, setExpandedApp] = useState<string | null>(null);
@@ -544,6 +568,7 @@ export default function ReactArgoDashboard() {
 	const fetchData = useCallback(async (tkn: string) => {
 		try {
 			setError(null);
+			setErrorReason(null);
 			const apps = await fetchApplications(tkn);
 			setApplications(apps);
 			setLastUpdated(new Date());
@@ -551,6 +576,11 @@ export default function ReactArgoDashboard() {
 		} catch (e: unknown) {
 			if (e instanceof AccessRestrictedError) {
 				setAccessDenied(true);
+				return;
+			}
+			if (e instanceof UpstreamUnavailableError) {
+				setError(e.message);
+				setErrorReason(e.reason);
 				return;
 			}
 			setError(e instanceof Error ? e.message : 'Unknown error');
@@ -816,19 +846,48 @@ export default function ReactArgoDashboard() {
 			{error && (
 				<div
 					style={{
-						background: 'rgba(239, 68, 68, 0.1)',
-						border: '1px solid rgba(239, 68, 68, 0.3)',
+						background: errorReason
+							? 'rgba(245, 158, 11, 0.1)'
+							: 'rgba(239, 68, 68, 0.1)',
+						border: errorReason
+							? '1px solid rgba(245, 158, 11, 0.3)'
+							: '1px solid rgba(239, 68, 68, 0.3)',
 						borderRadius: 8,
 						padding: '0.75rem 1rem',
 						marginBottom: '1rem',
 						display: 'flex',
-						alignItems: 'center',
-						gap: 8,
-						color: '#fca5a5',
+						flexDirection: 'column',
+						gap: 4,
+						color: errorReason ? '#fcd34d' : '#fca5a5',
 						fontSize: '0.85rem',
 					}}>
-					<AlertCircle size={16} />
-					{error}
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 8,
+						}}>
+						<AlertCircle size={16} />
+						{errorReason
+							? 'ArgoCD service is currently unreachable'
+							: error}
+					</div>
+					{errorReason && (
+						<div
+							style={{
+								fontSize: '0.75rem',
+								color: errorReason
+									? 'rgba(252, 211, 77, 0.7)'
+									: 'rgba(252, 165, 165, 0.7)',
+								paddingLeft: 24,
+							}}>
+							{errorReason === 'connection timed out'
+								? 'The upstream server did not respond in time. It may be starting up or under heavy load.'
+								: errorReason === 'connection failed'
+									? 'Unable to connect to the ArgoCD server. The service may be down or restarting.'
+									: `Reason: ${errorReason}`}
+						</div>
+					)}
 				</div>
 			)}
 
