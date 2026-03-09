@@ -43,19 +43,19 @@ impl Default for PixelateSettings {
     fn default() -> Self {
         Self {
             pixel_size: 2.0,
-            highlight_strength: 0.5,
-            shadow_strength: 0.55,
+            highlight_strength: 0.65, // stronger highlight edges (was 0.5)
+            shadow_strength: 0.70,    // stronger shadow edges for crispness (was 0.55)
             scale_factor: 1.0,
-            shadow_darkness: 0.3,
-            highlight_brightness: 0.35,
-            normal_threshold_low: 0.12,
-            normal_threshold_high: 0.40,
-            depth_threshold_low: 0.25,
-            depth_threshold_high: 0.65,
-            artifact_suppression: 1.0,
-            toon_bands: 4.0,
-            color_levels: 5.0,
-            color_noise: 0.02,
+            shadow_darkness: 0.22,       // darker shadow lines (was 0.3)
+            highlight_brightness: 0.40,  // brighter highlight lines (was 0.35)
+            normal_threshold_low: 0.08,  // catch subtler color shifts (was 0.12)
+            normal_threshold_high: 0.32, // sharper edge transition (was 0.40)
+            depth_threshold_low: 0.18,   // catch subtler depth changes (was 0.25)
+            depth_threshold_high: 0.50,  // sharper falloff (was 0.65)
+            artifact_suppression: 1.2,   // slightly more suppression (was 1.0)
+            toon_bands: 5.0,             // one more band for richer shading (was 4.0)
+            color_levels: 6.0,           // slightly more color variety (was 5.0)
+            color_noise: 0.015,          // subtler noise (was 0.02)
             _pad1: 0.0,
         }
     }

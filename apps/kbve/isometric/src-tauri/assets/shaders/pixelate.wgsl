@@ -161,17 +161,20 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
 
     // ── SCENE COLOR GRADE (warm highlights, cool shadows, lifted darks) ──
     let lum_final = luminance(result);
-    // Warm shift for highlights (push toward golden), cool shift for shadows (push toward blue)
-    let warm = vec3(1.04, 1.01, 0.94);   // highlights: slightly warm
-    let cool = vec3(0.92, 0.96, 1.06);   // shadows: slightly cool
-    let grade_t = smoothstep(0.15, 0.55, lum_final);
+    // Warm/cool color grade — punchier split for painted look
+    let warm = vec3(1.06, 1.02, 0.90);   // highlights: warmer golden
+    let cool = vec3(0.88, 0.94, 1.10);   // shadows: cooler blue
+    let grade_t = smoothstep(0.12, 0.50, lum_final);
     result *= mix(cool, warm, grade_t);
-    // Lift darks: prevent pure black, add atmosphere
-    result = max(result, vec3(0.018, 0.020, 0.028));
-    // Slight desaturation in deep shadow
-    let desat_t = smoothstep(0.12, 0.0, lum_final) * 0.35;
-    let gray = vec3(luminance(result));
-    result = mix(result, gray, desat_t);
+    // Lift darks: prevent pure black, atmospheric base
+    result = max(result, vec3(0.022, 0.025, 0.035));
+    // Slight saturation boost in midtones
+    let mid_t = smoothstep(0.0, 0.3, lum_final) * smoothstep(0.8, 0.4, lum_final);
+    let sat_gray = vec3(luminance(result));
+    result = mix(result, result * 1.12, mid_t * 0.3); // +12% saturation in mids
+    // Desaturation in deep shadows
+    let desat_t = smoothstep(0.10, 0.0, lum_final) * 0.40;
+    result = mix(result, sat_gray, desat_t);
 
     // ── COLOR NOISE (break banding, add texture) ─────────────────────────
     if settings.color_noise > 0.0 {

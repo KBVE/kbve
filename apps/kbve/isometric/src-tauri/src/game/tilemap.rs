@@ -148,58 +148,58 @@ struct TreePreset {
 }
 
 const TREE_PRESETS: [TreePreset; 5] = [
-    // Conifer: taller trunk, narrower cone
+    // Conifer: tall trunk, narrower cone — distinct but still has canopy
     TreePreset {
-        trunk_h: 0.95,
-        trunk_r: 0.09,
-        canopy: CanopyShape::Cone {
-            radius: 0.85,
-            height: 2.0,
-            center_y_offset: -0.2,
-        },
-    },
-    // Tall: taller trunk, upright oblong crown
-    TreePreset {
-        trunk_h: 1.05,
+        trunk_h: 1.60,
         trunk_r: 0.10,
+        canopy: CanopyShape::Cone {
+            radius: 0.75, // narrower than bushy but still visible
+            height: 2.2,
+            center_y_offset: -0.15,
+        },
+    },
+    // Tall: tall trunk, upright crown
+    TreePreset {
+        trunk_h: 1.50,
+        trunk_r: 0.12,
         canopy: CanopyShape::Ellipsoid {
-            rx: 0.90,
-            ry: 0.95,
+            rx: 0.90, // moderate width
+            ry: 1.05,
             rz: 0.85,
-            center_y_offset: 0.45,
+            center_y_offset: 0.40,
         },
     },
-    // Bushy: shorter trunk, wider crown
+    // Bushy: shorter trunk, widest crown
     TreePreset {
-        trunk_h: 0.60,
-        trunk_r: 0.11,
+        trunk_h: 1.10,
+        trunk_r: 0.14,
         canopy: CanopyShape::Ellipsoid {
-            rx: 1.15,
-            ry: 0.65,
-            rz: 1.20,
-            center_y_offset: 0.45,
+            rx: 1.20,
+            ry: 0.75,
+            rz: 1.25,
+            center_y_offset: 0.30,
         },
     },
-    // Oak: medium trunk, broad heavy crown (asymmetric rx/rz)
+    // Oak: thick trunk, broad crown
     TreePreset {
-        trunk_h: 0.80,
-        trunk_r: 0.13,
+        trunk_h: 1.30,
+        trunk_r: 0.16,
         canopy: CanopyShape::Ellipsoid {
             rx: 1.10,
-            ry: 0.80,
-            rz: 0.95,
-            center_y_offset: 0.55,
+            ry: 0.90,
+            rz: 1.00,
+            center_y_offset: 0.40,
         },
     },
-    // Round: compact, balanced
+    // Round: medium trunk, compact ball
     TreePreset {
-        trunk_h: 0.65,
-        trunk_r: 0.09,
+        trunk_h: 1.05,
+        trunk_r: 0.12,
         canopy: CanopyShape::Ellipsoid {
-            rx: 0.90,
-            ry: 0.75,
-            rz: 0.90,
-            center_y_offset: 0.50,
+            rx: 0.85, // compact but not tiny
+            ry: 0.80,
+            rz: 0.85,
+            center_y_offset: 0.35,
         },
     },
 ];
@@ -488,6 +488,174 @@ fn push_cuboid_multicolor(
     for face in 0..6u32 {
         let f = base + face * 4;
         idx.extend_from_slice(&[f, f + 2, f + 1, f, f + 3, f + 2]);
+    }
+}
+
+/// Two-section 8-sided trunk: flared trapezoid base + straight upper section.
+///
+/// ```text
+///    |  |       ← top_r (narrow)
+///    |  |       ← upper section (70% of height)
+///    |  |
+///   /    \      ← mid_r at flare point
+///  /      \     ← flared base section (30% of height)
+/// /________\    ← base_r (wide)
+/// ```
+///
+/// Per-face bark ridges (alternating brightness) + radial wobble for organic feel.
+/// Buttress root quads extend from the flare outward.
+fn push_tapered_trunk(
+    pos: &mut Vec<[f32; 3]>,
+    nor: &mut Vec<[f32; 3]>,
+    col: &mut Vec<[f32; 4]>,
+    idx: &mut Vec<u32>,
+    base_y: f32,
+    height: f32,
+    base_r: f32,
+    top_r: f32,
+    root_count: i32,
+    seed: f32,
+) {
+    const SIDES: usize = 8;
+    let tau = std::f32::consts::TAU;
+
+    // Flare split: bottom 30% is the wide trapezoid base
+    let flare_frac = 0.30;
+    let flare_h = height * flare_frac;
+    let upper_h = height * (1.0 - flare_frac);
+    // Mid radius where flare meets upper trunk — much narrower than base
+    let mid_r = top_r * 1.15; // just slightly wider than top
+
+    let wobble = |i: usize, section: u8| -> f32 {
+        let s = seed * 11.3 + i as f32 * 2.7 + section as f32 * 5.0;
+        1.0 + s.sin() * 0.08
+    };
+
+    let tint = |c: [f32; 4], ridge: f32, hue: f32| -> [f32; 4] {
+        [
+            (c[0] * ridge + hue).max(0.0).min(1.0),
+            (c[1] * ridge).max(0.0).min(1.0),
+            (c[2] * ridge - hue * 0.5).max(0.0).min(1.0),
+            1.0,
+        ]
+    };
+
+    // Emit an 8-sided prism section between two Y levels with two radii
+    let mut emit_section = |y_bot: f32,
+                            y_top: f32,
+                            r_bot: f32,
+                            r_top: f32,
+                            bark_bot_frac: f32,
+                            bark_top_frac: f32,
+                            wobble_bot: u8,
+                            wobble_top: u8| {
+        for i in 0..SIDES {
+            let a0 = (i as f32) / (SIDES as f32) * tau;
+            let a1 = ((i + 1) as f32) / (SIDES as f32) * tau;
+            let (c0, s0) = (a0.cos(), a0.sin());
+            let (c1, s1) = (a1.cos(), a1.sin());
+
+            let wb0 = wobble(i, wobble_bot);
+            let wb1 = wobble(i + 1, wobble_bot);
+            let wt0 = wobble(i, wobble_top);
+            let wt1 = wobble(i + 1, wobble_top);
+
+            let ridge = if i % 2 == 0 { 1.12 } else { 0.88 };
+            let face_hue = ((seed * 3.1 + i as f32 * 1.7).sin()) * 0.04;
+            let fc_bot = tint(bark_face_colors(bark_bot_frac)[2], ridge, face_hue);
+            let fc_top = tint(bark_face_colors(bark_top_frac)[2], ridge, face_hue);
+
+            let b = pos.len() as u32;
+            pos.extend_from_slice(&[
+                [c0 * r_bot * wb0, y_bot, s0 * r_bot * wb0],
+                [c1 * r_bot * wb1, y_bot, s1 * r_bot * wb1],
+                [c1 * r_top * wt1, y_top, s1 * r_top * wt1],
+                [c0 * r_top * wt0, y_top, s0 * r_top * wt0],
+            ]);
+            let nx = (c0 + c1) * 0.5;
+            let nz = (s0 + s1) * 0.5;
+            let len = (nx * nx + nz * nz).sqrt().max(0.001);
+            nor.extend_from_slice(&[[nx / len, 0.0, nz / len]; 4]);
+            col.extend_from_slice(&[fc_bot, fc_bot, fc_top, fc_top]);
+            idx.extend_from_slice(&[b, b + 2, b + 1, b, b + 3, b + 2]);
+        }
+    };
+
+    // Section 1: Flared base (wide → narrow) — the trapezoid
+    emit_section(base_y, base_y + flare_h, base_r, mid_r, 0.05, 0.25, 0, 1);
+    // Section 2: Upper trunk (narrow → slightly narrower)
+    emit_section(
+        base_y + flare_h,
+        base_y + height,
+        mid_r,
+        top_r,
+        0.30,
+        0.80,
+        1,
+        2,
+    );
+
+    // Top cap
+    let cap_base = pos.len() as u32;
+    let top_col = bark_face_colors(0.9)[0];
+    for i in 0..SIDES {
+        let a = (i as f32) / (SIDES as f32) * tau;
+        let w = wobble(i, 2);
+        pos.push([a.cos() * top_r * w, base_y + height, a.sin() * top_r * w]);
+        nor.push([0.0, 1.0, 0.0]);
+        col.push(top_col);
+    }
+    for i in 1..(SIDES as u32 - 1) {
+        idx.extend_from_slice(&[cap_base, cap_base + i, cap_base + i + 1]);
+    }
+
+    // Buttress roots: quad ridges from flare outward, tapering to ground
+    let root_phase = seed * 3.7;
+    for ri in 0..root_count {
+        let angle = root_phase
+            + (ri as f32 / root_count as f32) * tau
+            + ((seed * 7.3 + ri as f32 * 2.1).sin()) * 0.50;
+        let (rc, rs) = (angle.cos(), angle.sin());
+        let fin_len = base_r * (1.5 + ((seed * 5.1 + ri as f32 * 3.3).sin()) * 0.5);
+        let fin_h = flare_h * (0.7 + ((seed * 4.7 + ri as f32 * 1.9).cos()) * 0.2); // root height tied to flare
+        let fin_thick_base = base_r * 0.30;
+        let fin_thick_tip = base_r * 0.06;
+
+        let root_dark = bark_face_colors(0.02)[2];
+        let root_light = bark_face_colors(0.10)[2];
+        let perp_x = -rs;
+        let perp_z = rc;
+        // Trunk radius at root attachment height — interpolate along the flare taper
+        // so root connects flush to the trunk surface, not floating at base_r
+        let flare_t = (fin_h / flare_h).min(1.0);
+        let attach_r = base_r + (mid_r - base_r) * flare_t;
+        let b = pos.len() as u32;
+        pos.extend_from_slice(&[
+            [
+                rc * attach_r + perp_x * fin_thick_base,
+                base_y + fin_h,
+                rs * attach_r + perp_z * fin_thick_base,
+            ],
+            [
+                rc * attach_r - perp_x * fin_thick_base,
+                base_y + fin_h,
+                rs * attach_r - perp_z * fin_thick_base,
+            ],
+            [
+                rc * fin_len - perp_x * fin_thick_tip,
+                base_y,
+                rs * fin_len - perp_z * fin_thick_tip,
+            ],
+            [
+                rc * fin_len + perp_x * fin_thick_tip,
+                base_y,
+                rs * fin_len + perp_z * fin_thick_tip,
+            ],
+        ]);
+        nor.extend_from_slice(&[[0.0, 0.5, 0.0]; 4]);
+        col.extend_from_slice(&[root_light, root_light, root_dark, root_dark]);
+        idx.extend_from_slice(&[b, b + 1, b + 2, b + 1, b + 3, b + 2]);
+        idx.extend_from_slice(&[b, b + 2, b + 1, b + 1, b + 2, b + 3]);
     }
 }
 
@@ -1977,8 +2145,14 @@ fn process_chunk_spawns_and_despawns(
                         let size_scale = 1.10 + hash2d(tx + 11717, tz + 5871) * 1.10; // 1.10–2.20
 
                         let preset = TREE_PRESETS[preset_idx];
-                        let trunk_h = preset.trunk_h * size_scale;
-                        let trunk_r = preset.trunk_r * size_scale;
+                        // Bump count determined early so trunk scales with canopy mass
+                        let bump_count =
+                            3 + (hash2d(tx * 31337 + tz * 17389 + 80, 6080) * 3.99) as i32; // 3–6
+                        // More canopy lobes → thicker, taller trunk to support the mass
+                        let mass_scale = 1.0 + (bump_count - 3) as f32 * 0.12; // 1.0 at 3 bumps, 1.24 at 5
+                        let trunk_h = preset.trunk_h * size_scale * mass_scale;
+                        let trunk_r =
+                            preset.trunk_r * size_scale * (1.0 + (bump_count - 3) as f32 * 0.08);
 
                         let world_x = tx as f32 * TILE_SIZE + jx;
                         let world_z = tz as f32 * TILE_SIZE + jz;
@@ -1991,44 +2165,44 @@ fn process_chunk_spawns_and_despawns(
                         let mut tc = Vec::with_capacity(max_cuboids * 24);
                         let mut ti = Vec::with_capacity(max_cuboids * 36);
 
-                        // --- Root flare (bottom 20% of trunk, wider) ---
-                        let root_h = trunk_h * 0.2;
-                        let root_r = trunk_r * 1.3;
-                        push_cuboid_multicolor(
+                        // --- Tapered trunk with buttress roots ---
+                        let root_count = 3 + (hash2d(tx + 12017, tz + 6171) * 2.0) as i32; // 3–4 roots
+                        let trunk_seed = tx as f32 * 0.137 + tz as f32 * 0.293;
+                        push_tapered_trunk(
                             &mut tp,
                             &mut tn,
                             &mut tc,
                             &mut ti,
-                            Vec3::new(0.0, root_h / 2.0, 0.0),
-                            Vec3::new(root_r, root_h / 2.0, root_r),
-                            bark_face_colors(0.05),
+                            0.0,            // base_y
+                            trunk_h,        // height
+                            trunk_r * 2.2,  // base radius (wide trapezoid flare)
+                            trunk_r * 0.70, // top radius (narrow at canopy)
+                            root_count,
+                            trunk_seed,
                         );
 
-                        // --- Main trunk (top 80%) ---
-                        let main_h = trunk_h * 0.8;
-                        push_cuboid_multicolor(
-                            &mut tp,
-                            &mut tn,
-                            &mut tc,
-                            &mut ti,
-                            Vec3::new(0.0, root_h + main_h / 2.0, 0.0),
-                            Vec3::new(trunk_r, main_h / 2.0, trunk_r),
-                            bark_face_colors(0.55),
-                        );
-
-                        // --- Branch stubs (2-4 sheared cuboids in upper trunk) ---
-                        let branch_count = 2 + (hash2d(tx + 11817, tz + 5971) * 3.0) as i32;
-                        let branch_zone_base = trunk_h * 0.55;
-                        let branch_zone_h = trunk_h * 0.35;
+                        // --- Branches: scale with tree size ---
+                        // Small trees: 2-3 thin stubs. Large trees: 3-5 thick limbs.
+                        let branch_count = if size_scale > 1.6 {
+                            3 + (hash2d(tx + 11817, tz + 5971) * 2.99) as i32 // 3-5
+                        } else {
+                            2 + (hash2d(tx + 11817, tz + 5971) * 2.0) as i32 // 2-3
+                        };
+                        let branch_zone_base = trunk_h * 0.50;
+                        let branch_zone_h = trunk_h * 0.40;
                         for bi in 0..branch_count {
                             let angle =
                                 hash2d(tx + 13000 + bi * 173, tz + 7000) * std::f32::consts::TAU;
                             let y_pos = branch_zone_base
                                 + hash2d(tx + 13100 + bi * 173, tz + 7100) * branch_zone_h;
-                            let branch_len = (0.10
-                                + hash2d(tx + 13200 + bi * 173, tz + 7200) * 0.12)
+                            // Larger trees get longer, thicker branches
+                            let len_base = if size_scale > 1.6 { 0.14 } else { 0.10 };
+                            let len_range = if size_scale > 1.6 { 0.16 } else { 0.12 };
+                            let branch_len = (len_base
+                                + hash2d(tx + 13200 + bi * 173, tz + 7200) * len_range)
                                 * size_scale;
-                            let branch_thick = trunk_r * 0.45;
+                            let thick_scale = if size_scale > 1.6 { 0.55 } else { 0.45 };
+                            let branch_thick = trunk_r * thick_scale;
                             push_branch_stub(
                                 &mut tp,
                                 &mut tn,
@@ -2041,7 +2215,7 @@ fn process_chunk_spawns_and_despawns(
                                 ),
                                 Vec3::new(branch_thick, branch_thick * 0.7, branch_thick),
                                 (angle.cos() * branch_len, angle.sin() * branch_len),
-                                bark_face_colors(0.7),
+                                bark_face_colors(y_pos / trunk_h),
                             );
                         }
 
@@ -2052,29 +2226,33 @@ fn process_chunk_spawns_and_despawns(
                         let mut total_h: f32 = trunk_h;
 
                         // Derive canopy dimensions from shape
-                        let (canopy_rx, canopy_ry, canopy_center_y) = match preset.canopy {
-                            CanopyShape::Cone {
-                                radius,
-                                height,
-                                center_y_offset,
-                            } => (
-                                radius * size_scale,
+                        // IMPORTANT: dome bottom = canopy_center_y (dome extends upward only).
+                        // So canopy_center_y must sit BELOW trunk top to avoid floating canopy.
+                        // Trunk penetrates 35-50% into canopy (visible trunk = 50-65%).
+                        // Canopy width scales slightly super-linearly with size:
+                        // bigger trees get proportionally wider canopies.
+                        // Small tree (1.1×): no boost. Large tree (2.2×): +18% extra spread.
+                        let canopy_spread = 1.0 + (size_scale - 1.1).max(0.0) * 0.16;
+                        let (canopy_rx, canopy_ry) = match preset.canopy {
+                            CanopyShape::Cone { radius, height, .. } => (
+                                radius * size_scale * canopy_spread,
                                 height * size_scale * 0.5,
-                                trunk_h + (center_y_offset + height * 0.5) * size_scale,
                             ),
-                            CanopyShape::Ellipsoid {
-                                rx,
-                                ry,
-                                center_y_offset,
-                                ..
-                            } => (
-                                rx * size_scale,
-                                ry * size_scale,
-                                trunk_h + center_y_offset * size_scale,
-                            ),
+                            CanopyShape::Ellipsoid { rx, ry, .. } => {
+                                (rx * size_scale * canopy_spread, ry * size_scale)
+                            }
                         };
-                        let canopy_bottom = canopy_center_y - canopy_ry;
-                        let canopy_span = (canopy_ry * 2.0).max(0.01);
+                        // Canopy base sits at 85-94% of trunk height.
+                        // Top 6-15% of trunk hidden — connected but trunk clearly visible.
+                        let base_frac = match preset_idx {
+                            0 => 0.94, // Conifer: cone sits near trunk top
+                            1 => 0.90, // Tall: slight overlap
+                            2 => 0.85, // Bushy: a bit more overlap
+                            3 => 0.87, // Oak: moderate
+                            4 => 0.87, // Round: moderate
+                            _ => 0.88,
+                        };
+                        let canopy_center_y = trunk_h * base_frac;
 
                         // Per-tree hue/brightness jitter — moderate for cohesive forest
                         let tree_bright = 0.82 + hash2d(seed_base + 500, 7700) * 0.28; // 0.82–1.10
@@ -2104,9 +2282,9 @@ fn process_chunk_spawns_and_despawns(
                         let rot = |ox: f32, oz: f32| -> (f32, f32) {
                             (ox * rot_cos - oz * rot_sin, ox * rot_sin + oz * rot_cos)
                         };
-                        // Per-tree shape jitter — moderate asymmetry
-                        let jit_sx = 0.85 + hash2d(seed_base + 70, 6070) * 0.30; // 0.85–1.15
-                        let jit_sz = 0.85 + hash2d(seed_base + 71, 6071) * 0.30;
+                        // Per-tree shape jitter — enough asymmetry for organic feel
+                        let jit_sx = 0.84 + hash2d(seed_base + 70, 6070) * 0.32; // 0.84–1.16
+                        let jit_sz = 0.84 + hash2d(seed_base + 71, 6071) * 0.32;
 
                         // Foliage body: clear step down from mid, dominates ~55%
                         // Halfway between mid and shadow — readable as its own band
@@ -2118,21 +2296,22 @@ fn process_chunk_spawns_and_despawns(
                         // Lobes overlap ~50% with main mass — connected, not separated.
                         // ═══════════════════════════════════════════════════════
 
-                        // Per-tree canopy Y jitter so heights vary
+                        // Per-tree canopy Y jitter (symmetric, small — anchoring is already correct)
                         let canopy_center_y =
-                            canopy_center_y + (hash2d(seed_base + 81, 6081) - 0.4) * 0.25;
+                            canopy_center_y + (hash2d(seed_base + 81, 6081) - 0.5) * trunk_h * 0.10;
 
-                        // Edge bump count: 3–5
-                        let bump_count = 3 + (hash2d(seed_base + 80, 6080) * 2.99) as i32;
+                        // bump_count already computed above (tied to trunk scaling)
                         let has_top = hash2d(seed_base + 17, 6017) < 0.60;
 
-                        // --- Main mass: big solid dome (full canopy width) ---
+                        // --- Main mass: big solid dome — the core canopy volume ---
+                        // Tall vertical radius so it reads as one cohesive mass,
+                        // not a pancake. Trunk should disappear ~40-50% into this.
                         let main_rx =
-                            canopy_rx * (0.85 + hash2d(seed_base + 20, 6020) * 0.20) * jit_sx;
-                        let main_ry = canopy_ry * (0.28 + hash2d(seed_base + 22, 6022) * 0.17);
+                            canopy_rx * (0.88 + hash2d(seed_base + 20, 6020) * 0.12) * jit_sx;
+                        let main_ry = canopy_ry * (0.60 + hash2d(seed_base + 22, 6022) * 0.15);
                         let main_rz =
-                            canopy_rx * (0.80 + hash2d(seed_base + 21, 6021) * 0.20) * jit_sz;
-                        let main_y = canopy_center_y.min(trunk_h + main_ry);
+                            canopy_rx * (0.85 + hash2d(seed_base + 21, 6021) * 0.14) * jit_sz;
+                        let main_y = canopy_center_y;
                         push_dome(
                             &mut tp,
                             &mut tn,
@@ -2149,44 +2328,34 @@ fn process_chunk_spawns_and_despawns(
                         max_hw = max_hw.max(main_rx.max(main_rz));
                         total_h = total_h.max(main_y + main_ry);
 
-                        // --- Edge bumps: overlap the rim of main dome ---
-                        // Asymmetric: bumps cluster toward a random "heavy side" so
-                        // the canopy reads as lopsided, not radially symmetric.
-                        let heavy_angle =
-                            hash2d(tx * 7919 + 2953, tz * 6271 + 4391) * std::f32::consts::TAU;
+                        // --- Edge bumps: overlapping lobes that break the silhouette ---
+                        // Offset close enough to merge with main mass, but big enough
+                        // to create visible rim breakup. Think "leaf clusters" not "blobs."
                         for li in 0..bump_count {
                             let li_seed = seed_base + 200 + li * 137;
 
-                            // Random angle biased toward heavy side (±90° cone, 60% of bumps)
-                            let angle = if hash2d(li_seed + 9, 6109) < 0.60 {
-                                // Cluster near heavy side
-                                heavy_angle + (hash2d(li_seed, 6100) - 0.5) * 1.57
-                            } else {
-                                // Sparse on opposite side
-                                heavy_angle
-                                    + std::f32::consts::PI
-                                    + (hash2d(li_seed, 6100) - 0.5) * 2.0
-                            };
+                            // Fully independent angle per lobe
+                            let angle = hash2d(li_seed + 50, 6150) * std::f32::consts::TAU;
 
-                            // Offset: 55–80% — partially inside, partially outside
-                            let dist = canopy_rx * (0.55 + hash2d(li_seed + 1, 6101) * 0.25);
+                            // Offset: 35–60% — heavily inside main, poking out at rim
+                            let dist = canopy_rx * (0.35 + hash2d(li_seed + 1, 6101) * 0.25);
                             let lx = angle.cos() * dist;
                             let lz = angle.sin() * dist;
 
-                            // Height stagger: ±15% of canopy center
-                            let ly_frac = -0.15 + hash2d(li_seed + 2, 6102) * 0.30;
+                            // Height: centered on main mass, ±20% spread for variety
+                            let ly_frac = -0.20 + hash2d(li_seed + 2, 6102) * 0.40;
                             let ly_raw = canopy_center_y + canopy_ry * ly_frac;
 
-                            // Size: 50–85% of canopy radius
+                            // Size: 50–80% of canopy radius — substantial bumps
                             let size_t = hash2d(li_seed + 8, 6108);
-                            let l_rx = canopy_rx * (0.50 + size_t * 0.35) * jit_sx;
-                            let l_rz = canopy_rx * (0.47 + size_t * 0.32) * jit_sz;
-                            // Vertical squash: 0.50–0.80 — flattened leaf-cluster look
-                            let squash = 0.50 + hash2d(li_seed + 3, 6103) * 0.30;
+                            let l_rx = canopy_rx * (0.50 + size_t * 0.30) * jit_sx;
+                            let l_rz = canopy_rx * (0.48 + size_t * 0.28) * jit_sz;
+                            // Vertical: 30-50% of canopy ry — chunky, not flat
+                            let squash = 0.60 + hash2d(li_seed + 3, 6103) * 0.25;
                             let l_ry =
-                                canopy_ry * (0.20 + hash2d(li_seed + 5, 6105) * 0.16) * squash;
+                                canopy_ry * (0.30 + hash2d(li_seed + 5, 6105) * 0.20) * squash;
 
-                            let ly = ly_raw.min(trunk_h + l_ry);
+                            let ly = ly_raw;
 
                             let (ct, cm, cb) = if hash2d(li_seed + 7, 6107) < 0.50 {
                                 (c_mid, c_body, c_shadow)
@@ -2211,22 +2380,24 @@ fn process_chunk_spawns_and_despawns(
                             total_h = total_h.max(ly + l_ry);
                         }
 
-                        // --- Top shelf: highlight cap ---
+                        // --- Top shelf: highlight cap merged INTO main mass ---
+                        // Sits inside the canopy, not above it. Creates a bright
+                        // sun-facing zone within the foliage volume.
                         if has_top {
                             let (ts_ox, ts_oz) = rot(
-                                (hash2d(seed_base + 10, 6010) - 0.5) * canopy_rx * 0.40,
-                                (hash2d(seed_base + 11, 6011) - 0.5) * canopy_rx * 0.40,
+                                (hash2d(seed_base + 10, 6010) - 0.5) * canopy_rx * 0.30,
+                                (hash2d(seed_base + 11, 6011) - 0.5) * canopy_rx * 0.30,
                             );
                             let stretch = 0.65 + hash2d(seed_base + 15, 6015) * 0.55;
                             let inv_stretch = 1.30 - stretch;
                             let ts_rx =
-                                canopy_rx * (0.35 + hash2d(seed_base + 12, 6012) * 0.25) * stretch;
-                            let ts_ry = canopy_ry * (0.12 + hash2d(seed_base + 18, 6018) * 0.14);
+                                canopy_rx * (0.40 + hash2d(seed_base + 12, 6012) * 0.25) * stretch;
+                            let ts_ry = canopy_ry * (0.15 + hash2d(seed_base + 18, 6018) * 0.12);
                             let ts_rz = canopy_rx
-                                * (0.30 + hash2d(seed_base + 13, 6013) * 0.25)
+                                * (0.35 + hash2d(seed_base + 13, 6013) * 0.25)
                                 * inv_stretch;
-                            let ts_y =
-                                (main_y + main_ry * 0.4).min(canopy_center_y + canopy_ry * 0.20);
+                            // Sit inside upper third of main mass, NOT above it
+                            let ts_y = main_y + main_ry * 0.15;
                             push_dome(
                                 &mut tp,
                                 &mut tn,
@@ -2242,6 +2413,50 @@ fn process_chunk_spawns_and_despawns(
                             );
                             max_hw = max_hw.max(ts_ox.abs() + ts_rx.max(ts_rz));
                             total_h = total_h.max(ts_y + ts_ry);
+                        }
+
+                        // --- Primary branch sub-canopies (large trees only) ---
+                        // Trees above 1.5× scale get 1-2 visible primary branches
+                        // with their own canopy domes that overlap the main mass.
+                        // This fills in gaps and adds natural volume/density.
+                        if size_scale > 1.50 {
+                            let pb_count = 1 + (hash2d(seed_base + 300, 7300) * 1.99) as i32; // 1-2
+                            for pi in 0..pb_count {
+                                let pi_seed = seed_base + 400 + pi * 191;
+                                let pb_angle = hash2d(pi_seed + 1, 7401) * std::f32::consts::TAU;
+                                // Branch exits trunk at 60-80% height
+                                let pb_y_frac = 0.60 + hash2d(pi_seed + 2, 7402) * 0.20;
+                                let pb_y = trunk_h * pb_y_frac;
+                                // Branch extends outward 40-65% of canopy radius
+                                let pb_reach =
+                                    canopy_rx * (0.40 + hash2d(pi_seed + 3, 7403) * 0.25);
+                                let pb_cx = pb_angle.cos() * pb_reach;
+                                let pb_cz = pb_angle.sin() * pb_reach;
+                                // Sub-canopy dome: 35-55% of main canopy size
+                                let pb_size = 0.35 + hash2d(pi_seed + 4, 7404) * 0.20;
+                                let pb_rx = canopy_rx * pb_size * jit_sx;
+                                let pb_rz = canopy_rx * pb_size * jit_sz;
+                                let pb_ry = canopy_ry * pb_size * 0.70; // slightly squashed
+                                // Center the sub-canopy at branch tip height,
+                                // overlapping with the main canopy bottom
+                                let pb_dome_y = pb_y + pb_ry * 0.5;
+
+                                push_dome(
+                                    &mut tp,
+                                    &mut tn,
+                                    &mut tc,
+                                    &mut ti,
+                                    Vec3::new(pb_cx, pb_dome_y, pb_cz),
+                                    pb_rx,
+                                    pb_ry,
+                                    pb_rz,
+                                    c_body,
+                                    c_shadow,
+                                    c_shadow,
+                                );
+                                max_hw = max_hw.max(pb_cx.abs() + pb_rx.max(pb_rz));
+                                total_h = total_h.max(pb_dome_y + pb_ry);
+                            }
                         }
 
                         // 2-shape collider: trunk + canopy envelope
@@ -2265,15 +2480,16 @@ fn process_chunk_spawns_and_despawns(
                                 Mesh3d(tree_mesh),
                                 MeshMaterial3d(tile_materials.tree_body_mat.clone()),
                                 {
-                                    let tilt_x =
-                                        (hash2d(tx * 4591 + 1277, tz * 3307) - 0.5) * 0.175; // ±5°
-                                    let tilt_z =
-                                        (hash2d(tx * 5303, tz * 4219 + 1901) - 0.5) * 0.175;
+                                    let tilt_x = (hash2d(tx * 4591 + 1277, tz * 3307) - 0.5) * 0.26; // ±7.5°
+                                    let tilt_z = (hash2d(tx * 5303, tz * 4219 + 1901) - 0.5) * 0.26;
+                                    // Full Y rotation so canopy elongation faces random direction
+                                    let rot_y = hash2d(tx * 6737 + 3119, tz * 5417 + 2309)
+                                        * std::f32::consts::TAU;
                                     Transform::from_xyz(world_x, tree_base_y, world_z)
                                         .with_rotation(Quat::from_euler(
-                                            EulerRot::XZY,
+                                            EulerRot::XYZ,
                                             tilt_x,
-                                            0.0,
+                                            rot_y,
                                             tilt_z,
                                         ))
                                 },
