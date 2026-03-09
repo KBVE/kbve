@@ -142,7 +142,7 @@ jobs:
                   CI: true
 
             - name: Upload Linux artifacts
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: ${{ inputs.app_name }}-linux
                   path: |
@@ -157,7 +157,7 @@ jobs:
 
             - name: Upload test marker
               if: success()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: test-passed-tauri-${{ inputs.app_name }}-linux
                   path: test-result.txt
@@ -226,7 +226,7 @@ jobs:
                   CI: true
 
             - name: Upload macOS artifacts
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: ${{ inputs.app_name }}-macos
                   path: |
@@ -242,7 +242,7 @@ jobs:
 
             - name: Upload test marker
               if: success()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: test-passed-tauri-${{ inputs.app_name }}-macos
                   path: test-result.txt
@@ -307,7 +307,7 @@ jobs:
                   CI: true
 
             - name: Upload Windows artifacts
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: ${{ inputs.app_name }}-windows
                   path: |
@@ -323,7 +323,7 @@ jobs:
 
             - name: Upload test marker
               if: success()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: test-passed-tauri-${{ inputs.app_name }}-windows
                   path: test-result.txt
@@ -363,7 +363,7 @@ jobs:
               run: trunk build --release
 
             - name: Upload WASM artifacts
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: ${{ inputs.app_name }}-wasm
                   path: ${{ inputs.project_path }}/dist-wasm/
@@ -376,7 +376,7 @@ jobs:
 
             - name: Upload test marker
               if: success()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: test-passed-tauri-${{ inputs.app_name }}-wasm
                   path: test-result.txt
