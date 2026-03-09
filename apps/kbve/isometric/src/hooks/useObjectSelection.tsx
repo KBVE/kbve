@@ -1,5 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { get_selected_object_json } from '../../wasm-pkg/isometric_game.js';
+import {
+	get_selected_object_json,
+	get_player_state_json,
+} from '../../wasm-pkg/isometric_game.js';
 import { gameEvents } from '../ui/events/event-bus';
 import type { FlowerArchetype, InteractableKind } from '../ui/events/event-map';
 
@@ -7,6 +10,31 @@ interface ObjectInfo {
 	title: string;
 	description: string;
 	action: string;
+}
+
+type Position = [number, number, number];
+
+/** Max XZ distance (tiles) before the modal auto-closes. */
+const MODAL_CLOSE_DISTANCE = 6.0;
+/** Max XZ distance (tiles) to perform an action. */
+const ACTION_DISTANCE = 3.0;
+
+/** Euclidean distance on the XZ plane (ignores Y/elevation). */
+function xzDistance(a: Position, b: Position): number {
+	const dx = a[0] - b[0];
+	const dz = a[2] - b[2];
+	return Math.sqrt(dx * dx + dz * dz);
+}
+
+function getPlayerPosition(): Position | null {
+	try {
+		const json = get_player_state_json();
+		if (!json) return null;
+		const state = JSON.parse(json) as { position: Position };
+		return state.position;
+	} catch {
+		return null;
+	}
 }
 
 const OBJECT_INFO: Record<InteractableKind, ObjectInfo> = {
@@ -68,7 +96,13 @@ const FLOWER_INFO: Record<
 	},
 };
 
-function ActionContent({ info }: { info: ObjectInfo }) {
+function ActionContent({
+	info,
+	objectPos,
+}: {
+	info: ObjectInfo;
+	objectPos: Position;
+}) {
 	return (
 		<div className="space-y-2 md:space-y-3">
 			{/* Description in inset panel */}
@@ -86,6 +120,18 @@ function ActionContent({ info }: { info: ObjectInfo }) {
 						hover:bg-btn-hover active:bg-btn-active active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]
 						transition-colors cursor-pointer"
 					onClick={() => {
+						const playerPos = getPlayerPosition();
+						if (
+							playerPos &&
+							xzDistance(playerPos, objectPos) > ACTION_DISTANCE
+						) {
+							gameEvents.emit('toast:show', {
+								message: 'You are too far away.',
+								severity: 'warning',
+							});
+							gameEvents.emit('modal:close');
+							return;
+						}
 						gameEvents.emit('toast:show', {
 							message: `${info.action}: ${info.title}`,
 							severity: 'info',
@@ -101,10 +147,11 @@ function ActionContent({ info }: { info: ObjectInfo }) {
 
 export function useObjectSelection() {
 	const modalOpenRef = useRef(false);
+	const objectPosRef = useRef<Position | null>(null);
 
 	useEffect(() => {
-		const interval = setInterval(() => {
-			// Don't poll while modal is already showing an action
+		// Poll for new object selections
+		const selectionInterval = setInterval(() => {
 			if (modalOpenRef.current) return;
 
 			try {
@@ -113,7 +160,7 @@ export function useObjectSelection() {
 
 				const selected = JSON.parse(json) as {
 					kind: InteractableKind;
-					position: [number, number, number];
+					position: Position;
 					entity_id: number;
 					sub_kind?: string;
 				};
@@ -121,7 +168,6 @@ export function useObjectSelection() {
 				let info = OBJECT_INFO[selected.kind];
 				if (!info) return;
 
-				// For flowers, override with archetype-specific details
 				if (selected.kind === 'flower' && selected.sub_kind) {
 					const flower =
 						FLOWER_INFO[selected.sub_kind as FlowerArchetype];
@@ -135,13 +181,20 @@ export function useObjectSelection() {
 				}
 
 				modalOpenRef.current = true;
+				objectPosRef.current = selected.position;
 
 				gameEvents.emit('modal:open', {
 					title: info.title,
 					size: 'sm' as const,
-					content: <ActionContent info={info} />,
+					content: (
+						<ActionContent
+							info={info}
+							objectPos={selected.position}
+						/>
+					),
 					onClose: () => {
 						modalOpenRef.current = false;
+						objectPosRef.current = null;
 					},
 				});
 			} catch {
@@ -149,6 +202,24 @@ export function useObjectSelection() {
 			}
 		}, 100);
 
-		return () => clearInterval(interval);
+		// Poll player distance while modal is open — auto-close if too far
+		const distanceInterval = setInterval(() => {
+			if (!modalOpenRef.current || !objectPosRef.current) return;
+
+			const playerPos = getPlayerPosition();
+			if (!playerPos) return;
+
+			if (
+				xzDistance(playerPos, objectPosRef.current) >
+				MODAL_CLOSE_DISTANCE
+			) {
+				gameEvents.emit('modal:close');
+			}
+		}, 250);
+
+		return () => {
+			clearInterval(selectionInterval);
+			clearInterval(distanceInterval);
+		};
 	}, []);
 }
