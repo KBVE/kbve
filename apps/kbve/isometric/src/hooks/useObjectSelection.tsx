@@ -71,11 +71,11 @@ const FLOWER_INFO: Record<
 function ActionContent({ info }: { info: ObjectInfo }) {
 	return (
 		<div className="space-y-3">
-			<p className="text-sm opacity-80">{info.description}</p>
+			<p className="text-[8px] text-text-muted">{info.description}</p>
 			<button
-				className="w-full px-3 py-2 text-sm font-semibold rounded
-					bg-white/10 hover:bg-white/20 border border-white/20
-					transition-colors cursor-pointer"
+				className="w-full px-3 py-2 text-[8px] bg-btn border border-btn-border
+					hover:bg-btn-hover active:bg-btn-active
+					transition-colors cursor-pointer text-text"
 				onClick={() => {
 					gameEvents.emit('toast:show', {
 						message: `${info.action}: ${info.title}`,
