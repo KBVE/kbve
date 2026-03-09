@@ -178,7 +178,7 @@ jobs:
 
             - name: Scan Docker image with Trivy
               if: ${{ steps.version_check.outputs.should_publish != 'false' && inputs.image != '' }}
-              uses: aquasecurity/trivy-action@0.34.1
+              uses: aquasecurity/trivy-action@0.35.0
               with:
                   image-ref: ${{ inputs.image }}:latest
                   format: table
