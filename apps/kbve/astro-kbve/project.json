@@ -28,13 +28,7 @@
 			}
 		},
 		"build": {
-			"dependsOn": [
-				"proto",
-				{
-					"projects": ["isometric"],
-					"target": "deploy"
-				}
-			],
+			"dependsOn": ["proto"],
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "apps/kbve/astro-kbve",
