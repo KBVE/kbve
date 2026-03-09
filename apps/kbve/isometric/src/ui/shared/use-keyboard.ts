@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 export function useKeyboard(
 	key: string,
 	handler: () => void,
-	enabled: boolean = true,
+	enabled = true,
 ): void {
 	useEffect(() => {
 		if (!enabled) return;

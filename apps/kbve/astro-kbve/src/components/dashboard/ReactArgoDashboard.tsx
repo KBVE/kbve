@@ -14,6 +14,7 @@ import {
 	ChevronRight,
 	Box,
 	Layers,
+	Clock,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -49,11 +50,11 @@ interface ArgoApplication {
 	};
 	status: {
 		sync: {
-			status: string; // Synced, OutOfSync, Unknown
+			status: string;
 			revision?: string;
 		};
 		health: {
-			status: string; // Healthy, Degraded, Progressing, Missing, Suspended, Unknown
+			status: string;
 			message?: string;
 		};
 		operationState?: {
@@ -105,6 +106,7 @@ class AccessRestrictedError extends Error {
 async function fetchApplications(token: string): Promise<ArgoApplication[]> {
 	const resp = await fetch(`${PROXY_BASE}/api/v1/applications`, {
 		headers: { Authorization: `Bearer ${token}` },
+		signal: AbortSignal.timeout(10000),
 	});
 
 	if (resp.status === 403) throw new AccessRestrictedError();
@@ -122,6 +124,7 @@ async function fetchResourceTree(
 		`${PROXY_BASE}/api/v1/applications/${encodeURIComponent(appName)}/resource-tree`,
 		{
 			headers: { Authorization: `Bearer ${token}` },
+			signal: AbortSignal.timeout(10000),
 		},
 	);
 
@@ -163,7 +166,7 @@ function saveCache(applications: ArgoApplication[]): void {
 function healthColor(status: string): string {
 	switch (status) {
 		case 'Healthy':
-			return '#10b981';
+			return '#22c55e';
 		case 'Degraded':
 			return '#ef4444';
 		case 'Progressing':
@@ -180,7 +183,7 @@ function healthColor(status: string): string {
 function syncColor(status: string): string {
 	switch (status) {
 		case 'Synced':
-			return '#10b981';
+			return '#22c55e';
 		case 'OutOfSync':
 			return '#f59e0b';
 		default:
@@ -195,7 +198,12 @@ function healthIcon(status: string) {
 		case 'Degraded':
 			return <XCircle size={14} />;
 		case 'Progressing':
-			return <Loader2 size={14} className="animate-spin" />;
+			return (
+				<Loader2
+					size={14}
+					style={{ animation: 'spin 1s linear infinite' }}
+				/>
+			);
 		default:
 			return <AlertCircle size={14} />;
 	}
@@ -230,8 +238,8 @@ function StatCard({
 	return (
 		<div
 			style={{
-				background: 'rgba(15, 23, 42, 0.6)',
-				border: '1px solid rgba(148, 163, 184, 0.1)',
+				background: 'var(--sl-color-bg-nav, #111)',
+				border: '1px solid var(--sl-color-gray-5, #262626)',
 				borderRadius: 12,
 				padding: '1.25rem',
 				display: 'flex',
@@ -243,7 +251,7 @@ function StatCard({
 					display: 'flex',
 					alignItems: 'center',
 					gap: '0.5rem',
-					color: '#94a3b8',
+					color: 'var(--sl-color-gray-3, #8b949e)',
 					fontSize: '0.8rem',
 				}}>
 				{icon}
@@ -253,7 +261,8 @@ function StatCard({
 				style={{
 					fontSize: '1.75rem',
 					fontWeight: 700,
-					color: color ?? '#e2e8f0',
+					fontVariantNumeric: 'tabular-nums',
+					color: color ?? 'var(--sl-color-text, #e6edf3)',
 				}}>
 				{value}
 			</div>
@@ -326,12 +335,15 @@ function ResourceTreePanel({
 			<div
 				style={{
 					padding: '1rem',
-					color: '#94a3b8',
+					color: 'var(--sl-color-gray-3, #8b949e)',
 					display: 'flex',
 					alignItems: 'center',
 					gap: 8,
 				}}>
-				<Loader2 size={14} className="animate-spin" />
+				<Loader2
+					size={14}
+					style={{ animation: 'spin 1s linear infinite' }}
+				/>
 				Loading resources...
 			</div>
 		);
@@ -355,7 +367,7 @@ function ResourceTreePanel({
 			<div
 				style={{
 					padding: '1rem',
-					color: '#94a3b8',
+					color: 'var(--sl-color-gray-3, #8b949e)',
 					fontSize: '0.85rem',
 				}}>
 				No resources found
@@ -378,7 +390,7 @@ function ResourceTreePanel({
 		<div
 			style={{
 				padding: '0.75rem 1rem',
-				borderTop: '1px solid rgba(148, 163, 184, 0.1)',
+				borderTop: '1px solid var(--sl-color-gray-5, #262626)',
 			}}>
 			{Object.entries(grouped).map(([kind, nodes]) => (
 				<div key={kind} style={{ marginBottom: '0.75rem' }}>
@@ -386,7 +398,7 @@ function ResourceTreePanel({
 						style={{
 							fontSize: '0.75rem',
 							fontWeight: 600,
-							color: '#94a3b8',
+							color: 'var(--sl-color-gray-3, #8b949e)',
 							marginBottom: 4,
 							textTransform: 'uppercase',
 							letterSpacing: '0.05em',
@@ -402,7 +414,7 @@ function ResourceTreePanel({
 								gap: 8,
 								padding: '4px 0',
 								fontSize: '0.8rem',
-								color: '#cbd5e1',
+								color: 'var(--sl-color-text, #e6edf3)',
 							}}>
 							{node.health && (
 								<span
@@ -412,7 +424,10 @@ function ResourceTreePanel({
 									{healthIcon(node.health.status)}
 								</span>
 							)}
-							<span style={{ color: '#64748b' }}>
+							<span
+								style={{
+									color: 'var(--sl-color-gray-4, #6b7280)',
+								}}>
 								{node.namespace}/
 							</span>
 							{node.name}
@@ -445,9 +460,9 @@ function ApplicationRow({
 		<div
 			style={{
 				background: expanded
-					? 'rgba(15, 23, 42, 0.8)'
-					: 'rgba(15, 23, 42, 0.4)',
-				border: '1px solid rgba(148, 163, 184, 0.1)',
+					? 'var(--sl-color-bg-nav, #111)'
+					: 'transparent',
+				border: '1px solid var(--sl-color-gray-5, #262626)',
 				borderRadius: 8,
 				marginBottom: 8,
 				transition: 'background 0.2s',
@@ -462,7 +477,7 @@ function ApplicationRow({
 					cursor: 'pointer',
 					gap: 8,
 				}}>
-				<span style={{ color: '#64748b' }}>
+				<span style={{ color: 'var(--sl-color-gray-4, #6b7280)' }}>
 					{expanded ? (
 						<ChevronDown size={16} />
 					) : (
@@ -472,14 +487,14 @@ function ApplicationRow({
 				<span
 					style={{
 						fontWeight: 600,
-						color: '#e2e8f0',
+						color: 'var(--sl-color-text, #e6edf3)',
 						fontSize: '0.9rem',
 					}}>
 					{app.metadata.name}
 				</span>
 				<span
 					style={{
-						color: '#64748b',
+						color: 'var(--sl-color-gray-4, #6b7280)',
 						fontSize: '0.8rem',
 					}}>
 					{app.spec.project}
@@ -496,7 +511,7 @@ function ApplicationRow({
 				/>
 				<span
 					style={{
-						color: '#64748b',
+						color: 'var(--sl-color-gray-4, #6b7280)',
 						fontSize: '0.75rem',
 					}}>
 					{lastSync}
@@ -544,7 +559,7 @@ export default function ReactArgoDashboard() {
 		}
 	}, []);
 
-	// Auth init — same pattern as Grafana dashboard
+	// Auth init
 	useEffect(() => {
 		let cancelled = false;
 
@@ -578,7 +593,6 @@ export default function ReactArgoDashboard() {
 	useEffect(() => {
 		if (!accessToken) return;
 
-		// Try cache first
 		const cached = loadCache();
 		if (cached) {
 			setApplications(cached.applications);
@@ -601,31 +615,58 @@ export default function ReactArgoDashboard() {
 
 	if (authState === 'loading') {
 		return (
-			<div style={fullCenter}>
+			<div className="not-content" style={fullCenter}>
 				<Loader2
-					size={32}
-					className="animate-spin"
-					style={{ color: '#22d3ee' }}
+					size={28}
+					style={{
+						animation: 'spin 1s linear infinite',
+						color: 'var(--sl-color-accent, #06b6d4)',
+					}}
 				/>
-				<p style={{ color: '#94a3b8', marginTop: 12 }}>
-					Checking authentication...
+				<p
+					style={{
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						marginTop: 12,
+					}}>
+					Authenticating...
 				</p>
+				<style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 			</div>
 		);
 	}
 
 	if (authState === 'unauthenticated' || !accessToken) {
 		return (
-			<div style={fullCenter}>
-				<LogIn
-					size={48}
-					style={{ color: '#64748b', marginBottom: 16 }}
-				/>
-				<h2 style={{ color: '#e2e8f0', margin: '0 0 8px' }}>
-					Sign in required
+			<div className="not-content" style={fullCenter}>
+				<div
+					style={{
+						width: 56,
+						height: 56,
+						borderRadius: 14,
+						background: 'rgba(139, 92, 246, 0.1)',
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						marginBottom: '0.5rem',
+					}}>
+					<LogIn size={24} style={{ color: '#8b5cf6' }} />
+				</div>
+				<h2
+					style={{
+						color: 'var(--sl-color-text, #e6edf3)',
+						margin: '0.5rem 0 0.25rem',
+						fontSize: '1.25rem',
+						fontWeight: 600,
+					}}>
+					Sign In Required
 				</h2>
-				<p style={{ color: '#94a3b8', margin: 0 }}>
-					Please sign in to access the ArgoCD dashboard.
+				<p
+					style={{
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						margin: 0,
+						fontSize: '0.85rem',
+					}}>
+					Authentication is required to access the ArgoCD dashboard.
 				</p>
 			</div>
 		);
@@ -633,15 +674,35 @@ export default function ReactArgoDashboard() {
 
 	if (accessDenied) {
 		return (
-			<div style={fullCenter}>
-				<ShieldOff
-					size={48}
-					style={{ color: '#ef4444', marginBottom: 16 }}
-				/>
-				<h2 style={{ color: '#e2e8f0', margin: '0 0 8px' }}>
-					Access restricted
+			<div className="not-content" style={fullCenter}>
+				<div
+					style={{
+						width: 56,
+						height: 56,
+						borderRadius: 14,
+						background: 'rgba(239, 68, 68, 0.1)',
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						marginBottom: '0.5rem',
+					}}>
+					<ShieldOff size={24} style={{ color: '#ef4444' }} />
+				</div>
+				<h2
+					style={{
+						color: 'var(--sl-color-text, #e6edf3)',
+						margin: '0.5rem 0 0.25rem',
+						fontSize: '1.25rem',
+						fontWeight: 600,
+					}}>
+					Access Restricted
 				</h2>
-				<p style={{ color: '#94a3b8', margin: 0 }}>
+				<p
+					style={{
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						margin: 0,
+						fontSize: '0.85rem',
+					}}>
 					You do not have permission to view this dashboard.
 				</p>
 			</div>
@@ -674,10 +735,9 @@ export default function ReactArgoDashboard() {
 
 	return (
 		<div
+			className="not-content"
 			style={{
-				fontFamily:
-					"'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-				color: '#e2e8f0',
+				color: 'var(--sl-color-text, #e6edf3)',
 				minHeight: '60vh',
 			}}>
 			{/* Header */}
@@ -699,8 +759,9 @@ export default function ReactArgoDashboard() {
 							display: 'flex',
 							alignItems: 'center',
 							gap: 8,
+							color: 'var(--sl-color-text, #e6edf3)',
 						}}>
-						<GitBranch size={24} style={{ color: '#22d3ee' }} />
+						<GitBranch size={22} style={{ color: '#8b5cf6' }} />
 						ArgoCD Dashboard
 					</h1>
 					{lastUpdated && (
@@ -708,8 +769,12 @@ export default function ReactArgoDashboard() {
 							style={{
 								margin: '4px 0 0',
 								fontSize: '0.75rem',
-								color: '#64748b',
+								color: 'var(--sl-color-gray-4, #6b7280)',
+								display: 'flex',
+								alignItems: 'center',
+								gap: 4,
 							}}>
+							<Clock size={10} />
 							Updated {lastUpdated.toLocaleTimeString()}
 						</p>
 					)}
@@ -728,15 +793,20 @@ export default function ReactArgoDashboard() {
 						gap: 6,
 						padding: '6px 14px',
 						borderRadius: 8,
-						border: '1px solid rgba(148, 163, 184, 0.2)',
-						background: 'rgba(15, 23, 42, 0.6)',
-						color: '#94a3b8',
+						border: '1px solid var(--sl-color-gray-5, #262626)',
+						background: 'transparent',
+						color: 'var(--sl-color-gray-3, #8b949e)',
 						cursor: loading ? 'not-allowed' : 'pointer',
 						fontSize: '0.8rem',
+						transition: 'border-color 0.2s',
 					}}>
 					<RefreshCw
 						size={14}
-						className={loading ? 'animate-spin' : ''}
+						style={
+							loading
+								? { animation: 'spin 1s linear infinite' }
+								: undefined
+						}
 					/>
 					Refresh
 				</button>
@@ -766,11 +836,17 @@ export default function ReactArgoDashboard() {
 			{loading && !applications.length && (
 				<div style={fullCenter}>
 					<Loader2
-						size={32}
-						className="animate-spin"
-						style={{ color: '#22d3ee' }}
+						size={28}
+						style={{
+							animation: 'spin 1s linear infinite',
+							color: '#8b5cf6',
+						}}
 					/>
-					<p style={{ color: '#94a3b8', marginTop: 12 }}>
+					<p
+						style={{
+							color: 'var(--sl-color-gray-3, #8b949e)',
+							marginTop: 12,
+						}}>
 						Loading applications...
 					</p>
 				</div>
@@ -796,23 +872,23 @@ export default function ReactArgoDashboard() {
 							icon={
 								<CheckCircle2
 									size={16}
-									style={{ color: '#10b981' }}
+									style={{ color: '#22c55e' }}
 								/>
 							}
 							label="Healthy"
 							value={healthyCount}
-							color="#10b981"
+							color="#22c55e"
 						/>
 						<StatCard
 							icon={
 								<Activity
 									size={16}
-									style={{ color: '#10b981' }}
+									style={{ color: '#22c55e' }}
 								/>
 							}
 							label="Synced"
 							value={syncedCount}
-							color="#10b981"
+							color="#22c55e"
 						/>
 						<StatCard
 							icon={
@@ -823,7 +899,7 @@ export default function ReactArgoDashboard() {
 							}
 							label="Degraded"
 							value={degradedCount}
-							color={degradedCount > 0 ? '#ef4444' : '#10b981'}
+							color={degradedCount > 0 ? '#ef4444' : '#22c55e'}
 						/>
 						<StatCard
 							icon={
@@ -834,7 +910,7 @@ export default function ReactArgoDashboard() {
 							}
 							label="Out of Sync"
 							value={outOfSyncCount}
-							color={outOfSyncCount > 0 ? '#f59e0b' : '#10b981'}
+							color={outOfSyncCount > 0 ? '#f59e0b' : '#22c55e'}
 						/>
 					</div>
 
@@ -847,7 +923,7 @@ export default function ReactArgoDashboard() {
 							padding: '0 1rem 0.5rem',
 							fontSize: '0.7rem',
 							fontWeight: 600,
-							color: '#64748b',
+							color: 'var(--sl-color-gray-4, #6b7280)',
 							textTransform: 'uppercase',
 							letterSpacing: '0.05em',
 							gap: 8,
@@ -882,22 +958,40 @@ export default function ReactArgoDashboard() {
 			{/* Empty state */}
 			{!loading && applications.length === 0 && !error && (
 				<div style={fullCenter}>
-					<Box
-						size={48}
-						style={{ color: '#64748b', marginBottom: 16 }}
-					/>
+					<div
+						style={{
+							width: 56,
+							height: 56,
+							borderRadius: 14,
+							background: 'rgba(139, 92, 246, 0.1)',
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							marginBottom: '0.5rem',
+						}}>
+						<Box size={24} style={{ color: '#8b5cf6' }} />
+					</div>
 					<h2
 						style={{
-							color: '#e2e8f0',
-							margin: '0 0 8px',
+							color: 'var(--sl-color-text, #e6edf3)',
+							margin: '0.5rem 0 0.25rem',
+							fontSize: '1.25rem',
+							fontWeight: 600,
 						}}>
-						No applications
+						No Applications
 					</h2>
-					<p style={{ color: '#94a3b8', margin: 0 }}>
+					<p
+						style={{
+							color: 'var(--sl-color-gray-3, #8b949e)',
+							margin: 0,
+							fontSize: '0.85rem',
+						}}>
 						No ArgoCD applications found in the cluster.
 					</p>
 				</div>
 			)}
+
+			<style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 		</div>
 	);
 }

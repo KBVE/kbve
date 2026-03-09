@@ -3,6 +3,12 @@ name = "isometric-game"
 version = "0.1.0"
 edition = "2021"
 
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
+[package.metadata.wasm-pack.profile.dev]
+wasm-opt = false
+
 [lib]
 name = "isometric_game"
 crate-type = ["cdylib", "rlib"]
@@ -42,7 +48,7 @@ log = "0.4"
 
 # --- Desktop-only dependencies ---
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tauri = { version = "2", features = ["macos-private-api"] }
+tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 wgpu = "27"
 pollster = "0.4"
@@ -52,6 +58,11 @@ dashmap = "6"
 [target.'cfg(target_os = "linux")'.dependencies.bevy]
 version = "0.18"
 features = ["x11", "wayland"]
+
+# --- WASM-only Bevy features (WebGL2 backend) ---
+[target.'cfg(target_arch = "wasm32")'.dependencies.bevy]
+version = "0.18"
+features = ["webgl2"]
 
 # --- WASM-only dependencies ---
 [target.'cfg(target_arch = "wasm32")'.dependencies]

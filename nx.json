@@ -80,6 +80,7 @@
 		},
 		{
 			"plugin": "@nx/vite/plugin",
+			"exclude": ["apps/kbve/isometric/**"],
 			"options": {
 				"buildTargetName": "build",
 				"previewTargetName": "preview",
@@ -89,6 +90,7 @@
 		},
 		{
 			"plugin": "@nx/vitest",
+			"exclude": ["apps/kbve/isometric/**"],
 			"options": {
 				"testTargetName": "test"
 			}

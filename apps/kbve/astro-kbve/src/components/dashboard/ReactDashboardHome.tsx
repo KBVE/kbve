@@ -1,11 +1,4 @@
-import React, {
-	useEffect,
-	useState,
-	useCallback,
-	useRef,
-	useMemo,
-	Suspense,
-} from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { initSupa, getSupa } from '@/lib/supa';
 import {
 	BarChart3,
@@ -15,12 +8,12 @@ import {
 	LogIn,
 	ArrowRight,
 	Activity,
+	RefreshCw,
+	CheckCircle2,
+	XCircle,
+	AlertCircle,
+	Clock,
 } from 'lucide-react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useSpring, animated } from '@react-spring/web';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
-import * as THREE from 'three';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -28,6 +21,8 @@ import * as THREE from 'three';
 
 const SUPABASE_URL = 'https://supabase.kbve.com';
 const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
+const PROXY_BASE = '/dashboard/grafana/proxy';
+const DS_CACHE_KEY = 'cache:grafana:ds-id';
 
 interface CachedData<T> {
 	data: T;
@@ -65,20 +60,90 @@ function setCache<T>(key: string, data: T): void {
 // Data types
 // ---------------------------------------------------------------------------
 
+type ServiceStatus = 'ok' | 'error' | 'loading' | 'unavailable';
+
 interface GrafanaSummary {
 	nodeCount: number;
+	cpuPercent: number | null;
+	memoryPercent: number | null;
+	podCount: number | null;
 }
 
 interface ArgoSummary {
 	totalApps: number;
 	healthyCount: number;
 	syncedCount: number;
+	degradedCount: number;
 }
 
 interface EdgeSummary {
 	operational: number;
 	total: number;
 	latencyMs: number;
+}
+
+// ---------------------------------------------------------------------------
+// Grafana datasource discovery (same pattern as ReactGrafanaDashboard)
+// ---------------------------------------------------------------------------
+
+async function findPrometheusDatasourceId(
+	token: string,
+): Promise<number | null> {
+	try {
+		const cached = localStorage.getItem(DS_CACHE_KEY);
+		if (cached) return parseInt(cached, 10);
+	} catch {
+		/* ignore */
+	}
+
+	try {
+		const resp = await fetch(`${PROXY_BASE}/api/datasources`, {
+			headers: { Authorization: `Bearer ${token}` },
+			signal: AbortSignal.timeout(8000),
+		});
+		if (!resp.ok) return null;
+		const sources: Array<{ id: number; type: string; name: string }> =
+			await resp.json();
+		const prom = sources.find(
+			(s) => s.type === 'prometheus' || s.name === 'Prometheus',
+		);
+		if (!prom) return null;
+		try {
+			localStorage.setItem(DS_CACHE_KEY, String(prom.id));
+		} catch {
+			/* ignore */
+		}
+		return prom.id;
+	} catch {
+		return null;
+	}
+}
+
+async function queryInstant(
+	token: string,
+	dsId: number,
+	expr: string,
+): Promise<number | null> {
+	try {
+		const resp = await fetch(
+			`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query`,
+			{
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
+				body: `query=${encodeURIComponent(expr)}`,
+				signal: AbortSignal.timeout(8000),
+			},
+		);
+		if (!resp.ok) return null;
+		const data = await resp.json();
+		const val = data?.data?.result?.[0]?.value?.[1];
+		return val != null ? parseFloat(val) : null;
+	} catch {
+		return null;
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -92,18 +157,41 @@ async function fetchGrafanaSummary(
 	if (cached) return cached;
 
 	try {
-		const resp = await fetch(
-			`/dashboard/grafana/proxy/api/v1/query?query=${encodeURIComponent('count(up{job="node-exporter"})')}`,
-			{
-				headers: { Authorization: `Bearer ${token}` },
-				signal: AbortSignal.timeout(8000),
-			},
-		);
-		if (!resp.ok) return null;
-		const json = await resp.json();
-		const result = json?.data?.result?.[0];
-		const nodeCount = result ? parseInt(result.value?.[1] ?? '0', 10) : 0;
-		const summary = { nodeCount };
+		const dsId = await findPrometheusDatasourceId(token);
+		if (!dsId) return null;
+
+		const [nodeCount, cpuPercent, memoryPercent, podCount] =
+			await Promise.all([
+				queryInstant(token, dsId, 'count(up{job="node-exporter"})'),
+				queryInstant(
+					token,
+					dsId,
+					'avg(100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100))',
+				),
+				queryInstant(
+					token,
+					dsId,
+					'(1 - (sum(node_memory_MemAvailable_bytes) / sum(node_memory_MemTotal_bytes))) * 100',
+				),
+				queryInstant(
+					token,
+					dsId,
+					'sum(kube_pod_status_phase{phase="Running"})',
+				),
+			]);
+
+		if (nodeCount == null) return null;
+
+		const summary: GrafanaSummary = {
+			nodeCount: Math.round(nodeCount),
+			cpuPercent:
+				cpuPercent != null ? Math.round(cpuPercent * 10) / 10 : null,
+			memoryPercent:
+				memoryPercent != null
+					? Math.round(memoryPercent * 10) / 10
+					: null,
+			podCount: podCount != null ? Math.round(podCount) : null,
+		};
 		setCache('cache:dashboard:grafana-summary', summary);
 		return summary;
 	} catch {
@@ -130,7 +218,12 @@ async function fetchArgoSummary(token: string): Promise<ArgoSummary | null> {
 		const syncedCount = items.filter(
 			(a: any) => a.status?.sync?.status === 'Synced',
 		).length;
-		const summary = { totalApps, healthyCount, syncedCount };
+		const degradedCount = items.filter(
+			(a: any) =>
+				a.status?.health?.status === 'Degraded' ||
+				a.status?.health?.status === 'Missing',
+		).length;
+		const summary = { totalApps, healthyCount, syncedCount, degradedCount };
 		setCache('cache:dashboard:argo-summary', summary);
 		return summary;
 	} catch {
@@ -179,74 +272,112 @@ async function fetchEdgeSummary(): Promise<EdgeSummary | null> {
 }
 
 // ---------------------------------------------------------------------------
-// 3D Particle Background
+// Status helpers
 // ---------------------------------------------------------------------------
 
-function ParticleField() {
-	const meshRef = useRef<THREE.InstancedMesh>(null!);
-	const count = 80;
+function statusColor(status: ServiceStatus): string {
+	switch (status) {
+		case 'ok':
+			return '#22c55e';
+		case 'error':
+			return '#ef4444';
+		case 'loading':
+			return '#94a3b8';
+		case 'unavailable':
+			return '#f59e0b';
+	}
+}
 
-	const particles = useMemo(() => {
-		const temp = [];
-		for (let i = 0; i < count; i++) {
-			temp.push({
-				position: [
-					(Math.random() - 0.5) * 12,
-					(Math.random() - 0.5) * 8,
-					(Math.random() - 0.5) * 6,
-				] as [number, number, number],
-				speed: 0.002 + Math.random() * 0.004,
-				offset: Math.random() * Math.PI * 2,
-				scale: 0.02 + Math.random() * 0.04,
-			});
-		}
-		return temp;
-	}, []);
+function statusLabel(status: ServiceStatus): string {
+	switch (status) {
+		case 'ok':
+			return 'Operational';
+		case 'error':
+			return 'Down';
+		case 'loading':
+			return 'Checking...';
+		case 'unavailable':
+			return 'Unavailable';
+	}
+}
 
-	const dummy = useMemo(() => new THREE.Object3D(), []);
+function getThresholdColor(value: number): string {
+	if (value >= 85) return '#ef4444';
+	if (value >= 70) return '#eab308';
+	return '#22c55e';
+}
 
-	useFrame(({ clock }) => {
-		const t = clock.getElapsedTime();
-		particles.forEach((p, i) => {
-			dummy.position.set(
-				p.position[0] + Math.sin(t * p.speed * 50 + p.offset) * 0.3,
-				p.position[1] + Math.cos(t * p.speed * 30 + p.offset) * 0.2,
-				p.position[2] +
-					Math.sin(t * p.speed * 40 + p.offset + 1) * 0.15,
-			);
-			dummy.scale.setScalar(p.scale);
-			dummy.updateMatrix();
-			meshRef.current.setMatrixAt(i, dummy.matrix);
-		});
-		meshRef.current.instanceMatrix.needsUpdate = true;
-	});
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
 
+function StatusDot({ status }: { status: ServiceStatus }) {
+	const color = statusColor(status);
 	return (
-		<instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
-			<sphereGeometry args={[1, 8, 8]} />
-			<meshBasicMaterial color="#06b6d4" transparent opacity={0.25} />
-		</instancedMesh>
+		<span
+			style={{
+				display: 'inline-block',
+				width: 8,
+				height: 8,
+				borderRadius: '50%',
+				background: color,
+				boxShadow: status === 'ok' ? `0 0 6px ${color}` : 'none',
+				flexShrink: 0,
+			}}
+		/>
 	);
 }
 
-function Background3D() {
+function MetricValue({
+	label,
+	value,
+	unit,
+	color,
+}: {
+	label: string;
+	value: string | number;
+	unit?: string;
+	color?: string;
+}) {
 	return (
-		<div style={styles.canvasContainer}>
-			<Canvas
-				camera={{ position: [0, 0, 6], fov: 60 }}
-				style={{ background: 'transparent' }}
-				gl={{ alpha: true, antialias: false }}
-				dpr={[1, 1.5]}>
-				<Suspense fallback={null}>
-					<ParticleField />
-				</Suspense>
-			</Canvas>
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+			<div
+				style={{
+					fontSize: '1.5rem',
+					fontWeight: 700,
+					fontVariantNumeric: 'tabular-nums',
+					color: color ?? 'var(--sl-color-text, #e6edf3)',
+					lineHeight: 1.2,
+				}}>
+				{value}
+				{unit && (
+					<span
+						style={{
+							fontSize: '0.75rem',
+							fontWeight: 500,
+							color: 'var(--sl-color-gray-3, #8b949e)',
+							marginLeft: 2,
+						}}>
+						{unit}
+					</span>
+				)}
+			</div>
+			<div
+				style={{
+					fontSize: '0.7rem',
+					textTransform: 'uppercase' as const,
+					letterSpacing: '0.05em',
+					fontWeight: 500,
+					color: 'var(--sl-color-gray-3, #8b949e)',
+				}}>
+				{label}
+			</div>
 		</div>
 	);
 }
 
 // ---------------------------------------------------------------------------
-// Service Card with react-spring hover
+// Service Card
 // ---------------------------------------------------------------------------
 
 interface ServiceCardProps {
@@ -254,9 +385,9 @@ interface ServiceCardProps {
 	description: string;
 	href: string;
 	icon: React.ReactNode;
-	gradient: string;
+	accentColor: string;
+	status: ServiceStatus;
 	children: React.ReactNode;
-	index: number;
 }
 
 function ServiceCard({
@@ -264,83 +395,317 @@ function ServiceCard({
 	description,
 	href,
 	icon,
-	gradient,
+	accentColor,
+	status,
 	children,
-	index,
 }: ServiceCardProps) {
 	const [hovered, setHovered] = useState(false);
 
-	const spring = useSpring({
-		transform: hovered
-			? 'scale(1.03) translateY(-4px)'
-			: 'scale(1) translateY(0px)',
-		boxShadow: hovered
-			? '0 20px 40px rgba(6, 182, 212, 0.15)'
-			: '0 4px 12px rgba(0, 0, 0, 0.2)',
-		borderColor: hovered
-			? 'var(--sl-color-accent, #06b6d4)'
-			: 'var(--sl-color-gray-5, #262626)',
-		config: { tension: 300, friction: 20 },
-	});
-
 	return (
-		<animated.div
-			className="dashboard-card"
-			style={{
-				...styles.card,
-				...spring,
-			}}
+		<div
 			onMouseEnter={() => setHovered(true)}
-			onMouseLeave={() => setHovered(false)}>
-			{/* Gradient accent strip */}
+			onMouseLeave={() => setHovered(false)}
+			style={{
+				display: 'flex',
+				flexDirection: 'column',
+				borderRadius: 12,
+				border: `1px solid ${hovered ? 'var(--sl-color-gray-4, #4b5563)' : 'var(--sl-color-gray-5, #262626)'}`,
+				background: 'var(--sl-color-bg-nav, #111)',
+				overflow: 'hidden',
+				transition: 'border-color 0.2s, box-shadow 0.2s',
+				boxShadow: hovered
+					? '0 8px 24px rgba(0, 0, 0, 0.3)'
+					: '0 2px 8px rgba(0, 0, 0, 0.15)',
+			}}>
+			{/* Accent strip */}
 			<div
 				style={{
-					...styles.cardAccent,
-					background: gradient,
+					height: 3,
+					background: accentColor,
+					opacity: status === 'ok' ? 1 : 0.4,
 				}}
 			/>
 
-			<div style={styles.cardIconRow}>
-				<div style={{ ...styles.cardIcon, background: gradient }}>
+			{/* Header */}
+			<div
+				style={{
+					padding: '1.25rem 1.25rem 0',
+					display: 'flex',
+					alignItems: 'flex-start',
+					gap: '0.75rem',
+				}}>
+				<div
+					style={{
+						width: 36,
+						height: 36,
+						borderRadius: 8,
+						background: `${accentColor}18`,
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						flexShrink: 0,
+						color: accentColor,
+					}}>
 					{icon}
 				</div>
-				<div style={{ flex: 1 }}>
-					<div style={styles.cardTitle}>{title}</div>
-					<div style={styles.cardDescription}>{description}</div>
+				<div style={{ flex: 1, minWidth: 0 }}>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 8,
+							marginBottom: 2,
+						}}>
+						<span
+							style={{
+								fontWeight: 600,
+								fontSize: '1rem',
+								color: 'var(--sl-color-text, #e6edf3)',
+							}}>
+							{title}
+						</span>
+						<StatusDot status={status} />
+					</div>
+					<div
+						style={{
+							fontSize: '0.8rem',
+							color: 'var(--sl-color-gray-3, #8b949e)',
+						}}>
+						{description}
+					</div>
 				</div>
 			</div>
 
-			{/* Live stats */}
-			<div style={styles.cardStats}>{children}</div>
+			{/* Metrics */}
+			<div
+				style={{
+					padding: '1rem 1.25rem',
+					display: 'flex',
+					gap: '1.25rem',
+					flexWrap: 'wrap',
+					minHeight: 64,
+					alignItems: 'flex-end',
+				}}>
+				{children}
+			</div>
 
-			{/* Link */}
-			<a href={href} style={styles.cardLink}>
-				View Dashboard
-				<ArrowRight size={14} />
-			</a>
-		</animated.div>
+			{/* Footer */}
+			<div
+				style={{
+					padding: '0.75rem 1.25rem',
+					borderTop: '1px solid var(--sl-color-gray-5, #262626)',
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'center',
+				}}>
+				<span
+					style={{
+						fontSize: '0.7rem',
+						fontWeight: 500,
+						color: statusColor(status),
+						textTransform: 'uppercase' as const,
+						letterSpacing: '0.05em',
+						display: 'flex',
+						alignItems: 'center',
+						gap: 4,
+					}}>
+					{status === 'loading' ? (
+						<Loader2
+							size={10}
+							style={{ animation: 'spin 1s linear infinite' }}
+						/>
+					) : status === 'ok' ? (
+						<CheckCircle2 size={10} />
+					) : status === 'error' ? (
+						<XCircle size={10} />
+					) : (
+						<AlertCircle size={10} />
+					)}
+					{statusLabel(status)}
+				</span>
+				<a
+					href={href}
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 4,
+						color: 'var(--sl-color-accent, #06b6d4)',
+						fontSize: '0.8rem',
+						fontWeight: 600,
+						textDecoration: 'none',
+					}}>
+					Details
+					<ArrowRight size={12} />
+				</a>
+			</div>
+		</div>
 	);
 }
 
-function StatItem({
-	label,
-	value,
-	color,
+// ---------------------------------------------------------------------------
+// System Status Banner
+// ---------------------------------------------------------------------------
+
+function SystemStatusBanner({
+	grafanaStatus,
+	argoStatus,
+	edgeStatus,
+	lastUpdated,
+	onRefresh,
+	refreshing,
 }: {
-	label: string;
-	value: string | number;
-	color?: string;
+	grafanaStatus: ServiceStatus;
+	argoStatus: ServiceStatus;
+	edgeStatus: ServiceStatus;
+	lastUpdated: Date | null;
+	onRefresh: () => void;
+	refreshing: boolean;
 }) {
+	const allOk =
+		grafanaStatus === 'ok' && argoStatus === 'ok' && edgeStatus === 'ok';
+	const anyError =
+		grafanaStatus === 'error' ||
+		argoStatus === 'error' ||
+		edgeStatus === 'error';
+	const anyLoading =
+		grafanaStatus === 'loading' ||
+		argoStatus === 'loading' ||
+		edgeStatus === 'loading';
+
+	const overallColor = anyLoading
+		? '#94a3b8'
+		: allOk
+			? '#22c55e'
+			: anyError
+				? '#ef4444'
+				: '#f59e0b';
+	const overallLabel = anyLoading
+		? 'Checking services...'
+		: allOk
+			? 'All Systems Operational'
+			: anyError
+				? 'Service Disruption Detected'
+				: 'Partial Degradation';
+
+	const services = [
+		{ name: 'Monitoring', status: grafanaStatus },
+		{ name: 'Deployments', status: argoStatus },
+		{ name: 'Edge', status: edgeStatus },
+	];
+
 	return (
-		<div style={styles.statItem}>
+		<div
+			style={{
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'space-between',
+				padding: '0.75rem 1rem',
+				borderRadius: 10,
+				border: '1px solid var(--sl-color-gray-5, #262626)',
+				background: 'var(--sl-color-bg-nav, #111)',
+				gap: '1rem',
+				flexWrap: 'wrap',
+			}}>
+			{/* Left: overall status */}
 			<div
 				style={{
-					...styles.statValue,
-					color: color ?? 'var(--sl-color-text, #e6edf3)',
+					display: 'flex',
+					alignItems: 'center',
+					gap: '0.5rem',
 				}}>
-				{value}
+				<span
+					style={{
+						display: 'inline-block',
+						width: 10,
+						height: 10,
+						borderRadius: '50%',
+						background: overallColor,
+						boxShadow: allOk ? `0 0 8px ${overallColor}` : 'none',
+					}}
+				/>
+				<span
+					style={{
+						fontWeight: 600,
+						fontSize: '0.85rem',
+						color: 'var(--sl-color-text, #e6edf3)',
+					}}>
+					{overallLabel}
+				</span>
 			</div>
-			<div style={styles.statLabel}>{label}</div>
+
+			{/* Center: per-service dots */}
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					gap: '1rem',
+				}}>
+				{services.map((s) => (
+					<div
+						key={s.name}
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 4,
+							fontSize: '0.75rem',
+							color: 'var(--sl-color-gray-3, #8b949e)',
+						}}>
+						<StatusDot status={s.status} />
+						{s.name}
+					</div>
+				))}
+			</div>
+
+			{/* Right: timestamp + refresh */}
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					gap: '0.75rem',
+				}}>
+				{lastUpdated && (
+					<span
+						style={{
+							fontSize: '0.7rem',
+							color: 'var(--sl-color-gray-4, #6b7280)',
+							display: 'flex',
+							alignItems: 'center',
+							gap: 4,
+						}}>
+						<Clock size={10} />
+						{lastUpdated.toLocaleTimeString([], {
+							hour: '2-digit',
+							minute: '2-digit',
+						})}
+					</span>
+				)}
+				<button
+					onClick={onRefresh}
+					disabled={refreshing}
+					title="Refresh all"
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						width: 28,
+						height: 28,
+						borderRadius: 6,
+						border: '1px solid var(--sl-color-gray-5, #262626)',
+						background: 'transparent',
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						cursor: refreshing ? 'not-allowed' : 'pointer',
+						transition: 'border-color 0.2s',
+					}}>
+					<RefreshCw
+						size={13}
+						style={
+							refreshing
+								? { animation: 'spin 1s linear infinite' }
+								: undefined
+						}
+					/>
+				</button>
+			</div>
 		</div>
 	);
 }
@@ -358,9 +723,14 @@ export default function ReactDashboardHome() {
 	const [argo, setArgo] = useState<ArgoSummary | null>(null);
 	const [edge, setEdge] = useState<EdgeSummary | null>(null);
 	const [loading, setLoading] = useState(true);
-	const containerRef = useRef<HTMLDivElement>(null);
+	const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-	// Auth init — same pattern as Grafana dashboard
+	const [grafanaStatus, setGrafanaStatus] =
+		useState<ServiceStatus>('loading');
+	const [argoStatus, setArgoStatus] = useState<ServiceStatus>('loading');
+	const [edgeStatus, setEdgeStatus] = useState<ServiceStatus>('loading');
+
+	// Auth init
 	useEffect(() => {
 		let cancelled = false;
 
@@ -392,60 +762,43 @@ export default function ReactDashboardHome() {
 
 	const fetchAll = useCallback(async () => {
 		setLoading(true);
-		const edgePromise = fetchEdgeSummary();
+		setGrafanaStatus('loading');
+		setArgoStatus('loading');
+		setEdgeStatus('loading');
+
+		const edgePromise = fetchEdgeSummary().then((e) => {
+			setEdge(e);
+			setEdgeStatus(e ? 'ok' : 'unavailable');
+			return e;
+		});
 
 		if (accessToken) {
-			const [g, a, e] = await Promise.all([
-				fetchGrafanaSummary(accessToken),
-				fetchArgoSummary(accessToken),
-				edgePromise,
-			]);
-			setGrafana(g);
-			setArgo(a);
-			setEdge(e);
+			const grafanaPromise = fetchGrafanaSummary(accessToken).then(
+				(g) => {
+					setGrafana(g);
+					setGrafanaStatus(g ? 'ok' : 'unavailable');
+					return g;
+				},
+			);
+
+			const argoPromise = fetchArgoSummary(accessToken).then((a) => {
+				setArgo(a);
+				setArgoStatus(a ? 'ok' : 'unavailable');
+				return a;
+			});
+
+			await Promise.all([grafanaPromise, argoPromise, edgePromise]);
 		} else {
-			const e = await edgePromise;
-			setEdge(e);
+			await edgePromise;
 		}
+
+		setLastUpdated(new Date());
 		setLoading(false);
 	}, [accessToken]);
 
 	useEffect(() => {
 		if (authState === 'authenticated') fetchAll();
 	}, [authState, fetchAll]);
-
-	// GSAP entrance animation
-	useGSAP(
-		() => {
-			if (authState !== 'authenticated' || !containerRef.current) return;
-
-			const header =
-				containerRef.current.querySelector('.dashboard-header');
-			const cards =
-				containerRef.current.querySelectorAll('.dashboard-card');
-
-			if (header) {
-				gsap.from(header, {
-					y: -20,
-					opacity: 0,
-					duration: 0.6,
-					ease: 'power2.out',
-				});
-			}
-
-			if (cards.length > 0) {
-				gsap.from(cards, {
-					y: 30,
-					opacity: 0,
-					duration: 0.5,
-					stagger: 0.15,
-					ease: 'power2.out',
-					delay: 0.2,
-				});
-			}
-		},
-		{ scope: containerRef, dependencies: [authState, loading] },
-	);
 
 	// -----------------------------------------------------------------------
 	// Auth states
@@ -455,10 +808,20 @@ export default function ReactDashboardHome() {
 		return (
 			<div className="not-content" style={styles.centeredMessage}>
 				<Loader2
-					size={32}
-					style={{ animation: 'spin 1s linear infinite' }}
+					size={28}
+					style={{
+						animation: 'spin 1s linear infinite',
+						color: 'var(--sl-color-accent, #06b6d4)',
+					}}
 				/>
-				<p>Loading authentication...</p>
+				<p
+					style={{
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						margin: '0.75rem 0 0',
+						fontSize: '0.9rem',
+					}}>
+					Authenticating...
+				</p>
 				<style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 			</div>
 		);
@@ -467,19 +830,39 @@ export default function ReactDashboardHome() {
 	if (authState === 'unauthenticated') {
 		return (
 			<div className="not-content" style={styles.centeredMessage}>
-				<LogIn
-					size={48}
-					style={{ color: 'var(--sl-color-accent, #06b6d4)' }}
-				/>
+				<div
+					style={{
+						width: 56,
+						height: 56,
+						borderRadius: 14,
+						background: 'rgba(6, 182, 212, 0.1)',
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						marginBottom: '0.5rem',
+					}}>
+					<LogIn
+						size={24}
+						style={{ color: 'var(--sl-color-accent, #06b6d4)' }}
+					/>
+				</div>
 				<h2
 					style={{
 						color: 'var(--sl-color-text, #e6edf3)',
-						margin: '1rem 0 0.5rem',
+						margin: '0.5rem 0 0.25rem',
+						fontSize: '1.25rem',
+						fontWeight: 600,
 					}}>
-					Authentication Required
+					Sign In Required
 				</h2>
-				<p style={{ color: 'var(--sl-color-gray-3, #8b949e)' }}>
-					Sign in to access the dashboard.
+				<p
+					style={{
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						margin: 0,
+						fontSize: '0.85rem',
+					}}>
+					Authentication is required to access the infrastructure
+					dashboard.
 				</p>
 			</div>
 		);
@@ -490,25 +873,37 @@ export default function ReactDashboardHome() {
 	// -----------------------------------------------------------------------
 
 	return (
-		<div
-			className="not-content"
-			ref={containerRef}
-			style={styles.dashboard}>
-			<Background3D />
-
+		<div className="not-content" style={styles.dashboard}>
 			{/* Header */}
-			<header className="dashboard-header" style={styles.header}>
-				<div style={styles.headerContent}>
-					<Activity
-						size={28}
-						style={{ color: 'var(--sl-color-accent, #06b6d4)' }}
-					/>
-					<div>
-						<h1 style={styles.title}>KBVE Dashboard</h1>
-						<p style={styles.subtitle}>Infrastructure Overview</p>
-					</div>
+			<header style={styles.header}>
+				<div>
+					<h1 style={styles.title}>
+						<Activity
+							size={22}
+							style={{
+								color: 'var(--sl-color-accent, #06b6d4)',
+								marginRight: 8,
+								verticalAlign: 'middle',
+							}}
+						/>
+						Infrastructure Dashboard
+					</h1>
+					<p style={styles.subtitle}>
+						Real-time cluster monitoring, deployment status, and
+						service health
+					</p>
 				</div>
 			</header>
+
+			{/* System Status Banner */}
+			<SystemStatusBanner
+				grafanaStatus={grafanaStatus}
+				argoStatus={argoStatus}
+				edgeStatus={edgeStatus}
+				lastUpdated={lastUpdated}
+				onRefresh={fetchAll}
+				refreshing={loading}
+			/>
 
 			{/* Service Cards */}
 			<div style={styles.cardGrid}>
@@ -517,26 +912,47 @@ export default function ReactDashboardHome() {
 					title="Cluster Monitoring"
 					description="Prometheus metrics & node health"
 					href="/dashboard/grafana/"
-					icon={<BarChart3 size={20} color="#fff" />}
-					gradient="linear-gradient(135deg, #06b6d4, #0d9488)"
-					index={0}>
-					{loading ? (
-						<div style={styles.loadingStats}>
-							<Loader2
-								size={16}
-								style={{ animation: 'spin 1s linear infinite' }}
-							/>
-						</div>
+					icon={<BarChart3 size={18} />}
+					accentColor="#06b6d4"
+					status={grafanaStatus}>
+					{grafanaStatus === 'loading' ? (
+						<LoadingPlaceholder />
 					) : grafana ? (
 						<>
-							<StatItem
+							<MetricValue
 								label="Nodes"
 								value={grafana.nodeCount}
 								color="#06b6d4"
 							/>
+							{grafana.cpuPercent != null && (
+								<MetricValue
+									label="CPU"
+									value={grafana.cpuPercent}
+									unit="%"
+									color={getThresholdColor(
+										grafana.cpuPercent,
+									)}
+								/>
+							)}
+							{grafana.memoryPercent != null && (
+								<MetricValue
+									label="Memory"
+									value={grafana.memoryPercent}
+									unit="%"
+									color={getThresholdColor(
+										grafana.memoryPercent,
+									)}
+								/>
+							)}
+							{grafana.podCount != null && (
+								<MetricValue
+									label="Pods"
+									value={grafana.podCount}
+								/>
+							)}
 						</>
 					) : (
-						<div style={styles.unavailable}>Data unavailable</div>
+						<UnavailableMessage />
 					)}
 				</ServiceCard>
 
@@ -545,36 +961,38 @@ export default function ReactDashboardHome() {
 					title="Deployments"
 					description="ArgoCD application sync & health"
 					href="/dashboard/argo/"
-					icon={<GitBranch size={20} color="#fff" />}
-					gradient="linear-gradient(135deg, #8b5cf6, #6366f1)"
-					index={1}>
-					{loading ? (
-						<div style={styles.loadingStats}>
-							<Loader2
-								size={16}
-								style={{ animation: 'spin 1s linear infinite' }}
-							/>
-						</div>
+					icon={<GitBranch size={18} />}
+					accentColor="#8b5cf6"
+					status={argoStatus}>
+					{argoStatus === 'loading' ? (
+						<LoadingPlaceholder />
 					) : argo ? (
 						<>
-							<StatItem
+							<MetricValue
 								label="Apps"
 								value={argo.totalApps}
 								color="#8b5cf6"
 							/>
-							<StatItem
+							<MetricValue
 								label="Healthy"
 								value={argo.healthyCount}
 								color="#22c55e"
 							/>
-							<StatItem
+							<MetricValue
 								label="Synced"
 								value={argo.syncedCount}
 								color="#06b6d4"
 							/>
+							{argo.degradedCount > 0 && (
+								<MetricValue
+									label="Degraded"
+									value={argo.degradedCount}
+									color="#ef4444"
+								/>
+							)}
 						</>
 					) : (
-						<div style={styles.unavailable}>Data unavailable</div>
+						<UnavailableMessage />
 					)}
 				</ServiceCard>
 
@@ -583,19 +1001,14 @@ export default function ReactDashboardHome() {
 					title="Edge Functions"
 					description="Supabase serverless health"
 					href="/dashboard/edge/"
-					icon={<Zap size={20} color="#fff" />}
-					gradient="linear-gradient(135deg, #22c55e, #10b981)"
-					index={2}>
-					{loading ? (
-						<div style={styles.loadingStats}>
-							<Loader2
-								size={16}
-								style={{ animation: 'spin 1s linear infinite' }}
-							/>
-						</div>
+					icon={<Zap size={18} />}
+					accentColor="#22c55e"
+					status={edgeStatus}>
+					{edgeStatus === 'loading' ? (
+						<LoadingPlaceholder />
 					) : edge ? (
 						<>
-							<StatItem
+							<MetricValue
 								label="Operational"
 								value={`${edge.operational}/${edge.total}`}
 								color={
@@ -604,18 +1017,53 @@ export default function ReactDashboardHome() {
 										: '#f59e0b'
 								}
 							/>
-							<StatItem
+							<MetricValue
 								label="Latency"
-								value={`${edge.latencyMs}ms`}
+								value={edge.latencyMs}
+								unit="ms"
 							/>
 						</>
 					) : (
-						<div style={styles.unavailable}>Data unavailable</div>
+						<UnavailableMessage />
 					)}
 				</ServiceCard>
 			</div>
 
 			<style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+		</div>
+	);
+}
+
+function LoadingPlaceholder() {
+	return (
+		<div
+			style={{
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				width: '100%',
+				color: 'var(--sl-color-gray-3, #8b949e)',
+			}}>
+			<Loader2
+				size={16}
+				style={{ animation: 'spin 1s linear infinite' }}
+			/>
+		</div>
+	);
+}
+
+function UnavailableMessage() {
+	return (
+		<div
+			style={{
+				display: 'flex',
+				alignItems: 'center',
+				gap: 6,
+				color: 'var(--sl-color-gray-4, #6b7280)',
+				fontSize: '0.8rem',
+			}}>
+			<AlertCircle size={14} />
+			Service unreachable
 		</div>
 	);
 }
@@ -626,149 +1074,40 @@ export default function ReactDashboardHome() {
 
 const styles: Record<string, React.CSSProperties> = {
 	dashboard: {
-		position: 'relative',
 		display: 'flex',
 		flexDirection: 'column',
-		gap: '2rem',
+		gap: '1.25rem',
 		minHeight: '60vh',
 	},
-	canvasContainer: {
-		position: 'absolute',
-		top: 0,
-		left: 0,
-		right: 0,
-		bottom: 0,
-		zIndex: 0,
-		pointerEvents: 'none',
-	},
 	header: {
-		position: 'relative',
-		zIndex: 1,
-	},
-	headerContent: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: '1rem',
+		marginBottom: '0.25rem',
 	},
 	title: {
 		color: 'var(--sl-color-text, #e6edf3)',
 		margin: 0,
-		fontSize: '2rem',
+		fontSize: '1.5rem',
 		fontWeight: 700,
-		letterSpacing: '-0.02em',
+		letterSpacing: '-0.01em',
+		display: 'flex',
+		alignItems: 'center',
 	},
 	subtitle: {
 		color: 'var(--sl-color-gray-3, #8b949e)',
-		margin: 0,
-		fontSize: '0.9rem',
+		margin: '0.25rem 0 0',
+		fontSize: '0.85rem',
 	},
 	cardGrid: {
-		position: 'relative',
-		zIndex: 1,
 		display: 'grid',
-		gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-		gap: '1.5rem',
-	},
-	card: {
-		display: 'flex',
-		flexDirection: 'column',
+		gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
 		gap: '1rem',
-		padding: '1.5rem',
-		borderRadius: '16px',
-		border: '1px solid var(--sl-color-gray-5, #262626)',
-		background: 'rgba(17, 17, 17, 0.7)',
-		backdropFilter: 'blur(12px)',
-		WebkitBackdropFilter: 'blur(12px)',
-		overflow: 'hidden',
-		position: 'relative',
-		cursor: 'default',
-	},
-	cardAccent: {
-		position: 'absolute',
-		top: 0,
-		left: 0,
-		right: 0,
-		height: '3px',
-	},
-	cardIconRow: {
-		display: 'flex',
-		alignItems: 'flex-start',
-		gap: '0.75rem',
-	},
-	cardIcon: {
-		width: '40px',
-		height: '40px',
-		borderRadius: '10px',
-		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'center',
-		flexShrink: 0,
-	},
-	cardTitle: {
-		color: 'var(--sl-color-text, #e6edf3)',
-		fontWeight: 600,
-		fontSize: '1.1rem',
-	},
-	cardDescription: {
-		color: 'var(--sl-color-gray-3, #8b949e)',
-		fontSize: '0.8rem',
-		marginTop: '2px',
-	},
-	cardStats: {
-		display: 'flex',
-		gap: '1.5rem',
-		padding: '0.75rem 0',
-		borderTop: '1px solid var(--sl-color-gray-5, #262626)',
-		borderBottom: '1px solid var(--sl-color-gray-5, #262626)',
-		flexWrap: 'wrap',
-	},
-	statItem: {
-		display: 'flex',
-		flexDirection: 'column',
-		gap: '2px',
-	},
-	statValue: {
-		fontSize: '1.5rem',
-		fontWeight: 700,
-		fontVariantNumeric: 'tabular-nums',
-	},
-	statLabel: {
-		color: 'var(--sl-color-gray-3, #8b949e)',
-		fontSize: '0.7rem',
-		textTransform: 'uppercase' as const,
-		letterSpacing: '0.05em',
-		fontWeight: 500,
-	},
-	cardLink: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: '0.5rem',
-		color: 'var(--sl-color-accent, #06b6d4)',
-		fontSize: '0.85rem',
-		fontWeight: 600,
-		textDecoration: 'none',
-		transition: 'gap 0.2s',
-	},
-	loadingStats: {
-		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'center',
-		padding: '0.5rem 0',
-		color: 'var(--sl-color-gray-3, #8b949e)',
-	},
-	unavailable: {
-		color: 'var(--sl-color-gray-4, #6b7280)',
-		fontSize: '0.8rem',
-		fontStyle: 'italic',
-		padding: '0.25rem 0',
 	},
 	centeredMessage: {
 		display: 'flex',
 		flexDirection: 'column',
 		alignItems: 'center',
 		justifyContent: 'center',
-		gap: '0.5rem',
+		gap: 0,
 		minHeight: '40vh',
-		color: 'var(--sl-color-gray-3, #8b949e)',
+		textAlign: 'center',
 	},
 };

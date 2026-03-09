@@ -1,7 +1,9 @@
 use bevy::asset::RenderAssetUsages;
+use bevy::image::ImageSampler;
 use bevy::light::{CascadeShadowConfigBuilder, DirectionalLightShadowMap};
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
+use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 
 use bevy_rapier3d::prelude::*;
 
@@ -35,6 +37,10 @@ struct TileMaterials {
     grass_blade_mesh: Handle<Mesh>,
     flower_mats: [Handle<StandardMaterial>; 4],
     flower_mesh: Handle<Mesh>,
+    tree_trunk_mat: Handle<StandardMaterial>,
+    tree_canopy_mats: [Handle<StandardMaterial>; 3],
+    tree_trunk_mesh: Handle<Mesh>,
+    tree_canopy_mesh: Handle<Mesh>,
 }
 
 pub struct TilemapPlugin;
@@ -151,10 +157,72 @@ fn make_blade_mesh(hw: f32, h: f32) -> Mesh {
     .with_inserted_indices(Indices::U32(indices))
 }
 
+/// Generate an 8x8 pixel-art bark texture with vertical grain.
+fn make_bark_texture() -> Image {
+    let (w, h) = (8u32, 8u32);
+    let base: [u8; 3] = [110, 75, 45];
+    let dark: [u8; 3] = [80, 55, 30];
+    let mut data = Vec::with_capacity((w * h * 4) as usize);
+    for y in 0..h {
+        for x in 0..w {
+            // Vertical grain: deterministic columns get dark streaks
+            let grain = hash2d(x as i32 + 9999, y as i32 + 7777);
+            let rgb = if grain < 0.30 { dark } else { base };
+            data.extend_from_slice(&[rgb[0], rgb[1], rgb[2], 255]);
+        }
+    }
+    let mut img = Image::new(
+        Extent3d {
+            width: w,
+            height: h,
+            depth_or_array_layers: 1,
+        },
+        TextureDimension::D2,
+        data,
+        TextureFormat::Rgba8UnormSrgb,
+        RenderAssetUsages::default(),
+    );
+    img.sampler = ImageSampler::nearest();
+    img
+}
+
+/// Generate an 8x8 pixel-art leaf canopy texture with dappled shading.
+fn make_leaf_texture(variant: u32) -> Image {
+    let (w, h) = (8u32, 8u32);
+    let palettes: [[[u8; 3]; 3]; 3] = [
+        [[45, 100, 30], [55, 120, 40], [65, 140, 50]], // dark forest
+        [[60, 130, 35], [70, 150, 45], [80, 160, 55]], // bright meadow
+        [[75, 120, 30], [85, 130, 40], [95, 110, 35]], // warm autumn
+    ];
+    let pal = &palettes[variant as usize % 3];
+    let mut data = Vec::with_capacity((w * h * 4) as usize);
+    for y in 0..h {
+        for x in 0..w {
+            let shade = (hash2d(x as i32 + variant as i32 * 100, y as i32) * 3.0) as usize % 3;
+            let rgb = pal[shade];
+            data.extend_from_slice(&[rgb[0], rgb[1], rgb[2], 255]);
+        }
+    }
+    let mut img = Image::new(
+        Extent3d {
+            width: w,
+            height: h,
+            depth_or_array_layers: 1,
+        },
+        TextureDimension::D2,
+        data,
+        TextureFormat::Rgba8UnormSrgb,
+        RenderAssetUsages::default(),
+    );
+    img.sampler = ImageSampler::nearest();
+    img
+}
+
 fn setup_tile_materials(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
+    mut images: ResMut<Assets<Image>>,
 ) {
     // Base colors per height band: grass, dirt, stone, snow
     let bands: [(f32, f32, f32); 4] = [
@@ -213,6 +281,22 @@ fn setup_tile_materials(
     let grass_blade_mesh = meshes.add(make_blade_mesh(0.08, 0.35));
     let flower_mesh = meshes.add(make_grass_mesh(0.08, 0.12));
 
+    // Tree materials with procedural pixel-art textures
+    let bark_img = images.add(make_bark_texture());
+    let tree_trunk_mat = materials.add(StandardMaterial {
+        base_color_texture: Some(bark_img),
+        ..default()
+    });
+    let tree_canopy_mats: [Handle<StandardMaterial>; 3] = [0u32, 1, 2].map(|v| {
+        let img = images.add(make_leaf_texture(v));
+        materials.add(StandardMaterial {
+            base_color_texture: Some(img),
+            ..default()
+        })
+    });
+    let tree_trunk_mesh = meshes.add(Cuboid::new(0.15, 0.7, 0.15));
+    let tree_canopy_mesh = meshes.add(Cuboid::new(0.55, 0.45, 0.55));
+
     commands.insert_resource(TileMaterials {
         cap: [
             make_cap_pair(&mut materials, bands[0].0, bands[0].1, bands[0].2),
@@ -235,6 +319,10 @@ fn setup_tile_materials(
         grass_blade_mesh,
         flower_mats,
         flower_mesh,
+        tree_trunk_mat,
+        tree_canopy_mats,
+        tree_trunk_mesh,
+        tree_canopy_mesh,
     });
 }
 
@@ -439,6 +527,46 @@ fn process_chunk_spawns_and_despawns(
                             ))
                             .id();
                         entities.push(tuft);
+                    }
+
+                    // --- Tree (sparse, pixel-art textured) ---
+                    let tree_noise = hash2d(tx + 11317, tz + 5471);
+                    if tree_noise < 0.06 {
+                        let trunk_h: f32 = 0.7;
+                        let canopy_h: f32 = 0.45;
+                        let jx = (hash2d(tx + 11417, tz + 5471) - 0.5) * 0.3;
+                        let jz = (hash2d(tx + 11317, tz + 5571) - 0.5) * 0.3;
+                        let leaf_variant = (hash2d(tx + 11517, tz + 5671) * 3.0) as usize % 3;
+
+                        let trunk = commands
+                            .spawn((
+                                Mesh3d(tile_materials.tree_trunk_mesh.clone()),
+                                MeshMaterial3d(tile_materials.tree_trunk_mat.clone()),
+                                Transform::from_xyz(
+                                    tx as f32 * TILE_SIZE + jx,
+                                    body_h + CAP_HEIGHT + trunk_h / 2.0,
+                                    tz as f32 * TILE_SIZE + jz,
+                                ),
+                                RigidBody::Fixed,
+                                Collider::cuboid(0.075, trunk_h / 2.0, 0.075),
+                            ))
+                            .id();
+                        entities.push(trunk);
+
+                        let canopy = commands
+                            .spawn((
+                                Mesh3d(tile_materials.tree_canopy_mesh.clone()),
+                                MeshMaterial3d(
+                                    tile_materials.tree_canopy_mats[leaf_variant].clone(),
+                                ),
+                                Transform::from_xyz(
+                                    tx as f32 * TILE_SIZE + jx,
+                                    body_h + CAP_HEIGHT + trunk_h + canopy_h / 2.0,
+                                    tz as f32 * TILE_SIZE + jz,
+                                ),
+                            ))
+                            .id();
+                        entities.push(canopy);
                     }
                 }
             }

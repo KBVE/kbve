@@ -41,9 +41,9 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
 
 // --- Contexts (split) ---
 export const ModalStateContext = createContext<ModalState>(initialState);
-export const ModalDispatchContext = createContext<Dispatch<ModalAction>>(
-	() => {},
-);
+export const ModalDispatchContext = createContext<Dispatch<ModalAction>>(() => {
+	/* noop default */
+});
 
 // --- Provider ---
 export function ModalProvider({ children }: { children: ReactNode }) {
