@@ -8,6 +8,7 @@ pub mod scene_objects;
 pub mod state;
 pub mod terrain;
 pub mod tilemap;
+pub mod water;
 
 use bevy::app::{PluginGroup, PluginGroupBuilder};
 
@@ -20,6 +21,7 @@ use scene_objects::SceneObjectsPlugin;
 use state::GameStatePlugin;
 use terrain::TerrainPlugin;
 use tilemap::TilemapPlugin;
+use water::WaterPlugin;
 
 /// All game-logic plugins bundled together.
 /// Used by both desktop (main.rs) and WASM (lib.rs) entry points.
@@ -35,5 +37,6 @@ impl PluginGroup for GamePluginGroup {
             .add(PlayerPlugin)
             .add(ObjectRegistryPlugin)
             .add(SceneObjectsPlugin)
+            .add(WaterPlugin)
     }
 }

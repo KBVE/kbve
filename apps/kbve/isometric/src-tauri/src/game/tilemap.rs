@@ -13,6 +13,7 @@ use super::scene_objects::{
     FlowerArchetype, HoverOutline, Interactable, InteractableKind, on_pointer_out, on_pointer_over,
 };
 use super::terrain::{CHUNK_SIZE, TerrainMap, hash2d};
+use super::water::{WATER_LEVEL, WaterMaterial};
 
 pub const TILE_SIZE: f32 = 1.0;
 /// Thin cap on top of each column — bright surface that contrasts with darker body.
@@ -1096,6 +1097,8 @@ struct TileMaterials {
     flower_meshes: [Handle<Mesh>; NUM_FLORA_SPECIES],
     /// Shared material for all flowers: atlas texture + alpha cutoff.
     flower_mat: Handle<StandardMaterial>,
+    /// Animated water surface material.
+    water_mat: Handle<WaterMaterial>,
 }
 
 /// Per-group vegetation vertex buffers (3 groups per chunk for wind animation).
@@ -1134,6 +1137,7 @@ fn setup_tile_materials(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut water_materials: ResMut<Assets<WaterMaterial>>,
     mut images: ResMut<Assets<Image>>,
 ) {
     let chunk_body_mat = materials.add(StandardMaterial {
@@ -1180,12 +1184,15 @@ fn setup_tile_materials(
     // Per-archetype meshes: crossed planes with UVs into the atlas
     let flower_meshes = std::array::from_fn(|i| meshes.add(build_flower_mesh(i)));
 
+    let water_mat = water_materials.add(WaterMaterial::default());
+
     commands.insert_resource(TileMaterials {
         chunk_body_mat,
         chunk_cap_mat,
         chunk_veg_mat,
         flower_meshes,
         flower_mat,
+        water_mat,
     });
 }
 
@@ -1338,6 +1345,12 @@ fn process_chunk_spawns_and_despawns(
 
         let mut collider_shapes: Vec<(Vec3, Quat, Collider)> = Vec::with_capacity(tile_count);
 
+        // Water surface quads for tiles below water level
+        let mut water_pos: Vec<[f32; 3]> = Vec::new();
+        let mut water_nor: Vec<[f32; 3]> = Vec::new();
+        let mut water_col: Vec<[f32; 4]> = Vec::new();
+        let mut water_idx: Vec<u32> = Vec::new();
+
         for dx in 0..CHUNK_SIZE {
             for dz in 0..CHUNK_SIZE {
                 let tx = base_x + dx;
@@ -1410,6 +1423,50 @@ fn process_chunk_spawns_and_despawns(
                     Vec3::new(cap_w / 2.0, CAP_HEIGHT / 2.0, cap_d / 2.0),
                     cap_vertex_color(band, tx, tz),
                 );
+
+                // --- Water surface (tiles below water level) ---
+                if h < WATER_LEVEL {
+                    let wy = WATER_LEVEL;
+                    let half = TILE_SIZE / 2.0;
+                    let base_vert = water_pos.len() as u32;
+
+                    // Flat quad facing up at water level
+                    // Check neighbors to set foam alpha (1.0 = no foam, < 1.0 = foam edge)
+                    let mut is_edge =
+                        |ntx: i32, ntz: i32| -> bool { terrain.height_at(ntx, ntz) >= WATER_LEVEL };
+                    let has_land_neighbor = is_edge(tx - 1, tz)
+                        || is_edge(tx + 1, tz)
+                        || is_edge(tx, tz - 1)
+                        || is_edge(tx, tz + 1);
+                    let foam_alpha = if has_land_neighbor { 0.3 } else { 1.0 };
+
+                    water_pos.extend_from_slice(&[
+                        [lx - half, wy, lz - half],
+                        [lx + half, wy, lz - half],
+                        [lx + half, wy, lz + half],
+                        [lx - half, wy, lz + half],
+                    ]);
+                    water_nor.extend_from_slice(&[
+                        [0.0, 1.0, 0.0],
+                        [0.0, 1.0, 0.0],
+                        [0.0, 1.0, 0.0],
+                        [0.0, 1.0, 0.0],
+                    ]);
+                    water_col.extend_from_slice(&[
+                        [1.0, 1.0, 1.0, foam_alpha],
+                        [1.0, 1.0, 1.0, foam_alpha],
+                        [1.0, 1.0, 1.0, foam_alpha],
+                        [1.0, 1.0, 1.0, foam_alpha],
+                    ]);
+                    water_idx.extend_from_slice(&[
+                        base_vert,
+                        base_vert + 1,
+                        base_vert + 2,
+                        base_vert,
+                        base_vert + 2,
+                        base_vert + 3,
+                    ]);
+                }
 
                 // --- Vegetation (grass band only) ---
                 if band == 0 {
@@ -1825,6 +1882,21 @@ fn process_chunk_spawns_and_despawns(
             ))
             .id();
         entities.push(cap_entity);
+
+        // Spawn water entity (combined mesh, transparent material)
+        if !water_pos.is_empty() {
+            let water_mesh =
+                meshes.add(build_chunk_mesh(water_pos, water_nor, water_col, water_idx));
+            let water_entity = commands
+                .spawn((
+                    Mesh3d(water_mesh),
+                    MeshMaterial3d(tile_materials.water_mat.clone()),
+                    Transform::from_xyz(base_x as f32 * TILE_SIZE, 0.0, base_z as f32 * TILE_SIZE),
+                    Pickable::IGNORE,
+                ))
+                .id();
+            entities.push(water_entity);
+        }
 
         // Spawn vegetation entities (3 wind groups per chunk)
         let base_veg = Vec3::new(base_x as f32 * TILE_SIZE, 0.0, base_z as f32 * TILE_SIZE);

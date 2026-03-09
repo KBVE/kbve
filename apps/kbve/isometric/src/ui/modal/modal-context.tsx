@@ -53,7 +53,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
 	useEffect(() => {
 		const unsubOpen = gameEvents.on(
 			'modal:open',
-			({ id, title, content, onClose }) => {
+			({ id, title, content, size, onClose }) => {
 				dispatch({
 					type: 'OPEN',
 					modal: {
@@ -63,7 +63,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
 						onClose,
 						closeOnOverlayClick: true,
 						closeOnEscape: true,
-						size: 'md',
+						size: size ?? 'md',
 					},
 				});
 			},
