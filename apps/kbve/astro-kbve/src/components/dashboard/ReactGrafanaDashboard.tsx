@@ -547,8 +547,8 @@ function SparklineChart({
 }) {
 	if (data.length < 2) return null;
 	return (
-		<div style={{ width: '100%', height: 30, marginTop: '0.25rem' }}>
-			<ResponsiveContainer width="100%" height={30}>
+		<div style={{ width: '100%', height: 36, marginTop: 'auto' }}>
+			<ResponsiveContainer width="100%" height={36}>
 				<LineChart data={data}>
 					<Line
 						type="monotone"
@@ -587,24 +587,38 @@ function EnhancedStatCard({
 	invertTrend?: boolean;
 	onClick?: () => void;
 }) {
+	const [hovered, setHovered] = useState(false);
 	const hasThreshold = thresholds && value != null;
 	const thresholdColor = hasThreshold
 		? getThresholdColor(value, thresholds)
 		: undefined;
 	const valueColor = thresholdColor ?? 'var(--sl-color-text, #e6edf3)';
 	const sparkColor = thresholdColor ?? '#06b6d4';
+	const accentColor = thresholdColor ?? 'var(--sl-color-accent, #06b6d4)';
 
 	return (
 		<div
 			style={{
 				...styles.statCard,
 				cursor: onClick ? 'pointer' : 'default',
-				borderLeft: hasThreshold
-					? `3px solid ${thresholdColor}`
-					: '1px solid var(--sl-color-gray-5, #262626)',
+				borderTop: `2px solid ${accentColor}`,
+				borderColor:
+					hovered && onClick
+						? 'var(--sl-color-gray-4, #6b7280)'
+						: undefined,
+				transform: hovered && onClick ? 'translateY(-2px)' : undefined,
+				boxShadow:
+					hovered && onClick
+						? '0 4px 12px rgba(0,0,0,0.3)'
+						: undefined,
 			}}
-			onClick={onClick}>
-			<div style={styles.statIcon}>{icon}</div>
+			onClick={onClick}
+			onMouseEnter={() => setHovered(true)}
+			onMouseLeave={() => setHovered(false)}>
+			<div style={styles.statHeader}>
+				<span style={{ color: accentColor }}>{icon}</span>
+				<span style={styles.statLabel}>{label}</span>
+			</div>
 			<div style={{ ...styles.statValue, color: valueColor }}>
 				{displayValue
 					? displayValue
@@ -615,7 +629,6 @@ function EnhancedStatCard({
 			{trend && (
 				<TrendIndicator trend={trend} invertColors={invertTrend} />
 			)}
-			<div style={styles.statLabel}>{label}</div>
 			{sparkline && (
 				<SparklineChart data={sparkline} color={sparkColor} />
 			)}
@@ -1829,34 +1842,40 @@ const styles: Record<string, React.CSSProperties> = {
 	},
 	statsGrid: {
 		display: 'grid',
-		gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-		gap: '1rem',
+		gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+		gap: '0.75rem',
 	},
 	statCard: {
 		display: 'flex',
 		flexDirection: 'column',
-		alignItems: 'center',
-		gap: '0.35rem',
-		padding: '1.25rem 1rem',
-		borderRadius: '12px',
+		alignItems: 'flex-start',
+		gap: '0.5rem',
+		padding: '1rem 1.25rem',
+		borderRadius: '10px',
 		border: '1px solid var(--sl-color-gray-5, #262626)',
 		background: 'var(--sl-color-bg-nav, #111)',
-		transition: 'border-color 0.2s',
+		transition: 'border-color 0.2s, transform 0.15s, box-shadow 0.15s',
+		minHeight: 120,
 	},
-	statIcon: {
-		color: 'var(--sl-color-accent, #06b6d4)',
+	statHeader: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: '0.5rem',
+		width: '100%',
 	},
 	statValue: {
 		fontSize: '1.75rem',
 		fontWeight: 700,
 		color: 'var(--sl-color-text, #e6edf3)',
 		fontVariantNumeric: 'tabular-nums',
+		whiteSpace: 'nowrap' as const,
 	},
 	statLabel: {
 		color: 'var(--sl-color-gray-3, #8b949e)',
-		fontSize: '0.8rem',
+		fontSize: '0.75rem',
+		fontWeight: 500,
 		textTransform: 'uppercase' as const,
-		letterSpacing: '0.05em',
+		letterSpacing: '0.06em',
 	},
 	trendRow: {
 		display: 'flex',
