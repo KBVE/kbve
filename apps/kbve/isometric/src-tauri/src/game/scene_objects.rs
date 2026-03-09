@@ -54,9 +54,11 @@ impl Plugin for SceneObjectsPlugin {
             ),
         );
 
-        // Desktop: use Rapier raycast hover (no MeshPickingPlugin without WinitPlugin)
+        // Rapier raycast hover — MeshPickingPlugin can't work with offscreen render target
         #[cfg(not(target_arch = "wasm32"))]
-        app.add_systems(Update, raycast_hover_detection);
+        app.add_systems(Update, raycast_hover_detection_desktop);
+        #[cfg(target_arch = "wasm32")]
+        app.add_systems(Update, raycast_hover_detection_wasm);
     }
 }
 
@@ -71,10 +73,9 @@ pub(crate) fn on_pointer_out(trigger: On<Pointer<Out>>, mut commands: Commands) 
 }
 
 /// Custom hover detection using Rapier raycasting through the scene camera.
-/// Replaces MeshPickingPlugin which can't work without WinitPlugin on desktop
-/// (scene camera renders to offscreen texture, not the window).
+/// Scene camera renders to offscreen texture, so MeshPickingPlugin can't map cursor.
 #[cfg(not(target_arch = "wasm32"))]
-fn raycast_hover_detection(
+fn raycast_hover_detection_desktop(
     windows: Query<&Window, With<PrimaryWindow>>,
     cursor: Res<BridgedCursorPosition>,
     camera_query: Query<(&GlobalTransform, &Projection), With<IsometricCamera>>,
@@ -85,7 +86,9 @@ fn raycast_hover_detection(
     mut commands: Commands,
 ) {
     let Ok(window) = windows.single() else { return };
-    let Ok((cam_gt, projection)) = camera_query.single() else { return };
+    let Ok((cam_gt, projection)) = camera_query.single() else {
+        return;
+    };
 
     // Remove hover if cursor is outside window
     let Some(cursor_pos) = cursor.position else {
@@ -96,7 +99,9 @@ fn raycast_hover_detection(
     };
 
     // Extract orthographic half-extents from the scene camera's projection
-    let Projection::Orthographic(ortho) = projection else { return };
+    let Projection::Orthographic(ortho) = projection else {
+        return;
+    };
     let viewport_height = match ortho.scaling_mode {
         bevy::camera::ScalingMode::FixedVertical { viewport_height } => viewport_height,
         _ => return,
@@ -125,7 +130,9 @@ fn raycast_hover_detection(
     }
 
     // Cast ray and check if hit entity is Occludable
-    let Ok(context) = rapier_context.single() else { return };
+    let Ok(context) = rapier_context.single() else {
+        return;
+    };
     let new_hovered = context
         .cast_ray(ray_origin, ray_dir, 1000.0, false, filter)
         .and_then(|(entity, _)| {
@@ -137,6 +144,81 @@ fn raycast_hover_detection(
         });
 
     // Update Hovered components
+    for entity in &current_hovered {
+        if Some(entity) != new_hovered {
+            commands.entity(entity).remove::<Hovered>();
+        }
+    }
+    if let Some(entity) = new_hovered {
+        if current_hovered.get(entity).is_err() {
+            commands.entity(entity).insert(Hovered);
+        }
+    }
+}
+
+/// WASM hover detection: same Rapier raycast approach but reads cursor from the Window.
+#[cfg(target_arch = "wasm32")]
+fn raycast_hover_detection_wasm(
+    windows: Query<&Window, With<PrimaryWindow>>,
+    camera_query: Query<(&GlobalTransform, &Projection), With<IsometricCamera>>,
+    rapier_context: ReadRapierContext,
+    occludable: Query<(), With<Occludable>>,
+    current_hovered: Query<Entity, With<Hovered>>,
+    player_query: Query<Entity, With<Player>>,
+    mut commands: Commands,
+) {
+    let Ok(window) = windows.single() else { return };
+    let Ok((cam_gt, projection)) = camera_query.single() else {
+        return;
+    };
+
+    let Some(cursor_pos) = window.cursor_position() else {
+        for entity in &current_hovered {
+            commands.entity(entity).remove::<Hovered>();
+        }
+        return;
+    };
+
+    let Projection::Orthographic(ortho) = projection else {
+        return;
+    };
+    let viewport_height = match ortho.scaling_mode {
+        bevy::camera::ScalingMode::FixedVertical { viewport_height } => viewport_height,
+        _ => return,
+    };
+    let half_h = viewport_height / 2.0;
+    let aspect = window.width() / window.height();
+    let half_w = half_h * aspect;
+
+    let ndc_x = (cursor_pos.x / window.width()) * 2.0 - 1.0;
+    let ndc_y = 1.0 - (cursor_pos.y / window.height()) * 2.0;
+
+    let cam_tf = cam_gt.compute_transform();
+    let right = cam_tf.right().as_vec3();
+    let up = cam_tf.up().as_vec3();
+    let forward = cam_tf.forward().as_vec3();
+
+    let ray_origin = cam_tf.translation + right * (ndc_x * half_w) + up * (ndc_y * half_h);
+    let ray_dir = forward;
+
+    let mut filter = QueryFilter::new();
+    if let Ok(player_entity) = player_query.single() {
+        filter = filter.exclude_rigid_body(player_entity);
+    }
+
+    let Ok(context) = rapier_context.single() else {
+        return;
+    };
+    let new_hovered = context
+        .cast_ray(ray_origin, ray_dir, 1000.0, false, filter)
+        .and_then(|(entity, _)| {
+            if occludable.get(entity).is_ok() {
+                Some(entity)
+            } else {
+                None
+            }
+        });
+
     for entity in &current_hovered {
         if Some(entity) != new_hovered {
             commands.entity(entity).remove::<Hovered>();

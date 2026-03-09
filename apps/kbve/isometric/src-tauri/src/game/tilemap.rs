@@ -595,6 +595,7 @@ fn process_chunk_spawns_and_despawns(
                 Mesh3d(body_mesh),
                 MeshMaterial3d(tile_materials.chunk_body_mat.clone()),
                 Transform::from_xyz(base_x as f32 * TILE_SIZE, 0.0, base_z as f32 * TILE_SIZE),
+                Pickable::IGNORE,
                 RigidBody::Fixed,
                 Collider::compound(collider_shapes),
             ))
@@ -608,6 +609,7 @@ fn process_chunk_spawns_and_despawns(
                 Mesh3d(cap_mesh),
                 MeshMaterial3d(tile_materials.chunk_cap_mat.clone()),
                 Transform::from_xyz(base_x as f32 * TILE_SIZE, 0.0, base_z as f32 * TILE_SIZE),
+                Pickable::IGNORE,
             ))
             .id();
         entities.push(cap_entity);
