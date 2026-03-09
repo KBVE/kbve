@@ -6,9 +6,7 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 use super::player::Player;
-use super::scene_objects::{
-    HoverOutline, Occludable, OriginalEmissive, on_pointer_out, on_pointer_over,
-};
+use super::scene_objects::{HoverOutline, on_pointer_out, on_pointer_over};
 use super::terrain::{CHUNK_SIZE, TerrainMap, hash2d};
 
 pub const TILE_SIZE: f32 = 1.0;
@@ -611,7 +609,7 @@ fn process_chunk_spawns_and_despawns(
                     &mut cap_idx,
                     Vec3::new(
                         lx + cap_offset_x,
-                        body_h + CAP_HEIGHT / 2.0 + 0.001,
+                        body_h + CAP_HEIGHT / 2.0 + 0.005,
                         lz + cap_offset_z,
                     ),
                     Vec3::new(cap_w / 2.0, CAP_HEIGHT / 2.0, cap_d / 2.0),
@@ -777,8 +775,6 @@ fn process_chunk_spawns_and_despawns(
                                         Collider::cuboid(0.275, canopy_h / 2.0, 0.275),
                                     ),
                                 ]),
-                                Occludable,
-                                OriginalEmissive(LinearRgba::BLACK),
                                 HoverOutline {
                                     half_extents: Vec3::new(
                                         0.275,
