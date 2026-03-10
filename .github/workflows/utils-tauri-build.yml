@@ -93,6 +93,8 @@ jobs:
 
             - name: Setup Rust
               uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: wasm32-unknown-unknown
 
             - name: Setup Cargo Cache
               uses: actions/cache@v5
@@ -107,6 +109,9 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-cargo-tauri-
                       ${{ runner.os }}-cargo-
+
+            - name: Install wasm-pack
+              run: cargo install wasm-pack --locked
 
             - name: Setup Node v24
               uses: actions/setup-node@v6
@@ -184,12 +189,17 @@ jobs:
 
             - name: Setup Rust
               uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: wasm32-unknown-unknown
 
             - name: Rust Cache
               uses: Swatinem/rust-cache@v2
               with:
                   workspaces: '.'
                   cache-on-failure: true
+
+            - name: Install wasm-pack
+              run: cargo install wasm-pack --locked
 
             - name: Setup Node v24
               uses: actions/setup-node@v6
@@ -265,12 +275,17 @@ jobs:
 
             - name: Setup Rust
               uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: wasm32-unknown-unknown
 
             - name: Rust Cache
               uses: Swatinem/rust-cache@v2
               with:
                   workspaces: '.'
                   cache-on-failure: true
+
+            - name: Install wasm-pack
+              run: cargo install wasm-pack --locked
 
             - name: Setup Node v24
               uses: actions/setup-node@v6
@@ -355,18 +370,50 @@ jobs:
                   workspaces: '.'
                   cache-on-failure: true
 
-            - name: Install Trunk
-              run: cargo install trunk --locked
+            - name: Install wasm-pack
+              run: cargo install wasm-pack --locked
 
-            - name: Build WASM
-              working-directory: ${{ inputs.project_path }}/src-tauri
-              run: trunk build --release
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install
+
+            - name: Install project-local npm dependencies
+              working-directory: ${{ inputs.project_path }}
+              run: npm install
+
+            - name: Build WASM + Frontend
+              working-directory: ${{ inputs.project_path }}
+              run: pnpm build
+              env:
+                  CI: true
 
             - name: Upload WASM artifacts
               uses: actions/upload-artifact@v7
               with:
                   name: ${{ inputs.app_name }}-wasm
-                  path: ${{ inputs.project_path }}/dist-wasm/
+                  path: ${{ inputs.project_path }}/dist/
                   if-no-files-found: warn
                   retention-days: 14
 

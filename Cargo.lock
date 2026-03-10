@@ -1064,7 +1064,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.39"
+version = "1.0.40"
 dependencies = [
  "anyhow",
  "askama",
@@ -1833,6 +1833,40 @@ dependencies = [
  "bevy_utils",
  "bevy_window",
  "bevy_winit",
+]
+
+[[package]]
+name = "bevy_inventory"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "bevy_kbve_camera"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
+name = "bevy_kbve_player"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_rapier3d",
+ "serde",
+]
+
+[[package]]
+name = "bevy_kbve_state"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

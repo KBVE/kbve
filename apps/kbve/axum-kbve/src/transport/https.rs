@@ -39,6 +39,16 @@ pub struct AppStateInner {
 }
 
 impl AppState {
+    pub fn new() -> Self {
+        Self {
+            inner: Arc::new(AppStateInner {
+                start_time: std::time::Instant::now(),
+                version: env!("CARGO_PKG_VERSION"),
+                game: None,
+            }),
+        }
+    }
+
     pub fn new_with_gameserver(game: crate::gameserver::GameServerState) -> Self {
         Self {
             inner: Arc::new(AppStateInner {
