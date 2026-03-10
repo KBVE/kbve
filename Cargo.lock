@@ -1836,19 +1836,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_kbve_camera"
-version = "0.1.0"
-dependencies = [
- "bevy",
-]
-
-[[package]]
-name = "bevy_kbve_inventory"
+name = "bevy_inventory"
 version = "0.1.0"
 dependencies = [
  "bevy",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "bevy_kbve_camera"
+version = "0.1.0"
+dependencies = [
+ "bevy",
 ]
 
 [[package]]
