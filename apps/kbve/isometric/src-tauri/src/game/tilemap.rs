@@ -10,7 +10,10 @@ use bevy_rapier3d::prelude::*;
 
 use super::camera::IsometricCamera;
 use super::player::Player;
-use super::scene_objects::FlowerArchetype;
+use super::rocks;
+use super::scene_objects::{
+    FlowerArchetype, HoverOutline, Interactable, InteractableKind, on_pointer_out, on_pointer_over,
+};
 use super::terrain::{CHUNK_SIZE, TerrainMap, hash2d};
 use super::water::{WATER_LEVEL, WaterMaterial};
 
@@ -1663,6 +1666,50 @@ fn process_chunk_spawns_and_despawns(
                             ))
                             .id();
                         entities.push(flower_entity);
+                    }
+
+                    // --- Rocks (individual entities for selectability) ---
+                    let rock_noise = hash2d(tx + 19457, tz + 12391);
+                    if rock_noise < 0.025 {
+                        let jx = (hash2d(tx + 19557, tz + 12391) - 0.5) * 0.4;
+                        let jz = (hash2d(tx + 19457, tz + 12491) - 0.5) * 0.4;
+                        let world_x = tx as f32 * TILE_SIZE + jx;
+                        let world_z = tz as f32 * TILE_SIZE + jz;
+                        let rock_y = column_h + 0.002;
+
+                        let kind = rocks::rock_kind_from_hash(tx, tz);
+                        let params = rocks::RockParams {
+                            world_x,
+                            world_z,
+                            base_y: rock_y,
+                            kind,
+                            tx,
+                            tz,
+                        };
+                        let (rock_mesh, max_hw, total_h) = rocks::build_rock(&params, &mut meshes);
+
+                        let rot_y =
+                            hash2d(tx * 8311 + 2477, tz * 7193 + 3319) * std::f32::consts::TAU;
+                        let rock_entity = commands
+                            .spawn((
+                                Mesh3d(rock_mesh),
+                                MeshMaterial3d(tile_materials.tree_body_mat.clone()),
+                                Transform::from_xyz(world_x, rock_y, world_z)
+                                    .with_rotation(Quat::from_rotation_y(rot_y)),
+                                RigidBody::Fixed,
+                                Collider::cuboid(max_hw * 0.8, total_h / 2.0, max_hw * 0.8),
+                                HoverOutline {
+                                    half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
+                                },
+                                Interactable {
+                                    kind: InteractableKind::Rock,
+                                },
+                                kind,
+                            ))
+                            .observe(on_pointer_over)
+                            .observe(on_pointer_out)
+                            .id();
+                        entities.push(rock_entity);
                     }
                 }
             }
