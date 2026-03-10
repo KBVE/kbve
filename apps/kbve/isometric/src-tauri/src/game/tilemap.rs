@@ -877,6 +877,8 @@ struct TileMaterials {
     chunk_veg_mat: Handle<StandardMaterial>,
     /// Per-archetype flower meshes (UV-mapped crossed planes into atlas).
     flower_meshes: [Handle<Mesh>; NUM_FLORA_SPECIES],
+    /// Lit, matte material for rocks — receives dynamic shadows unlike tree_body_mat.
+    rock_body_mat: Handle<StandardMaterial>,
     /// Shared material for all flowers: atlas texture + alpha cutoff.
     flower_mat: Handle<StandardMaterial>,
     /// Animated water surface material.
@@ -967,6 +969,13 @@ fn setup_tile_materials(
         unlit: true,
         ..default()
     });
+    // Lit rock material: vertex colors for base tone, PBR lighting adds shadows.
+    let rock_body_mat = materials.add(StandardMaterial {
+        base_color: Color::WHITE,
+        perceptual_roughness: 0.95,
+        reflectance: 0.0,
+        ..default()
+    });
     let chunk_veg_mat = materials.add(StandardMaterial {
         base_color: Color::WHITE,
         perceptual_roughness: 0.95,
@@ -1014,6 +1023,7 @@ fn setup_tile_materials(
         chunk_cap_mat,
         tree_body_mat,
         chunk_veg_mat,
+        rock_body_mat,
         flower_meshes,
         flower_mat,
         water_mat,
@@ -1617,9 +1627,13 @@ fn process_chunk_spawns_and_despawns(
                         }
                     }
 
-                    // --- Trees (individual entities — geometry in trees.rs) ---
+                    // --- Overlap-aware spawn: trees > rocks > flowers ---
+                    let mut tile_occupied = false;
+
+                    // Trees (highest priority)
                     let tree_noise = hash2d(tx + 11317, tz + 5471);
                     if tree_noise < 0.055 {
+                        tile_occupied = true;
                         let tree_entity = super::trees::spawn_tree_entity(
                             &mut commands,
                             &mut meshes,
@@ -1631,85 +1645,91 @@ fn process_chunk_spawns_and_despawns(
                         entities.push(tree_entity);
                     }
 
-                    // --- Flowers (pass-through billboard cards) ---
-                    let flower_noise = hash2d(tx + 13721, tz + 8293);
-                    if flower_noise < 0.12 {
-                        let arch_idx = (hash2d(tx + 13821, tz + 8393) * NUM_FLORA_SPECIES as f32)
-                            as usize
-                            % NUM_FLORA_SPECIES;
-                        let archetype = match arch_idx {
-                            0 => FlowerArchetype::Tulip,
-                            1 => FlowerArchetype::Daisy,
-                            2 => FlowerArchetype::Lavender,
-                            3 => FlowerArchetype::Bell,
-                            4 => FlowerArchetype::Wildflower,
-                            5 => FlowerArchetype::Sunflower,
-                            6 => FlowerArchetype::Rose,
-                            7 => FlowerArchetype::Cornflower,
-                            8 => FlowerArchetype::Allium,
-                            _ => FlowerArchetype::BlueOrchid,
-                        };
+                    // Rocks (skip if tree already on this tile)
+                    if !tile_occupied {
+                        let rock_noise = hash2d(tx + 19457, tz + 12391);
+                        if rock_noise < 0.025 {
+                            tile_occupied = true;
+                            let jx = (hash2d(tx + 19557, tz + 12391) - 0.5) * 0.4;
+                            let jz = (hash2d(tx + 19457, tz + 12491) - 0.5) * 0.4;
+                            let world_x = tx as f32 * TILE_SIZE + jx;
+                            let world_z = tz as f32 * TILE_SIZE + jz;
+                            let rock_y = column_h + 0.002;
 
-                        let jx = (hash2d(tx + 13921, tz + 8293) - 0.5) * 0.6;
-                        let jz = (hash2d(tx + 13721, tz + 8493) - 0.5) * 0.6;
-                        let world_x = tx as f32 * TILE_SIZE + jx;
-                        let world_z = tz as f32 * TILE_SIZE + jz;
-                        let flower_y = column_h + 0.002;
+                            let kind = rocks::rock_kind_from_hash(tx, tz);
+                            let params = rocks::RockParams {
+                                world_x,
+                                world_z,
+                                base_y: rock_y,
+                                kind,
+                                tx,
+                                tz,
+                            };
+                            let (rock_mesh, max_hw, total_h) =
+                                rocks::build_rock(&params, &mut meshes);
 
-                        let flower_entity = commands
-                            .spawn((
-                                Mesh3d(tile_materials.flower_meshes[arch_idx].clone()),
-                                MeshMaterial3d(tile_materials.flower_mat.clone()),
-                                Transform::from_xyz(world_x, flower_y, world_z),
-                                Pickable::IGNORE,
-                                archetype,
-                            ))
-                            .id();
-                        entities.push(flower_entity);
+                            let rot_y =
+                                hash2d(tx * 8311 + 2477, tz * 7193 + 3319) * std::f32::consts::TAU;
+                            let rock_entity = commands
+                                .spawn((
+                                    Mesh3d(rock_mesh),
+                                    MeshMaterial3d(tile_materials.rock_body_mat.clone()),
+                                    Transform::from_xyz(world_x, rock_y, world_z)
+                                        .with_rotation(Quat::from_rotation_y(rot_y)),
+                                    RigidBody::Fixed,
+                                    Collider::cuboid(max_hw * 0.8, total_h / 2.0, max_hw * 0.8),
+                                    HoverOutline {
+                                        half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
+                                    },
+                                    Interactable {
+                                        kind: InteractableKind::Rock,
+                                    },
+                                    kind,
+                                ))
+                                .observe(on_pointer_over)
+                                .observe(on_pointer_out)
+                                .id();
+                            entities.push(rock_entity);
+                        }
                     }
 
-                    // --- Rocks (individual entities for selectability) ---
-                    let rock_noise = hash2d(tx + 19457, tz + 12391);
-                    if rock_noise < 0.025 {
-                        let jx = (hash2d(tx + 19557, tz + 12391) - 0.5) * 0.4;
-                        let jz = (hash2d(tx + 19457, tz + 12491) - 0.5) * 0.4;
-                        let world_x = tx as f32 * TILE_SIZE + jx;
-                        let world_z = tz as f32 * TILE_SIZE + jz;
-                        let rock_y = column_h + 0.002;
+                    // Flowers (skip if tree or rock already on this tile)
+                    if !tile_occupied {
+                        let flower_noise = hash2d(tx + 13721, tz + 8293);
+                        if flower_noise < 0.12 {
+                            let arch_idx =
+                                (hash2d(tx + 13821, tz + 8393) * NUM_FLORA_SPECIES as f32) as usize
+                                    % NUM_FLORA_SPECIES;
+                            let archetype = match arch_idx {
+                                0 => FlowerArchetype::Tulip,
+                                1 => FlowerArchetype::Daisy,
+                                2 => FlowerArchetype::Lavender,
+                                3 => FlowerArchetype::Bell,
+                                4 => FlowerArchetype::Wildflower,
+                                5 => FlowerArchetype::Sunflower,
+                                6 => FlowerArchetype::Rose,
+                                7 => FlowerArchetype::Cornflower,
+                                8 => FlowerArchetype::Allium,
+                                _ => FlowerArchetype::BlueOrchid,
+                            };
 
-                        let kind = rocks::rock_kind_from_hash(tx, tz);
-                        let params = rocks::RockParams {
-                            world_x,
-                            world_z,
-                            base_y: rock_y,
-                            kind,
-                            tx,
-                            tz,
-                        };
-                        let (rock_mesh, max_hw, total_h) = rocks::build_rock(&params, &mut meshes);
+                            let jx = (hash2d(tx + 13921, tz + 8293) - 0.5) * 0.6;
+                            let jz = (hash2d(tx + 13721, tz + 8493) - 0.5) * 0.6;
+                            let world_x = tx as f32 * TILE_SIZE + jx;
+                            let world_z = tz as f32 * TILE_SIZE + jz;
+                            let flower_y = column_h + 0.002;
 
-                        let rot_y =
-                            hash2d(tx * 8311 + 2477, tz * 7193 + 3319) * std::f32::consts::TAU;
-                        let rock_entity = commands
-                            .spawn((
-                                Mesh3d(rock_mesh),
-                                MeshMaterial3d(tile_materials.tree_body_mat.clone()),
-                                Transform::from_xyz(world_x, rock_y, world_z)
-                                    .with_rotation(Quat::from_rotation_y(rot_y)),
-                                RigidBody::Fixed,
-                                Collider::cuboid(max_hw * 0.8, total_h / 2.0, max_hw * 0.8),
-                                HoverOutline {
-                                    half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
-                                },
-                                Interactable {
-                                    kind: InteractableKind::Rock,
-                                },
-                                kind,
-                            ))
-                            .observe(on_pointer_over)
-                            .observe(on_pointer_out)
-                            .id();
-                        entities.push(rock_entity);
+                            let flower_entity = commands
+                                .spawn((
+                                    Mesh3d(tile_materials.flower_meshes[arch_idx].clone()),
+                                    MeshMaterial3d(tile_materials.flower_mat.clone()),
+                                    Transform::from_xyz(world_x, flower_y, world_z),
+                                    Pickable::IGNORE,
+                                    archetype,
+                                ))
+                                .id();
+                            entities.push(flower_entity);
+                        }
                     }
                 }
             }
