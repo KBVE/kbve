@@ -1836,6 +1836,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_kbve_camera"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
+name = "bevy_kbve_inventory"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "bevy_kbve_player"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_rapier3d",
+ "serde",
+]
+
+[[package]]
+name = "bevy_kbve_state"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "bevy_light"
 version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

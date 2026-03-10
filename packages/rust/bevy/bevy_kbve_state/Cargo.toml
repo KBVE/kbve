@@ -1,0 +1,16 @@
+[package]
+name = "bevy_kbve_state"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Thread-safe state snapshot bridge for Bevy — exposes ECS resources to external consumers (Tauri IPC, WASM JS)."
+homepage = "https://kbve.com/"
+repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_kbve_state"
+
+[dependencies]
+bevy = { version = "0.18", default-features = false, features = [
+    "bevy_state",
+] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
