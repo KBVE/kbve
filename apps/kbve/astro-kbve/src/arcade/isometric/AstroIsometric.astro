@@ -3,10 +3,45 @@
 ---
 
 <div class="isometric-game-container not-content">
-	<canvas id="bevy-canvas"></canvas>
-	<div id="root"></div>
+	<div id="webgpu-warning" style="display: none;">
+		<div class="warning-card">
+			<div class="warning-icon">&#x26A0;</div>
+			<h2>WebGPU Required</h2>
+			<p>
+				This game requires <strong>WebGPU</strong> to run. Your browser does
+				not currently support it.
+			</p>
+			<div class="browser-list">
+				<h3>Supported Browsers</h3>
+				<ul>
+					<li>Chrome 113+ / Edge 113+</li>
+					<li>Safari 18+ (macOS Sequoia / iOS 18)</li>
+					<li>Firefox Nightly (behind flag)</li>
+				</ul>
+			</div>
+			<p class="hint">WebGL2 fallback is planned for a future update.</p>
+			<a href="/arcade/" class="back-link">Back to Arcade</a>
+		</div>
+	</div>
+	<canvas id="bevy-canvas" style="display: none;"></canvas>
+	<div id="root" style="display: none;"></div>
 	<link rel="stylesheet" crossorigin href="/isometric/assets/index.css" />
-	<script is:inline type="module" src="/isometric/assets/index.js"></script>
+	<script is:inline>
+		(function () {
+			if (navigator.gpu) {
+				document.getElementById('bevy-canvas').style.display = '';
+				document.getElementById('root').style.display = '';
+				var s = document.createElement('script');
+				s.type = 'module';
+				s.src = '/isometric/assets/index.js';
+				s.crossOrigin = '';
+				document.head.appendChild(s);
+			} else {
+				document.getElementById('webgpu-warning').style.display =
+					'flex';
+			}
+		})();
+	</script>
 </div>
 
 <style>
@@ -40,6 +75,101 @@
 		height: 100%;
 		z-index: 1;
 		pointer-events: none;
+	}
+
+	#webgpu-warning {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 10;
+	}
+
+	.warning-card {
+		background: #252536;
+		border: 1px solid #3a3a5c;
+		border-radius: 12px;
+		padding: 2.5rem;
+		max-width: 480px;
+		text-align: center;
+		color: #e0e0e0;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+	}
+
+	.warning-icon {
+		font-size: 3rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.warning-card h2 {
+		color: #f0c040;
+		font-size: 1.5rem;
+		margin: 0 0 0.75rem;
+	}
+
+	.warning-card p {
+		margin: 0.5rem 0;
+		line-height: 1.5;
+		color: #b0b0c0;
+	}
+
+	.browser-list {
+		background: #1e1e2e;
+		border-radius: 8px;
+		padding: 1rem 1.25rem;
+		margin: 1.25rem 0;
+		text-align: left;
+	}
+
+	.browser-list h3 {
+		color: #c0c0d0;
+		font-size: 0.85rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin: 0 0 0.5rem;
+	}
+
+	.browser-list ul {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.browser-list li {
+		padding: 0.3rem 0;
+		color: #90d090;
+		font-size: 0.95rem;
+	}
+
+	.browser-list li::before {
+		content: '\2713 ';
+		color: #60b060;
+	}
+
+	.hint {
+		font-size: 0.85rem;
+		font-style: italic;
+		color: #808090 !important;
+	}
+
+	.back-link {
+		display: inline-block;
+		margin-top: 1.25rem;
+		padding: 0.6rem 1.5rem;
+		background: #3a3a6a;
+		color: #e0e0f0;
+		border-radius: 6px;
+		text-decoration: none;
+		font-size: 0.95rem;
+		transition: background 0.2s;
+	}
+
+	.back-link:hover {
+		background: #4a4a8a;
 	}
 
 	:global(body:has(.isometric-game-container)) {
