@@ -3,11 +3,27 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import wasm from 'vite-plugin-wasm';
 import topLevelAwait from 'vite-plugin-top-level-await';
+import { compression } from 'vite-plugin-compression2';
 
 const host = process.env.TAURI_DEV_HOST;
 
 export default defineConfig(async () => ({
-	plugins: [react(), tailwindcss(), wasm(), topLevelAwait()],
+	plugins: [
+		react(),
+		tailwindcss(),
+		wasm(),
+		topLevelAwait(),
+		compression({
+			include: /\.wasm$/i,
+			algorithm: 'brotliCompress',
+			deleteOriginalAssets: false,
+		}),
+		compression({
+			include: /\.wasm$/i,
+			algorithm: 'gzip',
+			deleteOriginalAssets: true,
+		}),
+	],
 	base: '/isometric/',
 	clearScreen: false,
 	build: {
