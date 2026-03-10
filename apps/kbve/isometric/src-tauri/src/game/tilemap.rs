@@ -9,6 +9,7 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 use super::camera::IsometricCamera;
+use super::mushrooms;
 use super::player::Player;
 use super::rocks;
 use super::scene_objects::{
@@ -1697,6 +1698,7 @@ fn process_chunk_spawns_and_despawns(
                     if !tile_occupied {
                         let flower_noise = hash2d(tx + 13721, tz + 8293);
                         if flower_noise < 0.12 {
+                            tile_occupied = true;
                             let arch_idx =
                                 (hash2d(tx + 13821, tz + 8393) * NUM_FLORA_SPECIES as f32) as usize
                                     % NUM_FLORA_SPECIES;
@@ -1724,11 +1726,62 @@ fn process_chunk_spawns_and_despawns(
                                     Mesh3d(tile_materials.flower_meshes[arch_idx].clone()),
                                     MeshMaterial3d(tile_materials.flower_mat.clone()),
                                     Transform::from_xyz(world_x, flower_y, world_z),
-                                    Pickable::IGNORE,
+                                    RigidBody::Fixed,
+                                    Collider::cuboid(0.2, 0.25, 0.2),
+                                    Sensor,
+                                    HoverOutline {
+                                        half_extents: Vec3::new(0.2, 0.25, 0.2),
+                                    },
+                                    Interactable {
+                                        kind: InteractableKind::Flower,
+                                    },
                                     archetype,
                                 ))
+                                .observe(on_pointer_over)
+                                .observe(on_pointer_out)
                                 .id();
                             entities.push(flower_entity);
+                        }
+                    }
+
+                    // Mushrooms (skip if anything else on this tile)
+                    if !tile_occupied {
+                        let mush_noise = hash2d(tx + 23017, tz + 17293);
+                        if mush_noise < 0.04 {
+                            let jx = (hash2d(tx + 23117, tz + 17293) - 0.5) * 0.5;
+                            let jz = (hash2d(tx + 23017, tz + 17393) - 0.5) * 0.5;
+                            let world_x = tx as f32 * TILE_SIZE + jx;
+                            let world_z = tz as f32 * TILE_SIZE + jz;
+                            let mush_y = column_h + 0.002;
+
+                            let kind = mushrooms::mushroom_kind_from_hash(tx, tz);
+                            let params = mushrooms::MushroomParams { tx, tz, kind };
+                            let (mush_mesh, max_hw, total_h) =
+                                mushrooms::build_mushroom(&params, &mut meshes);
+
+                            let rot_y =
+                                hash2d(tx * 9311 + 3477, tz * 8193 + 4319) * std::f32::consts::TAU;
+                            let mush_entity = commands
+                                .spawn((
+                                    Mesh3d(mush_mesh),
+                                    MeshMaterial3d(tile_materials.tree_body_mat.clone()),
+                                    Transform::from_xyz(world_x, mush_y, world_z)
+                                        .with_rotation(Quat::from_rotation_y(rot_y)),
+                                    RigidBody::Fixed,
+                                    Collider::cuboid(max_hw * 0.8, total_h / 2.0, max_hw * 0.8),
+                                    Sensor,
+                                    HoverOutline {
+                                        half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
+                                    },
+                                    Interactable {
+                                        kind: InteractableKind::Mushroom,
+                                    },
+                                    kind,
+                                ))
+                                .observe(on_pointer_over)
+                                .observe(on_pointer_out)
+                                .id();
+                            entities.push(mush_entity);
                         }
                     }
                 }

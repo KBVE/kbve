@@ -1,9 +1,12 @@
 use crate::AVERAGE_FRAME_RATE;
+use crate::game::inventory::get_inventory_snapshot;
 use crate::game::object_registry::get_registry_snapshot;
 use crate::game::scene_objects::{get_hovered_snapshot, get_selected_snapshot};
 use crate::game::state::get_player_snapshot;
 use std::sync::atomic::Ordering;
 
+#[cfg(not(target_arch = "wasm32"))]
+use crate::game::inventory::Inventory;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::game::object_registry::ObjectRegistrySnapshot;
 #[cfg(not(target_arch = "wasm32"))]
@@ -43,6 +46,12 @@ pub fn get_selected_object() -> Option<SelectedObject> {
 #[tauri::command]
 pub fn get_hovered_object() -> Option<HoveredObject> {
     get_hovered_snapshot()
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn get_inventory() -> Option<Inventory> {
+    get_inventory_snapshot()
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -120,6 +129,12 @@ pub fn get_selected_object_json() -> Option<String> {
 #[wasm_bindgen]
 pub fn get_hovered_object_json() -> Option<String> {
     get_hovered_snapshot().map(|s| serde_json::to_string(&s).unwrap_or_default())
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn get_inventory_json() -> Option<String> {
+    get_inventory_snapshot().map(|s| serde_json::to_string(&s).unwrap_or_default())
 }
 
 #[cfg(target_arch = "wasm32")]
