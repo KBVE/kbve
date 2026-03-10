@@ -272,6 +272,56 @@ Focus on items with clear processing chains and market flip potential.
 | 3051  | Grimy snapdragon  | Herb cleaning     |
 | 12695 | Super combat(4)   | Best melee potion |
 
+### Dragon Armour (Implemented - Mar 2026)
+
+| ID    | Item             | Override Focus     |
+| ----- | ---------------- | ------------------ |
+| 1149  | Dragon med helm  | 60 Def helm        |
+| 3140  | Dragon chainbody | 60 Def body        |
+| 4087  | Dragon platelegs | 60 Def legs        |
+| 11335 | Dragon full helm | Ultra-rare helm    |
+| 21892 | Dragon platebody | DS2 craftable body |
+
+### Melee Helms (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus    |
+| ----- | ----------------- | ----------------- |
+| 10828 | Helm of neitiznot | Iconic melee helm |
+
+### Magic Armour (Implemented - Mar 2026)
+
+| ID   | Item               | Override Focus    |
+| ---- | ------------------ | ----------------- |
+| 4091 | Mystic robe top    | Budget magic body |
+| 4093 | Mystic robe bottom | Budget magic legs |
+
+### Ring Crafting Chain (Implemented - Mar 2026)
+
+| ID    | Item             | Override Focus         |
+| ----- | ---------------- | ---------------------- |
+| 1637  | Sapphire ring    | Ring of recoil base    |
+| 1639  | Emerald ring     | Ring of dueling base   |
+| 1641  | Ruby ring        | Ring of forging base   |
+| 1643  | Diamond ring     | Ring of life base      |
+| 1645  | Dragonstone ring | Ring of wealth base    |
+| 6575  | Onyx ring        | Ring of stone base     |
+| 19538 | Zenyte ring      | Ring of suffering base |
+
+### Teleport Jewelry (Implemented - Mar 2026)
+
+| ID    | Item            | Override Focus     |
+| ----- | --------------- | ------------------ |
+| 11113 | Skills necklace | Skilling teleports |
+| 11126 | Combat bracelet | Combat teleports   |
+
+### Rune/Obsidian Weapons (Implemented - Mar 2026)
+
+| ID   | Item           | Override Focus      |
+| ---- | -------------- | ------------------- |
+| 1289 | Rune sword     | F2P stab weapon     |
+| 1373 | Rune battleaxe | F2P strength weapon |
+| 6523 | Toktz-xil-ak   | Obsidian sword      |
+
 ---
 
 ## Future Override Priorities
