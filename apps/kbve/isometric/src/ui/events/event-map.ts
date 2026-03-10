@@ -8,7 +8,15 @@ export type InteractableKind =
 	| 'crystal'
 	| 'pillar'
 	| 'sphere'
-	| 'flower';
+	| 'flower'
+	| 'rock';
+
+export type RockKind =
+	| 'boulder'
+	| 'mossy_rock'
+	| 'ore_copper'
+	| 'ore_iron'
+	| 'ore_crystal';
 
 export type FlowerArchetype =
 	| 'tulip'

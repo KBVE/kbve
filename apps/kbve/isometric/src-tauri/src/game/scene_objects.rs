@@ -63,6 +63,7 @@ pub enum InteractableKind {
     Pillar,
     Sphere,
     Flower,
+    Rock,
 }
 
 /// Sub-type for collectible flowers (composition pattern).
@@ -95,6 +96,30 @@ impl FlowerArchetype {
             Self::Cornflower => "cornflower",
             Self::Allium => "allium",
             Self::BlueOrchid => "blue_orchid",
+        }
+    }
+}
+
+/// Sub-type for rocks/boulders/ores (composition pattern).
+/// Attach alongside `Interactable { kind: Rock }` for rock-specific data.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RockKind {
+    Boulder,
+    MossyRock,
+    OreCopper,
+    OreIron,
+    OreCrystal,
+}
+
+impl RockKind {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Boulder => "boulder",
+            Self::MossyRock => "mossy_rock",
+            Self::OreCopper => "ore_copper",
+            Self::OreIron => "ore_iron",
+            Self::OreCrystal => "ore_crystal",
         }
     }
 }
@@ -438,19 +463,27 @@ fn update_hover_highlight(
 /// Each frame, write the hovered interactable (if any) to the snapshot for React labels.
 fn update_hovered_snapshot(
     hovered_query: Query<
-        (&GlobalTransform, &Interactable, Option<&FlowerArchetype>),
+        (
+            &GlobalTransform,
+            &Interactable,
+            Option<&FlowerArchetype>,
+            Option<&RockKind>,
+        ),
         With<Hovered>,
     >,
 ) {
     let snapshot = hovered_query
         .iter()
         .next()
-        .map(|(gt, interactable, flower)| {
+        .map(|(gt, interactable, flower, rock)| {
             let pos = gt.translation();
+            let sub_kind = flower
+                .map(|f| f.as_str().to_owned())
+                .or_else(|| rock.map(|r| r.as_str().to_owned()));
             HoveredObject {
                 kind: interactable.kind,
                 position: [pos.x, pos.y, pos.z],
-                sub_kind: flower.map(|f| f.as_str().to_owned()),
+                sub_kind,
             }
         });
 
@@ -476,6 +509,7 @@ fn detect_click_selection(
             &GlobalTransform,
             &Interactable,
             Option<&FlowerArchetype>,
+            Option<&RockKind>,
         ),
         With<Hovered>,
     >,
@@ -484,12 +518,14 @@ fn detect_click_selection(
         return;
     }
 
-    let Some((entity, gt, interactable, flower)) = hovered_query.iter().next() else {
+    let Some((entity, gt, interactable, flower, rock)) = hovered_query.iter().next() else {
         return;
     };
 
     let pos = gt.translation();
-    let sub_kind = flower.map(|f| f.as_str().to_owned());
+    let sub_kind = flower
+        .map(|f| f.as_str().to_owned())
+        .or_else(|| rock.map(|r| r.as_str().to_owned()));
     let snapshot = SelectedObject {
         kind: interactable.kind,
         position: [pos.x, pos.y, pos.z],

@@ -5,6 +5,7 @@ pub mod input_bridge;
 pub mod object_registry;
 pub mod pixelate;
 pub mod player;
+pub mod rocks;
 pub mod scene_objects;
 pub mod state;
 pub mod terrain;
