@@ -316,11 +316,75 @@ Focus on items with clear processing chains and market flip potential.
 
 ### Rune/Obsidian Weapons (Implemented - Mar 2026)
 
-| ID   | Item           | Override Focus      |
-| ---- | -------------- | ------------------- |
-| 1289 | Rune sword     | F2P stab weapon     |
-| 1373 | Rune battleaxe | F2P strength weapon |
-| 6523 | Toktz-xil-ak   | Obsidian sword      |
+| ID   | Item           | Override Focus         |
+| ---- | -------------- | ---------------------- |
+| 1289 | Rune sword     | F2P stab weapon        |
+| 1373 | Rune battleaxe | F2P strength weapon    |
+| 6523 | Toktz-xil-ak   | Obsidian sword         |
+| 1347 | Rune warhammer | F2P crush weapon       |
+| 1432 | Rune mace      | F2P prayer weapon      |
+| 6522 | Toktz-xil-ul   | Obsidian throwing ring |
+
+### Granite Gear (Implemented - Mar 2026)
+
+| ID    | Item           | Override Focus    |
+| ----- | -------------- | ----------------- |
+| 10589 | Granite helm   | 50 Def/Str helm   |
+| 3122  | Granite shield | 50 Def/Str shield |
+| 6809  | Granite legs   | 50 Def/Str legs   |
+
+### Battlestaves (Implemented - Mar 2026)
+
+| ID   | Item               | Override Focus          |
+| ---- | ------------------ | ----------------------- |
+| 6562 | Mud battlestaff    | Water+Earth combo (DKs) |
+| 3053 | Lava battlestaff   | Earth+Fire combo        |
+| 1401 | Mystic fire staff  | Fire elemental mystic   |
+| 1403 | Mystic water staff | Water elemental mystic  |
+| 1407 | Mystic earth staff | Earth elemental mystic  |
+| 6563 | Mystic mud staff   | Water+Earth mystic      |
+| 3054 | Mystic lava staff  | Earth+Fire mystic       |
+
+### Splitbark Armour (Implemented - Mar 2026)
+
+| ID   | Item           | Override Focus    |
+| ---- | -------------- | ----------------- |
+| 3385 | Splitbark helm | 40 Def/Magic helm |
+| 3387 | Splitbark body | 40 Def/Magic body |
+| 3389 | Splitbark legs | 40 Def/Magic legs |
+
+### Skeletal Armour (Implemented - Mar 2026)
+
+| ID   | Item             | Override Focus       |
+| ---- | ---------------- | -------------------- |
+| 6137 | Skeletal helm    | Fremennik magic helm |
+| 6139 | Skeletal top     | Fremennik magic body |
+| 6141 | Skeletal bottoms | Fremennik magic legs |
+
+### Rock-shell Armour (Implemented - Mar 2026)
+
+| ID   | Item             | Override Focus       |
+| ---- | ---------------- | -------------------- |
+| 6128 | Rock-shell helm  | Fremennik melee helm |
+| 6129 | Rock-shell plate | Fremennik melee body |
+| 6130 | Rock-shell legs  | Fremennik melee legs |
+
+### Snakeskin/Frog Leather (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus      |
+| ----- | ----------------- | ------------------- |
+| 6322  | Snakeskin body    | 30 Ranged/Def body  |
+| 6324  | Snakeskin chaps   | 30 Ranged/Def legs  |
+| 6328  | Snakeskin boots   | Budget ranged boots |
+| 10954 | Frog-leather body | 25 Ranged/Def body  |
+
+### Misc Weapons/Jewelry (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus         |
+| ----- | ----------------- | ---------------------- |
+| 11037 | Brine sabre       | Niche 40 Attack weapon |
+| 6724  | Seercull          | DK Supreme bow, spec   |
+| 1729  | Amulet of defence | Defensive amulet       |
 
 ---
 
