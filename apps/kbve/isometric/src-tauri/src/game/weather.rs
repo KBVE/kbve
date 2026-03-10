@@ -1,0 +1,623 @@
+use bevy::asset::RenderAssetUsages;
+use bevy::light::{
+    CascadeShadowConfigBuilder, Cascades, DirectionalLightShadowMap, SimulationLightSystems,
+};
+use bevy::mesh::{Indices, PrimitiveTopology};
+use bevy::prelude::*;
+
+use super::camera::IsometricCamera;
+use super::trees::TreeWindSway;
+
+// ---------------------------------------------------------------------------
+// Day/night cycle
+// ---------------------------------------------------------------------------
+
+/// Marker component for the sun (directional light driven by day cycle).
+#[derive(Component)]
+struct Sun;
+
+/// Tracks in-game time. 1 real minute = 1 game hour (60× speed).
+/// Full day cycle = 24 real minutes.
+#[derive(Resource)]
+pub struct DayCycle {
+    /// Current game hour (0.0–24.0). Wraps at 24.
+    pub hour: f32,
+    /// Game-hours per real-second (default: 1/60 → 60× speed).
+    pub speed: f32,
+}
+
+impl Default for DayCycle {
+    fn default() -> Self {
+        Self {
+            hour: 10.0,        // start mid-morning
+            speed: 1.0 / 60.0, // 1 real min = 1 game hour
+        }
+    }
+}
+
+/// Sun arc parameters derived from game hour.
+struct SunParams {
+    /// Direction the light points (normalized, toward ground).
+    direction: Vec3,
+    /// Direct light illuminance (lux).
+    illuminance: f32,
+    /// Light color (sRGB linear).
+    color: Color,
+    /// Ambient brightness.
+    ambient_brightness: f32,
+    /// Ambient color.
+    ambient_color: Color,
+}
+
+/// Compute sun parameters for a given game hour.
+/// Sun rises ~6:00, peaks ~12:00, sets ~18:00. Night 20:00–4:00.
+fn sun_params(hour: f32) -> SunParams {
+    // Sun elevation: 0 at horizon, π/2 at zenith
+    // Maps 6:00=sunrise, 12:00=zenith, 18:00=sunset
+    // Outside 5:00–19:00 the sun is below horizon
+    let sun_progress = ((hour - 5.0) / 14.0).clamp(0.0, 1.0); // 0 at 5:00, 1 at 19:00
+    let elevation = (sun_progress * std::f32::consts::PI).sin() * 1.2; // peaks > 1.0, clamped later
+    let elevation = elevation.clamp(0.0, std::f32::consts::FRAC_PI_2 - 0.05);
+
+    // Sun azimuth: rotates from east (6:00) to west (18:00)
+    // Using a simple east-to-west arc in XZ plane
+    let azimuth_progress = ((hour - 6.0) / 12.0).clamp(0.0, 1.0);
+    let azimuth = std::f32::consts::PI * 0.25 + azimuth_progress * std::f32::consts::PI * 0.5;
+
+    // Light direction (pointing downward toward the scene)
+    let cos_el = elevation.cos();
+    let sin_el = elevation.sin();
+    let direction =
+        Vec3::new(-azimuth.cos() * cos_el, -sin_el, -azimuth.sin() * cos_el).normalize();
+
+    // Is the sun above the horizon?
+    let is_day = hour >= 5.0 && hour <= 19.0;
+    let sun_height = if is_day {
+        elevation / (std::f32::consts::FRAC_PI_2 - 0.05)
+    } else {
+        0.0
+    };
+
+    // Dawn/dusk transition bands
+    let dawn_t = ((hour - 5.0) / 1.5).clamp(0.0, 1.0); // 5:00–6:30
+    let dusk_t = ((19.0 - hour) / 1.5).clamp(0.0, 1.0); // 17:30–19:00
+    let day_strength = (dawn_t * dusk_t).clamp(0.0, 1.0);
+
+    // Illuminance: peaks at noon, zero at night
+    let illuminance = if is_day {
+        // Ramp with sun height, peak 8000 lux at noon
+        sun_height * day_strength * 8000.0 + 200.0
+    } else {
+        0.0
+    };
+
+    // Light color: golden at dawn/dusk, white at noon
+    let golden_t = 1.0 - day_strength; // 1.0 at horizon, 0.0 at peak
+    let (lr, lg, lb) = if is_day {
+        (
+            1.0,
+            1.0 - golden_t * 0.25, // slightly less green at dawn/dusk
+            1.0 - golden_t * 0.45, // much less blue at dawn/dusk → warm orange
+        )
+    } else {
+        (0.4, 0.45, 0.65) // cool moonlight
+    };
+    let color = Color::srgb(lr, lg, lb);
+
+    // Ambient: brighter during day, dim blue at night
+    let (ambient_brightness, ambient_color) = if is_day {
+        (
+            80.0 + day_strength * 180.0, // 80–260
+            Color::srgb(
+                0.9 + golden_t * 0.1,
+                0.92 - golden_t * 0.05,
+                1.0 - golden_t * 0.2,
+            ),
+        )
+    } else {
+        // Night: gentle blue ambient so things stay visible
+        let night_depth = if hour >= 19.0 {
+            ((hour - 19.0) / 2.0).clamp(0.0, 1.0) // 19–21 transition
+        } else {
+            ((5.0 - hour) / 2.0).clamp(0.0, 1.0) // 3–5 transition
+        };
+        (
+            60.0 + (1.0 - night_depth) * 40.0,
+            Color::srgb(0.35, 0.40, 0.65),
+        )
+    };
+
+    SunParams {
+        direction,
+        illuminance,
+        color,
+        ambient_brightness,
+        ambient_color,
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Wind state
+// ---------------------------------------------------------------------------
+
+#[derive(Resource)]
+pub struct WindState {
+    pub speed_mph: f32, // 0 = calm, 5 = gentle breeze, 15 = moderate, 30 = strong
+    pub direction: (f32, f32), // normalized XZ direction
+}
+
+impl Default for WindState {
+    fn default() -> Self {
+        Self {
+            speed_mph: 8.0,            // gentle breeze
+            direction: (0.707, 0.707), // NE
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Blob shadows
+// ---------------------------------------------------------------------------
+
+/// Dynamic blob shadow that follows the directional light angle.
+#[derive(Component)]
+pub struct BlobShadow {
+    /// World position of the object base (shadow anchor).
+    pub anchor: Vec3,
+    /// Shadow disc radius (unscaled).
+    pub radius: f32,
+    /// Height of the object — taller objects cast longer shadows.
+    pub object_height: f32,
+}
+
+/// Shared blob shadow mesh + material, created at startup.
+#[derive(Resource)]
+pub struct BlobShadowAssets {
+    pub mesh: Handle<Mesh>,
+    pub material: Handle<StandardMaterial>,
+}
+
+// ---------------------------------------------------------------------------
+// Vegetation wind sway
+// ---------------------------------------------------------------------------
+
+/// Attached to small vegetation (flowers, grass) for gentle translation sway.
+#[derive(Component)]
+pub struct WindSway {
+    pub base_translation: Vec3,
+    pub phase: f32,
+}
+
+// ---------------------------------------------------------------------------
+// Wind streaks (Wind Waker-style visual wind trails)
+// ---------------------------------------------------------------------------
+
+const WIND_STREAK_COUNT: usize = 10;
+const WIND_STREAK_LIFETIME: f32 = 2.8; // seconds per streak cycle
+
+#[derive(Component)]
+struct WindStreak {
+    age: f32,
+    lifetime: f32,
+    start_pos: Vec3,
+    speed: f32,     // world units/sec along wind direction
+    drift_off: f32, // cross-wind offset for variety
+    mat_handle: Handle<StandardMaterial>,
+}
+
+#[derive(Resource, Default)]
+struct WindStreakPool {
+    initialized: bool,
+}
+
+/// Thin elongated quad mesh for a single wind streak.
+fn build_streak_mesh() -> Mesh {
+    // Thin line: 0.6 long × 0.012 tall, centered at origin
+    let hw = 0.30;
+    let hh = 0.006;
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(
+        Mesh::ATTRIBUTE_POSITION,
+        vec![
+            [-hw, -hh, 0.0],
+            [hw, -hh, 0.0],
+            [hw, hh, 0.0],
+            [-hw, hh, 0.0],
+        ],
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0.0, 0.0, 1.0]; 4])
+    .with_inserted_attribute(Mesh::ATTRIBUTE_COLOR, vec![[1.0_f32, 1.0, 1.0, 1.0]; 4])
+    .with_inserted_indices(Indices::U32(vec![0, 1, 2, 0, 2, 3]))
+}
+
+// ---------------------------------------------------------------------------
+// Systems
+// ---------------------------------------------------------------------------
+
+fn setup_weather(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    // Blob shadow: unit-radius flat disc (8 segments), scaled per-object at spawn time.
+    let blob_shadow_mesh = {
+        const SEGS: u32 = 8;
+        let mut pos = Vec::with_capacity(SEGS as usize + 1);
+        let mut nor = Vec::with_capacity(SEGS as usize + 1);
+        let mut idx = Vec::with_capacity(SEGS as usize * 3);
+        pos.push([0.0, 0.0, 0.0]);
+        nor.push([0.0, 1.0, 0.0]);
+        for i in 0..SEGS {
+            let a = (i as f32 / SEGS as f32) * std::f32::consts::TAU;
+            pos.push([a.cos(), 0.0, a.sin()]);
+            nor.push([0.0, 1.0, 0.0]);
+        }
+        for i in 1..=SEGS {
+            let next = if i == SEGS { 1 } else { i + 1 };
+            idx.extend_from_slice(&[0, i, next]);
+        }
+        let uvs = vec![[0.0f32, 0.0]; pos.len()];
+        meshes.add(
+            Mesh::new(
+                PrimitiveTopology::TriangleList,
+                RenderAssetUsages::default(),
+            )
+            .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, pos)
+            .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, nor)
+            .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
+            .with_inserted_indices(Indices::U32(idx)),
+        )
+    };
+    let blob_shadow_mat = materials.add(StandardMaterial {
+        base_color: Color::srgba(0.0, 0.0, 0.0, 0.35),
+        unlit: true,
+        alpha_mode: AlphaMode::Blend,
+        ..default()
+    });
+
+    commands.insert_resource(BlobShadowAssets {
+        mesh: blob_shadow_mesh,
+        material: blob_shadow_mat,
+    });
+}
+
+fn spawn_lighting(mut commands: Commands, day: Res<DayCycle>) {
+    let params = sun_params(day.hour);
+    commands.insert_resource(GlobalAmbientLight {
+        color: params.ambient_color,
+        brightness: params.ambient_brightness,
+        ..default()
+    });
+    // Single cascade + pixelated shadow map + texel-snapping stabilisation.
+    // Shadow map sized so each shadow texel ≈ 1 scene pixel (32 px/unit).
+    // 1024 over 80 units = ~12.8 texels/unit → shadows are ~2.5× chunkier than
+    // scene pixels, giving that crisp pixel-art shadow look that blends in.
+    commands.insert_resource(DirectionalLightShadowMap { size: 1024 });
+    // Position the sun far away along its direction so the transform "looks" right
+    let sun_pos = -params.direction * 20.0;
+    commands.spawn((
+        Sun,
+        DirectionalLight {
+            illuminance: params.illuminance,
+            color: params.color,
+            shadows_enabled: true,
+            ..default()
+        },
+        Transform::from_translation(sun_pos).looking_at(Vec3::ZERO, Vec3::Y),
+        CascadeShadowConfigBuilder {
+            num_cascades: 1,
+            minimum_distance: 0.1,
+            maximum_distance: 80.0,
+            ..default()
+        }
+        .build(),
+    ));
+}
+
+/// Stabilise directional shadow maps by texel-snapping the cascade projection.
+///
+/// Bevy recomputes the cascade frustum from the camera every frame. When the
+/// frustum centre moves by sub-texel amounts, shadow edges land on different
+/// texels → visible 1-2 px "swimming" on the low-res render target.
+///
+/// Fix: snap the clip-space translation of each cascade's `clip_from_world`
+/// matrix to shadow-texel boundaries so the shadow grid stays locked to the
+/// world.
+fn stabilize_shadow_cascades(
+    shadow_map: Res<DirectionalLightShadowMap>,
+    mut query: Query<&mut Cascades, With<DirectionalLight>>,
+) {
+    let texel_clip = 2.0 / shadow_map.size as f32;
+    for mut cascades in query.iter_mut() {
+        for cascade_list in cascades.cascades.values_mut() {
+            for cascade in cascade_list.iter_mut() {
+                let mut m = cascade.clip_from_world;
+                m.w_axis.x = (m.w_axis.x / texel_clip).floor() * texel_clip;
+                m.w_axis.y = (m.w_axis.y / texel_clip).floor() * texel_clip;
+                cascade.clip_from_world = m;
+            }
+        }
+    }
+}
+
+/// Reposition blob shadows each frame based on the directional light angle.
+/// Shadow offset = light direction projected onto ground plane, scaled by object height.
+/// Shadow also stretches along the light direction for a natural elongated look.
+fn update_blob_shadows(
+    light_query: Query<&GlobalTransform, With<DirectionalLight>>,
+    mut shadow_query: Query<(&mut Transform, &BlobShadow)>,
+) {
+    let Ok(light_gt) = light_query.single() else {
+        return;
+    };
+    // Light forward vector (direction light is pointing)
+    let light_dir = light_gt.forward().as_vec3();
+    // Project onto ground plane (XZ), normalize
+    let ground_dir = Vec2::new(light_dir.x, light_dir.z);
+    let ground_len = ground_dir.length();
+    if ground_len < 0.001 {
+        return;
+    }
+    let ground_norm = ground_dir / ground_len;
+    // How steep the light is — steeper = shorter shadow (sun overhead),
+    // shallower = longer shadow (sunrise/sunset)
+    let slope = (ground_len / (-light_dir.y).max(0.01)).min(3.0);
+
+    for (mut tf, shadow) in &mut shadow_query {
+        let offset_len = shadow.object_height * slope * 0.5;
+        let offset_x = ground_norm.x * offset_len;
+        let offset_z = ground_norm.y * offset_len;
+
+        tf.translation.x = shadow.anchor.x + offset_x;
+        tf.translation.y = shadow.anchor.y;
+        tf.translation.z = shadow.anchor.z + offset_z;
+
+        // Stretch shadow along light direction: 1.0 cross-wise, up to 1.5 lengthwise
+        let stretch = 1.0 + slope * 0.15;
+        let angle = ground_norm.y.atan2(ground_norm.x);
+        tf.rotation = Quat::from_rotation_y(-angle);
+        tf.scale = Vec3::new(shadow.radius * stretch, 1.0, shadow.radius);
+    }
+}
+
+/// Advance the game clock. 1 real second = `speed` game-hours (default 1/60).
+fn update_day_cycle(time: Res<Time>, mut day: ResMut<DayCycle>) {
+    day.hour += time.delta_secs() * day.speed;
+    if day.hour >= 24.0 {
+        day.hour -= 24.0;
+    }
+}
+
+/// Move the sun and adjust light color/intensity based on time of day.
+fn update_sun_position(
+    day: Res<DayCycle>,
+    mut ambient: ResMut<GlobalAmbientLight>,
+    mut sun_query: Query<(&mut DirectionalLight, &mut Transform), With<Sun>>,
+) {
+    let params = sun_params(day.hour);
+
+    // Update ambient
+    ambient.color = params.ambient_color;
+    ambient.brightness = params.ambient_brightness;
+
+    // Update sun
+    for (mut light, mut tf) in &mut sun_query {
+        light.illuminance = params.illuminance;
+        light.color = params.color;
+        let sun_pos = -params.direction * 20.0;
+        *tf = Transform::from_translation(sun_pos).looking_at(Vec3::ZERO, Vec3::Y);
+    }
+}
+
+fn animate_veg_wind(
+    time: Res<Time>,
+    wind: Res<WindState>,
+    mut query: Query<(&mut Transform, &WindSway)>,
+) {
+    let t = time.elapsed_secs();
+    let spd = wind.speed_mph;
+    if spd < 0.5 {
+        return;
+    }
+
+    // Vegetation is very flexible — moves more than trees at same wind speed
+    let veg_amp = (spd / 10.0).sqrt() * 0.035;
+    let gust_speed = 0.8 + spd * 0.04;
+    let (dx, dz) = wind.direction;
+
+    for (mut tf, sway) in &mut query {
+        let gust = (t * gust_speed + sway.phase).sin() * veg_amp
+            + (t * gust_speed * 2.1 + sway.phase * 1.8).sin() * veg_amp * 0.4;
+        let flutter = (t * gust_speed * 3.0 + sway.phase * 1.3).sin() * veg_amp * 0.2;
+        let ox = dx * gust + (-dz) * flutter;
+        let oz = dz * gust + dx * flutter;
+        tf.translation = sway.base_translation + Vec3::new(ox, 0.0, oz);
+    }
+}
+
+fn animate_tree_wind(
+    time: Res<Time>,
+    wind: Res<WindState>,
+    mut query: Query<(&mut Transform, &TreeWindSway)>,
+) {
+    let t = time.elapsed_secs();
+    let spd = wind.speed_mph;
+    if spd < 0.5 {
+        return;
+    }
+
+    let base_amp = (spd / 10.0).sqrt() * 0.025;
+    let lean = (spd / 10.0).min(3.0) * 0.005;
+    let gust_speed = 0.5 + spd * 0.03;
+    let (dx, dz) = wind.direction;
+
+    for (mut tf, tree) in &mut query {
+        let amp = base_amp / tree.stiffness;
+        let gust = (t * gust_speed + tree.phase).sin() * amp
+            + (t * gust_speed * 2.1 + tree.phase * 2.3).sin() * amp * 0.3;
+        let flutter = (t * gust_speed * 2.7 + tree.phase * 1.6).sin() * amp * 0.12;
+        let rx = dx * (lean + gust) + (-dz) * flutter;
+        let rz = dz * (lean + gust) + dx * flutter;
+        let wind_rot = Quat::from_euler(EulerRot::XYZ, rz, 0.0, -rx);
+        tf.rotation = tree.base_rotation * wind_rot;
+    }
+}
+
+fn spawn_wind_streaks(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut pool: ResMut<WindStreakPool>,
+) {
+    if pool.initialized {
+        return;
+    }
+    pool.initialized = true;
+
+    let streak_mesh = meshes.add(build_streak_mesh());
+
+    for i in 0..WIND_STREAK_COUNT {
+        let phase = i as f32 / WIND_STREAK_COUNT as f32;
+        // Each streak gets its own material so we can fade alpha independently
+        let mat = materials.add(StandardMaterial {
+            base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
+            unlit: true,
+            alpha_mode: AlphaMode::Blend,
+            ..default()
+        });
+        let mat_clone = mat.clone();
+        commands.spawn((
+            Mesh3d(streak_mesh.clone()),
+            MeshMaterial3d(mat),
+            Transform::from_xyz(0.0, -100.0, 0.0),
+            Visibility::Hidden,
+            WindStreak {
+                age: phase * WIND_STREAK_LIFETIME,
+                lifetime: WIND_STREAK_LIFETIME + (phase - 0.5) * 0.6,
+                start_pos: Vec3::ZERO,
+                speed: 2.5 + phase * 1.5,
+                drift_off: (phase * 7.3).sin() * 0.3,
+                mat_handle: mat_clone,
+            },
+        ));
+    }
+}
+
+fn animate_wind_streaks(
+    time: Res<Time>,
+    wind: Res<WindState>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    camera_q: Query<&Transform, With<IsometricCamera>>,
+    mut streak_q: Query<
+        (&mut Transform, &mut WindStreak, &mut Visibility),
+        Without<IsometricCamera>,
+    >,
+) {
+    let Ok(cam_tf) = camera_q.single() else {
+        return;
+    };
+    let dt = time.delta_secs();
+    let spd = wind.speed_mph;
+    if spd < 1.0 {
+        for (_, _, mut vis) in &mut streak_q {
+            *vis = Visibility::Hidden;
+        }
+        return;
+    }
+
+    let (wd_x, wd_z) = wind.direction;
+    let wind_dir = Vec3::new(wd_x, 0.0, wd_z);
+    let cross = Vec3::new(-wd_z, 0.0, wd_x);
+    let cam_pos = cam_tf.translation;
+    // Scene center: camera looks down at an offset, streaks spawn around the viewed area
+    let scene_center = Vec3::new(cam_pos.x - 15.0, 0.0, cam_pos.z - 15.0);
+
+    // Subtle opacity: barely-there wisps, not cartoon lines
+    let opacity_scale = ((spd - 2.0) / 15.0).clamp(0.0, 1.0) * 0.16;
+
+    for (mut tf, mut streak, mut vis) in &mut streak_q {
+        streak.age += dt;
+        if streak.age >= streak.lifetime {
+            streak.age = 0.0;
+            let seed = streak.drift_off * 17.3 + time.elapsed_secs() * 3.1;
+            let spread_along = seed.sin() * 8.0;
+            let spread_cross = (seed * 2.7).cos() * 6.0;
+            let height = 1.8 + ((seed * 1.3).sin() * 0.5 + 0.5) * 3.0;
+            streak.start_pos = scene_center
+                + wind_dir * spread_along
+                + cross * (spread_cross + streak.drift_off * 4.0)
+                + Vec3::Y * height;
+            streak.speed = 2.0 + ((seed * 0.7).cos() * 0.5 + 0.5) * 2.0;
+            streak.lifetime = WIND_STREAK_LIFETIME + (seed * 0.4).sin() * 0.5;
+        }
+
+        let t_frac = streak.age / streak.lifetime;
+        // Gentle fade in/out — long tails, soft appearance
+        let alpha = if t_frac < 0.25 {
+            t_frac / 0.25
+        } else if t_frac > 0.75 {
+            (1.0 - t_frac) / 0.25
+        } else {
+            1.0
+        } * opacity_scale;
+
+        if alpha < 0.003 {
+            *vis = Visibility::Hidden;
+            if let Some(mat) = materials.get_mut(&streak.mat_handle) {
+                mat.base_color = Color::srgba(1.0, 1.0, 1.0, 0.0);
+            }
+            continue;
+        }
+        *vis = Visibility::Visible;
+
+        // Set per-streak alpha
+        if let Some(mat) = materials.get_mut(&streak.mat_handle) {
+            mat.base_color = Color::srgba(1.0, 1.0, 1.0, alpha);
+        }
+
+        // Drift along wind direction
+        let travel = wind_dir * streak.speed * streak.age * (spd / 8.0);
+        let pos = streak.start_pos + travel;
+        // Billboard: face camera, long axis aligned with wind
+        let to_cam = (cam_pos - pos).normalize_or_zero();
+        tf.translation = pos;
+        tf.look_to(to_cam, Vec3::Y);
+        // Stretch with wind speed — longer wisps at higher speed
+        let length_scale = 0.7 + spd * 0.05;
+        tf.scale = Vec3::new(length_scale, 1.0, 1.0);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Plugin
+// ---------------------------------------------------------------------------
+
+pub struct WeatherPlugin;
+
+impl Plugin for WeatherPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<DayCycle>();
+        app.init_resource::<WindState>();
+        app.init_resource::<WindStreakPool>();
+        app.add_systems(Startup, (setup_weather, spawn_lighting));
+        app.add_systems(
+            Update,
+            (
+                update_day_cycle,
+                update_sun_position,
+                update_blob_shadows,
+                animate_veg_wind,
+                animate_tree_wind,
+                spawn_wind_streaks,
+                animate_wind_streaks,
+            ),
+        );
+        app.add_systems(
+            PostUpdate,
+            stabilize_shadow_cascades.after(SimulationLightSystems::UpdateDirectionalLightCascades),
+        );
+    }
+}
