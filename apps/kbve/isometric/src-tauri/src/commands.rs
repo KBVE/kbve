@@ -71,6 +71,15 @@ pub fn on_input_frame(
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tauri::command]
+pub fn dispatch_action(entity_id: f64, action: String) {
+    crate::game::actions::push_action(crate::game::actions::ActionRequest {
+        entity_id: entity_id as u64,
+        action,
+    });
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
 pub fn greet(name: &str) -> String {
     format!("Welcome to the Isometric realm, {}!", name)
 }
@@ -111,6 +120,15 @@ pub fn get_selected_object_json() -> Option<String> {
 #[wasm_bindgen]
 pub fn get_hovered_object_json() -> Option<String> {
     get_hovered_snapshot().map(|s| serde_json::to_string(&s).unwrap_or_default())
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn dispatch_action(entity_id: f64, action: &str) {
+    crate::game::actions::push_action(crate::game::actions::ActionRequest {
+        entity_id: entity_id as u64,
+        action: action.to_owned(),
+    });
 }
 
 #[cfg(target_arch = "wasm32")]
