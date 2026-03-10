@@ -5,7 +5,11 @@ import {
 	dispatch_action,
 } from '../../wasm-pkg/isometric_game.js';
 import { gameEvents } from '../ui/events/event-bus';
-import type { FlowerArchetype, InteractableKind } from '../ui/events/event-map';
+import type {
+	FlowerArchetype,
+	InteractableKind,
+	RockKind,
+} from '../ui/events/event-map';
 
 interface ObjectInfo {
 	title: string;
@@ -69,6 +73,11 @@ const OBJECT_INFO: Record<InteractableKind, ObjectInfo> = {
 		description: 'A beautiful flower.',
 		action: 'Collect Flower',
 	},
+	rock: {
+		title: 'Rock',
+		description: 'A weathered stone formation.',
+		action: 'Mine Rock',
+	},
 };
 
 const FLOWER_INFO: Record<
@@ -94,6 +103,37 @@ const FLOWER_INFO: Record<
 	wildflower: {
 		title: 'Wildflower',
 		description: 'A bright wildflower growing freely.',
+	},
+};
+
+const ROCK_INFO: Record<
+	RockKind,
+	{ title: string; description: string; action: string }
+> = {
+	boulder: {
+		title: 'Boulder',
+		description: 'A large, weathered boulder covered in lichen.',
+		action: 'Examine',
+	},
+	mossy_rock: {
+		title: 'Mossy Rock',
+		description: 'A moss-covered stone, cool and damp to the touch.',
+		action: 'Examine',
+	},
+	ore_copper: {
+		title: 'Copper Ore',
+		description: 'Greenish-brown veins of copper glint in the stone.',
+		action: 'Mine Ore',
+	},
+	ore_iron: {
+		title: 'Iron Ore',
+		description: 'Dark reddish streaks of iron run through the rock.',
+		action: 'Mine Ore',
+	},
+	ore_crystal: {
+		title: 'Crystal Ore',
+		description: 'Shimmering purple crystals jut from the stone.',
+		action: 'Mine Ore',
 	},
 };
 
@@ -193,6 +233,17 @@ export function useObjectSelection() {
 							...info,
 							title: flower.title,
 							description: flower.description,
+						};
+					}
+				}
+
+				if (selected.kind === 'rock' && selected.sub_kind) {
+					const rock = ROCK_INFO[selected.sub_kind as RockKind];
+					if (rock) {
+						info = {
+							title: rock.title,
+							description: rock.description,
+							action: rock.action,
 						};
 					}
 				}
