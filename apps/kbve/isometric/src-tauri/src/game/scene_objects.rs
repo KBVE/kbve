@@ -281,7 +281,7 @@ fn raycast_hover_detection_desktop(
         bevy::camera::ScalingMode::FixedVertical { viewport_height } => viewport_height,
         _ => return,
     };
-    let half_h = viewport_height / 2.0;
+    let half_h = (viewport_height / 2.0) * ortho.scale;
     let aspect = window.width() / window.height();
     let half_w = half_h * aspect;
 
@@ -361,7 +361,7 @@ fn raycast_hover_detection_wasm(
         bevy::camera::ScalingMode::FixedVertical { viewport_height } => viewport_height,
         _ => return,
     };
-    let half_h = viewport_height / 2.0;
+    let half_h = (viewport_height / 2.0) * ortho.scale;
     let aspect = window.width() / window.height();
     let half_w = half_h * aspect;
 

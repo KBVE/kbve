@@ -8,6 +8,7 @@ use super::scene_objects::{
 };
 use super::terrain::hash2d;
 use super::tilemap::{TILE_SIZE, build_chunk_mesh, lerp3, srgb_color};
+use super::weather::BlobShadow;
 
 // ---------------------------------------------------------------------------
 // Bark palettes
@@ -886,38 +887,6 @@ pub struct TreeOccluder;
 struct PlayerOcclusionIndicator;
 
 // ---------------------------------------------------------------------------
-// Wind animation
-// ---------------------------------------------------------------------------
-
-fn animate_tree_wind(
-    time: Res<Time>,
-    wind: Res<super::tilemap::WindState>,
-    mut query: Query<(&mut Transform, &TreeWindSway)>,
-) {
-    let t = time.elapsed_secs();
-    let spd = wind.speed_mph;
-    if spd < 0.5 {
-        return;
-    }
-
-    let base_amp = (spd / 10.0).sqrt() * 0.025;
-    let lean = (spd / 10.0).min(3.0) * 0.005;
-    let gust_speed = 0.5 + spd * 0.03;
-    let (dx, dz) = wind.direction;
-
-    for (mut tf, tree) in &mut query {
-        let amp = base_amp / tree.stiffness;
-        let gust = (t * gust_speed + tree.phase).sin() * amp
-            + (t * gust_speed * 2.1 + tree.phase * 2.3).sin() * amp * 0.3;
-        let flutter = (t * gust_speed * 2.7 + tree.phase * 1.6).sin() * amp * 0.12;
-        let rx = dx * (lean + gust) + (-dz) * flutter;
-        let rz = dz * (lean + gust) + dx * flutter;
-        let wind_rot = Quat::from_euler(EulerRot::XYZ, rz, 0.0, -rx);
-        tf.rotation = tree.base_rotation * wind_rot;
-    }
-}
-
-// ---------------------------------------------------------------------------
 // Occlusion system
 // ---------------------------------------------------------------------------
 
@@ -1057,10 +1026,12 @@ pub fn spawn_tree_entity(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
     tree_body_mat: Handle<StandardMaterial>,
+    blob_shadow_mesh: Handle<Mesh>,
+    blob_shadow_mat: Handle<StandardMaterial>,
     tx: i32,
     tz: i32,
     column_h: f32,
-) -> Entity {
+) -> (Entity, Entity) {
     let size_scale = 1.10 + hash2d(tx + 11717, tz + 5871) * 1.10;
     let geo = build_tree_geometry(tx, tz, size_scale);
 
@@ -1085,7 +1056,7 @@ pub fn spawn_tree_entity(
     ];
 
     let tree_mesh = meshes.add(geo.mesh);
-    commands
+    let tree_entity = commands
         .spawn((
             Mesh3d(tree_mesh),
             MeshMaterial3d(tree_body_mat),
@@ -1107,7 +1078,24 @@ pub fn spawn_tree_entity(
         ))
         .observe(on_pointer_over)
         .observe(on_pointer_out)
-        .id()
+        .id();
+
+    // Dynamic blob shadow for the tree canopy
+    let shadow_entity = commands
+        .spawn((
+            Mesh3d(blob_shadow_mesh),
+            MeshMaterial3d(blob_shadow_mat),
+            Transform::from_xyz(world_x, tree_base_y + 0.001, world_z),
+            BlobShadow {
+                anchor: Vec3::new(world_x, tree_base_y + 0.001, world_z),
+                radius: geo.max_hw * 1.2,
+                object_height: geo.total_h,
+            },
+            Pickable::IGNORE,
+        ))
+        .id();
+
+    (tree_entity, shadow_entity)
 }
 
 // ---------------------------------------------------------------------------
@@ -1119,6 +1107,6 @@ pub struct TreesPlugin;
 impl Plugin for TreesPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_occlusion_indicator);
-        app.add_systems(Update, (animate_tree_wind, update_player_occlusion));
+        app.add_systems(Update, update_player_occlusion);
     }
 }

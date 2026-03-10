@@ -14,6 +14,7 @@ pub mod terrain;
 pub mod tilemap;
 pub mod trees;
 pub mod water;
+pub mod weather;
 
 use bevy::app::{PluginGroup, PluginGroupBuilder};
 
@@ -30,6 +31,7 @@ use terrain::TerrainPlugin;
 use tilemap::TilemapPlugin;
 use trees::TreesPlugin;
 use water::WaterPlugin;
+use weather::WeatherPlugin;
 
 /// All game-logic plugins bundled together.
 /// Used by both desktop (main.rs) and WASM (lib.rs) entry points.
@@ -48,6 +50,7 @@ impl PluginGroup for GamePluginGroup {
             .add(TreesPlugin)
             .add(WaterPlugin)
             .add(InventoryPlugin)
+            .add(WeatherPlugin)
             .add(ActionsPlugin)
     }
 }
