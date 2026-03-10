@@ -35,14 +35,16 @@ pub struct AppState {
 pub struct AppStateInner {
     pub start_time: std::time::Instant,
     pub version: &'static str,
+    pub game: Option<crate::gameserver::GameServerState>,
 }
 
 impl AppState {
-    pub fn new() -> Self {
+    pub fn new_with_gameserver(game: crate::gameserver::GameServerState) -> Self {
         Self {
             inner: Arc::new(AppStateInner {
                 start_time: std::time::Instant::now(),
                 version: env!("CARGO_PKG_VERSION"),
+                game: Some(game),
             }),
         }
     }
@@ -161,12 +163,12 @@ fn router(state: AppState) -> Router {
             "/application/kubectl",
             get(|| async { Redirect::permanent("/application/kubernetes/") }),
         )
-        .with_state(state);
+        .with_state(state.clone());
 
     let main_app = static_router.merge(public_router).layer(middleware);
 
-    // Proxy routes bypass global middleware (no 10s timeout, no 1MB body limit)
-    let proxy_router = Router::new()
+    // Proxy + WebSocket routes bypass global middleware (no 10s timeout, no 1MB body limit)
+    let mut bypass_router = Router::new()
         .route(
             "/dashboard/grafana/proxy/{*path}",
             any(super::proxy::grafana_proxy_handler),
@@ -184,7 +186,18 @@ fn router(state: AppState) -> Router {
             any(super::proxy::argo_proxy_handler),
         );
 
-    proxy_router.merge(main_app)
+    // Game server WebSocket route (requires GameServerState, separate nested router)
+    if let Some(game_state) = &state.inner.game {
+        let game_router = Router::new()
+            .route(
+                "/ws/game",
+                get(crate::gameserver::websocket::ws_game_handler),
+            )
+            .with_state(game_state.clone());
+        bypass_router = bypass_router.merge(game_router);
+    }
+
+    bypass_router.merge(main_app)
 }
 
 // ---------------------------------------------------------------------------

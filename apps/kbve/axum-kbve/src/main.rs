@@ -1,6 +1,7 @@
 mod astro;
 mod auth;
 mod db;
+pub mod gameserver;
 mod proto;
 mod transport;
 
@@ -102,8 +103,12 @@ async fn main() -> anyhow::Result<()> {
         info!("ArgoCD proxy not configured (ARGOCD_UPSTREAM_URL not set)");
     }
 
+    // Initialize game server (Rapier3D physics + WebSocket)
+    let game_state = gameserver::init_gameserver();
+    info!("Game server initialized - /ws/game enabled");
+
     // Shared application state
-    let state = transport::https::AppState::new();
+    let state = transport::https::AppState::new_with_gameserver(game_state);
 
     // Transports
     let http = tokio::spawn(transport::https::serve(state));
