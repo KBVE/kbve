@@ -1,3 +1,4 @@
+pub mod actions;
 pub mod camera;
 pub mod grass;
 pub mod input_bridge;
@@ -12,6 +13,7 @@ pub mod water;
 
 use bevy::app::{PluginGroup, PluginGroupBuilder};
 
+use actions::ActionsPlugin;
 use camera::IsometricCameraPlugin;
 use object_registry::ObjectRegistryPlugin;
 // PixelatePlugin disabled — two-stage render-to-texture pipeline handles pixelation.
@@ -38,5 +40,6 @@ impl PluginGroup for GamePluginGroup {
             .add(ObjectRegistryPlugin)
             .add(SceneObjectsPlugin)
             .add(WaterPlugin)
+            .add(ActionsPlugin)
     }
 }
