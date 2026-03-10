@@ -98,15 +98,21 @@ fn cap_vertex_color(band: usize, tx: i32, tz: i32) -> [f32; 4] {
 const VEG_SNAP: f32 = 1.0 / 32.0;
 
 /// Grass type colors (sRGB, converted to linear at use).
-const VEG_GRASS_TUFT: (f32, f32, f32) = (0.25, 0.55, 0.15);
-const VEG_GRASS_TALL: (f32, f32, f32) = (0.20, 0.50, 0.12);
-const VEG_GRASS_BLADE: (f32, f32, f32) = (0.22, 0.48, 0.14);
+/// Each type has a base (root) and tip (sun-kissed) color for painted gradient.
+const VEG_GRASS_TUFT_BASE: (f32, f32, f32) = (0.16, 0.38, 0.10);
+const VEG_GRASS_TUFT_TIP: (f32, f32, f32) = (0.38, 0.68, 0.22);
+const VEG_GRASS_TALL_BASE: (f32, f32, f32) = (0.14, 0.34, 0.08);
+const VEG_GRASS_TALL_TIP: (f32, f32, f32) = (0.32, 0.62, 0.18);
+const VEG_GRASS_BLADE_BASE: (f32, f32, f32) = (0.15, 0.36, 0.09);
+const VEG_GRASS_BLADE_TIP: (f32, f32, f32) = (0.42, 0.72, 0.28);
 const VEG_FLOWER_COLORS: [(f32, f32, f32); 4] = [
     (0.95, 0.95, 0.90),
     (0.90, 0.55, 0.65),
     (0.85, 0.35, 0.45),
     (0.95, 0.85, 0.30),
 ];
+/// Flower stem color (dark olive green).
+const VEG_FLOWER_STEM: (f32, f32, f32) = (0.18, 0.40, 0.12);
 
 /// 4-shade bark palette (sRGB): dark shadow → highlight.
 const BARK_DARK: (f32, f32, f32) = (0.25, 0.16, 0.08);
@@ -741,7 +747,8 @@ fn push_branch_stub(
     }
 }
 
-/// Append a crossed-plane (2 quads at 90°) with rotation and scale baked into vertices.
+/// Append a crossed-plane (2 quads at 90°) with rotation/scale baked in.
+/// Uses base→tip color gradient and tapered top for organic silhouette.
 fn push_crossed_planes(
     pos: &mut Vec<[f32; 3]>,
     nor: &mut Vec<[f32; 3]>,
@@ -752,11 +759,13 @@ fn push_crossed_planes(
     h: f32,
     scale: f32,
     rot_y: f32,
-    color: [f32; 4],
+    color_base: [f32; 4],
+    color_tip: [f32; 4],
 ) {
     let base = pos.len() as u32;
     let (sin_r, cos_r) = rot_y.sin_cos();
     let s = scale;
+    let taper = 0.55; // narrower at tips for organic silhouette
 
     let xform = |lx: f32, ly: f32, lz: f32| -> [f32; 3] {
         let sx = lx * s;
@@ -768,27 +777,27 @@ fn push_crossed_planes(
         ]
     };
 
-    // Quad 1: along local X
+    // Quad 1: along local X (tapered)
     pos.extend_from_slice(&[
         xform(-hw, 0.0, 0.0),
         xform(hw, 0.0, 0.0),
-        xform(hw, h, 0.0),
-        xform(-hw, h, 0.0),
+        xform(hw * taper, h, 0.0),
+        xform(-hw * taper, h, 0.0),
     ]);
     let n1 = [sin_r, 0.0, cos_r];
     nor.extend_from_slice(&[n1; 4]);
+    col.extend_from_slice(&[color_base, color_base, color_tip, color_tip]);
 
-    // Quad 2: along local Z
+    // Quad 2: along local Z (tapered)
     pos.extend_from_slice(&[
         xform(0.0, 0.0, -hw),
         xform(0.0, 0.0, hw),
-        xform(0.0, h, hw),
-        xform(0.0, h, -hw),
+        xform(0.0, h, hw * taper),
+        xform(0.0, h, -hw * taper),
     ]);
     let n2 = [cos_r, 0.0, -sin_r];
     nor.extend_from_slice(&[n2; 4]);
-
-    col.extend(std::iter::repeat(color).take(8));
+    col.extend_from_slice(&[color_base, color_base, color_tip, color_tip]);
 
     for q in 0..2u32 {
         let f = base + q * 4;
@@ -796,7 +805,8 @@ fn push_crossed_planes(
     }
 }
 
-/// Append a single tapered blade (1 quad) with rotation and scale baked into vertices.
+/// Append a single tapered blade (1 quad) with rotation and scale baked in.
+/// Base→tip color gradient for painted look.
 fn push_blade(
     pos: &mut Vec<[f32; 3]>,
     nor: &mut Vec<[f32; 3]>,
@@ -807,12 +817,13 @@ fn push_blade(
     h: f32,
     scale: f32,
     rot_y: f32,
-    color: [f32; 4],
+    color_base: [f32; 4],
+    color_tip: [f32; 4],
 ) {
     let base = pos.len() as u32;
     let (sin_r, cos_r) = rot_y.sin_cos();
     let s = scale;
-    let taper = 0.6;
+    let taper = 0.35; // sharper taper for blade shape
 
     let xform = |lx: f32, ly: f32, lz: f32| -> [f32; 3] {
         let sx = lx * s;
@@ -832,10 +843,56 @@ fn push_blade(
     ]);
     let n = [sin_r, 0.0, cos_r];
     nor.extend_from_slice(&[n; 4]);
-    col.extend(std::iter::repeat(color).take(4));
+    col.extend_from_slice(&[color_base, color_base, color_tip, color_tip]);
 
     let f = base;
     idx.extend_from_slice(&[f, f + 2, f + 1, f, f + 3, f + 2]);
+}
+
+/// Append a multi-blade grass cluster: 3-4 tapered blades at varied angles/heights.
+/// Creates a clumpy, organic tuft that reads as a single grass clump.
+fn push_grass_cluster(
+    pos: &mut Vec<[f32; 3]>,
+    nor: &mut Vec<[f32; 3]>,
+    col: &mut Vec<[f32; 4]>,
+    idx: &mut Vec<u32>,
+    origin: Vec3,
+    hw: f32,
+    h: f32,
+    scale: f32,
+    rot_y: f32,
+    color_base: [f32; 4],
+    color_tip: [f32; 4],
+    blade_count: usize,
+    seed: f32,
+) {
+    let tau = std::f32::consts::TAU;
+    for bi in 0..blade_count {
+        let fi = bi as f32;
+        // Each blade gets its own angle spread around the cluster center
+        let blade_rot = rot_y + (fi / blade_count as f32) * tau + (seed + fi * 1.7).sin() * 0.3;
+        // Vary height per blade: 60-110% of base height
+        let h_var = h * (0.60 + ((seed * 3.1 + fi * 2.3).sin() * 0.5 + 0.5) * 0.50);
+        // Slight width variation
+        let hw_var = hw * (0.80 + ((seed * 2.7 + fi * 1.9).cos() * 0.5 + 0.5) * 0.30);
+        // Small positional offset per blade for clumpy feel
+        let ox = ((seed * 4.3 + fi * 3.1).sin()) * hw * 0.4 * scale;
+        let oz = ((seed * 5.1 + fi * 2.7).cos()) * hw * 0.4 * scale;
+        let blade_origin = Vec3::new(origin.x + ox, origin.y, origin.z + oz);
+        push_blade(
+            pos,
+            nor,
+            col,
+            idx,
+            blade_origin,
+            hw_var,
+            h_var,
+            scale,
+            blade_rot,
+            color_base,
+            color_tip,
+        );
+    }
 }
 
 /// Assemble a Bevy Mesh from the combined vertex buffers.
@@ -2067,70 +2124,107 @@ fn process_chunk_spawns_and_despawns(
                         let origin =
                             Vec3::new(lx + jx, body_h + CAP_HEIGHT + y_offset + 0.002, lz + jz);
 
-                        let color = match kind {
-                            1 => srgb_color(VEG_GRASS_TALL.0, VEG_GRASS_TALL.1, VEG_GRASS_TALL.2),
+                        // Per-tuft hue jitter for painterly variety (like trees)
+                        let hue_seed = hash2d(tx + seed_x + 500, tz + seed_z + 500);
+                        let hj = (hue_seed - 0.5) * 0.08; // ±0.04 hue shift
+                        let bright = 0.88 + hash2d(tx + seed_x + 600, tz + seed_z + 600) * 0.24;
+
+                        let jitter_color = |base: (f32, f32, f32)| -> (f32, f32, f32) {
+                            (
+                                ((base.0 + hj) * bright).clamp(0.0, 1.0),
+                                ((base.1 + hj * 0.3) * bright).clamp(0.0, 1.0),
+                                ((base.2 - hj * 0.5) * bright).clamp(0.0, 1.0),
+                            )
+                        };
+
+                        let (col_base, col_tip) = match kind {
+                            1 => {
+                                let b = jitter_color(VEG_GRASS_TALL_BASE);
+                                let t = jitter_color(VEG_GRASS_TALL_TIP);
+                                (srgb_color(b.0, b.1, b.2), srgb_color(t.0, t.1, t.2))
+                            }
                             2 => {
-                                srgb_color(VEG_GRASS_BLADE.0, VEG_GRASS_BLADE.1, VEG_GRASS_BLADE.2)
+                                let b = jitter_color(VEG_GRASS_BLADE_BASE);
+                                let t = jitter_color(VEG_GRASS_BLADE_TIP);
+                                (srgb_color(b.0, b.1, b.2), srgb_color(t.0, t.1, t.2))
                             }
                             3 => {
                                 let fi = (hash2d(tx + seed_x + 400, tz) * 4.0) as usize % 4;
                                 let (r, g, b) = VEG_FLOWER_COLORS[fi];
-                                srgb_color(r, g, b)
+                                let stem = jitter_color(VEG_FLOWER_STEM);
+                                (srgb_color(stem.0, stem.1, stem.2), srgb_color(r, g, b))
                             }
-                            _ => srgb_color(VEG_GRASS_TUFT.0, VEG_GRASS_TUFT.1, VEG_GRASS_TUFT.2),
+                            _ => {
+                                let b = jitter_color(VEG_GRASS_TUFT_BASE);
+                                let t = jitter_color(VEG_GRASS_TUFT_TIP);
+                                (srgb_color(b.0, b.1, b.2), srgb_color(t.0, t.1, t.2))
+                            }
                         };
 
                         // Route to one of 3 wind groups
                         let group = &mut veg_groups[slot_idx % 3];
+                        let cluster_seed = tx as f32 * 3.7 + tz as f32 * 5.3 + seed_x as f32;
 
                         match kind {
-                            2 => push_blade(
+                            // Blade: 3-blade cluster for chunky grass tufts
+                            2 => push_grass_cluster(
                                 &mut group.pos,
                                 &mut group.nor,
                                 &mut group.col,
                                 &mut group.idx,
                                 origin,
-                                0.10,
-                                0.40,
+                                0.12,
+                                0.45,
                                 scale,
                                 rot_y,
-                                color,
+                                col_base,
+                                col_tip,
+                                3,
+                                cluster_seed,
                             ),
+                            // Tall grass: crossed planes with gradient
                             1 => push_crossed_planes(
                                 &mut group.pos,
                                 &mut group.nor,
                                 &mut group.col,
                                 &mut group.idx,
                                 origin,
-                                0.13,
-                                0.50,
+                                0.15,
+                                0.55,
                                 scale,
                                 rot_y,
-                                color,
+                                col_base,
+                                col_tip,
                             ),
+                            // Flowers: stem→blossom gradient
                             3 => push_crossed_planes(
                                 &mut group.pos,
                                 &mut group.nor,
                                 &mut group.col,
                                 &mut group.idx,
                                 origin,
-                                0.10,
-                                0.16,
+                                0.12,
+                                0.20,
                                 scale,
                                 rot_y,
-                                color,
+                                col_base,
+                                col_tip,
                             ),
-                            _ => push_crossed_planes(
+                            // Default tuft: 4-blade cluster for clumpy feel
+                            _ => push_grass_cluster(
                                 &mut group.pos,
                                 &mut group.nor,
                                 &mut group.col,
                                 &mut group.idx,
                                 origin,
-                                0.20,
-                                0.30,
+                                0.18,
+                                0.32,
                                 scale,
                                 rot_y,
-                                color,
+                                col_base,
+                                col_tip,
+                                4,
+                                cluster_seed,
                             ),
                         }
                     }

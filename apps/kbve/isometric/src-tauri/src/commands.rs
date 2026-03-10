@@ -1,13 +1,13 @@
 use crate::AVERAGE_FRAME_RATE;
 use crate::game::object_registry::get_registry_snapshot;
-use crate::game::scene_objects::get_selected_snapshot;
+use crate::game::scene_objects::{get_hovered_snapshot, get_selected_snapshot};
 use crate::game::state::get_player_snapshot;
 use std::sync::atomic::Ordering;
 
 #[cfg(not(target_arch = "wasm32"))]
 use crate::game::object_registry::ObjectRegistrySnapshot;
 #[cfg(not(target_arch = "wasm32"))]
-use crate::game::scene_objects::SelectedObject;
+use crate::game::scene_objects::{HoveredObject, SelectedObject};
 #[cfg(not(target_arch = "wasm32"))]
 use crate::game::state::PlayerState;
 
@@ -41,6 +41,12 @@ pub fn get_selected_object() -> Option<SelectedObject> {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tauri::command]
+pub fn get_hovered_object() -> Option<HoveredObject> {
+    get_hovered_snapshot()
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
 pub fn on_input_frame(
     keys_pressed: Vec<String>,
     keys_released: Vec<String>,
@@ -61,6 +67,15 @@ pub fn on_input_frame(
         mouse_released,
         scroll_y,
     );
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn dispatch_action(entity_id: f64, action: String) {
+    crate::game::actions::push_action(crate::game::actions::ActionRequest {
+        entity_id: entity_id as u64,
+        action,
+    });
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -99,6 +114,21 @@ pub fn get_object_registry_json() -> Option<String> {
 #[wasm_bindgen]
 pub fn get_selected_object_json() -> Option<String> {
     get_selected_snapshot().map(|s| serde_json::to_string(&s).unwrap_or_default())
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn get_hovered_object_json() -> Option<String> {
+    get_hovered_snapshot().map(|s| serde_json::to_string(&s).unwrap_or_default())
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn dispatch_action(entity_id: f64, action: &str) {
+    crate::game::actions::push_action(crate::game::actions::ActionRequest {
+        entity_id: entity_id as u64,
+        action: action.to_owned(),
+    });
 }
 
 #[cfg(target_arch = "wasm32")]
