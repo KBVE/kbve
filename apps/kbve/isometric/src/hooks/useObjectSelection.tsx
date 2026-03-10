@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import {
 	get_selected_object_json,
 	get_player_state_json,
+	dispatch_action,
 } from '../../wasm-pkg/isometric_game.js';
 import { gameEvents } from '../ui/events/event-bus';
 import type { FlowerArchetype, InteractableKind } from '../ui/events/event-map';
@@ -96,12 +97,19 @@ const FLOWER_INFO: Record<
 	},
 };
 
+/** Actions that dispatch to the Rust ECS instead of just showing a toast. */
+const DISPATCH_ACTIONS: Record<string, string> = {
+	'Chop Tree': 'chop_tree',
+};
+
 function ActionContent({
 	info,
 	objectPos,
+	entityId,
 }: {
 	info: ObjectInfo;
 	objectPos: Position;
+	entityId: number;
 }) {
 	return (
 		<div className="space-y-2 md:space-y-3">
@@ -132,10 +140,19 @@ function ActionContent({
 							gameEvents.emit('modal:close');
 							return;
 						}
-						gameEvents.emit('toast:show', {
-							message: `${info.action}: ${info.title}`,
-							severity: 'info',
-						});
+						const dispatchKey = DISPATCH_ACTIONS[info.action];
+						if (dispatchKey) {
+							dispatch_action(entityId, dispatchKey);
+							gameEvents.emit('toast:show', {
+								message: `Chopping ${info.title}...`,
+								severity: 'info',
+							});
+						} else {
+							gameEvents.emit('toast:show', {
+								message: `${info.action}: ${info.title}`,
+								severity: 'info',
+							});
+						}
 						gameEvents.emit('modal:close');
 					}}>
 					{info.action}
@@ -190,6 +207,7 @@ export function useObjectSelection() {
 						<ActionContent
 							info={info}
 							objectPos={selected.position}
+							entityId={selected.entity_id}
 						/>
 					),
 					onClose: () => {

@@ -248,7 +248,7 @@ jobs:
 
             - name: Set up Docker Buildx
               if: inputs.setup_docker
-              uses: docker/setup-buildx-action@v3
+              uses: docker/setup-buildx-action@v4
 
             - name: Restore Docker Buildx Cache
               if: inputs.setup_docker
