@@ -167,8 +167,9 @@ COPY packages/rust/kbve packages/rust/kbve
 # Application source (most frequently changing — placed last for cache)
 COPY apps/kbve/axum-kbve apps/kbve/axum-kbve
 
-# Copy Askama templates
+# Copy Askama templates, then overwrite with Astro-generated Starlight versions
 COPY apps/kbve/axum-kbve/templates/askama /app/apps/kbve/axum-kbve/templates/askama
+RUN cp -a /app/apps/kbve/axum-kbve/templates/dist/askama/. /app/apps/kbve/axum-kbve/templates/askama/
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
