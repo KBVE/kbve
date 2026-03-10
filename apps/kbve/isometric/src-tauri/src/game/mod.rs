@@ -3,6 +3,7 @@ pub mod camera;
 pub mod grass;
 pub mod input_bridge;
 pub mod inventory;
+pub mod mushrooms;
 pub mod object_registry;
 pub mod pixelate;
 pub mod player;

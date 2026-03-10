@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::scene_objects::RockKind;
+use super::scene_objects::{FlowerArchetype, MushroomKind, RockKind};
 
 // ── Item definitions ────────────────────────────────────────────────────
 
@@ -14,6 +14,21 @@ pub enum ItemKind {
     CopperOre,
     IronOre,
     CrystalOre,
+    // Flowers
+    Tulip,
+    Daisy,
+    Lavender,
+    Bellflower,
+    Wildflower,
+    Sunflower,
+    Rose,
+    Cornflower,
+    Allium,
+    BlueOrchid,
+    // Mushrooms
+    Porcini,
+    Chanterelle,
+    FlyAgaric,
 }
 
 impl ItemKind {
@@ -25,6 +40,19 @@ impl ItemKind {
             ItemKind::CopperOre => "Copper Ore",
             ItemKind::IronOre => "Iron Ore",
             ItemKind::CrystalOre => "Crystal Ore",
+            ItemKind::Tulip => "Tulip",
+            ItemKind::Daisy => "Daisy",
+            ItemKind::Lavender => "Lavender",
+            ItemKind::Bellflower => "Bellflower",
+            ItemKind::Wildflower => "Wildflower",
+            ItemKind::Sunflower => "Sunflower",
+            ItemKind::Rose => "Rose",
+            ItemKind::Cornflower => "Cornflower",
+            ItemKind::Allium => "Allium",
+            ItemKind::BlueOrchid => "Blue Orchid",
+            ItemKind::Porcini => "Porcini",
+            ItemKind::Chanterelle => "Chanterelle",
+            ItemKind::FlyAgaric => "Fly Agaric",
         }
     }
 
@@ -35,6 +63,29 @@ impl ItemKind {
             RockKind::OreCopper => ItemKind::CopperOre,
             RockKind::OreIron => ItemKind::IronOre,
             RockKind::OreCrystal => ItemKind::CrystalOre,
+        }
+    }
+
+    pub fn from_flower_archetype(arch: &FlowerArchetype) -> Self {
+        match arch {
+            FlowerArchetype::Tulip => ItemKind::Tulip,
+            FlowerArchetype::Daisy => ItemKind::Daisy,
+            FlowerArchetype::Lavender => ItemKind::Lavender,
+            FlowerArchetype::Bell => ItemKind::Bellflower,
+            FlowerArchetype::Wildflower => ItemKind::Wildflower,
+            FlowerArchetype::Sunflower => ItemKind::Sunflower,
+            FlowerArchetype::Rose => ItemKind::Rose,
+            FlowerArchetype::Cornflower => ItemKind::Cornflower,
+            FlowerArchetype::Allium => ItemKind::Allium,
+            FlowerArchetype::BlueOrchid => ItemKind::BlueOrchid,
+        }
+    }
+
+    pub fn from_mushroom_kind(kind: &MushroomKind) -> Self {
+        match kind {
+            MushroomKind::Porcini => ItemKind::Porcini,
+            MushroomKind::Chanterelle => ItemKind::Chanterelle,
+            MushroomKind::FlyAgaric => ItemKind::FlyAgaric,
         }
     }
 }

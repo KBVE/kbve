@@ -11,6 +11,19 @@ const ITEM_ICONS: Record<string, string> = {
 	copper_ore: '🟤',
 	iron_ore: '⬛',
 	crystal_ore: '🟣',
+	tulip: '🌷',
+	daisy: '🌼',
+	lavender: '💜',
+	bellflower: '🔔',
+	wildflower: '🌻',
+	sunflower: '🌻',
+	rose: '🌹',
+	cornflower: '💙',
+	allium: '🟣',
+	blue_orchid: '💎',
+	porcini: '🍄',
+	chanterelle: '🍄',
+	fly_agaric: '🍄',
 };
 
 const ITEM_SHORT_NAMES: Record<string, string> = {
@@ -20,6 +33,19 @@ const ITEM_SHORT_NAMES: Record<string, string> = {
 	copper_ore: 'Cu',
 	iron_ore: 'Fe',
 	crystal_ore: 'Cry',
+	tulip: 'Tlp',
+	daisy: 'Dsy',
+	lavender: 'Lvn',
+	bellflower: 'Bel',
+	wildflower: 'Wld',
+	sunflower: 'Sun',
+	rose: 'Rse',
+	cornflower: 'Crn',
+	allium: 'All',
+	blue_orchid: 'Orc',
+	porcini: 'Por',
+	chanterelle: 'Chn',
+	fly_agaric: 'Fly',
 };
 
 export function Inventory() {

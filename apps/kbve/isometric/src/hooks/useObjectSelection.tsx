@@ -8,6 +8,7 @@ import { gameEvents } from '../ui/events/event-bus';
 import type {
 	FlowerArchetype,
 	InteractableKind,
+	MushroomKind,
 	RockKind,
 } from '../ui/events/event-map';
 
@@ -78,6 +79,11 @@ const OBJECT_INFO: Record<InteractableKind, ObjectInfo> = {
 		description: 'A weathered stone formation.',
 		action: 'Mine Rock',
 	},
+	mushroom: {
+		title: 'Mushroom',
+		description: 'A wild mushroom growing in the shade.',
+		action: 'Collect Mushroom',
+	},
 };
 
 const FLOWER_INFO: Record<
@@ -137,11 +143,32 @@ const ROCK_INFO: Record<
 	},
 };
 
+const MUSHROOM_INFO: Record<
+	MushroomKind,
+	{ title: string; description: string }
+> = {
+	porcini: {
+		title: 'Porcini',
+		description: 'A plump porcini mushroom with a rich earthy aroma.',
+	},
+	chanterelle: {
+		title: 'Chanterelle',
+		description: 'A golden chanterelle with a delicate funnel shape.',
+	},
+	fly_agaric: {
+		title: 'Fly Agaric',
+		description:
+			'A red-capped toadstool with white spots. Handle with care.',
+	},
+};
+
 /** Actions that dispatch to the Rust ECS instead of just showing a toast. */
 const DISPATCH_ACTIONS: Record<string, string> = {
 	'Chop Tree': 'chop_tree',
 	'Mine Rock': 'mine_rock',
 	'Mine Ore': 'mine_rock',
+	'Collect Flower': 'collect_flower',
+	'Collect Mushroom': 'collect_mushroom',
 };
 
 function ActionContent({
@@ -188,7 +215,9 @@ function ActionContent({
 							const verb =
 								dispatchKey === 'chop_tree'
 									? 'Chopping'
-									: 'Mining';
+									: dispatchKey === 'mine_rock'
+										? 'Mining'
+										: 'Collecting';
 							gameEvents.emit('toast:show', {
 								message: `${verb} ${info.title}...`,
 								severity: 'info',
@@ -250,6 +279,18 @@ export function useObjectSelection() {
 							title: rock.title,
 							description: rock.description,
 							action: rock.action,
+						};
+					}
+				}
+
+				if (selected.kind === 'mushroom' && selected.sub_kind) {
+					const mushroom =
+						MUSHROOM_INFO[selected.sub_kind as MushroomKind];
+					if (mushroom) {
+						info = {
+							...info,
+							title: mushroom.title,
+							description: mushroom.description,
 						};
 					}
 				}

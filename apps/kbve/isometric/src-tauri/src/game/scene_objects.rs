@@ -64,6 +64,7 @@ pub enum InteractableKind {
     Sphere,
     Flower,
     Rock,
+    Mushroom,
 }
 
 /// Sub-type for collectible flowers (composition pattern).
@@ -120,6 +121,26 @@ impl RockKind {
             Self::OreCopper => "ore_copper",
             Self::OreIron => "ore_iron",
             Self::OreCrystal => "ore_crystal",
+        }
+    }
+}
+
+/// Sub-type for forageable mushrooms (composition pattern).
+/// Attach alongside `Interactable { kind: Mushroom }` for mushroom-specific data.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MushroomKind {
+    Porcini,
+    Chanterelle,
+    FlyAgaric,
+}
+
+impl MushroomKind {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Porcini => "porcini",
+            Self::Chanterelle => "chanterelle",
+            Self::FlyAgaric => "fly_agaric",
         }
     }
 }
@@ -468,6 +489,7 @@ fn update_hovered_snapshot(
             &Interactable,
             Option<&FlowerArchetype>,
             Option<&RockKind>,
+            Option<&MushroomKind>,
         ),
         With<Hovered>,
     >,
@@ -475,11 +497,12 @@ fn update_hovered_snapshot(
     let snapshot = hovered_query
         .iter()
         .next()
-        .map(|(gt, interactable, flower, rock)| {
+        .map(|(gt, interactable, flower, rock, mushroom)| {
             let pos = gt.translation();
             let sub_kind = flower
                 .map(|f| f.as_str().to_owned())
-                .or_else(|| rock.map(|r| r.as_str().to_owned()));
+                .or_else(|| rock.map(|r| r.as_str().to_owned()))
+                .or_else(|| mushroom.map(|m| m.as_str().to_owned()));
             HoveredObject {
                 kind: interactable.kind,
                 position: [pos.x, pos.y, pos.z],
@@ -510,6 +533,7 @@ fn detect_click_selection(
             &Interactable,
             Option<&FlowerArchetype>,
             Option<&RockKind>,
+            Option<&MushroomKind>,
         ),
         With<Hovered>,
     >,
@@ -518,14 +542,16 @@ fn detect_click_selection(
         return;
     }
 
-    let Some((entity, gt, interactable, flower, rock)) = hovered_query.iter().next() else {
+    let Some((entity, gt, interactable, flower, rock, mushroom)) = hovered_query.iter().next()
+    else {
         return;
     };
 
     let pos = gt.translation();
     let sub_kind = flower
         .map(|f| f.as_str().to_owned())
-        .or_else(|| rock.map(|r| r.as_str().to_owned()));
+        .or_else(|| rock.map(|r| r.as_str().to_owned()))
+        .or_else(|| mushroom.map(|m| m.as_str().to_owned()));
     let snapshot = SelectedObject {
         kind: interactable.kind,
         position: [pos.x, pos.y, pos.z],

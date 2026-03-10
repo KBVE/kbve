@@ -19,6 +19,19 @@ const ITEM_NAMES: Record<string, string> = {
 	copper_ore: 'Copper Ore',
 	iron_ore: 'Iron Ore',
 	crystal_ore: 'Crystal Ore',
+	tulip: 'Tulip',
+	daisy: 'Daisy',
+	lavender: 'Lavender',
+	bellflower: 'Bellflower',
+	wildflower: 'Wildflower',
+	sunflower: 'Sunflower',
+	rose: 'Rose',
+	cornflower: 'Cornflower',
+	allium: 'Allium',
+	blue_orchid: 'Blue Orchid',
+	porcini: 'Porcini',
+	chanterelle: 'Chanterelle',
+	fly_agaric: 'Fly Agaric',
 };
 
 export function useInventory() {

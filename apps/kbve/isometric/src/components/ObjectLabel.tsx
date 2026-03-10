@@ -86,6 +86,7 @@ const OBJECT_NAMES: Record<InteractableKind, string> = {
 	sphere: 'Metallic Sphere',
 	flower: 'Flower',
 	rock: 'Rock',
+	mushroom: 'Mushroom',
 };
 
 const FLOWER_NAMES: Record<string, string> = {
@@ -107,6 +108,12 @@ const ROCK_NAMES: Record<string, string> = {
 	ore_copper: 'Copper Ore',
 	ore_iron: 'Iron Ore',
 	ore_crystal: 'Crystal Ore',
+};
+
+const MUSHROOM_NAMES: Record<string, string> = {
+	porcini: 'Porcini',
+	chanterelle: 'Chanterelle',
+	fly_agaric: 'Fly Agaric',
 };
 
 interface HoveredData {
@@ -173,6 +180,9 @@ export function ObjectLabel() {
 				}
 				if (obj.kind === 'rock' && obj.sub_kind) {
 					name = ROCK_NAMES[obj.sub_kind] ?? name;
+				}
+				if (obj.kind === 'mushroom' && obj.sub_kind) {
+					name = MUSHROOM_NAMES[obj.sub_kind] ?? name;
 				}
 
 				setHovered({
