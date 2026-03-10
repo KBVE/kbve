@@ -9,6 +9,7 @@
 			"options": {
 				"commands": [
 					"./kbve.sh -nx astro-kbve:build",
+					"rm -rf ./apps/kbve/axum-kbve/templates/dist && mkdir -p ./apps/kbve/axum-kbve/templates/dist && cp -a ./dist/apps/astro-kbve/. ./apps/kbve/axum-kbve/templates/dist/",
 					"STATIC_DIR=./dist/apps/astro-kbve STATIC_PRECOMPRESSED=false cargo run -p axum-kbve"
 				],
 				"parallel": false

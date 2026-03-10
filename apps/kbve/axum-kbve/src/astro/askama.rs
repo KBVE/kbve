@@ -73,7 +73,7 @@ pub struct RentEarthCharacterDisplay {
 
 /// User profile page template (Astro-built)
 #[derive(Template)]
-#[template(path = "askama/profile/index.html")]
+#[template(path = "dist/askama/profile/index.html")]
 pub struct ProfileTemplate {
     pub username: String,
     pub username_first_char: String,
@@ -112,7 +112,7 @@ pub struct ProfileTemplate {
 
 /// Profile not found template (Astro-built)
 #[derive(Template)]
-#[template(path = "askama/profile_not_found/index.html")]
+#[template(path = "dist/askama/profile_not_found/index.html")]
 pub struct ProfileNotFoundTemplate {
     pub username: String,
 }
