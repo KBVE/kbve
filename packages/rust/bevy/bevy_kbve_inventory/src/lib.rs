@@ -18,6 +18,10 @@
 //!   [`get_inventory_snapshot_json`].
 //! - **Serde support** — [`Inventory`] and [`ItemStack`] derive `Serialize`/`Deserialize`
 //!   for save files, network sync, or any other serialization need.
+//! - **Action events** — [`SplitStackAction`], [`MergeStackAction`], [`MoveSlotAction`]
+//!   with built-in input validation and [`InventoryActionResult`] feedback.
+//! - **Search** — [`Inventory::search`] finds items by name with case-insensitive
+//!   substring matching.
 //! - **WASM-compatible** — snapshot store uses `thread_local!` on `wasm32` targets and
 //!   `Mutex` on native targets.
 //!
@@ -566,6 +570,51 @@ impl<K: ItemKind> Inventory<K> {
         transferred
     }
 
+    /// Search for items whose [`ItemKind::display_name`] contains the query string
+    /// (case-insensitive).
+    ///
+    /// Returns a list of `(slot_index, &ItemStack)` pairs for all matching slots.
+    /// Useful for inventory search bars in UI.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use bevy_inventory::{Inventory, ItemKind};
+    /// # #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+    /// # enum Item { Porcini, Chanterelle, IronOre }
+    /// # impl ItemKind for Item {
+    /// #     fn display_name(&self) -> &'static str {
+    /// #         match self {
+    /// #             Item::Porcini => "Porcini Mushroom",
+    /// #             Item::Chanterelle => "Chanterelle Mushroom",
+    /// #             Item::IronOre => "Iron Ore",
+    /// #         }
+    /// #     }
+    /// # }
+    /// let mut inv = Inventory::<Item>::new(8);
+    /// inv.add(Item::Porcini, 3);
+    /// inv.add(Item::IronOre, 5);
+    /// inv.add(Item::Chanterelle, 2);
+    /// let results = inv.search("mushroom");
+    /// assert_eq!(results.len(), 2);
+    /// assert_eq!(results[0].0, 0); // Porcini at slot 0
+    /// assert_eq!(results[1].0, 2); // Chanterelle at slot 2
+    /// ```
+    pub fn search(&self, query: &str) -> Vec<(usize, &ItemStack<K>)> {
+        let query_lower = query.to_lowercase();
+        self.items
+            .iter()
+            .enumerate()
+            .filter(|(_, stack)| {
+                stack
+                    .kind
+                    .display_name()
+                    .to_lowercase()
+                    .contains(&query_lower)
+            })
+            .collect()
+    }
+
     /// Clear all items from the inventory.
     pub fn clear(&mut self) {
         self.items.clear();
@@ -622,6 +671,158 @@ pub struct InventoryFullEvent<K: ItemKind> {
     pub kind: K,
     /// How many items could not fit.
     pub overflow: u32,
+}
+
+// ── Action events ───────────────────────────────────────────────────────
+//
+// These events represent user-initiated inventory mutations. The UI fires
+// them, and registered observers validate the input before executing.
+// After processing, an [`InventoryActionResult`] event is triggered so
+// the UI can display success/error feedback.
+
+/// Split a stack at `slot` into two, moving `quantity` items to a new slot.
+///
+/// The observer validates:
+/// - `slot` is in bounds
+/// - `quantity` is clamped to `1..=(stack_size - 1)`
+/// - There is at least one empty slot
+///
+/// # Example
+///
+/// ```rust,no_run
+/// # use bevy::prelude::*;
+/// # use bevy_inventory::{SplitStackAction, ItemKind};
+/// # #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+/// # enum Item { Coin }
+/// # impl ItemKind for Item { fn display_name(&self) -> &'static str { "Coin" } }
+/// fn on_shift_click(mut commands: Commands) {
+///     // Player shift-clicked slot 3, typed "16" in the split dialog
+///     commands.trigger(SplitStackAction::<Item>::new(3, 16));
+/// }
+/// ```
+#[derive(Event, Debug, Clone)]
+pub struct SplitStackAction<K: ItemKind> {
+    /// The slot index to split from.
+    pub slot: usize,
+    /// How many items to move to the new slot.
+    pub quantity: u32,
+    _marker: PhantomData<K>,
+}
+
+impl<K: ItemKind> SplitStackAction<K> {
+    /// Create a new split action.
+    pub fn new(slot: usize, quantity: u32) -> Self {
+        Self {
+            slot,
+            quantity,
+            _marker: PhantomData,
+        }
+    }
+}
+
+/// Merge the stack at `from` into the stack at `to`.
+///
+/// The observer validates that both slots exist and contain the same item kind.
+#[derive(Event, Debug, Clone)]
+pub struct MergeStackAction<K: ItemKind> {
+    /// Source slot index.
+    pub from: usize,
+    /// Destination slot index.
+    pub to: usize,
+    _marker: PhantomData<K>,
+}
+
+impl<K: ItemKind> MergeStackAction<K> {
+    /// Create a new merge action.
+    pub fn new(from: usize, to: usize) -> Self {
+        Self {
+            from,
+            to,
+            _marker: PhantomData,
+        }
+    }
+}
+
+/// Move (swap) the contents of two slots.
+///
+/// The observer validates that both slot indices are in bounds.
+#[derive(Event, Debug, Clone)]
+pub struct MoveSlotAction<K: ItemKind> {
+    /// First slot index.
+    pub from: usize,
+    /// Second slot index.
+    pub to: usize,
+    _marker: PhantomData<K>,
+}
+
+impl<K: ItemKind> MoveSlotAction<K> {
+    /// Create a new move action.
+    pub fn new(from: usize, to: usize) -> Self {
+        Self {
+            from,
+            to,
+            _marker: PhantomData,
+        }
+    }
+}
+
+/// The outcome of an inventory action.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ActionOutcome {
+    /// The action succeeded.
+    Success,
+    /// The action succeeded but the input was clamped to a valid range.
+    Clamped {
+        /// The original requested value.
+        requested: u32,
+        /// The clamped value that was actually used.
+        actual: u32,
+    },
+    /// The action failed.
+    Failed(ActionError),
+}
+
+/// Reasons an inventory action can fail.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ActionError {
+    /// A slot index was out of bounds.
+    SlotOutOfBounds,
+    /// No empty slots available for the operation.
+    NoEmptySlots,
+    /// Tried to merge/move slots of different item kinds.
+    KindMismatch,
+    /// The requested quantity was zero or invalid.
+    InvalidQuantity,
+}
+
+/// Fired after an inventory action is processed.
+///
+/// Observe this event to update UI (show error toasts, play sounds, etc.).
+///
+/// ```rust,no_run
+/// # use bevy::prelude::*;
+/// # use bevy_inventory::{InventoryActionResult, ActionOutcome, ItemKind};
+/// # #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+/// # enum Item { Coin }
+/// # impl ItemKind for Item { fn display_name(&self) -> &'static str { "Coin" } }
+/// fn on_action_result(event: On<InventoryActionResult>) {
+///     match &event.outcome {
+///         ActionOutcome::Success => { /* play success sound */ }
+///         ActionOutcome::Clamped { requested, actual } => {
+///             eprintln!("Clamped {} -> {}", requested, actual);
+///         }
+///         ActionOutcome::Failed(err) => {
+///             eprintln!("Action failed: {:?}", err);
+///         }
+///     }
+/// }
+/// ```
+#[derive(Event, Debug, Clone)]
+pub struct InventoryActionResult {
+    /// Which action was attempted.
+    pub action: &'static str,
+    /// The outcome.
+    pub outcome: ActionOutcome,
 }
 
 // ── Snapshot ────────────────────────────────────────────────────────────
@@ -733,6 +934,9 @@ impl<K: ItemKind> Plugin for InventoryPlugin<K> {
     fn build(&self, app: &mut App) {
         app.insert_resource(Inventory::<K>::new(self.max_slots));
         app.add_observer(process_loot_events::<K>);
+        app.add_observer(process_split_action::<K>);
+        app.add_observer(process_merge_action::<K>);
+        app.add_observer(process_move_action::<K>);
         app.add_systems(Update, snapshot_inventory::<K>);
     }
 }
@@ -751,6 +955,126 @@ fn process_loot_events<K: ItemKind>(
             overflow,
         });
     }
+}
+
+fn process_split_action<K: ItemKind>(
+    event: On<SplitStackAction<K>>,
+    mut inventory: ResMut<Inventory<K>>,
+    mut commands: Commands,
+) {
+    let slot = event.slot;
+    let requested = event.quantity;
+
+    // Validate slot bounds
+    if slot >= inventory.items.len() {
+        commands.trigger(InventoryActionResult {
+            action: "split",
+            outcome: ActionOutcome::Failed(ActionError::SlotOutOfBounds),
+        });
+        return;
+    }
+
+    // Validate empty slot available
+    if inventory.items.len() >= inventory.max_slots {
+        commands.trigger(InventoryActionResult {
+            action: "split",
+            outcome: ActionOutcome::Failed(ActionError::NoEmptySlots),
+        });
+        return;
+    }
+
+    let stack_qty = inventory.items[slot].quantity;
+
+    // Validate quantity — need at least 2 items to split
+    if stack_qty < 2 {
+        commands.trigger(InventoryActionResult {
+            action: "split",
+            outcome: ActionOutcome::Failed(ActionError::InvalidQuantity),
+        });
+        return;
+    }
+
+    // Clamp quantity to valid range: 1..=(stack_qty - 1)
+    let clamped = requested.clamp(1, stack_qty - 1);
+
+    // Execute
+    inventory.split_stack(slot, clamped);
+
+    let outcome = if clamped != requested {
+        ActionOutcome::Clamped {
+            requested,
+            actual: clamped,
+        }
+    } else {
+        ActionOutcome::Success
+    };
+
+    commands.trigger(InventoryActionResult {
+        action: "split",
+        outcome,
+    });
+}
+
+fn process_merge_action<K: ItemKind>(
+    event: On<MergeStackAction<K>>,
+    mut inventory: ResMut<Inventory<K>>,
+    mut commands: Commands,
+) {
+    let from = event.from;
+    let to = event.to;
+
+    if from >= inventory.items.len() || to >= inventory.items.len() {
+        commands.trigger(InventoryActionResult {
+            action: "merge",
+            outcome: ActionOutcome::Failed(ActionError::SlotOutOfBounds),
+        });
+        return;
+    }
+
+    if from == to {
+        commands.trigger(InventoryActionResult {
+            action: "merge",
+            outcome: ActionOutcome::Failed(ActionError::InvalidQuantity),
+        });
+        return;
+    }
+
+    if inventory.items[from].kind != inventory.items[to].kind {
+        commands.trigger(InventoryActionResult {
+            action: "merge",
+            outcome: ActionOutcome::Failed(ActionError::KindMismatch),
+        });
+        return;
+    }
+
+    inventory.merge_slots(from, to);
+
+    commands.trigger(InventoryActionResult {
+        action: "merge",
+        outcome: ActionOutcome::Success,
+    });
+}
+
+fn process_move_action<K: ItemKind>(
+    event: On<MoveSlotAction<K>>,
+    mut inventory: ResMut<Inventory<K>>,
+    mut commands: Commands,
+) {
+    let from = event.from;
+    let to = event.to;
+
+    if !inventory.swap_slots(from, to) {
+        commands.trigger(InventoryActionResult {
+            action: "move",
+            outcome: ActionOutcome::Failed(ActionError::SlotOutOfBounds),
+        });
+        return;
+    }
+
+    commands.trigger(InventoryActionResult {
+        action: "move",
+        outcome: ActionOutcome::Success,
+    });
 }
 
 fn snapshot_inventory<K: ItemKind>(inventory: Res<Inventory<K>>) {
@@ -1349,5 +1673,178 @@ mod tests {
         assert_eq!(inv.count(TestItem::Gold), 15);
         assert_eq!(inv.total_item_count(), 135);
         assert_eq!(inv.unique_kinds().len(), 3);
+    }
+
+    // ── Search tests ────────────────────────────────────────────────────
+
+    #[test]
+    fn search_exact_match() {
+        let mut inv = Inventory::<TestItem>::new(4);
+        inv.add(TestItem::Wood, 5);
+        inv.add(TestItem::Stone, 3);
+        let results = inv.search("Wood");
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].0, 0);
+        assert_eq!(results[0].1.kind, TestItem::Wood);
+    }
+
+    #[test]
+    fn search_case_insensitive() {
+        let mut inv = Inventory::<TestItem>::new(4);
+        inv.add(TestItem::Wood, 5);
+        let results = inv.search("wood");
+        assert_eq!(results.len(), 1);
+        let results = inv.search("WOOD");
+        assert_eq!(results.len(), 1);
+    }
+
+    #[test]
+    fn search_partial_match() {
+        let mut inv = Inventory::<TestItem>::new(4);
+        inv.add(TestItem::Wood, 5);
+        inv.add(TestItem::Stone, 3);
+        inv.add(TestItem::Gold, 1);
+        // "o" matches Wood, Stone, Gold (all have 'o')
+        let results = inv.search("o");
+        assert_eq!(results.len(), 3);
+    }
+
+    #[test]
+    fn search_no_match() {
+        let mut inv = Inventory::<TestItem>::new(4);
+        inv.add(TestItem::Wood, 5);
+        let results = inv.search("diamond");
+        assert!(results.is_empty());
+    }
+
+    #[test]
+    fn search_empty_query() {
+        let mut inv = Inventory::<TestItem>::new(4);
+        inv.add(TestItem::Wood, 5);
+        inv.add(TestItem::Stone, 3);
+        // Empty string matches everything
+        let results = inv.search("");
+        assert_eq!(results.len(), 2);
+    }
+
+    #[test]
+    fn search_empty_inventory() {
+        let inv = Inventory::<TestItem>::new(4);
+        let results = inv.search("Wood");
+        assert!(results.is_empty());
+    }
+
+    // ── Action event unit tests (no ECS, just validate the types) ───────
+
+    #[test]
+    fn split_action_construction() {
+        let action = SplitStackAction::<TestItem>::new(3, 16);
+        assert_eq!(action.slot, 3);
+        assert_eq!(action.quantity, 16);
+    }
+
+    #[test]
+    fn merge_action_construction() {
+        let action = MergeStackAction::<TestItem>::new(0, 2);
+        assert_eq!(action.from, 0);
+        assert_eq!(action.to, 2);
+    }
+
+    #[test]
+    fn move_action_construction() {
+        let action = MoveSlotAction::<TestItem>::new(1, 3);
+        assert_eq!(action.from, 1);
+        assert_eq!(action.to, 3);
+    }
+
+    #[test]
+    fn action_outcome_equality() {
+        assert_eq!(ActionOutcome::Success, ActionOutcome::Success);
+        assert_eq!(
+            ActionOutcome::Clamped {
+                requested: 200,
+                actual: 99
+            },
+            ActionOutcome::Clamped {
+                requested: 200,
+                actual: 99
+            }
+        );
+        assert_eq!(
+            ActionOutcome::Failed(ActionError::SlotOutOfBounds),
+            ActionOutcome::Failed(ActionError::SlotOutOfBounds)
+        );
+        assert_ne!(
+            ActionOutcome::Success,
+            ActionOutcome::Failed(ActionError::InvalidQuantity)
+        );
+    }
+
+    #[test]
+    fn action_result_construction() {
+        let result = InventoryActionResult {
+            action: "split",
+            outcome: ActionOutcome::Clamped {
+                requested: 200,
+                actual: 99,
+            },
+        };
+        assert_eq!(result.action, "split");
+        assert_eq!(
+            result.outcome,
+            ActionOutcome::Clamped {
+                requested: 200,
+                actual: 99
+            }
+        );
+    }
+
+    // ── Validation logic tests (test the clamping/boundary directly) ────
+
+    #[test]
+    fn split_clamp_over_stack_size() {
+        // Simulates what the observer does: clamp to valid range
+        let mut inv = Inventory::<TestItem>::new(4);
+        inv.add(TestItem::Wood, 100);
+        let stack_qty = inv.get_slot(0).unwrap().quantity;
+        let requested: u32 = 200; // way over the 100 in the stack
+        let clamped = requested.clamp(1, stack_qty - 1);
+        assert_eq!(clamped, 99); // clamped to stack_size - 1
+        assert!(inv.split_stack(0, clamped));
+        assert_eq!(inv.get_slot(0).unwrap().quantity, 1);
+        assert_eq!(inv.get_slot(1).unwrap().quantity, 99);
+    }
+
+    #[test]
+    fn split_clamp_zero_to_one() {
+        let mut inv = Inventory::<TestItem>::new(4);
+        inv.add(TestItem::Wood, 10);
+        let stack_qty = inv.get_slot(0).unwrap().quantity;
+        let requested: u32 = 0;
+        let clamped = requested.clamp(1, stack_qty - 1);
+        assert_eq!(clamped, 1); // clamped up to 1
+        assert!(inv.split_stack(0, clamped));
+        assert_eq!(inv.get_slot(0).unwrap().quantity, 9);
+        assert_eq!(inv.get_slot(1).unwrap().quantity, 1);
+    }
+
+    #[test]
+    fn split_exact_half() {
+        let mut inv = Inventory::<TestItem>::new(4);
+        inv.add(TestItem::Gold, 10); // max_stack = 10
+        assert!(inv.split_stack(0, 5));
+        assert_eq!(inv.get_slot(0).unwrap().quantity, 5);
+        assert_eq!(inv.get_slot(1).unwrap().quantity, 5);
+    }
+
+    #[test]
+    fn split_16_from_100() {
+        // The exact scenario from the user request
+        let mut inv = Inventory::<TestItem>::new(4);
+        inv.add(TestItem::Wood, 100);
+        assert!(inv.split_stack(0, 16));
+        assert_eq!(inv.get_slot(0).unwrap().quantity, 84);
+        assert_eq!(inv.get_slot(1).unwrap().quantity, 16);
+        assert_eq!(inv.count(TestItem::Wood), 100); // total preserved
     }
 }
