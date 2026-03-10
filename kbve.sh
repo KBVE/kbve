@@ -542,6 +542,181 @@ _cleanup_submodule_worktree_refs() {
     done < <(find "$modules_dir" -path "*/worktrees/*/gitdir" -type f 2>/dev/null)
 }
 
+# ---------------------------------------------------------------------------
+# Worktree Audit Tools
+# ---------------------------------------------------------------------------
+
+# List all worktrees with status summary (dirty/clean/missing).
+audit_worktree_list() {
+    local main_repo
+    main_repo=$(git rev-parse --show-toplevel)
+
+    local total=0 clean=0 dirty=0 missing=0
+
+    echo "=== Worktree Audit ==="
+    echo ""
+    printf "%-50s %-10s %s\n" "WORKTREE" "STATUS" "BRANCH"
+    printf "%-50s %-10s %s\n" "--------" "------" "------"
+
+    while IFS= read -r line; do
+        local wt_path wt_branch
+        wt_path=$(echo "$line" | awk '{print $1}')
+        wt_branch=$(echo "$line" | sed 's/.*\[//' | sed 's/\]//')
+
+        total=$((total + 1))
+
+        # Skip the main repo
+        if [ "$wt_path" = "$main_repo" ]; then
+            printf "%-50s %-10s %s\n" "$(basename "$wt_path")" "main" "$wt_branch"
+            continue
+        fi
+
+        if [ ! -d "$wt_path" ]; then
+            printf "%-50s %-10s %s\n" "$(basename "$wt_path")" "MISSING" "$wt_branch"
+            missing=$((missing + 1))
+        elif [ -n "$(git -C "$wt_path" status --porcelain 2>/dev/null)" ]; then
+            printf "%-50s %-10s %s\n" "$(basename "$wt_path")" "DIRTY" "$wt_branch"
+            dirty=$((dirty + 1))
+        else
+            printf "%-50s %-10s %s\n" "$(basename "$wt_path")" "clean" "$wt_branch"
+            clean=$((clean + 1))
+        fi
+    done < <(git worktree list)
+
+    echo ""
+    echo "Total: $total | Clean: $clean | Dirty: $dirty | Missing: $missing"
+}
+
+# Show what's dirty in each worktree (uncommitted files).
+audit_worktree_dirty() {
+    local main_repo
+    main_repo=$(git rev-parse --show-toplevel)
+    local found=0
+
+    echo "=== Dirty Worktrees ==="
+    echo ""
+
+    while IFS= read -r line; do
+        local wt_path
+        wt_path=$(echo "$line" | awk '{print $1}')
+
+        [ "$wt_path" = "$main_repo" ] && continue
+        [ ! -d "$wt_path" ] && continue
+
+        local changes
+        changes=$(git -C "$wt_path" status --porcelain 2>/dev/null)
+        if [ -n "$changes" ]; then
+            found=$((found + 1))
+            echo "--- $(basename "$wt_path") ---"
+            echo "$changes"
+            echo ""
+        fi
+    done < <(git worktree list)
+
+    if [ "$found" -eq 0 ]; then
+        echo "All worktrees are clean."
+    fi
+}
+
+# Remove all clean worktrees (no uncommitted changes). Prompts for confirmation.
+audit_worktree_gc() {
+    local main_repo
+    main_repo=$(git rev-parse --show-toplevel)
+    local clean_list=()
+
+    while IFS= read -r line; do
+        local wt_path
+        wt_path=$(echo "$line" | awk '{print $1}')
+
+        [ "$wt_path" = "$main_repo" ] && continue
+        [ ! -d "$wt_path" ] && continue
+
+        if [ -z "$(git -C "$wt_path" status --porcelain 2>/dev/null)" ]; then
+            clean_list+=("$wt_path")
+        fi
+    done < <(git worktree list)
+
+    if [ ${#clean_list[@]} -eq 0 ]; then
+        echo "No clean worktrees to remove."
+        return 0
+    fi
+
+    echo "The following ${#clean_list[@]} clean worktrees will be removed:"
+    echo ""
+    for wt in "${clean_list[@]}"; do
+        echo "  $(basename "$wt")"
+    done
+    echo ""
+    echo -n "Proceed? [y/N] "
+    read -r confirm
+    if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
+        echo "Aborted."
+        return 0
+    fi
+
+    local removed=0 failed=0
+    for wt in "${clean_list[@]}"; do
+        echo "Removing $(basename "$wt")..."
+        if git worktree remove --force "$wt" 2>/dev/null; then
+            removed=$((removed + 1))
+        else
+            # Fallback: rm + prune (submodule worktrees)
+            rm -rf "$wt" 2>/dev/null
+            if [ ! -d "$wt" ]; then
+                removed=$((removed + 1))
+            else
+                echo "  FAILED: $wt"
+                failed=$((failed + 1))
+            fi
+        fi
+    done
+
+    git worktree prune
+    echo ""
+    echo "Removed: $removed | Failed: $failed"
+}
+
+# Show worktrees that are stale (branch already merged into dev or main).
+audit_worktree_stale() {
+    local main_repo
+    main_repo=$(git rev-parse --show-toplevel)
+
+    echo "Fetching latest branches..."
+    git fetch origin dev --quiet 2>/dev/null
+
+    echo ""
+    echo "=== Stale Worktrees (branch fully merged into origin/dev) ==="
+    echo ""
+
+    local found=0
+    while IFS= read -r line; do
+        local wt_path wt_branch
+        wt_path=$(echo "$line" | awk '{print $1}')
+        wt_branch=$(echo "$line" | sed 's/.*\[//' | sed 's/\]//')
+
+        [ "$wt_path" = "$main_repo" ] && continue
+        [ ! -d "$wt_path" ] && continue
+
+        # Check if the worktree HEAD is an ancestor of origin/dev
+        local wt_head
+        wt_head=$(git -C "$wt_path" rev-parse HEAD 2>/dev/null)
+        if [ -n "$wt_head" ] && git merge-base --is-ancestor "$wt_head" origin/dev 2>/dev/null; then
+            found=$((found + 1))
+            local st="clean"
+            [ -n "$(git -C "$wt_path" status --porcelain 2>/dev/null)" ] && st="DIRTY"
+            printf "  %-45s %-8s %s\n" "$(basename "$wt_path")" "$st" "$wt_branch"
+        fi
+    done < <(git worktree list)
+
+    if [ "$found" -eq 0 ]; then
+        echo "No stale worktrees found."
+    else
+        echo ""
+        echo "$found worktree(s) fully merged into origin/dev."
+        echo "Remove with: $0 -worktree-rm <name>"
+    fi
+}
+
 # Function to manage a tmux session
 manage_tmux_session() {
     # Assign the first argument to session_name
@@ -868,6 +1043,18 @@ case "$1" in
         shift
         remove_worktree "$@"
         ;;
+    -worktree-list)
+        audit_worktree_list
+        ;;
+    -worktree-dirty)
+        audit_worktree_dirty
+        ;;
+    -worktree-gc)
+        audit_worktree_gc
+        ;;
+    -worktree-stale)
+        audit_worktree_stale
+        ;;
     -db)
         if is_installed "diesel_ext"; then
            # Save the current directory
@@ -971,6 +1158,10 @@ case "$1" in
         echo "  -zeta [desc]       Create zeta patch branch"
         echo "  -worktree <name> [base]  Create worktree with env + deps"
         echo "  -worktree-rm <name>      Remove a worktree"
+        echo "  -worktree-list           Audit all worktrees (clean/dirty/missing)"
+        echo "  -worktree-dirty          Show uncommitted changes per worktree"
+        echo "  -worktree-gc             Remove all clean worktrees (interactive)"
+        echo "  -worktree-stale          Find worktrees already merged into dev"
         echo ""
         echo "Version:"
         echo "  -cargobump [pkg]   Bump Cargo.toml patch version"
