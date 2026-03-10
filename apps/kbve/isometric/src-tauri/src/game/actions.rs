@@ -277,7 +277,6 @@ fn animate_tree_chop(
     mut query: Query<(Entity, &mut Transform, &mut ChoppingTree)>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut smoke_materials: ResMut<Assets<SmokeMaterial>>,
-    mut loot_events: EventWriter<LootEvent>,
 ) {
     for (entity, mut transform, mut chop) in &mut query {
         // Capture original rotation on first frame
@@ -312,7 +311,7 @@ fn animate_tree_chop(
         // Drop loot near the end
         if t > 0.9 && !chop.loot_dropped {
             chop.loot_dropped = true;
-            loot_events.write(LootEvent {
+            commands.trigger(LootEvent {
                 kind: ItemKind::Log,
                 quantity: 1,
             });
@@ -331,7 +330,6 @@ fn animate_rock_mine(
     mut query: Query<(Entity, &mut Transform, &mut MiningRock)>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut smoke_materials: ResMut<Assets<SmokeMaterial>>,
-    mut loot_events: EventWriter<LootEvent>,
 ) {
     for (entity, mut transform, mut mining) in &mut query {
         // Capture original state on first frame
@@ -379,7 +377,7 @@ fn animate_rock_mine(
         // Drop loot near the end
         if t > 0.9 && !mining.loot_dropped {
             mining.loot_dropped = true;
-            loot_events.write(LootEvent {
+            commands.trigger(LootEvent {
                 kind: mining.loot_item,
                 quantity: 1,
             });
@@ -398,7 +396,6 @@ fn animate_forageable_collect(
     mut query: Query<(Entity, &mut Transform, &mut CollectingForageable)>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut smoke_materials: ResMut<Assets<SmokeMaterial>>,
-    mut loot_events: EventWriter<LootEvent>,
 ) {
     for (entity, mut transform, mut collect) in &mut query {
         // Capture original scale on first frame
@@ -417,7 +414,7 @@ fn animate_forageable_collect(
         // Drop loot at 50%
         if t > 0.5 && !collect.loot_dropped {
             collect.loot_dropped = true;
-            loot_events.write(LootEvent {
+            commands.trigger(LootEvent {
                 kind: collect.loot_item,
                 quantity: 1,
             });

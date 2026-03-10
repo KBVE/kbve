@@ -169,17 +169,15 @@ pub struct InventoryPlugin;
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(Inventory::new(16));
-        app.add_event::<LootEvent>();
-        app.add_systems(Update, (process_loot_events, snapshot_inventory).chain());
+        app.add_observer(process_loot_events);
+        app.add_systems(Update, snapshot_inventory);
     }
 }
 
 // ── Systems ─────────────────────────────────────────────────────────────
 
-fn process_loot_events(mut events: EventReader<LootEvent>, mut inventory: ResMut<Inventory>) {
-    for event in events.read() {
-        inventory.add(event.kind, event.quantity);
-    }
+fn process_loot_events(event: On<LootEvent>, mut inventory: ResMut<Inventory>) {
+    inventory.add(event.kind, event.quantity);
 }
 
 fn snapshot_inventory(inventory: Res<Inventory>) {
