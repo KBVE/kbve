@@ -140,6 +140,8 @@ const ROCK_INFO: Record<
 /** Actions that dispatch to the Rust ECS instead of just showing a toast. */
 const DISPATCH_ACTIONS: Record<string, string> = {
 	'Chop Tree': 'chop_tree',
+	'Mine Rock': 'mine_rock',
+	'Mine Ore': 'mine_rock',
 };
 
 function ActionContent({
@@ -183,8 +185,12 @@ function ActionContent({
 						const dispatchKey = DISPATCH_ACTIONS[info.action];
 						if (dispatchKey) {
 							dispatch_action(entityId, dispatchKey);
+							const verb =
+								dispatchKey === 'chop_tree'
+									? 'Chopping'
+									: 'Mining';
 							gameEvents.emit('toast:show', {
-								message: `Chopping ${info.title}...`,
+								message: `${verb} ${info.title}...`,
 								severity: 'info',
 							});
 						} else {
