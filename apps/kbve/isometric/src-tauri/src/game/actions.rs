@@ -4,6 +4,7 @@ use bevy::shader::ShaderRef;
 use bevy_rapier3d::prelude::*;
 use std::f32::consts::PI;
 
+use super::inventory::{ItemKind, LootEvent};
 use super::scene_objects::{HoverOutline, Interactable, RockKind};
 
 // ── Action dispatch buffer ──────────────────────────────────────────────
@@ -120,6 +121,7 @@ struct ChoppingTree {
     fall_axis: Vec3,
     original_rotation: Quat,
     smoke_spawned: bool,
+    loot_dropped: bool,
 }
 
 #[derive(Component)]
@@ -128,6 +130,8 @@ struct MiningRock {
     original_translation: Vec3,
     original_scale: Vec3,
     smoke_spawned: bool,
+    loot_dropped: bool,
+    loot_item: ItemKind,
 }
 
 #[derive(Component)]
@@ -158,7 +162,7 @@ impl Plugin for ActionsPlugin {
 
 // ── Systems ─────────────────────────────────────────────────────────────
 
-fn process_action_buffer(mut commands: Commands) {
+fn process_action_buffer(mut commands: Commands, rock_query: Query<&RockKind>) {
     let actions = drain_actions();
     for req in actions {
         let entity = Entity::from_bits(req.entity_id);
@@ -182,9 +186,16 @@ fn process_action_buffer(mut commands: Commands) {
                     fall_axis,
                     original_rotation: Quat::IDENTITY,
                     smoke_spawned: false,
+                    loot_dropped: false,
                 });
             }
             "mine_rock" => {
+                // Read RockKind before removing components
+                let loot_item = rock_query
+                    .get(entity)
+                    .map(ItemKind::from_rock_kind)
+                    .unwrap_or(ItemKind::Stone);
+
                 ec.remove::<RigidBody>();
                 ec.remove::<Collider>();
                 ec.remove::<Interactable>();
@@ -193,9 +204,11 @@ fn process_action_buffer(mut commands: Commands) {
 
                 ec.insert(MiningRock {
                     timer: Timer::from_seconds(1.2, TimerMode::Once),
-                    original_translation: Vec3::ZERO, // Set on first tick
-                    original_scale: Vec3::ONE,        // Set on first tick
+                    original_translation: Vec3::ZERO,
+                    original_scale: Vec3::ONE,
                     smoke_spawned: false,
+                    loot_dropped: false,
+                    loot_item,
                 });
             }
             _ => {}
@@ -209,6 +222,7 @@ fn animate_tree_chop(
     mut query: Query<(Entity, &mut Transform, &mut ChoppingTree)>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut smoke_materials: ResMut<Assets<SmokeMaterial>>,
+    mut loot_events: EventWriter<LootEvent>,
 ) {
     for (entity, mut transform, mut chop) in &mut query {
         // Capture original rotation on first frame
@@ -240,6 +254,15 @@ fn animate_tree_chop(
             );
         }
 
+        // Drop loot near the end
+        if t > 0.9 && !chop.loot_dropped {
+            chop.loot_dropped = true;
+            loot_events.write(LootEvent {
+                kind: ItemKind::Log,
+                quantity: 1,
+            });
+        }
+
         // Despawn tree after animation completes
         if chop.timer.fraction() >= 1.0 {
             commands.entity(entity).despawn();
@@ -253,6 +276,7 @@ fn animate_rock_mine(
     mut query: Query<(Entity, &mut Transform, &mut MiningRock)>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut smoke_materials: ResMut<Assets<SmokeMaterial>>,
+    mut loot_events: EventWriter<LootEvent>,
 ) {
     for (entity, mut transform, mut mining) in &mut query {
         // Capture original state on first frame
@@ -295,6 +319,15 @@ fn animate_rock_mine(
                 mining.original_translation,
                 4,
             );
+        }
+
+        // Drop loot near the end
+        if t > 0.9 && !mining.loot_dropped {
+            mining.loot_dropped = true;
+            loot_events.write(LootEvent {
+                kind: mining.loot_item,
+                quantity: 1,
+            });
         }
 
         // Despawn after animation
