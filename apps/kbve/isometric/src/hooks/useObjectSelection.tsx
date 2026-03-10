@@ -110,6 +110,26 @@ const FLOWER_INFO: Record<
 		title: 'Wildflower',
 		description: 'A bright wildflower growing freely.',
 	},
+	sunflower: {
+		title: 'Sunflower',
+		description: 'A tall sunflower turning toward the light.',
+	},
+	rose: {
+		title: 'Rose',
+		description: 'A thorny rose with velvety red petals.',
+	},
+	cornflower: {
+		title: 'Cornflower',
+		description: 'A bright blue cornflower swaying in the breeze.',
+	},
+	allium: {
+		title: 'Allium',
+		description: 'A round purple allium bloom on a slender stem.',
+	},
+	blue_orchid: {
+		title: 'Blue Orchid',
+		description: 'A rare blue orchid with delicate petals.',
+	},
 };
 
 const ROCK_INFO: Record<
