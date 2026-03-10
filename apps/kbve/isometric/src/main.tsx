@@ -6,7 +6,7 @@ import App from './App';
 
 async function bootstrap() {
 	// Verify WebGPU is available before loading the WASM game
-	if (!navigator.gpu) {
+	if (!(navigator as unknown as { gpu?: unknown }).gpu) {
 		const root = document.getElementById('root');
 		if (root) {
 			root.innerHTML =

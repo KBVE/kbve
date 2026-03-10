@@ -119,9 +119,11 @@ impl ServiceProxy {
             }
         };
 
-        let status = StatusCode::from_u16(upstream_resp.status().as_u16())
-            .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+        let upstream_status = upstream_resp.status().as_u16();
+        let status =
+            StatusCode::from_u16(upstream_status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
 
+        // Collect headers before consuming the body
         let mut resp_headers = HeaderMap::new();
         for (k, v) in upstream_resp.headers() {
             if let Ok(name) = axum::http::HeaderName::from_bytes(k.as_str().as_bytes()) {
@@ -142,6 +144,29 @@ impl ServiceProxy {
                     .into_response();
             }
         };
+
+        // When upstream returns a server error (5xx), wrap in our standard
+        // format so the frontend always gets a parseable {"reason", "detail"}
+        // response instead of raw upstream HTML/text.
+        if upstream_status >= 500 {
+            let body_preview =
+                String::from_utf8_lossy(&resp_body[..resp_body.len().min(512)]).to_string();
+
+            warn!(
+                %upstream_url, upstream_status,
+                "{} upstream returned {}: {}", self.name, upstream_status, body_preview
+            );
+
+            return (
+                StatusCode::BAD_GATEWAY,
+                axum::Json(json!({
+                    "error": format!("{} upstream error", self.name),
+                    "reason": format!("upstream returned {upstream_status}"),
+                    "detail": body_preview,
+                })),
+            )
+                .into_response();
+        }
 
         let mut response = Response::builder().status(status);
         if let Some(h) = response.headers_mut() {

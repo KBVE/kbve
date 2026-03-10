@@ -54,6 +54,152 @@ fn screen_hash(p: vec2<f32>) -> f32 {
     return fract(sin(h) * 43758.5453);
 }
 
+// 2D hash for leaf noise (two outputs for directional patterns).
+fn hash2(p: vec2<f32>) -> vec2<f32> {
+    let q = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+    return fract(sin(q) * 43758.5453);
+}
+
+// Value noise with directional stretch for leaf-streak patterns.
+// Stretched ~2× along a diagonal to create elongated leaf shapes.
+fn leaf_noise(p: vec2<f32>) -> f32 {
+    // Skew coordinates to create diagonal streak direction
+    let sp = vec2(p.x * 0.7 + p.y * 0.4, p.x * -0.3 + p.y * 0.8);
+    let i = floor(sp);
+    let f = fract(sp);
+    // Smooth interpolation (cubic hermite)
+    let u = f * f * (3.0 - 2.0 * f);
+    let a = screen_hash(i);
+    let b = screen_hash(i + vec2(1.0, 0.0));
+    let c = screen_hash(i + vec2(0.0, 1.0));
+    let d = screen_hash(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+// Multi-octave leaf cluster noise. Returns 0..1 range.
+// High frequency for 2-3 pixel leaf clumps with jagged edges.
+fn foliage_breakup(block: vec2<f32>) -> f32 {
+    // Leaf clumps: ~2-3 pixels across (main structure)
+    let n1 = leaf_noise(block * 0.8);
+    // Leaf detail: ~1-2 pixels, irregular edges
+    let n2 = leaf_noise(block * 1.6 + vec2(50.0, 80.0));
+    // Per-pixel hash: jagged leaf tips
+    let n3 = screen_hash(block * 0.93 + vec2(37.0, 91.0));
+    // Combine: weighted sum, heavier on the clump scale
+    return n1 * 0.50 + n2 * 0.30 + n3 * 0.20;
+}
+
+// Detect foliage pixels: green-dominant hue. Wider detection than before.
+fn is_foliage(c: vec3<f32>) -> f32 {
+    // Green must exceed both red and blue
+    let dominance = min(c.g - c.r, c.g - c.b);
+    // Very low threshold so even dark canopy shadow gets detected
+    return smoothstep(0.005, 0.04, dominance) * smoothstep(0.02, 0.06, c.g);
+}
+
+// Apply leaf breakup to a single foliage pixel.
+// Binary: every pixel is either a shadow pocket or a lit leaf cluster.
+// No dead zone — hard step at 0.48 threshold. This forces maximum
+// contrast between adjacent pixels for crisp leaf-cluster boundaries.
+fn apply_leaf_breakup(c: vec3<f32>, block_pos: vec2<f32>) -> vec3<f32> {
+    let fg = is_foliage(c);
+    if fg < 0.01 { return c; }
+
+    let n = foliage_breakup(block_pos);
+    let lum = luminance(c);
+
+    // Hard binary split: dark pocket vs bright leaf
+    var adjusted: vec3<f32>;
+    if n < 0.48 {
+        // Shadow pocket: deep interior darkness
+        // Darker pixels get pushed even darker (deeper canopy = deeper shadow)
+        let dark_strength = 0.45 + lum * 0.20; // 0.45 for dark base, up to 0.65 for brighter
+        adjusted = c * dark_strength;
+    } else {
+        // Lit leaf cluster: catching light
+        // Brighter base pixels get an even bigger boost (sunlit leaf surface)
+        let bright_strength = 1.35 + (1.0 - lum) * 0.30; // 1.35 for bright, up to 1.65 for dark
+        adjusted = c * bright_strength;
+    }
+
+    return mix(c, adjusted, fg);
+}
+
+// ── BARK BREAKUP ───────────────────────────────────────────────────────
+// Vertical furrow noise: bark grain runs up the trunk.
+// In isometric view, screen-Y roughly maps to world-vertical, so we
+// stretch noise along screen-Y for elongated vertical furrows.
+fn bark_noise(p: vec2<f32>) -> f32 {
+    // Stretch ~2.5× vertically for tall, narrow furrow lines
+    let sp = vec2(p.x * 1.0, p.y * 0.4);
+    let i = floor(sp);
+    let f = fract(sp);
+    let u = f * f * (3.0 - 2.0 * f);
+    let a = screen_hash(i + vec2(73.0, 19.0));
+    let b = screen_hash(i + vec2(74.0, 19.0));
+    let c = screen_hash(i + vec2(73.0, 20.0));
+    let d = screen_hash(i + vec2(74.0, 20.0));
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+// Multi-octave bark furrow pattern. Returns 0..1.
+// Higher frequencies so furrows are visible on 3-5 pixel wide trunks.
+fn bark_breakup(block: vec2<f32>) -> f32 {
+    // Primary furrows: ~1-2 pixels wide
+    let n1 = bark_noise(block * 1.4);
+    // Fine cracks: sub-pixel detail
+    let n2 = bark_noise(block * 2.8 + vec2(31.0, 67.0));
+    // Per-pixel roughness: random knot/pitting
+    let n3 = screen_hash(block * 1.3 + vec2(43.0, 71.0));
+    return n1 * 0.45 + n2 * 0.30 + n3 * 0.25;
+}
+
+// Detect bark/trunk pixels: NOT green-dominant, NOT sky/water.
+// Catches brown, grey, and tan bark across all tree species.
+fn is_bark(c: vec3<f32>) -> f32 {
+    // Exclude foliage: green must NOT dominate
+    let green_dom = min(c.g - c.r, c.g - c.b);
+    let not_foliage = smoothstep(0.005, -0.02, green_dom);
+    // Must not be blue-dominant (sky/water)
+    let blue_dom = c.b - max(c.r, c.g);
+    let not_blue = smoothstep(0.01, -0.02, blue_dom);
+    // Bark has some color (not pure grey) OR is warm-leaning
+    // Very permissive: catches brown (R>B), grey (R≈G≈B), tan bark
+    let warmth = (c.r - c.b) + (c.r - c.g) * 0.5;
+    let is_bark_hue = smoothstep(-0.04, 0.02, warmth);
+    // Luminance range: exclude only very bright (sky) and pitch black
+    // Bark in linear space is quite dark (sRGB 0.30 ≈ linear 0.07)
+    let lum = luminance(c);
+    let in_range = smoothstep(0.003, 0.01, lum) * smoothstep(0.70, 0.50, lum);
+    return not_foliage * not_blue * is_bark_hue * in_range;
+}
+
+// Apply bark furrow texture to a single bark pixel.
+// Binary split (like foliage): dark furrow vs bright ridge.
+// No mid-zone — maximum contrast on narrow trunks.
+fn apply_bark_breakup(c: vec3<f32>, block_pos: vec2<f32>) -> vec3<f32> {
+    let bk = is_bark(c);
+    if bk < 0.01 { return c; }
+
+    let n = bark_breakup(block_pos);
+    let lum = luminance(c);
+
+    var adjusted: vec3<f32>;
+    if n < 0.48 {
+        // Dark furrow: deep crack in bark
+        // Aggressive darken — bark is very dark in linear space
+        let dark_str = 0.35 + lum * 0.20;
+        adjusted = c * dark_str;
+    } else {
+        // Raised ridge: catches light
+        // Strong brighten to create visible contrast
+        let bright_str = 1.50 + (1.0 - lum) * 0.40;
+        adjusted = c * bright_str;
+    }
+
+    return mix(c, adjusted, bk);
+}
+
 @fragment
 fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     let resolution = vec2<f32>(textureDimensions(screen_texture));
@@ -75,11 +221,31 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     let bottom_raw = sample_block(((block + vec2( 0.0,  1.0)) + 0.5) / block_count, resolution);
 
     // ── TOON PASS (cel-shade: quantize brightness bands) ─────────────────
-    let color  = vec4(toon_quantize(color_raw.rgb,  settings.toon_bands), color_raw.a);
-    let color_left   = vec4(toon_quantize(left_raw.rgb,   settings.toon_bands), left_raw.a);
-    let color_right  = vec4(toon_quantize(right_raw.rgb,  settings.toon_bands), right_raw.a);
-    let color_top    = vec4(toon_quantize(top_raw.rgb,    settings.toon_bands), top_raw.a);
-    let color_bottom = vec4(toon_quantize(bottom_raw.rgb, settings.toon_bands), bottom_raw.a);
+    var color  = vec4(toon_quantize(color_raw.rgb,  settings.toon_bands), color_raw.a);
+    var color_left   = vec4(toon_quantize(left_raw.rgb,   settings.toon_bands), left_raw.a);
+    var color_right  = vec4(toon_quantize(right_raw.rgb,  settings.toon_bands), right_raw.a);
+    var color_top    = vec4(toon_quantize(top_raw.rgb,    settings.toon_bands), top_raw.a);
+    var color_bottom = vec4(toon_quantize(bottom_raw.rgb, settings.toon_bands), bottom_raw.a);
+
+    // ── FOLIAGE LEAF BREAKUP ──────────────────────────────────────────────
+    // Darken/brighten green canopy pixels in a leaf cluster pattern, then
+    // re-quantize so they snap to toon bands. Applied to all 5 samples so
+    // edge detection naturally outlines the leaf clusters.
+    color        = vec4(toon_quantize(apply_leaf_breakup(color.rgb,        block),                        settings.toon_bands), color.a);
+    color_left   = vec4(toon_quantize(apply_leaf_breakup(color_left.rgb,   block + vec2(-1.0,  0.0)),     settings.toon_bands), color_left.a);
+    color_right  = vec4(toon_quantize(apply_leaf_breakup(color_right.rgb,  block + vec2( 1.0,  0.0)),     settings.toon_bands), color_right.a);
+    color_top    = vec4(toon_quantize(apply_leaf_breakup(color_top.rgb,    block + vec2( 0.0, -1.0)),     settings.toon_bands), color_top.a);
+    color_bottom = vec4(toon_quantize(apply_leaf_breakup(color_bottom.rgb, block + vec2( 0.0,  1.0)),     settings.toon_bands), color_bottom.a);
+
+    // ── BARK FURROW BREAKUP ────────────────────────────────────────────────
+    // Vertical furrow texture on brown/bark-colored pixels. NO re-quantize —
+    // bark is dark in linear space so toon bands collapse the variation.
+    // Raw furrow contrast feeds edge detection for natural bark outlines.
+    color        = vec4(apply_bark_breakup(color.rgb,        block),                    color.a);
+    color_left   = vec4(apply_bark_breakup(color_left.rgb,   block + vec2(-1.0,  0.0)), color_left.a);
+    color_right  = vec4(apply_bark_breakup(color_right.rgb,  block + vec2( 1.0,  0.0)), color_right.a);
+    color_top    = vec4(apply_bark_breakup(color_top.rgb,    block + vec2( 0.0, -1.0)), color_top.a);
+    color_bottom = vec4(apply_bark_breakup(color_bottom.rgb, block + vec2( 0.0,  1.0)), color_bottom.a);
 
     // ── HIGHLIGHT EDGES (color direction shift) ──────────────────────────
     let eps = vec3(0.001);

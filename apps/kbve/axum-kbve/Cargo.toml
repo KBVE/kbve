@@ -1,7 +1,7 @@
 [package]
 name = "axum-kbve"
 authors = ["kbve", "h0lybyte"]
-version = "1.0.38"
+version = "1.0.39"
 edition = "2021"
 publish = false
 
@@ -40,6 +40,10 @@ dashmap = { version = "6.1", features = ["rayon"] }
 rayon = "1.10"
 regex = "1.11"
 lru = "0.16"
+
+# Game server (Rapier3D physics)
+rapier3d = "0.32"
+futures-util = "0.3"
 
 # Workspace path dependencies
 jedi = { path = "../../../packages/rust/jedi" }

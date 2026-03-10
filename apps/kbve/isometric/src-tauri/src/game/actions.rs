@@ -4,7 +4,8 @@ use bevy::shader::ShaderRef;
 use bevy_rapier3d::prelude::*;
 use std::f32::consts::PI;
 
-use super::scene_objects::{HoverOutline, Interactable};
+use super::inventory::{ItemKind, LootEvent};
+use super::scene_objects::{FlowerArchetype, HoverOutline, Interactable, MushroomKind, RockKind};
 
 // ── Action dispatch buffer ──────────────────────────────────────────────
 
@@ -120,6 +121,26 @@ struct ChoppingTree {
     fall_axis: Vec3,
     original_rotation: Quat,
     smoke_spawned: bool,
+    loot_dropped: bool,
+}
+
+#[derive(Component)]
+struct MiningRock {
+    timer: Timer,
+    original_translation: Vec3,
+    original_scale: Vec3,
+    smoke_spawned: bool,
+    loot_dropped: bool,
+    loot_item: ItemKind,
+}
+
+/// Shared collection component for flowers and mushrooms — quick shrink + poof.
+#[derive(Component)]
+struct CollectingForageable {
+    timer: Timer,
+    original_scale: Vec3,
+    loot_dropped: bool,
+    loot_item: ItemKind,
 }
 
 #[derive(Component)]
@@ -141,6 +162,8 @@ impl Plugin for ActionsPlugin {
             (
                 process_action_buffer,
                 animate_tree_chop,
+                animate_rock_mine,
+                animate_forageable_collect,
                 animate_smoke_particles,
             ),
         );
@@ -149,35 +172,102 @@ impl Plugin for ActionsPlugin {
 
 // ── Systems ─────────────────────────────────────────────────────────────
 
-fn process_action_buffer(mut commands: Commands) {
+fn process_action_buffer(
+    mut commands: Commands,
+    rock_query: Query<&RockKind>,
+    flower_query: Query<&FlowerArchetype>,
+    mushroom_query: Query<&MushroomKind>,
+) {
     let actions = drain_actions();
     for req in actions {
-        if req.action != "chop_tree" {
-            continue;
-        }
-
         let entity = Entity::from_bits(req.entity_id);
 
-        // Validate entity still exists before modifying
         let Ok(mut ec) = commands.get_entity(entity) else {
             continue;
         };
 
-        // Pick a random-ish fall direction based on entity id
-        let angle = (req.entity_id as f32 * 1.618) % (2.0 * PI);
-        let fall_axis = Vec3::new(angle.cos(), 0.0, angle.sin()).normalize();
+        match req.action.as_str() {
+            "chop_tree" => {
+                let angle = (req.entity_id as f32 * 1.618) % (2.0 * PI);
+                let fall_axis = Vec3::new(angle.cos(), 0.0, angle.sin()).normalize();
 
-        ec.remove::<RigidBody>();
-        ec.remove::<Collider>();
-        ec.remove::<Interactable>();
-        ec.remove::<HoverOutline>();
+                ec.remove::<RigidBody>();
+                ec.remove::<Collider>();
+                ec.remove::<Interactable>();
+                ec.remove::<HoverOutline>();
 
-        ec.insert(ChoppingTree {
-            timer: Timer::from_seconds(1.0, TimerMode::Once),
-            fall_axis,
-            original_rotation: Quat::IDENTITY, // Will be set on first tick
-            smoke_spawned: false,
-        });
+                ec.insert(ChoppingTree {
+                    timer: Timer::from_seconds(1.0, TimerMode::Once),
+                    fall_axis,
+                    original_rotation: Quat::IDENTITY,
+                    smoke_spawned: false,
+                    loot_dropped: false,
+                });
+            }
+            "mine_rock" => {
+                // Read RockKind before removing components
+                let loot_item = rock_query
+                    .get(entity)
+                    .map(ItemKind::from_rock_kind)
+                    .unwrap_or(ItemKind::Stone);
+
+                ec.remove::<RigidBody>();
+                ec.remove::<Collider>();
+                ec.remove::<Interactable>();
+                ec.remove::<HoverOutline>();
+                ec.remove::<RockKind>();
+
+                ec.insert(MiningRock {
+                    timer: Timer::from_seconds(1.2, TimerMode::Once),
+                    original_translation: Vec3::ZERO,
+                    original_scale: Vec3::ONE,
+                    smoke_spawned: false,
+                    loot_dropped: false,
+                    loot_item,
+                });
+            }
+            "collect_flower" => {
+                let loot_item = flower_query
+                    .get(entity)
+                    .map(ItemKind::from_flower_archetype)
+                    .unwrap_or(ItemKind::Wildflower);
+
+                ec.remove::<RigidBody>();
+                ec.remove::<Collider>();
+                ec.remove::<Sensor>();
+                ec.remove::<Interactable>();
+                ec.remove::<HoverOutline>();
+                ec.remove::<FlowerArchetype>();
+
+                ec.insert(CollectingForageable {
+                    timer: Timer::from_seconds(0.5, TimerMode::Once),
+                    original_scale: Vec3::ONE,
+                    loot_dropped: false,
+                    loot_item,
+                });
+            }
+            "collect_mushroom" => {
+                let loot_item = mushroom_query
+                    .get(entity)
+                    .map(ItemKind::from_mushroom_kind)
+                    .unwrap_or(ItemKind::Porcini);
+
+                ec.remove::<RigidBody>();
+                ec.remove::<Collider>();
+                ec.remove::<Sensor>();
+                ec.remove::<Interactable>();
+                ec.remove::<HoverOutline>();
+                ec.remove::<MushroomKind>();
+
+                ec.insert(CollectingForageable {
+                    timer: Timer::from_seconds(0.5, TimerMode::Once),
+                    original_scale: Vec3::ONE,
+                    loot_dropped: false,
+                    loot_item,
+                });
+            }
+            _ => {}
+        }
     }
 }
 
@@ -218,8 +308,127 @@ fn animate_tree_chop(
             );
         }
 
+        // Drop loot near the end
+        if t > 0.9 && !chop.loot_dropped {
+            chop.loot_dropped = true;
+            commands.trigger(LootEvent {
+                kind: ItemKind::Log,
+                quantity: 1,
+            });
+        }
+
         // Despawn tree after animation completes
         if chop.timer.fraction() >= 1.0 {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
+fn animate_rock_mine(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<(Entity, &mut Transform, &mut MiningRock)>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut smoke_materials: ResMut<Assets<SmokeMaterial>>,
+) {
+    for (entity, mut transform, mut mining) in &mut query {
+        // Capture original state on first frame
+        if mining.timer.elapsed_secs() == 0.0 {
+            mining.original_translation = transform.translation;
+            mining.original_scale = transform.scale;
+        }
+
+        mining.timer.tick(time.delta());
+        let t = mining.timer.fraction();
+
+        // Phase 1 (0–0.6): rapid shake — oscillating offset
+        if t < 0.6 {
+            let shake_t = t / 0.6;
+            let intensity = 0.06 * (1.0 + shake_t * 2.0); // builds up
+            let freq = shake_t * 40.0;
+            let shake_x = (freq * 1.0).sin() * intensity;
+            let shake_z = (freq * 1.3 + 0.5).cos() * intensity;
+            transform.translation = mining.original_translation + Vec3::new(shake_x, 0.0, shake_z);
+        }
+
+        // Phase 2 (0.5–1.0): crumble — shrink into ground
+        if t > 0.5 {
+            let crumble_t = ((t - 0.5) / 0.5).min(1.0);
+            let ease = crumble_t * crumble_t; // ease-in
+            let s = 1.0 - ease * 0.9; // scale down to 10%
+            transform.scale = mining.original_scale * s;
+            // Sink into ground
+            transform.translation.y =
+                mining.original_translation.y - ease * mining.original_scale.y * 0.5;
+        }
+
+        // Spawn smoke at 50%
+        if t > 0.5 && !mining.smoke_spawned {
+            mining.smoke_spawned = true;
+            spawn_smoke_burst(
+                &mut commands,
+                &mut meshes,
+                &mut smoke_materials,
+                mining.original_translation,
+                4,
+            );
+        }
+
+        // Drop loot near the end
+        if t > 0.9 && !mining.loot_dropped {
+            mining.loot_dropped = true;
+            commands.trigger(LootEvent {
+                kind: mining.loot_item,
+                quantity: 1,
+            });
+        }
+
+        // Despawn after animation
+        if mining.timer.fraction() >= 1.0 {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
+fn animate_forageable_collect(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<(Entity, &mut Transform, &mut CollectingForageable)>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut smoke_materials: ResMut<Assets<SmokeMaterial>>,
+) {
+    for (entity, mut transform, mut collect) in &mut query {
+        // Capture original scale on first frame
+        if collect.timer.elapsed_secs() == 0.0 {
+            collect.original_scale = transform.scale;
+        }
+
+        collect.timer.tick(time.delta());
+        let t = collect.timer.fraction();
+
+        // Quick shrink + slight upward float
+        let s = 1.0 - t * t; // ease-in shrink to 0
+        transform.scale = collect.original_scale * s;
+        transform.translation.y += time.delta_secs() * 0.5;
+
+        // Drop loot at 50%
+        if t > 0.5 && !collect.loot_dropped {
+            collect.loot_dropped = true;
+            commands.trigger(LootEvent {
+                kind: collect.loot_item,
+                quantity: 1,
+            });
+            // Small poof (2 particles)
+            spawn_smoke_burst(
+                &mut commands,
+                &mut meshes,
+                &mut smoke_materials,
+                transform.translation,
+                2,
+            );
+        }
+
+        if collect.timer.fraction() >= 1.0 {
             commands.entity(entity).despawn();
         }
     }

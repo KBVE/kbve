@@ -8,14 +8,30 @@ export type InteractableKind =
 	| 'crystal'
 	| 'pillar'
 	| 'sphere'
-	| 'flower';
+	| 'flower'
+	| 'rock'
+	| 'mushroom';
+
+export type RockKind =
+	| 'boulder'
+	| 'mossy_rock'
+	| 'ore_copper'
+	| 'ore_iron'
+	| 'ore_crystal';
 
 export type FlowerArchetype =
 	| 'tulip'
 	| 'daisy'
 	| 'lavender'
 	| 'bell'
-	| 'wildflower';
+	| 'wildflower'
+	| 'sunflower'
+	| 'rose'
+	| 'cornflower'
+	| 'allium'
+	| 'blue_orchid';
+
+export type MushroomKind = 'porcini' | 'chanterelle' | 'fly_agaric';
 
 export type GameEventMap = {
 	// Toast events

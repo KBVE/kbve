@@ -883,7 +883,11 @@ export default function ReactArgoDashboard() {
 								? 'The upstream server did not respond in time. It may be starting up or under heavy load.'
 								: errorReason === 'connection failed'
 									? 'Unable to connect to the ArgoCD server. The service may be down or restarting.'
-									: `Reason: ${errorReason}`}
+									: errorReason?.startsWith(
+												'upstream returned',
+										  )
+										? `The ArgoCD server responded with an error (${errorReason}). It may be misconfigured or experiencing issues.`
+										: `Reason: ${errorReason}`}
 						</div>
 					)}
 				</div>
