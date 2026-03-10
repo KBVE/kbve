@@ -487,6 +487,9 @@
 	.flex-1 {
 		flex: 1;
 	}
+	.shrink {
+		flex-shrink: 1;
+	}
 	.transform {
 		transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,)
 			var(--tw-skew-x,) var(--tw-skew-y,);
@@ -640,6 +643,9 @@
 	.bg-\[\#1e1408\] {
 		background-color: #1e1408;
 	}
+	.bg-\[\#1e1408\]\/90 {
+		background-color: #1e1408e6;
+	}
 	.bg-\[\#3d2b14\] {
 		background-color: #3d2b14;
 	}
@@ -731,6 +737,9 @@
 	.leading-relaxed {
 		--tw-leading: var(--leading-relaxed);
 		line-height: var(--leading-relaxed);
+	}
+	.whitespace-nowrap {
+		white-space: nowrap;
 	}
 	.text-\[\#c8a832\] {
 		color: #c8a832;
