@@ -1,6 +1,8 @@
 use bevy::camera::visibility::RenderLayers;
 use bevy::core_pipeline::tonemapping::Tonemapping;
+use bevy::ecs::message::MessageReader;
 use bevy::image::ImageSampler;
+use bevy::input::mouse::MouseWheel;
 use bevy::prelude::*;
 use bevy::render::render_resource::TextureFormat;
 use bevy::window::PrimaryWindow;
@@ -19,6 +21,26 @@ pub const PIXEL_DENSITY: u32 = 32;
 const PIXEL_STEP: f32 = 1.0 / PIXEL_DENSITY as f32;
 /// RenderLayer for the display quad (separate from the 3D scene on layer 0).
 const DISPLAY_LAYER: usize = 1;
+
+const ZOOM_MIN: f32 = 0.5;
+const ZOOM_MAX: f32 = 2.0;
+const ZOOM_SPEED: f32 = 0.10;
+const ZOOM_SMOOTHING: f32 = 8.0;
+
+#[derive(Resource)]
+struct CameraZoom {
+    target: f32,
+    current: f32,
+}
+
+impl Default for CameraZoom {
+    fn default() -> Self {
+        Self {
+            target: 1.0,
+            current: 1.0,
+        }
+    }
+}
 
 /// Precomputed stable camera axes derived from the initial look-at orientation.
 /// Using these instead of reading from the mutated transform avoids frame-to-frame
@@ -53,10 +75,13 @@ pub struct IsometricCameraPlugin;
 
 impl Plugin for IsometricCameraPlugin {
     fn build(&self, app: &mut App) {
+        app.init_resource::<CameraZoom>();
         app.add_systems(Startup, setup_camera);
+        app.add_systems(Update, handle_zoom_input);
         app.add_systems(
             PostUpdate,
-            camera_follow_player
+            (camera_follow_player, apply_camera_zoom)
+                .chain()
                 .after(PhysicsSet::Writeback)
                 .in_set(PlayerMovement),
         );
@@ -174,4 +199,29 @@ fn camera_follow_player(
     let snapped_forward = (forward_proj / PIXEL_STEP).round() * PIXEL_STEP;
 
     camera_tf.translation = snapped_right * right + snapped_up * up + snapped_forward * forward;
+}
+
+fn handle_zoom_input(mut scroll_evr: MessageReader<MouseWheel>, mut zoom: ResMut<CameraZoom>) {
+    for ev in scroll_evr.read() {
+        let delta = ev.y;
+        // Scroll up = zoom in (smaller scale), scroll down = zoom out
+        zoom.target = (zoom.target - delta * ZOOM_SPEED).clamp(ZOOM_MIN, ZOOM_MAX);
+    }
+}
+
+fn apply_camera_zoom(
+    time: Res<Time>,
+    mut zoom: ResMut<CameraZoom>,
+    mut camera_q: Query<&mut Projection, With<IsometricCamera>>,
+) {
+    let dt = time.delta_secs();
+    // Smooth interpolation toward target
+    zoom.current += (zoom.target - zoom.current) * (ZOOM_SMOOTHING * dt).min(1.0);
+
+    let Ok(mut proj) = camera_q.single_mut() else {
+        return;
+    };
+    if let Projection::Orthographic(ref mut ortho) = *proj {
+        ortho.scale = zoom.current;
+    }
 }

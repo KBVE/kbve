@@ -8,6 +8,7 @@ use bevy::prelude::*;
 
 use bevy_rapier3d::prelude::*;
 
+use super::camera::IsometricCamera;
 use super::player::Player;
 use super::scene_objects::{
     FlowerArchetype, HoverOutline, Interactable, InteractableKind, on_pointer_out, on_pointer_over,
@@ -114,20 +115,71 @@ const VEG_FLOWER_COLORS: [(f32, f32, f32); 4] = [
 /// Flower stem color (dark olive green).
 const VEG_FLOWER_STEM: (f32, f32, f32) = (0.18, 0.40, 0.12);
 
-/// 4-shade bark palette (sRGB): dark shadow → highlight.
-const BARK_DARK: (f32, f32, f32) = (0.25, 0.16, 0.08);
-const BARK_MID_DARK: (f32, f32, f32) = (0.35, 0.22, 0.12);
-const BARK_MID_LIGHT: (f32, f32, f32) = (0.42, 0.29, 0.17);
-const BARK_HIGHLIGHT: (f32, f32, f32) = (0.52, 0.36, 0.22);
+/// 4-shade bark palette (sRGB): [dark, mid_dark, mid_light, highlight].
+#[derive(Clone, Copy)]
+struct BarkPalette {
+    dark: (f32, f32, f32),
+    mid_dark: (f32, f32, f32),
+    mid_light: (f32, f32, f32),
+    highlight: (f32, f32, f32),
+}
 
-/// Per-tree canopy hue variants (sRGB). More variation = painterly forest.
-/// Ghibli-style midtone greens (warm/cool shift applied per-tone in spawn).
-const TREE_CANOPY_COLORS: [(f32, f32, f32); 5] = [
-    (0.28, 0.54, 0.18), // neutral forest green
-    (0.34, 0.62, 0.22), // mid green
-    (0.32, 0.56, 0.17), // warm olive
-    (0.30, 0.58, 0.24), // cool green
-    (0.36, 0.52, 0.18), // yellow-green
+/// Per-preset bark palettes — each tree species has distinct bark color.
+/// Wider contrast range (dark↔highlight) so shader furrow breakup creates
+/// visible furrow/ridge texture within each toon band.
+const BARK_PALETTES: [BarkPalette; 6] = [
+    // 0: Conifer — dark reddish-brown, deep furrowed
+    BarkPalette {
+        dark: (0.16, 0.08, 0.03),
+        mid_dark: (0.28, 0.16, 0.08),
+        mid_light: (0.40, 0.24, 0.14),
+        highlight: (0.52, 0.34, 0.20),
+    },
+    // 1: Tall — grey bark, chalky
+    BarkPalette {
+        dark: (0.22, 0.20, 0.17),
+        mid_dark: (0.35, 0.33, 0.29),
+        mid_light: (0.48, 0.46, 0.42),
+        highlight: (0.62, 0.59, 0.54),
+    },
+    // 2: Bushy — rough warm brown
+    BarkPalette {
+        dark: (0.20, 0.12, 0.04),
+        mid_dark: (0.34, 0.22, 0.10),
+        mid_light: (0.46, 0.32, 0.18),
+        highlight: (0.58, 0.44, 0.26),
+    },
+    // 3: Oak — dark furrowed brown
+    BarkPalette {
+        dark: (0.14, 0.09, 0.03),
+        mid_dark: (0.26, 0.18, 0.08),
+        mid_light: (0.38, 0.26, 0.15),
+        highlight: (0.50, 0.36, 0.22),
+    },
+    // 4: Round — smooth lighter bark
+    BarkPalette {
+        dark: (0.26, 0.22, 0.15),
+        mid_dark: (0.38, 0.34, 0.25),
+        mid_light: (0.52, 0.46, 0.36),
+        highlight: (0.66, 0.59, 0.47),
+    },
+    // 5: Willow — light grey-green bark
+    BarkPalette {
+        dark: (0.24, 0.24, 0.17),
+        mid_dark: (0.36, 0.36, 0.27),
+        mid_light: (0.50, 0.50, 0.40),
+        highlight: (0.62, 0.62, 0.52),
+    },
+];
+
+/// Per-preset canopy base colors (sRGB).
+const PRESET_CANOPY_COLORS: [(f32, f32, f32); 6] = [
+    (0.18, 0.38, 0.22), // Conifer: dark blue-green needles
+    (0.30, 0.56, 0.20), // Tall: mid green
+    (0.38, 0.58, 0.18), // Bushy: warm yellow-green
+    (0.26, 0.52, 0.20), // Oak: rich deep green
+    (0.36, 0.62, 0.26), // Round: bright green
+    (0.38, 0.56, 0.16), // Willow: yellow-green, airy
 ];
 
 /// Canopy volume shape for scattered leaf card distribution.
@@ -153,29 +205,29 @@ struct TreePreset {
     canopy: CanopyShape,
 }
 
-const TREE_PRESETS: [TreePreset; 5] = [
-    // Conifer: tall trunk, narrower cone — distinct but still has canopy
+const TREE_PRESETS: [TreePreset; 6] = [
+    // 0: Conifer — tall, narrow cone, dark blue-green
     TreePreset {
         trunk_h: 1.60,
         trunk_r: 0.10,
         canopy: CanopyShape::Cone {
-            radius: 0.75, // narrower than bushy but still visible
+            radius: 0.75,
             height: 2.2,
             center_y_offset: -0.15,
         },
     },
-    // Tall: tall trunk, upright crown
+    // 1: Tall — tall trunk, upright moderate crown
     TreePreset {
         trunk_h: 1.50,
         trunk_r: 0.12,
         canopy: CanopyShape::Ellipsoid {
-            rx: 0.90, // moderate width
+            rx: 0.90,
             ry: 1.05,
             rz: 0.85,
             center_y_offset: 0.40,
         },
     },
-    // Bushy: shorter trunk, widest crown
+    // 2: Bushy — short trunk, widest crown
     TreePreset {
         trunk_h: 1.10,
         trunk_r: 0.14,
@@ -186,7 +238,7 @@ const TREE_PRESETS: [TreePreset; 5] = [
             center_y_offset: 0.30,
         },
     },
-    // Oak: thick trunk, broad crown
+    // 3: Oak — thick trunk, broad heavy crown
     TreePreset {
         trunk_h: 1.30,
         trunk_r: 0.16,
@@ -197,15 +249,26 @@ const TREE_PRESETS: [TreePreset; 5] = [
             center_y_offset: 0.40,
         },
     },
-    // Round: medium trunk, compact ball
+    // 4: Round — medium trunk, compact ball
     TreePreset {
         trunk_h: 1.05,
         trunk_r: 0.12,
         canopy: CanopyShape::Ellipsoid {
-            rx: 0.85, // compact but not tiny
+            rx: 0.85,
             ry: 0.80,
             rz: 0.85,
             center_y_offset: 0.35,
+        },
+    },
+    // 5: Willow — tall trunk, wide droopy crown
+    TreePreset {
+        trunk_h: 1.40,
+        trunk_r: 0.13,
+        canopy: CanopyShape::Ellipsoid {
+            rx: 1.15,
+            ry: 0.65, // shorter vertically — droopy spread
+            rz: 1.10,
+            center_y_offset: 0.30,
         },
     },
 ];
@@ -223,21 +286,25 @@ fn lerp3(a: (f32, f32, f32), b: (f32, f32, f32), t: f32) -> (f32, f32, f32) {
 }
 
 /// Per-face bark colors based on vertical position along trunk.
-/// `y_frac`: 0.0 = base, 1.0 = top. Returns `[+Y, -Y, +X, -X, +Z, -Z]`.
-fn bark_face_colors(y_frac: f32) -> [[f32; 4]; 6] {
-    // Root darkening: bottom 15% of trunk gets 15% darker
-    let root = if y_frac < 0.15 { 0.85 } else { 1.0 };
+/// `y_frac`: 0.0 = base, 1.0 = top.
+/// Returns `[top_cap, bottom, lit, shadow, semi_shadow, semi_lit]`.
+/// Wide contrast: lit uses highlight directly, shadow uses dark directly.
+/// No lerp-blending that compresses the range in linear space.
+fn bark_face_colors_with(y_frac: f32, bp: &BarkPalette) -> [[f32; 4]; 6] {
+    let root = if y_frac < 0.15 { 0.82 } else { 1.0 };
     let apply = |c: (f32, f32, f32)| srgb_color(c.0 * root, c.1 * root, c.2 * root);
 
-    let top = lerp3(BARK_MID_LIGHT, BARK_HIGHLIGHT, y_frac);
-    let lit = lerp3(BARK_MID_LIGHT, BARK_HIGHLIGHT, y_frac); // +X sun-facing
-    let shadow = lerp3(BARK_DARK, BARK_MID_DARK, y_frac); // -X shadowed
-    let semi_s = lerp3(BARK_MID_DARK, BARK_MID_LIGHT, y_frac); // +Z partial shadow
-    let semi_l = lerp3(BARK_MID_LIGHT, BARK_HIGHLIGHT, y_frac * 0.7); // -Z partial lit
+    // Maximum contrast: lit gets highlight, shadow gets dark.
+    // Only slight y_frac influence to keep some vertical variation.
+    let lit = lerp3(bp.mid_light, bp.highlight, 0.5 + y_frac * 0.5);
+    let shadow = lerp3(bp.dark, bp.mid_dark, y_frac * 0.3);
+    let semi_l = bp.mid_light;
+    let semi_s = bp.mid_dark;
+    let top = bp.highlight;
 
     [
         apply(top),
-        apply(BARK_DARK),
+        apply(bp.dark),
         apply(lit),
         apply(shadow),
         apply(semi_s),
@@ -416,87 +483,6 @@ fn push_cuboid(
     }
 }
 
-/// Like `push_cuboid` but each face gets its own color.
-/// `face_colors` order: `[+Y, -Y, +X, -X, +Z, -Z]`.
-fn push_cuboid_multicolor(
-    pos: &mut Vec<[f32; 3]>,
-    nor: &mut Vec<[f32; 3]>,
-    col: &mut Vec<[f32; 4]>,
-    idx: &mut Vec<u32>,
-    center: Vec3,
-    half: Vec3,
-    face_colors: [[f32; 4]; 6],
-) {
-    let base = pos.len() as u32;
-    let (cx, cy, cz) = (center.x, center.y, center.z);
-    let (hx, hy, hz) = (half.x, half.y, half.z);
-
-    // +Y
-    pos.extend_from_slice(&[
-        [cx - hx, cy + hy, cz - hz],
-        [cx + hx, cy + hy, cz - hz],
-        [cx + hx, cy + hy, cz + hz],
-        [cx - hx, cy + hy, cz + hz],
-    ]);
-    nor.extend_from_slice(&[[0.0, 1.0, 0.0]; 4]);
-    col.extend(std::iter::repeat(face_colors[0]).take(4));
-
-    // -Y
-    pos.extend_from_slice(&[
-        [cx - hx, cy - hy, cz + hz],
-        [cx + hx, cy - hy, cz + hz],
-        [cx + hx, cy - hy, cz - hz],
-        [cx - hx, cy - hy, cz - hz],
-    ]);
-    nor.extend_from_slice(&[[0.0, -1.0, 0.0]; 4]);
-    col.extend(std::iter::repeat(face_colors[1]).take(4));
-
-    // +X
-    pos.extend_from_slice(&[
-        [cx + hx, cy - hy, cz - hz],
-        [cx + hx, cy - hy, cz + hz],
-        [cx + hx, cy + hy, cz + hz],
-        [cx + hx, cy + hy, cz - hz],
-    ]);
-    nor.extend_from_slice(&[[1.0, 0.0, 0.0]; 4]);
-    col.extend(std::iter::repeat(face_colors[2]).take(4));
-
-    // -X
-    pos.extend_from_slice(&[
-        [cx - hx, cy - hy, cz + hz],
-        [cx - hx, cy - hy, cz - hz],
-        [cx - hx, cy + hy, cz - hz],
-        [cx - hx, cy + hy, cz + hz],
-    ]);
-    nor.extend_from_slice(&[[-1.0, 0.0, 0.0]; 4]);
-    col.extend(std::iter::repeat(face_colors[3]).take(4));
-
-    // +Z
-    pos.extend_from_slice(&[
-        [cx + hx, cy - hy, cz + hz],
-        [cx - hx, cy - hy, cz + hz],
-        [cx - hx, cy + hy, cz + hz],
-        [cx + hx, cy + hy, cz + hz],
-    ]);
-    nor.extend_from_slice(&[[0.0, 0.0, 1.0]; 4]);
-    col.extend(std::iter::repeat(face_colors[4]).take(4));
-
-    // -Z
-    pos.extend_from_slice(&[
-        [cx - hx, cy - hy, cz - hz],
-        [cx + hx, cy - hy, cz - hz],
-        [cx + hx, cy + hy, cz - hz],
-        [cx - hx, cy + hy, cz - hz],
-    ]);
-    nor.extend_from_slice(&[[0.0, 0.0, -1.0]; 4]);
-    col.extend(std::iter::repeat(face_colors[5]).take(4));
-
-    for face in 0..6u32 {
-        let f = base + face * 4;
-        idx.extend_from_slice(&[f, f + 2, f + 1, f, f + 3, f + 2]);
-    }
-}
-
 /// Two-section 8-sided trunk: flared trapezoid base + straight upper section.
 ///
 /// ```text
@@ -521,40 +507,57 @@ fn push_tapered_trunk(
     top_r: f32,
     root_count: i32,
     seed: f32,
+    bp: &BarkPalette,
 ) {
-    const SIDES: usize = 8;
+    const SIDES: usize = 6;
     let tau = std::f32::consts::TAU;
 
     // Flare split: bottom 30% is the wide trapezoid base
     let flare_frac = 0.30;
     let flare_h = height * flare_frac;
-    let upper_h = height * (1.0 - flare_frac);
     // Mid radius where flare meets upper trunk — much narrower than base
     let mid_r = top_r * 1.15; // just slightly wider than top
 
+    // Stronger wobble for rougher silhouette (organic, not geometric)
     let wobble = |i: usize, section: u8| -> f32 {
         let s = seed * 11.3 + i as f32 * 2.7 + section as f32 * 5.0;
-        1.0 + s.sin() * 0.08
+        1.0 + s.sin() * 0.15
     };
 
-    let tint = |c: [f32; 4], ridge: f32, hue: f32| -> [f32; 4] {
+    // Pure brightness scale — NO hue shift. All faces stay the same bark hue,
+    // just lighter or darker. This makes pixel art bark look like wood.
+    let brighten = |c: [f32; 4], factor: f32| -> [f32; 4] {
         [
-            (c[0] * ridge + hue).max(0.0).min(1.0),
-            (c[1] * ridge).max(0.0).min(1.0),
-            (c[2] * ridge - hue * 0.5).max(0.0).min(1.0),
+            (c[0] * factor).min(1.0),
+            (c[1] * factor).min(1.0),
+            (c[2] * factor).min(1.0),
             1.0,
         ]
     };
 
-    // Emit an 8-sided prism section between two Y levels with two radii
+    // Per-face brightness: 3 levels cycling around the trunk.
+    // Creates clear lit/mid/shadow pattern, same hue throughout.
+    let face_brightness = |i: usize| -> f32 {
+        let shifted = (i + ((seed * 4.0) as usize)) % SIDES;
+        match shifted % 3 {
+            0 => 1.25, // lit face
+            1 => 1.0,  // mid face
+            _ => 0.75, // shadow face
+        }
+    };
+
+    // Emit a 6-sided prism section. Each face FLAT-SHADED (all 4 verts same color).
+    // Same bark hue, brightness-only variation between faces.
     let mut emit_section = |y_bot: f32,
                             y_top: f32,
                             r_bot: f32,
                             r_top: f32,
-                            bark_bot_frac: f32,
-                            bark_top_frac: f32,
+                            bark_frac: f32,
                             wobble_bot: u8,
                             wobble_top: u8| {
+        // Single base color for this band (mid-tone from palette)
+        let base_col = bark_face_colors_with(bark_frac, bp)[4]; // semi-shadow = mid
+
         for i in 0..SIDES {
             let a0 = (i as f32) / (SIDES as f32) * tau;
             let a1 = ((i + 1) as f32) / (SIDES as f32) * tau;
@@ -566,10 +569,10 @@ fn push_tapered_trunk(
             let wt0 = wobble(i, wobble_top);
             let wt1 = wobble(i + 1, wobble_top);
 
-            let ridge = if i % 2 == 0 { 1.12 } else { 0.88 };
-            let face_hue = ((seed * 3.1 + i as f32 * 1.7).sin()) * 0.04;
-            let fc_bot = tint(bark_face_colors(bark_bot_frac)[2], ridge, face_hue);
-            let fc_top = tint(bark_face_colors(bark_top_frac)[2], ridge, face_hue);
+            // Same hue, different brightness per face + small random jitter
+            let fb = face_brightness(i);
+            let jitter = 1.0 + ((seed * 5.7 + i as f32 * 2.3).sin()) * 0.05;
+            let fc = brighten(base_col, fb * jitter);
 
             let b = pos.len() as u32;
             pos.extend_from_slice(&[
@@ -582,31 +585,33 @@ fn push_tapered_trunk(
             let nz = (s0 + s1) * 0.5;
             let len = (nx * nx + nz * nz).sqrt().max(0.001);
             nor.extend_from_slice(&[[nx / len, 0.0, nz / len]; 4]);
-            col.extend_from_slice(&[fc_bot, fc_bot, fc_top, fc_top]);
+            col.extend_from_slice(&[fc, fc, fc, fc]);
             idx.extend_from_slice(&[b, b + 2, b + 1, b, b + 3, b + 2]);
         }
     };
 
-    // Section 1: Flared base (wide → narrow) — the trapezoid
-    emit_section(base_y, base_y + flare_h, base_r, mid_r, 0.05, 0.25, 0, 1);
-    // Section 2: Upper trunk (narrow → slightly narrower)
+    // 3 vertical sections with slightly different bark_frac for subtle banding
+    emit_section(base_y, base_y + flare_h, base_r, mid_r, 0.15, 0, 1);
+    let mid_h = base_y + flare_h;
+    let upper_h = height - flare_h;
+    let r_mid2 = mid_r + (top_r - mid_r) * 0.5;
+    emit_section(mid_h, mid_h + upper_h * 0.5, mid_r, r_mid2, 0.40, 1, 2);
     emit_section(
-        base_y + flare_h,
+        mid_h + upper_h * 0.5,
         base_y + height,
-        mid_r,
+        r_mid2,
         top_r,
         0.30,
-        0.80,
-        1,
         2,
+        3,
     );
 
     // Top cap
     let cap_base = pos.len() as u32;
-    let top_col = bark_face_colors(0.9)[0];
+    let top_col = bark_face_colors_with(0.9, bp)[0];
     for i in 0..SIDES {
         let a = (i as f32) / (SIDES as f32) * tau;
-        let w = wobble(i, 2);
+        let w = wobble(i, 3);
         pos.push([a.cos() * top_r * w, base_y + height, a.sin() * top_r * w]);
         nor.push([0.0, 1.0, 0.0]);
         col.push(top_col);
@@ -627,8 +632,8 @@ fn push_tapered_trunk(
         let fin_thick_base = base_r * 0.30;
         let fin_thick_tip = base_r * 0.06;
 
-        let root_dark = bark_face_colors(0.02)[2];
-        let root_light = bark_face_colors(0.10)[2];
+        let root_dark = bark_face_colors_with(0.02, bp)[2];
+        let root_light = bark_face_colors_with(0.10, bp)[2];
         let perp_x = -rs;
         let perp_z = rc;
         // Trunk radius at root attachment height — interpolate along the flare taper
@@ -1241,109 +1246,6 @@ fn generate_flora_atlas() -> (Vec<u8>, u32, u32) {
     (pixels, atlas_w, atlas_h)
 }
 
-// ---------------------------------------------------------------------------
-// Alpha-masked leaf cluster canopy (t3ssel8r style)
-// ---------------------------------------------------------------------------
-
-/// Number of procedural canopy blob variants in the atlas.
-const NUM_BLOB_VARIANTS: usize = 8;
-/// Pixel size of each blob tile in the atlas.
-const BLOB_TILE: usize = 48;
-
-/// Cheap pseudo-noise for silhouette wobble.
-fn blob_noise(x: f32, y: f32, seed: f32) -> f32 {
-    let n1 = ((x * 3.0 + seed * 0.37).sin() * (y * 3.0 + seed * 0.73).cos()) * 0.12;
-    let n2 = ((x * 7.0 - seed * 0.19).cos() * (y * 7.0 + seed * 0.53).sin()) * 0.06;
-    let n3 = ((x * 13.0 + seed * 0.91).sin() * (y * 11.0 - seed * 0.41).cos()) * 0.03;
-    n1 + n2 + n3
-}
-
-fn blob_hash(x: f32, y: f32) -> f32 {
-    ((x * 127.1 + y * 311.7).sin() * 43758.5453).fract().abs()
-}
-
-fn blob_smoothstep(edge0: f32, edge1: f32, x: f32) -> f32 {
-    let t = ((x - edge0) / (edge1 - edge0)).clamp(0.0, 1.0);
-    t * t * (3.0 - 2.0 * t)
-}
-
-/// Generate procedural canopy blob atlas: N variants × BLOB_TILE × BLOB_TILE.
-/// Each blob = grayscale brightness (top bright, bottom dark, interior AO) + alpha silhouette.
-/// GPU multiplies texture × vertex_color for per-tree hue.
-fn generate_blob_atlas() -> (Vec<u8>, u32, u32) {
-    let atlas_w = (NUM_BLOB_VARIANTS * BLOB_TILE) as u32;
-    let atlas_h = BLOB_TILE as u32;
-    let mut pixels = vec![0u8; (atlas_w * atlas_h * 4) as usize];
-
-    for variant in 0..NUM_BLOB_VARIANTS {
-        let seed = variant as f32;
-        // Per-variant shape variation: wide range of aspect ratios
-        let rx = 0.72 + blob_hash(seed * 7.0, 1.0) * 0.22;
-        let ry = 0.65 + blob_hash(seed * 13.0, 2.0) * 0.25;
-        let x_off = variant * BLOB_TILE;
-
-        for py in 0..BLOB_TILE {
-            for px_local in 0..BLOB_TILE {
-                let u = (px_local as f32 / (BLOB_TILE - 1) as f32) * 2.0 - 1.0;
-                let v = (py as f32 / (BLOB_TILE - 1) as f32) * 2.0 - 1.0;
-
-                // Stronger asymmetry skew
-                let skew_x = 0.14 * (v * 1.7 + seed * 0.13).sin();
-                let skew_y = 0.10 * (u * 1.1 - seed * 0.07).cos();
-
-                let sx = (u + skew_x) / rx;
-                let sy = (v + skew_y) / ry;
-                let base_r = (sx * sx + sy * sy).sqrt();
-
-                // Irregular silhouette wobble
-                let wobble = blob_noise(u, v, seed);
-                let threshold = 1.0 + wobble;
-
-                // Soft alpha edge (wider feather for painterly feel)
-                let alpha = 1.0 - blob_smoothstep(threshold - 0.14, threshold, base_r);
-                if alpha <= 0.001 {
-                    continue;
-                }
-
-                // Height gradient: bright top, dark bottom (stronger for painterly depth)
-                let top_to_bottom = py as f32 / (BLOB_TILE - 1) as f32;
-                let vertical_light = 1.15 + (0.55 - 1.15) * top_to_bottom;
-
-                // Interior darkening (center is deeper into canopy)
-                let center_factor = 1.0 - base_r.clamp(0.0, 1.0);
-                let interior_shade = 1.0 - center_factor * 0.18;
-
-                // Edge breakup speckles
-                let edge_dist = (threshold - base_r).clamp(0.0, 1.0);
-                let edge_zone = 1.0 - blob_smoothstep(0.0, 0.18, edge_dist);
-                let breakup_rand =
-                    blob_hash(px_local as f32 + seed * 11.0, py as f32 + seed * 17.0);
-                let breakup = if breakup_rand < 0.06 * edge_zone {
-                    0.85
-                } else {
-                    1.0
-                };
-
-                // Subtle noise tint to avoid flat fill
-                let noise_tint =
-                    0.96 + blob_hash(px_local as f32 + seed * 3.0, py as f32 + seed * 5.0) * 0.08;
-
-                let shade =
-                    (vertical_light * interior_shade * breakup * noise_tint).clamp(0.0, 1.0);
-                let g = (shade * 255.0) as u8;
-                let a = (alpha.clamp(0.0, 1.0) * 255.0) as u8;
-
-                let pixel_idx = ((x_off + px_local) + py * atlas_w as usize) * 4;
-                pixels[pixel_idx] = g;
-                pixels[pixel_idx + 1] = g;
-                pixels[pixel_idx + 2] = g;
-                pixels[pixel_idx + 3] = a;
-            }
-        }
-    }
-    (pixels, atlas_w, atlas_h)
-}
-
 /// Push a 3-zone canopy dome with clean flat band colors and per-dome tilt.
 /// Zones: sun plate (~8%), foliage body (~65%), underside (~27%).
 /// NO per-vertex color variation — depth from overlapping masses only.
@@ -1478,139 +1380,6 @@ fn push_dome(
     }
 }
 
-/// Push a UV-mapped leaf card (crossed planes, double-sided).
-/// UV maps into the leaf atlas based on mask_idx.
-fn push_leaf_card(
-    pos: &mut Vec<[f32; 3]>,
-    nor: &mut Vec<[f32; 3]>,
-    col: &mut Vec<[f32; 4]>,
-    uvs: &mut Vec<[f32; 2]>,
-    idx: &mut Vec<u32>,
-    center: Vec3,
-    hw: f32,
-    h: f32,
-    rot_y: f32,
-    mask_idx: usize,
-    color: [f32; 4],
-) {
-    let u0 = mask_idx as f32 / NUM_BLOB_VARIANTS as f32;
-    let u1 = (mask_idx + 1) as f32 / NUM_BLOB_VARIANTS as f32;
-
-    let (sin_r, cos_r) = rot_y.sin_cos();
-    let sin45 = std::f32::consts::FRAC_1_SQRT_2;
-
-    for &(bx, bz) in &[(sin45, sin45), (sin45, -sin45)] {
-        let dx = bx * cos_r - bz * sin_r;
-        let dz = bx * sin_r + bz * cos_r;
-        let nx = -dz;
-        let nz = dx;
-
-        // Front face
-        let base = pos.len() as u32;
-        pos.extend_from_slice(&[
-            [center.x - hw * dx, center.y, center.z - hw * dz],
-            [center.x + hw * dx, center.y, center.z + hw * dz],
-            [center.x + hw * dx, center.y + h, center.z + hw * dz],
-            [center.x - hw * dx, center.y + h, center.z - hw * dz],
-        ]);
-        nor.extend_from_slice(&[[nx, 0.0, nz]; 4]);
-        col.extend_from_slice(&[color; 4]);
-        uvs.extend_from_slice(&[[u0, 1.0], [u1, 1.0], [u1, 0.0], [u0, 0.0]]);
-        idx.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
-
-        // Back face
-        let base = pos.len() as u32;
-        pos.extend_from_slice(&[
-            [center.x - hw * dx, center.y, center.z - hw * dz],
-            [center.x + hw * dx, center.y, center.z + hw * dz],
-            [center.x + hw * dx, center.y + h, center.z + hw * dz],
-            [center.x - hw * dx, center.y + h, center.z - hw * dz],
-        ]);
-        nor.extend_from_slice(&[[-nx, 0.0, -nz]; 4]);
-        col.extend_from_slice(&[color; 4]);
-        uvs.extend_from_slice(&[[u1, 1.0], [u0, 1.0], [u0, 0.0], [u1, 0.0]]);
-        idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
-    }
-}
-
-/// Push a UV-mapped horizontal leaf card (XZ plane, double-sided).
-/// Supports asymmetric x/z half-widths and rotation for organic silhouettes.
-fn push_leaf_cap(
-    pos: &mut Vec<[f32; 3]>,
-    nor: &mut Vec<[f32; 3]>,
-    col: &mut Vec<[f32; 4]>,
-    uvs: &mut Vec<[f32; 2]>,
-    idx: &mut Vec<u32>,
-    center: Vec3,
-    hx: f32,
-    hz: f32,
-    rot_y: f32,
-    mask_idx: usize,
-    color: [f32; 4],
-) {
-    let u0 = mask_idx as f32 / NUM_BLOB_VARIANTS as f32;
-    let u1 = (mask_idx + 1) as f32 / NUM_BLOB_VARIANTS as f32;
-
-    let (sin_r, cos_r) = rot_y.sin_cos();
-    // 4 corners in local space, then rotate around Y
-    let corners: [(f32, f32); 4] = [(-hx, -hz), (hx, -hz), (hx, hz), (-hx, hz)];
-    let rot_corners: Vec<(f32, f32)> = corners
-        .iter()
-        .map(|&(lx, lz)| (lx * cos_r - lz * sin_r, lx * sin_r + lz * cos_r))
-        .collect();
-
-    // Top face
-    let base = pos.len() as u32;
-    for &(rx, rz) in &rot_corners {
-        pos.push([center.x + rx, center.y, center.z + rz]);
-    }
-    nor.extend_from_slice(&[[0.0, 1.0, 0.0]; 4]);
-    col.extend_from_slice(&[color; 4]);
-    uvs.extend_from_slice(&[[u0, 0.0], [u1, 0.0], [u1, 1.0], [u0, 1.0]]);
-    idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
-
-    // Bottom face (reversed winding)
-    let base = pos.len() as u32;
-    for &(rx, rz) in rot_corners.iter().rev() {
-        pos.push([center.x + rx, center.y, center.z + rz]);
-    }
-    nor.extend_from_slice(&[[0.0, -1.0, 0.0]; 4]);
-    col.extend_from_slice(&[color; 4]);
-    uvs.extend_from_slice(&[[u0, 1.0], [u1, 1.0], [u1, 0.0], [u0, 0.0]]);
-    idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
-}
-
-/// Build canopy mesh with real UVs for alpha-masked leaf atlas.
-fn build_canopy_mesh(
-    positions: Vec<[f32; 3]>,
-    normals: Vec<[f32; 3]>,
-    colors: Vec<[f32; 4]>,
-    uvs: Vec<[f32; 2]>,
-    indices: Vec<u32>,
-) -> Mesh {
-    Mesh::new(
-        PrimitiveTopology::TriangleList,
-        RenderAssetUsages::default(),
-    )
-    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
-    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
-    .with_inserted_attribute(Mesh::ATTRIBUTE_COLOR, colors)
-    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
-    .with_inserted_indices(Indices::U32(indices))
-}
-
-/// Leaf card vertex color with strong height-based ambient occlusion.
-/// Bottom cards get very dark (deep canopy shadow), top cards get bright.
-fn leaf_card_color(base: (f32, f32, f32), height_frac: f32) -> [f32; 4] {
-    // Extreme AO: 0.20 at bottom → 1.15 at top (deep canopy shadow → bright crown)
-    let brightness = 0.20 + height_frac * 0.95;
-    srgb_color(
-        (base.0 * brightness).min(1.0),
-        (base.1 * brightness).min(1.0),
-        (base.2 * brightness).min(1.0),
-    )
-}
-
 // ---------------------------------------------------------------------------
 // Flower mesh (UV-mapped billboard cards)
 // ---------------------------------------------------------------------------
@@ -1709,19 +1478,71 @@ struct VegBuffers {
     idx: Vec<u32>,
 }
 
-/// Attached to each vegetation group entity for wind sway animation.
+/// Global wind state. Speed in MPH drives all sway amplitudes.
+#[derive(Resource)]
+struct WindState {
+    speed_mph: f32,        // 0 = calm, 5 = gentle breeze, 15 = moderate, 30 = strong
+    direction: (f32, f32), // normalized XZ direction
+}
+
+impl Default for WindState {
+    fn default() -> Self {
+        Self {
+            speed_mph: 8.0,            // gentle breeze
+            direction: (0.707, 0.707), // NE
+        }
+    }
+}
+
+/// Attached to tree entities. Rotation pivot at ground → canopy moves, trunk base stays.
+/// `stiffness` = inverse flexibility. Thick trunks resist more (higher = less sway).
+#[derive(Component)]
+struct TreeWindSway {
+    base_rotation: Quat,
+    phase: f32,
+    stiffness: f32, // 1.0 = flexible sapling, 2.0+ = thick oak
+}
+
+/// Attached to small vegetation (flowers, grass) for gentle translation sway.
 #[derive(Component)]
 struct WindSway {
     base_translation: Vec3,
     phase: f32,
 }
 
+/// Marker on trees for occlusion detection against the player.
+#[derive(Component)]
+struct TreeOccluder;
+
+/// The player silhouette indicator (dots/ring visible through trees).
+#[derive(Component)]
+struct PlayerOcclusionIndicator;
+
 pub struct TilemapPlugin;
 
 impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (setup_tile_materials, spawn_lighting));
-        app.add_systems(Update, process_chunk_spawns_and_despawns);
+        app.init_resource::<WindState>();
+        app.init_resource::<WindStreakPool>();
+        app.add_systems(
+            Startup,
+            (
+                setup_tile_materials,
+                spawn_lighting,
+                spawn_occlusion_indicator,
+            ),
+        );
+        app.add_systems(
+            Update,
+            (
+                process_chunk_spawns_and_despawns,
+                animate_tree_wind,
+                animate_veg_wind,
+                update_player_occlusion,
+                spawn_wind_streaks,
+                animate_wind_streaks,
+            ),
+        );
         app.add_systems(
             PostUpdate,
             stabilize_shadow_cascades.after(SimulationLightSystems::UpdateDirectionalLightCascades),
@@ -1818,11 +1639,11 @@ fn spawn_lighting(mut commands: Commands) {
         brightness: 200.0,
         ..default()
     });
-    // Single cascade + high-res shadow map + texel-snapping stabilisation.
-    // The `stabilize_shadow_cascades` system (PostUpdate) snaps the cascade's
-    // clip-space projection to shadow-texel boundaries so the shadow grid
-    // stays locked to the world regardless of camera movement.
-    commands.insert_resource(DirectionalLightShadowMap { size: 4096 });
+    // Single cascade + pixelated shadow map + texel-snapping stabilisation.
+    // Shadow map sized so each shadow texel ≈ 1 scene pixel (32 px/unit).
+    // 1024 over 80 units = ~12.8 texels/unit → shadows are ~2.5× chunkier than
+    // scene pixels, giving that crisp pixel-art shadow look that blends in.
+    commands.insert_resource(DirectionalLightShadowMap { size: 1024 });
     commands.spawn((
         DirectionalLight {
             illuminance: 6000.0,
@@ -1870,15 +1691,372 @@ fn stabilize_shadow_cascades(
 // Wind animation for vegetation groups
 // ---------------------------------------------------------------------------
 
-fn animate_wind(time: Res<Time>, mut query: Query<(&mut Transform, &WindSway)>) {
+fn animate_tree_wind(
+    time: Res<Time>,
+    wind: Res<WindState>,
+    mut query: Query<(&mut Transform, &TreeWindSway)>,
+) {
     let t = time.elapsed_secs();
-    for (mut tf, wind) in &mut query {
-        // Amplitude = 1 pixel, snapped to pixel grid so edges never land sub-pixel.
-        let raw_dx = (t * 1.2 + wind.phase).sin() * VEG_SNAP;
-        let raw_dz = (t * 0.9 + wind.phase * 1.4).cos() * VEG_SNAP;
-        let dx = (raw_dx / VEG_SNAP).round() * VEG_SNAP;
-        let dz = (raw_dz / VEG_SNAP).round() * VEG_SNAP;
-        tf.translation = wind.base_translation + Vec3::new(dx, 0.0, dz);
+    let spd = wind.speed_mph;
+    if spd < 0.5 {
+        return;
+    } // dead calm — skip entirely
+
+    // Wind speed → sway parameters (all scale from speed)
+    // At 10 MPH: ~1.5° max sway. At 30 MPH: ~4.5°. Sublinear so it doesn't go crazy.
+    let base_amp = (spd / 10.0).sqrt() * 0.025; // radians
+    // Constant lean into wind — barely visible at low speed, noticeable at high
+    let lean = (spd / 10.0).min(3.0) * 0.005; // max ~0.015 rad (~0.9°)
+    // Gust speed scales with wind (faster wind = faster oscillation)
+    let gust_speed = 0.5 + spd * 0.03;
+
+    let (dx, dz) = wind.direction;
+
+    for (mut tf, tree) in &mut query {
+        let amp = base_amp / tree.stiffness;
+        // Primary gust along wind direction
+        let gust = (t * gust_speed + tree.phase).sin() * amp
+            + (t * gust_speed * 2.1 + tree.phase * 2.3).sin() * amp * 0.3;
+        // Cross-wind flutter (perpendicular, much weaker)
+        let flutter = (t * gust_speed * 2.7 + tree.phase * 1.6).sin() * amp * 0.12;
+        // Compose: lean + gust along wind dir, flutter perpendicular
+        let rx = dx * (lean + gust) + (-dz) * flutter;
+        let rz = dz * (lean + gust) + dx * flutter;
+        // Rotation around X tilts forward/back (Z-axis sway), around Z tilts left/right (X-axis sway)
+        let wind_rot = Quat::from_euler(EulerRot::XYZ, rz, 0.0, -rx);
+        tf.rotation = tree.base_rotation * wind_rot;
+    }
+}
+
+fn animate_veg_wind(
+    time: Res<Time>,
+    wind: Res<WindState>,
+    mut query: Query<(&mut Transform, &WindSway)>,
+) {
+    let t = time.elapsed_secs();
+    let spd = wind.speed_mph;
+    if spd < 0.5 {
+        return;
+    }
+
+    // Vegetation is very flexible — moves more than trees at same wind speed
+    let veg_amp = (spd / 10.0).sqrt() * 0.035;
+    let gust_speed = 0.8 + spd * 0.04;
+    let (dx, dz) = wind.direction;
+
+    for (mut tf, sway) in &mut query {
+        let gust = (t * gust_speed + sway.phase).sin() * veg_amp
+            + (t * gust_speed * 2.1 + sway.phase * 1.8).sin() * veg_amp * 0.4;
+        let flutter = (t * gust_speed * 3.0 + sway.phase * 1.3).sin() * veg_amp * 0.2;
+        let ox = dx * gust + (-dz) * flutter;
+        let oz = dz * gust + dx * flutter;
+        tf.translation = sway.base_translation + Vec3::new(ox, 0.0, oz);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Tree occlusion fade (player behind tree → tree becomes transparent)
+// ---------------------------------------------------------------------------
+
+/// Direction from scene toward camera in XZ (normalized).
+/// Camera is at offset (+15, +20, +15) → "toward camera" is (+1, +1) normalized.
+const CAM_DIR_XZ: (f32, f32) = (0.707, 0.707);
+
+/// Build a small ring mesh (8 dots arranged in a circle) for the occlusion indicator.
+fn build_indicator_mesh() -> Mesh {
+    let mut positions = Vec::new();
+    let mut normals = Vec::new();
+    let mut colors = Vec::new();
+    let mut indices = Vec::new();
+
+    let dot_count = 8;
+    let ring_r = 0.35;
+    let dot_r = 0.06;
+
+    for i in 0..dot_count {
+        let angle = (i as f32 / dot_count as f32) * std::f32::consts::TAU;
+        let cx = angle.cos() * ring_r;
+        let cz = angle.sin() * ring_r;
+        let base = positions.len() as u32;
+
+        // Small diamond/quad for each dot
+        positions.extend_from_slice(&[
+            [cx - dot_r, 0.0, cz],
+            [cx + dot_r, 0.0, cz],
+            [cx, 0.0, cz + dot_r],
+            [cx, 0.0, cz - dot_r],
+        ]);
+        normals.extend_from_slice(&[[0.0, 1.0, 0.0]; 4]);
+        // Bright white-blue dots
+        colors.extend_from_slice(&[[0.7_f32, 0.85, 1.0, 1.0]; 4]);
+        indices.extend_from_slice(&[
+            base,
+            base + 1,
+            base + 2,
+            base,
+            base + 2,
+            base + 3,
+            base,
+            base + 3,
+            base + 1,
+            base + 1,
+            base + 3,
+            base + 2,
+        ]);
+    }
+
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_COLOR, colors)
+    .with_inserted_indices(Indices::U32(indices))
+}
+
+fn spawn_occlusion_indicator(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let mesh = meshes.add(build_indicator_mesh());
+    let mat = materials.add(StandardMaterial {
+        base_color: Color::WHITE,
+        unlit: true,
+        // No depth test — renders on top of everything
+        depth_bias: f32::MAX,
+        ..default()
+    });
+
+    commands.spawn((
+        Mesh3d(mesh),
+        MeshMaterial3d(mat),
+        Transform::from_xyz(0.0, -100.0, 0.0), // hidden initially
+        Visibility::Hidden,
+        PlayerOcclusionIndicator,
+    ));
+}
+
+fn update_player_occlusion(
+    player_q: Query<&Transform, With<Player>>,
+    tree_q: Query<
+        &Transform,
+        (
+            With<TreeOccluder>,
+            Without<Player>,
+            Without<PlayerOcclusionIndicator>,
+        ),
+    >,
+    mut indicator_q: Query<
+        (&mut Transform, &mut Visibility),
+        (
+            With<PlayerOcclusionIndicator>,
+            Without<Player>,
+            Without<TreeOccluder>,
+        ),
+    >,
+) {
+    let Ok(player_tf) = player_q.single() else {
+        return;
+    };
+    let Ok((mut ind_tf, mut ind_vis)) = indicator_q.single_mut() else {
+        return;
+    };
+    let pp = player_tf.translation;
+
+    // Check if any tree occludes the player
+    let mut occluded = false;
+    for tree_tf in &tree_q {
+        let tp = tree_tf.translation;
+        let dx = tp.x - pp.x;
+        let dz = tp.z - pp.z;
+        let dist_xz = (dx * dx + dz * dz).sqrt();
+        let dot = dx * CAM_DIR_XZ.0 + dz * CAM_DIR_XZ.1;
+        let y_diff = (tp.y - pp.y).abs();
+
+        if dot > 0.3 && dist_xz < 2.5 && y_diff < 3.0 {
+            occluded = true;
+            break;
+        }
+    }
+
+    if occluded {
+        *ind_vis = Visibility::Visible;
+        // Place indicator at player position, slightly above head
+        ind_tf.translation = Vec3::new(pp.x, pp.y + 1.2, pp.z);
+    } else {
+        *ind_vis = Visibility::Hidden;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Wind streaks (Wind Waker-style visual wind trails)
+// ---------------------------------------------------------------------------
+
+const WIND_STREAK_COUNT: usize = 10;
+const WIND_STREAK_LIFETIME: f32 = 2.8; // seconds per streak cycle
+
+#[derive(Component)]
+struct WindStreak {
+    age: f32,
+    lifetime: f32,
+    start_pos: Vec3,
+    speed: f32,     // world units/sec along wind direction
+    drift_off: f32, // cross-wind offset for variety
+    mat_handle: Handle<StandardMaterial>,
+}
+
+#[derive(Resource, Default)]
+struct WindStreakPool {
+    initialized: bool,
+}
+
+/// Thin elongated quad mesh for a single wind streak.
+fn build_streak_mesh() -> Mesh {
+    // Thin line: 0.6 long × 0.012 tall, centered at origin
+    let hw = 0.30;
+    let hh = 0.006;
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(
+        Mesh::ATTRIBUTE_POSITION,
+        vec![
+            [-hw, -hh, 0.0],
+            [hw, -hh, 0.0],
+            [hw, hh, 0.0],
+            [-hw, hh, 0.0],
+        ],
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0.0, 0.0, 1.0]; 4])
+    .with_inserted_attribute(Mesh::ATTRIBUTE_COLOR, vec![[1.0_f32, 1.0, 1.0, 1.0]; 4])
+    .with_inserted_indices(Indices::U32(vec![0, 1, 2, 0, 2, 3]))
+}
+
+fn spawn_wind_streaks(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut pool: ResMut<WindStreakPool>,
+) {
+    if pool.initialized {
+        return;
+    }
+    pool.initialized = true;
+
+    let streak_mesh = meshes.add(build_streak_mesh());
+
+    for i in 0..WIND_STREAK_COUNT {
+        let phase = i as f32 / WIND_STREAK_COUNT as f32;
+        // Each streak gets its own material so we can fade alpha independently
+        let mat = materials.add(StandardMaterial {
+            base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
+            unlit: true,
+            alpha_mode: AlphaMode::Blend,
+            ..default()
+        });
+        let mat_clone = mat.clone();
+        commands.spawn((
+            Mesh3d(streak_mesh.clone()),
+            MeshMaterial3d(mat),
+            Transform::from_xyz(0.0, -100.0, 0.0),
+            Visibility::Hidden,
+            WindStreak {
+                age: phase * WIND_STREAK_LIFETIME,
+                lifetime: WIND_STREAK_LIFETIME + (phase - 0.5) * 0.6,
+                start_pos: Vec3::ZERO,
+                speed: 2.5 + phase * 1.5,
+                drift_off: (phase * 7.3).sin() * 0.3,
+                mat_handle: mat_clone,
+            },
+        ));
+    }
+}
+
+fn animate_wind_streaks(
+    time: Res<Time>,
+    wind: Res<WindState>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    camera_q: Query<&Transform, With<IsometricCamera>>,
+    mut streak_q: Query<
+        (&mut Transform, &mut WindStreak, &mut Visibility),
+        Without<IsometricCamera>,
+    >,
+) {
+    let Ok(cam_tf) = camera_q.single() else {
+        return;
+    };
+    let dt = time.delta_secs();
+    let spd = wind.speed_mph;
+    if spd < 1.0 {
+        for (_, _, mut vis) in &mut streak_q {
+            *vis = Visibility::Hidden;
+        }
+        return;
+    }
+
+    let (wd_x, wd_z) = wind.direction;
+    let wind_dir = Vec3::new(wd_x, 0.0, wd_z);
+    let cross = Vec3::new(-wd_z, 0.0, wd_x);
+    let cam_pos = cam_tf.translation;
+    // Scene center: camera looks down at an offset, streaks spawn around the viewed area
+    let scene_center = Vec3::new(cam_pos.x - 15.0, 0.0, cam_pos.z - 15.0);
+
+    // Subtle opacity: barely-there wisps, not cartoon lines
+    let opacity_scale = ((spd - 2.0) / 15.0).clamp(0.0, 1.0) * 0.16;
+
+    for (mut tf, mut streak, mut vis) in &mut streak_q {
+        streak.age += dt;
+        if streak.age >= streak.lifetime {
+            streak.age = 0.0;
+            let seed = streak.drift_off * 17.3 + time.elapsed_secs() * 3.1;
+            let spread_along = seed.sin() * 8.0;
+            let spread_cross = (seed * 2.7).cos() * 6.0;
+            let height = 1.8 + ((seed * 1.3).sin() * 0.5 + 0.5) * 3.0;
+            streak.start_pos = scene_center
+                + wind_dir * spread_along
+                + cross * (spread_cross + streak.drift_off * 4.0)
+                + Vec3::Y * height;
+            streak.speed = 2.0 + ((seed * 0.7).cos() * 0.5 + 0.5) * 2.0;
+            streak.lifetime = WIND_STREAK_LIFETIME + (seed * 0.4).sin() * 0.5;
+        }
+
+        let t_frac = streak.age / streak.lifetime;
+        // Gentle fade in/out — long tails, soft appearance
+        let alpha = if t_frac < 0.25 {
+            t_frac / 0.25
+        } else if t_frac > 0.75 {
+            (1.0 - t_frac) / 0.25
+        } else {
+            1.0
+        } * opacity_scale;
+
+        if alpha < 0.003 {
+            *vis = Visibility::Hidden;
+            if let Some(mat) = materials.get_mut(&streak.mat_handle) {
+                mat.base_color = Color::srgba(1.0, 1.0, 1.0, 0.0);
+            }
+            continue;
+        }
+        *vis = Visibility::Visible;
+
+        // Set per-streak alpha
+        if let Some(mat) = materials.get_mut(&streak.mat_handle) {
+            mat.base_color = Color::srgba(1.0, 1.0, 1.0, alpha);
+        }
+
+        // Drift along wind direction
+        let travel = wind_dir * streak.speed * streak.age * (spd / 8.0);
+        let pos = streak.start_pos + travel;
+        // Billboard: face camera, long axis aligned with wind
+        let to_cam = (cam_pos - pos).normalize_or_zero();
+        tf.translation = pos;
+        tf.look_to(to_cam, Vec3::Y);
+        // Stretch with wind speed — longer wisps at higher speed
+        let length_scale = 0.7 + spd * 0.05;
+        tf.scale = Vec3::new(length_scale, 1.0, 1.0);
     }
 }
 
@@ -2234,8 +2412,8 @@ fn process_chunk_spawns_and_despawns(
                     if tree_noise < 0.055 {
                         let jx = (hash2d(tx + 11417, tz + 5471) - 0.5) * 0.3;
                         let jz = (hash2d(tx + 11317, tz + 5571) - 0.5) * 0.3;
-                        let leaf_variant = (hash2d(tx + 11517, tz + 5671) * 5.0) as usize % 5;
-                        let preset_idx = (hash2d(tx + 11617, tz + 5771) * 5.0) as usize % 5;
+                        let preset_idx = (hash2d(tx + 11617, tz + 5771) * 6.0) as usize % 6;
+                        let bark_palette = &BARK_PALETTES[preset_idx];
                         let size_scale = 1.10 + hash2d(tx + 11717, tz + 5871) * 1.10; // 1.10–2.20
 
                         let preset = TREE_PRESETS[preset_idx];
@@ -2273,6 +2451,7 @@ fn process_chunk_spawns_and_despawns(
                             trunk_r * 0.70, // top radius (narrow at canopy)
                             root_count,
                             trunk_seed,
+                            bark_palette,
                         );
 
                         // --- Branches: scale with tree size ---
@@ -2309,12 +2488,12 @@ fn process_chunk_spawns_and_despawns(
                                 ),
                                 Vec3::new(branch_thick, branch_thick * 0.7, branch_thick),
                                 (angle.cos() * branch_len, angle.sin() * branch_len),
-                                bark_face_colors(y_pos / trunk_h),
+                                bark_face_colors_with(y_pos / trunk_h, bark_palette),
                             );
                         }
 
                         // --- 3-dome canopy volumes + edge breakup cards ---
-                        let canopy_base = TREE_CANOPY_COLORS[leaf_variant];
+                        let canopy_base = PRESET_CANOPY_COLORS[preset_idx];
                         let seed_base = tx * 31337 + tz * 17389;
                         let mut max_hw: f32 = trunk_r;
                         let mut total_h: f32 = trunk_h;
@@ -2344,6 +2523,7 @@ fn process_chunk_spawns_and_despawns(
                             2 => 0.85, // Bushy: a bit more overlap
                             3 => 0.87, // Oak: moderate
                             4 => 0.87, // Round: moderate
+                            5 => 0.82, // Willow: droopy canopy sits lower
                             _ => 0.88,
                         };
                         let canopy_center_y = trunk_h * base_frac;
@@ -2509,31 +2689,44 @@ fn process_chunk_spawns_and_despawns(
                             total_h = total_h.max(ts_y + ts_ry);
                         }
 
-                        // --- Primary branch sub-canopies (large trees only) ---
-                        // Trees above 1.5× scale get 1-2 visible primary branches
-                        // with their own canopy domes that overlap the main mass.
-                        // This fills in gaps and adds natural volume/density.
-                        if size_scale > 1.50 {
-                            let pb_count = 1 + (hash2d(seed_base + 300, 7300) * 1.99) as i32; // 1-2
+                        // --- Primary branch sub-canopies ---
+                        // Branches carry foliage outward past the main canopy edge.
+                        // This is the natural "overhang" — structurally grounded in
+                        // the branch system, not an artificial filler.
+                        // More trees get them (>1.3×), bigger reach, more count.
+                        if size_scale > 1.30 {
+                            // Scale branch count with tree size: 1-2 for medium, 2-3 for large
+                            let pb_count = if size_scale > 1.70 {
+                                2 + (hash2d(seed_base + 300, 7300) * 1.99) as i32 // 2-3
+                            } else {
+                                1 + (hash2d(seed_base + 300, 7300) * 1.99) as i32 // 1-2
+                            };
                             for pi in 0..pb_count {
                                 let pi_seed = seed_base + 400 + pi * 191;
                                 let pb_angle = hash2d(pi_seed + 1, 7401) * std::f32::consts::TAU;
-                                // Branch exits trunk at 60-80% height
-                                let pb_y_frac = 0.60 + hash2d(pi_seed + 2, 7402) * 0.20;
+                                // Branch exits trunk at 55-80% height
+                                let pb_y_frac = 0.55 + hash2d(pi_seed + 2, 7402) * 0.25;
                                 let pb_y = trunk_h * pb_y_frac;
-                                // Branch extends outward 40-65% of canopy radius
+                                // Branch reaches further: 55-90% of canopy radius
+                                // This creates the overhang — foliage past the main dome edge
                                 let pb_reach =
-                                    canopy_rx * (0.40 + hash2d(pi_seed + 3, 7403) * 0.25);
+                                    canopy_rx * (0.55 + hash2d(pi_seed + 3, 7403) * 0.35);
                                 let pb_cx = pb_angle.cos() * pb_reach;
                                 let pb_cz = pb_angle.sin() * pb_reach;
-                                // Sub-canopy dome: 35-55% of main canopy size
-                                let pb_size = 0.35 + hash2d(pi_seed + 4, 7404) * 0.20;
+                                // Sub-canopy dome: 40-65% of main canopy size
+                                let pb_size = 0.40 + hash2d(pi_seed + 4, 7404) * 0.25;
                                 let pb_rx = canopy_rx * pb_size * jit_sx;
                                 let pb_rz = canopy_rx * pb_size * jit_sz;
-                                let pb_ry = canopy_ry * pb_size * 0.70; // slightly squashed
-                                // Center the sub-canopy at branch tip height,
-                                // overlapping with the main canopy bottom
-                                let pb_dome_y = pb_y + pb_ry * 0.5;
+                                let pb_ry = canopy_ry * pb_size * 0.65;
+                                // Dome center overlaps with main canopy bottom
+                                let pb_dome_y = pb_y + pb_ry * 0.3;
+
+                                // Use mid/body colors so it blends with main canopy
+                                let (pct, pcm, pcb) = if hash2d(pi_seed + 7, 7407) < 0.5 {
+                                    (c_mid, c_body, c_shadow)
+                                } else {
+                                    (c_body, c_shadow, c_shadow)
+                                };
 
                                 push_dome(
                                     &mut tp,
@@ -2544,9 +2737,9 @@ fn process_chunk_spawns_and_despawns(
                                     pb_rx,
                                     pb_ry,
                                     pb_rz,
-                                    c_body,
-                                    c_shadow,
-                                    c_shadow,
+                                    pct,
+                                    pcm,
+                                    pcb,
                                 );
                                 max_hw = max_hw.max(pb_cx.abs() + pb_rx.max(pb_rz));
                                 total_h = total_h.max(pb_dome_y + pb_ry);
@@ -2569,24 +2762,22 @@ fn process_chunk_spawns_and_despawns(
                         ];
 
                         let tree_mesh = meshes.add(build_chunk_mesh(tp, tn, tc, ti));
+                        let tilt_x = (hash2d(tx * 4591 + 1277, tz * 3307) - 0.5) * 0.26; // ±7.5°
+                        let tilt_z = (hash2d(tx * 5303, tz * 4219 + 1901) - 0.5) * 0.26;
+                        let rot_y =
+                            hash2d(tx * 6737 + 3119, tz * 5417 + 2309) * std::f32::consts::TAU;
+                        let base_rot = Quat::from_euler(EulerRot::XYZ, tilt_x, rot_y, tilt_z);
+                        let wind_phase =
+                            hash2d(tx * 7919 + 4391, tz * 6133 + 2707) * std::f32::consts::TAU;
+                        // Stiffness from trunk thickness: thicker trunk resists wind more
+                        // trunk_r ~0.10 → stiffness ~1.0, trunk_r ~0.20 → stiffness ~2.0
+                        let wind_stiffness = (trunk_r / 0.10).max(0.5);
                         let tree_entity = commands
                             .spawn((
                                 Mesh3d(tree_mesh),
                                 MeshMaterial3d(tile_materials.tree_body_mat.clone()),
-                                {
-                                    let tilt_x = (hash2d(tx * 4591 + 1277, tz * 3307) - 0.5) * 0.26; // ±7.5°
-                                    let tilt_z = (hash2d(tx * 5303, tz * 4219 + 1901) - 0.5) * 0.26;
-                                    // Full Y rotation so canopy elongation faces random direction
-                                    let rot_y = hash2d(tx * 6737 + 3119, tz * 5417 + 2309)
-                                        * std::f32::consts::TAU;
-                                    Transform::from_xyz(world_x, tree_base_y, world_z)
-                                        .with_rotation(Quat::from_euler(
-                                            EulerRot::XYZ,
-                                            tilt_x,
-                                            rot_y,
-                                            tilt_z,
-                                        ))
-                                },
+                                Transform::from_xyz(world_x, tree_base_y, world_z)
+                                    .with_rotation(base_rot),
                                 RigidBody::Fixed,
                                 Collider::compound(collider_shapes),
                                 HoverOutline {
@@ -2595,6 +2786,12 @@ fn process_chunk_spawns_and_despawns(
                                 Interactable {
                                     kind: InteractableKind::Tree,
                                 },
+                                TreeWindSway {
+                                    base_rotation: base_rot,
+                                    phase: wind_phase,
+                                    stiffness: wind_stiffness,
+                                },
+                                TreeOccluder,
                             ))
                             .observe(on_pointer_over)
                             .observe(on_pointer_out)
