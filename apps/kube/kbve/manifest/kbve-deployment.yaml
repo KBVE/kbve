@@ -25,7 +25,7 @@ spec:
         spec:
             containers:
                 - name: kbve
-                  image: ghcr.io/kbve/kbve:1.0.39
+                  image: ghcr.io/kbve/kbve:1.0.40
                   imagePullPolicy: Always
                   ports:
                       - name: http
