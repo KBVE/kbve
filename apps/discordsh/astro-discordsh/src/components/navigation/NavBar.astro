@@ -1,5 +1,8 @@
 ---
 import ReactNavBar from './ReactNavBar.tsx';
+import { DroidProvider } from '@kbve/astro';
+import { OverlayShell } from '../overlay/OverlayShell';
+import { workerURLs } from '../../lib/workers';
 
 const currentPath = Astro.url.pathname;
 ---
@@ -135,6 +138,15 @@ const currentPath = Astro.url.pathname;
 
 	{/* React handles: auth state, portals, drawer, modal */}
 	<ReactNavBar client:only="react" currentPath={currentPath} />
+
+	{/* Single-mount providers — shared across all pages via NavBar */}
+	<DroidProvider
+		client:only="react"
+		workerURLs={workerURLs}
+		i18nPath="/i18n/db.json"
+		dataPath="/data/servers.json"
+	/>
+	<OverlayShell client:only="react" />
 </nav>
 
 <script>
