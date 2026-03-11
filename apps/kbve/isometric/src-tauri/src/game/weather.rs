@@ -79,9 +79,9 @@ fn sun_params(hour: f32) -> SunParams {
     let moon_dir = Vec3::new(-0.15, -0.97, -0.20).normalize();
     let direction = (sun_dir * sun_height + moon_dir * (1.0 - sun_height)).normalize();
 
-    // Illuminance: moderate sun — accent light, not the sole brightness source.
-    // Lower peak keeps shadow contrast gentle for a stylized look.
-    let illuminance = 15.0 + sun_height * 4000.0;
+    // Illuminance: gentle accent — pixel-art style relies on ambient, not harsh shadows.
+    // ~2:1 ratio with ambient keeps valleys readable.
+    let illuminance = 15.0 + sun_height * 1800.0;
 
     // Light color: warm golden near horizon, white at zenith, cool blue at night.
     let lr = 0.4 + sun_height * 0.6;
@@ -89,13 +89,13 @@ fn sun_params(hour: f32) -> SunParams {
     let lb = 0.65 + sun_height * 0.35;
     let color = Color::srgb(lr, lg, lb);
 
-    // Ambient: strong fill — the main brightness source in a stylized world.
-    // Shadowed areas stay readable as tinted, not dark. Green-tinted for grass bounce.
-    let ambient_brightness = 150.0 + sun_height * 450.0;
+    // Ambient: dominant fill — the main brightness source in a stylized world.
+    // Shadowed areas (valleys) should be tinted, never crushed to dark.
+    let ambient_brightness = 350.0 + sun_height * 650.0;
     let ambient_color = Color::srgb(
-        0.50 + sun_height * 0.40,
-        0.55 + sun_height * 0.37,
-        0.45 + sun_height * 0.30,
+        0.55 + sun_height * 0.35,
+        0.60 + sun_height * 0.32,
+        0.50 + sun_height * 0.25,
     );
 
     SunParams {
