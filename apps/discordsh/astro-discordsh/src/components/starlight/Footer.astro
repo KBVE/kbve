@@ -1,16 +1,11 @@
 ---
 import type { Props } from '@astrojs/starlight/props';
 import Default from '@astrojs/starlight/components/Footer.astro';
-import { DroidProvider } from '@kbve/astro';
-import { OverlayShell } from '../overlay/OverlayShell';
-import { workerURLs } from '../../lib/workers';
 import SocialTooltip from '../tooltip/social/SocialTooltip.astro';
 
 const currentYear = new Date().getFullYear();
 ---
 
-<DroidProvider client:only="react" workerURLs={workerURLs} />
-<OverlayShell client:only="react" />
 <Default {...Astro.props}><slot /></Default>
 
 <div class="site-footer not-content">

@@ -1,7 +1,6 @@
 ---
 // Redirect to home if someone navigates to /auth
+import Redirect from '@kbve/astro/components/Redirect.astro';
 ---
 
-<script>
-  window.location.href = '/';
-</script>
+<Redirect url="/" />
