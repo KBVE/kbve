@@ -29,13 +29,13 @@ const EDGE_INSET: f32 = 0.10;
 /// Height-band base colors: grass, dirt, stone, snow
 const BAND_COLORS: [(f32, f32, f32); 4] = [
     (0.3, 0.6, 0.2),
-    (0.55, 0.4, 0.25),
-    (0.5, 0.5, 0.5),
+    (0.62, 0.48, 0.32), // dirt — brighter so shadows don't crush it
+    (0.58, 0.58, 0.58), // stone — brighter
     (0.9, 0.9, 0.95),
 ];
 
-/// Body darkness factor (45% darker than cap).
-const BODY_DARKEN: f32 = 0.55;
+/// Body darkness factor — gentle darkening so PBR shadows don't double-crush.
+const BODY_DARKEN: f32 = 0.72;
 
 /// 12 noise-varied grass cap shades.
 const GRASS_SHADES: [(f32, f32, f32); 12] = [
@@ -98,22 +98,209 @@ fn cap_vertex_color(band: usize, tx: i32, tz: i32) -> [f32; 4] {
 /// Matches the camera snap step so edges never land between pixels.
 const VEG_SNAP: f32 = 1.0 / 32.0;
 
-/// Grass type colors (sRGB, converted to linear at use).
-/// Each type has a base (root) and tip (sun-kissed) color for painted gradient.
-const VEG_GRASS_TUFT_BASE: (f32, f32, f32) = (0.16, 0.38, 0.10);
-const VEG_GRASS_TUFT_TIP: (f32, f32, f32) = (0.38, 0.68, 0.22);
-const VEG_GRASS_TALL_BASE: (f32, f32, f32) = (0.14, 0.34, 0.08);
-const VEG_GRASS_TALL_TIP: (f32, f32, f32) = (0.32, 0.62, 0.18);
-const VEG_GRASS_BLADE_BASE: (f32, f32, f32) = (0.15, 0.36, 0.09);
-const VEG_GRASS_BLADE_TIP: (f32, f32, f32) = (0.42, 0.72, 0.28);
-const VEG_FLOWER_COLORS: [(f32, f32, f32); 4] = [
-    (0.95, 0.95, 0.90),
-    (0.90, 0.55, 0.65),
-    (0.85, 0.35, 0.45),
-    (0.95, 0.85, 0.30),
+// ---------------------------------------------------------------------------
+// Pixel-art grass masks (8×8) — chunky silhouettes that survive pixelation
+// ---------------------------------------------------------------------------
+
+/// Grass pixel roles: 0 = transparent, 1 = deep shadow, 2 = shadow, 3 = mid, 4 = highlight
+const GRASS_TRANSPARENT: u8 = 0;
+
+/// 6 grass tuft mask variants — irregular chunky silhouettes.
+/// Row 0 = top of texture = tip of grass.
+#[rustfmt::skip]
+const GRASS_MASK_A: [[u8; 8]; 8] = [
+    [0,0,4,0,0,4,0,0],
+    [0,4,3,4,4,3,4,0],
+    [0,3,2,3,3,2,3,0],
+    [4,3,2,1,2,3,3,4],
+    [3,2,1,1,1,2,3,3],
+    [3,2,1,1,1,1,2,3],
+    [0,2,1,1,1,1,2,0],
+    [0,0,1,1,1,1,0,0],
 ];
-/// Flower stem color (dark olive green).
-const VEG_FLOWER_STEM: (f32, f32, f32) = (0.18, 0.40, 0.12);
+
+#[rustfmt::skip]
+const GRASS_MASK_B: [[u8; 8]; 8] = [
+    [0,0,0,4,4,0,0,0],
+    [0,0,4,3,3,4,0,0],
+    [0,4,3,2,2,3,4,0],
+    [0,3,2,1,1,2,3,0],
+    [4,3,2,1,1,2,3,4],
+    [3,2,1,1,1,1,2,3],
+    [0,2,1,1,1,1,2,0],
+    [0,0,1,1,1,1,0,0],
+];
+
+#[rustfmt::skip]
+const GRASS_MASK_C: [[u8; 8]; 8] = [
+    [0,4,0,0,0,0,4,0],
+    [4,3,4,0,0,4,3,4],
+    [3,2,3,4,4,3,2,3],
+    [0,2,2,3,3,2,2,0],
+    [0,3,1,2,2,1,3,0],
+    [0,2,1,1,1,1,2,0],
+    [0,0,1,1,1,1,0,0],
+    [0,0,0,1,1,0,0,0],
+];
+
+#[rustfmt::skip]
+const GRASS_MASK_D: [[u8; 8]; 8] = [
+    [0,0,4,0,4,0,0,0],
+    [0,4,3,4,3,4,0,0],
+    [4,3,2,3,2,3,4,0],
+    [3,2,1,2,1,2,3,0],
+    [3,2,1,1,1,2,3,4],
+    [0,2,1,1,1,1,2,3],
+    [0,0,1,1,1,1,2,0],
+    [0,0,0,1,1,0,0,0],
+];
+
+#[rustfmt::skip]
+const GRASS_MASK_E: [[u8; 8]; 8] = [
+    [0,0,0,4,0,0,0,0],
+    [0,0,4,3,4,0,4,0],
+    [0,4,3,2,3,4,3,4],
+    [4,3,2,1,2,3,2,3],
+    [3,2,1,1,1,2,3,0],
+    [0,2,1,1,1,1,2,0],
+    [0,0,1,1,1,1,0,0],
+    [0,0,0,1,1,0,0,0],
+];
+
+#[rustfmt::skip]
+const GRASS_MASK_F: [[u8; 8]; 8] = [
+    [0,4,0,0,0,4,0,0],
+    [4,3,4,0,4,3,4,0],
+    [3,2,3,4,3,2,3,0],
+    [0,2,2,3,2,2,0,0],
+    [0,3,1,2,1,3,4,0],
+    [4,2,1,1,1,2,3,0],
+    [3,2,1,1,1,1,2,0],
+    [0,0,1,1,1,1,0,0],
+];
+
+const NUM_GRASS_VARIANTS: usize = 6;
+
+const GRASS_MASKS: [&[[u8; 8]; 8]; NUM_GRASS_VARIANTS] = [
+    &GRASS_MASK_A,
+    &GRASS_MASK_B,
+    &GRASS_MASK_C,
+    &GRASS_MASK_D,
+    &GRASS_MASK_E,
+    &GRASS_MASK_F,
+];
+
+/// 4-color stepped grass palette (sRGB 0–255). No smooth gradients.
+struct GrassPalette {
+    deep: [u8; 3],      // role 1 — darkest base
+    shadow: [u8; 3],    // role 2
+    mid: [u8; 3],       // role 3
+    highlight: [u8; 3], // role 4 — sun-kissed tips
+}
+
+const GRASS_PALETTE: GrassPalette = GrassPalette {
+    deep: [46, 90, 36],         // #2E5A24
+    shadow: [79, 138, 60],      // #4F8A3C
+    mid: [127, 191, 91],        // #7FBF5B
+    highlight: [166, 217, 106], // #A6D96A
+};
+
+/// Generate the grass texture atlas: (N×8)×8 RGBA (N variants × 8×8).
+fn generate_grass_atlas() -> (Vec<u8>, u32, u32) {
+    let atlas_w: u32 = NUM_GRASS_VARIANTS as u32 * 8;
+    let atlas_h: u32 = 8;
+    let mut pixels = vec![0u8; (atlas_w * atlas_h * 4) as usize];
+
+    for (variant, mask) in GRASS_MASKS.iter().enumerate() {
+        let x_offset = variant as u32 * 8;
+        for row in 0..8u32 {
+            for col in 0..8u32 {
+                let role = mask[row as usize][col as usize];
+                if role == GRASS_TRANSPARENT {
+                    continue;
+                }
+                let rgb = match role {
+                    1 => GRASS_PALETTE.deep,
+                    2 => GRASS_PALETTE.shadow,
+                    3 => GRASS_PALETTE.mid,
+                    4 => GRASS_PALETTE.highlight,
+                    _ => [255, 0, 255],
+                };
+                let px = ((x_offset + col) + row * atlas_w) as usize * 4;
+                pixels[px] = rgb[0];
+                pixels[px + 1] = rgb[1];
+                pixels[px + 2] = rgb[2];
+                pixels[px + 3] = 255;
+            }
+        }
+    }
+
+    (pixels, atlas_w, atlas_h)
+}
+
+/// Build a UV-mapped grass tuft mesh: two crossed planes (MC-style X pattern)
+/// textured from the procedural grass atlas. `variant_idx` selects which 8×8
+/// region of the atlas to sample.
+///
+/// Tuft size: 0.5 wide × 0.4 tall — large enough to survive pixel_size=4 pass.
+fn build_grass_tuft_mesh(variant_idx: usize) -> Mesh {
+    let hw = 0.25; // half-width
+    let h = 0.40; // height
+
+    // UV region for this variant in the atlas
+    let u0 = variant_idx as f32 / NUM_GRASS_VARIANTS as f32;
+    let u1 = (variant_idx + 1) as f32 / NUM_GRASS_VARIANTS as f32;
+
+    let mut positions: Vec<[f32; 3]> = Vec::with_capacity(16);
+    let mut normals: Vec<[f32; 3]> = Vec::with_capacity(16);
+    let mut uvs: Vec<[f32; 2]> = Vec::with_capacity(16);
+    let mut indices: Vec<u32> = Vec::with_capacity(24);
+
+    // Two crossed planes at 45° (MC-style X pattern).
+    let sin45 = std::f32::consts::FRAC_1_SQRT_2;
+    for &(dx, dz) in &[(sin45, sin45), (sin45, -sin45)] {
+        let nx = -dz;
+        let nz = dx;
+
+        // Front face
+        let base = positions.len() as u32;
+        positions.extend_from_slice(&[
+            [-hw * dx, 0.0, -hw * dz],
+            [hw * dx, 0.0, hw * dz],
+            [hw * dx, h, hw * dz],
+            [-hw * dx, h, -hw * dz],
+        ]);
+        normals.extend_from_slice(&[[nx, 0.0, nz]; 4]);
+        uvs.extend_from_slice(&[[u0, 1.0], [u1, 1.0], [u1, 0.0], [u0, 0.0]]);
+        indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
+
+        // Back face (reversed winding for double-sided)
+        let base = positions.len() as u32;
+        positions.extend_from_slice(&[
+            [-hw * dx, 0.0, -hw * dz],
+            [hw * dx, 0.0, hw * dz],
+            [hw * dx, h, hw * dz],
+            [-hw * dx, h, -hw * dz],
+        ]);
+        normals.extend_from_slice(&[[-nx, 0.0, -nz]; 4]);
+        uvs.extend_from_slice(&[[u1, 1.0], [u0, 1.0], [u0, 0.0], [u1, 0.0]]);
+        indices.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
+    }
+
+    let vert_count = positions.len();
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
+    .with_inserted_attribute(
+        Mesh::ATTRIBUTE_COLOR,
+        vec![[1.0f32, 1.0, 1.0, 1.0]; vert_count],
+    )
+    .with_inserted_indices(Indices::U32(indices))
+}
 
 pub(super) fn srgb_color(r: f32, g: f32, b: f32) -> [f32; 4] {
     [srgb_to_linear(r), srgb_to_linear(g), srgb_to_linear(b), 1.0]
@@ -295,154 +482,6 @@ fn push_cuboid(
     for face in 0..6u32 {
         let f = base + face * 4;
         idx.extend_from_slice(&[f, f + 2, f + 1, f, f + 3, f + 2]);
-    }
-}
-
-/// Append a crossed-plane (2 quads at 90°) with rotation/scale baked in.
-/// Uses base→tip color gradient and tapered top for organic silhouette.
-fn push_crossed_planes(
-    pos: &mut Vec<[f32; 3]>,
-    nor: &mut Vec<[f32; 3]>,
-    col: &mut Vec<[f32; 4]>,
-    idx: &mut Vec<u32>,
-    origin: Vec3,
-    hw: f32,
-    h: f32,
-    scale: f32,
-    rot_y: f32,
-    color_base: [f32; 4],
-    color_tip: [f32; 4],
-) {
-    let base = pos.len() as u32;
-    let (sin_r, cos_r) = rot_y.sin_cos();
-    let s = scale;
-    let taper = 0.55; // narrower at tips for organic silhouette
-
-    let xform = |lx: f32, ly: f32, lz: f32| -> [f32; 3] {
-        let sx = lx * s;
-        let sz = lz * s;
-        [
-            origin.x + sx * cos_r - sz * sin_r,
-            origin.y + ly * s,
-            origin.z + sx * sin_r + sz * cos_r,
-        ]
-    };
-
-    // Quad 1: along local X (tapered)
-    pos.extend_from_slice(&[
-        xform(-hw, 0.0, 0.0),
-        xform(hw, 0.0, 0.0),
-        xform(hw * taper, h, 0.0),
-        xform(-hw * taper, h, 0.0),
-    ]);
-    let n1 = [sin_r, 0.0, cos_r];
-    nor.extend_from_slice(&[n1; 4]);
-    col.extend_from_slice(&[color_base, color_base, color_tip, color_tip]);
-
-    // Quad 2: along local Z (tapered)
-    pos.extend_from_slice(&[
-        xform(0.0, 0.0, -hw),
-        xform(0.0, 0.0, hw),
-        xform(0.0, h, hw * taper),
-        xform(0.0, h, -hw * taper),
-    ]);
-    let n2 = [cos_r, 0.0, -sin_r];
-    nor.extend_from_slice(&[n2; 4]);
-    col.extend_from_slice(&[color_base, color_base, color_tip, color_tip]);
-
-    for q in 0..2u32 {
-        let f = base + q * 4;
-        idx.extend_from_slice(&[f, f + 2, f + 1, f, f + 3, f + 2]);
-    }
-}
-
-/// Append a single tapered blade (1 quad) with rotation and scale baked in.
-/// Base→tip color gradient for painted look.
-fn push_blade(
-    pos: &mut Vec<[f32; 3]>,
-    nor: &mut Vec<[f32; 3]>,
-    col: &mut Vec<[f32; 4]>,
-    idx: &mut Vec<u32>,
-    origin: Vec3,
-    hw: f32,
-    h: f32,
-    scale: f32,
-    rot_y: f32,
-    color_base: [f32; 4],
-    color_tip: [f32; 4],
-) {
-    let base = pos.len() as u32;
-    let (sin_r, cos_r) = rot_y.sin_cos();
-    let s = scale;
-    let taper = 0.35; // sharper taper for blade shape
-
-    let xform = |lx: f32, ly: f32, lz: f32| -> [f32; 3] {
-        let sx = lx * s;
-        let sz = lz * s;
-        [
-            origin.x + sx * cos_r - sz * sin_r,
-            origin.y + ly * s,
-            origin.z + sx * sin_r + sz * cos_r,
-        ]
-    };
-
-    pos.extend_from_slice(&[
-        xform(-hw, 0.0, 0.0),
-        xform(hw, 0.0, 0.0),
-        xform(hw * taper, h, 0.0),
-        xform(-hw * taper, h, 0.0),
-    ]);
-    let n = [sin_r, 0.0, cos_r];
-    nor.extend_from_slice(&[n; 4]);
-    col.extend_from_slice(&[color_base, color_base, color_tip, color_tip]);
-
-    let f = base;
-    idx.extend_from_slice(&[f, f + 2, f + 1, f, f + 3, f + 2]);
-}
-
-/// Append a multi-blade grass cluster: 3-4 tapered blades at varied angles/heights.
-/// Creates a clumpy, organic tuft that reads as a single grass clump.
-fn push_grass_cluster(
-    pos: &mut Vec<[f32; 3]>,
-    nor: &mut Vec<[f32; 3]>,
-    col: &mut Vec<[f32; 4]>,
-    idx: &mut Vec<u32>,
-    origin: Vec3,
-    hw: f32,
-    h: f32,
-    scale: f32,
-    rot_y: f32,
-    color_base: [f32; 4],
-    color_tip: [f32; 4],
-    blade_count: usize,
-    seed: f32,
-) {
-    let tau = std::f32::consts::TAU;
-    for bi in 0..blade_count {
-        let fi = bi as f32;
-        // Each blade gets its own angle spread around the cluster center
-        let blade_rot = rot_y + (fi / blade_count as f32) * tau + (seed + fi * 1.7).sin() * 0.3;
-        // Vary height per blade: 60-110% of base height
-        let h_var = h * (0.60 + ((seed * 3.1 + fi * 2.3).sin() * 0.5 + 0.5) * 0.50);
-        // Slight width variation
-        let hw_var = hw * (0.80 + ((seed * 2.7 + fi * 1.9).cos() * 0.5 + 0.5) * 0.30);
-        // Small positional offset per blade for clumpy feel
-        let ox = ((seed * 4.3 + fi * 3.1).sin()) * hw * 0.4 * scale;
-        let oz = ((seed * 5.1 + fi * 2.7).cos()) * hw * 0.4 * scale;
-        let blade_origin = Vec3::new(origin.x + ox, origin.y, origin.z + oz);
-        push_blade(
-            pos,
-            nor,
-            col,
-            idx,
-            blade_origin,
-            hw_var,
-            h_var,
-            scale,
-            blade_rot,
-            color_base,
-            color_tip,
-        );
     }
 }
 
@@ -872,8 +911,10 @@ struct TileMaterials {
     chunk_cap_mat: Handle<StandardMaterial>,
     /// Unlit, matte material for tree trunk+canopy domes — vertex colors carry all tonal info.
     tree_body_mat: Handle<StandardMaterial>,
-    /// Double-sided, vertex-colored material for grass crossed-planes.
-    chunk_veg_mat: Handle<StandardMaterial>,
+    /// Unlit, alpha-masked material for pixel-art grass tufts.
+    grass_mat: Handle<StandardMaterial>,
+    /// Per-variant grass tuft meshes (UV-mapped crossed planes into grass atlas).
+    grass_meshes: [Handle<Mesh>; NUM_GRASS_VARIANTS],
     /// Per-archetype flower meshes (UV-mapped crossed planes into atlas).
     flower_meshes: [Handle<Mesh>; NUM_FLORA_SPECIES],
     /// Lit, matte material for rocks — receives dynamic shadows unlike tree_body_mat.
@@ -882,14 +923,6 @@ struct TileMaterials {
     flower_mat: Handle<StandardMaterial>,
     /// Animated water surface material.
     water_mat: Handle<WaterMaterial>,
-}
-
-/// Per-group vegetation vertex buffers (3 groups per chunk for wind animation).
-struct VegBuffers {
-    pos: Vec<[f32; 3]>,
-    nor: Vec<[f32; 3]>,
-    col: Vec<[f32; 4]>,
-    idx: Vec<u32>,
 }
 
 /// Global wind state. Speed in MPH drives all sway amplitudes.
@@ -939,15 +972,6 @@ fn setup_tile_materials(
         reflectance: 0.0,
         ..default()
     });
-    let chunk_veg_mat = materials.add(StandardMaterial {
-        base_color: Color::WHITE,
-        perceptual_roughness: 0.95,
-        reflectance: 0.0,
-        cull_mode: None,
-        double_sided: true,
-        ..default()
-    });
-
     // Generate procedural flower atlas (80×16 RGBA, 5 species × 16×16)
     let (atlas_pixels, aw, ah) = generate_flora_atlas();
     let mut atlas_img = Image::new(
@@ -979,13 +1003,43 @@ fn setup_tile_materials(
     // Per-archetype meshes: crossed planes with UVs into the atlas
     let flower_meshes = std::array::from_fn(|i| meshes.add(build_flower_mesh(i)));
 
+    // Generate procedural grass atlas (N×8 RGBA, N variants × 8×8)
+    let (grass_pixels, gw, gh) = generate_grass_atlas();
+    let mut grass_img = Image::new(
+        bevy::render::render_resource::Extent3d {
+            width: gw,
+            height: gh,
+            depth_or_array_layers: 1,
+        },
+        bevy::render::render_resource::TextureDimension::D2,
+        grass_pixels,
+        bevy::render::render_resource::TextureFormat::Rgba8UnormSrgb,
+        RenderAssetUsages::default(),
+    );
+    grass_img.sampler = ImageSampler::nearest();
+    let grass_atlas_handle = images.add(grass_img);
+
+    // Unlit, alpha-masked grass material — pixel palette carries all tonal info.
+    let grass_mat = materials.add(StandardMaterial {
+        base_color_texture: Some(grass_atlas_handle),
+        alpha_mode: AlphaMode::Mask(0.5),
+        cull_mode: None,
+        double_sided: true,
+        unlit: true,
+        ..default()
+    });
+
+    // Per-variant grass tuft meshes
+    let grass_meshes = std::array::from_fn(|i| meshes.add(build_grass_tuft_mesh(i)));
+
     let water_mat = water_materials.add(WaterMaterial::default());
 
     commands.insert_resource(TileMaterials {
         chunk_body_mat,
         chunk_cap_mat,
         tree_body_mat,
-        chunk_veg_mat,
+        grass_mat,
+        grass_meshes,
         rock_body_mat,
         flower_meshes,
         flower_mat,
@@ -1066,13 +1120,6 @@ fn process_chunk_spawns_and_despawns(
         let mut cap_nor = Vec::with_capacity(tile_count * 24);
         let mut cap_col = Vec::with_capacity(tile_count * 24);
         let mut cap_idx = Vec::with_capacity(tile_count * 36);
-
-        let mut veg_groups: [VegBuffers; 3] = std::array::from_fn(|_| VegBuffers {
-            pos: Vec::new(),
-            nor: Vec::new(),
-            col: Vec::new(),
-            idx: Vec::new(),
-        });
 
         let mut collider_shapes: Vec<(Vec3, Quat, Collider)> = Vec::with_capacity(tile_count);
 
@@ -1199,19 +1246,17 @@ fn process_chunk_spawns_and_despawns(
                     ]);
                 }
 
-                // --- Vegetation (grass band only) ---
+                // --- Vegetation: pixel-art grass tufts (grass band only) ---
                 if band == 0 {
-                    let grass_slots: [(i32, i32, f32, u8); 5] = [
-                        (7919, 3571, 0.40, 0),
-                        (2131, 8461, 0.18, 1),
-                        (4253, 6173, 0.25, 0),
-                        (6091, 1429, 0.30, 2),
-                        (9371, 2749, 0.08, 3),
+                    // Spawn 3-5 grass tufts per tile (density controlled by noise)
+                    let grass_slots: [(i32, i32, f32); 4] = [
+                        (7919, 3571, 0.45),
+                        (2131, 8461, 0.30),
+                        (4253, 6173, 0.35),
+                        (6091, 1429, 0.25),
                     ];
 
-                    for (slot_idx, &(seed_x, seed_z, density, kind)) in
-                        grass_slots.iter().enumerate()
-                    {
+                    for &(seed_x, seed_z, density) in &grass_slots {
                         #[cfg(target_arch = "wasm32")]
                         let density = density * 0.5;
 
@@ -1221,127 +1266,46 @@ fn process_chunk_spawns_and_despawns(
                         }
 
                         // Quantize jitter to pixel grid for stable edges
-                        let jx = ((hash2d(tx + seed_x + 100, tz + seed_z) - 0.5) * 0.85 / VEG_SNAP)
+                        let jx = ((hash2d(tx + seed_x + 100, tz + seed_z) - 0.5) * 0.7 / VEG_SNAP)
                             .round()
                             * VEG_SNAP;
-                        let jz = ((hash2d(tx + seed_x, tz + seed_z + 100) - 0.5) * 0.85 / VEG_SNAP)
+                        let jz = ((hash2d(tx + seed_x, tz + seed_z + 100) - 0.5) * 0.7 / VEG_SNAP)
                             .round()
                             * VEG_SNAP;
-                        let scale_noise = hash2d(tx + seed_x + 200, tz + seed_z + 200);
-                        let scale = 0.7 + scale_noise * 0.7;
+
+                        // Pick a random grass mask variant
+                        let variant_idx = (hash2d(tx + seed_x + 400, tz + seed_z + 400)
+                            * NUM_GRASS_VARIANTS as f32)
+                            as usize
+                            % NUM_GRASS_VARIANTS;
+
+                        // Scale jitter: 0.8–1.2
+                        let scale = 0.8 + hash2d(tx + seed_x + 200, tz + seed_z + 200) * 0.4;
+
+                        // Rotation jitter: ±15° around random base angle
                         let rot_y =
                             hash2d(tx + seed_x + 300, tz + seed_z + 300) * std::f32::consts::TAU;
 
-                        let y_offset = match kind {
-                            3 => 0.15,
-                            _ => 0.0,
-                        };
-                        let origin =
-                            Vec3::new(lx + jx, body_h + CAP_HEIGHT + y_offset + 0.002, lz + jz);
+                        let world_x = tx as f32 * TILE_SIZE + jx;
+                        let world_z = tz as f32 * TILE_SIZE + jz;
+                        let grass_y = column_h + 0.002;
 
-                        // Per-tuft hue jitter for painterly variety (like trees)
-                        let hue_seed = hash2d(tx + seed_x + 500, tz + seed_z + 500);
-                        let hj = (hue_seed - 0.5) * 0.08; // ±0.04 hue shift
-                        let bright = 0.88 + hash2d(tx + seed_x + 600, tz + seed_z + 600) * 0.24;
-
-                        let jitter_color = |base: (f32, f32, f32)| -> (f32, f32, f32) {
-                            (
-                                ((base.0 + hj) * bright).clamp(0.0, 1.0),
-                                ((base.1 + hj * 0.3) * bright).clamp(0.0, 1.0),
-                                ((base.2 - hj * 0.5) * bright).clamp(0.0, 1.0),
-                            )
-                        };
-
-                        let (col_base, col_tip) = match kind {
-                            1 => {
-                                let b = jitter_color(VEG_GRASS_TALL_BASE);
-                                let t = jitter_color(VEG_GRASS_TALL_TIP);
-                                (srgb_color(b.0, b.1, b.2), srgb_color(t.0, t.1, t.2))
-                            }
-                            2 => {
-                                let b = jitter_color(VEG_GRASS_BLADE_BASE);
-                                let t = jitter_color(VEG_GRASS_BLADE_TIP);
-                                (srgb_color(b.0, b.1, b.2), srgb_color(t.0, t.1, t.2))
-                            }
-                            3 => {
-                                let fi = (hash2d(tx + seed_x + 400, tz) * 4.0) as usize % 4;
-                                let (r, g, b) = VEG_FLOWER_COLORS[fi];
-                                let stem = jitter_color(VEG_FLOWER_STEM);
-                                (srgb_color(stem.0, stem.1, stem.2), srgb_color(r, g, b))
-                            }
-                            _ => {
-                                let b = jitter_color(VEG_GRASS_TUFT_BASE);
-                                let t = jitter_color(VEG_GRASS_TUFT_TIP);
-                                (srgb_color(b.0, b.1, b.2), srgb_color(t.0, t.1, t.2))
-                            }
-                        };
-
-                        // Route to one of 3 wind groups
-                        let group = &mut veg_groups[slot_idx % 3];
-                        let cluster_seed = tx as f32 * 3.7 + tz as f32 * 5.3 + seed_x as f32;
-
-                        match kind {
-                            // Blade: 3-blade cluster for chunky grass tufts
-                            2 => push_grass_cluster(
-                                &mut group.pos,
-                                &mut group.nor,
-                                &mut group.col,
-                                &mut group.idx,
-                                origin,
-                                0.12,
-                                0.45,
-                                scale,
-                                rot_y,
-                                col_base,
-                                col_tip,
-                                3,
-                                cluster_seed,
-                            ),
-                            // Tall grass: crossed planes with gradient
-                            1 => push_crossed_planes(
-                                &mut group.pos,
-                                &mut group.nor,
-                                &mut group.col,
-                                &mut group.idx,
-                                origin,
-                                0.15,
-                                0.55,
-                                scale,
-                                rot_y,
-                                col_base,
-                                col_tip,
-                            ),
-                            // Flowers: stem→blossom gradient
-                            3 => push_crossed_planes(
-                                &mut group.pos,
-                                &mut group.nor,
-                                &mut group.col,
-                                &mut group.idx,
-                                origin,
-                                0.12,
-                                0.20,
-                                scale,
-                                rot_y,
-                                col_base,
-                                col_tip,
-                            ),
-                            // Default tuft: 4-blade cluster for clumpy feel
-                            _ => push_grass_cluster(
-                                &mut group.pos,
-                                &mut group.nor,
-                                &mut group.col,
-                                &mut group.idx,
-                                origin,
-                                0.18,
-                                0.32,
-                                scale,
-                                rot_y,
-                                col_base,
-                                col_tip,
-                                4,
-                                cluster_seed,
-                            ),
-                        }
+                        let grass_entity = commands
+                            .spawn((
+                                Mesh3d(tile_materials.grass_meshes[variant_idx].clone()),
+                                MeshMaterial3d(tile_materials.grass_mat.clone()),
+                                Transform::from_xyz(world_x, grass_y, world_z)
+                                    .with_scale(Vec3::splat(scale))
+                                    .with_rotation(Quat::from_rotation_y(rot_y)),
+                                Pickable::IGNORE,
+                                WindSway {
+                                    base_translation: Vec3::new(world_x, grass_y, world_z),
+                                    phase: hash2d(tx + seed_x + 700, tz + seed_z + 700)
+                                        * std::f32::consts::TAU,
+                                },
+                            ))
+                            .id();
+                        entities.push(grass_entity);
                     }
 
                     // --- Overlap-aware spawn: trees > rocks > flowers ---
@@ -1562,28 +1526,6 @@ fn process_chunk_spawns_and_despawns(
                 ))
                 .id();
             entities.push(water_entity);
-        }
-
-        // Spawn vegetation entities (3 wind groups per chunk)
-        let base_veg = Vec3::new(base_x as f32 * TILE_SIZE, 0.0, base_z as f32 * TILE_SIZE);
-        for (group_idx, veg) in veg_groups.into_iter().enumerate() {
-            if veg.pos.is_empty() {
-                continue;
-            }
-            let veg_mesh = meshes.add(build_chunk_mesh(veg.pos, veg.nor, veg.col, veg.idx));
-            let veg_entity = commands
-                .spawn((
-                    Mesh3d(veg_mesh),
-                    MeshMaterial3d(tile_materials.chunk_veg_mat.clone()),
-                    Transform::from_translation(base_veg),
-                    Pickable::IGNORE,
-                    WindSway {
-                        base_translation: base_veg,
-                        phase: group_idx as f32 * 2.1,
-                    },
-                ))
-                .id();
-            entities.push(veg_entity);
         }
 
         terrain.link_chunk_entities(*cx, *cz, entities);
