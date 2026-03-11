@@ -3,6 +3,7 @@ use bevy_rapier3d::prelude::*;
 
 use super::state::PlayerState;
 use super::terrain::TerrainMap;
+use super::virtual_joystick::VirtualJoystickState;
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -120,6 +121,7 @@ fn spawn_player(
 
 fn move_player(
     keyboard: Res<ButtonInput<KeyCode>>,
+    joystick: Res<VirtualJoystickState>,
     time: Res<Time>,
     mut query: Query<
         (
@@ -131,20 +133,26 @@ fn move_player(
     >,
 ) {
     for (mut controller, mut physics, transform) in &mut query {
-        // WASD isometric directions
+        // WASD + Arrow keys → isometric directions
         let mut direction = Vec3::ZERO;
-        if keyboard.pressed(KeyCode::KeyW) {
+        if keyboard.pressed(KeyCode::KeyW) || keyboard.pressed(KeyCode::ArrowUp) {
             direction += Vec3::new(-1.0, 0.0, -1.0);
         }
-        if keyboard.pressed(KeyCode::KeyS) {
+        if keyboard.pressed(KeyCode::KeyS) || keyboard.pressed(KeyCode::ArrowDown) {
             direction += Vec3::new(1.0, 0.0, 1.0);
         }
-        if keyboard.pressed(KeyCode::KeyA) {
+        if keyboard.pressed(KeyCode::KeyA) || keyboard.pressed(KeyCode::ArrowLeft) {
             direction += Vec3::new(-1.0, 0.0, 1.0);
         }
-        if keyboard.pressed(KeyCode::KeyD) {
+        if keyboard.pressed(KeyCode::KeyD) || keyboard.pressed(KeyCode::ArrowRight) {
             direction += Vec3::new(1.0, 0.0, -1.0);
         }
+
+        // Virtual joystick input (already in isometric space)
+        if joystick.active {
+            direction += joystick.direction;
+        }
+
         if direction != Vec3::ZERO {
             direction = direction.normalize();
         }
