@@ -386,6 +386,36 @@ Focus on items with clear processing chains and market flip potential.
 | 6724  | Seercull          | DK Supreme bow, spec   |
 | 1729  | Amulet of defence | Defensive amulet       |
 
+### Dragon Weapons (Implemented - Mar 2026)
+
+| ID   | Item            | Override Focus          |
+| ---- | --------------- | ----------------------- |
+| 1215 | Dragon dagger   | PvP spec weapon, iconic |
+| 1249 | Dragon spear    | Shove spec, Corp Beast  |
+| 7158 | Dragon 2h sword | AoE Powerstab spec      |
+
+### Spined Armour (Implemented - Mar 2026)
+
+| ID   | Item         | Override Focus        |
+| ---- | ------------ | --------------------- |
+| 6131 | Spined helm  | Fremennik ranged helm |
+| 6133 | Spined body  | Fremennik ranged body |
+| 6135 | Spined chaps | Fremennik ranged legs |
+
+### Boots/Shields (Implemented - Mar 2026)
+
+| ID   | Item           | Override Focus            |
+| ---- | -------------- | ------------------------- |
+| 3105 | Climbing boots | +2 Str, no Def req, pures |
+| 6524 | Toktz-ket-xil  | +5 Str shield, 60 Def     |
+
+### Enchanted Rings (Implemented - Mar 2026)
+
+| ID   | Item            | Override Focus             |
+| ---- | --------------- | -------------------------- |
+| 2568 | Ring of forging | 100% iron smelt, 140 uses  |
+| 2570 | Ring of life    | Emergency teleport at ≤10% |
+
 ---
 
 ## Future Override Priorities
