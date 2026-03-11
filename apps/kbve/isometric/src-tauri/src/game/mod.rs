@@ -2,6 +2,7 @@ pub mod actions;
 pub mod camera;
 pub mod grass;
 pub mod input_bridge;
+pub mod insects;
 pub mod inventory;
 pub mod mushrooms;
 pub mod object_registry;
@@ -20,6 +21,7 @@ use bevy::app::{PluginGroup, PluginGroupBuilder};
 
 use actions::ActionsPlugin;
 use camera::IsometricCameraPlugin;
+use insects::InsectsPlugin;
 use inventory::InventoryPlugin;
 use object_registry::ObjectRegistryPlugin;
 // PixelatePlugin disabled — two-stage render-to-texture pipeline handles pixelation.
@@ -51,6 +53,7 @@ impl PluginGroup for GamePluginGroup {
             .add(WaterPlugin)
             .add(InventoryPlugin)
             .add(WeatherPlugin)
+            .add(InsectsPlugin)
             .add(ActionsPlugin)
     }
 }
