@@ -441,6 +441,36 @@ Focus on items with clear processing chains and market flip potential.
 | 4156  | Mirror shield  | Basilisk/Cockatrice req  |
 | 11133 | Regen bracelet | 2x HP regen, 1 Def BiS   |
 
+### Pies (Implemented - Mar 2026)
+
+| ID   | Item        | Override Focus       |
+| ---- | ----------- | -------------------- |
+| 7170 | Mud pie     | PvP run energy drain |
+| 7208 | Wild pie    | +5 Slayer boost      |
+| 7198 | Admiral pie | +5 Fishing boost     |
+
+### Dragon/Rune Skirts (Implemented - Mar 2026)
+
+| ID   | Item              | Override Focus          |
+| ---- | ----------------- | ----------------------- |
+| 4585 | Dragon plateskirt | Same stats as platelegs |
+| 1093 | Rune plateskirt   | F2P best legs           |
+
+### Low-Tier Ranged/Melee Armour (Implemented - Mar 2026)
+
+| ID    | Item                 | Override Focus         |
+| ----- | -------------------- | ---------------------- |
+| 6326  | Snakeskin bandana    | Complete snakeskin set |
+| 10956 | Frog-leather chaps   | 25 Ranged/Def legs     |
+| 10958 | Frog-leather boots   | 25 Ranged/Def boots    |
+| 10824 | Yak-hide armour legs | 20 Def Fremennik legs  |
+
+### Novelty Weapons (Implemented - Mar 2026)
+
+| ID    | Item      | Override Focus          |
+| ----- | --------- | ----------------------- |
+| 23360 | Ham joint | 3-tick speed, easy clue |
+
 ---
 
 ## Future Override Priorities
