@@ -471,6 +471,26 @@ Focus on items with clear processing chains and market flip potential.
 | ----- | --------- | ----------------------- |
 | 23360 | Ham joint | 3-tick speed, easy clue |
 
+### Enchanted Bolts — Low Tier (Implemented - Mar 2026)
+
+| ID   | Item               | Override Focus           |
+| ---- | ------------------ | ------------------------ |
+| 8882 | Bone bolts         | Cheapest ranged ammo     |
+| 9236 | Opal bolts (e)     | Lucky Lightning effect   |
+| 9238 | Pearl bolts (e)    | Sea Curse, fire enemies  |
+| 9239 | Topaz bolts (e)    | Down to Earth, -1 Magic  |
+| 9240 | Sapphire bolts (e) | Clear Mind, Prayer drain |
+| 9241 | Emerald bolts (e)  | Magical Poison, 54% proc |
+
+### Necklace Crafting Chain (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus           |
+| ----- | ----------------- | ------------------------ |
+| 1660  | Ruby necklace     | Digsite pendant base     |
+| 1662  | Diamond necklace  | Phoenix necklace base    |
+| 1664  | Dragon necklace   | Skills necklace base     |
+| 21157 | Necklace of faith | Emergency Prayer restore |
+
 ---
 
 ## Future Override Priorities
