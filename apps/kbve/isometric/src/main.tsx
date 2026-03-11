@@ -4,6 +4,22 @@ import './app.css';
 import { GameUIProvider } from './ui/provider/GameUIProvider';
 import App from './App';
 
+function setLoadingProgress(status: string, percent: number) {
+	const el = document.getElementById('loading-status');
+	const bar = document.getElementById('loading-bar');
+	if (el) el.textContent = status;
+	if (bar) bar.style.width = percent + '%';
+}
+
+function hideLoadingScreen() {
+	const el = document.getElementById('game-loading');
+	if (el) {
+		el.style.opacity = '0';
+		el.style.transition = 'opacity 0.4s ease';
+		setTimeout(() => el.remove(), 400);
+	}
+}
+
 async function bootstrap() {
 	// Verify WebGPU is available before loading the WASM game
 	if (!(navigator as unknown as { gpu?: unknown }).gpu) {
@@ -19,10 +35,17 @@ async function bootstrap() {
 		return;
 	}
 
+	setLoadingProgress('Loading game module...', 20);
+
 	// Load and initialize Bevy WASM — starts the game loop (non-blocking)
 	// Tower-http serves pre-compressed .wasm.br/.wasm.gz transparently via Content-Encoding
 	const { default: init } = await import('../wasm-pkg/isometric_game.js');
+
+	setLoadingProgress('Initializing WebGPU...', 60);
+
 	await init();
+
+	setLoadingProgress('Starting...', 90);
 
 	// Render React UI overlay
 	ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
@@ -32,6 +55,12 @@ async function bootstrap() {
 			</GameUIProvider>
 		</React.StrictMode>,
 	);
+
+	setLoadingProgress('Ready', 100);
+	hideLoadingScreen();
 }
 
-bootstrap().catch(console.error);
+bootstrap().catch((err) => {
+	setLoadingProgress('Failed to load game', 0);
+	console.error(err);
+});
