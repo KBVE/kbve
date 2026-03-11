@@ -6,6 +6,7 @@ pub mod insects;
 pub mod inventory;
 pub mod mushrooms;
 pub mod object_registry;
+pub mod orb_hud;
 pub mod pixelate;
 pub mod player;
 pub mod rocks;
@@ -25,6 +26,7 @@ use camera::IsometricCameraPlugin;
 use insects::InsectsPlugin;
 use inventory::InventoryPlugin;
 use object_registry::ObjectRegistryPlugin;
+use orb_hud::OrbHudPlugin;
 // PixelatePlugin disabled — two-stage render-to-texture pipeline handles pixelation.
 // use pixelate::PixelatePlugin;
 use player::PlayerPlugin;
@@ -57,6 +59,7 @@ impl PluginGroup for GamePluginGroup {
             .add(WeatherPlugin)
             .add(InsectsPlugin)
             .add(VirtualJoystickPlugin)
+            .add(OrbHudPlugin)
             .add(ActionsPlugin)
     }
 }

@@ -31,6 +31,7 @@ bevy = { version = "0.18", default-features = false, features = [
     "bevy_pbr",
     "bevy_text",
     "bevy_ui",
+    "bevy_ui_render",
     "bevy_state",
     "bevy_color",
     "bevy_winit",
