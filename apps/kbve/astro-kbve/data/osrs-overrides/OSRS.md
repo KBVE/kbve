@@ -416,6 +416,31 @@ Focus on items with clear processing chains and market flip potential.
 | 2568 | Ring of forging | 100% iron smelt, 140 uses  |
 | 2570 | Ring of life    | Emergency teleport at ≤10% |
 
+### Fremennik Helms (Implemented - Mar 2026)
+
+| ID   | Item           | Override Focus        |
+| ---- | -------------- | --------------------- |
+| 3751 | Berserker helm | +3 Str melee helm     |
+| 3753 | Warrior helm   | +5 Slash attack helm  |
+| 3755 | Farseer helm   | +6 Magic attack helm  |
+| 3749 | Archer helm    | +6 Ranged attack helm |
+
+### Ranged Ammo & Crossbows (Implemented - Mar 2026)
+
+| ID    | Item                | Override Focus             |
+| ----- | ------------------- | -------------------------- |
+| 8880  | Dorgeshuun crossbow | Budget ranged + bone bolts |
+| 830   | Rune javelin        | Ballista ammo              |
+| 21318 | Amethyst javelin    | Best non-dragon javelin    |
+
+### Obsidian/Slayer Gear (Implemented - Mar 2026)
+
+| ID    | Item           | Override Focus           |
+| ----- | -------------- | ------------------------ |
+| 6526  | Toktz-mej-tal  | Hybrid crush/magic staff |
+| 4156  | Mirror shield  | Basilisk/Cockatrice req  |
+| 11133 | Regen bracelet | 2x HP regen, 1 Def BiS   |
+
 ---
 
 ## Future Override Priorities
