@@ -50,14 +50,7 @@ export function ReactServerCard({ server, onVote }: Props) {
 				backgroundColor: slVar('gray-7', '#1f2937'),
 				transition: 'border-color 0.2s, box-shadow 0.2s',
 			}}
-			onMouseEnter={(e) => {
-				e.currentTarget.style.borderColor = slVar('accent', '#8b5cf6');
-				e.currentTarget.style.boxShadow = `0 0 0 1px ${slVar('accent', '#8b5cf6')}`;
-			}}
-			onMouseLeave={(e) => {
-				e.currentTarget.style.borderColor = slVar('gray-5', '#374151');
-				e.currentTarget.style.boxShadow = 'none';
-			}}>
+			className="server-card">
 			{/* Server icon */}
 			<div
 				style={{
@@ -78,6 +71,8 @@ export function ReactServerCard({ server, onVote }: Props) {
 					<img
 						src={server.icon_url}
 						alt=""
+						loading="lazy"
+						decoding="async"
 						style={{
 							width: '100%',
 							height: '100%',

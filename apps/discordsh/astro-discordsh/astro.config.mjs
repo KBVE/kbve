@@ -17,6 +17,8 @@ export default defineConfig({
         { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
         { tag: 'meta', attrs: { name: 'twitter:image', content: 'https://discord.sh/og/default.png' } },
         { tag: 'link', attrs: { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' } },
+        { tag: 'link', attrs: { rel: 'preconnect', href: 'https://hcaptcha.com' } },
+        { tag: 'link', attrs: { rel: 'preconnect', href: 'https://assets.hcaptcha.com' } },
       ],
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/kbve/kbve' },
