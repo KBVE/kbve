@@ -69,6 +69,9 @@ struct HealthOrb;
 #[derive(Component)]
 struct ManaOrb;
 
+#[derive(Component)]
+struct EnergyOrb;
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -148,6 +151,33 @@ fn spawn_orbs(mut commands: Commands, mut orb_materials: ResMut<Assets<OrbMateri
         MaterialNode(mp_mat),
         ManaOrb,
     ));
+
+    // Energy orb — bottom-right, above mana
+    let ep_mat = orb_materials.add(OrbMaterial {
+        uniforms: OrbUniforms {
+            fill: 1.0,
+            wobble: 0.018,
+            glow: 0.4,
+            _pad0: 0.0,
+            liquid_color: Vec4::new(0.95, 0.80, 0.15, 1.0), // yellow
+            glass_color: Vec4::new(0.20, 0.24, 0.30, 1.0),
+            bg_color: Vec4::new(0.05, 0.06, 0.08, 1.0),
+            rim_color: Vec4::new(0.9, 0.95, 1.0, 1.0),
+        },
+    });
+
+    commands.spawn((
+        Node {
+            position_type: PositionType::Absolute,
+            right: Val::Px(ORB_MARGIN),
+            bottom: Val::Px(ORB_MARGIN + ORB_SIZE + 8.0), // above mana orb
+            width: Val::Px(ORB_SIZE),
+            height: Val::Px(ORB_SIZE),
+            ..default()
+        },
+        MaterialNode(ep_mat),
+        EnergyOrb,
+    ));
 }
 
 // ---------------------------------------------------------------------------
@@ -157,7 +187,14 @@ fn spawn_orbs(mut commands: Commands, mut orb_materials: ResMut<Assets<OrbMateri
 fn update_orbs(
     player_state: Res<PlayerState>,
     hp_query: Query<&MaterialNode<OrbMaterial>, With<HealthOrb>>,
-    mp_query: Query<&MaterialNode<OrbMaterial>, (With<ManaOrb>, Without<HealthOrb>)>,
+    mp_query: Query<
+        &MaterialNode<OrbMaterial>,
+        (With<ManaOrb>, Without<HealthOrb>, Without<EnergyOrb>),
+    >,
+    ep_query: Query<
+        &MaterialNode<OrbMaterial>,
+        (With<EnergyOrb>, Without<HealthOrb>, Without<ManaOrb>),
+    >,
     mut orb_materials: ResMut<Assets<OrbMaterial>>,
 ) {
     let hp_fill = if player_state.max_health > 0.0 {
@@ -168,6 +205,12 @@ fn update_orbs(
 
     let mp_fill = if player_state.max_mana > 0.0 {
         (player_state.mana / player_state.max_mana).clamp(0.0, 1.0)
+    } else {
+        0.0
+    };
+
+    let ep_fill = if player_state.max_energy > 0.0 {
+        (player_state.energy / player_state.max_energy).clamp(0.0, 1.0)
     } else {
         0.0
     };
@@ -186,6 +229,13 @@ fn update_orbs(
     for handle in &mp_query {
         if let Some(mat) = orb_materials.get_mut(handle) {
             mat.uniforms.fill = mp_fill;
+        }
+    }
+
+    // Update energy orb
+    for handle in &ep_query {
+        if let Some(mat) = orb_materials.get_mut(handle) {
+            mat.uniforms.fill = ep_fill;
         }
     }
 }
