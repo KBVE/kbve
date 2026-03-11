@@ -8,6 +8,8 @@ interface PlayerState {
 	max_health: number;
 	mana: number;
 	max_mana: number;
+	energy: number;
+	max_energy: number;
 	position: [number, number, number];
 	inventory_slots: number;
 }
@@ -42,6 +44,12 @@ export function HUD() {
 				value={state.mana}
 				max={state.max_mana}
 				color="bg-mp"
+			/>
+			<ProgressBar
+				label="EP"
+				value={state.energy}
+				max={state.max_energy}
+				color="bg-ep"
 			/>
 			<div className="text-[7px] md:text-[9px] text-text-muted mt-1">
 				Pos: {state.position.map((v) => v.toFixed(1)).join(', ')}
