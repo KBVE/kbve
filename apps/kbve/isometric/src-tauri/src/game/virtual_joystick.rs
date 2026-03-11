@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::ui::FocusPolicy;
 use bevy::window::PrimaryWindow;
 
 // ---------------------------------------------------------------------------
@@ -11,6 +12,13 @@ pub struct VirtualJoystickState {
     pub active: bool,
     /// Isometric movement direction (XZ plane, not normalized — magnitude = analog intensity).
     pub direction: Vec3,
+    /// True when the pointer is over or interacting with the joystick area.
+    /// Scene picking systems should skip raycasting when this is true.
+    pub pointer_captured: bool,
+    /// Set by the Bevy UI jump button; consumed (cleared) each frame by the player system.
+    pub jump_requested: bool,
+    /// Set by the Bevy UI action button; consumed each frame by the player/combat system.
+    pub action_requested: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -24,6 +32,14 @@ struct JoystickBase;
 /// Marker for the joystick knob (inner circle that moves).
 #[derive(Component)]
 struct JoystickKnob;
+
+/// Marker for the jump button (bottom-right).
+#[derive(Component)]
+struct JumpButton;
+
+/// Marker for the action button (bottom-right, above jump).
+#[derive(Component)]
+struct ActionButton;
 
 /// Tracks joystick drag state.
 #[derive(Resource, Default)]
@@ -45,6 +61,12 @@ const KNOB_SIZE: f32 = 48.0;
 const MAX_TRAVEL: f32 = (BASE_SIZE - KNOB_SIZE) / 2.0;
 /// Margin from bottom-left corner.
 const MARGIN: f32 = 24.0;
+/// Action button size.
+const ACTION_BTN_SIZE: f32 = 56.0;
+/// Margin from bottom-right corner for action buttons.
+const ACTION_MARGIN: f32 = 24.0;
+/// Gap between stacked action buttons.
+const ACTION_GAP: f32 = 12.0;
 
 // ---------------------------------------------------------------------------
 // Plugin
@@ -57,7 +79,7 @@ impl Plugin for VirtualJoystickPlugin {
         app.init_resource::<VirtualJoystickState>();
         app.init_resource::<JoystickDrag>();
         app.add_systems(Startup, spawn_joystick_ui);
-        app.add_systems(Update, handle_joystick_input);
+        app.add_systems(Update, (handle_joystick_input, handle_action_buttons));
     }
 }
 
@@ -80,6 +102,8 @@ fn spawn_joystick_ui(mut commands: Commands) {
             ..default()
         })
         .insert(BackgroundColor(Color::srgba(1.0, 1.0, 1.0, 0.12)))
+        .insert(Interaction::default())
+        .insert(FocusPolicy::Block)
         .insert(JoystickBase)
         .with_children(|parent| {
             // Knob: smaller circle inside
@@ -93,6 +117,90 @@ fn spawn_joystick_ui(mut commands: Commands) {
                 .insert(BackgroundColor(Color::srgba(1.0, 1.0, 1.0, 0.35)))
                 .insert(JoystickKnob);
         });
+
+    // --- Action buttons (bottom-right) ---
+    // Container for vertical button stack
+    commands
+        .spawn(Node {
+            position_type: PositionType::Absolute,
+            right: Val::Px(ACTION_MARGIN),
+            bottom: Val::Px(ACTION_MARGIN),
+            flex_direction: FlexDirection::Column,
+            row_gap: Val::Px(ACTION_GAP),
+            align_items: AlignItems::Center,
+            ..default()
+        })
+        .with_children(|parent| {
+            // Action button (top of stack)
+            parent
+                .spawn((
+                    Node {
+                        width: Val::Px(ACTION_BTN_SIZE),
+                        height: Val::Px(ACTION_BTN_SIZE),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        border_radius: BorderRadius::all(Val::Percent(50.0)),
+                        ..default()
+                    },
+                    BackgroundColor(Color::srgba(0.9, 0.6, 0.2, 0.25)),
+                    Interaction::default(),
+                    FocusPolicy::Block,
+                    ActionButton,
+                ))
+                .with_child((
+                    Text::new("ACT".to_string()),
+                    TextFont {
+                        font_size: 11.0,
+                        ..default()
+                    },
+                    TextColor(Color::srgba(1.0, 1.0, 1.0, 0.7)),
+                ));
+            // Jump button (bottom of stack)
+            parent
+                .spawn((
+                    Node {
+                        width: Val::Px(ACTION_BTN_SIZE),
+                        height: Val::Px(ACTION_BTN_SIZE),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        border_radius: BorderRadius::all(Val::Percent(50.0)),
+                        ..default()
+                    },
+                    BackgroundColor(Color::srgba(0.3, 0.7, 1.0, 0.25)),
+                    Interaction::default(),
+                    FocusPolicy::Block,
+                    JumpButton,
+                ))
+                .with_child((
+                    Text::new("JMP".to_string()),
+                    TextFont {
+                        font_size: 11.0,
+                        ..default()
+                    },
+                    TextColor(Color::srgba(1.0, 1.0, 1.0, 0.7)),
+                ));
+        });
+}
+
+// ---------------------------------------------------------------------------
+// Action button handler
+// ---------------------------------------------------------------------------
+
+fn handle_action_buttons(
+    jump_query: Query<&Interaction, With<JumpButton>>,
+    action_query: Query<&Interaction, (With<ActionButton>, Without<JumpButton>)>,
+    mut joystick_state: ResMut<VirtualJoystickState>,
+) {
+    if let Ok(interaction) = jump_query.single() {
+        if *interaction == Interaction::Pressed {
+            joystick_state.jump_requested = true;
+        }
+    }
+    if let Ok(interaction) = action_query.single() {
+        if *interaction == Interaction::Pressed {
+            joystick_state.action_requested = true;
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -105,7 +213,7 @@ fn handle_joystick_input(
     windows: Query<&Window, With<PrimaryWindow>>,
     mut drag: ResMut<JoystickDrag>,
     mut joystick_state: ResMut<VirtualJoystickState>,
-    base_query: Query<(&Node, &GlobalTransform), With<JoystickBase>>,
+    base_query: Query<&Interaction, With<JoystickBase>>,
     mut knob_query: Query<&mut Node, (With<JoystickKnob>, Without<JoystickBase>)>,
 ) {
     let Ok(window) = windows.single() else {
@@ -121,26 +229,26 @@ fn handle_joystick_input(
 
     let pointer_pressed =
         !touches.iter().next().is_none() || mouse_button.pressed(MouseButton::Left);
-    let pointer_just_pressed = touches.iter_just_pressed().next().is_some()
-        || mouse_button.just_pressed(MouseButton::Left);
 
-    // Get joystick base center in screen space
-    let Ok((_base_node, _base_gt)) = base_query.single() else {
-        return;
-    };
+    // Use Bevy UI Interaction to detect press on the joystick base —
+    // this properly blocks input from passing through to the 3D scene.
+    let base_interaction = base_query
+        .single()
+        .ok()
+        .copied()
+        .unwrap_or(Interaction::None);
     let base_center = Vec2::new(
         MARGIN + BASE_SIZE / 2.0,
         window.height() - MARGIN - BASE_SIZE / 2.0,
     );
 
-    // Start drag if pointer pressed inside the base circle
-    if pointer_just_pressed {
-        if let Some(pos) = pointer_pos {
-            if pos.distance(base_center) <= BASE_SIZE / 2.0 {
-                drag.active = true;
-                drag.center = base_center;
-            }
-        }
+    // Tell scene picking systems to ignore raycasts when pointer is on the joystick.
+    joystick_state.pointer_captured = base_interaction != Interaction::None || drag.active;
+
+    // Start drag when Bevy UI reports a press on the base
+    if base_interaction == Interaction::Pressed && !drag.active {
+        drag.active = true;
+        drag.center = base_center;
     }
 
     // End drag when pointer released

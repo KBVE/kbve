@@ -11,23 +11,6 @@ use super::tilemap::{TILE_SIZE, build_chunk_mesh, lerp3, srgb_color};
 use super::weather::BlobShadow;
 
 // ---------------------------------------------------------------------------
-// Object-ID alpha tags (used by pixelate shader for silhouette edge detection)
-// ---------------------------------------------------------------------------
-
-/// Alpha value for tree canopy vertices — distinct from terrain (1.0) so the
-/// post-process shader can detect silhouette edges even when colors match.
-const CANOPY_ALPHA: f32 = 0.75;
-
-/// Alpha value for tree trunk / bark vertices.
-const TRUNK_ALPHA: f32 = 0.85;
-
-/// Like `srgb_color` but with a custom alpha for object-ID edge detection.
-fn srgb_color_a(r: f32, g: f32, b: f32, a: f32) -> [f32; 4] {
-    let c = srgb_color(r, g, b);
-    [c[0], c[1], c[2], a]
-}
-
-// ---------------------------------------------------------------------------
 // Bark palettes
 // ---------------------------------------------------------------------------
 
@@ -203,7 +186,7 @@ const TREE_PRESETS: [TreePreset; 6] = [
 /// Returns `[top_cap, bottom, lit, shadow, semi_shadow, semi_lit]`.
 fn bark_face_colors_with(y_frac: f32, bp: &BarkPalette) -> [[f32; 4]; 6] {
     let root = if y_frac < 0.15 { 0.82 } else { 1.0 };
-    let apply = |c: (f32, f32, f32)| srgb_color_a(c.0 * root, c.1 * root, c.2 * root, TRUNK_ALPHA);
+    let apply = |c: (f32, f32, f32)| srgb_color(c.0 * root, c.1 * root, c.2 * root);
 
     let lit = lerp3(bp.mid_light, bp.highlight, 0.5 + y_frac * 0.5);
     let shadow = lerp3(bp.dark, bp.mid_dark, y_frac * 0.3);
@@ -709,15 +692,14 @@ pub fn build_tree_geometry(tx: i32, tz: i32, size_scale: f32) -> TreeGeometry {
         (canopy_base.2 - tree_hj * 0.5) * tree_bright,
     );
 
-    let c_highlight = srgb_color_a(
+    let c_highlight = srgb_color(
         (tb.0 * 1.15 + 0.03).min(1.0),
         (tb.1 * 1.10 + 0.02).min(1.0),
         (tb.2 * 0.88).min(1.0),
-        CANOPY_ALPHA,
     );
-    let c_mid = srgb_color_a(tb.0, tb.1, tb.2, CANOPY_ALPHA);
-    let c_shadow = srgb_color_a(tb.0 * 0.45, tb.1 * 0.58, tb.2 * 0.65, CANOPY_ALPHA);
-    let c_body = srgb_color_a(tb.0 * 0.72, tb.1 * 0.78, tb.2 * 0.82, CANOPY_ALPHA);
+    let c_mid = srgb_color(tb.0, tb.1, tb.2);
+    let c_shadow = srgb_color(tb.0 * 0.45, tb.1 * 0.58, tb.2 * 0.65);
+    let c_body = srgb_color(tb.0 * 0.72, tb.1 * 0.78, tb.2 * 0.82);
 
     let tree_rot_angle = hash2d(seed_base + 72, 6072) * std::f32::consts::TAU;
     let (rot_sin, rot_cos) = tree_rot_angle.sin_cos();

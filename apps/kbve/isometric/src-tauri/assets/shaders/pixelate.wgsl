@@ -289,16 +289,6 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
         depth_raw
     ) * settings.shadow_strength;
 
-    // ── ALPHA SILHOUETTE EDGES (object-ID boundary detection) ──────────
-    // Vertex alpha encodes object type (terrain=1.0, canopy=0.75, trunk=0.85).
-    // Any alpha discontinuity between adjacent blocks marks a silhouette edge
-    // — works even when colors are identical (green canopy on green grass).
-    let alpha_diff = max(
-        max(abs(color.a - color_left.a), abs(color.a - color_right.a)),
-        max(abs(color.a - color_top.a), abs(color.a - color_bottom.a))
-    );
-    let alpha_edge = smoothstep(0.03, 0.08, alpha_diff);
-
     // ── ARTIFACT SUPPRESSION ─────────────────────────────────────────────
     let neg_depth_edge = smoothstep(
         settings.depth_threshold_low,
@@ -322,9 +312,7 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
             block_pos.x < edge_width || block_pos.y < edge_width);
     }
 
-    // Combine color-based edges with alpha silhouette edges.
-    // Alpha edges contribute as shadow lines (dark outlines around objects).
-    let final_shadow = max(depth_edge, alpha_edge * settings.shadow_strength) * at_edge;
+    let final_shadow = depth_edge * at_edge;
     let final_highlight = suppressed_highlight * at_edge;
 
     // ── DUAL-TONE COMPOSITING ────────────────────────────────────────────
@@ -360,6 +348,5 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
         result += vec3(noise);
     }
 
-    // Force alpha=1.0: vertex alpha is used only for edge detection, not transparency.
-    return vec4(result, 1.0);
+    return vec4(result, color.a);
 }

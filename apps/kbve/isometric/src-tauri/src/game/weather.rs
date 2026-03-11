@@ -79,9 +79,9 @@ fn sun_params(hour: f32) -> SunParams {
     let moon_dir = Vec3::new(-0.15, -0.97, -0.20).normalize();
     let direction = (sun_dir * sun_height + moon_dir * (1.0 - sun_height)).normalize();
 
-    // Illuminance: tied directly to sun height.
-    // Peaks at ~8200 lux at noon, settles to 15 lux moonlight at night.
-    let illuminance = 15.0 + sun_height * 8185.0;
+    // Illuminance: moderate sun — accent light, not the sole brightness source.
+    // Lower peak keeps shadow contrast gentle for a stylized look.
+    let illuminance = 15.0 + sun_height * 4000.0;
 
     // Light color: warm golden near horizon, white at zenith, cool blue at night.
     let lr = 0.4 + sun_height * 0.6;
@@ -89,12 +89,13 @@ fn sun_params(hour: f32) -> SunParams {
     let lb = 0.65 + sun_height * 0.35;
     let color = Color::srgb(lr, lg, lb);
 
-    // Ambient: follows sun height from dim blue night to bright day.
-    let ambient_brightness = 60.0 + sun_height * 200.0;
+    // Ambient: strong fill — the main brightness source in a stylized world.
+    // Shadowed areas stay readable as tinted, not dark. Green-tinted for grass bounce.
+    let ambient_brightness = 150.0 + sun_height * 450.0;
     let ambient_color = Color::srgb(
-        0.35 + sun_height * 0.55,
-        0.40 + sun_height * 0.52,
-        0.65 + sun_height * 0.35,
+        0.50 + sun_height * 0.40,
+        0.55 + sun_height * 0.37,
+        0.45 + sun_height * 0.30,
     );
 
     SunParams {
