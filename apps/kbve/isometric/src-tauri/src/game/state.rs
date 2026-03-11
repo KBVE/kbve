@@ -37,6 +37,8 @@ pub struct PlayerState {
     pub max_health: f32,
     pub mana: f32,
     pub max_mana: f32,
+    pub energy: f32,
+    pub max_energy: f32,
     pub position: [f32; 3],
     pub inventory_slots: usize,
 }
@@ -48,6 +50,8 @@ impl Default for PlayerState {
             max_health: 100.0,
             mana: 50.0,
             max_mana: 50.0,
+            energy: 75.0,
+            max_energy: 75.0,
             position: [0.0, 0.0, 0.0],
             inventory_slots: 16,
         }
