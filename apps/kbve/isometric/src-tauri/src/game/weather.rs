@@ -60,72 +60,42 @@ fn sun_params(hour: f32) -> SunParams {
     let elevation = elevation.clamp(0.0, std::f32::consts::FRAC_PI_2 - 0.05);
 
     // Sun azimuth: rotates from east (6:00) to west (18:00)
-    // Using a simple east-to-west arc in XZ plane
     let azimuth_progress = ((hour - 6.0) / 12.0).clamp(0.0, 1.0);
     let azimuth = std::f32::consts::PI * 0.25 + azimuth_progress * std::f32::consts::PI * 0.5;
 
-    // Light direction (pointing downward toward the scene)
-    let cos_el = elevation.cos();
-    let sin_el = elevation.sin();
-    let direction =
-        Vec3::new(-azimuth.cos() * cos_el, -sin_el, -azimuth.sin() * cos_el).normalize();
-
-    // Is the sun above the horizon?
-    let is_day = hour >= 5.0 && hour <= 19.0;
-    let sun_height = if is_day {
+    // sun_height: 0.0 at horizon/night, 1.0 at zenith.
+    // This is the natural blend factor — everything follows the sun's position.
+    let sun_height = if hour >= 5.0 && hour <= 19.0 {
         elevation / (std::f32::consts::FRAC_PI_2 - 0.05)
     } else {
         0.0
     };
 
-    // Dawn/dusk transition bands
-    let dawn_t = ((hour - 5.0) / 1.5).clamp(0.0, 1.0); // 5:00–6:30
-    let dusk_t = ((19.0 - hour) / 1.5).clamp(0.0, 1.0); // 17:30–19:00
-    let day_strength = (dawn_t * dusk_t).clamp(0.0, 1.0);
+    // Light direction: blend between sun arc and moon based on sun height.
+    // As the sun dips toward the horizon, direction gradually shifts to moonlight.
+    let cos_el = elevation.cos();
+    let sin_el = elevation.sin();
+    let sun_dir = Vec3::new(-azimuth.cos() * cos_el, -sin_el, -azimuth.sin() * cos_el).normalize();
+    let moon_dir = Vec3::new(-0.15, -0.97, -0.20).normalize();
+    let direction = (sun_dir * sun_height + moon_dir * (1.0 - sun_height)).normalize();
 
-    // Illuminance: peaks at noon, zero at night
-    let illuminance = if is_day {
-        // Ramp with sun height, peak 8000 lux at noon
-        sun_height * day_strength * 8000.0 + 200.0
-    } else {
-        0.0
-    };
+    // Illuminance: tied directly to sun height.
+    // Peaks at ~8200 lux at noon, settles to 15 lux moonlight at night.
+    let illuminance = 15.0 + sun_height * 8185.0;
 
-    // Light color: golden at dawn/dusk, white at noon
-    let golden_t = 1.0 - day_strength; // 1.0 at horizon, 0.0 at peak
-    let (lr, lg, lb) = if is_day {
-        (
-            1.0,
-            1.0 - golden_t * 0.25, // slightly less green at dawn/dusk
-            1.0 - golden_t * 0.45, // much less blue at dawn/dusk → warm orange
-        )
-    } else {
-        (0.4, 0.45, 0.65) // cool moonlight
-    };
+    // Light color: warm golden near horizon, white at zenith, cool blue at night.
+    let lr = 0.4 + sun_height * 0.6;
+    let lg = 0.45 + sun_height * 0.55;
+    let lb = 0.65 + sun_height * 0.35;
     let color = Color::srgb(lr, lg, lb);
 
-    // Ambient: brighter during day, dim blue at night
-    let (ambient_brightness, ambient_color) = if is_day {
-        (
-            80.0 + day_strength * 180.0, // 80–260
-            Color::srgb(
-                0.9 + golden_t * 0.1,
-                0.92 - golden_t * 0.05,
-                1.0 - golden_t * 0.2,
-            ),
-        )
-    } else {
-        // Night: gentle blue ambient so things stay visible
-        let night_depth = if hour >= 19.0 {
-            ((hour - 19.0) / 2.0).clamp(0.0, 1.0) // 19–21 transition
-        } else {
-            ((5.0 - hour) / 2.0).clamp(0.0, 1.0) // 3–5 transition
-        };
-        (
-            60.0 + (1.0 - night_depth) * 40.0,
-            Color::srgb(0.35, 0.40, 0.65),
-        )
-    };
+    // Ambient: follows sun height from dim blue night to bright day.
+    let ambient_brightness = 60.0 + sun_height * 200.0;
+    let ambient_color = Color::srgb(
+        0.35 + sun_height * 0.55,
+        0.40 + sun_height * 0.52,
+        0.65 + sun_height * 0.35,
+    );
 
     SunParams {
         direction,
