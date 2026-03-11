@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use super::camera::IsometricCamera;
 use super::player::Player;
+use super::virtual_joystick::VirtualJoystickState;
 
 // Desktop: bridged cursor for Rapier raycast hover detection
 #[cfg(not(target_arch = "wasm32"))]
@@ -340,12 +341,21 @@ fn raycast_hover_detection_wasm(
     hoverable: Query<(), With<HoverOutline>>,
     current_hovered: Query<Entity, With<Hovered>>,
     player_query: Query<Entity, With<Player>>,
+    joystick: Res<VirtualJoystickState>,
     mut commands: Commands,
 ) {
     let Ok(window) = windows.single() else { return };
     let Ok((cam_gt, projection)) = camera_query.single() else {
         return;
     };
+
+    // Skip raycasting when the pointer is captured by the joystick UI.
+    if joystick.pointer_captured {
+        for entity in &current_hovered {
+            commands.entity(entity).remove::<Hovered>();
+        }
+        return;
+    }
 
     let Some(cursor_pos) = window.cursor_position() else {
         for entity in &current_hovered {

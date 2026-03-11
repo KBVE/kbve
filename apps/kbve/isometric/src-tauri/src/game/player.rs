@@ -121,7 +121,7 @@ fn spawn_player(
 
 fn move_player(
     keyboard: Res<ButtonInput<KeyCode>>,
-    joystick: Res<VirtualJoystickState>,
+    mut joystick: ResMut<VirtualJoystickState>,
     time: Res<Time>,
     mut query: Query<
         (
@@ -159,8 +159,11 @@ fn move_player(
 
         let horizontal = direction * PLAYER_SPEED * time.delta_secs();
 
-        // Jump
-        if keyboard.just_pressed(KeyCode::Space) && physics.on_ground {
+        // Jump (keyboard Space or mobile jump button)
+        let jump_btn = joystick.jump_requested;
+        joystick.jump_requested = false;
+        joystick.action_requested = false;
+        if (keyboard.just_pressed(KeyCode::Space) || jump_btn) && physics.on_ground {
             physics.velocity_y = JUMP_VELOCITY;
             physics.on_ground = false;
             physics.fall_start_y = transform.translation.y;
