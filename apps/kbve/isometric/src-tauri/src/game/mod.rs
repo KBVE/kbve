@@ -14,6 +14,7 @@ pub mod state;
 pub mod terrain;
 pub mod tilemap;
 pub mod trees;
+pub mod virtual_joystick;
 pub mod water;
 pub mod weather;
 
@@ -32,6 +33,7 @@ use state::GameStatePlugin;
 use terrain::TerrainPlugin;
 use tilemap::TilemapPlugin;
 use trees::TreesPlugin;
+use virtual_joystick::VirtualJoystickPlugin;
 use water::WaterPlugin;
 use weather::WeatherPlugin;
 
@@ -54,6 +56,7 @@ impl PluginGroup for GamePluginGroup {
             .add(InventoryPlugin)
             .add(WeatherPlugin)
             .add(InsectsPlugin)
+            .add(VirtualJoystickPlugin)
             .add(ActionsPlugin)
     }
 }
