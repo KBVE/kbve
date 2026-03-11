@@ -27,8 +27,7 @@ use insects::InsectsPlugin;
 use inventory::InventoryPlugin;
 use object_registry::ObjectRegistryPlugin;
 use orb_hud::OrbHudPlugin;
-// PixelatePlugin disabled — two-stage render-to-texture pipeline handles pixelation.
-// use pixelate::PixelatePlugin;
+use pixelate::PixelatePlugin;
 use player::PlayerPlugin;
 use scene_objects::SceneObjectsPlugin;
 use state::GameStatePlugin;
@@ -61,5 +60,6 @@ impl PluginGroup for GamePluginGroup {
             .add(VirtualJoystickPlugin)
             .add(OrbHudPlugin)
             .add(ActionsPlugin)
+            .add(PixelatePlugin)
     }
 }
