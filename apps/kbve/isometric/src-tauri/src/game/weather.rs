@@ -90,12 +90,12 @@ fn sun_params(hour: f32) -> SunParams {
     let color = Color::srgb(lr, lg, lb);
 
     // Ambient: strong fill — the main brightness source in a stylized world.
-    // Shadowed areas stay readable as tinted, not dark. Green-tinted for grass bounce.
+    // Shadowed areas stay readable as tinted, not dark. Blue at night, warm at day.
     let ambient_brightness = 150.0 + sun_height * 450.0;
     let ambient_color = Color::srgb(
-        0.50 + sun_height * 0.40,
-        0.55 + sun_height * 0.37,
-        0.45 + sun_height * 0.30,
+        0.40 + sun_height * 0.50,
+        0.45 + sun_height * 0.47,
+        0.60 + sun_height * 0.15,
     );
 
     SunParams {
