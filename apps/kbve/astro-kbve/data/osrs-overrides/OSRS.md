@@ -486,10 +486,145 @@ Focus on items with clear processing chains and market flip potential.
 
 | ID    | Item              | Override Focus           |
 | ----- | ----------------- | ------------------------ |
+| 1656  | Sapphire necklace | Games necklace base      |
+| 1658  | Emerald necklace  | Binding necklace base    |
 | 1660  | Ruby necklace     | Digsite pendant base     |
 | 1662  | Diamond necklace  | Phoenix necklace base    |
 | 1664  | Dragon necklace   | Skills necklace base     |
+| 6577  | Onyx necklace     | Berserker necklace base  |
+| 19535 | Zenyte necklace   | Necklace of anguish base |
 | 21157 | Necklace of faith | Emergency Prayer restore |
+
+### Amulet Crafting Chain (Implemented - Mar 2026)
+
+| ID    | Item               | Override Focus          |
+| ----- | ------------------ | ----------------------- |
+| 1694  | Sapphire amulet    | Amulet of magic base    |
+| 1696  | Emerald amulet     | Amulet of defence base  |
+| 1698  | Ruby amulet        | Amulet of strength base |
+| 1700  | Diamond amulet     | Amulet of power base    |
+| 1702  | Dragonstone amulet | Amulet of glory base    |
+| 6581  | Onyx amulet        | Amulet of fury base     |
+| 19541 | Zenyte amulet      | Amulet of torture base  |
+
+### Bracelet Crafting Chain (Implemented - Mar 2026)
+
+| ID    | Item                 | Override Focus           |
+| ----- | -------------------- | ------------------------ |
+| 11072 | Sapphire bracelet    | Bracelet of clay base    |
+| 11076 | Emerald bracelet     | Castlewars bracelet base |
+| 11085 | Ruby bracelet        | Inoculation bracelet     |
+| 11092 | Diamond bracelet     | Forinthry bracelet base  |
+| 11115 | Dragonstone bracelet | Combat bracelet base     |
+| 11130 | Onyx bracelet        | Regen bracelet base      |
+
+### Misc Weapons/Armour (Implemented - Mar 2026)
+
+| ID    | Item                      | Override Focus             |
+| ----- | ------------------------- | -------------------------- |
+| 20849 | Dragon thrownaxe          | Dragon thrown weapon, spec |
+| 22231 | Dragon boots ornament kit | Dragon boots cosmetic      |
+| 10822 | Yak-hide armour (top)     | 20 Def Fremennik body      |
+
+### Mystic Set Completion (Implemented - Mar 2026)
+
+| ID   | Item          | Override Focus        |
+| ---- | ------------- | --------------------- |
+| 4089 | Mystic hat    | 40 Magic/20 Def head  |
+| 4095 | Mystic gloves | 40 Magic/20 Def hands |
+| 4097 | Mystic boots  | 40 Magic/20 Def feet  |
+
+### Enchanted Robes (Implemented - Mar 2026)
+
+| ID   | Item           | Override Focus             |
+| ---- | -------------- | -------------------------- |
+| 7400 | Enchanted hat  | Treasure trail mystic hat  |
+| 7399 | Enchanted top  | Treasure trail mystic top  |
+| 7398 | Enchanted robe | Treasure trail mystic legs |
+
+### Slayer/Hybrid Boots (Implemented - Mar 2026)
+
+| ID    | Item               | Override Focus             |
+| ----- | ------------------ | -------------------------- |
+| 22951 | Boots of brimstone | Hybrid boot, 44 Slayer req |
+
+### Enchanted Dragon Bolts (Implemented - Mar 2026)
+
+| ID    | Item                         | Override Focus              |
+| ----- | ---------------------------- | --------------------------- |
+| 21932 | Opal dragon bolts (e)        | Lucky Lightning effect      |
+| 21934 | Jade dragon bolts (e)        | Earth's Fury knockdown      |
+| 21936 | Pearl dragon bolts (e)       | Sea Curse, fire enemy bonus |
+| 21938 | Topaz dragon bolts (e)       | Down to Earth, -1 Magic     |
+| 21940 | Sapphire dragon bolts (e)    | Clear Mind, Prayer drain    |
+| 21942 | Emerald dragon bolts (e)     | Magical Poison, 55% proc    |
+| 21948 | Dragonstone dragon bolts (e) | Dragon's Breath dragonfire  |
+| 21950 | Onyx dragon bolts (e)        | Life Leech heal effect      |
+
+### Unenchanted Bolts (Implemented - Mar 2026)
+
+| ID   | Item              | Override Focus          |
+| ---- | ----------------- | ----------------------- |
+| 9340 | Diamond bolts     | Fletching 65, +105 rStr |
+| 9341 | Dragonstone bolts | Fletching 71, +117 rStr |
+
+### Enchanted Rings (Implemented - Mar 2026)
+
+| ID   | Item          | Override Focus         |
+| ---- | ------------- | ---------------------- |
+| 6583 | Ring of stone | Onyx enchant, cosmetic |
+
+### Rune Trimmed (Implemented - Mar 2026)
+
+| ID   | Item               | Override Focus          |
+| ---- | ------------------ | ----------------------- |
+| 2623 | Rune platebody (t) | Hard clue, same as rune |
+| 2619 | Rune full helm (g) | Hard clue, gold-trimmed |
+
+### F2P Rune Weapons (Implemented - Mar 2026)
+
+| ID   | Item           | Override Focus      |
+| ---- | -------------- | ------------------- |
+| 1303 | Rune longsword | F2P stab, 40 Attack |
+| 1213 | Rune dagger    | F2P stab, 40 Attack |
+| 1185 | Rune sq shield | F2P shield, 40 Def  |
+
+### Granite/Snakeskin (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus       |
+| ----- | ----------------- | -------------------- |
+| 21646 | Granite longsword | 50 Atk/Str slash     |
+| 22272 | Snakeskin shield  | 30 Ranged/Def shield |
+
+### God D'hide Bodies (Implemented - Mar 2026)
+
+| ID    | Item                | Override Focus            |
+| ----- | ------------------- | ------------------------- |
+| 10378 | Guthix d'hide body  | Hard clue, +1 prayer body |
+| 10370 | Zamorak d'hide body | Hard clue, +1 prayer body |
+| 12500 | Bandos d'hide body  | Hard clue, +1 prayer body |
+| 12508 | Armadyl d'hide body | Hard clue, +1 prayer body |
+| 12492 | Ancient d'hide body | Hard clue, +1 prayer body |
+
+### God D'hide Shields (Implemented - Mar 2026)
+
+| ID    | Item                  | Override Focus              |
+| ----- | --------------------- | --------------------------- |
+| 23188 | Guthix d'hide shield  | Hard clue, +1 prayer shield |
+| 23194 | Zamorak d'hide shield | Hard clue, +1 prayer shield |
+| 23203 | Bandos d'hide shield  | Hard clue, +1 prayer shield |
+| 23200 | Armadyl d'hide shield | Hard clue, +1 prayer shield |
+| 23197 | Ancient d'hide shield | Hard clue, +1 prayer shield |
+
+### God D'hide Boots (Implemented - Mar 2026)
+
+| ID    | Item                 | Override Focus             |
+| ----- | -------------------- | -------------------------- |
+| 19927 | Guthix d'hide boots  | Hard clue, +1 prayer boots |
+| 19936 | Zamorak d'hide boots | Hard clue, +1 prayer boots |
+| 19924 | Bandos d'hide boots  | Hard clue, +1 prayer boots |
+| 19930 | Armadyl d'hide boots | Hard clue, +1 prayer boots |
+| 19921 | Ancient d'hide boots | Hard clue, +1 prayer boots |
 
 ---
 
@@ -1084,6 +1219,9 @@ Record batch completions here:
 | Jan 2026     | Initial ~100 items                           | ~100            |
 | Jan 7, 2026  | +35 items (potions, weapons, raid gear)      | ~135            |
 | Jan 21, 2026 | +42 items (barrows, hilts, potions, utility) | ~881            |
+| Mar 11, 2026 | +20 items (jewelry chains, misc weapons)     | ~901            |
+| Mar 12, 2026 | +20 items (dragon bolts e, mystic, trimmed)  | ~921            |
+| Mar 12, 2026 | +20 items (god d'hide sets, rune weapons)    | ~941            |
 
 ### Quick Stats
 
