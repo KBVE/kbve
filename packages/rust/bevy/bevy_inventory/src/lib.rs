@@ -831,10 +831,14 @@ pub struct InventoryActionResult {
 // be read from outside the Bevy ECS — for example from a Tauri command
 // handler or a WASM JS binding.
 //
+// Gated behind the `snapshot` feature (enabled by default). Disable it
+// to drop the `serde_json` dependency if you don't need cross-boundary reads.
+//
 // On native targets we use `LazyLock<Mutex<_>>` for thread safety.
 // On WASM (single-threaded) we use `thread_local!` + `RefCell` to avoid
 // pulling in synchronisation primitives that don't exist on `wasm32`.
 
+#[cfg(feature = "snapshot")]
 #[cfg(not(target_arch = "wasm32"))]
 mod snapshot_store {
     use std::sync::{LazyLock, Mutex};
@@ -853,6 +857,7 @@ mod snapshot_store {
     }
 }
 
+#[cfg(feature = "snapshot")]
 #[cfg(target_arch = "wasm32")]
 mod snapshot_store {
     use std::cell::RefCell;
@@ -878,6 +883,7 @@ mod snapshot_store {
 /// system has not run) or if deserialisation fails.
 ///
 /// This function is safe to call from any thread (native) or from JS (WASM).
+#[cfg(feature = "snapshot")]
 pub fn get_inventory_snapshot<K: ItemKind>() -> Option<Inventory<K>> {
     let json = snapshot_store::read()?;
     serde_json::from_str(&json).ok()
@@ -887,6 +893,7 @@ pub fn get_inventory_snapshot<K: ItemKind>() -> Option<Inventory<K>> {
 ///
 /// Useful when you need to forward the data without deserialising it
 /// (e.g. returning it directly from a Tauri command or FFI boundary).
+#[cfg(feature = "snapshot")]
 pub fn get_inventory_snapshot_json() -> Option<String> {
     snapshot_store::read()
 }
@@ -937,6 +944,7 @@ impl<K: ItemKind> Plugin for InventoryPlugin<K> {
         app.add_observer(process_split_action::<K>);
         app.add_observer(process_merge_action::<K>);
         app.add_observer(process_move_action::<K>);
+        #[cfg(feature = "snapshot")]
         app.add_systems(Update, snapshot_inventory::<K>);
     }
 }
@@ -1077,6 +1085,7 @@ fn process_move_action<K: ItemKind>(
     });
 }
 
+#[cfg(feature = "snapshot")]
 fn snapshot_inventory<K: ItemKind>(inventory: Res<Inventory<K>>) {
     if inventory.is_changed() {
         if let Ok(json) = serde_json::to_string(inventory.as_ref()) {

@@ -16,7 +16,7 @@ members = [
 	'apps/kbve/axum-kbve',
 	'apps/cryptothrone/axum-cryptothrone',
 	'apps/kbve/isometric/src-tauri',
-	'packages/rust/bevy/bevy_kbve_inventory',
+	'packages/rust/bevy/bevy_inventory',
 	'packages/rust/bevy/bevy_kbve_state',
 	'packages/rust/bevy/bevy_kbve_player',
 	'packages/rust/bevy/bevy_kbve_camera',
