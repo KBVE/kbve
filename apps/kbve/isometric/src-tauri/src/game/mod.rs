@@ -2,9 +2,11 @@ pub mod actions;
 pub mod camera;
 pub mod grass;
 pub mod input_bridge;
+pub mod insects;
 pub mod inventory;
 pub mod mushrooms;
 pub mod object_registry;
+pub mod orb_hud;
 pub mod pixelate;
 pub mod player;
 pub mod rocks;
@@ -13,6 +15,7 @@ pub mod state;
 pub mod terrain;
 pub mod tilemap;
 pub mod trees;
+pub mod virtual_joystick;
 pub mod water;
 pub mod weather;
 
@@ -20,16 +23,18 @@ use bevy::app::{PluginGroup, PluginGroupBuilder};
 
 use actions::ActionsPlugin;
 use camera::IsometricCameraPlugin;
+use insects::InsectsPlugin;
 use inventory::InventoryPlugin;
 use object_registry::ObjectRegistryPlugin;
-// PixelatePlugin disabled — two-stage render-to-texture pipeline handles pixelation.
-// use pixelate::PixelatePlugin;
+use orb_hud::OrbHudPlugin;
+use pixelate::PixelatePlugin;
 use player::PlayerPlugin;
 use scene_objects::SceneObjectsPlugin;
 use state::GameStatePlugin;
 use terrain::TerrainPlugin;
 use tilemap::TilemapPlugin;
 use trees::TreesPlugin;
+use virtual_joystick::VirtualJoystickPlugin;
 use water::WaterPlugin;
 use weather::WeatherPlugin;
 
@@ -51,6 +56,10 @@ impl PluginGroup for GamePluginGroup {
             .add(WaterPlugin)
             .add(InventoryPlugin)
             .add(WeatherPlugin)
+            .add(InsectsPlugin)
+            .add(VirtualJoystickPlugin)
+            .add(OrbHudPlugin)
             .add(ActionsPlugin)
+            .add(PixelatePlugin)
     }
 }

@@ -13,14 +13,18 @@
 		"dev": {
 			"executor": "nx:run-commands",
 			"options": {
-				"commands": ["pnpm build:wasm && pnpm dev"],
+				"commands": [
+					"lsof -ti:1420 | xargs kill 2>/dev/null; export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm build:wasm && pnpm dev"
+				],
 				"cwd": "apps/kbve/isometric"
 			}
 		},
 		"build": {
 			"executor": "nx:run-commands",
 			"options": {
-				"commands": ["pnpm build"],
+				"commands": [
+					"export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm build"
+				],
 				"cwd": "apps/kbve/isometric"
 			}
 		},

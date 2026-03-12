@@ -87,6 +87,7 @@ jobs:
               run: |
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends \
+                    build-essential \
                     pkg-config libgtk-3-dev libwebkit2gtk-4.1-dev \
                     libayatana-appindicator3-dev libxdo-dev \
                     libasound2-dev libudev-dev libvulkan-dev
@@ -112,6 +113,9 @@ jobs:
 
             - name: Install wasm-pack
               run: cargo install wasm-pack --locked
+
+            - name: Install tauri-cli
+              run: cargo install tauri-cli --locked
 
             - name: Setup Node v24
               uses: actions/setup-node@v6
@@ -201,6 +205,9 @@ jobs:
             - name: Install wasm-pack
               run: cargo install wasm-pack --locked
 
+            - name: Install tauri-cli
+              run: cargo install tauri-cli --locked
+
             - name: Setup Node v24
               uses: actions/setup-node@v6
               with:
@@ -286,6 +293,9 @@ jobs:
 
             - name: Install wasm-pack
               run: cargo install wasm-pack --locked
+
+            - name: Install tauri-cli
+              run: cargo install tauri-cli --locked
 
             - name: Setup Node v24
               uses: actions/setup-node@v6

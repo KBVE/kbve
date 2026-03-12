@@ -386,6 +386,111 @@ Focus on items with clear processing chains and market flip potential.
 | 6724  | Seercull          | DK Supreme bow, spec   |
 | 1729  | Amulet of defence | Defensive amulet       |
 
+### Dragon Weapons (Implemented - Mar 2026)
+
+| ID   | Item            | Override Focus          |
+| ---- | --------------- | ----------------------- |
+| 1215 | Dragon dagger   | PvP spec weapon, iconic |
+| 1249 | Dragon spear    | Shove spec, Corp Beast  |
+| 7158 | Dragon 2h sword | AoE Powerstab spec      |
+
+### Spined Armour (Implemented - Mar 2026)
+
+| ID   | Item         | Override Focus        |
+| ---- | ------------ | --------------------- |
+| 6131 | Spined helm  | Fremennik ranged helm |
+| 6133 | Spined body  | Fremennik ranged body |
+| 6135 | Spined chaps | Fremennik ranged legs |
+
+### Boots/Shields (Implemented - Mar 2026)
+
+| ID   | Item           | Override Focus            |
+| ---- | -------------- | ------------------------- |
+| 3105 | Climbing boots | +2 Str, no Def req, pures |
+| 6524 | Toktz-ket-xil  | +5 Str shield, 60 Def     |
+
+### Enchanted Rings (Implemented - Mar 2026)
+
+| ID   | Item            | Override Focus             |
+| ---- | --------------- | -------------------------- |
+| 2568 | Ring of forging | 100% iron smelt, 140 uses  |
+| 2570 | Ring of life    | Emergency teleport at ≤10% |
+
+### Fremennik Helms (Implemented - Mar 2026)
+
+| ID   | Item           | Override Focus        |
+| ---- | -------------- | --------------------- |
+| 3751 | Berserker helm | +3 Str melee helm     |
+| 3753 | Warrior helm   | +5 Slash attack helm  |
+| 3755 | Farseer helm   | +6 Magic attack helm  |
+| 3749 | Archer helm    | +6 Ranged attack helm |
+
+### Ranged Ammo & Crossbows (Implemented - Mar 2026)
+
+| ID    | Item                | Override Focus             |
+| ----- | ------------------- | -------------------------- |
+| 8880  | Dorgeshuun crossbow | Budget ranged + bone bolts |
+| 830   | Rune javelin        | Ballista ammo              |
+| 21318 | Amethyst javelin    | Best non-dragon javelin    |
+
+### Obsidian/Slayer Gear (Implemented - Mar 2026)
+
+| ID    | Item           | Override Focus           |
+| ----- | -------------- | ------------------------ |
+| 6526  | Toktz-mej-tal  | Hybrid crush/magic staff |
+| 4156  | Mirror shield  | Basilisk/Cockatrice req  |
+| 11133 | Regen bracelet | 2x HP regen, 1 Def BiS   |
+
+### Pies (Implemented - Mar 2026)
+
+| ID   | Item        | Override Focus       |
+| ---- | ----------- | -------------------- |
+| 7170 | Mud pie     | PvP run energy drain |
+| 7208 | Wild pie    | +5 Slayer boost      |
+| 7198 | Admiral pie | +5 Fishing boost     |
+
+### Dragon/Rune Skirts (Implemented - Mar 2026)
+
+| ID   | Item              | Override Focus          |
+| ---- | ----------------- | ----------------------- |
+| 4585 | Dragon plateskirt | Same stats as platelegs |
+| 1093 | Rune plateskirt   | F2P best legs           |
+
+### Low-Tier Ranged/Melee Armour (Implemented - Mar 2026)
+
+| ID    | Item                 | Override Focus         |
+| ----- | -------------------- | ---------------------- |
+| 6326  | Snakeskin bandana    | Complete snakeskin set |
+| 10956 | Frog-leather chaps   | 25 Ranged/Def legs     |
+| 10958 | Frog-leather boots   | 25 Ranged/Def boots    |
+| 10824 | Yak-hide armour legs | 20 Def Fremennik legs  |
+
+### Novelty Weapons (Implemented - Mar 2026)
+
+| ID    | Item      | Override Focus          |
+| ----- | --------- | ----------------------- |
+| 23360 | Ham joint | 3-tick speed, easy clue |
+
+### Enchanted Bolts — Low Tier (Implemented - Mar 2026)
+
+| ID   | Item               | Override Focus           |
+| ---- | ------------------ | ------------------------ |
+| 8882 | Bone bolts         | Cheapest ranged ammo     |
+| 9236 | Opal bolts (e)     | Lucky Lightning effect   |
+| 9238 | Pearl bolts (e)    | Sea Curse, fire enemies  |
+| 9239 | Topaz bolts (e)    | Down to Earth, -1 Magic  |
+| 9240 | Sapphire bolts (e) | Clear Mind, Prayer drain |
+| 9241 | Emerald bolts (e)  | Magical Poison, 54% proc |
+
+### Necklace Crafting Chain (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus           |
+| ----- | ----------------- | ------------------------ |
+| 1660  | Ruby necklace     | Digsite pendant base     |
+| 1662  | Diamond necklace  | Phoenix necklace base    |
+| 1664  | Dragon necklace   | Skills necklace base     |
+| 21157 | Necklace of faith | Emergency Prayer restore |
+
 ---
 
 ## Future Override Priorities

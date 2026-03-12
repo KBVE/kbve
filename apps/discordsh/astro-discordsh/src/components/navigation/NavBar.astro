@@ -1,5 +1,8 @@
 ---
 import ReactNavBar from './ReactNavBar.tsx';
+import { DroidProvider } from '@kbve/astro';
+import { OverlayShell } from '../overlay/OverlayShell';
+import { workerURLs } from '../../lib/workers';
 
 const currentPath = Astro.url.pathname;
 ---
@@ -135,6 +138,15 @@ const currentPath = Astro.url.pathname;
 
 	{/* React handles: auth state, portals, drawer, modal */}
 	<ReactNavBar client:only="react" currentPath={currentPath} />
+
+	{/* Single-mount providers — shared across all pages via NavBar */}
+	<DroidProvider
+		client:only="react"
+		workerURLs={workerURLs}
+		i18nPath="/i18n/db.json"
+		dataPath="/data/servers.json"
+	/>
+	<OverlayShell client:only="react" />
 </nav>
 
 <script>
@@ -146,7 +158,7 @@ const currentPath = Astro.url.pathname;
 		dashboard: 'Dashboard',
 	};
 
-	function setup() {
+	function setup(): (() => void) | undefined {
 		const tooltip = document.getElementById('nav-tooltip');
 		const text = document.getElementById('nav-tooltip-text');
 		if (!tooltip || !text) return;
@@ -163,7 +175,7 @@ const currentPath = Astro.url.pathname;
 			});
 
 		// Subscribe to the shared store — position and show the single tooltip element
-		$activeTooltip.subscribe((id) => {
+		const unsub = $activeTooltip.subscribe((id) => {
 			if (!id || !LABELS[id]) {
 				tooltip.style.opacity = '0';
 				tooltip.style.pointerEvents = 'none';
@@ -181,11 +193,24 @@ const currentPath = Astro.url.pathname;
 			tooltip.style.left = `${rect.left + rect.width / 2}px`;
 			tooltip.style.top = `${rect.bottom + 6}px`;
 		});
+
+		return unsub;
+	}
+
+	// Clean up store subscription before page swap to prevent listener leaks
+	let cleanup: (() => void) | undefined;
+	function teardown() {
+		cleanup?.();
 	}
 
 	// Run on initial load and after view transitions
-	setup();
-	document.addEventListener('astro:after-swap', setup);
+	function init() {
+		teardown();
+		cleanup = setup();
+	}
+	init();
+	document.addEventListener('astro:after-swap', init);
+	document.addEventListener('astro:before-swap', teardown);
 </script>
 
 <style>

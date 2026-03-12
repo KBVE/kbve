@@ -42,6 +42,16 @@
 }
 
 @layer my-overrides {
+	/* Server card hover — CSS-only, no React re-renders */
+	.server-card {
+		transition:
+			border-color 0.2s,
+			box-shadow 0.2s;
+	}
+	.server-card:hover {
+		border-color: var(--sl-color-accent, #8b5cf6) !important;
+		box-shadow: 0 0 0 1px var(--sl-color-accent, #8b5cf6);
+	}
 }
 
 /* Honeycomb loader — from Uiverse.io by boryanakrasteva */

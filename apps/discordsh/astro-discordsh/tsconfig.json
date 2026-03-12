@@ -1,20 +1,18 @@
 {
-  "extends": "astro/tsconfigs/strict",
-  "include": [
-    ".astro/types.d.ts",
-    "**/*"
-  ],
-  "exclude": [
-    "dist"
-  ],
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "react",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "@kbve/astro": ["../../../packages/npm/astro/src/index.ts"],
-      "@kbve/droid": ["../../../packages/npm/droid/src/index.ts"]
-    }
-  }
+	"extends": "astro/tsconfigs/strict",
+	"include": [".astro/types.d.ts", "**/*"],
+	"exclude": ["dist"],
+	"compilerOptions": {
+		"jsx": "react-jsx",
+		"jsxImportSource": "react",
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"],
+			"@kbve/astro": ["../../../packages/npm/astro/src/index.ts"],
+			"@kbve/astro/components/*": [
+				"../../../packages/npm/astro/src/components/*"
+			],
+			"@kbve/droid": ["../../../packages/npm/droid/src/index.ts"]
+		}
+	}
 }

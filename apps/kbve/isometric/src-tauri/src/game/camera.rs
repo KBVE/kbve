@@ -24,8 +24,10 @@ const DISPLAY_LAYER: usize = 1;
 
 const ZOOM_MIN: f32 = 0.5;
 const ZOOM_MAX: f32 = 2.0;
-const ZOOM_SPEED: f32 = 0.10;
-const ZOOM_SMOOTHING: f32 = 8.0;
+/// Multiplicative zoom factor per scroll tick (e.g. 1.05 = 5% per notch).
+const ZOOM_FACTOR: f32 = 1.05;
+/// Interpolation speed — lower = smoother, more gradual zoom.
+const ZOOM_SMOOTHING: f32 = 4.0;
 
 #[derive(Resource)]
 struct CameraZoom {
@@ -203,9 +205,14 @@ fn camera_follow_player(
 
 fn handle_zoom_input(mut scroll_evr: MessageReader<MouseWheel>, mut zoom: ResMut<CameraZoom>) {
     for ev in scroll_evr.read() {
-        let delta = ev.y;
-        // Scroll up = zoom in (smaller scale), scroll down = zoom out
-        zoom.target = (zoom.target - delta * ZOOM_SPEED).clamp(ZOOM_MIN, ZOOM_MAX);
+        // Multiplicative: each scroll notch scales by a fixed %, feels uniform at all zoom levels.
+        // Scroll up (positive y) = zoom in (smaller ortho scale), scroll down = zoom out.
+        if ev.y > 0.0 {
+            zoom.target /= ZOOM_FACTOR;
+        } else if ev.y < 0.0 {
+            zoom.target *= ZOOM_FACTOR;
+        }
+        zoom.target = zoom.target.clamp(ZOOM_MIN, ZOOM_MAX);
     }
 }
 
