@@ -1400,6 +1400,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_cam"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_camera"
 version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1842,13 +1849,6 @@ dependencies = [
  "bevy",
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "bevy_kbve_camera"
-version = "0.1.0"
-dependencies = [
- "bevy",
 ]
 
 [[package]]
@@ -7015,6 +7015,7 @@ name = "isometric-game"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_cam",
  "bevy_inventory",
  "bevy_rapier3d",
  "console_error_panic_hook",
