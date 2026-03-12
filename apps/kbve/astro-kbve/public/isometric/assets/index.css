@@ -398,6 +398,9 @@
 	.top-2 {
 		top: calc(var(--spacing) * 2);
 	}
+	.top-4 {
+		top: calc(var(--spacing) * 4);
+	}
 	.top-14 {
 		top: calc(var(--spacing) * 14);
 	}
@@ -415,9 +418,6 @@
 	}
 	.bottom-4 {
 		bottom: calc(var(--spacing) * 4);
-	}
-	.left-4 {
-		left: calc(var(--spacing) * 4);
 	}
 	.isolate {
 		isolation: isolate;
@@ -437,11 +437,17 @@
 	.mb-0\.5 {
 		margin-bottom: calc(var(--spacing) * 0.5);
 	}
+	.mb-1 {
+		margin-bottom: calc(var(--spacing) * 1);
+	}
 	.mb-1\.5 {
 		margin-bottom: calc(var(--spacing) * 1.5);
 	}
 	.mb-2 {
 		margin-bottom: calc(var(--spacing) * 2);
+	}
+	.ml-auto {
+		margin-left: auto;
 	}
 	.block {
 		display: block;
@@ -781,6 +787,15 @@
 			var(--tw-ring-offset-shadow), var(--tw-ring-shadow),
 			var(--tw-shadow);
 	}
+	.shadow-\[0_0_0_1px_\#1a1008\,0_2px_6px_rgba\(0\,0\,0\,0\.5\)\] {
+		--tw-shadow:
+			0 0 0 1px var(--tw-shadow-color, #1a1008),
+			0 2px 6px var(--tw-shadow-color, #00000080);
+		box-shadow:
+			var(--tw-inset-shadow), var(--tw-inset-ring-shadow),
+			var(--tw-ring-offset-shadow), var(--tw-ring-shadow),
+			var(--tw-shadow);
+	}
 	.shadow-\[0_0_0_1px_\#1a1008\,0_4px_12px_rgba\(0\,0\,0\,0\.6\)\] {
 		--tw-shadow:
 			0 0 0 1px var(--tw-shadow-color, #1a1008),
@@ -850,6 +865,12 @@
 	.outline {
 		outline-style: var(--tw-outline-style);
 		outline-width: 1px;
+	}
+	.blur {
+		--tw-blur: blur(8px);
+		filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,)
+			var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,)
+			var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
 	}
 	.filter {
 		filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,)
@@ -944,6 +965,9 @@
 		.hover\:border-panel-border:hover {
 			border-color: var(--color-panel-border);
 		}
+		.hover\:bg-\[\#2a1c0c\]:hover {
+			background-color: #2a1c0c;
+		}
 		.hover\:bg-btn-hover:hover {
 			background-color: var(--color-btn-hover);
 		}
@@ -966,6 +990,9 @@
 			color: var(--color-text);
 		}
 	}
+	.active\:bg-\[\#1a1008\]:active {
+		background-color: #1a1008;
+	}
 	.active\:bg-btn-active:active {
 		background-color: var(--color-btn-active);
 	}
@@ -980,6 +1007,9 @@
 		.md\:top-3 {
 			top: calc(var(--spacing) * 3);
 		}
+		.md\:top-6 {
+			top: calc(var(--spacing) * 6);
+		}
 		.md\:right-3 {
 			right: calc(var(--spacing) * 3);
 		}
@@ -988,9 +1018,6 @@
 		}
 		.md\:bottom-6 {
 			bottom: calc(var(--spacing) * 6);
-		}
-		.md\:left-6 {
-			left: calc(var(--spacing) * 6);
 		}
 		.md\:mb-2 {
 			margin-bottom: calc(var(--spacing) * 2);
