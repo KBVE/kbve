@@ -4,9 +4,6 @@ import { fetchServers, CATEGORIES, castVote } from '@/lib/servers';
 import type { ServerCard, SortOption } from '@/lib/servers';
 import { useHCaptcha } from '@/lib/servers/useHCaptcha';
 
-const slVar = (name: string, fallback: string) =>
-	`var(--sl-color-${name}, ${fallback})`;
-
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 	{ value: 'votes', label: 'Top Voted' },
 	{ value: 'members', label: 'Most Members' },
@@ -96,35 +93,13 @@ export function ReactServerGrid() {
 	return (
 		<div>
 			{/* Invisible hCaptcha container */}
-			<div ref={captchaRef} style={{ display: 'none' }} />
+			<div ref={captchaRef} className="hidden" />
+
 			{/* Category filter pills */}
-			<div
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					gap: '0.5rem',
-					overflowX: 'auto',
-					paddingBottom: '0.5rem',
-					marginBottom: '1rem',
-				}}>
+			<div className="flex items-center gap-2 overflow-x-auto pb-2 mb-4">
 				<button
 					onClick={() => setCategory(null)}
-					style={{
-						padding: '0.375rem 0.875rem',
-						borderRadius: '9999px',
-						border: `1px solid ${!category ? slVar('accent', '#8b5cf6') : slVar('gray-5', '#374151')}`,
-						backgroundColor: !category
-							? slVar('accent-low', '#1e1033')
-							: 'transparent',
-						color: !category
-							? slVar('accent', '#8b5cf6')
-							: slVar('gray-3', '#9ca3af'),
-						fontSize: '0.8125rem',
-						fontWeight: 500,
-						cursor: 'pointer',
-						whiteSpace: 'nowrap',
-						transition: 'all 0.15s',
-					}}>
+					className={`sg-pill ${!category ? 'sg-pill-active' : 'sg-pill-inactive'}`}>
 					All
 				</button>
 				{CATEGORIES.map((cat) => (
@@ -133,56 +108,21 @@ export function ReactServerGrid() {
 						onClick={() =>
 							setCategory(category === cat.id ? null : cat.id)
 						}
-						style={{
-							padding: '0.375rem 0.875rem',
-							borderRadius: '9999px',
-							border: `1px solid ${category === cat.id ? slVar('accent', '#8b5cf6') : slVar('gray-5', '#374151')}`,
-							backgroundColor:
-								category === cat.id
-									? slVar('accent-low', '#1e1033')
-									: 'transparent',
-							color:
-								category === cat.id
-									? slVar('accent', '#8b5cf6')
-									: slVar('gray-3', '#9ca3af'),
-							fontSize: '0.8125rem',
-							fontWeight: 500,
-							cursor: 'pointer',
-							whiteSpace: 'nowrap',
-							transition: 'all 0.15s',
-						}}>
+						className={`sg-pill ${category === cat.id ? 'sg-pill-active' : 'sg-pill-inactive'}`}>
 						{cat.label}
 					</button>
 				))}
 			</div>
 
 			{/* Sort bar */}
-			<div
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'space-between',
-					marginBottom: '1rem',
-				}}>
-				<span
-					style={{
-						fontSize: '0.875rem',
-						color: slVar('gray-3', '#9ca3af'),
-					}}>
+			<div className="flex items-center justify-between mb-4">
+				<span className="sg-muted text-sm">
 					{total} server{total !== 1 ? 's' : ''}
 				</span>
 				<select
 					value={sort}
 					onChange={(e) => setSort(e.target.value as SortOption)}
-					style={{
-						padding: '0.375rem 0.75rem',
-						borderRadius: '0.5rem',
-						border: `1px solid ${slVar('gray-5', '#374151')}`,
-						backgroundColor: slVar('gray-7', '#1f2937'),
-						color: slVar('text', '#e5e7eb'),
-						fontSize: '0.8125rem',
-						cursor: 'pointer',
-					}}>
+					className="sg-select">
 					{SORT_OPTIONS.map((opt) => (
 						<option key={opt.value} value={opt.value}>
 							{opt.label}
@@ -192,13 +132,7 @@ export function ReactServerGrid() {
 			</div>
 
 			{/* Server grid */}
-			<div
-				style={{
-					display: 'grid',
-					gridTemplateColumns:
-						'repeat(auto-fill, minmax(min(100%, 22rem), 1fr))',
-					gap: '1rem',
-				}}>
+			<div className="grid gap-4 sg-grid-cols">
 				{servers.map((server) => (
 					<ReactServerCard
 						key={server.server_id}
@@ -210,20 +144,9 @@ export function ReactServerGrid() {
 
 			{/* Empty state */}
 			{!loading && servers.length === 0 && (
-				<div
-					style={{
-						textAlign: 'center',
-						padding: '3rem 1rem',
-						color: slVar('gray-3', '#9ca3af'),
-					}}>
-					<p style={{ fontSize: '1.125rem', margin: 0 }}>
-						No servers found
-					</p>
-					<p
-						style={{
-							fontSize: '0.875rem',
-							marginTop: '0.5rem',
-						}}>
+				<div className="text-center py-12 px-4 sg-muted">
+					<p className="text-lg m-0">No servers found</p>
+					<p className="text-sm mt-2">
 						Try a different category or check back later.
 					</p>
 				</div>
@@ -231,25 +154,8 @@ export function ReactServerGrid() {
 
 			{/* Load more */}
 			{hasMore && !loading && (
-				<div
-					style={{
-						display: 'flex',
-						justifyContent: 'center',
-						marginTop: '1.5rem',
-					}}>
-					<button
-						onClick={handleLoadMore}
-						style={{
-							padding: '0.625rem 1.5rem',
-							borderRadius: '0.5rem',
-							border: `1px solid ${slVar('gray-5', '#374151')}`,
-							backgroundColor: 'transparent',
-							color: slVar('text', '#e5e7eb'),
-							fontSize: '0.875rem',
-							fontWeight: 500,
-							cursor: 'pointer',
-							transition: 'all 0.15s',
-						}}>
+				<div className="flex justify-center mt-6">
+					<button onClick={handleLoadMore} className="sg-load-more">
 						Load More
 					</button>
 				</div>
@@ -257,14 +163,7 @@ export function ReactServerGrid() {
 
 			{/* Loading indicator */}
 			{loading && servers.length > 0 && (
-				<div
-					style={{
-						display: 'flex',
-						justifyContent: 'center',
-						padding: '1.5rem',
-						color: slVar('gray-3', '#9ca3af'),
-						fontSize: '0.875rem',
-					}}>
+				<div className="flex justify-center p-6 sg-muted text-sm">
 					Loading…
 				</div>
 			)}
