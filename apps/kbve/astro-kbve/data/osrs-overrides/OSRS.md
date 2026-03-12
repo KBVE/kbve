@@ -626,6 +626,51 @@ Focus on items with clear processing chains and market flip potential.
 | 19930 | Armadyl d'hide boots | Hard clue, +1 prayer boots |
 | 19921 | Ancient d'hide boots | Hard clue, +1 prayer boots |
 
+### God D'hide Chaps (Implemented - Mar 2026)
+
+| ID    | Item          | Override Focus              |
+| ----- | ------------- | --------------------------- |
+| 10380 | Guthix chaps  | Hard clue, no Def req chaps |
+| 10372 | Zamorak chaps | Hard clue, no Def req chaps |
+| 12502 | Bandos chaps  | Hard clue, no Def req chaps |
+| 12510 | Armadyl chaps | Hard clue, no Def req chaps |
+| 12494 | Ancient chaps | Hard clue, no Def req chaps |
+
+### God D'hide Coifs (Implemented - Mar 2026)
+
+| ID    | Item         | Override Focus            |
+| ----- | ------------ | ------------------------- |
+| 10382 | Guthix coif  | Hard clue, +1 prayer head |
+| 10374 | Zamorak coif | Hard clue, +1 prayer head |
+| 12504 | Bandos coif  | Hard clue, +1 prayer head |
+| 12512 | Armadyl coif | Hard clue, +1 prayer head |
+| 12496 | Ancient coif | Hard clue, +1 prayer head |
+
+### God D'hide Bracers (Implemented - Mar 2026)
+
+| ID    | Item            | Override Focus              |
+| ----- | --------------- | --------------------------- |
+| 10376 | Guthix bracers  | Hard clue, no Def req hands |
+| 10368 | Zamorak bracers | Hard clue, no Def req hands |
+| 12498 | Bandos bracers  | Hard clue, no Def req hands |
+| 12506 | Armadyl bracers | Hard clue, no Def req hands |
+| 12490 | Ancient bracers | Hard clue, no Def req hands |
+
+### Studded/Leather Armour (Implemented - Mar 2026)
+
+| ID   | Item             | Override Focus     |
+| ---- | ---------------- | ------------------ |
+| 1133 | Studded body     | F2P 20 Ranged body |
+| 1097 | Studded chaps    | F2P 20 Ranged legs |
+| 1131 | Hardleather body | F2P 10 Def body    |
+
+### Mage Training Arena Wands (Implemented - Mar 2026)
+
+| ID   | Item          | Override Focus    |
+| ---- | ------------- | ----------------- |
+| 6908 | Beginner wand | MTA entry wand    |
+| 6912 | Teacher wand  | MTA mid-tier wand |
+
 ---
 
 ## Future Override Priorities
@@ -1222,6 +1267,7 @@ Record batch completions here:
 | Mar 11, 2026 | +20 items (jewelry chains, misc weapons)     | ~901            |
 | Mar 12, 2026 | +20 items (dragon bolts e, mystic, trimmed)  | ~921            |
 | Mar 12, 2026 | +20 items (god d'hide sets, rune weapons)    | ~941            |
+| Mar 12, 2026 | +20 items (god chaps/coifs/bracers, misc)    | ~961            |
 
 ### Quick Stats
 
