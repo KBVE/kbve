@@ -486,10 +486,45 @@ Focus on items with clear processing chains and market flip potential.
 
 | ID    | Item              | Override Focus           |
 | ----- | ----------------- | ------------------------ |
+| 1656  | Sapphire necklace | Games necklace base      |
+| 1658  | Emerald necklace  | Binding necklace base    |
 | 1660  | Ruby necklace     | Digsite pendant base     |
 | 1662  | Diamond necklace  | Phoenix necklace base    |
 | 1664  | Dragon necklace   | Skills necklace base     |
+| 6577  | Onyx necklace     | Berserker necklace base  |
+| 19535 | Zenyte necklace   | Necklace of anguish base |
 | 21157 | Necklace of faith | Emergency Prayer restore |
+
+### Amulet Crafting Chain (Implemented - Mar 2026)
+
+| ID    | Item               | Override Focus          |
+| ----- | ------------------ | ----------------------- |
+| 1694  | Sapphire amulet    | Amulet of magic base    |
+| 1696  | Emerald amulet     | Amulet of defence base  |
+| 1698  | Ruby amulet        | Amulet of strength base |
+| 1700  | Diamond amulet     | Amulet of power base    |
+| 1702  | Dragonstone amulet | Amulet of glory base    |
+| 6581  | Onyx amulet        | Amulet of fury base     |
+| 19541 | Zenyte amulet      | Amulet of torture base  |
+
+### Bracelet Crafting Chain (Implemented - Mar 2026)
+
+| ID    | Item                 | Override Focus           |
+| ----- | -------------------- | ------------------------ |
+| 11072 | Sapphire bracelet    | Bracelet of clay base    |
+| 11076 | Emerald bracelet     | Castlewars bracelet base |
+| 11085 | Ruby bracelet        | Inoculation bracelet     |
+| 11092 | Diamond bracelet     | Forinthry bracelet base  |
+| 11115 | Dragonstone bracelet | Combat bracelet base     |
+| 11130 | Onyx bracelet        | Regen bracelet base      |
+
+### Misc Weapons/Armour (Implemented - Mar 2026)
+
+| ID    | Item                      | Override Focus             |
+| ----- | ------------------------- | -------------------------- |
+| 20849 | Dragon thrownaxe          | Dragon thrown weapon, spec |
+| 22231 | Dragon boots ornament kit | Dragon boots cosmetic      |
+| 10822 | Yak-hide armour (top)     | 20 Def Fremennik body      |
 
 ---
 
@@ -1084,6 +1119,7 @@ Record batch completions here:
 | Jan 2026     | Initial ~100 items                           | ~100            |
 | Jan 7, 2026  | +35 items (potions, weapons, raid gear)      | ~135            |
 | Jan 21, 2026 | +42 items (barrows, hilts, potions, utility) | ~881            |
+| Mar 11, 2026 | +20 items (jewelry chains, misc weapons)     | ~901            |
 
 ### Quick Stats
 
