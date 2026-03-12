@@ -438,3 +438,63 @@ jobs:
                   name: test-passed-tauri-${{ inputs.app_name }}-wasm
                   path: test-result.txt
                   retention-days: 1
+
+    # --- Auto-deploy WASM build to astro-kbve and PR to dev ---
+    deploy-wasm:
+        name: Deploy WASM to Astro
+        needs: build-wasm
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+            pull-requests: write
+
+        steps:
+            - name: Checkout dev
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+                  fetch-depth: 1
+
+            - name: Download WASM artifact
+              uses: actions/download-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-wasm
+                  path: wasm-dist
+
+            - name: Copy WASM assets into astro-kbve
+              run: |
+                  DEPLOY_DIR="apps/kbve/astro-kbve/public/${{ inputs.project }}"
+                  rm -rf "$DEPLOY_DIR"
+                  mkdir -p "$DEPLOY_DIR"
+                  cp -r wasm-dist/* "$DEPLOY_DIR/"
+                  rm -rf wasm-dist
+
+            - name: Check for changes
+              id: diff
+              run: |
+                  if git diff --quiet; then
+                    echo "changed=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "changed=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Create deploy branch and PR
+              if: steps.diff.outputs.changed == 'true'
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  BRANCH="deploy/${{ inputs.app_name }}-wasm-$(date +%s)"
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git checkout -b "$BRANCH"
+                  git add -A
+                  git commit -m "deploy(${{ inputs.project }}): update WASM build assets"
+                  git push -u origin "$BRANCH"
+                  gh pr create \
+                    --base dev \
+                    --head "$BRANCH" \
+                    --title "deploy(${{ inputs.project }}): update WASM build" \
+                    --body "Automated deployment of ${{ inputs.app_name }} WASM build assets into astro-kbve.
+
+                  Built from commit ${{ github.sha }} on branch ${{ github.ref_name }}."
