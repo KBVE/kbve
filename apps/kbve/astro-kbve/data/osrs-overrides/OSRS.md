@@ -526,6 +526,61 @@ Focus on items with clear processing chains and market flip potential.
 | 22231 | Dragon boots ornament kit | Dragon boots cosmetic      |
 | 10822 | Yak-hide armour (top)     | 20 Def Fremennik body      |
 
+### Mystic Set Completion (Implemented - Mar 2026)
+
+| ID   | Item          | Override Focus        |
+| ---- | ------------- | --------------------- |
+| 4089 | Mystic hat    | 40 Magic/20 Def head  |
+| 4095 | Mystic gloves | 40 Magic/20 Def hands |
+| 4097 | Mystic boots  | 40 Magic/20 Def feet  |
+
+### Enchanted Robes (Implemented - Mar 2026)
+
+| ID   | Item           | Override Focus             |
+| ---- | -------------- | -------------------------- |
+| 7400 | Enchanted hat  | Treasure trail mystic hat  |
+| 7399 | Enchanted top  | Treasure trail mystic top  |
+| 7398 | Enchanted robe | Treasure trail mystic legs |
+
+### Slayer/Hybrid Boots (Implemented - Mar 2026)
+
+| ID    | Item               | Override Focus             |
+| ----- | ------------------ | -------------------------- |
+| 22951 | Boots of brimstone | Hybrid boot, 44 Slayer req |
+
+### Enchanted Dragon Bolts (Implemented - Mar 2026)
+
+| ID    | Item                         | Override Focus              |
+| ----- | ---------------------------- | --------------------------- |
+| 21932 | Opal dragon bolts (e)        | Lucky Lightning effect      |
+| 21934 | Jade dragon bolts (e)        | Earth's Fury knockdown      |
+| 21936 | Pearl dragon bolts (e)       | Sea Curse, fire enemy bonus |
+| 21938 | Topaz dragon bolts (e)       | Down to Earth, -1 Magic     |
+| 21940 | Sapphire dragon bolts (e)    | Clear Mind, Prayer drain    |
+| 21942 | Emerald dragon bolts (e)     | Magical Poison, 55% proc    |
+| 21948 | Dragonstone dragon bolts (e) | Dragon's Breath dragonfire  |
+| 21950 | Onyx dragon bolts (e)        | Life Leech heal effect      |
+
+### Unenchanted Bolts (Implemented - Mar 2026)
+
+| ID   | Item              | Override Focus          |
+| ---- | ----------------- | ----------------------- |
+| 9340 | Diamond bolts     | Fletching 65, +105 rStr |
+| 9341 | Dragonstone bolts | Fletching 71, +117 rStr |
+
+### Enchanted Rings (Implemented - Mar 2026)
+
+| ID   | Item          | Override Focus         |
+| ---- | ------------- | ---------------------- |
+| 6583 | Ring of stone | Onyx enchant, cosmetic |
+
+### Rune Trimmed (Implemented - Mar 2026)
+
+| ID   | Item               | Override Focus          |
+| ---- | ------------------ | ----------------------- |
+| 2623 | Rune platebody (t) | Hard clue, same as rune |
+| 2619 | Rune full helm (g) | Hard clue, gold-trimmed |
+
 ---
 
 ## Future Override Priorities
@@ -1120,6 +1175,7 @@ Record batch completions here:
 | Jan 7, 2026  | +35 items (potions, weapons, raid gear)      | ~135            |
 | Jan 21, 2026 | +42 items (barrows, hilts, potions, utility) | ~881            |
 | Mar 11, 2026 | +20 items (jewelry chains, misc weapons)     | ~901            |
+| Mar 12, 2026 | +20 items (dragon bolts e, mystic, trimmed)  | ~921            |
 
 ### Quick Stats
 
