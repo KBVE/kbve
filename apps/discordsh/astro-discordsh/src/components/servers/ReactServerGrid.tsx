@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import { ReactServerCard } from './ReactServerCard';
 import { CATEGORIES, castVote } from '@/lib/servers';
@@ -8,8 +8,8 @@ import {
 	$total,
 	$category,
 	$sort,
-	$loading,
 	$hasMore,
+	$loading,
 	loadServers,
 	setCategory,
 	setSort,
@@ -29,7 +29,6 @@ export function ReactServerGrid() {
 	const category = useStore($category);
 	const sort = useStore($sort);
 	const loading = useStore($loading);
-	const hasMore = useStore($hasMore);
 
 	const {
 		containerRef: captchaRef,
@@ -58,9 +57,33 @@ export function ReactServerGrid() {
 		[executeCaptcha, resetCaptcha],
 	);
 
+	const sentinelRef = useRef<HTMLDivElement>(null);
+
 	// Initial load
 	useEffect(() => {
 		loadServers(true);
+	}, []);
+
+	// Infinite scroll — load next page when sentinel enters viewport
+	useEffect(() => {
+		const el = sentinelRef.current;
+		if (!el) return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (
+					entries[0]?.isIntersecting &&
+					$hasMore.get() &&
+					!$loading.get()
+				) {
+					loadMore();
+				}
+			},
+			{ rootMargin: '200px' },
+		);
+
+		observer.observe(el);
+		return () => observer.disconnect();
 	}, []);
 
 	return (
@@ -125,14 +148,8 @@ export function ReactServerGrid() {
 				</div>
 			)}
 
-			{/* Load more */}
-			{hasMore && !loading && (
-				<div className="flex justify-center mt-6">
-					<button onClick={loadMore} className="sg-load-more">
-						Load More
-					</button>
-				</div>
-			)}
+			{/* Infinite scroll sentinel */}
+			<div ref={sentinelRef} className="h-1" />
 
 			{/* Loading indicator */}
 			{loading && servers.length > 0 && (
