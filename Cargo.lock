@@ -7015,6 +7015,7 @@ name = "isometric-game"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_inventory",
  "bevy_rapier3d",
  "console_error_panic_hook",
  "console_log 1.0.0",

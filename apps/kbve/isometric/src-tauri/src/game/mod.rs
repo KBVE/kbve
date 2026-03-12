@@ -24,7 +24,7 @@ use bevy::app::{PluginGroup, PluginGroupBuilder};
 use actions::ActionsPlugin;
 use camera::IsometricCameraPlugin;
 use insects::InsectsPlugin;
-use inventory::InventoryPlugin;
+use inventory::{InventoryPlugin, ItemKind};
 use object_registry::ObjectRegistryPlugin;
 use orb_hud::OrbHudPlugin;
 use pixelate::PixelatePlugin;
@@ -54,7 +54,7 @@ impl PluginGroup for GamePluginGroup {
             .add(SceneObjectsPlugin)
             .add(TreesPlugin)
             .add(WaterPlugin)
-            .add(InventoryPlugin)
+            .add(InventoryPlugin::<ItemKind>::new(16))
             .add(WeatherPlugin)
             .add(InsectsPlugin)
             .add(VirtualJoystickPlugin)
