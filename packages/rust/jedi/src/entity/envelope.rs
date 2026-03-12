@@ -240,7 +240,7 @@ pub fn try_unwrap_flag<T: for<'de> Deserialize<'de>>(
 ///
 /// let data = MyData { val: 123 };
 /// let env = wrap_raw(b"my:key", &data);
-/// assert_eq!(env.key, b"my:key");
+/// assert_eq!(&env.key[..], b"my:key");
 /// assert!(!env.payload.is_empty());
 /// ```
 pub fn wrap_raw<T: Serialize>(key: &[u8], value: &T) -> RawEnvelope {
