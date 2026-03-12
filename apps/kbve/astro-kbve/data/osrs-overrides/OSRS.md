@@ -581,6 +581,51 @@ Focus on items with clear processing chains and market flip potential.
 | 2623 | Rune platebody (t) | Hard clue, same as rune |
 | 2619 | Rune full helm (g) | Hard clue, gold-trimmed |
 
+### F2P Rune Weapons (Implemented - Mar 2026)
+
+| ID   | Item           | Override Focus      |
+| ---- | -------------- | ------------------- |
+| 1303 | Rune longsword | F2P stab, 40 Attack |
+| 1213 | Rune dagger    | F2P stab, 40 Attack |
+| 1185 | Rune sq shield | F2P shield, 40 Def  |
+
+### Granite/Snakeskin (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus       |
+| ----- | ----------------- | -------------------- |
+| 21646 | Granite longsword | 50 Atk/Str slash     |
+| 22272 | Snakeskin shield  | 30 Ranged/Def shield |
+
+### God D'hide Bodies (Implemented - Mar 2026)
+
+| ID    | Item                | Override Focus            |
+| ----- | ------------------- | ------------------------- |
+| 10378 | Guthix d'hide body  | Hard clue, +1 prayer body |
+| 10370 | Zamorak d'hide body | Hard clue, +1 prayer body |
+| 12500 | Bandos d'hide body  | Hard clue, +1 prayer body |
+| 12508 | Armadyl d'hide body | Hard clue, +1 prayer body |
+| 12492 | Ancient d'hide body | Hard clue, +1 prayer body |
+
+### God D'hide Shields (Implemented - Mar 2026)
+
+| ID    | Item                  | Override Focus              |
+| ----- | --------------------- | --------------------------- |
+| 23188 | Guthix d'hide shield  | Hard clue, +1 prayer shield |
+| 23194 | Zamorak d'hide shield | Hard clue, +1 prayer shield |
+| 23203 | Bandos d'hide shield  | Hard clue, +1 prayer shield |
+| 23200 | Armadyl d'hide shield | Hard clue, +1 prayer shield |
+| 23197 | Ancient d'hide shield | Hard clue, +1 prayer shield |
+
+### God D'hide Boots (Implemented - Mar 2026)
+
+| ID    | Item                 | Override Focus             |
+| ----- | -------------------- | -------------------------- |
+| 19927 | Guthix d'hide boots  | Hard clue, +1 prayer boots |
+| 19936 | Zamorak d'hide boots | Hard clue, +1 prayer boots |
+| 19924 | Bandos d'hide boots  | Hard clue, +1 prayer boots |
+| 19930 | Armadyl d'hide boots | Hard clue, +1 prayer boots |
+| 19921 | Ancient d'hide boots | Hard clue, +1 prayer boots |
+
 ---
 
 ## Future Override Priorities
@@ -1176,6 +1221,7 @@ Record batch completions here:
 | Jan 21, 2026 | +42 items (barrows, hilts, potions, utility) | ~881            |
 | Mar 11, 2026 | +20 items (jewelry chains, misc weapons)     | ~901            |
 | Mar 12, 2026 | +20 items (dragon bolts e, mystic, trimmed)  | ~921            |
+| Mar 12, 2026 | +20 items (god d'hide sets, rune weapons)    | ~941            |
 
 ### Quick Stats
 
