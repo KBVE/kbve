@@ -9,9 +9,6 @@ interface Props {
 	onVote?: (serverId: string) => Promise<boolean>;
 }
 
-const slVar = (name: string, fallback: string) =>
-	`var(--sl-color-${name}, ${fallback})`;
-
 export function ReactServerCard({ server, onVote }: Props) {
 	const [voted, setVoted] = useState(false);
 	const [voting, setVoting] = useState(false);
@@ -39,45 +36,16 @@ export function ReactServerCard({ server, onVote }: Props) {
 		.toUpperCase();
 
 	return (
-		<div
-			style={{
-				display: 'flex',
-				alignItems: 'stretch',
-				gap: '1rem',
-				padding: '1rem',
-				borderRadius: '0.75rem',
-				border: `1px solid ${slVar('gray-5', '#374151')}`,
-				backgroundColor: slVar('gray-7', '#1f2937'),
-				transition: 'border-color 0.2s, box-shadow 0.2s',
-			}}
-			className="server-card">
+		<div className="server-card flex items-stretch gap-4 p-4 rounded-xl sc-border sc-bg">
 			{/* Server icon */}
-			<div
-				style={{
-					width: '3.5rem',
-					height: '3.5rem',
-					minWidth: '3.5rem',
-					borderRadius: '50%',
-					backgroundColor: slVar('accent-low', '#1e1033'),
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
-					fontSize: '1.1rem',
-					fontWeight: 700,
-					color: slVar('accent', '#8b5cf6'),
-					overflow: 'hidden',
-				}}>
+			<div className="sc-icon-wrap">
 				{server.icon_url ? (
 					<img
 						src={server.icon_url}
 						alt=""
 						loading="lazy"
 						decoding="async"
-						style={{
-							width: '100%',
-							height: '100%',
-							objectFit: 'cover',
-						}}
+						className="size-full object-cover"
 					/>
 				) : (
 					initials
@@ -85,85 +53,27 @@ export function ReactServerCard({ server, onVote }: Props) {
 			</div>
 
 			{/* Server info */}
-			<div style={{ flex: 1, minWidth: 0 }}>
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: '0.5rem',
-						marginBottom: '0.25rem',
-					}}>
-					<span
-						style={{
-							fontWeight: 600,
-							fontSize: '1rem',
-							color: slVar('text', '#e5e7eb'),
-							whiteSpace: 'nowrap',
-							overflow: 'hidden',
-							textOverflow: 'ellipsis',
-						}}>
-						{server.name}
-					</span>
+			<div className="flex-1 min-w-0">
+				<div className="flex items-center gap-2 mb-1">
+					<span className="sc-name">{server.name}</span>
 					{server.is_online && (
 						<span
-							style={{
-								width: '0.5rem',
-								height: '0.5rem',
-								borderRadius: '50%',
-								backgroundColor: '#22c55e',
-								flexShrink: 0,
-							}}
+							className="size-2 rounded-full bg-green-500 shrink-0"
 							title="Online"
 						/>
 					)}
 				</div>
 
-				<p
-					style={{
-						fontSize: '0.8125rem',
-						color: slVar('gray-3', '#9ca3af'),
-						margin: 0,
-						lineHeight: 1.4,
-						display: '-webkit-box',
-						WebkitLineClamp: 2,
-						WebkitBoxOrient: 'vertical',
-						overflow: 'hidden',
-					}}>
-					{server.summary}
-				</p>
+				<p className="sc-summary">{server.summary}</p>
 
 				{/* Category badges + member count */}
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: '0.375rem',
-						marginTop: '0.5rem',
-						flexWrap: 'wrap',
-					}}>
+				<div className="flex items-center gap-1.5 mt-2 flex-wrap">
 					{categoryBadges.map((cat) => (
-						<span
-							key={cat!.id}
-							style={{
-								fontSize: '0.6875rem',
-								padding: '0.125rem 0.5rem',
-								borderRadius: '9999px',
-								backgroundColor: slVar('accent-low', '#1e1033'),
-								color: slVar('accent-high', '#c4b5fd'),
-								border: `1px solid ${slVar('gray-5', '#374151')}`,
-							}}>
+						<span key={cat!.id} className="sc-badge">
 							{cat!.label}
 						</span>
 					))}
-					<span
-						style={{
-							fontSize: '0.75rem',
-							color: slVar('gray-3', '#9ca3af'),
-							display: 'flex',
-							alignItems: 'center',
-							gap: '0.25rem',
-							marginLeft: 'auto',
-						}}>
+					<span className="sc-members">
 						<Users size={12} />
 						{formatMemberCount(server.member_count)}
 					</span>
@@ -171,15 +81,7 @@ export function ReactServerCard({ server, onVote }: Props) {
 			</div>
 
 			{/* Vote + invite */}
-			<div
-				style={{
-					display: 'flex',
-					flexDirection: 'column',
-					alignItems: 'center',
-					justifyContent: 'center',
-					gap: '0.375rem',
-					minWidth: '3.5rem',
-				}}>
+			<div className="flex flex-col items-center justify-center gap-1.5 min-w-14">
 				<ExpandButton
 					icon={
 						<ArrowBigUp
