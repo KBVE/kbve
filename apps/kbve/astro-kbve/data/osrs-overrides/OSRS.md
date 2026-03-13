@@ -1136,6 +1136,86 @@ Focus on items with clear processing chains and market flip potential.
 | 395 | Raw sea turtle | Trawler minigame, members  |
 | 397 | Sea turtle     | 21 HP, 82 Cooking, members |
 
+### Fishing Misc & Oysters (Implemented - Mar 2026)
+
+| ID  | Item           | Notes                          |
+| --- | -------------- | ------------------------------ |
+| 403 | Edible seaweed | 4 HP heal, soda ash ingredient |
+| 405 | Casket         | Big net fishing loot           |
+| 407 | Oyster         | Big net fishing, pearls inside |
+| 411 | Oyster pearl   | Crafting ingredient            |
+| 413 | Oyster pearls  | Crafting ingredient            |
+
+### Prayer/Religious Gear (Implemented - Mar 2026)
+
+| ID  | Item                 | Notes                   |
+| --- | -------------------- | ----------------------- |
+| 426 | Priest gown (top)    | +3 Prayer, F2P          |
+| 428 | Priest gown (bottom) | +3 Prayer, F2P          |
+| 528 | Burnt bones          | 4.5 Prayer XP           |
+| 530 | Bat bones            | 5.3 Prayer XP, F2P      |
+| 534 | Babydragon bones     | 30 Prayer XP, members   |
+| 538 | Druid's robe         | +4 Prayer legs, members |
+| 540 | Druid's robe top     | +4 Prayer body, members |
+
+### Misc Utility & Quest Items (Implemented - Mar 2026)
+
+| ID  | Item           | Notes                 |
+| --- | -------------- | --------------------- |
+| 464 | Strange fruit  | Cures poison, 30% run |
+| 581 | Black robe     | Cosmetic body, F2P    |
+| 590 | Tinderbox      | Firemaking tool, F2P  |
+| 592 | Ashes          | Fire byproduct, F2P   |
+| 596 | Unlit torch    | Light source, F2P     |
+| 621 | Ship ticket    | Port Sarim to Karamja |
+| 751 | Gnomeball      | Gnomeball minigame    |
+| 753 | Cadava berries | Quest item, F2P       |
+
+### Gnome Clothing Sets (Implemented - Mar 2026)
+
+| ID  | Item                   | Notes              |
+| --- | ---------------------- | ------------------ |
+| 626 | Pink boots             | Gnome set, members |
+| 628 | Green boots            | Gnome set, members |
+| 630 | Blue boots             | Gnome set, members |
+| 632 | Cream boots            | Gnome set, members |
+| 634 | Turquoise boots        | Gnome set, members |
+| 636 | Pink robe top          | Gnome set, members |
+| 638 | Green robe top         | Gnome set, members |
+| 640 | Blue robe top          | Gnome set, members |
+| 642 | Cream robe top         | Gnome set, members |
+| 644 | Turquoise robe top     | Gnome set, members |
+| 646 | Pink robe bottoms      | Gnome set, members |
+| 648 | Green robe bottoms     | Gnome set, members |
+| 650 | Blue robe bottoms      | Gnome set, members |
+| 652 | Cream robe bottoms     | Gnome set, members |
+| 654 | Turquoise robe bottoms | Gnome set, members |
+| 656 | Pink hat               | Gnome set, members |
+| 658 | Green hat              | Gnome set, members |
+| 660 | Blue hat               | Gnome set, members |
+| 662 | Cream hat              | Gnome set, members |
+| 664 | Turquoise hat          | Gnome set, members |
+
+### Thrownaxes (Implemented - Mar 2026)
+
+| ID  | Item              | Notes                     |
+| --- | ----------------- | ------------------------- |
+| 800 | Bronze thrownaxe  | No req, +5 ranged str     |
+| 801 | Iron thrownaxe    | 1 Ranged, +7 ranged str   |
+| 802 | Steel thrownaxe   | 5 Ranged, +11 ranged str  |
+| 803 | Mithril thrownaxe | 20 Ranged, +16 ranged str |
+| 804 | Adamant thrownaxe | 30 Ranged, +23 ranged str |
+| 805 | Rune thrownaxe    | 40 Ranged, +36 ranged str |
+
+### Poisoned Darts (Implemented - Mar 2026)
+
+| ID  | Item             | Notes                   |
+| --- | ---------------- | ----------------------- |
+| 812 | Bronze dart (p)  | No req, basic poison    |
+| 813 | Iron dart (p)    | 1 Ranged, basic poison  |
+| 814 | Steel dart (p)   | 5 Ranged, basic poison  |
+| 815 | Mithril dart (p) | 20 Ranged, basic poison |
+
 ---
 
 ## Future Override Priorities
@@ -1739,6 +1819,7 @@ Record batch completions here:
 | Mar 13, 2026 | +50 items (rune/steel/black trimmed, monk robes, heraldic, misc) | ~1131           |
 | Mar 13, 2026 | +50 items (cannon parts, fletching supplies, potions)            | ~1181           |
 | Mar 13, 2026 | +50 items (potions, herbs, fishing equipment, fish)              | ~1231           |
+| Mar 13, 2026 | +50 items (gnome clothes, thrownaxes, darts, bones, misc)        | ~1281           |
 
 ### Quick Stats
 
