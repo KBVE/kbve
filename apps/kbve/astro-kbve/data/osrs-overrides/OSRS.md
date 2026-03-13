@@ -1061,6 +1061,81 @@ Focus on items with clear processing chains and market flip potential.
 | 163 | Super defence(3)  | 66 Herblore  |
 | 165 | Super defence(2)  | Dose variant |
 
+### Potions — Ranging/Antipoison/Zamorak (Implemented - Mar 2026)
+
+| ID  | Item               | Notes                       |
+| --- | ------------------ | --------------------------- |
+| 167 | Super defence(1)   | Dose variant                |
+| 169 | Ranging potion(3)  | 72 Herblore                 |
+| 171 | Ranging potion(2)  | Dose variant                |
+| 173 | Ranging potion(1)  | Dose variant                |
+| 175 | Antipoison(3)      | 5 Herblore, F2P purchasable |
+| 177 | Antipoison(2)      | Dose variant                |
+| 179 | Antipoison(1)      | Dose variant                |
+| 181 | Superantipoison(3) | 48 Herblore                 |
+| 183 | Superantipoison(2) | Dose variant                |
+| 185 | Superantipoison(1) | Dose variant                |
+| 189 | Zamorak brew(3)    | 78 Herblore                 |
+| 191 | Zamorak brew(2)    | Dose variant                |
+| 193 | Zamorak brew(1)    | Dose variant                |
+
+### Quest/Utility Items (Implemented - Mar 2026)
+
+| ID  | Item              | Notes                      |
+| --- | ----------------- | -------------------------- |
+| 197 | Poison chalice    | Random effect drink        |
+| 233 | Pestle and mortar | Essential Herblore tool    |
+| 272 | Fish food         | Ernest the Chicken quest   |
+| 273 | Poison            | Ernest the Chicken quest   |
+| 288 | Goblin mail       | Goblin Diplomacy quest     |
+| 299 | Mithril seeds     | PvP utility, Legends Guild |
+
+### Grimy/Clean Herbs (Implemented - Mar 2026)
+
+| ID  | Item             | Notes                  |
+| --- | ---------------- | ---------------------- |
+| 199 | Grimy guam leaf  | 3 Herblore to clean    |
+| 201 | Grimy marrentill | 5 Herblore to clean    |
+| 203 | Grimy tarromin   | 11 Herblore to clean   |
+| 249 | Guam leaf        | Lowest-tier clean herb |
+| 251 | Marrentill       | Antipoison herb        |
+| 253 | Tarromin         | Strength potion herb   |
+| 255 | Harralander      | Restore/energy herb    |
+
+### Fishing Equipment (Implemented - Mar 2026)
+
+| ID  | Item              | Notes                      |
+| --- | ----------------- | -------------------------- |
+| 301 | Lobster pot       | 40 Fishing for lobsters    |
+| 303 | Small fishing net | Shrimps/anchovies, F2P     |
+| 305 | Big fishing net   | Sea fish, members          |
+| 307 | Fishing rod       | Sardine/herring, F2P       |
+| 309 | Fly fishing rod   | Trout/salmon, F2P          |
+| 311 | Harpoon           | Tuna/swordfish/shark, F2P  |
+| 313 | Fishing bait      | Used with fishing rod, F2P |
+
+### Fish — Raw & Cooked (Implemented - Mar 2026)
+
+| ID  | Item           | Notes                      |
+| --- | -------------- | -------------------------- |
+| 315 | Shrimps        | 3 HP, 1 Cooking, F2P       |
+| 319 | Anchovies      | 1 HP, 1 Cooking, F2P       |
+| 321 | Raw anchovies  | 15 Fishing, F2P            |
+| 325 | Sardine        | 4 HP, 1 Cooking, F2P       |
+| 327 | Raw sardine    | 5 Fishing, F2P             |
+| 339 | Cod            | 7 HP, 18 Cooking, members  |
+| 341 | Raw cod        | Big net catch, members     |
+| 345 | Raw herring    | 10 Fishing, F2P            |
+| 347 | Herring        | 5 HP, 5 Cooking, F2P       |
+| 349 | Raw pike       | 25 Fishing, F2P            |
+| 351 | Pike           | 8 HP, 20 Cooking, F2P      |
+| 353 | Raw mackerel   | 16 Fishing, members        |
+| 355 | Mackerel       | 6 HP, 10 Cooking, members  |
+| 363 | Raw bass       | 46 Fishing, members        |
+| 365 | Bass           | 13 HP, 43 Cooking, members |
+| 395 | Raw sea turtle | Trawler minigame, members  |
+| 397 | Sea turtle     | 21 HP, 82 Cooking, members |
+
 ---
 
 ## Future Override Priorities
@@ -1663,6 +1738,7 @@ Record batch completions here:
 | Mar 13, 2026 | +50 items (god vestments, wizard robes, black/adamant trimmed)   | ~1081           |
 | Mar 13, 2026 | +50 items (rune/steel/black trimmed, monk robes, heraldic, misc) | ~1131           |
 | Mar 13, 2026 | +50 items (cannon parts, fletching supplies, potions)            | ~1181           |
+| Mar 13, 2026 | +50 items (potions, herbs, fishing equipment, fish)              | ~1231           |
 
 ### Quick Stats
 
