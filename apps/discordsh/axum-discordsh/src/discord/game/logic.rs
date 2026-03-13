@@ -903,6 +903,11 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
     let alive_ids = session.alive_player_ids();
     let alive_count = alive_ids.len().max(1) as i32;
 
+    // Loot fairness: max 1 Rare+ drop per encounter (across all enemy kills).
+    // Per-kill: if the item roll already produced a Rare+ drop, skip the gear roll.
+    let max_rare_drops: u32 = 1;
+    let mut rare_drops_this_encounter: u32 = 0;
+
     for (i, (enemy_name, _loot_table, enemy_level)) in dead_enemies.iter().enumerate() {
         let gold = rng.random_range(5..=15);
         let gold_per_player = (gold as f32 / alive_count as f32).ceil() as i32;
@@ -946,24 +951,62 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
         // Roll item loot drop
         if i < dead_loot_tables.len() {
             let loot_id = dead_loot_tables[i];
-            logs.extend(roll_and_add_loot(
-                loot_id,
-                &mut session.player_mut(loot_recipient).inventory,
-            ));
+            let mut item_was_rare = false;
 
-            // Roll gear loot
-            if let Some(gear_id) = content::roll_gear_loot(loot_id) {
-                if add_item_to_inventory(&mut session.player_mut(loot_recipient).inventory, gear_id)
-                {
-                    if let Some(gear) = content::find_gear(gear_id) {
-                        if alive_ids.len() > 1 {
-                            logs.push(format!("{} received gear: {}!", recipient_name, gear.name));
+            if let Some(item_id) = content::roll_loot(loot_id) {
+                let is_rare = content::is_rare_or_above(item_id);
+
+                // Suppress Rare+ items if encounter cap already hit
+                if is_rare && rare_drops_this_encounter >= max_rare_drops {
+                    // Rare item suppressed — don't add to inventory
+                } else {
+                    if let Some(def) = content::find_item(item_id) {
+                        if add_item_to_inventory(
+                            &mut session.player_mut(loot_recipient).inventory,
+                            item_id,
+                        ) {
+                            logs.push(format!("Dropped: {}!", def.name));
                         } else {
-                            logs.push(format!("Dropped gear: {}!", gear.name));
+                            logs.push(format!("Inventory full! Dropped: {}", def.name));
                         }
                     }
-                } else if let Some(gear) = content::find_gear(gear_id) {
-                    logs.push(format!("Inventory full! Lost gear: {}", gear.name));
+                    if is_rare {
+                        item_was_rare = true;
+                        rare_drops_this_encounter += 1;
+                    }
+                }
+            }
+
+            // Roll gear loot — suppressed if this kill already dropped a Rare+ item,
+            // or if the encounter has already hit the rare drop cap.
+            if !item_was_rare && rare_drops_this_encounter < max_rare_drops {
+                if let Some(gear_id) = content::roll_gear_loot(loot_id) {
+                    let gear_is_rare = content::is_rare_or_above(gear_id);
+
+                    if gear_is_rare && rare_drops_this_encounter >= max_rare_drops {
+                        // Rare gear suppressed
+                    } else {
+                        if add_item_to_inventory(
+                            &mut session.player_mut(loot_recipient).inventory,
+                            gear_id,
+                        ) {
+                            if let Some(gear) = content::find_gear(gear_id) {
+                                if alive_ids.len() > 1 {
+                                    logs.push(format!(
+                                        "{} received gear: {}!",
+                                        recipient_name, gear.name
+                                    ));
+                                } else {
+                                    logs.push(format!("Dropped gear: {}!", gear.name));
+                                }
+                            }
+                        } else if let Some(gear) = content::find_gear(gear_id) {
+                            logs.push(format!("Inventory full! Lost gear: {}", gear.name));
+                        }
+                        if gear_is_rare {
+                            rare_drops_this_encounter += 1;
+                        }
+                    }
                 }
             }
         }
@@ -2549,7 +2592,12 @@ fn apply_rest_choice(
 
 // ── Loot helpers ────────────────────────────────────────────────────
 
-fn roll_and_add_loot(loot_table_id: &str, inventory: &mut Vec<ItemStack>) -> Vec<String> {
+/// Roll an item drop and add it to inventory. Returns (logs, dropped_item_id).
+#[cfg(test)]
+fn roll_and_add_loot(
+    loot_table_id: &str,
+    inventory: &mut Vec<ItemStack>,
+) -> (Vec<String>, Option<&'static str>) {
     let mut logs = Vec::new();
     if let Some(item_id) = content::roll_loot(loot_table_id) {
         if let Some(def) = content::find_item(item_id) {
@@ -2559,8 +2607,9 @@ fn roll_and_add_loot(loot_table_id: &str, inventory: &mut Vec<ItemStack>) -> Vec
                 logs.push(format!("Inventory full! Dropped: {}", def.name));
             }
         }
+        return (logs, Some(item_id));
     }
-    logs
+    (logs, None)
 }
 
 fn add_item_to_inventory(inventory: &mut Vec<ItemStack>, item_id: &str) -> bool {
@@ -7516,6 +7565,224 @@ mod tests {
                 .unwrap()
                 .qty,
             4
+        );
+    }
+
+    // ── Loot balance tests ──────────────────────────────────────────
+
+    #[test]
+    fn roll_and_add_loot_returns_dropped_item_id() {
+        // Run multiple times to cover the random drop path
+        let mut got_some = false;
+        let mut got_none = false;
+        for _ in 0..200 {
+            let mut inv = Vec::new();
+            let (_, dropped) = roll_and_add_loot("boss", &mut inv);
+            if dropped.is_some() {
+                got_some = true;
+            } else {
+                got_none = true;
+            }
+            if got_some && got_none {
+                break;
+            }
+        }
+        // Boss table has 100% drop chance, so we should always get some
+        assert!(got_some, "boss loot table (100% drop) should drop items");
+    }
+
+    #[test]
+    fn roll_and_add_loot_adds_item_to_inventory() {
+        // Boss table has 100% drop, so item always lands
+        let mut inv = Vec::new();
+        let (logs, dropped) = roll_and_add_loot("boss", &mut inv);
+        assert!(dropped.is_some());
+        assert!(!logs.is_empty());
+        assert!(inv.iter().any(|s| s.qty > 0), "item should be in inventory");
+    }
+
+    #[test]
+    fn handle_enemy_deaths_max_one_rare_per_encounter() {
+        // Kill 3 boss-tier enemies in one encounter. Even though each
+        // has 100% item drop and 50% gear drop, we should see at most
+        // 1 Rare+ drop across the entire encounter.
+        let mut rare_violations = 0;
+        let trials = 100;
+
+        for _ in 0..trials {
+            let mut session = test_session();
+            session.mode = SessionMode::Solo;
+            session.phase = GamePhase::Combat;
+            session.room.room_type = RoomType::Combat;
+
+            // Spawn 3 boss enemies that will all die
+            session.enemies = (0..3)
+                .map(|idx| EnemyState {
+                    name: format!("Boss {}", idx),
+                    level: 5,
+                    hp: 0, // already dead
+                    max_hp: 100,
+                    armor: 0,
+                    effects: Vec::new(),
+                    intent: Intent::Attack { dmg: 10 },
+                    charged: false,
+                    loot_table_id: "boss",
+                    enraged: false,
+                    index: idx as u8,
+                    first_strike: false,
+                })
+                .collect();
+
+            // Clear inventory to avoid full-inventory noise
+            session.player_mut(OWNER).inventory.clear();
+
+            let _logs = handle_enemy_deaths(&mut session, OWNER);
+
+            // Count Rare+ items in inventory
+            let rare_count: usize = session
+                .player(OWNER)
+                .inventory
+                .iter()
+                .filter(|s| s.qty > 0 && content::is_rare_or_above(&s.item_id))
+                .map(|s| s.qty as usize)
+                .sum();
+
+            if rare_count > 1 {
+                rare_violations += 1;
+            }
+        }
+
+        assert_eq!(
+            rare_violations, 0,
+            "should never get >1 Rare+ drop per encounter ({} violations in {} trials)",
+            rare_violations, trials
+        );
+    }
+
+    #[test]
+    fn handle_enemy_deaths_still_drops_common_items() {
+        // Boss table has 100% drop chance. Even with the rare cap,
+        // common/uncommon items should still drop from subsequent kills.
+        let mut any_drop = false;
+        for _ in 0..50 {
+            let mut session = test_session();
+            session.mode = SessionMode::Solo;
+            session.phase = GamePhase::Combat;
+            session.room.room_type = RoomType::Combat;
+
+            session.enemies = (0..3)
+                .map(|idx| EnemyState {
+                    name: format!("Boss {}", idx),
+                    level: 5,
+                    hp: 0,
+                    max_hp: 100,
+                    armor: 0,
+                    effects: Vec::new(),
+                    intent: Intent::Attack { dmg: 10 },
+                    charged: false,
+                    loot_table_id: "boss",
+                    enraged: false,
+                    index: idx as u8,
+                    first_strike: false,
+                })
+                .collect();
+
+            session.player_mut(OWNER).inventory.clear();
+            let _logs = handle_enemy_deaths(&mut session, OWNER);
+
+            let total_items: u16 = session.player(OWNER).inventory.iter().map(|s| s.qty).sum();
+            if total_items > 0 {
+                any_drop = true;
+                break;
+            }
+        }
+        assert!(
+            any_drop,
+            "should still get item drops (common/uncommon) from encounters"
+        );
+    }
+
+    #[test]
+    fn handle_enemy_deaths_single_enemy_can_get_rare() {
+        // A single enemy kill should still be able to produce 1 Rare+ drop
+        let mut got_rare = false;
+        for _ in 0..200 {
+            let mut session = test_session();
+            session.mode = SessionMode::Solo;
+            session.phase = GamePhase::Combat;
+            session.room.room_type = RoomType::Combat;
+
+            session.enemies = vec![EnemyState {
+                name: "Boss".to_owned(),
+                level: 5,
+                hp: 0,
+                max_hp: 100,
+                armor: 0,
+                effects: Vec::new(),
+                intent: Intent::Attack { dmg: 10 },
+                charged: false,
+                loot_table_id: "boss",
+                enraged: false,
+                index: 0,
+                first_strike: false,
+            }];
+
+            session.player_mut(OWNER).inventory.clear();
+            let _logs = handle_enemy_deaths(&mut session, OWNER);
+
+            let has_rare = session
+                .player(OWNER)
+                .inventory
+                .iter()
+                .any(|s| s.qty > 0 && content::is_rare_or_above(&s.item_id));
+            if has_rare {
+                got_rare = true;
+                break;
+            }
+        }
+        assert!(
+            got_rare,
+            "single boss kill should be able to produce a Rare+ drop"
+        );
+    }
+
+    #[test]
+    fn handle_enemy_deaths_gold_and_xp_still_distributed() {
+        let mut session = test_session();
+        session.mode = SessionMode::Solo;
+        session.phase = GamePhase::Combat;
+
+        let gold_before = session.player(OWNER).gold;
+        let xp_before = session.player(OWNER).xp;
+
+        session.enemies = vec![EnemyState {
+            name: "Slime".to_owned(),
+            level: 1,
+            hp: 0,
+            max_hp: 20,
+            armor: 0,
+            effects: Vec::new(),
+            intent: Intent::Attack { dmg: 5 },
+            charged: false,
+            loot_table_id: "slime",
+            enraged: false,
+            index: 0,
+            first_strike: false,
+        }];
+
+        let logs = handle_enemy_deaths(&mut session, OWNER);
+
+        assert!(
+            session.player(OWNER).gold > gold_before,
+            "should receive gold from kill"
+        );
+        assert!(
+            session.player(OWNER).xp > xp_before,
+            "should receive XP from kill"
+        );
+        assert!(
+            logs.iter().any(|l| l.contains("defeated")),
+            "should log defeat message"
         );
     }
 }

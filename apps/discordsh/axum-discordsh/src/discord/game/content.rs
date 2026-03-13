@@ -491,6 +491,17 @@ pub fn find_gear(id: &str) -> Option<&'static GearDef> {
     gear_registry().iter().find(|g| g.id == id)
 }
 
+/// Check whether an item or gear ID has rarity >= Rare.
+pub fn is_rare_or_above(id: &str) -> bool {
+    if let Some(item) = find_item(id) {
+        return item.rarity >= ItemRarity::Rare;
+    }
+    if let Some(gear) = find_gear(id) {
+        return gear.rarity >= ItemRarity::Rare;
+    }
+    false
+}
+
 // ── Loot tables ────────────────────────────────────────────────────
 
 struct LootEntry {
@@ -2696,5 +2707,43 @@ mod tests {
         assert!(rare >= 2, "should have at least 2 Rare gear");
         assert!(epic >= 1, "should have at least 1 Epic gear");
         assert!(legendary >= 3, "should have at least 3 Legendary gear");
+    }
+
+    // ── is_rare_or_above tests ──────────────────────────────────────
+
+    #[test]
+    fn is_rare_or_above_common_items() {
+        assert!(!is_rare_or_above("potion"), "potion is Common");
+        assert!(!is_rare_or_above("rations"), "rations is Common");
+        assert!(!is_rare_or_above("bandage"), "bandage is Common");
+    }
+
+    #[test]
+    fn is_rare_or_above_uncommon_items() {
+        assert!(!is_rare_or_above("bomb"), "bomb is Uncommon");
+    }
+
+    #[test]
+    fn is_rare_or_above_rare_items() {
+        assert!(is_rare_or_above("ward"), "ward is Rare");
+        assert!(is_rare_or_above("smoke_bomb"), "smoke_bomb is Rare");
+    }
+
+    #[test]
+    fn is_rare_or_above_legendary_items() {
+        assert!(is_rare_or_above("elixir"), "elixir is Legendary");
+    }
+
+    #[test]
+    fn is_rare_or_above_gear() {
+        assert!(!is_rare_or_above("rusty_sword"), "rusty_sword is Common");
+        assert!(is_rare_or_above("flame_axe"), "flame_axe is Rare");
+        assert!(is_rare_or_above("vampiric_blade"), "vampiric_blade is Epic");
+        assert!(is_rare_or_above("excalibur"), "excalibur is Legendary");
+    }
+
+    #[test]
+    fn is_rare_or_above_unknown_id() {
+        assert!(!is_rare_or_above("nonexistent_item"));
     }
 }
