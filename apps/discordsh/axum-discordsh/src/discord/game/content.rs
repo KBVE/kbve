@@ -284,6 +284,73 @@ pub fn item_registry() -> &'static [ItemDef] {
                 turns: 2,
             }),
         },
+        ItemDef {
+            id: "campfire_kit",
+            name: "Campfire Kit",
+            emoji: "\u{1F525}",
+            description: "Set camp and rest. Heals 50% HP, clears debuffs (party-wide)",
+            max_stack: 1,
+            rarity: ItemRarity::Rare,
+            use_effect: Some(UseEffect::CampfireRest { heal_percent: 50 }),
+        },
+        ItemDef {
+            id: "teleport_rune",
+            name: "Teleport Rune",
+            emoji: "\u{1F300}",
+            description: "Teleports the party back to the nearest city",
+            max_stack: 1,
+            rarity: ItemRarity::Rare,
+            use_effect: Some(UseEffect::TeleportCity),
+        },
+        ItemDef {
+            id: "vitality_potion",
+            name: "Vitality Potion",
+            emoji: "\u{1F48A}",
+            description: "Restores 25 HP",
+            max_stack: 3,
+            rarity: ItemRarity::Uncommon,
+            use_effect: Some(UseEffect::Heal { amount: 25 }),
+        },
+        ItemDef {
+            id: "fire_flask",
+            name: "Fire Flask",
+            emoji: "\u{1F525}",
+            description: "Deals 8 damage and burns the enemy for 3 turns",
+            max_stack: 3,
+            rarity: ItemRarity::Uncommon,
+            use_effect: Some(UseEffect::DamageAndApply {
+                damage: 8,
+                kind: EffectKind::Burning,
+                stacks: 2,
+                turns: 3,
+            }),
+        },
+        ItemDef {
+            id: "iron_skin_potion",
+            name: "Iron Skin Potion",
+            emoji: "\u{1F6E1}",
+            description: "Grants Shielded for 3 turns",
+            max_stack: 2,
+            rarity: ItemRarity::Uncommon,
+            use_effect: Some(UseEffect::ApplyEffect {
+                kind: EffectKind::Shielded,
+                stacks: 1,
+                turns: 3,
+            }),
+        },
+        ItemDef {
+            id: "rage_draught",
+            name: "Rage Draught",
+            emoji: "\u{1F9EA}",
+            description: "Sharpens weapon for 4 turns (+6 dmg)",
+            max_stack: 2,
+            rarity: ItemRarity::Rare,
+            use_effect: Some(UseEffect::ApplyEffect {
+                kind: EffectKind::Sharpened,
+                stacks: 2,
+                turns: 4,
+            }),
+        },
     ];
     ITEMS
 }
@@ -528,6 +595,10 @@ fn loot_tables() -> &'static [LootTable] {
                     item_id: "rations",
                     weight: 3,
                 },
+                LootEntry {
+                    item_id: "vitality_potion",
+                    weight: 1,
+                },
             ],
             drop_chance: 0.3,
         },
@@ -542,6 +613,14 @@ fn loot_tables() -> &'static [LootTable] {
                     item_id: "bomb",
                     weight: 2,
                 },
+                LootEntry {
+                    item_id: "fire_flask",
+                    weight: 2,
+                },
+                LootEntry {
+                    item_id: "iron_skin_potion",
+                    weight: 1,
+                },
             ],
             drop_chance: 0.4,
         },
@@ -555,6 +634,14 @@ fn loot_tables() -> &'static [LootTable] {
                 LootEntry {
                     item_id: "bomb",
                     weight: 3,
+                },
+                LootEntry {
+                    item_id: "campfire_kit",
+                    weight: 1,
+                },
+                LootEntry {
+                    item_id: "rage_draught",
+                    weight: 1,
                 },
             ],
             drop_chance: 0.5,
@@ -573,6 +660,18 @@ fn loot_tables() -> &'static [LootTable] {
                 LootEntry {
                     item_id: "bomb",
                     weight: 2,
+                },
+                LootEntry {
+                    item_id: "teleport_rune",
+                    weight: 1,
+                },
+                LootEntry {
+                    item_id: "campfire_kit",
+                    weight: 1,
+                },
+                LootEntry {
+                    item_id: "fire_flask",
+                    weight: 1,
                 },
             ],
             drop_chance: 1.0,
@@ -2036,8 +2135,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn item_registry_has_10_items() {
-        assert_eq!(item_registry().len(), 10);
+    fn item_registry_has_16_items() {
+        assert_eq!(item_registry().len(), 16);
     }
 
     #[test]
