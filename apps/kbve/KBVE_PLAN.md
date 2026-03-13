@@ -888,7 +888,7 @@ Source: `~/Documents/GitHub/kbve.com/Dockerfile` (7-stage)
 | Stage | Base           | Purpose                                                                                         |
 | ----- | -------------- | ----------------------------------------------------------------------------------------------- |
 | A     | node:24-alpine | Astro build with pnpm, `NODE_OPTIONS="--max-old-space-size=8192"`, precompress assets (gzip -9) |
-| B     | rust:1.90-slim | Rust base image                                                                                 |
+| B     | rust:1.94-slim | Rust base image                                                                                 |
 | C     | (B)            | cargo-chef planner (analyze deps)                                                               |
 | D     | (B)            | cargo-chef cook (cache deps)                                                                    |
 | E     | (D)            | Build Axum binary, copy Astro output → `templates/dist`, Askama templates → `templates/askama`  |
