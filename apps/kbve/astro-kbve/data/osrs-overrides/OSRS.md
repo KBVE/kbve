@@ -976,6 +976,91 @@ Focus on items with clear processing chains and market flip potential.
 | 12447 | Black skirt (t)     | Easy clue, wizard skirt  |
 | 10364 | Strength amulet (t) | Medium clue, +10 Str     |
 
+### Dwarf Multicannon Parts (Implemented - Mar 2026)
+
+| ID  | Item           | Notes                         |
+| --- | -------------- | ----------------------------- |
+| 6   | Cannon base    | First cannon component        |
+| 8   | Cannon stand   | Second cannon component       |
+| 10  | Cannon barrels | Third cannon component        |
+| 12  | Cannon furnace | Fourth/final cannon component |
+
+### Quest/Utility Items (Implemented - Mar 2026)
+
+| ID  | Item             | Notes                           |
+| --- | ---------------- | ------------------------------- |
+| 28  | Insect repellent | Merlin's Crystal, Troll Romance |
+| 30  | Bucket of wax    | Made from beehives              |
+| 36  | Candle           | Light source, quest item        |
+
+### Arrowtips (Implemented - Mar 2026)
+
+| ID  | Item              | Notes                   |
+| --- | ----------------- | ----------------------- |
+| 39  | Bronze arrowtips  | 5 Smithing, 1 Fletching |
+| 40  | Iron arrowtips    | 20 Smithing, 15 Fletch  |
+| 41  | Steel arrowtips   | 35 Smithing, 30 Fletch  |
+| 42  | Mithril arrowtips | 55 Smithing, 45 Fletch  |
+| 43  | Adamant arrowtips | 75 Smithing, 60 Fletch  |
+| 44  | Rune arrowtips    | 90 Smithing, 75 Fletch  |
+
+### Bolt Tips (Implemented - Mar 2026)
+
+| ID  | Item            | Notes                    |
+| --- | --------------- | ------------------------ |
+| 45  | Opal bolt tips  | 11 Fletching             |
+| 46  | Pearl bolt tips | 41 Fletching             |
+| 47  | Barb bolttips   | Ranging Guild, 51 Fletch |
+
+### Unstrung Bows (Implemented - Mar 2026)
+
+| ID  | Item                | Notes        |
+| --- | ------------------- | ------------ |
+| 48  | Longbow (u)         | 10 Fletching |
+| 50  | Shortbow (u)        | 5 Fletching  |
+| 54  | Oak shortbow (u)    | 20 Fletching |
+| 56  | Oak longbow (u)     | 25 Fletching |
+| 58  | Willow longbow (u)  | 40 Fletching |
+| 60  | Willow shortbow (u) | 35 Fletching |
+| 62  | Maple longbow (u)   | 55 Fletching |
+| 64  | Maple shortbow (u)  | 50 Fletching |
+| 68  | Yew shortbow (u)    | 65 Fletching |
+| 70  | Magic longbow (u)   | 85 Fletching |
+| 72  | Magic shortbow (u)  | 80 Fletching |
+
+### Potions — Standard Combat (Implemented - Mar 2026)
+
+| ID  | Item               | Notes                |
+| --- | ------------------ | -------------------- |
+| 115 | Strength potion(3) | 12 Herblore, F2P     |
+| 117 | Strength potion(2) | Dose variant         |
+| 119 | Strength potion(1) | Dose variant         |
+| 121 | Attack potion(3)   | 3 Herblore, members  |
+| 123 | Attack potion(2)   | Dose variant         |
+| 125 | Attack potion(1)   | Dose variant         |
+| 127 | Restore potion(3)  | 22 Herblore, members |
+| 129 | Restore potion(2)  | Dose variant         |
+| 131 | Restore potion(1)  | Dose variant         |
+| 133 | Defence potion(3)  | 30 Herblore, members |
+| 135 | Defence potion(2)  | Dose variant         |
+| 137 | Defence potion(1)  | Dose variant         |
+
+### Potions — Super Combat (Implemented - Mar 2026)
+
+| ID  | Item              | Notes        |
+| --- | ----------------- | ------------ |
+| 145 | Super attack(3)   | 45 Herblore  |
+| 147 | Super attack(2)   | Dose variant |
+| 149 | Super attack(1)   | Dose variant |
+| 151 | Fishing potion(3) | 50 Herblore  |
+| 153 | Fishing potion(2) | Dose variant |
+| 155 | Fishing potion(1) | Dose variant |
+| 157 | Super strength(3) | 55 Herblore  |
+| 159 | Super strength(2) | Dose variant |
+| 161 | Super strength(1) | Dose variant |
+| 163 | Super defence(3)  | 66 Herblore  |
+| 165 | Super defence(2)  | Dose variant |
+
 ---
 
 ## Future Override Priorities
@@ -1577,6 +1662,7 @@ Record batch completions here:
 | Mar 13, 2026 | +50 items (elegant sets, HAM, robes, vestments, amulets)         | ~1031           |
 | Mar 13, 2026 | +50 items (god vestments, wizard robes, black/adamant trimmed)   | ~1081           |
 | Mar 13, 2026 | +50 items (rune/steel/black trimmed, monk robes, heraldic, misc) | ~1131           |
+| Mar 13, 2026 | +50 items (cannon parts, fletching supplies, potions)            | ~1181           |
 
 ### Quick Stats
 
