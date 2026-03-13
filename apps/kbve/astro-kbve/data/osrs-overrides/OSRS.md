@@ -1136,6 +1136,79 @@ Focus on items with clear processing chains and market flip potential.
 | 395 | Raw sea turtle | Trawler minigame, members  |
 | 397 | Sea turtle     | 21 HP, 82 Cooking, members |
 
+### Dart Tips (Implemented - Mar 2026)
+
+| ID  | Item             | Notes                     |
+| --- | ---------------- | ------------------------- |
+| 819 | Bronze dart tip  | 4 Smithing, 1 Fletching   |
+| 820 | Iron dart tip    | 19 Smithing, 22 Fletching |
+| 821 | Steel dart tip   | 34 Smithing, 37 Fletching |
+| 822 | Mithril dart tip | 54 Smithing, 52 Fletching |
+| 823 | Adamant dart tip | 74 Smithing, 67 Fletching |
+| 824 | Rune dart tip    | 89 Smithing, 81 Fletching |
+
+### Javelins & Poisoned Javelins (Implemented - Mar 2026)
+
+| ID  | Item                | Notes                     |
+| --- | ------------------- | ------------------------- |
+| 825 | Bronze javelin      | No req, +25 ranged str    |
+| 826 | Iron javelin        | 1 Ranged, +32 ranged str  |
+| 827 | Steel javelin       | 5 Ranged, +40 ranged str  |
+| 828 | Mithril javelin     | 20 Ranged, +49 ranged str |
+| 829 | Adamant javelin     | 30 Ranged, +59 ranged str |
+| 831 | Bronze javelin (p)  | Poisoned, no req          |
+| 832 | Iron javelin (p)    | Poisoned, 1 Ranged        |
+| 833 | Steel javelin (p)   | Poisoned, 5 Ranged        |
+| 834 | Mithril javelin (p) | Poisoned, 20 Ranged       |
+| 835 | Adamant javelin (p) | Poisoned, 30 Ranged       |
+| 836 | Rune javelin (p)    | Poisoned, 40 Ranged       |
+
+### Poisoned Knives (Implemented - Mar 2026)
+
+| ID  | Item              | Notes                    |
+| --- | ----------------- | ------------------------ |
+| 869 | Black knife       | 10 Ranged, +8 ranged str |
+| 870 | Bronze knife (p)  | No req, basic poison     |
+| 871 | Iron knife (p)    | 1 Ranged, basic poison   |
+| 872 | Steel knife (p)   | 5 Ranged, basic poison   |
+| 873 | Mithril knife (p) | 20 Ranged, basic poison  |
+| 874 | Black knife (p)   | 10 Ranged, basic poison  |
+| 875 | Adamant knife (p) | 30 Ranged, basic poison  |
+| 876 | Rune knife (p)    | 40 Ranged, basic poison  |
+
+### Bolts & Poisoned Arrows (Implemented - Mar 2026)
+
+| ID  | Item              | Notes                       |
+| --- | ----------------- | --------------------------- |
+| 837 | Crossbow          | 1 Ranged, +6 ranged, F2P    |
+| 878 | Bronze bolts (p)  | Poisoned, +10 ranged str    |
+| 879 | Opal bolts        | +14 ranged str, enchantable |
+| 880 | Pearl bolts       | +48 ranged str, enchantable |
+| 881 | Barbed bolts      | +12, Ranging Guild only     |
+| 883 | Bronze arrow (p)  | Poisoned, +7 ranged str     |
+| 885 | Iron arrow (p)    | Poisoned, +10 ranged str    |
+| 887 | Steel arrow (p)   | Poisoned, +16 ranged str    |
+| 889 | Mithril arrow (p) | Poisoned, +22 ranged str    |
+| 891 | Adamant arrow (p) | Poisoned, +31 ranged str    |
+| 893 | Rune arrow (p)    | Poisoned, +49 ranged str    |
+
+### General Utility & Misc Items (Implemented - Mar 2026)
+
+| ID  | Item              | Notes                          |
+| --- | ----------------- | ------------------------------ |
+| 946 | Knife             | Fletching/Crafting tool, F2P   |
+| 948 | Bear fur          | Crafting material, F2P         |
+| 950 | Silk              | 20 Thieving to steal, F2P      |
+| 952 | Spade             | Farming/clue tool, F2P         |
+| 954 | Rope              | Quest essential, F2P           |
+| 958 | Grey wolf fur     | Crafting material, members     |
+| 962 | Christmas cracker | Holiday item, tradeable        |
+| 970 | Papyrus           | Used with charcoal, members    |
+| 973 | Charcoal          | Used with papyrus, members     |
+| 975 | Machete           | Jungle cutting tool, members   |
+| 981 | Disk of returning | Dwarven Mine teleport, members |
+| 983 | Brass key         | Edgeville Dungeon access, F2P  |
+
 ### Fishing Misc & Oysters (Implemented - Mar 2026)
 
 | ID  | Item           | Notes                          |
@@ -1820,6 +1893,7 @@ Record batch completions here:
 | Mar 13, 2026 | +50 items (cannon parts, fletching supplies, potions)            | ~1181           |
 | Mar 13, 2026 | +50 items (potions, herbs, fishing equipment, fish)              | ~1231           |
 | Mar 13, 2026 | +50 items (gnome clothes, thrownaxes, darts, bones, misc)        | ~1281           |
+| Mar 13, 2026 | +50 items (javelins, knives, arrows, bolts, dart tips, utility)  | ~1331           |
 
 ### Quick Stats
 
