@@ -711,6 +711,96 @@ Focus on items with clear processing chains and market flip potential.
 | 6910  | Apprentice wand   | MTA mid wand, 50 Magic |
 | 10156 | Hunter's crossbow | Kebbit bolt crossbow   |
 
+### Elegant Shirts & Legs — Men's (Implemented - Mar 2026)
+
+| ID    | Item                 | Override Focus         |
+| ----- | -------------------- | ---------------------- |
+| 10404 | Red elegant shirt    | Easy clue, body slot   |
+| 10406 | Red elegant legs     | Easy clue, legs slot   |
+| 10408 | Blue elegant shirt   | Easy clue, body slot   |
+| 10410 | Blue elegant legs    | Easy clue, legs slot   |
+| 10412 | Green elegant shirt  | Easy clue, body slot   |
+| 10414 | Green elegant legs   | Easy clue, legs slot   |
+| 10400 | Black elegant shirt  | Medium clue, body slot |
+| 10402 | Black elegant legs   | Medium clue, legs slot |
+| 10416 | Purple elegant shirt | Medium clue, body slot |
+| 10418 | Purple elegant legs  | Medium clue, legs slot |
+| 10420 | White elegant blouse | Medium clue, body slot |
+| 10422 | White elegant skirt  | Medium clue, legs slot |
+| 12347 | Gold elegant shirt   | Medium clue, body slot |
+| 12349 | Gold elegant legs    | Medium clue, legs slot |
+| 12315 | Pink elegant shirt   | Medium clue, body slot |
+| 12317 | Pink elegant legs    | Medium clue, legs slot |
+
+### Elegant Blouses & Skirts — Women's (Implemented - Mar 2026)
+
+| ID    | Item                  | Override Focus         |
+| ----- | --------------------- | ---------------------- |
+| 10424 | Red elegant blouse    | Easy clue, body slot   |
+| 10426 | Red elegant skirt     | Easy clue, legs slot   |
+| 10428 | Blue elegant blouse   | Easy clue, body slot   |
+| 10430 | Blue elegant skirt    | Easy clue, legs slot   |
+| 10432 | Green elegant blouse  | Easy clue, body slot   |
+| 10434 | Green elegant skirt   | Easy clue, legs slot   |
+| 10436 | Purple elegant blouse | Medium clue, body slot |
+| 10438 | Purple elegant skirt  | Medium clue, legs slot |
+| 12343 | Gold elegant blouse   | Medium clue, body slot |
+| 12345 | Gold elegant skirt    | Medium clue, legs slot |
+| 12339 | Pink elegant blouse   | Medium clue, body slot |
+| 12341 | Pink elegant skirt    | Medium clue, legs slot |
+
+### H.A.M. Robes Set (Implemented - Mar 2026)
+
+| ID   | Item       | Override Focus             |
+| ---- | ---------- | -------------------------- |
+| 4302 | Ham hood   | Head slot, pickpocket set  |
+| 4298 | Ham shirt  | Body slot, pickpocket set  |
+| 4300 | Ham robe   | Legs slot, pickpocket set  |
+| 4304 | Ham cloak  | Cape slot, pickpocket set  |
+| 4308 | Ham gloves | Hands slot, pickpocket set |
+| 4310 | Ham boots  | Feet slot, pickpocket set  |
+
+### Shade Robes (Implemented - Mar 2026)
+
+| ID  | Item           | Override Focus      |
+| --- | -------------- | ------------------- |
+| 546 | Shade robe top | +5 Prayer, F2P body |
+| 548 | Shade robe     | +4 Prayer, F2P legs |
+
+### Zamorak Vestments (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus              |
+| ----- | ----------------- | --------------------------- |
+| 10460 | Zamorak robe top  | Easy clue, +6 Prayer, 20 Pr |
+| 10468 | Zamorak robe legs | Easy clue, +5 Prayer, 20 Pr |
+
+### God Vestment Accessories (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus               |
+| ----- | ----------------- | ---------------------------- |
+| 10470 | Saradomin stole   | Hard clue, +10 Prayer, neck  |
+| 10474 | Zamorak stole     | Hard clue, +10 Prayer, neck  |
+| 10440 | Saradomin crozier | Hard clue, +6 Prayer, weapon |
+| 10454 | Guthix mitre      | Medium clue, +5 Prayer, head |
+
+### Trimmed Amulets (Implemented - Mar 2026)
+
+| ID    | Item                  | Override Focus                |
+| ----- | --------------------- | ----------------------------- |
+| 10354 | Amulet of glory (t4)  | Hard clue, trimmed glory      |
+| 10366 | Amulet of magic (t)   | Hard clue, trimmed magic ammy |
+| 23309 | Amulet of defence (t) | Hard clue, trimmed defence    |
+| 23354 | Amulet of power (t)   | Hard clue, trimmed power      |
+
+### Misc Treasure Trail Gear (Implemented - Mar 2026)
+
+| ID    | Item            | Override Focus             |
+| ----- | --------------- | -------------------------- |
+| 23389 | Spiked manacles | Medium clue, +4 Str boots  |
+| 23246 | Fremennik kilt  | Medium clue, cosmetic legs |
+| 12379 | Rune cane       | Hard clue, cosmetic weapon |
+| 12377 | Adamant cane    | Hard clue, cosmetic weapon |
+
 ---
 
 ## Future Override Priorities
@@ -1299,16 +1389,17 @@ const description = generateMetaDescription(item);
 
 Record batch completions here:
 
-| Date         | Items Added                                  | Total Overrides |
-| ------------ | -------------------------------------------- | --------------- |
-| Jan 2026     | Initial ~100 items                           | ~100            |
-| Jan 7, 2026  | +35 items (potions, weapons, raid gear)      | ~135            |
-| Jan 21, 2026 | +42 items (barrows, hilts, potions, utility) | ~881            |
-| Mar 11, 2026 | +20 items (jewelry chains, misc weapons)     | ~901            |
-| Mar 12, 2026 | +20 items (dragon bolts e, mystic, trimmed)  | ~921            |
-| Mar 12, 2026 | +20 items (god d'hide sets, rune weapons)    | ~941            |
-| Mar 12, 2026 | +20 items (god chaps/coifs/bracers, misc)    | ~961            |
-| Mar 13, 2026 | +20 items (gilded/trimmed d'hide, misc)      | ~981            |
+| Date         | Items Added                                              | Total Overrides |
+| ------------ | -------------------------------------------------------- | --------------- |
+| Jan 2026     | Initial ~100 items                                       | ~100            |
+| Jan 7, 2026  | +35 items (potions, weapons, raid gear)                  | ~135            |
+| Jan 21, 2026 | +42 items (barrows, hilts, potions, utility)             | ~881            |
+| Mar 11, 2026 | +20 items (jewelry chains, misc weapons)                 | ~901            |
+| Mar 12, 2026 | +20 items (dragon bolts e, mystic, trimmed)              | ~921            |
+| Mar 12, 2026 | +20 items (god d'hide sets, rune weapons)                | ~941            |
+| Mar 12, 2026 | +20 items (god chaps/coifs/bracers, misc)                | ~961            |
+| Mar 13, 2026 | +20 items (gilded/trimmed d'hide, misc)                  | ~981            |
+| Mar 13, 2026 | +50 items (elegant sets, HAM, robes, vestments, amulets) | ~1031           |
 
 ### Quick Stats
 
