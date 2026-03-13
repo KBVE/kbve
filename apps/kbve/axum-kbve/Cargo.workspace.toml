@@ -4,6 +4,7 @@ members = [
     "apps/kbve/axum-kbve",
     "packages/rust/jedi",
     "packages/rust/kbve",
+    "packages/rust/bevy/bevy_kbve_net",
 ]
 
 [profile.release]

@@ -167,8 +167,8 @@ mod desktop {
         // Game plugin with render dependency (FullscreenMaterialPlugin needs RenderApp)
         app.add_plugins(PixelatePlugin);
 
-        // Debug render for Rapier physics
-        app.add_plugins(bevy_rapier3d::prelude::RapierDebugRenderPlugin::default());
+        // Debug render for avian3d physics
+        app.add_plugins(avian3d::prelude::PhysicsDebugPlugin::default());
 
         // Wait for all plugins to finish async initialization
         while app.plugins_state() != PluginsState::Ready {

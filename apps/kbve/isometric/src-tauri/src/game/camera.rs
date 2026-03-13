@@ -1,5 +1,5 @@
+use avian3d::prelude::PhysicsSystems;
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::PhysicsSet;
 
 use super::pixelate::PixelateSettings;
 use super::player::{Player, PlayerMovement};
@@ -39,7 +39,7 @@ impl Plugin for IsometricCameraPlugin {
         app.configure_sets(
             PostUpdate,
             CameraUpdate
-                .after(PhysicsSet::Writeback)
+                .after(PhysicsSystems::Writeback)
                 .in_set(PlayerMovement),
         );
     }

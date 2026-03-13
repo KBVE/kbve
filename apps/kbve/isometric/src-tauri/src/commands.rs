@@ -146,6 +146,18 @@ pub fn dispatch_action(entity_id: f64, action: &str) {
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
+pub fn go_online(server_addr: &str, jwt: &str) {
+    crate::game::net::request_go_online(server_addr, jwt);
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn get_online_status() -> bool {
+    crate::game::net::is_online()
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
 pub fn greet(name: &str) -> String {
     format!("Welcome to the Isometric realm, {}!", name)
 }

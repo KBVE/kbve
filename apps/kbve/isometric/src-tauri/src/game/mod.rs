@@ -5,6 +5,7 @@ pub mod input_bridge;
 pub mod insects;
 pub mod inventory;
 pub mod mushrooms;
+pub mod net;
 pub mod object_registry;
 pub mod orb_hud;
 pub mod pixelate;
@@ -25,6 +26,7 @@ use actions::ActionsPlugin;
 use camera::IsometricCameraPlugin;
 use insects::InsectsPlugin;
 use inventory::{InventoryPlugin, ItemKind};
+use net::NetPlugin;
 use object_registry::ObjectRegistryPlugin;
 use orb_hud::OrbHudPlugin;
 use pixelate::PixelatePlugin;
@@ -45,6 +47,7 @@ pub struct GamePluginGroup;
 impl PluginGroup for GamePluginGroup {
     fn build(self) -> PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
+            .add(NetPlugin)
             .add(GameStatePlugin)
             .add(TerrainPlugin)
             .add(IsometricCameraPlugin)

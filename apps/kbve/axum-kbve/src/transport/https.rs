@@ -35,7 +35,6 @@ pub struct AppState {
 pub struct AppStateInner {
     pub start_time: std::time::Instant,
     pub version: &'static str,
-    pub game: Option<crate::gameserver::GameServerState>,
 }
 
 impl AppState {
@@ -44,17 +43,6 @@ impl AppState {
             inner: Arc::new(AppStateInner {
                 start_time: std::time::Instant::now(),
                 version: env!("CARGO_PKG_VERSION"),
-                game: None,
-            }),
-        }
-    }
-
-    pub fn new_with_gameserver(game: crate::gameserver::GameServerState) -> Self {
-        Self {
-            inner: Arc::new(AppStateInner {
-                start_time: std::time::Instant::now(),
-                version: env!("CARGO_PKG_VERSION"),
-                game: Some(game),
             }),
         }
     }
@@ -178,7 +166,7 @@ fn router(state: AppState) -> Router {
     let main_app = static_router.merge(public_router).layer(middleware);
 
     // Proxy + WebSocket routes bypass global middleware (no 10s timeout, no 1MB body limit)
-    let mut bypass_router = Router::new()
+    let bypass_router = Router::new()
         .route(
             "/dashboard/grafana/proxy/{*path}",
             any(super::proxy::grafana_proxy_handler),
@@ -196,16 +184,8 @@ fn router(state: AppState) -> Router {
             any(super::proxy::argo_proxy_handler),
         );
 
-    // Game server WebSocket route (requires GameServerState, separate nested router)
-    if let Some(game_state) = &state.inner.game {
-        let game_router = Router::new()
-            .route(
-                "/ws/game",
-                get(crate::gameserver::websocket::ws_game_handler),
-            )
-            .with_state(game_state.clone());
-        bypass_router = bypass_router.merge(game_router);
-    }
+    // Game server WebSocket is now handled by lightyear on a separate port
+    // (GAME_WS_ADDR, default :5000). No Axum route needed.
 
     bypass_router.merge(main_app)
 }
