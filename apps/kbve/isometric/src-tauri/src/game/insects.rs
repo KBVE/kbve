@@ -26,6 +26,17 @@ const DAY_START: f32 = 7.0;
 const DAY_END: f32 = 18.0;
 const DAY_BAND: f32 = 1.5;
 
+/// XZ distance from scene center that triggers exit flight.
+const BUTTERFLY_EXIT_TRIGGER: f32 = 10.0;
+/// Radius at which entering butterflies spawn (edge of visible area).
+const BUTTERFLY_ENTER_RADIUS: f32 = 12.0;
+/// Flight speed (units/sec) during entry.
+const BUTTERFLY_ENTER_SPEED: f32 = 2.5;
+/// Flight speed (units/sec) during exit.
+const BUTTERFLY_EXIT_SPEED: f32 = 3.0;
+/// Total distance a butterfly travels while exiting before going idle.
+const BUTTERFLY_EXIT_DISTANCE: f32 = 8.0;
+
 // ---------------------------------------------------------------------------
 // Components
 // ---------------------------------------------------------------------------
@@ -292,6 +303,26 @@ fn butterfly_color(index: usize) -> Color {
     )
 }
 
+#[derive(Clone, Copy, PartialEq)]
+enum ButterflyState {
+    /// In the pool, hidden, waiting for cooldown to expire.
+    Idle,
+    /// Flying in from screen edge toward a target anchor.
+    Entering {
+        origin: Vec3,
+        target: Vec3,
+        progress: f32,
+    },
+    /// Normal wandering around anchor.
+    Active,
+    /// Flying away from the player toward the screen edge.
+    Exiting {
+        start: Vec3,
+        direction: Vec3,
+        progress: f32,
+    },
+}
+
 #[derive(Component)]
 struct Butterfly {
     phase: f32,
@@ -301,6 +332,8 @@ struct Butterfly {
     flap_speed: f32,
     size_scale: f32,
     mat_handle: Handle<StandardMaterial>,
+    state: ButterflyState,
+    idle_cooldown: f32,
 }
 
 #[derive(Resource, Default)]
@@ -376,6 +409,9 @@ fn spawn_butterflies(
         });
         let mat_clone = mat.clone();
 
+        // Stagger initial entry so butterflies don't all appear at once
+        let idle_cooldown = hash_f32(seed * 53 + 11) * 3.0;
+
         commands.spawn((
             Mesh3d(wing_mesh.clone()),
             MeshMaterial3d(mat),
@@ -389,9 +425,48 @@ fn spawn_butterflies(
                 flap_speed,
                 size_scale,
                 mat_handle: mat_clone,
+                state: ButterflyState::Idle,
+                idle_cooldown,
             },
         ));
     }
+}
+
+/// Reusable flutter offset — overlapping sine waves for erratic butterfly motion.
+/// `amp` scales the overall amplitude (1.0 = full wander, 0.3 = subtle entry flutter).
+fn flutter_offset(t: f32, phase: f32, speed: f32, radius: f32, amp: f32) -> Vec3 {
+    let p = phase;
+    let spd = speed;
+    let r = radius * amp;
+    let ox = (t * spd * 0.6 + p * 6.28).sin() * r
+        + (t * spd * 1.7 + p * 2.1).sin() * r * 0.3
+        + (t * spd * 3.1 + p * 4.5).cos() * r * 0.1;
+    let oy = ((t * spd * 0.8 + p * 3.14).sin() * 0.25
+        + (t * spd * 2.3 + p * 1.57).cos() * 0.12
+        + (t * spd * 4.0 + p * 5.0).sin() * 0.06)
+        * amp;
+    let oz = (t * spd * 0.5 + p * 4.71).cos() * r
+        + (t * spd * 1.9 + p * 3.3).cos() * r * 0.25
+        + (t * spd * 2.8 + p * 0.7).sin() * r * 0.08;
+    Vec3::new(ox, oy, oz)
+}
+
+/// Apply wing flap animation and billboard facing to a butterfly transform.
+fn apply_flap_and_billboard(
+    tf: &mut Transform,
+    pos: Vec3,
+    cam_pos: Vec3,
+    t: f32,
+    flap_speed: f32,
+    phase: f32,
+    size_scale: f32,
+) {
+    tf.translation = pos;
+    let to_cam = (cam_pos - pos).normalize_or_zero();
+    tf.look_to(to_cam, Vec3::Y);
+    let flap = (t * flap_speed * std::f32::consts::TAU + phase * 10.0).sin();
+    let wing_scale = 0.4 + flap.abs() * 0.6;
+    tf.scale = Vec3::new(wing_scale * size_scale, size_scale, size_scale);
 }
 
 fn animate_butterflies(
@@ -408,14 +483,19 @@ fn animate_butterflies(
     let Ok(cam_tf) = camera_q.single() else {
         return;
     };
+    let dt = time.delta_secs();
     let t = time.elapsed_secs();
     let df = day_factor(day.hour);
 
-    // Night: hide all butterflies
+    // Night: force all butterflies to Idle
     if df < 0.01 {
-        for (_, mut bfly, mut vis) in &mut bfly_q {
+        for (mut tf, mut bfly, mut vis) in &mut bfly_q {
+            if bfly.state != ButterflyState::Idle {
+                bfly.state = ButterflyState::Idle;
+                bfly.idle_cooldown = 1.0 + hash_f32((bfly.phase * 10000.0) as u32) * 2.0;
+            }
             *vis = Visibility::Hidden;
-            bfly.anchor.y = -100.0;
+            tf.translation.y = -100.0;
         }
         return;
     }
@@ -424,56 +504,186 @@ fn animate_butterflies(
     let scene_center = Vec3::new(cam_pos.x - 15.0, 0.0, cam_pos.z - 15.0);
     let (wd_x, wd_z) = wind.direction;
     let wind_drift = wind.speed_mph * 0.005;
+    let wind_off = Vec3::new(wd_x * wind_drift * t, 0.0, wd_z * wind_drift * t);
 
     for (mut tf, mut bfly, mut vis) in &mut bfly_q {
-        // Relocate anchor when too far or first frame
-        let dist = (bfly.anchor - scene_center).length();
-        if dist > 12.0 || bfly.anchor.y < -50.0 {
-            let seed = (bfly.phase * 10000.0) as u32 + (t * 2.3) as u32;
-            let rx = hash_f32(seed) * 2.0 - 1.0;
-            let rz = hash_f32(seed + 100) * 2.0 - 1.0;
-            let ry = hash_f32(seed + 200);
-            bfly.anchor = scene_center + Vec3::new(rx * 8.0, 0.8 + ry * 1.5, rz * 8.0);
+        // We need to copy the state to avoid borrow issues, then write it back.
+        let mut state = bfly.state;
+
+        match state {
+            ButterflyState::Idle => {
+                *vis = Visibility::Hidden;
+                tf.translation.y = -100.0;
+
+                bfly.idle_cooldown -= dt;
+                if bfly.idle_cooldown <= 0.0 {
+                    // Pick a spawn point on the edge of the visible area
+                    let seed = (bfly.phase * 10000.0) as u32 + (t * 7.1) as u32;
+                    let theta = hash_f32(seed) * std::f32::consts::TAU;
+                    let ry = hash_f32(seed + 200);
+                    let origin = scene_center
+                        + Vec3::new(
+                            theta.cos() * BUTTERFLY_ENTER_RADIUS,
+                            0.8 + ry * 1.5,
+                            theta.sin() * BUTTERFLY_ENTER_RADIUS,
+                        );
+                    // Target anchor near scene center
+                    let rx = hash_f32(seed + 300) * 2.0 - 1.0;
+                    let rz = hash_f32(seed + 400) * 2.0 - 1.0;
+                    let ry2 = hash_f32(seed + 500);
+                    let target = scene_center + Vec3::new(rx * 6.0, 0.8 + ry2 * 1.5, rz * 6.0);
+
+                    state = ButterflyState::Entering {
+                        origin,
+                        target,
+                        progress: 0.0,
+                    };
+                }
+            }
+
+            ButterflyState::Entering {
+                origin,
+                target,
+                ref mut progress,
+            } => {
+                let path_len = origin.distance(target).max(0.1);
+                *progress += dt * BUTTERFLY_ENTER_SPEED / path_len;
+                let p = progress.clamp(0.0, 1.0);
+
+                // Smoothstep interpolation
+                let ease = p * p * (3.0 - 2.0 * p);
+                let base_pos = origin.lerp(target, ease);
+
+                // Subtle flutter overlay during entry (30% amplitude)
+                let flut =
+                    flutter_offset(t, bfly.phase, bfly.wander_speed, bfly.wander_radius, 0.3);
+                let pos = base_pos + flut + wind_off;
+
+                *vis = Visibility::Visible;
+                apply_flap_and_billboard(
+                    &mut tf,
+                    pos,
+                    cam_pos,
+                    t,
+                    bfly.flap_speed,
+                    bfly.phase,
+                    bfly.size_scale,
+                );
+
+                // Fade in alpha
+                if let Some(mat) = materials.get_mut(&bfly.mat_handle) {
+                    let mut c = mat.base_color.to_srgba();
+                    c.alpha = df * 0.9 * p;
+                    mat.base_color = c.into();
+                }
+
+                if *progress >= 1.0 {
+                    bfly.anchor = target;
+                    state = ButterflyState::Active;
+                }
+            }
+
+            ButterflyState::Active => {
+                // Full wander around anchor
+                let flut =
+                    flutter_offset(t, bfly.phase, bfly.wander_speed, bfly.wander_radius, 1.0);
+                let pos = bfly.anchor + flut + wind_off;
+
+                *vis = Visibility::Visible;
+                apply_flap_and_billboard(
+                    &mut tf,
+                    pos,
+                    cam_pos,
+                    t,
+                    bfly.flap_speed,
+                    bfly.phase,
+                    bfly.size_scale,
+                );
+
+                if let Some(mat) = materials.get_mut(&bfly.mat_handle) {
+                    let mut c = mat.base_color.to_srgba();
+                    c.alpha = df * 0.9;
+                    mat.base_color = c.into();
+                }
+
+                // Check if anchor has drifted too far from scene center (XZ only)
+                let dist_xz = Vec2::new(
+                    bfly.anchor.x - scene_center.x,
+                    bfly.anchor.z - scene_center.z,
+                )
+                .length();
+                if dist_xz > BUTTERFLY_EXIT_TRIGGER {
+                    let away = Vec3::new(
+                        bfly.anchor.x - scene_center.x,
+                        0.15, // slight upward drift
+                        bfly.anchor.z - scene_center.z,
+                    )
+                    .normalize_or_zero();
+                    // Fallback direction if normalize fails
+                    let dir = if away.length_squared() < 0.01 {
+                        let seed = (bfly.phase * 10000.0) as u32 + (t * 5.0) as u32;
+                        let a = hash_f32(seed) * std::f32::consts::TAU;
+                        Vec3::new(a.cos(), 0.15, a.sin()).normalize()
+                    } else {
+                        away
+                    };
+                    state = ButterflyState::Exiting {
+                        start: tf.translation,
+                        direction: dir,
+                        progress: 0.0,
+                    };
+                }
+            }
+
+            ButterflyState::Exiting {
+                start,
+                direction,
+                ref mut progress,
+            } => {
+                *progress += dt * BUTTERFLY_EXIT_SPEED / BUTTERFLY_EXIT_DISTANCE;
+                let p = progress.clamp(0.0, 1.0);
+
+                let base_pos = start + direction * (p * BUTTERFLY_EXIT_DISTANCE);
+
+                // Diminishing flutter as it flies away
+                let flut = flutter_offset(
+                    t,
+                    bfly.phase,
+                    bfly.wander_speed,
+                    bfly.wander_radius,
+                    1.0 - p,
+                );
+                let pos = base_pos + flut + wind_off;
+
+                *vis = Visibility::Visible;
+                apply_flap_and_billboard(
+                    &mut tf,
+                    pos,
+                    cam_pos,
+                    t,
+                    bfly.flap_speed,
+                    bfly.phase,
+                    bfly.size_scale,
+                );
+
+                // Fade out alpha
+                if let Some(mat) = materials.get_mut(&bfly.mat_handle) {
+                    let mut c = mat.base_color.to_srgba();
+                    c.alpha = df * 0.9 * (1.0 - p);
+                    mat.base_color = c.into();
+                }
+
+                if *progress >= 1.0 {
+                    let seed = (bfly.phase * 10000.0) as u32 + (t * 3.3) as u32;
+                    bfly.idle_cooldown = 1.0 + hash_f32(seed) * 2.0;
+                    tf.translation.y = -100.0;
+                    *vis = Visibility::Hidden;
+                    state = ButterflyState::Idle;
+                }
+            }
         }
 
-        let p = bfly.phase;
-        let spd = bfly.wander_speed;
-        let r = bfly.wander_radius;
-
-        // Erratic fluttery path — multiple overlapping sine waves
-        let ox = (t * spd * 0.6 + p * 6.28).sin() * r
-            + (t * spd * 1.7 + p * 2.1).sin() * r * 0.3
-            + (t * spd * 3.1 + p * 4.5).cos() * r * 0.1;
-        let oy = (t * spd * 0.8 + p * 3.14).sin() * 0.25
-            + (t * spd * 2.3 + p * 1.57).cos() * 0.12
-            + (t * spd * 4.0 + p * 5.0).sin() * 0.06;
-        let oz = (t * spd * 0.5 + p * 4.71).cos() * r
-            + (t * spd * 1.9 + p * 3.3).cos() * r * 0.25
-            + (t * spd * 2.8 + p * 0.7).sin() * r * 0.08;
-
-        // Wind push
-        let wind_off = Vec3::new(wd_x * wind_drift * t, 0.0, wd_z * wind_drift * t);
-
-        let pos = bfly.anchor + Vec3::new(ox, oy, oz) + wind_off;
-        tf.translation = pos;
-        *vis = Visibility::Visible;
-
-        // Billboard: face the camera
-        let to_cam = (cam_pos - pos).normalize_or_zero();
-        tf.look_to(to_cam, Vec3::Y);
-
-        // Wing flap: oscillate X scale for that fluttery squish effect
-        let flap = (t * bfly.flap_speed * std::f32::consts::TAU + p * 10.0).sin();
-        let wing_scale = 0.4 + flap.abs() * 0.6; // squishes between 0.4–1.0
-        let s = bfly.size_scale;
-        tf.scale = Vec3::new(wing_scale * s, s, s);
-
-        // Fade alpha with day factor
-        if let Some(mat) = materials.get_mut(&bfly.mat_handle) {
-            let mut c = mat.base_color.to_srgba();
-            c.alpha = df * 0.9;
-            mat.base_color = c.into();
-        }
+        bfly.state = state;
     }
 }
 
