@@ -7055,4 +7055,467 @@ mod tests {
         // P2: 10% DR → ceil(20 * 0.9) = 18
         assert_eq!(p2_dmg, 18, "P2 with DR should take reduced damage");
     }
+
+    // ── Gift system tests ──────────────────────────────────────────
+
+    fn party_session_for_gift() -> SessionState {
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        let p2 = serenity::UserId::new(2);
+        let mut player2 = PlayerState::default();
+        player2.name = "Bob".to_owned();
+        session.players.insert(p2, player2);
+        session.party.push(p2);
+        // Give owner a potion
+        session.player_mut(OWNER).inventory = vec![ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 3,
+        }];
+        session.phase = GamePhase::Exploring;
+        session
+    }
+
+    #[test]
+    fn gift_basic_success() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        assert_eq!(logs.len(), 1);
+        assert!(logs[0].contains("gifted"));
+        assert!(logs[0].contains("Bob"));
+
+        // Giver lost 1
+        let giver_qty = session
+            .player(OWNER)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(giver_qty, 2);
+
+        // Receiver gained 1
+        let recv_qty = session
+            .player(p2)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(recv_qty, 1);
+    }
+
+    #[test]
+    fn gift_stacks_on_receiver() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Give receiver an existing potion stack
+        session.player_mut(p2).inventory.push(ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 2,
+        });
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_ok());
+
+        // Receiver should have 3 (stacked)
+        let recv_qty = session
+            .player(p2)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(recv_qty, 3);
+    }
+
+    #[test]
+    fn gift_blocked_in_solo_mode() {
+        let mut session = test_session();
+        session.mode = SessionMode::Solo;
+        let p2 = serenity::UserId::new(2);
+        session.players.insert(p2, PlayerState::default());
+        session.party.push(p2);
+        session.player_mut(OWNER).inventory = vec![ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 1,
+        }];
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("party mode"));
+    }
+
+    #[test]
+    fn gift_self_rejected() {
+        let mut session = party_session_for_gift();
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), OWNER),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("yourself"));
+    }
+
+    #[test]
+    fn gift_nonexistent_target() {
+        let mut session = party_session_for_gift();
+        let stranger = serenity::UserId::new(999);
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), stranger),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn gift_item_not_in_inventory() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("nonexistent_item".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("don't have"));
+    }
+
+    #[test]
+    fn gift_zero_qty_rejected() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Set potion qty to 0
+        session.player_mut(OWNER).inventory[0].qty = 0;
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("don't have"));
+    }
+
+    #[test]
+    fn gift_receiver_full_inventory_no_stack() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Fill receiver's inventory to max with different items
+        for i in 0..MAX_INVENTORY_SLOTS {
+            session.player_mut(p2).inventory.push(ItemStack {
+                item_id: format!("filler_{i}"),
+                qty: 1,
+            });
+        }
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("inventory is full"));
+    }
+
+    #[test]
+    fn gift_receiver_full_but_can_stack() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Fill receiver's inventory to max, but one slot is a potion (can stack)
+        session.player_mut(p2).inventory.push(ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 1,
+        });
+        for i in 1..MAX_INVENTORY_SLOTS {
+            session.player_mut(p2).inventory.push(ItemStack {
+                item_id: format!("filler_{i}"),
+                qty: 1,
+            });
+        }
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(
+            result.is_ok(),
+            "should succeed by stacking onto existing slot"
+        );
+        let recv_qty = session
+            .player(p2)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(recv_qty, 2);
+    }
+
+    #[test]
+    fn gift_allowed_during_combat_phase() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![test_enemy()];
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        // Gift passes Combat validation (only blocked in WaitingForActions whitelist)
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn gift_blocked_during_waiting_for_actions() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        session.phase = GamePhase::WaitingForActions;
+        session.enemies = vec![test_enemy()];
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("combat actions"));
+    }
+
+    #[test]
+    fn gift_blocked_during_game_over() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("over"));
+    }
+
+    #[test]
+    fn gift_allowed_in_city() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        session.phase = GamePhase::City;
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn gift_allowed_in_merchant() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        session.phase = GamePhase::Merchant;
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn gift_allowed_in_rest() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        session.phase = GamePhase::Rest;
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn gift_last_item_leaves_zero_qty() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        session.player_mut(OWNER).inventory = vec![ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 1,
+        }];
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let giver_qty = session
+            .player(OWNER)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(giver_qty, 0, "gifting last item should leave qty=0");
+    }
+
+    #[test]
+    fn gift_increments_turn() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        let turn_before = session.turn;
+        let _ = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert_eq!(session.turn, turn_before + 1, "gift should increment turn");
+    }
+
+    #[test]
+    fn gift_updates_log() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        let _ = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(
+            session.log.iter().any(|l| l.contains("gifted")),
+            "log should contain gift message"
+        );
+    }
+
+    #[test]
+    fn gift_multiple_items_sequentially() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Gift 3 potions one at a time
+        for i in 0..3 {
+            let result = apply_action(
+                &mut session,
+                GameAction::Gift("potion".to_owned(), p2),
+                OWNER,
+            );
+            assert!(result.is_ok(), "gift #{} should succeed", i + 1);
+        }
+        let giver_qty = session
+            .player(OWNER)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(giver_qty, 0);
+        let recv_qty = session
+            .player(p2)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(recv_qty, 3);
+    }
+
+    #[test]
+    fn gift_bidirectional() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Give p2 a bomb
+        session.player_mut(p2).inventory.push(ItemStack {
+            item_id: "bomb".to_owned(),
+            qty: 2,
+        });
+        // Owner gifts potion to p2
+        let r1 = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(r1.is_ok());
+        // P2 gifts bomb to owner
+        let r2 = apply_action(&mut session, GameAction::Gift("bomb".to_owned(), OWNER), p2);
+        assert!(r2.is_ok());
+        // Owner should have bomb
+        assert!(
+            session
+                .player(OWNER)
+                .inventory
+                .iter()
+                .any(|s| s.item_id == "bomb" && s.qty > 0)
+        );
+        // P2 should have potion
+        assert!(
+            session
+                .player(p2)
+                .inventory
+                .iter()
+                .any(|s| s.item_id == "potion" && s.qty > 0)
+        );
+    }
+
+    #[test]
+    fn gift_gear_item() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Give owner a gear item (rusty_sword is in the content registry)
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "rusty_sword".to_owned(),
+            qty: 1,
+        });
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("rusty_sword".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let recv_has = session
+            .player(p2)
+            .inventory
+            .iter()
+            .any(|s| s.item_id == "rusty_sword" && s.qty > 0);
+        assert!(recv_has, "receiver should have the gear item");
+    }
+
+    #[test]
+    fn gift_from_non_owner_party_member() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Give p2 some items
+        session.player_mut(p2).inventory.push(ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 5,
+        });
+        // P2 gifts to owner
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), OWNER),
+            p2,
+        );
+        assert!(result.is_ok());
+        assert_eq!(
+            session
+                .player(p2)
+                .inventory
+                .iter()
+                .find(|s| s.item_id == "potion")
+                .unwrap()
+                .qty,
+            4
+        );
+    }
 }
