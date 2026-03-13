@@ -11,11 +11,16 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
+use avian3d::prelude::*;
 use bevy::prelude::*;
 use lightyear::prelude::client::*;
 use lightyear::prelude::*;
 
-use bevy_kbve_net::{AuthMessage, GameChannel, ProtocolPlugin};
+use bevy_kbve_net::{
+    AuthMessage, AuthResponse, GameChannel, PlayerColor, PlayerId, PositionUpdate, ProtocolPlugin,
+};
+
+use super::player::Player;
 
 /// Default server address (localhost for development).
 const DEFAULT_SERVER_ADDR: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 5000);
@@ -86,6 +91,15 @@ struct PendingAuth {
     sent: bool,
 }
 
+/// Stores the local player's server-assigned player ID so we can distinguish
+/// our own replicated entity from remote players.
+#[derive(Resource, Default)]
+struct MyPlayerId(Option<u64>);
+
+/// Marker component for remote player entities (replicated from server).
+#[derive(Component)]
+struct RemotePlayer;
+
 pub struct NetPlugin;
 
 impl Plugin for NetPlugin {
@@ -101,12 +115,25 @@ impl Plugin for NetPlugin {
         // Store resolved server address
         app.init_resource::<GameServerAddr>();
         app.init_resource::<PendingAuth>();
+        app.init_resource::<MyPlayerId>();
 
         // Watch for go-online requests from JS
         app.add_systems(Update, poll_go_online_request);
 
         // Send auth message once connected
         app.add_systems(Update, send_auth_on_connect.after(poll_go_online_request));
+
+        // Receive auth response from server
+        app.add_systems(Update, receive_auth_response.after(send_auth_on_connect));
+
+        // Send local player position to server (throttled to FixedUpdate = tick rate)
+        app.add_systems(FixedUpdate, send_position_updates);
+
+        // Spawn visuals for remote players when their replicated entities arrive
+        app.add_systems(Update, spawn_remote_player_visuals);
+
+        // Update remote player transforms from replicated Position each frame
+        app.add_systems(PostUpdate, update_remote_transforms);
     }
 }
 
@@ -134,20 +161,105 @@ fn poll_go_online_request(
 }
 
 /// Send AuthMessage to server once the connection is established.
+/// Sends empty JWT for guest connections.
 fn send_auth_on_connect(
     mut pending_auth: ResMut<PendingAuth>,
     mut query: Query<&mut MessageSender<AuthMessage>, Added<Connected>>,
 ) {
-    if pending_auth.sent || pending_auth.jwt.is_none() {
+    if pending_auth.sent {
         return;
     }
 
     for mut sender in &mut query {
-        let jwt = pending_auth.jwt.take().unwrap();
+        let jwt = pending_auth.jwt.take().unwrap_or_default();
         sender.send::<GameChannel>(AuthMessage { jwt });
         pending_auth.sent = true;
         info!("sent auth message to server");
         break;
+    }
+}
+
+/// Receive AuthResponse from the server and store our player ID.
+fn receive_auth_response(
+    mut my_player_id: ResMut<MyPlayerId>,
+    mut query: Query<&mut MessageReceiver<AuthResponse>>,
+) {
+    for mut receiver in &mut query {
+        for msg in receiver.receive() {
+            if msg.success {
+                my_player_id.0 = Some(msg.player_id);
+                info!(
+                    "authenticated as '{}' — player_id={}",
+                    msg.user_id, msg.player_id
+                );
+            } else {
+                warn!("authentication failed");
+            }
+        }
+    }
+}
+
+/// Send the local player's position to the server each fixed tick.
+fn send_position_updates(
+    my_player_id: Res<MyPlayerId>,
+    player_query: Query<&Transform, With<Player>>,
+    mut sender_query: Query<&mut MessageSender<PositionUpdate>, With<Connected>>,
+) {
+    // Only send if we're authenticated
+    if my_player_id.0.is_none() {
+        return;
+    }
+
+    let Ok(transform) = player_query.single() else {
+        return;
+    };
+    let pos = transform.translation;
+
+    for mut sender in &mut sender_query {
+        sender.send::<GameChannel>(PositionUpdate {
+            x: pos.x,
+            y: pos.y,
+            z: pos.z,
+        });
+    }
+}
+
+/// When a replicated entity with PlayerId arrives, spawn a mesh for remote players.
+fn spawn_remote_player_visuals(
+    mut commands: Commands,
+    my_player_id: Res<MyPlayerId>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    query: Query<(Entity, &PlayerId, &PlayerColor), Added<PlayerId>>,
+) {
+    for (entity, player_id, color) in &query {
+        // Skip our own player — we already have a locally-spawned entity
+        if my_player_id.0 == Some(player_id.0) {
+            info!("skipping visual spawn for own player entity {entity:?}");
+            continue;
+        }
+
+        info!(
+            "spawning remote player visual for player_id={} entity={entity:?}",
+            player_id.0
+        );
+
+        commands.entity(entity).insert((
+            Mesh3d(meshes.add(Cuboid::new(0.6, 1.2, 0.6))),
+            MeshMaterial3d(materials.add(StandardMaterial {
+                base_color: color.0,
+                ..default()
+            })),
+            Transform::from_xyz(2.0, 2.0, 2.0),
+            RemotePlayer,
+        ));
+    }
+}
+
+/// Sync remote player transforms from their replicated Position component.
+fn update_remote_transforms(mut query: Query<(&Position, &mut Transform), With<RemotePlayer>>) {
+    for (position, mut transform) in &mut query {
+        transform.translation = position.0;
     }
 }
 
