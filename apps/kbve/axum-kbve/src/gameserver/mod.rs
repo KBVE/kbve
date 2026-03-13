@@ -55,6 +55,7 @@ fn run_bevy_app(ws_addr: SocketAddr, jwt_secret: String) {
 
     // Minimal headless Bevy — no window, no renderer
     app.add_plugins(MinimalPlugins);
+    app.add_plugins(bevy::transform::TransformPlugin::default());
 
     // avian3d physics (headless — disable transform sync plugins,
     // lightyear_avian handles that)
