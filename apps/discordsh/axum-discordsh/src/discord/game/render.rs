@@ -969,6 +969,48 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
         }
     }
 
+    // Gift select menu (Party mode, non-combat phases)
+    if session.mode == SessionMode::Party && !game_over && !in_combat && rows.len() < 5 {
+        let mut gift_options: Vec<serenity::CreateSelectMenuOption> = Vec::new();
+        let party_targets: Vec<(serenity::UserId, String)> = session
+            .roster()
+            .iter()
+            .filter(|(uid, p)| p.alive && *uid != session.owner)
+            .map(|(uid, p)| (*uid, p.name.clone()))
+            .collect();
+
+        if !party_targets.is_empty() {
+            for stack in owner.inventory.iter().filter(|s| s.qty > 0) {
+                let item_name = super::content::find_item(&stack.item_id)
+                    .map(|d| d.name)
+                    .or_else(|| super::content::find_gear(&stack.item_id).map(|d| d.name))
+                    .unwrap_or(&stack.item_id);
+                for (uid, target_name) in &party_targets {
+                    gift_options.push(
+                        serenity::CreateSelectMenuOption::new(
+                            format!("{} -> {}", item_name, target_name),
+                            format!("{}|{}", stack.item_id, uid.get()),
+                        )
+                        .description(format!("Gift 1x {} (you have {})", item_name, stack.qty)),
+                    );
+                }
+            }
+
+            if !gift_options.is_empty() {
+                // Discord limits select menus to 25 options
+                gift_options.truncate(25);
+                let select = serenity::CreateSelectMenu::new(
+                    format!("dng|{sid}|gift"),
+                    serenity::CreateSelectMenuKind::String {
+                        options: gift_options,
+                    },
+                )
+                .placeholder("Gift an item to a party member...");
+                rows.push(serenity::CreateActionRow::SelectMenu(select));
+            }
+        }
+    }
+
     // Story choice buttons
     if session.phase == GamePhase::Event && !game_over {
         if let Some(ref event) = session.room.story_event {

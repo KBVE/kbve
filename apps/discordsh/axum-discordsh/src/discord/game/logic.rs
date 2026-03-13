@@ -140,6 +140,11 @@ fn validate_action(
         GameAction::ViewMap | GameAction::ViewInventory => {
             // Allowed anytime except GameOver (already checked above)
         }
+        GameAction::Gift(_, _) => {
+            if session.mode != SessionMode::Party {
+                return Err("Gifting is only available in party mode.".to_owned());
+            }
+        }
         GameAction::Revive(_) => {
             if session.phase != GamePhase::City {
                 return Err("You can only revive at a city hospital.".to_owned());
@@ -281,6 +286,9 @@ pub fn apply_action(
             return Ok(Vec::new());
         }
         GameAction::Revive(target_uid) => apply_revive(session, target_uid, actor)?,
+        GameAction::Gift(ref item_id, target_uid) => {
+            apply_gift(session, item_id, target_uid, actor)?
+        }
     };
 
     session.turn += 1;
@@ -1853,6 +1861,78 @@ fn apply_revive(
         target_name,
         revive_hp,
         cost
+    )])
+}
+
+fn apply_gift(
+    session: &mut SessionState,
+    item_id: &str,
+    target_uid: serenity::UserId,
+    actor: serenity::UserId,
+) -> Result<Vec<String>, String> {
+    if actor == target_uid {
+        return Err("You can't gift an item to yourself.".to_owned());
+    }
+
+    if !session.players.contains_key(&target_uid) {
+        return Err("That player is not in this session.".to_owned());
+    }
+
+    // Find the item in the giver's inventory
+    let giver = session.player(actor);
+    let has_item = giver
+        .inventory
+        .iter()
+        .any(|s| s.item_id == item_id && s.qty > 0);
+    if !has_item {
+        return Err("You don't have that item.".to_owned());
+    }
+
+    // Look up item/gear name for the log message
+    let item_name = super::content::find_item(item_id)
+        .map(|d| d.name.to_owned())
+        .or_else(|| super::content::find_gear(item_id).map(|d| d.name.to_owned()))
+        .unwrap_or_else(|| item_id.to_owned());
+
+    // Check receiver has inventory space (try stacking first)
+    let receiver = session.player(target_uid);
+    let can_stack = receiver.inventory.iter().any(|s| s.item_id == item_id);
+    if !can_stack && receiver.inventory_full() {
+        return Err(format!("{}'s inventory is full!", receiver.name));
+    }
+
+    let giver_name = session.player(actor).name.clone();
+    let receiver_name = session.player(target_uid).name.clone();
+
+    // Remove 1 qty from giver
+    let giver = session.player_mut(actor);
+    if let Some(stack) = giver.inventory.iter_mut().find(|s| s.item_id == item_id) {
+        stack.qty -= 1;
+    }
+
+    // Add 1 qty to receiver
+    let added = add_item_to_inventory(&mut session.player_mut(target_uid).inventory, item_id);
+    if !added {
+        // Shouldn't happen since we checked above, but restore item if it does
+        if let Some(stack) = session
+            .player_mut(actor)
+            .inventory
+            .iter_mut()
+            .find(|s| s.item_id == item_id)
+        {
+            stack.qty += 1;
+        } else {
+            session.player_mut(actor).inventory.push(ItemStack {
+                item_id: item_id.to_owned(),
+                qty: 1,
+            });
+        }
+        return Err("Failed to add item to receiver's inventory.".to_owned());
+    }
+
+    Ok(vec![format!(
+        "{} gifted {} to {}!",
+        giver_name, item_name, receiver_name
     )])
 }
 

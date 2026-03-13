@@ -572,6 +572,7 @@ pub enum GameAction {
     ViewMap,
     ViewInventory,
     Revive(serenity::UserId),
+    Gift(ItemId, serenity::UserId),
 }
 
 // ── Session mode ────────────────────────────────────────────────────
