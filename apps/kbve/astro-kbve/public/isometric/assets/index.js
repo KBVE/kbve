@@ -9773,58 +9773,58 @@ function __wbg_get_imports() {
   }, __wbg_y_30a7c06266f44f65: function(a) {
     return getObject(a).y;
   }, __wbindgen_cast_0000000000000001: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_169740, __wasm_bindgen_func_elem_169741);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_169624, __wasm_bindgen_func_elem_169625);
     return addHeapObject(i);
   }, __wbindgen_cast_0000000000000002: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_181714, __wasm_bindgen_func_elem_181715);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_181598, __wasm_bindgen_func_elem_181599);
     return addHeapObject(i);
   }, __wbindgen_cast_0000000000000003: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55204, __wasm_bindgen_func_elem_55205);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55090, __wasm_bindgen_func_elem_55091);
     return addHeapObject(i);
   }, __wbindgen_cast_0000000000000004: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55204, __wasm_bindgen_func_elem_55207);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55090, __wasm_bindgen_func_elem_55097);
     return addHeapObject(i);
   }, __wbindgen_cast_0000000000000005: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55204, __wasm_bindgen_func_elem_55205_4);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55090, __wasm_bindgen_func_elem_55091_4);
     return addHeapObject(i);
   }, __wbindgen_cast_0000000000000006: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55204, __wasm_bindgen_func_elem_55205_5);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55090, __wasm_bindgen_func_elem_55091_5);
     return addHeapObject(i);
   }, __wbindgen_cast_0000000000000007: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55204, __wasm_bindgen_func_elem_55205_6);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55090, __wasm_bindgen_func_elem_55091_6);
     return addHeapObject(i);
   }, __wbindgen_cast_0000000000000008: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55204, __wasm_bindgen_func_elem_55205_7);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55090, __wasm_bindgen_func_elem_55091_7);
     return addHeapObject(i);
   }, __wbindgen_cast_0000000000000009: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55204, __wasm_bindgen_func_elem_55205_8);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55090, __wasm_bindgen_func_elem_55091_8);
     return addHeapObject(i);
   }, __wbindgen_cast_000000000000000a: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55204, __wasm_bindgen_func_elem_55205_9);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55090, __wasm_bindgen_func_elem_55091_9);
     return addHeapObject(i);
   }, __wbindgen_cast_000000000000000b: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55204, __wasm_bindgen_func_elem_55205_10);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55090, __wasm_bindgen_func_elem_55091_10);
     return addHeapObject(i);
   }, __wbindgen_cast_000000000000000c: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55204, __wasm_bindgen_func_elem_55213);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55090, __wasm_bindgen_func_elem_55094);
     return addHeapObject(i);
   }, __wbindgen_cast_000000000000000d: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55204, __wasm_bindgen_func_elem_55215);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_55090, __wasm_bindgen_func_elem_55103);
     return addHeapObject(i);
   }, __wbindgen_cast_000000000000000e: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_8329, __wasm_bindgen_func_elem_8330);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_8216, __wasm_bindgen_func_elem_8217);
     return addHeapObject(i);
   }, __wbindgen_cast_000000000000000f: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_8329, __wasm_bindgen_func_elem_8330_14);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_8216, __wasm_bindgen_func_elem_8217_14);
     return addHeapObject(i);
   }, __wbindgen_cast_0000000000000010: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_8329, __wasm_bindgen_func_elem_8330_15);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_8216, __wasm_bindgen_func_elem_8217_15);
     return addHeapObject(i);
   }, __wbindgen_cast_0000000000000011: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_108605, __wasm_bindgen_func_elem_108606);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_108491, __wasm_bindgen_func_elem_108492);
     return addHeapObject(i);
   }, __wbindgen_cast_0000000000000012: function(a, c) {
-    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_118948, __wasm_bindgen_func_elem_118949);
+    const i = makeMutClosure(a, c, wasm.__wasm_bindgen_func_elem_118835, __wasm_bindgen_func_elem_118836);
     return addHeapObject(i);
   }, __wbindgen_cast_0000000000000013: function(a) {
     return addHeapObject(a);
@@ -9861,66 +9861,66 @@ function __wbg_get_imports() {
   return { __proto__: null, "./isometric_game_bg.js": import0 };
 }
 const lAudioContext = typeof AudioContext < "u" ? AudioContext : typeof webkitAudioContext < "u" ? webkitAudioContext : void 0;
-function __wasm_bindgen_func_elem_169741(a, c) {
-  wasm.__wasm_bindgen_func_elem_169741(a, c);
+function __wasm_bindgen_func_elem_169625(a, c) {
+  wasm.__wasm_bindgen_func_elem_169625(a, c);
 }
-function __wasm_bindgen_func_elem_55215(a, c) {
-  wasm.__wasm_bindgen_func_elem_55215(a, c);
+function __wasm_bindgen_func_elem_55103(a, c) {
+  wasm.__wasm_bindgen_func_elem_55103(a, c);
 }
-function __wasm_bindgen_func_elem_108606(a, c) {
-  wasm.__wasm_bindgen_func_elem_108606(a, c);
+function __wasm_bindgen_func_elem_108492(a, c) {
+  wasm.__wasm_bindgen_func_elem_108492(a, c);
 }
-function __wasm_bindgen_func_elem_55205(a, c, i) {
-  wasm.__wasm_bindgen_func_elem_55205(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55091(a, c, i) {
+  wasm.__wasm_bindgen_func_elem_55091(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55205_4(a, c, i) {
-  wasm.__wasm_bindgen_func_elem_55205_4(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55091_4(a, c, i) {
+  wasm.__wasm_bindgen_func_elem_55091_4(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55205_5(a, c, i) {
-  wasm.__wasm_bindgen_func_elem_55205_5(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55091_5(a, c, i) {
+  wasm.__wasm_bindgen_func_elem_55091_5(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55205_6(a, c, i) {
-  wasm.__wasm_bindgen_func_elem_55205_6(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55091_6(a, c, i) {
+  wasm.__wasm_bindgen_func_elem_55091_6(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55205_7(a, c, i) {
-  wasm.__wasm_bindgen_func_elem_55205_7(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55091_7(a, c, i) {
+  wasm.__wasm_bindgen_func_elem_55091_7(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55205_8(a, c, i) {
-  wasm.__wasm_bindgen_func_elem_55205_8(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55091_8(a, c, i) {
+  wasm.__wasm_bindgen_func_elem_55091_8(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55205_9(a, c, i) {
-  wasm.__wasm_bindgen_func_elem_55205_9(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55091_9(a, c, i) {
+  wasm.__wasm_bindgen_func_elem_55091_9(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55205_10(a, c, i) {
-  wasm.__wasm_bindgen_func_elem_55205_10(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55091_10(a, c, i) {
+  wasm.__wasm_bindgen_func_elem_55091_10(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55213(a, c, i) {
-  wasm.__wasm_bindgen_func_elem_55213(a, c, isLikeNone(i) ? 0 : addHeapObject(i));
+function __wasm_bindgen_func_elem_55094(a, c, i) {
+  wasm.__wasm_bindgen_func_elem_55094(a, c, isLikeNone(i) ? 0 : addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_8330(a, c, i) {
-  wasm.__wasm_bindgen_func_elem_8330(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_8217(a, c, i) {
+  wasm.__wasm_bindgen_func_elem_8217(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_8330_14(a, c, i) {
-  wasm.__wasm_bindgen_func_elem_8330_14(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_8217_14(a, c, i) {
+  wasm.__wasm_bindgen_func_elem_8217_14(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_8330_15(a, c, i) {
-  wasm.__wasm_bindgen_func_elem_8330_15(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_8217_15(a, c, i) {
+  wasm.__wasm_bindgen_func_elem_8217_15(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_118949(a, c, i) {
-  wasm.__wasm_bindgen_func_elem_118949(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_118836(a, c, i) {
+  wasm.__wasm_bindgen_func_elem_118836(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_181715(a, c, i) {
+function __wasm_bindgen_func_elem_181599(a, c, i) {
   try {
     const b = wasm.__wbindgen_add_to_stack_pointer(-16);
-    wasm.__wasm_bindgen_func_elem_181715(b, a, c, addHeapObject(i));
+    wasm.__wasm_bindgen_func_elem_181599(b, a, c, addHeapObject(i));
     var f = getDataViewMemory0().getInt32(b + 0, true), _ = getDataViewMemory0().getInt32(b + 4, true);
     if (_) throw takeObject(f);
   } finally {
     wasm.__wbindgen_add_to_stack_pointer(16);
   }
 }
-function __wasm_bindgen_func_elem_55207(a, c, i, f) {
-  wasm.__wasm_bindgen_func_elem_55207(a, c, addHeapObject(i), addHeapObject(f));
+function __wasm_bindgen_func_elem_55097(a, c, i, f) {
+  wasm.__wasm_bindgen_func_elem_55097(a, c, addHeapObject(i), addHeapObject(f));
 }
 const __wbindgen_enum_BinaryType = ["blob", "arraybuffer"], __wbindgen_enum_GamepadMappingType = ["", "standard"], __wbindgen_enum_GpuAddressMode = ["clamp-to-edge", "repeat", "mirror-repeat"], __wbindgen_enum_GpuBlendFactor = ["zero", "one", "src", "one-minus-src", "src-alpha", "one-minus-src-alpha", "dst", "one-minus-dst", "dst-alpha", "one-minus-dst-alpha", "src-alpha-saturated", "constant", "one-minus-constant", "src1", "one-minus-src1", "src1-alpha", "one-minus-src1-alpha"], __wbindgen_enum_GpuBlendOperation = ["add", "subtract", "reverse-subtract", "min", "max"], __wbindgen_enum_GpuBufferBindingType = ["uniform", "storage", "read-only-storage"], __wbindgen_enum_GpuCanvasAlphaMode = ["opaque", "premultiplied"], __wbindgen_enum_GpuCompareFunction = ["never", "less", "equal", "less-equal", "greater", "not-equal", "greater-equal", "always"], __wbindgen_enum_GpuCullMode = ["none", "front", "back"], __wbindgen_enum_GpuErrorFilter = ["validation", "out-of-memory", "internal"], __wbindgen_enum_GpuFilterMode = ["nearest", "linear"], __wbindgen_enum_GpuFrontFace = ["ccw", "cw"], __wbindgen_enum_GpuIndexFormat = ["uint16", "uint32"], __wbindgen_enum_GpuLoadOp = ["load", "clear"], __wbindgen_enum_GpuMipmapFilterMode = ["nearest", "linear"], __wbindgen_enum_GpuPowerPreference = ["low-power", "high-performance"], __wbindgen_enum_GpuPrimitiveTopology = ["point-list", "line-list", "line-strip", "triangle-list", "triangle-strip"], __wbindgen_enum_GpuQueryType = ["occlusion", "timestamp"], __wbindgen_enum_GpuSamplerBindingType = ["filtering", "non-filtering", "comparison"], __wbindgen_enum_GpuStencilOperation = ["keep", "zero", "replace", "invert", "increment-clamp", "decrement-clamp", "increment-wrap", "decrement-wrap"], __wbindgen_enum_GpuStorageTextureAccess = ["write-only", "read-only", "read-write"], __wbindgen_enum_GpuStoreOp = ["store", "discard"], __wbindgen_enum_GpuTextureAspect = ["all", "stencil-only", "depth-only"], __wbindgen_enum_GpuTextureDimension = ["1d", "2d", "3d"], __wbindgen_enum_GpuTextureFormat = ["r8unorm", "r8snorm", "r8uint", "r8sint", "r16uint", "r16sint", "r16float", "rg8unorm", "rg8snorm", "rg8uint", "rg8sint", "r32uint", "r32sint", "r32float", "rg16uint", "rg16sint", "rg16float", "rgba8unorm", "rgba8unorm-srgb", "rgba8snorm", "rgba8uint", "rgba8sint", "bgra8unorm", "bgra8unorm-srgb", "rgb9e5ufloat", "rgb10a2uint", "rgb10a2unorm", "rg11b10ufloat", "rg32uint", "rg32sint", "rg32float", "rgba16uint", "rgba16sint", "rgba16float", "rgba32uint", "rgba32sint", "rgba32float", "stencil8", "depth16unorm", "depth24plus", "depth24plus-stencil8", "depth32float", "depth32float-stencil8", "bc1-rgba-unorm", "bc1-rgba-unorm-srgb", "bc2-rgba-unorm", "bc2-rgba-unorm-srgb", "bc3-rgba-unorm", "bc3-rgba-unorm-srgb", "bc4-r-unorm", "bc4-r-snorm", "bc5-rg-unorm", "bc5-rg-snorm", "bc6h-rgb-ufloat", "bc6h-rgb-float", "bc7-rgba-unorm", "bc7-rgba-unorm-srgb", "etc2-rgb8unorm", "etc2-rgb8unorm-srgb", "etc2-rgb8a1unorm", "etc2-rgb8a1unorm-srgb", "etc2-rgba8unorm", "etc2-rgba8unorm-srgb", "eac-r11unorm", "eac-r11snorm", "eac-rg11unorm", "eac-rg11snorm", "astc-4x4-unorm", "astc-4x4-unorm-srgb", "astc-5x4-unorm", "astc-5x4-unorm-srgb", "astc-5x5-unorm", "astc-5x5-unorm-srgb", "astc-6x5-unorm", "astc-6x5-unorm-srgb", "astc-6x6-unorm", "astc-6x6-unorm-srgb", "astc-8x5-unorm", "astc-8x5-unorm-srgb", "astc-8x6-unorm", "astc-8x6-unorm-srgb", "astc-8x8-unorm", "astc-8x8-unorm-srgb", "astc-10x5-unorm", "astc-10x5-unorm-srgb", "astc-10x6-unorm", "astc-10x6-unorm-srgb", "astc-10x8-unorm", "astc-10x8-unorm-srgb", "astc-10x10-unorm", "astc-10x10-unorm-srgb", "astc-12x10-unorm", "astc-12x10-unorm-srgb", "astc-12x12-unorm", "astc-12x12-unorm-srgb"], __wbindgen_enum_GpuTextureSampleType = ["float", "unfilterable-float", "depth", "sint", "uint"], __wbindgen_enum_GpuTextureViewDimension = ["1d", "2d", "2d-array", "cube", "cube-array", "3d"], __wbindgen_enum_GpuVertexFormat = ["uint8", "uint8x2", "uint8x4", "sint8", "sint8x2", "sint8x4", "unorm8", "unorm8x2", "unorm8x4", "snorm8", "snorm8x2", "snorm8x4", "uint16", "uint16x2", "uint16x4", "sint16", "sint16x2", "sint16x4", "unorm16", "unorm16x2", "unorm16x4", "snorm16", "snorm16x2", "snorm16x4", "float16", "float16x2", "float16x4", "float32", "float32x2", "float32x3", "float32x4", "uint32", "uint32x2", "uint32x3", "uint32x4", "sint32", "sint32x2", "sint32x3", "sint32x4", "unorm10-10-10-2", "unorm8x4-bgra"], __wbindgen_enum_GpuVertexStepMode = ["vertex", "instance"], __wbindgen_enum_PremultiplyAlpha = ["none", "premultiply", "default"], __wbindgen_enum_ResizeObserverBoxOptions = ["border-box", "content-box", "device-pixel-content-box"], __wbindgen_enum_VisibilityState = ["hidden", "visible"];
 function addHeapObject(a) {
