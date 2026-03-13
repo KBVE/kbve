@@ -2,9 +2,9 @@
  * Server-side Zod validation for discordsh edge functions.
  *
  * Mirrors the proto-generated SubmitServerRequestSchema from
- * packages/data/proto/discordsh.proto via discordsh-zod-config.json.
+ * packages/data/proto/discordsh.proto via codegen/discordsh-zod-config.json.
  * Kept in sync manually — regenerate client schema with:
- *   npx tsx packages/data/proto/gen-discordsh-zod.mjs
+ *   npx tsx packages/data/codegen/gen-discordsh-zod.mjs
  */
 
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
