@@ -1,0 +1,281 @@
+syntax = "proto3";
+
+package item;
+
+import "kbve/common.proto";
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+// Item archetype flags — bitmask so an item can be multiple types
+enum ItemTypeFlag {
+  ITEM_TYPE_NONE         = 0;
+  ITEM_TYPE_WEAPON       = 0x00000001;
+  ITEM_TYPE_ARMOR        = 0x00000002;
+  ITEM_TYPE_TOOL         = 0x00000004;
+  ITEM_TYPE_FOOD         = 0x00000008;
+  ITEM_TYPE_DRINK        = 0x00000010;
+  ITEM_TYPE_POTION       = 0x00000020;
+  ITEM_TYPE_MATERIAL     = 0x00000040;
+  ITEM_TYPE_RESOURCE     = 0x00000080;
+  ITEM_TYPE_SKILLING     = 0x00000100;
+  ITEM_TYPE_COMBAT       = 0x00000200;
+  ITEM_TYPE_STRUCTURE    = 0x00000400;
+  ITEM_TYPE_MAGIC        = 0x00000800;
+  ITEM_TYPE_QUEST        = 0x00001000;
+  ITEM_TYPE_UTILITY      = 0x00002000;
+  ITEM_TYPE_DEPLETABLE   = 0x00004000;
+  ITEM_TYPE_LEGENDARY    = 0x00008000;
+  ITEM_TYPE_VEHICLE      = 0x00010000;
+  ITEM_TYPE_PET          = 0x00020000;
+  ITEM_TYPE_CURRENCY     = 0x00040000;
+  ITEM_TYPE_COSMETIC     = 0x00080000;
+  ITEM_TYPE_DEPLOYABLE   = 0x00100000;
+  ITEM_TYPE_SOUL         = 0x40000000;
+}
+
+// Rarity tier
+enum ItemRarity {
+  ITEM_RARITY_COMMON     = 0;
+  ITEM_RARITY_UNCOMMON   = 1;
+  ITEM_RARITY_RARE       = 2;
+  ITEM_RARITY_EPIC       = 3;
+  ITEM_RARITY_LEGENDARY  = 4;
+  ITEM_RARITY_MYTHIC     = 5;
+}
+
+// Equipment slot
+enum EquipSlot {
+  EQUIP_SLOT_UNSPECIFIED = 0;
+  EQUIP_SLOT_HEAD        = 1;
+  EQUIP_SLOT_CHEST       = 2;
+  EQUIP_SLOT_LEGS        = 3;
+  EQUIP_SLOT_FEET        = 4;
+  EQUIP_SLOT_HANDS       = 5;
+  EQUIP_SLOT_MAIN_HAND   = 6;
+  EQUIP_SLOT_OFF_HAND    = 7;
+  EQUIP_SLOT_NECK        = 8;
+  EQUIP_SLOT_RING        = 9;
+  EQUIP_SLOT_BACK        = 10;
+  EQUIP_SLOT_TWO_HAND    = 11;
+  EQUIP_SLOT_AMMO        = 12;
+}
+
+// Element / damage affinity (mirrors npc.Element for cross-referencing)
+enum Element {
+  ELEMENT_NONE           = 0;
+  ELEMENT_FIRE           = 1;
+  ELEMENT_ICE            = 2;
+  ELEMENT_LIGHTNING      = 3;
+  ELEMENT_POISON         = 4;
+  ELEMENT_SHADOW         = 5;
+  ELEMENT_HOLY           = 6;
+  ELEMENT_ARCANE         = 7;
+  ELEMENT_EARTH          = 8;
+  ELEMENT_WIND           = 9;
+}
+
+// Use effect type — what happens when the item is consumed/activated
+enum UseEffectType {
+  USE_EFFECT_NONE                    = 0;
+  USE_EFFECT_HEAL                    = 1;
+  USE_EFFECT_DAMAGE_ENEMY            = 2;
+  USE_EFFECT_APPLY_EFFECT            = 3;
+  USE_EFFECT_REMOVE_EFFECT           = 4;
+  USE_EFFECT_GUARANTEED_FLEE         = 5;
+  USE_EFFECT_FULL_HEAL               = 6;
+  USE_EFFECT_REMOVE_ALL_NEGATIVE     = 7;
+  USE_EFFECT_CAMPFIRE_REST           = 8;
+  USE_EFFECT_TELEPORT_CITY           = 9;
+  USE_EFFECT_DAMAGE_AND_APPLY        = 10;
+  USE_EFFECT_REVIVE_ALLY             = 11;
+  USE_EFFECT_BUFF_PARTY              = 12;
+  USE_EFFECT_SUMMON                  = 13;
+  USE_EFFECT_TRANSFORM               = 14;
+}
+
+// Gear special passive
+enum GearSpecialType {
+  GEAR_SPECIAL_NONE             = 0;
+  GEAR_SPECIAL_LIFE_STEAL       = 1;
+  GEAR_SPECIAL_THORNS           = 2;
+  GEAR_SPECIAL_CRIT_BONUS       = 3;
+  GEAR_SPECIAL_DAMAGE_REDUCTION = 4;
+}
+
+// =============================================================================
+// Sub-messages
+// =============================================================================
+
+// Stat bonuses granted by equipping or using an item
+message ItemBonuses {
+  optional int32 armor        = 1;
+  optional int32 attack       = 2;
+  optional int32 defense      = 3;
+  optional int32 strength     = 4;
+  optional int32 intelligence = 5;
+  optional int32 health       = 6;
+  optional int32 mana         = 7;
+  optional int32 energy       = 8;
+  optional int32 speed        = 9;
+  optional int32 agility      = 10;
+  optional float crit_chance  = 11;     // 0.0–1.0
+  optional float crit_damage  = 12;     // Multiplier (e.g. 1.5)
+}
+
+// Equipment properties — present when item can be equipped
+message EquipmentInfo {
+  EquipSlot slot = 1;
+  ItemBonuses bonuses = 2;
+  optional GearSpecialType special = 3;
+  optional float special_value = 4;     // Magnitude for the special (e.g. 0.15 = 15% lifesteal)
+  optional int32 durability = 5;
+  optional int32 max_durability = 6;
+}
+
+// A single use effect definition
+message UseEffect {
+  UseEffectType type = 1;
+  optional int32 amount = 2;            // Heal amount, damage amount, etc.
+  optional string effect_kind = 3;      // Status effect slug (e.g. "poison", "shielded")
+  optional int32 stacks = 4;            // Number of effect stacks to apply
+  optional int32 turns = 5;             // Duration in turns
+  optional int32 percent = 6;           // Percentage value (e.g. campfire heal %)
+  optional string summon_ref = 7;       // NPC ref for summon effects
+}
+
+// Crafting ingredient
+message CraftingIngredient {
+  string item_ref = 1;                  // ULID or item slug
+  optional string name = 2;
+  int32 amount = 3;                     // default: 1
+  optional bool consumed = 4;           // Whether consumed in crafting (default: true)
+}
+
+// Crafting recipe — how to create this item
+message CraftingRecipe {
+  repeated CraftingIngredient ingredients = 1;
+  repeated string required_tools = 2;   // Tool item refs needed (not consumed)
+  optional string skill = 3;            // Required crafting skill slug
+  optional int32 skill_level = 4;       // Required skill level
+  optional float xp_reward = 5;         // XP granted on craft
+  optional int32 output_quantity = 6;   // How many produced (default: 1)
+  optional string facility = 7;         // Required crafting station (e.g. "furnace", "anvil")
+  optional bool members_only = 8;
+}
+
+// Deployable configuration (for structure/placeable items)
+message DeployableInfo {
+  repeated int32 size = 1;              // [width, height] grid cells
+  repeated float pivot = 2;             // [x, y] anchor point (0.0–1.0)
+  optional string override_prefab = 3;  // Custom prefab reference
+  optional float scale_multiplier = 4;  // Visual scale (default: 1.0)
+  optional bool grid_snap = 5;          // Snap to grid (default: true)
+  repeated string scripts = 6;         // Attached script names
+}
+
+// Loot source — where this item can be found
+message ItemSource {
+  optional string source_type = 1;      // "drop", "shop", "craft", "quest", "gather"
+  optional string source_ref = 2;       // NPC/shop/quest slug
+  optional string source_name = 3;
+  optional float drop_rate = 4;         // 0.0–1.0 probability
+  optional int32 min_quantity = 5;
+  optional int32 max_quantity = 6;
+  optional int32 level_requirement = 7;
+}
+
+// Generic extension slot — arbitrary key-value pairs for game-specific data
+message ItemExtension {
+  string key = 1;                       // Namespace, e.g. "isometric.gather_time"
+  oneof value {
+    string string_value = 2;
+    int64 int_value = 3;
+    double float_value = 4;
+    bool bool_value = 5;
+    bytes bytes_value = 6;
+  }
+}
+
+// =============================================================================
+// Core Item Definition
+// =============================================================================
+
+message Item {
+  // Identity
+  string id = 1;                        // ULID
+  string slug = 2;                      // URL-safe identifier, e.g. "fire-flask"
+  string name = 3;
+  optional string title = 4;            // Display title override
+  optional string description = 5;
+  optional string lore = 6;             // Extended flavor text / backstory
+
+  // Classification — type_flags is a bitmask of ItemTypeFlag values
+  int32 type_flags = 7;
+  ItemRarity rarity = 8;
+  optional Element element = 9;
+  repeated string tags = 10;            // Free-form tags for filtering
+
+  // Visual
+  optional string img = 11;             // Sprite / icon path
+  optional string icon = 12;            // Small icon for UI lists
+  optional string emoji = 13;           // Unicode emoji representation
+  optional int32 pixel_density = 14;    // Pixel density for rendering (8-512)
+  optional string sorting_layer = 15;   // Rendering layer name
+  optional int32 sorting_order = 16;    // Order within sorting layer
+  optional string model_ref = 17;       // 3D model reference
+  optional string animation_ref = 18;   // Use/equip animation reference
+  optional string sound_ref = 19;       // Use/equip sound reference
+
+  // Stacking & inventory
+  optional int32 max_stack = 20;        // Max per inventory slot (default: 1)
+  optional bool stackable = 21;         // Whether item can stack at all
+  optional float weight = 22;           // Weight per unit
+
+  // Requirements
+  optional int32 level_requirement = 23;
+  optional string quest_requirement = 24; // Quest slug that must be completed
+
+  // Economy
+  optional int32 buy_price = 25;        // Purchase cost in base currency
+  optional int32 sell_price = 26;       // Sell value in base currency
+  optional bool tradeable = 27;
+
+  // Consumable / use
+  optional bool consumable = 28;        // Consumed on use
+  optional int32 cooldown = 29;         // Cooldown in seconds/turns
+  optional string action = 30;          // Primary action verb (e.g. "consume", "deploy")
+  repeated UseEffect use_effects = 31;  // Effects triggered on use (can chain multiple)
+
+  // Equipment
+  optional EquipmentInfo equipment = 32;
+
+  // Crafting
+  repeated CraftingRecipe recipes = 33; // Ways to craft this item
+
+  // Deployable
+  optional DeployableInfo deployable = 34;
+
+  // Sources — where this item comes from
+  repeated ItemSource sources = 35;
+
+  // Related items
+  repeated string related_item_refs = 36; // Variants, upgrades, set pieces
+  optional string set_ref = 37;         // Item set this belongs to
+
+  // Extensions — game-specific key-value pairs
+  repeated ItemExtension extensions = 38;
+
+  // Metadata
+  optional string credits = 39;
+  optional bool drafted = 40;           // Hidden from production
+}
+
+// =============================================================================
+// Registry
+// =============================================================================
+
+message ItemRegistry {
+  repeated Item items = 1;
+}
