@@ -143,6 +143,10 @@ jobs:
             - name: Install pnpm Dependencies
               run: pnpm install
 
+            - name: Install project-local npm dependencies
+              working-directory: ${{ inputs.project_path }}
+              run: npm install
+
             - name: Build Tauri App
               shell: bash
               working-directory: ${{ inputs.project_path }}
@@ -235,6 +239,10 @@ jobs:
             - name: Install pnpm Dependencies
               run: pnpm install
 
+            - name: Install project-local npm dependencies
+              working-directory: ${{ inputs.project_path }}
+              run: npm install
+
             - name: Build Tauri App
               shell: bash
               working-directory: ${{ inputs.project_path }}
@@ -323,6 +331,10 @@ jobs:
 
             - name: Install pnpm Dependencies
               run: pnpm install
+
+            - name: Install project-local npm dependencies
+              working-directory: ${{ inputs.project_path }}
+              run: npm install
 
             - name: Build Tauri App
               shell: bash
