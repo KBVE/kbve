@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 await generateAndWriteZod({
-	descriptorPath: resolve(__dirname, '../proto/discordsh.binpb'),
+	descriptorPath: resolve(__dirname, 'descriptors/discordsh.binpb'),
 	configPath: resolve(__dirname, 'discordsh-zod-config.json'),
 	outputPath: resolve(
 		__dirname,
