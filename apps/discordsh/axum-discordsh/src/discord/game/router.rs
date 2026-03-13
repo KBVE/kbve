@@ -169,6 +169,30 @@ pub async fn handle_game_component(
         } else {
             return send_ephemeral(component, ctx, "Invalid interaction.").await;
         }
+    } else if action_str == "gift" {
+        // Gift item select menu — value format: "item_id|target_uid"
+        if let serenity::ComponentInteractionDataKind::StringSelect { values } =
+            &component.data.kind
+        {
+            if let Some(value) = values.first() {
+                let mut parts_iter = value.splitn(2, '|');
+                let item_id = parts_iter.next().unwrap_or("").to_owned();
+                let target_uid = parts_iter
+                    .next()
+                    .and_then(|s| s.parse::<u64>().ok())
+                    .map(serenity::UserId::new);
+                match target_uid {
+                    Some(uid) if !item_id.is_empty() => GameAction::Gift(item_id, uid),
+                    _ => {
+                        return send_ephemeral(component, ctx, "Invalid gift target.").await;
+                    }
+                }
+            } else {
+                return send_ephemeral(component, ctx, "No item selected.").await;
+            }
+        } else {
+            return send_ephemeral(component, ctx, "Invalid interaction.").await;
+        }
     } else if action_str == "room" {
         let idx_str = parts.get(3).unwrap_or(&"0");
         match idx_str.parse::<u8>() {
