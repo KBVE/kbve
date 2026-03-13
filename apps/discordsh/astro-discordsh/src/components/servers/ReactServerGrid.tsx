@@ -1,7 +1,21 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
+import { useStore } from '@nanostores/react';
 import { ReactServerCard } from './ReactServerCard';
-import { fetchServers, CATEGORIES, castVote } from '@/lib/servers';
-import type { ServerCard, SortOption } from '@/lib/servers';
+import { CATEGORIES, castVote } from '@/lib/servers';
+import type { SortOption } from '@/lib/servers';
+import {
+	$servers,
+	$total,
+	$category,
+	$sort,
+	$hasMore,
+	$loading,
+	loadServers,
+	setCategory,
+	setSort,
+	loadMore,
+	applyVote,
+} from '@/lib/servers/serverStore';
 import { useHCaptcha } from '@/lib/servers/useHCaptcha';
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
@@ -9,15 +23,13 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 	{ value: 'members', label: 'Most Members' },
 ];
 
-const PAGE_SIZE = 24;
-
 export function ReactServerGrid() {
-	const [servers, setServers] = useState<ServerCard[]>([]);
-	const [total, setTotal] = useState(0);
-	const [page, setPage] = useState(1);
-	const [category, setCategory] = useState<string | null>(null);
-	const [sort, setSort] = useState<SortOption>('votes');
-	const [loading, setLoading] = useState(true);
+	const servers = useStore($servers);
+	const total = useStore($total);
+	const category = useStore($category);
+	const sort = useStore($sort);
+	const loading = useStore($loading);
+
 	const {
 		containerRef: captchaRef,
 		execute: executeCaptcha,
@@ -30,13 +42,7 @@ export function ReactServerGrid() {
 				const captchaToken = await executeCaptcha();
 				const result = await castVote(serverId, captchaToken);
 				if (result.success) {
-					setServers((prev) =>
-						prev.map((s) =>
-							s.server_id === serverId
-								? { ...s, vote_count: s.vote_count + 1 }
-								: s,
-						),
-					);
+					applyVote(serverId);
 					return true;
 				}
 				console.warn('Vote failed:', result.message);
@@ -51,44 +57,34 @@ export function ReactServerGrid() {
 		[executeCaptcha, resetCaptcha],
 	);
 
-	const loadServers = useCallback(
-		async (reset = false) => {
-			setLoading(true);
-			const p = reset ? 1 : page;
-			const result = await fetchServers({
-				category: category ?? undefined,
-				sort,
-				page: p,
-				limit: PAGE_SIZE,
-			});
-			setServers((prev) =>
-				reset ? result.servers : [...prev, ...result.servers],
-			);
-			setTotal(result.total);
-			if (reset) setPage(1);
-			setLoading(false);
-		},
-		[category, sort, page],
-	);
+	const sentinelRef = useRef<HTMLDivElement>(null);
 
-	// Reset on category/sort change
+	// Initial load
 	useEffect(() => {
-		setPage(1);
-		setServers([]);
 		loadServers(true);
-	}, [category, sort]);
+	}, []);
 
-	const handleLoadMore = () => {
-		const nextPage = page + 1;
-		setPage(nextPage);
-	};
-
-	// Load more when page increments beyond 1
+	// Infinite scroll — load next page when sentinel enters viewport
 	useEffect(() => {
-		if (page > 1) loadServers(false);
-	}, [page]);
+		const el = sentinelRef.current;
+		if (!el) return;
 
-	const hasMore = servers.length < total;
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (
+					entries[0]?.isIntersecting &&
+					$hasMore.get() &&
+					!$loading.get()
+				) {
+					loadMore();
+				}
+			},
+			{ rootMargin: '200px' },
+		);
+
+		observer.observe(el);
+		return () => observer.disconnect();
+	}, []);
 
 	return (
 		<div>
@@ -152,14 +148,8 @@ export function ReactServerGrid() {
 				</div>
 			)}
 
-			{/* Load more */}
-			{hasMore && !loading && (
-				<div className="flex justify-center mt-6">
-					<button onClick={handleLoadMore} className="sg-load-more">
-						Load More
-					</button>
-				</div>
-			)}
+			{/* Infinite scroll sentinel */}
+			<div ref={sentinelRef} className="h-1" />
 
 			{/* Loading indicator */}
 			{loading && servers.length > 0 && (

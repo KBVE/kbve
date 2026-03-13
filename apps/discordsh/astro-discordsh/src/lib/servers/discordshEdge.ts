@@ -40,6 +40,28 @@ export async function castVote(
 	});
 }
 
+// Public edge call — no auth required
+async function callEdgePublic(
+	command: string,
+	payload: Record<string, unknown>,
+): Promise<EdgeResponse> {
+	const res = await fetch(EDGE_URL, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ command, ...payload }),
+	});
+	return (await res.json()) as EdgeResponse;
+}
+
+export async function listServers(params: {
+	limit?: number;
+	page?: number;
+	sort?: string;
+	category?: number | null;
+}): Promise<EdgeResponse> {
+	return callEdgePublic('list.servers', params);
+}
+
 export async function submitServer(params: {
 	server_id: string;
 	name: string;

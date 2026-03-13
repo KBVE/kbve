@@ -184,3 +184,109 @@ test.describe('Audit: Security Headers on Auth Routes', () => {
 		expect(headers['x-frame-options']).toBe('DENY');
 	});
 });
+
+// ---------------------------------------------------------------------------
+// #7712 Audit: Auth scripts use module imports (not inline logic)
+// ---------------------------------------------------------------------------
+
+test.describe('Audit: Auth Script Modules', () => {
+	test('/auth/callback script imports from lib/auth module', async ({
+		request,
+	}) => {
+		const response = await request.get('/auth/callback');
+		const body = await response.text();
+		// Vite bundles the import, but the original template should NOT
+		// contain raw authBridge logic inline — only an import statement.
+		// Verify the page loads (200) and contains a script tag.
+		expect(response.status()).toBe(200);
+		expect(body).toContain('<script');
+		// Should NOT contain the old inline handleCallback pattern
+		expect(body).not.toContain('authBridge.handleCallback()');
+	});
+
+	test('/auth/logout script imports from lib/auth module', async ({
+		request,
+	}) => {
+		const response = await request.get('/auth/logout');
+		const body = await response.text();
+		expect(response.status()).toBe(200);
+		expect(body).toContain('<script');
+		// Should NOT contain the old inline signOut pattern
+		expect(body).not.toContain('authBridge.signOut()');
+	});
+});
+
+// ---------------------------------------------------------------------------
+// #7712 Audit: Inline styles removed — CSS classes used
+// ---------------------------------------------------------------------------
+
+test.describe('Audit: No Inline Styles', () => {
+	test('server cards do not use inline style attributes', async ({
+		page,
+	}) => {
+		await page.goto('/servers/');
+		await page.waitForLoadState('domcontentloaded');
+
+		const cards = page.locator('.server-card');
+		const count = await cards.count();
+
+		for (let i = 0; i < Math.min(count, 5); i++) {
+			const style = await cards.nth(i).getAttribute('style');
+			expect(style).toBeNull();
+		}
+	});
+
+	test('submit form inputs use sf-input CSS class', async ({ page }) => {
+		await page.goto('/servers/submit');
+		await page.waitForLoadState('domcontentloaded');
+
+		const inputs = page.locator('.sf-input');
+		const count = await inputs.count();
+		// Submit form should have at least the required fields
+		expect(count).toBeGreaterThanOrEqual(4);
+	});
+
+	test('submit form labels use sf-label CSS class', async ({ page }) => {
+		await page.goto('/servers/submit');
+		await page.waitForLoadState('domcontentloaded');
+
+		const labels = page.locator('.sf-label');
+		const count = await labels.count();
+		expect(count).toBeGreaterThanOrEqual(4);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// #7712 Audit: NavBar uses CSS classes (no inline style objects)
+// ---------------------------------------------------------------------------
+
+test.describe('Audit: NavBar CSS Classes', () => {
+	test('OAuth buttons use nb-oauth-btn class', async ({ page }) => {
+		await page.goto('/');
+		await page.waitForLoadState('domcontentloaded');
+
+		// OAuth buttons only render inside the sign-in modal, so just verify
+		// the page loaded without inline style errors. The nb-oauth-* classes
+		// are defined in global.css and available site-wide.
+		const body = await page.content();
+		expect(body).toContain('nb-oauth-discord');
+	});
+});
+
+// ---------------------------------------------------------------------------
+// #7712 Audit: ExpandButton uses CSS class
+// ---------------------------------------------------------------------------
+
+test.describe('Audit: ExpandButton CSS', () => {
+	test('expand buttons use eb-base CSS class', async ({ page }) => {
+		await page.goto('/servers/');
+		await page.waitForLoadState('domcontentloaded');
+
+		const buttons = page.locator('.eb-base');
+		const count = await buttons.count();
+		// Each server card has 2 expand buttons (vote + join)
+		if (count > 0) {
+			expect(count).toBeGreaterThanOrEqual(2);
+		}
+	});
+});

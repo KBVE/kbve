@@ -3,6 +3,7 @@ import { corsHeaders } from "../_shared/cors.ts";
 import { extractToken, jsonResponse, parseJwt } from "./_shared.ts";
 import { handleVote, VOTE_ACTIONS } from "./vote.ts";
 import { handleServer, SERVER_ACTIONS } from "./server.ts";
+import { handleList, LIST_ACTIONS } from "./list.ts";
 
 // ---------------------------------------------------------------------------
 // Discordsh Edge Function — Unified Router
@@ -10,6 +11,7 @@ import { handleServer, SERVER_ACTIONS } from "./server.ts";
 // Command format: "module.action"
 //   vote:    cast
 //   server:  submit
+//   list:    servers  (public — no auth required)
 // ---------------------------------------------------------------------------
 
 const MODULES: Record<
@@ -19,10 +21,12 @@ const MODULES: Record<
       req: import("./_shared.ts").DiscordshRequest,
     ) => Promise<Response>;
     actions: string[];
+    public?: boolean;
   }
 > = {
   vote: { handler: handleVote, actions: VOTE_ACTIONS },
   server: { handler: handleServer, actions: SERVER_ACTIONS },
+  list: { handler: handleList, actions: LIST_ACTIONS, public: true },
 };
 
 function buildHelpText(): string {
@@ -45,8 +49,6 @@ serve(async (req) => {
   }
 
   try {
-    const token = extractToken(req);
-    const claims = await parseJwt(token);
     const body = await req.json();
     const { command } = body;
 
@@ -84,6 +86,14 @@ serve(async (req) => {
         },
         400,
       );
+    }
+
+    // Public modules skip authentication
+    let token = "";
+    let claims = {} as import("./_shared.ts").JwtClaims;
+    if (!mod.public) {
+      token = extractToken(req);
+      claims = await parseJwt(token);
     }
 
     return mod.handler({ token, claims, body, action });
