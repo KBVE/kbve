@@ -306,6 +306,10 @@ pub enum UseEffect {
         stacks: u8,
         turns: u8,
     },
+    /// Revive a dead party member at a percentage of their max HP.
+    ReviveAlly {
+        heal_percent: u8,
+    },
 }
 
 // ── Item rarity ────────────────────────────────────────────────────

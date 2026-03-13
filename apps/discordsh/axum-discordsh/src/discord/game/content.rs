@@ -351,6 +351,15 @@ pub fn item_registry() -> &'static [ItemDef] {
                 turns: 4,
             }),
         },
+        ItemDef {
+            id: "phoenix_feather",
+            name: "Phoenix Feather",
+            emoji: "\u{1F525}",
+            description: "Revives a fallen party member at 30% HP",
+            max_stack: 1,
+            rarity: ItemRarity::Epic,
+            use_effect: Some(UseEffect::ReviveAlly { heal_percent: 30 }),
+        },
     ];
     ITEMS
 }
@@ -643,6 +652,10 @@ fn loot_tables() -> &'static [LootTable] {
                     item_id: "rage_draught",
                     weight: 1,
                 },
+                LootEntry {
+                    item_id: "phoenix_feather",
+                    weight: 1,
+                },
             ],
             drop_chance: 0.5,
         },
@@ -671,6 +684,10 @@ fn loot_tables() -> &'static [LootTable] {
                 },
                 LootEntry {
                     item_id: "fire_flask",
+                    weight: 1,
+                },
+                LootEntry {
+                    item_id: "phoenix_feather",
                     weight: 1,
                 },
             ],
@@ -2135,8 +2152,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn item_registry_has_16_items() {
-        assert_eq!(item_registry().len(), 16);
+    fn item_registry_has_17_items() {
+        assert_eq!(item_registry().len(), 17);
     }
 
     #[test]
