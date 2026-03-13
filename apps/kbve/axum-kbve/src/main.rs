@@ -103,12 +103,13 @@ async fn main() -> anyhow::Result<()> {
         info!("ArgoCD proxy not configured (ARGOCD_UPSTREAM_URL not set)");
     }
 
-    // Initialize game server (Rapier3D physics + WebSocket)
-    let game_state = gameserver::init_gameserver();
-    info!("Game server initialized - /ws/game enabled");
+    // Initialize game server (headless Bevy + lightyear + avian3d)
+    // Runs in its own thread; lightyear binds WebSocket on GAME_WS_ADDR (default :5000)
+    gameserver::init_gameserver();
+    info!("Game server initialized - lightyear WebSocket on separate port");
 
-    // Shared application state
-    let state = transport::https::AppState::new_with_gameserver(game_state);
+    // Shared application state (no longer carries GameServerState)
+    let state = transport::https::AppState::new();
 
     // Transports
     let http = tokio::spawn(transport::https::serve(state));

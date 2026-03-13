@@ -1,0 +1,16 @@
+[package]
+name = "bevy_kbve_net"
+version = "0.1.0"
+edition = "2021"
+description = "Shared lightyear protocol for KBVE multiplayer — replicated components, inputs, channels"
+
+[dependencies]
+bevy = { version = "0.18", default-features = false, features = ["bevy_state", "bevy_render"] }
+lightyear = { version = "0.26", default-features = false, features = [
+    "replication",
+    "prediction",
+    "interpolation",
+    "input_native",
+] }
+avian3d = { version = "0.5", default-features = false, features = ["3d", "f32", "parry-f32", "serialize"] }
+serde = { version = "1", features = ["derive"] }
