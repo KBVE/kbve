@@ -1,8 +1,8 @@
 pub mod actions;
 pub mod camera;
+pub mod creatures;
 pub mod grass;
 pub mod input_bridge;
-pub mod insects;
 pub mod inventory;
 pub mod mushrooms;
 pub mod net;
@@ -24,7 +24,7 @@ use bevy::app::{PluginGroup, PluginGroupBuilder};
 
 use actions::ActionsPlugin;
 use camera::IsometricCameraPlugin;
-use insects::InsectsPlugin;
+use creatures::CreaturesPlugin;
 use inventory::{InventoryPlugin, ItemKind};
 use net::NetPlugin;
 use object_registry::ObjectRegistryPlugin;
@@ -59,7 +59,7 @@ impl PluginGroup for GamePluginGroup {
             .add(WaterPlugin)
             .add(InventoryPlugin::<ItemKind>::new(16))
             .add(WeatherPlugin)
-            .add(InsectsPlugin)
+            .add(CreaturesPlugin)
             .add(VirtualJoystickPlugin)
             .add(OrbHudPlugin)
             .add(ActionsPlugin)
