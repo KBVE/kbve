@@ -671,6 +671,46 @@ Focus on items with clear processing chains and market flip potential.
 | 6908 | Beginner wand | MTA entry wand    |
 | 6912 | Teacher wand  | MTA mid-tier wand |
 
+### Gilded D'hide (Implemented - Mar 2026)
+
+| ID    | Item                    | Override Focus             |
+| ----- | ----------------------- | -------------------------- |
+| 23264 | Gilded d'hide body      | Elite clue, cosmetic body  |
+| 23267 | Gilded d'hide chaps     | Elite clue, cosmetic chaps |
+| 23261 | Gilded d'hide vambraces | Elite clue, cosmetic vambs |
+| 23258 | Gilded coif             | Elite clue, cosmetic coif  |
+
+### Trimmed D'hide Bodies (Implemented - Mar 2026)
+
+| ID    | Item                  | Override Focus         |
+| ----- | --------------------- | ---------------------- |
+| 12385 | Black d'hide body (t) | Elite clue, 70 Ranged  |
+| 7374  | Blue d'hide body (g)  | Hard clue, 50 Ranged   |
+| 7376  | Blue d'hide body (t)  | Hard clue, 50 Ranged   |
+| 7370  | Green d'hide body (g) | Medium clue, 40 Ranged |
+| 7372  | Green d'hide body (t) | Medium clue, 40 Ranged |
+| 12327 | Red d'hide body (g)   | Hard clue, 60 Ranged   |
+| 12331 | Red d'hide body (t)   | Hard clue, 60 Ranged   |
+
+### Trimmed D'hide Chaps (Implemented - Mar 2026)
+
+| ID    | Item                   | Override Focus         |
+| ----- | ---------------------- | ---------------------- |
+| 12387 | Black d'hide chaps (t) | Hard clue, 70 Ranged   |
+| 7382  | Blue d'hide chaps (g)  | Medium clue, 50 Ranged |
+| 7384  | Blue d'hide chaps (t)  | Medium clue, 50 Ranged |
+| 7378  | Green d'hide chaps (g) | Medium clue, 40 Ranged |
+| 7380  | Green d'hide chaps (t) | Medium clue, 40 Ranged |
+| 12329 | Red d'hide chaps (g)   | Hard clue, 60 Ranged   |
+| 12333 | Red d'hide chaps (t)   | Hard clue, 60 Ranged   |
+
+### Misc Weapons (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus         |
+| ----- | ----------------- | ---------------------- |
+| 6910  | Apprentice wand   | MTA mid wand, 50 Magic |
+| 10156 | Hunter's crossbow | Kebbit bolt crossbow   |
+
 ---
 
 ## Future Override Priorities
@@ -1268,6 +1308,7 @@ Record batch completions here:
 | Mar 12, 2026 | +20 items (dragon bolts e, mystic, trimmed)  | ~921            |
 | Mar 12, 2026 | +20 items (god d'hide sets, rune weapons)    | ~941            |
 | Mar 12, 2026 | +20 items (god chaps/coifs/bracers, misc)    | ~961            |
+| Mar 13, 2026 | +20 items (gilded/trimmed d'hide, misc)      | ~981            |
 
 ### Quick Stats
 
