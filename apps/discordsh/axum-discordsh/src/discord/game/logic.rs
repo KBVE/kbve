@@ -887,11 +887,11 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
     let mut rng = rand::rng();
 
     // Collect info about dead enemies before removing them
-    let dead_enemies: Vec<(String, &'static str, u8)> = session
+    let dead_enemies: Vec<(String, &'static str, u8, Personality)> = session
         .enemies
         .iter()
         .filter(|e| e.hp <= 0)
-        .map(|e| (e.name.clone(), e.loot_table_id, e.level))
+        .map(|e| (e.name.clone(), e.loot_table_id, e.level, e.personality))
         .collect();
 
     if dead_enemies.is_empty() {
@@ -908,13 +908,16 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
     let max_rare_drops: u32 = 1;
     let mut rare_drops_this_encounter: u32 = 0;
 
-    for (i, (enemy_name, _loot_table, enemy_level)) in dead_enemies.iter().enumerate() {
+    for (i, (enemy_name, _loot_table, enemy_level, personality)) in
+        dead_enemies.iter().enumerate()
+    {
         let gold = rng.random_range(5..=15);
         let gold_per_player = (gold as f32 / alive_count as f32).ceil() as i32;
         let xp = content::xp_for_enemy(*enemy_level);
         let xp_per_player = xp / alive_ids.len().max(1) as u32;
 
-        logs.push(format!("The {} is defeated! (+{} gold)", enemy_name, gold));
+        let death_msg = content::flavor_death(*personality, enemy_name);
+        logs.push(format!("{} (+{} gold)", death_msg, gold));
 
         // Distribute gold and XP to alive players
         for &uid in &alive_ids {
@@ -1168,14 +1171,17 @@ fn single_enemy_turn(
         return logs;
     }
 
+    // Cache personality and name for flavor text
+    let personality = session.enemies[enemy_vec_idx].personality;
+    let enemy_name_for_flavor = session.enemies[enemy_vec_idx].name.clone();
+
     // Check if enemy is stunned
     let enemy_stunned = session.enemies[enemy_vec_idx]
         .effects
         .iter()
         .any(|e| e.kind == EffectKind::Stunned);
     if enemy_stunned {
-        let name = session.enemies[enemy_vec_idx].name.clone();
-        logs.push(format!("{} is stunned!", name));
+        logs.push(content::flavor_stunned(personality, &enemy_name_for_flavor));
         return logs;
     }
 
@@ -1249,9 +1255,11 @@ fn single_enemy_turn(
             if target_defending {
                 final_dmg /= 2;
             }
-            let mut msg = format!(
-                "{} attacks {} for {} damage!",
-                enemy.name, target_name, final_dmg
+            let mut msg = content::flavor_attack(
+                personality,
+                &enemy.name,
+                &target_name,
+                final_dmg,
             );
             if target_defending {
                 msg.push_str(" Blocked half!");
@@ -1274,9 +1282,11 @@ fn single_enemy_turn(
             if target_defending {
                 final_dmg /= 2;
             }
-            let mut msg = format!(
-                "{} unleashes a devastating blow on {} for {} damage!",
-                enemy.name, target_name, final_dmg
+            let mut msg = content::flavor_heavy_attack(
+                personality,
+                &enemy.name,
+                &target_name,
+                final_dmg,
             );
             if target_defending {
                 msg.push_str(" Blocked half!");
@@ -1289,19 +1299,16 @@ fn single_enemy_turn(
         Intent::Defend { armor } => {
             let armor_val = *armor;
             enemy.armor += armor_val;
-            logs.push(format!(
-                "{} fortifies its defenses. (+{} armor)",
-                enemy.name, armor_val
-            ));
+            logs.push(content::flavor_defend(personality, &enemy.name, armor_val));
             EnemyAction::BuffSelf
         }
         Intent::Charge => {
             enemy.charged = true;
-            logs.push(format!("{} is gathering power...", enemy.name));
+            logs.push(content::flavor_charge(personality, &enemy.name));
             EnemyAction::BuffSelf
         }
         Intent::Flee => {
-            logs.push(format!("The {} flees!", enemy.name));
+            logs.push(content::flavor_flee(personality, &enemy.name));
             EnemyAction::Flee
         }
         Intent::Debuff {
@@ -1309,7 +1316,13 @@ fn single_enemy_turn(
             stacks,
             turns,
         } => {
-            let msg = format!("{} inflicts {:?} on {}!", enemy.name, effect, target_name);
+            let effect_name = format!("{:?}", effect);
+            let msg = content::flavor_debuff(
+                personality,
+                &enemy.name,
+                &target_name,
+                &effect_name,
+            );
             EnemyAction::DebuffPlayer {
                 effect: effect.clone(),
                 stacks: *stacks,
@@ -1318,14 +1331,14 @@ fn single_enemy_turn(
             }
         }
         Intent::AoeAttack { dmg } => {
-            let msg = format!("{} unleashes area attack for {} damage!", enemy.name, dmg);
+            let msg = content::flavor_aoe(personality, &enemy.name, *dmg);
             EnemyAction::AoeDamage { dmg: *dmg, msg }
         }
         Intent::HealSelf { amount } => {
             let enemy_max_hp = enemy.max_hp;
             let heal = *amount;
             enemy.hp = (enemy.hp + heal).min(enemy_max_hp);
-            let msg = format!("{} heals for {}!", enemy.name, heal);
+            let msg = content::flavor_heal(personality, &enemy.name, heal);
             EnemyAction::HealEnemy { msg }
         }
     };
@@ -1439,6 +1452,19 @@ fn single_enemy_turn(
         }
         EnemyAction::HealEnemy { msg } => {
             logs.push(msg);
+        }
+    }
+
+    // Emotional reaction based on enemy HP
+    if enemy_vec_idx < session.enemies.len() {
+        let enemy = &session.enemies[enemy_vec_idx];
+        let hp_pct = enemy.hp as f32 / enemy.max_hp as f32;
+        if let Some(reaction) = content::flavor_emotional_reaction(
+            personality,
+            &enemy_name_for_flavor,
+            hp_pct,
+        ) {
+            logs.push(reaction);
         }
     }
 
@@ -2782,6 +2808,7 @@ mod tests {
             enraged: false,
             index: 0,
             first_strike: false,
+            personality: Personality::Feral,
         }
     }
 
@@ -3374,6 +3401,7 @@ mod tests {
             enraged: false,
             index: 0,
             first_strike: false,
+            personality: Personality::Feral,
         };
         session.enemies = vec![enemy];
 
@@ -3450,6 +3478,7 @@ mod tests {
             enraged: false,
             index: 0,
             first_strike: false,
+            personality: Personality::Feral,
         };
         let enemy2 = EnemyState {
             name: "Slime B".to_owned(),
@@ -3464,6 +3493,7 @@ mod tests {
             enraged: false,
             index: 1,
             first_strike: false,
+            personality: Personality::Feral,
         };
         session.enemies = vec![enemy1, enemy2];
 
@@ -3509,6 +3539,7 @@ mod tests {
             enraged: false,
             index: 0,
             first_strike: false,
+            personality: Personality::Feral,
         };
         session.enemies = vec![boss];
 
@@ -3555,6 +3586,7 @@ mod tests {
             enraged: false,
             index: 0,
             first_strike: false,
+            personality: Personality::Feral,
         };
         let enemy1 = EnemyState {
             name: "Slime B".to_owned(),
@@ -3569,6 +3601,7 @@ mod tests {
             enraged: false,
             index: 1,
             first_strike: false,
+            personality: Personality::Feral,
         };
         session.enemies = vec![enemy0, enemy1];
         session.player_mut(OWNER).hp = 200;
@@ -3687,6 +3720,7 @@ mod tests {
                 enraged: false,
                 index: 1,
                 first_strike: false,
+                personality: Personality::Feral,
             },
         ];
 
@@ -3777,7 +3811,19 @@ mod tests {
 
         // Enemy was stunned, so player should NOT have taken damage from enemy attack
         // (though player attacked and dealt damage to enemy)
-        assert!(logs.iter().any(|l| l.contains("stunned")));
+        assert!(
+            logs.iter().any(|l| {
+                l.contains("stunned")
+                    || l.contains("unable to act")
+                    || l.contains("disoriented")
+                    || l.contains("paralyzed")
+                    || l.contains("dazed")
+                    || l.contains("confusion")
+                    || l.contains("falters")
+            }),
+            "should mention stun effect: {:?}",
+            logs,
+        );
         // Player hp should not have decreased from enemy attack (only DoT possible)
         assert_eq!(session.player(OWNER).hp, hp_before);
     }
@@ -3800,6 +3846,7 @@ mod tests {
             enraged: false,
             index: 0,
             first_strike: false,
+            personality: Personality::Feral,
         };
         session.enemies = vec![enemy];
         session.player_mut(OWNER).hp = 200;
@@ -4410,6 +4457,7 @@ mod tests {
             enraged: false,
             index: 0,
             first_strike: false,
+            personality: Personality::Feral,
         };
         let enemy1 = EnemyState {
             name: "Slime B".to_owned(),
@@ -4424,6 +4472,7 @@ mod tests {
             enraged: false,
             index: 1,
             first_strike: false,
+            personality: Personality::Feral,
         };
         session.enemies = vec![enemy0, enemy1];
         session.player_mut(OWNER).hp = 200;
@@ -4472,6 +4521,7 @@ mod tests {
             enraged: false,
             index: 0,
             first_strike: false,
+            personality: Personality::Feral,
         };
         let enemy1 = EnemyState {
             name: "Slime B".to_owned(),
@@ -4486,6 +4536,7 @@ mod tests {
             enraged: false,
             index: 1,
             first_strike: false,
+            personality: Personality::Feral,
         };
         session.enemies = vec![enemy0, enemy1];
         session.player_mut(OWNER).hp = 200;
@@ -4673,6 +4724,7 @@ mod tests {
             enraged: false,
             index: 0,
             first_strike: false,
+            personality: Personality::Feral,
         };
         let enemy1 = EnemyState {
             name: "Live Slime".to_owned(),
@@ -4687,6 +4739,7 @@ mod tests {
             enraged: false,
             index: 1,
             first_strike: false,
+            personality: Personality::Feral,
         };
         session.enemies = vec![enemy0, enemy1];
         session.player_mut(OWNER).hp = 200;
@@ -5651,6 +5704,7 @@ mod tests {
             enraged: false,
             index: 0,
             first_strike: true,
+            personality: Personality::Feral,
         }
     }
 
@@ -7716,6 +7770,7 @@ mod tests {
                     enraged: false,
                     index: idx as u8,
                     first_strike: false,
+                    personality: Personality::Feral,
                 })
                 .collect();
 
@@ -7770,6 +7825,7 @@ mod tests {
                     enraged: false,
                     index: idx as u8,
                     first_strike: false,
+                    personality: Personality::Feral,
                 })
                 .collect();
 
@@ -7811,6 +7867,7 @@ mod tests {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             }];
 
             session.player_mut(OWNER).inventory.clear();
@@ -7854,6 +7911,7 @@ mod tests {
             enraged: false,
             index: 0,
             first_strike: false,
+            personality: Personality::Feral,
         }];
 
         let logs = handle_enemy_deaths(&mut session, OWNER);
@@ -7867,8 +7925,9 @@ mod tests {
             "should receive XP from kill"
         );
         assert!(
-            logs.iter().any(|l| l.contains("defeated")),
-            "should log defeat message"
+            logs.iter().any(|l| l.contains("gold")),
+            "should log death message with gold: {:?}",
+            logs
         );
     }
 

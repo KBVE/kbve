@@ -483,6 +483,25 @@ impl PlayerState {
     }
 }
 
+// ── Enemy personality ───────────────────────────────────────────────
+
+/// Personality archetype that drives flavor text selection for enemy actions.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
+pub enum Personality {
+    /// Relentless, rage-fueled — loves to taunt and charge.
+    Aggressive,
+    /// Calculating, deceptive — comments on strategy, mocks mistakes.
+    Cunning,
+    /// Cowardly, desperate — panics at low HP, hesitates before attacking.
+    Fearful,
+    /// Silent, disciplined — minimal dialogue, matter-of-fact.
+    Stoic,
+    /// Bestial, instinct-driven — growls, hisses, no real speech.
+    Feral,
+    /// Ancient, weary — speaks in riddles, references the past.
+    Ancient,
+}
+
 // ── Enemy state ─────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -499,6 +518,7 @@ pub struct EnemyState {
     pub enraged: bool,
     pub index: u8,
     pub first_strike: bool,
+    pub personality: Personality,
 }
 
 // ── Room state ──────────────────────────────────────────────────────
@@ -910,6 +930,7 @@ mod tests {
                     enraged: false,
                     index: 0,
                     first_strike: false,
+                    personality: Personality::Feral,
                 },
                 EnemyState {
                     name: "Bat".to_owned(),
@@ -924,6 +945,7 @@ mod tests {
                     enraged: false,
                     index: 1,
                     first_strike: false,
+                    personality: Personality::Feral,
                 },
             ],
             room: super::super::content::generate_room(0),
@@ -1156,6 +1178,7 @@ mod tests {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Fearful,
             }],
             room: super::super::content::generate_room(5),
             log: vec!["Turn begins.".to_owned(), "Goblin attacks!".to_owned()],

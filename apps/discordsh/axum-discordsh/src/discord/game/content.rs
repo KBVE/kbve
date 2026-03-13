@@ -831,7 +831,7 @@ pub fn roll_gear_loot(table_id: &str) -> Option<&'static str> {
 /// Picks randomly from a pool per difficulty bracket.
 pub fn spawn_enemy(room_index: u32) -> EnemyState {
     let mut rng = rand::rng();
-    match room_index {
+    let mut enemy = match room_index {
         0..=1 => match rng.random_range(0..6) {
             0 => EnemyState {
                 name: "Glass Slime".to_owned(),
@@ -846,6 +846,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             1 => EnemyState {
                 name: "Crystal Bat".to_owned(),
@@ -860,6 +861,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             2 => EnemyState {
                 name: "Mushroom Sprite".to_owned(),
@@ -874,6 +876,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             3 => EnemyState {
                 name: "Dust Mite".to_owned(),
@@ -888,6 +891,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             4 => EnemyState {
                 name: "Cave Spider".to_owned(),
@@ -906,6 +910,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: true,
+                personality: Personality::Feral,
             },
             _ => EnemyState {
                 name: "Crumbling Statue".to_owned(),
@@ -920,6 +925,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
         },
         2..=3 => match rng.random_range(0..7) {
@@ -936,6 +942,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             1 => EnemyState {
                 name: "Bone Archer".to_owned(),
@@ -950,6 +957,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             2 => EnemyState {
                 name: "Cursed Knight".to_owned(),
@@ -964,6 +972,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             3 => EnemyState {
                 name: "Fire Imp".to_owned(),
@@ -978,6 +987,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             4 => EnemyState {
                 name: "Shade Stalker".to_owned(),
@@ -992,6 +1002,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: true,
+                personality: Personality::Feral,
             },
             5 => EnemyState {
                 name: "Fungal Brute".to_owned(),
@@ -1006,6 +1017,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             _ => EnemyState {
                 name: "Ember Wisp".to_owned(),
@@ -1024,6 +1036,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
         },
         4..=5 => match rng.random_range(0..7) {
@@ -1040,6 +1053,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             1 => EnemyState {
                 name: "Phantom Knight".to_owned(),
@@ -1054,6 +1068,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             2 => EnemyState {
                 name: "Void Walker".to_owned(),
@@ -1068,6 +1083,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             3 => EnemyState {
                 name: "Stone Sentinel".to_owned(),
@@ -1082,6 +1098,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             4 => EnemyState {
                 name: "Glass Assassin".to_owned(),
@@ -1096,6 +1113,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: true,
+                personality: Personality::Feral,
             },
             5 => EnemyState {
                 name: "Venomfang Lurker".to_owned(),
@@ -1114,6 +1132,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: true,
+                personality: Personality::Feral,
             },
             _ => EnemyState {
                 name: "Crystal Golem".to_owned(),
@@ -1128,6 +1147,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
         },
         _ => match rng.random_range(0..3) {
@@ -1144,6 +1164,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             1 => EnemyState {
                 name: "Corrupted Warden".to_owned(),
@@ -1158,6 +1179,7 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             _ => EnemyState {
                 name: "The Shattered King".to_owned(),
@@ -1172,9 +1194,687 @@ pub fn spawn_enemy(room_index: u32) -> EnemyState {
                 enraged: false,
                 index: 0,
                 first_strike: true,
+                personality: Personality::Feral,
             },
         },
+    };
+
+    // Assign personality based on enemy archetype
+    enemy.personality = match enemy.name.as_str() {
+        // Feral — bestial, instinct-driven
+        "Glass Slime" | "Crystal Bat" | "Mushroom Sprite" | "Dust Mite" | "Cave Spider"
+        | "Fungal Brute" | "Venomfang Lurker" => Personality::Feral,
+        // Fearful — cowardly, panics easily
+        "Ember Wisp" | "Bone Archer" | "Fire Imp" => Personality::Fearful,
+        // Stoic — silent, disciplined
+        "Crumbling Statue" | "Skeleton Guard" | "Stone Sentinel" | "Crystal Golem"
+        | "Glass Golem" => Personality::Stoic,
+        // Cunning — calculating, mocking
+        "Shade Stalker" | "Glass Assassin" | "Shadow Wraith" | "Void Walker" => {
+            Personality::Cunning
+        }
+        // Aggressive — rage-fueled, taunting
+        "Cursed Knight" | "Phantom Knight" | "Corrupted Warden" => Personality::Aggressive,
+        // Ancient — weary, speaks in riddles
+        "The Shattered King" => Personality::Ancient,
+        _ => Personality::Feral,
+    };
+
+    enemy
+}
+
+// ── Flavor text system ──────────────────────────────────────────────
+
+/// Pick a random entry from a slice.
+fn pick<'a>(rng: &mut impl rand::Rng, pool: &[&'a str]) -> &'a str {
+    pool[rng.random_range(0..pool.len())]
+}
+
+/// Flavor text for a normal attack. `{name}` = enemy, `{target}` = player, `{dmg}` = damage.
+pub fn flavor_attack(personality: Personality, name: &str, target: &str, dmg: i32) -> String {
+    let mut rng = rand::rng();
+    match personality {
+        Personality::Aggressive => {
+            let pool: &[&str] = &[
+                "{name} roars and slashes at {target} for {dmg} damage!",
+                "{name} snarls, \"You'll pay for that!\" and strikes {target} for {dmg} damage!",
+                "{name} charges forward with reckless fury, hitting {target} for {dmg} damage!",
+                "{name} bares its teeth and smashes into {target} for {dmg} damage!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cunning => {
+            let pool: &[&str] = &[
+                "{name} feints left, then strikes {target} from the shadows for {dmg} damage!",
+                "{name} whispers, \"Too slow...\" and slices {target} for {dmg} damage!",
+                "{name} finds an opening in {target}'s guard — {dmg} damage!",
+                "{name} darts forward with precision, hitting {target} for {dmg} damage!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Fearful => {
+            let pool: &[&str] = &[
+                "{name} lunges desperately at {target} for {dmg} damage!",
+                "{name} swings wildly with trembling hands, hitting {target} for {dmg} damage!",
+                "{name} panics and lashes out at {target} — {dmg} damage!",
+                "{name} squeals and attacks {target} in a frenzy for {dmg} damage!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Stoic => {
+            let pool: &[&str] = &[
+                "{name} strikes {target} with measured precision. {dmg} damage.",
+                "{name} delivers a calculated blow to {target}. {dmg} damage.",
+                "{name} moves without hesitation, hitting {target} for {dmg} damage.",
+                "{name} attacks {target}. {dmg} damage.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Feral => {
+            let pool: &[&str] = &[
+                "{name} lunges with feral intensity at {target} for {dmg} damage!",
+                "{name} hisses and claws at {target} — {dmg} damage!",
+                "{name} pounces on {target} with savage force! {dmg} damage!",
+                "{name} screeches and tears into {target} for {dmg} damage!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Ancient => {
+            let pool: &[&str] = &[
+                "{name} raises a weary hand and strikes {target} for {dmg} damage. \"This too shall pass...\"",
+                "{name} murmurs ancient words as {target} takes {dmg} damage.",
+                "{name} sighs, \"I've seen a thousand like you,\" and hits {target} for {dmg} damage.",
+                "{name} channels forgotten power into {target}. {dmg} damage.",
+            ];
+            pick(&mut rng, pool)
+        }
     }
+    .replace("{name}", name)
+    .replace("{target}", target)
+    .replace("{dmg}", &dmg.to_string())
+}
+
+/// Flavor text for a heavy attack.
+pub fn flavor_heavy_attack(
+    personality: Personality,
+    name: &str,
+    target: &str,
+    dmg: i32,
+) -> String {
+    let mut rng = rand::rng();
+    match personality {
+        Personality::Aggressive => {
+            let pool: &[&str] = &[
+                "{name} ROARS and brings down a devastating blow on {target}! {dmg} damage!",
+                "{name} screams with fury and smashes {target} for {dmg} damage!",
+                "{name} charges with blind rage — {target} takes {dmg} damage!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cunning => {
+            let pool: &[&str] = &[
+                "{name} reveals its trap — a devastating strike hits {target} for {dmg} damage!",
+                "{name} waited for this moment. {target} takes {dmg} damage!",
+                "{name} strikes with lethal precision. {target} staggers from {dmg} damage!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Fearful => {
+            let pool: &[&str] = &[
+                "{name} throws everything it has at {target} in desperation! {dmg} damage!",
+                "{name} shrieks and delivers a wild, heavy blow to {target}! {dmg} damage!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Stoic => {
+            let pool: &[&str] = &[
+                "{name} unleashes a devastating blow on {target}. {dmg} damage.",
+                "{name} executes a powerful strike against {target}. {dmg} damage.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Feral => {
+            let pool: &[&str] = &[
+                "{name} rears back and slams into {target} with bone-crushing force! {dmg} damage!",
+                "{name} goes berserk, mauling {target} for {dmg} damage!",
+                "{name} unleashes a primal assault on {target}! {dmg} damage!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Ancient => {
+            let pool: &[&str] = &[
+                "{name} channels ancient wrath — {target} is engulfed! {dmg} damage!",
+                "{name} speaks a word of destruction. {target} takes {dmg} damage.",
+                "\"Remember this pain.\" {name} devastates {target} for {dmg} damage.",
+            ];
+            pick(&mut rng, pool)
+        }
+    }
+    .replace("{name}", name)
+    .replace("{target}", target)
+    .replace("{dmg}", &dmg.to_string())
+}
+
+/// Flavor text for defend/fortify.
+pub fn flavor_defend(personality: Personality, name: &str, armor: i32) -> String {
+    let mut rng = rand::rng();
+    match personality {
+        Personality::Aggressive => {
+            let pool: &[&str] = &[
+                "{name} braces defiantly. \"Come at me!\" (+{armor} armor)",
+                "{name} digs in and snarls. (+{armor} armor)",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cunning => {
+            let pool: &[&str] = &[
+                "{name} takes a defensive stance, studying your movements. (+{armor} armor)",
+                "{name} raises its guard, eyes calculating. (+{armor} armor)",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Fearful => {
+            let pool: &[&str] = &[
+                "{name} cowers behind its defenses. (+{armor} armor)",
+                "{name} whimpers and curls up defensively. (+{armor} armor)",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Stoic => {
+            let pool: &[&str] = &[
+                "{name} fortifies its defenses. (+{armor} armor)",
+                "{name} shifts into a defensive posture. (+{armor} armor)",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Feral => {
+            let pool: &[&str] = &[
+                "{name} hunkers down and growls warningly. (+{armor} armor)",
+                "{name} tucks in its limbs and hardens its shell. (+{armor} armor)",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Ancient => {
+            let pool: &[&str] = &[
+                "{name} draws on ancient wards. \"Patience is its own shield.\" (+{armor} armor)",
+                "{name} whispers a protective incantation. (+{armor} armor)",
+            ];
+            pick(&mut rng, pool)
+        }
+    }
+    .replace("{name}", name)
+    .replace("{armor}", &armor.to_string())
+}
+
+/// Flavor text for charge (gathering power).
+pub fn flavor_charge(personality: Personality, name: &str) -> String {
+    let mut rng = rand::rng();
+    match personality {
+        Personality::Aggressive => {
+            let pool: &[&str] = &[
+                "{name} seethes with fury, gathering power for a devastating strike!",
+                "{name} bellows a war cry, muscles tensing for the killing blow!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cunning => {
+            let pool: &[&str] = &[
+                "{name} narrows its eyes, coiling like a spring. Something terrible is coming...",
+                "{name} grins wickedly, power building in its hands...",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Fearful => {
+            let pool: &[&str] = &[
+                "{name} trembles, channeling desperate energy!",
+                "{name} screeches, its body crackling with unstable power!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Stoic => {
+            let pool: &[&str] = &[
+                "{name} is gathering power...",
+                "{name} enters a deep stance, energy building...",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Feral => {
+            let pool: &[&str] = &[
+                "{name} rears back, baring its fangs as energy crackles around it!",
+                "{name} lets out a bone-chilling howl, power surging through its body!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Ancient => {
+            let pool: &[&str] = &[
+                "{name} closes its eyes. \"The old power stirs once more...\"",
+                "{name} draws upon forgotten magic, the air growing heavy...",
+            ];
+            pick(&mut rng, pool)
+        }
+    }
+    .replace("{name}", name)
+}
+
+/// Flavor text for flee.
+pub fn flavor_flee(personality: Personality, name: &str) -> String {
+    let mut rng = rand::rng();
+    match personality {
+        Personality::Aggressive => {
+            let pool: &[&str] = &[
+                "The {name} spits in rage but retreats, knowing it's outmatched!",
+                "The {name} snarls, \"This isn't over!\" and flees!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cunning => {
+            let pool: &[&str] = &[
+                "The {name} vanishes into the shadows. \"We'll meet again...\"",
+                "The {name} slips away, already plotting its revenge.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Fearful => {
+            let pool: &[&str] = &[
+                "The {name} yelps in terror and scrambles away!",
+                "The {name} cries out, overwhelmed by the fear of death, and flees!",
+                "The {name} turns tail and bolts, whimpering in panic!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Stoic => {
+            let pool: &[&str] = &[
+                "The {name} retreats without a word.",
+                "The {name} disengages, recognizing the odds.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Feral => {
+            let pool: &[&str] = &[
+                "The {name} screeches and skitters away into the darkness!",
+                "The {name} hisses one final warning and flees!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Ancient => {
+            let pool: &[&str] = &[
+                "The {name} fades into the mist. \"Another time, another age...\"",
+                "The {name} withdraws. \"Even I must yield to time.\"",
+            ];
+            pick(&mut rng, pool)
+        }
+    }
+    .replace("{name}", name)
+}
+
+/// Flavor text for applying a debuff.
+pub fn flavor_debuff(
+    personality: Personality,
+    name: &str,
+    target: &str,
+    effect: &str,
+) -> String {
+    let mut rng = rand::rng();
+    match personality {
+        Personality::Aggressive => {
+            let pool: &[&str] = &[
+                "{name} unleashes {effect} on {target} with a vicious snarl!",
+                "{name} curses {target} with {effect}! \"Suffer!\"",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cunning => {
+            let pool: &[&str] = &[
+                "{name} laces its attack with {effect}. {target} is affected!",
+                "{name} exploits a weakness — {target} is afflicted with {effect}!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Fearful => {
+            let pool: &[&str] = &[
+                "{name} desperately flings {effect} at {target}!",
+                "{name} panics and inflicts {effect} on {target}!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Stoic => {
+            let pool: &[&str] = &[
+                "{name} inflicts {effect} on {target}.",
+                "{name} applies {effect} to {target} with clinical precision.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Feral => {
+            let pool: &[&str] = &[
+                "{name} spits venom — {target} is afflicted with {effect}!",
+                "{name} releases a noxious burst! {target} suffers {effect}!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Ancient => {
+            let pool: &[&str] = &[
+                "{name} speaks a cursed word. {target} is gripped by {effect}.",
+                "\"Know my burden.\" {name} inflicts {effect} on {target}.",
+            ];
+            pick(&mut rng, pool)
+        }
+    }
+    .replace("{name}", name)
+    .replace("{target}", target)
+    .replace("{effect}", effect)
+}
+
+/// Flavor text for AoE attack.
+pub fn flavor_aoe(personality: Personality, name: &str, dmg: i32) -> String {
+    let mut rng = rand::rng();
+    match personality {
+        Personality::Aggressive => {
+            let pool: &[&str] = &[
+                "{name} ROARS and unleashes a devastating wave of destruction! {dmg} damage to all!",
+                "{name} goes berserk, lashing out at everyone for {dmg} damage!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cunning => {
+            let pool: &[&str] = &[
+                "{name} triggers a hidden trap — everyone takes {dmg} damage!",
+                "{name} releases a calculated area attack! {dmg} damage to all!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Fearful => {
+            let pool: &[&str] = &[
+                "{name} shrieks and unleashes wild energy in every direction! {dmg} damage to all!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Stoic => {
+            let pool: &[&str] = &[
+                "{name} unleashes an area attack. {dmg} damage to all.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Feral => {
+            let pool: &[&str] = &[
+                "{name} thrashes violently, hitting everyone for {dmg} damage!",
+                "{name} sprays acid in every direction! {dmg} damage to all!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Ancient => {
+            let pool: &[&str] = &[
+                "{name} unleashes an ancient shockwave. \"None shall stand!\" {dmg} damage to all!",
+                "The ground trembles as {name} releases its fury. {dmg} damage to all.",
+            ];
+            pick(&mut rng, pool)
+        }
+    }
+    .replace("{name}", name)
+    .replace("{dmg}", &dmg.to_string())
+}
+
+/// Flavor text for self-heal.
+pub fn flavor_heal(personality: Personality, name: &str, amount: i32) -> String {
+    let mut rng = rand::rng();
+    match personality {
+        Personality::Aggressive => {
+            let pool: &[&str] = &[
+                "{name} devours something and heals for {amount}! \"I'm not done yet!\"",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cunning => {
+            let pool: &[&str] = &[
+                "{name} drinks from a hidden vial, restoring {amount} HP.",
+                "{name} patches its wounds with eerie precision. +{amount} HP.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Fearful => {
+            let pool: &[&str] = &[
+                "{name} frantically bandages its wounds! +{amount} HP!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Stoic => {
+            let pool: &[&str] = &[
+                "{name} heals for {amount}.",
+                "{name} regenerates {amount} HP.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Feral => {
+            let pool: &[&str] = &[
+                "{name} licks its wounds, recovering {amount} HP.",
+                "{name} consumes a fallen creature and heals {amount} HP!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Ancient => {
+            let pool: &[&str] = &[
+                "{name} draws life from the dungeon walls. +{amount} HP.",
+                "\"The old bones mend.\" {name} heals for {amount}.",
+            ];
+            pick(&mut rng, pool)
+        }
+    }
+    .replace("{name}", name)
+    .replace("{amount}", &amount.to_string())
+}
+
+/// Flavor text for stunned state.
+pub fn flavor_stunned(personality: Personality, name: &str) -> String {
+    let mut rng = rand::rng();
+    match personality {
+        Personality::Aggressive => {
+            let pool: &[&str] = &[
+                "{name} staggers, fury blazing in its eyes but unable to act!",
+                "{name} shakes its head in rage, dazed and helpless!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cunning => {
+            let pool: &[&str] = &[
+                "{name} stumbles, its composure shattered for a moment.",
+                "{name} reels, caught off guard for the first time.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Fearful => {
+            let pool: &[&str] = &[
+                "{name} freezes in terror, paralyzed!",
+                "{name} whimpers, too dazed to move!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Stoic => {
+            let pool: &[&str] = &[
+                "{name} is stunned.",
+                "{name} falters momentarily.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Feral => {
+            let pool: &[&str] = &[
+                "{name} screeches in confusion, unable to act!",
+                "{name} stumbles and thrashes, disoriented!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Ancient => {
+            let pool: &[&str] = &[
+                "{name} pauses, ancient eyes flickering with confusion.",
+                "\"Impossible...\" {name} is stunned.",
+            ];
+            pick(&mut rng, pool)
+        }
+    }
+    .replace("{name}", name)
+}
+
+/// Emotional reaction based on HP percentage — appended to action messages.
+pub fn flavor_emotional_reaction(
+    personality: Personality,
+    name: &str,
+    hp_percent: f32,
+) -> Option<String> {
+    let mut rng = rand::rng();
+
+    // Only trigger at certain HP thresholds, and not every time (30% chance)
+    if rng.random::<f32>() > 0.30 {
+        return None;
+    }
+
+    if hp_percent <= 0.15 {
+        // Near death
+        let msg = match personality {
+            Personality::Aggressive => {
+                let pool: &[&str] = &[
+                    "*{name}'s rage is fading, replaced by something like fear...*",
+                    "*{name} sways on its feet, blood dripping, but refuses to fall.*",
+                ];
+                pick(&mut rng, pool)
+            }
+            Personality::Cunning => {
+                let pool: &[&str] = &[
+                    "*{name}'s mask of confidence finally cracks.*",
+                    "*{name} glances toward the exit, calculating its last options...*",
+                ];
+                pick(&mut rng, pool)
+            }
+            Personality::Fearful => {
+                let pool: &[&str] = &[
+                    "*{name} is trembling uncontrollably, eyes wide with the fear of death.*",
+                    "*{name} lets out a pitiful wail, barely clinging to life!*",
+                ];
+                pick(&mut rng, pool)
+            }
+            Personality::Stoic => {
+                let pool: &[&str] = &[
+                    "*For the first time, {name} shows a flicker of something... doubt?*",
+                    "*{name}'s stance falters almost imperceptibly.*",
+                ];
+                pick(&mut rng, pool)
+            }
+            Personality::Feral => {
+                let pool: &[&str] = &[
+                    "*{name} whimpers, its feral bravado replaced by raw survival instinct.*",
+                    "*{name}'s movements grow desperate and erratic.*",
+                ];
+                pick(&mut rng, pool)
+            }
+            Personality::Ancient => {
+                let pool: &[&str] = &[
+                    "*{name} whispers, \"So this is how it ends... again.\"*",
+                    "*{name}'s ancient form flickers, barely holding together.*",
+                ];
+                pick(&mut rng, pool)
+            }
+        };
+        Some(msg.replace("{name}", name))
+    } else if hp_percent <= 0.40 {
+        // Wounded
+        let msg = match personality {
+            Personality::Aggressive => {
+                let pool: &[&str] = &[
+                    "*{name} spits blood and grins. \"Is that all you've got?\"*",
+                    "*{name}'s wounds only seem to make it angrier.*",
+                ];
+                pick(&mut rng, pool)
+            }
+            Personality::Cunning => {
+                let pool: &[&str] = &[
+                    "*{name} reassesses the situation, a flicker of worry in its eyes.*",
+                ];
+                pick(&mut rng, pool)
+            }
+            Personality::Fearful => {
+                let pool: &[&str] = &[
+                    "*{name} whimpers and backs away, looking for an escape route.*",
+                    "*{name}'s hands shake as it clutches its wounds.*",
+                ];
+                pick(&mut rng, pool)
+            }
+            Personality::Stoic => {
+                let pool: &[&str] = &[
+                    "*{name} acknowledges its wounds with a silent nod.*",
+                ];
+                pick(&mut rng, pool)
+            }
+            Personality::Feral => {
+                let pool: &[&str] = &[
+                    "*{name} snarls and bares its wounds defiantly.*",
+                    "*{name} hisses through the pain, growing more dangerous.*",
+                ];
+                pick(&mut rng, pool)
+            }
+            Personality::Ancient => {
+                let pool: &[&str] = &[
+                    "*{name} murmurs, \"A worthy opponent... it has been too long.\"*",
+                ];
+                pick(&mut rng, pool)
+            }
+        };
+        Some(msg.replace("{name}", name))
+    } else {
+        None
+    }
+}
+
+/// Flavor text for player defeating an enemy.
+pub fn flavor_death(personality: Personality, name: &str) -> String {
+    let mut rng = rand::rng();
+    match personality {
+        Personality::Aggressive => {
+            let pool: &[&str] = &[
+                "{name} collapses with a final, defiant roar!",
+                "{name} falls, cursing with its last breath!",
+                "{name} crumbles, rage burning out like a dying ember.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cunning => {
+            let pool: &[&str] = &[
+                "{name} falls with a look of disbelief. \"Impossible...\"",
+                "{name} collapses. Its plans die with it.",
+                "{name} gasps, \"I underestimated you...\" and goes still.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Fearful => {
+            let pool: &[&str] = &[
+                "{name} lets out one final, pitiful cry before going still.",
+                "{name} collapses, a look of relief washing over its face.",
+                "{name} falls silent, its fear finally at an end.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Stoic => {
+            let pool: &[&str] = &[
+                "{name} falls without a sound.",
+                "{name} crumbles to dust.",
+                "{name} collapses, its duty fulfilled.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Feral => {
+            let pool: &[&str] = &[
+                "{name} lets out a strangled screech and goes limp.",
+                "{name} twitches once and dissolves into the shadows.",
+                "{name} collapses in a heap, the wildness fading from its eyes.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Ancient => {
+            let pool: &[&str] = &[
+                "{name} sighs, \"At last... rest.\" and crumbles to dust.",
+                "{name} whispers, \"The cycle continues...\" and fades away.",
+                "{name} falls, and for a moment the dungeon itself seems to mourn.",
+            ];
+            pick(&mut rng, pool)
+        }
+    }
+    .replace("{name}", name)
 }
 
 /// Spawn one or more enemies for a room, scaling count by depth.
@@ -2845,4 +3545,174 @@ mod tests {
     fn is_rare_or_above_unknown_id() {
         assert!(!is_rare_or_above("nonexistent_item"));
     }
+
+    // ── Flavor text tests ───────────────────────────────────────────
+
+    #[test]
+    fn flavor_attack_contains_name_and_damage() {
+        for personality in [
+            Personality::Aggressive,
+            Personality::Cunning,
+            Personality::Fearful,
+            Personality::Stoic,
+            Personality::Feral,
+            Personality::Ancient,
+        ] {
+            let msg = flavor_attack(personality, "Goblin", "Hero", 10);
+            assert!(msg.contains("Goblin"), "should contain enemy name: {msg}");
+            assert!(msg.contains("10"), "should contain damage: {msg}");
+            assert!(msg.contains("Hero"), "should contain target name: {msg}");
+        }
+    }
+
+    #[test]
+    fn flavor_heavy_attack_contains_name_and_damage() {
+        for personality in [
+            Personality::Aggressive,
+            Personality::Cunning,
+            Personality::Fearful,
+            Personality::Stoic,
+            Personality::Feral,
+            Personality::Ancient,
+        ] {
+            let msg = flavor_heavy_attack(personality, "Dragon", "Warrior", 25);
+            assert!(msg.contains("Dragon"), "{msg}");
+            assert!(msg.contains("25"), "{msg}");
+        }
+    }
+
+    #[test]
+    fn flavor_defend_contains_armor() {
+        for personality in [
+            Personality::Aggressive,
+            Personality::Cunning,
+            Personality::Fearful,
+            Personality::Stoic,
+            Personality::Feral,
+            Personality::Ancient,
+        ] {
+            let msg = flavor_defend(personality, "Golem", 5);
+            assert!(msg.contains("5"), "should contain armor value: {msg}");
+        }
+    }
+
+    #[test]
+    fn flavor_charge_contains_name() {
+        for personality in [
+            Personality::Aggressive,
+            Personality::Cunning,
+            Personality::Fearful,
+            Personality::Stoic,
+            Personality::Feral,
+            Personality::Ancient,
+        ] {
+            let msg = flavor_charge(personality, "Knight");
+            assert!(msg.contains("Knight"), "{msg}");
+        }
+    }
+
+    #[test]
+    fn flavor_flee_contains_name() {
+        for personality in [
+            Personality::Aggressive,
+            Personality::Cunning,
+            Personality::Fearful,
+            Personality::Stoic,
+            Personality::Feral,
+            Personality::Ancient,
+        ] {
+            let msg = flavor_flee(personality, "Imp");
+            assert!(msg.contains("Imp"), "{msg}");
+        }
+    }
+
+    #[test]
+    fn flavor_debuff_contains_effect_and_names() {
+        let msg = flavor_debuff(Personality::Cunning, "Spider", "Archer", "Poison");
+        assert!(msg.contains("Spider"), "{msg}");
+        assert!(msg.contains("Poison"), "{msg}");
+    }
+
+    #[test]
+    fn flavor_aoe_contains_damage() {
+        let msg = flavor_aoe(Personality::Ancient, "King", 12);
+        assert!(msg.contains("12"), "{msg}");
+        assert!(msg.contains("King"), "{msg}");
+    }
+
+    #[test]
+    fn flavor_heal_contains_amount() {
+        let msg = flavor_heal(Personality::Fearful, "Goblin", 8);
+        assert!(msg.contains("8"), "{msg}");
+        assert!(msg.contains("Goblin"), "{msg}");
+    }
+
+    #[test]
+    fn flavor_stunned_contains_name() {
+        for personality in [
+            Personality::Aggressive,
+            Personality::Cunning,
+            Personality::Fearful,
+            Personality::Stoic,
+            Personality::Feral,
+            Personality::Ancient,
+        ] {
+            let msg = flavor_stunned(personality, "Bat");
+            assert!(msg.contains("Bat"), "{msg}");
+        }
+    }
+
+    #[test]
+    fn flavor_death_contains_name() {
+        for personality in [
+            Personality::Aggressive,
+            Personality::Cunning,
+            Personality::Fearful,
+            Personality::Stoic,
+            Personality::Feral,
+            Personality::Ancient,
+        ] {
+            let msg = flavor_death(personality, "Wraith");
+            assert!(msg.contains("Wraith"), "{msg}");
+        }
+    }
+
+    #[test]
+    fn flavor_emotional_reaction_only_triggers_at_low_hp() {
+        // At full HP (1.0), should never trigger
+        let mut triggered = false;
+        for _ in 0..100 {
+            if flavor_emotional_reaction(Personality::Fearful, "Goblin", 1.0).is_some() {
+                triggered = true;
+                break;
+            }
+        }
+        assert!(!triggered, "should not trigger at full HP");
+    }
+
+    #[test]
+    fn flavor_emotional_reaction_can_trigger_at_critical_hp() {
+        // At 10% HP, should trigger sometimes (30% chance per call)
+        let mut triggered = false;
+        for _ in 0..100 {
+            if flavor_emotional_reaction(Personality::Fearful, "Goblin", 0.10).is_some() {
+                triggered = true;
+                break;
+            }
+        }
+        assert!(triggered, "should trigger at critical HP within 100 attempts");
+    }
+
+    #[test]
+    fn all_enemies_have_personality_assigned() {
+        // Run spawn_enemy many times and verify personality is set
+        for room_idx in 0..8 {
+            for _ in 0..10 {
+                let enemy = spawn_enemy(room_idx);
+                // Just verify it doesn't panic and has a valid personality
+                let _ = flavor_attack(enemy.personality, &enemy.name, "Hero", 5);
+            }
+        }
+    }
+
 }
