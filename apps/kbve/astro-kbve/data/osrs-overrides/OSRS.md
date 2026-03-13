@@ -486,10 +486,320 @@ Focus on items with clear processing chains and market flip potential.
 
 | ID    | Item              | Override Focus           |
 | ----- | ----------------- | ------------------------ |
+| 1656  | Sapphire necklace | Games necklace base      |
+| 1658  | Emerald necklace  | Binding necklace base    |
 | 1660  | Ruby necklace     | Digsite pendant base     |
 | 1662  | Diamond necklace  | Phoenix necklace base    |
 | 1664  | Dragon necklace   | Skills necklace base     |
+| 6577  | Onyx necklace     | Berserker necklace base  |
+| 19535 | Zenyte necklace   | Necklace of anguish base |
 | 21157 | Necklace of faith | Emergency Prayer restore |
+
+### Amulet Crafting Chain (Implemented - Mar 2026)
+
+| ID    | Item               | Override Focus          |
+| ----- | ------------------ | ----------------------- |
+| 1694  | Sapphire amulet    | Amulet of magic base    |
+| 1696  | Emerald amulet     | Amulet of defence base  |
+| 1698  | Ruby amulet        | Amulet of strength base |
+| 1700  | Diamond amulet     | Amulet of power base    |
+| 1702  | Dragonstone amulet | Amulet of glory base    |
+| 6581  | Onyx amulet        | Amulet of fury base     |
+| 19541 | Zenyte amulet      | Amulet of torture base  |
+
+### Bracelet Crafting Chain (Implemented - Mar 2026)
+
+| ID    | Item                 | Override Focus           |
+| ----- | -------------------- | ------------------------ |
+| 11072 | Sapphire bracelet    | Bracelet of clay base    |
+| 11076 | Emerald bracelet     | Castlewars bracelet base |
+| 11085 | Ruby bracelet        | Inoculation bracelet     |
+| 11092 | Diamond bracelet     | Forinthry bracelet base  |
+| 11115 | Dragonstone bracelet | Combat bracelet base     |
+| 11130 | Onyx bracelet        | Regen bracelet base      |
+
+### Misc Weapons/Armour (Implemented - Mar 2026)
+
+| ID    | Item                      | Override Focus             |
+| ----- | ------------------------- | -------------------------- |
+| 20849 | Dragon thrownaxe          | Dragon thrown weapon, spec |
+| 22231 | Dragon boots ornament kit | Dragon boots cosmetic      |
+| 10822 | Yak-hide armour (top)     | 20 Def Fremennik body      |
+
+### Mystic Set Completion (Implemented - Mar 2026)
+
+| ID   | Item          | Override Focus        |
+| ---- | ------------- | --------------------- |
+| 4089 | Mystic hat    | 40 Magic/20 Def head  |
+| 4095 | Mystic gloves | 40 Magic/20 Def hands |
+| 4097 | Mystic boots  | 40 Magic/20 Def feet  |
+
+### Enchanted Robes (Implemented - Mar 2026)
+
+| ID   | Item           | Override Focus             |
+| ---- | -------------- | -------------------------- |
+| 7400 | Enchanted hat  | Treasure trail mystic hat  |
+| 7399 | Enchanted top  | Treasure trail mystic top  |
+| 7398 | Enchanted robe | Treasure trail mystic legs |
+
+### Slayer/Hybrid Boots (Implemented - Mar 2026)
+
+| ID    | Item               | Override Focus             |
+| ----- | ------------------ | -------------------------- |
+| 22951 | Boots of brimstone | Hybrid boot, 44 Slayer req |
+
+### Enchanted Dragon Bolts (Implemented - Mar 2026)
+
+| ID    | Item                         | Override Focus              |
+| ----- | ---------------------------- | --------------------------- |
+| 21932 | Opal dragon bolts (e)        | Lucky Lightning effect      |
+| 21934 | Jade dragon bolts (e)        | Earth's Fury knockdown      |
+| 21936 | Pearl dragon bolts (e)       | Sea Curse, fire enemy bonus |
+| 21938 | Topaz dragon bolts (e)       | Down to Earth, -1 Magic     |
+| 21940 | Sapphire dragon bolts (e)    | Clear Mind, Prayer drain    |
+| 21942 | Emerald dragon bolts (e)     | Magical Poison, 55% proc    |
+| 21948 | Dragonstone dragon bolts (e) | Dragon's Breath dragonfire  |
+| 21950 | Onyx dragon bolts (e)        | Life Leech heal effect      |
+
+### Unenchanted Bolts (Implemented - Mar 2026)
+
+| ID   | Item              | Override Focus          |
+| ---- | ----------------- | ----------------------- |
+| 9340 | Diamond bolts     | Fletching 65, +105 rStr |
+| 9341 | Dragonstone bolts | Fletching 71, +117 rStr |
+
+### Enchanted Rings (Implemented - Mar 2026)
+
+| ID   | Item          | Override Focus         |
+| ---- | ------------- | ---------------------- |
+| 6583 | Ring of stone | Onyx enchant, cosmetic |
+
+### Rune Trimmed (Implemented - Mar 2026)
+
+| ID   | Item               | Override Focus          |
+| ---- | ------------------ | ----------------------- |
+| 2623 | Rune platebody (t) | Hard clue, same as rune |
+| 2619 | Rune full helm (g) | Hard clue, gold-trimmed |
+
+### F2P Rune Weapons (Implemented - Mar 2026)
+
+| ID   | Item           | Override Focus      |
+| ---- | -------------- | ------------------- |
+| 1303 | Rune longsword | F2P stab, 40 Attack |
+| 1213 | Rune dagger    | F2P stab, 40 Attack |
+| 1185 | Rune sq shield | F2P shield, 40 Def  |
+
+### Granite/Snakeskin (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus       |
+| ----- | ----------------- | -------------------- |
+| 21646 | Granite longsword | 50 Atk/Str slash     |
+| 22272 | Snakeskin shield  | 30 Ranged/Def shield |
+
+### God D'hide Bodies (Implemented - Mar 2026)
+
+| ID    | Item                | Override Focus            |
+| ----- | ------------------- | ------------------------- |
+| 10378 | Guthix d'hide body  | Hard clue, +1 prayer body |
+| 10370 | Zamorak d'hide body | Hard clue, +1 prayer body |
+| 12500 | Bandos d'hide body  | Hard clue, +1 prayer body |
+| 12508 | Armadyl d'hide body | Hard clue, +1 prayer body |
+| 12492 | Ancient d'hide body | Hard clue, +1 prayer body |
+
+### God D'hide Shields (Implemented - Mar 2026)
+
+| ID    | Item                  | Override Focus              |
+| ----- | --------------------- | --------------------------- |
+| 23188 | Guthix d'hide shield  | Hard clue, +1 prayer shield |
+| 23194 | Zamorak d'hide shield | Hard clue, +1 prayer shield |
+| 23203 | Bandos d'hide shield  | Hard clue, +1 prayer shield |
+| 23200 | Armadyl d'hide shield | Hard clue, +1 prayer shield |
+| 23197 | Ancient d'hide shield | Hard clue, +1 prayer shield |
+
+### God D'hide Boots (Implemented - Mar 2026)
+
+| ID    | Item                 | Override Focus             |
+| ----- | -------------------- | -------------------------- |
+| 19927 | Guthix d'hide boots  | Hard clue, +1 prayer boots |
+| 19936 | Zamorak d'hide boots | Hard clue, +1 prayer boots |
+| 19924 | Bandos d'hide boots  | Hard clue, +1 prayer boots |
+| 19930 | Armadyl d'hide boots | Hard clue, +1 prayer boots |
+| 19921 | Ancient d'hide boots | Hard clue, +1 prayer boots |
+
+### God D'hide Chaps (Implemented - Mar 2026)
+
+| ID    | Item          | Override Focus              |
+| ----- | ------------- | --------------------------- |
+| 10380 | Guthix chaps  | Hard clue, no Def req chaps |
+| 10372 | Zamorak chaps | Hard clue, no Def req chaps |
+| 12502 | Bandos chaps  | Hard clue, no Def req chaps |
+| 12510 | Armadyl chaps | Hard clue, no Def req chaps |
+| 12494 | Ancient chaps | Hard clue, no Def req chaps |
+
+### God D'hide Coifs (Implemented - Mar 2026)
+
+| ID    | Item         | Override Focus            |
+| ----- | ------------ | ------------------------- |
+| 10382 | Guthix coif  | Hard clue, +1 prayer head |
+| 10374 | Zamorak coif | Hard clue, +1 prayer head |
+| 12504 | Bandos coif  | Hard clue, +1 prayer head |
+| 12512 | Armadyl coif | Hard clue, +1 prayer head |
+| 12496 | Ancient coif | Hard clue, +1 prayer head |
+
+### God D'hide Bracers (Implemented - Mar 2026)
+
+| ID    | Item            | Override Focus              |
+| ----- | --------------- | --------------------------- |
+| 10376 | Guthix bracers  | Hard clue, no Def req hands |
+| 10368 | Zamorak bracers | Hard clue, no Def req hands |
+| 12498 | Bandos bracers  | Hard clue, no Def req hands |
+| 12506 | Armadyl bracers | Hard clue, no Def req hands |
+| 12490 | Ancient bracers | Hard clue, no Def req hands |
+
+### Studded/Leather Armour (Implemented - Mar 2026)
+
+| ID   | Item             | Override Focus     |
+| ---- | ---------------- | ------------------ |
+| 1133 | Studded body     | F2P 20 Ranged body |
+| 1097 | Studded chaps    | F2P 20 Ranged legs |
+| 1131 | Hardleather body | F2P 10 Def body    |
+
+### Mage Training Arena Wands (Implemented - Mar 2026)
+
+| ID   | Item          | Override Focus    |
+| ---- | ------------- | ----------------- |
+| 6908 | Beginner wand | MTA entry wand    |
+| 6912 | Teacher wand  | MTA mid-tier wand |
+
+### Gilded D'hide (Implemented - Mar 2026)
+
+| ID    | Item                    | Override Focus             |
+| ----- | ----------------------- | -------------------------- |
+| 23264 | Gilded d'hide body      | Elite clue, cosmetic body  |
+| 23267 | Gilded d'hide chaps     | Elite clue, cosmetic chaps |
+| 23261 | Gilded d'hide vambraces | Elite clue, cosmetic vambs |
+| 23258 | Gilded coif             | Elite clue, cosmetic coif  |
+
+### Trimmed D'hide Bodies (Implemented - Mar 2026)
+
+| ID    | Item                  | Override Focus         |
+| ----- | --------------------- | ---------------------- |
+| 12385 | Black d'hide body (t) | Elite clue, 70 Ranged  |
+| 7374  | Blue d'hide body (g)  | Hard clue, 50 Ranged   |
+| 7376  | Blue d'hide body (t)  | Hard clue, 50 Ranged   |
+| 7370  | Green d'hide body (g) | Medium clue, 40 Ranged |
+| 7372  | Green d'hide body (t) | Medium clue, 40 Ranged |
+| 12327 | Red d'hide body (g)   | Hard clue, 60 Ranged   |
+| 12331 | Red d'hide body (t)   | Hard clue, 60 Ranged   |
+
+### Trimmed D'hide Chaps (Implemented - Mar 2026)
+
+| ID    | Item                   | Override Focus         |
+| ----- | ---------------------- | ---------------------- |
+| 12387 | Black d'hide chaps (t) | Hard clue, 70 Ranged   |
+| 7382  | Blue d'hide chaps (g)  | Medium clue, 50 Ranged |
+| 7384  | Blue d'hide chaps (t)  | Medium clue, 50 Ranged |
+| 7378  | Green d'hide chaps (g) | Medium clue, 40 Ranged |
+| 7380  | Green d'hide chaps (t) | Medium clue, 40 Ranged |
+| 12329 | Red d'hide chaps (g)   | Hard clue, 60 Ranged   |
+| 12333 | Red d'hide chaps (t)   | Hard clue, 60 Ranged   |
+
+### Misc Weapons (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus         |
+| ----- | ----------------- | ---------------------- |
+| 6910  | Apprentice wand   | MTA mid wand, 50 Magic |
+| 10156 | Hunter's crossbow | Kebbit bolt crossbow   |
+
+### Elegant Shirts & Legs — Men's (Implemented - Mar 2026)
+
+| ID    | Item                 | Override Focus         |
+| ----- | -------------------- | ---------------------- |
+| 10404 | Red elegant shirt    | Easy clue, body slot   |
+| 10406 | Red elegant legs     | Easy clue, legs slot   |
+| 10408 | Blue elegant shirt   | Easy clue, body slot   |
+| 10410 | Blue elegant legs    | Easy clue, legs slot   |
+| 10412 | Green elegant shirt  | Easy clue, body slot   |
+| 10414 | Green elegant legs   | Easy clue, legs slot   |
+| 10400 | Black elegant shirt  | Medium clue, body slot |
+| 10402 | Black elegant legs   | Medium clue, legs slot |
+| 10416 | Purple elegant shirt | Medium clue, body slot |
+| 10418 | Purple elegant legs  | Medium clue, legs slot |
+| 10420 | White elegant blouse | Medium clue, body slot |
+| 10422 | White elegant skirt  | Medium clue, legs slot |
+| 12347 | Gold elegant shirt   | Medium clue, body slot |
+| 12349 | Gold elegant legs    | Medium clue, legs slot |
+| 12315 | Pink elegant shirt   | Medium clue, body slot |
+| 12317 | Pink elegant legs    | Medium clue, legs slot |
+
+### Elegant Blouses & Skirts — Women's (Implemented - Mar 2026)
+
+| ID    | Item                  | Override Focus         |
+| ----- | --------------------- | ---------------------- |
+| 10424 | Red elegant blouse    | Easy clue, body slot   |
+| 10426 | Red elegant skirt     | Easy clue, legs slot   |
+| 10428 | Blue elegant blouse   | Easy clue, body slot   |
+| 10430 | Blue elegant skirt    | Easy clue, legs slot   |
+| 10432 | Green elegant blouse  | Easy clue, body slot   |
+| 10434 | Green elegant skirt   | Easy clue, legs slot   |
+| 10436 | Purple elegant blouse | Medium clue, body slot |
+| 10438 | Purple elegant skirt  | Medium clue, legs slot |
+| 12343 | Gold elegant blouse   | Medium clue, body slot |
+| 12345 | Gold elegant skirt    | Medium clue, legs slot |
+| 12339 | Pink elegant blouse   | Medium clue, body slot |
+| 12341 | Pink elegant skirt    | Medium clue, legs slot |
+
+### H.A.M. Robes Set (Implemented - Mar 2026)
+
+| ID   | Item       | Override Focus             |
+| ---- | ---------- | -------------------------- |
+| 4302 | Ham hood   | Head slot, pickpocket set  |
+| 4298 | Ham shirt  | Body slot, pickpocket set  |
+| 4300 | Ham robe   | Legs slot, pickpocket set  |
+| 4304 | Ham cloak  | Cape slot, pickpocket set  |
+| 4308 | Ham gloves | Hands slot, pickpocket set |
+| 4310 | Ham boots  | Feet slot, pickpocket set  |
+
+### Shade Robes (Implemented - Mar 2026)
+
+| ID  | Item           | Override Focus      |
+| --- | -------------- | ------------------- |
+| 546 | Shade robe top | +5 Prayer, F2P body |
+| 548 | Shade robe     | +4 Prayer, F2P legs |
+
+### Zamorak Vestments (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus              |
+| ----- | ----------------- | --------------------------- |
+| 10460 | Zamorak robe top  | Easy clue, +6 Prayer, 20 Pr |
+| 10468 | Zamorak robe legs | Easy clue, +5 Prayer, 20 Pr |
+
+### God Vestment Accessories (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus               |
+| ----- | ----------------- | ---------------------------- |
+| 10470 | Saradomin stole   | Hard clue, +10 Prayer, neck  |
+| 10474 | Zamorak stole     | Hard clue, +10 Prayer, neck  |
+| 10440 | Saradomin crozier | Hard clue, +6 Prayer, weapon |
+| 10454 | Guthix mitre      | Medium clue, +5 Prayer, head |
+
+### Trimmed Amulets (Implemented - Mar 2026)
+
+| ID    | Item                  | Override Focus                |
+| ----- | --------------------- | ----------------------------- |
+| 10354 | Amulet of glory (t4)  | Hard clue, trimmed glory      |
+| 10366 | Amulet of magic (t)   | Hard clue, trimmed magic ammy |
+| 23309 | Amulet of defence (t) | Hard clue, trimmed defence    |
+| 23354 | Amulet of power (t)   | Hard clue, trimmed power      |
+
+### Misc Treasure Trail Gear (Implemented - Mar 2026)
+
+| ID    | Item            | Override Focus             |
+| ----- | --------------- | -------------------------- |
+| 23389 | Spiked manacles | Medium clue, +4 Str boots  |
+| 23246 | Fremennik kilt  | Medium clue, cosmetic legs |
+| 12379 | Rune cane       | Hard clue, cosmetic weapon |
+| 12377 | Adamant cane    | Hard clue, cosmetic weapon |
 
 ---
 
@@ -1079,11 +1389,17 @@ const description = generateMetaDescription(item);
 
 Record batch completions here:
 
-| Date         | Items Added                                  | Total Overrides |
-| ------------ | -------------------------------------------- | --------------- |
-| Jan 2026     | Initial ~100 items                           | ~100            |
-| Jan 7, 2026  | +35 items (potions, weapons, raid gear)      | ~135            |
-| Jan 21, 2026 | +42 items (barrows, hilts, potions, utility) | ~881            |
+| Date         | Items Added                                              | Total Overrides |
+| ------------ | -------------------------------------------------------- | --------------- |
+| Jan 2026     | Initial ~100 items                                       | ~100            |
+| Jan 7, 2026  | +35 items (potions, weapons, raid gear)                  | ~135            |
+| Jan 21, 2026 | +42 items (barrows, hilts, potions, utility)             | ~881            |
+| Mar 11, 2026 | +20 items (jewelry chains, misc weapons)                 | ~901            |
+| Mar 12, 2026 | +20 items (dragon bolts e, mystic, trimmed)              | ~921            |
+| Mar 12, 2026 | +20 items (god d'hide sets, rune weapons)                | ~941            |
+| Mar 12, 2026 | +20 items (god chaps/coifs/bracers, misc)                | ~961            |
+| Mar 13, 2026 | +20 items (gilded/trimmed d'hide, misc)                  | ~981            |
+| Mar 13, 2026 | +50 items (elegant sets, HAM, robes, vestments, amulets) | ~1031           |
 
 ### Quick Stats
 

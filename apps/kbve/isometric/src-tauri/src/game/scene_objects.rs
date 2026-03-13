@@ -1,14 +1,14 @@
+use avian3d::prelude::*;
 use bevy::picking::events::{Out, Over, Pointer};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use bevy_rapier3d::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use super::camera::IsometricCamera;
 use super::player::Player;
 use super::virtual_joystick::VirtualJoystickState;
 
-// Desktop: bridged cursor for Rapier raycast hover detection
+// Desktop: bridged cursor for avian3d raycast hover detection
 #[cfg(not(target_arch = "wasm32"))]
 use super::input_bridge::BridgedCursorPosition;
 
@@ -230,7 +230,7 @@ impl Plugin for SceneObjectsPlugin {
             ),
         );
 
-        // Rapier raycast hover — MeshPickingPlugin can't work with offscreen render target
+        // Avian raycast hover — MeshPickingPlugin can't work with offscreen render target
         #[cfg(not(target_arch = "wasm32"))]
         app.add_systems(Update, raycast_hover_detection_desktop);
         #[cfg(target_arch = "wasm32")]
@@ -248,14 +248,14 @@ pub(crate) fn on_pointer_out(trigger: On<Pointer<Out>>, mut commands: Commands) 
     commands.entity(trigger.event_target()).remove::<Hovered>();
 }
 
-/// Custom hover detection using Rapier raycasting through the scene camera.
+/// Custom hover detection using avian3d raycasting through the scene camera.
 /// Scene camera renders to offscreen texture, so MeshPickingPlugin can't map cursor.
 #[cfg(not(target_arch = "wasm32"))]
 fn raycast_hover_detection_desktop(
     windows: Query<&Window, With<PrimaryWindow>>,
     cursor: Res<BridgedCursorPosition>,
     camera_query: Query<(&GlobalTransform, &Projection), With<IsometricCamera>>,
-    rapier_context: ReadRapierContext,
+    spatial_query: SpatialQuery,
     hoverable: Query<(), With<HoverOutline>>,
     current_hovered: Query<Entity, With<Hovered>>,
     player_query: Query<Entity, With<Player>>,
@@ -299,21 +299,20 @@ fn raycast_hover_detection_desktop(
     let ray_origin = cam_tf.translation + right * (ndc_x * half_w) + up * (ndc_y * half_h);
     let ray_dir = forward;
 
-    // Exclude player from raycast
-    let mut filter = QueryFilter::new();
-    if let Ok(player_entity) = player_query.single() {
-        filter = filter.exclude_rigid_body(player_entity);
-    }
+    // Build filter excluding the player
+    let filter = if let Ok(player_entity) = player_query.single() {
+        SpatialQueryFilter::default().with_excluded_entities([player_entity])
+    } else {
+        SpatialQueryFilter::default()
+    };
 
     // Cast ray and check if hit entity has HoverOutline
-    let Ok(context) = rapier_context.single() else {
-        return;
-    };
-    let new_hovered = context
-        .cast_ray(ray_origin, ray_dir, 1000.0, false, filter)
-        .and_then(|(entity, _)| {
-            if hoverable.get(entity).is_ok() {
-                Some(entity)
+    let new_hovered = Dir3::new(ray_dir)
+        .ok()
+        .and_then(|dir| spatial_query.cast_ray(ray_origin, dir, 1000.0, true, &filter))
+        .and_then(|hit| {
+            if hoverable.get(hit.entity).is_ok() {
+                Some(hit.entity)
             } else {
                 None
             }
@@ -332,12 +331,12 @@ fn raycast_hover_detection_desktop(
     }
 }
 
-/// WASM hover detection: same Rapier raycast approach but reads cursor from the Window.
+/// WASM hover detection: same avian3d raycast approach but reads cursor from the Window.
 #[cfg(target_arch = "wasm32")]
 fn raycast_hover_detection_wasm(
     windows: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&GlobalTransform, &Projection), With<IsometricCamera>>,
-    rapier_context: ReadRapierContext,
+    spatial_query: SpatialQuery,
     hoverable: Query<(), With<HoverOutline>>,
     current_hovered: Query<Entity, With<Hovered>>,
     player_query: Query<Entity, With<Player>>,
@@ -386,19 +385,18 @@ fn raycast_hover_detection_wasm(
     let ray_origin = cam_tf.translation + right * (ndc_x * half_w) + up * (ndc_y * half_h);
     let ray_dir = forward;
 
-    let mut filter = QueryFilter::new();
-    if let Ok(player_entity) = player_query.single() {
-        filter = filter.exclude_rigid_body(player_entity);
-    }
-
-    let Ok(context) = rapier_context.single() else {
-        return;
+    let filter = if let Ok(player_entity) = player_query.single() {
+        SpatialQueryFilter::default().with_excluded_entities([player_entity])
+    } else {
+        SpatialQueryFilter::default()
     };
-    let new_hovered = context
-        .cast_ray(ray_origin, ray_dir, 1000.0, false, filter)
-        .and_then(|(entity, _)| {
-            if hoverable.get(entity).is_ok() {
-                Some(entity)
+
+    let new_hovered = Dir3::new(ray_dir)
+        .ok()
+        .and_then(|dir| spatial_query.cast_ray(ray_origin, dir, 1000.0, true, &filter))
+        .and_then(|hit| {
+            if hoverable.get(hit.entity).is_ok() {
+                Some(hit.entity)
             } else {
                 None
             }

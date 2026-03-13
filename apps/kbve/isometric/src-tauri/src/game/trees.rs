@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use bevy_rapier3d::prelude::*;
+use avian3d::prelude::*;
 
 use super::player::Player;
 use super::scene_objects::{
@@ -1046,12 +1046,12 @@ pub fn spawn_tree_entity(
         (
             Vec3::new(0.0, geo.trunk_h / 2.0, 0.0),
             Quat::IDENTITY,
-            Collider::cuboid(geo.trunk_r, geo.trunk_h / 2.0, geo.trunk_r),
+            Collider::cuboid(geo.trunk_r * 2.0, geo.trunk_h, geo.trunk_r * 2.0),
         ),
         (
             Vec3::new(0.0, geo.trunk_h + canopy_h / 2.0, 0.0),
             Quat::IDENTITY,
-            Collider::cuboid(geo.max_hw * 0.7, canopy_h / 2.0, geo.max_hw * 0.7),
+            Collider::cuboid(geo.max_hw * 1.4, canopy_h, geo.max_hw * 1.4),
         ),
     ];
 
@@ -1061,7 +1061,7 @@ pub fn spawn_tree_entity(
             Mesh3d(tree_mesh),
             MeshMaterial3d(tree_body_mat),
             Transform::from_xyz(world_x, tree_base_y, world_z).with_rotation(geo.base_rot),
-            RigidBody::Fixed,
+            RigidBody::Static,
             Collider::compound(collider_shapes),
             HoverOutline {
                 half_extents: Vec3::new(geo.max_hw, geo.total_h / 2.0, geo.max_hw),

@@ -1,7 +1,7 @@
+use avian3d::prelude::*;
 use bevy::prelude::*;
 use bevy::render::render_resource::{AsBindGroup, ShaderType};
 use bevy::shader::ShaderRef;
-use bevy_rapier3d::prelude::*;
 use std::f32::consts::PI;
 
 use super::inventory::{ItemKind, LootEvent};

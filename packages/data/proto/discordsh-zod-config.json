@@ -1,0 +1,36 @@
+{
+	"include": ["kbve.discordsh.SubmitServerRequest"],
+
+	"enums": {
+		"kbve.discordsh.ServerCategory": {
+			"mode": "const_array",
+			"stripPrefix": "SERVER_CATEGORY_",
+			"caseTransform": "lowercase"
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "ServerCategories",
+			"sourceEnum": "kbve.discordsh.ServerCategory",
+			"typeName": "ServerCategoryValue",
+			"zodSchemaName": "ServerCategorySchema"
+		}
+	],
+
+	"refinements": {
+		"kbve.discordsh.SubmitServerRequest.server_id": ".regex(/^\\d{17,20}$/, 'Must be a valid Discord snowflake (17-20 digits)')",
+		"kbve.discordsh.SubmitServerRequest.name": ".min(1, 'Server name is required').max(100, 'Server name must be 100 characters or less')",
+		"kbve.discordsh.SubmitServerRequest.summary": ".min(1, 'Summary is required').max(200, 'Summary must be 200 characters or less')",
+		"kbve.discordsh.SubmitServerRequest.invite_code": ".regex(/^[a-zA-Z0-9_-]{2,32}$/, 'Invalid invite code format')"
+	},
+
+	"fieldOverrides": {
+		"kbve.discordsh.SubmitServerRequest.description": "z.string().max(2000, 'Description must be 2000 characters or less').optional()",
+		"kbve.discordsh.SubmitServerRequest.icon_url": "z.string().url('Must be a valid URL').optional()",
+		"kbve.discordsh.SubmitServerRequest.banner_url": "z.string().url('Must be a valid URL').optional()",
+		"kbve.discordsh.SubmitServerRequest.categories": "z.array(z.number().int().min(1).max(12)).max(3, 'Maximum 3 categories').optional()",
+		"kbve.discordsh.SubmitServerRequest.tags": "z.array(z.string().min(1).max(50)).max(10, 'Maximum 10 tags').optional()",
+		"kbve.discordsh.SubmitServerRequest.member_count": "z.number().int().min(0).optional()"
+	}
+}

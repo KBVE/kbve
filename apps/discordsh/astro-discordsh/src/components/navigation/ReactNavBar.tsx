@@ -59,40 +59,6 @@ function isActive(href: string, path: string): boolean {
 	return path.startsWith(href);
 }
 
-const slVar = (name: string, fallback: string) => `var(${name}, ${fallback})`;
-
-const styles = {
-	surface: {
-		backgroundColor: slVar('--sl-color-bg-nav', '#18181b'),
-		color: slVar('--sl-color-white', '#e2e8f0'),
-	} as React.CSSProperties,
-
-	activeLink: {
-		backgroundColor: 'var(--sl-color-accent-low)',
-		color: 'var(--sl-color-text-accent)',
-	} as React.CSSProperties,
-
-	accentBtn: {
-		backgroundColor: 'var(--sl-color-accent)',
-		color: '#fff',
-	} as React.CSSProperties,
-
-	accentBtnHover: {
-		backgroundColor: 'var(--sl-color-accent-high)',
-	} as React.CSSProperties,
-
-	avatarRing: {
-		boxShadow:
-			'0 0 0 2px color-mix(in srgb, var(--sl-color-accent) 25%, transparent)',
-	} as React.CSSProperties,
-
-	userMenu: {
-		background:
-			'linear-gradient(139deg, rgba(36,40,50,1) 0%, rgba(36,40,50,1) 100%)',
-		boxShadow: '0 18px 50px rgba(0,0,0,0.45)',
-	} as React.CSSProperties,
-};
-
 export default function ReactNavBar({
 	currentPath: initialPath,
 }: {
@@ -195,20 +161,14 @@ export default function ReactNavBar({
 			<img
 				src={auth.avatar}
 				alt={auth.name}
-				className={cls}
-				style={styles.avatarRing}
+				className={`${cls} nb-avatar-ring`}
 			/>
 		) : (
 			<div
-				className={`${cls} flex items-center justify-center`}
-				style={{
-					backgroundColor: 'var(--sl-color-accent-low)',
-				}}>
+				className={`${cls} flex items-center justify-center nb-avatar-fallback`}>
 				<User
 					size={large ? 18 : ICON_SIZE}
-					style={{
-						color: 'var(--sl-color-text-accent)',
-					}}
+					className="nb-text-accent"
 				/>
 			</div>
 		);
@@ -244,20 +204,10 @@ export default function ReactNavBar({
 							<img
 								src={auth.avatar}
 								alt={auth.name}
-								className="rounded-full"
-								style={{
-									width: '1.25rem',
-									height: '1.25rem',
-									...styles.avatarRing,
-								}}
+								className="w-5 h-5 rounded-full nb-avatar-ring"
 							/>
 						) : (
-							<User
-								size={ICON_SIZE}
-								style={{
-									color: 'var(--sl-color-text-accent)',
-								}}
-							/>
+							<User size={ICON_SIZE} className="nb-text-accent" />
 						)}
 					</button>
 				) : (
@@ -276,15 +226,7 @@ export default function ReactNavBar({
 		if (auth.tone === 'loading') {
 			return (
 				<div className="flex items-center gap-2 px-4 py-3">
-					<div
-						className="w-7 h-7 rounded-full animate-pulse"
-						style={{
-							backgroundColor: slVar(
-								'--sl-color-gray-5',
-								'#3f3f46',
-							),
-						}}
-					/>
+					<div className="w-7 h-7 rounded-full animate-pulse nb-skeleton" />
 				</div>
 			);
 		}
@@ -293,29 +235,13 @@ export default function ReactNavBar({
 			return (
 				<div className="flex items-center gap-2 px-4 py-3">
 					<Avatar />
-					<span
-						className="text-sm font-medium"
-						style={{
-							color: slVar('--sl-color-white', '#e2e8f0'),
-						}}>
+					<span className="text-sm font-medium nb-text">
 						{auth.name}
 					</span>
 					<a
 						href="/auth/logout"
 						title="Sign out"
-						className="inline-flex items-center gap-1 rounded-md text-sm ml-auto px-3 py-1.5 transition-colors duration-150"
-						style={{
-							color: slVar('--sl-color-gray-2', '#a1a1aa'),
-						}}
-						onMouseEnter={(e) => {
-							e.currentTarget.style.color = '#ef4444';
-						}}
-						onMouseLeave={(e) => {
-							e.currentTarget.style.color = slVar(
-								'--sl-color-gray-2',
-								'#a1a1aa',
-							);
-						}}>
+						className="nb-drawer-signout">
 						<LogOut size={ICON_SIZE} />
 						Sign out
 					</a>
@@ -327,10 +253,7 @@ export default function ReactNavBar({
 			<button
 				type="button"
 				onClick={() => openModal(SIGNIN_MODAL)}
-				className="inline-flex items-center gap-1.5 w-full px-4 py-3 text-sm font-medium transition-colors duration-150"
-				style={{
-					color: 'var(--sl-color-text-accent)',
-				}}>
+				className="inline-flex items-center gap-1.5 w-full px-4 py-3 text-sm font-medium transition-colors duration-150 nb-text-accent">
 				<LogIn size={ICON_SIZE} />
 				Sign In
 			</button>
@@ -359,38 +282,20 @@ export default function ReactNavBar({
 
 						<div
 							className={cn(
-								'absolute top-0 right-0 h-full w-72 shadow-2xl flex flex-col transition-transform duration-300 ease-out',
+								'absolute top-0 right-0 h-full w-72 shadow-2xl flex flex-col transition-transform duration-300 ease-out nb-surface',
 								drawerVisible
 									? 'translate-x-0'
 									: 'translate-x-full',
-							)}
-							style={styles.surface}>
-							<div
-								className="flex items-center justify-between px-4 py-3"
-								style={{
-									borderBottom: `1px solid ${slVar('--sl-color-hairline', '#27272a')}`,
-								}}>
-								<span
-									className="text-sm font-semibold"
-									style={{
-										color: slVar(
-											'--sl-color-white',
-											'#e2e8f0',
-										),
-									}}>
+							)}>
+							<div className="flex items-center justify-between px-4 py-3 nb-border-b">
+								<span className="text-sm font-semibold nb-text">
 									Discord.sh
 								</span>
 								<button
 									type="button"
 									onClick={doCloseDrawer}
 									aria-label="Close menu"
-									className="inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors"
-									style={{
-										color: slVar(
-											'--sl-color-gray-3',
-											'#71717a',
-										),
-									}}>
+									className="inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors nb-muted">
 									<X size={ICON_SIZE} />
 								</button>
 							</div>
@@ -406,33 +311,12 @@ export default function ReactNavBar({
 											key={item.href}
 											href={item.href}
 											onClick={doCloseDrawer}
-											className="flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors duration-150"
-											style={
+											className={cn(
+												'flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors duration-150',
 												active
-													? styles.activeLink
-													: {
-															color: slVar(
-																'--sl-color-gray-2',
-																'#a1a1aa',
-															),
-														}
-											}
-											onMouseEnter={(e) => {
-												if (!active)
-													e.currentTarget.style.color =
-														slVar(
-															'--sl-color-white',
-															'#e2e8f0',
-														);
-											}}
-											onMouseLeave={(e) => {
-												if (!active)
-													e.currentTarget.style.color =
-														slVar(
-															'--sl-color-gray-2',
-															'#a1a1aa',
-														);
-											}}>
+													? 'nb-link-active'
+													: 'nb-link-idle',
+											)}>
 											<item.icon size={ICON_SIZE} />
 											{item.label}
 										</a>
@@ -440,11 +324,7 @@ export default function ReactNavBar({
 								})}
 							</nav>
 
-							<div
-								style={{
-									borderTop: `1px solid ${slVar('--sl-color-hairline', '#27272a')}`,
-								}}
-								className="py-2">
+							<div className="py-2 nb-border-t">
 								<DrawerAuth />
 							</div>
 						</div>
@@ -458,9 +338,8 @@ export default function ReactNavBar({
 				createPortal(
 					<div
 						ref={menuRef}
-						className="not-content fixed w-52 rounded-xl py-3 z-50"
+						className="not-content fixed w-52 rounded-xl py-3 z-50 nb-user-menu"
 						style={{
-							...styles.userMenu,
 							top: menuPos.top,
 							right: menuPos.right,
 						}}
@@ -468,25 +347,16 @@ export default function ReactNavBar({
 						<div className="flex items-center gap-2.5 px-3 pb-2.5 mb-1">
 							<Avatar large />
 							<div className="min-w-0">
-								<div
-									className="text-sm font-semibold truncate"
-									style={{
-										color: slVar(
-											'--sl-color-white',
-											'#e2e8f0',
-										),
-									}}>
+								<div className="text-sm font-semibold truncate nb-text">
 									{auth.name}
 								</div>
-								<div
-									className="text-xs truncate"
-									style={{ color: '#7e8590' }}>
+								<div className="text-xs truncate nb-menu-status">
 									Online
 								</div>
 							</div>
 						</div>
 
-						<div style={{ borderTop: '1.5px solid #42434a' }} />
+						<div className="nb-menu-divider" />
 
 						<div className="flex flex-col gap-1 px-2.5 pt-2">
 							{USER_MENU_ITEMS.map((item) => (
@@ -494,18 +364,7 @@ export default function ReactNavBar({
 									key={item.href}
 									href={item.href}
 									onClick={() => setMenuOpen(false)}
-									className="flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 ease-out"
-									style={{ color: '#7e8590' }}
-									onMouseEnter={(e) => {
-										e.currentTarget.style.backgroundColor =
-											'var(--sl-color-accent)';
-										e.currentTarget.style.color = '#ffffff';
-									}}
-									onMouseLeave={(e) => {
-										e.currentTarget.style.backgroundColor =
-											'transparent';
-										e.currentTarget.style.color = '#7e8590';
-									}}
+									className="nb-menu-item"
 									role="menuitem">
 									<item.icon size={ICON_SIZE} />
 									{item.label}
@@ -513,27 +372,12 @@ export default function ReactNavBar({
 							))}
 						</div>
 
-						<div
-							className="mx-2.5 my-1.5"
-							style={{ borderTop: '1.5px solid #42434a' }}
-						/>
+						<div className="mx-2.5 my-1.5 nb-menu-divider" />
 
 						<div className="flex flex-col gap-1 px-2.5">
 							<a
 								href="/auth/logout"
-								className="flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 ease-out"
-								style={{ color: 'var(--sl-color-text-accent)' }}
-								onMouseEnter={(e) => {
-									e.currentTarget.style.backgroundColor =
-										'rgba(142,42,42,1)';
-									e.currentTarget.style.color = '#ffffff';
-								}}
-								onMouseLeave={(e) => {
-									e.currentTarget.style.backgroundColor =
-										'transparent';
-									e.currentTarget.style.color =
-										'var(--sl-color-text-accent)';
-								}}
+								className="nb-menu-item-logout"
 								role="menuitem">
 								<LogOut size={ICON_SIZE} />
 								Sign Out
@@ -555,28 +399,13 @@ export default function ReactNavBar({
 							if (e.target === e.currentTarget && !busy)
 								closeModal(SIGNIN_MODAL);
 						}}>
-						<div
-							className="w-full max-w-sm rounded-xl shadow-2xl p-5"
-							style={styles.surface}>
+						<div className="w-full max-w-sm rounded-xl shadow-2xl p-5 nb-surface">
 							<div className="flex items-center justify-between mb-4">
-								<h2
-									className="text-base font-semibold"
-									style={{
-										color: slVar(
-											'--sl-color-white',
-											'#e2e8f0',
-										),
-									}}>
+								<h2 className="text-base font-semibold nb-text">
 									Sign in to Discord.sh
 								</h2>
 								<button
-									className="inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors"
-									style={{
-										color: slVar(
-											'--sl-color-gray-3',
-											'#71717a',
-										),
-									}}
+									className="inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors nb-muted"
 									onClick={() =>
 										!busy && closeModal(SIGNIN_MODAL)
 									}
@@ -586,12 +415,7 @@ export default function ReactNavBar({
 							</div>
 
 							{auth.error && (
-								<div
-									className="mb-3 text-xs rounded-md px-3 py-2"
-									style={{
-										color: '#fca5a5',
-										backgroundColor: 'rgba(239,68,68,0.1)',
-									}}>
+								<div className="nb-auth-error">
 									{auth.error}
 								</div>
 							)}
@@ -601,19 +425,7 @@ export default function ReactNavBar({
 									type="button"
 									onClick={() => handleOAuth('discord')}
 									disabled={busy}
-									className="w-full inline-flex items-center justify-center gap-2.5 rounded-lg text-sm font-medium px-4 py-2.5 transition-colors disabled:opacity-60"
-									style={{
-										backgroundColor: '#5865F2',
-										color: '#fff',
-									}}
-									onMouseEnter={(e) => {
-										e.currentTarget.style.backgroundColor =
-											'#4752C4';
-									}}
-									onMouseLeave={(e) => {
-										e.currentTarget.style.backgroundColor =
-											'#5865F2';
-									}}>
+									className="nb-oauth-btn nb-oauth-discord">
 									<DiscordIcon className="w-5 h-5" />
 									Continue with Discord
 								</button>
@@ -622,19 +434,7 @@ export default function ReactNavBar({
 									type="button"
 									onClick={() => handleOAuth('github')}
 									disabled={busy}
-									className="w-full inline-flex items-center justify-center gap-2.5 rounded-lg text-sm font-medium px-4 py-2.5 transition-colors disabled:opacity-60"
-									style={{
-										backgroundColor: '#24292f',
-										color: '#fff',
-									}}
-									onMouseEnter={(e) => {
-										e.currentTarget.style.backgroundColor =
-											'#1b1f23';
-									}}
-									onMouseLeave={(e) => {
-										e.currentTarget.style.backgroundColor =
-											'#24292f';
-									}}>
+									className="nb-oauth-btn nb-oauth-github">
 									<GitHubIcon className="w-5 h-5" />
 									Continue with GitHub
 								</button>
@@ -643,32 +443,13 @@ export default function ReactNavBar({
 									type="button"
 									onClick={() => handleOAuth('twitch')}
 									disabled={busy}
-									className="w-full inline-flex items-center justify-center gap-2.5 rounded-lg text-sm font-medium px-4 py-2.5 transition-colors disabled:opacity-60"
-									style={{
-										backgroundColor: '#9146FF',
-										color: '#fff',
-									}}
-									onMouseEnter={(e) => {
-										e.currentTarget.style.backgroundColor =
-											'#7B2FFF';
-									}}
-									onMouseLeave={(e) => {
-										e.currentTarget.style.backgroundColor =
-											'#9146FF';
-									}}>
+									className="nb-oauth-btn nb-oauth-twitch">
 									<TwitchIcon className="w-5 h-5" />
 									Continue with Twitch
 								</button>
 							</div>
 
-							<p
-								className="mt-4 text-[11px] text-center"
-								style={{
-									color: slVar(
-										'--sl-color-gray-3',
-										'#71717a',
-									),
-								}}>
+							<p className="mt-4 text-[11px] text-center nb-muted">
 								Your session syncs automatically across all
 								tabs.
 							</p>

@@ -1,12 +1,10 @@
 use crate::AVERAGE_FRAME_RATE;
-use crate::game::inventory::get_inventory_snapshot;
+use crate::game::inventory::get_inventory_snapshot_json;
 use crate::game::object_registry::get_registry_snapshot;
 use crate::game::scene_objects::{get_hovered_snapshot, get_selected_snapshot};
 use crate::game::state::get_player_snapshot;
 use std::sync::atomic::Ordering;
 
-#[cfg(not(target_arch = "wasm32"))]
-use crate::game::inventory::Inventory;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::game::object_registry::ObjectRegistrySnapshot;
 #[cfg(not(target_arch = "wasm32"))]
@@ -50,8 +48,8 @@ pub fn get_hovered_object() -> Option<HoveredObject> {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tauri::command]
-pub fn get_inventory() -> Option<Inventory> {
-    get_inventory_snapshot()
+pub fn get_inventory() -> Option<String> {
+    get_inventory_snapshot_json()
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -134,7 +132,7 @@ pub fn get_hovered_object_json() -> Option<String> {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn get_inventory_json() -> Option<String> {
-    get_inventory_snapshot().map(|s| serde_json::to_string(&s).unwrap_or_default())
+    get_inventory_snapshot_json()
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -144,6 +142,18 @@ pub fn dispatch_action(entity_id: f64, action: &str) {
         entity_id: entity_id as u64,
         action: action.to_owned(),
     });
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn go_online(server_addr: &str, jwt: &str) {
+    crate::game::net::request_go_online(server_addr, jwt);
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn get_online_status() -> bool {
+    crate::game::net::is_online()
 }
 
 #[cfg(target_arch = "wasm32")]

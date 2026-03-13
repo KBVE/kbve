@@ -8,7 +8,7 @@ use dashmap::DashMap;
 #[cfg(not(target_arch = "wasm32"))]
 use std::sync::LazyLock;
 
-use bevy_rapier3d::prelude::*;
+use avian3d::prelude::*;
 
 use super::scene_objects::{
     AnimatedCrystal, HoverOutline, Interactable, InteractableKind, Occludable, OriginalEmissive,
@@ -331,8 +331,8 @@ fn spawn_object_entity(
                     kind,
                     ObjectInstance { registry_id },
                     RotatingBox,
-                    RigidBody::Fixed,
-                    Collider::cylinder(half, half * 1.2),
+                    RigidBody::Static,
+                    Collider::cylinder(half * 1.2, half * 2.0),
                     Occludable,
                     OriginalEmissive(LinearRgba::BLACK),
                     HoverOutline {
@@ -362,8 +362,8 @@ fn spawn_object_entity(
                     kind,
                     ObjectInstance { registry_id },
                     RotatingBox,
-                    RigidBody::Fixed,
-                    Collider::cylinder(half, half * 1.2),
+                    RigidBody::Static,
+                    Collider::cylinder(half * 1.2, half * 2.0),
                     Occludable,
                     OriginalEmissive(LinearRgba::BLACK),
                     HoverOutline {
@@ -393,7 +393,7 @@ fn spawn_object_entity(
                     kind,
                     ObjectInstance { registry_id },
                     AnimatedCrystal { base_y: position.y },
-                    Collider::ball(1.0),
+                    Collider::sphere(1.0),
                     Occludable,
                     OriginalEmissive(emissive),
                     HoverOutline {
@@ -419,8 +419,8 @@ fn spawn_object_entity(
                 Transform::from_translation(position),
                 kind,
                 ObjectInstance { registry_id },
-                RigidBody::Fixed,
-                Collider::cuboid(0.4, 2.0, 0.4),
+                RigidBody::Static,
+                Collider::cuboid(0.8, 4.0, 0.8),
                 Occludable,
                 OriginalEmissive(LinearRgba::BLACK),
                 HoverOutline {
@@ -447,8 +447,8 @@ fn spawn_object_entity(
                     Transform::from_translation(position),
                     kind,
                     ObjectInstance { registry_id },
-                    RigidBody::Fixed,
-                    Collider::ball(radius),
+                    RigidBody::Static,
+                    Collider::sphere(radius),
                     Occludable,
                     OriginalEmissive(LinearRgba::BLACK),
                     HoverOutline {

@@ -2,11 +2,10 @@ import {
   createUserClient,
   type DiscordshRequest,
   jsonResponse,
-  requireNonEmpty,
   requireUserToken,
-  validateSnowflake,
   verifyCaptcha,
 } from "./_shared.ts";
+import { SubmitServerRequestSchema } from "./validate.ts";
 
 // ---------------------------------------------------------------------------
 // Discordsh Server Module
@@ -17,71 +16,48 @@ import {
 
 type Handler = (req: DiscordshRequest) => Promise<Response>;
 
-const INVITE_CODE_RE = /^[a-zA-Z0-9_-]{2,32}$/;
-
 const handlers: Record<string, Handler> = {
   async submit({ claims, token, body }) {
     const denied = requireUserToken(claims);
     if (denied) return denied;
 
-    const {
-      server_id,
-      name,
-      summary,
-      invite_code,
-      captcha_token,
-      description,
-      icon_url,
-      banner_url,
-      categories,
-      tags,
-    } = body;
+    // --- Zod validation (mirrors client-side SubmitServerRequestSchema) ---
+    const parsed = SubmitServerRequestSchema.omit({
+      member_count: true,
+    }).safeParse(body);
 
-    const idErr = validateSnowflake(server_id, "server_id");
-    if (idErr) return idErr;
-
-    const nameErr = requireNonEmpty(name, "name");
-    if (nameErr) return nameErr;
-
-    const summaryErr = requireNonEmpty(summary, "summary");
-    if (summaryErr) return summaryErr;
-
-    if (
-      !invite_code ||
-      typeof invite_code !== "string" ||
-      !INVITE_CODE_RE.test(invite_code)
-    ) {
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0];
       return jsonResponse(
-        { error: "invite_code must be 2-32 alphanumeric characters" },
+        {
+          success: false,
+          error: firstError
+            ? `${firstError.path.join(".")}: ${firstError.message}`
+            : "Validation failed",
+        },
         400,
       );
     }
 
-    const captchaErr = await verifyCaptcha(captcha_token);
+    const { server_id, name, summary, invite_code, description, icon_url, banner_url, categories, tags } = parsed.data;
+
+    // --- hCaptcha verification ---
+    const captchaErr = await verifyCaptcha(body.captcha_token);
     if (captchaErr) return captchaErr;
 
+    // --- Build RPC args ---
     const rpcArgs: Record<string, unknown> = {
-      p_server_id: server_id as string,
-      p_name: name as string,
-      p_summary: summary as string,
-      p_invite_code: invite_code as string,
+      p_server_id: server_id,
+      p_name: name,
+      p_summary: summary,
+      p_invite_code: invite_code,
     };
 
-    if (description && typeof description === "string") {
-      rpcArgs.p_description = description;
-    }
-    if (icon_url && typeof icon_url === "string") {
-      rpcArgs.p_icon_url = icon_url;
-    }
-    if (banner_url && typeof banner_url === "string") {
-      rpcArgs.p_banner_url = banner_url;
-    }
-    if (Array.isArray(categories)) {
-      rpcArgs.p_categories = categories;
-    }
-    if (Array.isArray(tags)) {
-      rpcArgs.p_tags = tags;
-    }
+    if (description) rpcArgs.p_description = description;
+    if (icon_url) rpcArgs.p_icon_url = icon_url;
+    if (banner_url) rpcArgs.p_banner_url = banner_url;
+    if (categories && categories.length > 0) rpcArgs.p_categories = categories;
+    if (tags && tags.length > 0) rpcArgs.p_tags = tags;
 
     const supabase = createUserClient(token);
     const { data, error } = await supabase.rpc(

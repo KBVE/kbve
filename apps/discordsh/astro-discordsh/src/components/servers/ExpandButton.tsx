@@ -16,14 +16,9 @@ interface ExpandButtonProps {
 	rel?: string;
 	disabled?: boolean;
 	ariaLabel?: string;
-	/** Accent color for hover state */
-	accentColor?: string;
 	/** Additional style overrides for the outer element */
 	style?: CSSProperties;
 }
-
-const slVar = (name: string, fallback: string) =>
-	`var(--sl-color-${name}, ${fallback})`;
 
 export function ExpandButton({
 	icon,
@@ -35,7 +30,6 @@ export function ExpandButton({
 	rel,
 	disabled = false,
 	ariaLabel,
-	accentColor = slVar('accent', '#8b5cf6'),
 	style,
 }: ExpandButtonProps) {
 	const [hovered, setHovered] = useState(false);
@@ -55,32 +49,21 @@ export function ExpandButton({
 
 	// Spring for background + border transitions
 	const bg = useSpring({
-		borderColor: hovered ? accentColor : slVar('gray-5', '#374151'),
+		borderColor: hovered
+			? 'var(--sl-color-accent, #8b5cf6)'
+			: 'var(--sl-color-gray-5, #374151)',
 		backgroundColor: hovered
-			? slVar('accent-low', '#1e1033')
+			? 'var(--sl-color-accent-low, #1e1033)'
 			: 'transparent',
 		config: { tension: 200, friction: 26 },
 	});
 
-	const baseStyle: CSSProperties = {
-		display: 'inline-flex',
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: '0.25rem',
-		padding: '0.375rem 0.5rem',
-		borderRadius: '0.5rem',
-		borderWidth: 1,
-		borderStyle: 'solid',
-		color: hovered ? accentColor : slVar('gray-3', '#9ca3af'),
-		cursor: disabled ? 'default' : 'pointer',
+	const colorStyle: CSSProperties = {
+		color: hovered
+			? 'var(--sl-color-accent, #8b5cf6)'
+			: 'var(--sl-color-gray-3, #9ca3af)',
 		opacity: disabled ? 0.6 : 1,
-		position: 'relative',
-		overflow: 'hidden',
-		fontSize: '0.75rem',
-		fontWeight: 600,
-		lineHeight: 1,
-		textDecoration: 'none',
-		transition: 'color 0.15s',
+		cursor: disabled ? 'default' : 'pointer',
 		...style,
 	};
 
@@ -89,29 +72,21 @@ export function ExpandButton({
 			{/* Shine sweep overlay */}
 			<animated.span
 				aria-hidden
+				className="eb-shine"
 				style={{
-					position: 'absolute',
-					top: '-50%',
-					right: 0,
-					width: '0.5rem',
-					height: '200%',
-					background: 'rgba(255,255,255,0.10)',
 					transform: shine.x.to(
 						(v) => `translateX(${v}%) rotate(12deg)`,
 					),
-					pointerEvents: 'none',
 				}}
 			/>
 			{/* Icon (always visible) */}
 			{icon}
 			{/* Expanding label */}
 			<animated.span
+				className="inline-block overflow-hidden whitespace-nowrap"
 				style={{
-					display: 'inline-block',
 					maxWidth: expand.maxWidth,
 					opacity: expand.opacity,
-					overflow: 'hidden',
-					whiteSpace: 'nowrap',
 				}}>
 				{label}
 			</animated.span>
@@ -132,8 +107,9 @@ export function ExpandButton({
 				target={target}
 				rel={rel}
 				aria-label={ariaLabel}
+				className="eb-base"
 				style={{
-					...baseStyle,
+					...colorStyle,
 					borderColor: bg.borderColor,
 					backgroundColor: bg.backgroundColor,
 				}}
@@ -148,8 +124,9 @@ export function ExpandButton({
 			onClick={onClick}
 			disabled={disabled}
 			aria-label={ariaLabel}
+			className="eb-base"
 			style={{
-				...baseStyle,
+				...colorStyle,
 				borderColor: bg.borderColor,
 				backgroundColor: bg.backgroundColor,
 			}}

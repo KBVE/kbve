@@ -1,5 +1,5 @@
+use avian3d::prelude::*;
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
 
 use super::state::PlayerState;
 use super::terrain::TerrainMap;
@@ -15,6 +15,7 @@ const PLAYER_HEIGHT: f32 = 1.2;
 const PLAYER_SPEED: f32 = 5.0;
 const GRAVITY: f32 = 20.0;
 const JUMP_VELOCITY: f32 = 8.0;
+#[allow(dead_code)]
 const MAX_STEP_HEIGHT: f32 = 0.35;
 const FALL_DAMAGE_THRESHOLD: f32 = 3.0;
 const FALL_DAMAGE_PER_UNIT: f32 = 15.0;
@@ -67,8 +68,8 @@ impl Plugin for PlayerPlugin {
         );
         app.add_systems(
             PostUpdate,
-            process_player_physics_output
-                .after(PhysicsSet::Writeback)
+            process_player_ground_detection
+                .after(PhysicsSystems::Writeback)
                 .in_set(PlayerMovement),
         );
     }
@@ -98,20 +99,17 @@ fn spawn_player(
         Transform::from_xyz(spawn_x, spawn_y, spawn_z),
         Player,
         PlayerPhysics::default(),
-        // Rapier components
-        RigidBody::KinematicPositionBased,
-        Collider::cuboid(PLAYER_HALF_X, PLAYER_HEIGHT / 2.0, PLAYER_HALF_Z),
-        KinematicCharacterController {
-            autostep: Some(CharacterAutostep {
-                max_height: CharacterLength::Absolute(MAX_STEP_HEIGHT),
-                min_width: CharacterLength::Absolute(0.2),
-                include_dynamic_bodies: false,
-            }),
-            snap_to_ground: Some(CharacterLength::Absolute(0.5)),
-            offset: CharacterLength::Absolute(0.01),
-            slide: true,
-            ..default()
-        },
+        // Avian3d components
+        RigidBody::Kinematic,
+        Collider::cuboid(PLAYER_HALF_X * 2.0, PLAYER_HEIGHT, PLAYER_HALF_Z * 2.0),
+        // Ground detection: short downward shape cast from player center
+        ShapeCaster::new(
+            Collider::cuboid(PLAYER_HALF_X * 2.0 * 0.9, 0.1, PLAYER_HALF_Z * 2.0 * 0.9),
+            Vec3::new(0.0, -(PLAYER_HEIGHT / 2.0), 0.0),
+            Quat::IDENTITY,
+            Dir3::NEG_Y,
+        )
+        .with_max_distance(0.15),
     ));
 }
 
@@ -123,16 +121,9 @@ fn move_player(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut joystick: ResMut<VirtualJoystickState>,
     time: Res<Time>,
-    mut query: Query<
-        (
-            &mut KinematicCharacterController,
-            &mut PlayerPhysics,
-            &Transform,
-        ),
-        With<Player>,
-    >,
+    mut query: Query<(&mut Transform, &mut PlayerPhysics), With<Player>>,
 ) {
-    for (mut controller, mut physics, transform) in &mut query {
+    for (mut transform, mut physics) in &mut query {
         // WASD + Arrow keys → isometric directions
         let mut direction = Vec3::ZERO;
         if keyboard.pressed(KeyCode::KeyW) || keyboard.pressed(KeyCode::ArrowUp) {
@@ -176,31 +167,25 @@ fn move_player(
 
         let vertical = Vec3::new(0.0, physics.velocity_y * time.delta_secs(), 0.0);
 
-        // Tell Rapier where we want to go — it resolves collisions
-        controller.translation = Some(horizontal + vertical);
+        // Directly move the kinematic body's transform
+        transform.translation += horizontal + vertical;
     }
 }
 
 // ---------------------------------------------------------------------------
-// Post-physics: read Rapier output, handle ground detection + fall damage
+// Post-physics: ground detection via ShapeCaster + fall damage
 // ---------------------------------------------------------------------------
 
-fn process_player_physics_output(
-    mut query: Query<
-        (
-            &KinematicCharacterControllerOutput,
-            &mut PlayerPhysics,
-            &Transform,
-        ),
-        With<Player>,
-    >,
+fn process_player_ground_detection(
+    mut query: Query<(&ShapeHits, &mut PlayerPhysics, &Transform), With<Player>>,
     mut player_state: ResMut<PlayerState>,
 ) {
-    for (output, mut physics, transform) in &mut query {
+    for (hits, mut physics, transform) in &mut query {
         let was_airborne = !physics.on_ground;
-        physics.on_ground = output.grounded;
+        let grounded = !hits.is_empty();
+        physics.on_ground = grounded;
 
-        if output.grounded {
+        if grounded {
             // Just landed
             if was_airborne {
                 let fall_distance = physics.fall_start_y - transform.translation.y;

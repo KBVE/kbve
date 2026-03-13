@@ -1,44 +1,29 @@
-import { useState, useCallback, type FormEvent } from 'react';
+import { useState, useCallback } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { CATEGORIES } from '@/lib/servers/types';
+import { SubmitServerRequestSchema } from '@/lib/servers/discordsh-schema';
 import { submitServer } from '@/lib/servers/discordshEdge';
 import { useHCaptcha } from '@/lib/servers/useHCaptcha';
+import { z } from 'zod';
 
-const slVar = (name: string, fallback: string) =>
-	`var(--sl-color-${name}, ${fallback})`;
+// Client-side form schema — extends the proto-generated schema with the tags
+// input as a raw string (split into array on submit)
+const FormSchema = SubmitServerRequestSchema.omit({
+	tags: true,
+	member_count: true,
+}).extend({
+	tags_input: z
+		.string()
+		.max(500, 'Tags input too long')
+		.optional()
+		.default(''),
+});
 
-const inputStyle: React.CSSProperties = {
-	width: '100%',
-	padding: '0.625rem 0.75rem',
-	borderRadius: '0.5rem',
-	border: `1px solid var(--sl-color-gray-5, #374151)`,
-	backgroundColor: 'var(--sl-color-gray-6, #111827)',
-	color: 'var(--sl-color-text, #e5e7eb)',
-	fontSize: '0.875rem',
-	boxSizing: 'border-box',
-};
-
-const labelStyle: React.CSSProperties = {
-	display: 'block',
-	fontSize: '0.8125rem',
-	fontWeight: 600,
-	color: 'var(--sl-color-text, #e5e7eb)',
-	marginBottom: '0.375rem',
-};
-
-const hintStyle: React.CSSProperties = {
-	fontSize: '0.75rem',
-	color: 'var(--sl-color-gray-3, #9ca3af)',
-	marginTop: '0.25rem',
-};
+type FormValues = z.infer<typeof FormSchema>;
 
 export function ReactSubmitForm() {
-	const [serverId, setServerId] = useState('');
-	const [name, setName] = useState('');
-	const [summary, setSummary] = useState('');
-	const [inviteCode, setInviteCode] = useState('');
-	const [description, setDescription] = useState('');
 	const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
-	const [tagsInput, setTagsInput] = useState('');
 	const [submitting, setSubmitting] = useState(false);
 	const [result, setResult] = useState<{
 		success: boolean;
@@ -46,10 +31,31 @@ export function ReactSubmitForm() {
 	} | null>(null);
 
 	const {
+		register,
+		handleSubmit,
+		watch,
+		reset,
+		formState: { errors },
+	} = useForm<FormValues>({
+		resolver: zodResolver(FormSchema),
+		defaultValues: {
+			server_id: '',
+			name: '',
+			summary: '',
+			invite_code: '',
+			description: '',
+			tags_input: '',
+		},
+	});
+
+	const {
 		containerRef: captchaRef,
 		execute: executeCaptcha,
 		reset: resetCaptcha,
 	} = useHCaptcha();
+
+	const summary = watch('summary') ?? '';
+	const description = watch('description') ?? '';
 
 	const toggleCategory = useCallback((catValue: number) => {
 		setSelectedCategories((prev) => {
@@ -61,28 +67,27 @@ export function ReactSubmitForm() {
 		});
 	}, []);
 
-	const handleSubmit = useCallback(
-		async (e: FormEvent) => {
-			e.preventDefault();
+	const onSubmit = useCallback(
+		async (data: FormValues) => {
 			setResult(null);
 			setSubmitting(true);
 
 			try {
 				const captchaToken = await executeCaptcha();
 
-				const tags = tagsInput
+				const tags = (data.tags_input ?? '')
 					.split(',')
 					.map((t) => t.trim().toLowerCase())
 					.filter((t) => t.length > 0)
 					.slice(0, 10);
 
 				const res = await submitServer({
-					server_id: serverId.trim(),
-					name: name.trim(),
-					summary: summary.trim(),
-					invite_code: inviteCode.trim(),
+					server_id: data.server_id.trim(),
+					name: data.name.trim(),
+					summary: data.summary.trim(),
+					invite_code: data.invite_code.trim(),
 					captcha_token: captchaToken,
-					description: description.trim() || undefined,
+					description: data.description?.trim() || undefined,
 					categories:
 						selectedCategories.length > 0
 							? selectedCategories
@@ -100,13 +105,8 @@ export function ReactSubmitForm() {
 				});
 
 				if (res.success) {
-					setServerId('');
-					setName('');
-					setSummary('');
-					setInviteCode('');
-					setDescription('');
+					reset();
 					setSelectedCategories([]);
-					setTagsInput('');
 				}
 			} catch (err: unknown) {
 				const msg =
@@ -117,168 +117,120 @@ export function ReactSubmitForm() {
 				resetCaptcha();
 			}
 		},
-		[
-			serverId,
-			name,
-			summary,
-			inviteCode,
-			description,
-			selectedCategories,
-			tagsInput,
-			executeCaptcha,
-			resetCaptcha,
-		],
+		[selectedCategories, executeCaptcha, resetCaptcha, reset],
 	);
 
 	return (
-		<form
-			onSubmit={handleSubmit}
-			style={{
-				display: 'flex',
-				flexDirection: 'column',
-				gap: '1.25rem',
-			}}>
+		<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
 			{/* Invisible hCaptcha */}
-			<div ref={captchaRef} style={{ display: 'none' }} />
+			<div ref={captchaRef} className="hidden" />
 
 			{/* Result message */}
 			{result && (
 				<div
-					style={{
-						padding: '0.75rem 1rem',
-						borderRadius: '0.5rem',
-						border: `1px solid ${result.success ? '#22c55e' : '#ef4444'}`,
-						backgroundColor: result.success
-							? 'rgba(34, 197, 94, 0.1)'
-							: 'rgba(239, 68, 68, 0.1)',
-						color: result.success ? '#4ade80' : '#f87171',
-						fontSize: '0.875rem',
-					}}>
+					className={`sf-result ${result.success ? 'sf-result-ok' : 'sf-result-err'}`}>
 					{result.message}
 				</div>
 			)}
 
 			{/* Server ID */}
 			<div>
-				<label style={labelStyle}>Discord Server ID</label>
+				<label className="sf-label">Discord Server ID</label>
 				<input
 					type="text"
-					value={serverId}
-					onChange={(e) => setServerId(e.target.value)}
+					{...register('server_id')}
 					placeholder="e.g. 123456789012345678"
-					required
-					pattern="\d{17,20}"
-					style={inputStyle}
+					className="sf-input"
 				/>
-				<p style={hintStyle}>
-					Right-click your server name in Discord, select "Copy Server
-					ID". Must be 17-20 digits.
+				{errors.server_id && (
+					<p className="sf-error">{errors.server_id.message}</p>
+				)}
+				<p className="sf-hint">
+					Right-click your server name in Discord, select &quot;Copy
+					Server ID&quot;. Must be 17-20 digits.
 				</p>
 			</div>
 
 			{/* Server Name */}
 			<div>
-				<label style={labelStyle}>Server Name</label>
+				<label className="sf-label">Server Name</label>
 				<input
 					type="text"
-					value={name}
-					onChange={(e) => setName(e.target.value)}
+					{...register('name')}
 					placeholder="My Awesome Server"
-					required
 					maxLength={100}
-					style={inputStyle}
+					className="sf-input"
 				/>
+				{errors.name && (
+					<p className="sf-error">{errors.name.message}</p>
+				)}
 			</div>
 
 			{/* Summary */}
 			<div>
-				<label style={labelStyle}>Summary</label>
+				<label className="sf-label">Summary</label>
 				<input
 					type="text"
-					value={summary}
-					onChange={(e) => setSummary(e.target.value)}
+					{...register('summary')}
 					placeholder="A short description of your server"
-					required
 					maxLength={200}
-					style={inputStyle}
+					className="sf-input"
 				/>
-				<p style={hintStyle}>{summary.length}/200 characters</p>
+				{errors.summary && (
+					<p className="sf-error">{errors.summary.message}</p>
+				)}
+				<p className="sf-hint">{summary.length}/200 characters</p>
 			</div>
 
 			{/* Invite Code */}
 			<div>
-				<label style={labelStyle}>Invite Code</label>
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: '0.5rem',
-					}}>
-					<span
-						style={{
-							color: slVar('gray-3', '#9ca3af'),
-							fontSize: '0.875rem',
-							whiteSpace: 'nowrap',
-						}}>
+				<label className="sf-label">Invite Code</label>
+				<div className="flex items-center gap-2">
+					<span className="sf-hint whitespace-nowrap text-sm">
 						discord.gg/
 					</span>
 					<input
 						type="text"
-						value={inviteCode}
-						onChange={(e) => setInviteCode(e.target.value)}
+						{...register('invite_code')}
 						placeholder="your-invite"
-						required
-						pattern="[a-zA-Z0-9_-]{2,32}"
 						maxLength={32}
-						style={inputStyle}
+						className="sf-input"
 					/>
 				</div>
-				<p style={hintStyle}>
+				{errors.invite_code && (
+					<p className="sf-error">{errors.invite_code.message}</p>
+				)}
+				<p className="sf-hint">
 					Create a permanent invite link in your server settings.
 				</p>
 			</div>
 
 			{/* Description (optional) */}
 			<div>
-				<label style={labelStyle}>
+				<label className="sf-label">
 					Description{' '}
-					<span
-						style={{
-							fontWeight: 400,
-							color: slVar('gray-3', '#9ca3af'),
-						}}>
-						(optional)
-					</span>
+					<span className="sf-hint font-normal">(optional)</span>
 				</label>
 				<textarea
-					value={description}
-					onChange={(e) => setDescription(e.target.value)}
+					{...register('description')}
 					placeholder="Tell people more about your server..."
 					maxLength={2000}
 					rows={4}
-					style={{ ...inputStyle, resize: 'vertical' }}
+					className="sf-input resize-y"
 				/>
-				<p style={hintStyle}>{description.length}/2000 characters</p>
+				{errors.description && (
+					<p className="sf-error">{errors.description.message}</p>
+				)}
+				<p className="sf-hint">{description.length}/2000 characters</p>
 			</div>
 
 			{/* Categories */}
 			<div>
-				<label style={labelStyle}>
+				<label className="sf-label">
 					Categories{' '}
-					<span
-						style={{
-							fontWeight: 400,
-							color: slVar('gray-3', '#9ca3af'),
-						}}>
-						(up to 3)
-					</span>
+					<span className="sf-hint font-normal">(up to 3)</span>
 				</label>
-				<div
-					style={{
-						display: 'flex',
-						flexWrap: 'wrap',
-						gap: '0.5rem',
-					}}>
+				<div className="flex flex-wrap gap-2">
 					{CATEGORIES.map((cat, idx) => {
 						const catValue = idx + 1;
 						const selected = selectedCategories.includes(catValue);
@@ -287,20 +239,7 @@ export function ReactSubmitForm() {
 								key={cat.id}
 								type="button"
 								onClick={() => toggleCategory(catValue)}
-								style={{
-									padding: '0.375rem 0.75rem',
-									borderRadius: '9999px',
-									border: `1px solid ${selected ? 'var(--sl-color-accent, #8b5cf6)' : 'var(--sl-color-gray-5, #374151)'}`,
-									backgroundColor: selected
-										? 'var(--sl-color-accent-low, #1e1033)'
-										: 'transparent',
-									color: selected
-										? 'var(--sl-color-accent, #8b5cf6)'
-										: 'var(--sl-color-gray-3, #9ca3af)',
-									fontSize: '0.8125rem',
-									cursor: 'pointer',
-									transition: 'all 0.15s',
-								}}>
+								className={`sg-pill ${selected ? 'sg-pill-active' : 'sg-pill-inactive'}`}>
 								{cat.label}
 							</button>
 						);
@@ -310,41 +249,22 @@ export function ReactSubmitForm() {
 
 			{/* Tags (optional) */}
 			<div>
-				<label style={labelStyle}>
+				<label className="sf-label">
 					Tags{' '}
-					<span
-						style={{
-							fontWeight: 400,
-							color: slVar('gray-3', '#9ca3af'),
-						}}>
+					<span className="sf-hint font-normal">
 						(optional, comma-separated, max 10)
 					</span>
 				</label>
 				<input
 					type="text"
-					value={tagsInput}
-					onChange={(e) => setTagsInput(e.target.value)}
+					{...register('tags_input')}
 					placeholder="e.g. competitive, friendly, 18+"
-					style={inputStyle}
+					className="sf-input"
 				/>
 			</div>
 
 			{/* Submit button */}
-			<button
-				type="submit"
-				disabled={submitting}
-				style={{
-					padding: '0.75rem 1.5rem',
-					borderRadius: '0.5rem',
-					border: 'none',
-					backgroundColor: 'var(--sl-color-accent, #8b5cf6)',
-					color: '#fff',
-					fontSize: '0.9375rem',
-					fontWeight: 600,
-					cursor: submitting ? 'default' : 'pointer',
-					opacity: submitting ? 0.6 : 1,
-					transition: 'opacity 0.15s',
-				}}>
+			<button type="submit" disabled={submitting} className="sf-submit">
 				{submitting ? 'Submitting...' : 'Submit Server'}
 			</button>
 		</form>
