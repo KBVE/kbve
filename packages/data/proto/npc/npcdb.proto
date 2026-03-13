@@ -1,0 +1,202 @@
+syntax = "proto3";
+
+package npc;
+
+import "kbve/common.proto";
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+// NPC archetype — broad behavioral class
+enum NpcType {
+  NPC_TYPE_UNSPECIFIED = 0;
+  NPC_TYPE_ENEMY = 1;         // Hostile mob / boss
+  NPC_TYPE_MERCHANT = 2;      // Shop / vendor
+  NPC_TYPE_QUEST_GIVER = 3;   // Offers or advances quests
+  NPC_TYPE_COMPANION = 4;     // Party member / follower
+  NPC_TYPE_NEUTRAL = 5;       // Ambient / non-interactive
+  NPC_TYPE_BOSS = 6;          // Elite / dungeon boss
+  NPC_TYPE_MINIBOSS = 7;      // Mid-tier elite
+  NPC_TYPE_SUMMON = 8;        // Player-summoned entity
+}
+
+// Personality — drives dialogue, flavor text, AI weighting
+enum Personality {
+  PERSONALITY_UNSPECIFIED = 0;
+  PERSONALITY_AGGRESSIVE = 1;
+  PERSONALITY_CUNNING = 2;
+  PERSONALITY_FEARFUL = 3;
+  PERSONALITY_STOIC = 4;
+  PERSONALITY_FERAL = 5;
+  PERSONALITY_ANCIENT = 6;
+  PERSONALITY_CHEERFUL = 7;
+  PERSONALITY_MYSTERIOUS = 8;
+  PERSONALITY_COWARDLY = 9;
+  PERSONALITY_NOBLE = 10;
+}
+
+// Element / damage affinity
+enum Element {
+  ELEMENT_NONE = 0;
+  ELEMENT_FIRE = 1;
+  ELEMENT_ICE = 2;
+  ELEMENT_LIGHTNING = 3;
+  ELEMENT_POISON = 4;
+  ELEMENT_SHADOW = 5;
+  ELEMENT_HOLY = 6;
+  ELEMENT_ARCANE = 7;
+  ELEMENT_EARTH = 8;
+  ELEMENT_WIND = 9;
+}
+
+// Rarity tier
+enum NpcRarity {
+  NPC_RARITY_COMMON = 0;
+  NPC_RARITY_UNCOMMON = 1;
+  NPC_RARITY_RARE = 2;
+  NPC_RARITY_EPIC = 3;
+  NPC_RARITY_LEGENDARY = 4;
+  NPC_RARITY_MYTHIC = 5;
+}
+
+// =============================================================================
+// Sub-messages
+// =============================================================================
+
+// Base combat stats
+message NpcStats {
+  int32 hp = 1;
+  int32 max_hp = 2;
+  int32 attack = 3;
+  int32 defense = 4;
+  int32 speed = 5;
+  optional int32 mp = 6;
+  optional int32 max_mp = 7;
+  optional int32 armor = 8;
+  optional int32 intelligence = 9;
+  optional int32 strength = 10;
+  optional int32 agility = 11;
+}
+
+// A single loot drop entry
+message LootEntry {
+  string item_ref = 1;         // ULID or item slug
+  optional string item_name = 2;
+  int32 min_quantity = 3;      // default: 1
+  int32 max_quantity = 4;      // default: 1
+  float drop_rate = 5;         // 0.0–1.0 probability
+  optional int32 level_requirement = 6;
+}
+
+// Loot table attached to an NPC
+message LootTable {
+  repeated LootEntry entries = 1;
+  optional int32 guaranteed_drops = 2;  // Min drops per kill
+  optional int32 max_drops = 3;         // Max drops per kill
+  optional int32 gold_min = 4;
+  optional int32 gold_max = 5;
+  optional int32 xp_reward = 6;
+}
+
+// A single ability / skill the NPC can use
+message NpcAbility {
+  string id = 1;               // Slug, e.g. "fireball", "charge"
+  string name = 2;
+  optional string description = 3;
+  optional Element element = 4;
+  optional int32 damage = 5;
+  optional int32 mp_cost = 6;
+  optional int32 cooldown_turns = 7;
+  optional float hit_chance = 8;  // 0.0–1.0
+  optional bool is_aoe = 9;
+  optional int32 heal_amount = 10;
+  optional string status_effect = 11; // e.g. "poison", "stun"
+}
+
+// Flavor text pool for a specific action
+message FlavorPool {
+  string action = 1;            // e.g. "attack", "flee", "death"
+  repeated string messages = 2; // {name}, {target}, {damage} placeholders
+}
+
+// Dialogue line for non-combat interactions
+message DialogueLine {
+  string trigger = 1;           // e.g. "greet", "shop_open", "quest_offer"
+  repeated string lines = 2;    // Randomly selected
+  optional string condition = 3; // Optional expression / flag gate
+}
+
+// Spawn rule — where and how this NPC appears
+message SpawnRule {
+  optional string zone = 1;        // Zone / area slug
+  optional int32 floor_min = 2;    // Dungeon floor range
+  optional int32 floor_max = 3;
+  float spawn_weight = 4;          // Relative weight in spawn pool
+  optional int32 max_active = 5;   // Max concurrent instances
+  optional int32 level_min = 6;    // Player level gate
+  optional int32 level_max = 7;
+}
+
+// =============================================================================
+// Core NPC Definition
+// =============================================================================
+
+message Npc {
+  // Identity
+  string id = 1;                    // ULID
+  string slug = 2;                  // URL-safe identifier, e.g. "glass-slime"
+  string name = 3;
+  optional string title = 4;        // e.g. "The Shattered King"
+  optional string description = 5;
+  optional string lore = 6;         // Extended backstory
+
+  // Classification
+  NpcType type = 7;
+  NpcRarity rarity = 8;
+  Personality personality = 9;
+  optional Element element = 10;
+  repeated string tags = 11;        // Free-form tags for filtering
+
+  // Visual
+  optional string img = 12;         // Sprite / portrait path
+  optional string icon = 13;        // Small icon for UI lists
+  optional int32 pixel_density = 14;
+
+  // Level & scaling
+  int32 level = 15;
+  optional int32 level_min = 16;    // Scaling floor
+  optional int32 level_max = 17;    // Scaling ceiling
+
+  // Stats
+  NpcStats stats = 18;
+
+  // Combat
+  repeated NpcAbility abilities = 19;
+  optional Element weakness = 20;
+  optional Element resistance = 21;
+
+  // Loot
+  optional LootTable loot = 22;
+
+  // Flavor text (personality-driven)
+  repeated FlavorPool flavor_text = 23;
+
+  // Dialogue (merchants, quest givers, companions)
+  repeated DialogueLine dialogue = 24;
+
+  // Spawning
+  repeated SpawnRule spawn_rules = 25;
+
+  // Metadata
+  optional string credits = 26;
+  optional bool drafted = 27;       // Hidden from production
+}
+
+// =============================================================================
+// Registry
+// =============================================================================
+
+message NpcRegistry {
+  repeated Npc npcs = 1;
+}
