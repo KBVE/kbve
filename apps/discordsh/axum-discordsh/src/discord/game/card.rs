@@ -785,9 +785,9 @@ fn truncate_name(name: &str, max_len: usize) -> String {
     }
 }
 
-/// Build the inventory card template from a session.
-pub fn build_inventory_card(session: &SessionState) -> InventoryCardTemplate {
-    let owner = session.owner_player();
+/// Build the inventory card template for a specific player.
+pub fn build_inventory_card(player: &PlayerState) -> InventoryCardTemplate {
+    let owner = player;
 
     let weapon_slot = build_equip_slot_display(owner.weapon.as_deref());
     let armor_slot = build_equip_slot_display(owner.armor_gear.as_deref());
@@ -868,10 +868,10 @@ pub fn build_inventory_card(session: &SessionState) -> InventoryCardTemplate {
 
 /// Render the inventory card as PNG bytes (CPU-bound).
 pub fn render_inventory_card_blocking(
-    session: &SessionState,
+    player: &PlayerState,
     fontdb: &FontDb,
 ) -> Result<Vec<u8>, String> {
-    let template = build_inventory_card(session);
+    let template = build_inventory_card(player);
     let svg_string = template
         .render()
         .map_err(|e| format!("Inventory SVG template error: {e}"))?;
@@ -881,11 +881,11 @@ pub fn render_inventory_card_blocking(
 
 /// Async wrapper — renders the inventory card on a blocking thread.
 pub async fn render_inventory_card(
-    session: &SessionState,
+    player: &PlayerState,
     fontdb: FontDb,
 ) -> Result<Vec<u8>, String> {
-    let session_clone = session.clone();
-    tokio::task::spawn_blocking(move || render_inventory_card_blocking(&session_clone, &fontdb))
+    let player_clone = player.clone();
+    tokio::task::spawn_blocking(move || render_inventory_card_blocking(&player_clone, &fontdb))
         .await
         .map_err(|e| format!("Inventory render task panicked: {e}"))?
 }
@@ -1517,7 +1517,7 @@ mod tests {
     #[test]
     fn test_build_inventory_card_empty_inventory() {
         let session = test_session();
-        let template = build_inventory_card(&session);
+        let template = build_inventory_card(session.owner_player());
         assert_eq!(template.player_name, "Adventurer");
         assert_eq!(template.slots_used, 0);
         assert_eq!(template.slots_max, MAX_INVENTORY_SLOTS);
@@ -1543,7 +1543,7 @@ mod tests {
                 qty: 1,
             },
         ];
-        let template = build_inventory_card(&session);
+        let template = build_inventory_card(session.owner_player());
         assert_eq!(template.slots_used, 2);
         assert!(template.items[0].occupied);
         assert_eq!(template.items[0].qty, 3);
@@ -1560,7 +1560,7 @@ mod tests {
         let mut session = test_session();
         session.player_mut(OWNER).weapon = Some("rusty_sword".to_owned());
         session.player_mut(OWNER).armor_gear = Some("leather_vest".to_owned());
-        let template = build_inventory_card(&session);
+        let template = build_inventory_card(session.owner_player());
         assert!(template.weapon_slot.equipped);
         assert!(template.armor_slot.equipped);
     }
@@ -1568,7 +1568,7 @@ mod tests {
     #[test]
     fn test_inventory_card_grid_coordinates() {
         let session = test_session();
-        let template = build_inventory_card(&session);
+        let template = build_inventory_card(session.owner_player());
         // 4 columns, starting x=16, pitch=93
         for (idx, item) in template.items.iter().enumerate() {
             let col = idx % 4;
@@ -1581,7 +1581,7 @@ mod tests {
     #[test]
     fn test_inventory_card_svg_renders_valid_svg() {
         let session = test_session();
-        let template = build_inventory_card(&session);
+        let template = build_inventory_card(session.owner_player());
         let svg = template.render().expect("SVG template should render");
         assert!(svg.starts_with("<svg"), "should start with <svg");
         assert!(svg.contains("</svg>"), "should contain closing </svg>");
@@ -1592,7 +1592,8 @@ mod tests {
     fn test_inventory_card_renders_to_png() {
         let db = test_fontdb();
         let session = test_session();
-        let png = render_inventory_card_blocking(&session, &db);
+        let player = session.owner_player();
+        let png = render_inventory_card_blocking(player, &db);
         assert!(png.is_ok(), "Inventory render failed: {:?}", png.err());
         let bytes = png.unwrap();
         assert!(!bytes.is_empty());
@@ -1607,7 +1608,8 @@ mod tests {
     fn test_inventory_card_renders_without_fonts() {
         let db = FontDb::new();
         let session = test_session();
-        let png = render_inventory_card_blocking(&session, &db);
+        let player = session.owner_player();
+        let png = render_inventory_card_blocking(player, &db);
         assert!(
             png.is_ok(),
             "Inventory render should succeed without fonts: {:?}",
@@ -1629,7 +1631,8 @@ mod tests {
             });
         }
         player.weapon = Some("rusty_sword".to_owned());
-        let template = build_inventory_card(&session);
+        let player = session.owner_player();
+        let template = build_inventory_card(player);
         assert_eq!(template.slots_used, MAX_INVENTORY_SLOTS);
         assert_eq!(template.gold, 42);
         // All 16 slots occupied
@@ -1638,7 +1641,7 @@ mod tests {
         }
         // Render should still succeed
         let db = test_fontdb();
-        let png = render_inventory_card_blocking(&session, &db);
+        let png = render_inventory_card_blocking(player, &db);
         assert!(png.is_ok(), "Full inventory render failed: {:?}", png.err());
     }
 }

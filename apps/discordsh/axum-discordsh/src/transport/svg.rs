@@ -165,8 +165,9 @@ async fn inventory_card_png(
     let session = snapshot_session(&state, &session_id)?;
     let fontdb = state.app.fontdb.clone();
 
+    let player = session.owner_player().clone();
     let png_bytes = tokio::task::spawn_blocking(move || {
-        card::render_inventory_card_blocking(&session, &fontdb)
+        card::render_inventory_card_blocking(&player, &fontdb)
             .map_err(|e| SvgError::Render(format!("Inventory PNG render: {e}")))
     })
     .await
@@ -193,7 +194,7 @@ async fn inventory_card_svg(
 ) -> Result<Response, SvgError> {
     let session = snapshot_session(&state, &session_id)?;
 
-    let template = card::build_inventory_card(&session);
+    let template = card::build_inventory_card(session.owner_player());
     let svg_string = template
         .render()
         .map_err(|e| SvgError::Render(format!("Inventory SVG template: {e}")))?;

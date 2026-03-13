@@ -801,6 +801,341 @@ Focus on items with clear processing chains and market flip potential.
 | 12379 | Rune cane       | Hard clue, cosmetic weapon |
 | 12377 | Adamant cane    | Hard clue, cosmetic weapon |
 
+### God Vestments — Saradomin/Guthix/Zamorak Completion (Implemented - Mar 2026)
+
+| ID    | Item                | Override Focus               |
+| ----- | ------------------- | ---------------------------- |
+| 10452 | Saradomin mitre     | Medium clue, +5 Prayer, head |
+| 10456 | Zamorak mitre       | Medium clue, +5 Prayer, head |
+| 10458 | Saradomin robe top  | Easy clue, +6 Prayer, body   |
+| 10462 | Guthix robe top     | Easy clue, +6 Prayer, body   |
+| 10464 | Saradomin robe legs | Easy clue, +5 Prayer, legs   |
+| 10466 | Guthix robe legs    | Easy clue, +5 Prayer, legs   |
+| 10442 | Guthix crozier      | Hard clue, +6 Prayer, weapon |
+| 10444 | Zamorak crozier     | Hard clue, +6 Prayer, weapon |
+| 10446 | Saradomin cloak     | Medium clue, +3 Prayer, cape |
+| 10448 | Guthix cloak        | Medium clue, +3 Prayer, cape |
+| 10450 | Zamorak cloak       | Medium clue, +3 Prayer, cape |
+| 10472 | Guthix stole        | Hard clue, +10 Prayer, neck  |
+
+### God Vestments — Ancient (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus               |
+| ----- | ----------------- | ---------------------------- |
+| 12193 | Ancient robe top  | Easy clue, +6 Prayer, body   |
+| 12195 | Ancient robe legs | Easy clue, +5 Prayer, legs   |
+| 12197 | Ancient cloak     | Medium clue, +3 Prayer, cape |
+| 12199 | Ancient crozier   | Hard clue, +6 Prayer, weapon |
+| 12201 | Ancient stole     | Hard clue, +10 Prayer, neck  |
+| 12203 | Ancient mitre     | Medium clue, +5 Prayer, head |
+
+### God Vestments — Armadyl (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus               |
+| ----- | ----------------- | ---------------------------- |
+| 12253 | Armadyl robe top  | Easy clue, +6 Prayer, body   |
+| 12255 | Armadyl robe legs | Easy clue, +5 Prayer, legs   |
+| 12257 | Armadyl stole     | Hard clue, +10 Prayer, neck  |
+| 12259 | Armadyl mitre     | Medium clue, +5 Prayer, head |
+| 12261 | Armadyl cloak     | Medium clue, +3 Prayer, cape |
+| 12263 | Armadyl crozier   | Hard clue, +6 Prayer, weapon |
+
+### God Vestments — Bandos (Implemented - Mar 2026)
+
+| ID    | Item             | Override Focus               |
+| ----- | ---------------- | ---------------------------- |
+| 12265 | Bandos robe top  | Easy clue, +6 Prayer, body   |
+| 12267 | Bandos robe legs | Easy clue, +5 Prayer, legs   |
+| 12269 | Bandos stole     | Hard clue, +10 Prayer, neck  |
+| 12271 | Bandos mitre     | Medium clue, +5 Prayer, head |
+| 12273 | Bandos cloak     | Medium clue, +3 Prayer, cape |
+| 12275 | Bandos crozier   | Hard clue, +6 Prayer, weapon |
+
+### Trimmed/Gold Wizard Robes (Implemented - Mar 2026)
+
+| ID    | Item                  | Override Focus           |
+| ----- | --------------------- | ------------------------ |
+| 7390  | Blue wizard robe (g)  | Easy clue, +3 Magic body |
+| 7392  | Blue wizard robe (t)  | Easy clue, +3 Magic body |
+| 7394  | Blue wizard hat (g)   | Easy clue, +2 Magic head |
+| 7396  | Blue wizard hat (t)   | Easy clue, +2 Magic head |
+| 12449 | Black wizard robe (g) | Easy clue, +3 Magic body |
+| 12451 | Black wizard robe (t) | Easy clue, +3 Magic body |
+| 12453 | Black wizard hat (g)  | Easy clue, +2 Magic head |
+| 12455 | Black wizard hat (t)  | Easy clue, +2 Magic head |
+
+### Black Trimmed Armour (Implemented - Mar 2026)
+
+| ID   | Item                 | Override Focus           |
+| ---- | -------------------- | ------------------------ |
+| 2583 | Black platebody (t)  | Easy clue, 10 Def body   |
+| 2585 | Black platelegs (t)  | Easy clue, 10 Def legs   |
+| 2587 | Black full helm (t)  | Easy clue, 10 Def head   |
+| 2589 | Black kiteshield (t) | Easy clue, 10 Def shield |
+| 2591 | Black platebody (g)  | Easy clue, 10 Def body   |
+| 2593 | Black platelegs (g)  | Easy clue, 10 Def legs   |
+
+### Adamant Trimmed Armour (Implemented - Mar 2026)
+
+| ID   | Item                   | Override Focus             |
+| ---- | ---------------------- | -------------------------- |
+| 2599 | Adamant platebody (t)  | Medium clue, 30 Def body   |
+| 2601 | Adamant platelegs (t)  | Medium clue, 30 Def legs   |
+| 2603 | Adamant kiteshield (t) | Medium clue, 30 Def shield |
+| 2605 | Adamant full helm (t)  | Medium clue, 30 Def head   |
+| 2607 | Adamant platebody (g)  | Medium clue, 30 Def body   |
+| 2609 | Adamant platelegs (g)  | Medium clue, 30 Def legs   |
+
+### Rune Trimmed Armour Completion (Implemented - Mar 2026)
+
+| ID   | Item                | Override Focus           |
+| ---- | ------------------- | ------------------------ |
+| 2621 | Rune kiteshield (g) | Hard clue, 40 Def shield |
+| 2625 | Rune platelegs (t)  | Hard clue, 40 Def legs   |
+| 2627 | Rune full helm (t)  | Hard clue, 40 Def head   |
+| 2629 | Rune kiteshield (t) | Hard clue, 40 Def shield |
+| 3476 | Rune plateskirt (g) | Hard clue, 40 Def legs   |
+| 3477 | Rune plateskirt (t) | Hard clue, 40 Def legs   |
+
+### Adamant/Black Armour Completion (Implemented - Mar 2026)
+
+| ID   | Item                   | Override Focus             |
+| ---- | ---------------------- | -------------------------- |
+| 2611 | Adamant kiteshield (g) | Medium clue, 30 Def shield |
+| 2613 | Adamant full helm (g)  | Medium clue, 30 Def head   |
+| 3474 | Adamant plateskirt (t) | Medium clue, 30 Def legs   |
+| 3475 | Adamant plateskirt (g) | Medium clue, 30 Def legs   |
+| 2595 | Black full helm (g)    | Easy clue, 10 Def head     |
+| 2597 | Black kiteshield (g)   | Easy clue, 10 Def shield   |
+| 3472 | Black plateskirt (t)   | Easy clue, 10 Def legs     |
+| 3473 | Black plateskirt (g)   | Easy clue, 10 Def legs     |
+
+### Trimmed Monk Robes (Implemented - Mar 2026)
+
+| ID    | Item                | Override Focus            |
+| ----- | ------------------- | ------------------------- |
+| 20199 | Monk's robe top (g) | Easy clue, +6 Prayer body |
+| 20202 | Monk's robe (g)     | Easy clue, +5 Prayer legs |
+| 23303 | Monk's robe top (t) | Easy clue, +6 Prayer body |
+| 23306 | Monk's robe (t)     | Easy clue, +5 Prayer legs |
+
+### Trimmed Leather/Studded Armour (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus            |
+| ----- | ----------------- | ------------------------- |
+| 7362  | Studded body (g)  | Easy clue, 20 Ranged body |
+| 7364  | Studded body (t)  | Easy clue, 20 Ranged body |
+| 7366  | Studded chaps (g) | Easy clue, 20 Ranged legs |
+| 7368  | Studded chaps (t) | Easy clue, 20 Ranged legs |
+| 23381 | Leather body (g)  | Easy clue, no req body    |
+| 23384 | Leather chaps (g) | Easy clue, no req legs    |
+
+### Steel Trimmed Armour (Implemented - Mar 2026)
+
+| ID    | Item                 | Override Focus          |
+| ----- | -------------------- | ----------------------- |
+| 20169 | Steel platebody (g)  | Easy clue, 5 Def body   |
+| 20172 | Steel platelegs (g)  | Easy clue, 5 Def legs   |
+| 20175 | Steel plateskirt (g) | Easy clue, 5 Def legs   |
+| 20178 | Steel full helm (g)  | Easy clue, 5 Def head   |
+| 20181 | Steel kiteshield (g) | Easy clue, 5 Def shield |
+| 20184 | Steel platebody (t)  | Easy clue, 5 Def body   |
+| 20187 | Steel platelegs (t)  | Easy clue, 5 Def legs   |
+| 20190 | Steel plateskirt (t) | Easy clue, 5 Def legs   |
+| 20193 | Steel full helm (t)  | Easy clue, 5 Def head   |
+| 20196 | Steel kiteshield (t) | Easy clue, 5 Def shield |
+
+### Team Capes (Implemented - Mar 2026)
+
+| ID    | Item           | Override Focus  |
+| ----- | -------------- | --------------- |
+| 20211 | Team cape zero | Easy clue, cape |
+| 20214 | Team cape x    | Easy clue, cape |
+| 20217 | Team cape i    | Easy clue, cape |
+
+### Rune Heraldic Platebodies (Implemented - Mar 2026)
+
+| ID    | Item                | Override Focus        |
+| ----- | ------------------- | --------------------- |
+| 23209 | Rune platebody (h1) | Hard clue, 40 Def+DS1 |
+| 23212 | Rune platebody (h2) | Hard clue, 40 Def+DS1 |
+| 23215 | Rune platebody (h3) | Hard clue, 40 Def+DS1 |
+| 23218 | Rune platebody (h4) | Hard clue, 40 Def+DS1 |
+| 23221 | Rune platebody (h5) | Hard clue, 40 Def+DS1 |
+
+### Misc Cosmetics (Implemented - Mar 2026)
+
+| ID    | Item                | Override Focus           |
+| ----- | ------------------- | ------------------------ |
+| 2631  | Highwayman mask     | Easy clue, cosmetic head |
+| 2635  | Black beret         | Easy clue, cosmetic head |
+| 2637  | White beret         | Easy clue, cosmetic head |
+| 7386  | Blue skirt (g)      | Easy clue, wizard skirt  |
+| 7388  | Blue skirt (t)      | Easy clue, wizard skirt  |
+| 12445 | Black skirt (g)     | Easy clue, wizard skirt  |
+| 12447 | Black skirt (t)     | Easy clue, wizard skirt  |
+| 10364 | Strength amulet (t) | Medium clue, +10 Str     |
+
+### Dwarf Multicannon Parts (Implemented - Mar 2026)
+
+| ID  | Item           | Notes                         |
+| --- | -------------- | ----------------------------- |
+| 6   | Cannon base    | First cannon component        |
+| 8   | Cannon stand   | Second cannon component       |
+| 10  | Cannon barrels | Third cannon component        |
+| 12  | Cannon furnace | Fourth/final cannon component |
+
+### Quest/Utility Items (Implemented - Mar 2026)
+
+| ID  | Item             | Notes                           |
+| --- | ---------------- | ------------------------------- |
+| 28  | Insect repellent | Merlin's Crystal, Troll Romance |
+| 30  | Bucket of wax    | Made from beehives              |
+| 36  | Candle           | Light source, quest item        |
+
+### Arrowtips (Implemented - Mar 2026)
+
+| ID  | Item              | Notes                   |
+| --- | ----------------- | ----------------------- |
+| 39  | Bronze arrowtips  | 5 Smithing, 1 Fletching |
+| 40  | Iron arrowtips    | 20 Smithing, 15 Fletch  |
+| 41  | Steel arrowtips   | 35 Smithing, 30 Fletch  |
+| 42  | Mithril arrowtips | 55 Smithing, 45 Fletch  |
+| 43  | Adamant arrowtips | 75 Smithing, 60 Fletch  |
+| 44  | Rune arrowtips    | 90 Smithing, 75 Fletch  |
+
+### Bolt Tips (Implemented - Mar 2026)
+
+| ID  | Item            | Notes                    |
+| --- | --------------- | ------------------------ |
+| 45  | Opal bolt tips  | 11 Fletching             |
+| 46  | Pearl bolt tips | 41 Fletching             |
+| 47  | Barb bolttips   | Ranging Guild, 51 Fletch |
+
+### Unstrung Bows (Implemented - Mar 2026)
+
+| ID  | Item                | Notes        |
+| --- | ------------------- | ------------ |
+| 48  | Longbow (u)         | 10 Fletching |
+| 50  | Shortbow (u)        | 5 Fletching  |
+| 54  | Oak shortbow (u)    | 20 Fletching |
+| 56  | Oak longbow (u)     | 25 Fletching |
+| 58  | Willow longbow (u)  | 40 Fletching |
+| 60  | Willow shortbow (u) | 35 Fletching |
+| 62  | Maple longbow (u)   | 55 Fletching |
+| 64  | Maple shortbow (u)  | 50 Fletching |
+| 68  | Yew shortbow (u)    | 65 Fletching |
+| 70  | Magic longbow (u)   | 85 Fletching |
+| 72  | Magic shortbow (u)  | 80 Fletching |
+
+### Potions — Standard Combat (Implemented - Mar 2026)
+
+| ID  | Item               | Notes                |
+| --- | ------------------ | -------------------- |
+| 115 | Strength potion(3) | 12 Herblore, F2P     |
+| 117 | Strength potion(2) | Dose variant         |
+| 119 | Strength potion(1) | Dose variant         |
+| 121 | Attack potion(3)   | 3 Herblore, members  |
+| 123 | Attack potion(2)   | Dose variant         |
+| 125 | Attack potion(1)   | Dose variant         |
+| 127 | Restore potion(3)  | 22 Herblore, members |
+| 129 | Restore potion(2)  | Dose variant         |
+| 131 | Restore potion(1)  | Dose variant         |
+| 133 | Defence potion(3)  | 30 Herblore, members |
+| 135 | Defence potion(2)  | Dose variant         |
+| 137 | Defence potion(1)  | Dose variant         |
+
+### Potions — Super Combat (Implemented - Mar 2026)
+
+| ID  | Item              | Notes        |
+| --- | ----------------- | ------------ |
+| 145 | Super attack(3)   | 45 Herblore  |
+| 147 | Super attack(2)   | Dose variant |
+| 149 | Super attack(1)   | Dose variant |
+| 151 | Fishing potion(3) | 50 Herblore  |
+| 153 | Fishing potion(2) | Dose variant |
+| 155 | Fishing potion(1) | Dose variant |
+| 157 | Super strength(3) | 55 Herblore  |
+| 159 | Super strength(2) | Dose variant |
+| 161 | Super strength(1) | Dose variant |
+| 163 | Super defence(3)  | 66 Herblore  |
+| 165 | Super defence(2)  | Dose variant |
+
+### Potions — Ranging/Antipoison/Zamorak (Implemented - Mar 2026)
+
+| ID  | Item               | Notes                       |
+| --- | ------------------ | --------------------------- |
+| 167 | Super defence(1)   | Dose variant                |
+| 169 | Ranging potion(3)  | 72 Herblore                 |
+| 171 | Ranging potion(2)  | Dose variant                |
+| 173 | Ranging potion(1)  | Dose variant                |
+| 175 | Antipoison(3)      | 5 Herblore, F2P purchasable |
+| 177 | Antipoison(2)      | Dose variant                |
+| 179 | Antipoison(1)      | Dose variant                |
+| 181 | Superantipoison(3) | 48 Herblore                 |
+| 183 | Superantipoison(2) | Dose variant                |
+| 185 | Superantipoison(1) | Dose variant                |
+| 189 | Zamorak brew(3)    | 78 Herblore                 |
+| 191 | Zamorak brew(2)    | Dose variant                |
+| 193 | Zamorak brew(1)    | Dose variant                |
+
+### Quest/Utility Items (Implemented - Mar 2026)
+
+| ID  | Item              | Notes                      |
+| --- | ----------------- | -------------------------- |
+| 197 | Poison chalice    | Random effect drink        |
+| 233 | Pestle and mortar | Essential Herblore tool    |
+| 272 | Fish food         | Ernest the Chicken quest   |
+| 273 | Poison            | Ernest the Chicken quest   |
+| 288 | Goblin mail       | Goblin Diplomacy quest     |
+| 299 | Mithril seeds     | PvP utility, Legends Guild |
+
+### Grimy/Clean Herbs (Implemented - Mar 2026)
+
+| ID  | Item             | Notes                  |
+| --- | ---------------- | ---------------------- |
+| 199 | Grimy guam leaf  | 3 Herblore to clean    |
+| 201 | Grimy marrentill | 5 Herblore to clean    |
+| 203 | Grimy tarromin   | 11 Herblore to clean   |
+| 249 | Guam leaf        | Lowest-tier clean herb |
+| 251 | Marrentill       | Antipoison herb        |
+| 253 | Tarromin         | Strength potion herb   |
+| 255 | Harralander      | Restore/energy herb    |
+
+### Fishing Equipment (Implemented - Mar 2026)
+
+| ID  | Item              | Notes                      |
+| --- | ----------------- | -------------------------- |
+| 301 | Lobster pot       | 40 Fishing for lobsters    |
+| 303 | Small fishing net | Shrimps/anchovies, F2P     |
+| 305 | Big fishing net   | Sea fish, members          |
+| 307 | Fishing rod       | Sardine/herring, F2P       |
+| 309 | Fly fishing rod   | Trout/salmon, F2P          |
+| 311 | Harpoon           | Tuna/swordfish/shark, F2P  |
+| 313 | Fishing bait      | Used with fishing rod, F2P |
+
+### Fish — Raw & Cooked (Implemented - Mar 2026)
+
+| ID  | Item           | Notes                      |
+| --- | -------------- | -------------------------- |
+| 315 | Shrimps        | 3 HP, 1 Cooking, F2P       |
+| 319 | Anchovies      | 1 HP, 1 Cooking, F2P       |
+| 321 | Raw anchovies  | 15 Fishing, F2P            |
+| 325 | Sardine        | 4 HP, 1 Cooking, F2P       |
+| 327 | Raw sardine    | 5 Fishing, F2P             |
+| 339 | Cod            | 7 HP, 18 Cooking, members  |
+| 341 | Raw cod        | Big net catch, members     |
+| 345 | Raw herring    | 10 Fishing, F2P            |
+| 347 | Herring        | 5 HP, 5 Cooking, F2P       |
+| 349 | Raw pike       | 25 Fishing, F2P            |
+| 351 | Pike           | 8 HP, 20 Cooking, F2P      |
+| 353 | Raw mackerel   | 16 Fishing, members        |
+| 355 | Mackerel       | 6 HP, 10 Cooking, members  |
+| 363 | Raw bass       | 46 Fishing, members        |
+| 365 | Bass           | 13 HP, 43 Cooking, members |
+| 395 | Raw sea turtle | Trawler minigame, members  |
+| 397 | Sea turtle     | 21 HP, 82 Cooking, members |
+
 ---
 
 ## Future Override Priorities
@@ -1389,17 +1724,21 @@ const description = generateMetaDescription(item);
 
 Record batch completions here:
 
-| Date         | Items Added                                              | Total Overrides |
-| ------------ | -------------------------------------------------------- | --------------- |
-| Jan 2026     | Initial ~100 items                                       | ~100            |
-| Jan 7, 2026  | +35 items (potions, weapons, raid gear)                  | ~135            |
-| Jan 21, 2026 | +42 items (barrows, hilts, potions, utility)             | ~881            |
-| Mar 11, 2026 | +20 items (jewelry chains, misc weapons)                 | ~901            |
-| Mar 12, 2026 | +20 items (dragon bolts e, mystic, trimmed)              | ~921            |
-| Mar 12, 2026 | +20 items (god d'hide sets, rune weapons)                | ~941            |
-| Mar 12, 2026 | +20 items (god chaps/coifs/bracers, misc)                | ~961            |
-| Mar 13, 2026 | +20 items (gilded/trimmed d'hide, misc)                  | ~981            |
-| Mar 13, 2026 | +50 items (elegant sets, HAM, robes, vestments, amulets) | ~1031           |
+| Date         | Items Added                                                      | Total Overrides |
+| ------------ | ---------------------------------------------------------------- | --------------- |
+| Jan 2026     | Initial ~100 items                                               | ~100            |
+| Jan 7, 2026  | +35 items (potions, weapons, raid gear)                          | ~135            |
+| Jan 21, 2026 | +42 items (barrows, hilts, potions, utility)                     | ~881            |
+| Mar 11, 2026 | +20 items (jewelry chains, misc weapons)                         | ~901            |
+| Mar 12, 2026 | +20 items (dragon bolts e, mystic, trimmed)                      | ~921            |
+| Mar 12, 2026 | +20 items (god d'hide sets, rune weapons)                        | ~941            |
+| Mar 12, 2026 | +20 items (god chaps/coifs/bracers, misc)                        | ~961            |
+| Mar 13, 2026 | +20 items (gilded/trimmed d'hide, misc)                          | ~981            |
+| Mar 13, 2026 | +50 items (elegant sets, HAM, robes, vestments, amulets)         | ~1031           |
+| Mar 13, 2026 | +50 items (god vestments, wizard robes, black/adamant trimmed)   | ~1081           |
+| Mar 13, 2026 | +50 items (rune/steel/black trimmed, monk robes, heraldic, misc) | ~1131           |
+| Mar 13, 2026 | +50 items (cannon parts, fletching supplies, potions)            | ~1181           |
+| Mar 13, 2026 | +50 items (potions, herbs, fishing equipment, fish)              | ~1231           |
 
 ### Quick Stats
 

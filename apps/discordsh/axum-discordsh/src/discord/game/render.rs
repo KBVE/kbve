@@ -969,6 +969,48 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
         }
     }
 
+    // Gift select menu (Party mode, non-combat phases)
+    if session.mode == SessionMode::Party && !game_over && !in_combat && rows.len() < 5 {
+        let mut gift_options: Vec<serenity::CreateSelectMenuOption> = Vec::new();
+        let party_targets: Vec<(serenity::UserId, String)> = session
+            .roster()
+            .iter()
+            .filter(|(uid, p)| p.alive && *uid != session.owner)
+            .map(|(uid, p)| (*uid, p.name.clone()))
+            .collect();
+
+        if !party_targets.is_empty() {
+            for stack in owner.inventory.iter().filter(|s| s.qty > 0) {
+                let item_name = super::content::find_item(&stack.item_id)
+                    .map(|d| d.name)
+                    .or_else(|| super::content::find_gear(&stack.item_id).map(|d| d.name))
+                    .unwrap_or(&stack.item_id);
+                for (uid, target_name) in &party_targets {
+                    gift_options.push(
+                        serenity::CreateSelectMenuOption::new(
+                            format!("{} -> {}", item_name, target_name),
+                            format!("{}|{}", stack.item_id, uid.get()),
+                        )
+                        .description(format!("Gift 1x {} (you have {})", item_name, stack.qty)),
+                    );
+                }
+            }
+
+            if !gift_options.is_empty() {
+                // Discord limits select menus to 25 options
+                gift_options.truncate(25);
+                let select = serenity::CreateSelectMenu::new(
+                    format!("dng|{sid}|gift"),
+                    serenity::CreateSelectMenuKind::String {
+                        options: gift_options,
+                    },
+                )
+                .placeholder("Gift an item to a party member...");
+                rows.push(serenity::CreateActionRow::SelectMenu(select));
+            }
+        }
+    }
+
     // Story choice buttons
     if session.phase == GamePhase::Event && !game_over {
         if let Some(ref event) = session.room.story_event {
@@ -1986,5 +2028,183 @@ mod tests {
         assert!(parts[2].starts_with("[3]"));
         assert!(parts[2].contains("MemberAlice"));
         assert!(parts[2].contains("kbve.com/@alice"));
+    }
+
+    // ── Gift select menu tests ──────────────────────────────────────
+
+    fn party_session_for_gift() -> SessionState {
+        let member = serenity::UserId::new(2);
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        session.party = vec![member];
+        session.players.insert(
+            member,
+            PlayerState {
+                name: "Bob".to_owned(),
+                ..PlayerState::default()
+            },
+        );
+        session.player_mut(OWNER).inventory = vec![ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 3,
+        }];
+        session
+    }
+
+    #[test]
+    fn gift_menu_shown_in_party_looting() {
+        let mut session = party_session_for_gift();
+        session.phase = GamePhase::Looting;
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            all_json.contains("|gift"),
+            "party looting should show gift menu"
+        );
+    }
+
+    #[test]
+    fn gift_menu_not_shown_in_exploring_early_return() {
+        // Exploring has an early return path before the gift menu section
+        let mut session = party_session_for_gift();
+        session.phase = GamePhase::Exploring;
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        // Gift menu is in the non-exploring code path, so exploring won't have it
+        assert!(
+            !all_json.contains("|gift"),
+            "exploring early-return path should not include gift menu"
+        );
+    }
+
+    #[test]
+    fn gift_menu_shown_in_party_city() {
+        let mut session = party_session_for_gift();
+        session.phase = GamePhase::City;
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            all_json.contains("|gift"),
+            "party city should show gift menu"
+        );
+    }
+
+    #[test]
+    fn gift_menu_hidden_in_solo_mode() {
+        let mut session = party_session_for_gift();
+        session.mode = SessionMode::Solo;
+        session.phase = GamePhase::Exploring;
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            !all_json.contains("|gift"),
+            "solo mode should NOT show gift menu"
+        );
+    }
+
+    #[test]
+    fn gift_menu_hidden_during_combat() {
+        let mut session = party_session_for_gift();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![EnemyState {
+            name: "Slime".to_owned(),
+            level: 1,
+            hp: 10,
+            max_hp: 10,
+            armor: 0,
+            intent: Intent::Attack { dmg: 3 },
+            effects: Vec::new(),
+            charged: false,
+            loot_table_id: "",
+            enraged: false,
+            index: 0,
+            first_strike: false,
+        }];
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            !all_json.contains("|gift"),
+            "combat should NOT show gift menu"
+        );
+    }
+
+    #[test]
+    fn gift_menu_hidden_during_game_over() {
+        let mut session = party_session_for_gift();
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            !all_json.contains("|gift"),
+            "game over should NOT show gift menu"
+        );
+    }
+
+    #[test]
+    fn gift_menu_hidden_when_no_items() {
+        let mut session = party_session_for_gift();
+        session.phase = GamePhase::Exploring;
+        session.player_mut(OWNER).inventory.clear();
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            !all_json.contains("|gift"),
+            "empty inventory should NOT show gift menu"
+        );
+    }
+
+    #[test]
+    fn gift_menu_hidden_when_no_other_alive_party_members() {
+        let mut session = party_session_for_gift();
+        session.phase = GamePhase::Exploring;
+        let member = serenity::UserId::new(2);
+        session.player_mut(member).alive = false;
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            !all_json.contains("|gift"),
+            "no alive party members should NOT show gift menu"
+        );
+    }
+
+    #[test]
+    fn gift_menu_contains_item_and_target() {
+        let mut session = party_session_for_gift();
+        session.phase = GamePhase::City;
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        // Value format is "item_id|target_uid"
+        let member_id = serenity::UserId::new(2).get();
+        let expected_value = format!("potion|{}", member_id);
+        assert!(
+            all_json.contains(&expected_value),
+            "gift option should contain item_id|target_uid, expected: {}, got: {}",
+            expected_value,
+            all_json
+        );
+    }
+
+    #[test]
+    fn gift_menu_shown_in_merchant_phase() {
+        let mut session = party_session_for_gift();
+        session.phase = GamePhase::Merchant;
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            all_json.contains("|gift"),
+            "party merchant should show gift menu"
+        );
+    }
+
+    #[test]
+    fn gift_menu_shown_in_rest_phase() {
+        let mut session = party_session_for_gift();
+        session.phase = GamePhase::Rest;
+        let components = render_components(&session);
+        let all_json = format!("{:?}", components);
+        assert!(
+            all_json.contains("|gift"),
+            "party rest should show gift menu"
+        );
     }
 }

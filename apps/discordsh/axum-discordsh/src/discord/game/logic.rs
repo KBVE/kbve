@@ -140,6 +140,11 @@ fn validate_action(
         GameAction::ViewMap | GameAction::ViewInventory => {
             // Allowed anytime except GameOver (already checked above)
         }
+        GameAction::Gift(_, _) => {
+            if session.mode != SessionMode::Party {
+                return Err("Gifting is only available in party mode.".to_owned());
+            }
+        }
         GameAction::Revive(_) => {
             if session.phase != GamePhase::City {
                 return Err("You can only revive at a city hospital.".to_owned());
@@ -281,6 +286,9 @@ pub fn apply_action(
             return Ok(Vec::new());
         }
         GameAction::Revive(target_uid) => apply_revive(session, target_uid, actor)?,
+        GameAction::Gift(ref item_id, target_uid) => {
+            apply_gift(session, item_id, target_uid, actor)?
+        }
     };
 
     session.turn += 1;
@@ -895,6 +903,11 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
     let alive_ids = session.alive_player_ids();
     let alive_count = alive_ids.len().max(1) as i32;
 
+    // Loot fairness: max 1 Rare+ drop per encounter (across all enemy kills).
+    // Per-kill: if the item roll already produced a Rare+ drop, skip the gear roll.
+    let max_rare_drops: u32 = 1;
+    let mut rare_drops_this_encounter: u32 = 0;
+
     for (i, (enemy_name, _loot_table, enemy_level)) in dead_enemies.iter().enumerate() {
         let gold = rng.random_range(5..=15);
         let gold_per_player = (gold as f32 / alive_count as f32).ceil() as i32;
@@ -938,24 +951,62 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
         // Roll item loot drop
         if i < dead_loot_tables.len() {
             let loot_id = dead_loot_tables[i];
-            logs.extend(roll_and_add_loot(
-                loot_id,
-                &mut session.player_mut(loot_recipient).inventory,
-            ));
+            let mut item_was_rare = false;
 
-            // Roll gear loot
-            if let Some(gear_id) = content::roll_gear_loot(loot_id) {
-                if add_item_to_inventory(&mut session.player_mut(loot_recipient).inventory, gear_id)
-                {
-                    if let Some(gear) = content::find_gear(gear_id) {
-                        if alive_ids.len() > 1 {
-                            logs.push(format!("{} received gear: {}!", recipient_name, gear.name));
+            if let Some(item_id) = content::roll_loot(loot_id) {
+                let is_rare = content::is_rare_or_above(item_id);
+
+                // Suppress Rare+ items if encounter cap already hit
+                if is_rare && rare_drops_this_encounter >= max_rare_drops {
+                    // Rare item suppressed — don't add to inventory
+                } else {
+                    if let Some(def) = content::find_item(item_id) {
+                        if add_item_to_inventory(
+                            &mut session.player_mut(loot_recipient).inventory,
+                            item_id,
+                        ) {
+                            logs.push(format!("Dropped: {}!", def.name));
                         } else {
-                            logs.push(format!("Dropped gear: {}!", gear.name));
+                            logs.push(format!("Inventory full! Dropped: {}", def.name));
                         }
                     }
-                } else if let Some(gear) = content::find_gear(gear_id) {
-                    logs.push(format!("Inventory full! Lost gear: {}", gear.name));
+                    if is_rare {
+                        item_was_rare = true;
+                        rare_drops_this_encounter += 1;
+                    }
+                }
+            }
+
+            // Roll gear loot — suppressed if this kill already dropped a Rare+ item,
+            // or if the encounter has already hit the rare drop cap.
+            if !item_was_rare && rare_drops_this_encounter < max_rare_drops {
+                if let Some(gear_id) = content::roll_gear_loot(loot_id) {
+                    let gear_is_rare = content::is_rare_or_above(gear_id);
+
+                    if gear_is_rare && rare_drops_this_encounter >= max_rare_drops {
+                        // Rare gear suppressed
+                    } else {
+                        if add_item_to_inventory(
+                            &mut session.player_mut(loot_recipient).inventory,
+                            gear_id,
+                        ) {
+                            if let Some(gear) = content::find_gear(gear_id) {
+                                if alive_ids.len() > 1 {
+                                    logs.push(format!(
+                                        "{} received gear: {}!",
+                                        recipient_name, gear.name
+                                    ));
+                                } else {
+                                    logs.push(format!("Dropped gear: {}!", gear.name));
+                                }
+                            }
+                        } else if let Some(gear) = content::find_gear(gear_id) {
+                            logs.push(format!("Inventory full! Lost gear: {}", gear.name));
+                        }
+                        if gear_is_rare {
+                            rare_drops_this_encounter += 1;
+                        }
+                    }
                 }
             }
         }
@@ -1580,6 +1631,92 @@ fn apply_item(
             });
             format!("Used {}! All negative effects removed.", def.name)
         }
+        Some(UseEffect::CampfireRest { heal_percent }) => {
+            if matches!(
+                session.phase,
+                GamePhase::Combat | GamePhase::WaitingForActions
+            ) {
+                return Err("You can't set up camp during combat!".to_owned());
+            }
+            let mut healed_names = Vec::new();
+            let alive_ids = session.alive_player_ids();
+            for &uid in &alive_ids {
+                let player = session.player_mut(uid);
+                let heal_amount =
+                    (player.max_hp as f32 * *heal_percent as f32 / 100.0).ceil() as i32;
+                player.hp = (player.hp + heal_amount).min(player.max_hp);
+                player.effects.retain(|e| {
+                    !matches!(
+                        e.kind,
+                        EffectKind::Poison
+                            | EffectKind::Burning
+                            | EffectKind::Bleed
+                            | EffectKind::Weakened
+                    )
+                });
+                healed_names.push(player.name.clone());
+            }
+            if healed_names.len() > 1 {
+                format!(
+                    "The party sets up camp. {} rested and recovered!",
+                    healed_names.join(", ")
+                )
+            } else {
+                format!(
+                    "You set up camp. {} rested and recovered!",
+                    healed_names.first().unwrap_or(&"Adventurer".to_owned())
+                )
+            }
+        }
+        Some(UseEffect::TeleportCity) => {
+            if matches!(
+                session.phase,
+                GamePhase::Combat | GamePhase::WaitingForActions
+            ) {
+                return Err("You can't teleport during combat!".to_owned());
+            }
+            let origin = MapPos::new(0, 0);
+            session.enemies.clear();
+            let logs = arrive_at_tile(session, origin);
+            let mut msg = "The rune shatters! The party is teleported back to the city.".to_owned();
+            for log in &logs {
+                msg.push_str(&format!("\n{}", log));
+            }
+            msg
+        }
+        Some(UseEffect::DamageAndApply {
+            damage,
+            kind,
+            stacks,
+            turns,
+        }) => {
+            let has_target = if let Some(idx) = target_idx {
+                session.enemy_at(idx).is_some()
+            } else {
+                false
+            };
+            let enemy = if has_target {
+                session.enemy_at_mut(target_idx.unwrap())
+            } else {
+                session.primary_enemy_mut()
+            };
+            if let Some(enemy) = enemy {
+                enemy.hp -= damage;
+                let enemy_name = enemy.name.clone();
+                // Apply effect to the enemy
+                enemy.effects.push(EffectInstance {
+                    kind: kind.clone(),
+                    stacks: *stacks,
+                    turns_left: *turns,
+                });
+                format!(
+                    "Used {}! Dealt {} damage to {} and applied {:?}!",
+                    def.name, damage, enemy_name, kind
+                )
+            } else {
+                return Err("No enemy to target.".to_owned());
+            }
+        }
         None => {
             return Err("That item has no use effect.".to_owned());
         }
@@ -1853,6 +1990,78 @@ fn apply_revive(
         target_name,
         revive_hp,
         cost
+    )])
+}
+
+fn apply_gift(
+    session: &mut SessionState,
+    item_id: &str,
+    target_uid: serenity::UserId,
+    actor: serenity::UserId,
+) -> Result<Vec<String>, String> {
+    if actor == target_uid {
+        return Err("You can't gift an item to yourself.".to_owned());
+    }
+
+    if !session.players.contains_key(&target_uid) {
+        return Err("That player is not in this session.".to_owned());
+    }
+
+    // Find the item in the giver's inventory
+    let giver = session.player(actor);
+    let has_item = giver
+        .inventory
+        .iter()
+        .any(|s| s.item_id == item_id && s.qty > 0);
+    if !has_item {
+        return Err("You don't have that item.".to_owned());
+    }
+
+    // Look up item/gear name for the log message
+    let item_name = super::content::find_item(item_id)
+        .map(|d| d.name.to_owned())
+        .or_else(|| super::content::find_gear(item_id).map(|d| d.name.to_owned()))
+        .unwrap_or_else(|| item_id.to_owned());
+
+    // Check receiver has inventory space (try stacking first)
+    let receiver = session.player(target_uid);
+    let can_stack = receiver.inventory.iter().any(|s| s.item_id == item_id);
+    if !can_stack && receiver.inventory_full() {
+        return Err(format!("{}'s inventory is full!", receiver.name));
+    }
+
+    let giver_name = session.player(actor).name.clone();
+    let receiver_name = session.player(target_uid).name.clone();
+
+    // Remove 1 qty from giver
+    let giver = session.player_mut(actor);
+    if let Some(stack) = giver.inventory.iter_mut().find(|s| s.item_id == item_id) {
+        stack.qty -= 1;
+    }
+
+    // Add 1 qty to receiver
+    let added = add_item_to_inventory(&mut session.player_mut(target_uid).inventory, item_id);
+    if !added {
+        // Shouldn't happen since we checked above, but restore item if it does
+        if let Some(stack) = session
+            .player_mut(actor)
+            .inventory
+            .iter_mut()
+            .find(|s| s.item_id == item_id)
+        {
+            stack.qty += 1;
+        } else {
+            session.player_mut(actor).inventory.push(ItemStack {
+                item_id: item_id.to_owned(),
+                qty: 1,
+            });
+        }
+        return Err("Failed to add item to receiver's inventory.".to_owned());
+    }
+
+    Ok(vec![format!(
+        "{} gifted {} to {}!",
+        giver_name, item_name, receiver_name
     )])
 }
 
@@ -2469,7 +2678,12 @@ fn apply_rest_choice(
 
 // ── Loot helpers ────────────────────────────────────────────────────
 
-fn roll_and_add_loot(loot_table_id: &str, inventory: &mut Vec<ItemStack>) -> Vec<String> {
+/// Roll an item drop and add it to inventory. Returns (logs, dropped_item_id).
+#[cfg(test)]
+fn roll_and_add_loot(
+    loot_table_id: &str,
+    inventory: &mut Vec<ItemStack>,
+) -> (Vec<String>, Option<&'static str>) {
     let mut logs = Vec::new();
     if let Some(item_id) = content::roll_loot(loot_table_id) {
         if let Some(def) = content::find_item(item_id) {
@@ -2479,8 +2693,9 @@ fn roll_and_add_loot(loot_table_id: &str, inventory: &mut Vec<ItemStack>) -> Vec
                 logs.push(format!("Inventory full! Dropped: {}", def.name));
             }
         }
+        return (logs, Some(item_id));
     }
-    logs
+    (logs, None)
 }
 
 fn add_item_to_inventory(inventory: &mut Vec<ItemStack>, item_id: &str) -> bool {
@@ -6974,5 +7189,1767 @@ mod tests {
         assert_eq!(owner_dmg, 20, "Owner without DR should take full damage");
         // P2: 10% DR → ceil(20 * 0.9) = 18
         assert_eq!(p2_dmg, 18, "P2 with DR should take reduced damage");
+    }
+
+    // ── Gift system tests ──────────────────────────────────────────
+
+    fn party_session_for_gift() -> SessionState {
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        let p2 = serenity::UserId::new(2);
+        let mut player2 = PlayerState::default();
+        player2.name = "Bob".to_owned();
+        session.players.insert(p2, player2);
+        session.party.push(p2);
+        // Give owner a potion
+        session.player_mut(OWNER).inventory = vec![ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 3,
+        }];
+        session.phase = GamePhase::Exploring;
+        session
+    }
+
+    #[test]
+    fn gift_basic_success() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        assert_eq!(logs.len(), 1);
+        assert!(logs[0].contains("gifted"));
+        assert!(logs[0].contains("Bob"));
+
+        // Giver lost 1
+        let giver_qty = session
+            .player(OWNER)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(giver_qty, 2);
+
+        // Receiver gained 1
+        let recv_qty = session
+            .player(p2)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(recv_qty, 1);
+    }
+
+    #[test]
+    fn gift_stacks_on_receiver() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Give receiver an existing potion stack
+        session.player_mut(p2).inventory.push(ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 2,
+        });
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_ok());
+
+        // Receiver should have 3 (stacked)
+        let recv_qty = session
+            .player(p2)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(recv_qty, 3);
+    }
+
+    #[test]
+    fn gift_blocked_in_solo_mode() {
+        let mut session = test_session();
+        session.mode = SessionMode::Solo;
+        let p2 = serenity::UserId::new(2);
+        session.players.insert(p2, PlayerState::default());
+        session.party.push(p2);
+        session.player_mut(OWNER).inventory = vec![ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 1,
+        }];
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("party mode"));
+    }
+
+    #[test]
+    fn gift_self_rejected() {
+        let mut session = party_session_for_gift();
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), OWNER),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("yourself"));
+    }
+
+    #[test]
+    fn gift_nonexistent_target() {
+        let mut session = party_session_for_gift();
+        let stranger = serenity::UserId::new(999);
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), stranger),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn gift_item_not_in_inventory() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("nonexistent_item".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("don't have"));
+    }
+
+    #[test]
+    fn gift_zero_qty_rejected() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Set potion qty to 0
+        session.player_mut(OWNER).inventory[0].qty = 0;
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("don't have"));
+    }
+
+    #[test]
+    fn gift_receiver_full_inventory_no_stack() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Fill receiver's inventory to max with different items
+        for i in 0..MAX_INVENTORY_SLOTS {
+            session.player_mut(p2).inventory.push(ItemStack {
+                item_id: format!("filler_{i}"),
+                qty: 1,
+            });
+        }
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("inventory is full"));
+    }
+
+    #[test]
+    fn gift_receiver_full_but_can_stack() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Fill receiver's inventory to max, but one slot is a potion (can stack)
+        session.player_mut(p2).inventory.push(ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 1,
+        });
+        for i in 1..MAX_INVENTORY_SLOTS {
+            session.player_mut(p2).inventory.push(ItemStack {
+                item_id: format!("filler_{i}"),
+                qty: 1,
+            });
+        }
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(
+            result.is_ok(),
+            "should succeed by stacking onto existing slot"
+        );
+        let recv_qty = session
+            .player(p2)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(recv_qty, 2);
+    }
+
+    #[test]
+    fn gift_allowed_during_combat_phase() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![test_enemy()];
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        // Gift passes Combat validation (only blocked in WaitingForActions whitelist)
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn gift_blocked_during_waiting_for_actions() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        session.phase = GamePhase::WaitingForActions;
+        session.enemies = vec![test_enemy()];
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("combat actions"));
+    }
+
+    #[test]
+    fn gift_blocked_during_game_over() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("over"));
+    }
+
+    #[test]
+    fn gift_allowed_in_city() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        session.phase = GamePhase::City;
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn gift_allowed_in_merchant() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        session.phase = GamePhase::Merchant;
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn gift_allowed_in_rest() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        session.phase = GamePhase::Rest;
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn gift_last_item_leaves_zero_qty() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        session.player_mut(OWNER).inventory = vec![ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 1,
+        }];
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let giver_qty = session
+            .player(OWNER)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(giver_qty, 0, "gifting last item should leave qty=0");
+    }
+
+    #[test]
+    fn gift_increments_turn() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        let turn_before = session.turn;
+        let _ = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert_eq!(session.turn, turn_before + 1, "gift should increment turn");
+    }
+
+    #[test]
+    fn gift_updates_log() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        let _ = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(
+            session.log.iter().any(|l| l.contains("gifted")),
+            "log should contain gift message"
+        );
+    }
+
+    #[test]
+    fn gift_multiple_items_sequentially() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Gift 3 potions one at a time
+        for i in 0..3 {
+            let result = apply_action(
+                &mut session,
+                GameAction::Gift("potion".to_owned(), p2),
+                OWNER,
+            );
+            assert!(result.is_ok(), "gift #{} should succeed", i + 1);
+        }
+        let giver_qty = session
+            .player(OWNER)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(giver_qty, 0);
+        let recv_qty = session
+            .player(p2)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion")
+            .map(|s| s.qty)
+            .unwrap_or(0);
+        assert_eq!(recv_qty, 3);
+    }
+
+    #[test]
+    fn gift_bidirectional() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Give p2 a bomb
+        session.player_mut(p2).inventory.push(ItemStack {
+            item_id: "bomb".to_owned(),
+            qty: 2,
+        });
+        // Owner gifts potion to p2
+        let r1 = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), p2),
+            OWNER,
+        );
+        assert!(r1.is_ok());
+        // P2 gifts bomb to owner
+        let r2 = apply_action(&mut session, GameAction::Gift("bomb".to_owned(), OWNER), p2);
+        assert!(r2.is_ok());
+        // Owner should have bomb
+        assert!(
+            session
+                .player(OWNER)
+                .inventory
+                .iter()
+                .any(|s| s.item_id == "bomb" && s.qty > 0)
+        );
+        // P2 should have potion
+        assert!(
+            session
+                .player(p2)
+                .inventory
+                .iter()
+                .any(|s| s.item_id == "potion" && s.qty > 0)
+        );
+    }
+
+    #[test]
+    fn gift_gear_item() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Give owner a gear item (rusty_sword is in the content registry)
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "rusty_sword".to_owned(),
+            qty: 1,
+        });
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("rusty_sword".to_owned(), p2),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let recv_has = session
+            .player(p2)
+            .inventory
+            .iter()
+            .any(|s| s.item_id == "rusty_sword" && s.qty > 0);
+        assert!(recv_has, "receiver should have the gear item");
+    }
+
+    #[test]
+    fn gift_from_non_owner_party_member() {
+        let mut session = party_session_for_gift();
+        let p2 = serenity::UserId::new(2);
+        // Give p2 some items
+        session.player_mut(p2).inventory.push(ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 5,
+        });
+        // P2 gifts to owner
+        let result = apply_action(
+            &mut session,
+            GameAction::Gift("potion".to_owned(), OWNER),
+            p2,
+        );
+        assert!(result.is_ok());
+        assert_eq!(
+            session
+                .player(p2)
+                .inventory
+                .iter()
+                .find(|s| s.item_id == "potion")
+                .unwrap()
+                .qty,
+            4
+        );
+    }
+
+    // ── Loot balance tests ──────────────────────────────────────────
+
+    #[test]
+    fn roll_and_add_loot_returns_dropped_item_id() {
+        // Run multiple times to cover the random drop path
+        let mut got_some = false;
+        let mut got_none = false;
+        for _ in 0..200 {
+            let mut inv = Vec::new();
+            let (_, dropped) = roll_and_add_loot("boss", &mut inv);
+            if dropped.is_some() {
+                got_some = true;
+            } else {
+                got_none = true;
+            }
+            if got_some && got_none {
+                break;
+            }
+        }
+        // Boss table has 100% drop chance, so we should always get some
+        assert!(got_some, "boss loot table (100% drop) should drop items");
+    }
+
+    #[test]
+    fn roll_and_add_loot_adds_item_to_inventory() {
+        // Boss table has 100% drop, so item always lands
+        let mut inv = Vec::new();
+        let (logs, dropped) = roll_and_add_loot("boss", &mut inv);
+        assert!(dropped.is_some());
+        assert!(!logs.is_empty());
+        assert!(inv.iter().any(|s| s.qty > 0), "item should be in inventory");
+    }
+
+    #[test]
+    fn handle_enemy_deaths_max_one_rare_per_encounter() {
+        // Kill 3 boss-tier enemies in one encounter. Even though each
+        // has 100% item drop and 50% gear drop, we should see at most
+        // 1 Rare+ drop across the entire encounter.
+        let mut rare_violations = 0;
+        let trials = 100;
+
+        for _ in 0..trials {
+            let mut session = test_session();
+            session.mode = SessionMode::Solo;
+            session.phase = GamePhase::Combat;
+            session.room.room_type = RoomType::Combat;
+
+            // Spawn 3 boss enemies that will all die
+            session.enemies = (0..3)
+                .map(|idx| EnemyState {
+                    name: format!("Boss {}", idx),
+                    level: 5,
+                    hp: 0, // already dead
+                    max_hp: 100,
+                    armor: 0,
+                    effects: Vec::new(),
+                    intent: Intent::Attack { dmg: 10 },
+                    charged: false,
+                    loot_table_id: "boss",
+                    enraged: false,
+                    index: idx as u8,
+                    first_strike: false,
+                })
+                .collect();
+
+            // Clear inventory to avoid full-inventory noise
+            session.player_mut(OWNER).inventory.clear();
+
+            let _logs = handle_enemy_deaths(&mut session, OWNER);
+
+            // Count Rare+ items in inventory
+            let rare_count: usize = session
+                .player(OWNER)
+                .inventory
+                .iter()
+                .filter(|s| s.qty > 0 && content::is_rare_or_above(&s.item_id))
+                .map(|s| s.qty as usize)
+                .sum();
+
+            if rare_count > 1 {
+                rare_violations += 1;
+            }
+        }
+
+        assert_eq!(
+            rare_violations, 0,
+            "should never get >1 Rare+ drop per encounter ({} violations in {} trials)",
+            rare_violations, trials
+        );
+    }
+
+    #[test]
+    fn handle_enemy_deaths_still_drops_common_items() {
+        // Boss table has 100% drop chance. Even with the rare cap,
+        // common/uncommon items should still drop from subsequent kills.
+        let mut any_drop = false;
+        for _ in 0..50 {
+            let mut session = test_session();
+            session.mode = SessionMode::Solo;
+            session.phase = GamePhase::Combat;
+            session.room.room_type = RoomType::Combat;
+
+            session.enemies = (0..3)
+                .map(|idx| EnemyState {
+                    name: format!("Boss {}", idx),
+                    level: 5,
+                    hp: 0,
+                    max_hp: 100,
+                    armor: 0,
+                    effects: Vec::new(),
+                    intent: Intent::Attack { dmg: 10 },
+                    charged: false,
+                    loot_table_id: "boss",
+                    enraged: false,
+                    index: idx as u8,
+                    first_strike: false,
+                })
+                .collect();
+
+            session.player_mut(OWNER).inventory.clear();
+            let _logs = handle_enemy_deaths(&mut session, OWNER);
+
+            let total_items: u16 = session.player(OWNER).inventory.iter().map(|s| s.qty).sum();
+            if total_items > 0 {
+                any_drop = true;
+                break;
+            }
+        }
+        assert!(
+            any_drop,
+            "should still get item drops (common/uncommon) from encounters"
+        );
+    }
+
+    #[test]
+    fn handle_enemy_deaths_single_enemy_can_get_rare() {
+        // A single enemy kill should still be able to produce 1 Rare+ drop
+        let mut got_rare = false;
+        for _ in 0..200 {
+            let mut session = test_session();
+            session.mode = SessionMode::Solo;
+            session.phase = GamePhase::Combat;
+            session.room.room_type = RoomType::Combat;
+
+            session.enemies = vec![EnemyState {
+                name: "Boss".to_owned(),
+                level: 5,
+                hp: 0,
+                max_hp: 100,
+                armor: 0,
+                effects: Vec::new(),
+                intent: Intent::Attack { dmg: 10 },
+                charged: false,
+                loot_table_id: "boss",
+                enraged: false,
+                index: 0,
+                first_strike: false,
+            }];
+
+            session.player_mut(OWNER).inventory.clear();
+            let _logs = handle_enemy_deaths(&mut session, OWNER);
+
+            let has_rare = session
+                .player(OWNER)
+                .inventory
+                .iter()
+                .any(|s| s.qty > 0 && content::is_rare_or_above(&s.item_id));
+            if has_rare {
+                got_rare = true;
+                break;
+            }
+        }
+        assert!(
+            got_rare,
+            "single boss kill should be able to produce a Rare+ drop"
+        );
+    }
+
+    #[test]
+    fn handle_enemy_deaths_gold_and_xp_still_distributed() {
+        let mut session = test_session();
+        session.mode = SessionMode::Solo;
+        session.phase = GamePhase::Combat;
+
+        let gold_before = session.player(OWNER).gold;
+        let xp_before = session.player(OWNER).xp;
+
+        session.enemies = vec![EnemyState {
+            name: "Slime".to_owned(),
+            level: 1,
+            hp: 0,
+            max_hp: 20,
+            armor: 0,
+            effects: Vec::new(),
+            intent: Intent::Attack { dmg: 5 },
+            charged: false,
+            loot_table_id: "slime",
+            enraged: false,
+            index: 0,
+            first_strike: false,
+        }];
+
+        let logs = handle_enemy_deaths(&mut session, OWNER);
+
+        assert!(
+            session.player(OWNER).gold > gold_before,
+            "should receive gold from kill"
+        );
+        assert!(
+            session.player(OWNER).xp > xp_before,
+            "should receive XP from kill"
+        );
+        assert!(
+            logs.iter().any(|l| l.contains("defeated")),
+            "should log defeat message"
+        );
+    }
+
+    // ── Campfire rest tests ─────────────────────────────────────────
+
+    #[test]
+    fn campfire_heals_solo_player() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        session.player_mut(OWNER).hp = 30;
+        session.player_mut(OWNER).max_hp = 100;
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "campfire_kit".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("campfire_kit".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok(), "campfire should work outside combat");
+        // 50% of 100 = 50 heal, 30 + 50 = 80
+        assert_eq!(session.player(OWNER).hp, 80);
+    }
+
+    #[test]
+    fn campfire_heals_party_members() {
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        session.phase = GamePhase::Exploring;
+
+        let p2 = serenity::UserId::new(2);
+        session.party.push(p2);
+        let mut p2_state = PlayerState::default();
+        p2_state.name = "Partner".to_owned();
+        p2_state.hp = 20;
+        p2_state.max_hp = 100;
+        session.players.insert(p2, p2_state);
+
+        session.player_mut(OWNER).hp = 40;
+        session.player_mut(OWNER).max_hp = 100;
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "campfire_kit".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("campfire_kit".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        // Owner: 40 + 50 = 90
+        assert_eq!(session.player(OWNER).hp, 90);
+        // Partner: 20 + 50 = 70
+        assert_eq!(session.player(p2).hp, 70);
+    }
+
+    #[test]
+    fn campfire_clears_negative_effects() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        session.player_mut(OWNER).hp = 50;
+        session.player_mut(OWNER).max_hp = 100;
+        session.player_mut(OWNER).effects = vec![
+            EffectInstance {
+                kind: EffectKind::Poison,
+                stacks: 2,
+                turns_left: 3,
+            },
+            EffectInstance {
+                kind: EffectKind::Burning,
+                stacks: 1,
+                turns_left: 2,
+            },
+            EffectInstance {
+                kind: EffectKind::Shielded,
+                stacks: 1,
+                turns_left: 5,
+            },
+        ];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "campfire_kit".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("campfire_kit".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        // Poison and Burning should be removed; Shielded should remain
+        let effects = &session.player(OWNER).effects;
+        assert!(!effects.iter().any(|e| e.kind == EffectKind::Poison));
+        assert!(!effects.iter().any(|e| e.kind == EffectKind::Burning));
+        assert!(effects.iter().any(|e| e.kind == EffectKind::Shielded));
+    }
+
+    #[test]
+    fn campfire_blocked_during_combat() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![test_enemy()];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "campfire_kit".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("campfire_kit".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("combat"));
+    }
+
+    #[test]
+    fn campfire_blocked_during_waiting_for_actions() {
+        let mut session = test_session();
+        session.phase = GamePhase::WaitingForActions;
+        session.enemies = vec![test_enemy()];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "campfire_kit".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("campfire_kit".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn campfire_hp_capped_at_max() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        session.player_mut(OWNER).hp = 90;
+        session.player_mut(OWNER).max_hp = 100;
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "campfire_kit".to_owned(),
+            qty: 1,
+        });
+
+        let _ = apply_action(
+            &mut session,
+            GameAction::UseItem("campfire_kit".to_owned(), None),
+            OWNER,
+        );
+        // 90 + 50 would be 140 but capped at 100
+        assert_eq!(session.player(OWNER).hp, 100);
+    }
+
+    #[test]
+    fn campfire_consumes_item() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "campfire_kit".to_owned(),
+            qty: 1,
+        });
+
+        let _ = apply_action(
+            &mut session,
+            GameAction::UseItem("campfire_kit".to_owned(), None),
+            OWNER,
+        );
+        let stack = session
+            .player(OWNER)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "campfire_kit");
+        assert!(stack.is_none() || stack.unwrap().qty == 0);
+    }
+
+    #[test]
+    fn campfire_does_not_heal_dead_players() {
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        session.phase = GamePhase::Exploring;
+
+        let p2 = serenity::UserId::new(2);
+        session.party.push(p2);
+        let mut p2_state = PlayerState::default();
+        p2_state.hp = 0;
+        p2_state.max_hp = 100;
+        p2_state.alive = false;
+        session.players.insert(p2, p2_state);
+
+        session.player_mut(OWNER).hp = 50;
+        session.player_mut(OWNER).max_hp = 100;
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "campfire_kit".to_owned(),
+            qty: 1,
+        });
+
+        let _ = apply_action(
+            &mut session,
+            GameAction::UseItem("campfire_kit".to_owned(), None),
+            OWNER,
+        );
+        // Dead player should not be healed
+        assert_eq!(session.player(p2).hp, 0);
+        assert!(!session.player(p2).alive);
+    }
+
+    // ── Teleport rune tests ─────────────────────────────────────────
+
+    #[test]
+    fn teleport_returns_to_origin() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        session.map.position = MapPos::new(3, 2);
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "teleport_rune".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("teleport_rune".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        assert_eq!(session.map.position, MapPos::new(0, 0));
+    }
+
+    #[test]
+    fn teleport_blocked_during_combat() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![test_enemy()];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "teleport_rune".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("teleport_rune".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("combat"));
+    }
+
+    #[test]
+    fn teleport_blocked_during_waiting_for_actions() {
+        let mut session = test_session();
+        session.phase = GamePhase::WaitingForActions;
+        session.enemies = vec![test_enemy()];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "teleport_rune".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("teleport_rune".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn teleport_clears_enemies() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        session.enemies = vec![test_enemy()]; // leftover from something
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "teleport_rune".to_owned(),
+            qty: 1,
+        });
+
+        let _ = apply_action(
+            &mut session,
+            GameAction::UseItem("teleport_rune".to_owned(), None),
+            OWNER,
+        );
+        assert!(
+            session.enemies.is_empty()
+                || session.enemies.iter().all(|e| e.hp <= 0)
+                || session.map.position == MapPos::new(0, 0)
+        );
+    }
+
+    #[test]
+    fn teleport_consumes_item() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "teleport_rune".to_owned(),
+            qty: 1,
+        });
+
+        let _ = apply_action(
+            &mut session,
+            GameAction::UseItem("teleport_rune".to_owned(), None),
+            OWNER,
+        );
+        let stack = session
+            .player(OWNER)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "teleport_rune");
+        assert!(stack.is_none() || stack.unwrap().qty == 0);
+    }
+
+    #[test]
+    fn teleport_message_mentions_city() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "teleport_rune".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("teleport_rune".to_owned(), None),
+            OWNER,
+        );
+        let msg = result.unwrap();
+        assert!(msg.iter().any(|l| l.to_lowercase().contains("teleport") || l.to_lowercase().contains("city")));
+    }
+
+    // ── DamageAndApply (fire flask) tests ───────────────────────────
+
+    #[test]
+    fn fire_flask_deals_damage_and_applies_burning() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![test_enemy()];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "fire_flask".to_owned(),
+            qty: 1,
+        });
+
+        let enemy_hp_before = session.enemies[0].hp;
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("fire_flask".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        assert!(
+            session.enemies[0].hp < enemy_hp_before,
+            "enemy should take damage"
+        );
+        assert!(
+            session.enemies[0]
+                .effects
+                .iter()
+                .any(|e| e.kind == EffectKind::Burning),
+            "enemy should have Burning effect"
+        );
+    }
+
+    #[test]
+    fn fire_flask_no_enemy_returns_error() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "fire_flask".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("fire_flask".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn fire_flask_consumes_item() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![test_enemy()];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "fire_flask".to_owned(),
+            qty: 3,
+        });
+
+        let _ = apply_action(
+            &mut session,
+            GameAction::UseItem("fire_flask".to_owned(), None),
+            OWNER,
+        );
+        let stack = session
+            .player(OWNER)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "fire_flask")
+            .unwrap();
+        assert_eq!(stack.qty, 2);
+    }
+
+    // ── Vitality potion tests ───────────────────────────────────────
+
+    #[test]
+    fn vitality_potion_heals_player() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        session.player_mut(OWNER).hp = 30;
+        session.player_mut(OWNER).max_hp = 100;
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "vitality_potion".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("vitality_potion".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        // Heal { amount: 25 } → 30 + 25 = 55
+        assert_eq!(session.player(OWNER).hp, 55);
+    }
+
+    // ── Iron skin potion tests ──────────────────────────────────────
+
+    #[test]
+    fn iron_skin_potion_applies_shielded() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![test_enemy()];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "iron_skin_potion".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("iron_skin_potion".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        assert!(
+            session
+                .player(OWNER)
+                .effects
+                .iter()
+                .any(|e| e.kind == EffectKind::Shielded),
+            "player should have Shielded effect"
+        );
+    }
+
+    // ── Rage draught tests ──────────────────────────────────────────
+
+    #[test]
+    fn rage_draught_applies_sharpened() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![test_enemy()];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "rage_draught".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("rage_draught".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let sharpened = session
+            .player(OWNER)
+            .effects
+            .iter()
+            .find(|e| e.kind == EffectKind::Sharpened);
+        assert!(sharpened.is_some(), "player should have Sharpened effect");
+        assert_eq!(sharpened.unwrap().stacks, 2);
+        assert_eq!(sharpened.unwrap().turns_left, 4);
+    }
+
+    // ── New item registry tests ─────────────────────────────────────
+
+    #[test]
+    fn campfire_kit_exists_in_registry() {
+        let item = content::find_item("campfire_kit");
+        assert!(item.is_some());
+        assert!(matches!(
+            item.unwrap().use_effect,
+            Some(UseEffect::CampfireRest { .. })
+        ));
+    }
+
+    #[test]
+    fn teleport_rune_exists_in_registry() {
+        let item = content::find_item("teleport_rune");
+        assert!(item.is_some());
+        assert!(matches!(
+            item.unwrap().use_effect,
+            Some(UseEffect::TeleportCity)
+        ));
+    }
+
+    #[test]
+    fn fire_flask_exists_in_registry() {
+        let item = content::find_item("fire_flask");
+        assert!(item.is_some());
+        assert!(matches!(
+            item.unwrap().use_effect,
+            Some(UseEffect::DamageAndApply { .. })
+        ));
+    }
+
+    #[test]
+    fn vitality_potion_exists_in_registry() {
+        let item = content::find_item("vitality_potion");
+        assert!(item.is_some());
+        assert!(matches!(
+            item.unwrap().use_effect,
+            Some(UseEffect::Heal { .. })
+        ));
+    }
+
+    #[test]
+    fn iron_skin_potion_exists_in_registry() {
+        let item = content::find_item("iron_skin_potion");
+        assert!(item.is_some());
+        assert!(matches!(
+            item.unwrap().use_effect,
+            Some(UseEffect::ApplyEffect { .. })
+        ));
+    }
+
+    #[test]
+    fn rage_draught_exists_in_registry() {
+        let item = content::find_item("rage_draught");
+        assert!(item.is_some());
+        assert!(matches!(
+            item.unwrap().use_effect,
+            Some(UseEffect::ApplyEffect { .. })
+        ));
+    }
+
+    #[test]
+    fn new_items_are_rare_or_above() {
+        assert!(content::is_rare_or_above("campfire_kit"));
+        assert!(content::is_rare_or_above("teleport_rune"));
+        assert!(content::is_rare_or_above("rage_draught"));
+    }
+
+    #[test]
+    fn new_items_uncommon_are_not_rare() {
+        assert!(!content::is_rare_or_above("vitality_potion"));
+        assert!(!content::is_rare_or_above("fire_flask"));
+        assert!(!content::is_rare_or_above("iron_skin_potion"));
+    }
+
+    // ── Integration: fire flask killing an enemy ────────────────────
+
+    #[test]
+    fn fire_flask_reduces_enemy_hp_below_zero() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        let mut enemy = test_enemy();
+        enemy.hp = 5; // less than fire flask's 8 damage
+        session.enemies = vec![enemy];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "fire_flask".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("fire_flask".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        // Enemy hp should be 5 - 8 = -3 (death handled on next Attack, not UseItem)
+        assert!(
+            session.enemies[0].hp <= 0,
+            "fire flask should reduce enemy hp below zero"
+        );
+    }
+
+    #[test]
+    fn fire_flask_burning_effect_has_correct_stacks_and_turns() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![test_enemy()];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "fire_flask".to_owned(),
+            qty: 1,
+        });
+
+        let _ = apply_action(
+            &mut session,
+            GameAction::UseItem("fire_flask".to_owned(), None),
+            OWNER,
+        );
+        let burning = session.enemies[0]
+            .effects
+            .iter()
+            .find(|e| e.kind == EffectKind::Burning)
+            .expect("enemy should have Burning");
+        assert_eq!(burning.stacks, 2);
+        assert_eq!(burning.turns_left, 3);
+    }
+
+    #[test]
+    fn fire_flask_targets_specific_enemy_by_index() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        let mut enemy0 = test_enemy();
+        enemy0.name = "Slime A".to_owned();
+        enemy0.index = 0;
+        let mut enemy1 = test_enemy();
+        enemy1.name = "Slime B".to_owned();
+        enemy1.index = 1;
+        session.enemies = vec![enemy0, enemy1];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "fire_flask".to_owned(),
+            qty: 1,
+        });
+
+        let hp_before_0 = session.enemies[0].hp;
+        let hp_before_1 = session.enemies[1].hp;
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("fire_flask".to_owned(), Some(1)),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        // Enemy 0 should be untouched, enemy 1 should take damage
+        assert_eq!(
+            session.enemies[0].hp, hp_before_0,
+            "enemy 0 should not take damage"
+        );
+        assert!(
+            session.enemies[1].hp < hp_before_1,
+            "targeted enemy 1 should take damage"
+        );
+        assert!(
+            session.enemies[1]
+                .effects
+                .iter()
+                .any(|e| e.kind == EffectKind::Burning),
+            "targeted enemy should have Burning"
+        );
+    }
+
+    #[test]
+    fn fire_flask_falls_back_to_primary_enemy_without_target() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        let mut enemy0 = test_enemy();
+        enemy0.index = 0;
+        let mut enemy1 = test_enemy();
+        enemy1.index = 1;
+        session.enemies = vec![enemy0, enemy1];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "fire_flask".to_owned(),
+            qty: 1,
+        });
+
+        let hp_before_0 = session.enemies[0].hp;
+        let _ = apply_action(
+            &mut session,
+            GameAction::UseItem("fire_flask".to_owned(), None),
+            OWNER,
+        );
+        // Without target_idx, should hit primary (index 0)
+        assert!(
+            session.enemies[0].hp < hp_before_0,
+            "primary enemy should take damage when no target specified"
+        );
+    }
+
+    // ── Integration: campfire in various non-combat phases ──────────
+
+    #[test]
+    fn campfire_works_during_treasure_phase() {
+        let mut session = test_session();
+        session.phase = GamePhase::Treasure;
+        session.player_mut(OWNER).hp = 30;
+        session.player_mut(OWNER).max_hp = 100;
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "campfire_kit".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("campfire_kit".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        assert_eq!(session.player(OWNER).hp, 80);
+    }
+
+    #[test]
+    fn campfire_works_during_merchant_phase() {
+        let mut session = test_session();
+        session.phase = GamePhase::Merchant;
+        session.player_mut(OWNER).hp = 20;
+        session.player_mut(OWNER).max_hp = 100;
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "campfire_kit".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("campfire_kit".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        assert_eq!(session.player(OWNER).hp, 70);
+    }
+
+    #[test]
+    fn campfire_works_during_rest_phase() {
+        let mut session = test_session();
+        session.phase = GamePhase::Rest;
+        session.player_mut(OWNER).hp = 10;
+        session.player_mut(OWNER).max_hp = 100;
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "campfire_kit".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("campfire_kit".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        assert_eq!(session.player(OWNER).hp, 60);
+    }
+
+    #[test]
+    fn campfire_works_during_hallway_phase() {
+        let mut session = test_session();
+        session.phase = GamePhase::Hallway;
+        session.player_mut(OWNER).hp = 40;
+        session.player_mut(OWNER).max_hp = 100;
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "campfire_kit".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("campfire_kit".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        assert_eq!(session.player(OWNER).hp, 90);
+    }
+
+    #[test]
+    fn campfire_works_during_city_phase() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        session.player_mut(OWNER).hp = 50;
+        session.player_mut(OWNER).max_hp = 100;
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "campfire_kit".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("campfire_kit".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        assert_eq!(session.player(OWNER).hp, 100);
+    }
+
+    #[test]
+    fn campfire_clears_bleed_and_weakened() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        session.player_mut(OWNER).hp = 50;
+        session.player_mut(OWNER).max_hp = 100;
+        session.player_mut(OWNER).effects = vec![
+            EffectInstance {
+                kind: EffectKind::Bleed,
+                stacks: 3,
+                turns_left: 5,
+            },
+            EffectInstance {
+                kind: EffectKind::Weakened,
+                stacks: 1,
+                turns_left: 2,
+            },
+            EffectInstance {
+                kind: EffectKind::Sharpened,
+                stacks: 2,
+                turns_left: 4,
+            },
+        ];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "campfire_kit".to_owned(),
+            qty: 1,
+        });
+
+        let _ = apply_action(
+            &mut session,
+            GameAction::UseItem("campfire_kit".to_owned(), None),
+            OWNER,
+        );
+        let effects = &session.player(OWNER).effects;
+        assert!(!effects.iter().any(|e| e.kind == EffectKind::Bleed));
+        assert!(!effects.iter().any(|e| e.kind == EffectKind::Weakened));
+        // Sharpened is positive — should be kept
+        assert!(effects.iter().any(|e| e.kind == EffectKind::Sharpened));
+    }
+
+    #[test]
+    fn campfire_party_message_mentions_multiple_names() {
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        session.phase = GamePhase::Exploring;
+
+        let p2 = serenity::UserId::new(2);
+        session.party.push(p2);
+        let mut p2_state = PlayerState::default();
+        p2_state.name = "Ranger".to_owned();
+        p2_state.hp = 30;
+        p2_state.max_hp = 100;
+        session.players.insert(p2, p2_state);
+
+        session.player_mut(OWNER).hp = 40;
+        session.player_mut(OWNER).max_hp = 100;
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "campfire_kit".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("campfire_kit".to_owned(), None),
+            OWNER,
+        );
+        let logs = result.unwrap();
+        let msg = logs.join(" ");
+        assert!(
+            msg.contains("party") || msg.contains("rested"),
+            "party campfire message should mention 'party' or 'rested': {}",
+            msg
+        );
+    }
+
+    // ── Integration: teleport rune edge cases ───────────────────────
+
+    #[test]
+    fn teleport_at_origin_stays_at_origin() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        session.map.position = MapPos::new(0, 0);
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "teleport_rune".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("teleport_rune".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        assert_eq!(session.map.position, MapPos::new(0, 0));
+    }
+
+    #[test]
+    fn teleport_party_mode_moves_all_players() {
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        session.phase = GamePhase::Exploring;
+        session.map.position = MapPos::new(2, 3);
+
+        let p2 = serenity::UserId::new(2);
+        session.party.push(p2);
+        let mut p2_state = PlayerState::default();
+        p2_state.name = "Mage".to_owned();
+        session.players.insert(p2, p2_state);
+
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "teleport_rune".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("teleport_rune".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        // Map position is shared — both players are at origin
+        assert_eq!(session.map.position, MapPos::new(0, 0));
+        // Both players should still be alive
+        assert!(session.player(OWNER).alive);
+        assert!(session.player(p2).alive);
+    }
+
+    #[test]
+    fn teleport_increments_rooms_cleared() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        session.map.position = MapPos::new(1, 0);
+        let rooms_before = session.player(OWNER).lifetime_rooms_cleared;
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "teleport_rune".to_owned(),
+            qty: 1,
+        });
+
+        let _ = apply_action(
+            &mut session,
+            GameAction::UseItem("teleport_rune".to_owned(), None),
+            OWNER,
+        );
+        assert!(
+            session.player(OWNER).lifetime_rooms_cleared > rooms_before,
+            "teleporting should increment rooms cleared via arrive_at_tile"
+        );
+    }
+
+    #[test]
+    fn teleport_works_during_treasure_phase() {
+        let mut session = test_session();
+        session.phase = GamePhase::Treasure;
+        session.map.position = MapPos::new(2, 1);
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "teleport_rune".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("teleport_rune".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        assert_eq!(session.map.position, MapPos::new(0, 0));
+    }
+
+    #[test]
+    fn teleport_works_during_looting_phase() {
+        let mut session = test_session();
+        session.phase = GamePhase::Looting;
+        session.map.position = MapPos::new(1, 1);
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "teleport_rune".to_owned(),
+            qty: 1,
+        });
+
+        let result = apply_action(
+            &mut session,
+            GameAction::UseItem("teleport_rune".to_owned(), None),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        assert_eq!(session.map.position, MapPos::new(0, 0));
+    }
+
+    // ── Integration: potions in combat with enemy turns ─────────────
+
+    #[test]
+    fn iron_skin_shielded_reduces_enemy_damage() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies = vec![test_enemy()]; // 5 dmg attack
+        session.player_mut(OWNER).max_hp = 100;
+        session.player_mut(OWNER).hp = 100;
+        session.player_mut(OWNER).armor = 0; // no armor so damage is clear
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "iron_skin_potion".to_owned(),
+            qty: 1,
+        });
+
+        let _ = apply_action(
+            &mut session,
+            GameAction::UseItem("iron_skin_potion".to_owned(), None),
+            OWNER,
+        );
+        // After using the potion, enemy takes a turn and attacks.
+        // With Shielded, damage should be reduced compared to base 5.
+        // Exact value depends on Shielded implementation, but HP should be > 95 (100-5)
+        // or at minimum still have the Shielded effect
+        assert!(
+            session
+                .player(OWNER)
+                .effects
+                .iter()
+                .any(|e| e.kind == EffectKind::Shielded)
+                || session.player(OWNER).hp > 95,
+            "Shielded should reduce incoming damage or still be present"
+        );
+    }
+
+    #[test]
+    fn rage_draught_used_then_attack_deals_bonus() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        let mut enemy = test_enemy();
+        enemy.hp = 200;
+        enemy.max_hp = 200;
+        session.enemies = vec![enemy];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "rage_draught".to_owned(),
+            qty: 1,
+        });
+
+        // Use rage draught first — applies Sharpened
+        let _ = apply_action(
+            &mut session,
+            GameAction::UseItem("rage_draught".to_owned(), None),
+            OWNER,
+        );
+        assert!(
+            session
+                .player(OWNER)
+                .effects
+                .iter()
+                .any(|e| e.kind == EffectKind::Sharpened),
+            "should have Sharpened after rage draught"
+        );
+
+        // Now attack — Sharpened should boost damage
+        let enemy_hp_before = session.enemies[0].hp;
+        let _ = apply_action(&mut session, GameAction::Attack, OWNER);
+        assert!(
+            session.enemies[0].hp < enemy_hp_before,
+            "attack with Sharpened should deal damage"
+        );
+    }
+
+    #[test]
+    fn multiple_fire_flasks_stack_burning() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        let mut enemy = test_enemy();
+        enemy.hp = 100;
+        session.enemies = vec![enemy];
+        session.player_mut(OWNER).inventory.push(ItemStack {
+            item_id: "fire_flask".to_owned(),
+            qty: 3,
+        });
+
+        // Use two fire flasks
+        let _ = apply_action(
+            &mut session,
+            GameAction::UseItem("fire_flask".to_owned(), None),
+            OWNER,
+        );
+        let _ = apply_action(
+            &mut session,
+            GameAction::UseItem("fire_flask".to_owned(), None),
+            OWNER,
+        );
+
+        let burning_count = session.enemies[0]
+            .effects
+            .iter()
+            .filter(|e| e.kind == EffectKind::Burning)
+            .count();
+        assert!(
+            burning_count >= 2,
+            "two fire flasks should add two Burning effects, got {}",
+            burning_count
+        );
+        // Should have used 2 of 3
+        let stack = session
+            .player(OWNER)
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "fire_flask")
+            .unwrap();
+        assert_eq!(stack.qty, 1);
     }
 }

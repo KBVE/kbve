@@ -293,6 +293,19 @@ pub enum UseEffect {
     GuaranteedFlee,
     FullHeal,
     RemoveAllNegativeEffects,
+    /// Rest all alive party members: heal % of max HP, clear negative effects.
+    CampfireRest {
+        heal_percent: u8,
+    },
+    /// Teleport the entire party back to the origin city tile.
+    TeleportCity,
+    /// Deal damage to an enemy and apply a status effect.
+    DamageAndApply {
+        damage: i32,
+        kind: EffectKind,
+        stacks: u8,
+        turns: u8,
+    },
 }
 
 // ── Item rarity ────────────────────────────────────────────────────
@@ -572,6 +585,7 @@ pub enum GameAction {
     ViewMap,
     ViewInventory,
     Revive(serenity::UserId),
+    Gift(ItemId, serenity::UserId),
 }
 
 // ── Session mode ────────────────────────────────────────────────────

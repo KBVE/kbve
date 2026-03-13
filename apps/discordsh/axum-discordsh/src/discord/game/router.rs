@@ -169,6 +169,30 @@ pub async fn handle_game_component(
         } else {
             return send_ephemeral(component, ctx, "Invalid interaction.").await;
         }
+    } else if action_str == "gift" {
+        // Gift item select menu — value format: "item_id|target_uid"
+        if let serenity::ComponentInteractionDataKind::StringSelect { values } =
+            &component.data.kind
+        {
+            if let Some(value) = values.first() {
+                let mut parts_iter = value.splitn(2, '|');
+                let item_id = parts_iter.next().unwrap_or("").to_owned();
+                let target_uid = parts_iter
+                    .next()
+                    .and_then(|s| s.parse::<u64>().ok())
+                    .map(serenity::UserId::new);
+                match target_uid {
+                    Some(uid) if !item_id.is_empty() => GameAction::Gift(item_id, uid),
+                    _ => {
+                        return send_ephemeral(component, ctx, "Invalid gift target.").await;
+                    }
+                }
+            } else {
+                return send_ephemeral(component, ctx, "No item selected.").await;
+            }
+        } else {
+            return send_ephemeral(component, ctx, "Invalid interaction.").await;
+        }
     } else if action_str == "room" {
         let idx_str = parts.get(3).unwrap_or(&"0");
         match idx_str.parse::<u8>() {
@@ -223,6 +247,47 @@ pub async fn handle_game_component(
         action = ?action,
         "Game interaction"
     );
+
+    // ── Inventory: ephemeral per-player response ─────────────────────
+    // ViewInventory renders the clicking player's own inventory as an
+    // ephemeral message (only they can see it). This avoids the bug
+    // where all players saw the session owner's inventory on the shared
+    // game message.
+    if matches!(action, GameAction::ViewInventory) {
+        // Get the clicking player's state (not the owner)
+        let player_state = match session.players.get(&actor) {
+            Some(p) => p.clone(),
+            None => {
+                drop(session);
+                return send_ephemeral(component, ctx, "You are not in this session.").await;
+            }
+        };
+        drop(session); // Release lock before CPU-bound render
+
+        let fontdb = data.app.fontdb.clone();
+        match super::card::render_inventory_card(&player_state, fontdb).await {
+            Ok(inv_png) => {
+                component
+                    .create_response(
+                        &ctx.http,
+                        serenity::CreateInteractionResponse::Message(
+                            serenity::CreateInteractionResponseMessage::new()
+                                .add_file(serenity::CreateAttachment::bytes(
+                                    inv_png,
+                                    "inventory_card.png",
+                                ))
+                                .ephemeral(true),
+                        ),
+                    )
+                    .await?;
+            }
+            Err(e) => {
+                tracing::warn!(error = %e, session = sid, "Failed to render inventory card");
+                return send_ephemeral(component, ctx, "Failed to render inventory.").await;
+            }
+        }
+        return Ok(());
+    }
 
     // Acknowledge immediately so Discord knows we received the interaction.
     // This prevents "Unknown interaction" errors when processing takes time.
@@ -283,25 +348,6 @@ pub async fn handle_game_component(
                             error = %e,
                             session = sid,
                             "Failed to render map card"
-                        );
-                    }
-                }
-            }
-
-            // Render inventory card PNG when inventory toggle is on
-            if session_clone.show_inventory {
-                match super::card::render_inventory_card(&session_clone, fontdb).await {
-                    Ok(inv_png) => {
-                        edit = edit.new_attachment(serenity::CreateAttachment::bytes(
-                            inv_png,
-                            "inventory_card.png",
-                        ));
-                    }
-                    Err(e) => {
-                        tracing::warn!(
-                            error = %e,
-                            session = sid,
-                            "Failed to render inventory card"
                         );
                     }
                 }
