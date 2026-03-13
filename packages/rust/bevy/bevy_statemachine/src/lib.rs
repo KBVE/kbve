@@ -47,6 +47,7 @@
 //! let event: Option<ClickEvent> = take_snapshot();
 //! ```
 
+pub mod bridge;
 pub mod config;
 pub mod plugin;
 pub mod store;
@@ -69,6 +70,9 @@ pub use take::{peek_take_snapshot, take_snapshot, write_take_snapshot};
 // Re-exports — plugins and config
 pub use config::{SnapshotConfig, SnapshotSchedule};
 pub use plugin::{StateSnapshotPlugin, TakeSnapshotPlugin};
+
+// Re-exports — FSM bridge
+pub use bridge::{FsmSnapshot, ScopedSnapshotPlugin, StateBridgePlugin, StateTransitionRecord};
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -830,5 +834,357 @@ mod tests {
         assert_eq!(parsed["name"], "test");
 
         clear_snapshot::<JsonValidState>();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// FSM bridge integration tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+#[cfg(feature = "serde")]
+mod bridge_tests {
+    use super::*;
+    use bevy::prelude::*;
+    use bevy::state::app::StatesPlugin;
+    use serde::{Deserialize, Serialize};
+
+    // Unique state enums per test to avoid global store interference.
+
+    // === Helper: build a minimal Bevy app with state support ===============
+
+    fn test_app() -> App {
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins);
+        app.add_plugins(StatesPlugin);
+        app
+    }
+
+    // === StateBridgePlugin tests ==========================================
+
+    #[derive(States, Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    enum InitState {
+        #[default]
+        Loading,
+        Playing,
+    }
+
+    #[test]
+    fn fsm_snapshot_written_on_init() {
+        let mut app = test_app();
+        app.init_state::<InitState>();
+        app.add_plugins(StateBridgePlugin::<InitState>::new());
+
+        app.update();
+
+        let snap: FsmSnapshot<InitState> = get_snapshot().unwrap();
+        assert_eq!(snap.current, InitState::Loading);
+
+        clear_snapshot::<FsmSnapshot<InitState>>();
+    }
+
+    #[derive(States, Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    enum TransState {
+        #[default]
+        Menu,
+        InGame,
+        Paused,
+    }
+
+    #[test]
+    fn fsm_snapshot_updates_on_transition() {
+        let mut app = test_app();
+        app.init_state::<TransState>();
+        app.add_plugins(StateBridgePlugin::<TransState>::new());
+
+        app.update();
+        let snap: FsmSnapshot<TransState> = get_snapshot().unwrap();
+        assert_eq!(snap.current, TransState::Menu);
+
+        // Transition to InGame.
+        app.world_mut()
+            .resource_mut::<NextState<TransState>>()
+            .set(TransState::InGame);
+        app.update();
+
+        let snap: FsmSnapshot<TransState> = get_snapshot().unwrap();
+        assert_eq!(snap.current, TransState::InGame);
+
+        clear_snapshot::<FsmSnapshot<TransState>>();
+    }
+
+    #[derive(States, Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    enum RecordState {
+        #[default]
+        A,
+        B,
+    }
+
+    #[test]
+    fn fsm_transition_record_written() {
+        let mut app = test_app();
+        app.init_state::<RecordState>();
+        app.add_plugins(StateBridgePlugin::<RecordState>::new());
+
+        app.update();
+
+        // Consume the initial transition record (None -> A).
+        let init_record: Option<StateTransitionRecord<RecordState>> = take_snapshot();
+        assert!(init_record.is_some());
+        let init_record = init_record.unwrap();
+        assert_eq!(init_record.exited, None);
+        assert_eq!(init_record.entered, Some(RecordState::A));
+
+        // Transition A -> B.
+        app.world_mut()
+            .resource_mut::<NextState<RecordState>>()
+            .set(RecordState::B);
+        app.update();
+
+        let record: StateTransitionRecord<RecordState> = take_snapshot().unwrap();
+        assert_eq!(record.exited, Some(RecordState::A));
+        assert_eq!(record.entered, Some(RecordState::B));
+
+        clear_snapshot::<FsmSnapshot<RecordState>>();
+    }
+
+    #[derive(States, Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    enum TakeOnceState {
+        #[default]
+        X,
+        Y,
+    }
+
+    #[test]
+    fn fsm_transition_record_is_take_once() {
+        let mut app = test_app();
+        app.init_state::<TakeOnceState>();
+        app.add_plugins(StateBridgePlugin::<TakeOnceState>::new());
+
+        app.update();
+
+        // First take consumes the record.
+        let _: Option<StateTransitionRecord<TakeOnceState>> = take_snapshot();
+
+        // Second take returns None.
+        let second: Option<StateTransitionRecord<TakeOnceState>> = take_snapshot();
+        assert!(second.is_none());
+
+        clear_snapshot::<FsmSnapshot<TakeOnceState>>();
+    }
+
+    #[derive(States, Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    enum VersionState {
+        #[default]
+        V1,
+        V2,
+        V3,
+    }
+
+    #[test]
+    fn fsm_snapshot_version_increments() {
+        let mut app = test_app();
+        app.init_state::<VersionState>();
+        app.add_plugins(StateBridgePlugin::<VersionState>::new());
+
+        app.update();
+        let v1 = snapshot_version::<FsmSnapshot<VersionState>>();
+        assert!(v1 > 0);
+
+        app.world_mut()
+            .resource_mut::<NextState<VersionState>>()
+            .set(VersionState::V2);
+        app.update();
+        let v2 = snapshot_version::<FsmSnapshot<VersionState>>();
+        assert!(v2 > v1);
+
+        clear_snapshot::<FsmSnapshot<VersionState>>();
+    }
+
+    #[derive(States, Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    enum JsonState {
+        #[default]
+        Alpha,
+        Beta,
+    }
+
+    #[test]
+    fn fsm_snapshot_json_is_valid() {
+        let mut app = test_app();
+        app.init_state::<JsonState>();
+        app.add_plugins(StateBridgePlugin::<JsonState>::new());
+
+        app.update();
+
+        let json = get_snapshot_json::<FsmSnapshot<JsonState>>().unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["current"], "Alpha");
+
+        clear_snapshot::<FsmSnapshot<JsonState>>();
+    }
+
+    // === ScopedSnapshotPlugin tests =======================================
+
+    #[derive(States, Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    enum ScopedState {
+        #[default]
+        Lobby,
+        Match,
+    }
+
+    #[derive(Resource, Clone, Default, Serialize, Deserialize, PartialEq, Debug)]
+    struct MatchData {
+        score: u32,
+    }
+
+    #[test]
+    fn scoped_snapshot_active_in_state() {
+        let mut app = test_app();
+        app.init_state::<ScopedState>();
+        app.insert_resource(MatchData { score: 0 });
+        app.add_plugins(ScopedSnapshotPlugin::<ScopedState, MatchData>::new(
+            ScopedState::Match,
+        ));
+
+        // In Lobby — scoped snapshot should NOT be written.
+        app.update();
+        assert!(get_snapshot::<MatchData>().is_none());
+
+        // Transition to Match.
+        app.world_mut()
+            .resource_mut::<NextState<ScopedState>>()
+            .set(ScopedState::Match);
+        app.update();
+
+        // Now in Match — resource changed (first time in state), snapshot should exist.
+        // Force a change detection by mutating the resource.
+        app.world_mut().resource_mut::<MatchData>().score = 42;
+        app.update();
+
+        let data: MatchData = get_snapshot().unwrap();
+        assert_eq!(data.score, 42);
+
+        clear_snapshot::<MatchData>();
+    }
+
+    #[derive(States, Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    enum ScopedExitState {
+        #[default]
+        Active,
+        Inactive,
+    }
+
+    #[derive(Resource, Clone, Default, Serialize, Deserialize, PartialEq, Debug)]
+    struct ScopedResource {
+        val: i32,
+    }
+
+    #[test]
+    fn scoped_snapshot_cleared_on_exit() {
+        let mut app = test_app();
+        app.init_state::<ScopedExitState>();
+        app.insert_resource(ScopedResource { val: 10 });
+        app.add_plugins(
+            ScopedSnapshotPlugin::<ScopedExitState, ScopedResource>::new(ScopedExitState::Active),
+        );
+
+        // Start in Active — force resource mutation so snapshot writes.
+        app.update();
+        app.world_mut().resource_mut::<ScopedResource>().val = 99;
+        app.update();
+
+        assert!(get_snapshot::<ScopedResource>().is_some());
+
+        // Transition to Inactive — snapshot should be cleared.
+        app.world_mut()
+            .resource_mut::<NextState<ScopedExitState>>()
+            .set(ScopedExitState::Inactive);
+        app.update();
+
+        assert!(get_snapshot::<ScopedResource>().is_none());
+        assert_eq!(snapshot_version::<ScopedResource>(), 0);
+    }
+
+    // === Batch versions macro =============================================
+
+    #[test]
+    fn batch_versions_macro_works() {
+        #[derive(Clone, Serialize, Deserialize)]
+        struct BatchA {
+            a: i32,
+        }
+        #[derive(Clone, Serialize, Deserialize)]
+        struct BatchB {
+            b: i32,
+        }
+
+        store::write_snapshot::<BatchA>(
+            #[cfg(feature = "serde")]
+            Some(r#"{"a":1}"#.to_string()),
+            #[cfg(feature = "bincode")]
+            None,
+        );
+        store::write_snapshot::<BatchB>(
+            #[cfg(feature = "serde")]
+            Some(r#"{"b":2}"#.to_string()),
+            #[cfg(feature = "bincode")]
+            None,
+        );
+
+        let versions = snapshot_versions_batch!(BatchA, BatchB);
+        assert_eq!(versions.len(), 2);
+        assert!(versions[0].1 > 0);
+        assert!(versions[1].1 > 0);
+        assert_eq!(versions[0].0, "BatchA");
+        assert_eq!(versions[1].0, "BatchB");
+
+        clear_snapshot::<BatchA>();
+        clear_snapshot::<BatchB>();
+    }
+
+    // === Multiple FSM bridges =============================================
+
+    #[derive(States, Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    enum IsoA {
+        #[default]
+        One,
+        Two,
+    }
+
+    #[derive(States, Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    enum IsoB {
+        #[default]
+        Red,
+        Blue,
+    }
+
+    #[test]
+    fn multiple_fsm_bridges_isolated() {
+        let mut app = test_app();
+        app.init_state::<IsoA>();
+        app.init_state::<IsoB>();
+        app.add_plugins(StateBridgePlugin::<IsoA>::new());
+        app.add_plugins(StateBridgePlugin::<IsoB>::new());
+
+        app.update();
+
+        let a: FsmSnapshot<IsoA> = get_snapshot().unwrap();
+        let b: FsmSnapshot<IsoB> = get_snapshot().unwrap();
+        assert_eq!(a.current, IsoA::One);
+        assert_eq!(b.current, IsoB::Red);
+
+        // Transition only A.
+        app.world_mut()
+            .resource_mut::<NextState<IsoA>>()
+            .set(IsoA::Two);
+        app.update();
+
+        let a: FsmSnapshot<IsoA> = get_snapshot().unwrap();
+        let b: FsmSnapshot<IsoB> = get_snapshot().unwrap();
+        assert_eq!(a.current, IsoA::Two);
+        assert_eq!(b.current, IsoB::Red); // unchanged
+
+        clear_snapshot::<FsmSnapshot<IsoA>>();
+        clear_snapshot::<FsmSnapshot<IsoB>>();
     }
 }
