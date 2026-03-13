@@ -73,10 +73,12 @@ message NpcStats {
   int32 speed = 5;
   optional int32 mp = 6;
   optional int32 max_mp = 7;
-  optional int32 armor = 8;
-  optional int32 intelligence = 9;
-  optional int32 strength = 10;
-  optional int32 agility = 11;
+  optional int32 ep = 8;
+  optional int32 max_ep = 9;
+  optional int32 armor = 10;
+  optional int32 intelligence = 11;
+  optional int32 strength = 12;
+  optional int32 agility = 13;
 }
 
 // A single loot drop entry
@@ -97,6 +99,34 @@ message LootTable {
   optional int32 gold_min = 4;
   optional int32 gold_max = 5;
   optional int32 xp_reward = 6;
+}
+
+// Equipment slot
+enum EquipSlot {
+  EQUIP_SLOT_UNSPECIFIED = 0;
+  EQUIP_SLOT_HEAD = 1;
+  EQUIP_SLOT_CHEST = 2;
+  EQUIP_SLOT_LEGS = 3;
+  EQUIP_SLOT_FEET = 4;
+  EQUIP_SLOT_HANDS = 5;
+  EQUIP_SLOT_MAIN_HAND = 6;
+  EQUIP_SLOT_OFF_HAND = 7;
+  EQUIP_SLOT_NECK = 8;
+  EQUIP_SLOT_RING = 9;
+  EQUIP_SLOT_BACK = 10;
+}
+
+// A single equipped item on an NPC
+message EquipmentEntry {
+  EquipSlot slot = 1;
+  string item_ref = 2;            // ULID or item slug
+  optional string item_name = 3;
+  optional int32 enchant_level = 4;
+}
+
+// Full equipment loadout for an NPC
+message EquipmentLoadout {
+  repeated EquipmentEntry equipped = 1;
 }
 
 // A single ability / skill the NPC can use
@@ -178,6 +208,9 @@ message Npc {
 
   // Loot
   optional LootTable loot = 22;
+
+  // Equipment loadout
+  optional EquipmentLoadout equipment = 28;
 
   // Flavor text (personality-driven)
   repeated FlavorPool flavor_text = 23;
