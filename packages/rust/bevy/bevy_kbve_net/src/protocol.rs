@@ -18,6 +18,23 @@ pub struct PlayerId(pub u64);
 pub struct PlayerColor(pub Color);
 
 // ---------------------------------------------------------------------------
+// Messages
+// ---------------------------------------------------------------------------
+
+/// Client sends JWT after connecting so the server can identify the user.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct AuthMessage {
+    pub jwt: String,
+}
+
+/// Server response to an auth attempt.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct AuthResponse {
+    pub success: bool,
+    pub user_id: String,
+}
+
+// ---------------------------------------------------------------------------
 // Channels
 // ---------------------------------------------------------------------------
 
@@ -46,6 +63,10 @@ impl Plugin for ProtocolPlugin {
             mode: ChannelMode::OrderedReliable(ReliableSettings::default()),
             ..default()
         });
+
+        // --- Messages ---
+        app.register_message::<AuthMessage>();
+        app.register_message::<AuthResponse>();
 
         // --- Replicated components (custom game components) ---
 
