@@ -3,7 +3,7 @@ use bevy::image::ImageSampler;
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
-use bevy_rapier3d::prelude::*;
+use avian3d::prelude::*;
 
 use super::camera::IsometricCamera;
 use super::mushrooms;
@@ -1122,6 +1122,7 @@ fn process_chunk_spawns_and_despawns(
         let mut cap_idx = Vec::with_capacity(tile_count * 36);
 
         let mut collider_shapes: Vec<(Vec3, Quat, Collider)> = Vec::with_capacity(tile_count);
+        // Note: avian3d Collider::cuboid takes FULL extents (not half)
 
         // Water surface quads for tiles below water level
         let mut water_pos: Vec<[f32; 3]> = Vec::new();
@@ -1173,7 +1174,7 @@ fn process_chunk_spawns_and_despawns(
                 collider_shapes.push((
                     Vec3::new(lx, body_h / 2.0, lz),
                     Quat::IDENTITY,
-                    Collider::cuboid(TILE_SIZE / 2.0, body_h / 2.0, TILE_SIZE / 2.0),
+                    Collider::cuboid(TILE_SIZE, body_h, TILE_SIZE),
                 ));
 
                 // --- Cap cuboid (with edge insets) ---
@@ -1360,8 +1361,8 @@ fn process_chunk_spawns_and_despawns(
                                     MeshMaterial3d(tile_materials.rock_body_mat.clone()),
                                     Transform::from_xyz(world_x, rock_y, world_z)
                                         .with_rotation(Quat::from_rotation_y(rot_y)),
-                                    RigidBody::Fixed,
-                                    Collider::cuboid(max_hw * 0.8, total_h / 2.0, max_hw * 0.8),
+                                    RigidBody::Static,
+                                    Collider::cuboid(max_hw * 1.6, total_h, max_hw * 1.6),
                                     HoverOutline {
                                         half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
                                     },
@@ -1425,8 +1426,8 @@ fn process_chunk_spawns_and_despawns(
                                     Mesh3d(tile_materials.flower_meshes[arch_idx].clone()),
                                     MeshMaterial3d(tile_materials.flower_mat.clone()),
                                     Transform::from_xyz(world_x, flower_y, world_z),
-                                    RigidBody::Fixed,
-                                    Collider::cuboid(0.2, 0.25, 0.2),
+                                    RigidBody::Static,
+                                    Collider::cuboid(0.4, 0.5, 0.4),
                                     Sensor,
                                     HoverOutline {
                                         half_extents: Vec3::new(0.2, 0.25, 0.2),
@@ -1466,8 +1467,8 @@ fn process_chunk_spawns_and_despawns(
                                     MeshMaterial3d(tile_materials.tree_body_mat.clone()),
                                     Transform::from_xyz(world_x, mush_y, world_z)
                                         .with_rotation(Quat::from_rotation_y(rot_y)),
-                                    RigidBody::Fixed,
-                                    Collider::cuboid(max_hw * 0.8, total_h / 2.0, max_hw * 0.8),
+                                    RigidBody::Static,
+                                    Collider::cuboid(max_hw * 1.6, total_h, max_hw * 1.6),
                                     Sensor,
                                     HoverOutline {
                                         half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
@@ -1495,7 +1496,7 @@ fn process_chunk_spawns_and_despawns(
                 MeshMaterial3d(tile_materials.chunk_body_mat.clone()),
                 Transform::from_xyz(base_x as f32 * TILE_SIZE, 0.0, base_z as f32 * TILE_SIZE),
                 Pickable::IGNORE,
-                RigidBody::Fixed,
+                RigidBody::Static,
                 Collider::compound(collider_shapes),
             ))
             .id();

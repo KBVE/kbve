@@ -24,8 +24,8 @@ pub fn wasm_main() {
     console_error_panic_hook::set_once();
     console_log::init_with_level(log::Level::Info).expect("logger");
 
+    use avian3d::prelude::*;
     use bevy::prelude::*;
-    use bevy_rapier3d::prelude::*;
     use game::GamePluginGroup;
 
     bevy::app::App::new()
@@ -42,7 +42,7 @@ pub fn wasm_main() {
         }))
         .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
         .add_plugins(bevy::picking::mesh_picking::MeshPickingPlugin)
-        .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
+        .add_plugins(PhysicsPlugins::default())
         .add_plugins(GamePluginGroup)
         .add_systems(Update, update_fps_counter)
         .run();
