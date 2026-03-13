@@ -160,7 +160,8 @@ jobs:
         needs: ['generate_tauri_matrix']
         if: ${{ needs.generate_tauri_matrix.outputs.matrix != 'null' }}
         permissions:
-            contents: read
+            contents: write
+            pull-requests: write
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.generate_tauri_matrix.outputs.matrix) }}
