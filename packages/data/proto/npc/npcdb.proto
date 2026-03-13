@@ -95,6 +95,14 @@ enum MovementType {
   MOVEMENT_SCRIPTED = 3;
 }
 
+// Difficulty mode for stat overrides
+enum DifficultyMode {
+  DIFFICULTY_NORMAL = 0;
+  DIFFICULTY_HARD = 1;
+  DIFFICULTY_HEROIC = 2;
+  DIFFICULTY_MYTHIC = 3;
+}
+
 // =============================================================================
 // Sub-messages
 // =============================================================================
@@ -250,6 +258,65 @@ message SpawnRule {
   optional int32 despawn_time_secs = 10; // How long corpse/loot stays visible
 }
 
+// Difficulty-specific stat override
+message DifficultyOverride {
+  DifficultyMode mode = 1;
+  NpcStats stats = 2;                      // Full stat block for this difficulty
+  optional float xp_modifier = 3;          // Multiplier on base XP (default 1.0)
+  optional float gold_modifier = 4;        // Multiplier on base gold (default 1.0)
+}
+
+// Party-size scaling rules
+message PartyScaling {
+  bool enabled = 1;
+  optional float hp_per_member = 2;        // Additional HP% per extra party member (e.g. 0.3 = +30%)
+  optional float damage_per_member = 3;    // Additional damage% per extra party member
+  optional int32 base_party_size = 4;      // Party size the base stats are tuned for (default 1)
+}
+
+// Phasing / conditional availability
+message PhaseRule {
+  optional int32 phase_id = 1;                    // World phase this NPC exists in
+  repeated string prerequisite_quest_refs = 2;    // Must be completed before NPC appears
+  optional string event_ref = 3;                  // Seasonal / world event gate
+  optional int32 time_start = 4;                  // Time-of-day availability (0-2359, 24h)
+  optional int32 time_end = 5;
+}
+
+// Spatial / physics properties (for real-time / spatial games)
+message SpatialProperties {
+  optional float combat_reach = 1;         // Melee attack range
+  optional float bounding_radius = 2;      // Collision / hitbox size
+  optional float walk_speed = 3;
+  optional float run_speed = 4;
+  optional float fly_speed = 5;
+  optional bool can_swim = 6;
+  optional bool can_fly = 7;
+}
+
+// Interaction flags — what players can do with this NPC
+message InteractionFlags {
+  optional bool is_interactable = 1;       // Can be clicked / targeted
+  optional bool is_attackable = 2;         // Can receive damage (default true for enemies)
+  optional bool is_targetable = 3;         // Can be selected / inspected
+  optional bool is_skinnable = 4;          // Corpse yields skinning resources
+  optional bool is_herbable = 5;           // Corpse yields herb resources
+  optional bool is_mineable = 6;           // Corpse yields mining resources
+  optional bool is_civilian = 7;           // Killing causes reputation penalty
+}
+
+// Generic extension slot — arbitrary key-value pairs for game-specific data
+message NpcExtension {
+  string key = 1;                          // Namespace, e.g. "discordsh.encounter_weight"
+  oneof value {
+    string string_value = 2;
+    int64 int_value = 3;
+    double float_value = 4;
+    bool bool_value = 5;
+    bytes bytes_value = 6;
+  }
+}
+
 // =============================================================================
 // Core NPC Definition
 // =============================================================================
@@ -317,9 +384,26 @@ message Npc {
   // Linkage — quest and shop references
   repeated string quest_refs = 41;         // Quest IDs this NPC offers/advances
   optional string shop_inventory_ref = 42; // Vendor inventory table reference
+  optional string kill_credit_ref = 43;    // Shared kill credit ID for quest tracking
 
   // Spawning
   repeated SpawnRule spawn_rules = 25;
+
+  // Phasing / conditional availability
+  repeated PhaseRule phase_rules = 44;
+
+  // Difficulty & scaling
+  repeated DifficultyOverride difficulty_overrides = 45;
+  optional PartyScaling party_scaling = 46;
+
+  // Spatial (real-time / isometric / 3D games)
+  optional SpatialProperties spatial = 47;
+
+  // Interaction flags
+  optional InteractionFlags interaction = 48;
+
+  // Extensions — game-specific key-value pairs for future needs
+  repeated NpcExtension extensions = 49;
 
   // Metadata
   optional string credits = 26;
