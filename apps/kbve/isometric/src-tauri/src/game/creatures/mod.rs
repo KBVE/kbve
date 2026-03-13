@@ -1,17 +1,18 @@
 mod butterfly;
 pub mod common;
 mod firefly;
+mod frog;
 
 use bevy::prelude::*;
 
 use common::CreaturePool;
 
-/// Registers all creature systems (butterflies, fireflies, and future creatures).
+/// Registers all creature systems.
 ///
-/// To add a new creature (e.g. frog):
-/// 1. Create `frog.rs` in this directory
-/// 2. Add `mod frog;` above
-/// 3. Add a `frogs_spawned: bool` field to `CreaturePool`
+/// To add a new creature:
+/// 1. Create a `<name>/` directory with `mod.rs` (and any assets)
+/// 2. Add `mod <name>;` above
+/// 3. Add a `<name>_spawned: bool` field to `CreaturePool` in `common.rs`
 /// 4. Register spawn + animate systems below
 pub struct CreaturesPlugin;
 
@@ -25,6 +26,8 @@ impl Plugin for CreaturesPlugin {
                 firefly::animate_fireflies,
                 butterfly::spawn_butterflies,
                 butterfly::animate_butterflies,
+                frog::spawn_frogs,
+                frog::animate_frogs,
             ),
         );
     }

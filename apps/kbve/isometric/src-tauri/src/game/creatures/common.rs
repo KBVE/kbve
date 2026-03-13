@@ -9,6 +9,7 @@ use bevy::prelude::*;
 pub struct CreaturePool {
     pub fireflies_spawned: bool,
     pub butterflies_spawned: bool,
+    pub frogs_spawned: bool,
 }
 
 // ---------------------------------------------------------------------------
