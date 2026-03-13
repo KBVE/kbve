@@ -104,12 +104,52 @@ enum GearSpecialType {
   GEAR_SPECIAL_DAMAGE_REDUCTION = 4;
 }
 
+// Status effect kind — codified effect types for structured lookups
+enum StatusEffectKind {
+  STATUS_EFFECT_UNSPECIFIED = 0;
+  STATUS_EFFECT_POISON     = 1;
+  STATUS_EFFECT_BURNING    = 2;
+  STATUS_EFFECT_BLEED      = 3;
+  STATUS_EFFECT_SHIELDED   = 4;
+  STATUS_EFFECT_WEAKENED   = 5;
+  STATUS_EFFECT_STUNNED    = 6;
+  STATUS_EFFECT_SHARPENED  = 7;
+  STATUS_EFFECT_THORNS     = 8;
+  STATUS_EFFECT_REGEN      = 9;
+  STATUS_EFFECT_HASTE      = 10;
+  STATUS_EFFECT_SLOW       = 11;
+  STATUS_EFFECT_FROZEN     = 12;
+  STATUS_EFFECT_CURSED     = 13;
+  STATUS_EFFECT_BLESSED    = 14;
+}
+
+// Skilling discipline
+enum SkillingType {
+  SKILLING_UNSPECIFIED  = 0;
+  SKILLING_COOKING      = 1;
+  SKILLING_SMITHING     = 2;
+  SKILLING_CRAFTING     = 3;
+  SKILLING_ALCHEMY      = 4;
+  SKILLING_WOODCUTTING  = 5;
+  SKILLING_MINING       = 6;
+  SKILLING_FISHING      = 7;
+  SKILLING_FARMING      = 8;
+  SKILLING_HERBLORE     = 9;
+  SKILLING_FLETCHING    = 10;
+  SKILLING_HUNTING      = 11;
+  SKILLING_FORAGING     = 12;
+  SKILLING_ENCHANTING   = 13;
+  SKILLING_TAILORING    = 14;
+  SKILLING_CONSTRUCTION = 15;
+}
+
 // =============================================================================
 // Sub-messages
 // =============================================================================
 
 // Stat bonuses granted by equipping or using an item
 message ItemBonuses {
+  // Common fixed stats (fast access, no map lookup)
   optional int32 armor        = 1;
   optional int32 attack       = 2;
   optional int32 defense      = 3;
@@ -122,6 +162,15 @@ message ItemBonuses {
   optional int32 agility      = 10;
   optional float crit_chance  = 11;     // 0.0–1.0
   optional float crit_damage  = 12;     // Multiplier (e.g. 1.5)
+  optional int32 stamina      = 13;
+  optional int32 charisma     = 14;
+  optional int32 dexterity    = 15;
+  optional int32 perception   = 16;
+
+  // Arbitrary bonus map for game-specific stats (e.g. "cookingSpeed", "zeroG",
+  // "fallDamageReduction", "fireResist"). Keeps the proto extensible without
+  // adding a new field for every niche bonus across all games.
+  map<string, double> extra = 17;
 }
 
 // Equipment properties — present when item can be equipped
@@ -138,11 +187,13 @@ message EquipmentInfo {
 message UseEffect {
   UseEffectType type = 1;
   optional int32 amount = 2;            // Heal amount, damage amount, etc.
-  optional string effect_kind = 3;      // Status effect slug (e.g. "poison", "shielded")
-  optional int32 stacks = 4;            // Number of effect stacks to apply
-  optional int32 turns = 5;             // Duration in turns
-  optional int32 percent = 6;           // Percentage value (e.g. campfire heal %)
-  optional string summon_ref = 7;       // NPC ref for summon effects
+  optional StatusEffectKind status_effect = 3; // Structured effect type
+  optional string effect_kind_custom = 4;     // Fallback: free-form effect slug for game-specific effects
+  optional int32 stacks = 5;            // Number of effect stacks to apply
+  optional int32 turns = 6;             // Duration in turns
+  optional int32 percent = 7;           // Percentage value (e.g. campfire heal %)
+  optional string summon_ref = 8;       // NPC ref for summon effects
+  optional Element element = 9;         // Elemental affinity of the effect
 }
 
 // Crafting ingredient
@@ -172,7 +223,15 @@ message DeployableInfo {
   optional string override_prefab = 3;  // Custom prefab reference
   optional float scale_multiplier = 4;  // Visual scale (default: 1.0)
   optional bool grid_snap = 5;          // Snap to grid (default: true)
-  repeated string scripts = 6;         // Attached script names
+  repeated ScriptBinding scripts = 6;   // Attached scripts with variable bindings
+  optional string deployable_type = 7;  // Functional type (e.g. "cooker", "campfire", "workbench")
+}
+
+// Script binding — GUID-based script attachment with variable overrides
+message ScriptBinding {
+  string guid = 1;                      // 32-char hex GUID
+  optional string name = 2;             // Human-readable script name
+  map<string, string> vars = 3;         // Variable overrides (values stored as strings, parsed by runtime)
 }
 
 // Loot source — where this item can be found
@@ -184,6 +243,50 @@ message ItemSource {
   optional int32 min_quantity = 5;
   optional int32 max_quantity = 6;
   optional int32 level_requirement = 7;
+}
+
+// Food / consumable properties
+message FoodInfo {
+  optional int32 heals = 1;             // HP restored on consumption
+  optional int32 doses = 2;             // Number of doses (potions: 1-4)
+  optional int32 cooking_level = 3;     // Cooking level required to prepare
+  optional float cooking_xp = 4;        // XP awarded for cooking this item
+  optional int32 burn_level = 5;        // Level at which burning stops
+  optional int32 duration = 6;          // Buff duration in seconds/turns
+  repeated UseEffect buff_effects = 7;  // Stat buffs granted on consumption
+}
+
+// Skilling properties — for items that interact with skill systems
+message SkillingInfo {
+  SkillingType skill = 1;               // Primary skill this item relates to
+  optional int32 skill_level = 2;       // Level required to gather/use/process
+  optional float xp_reward = 3;         // XP granted per gather/action
+  optional string tool_required = 4;    // Tool item ref needed (e.g. "pickaxe" for ores)
+  optional float gather_time = 5;       // Base time to gather/harvest in seconds
+  optional int32 respawn_time = 6;      // Seconds before resource node respawns
+  optional string resource_node = 7;    // World object ref (e.g. "oak_tree", "copper_vein")
+}
+
+// Item set definition — bonuses for wearing multiple pieces
+message ItemSet {
+  string set_id = 1;                    // Unique set identifier
+  string set_name = 2;
+  repeated string item_refs = 3;        // All items in this set
+  repeated SetBonus bonuses = 4;        // Tiered bonuses
+}
+
+// A single tier of a set bonus
+message SetBonus {
+  int32 pieces_required = 1;            // Minimum pieces equipped to activate
+  optional string description = 2;      // Human-readable bonus description
+  optional ItemBonuses stat_bonuses = 3; // Stat bonuses granted
+  repeated UseEffect effects = 4;       // Special effects granted
+}
+
+// Resistance / affinity entry for items (e.g. fire resist boots)
+message ItemAffinity {
+  Element element = 1;
+  float magnitude = 2;                  // 0.0–1.0 (0.3 = 30% resist/boost)
 }
 
 // Generic extension slot — arbitrary key-value pairs for game-specific data
@@ -251,18 +354,35 @@ message Item {
   // Equipment
   optional EquipmentInfo equipment = 32;
 
+  // Food / consumable
+  optional FoodInfo food = 41;
+
+  // Skilling / gathering
+  optional SkillingInfo skilling = 42;
+
   // Crafting
   repeated CraftingRecipe recipes = 33; // Ways to craft this item
 
   // Deployable
   optional DeployableInfo deployable = 34;
 
+  // Resistances & affinities
+  repeated ItemAffinity resistances = 43;
+  repeated ItemAffinity affinities = 44;  // Elemental boosts this item grants
+
+  // Item-level scripts (non-deployable items with scripted behavior)
+  repeated ScriptBinding scripts = 45;
+
   // Sources — where this item comes from
   repeated ItemSource sources = 35;
 
-  // Related items
+  // Related items & sets
   repeated string related_item_refs = 36; // Variants, upgrades, set pieces
   optional string set_ref = 37;         // Item set this belongs to
+
+  // Durability (for non-equipment items like tools)
+  optional int32 durability = 46;
+  optional int32 max_durability = 47;
 
   // Extensions — game-specific key-value pairs
   repeated ItemExtension extensions = 38;
@@ -278,4 +398,5 @@ message Item {
 
 message ItemRegistry {
   repeated Item items = 1;
+  repeated ItemSet sets = 2;            // Item set definitions (span multiple items)
 }
