@@ -55,7 +55,7 @@ export function Inventory() {
 	const items = inventory?.items ?? [];
 
 	return (
-		<div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 pointer-events-auto">
+		<div className="absolute bottom-40 right-4 md:bottom-44 md:right-6 pointer-events-auto">
 			{/* Toggle button */}
 			<button
 				onClick={() => setOpen(!open)}
