@@ -77,7 +77,7 @@ RUN find . -type f \( \
 # ============================================================================
 
 # [STAGE C] - Rust Base Image
-FROM --platform=linux/amd64 rust:1.90-slim AS rust-base
+FROM --platform=linux/amd64 rust:1.94-slim AS rust-base
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
