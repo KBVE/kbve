@@ -62,8 +62,9 @@ struct Firefly {
 }
 
 #[derive(Resource, Default)]
-struct FireflyPool {
-    initialized: bool,
+struct InsectPool {
+    fireflies_spawned: bool,
+    butterflies_spawned: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -87,12 +88,12 @@ fn spawn_fireflies(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut pool: ResMut<FireflyPool>,
+    mut pool: ResMut<InsectPool>,
 ) {
-    if pool.initialized {
+    if pool.fireflies_spawned {
         return;
     }
-    pool.initialized = true;
+    pool.fireflies_spawned = true;
 
     // Shared mesh: tiny sphere for the firefly body
     let fly_mesh = meshes.add(Sphere::new(0.04).mesh().ico(1).unwrap());
@@ -336,11 +337,6 @@ struct Butterfly {
     idle_cooldown: f32,
 }
 
-#[derive(Resource, Default)]
-struct ButterflyPool {
-    initialized: bool,
-}
-
 /// Two-winged butterfly mesh with distinct upper and lower wing lobes.
 /// Wing span ~0.5 units (~16px at 32px/unit), clearly readable as a butterfly.
 fn build_butterfly_mesh() -> Mesh {
@@ -421,12 +417,12 @@ fn spawn_butterflies(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut pool: ResMut<ButterflyPool>,
+    mut pool: ResMut<InsectPool>,
 ) {
-    if pool.initialized {
+    if pool.butterflies_spawned {
         return;
     }
-    pool.initialized = true;
+    pool.butterflies_spawned = true;
 
     let wing_mesh = meshes.add(build_butterfly_mesh());
 
@@ -733,8 +729,7 @@ pub struct InsectsPlugin;
 
 impl Plugin for InsectsPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<FireflyPool>();
-        app.init_resource::<ButterflyPool>();
+        app.init_resource::<InsectPool>();
         app.add_systems(
             Update,
             (
