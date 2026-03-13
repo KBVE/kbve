@@ -74,9 +74,7 @@ fn body_vertex_color(band: usize) -> [f32; 4] {
 
 fn cap_vertex_color(band: usize, tx: i32, tz: i32) -> [f32; 4] {
     if band == 0 {
-        let idx = (hash2d(tx + 1337, tz) * 12.0) as usize % 12;
-        let (r, g, b) = GRASS_SHADES[idx];
-        [srgb_to_linear(r), srgb_to_linear(g), srgb_to_linear(b), 1.0]
+        grass_shade_linear(tx, tz)
     } else {
         let (r, g, b) = BAND_COLORS[band];
         let d: f32 = 0.04;
@@ -88,6 +86,36 @@ fn cap_vertex_color(band: usize, tx: i32, tz: i32) -> [f32; 4] {
             1.0,
         ]
     }
+}
+
+/// Linear-space grass shade for a single tile (used for blending).
+fn grass_shade_linear(tx: i32, tz: i32) -> [f32; 4] {
+    let idx = (hash2d(tx + 1337, tz) * 12.0) as usize % 12;
+    let (r, g, b) = GRASS_SHADES[idx];
+    [srgb_to_linear(r), srgb_to_linear(g), srgb_to_linear(b), 1.0]
+}
+
+/// Average the grass shades of 4 tiles sharing a corner, producing a smooth blend.
+fn blended_grass_corner(
+    tx0: i32,
+    tz0: i32,
+    tx1: i32,
+    tz1: i32,
+    tx2: i32,
+    tz2: i32,
+    tx3: i32,
+    tz3: i32,
+) -> [f32; 4] {
+    let a = grass_shade_linear(tx0, tz0);
+    let b = grass_shade_linear(tx1, tz1);
+    let c = grass_shade_linear(tx2, tz2);
+    let d = grass_shade_linear(tx3, tz3);
+    [
+        (a[0] + b[0] + c[0] + d[0]) * 0.25,
+        (a[1] + b[1] + c[1] + d[1]) * 0.25,
+        (a[2] + b[2] + c[2] + d[2]) * 0.25,
+        1.0,
+    ]
 }
 
 // ---------------------------------------------------------------------------
@@ -479,6 +507,87 @@ fn push_cuboid(
     col.extend(std::iter::repeat(color).take(24));
 
     // 6 faces × 2 triangles (CCW winding for Bevy front-faces)
+    for face in 0..6u32 {
+        let f = base + face * 4;
+        idx.extend_from_slice(&[f, f + 2, f + 1, f, f + 3, f + 2]);
+    }
+}
+
+/// Like `push_cuboid` but assigns per-corner colors to the top (+Y) face for
+/// smooth cross-tile blending. Side/bottom faces use `side_color`.
+/// Corner order: [(-x,-z), (+x,-z), (+x,+z), (-x,+z)]
+fn push_cuboid_blended_top(
+    pos: &mut Vec<[f32; 3]>,
+    nor: &mut Vec<[f32; 3]>,
+    col: &mut Vec<[f32; 4]>,
+    idx: &mut Vec<u32>,
+    center: Vec3,
+    half: Vec3,
+    top_corners: [[f32; 4]; 4],
+    side_color: [f32; 4],
+) {
+    let base = pos.len() as u32;
+    let (cx, cy, cz) = (center.x, center.y, center.z);
+    let (hx, hy, hz) = (half.x, half.y, half.z);
+
+    // +Y (top) — blended corner colors
+    pos.extend_from_slice(&[
+        [cx - hx, cy + hy, cz - hz],
+        [cx + hx, cy + hy, cz - hz],
+        [cx + hx, cy + hy, cz + hz],
+        [cx - hx, cy + hy, cz + hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, 1.0, 0.0]; 4]);
+    col.extend_from_slice(&top_corners);
+
+    // -Y (bottom)
+    pos.extend_from_slice(&[
+        [cx - hx, cy - hy, cz + hz],
+        [cx + hx, cy - hy, cz + hz],
+        [cx + hx, cy - hy, cz - hz],
+        [cx - hx, cy - hy, cz - hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, -1.0, 0.0]; 4]);
+
+    // +X (right)
+    pos.extend_from_slice(&[
+        [cx + hx, cy - hy, cz - hz],
+        [cx + hx, cy - hy, cz + hz],
+        [cx + hx, cy + hy, cz + hz],
+        [cx + hx, cy + hy, cz - hz],
+    ]);
+    nor.extend_from_slice(&[[1.0, 0.0, 0.0]; 4]);
+
+    // -X (left)
+    pos.extend_from_slice(&[
+        [cx - hx, cy - hy, cz + hz],
+        [cx - hx, cy - hy, cz - hz],
+        [cx - hx, cy + hy, cz - hz],
+        [cx - hx, cy + hy, cz + hz],
+    ]);
+    nor.extend_from_slice(&[[-1.0, 0.0, 0.0]; 4]);
+
+    // +Z (front)
+    pos.extend_from_slice(&[
+        [cx + hx, cy - hy, cz + hz],
+        [cx - hx, cy - hy, cz + hz],
+        [cx - hx, cy + hy, cz + hz],
+        [cx + hx, cy + hy, cz + hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, 0.0, 1.0]; 4]);
+
+    // -Z (back)
+    pos.extend_from_slice(&[
+        [cx - hx, cy - hy, cz - hz],
+        [cx + hx, cy - hy, cz - hz],
+        [cx + hx, cy + hy, cz - hz],
+        [cx - hx, cy + hy, cz - hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, 0.0, -1.0]; 4]);
+
+    // Side/bottom faces get uniform color (5 faces × 4 verts = 20)
+    col.extend(std::iter::repeat(side_color).take(20));
+
     for face in 0..6u32 {
         let f = base + face * 4;
         idx.extend_from_slice(&[f, f + 2, f + 1, f, f + 3, f + 2]);
@@ -1189,19 +1298,42 @@ fn process_chunk_spawns_and_despawns(
                 let cap_offset_x = (inset_nx - inset_px) / 2.0;
                 let cap_offset_z = (inset_nz - inset_pz) / 2.0;
 
-                push_cuboid(
-                    &mut cap_pos,
-                    &mut cap_nor,
-                    &mut cap_col,
-                    &mut cap_idx,
-                    Vec3::new(
-                        lx + cap_offset_x,
-                        body_h + CAP_HEIGHT / 2.0 + 0.005,
-                        lz + cap_offset_z,
-                    ),
-                    Vec3::new(cap_w / 2.0, CAP_HEIGHT / 2.0, cap_d / 2.0),
-                    cap_vertex_color(band, tx, tz),
+                let cap_center = Vec3::new(
+                    lx + cap_offset_x,
+                    body_h + CAP_HEIGHT / 2.0 + 0.005,
+                    lz + cap_offset_z,
                 );
+                let cap_half = Vec3::new(cap_w / 2.0, CAP_HEIGHT / 2.0, cap_d / 2.0);
+
+                if band == 0 {
+                    // Grass: blend each top-face corner from 4 neighboring tiles
+                    // Corner order: [(-x,-z), (+x,-z), (+x,+z), (-x,+z)]
+                    let c00 = blended_grass_corner(tx, tz, tx - 1, tz, tx, tz - 1, tx - 1, tz - 1);
+                    let c10 = blended_grass_corner(tx, tz, tx + 1, tz, tx, tz - 1, tx + 1, tz - 1);
+                    let c11 = blended_grass_corner(tx, tz, tx + 1, tz, tx, tz + 1, tx + 1, tz + 1);
+                    let c01 = blended_grass_corner(tx, tz, tx - 1, tz, tx, tz + 1, tx - 1, tz + 1);
+                    let side = cap_vertex_color(band, tx, tz);
+                    push_cuboid_blended_top(
+                        &mut cap_pos,
+                        &mut cap_nor,
+                        &mut cap_col,
+                        &mut cap_idx,
+                        cap_center,
+                        cap_half,
+                        [c00, c10, c11, c01],
+                        side,
+                    );
+                } else {
+                    push_cuboid(
+                        &mut cap_pos,
+                        &mut cap_nor,
+                        &mut cap_col,
+                        &mut cap_idx,
+                        cap_center,
+                        cap_half,
+                        cap_vertex_color(band, tx, tz),
+                    );
+                }
 
                 // --- Water surface (tiles below water level) ---
                 if h < WATER_LEVEL {
@@ -1249,12 +1381,14 @@ fn process_chunk_spawns_and_despawns(
 
                 // --- Vegetation: pixel-art grass tufts (grass band only) ---
                 if band == 0 {
-                    // Spawn 3-5 grass tufts per tile (density controlled by noise)
-                    let grass_slots: [(i32, i32, f32); 4] = [
-                        (7919, 3571, 0.45),
-                        (2131, 8461, 0.30),
-                        (4253, 6173, 0.35),
-                        (6091, 1429, 0.25),
+                    // Spawn grass tufts per tile (density controlled by noise)
+                    let grass_slots: [(i32, i32, f32); 6] = [
+                        (7919, 3571, 0.55),
+                        (2131, 8461, 0.40),
+                        (4253, 6173, 0.45),
+                        (6091, 1429, 0.35),
+                        (8347, 2719, 0.30),
+                        (3467, 9241, 0.25),
                     ];
 
                     for &(seed_x, seed_z, density) in &grass_slots {
