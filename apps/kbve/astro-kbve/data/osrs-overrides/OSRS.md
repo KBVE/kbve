@@ -886,6 +886,96 @@ Focus on items with clear processing chains and market flip potential.
 | 2607 | Adamant platebody (g)  | Medium clue, 30 Def body   |
 | 2609 | Adamant platelegs (g)  | Medium clue, 30 Def legs   |
 
+### Rune Trimmed Armour Completion (Implemented - Mar 2026)
+
+| ID   | Item                | Override Focus           |
+| ---- | ------------------- | ------------------------ |
+| 2621 | Rune kiteshield (g) | Hard clue, 40 Def shield |
+| 2625 | Rune platelegs (t)  | Hard clue, 40 Def legs   |
+| 2627 | Rune full helm (t)  | Hard clue, 40 Def head   |
+| 2629 | Rune kiteshield (t) | Hard clue, 40 Def shield |
+| 3476 | Rune plateskirt (g) | Hard clue, 40 Def legs   |
+| 3477 | Rune plateskirt (t) | Hard clue, 40 Def legs   |
+
+### Adamant/Black Armour Completion (Implemented - Mar 2026)
+
+| ID   | Item                   | Override Focus             |
+| ---- | ---------------------- | -------------------------- |
+| 2611 | Adamant kiteshield (g) | Medium clue, 30 Def shield |
+| 2613 | Adamant full helm (g)  | Medium clue, 30 Def head   |
+| 3474 | Adamant plateskirt (t) | Medium clue, 30 Def legs   |
+| 3475 | Adamant plateskirt (g) | Medium clue, 30 Def legs   |
+| 2595 | Black full helm (g)    | Easy clue, 10 Def head     |
+| 2597 | Black kiteshield (g)   | Easy clue, 10 Def shield   |
+| 3472 | Black plateskirt (t)   | Easy clue, 10 Def legs     |
+| 3473 | Black plateskirt (g)   | Easy clue, 10 Def legs     |
+
+### Trimmed Monk Robes (Implemented - Mar 2026)
+
+| ID    | Item                | Override Focus            |
+| ----- | ------------------- | ------------------------- |
+| 20199 | Monk's robe top (g) | Easy clue, +6 Prayer body |
+| 20202 | Monk's robe (g)     | Easy clue, +5 Prayer legs |
+| 23303 | Monk's robe top (t) | Easy clue, +6 Prayer body |
+| 23306 | Monk's robe (t)     | Easy clue, +5 Prayer legs |
+
+### Trimmed Leather/Studded Armour (Implemented - Mar 2026)
+
+| ID    | Item              | Override Focus            |
+| ----- | ----------------- | ------------------------- |
+| 7362  | Studded body (g)  | Easy clue, 20 Ranged body |
+| 7364  | Studded body (t)  | Easy clue, 20 Ranged body |
+| 7366  | Studded chaps (g) | Easy clue, 20 Ranged legs |
+| 7368  | Studded chaps (t) | Easy clue, 20 Ranged legs |
+| 23381 | Leather body (g)  | Easy clue, no req body    |
+| 23384 | Leather chaps (g) | Easy clue, no req legs    |
+
+### Steel Trimmed Armour (Implemented - Mar 2026)
+
+| ID    | Item                 | Override Focus          |
+| ----- | -------------------- | ----------------------- |
+| 20169 | Steel platebody (g)  | Easy clue, 5 Def body   |
+| 20172 | Steel platelegs (g)  | Easy clue, 5 Def legs   |
+| 20175 | Steel plateskirt (g) | Easy clue, 5 Def legs   |
+| 20178 | Steel full helm (g)  | Easy clue, 5 Def head   |
+| 20181 | Steel kiteshield (g) | Easy clue, 5 Def shield |
+| 20184 | Steel platebody (t)  | Easy clue, 5 Def body   |
+| 20187 | Steel platelegs (t)  | Easy clue, 5 Def legs   |
+| 20190 | Steel plateskirt (t) | Easy clue, 5 Def legs   |
+| 20193 | Steel full helm (t)  | Easy clue, 5 Def head   |
+| 20196 | Steel kiteshield (t) | Easy clue, 5 Def shield |
+
+### Team Capes (Implemented - Mar 2026)
+
+| ID    | Item           | Override Focus  |
+| ----- | -------------- | --------------- |
+| 20211 | Team cape zero | Easy clue, cape |
+| 20214 | Team cape x    | Easy clue, cape |
+| 20217 | Team cape i    | Easy clue, cape |
+
+### Rune Heraldic Platebodies (Implemented - Mar 2026)
+
+| ID    | Item                | Override Focus        |
+| ----- | ------------------- | --------------------- |
+| 23209 | Rune platebody (h1) | Hard clue, 40 Def+DS1 |
+| 23212 | Rune platebody (h2) | Hard clue, 40 Def+DS1 |
+| 23215 | Rune platebody (h3) | Hard clue, 40 Def+DS1 |
+| 23218 | Rune platebody (h4) | Hard clue, 40 Def+DS1 |
+| 23221 | Rune platebody (h5) | Hard clue, 40 Def+DS1 |
+
+### Misc Cosmetics (Implemented - Mar 2026)
+
+| ID    | Item                | Override Focus           |
+| ----- | ------------------- | ------------------------ |
+| 2631  | Highwayman mask     | Easy clue, cosmetic head |
+| 2635  | Black beret         | Easy clue, cosmetic head |
+| 2637  | White beret         | Easy clue, cosmetic head |
+| 7386  | Blue skirt (g)      | Easy clue, wizard skirt  |
+| 7388  | Blue skirt (t)      | Easy clue, wizard skirt  |
+| 12445 | Black skirt (g)     | Easy clue, wizard skirt  |
+| 12447 | Black skirt (t)     | Easy clue, wizard skirt  |
+| 10364 | Strength amulet (t) | Medium clue, +10 Str     |
+
 ---
 
 ## Future Override Priorities
@@ -1474,18 +1564,19 @@ const description = generateMetaDescription(item);
 
 Record batch completions here:
 
-| Date         | Items Added                                                    | Total Overrides |
-| ------------ | -------------------------------------------------------------- | --------------- |
-| Jan 2026     | Initial ~100 items                                             | ~100            |
-| Jan 7, 2026  | +35 items (potions, weapons, raid gear)                        | ~135            |
-| Jan 21, 2026 | +42 items (barrows, hilts, potions, utility)                   | ~881            |
-| Mar 11, 2026 | +20 items (jewelry chains, misc weapons)                       | ~901            |
-| Mar 12, 2026 | +20 items (dragon bolts e, mystic, trimmed)                    | ~921            |
-| Mar 12, 2026 | +20 items (god d'hide sets, rune weapons)                      | ~941            |
-| Mar 12, 2026 | +20 items (god chaps/coifs/bracers, misc)                      | ~961            |
-| Mar 13, 2026 | +20 items (gilded/trimmed d'hide, misc)                        | ~981            |
-| Mar 13, 2026 | +50 items (elegant sets, HAM, robes, vestments, amulets)       | ~1031           |
-| Mar 13, 2026 | +50 items (god vestments, wizard robes, black/adamant trimmed) | ~1081           |
+| Date         | Items Added                                                      | Total Overrides |
+| ------------ | ---------------------------------------------------------------- | --------------- |
+| Jan 2026     | Initial ~100 items                                               | ~100            |
+| Jan 7, 2026  | +35 items (potions, weapons, raid gear)                          | ~135            |
+| Jan 21, 2026 | +42 items (barrows, hilts, potions, utility)                     | ~881            |
+| Mar 11, 2026 | +20 items (jewelry chains, misc weapons)                         | ~901            |
+| Mar 12, 2026 | +20 items (dragon bolts e, mystic, trimmed)                      | ~921            |
+| Mar 12, 2026 | +20 items (god d'hide sets, rune weapons)                        | ~941            |
+| Mar 12, 2026 | +20 items (god chaps/coifs/bracers, misc)                        | ~961            |
+| Mar 13, 2026 | +20 items (gilded/trimmed d'hide, misc)                          | ~981            |
+| Mar 13, 2026 | +50 items (elegant sets, HAM, robes, vestments, amulets)         | ~1031           |
+| Mar 13, 2026 | +50 items (god vestments, wizard robes, black/adamant trimmed)   | ~1081           |
+| Mar 13, 2026 | +50 items (rune/steel/black trimmed, monk robes, heraldic, misc) | ~1131           |
 
 ### Quick Stats
 
