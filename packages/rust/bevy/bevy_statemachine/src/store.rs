@@ -96,7 +96,11 @@ mod inner {
 // ---------------------------------------------------------------------------
 
 /// Write a snapshot for type `T`. Called internally by the snapshot system.
-pub(crate) fn write_snapshot<T: 'static>(
+///
+/// This is a low-level function. Prefer using [`StateSnapshotPlugin`](crate::StateSnapshotPlugin)
+/// for automatic snapshotting of Bevy resources.
+#[doc(hidden)]
+pub fn write_snapshot<T: 'static>(
     #[cfg(feature = "serde")] json: Option<String>,
     #[cfg(feature = "bincode")] binary: Option<Vec<u8>>,
 ) {
@@ -113,6 +117,27 @@ pub(crate) fn write_snapshot<T: 'static>(
 }
 
 /// Read the latest snapshot as a deserialized value.
+///
+/// Returns `None` if no snapshot exists or deserialization fails.
+///
+/// # Examples
+///
+/// ```
+/// use bevy_statemachine::{get_snapshot, clear_snapshot};
+///
+/// #[derive(Clone, Default, serde::Serialize, serde::Deserialize, PartialEq, Debug)]
+/// struct Health { hp: i32 }
+///
+/// // No snapshot yet — returns None.
+/// assert!(get_snapshot::<Health>().is_none());
+///
+/// // Write via internal API, then read back.
+/// bevy_statemachine::store::write_snapshot::<Health>(Some(r#"{"hp":100}"#.into()), );
+/// let h: Health = get_snapshot().unwrap();
+/// assert_eq!(h.hp, 100);
+///
+/// clear_snapshot::<Health>();
+/// ```
 #[cfg(feature = "serde")]
 pub fn get_snapshot<T>() -> Option<T>
 where
@@ -124,24 +149,89 @@ where
 }
 
 /// Read the latest snapshot as a raw JSON string.
+///
+/// Useful when the consumer will forward the JSON without deserializing
+/// (e.g. Tauri IPC, WebSocket relay).
+///
+/// # Examples
+///
+/// ```
+/// use bevy_statemachine::{get_snapshot_json, clear_snapshot};
+///
+/// #[derive(Clone, serde::Serialize, serde::Deserialize)]
+/// struct Score { points: u32 }
+///
+/// bevy_statemachine::store::write_snapshot::<Score>(Some(r#"{"points":50}"#.into()), );
+/// let json = get_snapshot_json::<Score>().unwrap();
+/// assert!(json.contains("50"));
+///
+/// clear_snapshot::<Score>();
+/// ```
 #[cfg(feature = "serde")]
 pub fn get_snapshot_json<T: 'static>() -> Option<String> {
     inner::read(TypeId::of::<T>())?.json
 }
 
 /// Read the latest snapshot as raw bincode bytes.
+///
+/// Returns `None` if no snapshot exists or bincode data was not written.
+///
+/// # Examples
+///
+/// ```ignore
+/// use bevy_statemachine::get_snapshot_binary;
+///
+/// let bytes: Option<Vec<u8>> = get_snapshot_binary::<MyState>();
+/// ```
 #[cfg(feature = "bincode")]
 pub fn get_snapshot_binary<T: 'static>() -> Option<Vec<u8>> {
     inner::read(TypeId::of::<T>())?.binary
 }
 
 /// Returns the monotonic version counter for type `T`.
-/// Returns `0` if no snapshot has been written yet.
+///
+/// Returns `0` if no snapshot has been written yet. The version increments
+/// by one on every write, making it cheap to detect staleness without
+/// deserializing.
+///
+/// # Examples
+///
+/// ```
+/// use bevy_statemachine::{snapshot_version, clear_snapshot};
+///
+/// #[derive(Clone, serde::Serialize, serde::Deserialize)]
+/// struct Tick { n: u64 }
+///
+/// assert_eq!(snapshot_version::<Tick>(), 0);
+///
+/// bevy_statemachine::store::write_snapshot::<Tick>(Some(r#"{"n":1}"#.into()), );
+/// assert!(snapshot_version::<Tick>() > 0);
+///
+/// clear_snapshot::<Tick>();
+/// ```
 pub fn snapshot_version<T: 'static>() -> u64 {
     inner::version(TypeId::of::<T>())
 }
 
 /// Remove the snapshot for type `T`.
+///
+/// After clearing, [`get_snapshot`] returns `None` and
+/// [`snapshot_version`] returns `0`.
+///
+/// # Examples
+///
+/// ```
+/// use bevy_statemachine::{clear_snapshot, snapshot_version};
+///
+/// #[derive(Clone, serde::Serialize, serde::Deserialize)]
+/// struct Pos { x: f32 }
+///
+/// bevy_statemachine::store::write_snapshot::<Pos>(Some(r#"{"x":1.0}"#.into()), );
+/// assert!(snapshot_version::<Pos>() > 0);
+///
+/// clear_snapshot::<Pos>();
+/// assert_eq!(snapshot_version::<Pos>(), 0);
+/// ```
 pub fn clear_snapshot<T: 'static>() {
     inner::clear(TypeId::of::<T>());
 }

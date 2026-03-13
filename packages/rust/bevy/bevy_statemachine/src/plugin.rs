@@ -34,6 +34,23 @@ macro_rules! add_to_schedule {
 ///
 /// `T` must implement `serde::Serialize` when either the `serde` or `bincode`
 /// feature is enabled.
+///
+/// # Examples
+///
+/// ```ignore
+/// use bevy::prelude::*;
+/// use bevy_statemachine::{StateSnapshotPlugin, SnapshotConfig, SnapshotSchedule};
+///
+/// #[derive(Resource, Clone, Default, serde::Serialize)]
+/// struct PlayerState { health: f32 }
+///
+/// // Default (PostUpdate):
+/// app.add_plugins(StateSnapshotPlugin::<PlayerState>::new());
+///
+/// // Custom schedule:
+/// let config = SnapshotConfig { schedule: SnapshotSchedule::FixedUpdate };
+/// app.add_plugins(StateSnapshotPlugin::<PlayerState>::with_config(config));
+/// ```
 pub struct StateSnapshotPlugin<T: Resource + Clone + 'static> {
     config: SnapshotConfig,
     _marker: PhantomData<T>,
@@ -101,6 +118,18 @@ fn snapshot_system<T: Resource + Clone + serde::Serialize + 'static>(resource: R
 ///
 /// Useful for event-like resources where external consumers only need the latest
 /// value once (e.g. click selections, action triggers).
+///
+/// # Examples
+///
+/// ```ignore
+/// use bevy::prelude::*;
+/// use bevy_statemachine::TakeSnapshotPlugin;
+///
+/// #[derive(Resource, Clone, Default, serde::Serialize)]
+/// struct ClickSelection { entity_id: u64 }
+///
+/// app.add_plugins(TakeSnapshotPlugin::<ClickSelection>::new());
+/// ```
 pub struct TakeSnapshotPlugin<T: Resource + Clone + 'static> {
     config: SnapshotConfig,
     _marker: PhantomData<T>,

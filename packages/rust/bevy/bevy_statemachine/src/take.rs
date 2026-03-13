@@ -74,6 +74,19 @@ mod inner {
 // ---------------------------------------------------------------------------
 
 /// Write a take-once snapshot. Overwrites any previous unread value.
+///
+/// # Examples
+///
+/// ```
+/// use bevy_statemachine::{write_take_snapshot, take_snapshot};
+///
+/// #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+/// struct Click { entity_id: u64 }
+///
+/// write_take_snapshot(&Click { entity_id: 42 });
+/// let c: Click = take_snapshot().unwrap();
+/// assert_eq!(c.entity_id, 42);
+/// ```
 #[cfg(feature = "serde")]
 pub fn write_take_snapshot<T: serde::Serialize + 'static>(value: &T) {
     if let Ok(json) = serde_json::to_string(value) {
@@ -82,6 +95,28 @@ pub fn write_take_snapshot<T: serde::Serialize + 'static>(value: &T) {
 }
 
 /// Read and clear a take-once snapshot.
+///
+/// Returns `None` if no value has been written, or if the value was
+/// already consumed by a prior call. This is the primary consumption
+/// method — each value can only be read once.
+///
+/// # Examples
+///
+/// ```
+/// use bevy_statemachine::{write_take_snapshot, take_snapshot};
+///
+/// #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+/// struct Action { kind: String }
+///
+/// write_take_snapshot(&Action { kind: "jump".into() });
+///
+/// // First take succeeds:
+/// let a: Action = take_snapshot().unwrap();
+/// assert_eq!(a.kind, "jump");
+///
+/// // Second take returns None — value was consumed:
+/// assert!(take_snapshot::<Action>().is_none());
+/// ```
 #[cfg(feature = "serde")]
 pub fn take_snapshot<T>() -> Option<T>
 where
@@ -92,6 +127,28 @@ where
 }
 
 /// Peek at a take-once snapshot without clearing it.
+///
+/// Useful when you need to inspect the value but leave it available for
+/// a later [`take_snapshot`] call.
+///
+/// # Examples
+///
+/// ```
+/// use bevy_statemachine::{write_take_snapshot, peek_take_snapshot, take_snapshot};
+///
+/// #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+/// struct Msg { text: String }
+///
+/// write_take_snapshot(&Msg { text: "hello".into() });
+///
+/// // Peek does not consume:
+/// let peeked: Msg = peek_take_snapshot().unwrap();
+/// assert_eq!(peeked.text, "hello");
+///
+/// // Value is still there for take:
+/// let taken: Msg = take_snapshot().unwrap();
+/// assert_eq!(taken.text, "hello");
+/// ```
 #[cfg(feature = "serde")]
 pub fn peek_take_snapshot<T>() -> Option<T>
 where
@@ -102,6 +159,19 @@ where
 }
 
 /// Explicitly clear a take-once snapshot without reading it.
+///
+/// # Examples
+///
+/// ```
+/// use bevy_statemachine::{write_take_snapshot, clear_take_snapshot, take_snapshot};
+///
+/// #[derive(serde::Serialize, serde::Deserialize)]
+/// struct Evt { id: u32 }
+///
+/// write_take_snapshot(&Evt { id: 1 });
+/// clear_take_snapshot::<Evt>();
+/// assert!(take_snapshot::<Evt>().is_none());
+/// ```
 pub fn clear_take_snapshot<T: 'static>() {
     inner::clear(TypeId::of::<T>());
 }
