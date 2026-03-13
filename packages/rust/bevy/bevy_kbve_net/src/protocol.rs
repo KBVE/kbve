@@ -32,6 +32,16 @@ pub struct AuthMessage {
 pub struct AuthResponse {
     pub success: bool,
     pub user_id: String,
+    /// Server-assigned player entity ID so the client knows which replicated entity is theirs.
+    pub player_id: u64,
+}
+
+/// Client sends its position to the server each tick (client-authoritative movement).
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct PositionUpdate {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 // ---------------------------------------------------------------------------
@@ -67,6 +77,7 @@ impl Plugin for ProtocolPlugin {
         // --- Messages ---
         app.register_message::<AuthMessage>();
         app.register_message::<AuthResponse>();
+        app.register_message::<PositionUpdate>();
 
         // --- Replicated components (custom game components) ---
 

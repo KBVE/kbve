@@ -12,7 +12,7 @@ use bevy::prelude::*;
 use lightyear::prelude::server::*;
 use lightyear::prelude::*;
 
-use bevy_kbve_net::{AuthMessage, AuthResponse, GameChannel, ProtocolPlugin};
+use bevy_kbve_net::{AuthMessage, AuthResponse, GameChannel, PositionUpdate, ProtocolPlugin};
 
 /// Server tick rate: 20 Hz (matching client).
 const TICK_DURATION: Duration = Duration::from_millis(50);
@@ -27,6 +27,10 @@ struct JwtSecret(String);
 /// Maps client entities to authenticated user IDs (Supabase `sub` UUID).
 #[derive(Resource, Default)]
 struct AuthenticatedClients(HashMap<Entity, String>);
+
+/// Maps client connection entities to their spawned player entities.
+#[derive(Resource, Default)]
+struct ClientPlayerMap(HashMap<Entity, Entity>);
 
 /// Marker: client has not yet sent a valid AuthMessage.
 #[derive(Component)]
@@ -80,6 +84,7 @@ fn run_bevy_app(ws_addr: SocketAddr, jwt_secret: String) {
     // Auth resources
     app.insert_resource(JwtSecret(jwt_secret));
     app.init_resource::<AuthenticatedClients>();
+    app.init_resource::<ClientPlayerMap>();
 
     // Spawn the server listener on startup
     let startup_addr = ws_addr;
@@ -93,8 +98,8 @@ fn run_bevy_app(ws_addr: SocketAddr, jwt_secret: String) {
     // Process auth messages from clients
     app.add_systems(Update, process_auth_messages);
 
-    // Shared movement system (server-authoritative)
-    app.add_systems(FixedUpdate, apply_player_inputs);
+    // Receive position updates from clients and apply to their player entities
+    app.add_systems(Update, process_position_updates);
 
     tracing::info!("game server Bevy app running");
     app.run();
@@ -135,6 +140,7 @@ fn process_auth_messages(
     mut commands: Commands,
     jwt_secret: Res<JwtSecret>,
     mut authenticated: ResMut<AuthenticatedClients>,
+    mut client_player_map: ResMut<ClientPlayerMap>,
     mut query: Query<
         (
             Entity,
@@ -150,13 +156,15 @@ fn process_auth_messages(
                 tracing::warn!(
                     "SUPABASE_JWT_SECRET not set — skipping JWT validation for {entity:?}"
                 );
+                let player_entity = spawn_player(&mut commands, entity);
                 sender.send::<GameChannel>(AuthResponse {
                     success: true,
                     user_id: "anonymous".to_string(),
+                    player_id: player_entity.to_bits(),
                 });
                 commands.entity(entity).remove::<PendingAuth>();
                 authenticated.0.insert(entity, "anonymous".to_string());
-                spawn_player(&mut commands, entity);
+                client_player_map.0.insert(entity, player_entity);
                 continue;
             }
 
@@ -164,19 +172,22 @@ fn process_auth_messages(
                 Ok(token_data) => {
                     let user_id = token_data.claims.sub.clone();
                     tracing::info!("client {entity:?} authenticated as user {user_id}");
+                    let player_entity = spawn_player(&mut commands, entity);
                     sender.send::<GameChannel>(AuthResponse {
                         success: true,
                         user_id: user_id.clone(),
+                        player_id: player_entity.to_bits(),
                     });
                     commands.entity(entity).remove::<PendingAuth>();
                     authenticated.0.insert(entity, user_id);
-                    spawn_player(&mut commands, entity);
+                    client_player_map.0.insert(entity, player_entity);
                 }
                 Err(e) => {
                     tracing::warn!("client {entity:?} auth failed: {e}");
                     sender.send::<GameChannel>(AuthResponse {
                         success: false,
                         user_id: String::new(),
+                        player_id: 0,
                     });
                 }
             }
@@ -184,29 +195,40 @@ fn process_auth_messages(
     }
 }
 
-/// Spawn a player entity for an authenticated client.
-fn spawn_player(commands: &mut Commands, client_entity: Entity) {
-    commands.spawn((
-        bevy_kbve_net::PlayerId(client_entity.to_bits()),
-        bevy_kbve_net::PlayerColor(Color::srgb(0.2, 0.4, 0.8)),
-        Transform::from_xyz(2.0, 2.0, 2.0),
-        RigidBody::Kinematic,
-        Position::default(),
-        Rotation::default(),
-        LinearVelocity::default(),
-        Collider::cuboid(0.6, 1.2, 0.6),
-    ));
+/// Spawn a player entity for an authenticated client, marked for replication.
+fn spawn_player(commands: &mut Commands, client_entity: Entity) -> Entity {
+    let player_id = client_entity.to_bits();
+    tracing::info!("spawning player entity for client {client_entity:?} (player_id={player_id})");
+
+    commands
+        .spawn((
+            bevy_kbve_net::PlayerId(player_id),
+            bevy_kbve_net::PlayerColor(Color::srgb(0.2, 0.4, 0.8)),
+            Transform::from_xyz(2.0, 2.0, 2.0),
+            RigidBody::Kinematic,
+            Position(Vec3::new(2.0, 2.0, 2.0)),
+            Rotation::default(),
+            LinearVelocity::default(),
+            Collider::cuboid(0.6, 1.2, 0.6),
+            // Mark for lightyear replication to all connected clients
+            Replicate::to_clients(NetworkTarget::All),
+        ))
+        .id()
 }
 
-/// Server-authoritative movement: read inputs from all predicted players and apply physics.
-fn apply_player_inputs(
-    mut query: Query<(&mut Transform, &bevy_kbve_net::PlayerId)>,
-    // TODO: read lightyear ActionState<PlayerInput> from connected clients
-    // and apply movement here
+/// Receive PositionUpdate messages from authenticated clients and apply to their player entities.
+fn process_position_updates(
+    client_player_map: Res<ClientPlayerMap>,
+    mut receivers: Query<(Entity, &mut MessageReceiver<PositionUpdate>), Without<PendingAuth>>,
+    mut positions: Query<&mut Position>,
 ) {
-    for (_transform, _id) in &mut query {
-        // Phase 3 stub: server reads buffered inputs from lightyear and
-        // applies the shared movement logic. Full implementation comes when
-        // client input buffering is wired up.
+    for (client_entity, mut receiver) in &mut receivers {
+        for msg in receiver.receive() {
+            if let Some(&player_entity) = client_player_map.0.get(&client_entity) {
+                if let Ok(mut pos) = positions.get_mut(player_entity) {
+                    pos.0 = Vec3::new(msg.x, msg.y, msg.z);
+                }
+            }
+        }
     }
 }
