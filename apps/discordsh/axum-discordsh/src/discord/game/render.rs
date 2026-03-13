@@ -1288,6 +1288,7 @@ mod tests {
             enraged: false,
             index: 0,
             first_strike: false,
+            personality: Personality::Feral,
         }];
         let components = render_components(&session);
         // First row should be combat buttons (Attack/Defend/Items/Explore/Flee), not direction buttons
@@ -1785,6 +1786,7 @@ mod tests {
                 enraged: false,
                 index: 0,
                 first_strike: false,
+                personality: Personality::Feral,
             },
             EnemyState {
                 name: "Slime B".to_owned(),
@@ -1799,6 +1801,7 @@ mod tests {
                 enraged: false,
                 index: 1,
                 first_strike: false,
+                personality: Personality::Feral,
             },
         ];
         let components = render_components(&session);
@@ -1883,6 +1886,7 @@ mod tests {
             enraged: false,
             index: 0,
             first_strike: false,
+            personality: Personality::Feral,
         }];
         let components = render_components(&session);
         let all_json = format!("{:?}", components);
@@ -2119,6 +2123,7 @@ mod tests {
             enraged: false,
             index: 0,
             first_strike: false,
+            personality: Personality::Feral,
         }];
         let components = render_components(&session);
         let all_json = format!("{:?}", components);
