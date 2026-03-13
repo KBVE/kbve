@@ -341,31 +341,69 @@ struct ButterflyPool {
     initialized: bool,
 }
 
-/// Diamond-shaped wing quad — two triangles forming a wide, short diamond.
-/// At 32px/unit this is ~5 pixels across, reads as a tiny butterfly.
+/// Two-winged butterfly mesh with distinct upper and lower wing lobes.
+/// Wing span ~0.5 units (~16px at 32px/unit), clearly readable as a butterfly.
 fn build_butterfly_mesh() -> Mesh {
-    // Wing span ~0.16 units, height ~0.08 units
-    let hw = 0.08; // half width
-    let hh = 0.04; // half height
+    // Body center at origin. Wings extend left/right.
+    // Each wing has an upper lobe (larger) and lower lobe (smaller).
+    //
+    //        2              5
+    //       / \            / \
+    //      /   \    0     /   \
+    //     /     \  /|\   /     \
+    //    1       \/   \ /       6
+    //            |  B  |
+    //    3      /\   / \       8
+    //     \   /   \ /   \   /
+    //      \ /     |     \ /
+    //       4      0      7
+    //
+    let positions = vec![
+        [0.0, 0.02, 0.0],    // 0: body top
+        [-0.22, 0.05, 0.0],  // 1: left upper wing inner
+        [-0.18, 0.18, 0.0],  // 2: left upper wing tip
+        [-0.20, -0.04, 0.0], // 3: left lower wing inner
+        [-0.15, -0.14, 0.0], // 4: left lower wing tip
+        [0.18, 0.18, 0.0],   // 5: right upper wing tip
+        [0.22, 0.05, 0.0],   // 6: right upper wing inner
+        [0.15, -0.14, 0.0],  // 7: right lower wing tip
+        [0.20, -0.04, 0.0],  // 8: right lower wing inner
+        [0.0, -0.06, 0.0],   // 9: body bottom
+    ];
+    let normals = vec![[0.0, 0.0, 1.0]; 10];
+    let uvs = vec![
+        [0.5, 0.42],  // 0
+        [0.06, 0.33], // 1
+        [0.14, 0.0],  // 2
+        [0.1, 0.58],  // 3
+        [0.19, 1.0],  // 4
+        [0.86, 0.0],  // 5
+        [0.94, 0.33], // 6
+        [0.81, 1.0],  // 7
+        [0.9, 0.58],  // 8
+        [0.5, 0.72],  // 9
+    ];
+    // Left upper, left lower, right upper, right lower wing triangles
+    let indices = vec![
+        0, 1, 2, // left upper wing
+        9, 4, 3, // left lower wing
+        0, 2, 1, // left upper back-face (for double-sided without cull)
+        0, 5, 6, // right upper wing
+        9, 8, 7, // right lower wing
+        // Connect wings to body
+        0, 3, 1, // left wing bridge
+        9, 3, 0, // left body
+        0, 6, 8, // right wing bridge
+        9, 0, 8, // right body
+    ];
     Mesh::new(
         PrimitiveTopology::TriangleList,
         RenderAssetUsages::default(),
     )
-    .with_inserted_attribute(
-        Mesh::ATTRIBUTE_POSITION,
-        vec![
-            [0.0, hh, 0.0],  // top
-            [-hw, 0.0, 0.0], // left wing tip
-            [0.0, -hh, 0.0], // bottom
-            [hw, 0.0, 0.0],  // right wing tip
-        ],
-    )
-    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0.0, 0.0, 1.0]; 4])
-    .with_inserted_attribute(
-        Mesh::ATTRIBUTE_UV_0,
-        vec![[0.5, 0.0], [0.0, 0.5], [0.5, 1.0], [1.0, 0.5]],
-    )
-    .with_inserted_indices(Indices::U32(vec![0, 1, 2, 0, 2, 3]))
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
+    .with_inserted_indices(Indices::U32(indices))
 }
 
 /// Daytime visibility factor: 0.0 at night, 1.0 during full day.
