@@ -1,44 +1,73 @@
+/**
+ * Astro content collection schema for itemdb entries.
+ *
+ * Game-logic fields come from the proto-generated ItemSchema
+ * (packages/data/codegen/generated/itemdb-schema.ts).
+ * Astro-specific fields are layered on top.
+ */
 import { z } from 'astro:content';
+import {
+	ItemSchema,
+	ItemBonusesSchema,
+	ScriptBindingSchema,
+	DeployableInfoSchema,
+	CraftingRecipeSchema,
+	ItemRaritySchema,
+} from '../../../../../../packages/data/codegen/generated/itemdb-schema';
 
-import { ItemCategoryFlags } from '@/data/types';
-import { ICraftingSchema } from '@/data/schema/ICraftingSchema';
-import { IBonusSchema } from '@/data/schema/IBonusSchema';
-import { IDeployableSchema } from '@/data/schema/IDeployableSchema';
-import { IScriptBindingSchema } from '@/data/schema/IScriptBindingSchema';
+// Re-export generated types for downstream consumers
+export {
+	ItemRaritySchema,
+	ItemBonusesSchema,
+	ScriptBindingSchema,
+	DeployableInfoSchema,
+	CraftingRecipeSchema,
+};
+export type {
+	Item,
+	ItemBonuses,
+	ScriptBinding,
+	DeployableInfo,
+	CraftingRecipe,
+	ItemRarityValue,
+	ItemTypeFlagValue,
+} from '../../../../../../packages/data/codegen/generated/itemdb-schema';
 
-const MAX_ITEM_CATEGORY = Object.values(ItemCategoryFlags).reduce(
-	(acc, val) => (typeof val === 'number' ? acc | val : acc),
-	0,
-);
+// ---------------------------------------------------------------------------
+// Astro-specific script binding override
+// Proto vars are string-only; MDX YAML naturally produces numbers/booleans
+// ---------------------------------------------------------------------------
 
-export const IObjectSchema = z.object({
-	id: z.string(),
-	key: z.number().int().nonnegative(),
-	ref: z.string().regex(/^[0-9A-HJKMNP-TV-Z]{26}$/, 'Invalid ULID'),
-	name: z.string(),
-	type: z.string(),
-	category: z.number().int().nonnegative().max(MAX_ITEM_CATEGORY).optional(),
-	description: z.string().optional(),
-	img: z.string().optional(),
-	pixelDensity: z.number().int().min(8).max(512),
-	sortingLayer: z.string().optional().default('Default'),
-	sortingOrder: z.number().int().optional().default(0),
-	bonuses: IBonusSchema.optional(),
-	durability: z.number().optional(),
-	weight: z.number().optional(),
-	equipped: z.boolean().optional(),
-	consumable: z.boolean().optional(),
-	effects: z.string().optional(),
-	stackable: z.boolean().optional(),
-	rarity: z.string().optional(),
-	levelRequirement: z.number().optional(),
-	price: z.number().optional(),
-	cooldown: z.number().optional(),
-	action: z.string().optional(),
-	craftingMaterials: ICraftingSchema.optional(),
-	deployable: IDeployableSchema.optional(),
-	credits: z.string().optional(),
-	scripts: z.array(IScriptBindingSchema).optional(),
-	steamMarketUrl: z.string().optional(),
-	exchangeUrl: z.string().optional(),
+const AstroScriptBindingSchema = z.object({
+	guid: z.string().regex(/^[a-f0-9]{32}$/),
+	name: z.string().optional(),
+	vars: z
+		.record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+		.optional(),
 });
+
+// ---------------------------------------------------------------------------
+// Astro-specific fields — not part of the proto contract
+// ---------------------------------------------------------------------------
+
+const AstroItemExtensions = z.object({
+	key: z.number().int().nonnegative(),
+	effects: z.string().optional(),
+	equipped: z.boolean().optional(),
+	steam_market_url: z.string().optional(),
+	exchange_url: z.string().optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Combined schema — proto source of truth + Astro extensions
+// Override scripts to allow number/boolean vars in MDX YAML
+// ---------------------------------------------------------------------------
+
+export const IObjectSchema = ItemSchema.omit({ scripts: true })
+	.merge(AstroItemExtensions)
+	.extend({
+		scripts: z.array(AstroScriptBindingSchema).optional(),
+	})
+	.passthrough();
+
+export type IObject = z.infer<typeof IObjectSchema>;

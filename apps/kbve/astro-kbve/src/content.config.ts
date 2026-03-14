@@ -19,7 +19,7 @@ export function validateItemUniqueness(
 ) {
 	const seenIds = new Set<string>();
 	const seenKeys = new Set<number>();
-	const seenRefs = new Set<string>();
+	const seenSlugs = new Set<string>();
 
 	for (const item of items) {
 		if (seenIds.has(item.id)) {
@@ -28,12 +28,12 @@ export function validateItemUniqueness(
 		if (seenKeys.has(item.key)) {
 			throw new Error(`Duplicate key detected: ${item.key}`);
 		}
-		if (seenRefs.has(item.ref)) {
-			throw new Error(`Duplicate ref detected: ${item.ref}`);
+		if (seenSlugs.has(item.slug)) {
+			throw new Error(`Duplicate slug detected: ${item.slug}`);
 		}
 		seenIds.add(item.id);
 		seenKeys.add(item.key);
-		seenRefs.add(item.ref);
+		seenSlugs.add(item.slug);
 	}
 }
 

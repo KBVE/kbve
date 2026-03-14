@@ -1,10 +1,11 @@
 ---
 import { IObjectSchema } from '@/data/schema';
-import { z } from 'astro:content';
+import { getCategoryNames } from '@/data/types/ItemCategoryTypes';
 
 const { data } = Astro.props;
 
 const item = IObjectSchema.parse(data);
+const categoryNames = item.type_flags ? getCategoryNames(item.type_flags) : [];
 
 function formatKey(key: string): string {
 	return key
@@ -38,14 +39,13 @@ function formatKey(key: string): string {
 			<p class="text-sm text-zinc-300">{item.description}</p>
 
 			<ul class="text-sm text-zinc-400 space-y-1">
-				<li>
-					<strong>Type:</strong>
-					<span class="capitalize">{item.type}</span>
-				</li>
 				{
-					item.category && (
+					categoryNames.length > 0 && (
 						<li>
-							<strong>Category:</strong> {item.category}
+							<strong>Type:</strong>
+							<span class="capitalize">
+								{categoryNames.join(', ')}
+							</span>
 						</li>
 					)
 				}
@@ -66,7 +66,8 @@ function formatKey(key: string): string {
 				{
 					item.rarity && (
 						<li>
-							<strong>Rarity:</strong> {item.rarity}
+							<strong>Rarity:</strong>
+							<span class="capitalize">{item.rarity}</span>
 						</li>
 					)
 				}
@@ -109,16 +110,16 @@ function formatKey(key: string): string {
 			}
 
 			{
-				item.price !== undefined && (
+				item.buy_price !== undefined && (
 					<div class="mt-6 pt-4 border-t border-white/10">
 						<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
 							<div class="flex items-center gap-2 text-base font-medium">
-								<span class="text-cyan-400">💰</span>
+								<span class="text-cyan-400">{'\u{1F4B0}'}</span>
 								<span class="text-cyan-600 dark:text-cyan-400">
 									Price:
 								</span>
 								<span class="text-cyan-600 dark:text-cyan-200 font-semibold">
-									{item.price}{' '}
+									{item.buy_price}{' '}
 									<span class="text-xs text-zinc-400">
 										$KHash
 									</span>
@@ -126,13 +127,13 @@ function formatKey(key: string): string {
 							</div>
 
 							<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 text-sm">
-								{item.steamMarketUrl ? (
+								{item.steam_market_url ? (
 									<a
-										href={item.steamMarketUrl}
+										href={item.steam_market_url}
 										target="_blank"
 										rel="noopener noreferrer"
 										class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg font-medium bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 transition">
-										🛒 Steam Market
+										{'\u{1F6D2}'} Steam Market
 									</a>
 								) : (
 									<span class="text-zinc-500 italic">
@@ -140,13 +141,13 @@ function formatKey(key: string): string {
 									</span>
 								)}
 
-								{item.exchangeUrl ? (
+								{item.exchange_url ? (
 									<a
-										href={item.exchangeUrl}
+										href={item.exchange_url}
 										target="_blank"
 										rel="noopener noreferrer"
 										class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg font-medium bg-green-500/10 text-green-300 hover:bg-green-500/20 transition">
-										🔁 Buy on Exchange
+										{'\u{1F501}'} Buy on Exchange
 									</a>
 								) : (
 									<span class="text-zinc-500 light:text-zinc-700 italic">

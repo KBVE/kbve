@@ -8,30 +8,29 @@ export const GET = async () => {
 			!entry.id.endsWith('index.mdx') && entry.data.key !== 0,
 	);
 
-	const key: Record<string, number> = {};
+	const index: Record<string, number> = {};
 	const items: any[] = [];
 
 	for (const entry of itemEntries) {
-		const { id, name, key: indexKey, ref } = entry.data;
-		if (!id || !name || indexKey === undefined || !ref) continue;
+		const { id, name, key, slug } = entry.data;
+		if (!id || !name || key === undefined || !slug) continue;
 
 		const item = {
 			...entry.data,
-			slug: `/itemdb/${entry.id}`,
 		};
 
-		const index = items.length;
+		const idx = items.length;
 		items.push(item);
 
-		key[id] = index;
-		key[name] = index;
-		key[String(indexKey)] = index;
-		key[ref] = index;
+		index[id] = idx;
+		index[name] = idx;
+		index[String(key)] = idx;
+		index[slug] = idx;
 	}
 
 	validateItemUniqueness(items);
 
-	return new Response(JSON.stringify({ items, key }), {
+	return new Response(JSON.stringify({ items, index }), {
 		headers: {
 			'Content-Type': 'application/json',
 		},
