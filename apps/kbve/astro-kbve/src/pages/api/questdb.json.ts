@@ -9,19 +9,19 @@ export const GET = async () => {
 	const quests: any[] = [];
 
 	for (const entry of questEntries) {
-		const { id, guid } = entry.data as any;
-		if (!id || !guid) continue;
+		const { id, slug } = entry.data as any;
+		if (!id || !slug) continue;
 
 		const quest = {
 			...entry.data,
-			slug: `/questdb/${entry.id}`,
+			url: `/questdb/${entry.id}`,
 		};
 
 		const index = quests.length;
 		quests.push(quest);
 
 		key[id] = index;
-		key[guid] = index;
+		key[slug] = index;
 	}
 
 	return new Response(JSON.stringify({ quests, key }), {
