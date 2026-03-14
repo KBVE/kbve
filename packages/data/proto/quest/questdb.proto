@@ -1,0 +1,259 @@
+syntax = "proto3";
+
+package quest;
+
+import "kbve/common.proto";
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+// Quest category — narrative weight and reset behavior
+enum QuestCategory {
+  QUEST_CATEGORY_MAIN      = 0;    // Primary storyline
+  QUEST_CATEGORY_SIDE      = 1;    // Optional side content
+  QUEST_CATEGORY_DAILY     = 2;    // Resets daily
+  QUEST_CATEGORY_EVENT     = 3;    // Seasonal / limited-time
+  QUEST_CATEGORY_CHALLENGE = 4;    // Skill / achievement challenge
+  QUEST_CATEGORY_TUTORIAL  = 5;    // Onboarding / new player
+  QUEST_CATEGORY_BOUNTY    = 6;    // Repeatable kill/collect bounties
+  QUEST_CATEGORY_GUILD     = 7;    // Faction/guild-specific
+}
+
+// Objective type — what the player must do
+enum ObjectiveType {
+  OBJECTIVE_COLLECT  = 0;   // Gather N of item
+  OBJECTIVE_KILL     = 1;   // Defeat N of NPC/enemy
+  OBJECTIVE_VISIT    = 2;   // Reach a location / tile / zone
+  OBJECTIVE_INTERACT = 3;   // Talk to NPC, use object, trigger event
+  OBJECTIVE_ESCORT   = 4;   // Protect/follow an NPC to a destination
+  OBJECTIVE_DEFEND   = 5;   // Survive N waves / protect an object
+  OBJECTIVE_CRAFT    = 6;   // Craft N of item
+  OBJECTIVE_EXPLORE  = 7;   // Discover N tiles / reveal map area
+  OBJECTIVE_CUSTOM   = 8;   // Game-specific logic (check via trigger)
+}
+
+// Quest status — runtime tracking (not baked into definition)
+enum QuestStatus {
+  QUEST_STATUS_LOCKED      = 0;   // Prerequisites not met
+  QUEST_STATUS_AVAILABLE   = 1;   // Can be accepted
+  QUEST_STATUS_ACTIVE      = 2;   // In progress
+  QUEST_STATUS_COMPLETE    = 3;   // All objectives done, awaiting turn-in
+  QUEST_STATUS_TURNED_IN   = 4;   // Rewards claimed
+  QUEST_STATUS_FAILED      = 5;   // Failed (timed out, wrong choice, etc.)
+  QUEST_STATUS_ABANDONED   = 6;   // Player dropped the quest
+}
+
+// Dialogue choice consequence type
+enum ChoiceConsequenceType {
+  CONSEQUENCE_NONE           = 0;
+  CONSEQUENCE_ADVANCE_QUEST  = 1;   // Progress to next step
+  CONSEQUENCE_FAIL_QUEST     = 2;   // Fail the quest
+  CONSEQUENCE_BRANCH_QUEST   = 3;   // Fork to a different quest
+  CONSEQUENCE_GIVE_ITEM      = 4;   // Player receives item
+  CONSEQUENCE_TAKE_ITEM      = 5;   // Player loses item
+  CONSEQUENCE_REPUTATION     = 6;   // Faction reputation change
+  CONSEQUENCE_SPAWN_ENEMY    = 7;   // Trigger combat encounter
+  CONSEQUENCE_TELEPORT       = 8;   // Move player to location
+  CONSEQUENCE_UNLOCK         = 9;   // Unlock area / feature / recipe
+}
+
+// =============================================================================
+// Sub-messages
+// =============================================================================
+
+// A single quest objective
+message QuestObjective {
+  string id = 1;                        // Unique within quest (e.g. "kill_spiders")
+  string description = 2;               // Human-readable objective text
+  ObjectiveType type = 3;
+  repeated string target_refs = 4;      // ULIDs — NPC, item, zone, or tile refs
+  int32 required_amount = 5;            // How many (default: 1)
+  optional bool optional = 6;           // Bonus objective (not required for completion)
+  optional bool hidden = 7;             // Revealed only when conditions met
+  optional string reveal_trigger = 8;   // Trigger expression that unhides this objective
+  optional int32 order = 9;             // Sequential ordering (0 = can be done in parallel)
+  optional string zone_ref = 10;        // Zone/area where objective must be completed
+}
+
+// Item reward entry
+message QuestItemReward {
+  string item_ref = 1;                  // ULID or item slug
+  optional string item_name = 2;
+  int32 amount = 3;                     // default: 1
+}
+
+// Achievement / platform integration
+message AchievementMeta {
+  string api_name = 1;                  // Platform achievement ID (e.g. "ACH_AUTO_COOKER")
+  optional string name = 2;             // Display name
+  optional string description = 3;
+  optional string icon_achieved = 4;    // Icon path when unlocked
+  optional string icon_unachieved = 5;  // Icon path when locked
+  optional float global_percent = 6;    // % of players who earned it (0.0–100.0)
+  optional bool hidden = 7;             // Hidden until earned
+  optional int32 min_value = 8;         // Progress tracking min
+  optional int32 max_value = 9;         // Progress tracking max
+}
+
+// Rewards granted on quest completion
+message QuestRewards {
+  repeated QuestItemReward items = 1;
+  optional int32 currency = 2;          // Gold / base currency
+  optional int32 xp = 3;               // Experience points
+  map<string, double> bonuses = 4;      // Arbitrary stat bonuses (e.g. "cookingSpeed": 5)
+  optional AchievementMeta achievement = 5;
+  optional string unlock_ref = 6;       // Unlocks a recipe, area, feature, etc.
+  repeated string unlock_quest_refs = 7; // Quest IDs unlocked on completion
+  optional int32 reputation_amount = 8; // Faction rep gained
+  optional string reputation_faction = 9; // Which faction
+}
+
+// A single dialogue choice within a quest step
+message QuestChoice {
+  string id = 1;                        // Unique within step
+  string label = 2;                     // Button / option text
+  optional string description = 3;      // Tooltip or expanded text
+  ChoiceConsequenceType consequence = 4;
+  optional string consequence_ref = 5;  // Target ref (quest ID, item ref, zone ref, etc.)
+  optional int32 consequence_value = 6; // Magnitude (rep amount, damage, etc.)
+  optional string next_step_id = 7;     // Override: jump to specific step instead of sequential
+  repeated string required_item_refs = 8; // Items player must have to pick this choice
+  optional string required_class = 9;   // Class restriction (e.g. "rogue", "cleric")
+}
+
+// A quest step — one stage in the quest progression
+message QuestStep {
+  string id = 1;                        // Unique within quest
+  optional string title = 2;            // Step title (e.g. "Find the missing parts")
+  optional string description = 3;      // Narrative text shown to player
+  optional string dialogue = 4;         // NPC dialogue text
+  optional string speaker_ref = 5;      // NPC ref who speaks this step
+  repeated QuestObjective objectives = 6; // What to do in this step
+  repeated QuestChoice choices = 7;     // Branching options (if any)
+  optional string next_step_id = 8;     // Default next step (linear progression)
+  optional QuestRewards step_rewards = 9; // Intermediate rewards on step completion
+  optional string trigger_on_start = 10; // Event fired when step begins
+  optional string trigger_on_complete = 11; // Event fired when step ends
+}
+
+// Quest prerequisite — what must be true before quest is available
+message QuestPrerequisite {
+  optional int32 level_requirement = 1;  // Minimum player level
+  repeated string quest_refs = 2;        // Quests that must be completed
+  optional string faction_ref = 3;       // Required faction membership
+  optional int32 faction_rank = 4;       // Minimum faction rank
+  repeated string item_refs = 5;         // Items player must possess
+  optional string class_ref = 6;         // Required player class
+  optional string trigger = 7;           // Custom trigger expression
+}
+
+// Time constraints for the quest
+message QuestTimeLimits {
+  optional int32 time_limit_secs = 1;    // Fail if not completed within N seconds
+  optional string available_after = 2;   // ISO 8601 date — quest appears after this date
+  optional string available_until = 3;   // ISO 8601 date — quest disappears after this date
+  optional int32 cooldown_secs = 4;      // Repeatable quest cooldown between completions
+  optional int32 daily_reset_hour = 5;   // UTC hour for daily quest reset (0-23)
+}
+
+// Generic extension slot
+message QuestExtension {
+  string key = 1;                        // Namespace, e.g. "discordsh.dungeon_depth"
+  oneof value {
+    string string_value = 2;
+    int64 int_value = 3;
+    double float_value = 4;
+    bool bool_value = 5;
+    bytes bytes_value = 6;
+  }
+}
+
+// =============================================================================
+// Core Quest Definition
+// =============================================================================
+
+message Quest {
+  // Identity
+  string id = 1;                         // ULID
+  string slug = 2;                       // URL-safe identifier, e.g. "auto-cooker-9000"
+  string title = 3;
+  optional string description = 4;
+  optional string lore = 5;              // Extended backstory / flavor text
+
+  // Classification
+  QuestCategory category = 6;
+  repeated string tags = 7;              // Free-form tags for filtering
+
+  // Visual
+  optional string icon = 8;             // Quest icon path
+  optional string img = 9;              // Banner / splash image
+  optional string marker_icon = 10;     // Map marker icon
+
+  // Requirements
+  optional QuestPrerequisite prerequisites = 11;
+
+  // Behavior flags
+  optional bool hidden = 12;            // Not shown in quest log until triggered
+  optional bool repeatable = 13;        // Can be completed multiple times
+  optional bool auto_accept = 14;       // Starts automatically when prerequisites met
+  optional bool auto_complete = 15;     // Completes automatically when objectives done
+  optional bool shareable = 16;         // Can be shared with party members
+  optional bool abandonable = 17;       // Player can drop (default: true)
+  optional bool tracked = 18;           // Show on HUD / active tracker by default
+
+  // Time constraints
+  optional QuestTimeLimits time_limits = 19;
+
+  // Steps — ordered quest progression
+  repeated QuestStep steps = 20;
+
+  // Quest chain
+  optional string next_quest_ref = 21;  // ULID of the next quest in the chain
+  optional string chain_ref = 22;       // Quest chain / storyline this belongs to
+
+  // NPC linkage
+  repeated string giver_npc_refs = 23;  // NPCs that offer this quest
+  repeated string turn_in_npc_refs = 24; // NPCs that accept completion
+
+  // Zone / location
+  repeated string zone_refs = 25;       // Zones where this quest takes place
+  optional int32 recommended_level = 26; // Suggested player level
+  optional int32 recommended_party_size = 27; // Suggested party size
+
+  // Rewards (on final completion)
+  optional QuestRewards rewards = 28;
+
+  // Triggers — event expressions that activate/progress the quest
+  repeated string triggers = 29;        // e.g. "player:level:5", "area:kitchen-zone"
+
+  // Extensions — game-specific key-value pairs
+  repeated QuestExtension extensions = 30;
+
+  // Metadata
+  optional string credits = 31;
+  optional bool drafted = 32;           // Hidden from production
+}
+
+// =============================================================================
+// Quest Chain — groups related quests into a storyline
+// =============================================================================
+
+message QuestChain {
+  string id = 1;                         // ULID
+  string slug = 2;
+  string name = 3;
+  optional string description = 4;
+  repeated string quest_refs = 5;        // Ordered list of quest IDs in this chain
+  optional string icon = 6;
+  optional QuestRewards chain_rewards = 7; // Bonus rewards for completing entire chain
+}
+
+// =============================================================================
+// Registry
+// =============================================================================
+
+message QuestRegistry {
+  repeated Quest quests = 1;
+  repeated QuestChain chains = 2;
+}
