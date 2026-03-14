@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use super::camera::IsometricCamera;
 use super::player::Player;
+use super::tilemap::TileCoord;
 use super::virtual_joystick::VirtualJoystickState;
 
 // Desktop: bridged cursor for avian3d raycast hover detection
@@ -150,6 +151,15 @@ impl MushroomKind {
 /// Attach to any entity that also has `HoverOutline`.
 #[derive(Component)]
 pub struct Interactable {
+    pub kind: InteractableKind,
+}
+
+/// Fired when the player clicks a collectible object (tree, rock, flower, mushroom).
+/// The networking layer picks this up and sends a CollectRequest to the server.
+#[derive(Event)]
+pub struct CollectEvent {
+    pub tx: i32,
+    pub tz: i32,
     pub kind: InteractableKind,
 }
 
@@ -533,6 +543,7 @@ fn update_hovered_snapshot(
 /// On left-click, if a hovered entity has Interactable, write its data to the snapshot.
 /// React polls this snapshot to open a modal with object-specific content.
 fn detect_click_selection(
+    mut commands: Commands,
     mouse: Res<ButtonInput<MouseButton>>,
     hovered_query: Query<
         (
@@ -542,6 +553,7 @@ fn detect_click_selection(
             Option<&FlowerArchetype>,
             Option<&RockKind>,
             Option<&MushroomKind>,
+            Option<&TileCoord>,
         ),
         With<Hovered>,
     >,
@@ -550,7 +562,8 @@ fn detect_click_selection(
         return;
     }
 
-    let Some((entity, gt, interactable, flower, rock, mushroom)) = hovered_query.iter().next()
+    let Some((entity, gt, interactable, flower, rock, mushroom, tile_coord)) =
+        hovered_query.iter().next()
     else {
         return;
     };
@@ -577,6 +590,10 @@ fn detect_click_selection(
             *cell.borrow_mut() = Some(snapshot);
         });
     }
+
+    // CollectEvent is NOT triggered here — the player must press the action
+    // button (Chop / Mine / Collect) in the UI modal. That triggers it via
+    // process_action_buffer in actions.rs, which sends CollectRequest to server.
 }
 
 /// Make Occludable objects semi-transparent when they block the player from the camera.

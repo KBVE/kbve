@@ -17,10 +17,17 @@ use lightyear::prelude::client::*;
 use lightyear::prelude::*;
 
 use bevy_kbve_net::{
-    AuthMessage, AuthResponse, GameChannel, PlayerColor, PlayerId, PositionUpdate, ProtocolPlugin,
+    AuthMessage, AuthResponse, CollectRequest, DamageEvent, DamageSource, GameChannel,
+    ObjectRemoved, ObjectRespawned, PlayerColor, PlayerId, PlayerName, PlayerVitals,
+    PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, TileKey,
 };
 
-use super::player::Player;
+use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
+use super::inventory::{ItemKind, LootEvent};
+use super::player::{FallDamageEvent, Player};
+use super::scene_objects::CollectEvent;
+use super::state::PlayerState;
+use super::tilemap::{CollectedTiles, TileCoord};
 
 /// Default server address (localhost for development).
 const DEFAULT_SERVER_ADDR: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 5000);
@@ -39,6 +46,20 @@ static AUTH_JWT: Mutex<Option<String>> = Mutex::new(None);
 
 /// Atomic flag indicating whether we are currently connected.
 static IS_CONNECTED: AtomicBool = AtomicBool::new(false);
+
+/// Pending set-username request from JS, consumed by Bevy system.
+static SET_USERNAME_REQUEST: Mutex<Option<String>> = Mutex::new(None);
+
+/// Called from JS/WASM to request setting a username.
+pub fn request_set_username(username: &str) {
+    if let Ok(mut guard) = SET_USERNAME_REQUEST.lock() {
+        *guard = Some(username.to_owned());
+    }
+}
+
+/// Marker component for the floating name label above a player.
+#[derive(Component)]
+struct PlayerNameLabel;
 
 /// Called from JS/WASM to request a connection to the game server.
 /// `server_addr` can be empty to use the default, or "host:port" format.
@@ -100,6 +121,10 @@ struct MyPlayerId(Option<u64>);
 #[derive(Component)]
 struct RemotePlayer;
 
+/// Marker for our own replicated entity so we don't re-process it every frame.
+#[derive(Component)]
+struct OwnReplicatedPlayer;
+
 pub struct NetPlugin;
 
 impl Plugin for NetPlugin {
@@ -131,11 +156,37 @@ impl Plugin for NetPlugin {
         // Send local player position to server (throttled to FixedUpdate = tick rate)
         app.add_systems(FixedUpdate, send_position_updates);
 
-        // Spawn visuals for remote players when their replicated entities arrive
-        app.add_systems(Update, spawn_remote_player_visuals);
+        // Spawn visuals for remote players when their replicated entities arrive.
+        // Must run after receive_auth_response so we know our own player ID and
+        // don't accidentally spawn a ghost visual for ourselves.
+        app.add_systems(
+            Update,
+            spawn_remote_player_visuals.after(receive_auth_response),
+        );
 
         // Update remote player transforms from replicated Position each frame
         app.add_systems(PostUpdate, update_remote_transforms);
+
+        // Sync replicated PlayerVitals from our own player entity into local PlayerState
+        app.add_systems(Update, sync_vitals_to_local_state);
+
+        // Receive ObjectRemoved / ObjectRespawned messages from server
+        app.add_systems(Update, receive_object_removed);
+        app.add_systems(Update, receive_object_respawned);
+
+        // Username display systems
+        app.add_systems(Update, update_player_name_labels);
+        app.add_systems(Update, billboard_name_labels);
+        app.add_systems(Update, poll_set_username_request);
+        app.add_systems(Update, receive_set_username_response);
+
+        // Immediately hide any replicated entity with PlayerId — prevents
+        // ghost flicker before spawn_remote_player_visuals decides visibility.
+        app.add_observer(hide_new_replicated_player);
+
+        // Forward fall damage / collect events to server via observers
+        app.add_observer(forward_fall_damage_to_server);
+        app.add_observer(forward_collect_to_server);
 
         // --- Debug observers for connection lifecycle ---
         // Lightyear-level states
@@ -211,10 +262,35 @@ fn on_connected(trigger: On<Add, Connected>) {
     info!("[net][lifecycle] CONNECTED — entity {entity:?} fully connected!");
 }
 
-/// Debug: lightyear Disconnected added.
-fn on_disconnected(trigger: On<Add, Disconnected>) {
+/// When we lose connection, reset all networking state so the player can reconnect.
+/// Remote player entities are despawned since we won't receive further updates.
+fn on_disconnected(
+    trigger: On<Add, Disconnected>,
+    mut commands: Commands,
+    mut my_player_id: ResMut<MyPlayerId>,
+    mut pending_auth: ResMut<PendingAuth>,
+    remote_players: Query<Entity, With<RemotePlayer>>,
+) {
     let entity = trigger.entity;
-    warn!("[net][lifecycle] DISCONNECTED — entity {entity:?} lost connection or failed to connect");
+    warn!("[net][lifecycle] DISCONNECTED — entity {entity:?} lost connection");
+
+    // Reset connection state
+    IS_CONNECTED.store(false, Ordering::Release);
+    my_player_id.0 = None;
+    pending_auth.jwt = None;
+    pending_auth.sent = false;
+
+    // Despawn all remote player visuals
+    let mut count = 0u32;
+    for remote_entity in &remote_players {
+        commands.entity(remote_entity).despawn();
+        count += 1;
+    }
+    if count > 0 {
+        info!("[net] despawned {count} remote player entities after disconnect");
+    }
+
+    info!("[net] connection state reset — ready for reconnection");
 }
 
 /// Timer resource for throttling heartbeat logs.
@@ -308,14 +384,11 @@ fn send_auth_on_connect(
 }
 
 /// Receive AuthResponse from the server and store our player ID.
-/// If a replicated entity for our own player was already spawned as a
-/// RemotePlayer (race: replication arrived before AuthResponse), despawn
-/// its visual so we don't see a "ghost" duplicate.
+/// Once set, `spawn_remote_player_visuals` will categorise all pending
+/// replicated entities (marking ours as `OwnReplicatedPlayer` + hidden).
 fn receive_auth_response(
-    mut commands: Commands,
     mut my_player_id: ResMut<MyPlayerId>,
     mut query: Query<(Entity, &mut MessageReceiver<AuthResponse>)>,
-    remote_query: Query<(Entity, &PlayerId), With<RemotePlayer>>,
 ) {
     for (entity, mut receiver) in &mut query {
         for msg in receiver.receive() {
@@ -325,21 +398,6 @@ fn receive_auth_response(
                     "[net] AUTH SUCCESS from entity {entity:?} — user='{}' player_id={}",
                     msg.user_id, msg.player_id
                 );
-
-                // Remove ghost visual if our own replicated entity was
-                // already spawned as a remote player before we knew our ID.
-                for (remote_entity, pid) in &remote_query {
-                    if pid.0 == msg.player_id {
-                        info!(
-                            "[net] removing ghost visual for own player entity {remote_entity:?}"
-                        );
-                        commands.entity(remote_entity).remove::<(
-                            RemotePlayer,
-                            Mesh3d,
-                            MeshMaterial3d<StandardMaterial>,
-                        )>();
-                    }
-                }
             } else {
                 warn!("[net] AUTH FAILED from entity {entity:?}");
             }
@@ -372,38 +430,82 @@ fn send_position_updates(
     }
 }
 
-/// When a replicated entity with PlayerId arrives, spawn a mesh for remote players.
+/// Process replicated player entities that haven't been categorised yet.
+/// Defers until `MyPlayerId` is known so we never accidentally spawn a ghost
+/// visual for our own player.
+
+/// Observer: immediately hide any replicated player entity the instant PlayerId
+/// is added. This prevents a visible "ghost" frame before spawn_remote_player_visuals
+/// runs and decides whether to show it or mark it as own.
+fn hide_new_replicated_player(trigger: On<Add, PlayerId>, mut commands: Commands) {
+    let entity = trigger.entity;
+    info!("[net] hiding new replicated player entity {entity:?} until categorised");
+    commands.entity(entity).insert(Visibility::Hidden);
+}
+
 fn spawn_remote_player_visuals(
     mut commands: Commands,
     my_player_id: Res<MyPlayerId>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    query: Query<(Entity, &PlayerId, &PlayerColor, Option<&Position>), Added<PlayerId>>,
+    query: Query<
+        (Entity, &PlayerId, &PlayerColor, Option<&Position>),
+        (Without<RemotePlayer>, Without<OwnReplicatedPlayer>),
+    >,
 ) {
+    // Don't process anything until we know who we are.
+    let Some(my_id) = my_player_id.0 else {
+        return;
+    };
+
     for (entity, player_id, color, maybe_pos) in &query {
-        // Skip our own player — we already have a locally-spawned entity
-        if my_player_id.0 == Some(player_id.0) {
-            info!("skipping visual spawn for own player entity {entity:?}");
+        if player_id.0 == my_id {
+            // This is our own replicated entity — mark it and strip anything
+            // that could render (collider/rigidbody from server replication,
+            // plus hide visibility). We keep PlayerId/PlayerVitals for syncing.
+            info!(
+                "marking own replicated entity {entity:?} (player_id={})",
+                my_id
+            );
+            commands
+                .entity(entity)
+                .remove::<(Collider, RigidBody, LinearVelocity)>();
+            commands
+                .entity(entity)
+                .insert((OwnReplicatedPlayer, Visibility::Hidden));
             continue;
         }
 
-        // Use replicated Position if available, otherwise default
+        // Remote player — spawn a visible mesh.
         let initial_pos = maybe_pos.map(|p| p.0).unwrap_or(Vec3::new(2.0, 2.0, 2.0));
-
         info!(
             "spawning remote player visual for player_id={} entity={entity:?} at {initial_pos}",
             player_id.0
         );
 
-        commands.entity(entity).insert((
-            Mesh3d(meshes.add(Cuboid::new(0.6, 1.2, 0.6))),
-            MeshMaterial3d(materials.add(StandardMaterial {
-                base_color: color.0,
-                ..default()
-            })),
-            Transform::from_translation(initial_pos),
-            RemotePlayer,
-        ));
+        commands
+            .entity(entity)
+            .insert((
+                Mesh3d(meshes.add(Cuboid::new(0.6, 1.2, 0.6))),
+                MeshMaterial3d(materials.add(StandardMaterial {
+                    base_color: color.0,
+                    ..default()
+                })),
+                Transform::from_translation(initial_pos),
+                Visibility::Visible,
+                RemotePlayer,
+            ))
+            .with_child((
+                Text2d::new(""),
+                TextFont {
+                    font_size: 24.0,
+                    ..default()
+                },
+                TextColor(Color::WHITE),
+                Transform::from_translation(Vec3::new(0.0, 1.6, 0.0))
+                    .with_scale(Vec3::splat(0.01)),
+                PlayerNameLabel,
+            ));
     }
 }
 
@@ -418,6 +520,180 @@ fn update_remote_transforms(
     let t = (REMOTE_LERP_SPEED * time.delta_secs()).min(1.0);
     for (position, mut transform) in &mut query {
         transform.translation = transform.translation.lerp(position.0, t);
+    }
+}
+
+/// Sync replicated PlayerVitals from our own player entity into local PlayerState.
+fn sync_vitals_to_local_state(
+    my_player_id: Res<MyPlayerId>,
+    vitals_query: Query<(&PlayerId, &PlayerVitals), Changed<PlayerVitals>>,
+    mut player_state: ResMut<PlayerState>,
+) {
+    let Some(my_id) = my_player_id.0 else {
+        return;
+    };
+
+    for (pid, vitals) in &vitals_query {
+        if pid.0 == my_id {
+            player_state.health = vitals.health;
+            player_state.max_health = vitals.max_health;
+            player_state.mana = vitals.mana;
+            player_state.max_mana = vitals.max_mana;
+            player_state.energy = vitals.energy;
+            player_state.max_energy = vitals.max_energy;
+        }
+    }
+}
+
+/// Forward CollectEvent to the server as a CollectRequest.
+fn forward_collect_to_server(
+    trigger: On<CollectEvent>,
+    mut senders: Query<&mut MessageSender<CollectRequest>, With<Connected>>,
+) {
+    let event = &*trigger;
+    let tile = TileKey {
+        tx: event.tx,
+        tz: event.tz,
+    };
+    info!(
+        "[net] sending collect request for {:?} at ({},{})",
+        event.kind, event.tx, event.tz
+    );
+    for mut sender in &mut senders {
+        sender.send::<GameChannel>(CollectRequest { tile });
+    }
+}
+
+/// Forward local FallDamageEvent to the server as a DamageEvent.
+fn forward_fall_damage_to_server(
+    trigger: On<FallDamageEvent>,
+    mut senders: Query<&mut MessageSender<DamageEvent>, With<Connected>>,
+) {
+    let event = &*trigger;
+    for mut sender in &mut senders {
+        sender.send::<GameChannel>(DamageEvent {
+            amount: event.amount,
+            source: DamageSource::Fall,
+        });
+    }
+}
+
+/// Receive ObjectRemoved messages from the server.
+/// For entities not already animating locally, attach the appropriate animation
+/// component. If we are the collector, grant loot (server-confirmed).
+fn receive_object_removed(
+    mut commands: Commands,
+    my_player_id: Res<MyPlayerId>,
+    mut collected_tiles: ResMut<CollectedTiles>,
+    mut query: Query<(Entity, &mut MessageReceiver<ObjectRemoved>)>,
+    tile_entities: Query<
+        (Entity, &TileCoord),
+        (
+            Without<ChoppingTree>,
+            Without<MiningRock>,
+            Without<CollectingForageable>,
+        ),
+    >,
+) {
+    for (_entity, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            let (tx, tz) = (msg.tile.tx, msg.tile.tz);
+            collected_tiles.0.insert((tx, tz));
+
+            let is_mine = my_player_id.0 == Some(msg.collector_id) && msg.collector_id != 0;
+
+            // Grant loot to the collecting player (server-confirmed)
+            if is_mine {
+                let (kind, qty) = match msg.kind {
+                    bevy_kbve_net::WorldObjectKind::Tree => (ItemKind::Log, 1),
+                    bevy_kbve_net::WorldObjectKind::Rock => (ItemKind::Stone, 1),
+                    bevy_kbve_net::WorldObjectKind::Flower => (ItemKind::Wildflower, 1),
+                    bevy_kbve_net::WorldObjectKind::Mushroom => (ItemKind::Porcini, 1),
+                };
+                commands.trigger(LootEvent {
+                    kind,
+                    quantity: qty,
+                });
+                info!(
+                    "[net] server confirmed loot: {:?} x{qty} at ({tx},{tz})",
+                    kind
+                );
+            }
+
+            // Start removal animation for entities not already animating.
+            // If we started a local animation (via action button), the
+            // Without<ChoppingTree/MiningRock/CollectingForageable> filter
+            // skips it automatically.
+            for (obj_entity, coord) in &tile_entities {
+                if coord.tx == tx && coord.tz == tz {
+                    info!("[net] animating removal at ({tx},{tz}) — {:?}", msg.kind);
+
+                    // Strip physics + interactability so it can't be clicked again
+                    commands.entity(obj_entity).remove::<(
+                        avian3d::prelude::RigidBody,
+                        avian3d::prelude::Collider,
+                        super::scene_objects::Interactable,
+                        super::scene_objects::HoverOutline,
+                    )>();
+
+                    // Insert animation — loot_dropped=true since loot is handled above
+                    match msg.kind {
+                        bevy_kbve_net::WorldObjectKind::Tree => {
+                            let angle = (tx as f32 * 1.618 + tz as f32 * 2.71)
+                                % (2.0 * std::f32::consts::PI);
+                            let fall_axis = Vec3::new(angle.cos(), 0.0, angle.sin()).normalize();
+                            commands.entity(obj_entity).insert(ChoppingTree {
+                                timer: Timer::from_seconds(1.0, TimerMode::Once),
+                                fall_axis,
+                                original_rotation: Quat::IDENTITY,
+                                smoke_spawned: false,
+                                loot_dropped: true,
+                            });
+                        }
+                        bevy_kbve_net::WorldObjectKind::Rock => {
+                            commands.entity(obj_entity).insert(MiningRock {
+                                timer: Timer::from_seconds(1.2, TimerMode::Once),
+                                original_translation: Vec3::ZERO,
+                                original_scale: Vec3::ONE,
+                                smoke_spawned: false,
+                                loot_dropped: true,
+                                loot_item: ItemKind::Stone,
+                            });
+                        }
+                        bevy_kbve_net::WorldObjectKind::Flower => {
+                            commands.entity(obj_entity).insert(CollectingForageable {
+                                timer: Timer::from_seconds(0.5, TimerMode::Once),
+                                original_scale: Vec3::ONE,
+                                loot_dropped: true,
+                                loot_item: ItemKind::Wildflower,
+                            });
+                        }
+                        bevy_kbve_net::WorldObjectKind::Mushroom => {
+                            commands.entity(obj_entity).insert(CollectingForageable {
+                                timer: Timer::from_seconds(0.5, TimerMode::Once),
+                                original_scale: Vec3::ONE,
+                                loot_dropped: true,
+                                loot_item: ItemKind::Porcini,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Receive ObjectRespawned messages from the server.
+fn receive_object_respawned(
+    mut collected_tiles: ResMut<CollectedTiles>,
+    mut query: Query<(Entity, &mut MessageReceiver<ObjectRespawned>)>,
+) {
+    for (_entity, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            let (tx, tz) = (msg.tile.tx, msg.tile.tz);
+            collected_tiles.0.remove(&(tx, tz));
+            info!("[net] object respawned at ({tx},{tz}) — {:?}", msg.kind);
+        }
     }
 }
 
@@ -451,4 +727,77 @@ fn connect_to_server(commands: &mut Commands, addr: &GameServerAddr) {
         entity: client_entity,
     });
     info!("[net] Connect trigger dispatched — waiting for Connecting → Connected lifecycle");
+}
+
+/// Update PlayerNameLabel text to match the parent entity's replicated PlayerName.
+fn update_player_name_labels(
+    parents: Query<(&PlayerName, &Children), (With<RemotePlayer>, Changed<PlayerName>)>,
+    mut labels: Query<&mut Text2d, With<PlayerNameLabel>>,
+) {
+    for (name, children) in &parents {
+        for &child in children.iter() {
+            if let Ok(mut text) = labels.get_mut(child) {
+                *text = Text2d::new(&name.0);
+            }
+        }
+    }
+}
+
+/// Billboard: rotate name labels to always face the camera.
+fn billboard_name_labels(
+    camera_q: Query<&GlobalTransform, With<Camera3d>>,
+    mut labels: Query<&mut Transform, With<PlayerNameLabel>>,
+) {
+    let Ok(cam_gt) = camera_q.single() else {
+        return;
+    };
+    let cam_forward = cam_gt.forward().as_vec3();
+    let look_rot = Quat::from_rotation_arc(Vec3::NEG_Z, -cam_forward);
+    for mut transform in &mut labels {
+        let scale = transform.scale;
+        transform.rotation = look_rot;
+        transform.scale = scale;
+    }
+}
+
+/// Poll the static SET_USERNAME_REQUEST and send it to the server.
+fn poll_set_username_request(
+    mut senders: Query<&mut MessageSender<SetUsernameRequest>, With<Connected>>,
+) {
+    let username = {
+        let Ok(mut guard) = SET_USERNAME_REQUEST.lock() else {
+            return;
+        };
+        guard.take()
+    };
+
+    let Some(username) = username else {
+        return;
+    };
+
+    info!("[net] sending SetUsernameRequest: '{username}'");
+    for mut sender in &mut senders {
+        sender.send::<GameChannel>(SetUsernameRequest { username: username.clone() });
+    }
+}
+
+/// Receive SetUsernameResponse from the server and log result.
+fn receive_set_username_response(
+    mut query: Query<(Entity, &mut MessageReceiver<SetUsernameResponse>)>,
+) {
+    for (entity, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            if msg.success {
+                info!(
+                    "[net] username set successfully: '{}' (from entity {entity:?})",
+                    msg.username
+                );
+            } else {
+                warn!(
+                    "[net] set-username failed: '{}' (from entity {entity:?})",
+                    msg.error
+                );
+            }
+        }
+    }
 }

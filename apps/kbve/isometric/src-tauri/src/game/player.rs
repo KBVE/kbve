@@ -5,6 +5,13 @@ use super::state::PlayerState;
 use super::terrain::TerrainMap;
 use super::virtual_joystick::VirtualJoystickState;
 
+/// Fired when the player takes fall damage. The networking layer picks this up
+/// and sends a DamageEvent to the server.
+#[derive(Event)]
+pub struct FallDamageEvent {
+    pub amount: f32,
+}
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -306,6 +313,7 @@ fn try_cast(
 // ---------------------------------------------------------------------------
 
 fn process_player_ground_detection(
+    mut commands: Commands,
     mut query: Query<(&ShapeHits, &mut PlayerPhysics, &Transform), With<Player>>,
     mut player_state: ResMut<PlayerState>,
 ) {
@@ -320,7 +328,10 @@ fn process_player_ground_detection(
                 let fall_distance = physics.fall_start_y - transform.translation.y;
                 if physics.velocity_y < 0.0 && fall_distance > FALL_DAMAGE_THRESHOLD {
                     let damage = (fall_distance - FALL_DAMAGE_THRESHOLD) * FALL_DAMAGE_PER_UNIT;
+                    // Apply locally for immediate feedback
                     player_state.health = (player_state.health - damage).max(0.0);
+                    // Trigger event so networking observer can forward to server
+                    commands.trigger(FallDamageEvent { amount: damage });
                 }
             }
             physics.velocity_y = 0.0;

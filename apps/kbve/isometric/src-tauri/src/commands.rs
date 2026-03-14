@@ -152,6 +152,12 @@ pub fn go_online(server_addr: &str, jwt: &str) {
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
+pub fn set_username(username: &str) {
+    crate::game::net::request_set_username(username);
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
 pub fn get_online_status() -> bool {
     crate::game::net::is_online()
 }
