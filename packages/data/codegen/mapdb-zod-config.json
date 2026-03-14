@@ -1,0 +1,131 @@
+{
+	"enums": {
+		"map.Biome": {
+			"mode": "const_array",
+			"stripPrefix": "BIOME_",
+			"caseTransform": "lowercase"
+		},
+		"map.ZoneType": {
+			"mode": "const_array",
+			"stripPrefix": "ZONE_TYPE_",
+			"caseTransform": "lowercase"
+		},
+		"map.RoomType": {
+			"mode": "const_array",
+			"stripPrefix": "ROOM_TYPE_",
+			"caseTransform": "lowercase"
+		},
+		"map.Direction": {
+			"mode": "const_array",
+			"stripPrefix": "DIRECTION_",
+			"caseTransform": "lowercase"
+		},
+		"map.RoomModifier": {
+			"mode": "const_array",
+			"stripPrefix": "ROOM_MODIFIER_",
+			"caseTransform": "lowercase"
+		},
+		"map.WorldObjectType": {
+			"mode": "const_array",
+			"stripPrefix": "WORLD_OBJECT_",
+			"caseTransform": "lowercase"
+		},
+		"map.PoiType": {
+			"mode": "const_array",
+			"stripPrefix": "POI_",
+			"caseTransform": "lowercase"
+		},
+		"map.TerrainBand": {
+			"mode": "const_array",
+			"stripPrefix": "TERRAIN_BAND_",
+			"caseTransform": "lowercase"
+		},
+		"map.SpawnCategory": {
+			"mode": "const_array",
+			"stripPrefix": "SPAWN_CATEGORY_",
+			"caseTransform": "lowercase"
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "Biomes",
+			"sourceEnum": "map.Biome",
+			"typeName": "BiomeValue",
+			"zodSchemaName": "BiomeSchema"
+		},
+		{
+			"name": "ZoneTypes",
+			"sourceEnum": "map.ZoneType",
+			"typeName": "ZoneTypeValue",
+			"zodSchemaName": "ZoneTypeSchema"
+		},
+		{
+			"name": "RoomTypes",
+			"sourceEnum": "map.RoomType",
+			"typeName": "RoomTypeValue",
+			"zodSchemaName": "RoomTypeSchema"
+		},
+		{
+			"name": "Directions",
+			"sourceEnum": "map.Direction",
+			"typeName": "DirectionValue",
+			"zodSchemaName": "DirectionSchema"
+		},
+		{
+			"name": "RoomModifiers",
+			"sourceEnum": "map.RoomModifier",
+			"typeName": "RoomModifierValue",
+			"zodSchemaName": "RoomModifierSchema"
+		},
+		{
+			"name": "WorldObjectTypes",
+			"sourceEnum": "map.WorldObjectType",
+			"typeName": "WorldObjectTypeValue",
+			"zodSchemaName": "WorldObjectTypeSchema"
+		},
+		{
+			"name": "PoiTypes",
+			"sourceEnum": "map.PoiType",
+			"typeName": "PoiTypeValue",
+			"zodSchemaName": "PoiTypeSchema"
+		},
+		{
+			"name": "TerrainBands",
+			"sourceEnum": "map.TerrainBand",
+			"typeName": "TerrainBandValue",
+			"zodSchemaName": "TerrainBandSchema"
+		},
+		{
+			"name": "SpawnCategories",
+			"sourceEnum": "map.SpawnCategory",
+			"typeName": "SpawnCategoryValue",
+			"zodSchemaName": "SpawnCategorySchema"
+		}
+	],
+
+	"passthrough": ["map.TerrainConfig", "map.WaterConfig", "map.Color"],
+
+	"nullable": [
+		"map.TerrainConfig.*",
+		"map.WaterConfig.*",
+		"map.Zone.level_min",
+		"map.Zone.level_max",
+		"map.ZoneConnection.level_requirement",
+		"map.SpawnPoint.level_min",
+		"map.SpawnPoint.level_max"
+	],
+
+	"refinements": {
+		"map.Color.r": ".min(0).max(1)",
+		"map.Color.g": ".min(0).max(1)",
+		"map.Color.b": ".min(0).max(1)",
+		"map.Color.a": ".min(0).max(1)",
+		"map.TerrainBandDef.min_height": ".min(0)",
+		"map.TerrainBandDef.body_darkness": ".min(0).max(1)",
+		"map.RoomSpawnWeight.weight": ".min(0)",
+		"map.TileHazard.trigger_chance": ".min(0).max(1)",
+		"map.SpawnPoint.spawn_weight": ".min(0)",
+		"map.PointOfInterest.radius": ".min(0)"
+	}
+}
