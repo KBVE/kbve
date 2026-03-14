@@ -136,8 +136,13 @@ impl Plugin for NetPlugin {
         // Send local player position to server (throttled to FixedUpdate = tick rate)
         app.add_systems(FixedUpdate, send_position_updates);
 
-        // Spawn visuals for remote players when their replicated entities arrive
-        app.add_systems(Update, spawn_remote_player_visuals);
+        // Spawn visuals for remote players when their replicated entities arrive.
+        // Must run after receive_auth_response so we know our own player ID and
+        // don't accidentally spawn a ghost visual for ourselves.
+        app.add_systems(
+            Update,
+            spawn_remote_player_visuals.after(receive_auth_response),
+        );
 
         // Update remote player transforms from replicated Position each frame
         app.add_systems(PostUpdate, update_remote_transforms);
@@ -378,7 +383,10 @@ fn receive_auth_response(
                             RemotePlayer,
                             Mesh3d,
                             MeshMaterial3d<StandardMaterial>,
+                            Transform,
                         )>();
+                        // Hide completely in case any rendering component lingers
+                        commands.entity(remote_entity).insert(Visibility::Hidden);
                     }
                 }
             } else {

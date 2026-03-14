@@ -44,5 +44,18 @@
     <body>
         <canvas id="bevy-canvas" tabindex="0"></canvas>
         <div id="root"></div>
+        <script>
+            // Auto-focus the Bevy canvas so keyboard events reach winit.
+            // Re-focus after any click on the page (React buttons steal focus).
+            document.addEventListener('pointerup', function() {
+                var c = document.getElementById('bevy-canvas');
+                if (c && document.activeElement !== c) c.focus();
+            });
+            // Focus on first keydown if canvas isn't focused
+            document.addEventListener('keydown', function() {
+                var c = document.getElementById('bevy-canvas');
+                if (c && document.activeElement !== c) c.focus();
+            });
+        </script>
     </body>
 </html>
