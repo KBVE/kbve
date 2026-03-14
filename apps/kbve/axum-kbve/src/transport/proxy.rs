@@ -324,7 +324,6 @@ pub fn init_argo_proxy() -> bool {
 
     let client = Client::builder()
         .redirect(reqwest::redirect::Policy::none())
-        .danger_accept_invalid_certs(true)
         .connect_timeout(Duration::from_secs(5))
         .timeout(Duration::from_secs(15))
         .build()
