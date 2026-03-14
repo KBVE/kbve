@@ -18953,26 +18953,6 @@ function GlassPanel({ children: a, className: c = '' }) {
 		children: a,
 	});
 }
-function ProgressBar({ value: a, max: c, color: i, label: f }) {
-	const _ = c > 0 ? (a / c) * 100 : 0;
-	return jsxRuntimeExports.jsxs('div', {
-		className: 'mb-1.5 md:mb-2',
-		children: [
-			jsxRuntimeExports.jsxs('div', {
-				className: 'text-[8px] md:text-[10px] mb-0.5',
-				children: [f, ': ', a, '/', c],
-			}),
-			jsxRuntimeExports.jsx('div', {
-				className:
-					'w-[140px] md:w-[200px] h-3 md:h-5 bg-slot border-2 border-panel-border-dark overflow-hidden',
-				children: jsxRuntimeExports.jsx('div', {
-					className: `h-full ${i} transition-[width] duration-300 ease-out`,
-					style: { width: `${_}%` },
-				}),
-			}),
-		],
-	});
-}
 function HUD() {
 	const [a, c] = reactExports.useState(null);
 	return (
@@ -18986,37 +18966,16 @@ function HUD() {
 			return () => clearInterval(i);
 		}, []),
 		a
-			? jsxRuntimeExports.jsxs(GlassPanel, {
+			? jsxRuntimeExports.jsx(GlassPanel, {
 					className:
-						'absolute top-4 right-4 md:top-6 md:right-6 px-3 py-2 md:px-4 md:py-3 pointer-events-none',
-					children: [
-						jsxRuntimeExports.jsx(ProgressBar, {
-							label: 'HP',
-							value: a.health,
-							max: a.max_health,
-							color: 'bg-hp',
-						}),
-						jsxRuntimeExports.jsx(ProgressBar, {
-							label: 'MP',
-							value: a.mana,
-							max: a.max_mana,
-							color: 'bg-mp',
-						}),
-						jsxRuntimeExports.jsx(ProgressBar, {
-							label: 'EP',
-							value: a.energy,
-							max: a.max_energy,
-							color: 'bg-ep',
-						}),
-						jsxRuntimeExports.jsxs('div', {
-							className:
-								'text-[7px] md:text-[9px] text-text-muted mt-1',
-							children: [
-								'Pos: ',
-								a.position.map((i) => i.toFixed(1)).join(', '),
-							],
-						}),
-					],
+						'absolute top-12 right-4 md:top-14 md:right-6 px-3 py-1.5 md:px-4 md:py-2 pointer-events-none',
+					children: jsxRuntimeExports.jsxs('div', {
+						className: 'text-[7px] md:text-[9px] text-text-muted',
+						children: [
+							'Pos: ',
+							a.position.map((i) => i.toFixed(1)).join(', '),
+						],
+					}),
 				})
 			: null
 	);
@@ -19236,7 +19195,7 @@ function FPSCounter() {
 		}, []),
 		jsxRuntimeExports.jsxs('div', {
 			className:
-				'absolute top-2 right-2 md:top-3 md:right-3 px-2 py-1 md:px-3 md:py-1.5 bg-panel border border-panel-border text-[7px] md:text-[10px] text-text-muted pointer-events-auto',
+				'absolute top-12 left-4 md:top-14 md:left-6 px-2 py-1 md:px-3 md:py-1.5 bg-panel border border-panel-border text-[7px] md:text-[10px] text-text-muted pointer-events-auto',
 			children: [a, ' FPS'],
 		})
 	);
