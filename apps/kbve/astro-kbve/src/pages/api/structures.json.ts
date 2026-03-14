@@ -1,32 +1,26 @@
 import { getCollection } from 'astro:content';
-import type { IStructure } from '@/data/schema';
+import type { IMapObject } from '@/data/schema';
 
 export const GET = async () => {
 	const mapEntries = await getCollection(
 		'mapdb',
 		(entry) =>
-			entry.data.type === 'structure' && entry.data.drafted !== true,
+			entry.data.max_health !== undefined && entry.data.drafted !== true,
 	);
 
-	const structures: IStructure[] = [];
-	const index: Record<string, number> = {}; // For lookups by id, guid, or name
+	const structures: IMapObject[] = [];
+	const index: Record<string, number> = {};
 
 	for (const entry of mapEntries) {
-		const { id, guid, name } = entry.data;
-		if (!id || !guid || !name) continue;
-
-		const structure = {
-			...entry.data,
-			slug: `/mapdb/${entry.id}`,
-		};
+		const { id, slug, name } = entry.data;
+		if (!id || !slug || !name) continue;
 
 		const idx = structures.length;
-		structures.push(structure as IStructure);
+		structures.push(entry.data as IMapObject);
 
-		// Create lookup indices
-		index[id] = idx; // By ULID
-		index[guid] = idx; // By GUID
-		index[name] = idx; // By name
+		index[id] = idx;
+		index[slug] = idx;
+		index[name] = idx;
 	}
 
 	return new Response(JSON.stringify({ structures, index }, null, 2), {

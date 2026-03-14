@@ -1,20 +1,29 @@
+/**
+ * Astro content collection schema for mapdb entries.
+ *
+ * Game-logic fields come from the proto-generated WorldObjectDefSchema
+ * (packages/data/codegen/generated/mapdb-schema.ts).
+ * Astro-specific rendering fields are layered on top.
+ */
 import { z } from 'astro:content';
-import { ULID, GUID } from '@/data/types';
+import {
+	WorldObjectDefSchema,
+	WorldObjectTypeSchema,
+	BuildCostSchema,
+} from '../../../../../../packages/data/codegen/generated/mapdb-schema';
 
-export const ResourceTypeEnum = z.enum([
-	'none',
-	'wood',
-	'stone',
-	'metal',
-	'food',
-]);
-export const StructureTypeEnum = z.enum([
-	'building',
-	'wall',
-	'tower',
-	'decoration',
-]);
-export const MapObjectTypeEnum = z.enum(['resource', 'structure']);
+// Re-export generated types for downstream consumers
+export { WorldObjectTypeSchema, BuildCostSchema };
+export type {
+	WorldObjectDef,
+	WorldObjectTypeValue,
+	BuildCost,
+} from '../../../../../../packages/data/codegen/generated/mapdb-schema';
+
+// ---------------------------------------------------------------------------
+// Astro-specific rendering enums
+// ---------------------------------------------------------------------------
+
 export const SpriteMeshTypeEnum = z.enum(['FullRect', 'Tight']);
 
 export const PivotAlignmentEnum = z.enum([
@@ -36,6 +45,10 @@ export const TextureWrapModeEnum = z.enum([
 	'Mirror',
 	'MirrorOnce',
 ]);
+
+// ---------------------------------------------------------------------------
+// Animation sub-schemas (Astro / Unity rendering)
+// ---------------------------------------------------------------------------
 
 export const ISpriteAnimationFrameSchema = z.object({
 	x: z.number().int().nonnegative(),
@@ -65,65 +78,36 @@ export const IAnimationDataSchema = z.object({
 	defaultClip: z.string().optional(),
 });
 
-const BaseMapObjectSchema = z.object({
-	id: ULID,
-	guid: GUID,
-	drafted: z.boolean().optional().default(false),
-	name: z.string(),
-	description: z.string().optional(),
-	imagePath: z.string(),
-	pixelsPerUnit: z.number().int().positive().default(16),
+// ---------------------------------------------------------------------------
+// Astro rendering extension — layered on top of proto WorldObjectDefSchema
+// ---------------------------------------------------------------------------
+
+const AstroRenderingFields = z.object({
+	pixels_per_unit: z.number().int().positive().default(16),
 	pivot: PivotAlignmentEnum.default('Center'),
-	pivotX: z.number().min(0).max(1).default(0.5),
-	pivotY: z.number().min(0).max(1).default(0.5),
-	meshType: SpriteMeshTypeEnum.default('FullRect'),
-	extrudeEdges: z.number().int().min(0).max(32).default(1),
-	sortingLayer: z.string().default('Foreground'),
-	sortingIndex: z.number().int().default(0),
-	staticSorting: z.boolean().default(true),
-	wrapMode: TextureWrapModeEnum.default('Clamp'),
+	pivot_x: z.number().min(0).max(1).default(0.5),
+	pivot_y: z.number().min(0).max(1).default(0.5),
+	mesh_type: SpriteMeshTypeEnum.default('FullRect'),
+	extrude_edges: z.number().int().min(0).max(32).default(1),
+	sorting_layer: z.string().default('Foreground'),
+	sorting_index: z.number().int().default(0),
+	static_sorting: z.boolean().default(true),
+	wrap_mode: TextureWrapModeEnum.default('Clamp'),
 	animation: IAnimationDataSchema.optional(),
 });
 
-export const IResourceSchema = BaseMapObjectSchema.extend({
-	type: z.literal('resource'),
-	resourceType: ResourceTypeEnum.default('wood'),
-	amount: z.number().int().min(0).max(65535),
-	maxAmount: z.number().int().min(0).max(65535),
-	harvestYield: z.number().int().min(1).max(65535).default(1),
-	harvestTime: z.number().min(0.1).default(2.0),
-	isHarvestable: z.boolean().default(true),
-	isDepleted: z.boolean().default(false),
-	spawnWeight: z.number().min(0).max(1).default(1.0),
-	spawnCount: z.number().int().nonnegative().optional(),
-}).passthrough();
+// ---------------------------------------------------------------------------
+// Combined schema — proto source of truth + Astro rendering layer
+// ---------------------------------------------------------------------------
 
-export const IStructureSchema = BaseMapObjectSchema.extend({
-	type: z.literal('structure'),
-	structureType: StructureTypeEnum.default('building'),
-	footprintWidth: z.number().int().positive().default(1),
-	footprintHeight: z.number().int().positive().default(1),
-	isWalkable: z.boolean().default(false),
-	blocksPlacement: z.boolean().default(true),
-	maxHealth: z.number().int().positive().default(100),
-	constructionTime: z.number().nonnegative().default(0),
-	buildCosts: z
-		.array(
-			z.object({
-				resourceType: ResourceTypeEnum,
-				amount: z.number().int().positive(),
-			}),
-		)
-		.optional(),
-}).passthrough();
-
-export const IMapObjectSchema = z.discriminatedUnion('type', [
-	IResourceSchema,
-	IStructureSchema,
-]);
+export const IMapObjectSchema =
+	WorldObjectDefSchema.merge(AstroRenderingFields).passthrough();
 
 export type IMapObject = z.infer<typeof IMapObjectSchema>;
-export type IResource = z.infer<typeof IResourceSchema>;
-export type IStructure = z.infer<typeof IStructureSchema>;
+
+// ---------------------------------------------------------------------------
+// Convenience type aliases
+// ---------------------------------------------------------------------------
+
 export type IAnimationData = z.infer<typeof IAnimationDataSchema>;
 export type IAnimationClip = z.infer<typeof IAnimationClipSchema>;

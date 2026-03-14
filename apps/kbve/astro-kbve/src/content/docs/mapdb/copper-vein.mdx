@@ -1,31 +1,31 @@
 ---
 id: "01K6VMX51PRY6G9PD8WVGY5T5W"
-guid: "22545124a9e54ce097fc712ff0647171"
+slug: "copper-vein"
 drafted: false
-title: "Copper Vein"
 name: "Copper Vein"
+title: "Copper Vein"
 description: "A rich copper ore deposit embedded in rocky terrain"
-type: "resource"
-resourceType: "metal"
-imagePath: "/assets/mapdb/metal/copper/copper_vein.png"
-pixelsPerUnit: 64
+type: "rock"
+sub_kind: "copper_ore"
+img: "/assets/mapdb/metal/copper/copper_vein.png"
+interactable: true
+destructible: true
+harvest_yield: 3
+max_amount: 75
+initial_amount: 75
+harvest_time_ms: 4000
+spawn_weight: 0.25
+spawn_count: 15
+pixels_per_unit: 64
 pivot: "Center"
-pivotX: 0.5
-pivotY: 0.5
-meshType: "FullRect"
-extrudeEdges: 1
-sortingLayer: "Foreground"
-sortingIndex: 0
-staticSorting: true
-wrapMode: "Clamp"
-amount: 75
-maxAmount: 75
-harvestYield: 3
-harvestTime: 4.0
-isHarvestable: true
-isDepleted: false
-spawnWeight: 0.25
-spawnCount: 15
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
 ---
 
 import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';

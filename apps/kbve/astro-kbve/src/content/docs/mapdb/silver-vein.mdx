@@ -1,31 +1,31 @@
 ---
 id: "01K77XRVXZRQ0M7DHJWAFA7NPD"
-guid: "7dfa6b14f9db47f599883761fc9fc0c9"
+slug: "silver-vein"
 drafted: false
-title: "Silver Vein"
 name: "Silver Vein"
+title: "Silver Vein"
 description: "A shimmering silver ore vein threaded through quartz-laced rock"
-type: "resource"
-resourceType: "metal"
-imagePath: "/assets/mapdb/metal/silver/silver_vein.png"
-pixelsPerUnit: 64
+type: "rock"
+sub_kind: "silver_ore"
+img: "/assets/mapdb/metal/silver/silver_vein.png"
+interactable: true
+destructible: true
+harvest_yield: 6
+max_amount: 110
+initial_amount: 110
+harvest_time_ms: 5000
+spawn_weight: 0.18
+spawn_count: 10
+pixels_per_unit: 64
 pivot: "Center"
-pivotX: 0.5
-pivotY: 0.5
-meshType: "FullRect"
-extrudeEdges: 1
-sortingLayer: "Foreground"
-sortingIndex: 0
-staticSorting: true
-wrapMode: "Clamp"
-amount: 110
-maxAmount: 110
-harvestYield: 6
-harvestTime: 5.0
-isHarvestable: true
-isDepleted: false
-spawnWeight: 0.18
-spawnCount: 10
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
 ---
 
 import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';

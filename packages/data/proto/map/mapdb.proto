@@ -1,0 +1,574 @@
+syntax = "proto3";
+
+package map;
+
+import "kbve/common.proto";
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+// Biome classification — drives terrain generation, visuals, and spawn tables
+enum Biome {
+  BIOME_UNSPECIFIED   = 0;
+  BIOME_GRASSLAND     = 1;
+  BIOME_FOREST        = 2;
+  BIOME_DESERT        = 3;
+  BIOME_TUNDRA        = 4;
+  BIOME_SWAMP         = 5;
+  BIOME_MOUNTAIN      = 6;
+  BIOME_VOLCANIC      = 7;
+  BIOME_OCEAN         = 8;
+  BIOME_CAVE          = 9;
+  BIOME_DUNGEON       = 10;
+  BIOME_CITY          = 11;
+  BIOME_RUINS         = 12;
+  BIOME_UNDERGROUND   = 13;
+  BIOME_FLOATING      = 14;
+  BIOME_VOID          = 15;
+}
+
+// Zone type — functional classification
+enum ZoneType {
+  ZONE_TYPE_OVERWORLD    = 0;
+  ZONE_TYPE_DUNGEON      = 1;
+  ZONE_TYPE_INSTANCE     = 2;    // Private per-party instance
+  ZONE_TYPE_CITY         = 3;
+  ZONE_TYPE_ARENA        = 4;    // PvP / challenge
+  ZONE_TYPE_SAFE         = 5;    // No combat
+  ZONE_TYPE_WILDERNESS   = 6;    // Open PvP / high danger
+  ZONE_TYPE_RAID         = 7;
+  ZONE_TYPE_TUTORIAL     = 8;
+  ZONE_TYPE_EVENT        = 9;    // Seasonal / limited-time
+}
+
+// Room type — for tile-based dungeons (discordsh-style)
+enum RoomType {
+  ROOM_TYPE_EMPTY            = 0;
+  ROOM_TYPE_COMBAT           = 1;
+  ROOM_TYPE_TREASURE         = 2;
+  ROOM_TYPE_TRAP             = 3;
+  ROOM_TYPE_REST_SHRINE      = 4;
+  ROOM_TYPE_MERCHANT         = 5;
+  ROOM_TYPE_BOSS             = 6;
+  ROOM_TYPE_STORY            = 7;
+  ROOM_TYPE_HALLWAY          = 8;
+  ROOM_TYPE_UNDERGROUND_CITY = 9;
+  ROOM_TYPE_PUZZLE           = 10;
+  ROOM_TYPE_SECRET           = 11;
+  ROOM_TYPE_PORTAL           = 12;
+}
+
+// Compass direction for tile exits / adjacency
+enum Direction {
+  DIRECTION_NORTH = 0;
+  DIRECTION_SOUTH = 1;
+  DIRECTION_EAST  = 2;
+  DIRECTION_WEST  = 3;
+  DIRECTION_UP    = 4;
+  DIRECTION_DOWN  = 5;
+}
+
+// Room modifier — environmental effects on combat / exploration
+enum RoomModifier {
+  ROOM_MODIFIER_NONE     = 0;
+  ROOM_MODIFIER_FOG      = 1;    // Reduced accuracy / vision
+  ROOM_MODIFIER_BLESSING = 2;    // Healing bonus
+  ROOM_MODIFIER_CURSED   = 3;    // Damage multiplier on players
+  ROOM_MODIFIER_FLOODED  = 4;    // Movement penalty
+  ROOM_MODIFIER_BURNING  = 5;    // Periodic fire damage
+  ROOM_MODIFIER_FROZEN   = 6;    // Slow / ice hazards
+  ROOM_MODIFIER_TOXIC    = 7;    // Poison buildup
+  ROOM_MODIFIER_DARK     = 8;    // Requires light source
+  ROOM_MODIFIER_HOLY     = 9;    // Bonus vs undead, heal over time
+  ROOM_MODIFIER_ARCANE   = 10;   // Magic amplification
+}
+
+// World object archetype — what kind of thing is placed in the world
+enum WorldObjectType {
+  WORLD_OBJECT_UNSPECIFIED  = 0;
+  WORLD_OBJECT_TREE         = 1;
+  WORLD_OBJECT_ROCK         = 2;
+  WORLD_OBJECT_FLOWER       = 3;
+  WORLD_OBJECT_MUSHROOM     = 4;
+  WORLD_OBJECT_CRYSTAL      = 5;
+  WORLD_OBJECT_CRATE        = 6;
+  WORLD_OBJECT_PILLAR       = 7;
+  WORLD_OBJECT_LIGHT        = 8;
+  WORLD_OBJECT_CHEST        = 9;
+  WORLD_OBJECT_SIGN         = 10;
+  WORLD_OBJECT_BARRIER      = 11;
+  WORLD_OBJECT_PORTAL       = 12;
+  WORLD_OBJECT_STATUE       = 13;
+  WORLD_OBJECT_CAMPFIRE     = 14;
+  WORLD_OBJECT_WORKBENCH    = 15;
+  WORLD_OBJECT_FURNACE      = 16;
+  WORLD_OBJECT_ANVIL        = 17;
+  WORLD_OBJECT_WATER_SOURCE = 18;
+  WORLD_OBJECT_NPC_MARKER   = 19;  // Where an NPC stands
+  WORLD_OBJECT_CUSTOM       = 20;
+}
+
+// Point of interest type
+enum PoiType {
+  POI_CITY         = 0;
+  POI_TOWN         = 1;
+  POI_VILLAGE      = 2;
+  POI_DUNGEON      = 3;
+  POI_LANDMARK     = 4;
+  POI_SHRINE       = 5;
+  POI_MERCHANT     = 6;
+  POI_CAMP         = 7;
+  POI_RUINS        = 8;
+  POI_MINE         = 9;
+  POI_FARM         = 10;
+  POI_PORT         = 11;
+  POI_TOWER        = 12;
+  POI_CAVE         = 13;
+  POI_ARENA        = 14;
+  POI_GUILD_HALL   = 15;
+  POI_SPAWN_POINT  = 16;
+  POI_QUEST_HUB    = 17;
+  POI_CUSTOM       = 18;
+}
+
+// Terrain band type — height-based visual classification
+enum TerrainBand {
+  TERRAIN_BAND_UNSPECIFIED = 0;
+  TERRAIN_BAND_WATER       = 1;
+  TERRAIN_BAND_SAND        = 2;
+  TERRAIN_BAND_GRASS       = 3;
+  TERRAIN_BAND_DIRT        = 4;
+  TERRAIN_BAND_STONE       = 5;
+  TERRAIN_BAND_SNOW        = 6;
+  TERRAIN_BAND_LAVA        = 7;
+}
+
+// Spawn category — what kind of entity spawns here
+enum SpawnCategory {
+  SPAWN_CATEGORY_NPC        = 0;
+  SPAWN_CATEGORY_RESOURCE   = 1;   // Ore, tree, herb node
+  SPAWN_CATEGORY_OBJECT     = 2;   // Chest, crate, decoration
+  SPAWN_CATEGORY_ENEMY      = 3;
+  SPAWN_CATEGORY_BOSS       = 4;
+  SPAWN_CATEGORY_EVENT      = 5;   // Seasonal / triggered spawn
+  SPAWN_CATEGORY_AMBIENT    = 6;   // Critters, birds, particles
+}
+
+// =============================================================================
+// Sub-messages — Spatial primitives
+// =============================================================================
+
+// 2D grid position (tile-based games)
+message GridPos {
+  int32 x = 1;
+  int32 y = 2;
+}
+
+// 3D world position (continuous)
+message WorldPos {
+  float x = 1;
+  float y = 2;  // Height / elevation
+  float z = 3;
+}
+
+// Axis-aligned bounding box
+message BoundsAABB {
+  WorldPos min = 1;
+  WorldPos max = 2;
+}
+
+// 2D bounding rectangle (for zones on a 2D map)
+message Bounds2D {
+  int32 min_x = 1;
+  int32 min_y = 2;
+  int32 max_x = 3;
+  int32 max_y = 4;
+}
+
+// Color in linear sRGB (0.0–1.0)
+message Color {
+  float r = 1;
+  float g = 2;
+  float b = 3;
+  optional float a = 4;  // Alpha (default 1.0)
+}
+
+// =============================================================================
+// Sub-messages — Zone & Region
+// =============================================================================
+
+// Zone definition — a named region of the world
+message Zone {
+  string id = 1;                        // ULID
+  string slug = 2;                      // URL-safe identifier, e.g. "crystal-caverns"
+  string name = 3;
+  optional string description = 4;
+  optional string lore = 5;
+
+  // Classification
+  ZoneType type = 6;
+  Biome biome = 7;
+  repeated string tags = 8;
+
+  // Spatial bounds
+  optional Bounds2D bounds = 9;         // 2D region on world map
+  optional BoundsAABB bounds_3d = 10;   // 3D bounding volume
+
+  // Level range
+  optional int32 level_min = 11;
+  optional int32 level_max = 12;
+  optional int32 recommended_party_size = 13;
+
+  // Connections to other zones
+  repeated ZoneConnection connections = 14;
+
+  // Visual
+  optional string img = 15;            // Map art / splash
+  optional string icon = 16;           // Minimap icon
+  optional string music_ref = 17;      // Background music track
+  optional string ambient_ref = 18;    // Ambient sound loop
+
+  // Behavior
+  optional bool pvp_enabled = 19;
+  optional bool safe_zone = 20;        // No combat allowed
+  optional bool instanced = 21;        // Private per-party copy
+  optional int32 max_players = 22;     // Player capacity
+
+  // Terrain generation (for procedural zones)
+  optional TerrainConfig terrain = 23;
+
+  // Water
+  optional WaterConfig water = 24;
+
+  // Contents
+  repeated PointOfInterest pois = 25;
+  repeated SpawnPoint spawn_points = 26;
+  repeated WorldObjectPlacement objects = 27;
+
+  // Dungeon-specific (tile-based zones)
+  optional DungeonConfig dungeon = 28;
+
+  // Phasing / availability
+  repeated string prerequisite_quest_refs = 29;
+  optional string event_ref = 30;
+
+  // Extensions
+  repeated MapExtension extensions = 31;
+
+  // Metadata
+  optional string credits = 32;
+  optional bool drafted = 33;
+}
+
+// Connection between two zones
+message ZoneConnection {
+  string target_zone_ref = 1;          // Zone slug or ULID
+  optional string name = 2;            // e.g. "Northern Gate", "Cave Entrance"
+  optional Direction direction = 3;
+  optional WorldPos position = 4;      // Where the portal/entrance is
+  optional int32 level_requirement = 5;
+  optional string quest_requirement = 6;
+  optional bool bidirectional = 7;     // Can travel both ways (default true)
+}
+
+// =============================================================================
+// Sub-messages — Points of Interest
+// =============================================================================
+
+// A notable location within a zone
+message PointOfInterest {
+  string id = 1;                        // ULID
+  string slug = 2;
+  string name = 3;
+  optional string description = 4;
+
+  PoiType type = 5;
+  optional WorldPos position = 6;
+  optional GridPos grid_pos = 7;       // For tile-based maps
+  optional float radius = 8;           // Interaction / discovery radius
+
+  // Visual
+  optional string icon = 9;
+  optional string marker_icon = 10;    // Map marker
+
+  // Linkage
+  repeated string npc_refs = 11;       // NPCs stationed here
+  repeated string quest_refs = 12;     // Quests available here
+  optional string shop_ref = 13;       // Shop inventory
+  optional string zone_ref = 14;       // Enters a sub-zone (dungeon, building)
+
+  // Behavior
+  optional bool discoverable = 15;     // Must be found before showing on map
+  optional bool fast_travel = 16;      // Can teleport here once discovered
+  optional bool respawn_point = 17;    // Player respawns here on death
+
+  // Extensions
+  repeated MapExtension extensions = 18;
+}
+
+// =============================================================================
+// Sub-messages — Dungeon / Tile System
+// =============================================================================
+
+// Configuration for tile-based dungeons
+message DungeonConfig {
+  optional int64 seed = 1;             // Procedural generation seed
+  optional int32 max_depth = 2;        // Maximum Manhattan distance from origin
+  repeated int32 boss_ring_distances = 3; // Manhattan distances for boss spawns (e.g. 7, 14, 21)
+  optional int32 bosses_per_ring = 4;  // Boss count per ring (default 1)
+  repeated TileDef tile_templates = 5; // Pre-defined tile templates
+  repeated RoomSpawnWeight room_weights = 6; // Room type distribution
+}
+
+// Room type spawn weight — probability of room type appearing
+message RoomSpawnWeight {
+  RoomType room_type = 1;
+  float weight = 2;                    // Relative weight in spawn pool
+  optional int32 min_depth = 3;        // Only at this depth or deeper
+  optional int32 max_depth = 4;
+}
+
+// A single tile definition in a tile-based map
+message TileDef {
+  string id = 1;
+  optional string name = 2;
+  optional string description = 3;
+  RoomType room_type = 4;
+  repeated Direction exits = 5;        // Available exits from this tile
+
+  // Modifiers & hazards
+  repeated RoomModifier modifiers = 6;
+  repeated TileHazard hazards = 7;
+
+  // Content
+  repeated string enemy_refs = 8;      // NPC refs for combat rooms
+  repeated string loot_refs = 9;       // Item refs for treasure rooms
+  optional string merchant_ref = 10;   // NPC ref for merchant rooms
+  optional string story_event_ref = 11; // Quest/event ref for story rooms
+
+  // Visual
+  optional string template_name = 12;  // Room template slug (e.g. "shattered_gallery")
+  optional string img = 13;
+  optional string music_override = 14;
+}
+
+// Environmental hazard on a tile
+message TileHazard {
+  string type = 1;                     // e.g. "spikes", "gas", "fire"
+  optional int32 damage = 2;          // Damage on trigger
+  optional string effect_kind = 3;    // Status effect slug
+  optional int32 effect_stacks = 4;
+  optional int32 effect_turns = 5;
+  optional float trigger_chance = 6;  // 0.0–1.0 (default 1.0)
+}
+
+// =============================================================================
+// Sub-messages — Terrain & Procedural Generation
+// =============================================================================
+
+// Terrain generation configuration
+message TerrainConfig {
+  // Noise parameters
+  optional int64 seed = 1;
+  optional float noise_scale = 2;      // Frequency of terrain variation
+  optional int32 octaves = 3;          // Noise complexity layers (default 2)
+  optional float max_height = 4;       // Maximum terrain height in world units
+  optional float persistence = 5;     // Amplitude decay per octave (0.0–1.0)
+  optional float lacunarity = 6;      // Frequency growth per octave (default 2.0)
+
+  // Chunk system
+  optional int32 chunk_size = 7;       // Tiles per chunk side (default 16)
+  optional int32 load_radius = 8;      // Chunks loaded around player (default 3)
+  optional float tile_size = 9;        // World units per tile (default 1.0)
+
+  // Height-based terrain bands
+  repeated TerrainBandDef bands = 10;
+}
+
+// A height-based terrain band with visual properties
+message TerrainBandDef {
+  TerrainBand type = 1;
+  float min_height = 2;               // Band starts at this height
+  float max_height = 3;               // Band ends at this height
+  repeated Color colors = 4;          // Shade variants for this band
+  optional float body_darkness = 5;   // Cliff/side darkness factor (default 0.72)
+}
+
+// Water configuration
+message WaterConfig {
+  optional float water_level = 1;      // World height of water surface
+  optional Color base_color = 2;       // Shallow water color
+  optional Color deep_color = 3;       // Deep water color
+  optional float ripple_speed = 4;
+  optional float ripple_scale = 5;
+  optional float highlight_strength = 6;
+  optional float foam_intensity = 7;
+  optional bool swimmable = 8;         // Can players swim (default true)
+  optional int32 drown_damage = 9;     // Damage per tick if not swimmable
+}
+
+// =============================================================================
+// Sub-messages — World Objects
+// =============================================================================
+
+// A world object definition (archetype / template)
+message WorldObjectDef {
+  string id = 1;                        // ULID
+  string slug = 2;
+  string name = 3;
+  optional string description = 4;
+
+  WorldObjectType type = 5;
+  optional string sub_kind = 6;        // Variant within type (e.g. "conifer", "ore_copper")
+
+  // Visual
+  optional string model_ref = 7;
+  optional string icon = 8;
+  optional float scale = 9;           // Visual size multiplier
+  repeated Color palette = 10;        // Color palette for procedural visuals
+  optional string img = 25;           // Image / sprite path
+
+  // Interaction
+  optional bool interactable = 11;    // Can player click/interact
+  optional bool destructible = 12;    // Can be destroyed / harvested
+  optional string loot_item_ref = 13; // Item dropped when harvested
+  optional int32 harvest_time_ms = 14; // Time to harvest in milliseconds
+  optional string tool_required = 15; // Tool item ref needed
+  optional int32 skill_level = 16;    // Minimum skill level to interact
+  optional string skill_type = 17;    // Skill slug (e.g. "mining", "woodcutting")
+
+  // Resource properties (for harvestable objects)
+  optional int32 harvest_yield = 26;   // Amount gathered per harvest action
+  optional int32 max_amount = 27;      // Maximum resource capacity
+  optional int32 initial_amount = 28;  // Starting amount (defaults to max_amount)
+
+  // Structure properties (for buildable / placed structures)
+  optional int32 max_health = 29;              // Hit points
+  optional int32 footprint_width = 30;         // Grid cells wide
+  optional int32 footprint_height = 31;        // Grid cells tall
+  optional bool blocks_placement = 32;         // Prevents placing other objects here
+  optional float construction_time_secs = 33;  // Time to build in seconds
+  repeated BuildCost build_costs = 34;         // Resources needed to construct
+
+  // Spawn hints (archetype-level defaults)
+  optional float spawn_weight = 35;    // Relative spawn probability (0.0–1.0)
+  optional int32 spawn_count = 36;     // Target count per zone
+
+  // Physics
+  optional float collision_radius = 18;
+  optional float collision_height = 19;
+  optional bool blocks_movement = 20;
+  optional bool occludes_player = 21; // Semi-transparent when between camera and player
+
+  // Respawn
+  optional int32 respawn_time_secs = 22;
+  optional int32 respawn_variance = 23;
+
+  // Extensions
+  repeated MapExtension extensions = 24;
+
+  // Metadata
+  optional string credits = 37;
+  optional bool drafted = 38;
+}
+
+// Resource cost for constructing a structure
+message BuildCost {
+  string resource_type = 1;            // e.g. "wood", "stone", "metal"
+  int32 amount = 2;
+}
+
+// A placed instance of a world object in a zone
+message WorldObjectPlacement {
+  string object_def_ref = 1;           // Reference to WorldObjectDef
+  optional WorldPos position = 2;
+  optional GridPos grid_pos = 3;       // For tile-based placement
+  optional float rotation_y = 4;       // Y-axis rotation in degrees
+  optional float scale_override = 5;   // Override object def scale
+  optional int64 seed = 6;            // Per-instance randomization seed
+}
+
+// =============================================================================
+// Sub-messages — Spawn Points
+// =============================================================================
+
+// Where entities appear in the world
+message SpawnPoint {
+  string id = 1;
+  SpawnCategory category = 2;
+  optional string entity_ref = 3;      // NPC, item, or object def ref
+  optional WorldPos position = 4;
+  optional GridPos grid_pos = 5;
+  optional float radius = 6;          // Random offset from position
+
+  // Spawn rules
+  optional float spawn_weight = 7;    // Relative probability
+  optional int32 max_active = 8;      // Max concurrent instances
+  optional int32 level_min = 9;
+  optional int32 level_max = 10;
+  optional int32 respawn_time_secs = 11;
+  optional int32 respawn_variance = 12;
+
+  // Conditions
+  optional string time_of_day = 13;   // "day", "night", "dawn", "dusk"
+  optional string weather = 14;       // "clear", "rain", "storm", "snow"
+  optional string event_ref = 15;     // Only during this event
+  optional string quest_ref = 16;     // Only during/after this quest
+  repeated string required_flags = 17; // World-state flags
+
+  // Group spawning
+  optional int32 group_min = 18;      // Min entities per spawn
+  optional int32 group_max = 19;      // Max entities per spawn
+  optional float group_radius = 20;   // Spread radius for groups
+}
+
+// =============================================================================
+// Sub-messages — Region (groups zones into continents/worlds)
+// =============================================================================
+
+// A region / continent / world that contains multiple zones
+message Region {
+  string id = 1;                        // ULID
+  string slug = 2;
+  string name = 3;
+  optional string description = 4;
+  optional string lore = 5;
+
+  repeated string zone_refs = 6;       // Zones in this region
+  optional string img = 7;             // World map image
+  optional string icon = 8;
+
+  // World-level settings
+  optional float gravity = 9;          // World gravity (default 20.0)
+  optional float day_cycle_secs = 10;  // Length of day/night cycle in seconds
+
+  // Extensions
+  repeated MapExtension extensions = 11;
+}
+
+// =============================================================================
+// Extensibility
+// =============================================================================
+
+// Generic extension slot
+message MapExtension {
+  string key = 1;                       // Namespace, e.g. "isometric.chunk_load_radius"
+  oneof value {
+    string string_value = 2;
+    int64 int_value = 3;
+    double float_value = 4;
+    bool bool_value = 5;
+    bytes bytes_value = 6;
+  }
+}
+
+// =============================================================================
+// Registry
+// =============================================================================
+
+message MapRegistry {
+  repeated Region regions = 1;
+  repeated Zone zones = 2;
+  repeated WorldObjectDef object_defs = 3;
+}

@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type {
-	IMapObject,
-	IResource,
-	IStructure,
-} from '@/data/schema/IMapSchema';
+import type { IMapObject } from '@/data/schema/IMapSchema';
 import { ServiceMapDB, type TooltipData } from './ServiceMapDB';
 
 interface TooltipProps {
@@ -42,7 +38,6 @@ const Tooltip: React.FC<TooltipProps> = ({
 			}}>
 			<div className="relative">
 				{content}
-				{/* Arrow pointing down to the stat */}
 				<div
 					className={`absolute left-1/2 w-0 h-0 border-l-4 border-r-4 border-t-6 border-transparent ${
 						priority === 'high'
@@ -65,10 +60,6 @@ interface ReactMapDBPanelProps {
 	data: IMapObject;
 }
 
-/**
- * React overlay that adds contextual tooltips to each stat in the static Astro component.
- * Uses data-tooltip attributes to target specific elements.
- */
 const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 	const [showTooltip, setShowTooltip] = useState(false);
 	const [tooltipContent, setTooltipContent] = useState<TooltipData | null>(
@@ -78,137 +69,111 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 
 	const mapObject = data;
 
-	// Define tooltip messages for each data-tooltip attribute
+	const harvestTimeSecs = mapObject.harvest_time_ms
+		? (mapObject.harvest_time_ms / 1000).toFixed(1)
+		: '?';
+	const amount = mapObject.initial_amount ?? mapObject.max_amount ?? 0;
+	const maxAmount = mapObject.max_amount ?? 0;
+	const efficiency =
+		maxAmount > 0 ? ((amount / maxAmount) * 100).toFixed(0) : '0';
+
 	const TOOLTIP_MESSAGES: Record<string, TooltipData> = {
-		// Header tooltips
 		image: {
 			content: `Visual representation of ${mapObject.name} - this is how it appears in-game`,
 			ariaLabel: `Image shows ${mapObject.name}`,
-			priority: 'low' as const,
+			priority: 'low',
 		},
 		name: {
 			content: `${mapObject.name} - the display name used throughout the game`,
 			ariaLabel: `Object name: ${mapObject.name}`,
-			priority: 'medium' as const,
+			priority: 'medium',
 		},
 		type: {
 			content: `${mapObject.type.toUpperCase()} - this determines how players can interact with this object`,
 			ariaLabel: `Object type: ${mapObject.type}`,
-			priority: 'medium' as const,
+			priority: 'medium',
 		},
-
-		// Resource-specific tooltips
-		...(mapObject.type === 'resource'
-			? (() => {
-					const res = mapObject as IResource;
-					return {
-						resourceType: {
-							content: `${res.resourceType.toUpperCase()} resource - essential for crafting and building`,
-							ariaLabel: `Resource type: ${res.resourceType}`,
-							priority: 'high' as const,
-						},
-						amount: {
-							content: `${((res.amount / res.maxAmount) * 100).toFixed(0)}% remaining - harvest before it's depleted!`,
-							ariaLabel: `Resource amount: ${res.amount} out of ${res.maxAmount}`,
-							priority: 'high' as const,
-						},
-						harvestYield: {
-							content: `Yields ${res.harvestYield} ${res.resourceType} per harvest action`,
-							ariaLabel: `Harvest yield: ${res.harvestYield} per action`,
-							priority: 'high' as const,
-						},
-						harvestTime: {
-							content: `Takes ${res.harvestTime}s per harvest - plan your gathering time accordingly`,
-							ariaLabel: `Harvest time: ${res.harvestTime} seconds`,
-							priority: 'medium' as const,
-						},
-						harvestable: {
-							content: res.isHarvestable
-								? '✅ Ready to harvest - start gathering resources!'
-								: '❌ Depleted - find another resource node',
-							ariaLabel: `Harvestable status: ${res.isHarvestable ? 'available' : 'depleted'}`,
-							priority: (res.isHarvestable ? 'high' : 'low') as
-								| 'high'
-								| 'low',
-						},
-						spawnWeight: {
-							content: `${(res.spawnWeight! * 100).toFixed(0)}% spawn chance - indicates rarity in the world`,
-							ariaLabel: `Spawn weight: ${(res.spawnWeight! * 100).toFixed(0)} percent`,
-							priority: 'low' as const,
-						},
-						spawnCount: {
-							content: `~${res.spawnCount} nodes per map - affects resource availability`,
-							ariaLabel: `Spawn count: ${res.spawnCount} per map`,
-							priority: 'low' as const,
-						},
-					};
-				})()
-			: {}),
-
-		// Structure-specific tooltips
-		...(mapObject.type === 'structure'
-			? (() => {
-					const str = mapObject as IStructure;
-					return {
-						structureType: {
-							content: `${str.structureType.toUpperCase()} - ${
-								str.structureType === 'building'
-									? 'provides shelter and storage'
-									: str.structureType === 'wall'
-										? 'defensive barrier for protection'
-										: str.structureType === 'tower'
-											? 'elevated defensive position'
-											: 'decorative element for aesthetics'
-							}`,
-							ariaLabel: `Structure type: ${str.structureType}`,
-							priority: 'high' as const,
-						},
-						footprint: {
-							content: `Occupies ${str.footprintWidth}×${str.footprintHeight} tiles - plan your layout carefully`,
-							ariaLabel: `Footprint: ${str.footprintWidth} by ${str.footprintHeight} tiles`,
-							priority: 'medium' as const,
-						},
-						health: {
-							content: `${str.maxHealth} HP - can withstand significant damage before destruction`,
-							ariaLabel: `Maximum health: ${str.maxHealth} hit points`,
-							priority: 'high' as const,
-						},
-						constructionTime: {
-							content: `${str.constructionTime}s build time - gather materials before starting construction`,
-							ariaLabel: `Construction time: ${str.constructionTime} seconds`,
-							priority: 'medium' as const,
-						},
-						walkable: {
-							content: str.isWalkable
-								? "🚶 Units can pass through - won't block movement"
-								: '🚫 Blocks movement - creates impassable barrier',
-							ariaLabel: `Walkable: ${str.isWalkable ? 'yes' : 'no'}`,
-							priority: 'medium' as const,
-						},
-						placement: {
-							content: str.blocksPlacement
-								? '🚫 Exclusive placement - no other structures allowed here'
-								: '✅ Allows stacking - other structures can share this space',
-							ariaLabel: `Blocks placement: ${str.blocksPlacement ? 'yes' : 'no'}`,
-							priority: 'medium' as const,
-						},
-					};
-				})()
-			: {}),
-
-		// Technical tooltips
+		sub_kind: {
+			content: mapObject.sub_kind
+				? `${mapObject.sub_kind.replace(/_/g, ' ').toUpperCase()} - specific variant of this ${mapObject.type}`
+				: 'Unknown variant',
+			ariaLabel: `Kind: ${mapObject.sub_kind ?? 'unknown'}`,
+			priority: 'high',
+		},
+		amount: {
+			content: `${efficiency}% remaining - harvest before it's depleted!`,
+			ariaLabel: `Resource amount: ${amount} out of ${maxAmount}`,
+			priority: 'high',
+		},
+		harvest_yield: {
+			content: `Yields ${mapObject.harvest_yield ?? 0} per harvest action`,
+			ariaLabel: `Harvest yield: ${mapObject.harvest_yield ?? 0} per action`,
+			priority: 'high',
+		},
+		harvest_time: {
+			content: `Takes ${harvestTimeSecs}s per harvest - plan your gathering time accordingly`,
+			ariaLabel: `Harvest time: ${harvestTimeSecs} seconds`,
+			priority: 'medium',
+		},
+		interactable: {
+			content: mapObject.interactable
+				? 'Ready to harvest - start gathering resources!'
+				: 'Unavailable - find another resource node',
+			ariaLabel: `Harvestable status: ${mapObject.interactable ? 'available' : 'unavailable'}`,
+			priority: mapObject.interactable ? 'high' : 'low',
+		},
+		spawn_weight: {
+			content:
+				mapObject.spawn_weight !== undefined
+					? `${(mapObject.spawn_weight * 100).toFixed(0)}% spawn chance - indicates rarity in the world`
+					: 'Unknown spawn chance',
+			ariaLabel: `Spawn weight: ${mapObject.spawn_weight !== undefined ? (mapObject.spawn_weight * 100).toFixed(0) : '?'} percent`,
+			priority: 'low',
+		},
+		spawn_count: {
+			content: `~${mapObject.spawn_count ?? '?'} nodes per map - affects resource availability`,
+			ariaLabel: `Spawn count: ${mapObject.spawn_count ?? '?'} per map`,
+			priority: 'low',
+		},
+		footprint: {
+			content: `Occupies ${mapObject.footprint_width ?? 1}\u00D7${mapObject.footprint_height ?? 1} tiles`,
+			ariaLabel: `Footprint: ${mapObject.footprint_width ?? 1} by ${mapObject.footprint_height ?? 1} tiles`,
+			priority: 'medium',
+		},
+		health: {
+			content: `${mapObject.max_health ?? 0} HP - can withstand significant damage before destruction`,
+			ariaLabel: `Maximum health: ${mapObject.max_health ?? 0} hit points`,
+			priority: 'high',
+		},
+		construction_time: {
+			content: `${mapObject.construction_time_secs ?? 0}s build time`,
+			ariaLabel: `Construction time: ${mapObject.construction_time_secs ?? 0} seconds`,
+			priority: 'medium',
+		},
+		walkable: {
+			content: mapObject.blocks_movement
+				? 'Blocks movement - creates impassable barrier'
+				: "Units can pass through - won't block movement",
+			ariaLabel: `Walkable: ${mapObject.blocks_movement ? 'no' : 'yes'}`,
+			priority: 'medium',
+		},
+		placement: {
+			content: mapObject.blocks_placement
+				? 'Exclusive placement - no other structures allowed here'
+				: 'Allows stacking - other structures can share this space',
+			ariaLabel: `Blocks placement: ${mapObject.blocks_placement ? 'yes' : 'no'}`,
+			priority: 'medium',
+		},
 		technical: {
-			content: `Dev info: Layer=${mapObject.sortingLayer}, PPU=${mapObject.pixelsPerUnit} - affects rendering order and quality`,
+			content: `Dev info: Layer=${mapObject.sorting_layer}, PPU=${mapObject.pixels_per_unit} - affects rendering order and quality`,
 			ariaLabel: `Technical information for ${mapObject.name}`,
-			priority: 'low' as const,
+			priority: 'low',
 		},
 	};
 
 	useEffect(() => {
-		// Register event listeners on component mount
 		ServiceMapDB.registerEventListeners();
 
-		// Function to handle mouse enter on tooltip elements
 		const handleMouseEnter = (event: MouseEvent) => {
 			const target = event.target as HTMLElement;
 			const tooltipElement = target.closest(
@@ -216,17 +181,9 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 			) as HTMLElement;
 			const tooltipKey = tooltipElement?.getAttribute('data-tooltip');
 
-			if (
-				tooltipKey &&
-				tooltipElement &&
-				TOOLTIP_MESSAGES[tooltipKey as keyof typeof TOOLTIP_MESSAGES]
-			) {
-				const tooltip =
-					TOOLTIP_MESSAGES[
-						tooltipKey as keyof typeof TOOLTIP_MESSAGES
-					];
+			if (tooltipKey && tooltipElement && TOOLTIP_MESSAGES[tooltipKey]) {
+				const tooltip = TOOLTIP_MESSAGES[tooltipKey];
 
-				// Get the parent container (the relative positioned div)
 				const container = document.querySelector(
 					'.relative.rounded-2xl',
 				) as HTMLElement;
@@ -235,16 +192,11 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 				const elementRect = tooltipElement.getBoundingClientRect();
 				const containerRect = container.getBoundingClientRect();
 
-				// Calculate position relative to the container
 				const x =
 					elementRect.left -
 					containerRect.left +
 					elementRect.width / 2;
 				const y = elementRect.top - containerRect.top;
-
-				console.log('Container rect:', containerRect);
-				console.log('Element rect:', elementRect);
-				console.log('Calculated position:', { x, y });
 
 				setTooltipPosition({ x, y });
 				setTooltipContent(tooltip);
@@ -255,19 +207,15 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 			}
 		};
 
-		// Function to handle mouse leave
 		const handleMouseLeave = (event: MouseEvent) => {
 			const target = event.target as HTMLElement;
-			const isTooltipElement = target.closest('[data-tooltip]');
-
-			if (isTooltipElement) {
+			if (target.closest('[data-tooltip]')) {
 				setShowTooltip(false);
 				setTooltipContent(null);
 				ServiceMapDB.onTooltipHide(mapObject);
 			}
 		};
 
-		// Function to handle click events for analytics
 		const handleClick = (event: MouseEvent) => {
 			const target = event.target as HTMLElement;
 			const tooltipElement = target.closest(
@@ -276,19 +224,15 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 			const tooltipKey = tooltipElement?.getAttribute('data-tooltip');
 
 			if (tooltipKey && tooltipElement) {
-				// Track the specific tooltip section that was clicked
 				ServiceMapDB.onObjectInteract(mapObject, 'click');
-
-				// Also track accessibility action for better UX analytics
 				ServiceMapDB.onAccessibilityAction(mapObject, 'tooltip_click', {
 					tooltipKey,
 					elementType: tooltipElement.tagName.toLowerCase(),
-					hasKeyboard: event.detail === 0, // Click via keyboard if detail is 0
+					hasKeyboard: event.detail === 0,
 				});
 			}
 		};
 
-		// Function to handle keyboard events for accessibility
 		const handleKeyDown = (event: KeyboardEvent) => {
 			const target = event.target as HTMLElement;
 			const tooltipElement = target.closest(
@@ -302,8 +246,6 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 				(event.key === 'Enter' || event.key === ' ')
 			) {
 				event.preventDefault();
-
-				// Track keyboard interaction
 				ServiceMapDB.onObjectInteract(mapObject, 'keyboard');
 				ServiceMapDB.onAccessibilityAction(
 					mapObject,
@@ -315,12 +257,8 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 					},
 				);
 
-				// Show tooltip on keyboard activation
 				if (!showTooltip) {
-					const tooltip =
-						TOOLTIP_MESSAGES[
-							tooltipKey as keyof typeof TOOLTIP_MESSAGES
-						];
+					const tooltip = TOOLTIP_MESSAGES[tooltipKey];
 					if (tooltip) {
 						const container = document.querySelector(
 							'.relative.rounded-2xl',
@@ -346,7 +284,6 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 			}
 		};
 
-		// Attach event listeners to all elements with data-tooltip
 		const tooltipElements = document.querySelectorAll('[data-tooltip]');
 
 		tooltipElements.forEach((element) => {
@@ -361,15 +298,12 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 			element.addEventListener('click', handleClick as EventListener);
 			element.addEventListener('keydown', handleKeyDown as EventListener);
 
-			// Add cursor pointer and subtle hover effect
 			(element as HTMLElement).style.cursor = 'help';
 
-			// Make elements focusable for keyboard accessibility
 			if (!(element as HTMLElement).getAttribute('tabindex')) {
 				(element as HTMLElement).setAttribute('tabindex', '0');
 			}
 
-			// Add ARIA attributes for better screen reader support
 			(element as HTMLElement).setAttribute('role', 'button');
 			(element as HTMLElement).setAttribute(
 				'aria-describedby',
@@ -388,10 +322,8 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 			);
 		});
 
-		// Cleanup function
 		return () => {
 			ServiceMapDB.unregisterEventListeners();
-
 			tooltipElements.forEach((element) => {
 				element.removeEventListener(
 					'mouseenter',
@@ -415,7 +347,6 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
 
 	return (
 		<>
-			{/* Single tooltip that appears above hovered stats */}
 			{tooltipContent && (
 				<Tooltip
 					content={tooltipContent.content}
