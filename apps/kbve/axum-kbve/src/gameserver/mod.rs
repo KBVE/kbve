@@ -277,14 +277,18 @@ fn process_auth_messages(
                 tracing::warn!(
                     "SUPABASE_JWT_SECRET not set — skipping JWT validation for {entity:?}"
                 );
-                let (player_entity, player_id) = spawn_player(&mut commands, entity);
+                // Anonymous: use counter-based ID (unique per session)
+                let anon_idx = PLAYER_COUNTER.load(std::sync::atomic::Ordering::Relaxed);
+                let anon_user_id = format!("anon_{anon_idx}");
+                let player_id = user_id_to_player_id(&anon_user_id);
+                let player_entity = spawn_player(&mut commands, player_id);
                 sender.send::<GameChannel>(AuthResponse {
                     success: true,
-                    user_id: "anonymous".to_string(),
+                    user_id: anon_user_id.clone(),
                     player_id,
                 });
                 commands.entity(entity).remove::<PendingAuth>();
-                authenticated.0.insert(entity, "anonymous".to_string());
+                authenticated.0.insert(entity, anon_user_id);
                 client_player_map.0.insert(entity, player_entity);
                 continue;
             }
@@ -293,7 +297,8 @@ fn process_auth_messages(
                 Ok(token_data) => {
                     let user_id = token_data.claims.sub.clone();
                     tracing::info!("client {entity:?} authenticated as user {user_id}");
-                    let (player_entity, player_id) = spawn_player(&mut commands, entity);
+                    let player_id = user_id_to_player_id(&user_id);
+                    let player_entity = spawn_player(&mut commands, player_id);
                     sender.send::<GameChannel>(AuthResponse {
                         success: true,
                         user_id: user_id.clone(),
@@ -329,10 +334,20 @@ const PLAYER_COLORS: &[(f32, f32, f32)] = &[
     (0.1, 0.8, 0.8), // cyan
 ];
 
+/// Derive a stable player ID from a user identity string.
+/// Uses FNV-1a hash to produce a deterministic u64 from the user_id.
+fn user_id_to_player_id(user_id: &str) -> u64 {
+    let mut hash: u64 = 0xcbf29ce484222325; // FNV offset basis
+    for byte in user_id.as_bytes() {
+        hash ^= *byte as u64;
+        hash = hash.wrapping_mul(0x100000001b3); // FNV prime
+    }
+    hash
+}
+
 /// Spawn a player entity for an authenticated client, marked for replication.
-/// Returns (player_entity, player_id) where player_id = player_entity.to_bits()
-/// so it matches PlayerId.0 and can be sent in AuthResponse.
-fn spawn_player(commands: &mut Commands, _client_entity: Entity) -> (Entity, u64) {
+/// `player_id` is derived from the user's identity (stable across reconnects).
+fn spawn_player(commands: &mut Commands, player_id: u64) -> Entity {
     let idx = PLAYER_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
     // Spread players apart so they don't collide on spawn
@@ -345,7 +360,7 @@ fn spawn_player(commands: &mut Commands, _client_entity: Entity) -> (Entity, u64
 
     let player_entity = commands
         .spawn((
-            // PlayerId is set below after we know the entity ID
+            bevy_kbve_net::PlayerId(player_id),
             bevy_kbve_net::PlayerColor(Color::srgb(r, g, b)),
             bevy_kbve_net::PlayerVitals::default(),
             Transform::from_xyz(spawn_x, spawn_y, spawn_z),
@@ -359,17 +374,11 @@ fn spawn_player(commands: &mut Commands, _client_entity: Entity) -> (Entity, u64
         ))
         .id();
 
-    // Use player_entity.to_bits() so PlayerId matches AuthResponse.player_id
-    let player_id = player_entity.to_bits();
-    commands
-        .entity(player_entity)
-        .insert(bevy_kbve_net::PlayerId(player_id));
-
     tracing::info!(
         "spawned player entity {player_entity:?} (player_id={player_id}) at ({spawn_x}, {spawn_y}, {spawn_z})"
     );
 
-    (player_entity, player_id)
+    player_entity
 }
 
 /// Receive PositionUpdate messages from authenticated clients and apply to their player entities.
