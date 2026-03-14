@@ -178,8 +178,21 @@ fn move_player(
             PLAYER_HEIGHT * 0.9,
             PLAYER_HALF_Z * 2.0 * 0.85,
         );
-        let filter = SpatialQueryFilter::default().with_excluded_entities([entity]);
+        let base_filter = SpatialQueryFilter::default().with_excluded_entities([entity]);
         let pos = transform.translation;
+
+        // Exclude entities that already overlap the sweep collider at the
+        // start position. Without this, overlapping colliders cause cast_shape
+        // to return distance 0 in every direction, freezing the player.
+        let overlapping =
+            spatial_query.shape_intersections(&sweep_collider, pos, Quat::IDENTITY, &base_filter);
+        let filter = if overlapping.is_empty() {
+            base_filter
+        } else {
+            let mut excluded: Vec<Entity> = vec![entity];
+            excluded.extend_from_slice(&overlapping);
+            SpatialQueryFilter::default().with_excluded_entities(excluded)
+        };
 
         // Sweep horizontal movement (XZ) — slide along walls by trying each
         // axis independently when the combined sweep is blocked.

@@ -128,6 +128,7 @@ fn start_server(commands: &mut Commands, ws_addr: SocketAddr) {
 
     let server_entity = commands
         .spawn((
+            lightyear::prelude::server::RawServer,
             Server::default(),
             LocalAddr(ws_addr),
             WebSocketServerIo { config },
