@@ -322,10 +322,31 @@ pub fn init_argo_proxy() -> bool {
         Err(_) => return false,
     };
 
-    let client = Client::builder()
+    let mut builder = Client::builder()
         .redirect(reqwest::redirect::Policy::none())
         .connect_timeout(Duration::from_secs(5))
-        .timeout(Duration::from_secs(15))
+        .timeout(Duration::from_secs(15));
+
+    if let Ok(ca_path) = std::env::var("ARGOCD_CA_CERT_PATH") {
+        match std::fs::read(&ca_path) {
+            Ok(pem) => match reqwest::Certificate::from_pem(&pem) {
+                Ok(cert) => {
+                    builder = builder.add_root_certificate(cert);
+                    debug!("loaded ArgoCD CA certificate from {ca_path}");
+                }
+                Err(e) => {
+                    warn!("failed to parse ArgoCD CA cert at {ca_path}: {e}");
+                    return false;
+                }
+            },
+            Err(e) => {
+                warn!("failed to read ArgoCD CA cert at {ca_path}: {e}");
+                return false;
+            }
+        }
+    }
+
+    let client = builder
         .build()
         .expect("failed to build reqwest client for argo proxy");
 
