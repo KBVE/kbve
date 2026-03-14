@@ -105,6 +105,10 @@ struct MyPlayerId(Option<u64>);
 #[derive(Component)]
 struct RemotePlayer;
 
+/// Marker for our own replicated entity so we don't re-process it every frame.
+#[derive(Component)]
+struct OwnReplicatedPlayer;
+
 pub struct NetPlugin;
 
 impl Plugin for NetPlugin {
@@ -354,14 +358,11 @@ fn send_auth_on_connect(
 }
 
 /// Receive AuthResponse from the server and store our player ID.
-/// If a replicated entity for our own player was already spawned as a
-/// RemotePlayer (race: replication arrived before AuthResponse), despawn
-/// its visual so we don't see a "ghost" duplicate.
+/// Once set, `spawn_remote_player_visuals` will categorise all pending
+/// replicated entities (marking ours as `OwnReplicatedPlayer` + hidden).
 fn receive_auth_response(
-    mut commands: Commands,
     mut my_player_id: ResMut<MyPlayerId>,
     mut query: Query<(Entity, &mut MessageReceiver<AuthResponse>)>,
-    remote_query: Query<(Entity, &PlayerId), With<RemotePlayer>>,
 ) {
     for (entity, mut receiver) in &mut query {
         for msg in receiver.receive() {
@@ -371,24 +372,6 @@ fn receive_auth_response(
                     "[net] AUTH SUCCESS from entity {entity:?} — user='{}' player_id={}",
                     msg.user_id, msg.player_id
                 );
-
-                // Remove ghost visual if our own replicated entity was
-                // already spawned as a remote player before we knew our ID.
-                for (remote_entity, pid) in &remote_query {
-                    if pid.0 == msg.player_id {
-                        info!(
-                            "[net] removing ghost visual for own player entity {remote_entity:?}"
-                        );
-                        commands.entity(remote_entity).remove::<(
-                            RemotePlayer,
-                            Mesh3d,
-                            MeshMaterial3d<StandardMaterial>,
-                            Transform,
-                        )>();
-                        // Hide completely in case any rendering component lingers
-                        commands.entity(remote_entity).insert(Visibility::Hidden);
-                    }
-                }
             } else {
                 warn!("[net] AUTH FAILED from entity {entity:?}");
             }
@@ -421,24 +404,39 @@ fn send_position_updates(
     }
 }
 
-/// When a replicated entity with PlayerId arrives, spawn a mesh for remote players.
+/// Process replicated player entities that haven't been categorised yet.
+/// Defers until `MyPlayerId` is known so we never accidentally spawn a ghost
+/// visual for our own player.
 fn spawn_remote_player_visuals(
     mut commands: Commands,
     my_player_id: Res<MyPlayerId>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    query: Query<(Entity, &PlayerId, &PlayerColor, Option<&Position>), Added<PlayerId>>,
+    query: Query<
+        (Entity, &PlayerId, &PlayerColor, Option<&Position>),
+        (Without<RemotePlayer>, Without<OwnReplicatedPlayer>),
+    >,
 ) {
+    // Don't process anything until we know who we are.
+    let Some(my_id) = my_player_id.0 else {
+        return;
+    };
+
     for (entity, player_id, color, maybe_pos) in &query {
-        // Skip our own player — we already have a locally-spawned entity
-        if my_player_id.0 == Some(player_id.0) {
-            info!("skipping visual spawn for own player entity {entity:?}");
+        if player_id.0 == my_id {
+            // This is our own replicated entity — mark it and hide it.
+            info!(
+                "marking own replicated entity {entity:?} (player_id={})",
+                my_id
+            );
+            commands
+                .entity(entity)
+                .insert((OwnReplicatedPlayer, Visibility::Hidden));
             continue;
         }
 
-        // Use replicated Position if available, otherwise default
+        // Remote player — spawn a visible mesh.
         let initial_pos = maybe_pos.map(|p| p.0).unwrap_or(Vec3::new(2.0, 2.0, 2.0));
-
         info!(
             "spawning remote player visual for player_id={} entity={entity:?} at {initial_pos}",
             player_id.0
