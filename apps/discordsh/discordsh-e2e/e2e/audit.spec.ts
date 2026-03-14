@@ -265,11 +265,18 @@ test.describe('Audit: NavBar CSS Classes', () => {
 		await page.goto('/');
 		await page.waitForLoadState('domcontentloaded');
 
-		// OAuth buttons only render inside the sign-in modal, so just verify
-		// the page loaded without inline style errors. The nb-oauth-* classes
-		// are defined in global.css and available site-wide.
-		const body = await page.content();
-		expect(body).toContain('nb-oauth-discord');
+		// OAuth buttons only render inside the sign-in modal which is
+		// conditionally mounted by React. Wait for the island to hydrate,
+		// then open the modal before asserting.
+		const signInBtn = page.locator('button[aria-label="Sign in"]');
+		// The React island may take a moment to hydrate — wait up to 10s.
+		await signInBtn.first().waitFor({ state: 'visible', timeout: 10_000 });
+		await signInBtn.first().click();
+
+		// Modal is portal-mounted; wait for the Discord OAuth button.
+		const discordBtn = page.locator('.nb-oauth-discord');
+		await discordBtn.waitFor({ state: 'visible', timeout: 5_000 });
+		await expect(discordBtn).toHaveClass(/nb-oauth-btn/);
 	});
 });
 
