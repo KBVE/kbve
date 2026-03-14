@@ -237,11 +237,47 @@ message FlavorPool {
   repeated string messages = 2;     // {name}, {target}, {damage} placeholders
 }
 
-// Dialogue line for non-combat interactions
+// Dialogue line for non-combat interactions (simple / legacy)
 message DialogueLine {
   string trigger = 1;               // e.g. "greet", "shop_open", "quest_offer"
   repeated string lines = 2;        // Randomly selected
   optional string condition = 3;    // Optional expression / flag gate
+}
+
+// Dialogue option — a player response within a dialogue node
+message DialogueOption {
+  string id = 1;                          // Unique within node
+  string label = 2;                       // Displayed text
+  optional string next_node_id = 3;       // Navigate to this dialogue node
+  optional string consequence_type = 4;   // e.g. "advance_quest", "give_item", "reputation"
+  optional string consequence_ref = 5;    // Target ref (quest, item, faction slug)
+  optional int32 consequence_value = 6;   // Magnitude
+  repeated string required_item_refs = 7; // Items player must have
+  optional string required_class = 8;     // Class restriction
+  optional string required_quest_status = 9; // e.g. "active:quest-slug", "complete:quest-slug"
+  repeated string required_flags = 10;    // World-state flags that must be set
+  optional string set_flag = 11;          // Flag to set when chosen
+}
+
+// Dialogue node — one beat in a conversation tree
+message DialogueNode {
+  string id = 1;                          // Unique within NPC (e.g. "greet_01", "quest_accept")
+  string text = 2;                        // NPC speech text
+  optional string speaker_override = 3;   // Override speaker name (for multi-NPC scenes)
+  optional string portrait_override = 4;  // Override portrait/emote
+  repeated DialogueOption options = 5;    // Player responses
+  optional string next_node_id = 6;       // Auto-advance (no player choice, just "Continue")
+  optional string quest_ref = 7;          // Quest this node interacts with
+  optional string condition = 8;          // Expression gate (e.g. "flag:rescued_prisoner")
+  optional int32 priority = 9;            // Higher priority nodes override lower ones
+  optional string trigger_on_enter = 10;  // Event fired when node is reached
+  optional string trigger_on_exit = 11;   // Event fired when node is left
+}
+
+// Dialogue tree — a full conversation graph for an NPC
+message DialogueTree {
+  string entry_node_id = 1;              // Starting node ID
+  repeated DialogueNode nodes = 2;       // All nodes in this tree
 }
 
 // Spawn rule — where and how this NPC appears
@@ -379,7 +415,8 @@ message Npc {
   repeated FlavorPool flavor_text = 23;
 
   // Dialogue (merchants, quest givers, companions)
-  repeated DialogueLine dialogue = 24;
+  repeated DialogueLine dialogue = 24;          // Simple trigger-based lines (legacy)
+  optional DialogueTree dialogue_tree = 50;     // Full conversation graph (quest-aware)
 
   // Linkage — quest and shop references
   repeated string quest_refs = 41;         // Quest IDs this NPC offers/advances
