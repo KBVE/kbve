@@ -17,10 +17,15 @@ use lightyear::prelude::client::*;
 use lightyear::prelude::*;
 
 use bevy_kbve_net::{
-    AuthMessage, AuthResponse, GameChannel, PlayerColor, PlayerId, PositionUpdate, ProtocolPlugin,
+    AuthMessage, AuthResponse, CollectRequest, DamageEvent, DamageSource, GameChannel,
+    ObjectRemoved, ObjectRespawned, PlayerColor, PlayerId, PlayerVitals, PositionUpdate,
+    ProtocolPlugin, TileKey,
 };
 
-use super::player::Player;
+use super::player::{FallDamageEvent, Player};
+use super::scene_objects::CollectEvent;
+use super::state::PlayerState;
+use super::tilemap::{CollectedTiles, TileCoord};
 
 /// Default server address (localhost for development).
 const DEFAULT_SERVER_ADDR: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 5000);
@@ -137,6 +142,17 @@ impl Plugin for NetPlugin {
         // Update remote player transforms from replicated Position each frame
         app.add_systems(PostUpdate, update_remote_transforms);
 
+        // Sync replicated PlayerVitals from our own player entity into local PlayerState
+        app.add_systems(Update, sync_vitals_to_local_state);
+
+        // Receive ObjectRemoved / ObjectRespawned messages from server
+        app.add_systems(Update, receive_object_removed);
+        app.add_systems(Update, receive_object_respawned);
+
+        // Forward fall damage / collect events to server via observers
+        app.add_observer(forward_fall_damage_to_server);
+        app.add_observer(forward_collect_to_server);
+
         // --- Debug observers for connection lifecycle ---
         // Lightyear-level states
         app.add_observer(on_connecting);
@@ -211,10 +227,35 @@ fn on_connected(trigger: On<Add, Connected>) {
     info!("[net][lifecycle] CONNECTED — entity {entity:?} fully connected!");
 }
 
-/// Debug: lightyear Disconnected added.
-fn on_disconnected(trigger: On<Add, Disconnected>) {
+/// When we lose connection, reset all networking state so the player can reconnect.
+/// Remote player entities are despawned since we won't receive further updates.
+fn on_disconnected(
+    trigger: On<Add, Disconnected>,
+    mut commands: Commands,
+    mut my_player_id: ResMut<MyPlayerId>,
+    mut pending_auth: ResMut<PendingAuth>,
+    remote_players: Query<Entity, With<RemotePlayer>>,
+) {
     let entity = trigger.entity;
-    warn!("[net][lifecycle] DISCONNECTED — entity {entity:?} lost connection or failed to connect");
+    warn!("[net][lifecycle] DISCONNECTED — entity {entity:?} lost connection");
+
+    // Reset connection state
+    IS_CONNECTED.store(false, Ordering::Release);
+    my_player_id.0 = None;
+    pending_auth.jwt = None;
+    pending_auth.sent = false;
+
+    // Despawn all remote player visuals
+    let mut count = 0u32;
+    for remote_entity in &remote_players {
+        commands.entity(remote_entity).despawn();
+        count += 1;
+    }
+    if count > 0 {
+        info!("[net] despawned {count} remote player entities after disconnect");
+    }
+
+    info!("[net] connection state reset — ready for reconnection");
 }
 
 /// Timer resource for throttling heartbeat logs.
@@ -418,6 +459,97 @@ fn update_remote_transforms(
     let t = (REMOTE_LERP_SPEED * time.delta_secs()).min(1.0);
     for (position, mut transform) in &mut query {
         transform.translation = transform.translation.lerp(position.0, t);
+    }
+}
+
+/// Sync replicated PlayerVitals from our own player entity into local PlayerState.
+fn sync_vitals_to_local_state(
+    my_player_id: Res<MyPlayerId>,
+    vitals_query: Query<(&PlayerId, &PlayerVitals), Changed<PlayerVitals>>,
+    mut player_state: ResMut<PlayerState>,
+) {
+    let Some(my_id) = my_player_id.0 else {
+        return;
+    };
+
+    for (pid, vitals) in &vitals_query {
+        if pid.0 == my_id {
+            player_state.health = vitals.health;
+            player_state.max_health = vitals.max_health;
+            player_state.mana = vitals.mana;
+            player_state.max_mana = vitals.max_mana;
+            player_state.energy = vitals.energy;
+            player_state.max_energy = vitals.max_energy;
+        }
+    }
+}
+
+/// Forward CollectEvent to the server as a CollectRequest.
+fn forward_collect_to_server(
+    trigger: On<CollectEvent>,
+    mut senders: Query<&mut MessageSender<CollectRequest>, With<Connected>>,
+) {
+    let event = &*trigger;
+    let tile = TileKey {
+        tx: event.tx,
+        tz: event.tz,
+    };
+    info!(
+        "[net] sending collect request for {:?} at ({},{})",
+        event.kind, event.tx, event.tz
+    );
+    for mut sender in &mut senders {
+        sender.send::<GameChannel>(CollectRequest { tile });
+    }
+}
+
+/// Forward local FallDamageEvent to the server as a DamageEvent.
+fn forward_fall_damage_to_server(
+    trigger: On<FallDamageEvent>,
+    mut senders: Query<&mut MessageSender<DamageEvent>, With<Connected>>,
+) {
+    let event = &*trigger;
+    for mut sender in &mut senders {
+        sender.send::<GameChannel>(DamageEvent {
+            amount: event.amount,
+            source: DamageSource::Fall,
+        });
+    }
+}
+
+/// Receive ObjectRemoved messages from the server.
+fn receive_object_removed(
+    mut commands: Commands,
+    mut collected_tiles: ResMut<CollectedTiles>,
+    mut query: Query<(Entity, &mut MessageReceiver<ObjectRemoved>)>,
+    tile_entities: Query<(Entity, &TileCoord)>,
+) {
+    for (_entity, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            let (tx, tz) = (msg.tile.tx, msg.tile.tz);
+            collected_tiles.0.insert((tx, tz));
+
+            for (obj_entity, coord) in &tile_entities {
+                if coord.tx == tx && coord.tz == tz {
+                    commands.entity(obj_entity).despawn();
+                    info!("[net] object removed at ({tx},{tz}) — {:?}", msg.kind);
+                }
+            }
+        }
+    }
+}
+
+/// Receive ObjectRespawned messages from the server.
+fn receive_object_respawned(
+    mut collected_tiles: ResMut<CollectedTiles>,
+    mut query: Query<(Entity, &mut MessageReceiver<ObjectRespawned>)>,
+) {
+    for (_entity, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            let (tx, tz) = (msg.tile.tx, msg.tile.tz);
+            collected_tiles.0.remove(&(tx, tz));
+            info!("[net] object respawned at ({tx},{tz}) — {:?}", msg.kind);
+        }
     }
 }
 

@@ -4,6 +4,7 @@ use lightyear::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::inputs::PlayerInput;
+use crate::worldgen::{TileKey, WorldObjectKind};
 
 // ---------------------------------------------------------------------------
 // Replicated components
@@ -16,6 +17,30 @@ pub struct PlayerId(pub u64);
 /// Player color for rendering — assigned by server, synced once.
 #[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq, Reflect)]
 pub struct PlayerColor(pub Color);
+
+/// Player vitals (health, mana, energy) — server-authoritative, replicated to all clients.
+#[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq, Reflect)]
+pub struct PlayerVitals {
+    pub health: f32,
+    pub max_health: f32,
+    pub mana: f32,
+    pub max_mana: f32,
+    pub energy: f32,
+    pub max_energy: f32,
+}
+
+impl Default for PlayerVitals {
+    fn default() -> Self {
+        Self {
+            health: 100.0,
+            max_health: 100.0,
+            mana: 50.0,
+            max_mana: 50.0,
+            energy: 75.0,
+            max_energy: 75.0,
+        }
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Messages
@@ -42,6 +67,40 @@ pub struct PositionUpdate {
     pub x: f32,
     pub y: f32,
     pub z: f32,
+}
+
+/// Client reports damage to the server (fall damage, combat, etc.).
+/// Server validates and applies to PlayerVitals.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct DamageEvent {
+    pub amount: f32,
+    pub source: DamageSource,
+}
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+pub enum DamageSource {
+    Fall,
+    Combat,
+}
+
+/// Client requests to collect a world object at a tile.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct CollectRequest {
+    pub tile: TileKey,
+}
+
+/// Server broadcasts that a world object was removed (collected by a player).
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct ObjectRemoved {
+    pub tile: TileKey,
+    pub kind: WorldObjectKind,
+}
+
+/// Server broadcasts that a previously collected object has respawned.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct ObjectRespawned {
+    pub tile: TileKey,
+    pub kind: WorldObjectKind,
 }
 
 // ---------------------------------------------------------------------------
@@ -85,6 +144,18 @@ impl Plugin for ProtocolPlugin {
         // PositionUpdate: client → server
         app.register_message::<PositionUpdate>()
             .add_direction(NetworkDirection::ClientToServer);
+        // DamageEvent: client → server
+        app.register_message::<DamageEvent>()
+            .add_direction(NetworkDirection::ClientToServer);
+        // CollectRequest: client → server
+        app.register_message::<CollectRequest>()
+            .add_direction(NetworkDirection::ClientToServer);
+        // ObjectRemoved: server → all clients
+        app.register_message::<ObjectRemoved>()
+            .add_direction(NetworkDirection::ServerToClient);
+        // ObjectRespawned: server → all clients
+        app.register_message::<ObjectRespawned>()
+            .add_direction(NetworkDirection::ServerToClient);
 
         // --- Replicated components (custom game components) ---
 
@@ -93,6 +164,9 @@ impl Plugin for ProtocolPlugin {
 
         // PlayerColor: synced once on spawn, predicted
         app.register_component::<PlayerColor>().add_prediction();
+
+        // PlayerVitals: server-authoritative, replicated to all clients
+        app.register_component::<PlayerVitals>().add_prediction();
 
         // --- Replicated avian3d physics components ---
 

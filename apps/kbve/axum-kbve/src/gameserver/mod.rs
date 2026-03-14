@@ -12,7 +12,10 @@ use bevy::prelude::*;
 use lightyear::prelude::server::*;
 use lightyear::prelude::*;
 
-use bevy_kbve_net::{AuthMessage, AuthResponse, GameChannel, PositionUpdate, ProtocolPlugin};
+use bevy_kbve_net::{
+    AuthMessage, AuthResponse, CollectRequest, DamageEvent, GameChannel, ObjectRemoved,
+    ObjectRespawned, PositionUpdate, ProtocolPlugin, TileKey,
+};
 
 /// Server tick rate: 20 Hz (matching client).
 const TICK_DURATION: Duration = Duration::from_millis(50);
@@ -38,6 +41,17 @@ struct ClientPlayerMap(HashMap<Entity, Entity>);
 /// Marker: client has not yet sent a valid AuthMessage.
 #[derive(Component)]
 struct PendingAuth;
+
+/// How long (in seconds) before a collected object respawns.
+const RESPAWN_COOLDOWN_SECS: f64 = 300.0; // 5 minutes
+
+/// Maximum distance (world units) a player can be from an object to collect it.
+const MAX_COLLECT_DISTANCE: f32 = 3.0;
+
+/// Tracks collected world objects with the time they were collected.
+/// When enough time passes, the object respawns (entry removed).
+#[derive(Resource, Default)]
+struct CollectedObjects(HashMap<TileKey, f64>);
 
 /// Initialize and spawn the headless Bevy game server in a background thread.
 ///
@@ -88,6 +102,7 @@ fn run_bevy_app(ws_addr: SocketAddr, jwt_secret: String) {
     app.insert_resource(JwtSecret(jwt_secret));
     app.init_resource::<AuthenticatedClients>();
     app.init_resource::<ClientPlayerMap>();
+    app.init_resource::<CollectedObjects>();
 
     // Spawn the server listener on startup
     let startup_addr = ws_addr;
@@ -108,6 +123,18 @@ fn run_bevy_app(ws_addr: SocketAddr, jwt_secret: String) {
 
     // Receive position updates from clients and apply to their player entities
     app.add_systems(Update, process_position_updates);
+
+    // Process damage events from clients
+    app.add_systems(Update, process_damage_events);
+
+    // Process collect requests from clients
+    app.add_systems(Update, process_collect_requests);
+
+    // Tick respawn timer for collected objects
+    app.add_systems(Update, tick_respawns);
+
+    // Send collected objects state to newly connected clients
+    app.add_systems(Update, send_collected_state_to_new_clients);
 
     // Periodic debug heartbeat
     app.add_systems(Update, server_debug_heartbeat);
@@ -159,10 +186,29 @@ fn on_server_connected(trigger: On<Add, Connected>) {
     );
 }
 
-/// Debug observer: fires when lightyear adds `Disconnected` to a client entity.
-fn on_server_disconnected(trigger: On<Add, Disconnected>) {
-    let entity = trigger.entity;
-    tracing::warn!("[gameserver][lifecycle] DISCONNECTED — client entity {entity:?}");
+/// When a client disconnects, clean up their player entity and auth state.
+/// Despawning the replicated player entity triggers lightyear's built-in
+/// despawn replication, notifying all remaining clients automatically.
+fn on_server_disconnected(
+    trigger: On<Add, Disconnected>,
+    mut commands: Commands,
+    mut authenticated: ResMut<AuthenticatedClients>,
+    mut client_player_map: ResMut<ClientPlayerMap>,
+) {
+    let client_entity = trigger.entity;
+    let user_id = authenticated.0.remove(&client_entity);
+    let player_entity = client_player_map.0.remove(&client_entity);
+
+    tracing::warn!(
+        "[gameserver][lifecycle] DISCONNECTED — client {client_entity:?} user={user_id:?} player={player_entity:?}"
+    );
+
+    if let Some(player_entity) = player_entity {
+        commands.entity(player_entity).despawn();
+        tracing::info!(
+            "[gameserver] despawned player entity {player_entity:?} for disconnected client {client_entity:?}"
+        );
+    }
 }
 
 /// Periodic heartbeat logging connected/pending clients every ~5 seconds.
@@ -304,6 +350,7 @@ fn spawn_player(commands: &mut Commands, client_entity: Entity) -> Entity {
         .spawn((
             bevy_kbve_net::PlayerId(player_id),
             bevy_kbve_net::PlayerColor(Color::srgb(r, g, b)),
+            bevy_kbve_net::PlayerVitals::default(),
             Transform::from_xyz(spawn_x, spawn_y, spawn_z),
             RigidBody::Kinematic,
             Position(Vec3::new(spawn_x, spawn_y, spawn_z)),
@@ -328,6 +375,153 @@ fn process_position_updates(
                 if let Ok(mut pos) = positions.get_mut(player_entity) {
                     pos.0 = Vec3::new(msg.x, msg.y, msg.z);
                 }
+            }
+        }
+    }
+}
+
+/// Process damage events from clients and apply to their PlayerVitals.
+fn process_damage_events(
+    client_player_map: Res<ClientPlayerMap>,
+    mut receivers: Query<(Entity, &mut MessageReceiver<DamageEvent>), Without<PendingAuth>>,
+    mut vitals: Query<&mut bevy_kbve_net::PlayerVitals>,
+) {
+    for (client_entity, mut receiver) in &mut receivers {
+        for msg in receiver.receive() {
+            if let Some(&player_entity) = client_player_map.0.get(&client_entity) {
+                if let Ok(mut v) = vitals.get_mut(player_entity) {
+                    let old_hp = v.health;
+                    v.health = (v.health - msg.amount).max(0.0);
+                    tracing::info!(
+                        "[gameserver] damage applied to {player_entity:?}: {:.1} → {:.1} (source={:?})",
+                        old_hp,
+                        v.health,
+                        msg.source
+                    );
+                }
+            }
+        }
+    }
+}
+
+/// Process collect requests: validate proximity + object existence, track removal, broadcast.
+fn process_collect_requests(
+    time: Res<Time>,
+    client_player_map: Res<ClientPlayerMap>,
+    mut collected: ResMut<CollectedObjects>,
+    mut receivers: Query<(Entity, &mut MessageReceiver<CollectRequest>), Without<PendingAuth>>,
+    positions: Query<&Position>,
+    mut senders: Query<&mut MessageSender<ObjectRemoved>, With<Connected>>,
+) {
+    for (client_entity, mut receiver) in &mut receivers {
+        for msg in receiver.receive() {
+            let tile = msg.tile;
+
+            // Already collected?
+            if collected.0.contains_key(&tile) {
+                continue;
+            }
+
+            // Verify an object actually exists at this tile
+            let Some(kind) = bevy_kbve_net::object_at_tile(tile.tx, tile.tz) else {
+                tracing::warn!(
+                    "[gameserver] no object at tile ({},{}) — ignoring collect",
+                    tile.tx,
+                    tile.tz
+                );
+                continue;
+            };
+
+            // Proximity check: player must be near the tile
+            if let Some(&player_entity) = client_player_map.0.get(&client_entity) {
+                if let Ok(pos) = positions.get(player_entity) {
+                    let tile_world = Vec3::new(tile.tx as f32, pos.0.y, tile.tz as f32);
+                    let dist = (pos.0 - tile_world).length();
+                    if dist > MAX_COLLECT_DISTANCE {
+                        tracing::warn!(
+                            "[gameserver] player too far ({dist:.1}) from tile ({},{}) — ignoring collect",
+                            tile.tx,
+                            tile.tz
+                        );
+                        continue;
+                    }
+                }
+            }
+
+            // Track the collection with current elapsed time
+            collected.0.insert(tile, time.elapsed_secs_f64());
+            tracing::info!(
+                "[gameserver] object collected: {kind:?} at ({},{})",
+                tile.tx,
+                tile.tz
+            );
+
+            // Broadcast ObjectRemoved to all connected clients
+            let removal = ObjectRemoved { tile, kind };
+            for mut sender in &mut senders {
+                sender.send::<bevy_kbve_net::GameChannel>(removal.clone());
+            }
+        }
+    }
+}
+
+/// Periodically check for collected objects whose respawn cooldown has elapsed.
+fn tick_respawns(
+    time: Res<Time>,
+    mut collected: ResMut<CollectedObjects>,
+    mut senders: Query<&mut MessageSender<ObjectRespawned>, With<Connected>>,
+) {
+    let now = time.elapsed_secs_f64();
+    let mut respawned = Vec::new();
+
+    for (&tile, &collected_at) in collected.0.iter() {
+        if now - collected_at >= RESPAWN_COOLDOWN_SECS {
+            respawned.push(tile);
+        }
+    }
+
+    for tile in respawned {
+        collected.0.remove(&tile);
+
+        if let Some(kind) = bevy_kbve_net::object_at_tile(tile.tx, tile.tz) {
+            tracing::info!(
+                "[gameserver] object respawned: {kind:?} at ({},{})",
+                tile.tx,
+                tile.tz
+            );
+
+            let msg = ObjectRespawned { tile, kind };
+            for mut sender in &mut senders {
+                sender.send::<bevy_kbve_net::GameChannel>(msg.clone());
+            }
+        }
+    }
+}
+
+/// When a new client authenticates, send them all currently collected objects
+/// so they know which ones to skip when loading chunks.
+fn send_collected_state_to_new_clients(
+    authenticated: Res<AuthenticatedClients>,
+    collected: Res<CollectedObjects>,
+    mut senders: Query<(Entity, &mut MessageSender<ObjectRemoved>), Added<ReplicationSender>>,
+) {
+    if collected.0.is_empty() {
+        return;
+    }
+
+    for (entity, mut sender) in &mut senders {
+        if !authenticated.0.contains_key(&entity) {
+            continue;
+        }
+
+        tracing::info!(
+            "[gameserver] sending {} collected objects to new client {entity:?}",
+            collected.0.len()
+        );
+
+        for &tile in collected.0.keys() {
+            if let Some(kind) = bevy_kbve_net::object_at_tile(tile.tx, tile.tz) {
+                sender.send::<bevy_kbve_net::GameChannel>(ObjectRemoved { tile, kind });
             }
         }
     }

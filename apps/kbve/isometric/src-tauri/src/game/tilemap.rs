@@ -17,6 +17,20 @@ use super::water::{WATER_LEVEL, WaterMaterial};
 use super::weather::{BlobShadow, BlobShadowAssets, WindSway};
 
 pub const TILE_SIZE: f32 = 1.0;
+
+/// Tile coordinate component — attached to world objects (trees, rocks, flowers,
+/// mushrooms) so they can be looked up and despawned when collected.
+#[derive(Component, Clone, Copy, Debug)]
+pub struct TileCoord {
+    pub tx: i32,
+    pub tz: i32,
+}
+
+/// Tracks tiles whose objects have been collected (removed by the server).
+/// Checked during chunk spawning to skip collected objects.
+#[derive(Resource, Default)]
+pub struct CollectedTiles(pub std::collections::HashSet<(i32, i32)>);
+
 /// Thin cap on top of each column — bright surface that contrasts with darker body.
 const CAP_HEIGHT: f32 = 0.06;
 /// Per-side inset on the cap where a cliff edge faces a lower neighbor.
@@ -1039,6 +1053,7 @@ pub struct TilemapPlugin;
 
 impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut App) {
+        app.init_resource::<CollectedTiles>();
         app.add_systems(Startup, setup_tile_materials);
         app.add_systems(Update, process_chunk_spawns_and_despawns);
     }
@@ -1167,6 +1182,7 @@ fn process_chunk_spawns_and_despawns(
     tile_materials: Option<Res<TileMaterials>>,
     blob_shadow: Option<Res<BlobShadowAssets>>,
     player_query: Query<&Transform, With<Player>>,
+    collected_tiles: Res<CollectedTiles>,
 ) {
     let Some(tile_materials) = tile_materials else {
         return;
@@ -1450,18 +1466,21 @@ fn process_chunk_spawns_and_despawns(
                     let tree_noise = hash2d(tx + 11317, tz + 5471);
                     if tree_noise < 0.055 {
                         tile_occupied = true;
-                        let (tree_entity, shadow_entity) = super::trees::spawn_tree_entity(
-                            &mut commands,
-                            &mut meshes,
-                            tile_materials.tree_body_mat.clone(),
-                            blob_shadow.mesh.clone(),
-                            blob_shadow.material.clone(),
-                            tx,
-                            tz,
-                            column_h,
-                        );
-                        entities.push(tree_entity);
-                        entities.push(shadow_entity);
+                        if !collected_tiles.0.contains(&(tx, tz)) {
+                            let (tree_entity, shadow_entity) = super::trees::spawn_tree_entity(
+                                &mut commands,
+                                &mut meshes,
+                                tile_materials.tree_body_mat.clone(),
+                                blob_shadow.mesh.clone(),
+                                blob_shadow.material.clone(),
+                                tx,
+                                tz,
+                                column_h,
+                            );
+                            commands.entity(tree_entity).insert(TileCoord { tx, tz });
+                            entities.push(tree_entity);
+                            entities.push(shadow_entity);
+                        }
                     }
 
                     // Rocks (skip if tree already on this tile)
@@ -1469,62 +1488,65 @@ fn process_chunk_spawns_and_despawns(
                         let rock_noise = hash2d(tx + 19457, tz + 12391);
                         if rock_noise < 0.025 {
                             tile_occupied = true;
-                            let jx = (hash2d(tx + 19557, tz + 12391) - 0.5) * 0.4;
-                            let jz = (hash2d(tx + 19457, tz + 12491) - 0.5) * 0.4;
-                            let world_x = tx as f32 * TILE_SIZE + jx;
-                            let world_z = tz as f32 * TILE_SIZE + jz;
-                            let rock_y = column_h + 0.002;
+                            if !collected_tiles.0.contains(&(tx, tz)) {
+                                let jx = (hash2d(tx + 19557, tz + 12391) - 0.5) * 0.4;
+                                let jz = (hash2d(tx + 19457, tz + 12491) - 0.5) * 0.4;
+                                let world_x = tx as f32 * TILE_SIZE + jx;
+                                let world_z = tz as f32 * TILE_SIZE + jz;
+                                let rock_y = column_h + 0.002;
 
-                            let kind = rocks::rock_kind_from_hash(tx, tz);
-                            let params = rocks::RockParams {
-                                world_x,
-                                world_z,
-                                base_y: rock_y,
-                                kind,
-                                tx,
-                                tz,
-                            };
-                            let (rock_mesh, max_hw, total_h) =
-                                rocks::build_rock(&params, &mut meshes);
-
-                            let rot_y =
-                                hash2d(tx * 8311 + 2477, tz * 7193 + 3319) * std::f32::consts::TAU;
-                            let rock_entity = commands
-                                .spawn((
-                                    Mesh3d(rock_mesh),
-                                    MeshMaterial3d(tile_materials.rock_body_mat.clone()),
-                                    Transform::from_xyz(world_x, rock_y, world_z)
-                                        .with_rotation(Quat::from_rotation_y(rot_y)),
-                                    RigidBody::Static,
-                                    Collider::cuboid(max_hw * 1.6, total_h, max_hw * 1.6),
-                                    HoverOutline {
-                                        half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
-                                    },
-                                    Interactable {
-                                        kind: InteractableKind::Rock,
-                                    },
+                                let kind = rocks::rock_kind_from_hash(tx, tz);
+                                let params = rocks::RockParams {
+                                    world_x,
+                                    world_z,
+                                    base_y: rock_y,
                                     kind,
-                                ))
-                                .observe(on_pointer_over)
-                                .observe(on_pointer_out)
-                                .id();
-                            entities.push(rock_entity);
+                                    tx,
+                                    tz,
+                                };
+                                let (rock_mesh, max_hw, total_h) =
+                                    rocks::build_rock(&params, &mut meshes);
 
-                            // Dynamic blob shadow disc
-                            let shadow_entity = commands
-                                .spawn((
-                                    Mesh3d(blob_shadow.mesh.clone()),
-                                    MeshMaterial3d(blob_shadow.material.clone()),
-                                    Transform::from_xyz(world_x, rock_y + 0.001, world_z),
-                                    BlobShadow {
-                                        anchor: Vec3::new(world_x, rock_y + 0.001, world_z),
-                                        radius: max_hw * 1.4,
-                                        object_height: total_h,
-                                    },
-                                    Pickable::IGNORE,
-                                ))
-                                .id();
-                            entities.push(shadow_entity);
+                                let rot_y = hash2d(tx * 8311 + 2477, tz * 7193 + 3319)
+                                    * std::f32::consts::TAU;
+                                let rock_entity = commands
+                                    .spawn((
+                                        Mesh3d(rock_mesh),
+                                        MeshMaterial3d(tile_materials.rock_body_mat.clone()),
+                                        Transform::from_xyz(world_x, rock_y, world_z)
+                                            .with_rotation(Quat::from_rotation_y(rot_y)),
+                                        RigidBody::Static,
+                                        Collider::cuboid(max_hw * 1.6, total_h, max_hw * 1.6),
+                                        HoverOutline {
+                                            half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
+                                        },
+                                        Interactable {
+                                            kind: InteractableKind::Rock,
+                                        },
+                                        kind,
+                                        TileCoord { tx, tz },
+                                    ))
+                                    .observe(on_pointer_over)
+                                    .observe(on_pointer_out)
+                                    .id();
+                                entities.push(rock_entity);
+
+                                // Dynamic blob shadow disc
+                                let shadow_entity = commands
+                                    .spawn((
+                                        Mesh3d(blob_shadow.mesh.clone()),
+                                        MeshMaterial3d(blob_shadow.material.clone()),
+                                        Transform::from_xyz(world_x, rock_y + 0.001, world_z),
+                                        BlobShadow {
+                                            anchor: Vec3::new(world_x, rock_y + 0.001, world_z),
+                                            radius: max_hw * 1.4,
+                                            object_height: total_h,
+                                        },
+                                        Pickable::IGNORE,
+                                    ))
+                                    .id();
+                                entities.push(shadow_entity);
+                            }
                         }
                     }
 
@@ -1533,48 +1555,52 @@ fn process_chunk_spawns_and_despawns(
                         let flower_noise = hash2d(tx + 13721, tz + 8293);
                         if flower_noise < 0.12 {
                             tile_occupied = true;
-                            let arch_idx =
-                                (hash2d(tx + 13821, tz + 8393) * NUM_FLORA_SPECIES as f32) as usize
+                            if !collected_tiles.0.contains(&(tx, tz)) {
+                                let arch_idx = (hash2d(tx + 13821, tz + 8393)
+                                    * NUM_FLORA_SPECIES as f32)
+                                    as usize
                                     % NUM_FLORA_SPECIES;
-                            let archetype = match arch_idx {
-                                0 => FlowerArchetype::Tulip,
-                                1 => FlowerArchetype::Daisy,
-                                2 => FlowerArchetype::Lavender,
-                                3 => FlowerArchetype::Bell,
-                                4 => FlowerArchetype::Wildflower,
-                                5 => FlowerArchetype::Sunflower,
-                                6 => FlowerArchetype::Rose,
-                                7 => FlowerArchetype::Cornflower,
-                                8 => FlowerArchetype::Allium,
-                                _ => FlowerArchetype::BlueOrchid,
-                            };
+                                let archetype = match arch_idx {
+                                    0 => FlowerArchetype::Tulip,
+                                    1 => FlowerArchetype::Daisy,
+                                    2 => FlowerArchetype::Lavender,
+                                    3 => FlowerArchetype::Bell,
+                                    4 => FlowerArchetype::Wildflower,
+                                    5 => FlowerArchetype::Sunflower,
+                                    6 => FlowerArchetype::Rose,
+                                    7 => FlowerArchetype::Cornflower,
+                                    8 => FlowerArchetype::Allium,
+                                    _ => FlowerArchetype::BlueOrchid,
+                                };
 
-                            let jx = (hash2d(tx + 13921, tz + 8293) - 0.5) * 0.6;
-                            let jz = (hash2d(tx + 13721, tz + 8493) - 0.5) * 0.6;
-                            let world_x = tx as f32 * TILE_SIZE + jx;
-                            let world_z = tz as f32 * TILE_SIZE + jz;
-                            let flower_y = column_h + 0.002;
+                                let jx = (hash2d(tx + 13921, tz + 8293) - 0.5) * 0.6;
+                                let jz = (hash2d(tx + 13721, tz + 8493) - 0.5) * 0.6;
+                                let world_x = tx as f32 * TILE_SIZE + jx;
+                                let world_z = tz as f32 * TILE_SIZE + jz;
+                                let flower_y = column_h + 0.002;
 
-                            let flower_entity = commands
-                                .spawn((
-                                    Mesh3d(tile_materials.flower_meshes[arch_idx].clone()),
-                                    MeshMaterial3d(tile_materials.flower_mat.clone()),
-                                    Transform::from_xyz(world_x, flower_y, world_z),
-                                    RigidBody::Static,
-                                    Collider::cuboid(0.4, 0.5, 0.4),
-                                    Sensor,
-                                    HoverOutline {
-                                        half_extents: Vec3::new(0.2, 0.25, 0.2),
-                                    },
-                                    Interactable {
-                                        kind: InteractableKind::Flower,
-                                    },
-                                    archetype,
-                                ))
-                                .observe(on_pointer_over)
-                                .observe(on_pointer_out)
-                                .id();
-                            entities.push(flower_entity);
+                                let flower_entity = commands
+                                    .spawn((
+                                        Mesh3d(tile_materials.flower_meshes[arch_idx].clone()),
+                                        MeshMaterial3d(tile_materials.flower_mat.clone()),
+                                        Transform::from_xyz(world_x, flower_y, world_z),
+                                        RigidBody::Static,
+                                        Collider::cuboid(0.4, 0.5, 0.4),
+                                        Sensor,
+                                        HoverOutline {
+                                            half_extents: Vec3::new(0.2, 0.25, 0.2),
+                                        },
+                                        Interactable {
+                                            kind: InteractableKind::Flower,
+                                        },
+                                        archetype,
+                                        TileCoord { tx, tz },
+                                    ))
+                                    .observe(on_pointer_over)
+                                    .observe(on_pointer_out)
+                                    .id();
+                                entities.push(flower_entity);
+                            }
                         }
                     }
 
@@ -1582,40 +1608,43 @@ fn process_chunk_spawns_and_despawns(
                     if !tile_occupied {
                         let mush_noise = hash2d(tx + 23017, tz + 17293);
                         if mush_noise < 0.04 {
-                            let jx = (hash2d(tx + 23117, tz + 17293) - 0.5) * 0.5;
-                            let jz = (hash2d(tx + 23017, tz + 17393) - 0.5) * 0.5;
-                            let world_x = tx as f32 * TILE_SIZE + jx;
-                            let world_z = tz as f32 * TILE_SIZE + jz;
-                            let mush_y = column_h + 0.002;
+                            if !collected_tiles.0.contains(&(tx, tz)) {
+                                let jx = (hash2d(tx + 23117, tz + 17293) - 0.5) * 0.5;
+                                let jz = (hash2d(tx + 23017, tz + 17393) - 0.5) * 0.5;
+                                let world_x = tx as f32 * TILE_SIZE + jx;
+                                let world_z = tz as f32 * TILE_SIZE + jz;
+                                let mush_y = column_h + 0.002;
 
-                            let kind = mushrooms::mushroom_kind_from_hash(tx, tz);
-                            let params = mushrooms::MushroomParams { tx, tz, kind };
-                            let (mush_mesh, max_hw, total_h) =
-                                mushrooms::build_mushroom(&params, &mut meshes);
+                                let kind = mushrooms::mushroom_kind_from_hash(tx, tz);
+                                let params = mushrooms::MushroomParams { tx, tz, kind };
+                                let (mush_mesh, max_hw, total_h) =
+                                    mushrooms::build_mushroom(&params, &mut meshes);
 
-                            let rot_y =
-                                hash2d(tx * 9311 + 3477, tz * 8193 + 4319) * std::f32::consts::TAU;
-                            let mush_entity = commands
-                                .spawn((
-                                    Mesh3d(mush_mesh),
-                                    MeshMaterial3d(tile_materials.tree_body_mat.clone()),
-                                    Transform::from_xyz(world_x, mush_y, world_z)
-                                        .with_rotation(Quat::from_rotation_y(rot_y)),
-                                    RigidBody::Static,
-                                    Collider::cuboid(max_hw * 1.6, total_h, max_hw * 1.6),
-                                    Sensor,
-                                    HoverOutline {
-                                        half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
-                                    },
-                                    Interactable {
-                                        kind: InteractableKind::Mushroom,
-                                    },
-                                    kind,
-                                ))
-                                .observe(on_pointer_over)
-                                .observe(on_pointer_out)
-                                .id();
-                            entities.push(mush_entity);
+                                let rot_y = hash2d(tx * 9311 + 3477, tz * 8193 + 4319)
+                                    * std::f32::consts::TAU;
+                                let mush_entity = commands
+                                    .spawn((
+                                        Mesh3d(mush_mesh),
+                                        MeshMaterial3d(tile_materials.tree_body_mat.clone()),
+                                        Transform::from_xyz(world_x, mush_y, world_z)
+                                            .with_rotation(Quat::from_rotation_y(rot_y)),
+                                        RigidBody::Static,
+                                        Collider::cuboid(max_hw * 1.6, total_h, max_hw * 1.6),
+                                        Sensor,
+                                        HoverOutline {
+                                            half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
+                                        },
+                                        Interactable {
+                                            kind: InteractableKind::Mushroom,
+                                        },
+                                        kind,
+                                        TileCoord { tx, tz },
+                                    ))
+                                    .observe(on_pointer_over)
+                                    .observe(on_pointer_out)
+                                    .id();
+                                entities.push(mush_entity);
+                            }
                         }
                     }
                 }
