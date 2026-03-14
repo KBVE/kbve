@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { get_player_state_json } from '../../wasm-pkg/isometric_game.js';
 import { GlassPanel } from '../ui/shared/GlassPanel';
-import { ProgressBar } from '../ui/shared/ProgressBar';
 
 interface PlayerState {
 	health: number;
@@ -32,26 +31,8 @@ export function HUD() {
 	if (!state) return null;
 
 	return (
-		<GlassPanel className="absolute top-4 right-4 md:top-6 md:right-6 px-3 py-2 md:px-4 md:py-3 pointer-events-none">
-			<ProgressBar
-				label="HP"
-				value={state.health}
-				max={state.max_health}
-				color="bg-hp"
-			/>
-			<ProgressBar
-				label="MP"
-				value={state.mana}
-				max={state.max_mana}
-				color="bg-mp"
-			/>
-			<ProgressBar
-				label="EP"
-				value={state.energy}
-				max={state.max_energy}
-				color="bg-ep"
-			/>
-			<div className="text-[7px] md:text-[9px] text-text-muted mt-1">
+		<GlassPanel className="absolute top-12 right-4 md:top-14 md:right-6 px-3 py-1.5 md:px-4 md:py-2 pointer-events-none">
+			<div className="text-[7px] md:text-[9px] text-text-muted">
 				Pos: {state.position.map((v) => v.toFixed(1)).join(', ')}
 			</div>
 		</GlassPanel>

@@ -21,7 +21,7 @@ const PLAYER_HALF_Z: f32 = 0.3;
 const PLAYER_HEIGHT: f32 = 1.2;
 const PLAYER_SPEED: f32 = 5.0;
 const GRAVITY: f32 = 20.0;
-const JUMP_VELOCITY: f32 = 8.0;
+const JUMP_VELOCITY: f32 = 11.0;
 #[allow(dead_code)]
 const MAX_STEP_HEIGHT: f32 = 0.35;
 const FALL_DAMAGE_THRESHOLD: f32 = 3.0;

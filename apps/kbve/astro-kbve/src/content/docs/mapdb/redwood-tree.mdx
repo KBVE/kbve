@@ -1,24 +1,25 @@
 ---
 id: "01JCKH7M9K2XQZW3P4R5S6T7V9"
-guid: "a3f8d9e2c1b74f6e8d5a9c7b4e2f1a8d"
+slug: "redwood-tree"
 drafted: false
-title: "Redwood Tree"
 name: "Redwood Tree"
+title: "Redwood Tree"
 description: "A massive ancient redwood tree that provides abundant wood"
-type: "resource"
-resourceType: "wood"
-imagePath: "/assets/mapdb/tree/redwood/redwood_tree.png"
-pixelsPerUnit: 25
-pivotX: 0.5
-pivotY: 0.5
-sortingLayer: "Foreground"
-amount: 200
-maxAmount: 200
-harvestYield: 10
-harvestTime: 4.0
-isHarvestable: true
-spawnWeight: 0.2
-spawnCount: 25
+type: "tree"
+sub_kind: "redwood"
+img: "/assets/mapdb/tree/redwood/redwood_tree.png"
+interactable: true
+destructible: true
+harvest_yield: 10
+max_amount: 200
+initial_amount: 200
+harvest_time_ms: 4000
+spawn_weight: 0.2
+spawn_count: 25
+pixels_per_unit: 25
+pivot_x: 0.5
+pivot_y: 0.5
+sorting_layer: "Foreground"
 ---
 
 import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';

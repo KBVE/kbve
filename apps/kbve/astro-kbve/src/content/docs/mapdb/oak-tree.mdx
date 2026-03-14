@@ -1,24 +1,25 @@
 ---
 id: "01JCKH7M9K2XQZW3P4R5S6T7V8"
-guid: "81574b4fbd644460b950d519cc5d6cb4"
+slug: "oak-tree"
 drafted: false
-title: "Oak Tree"
 name: "Oak Tree"
+title: "Oak Tree"
 description: "A sturdy oak tree that provides wood when harvested"
-type: "resource"
-resourceType: "wood"
-imagePath: "/assets/mapdb/tree/oak/oak_tree.png"
-pixelsPerUnit: 25
-pivotX: 0.5
-pivotY: 0.5
-sortingLayer: "Foreground"
-amount: 100
-maxAmount: 100
-harvestYield: 5
-harvestTime: 2.5
-isHarvestable: true
-spawnWeight: 0.4
-spawnCount: 50
+type: "tree"
+sub_kind: "oak"
+img: "/assets/mapdb/tree/oak/oak_tree.png"
+interactable: true
+destructible: true
+harvest_yield: 5
+max_amount: 100
+initial_amount: 100
+harvest_time_ms: 2500
+spawn_weight: 0.4
+spawn_count: 50
+pixels_per_unit: 25
+pivot_x: 0.5
+pivot_y: 0.5
+sorting_layer: "Foreground"
 ---
 
 import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';

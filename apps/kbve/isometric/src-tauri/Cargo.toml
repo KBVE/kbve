@@ -2,6 +2,9 @@
 name = "isometric-game"
 version = "0.1.0"
 edition = "2021"
+description = "KBVE isometric multiplayer game — Bevy 0.18 + lightyear + avian3d, builds to WASM and Tauri desktop"
+repository = "https://github.com/KBVE/kbve"
+license = "SEE https://kbve.com/legal/"
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = ["-Oz", "--enable-bulk-memory", "--enable-nontrapping-float-to-int", "--enable-sign-ext", "--enable-mutable-globals"]

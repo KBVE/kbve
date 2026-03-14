@@ -8,7 +8,8 @@
 		"item.ItemRarity": {
 			"mode": "const_array",
 			"stripPrefix": "ITEM_RARITY_",
-			"caseTransform": "lowercase"
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		},
 		"item.EquipSlot": {
 			"mode": "const_array",

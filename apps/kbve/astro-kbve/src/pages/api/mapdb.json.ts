@@ -8,27 +8,24 @@ export const GET = async () => {
 	);
 
 	const mapObjects: IMapObject[] = [];
-	const index: Record<string, number> = {}; // For lookups by id, guid, or name
+	const index: Record<string, number> = {};
 
 	for (const entry of mapEntries) {
-		const { id, guid, name, type } = entry.data;
-		if (!id || !guid || !name || !type) continue;
+		const { id, slug, name, type } = entry.data;
+		if (!id || !slug || !name || !type) continue;
 
 		const mapObject = {
 			...entry.data,
-			slug: `/mapdb/${entry.id}`,
 		};
 
 		const idx = mapObjects.length;
 		mapObjects.push(mapObject as IMapObject);
 
-		// Create lookup indices
-		index[id] = idx; // By ULID
-		index[guid] = idx; // By GUID
-		index[name] = idx; // By name
+		index[id] = idx;
+		index[slug] = idx;
+		index[name] = idx;
 	}
 
-	// Optional: Validate uniqueness
 	validateMapObjectUniqueness(mapObjects);
 
 	return new Response(JSON.stringify({ mapObjects, index }, null, 2), {
@@ -38,24 +35,23 @@ export const GET = async () => {
 	});
 };
 
-// Optional validation function
 function validateMapObjectUniqueness(objects: IMapObject[]) {
 	const seenIds = new Set<string>();
-	const seenGuids = new Set<string>();
+	const seenSlugs = new Set<string>();
 	const seenNames = new Set<string>();
 
 	for (const obj of objects) {
 		if (seenIds.has(obj.id)) {
 			throw new Error(`Duplicate ULID detected: ${obj.id}`);
 		}
-		if (seenGuids.has(obj.guid)) {
-			throw new Error(`Duplicate GUID detected: ${obj.guid}`);
+		if (seenSlugs.has(obj.slug)) {
+			throw new Error(`Duplicate slug detected: ${obj.slug}`);
 		}
 		if (seenNames.has(obj.name)) {
 			throw new Error(`Duplicate name detected: ${obj.name}`);
 		}
 		seenIds.add(obj.id);
-		seenGuids.add(obj.guid);
+		seenSlugs.add(obj.slug);
 		seenNames.add(obj.name);
 	}
 }
