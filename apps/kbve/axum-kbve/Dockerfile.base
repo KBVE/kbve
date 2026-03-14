@@ -12,7 +12,7 @@
 # ============================================================================
 # [STAGE 1] - Rust Toolchain + cargo-chef (NO source code)
 # ============================================================================
-FROM --platform=linux/amd64 rust:1.90-slim AS chef
+FROM --platform=linux/amd64 rust:1.94-slim AS chef
 
 RUN apt-get update && \
     apt-get upgrade -y && \
@@ -39,10 +39,11 @@ FROM chef AS planner
 COPY apps/kbve/axum-kbve/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
-# Copy only the 3 crate manifests
+# Copy only the 4 crate manifests
 COPY apps/kbve/axum-kbve/Cargo.toml apps/kbve/axum-kbve/Cargo.toml
 COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
+COPY packages/rust/bevy/bevy_kbve_net/Cargo.toml packages/rust/bevy/bevy_kbve_net/Cargo.toml
 
 # Proto files (needed for jedi build.rs during chef prepare)
 COPY packages/data/proto packages/data/proto
@@ -50,7 +51,8 @@ COPY packages/data/proto packages/data/proto
 # Create stubs for cargo chef
 RUN mkdir -p apps/kbve/axum-kbve/src && echo "fn main() {}" > apps/kbve/axum-kbve/src/main.rs && \
     mkdir -p packages/rust/jedi/src && echo "" > packages/rust/jedi/src/lib.rs && \
-    mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs
+    mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_kbve_net/src && echo "" > packages/rust/bevy/bevy_kbve_net/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -94,7 +96,8 @@ COPY packages/data/proto packages/data/proto
 # Foundation crate source (changes less frequently than app code)
 COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/kbve packages/rust/kbve
+COPY packages/rust/bevy/bevy_kbve_net packages/rust/bevy/bevy_kbve_net
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --release -p kbve -p jedi
+    cargo build --release -p kbve -p jedi -p bevy_kbve_net

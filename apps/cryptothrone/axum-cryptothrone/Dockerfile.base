@@ -12,7 +12,7 @@
 # ============================================================================
 # [STAGE 1] - Rust Toolchain + cargo-chef (NO source code)
 # ============================================================================
-FROM --platform=linux/amd64 rust:1.90-slim AS chef
+FROM --platform=linux/amd64 rust:1.94-slim AS chef
 
 RUN apt-get update && \
     apt-get upgrade -y && \

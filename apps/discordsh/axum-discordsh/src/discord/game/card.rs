@@ -1452,6 +1452,7 @@ mod tests {
             enraged: false,
             index: 0,
             first_strike: false,
+            personality: Personality::Feral,
         }];
 
         let png = render_game_card_blocking(&session, &db);

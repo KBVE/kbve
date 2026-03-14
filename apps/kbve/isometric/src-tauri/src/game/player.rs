@@ -5,6 +5,13 @@ use super::state::PlayerState;
 use super::terrain::TerrainMap;
 use super::virtual_joystick::VirtualJoystickState;
 
+/// Fired when the player takes fall damage. The networking layer picks this up
+/// and sends a DamageEvent to the server.
+#[derive(Event)]
+pub struct FallDamageEvent {
+    pub amount: f32,
+}
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -178,8 +185,21 @@ fn move_player(
             PLAYER_HEIGHT * 0.9,
             PLAYER_HALF_Z * 2.0 * 0.85,
         );
-        let filter = SpatialQueryFilter::default().with_excluded_entities([entity]);
+        let base_filter = SpatialQueryFilter::default().with_excluded_entities([entity]);
         let pos = transform.translation;
+
+        // Exclude entities that already overlap the sweep collider at the
+        // start position. Without this, overlapping colliders cause cast_shape
+        // to return distance 0 in every direction, freezing the player.
+        let overlapping =
+            spatial_query.shape_intersections(&sweep_collider, pos, Quat::IDENTITY, &base_filter);
+        let filter = if overlapping.is_empty() {
+            base_filter
+        } else {
+            let mut excluded: Vec<Entity> = vec![entity];
+            excluded.extend_from_slice(&overlapping);
+            SpatialQueryFilter::default().with_excluded_entities(excluded)
+        };
 
         // Sweep horizontal movement (XZ) — slide along walls by trying each
         // axis independently when the combined sweep is blocked.
@@ -293,6 +313,7 @@ fn try_cast(
 // ---------------------------------------------------------------------------
 
 fn process_player_ground_detection(
+    mut commands: Commands,
     mut query: Query<(&ShapeHits, &mut PlayerPhysics, &Transform), With<Player>>,
     mut player_state: ResMut<PlayerState>,
 ) {
@@ -307,7 +328,10 @@ fn process_player_ground_detection(
                 let fall_distance = physics.fall_start_y - transform.translation.y;
                 if physics.velocity_y < 0.0 && fall_distance > FALL_DAMAGE_THRESHOLD {
                     let damage = (fall_distance - FALL_DAMAGE_THRESHOLD) * FALL_DAMAGE_PER_UNIT;
+                    // Apply locally for immediate feedback
                     player_state.health = (player_state.health - damage).max(0.0);
+                    // Trigger event so networking observer can forward to server
+                    commands.trigger(FallDamageEvent { amount: damage });
                 }
             }
             physics.velocity_y = 0.0;

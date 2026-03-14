@@ -1267,7 +1267,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.43"
+version = "1.0.44"
 dependencies = [
  "anyhow",
  "askama",
@@ -2115,24 +2115,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_kbve_player"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy_rapier3d",
- "serde",
-]
-
-[[package]]
-name = "bevy_kbve_state"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "bevy_light"
 version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2317,6 +2299,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_player"
+version = "0.1.0"
+dependencies = [
+ "avian3d",
+ "bevy",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "bevy_post_process"
 version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2351,19 +2343,6 @@ name = "bevy_ptr"
 version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c7a9329e8dc4e01ced480eeec4902e6d7cb56e56ec37f6fbc4323e5c937290a7"
-
-[[package]]
-name = "bevy_rapier3d"
-version = "0.33.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea1aada7322af63b68f5697c08b04bf916348e7f748ece298417fd13968215a1"
-dependencies = [
- "bevy",
- "bitflags 2.11.0",
- "log",
- "nalgebra",
- "rapier3d",
-]
 
 [[package]]
 name = "bevy_reflect"
@@ -2591,6 +2570,16 @@ dependencies = [
  "bevy_macro_utils",
  "quote",
  "syn 2.0.117",
+]
+
+[[package]]
+name = "bevy_statemachine"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bincode 1.3.3",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -11079,19 +11068,6 @@ name = "profiling"
 version = "1.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3eb8486b569e12e2c32ad3e204dbaba5e4b5b216e9367044f25f1dba42341773"
-dependencies = [
- "profiling-procmacros",
-]
-
-[[package]]
-name = "profiling-procmacros"
-version = "1.0.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52717f9a02b6965224f95ca2a81e2e0c5c43baacd28ca057577988930b6c3d5b"
-dependencies = [
- "quote",
- "syn 2.0.117",
-]
 
 [[package]]
 name = "proptest"
@@ -11564,31 +11540,6 @@ name = "rangemap"
 version = "1.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "973443cf09a9c8656b574a866ab68dfa19f0867d0340648c7d2f6a71b8a8ea68"
-
-[[package]]
-name = "rapier3d"
-version = "0.31.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68073fdc88f6b709002767ce8deffffb05ac06824bf9f98a23e270bcea64ba9f"
-dependencies = [
- "approx",
- "arrayvec",
- "bit-vec",
- "bitflags 2.11.0",
- "downcast-rs 2.0.2",
- "log",
- "nalgebra",
- "num-derive",
- "num-traits",
- "ordered-float",
- "parry3d",
- "profiling",
- "rustc-hash 2.1.1",
- "simba",
- "static_assertions",
- "thiserror 2.0.18",
- "wide",
-]
 
 [[package]]
 name = "raw-cpuid"

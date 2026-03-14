@@ -5,6 +5,7 @@
 
 use std::collections::HashMap;
 use std::net::SocketAddr;
+use std::sync::mpsc;
 use std::time::Duration;
 
 use avian3d::prelude::*;
@@ -12,10 +13,17 @@ use bevy::prelude::*;
 use lightyear::prelude::server::*;
 use lightyear::prelude::*;
 
-use bevy_kbve_net::{AuthMessage, AuthResponse, GameChannel, ProtocolPlugin};
+use bevy_kbve_net::{
+    AuthMessage, AuthResponse, CollectRequest, DamageEvent, GameChannel, ObjectRemoved,
+    ObjectRespawned, PlayerName, PositionUpdate, ProtocolPlugin, SetUsernameRequest,
+    SetUsernameResponse, TileKey,
+};
 
 /// Server tick rate: 20 Hz (matching client).
 const TICK_DURATION: Duration = Duration::from_millis(50);
+
+/// Replication send interval — how often the server sends entity updates.
+const REPLICATION_SEND_INTERVAL: Duration = Duration::from_millis(100);
 
 /// Default WebSocket listen address for the game server.
 const DEFAULT_WS_ADDR: &str = "0.0.0.0:5000";
@@ -28,9 +36,66 @@ struct JwtSecret(String);
 #[derive(Resource, Default)]
 struct AuthenticatedClients(HashMap<Entity, String>);
 
+/// Maps client connection entities to their spawned player entities.
+#[derive(Resource, Default)]
+struct ClientPlayerMap(HashMap<Entity, Entity>);
+
 /// Marker: client has not yet sent a valid AuthMessage.
 #[derive(Component)]
 struct PendingAuth;
+
+/// How long (in seconds) before a collected object respawns.
+const RESPAWN_COOLDOWN_SECS: f64 = 300.0; // 5 minutes
+
+/// Maximum distance (world units) a player can be from an object to collect it.
+const MAX_COLLECT_DISTANCE: f32 = 3.0;
+
+/// Tracks collected world objects with the time they were collected.
+/// When enough time passes, the object respawns (entry removed).
+#[derive(Resource, Default)]
+struct CollectedObjects(HashMap<TileKey, f64>);
+
+// ---------------------------------------------------------------------------
+// Profile bridge: Bevy ↔ tokio async communication
+// ---------------------------------------------------------------------------
+
+/// Requests sent from Bevy systems to the async bridge task.
+enum ProfileRequest {
+    LookupUsername {
+        player_entity: Entity,
+        user_id: String,
+    },
+    SetUsername {
+        client_entity: Entity,
+        player_entity: Entity,
+        user_id: String,
+        username: String,
+    },
+}
+
+/// Responses sent from the async bridge task back to Bevy systems.
+enum ProfileResponse {
+    Username {
+        player_entity: Entity,
+        username: String,
+    },
+    SetUsernameResult {
+        client_entity: Entity,
+        player_entity: Entity,
+        success: bool,
+        username: String,
+        error: String,
+    },
+}
+
+/// Sender side of the profile bridge (Bevy → tokio).
+#[derive(Resource)]
+struct ProfileBridgeTx(mpsc::Sender<ProfileRequest>);
+
+/// Receiver side of the profile bridge (tokio → Bevy).
+/// Wrapped in a Mutex because `mpsc::Receiver` is not `Sync`.
+#[derive(Resource)]
+struct ProfileBridgeRx(std::sync::Mutex<mpsc::Receiver<ProfileResponse>>);
 
 /// Initialize and spawn the headless Bevy game server in a background thread.
 ///
@@ -44,13 +109,108 @@ pub fn init_gameserver() {
 
     let jwt_secret = std::env::var("SUPABASE_JWT_SECRET").unwrap_or_default();
 
+    // Profile bridge channels (Bevy ↔ tokio)
+    let (req_tx, req_rx) = mpsc::channel::<ProfileRequest>();
+    let (resp_tx, resp_rx) = mpsc::channel::<ProfileResponse>();
+
+    // Spawn the async bridge task on the current tokio runtime
+    let tokio_handle = tokio::runtime::Handle::current();
+    tokio_handle.spawn(async move {
+        profile_bridge_task(req_rx, resp_tx).await;
+    });
+
     std::thread::spawn(move || {
         tracing::info!("game server starting on ws://{ws_addr}");
-        run_bevy_app(ws_addr, jwt_secret);
+        run_bevy_app(ws_addr, jwt_secret, req_tx, resp_rx);
     });
 }
 
-fn run_bevy_app(ws_addr: SocketAddr, jwt_secret: String) {
+/// Async bridge task: receives profile requests from Bevy, calls DB, sends responses back.
+async fn profile_bridge_task(
+    rx: mpsc::Receiver<ProfileRequest>,
+    tx: mpsc::Sender<ProfileResponse>,
+) {
+    loop {
+        let req = match rx.try_recv() {
+            Ok(req) => req,
+            Err(mpsc::TryRecvError::Empty) => {
+                tokio::time::sleep(Duration::from_millis(50)).await;
+                continue;
+            }
+            Err(mpsc::TryRecvError::Disconnected) => break,
+        };
+
+        let profile_service = crate::db::get_profile_service();
+
+        match req {
+            ProfileRequest::LookupUsername {
+                player_entity,
+                user_id,
+            } => {
+                let username = if let Some(svc) = profile_service {
+                    match svc.get_profile_by_user_id(&user_id).await {
+                        Ok(Some(profile)) => {
+                            if profile.username.is_empty() {
+                                String::new()
+                            } else {
+                                profile.username
+                            }
+                        }
+                        Ok(None) => String::new(),
+                        Err(e) => {
+                            tracing::warn!(
+                                "[profile_bridge] failed to lookup username for {user_id}: {e}"
+                            );
+                            String::new()
+                        }
+                    }
+                } else {
+                    String::new()
+                };
+
+                let _ = tx.send(ProfileResponse::Username {
+                    player_entity,
+                    username,
+                });
+            }
+            ProfileRequest::SetUsername {
+                client_entity,
+                player_entity,
+                user_id,
+                username,
+            } => {
+                let (success, canonical, error) = if let Some(svc) = profile_service {
+                    match svc.set_username(&user_id, &username).await {
+                        Ok(canonical) => (true, canonical, String::new()),
+                        Err(e) => (false, String::new(), e),
+                    }
+                } else {
+                    (
+                        false,
+                        String::new(),
+                        "Profile service not available".to_string(),
+                    )
+                };
+
+                let _ = tx.send(ProfileResponse::SetUsernameResult {
+                    client_entity,
+                    player_entity,
+                    success,
+                    username: canonical,
+                    error,
+                });
+            }
+        }
+    }
+    tracing::info!("[profile_bridge] bridge task exiting");
+}
+
+fn run_bevy_app(
+    ws_addr: SocketAddr,
+    jwt_secret: String,
+    profile_tx: mpsc::Sender<ProfileRequest>,
+    profile_rx: mpsc::Receiver<ProfileResponse>,
+) {
     let mut app = App::new();
 
     // Minimal headless Bevy — no window, no renderer
@@ -80,6 +240,12 @@ fn run_bevy_app(ws_addr: SocketAddr, jwt_secret: String) {
     // Auth resources
     app.insert_resource(JwtSecret(jwt_secret));
     app.init_resource::<AuthenticatedClients>();
+    app.init_resource::<ClientPlayerMap>();
+    app.init_resource::<CollectedObjects>();
+
+    // Profile bridge resources
+    app.insert_resource(ProfileBridgeTx(profile_tx));
+    app.insert_resource(ProfileBridgeRx(std::sync::Mutex::new(profile_rx)));
 
     // Spawn the server listener on startup
     let startup_addr = ws_addr;
@@ -90,11 +256,37 @@ fn run_bevy_app(ws_addr: SocketAddr, jwt_secret: String) {
     // Handle new client connections (mark as pending auth)
     app.add_observer(handle_new_connection);
 
+    // Debug observers for connection lifecycle
+    app.add_observer(on_server_connecting);
+    app.add_observer(on_server_connected);
+    app.add_observer(on_server_disconnected);
+
     // Process auth messages from clients
     app.add_systems(Update, process_auth_messages);
 
-    // Shared movement system (server-authoritative)
-    app.add_systems(FixedUpdate, apply_player_inputs);
+    // Receive position updates from clients and apply to their player entities
+    app.add_systems(Update, process_position_updates);
+
+    // Process damage events from clients
+    app.add_systems(Update, process_damage_events);
+
+    // Process collect requests from clients
+    app.add_systems(Update, process_collect_requests);
+
+    // Tick respawn timer for collected objects
+    app.add_systems(Update, tick_respawns);
+
+    // Send collected objects state to newly connected clients
+    app.add_systems(Update, send_collected_state_to_new_clients);
+
+    // Process profile bridge responses (username lookups, set-username results)
+    app.add_systems(Update, process_profile_responses);
+
+    // Process set-username requests from clients
+    app.add_systems(Update, process_set_username_requests);
+
+    // Periodic debug heartbeat
+    app.add_systems(Update, server_debug_heartbeat);
 
     tracing::info!("game server Bevy app running");
     app.run();
@@ -104,30 +296,113 @@ fn run_bevy_app(ws_addr: SocketAddr, jwt_secret: String) {
 fn start_server(commands: &mut Commands, ws_addr: SocketAddr) {
     use lightyear::websocket::prelude::server::*;
 
+    tracing::info!("[gameserver] start_server — binding to {ws_addr}");
+
     let config = ServerConfig::builder()
         .with_bind_address(ws_addr)
         .with_no_encryption();
 
     let server_entity = commands
         .spawn((
+            lightyear::prelude::server::RawServer,
             Server::default(),
             LocalAddr(ws_addr),
             WebSocketServerIo { config },
         ))
         .id();
 
+    tracing::info!("[gameserver] server entity spawned: {server_entity:?} — triggering LinkStart");
+
     commands.trigger(LinkStart {
         entity: server_entity,
     });
-    tracing::info!("lightyear WebSocket server listening on {ws_addr}");
+    tracing::info!("[gameserver] lightyear WebSocket server listening on {ws_addr}");
 }
 
-/// When a new client connects, mark them as pending authentication.
-/// Player entity is NOT spawned until auth succeeds.
+/// Debug observer: fires when lightyear adds `Connecting` to a client entity on the server side.
+fn on_server_connecting(trigger: On<Add, Connecting>) {
+    let entity = trigger.entity;
+    tracing::info!(
+        "[gameserver][lifecycle] CONNECTING — client entity {entity:?} starting handshake"
+    );
+}
+
+/// Debug observer: fires when lightyear adds `Connected` to a client entity on the server side.
+fn on_server_connected(trigger: On<Add, Connected>) {
+    let entity = trigger.entity;
+    tracing::info!(
+        "[gameserver][lifecycle] CONNECTED — client entity {entity:?} handshake complete"
+    );
+}
+
+/// When a client disconnects, clean up their player entity and auth state.
+/// Despawning the replicated player entity triggers lightyear's built-in
+/// despawn replication, notifying all remaining clients automatically.
+fn on_server_disconnected(
+    trigger: On<Add, Disconnected>,
+    mut commands: Commands,
+    mut authenticated: ResMut<AuthenticatedClients>,
+    mut client_player_map: ResMut<ClientPlayerMap>,
+) {
+    let client_entity = trigger.entity;
+    let user_id = authenticated.0.remove(&client_entity);
+    let player_entity = client_player_map.0.remove(&client_entity);
+
+    tracing::warn!(
+        "[gameserver][lifecycle] DISCONNECTED — client {client_entity:?} user={user_id:?} player={player_entity:?}"
+    );
+
+    if let Some(player_entity) = player_entity {
+        commands.entity(player_entity).despawn();
+        tracing::info!(
+            "[gameserver] despawned player entity {player_entity:?} for disconnected client {client_entity:?}"
+        );
+    }
+}
+
+/// Periodic heartbeat logging connected/pending clients every ~5 seconds.
+fn server_debug_heartbeat(
+    time: Res<Time>,
+    mut timer: Local<Option<Timer>>,
+    pending_q: Query<Entity, With<PendingAuth>>,
+    connected_q: Query<Entity, With<Connected>>,
+    authenticated: Res<AuthenticatedClients>,
+) {
+    let t = timer.get_or_insert_with(|| Timer::from_seconds(5.0, TimerMode::Repeating));
+    t.tick(time.delta());
+    if !t.just_finished() {
+        return;
+    }
+
+    let pending: Vec<_> = pending_q.iter().collect();
+    let connected: Vec<_> = connected_q.iter().collect();
+    let auth_count = authenticated.0.len();
+
+    if !pending.is_empty() || !connected.is_empty() || auth_count > 0 {
+        tracing::info!(
+            "[gameserver][heartbeat] connected={connected:?} pending_auth={pending:?} authenticated_count={auth_count}"
+        );
+    }
+}
+
+/// When a new client connects, add ReplicationSender so lightyear can replicate
+/// entities to this client, and mark as pending authentication.
 fn handle_new_connection(trigger: On<Add, Connected>, mut commands: Commands) {
     let client_entity = trigger.entity;
-    tracing::info!("new game client connected (pending auth): {client_entity:?}");
-    commands.entity(client_entity).insert(PendingAuth);
+    tracing::info!(
+        "[gameserver] NEW CLIENT — entity {client_entity:?} connected, inserting PendingAuth + ReplicationSender"
+    );
+    commands.entity(client_entity).insert((
+        PendingAuth,
+        ReplicationSender::new(
+            REPLICATION_SEND_INTERVAL,
+            SendUpdatesMode::SinceLastAck,
+            false,
+        ),
+    ));
+    tracing::info!(
+        "[gameserver] ReplicationSender inserted for {client_entity:?} (interval={REPLICATION_SEND_INTERVAL:?})"
+    );
 }
 
 /// Check for AuthMessage from connected clients and validate their JWT.
@@ -135,6 +410,8 @@ fn process_auth_messages(
     mut commands: Commands,
     jwt_secret: Res<JwtSecret>,
     mut authenticated: ResMut<AuthenticatedClients>,
+    mut client_player_map: ResMut<ClientPlayerMap>,
+    profile_tx: Res<ProfileBridgeTx>,
     mut query: Query<
         (
             Entity,
@@ -150,13 +427,25 @@ fn process_auth_messages(
                 tracing::warn!(
                     "SUPABASE_JWT_SECRET not set — skipping JWT validation for {entity:?}"
                 );
+                // Anonymous: use counter-based ID (unique per session)
+                let anon_idx = PLAYER_COUNTER.load(std::sync::atomic::Ordering::Relaxed);
+                let anon_user_id = format!("anon_{anon_idx}");
+                let player_id = user_id_to_player_id(&anon_user_id);
+                let player_entity = spawn_player(&mut commands, player_id);
                 sender.send::<GameChannel>(AuthResponse {
                     success: true,
-                    user_id: "anonymous".to_string(),
+                    user_id: anon_user_id.clone(),
+                    player_id,
                 });
                 commands.entity(entity).remove::<PendingAuth>();
-                authenticated.0.insert(entity, "anonymous".to_string());
-                spawn_player(&mut commands, entity);
+                authenticated.0.insert(entity, anon_user_id.clone());
+                client_player_map.0.insert(entity, player_entity);
+
+                // Kick off async username lookup
+                let _ = profile_tx.0.send(ProfileRequest::LookupUsername {
+                    player_entity,
+                    user_id: anon_user_id,
+                });
                 continue;
             }
 
@@ -164,19 +453,29 @@ fn process_auth_messages(
                 Ok(token_data) => {
                     let user_id = token_data.claims.sub.clone();
                     tracing::info!("client {entity:?} authenticated as user {user_id}");
+                    let player_id = user_id_to_player_id(&user_id);
+                    let player_entity = spawn_player(&mut commands, player_id);
                     sender.send::<GameChannel>(AuthResponse {
                         success: true,
                         user_id: user_id.clone(),
+                        player_id,
                     });
                     commands.entity(entity).remove::<PendingAuth>();
-                    authenticated.0.insert(entity, user_id);
-                    spawn_player(&mut commands, entity);
+                    authenticated.0.insert(entity, user_id.clone());
+                    client_player_map.0.insert(entity, player_entity);
+
+                    // Kick off async username lookup
+                    let _ = profile_tx.0.send(ProfileRequest::LookupUsername {
+                        player_entity,
+                        user_id,
+                    });
                 }
                 Err(e) => {
                     tracing::warn!("client {entity:?} auth failed: {e}");
                     sender.send::<GameChannel>(AuthResponse {
                         success: false,
                         user_id: String::new(),
+                        player_id: 0,
                     });
                 }
             }
@@ -184,29 +483,325 @@ fn process_auth_messages(
     }
 }
 
-/// Spawn a player entity for an authenticated client.
-fn spawn_player(commands: &mut Commands, client_entity: Entity) {
-    commands.spawn((
-        bevy_kbve_net::PlayerId(client_entity.to_bits()),
-        bevy_kbve_net::PlayerColor(Color::srgb(0.2, 0.4, 0.8)),
-        Transform::from_xyz(2.0, 2.0, 2.0),
-        RigidBody::Kinematic,
-        Position::default(),
-        Rotation::default(),
-        LinearVelocity::default(),
-        Collider::cuboid(0.6, 1.2, 0.6),
-    ));
+/// Counter for assigning spread-out spawn positions.
+static PLAYER_COUNTER: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
+
+/// Player colors for distinguishing remote players.
+const PLAYER_COLORS: &[(f32, f32, f32)] = &[
+    (0.2, 0.4, 0.8), // blue
+    (0.8, 0.2, 0.2), // red
+    (0.2, 0.8, 0.3), // green
+    (0.8, 0.6, 0.1), // orange
+    (0.6, 0.2, 0.8), // purple
+    (0.1, 0.8, 0.8), // cyan
+];
+
+/// Derive a stable player ID from a user identity string.
+/// Uses FNV-1a hash to produce a deterministic u64 from the user_id.
+fn user_id_to_player_id(user_id: &str) -> u64 {
+    let mut hash: u64 = 0xcbf29ce484222325; // FNV offset basis
+    for byte in user_id.as_bytes() {
+        hash ^= *byte as u64;
+        hash = hash.wrapping_mul(0x100000001b3); // FNV prime
+    }
+    hash
 }
 
-/// Server-authoritative movement: read inputs from all predicted players and apply physics.
-fn apply_player_inputs(
-    mut query: Query<(&mut Transform, &bevy_kbve_net::PlayerId)>,
-    // TODO: read lightyear ActionState<PlayerInput> from connected clients
-    // and apply movement here
+/// Spawn a player entity for an authenticated client, marked for replication.
+/// `player_id` is derived from the user's identity (stable across reconnects).
+fn spawn_player(commands: &mut Commands, player_id: u64) -> Entity {
+    let idx = PLAYER_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+
+    // Spread players apart so they don't collide on spawn
+    let offset_x = (idx as f32) * 2.0;
+    let spawn_x = 2.0 + offset_x;
+    let spawn_y = 2.0;
+    let spawn_z = 2.0;
+
+    let (r, g, b) = PLAYER_COLORS[idx as usize % PLAYER_COLORS.len()];
+
+    let player_entity = commands
+        .spawn((
+            bevy_kbve_net::PlayerId(player_id),
+            bevy_kbve_net::PlayerColor(Color::srgb(r, g, b)),
+            bevy_kbve_net::PlayerName(String::new()),
+            bevy_kbve_net::PlayerVitals::default(),
+            Transform::from_xyz(spawn_x, spawn_y, spawn_z),
+            RigidBody::Kinematic,
+            Position(Vec3::new(spawn_x, spawn_y, spawn_z)),
+            Rotation::default(),
+            LinearVelocity::default(),
+            Collider::cuboid(0.6, 1.2, 0.6),
+            // Mark for lightyear replication to all connected clients
+            Replicate::to_clients(NetworkTarget::All),
+        ))
+        .id();
+
+    tracing::info!(
+        "spawned player entity {player_entity:?} (player_id={player_id}) at ({spawn_x}, {spawn_y}, {spawn_z})"
+    );
+
+    player_entity
+}
+
+/// Receive PositionUpdate messages from authenticated clients and apply to their player entities.
+fn process_position_updates(
+    client_player_map: Res<ClientPlayerMap>,
+    mut receivers: Query<(Entity, &mut MessageReceiver<PositionUpdate>), Without<PendingAuth>>,
+    mut positions: Query<&mut Position>,
 ) {
-    for (_transform, _id) in &mut query {
-        // Phase 3 stub: server reads buffered inputs from lightyear and
-        // applies the shared movement logic. Full implementation comes when
-        // client input buffering is wired up.
+    for (client_entity, mut receiver) in &mut receivers {
+        for msg in receiver.receive() {
+            if let Some(&player_entity) = client_player_map.0.get(&client_entity) {
+                if let Ok(mut pos) = positions.get_mut(player_entity) {
+                    pos.0 = Vec3::new(msg.x, msg.y, msg.z);
+                }
+            }
+        }
+    }
+}
+
+/// Process damage events from clients and apply to their PlayerVitals.
+fn process_damage_events(
+    client_player_map: Res<ClientPlayerMap>,
+    mut receivers: Query<(Entity, &mut MessageReceiver<DamageEvent>), Without<PendingAuth>>,
+    mut vitals: Query<&mut bevy_kbve_net::PlayerVitals>,
+) {
+    for (client_entity, mut receiver) in &mut receivers {
+        for msg in receiver.receive() {
+            if let Some(&player_entity) = client_player_map.0.get(&client_entity) {
+                if let Ok(mut v) = vitals.get_mut(player_entity) {
+                    let old_hp = v.health;
+                    v.health = (v.health - msg.amount).max(0.0);
+                    tracing::info!(
+                        "[gameserver] damage applied to {player_entity:?}: {:.1} → {:.1} (source={:?})",
+                        old_hp,
+                        v.health,
+                        msg.source
+                    );
+                }
+            }
+        }
+    }
+}
+
+/// Process collect requests: validate proximity + object existence, track removal, broadcast.
+fn process_collect_requests(
+    time: Res<Time>,
+    client_player_map: Res<ClientPlayerMap>,
+    mut collected: ResMut<CollectedObjects>,
+    mut receivers: Query<(Entity, &mut MessageReceiver<CollectRequest>), Without<PendingAuth>>,
+    positions: Query<&Position>,
+    player_ids: Query<&bevy_kbve_net::PlayerId>,
+    mut senders: Query<&mut MessageSender<ObjectRemoved>, With<Connected>>,
+) {
+    for (client_entity, mut receiver) in &mut receivers {
+        for msg in receiver.receive() {
+            let tile = msg.tile;
+
+            // Already collected?
+            if collected.0.contains_key(&tile) {
+                continue;
+            }
+
+            // Verify an object actually exists at this tile
+            let Some(kind) = bevy_kbve_net::object_at_tile(tile.tx, tile.tz) else {
+                tracing::warn!(
+                    "[gameserver] no object at tile ({},{}) — ignoring collect",
+                    tile.tx,
+                    tile.tz
+                );
+                continue;
+            };
+
+            // Proximity check: player must be near the tile
+            if let Some(&player_entity) = client_player_map.0.get(&client_entity) {
+                if let Ok(pos) = positions.get(player_entity) {
+                    let tile_world = Vec3::new(tile.tx as f32, pos.0.y, tile.tz as f32);
+                    let dist = (pos.0 - tile_world).length();
+                    if dist > MAX_COLLECT_DISTANCE {
+                        tracing::warn!(
+                            "[gameserver] player too far ({dist:.1}) from tile ({},{}) — ignoring collect",
+                            tile.tx,
+                            tile.tz
+                        );
+                        continue;
+                    }
+                }
+            }
+
+            // Track the collection with current elapsed time
+            collected.0.insert(tile, time.elapsed_secs_f64());
+            tracing::info!(
+                "[gameserver] object collected: {kind:?} at ({},{})",
+                tile.tx,
+                tile.tz
+            );
+
+            // Broadcast ObjectRemoved to all connected clients
+            let collector_id = client_player_map
+                .0
+                .get(&client_entity)
+                .and_then(|&pe| player_ids.get(pe).ok())
+                .map(|pid| pid.0)
+                .unwrap_or(0);
+            let removal = ObjectRemoved {
+                tile,
+                kind,
+                collector_id,
+            };
+            for mut sender in &mut senders {
+                sender.send::<bevy_kbve_net::GameChannel>(removal.clone());
+            }
+        }
+    }
+}
+
+/// Periodically check for collected objects whose respawn cooldown has elapsed.
+fn tick_respawns(
+    time: Res<Time>,
+    mut collected: ResMut<CollectedObjects>,
+    mut senders: Query<&mut MessageSender<ObjectRespawned>, With<Connected>>,
+) {
+    let now = time.elapsed_secs_f64();
+    let mut respawned = Vec::new();
+
+    for (&tile, &collected_at) in collected.0.iter() {
+        if now - collected_at >= RESPAWN_COOLDOWN_SECS {
+            respawned.push(tile);
+        }
+    }
+
+    for tile in respawned {
+        collected.0.remove(&tile);
+
+        if let Some(kind) = bevy_kbve_net::object_at_tile(tile.tx, tile.tz) {
+            tracing::info!(
+                "[gameserver] object respawned: {kind:?} at ({},{})",
+                tile.tx,
+                tile.tz
+            );
+
+            let msg = ObjectRespawned { tile, kind };
+            for mut sender in &mut senders {
+                sender.send::<bevy_kbve_net::GameChannel>(msg.clone());
+            }
+        }
+    }
+}
+
+/// When a new client authenticates, send them all currently collected objects
+/// so they know which ones to skip when loading chunks.
+fn send_collected_state_to_new_clients(
+    authenticated: Res<AuthenticatedClients>,
+    collected: Res<CollectedObjects>,
+    mut senders: Query<(Entity, &mut MessageSender<ObjectRemoved>), Added<ReplicationSender>>,
+) {
+    if collected.0.is_empty() {
+        return;
+    }
+
+    for (entity, mut sender) in &mut senders {
+        if !authenticated.0.contains_key(&entity) {
+            continue;
+        }
+
+        tracing::info!(
+            "[gameserver] sending {} collected objects to new client {entity:?}",
+            collected.0.len()
+        );
+
+        for &tile in collected.0.keys() {
+            if let Some(kind) = bevy_kbve_net::object_at_tile(tile.tx, tile.tz) {
+                // collector_id=0 for catch-up messages — new client just skips spawning,
+                // no loot is granted.
+                sender.send::<bevy_kbve_net::GameChannel>(ObjectRemoved {
+                    tile,
+                    kind,
+                    collector_id: 0,
+                });
+            }
+        }
+    }
+}
+
+/// Poll the profile bridge receiver for completed username lookups / set-username results.
+fn process_profile_responses(
+    bridge_rx: Res<ProfileBridgeRx>,
+    mut names: Query<&mut PlayerName>,
+    mut senders: Query<&mut MessageSender<SetUsernameResponse>>,
+) {
+    let rx = bridge_rx.0.lock().unwrap();
+    while let Ok(resp) = rx.try_recv() {
+        match resp {
+            ProfileResponse::Username {
+                player_entity,
+                username,
+            } => {
+                if let Ok(mut name) = names.get_mut(player_entity) {
+                    tracing::info!(
+                        "[gameserver] setting PlayerName for {player_entity:?} to '{username}'"
+                    );
+                    name.0 = username;
+                }
+            }
+            ProfileResponse::SetUsernameResult {
+                client_entity,
+                player_entity,
+                success,
+                username,
+                error,
+            } => {
+                // Update the replicated PlayerName component on success
+                if success {
+                    if let Ok(mut name) = names.get_mut(player_entity) {
+                        name.0 = username.clone();
+                    }
+                }
+
+                // Send response message to the requesting client
+                if let Ok(mut sender) = senders.get_mut(client_entity) {
+                    sender.send::<GameChannel>(SetUsernameResponse {
+                        success,
+                        username,
+                        error,
+                    });
+                }
+            }
+        }
+    }
+}
+
+/// Process SetUsernameRequest messages from clients.
+fn process_set_username_requests(
+    client_player_map: Res<ClientPlayerMap>,
+    authenticated: Res<AuthenticatedClients>,
+    profile_tx: Res<ProfileBridgeTx>,
+    mut receivers: Query<
+        (Entity, &mut MessageReceiver<SetUsernameRequest>),
+        Without<PendingAuth>,
+    >,
+) {
+    for (client_entity, mut receiver) in &mut receivers {
+        for msg in receiver.receive() {
+            let Some(&player_entity) = client_player_map.0.get(&client_entity) else {
+                continue;
+            };
+            let Some(user_id) = authenticated.0.get(&client_entity) else {
+                continue;
+            };
+
+            tracing::info!(
+                "[gameserver] set-username request from {client_entity:?}: '{}'",
+                msg.username
+            );
+
+            let _ = profile_tx.0.send(ProfileRequest::SetUsername {
+                client_entity,
+                player_entity,
+                user_id: user_id.clone(),
+                username: msg.username,
+            });
+        }
     }
 }

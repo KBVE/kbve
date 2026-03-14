@@ -5,7 +5,11 @@ use bevy::shader::ShaderRef;
 use std::f32::consts::PI;
 
 use super::inventory::{ItemKind, LootEvent};
-use super::scene_objects::{FlowerArchetype, HoverOutline, Interactable, MushroomKind, RockKind};
+use super::scene_objects::{
+    CollectEvent, FlowerArchetype, HoverOutline, Interactable, InteractableKind, MushroomKind,
+    RockKind,
+};
+use super::tilemap::TileCoord;
 
 // ── Action dispatch buffer ──────────────────────────────────────────────
 
@@ -116,31 +120,31 @@ impl Material for SmokeMaterial {
 // ── Components ──────────────────────────────────────────────────────────
 
 #[derive(Component)]
-struct ChoppingTree {
-    timer: Timer,
-    fall_axis: Vec3,
-    original_rotation: Quat,
-    smoke_spawned: bool,
-    loot_dropped: bool,
+pub struct ChoppingTree {
+    pub timer: Timer,
+    pub fall_axis: Vec3,
+    pub original_rotation: Quat,
+    pub smoke_spawned: bool,
+    pub loot_dropped: bool,
 }
 
 #[derive(Component)]
-struct MiningRock {
-    timer: Timer,
-    original_translation: Vec3,
-    original_scale: Vec3,
-    smoke_spawned: bool,
-    loot_dropped: bool,
-    loot_item: ItemKind,
+pub struct MiningRock {
+    pub timer: Timer,
+    pub original_translation: Vec3,
+    pub original_scale: Vec3,
+    pub smoke_spawned: bool,
+    pub loot_dropped: bool,
+    pub loot_item: ItemKind,
 }
 
 /// Shared collection component for flowers and mushrooms — quick shrink + poof.
 #[derive(Component)]
-struct CollectingForageable {
-    timer: Timer,
-    original_scale: Vec3,
-    loot_dropped: bool,
-    loot_item: ItemKind,
+pub struct CollectingForageable {
+    pub timer: Timer,
+    pub original_scale: Vec3,
+    pub loot_dropped: bool,
+    pub loot_item: ItemKind,
 }
 
 #[derive(Component)]
@@ -177,10 +181,30 @@ fn process_action_buffer(
     rock_query: Query<&RockKind>,
     flower_query: Query<&FlowerArchetype>,
     mushroom_query: Query<&MushroomKind>,
+    tile_query: Query<&TileCoord>,
 ) {
     let actions = drain_actions();
     for req in actions {
         let entity = Entity::from_bits(req.entity_id);
+
+        // Notify the server via CollectEvent so the net layer sends CollectRequest.
+        // Must happen before get_entity() borrows commands mutably.
+        let collect_kind = match req.action.as_str() {
+            "chop_tree" => Some(InteractableKind::Tree),
+            "mine_rock" => Some(InteractableKind::Rock),
+            "collect_flower" => Some(InteractableKind::Flower),
+            "collect_mushroom" => Some(InteractableKind::Mushroom),
+            _ => None,
+        };
+        if let Some(kind) = collect_kind {
+            if let Ok(coord) = tile_query.get(entity) {
+                commands.trigger(CollectEvent {
+                    tx: coord.tx,
+                    tz: coord.tz,
+                    kind,
+                });
+            }
+        }
 
         let Ok(mut ec) = commands.get_entity(entity) else {
             continue;
@@ -201,7 +225,7 @@ fn process_action_buffer(
                     fall_axis,
                     original_rotation: Quat::IDENTITY,
                     smoke_spawned: false,
-                    loot_dropped: false,
+                    loot_dropped: true, // server confirms loot via ObjectRemoved
                 });
             }
             "mine_rock" => {
@@ -222,7 +246,7 @@ fn process_action_buffer(
                     original_translation: Vec3::ZERO,
                     original_scale: Vec3::ONE,
                     smoke_spawned: false,
-                    loot_dropped: false,
+                    loot_dropped: true, // server confirms loot via ObjectRemoved
                     loot_item,
                 });
             }
@@ -242,7 +266,7 @@ fn process_action_buffer(
                 ec.insert(CollectingForageable {
                     timer: Timer::from_seconds(0.5, TimerMode::Once),
                     original_scale: Vec3::ONE,
-                    loot_dropped: false,
+                    loot_dropped: true, // server confirms loot via ObjectRemoved
                     loot_item,
                 });
             }
@@ -262,7 +286,7 @@ fn process_action_buffer(
                 ec.insert(CollectingForageable {
                     timer: Timer::from_seconds(0.5, TimerMode::Once),
                     original_scale: Vec3::ONE,
-                    loot_dropped: false,
+                    loot_dropped: true, // server confirms loot via ObjectRemoved
                     loot_item,
                 });
             }

@@ -1136,6 +1136,159 @@ Focus on items with clear processing chains and market flip potential.
 | 395 | Raw sea turtle | Trawler minigame, members  |
 | 397 | Sea turtle     | 21 HP, 82 Cooking, members |
 
+### Dart Tips (Implemented - Mar 2026)
+
+| ID  | Item             | Notes                     |
+| --- | ---------------- | ------------------------- |
+| 819 | Bronze dart tip  | 4 Smithing, 1 Fletching   |
+| 820 | Iron dart tip    | 19 Smithing, 22 Fletching |
+| 821 | Steel dart tip   | 34 Smithing, 37 Fletching |
+| 822 | Mithril dart tip | 54 Smithing, 52 Fletching |
+| 823 | Adamant dart tip | 74 Smithing, 67 Fletching |
+| 824 | Rune dart tip    | 89 Smithing, 81 Fletching |
+
+### Javelins & Poisoned Javelins (Implemented - Mar 2026)
+
+| ID  | Item                | Notes                     |
+| --- | ------------------- | ------------------------- |
+| 825 | Bronze javelin      | No req, +25 ranged str    |
+| 826 | Iron javelin        | 1 Ranged, +32 ranged str  |
+| 827 | Steel javelin       | 5 Ranged, +40 ranged str  |
+| 828 | Mithril javelin     | 20 Ranged, +49 ranged str |
+| 829 | Adamant javelin     | 30 Ranged, +59 ranged str |
+| 831 | Bronze javelin (p)  | Poisoned, no req          |
+| 832 | Iron javelin (p)    | Poisoned, 1 Ranged        |
+| 833 | Steel javelin (p)   | Poisoned, 5 Ranged        |
+| 834 | Mithril javelin (p) | Poisoned, 20 Ranged       |
+| 835 | Adamant javelin (p) | Poisoned, 30 Ranged       |
+| 836 | Rune javelin (p)    | Poisoned, 40 Ranged       |
+
+### Poisoned Knives (Implemented - Mar 2026)
+
+| ID  | Item              | Notes                    |
+| --- | ----------------- | ------------------------ |
+| 869 | Black knife       | 10 Ranged, +8 ranged str |
+| 870 | Bronze knife (p)  | No req, basic poison     |
+| 871 | Iron knife (p)    | 1 Ranged, basic poison   |
+| 872 | Steel knife (p)   | 5 Ranged, basic poison   |
+| 873 | Mithril knife (p) | 20 Ranged, basic poison  |
+| 874 | Black knife (p)   | 10 Ranged, basic poison  |
+| 875 | Adamant knife (p) | 30 Ranged, basic poison  |
+| 876 | Rune knife (p)    | 40 Ranged, basic poison  |
+
+### Bolts & Poisoned Arrows (Implemented - Mar 2026)
+
+| ID  | Item              | Notes                       |
+| --- | ----------------- | --------------------------- |
+| 837 | Crossbow          | 1 Ranged, +6 ranged, F2P    |
+| 878 | Bronze bolts (p)  | Poisoned, +10 ranged str    |
+| 879 | Opal bolts        | +14 ranged str, enchantable |
+| 880 | Pearl bolts       | +48 ranged str, enchantable |
+| 881 | Barbed bolts      | +12, Ranging Guild only     |
+| 883 | Bronze arrow (p)  | Poisoned, +7 ranged str     |
+| 885 | Iron arrow (p)    | Poisoned, +10 ranged str    |
+| 887 | Steel arrow (p)   | Poisoned, +16 ranged str    |
+| 889 | Mithril arrow (p) | Poisoned, +22 ranged str    |
+| 891 | Adamant arrow (p) | Poisoned, +31 ranged str    |
+| 893 | Rune arrow (p)    | Poisoned, +49 ranged str    |
+
+### General Utility & Misc Items (Implemented - Mar 2026)
+
+| ID  | Item              | Notes                          |
+| --- | ----------------- | ------------------------------ |
+| 946 | Knife             | Fletching/Crafting tool, F2P   |
+| 948 | Bear fur          | Crafting material, F2P         |
+| 950 | Silk              | 20 Thieving to steal, F2P      |
+| 952 | Spade             | Farming/clue tool, F2P         |
+| 954 | Rope              | Quest essential, F2P           |
+| 958 | Grey wolf fur     | Crafting material, members     |
+| 962 | Christmas cracker | Holiday item, tradeable        |
+| 970 | Papyrus           | Used with charcoal, members    |
+| 973 | Charcoal          | Used with papyrus, members     |
+| 975 | Machete           | Jungle cutting tool, members   |
+| 981 | Disk of returning | Dwarven Mine teleport, members |
+| 983 | Brass key         | Edgeville Dungeon access, F2P  |
+
+### Fishing Misc & Oysters (Implemented - Mar 2026)
+
+| ID  | Item           | Notes                          |
+| --- | -------------- | ------------------------------ |
+| 403 | Edible seaweed | 4 HP heal, soda ash ingredient |
+| 405 | Casket         | Big net fishing loot           |
+| 407 | Oyster         | Big net fishing, pearls inside |
+| 411 | Oyster pearl   | Crafting ingredient            |
+| 413 | Oyster pearls  | Crafting ingredient            |
+
+### Prayer/Religious Gear (Implemented - Mar 2026)
+
+| ID  | Item                 | Notes                   |
+| --- | -------------------- | ----------------------- |
+| 426 | Priest gown (top)    | +3 Prayer, F2P          |
+| 428 | Priest gown (bottom) | +3 Prayer, F2P          |
+| 528 | Burnt bones          | 4.5 Prayer XP           |
+| 530 | Bat bones            | 5.3 Prayer XP, F2P      |
+| 534 | Babydragon bones     | 30 Prayer XP, members   |
+| 538 | Druid's robe         | +4 Prayer legs, members |
+| 540 | Druid's robe top     | +4 Prayer body, members |
+
+### Misc Utility & Quest Items (Implemented - Mar 2026)
+
+| ID  | Item           | Notes                 |
+| --- | -------------- | --------------------- |
+| 464 | Strange fruit  | Cures poison, 30% run |
+| 581 | Black robe     | Cosmetic body, F2P    |
+| 590 | Tinderbox      | Firemaking tool, F2P  |
+| 592 | Ashes          | Fire byproduct, F2P   |
+| 596 | Unlit torch    | Light source, F2P     |
+| 621 | Ship ticket    | Port Sarim to Karamja |
+| 751 | Gnomeball      | Gnomeball minigame    |
+| 753 | Cadava berries | Quest item, F2P       |
+
+### Gnome Clothing Sets (Implemented - Mar 2026)
+
+| ID  | Item                   | Notes              |
+| --- | ---------------------- | ------------------ |
+| 626 | Pink boots             | Gnome set, members |
+| 628 | Green boots            | Gnome set, members |
+| 630 | Blue boots             | Gnome set, members |
+| 632 | Cream boots            | Gnome set, members |
+| 634 | Turquoise boots        | Gnome set, members |
+| 636 | Pink robe top          | Gnome set, members |
+| 638 | Green robe top         | Gnome set, members |
+| 640 | Blue robe top          | Gnome set, members |
+| 642 | Cream robe top         | Gnome set, members |
+| 644 | Turquoise robe top     | Gnome set, members |
+| 646 | Pink robe bottoms      | Gnome set, members |
+| 648 | Green robe bottoms     | Gnome set, members |
+| 650 | Blue robe bottoms      | Gnome set, members |
+| 652 | Cream robe bottoms     | Gnome set, members |
+| 654 | Turquoise robe bottoms | Gnome set, members |
+| 656 | Pink hat               | Gnome set, members |
+| 658 | Green hat              | Gnome set, members |
+| 660 | Blue hat               | Gnome set, members |
+| 662 | Cream hat              | Gnome set, members |
+| 664 | Turquoise hat          | Gnome set, members |
+
+### Thrownaxes (Implemented - Mar 2026)
+
+| ID  | Item              | Notes                     |
+| --- | ----------------- | ------------------------- |
+| 800 | Bronze thrownaxe  | No req, +5 ranged str     |
+| 801 | Iron thrownaxe    | 1 Ranged, +7 ranged str   |
+| 802 | Steel thrownaxe   | 5 Ranged, +11 ranged str  |
+| 803 | Mithril thrownaxe | 20 Ranged, +16 ranged str |
+| 804 | Adamant thrownaxe | 30 Ranged, +23 ranged str |
+| 805 | Rune thrownaxe    | 40 Ranged, +36 ranged str |
+
+### Poisoned Darts (Implemented - Mar 2026)
+
+| ID  | Item             | Notes                   |
+| --- | ---------------- | ----------------------- |
+| 812 | Bronze dart (p)  | No req, basic poison    |
+| 813 | Iron dart (p)    | 1 Ranged, basic poison  |
+| 814 | Steel dart (p)   | 5 Ranged, basic poison  |
+| 815 | Mithril dart (p) | 20 Ranged, basic poison |
+
 ---
 
 ## Future Override Priorities
@@ -1739,6 +1892,8 @@ Record batch completions here:
 | Mar 13, 2026 | +50 items (rune/steel/black trimmed, monk robes, heraldic, misc) | ~1131           |
 | Mar 13, 2026 | +50 items (cannon parts, fletching supplies, potions)            | ~1181           |
 | Mar 13, 2026 | +50 items (potions, herbs, fishing equipment, fish)              | ~1231           |
+| Mar 13, 2026 | +50 items (gnome clothes, thrownaxes, darts, bones, misc)        | ~1281           |
+| Mar 13, 2026 | +50 items (javelins, knives, arrows, bolts, dart tips, utility)  | ~1331           |
 
 ### Quick Stats
 

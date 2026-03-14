@@ -5,6 +5,12 @@
 
 pub mod inputs;
 pub mod protocol;
+pub mod worldgen;
 
 pub use inputs::PlayerInput;
-pub use protocol::{AuthMessage, AuthResponse, GameChannel, PlayerColor, PlayerId, ProtocolPlugin};
+pub use protocol::{
+    AuthMessage, AuthResponse, CollectRequest, DamageEvent, DamageSource, GameChannel,
+    ObjectRemoved, ObjectRespawned, PlayerColor, PlayerId, PlayerName, PlayerVitals,
+    PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse,
+};
+pub use worldgen::{TileKey, WorldObjectKind, hash2d, object_at_tile};
