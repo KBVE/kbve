@@ -9,6 +9,8 @@ use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
 
+use super::ensure_https;
+
 const TWITCH_API_BASE: &str = "https://api.twitch.tv/helix";
 const TWITCH_OAUTH_URL: &str = "https://id.twitch.tv/oauth2/token";
 // Refresh token 1 hour before expiry to be safe
@@ -216,10 +218,11 @@ impl TwitchClient {
     pub async fn get_user_by_id(&self, user_id: &str) -> Result<Option<TwitchUser>, String> {
         let token = self.get_token().await?;
         let url = format!("{}/users?id={}", TWITCH_API_BASE, user_id);
+        let url = ensure_https(&url)?;
 
         let response = self
             .client
-            .get(&url)
+            .get(url)
             .header("Authorization", format!("Bearer {}", token))
             .header("Client-Id", &self.config.client_id)
             .send()
@@ -260,10 +263,11 @@ impl TwitchClient {
     ) -> Result<Option<TwitchStream>, String> {
         let token = self.get_token().await?;
         let url = format!("{}/streams?user_id={}", TWITCH_API_BASE, user_id);
+        let url = ensure_https(&url)?;
 
         let response = self
             .client
-            .get(&url)
+            .get(url)
             .header("Authorization", format!("Bearer {}", token))
             .header("Client-Id", &self.config.client_id)
             .send()
