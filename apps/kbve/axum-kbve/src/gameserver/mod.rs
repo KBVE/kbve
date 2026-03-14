@@ -457,7 +457,16 @@ fn process_collect_requests(
             );
 
             // Broadcast ObjectRemoved to all connected clients
-            let removal = ObjectRemoved { tile, kind };
+            let collector_id = client_player_map
+                .0
+                .get(&client_entity)
+                .map(|e| e.to_bits())
+                .unwrap_or(0);
+            let removal = ObjectRemoved {
+                tile,
+                kind,
+                collector_id,
+            };
             for mut sender in &mut senders {
                 sender.send::<bevy_kbve_net::GameChannel>(removal.clone());
             }
@@ -521,7 +530,13 @@ fn send_collected_state_to_new_clients(
 
         for &tile in collected.0.keys() {
             if let Some(kind) = bevy_kbve_net::object_at_tile(tile.tx, tile.tz) {
-                sender.send::<bevy_kbve_net::GameChannel>(ObjectRemoved { tile, kind });
+                // collector_id=0 for catch-up messages — new client just skips spawning,
+                // no loot is granted.
+                sender.send::<bevy_kbve_net::GameChannel>(ObjectRemoved {
+                    tile,
+                    kind,
+                    collector_id: 0,
+                });
             }
         }
     }

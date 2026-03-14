@@ -225,7 +225,7 @@ fn process_action_buffer(
                     fall_axis,
                     original_rotation: Quat::IDENTITY,
                     smoke_spawned: false,
-                    loot_dropped: false,
+                    loot_dropped: true, // server confirms loot via ObjectRemoved
                 });
             }
             "mine_rock" => {
@@ -246,7 +246,7 @@ fn process_action_buffer(
                     original_translation: Vec3::ZERO,
                     original_scale: Vec3::ONE,
                     smoke_spawned: false,
-                    loot_dropped: false,
+                    loot_dropped: true, // server confirms loot via ObjectRemoved
                     loot_item,
                 });
             }
@@ -266,7 +266,7 @@ fn process_action_buffer(
                 ec.insert(CollectingForageable {
                     timer: Timer::from_seconds(0.5, TimerMode::Once),
                     original_scale: Vec3::ONE,
-                    loot_dropped: false,
+                    loot_dropped: true, // server confirms loot via ObjectRemoved
                     loot_item,
                 });
             }
@@ -286,7 +286,7 @@ fn process_action_buffer(
                 ec.insert(CollectingForageable {
                     timer: Timer::from_seconds(0.5, TimerMode::Once),
                     original_scale: Vec3::ONE,
-                    loot_dropped: false,
+                    loot_dropped: true, // server confirms loot via ObjectRemoved
                     loot_item,
                 });
             }

@@ -23,7 +23,7 @@ use bevy_kbve_net::{
 };
 
 use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
-use super::inventory::ItemKind;
+use super::inventory::{ItemKind, LootEvent};
 use super::player::{FallDamageEvent, Player};
 use super::scene_objects::CollectEvent;
 use super::state::PlayerState;
@@ -159,6 +159,10 @@ impl Plugin for NetPlugin {
         // Receive ObjectRemoved / ObjectRespawned messages from server
         app.add_systems(Update, receive_object_removed);
         app.add_systems(Update, receive_object_respawned);
+
+        // Immediately hide any replicated entity with PlayerId — prevents
+        // ghost flicker before spawn_remote_player_visuals decides visibility.
+        app.add_observer(hide_new_replicated_player);
 
         // Forward fall damage / collect events to server via observers
         app.add_observer(forward_fall_damage_to_server);
@@ -409,6 +413,16 @@ fn send_position_updates(
 /// Process replicated player entities that haven't been categorised yet.
 /// Defers until `MyPlayerId` is known so we never accidentally spawn a ghost
 /// visual for our own player.
+
+/// Observer: immediately hide any replicated player entity the instant PlayerId
+/// is added. This prevents a visible "ghost" frame before spawn_remote_player_visuals
+/// runs and decides whether to show it or mark it as own.
+fn hide_new_replicated_player(trigger: On<Add, PlayerId>, mut commands: Commands) {
+    let entity = trigger.entity;
+    info!("[net] hiding new replicated player entity {entity:?} until categorised");
+    commands.entity(entity).insert(Visibility::Hidden);
+}
+
 fn spawn_remote_player_visuals(
     mut commands: Commands,
     my_player_id: Res<MyPlayerId>,
@@ -456,6 +470,7 @@ fn spawn_remote_player_visuals(
                 ..default()
             })),
             Transform::from_translation(initial_pos),
+            Visibility::Visible,
             RemotePlayer,
         ));
     }
@@ -531,11 +546,11 @@ fn forward_fall_damage_to_server(
 }
 
 /// Receive ObjectRemoved messages from the server.
-/// Instead of instant despawn, attach the appropriate animation component
-/// (ChoppingTree / MiningRock / CollectingForageable) so the object plays
-/// the same removal animation as a local action — including smoke effects.
+/// For entities not already animating locally, attach the appropriate animation
+/// component. If we are the collector, grant loot (server-confirmed).
 fn receive_object_removed(
     mut commands: Commands,
+    my_player_id: Res<MyPlayerId>,
     mut collected_tiles: ResMut<CollectedTiles>,
     mut query: Query<(Entity, &mut MessageReceiver<ObjectRemoved>)>,
     tile_entities: Query<
@@ -552,6 +567,30 @@ fn receive_object_removed(
             let (tx, tz) = (msg.tile.tx, msg.tile.tz);
             collected_tiles.0.insert((tx, tz));
 
+            let is_mine = my_player_id.0 == Some(msg.collector_id) && msg.collector_id != 0;
+
+            // Grant loot to the collecting player (server-confirmed)
+            if is_mine {
+                let (kind, qty) = match msg.kind {
+                    bevy_kbve_net::WorldObjectKind::Tree => (ItemKind::Log, 1),
+                    bevy_kbve_net::WorldObjectKind::Rock => (ItemKind::Stone, 1),
+                    bevy_kbve_net::WorldObjectKind::Flower => (ItemKind::Wildflower, 1),
+                    bevy_kbve_net::WorldObjectKind::Mushroom => (ItemKind::Porcini, 1),
+                };
+                commands.trigger(LootEvent {
+                    kind,
+                    quantity: qty,
+                });
+                info!(
+                    "[net] server confirmed loot: {:?} x{qty} at ({tx},{tz})",
+                    kind
+                );
+            }
+
+            // Start removal animation for entities not already animating.
+            // If we started a local animation (via action button), the
+            // Without<ChoppingTree/MiningRock/CollectingForageable> filter
+            // skips it automatically.
             for (obj_entity, coord) in &tile_entities {
                 if coord.tx == tx && coord.tz == tz {
                     info!("[net] animating removal at ({tx},{tz}) — {:?}", msg.kind);
@@ -564,9 +603,7 @@ fn receive_object_removed(
                         super::scene_objects::HoverOutline,
                     )>();
 
-                    // Insert the matching animation component — the existing
-                    // systems in actions.rs handle the animation + smoke + despawn.
-                    // loot_dropped=true so remote removals don't grant local loot.
+                    // Insert animation — loot_dropped=true since loot is handled above
                     match msg.kind {
                         bevy_kbve_net::WorldObjectKind::Tree => {
                             let angle = (tx as f32 * 1.618 + tz as f32 * 2.71)

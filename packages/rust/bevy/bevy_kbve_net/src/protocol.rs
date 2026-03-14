@@ -94,6 +94,8 @@ pub struct CollectRequest {
 pub struct ObjectRemoved {
     pub tile: TileKey,
     pub kind: WorldObjectKind,
+    /// Player ID of the collector — client uses this to grant loot only to the right player.
+    pub collector_id: u64,
 }
 
 /// Server broadcasts that a previously collected object has respawned.
