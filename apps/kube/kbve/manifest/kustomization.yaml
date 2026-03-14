@@ -6,5 +6,6 @@ resources:
     - kbve-serviceaccount.yaml
     - kbve-externalsecret.yaml
     - argocd-auth-sealedsecret.yaml
+    - kbve-internal-ca-cert.yaml
     - kbve-deployment.yaml
     - nginx-ingress.yaml

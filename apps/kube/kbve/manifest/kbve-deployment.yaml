@@ -87,6 +87,12 @@ spec:
                             secretKeyRef:
                                 name: argocd-auth
                                 key: argocd-auth-token
+                      - name: ARGOCD_CA_CERT_PATH
+                        value: '/etc/ssl/argocd/ca.crt'
+                  volumeMounts:
+                      - name: argocd-ca
+                        mountPath: /etc/ssl/argocd
+                        readOnly: true
                   resources:
                       requests:
                           memory: '512Mi'
@@ -94,6 +100,13 @@ spec:
                       limits:
                           memory: '1024Mi'
                           cpu: '4000m'
+            volumes:
+                - name: argocd-ca
+                  secret:
+                      secretName: kbve-internal-ca-tls
+                      items:
+                          - key: ca.crt
+                            path: ca.crt
 ---
 apiVersion: v1
 kind: Service
