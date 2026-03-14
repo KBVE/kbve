@@ -502,8 +502,7 @@ fn spawn_remote_player_visuals(
                     ..default()
                 },
                 TextColor(Color::WHITE),
-                Transform::from_translation(Vec3::new(0.0, 1.6, 0.0))
-                    .with_scale(Vec3::splat(0.01)),
+                Transform::from_translation(Vec3::new(0.0, 1.6, 0.0)).with_scale(Vec3::splat(0.01)),
                 PlayerNameLabel,
             ));
     }
@@ -735,7 +734,7 @@ fn update_player_name_labels(
     mut labels: Query<&mut Text2d, With<PlayerNameLabel>>,
 ) {
     for (name, children) in &parents {
-        for &child in children.iter() {
+        for child in children.iter() {
             if let Ok(mut text) = labels.get_mut(child) {
                 *text = Text2d::new(&name.0);
             }
@@ -777,7 +776,9 @@ fn poll_set_username_request(
 
     info!("[net] sending SetUsernameRequest: '{username}'");
     for mut sender in &mut senders {
-        sender.send::<GameChannel>(SetUsernameRequest { username: username.clone() });
+        sender.send::<GameChannel>(SetUsernameRequest {
+            username: username.clone(),
+        });
     }
 }
 
