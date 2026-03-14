@@ -22,6 +22,8 @@ use bevy_kbve_net::{
     ProtocolPlugin, TileKey,
 };
 
+use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
+use super::inventory::ItemKind;
 use super::player::{FallDamageEvent, Player};
 use super::scene_objects::CollectEvent;
 use super::state::PlayerState;
@@ -524,11 +526,21 @@ fn forward_fall_damage_to_server(
 }
 
 /// Receive ObjectRemoved messages from the server.
+/// Instead of instant despawn, attach the appropriate animation component
+/// (ChoppingTree / MiningRock / CollectingForageable) so the object plays
+/// the same removal animation as a local action — including smoke effects.
 fn receive_object_removed(
     mut commands: Commands,
     mut collected_tiles: ResMut<CollectedTiles>,
     mut query: Query<(Entity, &mut MessageReceiver<ObjectRemoved>)>,
-    tile_entities: Query<(Entity, &TileCoord)>,
+    tile_entities: Query<
+        (Entity, &TileCoord),
+        (
+            Without<ChoppingTree>,
+            Without<MiningRock>,
+            Without<CollectingForageable>,
+        ),
+    >,
 ) {
     for (_entity, mut receiver) in &mut query {
         for msg in receiver.receive() {
@@ -537,8 +549,59 @@ fn receive_object_removed(
 
             for (obj_entity, coord) in &tile_entities {
                 if coord.tx == tx && coord.tz == tz {
-                    commands.entity(obj_entity).despawn();
-                    info!("[net] object removed at ({tx},{tz}) — {:?}", msg.kind);
+                    info!("[net] animating removal at ({tx},{tz}) — {:?}", msg.kind);
+
+                    // Strip physics + interactability so it can't be clicked again
+                    commands.entity(obj_entity).remove::<(
+                        avian3d::prelude::RigidBody,
+                        avian3d::prelude::Collider,
+                        super::scene_objects::Interactable,
+                        super::scene_objects::HoverOutline,
+                    )>();
+
+                    // Insert the matching animation component — the existing
+                    // systems in actions.rs handle the animation + smoke + despawn.
+                    // loot_dropped=true so remote removals don't grant local loot.
+                    match msg.kind {
+                        bevy_kbve_net::WorldObjectKind::Tree => {
+                            let angle = (tx as f32 * 1.618 + tz as f32 * 2.71)
+                                % (2.0 * std::f32::consts::PI);
+                            let fall_axis = Vec3::new(angle.cos(), 0.0, angle.sin()).normalize();
+                            commands.entity(obj_entity).insert(ChoppingTree {
+                                timer: Timer::from_seconds(1.0, TimerMode::Once),
+                                fall_axis,
+                                original_rotation: Quat::IDENTITY,
+                                smoke_spawned: false,
+                                loot_dropped: true,
+                            });
+                        }
+                        bevy_kbve_net::WorldObjectKind::Rock => {
+                            commands.entity(obj_entity).insert(MiningRock {
+                                timer: Timer::from_seconds(1.2, TimerMode::Once),
+                                original_translation: Vec3::ZERO,
+                                original_scale: Vec3::ONE,
+                                smoke_spawned: false,
+                                loot_dropped: true,
+                                loot_item: ItemKind::Stone,
+                            });
+                        }
+                        bevy_kbve_net::WorldObjectKind::Flower => {
+                            commands.entity(obj_entity).insert(CollectingForageable {
+                                timer: Timer::from_seconds(0.5, TimerMode::Once),
+                                original_scale: Vec3::ONE,
+                                loot_dropped: true,
+                                loot_item: ItemKind::Wildflower,
+                            });
+                        }
+                        bevy_kbve_net::WorldObjectKind::Mushroom => {
+                            commands.entity(obj_entity).insert(CollectingForageable {
+                                timer: Timer::from_seconds(0.5, TimerMode::Once),
+                                original_scale: Vec3::ONE,
+                                loot_dropped: true,
+                                loot_item: ItemKind::Porcini,
+                            });
+                        }
+                    }
                 }
             }
         }

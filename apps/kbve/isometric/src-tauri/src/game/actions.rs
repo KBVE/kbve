@@ -116,31 +116,31 @@ impl Material for SmokeMaterial {
 // ── Components ──────────────────────────────────────────────────────────
 
 #[derive(Component)]
-struct ChoppingTree {
-    timer: Timer,
-    fall_axis: Vec3,
-    original_rotation: Quat,
-    smoke_spawned: bool,
-    loot_dropped: bool,
+pub struct ChoppingTree {
+    pub timer: Timer,
+    pub fall_axis: Vec3,
+    pub original_rotation: Quat,
+    pub smoke_spawned: bool,
+    pub loot_dropped: bool,
 }
 
 #[derive(Component)]
-struct MiningRock {
-    timer: Timer,
-    original_translation: Vec3,
-    original_scale: Vec3,
-    smoke_spawned: bool,
-    loot_dropped: bool,
-    loot_item: ItemKind,
+pub struct MiningRock {
+    pub timer: Timer,
+    pub original_translation: Vec3,
+    pub original_scale: Vec3,
+    pub smoke_spawned: bool,
+    pub loot_dropped: bool,
+    pub loot_item: ItemKind,
 }
 
 /// Shared collection component for flowers and mushrooms — quick shrink + poof.
 #[derive(Component)]
-struct CollectingForageable {
-    timer: Timer,
-    original_scale: Vec3,
-    loot_dropped: bool,
-    loot_item: ItemKind,
+pub struct CollectingForageable {
+    pub timer: Timer,
+    pub original_scale: Vec3,
+    pub loot_dropped: bool,
+    pub loot_item: ItemKind,
 }
 
 #[derive(Component)]
