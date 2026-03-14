@@ -56,6 +56,24 @@ enum ChoiceConsequenceType {
   CONSEQUENCE_SPAWN_ENEMY    = 7;   // Trigger combat encounter
   CONSEQUENCE_TELEPORT       = 8;   // Move player to location
   CONSEQUENCE_UNLOCK         = 9;   // Unlock area / feature / recipe
+  CONSEQUENCE_SET_FLAG       = 10;  // Set a world-state flag
+  CONSEQUENCE_CLEAR_FLAG     = 11;  // Clear a world-state flag
+  CONSEQUENCE_NPC_DISPOSITION = 12; // Change NPC attitude toward player
+}
+
+// Failure behavior — what happens when a quest or step fails
+enum FailurePolicy {
+  FAILURE_PERMANENT  = 0;   // Cannot retry, quest locked forever
+  FAILURE_RETRY_STEP = 1;   // Restart current step, keep prior progress
+  FAILURE_RETRY_QUEST = 2;  // Restart entire quest from beginning
+  FAILURE_SOFT_FAIL  = 3;   // Mark failed but allow re-acceptance later
+}
+
+// Reward distribution policy for party quests
+enum RewardPolicy {
+  REWARD_INDIVIDUAL = 0;    // Each player gets full rewards independently
+  REWARD_SHARED     = 1;    // Rewards split across party members
+  REWARD_LEADER     = 2;    // Only quest owner / party leader gets rewards
 }
 
 // =============================================================================
@@ -120,6 +138,37 @@ message QuestChoice {
   optional string next_step_id = 7;     // Override: jump to specific step instead of sequential
   repeated string required_item_refs = 8; // Items player must have to pick this choice
   optional string required_class = 9;   // Class restriction (e.g. "rogue", "cleric")
+  optional string outcome_id = 10;      // Which QuestOutcome this choice leads to
+  repeated string set_flags = 11;       // World-state flags set when chosen
+  optional string dialogue_node_ref = 12; // Jump to a dialogue node (in NPC dialogue tree)
+}
+
+// Branching quest outcome — different endings with different rewards/chains
+message QuestOutcome {
+  string id = 1;                        // Unique within quest (e.g. "saved_village", "betrayed")
+  string description = 2;              // Narrative text for this ending
+  optional QuestRewards rewards = 3;   // Rewards specific to this outcome
+  optional string next_quest_ref = 4;  // Chain continues differently per outcome
+  repeated string consequence_flags = 5; // World-state flags set permanently
+  optional string ending_type = 6;     // e.g. "good", "neutral", "evil", "secret"
+  optional bool canonical = 7;         // Is this the "canon" ending for lore purposes
+}
+
+// Dialogue hooks — references into NPC dialogue trees at quest transition points.
+// Dialogue content lives in NPC proto; quests only store entry-point references.
+message QuestDialogueHooks {
+  optional string accept_ref = 1;       // Dialogue node when quest is offered/accepted
+  optional string in_progress_ref = 2;  // Dialogue node while quest is active
+  optional string complete_ref = 3;     // Dialogue node when objectives done, awaiting turn-in
+  optional string turn_in_ref = 4;      // Dialogue node on turn-in / reward claim
+  optional string fail_ref = 5;         // Dialogue node if quest fails
+  optional string abandon_ref = 6;      // Dialogue node if player drops quest
+}
+
+// Repeat reward policy — different rewards on subsequent completions
+message RepeatRewards {
+  optional QuestRewards first_time = 1;  // Full rewards on first completion
+  optional QuestRewards repeat = 2;      // Reduced rewards on subsequent completions
 }
 
 // A quest step — one stage in the quest progression
@@ -127,7 +176,6 @@ message QuestStep {
   string id = 1;                        // Unique within quest
   optional string title = 2;            // Step title (e.g. "Find the missing parts")
   optional string description = 3;      // Narrative text shown to player
-  optional string dialogue = 4;         // NPC dialogue text
   optional string speaker_ref = 5;      // NPC ref who speaks this step
   repeated QuestObjective objectives = 6; // What to do in this step
   repeated QuestChoice choices = 7;     // Branching options (if any)
@@ -135,6 +183,19 @@ message QuestStep {
   optional QuestRewards step_rewards = 9; // Intermediate rewards on step completion
   optional string trigger_on_start = 10; // Event fired when step begins
   optional string trigger_on_complete = 11; // Event fired when step ends
+
+  // Step behavior
+  optional bool parallel = 12;          // Objectives can be done in any order (vs sequential)
+  optional bool auto_complete = 13;     // Step advances automatically when objectives met
+  optional bool hidden = 14;            // Step not shown until previous step completes
+  optional bool skippable = 15;         // Player can skip this step
+
+  // Failure handling
+  optional FailurePolicy failure_policy = 16;
+  optional int32 step_time_limit_secs = 17; // Per-step timeout (independent of quest timeout)
+
+  // Dialogue hooks for this step
+  optional QuestDialogueHooks dialogue_hooks = 18;
 }
 
 // Quest prerequisite — what must be true before quest is available
@@ -221,11 +282,30 @@ message Quest {
   optional int32 recommended_level = 26; // Suggested player level
   optional int32 recommended_party_size = 27; // Suggested party size
 
-  // Rewards (on final completion)
+  // Rewards (on final completion — used when no outcomes defined)
   optional QuestRewards rewards = 28;
+
+  // Branching outcomes — multiple possible endings
+  repeated QuestOutcome outcomes = 33;
+
+  // Repeat reward policy (first-time vs subsequent)
+  optional RepeatRewards repeat_rewards = 34;
+
+  // Reward distribution in party
+  optional RewardPolicy reward_policy = 35;
+
+  // Failure handling (quest-level default, steps can override)
+  optional FailurePolicy failure_policy = 36;
+
+  // Dialogue hooks — references into NPC dialogue trees
+  optional QuestDialogueHooks dialogue_hooks = 37;
 
   // Triggers — event expressions that activate/progress the quest
   repeated string triggers = 29;        // e.g. "player:level:5", "area:kitchen-zone"
+
+  // World-state conditions — flags that must be set/unset for quest availability
+  repeated string required_flags = 38;  // Flags that must be set
+  repeated string blocked_by_flags = 39; // Flags that prevent quest (e.g. "betrayed_village")
 
   // Extensions — game-specific key-value pairs
   repeated QuestExtension extensions = 30;
