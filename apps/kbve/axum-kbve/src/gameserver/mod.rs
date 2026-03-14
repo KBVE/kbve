@@ -277,11 +277,11 @@ fn process_auth_messages(
                 tracing::warn!(
                     "SUPABASE_JWT_SECRET not set — skipping JWT validation for {entity:?}"
                 );
-                let player_entity = spawn_player(&mut commands, entity);
+                let (player_entity, player_id) = spawn_player(&mut commands, entity);
                 sender.send::<GameChannel>(AuthResponse {
                     success: true,
                     user_id: "anonymous".to_string(),
-                    player_id: player_entity.to_bits(),
+                    player_id,
                 });
                 commands.entity(entity).remove::<PendingAuth>();
                 authenticated.0.insert(entity, "anonymous".to_string());
@@ -293,11 +293,11 @@ fn process_auth_messages(
                 Ok(token_data) => {
                     let user_id = token_data.claims.sub.clone();
                     tracing::info!("client {entity:?} authenticated as user {user_id}");
-                    let player_entity = spawn_player(&mut commands, entity);
+                    let (player_entity, player_id) = spawn_player(&mut commands, entity);
                     sender.send::<GameChannel>(AuthResponse {
                         success: true,
                         user_id: user_id.clone(),
-                        player_id: player_entity.to_bits(),
+                        player_id,
                     });
                     commands.entity(entity).remove::<PendingAuth>();
                     authenticated.0.insert(entity, user_id);
@@ -330,8 +330,9 @@ const PLAYER_COLORS: &[(f32, f32, f32)] = &[
 ];
 
 /// Spawn a player entity for an authenticated client, marked for replication.
-fn spawn_player(commands: &mut Commands, client_entity: Entity) -> Entity {
-    let player_id = client_entity.to_bits();
+/// Returns (player_entity, player_id) where player_id = player_entity.to_bits()
+/// so it matches PlayerId.0 and can be sent in AuthResponse.
+fn spawn_player(commands: &mut Commands, _client_entity: Entity) -> (Entity, u64) {
     let idx = PLAYER_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
     // Spread players apart so they don't collide on spawn
@@ -342,13 +343,9 @@ fn spawn_player(commands: &mut Commands, client_entity: Entity) -> Entity {
 
     let (r, g, b) = PLAYER_COLORS[idx as usize % PLAYER_COLORS.len()];
 
-    tracing::info!(
-        "spawning player entity for client {client_entity:?} (player_id={player_id}) at ({spawn_x}, {spawn_y}, {spawn_z})"
-    );
-
-    commands
+    let player_entity = commands
         .spawn((
-            bevy_kbve_net::PlayerId(player_id),
+            // PlayerId is set below after we know the entity ID
             bevy_kbve_net::PlayerColor(Color::srgb(r, g, b)),
             bevy_kbve_net::PlayerVitals::default(),
             Transform::from_xyz(spawn_x, spawn_y, spawn_z),
@@ -360,7 +357,19 @@ fn spawn_player(commands: &mut Commands, client_entity: Entity) -> Entity {
             // Mark for lightyear replication to all connected clients
             Replicate::to_clients(NetworkTarget::All),
         ))
-        .id()
+        .id();
+
+    // Use player_entity.to_bits() so PlayerId matches AuthResponse.player_id
+    let player_id = player_entity.to_bits();
+    commands
+        .entity(player_entity)
+        .insert(bevy_kbve_net::PlayerId(player_id));
+
+    tracing::info!(
+        "spawned player entity {player_entity:?} (player_id={player_id}) at ({spawn_x}, {spawn_y}, {spawn_z})"
+    );
+
+    (player_entity, player_id)
 }
 
 /// Receive PositionUpdate messages from authenticated clients and apply to their player entities.
