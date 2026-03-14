@@ -10,7 +10,7 @@ import {
 	WorldObjectDefSchema,
 	WorldObjectTypeSchema,
 	BuildCostSchema,
-} from '../../../../packages/data/codegen/generated/mapdb-schema';
+} from '../../../../../../packages/data/codegen/generated/mapdb-schema';
 
 // Re-export generated types for downstream consumers
 export { WorldObjectTypeSchema, BuildCostSchema };
@@ -18,7 +18,7 @@ export type {
 	WorldObjectDef,
 	WorldObjectTypeValue,
 	BuildCost,
-} from '../../../../packages/data/codegen/generated/mapdb-schema';
+} from '../../../../../../packages/data/codegen/generated/mapdb-schema';
 
 // ---------------------------------------------------------------------------
 // Astro-specific rendering enums
