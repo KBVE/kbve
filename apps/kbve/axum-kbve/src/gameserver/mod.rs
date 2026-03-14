@@ -98,11 +98,19 @@ fn run_bevy_app(ws_addr: SocketAddr, jwt_secret: String) {
     // Handle new client connections (mark as pending auth)
     app.add_observer(handle_new_connection);
 
+    // Debug observers for connection lifecycle
+    app.add_observer(on_server_connecting);
+    app.add_observer(on_server_connected);
+    app.add_observer(on_server_disconnected);
+
     // Process auth messages from clients
     app.add_systems(Update, process_auth_messages);
 
     // Receive position updates from clients and apply to their player entities
     app.add_systems(Update, process_position_updates);
+
+    // Periodic debug heartbeat
+    app.add_systems(Update, server_debug_heartbeat);
 
     tracing::info!("game server Bevy app running");
     app.run();
@@ -112,29 +120,83 @@ fn run_bevy_app(ws_addr: SocketAddr, jwt_secret: String) {
 fn start_server(commands: &mut Commands, ws_addr: SocketAddr) {
     use lightyear::websocket::prelude::server::*;
 
+    tracing::info!("[gameserver] start_server — binding to {ws_addr}");
+
     let config = ServerConfig::builder()
         .with_bind_address(ws_addr)
         .with_no_encryption();
 
     let server_entity = commands
         .spawn((
+            lightyear::prelude::server::RawServer,
             Server::default(),
             LocalAddr(ws_addr),
             WebSocketServerIo { config },
         ))
         .id();
 
+    tracing::info!("[gameserver] server entity spawned: {server_entity:?} — triggering LinkStart");
+
     commands.trigger(LinkStart {
         entity: server_entity,
     });
-    tracing::info!("lightyear WebSocket server listening on {ws_addr}");
+    tracing::info!("[gameserver] lightyear WebSocket server listening on {ws_addr}");
+}
+
+/// Debug observer: fires when lightyear adds `Connecting` to a client entity on the server side.
+fn on_server_connecting(trigger: On<Add, Connecting>) {
+    let entity = trigger.entity;
+    tracing::info!(
+        "[gameserver][lifecycle] CONNECTING — client entity {entity:?} starting handshake"
+    );
+}
+
+/// Debug observer: fires when lightyear adds `Connected` to a client entity on the server side.
+fn on_server_connected(trigger: On<Add, Connected>) {
+    let entity = trigger.entity;
+    tracing::info!(
+        "[gameserver][lifecycle] CONNECTED — client entity {entity:?} handshake complete"
+    );
+}
+
+/// Debug observer: fires when lightyear adds `Disconnected` to a client entity.
+fn on_server_disconnected(trigger: On<Add, Disconnected>) {
+    let entity = trigger.entity;
+    tracing::warn!("[gameserver][lifecycle] DISCONNECTED — client entity {entity:?}");
+}
+
+/// Periodic heartbeat logging connected/pending clients every ~5 seconds.
+fn server_debug_heartbeat(
+    time: Res<Time>,
+    mut timer: Local<Option<Timer>>,
+    pending_q: Query<Entity, With<PendingAuth>>,
+    connected_q: Query<Entity, With<Connected>>,
+    authenticated: Res<AuthenticatedClients>,
+) {
+    let t = timer.get_or_insert_with(|| Timer::from_seconds(5.0, TimerMode::Repeating));
+    t.tick(time.delta());
+    if !t.just_finished() {
+        return;
+    }
+
+    let pending: Vec<_> = pending_q.iter().collect();
+    let connected: Vec<_> = connected_q.iter().collect();
+    let auth_count = authenticated.0.len();
+
+    if !pending.is_empty() || !connected.is_empty() || auth_count > 0 {
+        tracing::info!(
+            "[gameserver][heartbeat] connected={connected:?} pending_auth={pending:?} authenticated_count={auth_count}"
+        );
+    }
 }
 
 /// When a new client connects, add ReplicationSender so lightyear can replicate
 /// entities to this client, and mark as pending authentication.
 fn handle_new_connection(trigger: On<Add, Connected>, mut commands: Commands) {
     let client_entity = trigger.entity;
-    tracing::info!("new game client connected (pending auth): {client_entity:?}");
+    tracing::info!(
+        "[gameserver] NEW CLIENT — entity {client_entity:?} connected, inserting PendingAuth + ReplicationSender"
+    );
     commands.entity(client_entity).insert((
         PendingAuth,
         ReplicationSender::new(
@@ -143,6 +205,9 @@ fn handle_new_connection(trigger: On<Add, Connected>, mut commands: Commands) {
             false,
         ),
     ));
+    tracing::info!(
+        "[gameserver] ReplicationSender inserted for {client_entity:?} (interval={REPLICATION_SEND_INTERVAL:?})"
+    );
 }
 
 /// Check for AuthMessage from connected clients and validate their JWT.

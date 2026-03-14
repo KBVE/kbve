@@ -19,6 +19,15 @@
 				"cwd": "apps/kbve/isometric"
 			}
 		},
+		"quick": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"lsof -ti:1420 | xargs kill 2>/dev/null; lsof -ti:5000 | xargs kill 2>/dev/null; set -a && [ -f ../../../.env ] && . ../../../.env && set +a && export PATH=\"$HOME/.cargo/bin:$PATH\" && cd src-tauri && wasm-pack build --dev --target web --out-dir ../wasm-pkg --out-name isometric_game && cd .. && cargo run -p axum-kbve & pnpm dev"
+				],
+				"cwd": "apps/kbve/isometric"
+			}
+		},
 		"build": {
 			"executor": "nx:run-commands",
 			"options": {

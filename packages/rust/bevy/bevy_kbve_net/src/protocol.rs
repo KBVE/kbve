@@ -72,12 +72,19 @@ impl Plugin for ProtocolPlugin {
         app.add_channel::<GameChannel>(ChannelSettings {
             mode: ChannelMode::OrderedReliable(ReliableSettings::default()),
             ..default()
-        });
+        })
+        .add_direction(NetworkDirection::Bidirectional);
 
         // --- Messages ---
-        app.register_message::<AuthMessage>();
-        app.register_message::<AuthResponse>();
-        app.register_message::<PositionUpdate>();
+        // AuthMessage: client → server
+        app.register_message::<AuthMessage>()
+            .add_direction(NetworkDirection::ClientToServer);
+        // AuthResponse: server → client
+        app.register_message::<AuthResponse>()
+            .add_direction(NetworkDirection::ServerToClient);
+        // PositionUpdate: client → server
+        app.register_message::<PositionUpdate>()
+            .add_direction(NetworkDirection::ClientToServer);
 
         // --- Replicated components (custom game components) ---
 
