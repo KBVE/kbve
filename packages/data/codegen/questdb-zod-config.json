@@ -1,0 +1,96 @@
+{
+	"enums": {
+		"quest.QuestCategory": {
+			"mode": "const_array",
+			"stripPrefix": "QUEST_CATEGORY_",
+			"caseTransform": "lowercase"
+		},
+		"quest.ObjectiveType": {
+			"mode": "const_array",
+			"stripPrefix": "OBJECTIVE_",
+			"caseTransform": "lowercase"
+		},
+		"quest.QuestStatus": {
+			"mode": "const_array",
+			"stripPrefix": "QUEST_STATUS_",
+			"caseTransform": "lowercase"
+		},
+		"quest.ChoiceConsequenceType": {
+			"mode": "const_array",
+			"stripPrefix": "CONSEQUENCE_",
+			"caseTransform": "lowercase"
+		},
+		"quest.FailurePolicy": {
+			"mode": "const_array",
+			"stripPrefix": "FAILURE_",
+			"caseTransform": "lowercase"
+		},
+		"quest.RewardPolicy": {
+			"mode": "const_array",
+			"stripPrefix": "REWARD_",
+			"caseTransform": "lowercase"
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "QuestCategories",
+			"sourceEnum": "quest.QuestCategory",
+			"typeName": "QuestCategoryValue",
+			"zodSchemaName": "QuestCategorySchema"
+		},
+		{
+			"name": "ObjectiveTypes",
+			"sourceEnum": "quest.ObjectiveType",
+			"typeName": "ObjectiveTypeValue",
+			"zodSchemaName": "ObjectiveTypeSchema"
+		},
+		{
+			"name": "QuestStatuses",
+			"sourceEnum": "quest.QuestStatus",
+			"typeName": "QuestStatusValue",
+			"zodSchemaName": "QuestStatusSchema"
+		},
+		{
+			"name": "ChoiceConsequenceTypes",
+			"sourceEnum": "quest.ChoiceConsequenceType",
+			"typeName": "ChoiceConsequenceTypeValue",
+			"zodSchemaName": "ChoiceConsequenceTypeSchema"
+		},
+		{
+			"name": "FailurePolicies",
+			"sourceEnum": "quest.FailurePolicy",
+			"typeName": "FailurePolicyValue",
+			"zodSchemaName": "FailurePolicySchema"
+		},
+		{
+			"name": "RewardPolicies",
+			"sourceEnum": "quest.RewardPolicy",
+			"typeName": "RewardPolicyValue",
+			"zodSchemaName": "RewardPolicySchema"
+		}
+	],
+
+	"passthrough": [
+		"quest.QuestPrerequisite",
+		"quest.QuestTimeLimits",
+		"quest.QuestDialogueHooks",
+		"quest.AchievementMeta"
+	],
+
+	"nullable": [
+		"quest.QuestPrerequisite.*",
+		"quest.QuestTimeLimits.*",
+		"quest.QuestDialogueHooks.*",
+		"quest.AchievementMeta.*",
+		"quest.Quest.next_quest_ref"
+	],
+
+	"refinements": {
+		"quest.QuestObjective.required_amount": ".min(1)",
+		"quest.QuestTimeLimits.daily_reset_hour": ".min(0).max(23)",
+		"quest.AchievementMeta.global_percent": ".min(0).max(100)",
+		"quest.Quest.recommended_level": ".min(0)",
+		"quest.Quest.recommended_party_size": ".min(1).max(40)"
+	}
+}
