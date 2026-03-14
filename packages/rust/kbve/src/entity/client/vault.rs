@@ -25,6 +25,13 @@ struct VaultGetRequest<'a> {
     secret_id: &'a str,
 }
 
+/// Request payload for the vault-reader Edge Function (get_by_tag command).
+#[derive(Debug, Serialize)]
+struct VaultGetByTagRequest<'a> {
+    command: &'static str,
+    tag: &'a str,
+}
+
 /// Response from the vault-reader Edge Function.
 #[derive(Debug, Deserialize)]
 pub struct VaultSecretResponse {
@@ -135,6 +142,43 @@ impl VaultClient {
 
         Ok(secret.decrypted_secret)
     }
+
+    /// Retrieve a decrypted secret from Supabase Vault by its tag.
+    ///
+    /// Tags are arbitrary strings stored alongside secrets in the vault.
+    /// The vault-reader Edge Function must support the `get_by_tag` command.
+    pub async fn get_secret_by_tag(&self, tag: &str) -> Result<String, VaultError> {
+        let url = format!("{}/functions/v1/vault-reader", self.base_url);
+
+        let body = VaultGetByTagRequest {
+            command: "get_by_tag",
+            tag,
+        };
+
+        let resp = self
+            .client
+            .post(&url)
+            .headers(self.headers())
+            .json(&body)
+            .send()
+            .await?;
+
+        let status = resp.status();
+        let text = resp.text().await?;
+
+        if !status.is_success() {
+            return Err(VaultError::Vault(format!("HTTP {}: {}", status, text)));
+        }
+
+        if let Ok(err) = serde_json::from_str::<VaultErrorResponse>(&text) {
+            return Err(VaultError::Vault(err.error));
+        }
+
+        let secret: VaultSecretResponse = serde_json::from_str(&text)
+            .map_err(|e| VaultError::Parse(format!("{}: {}", e, text)))?;
+
+        Ok(secret.decrypted_secret)
+    }
 }
 
 #[cfg(test)]
@@ -197,6 +241,17 @@ mod tests {
         let json = r#"{"error": "secret not found"}"#;
         let resp: VaultErrorResponse = serde_json::from_str(json).unwrap();
         assert_eq!(resp.error, "secret not found");
+    }
+
+    #[test]
+    fn test_vault_get_by_tag_request_serialization() {
+        let req = VaultGetByTagRequest {
+            command: "get_by_tag",
+            tag: "github_pat:123456",
+        };
+        let json = serde_json::to_value(&req).unwrap();
+        assert_eq!(json["command"], "get_by_tag");
+        assert_eq!(json["tag"], "github_pat:123456");
     }
 
     #[test]
