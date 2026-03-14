@@ -3,12 +3,13 @@
  *
  * Source: ../descriptors/questdb.binpb
  * Config: ../questdb-zod-config.json
- * Generated: 2026-03-14T21:43:35.727Z
+ * Generated: 2026-03-14T23:06:22.908Z
  */
 
 import { z } from 'zod';
 
 export const QuestCategories = [
+	'main',
 	'side',
 	'daily',
 	'event',
@@ -23,6 +24,7 @@ export type QuestCategoryValue = (typeof QuestCategories)[number];
 export const QuestCategorySchema = z.enum(QuestCategories);
 
 export const ObjectiveTypes = [
+	'collect',
 	'kill',
 	'visit',
 	'interact',

@@ -3,12 +3,14 @@
 		"quest.QuestCategory": {
 			"mode": "const_array",
 			"stripPrefix": "QUEST_CATEGORY_",
-			"caseTransform": "lowercase"
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		},
 		"quest.ObjectiveType": {
 			"mode": "const_array",
 			"stripPrefix": "OBJECTIVE_",
-			"caseTransform": "lowercase"
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		},
 		"quest.QuestStatus": {
 			"mode": "const_array",

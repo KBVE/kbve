@@ -1,59 +1,52 @@
+/**
+ * Astro content collection schema for questdb entries.
+ *
+ * Game-logic fields come from the proto-generated QuestSchema
+ * (packages/data/codegen/generated/questdb-schema.ts).
+ */
 import { z } from 'astro:content';
 import {
-	QuestObjectiveTypeEnum,
-	QuestCategoryEnum,
-	ULID,
-	GUID,
-} from '@/data/types';
+	QuestSchema,
+	QuestCategorySchema,
+	ObjectiveTypeSchema,
+	QuestObjectiveSchema,
+	QuestRewardsSchema,
+	AchievementMetaSchema,
+} from '../../../../../../packages/data/codegen/generated/questdb-schema';
 
-export const IAchievementMetaSchema = z.object({
-	apiName: z.string(),
-	name: z.string().optional(),
-	description: z.string().optional(),
-	iconAchieved: z.string().optional(),
-	iconUnachieved: z.string().optional(),
-	globalPercent: z.number().min(0).max(100).optional(),
-	hidden: z.boolean().optional().default(false),
-	minValue: z.number().optional(),
-	maxValue: z.number().optional(),
+// Re-export generated types for downstream consumers
+export {
+	QuestCategorySchema,
+	ObjectiveTypeSchema,
+	QuestObjectiveSchema,
+	QuestRewardsSchema,
+	AchievementMetaSchema,
+};
+export type {
+	Quest,
+	QuestCategoryValue,
+	ObjectiveTypeValue,
+	QuestObjective,
+	QuestRewards,
+	AchievementMeta,
+} from '../../../../../../packages/data/codegen/generated/questdb-schema';
+
+// ---------------------------------------------------------------------------
+// Astro extensions — fields not in the proto Quest message but used in MDX
+// ---------------------------------------------------------------------------
+
+// The proto Quest message uses `steps` (containing objectives) for structured
+// quest progression.  Astro MDX files may use a flat top-level `objectives`
+// array for simpler quests that don't need the full step system.
+const AstroQuestExtensions = z.object({
+	objectives: z.array(QuestObjectiveSchema).optional(),
 });
 
-export const IQuestObjectiveSchema = z.object({
-	description: z.string(),
-	type: QuestObjectiveTypeEnum.default('custom'),
-	targetRefs: z.array(ULID).min(1),
-	requiredAmount: z.number().int().positive().default(1),
-});
+// ---------------------------------------------------------------------------
+// Combined schema — proto source of truth, merged with Astro extras
+// ---------------------------------------------------------------------------
 
-export const IQuestRewardSchema = z.object({
-	items: z
-		.array(
-			z.object({
-				ref: ULID,
-				amount: z.number().int().positive().default(1),
-			}),
-		)
-		.optional(),
-	bonuses: z.record(z.string(), z.number()).optional(),
-	steamAchievement: IAchievementMetaSchema.optional(),
-	currency: z.number().optional(),
-});
+export const IQuestSchema =
+	QuestSchema.merge(AstroQuestExtensions).passthrough();
 
-export const IQuestSchema = z
-	.object({
-		id: ULID,
-		guid: GUID,
-		drafted: z.boolean().optional().default(false),
-		title: z.string(),
-		description: z.string().optional(),
-		icon: z.string().optional(),
-		category: QuestCategoryEnum.default('main'),
-		hidden: z.boolean().default(false),
-		repeatable: z.boolean().default(false),
-		levelRequirement: z.number().int().nonnegative().optional(),
-		objectives: z.array(IQuestObjectiveSchema).nonempty(),
-		rewards: IQuestRewardSchema.optional(),
-		triggers: z.array(z.string()).optional(),
-		nextQuestId: ULID.optional().nullable(),
-	})
-	.passthrough();
+export type IQuest = z.infer<typeof IQuestSchema>;
