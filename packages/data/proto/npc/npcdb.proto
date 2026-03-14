@@ -1,0 +1,419 @@
+syntax = "proto3";
+
+package npc;
+
+import "kbve/common.proto";
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+// NPC archetype flags — an NPC can wear multiple hats (merchant + quest giver)
+enum NpcTypeFlag {
+  NPC_TYPE_NONE = 0;
+  NPC_TYPE_ENEMY = 0x0001;
+  NPC_TYPE_MERCHANT = 0x0002;
+  NPC_TYPE_QUEST_GIVER = 0x0004;
+  NPC_TYPE_COMPANION = 0x0008;
+  NPC_TYPE_NEUTRAL = 0x0010;
+  NPC_TYPE_BOSS = 0x0020;
+  NPC_TYPE_MINIBOSS = 0x0040;
+  NPC_TYPE_SUMMON = 0x0080;
+  NPC_TYPE_TRAINER = 0x0100;
+  NPC_TYPE_REPAIR = 0x0200;
+  NPC_TYPE_INNKEEPER = 0x0400;
+}
+
+// Personality — drives dialogue, flavor text, AI weighting
+enum Personality {
+  PERSONALITY_UNSPECIFIED = 0;
+  PERSONALITY_AGGRESSIVE = 1;
+  PERSONALITY_CUNNING = 2;
+  PERSONALITY_FEARFUL = 3;
+  PERSONALITY_STOIC = 4;
+  PERSONALITY_FERAL = 5;
+  PERSONALITY_ANCIENT = 6;
+  PERSONALITY_CHEERFUL = 7;
+  PERSONALITY_MYSTERIOUS = 8;
+  PERSONALITY_COWARDLY = 9;
+  PERSONALITY_NOBLE = 10;
+}
+
+// Element / damage affinity
+enum Element {
+  ELEMENT_NONE = 0;
+  ELEMENT_FIRE = 1;
+  ELEMENT_ICE = 2;
+  ELEMENT_LIGHTNING = 3;
+  ELEMENT_POISON = 4;
+  ELEMENT_SHADOW = 5;
+  ELEMENT_HOLY = 6;
+  ELEMENT_ARCANE = 7;
+  ELEMENT_EARTH = 8;
+  ELEMENT_WIND = 9;
+}
+
+// Rarity tier
+enum NpcRarity {
+  NPC_RARITY_COMMON = 0;
+  NPC_RARITY_UNCOMMON = 1;
+  NPC_RARITY_RARE = 2;
+  NPC_RARITY_EPIC = 3;
+  NPC_RARITY_LEGENDARY = 4;
+  NPC_RARITY_MYTHIC = 5;
+}
+
+// Combat rank — separate from rarity, affects difficulty expectation
+enum NpcRank {
+  NPC_RANK_NORMAL = 0;
+  NPC_RANK_ELITE = 1;
+  NPC_RANK_RARE_ELITE = 2;
+  NPC_RANK_WORLD_BOSS = 3;
+}
+
+// Creature family — taxonomic grouping for ability targeting
+enum CreatureFamily {
+  CREATURE_FAMILY_UNSPECIFIED = 0;
+  CREATURE_FAMILY_BEAST = 1;
+  CREATURE_FAMILY_UNDEAD = 2;
+  CREATURE_FAMILY_DEMON = 3;
+  CREATURE_FAMILY_ELEMENTAL = 4;
+  CREATURE_FAMILY_HUMANOID = 5;
+  CREATURE_FAMILY_MECHANICAL = 6;
+  CREATURE_FAMILY_DRAGON = 7;
+  CREATURE_FAMILY_ABERRATION = 8;
+  CREATURE_FAMILY_PLANT = 9;
+  CREATURE_FAMILY_SPIRIT = 10;
+  CREATURE_FAMILY_CONSTRUCT = 11;
+}
+
+// Idle movement behavior
+enum MovementType {
+  MOVEMENT_STATIONARY = 0;
+  MOVEMENT_RANDOM_WANDER = 1;
+  MOVEMENT_PATROL = 2;
+  MOVEMENT_SCRIPTED = 3;
+}
+
+// Difficulty mode for stat overrides
+enum DifficultyMode {
+  DIFFICULTY_NORMAL = 0;
+  DIFFICULTY_HARD = 1;
+  DIFFICULTY_HEROIC = 2;
+  DIFFICULTY_MYTHIC = 3;
+}
+
+// =============================================================================
+// Sub-messages
+// =============================================================================
+
+// Base combat stats
+message NpcStats {
+  int32 hp = 1;
+  int32 max_hp = 2;
+  int32 attack = 3;
+  int32 defense = 4;
+  int32 speed = 5;
+  optional int32 mp = 6;
+  optional int32 max_mp = 7;
+  optional int32 ep = 8;
+  optional int32 max_ep = 9;
+  optional int32 armor = 10;
+  optional int32 intelligence = 11;
+  optional int32 strength = 12;
+  optional int32 agility = 13;
+  optional float hp_regen = 14;       // Per-turn or per-second regen
+  optional float mp_regen = 15;
+  optional float ep_regen = 16;
+}
+
+// Elemental affinity with magnitude (for multi-element resistance/weakness)
+message ElementalAffinity {
+  Element element = 1;
+  float magnitude = 2;               // 0.0–1.0 (0.5 = 50% resist/weakness)
+}
+
+// A single loot drop entry
+message LootEntry {
+  string item_ref = 1;               // ULID or item slug
+  optional string item_name = 2;
+  int32 min_quantity = 3;            // default: 1
+  int32 max_quantity = 4;            // default: 1
+  float drop_rate = 5;               // 0.0–1.0 probability
+  optional int32 level_requirement = 6;
+}
+
+// Loot table attached to an NPC
+message LootTable {
+  repeated LootEntry entries = 1;
+  optional int32 guaranteed_drops = 2;  // Min drops per kill
+  optional int32 max_drops = 3;         // Max drops per kill
+  optional int32 gold_min = 4;
+  optional int32 gold_max = 5;
+  optional int32 xp_reward = 6;
+}
+
+// Equipment slot
+enum EquipSlot {
+  EQUIP_SLOT_UNSPECIFIED = 0;
+  EQUIP_SLOT_HEAD = 1;
+  EQUIP_SLOT_CHEST = 2;
+  EQUIP_SLOT_LEGS = 3;
+  EQUIP_SLOT_FEET = 4;
+  EQUIP_SLOT_HANDS = 5;
+  EQUIP_SLOT_MAIN_HAND = 6;
+  EQUIP_SLOT_OFF_HAND = 7;
+  EQUIP_SLOT_NECK = 8;
+  EQUIP_SLOT_RING = 9;
+  EQUIP_SLOT_BACK = 10;
+}
+
+// A single equipped item on an NPC
+message EquipmentEntry {
+  EquipSlot slot = 1;
+  string item_ref = 2;              // ULID or item slug
+  optional string item_name = 3;
+  optional int32 enchant_level = 4;
+}
+
+// Full equipment loadout for an NPC
+message EquipmentLoadout {
+  repeated EquipmentEntry equipped = 1;
+}
+
+// A single ability / skill the NPC can use
+message NpcAbility {
+  string id = 1;                     // Slug, e.g. "fireball", "charge"
+  string name = 2;
+  optional string description = 3;
+  optional Element element = 4;
+  optional int32 damage = 5;
+  optional int32 mp_cost = 6;
+  optional int32 ep_cost = 7;
+  optional int32 cooldown_turns = 8;
+  optional float hit_chance = 9;     // 0.0–1.0
+  optional bool is_aoe = 10;
+  optional int32 heal_amount = 11;
+  optional string status_effect = 12; // e.g. "poison", "stun"
+  optional float weight = 13;        // Selection probability weight
+}
+
+// Intent weight — probability of choosing an ability by tier
+message IntentWeight {
+  string ability_id = 1;             // References NpcAbility.id
+  float weight = 2;                  // Relative weight in selection pool
+  optional int32 tier_min = 3;       // Only available at this tier+
+  optional int32 tier_max = 4;
+  optional float hp_threshold = 5;   // Only available below this HP% (0.0–1.0)
+}
+
+// Behavioral traits — combat modifiers baked into the NPC definition
+message BehaviorTraits {
+  optional bool first_strike = 1;           // Acts before players on combat start
+  optional float enrage_threshold = 2;      // HP% at which enrage triggers (e.g. 0.5)
+  optional float enrage_multiplier = 3;     // Damage multiplier when enraged (e.g. 1.5)
+  optional bool can_flee = 4;               // Whether this NPC can flee combat
+  optional bool can_charge = 5;             // Whether this NPC can use charge mechanic
+  optional bool is_tethered = 6;            // Returns to spawn after combat
+  optional float aggro_range = 7;           // Detection radius
+  optional float leash_distance = 8;        // Max chase distance before reset
+  optional float call_for_help_radius = 9;  // Nearby allies join combat within this radius
+  optional float wander_radius = 10;        // Idle roam distance from spawn
+  MovementType movement_type = 11;
+  optional string patrol_path_ref = 12;     // Reference to waypoint path
+}
+
+// Faction membership
+message FactionInfo {
+  string faction_id = 1;                    // e.g. "undead_legion", "forest_alliance"
+  optional int32 faction_rank = 2;          // Position in hierarchy (grunt vs commander)
+  repeated string hostile_factions = 3;     // Auto-hostile toward these factions
+  repeated string friendly_factions = 4;    // Will not attack / may assist
+}
+
+// Flavor text pool for a specific action
+message FlavorPool {
+  string action = 1;                // e.g. "attack", "flee", "death"
+  repeated string messages = 2;     // {name}, {target}, {damage} placeholders
+}
+
+// Dialogue line for non-combat interactions
+message DialogueLine {
+  string trigger = 1;               // e.g. "greet", "shop_open", "quest_offer"
+  repeated string lines = 2;        // Randomly selected
+  optional string condition = 3;    // Optional expression / flag gate
+}
+
+// Spawn rule — where and how this NPC appears
+message SpawnRule {
+  optional string zone = 1;              // Zone / area slug
+  optional int32 floor_min = 2;          // Dungeon floor range
+  optional int32 floor_max = 3;
+  float spawn_weight = 4;                // Relative weight in spawn pool
+  optional int32 max_active = 5;         // Max concurrent instances
+  optional int32 level_min = 6;          // Player level gate
+  optional int32 level_max = 7;
+  optional int32 respawn_time_secs = 8;  // Seconds after death before respawn
+  optional int32 respawn_variance = 9;   // Randomization range in seconds
+  optional int32 despawn_time_secs = 10; // How long corpse/loot stays visible
+}
+
+// Difficulty-specific stat override
+message DifficultyOverride {
+  DifficultyMode mode = 1;
+  NpcStats stats = 2;                      // Full stat block for this difficulty
+  optional float xp_modifier = 3;          // Multiplier on base XP (default 1.0)
+  optional float gold_modifier = 4;        // Multiplier on base gold (default 1.0)
+}
+
+// Party-size scaling rules
+message PartyScaling {
+  bool enabled = 1;
+  optional float hp_per_member = 2;        // Additional HP% per extra party member (e.g. 0.3 = +30%)
+  optional float damage_per_member = 3;    // Additional damage% per extra party member
+  optional int32 base_party_size = 4;      // Party size the base stats are tuned for (default 1)
+}
+
+// Phasing / conditional availability
+message PhaseRule {
+  optional int32 phase_id = 1;                    // World phase this NPC exists in
+  repeated string prerequisite_quest_refs = 2;    // Must be completed before NPC appears
+  optional string event_ref = 3;                  // Seasonal / world event gate
+  optional int32 time_start = 4;                  // Time-of-day availability (0-2359, 24h)
+  optional int32 time_end = 5;
+}
+
+// Spatial / physics properties (for real-time / spatial games)
+message SpatialProperties {
+  optional float combat_reach = 1;         // Melee attack range
+  optional float bounding_radius = 2;      // Collision / hitbox size
+  optional float walk_speed = 3;
+  optional float run_speed = 4;
+  optional float fly_speed = 5;
+  optional bool can_swim = 6;
+  optional bool can_fly = 7;
+}
+
+// Interaction flags — what players can do with this NPC
+message InteractionFlags {
+  optional bool is_interactable = 1;       // Can be clicked / targeted
+  optional bool is_attackable = 2;         // Can receive damage (default true for enemies)
+  optional bool is_targetable = 3;         // Can be selected / inspected
+  optional bool is_skinnable = 4;          // Corpse yields skinning resources
+  optional bool is_herbable = 5;           // Corpse yields herb resources
+  optional bool is_mineable = 6;           // Corpse yields mining resources
+  optional bool is_civilian = 7;           // Killing causes reputation penalty
+}
+
+// Generic extension slot — arbitrary key-value pairs for game-specific data
+message NpcExtension {
+  string key = 1;                          // Namespace, e.g. "discordsh.encounter_weight"
+  oneof value {
+    string string_value = 2;
+    int64 int_value = 3;
+    double float_value = 4;
+    bool bool_value = 5;
+    bytes bytes_value = 6;
+  }
+}
+
+// =============================================================================
+// Core NPC Definition
+// =============================================================================
+
+message Npc {
+  // Identity
+  string id = 1;                    // ULID
+  string slug = 2;                  // URL-safe identifier, e.g. "glass-slime"
+  string name = 3;
+  optional string title = 4;        // e.g. "The Shattered King"
+  optional string description = 5;
+  optional string lore = 6;         // Extended backstory
+
+  // Classification — type_flags is a bitmask of NpcTypeFlag values
+  int32 type_flags = 7;
+  NpcRarity rarity = 8;
+  Personality personality = 9;
+  optional Element element = 10;
+  repeated string tags = 11;        // Free-form tags for filtering
+  NpcRank rank = 29;
+  CreatureFamily family = 30;
+
+  // Visual
+  optional string img = 12;         // Sprite / portrait path
+  optional string icon = 13;        // Small icon for UI lists
+  optional int32 pixel_density = 14;
+  optional float scale = 31;        // Visual size multiplier (default 1.0)
+  optional string model_ref = 32;   // 3D model or sprite sheet ref
+  optional string animation_set = 33;
+  optional string sound_set = 34;
+
+  // Level & scaling
+  int32 level = 15;
+  optional int32 level_min = 16;    // Scaling floor
+  optional int32 level_max = 17;    // Scaling ceiling
+
+  // Stats
+  NpcStats stats = 18;
+
+  // Combat
+  repeated NpcAbility abilities = 19;
+  repeated ElementalAffinity weaknesses = 35;
+  repeated ElementalAffinity resistances = 36;
+  repeated string status_immunities = 37;   // e.g. "stun", "poison", "bleed"
+  repeated IntentWeight intent_weights = 38;
+
+  // Behavior
+  optional BehaviorTraits behavior = 39;
+
+  // Faction
+  optional FactionInfo faction = 40;
+
+  // Loot
+  optional LootTable loot = 22;
+
+  // Equipment loadout
+  optional EquipmentLoadout equipment = 28;
+
+  // Flavor text (personality-driven)
+  repeated FlavorPool flavor_text = 23;
+
+  // Dialogue (merchants, quest givers, companions)
+  repeated DialogueLine dialogue = 24;
+
+  // Linkage — quest and shop references
+  repeated string quest_refs = 41;         // Quest IDs this NPC offers/advances
+  optional string shop_inventory_ref = 42; // Vendor inventory table reference
+  optional string kill_credit_ref = 43;    // Shared kill credit ID for quest tracking
+
+  // Spawning
+  repeated SpawnRule spawn_rules = 25;
+
+  // Phasing / conditional availability
+  repeated PhaseRule phase_rules = 44;
+
+  // Difficulty & scaling
+  repeated DifficultyOverride difficulty_overrides = 45;
+  optional PartyScaling party_scaling = 46;
+
+  // Spatial (real-time / isometric / 3D games)
+  optional SpatialProperties spatial = 47;
+
+  // Interaction flags
+  optional InteractionFlags interaction = 48;
+
+  // Extensions — game-specific key-value pairs for future needs
+  repeated NpcExtension extensions = 49;
+
+  // Metadata
+  optional string credits = 26;
+  optional bool drafted = 27;       // Hidden from production
+}
+
+// =============================================================================
+// Registry
+// =============================================================================
+
+message NpcRegistry {
+  repeated Npc npcs = 1;
+}
