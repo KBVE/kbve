@@ -104,6 +104,8 @@ pub struct NetPlugin;
 
 impl Plugin for NetPlugin {
     fn build(&self, app: &mut App) {
+        info!("[net] NetPlugin::build — registering lightyear client plugins");
+
         // Lightyear client transport + replication machinery
         app.add_plugins(ClientPlugins {
             tick_duration: TICK_DURATION,
@@ -134,6 +136,69 @@ impl Plugin for NetPlugin {
 
         // Update remote player transforms from replicated Position each frame
         app.add_systems(PostUpdate, update_remote_transforms);
+
+        // --- Debug observers for connection lifecycle ---
+        app.add_observer(on_connecting);
+        app.add_observer(on_connected);
+        app.add_observer(on_disconnected);
+
+        // Periodic connection-state heartbeat (logs every ~2 seconds)
+        app.add_systems(Update, debug_connection_heartbeat);
+
+        info!("[net] NetPlugin::build — all systems registered");
+    }
+}
+
+/// Debug observer: fires when lightyear adds `Connecting` to our client entity.
+fn on_connecting(trigger: On<Add, Connecting>) {
+    let entity = trigger.entity;
+    info!("[net][lifecycle] CONNECTING — entity {entity:?} is attempting WebSocket handshake");
+}
+
+/// Debug observer: fires when lightyear adds `Connected` to our client entity.
+fn on_connected(trigger: On<Add, Connected>) {
+    let entity = trigger.entity;
+    info!("[net][lifecycle] CONNECTED — entity {entity:?} WebSocket handshake succeeded!");
+}
+
+/// Debug observer: fires when lightyear adds `Disconnected` to our client entity.
+fn on_disconnected(trigger: On<Add, Disconnected>) {
+    let entity = trigger.entity;
+    warn!("[net][lifecycle] DISCONNECTED — entity {entity:?} lost connection or failed to connect");
+}
+
+/// Timer resource for throttling heartbeat logs.
+#[derive(Resource)]
+struct HeartbeatTimer(Timer);
+
+impl Default for HeartbeatTimer {
+    fn default() -> Self {
+        Self(Timer::from_seconds(2.0, TimerMode::Repeating))
+    }
+}
+
+/// Periodic system that logs connection state every ~2 seconds for debugging.
+fn debug_connection_heartbeat(
+    time: Res<Time>,
+    mut timer: Local<HeartbeatTimer>,
+    connecting_q: Query<Entity, With<Connecting>>,
+    connected_q: Query<Entity, With<Connected>>,
+    disconnected_q: Query<Entity, With<Disconnected>>,
+) {
+    timer.0.tick(time.delta());
+    if !timer.0.just_finished() {
+        return;
+    }
+
+    let connecting: Vec<_> = connecting_q.iter().collect();
+    let connected: Vec<_> = connected_q.iter().collect();
+    let disconnected: Vec<_> = disconnected_q.iter().collect();
+
+    if !connecting.is_empty() || !connected.is_empty() || !disconnected.is_empty() {
+        info!(
+            "[net][heartbeat] connecting={connecting:?} connected={connected:?} disconnected={disconnected:?} is_online={}",
+            IS_CONNECTED.load(Ordering::Relaxed)
+        );
     }
 }
 
@@ -147,16 +212,23 @@ fn poll_go_online_request(
         return;
     }
 
+    info!("[net] go-online request detected!");
+
     if IS_CONNECTED.load(Ordering::Relaxed) {
-        info!("already connected — ignoring go-online request");
+        info!("[net] already connected — ignoring go-online request");
         return;
     }
 
     // Grab the JWT before connecting
     let jwt = AUTH_JWT.lock().ok().and_then(|mut g| g.take());
+    let has_jwt = jwt.is_some();
     pending_auth.jwt = jwt;
     pending_auth.sent = false;
 
+    info!(
+        "[net] resolved server address: {} | has_jwt: {has_jwt}",
+        addr.0
+    );
     connect_to_server(&mut commands, &addr);
 }
 
@@ -164,18 +236,22 @@ fn poll_go_online_request(
 /// Sends empty JWT for guest connections.
 fn send_auth_on_connect(
     mut pending_auth: ResMut<PendingAuth>,
-    mut query: Query<&mut MessageSender<AuthMessage>, Added<Connected>>,
+    mut query: Query<(Entity, &mut MessageSender<AuthMessage>), Added<Connected>>,
 ) {
     if pending_auth.sent {
         return;
     }
 
-    for mut sender in &mut query {
+    for (entity, mut sender) in &mut query {
         let jwt = pending_auth.jwt.take().unwrap_or_default();
+        let jwt_len = jwt.len();
+        info!(
+            "[net] Connected component detected on entity {entity:?} — sending AuthMessage (jwt_len={jwt_len})"
+        );
         sender.send::<GameChannel>(AuthMessage { jwt });
         pending_auth.sent = true;
         IS_CONNECTED.store(true, Ordering::Release);
-        info!("sent auth message to server (connected)");
+        info!("[net] auth message sent, IS_CONNECTED=true");
         break;
     }
 }
@@ -183,18 +259,18 @@ fn send_auth_on_connect(
 /// Receive AuthResponse from the server and store our player ID.
 fn receive_auth_response(
     mut my_player_id: ResMut<MyPlayerId>,
-    mut query: Query<&mut MessageReceiver<AuthResponse>>,
+    mut query: Query<(Entity, &mut MessageReceiver<AuthResponse>)>,
 ) {
-    for mut receiver in &mut query {
+    for (entity, mut receiver) in &mut query {
         for msg in receiver.receive() {
             if msg.success {
                 my_player_id.0 = Some(msg.player_id);
                 info!(
-                    "authenticated as '{}' — player_id={}",
+                    "[net] AUTH SUCCESS from entity {entity:?} — user='{}' player_id={}",
                     msg.user_id, msg.player_id
                 );
             } else {
-                warn!("authentication failed");
+                warn!("[net] AUTH FAILED from entity {entity:?}");
             }
         }
     }
@@ -273,14 +349,21 @@ fn connect_to_server(commands: &mut Commands, addr: &GameServerAddr) {
 
     let server_addr = addr.0;
 
+    info!("[net] connect_to_server — spawning client entity for ws://{server_addr}");
+
+    let ws_io = WebSocketClientIo::from_addr(ClientConfig::default(), WebSocketScheme::Plain);
+    info!("[net] WebSocketClientIo created (scheme=Plain)");
+
     let client_entity = commands
         .spawn((
             Client::default(),
             PeerAddr(server_addr),
-            WebSocketClientIo::from_addr(ClientConfig::default(), WebSocketScheme::Plain),
+            ws_io,
             ReplicationReceiver::default(),
         ))
         .id();
+
+    info!("[net] client entity spawned: {client_entity:?} — triggering Connect");
 
     commands.trigger(Connect {
         entity: client_entity,
@@ -288,5 +371,5 @@ fn connect_to_server(commands: &mut Commands, addr: &GameServerAddr) {
     // NOTE: IS_CONNECTED is set in send_auth_on_connect once we detect the
     // `Connected` component, not here — avoids false-positive if the
     // WebSocket handshake fails.
-    info!("connecting to game server at ws://{server_addr}");
+    info!("[net] Connect trigger dispatched — waiting for Connecting → Connected lifecycle");
 }
