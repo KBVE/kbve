@@ -13,7 +13,6 @@ import { generateAndWriteZod } from '../../npm/devops/src/lib/codegen/index.js';
 import { execSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readdirSync } from 'node:fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const protoRoot = resolve(__dirname, '../proto');
