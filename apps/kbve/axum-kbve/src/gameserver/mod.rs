@@ -17,6 +17,9 @@ use bevy_kbve_net::{AuthMessage, AuthResponse, GameChannel, PositionUpdate, Prot
 /// Server tick rate: 20 Hz (matching client).
 const TICK_DURATION: Duration = Duration::from_millis(50);
 
+/// Replication send interval — how often the server sends entity updates.
+const REPLICATION_SEND_INTERVAL: Duration = Duration::from_millis(100);
+
 /// Default WebSocket listen address for the game server.
 const DEFAULT_WS_ADDR: &str = "0.0.0.0:5000";
 
@@ -127,12 +130,19 @@ fn start_server(commands: &mut Commands, ws_addr: SocketAddr) {
     tracing::info!("lightyear WebSocket server listening on {ws_addr}");
 }
 
-/// When a new client connects, mark them as pending authentication.
-/// Player entity is NOT spawned until auth succeeds.
+/// When a new client connects, add ReplicationSender so lightyear can replicate
+/// entities to this client, and mark as pending authentication.
 fn handle_new_connection(trigger: On<Add, Connected>, mut commands: Commands) {
     let client_entity = trigger.entity;
     tracing::info!("new game client connected (pending auth): {client_entity:?}");
-    commands.entity(client_entity).insert(PendingAuth);
+    commands.entity(client_entity).insert((
+        PendingAuth,
+        ReplicationSender::new(
+            REPLICATION_SEND_INTERVAL,
+            SendUpdatesMode::SinceLastAck,
+            false,
+        ),
+    ));
 }
 
 /// Check for AuthMessage from connected clients and validate their JWT.
@@ -195,18 +205,43 @@ fn process_auth_messages(
     }
 }
 
+/// Counter for assigning spread-out spawn positions.
+static PLAYER_COUNTER: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
+
+/// Player colors for distinguishing remote players.
+const PLAYER_COLORS: &[(f32, f32, f32)] = &[
+    (0.2, 0.4, 0.8), // blue
+    (0.8, 0.2, 0.2), // red
+    (0.2, 0.8, 0.3), // green
+    (0.8, 0.6, 0.1), // orange
+    (0.6, 0.2, 0.8), // purple
+    (0.1, 0.8, 0.8), // cyan
+];
+
 /// Spawn a player entity for an authenticated client, marked for replication.
 fn spawn_player(commands: &mut Commands, client_entity: Entity) -> Entity {
     let player_id = client_entity.to_bits();
-    tracing::info!("spawning player entity for client {client_entity:?} (player_id={player_id})");
+    let idx = PLAYER_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+
+    // Spread players apart so they don't collide on spawn
+    let offset_x = (idx as f32) * 2.0;
+    let spawn_x = 2.0 + offset_x;
+    let spawn_y = 2.0;
+    let spawn_z = 2.0;
+
+    let (r, g, b) = PLAYER_COLORS[idx as usize % PLAYER_COLORS.len()];
+
+    tracing::info!(
+        "spawning player entity for client {client_entity:?} (player_id={player_id}) at ({spawn_x}, {spawn_y}, {spawn_z})"
+    );
 
     commands
         .spawn((
             bevy_kbve_net::PlayerId(player_id),
-            bevy_kbve_net::PlayerColor(Color::srgb(0.2, 0.4, 0.8)),
-            Transform::from_xyz(2.0, 2.0, 2.0),
+            bevy_kbve_net::PlayerColor(Color::srgb(r, g, b)),
+            Transform::from_xyz(spawn_x, spawn_y, spawn_z),
             RigidBody::Kinematic,
-            Position(Vec3::new(2.0, 2.0, 2.0)),
+            Position(Vec3::new(spawn_x, spawn_y, spawn_z)),
             Rotation::default(),
             LinearVelocity::default(),
             Collider::cuboid(0.6, 1.2, 0.6),
