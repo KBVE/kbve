@@ -18,8 +18,8 @@ use lightyear::prelude::*;
 
 use bevy_kbve_net::{
     AuthMessage, AuthResponse, CollectRequest, DamageEvent, DamageSource, GameChannel,
-    ObjectRemoved, ObjectRespawned, PlayerColor, PlayerId, PlayerVitals, PositionUpdate,
-    ProtocolPlugin, TileKey,
+    ObjectRemoved, ObjectRespawned, PlayerColor, PlayerId, PlayerName, PlayerVitals,
+    PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, TileKey,
 };
 
 use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
@@ -46,6 +46,20 @@ static AUTH_JWT: Mutex<Option<String>> = Mutex::new(None);
 
 /// Atomic flag indicating whether we are currently connected.
 static IS_CONNECTED: AtomicBool = AtomicBool::new(false);
+
+/// Pending set-username request from JS, consumed by Bevy system.
+static SET_USERNAME_REQUEST: Mutex<Option<String>> = Mutex::new(None);
+
+/// Called from JS/WASM to request setting a username.
+pub fn request_set_username(username: &str) {
+    if let Ok(mut guard) = SET_USERNAME_REQUEST.lock() {
+        *guard = Some(username.to_owned());
+    }
+}
+
+/// Marker component for the floating name label above a player.
+#[derive(Component)]
+struct PlayerNameLabel;
 
 /// Called from JS/WASM to request a connection to the game server.
 /// `server_addr` can be empty to use the default, or "host:port" format.
@@ -159,6 +173,12 @@ impl Plugin for NetPlugin {
         // Receive ObjectRemoved / ObjectRespawned messages from server
         app.add_systems(Update, receive_object_removed);
         app.add_systems(Update, receive_object_respawned);
+
+        // Username display systems
+        app.add_systems(Update, update_player_name_labels);
+        app.add_systems(Update, billboard_name_labels);
+        app.add_systems(Update, poll_set_username_request);
+        app.add_systems(Update, receive_set_username_response);
 
         // Immediately hide any replicated entity with PlayerId — prevents
         // ghost flicker before spawn_remote_player_visuals decides visibility.
@@ -463,16 +483,29 @@ fn spawn_remote_player_visuals(
             player_id.0
         );
 
-        commands.entity(entity).insert((
-            Mesh3d(meshes.add(Cuboid::new(0.6, 1.2, 0.6))),
-            MeshMaterial3d(materials.add(StandardMaterial {
-                base_color: color.0,
-                ..default()
-            })),
-            Transform::from_translation(initial_pos),
-            Visibility::Visible,
-            RemotePlayer,
-        ));
+        commands
+            .entity(entity)
+            .insert((
+                Mesh3d(meshes.add(Cuboid::new(0.6, 1.2, 0.6))),
+                MeshMaterial3d(materials.add(StandardMaterial {
+                    base_color: color.0,
+                    ..default()
+                })),
+                Transform::from_translation(initial_pos),
+                Visibility::Visible,
+                RemotePlayer,
+            ))
+            .with_child((
+                Text2d::new(""),
+                TextFont {
+                    font_size: 24.0,
+                    ..default()
+                },
+                TextColor(Color::WHITE),
+                Transform::from_translation(Vec3::new(0.0, 1.6, 0.0))
+                    .with_scale(Vec3::splat(0.01)),
+                PlayerNameLabel,
+            ));
     }
 }
 
@@ -694,4 +727,77 @@ fn connect_to_server(commands: &mut Commands, addr: &GameServerAddr) {
         entity: client_entity,
     });
     info!("[net] Connect trigger dispatched — waiting for Connecting → Connected lifecycle");
+}
+
+/// Update PlayerNameLabel text to match the parent entity's replicated PlayerName.
+fn update_player_name_labels(
+    parents: Query<(&PlayerName, &Children), (With<RemotePlayer>, Changed<PlayerName>)>,
+    mut labels: Query<&mut Text2d, With<PlayerNameLabel>>,
+) {
+    for (name, children) in &parents {
+        for &child in children.iter() {
+            if let Ok(mut text) = labels.get_mut(child) {
+                *text = Text2d::new(&name.0);
+            }
+        }
+    }
+}
+
+/// Billboard: rotate name labels to always face the camera.
+fn billboard_name_labels(
+    camera_q: Query<&GlobalTransform, With<Camera3d>>,
+    mut labels: Query<&mut Transform, With<PlayerNameLabel>>,
+) {
+    let Ok(cam_gt) = camera_q.single() else {
+        return;
+    };
+    let cam_forward = cam_gt.forward().as_vec3();
+    let look_rot = Quat::from_rotation_arc(Vec3::NEG_Z, -cam_forward);
+    for mut transform in &mut labels {
+        let scale = transform.scale;
+        transform.rotation = look_rot;
+        transform.scale = scale;
+    }
+}
+
+/// Poll the static SET_USERNAME_REQUEST and send it to the server.
+fn poll_set_username_request(
+    mut senders: Query<&mut MessageSender<SetUsernameRequest>, With<Connected>>,
+) {
+    let username = {
+        let Ok(mut guard) = SET_USERNAME_REQUEST.lock() else {
+            return;
+        };
+        guard.take()
+    };
+
+    let Some(username) = username else {
+        return;
+    };
+
+    info!("[net] sending SetUsernameRequest: '{username}'");
+    for mut sender in &mut senders {
+        sender.send::<GameChannel>(SetUsernameRequest { username: username.clone() });
+    }
+}
+
+/// Receive SetUsernameResponse from the server and log result.
+fn receive_set_username_response(
+    mut query: Query<(Entity, &mut MessageReceiver<SetUsernameResponse>)>,
+) {
+    for (entity, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            if msg.success {
+                info!(
+                    "[net] username set successfully: '{}' (from entity {entity:?})",
+                    msg.username
+                );
+            } else {
+                warn!(
+                    "[net] set-username failed: '{}' (from entity {entity:?})",
+                    msg.error
+                );
+            }
+        }
+    }
 }

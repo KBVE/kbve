@@ -5,6 +5,7 @@
 
 use std::collections::HashMap;
 use std::net::SocketAddr;
+use std::sync::mpsc;
 use std::time::Duration;
 
 use avian3d::prelude::*;
@@ -14,7 +15,8 @@ use lightyear::prelude::*;
 
 use bevy_kbve_net::{
     AuthMessage, AuthResponse, CollectRequest, DamageEvent, GameChannel, ObjectRemoved,
-    ObjectRespawned, PositionUpdate, ProtocolPlugin, TileKey,
+    ObjectRespawned, PlayerName, PositionUpdate, ProtocolPlugin, SetUsernameRequest,
+    SetUsernameResponse, TileKey,
 };
 
 /// Server tick rate: 20 Hz (matching client).
@@ -53,6 +55,48 @@ const MAX_COLLECT_DISTANCE: f32 = 3.0;
 #[derive(Resource, Default)]
 struct CollectedObjects(HashMap<TileKey, f64>);
 
+// ---------------------------------------------------------------------------
+// Profile bridge: Bevy ↔ tokio async communication
+// ---------------------------------------------------------------------------
+
+/// Requests sent from Bevy systems to the async bridge task.
+enum ProfileRequest {
+    LookupUsername {
+        player_entity: Entity,
+        user_id: String,
+    },
+    SetUsername {
+        client_entity: Entity,
+        player_entity: Entity,
+        user_id: String,
+        username: String,
+    },
+}
+
+/// Responses sent from the async bridge task back to Bevy systems.
+enum ProfileResponse {
+    Username {
+        player_entity: Entity,
+        username: String,
+    },
+    SetUsernameResult {
+        client_entity: Entity,
+        player_entity: Entity,
+        success: bool,
+        username: String,
+        error: String,
+    },
+}
+
+/// Sender side of the profile bridge (Bevy → tokio).
+#[derive(Resource)]
+struct ProfileBridgeTx(mpsc::Sender<ProfileRequest>);
+
+/// Receiver side of the profile bridge (tokio → Bevy).
+/// Wrapped in a Mutex because `mpsc::Receiver` is not `Sync`.
+#[derive(Resource)]
+struct ProfileBridgeRx(std::sync::Mutex<mpsc::Receiver<ProfileResponse>>);
+
 /// Initialize and spawn the headless Bevy game server in a background thread.
 ///
 /// Lightyear's WebSocket server binds its own port (default 5000), separate
@@ -65,13 +109,108 @@ pub fn init_gameserver() {
 
     let jwt_secret = std::env::var("SUPABASE_JWT_SECRET").unwrap_or_default();
 
+    // Profile bridge channels (Bevy ↔ tokio)
+    let (req_tx, req_rx) = mpsc::channel::<ProfileRequest>();
+    let (resp_tx, resp_rx) = mpsc::channel::<ProfileResponse>();
+
+    // Spawn the async bridge task on the current tokio runtime
+    let tokio_handle = tokio::runtime::Handle::current();
+    tokio_handle.spawn(async move {
+        profile_bridge_task(req_rx, resp_tx).await;
+    });
+
     std::thread::spawn(move || {
         tracing::info!("game server starting on ws://{ws_addr}");
-        run_bevy_app(ws_addr, jwt_secret);
+        run_bevy_app(ws_addr, jwt_secret, req_tx, resp_rx);
     });
 }
 
-fn run_bevy_app(ws_addr: SocketAddr, jwt_secret: String) {
+/// Async bridge task: receives profile requests from Bevy, calls DB, sends responses back.
+async fn profile_bridge_task(
+    rx: mpsc::Receiver<ProfileRequest>,
+    tx: mpsc::Sender<ProfileResponse>,
+) {
+    loop {
+        let req = match rx.try_recv() {
+            Ok(req) => req,
+            Err(mpsc::TryRecvError::Empty) => {
+                tokio::time::sleep(Duration::from_millis(50)).await;
+                continue;
+            }
+            Err(mpsc::TryRecvError::Disconnected) => break,
+        };
+
+        let profile_service = crate::db::get_profile_service();
+
+        match req {
+            ProfileRequest::LookupUsername {
+                player_entity,
+                user_id,
+            } => {
+                let username = if let Some(svc) = profile_service {
+                    match svc.get_profile_by_user_id(&user_id).await {
+                        Ok(Some(profile)) => {
+                            if profile.username.is_empty() {
+                                String::new()
+                            } else {
+                                profile.username
+                            }
+                        }
+                        Ok(None) => String::new(),
+                        Err(e) => {
+                            tracing::warn!(
+                                "[profile_bridge] failed to lookup username for {user_id}: {e}"
+                            );
+                            String::new()
+                        }
+                    }
+                } else {
+                    String::new()
+                };
+
+                let _ = tx.send(ProfileResponse::Username {
+                    player_entity,
+                    username,
+                });
+            }
+            ProfileRequest::SetUsername {
+                client_entity,
+                player_entity,
+                user_id,
+                username,
+            } => {
+                let (success, canonical, error) = if let Some(svc) = profile_service {
+                    match svc.set_username(&user_id, &username).await {
+                        Ok(canonical) => (true, canonical, String::new()),
+                        Err(e) => (false, String::new(), e),
+                    }
+                } else {
+                    (
+                        false,
+                        String::new(),
+                        "Profile service not available".to_string(),
+                    )
+                };
+
+                let _ = tx.send(ProfileResponse::SetUsernameResult {
+                    client_entity,
+                    player_entity,
+                    success,
+                    username: canonical,
+                    error,
+                });
+            }
+        }
+    }
+    tracing::info!("[profile_bridge] bridge task exiting");
+}
+
+fn run_bevy_app(
+    ws_addr: SocketAddr,
+    jwt_secret: String,
+    profile_tx: mpsc::Sender<ProfileRequest>,
+    profile_rx: mpsc::Receiver<ProfileResponse>,
+) {
     let mut app = App::new();
 
     // Minimal headless Bevy — no window, no renderer
@@ -104,6 +243,10 @@ fn run_bevy_app(ws_addr: SocketAddr, jwt_secret: String) {
     app.init_resource::<ClientPlayerMap>();
     app.init_resource::<CollectedObjects>();
 
+    // Profile bridge resources
+    app.insert_resource(ProfileBridgeTx(profile_tx));
+    app.insert_resource(ProfileBridgeRx(std::sync::Mutex::new(profile_rx)));
+
     // Spawn the server listener on startup
     let startup_addr = ws_addr;
     app.add_systems(Startup, move |mut commands: Commands| {
@@ -135,6 +278,12 @@ fn run_bevy_app(ws_addr: SocketAddr, jwt_secret: String) {
 
     // Send collected objects state to newly connected clients
     app.add_systems(Update, send_collected_state_to_new_clients);
+
+    // Process profile bridge responses (username lookups, set-username results)
+    app.add_systems(Update, process_profile_responses);
+
+    // Process set-username requests from clients
+    app.add_systems(Update, process_set_username_requests);
 
     // Periodic debug heartbeat
     app.add_systems(Update, server_debug_heartbeat);
@@ -262,6 +411,7 @@ fn process_auth_messages(
     jwt_secret: Res<JwtSecret>,
     mut authenticated: ResMut<AuthenticatedClients>,
     mut client_player_map: ResMut<ClientPlayerMap>,
+    profile_tx: Res<ProfileBridgeTx>,
     mut query: Query<
         (
             Entity,
@@ -288,8 +438,14 @@ fn process_auth_messages(
                     player_id,
                 });
                 commands.entity(entity).remove::<PendingAuth>();
-                authenticated.0.insert(entity, anon_user_id);
+                authenticated.0.insert(entity, anon_user_id.clone());
                 client_player_map.0.insert(entity, player_entity);
+
+                // Kick off async username lookup
+                let _ = profile_tx.0.send(ProfileRequest::LookupUsername {
+                    player_entity,
+                    user_id: anon_user_id,
+                });
                 continue;
             }
 
@@ -305,8 +461,14 @@ fn process_auth_messages(
                         player_id,
                     });
                     commands.entity(entity).remove::<PendingAuth>();
-                    authenticated.0.insert(entity, user_id);
+                    authenticated.0.insert(entity, user_id.clone());
                     client_player_map.0.insert(entity, player_entity);
+
+                    // Kick off async username lookup
+                    let _ = profile_tx.0.send(ProfileRequest::LookupUsername {
+                        player_entity,
+                        user_id,
+                    });
                 }
                 Err(e) => {
                     tracing::warn!("client {entity:?} auth failed: {e}");
@@ -362,6 +524,7 @@ fn spawn_player(commands: &mut Commands, player_id: u64) -> Entity {
         .spawn((
             bevy_kbve_net::PlayerId(player_id),
             bevy_kbve_net::PlayerColor(Color::srgb(r, g, b)),
+            bevy_kbve_net::PlayerName(String::new()),
             bevy_kbve_net::PlayerVitals::default(),
             Transform::from_xyz(spawn_x, spawn_y, spawn_z),
             RigidBody::Kinematic,
@@ -429,6 +592,7 @@ fn process_collect_requests(
     mut collected: ResMut<CollectedObjects>,
     mut receivers: Query<(Entity, &mut MessageReceiver<CollectRequest>), Without<PendingAuth>>,
     positions: Query<&Position>,
+    player_ids: Query<&bevy_kbve_net::PlayerId>,
     mut senders: Query<&mut MessageSender<ObjectRemoved>, With<Connected>>,
 ) {
     for (client_entity, mut receiver) in &mut receivers {
@@ -478,7 +642,8 @@ fn process_collect_requests(
             let collector_id = client_player_map
                 .0
                 .get(&client_entity)
-                .map(|e| e.to_bits())
+                .and_then(|&pe| player_ids.get(pe).ok())
+                .map(|pid| pid.0)
                 .unwrap_or(0);
             let removal = ObjectRemoved {
                 tile,
@@ -556,6 +721,87 @@ fn send_collected_state_to_new_clients(
                     collector_id: 0,
                 });
             }
+        }
+    }
+}
+
+/// Poll the profile bridge receiver for completed username lookups / set-username results.
+fn process_profile_responses(
+    bridge_rx: Res<ProfileBridgeRx>,
+    mut names: Query<&mut PlayerName>,
+    mut senders: Query<&mut MessageSender<SetUsernameResponse>>,
+) {
+    let rx = bridge_rx.0.lock().unwrap();
+    while let Ok(resp) = rx.try_recv() {
+        match resp {
+            ProfileResponse::Username {
+                player_entity,
+                username,
+            } => {
+                if let Ok(mut name) = names.get_mut(player_entity) {
+                    tracing::info!(
+                        "[gameserver] setting PlayerName for {player_entity:?} to '{username}'"
+                    );
+                    name.0 = username;
+                }
+            }
+            ProfileResponse::SetUsernameResult {
+                client_entity,
+                player_entity,
+                success,
+                username,
+                error,
+            } => {
+                // Update the replicated PlayerName component on success
+                if success {
+                    if let Ok(mut name) = names.get_mut(player_entity) {
+                        name.0 = username.clone();
+                    }
+                }
+
+                // Send response message to the requesting client
+                if let Ok(mut sender) = senders.get_mut(client_entity) {
+                    sender.send::<GameChannel>(SetUsernameResponse {
+                        success,
+                        username,
+                        error,
+                    });
+                }
+            }
+        }
+    }
+}
+
+/// Process SetUsernameRequest messages from clients.
+fn process_set_username_requests(
+    client_player_map: Res<ClientPlayerMap>,
+    authenticated: Res<AuthenticatedClients>,
+    profile_tx: Res<ProfileBridgeTx>,
+    mut receivers: Query<
+        (Entity, &mut MessageReceiver<SetUsernameRequest>),
+        Without<PendingAuth>,
+    >,
+) {
+    for (client_entity, mut receiver) in &mut receivers {
+        for msg in receiver.receive() {
+            let Some(&player_entity) = client_player_map.0.get(&client_entity) else {
+                continue;
+            };
+            let Some(user_id) = authenticated.0.get(&client_entity) else {
+                continue;
+            };
+
+            tracing::info!(
+                "[gameserver] set-username request from {client_entity:?}: '{}'",
+                msg.username
+            );
+
+            let _ = profile_tx.0.send(ProfileRequest::SetUsername {
+                client_entity,
+                player_entity,
+                user_id: user_id.clone(),
+                username: msg.username,
+            });
         }
     }
 }

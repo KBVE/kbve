@@ -18,6 +18,11 @@ pub struct PlayerId(pub u64);
 #[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq, Reflect)]
 pub struct PlayerColor(pub Color);
 
+/// Player display name — looked up from database on auth, replicated to all clients.
+/// Empty string means the player has no username set yet.
+#[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq, Reflect)]
+pub struct PlayerName(pub String);
+
 /// Player vitals (health, mana, energy) — server-authoritative, replicated to all clients.
 #[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq, Reflect)]
 pub struct PlayerVitals {
@@ -98,6 +103,22 @@ pub struct ObjectRemoved {
     pub collector_id: u64,
 }
 
+/// Client requests to set their username (when they don't have one).
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct SetUsernameRequest {
+    pub username: String,
+}
+
+/// Server responds to a username change attempt.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct SetUsernameResponse {
+    pub success: bool,
+    /// The canonical username (lowercased/trimmed) on success, empty on failure.
+    pub username: String,
+    /// Error message on failure, empty on success.
+    pub error: String,
+}
+
 /// Server broadcasts that a previously collected object has respawned.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ObjectRespawned {
@@ -169,6 +190,16 @@ impl Plugin for ProtocolPlugin {
 
         // PlayerVitals: server-authoritative, replicated to all clients
         app.register_component::<PlayerVitals>().add_prediction();
+
+        // PlayerName: replicated to all clients
+        app.register_component::<PlayerName>().add_prediction();
+
+        // SetUsernameRequest: client → server
+        app.register_message::<SetUsernameRequest>()
+            .add_direction(NetworkDirection::ClientToServer);
+        // SetUsernameResponse: server → client
+        app.register_message::<SetUsernameResponse>()
+            .add_direction(NetworkDirection::ServerToClient);
 
         // --- Replicated avian3d physics components ---
 
