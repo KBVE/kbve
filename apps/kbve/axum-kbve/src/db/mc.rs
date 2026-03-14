@@ -11,6 +11,8 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 use tracing::{debug, warn};
 
+use super::ensure_https;
+
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
@@ -241,7 +243,8 @@ impl McService {
 
         // Fetch UUID from Mojang
         let url = format!("{MOJANG_API}/{name}");
-        let resp = self.http.get(&url).send().await.ok()?;
+        let url = ensure_https(&url).ok()?;
+        let resp = self.http.get(url).send().await.ok()?;
         if !resp.status().is_success() {
             return None;
         }
@@ -275,7 +278,8 @@ impl McService {
     /// Fetch skin texture URL from Mojang session server.
     async fn fetch_skin_url(&self, uuid: &str) -> Option<String> {
         let url = format!("{MOJANG_SESSION}/{uuid}");
-        let resp = self.http.get(&url).send().await.ok()?;
+        let url = ensure_https(&url).ok()?;
+        let resp = self.http.get(url).send().await.ok()?;
         if !resp.status().is_success() {
             return None;
         }

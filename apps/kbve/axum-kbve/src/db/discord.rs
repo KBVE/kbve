@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 use tokio::sync::OnceCell;
 
+use super::ensure_https;
 use super::supabase::{SupabaseClient, SupabaseConfig};
 
 const DISCORD_API_BASE: &str = "https://discord.com/api/v10";
@@ -211,10 +212,11 @@ impl DiscordClient {
             "{}/guilds/{}/members/{}",
             DISCORD_API_BASE, self.config.guild_id, user_id
         );
+        let url = ensure_https(&url)?;
 
         let response = self
             .client
-            .get(&url)
+            .get(url)
             .header("Authorization", format!("Bot {}", self.config.bot_token))
             .header("User-Agent", "KBVE-Bot/1.0")
             .send()
@@ -251,10 +253,11 @@ impl DiscordClient {
     #[allow(dead_code)]
     pub async fn get_user(&self, user_id: &str) -> Result<Option<DiscordUser>, String> {
         let url = format!("{}/users/{}", DISCORD_API_BASE, user_id);
+        let url = ensure_https(&url)?;
 
         let response = self
             .client
-            .get(&url)
+            .get(url)
             .header("Authorization", format!("Bot {}", self.config.bot_token))
             .header("User-Agent", "KBVE-Bot/1.0")
             .send()
@@ -317,10 +320,11 @@ impl DiscordClient {
     /// GET /guilds/{guild.id}/roles
     pub async fn get_guild_roles(&self) -> Result<Vec<DiscordRole>, String> {
         let url = format!("{}/guilds/{}/roles", DISCORD_API_BASE, self.config.guild_id);
+        let url = ensure_https(&url)?;
 
         let response = self
             .client
-            .get(&url)
+            .get(url)
             .header("Authorization", format!("Bot {}", self.config.bot_token))
             .header("User-Agent", "KBVE-Bot/1.0")
             .send()
