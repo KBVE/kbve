@@ -139,11 +139,12 @@ fn spawn_orbs(mut commands: Commands, mut orb_materials: ResMut<Assets<OrbMateri
         },
     });
 
+    // Mana orb — bottom-right, above action buttons (24px margin + 56+12+56 = 148px)
     commands.spawn((
         Node {
             position_type: PositionType::Absolute,
             right: Val::Px(ORB_MARGIN),
-            bottom: Val::Px(ORB_MARGIN),
+            bottom: Val::Px(160.0),
             width: Val::Px(ORB_SIZE),
             height: Val::Px(ORB_SIZE),
             ..default()
@@ -152,7 +153,7 @@ fn spawn_orbs(mut commands: Commands, mut orb_materials: ResMut<Assets<OrbMateri
         ManaOrb,
     ));
 
-    // Energy orb — bottom-right, above mana
+    // Energy orb — bottom-right, above mana orb
     let ep_mat = orb_materials.add(OrbMaterial {
         uniforms: OrbUniforms {
             fill: 1.0,
@@ -170,7 +171,7 @@ fn spawn_orbs(mut commands: Commands, mut orb_materials: ResMut<Assets<OrbMateri
         Node {
             position_type: PositionType::Absolute,
             right: Val::Px(ORB_MARGIN),
-            bottom: Val::Px(ORB_MARGIN + ORB_SIZE + 8.0), // above mana orb
+            bottom: Val::Px(160.0 + ORB_SIZE + 8.0), // above mana orb
             width: Val::Px(ORB_SIZE),
             height: Val::Px(ORB_SIZE),
             ..default()
