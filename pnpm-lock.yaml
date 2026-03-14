@@ -474,8 +474,8 @@ importers:
                 specifier: ^8.5.3
                 version: 8.5.3
             postcss-merge-rules:
-                specifier: ^7.0.4
-                version: 7.0.4(postcss@8.5.3)
+                specifier: ^7.0.8
+                version: 7.0.8(postcss@8.5.3)
             prettier:
                 specifier: ^3.3.3
                 version: 3.5.3
@@ -12180,6 +12180,15 @@ packages:
         peerDependencies:
             postcss: ^8.4.31
 
+    cssnano-utils@5.0.1:
+        resolution:
+            {
+                integrity: sha512-ZIP71eQgG9JwjVZsTPSqhc6GHgEr53uJ7tK5///VfyWj6Xp2DBmixWHqJgPno+PqATzn48pL42ww9x5SSGmhZg==,
+            }
+        engines: { node: ^18.12.0 || ^20.9.0 || >=22.0 }
+        peerDependencies:
+            postcss: ^8.4.32
+
     cssnano@6.1.2:
         resolution:
             {
@@ -20471,14 +20480,14 @@ packages:
         peerDependencies:
             postcss: ^8.4.31
 
-    postcss-merge-rules@7.0.4:
+    postcss-merge-rules@7.0.8:
         resolution:
             {
-                integrity: sha512-ZsaamiMVu7uBYsIdGtKJ64PkcQt6Pcpep/uO90EpLS3dxJi6OXamIobTYcImyXGoW0Wpugh7DSD3XzxZS9JCPg==,
+                integrity: sha512-BOR1iAM8jnr7zoQSlpeBmCsWV5Uudi/+5j7k05D0O/WP3+OFMPD86c1j/20xiuRtyt45bhxw/7hnhZNhW2mNFA==,
             }
         engines: { node: ^18.12.0 || ^20.9.0 || >=22.0 }
         peerDependencies:
-            postcss: ^8.4.31
+            postcss: ^8.4.32
 
     postcss-minify-font-values@6.1.0:
         resolution:
@@ -20839,6 +20848,13 @@ packages:
         resolution:
             {
                 integrity: sha512-8sLjZwK0R+JlxlYcTuVnyT2v+htpdrjDOKuMcOVdYjt52Lh8hWRYpxBPoKx/Zg+bcjc3wx6fmQevMmUztS/ccA==,
+            }
+        engines: { node: '>=4' }
+
+    postcss-selector-parser@7.1.1:
+        resolution:
+            {
+                integrity: sha512-orRsuYpJVw8LdAwqqLykBj9ecS5/cRHlI5+nvTo8LcCKmzDmqVORXtOIYEEQuL9D4BxtA1lm5isAqzQZCoQ6Eg==,
             }
         engines: { node: '>=4' }
 
@@ -35335,7 +35351,7 @@ snapshots:
     caniuse-api@3.0.0:
         dependencies:
             browserslist: 4.28.1
-            caniuse-lite: 1.0.30001712
+            caniuse-lite: 1.0.30001774
             lodash.memoize: 4.1.2
             lodash.uniq: 4.5.0
 
@@ -35941,7 +35957,7 @@ snapshots:
             postcss-discard-empty: 7.0.0(postcss@8.5.3)
             postcss-discard-overridden: 7.0.0(postcss@8.5.3)
             postcss-merge-longhand: 7.0.4(postcss@8.5.3)
-            postcss-merge-rules: 7.0.4(postcss@8.5.3)
+            postcss-merge-rules: 7.0.8(postcss@8.5.3)
             postcss-minify-font-values: 7.0.0(postcss@8.5.3)
             postcss-minify-gradients: 7.0.0(postcss@8.5.3)
             postcss-minify-params: 7.0.2(postcss@8.5.3)
@@ -35966,6 +35982,10 @@ snapshots:
             postcss: 8.5.6
 
     cssnano-utils@5.0.0(postcss@8.5.3):
+        dependencies:
+            postcss: 8.5.3
+
+    cssnano-utils@5.0.1(postcss@8.5.3):
         dependencies:
             postcss: 8.5.3
 
@@ -41980,13 +42000,13 @@ snapshots:
             postcss: 8.5.6
             postcss-selector-parser: 6.1.2
 
-    postcss-merge-rules@7.0.4(postcss@8.5.3):
+    postcss-merge-rules@7.0.8(postcss@8.5.3):
         dependencies:
-            browserslist: 4.24.4
+            browserslist: 4.28.1
             caniuse-api: 3.0.0
-            cssnano-utils: 5.0.0(postcss@8.5.3)
+            cssnano-utils: 5.0.1(postcss@8.5.3)
             postcss: 8.5.3
-            postcss-selector-parser: 6.1.2
+            postcss-selector-parser: 7.1.1
 
     postcss-minify-font-values@6.1.0(postcss@8.5.6):
         dependencies:
@@ -42210,6 +42230,11 @@ snapshots:
             util-deprecate: 1.0.2
 
     postcss-selector-parser@7.1.0:
+        dependencies:
+            cssesc: 3.0.0
+            util-deprecate: 1.0.2
+
+    postcss-selector-parser@7.1.1:
         dependencies:
             cssesc: 3.0.0
             util-deprecate: 1.0.2
