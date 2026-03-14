@@ -174,7 +174,8 @@ fn send_auth_on_connect(
         let jwt = pending_auth.jwt.take().unwrap_or_default();
         sender.send::<GameChannel>(AuthMessage { jwt });
         pending_auth.sent = true;
-        info!("sent auth message to server");
+        IS_CONNECTED.store(true, Ordering::Release);
+        info!("sent auth message to server (connected)");
         break;
     }
 }
@@ -230,17 +231,20 @@ fn spawn_remote_player_visuals(
     my_player_id: Res<MyPlayerId>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    query: Query<(Entity, &PlayerId, &PlayerColor), Added<PlayerId>>,
+    query: Query<(Entity, &PlayerId, &PlayerColor, Option<&Position>), Added<PlayerId>>,
 ) {
-    for (entity, player_id, color) in &query {
+    for (entity, player_id, color, maybe_pos) in &query {
         // Skip our own player — we already have a locally-spawned entity
         if my_player_id.0 == Some(player_id.0) {
             info!("skipping visual spawn for own player entity {entity:?}");
             continue;
         }
 
+        // Use replicated Position if available, otherwise default
+        let initial_pos = maybe_pos.map(|p| p.0).unwrap_or(Vec3::new(2.0, 2.0, 2.0));
+
         info!(
-            "spawning remote player visual for player_id={} entity={entity:?}",
+            "spawning remote player visual for player_id={} entity={entity:?} at {initial_pos}",
             player_id.0
         );
 
@@ -250,7 +254,7 @@ fn spawn_remote_player_visuals(
                 base_color: color.0,
                 ..default()
             })),
-            Transform::from_xyz(2.0, 2.0, 2.0),
+            Transform::from_translation(initial_pos),
             RemotePlayer,
         ));
     }
@@ -274,12 +278,15 @@ fn connect_to_server(commands: &mut Commands, addr: &GameServerAddr) {
             Client::default(),
             PeerAddr(server_addr),
             WebSocketClientIo::from_addr(ClientConfig::default(), WebSocketScheme::Plain),
+            ReplicationReceiver::default(),
         ))
         .id();
 
     commands.trigger(Connect {
         entity: client_entity,
     });
-    IS_CONNECTED.store(true, Ordering::Release);
+    // NOTE: IS_CONNECTED is set in send_auth_on_connect once we detect the
+    // `Connected` component, not here — avoids false-positive if the
+    // WebSocket handshake fails.
     info!("connecting to game server at ws://{server_addr}");
 }
