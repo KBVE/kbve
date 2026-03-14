@@ -1,0 +1,128 @@
+{
+	"enums": {
+		"npc.NpcTypeFlag": {
+			"mode": "const_array",
+			"stripPrefix": "NPC_TYPE_",
+			"caseTransform": "lowercase"
+		},
+		"npc.Personality": {
+			"mode": "const_array",
+			"stripPrefix": "PERSONALITY_",
+			"caseTransform": "lowercase"
+		},
+		"npc.Element": {
+			"mode": "const_array",
+			"stripPrefix": "ELEMENT_",
+			"caseTransform": "lowercase"
+		},
+		"npc.NpcRarity": {
+			"mode": "const_array",
+			"stripPrefix": "NPC_RARITY_",
+			"caseTransform": "lowercase"
+		},
+		"npc.NpcRank": {
+			"mode": "const_array",
+			"stripPrefix": "NPC_RANK_",
+			"caseTransform": "lowercase"
+		},
+		"npc.CreatureFamily": {
+			"mode": "const_array",
+			"stripPrefix": "CREATURE_FAMILY_",
+			"caseTransform": "lowercase"
+		},
+		"npc.MovementType": {
+			"mode": "const_array",
+			"stripPrefix": "MOVEMENT_",
+			"caseTransform": "lowercase"
+		},
+		"npc.DifficultyMode": {
+			"mode": "const_array",
+			"stripPrefix": "DIFFICULTY_",
+			"caseTransform": "lowercase"
+		},
+		"npc.EquipSlot": {
+			"mode": "const_array",
+			"stripPrefix": "EQUIP_SLOT_",
+			"caseTransform": "lowercase"
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "NpcTypeFlags",
+			"sourceEnum": "npc.NpcTypeFlag",
+			"typeName": "NpcTypeFlag",
+			"zodSchemaName": "NpcTypeFlagSchema"
+		},
+		{
+			"name": "Personalities",
+			"sourceEnum": "npc.Personality",
+			"typeName": "PersonalityValue",
+			"zodSchemaName": "PersonalitySchema"
+		},
+		{
+			"name": "Elements",
+			"sourceEnum": "npc.Element",
+			"typeName": "ElementValue",
+			"zodSchemaName": "ElementSchema"
+		},
+		{
+			"name": "NpcRarities",
+			"sourceEnum": "npc.NpcRarity",
+			"typeName": "NpcRarityValue",
+			"zodSchemaName": "NpcRaritySchema"
+		},
+		{
+			"name": "NpcRanks",
+			"sourceEnum": "npc.NpcRank",
+			"typeName": "NpcRankValue",
+			"zodSchemaName": "NpcRankSchema"
+		},
+		{
+			"name": "CreatureFamilies",
+			"sourceEnum": "npc.CreatureFamily",
+			"typeName": "CreatureFamilyValue",
+			"zodSchemaName": "CreatureFamilySchema"
+		},
+		{
+			"name": "MovementTypes",
+			"sourceEnum": "npc.MovementType",
+			"typeName": "MovementTypeValue",
+			"zodSchemaName": "MovementTypeSchema"
+		},
+		{
+			"name": "DifficultyModes",
+			"sourceEnum": "npc.DifficultyMode",
+			"typeName": "DifficultyModeValue",
+			"zodSchemaName": "DifficultyModeSchema"
+		},
+		{
+			"name": "EquipSlots",
+			"sourceEnum": "npc.EquipSlot",
+			"typeName": "EquipSlotValue",
+			"zodSchemaName": "EquipSlotSchema"
+		}
+	],
+
+	"passthrough": [
+		"npc.NpcStats",
+		"npc.BehaviorTraits",
+		"npc.SpatialProperties",
+		"npc.InteractionFlags"
+	],
+
+	"nullable": [
+		"npc.NpcStats.*",
+		"npc.BehaviorTraits.*",
+		"npc.SpatialProperties.*",
+		"npc.InteractionFlags.*"
+	],
+
+	"refinements": {
+		"npc.Npc.level": ".min(0).max(999)",
+		"npc.ElementalAffinity.magnitude": ".min(0).max(1)",
+		"npc.NpcAbility.hit_chance": ".min(0).max(1)",
+		"npc.LootEntry.drop_rate": ".min(0).max(1)",
+		"npc.SpawnRule.spawn_weight": ".min(0)"
+	}
+}

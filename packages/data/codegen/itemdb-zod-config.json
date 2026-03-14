@@ -1,0 +1,125 @@
+{
+	"enums": {
+		"item.ItemTypeFlag": {
+			"mode": "const_array",
+			"stripPrefix": "ITEM_TYPE_",
+			"caseTransform": "lowercase"
+		},
+		"item.ItemRarity": {
+			"mode": "const_array",
+			"stripPrefix": "ITEM_RARITY_",
+			"caseTransform": "lowercase"
+		},
+		"item.EquipSlot": {
+			"mode": "const_array",
+			"stripPrefix": "EQUIP_SLOT_",
+			"caseTransform": "lowercase"
+		},
+		"item.Element": {
+			"mode": "const_array",
+			"stripPrefix": "ELEMENT_",
+			"caseTransform": "lowercase"
+		},
+		"item.UseEffectType": {
+			"mode": "const_array",
+			"stripPrefix": "USE_EFFECT_",
+			"caseTransform": "lowercase"
+		},
+		"item.GearSpecialType": {
+			"mode": "const_array",
+			"stripPrefix": "GEAR_SPECIAL_",
+			"caseTransform": "lowercase"
+		},
+		"item.StatusEffectKind": {
+			"mode": "const_array",
+			"stripPrefix": "STATUS_EFFECT_",
+			"caseTransform": "lowercase"
+		},
+		"item.SkillingType": {
+			"mode": "const_array",
+			"stripPrefix": "SKILLING_",
+			"caseTransform": "lowercase"
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "ItemTypeFlags",
+			"sourceEnum": "item.ItemTypeFlag",
+			"typeName": "ItemTypeFlagValue",
+			"zodSchemaName": "ItemTypeFlagSchema"
+		},
+		{
+			"name": "ItemRarities",
+			"sourceEnum": "item.ItemRarity",
+			"typeName": "ItemRarityValue",
+			"zodSchemaName": "ItemRaritySchema"
+		},
+		{
+			"name": "EquipSlots",
+			"sourceEnum": "item.EquipSlot",
+			"typeName": "EquipSlotValue",
+			"zodSchemaName": "EquipSlotSchema"
+		},
+		{
+			"name": "Elements",
+			"sourceEnum": "item.Element",
+			"typeName": "ElementValue",
+			"zodSchemaName": "ElementSchema"
+		},
+		{
+			"name": "UseEffectTypes",
+			"sourceEnum": "item.UseEffectType",
+			"typeName": "UseEffectTypeValue",
+			"zodSchemaName": "UseEffectTypeSchema"
+		},
+		{
+			"name": "GearSpecialTypes",
+			"sourceEnum": "item.GearSpecialType",
+			"typeName": "GearSpecialTypeValue",
+			"zodSchemaName": "GearSpecialTypeSchema"
+		},
+		{
+			"name": "StatusEffectKinds",
+			"sourceEnum": "item.StatusEffectKind",
+			"typeName": "StatusEffectKindValue",
+			"zodSchemaName": "StatusEffectKindSchema"
+		},
+		{
+			"name": "SkillingTypes",
+			"sourceEnum": "item.SkillingType",
+			"typeName": "SkillingTypeValue",
+			"zodSchemaName": "SkillingTypeSchema"
+		}
+	],
+
+	"passthrough": [
+		"item.ItemBonuses",
+		"item.FoodInfo",
+		"item.SkillingInfo",
+		"item.DeployableInfo"
+	],
+
+	"nullable": [
+		"item.ItemBonuses.*",
+		"item.EquipmentInfo.durability",
+		"item.EquipmentInfo.max_durability",
+		"item.FoodInfo.*",
+		"item.SkillingInfo.*"
+	],
+
+	"refinements": {
+		"item.Item.pixel_density": ".min(8).max(512)",
+		"item.Item.max_stack": ".min(1)",
+		"item.Item.weight": ".min(0)",
+		"item.Item.buy_price": ".min(0)",
+		"item.Item.sell_price": ".min(0)",
+		"item.Item.cooldown": ".min(0)",
+		"item.Item.level_requirement": ".min(0)",
+		"item.ItemAffinity.magnitude": ".min(0).max(1)",
+		"item.LootSource.drop_rate": ".min(0).max(1)",
+		"item.SetBonus.pieces_required": ".min(1).max(10)",
+		"item.CraftingRecipe.skill_level": ".min(0).max(99)",
+		"item.CraftingIngredient.amount": ".min(1)"
+	}
+}
