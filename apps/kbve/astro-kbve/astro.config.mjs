@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
-import starlightSiteGraph from 'starlight-site-graph';
+// TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
+// import starlightSiteGraph from 'starlight-site-graph';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
@@ -72,28 +73,8 @@ export default defineConfig({
 				PageSidebar: './src/components/pagesidebar/PageSidebar.astro',
 				Footer: './src/components/footer/AstroFooter.astro',
 			},
-			plugins: [
-				starlightSiteGraph({
-					graphConfig: {
-						actions: [
-							'fullscreen',
-							'depth',
-							'reset-zoom',
-							'render-arrows',
-							'settings',
-						],
-						renderLabels: true,
-						renderArrows: true,
-						depth: 3,
-						depthDirection: 'both',
-						minZoom: 0.05,
-						maxZoom: 4,
-						enableZoom: true,
-						enablePan: true,
-					},
-					overridePageSidebar: false,
-				}),
-			],
+			// TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
+			// plugins: [starlightSiteGraph({ ... })],
 			sidebar: [
 				{
 					label: 'Dashboard',

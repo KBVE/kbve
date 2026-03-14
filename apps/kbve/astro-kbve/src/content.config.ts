@@ -1,7 +1,8 @@
 import { z, defineCollection } from 'astro:content';
 import { docsSchema } from '@astrojs/starlight/schema';
 import { docsLoader } from '@astrojs/starlight/loaders';
-import { pageSiteGraphSchema } from 'starlight-site-graph/schema';
+// TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
+// import { pageSiteGraphSchema } from 'starlight-site-graph/schema';
 import { glob } from 'astro/loaders';
 
 import {
@@ -78,14 +79,12 @@ export const collections = {
 	docs: defineCollection({
 		loader: docsLoader(),
 		schema: docsSchema({
-			extend: pageSiteGraphSchema.merge(
-				z.object({
-					itemdb: z.array(IObjectSchema).optional(),
-					questdb: z.array(IQuestSchema).optional(),
-					mapdb: z.array(IMapObjectSchema).optional(),
-					osrs: OSRSFrontmatterSchema.optional(),
-				}),
-			),
+			extend: z.object({
+				itemdb: z.array(IObjectSchema).optional(),
+				questdb: z.array(IQuestSchema).optional(),
+				mapdb: z.array(IMapObjectSchema).optional(),
+				osrs: OSRSFrontmatterSchema.optional(),
+			}),
 		}),
 	}),
 	itemdb,
