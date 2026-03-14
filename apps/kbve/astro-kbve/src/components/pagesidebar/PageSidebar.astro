@@ -1,6 +1,7 @@
 ---
 import Default from '@astrojs/starlight/components/PageSidebar.astro';
-import { PageGraph, PageBacklinks } from 'starlight-site-graph/components';
+// TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
+// import { PageGraph, PageBacklinks } from 'starlight-site-graph/components';
 ---
 
 <div class="mx-auto p-3">
@@ -23,16 +24,20 @@ import { PageGraph, PageBacklinks } from 'starlight-site-graph/components';
 	</a>
 </div>
 
+<!-- TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
 <PageGraph class="right-sidebar-panel slsg-graph-panel graph-panel">
 	<h2 slot="title">Das {Astro.locals.t('starlight-site-graph.graph')}</h2>
 </PageGraph>
+-->
 
 <Default>
 	<slot />
 </Default>
 
+<!-- TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
 <PageBacklinks class="right-sidebar-panel backlinks-panel">
 	<h2 slot="title">{Astro.locals.t('starlight-site-graph.backlinks')}</h2>
 </PageBacklinks>
+-->
 
 <br />

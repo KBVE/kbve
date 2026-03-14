@@ -63,7 +63,7 @@ export const OSRSHeadTagSchema = z.object({
 		'noscript',
 		'template',
 	]),
-	attrs: z.record(z.union([z.string(), z.boolean()])).optional(),
+	attrs: z.record(z.string(), z.union([z.string(), z.boolean()])).optional(),
 	content: z.string().optional(),
 });
 
