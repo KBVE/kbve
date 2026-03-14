@@ -1,0 +1,173 @@
+name: CI - Monday E2E
+
+on:
+    schedule:
+        - cron: '0 6 * * 1' # Monday 06:00 UTC
+    workflow_dispatch:
+        inputs:
+            branch:
+                description: 'Branch to test'
+                required: false
+                default: 'dev'
+                type: string
+
+concurrency:
+    group: ${{ github.workflow }}
+    cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+    # -----------------------------------------------------------------------
+    # Job 1: Discover all Nx projects that have an `e2e` target and emit a
+    # JSON matrix with per-project runner assignments.
+    # -----------------------------------------------------------------------
+    discover:
+        name: Discover E2E Projects
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: read
+        outputs:
+            matrix: ${{ steps.matrix.outputs.matrix }}
+            has_projects: ${{ steps.matrix.outputs.has_projects }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  ref: ${{ inputs.branch || 'dev' }}
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build e2e matrix
+              id: matrix
+              run: |
+                  # Get all projects with an e2e target
+                  PROJECTS=$(pnpm nx show projects --with-target e2e 2>/dev/null | sort)
+
+                  if [ -z "$PROJECTS" ]; then
+                    echo "No e2e projects found"
+                    echo "has_projects=false" >> "$GITHUB_OUTPUT"
+                    echo 'matrix={"include":[]}' >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  echo "Discovered e2e projects:"
+                  echo "$PROJECTS"
+
+                  # Build matrix entries with runner + playwright assignments.
+                  # Heavy Docker-based tests go to arc-runner-set;
+                  # lighter Playwright/vitest tests stay on ubuntu-latest.
+                  ENTRIES="[]"
+                  while IFS= read -r project; do
+                    [ -z "$project" ] && continue
+
+                    RUNNER="ubuntu-latest"
+                    PLAYWRIGHT="true"
+
+                    case "$project" in
+                      axum-kbve-e2e|mc-e2e|edge-e2e)
+                        RUNNER="arc-runner-set"
+                        PLAYWRIGHT="false"
+                        ;;
+                      devops-e2e)
+                        PLAYWRIGHT="false"
+                        ;;
+                    esac
+
+                    ENTRIES=$(echo "$ENTRIES" | jq -c \
+                      --arg name "$project" \
+                      --arg runner "$RUNNER" \
+                      --arg pw "$PLAYWRIGHT" \
+                      '. + [{"name": $name, "runner": $runner, "playwright": ($pw == "true")}]')
+                  done <<< "$PROJECTS"
+
+                  MATRIX=$(echo "$ENTRIES" | jq -c '{include: .}')
+                  echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+                  echo "has_projects=true" >> "$GITHUB_OUTPUT"
+
+                  echo "::group::Generated matrix"
+                  echo "$MATRIX" | jq .
+                  echo "::endgroup::"
+
+    # -----------------------------------------------------------------------
+    # Job 2: Fan out — one runner per e2e project using the reusable
+    # docker-test-app workflow.
+    # -----------------------------------------------------------------------
+    e2e:
+        name: E2E - ${{ matrix.name }}
+        needs: discover
+        if: needs.discover.outputs.has_projects == 'true'
+        permissions:
+            contents: read
+            packages: write
+        strategy:
+            fail-fast: false
+            matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/docker-test-app.yml@dev
+        with:
+            project: ${{ matrix.name }}
+            runner: ${{ matrix.runner }}
+            install_playwright: ${{ matrix.playwright }}
+
+    # -----------------------------------------------------------------------
+    # Job 3: Summary — collect results and report.
+    # -----------------------------------------------------------------------
+    summary:
+        name: Monday E2E Summary
+        needs: [discover, e2e]
+        if: always()
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        steps:
+            - name: Download test markers
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: test-passed-docker-*
+                  path: ./test-results
+                  merge-multiple: false
+              continue-on-error: true
+
+            - name: Report results
+              env:
+                  MATRIX: ${{ needs.discover.outputs.matrix }}
+              run: |
+                  echo "## Monday E2E Results" >> "$GITHUB_STEP_SUMMARY"
+                  echo "" >> "$GITHUB_STEP_SUMMARY"
+                  echo "| Project | Status |" >> "$GITHUB_STEP_SUMMARY"
+                  echo "|---------|--------|" >> "$GITHUB_STEP_SUMMARY"
+
+                  TOTAL=0
+                  PASSED=0
+
+                  for project in $(echo "$MATRIX" | jq -r '.include[].name'); do
+                    TOTAL=$((TOTAL + 1))
+                    if [ -f "./test-results/test-passed-docker-${project}/test-result.txt" ]; then
+                      echo "| $project | :white_check_mark: Passed |" >> "$GITHUB_STEP_SUMMARY"
+                      PASSED=$((PASSED + 1))
+                    else
+                      echo "| $project | :x: Failed |" >> "$GITHUB_STEP_SUMMARY"
+                    fi
+                  done
+
+                  echo "" >> "$GITHUB_STEP_SUMMARY"
+                  echo "**$PASSED / $TOTAL passed**" >> "$GITHUB_STEP_SUMMARY"
+
+                  if [ "$PASSED" -lt "$TOTAL" ]; then
+                    echo ""
+                    echo "::warning::Monday E2E: $PASSED/$TOTAL projects passed"
+                  fi
