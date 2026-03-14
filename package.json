@@ -87,7 +87,7 @@
 		"jiti": "2.4.2",
 		"jsdom": "~22.1.0",
 		"jsonc-eslint-parser": "^2.1.0",
-		"lint-staged": "^16.2.7",
+		"lint-staged": "^16.4.0",
 		"nanostores": "^1.1.0",
 		"nx": "22.5.4",
 		"postcss": "^8.5.3",

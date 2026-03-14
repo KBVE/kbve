@@ -462,8 +462,8 @@ importers:
                 specifier: ^2.1.0
                 version: 2.4.0
             lint-staged:
-                specifier: ^16.2.7
-                version: 16.2.7
+                specifier: ^16.4.0
+                version: 16.4.0
             nanostores:
                 specifier: ^1.1.0
                 version: 1.1.0
@@ -11611,6 +11611,13 @@ packages:
             }
         engines: { node: '>=20' }
 
+    commander@14.0.3:
+        resolution:
+            {
+                integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==,
+            }
+        engines: { node: '>=20' }
+
     commander@2.20.3:
         resolution:
             {
@@ -17629,10 +17636,10 @@ packages:
             }
         engines: { node: ^12.20.0 || ^14.13.1 || >=16.0.0 }
 
-    lint-staged@16.2.7:
+    lint-staged@16.4.0:
         resolution:
             {
-                integrity: sha512-lDIj4RnYmK7/kXMya+qJsmkRFkGolciXjrsZ6PC25GdTfWOAWetR0ZbsNXRAj1EHHImRSalc+whZFg56F5DVow==,
+                integrity: sha512-lBWt8hujh/Cjysw5GYVmZpFHXDCgZzhrOm8vbcUdobADZNOK/bRshr2kM3DfgrrtR1DQhfupW9gnIXOfiFi+bw==,
             }
         engines: { node: '>=20.17' }
         hasBin: true
@@ -19066,13 +19073,6 @@ packages:
                 integrity: sha512-z81GNO7nnYMEhrGh9LeymoE4+Yr0Wn5McHIZMK5cfQCl+NDX08sCZgUc9/6MHni9IWuFLm1Z3HTCXu2z9fN62Q==,
             }
 
-    nano-spawn@2.0.0:
-        resolution:
-            {
-                integrity: sha512-tacvGzUY5o2D8CBh2rrwxyNojUsZNU2zjNTzKQrkgGJQTbGAfArVWXSKMBokBeeg6C7OLRGUEyoFlYbfeWQIqw==,
-            }
-        engines: { node: '>=20.17' }
-
     nanoid@3.3.11:
         resolution:
             {
@@ -20100,14 +20100,6 @@ packages:
                 integrity: sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==,
             }
         engines: { node: '>=12' }
-
-    pidtree@0.6.0:
-        resolution:
-            {
-                integrity: sha512-eG2dWTVw5bzqGRztnHExczNxt5VGsE6OwTeCG3fdUf9KBsZzO3R5OIIIzWR+iZA0NtZ+RDVdaoE2dK1cn6jH4g==,
-            }
-        engines: { node: '>=0.10' }
-        hasBin: true
 
     pify@2.3.0:
         resolution:
@@ -24009,6 +24001,13 @@ packages:
         resolution:
             {
                 integrity: sha512-W/KYk+NFhkmsYpuHq5JykngiOCnxeVL8v8dFnqxSD8qEEdRfXk1SDM6JzNqcERbcGYj9tMrDQBYV9cjgnunFIg==,
+            }
+        engines: { node: '>=18' }
+
+    tinyexec@1.0.4:
+        resolution:
+            {
+                integrity: sha512-u9r3uZC0bdpGOXtlxUIdwf9pkmvhqJdrVCH9fapQtgy/OeTTMZ1nqH7agtvEfmGui6e1XxjcdrlxvxJvc3sMqw==,
             }
         engines: { node: '>=18' }
 
@@ -35552,6 +35551,8 @@ snapshots:
 
     commander@14.0.2: {}
 
+    commander@14.0.3: {}
+
     commander@2.20.3: {}
 
     commander@4.1.1:
@@ -39784,14 +39785,13 @@ snapshots:
 
     lines-and-columns@2.0.3: {}
 
-    lint-staged@16.2.7:
+    lint-staged@16.4.0:
         dependencies:
-            commander: 14.0.2
+            commander: 14.0.3
             listr2: 9.0.5
-            micromatch: 4.0.8
-            nano-spawn: 2.0.0
-            pidtree: 0.6.0
+            picomatch: 4.0.3
             string-argv: 0.3.2
+            tinyexec: 1.0.4
             yaml: 2.8.2
 
     listr2@9.0.5:
@@ -41085,8 +41085,6 @@ snapshots:
             thenify-all: 1.6.0
         optional: true
 
-    nano-spawn@2.0.0: {}
-
     nanoid@3.3.11: {}
 
     nanoid@3.3.8: {}
@@ -41723,8 +41721,6 @@ snapshots:
     picomatch@4.0.2: {}
 
     picomatch@4.0.3: {}
-
-    pidtree@0.6.0: {}
 
     pify@2.3.0: {}
 
@@ -44439,6 +44435,8 @@ snapshots:
     tinyexec@0.3.2: {}
 
     tinyexec@1.0.2: {}
+
+    tinyexec@1.0.4: {}
 
     tinyglobby@0.2.15:
         dependencies:
