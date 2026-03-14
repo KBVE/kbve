@@ -1,0 +1,214 @@
+name: CI - Weekly NX Report
+
+on:
+    schedule:
+        - cron: '0 6 * * 2' # Tuesday 06:00 UTC
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}
+    cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+    generate:
+        name: Generate NX Report & Graph
+        runs-on: arc-runner-set
+        timeout-minutes: 30
+        permissions:
+            contents: write
+            pull-requests: write
+
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::NX report job: actor=${{ github.actor }}, event=${{ github.event_name }}, ref=${{ github.ref }}, run_id=${{ github.run_id }}, time=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+            - name: Checkout dev branch
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+                  fetch-depth: 1
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install
+
+            - name: Setup Nx Cache
+              uses: actions/cache@v5
+              with:
+                  path: .nx/cache
+                  key: ${{ runner.os }}-nx-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-nx-${{ hashFiles('**/pnpm-lock.yaml') }}-
+                      ${{ runner.os }}-nx-
+
+            # ── Generate NX data ────────────────────────────────
+            - name: Generate NX Report
+              id: nx-report
+              run: |
+                  pnpm nx report > /tmp/nx-report-raw.txt 2>&1 || true
+                  echo "report_date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+                  echo "report_timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+            - name: Generate NX Graph JSON
+              run: |
+                  pnpm nx graph --file=/tmp/nx-graph.json --open=false
+                  rm -rf static 2>/dev/null || true
+
+            # ── Build NX Report MDX ─────────────────────────────
+            - name: Build NX Report MDX
+              shell: bash
+              run: |
+                  REPORT_DATE="${{ steps.nx-report.outputs.report_date }}"
+                  REPORT_TIMESTAMP="${{ steps.nx-report.outputs.report_timestamp }}"
+                  DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/nx-report.mdx"
+                  mkdir -p "$(dirname "$DEST")"
+
+                  NODE_VER=$(grep "^Node" /tmp/nx-report-raw.txt | awk -F: '{print $2}' | xargs)
+                  OS_INFO=$(grep "^OS" /tmp/nx-report-raw.txt | awk -F: '{print $2}' | xargs)
+                  NX_VER=$(grep "^nx " /tmp/nx-report-raw.txt | awk '{print $NF}' | xargs)
+                  PNPM_VER=$(grep "^pnpm" /tmp/nx-report-raw.txt | awk -F: '{print $2}' | xargs)
+
+                  {
+                    printf '%s\n' '---'
+                    printf '%s\n' 'title: NX Workspace Report'
+                    printf '%s\n' 'description: |'
+                    printf '%s\n' '    Weekly auto-generated NX workspace report for the KBVE monorepo.'
+                    printf '%s\n' 'sidebar:'
+                    printf '%s\n' '    label: NX Report'
+                    printf '%s\n' '    order: 100'
+                    printf '%s\n' 'editUrl: false'
+                    printf '%s\n' '---'
+                    printf '\n'
+                    printf '%s\n' "## NX Workspace Report"
+                    printf '\n'
+                    printf '%s\n' "> Last generated: **${REPORT_TIMESTAMP}**"
+                    printf '%s\n' ">"
+                    printf '%s\n' "> Auto-generated every Tuesday by the \`ci-weekly-nx-report\` workflow."
+                    printf '\n'
+                    printf '%s\n' "### Environment"
+                    printf '\n'
+                    printf '%s\n' "| Component | Version |"
+                    printf '%s\n' "|-----------|---------|"
+                    printf '%s\n' "| Node | ${NODE_VER} |"
+                    printf '%s\n' "| OS | ${OS_INFO} |"
+                    printf '%s\n' "| pnpm | ${PNPM_VER} |"
+                    printf '%s\n' "| Nx | ${NX_VER} |"
+                    printf '\n'
+                    printf '%s\n' "### Full Report"
+                    printf '\n'
+                    printf '%s\n' '```'
+                    cat /tmp/nx-report-raw.txt
+                    printf '%s\n' '```'
+                    printf '\n'
+                    printf '%s\n' '---'
+                    printf '\n'
+                    printf '%s\n' '*Auto-generated by [ci-weekly-nx-report.yml](https://github.com/KBVE/kbve/actions/workflows/ci-weekly-nx-report.yml)*'
+                  } > "$DEST"
+
+            # ── Build NX Graph MDX ──────────────────────────────
+            - name: Build NX Graph MDX
+              run: |
+                  DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/nx-graph.mdx"
+                  TIMESTAMP="${{ steps.nx-report.outputs.report_timestamp }}"
+                  python3 scripts/nx-graph-to-mdx.py /tmp/nx-graph.json "$DEST" "$TIMESTAMP"
+
+            # ── Commit & PR ──────────────────────────────────────
+            - name: Commit and push
+              id: commit
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+
+                  BRANCH_NAME="chore/nx-report-$(date +%Y%m%d)"
+                  REPORT_DATE="${{ steps.nx-report.outputs.report_date }}"
+
+                  git add \
+                    apps/kbve/astro-kbve/src/content/docs/dashboard/nx-report.mdx \
+                    apps/kbve/astro-kbve/src/content/docs/dashboard/nx-graph.mdx
+
+                  if git diff --cached --quiet; then
+                    echo "No changes to commit"
+                    echo "pushed=false" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  git checkout -b "$BRANCH_NAME"
+                  git commit -m "chore(astro-kbve): weekly nx report and graph ${REPORT_DATE}"
+                  git push -u origin "$BRANCH_NAME"
+
+                  echo "pushed=true" >> "$GITHUB_OUTPUT"
+                  echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+            - name: Create PR
+              if: steps.commit.outputs.pushed == 'true'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  BRANCH_NAME="${{ steps.commit.outputs.branch_name }}"
+                  REPORT_DATE="${{ steps.nx-report.outputs.report_date }}"
+
+                  EXISTING=$(gh pr list --base dev --head "$BRANCH_NAME" --state open --json number -q '.[0].number' || echo "")
+                  if [ -n "$EXISTING" ]; then
+                    echo "PR #$EXISTING already exists for $BRANCH_NAME"
+                    exit 0
+                  fi
+
+                  cat > /tmp/pr-body.md << 'PRBODY'
+                  ## Summary
+                  - Weekly auto-generated NX workspace report (versions, plugins, cache usage)
+                  - Weekly NX dependency graph with mermaid diagram and project index
+
+                  ## Content
+                  - dashboard/nx-report.mdx: Parsed NX report with environment table
+                  - dashboard/nx-graph.mdx: Dependency graph with mermaid diagram, project index, and per-project details
+
+                  ## Test Plan
+                  - Verify NX report page renders correctly in Starlight
+                  - Verify mermaid dependency diagram renders in NX graph page
+                  - Check project index table has correct dependency counts
+
+                  ---
+                  *Auto-generated by ci-weekly-nx-report.yml*
+                  PRBODY
+
+                  sed 's/^                  //' /tmp/pr-body.md > /tmp/pr-body-clean.md
+
+                  gh pr create \
+                    --base dev \
+                    --head "$BRANCH_NAME" \
+                    --title "chore(astro-kbve): weekly nx report ${REPORT_DATE}" \
+                    --body-file /tmp/pr-body-clean.md
+
+            # ── Cleanup ──────────────────────────────────────────
+            - name: Cleanup workspace
+              if: always()
+              run: |
+                  echo "Cleaning up workspace..."
+                  rm -rf "$GITHUB_WORKSPACE"/* "$GITHUB_WORKSPACE"/.[!.]* 2>/dev/null || true
