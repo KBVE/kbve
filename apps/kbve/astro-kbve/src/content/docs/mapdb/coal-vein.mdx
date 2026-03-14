@@ -1,31 +1,30 @@
 ---
 id: "01K77XRVXZCQP3Z9KG8KNX91GE"
-guid: "0bd550495256428f9155b42477e330d9"
+slug: "coal-vein"
 drafted: false
-title: "Coal Vein"
 name: "Coal Vein"
 description: "A compressed seam of coal embedded within stratified shale"
-type: "resource"
-resourceType: "stone"
-imagePath: "/assets/mapdb/stone/coal/coal_vein.png"
-pixelsPerUnit: 64
+type: "rock"
+sub_kind: "coal"
+img: "/assets/mapdb/stone/coal/coal_vein.png"
+interactable: true
+destructible: true
+harvest_yield: 8
+max_amount: 160
+initial_amount: 160
+harvest_time_ms: 3500
+spawn_weight: 0.35
+spawn_count: 18
+pixels_per_unit: 64
 pivot: "Center"
-pivotX: 0.5
-pivotY: 0.5
-meshType: "FullRect"
-extrudeEdges: 1
-sortingLayer: "Foreground"
-sortingIndex: 0
-staticSorting: true
-wrapMode: "Clamp"
-amount: 160
-maxAmount: 160
-harvestYield: 8
-harvestTime: 3.5
-isHarvestable: true
-isDepleted: false
-spawnWeight: 0.35
-spawnCount: 18
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
 ---
 
 import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';

@@ -126,6 +126,15 @@
 		"map.RoomSpawnWeight.weight": ".min(0)",
 		"map.TileHazard.trigger_chance": ".min(0).max(1)",
 		"map.SpawnPoint.spawn_weight": ".min(0)",
-		"map.PointOfInterest.radius": ".min(0)"
+		"map.PointOfInterest.radius": ".min(0)",
+		"map.WorldObjectDef.spawn_weight": ".min(0).max(1)",
+		"map.WorldObjectDef.harvest_yield": ".min(0)",
+		"map.WorldObjectDef.max_amount": ".min(0)",
+		"map.WorldObjectDef.initial_amount": ".min(0)",
+		"map.WorldObjectDef.max_health": ".min(0)",
+		"map.WorldObjectDef.footprint_width": ".min(1)",
+		"map.WorldObjectDef.footprint_height": ".min(1)",
+		"map.WorldObjectDef.construction_time_secs": ".min(0)",
+		"map.BuildCost.amount": ".min(1)"
 	}
 }

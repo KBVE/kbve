@@ -1,31 +1,30 @@
 ---
 id: "01JGFJJZZ81C92ED5YECM6QJZ4"
-guid: "749872b0c8464205a2847526294bdaed"
+slug: "sapphire-crystal"
 drafted: false
-title: "Sapphire Crystal"
 name: "Sapphire Crystal"
 description: "A serene sapphire crystal cluster humming with focused elemental water energy"
-type: "resource"
-resourceType: "stone"
-imagePath: "/assets/mapdb/stone/sapphire/sapphire_crystal.png"
-pixelsPerUnit: 64
+type: "crystal"
+sub_kind: "sapphire"
+img: "/assets/mapdb/stone/sapphire/sapphire_crystal.png"
+interactable: true
+destructible: true
+harvest_yield: 2
+max_amount: 55
+initial_amount: 55
+harvest_time_ms: 4500
+spawn_weight: 0.14
+spawn_count: 12
+pixels_per_unit: 64
 pivot: "Center"
-pivotX: 0.5
-pivotY: 0.5
-meshType: "FullRect"
-extrudeEdges: 1
-sortingLayer: "Foreground"
-sortingIndex: 0
-staticSorting: true
-wrapMode: "Clamp"
-amount: 55
-maxAmount: 55
-harvestYield: 2
-harvestTime: 4.5
-isHarvestable: true
-isDepleted: false
-spawnWeight: 0.14
-spawnCount: 12
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
 ---
 
 import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';

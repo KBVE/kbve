@@ -1,30 +1,19 @@
 ---
 import { IMapObjectSchema } from '@/data/schema';
+import { ServiceMapDB } from './ServiceMapDB';
 import ReactMapDBPanel from './ReactMapDBPanel';
 
 const { data } = Astro.props;
 const mapObject = IMapObjectSchema.parse(data);
 
-// Type-specific icons
-const typeIcons = {
-	resource: '🌲',
-	structure: '🏛️',
-};
+const typeIcon = ServiceMapDB.getTypeIcon(mapObject.type);
+const subKindIcon = mapObject.sub_kind
+	? ServiceMapDB.getSubKindIcon(mapObject.sub_kind)
+	: '';
 
-const resourceTypeIcons = {
-	wood: '🪵',
-	stone: '🪨',
-	metal: '⚙️',
-	food: '🌾',
-	none: '❓',
-};
-
-const structureTypeIcons = {
-	building: '🏠',
-	wall: '🧱',
-	tower: '🗼',
-	decoration: '✨',
-};
+const harvestTimeSecs = mapObject.harvest_time_ms
+	? (mapObject.harvest_time_ms / 1000).toFixed(1)
+	: null;
 ---
 
 <section class="px-6 py-6 sm:px-8 lg:px-12">
@@ -38,9 +27,9 @@ const structureTypeIcons = {
 			<!-- Header with Image and Name -->
 			<div class="flex items-center gap-3">
 				{
-					mapObject.imagePath && (
+					mapObject.img && (
 						<img
-							src={mapObject.imagePath}
+							src={mapObject.img}
 							alt={mapObject.name}
 							class="w-16 h-16 rounded-lg object-contain bg-black/20 p-1"
 							data-tooltip="image"
@@ -49,9 +38,7 @@ const structureTypeIcons = {
 				}
 				<div>
 					<div class="flex items-center gap-2" data-tooltip="name">
-						<span class="text-2xl">
-							{typeIcons[mapObject.type]}
-						</span>
+						<span class="text-2xl" set:html={typeIcon} />
 						<h3 class="text-lg font-semibold">{mapObject.name}</h3>
 					</div>
 					{
@@ -70,76 +57,82 @@ const structureTypeIcons = {
 					<strong>Type:</strong>
 					<span class="capitalize">{mapObject.type}</span>
 				</li>
+				{
+					mapObject.sub_kind && (
+						<li
+							class="flex items-center gap-2"
+							data-tooltip="sub_kind">
+							<strong>Kind:</strong>
+							<span class="capitalize text-cyan-300">
+								{mapObject.sub_kind.replace(/_/g, ' ')}
+							</span>
+						</li>
+					)
+				}
 			</ul>
 
-			<!-- Resource-Specific Stats -->
+			<!-- Resource / Harvest Stats -->
 			{
-				mapObject.type === 'resource' && (
+				mapObject.harvest_yield !== undefined && (
 					<>
 						<hr class="my-4 border-white/10" />
 						<div class="text-sm space-y-2">
 							<div class="flex items-center gap-2 text-base font-medium text-cyan-400">
-								<span>
-									{resourceTypeIcons[mapObject.resourceType]}
-								</span>
+								<span set:html={subKindIcon} />
 								<span>Resource Stats</span>
 							</div>
 							<ul class="text-zinc-300 space-y-1.5 ml-6">
-								<li data-tooltip="resourceType">
-									<strong>Resource Type:</strong>{' '}
-									<span class="capitalize text-cyan-300">
-										{mapObject.resourceType}
-									</span>
-								</li>
 								<li data-tooltip="amount">
 									<strong>Amount:</strong>{' '}
 									<span class="text-green-400">
-										{mapObject.amount} /{' '}
-										{mapObject.maxAmount}
+										{mapObject.initial_amount ?? '—'} /{' '}
+										{mapObject.max_amount ?? '—'}
 									</span>
 								</li>
-								<li data-tooltip="harvestYield">
+								<li data-tooltip="harvest_yield">
 									<strong>Harvest Yield:</strong>{' '}
 									<span class="text-yellow-400">
-										{mapObject.harvestYield}
+										{mapObject.harvest_yield}
 									</span>{' '}
 									per action
 								</li>
-								<li data-tooltip="harvestTime">
-									<strong>Harvest Time:</strong>{' '}
-									<span class="text-orange-400">
-										{mapObject.harvestTime}s
-									</span>
-								</li>
-								<li data-tooltip="harvestable">
+								{harvestTimeSecs && (
+									<li data-tooltip="harvest_time">
+										<strong>Harvest Time:</strong>{' '}
+										<span class="text-orange-400">
+											{harvestTimeSecs}s
+										</span>
+									</li>
+								)}
+								<li data-tooltip="interactable">
 									<strong>Harvestable:</strong>{' '}
 									<span
 										class={
-											mapObject.isHarvestable
+											mapObject.interactable
 												? 'text-green-400'
 												: 'text-red-400'
 										}>
-										{mapObject.isHarvestable
-											? '✓ Yes'
-											: '✗ No'}
+										{mapObject.interactable
+											? '\u2713 Yes'
+											: '\u2717 No'}
 									</span>
 								</li>
-								{mapObject.spawnWeight !== undefined && (
-									<li data-tooltip="spawnWeight">
+								{mapObject.spawn_weight !== undefined && (
+									<li data-tooltip="spawn_weight">
 										<strong>Spawn Weight:</strong>{' '}
 										<span class="text-blue-400">
 											{(
-												mapObject.spawnWeight * 100
+												mapObject.spawn_weight * 100
 											).toFixed(0)}
 											%
 										</span>
 									</li>
 								)}
-								{mapObject.spawnCount !== undefined && (
-									<li data-tooltip="spawnCount">
+								{mapObject.spawn_count !== undefined && (
+									<li data-tooltip="spawn_count">
 										<strong>Spawn Count:</strong>{' '}
 										<span class="text-purple-400">
-											{mapObject.spawnCount}
+											{mapObject.spawn_count}
 										</span>{' '}
 										per map
 									</li>
@@ -150,102 +143,98 @@ const structureTypeIcons = {
 				)
 			}
 
-			<!-- Structure-Specific Stats -->
+			<!-- Structure Stats -->
 			{
-				mapObject.type === 'structure' && (
+				mapObject.max_health !== undefined && (
 					<>
 						<hr class="my-4 border-white/10" />
 						<div class="text-sm space-y-2">
 							<div class="flex items-center gap-2 text-base font-medium text-cyan-400">
-								<span>
-									{
-										structureTypeIcons[
-											mapObject.structureType
-										]
-									}
-								</span>
+								<span>{'\u{1F3DB}\u{FE0F}'}</span>
 								<span>Structure Stats</span>
 							</div>
 							<ul class="text-zinc-300 space-y-1.5 ml-6">
-								<li data-tooltip="structureType">
-									<strong>Structure Type:</strong>{' '}
-									<span class="capitalize text-cyan-300">
-										{mapObject.structureType}
-									</span>
-								</li>
-								<li data-tooltip="footprint">
-									<strong>Footprint:</strong>{' '}
-									<span class="text-blue-400">
-										{mapObject.footprintWidth} ×{' '}
-										{mapObject.footprintHeight}
-									</span>
-								</li>
+								{mapObject.footprint_width && (
+									<li data-tooltip="footprint">
+										<strong>Footprint:</strong>{' '}
+										<span class="text-blue-400">
+											{mapObject.footprint_width} &times;{' '}
+											{mapObject.footprint_height ?? 1}
+										</span>
+									</li>
+								)}
 								<li data-tooltip="health">
 									<strong>Max Health:</strong>{' '}
 									<span class="text-red-400">
-										{mapObject.maxHealth} HP
+										{mapObject.max_health} HP
 									</span>
 								</li>
-								<li data-tooltip="constructionTime">
-									<strong>Construction Time:</strong>{' '}
-									<span class="text-orange-400">
-										{mapObject.constructionTime}s
-									</span>
-								</li>
-								<li data-tooltip="walkable">
-									<strong>Walkable:</strong>{' '}
-									<span
-										class={
-											mapObject.isWalkable
-												? 'text-green-400'
-												: 'text-red-400'
-										}>
-										{mapObject.isWalkable
-											? '✓ Yes'
-											: '✗ No'}
-									</span>
-								</li>
-								<li data-tooltip="placement">
-									<strong>Blocks Placement:</strong>{' '}
-									<span
-										class={
-											mapObject.blocksPlacement
-												? 'text-red-400'
-												: 'text-green-400'
-										}>
-										{mapObject.blocksPlacement
-											? '✓ Yes'
-											: '✗ No'}
-									</span>
-								</li>
+								{mapObject.construction_time_secs !==
+									undefined && (
+									<li data-tooltip="construction_time">
+										<strong>Construction Time:</strong>{' '}
+										<span class="text-orange-400">
+											{mapObject.construction_time_secs}s
+										</span>
+									</li>
+								)}
+								{mapObject.blocks_movement !== undefined && (
+									<li data-tooltip="walkable">
+										<strong>Walkable:</strong>{' '}
+										<span
+											class={
+												mapObject.blocks_movement
+													? 'text-red-400'
+													: 'text-green-400'
+											}>
+											{mapObject.blocks_movement
+												? '\u2717 No'
+												: '\u2713 Yes'}
+										</span>
+									</li>
+								)}
+								{mapObject.blocks_placement !== undefined && (
+									<li data-tooltip="placement">
+										<strong>Blocks Placement:</strong>{' '}
+										<span
+											class={
+												mapObject.blocks_placement
+													? 'text-red-400'
+													: 'text-green-400'
+											}>
+											{mapObject.blocks_placement
+												? '\u2713 Yes'
+												: '\u2717 No'}
+										</span>
+									</li>
+								)}
 							</ul>
 
-							{mapObject.buildCosts &&
-								mapObject.buildCosts.length > 0 && (
-									<>
-										<div class="mt-3 pt-3 border-t border-white/10">
-											<strong class="text-yellow-400">
-												Build Costs:
-											</strong>
-											<ul class="list-disc list-inside ml-3 mt-1 space-y-1">
-												{mapObject.buildCosts.map(
-													(cost) => (
-														<li>
-															<span class="capitalize">
-																{
-																	cost.resourceType
-																}
-																:
-															</span>{' '}
-															<span class="text-yellow-300">
-																{cost.amount}
-															</span>
-														</li>
-													),
-												)}
-											</ul>
-										</div>
-									</>
+							{mapObject.build_costs &&
+								mapObject.build_costs.length > 0 && (
+									<div class="mt-3 pt-3 border-t border-white/10">
+										<strong class="text-yellow-400">
+											Build Costs:
+										</strong>
+										<ul class="list-disc list-inside ml-3 mt-1 space-y-1">
+											{mapObject.build_costs.map(
+												(cost) => (
+													<li>
+														<span class="capitalize">
+															{cost.resource_type.replace(
+																/_/g,
+																' ',
+															)}
+															:
+														</span>{' '}
+														<span class="text-yellow-300">
+															{cost.amount}
+														</span>
+													</li>
+												),
+											)}
+										</ul>
+									</div>
 								)}
 						</div>
 					</>
@@ -259,13 +248,15 @@ const structureTypeIcons = {
 						<hr class="my-4 border-white/10" />
 						<div class="text-sm space-y-2">
 							<div class="flex items-center gap-2 text-base font-medium text-purple-400">
-								<span>🎬</span>
+								<span>{'\u{1F3AC}'}</span>
 								<span>Animation</span>
 							</div>
 							<ul class="text-zinc-300 space-y-1.5 ml-6">
 								<li>
 									<strong>Animated:</strong>{' '}
-									<span class="text-green-400">✓ Yes</span>
+									<span class="text-green-400">
+										{'\u2713'} Yes
+									</span>
 								</li>
 								{mapObject.animation.defaultClip && (
 									<li>
@@ -302,12 +293,13 @@ const structureTypeIcons = {
 					<code class="text-zinc-400">{mapObject.id}</code>
 				</div>
 				<div>
-					<strong>GUID:</strong>
-					<code class="text-zinc-400">{mapObject.guid}</code>
+					<strong>Slug:</strong>
+					<code class="text-zinc-400">{mapObject.slug}</code>
 				</div>
 				<div>
-					<strong>Rendering:</strong> Layer: {mapObject.sortingLayer},
-					PPU: {mapObject.pixelsPerUnit}
+					<strong>Rendering:</strong> Layer: {
+						mapObject.sorting_layer
+					}, PPU: {mapObject.pixels_per_unit}
 				</div>
 			</div>
 			<!-- React overlay for interactive tooltips -->

@@ -1,9 +1,5 @@
 // ServiceMapDB.ts
-import type {
-	IMapObject,
-	IResource,
-	IStructure,
-} from '@/data/schema/IMapSchema';
+import type { IMapObject } from '@/data/schema/IMapSchema';
 import { eventEngine } from '@/lib/eventEngine';
 
 export interface TooltipData {
@@ -36,71 +32,54 @@ export class ServiceMapDB {
 	// Type-specific icons
 	static getTypeIcon(type: string): string {
 		const typeIcons: Record<string, string> = {
-			resource: '<2',
-			structure: '<�',
+			tree: '\u{1F332}',
+			rock: '\u{1FAA8}',
+			crystal: '\u{1F48E}',
+			flower: '\u{1F33B}',
+			mushroom: '\u{1F344}',
+			chest: '\u{1F4E6}',
+			campfire: '\u{1F525}',
+			portal: '\u{1F300}',
 		};
-		return typeIcons[type] || 'S';
+		return typeIcons[type] || '\u{2753}';
 	}
 
-	static getResourceTypeIcon(resourceType: string): string {
-		const resourceTypeIcons: Record<string, string> = {
-			wood: '>�',
-			stone: '>�',
-			metal: '�',
-			food: '<>',
-			none: 'S',
+	static getSubKindIcon(subKind: string): string {
+		const icons: Record<string, string> = {
+			oak: '\u{1F333}',
+			redwood: '\u{1F332}',
+			copper_ore: '\u{1F7E0}',
+			iron_ore: '\u{26D3}\u{FE0F}',
+			gold_ore: '\u{1F4B0}',
+			silver_ore: '\u{1FA99}',
+			mithril_ore: '\u{1F535}',
+			adamantine_ore: '\u{1F48E}',
+			cobalt_ore: '\u{1F537}',
+			uranium_ore: '\u{2622}\u{FE0F}',
+			coal: '\u{26AB}',
+			salt: '\u{1F9C2}',
+			jade: '\u{1F49A}',
+			ruby: '\u{2764}\u{FE0F}',
+			sapphire: '\u{1F499}',
 		};
-		return resourceTypeIcons[resourceType] || 'S';
+		return icons[subKind] || '\u{2753}';
 	}
 
-	static getStructureTypeIcon(structureType: string): string {
-		const structureTypeIcons: Record<string, string> = {
-			building: '<�',
-			wall: '>�',
-			tower: '=�',
-			decoration: '(',
-		};
-		return structureTypeIcons[structureType] || '<�';
-	}
-
-	// Tooltip generation functions
-	static generateResourceTooltip(resource: IResource): TooltipData {
-		const efficiency = (resource.amount / resource.maxAmount) * 100;
-		const statusText = resource.isHarvestable ? 'Available' : 'Depleted';
-
-		return {
-			content: `${resource.name}: ${efficiency.toFixed(0)}% full, ${resource.harvestYield} yield per ${resource.harvestTime}s harvest. Status: ${statusText}`,
-			ariaLabel: `Resource ${resource.name}, ${efficiency.toFixed(0)} percent full, harvest yield ${resource.harvestYield} per ${resource.harvestTime} seconds, currently ${statusText}`,
-			priority: resource.isHarvestable ? 'high' : 'low',
-		};
-	}
-
-	static generateStructureTooltip(structure: IStructure): TooltipData {
-		const walkableText = structure.isWalkable ? 'walkable' : 'non-walkable';
-		const placementText = structure.blocksPlacement
-			? 'blocks placement'
-			: 'allows placement';
-
-		return {
-			content: `${structure.name}: ${structure.footprintWidth}�${structure.footprintHeight} ${walkableText} structure, ${structure.maxHealth} HP, ${placementText}`,
-			ariaLabel: `Structure ${structure.name}, footprint ${structure.footprintWidth} by ${structure.footprintHeight}, ${walkableText}, ${structure.maxHealth} health points, ${placementText}`,
-			priority: 'medium',
-		};
-	}
-
+	// Tooltip generation
 	static generateTooltip(mapObject: IMapObject): TooltipData {
-		switch (mapObject.type) {
-			case 'resource':
-				return this.generateResourceTooltip(mapObject);
-			case 'structure':
-				return this.generateStructureTooltip(mapObject);
-			default:
-				// Exhaustive check - this should never be reached
-				const _exhaustiveCheck: never = mapObject;
-				throw new Error(
-					`Unhandled map object type: ${_exhaustiveCheck}`,
-				);
-		}
+		const amount = mapObject.initial_amount ?? mapObject.max_amount ?? 0;
+		const maxAmount = mapObject.max_amount ?? 0;
+		const efficiency = maxAmount > 0 ? (amount / maxAmount) * 100 : 0;
+		const statusText = mapObject.interactable ? 'Available' : 'Unavailable';
+		const harvestTimeSecs = mapObject.harvest_time_ms
+			? (mapObject.harvest_time_ms / 1000).toFixed(1)
+			: '?';
+
+		return {
+			content: `${mapObject.name}: ${efficiency.toFixed(0)}% full, ${mapObject.harvest_yield ?? 0} yield per ${harvestTimeSecs}s harvest. Status: ${statusText}`,
+			ariaLabel: `${mapObject.type} ${mapObject.name}, ${efficiency.toFixed(0)} percent full, harvest yield ${mapObject.harvest_yield ?? 0} per ${harvestTimeSecs} seconds, currently ${statusText}`,
+			priority: mapObject.interactable ? 'high' : 'low',
+		};
 	}
 
 	// Accessibility helpers
@@ -115,21 +94,16 @@ export class ServiceMapDB {
 
 	// Status helpers for styling
 	static getResourceStatus(
-		resource: IResource,
+		mapObject: IMapObject,
 	): 'abundant' | 'moderate' | 'low' | 'depleted' {
-		if (!resource.isHarvestable || resource.isDepleted) return 'depleted';
+		if (!mapObject.interactable) return 'depleted';
 
-		const percentage = (resource.amount / resource.maxAmount) * 100;
+		const amount = mapObject.initial_amount ?? mapObject.max_amount ?? 0;
+		const maxAmount = mapObject.max_amount ?? 1;
+		const percentage = (amount / maxAmount) * 100;
 		if (percentage >= 75) return 'abundant';
 		if (percentage >= 40) return 'moderate';
 		return 'low';
-	}
-
-	static getStructureStatus(
-		structure: IStructure,
-	): 'healthy' | 'damaged' | 'critical' {
-		// This could be extended with actual health percentage if available
-		return 'healthy';
 	}
 
 	// SEO helpers
@@ -140,30 +114,16 @@ export class ServiceMapDB {
 
 	static generateKeywords(mapObject: IMapObject): string[] {
 		const keywords = [mapObject.type, mapObject.name.toLowerCase()];
-
-		if (mapObject.type === 'resource') {
-			keywords.push(
-				'resource',
-				mapObject.resourceType,
-				'harvest',
-				'yield',
-			);
-		} else if (mapObject.type === 'structure') {
-			keywords.push(
-				'structure',
-				mapObject.structureType,
-				'building',
-				'construction',
-			);
+		if (mapObject.sub_kind) {
+			keywords.push(mapObject.sub_kind);
 		}
-
+		keywords.push('harvest', 'resource');
 		return keywords;
 	}
 
 	// Event handling methods
 	static emitMapDBEvent(event: MapDBEvent): void {
 		try {
-			// Use predefined event types from eventEngine
 			const eventTypeMap = {
 				tooltip_show: 'ui:tooltip:show',
 				tooltip_hide: 'ui:tooltip:hide',
@@ -236,9 +196,7 @@ export class ServiceMapDB {
 		});
 	}
 
-	// Event listener registration helpers
 	static registerEventListeners(): void {
-		// Register MapDB-specific event listeners for each event type using mapped event names
 		const eventTypeMap = {
 			tooltip_show: 'ui:tooltip:show',
 			tooltip_hide: 'ui:tooltip:hide',
@@ -250,10 +208,7 @@ export class ServiceMapDB {
 		Object.values(eventTypeMap).forEach((eventType) => {
 			eventEngine.on(eventType, (event) => {
 				if (event.source === 'mapdb') {
-					// Handle analytics, logging, or other side effects
 					console.debug('MapDB Event:', event);
-
-					// Add analytics tracking for tooltip interactions
 					if (eventType.includes('tooltip')) {
 						console.info(
 							`Tooltip ${eventType.includes('show') ? 'shown' : 'hidden'} for:`,
@@ -266,7 +221,6 @@ export class ServiceMapDB {
 	}
 
 	static unregisterEventListeners(): void {
-		// Remove listeners for all MapDB event types using mapped event names
 		const eventTypeMap = {
 			tooltip_show: 'ui:tooltip:show',
 			tooltip_hide: 'ui:tooltip:hide',

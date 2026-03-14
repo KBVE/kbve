@@ -1,31 +1,30 @@
 ---
 id: "01JGFJJZ004YYK6HBZYQBRYQA9"
-guid: "7f48ce18a77645df9c3152c9de8ea3aa"
+slug: "ruby-crystal"
 drafted: false
-title: "Ruby Crystal"
 name: "Ruby Crystal"
 description: "A luminous ruby crystal cluster radiating intense heat and magical energy"
-type: "resource"
-resourceType: "stone"
-imagePath: "/assets/mapdb/stone/ruby/ruby_crystal.png"
-pixelsPerUnit: 64
+type: "crystal"
+sub_kind: "ruby"
+img: "/assets/mapdb/stone/ruby/ruby_crystal.png"
+interactable: true
+destructible: true
+harvest_yield: 2
+max_amount: 60
+initial_amount: 60
+harvest_time_ms: 5000
+spawn_weight: 0.12
+spawn_count: 10
+pixels_per_unit: 64
 pivot: "Center"
-pivotX: 0.5
-pivotY: 0.5
-meshType: "FullRect"
-extrudeEdges: 1
-sortingLayer: "Foreground"
-sortingIndex: 0
-staticSorting: true
-wrapMode: "Clamp"
-amount: 60
-maxAmount: 60
-harvestYield: 2
-harvestTime: 5.0
-isHarvestable: true
-isDepleted: false
-spawnWeight: 0.12
-spawnCount: 10
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
 ---
 
 import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';

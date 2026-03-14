@@ -1,31 +1,30 @@
 ---
 id: "01JGFJK2X0ESVHM04JRZ7NMDMZ"
-guid: "e38eec3192374e99be8c77ed62465822"
+slug: "mithril-vein"
 drafted: false
-title: "Mithril Vein"
 name: "Mithril Vein"
 description: "A shimmering mithril seam interwoven with ethereal silver-blue threads"
-type: "resource"
-resourceType: "metal"
-imagePath: "/assets/mapdb/metal/mithril/mithril_vein.png"
-pixelsPerUnit: 64
+type: "rock"
+sub_kind: "mithril_ore"
+img: "/assets/mapdb/metal/mithril/mithril_vein.png"
+interactable: true
+destructible: true
+harvest_yield: 4
+max_amount: 90
+initial_amount: 90
+harvest_time_ms: 6000
+spawn_weight: 0.1
+spawn_count: 7
+pixels_per_unit: 64
 pivot: "Center"
-pivotX: 0.5
-pivotY: 0.5
-meshType: "FullRect"
-extrudeEdges: 1
-sortingLayer: "Foreground"
-sortingIndex: 0
-staticSorting: true
-wrapMode: "Clamp"
-amount: 90
-maxAmount: 90
-harvestYield: 4
-harvestTime: 6.0
-isHarvestable: true
-isDepleted: false
-spawnWeight: 0.10
-spawnCount: 7
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
 ---
 
 import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';

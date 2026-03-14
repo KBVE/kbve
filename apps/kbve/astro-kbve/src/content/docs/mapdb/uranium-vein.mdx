@@ -1,31 +1,30 @@
 ---
 id: "01JGFJK1XRK67CXHJ94TCJRGE5"
-guid: "55c2579f531b4ce2b3cca32887a59484"
+slug: "uranium-vein"
 drafted: false
-title: "Uranium Vein"
 name: "Uranium Vein"
 description: "A volatile uranium deposit pulsing with unstable green luminescence"
-type: "resource"
-resourceType: "metal"
-imagePath: "/assets/mapdb/metal/uranium/uranium_vein.png"
-pixelsPerUnit: 64
+type: "rock"
+sub_kind: "uranium_ore"
+img: "/assets/mapdb/metal/uranium/uranium_vein.png"
+interactable: true
+destructible: true
+harvest_yield: 4
+max_amount: 120
+initial_amount: 120
+harvest_time_ms: 7500
+spawn_weight: 0.08
+spawn_count: 6
+pixels_per_unit: 64
 pivot: "Center"
-pivotX: 0.5
-pivotY: 0.5
-meshType: "FullRect"
-extrudeEdges: 1
-sortingLayer: "Foreground"
-sortingIndex: 0
-staticSorting: true
-wrapMode: "Clamp"
-amount: 120
-maxAmount: 120
-harvestYield: 4
-harvestTime: 7.5
-isHarvestable: true
-isDepleted: false
-spawnWeight: 0.08
-spawnCount: 6
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
 ---
 
 import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';

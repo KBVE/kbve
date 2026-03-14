@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/mapdb.binpb
  * Config: ../mapdb-zod-config.json
- * Generated: 2026-03-14T10:06:30.876Z
+ * Generated: 2026-03-14T20:48:27.127Z
  */
 
 import { z } from 'zod';
@@ -461,6 +461,14 @@ export const ZoneSchema = z.object({
 
 export type Zone = z.infer<typeof ZoneSchema>;
 
+// BuildCost
+export const BuildCostSchema = z.object({
+	resource_type: z.string(),
+	amount: z.number().min(1),
+});
+
+export type BuildCost = z.infer<typeof BuildCostSchema>;
+
 // WorldObjectDef
 export const WorldObjectDefSchema = z.object({
 	id: z.string(),
@@ -473,6 +481,7 @@ export const WorldObjectDefSchema = z.object({
 	icon: z.string().optional(),
 	scale: z.number().optional(),
 	palette: z.array(ColorSchema).optional(),
+	img: z.string().optional(),
 	interactable: z.boolean().optional(),
 	destructible: z.boolean().optional(),
 	loot_item_ref: z.string().optional(),
@@ -480,6 +489,17 @@ export const WorldObjectDefSchema = z.object({
 	tool_required: z.string().optional(),
 	skill_level: z.number().optional(),
 	skill_type: z.string().optional(),
+	harvest_yield: z.number().min(0).optional(),
+	max_amount: z.number().min(0).optional(),
+	initial_amount: z.number().min(0).optional(),
+	max_health: z.number().min(0).optional(),
+	footprint_width: z.number().min(1).optional(),
+	footprint_height: z.number().min(1).optional(),
+	blocks_placement: z.boolean().optional(),
+	construction_time_secs: z.number().min(0).optional(),
+	build_costs: z.array(BuildCostSchema).optional(),
+	spawn_weight: z.number().min(0).max(1).optional(),
+	spawn_count: z.number().optional(),
 	collision_radius: z.number().optional(),
 	collision_height: z.number().optional(),
 	blocks_movement: z.boolean().optional(),
@@ -487,6 +507,8 @@ export const WorldObjectDefSchema = z.object({
 	respawn_time_secs: z.number().optional(),
 	respawn_variance: z.number().optional(),
 	extensions: z.array(MapExtensionSchema).optional(),
+	credits: z.string().optional(),
+	drafted: z.boolean().optional(),
 });
 
 export type WorldObjectDef = z.infer<typeof WorldObjectDefSchema>;

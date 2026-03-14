@@ -427,6 +427,7 @@ message WorldObjectDef {
   optional string icon = 8;
   optional float scale = 9;           // Visual size multiplier
   repeated Color palette = 10;        // Color palette for procedural visuals
+  optional string img = 25;           // Image / sprite path
 
   // Interaction
   optional bool interactable = 11;    // Can player click/interact
@@ -436,6 +437,23 @@ message WorldObjectDef {
   optional string tool_required = 15; // Tool item ref needed
   optional int32 skill_level = 16;    // Minimum skill level to interact
   optional string skill_type = 17;    // Skill slug (e.g. "mining", "woodcutting")
+
+  // Resource properties (for harvestable objects)
+  optional int32 harvest_yield = 26;   // Amount gathered per harvest action
+  optional int32 max_amount = 27;      // Maximum resource capacity
+  optional int32 initial_amount = 28;  // Starting amount (defaults to max_amount)
+
+  // Structure properties (for buildable / placed structures)
+  optional int32 max_health = 29;              // Hit points
+  optional int32 footprint_width = 30;         // Grid cells wide
+  optional int32 footprint_height = 31;        // Grid cells tall
+  optional bool blocks_placement = 32;         // Prevents placing other objects here
+  optional float construction_time_secs = 33;  // Time to build in seconds
+  repeated BuildCost build_costs = 34;         // Resources needed to construct
+
+  // Spawn hints (archetype-level defaults)
+  optional float spawn_weight = 35;    // Relative spawn probability (0.0–1.0)
+  optional int32 spawn_count = 36;     // Target count per zone
 
   // Physics
   optional float collision_radius = 18;
@@ -449,6 +467,16 @@ message WorldObjectDef {
 
   // Extensions
   repeated MapExtension extensions = 24;
+
+  // Metadata
+  optional string credits = 37;
+  optional bool drafted = 38;
+}
+
+// Resource cost for constructing a structure
+message BuildCost {
+  string resource_type = 1;            // e.g. "wood", "stone", "metal"
+  int32 amount = 2;
 }
 
 // A placed instance of a world object in a zone
