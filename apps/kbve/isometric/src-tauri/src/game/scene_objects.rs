@@ -591,22 +591,9 @@ fn detect_click_selection(
         });
     }
 
-    // Trigger CollectEvent for collectible objects with tile coordinates
-    if let Some(coord) = tile_coord {
-        match interactable.kind {
-            InteractableKind::Tree
-            | InteractableKind::Rock
-            | InteractableKind::Flower
-            | InteractableKind::Mushroom => {
-                commands.trigger(CollectEvent {
-                    tx: coord.tx,
-                    tz: coord.tz,
-                    kind: interactable.kind,
-                });
-            }
-            _ => {}
-        }
-    }
+    // CollectEvent is NOT triggered here — the player must press the action
+    // button (Chop / Mine / Collect) in the UI modal. That triggers it via
+    // process_action_buffer in actions.rs, which sends CollectRequest to server.
 }
 
 /// Make Occludable objects semi-transparent when they block the player from the camera.

@@ -5,7 +5,11 @@ use bevy::shader::ShaderRef;
 use std::f32::consts::PI;
 
 use super::inventory::{ItemKind, LootEvent};
-use super::scene_objects::{FlowerArchetype, HoverOutline, Interactable, MushroomKind, RockKind};
+use super::scene_objects::{
+    CollectEvent, FlowerArchetype, HoverOutline, Interactable, InteractableKind, MushroomKind,
+    RockKind,
+};
+use super::tilemap::TileCoord;
 
 // ── Action dispatch buffer ──────────────────────────────────────────────
 
@@ -177,10 +181,30 @@ fn process_action_buffer(
     rock_query: Query<&RockKind>,
     flower_query: Query<&FlowerArchetype>,
     mushroom_query: Query<&MushroomKind>,
+    tile_query: Query<&TileCoord>,
 ) {
     let actions = drain_actions();
     for req in actions {
         let entity = Entity::from_bits(req.entity_id);
+
+        // Notify the server via CollectEvent so the net layer sends CollectRequest.
+        // Must happen before get_entity() borrows commands mutably.
+        let collect_kind = match req.action.as_str() {
+            "chop_tree" => Some(InteractableKind::Tree),
+            "mine_rock" => Some(InteractableKind::Rock),
+            "collect_flower" => Some(InteractableKind::Flower),
+            "collect_mushroom" => Some(InteractableKind::Mushroom),
+            _ => None,
+        };
+        if let Some(kind) = collect_kind {
+            if let Ok(coord) = tile_query.get(entity) {
+                commands.trigger(CollectEvent {
+                    tx: coord.tx,
+                    tz: coord.tz,
+                    kind,
+                });
+            }
+        }
 
         let Ok(mut ec) = commands.get_entity(entity) else {
             continue;

@@ -426,11 +426,16 @@ fn spawn_remote_player_visuals(
 
     for (entity, player_id, color, maybe_pos) in &query {
         if player_id.0 == my_id {
-            // This is our own replicated entity — mark it and hide it.
+            // This is our own replicated entity — mark it and strip anything
+            // that could render (collider/rigidbody from server replication,
+            // plus hide visibility). We keep PlayerId/PlayerVitals for syncing.
             info!(
                 "marking own replicated entity {entity:?} (player_id={})",
                 my_id
             );
+            commands
+                .entity(entity)
+                .remove::<(Collider, RigidBody, LinearVelocity)>();
             commands
                 .entity(entity)
                 .insert((OwnReplicatedPlayer, Visibility::Hidden));
