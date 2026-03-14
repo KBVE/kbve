@@ -370,7 +370,7 @@ jobs:
     build-wasm:
         name: Build WASM
         runs-on: ubuntu-latest
-        timeout-minutes: 30
+        timeout-minutes: 120
         permissions:
             contents: read
 
@@ -469,7 +469,7 @@ jobs:
                   fetch-depth: 1
 
             - name: Download WASM artifact
-              uses: actions/download-artifact@v7
+              uses: actions/download-artifact@v8
               with:
                   name: ${{ inputs.app_name }}-wasm
                   path: wasm-dist
