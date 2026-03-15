@@ -76,7 +76,7 @@ function GameUI() {
 export default function GameWindow() {
 	return (
 		<GameStoreProvider>
-			<div className="relative flex justify-center items-center w-full">
+			<div className="relative flex justify-center items-center w-full h-full">
 				<PhaserCanvas />
 				<GameUI />
 			</div>

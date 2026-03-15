@@ -67,9 +67,17 @@ body:has(.game-fullscreen) .ct-footer {
 	overflow: hidden;
 }
 
-/* Let the Phaser canvas fill the viewport while keeping aspect ratio */
+/* Let the Phaser canvas expand to fill the viewport while keeping aspect ratio */
 .game-fullscreen canvas {
+	width: 100%;
+	height: 100%;
 	max-width: 100vw;
 	max-height: 100vh;
 	object-fit: contain;
+}
+
+/* Ensure the PhaserGame container div fills the game-fullscreen overlay */
+.game-fullscreen > div {
+	width: 100%;
+	height: 100%;
 }
