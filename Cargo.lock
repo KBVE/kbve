@@ -1193,6 +1193,7 @@ dependencies = [
  "askama",
  "axum",
  "axum-extra",
+ "bevy_items",
  "dashmap 6.1.0",
  "dotenvy",
  "http-body-util",
