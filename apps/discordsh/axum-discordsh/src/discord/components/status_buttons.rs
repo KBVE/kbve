@@ -155,10 +155,10 @@ pub async fn handle_status_component(
                     if let Err(e) = thread_id.delete_messages(&http, &to_delete).await {
                         tracing::warn!(error = %e, count, "Failed to bulk-delete thread messages");
                     }
-                } else if count == 1 {
-                    if let Err(e) = thread_id.delete_message(&http, to_delete[0]).await {
-                        tracing::warn!(error = %e, "Failed to delete thread message");
-                    }
+                } else if count == 1
+                    && let Err(e) = thread_id.delete_message(&http, to_delete[0]).await
+                {
+                    tracing::warn!(error = %e, "Failed to delete thread message");
                 }
                 info!(deleted = count, "Thread cleanup complete");
             });

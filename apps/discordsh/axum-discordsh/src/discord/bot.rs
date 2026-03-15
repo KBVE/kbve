@@ -36,11 +36,11 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 /// 2. Supabase Vault via `vault-reader` Edge Function (production)
 async fn resolve_token() -> Option<String> {
     // 1. Try direct env var (dev mode / backward compatible)
-    if let Ok(t) = std::env::var("DISCORD_TOKEN") {
-        if !t.is_empty() {
-            info!("Using Discord token from DISCORD_TOKEN env var");
-            return Some(t);
-        }
+    if let Ok(t) = std::env::var("DISCORD_TOKEN")
+        && !t.is_empty()
+    {
+        info!("Using Discord token from DISCORD_TOKEN env var");
+        return Some(t);
     }
 
     // 2. Try Supabase Vault

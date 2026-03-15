@@ -182,15 +182,15 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
             format!("Bosses Defeated: {}", owner.lifetime_bosses_defeated),
             format!("Final Level: {}", owner.level),
         ];
-        if let Some(ref wep) = owner.weapon {
-            if let Some(gear) = super::content::find_gear(wep) {
-                stats.push(format!("Weapon: {} {}", gear.emoji, gear.name));
-            }
+        if let Some(ref wep) = owner.weapon
+            && let Some(gear) = super::content::find_gear(wep)
+        {
+            stats.push(format!("Weapon: {} {}", gear.emoji, gear.name));
         }
-        if let Some(ref arm) = owner.armor_gear {
-            if let Some(gear) = super::content::find_gear(arm) {
-                stats.push(format!("Armor: {} {}", gear.emoji, gear.name));
-            }
+        if let Some(ref arm) = owner.armor_gear
+            && let Some(gear) = super::content::find_gear(arm)
+        {
+            stats.push(format!("Armor: {} {}", gear.emoji, gear.name));
         }
         embed = embed.field("-- Final Stats --", stats.join("\n"), false);
     }
@@ -205,15 +205,15 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
                 format!("DEF `{}`  Gold `{}`", player.armor, player.gold),
                 progress_bar("\u{2726}", player.xp as i32, player.xp_to_next as i32, 8),
             ];
-            if let Some(ref wep) = player.weapon {
-                if let Some(gear) = super::content::find_gear(wep) {
-                    lines.push(format!("Weapon: {} {}", gear.emoji, gear.name));
-                }
+            if let Some(ref wep) = player.weapon
+                && let Some(gear) = super::content::find_gear(wep)
+            {
+                lines.push(format!("Weapon: {} {}", gear.emoji, gear.name));
             }
-            if let Some(ref arm) = player.armor_gear {
-                if let Some(gear) = super::content::find_gear(arm) {
-                    lines.push(format!("Armor: {} {}", gear.emoji, gear.name));
-                }
+            if let Some(ref arm) = player.armor_gear
+                && let Some(gear) = super::content::find_gear(arm)
+            {
+                lines.push(format!("Armor: {} {}", gear.emoji, gear.name));
             }
             if let Some(fx) = format_effects(&player.effects) {
                 lines.push(format!("Status: {fx}"));
@@ -240,15 +240,15 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
             format!("DEF `{}`  Gold `{}`", owner.armor, owner.gold),
             progress_bar("\u{2726}", owner.xp as i32, owner.xp_to_next as i32, 8),
         ];
-        if let Some(ref wep) = owner.weapon {
-            if let Some(gear) = super::content::find_gear(wep) {
-                player_lines.push(format!("Weapon: {} {}", gear.emoji, gear.name));
-            }
+        if let Some(ref wep) = owner.weapon
+            && let Some(gear) = super::content::find_gear(wep)
+        {
+            player_lines.push(format!("Weapon: {} {}", gear.emoji, gear.name));
         }
-        if let Some(ref arm) = owner.armor_gear {
-            if let Some(gear) = super::content::find_gear(arm) {
-                player_lines.push(format!("Armor: {} {}", gear.emoji, gear.name));
-            }
+        if let Some(ref arm) = owner.armor_gear
+            && let Some(gear) = super::content::find_gear(arm)
+        {
+            player_lines.push(format!("Armor: {} {}", gear.emoji, gear.name));
         }
         if let Some(fx) = format_effects(&owner.effects) {
             player_lines.push(format!("Status: {fx}"));
@@ -380,16 +380,16 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
     }
 
     // Story event choices (always shown — matches interactive story buttons)
-    if session.phase == GamePhase::Event {
-        if let Some(ref event) = session.room.story_event {
-            let choice_lines: Vec<String> = event
-                .choices
-                .iter()
-                .enumerate()
-                .map(|(i, c)| format!("{}. **{}** -- {}", i + 1, c.label, c.description))
-                .collect();
-            embed = embed.field("-- Choices --", choice_lines.join("\n"), false);
-        }
+    if session.phase == GamePhase::Event
+        && let Some(ref event) = session.room.story_event
+    {
+        let choice_lines: Vec<String> = event
+            .choices
+            .iter()
+            .enumerate()
+            .map(|(i, c)| format!("{}. **{}** -- {}", i + 1, c.label, c.description))
+            .collect();
+        embed = embed.field("-- Choices --", choice_lines.join("\n"), false);
     }
 
     // Adventure log (last 5 entries)
@@ -451,22 +451,22 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
 fn build_unequip_menu(owner: &PlayerState, sid: &str, rows: &mut Vec<serenity::CreateActionRow>) {
     let mut options = Vec::new();
 
-    if let Some(ref weapon_id) = owner.weapon {
-        if let Some(gear) = super::content::find_gear(weapon_id) {
-            options.push(serenity::CreateSelectMenuOption::new(
-                format!("{} {} [Weapon]", gear.emoji, gear.name),
-                "weapon",
-            ));
-        }
+    if let Some(ref weapon_id) = owner.weapon
+        && let Some(gear) = super::content::find_gear(weapon_id)
+    {
+        options.push(serenity::CreateSelectMenuOption::new(
+            format!("{} {} [Weapon]", gear.emoji, gear.name),
+            "weapon",
+        ));
     }
 
-    if let Some(ref armor_id) = owner.armor_gear {
-        if let Some(gear) = super::content::find_gear(armor_id) {
-            options.push(serenity::CreateSelectMenuOption::new(
-                format!("{} {} [Armor]", gear.emoji, gear.name),
-                "armor",
-            ));
-        }
+    if let Some(ref armor_id) = owner.armor_gear
+        && let Some(gear) = super::content::find_gear(armor_id)
+    {
+        options.push(serenity::CreateSelectMenuOption::new(
+            format!("{} {} [Armor]", gear.emoji, gear.name),
+            "armor",
+        ));
     }
 
     if !options.is_empty() {
@@ -1012,22 +1012,23 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
     }
 
     // Story choice buttons
-    if session.phase == GamePhase::Event && !game_over {
-        if let Some(ref event) = session.room.story_event {
-            let story_buttons: Vec<serenity::CreateButton> = event
-                .choices
-                .iter()
-                .enumerate()
-                .map(|(i, choice)| {
-                    serenity::CreateButton::new(format!("dng|{sid}|story|{i}"))
-                        .label(&choice.label)
-                        .style(serenity::ButtonStyle::Primary)
-                })
-                .collect();
+    if session.phase == GamePhase::Event
+        && !game_over
+        && let Some(ref event) = session.room.story_event
+    {
+        let story_buttons: Vec<serenity::CreateButton> = event
+            .choices
+            .iter()
+            .enumerate()
+            .map(|(i, choice)| {
+                serenity::CreateButton::new(format!("dng|{sid}|story|{i}"))
+                    .label(&choice.label)
+                    .style(serenity::ButtonStyle::Primary)
+            })
+            .collect();
 
-            if !story_buttons.is_empty() {
-                rows.push(serenity::CreateActionRow::Buttons(story_buttons));
-            }
+        if !story_buttons.is_empty() {
+            rows.push(serenity::CreateActionRow::Buttons(story_buttons));
         }
     }
 

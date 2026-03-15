@@ -98,6 +98,7 @@ pub fn is_rare_or_above(id: &str) -> bool {
 }
 
 /// Access the underlying [`ItemDb`] for advanced queries.
+#[allow(dead_code)]
 pub fn item_db() -> &'static ItemDb {
     &ITEM_DB
 }
