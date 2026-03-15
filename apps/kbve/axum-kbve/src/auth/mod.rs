@@ -82,7 +82,10 @@ pub fn validate_token(token: &str, jwt_secret: &str) -> Result<TokenData<Claims>
 
     let mut validation = Validation::new(Algorithm::HS256);
     validation.validate_exp = true;
-    validation.set_issuer(&["supabase"]);
+    // Supabase self-hosted instances may use varying issuer strings
+    // (e.g. project URL, "supabase", or custom). Accept any issuer and
+    // rely on the shared JWT secret for authenticity instead.
+    validation.set_issuer::<String>(&[]);
 
     decode::<Claims>(token, &key, &validation).map_err(|e| match e.kind() {
         jsonwebtoken::errors::ErrorKind::ExpiredSignature => AuthError::TokenExpired,

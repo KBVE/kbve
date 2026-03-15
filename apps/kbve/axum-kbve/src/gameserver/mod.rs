@@ -471,7 +471,12 @@ fn process_auth_messages(
                     });
                 }
                 Err(e) => {
-                    tracing::warn!("client {entity:?} auth failed: {e}");
+                    let jwt_preview = if msg.jwt.len() > 20 {
+                        format!("{}...({} bytes)", &msg.jwt[..20], msg.jwt.len())
+                    } else {
+                        format!("({} bytes)", msg.jwt.len())
+                    };
+                    tracing::warn!("client {entity:?} auth failed: {e} | jwt={jwt_preview}");
                     sender.send::<GameChannel>(AuthResponse {
                         success: false,
                         user_id: String::new(),
@@ -777,10 +782,7 @@ fn process_set_username_requests(
     client_player_map: Res<ClientPlayerMap>,
     authenticated: Res<AuthenticatedClients>,
     profile_tx: Res<ProfileBridgeTx>,
-    mut receivers: Query<
-        (Entity, &mut MessageReceiver<SetUsernameRequest>),
-        Without<PendingAuth>,
-    >,
+    mut receivers: Query<(Entity, &mut MessageReceiver<SetUsernameRequest>), Without<PendingAuth>>,
 ) {
     for (client_entity, mut receiver) in &mut receivers {
         for msg in receiver.receive() {

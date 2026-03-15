@@ -258,12 +258,15 @@ fn on_connected(trigger: On<Add, Connected>) {
 
 /// When we lose connection, reset all networking state so the player can reconnect.
 /// Remote player entities are despawned since we won't receive further updates.
+/// The disconnected Client entity itself is also despawned to prevent stale
+/// entities from interfering with future connections.
 fn on_disconnected(
     trigger: On<Add, Disconnected>,
     mut commands: Commands,
     mut my_player_id: ResMut<MyPlayerId>,
     mut pending_auth: ResMut<PendingAuth>,
     remote_players: Query<Entity, With<RemotePlayer>>,
+    own_replicated: Query<Entity, With<OwnReplicatedPlayer>>,
 ) {
     let entity = trigger.entity;
     warn!("[net][lifecycle] DISCONNECTED — entity {entity:?} lost connection");
@@ -283,6 +286,18 @@ fn on_disconnected(
     if count > 0 {
         info!("[net] despawned {count} remote player entities after disconnect");
     }
+
+    // Despawn our own replicated entity so it doesn't block categorisation
+    // of the new replicated entity on reconnect.
+    for own_entity in &own_replicated {
+        commands.entity(own_entity).despawn();
+        info!("[net] despawned own replicated entity {own_entity:?} after disconnect");
+    }
+
+    // Despawn the disconnected Client entity itself to prevent stale entities
+    // from interfering with the next connection attempt.
+    commands.entity(entity).despawn();
+    info!("[net] despawned disconnected client entity {entity:?}");
 
     info!("[net] connection state reset — ready for reconnection");
 }
@@ -355,6 +370,11 @@ fn poll_go_online_request(
 /// Send AuthMessage to server once the connection is established.
 /// Polls every frame until MessageSender is available (may take a few frames
 /// after Connected is inserted for lightyear to register message components).
+///
+/// NOTE: IS_CONNECTED is NOT set here — it is deferred until we receive a
+/// successful AuthResponse.  Setting it prematurely caused two bugs:
+///   1. If auth failed the flag stayed true forever, blocking reconnect.
+///   2. The UI showed "Online" before the player was actually authenticated.
 fn send_auth_on_connect(
     mut pending_auth: ResMut<PendingAuth>,
     mut query: Query<(Entity, &mut MessageSender<AuthMessage>), With<Connected>>,
@@ -371,8 +391,7 @@ fn send_auth_on_connect(
         );
         sender.send::<GameChannel>(AuthMessage { jwt });
         pending_auth.sent = true;
-        IS_CONNECTED.store(true, Ordering::Release);
-        info!("[net] auth message sent, IS_CONNECTED=true");
+        info!("[net] auth message sent, waiting for AuthResponse before setting IS_CONNECTED");
         break;
     }
 }
@@ -380,7 +399,11 @@ fn send_auth_on_connect(
 /// Receive AuthResponse from the server and store our player ID.
 /// Once set, `spawn_remote_player_visuals` will categorise all pending
 /// replicated entities (marking ours as `OwnReplicatedPlayer` + hidden).
+///
+/// On success: sets IS_CONNECTED=true so the UI transitions to "Online".
+/// On failure: disconnects the client entity so the user can retry.
 fn receive_auth_response(
+    mut commands: Commands,
     mut my_player_id: ResMut<MyPlayerId>,
     mut query: Query<(Entity, &mut MessageReceiver<AuthResponse>)>,
 ) {
@@ -388,12 +411,16 @@ fn receive_auth_response(
         for msg in receiver.receive() {
             if msg.success {
                 my_player_id.0 = Some(msg.player_id);
+                IS_CONNECTED.store(true, Ordering::Release);
                 info!(
-                    "[net] AUTH SUCCESS from entity {entity:?} — user='{}' player_id={}",
+                    "[net] AUTH SUCCESS from entity {entity:?} — user='{}' player_id={} IS_CONNECTED=true",
                     msg.user_id, msg.player_id
                 );
             } else {
-                warn!("[net] AUTH FAILED from entity {entity:?}");
+                warn!("[net] AUTH FAILED from entity {entity:?} — inserting Disconnected to reset");
+                // Force disconnect so on_disconnected cleans up and the user
+                // can retry (e.g. after refreshing their JWT).
+                commands.entity(entity).insert(Disconnected);
             }
         }
     }
