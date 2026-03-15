@@ -148,7 +148,7 @@ COPY --from=astro-precompressor /static /pumpkin/web
 COPY ./apps/mc/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-RUN apk add --no-cache libgcc && chown -R 2613:2613 .
+RUN apk upgrade --no-cache && apk add --no-cache libgcc && chown -R 2613:2613 .
 
 ENV RUST_BACKTRACE=1
 EXPOSE 25565 8080 25575
