@@ -9,7 +9,7 @@
 #   FROM ghcr.io/kbve/mc-rust-base:latest AS core
 
 # --- Toolchain: install cargo-chef + rust toolchain (NO source) ---
-FROM rust:1-alpine3.23 AS chef
+FROM rust:1.94-alpine3.23 AS chef
 ENV RUSTFLAGS="-C target-feature=-crt-static"
 RUN apk add --no-cache musl-dev git
 RUN cargo install cargo-chef --locked \

@@ -9,34 +9,29 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "packages/npm/astro-e2e",
-				"commands": [
-					"nx exec -- astro dev --port 4302"
-				]
+				"commands": ["nx exec -- astro dev --port 4302"]
 			}
 		},
 		"build": {
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "packages/npm/astro-e2e",
-				"commands": [
-					"nx exec -- astro build"
-				]
+				"commands": ["nx exec -- astro build"]
 			}
 		},
 		"preview": {
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "packages/npm/astro-e2e",
-				"commands": [
-					"nx exec -- astro preview --port 4303"
-				]
+				"commands": ["nx exec -- astro preview --port 4303"]
 			}
 		},
 		"e2e": {
 			"executor": "nx:run-commands",
+			"dependsOn": ["build"],
 			"options": {
 				"commands": [
-					"pnpm exec playwright test --config=packages/npm/astro-e2e/playwright.config.ts"
+					"E2E_PREVIEW=true pnpm exec playwright test --config=packages/npm/astro-e2e/playwright.config.ts"
 				],
 				"cwd": "{workspaceRoot}"
 			}
