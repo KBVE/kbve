@@ -116,6 +116,7 @@
 		}
 	},
 	"nxCloudAccessToken": "",
+	"neverConnectToCloud": true,
 	"release": {
 		"projectsRelationship": "independent",
 		"projects": [
