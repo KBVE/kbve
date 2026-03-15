@@ -18,6 +18,8 @@ jobs:
         name: Publish ${{ inputs.project }} Python Package
         runs-on: ubuntu-latest
         timeout-minutes: 20
+        env:
+            NX_NO_CLOUD: true
         environment:
             name: pypi
         permissions:

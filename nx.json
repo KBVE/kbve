@@ -115,7 +115,8 @@
 			}
 		}
 	},
-	"nxCloudAccessToken": "MDVjYTYxYmUtNjU1OS00NTJjLWFhYzQtZWE4MDNlNDkwOGZhfHJlYWQ=",
+	"nxCloudAccessToken": "",
+	"neverConnectToCloud": true,
 	"release": {
 		"projectsRelationship": "independent",
 		"projects": [

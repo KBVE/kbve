@@ -26,6 +26,8 @@ jobs:
         name: Discover E2E Projects
         runs-on: ubuntu-latest
         timeout-minutes: 10
+        env:
+            NX_NO_CLOUD: true
         permissions:
             contents: read
         outputs:

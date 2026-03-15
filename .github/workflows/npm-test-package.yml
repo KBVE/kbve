@@ -11,6 +11,8 @@ jobs:
     test:
         name: Test ${{ inputs.project }} NPM Package
         runs-on: ubuntu-latest
+        env:
+            NX_NO_CLOUD: true
         permissions:
             contents: read
 

@@ -15,13 +15,15 @@ export default defineConfig(async () => ({
 		topLevelAwait(),
 		compression({
 			include: /\.wasm$/i,
+			exclude: /\.wgsl$/i,
 			algorithm: 'brotliCompress',
 			deleteOriginalAssets: false,
 		}),
 		compression({
 			include: /\.wasm$/i,
+			exclude: /\.wgsl$/i,
 			algorithm: 'gzip',
-			deleteOriginalAssets: true,
+			deleteOriginalAssets: /\.wasm$/i,
 		}),
 	],
 	base: '/isometric/',
