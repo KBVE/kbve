@@ -1,0 +1,33 @@
+---
+title: 'Elixir'
+description: 'A legendary potion that fully restores HP to maximum.'
+slug: 'elixir'
+key: 73
+id: '01KKR7QNRCNNPNQD46DYT110R9'
+name: 'Elixir'
+type_flags: 33312
+consumable: true
+stackable: true
+max_stack: 1
+rarity: 'legendary'
+buy_price: 500
+emoji: '✨'
+action: 'consume'
+tags:
+  - discordsh
+use_effects:
+  - { type: 'full_heal' }
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

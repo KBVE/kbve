@@ -1,0 +1,33 @@
+---
+title: 'Bomb'
+description: 'An explosive device that deals 10 damage to a single enemy.'
+slug: 'bomb'
+key: 69
+id: '01KKR7QNRCXEWSCSYHRKEVJ20N'
+name: 'Bomb'
+type_flags: 8704
+consumable: true
+stackable: true
+max_stack: 3
+rarity: 'uncommon'
+buy_price: 50
+emoji: '💣'
+action: 'consume'
+tags:
+  - discordsh
+use_effects:
+  - { type: 'damage_enemy', amount: 10 }
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

@@ -1,0 +1,35 @@
+---
+title: 'Glass Stiletto'
+description: 'A razor-thin blade of enchanted glass. +3 attack, +15% crit chance.'
+slug: 'glass-stiletto'
+key: 89
+id: '01KKR7QNRC6837QFCM9K0BD1N9'
+name: 'Glass Stiletto'
+type_flags: 513
+consumable: false
+stackable: false
+rarity: 'rare'
+buy_price: 180
+emoji: '🔪'
+action: 'equip'
+tags:
+  - discordsh
+equipment:
+  slot: 'main_hand'
+  bonuses:
+    attack: 3
+    crit_chance: 0.15
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

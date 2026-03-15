@@ -1,0 +1,33 @@
+---
+title: 'Rage Draught'
+description: 'A fiery tonic that sharpens your weapon for 4 turns with doubled potency (+6 dmg).'
+slug: 'rage-draught'
+key: 82
+id: '01KKR7QNRC4PXBN13CNS1YR9HY'
+name: 'Rage Draught'
+type_flags: 544
+consumable: true
+stackable: true
+max_stack: 2
+rarity: 'rare'
+buy_price: 100
+emoji: '🧪'
+action: 'consume'
+tags:
+  - discordsh
+use_effects:
+  - { type: 'apply_effect', status_effect: 'sharpened', stacks: 2, turns: 4 }
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

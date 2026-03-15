@@ -1,0 +1,37 @@
+---
+title: 'Dragon Scale'
+description: 'Scales shed by an ancient dragon, forged into legendary armor. +8 armor, +15 HP, 10% damage reduction.'
+slug: 'dragon-scale'
+key: 98
+id: '01KKR7QNRCD9Z8VG601R379C71'
+name: 'Dragon Scale'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'legendary'
+buy_price: 1500
+emoji: '🐉'
+action: 'equip'
+tags:
+  - discordsh
+equipment:
+  slot: 'chest'
+  bonuses:
+    armor: 8
+    health: 15
+  special: 'damage_reduction'
+  special_value: 0.1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

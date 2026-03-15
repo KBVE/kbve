@@ -1,0 +1,35 @@
+---
+title: 'Shadow Cloak'
+description: 'A cloak woven from shadow threads. +3 armor, +1 attack.'
+slug: 'shadow-cloak'
+key: 96
+id: '01KKR7QNRC1W3SZRYP385BX2ST'
+name: 'Shadow Cloak'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'uncommon'
+buy_price: 85
+emoji: '🧥'
+action: 'equip'
+tags:
+  - discordsh
+equipment:
+  slot: 'chest'
+  bonuses:
+    armor: 3
+    attack: 1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

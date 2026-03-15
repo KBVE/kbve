@@ -1,0 +1,33 @@
+---
+title: 'Antidote'
+description: 'A cleansing tonic that removes all negative status effects.'
+slug: 'antidote'
+key: 75
+id: '01KKR7QNRC81EVK4PF70V5E3FR'
+name: 'Antidote'
+type_flags: 544
+consumable: true
+stackable: true
+max_stack: 2
+rarity: 'uncommon'
+buy_price: 45
+emoji: '🧴'
+action: 'consume'
+tags:
+  - discordsh
+use_effects:
+  - { type: 'remove_all_negative' }
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

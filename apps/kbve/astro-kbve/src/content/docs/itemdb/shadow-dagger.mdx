@@ -1,0 +1,35 @@
+---
+title: 'Shadow Dagger'
+description: 'A dark-forged dagger that strikes with precision. +3 attack, +5% crit chance.'
+slug: 'shadow-dagger'
+key: 85
+id: '01KKR7QNRCCGPJS1BY1R6NEN8B'
+name: 'Shadow Dagger'
+type_flags: 513
+consumable: false
+stackable: false
+rarity: 'uncommon'
+buy_price: 75
+emoji: '🗡️'
+action: 'equip'
+tags:
+  - discordsh
+equipment:
+  slot: 'main_hand'
+  bonuses:
+    attack: 3
+    crit_chance: 0.05
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
