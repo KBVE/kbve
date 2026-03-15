@@ -2188,6 +2188,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_mapdb"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "prost",
+ "prost-build",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "bevy_math"
 version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
