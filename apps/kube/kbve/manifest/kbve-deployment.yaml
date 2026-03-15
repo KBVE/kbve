@@ -80,7 +80,10 @@ spec:
                       - name: MC_RCON_PORT
                         value: '25575'
                       - name: MC_RCON_PASSWORD
-                        value: 'kbve-rcon'
+                        valueFrom:
+                            secretKeyRef:
+                                name: mc-rcon
+                                key: rcon-password
                       - name: GRAFANA_UPSTREAM_URL
                         value: 'http://monitoring-grafana.monitoring.svc.cluster.local:80'
                       - name: ARGOCD_UPSTREAM_URL
