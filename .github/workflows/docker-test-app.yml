@@ -100,6 +100,11 @@ jobs:
             - name: Install pnpm Dependencies
               run: pnpm install
 
+            - name: Setup Python + uv
+              uses: astral-sh/setup-uv@v7
+              with:
+                  enable-cache: false
+
             - name: Install Playwright Browsers
               if: ${{ inputs.install_playwright }}
               run: pnpm exec playwright install --with-deps chromium
@@ -107,6 +112,7 @@ jobs:
             - name: Nx e2e ${{ inputs.project }}
               env:
                   BUILDKIT_PROGRESS: plain
+                  INPUT_GITHUB_TOKEN: ${{ github.token }}
               run: pnpm nx e2e ${{ inputs.project }} --configuration=ci --no-cloud --output-style=stream
 
             - name: Mark test passed

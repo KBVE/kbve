@@ -1278,7 +1278,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.45"
+version = "1.0.46"
 dependencies = [
  "anyhow",
  "askama",
@@ -2116,6 +2116,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_items"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "prost",
+ "prost-build",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "bevy_kbve_net"
 version = "0.1.0"
 dependencies = [
@@ -2227,6 +2238,17 @@ name = "bevy_mikktspace"
 version = "0.17.0-dev"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ef8e4b7e61dfe7719bb03c884dc270cd46a82efb40f93e9933b990c5c190c59"
+
+[[package]]
+name = "bevy_npc"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "prost",
+ "prost-build",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "bevy_pbr"
