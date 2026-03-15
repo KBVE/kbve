@@ -28,14 +28,37 @@ import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
 
 # Luminous Alcove
 
-A small sanctuary carved into the dungeon wall, radiating gentle warmth. An ancient shrine pulses with healing energy that predates the dungeon itself.
+A small sanctuary carved into the dungeon wall, barely wider than a doorframe. The light here is soft and golden, rising from the pale stone itself like sunlight trapped beneath the surface. Wounds close in this place without effort or pain. The air smells faintly of dried chamomile and warm clay, and for a few precious moments, the dungeon feels like a place where someone once wanted you to be safe.
+
+## Atmosphere
+
+The alcove is barely large enough for two people to sit comfortably, its curved walls smooth and warm to the touch like sun-baked terracotta. The golden light pulses gently, matching the rhythm of the visitor's heartbeat after a few seconds of stillness. The air carries a faint sweetness, like dried flowers left in a stone jar for centuries, and a barely perceptible hum vibrates through the floor. Dust motes drift upward rather than down, caught in a thermal current that seems to originate from the shrine itself. The silence here is not empty but full, the kind of quiet found in old libraries and well-loved kitchens.
 
 ## Effects
-- Restores HP over time while resting
-- Cleanses minor debuffs (poison, burning)
-- Provides a brief window of safety — enemies avoid this alcove
+
+- Restores 2% HP per second while resting within the alcove's light radius, up to a maximum of full health
+- Cleanses minor debuffs (poison, burning, chill) upon entering; major debuffs (curse, petrification) are reduced in duration by half
+- Provides a brief window of safety. Enemies will not enter the alcove's light radius for 90 seconds after the player sits down, though they will wait at the boundary
+- Resting for a full 60 seconds grants a "Blessed Warmth" buff that reduces incoming damage by 10% for the next five minutes
+- The healing effect diminishes with repeated use within a single dungeon run; the shrine needs time to recharge, roughly ten minutes between full-strength uses
+
+## Whispers
+
+Faint inscriptions line the inner curve of the alcove, carved in a script so small it requires crouching to read. They are not instructions or prayers but fragments of gratitude, left by those who rested here before:
+
+- *"I was dying when I found this place. I am not dying now. I do not understand, but I am grateful."*
+- *"The light knows my name. It said it without speaking."*
+- *"Three days in the dark. Three days of teeth and hunger. And then this. A small, warm room that asked for nothing."*
+- *"Do not carve here, they told me. The stone remembers on its own."*
+
+Occasionally, when the alcove is empty, a voice can be heard humming a melody with no identifiable origin. It sounds like a lullaby, sung in a language older than the dungeon itself.
 
 ## Lore
-Scholars believe these shrines were placed by the same civilization that built the Stone Sentinels. Whatever power fuels them has outlasted its creators by millennia.
+
+Scholars believe these shrines were placed by the same civilization that built the Stone Sentinels, a people known only through their constructions and never through their words. The shrines share the Sentinels' characteristic material: a pale limestone veined with luminescent mineral deposits that no modern quarry has ever produced. Carbon dating places their construction at roughly six thousand years before the dungeon's first recorded exploration, meaning they sat in raw earth and darkness for millennia before anyone built walls around them.
+
+The healing properties of the alcoves have been studied extensively, though never successfully replicated. Tissue samples taken from wounds healed within the light show cellular regeneration patterns that do not match any known biological process. The cells are not repaired but replaced, as though the shrine remembers what the body is supposed to look like and simply corrects the error. Theologians have argued that this constitutes evidence of divine intervention. Biologists counter that it more closely resembles a sophisticated immune response, one belonging to an organism far larger than any individual visitor. The implication that the shrine is not a tool but a part of something alive has never been fully addressed.
+
+What is known is that the alcoves are not evenly distributed. They appear in locations of maximum suffering: near trap clusters, boss chambers, and corridors with high mortality rates. Whether they were placed there intentionally by builders who foresaw the dungeon's dangers, or whether they migrated there over the centuries in response to accumulated pain, is a question that remains open.
 
 <MapDBPanel data={frontmatter} />
