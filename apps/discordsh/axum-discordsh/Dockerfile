@@ -99,13 +99,15 @@ COPY apps/discordsh/axum-discordsh/Cargo.toml apps/discordsh/axum-discordsh/Carg
 COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
 COPY packages/rust/bevy/bevy_items/Cargo.toml packages/rust/bevy/bevy_items/Cargo.toml
+COPY packages/rust/bevy/bevy_battle/Cargo.toml packages/rust/bevy/bevy_battle/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
 RUN mkdir -p apps/discordsh/axum-discordsh/src && echo "fn main() {}" > apps/discordsh/axum-discordsh/src/main.rs && \
     mkdir -p packages/rust/jedi/src && echo "" > packages/rust/jedi/src/lib.rs && \
     mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_items/src && echo "" > packages/rust/bevy/bevy_items/src/lib.rs
+    mkdir -p packages/rust/bevy/bevy_items/src && echo "" > packages/rust/bevy/bevy_items/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_battle/src && echo "" > packages/rust/bevy/bevy_battle/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -139,10 +141,11 @@ COPY packages/data/proto packages/data/proto
 COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/kbve packages/rust/kbve
 COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
+COPY packages/rust/bevy/bevy_battle packages/rust/bevy/bevy_battle
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --release -p kbve -p jedi -p bevy_items
+    cargo build --release -p kbve -p jedi -p bevy_items -p bevy_battle
 
 # ============================================================================
 # [STAGE F] - Build Application
@@ -161,6 +164,7 @@ COPY packages/data/proto packages/data/proto
 COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/kbve packages/rust/kbve
 COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
+COPY packages/rust/bevy/bevy_battle packages/rust/bevy/bevy_battle
 
 # Application source (most frequently changing — placed last for cache)
 COPY apps/discordsh/axum-discordsh apps/discordsh/axum-discordsh
