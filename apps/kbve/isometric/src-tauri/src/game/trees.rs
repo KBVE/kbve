@@ -1035,8 +1035,9 @@ pub fn spawn_tree_entity(
     let size_scale = 1.10 + hash2d(tx + 11717, tz + 5871) * 1.10;
     let geo = build_tree_geometry(tx, tz, size_scale);
 
-    let jx = (hash2d(tx + 11417, tz + 5471) - 0.5) * 0.3;
-    let jz = (hash2d(tx + 11317, tz + 5571) - 0.5) * 0.3;
+    let pixel_snap = 1.0 / 32.0;
+    let jx = ((hash2d(tx + 11417, tz + 5471) - 0.5) * 0.3 / pixel_snap).round() * pixel_snap;
+    let jz = ((hash2d(tx + 11317, tz + 5571) - 0.5) * 0.3 / pixel_snap).round() * pixel_snap;
     let world_x = tx as f32 * TILE_SIZE + jx;
     let world_z = tz as f32 * TILE_SIZE + jz;
     let tree_base_y = column_h + 0.002;

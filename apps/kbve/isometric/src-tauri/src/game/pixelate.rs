@@ -42,7 +42,7 @@ pub struct PixelateSettings {
 impl Default for PixelateSettings {
     fn default() -> Self {
         Self {
-            pixel_size: 4.0,
+            pixel_size: 2.0,
             highlight_strength: 0.40,
             shadow_strength: 0.45,
             scale_factor: 1.0,

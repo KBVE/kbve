@@ -22,9 +22,10 @@ impl Plugin for IsometricCameraPlugin {
             viewport_height: 20.0,
             pixel_density: PIXEL_DENSITY,
             display_layer: 1,
-            zoom_min: 0.5,
-            zoom_max: 2.0,
-            zoom_factor: 1.05,
+            // Zoom locked to 1.0 — fixed resolution prevents pixel swimming.
+            zoom_min: 1.0,
+            zoom_max: 1.0,
+            zoom_factor: 1.0,
             zoom_smoothing: 4.0,
         }));
 

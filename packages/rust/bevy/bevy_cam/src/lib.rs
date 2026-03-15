@@ -130,6 +130,30 @@ impl Default for CameraZoom {
     }
 }
 
+/// Sub-pixel remainder from camera snapping.
+/// Applied to the display quad each frame for smooth scrolling without pixel swim.
+#[derive(Resource, Default)]
+struct SubPixelOffset {
+    /// Remainder along the camera's right axis (screen X), in world units.
+    right: f32,
+    /// Remainder along the camera's up axis (screen Y), in world units.
+    up: f32,
+}
+
+/// Render-target and display-quad geometry computed at setup.
+/// Used to convert world-unit remainders to per-axis display offsets.
+#[derive(Resource)]
+struct RenderGeometry {
+    /// Render target width in pixels (integer-truncated from render_h * aspect).
+    render_w: u32,
+    /// Render target height in pixels (viewport_height * pixel_density, exact).
+    render_h: u32,
+    /// Display quad width in display-camera units (includes texel padding).
+    quad_w: f32,
+    /// Display quad height in display-camera units (includes texel padding).
+    quad_h: f32,
+}
+
 /// Precomputed stable camera axes derived from the initial look-at orientation.
 /// Using these instead of reading from the mutated transform avoids
 /// frame-to-frame drift that causes visible pixel jitter.
@@ -183,12 +207,17 @@ impl Plugin for IsometricCameraPlugin {
 
         app.insert_resource(self.config.clone());
         app.init_resource::<CameraZoom>();
+        app.init_resource::<SubPixelOffset>();
         app.insert_resource(axes);
         app.add_systems(Startup, setup_camera);
         app.add_systems(Update, handle_zoom_input);
         app.add_systems(
             PostUpdate,
-            (camera_follow_target, apply_camera_zoom)
+            (
+                camera_follow_target,
+                apply_camera_zoom,
+                apply_subpixel_offset,
+            )
                 .chain()
                 .in_set(CameraUpdate),
         );
@@ -262,18 +291,27 @@ fn setup_camera(
     // Fullscreen quad with the render texture (unlit = display pixels as-is).
     // Slightly oversized (+2 texels) so sub-pixel offset doesn't expose clear color at edges.
     let texel_pad = 2.0 / render_h as f32;
+    let quad_w = aspect + texel_pad * aspect;
+    let quad_h = 1.0 + texel_pad;
     let quad_material = materials.add(StandardMaterial {
         base_color_texture: Some(render_handle),
         unlit: true,
         ..default()
     });
     commands.spawn((
-        Mesh3d(meshes.add(Rectangle::new(aspect + texel_pad * aspect, 1.0 + texel_pad))),
+        Mesh3d(meshes.add(Rectangle::new(quad_w, quad_h))),
         MeshMaterial3d(quad_material),
         Transform::default(),
         RenderLayers::layer(config.display_layer),
         DisplayQuad,
     ));
+
+    commands.insert_resource(RenderGeometry {
+        render_w,
+        render_h,
+        quad_w,
+        quad_h,
+    });
 }
 
 fn camera_follow_target(
@@ -281,6 +319,7 @@ fn camera_follow_target(
     mut camera_query: Query<&mut Transform, (With<IsometricCamera>, Without<CameraFollowTarget>)>,
     config: Res<CameraConfig>,
     axes: Res<StableAxes>,
+    mut subpixel: ResMut<SubPixelOffset>,
 ) {
     let Ok(target_tf) = target_query.single() else {
         return;
@@ -302,6 +341,13 @@ fn camera_follow_target(
     let snapped_right = (right_proj / pixel_step).round() * pixel_step;
     let snapped_up = (up_proj / pixel_step).round() * pixel_step;
     let snapped_forward = (forward_proj / pixel_step).round() * pixel_step;
+
+    // Store the sub-pixel remainder for display quad compensation.
+    // This is what makes scrolling smooth — the scene camera snaps to the grid,
+    // but we shift the display quad by the fractional part so the player perceives
+    // continuous motion instead of 1-pixel jumps.
+    subpixel.right = right_proj - snapped_right;
+    subpixel.up = up_proj - snapped_up;
 
     camera_tf.translation =
         snapped_right * axes.right + snapped_up * axes.up + snapped_forward * axes.forward;
@@ -340,6 +386,38 @@ fn apply_camera_zoom(
     if let Projection::Orthographic(ref mut ortho) = *proj {
         ortho.scale = zoom.current;
     }
+}
+
+/// Shift the display quad by the sub-pixel remainder so scrolling appears smooth.
+/// The scene camera snaps to the pixel grid (preventing pixel swim), while this
+/// offset gives the illusion of continuous motion on the upscaled output.
+///
+/// Conversion chain (each axis uses its own render dimension):
+///   1. world remainder → render pixels:  `rem_px = remainder * pixel_density`
+///   2. render pixels → normalised [0,1]:  `uv = rem_px / render_dim`
+///   3. normalised → display-quad units:   `offset = uv * quad_dim`
+///
+/// Negated: camera snapped RIGHT of desired → objects shifted LEFT in render
+///          → shift display quad RIGHT to compensate.
+fn apply_subpixel_offset(
+    subpixel: Res<SubPixelOffset>,
+    config: Res<CameraConfig>,
+    geom: Res<RenderGeometry>,
+    zoom: Res<CameraZoom>,
+    mut quad_query: Query<&mut Transform, With<DisplayQuad>>,
+) {
+    let Ok(mut quad_tf) = quad_query.single_mut() else {
+        return;
+    };
+
+    let pd = config.pixel_density as f32;
+    let z = zoom.current;
+
+    // Per-axis: world units → render pixels → UV fraction → quad-space offset.
+    // Zoom scales the orthographic projection, so the effective pixel density
+    // in world units is `pixel_density / zoom`.
+    quad_tf.translation.x = -(subpixel.right * pd / z) / geom.render_w as f32 * geom.quad_w;
+    quad_tf.translation.y = -(subpixel.up * pd / z) / geom.render_h as f32 * geom.quad_h;
 }
 
 // ── Tests ───────────────────────────────────────────────────────────────
@@ -400,6 +478,26 @@ mod tests {
         assert!(axes.right.length() > 0.99);
         assert!(axes.up.length() > 0.99);
         assert!(axes.forward.length() > 0.99);
+    }
+
+    #[test]
+    fn subpixel_remainder_is_bounded() {
+        let config = CameraConfig::default();
+        let axes = StableAxes::from_offset(config.offset);
+        let pixel_step = 1.0 / config.pixel_density as f32;
+
+        // For any position, the remainder must be within [-pixel_step/2, pixel_step/2]
+        for i in 0..100 {
+            let pos = Vec3::new(i as f32 * 0.037, i as f32 * 0.019, i as f32 * 0.053);
+            let right_proj = pos.dot(axes.right);
+            let snapped = (right_proj / pixel_step).round() * pixel_step;
+            let remainder = right_proj - snapped;
+            assert!(
+                remainder.abs() <= pixel_step / 2.0 + 0.0001,
+                "remainder {remainder} exceeds half pixel step {:.5}",
+                pixel_step / 2.0
+            );
+        }
     }
 
     #[test]

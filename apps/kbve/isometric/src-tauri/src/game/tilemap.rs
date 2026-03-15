@@ -1646,8 +1646,12 @@ fn process_chunk_spawns_and_despawns(
                         if rock_noise < 0.025 {
                             tile_occupied = true;
                             if !collected_tiles.0.contains(&(tx, tz)) {
-                                let jx = (hash2d(tx + 19557, tz + 12391) - 0.5) * 0.4;
-                                let jz = (hash2d(tx + 19457, tz + 12491) - 0.5) * 0.4;
+                                let jx = ((hash2d(tx + 19557, tz + 12391) - 0.5) * 0.4 / VEG_SNAP)
+                                    .round()
+                                    * VEG_SNAP;
+                                let jz = ((hash2d(tx + 19457, tz + 12491) - 0.5) * 0.4 / VEG_SNAP)
+                                    .round()
+                                    * VEG_SNAP;
                                 let world_x = tx as f32 * TILE_SIZE + jx;
                                 let world_z = tz as f32 * TILE_SIZE + jz;
                                 let rock_y = column_h + 0.002;
@@ -1730,8 +1734,12 @@ fn process_chunk_spawns_and_despawns(
                                     _ => FlowerArchetype::BlueOrchid,
                                 };
 
-                                let jx = (hash2d(tx + 13921, tz + 8293) - 0.5) * 0.6;
-                                let jz = (hash2d(tx + 13721, tz + 8493) - 0.5) * 0.6;
+                                let jx = ((hash2d(tx + 13921, tz + 8293) - 0.5) * 0.6 / VEG_SNAP)
+                                    .round()
+                                    * VEG_SNAP;
+                                let jz = ((hash2d(tx + 13721, tz + 8493) - 0.5) * 0.6 / VEG_SNAP)
+                                    .round()
+                                    * VEG_SNAP;
                                 let world_x = tx as f32 * TILE_SIZE + jx;
                                 let world_z = tz as f32 * TILE_SIZE + jz;
                                 let flower_y = column_h + 0.002;
@@ -1766,8 +1774,12 @@ fn process_chunk_spawns_and_despawns(
                         let mush_noise = hash2d(tx + 23017, tz + 17293);
                         if mush_noise < 0.04 {
                             if !collected_tiles.0.contains(&(tx, tz)) {
-                                let jx = (hash2d(tx + 23117, tz + 17293) - 0.5) * 0.5;
-                                let jz = (hash2d(tx + 23017, tz + 17393) - 0.5) * 0.5;
+                                let jx = ((hash2d(tx + 23117, tz + 17293) - 0.5) * 0.5 / VEG_SNAP)
+                                    .round()
+                                    * VEG_SNAP;
+                                let jz = ((hash2d(tx + 23017, tz + 17393) - 0.5) * 0.5 / VEG_SNAP)
+                                    .round()
+                                    * VEG_SNAP;
                                 let world_x = tx as f32 * TILE_SIZE + jx;
                                 let world_z = tz as f32 * TILE_SIZE + jz;
                                 let mush_y = column_h + 0.002;

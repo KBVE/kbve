@@ -403,8 +403,9 @@ fn animate_veg_wind(
         let gust = (t * gust_speed + sway.phase).sin() * veg_amp
             + (t * gust_speed * 2.1 + sway.phase * 1.8).sin() * veg_amp * 0.4;
         let flutter = (t * gust_speed * 3.0 + sway.phase * 1.3).sin() * veg_amp * 0.2;
-        let ox = dx * gust + (-dz) * flutter;
-        let oz = dz * gust + dx * flutter;
+        let pixel_snap = 1.0 / 32.0;
+        let ox = ((dx * gust + (-dz) * flutter) / pixel_snap).round() * pixel_snap;
+        let oz = ((dz * gust + dx * flutter) / pixel_snap).round() * pixel_snap;
         tf.translation = sway.base_translation + Vec3::new(ox, 0.0, oz);
     }
 }
