@@ -21,6 +21,7 @@ members = [
 	'packages/rust/bevy/bevy_player',
 	'packages/rust/bevy/bevy_cam',
 	'packages/rust/bevy/bevy_kbve_net',
+	'packages/rust/bevy/bevy_npc',
 ]
 
 [profile.dev]
