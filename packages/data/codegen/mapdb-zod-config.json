@@ -44,6 +44,21 @@
 			"mode": "const_array",
 			"stripPrefix": "SPAWN_CATEGORY_",
 			"caseTransform": "lowercase"
+		},
+		"map.ResourceType": {
+			"mode": "const_array",
+			"stripPrefix": "RESOURCE_",
+			"caseTransform": "lowercase"
+		},
+		"map.ContainerType": {
+			"mode": "const_array",
+			"stripPrefix": "CONTAINER_",
+			"caseTransform": "lowercase"
+		},
+		"map.CraftingStationType": {
+			"mode": "const_array",
+			"stripPrefix": "CRAFTING_STATION_",
+			"caseTransform": "lowercase"
 		}
 	},
 
@@ -101,6 +116,24 @@
 			"sourceEnum": "map.SpawnCategory",
 			"typeName": "SpawnCategoryValue",
 			"zodSchemaName": "SpawnCategorySchema"
+		},
+		{
+			"name": "ResourceTypes",
+			"sourceEnum": "map.ResourceType",
+			"typeName": "ResourceTypeValue",
+			"zodSchemaName": "ResourceTypeSchema"
+		},
+		{
+			"name": "ContainerTypes",
+			"sourceEnum": "map.ContainerType",
+			"typeName": "ContainerTypeValue",
+			"zodSchemaName": "ContainerTypeSchema"
+		},
+		{
+			"name": "CraftingStationTypes",
+			"sourceEnum": "map.CraftingStationType",
+			"typeName": "CraftingStationTypeValue",
+			"zodSchemaName": "CraftingStationTypeSchema"
 		}
 	],
 

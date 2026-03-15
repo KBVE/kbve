@@ -84,29 +84,69 @@ enum RoomModifier {
   ROOM_MODIFIER_ARCANE   = 10;   // Magic amplification
 }
 
-// World object archetype — what kind of thing is placed in the world
+// World object archetype — gameplay role, not physical shape.
+// Use sub_kind for the specific variant (e.g. "oak", "coal", "furnace").
 enum WorldObjectType {
-  WORLD_OBJECT_UNSPECIFIED  = 0;
-  WORLD_OBJECT_TREE         = 1;
-  WORLD_OBJECT_ROCK         = 2;
-  WORLD_OBJECT_FLOWER       = 3;
-  WORLD_OBJECT_MUSHROOM     = 4;
-  WORLD_OBJECT_CRYSTAL      = 5;
-  WORLD_OBJECT_CRATE        = 6;
-  WORLD_OBJECT_PILLAR       = 7;
-  WORLD_OBJECT_LIGHT        = 8;
-  WORLD_OBJECT_CHEST        = 9;
-  WORLD_OBJECT_SIGN         = 10;
-  WORLD_OBJECT_BARRIER      = 11;
-  WORLD_OBJECT_PORTAL       = 12;
-  WORLD_OBJECT_STATUE       = 13;
-  WORLD_OBJECT_CAMPFIRE     = 14;
-  WORLD_OBJECT_WORKBENCH    = 15;
-  WORLD_OBJECT_FURNACE      = 16;
-  WORLD_OBJECT_ANVIL        = 17;
-  WORLD_OBJECT_WATER_SOURCE = 18;
-  WORLD_OBJECT_NPC_MARKER   = 19;  // Where an NPC stands
-  WORLD_OBJECT_CUSTOM       = 20;
+  WORLD_OBJECT_UNSPECIFIED      = 0;
+
+  // Harvestable / gatherable nodes (tree, rock, flower, mushroom, crystal, water)
+  WORLD_OBJECT_RESOURCE_NODE    = 1;
+
+  // Loot / storage containers (crate, chest, barrel)
+  WORLD_OBJECT_CONTAINER        = 2;
+
+  // Crafting stations (workbench, furnace, anvil)
+  WORLD_OBJECT_CRAFTING_STATION = 3;
+
+  // Decorative / utility props
+  WORLD_OBJECT_LIGHT            = 4;
+  WORLD_OBJECT_SIGN             = 5;
+  WORLD_OBJECT_STATUE           = 6;
+  WORLD_OBJECT_PILLAR           = 7;
+  WORLD_OBJECT_CAMPFIRE         = 8;
+  WORLD_OBJECT_PORTAL           = 9;
+  WORLD_OBJECT_BARRIER          = 10;
+
+  // Gameplay markers
+  WORLD_OBJECT_NPC_MARKER       = 11;  // Where an NPC stands
+  WORLD_OBJECT_TRIGGER          = 12;  // Boss activation, quest zone, cutscene, spawn area
+
+  // World structures
+  WORLD_OBJECT_SETTLEMENT       = 13;  // City / outpost / bazaar (zone-level safe area)
+  WORLD_OBJECT_BUILDING         = 14;  // Individual structure (inn, tavern, smithy)
+  WORLD_OBJECT_ARENA            = 15;  // Boss encounter room
+  WORLD_OBJECT_LANDMARK         = 16;  // Story / lore point of interest
+
+  // Escape hatch
+  WORLD_OBJECT_CUSTOM           = 100;
+}
+
+// Subtype for WORLD_OBJECT_RESOURCE_NODE — what resource the node yields
+enum ResourceType {
+  RESOURCE_UNSPECIFIED = 0;
+  RESOURCE_WOOD        = 1;
+  RESOURCE_STONE       = 2;
+  RESOURCE_FLOWER      = 3;
+  RESOURCE_MUSHROOM    = 4;
+  RESOURCE_CRYSTAL     = 5;
+  RESOURCE_WATER       = 6;
+  RESOURCE_ORE         = 7;   // sub_kind further specifies: coal, iron, gold, etc.
+}
+
+// Subtype for WORLD_OBJECT_CONTAINER
+enum ContainerType {
+  CONTAINER_UNSPECIFIED = 0;
+  CONTAINER_CRATE       = 1;
+  CONTAINER_CHEST       = 2;
+  CONTAINER_BARREL      = 3;
+}
+
+// Subtype for WORLD_OBJECT_CRAFTING_STATION
+enum CraftingStationType {
+  CRAFTING_STATION_UNSPECIFIED = 0;
+  CRAFTING_STATION_WORKBENCH   = 1;
+  CRAFTING_STATION_FURNACE     = 2;
+  CRAFTING_STATION_ANVIL       = 3;
 }
 
 // Point of interest type
@@ -420,7 +460,12 @@ message WorldObjectDef {
   optional string description = 4;
 
   WorldObjectType type = 5;
-  optional string sub_kind = 6;        // Variant within type (e.g. "conifer", "ore_copper")
+  optional string sub_kind = 6;        // Free-form variant (e.g. "coal", "oak", "ruby")
+
+  // Typed subtypes — use the one matching the archetype in `type`
+  optional ResourceType resource_type = 37;
+  optional ContainerType container_type = 38;
+  optional CraftingStationType crafting_station_type = 39;
 
   // Visual
   optional string model_ref = 7;
