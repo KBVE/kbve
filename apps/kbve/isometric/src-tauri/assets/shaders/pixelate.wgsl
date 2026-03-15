@@ -237,15 +237,15 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     color_top    = vec4(toon_quantize(apply_leaf_breakup(color_top.rgb,    block + vec2( 0.0, -1.0)),     settings.toon_bands), color_top.a);
     color_bottom = vec4(toon_quantize(apply_leaf_breakup(color_bottom.rgb, block + vec2( 0.0,  1.0)),     settings.toon_bands), color_bottom.a);
 
-    // ── BARK FURROW BREAKUP ────────────────────────────────────────────────
-    // Vertical furrow texture on brown/bark-colored pixels. NO re-quantize —
-    // bark is dark in linear space so toon bands collapse the variation.
-    // Raw furrow contrast feeds edge detection for natural bark outlines.
-    color        = vec4(apply_bark_breakup(color.rgb,        block),                    color.a);
-    color_left   = vec4(apply_bark_breakup(color_left.rgb,   block + vec2(-1.0,  0.0)), color_left.a);
-    color_right  = vec4(apply_bark_breakup(color_right.rgb,  block + vec2( 1.0,  0.0)), color_right.a);
-    color_top    = vec4(apply_bark_breakup(color_top.rgb,    block + vec2( 0.0, -1.0)), color_top.a);
-    color_bottom = vec4(apply_bark_breakup(color_bottom.rgb, block + vec2( 0.0,  1.0)), color_bottom.a);
+    // ── BARK FURROW BREAKUP (disabled) ──────────────────────────────────────
+    // Bark detection false-positives on terrain tiles (both are warm/brown),
+    // creating a cross-hatch pattern across the entire ground. Disabled until
+    // detection can reliably distinguish tree trunks from terrain.
+    // color        = vec4(apply_bark_breakup(color.rgb,        block),                    color.a);
+    // color_left   = vec4(apply_bark_breakup(color_left.rgb,   block + vec2(-1.0,  0.0)), color_left.a);
+    // color_right  = vec4(apply_bark_breakup(color_right.rgb,  block + vec2( 1.0,  0.0)), color_right.a);
+    // color_top    = vec4(apply_bark_breakup(color_top.rgb,    block + vec2( 0.0, -1.0)), color_top.a);
+    // color_bottom = vec4(apply_bark_breakup(color_bottom.rgb, block + vec2( 0.0,  1.0)), color_bottom.a);
 
     // ── HIGHLIGHT EDGES (color direction shift) ──────────────────────────
     let eps = vec3(0.001);
