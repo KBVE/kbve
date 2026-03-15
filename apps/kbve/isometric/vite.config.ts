@@ -23,7 +23,7 @@ export default defineConfig(async () => ({
 			include: /\.wasm$/i,
 			exclude: /\.wgsl$/i,
 			algorithm: 'gzip',
-			deleteOriginalAssets: true,
+			deleteOriginalAssets: /\.wasm$/i,
 		}),
 	],
 	base: '/isometric/',
