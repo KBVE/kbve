@@ -4,6 +4,7 @@ members = [
     "apps/discordsh/axum-discordsh",
     "packages/rust/jedi",
     "packages/rust/kbve",
+    "packages/rust/bevy/bevy_items",
 ]
 
 [profile.release]
