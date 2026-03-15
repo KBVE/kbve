@@ -6,7 +6,6 @@
 //! Connection is NOT established automatically — the player triggers it
 //! via the "Go Online" UI button, which calls the `go_online` WASM export.
 
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
@@ -29,8 +28,8 @@ use super::scene_objects::CollectEvent;
 use super::state::PlayerState;
 use super::tilemap::{CollectedTiles, TileCoord};
 
-/// Default server address (localhost for development).
-const DEFAULT_SERVER_ADDR: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 5000);
+/// Default WebSocket URL for development.
+const DEFAULT_WS_URL: &str = "ws://127.0.0.1:5000";
 
 /// Tick rate matching the server (20 Hz).
 const TICK_DURATION: Duration = Duration::from_millis(50);
@@ -38,8 +37,8 @@ const TICK_DURATION: Duration = Duration::from_millis(50);
 /// Atomic flag set by JS `go_online()` call, consumed by Bevy system.
 static GO_ONLINE_REQUESTED: AtomicBool = AtomicBool::new(false);
 
-/// Optional server address override from JS (e.g. "1.2.3.4:5000").
-static SERVER_ADDR_OVERRIDE: Mutex<Option<String>> = Mutex::new(None);
+/// Optional WebSocket URL override from JS (e.g. "wss://kbve.com/ws").
+static SERVER_URL_OVERRIDE: Mutex<Option<String>> = Mutex::new(None);
 
 /// JWT token passed from JS for server authentication.
 static AUTH_JWT: Mutex<Option<String>> = Mutex::new(None);
@@ -62,12 +61,13 @@ pub fn request_set_username(username: &str) {
 struct PlayerNameLabel;
 
 /// Called from JS/WASM to request a connection to the game server.
-/// `server_addr` can be empty to use the default, or "host:port" format.
+/// `server_url` can be empty to use the default, or a full WebSocket URL
+/// (e.g. "wss://kbve.com/ws").
 /// `jwt` is the Supabase access token for authentication.
-pub fn request_go_online(server_addr: &str, jwt: &str) {
-    if !server_addr.is_empty() {
-        if let Ok(mut guard) = SERVER_ADDR_OVERRIDE.lock() {
-            *guard = Some(server_addr.to_owned());
+pub fn request_go_online(server_url: &str, jwt: &str) {
+    if !server_url.is_empty() {
+        if let Ok(mut guard) = SERVER_URL_OVERRIDE.lock() {
+            *guard = Some(server_url.to_owned());
         }
     }
     if !jwt.is_empty() {
@@ -83,25 +83,19 @@ pub fn is_online() -> bool {
     IS_CONNECTED.load(Ordering::Relaxed)
 }
 
-/// Bevy resource holding the resolved game server address.
+/// Bevy resource holding the resolved game server WebSocket URL.
 #[derive(Resource)]
-pub struct GameServerAddr(pub SocketAddr);
+pub struct GameServerAddr(pub String);
 
 impl Default for GameServerAddr {
     fn default() -> Self {
-        let override_addr = SERVER_ADDR_OVERRIDE
+        let url = SERVER_URL_OVERRIDE
             .lock()
             .ok()
-            .and_then(|g| g.as_ref().and_then(|s| s.parse().ok()));
-
-        let addr = override_addr
-            .or_else(|| {
-                std::env::var("GAME_SERVER_ADDR")
-                    .ok()
-                    .and_then(|s| s.parse().ok())
-            })
-            .unwrap_or(DEFAULT_SERVER_ADDR);
-        Self(addr)
+            .and_then(|g| g.clone())
+            .or_else(|| std::env::var("GAME_SERVER_URL").ok())
+            .unwrap_or_else(|| DEFAULT_WS_URL.to_owned());
+        Self(url)
     }
 }
 
@@ -700,20 +694,15 @@ fn receive_object_respawned(
 fn connect_to_server(commands: &mut Commands, addr: &GameServerAddr) {
     use lightyear::websocket::prelude::client::*;
 
-    let server_addr = addr.0;
+    let ws_url = &addr.0;
 
-    info!("[net] connect_to_server — spawning client entity for ws://{server_addr}");
+    info!("[net] connect_to_server — spawning client entity for {ws_url}");
 
-    let ws_io = WebSocketClientIo::from_addr(ClientConfig::default(), WebSocketScheme::Plain);
-    info!("[net] WebSocketClientIo created (scheme=Plain)");
+    let ws_io = WebSocketClientIo::from_url(ClientConfig::default(), ws_url.clone());
+    info!("[net] WebSocketClientIo created (url={ws_url})");
 
     let client_entity = commands
-        .spawn((
-            Client::default(),
-            PeerAddr(server_addr),
-            ws_io,
-            ReplicationReceiver::default(),
-        ))
+        .spawn((Client::default(), ws_io, ReplicationReceiver::default()))
         .id();
 
     info!("[net] client entity spawned: {client_entity:?} — triggering Connect (entity-targeted)");

@@ -98,7 +98,13 @@ export function GoOnlineButton() {
 		setConnecting(true);
 		try {
 			const jwt = await getSupabaseJwt();
-			go_online('', jwt);
+			const hostname = window.location.hostname;
+			const isLocal =
+				hostname === 'localhost' || hostname === '127.0.0.1';
+			const wsUrl = isLocal
+				? 'ws://127.0.0.1:5000'
+				: `wss://${hostname}/ws`;
+			go_online(wsUrl, jwt);
 		} catch {
 			setConnecting(false);
 		}
