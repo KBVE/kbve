@@ -159,8 +159,7 @@ pub(super) fn spawn_frogs(
     }
     pool.frogs_spawned = true;
 
-    let texture: Handle<Image> =
-        asset_server.load("../src-tauri/src/game/creatures/frog/frog_green.png");
+    let texture: Handle<Image> = asset_server.load("textures/frog_green.png");
     let frog_mesh = meshes.add(build_frog_quad());
 
     for i in 0..FROG_COUNT {

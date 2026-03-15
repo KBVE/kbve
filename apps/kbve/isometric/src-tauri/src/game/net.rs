@@ -417,10 +417,10 @@ fn receive_auth_response(
                     msg.user_id, msg.player_id
                 );
             } else {
-                warn!("[net] AUTH FAILED from entity {entity:?} — inserting Disconnected to reset");
-                // Force disconnect so on_disconnected cleans up and the user
-                // can retry (e.g. after refreshing their JWT).
-                commands.entity(entity).insert(Disconnected);
+                warn!("[net] AUTH FAILED from entity {entity:?} — triggering Disconnect to reset");
+                // Trigger a graceful disconnect so on_disconnected cleans up
+                // and the user can retry (e.g. after refreshing their JWT).
+                commands.trigger(Disconnect { entity });
             }
         }
     }
