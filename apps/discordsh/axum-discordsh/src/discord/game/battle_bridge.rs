@@ -10,8 +10,8 @@ use poise::serenity_prelude as serenity;
 use bevy_battle::{
     ActiveEffects, App, Armor, AttackIntent, BevyBattlePlugin, CombatIndex, CombatModifiers,
     CombatName, CombatOutcome, CombatStats, Combatant, CurrentIntent, DefendIntent, EnemyAI,
-    EnemyTag, EnemyTurnRequest, Entity, EquippedGear, FleeIntent, Health, Messages, MinimalPlugins,
-    PlayerClass, PlayerTag, TickEffectsRequest, UseItemIntent,
+    EnemyTag, EnemyTurnRequest, Entity, EquippedGear, FirstStrikeFired, FleeIntent, Health,
+    Messages, MinimalPlugins, PlayerClass, PlayerTag, TickEffectsRequest, UseItemIntent,
 };
 
 use super::content;
@@ -322,7 +322,14 @@ impl CombatWorld {
 
     /// Send player action intents, enemy turn request, and effect tick request,
     /// then run one update cycle.
-    pub fn run_turn(&mut self, actions: &[(serenity::UserId, PlayerAction)]) {
+    ///
+    /// If `skip_enemy_turns` is true, `EnemyTurnRequest` is not sent (used when
+    /// first-strike already ran enemy turns via the old code path).
+    pub fn run_turn(
+        &mut self,
+        actions: &[(serenity::UserId, PlayerAction)],
+        skip_enemy_turns: bool,
+    ) {
         // Send player intents
         for (uid, action) in actions {
             let Some(player_entity) = self.entity_map.player_entity(*uid) else {
@@ -360,8 +367,11 @@ impl CombatWorld {
             }
         }
 
-        // Request enemy turns and effect ticking
-        self.app.world_mut().write_message(EnemyTurnRequest);
+        // Request enemy turns (unless first-strike already ran them)
+        if !skip_enemy_turns {
+            self.app.world_mut().write_message(EnemyTurnRequest);
+        }
+        // Always tick effects
         self.app.world_mut().write_message(TickEffectsRequest);
 
         // Run one update cycle — all systems execute in order
@@ -377,8 +387,16 @@ impl CombatWorld {
 
     /// Sync ECS state back into session.
     ///
-    /// Updates HP, armor, effects, defending, intents, and marks dead enemies.
+    /// Updates HP, armor, effects, defending, intents, marks dead enemies,
+    /// and syncs the first-strike flag.
     pub fn sync_out(&self, session: &mut SessionState) {
+        // Sync first-strike flag
+        if let Some(flag) = self.app.world().get_resource::<FirstStrikeFired>() {
+            if flag.0 {
+                session.enemies_had_first_strike = true;
+            }
+        }
+
         // Sync players
         for (uid, entity) in &self.entity_map.players {
             let world = self.app.world();
@@ -498,16 +516,13 @@ pub fn outcome_to_log(outcome: &CombatOutcome, world: &CombatWorld) -> Option<St
         } => {
             let aname = name_of(*attacker);
             let tname = name_of(*target);
-            let mut msg = if *crit {
-                format!(
-                    "**CRITICAL HIT!** {} strikes {} for **{}** damage!",
-                    aname, tname, damage
-                )
-            } else {
-                format!("{} attacks {} for **{}** damage!", aname, tname, damage)
-            };
+            let crit_msg = if *crit { " Critical hit!" } else { "" };
+            let mut msg = format!(
+                "{} strikes {} for {} damage!{}",
+                aname, tname, damage, crit_msg
+            );
             if *overkill {
-                msg.push_str(" 💀 *Overkill!*");
+                msg.push_str(" Overkill!");
             }
             Some(msg)
         }
@@ -652,12 +667,16 @@ pub fn outcome_to_log(outcome: &CombatOutcome, world: &CombatWorld) -> Option<St
 /// 3. Runs one ECS update
 /// 4. Collects outcomes as log strings
 /// 5. Syncs state back to the session
+///
+/// If `skip_enemy_turns` is true, enemy turns are skipped (used when
+/// first-strike already ran enemy turns via the old code path).
 pub fn run_combat_turn(
     session: &mut SessionState,
     actions: &[(serenity::UserId, PlayerAction)],
+    skip_enemy_turns: bool,
 ) -> Vec<String> {
     let mut combat = CombatWorld::from_session(session);
-    combat.run_turn(actions);
+    combat.run_turn(actions, skip_enemy_turns);
 
     let outcomes = combat.collect_outcomes();
     let logs: Vec<String> = outcomes
@@ -666,6 +685,25 @@ pub fn run_combat_turn(
         .collect();
 
     combat.sync_out(session);
+
+    // Remove enemies that fled (EnemyFled outcome → remove from session)
+    let fled_entities: Vec<Entity> = outcomes
+        .iter()
+        .filter_map(|o| match o {
+            CombatOutcome::EnemyFled { entity } => Some(*entity),
+            _ => None,
+        })
+        .collect();
+    for fled_entity in &fled_entities {
+        if let Some(idx) = combat.entity_map.enemy_index(*fled_entity) {
+            session.enemies.retain(|e| e.index != idx);
+        }
+    }
+
+    // If all enemies fled or died, transition to exploring
+    if !session.has_enemies() && session.phase == GamePhase::Combat {
+        session.phase = GamePhase::Exploring;
+    }
 
     logs
 }
@@ -780,7 +818,7 @@ mod tests {
         let owner = session.owner;
 
         let actions = vec![(owner, PlayerAction::Attack { target_idx: 0 })];
-        let logs = run_combat_turn(&mut session, &actions);
+        let logs = run_combat_turn(&mut session, &actions, false);
 
         assert!(!logs.is_empty(), "Should produce log entries");
         // Enemy should have taken damage (or player missed, either is valid)
@@ -796,7 +834,7 @@ mod tests {
         let owner = session.owner;
 
         let actions = vec![(owner, PlayerAction::Defend)];
-        let _logs = run_combat_turn(&mut session, &actions);
+        let _logs = run_combat_turn(&mut session, &actions, false);
 
         // After sync_out, defending should reflect the ECS state
         // Note: bevy_battle defend system sets defending=true, but enemy turn
@@ -810,7 +848,7 @@ mod tests {
         let owner = session.owner;
 
         let actions = vec![(owner, PlayerAction::Attack { target_idx: 0 })];
-        run_combat_turn(&mut session, &actions);
+        run_combat_turn(&mut session, &actions, false);
 
         // After a turn, enemy should have rolled a new intent
         // (original was Attack{dmg:5}, new should be different with high probability)

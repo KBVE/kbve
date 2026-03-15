@@ -110,6 +110,28 @@ pub fn attack_system(
         let overkill = dmg > enemy_hp.current;
         enemy_hp.take_damage(dmg);
 
+        // Emit charge/ambush class proc BEFORE the attack outcome
+        if is_charge {
+            outcomes.write(CombatOutcome::ClassProc {
+                entity: intent.attacker,
+                proc_name: "Charge",
+                detail: format!(
+                    "{} spots an opening and charges into {}! {} damage!",
+                    player_name.0, enemy_name.0, dmg
+                ),
+            });
+        }
+        if is_ambush && crit {
+            outcomes.write(CombatOutcome::ClassProc {
+                entity: intent.attacker,
+                proc_name: "Ambush",
+                detail: format!(
+                    "{} strikes from the shadows, ambushing {}! {} damage! Critical hit!",
+                    player_name.0, enemy_name.0, dmg
+                ),
+            });
+        }
+
         outcomes.write(CombatOutcome::Attack {
             attacker: intent.attacker,
             target: intent.target,

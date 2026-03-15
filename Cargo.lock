@@ -2555,6 +2555,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_skills"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "bevy_sprite"
 version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
