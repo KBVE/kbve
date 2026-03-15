@@ -22,6 +22,8 @@ export type { PhaserGameProps, PhaserGameRef } from './lib/phaser/PhaserGame';
 export { PhaserContext, usePhaserGame } from './lib/phaser/use-phaser';
 export { usePhaserEvent } from './lib/phaser/use-phaser-event';
 export { PlayerController } from './lib/phaser/player-controller';
+export { VirtualJoystick } from './lib/phaser/virtual-joystick';
+export type { VirtualJoystickConfig } from './lib/phaser/virtual-joystick';
 export {
 	getBirdNum,
 	isBird,

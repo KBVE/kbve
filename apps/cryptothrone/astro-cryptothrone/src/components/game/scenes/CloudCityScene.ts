@@ -99,7 +99,7 @@ export class CloudCityScene extends Scene {
 			this,
 			this.gridEngine,
 			this.quadtree,
-			{ tileSize: 48 },
+			{ tileSize: 48, joystick: true },
 		);
 
 		this.gridEngine.moveRandomly('npc', 1500, 3);

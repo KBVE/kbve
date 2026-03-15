@@ -3,6 +3,8 @@ import Phaser from 'phaser';
 import type { Point2D } from '../core/types';
 import type { Quadtree } from '../spatial/quadtree';
 import { laserEvents } from '../core/events';
+import { VirtualJoystick } from './virtual-joystick';
+import type { VirtualJoystickConfig } from './virtual-joystick';
 
 export class PlayerController {
 	private scene: Scene;
@@ -13,12 +15,17 @@ export class PlayerController {
 	private tooltip: Phaser.GameObjects.Text;
 	private tileSize: number;
 	private playerId: string;
+	private joystick: VirtualJoystick | null = null;
 
 	constructor(
 		scene: Scene,
 		gridEngine: any,
 		quadtree: Quadtree,
-		options?: { tileSize?: number; playerId?: string },
+		options?: {
+			tileSize?: number;
+			playerId?: string;
+			joystick?: boolean | VirtualJoystickConfig;
+		},
 	) {
 		this.scene = scene;
 		this.gridEngine = gridEngine;
@@ -35,6 +42,14 @@ export class PlayerController {
 			.setDepth(4)
 			.setPadding(3, 2, 2, 3)
 			.setVisible(false);
+
+		if (options?.joystick) {
+			const joystickConfig =
+				typeof options.joystick === 'object'
+					? options.joystick
+					: undefined;
+			this.joystick = new VirtualJoystick(scene, joystickConfig);
+		}
 	}
 
 	private initializeWASDKeys(): void {
@@ -72,11 +87,6 @@ export class PlayerController {
 	}
 
 	handleMovement(): void {
-		if (!this.cursor) return;
-
-		const cursors = this.cursor;
-		const wasd = this.wasdKeys;
-
 		if (this.scene.input.keyboard?.addKey('F').isDown) {
 			const position = this.gridEngine.getPosition(
 				this.playerId,
@@ -93,6 +103,21 @@ export class PlayerController {
 				}
 			}
 		}
+
+		// Joystick takes priority when active
+		if (this.joystick?.isActive && this.joystick.direction) {
+			this.gridEngine.move(this.playerId, this.joystick.direction);
+			this.checkForNearbyObjects();
+			return;
+		}
+
+		if (!this.cursor) {
+			this.checkForNearbyObjects();
+			return;
+		}
+
+		const cursors = this.cursor;
+		const wasd = this.wasdKeys;
 
 		if (
 			(cursors.left.isDown || wasd['A'].isDown) &&

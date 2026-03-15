@@ -1,6 +1,6 @@
 ---
 id: "01JX25PM4NR1QEMDFPVCJCNQ89"
-guid: "d1f519a163d54f88af1230e03a8c1f1c"
+slug: "auto-cooker-9000"
 drafted: false
 title: "Assemble the Auto Cooker 9000"
 description: "A prototype of the Auto Cooker 9000 has surfaced. Retrieve it and unlock its culinary secrets."
@@ -8,35 +8,36 @@ icon: "auto-cooker-icon"
 category: "main"
 hidden: false
 repeatable: false
-levelRequirement: 1
+recommended_level: 1
 objectives:
-  - description: "Recover the Auto Cooker 9000"
+  - id: "obj-recover-cooker"
+    description: "Recover the Auto Cooker 9000"
     type: "collect"
-    targetRefs:
+    target_refs:
       - "01JWN7TN1P44J963328VP0YNFF"
-    requiredAmount: 1
+    required_amount: 1
 rewards:
   items:
-    - ref: "01JWN7TN1P44J963328VP0YNFF"
+    - item_ref: "01JWN7TN1P44J963328VP0YNFF"
       amount: 1
   bonuses:
     cookingSpeed: 5
     recipeDiscovery: 10
-  steamAchievement:
-    apiName: "ACH_AUTO_COOKER_TEST"
+  achievement:
+    api_name: "ACH_AUTO_COOKER_TEST"
     name: "Auto Cooker 9000"
     description: "Retrieve the legendary Auto Cooker."
-    iconAchieved: "/assets/icons/achievements/auto-cooker-achieved.png"
-    iconUnachieved: "/assets/icons/achievements/auto-cooker-unachieved.png"
-    globalPercent: 3.7
+    icon_achieved: "/assets/icons/achievements/auto-cooker-achieved.png"
+    icon_unachieved: "/assets/icons/achievements/auto-cooker-unachieved.png"
+    global_percent: 3.7
     hidden: false
-    minValue: 0
-    maxValue: 1
+    min_value: 0
+    max_value: 1
   currency: 500
 triggers:
   - "player:level:1"
   - "area:kitchen-zone"
-nextQuestId: null
+next_quest_ref: null
 ---
 
 import {
@@ -76,16 +77,16 @@ again.
 ## Steps to Completion
 
 <Steps>
-1. **Locate the prototype casing**  
+1. **Locate the prototype casing**
    Search the debris in the kitchen zone to find the main body of the Auto
    Cooker.
-2. **Retrieve the missing components**  
+2. **Retrieve the missing components**
    Gather the heating coil, control chip, and recipe module from nearby supply
    crates.
-3. **Secure the Auto Cooker**  
+3. **Secure the Auto Cooker**
    Eliminate any rogue robots guarding the area to safely transport the
    prototype.
-4. **Assemble and activate**  
+4. **Assemble and activate**
    Back at your base, install the components to bring the Auto Cooker 9000 to
    life.
 </Steps>
