@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# seal-ch-credentials.sh — Seal ClickHouse credentials for Logflare
+# seal-admin-credentials.sh — Seal ClickHouse admin credentials
 #
-# Creates a SealedSecret with the ClickHouse connection details
-# that the logflare-ch-setup Job uses to configure the CH backend.
+# Creates a SealedSecret with the ClickHouse admin connection details
+# that the logflare-ch-setup Job uses to bootstrap SQL users.
 #
 # Prerequisites:
 #   - kubectl configured with cluster access
@@ -10,14 +10,14 @@
 #   - sealed-secrets-controller running in kube-system
 #
 # Usage:
-#   ./seal-ch-credentials.sh
-#   # or: CH_PASSWORD=<value> ./seal-ch-credentials.sh
-#   # Output: apps/kube/analytics/manifests/sealed-logflare-ch.yaml
+#   ./seal-admin-credentials.sh
+#   # or: CH_ADMIN_PASSWORD=<value> ./seal-admin-credentials.sh
+#   # Output: apps/kube/clickhouse/manifests/sealed-clickhouse-admin.yaml
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OUTPUT_FILE="${SCRIPT_DIR}/manifests/sealed-logflare-ch.yaml"
+OUTPUT_FILE="${SCRIPT_DIR}/../analytics/manifests/sealed-clickhouse-admin.yaml"
 TARGET_NS="kilobase"
 
 # --- Preflight checks ---
@@ -41,33 +41,29 @@ fi
 
 # --- Get credentials ---
 
-CH_URL="${CH_URL:-http://clickhouse-clickhouse-cluster.clickhouse.svc.cluster.local:8123}"
-CH_USERNAME="${CH_USERNAME:-logflare}"
-CH_DATABASE="${CH_DATABASE:-logflare}"
-CH_PORT="${CH_PORT:-8123}"
+CH_ADMIN_URL="${CH_ADMIN_URL:-http://clickhouse-clickhouse-cluster.clickhouse.svc.cluster.local:8123}"
+CH_ADMIN_USERNAME="${CH_ADMIN_USERNAME:-admin}"
 
-if [[ -z "${CH_PASSWORD:-}" ]]; then
-    echo -n "Enter ClickHouse password: "
-    read -rs CH_PASSWORD
+if [[ -z "${CH_ADMIN_PASSWORD:-}" ]]; then
+    echo -n "Enter ClickHouse admin password: "
+    read -rs CH_ADMIN_PASSWORD
     echo
 fi
 
-if [[ -z "${CH_PASSWORD}" ]]; then
-    echo "Error: ClickHouse password cannot be empty" >&2
+if [[ -z "${CH_ADMIN_PASSWORD}" ]]; then
+    echo "Error: ClickHouse admin password cannot be empty" >&2
     exit 1
 fi
 
 # --- Seal the credentials ---
 
-echo "Sealing ClickHouse credentials..."
+echo "Sealing ClickHouse admin credentials..."
 
-kubectl create secret generic logflare-ch-config \
+kubectl create secret generic clickhouse-admin-credentials \
     --namespace="${TARGET_NS}" \
-    --from-literal=ch-url="${CH_URL}" \
-    --from-literal=ch-username="${CH_USERNAME}" \
-    --from-literal=ch-password="${CH_PASSWORD}" \
-    --from-literal=ch-database="${CH_DATABASE}" \
-    --from-literal=ch-port="${CH_PORT}" \
+    --from-literal=url="${CH_ADMIN_URL}" \
+    --from-literal=username="${CH_ADMIN_USERNAME}" \
+    --from-literal=password="${CH_ADMIN_PASSWORD}" \
     --dry-run=client \
     -o yaml \
 | kubeseal \
@@ -83,4 +79,4 @@ echo ""
 echo "Next steps:"
 echo "  1. git add ${OUTPUT_FILE}"
 echo "  2. Commit and push — ArgoCD will sync the SealedSecret"
-echo "  3. The logflare-ch-setup Job will use these credentials"
+echo "  3. The logflare-ch-setup Job will use admin creds to bootstrap SQL users"

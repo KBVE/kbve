@@ -6,17 +6,11 @@ metadata:
 spec:
     configuration:
         users:
-            admin/password_sha256_hex: '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'
+            admin/password_sha256_hex: 'c0cf946ad8414c46a5977371703b1ed1bcaaddeb477355ba66f9572b4d28226d'
             admin/networks/ip:
                 - '::/0'
             admin/profile: 'default'
-            # Dedicated Logflare user — scoped to logflare database only
-            logflare/password_sha256_hex: '1cf607a2813fcc3db0d809c9747cfcb0ae5608891b27ab9664e19cbaa321ec38'
-            logflare/networks/ip:
-                - '::/0'
-            logflare/profile: 'default'
-            logflare/grants:
-                - 'SHOW DATABASES,SELECT,INSERT,ALTER,CREATE TABLE,DROP TABLE,CREATE VIEW,DROP VIEW,CREATE DATABASE ON logflare.*'
+            admin/access_management: 1
         # Top-level ZooKeeper configuration - references the keeper service
         zookeeper:
             nodes:
