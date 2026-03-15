@@ -2389,6 +2389,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c7a9329e8dc4e01ced480eeec4902e6d7cb56e56ec37f6fbc4323e5c937290a7"
 
 [[package]]
+name = "bevy_quests"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "prost",
+ "prost-build",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "bevy_reflect"
 version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
