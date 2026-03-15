@@ -25,6 +25,7 @@ members = [
 	'packages/rust/bevy/bevy_npc',
 	'packages/rust/bevy/bevy_mapdb',
 	'packages/rust/bevy/bevy_quests',
+	'packages/rust/bevy/bevy_skills',
 ]
 
 [profile.dev]
