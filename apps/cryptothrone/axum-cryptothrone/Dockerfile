@@ -30,6 +30,9 @@ COPY packages/npm/astro/ packages/npm/astro/
 COPY packages/npm/droid/ packages/npm/droid/
 COPY packages/npm/laser/ packages/npm/laser/
 
+# Copy generated schemas (content collections may import these)
+COPY packages/data/codegen/generated/ packages/data/codegen/generated/
+
 # Copy astro-cryptothrone source
 COPY apps/cryptothrone/astro-cryptothrone/ apps/cryptothrone/astro-cryptothrone/
 
