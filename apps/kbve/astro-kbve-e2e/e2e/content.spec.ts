@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('content rendering', () => {
 	test('guide page renders markdown content', async ({ page }) => {
 		await page.goto('/guides/getting-started/');
-		const heading = page.locator('h1');
+		const heading = page.locator('h1').first();
 		await expect(heading).toBeVisible();
 		await expect(heading).toContainText('Getting Started');
 	});
