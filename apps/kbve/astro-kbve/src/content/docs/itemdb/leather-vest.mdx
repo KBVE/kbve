@@ -1,0 +1,34 @@
+---
+title: 'Leather Vest'
+description: 'A basic leather vest offering modest protection. +2 armor.'
+slug: 'leather-vest'
+key: 92
+id: '01KKR7QNRC3B4Y2629KQY1YDB6'
+name: 'Leather Vest'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 25
+emoji: '🥋'
+action: 'equip'
+tags:
+  - discordsh
+equipment:
+  slot: 'chest'
+  bonuses:
+    armor: 2
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

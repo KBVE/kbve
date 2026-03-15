@@ -1,0 +1,41 @@
+---
+id: "01KKR968Q4VXMSYYTZAXXE7AJE"
+slug: "shattered-crown"
+drafted: false
+name: "The Shattered Crown"
+title: "The Shattered Crown"
+description: "Fragments of a massive crystal orbit the room in slow arcs. Power radiates from within, ancient and terrible."
+type: "arena"
+sub_kind: "boss_arena"
+interactable: true
+destructible: false
+spawn_weight: 0.15
+spawn_count: 1
+blocks_movement: true
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# The Shattered Crown
+
+The deepest chamber of the dungeon. Fragments of a once-magnificent crown orbit the center of the room, held aloft by the rage of the spirit bound within.
+
+## Encounter
+- **Boss:** The Shattered King — an ancient ruler whose fury holds the dungeon together
+- Crown fragments serve as both shield and weapon for the King
+- The room shifts and warps as the King's power fluctuates
+
+## Lore
+This was once a throne room of an empire that spanned continents. When the empire fell, the King's rage was so great it shattered his own crown and tore the palace underground, forming the dungeon that adventurers now explore.
+
+<MapDBPanel data={frontmatter} />

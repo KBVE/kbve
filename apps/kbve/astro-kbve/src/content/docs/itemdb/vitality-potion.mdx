@@ -1,0 +1,33 @@
+---
+title: 'Vitality Potion'
+description: 'A potent healing potion that restores 25 HP.'
+slug: 'vitality-potion'
+key: 79
+id: '01KKR7QNRCYBZP4ZZ0WCCBBKA4'
+name: 'Vitality Potion'
+type_flags: 544
+consumable: true
+stackable: true
+max_stack: 3
+rarity: 'uncommon'
+buy_price: 60
+emoji: '💊'
+action: 'consume'
+tags:
+  - discordsh
+use_effects:
+  - { type: 'heal', amount: 25 }
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

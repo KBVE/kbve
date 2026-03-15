@@ -1,0 +1,36 @@
+---
+title: 'Excalibur'
+description: 'The legendary blade of kings. +6 attack, +5 HP, +10% crit chance.'
+slug: 'excalibur'
+key: 90
+id: '01KKR7QNRCNZ64AGRD8M3H09YP'
+name: 'Excalibur'
+type_flags: 513
+consumable: false
+stackable: false
+rarity: 'legendary'
+buy_price: 1000
+emoji: '⚔️'
+action: 'equip'
+tags:
+  - discordsh
+equipment:
+  slot: 'main_hand'
+  bonuses:
+    attack: 6
+    health: 5
+    crit_chance: 0.1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

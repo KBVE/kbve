@@ -22,6 +22,30 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Phantom Knight charges through a pillar and swings at {target}! {dmg} damage!"
+        - "\"FOR THE FALLEN!\" The knight's spectral blade cleaves through {target}! {dmg} damage!"
+        - "Ghostly hooves thunder as the knight rides down {target}! {dmg} damage!"
+    - action: 'charge'
+      messages:
+        - "The Phantom Knight raises its banner high. The air crackles with ghostly war drums!"
+        - "\"STEEL YOURSELVES!\" The knight's form blazes with spectral fire as it prepares to charge!"
+    - action: 'defend'
+      messages:
+        - "The Phantom Knight plants a ghostly shield. The emblem on it glows with forgotten honor. (+{armor} armor)"
+    - action: 'death'
+      messages:
+        - "The Phantom Knight salutes — a reflex from a life long ended — and fades like morning mist."
+        - "Its spectral armor clatters to the ground, piece by piece, until nothing remains."
+        - "\"The battle... is finally over...\" The knight kneels, and is gone."
+    - action: 'wounded'
+      messages:
+        - "*The knight's spectral form wavers. Through the gaps you glimpse the battlefield where it died.*"
+    - action: 'near_death'
+      messages:
+        - "*\"I will NOT retreat again!\" The Phantom Knight's voice cracks with ancient grief.*"
 lore: |
     Phantom Knights died in battles they believed unjust, and now fight an eternal war against all who cross their path.
 credits: |

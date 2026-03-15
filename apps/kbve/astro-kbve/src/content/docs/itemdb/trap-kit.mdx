@@ -1,0 +1,33 @@
+---
+title: 'Trap Kit'
+description: 'Deploys a trap that reflects 5 damage back to attackers for 2 turns.'
+slug: 'trap-kit'
+key: 76
+id: '01KKR7QNRCECPB1TANAW22C8B2'
+name: 'Trap Kit'
+type_flags: 8704
+consumable: true
+stackable: true
+max_stack: 2
+rarity: 'uncommon'
+buy_price: 55
+emoji: '🪤'
+action: 'consume'
+tags:
+  - discordsh
+use_effects:
+  - { type: 'apply_effect', status_effect: 'thorns', stacks: 5, turns: 2 }
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

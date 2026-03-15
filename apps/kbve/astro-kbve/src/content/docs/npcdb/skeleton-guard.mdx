@@ -21,6 +21,27 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Skeleton Guard thrusts its rusted sword at {target} with mechanical precision. {dmg} damage."
+        - "Bones rattle as the guard delivers a disciplined strike to {target}. {dmg} damage."
+        - "The guard steps forward and swings. No wasted motion. {dmg} damage to {target}."
+    - action: 'defend'
+      messages:
+        - "The Skeleton Guard plants its shield and holds the line. (+{armor} armor)"
+        - "It raises a dented shield without urgency. This is just another watch. (+{armor} armor)"
+    - action: 'death'
+      messages:
+        - "The Skeleton Guard's jawbone drops. The rest follows, clattering to the floor in a heap of old bones."
+        - "Its eye sockets dim. The guard collapses, armor and all, finally relieved of duty."
+        - "The bones scatter as if the oath holding them together has finally been fulfilled."
+    - action: 'wounded'
+      messages:
+        - "*A rib cracks loose and falls to the ground. The guard doesn't flinch.*"
+    - action: 'near_death'
+      messages:
+        - "*The Skeleton Guard is missing half its ribcage. It fights on regardless.*"
 lore: |
     Skeleton Guards are bound by ancient oaths that persist beyond death, endlessly patrolling their designated posts.
 credits: |

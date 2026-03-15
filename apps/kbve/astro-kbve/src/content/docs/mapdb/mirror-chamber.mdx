@@ -1,0 +1,41 @@
+---
+id: "01KKR968Q4NN0H3KDCJ4SYGC4T"
+slug: "mirror-chamber"
+drafted: false
+name: "Mirror Chamber"
+title: "Mirror Chamber"
+description: "Your reflection moves on its own. It beckons you closer, mimicking actions you haven't taken yet."
+type: "landmark"
+sub_kind: "landmark"
+interactable: true
+destructible: false
+spawn_weight: 0.15
+spawn_count: 1
+blocks_movement: true
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Mirror Chamber
+
+A hexagonal room whose walls are polished to a mirror finish. Your reflections move independently, sometimes ahead of you, sometimes behind. They seem to know things you don't.
+
+## Interactions
+- Reflections may reveal hidden items or secret passages
+- Your mirror-self occasionally gestures warnings before ambushes
+- Breaking a mirror summons a hostile shade — but may reveal a hidden alcove
+
+## Lore
+The mirrors were installed by a long-dead archmage who believed parallel worlds could be accessed through perfect reflection. The experiment failed, but the reflections gained a life of their own.
+
+<MapDBPanel data={frontmatter} />

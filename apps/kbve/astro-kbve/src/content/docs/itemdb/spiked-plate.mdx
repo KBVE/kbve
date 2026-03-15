@@ -1,0 +1,36 @@
+---
+title: 'Spiked Plate'
+description: 'Armor covered in sharp spikes that damage attackers. +5 armor, reflects 3 damage.'
+slug: 'spiked-plate'
+key: 94
+id: '01KKR7QNRCF2PAF55RNCVZ5H5S'
+name: 'Spiked Plate'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'rare'
+buy_price: 200
+emoji: '🛡️'
+action: 'equip'
+tags:
+  - discordsh
+equipment:
+  slot: 'chest'
+  bonuses:
+    armor: 5
+  special: 'thorns'
+  special_value: 3
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

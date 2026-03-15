@@ -1,0 +1,34 @@
+---
+title: 'Iron Mace'
+description: 'A heavy blunt weapon forged from solid iron. +3 attack damage.'
+slug: 'iron-mace'
+key: 88
+id: '01KKR7QNRCCDST7FEYK9CFPX26'
+name: 'Iron Mace'
+type_flags: 513
+consumable: false
+stackable: false
+rarity: 'uncommon'
+buy_price: 70
+emoji: '🔨'
+action: 'equip'
+tags:
+  - discordsh
+equipment:
+  slot: 'main_hand'
+  bonuses:
+    attack: 3
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

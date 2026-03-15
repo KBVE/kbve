@@ -1,0 +1,33 @@
+---
+title: 'Fire Flask'
+description: 'A flask of volatile liquid that deals 8 damage and inflicts Burning for 3 turns.'
+slug: 'fire-flask'
+key: 80
+id: '01KKR7QNRC7V62X0C8J3ZX22DA'
+name: 'Fire Flask'
+type_flags: 8704
+consumable: true
+stackable: true
+max_stack: 3
+rarity: 'uncommon'
+buy_price: 65
+emoji: '🔥'
+action: 'consume'
+tags:
+  - discordsh
+use_effects:
+  - { type: 'damage_and_apply', amount: 8, status_effect: 'burning', stacks: 2, turns: 3 }
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

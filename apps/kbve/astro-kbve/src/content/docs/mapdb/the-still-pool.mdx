@@ -1,0 +1,41 @@
+---
+id: "01KKR968Q4DZJBW6RMZPNMRHQH"
+slug: "the-still-pool"
+drafted: false
+name: "The Still Pool"
+title: "The Still Pool"
+description: "A dark pool of water fills the center of the room. Its surface is perfectly still. Shapes move beneath, watching."
+type: "landmark"
+sub_kind: "landmark"
+interactable: true
+destructible: false
+spawn_weight: 0.15
+spawn_count: 1
+blocks_movement: true
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# The Still Pool
+
+A perfectly circular pool of dark water that never ripples, even when touched. Shapes move beneath the surface — not reflections, but something else entirely.
+
+## Interactions
+- Gazing into the pool may reveal visions of past or future dungeon events
+- Dropping an item into the pool sometimes returns a different item
+- The water cannot be collected — it flows back to the pool on its own
+
+## Lore
+The Still Pool is older than the dungeon. Geological surveys suggest the water has been here, unmoved, for at least ten thousand years. What lives beneath the surface has never been identified. It watches, but it has never attacked. So far.
+
+<MapDBPanel data={frontmatter} />

@@ -22,6 +22,31 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Cursed Knight swings its blackened greatsword with unbridled fury! {dmg} damage to {target}!"
+        - "\"KNEEL!\" the knight bellows, bringing its blade down on {target}! {dmg} damage!"
+        - "Dark energy crackles along the knight's sword as it slashes {target}! {dmg} damage!"
+    - action: 'defend'
+      messages:
+        - "The Cursed Knight slams its tower shield into the ground. \"You cannot break me!\" (+{armor} armor)"
+        - "Shadow coils around the knight's armor, reinforcing it. (+{armor} armor)"
+    - action: 'charge'
+      messages:
+        - "The Cursed Knight raises its sword overhead, dark flames licking along the blade! Something terrible is coming!"
+        - "\"YOUR END APPROACHES!\" The knight's eyes blaze with cursed fire as power builds!"
+    - action: 'death'
+      messages:
+        - "The Cursed Knight drops to one knee. \"Free... at last...\" The curse unravels and the armor falls empty."
+        - "Dark energy erupts from the knight's visor as it collapses, the curse finally spent."
+    - action: 'wounded'
+      messages:
+        - "*The knight's rage intensifies. Cracks in its armor leak shadow like blood.*"
+        - "*\"Is that... all?\" The Cursed Knight's voice drips with contempt and pain.*"
+    - action: 'near_death'
+      messages:
+        - "*The curse flickers. For a moment you see the face of the knight it used to be — terrified.*"
 lore: |
     Once noble champions, these knights fell to a dark curse that twisted their valor into unending fury.
 credits: |

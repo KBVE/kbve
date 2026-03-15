@@ -22,6 +22,26 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Mushroom Sprite bounces off a wall and headbutts {target}! {dmg} damage!"
+        - "A puff of toxic spores erupts as the sprite slams into {target}! {dmg} damage!"
+        - "The sprite giggles — a wet, gurgling sound — and body-checks {target}! {dmg} damage!"
+    - action: 'debuff'
+      messages:
+        - "The Mushroom Sprite releases a thick cloud of glowing spores! {target} chokes on {effect}!"
+        - "Tiny mushrooms sprout where the sprite touches {target}. {effect} takes hold!"
+    - action: 'death'
+      messages:
+        - "The Mushroom Sprite pops like a cork, releasing one final cloud of harmless spores."
+        - "It deflates with a sad little wheeze and crumbles into compost."
+    - action: 'wounded'
+      messages:
+        - "*The sprite's cap is dented. Spore dust leaks from the cracks.*"
+    - action: 'near_death'
+      messages:
+        - "*The Mushroom Sprite wobbles drunkenly, its cap nearly split in half.*"
 lore: |
     Mushroom Sprites are animated by deep earth magic, tending underground fungal gardens when not disturbed.
 credits: |

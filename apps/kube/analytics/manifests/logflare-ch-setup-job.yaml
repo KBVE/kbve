@@ -1,0 +1,170 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: logflare-ch-setup-script
+    namespace: kilobase
+data:
+    setup.sh: |
+        #!/bin/sh
+        set -eu
+
+        LOGFLARE_API="http://analytics.kilobase.svc.cluster.local:4000"
+        MAX_RETRIES=30
+        RETRY_INTERVAL=10
+
+        # --- Wait for Logflare to be healthy ---
+        echo "Waiting for Logflare to be healthy..."
+        attempt=0
+        until curl -sf "${LOGFLARE_API}/health" > /dev/null 2>&1; do
+          attempt=$((attempt + 1))
+          if [ "$attempt" -ge "$MAX_RETRIES" ]; then
+            echo "ERROR: Logflare not healthy after ${MAX_RETRIES} attempts"
+            exit 1
+          fi
+          echo "  Attempt ${attempt}/${MAX_RETRIES} — waiting ${RETRY_INTERVAL}s..."
+          sleep "$RETRY_INTERVAL"
+        done
+        echo "Logflare is healthy."
+
+        # --- Check if ClickHouse backend already exists ---
+        echo "Checking for existing ClickHouse backend..."
+        EXISTING=$(curl -sf "${LOGFLARE_API}/api/backends" \
+          -H "Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}" \
+          -H "Accept: application/json" || echo "[]")
+
+        # Check if any backend has type "clickhouse"
+        if echo "$EXISTING" | grep -q '"type":"clickhouse"'; then
+          echo "ClickHouse backend already exists. Skipping creation."
+          echo "Existing backends:"
+          echo "$EXISTING" | sed 's/,/,\n/g'
+          exit 0
+        fi
+
+        # --- Create the logflare database on ClickHouse ---
+        echo "Creating logflare database on ClickHouse..."
+        DB_RESULT=$(curl -sf "${CH_URL}/?user=${CH_USERNAME}&password=${CH_PASSWORD}" \
+          -d "CREATE DATABASE IF NOT EXISTS ${CH_DATABASE}" || true)
+        echo "Database creation result: ${DB_RESULT:-OK}"
+
+        # --- Create ClickHouse backend via Logflare API ---
+        echo "Creating ClickHouse backend..."
+        BACKEND_RESPONSE=$(curl -sf -X POST "${LOGFLARE_API}/api/backends" \
+          -H "Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}" \
+          -H "Content-Type: application/json" \
+          -d "{
+            \"name\": \"ClickHouse cluster\",
+            \"type\": \"clickhouse\",
+            \"config\": {
+              \"url\": \"${CH_URL}\",
+              \"username\": \"${CH_USERNAME}\",
+              \"password\": \"${CH_PASSWORD}\",
+              \"database\": \"${CH_DATABASE}\",
+              \"port\": ${CH_PORT}
+            }
+          }")
+
+        if [ -z "$BACKEND_RESPONSE" ]; then
+          echo "ERROR: Failed to create ClickHouse backend"
+          exit 1
+        fi
+
+        BACKEND_TOKEN=$(echo "$BACKEND_RESPONSE" | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+        echo "ClickHouse backend created with token: ${BACKEND_TOKEN}"
+
+        # --- Assign all sources to the ClickHouse backend ---
+        echo "Fetching sources..."
+        SOURCES=$(curl -sf "${LOGFLARE_API}/api/sources" \
+          -H "Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}" \
+          -H "Accept: application/json")
+
+        # Extract source tokens and assign each to the CH backend
+        echo "$SOURCES" | grep -o '"token":"[^"]*"' | sed 's/"token":"//;s/"//' | while read -r SOURCE_TOKEN; do
+          echo "  Assigning source ${SOURCE_TOKEN} to CH backend..."
+          curl -sf -X POST "${LOGFLARE_API}/api/sources/${SOURCE_TOKEN}/backends/${BACKEND_TOKEN}" \
+            -H "Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}" \
+            -H "Content-Type: application/json" > /dev/null 2>&1 || \
+            echo "    WARNING: Failed to assign source ${SOURCE_TOKEN}"
+        done
+
+        echo ""
+        echo "Setup complete. ClickHouse backend configured and sources assigned."
+        echo "Logflare will auto-create OTEL tables on first log ingest."
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: logflare-ch-setup
+    namespace: kilobase
+    labels:
+        app: logflare-ch-setup
+        component: analytics
+spec:
+    ttlSecondsAfterFinished: 86400
+    backoffLimit: 3
+    template:
+        metadata:
+            labels:
+                app: logflare-ch-setup
+        spec:
+            restartPolicy: OnFailure
+            containers:
+                - name: setup
+                  image: curlimages/curl:8.12.1
+                  command: ['/bin/sh', '/scripts/setup.sh']
+                  env:
+                      - name: LOGFLARE_PRIVATE_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: logflare-config
+                                key: private-access-token
+                      - name: CH_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: logflare-ch-config
+                                key: ch-url
+                      - name: CH_USERNAME
+                        valueFrom:
+                            secretKeyRef:
+                                name: logflare-ch-config
+                                key: ch-username
+                      - name: CH_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: logflare-ch-config
+                                key: ch-password
+                      - name: CH_DATABASE
+                        valueFrom:
+                            secretKeyRef:
+                                name: logflare-ch-config
+                                key: ch-database
+                      - name: CH_PORT
+                        valueFrom:
+                            secretKeyRef:
+                                name: logflare-ch-config
+                                key: ch-port
+                  volumeMounts:
+                      - name: setup-script
+                        mountPath: /scripts
+                        readOnly: true
+                  resources:
+                      requests:
+                          memory: '32Mi'
+                          cpu: '50m'
+                      limits:
+                          memory: '64Mi'
+                          cpu: '100m'
+                  securityContext:
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+            volumes:
+                - name: setup-script
+                  configMap:
+                      name: logflare-ch-setup-script
+                      defaultMode: 0555

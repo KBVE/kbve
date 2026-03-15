@@ -21,6 +21,30 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: true
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "You see the blade a heartbeat too late — the Glass Assassin is already withdrawing it from {target}! {dmg} damage!"
+        - "A shimmer in the air is the only warning before {target} is slashed! {dmg} damage!"
+        - "The assassin's arm extends into a crystal blade and pierces {target}'s defense! {dmg} damage!"
+        - "Light bends around the assassin. {target} doesn't see the cut coming. {dmg} damage."
+    - action: 'defend'
+      messages:
+        - "The Glass Assassin goes completely still. It becomes nearly invisible against the stone walls. (+{armor} armor)"
+    - action: 'flee'
+      messages:
+        - "The Glass Assassin refracts the light around itself and simply... disappears."
+        - "One moment it's there. Then just empty air and a faint tinkling sound."
+    - action: 'death'
+      messages:
+        - "The Glass Assassin shatters into a thousand razor fragments. Each one catches the light one final time."
+        - "A web of cracks spreads across its body. It looks down at itself, then breaks apart in silence."
+    - action: 'wounded'
+      messages:
+        - "*A fracture line appears across the assassin's torso. Its movements remain precise.*"
+    - action: 'near_death'
+      messages:
+        - "*The Glass Assassin is riddled with cracks. Light bleeds through it from every angle.*"
 lore: |
     Glass Assassins were created as perfect killers — transparent, silent, and razor-sharp.
 credits: |

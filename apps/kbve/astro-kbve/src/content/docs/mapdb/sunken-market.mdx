@@ -1,0 +1,41 @@
+---
+id: "01KKR968Q1TR2VCZ17FSZPF1N7"
+slug: "sunken-market"
+drafted: false
+name: "The Sunken Market"
+title: "The Sunken Market"
+description: "An underground market carved into ancient stone, lit by rows of flickering torches. Merchants hawk wares from hollowed alcoves while an inn sign creaks overhead."
+type: "settlement"
+sub_kind: "city"
+interactable: true
+destructible: false
+spawn_weight: 0.15
+spawn_count: 1
+blocks_movement: true
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# The Sunken Market
+
+A sprawling underground trade hub built into the walls of a massive cavern. Torchlight bounces off wet stone, casting long shadows over stalls piled high with dungeon salvage.
+
+## Services
+- **The Drowned Lantern Inn** — Rest and restore HP. Rumors flow freely over cheap ale.
+- **Salvage Row** — Merchants buy and sell equipment, consumables, and curiosities.
+- **The Mender's Alcove** — Repair damaged gear for a fee.
+
+## Lore
+No one remembers who carved the Sunken Market, but the merchants who set up shop here claim squatter's rights older than any kingdom above. The inn's ale is terrible, but the beds are dry — and in a dungeon, that's luxury.
+
+<MapDBPanel data={frontmatter} />

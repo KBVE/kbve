@@ -1,0 +1,35 @@
+---
+title: 'Crystal Armor'
+description: 'Armor forged from enchanted crystal. +6 armor, +10 HP.'
+slug: 'crystal-armor'
+key: 95
+id: '01KKR7QNRC18GWKPEPKM2VDYWM'
+name: 'Crystal Armor'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'epic'
+buy_price: 400
+emoji: '💎'
+action: 'equip'
+tags:
+  - discordsh
+equipment:
+  slot: 'chest'
+  bonuses:
+    armor: 6
+    health: 10
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

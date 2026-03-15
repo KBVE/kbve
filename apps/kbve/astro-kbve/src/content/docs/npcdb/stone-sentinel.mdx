@@ -22,6 +22,29 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Stone Sentinel brings down a granite fist on {target}. The floor cracks. {dmg} damage."
+        - "It swings with the inevitability of a landslide. {target} takes {dmg} damage."
+        - "The sentinel's arm arcs slowly but unstoppably into {target}. {dmg} damage."
+    - action: 'defend'
+      messages:
+        - "The Stone Sentinel crosses its massive arms. You might as well attack a mountain. (+{armor} armor)"
+        - "Ancient glyphs pulse across its surface. The stone hardens further. (+{armor} armor)"
+    - action: 'charge'
+      messages:
+        - "The Stone Sentinel plants both feet. The ground trembles. It is gathering everything it has."
+    - action: 'death'
+      messages:
+        - "The sentinel's glyph-eyes dim. It lowers itself to one knee and goes still — a monument to duty."
+        - "Cracks race across its body. The Stone Sentinel crumbles, and the vault it guarded lies open at last."
+    - action: 'wounded'
+      messages:
+        - "*Stone chips fall from the sentinel's torso. It does not acknowledge the damage.*"
+    - action: 'near_death'
+      messages:
+        - "*The sentinel is held together by willpower and ancient mortar. One more blow might end it.*"
 lore: |
     Stone Sentinels were crafted by master artisans to guard vaults of immense importance, and they have never abandoned their duty.
 credits: |

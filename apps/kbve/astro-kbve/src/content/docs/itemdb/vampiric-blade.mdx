@@ -1,0 +1,36 @@
+---
+title: 'Vampiric Blade'
+description: 'A cursed sword that siphons life force. +3 attack, 20% lifesteal.'
+slug: 'vampiric-blade'
+key: 87
+id: '01KKR7QNRCAJDADA45HXS0KGWF'
+name: 'Vampiric Blade'
+type_flags: 513
+consumable: false
+stackable: false
+rarity: 'epic'
+buy_price: 350
+emoji: '🩸'
+action: 'equip'
+tags:
+  - discordsh
+equipment:
+  slot: 'main_hand'
+  bonuses:
+    attack: 3
+  special: 'life_steal'
+  special_value: 0.2
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

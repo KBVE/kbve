@@ -21,6 +21,27 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "You barely see it — the Dust Mite darts in and bites {target}! {dmg} damage!"
+        - "A tiny blur zips across {target}'s face, leaving a stinging cut! {dmg} damage!"
+        - "The Dust Mite burrows into {target}'s sleeve and bites viciously! {dmg} damage!"
+        - "Something impossibly small and impossibly angry stabs {target}! {dmg} damage!"
+    - action: 'flee'
+      messages:
+        - "The Dust Mite vanishes into a crack so small you didn't know it existed."
+        - "One moment it's there, the next — just dust."
+    - action: 'death'
+      messages:
+        - "You squish it. There's a tiny, unsatisfying crunch."
+        - "The Dust Mite curls up and stops moving. You almost feel bad."
+    - action: 'wounded'
+      messages:
+        - "*The mite's movements become frantic, buzzing in tight circles.*"
+    - action: 'near_death'
+      messages:
+        - "*The Dust Mite limps on three legs, dragging itself forward with desperate clicks.*"
 lore: |
     Dust Mites thrive in forgotten ruins, feeding on magical residue left behind by ancient civilizations.
 credits: |

@@ -1,0 +1,35 @@
+---
+title: 'Chain Mail'
+description: 'Interlocking metal rings providing solid defense. +4 armor, +5 HP.'
+slug: 'chain-mail'
+key: 93
+id: '01KKR7QNRCHKCKBSFQW8Z8DC7G'
+name: 'Chain Mail'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'uncommon'
+buy_price: 80
+emoji: '⛓️'
+action: 'equip'
+tags:
+  - discordsh
+equipment:
+  slot: 'chest'
+  bonuses:
+    armor: 4
+    health: 5
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

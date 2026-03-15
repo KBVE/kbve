@@ -1,0 +1,36 @@
+---
+title: 'Void Scythe'
+description: 'A weapon from beyond the veil. +7 attack, 15% lifesteal.'
+slug: 'void-scythe'
+key: 91
+id: '01KKR7QNRCF2G0B210XXC8HSVA'
+name: 'Void Scythe'
+type_flags: 513
+consumable: false
+stackable: false
+rarity: 'legendary'
+buy_price: 1200
+emoji: '🌀'
+action: 'equip'
+tags:
+  - discordsh
+equipment:
+  slot: 'main_hand'
+  bonuses:
+    attack: 7
+  special: 'life_steal'
+  special_value: 0.15
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

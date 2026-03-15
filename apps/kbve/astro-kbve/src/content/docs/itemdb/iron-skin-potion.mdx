@@ -1,0 +1,33 @@
+---
+title: 'Iron Skin Potion'
+description: 'A metallic brew that grants the Shielded effect for 3 turns.'
+slug: 'iron-skin-potion'
+key: 81
+id: '01KKR7QNRCWS11606Z2MJC11QA'
+name: 'Iron Skin Potion'
+type_flags: 544
+consumable: true
+stackable: true
+max_stack: 2
+rarity: 'uncommon'
+buy_price: 55
+emoji: '🛡️'
+action: 'consume'
+tags:
+  - discordsh
+use_effects:
+  - { type: 'apply_effect', status_effect: 'shielded', stacks: 1, turns: 3 }
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
