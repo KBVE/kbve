@@ -374,11 +374,23 @@ fn update_sun_position(
     ambient.color = params.ambient_color;
     ambient.brightness = params.ambient_brightness;
 
-    // Update sun
+    // Update sun.
+    // Quantise the light *direction* to discrete angular steps so the shadow
+    // cascade's basis vectors don't rotate every frame. Without this, even
+    // texel-snapping the cascade translation can't prevent shadow wobble
+    // because the entire shadow grid orientation shifts continuously.
+    // Colour and intensity still interpolate smoothly (no shadow geometry impact).
+    let snap_angle = std::f32::consts::PI / 720.0; // 0.25° steps
+    let snapped_dir = Vec3::new(
+        (params.direction.x / snap_angle).round() * snap_angle,
+        (params.direction.y / snap_angle).round() * snap_angle,
+        (params.direction.z / snap_angle).round() * snap_angle,
+    )
+    .normalize();
     for (mut light, mut tf) in &mut sun_query {
         light.illuminance = params.illuminance;
         light.color = params.color;
-        let sun_pos = -params.direction * 20.0;
+        let sun_pos = -snapped_dir * 20.0;
         *tf = Transform::from_translation(sun_pos).looking_at(Vec3::ZERO, Vec3::Y);
     }
 }
