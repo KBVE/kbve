@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-    name: logflare-ch-setup-script
+    name: logflare-ch-setup-v2-script
     namespace: kilobase
 data:
     setup.sh: |
@@ -27,25 +27,37 @@ data:
         done
         echo "Logflare is healthy."
 
-        # --- Check if ClickHouse backend already exists ---
-        echo "Checking for existing ClickHouse backend..."
+        # --- Verify ClickHouse connectivity ---
+        echo "Verifying ClickHouse connectivity..."
+        CH_TEST=$(curl -sf "${CH_URL}/?user=${CH_USERNAME}&password=${CH_PASSWORD}" \
+          -d "SELECT 1" 2>&1) || {
+          echo "ERROR: Cannot connect to ClickHouse at ${CH_URL} with user ${CH_USERNAME}"
+          exit 1
+        }
+        echo "ClickHouse connection OK."
+
+        # --- Create the logflare database on ClickHouse ---
+        echo "Creating logflare database on ClickHouse..."
+        curl -sf "${CH_URL}/?user=${CH_USERNAME}&password=${CH_PASSWORD}" \
+          -d "CREATE DATABASE IF NOT EXISTS ${CH_DATABASE}"
+        echo "Database created."
+
+        # --- Remove existing ClickHouse backend if present ---
+        echo "Checking for existing ClickHouse backends..."
         EXISTING=$(curl -sf "${LOGFLARE_API}/api/backends" \
           -H "Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}" \
           -H "Accept: application/json" || echo "[]")
 
-        # Check if any backend has type "clickhouse"
-        if echo "$EXISTING" | grep -q '"type":"clickhouse"'; then
-          echo "ClickHouse backend already exists. Skipping creation."
-          echo "Existing backends:"
-          echo "$EXISTING" | sed 's/,/,\n/g'
-          exit 0
-        fi
+        OLD_TOKEN=$(echo "$EXISTING" | grep -o '"type":"clickhouse"[^}]*"token":"[^"]*"' \
+          | sed -n 's/.*"token":"\([^"]*\)".*/\1/p' || true)
 
-        # --- Create the logflare database on ClickHouse ---
-        echo "Creating logflare database on ClickHouse..."
-        DB_RESULT=$(curl -sf "${CH_URL}/?user=${CH_USERNAME}&password=${CH_PASSWORD}" \
-          -d "CREATE DATABASE IF NOT EXISTS ${CH_DATABASE}" || true)
-        echo "Database creation result: ${DB_RESULT:-OK}"
+        if [ -n "$OLD_TOKEN" ]; then
+          echo "Removing old ClickHouse backend (token: ${OLD_TOKEN})..."
+          curl -sf -X DELETE "${LOGFLARE_API}/api/backends/${OLD_TOKEN}" \
+            -H "Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}" > /dev/null 2>&1 || \
+            echo "  WARNING: Failed to delete old backend, proceeding anyway"
+          echo "Old backend removed."
+        fi
 
         # --- Create ClickHouse backend via Logflare API ---
         echo "Creating ClickHouse backend..."
@@ -72,13 +84,18 @@ data:
         BACKEND_TOKEN=$(echo "$BACKEND_RESPONSE" | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
         echo "ClickHouse backend created with token: ${BACKEND_TOKEN}"
 
+        # --- Test backend connection via Logflare ---
+        echo "Testing backend connection..."
+        TEST_RESULT=$(curl -sf "${LOGFLARE_API}/api/backends/${BACKEND_TOKEN}/test" \
+          -H "Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}" || echo "skipped")
+        echo "Connection test: ${TEST_RESULT}"
+
         # --- Assign all sources to the ClickHouse backend ---
         echo "Fetching sources..."
         SOURCES=$(curl -sf "${LOGFLARE_API}/api/sources" \
           -H "Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}" \
           -H "Accept: application/json")
 
-        # Extract source tokens and assign each to the CH backend
         echo "$SOURCES" | grep -o '"token":"[^"]*"' | sed 's/"token":"//;s/"//' | while read -r SOURCE_TOKEN; do
           echo "  Assigning source ${SOURCE_TOKEN} to CH backend..."
           curl -sf -X POST "${LOGFLARE_API}/api/sources/${SOURCE_TOKEN}/backends/${BACKEND_TOKEN}" \
@@ -95,10 +112,10 @@ data:
 apiVersion: batch/v1
 kind: Job
 metadata:
-    name: logflare-ch-setup
+    name: logflare-ch-setup-v2
     namespace: kilobase
     labels:
-        app: logflare-ch-setup
+        app: logflare-ch-setup-v2
         component: analytics
 spec:
     ttlSecondsAfterFinished: 86400
@@ -106,7 +123,7 @@ spec:
     template:
         metadata:
             labels:
-                app: logflare-ch-setup
+                app: logflare-ch-setup-v2
         spec:
             restartPolicy: OnFailure
             containers:
@@ -166,5 +183,5 @@ spec:
             volumes:
                 - name: setup-script
                   configMap:
-                      name: logflare-ch-setup-script
+                      name: logflare-ch-setup-v2-script
                       defaultMode: 0555
