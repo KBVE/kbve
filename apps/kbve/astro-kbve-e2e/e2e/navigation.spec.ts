@@ -17,12 +17,9 @@ test.describe('route coverage', () => {
 	}
 
 	for (const route of DATA_ROUTES) {
-		test(`${route.label} (${route.path}) loads successfully`, async ({
-			page,
-		}) => {
+		test(`${route.label} (${route.path}) returns 200`, async ({ page }) => {
 			const response = await page.goto(route.path);
-			const status = response?.status() ?? 0;
-			expect(status).toBeLessThan(500);
+			expect(response?.status()).toBe(200);
 		});
 	}
 });
