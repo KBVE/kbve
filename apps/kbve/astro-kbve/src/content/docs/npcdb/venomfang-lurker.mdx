@@ -22,6 +22,29 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: true
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Venomfang Lurker strikes from the shadows — two punctures in {target}'s leg! {dmg} damage!"
+        - "Coiled muscles unwind as the lurker launches itself at {target}'s throat! {dmg} damage!"
+    - action: 'debuff'
+      messages:
+        - "The lurker sinks its fangs deep and holds. Venom pumps into {target}! {effect} takes hold!"
+        - "Green ichor drips from the Venomfang's jaws as {target} feels {effect} burning through their veins!"
+        - "A double-strike — fang, fang — and {target} stumbles as {effect} sets in!"
+    - action: 'defend'
+      messages:
+        - "The Venomfang Lurker coils tightly, scales gleaming with toxic sheen. (+{armor} armor)"
+    - action: 'death'
+      messages:
+        - "The Venomfang Lurker thrashes once and goes still. Venom pools beneath its body."
+        - "It hisses its last breath and uncoils, fangs bared even in death."
+    - action: 'wounded'
+      messages:
+        - "*The lurker recoils, hissing through damaged scales. Its strikes become more desperate.*"
+    - action: 'near_death'
+      messages:
+        - "*The Venomfang drags itself forward on pure instinct, leaving a trail of venom behind it.*"
 lore: |
     Venomfang Lurkers have evolved venom so potent that a single bite can fell creatures many times their size.
 credits: |

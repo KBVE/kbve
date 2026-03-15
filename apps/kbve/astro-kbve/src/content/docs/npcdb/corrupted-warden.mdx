@@ -22,6 +22,34 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "\"NONE SHALL PASS!\" The Corrupted Warden brings its halberd down on {target}! {dmg} damage!"
+        - "Shadow tendrils erupt from the warden's armor and lash {target}! {dmg} damage!"
+        - "The warden grabs {target} by the throat and slams them into the wall! {dmg} damage!"
+    - action: 'charge'
+      messages:
+        - "The Corrupted Warden slams its halberd into the ground. Dark energy spirals up its body. \"I WILL PROTECT THIS PLACE!\""
+        - "The warden's eyes blaze with corrupted light. The dungeon itself seems to empower it."
+    - action: 'defend'
+      messages:
+        - "The warden raises a barrier of pure shadow. \"THIS IS MY DOMAIN!\" (+{armor} armor)"
+        - "Dark armor plates materialize over the warden's already formidable defenses. (+{armor} armor)"
+    - action: 'aoe'
+      messages:
+        - "The Corrupted Warden releases a shockwave of dark energy! \"ALL OF YOU WILL FALL!\" {dmg} damage to all!"
+    - action: 'death'
+      messages:
+        - "The corruption drains away. For one lucid moment, the warden looks at its hands. \"What... what have I become?\" It falls."
+        - "\"I was supposed to... protect...\" The warden's voice fades as the shadow leaves its body. It collapses, finally at peace."
+    - action: 'wounded'
+      messages:
+        - "*The corruption flares where the warden is struck. Its attacks grow wilder, less controlled.*"
+        - "*\"YOU DARE?!\" The warden's voice echoes with both rage and pain.*"
+    - action: 'near_death'
+      messages:
+        - "*The corruption is consuming the warden faster than it can fight. Beneath the shadow, something human pleads for release.*"
 lore: |
     The Corrupted Warden was the dungeon's most loyal protector until dark magic seeped into its very soul, turning devotion into obsession.
 credits: |

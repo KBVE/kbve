@@ -22,6 +22,30 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Fire Imp hurls a sputtering fireball at {target}! It cackles as it connects! {dmg} damage!"
+        - "\"Hee hee hee!\" The imp snaps its fingers and {target} catches fire! {dmg} damage!"
+        - "The imp does a little jig and flings a flame bolt at {target}! {dmg} damage!"
+    - action: 'debuff'
+      messages:
+        - "The Fire Imp panics and sneezes fire everywhere! {target} is caught in the {effect}!"
+        - "Frantic flames spiral out of the imp's hands! {target} suffers {effect}!"
+    - action: 'flee'
+      messages:
+        - "The Fire Imp shrieks \"NOPE NOPE NOPE!\" and rockets away on a jet of flame!"
+        - "The imp squeaks in terror and dives headfirst into a torch sconce, vanishing!"
+    - action: 'death'
+      messages:
+        - "The Fire Imp's flame gutters out. It lets out one tiny \"oh\" and turns to ash."
+        - "With a final pop and a puff of sulfurous smoke, the imp is gone."
+    - action: 'wounded'
+      messages:
+        - "*The imp's flame dims to a nervous flicker. It keeps glancing at the exits.*"
+    - action: 'near_death'
+      messages:
+        - "*The Fire Imp is barely a candle flame now, whimpering and clutching its own tail.*"
 lore: |
     Fire Imps are summoned servants that outlived their masters, now running wild in the dungeon depths.
 credits: |

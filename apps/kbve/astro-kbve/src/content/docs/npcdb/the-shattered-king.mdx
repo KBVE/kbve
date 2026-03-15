@@ -22,6 +22,49 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: true
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "\"You remind me of my generals. They also thought they could win.\" The King strikes {target}. {dmg} damage."
+        - "A fragment of crown orbits into {target} like a guided missile. {dmg} damage."
+        - "The Shattered King gestures lazily. Dark force hammers {target}. {dmg} damage."
+        - "\"Kneel.\" The word itself is a weapon. {target} staggers from {dmg} damage."
+    - action: 'heavy_attack'
+      messages:
+        - "\"I RULED CONTINENTS!\" The chamber shakes as the King unleashes his full fury on {target}! {dmg} damage!"
+        - "Crown fragments orbit faster, faster — then converge on {target} all at once! {dmg} damage!"
+    - action: 'aoe'
+      messages:
+        - "\"ALL EMPIRES FALL!\" The Shattered King releases a wave of ancient power! {dmg} damage to all!"
+        - "The King raises what remains of his crown. The room fills with blinding, terrible light. {dmg} damage to all!"
+    - action: 'defend'
+      messages:
+        - "Crown fragments orbit the King like a shield. \"Time is on my side. It always has been.\" (+{armor} armor)"
+    - action: 'charge'
+      messages:
+        - "The King closes his eyes. \"Do you hear them? My subjects. They still cry out for their king.\" Power builds..."
+        - "The fragments of his crown begin to reassemble. The air grows heavy with the weight of ages."
+    - action: 'heal'
+      messages:
+        - "\"I have died a thousand deaths. One more heals nothing.\" The King draws life from the ruins. +{amount} HP."
+        - "The dungeon walls pulse. The King's wounds close. \"This place remembers its master.\""
+    - action: 'debuff'
+      messages:
+        - "\"Carry this burden.\" The King speaks a word of royal decree. {target} is bound by {effect}."
+        - "The weight of a dead empire settles on {target}'s shoulders. {effect} takes hold."
+    - action: 'death'
+      messages:
+        - "The crown fragments clatter to the ground. The King smiles. \"At last... a worthy successor. Rule well.\" He crumbles to dust."
+        - "\"My empire... my people... forgive me.\" The Shattered King's form dissolves. The dungeon falls silent for the first time in centuries."
+        - "He reaches for his crown one final time. His fingers pass through it. \"So this is how it ends.\" And he is gone."
+    - action: 'wounded'
+      messages:
+        - "*\"Interesting. Pain. I had forgotten what that felt like.\" The King regards his wound with curiosity.*"
+        - "*Crown fragments orbit more erratically. The King's composure shows its first crack.*"
+    - action: 'near_death'
+      messages:
+        - "*\"I have ruled... I have fallen... I have endured...\" The King's voice is barely a whisper now.*"
+        - "*The crown fragments fall to the ground one by one. The King watches them go with ancient, tired eyes.*"
 lore: |
     The Shattered King once ruled an empire that spanned continents. When his kingdom fell, his rage shattered his own crown and bound his soul to the ruins forever.
 credits: |
