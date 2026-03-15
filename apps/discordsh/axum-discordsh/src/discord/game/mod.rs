@@ -1,3 +1,4 @@
+pub mod battle_bridge;
 pub mod card;
 pub mod content;
 pub mod logic;

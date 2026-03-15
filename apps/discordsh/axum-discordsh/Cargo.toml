@@ -41,6 +41,7 @@ rand_chacha = "0.10"
 jedi = { path = "../../../packages/rust/jedi" }
 kbve = { path = "../../../packages/rust/kbve", features = ["supabase", "image-gen"] }
 bevy_items = { path = "../../../packages/rust/bevy/bevy_items" }
+bevy_battle = { path = "../../../packages/rust/bevy/bevy_battle" }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.6", optional = true }

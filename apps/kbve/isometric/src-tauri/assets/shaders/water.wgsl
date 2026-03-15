@@ -10,7 +10,7 @@ struct WaterUniforms {
     foam_intensity: f32,
 }
 
-@group(2) @binding(0) var<uniform> water: WaterUniforms;
+@group(3) @binding(0) var<uniform> water: WaterUniforms;
 
 // ── Procedural noise ─────────────────────────────────────────────────────
 

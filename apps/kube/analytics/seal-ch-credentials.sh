@@ -42,7 +42,7 @@ fi
 # --- Get credentials ---
 
 CH_URL="${CH_URL:-http://clickhouse-clickhouse-cluster.clickhouse.svc.cluster.local:8123}"
-CH_USERNAME="${CH_USERNAME:-admin}"
+CH_USERNAME="${CH_USERNAME:-logflare}"
 CH_DATABASE="${CH_DATABASE:-logflare}"
 CH_PORT="${CH_PORT:-8123}"
 

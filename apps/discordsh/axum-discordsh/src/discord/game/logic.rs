@@ -2,6 +2,7 @@ use poise::serenity_prelude as serenity;
 use rand::prelude::*;
 use tracing::debug;
 
+use super::battle_bridge;
 use super::content;
 use super::types::*;
 
@@ -341,7 +342,11 @@ fn resolve_combat_turn(
     resolve_combat_turn_solo(session, player_action, actor)
 }
 
-/// Solo mode combat: resolve immediately.
+/// Solo mode combat: resolve immediately via bevy_battle ECS bridge.
+///
+/// First-strike, stun, and target fallback are handled here (session-level
+/// concerns). The core combat (player attack/defend, enemy turns, effect
+/// ticks) is delegated to `battle_bridge::run_combat_turn`.
 fn resolve_combat_turn_solo(
     session: &mut SessionState,
     player_action: GameAction,
@@ -358,7 +363,7 @@ fn resolve_combat_turn_solo(
         return logs;
     }
 
-    // Stunned check
+    // Stunned check (legacy field, not in bevy_battle)
     {
         let player = session.player_mut(actor);
         if player.stunned_turns > 0 {
@@ -374,74 +379,53 @@ fn resolve_combat_turn_solo(
         }
     }
 
-    // Determine target enemy index — auto-select first alive enemy when no
-    // explicit target was chosen (e.g., player pressed the Attack button
-    // instead of using the target dropdown with multiple enemies).
+    // Determine target enemy index with fallback to first alive enemy
     let target_idx = match &player_action {
-        GameAction::AttackTarget(idx) => *idx,
+        GameAction::AttackTarget(idx) => {
+            if session.enemy_at(*idx).is_some() {
+                *idx
+            } else {
+                debug!(
+                    target_idx = idx,
+                    enemies_alive = session.enemies.len(),
+                    "Target index not found, falling back to first alive enemy"
+                );
+                session.enemies.first().map(|e| e.index).unwrap_or(0)
+            }
+        }
         _ => session.enemies.first().map(|e| e.index).unwrap_or(0),
     };
     debug!(
         target_idx,
         enemy_count = session.enemies.len(),
         enemy_indices = ?session.enemies.iter().map(|e| e.index).collect::<Vec<_>>(),
-        "Solo combat target resolution"
+        "Solo combat target resolution (bridge)"
     );
 
-    // Player phase
-    match player_action {
+    // Convert GameAction → bridge PlayerAction
+    let bridge_action = match player_action {
         GameAction::Attack | GameAction::AttackTarget(_) => {
-            logs.extend(resolve_player_attack(session, actor, target_idx));
+            battle_bridge::PlayerAction::Attack { target_idx }
         }
-        GameAction::Defend => {
-            let player = session.player_mut(actor);
-            player.defending = true;
-            let pname = player.name.clone();
-            let pclass = player.class.clone();
-            logs.push(format!("{} braces for impact!", pname));
+        GameAction::Defend => battle_bridge::PlayerAction::Defend,
+        _ => return logs,
+    };
 
-            // Cleric defend proc: Prayer of Healing (25% chance, heal 5-10 HP)
-            if pclass == ClassType::Cleric {
-                let mut rng = rand::rng();
-                if rng.random::<f32>() < 0.25 {
-                    let heal = rng.random_range(5..=10);
-                    let player = session.player_mut(actor);
-                    let healed = heal.min(player.max_hp - player.hp);
-                    player.hp = (player.hp + heal).min(player.max_hp);
-                    if healed > 0 {
-                        logs.push(format!(
-                            "{} whispers a prayer, restoring {} HP!",
-                            pname, healed
-                        ));
-                    }
-                }
-            }
-        }
-        _ => {}
-    }
+    // Run combat through bevy_battle ECS.
+    // Skip enemy turns if first-strike already ran them this round.
+    logs.extend(battle_bridge::run_combat_turn(
+        session,
+        &[(actor, bridge_action)],
+        first_strike_fired,
+    ));
 
-    // Check enemy deaths and handle loot/xp
+    // Handle loot/xp/gold for dead enemies (bridge synced HP back)
     logs.extend(handle_enemy_deaths(session, actor));
 
-    // If all enemies dead, we're done
-    if !session.has_enemies() {
-        return logs;
+    // Check for game over (bridge synced player alive status)
+    if session.all_players_dead() {
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
     }
-
-    // Enemy phase — skip if first strike already ran enemy turns this round
-    if !first_strike_fired {
-        let target = pick_enemy_target(session, actor);
-        logs.extend(enemy_turns(session, target));
-    }
-
-    // Tick effects for all alive players
-    logs.extend(tick_all_effects(session, actor));
-
-    // Tick enemy effects
-    logs.extend(tick_all_enemy_effects(session));
-
-    // Check enemy deaths from DoT
-    logs.extend(handle_enemy_deaths(session, actor));
 
     // Reset defending for the actor
     session.player_mut(actor).defending = false;

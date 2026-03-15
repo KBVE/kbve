@@ -227,25 +227,25 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     var color_top    = vec4(toon_quantize(top_raw.rgb,    settings.toon_bands), top_raw.a);
     var color_bottom = vec4(toon_quantize(bottom_raw.rgb, settings.toon_bands), bottom_raw.a);
 
-    // ── FOLIAGE LEAF BREAKUP ──────────────────────────────────────────────
-    // Darken/brighten green canopy pixels in a leaf cluster pattern, then
-    // re-quantize so they snap to toon bands. Applied to all 5 samples so
-    // edge detection naturally outlines the leaf clusters.
-    color        = vec4(toon_quantize(apply_leaf_breakup(color.rgb,        block),                        settings.toon_bands), color.a);
-    color_left   = vec4(toon_quantize(apply_leaf_breakup(color_left.rgb,   block + vec2(-1.0,  0.0)),     settings.toon_bands), color_left.a);
-    color_right  = vec4(toon_quantize(apply_leaf_breakup(color_right.rgb,  block + vec2( 1.0,  0.0)),     settings.toon_bands), color_right.a);
-    color_top    = vec4(toon_quantize(apply_leaf_breakup(color_top.rgb,    block + vec2( 0.0, -1.0)),     settings.toon_bands), color_top.a);
-    color_bottom = vec4(toon_quantize(apply_leaf_breakup(color_bottom.rgb, block + vec2( 0.0,  1.0)),     settings.toon_bands), color_bottom.a);
+    // ── FOLIAGE LEAF BREAKUP (disabled) ─────────────────────────────────────
+    // is_foliage() threshold is too low — matches grass tiles AND tree canopy,
+    // causing the leaf noise pattern to bleed across grass/tree boundaries.
+    // Disabled until detection can distinguish canopy from ground cover.
+    // color        = vec4(toon_quantize(apply_leaf_breakup(color.rgb,        block),                        settings.toon_bands), color.a);
+    // color_left   = vec4(toon_quantize(apply_leaf_breakup(color_left.rgb,   block + vec2(-1.0,  0.0)),     settings.toon_bands), color_left.a);
+    // color_right  = vec4(toon_quantize(apply_leaf_breakup(color_right.rgb,  block + vec2( 1.0,  0.0)),     settings.toon_bands), color_right.a);
+    // color_top    = vec4(toon_quantize(apply_leaf_breakup(color_top.rgb,    block + vec2( 0.0, -1.0)),     settings.toon_bands), color_top.a);
+    // color_bottom = vec4(toon_quantize(apply_leaf_breakup(color_bottom.rgb, block + vec2( 0.0,  1.0)),     settings.toon_bands), color_bottom.a);
 
-    // ── BARK FURROW BREAKUP ────────────────────────────────────────────────
-    // Vertical furrow texture on brown/bark-colored pixels. NO re-quantize —
-    // bark is dark in linear space so toon bands collapse the variation.
-    // Raw furrow contrast feeds edge detection for natural bark outlines.
-    color        = vec4(apply_bark_breakup(color.rgb,        block),                    color.a);
-    color_left   = vec4(apply_bark_breakup(color_left.rgb,   block + vec2(-1.0,  0.0)), color_left.a);
-    color_right  = vec4(apply_bark_breakup(color_right.rgb,  block + vec2( 1.0,  0.0)), color_right.a);
-    color_top    = vec4(apply_bark_breakup(color_top.rgb,    block + vec2( 0.0, -1.0)), color_top.a);
-    color_bottom = vec4(apply_bark_breakup(color_bottom.rgb, block + vec2( 0.0,  1.0)), color_bottom.a);
+    // ── BARK FURROW BREAKUP (disabled) ──────────────────────────────────────
+    // Bark detection false-positives on terrain tiles (both are warm/brown),
+    // creating a cross-hatch pattern across the entire ground. Disabled until
+    // detection can reliably distinguish tree trunks from terrain.
+    // color        = vec4(apply_bark_breakup(color.rgb,        block),                    color.a);
+    // color_left   = vec4(apply_bark_breakup(color_left.rgb,   block + vec2(-1.0,  0.0)), color_left.a);
+    // color_right  = vec4(apply_bark_breakup(color_right.rgb,  block + vec2( 1.0,  0.0)), color_right.a);
+    // color_top    = vec4(apply_bark_breakup(color_top.rgb,    block + vec2( 0.0, -1.0)), color_top.a);
+    // color_bottom = vec4(apply_bark_breakup(color_bottom.rgb, block + vec2( 0.0,  1.0)), color_bottom.a);
 
     // ── HIGHLIGHT EDGES (color direction shift) ──────────────────────────
     let eps = vec3(0.001);
@@ -319,7 +319,8 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     let shadow_color = color.rgb * settings.shadow_darkness;
     var result = mix(color.rgb, shadow_color, final_shadow);
 
-    let highlight_color = mix(result, vec3(1.0), settings.highlight_brightness);
+    // Brighten while preserving hue (no mix toward white which causes grey washout)
+    let highlight_color = result * (1.0 + settings.highlight_brightness);
     result = mix(result, highlight_color, final_highlight);
 
     // ── PALETTE QUANTIZATION (reduce color variation → painted look) ─────

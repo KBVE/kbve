@@ -31,6 +31,12 @@ pub use event::*;
 pub use resource::*;
 pub use types::*;
 
+// Re-export bevy types needed by bridge consumers
+pub use bevy::MinimalPlugins;
+pub use bevy::app::App;
+pub use bevy::ecs::entity::Entity;
+pub use bevy::ecs::message::Messages;
+
 use bevy::prelude::*;
 
 /// Plugin that registers all battle components, events, resources, and systems.

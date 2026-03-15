@@ -14,7 +14,7 @@ use super::scene_objects::{
 };
 use super::terrain::{CHUNK_SIZE, TerrainMap, hash2d};
 use super::water::{WATER_LEVEL, WaterMaterial};
-use super::weather::{BlobShadow, BlobShadowAssets, WindSway};
+use super::weather::{BlobShadow, BlobShadowAssets};
 
 pub const TILE_SIZE: f32 = 1.0;
 
@@ -109,7 +109,7 @@ fn grass_shade_linear(tx: i32, tz: i32) -> [f32; 4] {
     [srgb_to_linear(r), srgb_to_linear(g), srgb_to_linear(b), 1.0]
 }
 
-/// Average the grass shades of 4 tiles sharing a corner, producing a smooth blend.
+#[allow(dead_code)]
 fn blended_grass_corner(
     tx0: i32,
     tz0: i32,
@@ -138,91 +138,98 @@ fn blended_grass_corner(
 
 /// Snap vegetation jitter to the pixel grid (1/PIXEL_DENSITY = 1/32 world units).
 /// Matches the camera snap step so edges never land between pixels.
+#[allow(dead_code)]
 const VEG_SNAP: f32 = 1.0 / 32.0;
 
 // ---------------------------------------------------------------------------
-// Pixel-art grass masks (8×8) — chunky silhouettes that survive pixelation
+// Pixel-art grass masks (8×8) — disabled for now, kept for future use
 // ---------------------------------------------------------------------------
 
-/// Grass pixel roles: 0 = transparent, 1 = deep shadow, 2 = shadow, 3 = mid, 4 = highlight
+#[allow(dead_code)]
 const GRASS_TRANSPARENT: u8 = 0;
 
-/// 6 grass tuft mask variants — irregular chunky silhouettes.
-/// Row 0 = top of texture = tip of grass.
+#[allow(dead_code)]
 #[rustfmt::skip]
 const GRASS_MASK_A: [[u8; 8]; 8] = [
-    [0,0,4,0,0,4,0,0],
-    [0,4,3,4,4,3,4,0],
-    [0,3,2,3,3,2,3,0],
-    [4,3,2,1,2,3,3,4],
-    [3,2,1,1,1,2,3,3],
-    [3,2,1,1,1,1,2,3],
-    [0,2,1,1,1,1,2,0],
-    [0,0,1,1,1,1,0,0],
+    [0,0,4,0,0,0,4,0],
+    [0,0,3,0,0,0,3,0],
+    [0,0,3,0,0,4,3,0],
+    [0,0,2,0,0,3,2,0],
+    [0,0,2,0,0,2,2,0],
+    [0,0,1,0,0,2,1,0],
+    [0,0,1,0,0,1,1,0],
+    [0,0,1,0,0,1,1,0],
 ];
 
+#[allow(dead_code)]
 #[rustfmt::skip]
 const GRASS_MASK_B: [[u8; 8]; 8] = [
-    [0,0,0,4,4,0,0,0],
-    [0,0,4,3,3,4,0,0],
-    [0,4,3,2,2,3,4,0],
-    [0,3,2,1,1,2,3,0],
-    [4,3,2,1,1,2,3,4],
-    [3,2,1,1,1,1,2,3],
-    [0,2,1,1,1,1,2,0],
-    [0,0,1,1,1,1,0,0],
+    [0,0,0,4,0,0,0,0],
+    [0,0,0,3,0,0,4,0],
+    [0,0,0,3,0,0,3,0],
+    [0,0,0,2,0,0,3,0],
+    [0,4,0,2,0,0,2,0],
+    [0,3,0,1,0,0,2,0],
+    [0,2,0,1,0,0,1,0],
+    [0,1,0,1,0,0,1,0],
 ];
 
+#[allow(dead_code)]
 #[rustfmt::skip]
 const GRASS_MASK_C: [[u8; 8]; 8] = [
-    [0,4,0,0,0,0,4,0],
-    [4,3,4,0,0,4,3,4],
-    [3,2,3,4,4,3,2,3],
-    [0,2,2,3,3,2,2,0],
-    [0,3,1,2,2,1,3,0],
-    [0,2,1,1,1,1,2,0],
-    [0,0,1,1,1,1,0,0],
-    [0,0,0,1,1,0,0,0],
+    [0,4,0,0,4,0,0,0],
+    [0,3,0,0,3,0,0,0],
+    [0,3,0,0,3,0,4,0],
+    [0,2,0,0,2,0,3,0],
+    [0,2,0,0,2,0,3,0],
+    [0,1,0,0,1,0,2,0],
+    [0,1,0,0,1,0,1,0],
+    [0,1,0,0,1,0,1,0],
 ];
 
+#[allow(dead_code)]
 #[rustfmt::skip]
 const GRASS_MASK_D: [[u8; 8]; 8] = [
-    [0,0,4,0,4,0,0,0],
-    [0,4,3,4,3,4,0,0],
-    [4,3,2,3,2,3,4,0],
-    [3,2,1,2,1,2,3,0],
-    [3,2,1,1,1,2,3,4],
-    [0,2,1,1,1,1,2,3],
-    [0,0,1,1,1,1,2,0],
-    [0,0,0,1,1,0,0,0],
+    [0,0,0,4,0,4,0,0],
+    [0,0,0,3,0,3,0,0],
+    [0,0,0,3,0,3,0,0],
+    [0,0,0,2,0,2,0,0],
+    [0,0,0,2,0,2,0,0],
+    [0,0,0,1,0,1,0,0],
+    [0,0,0,1,0,1,0,0],
+    [0,0,0,1,0,1,0,0],
 ];
 
+#[allow(dead_code)]
 #[rustfmt::skip]
 const GRASS_MASK_E: [[u8; 8]; 8] = [
-    [0,0,0,4,0,0,0,0],
-    [0,0,4,3,4,0,4,0],
-    [0,4,3,2,3,4,3,4],
-    [4,3,2,1,2,3,2,3],
-    [3,2,1,1,1,2,3,0],
-    [0,2,1,1,1,1,2,0],
-    [0,0,1,1,1,1,0,0],
-    [0,0,0,1,1,0,0,0],
+    [0,0,4,0,0,0,0,0],
+    [0,0,3,0,0,4,0,0],
+    [0,0,3,0,0,3,0,0],
+    [0,0,2,0,0,3,0,0],
+    [0,0,2,0,0,2,0,0],
+    [0,0,1,0,0,2,0,0],
+    [0,0,1,0,0,1,0,0],
+    [0,0,1,0,0,1,0,0],
 ];
 
+#[allow(dead_code)]
 #[rustfmt::skip]
 const GRASS_MASK_F: [[u8; 8]; 8] = [
-    [0,4,0,0,0,4,0,0],
-    [4,3,4,0,4,3,4,0],
-    [3,2,3,4,3,2,3,0],
-    [0,2,2,3,2,2,0,0],
-    [0,3,1,2,1,3,4,0],
-    [4,2,1,1,1,2,3,0],
-    [3,2,1,1,1,1,2,0],
-    [0,0,1,1,1,1,0,0],
+    [0,4,0,0,0,0,0,4],
+    [0,3,0,0,4,0,0,3],
+    [0,3,0,0,3,0,0,3],
+    [0,2,0,0,3,0,0,2],
+    [0,2,0,0,2,0,0,2],
+    [0,1,0,0,2,0,0,1],
+    [0,1,0,0,1,0,0,1],
+    [0,1,0,0,1,0,0,1],
 ];
 
+#[allow(dead_code)]
 const NUM_GRASS_VARIANTS: usize = 6;
 
+#[allow(dead_code)]
 const GRASS_MASKS: [&[[u8; 8]; 8]; NUM_GRASS_VARIANTS] = [
     &GRASS_MASK_A,
     &GRASS_MASK_B,
@@ -232,7 +239,7 @@ const GRASS_MASKS: [&[[u8; 8]; 8]; NUM_GRASS_VARIANTS] = [
     &GRASS_MASK_F,
 ];
 
-/// 4-color stepped grass palette (sRGB 0–255). No smooth gradients.
+#[allow(dead_code)]
 struct GrassPalette {
     deep: [u8; 3],      // role 1 — darkest base
     shadow: [u8; 3],    // role 2
@@ -240,6 +247,7 @@ struct GrassPalette {
     highlight: [u8; 3], // role 4 — sun-kissed tips
 }
 
+#[allow(dead_code)]
 const GRASS_PALETTE: GrassPalette = GrassPalette {
     deep: [46, 90, 36],         // #2E5A24
     shadow: [79, 138, 60],      // #4F8A3C
@@ -247,7 +255,7 @@ const GRASS_PALETTE: GrassPalette = GrassPalette {
     highlight: [166, 217, 106], // #A6D96A
 };
 
-/// Generate the grass texture atlas: (N×8)×8 RGBA (N variants × 8×8).
+#[allow(dead_code)]
 fn generate_grass_atlas() -> (Vec<u8>, u32, u32) {
     let atlas_w: u32 = NUM_GRASS_VARIANTS as u32 * 8;
     let atlas_h: u32 = 8;
@@ -284,10 +292,10 @@ fn generate_grass_atlas() -> (Vec<u8>, u32, u32) {
 /// textured from the procedural grass atlas. `variant_idx` selects which 8×8
 /// region of the atlas to sample.
 ///
-/// Tuft size: 0.5 wide × 0.4 tall — large enough to survive pixel_size=4 pass.
+#[allow(dead_code)]
 fn build_grass_tuft_mesh(variant_idx: usize) -> Mesh {
-    let hw = 0.25; // half-width
-    let h = 0.40; // height
+    let hw = 0.20; // half-width (narrower)
+    let h = 0.55; // height (taller)
 
     // UV region for this variant in the atlas
     let u0 = variant_idx as f32 / NUM_GRASS_VARIANTS as f32;
@@ -530,6 +538,7 @@ fn push_cuboid(
 /// Like `push_cuboid` but assigns per-corner colors to the top (+Y) face for
 /// smooth cross-tile blending. Side/bottom faces use `side_color`.
 /// Corner order: [(-x,-z), (+x,-z), (+x,+z), (-x,+z)]
+#[allow(dead_code)]
 fn push_cuboid_blended_top(
     pos: &mut Vec<[f32; 3]>,
     nor: &mut Vec<[f32; 3]>,
@@ -624,6 +633,208 @@ pub(super) fn build_chunk_mesh(
     .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
     .with_inserted_attribute(Mesh::ATTRIBUTE_COLOR, colors)
     .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, vec![[0.0f32, 0.0]; uv_count])
+    .with_inserted_indices(Indices::U32(indices))
+}
+
+/// Tileset grid: 8×8 tiles in a 256×256 sheet. Each tile = 1/8 of UV space.
+const TILESET_COLS: f32 = 8.0;
+const TILESET_ROWS: f32 = 8.0;
+/// Number of grass tile rows in the tileset (rows 0-3).
+const GRASS_TILE_ROWS: usize = 4;
+
+/// Grass blade atlas: 4×4 grid of 32×32 sprites in a 128×128 sheet.
+const BLADE_ATLAS_COLS: usize = 4;
+const BLADE_ATLAS_ROWS: usize = 4;
+const NUM_GRASS_BLADE_VARIANTS: usize = BLADE_ATLAS_COLS * BLADE_ATLAS_ROWS;
+
+/// Build a crossed-plane billboard mesh for a grass blade sprite.
+/// UV-mapped into the 4×4 grass blade atlas.
+fn build_grass_blade_mesh(variant_idx: usize) -> Mesh {
+    let hw = 0.75; // half-width (large to survive pixelation)
+    let h = 1.20; // height
+
+    let col = variant_idx % BLADE_ATLAS_COLS;
+    let row = variant_idx / BLADE_ATLAS_COLS;
+    let u0 = col as f32 / BLADE_ATLAS_COLS as f32;
+    let u1 = (col + 1) as f32 / BLADE_ATLAS_COLS as f32;
+    let v0 = row as f32 / BLADE_ATLAS_ROWS as f32;
+    let v1 = (row + 1) as f32 / BLADE_ATLAS_ROWS as f32;
+
+    // Snap vertex positions to pixel grid to prevent pixel swim
+    let snap = |v: f32| -> f32 { (v / VEG_SNAP).round() * VEG_SNAP };
+    let hw_s = snap(hw);
+    let h_s = snap(h);
+
+    // Quad oriented to face the isometric camera (offset 15,20,15 → view dir normalized).
+    // Camera looks from (+x,+y,+z) toward origin, so the quad normal should point
+    // toward the camera. We use a flat billboard perpendicular to the XZ camera direction.
+    // Camera XZ direction is (1,0,1)/sqrt(2), so quad lies along (-1,0,1)/sqrt(2).
+    let s = std::f32::consts::FRAC_1_SQRT_2;
+    let dx = snap(-s * hw);
+    let dz = snap(s * hw);
+
+    let positions = vec![
+        [dx, 0.0, dz],
+        [-dx, 0.0, -dz],
+        [-dx, h_s, -dz],
+        [dx, h_s, dz],
+        // Back face
+        [dx, 0.0, dz],
+        [-dx, 0.0, -dz],
+        [-dx, h_s, -dz],
+        [dx, h_s, dz],
+    ];
+    let normals = vec![
+        [s, 0.0, s],
+        [s, 0.0, s],
+        [s, 0.0, s],
+        [s, 0.0, s],
+        [-s, 0.0, -s],
+        [-s, 0.0, -s],
+        [-s, 0.0, -s],
+        [-s, 0.0, -s],
+    ];
+    let uvs = vec![
+        [u0, v1],
+        [u1, v1],
+        [u1, v0],
+        [u0, v0],
+        [u1, v1],
+        [u0, v1],
+        [u0, v0],
+        [u1, v0],
+    ];
+    let indices = vec![
+        0, 1, 2, 0, 2, 3, // front
+        4, 6, 5, 4, 7, 6, // back
+    ];
+
+    let vert_count = positions.len();
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
+    .with_inserted_attribute(
+        Mesh::ATTRIBUTE_COLOR,
+        vec![[1.0f32, 1.0, 1.0, 1.0]; vert_count],
+    )
+    .with_inserted_indices(Indices::U32(indices))
+}
+
+/// Push a cuboid where the top face is UV-mapped into a tileset tile,
+/// and side/bottom faces use a solid vertex color (no texture detail needed).
+fn push_cuboid_uv_top(
+    pos: &mut Vec<[f32; 3]>,
+    nor: &mut Vec<[f32; 3]>,
+    col: &mut Vec<[f32; 4]>,
+    uvs: &mut Vec<[f32; 2]>,
+    idx: &mut Vec<u32>,
+    center: Vec3,
+    half: Vec3,
+    tile_col: usize,
+    tile_row: usize,
+    side_color: [f32; 4],
+) {
+    let base = pos.len() as u32;
+    let (cx, cy, cz) = (center.x, center.y, center.z);
+    let (hx, hy, hz) = (half.x, half.y, half.z);
+
+    let u0 = tile_col as f32 / TILESET_COLS;
+    let u1 = (tile_col + 1) as f32 / TILESET_COLS;
+    let v0 = tile_row as f32 / TILESET_ROWS;
+    let v1 = (tile_row + 1) as f32 / TILESET_ROWS;
+
+    // +Y (top) — UV-mapped to tileset tile
+    pos.extend_from_slice(&[
+        [cx - hx, cy + hy, cz - hz],
+        [cx + hx, cy + hy, cz - hz],
+        [cx + hx, cy + hy, cz + hz],
+        [cx - hx, cy + hy, cz + hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, 1.0, 0.0]; 4]);
+    col.extend_from_slice(&[[1.0, 1.0, 1.0, 1.0]; 4]); // white — let texture provide color
+    uvs.extend_from_slice(&[[u0, v0], [u1, v0], [u1, v1], [u0, v1]]);
+
+    // -Y (bottom)
+    pos.extend_from_slice(&[
+        [cx - hx, cy - hy, cz + hz],
+        [cx + hx, cy - hy, cz + hz],
+        [cx + hx, cy - hy, cz - hz],
+        [cx - hx, cy - hy, cz - hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, -1.0, 0.0]; 4]);
+    col.extend_from_slice(&[side_color; 4]);
+    uvs.extend_from_slice(&[[0.0, 0.0]; 4]);
+
+    // +X
+    pos.extend_from_slice(&[
+        [cx + hx, cy - hy, cz - hz],
+        [cx + hx, cy - hy, cz + hz],
+        [cx + hx, cy + hy, cz + hz],
+        [cx + hx, cy + hy, cz - hz],
+    ]);
+    nor.extend_from_slice(&[[1.0, 0.0, 0.0]; 4]);
+    col.extend_from_slice(&[side_color; 4]);
+    uvs.extend_from_slice(&[[0.0, 0.0]; 4]);
+
+    // -X
+    pos.extend_from_slice(&[
+        [cx - hx, cy - hy, cz + hz],
+        [cx - hx, cy - hy, cz - hz],
+        [cx - hx, cy + hy, cz - hz],
+        [cx - hx, cy + hy, cz + hz],
+    ]);
+    nor.extend_from_slice(&[[-1.0, 0.0, 0.0]; 4]);
+    col.extend_from_slice(&[side_color; 4]);
+    uvs.extend_from_slice(&[[0.0, 0.0]; 4]);
+
+    // +Z
+    pos.extend_from_slice(&[
+        [cx + hx, cy - hy, cz + hz],
+        [cx - hx, cy - hy, cz + hz],
+        [cx - hx, cy + hy, cz + hz],
+        [cx + hx, cy + hy, cz + hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, 0.0, 1.0]; 4]);
+    col.extend_from_slice(&[side_color; 4]);
+    uvs.extend_from_slice(&[[0.0, 0.0]; 4]);
+
+    // -Z
+    pos.extend_from_slice(&[
+        [cx - hx, cy - hy, cz - hz],
+        [cx + hx, cy - hy, cz - hz],
+        [cx + hx, cy + hy, cz - hz],
+        [cx - hx, cy + hy, cz - hz],
+    ]);
+    nor.extend_from_slice(&[[0.0, 0.0, -1.0]; 4]);
+    col.extend_from_slice(&[side_color; 4]);
+    uvs.extend_from_slice(&[[0.0, 0.0]; 4]);
+
+    for face in 0..6u32 {
+        let f = base + face * 4;
+        idx.extend_from_slice(&[f, f + 2, f + 1, f, f + 3, f + 2]);
+    }
+}
+
+/// Assemble a Bevy Mesh with explicit UV coordinates (for textured tiles).
+fn build_chunk_mesh_uv(
+    positions: Vec<[f32; 3]>,
+    normals: Vec<[f32; 3]>,
+    colors: Vec<[f32; 4]>,
+    uvs: Vec<[f32; 2]>,
+    indices: Vec<u32>,
+) -> Mesh {
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_COLOR, colors)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
     .with_inserted_indices(Indices::U32(indices))
 }
 
@@ -1034,10 +1245,14 @@ struct TileMaterials {
     chunk_cap_mat: Handle<StandardMaterial>,
     /// Unlit, matte material for tree trunk+canopy domes — vertex colors carry all tonal info.
     tree_body_mat: Handle<StandardMaterial>,
-    /// Unlit, alpha-masked material for pixel-art grass tufts.
-    grass_mat: Handle<StandardMaterial>,
-    /// Per-variant grass tuft meshes (UV-mapped crossed planes into grass atlas).
-    grass_meshes: [Handle<Mesh>; NUM_GRASS_VARIANTS],
+    /// Textured grass cap material (tileset-based).
+    grass_cap_mat: Handle<StandardMaterial>,
+    /// Alpha-masked material for grass blade billboards (disabled — pixel swim).
+    #[allow(dead_code)]
+    grass_blade_mat: Handle<StandardMaterial>,
+    /// Per-variant grass blade meshes (disabled — pixel swim).
+    #[allow(dead_code)]
+    grass_blade_meshes: [Handle<Mesh>; NUM_GRASS_BLADE_VARIANTS],
     /// Per-archetype flower meshes (UV-mapped crossed planes into atlas).
     flower_meshes: [Handle<Mesh>; NUM_FLORA_SPECIES],
     /// Lit, matte material for rocks — receives dynamic shadows unlike tree_body_mat.
@@ -1069,6 +1284,7 @@ fn setup_tile_materials(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut water_materials: ResMut<Assets<WaterMaterial>>,
     mut images: ResMut<Assets<Image>>,
+    asset_server: Res<AssetServer>,
 ) {
     let chunk_body_mat = materials.add(StandardMaterial {
         base_color: Color::WHITE,
@@ -1127,34 +1343,26 @@ fn setup_tile_materials(
     // Per-archetype meshes: crossed planes with UVs into the atlas
     let flower_meshes = std::array::from_fn(|i| meshes.add(build_flower_mesh(i)));
 
-    // Generate procedural grass atlas (N×8 RGBA, N variants × 8×8)
-    let (grass_pixels, gw, gh) = generate_grass_atlas();
-    let mut grass_img = Image::new(
-        bevy::render::render_resource::Extent3d {
-            width: gw,
-            height: gh,
-            depth_or_array_layers: 1,
-        },
-        bevy::render::render_resource::TextureDimension::D2,
-        grass_pixels,
-        bevy::render::render_resource::TextureFormat::Rgba8UnormSrgb,
-        RenderAssetUsages::default(),
-    );
-    grass_img.sampler = ImageSampler::nearest();
-    let grass_atlas_handle = images.add(grass_img);
+    // Grass cap material: tileset texture, lit
+    let grass_tileset: Handle<Image> = asset_server.load("textures/grass_tileset.png");
+    let grass_cap_mat = materials.add(StandardMaterial {
+        base_color_texture: Some(grass_tileset),
+        perceptual_roughness: 0.95,
+        reflectance: 0.0,
+        ..default()
+    });
 
-    // Unlit, alpha-masked grass material — pixel palette carries all tonal info.
-    let grass_mat = materials.add(StandardMaterial {
-        base_color_texture: Some(grass_atlas_handle),
+    // Grass blade billboard material + meshes
+    let grass_blade_tex: Handle<Image> = asset_server.load("textures/grass_blades.png");
+    let grass_blade_mat = materials.add(StandardMaterial {
+        base_color_texture: Some(grass_blade_tex),
         alpha_mode: AlphaMode::Mask(0.5),
         cull_mode: None,
         double_sided: true,
         unlit: true,
         ..default()
     });
-
-    // Per-variant grass tuft meshes
-    let grass_meshes = std::array::from_fn(|i| meshes.add(build_grass_tuft_mesh(i)));
+    let grass_blade_meshes = std::array::from_fn(|i| meshes.add(build_grass_blade_mesh(i)));
 
     let water_mat = water_materials.add(WaterMaterial::default());
 
@@ -1162,8 +1370,9 @@ fn setup_tile_materials(
         chunk_body_mat,
         chunk_cap_mat,
         tree_body_mat,
-        grass_mat,
-        grass_meshes,
+        grass_cap_mat,
+        grass_blade_mat,
+        grass_blade_meshes,
         rock_body_mat,
         flower_meshes,
         flower_mat,
@@ -1249,6 +1458,13 @@ fn process_chunk_spawns_and_despawns(
         let mut collider_shapes: Vec<(Vec3, Quat, Collider)> = Vec::with_capacity(tile_count);
         // Note: avian3d Collider::cuboid takes FULL extents (not half)
 
+        // Grass cap tiles (band 0) — separate mesh with UV-mapped tileset texture
+        let mut grass_pos: Vec<[f32; 3]> = Vec::new();
+        let mut grass_nor: Vec<[f32; 3]> = Vec::new();
+        let mut grass_col: Vec<[f32; 4]> = Vec::new();
+        let mut grass_uvs: Vec<[f32; 2]> = Vec::new();
+        let mut grass_idx: Vec<u32> = Vec::new();
+
         // Water surface quads for tiles below water level
         let mut water_pos: Vec<[f32; 3]> = Vec::new();
         let mut water_nor: Vec<[f32; 3]> = Vec::new();
@@ -1322,21 +1538,23 @@ fn process_chunk_spawns_and_despawns(
                 let cap_half = Vec3::new(cap_w / 2.0, CAP_HEIGHT / 2.0, cap_d / 2.0);
 
                 if band == 0 {
-                    // Grass: blend each top-face corner from 4 neighboring tiles
-                    // Corner order: [(-x,-z), (+x,-z), (+x,+z), (-x,+z)]
-                    let c00 = blended_grass_corner(tx, tz, tx - 1, tz, tx, tz - 1, tx - 1, tz - 1);
-                    let c10 = blended_grass_corner(tx, tz, tx + 1, tz, tx, tz - 1, tx + 1, tz - 1);
-                    let c11 = blended_grass_corner(tx, tz, tx + 1, tz, tx, tz + 1, tx + 1, tz + 1);
-                    let c01 = blended_grass_corner(tx, tz, tx - 1, tz, tx, tz + 1, tx - 1, tz + 1);
+                    // Grass: UV-mapped top face from tileset, pick a random
+                    // tile from the first 4 rows (32 grass variants).
+                    let tile_hash = hash2d(tx + 5701, tz + 3109);
+                    let tile_idx = (tile_hash * (GRASS_TILE_ROWS as f32 * TILESET_COLS)) as usize;
+                    let tile_col_idx = tile_idx % TILESET_COLS as usize;
+                    let tile_row_idx = tile_idx / TILESET_COLS as usize;
                     let side = cap_vertex_color(band, tx, tz);
-                    push_cuboid_blended_top(
-                        &mut cap_pos,
-                        &mut cap_nor,
-                        &mut cap_col,
-                        &mut cap_idx,
+                    push_cuboid_uv_top(
+                        &mut grass_pos,
+                        &mut grass_nor,
+                        &mut grass_col,
+                        &mut grass_uvs,
+                        &mut grass_idx,
                         cap_center,
                         cap_half,
-                        [c00, c10, c11, c01],
+                        tile_col_idx,
+                        tile_row_idx,
                         side,
                     );
                 } else {
@@ -1395,70 +1613,9 @@ fn process_chunk_spawns_and_despawns(
                     ]);
                 }
 
-                // --- Vegetation: pixel-art grass tufts (grass band only) ---
+                // --- Vegetation: grass blade billboards disabled (pixel swim) ---
+                // TODO: bake grass blade detail into the ground tileset texture instead
                 if band == 0 {
-                    // Spawn grass tufts per tile (density controlled by noise)
-                    let grass_slots: [(i32, i32, f32); 6] = [
-                        (7919, 3571, 0.55),
-                        (2131, 8461, 0.40),
-                        (4253, 6173, 0.45),
-                        (6091, 1429, 0.35),
-                        (8347, 2719, 0.30),
-                        (3467, 9241, 0.25),
-                    ];
-
-                    for &(seed_x, seed_z, density) in &grass_slots {
-                        #[cfg(target_arch = "wasm32")]
-                        let density = density * 0.5;
-
-                        let noise = hash2d(tx + seed_x, tz + seed_z);
-                        if noise >= density {
-                            continue;
-                        }
-
-                        // Quantize jitter to pixel grid for stable edges
-                        let jx = ((hash2d(tx + seed_x + 100, tz + seed_z) - 0.5) * 0.7 / VEG_SNAP)
-                            .round()
-                            * VEG_SNAP;
-                        let jz = ((hash2d(tx + seed_x, tz + seed_z + 100) - 0.5) * 0.7 / VEG_SNAP)
-                            .round()
-                            * VEG_SNAP;
-
-                        // Pick a random grass mask variant
-                        let variant_idx = (hash2d(tx + seed_x + 400, tz + seed_z + 400)
-                            * NUM_GRASS_VARIANTS as f32)
-                            as usize
-                            % NUM_GRASS_VARIANTS;
-
-                        // Scale jitter: 0.8–1.2
-                        let scale = 0.8 + hash2d(tx + seed_x + 200, tz + seed_z + 200) * 0.4;
-
-                        // Rotation jitter: ±15° around random base angle
-                        let rot_y =
-                            hash2d(tx + seed_x + 300, tz + seed_z + 300) * std::f32::consts::TAU;
-
-                        let world_x = tx as f32 * TILE_SIZE + jx;
-                        let world_z = tz as f32 * TILE_SIZE + jz;
-                        let grass_y = column_h + 0.002;
-
-                        let grass_entity = commands
-                            .spawn((
-                                Mesh3d(tile_materials.grass_meshes[variant_idx].clone()),
-                                MeshMaterial3d(tile_materials.grass_mat.clone()),
-                                Transform::from_xyz(world_x, grass_y, world_z)
-                                    .with_scale(Vec3::splat(scale))
-                                    .with_rotation(Quat::from_rotation_y(rot_y)),
-                                Pickable::IGNORE,
-                                WindSway {
-                                    base_translation: Vec3::new(world_x, grass_y, world_z),
-                                    phase: hash2d(tx + seed_x + 700, tz + seed_z + 700)
-                                        * std::f32::consts::TAU,
-                                },
-                            ))
-                            .id();
-                        entities.push(grass_entity);
-                    }
-
                     // --- Overlap-aware spawn: trees > rocks > flowers ---
                     let mut tile_occupied = false;
 
@@ -1665,17 +1822,35 @@ fn process_chunk_spawns_and_despawns(
             .id();
         entities.push(body_entity);
 
-        // Spawn cap entity (combined mesh, no collider)
-        let cap_mesh = meshes.add(build_chunk_mesh(cap_pos, cap_nor, cap_col, cap_idx));
-        let cap_entity = commands
-            .spawn((
-                Mesh3d(cap_mesh),
-                MeshMaterial3d(tile_materials.chunk_cap_mat.clone()),
-                Transform::from_xyz(base_x as f32 * TILE_SIZE, 0.0, base_z as f32 * TILE_SIZE),
-                Pickable::IGNORE,
-            ))
-            .id();
-        entities.push(cap_entity);
+        // Spawn cap entity (combined mesh for non-grass bands, no collider)
+        if !cap_pos.is_empty() {
+            let cap_mesh = meshes.add(build_chunk_mesh(cap_pos, cap_nor, cap_col, cap_idx));
+            let cap_entity = commands
+                .spawn((
+                    Mesh3d(cap_mesh),
+                    MeshMaterial3d(tile_materials.chunk_cap_mat.clone()),
+                    Transform::from_xyz(base_x as f32 * TILE_SIZE, 0.0, base_z as f32 * TILE_SIZE),
+                    Pickable::IGNORE,
+                ))
+                .id();
+            entities.push(cap_entity);
+        }
+
+        // Spawn grass cap entity (UV-mapped tileset texture)
+        if !grass_pos.is_empty() {
+            let grass_mesh = meshes.add(build_chunk_mesh_uv(
+                grass_pos, grass_nor, grass_col, grass_uvs, grass_idx,
+            ));
+            let grass_entity = commands
+                .spawn((
+                    Mesh3d(grass_mesh),
+                    MeshMaterial3d(tile_materials.grass_cap_mat.clone()),
+                    Transform::from_xyz(base_x as f32 * TILE_SIZE, 0.0, base_z as f32 * TILE_SIZE),
+                    Pickable::IGNORE,
+                ))
+                .id();
+            entities.push(grass_entity);
+        }
 
         // Spawn water entity (combined mesh, transparent material)
         if !water_pos.is_empty() {

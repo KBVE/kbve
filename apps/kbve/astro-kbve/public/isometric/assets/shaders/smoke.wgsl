@@ -8,7 +8,7 @@ struct SmokeUniforms {
     _pad1: f32,
 }
 
-@group(2) @binding(0) var<uniform> smoke: SmokeUniforms;
+@group(3) @binding(0) var<uniform> smoke: SmokeUniforms;
 
 // ── Noise ────────────────────────────────────────────────────────────────
 
