@@ -1,0 +1,59 @@
+# Local ClickHouse for validating Logflare-compatible schemas.
+# No Logflare or Postgres — just ClickHouse to test DDL.
+#
+# Usage:
+#   cp dev-docker-compose.yml docker-compose.yml
+#   docker compose up -d
+#   # Apply schemas:
+#   docker compose exec -T clickhouse clickhouse-client \
+#     --user logflare --password logflare \
+#     --multiquery < schemas/database.sql
+#   docker compose exec -T clickhouse clickhouse-client \
+#     --user logflare --password logflare -d logflare \
+#     --multiquery < schemas/logs.sql
+#   docker compose exec -T clickhouse clickhouse-client \
+#     --user logflare --password logflare -d logflare \
+#     --multiquery < schemas/metrics.sql
+#   docker compose exec -T clickhouse clickhouse-client \
+#     --user logflare --password logflare -d logflare \
+#     --multiquery < schemas/traces.sql
+#   # Inspect:
+#   docker compose exec clickhouse clickhouse-client \
+#     --user logflare --password logflare -d logflare \
+#     -q "SHOW TABLES"
+#   # Tear down:
+#   docker compose down -v
+
+services:
+    clickhouse:
+        image: clickhouse/clickhouse-server:25.12
+        ports:
+            - '8123:8123'
+            - '9000:9000'
+        tmpfs:
+            - /var/lib/clickhouse:size=1G
+            - /var/log/clickhouse-server:size=100M
+        environment:
+            CLICKHOUSE_DB: logflare
+            CLICKHOUSE_USER: logflare
+            CLICKHOUSE_PASSWORD: logflare
+            CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+        deploy:
+            resources:
+                limits:
+                    memory: 1500M
+                    cpus: '1.0'
+        shm_size: 256M
+        ulimits:
+            nofile:
+                soft: 262144
+                hard: 262144
+        healthcheck:
+            test:
+                [
+                    'CMD-SHELL',
+                    "clickhouse-client --user logflare --password logflare -q 'SELECT 1'",
+                ]
+            interval: 5s
+            timeout: 3s
+            retries: 10
