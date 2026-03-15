@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-    name: logflare-ch-setup-v3-script
+    name: logflare-ch-setup-v4-script
     namespace: kilobase
 data:
     setup.sh: |
@@ -27,23 +27,50 @@ data:
         done
         echo "Logflare is healthy."
 
-        # --- Verify ClickHouse connectivity ---
-        echo "Verifying ClickHouse connectivity..."
-        CH_TEST=$(curl -sf "${CH_URL}/?user=${CH_USERNAME}&password=${CH_PASSWORD}" \
+        # --- Verify ClickHouse admin connectivity ---
+        echo "Verifying ClickHouse admin connectivity..."
+        CH_TEST=$(curl -sf --max-time 10 "${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}" \
           -d "SELECT 1" 2>&1) || {
-          echo "ERROR: Cannot connect to ClickHouse at ${CH_URL} with user ${CH_USERNAME}"
+          echo "ERROR: Cannot connect to ClickHouse at ${CH_ADMIN_URL} with admin user"
           exit 1
         }
-        echo "ClickHouse connection OK."
+        echo "ClickHouse admin connection OK."
 
-        # --- Create the logflare database on ClickHouse ---
-        echo "Creating logflare database on ClickHouse..."
-        DB_RESULT=$(curl -sf --max-time 10 "${CH_URL}/?user=${CH_USERNAME}&password=${CH_PASSWORD}" \
+        # --- Create the logflare database ---
+        echo "Creating logflare database..."
+        DB_RESULT=$(curl -sf --max-time 10 "${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}" \
           -d "CREATE DATABASE IF NOT EXISTS ${CH_DATABASE}" 2>&1) || {
           echo "ERROR: Failed to create database: ${DB_RESULT}"
           exit 1
         }
-        echo "Database created."
+        echo "Database '${CH_DATABASE}' ready."
+
+        # --- Create logflare SQL user (idempotent) ---
+        echo "Creating logflare SQL user..."
+        USER_RESULT=$(curl -sf --max-time 10 "${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}" \
+          -d "CREATE USER IF NOT EXISTS ${CH_USERNAME} IDENTIFIED WITH sha256_password BY '${CH_PASSWORD}'" 2>&1) || {
+          echo "ERROR: Failed to create logflare user: ${USER_RESULT}"
+          exit 1
+        }
+        echo "User '${CH_USERNAME}' ready."
+
+        # --- Grant permissions to logflare user ---
+        echo "Granting permissions..."
+        GRANT_RESULT=$(curl -sf --max-time 10 "${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}" \
+          -d "GRANT ALL ON ${CH_DATABASE}.* TO ${CH_USERNAME}" 2>&1) || {
+          echo "ERROR: Failed to grant permissions: ${GRANT_RESULT}"
+          exit 1
+        }
+        echo "Permissions granted to '${CH_USERNAME}' on '${CH_DATABASE}'."
+
+        # --- Verify logflare user connectivity ---
+        echo "Verifying logflare user connectivity..."
+        LF_TEST=$(curl -sf --max-time 10 "${CH_URL}/?user=${CH_USERNAME}&password=${CH_PASSWORD}" \
+          -d "SELECT 1" 2>&1) || {
+          echo "ERROR: Cannot connect to ClickHouse as logflare user"
+          exit 1
+        }
+        echo "Logflare user connection OK."
 
         # --- Remove existing ClickHouse backend if present ---
         echo "Checking for existing ClickHouse backends..."
@@ -62,7 +89,7 @@ data:
           echo "Old backend removed."
         fi
 
-        # --- Create ClickHouse backend via Logflare API ---
+        # --- Create ClickHouse backend via Logflare API (using logflare user) ---
         echo "Creating ClickHouse backend..."
         BACKEND_RESPONSE=$(curl -sf -X POST "${LOGFLARE_API}/api/backends" \
           -H "Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}" \
@@ -115,10 +142,10 @@ data:
 apiVersion: batch/v1
 kind: Job
 metadata:
-    name: logflare-ch-setup-v3
+    name: logflare-ch-setup-v4
     namespace: kilobase
     labels:
-        app: logflare-ch-setup-v3
+        app: logflare-ch-setup-v4
         component: analytics
 spec:
     ttlSecondsAfterFinished: 86400
@@ -126,7 +153,7 @@ spec:
     template:
         metadata:
             labels:
-                app: logflare-ch-setup-v3
+                app: logflare-ch-setup-v4
         spec:
             restartPolicy: OnFailure
             containers:
@@ -139,6 +166,23 @@ spec:
                             secretKeyRef:
                                 name: logflare-config
                                 key: private-access-token
+                      # Admin credentials (for SQL bootstrapping)
+                      - name: CH_ADMIN_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-admin-credentials
+                                key: url
+                      - name: CH_ADMIN_USERNAME
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-admin-credentials
+                                key: username
+                      - name: CH_ADMIN_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-admin-credentials
+                                key: password
+                      # Logflare user credentials (for Logflare API backend config)
                       - name: CH_URL
                         valueFrom:
                             secretKeyRef:
@@ -186,5 +230,5 @@ spec:
             volumes:
                 - name: setup-script
                   configMap:
-                      name: logflare-ch-setup-v3-script
+                      name: logflare-ch-setup-v4-script
                       defaultMode: 0555
