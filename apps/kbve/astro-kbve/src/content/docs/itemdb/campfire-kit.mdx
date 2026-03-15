@@ -1,0 +1,33 @@
+---
+title: 'Campfire Kit'
+description: 'Set up camp and rest. Heals 50% HP and clears debuffs for the whole party.'
+slug: 'campfire-kit'
+key: 77
+id: '01KKR7QNRCDVADFBQ4TTESGDQA'
+name: 'Campfire Kit'
+type_flags: 8704
+consumable: true
+stackable: true
+max_stack: 1
+rarity: 'rare'
+buy_price: 150
+emoji: '🔥'
+action: 'consume'
+tags:
+  - discordsh
+use_effects:
+  - { type: 'campfire_rest', percent: 50 }
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

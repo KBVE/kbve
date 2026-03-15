@@ -1,0 +1,37 @@
+---
+title: 'Runeguard Plate'
+description: 'Ancient plate armor inscribed with protective runes. +5 armor, +5 HP, reflects 2 damage.'
+slug: 'runeguard-plate'
+key: 97
+id: '01KKR7QNRC5MQGKPW28R7FR2X6'
+name: 'Runeguard Plate'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'rare'
+buy_price: 220
+emoji: '🛡️'
+action: 'equip'
+tags:
+  - discordsh
+equipment:
+  slot: 'chest'
+  bonuses:
+    armor: 5
+    health: 5
+  special: 'thorns'
+  special_value: 2
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

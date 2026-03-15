@@ -1,0 +1,33 @@
+---
+title: 'Phoenix Feather'
+description: 'A radiant feather that revives a fallen party member at 30% HP.'
+slug: 'phoenix-feather'
+key: 83
+id: '01KKR7QNRCKPV43AZDEN3GMME7'
+name: 'Phoenix Feather'
+type_flags: 10784
+consumable: true
+stackable: true
+max_stack: 1
+rarity: 'epic'
+buy_price: 300
+emoji: '🔥'
+action: 'consume'
+tags:
+  - discordsh
+use_effects:
+  - { type: 'revive_ally', percent: 30 }
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

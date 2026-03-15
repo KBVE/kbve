@@ -1,0 +1,33 @@
+---
+title: 'Teleport Rune'
+description: 'An inscribed stone that teleports the party back to the nearest city.'
+slug: 'teleport-rune'
+key: 78
+id: '01KKR7QNRC3336DJ0D3SJA8SA7'
+name: 'Teleport Rune'
+type_flags: 10752
+consumable: true
+stackable: true
+max_stack: 1
+rarity: 'rare'
+buy_price: 200
+emoji: '🌀'
+action: 'consume'
+tags:
+  - discordsh
+use_effects:
+  - { type: 'teleport_city' }
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

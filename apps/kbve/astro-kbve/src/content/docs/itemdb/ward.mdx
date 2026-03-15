@@ -1,0 +1,33 @@
+---
+title: 'Ward'
+description: 'A protective charm that grants the Shielded effect for 2 turns.'
+slug: 'ward'
+key: 70
+id: '01KKR7QNRCT4AA6ZG8P0Z37NM0'
+name: 'Ward'
+type_flags: 2592
+consumable: true
+stackable: true
+max_stack: 2
+rarity: 'rare'
+buy_price: 80
+emoji: '🧿'
+action: 'consume'
+tags:
+  - discordsh
+use_effects:
+  - { type: 'apply_effect', status_effect: 'shielded', stacks: 1, turns: 2 }
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

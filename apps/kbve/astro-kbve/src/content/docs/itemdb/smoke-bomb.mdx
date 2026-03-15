@@ -1,0 +1,33 @@
+---
+title: 'Smoke Bomb'
+description: 'Releases a thick cloud of smoke, guaranteeing escape from combat.'
+slug: 'smoke-bomb'
+key: 72
+id: '01KKR7QNRCN8GS74B9NMC7DDDW'
+name: 'Smoke Bomb'
+type_flags: 8704
+consumable: true
+stackable: true
+max_stack: 1
+rarity: 'rare'
+buy_price: 120
+emoji: '💨'
+action: 'consume'
+tags:
+  - discordsh
+use_effects:
+  - { type: 'guaranteed_flee' }
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

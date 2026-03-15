@@ -1,0 +1,33 @@
+---
+title: 'Rations'
+description: 'Dried travel food that heals 8 HP. Best used out of combat.'
+slug: 'rations'
+key: 71
+id: '01KKR7QNRCTKXB470J4ENW4KCK'
+name: 'Rations'
+type_flags: 520
+consumable: true
+stackable: true
+max_stack: 3
+rarity: 'common'
+buy_price: 15
+emoji: '🍞'
+action: 'consume'
+tags:
+  - discordsh
+use_effects:
+  - { type: 'heal', amount: 8 }
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

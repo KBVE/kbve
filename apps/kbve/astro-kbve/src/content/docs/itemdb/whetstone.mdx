@@ -1,0 +1,33 @@
+---
+title: 'Whetstone'
+description: 'Sharpens your weapon, granting +3 bonus damage for 3 turns.'
+slug: 'whetstone'
+key: 74
+id: '01KKR7QNRCB0P53ECK35DY6AZQ'
+name: 'Whetstone'
+type_flags: 8704
+consumable: true
+stackable: true
+max_stack: 2
+rarity: 'uncommon'
+buy_price: 40
+emoji: '🪨'
+action: 'consume'
+tags:
+  - discordsh
+use_effects:
+  - { type: 'apply_effect', status_effect: 'sharpened', stacks: 1, turns: 3 }
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

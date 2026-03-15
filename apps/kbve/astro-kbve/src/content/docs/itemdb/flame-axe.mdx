@@ -1,0 +1,34 @@
+---
+title: 'Flame Axe'
+description: 'An axe wreathed in smoldering embers. +4 attack damage.'
+slug: 'flame-axe'
+key: 86
+id: '01KKR7QNRC0XKBPFD6BNWV57SR'
+name: 'Flame Axe'
+type_flags: 513
+consumable: false
+stackable: false
+rarity: 'rare'
+buy_price: 150
+emoji: '🪓'
+action: 'equip'
+tags:
+  - discordsh
+equipment:
+  slot: 'main_hand'
+  bonuses:
+    attack: 4
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
