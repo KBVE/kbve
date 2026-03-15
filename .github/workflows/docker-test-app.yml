@@ -27,6 +27,8 @@ jobs:
         name: Test ${{ inputs.project }} Docker App
         runs-on: ${{ inputs.runner }}
         timeout-minutes: 60
+        env:
+            NX_NO_CLOUD: true
         permissions:
             contents: read
             packages: write

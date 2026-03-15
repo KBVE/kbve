@@ -22,6 +22,8 @@ jobs:
         name: 'Lint and Test'
         runs-on: ubuntu-latest
         timeout-minutes: 120
+        env:
+            NX_NO_CLOUD: true
         permissions:
             contents: read
         steps:

@@ -43,6 +43,8 @@ jobs:
     deploy:
         runs-on: ubuntu-latest
         timeout-minutes: 30
+        env:
+            NX_NO_CLOUD: true
         permissions:
             contents: read
         steps:
