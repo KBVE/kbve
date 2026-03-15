@@ -21,6 +21,26 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Bone Archer fires with shaking hands — the arrow finds {target} anyway! {dmg} damage!"
+        - "A bony finger releases the bowstring with a snap. {target} takes an arrow! {dmg} damage!"
+        - "The archer flinches as it shoots, but the arrow still strikes {target}! {dmg} damage!"
+    - action: 'flee'
+      messages:
+        - "The Bone Archer drops its bow and scrambles away, jawbone chattering in panic!"
+        - "It fumbles an arrow, looks at you, and bolts — bones rattling with every step!"
+    - action: 'death'
+      messages:
+        - "The Bone Archer's bow clatters to the ground. Its skeleton follows, finally free from the fear."
+        - "With a last trembling shot that goes wide, the archer crumbles into a pile of relieved bones."
+    - action: 'wounded'
+      messages:
+        - "*The Bone Archer's hands shake even worse now. Its next shot might go anywhere.*"
+    - action: 'near_death'
+      messages:
+        - "*The archer is barely holding together. It nocks an arrow with one remaining arm.*"
 lore: |
     In life they were conscript archers, and in death their muscle memory persists — though their aim wavers with fear.
 credits: |

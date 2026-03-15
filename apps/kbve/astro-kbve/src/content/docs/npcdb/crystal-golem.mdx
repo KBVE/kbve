@@ -22,6 +22,29 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Crystal Golem swings a prismatic arm at {target}. The impact sends rainbows scattering. {dmg} damage."
+        - "Light concentrates into a beam from the golem's core, scorching {target}. {dmg} damage."
+    - action: 'charge'
+      messages:
+        - "The Crystal Golem plants its feet. Every facet of its body begins to glow brighter and brighter..."
+        - "A low hum builds as the golem draws energy from the earth itself. The air crackles with static."
+    - action: 'defend'
+      messages:
+        - "The Crystal Golem's surface shifts, angling its facets to deflect incoming blows. (+{armor} armor)"
+        - "It stands immovable. Striking it feels like punching a diamond. (+{armor} armor)"
+    - action: 'death'
+      messages:
+        - "The Crystal Golem's core dims. Fracture lines race across its body, and it topples — a falling cathedral of light."
+        - "It reaches out as if to steady itself, then shatters. Crystal shards ring like bells as they scatter."
+    - action: 'wounded'
+      messages:
+        - "*A facet cracks. Prismatic light leaks from the wound like blood.*"
+    - action: 'near_death'
+      messages:
+        - "*The golem's core pulses erratically. Its body is more crack than crystal now.*"
 lore: |
     Crystal Golems were forged in the heart of a dying star, their bodies nearly indestructible and infused with raw magical energy.
 credits: |

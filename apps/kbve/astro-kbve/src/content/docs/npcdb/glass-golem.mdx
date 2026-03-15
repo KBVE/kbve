@@ -22,6 +22,35 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Glass Golem drives a massive crystalline fist into {target}. The impact echoes through the chamber. {dmg} damage."
+        - "Razor edges along the golem's arm open a deep gash in {target} as it sweeps past. {dmg} damage."
+        - "The golem stamps the ground and a shard of glass erupts beneath {target}! {dmg} damage."
+    - action: 'charge'
+      messages:
+        - "The Glass Golem's body begins to resonate. A deep hum fills the chamber as every facet ignites with light."
+        - "It lowers its head and the room goes dark — all light is being drawn into the golem's core."
+    - action: 'defend'
+      messages:
+        - "The golem rearranges its glass plates into an interlocking shield wall. Light bounces everywhere. (+{armor} armor)"
+        - "It becomes a fortress. Your reflection stares back at you from a hundred mirrored surfaces. (+{armor} armor)"
+    - action: 'aoe'
+      messages:
+        - "The Glass Golem detonates its outer shell! Razor shards fly in every direction! {dmg} damage to all!"
+        - "A blinding flash erupts from the golem's core. When you can see again, everything hurts. {dmg} damage to all."
+    - action: 'death'
+      messages:
+        - "The golem's core fractures with a sound like a cathedral bell. It collapses in slow motion, a cascade of glittering ruin."
+        - "Silence. Then the Glass Golem simply falls apart — not with fury, but with the quiet acceptance of stone returning to sand."
+    - action: 'wounded'
+      messages:
+        - "*Deep fractures web across the golem's torso. Light bleeds from every crack.*"
+        - "*A massive glass plate falls from the golem's shoulder and shatters on the ground. It does not look down.*"
+    - action: 'near_death'
+      messages:
+        - "*The golem is more hole than wall now. Its core pulses weakly, visible through the ruin of its body.*"
 lore: |
     The Glass Golem was created as a final guardian, its body forged from the crystallized tears of a dying god.
 credits: |

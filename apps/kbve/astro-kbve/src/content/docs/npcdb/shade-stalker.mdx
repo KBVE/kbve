@@ -22,6 +22,29 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: true
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Shade Stalker materializes behind {target} and drives a spectral blade home! {dmg} damage!"
+        - "\"You never saw me.\" A cold slash opens across {target}'s back. {dmg} damage."
+        - "Shadows ripple and {target} staggers — the Stalker struck from nowhere. {dmg} damage."
+    - action: 'defend'
+      messages:
+        - "The Shade Stalker dissolves into the shadows, watching and waiting. (+{armor} armor)"
+    - action: 'flee'
+      messages:
+        - "The Shade Stalker melts into the darkness. You hear a whisper: \"Next time.\""
+        - "It was there. Now it isn't. Only the chill remains."
+    - action: 'death'
+      messages:
+        - "The Shade Stalker's form unravels like smoke. Its last words: \"The hunt... ends...\""
+        - "Shadow pours from its wounds like ink. The Stalker fades, finally at rest."
+    - action: 'wounded'
+      messages:
+        - "*The Stalker's form flickers. For the first time, it looks uncertain.*"
+    - action: 'near_death'
+      messages:
+        - "*The Shade Stalker can barely hold its shape. It phases in and out, desperate.*"
 lore: |
     Shade Stalkers are remnants of assassins who died mid-hunt, their killing intent crystallized into spectral form.
 credits: |

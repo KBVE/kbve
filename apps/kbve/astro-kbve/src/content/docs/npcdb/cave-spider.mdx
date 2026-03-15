@@ -22,6 +22,29 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: true
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Cave Spider drops from above and sinks its fangs into {target}! {dmg} damage!"
+        - "Pale legs wrap around {target}'s arm as mandibles find flesh! {dmg} damage!"
+        - "The spider strikes from the shadows — two puncture wounds on {target}! {dmg} damage!"
+    - action: 'debuff'
+      messages:
+        - "Venom drips from the Cave Spider's fangs as it bites deep! {target} feels {effect} spreading!"
+        - "The spider's bite burns cold. {effect} courses through {target}'s veins!"
+    - action: 'defend'
+      messages:
+        - "The Cave Spider retreats into its web, watching with eight unblinking eyes. (+{armor} armor)"
+    - action: 'death'
+      messages:
+        - "The Cave Spider curls inward, legs folding like a closing fist. Still at last."
+        - "It lets out a thin hiss and collapses, venom pooling beneath its body."
+    - action: 'wounded'
+      messages:
+        - "*Ichor leaks from a crack in the spider's carapace. It backs away, hissing.*"
+    - action: 'near_death'
+      messages:
+        - "*The Cave Spider drags itself on its remaining legs, trailing a line of silk behind it.*"
 lore: |
     Cave Spiders weave nearly invisible webs across dungeon passages, paralyzing prey with a single bite.
 credits: |

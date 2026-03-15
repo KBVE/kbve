@@ -22,6 +22,26 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The statue swings a weathered stone fist at {target}. {dmg} damage."
+        - "Grinding forward on cracked legs, the statue brings its arm down on {target}. {dmg} damage."
+    - action: 'defend'
+      messages:
+        - "The Crumbling Statue crosses its stone arms and braces. Dust falls, but it holds. (+{armor} armor)"
+        - "Ancient runes flicker briefly across its surface as it fortifies. (+{armor} armor)"
+    - action: 'death'
+      messages:
+        - "The statue freezes mid-swing. A long crack splits it from crown to base, and it crumbles."
+        - "Its eyes go dark. The Crumbling Statue returns to what it always was — rubble."
+        - "It collapses with a heavy thud, and for a moment you hear something like a sigh in the settling dust."
+    - action: 'wounded'
+      messages:
+        - "*Chunks of stone fall from the statue's shoulder. It doesn't seem to notice.*"
+    - action: 'near_death'
+      messages:
+        - "*The statue is more rubble than guardian now. Only its duty holds it together.*"
 lore: |
     Once proud guardians of a forgotten temple, these statues continue their vigil long after their creators turned to dust.
 credits: |
