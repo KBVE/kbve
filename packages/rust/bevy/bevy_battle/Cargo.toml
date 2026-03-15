@@ -1,0 +1,23 @@
+[package]
+name = "bevy_battle"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94"
+license = "MIT"
+description = "Generic Bevy turn-based battle plugin with damage, effects, class procs, and enemy AI."
+homepage = "https://kbve.com/"
+repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_battle"
+keywords = ["bevy", "combat", "battle", "gamedev", "ecs"]
+categories = ["game-development", "game-engines"]
+
+[dependencies]
+bevy = { version = "0.18", default-features = false, features = [
+    "bevy_state",
+] }
+serde = { version = "1", features = ["derive"] }
+rand = "0.9"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
