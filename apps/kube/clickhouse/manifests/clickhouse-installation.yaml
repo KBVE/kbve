@@ -15,8 +15,8 @@ spec:
             logflare/networks/ip:
                 - '::/0'
             logflare/profile: 'default'
-            logflare/allow_databases:
-                - 'logflare'
+            logflare/grants:
+                - 'SHOW DATABASES,SELECT,INSERT,ALTER,CREATE TABLE,DROP TABLE,CREATE VIEW,DROP VIEW,CREATE DATABASE ON logflare.*'
         # Top-level ZooKeeper configuration - references the keeper service
         zookeeper:
             nodes:
