@@ -30,16 +30,24 @@ pub fn wasm_main() {
 
     bevy::app::App::new()
         .insert_resource(ClearColor(Color::srgb(0.1, 0.1, 0.15)))
-        .add_plugins(DefaultPlugins.set(bevy::window::WindowPlugin {
-            primary_window: Some(bevy::window::Window {
-                title: "KBVE Isometric".to_string(),
-                canvas: Some("#bevy-canvas".to_string()),
-                fit_canvas_to_parent: true,
-                prevent_default_event_handling: true,
-                ..default()
-            }),
-            ..default()
-        }))
+        .add_plugins(
+            DefaultPlugins
+                .set(bevy::window::WindowPlugin {
+                    primary_window: Some(bevy::window::Window {
+                        title: "KBVE Isometric".to_string(),
+                        canvas: Some("#bevy-canvas".to_string()),
+                        fit_canvas_to_parent: true,
+                        prevent_default_event_handling: true,
+                        ..default()
+                    }),
+                    ..default()
+                })
+                .set(bevy::asset::AssetPlugin {
+                    file_path: "/isometric/assets".to_string(),
+                    meta_check: bevy::asset::AssetMetaCheck::Never,
+                    ..default()
+                }),
+        )
         .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
         .add_plugins(bevy::picking::mesh_picking::MeshPickingPlugin)
         .add_plugins(PhysicsPlugins::default())
