@@ -35,17 +35,17 @@ jobs:
             has_projects: ${{ steps.matrix.outputs.has_projects }}
         steps:
             - name: Checkout
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+              uses: actions/checkout@v6
               with:
                   ref: ${{ inputs.branch || 'dev' }}
 
             - name: Setup Node v24
-              uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+              uses: actions/setup-node@v6
               with:
                   node-version: 24
 
             - name: Setup pnpm v10
-              uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+              uses: pnpm/action-setup@v4
               with:
                   version: 10
                   run_install: false
@@ -137,7 +137,7 @@ jobs:
             contents: read
         steps:
             - name: Download test markers
-              uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+              uses: actions/download-artifact@v8
               with:
                   pattern: test-passed-docker-*
                   path: ./test-results

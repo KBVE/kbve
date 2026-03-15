@@ -244,7 +244,7 @@ jobs:
             # ── Toolchain: Docker ─────────────────────────────────
             - name: Set up QEMU
               if: inputs.setup_docker
-              uses: docker/setup-qemu-action@v3
+              uses: docker/setup-qemu-action@v4
 
             - name: Set up Docker Buildx
               if: inputs.setup_docker
