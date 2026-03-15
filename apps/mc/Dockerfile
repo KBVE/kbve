@@ -69,6 +69,8 @@ FROM ${BASE_IMAGE} AS core
 # --- Pumpkin: build server (parallel with plugin) ---
 #     Copy full workspace so source is always fresh even if the base image is stale.
 FROM core AS builder
+COPY ./apps/mc/pumpkin/rust-toolchain.toml /pumpkin/rust-toolchain.toml
+RUN rustup show active-toolchain || rustup toolchain install
 COPY ./apps/mc/pumpkin/Cargo.toml ./apps/mc/pumpkin/Cargo.lock /pumpkin/
 COPY ./apps/mc/pumpkin/assets /pumpkin/assets
 COPY ./apps/mc/pumpkin/pumpkin /pumpkin/pumpkin
@@ -88,6 +90,8 @@ RUN --mount=type=cache,target=/usr/local/cargo/git/db \
 
 # --- Plugin: build (parallel with pumpkin, reuses all pre-compiled crates) ---
 FROM core AS plugin-builder
+COPY ./apps/mc/pumpkin/rust-toolchain.toml /pumpkin/rust-toolchain.toml
+RUN rustup show active-toolchain || rustup toolchain install
 COPY ./apps/mc/pumpkin/Cargo.toml ./apps/mc/pumpkin/Cargo.lock /pumpkin/
 COPY ./apps/mc/pumpkin/assets /pumpkin/assets
 COPY ./apps/mc/pumpkin/pumpkin /pumpkin/pumpkin

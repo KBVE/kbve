@@ -1,0 +1,29 @@
+# RBAC to allow kbve namespace to read the mc-rcon-secret from mc namespace
+# This enables the kbve SecretStore to pull the RCON password via ExternalSecret
+---
+# Role in mc namespace that grants access to mc-rcon-secret only
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: rcon-secret-reader
+    namespace: mc
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['mc-rcon-secret']
+      verbs: ['get', 'list', 'watch']
+---
+# RoleBinding to allow kbve-external-secrets SA to read secrets in mc namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: kbve-read-rcon-secret
+    namespace: mc
+subjects:
+    - kind: ServiceAccount
+      name: kbve-external-secrets
+      namespace: kbve
+roleRef:
+    kind: Role
+    name: rcon-secret-reader
+    apiGroup: rbac.authorization.k8s.io

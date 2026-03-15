@@ -11,7 +11,7 @@
 # --- Toolchain: install cargo-chef + rust toolchain (NO source) ---
 FROM rust:1.94-alpine3.23 AS chef
 ENV RUSTFLAGS="-C target-feature=-crt-static"
-RUN apk add --no-cache musl-dev git
+RUN apk upgrade --no-cache && apk add --no-cache musl-dev git
 RUN cargo install cargo-chef --locked \
     && rm -rf /usr/local/cargo/registry/src /usr/local/cargo/registry/cache
 WORKDIR /pumpkin

@@ -324,6 +324,7 @@ pub fn init_argo_proxy() -> bool {
 
     let mut builder = Client::builder()
         .redirect(reqwest::redirect::Policy::none())
+        .http1_only()
         .connect_timeout(Duration::from_secs(5))
         .timeout(Duration::from_secs(15));
 
