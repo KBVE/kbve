@@ -31,6 +31,9 @@ spec:
                       - name: http
                         containerPort: 4321
                         protocol: TCP
+                      - name: ws
+                        containerPort: 5000
+                        protocol: TCP
                   livenessProbe:
                       httpGet:
                           path: /health
@@ -120,6 +123,11 @@ spec:
     selector:
         app: kbve
     ports:
-        - port: 4321
+        - name: http
+          port: 4321
           targetPort: 4321
+          protocol: TCP
+        - name: ws
+          port: 5000
+          targetPort: 5000
           protocol: TCP
