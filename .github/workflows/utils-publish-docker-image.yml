@@ -34,6 +34,8 @@ jobs:
     publish:
         runs-on: ubuntu-latest
         timeout-minutes: 60
+        env:
+            NX_NO_CLOUD: true
         permissions:
             contents: read
             packages: write
@@ -174,7 +176,7 @@ jobs:
               env:
                   INPUT_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
               run: |
-                  pnpm nx run ${{ inputs.project }}:${{ inputs.target }} --configuration=production
+                  pnpm nx run ${{ inputs.project }}:${{ inputs.target }} --configuration=production --no-cloud
 
             - name: Scan Docker image with Trivy
               if: ${{ steps.version_check.outputs.should_publish != 'false' && inputs.image != '' }}

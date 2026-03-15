@@ -37,6 +37,8 @@ jobs:
     nx-kbve-shell:
         runs-on: ubuntu-latest
         timeout-minutes: 15
+        env:
+            NX_NO_CLOUD: true
         permissions:
             contents: write
             pull-requests: write
