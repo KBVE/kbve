@@ -28,14 +28,33 @@ import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
 
 # Mirror Chamber
 
-A hexagonal room whose walls are polished to a mirror finish. Your reflections move independently, sometimes ahead of you, sometimes behind. They seem to know things you don't.
+A hexagonal room whose six walls are polished to a mirror finish so perfect that the boundary between stone and reflection has ceased to exist. Your reflections move independently. Sometimes they lead you. Sometimes they trail behind. Sometimes they perform gestures you have not yet decided to make. The wrongness of this place settles into the bones: you are being studied by six versions of yourself, and none of them are quite right.
+
+## Discovery
+
+The temperature drops the moment you cross the threshold. The air is cold and dry, carrying the faint metallic scent of polished silver. Six versions of the player stare back from six walls, but their expressions are subtly off. A half-second delay in blinking. A tilt of the head that corresponds to no movement made. The floor is black glass, adding a seventh reflection beneath the player's feet. This one is perfectly synchronized, as though the floor alone tells the truth. Faint scratches mar the base of the eastern mirror, gouged into the stone by someone who once tried desperately to pry the panel from the wall.
 
 ## Interactions
-- Reflections may reveal hidden items or secret passages
-- Your mirror-self occasionally gestures warnings before ambushes
-- Breaking a mirror summons a hostile shade — but may reveal a hidden alcove
+
+- Reflections may reveal hidden items or secret passages by pointing toward things the player cannot see from their current angle
+- Your mirror-self occasionally gestures warnings before ambushes, raising a hand or shaking its head moments before danger arrives
+- Breaking a mirror summons a hostile shade, but may reveal a hidden alcove behind the shattered glass
+- If the player stands perfectly still for thirty seconds, all six reflections turn to face one another, ignoring the player entirely, and begin a silent conversation
+- Dropping a light source causes the reflections to multiply infinitely, briefly illuminating a seventh wall that should not exist
+
+## Secrets
+
+- One of the six mirrors is not a mirror at all but a window into an identical chamber elsewhere in the dungeon. Stepping through it is possible, but only during a new moon
+- If the player defeats the shade summoned by a broken mirror without taking damage, the shade drops a shard that functions as a scrying tool, showing the contents of the next unexplored room
+- The seventh reflection in the floor occasionally mouths words; reading its lips reveals a password that unlocks a sealed door elsewhere on the same level
+- A player who visits the chamber three times will find that one reflection no longer mimics them at all. It sits in the corner of its mirrored world, watching, and will not move again
 
 ## Lore
-The mirrors were installed by a long-dead archmage who believed parallel worlds could be accessed through perfect reflection. The experiment failed, but the reflections gained a life of their own.
+
+The mirrors were installed by the archmage Solenne Vair, who spent forty years attempting to prove the existence of parallel worlds accessible through perfect reflection. Her theory held that every mirror is a doorway held shut by imperfection, that a surface polished beyond a certain threshold would simply open, like a gate with no lock. She commissioned the six panels from a glassworker's guild that no longer exists, paying with knowledge rather than coin. The experiment failed, by all accounts. Solenne never found her parallel world. But the reflections gained a life of their own.
+
+What is less commonly known is that Solenne did not leave the chamber voluntarily. Her final journal entry, recovered from a waterlogged chest in the dungeon's lower levels, describes the moment she realized her reflection had stopped copying her. "It was smiling," she wrote, "and I was not." The entry ends mid-sentence. Excavation teams found the chamber empty, all six mirrors intact, and no sign of forced exit. One mirror, however, bore a handprint on its inner surface, pressed against the glass from the other side.
+
+The reflections have grown more autonomous over the centuries. Early explorers reported simple mimicry with minor delays. Modern accounts describe reflections that act with clear intent, warning favored visitors and misleading others. Whether they are fragments of Solenne's consciousness, autonomous entities, or inhabitants far older that merely adopted her experiment as a home remains the subject of bitter academic dispute. The only point of agreement is that the reflections are aware and that they remember every face they have ever worn.
 
 <MapDBPanel data={frontmatter} />
