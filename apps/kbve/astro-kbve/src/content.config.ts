@@ -9,6 +9,7 @@ import {
 	IObjectSchema,
 	IQuestSchema,
 	IMapObjectSchema,
+	INpcSchema,
 	OSRSExtendedSchema,
 } from '@/data/schema';
 
@@ -75,6 +76,14 @@ const mapdb = defineCollection({
 	schema: IMapObjectSchema,
 });
 
+const npcdb = defineCollection({
+	loader: glob({
+		pattern: '**/*.mdx',
+		base: './src/content/docs/npcdb',
+	}),
+	schema: INpcSchema,
+});
+
 export const collections = {
 	docs: defineCollection({
 		loader: docsLoader(),
@@ -83,12 +92,14 @@ export const collections = {
 				itemdb: z.array(IObjectSchema).optional(),
 				questdb: z.array(IQuestSchema).optional(),
 				mapdb: z.array(IMapObjectSchema).optional(),
+				npcdb: z.array(INpcSchema).optional(),
 				osrs: OSRSFrontmatterSchema.optional(),
 			}),
 		}),
 	}),
 	itemdb,
 	questdb,
+	npcdb,
 	application,
 	project,
 	mapdb,
