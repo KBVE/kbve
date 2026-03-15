@@ -2116,6 +2116,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_items"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "prost",
+ "prost-build",
+ "serde",
+]
+
+[[package]]
 name = "bevy_kbve_net"
 version = "0.1.0"
 dependencies = [
