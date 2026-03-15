@@ -1,35 +1,52 @@
 //! # bevy_npc
 //!
-//! Agnostic Bevy NPC plugin — data-driven NPC definitions, registry, and ECS
-//! components based on the `npcdb.proto` schema.
+//! Proto-driven NPC definitions for Bevy games.
 //!
-//! ## Quick start
+//! This crate compiles `npcdb.proto` into typed Rust structs via `prost` and
+//! wraps them in a searchable [`NpcDb`] Bevy resource. It is game-agnostic —
+//! any game can load the same proto NPC registry and query it by slug, ULID,
+//! type flags, rarity, or creature family.
+//!
+//! ## Loading from JSON
 //!
 //! ```rust,ignore
 //! use bevy::prelude::*;
-//! use bevy_npc::{NpcPlugin, NpcRegistry, NpcDef, NpcSlug};
+//! use bevy_npc::{BevyNpcPlugin, NpcDb};
 //!
-//! fn main() {
-//!     App::new()
-//!         .add_plugins(NpcPlugin)
-//!         .add_systems(Startup, load_npcs)
-//!         .run();
-//! }
-//!
-//! fn load_npcs(mut registry: ResMut<NpcRegistry>) {
-//!     // Load from JSON, database, or proto — then insert:
-//!     // registry.insert(npc_def);
+//! fn load_npcs(mut commands: Commands) {
+//!     let json = include_str!("path/to/npcdb.json");
+//!     let db = NpcDb::from_json(json).expect("Failed to parse NPC JSON");
+//!     commands.insert_resource(db);
 //! }
 //! ```
+//!
+//! ## Loading from proto binary
+//!
+//! ```rust,ignore
+//! let bytes = include_bytes!("path/to/npcs.binpb");
+//! let db = NpcDb::from_bytes(bytes).expect("Failed to decode NPC registry");
+//! ```
 
-pub mod component;
-pub mod plugin;
-pub mod registry;
-pub mod types;
+mod proto;
+mod registry;
 
-pub use component::{
-    NpcBundle, NpcCombatRank, NpcCombatStats, NpcId, NpcLevel, NpcName, NpcSlug, NpcTypeFlags,
-};
-pub use plugin::NpcPlugin;
-pub use registry::NpcRegistry;
-pub use types::*;
+// Re-export all proto-generated NPC types
+pub use proto::npc::*;
+
+// Re-export registry types
+pub use registry::{NpcDb, ProtoNpcId};
+
+use bevy::prelude::*;
+
+/// Bevy plugin that registers the [`NpcDb`] resource.
+///
+/// The resource is initialized empty. Games should populate it during
+/// startup by calling [`NpcDb::from_json`], [`NpcDb::from_bytes`],
+/// or [`NpcDb::from_proto`] and inserting it via [`Commands::insert_resource`].
+pub struct BevyNpcPlugin;
+
+impl Plugin for BevyNpcPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<NpcDb>();
+    }
+}

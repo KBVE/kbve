@@ -2244,6 +2244,8 @@ name = "bevy_npc"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "prost",
+ "prost-build",
  "serde",
  "serde_json",
 ]
