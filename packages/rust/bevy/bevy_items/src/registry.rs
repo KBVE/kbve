@@ -51,6 +51,19 @@ impl ItemDb {
         Ok(Self::from_proto(registry))
     }
 
+    /// Build from the Astro `/api/itemdb.json` response.
+    ///
+    /// This handles the string-enum to i32 conversion and Astro-specific
+    /// field mapping automatically.
+    pub fn from_json(json_str: &str) -> Result<Self, crate::json::JsonLoadError> {
+        let items = crate::json::parse_itemdb_json(json_str)?;
+        let mut db = Self::default();
+        for item in items {
+            db.insert(item);
+        }
+        Ok(db)
+    }
+
     /// Insert a single item into the registry.
     pub fn insert(&mut self, item: item::Item) {
         let id = ProtoItemId::from_slug(&item.slug);

@@ -7,26 +7,27 @@
 //! any game can load the same proto item registry and query it by slug, ULID,
 //! type flags, or rarity.
 //!
-//! ## Usage
+//! ## Loading from Astro JSON
 //!
 //! ```rust,ignore
 //! use bevy::prelude::*;
-//! use bevy_items::{BevyItemsPlugin, ItemDb, ItemRegistry};
-//!
-//! fn main() {
-//!     App::new()
-//!         .add_plugins(BevyItemsPlugin)
-//!         .add_systems(Startup, load_items)
-//!         .run();
-//! }
+//! use bevy_items::{BevyItemsPlugin, ItemDb};
 //!
 //! fn load_items(mut commands: Commands) {
-//!     let bytes = include_bytes!("path/to/items.binpb");
-//!     let db = ItemDb::from_bytes(bytes).expect("Failed to decode item registry");
+//!     let json = include_str!("path/to/itemdb.json");
+//!     let db = ItemDb::from_json(json).expect("Failed to parse item JSON");
 //!     commands.insert_resource(db);
 //! }
 //! ```
+//!
+//! ## Loading from proto binary
+//!
+//! ```rust,ignore
+//! let bytes = include_bytes!("path/to/items.binpb");
+//! let db = ItemDb::from_bytes(bytes).expect("Failed to decode item registry");
+//! ```
 
+pub mod json;
 mod proto;
 mod registry;
 
@@ -41,8 +42,8 @@ use bevy::prelude::*;
 /// Bevy plugin that registers the [`ItemDb`] resource.
 ///
 /// The resource is initialized empty. Games should populate it during
-/// startup by calling [`ItemDb::from_bytes`] or [`ItemDb::from_proto`]
-/// and inserting it via [`Commands::insert_resource`].
+/// startup by calling [`ItemDb::from_json`], [`ItemDb::from_bytes`],
+/// or [`ItemDb::from_proto`] and inserting it via [`Commands::insert_resource`].
 pub struct BevyItemsPlugin;
 
 impl Plugin for BevyItemsPlugin {
