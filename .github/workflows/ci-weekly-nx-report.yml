@@ -114,7 +114,8 @@ jobs:
               id: nx-report
               run: |
                   set -euo pipefail
-                  pnpm nx report > /tmp/nx-report-raw.txt 2>&1 || true
+                  # Capture report and strip ANSI color/bold codes that nx emits
+                  pnpm nx report 2>&1 | sed 's/\x1b\[[0-9;]*m//g' > /tmp/nx-report-raw.txt || true
                   echo "report_date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
                   echo "report_timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
 
