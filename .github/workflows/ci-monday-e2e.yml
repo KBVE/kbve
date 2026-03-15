@@ -56,8 +56,8 @@ jobs:
             - name: Build e2e matrix
               id: matrix
               run: |
-                  # Get all projects with an e2e target
-                  PROJECTS=$(pnpm nx show projects --with-target e2e 2>/dev/null | sort)
+                  # Get all projects with an e2e target, excluding desktop-only apps
+                  PROJECTS=$(pnpm nx show projects --with-target e2e 2>/dev/null | grep -v '^q$' | sort)
 
                   if [ -z "$PROJECTS" ]; then
                     echo "No e2e projects found"
