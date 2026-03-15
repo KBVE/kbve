@@ -12,8 +12,51 @@ concurrency:
 permissions: {}
 
 jobs:
+    # ── Fork & actor guard (mirrors utils-self-hosted-job) ───
+    guard:
+        name: Fork Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            allowed: ${{ steps.check.outputs.allowed }}
+        steps:
+            - name: Verify origin and actor
+              id: check
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
+                        const headRepo = context.payload.pull_request?.head?.repo?.full_name;
+                        const baseRepo = context.payload.repository?.full_name;
+                        if (headRepo && headRepo !== baseRepo) {
+                          core.error(`Blocked: fork PR from ${headRepo} cannot use self-hosted runners`);
+                          core.setOutput('allowed', 'false');
+                          return;
+                        }
+                      }
+                      try {
+                        const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          username: context.actor,
+                        });
+                        const level = data.permission;
+                        if (level === 'admin' || level === 'write') {
+                          core.info(`Actor ${context.actor} has ${level} access — allowed`);
+                          core.setOutput('allowed', 'true');
+                        } else {
+                          core.error(`Actor ${context.actor} has ${level} access — insufficient`);
+                          core.setOutput('allowed', 'false');
+                        }
+                      } catch (err) {
+                        core.error(`Permission check failed: ${err.message}`);
+                        core.setOutput('allowed', 'false');
+                      }
+
     generate:
         name: Generate NX Report & Graph
+        needs: guard
+        if: needs.guard.outputs.allowed == 'true'
         runs-on: arc-runner-set
         timeout-minutes: 30
         permissions:
@@ -70,19 +113,49 @@ jobs:
             - name: Generate NX Report
               id: nx-report
               run: |
+                  set -euo pipefail
                   pnpm nx report > /tmp/nx-report-raw.txt 2>&1 || true
                   echo "report_date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
                   echo "report_timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
 
+            - name: Validate NX Report output
+              run: |
+                  set -euo pipefail
+                  if [ ! -s /tmp/nx-report-raw.txt ]; then
+                    echo "::error::NX report output is empty"
+                    exit 1
+                  fi
+                  if ! grep -q "^nx " /tmp/nx-report-raw.txt; then
+                    echo "::warning::NX report may be malformed — missing nx version line"
+                    cat /tmp/nx-report-raw.txt
+                  fi
+                  echo "NX report validated ($(wc -l < /tmp/nx-report-raw.txt) lines)"
+
             - name: Generate NX Graph JSON
               run: |
+                  set -euo pipefail
                   pnpm nx graph --file=/tmp/nx-graph.json --open=false
                   rm -rf static 2>/dev/null || true
+
+            - name: Validate NX Graph JSON
+              run: |
+                  set -euo pipefail
+                  if [ ! -s /tmp/nx-graph.json ]; then
+                    echo "::error::NX graph JSON is empty"
+                    exit 1
+                  fi
+                  NODE_COUNT=$(python3 -c "import json; d=json.load(open('/tmp/nx-graph.json')); print(len(d['graph']['nodes']))")
+                  if [ "$NODE_COUNT" -eq 0 ]; then
+                    echo "::error::NX graph has zero nodes"
+                    exit 1
+                  fi
+                  echo "NX graph validated ($NODE_COUNT nodes)"
 
             # ── Build NX Report MDX ─────────────────────────────
             - name: Build NX Report MDX
               shell: bash
               run: |
+                  set -euo pipefail
                   REPORT_DATE="${{ steps.nx-report.outputs.report_date }}"
                   REPORT_TIMESTAMP="${{ steps.nx-report.outputs.report_timestamp }}"
                   DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/nx-report.mdx"
@@ -133,9 +206,37 @@ jobs:
             # ── Build NX Graph MDX ──────────────────────────────
             - name: Build NX Graph MDX
               run: |
+                  set -euo pipefail
                   DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/nx-graph.mdx"
                   TIMESTAMP="${{ steps.nx-report.outputs.report_timestamp }}"
                   python3 scripts/nx-graph-to-mdx.py /tmp/nx-graph.json "$DEST" "$TIMESTAMP"
+
+            # ── Validate generated MDX ──────────────────────────
+            - name: Validate generated MDX files
+              run: |
+                  set -euo pipefail
+                  REPORT="apps/kbve/astro-kbve/src/content/docs/dashboard/nx-report.mdx"
+                  GRAPH="apps/kbve/astro-kbve/src/content/docs/dashboard/nx-graph.mdx"
+
+                  for f in "$REPORT" "$GRAPH"; do
+                    if [ ! -s "$f" ]; then
+                      echo "::error::Generated file is empty: $f"
+                      exit 1
+                    fi
+                    if ! head -1 "$f" | grep -q '^---$'; then
+                      echo "::error::Missing YAML frontmatter in $f"
+                      exit 1
+                    fi
+                    echo "OK: $f ($(wc -c < "$f" | xargs) bytes)"
+                  done
+
+                  # Sanity: graph MDX should contain mermaid + Starlight imports
+                  if ! grep -q 'CardGrid' "$GRAPH"; then
+                    echo "::warning::Graph MDX missing Starlight CardGrid component"
+                  fi
+                  if ! grep -q 'mermaid' "$GRAPH"; then
+                    echo "::warning::Graph MDX missing mermaid diagram"
+                  fi
 
             # ── Commit & PR ──────────────────────────────────────
             - name: Commit and push
@@ -143,6 +244,7 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
+                  set -euo pipefail
                   git config user.name "github-actions[bot]"
                   git config user.email "github-actions[bot]@users.noreply.github.com"
 
@@ -159,6 +261,13 @@ jobs:
                     exit 0
                   fi
 
+                  # Guard: if branch already exists on remote, skip to avoid conflicts
+                  if git ls-remote --exit-code --heads origin "$BRANCH_NAME" > /dev/null 2>&1; then
+                    echo "::warning::Branch $BRANCH_NAME already exists on remote — skipping push"
+                    echo "pushed=false" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
                   git checkout -b "$BRANCH_NAME"
                   git commit -m "chore(astro-kbve): weekly nx report and graph ${REPORT_DATE}"
                   git push -u origin "$BRANCH_NAME"
@@ -171,6 +280,7 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
+                  set -euo pipefail
                   BRANCH_NAME="${{ steps.commit.outputs.branch_name }}"
                   REPORT_DATE="${{ steps.nx-report.outputs.report_date }}"
 
@@ -211,4 +321,5 @@ jobs:
               if: always()
               run: |
                   echo "Cleaning up workspace..."
+                  rm -f /tmp/nx-report-raw.txt /tmp/nx-graph.json /tmp/pr-body.md /tmp/pr-body-clean.md
                   rm -rf "$GITHUB_WORKSPACE"/* "$GITHUB_WORKSPACE"/.[!.]* 2>/dev/null || true
