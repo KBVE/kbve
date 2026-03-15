@@ -98,24 +98,25 @@ enum WorldObjectType {
   // Crafting stations (workbench, furnace, anvil)
   WORLD_OBJECT_CRAFTING_STATION = 3;
 
-  // Decorative / utility props
-  WORLD_OBJECT_LIGHT            = 4;
-  WORLD_OBJECT_SIGN             = 5;
-  WORLD_OBJECT_STATUE           = 6;
-  WORLD_OBJECT_PILLAR           = 7;
-  WORLD_OBJECT_CAMPFIRE         = 8;
-  WORLD_OBJECT_PORTAL           = 9;
-  WORLD_OBJECT_BARRIER          = 10;
+  // Decorative / utility props (statue, pillar, sign, campfire, etc.)
+  WORLD_OBJECT_PROP             = 4;
+
+  // Light sources — distinct for rendering/lighting system
+  WORLD_OBJECT_LIGHT            = 5;
+
+  // Navigation / movement
+  WORLD_OBJECT_PORTAL           = 6;
+  WORLD_OBJECT_BARRIER          = 7;
 
   // Gameplay markers
-  WORLD_OBJECT_NPC_MARKER       = 11;  // Where an NPC stands
-  WORLD_OBJECT_TRIGGER          = 12;  // Boss activation, quest zone, cutscene, spawn area
+  WORLD_OBJECT_NPC_MARKER       = 8;   // Where an NPC stands
+  WORLD_OBJECT_TRIGGER          = 9;   // Boss activation, quest zone, cutscene, spawn area
 
   // World structures
-  WORLD_OBJECT_SETTLEMENT       = 13;  // City / outpost / bazaar (zone-level safe area)
-  WORLD_OBJECT_BUILDING         = 14;  // Individual structure (inn, tavern, smithy)
-  WORLD_OBJECT_ARENA            = 15;  // Boss encounter room
-  WORLD_OBJECT_LANDMARK         = 16;  // Story / lore point of interest
+  WORLD_OBJECT_SETTLEMENT       = 10;  // City / outpost / bazaar (zone-level safe area)
+  WORLD_OBJECT_BUILDING         = 11;  // Individual structure (inn, tavern, smithy)
+  WORLD_OBJECT_ARENA            = 12;  // Boss encounter room
+  WORLD_OBJECT_LANDMARK         = 13;  // Story / lore point of interest
 
   // Escape hatch
   WORLD_OBJECT_CUSTOM           = 100;
