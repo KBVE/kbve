@@ -53,10 +53,10 @@ fn validate_actor(session: &SessionState, actor: serenity::UserId) -> Result<(),
     }
 
     // Check if the player is still alive
-    if let Some(player) = session.players.get(&actor) {
-        if !player.alive {
-            return Err("You have been defeated and cannot act.".to_owned());
-        }
+    if let Some(player) = session.players.get(&actor)
+        && !player.alive
+    {
+        return Err("You have been defeated and cannot act.".to_owned());
     }
 
     Ok(())
@@ -82,10 +82,10 @@ fn validate_action(
             if session.phase != GamePhase::Combat && session.phase != GamePhase::WaitingForActions {
                 return Err("You can only heal during combat.".to_owned());
             }
-            if let Some(player) = session.players.get(&actor) {
-                if player.class != ClassType::Cleric {
-                    return Err("Only Clerics can heal allies.".to_owned());
-                }
+            if let Some(player) = session.players.get(&actor)
+                && player.class != ClassType::Cleric
+            {
+                return Err("Only Clerics can heal allies.".to_owned());
             }
         }
         GameAction::Equip(_) | GameAction::Unequip(_) => {
@@ -462,8 +462,8 @@ fn resolve_combat_turn_party(
     let alive_ids = session.alive_player_ids();
     let mut auto_defended = Vec::new();
     for uid in alive_ids {
-        if !session.pending_actions.contains_key(&uid) {
-            session.pending_actions.insert(uid, GameAction::Defend);
+        if let std::collections::hash_map::Entry::Vacant(e) = session.pending_actions.entry(uid) {
+            e.insert(GameAction::Defend);
             auto_defended.push(uid);
         }
     }
@@ -526,18 +526,16 @@ fn resolve_combat_turn_party(
                 }
 
                 // Cleric defend proc: Prayer of Healing (25% chance)
-                if pclass == ClassType::Cleric {
-                    if rng.random::<f32>() < 0.25 {
-                        let heal = rng.random_range(5..=10);
-                        let player = session.player_mut(*uid);
-                        let healed = heal.min(player.max_hp - player.hp);
-                        player.hp = (player.hp + heal).min(player.max_hp);
-                        if healed > 0 {
-                            logs.push(format!(
-                                "{} whispers a prayer, restoring {} HP!",
-                                pname, healed
-                            ));
-                        }
+                if pclass == ClassType::Cleric && rng.random::<f32>() < 0.25 {
+                    let heal = rng.random_range(5..=10);
+                    let player = session.player_mut(*uid);
+                    let healed = heal.min(player.max_hp - player.hp);
+                    player.hp = (player.hp + heal).min(player.max_hp);
+                    if healed > 0 {
+                        logs.push(format!(
+                            "{} whispers a prayer, restoring {} HP!",
+                            pname, healed
+                        ));
                     }
                 }
             }
@@ -981,33 +979,34 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
 
             // Roll gear loot — suppressed if this kill already dropped a Rare+ item,
             // or if the encounter has already hit the rare drop cap.
-            if !item_was_rare && rare_drops_this_encounter < max_rare_drops {
-                if let Some(gear_id) = content::roll_gear_loot(loot_id) {
-                    let gear_is_rare = content::is_rare_or_above(gear_id);
+            if !item_was_rare
+                && rare_drops_this_encounter < max_rare_drops
+                && let Some(gear_id) = content::roll_gear_loot(loot_id)
+            {
+                let gear_is_rare = content::is_rare_or_above(gear_id);
 
-                    if gear_is_rare && rare_drops_this_encounter >= max_rare_drops {
-                        // Rare gear suppressed
-                    } else {
-                        if add_item_to_inventory(
-                            &mut session.player_mut(loot_recipient).inventory,
-                            gear_id,
-                        ) {
-                            if let Some(gear) = content::find_gear(gear_id) {
-                                if alive_ids.len() > 1 {
-                                    logs.push(format!(
-                                        "{} received gear: {}!",
-                                        recipient_name, gear.name
-                                    ));
-                                } else {
-                                    logs.push(format!("Dropped gear: {}!", gear.name));
-                                }
+                if gear_is_rare && rare_drops_this_encounter >= max_rare_drops {
+                    // Rare gear suppressed
+                } else {
+                    if add_item_to_inventory(
+                        &mut session.player_mut(loot_recipient).inventory,
+                        gear_id,
+                    ) {
+                        if let Some(gear) = content::find_gear(gear_id) {
+                            if alive_ids.len() > 1 {
+                                logs.push(format!(
+                                    "{} received gear: {}!",
+                                    recipient_name, gear.name
+                                ));
+                            } else {
+                                logs.push(format!("Dropped gear: {}!", gear.name));
                             }
-                        } else if let Some(gear) = content::find_gear(gear_id) {
-                            logs.push(format!("Inventory full! Lost gear: {}", gear.name));
                         }
-                        if gear_is_rare {
-                            rare_drops_this_encounter += 1;
-                        }
+                    } else if let Some(gear) = content::find_gear(gear_id) {
+                        logs.push(format!("Inventory full! Lost gear: {}", gear.name));
+                    }
+                    if gear_is_rare {
+                        rare_drops_this_encounter += 1;
                     }
                 }
             }
@@ -1353,7 +1352,7 @@ fn single_enemy_turn(
 
             // Thorns from effect
             let thorns_stacks = player.effect_stacks(&EffectKind::Thorns);
-            let thorns_dmg_effect = thorns_stacks as i32 * 1;
+            let thorns_dmg_effect = thorns_stacks as i32;
 
             // Thorns from gear
             let thorns_dmg_gear = player
@@ -1853,11 +1852,11 @@ fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
     session.map.position = pos;
 
     // Mark visited
-    if let Some(tile) = session.map.tiles.get_mut(&pos) {
-        if !tile.visited {
-            tile.visited = true;
-            session.map.tiles_visited += 1;
-        }
+    if let Some(tile) = session.map.tiles.get_mut(&pos)
+        && !tile.visited
+    {
+        tile.visited = true;
+        session.map.tiles_visited += 1;
     }
 
     // Reveal neighbors
@@ -2133,7 +2132,7 @@ fn tick_effects(effects: &mut Vec<EffectInstance>) -> (Vec<String>, i32) {
         let dmg = match effect.kind {
             EffectKind::Poison => 2 * effect.stacks as i32,
             EffectKind::Burning => 3 * effect.stacks as i32,
-            EffectKind::Bleed => 1 * effect.stacks as i32,
+            EffectKind::Bleed => effect.stacks as i32,
             // Sharpened, Thorns, Shielded, Weakened, Stunned deal no tick damage
             _ => 0,
         };

@@ -16,11 +16,11 @@ const ENV_KEYS: &[&str] = &["GITHUB_TOKEN", "GITHUB_TOKEN_API", "GITHUB_TOKEN_PA
 pub async fn resolve_github_token(guild_id: Option<u64>) -> Option<String> {
     // 1. Check env vars
     for key in ENV_KEYS {
-        if let Ok(val) = std::env::var(key) {
-            if !val.is_empty() {
-                info!(source = key, "Using GitHub token from env var");
-                return Some(val);
-            }
+        if let Ok(val) = std::env::var(key)
+            && !val.is_empty()
+        {
+            info!(source = key, "Using GitHub token from env var");
+            return Some(val);
         }
     }
 

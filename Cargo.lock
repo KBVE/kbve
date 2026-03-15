@@ -1626,6 +1626,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_battle"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "rand 0.9.2",
+ "serde",
+]
+
+[[package]]
 name = "bevy_cam"
 version = "0.1.0"
 dependencies = [
