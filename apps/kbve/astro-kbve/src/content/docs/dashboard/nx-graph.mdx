@@ -8,11 +8,408 @@ sidebar:
 editUrl: false
 ---
 
+import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
+
 ## NX Dependency Graph
 
-> This page is auto-generated every Tuesday by the `ci-weekly-nx-report` workflow.
->
-> No graph has been generated yet. The next graph will appear after the workflow runs.
+:::note[Auto-generated]
+Last generated: **2026-03-15T06:49:53Z** — updated every Tuesday by `ci-weekly-nx-report`.
+:::
+
+<CardGrid>
+  <Card title="27 Apps" icon="rocket">
+    @kbve/source, astro-cryptothrone, astro-discordsh, astro-herbmail, astro-irc, astro-kbve + 21 more
+  </Card>
+  <Card title="14 E2es" icon="approve-check-circle">
+    astro-cryptothrone-e2e, astro-e2e, astro-kbve-e2e, axum-kbve-e2e, devops-e2e, discordsh-e2e + 8 more
+  </Card>
+  <Card title="13 Libs" icon="puzzle">
+    astro, devops, droid, erust, holy, jedi + 7 more
+  </Card>
+  <Card title="36 Dependencies" icon="random">
+    Across 54 projects in the monorepo.
+  </Card>
+</CardGrid>
+
+### Most Depended-On Projects
+
+<CardGrid>
+  <Card title="droid" icon="puzzle">
+    **12** projects depend on this lib. Located at `packages/npm/droid`.
+  </Card>
+  <Card title="astro" icon="puzzle">
+    **8** projects depend on this lib. Located at `packages/npm/astro`.
+  </Card>
+  <Card title="devops" icon="puzzle">
+    **4** projects depend on this lib. Located at `packages/npm/devops`.
+  </Card>
+  <Card title="laser" icon="puzzle">
+    **4** projects depend on this lib. Located at `packages/npm/laser`.
+  </Card>
+  <Card title="khashvault" icon="puzzle">
+    **2** projects depend on this lib. Located at `packages/npm/khashvault`.
+  </Card>
+</CardGrid>
+
+<Tabs>
+  <TabItem label="Diagram">
+
+```mermaid
+graph LR
+    classDef app fill:#3b82f6,stroke:#1d4ed8,color:#fff
+    classDef lib fill:#10b981,stroke:#059669,color:#fff
+    classDef e2e fill:#f59e0b,stroke:#d97706,color:#fff
+    _kbve_source["@kbve/source"] --> devops["devops"]
+    astro["astro"] --> droid["droid"]
+    astro_cryptothrone["astro-cryptothrone"] --> laser["laser"]
+    astro_cryptothrone_e2e["astro-cryptothrone-e2e"] --> astro_cryptothrone["astro-cryptothrone"]
+    astro_discordsh["astro-discordsh"] --> astro["astro"]
+    astro_discordsh["astro-discordsh"] --> droid["droid"]
+    astro_e2e["astro-e2e"] --> astro["astro"]
+    astro_e2e["astro-e2e"] --> droid["droid"]
+    astro_herbmail["astro-herbmail"] --> astro["astro"]
+    astro_herbmail["astro-herbmail"] --> droid["droid"]
+    astro_irc["astro-irc"] --> astro["astro"]
+    astro_irc["astro-irc"] --> droid["droid"]
+    astro_kbve["astro-kbve"] --> astro["astro"]
+    astro_kbve["astro-kbve"] --> droid["droid"]
+    astro_kbve["astro-kbve"] --> laser["laser"]
+    astro_kbve_e2e["astro-kbve-e2e"] --> astro_kbve["astro-kbve"]
+    astro_mc["astro-mc"] --> astro["astro"]
+    astro_mc["astro-mc"] --> droid["droid"]
+    astro_memes["astro-memes"] --> astro["astro"]
+    astro_memes["astro-memes"] --> droid["droid"]
+    axum_kbve_e2e["axum-kbve-e2e"] --> axum_kbve["axum-kbve"]
+    devops_e2e["devops-e2e"] --> devops["devops"]
+    discordsh_e2e["discordsh-e2e"] --> astro_discordsh["astro-discordsh"]
+    discordsh_e2e["discordsh-e2e"] --> axum_discordsh["axum-discordsh"]
+    droid_e2e["droid-e2e"] --> droid["droid"]
+    edge_e2e["edge-e2e"] --> edge["edge"]
+    herbmail_e2e["herbmail-e2e"] --> astro_herbmail["astro-herbmail"]
+    herbmail_e2e["herbmail-e2e"] --> axum_herbmail["axum-herbmail"]
+    irc_e2e["irc-e2e"] --> astro_irc["astro-irc"]
+    irc_e2e["irc-e2e"] --> irc_gateway["irc-gateway"]
+    khashvault["khashvault"] --> droid["droid"]
+    khashvault_e2e["khashvault-e2e"] --> khashvault["khashvault"]
+    laser_e2e["laser-e2e"] --> laser["laser"]
+    mc_e2e["mc-e2e"] --> mc["mc"]
+    memes_e2e["memes-e2e"] --> astro_memes["astro-memes"]
+    memes_e2e["memes-e2e"] --> axum_memes["axum-memes"]
+    class _kbve_source,astro_cryptothrone,astro_discordsh,astro_herbmail,astro_irc,astro_kbve,astro_mc,astro_memes,axum_cryptothrone,axum_discordsh,axum_herbmail,axum_kbve,axum_memes,cryptothrone,discordsh,edge,herbmail,irc,irc_gateway,isometric,kilobase,mc,memes,notification_bot,pydesk,react_phaser_fish_chip,react_phaser_travelbox app
+    class astro,devops,droid,erust,holy,jedi,kbve,khashvault,laser,python_fudster,python_kbve,q,soul lib
+    class astro_cryptothrone_e2e,astro_e2e,astro_kbve_e2e,axum_kbve_e2e,devops_e2e,discordsh_e2e,droid_e2e,edge_e2e,herbmail_e2e,irc_e2e,khashvault_e2e,laser_e2e,mc_e2e,memes_e2e e2e
+```
+
+:::tip[Legend]
+**Blue** = Application &nbsp; **Green** = Library &nbsp; **Amber** = E2E Test
+:::
+
+  </TabItem>
+  <TabItem label="Project Index">
+
+| Project | Type | Root | Deps | Dependents |
+|---------|------|------|:----:|:----------:|
+| **@kbve/source** | app | `.` | 1 | 0 |
+| **astro** | lib | `packages/npm/astro` | 2 | 8 |
+| **astro-cryptothrone** | app | `apps/cryptothrone/astro-cryptothrone` | 1 | 1 |
+| **astro-cryptothrone-e2e** | e2e | `apps/cryptothrone/astro-cryptothrone-e2e` | 1 | 0 |
+| **astro-discordsh** | app | `apps/discordsh/astro-discordsh` | 2 | 1 |
+| **astro-e2e** | e2e | `packages/npm/astro-e2e` | 3 | 0 |
+| **astro-herbmail** | app | `apps/herbmail/astro-herbmail` | 2 | 1 |
+| **astro-irc** | app | `apps/irc/astro-irc` | 2 | 1 |
+| **astro-kbve** | app | `apps/kbve/astro-kbve` | 3 | 1 |
+| **astro-kbve-e2e** | e2e | `apps/kbve/astro-kbve-e2e` | 1 | 0 |
+| **astro-mc** | app | `apps/mc/astro-mc` | 2 | 0 |
+| **astro-memes** | app | `apps/memes/astro-memes` | 2 | 1 |
+| **axum-cryptothrone** | app | `apps/cryptothrone/axum-cryptothrone` | 0 | 0 |
+| **axum-discordsh** | app | `apps/discordsh/axum-discordsh` | 0 | 1 |
+| **axum-herbmail** | app | `apps/herbmail/axum-herbmail` | 0 | 1 |
+| **axum-kbve** | app | `apps/kbve/axum-kbve` | 0 | 1 |
+| **axum-kbve-e2e** | e2e | `apps/kbve/axum-kbve-e2e` | 1 | 0 |
+| **axum-memes** | app | `apps/memes/axum-memes` | 0 | 1 |
+| **cryptothrone** | app | `apps/cryptothrone` | 0 | 0 |
+| **devops** | lib | `packages/npm/devops` | 0 | 4 |
+| **devops-e2e** | e2e | `packages/npm/devops-e2e` | 3 | 0 |
+| **discordsh** | app | `apps/discordsh` | 0 | 0 |
+| **discordsh-e2e** | e2e | `apps/discordsh/discordsh-e2e` | 2 | 0 |
+| **droid** | lib | `packages/npm/droid` | 0 | 12 |
+| **droid-e2e** | e2e | `packages/npm/droid-e2e` | 2 | 0 |
+| **edge** | app | `apps/kbve/edge` | 0 | 1 |
+| **edge-e2e** | e2e | `apps/kbve/edge-e2e` | 1 | 0 |
+| **erust** | lib | `packages/rust/erust` | 0 | 0 |
+| **herbmail** | app | `apps/herbmail` | 0 | 0 |
+| **herbmail-e2e** | e2e | `apps/herbmail/herbmail-e2e` | 2 | 0 |
+| **holy** | lib | `packages/rust/holy` | 0 | 0 |
+| **irc** | app | `apps/irc` | 0 | 0 |
+| **irc-e2e** | e2e | `apps/irc/irc-e2e` | 2 | 0 |
+| **irc-gateway** | app | `apps/irc/irc-gateway` | 0 | 1 |
+| **isometric** | app | `apps/kbve/isometric` | 0 | 0 |
+| **jedi** | lib | `packages/rust/jedi` | 0 | 0 |
+| **kbve** | lib | `packages/rust/kbve` | 0 | 0 |
+| **khashvault** | lib | `packages/npm/khashvault` | 1 | 2 |
+| **khashvault-e2e** | e2e | `packages/npm/khashvault-e2e` | 2 | 0 |
+| **kilobase** | app | `apps/kbve/kilobase` | 0 | 0 |
+| **laser** | lib | `packages/npm/laser` | 0 | 4 |
+| **laser-e2e** | e2e | `packages/npm/laser-e2e` | 2 | 0 |
+| **mc** | app | `apps/mc` | 0 | 1 |
+| **mc-e2e** | e2e | `apps/mc/mc-e2e` | 1 | 0 |
+| **memes** | app | `apps/memes` | 0 | 0 |
+| **memes-e2e** | e2e | `apps/memes/memes-e2e` | 2 | 0 |
+| **notification-bot** | app | `apps/discordsh/notification-bot` | 0 | 0 |
+| **pydesk** | app | `apps/pydesk` | 0 | 0 |
+| **python-fudster** | lib | `packages/python/fudster` | 0 | 0 |
+| **python-kbve** | lib | `packages/python/kbve` | 0 | 0 |
+| **q** | lib | `packages/rust/q` | 0 | 0 |
+| **react-phaser-fish-chip** | app | `apps/gamejam/react-phaser-fish-chip` | 0 | 0 |
+| **react-phaser-travelbox** | app | `apps/gamejam/react-phaser-travelbox` | 0 | 0 |
+| **soul** | lib | `packages/rust/soul` | 0 | 0 |
+
+  </TabItem>
+  <TabItem label="Details">
+
+#### App Projects
+
+<details>
+<summary><strong>@kbve/source</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| devops | static |
+
+</details>
+
+<details>
+<summary><strong>astro-cryptothrone</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| laser | static |
+
+</details>
+
+<details>
+<summary><strong>astro-discordsh</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| astro | static |
+| droid | static |
+
+</details>
+
+<details>
+<summary><strong>astro-herbmail</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| astro | static |
+| droid | static |
+
+</details>
+
+<details>
+<summary><strong>astro-irc</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| astro | static |
+| droid | static |
+
+</details>
+
+<details>
+<summary><strong>astro-kbve</strong> (3 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| astro | static |
+| droid | static |
+| laser | static |
+
+</details>
+
+<details>
+<summary><strong>astro-mc</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| astro | static |
+| droid | static |
+
+</details>
+
+<details>
+<summary><strong>astro-memes</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| astro | static |
+| droid | static |
+
+</details>
+
+#### E2e Projects
+
+<details>
+<summary><strong>astro-cryptothrone-e2e</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| astro-cryptothrone | implicit |
+
+</details>
+
+<details>
+<summary><strong>astro-e2e</strong> (3 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| astro | implicit |
+| astro | static |
+| droid | static |
+
+</details>
+
+<details>
+<summary><strong>astro-kbve-e2e</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| astro-kbve | implicit |
+
+</details>
+
+<details>
+<summary><strong>axum-kbve-e2e</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| axum-kbve | implicit |
+
+</details>
+
+<details>
+<summary><strong>devops-e2e</strong> (3 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| devops | implicit |
+| devops | static |
+| devops | dynamic |
+
+</details>
+
+<details>
+<summary><strong>discordsh-e2e</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| astro-discordsh | implicit |
+| axum-discordsh | implicit |
+
+</details>
+
+<details>
+<summary><strong>droid-e2e</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| droid | implicit |
+| droid | static |
+
+</details>
+
+<details>
+<summary><strong>edge-e2e</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| edge | implicit |
+
+</details>
+
+<details>
+<summary><strong>herbmail-e2e</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| astro-herbmail | implicit |
+| axum-herbmail | implicit |
+
+</details>
+
+<details>
+<summary><strong>irc-e2e</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| astro-irc | implicit |
+| irc-gateway | implicit |
+
+</details>
+
+<details>
+<summary><strong>khashvault-e2e</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| khashvault | implicit |
+| khashvault | static |
+
+</details>
+
+<details>
+<summary><strong>laser-e2e</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| laser | implicit |
+| laser | static |
+
+</details>
+
+<details>
+<summary><strong>mc-e2e</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| mc | implicit |
+
+</details>
+
+<details>
+<summary><strong>memes-e2e</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| astro-memes | implicit |
+| axum-memes | implicit |
+
+</details>
+
+#### Lib Projects
+
+<details>
+<summary><strong>astro</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| droid | static |
+| droid | dynamic |
+
+</details>
+
+<details>
+<summary><strong>khashvault</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| droid | static |
+
+</details>
+
+  </TabItem>
+</Tabs>
 
 ---
 
