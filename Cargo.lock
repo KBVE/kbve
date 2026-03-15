@@ -1193,6 +1193,7 @@ dependencies = [
  "askama",
  "axum",
  "axum-extra",
+ "bevy_items",
  "dashmap 6.1.0",
  "dotenvy",
  "http-body-util",
@@ -1278,7 +1279,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.47"
+version = "1.0.48"
 dependencies = [
  "anyhow",
  "askama",
@@ -1622,6 +1623,15 @@ dependencies = [
  "cpal",
  "rodio",
  "tracing",
+]
+
+[[package]]
+name = "bevy_battle"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "rand 0.9.2",
+ "serde",
 ]
 
 [[package]]

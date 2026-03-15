@@ -6,7 +6,7 @@
 	"scripts": {
 		"build:wasm": "cd src-tauri && wasm-pack build --target web --out-dir ../wasm-pkg --out-name isometric_game",
 		"dev": "vite",
-		"build": "npm run build:wasm && npx tsc && vite build && cp public/assets/shaders/*.wgsl dist/assets/shaders/",
+		"build": "npm run build:wasm && npx tsc && vite build && cp -r public/assets/shaders/*.wgsl dist/assets/shaders/ && cp -r public/assets/textures/* dist/assets/textures/",
 		"preview": "vite preview"
 	},
 	"dependencies": {

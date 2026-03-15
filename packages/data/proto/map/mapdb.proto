@@ -515,8 +515,8 @@ message WorldObjectDef {
   repeated MapExtension extensions = 24;
 
   // Metadata
-  optional string credits = 37;
-  optional bool drafted = 38;
+  optional string credits = 40;
+  optional bool drafted = 41;
 }
 
 // Resource cost for constructing a structure

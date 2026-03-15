@@ -158,19 +158,19 @@ async fn start(
     ctx.data().app.sessions.create(final_state);
 
     // One-time guest notice
-    if let MemberStatus::Guest { notified } = &member_status_raw {
-        if !notified {
-            ctx.send(
-                poise::CreateReply::default()
-                    .content(
-                        "You're playing as a **Guest**. Link your Discord account at \
+    if let MemberStatus::Guest { notified } = &member_status_raw
+        && !notified
+    {
+        ctx.send(
+            poise::CreateReply::default()
+                .content(
+                    "You're playing as a **Guest**. Link your Discord account at \
                          <https://kbve.com> to unlock Member perks!",
-                    )
-                    .ephemeral(true),
-            )
-            .await?;
-            ctx.data().app.members.mark_notified(user.get());
-        }
+                )
+                .ephemeral(true),
+        )
+        .await?;
+        ctx.data().app.members.mark_notified(user.get());
     }
 
     Ok(())
@@ -328,19 +328,19 @@ async fn join(
     .await?;
 
     // One-time guest notice for joining player
-    if let MemberStatus::Guest { notified } = &member_status_raw {
-        if !notified {
-            ctx.send(
-                poise::CreateReply::default()
-                    .content(
-                        "You're playing as a **Guest**. Link your Discord account at \
+    if let MemberStatus::Guest { notified } = &member_status_raw
+        && !notified
+    {
+        ctx.send(
+            poise::CreateReply::default()
+                .content(
+                    "You're playing as a **Guest**. Link your Discord account at \
                          <https://kbve.com> to unlock Member perks!",
-                    )
-                    .ephemeral(true),
-            )
-            .await?;
-            ctx.data().app.members.mark_notified(user.get());
-        }
+                )
+                .ephemeral(true),
+        )
+        .await?;
+        ctx.data().app.members.mark_notified(user.get());
     }
 
     Ok(())

@@ -28,14 +28,37 @@ import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
 
 # Ember Hearth
 
-A stone fireplace that burns with an eternal pale blue flame. No wood, no coal — just quiet, steady warmth that has outlasted empires.
+A stone fireplace burns with an eternal pale blue flame in a chamber that feels, against all reason, like home. No wood, no coal, no fuel of any kind. Just quiet, steady warmth that has outlasted empires. The fire does not crackle or spit. It breathes, slow and even, casting shadows that sway like sleepers turning in their dreams.
+
+## Atmosphere
+
+The hearth is built from dark basalt that absorbs the blue light and returns it softened, filling the chamber with a gentle luminescence that does not hurt the eyes even after hours in total darkness. The mantle is carved with a repeating motif of interlocking flames, worn smooth by centuries of hands resting upon it. The air is warm and dry, carrying the faintest scent of cedar resin. Visitors often remark that it reminds them of somewhere safe, though the specific memory differs from person to person. The floor before the hearth is concave, worn down by generations of people sitting in the same spot, their weight slowly reshaping stone into a shallow bowl that cradles anyone who rests there. The fire gives no smoke. It casts no sparks. It simply exists, offering warmth to anything that comes close enough to accept it.
 
 ## Effects
-- Sitting by the hearth restores HP gradually
-- The blue flame wards off nearby enemies
-- Cooking rations here doubles their healing effect
+
+- Sitting by the hearth restores 1.5% HP per second, scaling slightly with the player's maximum health; the sicker the visitor, the harder the flame works
+- The blue flame wards off nearby enemies within a 20-meter radius; creatures that enter the light become docile and confused, wandering away after a few seconds
+- Cooking rations at the hearth doubles their healing effect and adds a "Hearth-Warmed" buff that provides cold resistance for ten minutes
+- Players who rest for a full two minutes receive "Ember's Comfort," a morale buff that increases stamina regeneration by 15% for the next dungeon floor
+- The flame cannot be extinguished by any known means. Water evaporates before touching it, wind spells curve around it, and smothering attempts simply pass through as though the fire occupies a slightly different space than it appears to
+
+## Whispers
+
+The hearth does not speak, but it communicates. Those who sit before it long enough report impressions rather than words, feelings that arrive fully formed, like memories that belong to someone else:
+
+- *A sense of tremendous age, of having burned since before the stone around it was laid*
+- *Warmth without hunger. The fire does not consume, and this is the source of its peace*
+- *A sadness, vast and patient, for all the cold things in the world that will never come close enough to be warmed*
+- Scratched into the hearthstone, in handwriting rather than carved script: *"It waited for me. I think it waits for everyone."*
+
+On rare occasions, the flame shifts from blue to a deep violet, and visitors report hearing a single, sustained note, not a sound but a vibration felt in the chest, like the lowest string of an instrument too large to see.
 
 ## Lore
-The flame predates the dungeon. Miners who first broke through to this chamber found it already burning. Some theorize it is the last ember of a fire elemental who chose peace over fury.
+
+The flame predates the dungeon. Miners from the Korvathi Excavation Company who first broke through to this chamber in the Year of Drawn Iron found it already burning, seated in a hearth that had no chimney, no flue, and no apparent connection to any fuel source. Their foreman, a practical woman named Halle Brekt, noted in her survey log that the flame "burned as though it had been burning forever and intended to continue." She ordered the chamber sealed and built around, and the dungeon's architects obliged, incorporating the hearth into the structure's lowest level. It has not moved since. It has not needed to.
+
+The dominant theory regarding the flame's origin holds that it is the last ember of a fire elemental who chose peace over fury. Elemental scholars point to the flame's behavior, its refusal to consume, its warmth without destruction, its apparent awareness of living things, as consistent with the final stage of an elemental's lifecycle, when the rage that defines their kind burns itself out and leaves behind something gentler. If this theory is correct, the elemental would have been ancient even by the standards of its kind. Old enough to have grown tired of burning. Wise enough to find a different purpose. It chose to become a hearth: a fire that exists not to destroy but to shelter.
+
+The alternative theory is less reassuring. A minority of scholars, led by the late thermodynamic philosopher Cael Voss, argued that the flame is not an elemental at all but a wound in the fabric of reality, a point where energy bleeds through from an adjacent plane composed entirely of heat and light. In this framework, the flame is not choosing to burn. It is simply the visible edge of an incomprehensibly vast fire that exists elsewhere, pressing against the thin membrane of the world like a coal held behind a sheet of paper. The hearth, the mantle, the carved flames: all of it was built by early visitors who instinctively tried to domesticate something they could not understand, framing the unknowable in the language of comfort. Whether the flame cares about this interpretation, or cares about anything at all, is a question it answers the same way it answers every question. With warmth, and with silence.
 
 <MapDBPanel data={frontmatter} />

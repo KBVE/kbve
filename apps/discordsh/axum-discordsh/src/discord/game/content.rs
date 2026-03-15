@@ -177,196 +177,19 @@ fn pick_template(pool: &[RoomTemplate], rng: &mut impl Rng) -> (String, String) 
     (t.name.to_owned(), t.description.to_owned())
 }
 
-// ── Item registry ───────────────────────────────────────────────────
+// ── Item registry (proto-driven) ────────────────────────────────────
+//
+// Item definitions are now loaded from the embedded itemdb.json via the
+// proto_bridge module. The hardcoded arrays have been removed.
 
-/// Static item definitions for the dungeon.
+/// All consumable item definitions, loaded from the proto item database.
 pub fn item_registry() -> &'static [ItemDef] {
-    static ITEMS: &[ItemDef] = &[
-        ItemDef {
-            id: "potion",
-            name: "Potion",
-            emoji: "\u{1F9EA}",
-            description: "Restores 15 HP",
-            max_stack: 5,
-            rarity: ItemRarity::Common,
-            use_effect: Some(UseEffect::Heal { amount: 15 }),
-        },
-        ItemDef {
-            id: "bandage",
-            name: "Bandage",
-            emoji: "\u{1F9F7}",
-            description: "Heals 5 HP and removes bleed",
-            max_stack: 5,
-            rarity: ItemRarity::Common,
-            use_effect: Some(UseEffect::Heal { amount: 5 }),
-        },
-        ItemDef {
-            id: "bomb",
-            name: "Bomb",
-            emoji: "\u{1F4A3}",
-            description: "Deals 10 damage to the enemy",
-            max_stack: 3,
-            rarity: ItemRarity::Uncommon,
-            use_effect: Some(UseEffect::DamageEnemy { amount: 10 }),
-        },
-        ItemDef {
-            id: "ward",
-            name: "Ward",
-            emoji: "\u{1F9FF}",
-            description: "Grants Shielded for 2 turns",
-            max_stack: 2,
-            rarity: ItemRarity::Rare,
-            use_effect: Some(UseEffect::ApplyEffect {
-                kind: EffectKind::Shielded,
-                stacks: 1,
-                turns: 2,
-            }),
-        },
-        ItemDef {
-            id: "rations",
-            name: "Rations",
-            emoji: "\u{1F35E}",
-            description: "Heals 8 HP (best used out of combat)",
-            max_stack: 3,
-            rarity: ItemRarity::Common,
-            use_effect: Some(UseEffect::Heal { amount: 8 }),
-        },
-        ItemDef {
-            id: "smoke_bomb",
-            name: "Smoke Bomb",
-            emoji: "\u{1F4A8}",
-            description: "Guaranteed escape from combat",
-            max_stack: 1,
-            rarity: ItemRarity::Rare,
-            use_effect: Some(UseEffect::GuaranteedFlee),
-        },
-        ItemDef {
-            id: "elixir",
-            name: "Elixir",
-            emoji: "\u{2728}",
-            description: "Fully restores HP",
-            max_stack: 1,
-            rarity: ItemRarity::Legendary,
-            use_effect: Some(UseEffect::FullHeal),
-        },
-        ItemDef {
-            id: "whetstone",
-            name: "Whetstone",
-            emoji: "\u{1FAA8}",
-            description: "Sharpens weapon for 3 turns (+3 dmg)",
-            max_stack: 2,
-            rarity: ItemRarity::Uncommon,
-            use_effect: Some(UseEffect::ApplyEffect {
-                kind: EffectKind::Sharpened,
-                stacks: 1,
-                turns: 3,
-            }),
-        },
-        ItemDef {
-            id: "antidote",
-            name: "Antidote",
-            emoji: "\u{1F9F4}",
-            description: "Removes all negative effects",
-            max_stack: 2,
-            rarity: ItemRarity::Uncommon,
-            use_effect: Some(UseEffect::RemoveAllNegativeEffects),
-        },
-        ItemDef {
-            id: "trap_kit",
-            name: "Trap Kit",
-            emoji: "\u{1FAA4}",
-            description: "Sets a trap that damages attackers",
-            max_stack: 2,
-            rarity: ItemRarity::Uncommon,
-            use_effect: Some(UseEffect::ApplyEffect {
-                kind: EffectKind::Thorns,
-                stacks: 5,
-                turns: 2,
-            }),
-        },
-        ItemDef {
-            id: "campfire_kit",
-            name: "Campfire Kit",
-            emoji: "\u{1F525}",
-            description: "Set camp and rest. Heals 50% HP, clears debuffs (party-wide)",
-            max_stack: 1,
-            rarity: ItemRarity::Rare,
-            use_effect: Some(UseEffect::CampfireRest { heal_percent: 50 }),
-        },
-        ItemDef {
-            id: "teleport_rune",
-            name: "Teleport Rune",
-            emoji: "\u{1F300}",
-            description: "Teleports the party back to the nearest city",
-            max_stack: 1,
-            rarity: ItemRarity::Rare,
-            use_effect: Some(UseEffect::TeleportCity),
-        },
-        ItemDef {
-            id: "vitality_potion",
-            name: "Vitality Potion",
-            emoji: "\u{1F48A}",
-            description: "Restores 25 HP",
-            max_stack: 3,
-            rarity: ItemRarity::Uncommon,
-            use_effect: Some(UseEffect::Heal { amount: 25 }),
-        },
-        ItemDef {
-            id: "fire_flask",
-            name: "Fire Flask",
-            emoji: "\u{1F525}",
-            description: "Deals 8 damage and burns the enemy for 3 turns",
-            max_stack: 3,
-            rarity: ItemRarity::Uncommon,
-            use_effect: Some(UseEffect::DamageAndApply {
-                damage: 8,
-                kind: EffectKind::Burning,
-                stacks: 2,
-                turns: 3,
-            }),
-        },
-        ItemDef {
-            id: "iron_skin_potion",
-            name: "Iron Skin Potion",
-            emoji: "\u{1F6E1}",
-            description: "Grants Shielded for 3 turns",
-            max_stack: 2,
-            rarity: ItemRarity::Uncommon,
-            use_effect: Some(UseEffect::ApplyEffect {
-                kind: EffectKind::Shielded,
-                stacks: 1,
-                turns: 3,
-            }),
-        },
-        ItemDef {
-            id: "rage_draught",
-            name: "Rage Draught",
-            emoji: "\u{1F9EA}",
-            description: "Sharpens weapon for 4 turns (+6 dmg)",
-            max_stack: 2,
-            rarity: ItemRarity::Rare,
-            use_effect: Some(UseEffect::ApplyEffect {
-                kind: EffectKind::Sharpened,
-                stacks: 2,
-                turns: 4,
-            }),
-        },
-        ItemDef {
-            id: "phoenix_feather",
-            name: "Phoenix Feather",
-            emoji: "\u{1F525}",
-            description: "Revives a fallen party member at 30% HP",
-            max_stack: 1,
-            rarity: ItemRarity::Epic,
-            use_effect: Some(UseEffect::ReviveAlly { heal_percent: 30 }),
-        },
-    ];
-    ITEMS
+    super::proto_bridge::item_registry()
 }
 
 /// Look up an item definition by ID.
 pub fn find_item(id: &str) -> Option<&'static ItemDef> {
-    item_registry().iter().find(|item| item.id == id)
+    super::proto_bridge::find_item(id)
 }
 
 /// Default starting inventory for a new session.
@@ -387,195 +210,21 @@ pub fn starting_inventory() -> Vec<ItemStack> {
     ]
 }
 
-// ── Gear registry ───────────────────────────────────────────────────
+// ── Gear registry (proto-driven) ────────────────────────────────────
 
-/// Static gear definitions for the dungeon.
+/// All gear definitions, loaded from the proto item database.
 pub fn gear_registry() -> &'static [GearDef] {
-    static GEAR: &[GearDef] = &[
-        GearDef {
-            id: "rusty_sword",
-            name: "Rusty Sword",
-            emoji: "\u{2694}",
-            slot: EquipSlot::Weapon,
-            rarity: ItemRarity::Common,
-            bonus_damage: 2,
-            bonus_armor: 0,
-            bonus_hp: 0,
-            special: None,
-        },
-        GearDef {
-            id: "shadow_dagger",
-            name: "Shadow Dagger",
-            emoji: "\u{1F5E1}",
-            slot: EquipSlot::Weapon,
-            rarity: ItemRarity::Uncommon,
-            bonus_damage: 3,
-            bonus_armor: 0,
-            bonus_hp: 0,
-            special: Some(GearSpecial::CritBonus { percent: 5 }),
-        },
-        GearDef {
-            id: "flame_axe",
-            name: "Flame Axe",
-            emoji: "\u{1FA93}",
-            slot: EquipSlot::Weapon,
-            rarity: ItemRarity::Rare,
-            bonus_damage: 4,
-            bonus_armor: 0,
-            bonus_hp: 0,
-            special: None,
-        },
-        GearDef {
-            id: "vampiric_blade",
-            name: "Vampiric Blade",
-            emoji: "\u{1FA78}",
-            slot: EquipSlot::Weapon,
-            rarity: ItemRarity::Epic,
-            bonus_damage: 3,
-            bonus_armor: 0,
-            bonus_hp: 0,
-            special: Some(GearSpecial::LifeSteal { percent: 20 }),
-        },
-        GearDef {
-            id: "leather_vest",
-            name: "Leather Vest",
-            emoji: "\u{1F9BA}",
-            slot: EquipSlot::Armor,
-            rarity: ItemRarity::Common,
-            bonus_damage: 0,
-            bonus_armor: 2,
-            bonus_hp: 0,
-            special: None,
-        },
-        GearDef {
-            id: "chain_mail",
-            name: "Chain Mail",
-            emoji: "\u{26D3}",
-            slot: EquipSlot::Armor,
-            rarity: ItemRarity::Uncommon,
-            bonus_damage: 0,
-            bonus_armor: 4,
-            bonus_hp: 5,
-            special: None,
-        },
-        GearDef {
-            id: "spiked_plate",
-            name: "Spiked Plate",
-            emoji: "\u{1F6E1}",
-            slot: EquipSlot::Armor,
-            rarity: ItemRarity::Rare,
-            bonus_damage: 0,
-            bonus_armor: 5,
-            bonus_hp: 0,
-            special: Some(GearSpecial::Thorns { damage: 3 }),
-        },
-        GearDef {
-            id: "crystal_armor",
-            name: "Crystal Armor",
-            emoji: "\u{1F48E}",
-            slot: EquipSlot::Armor,
-            rarity: ItemRarity::Epic,
-            bonus_damage: 0,
-            bonus_armor: 6,
-            bonus_hp: 10,
-            special: None,
-        },
-        // ── New gear ──────────────────────────────────────────
-        GearDef {
-            id: "iron_mace",
-            name: "Iron Mace",
-            emoji: "\u{1F528}",
-            slot: EquipSlot::Weapon,
-            rarity: ItemRarity::Uncommon,
-            bonus_damage: 3,
-            bonus_armor: 0,
-            bonus_hp: 0,
-            special: None,
-        },
-        GearDef {
-            id: "glass_stiletto",
-            name: "Glass Stiletto",
-            emoji: "\u{1F52A}",
-            slot: EquipSlot::Weapon,
-            rarity: ItemRarity::Rare,
-            bonus_damage: 3,
-            bonus_armor: 0,
-            bonus_hp: 0,
-            special: Some(GearSpecial::CritBonus { percent: 15 }),
-        },
-        GearDef {
-            id: "excalibur",
-            name: "Excalibur",
-            emoji: "\u{2694}",
-            slot: EquipSlot::Weapon,
-            rarity: ItemRarity::Legendary,
-            bonus_damage: 6,
-            bonus_armor: 0,
-            bonus_hp: 5,
-            special: Some(GearSpecial::CritBonus { percent: 10 }),
-        },
-        GearDef {
-            id: "void_scythe",
-            name: "Void Scythe",
-            emoji: "\u{1F300}",
-            slot: EquipSlot::Weapon,
-            rarity: ItemRarity::Legendary,
-            bonus_damage: 7,
-            bonus_armor: 0,
-            bonus_hp: 0,
-            special: Some(GearSpecial::LifeSteal { percent: 15 }),
-        },
-        GearDef {
-            id: "shadow_cloak",
-            name: "Shadow Cloak",
-            emoji: "\u{1F9E5}",
-            slot: EquipSlot::Armor,
-            rarity: ItemRarity::Uncommon,
-            bonus_damage: 1,
-            bonus_armor: 3,
-            bonus_hp: 0,
-            special: None,
-        },
-        GearDef {
-            id: "runeguard_plate",
-            name: "Runeguard Plate",
-            emoji: "\u{1F6E1}",
-            slot: EquipSlot::Armor,
-            rarity: ItemRarity::Rare,
-            bonus_damage: 0,
-            bonus_armor: 5,
-            bonus_hp: 5,
-            special: Some(GearSpecial::Thorns { damage: 2 }),
-        },
-        GearDef {
-            id: "dragon_scale",
-            name: "Dragon Scale",
-            emoji: "\u{1F409}",
-            slot: EquipSlot::Armor,
-            rarity: ItemRarity::Legendary,
-            bonus_damage: 0,
-            bonus_armor: 8,
-            bonus_hp: 15,
-            special: Some(GearSpecial::DamageReduction { percent: 10 }),
-        },
-    ];
-    GEAR
+    super::proto_bridge::gear_registry()
 }
 
 /// Look up a gear definition by ID.
 pub fn find_gear(id: &str) -> Option<&'static GearDef> {
-    gear_registry().iter().find(|g| g.id == id)
+    super::proto_bridge::find_gear(id)
 }
 
 /// Check whether an item or gear ID has rarity >= Rare.
 pub fn is_rare_or_above(id: &str) -> bool {
-    if let Some(item) = find_item(id) {
-        return item.rarity >= ItemRarity::Rare;
-    }
-    if let Some(gear) = find_gear(id) {
-        return gear.rarity >= ItemRarity::Rare;
-    }
-    false
+    super::proto_bridge::is_rare_or_above(id)
 }
 
 // ── Loot tables ────────────────────────────────────────────────────
@@ -1312,12 +961,7 @@ pub fn flavor_attack(personality: Personality, name: &str, target: &str, dmg: i3
 }
 
 /// Flavor text for a heavy attack.
-pub fn flavor_heavy_attack(
-    personality: Personality,
-    name: &str,
-    target: &str,
-    dmg: i32,
-) -> String {
+pub fn flavor_heavy_attack(personality: Personality, name: &str, target: &str, dmg: i32) -> String {
     let mut rng = rand::rng();
     match personality {
         Personality::Aggressive => {
@@ -1525,12 +1169,7 @@ pub fn flavor_flee(personality: Personality, name: &str) -> String {
 }
 
 /// Flavor text for applying a debuff.
-pub fn flavor_debuff(
-    personality: Personality,
-    name: &str,
-    target: &str,
-    effect: &str,
-) -> String {
+pub fn flavor_debuff(personality: Personality, name: &str, target: &str, effect: &str) -> String {
     let mut rng = rand::rng();
     match personality {
         Personality::Aggressive => {
@@ -1635,9 +1274,8 @@ pub fn flavor_heal(personality: Personality, name: &str, amount: i32) -> String 
     let mut rng = rand::rng();
     match personality {
         Personality::Aggressive => {
-            let pool: &[&str] = &[
-                "{name} devours something and heals for {amount}! \"I'm not done yet!\"",
-            ];
+            let pool: &[&str] =
+                &["{name} devours something and heals for {amount}! \"I'm not done yet!\""];
             pick(&mut rng, pool)
         }
         Personality::Cunning => {
@@ -1648,9 +1286,7 @@ pub fn flavor_heal(personality: Personality, name: &str, amount: i32) -> String 
             pick(&mut rng, pool)
         }
         Personality::Fearful => {
-            let pool: &[&str] = &[
-                "{name} frantically bandages its wounds! +{amount} HP!",
-            ];
+            let pool: &[&str] = &["{name} frantically bandages its wounds! +{amount} HP!"];
             pick(&mut rng, pool)
         }
         Personality::Stoic => {
@@ -1705,10 +1341,7 @@ pub fn flavor_stunned(personality: Personality, name: &str) -> String {
             pick(&mut rng, pool)
         }
         Personality::Stoic => {
-            let pool: &[&str] = &[
-                "{name} is stunned.",
-                "{name} falters momentarily.",
-            ];
+            let pool: &[&str] = &["{name} is stunned.", "{name} falters momentarily."];
             pick(&mut rng, pool)
         }
         Personality::Feral => {
@@ -1800,9 +1433,8 @@ pub fn flavor_emotional_reaction(
                 pick(&mut rng, pool)
             }
             Personality::Cunning => {
-                let pool: &[&str] = &[
-                    "*{name} reassesses the situation, a flicker of worry in its eyes.*",
-                ];
+                let pool: &[&str] =
+                    &["*{name} reassesses the situation, a flicker of worry in its eyes.*"];
                 pick(&mut rng, pool)
             }
             Personality::Fearful => {
@@ -1813,9 +1445,7 @@ pub fn flavor_emotional_reaction(
                 pick(&mut rng, pool)
             }
             Personality::Stoic => {
-                let pool: &[&str] = &[
-                    "*{name} acknowledges its wounds with a silent nod.*",
-                ];
+                let pool: &[&str] = &["*{name} acknowledges its wounds with a silent nod.*"];
                 pick(&mut rng, pool)
             }
             Personality::Feral => {
@@ -1826,9 +1456,8 @@ pub fn flavor_emotional_reaction(
                 pick(&mut rng, pool)
             }
             Personality::Ancient => {
-                let pool: &[&str] = &[
-                    "*{name} murmurs, \"A worthy opponent... it has been too long.\"*",
-                ];
+                let pool: &[&str] =
+                    &["*{name} murmurs, \"A worthy opponent... it has been too long.\"*"];
                 pick(&mut rng, pool)
             }
         };
@@ -3717,7 +3346,10 @@ mod tests {
                 break;
             }
         }
-        assert!(triggered, "should trigger at critical HP within 100 attempts");
+        assert!(
+            triggered,
+            "should trigger at critical HP within 100 attempts"
+        );
     }
 
     #[test]
@@ -3731,5 +3363,4 @@ mod tests {
             }
         }
     }
-
 }
