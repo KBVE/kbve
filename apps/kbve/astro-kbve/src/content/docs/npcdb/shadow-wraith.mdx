@@ -22,6 +22,29 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Shadow Wraith's claws pass through {target}'s guard like it isn't there! {dmg} damage!"
+        - "Darkness coalesces into a fist and slams into {target}! {dmg} damage!"
+        - "The wraith whispers something hateful and {target} reels from an unseen blow! {dmg} damage!"
+    - action: 'heavy_attack'
+      messages:
+        - "The Shadow Wraith screams — a sound that scrapes the inside of your skull — and tears into {target}! {dmg} damage!"
+        - "The wraith's entire form surges forward, engulfing {target} in freezing darkness! {dmg} damage!"
+    - action: 'defend'
+      messages:
+        - "The wraith's form thins to near-transparency. Attacks pass through harmlessly. (+{armor} armor)"
+    - action: 'death'
+      messages:
+        - "The Shadow Wraith unravels like a torn curtain, its malice dissipating into cold air."
+        - "It reaches toward {target} one last time, then dissolves. The room grows warmer."
+    - action: 'wounded'
+      messages:
+        - "*The wraith flickers. Its hunger is now tinged with something like desperation.*"
+    - action: 'near_death'
+      messages:
+        - "*The Shadow Wraith is barely a stain on the air. Its hatred is the only thing holding it together.*"
 lore: |
     Shadow Wraiths are formed from concentrated malice, hunting the living to feed their insatiable hunger.
 credits: |

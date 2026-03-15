@@ -22,6 +22,29 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Ember Wisp darts at {target} and scorches exposed skin! {dmg} damage!"
+        - "A tendril of pale flame lashes out from the wisp and singes {target}! {dmg} damage!"
+    - action: 'debuff'
+      messages:
+        - "The Ember Wisp flares in panic, showering {target} with burning embers! {effect} takes hold!"
+        - "Desperate heat radiates from the wisp. {target} can feel {effect} seeping in!"
+    - action: 'flee'
+      messages:
+        - "The Ember Wisp flickers rapidly and zips away like a frightened firefly!"
+        - "It dims almost to nothing and drifts away, too scared to maintain its own flame."
+    - action: 'death'
+      messages:
+        - "The Ember Wisp gutters once, twice, and goes out. A tiny curl of smoke is all that remains."
+        - "The light fades. The wisp dies the way all fires do — quietly, when there's nothing left to burn."
+    - action: 'wounded'
+      messages:
+        - "*The wisp's flame shifts to a sickly blue. It bobs erratically, looking for an escape.*"
+    - action: 'near_death'
+      messages:
+        - "*The Ember Wisp is barely a spark now, flickering between being and not-being.*"
 lore: |
     Ember Wisps are fragments of dying fire elementals, flickering between existence and oblivion.
 credits: |

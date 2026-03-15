@@ -22,6 +22,29 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Void Walker's arm stretches impossibly and strikes {target} from ten feet away! {dmg} damage!"
+        - "Reality folds. {target} is suddenly standing where the Walker's fist is. {dmg} damage."
+        - "The Walker steps sideways through nothing and appears behind {target}! {dmg} damage!"
+    - action: 'heavy_attack'
+      messages:
+        - "The Void Walker tears open a rift and pulls {target} halfway through! {dmg} damage!"
+        - "Space inverts around {target}. Everything hurts at once. {dmg} damage."
+    - action: 'defend'
+      messages:
+        - "The Void Walker shifts partially out of phase. Attacks slide through empty space. (+{armor} armor)"
+    - action: 'death'
+      messages:
+        - "The Void Walker collapses inward like a punctured balloon, reality snapping shut behind it."
+        - "It reaches for a crack in the air, but there are none left. It dissipates with a soft pop."
+    - action: 'wounded'
+      messages:
+        - "*The Walker's movements become erratic. The space around it warps unpredictably.*"
+    - action: 'near_death'
+      messages:
+        - "*Reality is reasserting itself. The Void Walker is losing its grip on this plane.*"
 lore: |
     Void Walkers slip through cracks in reality, drawn to places where the boundaries between worlds grow thin.
 credits: |

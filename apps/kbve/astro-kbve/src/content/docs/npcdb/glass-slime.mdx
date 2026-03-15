@@ -21,6 +21,29 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Glass Slime squelches forward and engulfs {target}'s arm! {dmg} damage!"
+        - "A razor-thin pseudopod lashes out from the slime's body! {dmg} damage to {target}!"
+        - "The slime launches a glob of molten glass at {target}! {dmg} damage!"
+        - "Shards of crystal churn inside the slime as it slams into {target}! {dmg} damage!"
+    - action: 'defend'
+      messages:
+        - "The Glass Slime compresses into a dense, glittering sphere. (+{armor} armor)"
+        - "Light refracts wildly as the slime hardens its outer membrane. (+{armor} armor)"
+    - action: 'death'
+      messages:
+        - "The Glass Slime shudders and bursts into a thousand glittering fragments."
+        - "With a wet pop, the slime collapses into a puddle of liquid crystal."
+        - "The slime's glow dims and it melts into the stone floor, leaving only glass dust."
+    - action: 'wounded'
+      messages:
+        - "*Cracks spider-web across the slime's translucent body. It pulses angrily.*"
+        - "*The slime's color shifts from clear to a murky, agitated crimson.*"
+    - action: 'near_death'
+      messages:
+        - "*The Glass Slime is barely holding its shape, fragments sloughing off with each movement.*"
 lore: |
     Born from shattered crystal and ambient mana, Glass Slimes are among the first threats dungeon delvers encounter.
 credits: |

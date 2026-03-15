@@ -22,6 +22,29 @@ stats:
 behavior:
     movement_type: 'random_wander'
     first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Fungal Brute swings a massive arm like a tree trunk into {target}! {dmg} damage!"
+        - "Spore clouds burst from the brute's fist as it hammers {target} into the ground! {dmg} damage!"
+        - "The ground shakes as the brute stomps toward {target} and delivers a crushing blow! {dmg} damage!"
+    - action: 'heavy_attack'
+      messages:
+        - "The Fungal Brute roars — a wet, echoing bellow — and bodyslams {target}! {dmg} damage!"
+        - "Mushrooms burst from the walls as the brute channels its full mass into {target}! {dmg} damage!"
+    - action: 'defend'
+      messages:
+        - "The Fungal Brute's skin hardens into bark-like armor. Spores cloud the air. (+{armor} armor)"
+    - action: 'death'
+      messages:
+        - "The Fungal Brute topples like a felled tree, releasing a final cloud of spores as it decomposes."
+        - "It groans — a sound like creaking wood — and collapses. Mushrooms begin sprouting from the corpse immediately."
+    - action: 'wounded'
+      messages:
+        - "*Chunks of fungal matter slough off the brute. New growth is already filling the gaps.*"
+    - action: 'near_death'
+      messages:
+        - "*The brute is rotting faster than it can regenerate. Its movements are sluggish and desperate.*"
 lore: |
     Fungal Brutes grow in the deepest caverns, their bodies an amalgamation of countless smaller fungi merged into one hulking mass.
 credits: |
