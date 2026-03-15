@@ -1,0 +1,41 @@
+---
+id: "01KKR968Q4AZ64PFQ037DPG83T"
+slug: "wanderers-nook"
+drafted: false
+name: "Wanderer's Nook"
+title: "Wanderer's Nook"
+description: "A cloaked figure beckons from behind a makeshift stall wedged into a dungeon alcove. The goods are questionable. The prices are worse."
+type: "npc_marker"
+sub_kind: "merchant"
+interactable: true
+destructible: false
+spawn_weight: 0.15
+spawn_count: 1
+blocks_movement: true
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Wanderer's Nook
+
+A temporary trading post set up by a mysterious cloaked merchant who seems to appear wherever adventurers need supplies most — and charges accordingly.
+
+## Services
+- Consumables and emergency supplies at inflated prices
+- Occasionally stocks rare items not found elsewhere
+- Will buy dungeon loot at a steep discount
+
+## Lore
+No one knows the Wanderer's name, face, or how they move between dungeon floors faster than any adventurer. Some suspect there are many Wanderers. Others suspect there is only one, and they are not entirely human.
+
+<MapDBPanel data={frontmatter} />

@@ -1,0 +1,41 @@
+---
+id: "01KKR968Q35GKEGY6CWQW4SYN5"
+slug: "quiet-spring"
+drafted: false
+name: "Quiet Spring"
+title: "Quiet Spring"
+description: "Clear water bubbles up from a crack in the stone. Its warmth is soothing and its touch heals wounds with unnatural speed."
+type: "resource_node"
+sub_kind: "water"
+interactable: true
+destructible: false
+spawn_weight: 0.15
+spawn_count: 1
+blocks_movement: true
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Quiet Spring
+
+A natural hot spring that surfaces through ancient stonework. The water glows faintly blue and carries restorative properties that defy explanation.
+
+## Effects
+- Drinking restores HP and removes all negative status effects
+- The spring never runs dry, but its healing weakens with overuse
+- The sound of flowing water masks footsteps — safe to rest here
+
+## Lore
+Old dungeon maps mark these springs with a teardrop symbol. Some believe the water flows from a subterranean ocean that remembers the world before it was broken.
+
+<MapDBPanel data={frontmatter} />

@@ -89,31 +89,51 @@ export type RoomModifierValue = (typeof RoomModifiers)[number];
 export const RoomModifierSchema = z.enum(RoomModifiers);
 
 export const WorldObjectTypes = [
-	'tree',
-	'rock',
-	'flower',
-	'mushroom',
-	'crystal',
-	'crate',
-	'pillar',
+	'resource_node',
+	'container',
+	'crafting_station',
+	'prop',
 	'light',
-	'chest',
-	'sign',
-	'barrier',
 	'portal',
-	'statue',
-	'campfire',
-	'workbench',
-	'furnace',
-	'anvil',
-	'water_source',
+	'barrier',
 	'npc_marker',
+	'trigger',
+	'settlement',
+	'building',
+	'arena',
+	'landmark',
 	'custom',
 ] as const;
 
 export type WorldObjectTypeValue = (typeof WorldObjectTypes)[number];
 
 export const WorldObjectTypeSchema = z.enum(WorldObjectTypes);
+
+export const ResourceTypes = [
+	'wood',
+	'stone',
+	'flower',
+	'mushroom',
+	'crystal',
+	'water',
+	'ore',
+] as const;
+
+export type ResourceTypeValue = (typeof ResourceTypes)[number];
+
+export const ResourceTypeSchema = z.enum(ResourceTypes);
+
+export const ContainerTypes = ['crate', 'chest', 'barrel'] as const;
+
+export type ContainerTypeValue = (typeof ContainerTypes)[number];
+
+export const ContainerTypeSchema = z.enum(ContainerTypes);
+
+export const CraftingStationTypes = ['workbench', 'furnace', 'anvil'] as const;
+
+export type CraftingStationTypeValue = (typeof CraftingStationTypes)[number];
+
+export const CraftingStationTypeSchema = z.enum(CraftingStationTypes);
 
 export const PoiTypes = [
 	'town',
