@@ -1,0 +1,41 @@
+---
+id: "01KKR968Q4RQT5ANJZHG8KG71D"
+slug: "whispering-hall"
+drafted: false
+name: "Whispering Hall"
+title: "Whispering Hall"
+description: "Voices echo from nowhere. The walls seem to breathe, whispering fragments of conversations from ages past."
+type: "custom"
+sub_kind: "landmark"
+interactable: true
+destructible: false
+spawn_weight: 0.15
+spawn_count: 1
+blocks_movement: true
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Whispering Hall
+
+A long corridor where the stone itself seems alive. Voices murmur from within the walls — fragments of conversations, warnings, and confessions from people long dead.
+
+## Interactions
+- Listening carefully reveals lore hints and quest clues
+- Some whispers warn of traps or enemies in adjacent rooms
+- Spending too long here inflicts mild confusion — the voices are persuasive
+
+## Lore
+The Hall absorbs the last words of everyone who dies in the dungeon. Scholars who have transcribed the whispers report overlapping languages spanning thousands of years.
+
+<MapDBPanel data={frontmatter} />

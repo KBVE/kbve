@@ -1,0 +1,41 @@
+---
+id: "01KKR968Q3PR5VCDTZWC666CZP"
+slug: "mushroom-bazaar"
+drafted: false
+name: "Mushroom Bazaar"
+title: "Mushroom Bazaar"
+description: "Giant luminescent fungi provide light while merchants sell goods from stalls carved into massive stalks. A cozy inn glows warmly in the largest mushroom cap."
+type: "custom"
+sub_kind: "city"
+interactable: true
+destructible: false
+spawn_weight: 0.15
+spawn_count: 1
+blocks_movement: true
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Mushroom Bazaar
+
+A bioluminescent marketplace nestled among towering fungi. The air is warm and humid, thick with the scent of exotic spores. Everything here grows — including the economy.
+
+## Services
+- **The Glowing Cap Inn** — Sleep inside a giant mushroom. Surprisingly comfortable. Full HP restore.
+- **Spore Market** — Alchemical ingredients, potions, and rare fungi. Prices fluctuate with the harvest.
+- **The Mycelium Exchange** — Trade rare materials. The network reaches deeper than anyone admits.
+
+## Lore
+The Mushroom Bazaar sprouted overnight — or so the story goes. The fungi that form its structure are semi-sentient, slowly rearranging the market layout. Regulars know to memorize landmarks, not paths.
+
+<MapDBPanel data={frontmatter} />

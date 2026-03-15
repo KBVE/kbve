@@ -1,0 +1,41 @@
+---
+id: "01KKR968Q4PT9FJDMFW7PZK87T"
+slug: "prismatic-throne"
+drafted: false
+name: "The Prismatic Throne"
+title: "The Prismatic Throne"
+description: "An enormous chamber. At its center, a throne of living glass pulses with prismatic light. Something ancient awakens as you enter."
+type: "custom"
+sub_kind: "boss_arena"
+interactable: true
+destructible: false
+spawn_weight: 0.15
+spawn_count: 1
+blocks_movement: true
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# The Prismatic Throne
+
+A vast circular chamber whose walls are lined with fused glass that refracts light into endless rainbows. At its center sits a throne that has never known a mortal occupant.
+
+## Encounter
+- **Boss:** Glass Golem — a construct of fused crystal, guardian of the throne
+- The arena's glass walls reflect and amplify attacks — both yours and the boss's
+- Destroying wall segments creates cover but reduces the room's light
+
+## Lore
+The throne was built for a god who never came. The Glass Golem was created to guard it until they arrived. It has been waiting for a very, very long time.
+
+<MapDBPanel data={frontmatter} />

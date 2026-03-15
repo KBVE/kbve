@@ -1,0 +1,41 @@
+---
+id: "01KKR968Q3801YCR495T6MT1WW"
+slug: "ember-hearth"
+drafted: false
+name: "Ember Hearth"
+title: "Ember Hearth"
+description: "An ancient fireplace still burns with pale blue flame. No fuel feeds it, yet it has burned since before anyone can remember."
+type: "campfire"
+sub_kind: "shrine"
+interactable: true
+destructible: false
+spawn_weight: 0.15
+spawn_count: 1
+blocks_movement: true
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Ember Hearth
+
+A stone fireplace that burns with an eternal pale blue flame. No wood, no coal — just quiet, steady warmth that has outlasted empires.
+
+## Effects
+- Sitting by the hearth restores HP gradually
+- The blue flame wards off nearby enemies
+- Cooking rations here doubles their healing effect
+
+## Lore
+The flame predates the dungeon. Miners who first broke through to this chamber found it already burning. Some theorize it is the last ember of a fire elemental who chose peace over fury.
+
+<MapDBPanel data={frontmatter} />

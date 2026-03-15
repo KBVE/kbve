@@ -1,0 +1,41 @@
+---
+id: "01KKR968Q3E3325YXY090Z03D1"
+slug: "dwarven-outpost"
+drafted: false
+name: "Dwarven Outpost"
+title: "Dwarven Outpost"
+description: "Sturdy stone buildings cluster around a central well. The smell of cooking drifts from a tavern doorway and hammer strikes ring from a smithy."
+type: "custom"
+sub_kind: "city"
+interactable: true
+destructible: false
+spawn_weight: 0.15
+spawn_count: 1
+blocks_movement: true
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Dwarven Outpost
+
+A fortified settlement maintained by a stubborn clan of underground dwarves. The buildings are solid, the food is hearty, and outsiders are tolerated — barely.
+
+## Services
+- **The Iron Keg Tavern** — Hot meals and strong drink. Restores HP and clears minor debuffs.
+- **Grumhold's Smithy** — Weapon and armor upgrades. The smith doesn't do small talk.
+- **Supply Depot** — Basic consumables and ammunition at fair prices.
+
+## Lore
+The dwarves of this outpost have been here longer than the dungeon itself. They claim the dungeon grew around them, not the other way around. They may be right.
+
+<MapDBPanel data={frontmatter} />

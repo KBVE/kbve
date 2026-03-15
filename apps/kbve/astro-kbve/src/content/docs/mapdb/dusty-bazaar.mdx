@@ -1,0 +1,41 @@
+---
+id: "01KKR968Q45Y6XCSFTKS3XR2Q7"
+slug: "dusty-bazaar"
+drafted: false
+name: "Dusty Bazaar"
+title: "Dusty Bazaar"
+description: "Trinkets and vials line crooked shelves. A merchant eyes you expectantly from behind a counter made of stacked crates."
+type: "npc_marker"
+sub_kind: "merchant"
+interactable: true
+destructible: false
+spawn_weight: 0.15
+spawn_count: 1
+blocks_movement: true
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Dusty Bazaar
+
+A semi-permanent market stall run by a shrewd trader who has somehow made a comfortable living selling goods to desperate dungeon crawlers.
+
+## Services
+- Standard consumables, potions, and gear at market rates
+- Gear appraisal — identify unknown equipment for a fee
+- Bounty board with kill-quest rewards
+
+## Lore
+The Dusty Bazaar has been in the same spot for decades. The current owner inherited it from their parent, who inherited it from theirs. The family motto: "Adventurers die, but commerce endures."
+
+<MapDBPanel data={frontmatter} />

@@ -1,0 +1,41 @@
+---
+id: "01KKR968Q3C5RBNQF0H3HV17ZN"
+slug: "luminous-alcove"
+drafted: false
+name: "Luminous Alcove"
+title: "Luminous Alcove"
+description: "A warm glow emanates from a shrine embedded in the wall. The air feels lighter here, and wounds seem to close on their own."
+type: "statue"
+sub_kind: "shrine"
+interactable: true
+destructible: false
+spawn_weight: 0.15
+spawn_count: 1
+blocks_movement: true
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Luminous Alcove
+
+A small sanctuary carved into the dungeon wall, radiating gentle warmth. An ancient shrine pulses with healing energy that predates the dungeon itself.
+
+## Effects
+- Restores HP over time while resting
+- Cleanses minor debuffs (poison, burning)
+- Provides a brief window of safety — enemies avoid this alcove
+
+## Lore
+Scholars believe these shrines were placed by the same civilization that built the Stone Sentinels. Whatever power fuels them has outlasted its creators by millennia.
+
+<MapDBPanel data={frontmatter} />
