@@ -32,6 +32,9 @@ COPY packages/npm/astro/ packages/npm/astro/
 COPY packages/npm/droid/ packages/npm/droid/
 COPY packages/npm/laser/ packages/npm/laser/
 
+# Copy generated schemas used by astro-kbve content collections
+COPY packages/data/codegen/generated/ packages/data/codegen/generated/
+
 # Copy astro-kbve source
 COPY apps/kbve/astro-kbve/ apps/kbve/astro-kbve/
 

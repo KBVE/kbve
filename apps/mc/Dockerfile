@@ -24,6 +24,9 @@ RUN pnpm install --frozen-lockfile
 COPY packages/npm/astro/ packages/npm/astro/
 COPY packages/npm/droid/ packages/npm/droid/
 
+# Copy generated schemas (content collections may import these)
+COPY packages/data/codegen/generated/ packages/data/codegen/generated/
+
 # Copy astro-mc source
 COPY apps/mc/astro-mc/ apps/mc/astro-mc/
 
