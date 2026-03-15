@@ -8,8 +8,14 @@
 		"e2e": {
 			"executor": "@nx/playwright:playwright",
 			"cache": false,
+			"dependsOn": ["astro-kbve:build"],
 			"options": {
 				"config": "apps/kbve/astro-kbve-e2e/playwright.config.ts"
+			},
+			"configurations": {
+				"ci": {
+					"config": "apps/kbve/astro-kbve-e2e/playwright.preview.config.ts"
+				}
 			}
 		},
 		"e2e:preview": {
