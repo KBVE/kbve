@@ -1,117 +1,171 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { BASE_URL, waitForReady } from './helpers/http';
+import { fetchAllSitemapPaths, samplePaths } from './helpers/sitemap';
 
 /**
- * Content route tests — verify that the Docker container serves
- * Starlight-generated pages at their correct nested paths.
- *
- * These catch routing regressions like the slug-override bug where
- * /itemdb/beer/ was incorrectly served at /beer/ instead.
+ * Dynamic content route tests — pulls routes from the sitemap and
+ * API JSON endpoints served by the Docker container itself. No
+ * hardcoded paths means these tests stay current as content changes.
  */
 
-const ITEMDB_ROUTES = [
-	'/itemdb/',
-	'/itemdb/beer/',
-	'/itemdb/alchemist-stardust/',
-	'/itemdb/rusty-sword/',
-	'/itemdb/bomb/',
-	'/itemdb/potion/',
-	'/itemdb/campfire-kit/',
+const DB_PREFIXES = [
+	{ prefix: '/itemdb/', label: 'ItemDB' },
+	{ prefix: '/mapdb/', label: 'MapDB' },
+	{ prefix: '/npcdb/', label: 'NpcDB' },
+	{ prefix: '/questdb/', label: 'QuestDB' },
+] as const;
+
+interface ApiEndpoint {
+	path: string;
+	label: string;
+	itemsKey: string;
+	indexKey: string;
+	refPrefix: string;
+}
+
+const API_ENDPOINTS: ApiEndpoint[] = [
+	{
+		path: '/api/itemdb.json',
+		label: 'ItemDB',
+		itemsKey: 'items',
+		indexKey: 'index',
+		refPrefix: '/itemdb/',
+	},
+	{
+		path: '/api/mapdb.json',
+		label: 'MapDB',
+		itemsKey: 'objects',
+		indexKey: 'index',
+		refPrefix: '/mapdb/',
+	},
+	{
+		path: '/api/npcdb.json',
+		label: 'NpcDB',
+		itemsKey: 'npcs',
+		indexKey: 'index',
+		refPrefix: '/npcdb/',
+	},
+	{
+		path: '/api/questdb.json',
+		label: 'QuestDB',
+		itemsKey: 'quests',
+		indexKey: 'key',
+		refPrefix: '/questdb/',
+	},
 ];
 
-const MAPDB_ROUTES = [
-	'/mapdb/coal-vein/',
-	'/mapdb/sunken-market/',
-	'/mapdb/prismatic-throne/',
-];
+let sitemapPaths: string[] = [];
 
-const NPCDB_ROUTES = ['/npcdb/glass-slime/', '/npcdb/fire-imp/'];
+describe('Content routes (sitemap-driven)', () => {
+	beforeAll(async () => {
+		await waitForReady();
+		sitemapPaths = await fetchAllSitemapPaths();
+	});
 
-const QUESTDB_ROUTES = ['/questdb/auto-cooker-9000/'];
+	it('sitemap-index.xml is reachable', async () => {
+		const res = await fetch(`${BASE_URL}/sitemap-index.xml`);
+		expect(res.status).toBe(200);
+		const text = await res.text();
+		expect(text).toContain('<sitemapindex');
+	});
 
-const ALL_CONTENT_ROUTES = [
-	...ITEMDB_ROUTES,
-	...MAPDB_ROUTES,
-	...NPCDB_ROUTES,
-	...QUESTDB_ROUTES,
-];
+	it('sitemap contains content routes', () => {
+		expect(sitemapPaths.length).toBeGreaterThan(0);
+	});
 
-describe('Content routes', () => {
+	for (const { prefix, label } of DB_PREFIXES) {
+		describe(`${label} routes from sitemap`, () => {
+			it(`sitemap contains ${label} entries`, () => {
+				const matching = sitemapPaths.filter((p) =>
+					p.startsWith(prefix),
+				);
+				expect(matching.length).toBeGreaterThan(0);
+			});
+
+			it(`sampled ${label} routes return 200 HTML`, async () => {
+				const sample = samplePaths(sitemapPaths, prefix, 5);
+				expect(sample.length).toBeGreaterThan(0);
+
+				for (const path of sample) {
+					const res = await fetch(`${BASE_URL}${path}`);
+					expect(res.status, `${path} should return 200`).toBe(200);
+
+					const ct = res.headers.get('content-type') ?? '';
+					expect(ct, `${path} should serve HTML`).toContain(
+						'text/html',
+					);
+				}
+			});
+		});
+	}
+
+	describe('Items are NOT served at root level', () => {
+		it('root-level item refs return 404', async () => {
+			// Grab a few refs from the API to test against root
+			const res = await fetch(`${BASE_URL}/api/itemdb.json`);
+			if (res.status !== 200) return;
+
+			const data = await res.json();
+			const refs: string[] = (data.items ?? [])
+				.slice(0, 3)
+				.map((item: Record<string, unknown>) => item.ref)
+				.filter(Boolean);
+
+			for (const ref of refs) {
+				const rootRes = await fetch(`${BASE_URL}/${ref}/`);
+				expect(
+					rootRes.status,
+					`/${ref}/ should NOT exist at root`,
+				).toBe(404);
+			}
+		});
+	});
+});
+
+describe('API JSON endpoints (dynamic)', () => {
 	beforeAll(async () => {
 		await waitForReady();
 	});
 
-	describe.each(ALL_CONTENT_ROUTES)('%s', (path) => {
-		it('returns 200', async () => {
-			const res = await fetch(`${BASE_URL}${path}`);
-			expect(res.status).toBe(200);
-		});
+	for (const ep of API_ENDPOINTS) {
+		describe(ep.label, () => {
+			it(`GET ${ep.path} returns valid JSON`, async () => {
+				const res = await fetch(`${BASE_URL}${ep.path}`);
+				expect(res.status).toBe(200);
+				const data = await res.json();
+				expect(data).toHaveProperty(ep.itemsKey);
+				expect(data).toHaveProperty(ep.indexKey);
+				const items = data[ep.itemsKey];
+				expect(Array.isArray(items)).toBe(true);
+				expect(items.length).toBeGreaterThan(0);
+			});
 
-		it('serves HTML', async () => {
-			const res = await fetch(`${BASE_URL}${path}`);
-			const contentType = res.headers.get('content-type') ?? '';
-			expect(contentType).toContain('text/html');
-		});
-	});
+			it(`${ep.label} items use ref field, not slug`, async () => {
+				const res = await fetch(`${BASE_URL}${ep.path}`);
+				const data = await res.json();
+				const first = data[ep.itemsKey]?.[0];
+				if (!first) return;
+				expect(first).toHaveProperty('ref');
+				expect(first).not.toHaveProperty('slug');
+			});
 
-	describe('ItemDB routes are NOT at root level', () => {
-		it('/beer/ should 404 (not served at root)', async () => {
-			const res = await fetch(`${BASE_URL}/beer/`);
-			expect(res.status).toBe(404);
-		});
+			it(`${ep.label} refs resolve to valid routes`, async () => {
+				const res = await fetch(`${BASE_URL}${ep.path}`);
+				const data = await res.json();
+				const items = (data[ep.itemsKey] ?? []).slice(0, 3);
 
-		it('/alchemist-stardust/ should 404 (not served at root)', async () => {
-			const res = await fetch(`${BASE_URL}/alchemist-stardust/`);
-			expect(res.status).toBe(404);
+				for (const item of items) {
+					const ref = item.ref;
+					if (!ref) continue;
+					const routeRes = await fetch(
+						`${BASE_URL}${ep.refPrefix}${ref}/`,
+					);
+					expect(
+						routeRes.status,
+						`${ep.refPrefix}${ref}/ should return 200`,
+					).toBe(200);
+				}
+			});
 		});
-
-		it('/rusty-sword/ should 404 (not served at root)', async () => {
-			const res = await fetch(`${BASE_URL}/rusty-sword/`);
-			expect(res.status).toBe(404);
-		});
-	});
-
-	describe('API JSON endpoints', () => {
-		it('GET /api/itemdb.json returns valid JSON with items', async () => {
-			const res = await fetch(`${BASE_URL}/api/itemdb.json`);
-			expect(res.status).toBe(200);
-			const data = await res.json();
-			expect(data).toHaveProperty('items');
-			expect(data).toHaveProperty('index');
-			expect(Array.isArray(data.items)).toBe(true);
-			expect(data.items.length).toBeGreaterThan(0);
-		});
-
-		it('GET /api/mapdb.json returns valid JSON with objects', async () => {
-			const res = await fetch(`${BASE_URL}/api/mapdb.json`);
-			expect(res.status).toBe(200);
-			const data = await res.json();
-			expect(data).toHaveProperty('objects');
-			expect(data).toHaveProperty('index');
-		});
-
-		it('GET /api/npcdb.json returns valid JSON with npcs', async () => {
-			const res = await fetch(`${BASE_URL}/api/npcdb.json`);
-			expect(res.status).toBe(200);
-			const data = await res.json();
-			expect(data).toHaveProperty('npcs');
-			expect(data).toHaveProperty('index');
-		});
-
-		it('GET /api/questdb.json returns valid JSON with quests', async () => {
-			const res = await fetch(`${BASE_URL}/api/questdb.json`);
-			expect(res.status).toBe(200);
-			const data = await res.json();
-			expect(data).toHaveProperty('quests');
-			expect(data).toHaveProperty('key');
-		});
-
-		it('itemdb.json uses ref field instead of slug', async () => {
-			const res = await fetch(`${BASE_URL}/api/itemdb.json`);
-			const data = await res.json();
-			const firstItem = data.items[0];
-			expect(firstItem).toHaveProperty('ref');
-			expect(firstItem).not.toHaveProperty('slug');
-		});
-	});
+	}
 });
