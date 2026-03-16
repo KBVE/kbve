@@ -1,3 +1,9 @@
+//! Butterfly ambient creatures using unified Creature + BillboardData components.
+//!
+//! Butterflies are daytime creatures that enter from the edges of the visible
+//! area, flutter around a wander anchor, and exit when they drift too far.
+//! Currently camera-relative; chunk-based deterministic seeding is pending.
+
 use bevy::asset::RenderAssetUsages;
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
@@ -5,12 +11,16 @@ use bevy::prelude::*;
 use super::common::{
     CreatureMeshes, CreaturePool, GameTime, day_factor, flutter_offset, hash_f32, scene_center,
 };
-use super::firefly::Firefly;
+use super::creature::{
+    BillboardData, BillboardFlightState, Creature, CreatureRegistry, CreatureState, EmissiveData,
+    RenderKind,
+};
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
 use crate::game::weather::WindState;
 
-const BUTTERFLY_COUNT: usize = 14;
+const NPC_REF: &str = "woodland-butterfly";
+
 /// Minimum height above terrain surface for butterfly flight.
 const MIN_FLY_HEIGHT: f32 = 0.8;
 /// Maximum additional height above MIN_FLY_HEIGHT.
@@ -56,44 +66,10 @@ fn butterfly_color(index: usize) -> Color {
 }
 
 // ---------------------------------------------------------------------------
-// State & component
-// ---------------------------------------------------------------------------
-
-#[derive(Clone, Copy, PartialEq)]
-enum ButterflyState {
-    Idle,
-    Entering {
-        origin: Vec3,
-        target: Vec3,
-        progress: f32,
-    },
-    Active,
-    Exiting {
-        start: Vec3,
-        direction: Vec3,
-        progress: f32,
-    },
-}
-
-#[derive(Component)]
-pub(crate) struct Butterfly {
-    phase: f32,
-    anchor: Vec3,
-    wander_speed: f32,
-    wander_radius: f32,
-    flap_speed: f32,
-    size_scale: f32,
-    mat_handle: Handle<StandardMaterial>,
-    state: ButterflyState,
-    idle_cooldown: f32,
-}
-
-// ---------------------------------------------------------------------------
 // Mesh
 // ---------------------------------------------------------------------------
 
 /// Two-winged butterfly mesh with distinct upper and lower wing lobes.
-/// Wing span ~0.5 units (~16px at 32px/unit).
 pub(super) fn build_butterfly_mesh() -> Mesh {
     let positions = vec![
         [0.0, 0.02, 0.0],    // 0: body top
@@ -171,12 +147,23 @@ pub(super) fn spawn_butterflies(
     creature_meshes: Res<CreatureMeshes>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut pool: ResMut<CreaturePool>,
+    registry: Res<CreatureRegistry>,
 ) {
     pool.butterflies_spawned = true;
 
+    let Some(config) = registry.config_by_ref(NPC_REF) else {
+        warn!("[butterfly] no registry config for '{NPC_REF}' — skipping spawn");
+        return;
+    };
+    let npc_id = registry
+        .npc_db
+        .id_for_ref(NPC_REF)
+        .unwrap_or(bevy_npc::ProtoNpcId(0));
+    let count = config.pool_size;
+
     let wing_mesh = creature_meshes.butterfly_wings.clone();
 
-    for i in 0..BUTTERFLY_COUNT {
+    for i in 0..count {
         let seed = (i as u32).wrapping_add(500);
         let phase = hash_f32(seed * 11 + 1);
         let wander_speed = 0.3 + hash_f32(seed * 17 + 3) * 0.4;
@@ -199,19 +186,28 @@ pub(super) fn spawn_butterflies(
             MeshMaterial3d(mat),
             Transform::from_xyz(0.0, -100.0, 0.0),
             Visibility::Hidden,
-            Butterfly {
-                phase,
+            Creature {
+                npc_id,
+                render_kind: RenderKind::Billboard,
+                state: CreatureState::Pooled,
+                slot_seed: seed,
+                assigned_slot: None,
                 anchor: Vec3::ZERO,
-                wander_speed,
-                wander_radius,
+                phase,
+                mat_handle: mat_clone,
+            },
+            BillboardData {
                 flap_speed,
                 size_scale,
-                mat_handle: mat_clone,
-                state: ButterflyState::Idle,
+                wander_speed,
+                wander_radius,
+                flight_state: BillboardFlightState::Idle,
                 idle_cooldown,
             },
         ));
     }
+
+    info!("[butterfly] spawned {count} entities");
 }
 
 pub(super) fn animate_butterflies(
@@ -222,8 +218,13 @@ pub(super) fn animate_butterflies(
     mut terrain: ResMut<TerrainMap>,
     camera_q: Query<&Transform, With<IsometricCamera>>,
     mut bfly_q: Query<
-        (&mut Transform, &mut Butterfly, &mut Visibility),
-        (Without<IsometricCamera>, Without<Firefly>),
+        (
+            &mut Transform,
+            &mut Creature,
+            &mut BillboardData,
+            &mut Visibility,
+        ),
+        (Without<IsometricCamera>, Without<EmissiveData>),
     >,
 ) {
     let Ok(cam_tf) = camera_q.single() else {
@@ -234,10 +235,10 @@ pub(super) fn animate_butterflies(
     let df = day_factor(game_time.hour);
 
     if df < 0.01 {
-        for (mut tf, mut bfly, mut vis) in &mut bfly_q {
-            if bfly.state != ButterflyState::Idle {
-                bfly.state = ButterflyState::Idle;
-                bfly.idle_cooldown = 1.0 + hash_f32((bfly.phase * 10000.0) as u32) * 2.0;
+        for (mut tf, _cr, mut bd, mut vis) in &mut bfly_q {
+            if bd.flight_state != BillboardFlightState::Idle {
+                bd.flight_state = BillboardFlightState::Idle;
+                bd.idle_cooldown = 1.0 + hash_f32((bd.flap_speed * 10000.0) as u32) * 2.0;
             }
             *vis = Visibility::Hidden;
             tf.translation.y = -100.0;
@@ -251,17 +252,17 @@ pub(super) fn animate_butterflies(
     let wind_drift = wind.speed_mph * 0.005;
     let wind_off = Vec3::new(wd_x * wind_drift * t, 0.0, wd_z * wind_drift * t);
 
-    for (mut tf, mut bfly, mut vis) in &mut bfly_q {
-        let mut state = bfly.state;
+    for (mut tf, mut cr, mut bd, mut vis) in &mut bfly_q {
+        let mut state = bd.flight_state;
 
         match state {
-            ButterflyState::Idle => {
+            BillboardFlightState::Idle => {
                 *vis = Visibility::Hidden;
                 tf.translation.y = -100.0;
 
-                bfly.idle_cooldown -= dt;
-                if bfly.idle_cooldown <= 0.0 {
-                    let seed = (bfly.phase * 10000.0) as u32 + (t * 7.1) as u32;
+                bd.idle_cooldown -= dt;
+                if bd.idle_cooldown <= 0.0 {
+                    let seed = (cr.phase * 10000.0) as u32 + (t * 7.1) as u32;
                     let theta = hash_f32(seed) * std::f32::consts::TAU;
                     let ry = hash_f32(seed + 200);
                     let origin_x = center.x + theta.cos() * ENTER_RADIUS;
@@ -284,15 +285,16 @@ pub(super) fn animate_butterflies(
                         target_z,
                     );
 
-                    state = ButterflyState::Entering {
+                    state = BillboardFlightState::Entering {
                         origin,
                         target,
                         progress: 0.0,
                     };
+                    cr.state = CreatureState::Active;
                 }
             }
 
-            ButterflyState::Entering {
+            BillboardFlightState::Entering {
                 origin,
                 target,
                 ref mut progress,
@@ -303,8 +305,7 @@ pub(super) fn animate_butterflies(
 
                 let ease = p * p * (3.0 - 2.0 * p);
                 let base_pos = origin.lerp(target, ease);
-                let flut =
-                    flutter_offset(t, bfly.phase, bfly.wander_speed, bfly.wander_radius, 0.3);
+                let flut = flutter_offset(t, cr.phase, bd.wander_speed, bd.wander_radius, 0.3);
                 let mut pos = base_pos + flut + wind_off;
                 let ground = terrain.height_at_world(pos.x, pos.z);
                 pos.y = pos.y.max(ground + MIN_FLY_HEIGHT);
@@ -315,28 +316,26 @@ pub(super) fn animate_butterflies(
                     pos,
                     cam_pos,
                     t,
-                    bfly.flap_speed,
-                    bfly.phase,
-                    bfly.size_scale,
+                    bd.flap_speed,
+                    cr.phase,
+                    bd.size_scale,
                 );
 
-                if let Some(mat) = materials.get_mut(&bfly.mat_handle) {
+                if let Some(mat) = materials.get_mut(&cr.mat_handle) {
                     let mut c = mat.base_color.to_srgba();
                     c.alpha = df * 0.9 * p;
                     mat.base_color = c.into();
                 }
 
                 if *progress >= 1.0 {
-                    bfly.anchor = target;
-                    state = ButterflyState::Active;
+                    cr.anchor = target;
+                    state = BillboardFlightState::Active;
                 }
             }
 
-            ButterflyState::Active => {
-                let flut =
-                    flutter_offset(t, bfly.phase, bfly.wander_speed, bfly.wander_radius, 1.0);
-                let mut pos = bfly.anchor + flut + wind_off;
-                // Clamp above terrain so butterflies never clip through hills.
+            BillboardFlightState::Active => {
+                let flut = flutter_offset(t, cr.phase, bd.wander_speed, bd.wander_radius, 1.0);
+                let mut pos = cr.anchor + flut + wind_off;
                 let ground = terrain.height_at_world(pos.x, pos.z);
                 pos.y = pos.y.max(ground + MIN_FLY_HEIGHT);
 
@@ -346,30 +345,29 @@ pub(super) fn animate_butterflies(
                     pos,
                     cam_pos,
                     t,
-                    bfly.flap_speed,
-                    bfly.phase,
-                    bfly.size_scale,
+                    bd.flap_speed,
+                    cr.phase,
+                    bd.size_scale,
                 );
 
-                if let Some(mat) = materials.get_mut(&bfly.mat_handle) {
+                if let Some(mat) = materials.get_mut(&cr.mat_handle) {
                     let mut c = mat.base_color.to_srgba();
                     c.alpha = df * 0.9;
                     mat.base_color = c.into();
                 }
 
-                let dist_xz =
-                    Vec2::new(bfly.anchor.x - center.x, bfly.anchor.z - center.z).length();
+                let dist_xz = Vec2::new(cr.anchor.x - center.x, cr.anchor.z - center.z).length();
                 if dist_xz > EXIT_TRIGGER {
-                    let away = Vec3::new(bfly.anchor.x - center.x, 0.15, bfly.anchor.z - center.z)
+                    let away = Vec3::new(cr.anchor.x - center.x, 0.15, cr.anchor.z - center.z)
                         .normalize_or_zero();
                     let dir = if away.length_squared() < 0.01 {
-                        let seed = (bfly.phase * 10000.0) as u32 + (t * 5.0) as u32;
+                        let seed = (cr.phase * 10000.0) as u32 + (t * 5.0) as u32;
                         let a = hash_f32(seed) * std::f32::consts::TAU;
                         Vec3::new(a.cos(), 0.15, a.sin()).normalize()
                     } else {
                         away
                     };
-                    state = ButterflyState::Exiting {
+                    state = BillboardFlightState::Exiting {
                         start: tf.translation,
                         direction: dir,
                         progress: 0.0,
@@ -377,7 +375,7 @@ pub(super) fn animate_butterflies(
                 }
             }
 
-            ButterflyState::Exiting {
+            BillboardFlightState::Exiting {
                 start,
                 direction,
                 ref mut progress,
@@ -386,13 +384,7 @@ pub(super) fn animate_butterflies(
                 let p = progress.clamp(0.0, 1.0);
 
                 let base_pos = start + direction * (p * EXIT_DISTANCE);
-                let flut = flutter_offset(
-                    t,
-                    bfly.phase,
-                    bfly.wander_speed,
-                    bfly.wander_radius,
-                    1.0 - p,
-                );
+                let flut = flutter_offset(t, cr.phase, bd.wander_speed, bd.wander_radius, 1.0 - p);
                 let mut pos = base_pos + flut + wind_off;
                 let ground = terrain.height_at_world(pos.x, pos.z);
                 pos.y = pos.y.max(ground + MIN_FLY_HEIGHT);
@@ -403,27 +395,28 @@ pub(super) fn animate_butterflies(
                     pos,
                     cam_pos,
                     t,
-                    bfly.flap_speed,
-                    bfly.phase,
-                    bfly.size_scale,
+                    bd.flap_speed,
+                    cr.phase,
+                    bd.size_scale,
                 );
 
-                if let Some(mat) = materials.get_mut(&bfly.mat_handle) {
+                if let Some(mat) = materials.get_mut(&cr.mat_handle) {
                     let mut c = mat.base_color.to_srgba();
                     c.alpha = df * 0.9 * (1.0 - p);
                     mat.base_color = c.into();
                 }
 
                 if *progress >= 1.0 {
-                    let seed = (bfly.phase * 10000.0) as u32 + (t * 3.3) as u32;
-                    bfly.idle_cooldown = 1.0 + hash_f32(seed) * 2.0;
+                    let seed = (cr.phase * 10000.0) as u32 + (t * 3.3) as u32;
+                    bd.idle_cooldown = 1.0 + hash_f32(seed) * 2.0;
                     tf.translation.y = -100.0;
                     *vis = Visibility::Hidden;
-                    state = ButterflyState::Idle;
+                    cr.state = CreatureState::Pooled;
+                    state = BillboardFlightState::Idle;
                 }
             }
         }
 
-        bfly.state = state;
+        bd.flight_state = state;
     }
 }
