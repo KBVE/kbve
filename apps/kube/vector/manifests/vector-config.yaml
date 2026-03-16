@@ -5,7 +5,7 @@ metadata:
     name: vector-config
     namespace: vector
     annotations:
-        kbve.sh/last-updated: '2026-03-16T14:00:00Z'
+        kbve.sh/last-updated: '2026-03-16T22:00:00Z'
 data:
     vector.yml: |
         api:
@@ -41,6 +41,12 @@ data:
               # Drop empty messages
               if is_empty(string(.event_message) ?? "") { abort }
 
+              # Drop bare stack frame lines (e.g. "0. DB::Exception::..." )
+              # Drop single-word low-value messages (e.g. "record", "Trace")
+              msg = string(.event_message) ?? ""
+              if match(msg, r'^\d+\. \S+::\S+') { abort }
+              if match(msg, r'^(record|Trace)$') { abort }
+
               # Strip ANSI escape codes
               .event_message = replace!(string!(.event_message), r'\x1b\[[0-9;]*m', "")
 
@@ -59,7 +65,7 @@ data:
             condition:
               type: vrl
               source: |-
-                noisy = ["clickhouse", "arc-systems", "arc-runners", "monitoring",
+                noisy = ["argocd", "clickhouse", "arc-systems", "arc-runners", "monitoring",
                          "kube-system", "kube-node-lease", "kube-public",
                          "longhorn-system", "metallb-system", "cnpg-system",
                          "cert-manager", "external-secrets-system"]
