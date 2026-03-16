@@ -1,6 +1,27 @@
 import { describe, it, expect, beforeAll } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { BASE_URL, waitForReady } from './helpers/http';
 import { createJwt } from './helpers/jwt';
+
+/** Parse version.toml — single source of truth for version + function registry. */
+function parseManifest() {
+	const tomlPath = resolve(__dirname, '../../../edge/version.toml');
+	const content = readFileSync(tomlPath, 'utf-8');
+
+	const versionMatch = content.match(/^version\s*=\s*"([^"]+)"/m);
+	if (!versionMatch)
+		throw new Error('Could not parse version from version.toml');
+
+	const functionNames: string[] = [];
+	const blocks = content.split(/\[\[functions\]\]/g).slice(1);
+	for (const block of blocks) {
+		const name = block.match(/^name\s*=\s*"([^"]+)"/m)?.[1];
+		if (name) functionNames.push(name);
+	}
+
+	return { version: versionMatch[1], functionNames };
+}
 
 describe('Edge Runtime Health', () => {
 	beforeAll(async () => {
@@ -29,6 +50,24 @@ describe('Edge Runtime Health', () => {
 		expect(body.status).toBe('ok');
 		expect(body.version).toBeDefined();
 		expect(body.timestamp).toBeDefined();
+	});
+
+	it('should return version matching version.toml', async () => {
+		const { version } = parseManifest();
+		const res = await fetch(`${BASE_URL}/health`);
+		const body = await res.json();
+		expect(body.version).toBe(version);
+	});
+
+	it('should return functions array matching version.toml registry', async () => {
+		const { functionNames } = parseManifest();
+		const res = await fetch(`${BASE_URL}/health`);
+		const body = await res.json();
+		expect(Array.isArray(body.functions)).toBe(true);
+		const returnedNames = body.functions.map(
+			(f: { name: string }) => f.name,
+		);
+		expect(returnedNames).toEqual(functionNames);
 	});
 
 	it('should return a valid ISO timestamp in health response', async () => {

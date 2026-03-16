@@ -5,6 +5,8 @@ declare namespace Deno {
     toObject(): Record<string, string>;
   }
   const env: Env;
+
+  function readTextFile(path: string): Promise<string>;
 }
 
 // Edge Runtime types
