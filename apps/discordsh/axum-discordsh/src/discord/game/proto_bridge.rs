@@ -11,6 +11,7 @@ use bevy_items::{
     EquipSlot as ProtoEquipSlot, GearSpecialType, ItemDb, ProtoItemId, StatusEffectKind,
     UseEffectType, inventory_adapter::ProtoItemKind,
 };
+use bevy_npc::NpcDb;
 
 use super::types::*;
 
@@ -34,6 +35,13 @@ static INVENTORY_INIT: LazyLock<()> = LazyLock::new(|| {
     let db: &'static ItemDb = &ITEM_DB;
     inventory_adapter::init_item_db(db);
 });
+
+/// Embedded JSON snapshot of the NPC database — generated from the Astro dev server.
+const NPCDB_JSON: &str = include_str!("../../../data/npcdb.json");
+
+/// The global proto NPC database, loaded once from the embedded JSON.
+static NPC_DB: LazyLock<NpcDb> =
+    LazyLock::new(|| NpcDb::from_json(NPCDB_JSON).expect("embedded npcdb.json must be valid"));
 
 /// All discordsh-tagged consumable items, converted from proto.
 static ITEMS: LazyLock<Vec<ItemDef>> = LazyLock::new(|| {
@@ -289,6 +297,129 @@ fn proto_to_gear_def(proto: &bevy_items::Item) -> Option<GearDef> {
     })
 }
 
+// ── NPC public API ─────────────────────────────────────────────────────
+
+/// Access the underlying [`NpcDb`] for advanced queries.
+pub fn npc_db() -> &'static NpcDb {
+    &NPC_DB
+}
+
+/// Find NPCs at a given level. Returns refs into the global NPC database.
+pub fn find_npcs_by_level(level: i32) -> Vec<&'static bevy_npc::Npc> {
+    NPC_DB.find_by_level(level)
+}
+
+/// Look up a single NPC by its ref slug (e.g. "glass-slime").
+pub fn find_npc_by_ref(r: &str) -> Option<&'static bevy_npc::Npc> {
+    NPC_DB.get_by_ref(r)
+}
+
+/// Convert a proto NPC into an [`EnemyState`] ready for combat.
+///
+/// Stats (HP, armor, personality, first_strike) come from the proto definition.
+/// The initial intent is looked up from a static table keyed by NPC ref.
+/// The loot table is derived from the NPC's level tier.
+pub fn proto_to_enemy_state(npc: &bevy_npc::Npc) -> EnemyState {
+    let stats = npc.stats.as_ref();
+    let behavior = npc.behavior.as_ref();
+
+    let hp = stats.map(|s| s.hp).unwrap_or(20);
+    let armor = stats.and_then(|s| s.armor).unwrap_or(0);
+    let attack = stats.map(|s| s.attack).unwrap_or(5);
+    let first_strike = behavior.and_then(|b| b.first_strike).unwrap_or(false);
+
+    EnemyState {
+        name: npc.name.clone(),
+        level: npc.level as u8,
+        hp,
+        max_hp: hp,
+        armor,
+        effects: Vec::new(),
+        intent: npc_initial_intent(&npc.r#ref, attack),
+        charged: false,
+        loot_table_id: loot_table_for_level(npc.level as u8),
+        enraged: false,
+        index: 0,
+        first_strike,
+        personality: proto_personality(npc.personality),
+    }
+}
+
+/// Map proto personality i32 to the game's Personality enum.
+fn proto_personality(p: i32) -> Personality {
+    match bevy_npc::Personality::try_from(p) {
+        Ok(bevy_npc::Personality::Aggressive) => Personality::Aggressive,
+        Ok(bevy_npc::Personality::Cunning) => Personality::Cunning,
+        Ok(bevy_npc::Personality::Fearful) => Personality::Fearful,
+        Ok(bevy_npc::Personality::Stoic) => Personality::Stoic,
+        Ok(bevy_npc::Personality::Feral) => Personality::Feral,
+        Ok(bevy_npc::Personality::Ancient) => Personality::Ancient,
+        _ => Personality::Feral,
+    }
+}
+
+/// Derive the loot table ID from enemy level tier.
+fn loot_table_for_level(level: u8) -> &'static str {
+    match level {
+        0..=1 => "slime",
+        2 => "skeleton",
+        3 => "wraith",
+        _ => "boss",
+    }
+}
+
+/// Look up the initial combat intent for an NPC by ref.
+/// Falls back to a basic Attack using the NPC's attack stat.
+fn npc_initial_intent(npc_ref: &str, attack: i32) -> Intent {
+    match npc_ref {
+        // Level 1 — tier "slime"
+        "glass-slime" => Intent::Attack { dmg: 5 },
+        "crystal-bat" => Intent::Attack { dmg: 4 },
+        "mushroom-sprite" => Intent::Attack { dmg: 4 },
+        "dust-mite" => Intent::Attack { dmg: 6 },
+        "cave-spider" => Intent::Debuff {
+            effect: EffectKind::Poison,
+            stacks: 1,
+            turns: 2,
+        },
+        "crumbling-statue" => Intent::Defend { armor: 3 },
+
+        // Level 2 — tier "skeleton"
+        "skeleton-guard" => Intent::Defend { armor: 5 },
+        "bone-archer" => Intent::Attack { dmg: 7 },
+        "cursed-knight" => Intent::Defend { armor: 5 },
+        "fire-imp" => Intent::Attack { dmg: 8 },
+        "shade-stalker" => Intent::Attack { dmg: 8 },
+        "fungal-brute" => Intent::HeavyAttack { dmg: 10 },
+        "ember-wisp" => Intent::Debuff {
+            effect: EffectKind::Burning,
+            stacks: 1,
+            turns: 3,
+        },
+
+        // Level 3 — tier "wraith"
+        "shadow-wraith" => Intent::HeavyAttack { dmg: 12 },
+        "phantom-knight" => Intent::Charge,
+        "void-walker" => Intent::HeavyAttack { dmg: 10 },
+        "stone-sentinel" => Intent::Attack { dmg: 6 },
+        "glass-assassin" => Intent::Attack { dmg: 10 },
+        "venomfang-lurker" => Intent::Debuff {
+            effect: EffectKind::Poison,
+            stacks: 2,
+            turns: 3,
+        },
+        "crystal-golem" => Intent::Charge,
+
+        // Level 5 — tier "boss"
+        "glass-golem" => Intent::Charge,
+        "corrupted-warden" => Intent::Charge,
+        "the-shattered-king" => Intent::AoeAttack { dmg: 8 },
+
+        // Fallback: basic attack using proto attack stat
+        _ => Intent::Attack { dmg: attack },
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -432,5 +563,493 @@ mod tests {
         let kind = game_id_to_proto_item_kind("excalibur").expect("excalibur should resolve");
         assert_eq!(kind.display_name(), "Excalibur");
         assert_eq!(kind.max_stack(), 1); // gear doesn't stack
+    }
+
+    // ── NPC bridge tests ─────────────────────────────────────────────────
+
+    #[test]
+    fn npc_db_loads_successfully() {
+        let db = npc_db();
+        assert!(!db.is_empty(), "NpcDb should have NPCs");
+    }
+
+    #[test]
+    fn npc_db_has_23_npcs() {
+        assert_eq!(npc_db().len(), 23, "Should have 23 discordsh NPCs");
+    }
+
+    #[test]
+    fn find_npc_glass_slime() {
+        let npc = find_npc_by_ref("glass-slime").expect("glass-slime should exist");
+        assert_eq!(npc.name, "Glass Slime");
+        assert_eq!(npc.level, 1);
+        let stats = npc.stats.as_ref().expect("should have stats");
+        assert_eq!(stats.hp, 20);
+        assert_eq!(stats.armor, Some(0));
+    }
+
+    #[test]
+    fn find_npcs_by_level_1() {
+        let npcs = find_npcs_by_level(1);
+        assert_eq!(npcs.len(), 6, "Should have 6 level-1 NPCs");
+    }
+
+    #[test]
+    fn find_npcs_by_level_2() {
+        let npcs = find_npcs_by_level(2);
+        assert_eq!(npcs.len(), 7, "Should have 7 level-2 NPCs");
+    }
+
+    #[test]
+    fn find_npcs_by_level_3() {
+        let npcs = find_npcs_by_level(3);
+        assert_eq!(npcs.len(), 7, "Should have 7 level-3 NPCs");
+    }
+
+    #[test]
+    fn find_npcs_by_level_5() {
+        let npcs = find_npcs_by_level(5);
+        assert_eq!(npcs.len(), 3, "Should have 3 level-5 boss NPCs");
+    }
+
+    #[test]
+    fn proto_to_enemy_state_glass_slime() {
+        let npc = find_npc_by_ref("glass-slime").expect("glass-slime should exist");
+        let enemy = proto_to_enemy_state(npc);
+        assert_eq!(enemy.name, "Glass Slime");
+        assert_eq!(enemy.level, 1);
+        assert_eq!(enemy.hp, 20);
+        assert_eq!(enemy.max_hp, 20);
+        assert_eq!(enemy.armor, 0);
+        assert!(!enemy.first_strike);
+        assert_eq!(enemy.personality, Personality::Feral);
+        assert_eq!(enemy.loot_table_id, "slime");
+        assert!(matches!(enemy.intent, Intent::Attack { dmg: 5 }));
+    }
+
+    #[test]
+    fn proto_to_enemy_state_cave_spider() {
+        let npc = find_npc_by_ref("cave-spider").expect("cave-spider should exist");
+        let enemy = proto_to_enemy_state(npc);
+        assert!(enemy.first_strike);
+        assert_eq!(enemy.personality, Personality::Feral);
+        assert!(matches!(
+            enemy.intent,
+            Intent::Debuff {
+                effect: EffectKind::Poison,
+                stacks: 1,
+                turns: 2,
+            }
+        ));
+    }
+
+    #[test]
+    fn proto_to_enemy_state_skeleton_guard() {
+        let npc = find_npc_by_ref("skeleton-guard").expect("skeleton-guard should exist");
+        let enemy = proto_to_enemy_state(npc);
+        assert_eq!(enemy.level, 2);
+        assert_eq!(enemy.hp, 30);
+        assert_eq!(enemy.armor, 3);
+        assert_eq!(enemy.personality, Personality::Stoic);
+        assert_eq!(enemy.loot_table_id, "skeleton");
+    }
+
+    #[test]
+    fn proto_to_enemy_state_the_shattered_king() {
+        let npc = find_npc_by_ref("the-shattered-king").expect("shattered king should exist");
+        let enemy = proto_to_enemy_state(npc);
+        assert_eq!(enemy.level, 5);
+        assert_eq!(enemy.hp, 55);
+        assert!(enemy.first_strike);
+        assert_eq!(enemy.personality, Personality::Ancient);
+        assert_eq!(enemy.loot_table_id, "boss");
+        assert!(matches!(enemy.intent, Intent::AoeAttack { dmg: 8 }));
+    }
+
+    #[test]
+    fn all_npcs_convert_to_enemy_state() {
+        for (_id, npc) in npc_db().iter() {
+            let enemy = proto_to_enemy_state(npc);
+            assert!(!enemy.name.is_empty());
+            assert!(enemy.level > 0);
+            assert!(enemy.hp > 0);
+        }
+    }
+
+    // ── Per-NPC stat verification (level 1) ──────────────────────────────
+
+    #[test]
+    fn npc_crystal_bat_stats() {
+        let npc = find_npc_by_ref("crystal-bat").expect("crystal-bat");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 15);
+        assert_eq!(e.armor, 0);
+        assert_eq!(e.level, 1);
+        assert!(!e.first_strike);
+        assert_eq!(e.personality, Personality::Feral);
+        assert!(matches!(e.intent, Intent::Attack { dmg: 4 }));
+    }
+
+    #[test]
+    fn npc_mushroom_sprite_stats() {
+        let npc = find_npc_by_ref("mushroom-sprite").expect("mushroom-sprite");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 18);
+        assert_eq!(e.level, 1);
+        assert_eq!(e.loot_table_id, "slime");
+    }
+
+    #[test]
+    fn npc_dust_mite_stats() {
+        let npc = find_npc_by_ref("dust-mite").expect("dust-mite");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 12);
+        assert!(matches!(e.intent, Intent::Attack { dmg: 6 }));
+    }
+
+    #[test]
+    fn npc_crumbling_statue_stats() {
+        let npc = find_npc_by_ref("crumbling-statue").expect("crumbling-statue");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 22);
+        assert_eq!(e.armor, 2);
+        assert_eq!(e.personality, Personality::Stoic);
+        assert!(matches!(e.intent, Intent::Defend { armor: 3 }));
+    }
+
+    // ── Per-NPC stat verification (level 2) ──────────────────────────────
+
+    #[test]
+    fn npc_bone_archer_stats() {
+        let npc = find_npc_by_ref("bone-archer").expect("bone-archer");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 22);
+        assert_eq!(e.armor, 1);
+        assert_eq!(e.level, 2);
+        assert_eq!(e.personality, Personality::Fearful);
+        assert!(matches!(e.intent, Intent::Attack { dmg: 7 }));
+    }
+
+    #[test]
+    fn npc_cursed_knight_stats() {
+        let npc = find_npc_by_ref("cursed-knight").expect("cursed-knight");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 35);
+        assert_eq!(e.armor, 5);
+        assert_eq!(e.personality, Personality::Aggressive);
+        assert!(matches!(e.intent, Intent::Defend { armor: 5 }));
+    }
+
+    #[test]
+    fn npc_fire_imp_stats() {
+        let npc = find_npc_by_ref("fire-imp").expect("fire-imp");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 18);
+        assert_eq!(e.level, 2);
+        assert_eq!(e.personality, Personality::Fearful);
+        assert!(matches!(e.intent, Intent::Attack { dmg: 8 }));
+    }
+
+    #[test]
+    fn npc_shade_stalker_stats() {
+        let npc = find_npc_by_ref("shade-stalker").expect("shade-stalker");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 20);
+        assert!(e.first_strike);
+        assert_eq!(e.personality, Personality::Cunning);
+        assert!(matches!(e.intent, Intent::Attack { dmg: 8 }));
+    }
+
+    #[test]
+    fn npc_fungal_brute_stats() {
+        let npc = find_npc_by_ref("fungal-brute").expect("fungal-brute");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 38);
+        assert_eq!(e.armor, 2);
+        assert!(matches!(e.intent, Intent::HeavyAttack { dmg: 10 }));
+    }
+
+    #[test]
+    fn npc_ember_wisp_stats() {
+        let npc = find_npc_by_ref("ember-wisp").expect("ember-wisp");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 16);
+        assert_eq!(e.personality, Personality::Fearful);
+        assert!(matches!(
+            e.intent,
+            Intent::Debuff {
+                effect: EffectKind::Burning,
+                stacks: 1,
+                turns: 3,
+            }
+        ));
+    }
+
+    // ── Per-NPC stat verification (level 3) ──────────────────────────────
+
+    #[test]
+    fn npc_shadow_wraith_stats() {
+        let npc = find_npc_by_ref("shadow-wraith").expect("shadow-wraith");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 25);
+        assert_eq!(e.armor, 2);
+        assert_eq!(e.level, 3);
+        assert_eq!(e.personality, Personality::Cunning);
+        assert!(matches!(e.intent, Intent::HeavyAttack { dmg: 12 }));
+    }
+
+    #[test]
+    fn npc_phantom_knight_stats() {
+        let npc = find_npc_by_ref("phantom-knight").expect("phantom-knight");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 28);
+        assert_eq!(e.armor, 4);
+        assert_eq!(e.personality, Personality::Aggressive);
+        assert!(matches!(e.intent, Intent::Charge));
+    }
+
+    #[test]
+    fn npc_void_walker_stats() {
+        let npc = find_npc_by_ref("void-walker").expect("void-walker");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 30);
+        assert_eq!(e.armor, 3);
+        assert_eq!(e.personality, Personality::Cunning);
+        assert!(matches!(e.intent, Intent::HeavyAttack { dmg: 10 }));
+    }
+
+    #[test]
+    fn npc_stone_sentinel_stats() {
+        let npc = find_npc_by_ref("stone-sentinel").expect("stone-sentinel");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 40);
+        assert_eq!(e.armor, 6);
+        assert_eq!(e.personality, Personality::Stoic);
+        assert!(matches!(e.intent, Intent::Attack { dmg: 6 }));
+    }
+
+    #[test]
+    fn npc_glass_assassin_stats() {
+        let npc = find_npc_by_ref("glass-assassin").expect("glass-assassin");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 22);
+        assert!(e.first_strike);
+        assert_eq!(e.personality, Personality::Cunning);
+        assert!(matches!(e.intent, Intent::Attack { dmg: 10 }));
+    }
+
+    #[test]
+    fn npc_venomfang_lurker_stats() {
+        let npc = find_npc_by_ref("venomfang-lurker").expect("venomfang-lurker");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 26);
+        assert!(e.first_strike);
+        assert_eq!(e.personality, Personality::Feral);
+        assert!(matches!(
+            e.intent,
+            Intent::Debuff {
+                effect: EffectKind::Poison,
+                stacks: 2,
+                turns: 3,
+            }
+        ));
+    }
+
+    #[test]
+    fn npc_crystal_golem_stats() {
+        let npc = find_npc_by_ref("crystal-golem").expect("crystal-golem");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 45);
+        assert_eq!(e.armor, 8);
+        assert_eq!(e.personality, Personality::Stoic);
+        assert!(matches!(e.intent, Intent::Charge));
+    }
+
+    // ── Per-NPC stat verification (level 5 / boss) ───────────────────────
+
+    #[test]
+    fn npc_glass_golem_stats() {
+        let npc = find_npc_by_ref("glass-golem").expect("glass-golem");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 60);
+        assert_eq!(e.armor, 8);
+        assert_eq!(e.level, 5);
+        assert_eq!(e.personality, Personality::Stoic);
+        assert_eq!(e.loot_table_id, "boss");
+        assert!(matches!(e.intent, Intent::Charge));
+    }
+
+    #[test]
+    fn npc_corrupted_warden_stats() {
+        let npc = find_npc_by_ref("corrupted-warden").expect("corrupted-warden");
+        let e = proto_to_enemy_state(npc);
+        assert_eq!(e.hp, 50);
+        assert_eq!(e.armor, 10);
+        assert_eq!(e.personality, Personality::Aggressive);
+        assert!(matches!(e.intent, Intent::Charge));
+    }
+
+    // ── Loot table mapping tests ─────────────────────────────────────────
+
+    #[test]
+    fn loot_table_level_1_is_slime() {
+        assert_eq!(loot_table_for_level(1), "slime");
+    }
+
+    #[test]
+    fn loot_table_level_2_is_skeleton() {
+        assert_eq!(loot_table_for_level(2), "skeleton");
+    }
+
+    #[test]
+    fn loot_table_level_3_is_wraith() {
+        assert_eq!(loot_table_for_level(3), "wraith");
+    }
+
+    #[test]
+    fn loot_table_level_5_is_boss() {
+        assert_eq!(loot_table_for_level(5), "boss");
+    }
+
+    #[test]
+    fn loot_table_level_0_is_slime() {
+        assert_eq!(loot_table_for_level(0), "slime");
+    }
+
+    #[test]
+    fn loot_table_level_99_is_boss() {
+        assert_eq!(loot_table_for_level(99), "boss");
+    }
+
+    // ── Personality mapping tests ────────────────────────────────────────
+
+    #[test]
+    fn proto_personality_maps_all_variants() {
+        assert_eq!(proto_personality(1), Personality::Aggressive);
+        assert_eq!(proto_personality(2), Personality::Cunning);
+        assert_eq!(proto_personality(3), Personality::Fearful);
+        assert_eq!(proto_personality(4), Personality::Stoic);
+        assert_eq!(proto_personality(5), Personality::Feral);
+        assert_eq!(proto_personality(6), Personality::Ancient);
+    }
+
+    #[test]
+    fn proto_personality_unknown_defaults_to_feral() {
+        assert_eq!(proto_personality(0), Personality::Feral);
+        assert_eq!(proto_personality(99), Personality::Feral);
+    }
+
+    // ── NPC database query tests ─────────────────────────────────────────
+
+    #[test]
+    fn find_npc_nonexistent_returns_none() {
+        assert!(find_npc_by_ref("nonexistent-npc-xyz").is_none());
+    }
+
+    #[test]
+    fn find_npcs_by_level_4_is_empty() {
+        assert!(find_npcs_by_level(4).is_empty(), "No level-4 NPCs exist");
+    }
+
+    #[test]
+    fn all_npcs_have_discordsh_tag() {
+        for (_id, npc) in npc_db().iter() {
+            assert!(
+                npc.tags.iter().any(|t| t == "discordsh"),
+                "NPC {} missing discordsh tag",
+                npc.name
+            );
+        }
+    }
+
+    #[test]
+    fn all_npcs_have_stats() {
+        for (_id, npc) in npc_db().iter() {
+            assert!(npc.stats.is_some(), "NPC {} missing stats block", npc.name);
+        }
+    }
+
+    #[test]
+    fn all_npcs_have_unique_refs() {
+        let mut refs = std::collections::HashSet::new();
+        for (_id, npc) in npc_db().iter() {
+            assert!(
+                refs.insert(npc.r#ref.clone()),
+                "Duplicate NPC ref: {}",
+                npc.r#ref
+            );
+        }
+    }
+
+    #[test]
+    fn all_level_1_npcs_use_slime_loot() {
+        for npc in find_npcs_by_level(1) {
+            let enemy = proto_to_enemy_state(npc);
+            assert_eq!(
+                enemy.loot_table_id, "slime",
+                "{} should use slime loot table",
+                enemy.name
+            );
+        }
+    }
+
+    #[test]
+    fn all_level_5_npcs_use_boss_loot() {
+        for npc in find_npcs_by_level(5) {
+            let enemy = proto_to_enemy_state(npc);
+            assert_eq!(
+                enemy.loot_table_id, "boss",
+                "{} should use boss loot table",
+                enemy.name
+            );
+        }
+    }
+
+    #[test]
+    fn all_enemies_start_with_empty_effects() {
+        for (_id, npc) in npc_db().iter() {
+            let enemy = proto_to_enemy_state(npc);
+            assert!(
+                enemy.effects.is_empty(),
+                "{} should start with no effects",
+                enemy.name
+            );
+        }
+    }
+
+    #[test]
+    fn all_enemies_start_not_charged() {
+        for (_id, npc) in npc_db().iter() {
+            let enemy = proto_to_enemy_state(npc);
+            assert!(!enemy.charged, "{} should start not charged", enemy.name);
+        }
+    }
+
+    #[test]
+    fn all_enemies_start_not_enraged() {
+        for (_id, npc) in npc_db().iter() {
+            let enemy = proto_to_enemy_state(npc);
+            assert!(!enemy.enraged, "{} should start not enraged", enemy.name);
+        }
+    }
+
+    #[test]
+    fn all_enemies_start_at_index_zero() {
+        for (_id, npc) in npc_db().iter() {
+            let enemy = proto_to_enemy_state(npc);
+            assert_eq!(enemy.index, 0, "{} should start at index 0", enemy.name);
+        }
+    }
+
+    #[test]
+    fn all_enemies_max_hp_equals_hp() {
+        for (_id, npc) in npc_db().iter() {
+            let enemy = proto_to_enemy_state(npc);
+            assert_eq!(
+                enemy.hp, enemy.max_hp,
+                "{} should start at full HP",
+                enemy.name
+            );
+        }
     }
 }
