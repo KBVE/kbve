@@ -273,6 +273,52 @@ jobs:
                   TIMESTAMP="${{ steps.nx-report.outputs.report_timestamp }}"
                   python3 scripts/nx-graph-to-mdx.py /tmp/nx-graph.json "$DEST" "$TIMESTAMP"
 
+            # ── Build JSON data files for public/ ─────────────────
+            - name: Build NX Report JSON
+              run: |
+                  set -euo pipefail
+                  REPORT_TIMESTAMP="${{ steps.nx-report.outputs.report_timestamp }}"
+                  DEST="apps/kbve/astro-kbve/public/data/nx-report.json"
+                  mkdir -p "$(dirname "$DEST")"
+
+                  NODE_VER=$(grep "^Node" /tmp/nx-report-raw.txt | awk -F: '{print $2}' | xargs)
+                  OS_INFO=$(grep "^OS" /tmp/nx-report-raw.txt | awk -F: '{print $2}' | xargs)
+                  NX_VER=$(grep "^nx " /tmp/nx-report-raw.txt | awk '{print $NF}' | xargs)
+                  PNPM_VER=$(grep "^pnpm" /tmp/nx-report-raw.txt | awk -F: '{print $2}' | xargs)
+
+                  LOC_STATS=$(cat /tmp/loc-stats.txt)
+                  COVERAGE=""
+                  if [ -s /tmp/coverage-report.txt ]; then
+                    COVERAGE=$(cat /tmp/coverage-report.txt)
+                  fi
+
+                  python3 -c "
+                  import json, sys
+                  report = {
+                      'generated_at': sys.argv[1],
+                      'environment': {
+                          'node': sys.argv[2],
+                          'nx': sys.argv[3],
+                          'pnpm': sys.argv[4],
+                          'os': sys.argv[5],
+                      },
+                      'nx_report': open('/tmp/nx-report-raw.txt').read(),
+                      'loc_stats': sys.argv[6],
+                      'coverage': sys.argv[7] if sys.argv[7] else None,
+                  }
+                  json.dump(report, open(sys.argv[8], 'w'), indent=2)
+                  " "$REPORT_TIMESTAMP" "$NODE_VER" "$NX_VER" "$PNPM_VER" "$OS_INFO" \
+                    "$LOC_STATS" "$COVERAGE" "$DEST"
+
+                  echo "NX report JSON written ($(wc -c < "$DEST" | xargs) bytes)"
+
+            - name: Copy NX Graph JSON
+              run: |
+                  set -euo pipefail
+                  DEST="apps/kbve/astro-kbve/public/data/nx-graph.json"
+                  cp /tmp/nx-graph.json "$DEST"
+                  echo "NX graph JSON copied ($(wc -c < "$DEST" | xargs) bytes)"
+
             # ── Validate generated MDX ──────────────────────────
             - name: Validate generated MDX files
               run: |
@@ -320,7 +366,9 @@ jobs:
 
                   git add \
                     apps/kbve/astro-kbve/src/content/docs/dashboard/nx-report.mdx \
-                    apps/kbve/astro-kbve/src/content/docs/dashboard/nx-graph.mdx
+                    apps/kbve/astro-kbve/src/content/docs/dashboard/nx-graph.mdx \
+                    apps/kbve/astro-kbve/public/data/nx-report.json \
+                    apps/kbve/astro-kbve/public/data/nx-graph.json
 
                   if git diff --cached --quiet; then
                     echo "No changes to commit"
