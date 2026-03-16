@@ -59,6 +59,21 @@ spec:
                                 key: secret-key
                       - name: VERIFY_JWT
                         value: 'true'
+                      - name: CLICKHOUSE_ENDPOINT
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: clickhouse-endpoint
+                      - name: CLICKHOUSE_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: clickhouse-username
+                      - name: CLICKHOUSE_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: clickhouse-password
                   resources:
                       requests:
                           memory: '256Mi'
