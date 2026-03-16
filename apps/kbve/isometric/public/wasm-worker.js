@@ -1,37 +1,21 @@
-// Web Worker for WASM pthreads — receives compiled WASM module + shared memory
-// from the main thread, instantiates the module, and calls the Rust entry point
-// which starts polling the shared work queue.
-//
-// Usage from main thread:
-//   const worker = new Worker('/wasm-worker.js');
-//   worker.postMessage({ module: wasmModule, memory: wasmMemory });
+// Web Worker for WASM pthreads.
+// Dynamically imports the wasm-bindgen JS and calls initSync + worker_entry_point.
 
 // eslint-disable-next-line no-restricted-globals
-self.onmessage = async function (e) {
-	const { module, memory } = e.data;
-
-	// Instantiate the WASM module with the same shared memory as the main thread.
-	const imports = {
-		env: { memory },
-		// wasm-bindgen generates an __wbindgen_* import namespace.
-		// We forward all imports from the main module's import object.
-		// The main thread passes these along with module/memory.
-		...(e.data.imports || {}),
-	};
+self.onmessage = async (e) => {
+	const { module, memory, bindgenUrl } = e.data;
 
 	try {
-		const instance = await WebAssembly.instantiate(module, imports);
+		const bindgen = await import(bindgenUrl);
 
-		// Call the Rust worker entry point — starts polling the shared work queue.
-		// This function is exported by bevy_tasker via #[wasm_bindgen].
-		if (instance.exports.worker_entry_point) {
-			instance.exports.worker_entry_point();
-		} else {
-			console.error(
-				'[wasm-worker] worker_entry_point not found in WASM exports',
-			);
-		}
+		// initSync with thread_stack_size initializes TLS for this worker
+		// without running wasm_main() (the game start function).
+		bindgen.initSync({ module, memory, thread_stack_size: 1048576 });
+
+		// Start polling the shared work queue (bevy_tasker).
+		bindgen.worker_entry_point();
+		console.log('[wasm-worker] Worker started');
 	} catch (err) {
-		console.error('[wasm-worker] Failed to instantiate WASM module:', err);
+		console.error('[wasm-worker] Failed to initialize:', err);
 	}
 };
