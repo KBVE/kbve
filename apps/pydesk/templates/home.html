@@ -2667,7 +2667,7 @@
 						// Also update the Droid output if available
 						const droidOutput = document.getElementById('droidOutput');
 						if (droidOutput) {
-							droidOutput.innerHTML += `<div class="text-green-600">WebSocket Droid Response: ${JSON.stringify(data)}</div>`;
+							droidOutput.innerHTML += `<div class="text-green-600">WebSocket Droid Response: ${escapeHtml(JSON.stringify(data))}</div>`;
 						}
 					} else {
 						var content = document.createElement('div');
@@ -2688,11 +2688,17 @@
 				messages.scrollTop = messages.scrollHeight;
 			};
 
+			function escapeHtml(str) {
+				var div = document.createElement('div');
+				div.appendChild(document.createTextNode(String(str)));
+				return div.innerHTML;
+			}
+
 			function formatJsonDisplay(data) {
 				var formatted = '';
 				for (var key in data) {
 					if (data.hasOwnProperty(key)) {
-						formatted += `${key}: ${data[key]}  `;
+						formatted += `${escapeHtml(key)}: ${escapeHtml(data[key])}  `;
 					}
 				}
 				return formatted;
@@ -2756,7 +2762,7 @@
 					
 					// Also show in local output
 					const outputDiv = document.getElementById('droidOutput');
-					outputDiv.innerHTML += `<div class="text-blue-600">Sent via WebSocket: ${command}</div>`;
+					outputDiv.innerHTML += `<div class="text-blue-600">Sent via WebSocket: ${escapeHtml(command)}</div>`;
 				} else {
 					console.error('WebSocket is not open. Current state:', ws ? ws.readyState : 'WebSocket not initialized');
 				}
