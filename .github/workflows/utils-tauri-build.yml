@@ -381,10 +381,11 @@ jobs:
                   fetch-depth: 0
                   submodules: recursive
 
-            - name: Setup Rust
-              uses: dtolnay/rust-toolchain@stable
+            - name: Setup Rust (nightly for -Z build-std + atomics)
+              uses: dtolnay/rust-toolchain@nightly
               with:
                   targets: wasm32-unknown-unknown
+                  components: rust-src
 
             - name: Rust Cache
               uses: Swatinem/rust-cache@v2

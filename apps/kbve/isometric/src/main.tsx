@@ -63,7 +63,8 @@ async function bootstrap() {
 
 		if (wasmModule && wasmMemory) {
 			for (let i = 0; i < numWorkers; i++) {
-				const worker = new Worker('/wasm-worker.js');
+				const base = import.meta.env.BASE_URL;
+				const worker = new Worker(`${base}wasm-worker.js`);
 				worker.postMessage({ module: wasmModule, memory: wasmMemory });
 			}
 			console.log(`[pthreads] Spawned ${numWorkers} WASM worker threads`);

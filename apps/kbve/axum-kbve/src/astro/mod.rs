@@ -2,13 +2,14 @@ pub mod askama;
 
 use axum::{
     Router,
-    http::{StatusCode, header},
+    http::{HeaderValue, StatusCode, header},
     response::IntoResponse,
 };
 use std::convert::Infallible;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tower_http::services::ServeDir;
+use tower_http::set_header::SetResponseHeaderLayer;
 
 pub struct StaticConfig {
     pub base_dir: PathBuf,
@@ -89,12 +90,26 @@ pub fn build_static_router(config: &StaticConfig) -> Router {
         }
     };
 
+    // Isometric game requires cross-origin isolation for SharedArrayBuffer (WASM pthreads)
+    let isometric_service = serve_dir(base.join("isometric"));
+    let isometric_router = Router::new()
+        .nest_service("/", isometric_service)
+        .layer(SetResponseHeaderLayer::overriding(
+            header::HeaderName::from_static("cross-origin-opener-policy"),
+            HeaderValue::from_static("same-origin"),
+        ))
+        .layer(SetResponseHeaderLayer::overriding(
+            header::HeaderName::from_static("cross-origin-embedder-policy"),
+            HeaderValue::from_static("require-corp"),
+        ));
+
     Router::new()
         .nest_service("/_astro", astro_service)
         .nest_service("/assets", assets_service)
         .nest_service("/chunks", chunks_service)
         .nest_service("/images", images_service)
         .nest_service("/pagefind", pagefind_service)
+        .nest("/isometric", isometric_router)
         .fallback_service(fallback_svc)
 }
 
