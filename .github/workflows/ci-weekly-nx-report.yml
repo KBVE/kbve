@@ -278,7 +278,7 @@ jobs:
               run: |
                   set -euo pipefail
                   REPORT_TIMESTAMP="${{ steps.nx-report.outputs.report_timestamp }}"
-                  DEST="apps/kbve/astro-kbve/public/data/nx-report.json"
+                  DEST="apps/kbve/astro-kbve/public/data/nx/nx-report.json"
                   mkdir -p "$(dirname "$DEST")"
 
                   NODE_VER=$(grep "^Node" /tmp/nx-report-raw.txt | awk -F: '{print $2}' | xargs)
@@ -315,7 +315,7 @@ jobs:
             - name: Copy NX Graph JSON
               run: |
                   set -euo pipefail
-                  DEST="apps/kbve/astro-kbve/public/data/nx-graph.json"
+                  DEST="apps/kbve/astro-kbve/public/data/nx/nx-graph.json"
                   cp /tmp/nx-graph.json "$DEST"
                   echo "NX graph JSON copied ($(wc -c < "$DEST" | xargs) bytes)"
 
@@ -367,8 +367,8 @@ jobs:
                   git add \
                     apps/kbve/astro-kbve/src/content/docs/dashboard/nx-report.mdx \
                     apps/kbve/astro-kbve/src/content/docs/dashboard/nx-graph.mdx \
-                    apps/kbve/astro-kbve/public/data/nx-report.json \
-                    apps/kbve/astro-kbve/public/data/nx-graph.json
+                    apps/kbve/astro-kbve/public/data/nx/nx-report.json \
+                    apps/kbve/astro-kbve/public/data/nx/nx-graph.json
 
                   if git diff --cached --quiet; then
                     echo "No changes to commit"
