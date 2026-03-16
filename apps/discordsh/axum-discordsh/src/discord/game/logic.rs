@@ -1780,28 +1780,13 @@ fn apply_gift(
     let receiver_name = session.player(target_uid).name.clone();
 
     // Remove 1 qty from giver
-    let giver = session.player_mut(actor);
-    if let Some(stack) = giver.inventory.iter_mut().find(|s| s.item_id == item_id) {
-        stack.qty -= 1;
-    }
+    battle_bridge::consume_from_session(&mut session.player_mut(actor).inventory, item_id);
 
     // Add 1 qty to receiver
     let added = add_item_to_inventory(&mut session.player_mut(target_uid).inventory, item_id);
     if !added {
         // Shouldn't happen since we checked above, but restore item if it does
-        if let Some(stack) = session
-            .player_mut(actor)
-            .inventory
-            .iter_mut()
-            .find(|s| s.item_id == item_id)
-        {
-            stack.qty += 1;
-        } else {
-            session.player_mut(actor).inventory.push(ItemStack {
-                item_id: item_id.to_owned(),
-                qty: 1,
-            });
-        }
+        battle_bridge::add_to_session(&mut session.player_mut(actor).inventory, item_id, 1);
         return Err("Failed to add item to receiver's inventory.".to_owned());
     }
 
@@ -1910,9 +1895,7 @@ fn apply_equip(
     }
 
     // Remove gear from inventory
-    if let Some(stack) = player.inventory.iter_mut().find(|s| s.item_id == gear_id) {
-        stack.qty -= 1;
-    }
+    battle_bridge::consume_from_session(&mut player.inventory, gear_id);
 
     Ok(format!("Equipped {}!", gear_name))
 }
@@ -2045,9 +2028,7 @@ fn apply_sell(
     };
 
     let player = session.player_mut(actor);
-    if let Some(stack) = player.inventory.iter_mut().find(|s| s.item_id == item_id) {
-        stack.qty -= 1;
-    }
+    battle_bridge::consume_from_session(&mut player.inventory, item_id);
     player.gold += sell_price;
     player.lifetime_gold_earned += sell_price as u32;
 
@@ -2401,19 +2382,7 @@ fn roll_and_add_loot(
 }
 
 fn add_item_to_inventory(inventory: &mut Vec<ItemStack>, item_id: &str) -> bool {
-    if let Some(stack) = inventory.iter_mut().find(|s| s.item_id == item_id) {
-        stack.qty = stack.qty.saturating_add(1);
-        return true;
-    }
-    let occupied = inventory.iter().filter(|s| s.qty > 0).count();
-    if occupied >= MAX_INVENTORY_SLOTS {
-        return false;
-    }
-    inventory.push(ItemStack {
-        item_id: item_id.to_owned(),
-        qty: 1,
-    });
-    true
+    battle_bridge::add_to_session(inventory, item_id, 1) == 0
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -6673,45 +6642,89 @@ mod tests {
 
     #[test]
     fn test_add_item_to_inventory_full_rejects_new() {
-        let mut inv: Vec<ItemStack> = (0..MAX_INVENTORY_SLOTS)
-            .map(|i| ItemStack {
-                item_id: format!("item_{i}"),
+        // Use real proto item IDs that exist in the embedded itemdb.json.
+        let real_ids = [
+            "potion",
+            "bomb",
+            "fire_flask",
+            "smoke_bomb",
+            "bandage",
+            "antidote",
+            "phoenix_feather",
+            "whetstone",
+            "ward",
+            "campfire_kit",
+            "teleport_rune",
+            "vitality_potion",
+            "iron_skin_potion",
+            "rage_draught",
+            "trap_kit",
+            "elixir",
+        ];
+        assert_eq!(real_ids.len(), MAX_INVENTORY_SLOTS);
+        let mut inv: Vec<ItemStack> = real_ids
+            .iter()
+            .map(|id| ItemStack {
+                item_id: id.to_string(),
                 qty: 1,
             })
             .collect();
-        // New item should be rejected
-        assert!(!add_item_to_inventory(&mut inv, "overflow_item"));
+        // New item should be rejected when at capacity
+        assert!(!add_item_to_inventory(&mut inv, "rations"));
         assert_eq!(inv.len(), MAX_INVENTORY_SLOTS);
     }
 
     #[test]
     fn test_add_item_to_inventory_full_allows_stacking() {
-        let mut inv: Vec<ItemStack> = (0..MAX_INVENTORY_SLOTS)
-            .map(|i| ItemStack {
-                item_id: format!("item_{i}"),
+        // Use real proto item IDs that exist in the embedded itemdb.json.
+        let real_ids = [
+            "potion",
+            "bomb",
+            "fire_flask",
+            "smoke_bomb",
+            "bandage",
+            "antidote",
+            "phoenix_feather",
+            "whetstone",
+            "ward",
+            "campfire_kit",
+            "teleport_rune",
+            "vitality_potion",
+            "iron_skin_potion",
+            "rage_draught",
+            "trap_kit",
+            "elixir",
+        ];
+        assert_eq!(real_ids.len(), MAX_INVENTORY_SLOTS);
+        let mut inv: Vec<ItemStack> = real_ids
+            .iter()
+            .map(|id| ItemStack {
+                item_id: id.to_string(),
                 qty: 1,
             })
             .collect();
         // Stacking on existing item should succeed even at capacity
-        assert!(add_item_to_inventory(&mut inv, "item_0"));
-        assert_eq!(inv[0].qty, 2);
+        // ("potion" has max_stack=5 in the proto database)
+        assert!(add_item_to_inventory(&mut inv, "potion"));
+        let potion = inv.iter().find(|s| s.item_id == "potion").unwrap();
+        assert_eq!(potion.qty, 2);
     }
 
     #[test]
-    fn test_add_item_ignores_zero_qty_stacks_for_capacity() {
+    fn test_consuming_last_unit_frees_slot() {
+        // bevy_inventory auto-removes empty stacks, so consuming the last
+        // unit of an item should free the slot for a new item.
         let mut inv = vec![ItemStack {
-            item_id: "depleted".to_owned(),
-            qty: 0,
+            item_id: "potion".to_owned(),
+            qty: 1,
         }];
-        // Zero-qty stacks don't count as occupied slots
-        for i in 0..MAX_INVENTORY_SLOTS {
-            assert!(
-                add_item_to_inventory(&mut inv, &format!("new_{i}")),
-                "Should add item {i}"
-            );
-        }
-        // Now at capacity (16 items with qty > 0 + 1 with qty 0)
-        assert!(!add_item_to_inventory(&mut inv, "one_more"));
+        assert!(battle_bridge::consume_from_session(&mut inv, "potion"));
+        // Slot freed — inventory should be empty
+        assert!(inv.is_empty(), "empty stack should be auto-removed");
+        // Can now add a new item into the freed slot
+        assert!(add_item_to_inventory(&mut inv, "bomb"));
+        assert_eq!(inv.len(), 1);
+        assert_eq!(inv[0].item_id, "bomb");
     }
 
     #[test]

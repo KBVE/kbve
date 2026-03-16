@@ -324,7 +324,6 @@ pub fn consume_from_session(inventory: &mut Vec<ItemStack>, game_id: &str) -> bo
 /// Add items to a player's session inventory via bevy_inventory stacking.
 ///
 /// Returns the number of items that could NOT fit (overflow).
-#[allow(dead_code)]
 pub fn add_to_session(inventory: &mut Vec<ItemStack>, game_id: &str, qty: u32) -> u32 {
     let Some(kind) = pb::game_id_to_proto_item_kind(game_id) else {
         return qty;
