@@ -296,6 +296,65 @@ fn ecs_inventory_to_session(inv: &Inventory<ProtoItemKind>) -> Vec<ItemStack> {
     items
 }
 
+// ── Session-level inventory operations ────────────────────────────
+//
+// These operate directly on a player's `Vec<ItemStack>` via bevy_inventory,
+// without needing a full CombatWorld. Used by `apply_item` and other
+// session-level logic that runs outside of the ECS combat loop.
+
+/// Consume one unit of an item from a player's session inventory.
+///
+/// Converts to `Inventory<ProtoItemKind>`, removes the item using
+/// `bevy_inventory::Inventory::remove()` (which handles stacking and
+/// auto-removes empty slots), then writes back.
+///
+/// Returns `true` if the item was found and consumed.
+pub fn consume_from_session(inventory: &mut Vec<ItemStack>, game_id: &str) -> bool {
+    let Some(kind) = pb::game_id_to_proto_item_kind(game_id) else {
+        return false;
+    };
+    let mut inv = session_inventory_to_ecs(inventory, MAX_INVENTORY_SLOTS as usize);
+    if inv.remove(kind, 1) == 0 {
+        return false;
+    }
+    *inventory = ecs_inventory_to_session(&inv);
+    true
+}
+
+/// Add items to a player's session inventory via bevy_inventory stacking.
+///
+/// Returns the number of items that could NOT fit (overflow).
+#[allow(dead_code)]
+pub fn add_to_session(inventory: &mut Vec<ItemStack>, game_id: &str, qty: u32) -> u32 {
+    let Some(kind) = pb::game_id_to_proto_item_kind(game_id) else {
+        return qty;
+    };
+    let mut inv = session_inventory_to_ecs(inventory, MAX_INVENTORY_SLOTS as usize);
+    let overflow = inv.add(kind, qty);
+    *inventory = ecs_inventory_to_session(&inv);
+    overflow
+}
+
+/// Check how many of an item a player has in their session inventory.
+#[allow(dead_code)]
+pub fn count_in_session(inventory: &[ItemStack], game_id: &str) -> u32 {
+    let Some(kind) = pb::game_id_to_proto_item_kind(game_id) else {
+        return 0;
+    };
+    let inv = session_inventory_to_ecs(inventory, MAX_INVENTORY_SLOTS as usize);
+    inv.count(kind)
+}
+
+/// Check whether a player's session inventory has room for an item.
+#[allow(dead_code)]
+pub fn has_room_in_session(inventory: &[ItemStack], game_id: &str, qty: u32) -> bool {
+    let Some(kind) = pb::game_id_to_proto_item_kind(game_id) else {
+        return false;
+    };
+    let inv = session_inventory_to_ecs(inventory, MAX_INVENTORY_SLOTS as usize);
+    inv.has_room_for(kind, qty)
+}
+
 // ── CombatWorld ────────────────────────────────────────────────────
 
 /// Wraps a headless Bevy App for running one combat turn.

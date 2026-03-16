@@ -1479,11 +1479,8 @@ fn apply_item(
             .retain(|e| e.kind != EffectKind::Bleed);
     }
 
-    // Decrement stack quantity
-    let player = session.player_mut(actor);
-    if let Some(stack) = player.inventory.iter_mut().find(|s| s.item_id == item_id) {
-        stack.qty -= 1;
-    }
+    // Consume one unit via bevy_inventory (handles stacking + empty slot cleanup)
+    battle_bridge::consume_from_session(&mut session.player_mut(actor).inventory, item_id);
     session.show_items = false;
 
     Ok(msg)
@@ -8764,13 +8761,16 @@ mod tests {
             GameAction::UseItem("phoenix_feather".to_owned(), None),
             OWNER,
         );
-        let stack = session
+        // bevy_inventory auto-removes empty stacks, so the item should be gone entirely
+        let has_feather = session
             .player(OWNER)
             .inventory
             .iter()
-            .find(|s| s.item_id == "phoenix_feather");
-        assert!(stack.is_some());
-        assert_eq!(stack.unwrap().qty, 0);
+            .any(|s| s.item_id == "phoenix_feather");
+        assert!(
+            !has_feather,
+            "phoenix_feather should be consumed and removed"
+        );
     }
 
     #[test]
