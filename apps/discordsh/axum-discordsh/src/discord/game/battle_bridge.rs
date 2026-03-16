@@ -5,6 +5,8 @@
 //! This keeps `bevy_battle` game-agnostic while letting DiscordSH use the same
 //! combat systems as the isometric game.
 
+use std::collections::HashMap;
+
 use poise::serenity_prelude as serenity;
 
 use bevy_battle::{
@@ -13,8 +15,11 @@ use bevy_battle::{
     EnemyTag, EnemyTurnRequest, Entity, EquippedGear, FirstStrikeFired, FleeIntent, Health,
     Messages, MinimalPlugins, PlayerClass, PlayerTag, TickEffectsRequest, UseItemIntent,
 };
+use bevy_inventory::Inventory;
+use bevy_items::inventory_adapter::ProtoItemKind;
 
 use super::content;
+use super::proto_bridge as pb;
 use super::types::*;
 
 // ── Type conversion helpers ────────────────────────────────────────
@@ -254,12 +259,54 @@ impl EntityMap {
     }
 }
 
+// ── Inventory conversion ──────────────────────────────────────────
+
+/// Convert a player's `Vec<ItemStack>` into an `Inventory<ProtoItemKind>`.
+///
+/// Items that can't be resolved to a `ProtoItemKind` (e.g. unknown IDs)
+/// are silently skipped.
+fn session_inventory_to_ecs(items: &[ItemStack], max_slots: usize) -> Inventory<ProtoItemKind> {
+    pb::ensure_inventory_init();
+    let mut inv = Inventory::default();
+    inv.max_slots = max_slots;
+    for stack in items {
+        if stack.qty == 0 {
+            continue;
+        }
+        if let Some(kind) = pb::game_id_to_proto_item_kind(&stack.item_id) {
+            inv.add(kind, stack.qty as u32);
+        }
+    }
+    inv
+}
+
+/// Convert an `Inventory<ProtoItemKind>` back to the game's `Vec<ItemStack>` format.
+///
+/// Items that can't be resolved back to a game ID are silently skipped.
+fn ecs_inventory_to_session(inv: &Inventory<ProtoItemKind>) -> Vec<ItemStack> {
+    let mut items = Vec::new();
+    for stack in &inv.items {
+        if let Some(game_id) = pb::proto_item_kind_to_game_id(&stack.kind) {
+            items.push(ItemStack {
+                item_id: game_id.to_owned(),
+                qty: stack.quantity as u16,
+            });
+        }
+    }
+    items
+}
+
 // ── CombatWorld ────────────────────────────────────────────────────
 
 /// Wraps a headless Bevy App for running one combat turn.
+///
+/// Also holds per-player inventories (as `Inventory<ProtoItemKind>`)
+/// so that item consumption can go through `bevy_inventory`'s stacking logic.
 pub struct CombatWorld {
     pub app: App,
     pub entity_map: EntityMap,
+    /// Per-player inventories, synced from session on creation.
+    pub inventories: HashMap<serenity::UserId, Inventory<ProtoItemKind>>,
 }
 
 impl CombatWorld {
@@ -295,12 +342,18 @@ impl CombatWorld {
 
         let mut players = Vec::new();
         let mut enemies = Vec::new();
+        let mut inventories = HashMap::new();
 
         // Spawn player entities
         for (uid, ps) in &session.players {
             if !ps.alive {
                 continue;
             }
+            // Sync inventory into ECS format
+            inventories.insert(
+                *uid,
+                session_inventory_to_ecs(&ps.inventory, MAX_INVENTORY_SLOTS as usize),
+            );
             let effects: Vec<bevy_battle::EffectInstance> =
                 ps.effects.iter().map(to_bb_effect_instance).collect();
 
@@ -362,6 +415,7 @@ impl CombatWorld {
         CombatWorld {
             app,
             entity_map: EntityMap { players, enemies },
+            inventories,
         }
     }
 
@@ -428,6 +482,47 @@ impl CombatWorld {
         self.app.update();
     }
 
+    /// Consume one unit of an item from a player's bridge-level inventory.
+    ///
+    /// Returns `true` if the item was found and consumed, `false` otherwise.
+    /// The session is NOT updated here — call [`sync_out`] to write back.
+    pub fn consume_item(&mut self, uid: serenity::UserId, game_id: &str) -> bool {
+        let Some(inv) = self.inventories.get_mut(&uid) else {
+            return false;
+        };
+        let Some(kind) = pb::game_id_to_proto_item_kind(game_id) else {
+            return false;
+        };
+        inv.remove(kind, 1) > 0
+    }
+
+    /// Add items to a player's bridge-level inventory.
+    ///
+    /// Returns the number of items that could NOT fit (overflow).
+    #[allow(dead_code)]
+    pub fn add_item(&mut self, uid: serenity::UserId, game_id: &str, qty: u32) -> u32 {
+        let Some(inv) = self.inventories.get_mut(&uid) else {
+            return qty;
+        };
+        let Some(kind) = pb::game_id_to_proto_item_kind(game_id) else {
+            return qty;
+        };
+        let overflow = inv.add(kind, qty);
+        overflow
+    }
+
+    /// Check how many of an item a player has in their bridge-level inventory.
+    #[allow(dead_code)]
+    pub fn item_count(&self, uid: serenity::UserId, game_id: &str) -> u32 {
+        let Some(inv) = self.inventories.get(&uid) else {
+            return 0;
+        };
+        let Some(kind) = pb::game_id_to_proto_item_kind(game_id) else {
+            return 0;
+        };
+        inv.count(kind)
+    }
+
     /// Read combat outcomes from the ECS after update.
     pub fn collect_outcomes(&self) -> Vec<CombatOutcome> {
         let outcomes = self.app.world().resource::<Messages<CombatOutcome>>();
@@ -476,6 +571,11 @@ impl CombatWorld {
                         turns_left: e.turns_left,
                     })
                     .collect();
+            }
+
+            // Sync inventory back from bridge
+            if let Some(inv) = self.inventories.get(uid) {
+                player.inventory = ecs_inventory_to_session(inv);
             }
         }
 
@@ -1062,5 +1162,154 @@ mod tests {
         let combat = CombatWorld::from_session(&session);
         let mods = combat.app.world().resource::<CombatModifiers>();
         assert_eq!(mods.cursed_dmg_multiplier, 1.5);
+    }
+
+    // ── Inventory sync tests ────────────────────────────────────────
+
+    #[test]
+    fn inventory_syncs_from_session() {
+        let mut session = test_session();
+        let owner = session.owner;
+        session.player_mut(owner).inventory = vec![
+            ItemStack {
+                item_id: "potion".to_owned(),
+                qty: 3,
+            },
+            ItemStack {
+                item_id: "bomb".to_owned(),
+                qty: 2,
+            },
+        ];
+
+        let combat = CombatWorld::from_session(&session);
+        let inv = combat
+            .inventories
+            .get(&owner)
+            .expect("should have inventory");
+        assert_eq!(inv.slot_count(), 2, "Should have 2 occupied slots");
+        assert_eq!(
+            inv.count(pb::game_id_to_proto_item_kind("potion").unwrap()),
+            3
+        );
+        assert_eq!(
+            inv.count(pb::game_id_to_proto_item_kind("bomb").unwrap()),
+            2
+        );
+    }
+
+    #[test]
+    fn inventory_syncs_back_to_session() {
+        let mut session = test_session();
+        let owner = session.owner;
+        session.player_mut(owner).inventory = vec![
+            ItemStack {
+                item_id: "potion".to_owned(),
+                qty: 5,
+            },
+            ItemStack {
+                item_id: "bandage".to_owned(),
+                qty: 1,
+            },
+        ];
+
+        let mut combat = CombatWorld::from_session(&session);
+        // Consume one potion via the bridge
+        assert!(combat.consume_item(owner, "potion"));
+        combat.sync_out(&mut session);
+
+        let player = session.player(owner);
+        let potion_stack = player
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "potion")
+            .expect("potion should still exist");
+        assert_eq!(
+            potion_stack.qty, 4,
+            "Should have 4 potions after consuming 1"
+        );
+
+        let bandage_stack = player
+            .inventory
+            .iter()
+            .find(|s| s.item_id == "bandage")
+            .expect("bandage should still exist");
+        assert_eq!(bandage_stack.qty, 1, "Bandage should be untouched");
+    }
+
+    #[test]
+    fn consume_item_removes_last_stack() {
+        let mut session = test_session();
+        let owner = session.owner;
+        session.player_mut(owner).inventory = vec![ItemStack {
+            item_id: "bomb".to_owned(),
+            qty: 1,
+        }];
+
+        let mut combat = CombatWorld::from_session(&session);
+        assert!(combat.consume_item(owner, "bomb"));
+        assert!(!combat.consume_item(owner, "bomb"), "Should fail on empty");
+
+        combat.sync_out(&mut session);
+        let player = session.player(owner);
+        assert!(
+            !player.inventory.iter().any(|s| s.item_id == "bomb"),
+            "Bomb stack should be removed entirely"
+        );
+    }
+
+    #[test]
+    fn consume_nonexistent_item_returns_false() {
+        let session = test_session();
+        let owner = session.owner;
+        let mut combat = CombatWorld::from_session(&session);
+        assert!(!combat.consume_item(owner, "nonexistent_item"));
+    }
+
+    #[test]
+    fn item_count_works() {
+        let mut session = test_session();
+        let owner = session.owner;
+        session.player_mut(owner).inventory = vec![ItemStack {
+            item_id: "potion".to_owned(),
+            qty: 3,
+        }];
+
+        let combat = CombatWorld::from_session(&session);
+        assert_eq!(combat.item_count(owner, "potion"), 3);
+        assert_eq!(combat.item_count(owner, "bomb"), 0);
+    }
+
+    #[test]
+    fn inventory_roundtrip_preserves_items() {
+        let mut session = test_session();
+        let owner = session.owner;
+        let original = vec![
+            ItemStack {
+                item_id: "potion".to_owned(),
+                qty: 5,
+            },
+            ItemStack {
+                item_id: "fire_flask".to_owned(),
+                qty: 2,
+            },
+            ItemStack {
+                item_id: "smoke_bomb".to_owned(),
+                qty: 1,
+            },
+        ];
+        session.player_mut(owner).inventory = original.clone();
+
+        let combat = CombatWorld::from_session(&session);
+        combat.sync_out(&mut session);
+
+        let player = session.player(owner);
+        for orig in &original {
+            let stack = player
+                .inventory
+                .iter()
+                .find(|s| s.item_id == orig.item_id)
+                .unwrap_or_else(|| panic!("{} should exist", orig.item_id));
+            assert_eq!(stack.qty, orig.qty, "{} qty mismatch", orig.item_id);
+        }
     }
 }
