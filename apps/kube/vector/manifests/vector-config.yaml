@@ -32,8 +32,8 @@ data:
               .project = "default"
               .event_message = del(.message)
               .appname = del(.container_name)
-              .pod_name = del(.pod_name) ?? ""
-              .pod_namespace = del(.pod_namespace) ?? ""
+              .pod_name = del(.pod_name)
+              .pod_namespace = del(.pod_namespace)
               del(.container_created_at)
               del(.container_id)
               del(.source_type)
@@ -253,6 +253,6 @@ data:
               timeout_secs: 5
             buffer:
               type: disk
-              max_size: 268435456
+              max_size: 536870912
             encoding:
               timestamp_format: rfc3339
