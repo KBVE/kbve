@@ -58,7 +58,7 @@ jobs:
         needs: guard
         if: needs.guard.outputs.allowed == 'true'
         runs-on: arc-runner-set
-        timeout-minutes: 60
+        timeout-minutes: 120
         permissions:
             contents: write
             pull-requests: write
@@ -153,16 +153,26 @@ jobs:
                   echo "NX graph validated ($NODE_COUNT nodes)"
 
             # ── LOC Stats (scc with cloc fallback) ────────────────
-            - name: Generate LOC Stats
+            - name: Install scc
               run: |
                   set -euo pipefail
                   if command -v scc &>/dev/null; then
-                    scc . --exclude-dir=node_modules,dist,.nx,.git,target,coverage,pumpkin,ergo,postgres --no-cocomo 2>&1 \
-                      | sed 's/\x1b\[[0-9;]*m//g' > /tmp/loc-stats.txt
+                    echo "scc already installed: $(scc --version)"
                   else
-                    npx --yes cloc . --exclude-dir=node_modules,dist,.nx,.git,target,coverage,pumpkin,ergo,postgres 2>&1 \
-                      > /tmp/loc-stats.txt
+                    SCC_VERSION="3.5.0"
+                    curl -fsSL "https://github.com/boyter/scc/releases/download/v${SCC_VERSION}/scc_Linux_x86_64.tar.gz" \
+                      | tar xz -C /usr/local/bin scc
+                    chmod +x /usr/local/bin/scc
+                    echo "scc installed: $(scc --version)"
                   fi
+
+            - name: Generate LOC Stats
+              run: |
+                  set -euo pipefail
+                  scc . --exclude-dir=node_modules,dist,.nx,.git,target,coverage,pumpkin,ergo,postgres --no-cocomo 2>&1 \
+                    | sed 's/\x1b\[[0-9;]*m//g' > /tmp/loc-stats.txt \
+                    || npx --yes cloc . --exclude-dir=node_modules,dist,.nx,.git,target,coverage,pumpkin,ergo,postgres 2>&1 \
+                      > /tmp/loc-stats.txt
                   echo "LOC stats generated ($(wc -l < /tmp/loc-stats.txt) lines)"
 
             # ── Per-project Coverage ──────────────────────────────
