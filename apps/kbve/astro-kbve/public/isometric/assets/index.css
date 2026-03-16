@@ -617,6 +617,9 @@
 	.overflow-hidden {
 		overflow: hidden;
 	}
+	.rounded {
+		border-radius: 0.25rem;
+	}
 	.rounded-full {
 		border-radius: 3.40282e38px;
 	}
