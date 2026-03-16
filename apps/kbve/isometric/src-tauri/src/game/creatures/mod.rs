@@ -5,9 +5,17 @@ mod frog;
 
 use bevy::prelude::*;
 
-use common::CreaturePool;
 pub use common::GameTime;
+use common::{CreatureMeshes, CreaturePool};
 pub use frog::FrogMaterials;
+
+/// Build creature meshes once at Startup to avoid allocating during spawn.
+fn setup_creature_meshes(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>) {
+    commands.insert_resource(CreatureMeshes {
+        firefly_sphere: meshes.add(Sphere::new(0.04).mesh().ico(1).unwrap()),
+        butterfly_wings: meshes.add(butterfly::build_butterfly_mesh()),
+    });
+}
 
 /// Registers all creature systems.
 ///
@@ -23,15 +31,17 @@ impl Plugin for CreaturesPlugin {
         app.init_resource::<CreaturePool>();
         app.init_resource::<common::GameTime>();
         app.init_resource::<FrogMaterials>();
+        app.add_systems(Startup, setup_creature_meshes);
         app.add_systems(
             Update,
             (
-                firefly::spawn_fireflies,
-                firefly::animate_fireflies,
-                butterfly::spawn_butterflies,
-                butterfly::animate_butterflies,
-                frog::spawn_frogs,
-                frog::animate_frogs,
+                firefly::spawn_fireflies.run_if(|pool: Res<CreaturePool>| !pool.fireflies_spawned),
+                firefly::animate_fireflies.run_if(any_with_component::<firefly::Firefly>),
+                butterfly::spawn_butterflies
+                    .run_if(|pool: Res<CreaturePool>| !pool.butterflies_spawned),
+                butterfly::animate_butterflies.run_if(any_with_component::<butterfly::Butterfly>),
+                frog::spawn_frogs.run_if(|pool: Res<CreaturePool>| !pool.frogs_spawned),
+                frog::animate_frogs.run_if(any_with_component::<frog::Frog>),
             ),
         );
     }

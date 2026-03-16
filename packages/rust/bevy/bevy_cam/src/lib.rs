@@ -25,8 +25,9 @@
 //!
 //! 1. **Scene camera** — renders the 3D world to a low-resolution texture at
 //!    `pixel_density` pixels per world unit (nearest-neighbor sampled).
-//! 2. **Display camera** — renders a fullscreen quad textured with stage 1
-//!    output to the window, producing crisp upscaled pixel art.
+//! 2. **Display camera** — a 2D camera that renders a fullscreen sprite
+//!    textured with stage 1 output to the window, producing crisp upscaled
+//!    pixel art without the overhead of a 3D material pipeline.
 //!
 //! The scene camera follows entities marked with [`CameraFollowTarget`],
 //! snapping to the pixel grid on all three camera-space axes to eliminate
@@ -204,6 +205,7 @@ impl Default for IsometricCameraPlugin {
 
 impl Plugin for IsometricCameraPlugin {
     fn build(&self, app: &mut App) {
+        let zoom_locked = (self.config.zoom_max - self.config.zoom_min).abs() <= f32::EPSILON;
         let axes = StableAxes::from_offset(self.config.offset);
 
         app.insert_resource(self.config.clone());
@@ -211,7 +213,12 @@ impl Plugin for IsometricCameraPlugin {
         app.init_resource::<SubPixelOffset>();
         app.insert_resource(axes);
         app.add_systems(Startup, setup_camera);
-        app.add_systems(Update, handle_zoom_input);
+
+        // Skip zoom input processing entirely when zoom range is locked.
+        if !zoom_locked {
+            app.add_systems(Update, handle_zoom_input);
+        }
+
         // CameraUpdate must run BEFORE TransformPropagate so that both the
         // snapped camera Transform and the sub-pixel quad Transform are
         // propagated to GlobalTransform in the same frame. Without this,
@@ -273,8 +280,9 @@ fn setup_camera(
         IsometricCamera,
     ));
 
-    // Stage 2: Display camera renders a textured quad to the window.
-    // Uses RenderLayers(display_layer) so it only sees the display quad.
+    // Stage 2: Display camera — uses a 2D camera + fullscreen quad with
+    // StandardMaterial(unlit) for the upscaled output. The quad sits on a
+    // separate render layer so it doesn't interfere with the 3D scene.
     commands.spawn((
         Camera3d::default(),
         Camera {
@@ -321,7 +329,7 @@ fn setup_camera(
 }
 
 fn camera_follow_target(
-    target_query: Query<&Transform, (With<CameraFollowTarget>, Without<IsometricCamera>)>,
+    target_query: Query<&GlobalTransform, (With<CameraFollowTarget>, Without<IsometricCamera>)>,
     mut camera_query: Query<&mut Transform, (With<IsometricCamera>, Without<CameraFollowTarget>)>,
     config: Res<CameraConfig>,
     axes: Res<StableAxes>,
@@ -334,7 +342,7 @@ fn camera_follow_target(
         return;
     };
 
-    let desired = target_tf.translation + config.offset;
+    let desired = target_tf.translation() + config.offset;
     let pixel_step = 1.0 / config.pixel_density as f32;
 
     // Snap camera to pixel grid on ALL axes using the precomputed stable axes.
@@ -382,6 +390,14 @@ fn apply_camera_zoom(
     config: Res<CameraConfig>,
     mut camera_q: Query<&mut Projection, With<IsometricCamera>>,
 ) {
+    // Skip zoom work entirely when zoom is locked or already settled.
+    if (config.zoom_max - config.zoom_min).abs() <= f32::EPSILON {
+        return;
+    }
+    if (zoom.target - zoom.current).abs() < 0.0001 {
+        return;
+    }
+
     let dt = time.delta_secs();
     // Smooth interpolation toward target
     zoom.current += (zoom.target - zoom.current) * (config.zoom_smoothing * dt).min(1.0);
@@ -415,6 +431,13 @@ fn apply_subpixel_offset(
     let Ok(mut quad_tf) = quad_query.single_mut() else {
         return;
     };
+
+    // Skip quad writes when offset is effectively zero.
+    if subpixel.right.abs() < 0.0001 && subpixel.up.abs() < 0.0001 {
+        quad_tf.translation.x = 0.0;
+        quad_tf.translation.y = 0.0;
+        return;
+    }
 
     let pd = config.pixel_density as f32;
     let z = zoom.current;

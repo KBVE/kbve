@@ -2,7 +2,7 @@ use avian3d::prelude::PhysicsSystems;
 use bevy::prelude::*;
 
 use super::pixelate::PixelateSettings;
-use super::player::{Player, PlayerMovement};
+use super::player::PlayerMovement;
 
 // Re-export bevy_cam types that the rest of the game uses.
 pub use bevy_cam::{
@@ -29,11 +29,14 @@ impl Plugin for IsometricCameraPlugin {
             zoom_smoothing: 4.0,
         }));
 
-        // Attach CameraFollowTarget to the player once spawned.
-        app.add_systems(Update, attach_follow_target);
-
-        // Attach PixelateSettings to the display camera (runs until attached).
-        app.add_systems(Update, attach_pixelate_settings);
+        // Attach PixelateSettings to the display camera (one-shot, bevy_cam spawns it).
+        app.add_systems(
+            Update,
+            attach_pixelate_settings.run_if(
+                any_with_component::<DisplayCamera>
+                    .and(not(any_with_component::<PixelateSettings>)),
+            ),
+        );
 
         // Order bevy_cam's PostUpdate systems after physics writeback
         // so the camera tracks the player's post-physics position.
@@ -43,16 +46,6 @@ impl Plugin for IsometricCameraPlugin {
                 .after(PhysicsSystems::Writeback)
                 .in_set(PlayerMovement),
         );
-    }
-}
-
-/// One-shot: attach `CameraFollowTarget` to the player entity.
-fn attach_follow_target(
-    mut commands: Commands,
-    player_query: Query<Entity, (With<Player>, Without<CameraFollowTarget>)>,
-) {
-    for entity in &player_query {
-        commands.entity(entity).insert(CameraFollowTarget);
     }
 }
 

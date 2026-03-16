@@ -191,7 +191,10 @@ impl Plugin for NetPlugin {
         );
 
         // Update remote player transforms from replicated Position each frame
-        app.add_systems(PostUpdate, update_remote_transforms);
+        app.add_systems(
+            PostUpdate,
+            update_remote_transforms.run_if(any_with_component::<RemotePlayer>),
+        );
 
         // Sync replicated PlayerVitals from our own player entity into local PlayerState
         app.add_systems(Update, sync_vitals_to_local_state);
@@ -204,8 +207,14 @@ impl Plugin for NetPlugin {
         app.add_systems(Update, receive_time_sync);
 
         // Username display systems
-        app.add_systems(Update, update_player_name_labels);
-        app.add_systems(Update, billboard_name_labels);
+        app.add_systems(
+            Update,
+            update_player_name_labels.run_if(any_with_component::<PlayerNameLabel>),
+        );
+        app.add_systems(
+            Update,
+            billboard_name_labels.run_if(any_with_component::<PlayerNameLabel>),
+        );
         app.add_systems(Update, poll_set_username_request);
         app.add_systems(Update, receive_set_username_response);
 

@@ -114,7 +114,7 @@ pub struct FrogMaterials {
 }
 
 #[derive(Component)]
-pub(super) struct Frog {
+pub(crate) struct Frog {
     phase: f32,
     anchor: Vec3,
     anim: Anim,

@@ -1108,6 +1108,9 @@ pub struct TreesPlugin;
 impl Plugin for TreesPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_occlusion_indicator);
-        app.add_systems(Update, update_player_occlusion);
+        app.add_systems(
+            Update,
+            update_player_occlusion.run_if(any_with_component::<PlayerOcclusionIndicator>),
+        );
     }
 }
