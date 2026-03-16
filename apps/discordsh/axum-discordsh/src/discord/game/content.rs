@@ -1377,6 +1377,7 @@ pub fn generate_room(index: u32) -> RoomState {
         hazards,
         merchant_stock: Vec::new(),
         story_event: None,
+        available_quests: Vec::new(),
     }
 }
 
@@ -1393,6 +1394,7 @@ pub fn generate_hallway_room(index: u32) -> RoomState {
         hazards: Vec::new(),
         merchant_stock: Vec::new(),
         story_event: None,
+        available_quests: Vec::new(),
     }
 }
 
@@ -2094,6 +2096,7 @@ pub fn room_from_tile(tile: &MapTile) -> RoomState {
         hazards,
         merchant_stock,
         story_event,
+        available_quests: Vec::new(),
     }
 }
 
@@ -2113,6 +2116,7 @@ pub fn generate_encounter_room(depth: u32) -> RoomState {
         hazards,
         merchant_stock: Vec::new(),
         story_event: None,
+        available_quests: Vec::new(),
     }
 }
 

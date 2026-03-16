@@ -584,6 +584,8 @@ pub struct RoomState {
     pub hazards: Vec<Hazard>,
     pub merchant_stock: Vec<MerchantOffer>,
     pub story_event: Option<StoryEvent>,
+    /// Quest refs offered by NPCs in this room (city/merchant).
+    pub available_quests: Vec<String>,
 }
 
 // ── Quest tracking ──────────────────────────────────────────────────
