@@ -252,7 +252,7 @@ data:
               max_bytes: 10485760
               timeout_secs: 5
             buffer:
-              type: disk
-              max_size: 536870912
+              type: memory
+              max_events: 10000
             encoding:
               timestamp_format: rfc3339
