@@ -31,17 +31,14 @@ data:
             source: |-
               .project = "default"
               .event_message = del(.message)
-              .appname = del(.container_name)
-              .pod_name = del(.pod_name)
-              .pod_namespace = del(.pod_namespace)
-              del(.container_created_at)
-              del(.container_id)
+              .appname = del(.kubernetes.container_name)
+              .pod_name = del(.kubernetes.pod_name)
+              .pod_namespace = del(.kubernetes.pod_namespace)
+              del(.kubernetes)
               del(.source_type)
               del(.stream)
-              del(.label)
-              del(.image)
+              del(.file)
               del(.host)
-              del(.stream)
           router:
             type: route
             inputs:
@@ -52,7 +49,7 @@ data:
               rest: '.appname == "supabase-rest" || .appname == "postgrest"'
               realtime: '.appname == "supabase-realtime" || .appname == "realtime"'
               storage: '.appname == "supabase-storage" || .appname == "storage"'
-              functions: '.appname == "supabase-functions" || .appname == "functions"'
+              functions: '.appname == "supabase-functions" || .appname == "functions" || .appname == "edge-functions"'
               db: '.appname == "supabase-db" || .appname == "postgres"'
               analytics: '.appname == "logflare" || .appname == "supabase-analytics"'
               meta: '.appname == "postgres-meta" || .appname == "supabase-meta"'
@@ -213,6 +210,7 @@ data:
               - meta_logs
               - studio_logs
               - router.functions
+              - router._unmatched
             source: |-
               # Extract level from metadata or severity field
               .level = string(.severity) ??
@@ -230,9 +228,6 @@ data:
               del(.appname)
               del(.severity)
               del(.project)
-              del(.file)
-              del(.pod_labels)
-              del(.kubernetes)
 
         sinks:
           clickhouse:
