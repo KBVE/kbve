@@ -101,21 +101,7 @@ jobs:
         uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
         with:
             items: |
-                [
-                    {
-                        "name": "pirate17",
-                        "condition": "${{ needs.alter.outputs.pirate17 == 'true' }}",
-                        "project": "pirate17",
-                        "branch": "main",
-                        "deploy_to_itch": true,
-                        "export_name": "pirate17",
-                        "project_path": "./apps/gamejam/pirate/pirate17",
-                        "build_artifact_name": "pirate17",
-                        "itch_username": "kbve",
-                        "itch_gameid": "airship",
-                        "godot_version": "4.4.1"
-                    }
-                ]
+                []
 
     publish_godot:
         name: Publish Godot Game on Itch
