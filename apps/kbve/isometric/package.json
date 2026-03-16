@@ -4,7 +4,7 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
-		"build:wasm": "cd src-tauri && wasm-pack build --target web --out-dir ../wasm-pkg --out-name isometric_game",
+		"build:wasm": "cd src-tauri && wasm-pack build --target web --out-dir ../wasm-pkg --out-name isometric_game -- -Z build-std=panic_abort,std",
 		"dev": "vite",
 		"build": "npm run build:wasm && npx tsc && vite build && mkdir -p dist/assets/shaders dist/assets/textures && cp -r public/assets/shaders/*.wgsl dist/assets/shaders/ && cp -r public/assets/textures/* dist/assets/textures/",
 		"preview": "vite preview"

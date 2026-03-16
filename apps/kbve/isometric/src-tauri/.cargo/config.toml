@@ -1,0 +1,7 @@
+[target.wasm32-unknown-unknown]
+rustflags = [
+    "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals,+reference-types,+simd128",
+    "-C", "llvm-args=--wasm-enable-sjlj",
+    "-C", "link-arg=--import-memory",
+    "-C", "link-arg=--max-memory=4294967296",
+]

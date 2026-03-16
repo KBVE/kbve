@@ -18,6 +18,13 @@ pub mod tauri_plugin;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
+// Re-export worker entry point so wasm-bindgen exposes it in the WASM module.
+// Web workers call this after instantiating the shared WASM module.
+#[cfg(all(target_arch = "wasm32", target_feature = "atomics"))]
+pub use bevy_tasker::worker_count;
+#[cfg(all(target_arch = "wasm32", target_feature = "atomics"))]
+pub use bevy_tasker::worker_entry_point;
+
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(start)]
 pub fn wasm_main() {

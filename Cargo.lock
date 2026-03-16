@@ -2649,6 +2649,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_tasker"
+version = "0.1.0"
+dependencies = [
+ "async-task",
+ "crossbeam-channel",
+ "js-sys",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "bevy_tasks"
 version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7542,8 +7552,10 @@ dependencies = [
  "bevy_cam",
  "bevy_inventory",
  "bevy_kbve_net",
+ "bevy_tasker",
  "console_error_panic_hook",
  "console_log 1.0.0",
+ "crossbeam-channel",
  "dashmap 6.1.0",
  "lightyear",
  "log",

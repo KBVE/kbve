@@ -43,7 +43,36 @@ async function bootstrap() {
 
 	setLoadingProgress('Initializing WebGPU...', 60);
 
-	await init();
+	const wasm = await init();
+
+	// Spawn web workers for WASM pthreads (chunk computation, etc.)
+	// Only when SharedArrayBuffer is available (cross-origin isolated).
+	if (typeof SharedArrayBuffer !== 'undefined' && wasm?.worker_entry_point) {
+		const numWorkers = Math.max(
+			1,
+			(navigator.hardwareConcurrency || 4) - 1,
+		);
+		setLoadingProgress(`Spawning ${numWorkers} workers...`, 75);
+
+		const wasmModule = (
+			wasm as unknown as { __wbg_module: WebAssembly.Module }
+		).__wbg_module;
+		const wasmMemory = (
+			wasm as unknown as { __wbg_memory: WebAssembly.Memory }
+		).__wbg_memory;
+
+		if (wasmModule && wasmMemory) {
+			for (let i = 0; i < numWorkers; i++) {
+				const worker = new Worker('/wasm-worker.js');
+				worker.postMessage({ module: wasmModule, memory: wasmMemory });
+			}
+			console.log(`[pthreads] Spawned ${numWorkers} WASM worker threads`);
+		} else {
+			console.warn(
+				'[pthreads] Could not access WASM module/memory for worker spawning',
+			);
+		}
+	}
 
 	setLoadingProgress('Starting...', 90);
 

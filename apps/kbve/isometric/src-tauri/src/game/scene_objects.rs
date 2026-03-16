@@ -230,8 +230,8 @@ impl Plugin for SceneObjectsPlugin {
         app.add_systems(
             Update,
             (
-                animate_crystal,
-                rotate_boxes,
+                animate_crystal.run_if(any_with_component::<AnimatedCrystal>),
+                rotate_boxes.run_if(any_with_component::<RotatingBox>),
                 update_occlusion,
                 update_hover_highlight,
                 draw_hover_outline,
