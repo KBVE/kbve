@@ -63,10 +63,6 @@ on:
             droid:
                 description: 'Droid Package changed'
                 value: ${{ jobs.alter.outputs.droid }}
-            # ? Godot
-            pirate17:
-                description: 'Pirate 17 Gamejam'
-                value: ${{ jobs.alter.outputs.pirate17 }}
             discordsh:
                 description: 'Discordsh app changed'
                 value: ${{ jobs.alter.outputs.discordsh }}
@@ -94,9 +90,6 @@ on:
             worker:
                 description: 'Worker changed'
                 value: ${{ jobs.alter.outputs.worker }}
-            asteroids:
-                description: 'Asteroids & Droids changed'
-                value: ${{ jobs.alter.outputs.asteroids }}
             mc:
                 description: 'MC Pumpkin server changed'
                 value: ${{ jobs.alter.outputs.mc }}
@@ -134,7 +127,6 @@ jobs:
             contents: read
         name: File Alterations
         outputs:
-            pirate17: ${{ steps.delta.outputs.pirate17_any_changed }}
             q_crate: ${{ steps.delta.outputs.q_crate_any_changed }}
             jedi_crate: ${{ steps.delta.outputs.jedi_crate_any_changed }}
             soul_crate: ${{ steps.delta.outputs.soul_crate_any_changed }}
@@ -159,7 +151,6 @@ jobs:
             khashvault: ${{ steps.delta.outputs.khashvault_any_changed }}
             devops: ${{ steps.delta.outputs.devops_any_changed }}
             laser: ${{ steps.delta.outputs.laser_any_changed }}
-            asteroids: ${{ steps.delta.outputs.asteroids_any_changed }}
             mc: ${{ steps.delta.outputs.mc_any_changed }}
             mc_server: ${{ steps.delta.outputs.mc_server_any_changed }}
             mc_plugin: ${{ steps.delta.outputs.mc_plugin_any_changed }}
@@ -181,8 +172,6 @@ jobs:
               uses: step-security/changed-files@v47
               with:
                   files_yaml: |
-                      pirate17:
-                          - 'apps/gamejam/pirate/pirate17/**'
                       q_crate:
                           - 'packages/rust/q/README.md'
                       jedi_crate:
@@ -235,8 +224,6 @@ jobs:
                           - 'apps/cryptothrone/**'
                       laser:
                           - 'packages/npm/laser/package.json'
-                      asteroids:
-                          - 'apps/gamejam/brackeys/13/**'
                       mc:
                           - 'apps/mc/**'
                       mc_server:
