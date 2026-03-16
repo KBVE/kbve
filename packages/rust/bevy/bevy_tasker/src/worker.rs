@@ -7,7 +7,6 @@
 
 #[cfg(all(target_arch = "wasm32", target_feature = "atomics"))]
 mod wasm_threads {
-    use alloc::sync::Arc;
     use alloc::vec::Vec;
     use core::sync::atomic::{AtomicI32, AtomicUsize, Ordering};
 
@@ -118,12 +117,12 @@ mod wasm_threads {
 
         let result = atomics_wait_async(&array, index, current);
 
-        if result.async_() {
+        if wait_result_async(&result) {
             // Not yet notified — set up continuation.
             let continuation = Closure::new(move |_: JsValue| {
                 poll_shared_queue();
             });
-            let _ = result.value().then(&continuation);
+            let _ = wait_result_value(&result).then(&continuation);
             continuation.forget();
         } else {
             // Already notified (work arrived between pop and wait) — poll again immediately.
@@ -145,19 +144,23 @@ mod wasm_threads {
     extern "C" {
         #[wasm_bindgen(js_name = queueMicrotask)]
         fn queue_microtask(closure: &Closure<dyn FnMut(JsValue)>);
+    }
 
-        type WaitAsyncResult;
-
-        #[wasm_bindgen(static_method_of = Atomics, js_name = waitAsync)]
-        fn atomics_wait_async(buf: &js_sys::Int32Array, index: u32, value: i32) -> WaitAsyncResult;
-
-        type Atomics;
-
-        #[wasm_bindgen(method, getter, structural, js_name = async)]
-        fn async_(this: &WaitAsyncResult) -> bool;
-
-        #[wasm_bindgen(method, getter, structural)]
-        fn value(this: &WaitAsyncResult) -> js_sys::Promise;
+    #[wasm_bindgen(inline_js = r#"
+        export function atomics_wait_async(buf, index, value) {
+            return Atomics.waitAsync(buf, index, value);
+        }
+        export function wait_result_async(result) {
+            return result.async;
+        }
+        export function wait_result_value(result) {
+            return result.value;
+        }
+    "#)]
+    extern "C" {
+        fn atomics_wait_async(buf: &js_sys::Int32Array, index: u32, value: i32) -> JsValue;
+        fn wait_result_async(result: &JsValue) -> bool;
+        fn wait_result_value(result: &JsValue) -> js_sys::Promise;
     }
 }
 

@@ -3,8 +3,6 @@ rustflags = [
     "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals,+reference-types,+simd128",
     "-C", "llvm-args=--wasm-enable-sjlj",
     "-C", "link-arg=--import-memory",
+    "-C", "link-arg=--shared-memory",
     "-C", "link-arg=--max-memory=4294967296",
 ]
-
-[unstable]
-build-std = ["panic_abort", "std"]

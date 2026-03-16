@@ -18,6 +18,7 @@ pub(crate) use local_runnable::LocalRunnable;
 extern crate alloc;
 
 /// A unit of async work enqueued on the microtask queue.
+#[allow(dead_code)] // Send is used in the non-atomics WASM path
 pub(crate) enum Job {
     /// A Send runnable — can execute on any thread.
     Send(Runnable),
