@@ -8,18 +8,32 @@
 use std::sync::LazyLock;
 
 use bevy_items::{
-    EquipSlot as ProtoEquipSlot, GearSpecialType, ItemDb, StatusEffectKind, UseEffectType,
+    EquipSlot as ProtoEquipSlot, GearSpecialType, ItemDb, ProtoItemId, StatusEffectKind,
+    UseEffectType, inventory_adapter::ProtoItemKind,
 };
 
 use super::types::*;
+
+pub use bevy_items::inventory_adapter;
 
 /// Embedded JSON snapshot of the full itemdb — generated from the Astro dev server.
 /// This will be replaced by a live endpoint fetch once the production API is deployed.
 const ITEMDB_JSON: &str = include_str!("../../../data/itemdb.json");
 
 /// The global proto item database, loaded once from the embedded JSON.
-static ITEM_DB: LazyLock<ItemDb> =
-    LazyLock::new(|| ItemDb::from_json(ITEMDB_JSON).expect("embedded itemdb.json must be valid"));
+/// Also initializes the [`ProtoItemKind`] adapter so inventory lookups work.
+static ITEM_DB: LazyLock<ItemDb> = LazyLock::new(|| {
+    let db = ItemDb::from_json(ITEMDB_JSON).expect("embedded itemdb.json must be valid");
+    db
+});
+
+/// Ensure the `ProtoItemKind` adapter is initialized with our global `ItemDb`.
+/// Called lazily on first use of any inventory-related function.
+static INVENTORY_INIT: LazyLock<()> = LazyLock::new(|| {
+    // Force ITEM_DB to load first, then hand it to the adapter.
+    let db: &'static ItemDb = &ITEM_DB;
+    inventory_adapter::init_item_db(db);
+});
 
 /// All discordsh-tagged consumable items, converted from proto.
 static ITEMS: LazyLock<Vec<ItemDef>> = LazyLock::new(|| {
@@ -101,6 +115,36 @@ pub fn is_rare_or_above(id: &str) -> bool {
 #[allow(dead_code)]
 pub fn item_db() -> &'static ItemDb {
     &ITEM_DB
+}
+
+/// Ensure the inventory adapter is initialized and return a reference to the db.
+/// Call this before using any `ProtoItemKind` operations.
+pub fn ensure_inventory_init() {
+    LazyLock::force(&INVENTORY_INIT);
+}
+
+/// Convert a game ID (underscore format, e.g. `"smoke_bomb"`) to a [`ProtoItemKind`].
+/// Returns `None` if the item isn't in the database.
+pub fn game_id_to_proto_item_kind(game_id: &str) -> Option<ProtoItemKind> {
+    ensure_inventory_init();
+    let slug = game_id.replace('_', "-");
+    let db = item_db();
+    db.id_for_slug(&slug).map(ProtoItemKind::new)
+}
+
+/// Convert a [`ProtoItemKind`] back to a game ID (underscore format).
+/// Returns `None` if the item isn't in the database.
+pub fn proto_item_kind_to_game_id(kind: &ProtoItemKind) -> Option<&'static str> {
+    let db = item_db();
+    let item = db.get(kind.id)?;
+    Some(slug_to_game_id(&item.slug))
+}
+
+/// Create a [`ProtoItemKind`] directly from a slug (hyphenated format).
+#[allow(dead_code)]
+pub fn proto_item_kind_from_slug(slug: &str) -> ProtoItemKind {
+    ensure_inventory_init();
+    ProtoItemKind::from_slug(slug)
 }
 
 // ── Conversion helpers ──────────────────────────────────────────────────
@@ -352,5 +396,41 @@ mod tests {
         assert!(is_rare_or_above("smoke_bomb"));
         assert!(!is_rare_or_above("potion"));
         assert!(!is_rare_or_above("nonexistent"));
+    }
+
+    // ── Inventory adapter tests ──────────────────────────────────────────
+
+    #[test]
+    fn game_id_to_proto_item_kind_roundtrip() {
+        let kind = game_id_to_proto_item_kind("smoke_bomb").expect("smoke_bomb should resolve");
+        let back = proto_item_kind_to_game_id(&kind).expect("should convert back");
+        assert_eq!(back, "smoke_bomb");
+    }
+
+    #[test]
+    fn proto_item_kind_display_name() {
+        use bevy_inventory::ItemKind;
+        let kind = game_id_to_proto_item_kind("potion").expect("potion should resolve");
+        assert_eq!(kind.display_name(), "Potion");
+    }
+
+    #[test]
+    fn proto_item_kind_max_stack() {
+        use bevy_inventory::ItemKind;
+        let kind = game_id_to_proto_item_kind("potion").expect("potion should resolve");
+        assert_eq!(kind.max_stack(), 5);
+    }
+
+    #[test]
+    fn proto_item_kind_nonexistent_returns_none() {
+        assert!(game_id_to_proto_item_kind("nonexistent_item_xyz").is_none());
+    }
+
+    #[test]
+    fn proto_item_kind_gear_works() {
+        use bevy_inventory::ItemKind;
+        let kind = game_id_to_proto_item_kind("excalibur").expect("excalibur should resolve");
+        assert_eq!(kind.display_name(), "Excalibur");
+        assert_eq!(kind.max_stack(), 1); // gear doesn't stack
     }
 }
