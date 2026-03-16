@@ -34,7 +34,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
 	{
 		path: '/api/mapdb.json',
 		label: 'MapDB',
-		itemsKey: 'objects',
+		itemsKey: 'mapObjects',
 		indexKey: 'index',
 		refPrefix: '/mapdb/',
 	},
