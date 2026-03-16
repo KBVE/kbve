@@ -126,6 +126,49 @@ pub struct ObjectRespawned {
     pub kind: WorldObjectKind,
 }
 
+/// Server periodically broadcasts canonical game time and creature seed.
+/// Clients use this to keep DayCycle, wind, and creature behavior in sync.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct TimeSyncMessage {
+    /// Current game hour (0.0–24.0).
+    pub game_hour: f32,
+    /// Game-hours per real-second.
+    pub day_speed: f32,
+    /// Global seed for deterministic creature spawning.
+    pub creature_seed: u64,
+    /// Wind speed in mph.
+    pub wind_speed_mph: f32,
+    /// Wind direction (x, z) normalized.
+    pub wind_direction: (f32, f32),
+}
+
+/// Creature types that can be captured.
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum CreatureKind {
+    Frog,
+    Butterfly,
+    Firefly,
+}
+
+/// Client requests to capture a creature.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct CreatureCaptureRequest {
+    pub kind: CreatureKind,
+    /// Index in the deterministic creature pool (0..N).
+    pub creature_index: u32,
+}
+
+/// Server broadcasts that a creature was captured.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct CreatureCaptured {
+    pub kind: CreatureKind,
+    pub creature_index: u32,
+    pub captor_player_id: u64,
+}
+
+/// Unreliable sequenced channel for time sync (avoids clogging ordered-reliable GameChannel).
+pub struct TimeChannel;
+
 // ---------------------------------------------------------------------------
 // Channels
 // ---------------------------------------------------------------------------
@@ -157,6 +200,12 @@ impl Plugin for ProtocolPlugin {
         })
         .add_direction(NetworkDirection::Bidirectional);
 
+        app.add_channel::<TimeChannel>(ChannelSettings {
+            mode: ChannelMode::UnorderedUnreliable,
+            ..default()
+        })
+        .add_direction(NetworkDirection::ServerToClient);
+
         // --- Messages ---
         // AuthMessage: client → server
         app.register_message::<AuthMessage>()
@@ -178,6 +227,16 @@ impl Plugin for ProtocolPlugin {
             .add_direction(NetworkDirection::ServerToClient);
         // ObjectRespawned: server → all clients
         app.register_message::<ObjectRespawned>()
+            .add_direction(NetworkDirection::ServerToClient);
+
+        // TimeSyncMessage: server → all clients (unreliable, periodic)
+        app.register_message::<TimeSyncMessage>()
+            .add_direction(NetworkDirection::ServerToClient);
+        // CreatureCaptureRequest: client → server
+        app.register_message::<CreatureCaptureRequest>()
+            .add_direction(NetworkDirection::ClientToServer);
+        // CreatureCaptured: server → all clients
+        app.register_message::<CreatureCaptured>()
             .add_direction(NetworkDirection::ServerToClient);
 
         // --- Replicated components (custom game components) ---

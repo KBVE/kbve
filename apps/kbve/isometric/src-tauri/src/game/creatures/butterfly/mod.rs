@@ -2,11 +2,11 @@ use bevy::asset::RenderAssetUsages;
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
-use super::common::{CreaturePool, day_factor, flutter_offset, hash_f32, scene_center};
+use super::common::{CreaturePool, GameTime, day_factor, flutter_offset, hash_f32, scene_center};
 use super::firefly::Firefly;
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
-use crate::game::weather::{DayCycle, WindState};
+use crate::game::weather::WindState;
 
 const BUTTERFLY_COUNT: usize = 14;
 /// Minimum height above terrain surface for butterfly flight.
@@ -217,7 +217,7 @@ pub(super) fn spawn_butterflies(
 
 pub(super) fn animate_butterflies(
     time: Res<Time>,
-    day: Res<DayCycle>,
+    game_time: Res<GameTime>,
     wind: Res<WindState>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut terrain: ResMut<TerrainMap>,
@@ -232,7 +232,7 @@ pub(super) fn animate_butterflies(
     };
     let dt = time.delta_secs();
     let t = time.elapsed_secs();
-    let df = day_factor(day.hour);
+    let df = day_factor(game_time.hour);
 
     if df < 0.01 {
         for (mut tf, mut bfly, mut vis) in &mut bfly_q {

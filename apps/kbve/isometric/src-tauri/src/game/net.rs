@@ -18,7 +18,8 @@ use lightyear::prelude::*;
 use bevy_kbve_net::{
     AuthMessage, AuthResponse, CollectRequest, DamageEvent, DamageSource, GameChannel,
     ObjectRemoved, ObjectRespawned, PlayerColor, PlayerId, PlayerName, PlayerVitals,
-    PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, TileKey,
+    PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, TileKey, TimeChannel,
+    TimeSyncMessage,
 };
 
 use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
@@ -28,8 +29,12 @@ use super::scene_objects::CollectEvent;
 use super::state::PlayerState;
 use super::tilemap::{CollectedTiles, TileCoord};
 
-/// Default WebSocket URL for development.
+/// Default WebSocket URL — only set for native (desktop) dev builds.
+/// On WASM the URL MUST come from JS via `request_go_online()`.
+#[cfg(not(target_arch = "wasm32"))]
 const DEFAULT_WS_URL: &str = "ws://127.0.0.1:5000";
+#[cfg(target_arch = "wasm32")]
+const DEFAULT_WS_URL: &str = "";
 
 /// Tick rate matching the server (20 Hz).
 const TICK_DURATION: Duration = Duration::from_millis(50);
@@ -119,6 +124,32 @@ struct RemotePlayer;
 #[derive(Component)]
 struct OwnReplicatedPlayer;
 
+/// Server-authoritative time received via TimeSyncMessage.
+/// When present and `active` is true, weather.rs defers to this instead of local DayCycle.
+#[derive(Resource)]
+pub struct ServerTime {
+    pub game_hour: f32,
+    pub day_speed: f32,
+    pub creature_seed: u64,
+    pub wind_speed_mph: f32,
+    pub wind_direction: (f32, f32),
+    /// True once we've received at least one sync from the server.
+    pub active: bool,
+}
+
+impl Default for ServerTime {
+    fn default() -> Self {
+        Self {
+            game_hour: 10.0,
+            day_speed: 1.0 / 60.0,
+            creature_seed: 0,
+            wind_speed_mph: 5.0,
+            wind_direction: (0.7, 0.7),
+            active: false,
+        }
+    }
+}
+
 pub struct NetPlugin;
 
 impl Plugin for NetPlugin {
@@ -137,6 +168,7 @@ impl Plugin for NetPlugin {
         app.init_resource::<GameServerAddr>();
         app.init_resource::<PendingAuth>();
         app.init_resource::<MyPlayerId>();
+        app.init_resource::<ServerTime>();
 
         // Watch for go-online requests from JS
         app.add_systems(Update, poll_go_online_request);
@@ -167,6 +199,9 @@ impl Plugin for NetPlugin {
         // Receive ObjectRemoved / ObjectRespawned messages from server
         app.add_systems(Update, receive_object_removed);
         app.add_systems(Update, receive_object_respawned);
+
+        // Receive time sync from server
+        app.add_systems(Update, receive_time_sync);
 
         // Username display systems
         app.add_systems(Update, update_player_name_labels);
@@ -265,6 +300,7 @@ fn on_disconnected(
     mut commands: Commands,
     mut my_player_id: ResMut<MyPlayerId>,
     mut pending_auth: ResMut<PendingAuth>,
+    mut server_time: ResMut<ServerTime>,
     remote_players: Query<Entity, With<RemotePlayer>>,
     own_replicated: Query<Entity, With<OwnReplicatedPlayer>>,
 ) {
@@ -276,6 +312,7 @@ fn on_disconnected(
     my_player_id.0 = None;
     pending_auth.jwt = None;
     pending_auth.sent = false;
+    server_time.active = false;
 
     // Despawn all remote player visuals
     let mut count = 0u32;
@@ -360,11 +397,19 @@ fn poll_go_online_request(
     pending_auth.jwt = jwt;
     pending_auth.sent = false;
 
+    // Re-resolve address from override (JS may have set it after resource init)
+    let resolved = SERVER_URL_OVERRIDE
+        .lock()
+        .ok()
+        .and_then(|g| g.clone())
+        .unwrap_or_else(|| addr.0.clone());
+    let resolved_addr = GameServerAddr(resolved);
+
     info!(
         "[net] resolved server address: {} | has_jwt: {has_jwt}",
-        addr.0
+        resolved_addr.0
     );
-    connect_to_server(&mut commands, &addr);
+    connect_to_server(&mut commands, &resolved_addr);
 }
 
 /// Send AuthMessage to server once the connection is established.
@@ -723,6 +768,25 @@ fn connect_to_server(commands: &mut Commands, addr: &GameServerAddr) {
 
     let ws_url = &addr.0;
 
+    // Belt: refuse empty URLs (WASM default when JS didn't provide one)
+    if ws_url.is_empty() {
+        warn!(
+            "[net] connect_to_server called with empty URL — aborting. JS must pass a server URL via request_go_online()"
+        );
+        return;
+    }
+
+    // Suspenders: on WASM, block any localhost/127.0.0.1 connection
+    #[cfg(target_arch = "wasm32")]
+    {
+        if ws_url.contains("127.0.0.1") || ws_url.contains("localhost") {
+            warn!(
+                "[net] BLOCKED localhost connection on WASM: {ws_url} — JS must provide the production server URL"
+            );
+            return;
+        }
+    }
+
     info!("[net] connect_to_server — spawning client entity for {ws_url}");
 
     let ws_io = WebSocketClientIo::from_url(ClientConfig::default(), ws_url.clone());
@@ -795,6 +859,29 @@ fn poll_set_username_request(
         sender.send::<GameChannel>(SetUsernameRequest {
             username: username.clone(),
         });
+    }
+}
+
+/// Receive TimeSyncMessage from the server and update ServerTime resource.
+fn receive_time_sync(
+    mut server_time: ResMut<ServerTime>,
+    mut query: Query<(Entity, &mut MessageReceiver<TimeSyncMessage>)>,
+) {
+    for (_entity, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            server_time.game_hour = msg.game_hour;
+            server_time.day_speed = msg.day_speed;
+            server_time.creature_seed = msg.creature_seed;
+            server_time.wind_speed_mph = msg.wind_speed_mph;
+            server_time.wind_direction = msg.wind_direction;
+            if !server_time.active {
+                info!(
+                    "[net] first time sync from server: hour={:.1} speed={:.4} seed={}",
+                    msg.game_hour, msg.day_speed, msg.creature_seed
+                );
+                server_time.active = true;
+            }
+        }
     }
 }
 

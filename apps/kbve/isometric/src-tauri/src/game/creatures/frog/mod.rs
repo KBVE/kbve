@@ -2,10 +2,9 @@ use bevy::asset::RenderAssetUsages;
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
-use super::common::{CreaturePool, day_factor, hash_f32, scene_center};
+use super::common::{CreaturePool, GameTime, day_factor, hash_f32, scene_center};
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
-use crate::game::weather::DayCycle;
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -239,7 +238,7 @@ pub(super) fn spawn_frogs(
 
 pub(super) fn animate_frogs(
     time: Res<Time>,
-    day: Res<DayCycle>,
+    game_time: Res<GameTime>,
     mut terrain: ResMut<TerrainMap>,
     camera_q: Query<&Transform, With<IsometricCamera>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -253,7 +252,7 @@ pub(super) fn animate_frogs(
     };
     let dt = time.delta_secs();
     let t = time.elapsed_secs();
-    let df = day_factor(day.hour);
+    let df = day_factor(game_time.hour);
 
     // Frogs are daytime creatures (same schedule as butterflies)
     if df < 0.01 {

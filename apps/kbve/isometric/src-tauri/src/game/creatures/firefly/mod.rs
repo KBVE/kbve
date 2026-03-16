@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
-use super::common::{CreaturePool, hash_f32, night_factor, scene_center};
+use super::common::{CreaturePool, GameTime, hash_f32, night_factor, scene_center};
 use crate::game::camera::IsometricCamera;
-use crate::game::weather::{DayCycle, WindState};
+use crate::game::weather::WindState;
 
 const FIREFLY_COUNT: usize = 40;
 
@@ -83,7 +83,7 @@ pub(super) fn spawn_fireflies(
 
 pub(super) fn animate_fireflies(
     time: Res<Time>,
-    day: Res<DayCycle>,
+    game_time: Res<GameTime>,
     wind: Res<WindState>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     camera_q: Query<&Transform, With<IsometricCamera>>,
@@ -98,7 +98,7 @@ pub(super) fn animate_fireflies(
     };
     let dt = time.delta_secs();
     let t = time.elapsed_secs();
-    let nf = night_factor(day.hour);
+    let nf = night_factor(game_time.hour);
 
     if nf < 0.01 {
         for (_, mut fly, mut vis) in &mut fly_q {
