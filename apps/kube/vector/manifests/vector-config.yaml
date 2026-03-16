@@ -37,6 +37,20 @@ data:
               del(.stream)
               del(.file)
               del(.host)
+
+              # Drop empty messages
+              if is_empty(string(.event_message) ?? "") { abort }
+
+              # Strip ANSI escape codes
+              .event_message = replace(.event_message, r'\x1b\[[0-9;]*m', "")
+
+              # Try parsing JSON messages (argocd, etc.) to extract level/msg
+              parsed, err = parse_json(.event_message)
+              if err == null {
+                  if exists(parsed.level) { .severity = del(parsed.level) }
+                  if exists(parsed.msg) { .event_message = string(parsed.msg) ?? .event_message }
+                  .metadata = parsed
+              }
           # Drop info/debug from noisy infra namespaces, keep all for app namespaces
           noise_filter:
             type: filter
