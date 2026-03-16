@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { droid, workerURLs } from '@kbve/droid';
+import { droid, workerURLs, getScaleLevel } from '@kbve/droid';
 import type { DroidScaleLevel } from '@kbve/droid';
 
 export function ScaleTest() {
@@ -19,11 +19,7 @@ export function ScaleTest() {
 	const refreshState = useCallback(() => {
 		const kbve = (window as any).kbve;
 		if (!kbve) return;
-		setScaleLevel(
-			typeof kbve.scaleLevel === 'function'
-				? kbve.scaleLevel()
-				: 'unknown',
-		);
+		setScaleLevel(getScaleLevel());
 		setHasOverlay(!!kbve.overlay);
 		setHasCanvasWorker(!!kbve.uiux?.worker);
 		setHasGateway(!!kbve.gateway);
