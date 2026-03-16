@@ -5,9 +5,14 @@ use bevy::prelude::*;
 use super::common::{CreaturePool, day_factor, flutter_offset, hash_f32, scene_center};
 use super::firefly::Firefly;
 use crate::game::camera::IsometricCamera;
+use crate::game::terrain::TerrainMap;
 use crate::game::weather::{DayCycle, WindState};
 
 const BUTTERFLY_COUNT: usize = 14;
+/// Minimum height above terrain surface for butterfly flight.
+const MIN_FLY_HEIGHT: f32 = 0.8;
+/// Maximum additional height above MIN_FLY_HEIGHT.
+const MAX_FLY_HEIGHT_EXTRA: f32 = 1.5;
 
 /// XZ distance from scene center that triggers exit flight.
 const EXIT_TRIGGER: f32 = 10.0;
@@ -215,6 +220,7 @@ pub(super) fn animate_butterflies(
     day: Res<DayCycle>,
     wind: Res<WindState>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut terrain: ResMut<TerrainMap>,
     camera_q: Query<&Transform, With<IsometricCamera>>,
     mut bfly_q: Query<
         (&mut Transform, &mut Butterfly, &mut Visibility),
@@ -259,16 +265,25 @@ pub(super) fn animate_butterflies(
                     let seed = (bfly.phase * 10000.0) as u32 + (t * 7.1) as u32;
                     let theta = hash_f32(seed) * std::f32::consts::TAU;
                     let ry = hash_f32(seed + 200);
-                    let origin = center
-                        + Vec3::new(
-                            theta.cos() * ENTER_RADIUS,
-                            0.8 + ry * 1.5,
-                            theta.sin() * ENTER_RADIUS,
-                        );
+                    let origin_x = center.x + theta.cos() * ENTER_RADIUS;
+                    let origin_z = center.z + theta.sin() * ENTER_RADIUS;
+                    let ground_o = terrain.height_at_world(origin_x, origin_z);
+                    let origin = Vec3::new(
+                        origin_x,
+                        ground_o + MIN_FLY_HEIGHT + ry * MAX_FLY_HEIGHT_EXTRA,
+                        origin_z,
+                    );
                     let rx = hash_f32(seed + 300) * 2.0 - 1.0;
                     let rz = hash_f32(seed + 400) * 2.0 - 1.0;
                     let ry2 = hash_f32(seed + 500);
-                    let target = center + Vec3::new(rx * 6.0, 0.8 + ry2 * 1.5, rz * 6.0);
+                    let target_x = center.x + rx * 6.0;
+                    let target_z = center.z + rz * 6.0;
+                    let ground_t = terrain.height_at_world(target_x, target_z);
+                    let target = Vec3::new(
+                        target_x,
+                        ground_t + MIN_FLY_HEIGHT + ry2 * MAX_FLY_HEIGHT_EXTRA,
+                        target_z,
+                    );
 
                     state = ButterflyState::Entering {
                         origin,
@@ -291,7 +306,9 @@ pub(super) fn animate_butterflies(
                 let base_pos = origin.lerp(target, ease);
                 let flut =
                     flutter_offset(t, bfly.phase, bfly.wander_speed, bfly.wander_radius, 0.3);
-                let pos = base_pos + flut + wind_off;
+                let mut pos = base_pos + flut + wind_off;
+                let ground = terrain.height_at_world(pos.x, pos.z);
+                pos.y = pos.y.max(ground + MIN_FLY_HEIGHT);
 
                 *vis = Visibility::Visible;
                 apply_flap_and_billboard(
@@ -319,7 +336,10 @@ pub(super) fn animate_butterflies(
             ButterflyState::Active => {
                 let flut =
                     flutter_offset(t, bfly.phase, bfly.wander_speed, bfly.wander_radius, 1.0);
-                let pos = bfly.anchor + flut + wind_off;
+                let mut pos = bfly.anchor + flut + wind_off;
+                // Clamp above terrain so butterflies never clip through hills.
+                let ground = terrain.height_at_world(pos.x, pos.z);
+                pos.y = pos.y.max(ground + MIN_FLY_HEIGHT);
 
                 *vis = Visibility::Visible;
                 apply_flap_and_billboard(
@@ -374,7 +394,9 @@ pub(super) fn animate_butterflies(
                     bfly.wander_radius,
                     1.0 - p,
                 );
-                let pos = base_pos + flut + wind_off;
+                let mut pos = base_pos + flut + wind_off;
+                let ground = terrain.height_at_world(pos.x, pos.z);
+                pos.y = pos.y.max(ground + MIN_FLY_HEIGHT);
 
                 *vis = Visibility::Visible;
                 apply_flap_and_billboard(
