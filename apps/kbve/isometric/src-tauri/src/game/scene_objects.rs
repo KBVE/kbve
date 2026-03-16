@@ -24,6 +24,10 @@ use std::sync::{LazyLock, Mutex};
 #[cfg(target_arch = "wasm32")]
 use std::cell::RefCell;
 
+/// Tracks last cursor position so we can skip raycasts when cursor hasn't moved.
+#[derive(Resource, Default)]
+struct LastCursorPos(Option<Vec2>);
+
 /// Marker for objects that become semi-transparent when occluding the player.
 #[derive(Component)]
 pub struct Occludable;
@@ -227,15 +231,16 @@ pub struct SceneObjectsPlugin;
 
 impl Plugin for SceneObjectsPlugin {
     fn build(&self, app: &mut App) {
+        app.init_resource::<LastCursorPos>();
         app.add_systems(
             Update,
             (
                 animate_crystal.run_if(any_with_component::<AnimatedCrystal>),
                 rotate_boxes.run_if(any_with_component::<RotatingBox>),
-                update_occlusion.run_if(any_with_component::<Interactable>),
+                update_occlusion.run_if(any_with_component::<Occludable>),
                 update_hover_highlight.run_if(any_with_component::<Hovered>),
                 draw_hover_outline.run_if(any_with_component::<HoverOutline>),
-                update_hovered_snapshot.run_if(any_with_component::<Hovered>),
+                update_hovered_snapshot,
                 detect_click_selection,
             ),
         );
@@ -269,6 +274,7 @@ fn raycast_hover_detection_desktop(
     hoverable: Query<(), With<HoverOutline>>,
     current_hovered: Query<Entity, With<Hovered>>,
     player_query: Query<Entity, With<Player>>,
+    mut last_cursor: ResMut<LastCursorPos>,
     mut commands: Commands,
 ) {
     let Ok(window) = windows.single() else { return };
@@ -278,11 +284,20 @@ fn raycast_hover_detection_desktop(
 
     // Remove hover if cursor is outside window
     let Some(cursor_pos) = cursor.position else {
+        last_cursor.0 = None;
         for entity in &current_hovered {
             commands.entity(entity).remove::<Hovered>();
         }
         return;
     };
+
+    // Skip expensive raycast if cursor hasn't moved
+    if let Some(prev) = last_cursor.0 {
+        if (prev - cursor_pos).length_squared() < 0.5 {
+            return;
+        }
+    }
+    last_cursor.0 = Some(cursor_pos);
 
     // Extract orthographic half-extents from the scene camera's projection
     let Projection::Orthographic(ortho) = projection else {
@@ -351,6 +366,7 @@ fn raycast_hover_detection_wasm(
     current_hovered: Query<Entity, With<Hovered>>,
     player_query: Query<Entity, With<Player>>,
     joystick: Res<VirtualJoystickState>,
+    mut last_cursor: ResMut<LastCursorPos>,
     mut commands: Commands,
 ) {
     let Ok(window) = windows.single() else { return };
@@ -360,6 +376,7 @@ fn raycast_hover_detection_wasm(
 
     // Skip raycasting when the pointer is captured by the joystick UI.
     if joystick.pointer_captured {
+        last_cursor.0 = None;
         for entity in &current_hovered {
             commands.entity(entity).remove::<Hovered>();
         }
@@ -367,11 +384,20 @@ fn raycast_hover_detection_wasm(
     }
 
     let Some(cursor_pos) = window.cursor_position() else {
+        last_cursor.0 = None;
         for entity in &current_hovered {
             commands.entity(entity).remove::<Hovered>();
         }
         return;
     };
+
+    // Skip expensive raycast if cursor hasn't moved
+    if let Some(prev) = last_cursor.0 {
+        if (prev - cursor_pos).length_squared() < 0.5 {
+            return;
+        }
+    }
+    last_cursor.0 = Some(cursor_pos);
 
     let Projection::Orthographic(ortho) = projection else {
         return;
@@ -619,31 +645,33 @@ fn update_occlusion(
 
     let view_dir = (cam_gt.rotation() * Vec3::NEG_Z).normalize();
     let player_depth = (player_pos - cam_pos).dot(view_dir);
-    let player_offset = player_pos - cam_pos;
-    let player_lateral = player_offset - player_depth * view_dir;
+    let player_lateral = (player_pos - cam_pos) - player_depth * view_dir;
 
     for (obj_gt, mat_handle) in &occludable_query {
         let obj_pos = obj_gt.translation();
-        let obj_depth = (obj_pos - cam_pos).dot(view_dir);
+
+        // Cheap distance cull — skip objects far from the player.
+        let dx = obj_pos.x - player_pos.x;
+        let dz = obj_pos.z - player_pos.z;
+        if dx * dx + dz * dz > 100.0 {
+            // > 10 units away, can't occlude
+            continue;
+        }
+
         let obj_offset = obj_pos - cam_pos;
+        let obj_depth = obj_offset.dot(view_dir);
         let obj_lateral = obj_offset - obj_depth * view_dir;
-        let lateral_dist = (player_lateral - obj_lateral).length();
+        let lateral_dist_sq = (player_lateral - obj_lateral).length_squared();
 
-        let occludes = obj_depth < player_depth && lateral_dist < 2.0;
+        let occludes = obj_depth < player_depth && lateral_dist_sq < 4.0;
 
-        if let Some(mat) = materials.get(&mat_handle.0) {
-            let needs_blend = occludes && mat.alpha_mode != AlphaMode::Blend;
-            let needs_opaque = !occludes && mat.alpha_mode != AlphaMode::Opaque;
-            if needs_blend || needs_opaque {
-                if let Some(mat) = materials.get_mut(&mat_handle.0) {
-                    if occludes {
-                        mat.base_color = mat.base_color.with_alpha(0.3);
-                        mat.alpha_mode = AlphaMode::Blend;
-                    } else {
-                        mat.base_color = mat.base_color.with_alpha(1.0);
-                        mat.alpha_mode = AlphaMode::Opaque;
-                    }
-                }
+        if let Some(mat) = materials.get_mut(&mat_handle.0) {
+            if occludes && mat.alpha_mode != AlphaMode::Blend {
+                mat.base_color = mat.base_color.with_alpha(0.3);
+                mat.alpha_mode = AlphaMode::Blend;
+            } else if !occludes && mat.alpha_mode != AlphaMode::Opaque {
+                mat.base_color = mat.base_color.with_alpha(1.0);
+                mat.alpha_mode = AlphaMode::Opaque;
             }
         }
     }
