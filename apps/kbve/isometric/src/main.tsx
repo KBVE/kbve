@@ -43,7 +43,55 @@ async function bootstrap() {
 
 	setLoadingProgress('Initializing WebGPU...', 60);
 
-	await init();
+	const wasm = await init();
+
+	// Spawn web workers for WASM pthreads (chunk computation, etc.)
+	// Only when SharedArrayBuffer is available (cross-origin isolated).
+	if (
+		typeof SharedArrayBuffer !== 'undefined' &&
+		'worker_entry_point' in wasm
+	) {
+		const numWorkers = Math.max(
+			1,
+			(navigator.hardwareConcurrency || 4) - 1,
+		);
+		setLoadingProgress(`Spawning ${numWorkers} workers...`, 75);
+
+		// wasm-bindgen doesn't export the WebAssembly.Module, so compile it ourselves.
+		// The memory IS on instance.exports since we use --shared-memory.
+		const wasmUrl = new URL(
+			'../wasm-pkg/isometric_game_bg.wasm',
+			import.meta.url,
+		);
+		const wasmMemory = (wasm as unknown as { memory: WebAssembly.Memory })
+			.memory;
+		// Resolve the wasm-bindgen JS URL for workers to import dynamically.
+		const bindgenUrl = new URL(
+			'../wasm-pkg/isometric_game.js',
+			import.meta.url,
+		).href;
+
+		try {
+			const wasmModule = await WebAssembly.compileStreaming(
+				fetch(wasmUrl),
+			);
+
+			const base = import.meta.env.BASE_URL;
+			for (let i = 0; i < numWorkers; i++) {
+				const worker = new Worker(`${base}wasm-worker.js`, {
+					type: 'module',
+				});
+				worker.postMessage({
+					module: wasmModule,
+					memory: wasmMemory,
+					bindgenUrl,
+				});
+			}
+			console.log(`[pthreads] Spawned ${numWorkers} WASM worker threads`);
+		} catch (err) {
+			console.warn('[pthreads] Failed to compile WASM for workers:', err);
+		}
+	}
 
 	setLoadingProgress('Starting...', 90);
 

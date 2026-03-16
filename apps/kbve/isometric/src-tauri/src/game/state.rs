@@ -63,7 +63,10 @@ pub struct GameStatePlugin;
 impl Plugin for GameStatePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<PlayerState>();
-        app.add_systems(Update, snapshot_player_state);
+        app.add_systems(
+            Update,
+            snapshot_player_state.run_if(resource_changed::<PlayerState>),
+        );
     }
 }
 

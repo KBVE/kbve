@@ -28,6 +28,7 @@ jobs:
             - name: Rust ToolChain
               uses: dtolnay/rust-toolchain@stable
               with:
+                  toolchain: '1.94'
                   components: clippy
 
             - name: Setup Node v24

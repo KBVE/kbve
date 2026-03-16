@@ -4,9 +4,9 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
-		"build:wasm": "cd src-tauri && wasm-pack build --target web --out-dir ../wasm-pkg --out-name isometric_game",
+		"build:wasm": "cd src-tauri && RUSTUP_TOOLCHAIN=nightly cargo build --lib --target wasm32-unknown-unknown -Z build-std=panic_abort,std --release && command -v wasm-bindgen >/dev/null || cargo install wasm-bindgen-cli@0.2.114 --locked && wasm-bindgen ../../../../dist/target/wasm32-unknown-unknown/release/isometric_game.wasm --out-dir ../wasm-pkg --target web --out-name isometric_game",
 		"dev": "vite",
-		"build": "npm run build:wasm && npx tsc && vite build && mkdir -p dist/assets/shaders dist/assets/textures && cp -r public/assets/shaders/*.wgsl dist/assets/shaders/ && cp -r public/assets/textures/* dist/assets/textures/",
+		"build": "npm run build:wasm && npx tsc && vite build && mkdir -p dist/assets/shaders dist/assets/textures && cp -r public/assets/shaders/*.wgsl dist/assets/shaders/ && cp -r public/assets/textures/* dist/assets/textures/ && cp public/wasm-worker.js dist/wasm-worker.js",
 		"preview": "vite preview"
 	},
 	"dependencies": {

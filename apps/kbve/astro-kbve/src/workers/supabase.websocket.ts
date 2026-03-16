@@ -481,7 +481,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 				});
 		}
 	} catch (err: any) {
-		console.error(`[WebSocket Worker] Error handling ${type}:`, err);
+		console.error('[WebSocket Worker] Error handling message:', type, err);
 		respond(id, { ok: false, error: err.message || String(err) });
 	}
 };

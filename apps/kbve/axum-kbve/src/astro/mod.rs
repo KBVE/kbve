@@ -2,7 +2,8 @@ pub mod askama;
 
 use axum::{
     Router,
-    http::{StatusCode, header},
+    http::{HeaderValue, StatusCode, header},
+    middleware::Next,
     response::IntoResponse,
 };
 use std::convert::Infallible;
@@ -96,6 +97,28 @@ pub fn build_static_router(config: &StaticConfig) -> Router {
         .nest_service("/images", images_service)
         .nest_service("/pagefind", pagefind_service)
         .fallback_service(fallback_svc)
+        // Isometric game requires cross-origin isolation for SharedArrayBuffer (WASM pthreads).
+        // Scoped to /isometric/ paths only to avoid breaking other pages.
+        .layer(axum::middleware::from_fn(coop_coep_isometric))
+}
+
+/// Middleware that adds COOP/COEP headers to /isometric/ responses,
+/// enabling SharedArrayBuffer for WASM pthreads.
+async fn coop_coep_isometric(req: axum::extract::Request, next: Next) -> impl IntoResponse {
+    let is_isometric = req.uri().path().starts_with("/isometric");
+    let mut resp = next.run(req).await;
+    if is_isometric {
+        let headers = resp.headers_mut();
+        headers.insert(
+            header::HeaderName::from_static("cross-origin-opener-policy"),
+            HeaderValue::from_static("same-origin"),
+        );
+        headers.insert(
+            header::HeaderName::from_static("cross-origin-embedder-policy"),
+            HeaderValue::from_static("require-corp"),
+        );
+    }
+    resp
 }
 
 #[cfg(test)]

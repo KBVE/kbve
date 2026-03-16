@@ -288,8 +288,12 @@ jobs:
                           - 'apps/kbve/edge/version.toml'
                       isometric:
                           - 'apps/kbve/isometric/src/**'
+                          - 'apps/kbve/isometric/public/**'
                           - 'apps/kbve/isometric/src-tauri/src/**'
                           - 'apps/kbve/isometric/src-tauri/Cargo.toml'
+                          - 'apps/kbve/isometric/src-tauri/.cargo/**'
+                          - 'apps/kbve/isometric/src-tauri/rust-toolchain.toml'
                           - 'apps/kbve/isometric/src-tauri/tauri.conf.json'
                           - 'apps/kbve/isometric/package.json'
                           - 'apps/kbve/isometric/vite.config.ts'
+                          - 'packages/rust/bevy/bevy_tasker/**'

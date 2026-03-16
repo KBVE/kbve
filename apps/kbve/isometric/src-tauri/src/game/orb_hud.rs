@@ -89,7 +89,10 @@ impl Plugin for OrbHudPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(UiMaterialPlugin::<OrbMaterial>::default());
         app.add_systems(Startup, spawn_orbs);
-        app.add_systems(Update, update_orbs);
+        app.add_systems(
+            Update,
+            update_orbs.run_if(resource_changed::<super::state::PlayerState>),
+        );
     }
 }
 

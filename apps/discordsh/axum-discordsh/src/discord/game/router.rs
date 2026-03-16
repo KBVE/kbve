@@ -307,15 +307,22 @@ pub async fn handle_game_component(
 
     // Apply action (now safe — we already acknowledged the interaction)
     match logic::apply_action(&mut session, action.clone(), actor) {
-        Ok(_logs) => {
+        Ok(result) => {
             // Render components while we still hold the lock
             let components = render::render_components(&session);
             let session_clone = session.clone();
+            let snapshot = result.snapshot;
             drop(session); // Release lock before CPU-bound render
 
-            // Render game card PNG on a blocking thread
+            // Render game card PNG on a blocking thread.
+            // Prefer snapshot-based rendering when a combat snapshot is available.
             let fontdb = data.app.fontdb.clone();
-            let card_png = super::card::render_game_card(&session_clone, fontdb.clone()).await;
+            let card_png = if let Some(ref snap) = snapshot {
+                super::card::render_game_card_with_snapshot(snap, &session_clone, fontdb.clone())
+                    .await
+            } else {
+                super::card::render_game_card(&session_clone, fontdb.clone()).await
+            };
             if let Err(ref e) = card_png {
                 tracing::warn!(
                     error = %e,

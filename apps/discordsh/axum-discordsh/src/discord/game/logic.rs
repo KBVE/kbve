@@ -1,3 +1,4 @@
+use bevy_battle::snapshot::CombatSnapshot;
 use poise::serenity_prelude as serenity;
 use rand::prelude::*;
 use tracing::debug;
@@ -5,6 +6,31 @@ use tracing::debug;
 use super::battle_bridge;
 use super::content;
 use super::types::*;
+
+/// Result of applying a game action, including optional ECS combat snapshot.
+#[derive(Debug)]
+pub struct ActionResult {
+    pub logs: Vec<String>,
+    /// Present when the action involved a bevy_battle combat turn.
+    /// Renderers can use this for pixel-perfect SVG cards.
+    pub snapshot: Option<CombatSnapshot>,
+}
+
+impl ActionResult {
+    fn logs_only(logs: Vec<String>) -> Self {
+        Self {
+            logs,
+            snapshot: None,
+        }
+    }
+}
+
+impl std::ops::Deref for ActionResult {
+    type Target = Vec<String>;
+    fn deref(&self) -> &Vec<String> {
+        &self.logs
+    }
+}
 
 const CLERIC_HEALS_PER_COMBAT: u8 = 1;
 
@@ -178,12 +204,13 @@ fn validate_action(
 
 /// Apply a game action to the session state.
 ///
-/// Returns log entries describing what happened, or an error message.
+/// Returns an [`ActionResult`] with log entries and an optional combat snapshot,
+/// or an error message.
 pub fn apply_action(
     session: &mut SessionState,
     action: GameAction,
     actor: serenity::UserId,
-) -> Result<Vec<String>, String> {
+) -> Result<ActionResult, String> {
     validate_actor(session, actor)?;
     validate_action(session, &action, actor)?;
 
@@ -196,7 +223,7 @@ pub fn apply_action(
         "Applying game action"
     );
 
-    let logs = match action {
+    let result = match action {
         GameAction::Attack => resolve_combat_turn(session, GameAction::Attack, actor),
         GameAction::AttackTarget(idx) => {
             debug!(target_idx = idx, "Attack targeting enemy index");
@@ -206,44 +233,46 @@ pub fn apply_action(
         GameAction::HealAlly(target_uid) => {
             let msg = apply_heal_ally(session, target_uid, actor)?;
             let mut logs = vec![msg];
+            let mut snapshot = None;
             // In solo mode, enemy turns run through bridge (no effect ticks,
             // no death handling — same as old behavior)
             if session.mode == SessionMode::Solo {
                 let (fs_logs, first_strike_fired) = maybe_first_strike(session, actor);
                 logs.extend(fs_logs);
                 if !session.all_players_dead() {
-                    logs.extend(battle_bridge::run_enemy_turns_only(
-                        session,
-                        first_strike_fired,
-                    ));
+                    let enemy_result =
+                        battle_bridge::run_enemy_turns_only(session, first_strike_fired);
+                    logs.extend(enemy_result.logs);
+                    snapshot = enemy_result.snapshot;
                 }
             }
-            logs
+            ActionResult { logs, snapshot }
         }
         GameAction::Equip(ref gear_id) => {
             let msg = apply_equip(session, gear_id, actor)?;
-            vec![msg]
+            ActionResult::logs_only(vec![msg])
         }
         GameAction::Unequip(ref slot_str) => {
             let msg = apply_unequip(session, slot_str, actor)?;
-            vec![msg]
+            ActionResult::logs_only(vec![msg])
         }
         GameAction::UseItem(ref item_id, target_opt) => {
             let msg = apply_item(session, item_id, actor, target_opt)?;
             let mut logs = vec![msg];
+            let mut snapshot = None;
             // In combat, enemy turns run through bridge (no effect ticks,
             // no death handling — deaths are handled on next Attack turn)
             if session.phase == GamePhase::Combat {
                 let (fs_logs, first_strike_fired) = maybe_first_strike(session, actor);
                 logs.extend(fs_logs);
                 if !session.all_players_dead() {
-                    logs.extend(battle_bridge::run_enemy_turns_only(
-                        session,
-                        first_strike_fired,
-                    ));
+                    let enemy_result =
+                        battle_bridge::run_enemy_turns_only(session, first_strike_fired);
+                    logs.extend(enemy_result.logs);
+                    snapshot = enemy_result.snapshot;
                 }
             }
-            logs
+            ActionResult { logs, snapshot }
         }
         GameAction::Explore => {
             // Mark current tile as cleared and transition to Exploring
@@ -251,9 +280,11 @@ pub fn apply_action(
                 tile.cleared = true;
             }
             session.phase = GamePhase::Exploring;
-            vec!["You survey the area. Choose a direction to travel.".to_owned()]
+            ActionResult::logs_only(vec![
+                "You survey the area. Choose a direction to travel.".to_owned(),
+            ])
         }
-        GameAction::Flee => resolve_flee(session, actor),
+        GameAction::Flee => ActionResult::logs_only(resolve_flee(session, actor)),
         GameAction::Rest => {
             let cost = 10 + (session.room.index as i32 * 2);
             let player = session.player_mut(actor);
@@ -266,37 +297,43 @@ pub fn apply_action(
             player.gold -= cost;
             player.hp = player.max_hp;
             player.effects.clear();
-            vec![format!(
+            ActionResult::logs_only(vec![format!(
                 "You rest at the inn. Fully healed! (-{} gold)",
                 cost
-            )]
+            )])
         }
         GameAction::Buy(ref item_id) => {
             let msg = apply_buy(session, item_id, actor)?;
-            vec![msg]
+            ActionResult::logs_only(vec![msg])
         }
         GameAction::Sell(ref item_id) => {
             let msg = apply_sell(session, item_id, actor)?;
-            vec![msg]
+            ActionResult::logs_only(vec![msg])
         }
-        GameAction::RoomChoice(choice) => apply_room_choice(session, choice, actor)?,
-        GameAction::StoryChoice(idx) => apply_story_choice(session, idx, actor)?,
+        GameAction::RoomChoice(choice) => {
+            ActionResult::logs_only(apply_room_choice(session, choice, actor)?)
+        }
+        GameAction::StoryChoice(idx) => {
+            ActionResult::logs_only(apply_story_choice(session, idx, actor)?)
+        }
         GameAction::ToggleItems => {
             session.show_items = !session.show_items;
-            return Ok(Vec::new());
+            return Ok(ActionResult::logs_only(Vec::new()));
         }
-        GameAction::Move(dir) => apply_move(session, dir, actor)?,
+        GameAction::Move(dir) => ActionResult::logs_only(apply_move(session, dir, actor)?),
         GameAction::ViewMap => {
             session.show_map = !session.show_map;
-            return Ok(Vec::new());
+            return Ok(ActionResult::logs_only(Vec::new()));
         }
         GameAction::ViewInventory => {
             session.show_inventory = !session.show_inventory;
-            return Ok(Vec::new());
+            return Ok(ActionResult::logs_only(Vec::new()));
         }
-        GameAction::Revive(target_uid) => apply_revive(session, target_uid, actor)?,
+        GameAction::Revive(target_uid) => {
+            ActionResult::logs_only(apply_revive(session, target_uid, actor)?)
+        }
         GameAction::Gift(ref item_id, target_uid) => {
-            apply_gift(session, item_id, target_uid, actor)?
+            ActionResult::logs_only(apply_gift(session, item_id, target_uid, actor)?)
         }
     };
 
@@ -304,7 +341,7 @@ pub fn apply_action(
     session.last_action_at = std::time::Instant::now();
 
     // Trim log to last 8 entries
-    for entry in &logs {
+    for entry in &result.logs {
         session.log.push(entry.clone());
     }
     if session.log.len() > 8 {
@@ -312,7 +349,7 @@ pub fn apply_action(
         session.log.drain(..drain);
     }
 
-    Ok(logs)
+    Ok(result)
 }
 
 // ── First-strike initiative ─────────────────────────────────────────
@@ -331,7 +368,7 @@ fn maybe_first_strike(session: &mut SessionState, actor: serenity::UserId) -> (V
     let mut logs = vec!["The enemy strikes first!".to_owned()];
     // Enemy turns run through bevy_battle bridge (skip_enemy_turns=false
     // because this IS the enemy turn; no player actions sent).
-    logs.extend(battle_bridge::run_enemy_turns_only(session, false));
+    logs.extend(battle_bridge::run_enemy_turns_only(session, false).logs);
     logs.extend(handle_enemy_deaths(session, actor));
     (logs, true)
 }
@@ -342,7 +379,7 @@ fn resolve_combat_turn(
     session: &mut SessionState,
     player_action: GameAction,
     actor: serenity::UserId,
-) -> Vec<String> {
+) -> ActionResult {
     // Party mode: use pending_actions system
     if session.mode == SessionMode::Party {
         return resolve_combat_turn_party(session, player_action, actor);
@@ -361,7 +398,7 @@ fn resolve_combat_turn_solo(
     session: &mut SessionState,
     player_action: GameAction,
     actor: serenity::UserId,
-) -> Vec<String> {
+) -> ActionResult {
     let mut logs = Vec::new();
 
     // First-strike: enemies with initiative attack before the player
@@ -370,7 +407,7 @@ fn resolve_combat_turn_solo(
 
     // If first strike killed the player, bail
     if session.all_players_dead() {
-        return logs;
+        return ActionResult::logs_only(logs);
     }
 
     // Stunned check (legacy field, not in bevy_battle)
@@ -380,12 +417,13 @@ fn resolve_combat_turn_solo(
             player.stunned_turns -= 1;
             logs.push(format!("{} is stunned and cannot act!", player.name));
             // Enemy turns + effect ticks through bridge
-            logs.extend(battle_bridge::run_enemy_turns_only(
-                session,
-                first_strike_fired,
-            ));
+            let enemy_result = battle_bridge::run_enemy_turns_only(session, first_strike_fired);
+            logs.extend(enemy_result.logs);
             logs.extend(handle_enemy_deaths(session, actor));
-            return logs;
+            return ActionResult {
+                logs,
+                snapshot: enemy_result.snapshot,
+            };
         }
     }
 
@@ -418,7 +456,7 @@ fn resolve_combat_turn_solo(
             battle_bridge::PlayerAction::Attack { target_idx }
         }
         GameAction::Defend => battle_bridge::PlayerAction::Defend,
-        _ => return logs,
+        _ => return ActionResult::logs_only(logs),
     };
 
     // Run combat through bevy_battle ECS.
@@ -438,7 +476,10 @@ fn resolve_combat_turn_solo(
     // Reset defending for the actor
     session.player_mut(actor).defending = false;
 
-    logs
+    ActionResult {
+        logs,
+        snapshot: result.snapshot,
+    }
 }
 
 /// Party mode combat: resolve immediately via bevy_battle ECS bridge.
@@ -450,7 +491,7 @@ fn resolve_combat_turn_party(
     session: &mut SessionState,
     player_action: GameAction,
     actor: serenity::UserId,
-) -> Vec<String> {
+) -> ActionResult {
     // Store the acting player's action
     session.pending_actions.insert(actor, player_action);
 
@@ -472,7 +513,7 @@ fn resolve_combat_turn_party(
     logs.extend(fs_logs);
 
     if session.all_players_dead() {
-        return logs;
+        return ActionResult::logs_only(logs);
     }
 
     // Collect all pending actions
@@ -586,7 +627,10 @@ fn resolve_combat_turn_party(
         player.defending = false;
     }
 
-    logs
+    ActionResult {
+        logs,
+        snapshot: result.snapshot,
+    }
 }
 
 /// Handle death of enemies: remove dead, grant loot/xp/gold, check phase transition.
