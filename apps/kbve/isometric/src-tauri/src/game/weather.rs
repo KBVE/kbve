@@ -6,6 +6,7 @@ use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
 use super::camera::IsometricCamera;
+use super::creatures::FrogMaterials;
 use super::tilemap::TileMaterials;
 use super::trees::TreeWindSway;
 
@@ -84,7 +85,7 @@ fn sun_params(hour: f32) -> SunParams {
 
     // Illuminance: gentle accent — pixel-art style relies on ambient, not harsh shadows.
     // ~2:1 ratio with ambient keeps valleys readable.
-    let illuminance = 15.0 + sun_height * 1800.0;
+    let illuminance = 35.0 + sun_height * 1780.0;
 
     // Light color: warm golden near horizon, white at zenith, cool blue at night.
     let lr = 0.4 + sun_height * 0.6;
@@ -94,7 +95,7 @@ fn sun_params(hour: f32) -> SunParams {
 
     // Ambient: dominant fill — the main brightness source in a stylized world.
     // Shadowed areas (valleys) should be tinted, never crushed to dark.
-    let ambient_brightness = 350.0 + sun_height * 650.0;
+    let ambient_brightness = 420.0 + sun_height * 580.0;
     let ambient_color = Color::srgb(
         0.55 + sun_height * 0.35,
         0.60 + sun_height * 0.32,
@@ -423,6 +424,29 @@ fn tint_trees_for_daynight(
     }
 }
 
+/// Tint unlit frog materials based on time of day (same curve as trees).
+fn tint_frogs_for_daynight(
+    day: Res<DayCycle>,
+    frog_mats: Option<Res<FrogMaterials>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let Some(frog_mats) = frog_mats else {
+        return;
+    };
+    let params = sun_params(day.hour);
+    let h = params.sun_height;
+
+    let r = 0.18 + h * 0.92;
+    let g = 0.20 + h * 0.90;
+    let b = 0.28 + h * 0.75;
+
+    for handle in &frog_mats.handles {
+        if let Some(mat) = materials.get_mut(handle) {
+            mat.base_color = Color::srgb(r, g, b);
+        }
+    }
+}
+
 fn animate_veg_wind(
     time: Res<Time>,
     wind: Res<WindState>,
@@ -621,6 +645,7 @@ impl Plugin for WeatherPlugin {
                 update_day_cycle,
                 update_sun_position,
                 tint_trees_for_daynight,
+                tint_frogs_for_daynight,
                 update_blob_shadows,
                 animate_veg_wind,
                 animate_tree_wind,
