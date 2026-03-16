@@ -12,6 +12,7 @@ use bevy_items::{
     UseEffectType, inventory_adapter::ProtoItemKind,
 };
 use bevy_npc::NpcDb;
+use bevy_quests::QuestDb;
 
 use super::types::*;
 
@@ -418,6 +419,89 @@ fn npc_initial_intent(npc_ref: &str, attack: i32) -> Intent {
         // Fallback: basic attack using proto attack stat
         _ => Intent::Attack { dmg: attack },
     }
+}
+
+// ── Quest public API ──────────────────────────────────────────────────
+
+/// Embedded JSON snapshot of the quest database.
+const QUESTDB_JSON: &str = include_str!("../../../data/questdb.json");
+
+/// The global proto quest database, loaded once from the embedded JSON.
+static QUEST_DB: LazyLock<QuestDb> = LazyLock::new(|| {
+    QuestDb::from_json(QUESTDB_JSON).expect("embedded questdb.json must be valid")
+});
+
+/// Access the underlying [`QuestDb`] for advanced queries.
+pub fn quest_db() -> &'static QuestDb {
+    &QUEST_DB
+}
+
+/// Find a quest by its ref slug (e.g. "slime-slayer").
+pub fn find_quest_by_ref(r: &str) -> Option<&'static bevy_quests::Quest> {
+    QUEST_DB.get_by_ref(r)
+}
+
+/// Find all quests tagged with "discordsh".
+pub fn discordsh_quests() -> Vec<&'static bevy_quests::Quest> {
+    QUEST_DB.find_by_tag("discordsh")
+}
+
+/// Find quests available to a player at a given level.
+pub fn quests_for_level(level: i32) -> Vec<&'static bevy_quests::Quest> {
+    QUEST_DB
+        .find_by_tag("discordsh")
+        .into_iter()
+        .filter(|q| q.recommended_level.unwrap_or(1) <= level)
+        .collect()
+}
+
+/// Build an [`ActiveQuest`] from a proto quest definition.
+///
+/// Initializes all step and objective progress to zero.
+pub fn build_active_quest(quest: &bevy_quests::Quest) -> ActiveQuest {
+    let steps = quest
+        .steps
+        .iter()
+        .map(|step| StepProgress {
+            step_id: step.id.clone(),
+            objectives: step
+                .objectives
+                .iter()
+                .map(|obj| ObjectiveProgress {
+                    objective_id: obj.id.clone(),
+                    current: 0,
+                    required: obj.required_amount,
+                })
+                .collect(),
+        })
+        .collect();
+
+    ActiveQuest {
+        quest_ref: quest.r#ref.clone(),
+        current_step: 0,
+        steps,
+    }
+}
+
+/// Check if a player meets the prerequisites for a quest.
+pub fn meets_prerequisites(
+    quest: &bevy_quests::Quest,
+    player_level: u8,
+    journal: &QuestJournal,
+) -> bool {
+    if let Some(prereq) = &quest.prerequisites {
+        if let Some(req_level) = prereq.level_requirement {
+            if (player_level as i32) < req_level {
+                return false;
+            }
+        }
+        for req_ref in &prereq.quest_refs {
+            if !journal.is_completed(req_ref) {
+                return false;
+            }
+        }
+    }
+    true
 }
 
 #[cfg(test)]
@@ -1051,5 +1135,235 @@ mod tests {
                 enemy.name
             );
         }
+    }
+
+    // ── Quest DB tests ──────────────────────────────────────────────────
+
+    #[test]
+    fn quest_db_loads_successfully() {
+        let db = quest_db();
+        assert!(!db.is_empty(), "QuestDb should have quests");
+    }
+
+    #[test]
+    fn quest_db_has_6_quests() {
+        assert_eq!(quest_db().len(), 6, "Should have 6 discordsh quests");
+    }
+
+    #[test]
+    fn find_quest_slime_slayer() {
+        let quest = find_quest_by_ref("slime-slayer").expect("slime-slayer should exist");
+        assert_eq!(quest.title, "Slime Slayer");
+        assert_eq!(quest.recommended_level, Some(1));
+        assert!(!quest.steps.is_empty());
+    }
+
+    #[test]
+    fn find_quest_dungeon_delver() {
+        let quest = find_quest_by_ref("dungeon-delver").expect("dungeon-delver should exist");
+        assert_eq!(quest.title, "Dungeon Delver");
+        assert_eq!(quest.next_quest_ref, Some("shadow-hunter".to_owned()));
+    }
+
+    #[test]
+    fn find_quest_shadow_hunter() {
+        let quest = find_quest_by_ref("shadow-hunter").expect("shadow-hunter should exist");
+        assert_eq!(quest.title, "Shadow Hunter");
+        assert_eq!(quest.steps.len(), 2, "Shadow Hunter should have 2 steps");
+        assert!(quest.prerequisites.is_some());
+    }
+
+    #[test]
+    fn find_quest_kings_demise() {
+        let quest = find_quest_by_ref("kings-demise").expect("kings-demise should exist");
+        assert_eq!(quest.title, "The King's Demise");
+        assert_eq!(quest.recommended_level, Some(5));
+        let rewards = quest.rewards.as_ref().expect("should have rewards");
+        assert_eq!(rewards.currency, Some(500));
+        assert_eq!(rewards.xp, Some(300));
+        assert!(rewards.achievement.is_some());
+    }
+
+    #[test]
+    fn find_quest_treasure_seeker() {
+        let quest = find_quest_by_ref("treasure-seeker").expect("treasure-seeker should exist");
+        assert_eq!(quest.repeatable, Some(true));
+    }
+
+    #[test]
+    fn find_quest_survivor() {
+        let quest = find_quest_by_ref("survivor").expect("survivor should exist");
+        assert_eq!(quest.repeatable, Some(true));
+        assert_eq!(quest.recommended_level, Some(2));
+    }
+
+    #[test]
+    fn find_quest_nonexistent_returns_none() {
+        assert!(find_quest_by_ref("nonexistent-quest-xyz").is_none());
+    }
+
+    #[test]
+    fn discordsh_quests_returns_all_6() {
+        let quests = discordsh_quests();
+        assert_eq!(quests.len(), 6);
+    }
+
+    #[test]
+    fn quests_for_level_1_includes_beginner() {
+        let quests = quests_for_level(1);
+        assert!(quests.iter().any(|q| q.r#ref == "slime-slayer"));
+        assert!(quests.iter().any(|q| q.r#ref == "dungeon-delver"));
+        assert!(quests.iter().any(|q| q.r#ref == "treasure-seeker"));
+    }
+
+    #[test]
+    fn quests_for_level_5_includes_all() {
+        let quests = quests_for_level(5);
+        assert_eq!(quests.len(), 6);
+    }
+
+    #[test]
+    fn build_active_quest_slime_slayer() {
+        let quest = find_quest_by_ref("slime-slayer").unwrap();
+        let active = build_active_quest(quest);
+        assert_eq!(active.quest_ref, "slime-slayer");
+        assert_eq!(active.current_step, 0);
+        assert_eq!(active.steps.len(), 1);
+        assert_eq!(active.steps[0].objectives.len(), 1);
+        assert_eq!(active.steps[0].objectives[0].current, 0);
+        assert_eq!(active.steps[0].objectives[0].required, 3);
+        assert!(!active.is_complete());
+    }
+
+    #[test]
+    fn build_active_quest_shadow_hunter_has_2_steps() {
+        let quest = find_quest_by_ref("shadow-hunter").unwrap();
+        let active = build_active_quest(quest);
+        assert_eq!(active.steps.len(), 2);
+        assert_eq!(active.steps[0].objectives[0].required, 8); // explore 8 rooms
+        assert_eq!(active.steps[1].objectives[0].required, 1); // kill boss
+    }
+
+    #[test]
+    fn meets_prerequisites_no_prereqs() {
+        let quest = find_quest_by_ref("slime-slayer").unwrap();
+        let journal = QuestJournal::default();
+        assert!(meets_prerequisites(quest, 1, &journal));
+    }
+
+    #[test]
+    fn meets_prerequisites_level_too_low() {
+        let quest = find_quest_by_ref("shadow-hunter").unwrap();
+        let journal = QuestJournal::default();
+        // Requires level 2, player is level 1
+        assert!(!meets_prerequisites(quest, 1, &journal));
+    }
+
+    #[test]
+    fn meets_prerequisites_missing_quest() {
+        let quest = find_quest_by_ref("shadow-hunter").unwrap();
+        let journal = QuestJournal::default();
+        // Requires dungeon-delver complete, level 2
+        assert!(!meets_prerequisites(quest, 5, &journal));
+    }
+
+    #[test]
+    fn meets_prerequisites_all_met() {
+        let quest = find_quest_by_ref("shadow-hunter").unwrap();
+        let mut journal = QuestJournal::default();
+        journal.completed.push("dungeon-delver".to_owned());
+        assert!(meets_prerequisites(quest, 2, &journal));
+    }
+
+    #[test]
+    fn all_quests_have_discordsh_tag() {
+        for (_id, quest) in quest_db().iter() {
+            assert!(
+                quest.tags.iter().any(|t| t == "discordsh"),
+                "Quest {} missing discordsh tag",
+                quest.title
+            );
+        }
+    }
+
+    #[test]
+    fn all_quests_have_at_least_one_step() {
+        for (_id, quest) in quest_db().iter() {
+            assert!(
+                !quest.steps.is_empty(),
+                "Quest {} should have at least one step",
+                quest.title
+            );
+        }
+    }
+
+    #[test]
+    fn all_quests_have_rewards() {
+        for (_id, quest) in quest_db().iter() {
+            assert!(
+                quest.rewards.is_some(),
+                "Quest {} should have rewards",
+                quest.title
+            );
+        }
+    }
+
+    #[test]
+    fn all_quest_objectives_have_positive_required_amount() {
+        for (_id, quest) in quest_db().iter() {
+            for step in &quest.steps {
+                for obj in &step.objectives {
+                    assert!(
+                        obj.required_amount > 0,
+                        "Quest {} objective {} should have required_amount > 0",
+                        quest.title,
+                        obj.id
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn all_quests_have_unique_refs() {
+        let mut refs = std::collections::HashSet::new();
+        for (_id, quest) in quest_db().iter() {
+            assert!(
+                refs.insert(quest.r#ref.clone()),
+                "Duplicate quest ref: {}",
+                quest.r#ref
+            );
+        }
+    }
+
+    #[test]
+    fn quest_chain_dungeon_delver_to_shadow_hunter_to_kings_demise() {
+        let dd = find_quest_by_ref("dungeon-delver").unwrap();
+        assert_eq!(dd.next_quest_ref, Some("shadow-hunter".to_owned()));
+
+        let sh = find_quest_by_ref("shadow-hunter").unwrap();
+        assert_eq!(sh.next_quest_ref, Some("kings-demise".to_owned()));
+
+        let kd = find_quest_by_ref("kings-demise").unwrap();
+        assert_eq!(kd.next_quest_ref, None);
+    }
+
+    #[test]
+    fn kings_demise_rewards_excalibur() {
+        let quest = find_quest_by_ref("kings-demise").unwrap();
+        let rewards = quest.rewards.as_ref().unwrap();
+        assert!(
+            rewards.items.iter().any(|i| i.item_ref == "excalibur"),
+            "Kings Demise should reward Excalibur"
+        );
+    }
+
+    #[test]
+    fn shadow_hunter_rewards_smoke_bombs() {
+        let quest = find_quest_by_ref("shadow-hunter").unwrap();
+        let rewards = quest.rewards.as_ref().unwrap();
+        let smoke = rewards.items.iter().find(|i| i.item_ref == "smoke-bomb");
+        assert!(smoke.is_some(), "Shadow Hunter should reward smoke bombs");
+        assert_eq!(smoke.unwrap().amount, 3);
     }
 }

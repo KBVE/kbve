@@ -1,0 +1,87 @@
+---
+id: "01JX26CC3NSHADOWHUNTER00003"
+ref: "shadow-hunter"
+drafted: false
+title: "Shadow Hunter"
+description: "A powerful shadow wraith has been sighted in the deeper levels. Track it down and destroy it."
+category: "main"
+tags:
+  - "discordsh"
+  - "combat"
+  - "boss"
+hidden: false
+repeatable: false
+recommended_level: 3
+prerequisites:
+  quest_refs:
+    - "dungeon-delver"
+  level_requirement: 2
+steps:
+  - id: "step-reach-depth"
+    title: "Descend to the Depths"
+    objectives:
+      - id: "obj-explore-rooms"
+        description: "Explore 8 rooms to reach the deeper levels"
+        type: "explore"
+        required_amount: 8
+  - id: "step-slay-boss"
+    title: "Slay the Shadow Wraith"
+    objectives:
+      - id: "obj-kill-boss"
+        description: "Defeat a boss enemy"
+        type: "kill"
+        target_refs:
+          - "shadow-wraith"
+        required_amount: 1
+rewards:
+  currency: 200
+  xp: 150
+  items:
+    - item_ref: "smoke-bomb"
+      amount: 3
+triggers:
+  - "quest:complete:dungeon-delver"
+next_quest_ref: "kings-demise"
+---
+
+import {
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+} from '@astrojs/starlight/components';
+
+import { Giscus } from '@/components/astropad';
+
+<Aside type="caution">
+The Shadow Wraith is a formidable foe. Make sure you are well-equipped before
+attempting this quest. A party is recommended.
+</Aside>
+
+## Quest Overview
+
+<CardGrid>
+  <Card title="Phase 1" icon="mdi:compass">
+    Descend through 8 rooms to reach the deeper dungeon levels where the wraith
+    lurks.
+  </Card>
+  <Card title="Phase 2" icon="mdi:skull">
+    Defeat the Shadow Wraith boss. It hits hard and has high armor.
+  </Card>
+  <Card title="Reward" icon="mdi:gift">
+    200 gold, 150 XP, and 3 Smoke Bombs.
+  </Card>
+</CardGrid>
+
+## Steps to Completion
+
+<Steps>
+1. **Explore the dungeon**
+   Navigate through at least 8 rooms to reach boss territory.
+2. **Engage the Shadow Wraith**
+   When you encounter a boss room, the Shadow Wraith awaits.
+3. **Defeat the boss**
+   Use your best gear and consumables. Watch out for its Heavy Attack.
+</Steps>
+
+<Giscus />

@@ -1,0 +1,72 @@
+---
+id: "01JX26EE5NTREASURESEEKER005"
+ref: "treasure-seeker"
+drafted: false
+title: "Treasure Seeker"
+description: "The dungeon is filled with hidden riches. Collect gold from treasure rooms and enemy loot."
+category: "side"
+tags:
+  - "discordsh"
+  - "loot"
+  - "beginner"
+hidden: false
+repeatable: true
+recommended_level: 1
+steps:
+  - id: "step-collect-gold"
+    title: "Amass a Fortune"
+    objectives:
+      - id: "obj-earn-100-gold"
+        description: "Earn 100 gold in a single dungeon run"
+        type: "collect"
+        required_amount: 100
+rewards:
+  currency: 25
+  xp: 20
+  items:
+    - item_ref: "potion"
+      amount: 2
+triggers:
+  - "player:level:1"
+  - "area:dungeon"
+next_quest_ref: null
+---
+
+import {
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+} from '@astrojs/starlight/components';
+
+import { Giscus } from '@/components/astropad';
+
+<Aside>
+Gold is power in the dungeon. Loot chests, sell unwanted gear, and defeat
+enemies to fill your coffers.
+</Aside>
+
+## Quest Overview
+
+<CardGrid>
+  <Card title="Objective" icon="mdi:gold">
+    Earn 100 gold in a single dungeon run through combat loot, treasure rooms,
+    or merchant trades.
+  </Card>
+  <Card title="Reward" icon="mdi:bottle-tonic">
+    25 bonus gold, 20 XP, and 2 Potions. This quest is repeatable.
+  </Card>
+</CardGrid>
+
+## Steps to Completion
+
+<Steps>
+1. **Enter the dungeon**
+   Start a dungeon run and begin looting.
+2. **Accumulate 100 gold**
+   Defeat enemies, open treasure rooms, and collect your earnings.
+3. **Quest complete**
+   Completes automatically when your gold earned reaches 100.
+</Steps>
+
+<Giscus />

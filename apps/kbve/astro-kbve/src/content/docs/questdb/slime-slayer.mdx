@@ -1,0 +1,70 @@
+---
+id: "01JX26AA1NSLIMESLAYER000001"
+ref: "slime-slayer"
+drafted: false
+title: "Slime Slayer"
+description: "The dungeon's lower tunnels are overrun with slimes. Clear them out to prove your worth."
+category: "side"
+tags:
+  - "discordsh"
+  - "combat"
+  - "beginner"
+hidden: false
+repeatable: false
+recommended_level: 1
+steps:
+  - id: "step-kill-slimes"
+    title: "Exterminate the Slimes"
+    objectives:
+      - id: "obj-kill-3-enemies"
+        description: "Defeat 3 enemies in the dungeon"
+        type: "kill"
+        required_amount: 3
+rewards:
+  currency: 50
+  xp: 30
+triggers:
+  - "player:level:1"
+  - "area:dungeon"
+next_quest_ref: null
+---
+
+import {
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+} from '@astrojs/starlight/components';
+
+import { Giscus } from '@/components/astropad';
+
+<Aside>
+The dungeon's lower tunnels are teeming with slimes. A bounty has been posted
+for anyone brave enough to clear them out. Defeat three enemies to claim your
+reward.
+</Aside>
+
+## Quest Overview
+
+<CardGrid>
+  <Card title="Objective" icon="mdi:sword">
+    Defeat 3 enemies anywhere in the dungeon. Slimes, bats, spiders — they all
+    count.
+  </Card>
+  <Card title="Reward" icon="mdi:gold">
+    50 gold and 30 XP for completing the bounty.
+  </Card>
+</CardGrid>
+
+## Steps to Completion
+
+<Steps>
+1. **Enter the dungeon**
+   Start a dungeon run from the city.
+2. **Defeat 3 enemies**
+   Engage and defeat any three enemies you encounter while exploring.
+3. **Claim your reward**
+   The quest completes automatically once the third enemy falls.
+</Steps>
+
+<Giscus />

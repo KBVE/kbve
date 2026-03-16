@@ -1,0 +1,71 @@
+---
+id: "01JX26FF6NSURVIVOR00000006"
+ref: "survivor"
+drafted: false
+title: "Survivor"
+description: "The dungeon is merciless. Prove you can endure by clearing rooms without falling in battle."
+category: "challenge"
+tags:
+  - "discordsh"
+  - "survival"
+  - "challenge"
+hidden: false
+repeatable: true
+recommended_level: 2
+steps:
+  - id: "step-clear-rooms"
+    title: "Clear Rooms Without Dying"
+    objectives:
+      - id: "obj-clear-3-rooms"
+        description: "Clear 3 combat rooms without dying"
+        type: "explore"
+        required_amount: 3
+rewards:
+  currency: 100
+  xp: 75
+  items:
+    - item_ref: "campfire-kit"
+      amount: 1
+triggers:
+  - "player:level:2"
+  - "area:dungeon"
+next_quest_ref: null
+---
+
+import {
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+} from '@astrojs/starlight/components';
+
+import { Giscus } from '@/components/astropad';
+
+<Aside type="tip">
+Stay topped up on health. Use rest shrines and potions wisely — one death resets
+your progress on this quest.
+</Aside>
+
+## Quest Overview
+
+<CardGrid>
+  <Card title="Objective" icon="mdi:shield-check">
+    Clear 3 combat rooms in a single run without any party member dying.
+  </Card>
+  <Card title="Reward" icon="mdi:campfire">
+    100 gold, 75 XP, and a Campfire Kit. This quest is repeatable.
+  </Card>
+</CardGrid>
+
+## Steps to Completion
+
+<Steps>
+1. **Stay alive**
+   Enter the dungeon and clear combat rooms while keeping everyone alive.
+2. **Clear 3 rooms**
+   Each combat room you clear without deaths counts toward the goal.
+3. **Collect your reward**
+   The quest completes after clearing 3 combat rooms with no casualties.
+</Steps>
+
+<Giscus />
