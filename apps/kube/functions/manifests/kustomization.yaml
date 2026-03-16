@@ -7,3 +7,4 @@ resources:
     - functions-deployment.yaml
     - functions-service.yaml
     - functions-externalsecret.yaml
+    - sealed-clickhouse-logs.yaml
