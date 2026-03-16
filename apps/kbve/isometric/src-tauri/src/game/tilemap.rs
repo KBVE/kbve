@@ -1522,11 +1522,13 @@ fn process_chunk_spawns_and_despawns(
                     ],
                 );
 
-                // Collider sub-shape (relative to chunk entity)
+                // Collider sub-shape (relative to chunk entity).
+                // Use full column_h (not body_h) so the collider top matches
+                // the visual cap surface — prevents feet clipping into the cap.
                 collider_shapes.push((
-                    Vec3::new(lx, body_h / 2.0, lz),
+                    Vec3::new(lx, column_h / 2.0, lz),
                     Quat::IDENTITY,
-                    Collider::cuboid(TILE_SIZE, body_h, TILE_SIZE),
+                    Collider::cuboid(TILE_SIZE, column_h, TILE_SIZE),
                 ));
 
                 // --- Cap cuboid (with edge insets) ---
