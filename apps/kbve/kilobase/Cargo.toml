@@ -18,7 +18,7 @@ pg_test = []
 
 [dependencies]
 thiserror = "2.0.12"
-pgrx = { version = "=0.16.1", default-features = false }
+pgrx = { version = "=0.17.0", default-features = false }
 serde = "1.0"
 
 [dev-dependencies]
