@@ -1,6 +1,7 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
+use super::camera::CameraFollowTarget;
 use super::state::PlayerState;
 use super::terrain::TerrainMap;
 use super::tilemap::TerrainReady;
@@ -109,6 +110,7 @@ fn spawn_player(
         })),
         Transform::from_xyz(spawn_x, spawn_y, spawn_z),
         Player,
+        CameraFollowTarget,
         PlayerPhysics::default(),
         // Avian3d components
         RigidBody::Kinematic,
@@ -137,6 +139,7 @@ fn move_player(
     spatial_query: SpatialQuery,
     sensor_query: Query<Entity, With<Sensor>>,
     mut query: Query<(Entity, &mut Transform, &mut PlayerPhysics), With<Player>>,
+    mut scratch: Local<Vec<Entity>>,
 ) {
     // Freeze player until terrain colliders exist around spawn area.
     if terrain_ready.is_none() {
@@ -196,9 +199,11 @@ fn move_player(
         );
         // Exclude self + all Sensor entities (flowers, mushrooms) from sweep.
         // Sensors should be walkable — only solid geometry blocks the player.
-        let mut excluded: Vec<Entity> = vec![entity];
-        excluded.extend(sensor_query.iter());
-        let base_filter = SpatialQueryFilter::default().with_excluded_entities(excluded.clone());
+        // Reuse scratch buffer to avoid per-frame allocation.
+        scratch.clear();
+        scratch.push(entity);
+        scratch.extend(sensor_query.iter());
+        let base_filter = SpatialQueryFilter::default().with_excluded_entities(scratch.clone());
         let pos = transform.translation;
 
         // Exclude entities that already overlap the sweep collider at the
@@ -207,9 +212,9 @@ fn move_player(
         let overlapping =
             spatial_query.shape_intersections(&sweep_collider, pos, Quat::IDENTITY, &base_filter);
         if !overlapping.is_empty() {
-            excluded.extend_from_slice(&overlapping);
+            scratch.extend_from_slice(&overlapping);
         }
-        let filter = SpatialQueryFilter::default().with_excluded_entities(excluded);
+        let filter = SpatialQueryFilter::default().with_excluded_entities(scratch.clone());
 
         // Sweep horizontal movement (XZ) — slide along walls by trying each
         // axis independently when the combined sweep is blocked.

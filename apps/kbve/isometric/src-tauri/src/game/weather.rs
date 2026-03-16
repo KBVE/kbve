@@ -698,7 +698,7 @@ impl Plugin for WeatherPlugin {
                 update_blob_shadows.run_if(any_with_component::<BlobShadow>),
                 animate_veg_wind.run_if(any_with_component::<WindSway>),
                 animate_tree_wind.run_if(any_with_component::<TreeWindSway>),
-                spawn_wind_streaks,
+                spawn_wind_streaks.run_if(|pool: Res<WindStreakPool>| !pool.initialized),
                 animate_wind_streaks.run_if(any_with_component::<WindStreak>),
             ),
         );

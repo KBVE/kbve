@@ -17,7 +17,10 @@ pub struct GrassPlugin;
 
 impl Plugin for GrassPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (animate_grass_wind, flatten_grass_near_player));
+        app.add_systems(
+            Update,
+            (animate_grass_wind, flatten_grass_near_player).run_if(any_with_component::<GrassTuft>),
+        );
     }
 }
 

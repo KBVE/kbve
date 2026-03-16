@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 
-use super::common::{CreaturePool, GameTime, hash_f32, night_factor, scene_center};
+use super::common::{CreatureMeshes, CreaturePool, GameTime, hash_f32, night_factor, scene_center};
 use crate::game::camera::IsometricCamera;
 use crate::game::weather::WindState;
 
 const FIREFLY_COUNT: usize = 40;
 
 #[derive(Component)]
-pub(super) struct Firefly {
+pub(crate) struct Firefly {
     phase: f32,
     anchor: Vec3,
     glow_phase: f32,
@@ -20,16 +20,13 @@ pub(super) struct Firefly {
 
 pub(super) fn spawn_fireflies(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
+    creature_meshes: Res<CreatureMeshes>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut pool: ResMut<CreaturePool>,
 ) {
-    if pool.fireflies_spawned {
-        return;
-    }
     pool.fireflies_spawned = true;
 
-    let fly_mesh = meshes.add(Sphere::new(0.04).mesh().ico(1).unwrap());
+    let fly_mesh = creature_meshes.firefly_sphere.clone();
 
     for i in 0..FIREFLY_COUNT {
         let seed = i as u32;
