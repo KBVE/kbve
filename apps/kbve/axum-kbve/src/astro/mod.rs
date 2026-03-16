@@ -3,13 +3,13 @@ pub mod askama;
 use axum::{
     Router,
     http::{HeaderValue, StatusCode, header},
+    middleware::Next,
     response::IntoResponse,
 };
 use std::convert::Infallible;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tower_http::services::ServeDir;
-use tower_http::set_header::SetResponseHeaderLayer;
 
 pub struct StaticConfig {
     pub base_dir: PathBuf,
@@ -90,27 +90,35 @@ pub fn build_static_router(config: &StaticConfig) -> Router {
         }
     };
 
-    // Isometric game requires cross-origin isolation for SharedArrayBuffer (WASM pthreads)
-    let isometric_service = serve_dir(base.join("isometric"));
-    let isometric_router = Router::new()
-        .nest_service("/", isometric_service)
-        .layer(SetResponseHeaderLayer::overriding(
-            header::HeaderName::from_static("cross-origin-opener-policy"),
-            HeaderValue::from_static("same-origin"),
-        ))
-        .layer(SetResponseHeaderLayer::overriding(
-            header::HeaderName::from_static("cross-origin-embedder-policy"),
-            HeaderValue::from_static("require-corp"),
-        ));
-
     Router::new()
         .nest_service("/_astro", astro_service)
         .nest_service("/assets", assets_service)
         .nest_service("/chunks", chunks_service)
         .nest_service("/images", images_service)
         .nest_service("/pagefind", pagefind_service)
-        .nest("/isometric", isometric_router)
         .fallback_service(fallback_svc)
+        // Isometric game requires cross-origin isolation for SharedArrayBuffer (WASM pthreads).
+        // Scoped to /isometric/ paths only to avoid breaking other pages.
+        .layer(axum::middleware::from_fn(coop_coep_isometric))
+}
+
+/// Middleware that adds COOP/COEP headers to /isometric/ responses,
+/// enabling SharedArrayBuffer for WASM pthreads.
+async fn coop_coep_isometric(req: axum::extract::Request, next: Next) -> impl IntoResponse {
+    let is_isometric = req.uri().path().starts_with("/isometric");
+    let mut resp = next.run(req).await;
+    if is_isometric {
+        let headers = resp.headers_mut();
+        headers.insert(
+            header::HeaderName::from_static("cross-origin-opener-policy"),
+            HeaderValue::from_static("same-origin"),
+        );
+        headers.insert(
+            header::HeaderName::from_static("cross-origin-embedder-policy"),
+            HeaderValue::from_static("require-corp"),
+        );
+    }
+    resp
 }
 
 #[cfg(test)]
