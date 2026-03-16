@@ -41,6 +41,12 @@
 				"parallel": false
 			}
 		},
+		"coverage": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run --coverage --config packages/npm/droid/vite.config.ts"
+			}
+		},
 		"publish": {
 			"executor": "nx:run-commands",
 			"options": {

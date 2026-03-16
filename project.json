@@ -10,6 +10,22 @@
 				"config": ".verdaccio/config.yml",
 				"storage": "tmp/local-registry/storage"
 			}
+		},
+		"stats": {
+			"executor": "nx:run-commands",
+			"cache": true,
+			"inputs": ["default"],
+			"options": {
+				"command": "scc . --exclude-dir=node_modules,dist,.nx,.git,target,coverage,pumpkin,ergo,postgres --no-cocomo || npx --yes cloc . --exclude-dir=node_modules,dist,.nx,.git,target,coverage,pumpkin,ergo,postgres"
+			}
+		},
+		"stats-json": {
+			"executor": "nx:run-commands",
+			"cache": true,
+			"inputs": ["default"],
+			"options": {
+				"command": "scc . --exclude-dir=node_modules,dist,.nx,.git,target,coverage,pumpkin,ergo,postgres --format json --no-cocomo || npx --yes cloc . --exclude-dir=node_modules,dist,.nx,.git,target,coverage,pumpkin,ergo,postgres --json"
+			}
 		}
 	}
 }
