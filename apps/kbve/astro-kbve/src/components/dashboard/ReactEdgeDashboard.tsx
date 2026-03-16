@@ -19,35 +19,15 @@ const EDGE_CACHE_KEY = 'cache:edge:health';
 const CACHE_TTL_MS = 30 * 1000; // 30 seconds
 const FETCH_TIMEOUT_MS = 10_000;
 
-const EDGE_FUNCTIONS = [
-	{ name: 'health', label: 'Health', description: 'Core health check' },
-	{ name: 'meme', label: 'Meme', description: 'Meme feed and reactions' },
-	{ name: 'mc', label: 'Minecraft', description: 'MC data operations' },
-	{
-		name: 'discordsh',
-		label: 'Discord',
-		description: 'Discord server integration',
-	},
-	{
-		name: 'user-vault',
-		label: 'User Vault',
-		description: 'User API token management',
-	},
-	{
-		name: 'guild-vault',
-		label: 'Guild Vault',
-		description: 'Guild token management',
-	},
-	{
-		name: 'vault-reader',
-		label: 'Vault Reader',
-		description: 'System secret access',
-	},
-] as const;
-
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
+
+interface EdgeFunctionDef {
+	name: string;
+	label: string;
+	description: string;
+}
 
 interface FunctionHealth {
 	name: string;
@@ -94,7 +74,7 @@ function setCachedHealth(data: CachedHealth): void {
 // ---------------------------------------------------------------------------
 
 async function checkFunctionHealth(
-	fn: (typeof EDGE_FUNCTIONS)[number],
+	fn: EdgeFunctionDef,
 ): Promise<FunctionHealth> {
 	const url = `${SUPABASE_URL}/functions/v1/${fn.name}`;
 	const start = performance.now();
@@ -103,10 +83,9 @@ async function checkFunctionHealth(
 		const controller = new AbortController();
 		const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
-		// Health endpoint is a simple GET, other functions expect POST
-		// We use OPTIONS (preflight) for non-health functions to avoid
-		// triggering auth errors — a 200 on OPTIONS means the function
-		// is deployed and responding.
+		// Health is already confirmed reachable (we got the manifest from it).
+		// For other functions, OPTIONS (preflight) avoids auth errors —
+		// a 200 means the function is deployed and responding.
 		const method = fn.name === 'health' ? 'GET' : 'OPTIONS';
 
 		const resp = await fetch(url, {
@@ -128,13 +107,8 @@ async function checkFunctionHealth(
 			};
 		}
 
-		// For non-health functions, OPTIONS returning 200 means alive
 		if (method === 'OPTIONS' && resp.ok) {
-			return {
-				...fn,
-				status: 'ok',
-				latencyMs,
-			};
+			return { ...fn, status: 'ok', latencyMs };
 		}
 
 		return {
@@ -157,6 +131,29 @@ async function checkFunctionHealth(
 					: 'Unknown error',
 		};
 	}
+}
+
+/** Fetch the function registry from the health endpoint. */
+async function fetchManifest(): Promise<EdgeFunctionDef[]> {
+	const url = `${SUPABASE_URL}/functions/v1/health`;
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+	try {
+		const resp = await fetch(url, { signal: controller.signal });
+		clearTimeout(timeout);
+
+		if (!resp.ok) return [];
+
+		const data = await resp.json();
+		if (Array.isArray(data.functions) && data.functions.length > 0) {
+			return data.functions;
+		}
+	} catch {
+		// Health unreachable — dashboard will show empty state
+	}
+
+	return [];
 }
 
 // ---------------------------------------------------------------------------
@@ -216,9 +213,7 @@ function StatusCard({ fn }: { fn: FunctionHealth }) {
 // ---------------------------------------------------------------------------
 
 export default function ReactEdgeDashboard() {
-	const [functions, setFunctions] = useState<FunctionHealth[]>(
-		EDGE_FUNCTIONS.map((fn) => ({ ...fn, status: 'pending' as const })),
-	);
+	const [functions, setFunctions] = useState<FunctionHealth[]>([]);
 	const [fromCache, setFromCache] = useState(false);
 	const [refreshing, setRefreshing] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -240,8 +235,20 @@ export default function ReactEdgeDashboard() {
 		setFromCache(false);
 
 		try {
+			// Step 1: Get the function registry from the health endpoint
+			const manifest = await fetchManifest();
+
+			if (manifest.length === 0) {
+				setError(
+					'Could not reach the health endpoint to load function registry',
+				);
+				setFunctions([]);
+				return;
+			}
+
+			// Step 2: Check each function's health
 			const results = await Promise.all(
-				EDGE_FUNCTIONS.map(checkFunctionHealth),
+				manifest.map(checkFunctionHealth),
 			);
 			setFunctions(results);
 			setLastChecked(new Date());
