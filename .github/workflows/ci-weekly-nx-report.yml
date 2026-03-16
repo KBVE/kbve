@@ -426,13 +426,20 @@ jobs:
                   - Weekly auto-generated NX workspace report (versions, plugins, cache usage)
                   - Weekly NX dependency graph with mermaid diagram and project index
                   - LOC statistics (scc / cloc) and per-project vitest coverage
+                  - Pre-compiled JSON data at `public/data/nx/`
 
                   ## Content
-                  - dashboard/nx-report.mdx: Parsed NX report with environment table, LOC stats, and coverage
+                  - dashboard/nx-report.mdx: Parsed NX report with environment cards, LOC stats, and coverage (tabbed)
                   - dashboard/nx-graph.mdx: Dependency graph with mermaid diagram, project index, and per-project details
+                  - public/data/nx/nx-report.json: Structured report data
+                  - public/data/nx/nx-graph.json: Full dependency graph
+
+                  ## Preview on KBVE Studio
+                  - [NX Workspace Report](https://kbve.com/dashboard/nx-report/)
+                  - [NX Dependency Graph](https://kbve.com/dashboard/nx-graph/)
 
                   ## Test Plan
-                  - Verify NX report page renders correctly in Starlight
+                  - Verify NX report page renders correctly on [KBVE Studio](https://kbve.com/)
                   - Verify mermaid dependency diagram renders in NX graph page
                   - Check project index table has correct dependency counts
 
