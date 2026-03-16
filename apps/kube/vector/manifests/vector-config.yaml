@@ -17,11 +17,7 @@ data:
             type: kubernetes_logs
             self_node_name: "${VECTOR_SELF_NODE_NAME}"
             exclude_paths_glob_patterns:
-              - "**/supabase-vector-*/**"
-              - "**/vector/**"
-              - "**/kube-system/**"
-              - "**/kube-node-lease/**"
-              - "**/kube-public/**"
+              - "**/vector_*/**"
             auto_partial_merge: true
             data_dir: "/vector-data-dir"
 
@@ -41,10 +37,29 @@ data:
               del(.stream)
               del(.file)
               del(.host)
+          # Drop info/debug from noisy infra namespaces, keep all for app namespaces
+          noise_filter:
+            type: filter
+            inputs:
+              - project_logs
+            condition:
+              type: vrl
+              source: |-
+                noisy = ["clickhouse", "arc-systems", "arc-runners", "monitoring",
+                         "kube-system", "kube-node-lease", "kube-public",
+                         "longhorn-system", "metallb-system", "cnpg-system",
+                         "cert-manager", "external-secrets-system"]
+                ns = string(.pod_namespace) ?? ""
+                if !includes(noisy, ns) {
+                    true
+                } else {
+                    msg = string(.event_message) ?? ""
+                    match(msg, r'(?i)(warn|error|fatal|panic|crit|exception|fail)')
+                }
           router:
             type: route
             inputs:
-              - project_logs
+              - noise_filter
             route:
               kong: '.appname == "supabase-kong" || .appname == "kong-kong" || .appname == "proxy"'
               auth: '.appname == "supabase-auth" || .appname == "gotrue"'
