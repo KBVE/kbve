@@ -37,6 +37,20 @@ data:
               del(.stream)
               del(.file)
               del(.host)
+
+              # Drop empty messages
+              if is_empty(string(.event_message) ?? "") { abort }
+
+              # Strip ANSI escape codes
+              .event_message = replace(.event_message, r'\x1b\[[0-9;]*m', "")
+
+              # Try parsing JSON messages (argocd, etc.) to extract level/msg
+              parsed, err = parse_json(.event_message)
+              if err == null {
+                  if exists(parsed.level) { .severity = del(parsed.level) }
+                  if exists(parsed.msg) { .event_message = string(parsed.msg) ?? .event_message }
+                  .metadata = parsed
+              }
           # Drop info/debug from noisy infra namespaces, keep all for app namespaces
           noise_filter:
             type: filter
@@ -229,11 +243,49 @@ data:
               - router.functions
               - router._unmatched
             source: |-
-              # Extract level from metadata or severity field
+              # Extract level from metadata fields first
               .level = string(.severity) ??
                        string(.metadata.level) ??
                        string(.metadata.parsed.error_severity) ??
-                       "info"
+                       ""
+
+              # If no metadata level, parse from raw message
+              if .level == "" {
+                  msg = string(.event_message) ?? ""
+                  # ClickHouse: <Error>, <Warning>, <Fatal>, <Critical>
+                  if match(msg, r'<(Fatal|Error|Critical)>') {
+                      .level = "error"
+                  } else if match(msg, r'<Warning>') {
+                      .level = "warn"
+                  } else if match(msg, r'<Debug>') || match(msg, r'<Trace>') {
+                      .level = "debug"
+                  # kube-system: E0302 (error), W0302 (warn), F0302 (fatal)
+                  } else if match(msg, r'^[EF]\d{4} ') {
+                      .level = "error"
+                  } else if match(msg, r'^W\d{4} ') {
+                      .level = "warn"
+                  } else if match(msg, r'^I\d{4} ') {
+                      .level = "info"
+                  # Structured: level=error, level=warn, level=ERROR
+                  } else if match(msg, r'(?i)level=(error|fatal|panic|crit)') {
+                      .level = "error"
+                  } else if match(msg, r'(?i)level=(warn|warning)') {
+                      .level = "warn"
+                  } else if match(msg, r'(?i)level=debug') {
+                      .level = "debug"
+                  } else if match(msg, r'(?i)level=info') {
+                      .level = "info"
+                  # ANSI/generic: ERROR, WARN, FATAL, PANIC in message
+                  } else if match(msg, r'(?i)\b(ERROR|FATAL|PANIC)\b') {
+                      .level = "error"
+                  } else if match(msg, r'(?i)\b(WARN|WARNING)\b') {
+                      .level = "warn"
+                  } else if match(msg, r'(?i)\bDEBUG\b') {
+                      .level = "debug"
+                  } else {
+                      .level = "info"
+                  }
+              }
               .level = downcase!(.level)
 
               .service = string(.appname) ?? "unknown"
