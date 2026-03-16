@@ -129,7 +129,7 @@ pub fn game_id_to_proto_item_kind(game_id: &str) -> Option<ProtoItemKind> {
     ensure_inventory_init();
     let slug = game_id.replace('_', "-");
     let db = item_db();
-    db.id_for_slug(&slug).map(ProtoItemKind::new)
+    db.id_for_ref(&slug).map(ProtoItemKind::new)
 }
 
 /// Convert a [`ProtoItemKind`] back to a game ID (underscore format).
@@ -137,14 +137,14 @@ pub fn game_id_to_proto_item_kind(game_id: &str) -> Option<ProtoItemKind> {
 pub fn proto_item_kind_to_game_id(kind: &ProtoItemKind) -> Option<&'static str> {
     let db = item_db();
     let item = db.get(kind.id)?;
-    Some(slug_to_game_id(&item.slug))
+    Some(slug_to_game_id(&item.r#ref))
 }
 
 /// Create a [`ProtoItemKind`] directly from a slug (hyphenated format).
 #[allow(dead_code)]
 pub fn proto_item_kind_from_slug(slug: &str) -> ProtoItemKind {
     ensure_inventory_init();
-    ProtoItemKind::from_slug(slug)
+    ProtoItemKind::from_ref(slug)
 }
 
 // ── Conversion helpers ──────────────────────────────────────────────────
@@ -238,7 +238,7 @@ fn proto_to_item_def(proto: &bevy_items::Item) -> Option<ItemDef> {
     let use_effect = proto.use_effects.first().and_then(proto_use_effect);
 
     Some(ItemDef {
-        id: slug_to_game_id(&proto.slug),
+        id: slug_to_game_id(&proto.r#ref),
         name: leak(proto.name.clone()),
         emoji: leak(proto.emoji.clone().unwrap_or_default()),
         description: leak(proto.description.clone().unwrap_or_default()),
@@ -277,7 +277,7 @@ fn proto_to_gear_def(proto: &bevy_items::Item) -> Option<GearDef> {
     });
 
     Some(GearDef {
-        id: slug_to_game_id(&proto.slug),
+        id: slug_to_game_id(&proto.r#ref),
         name: leak(proto.name.clone()),
         emoji: leak(proto.emoji.clone().unwrap_or_default()),
         slot,
