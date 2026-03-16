@@ -121,6 +121,51 @@ fn to_bb_personality(p: &Personality) -> bevy_battle::Personality {
     }
 }
 
+/// Convert a session UseEffect → bevy_battle UseEffect for combat-relevant variants.
+///
+/// Returns `None` for session-level effects (GuaranteedFlee, CampfireRest,
+/// TeleportCity, ReviveAlly) that must be handled in logic.rs.
+pub fn to_bb_use_effect(effect: &UseEffect) -> Option<bevy_battle::UseEffect> {
+    match effect {
+        UseEffect::Heal { amount } => Some(bevy_battle::UseEffect::Heal { amount: *amount }),
+        UseEffect::DamageEnemy { amount } => {
+            Some(bevy_battle::UseEffect::DamageEnemy { amount: *amount })
+        }
+        UseEffect::ApplyEffect {
+            kind,
+            stacks,
+            turns,
+        } => Some(bevy_battle::UseEffect::ApplyEffect {
+            kind: to_bb_effect(kind),
+            stacks: *stacks,
+            turns: *turns,
+        }),
+        UseEffect::RemoveEffect { kind } => Some(bevy_battle::UseEffect::RemoveEffect {
+            kind: to_bb_effect(kind),
+        }),
+        UseEffect::FullHeal => Some(bevy_battle::UseEffect::FullHeal),
+        UseEffect::RemoveAllNegativeEffects => {
+            Some(bevy_battle::UseEffect::RemoveAllNegativeEffects)
+        }
+        UseEffect::DamageAndApply {
+            damage,
+            kind,
+            stacks,
+            turns,
+        } => Some(bevy_battle::UseEffect::DamageAndApply {
+            damage: *damage,
+            kind: to_bb_effect(kind),
+            stacks: *stacks,
+            turns: *turns,
+        }),
+        // Session-level effects — not handled by bevy_battle
+        UseEffect::GuaranteedFlee
+        | UseEffect::CampfireRest { .. }
+        | UseEffect::TeleportCity
+        | UseEffect::ReviveAlly { .. } => None,
+    }
+}
+
 // ── Gear → EquippedGear resolution ─────────────────────────────────
 
 /// Build EquippedGear component from a player's equipped weapon + armor IDs.
@@ -664,14 +709,25 @@ pub fn outcome_to_log(outcome: &CombatOutcome, world: &CombatWorld) -> Option<St
 
 // ── High-level bridge entry point ──────────────────────────────────
 
-/// Run a full combat turn through bevy_battle and return log entries.
+/// Result of a combat turn through the bridge.
+///
+/// Contains both human-readable logs and structured outcomes for callers
+/// that need to post-process specific outcome types (e.g. filtering Defend
+/// logs for auto-defended players in party mode).
+pub struct CombatTurnResult {
+    pub logs: Vec<String>,
+    pub outcomes: Vec<CombatOutcome>,
+}
+
+/// Run a full combat turn through bevy_battle and return results.
 ///
 /// This is the main entry point for the bridge. It:
 /// 1. Creates a CombatWorld from the session
-/// 2. Converts player actions to bridge PlayerActions
+/// 2. Sends player action intents
 /// 3. Runs one ECS update
-/// 4. Collects outcomes as log strings
+/// 4. Collects outcomes as log strings + structured data
 /// 5. Syncs state back to the session
+/// 6. Removes fled enemies and transitions phase if needed
 ///
 /// If `skip_enemy_turns` is true, enemy turns are skipped (used when
 /// first-strike already ran enemy turns via the old code path).
@@ -679,7 +735,7 @@ pub fn run_combat_turn(
     session: &mut SessionState,
     actions: &[(serenity::UserId, PlayerAction)],
     skip_enemy_turns: bool,
-) -> Vec<String> {
+) -> CombatTurnResult {
     let mut combat = CombatWorld::from_session(session);
     combat.run_turn(actions, skip_enemy_turns, true);
 
@@ -710,7 +766,7 @@ pub fn run_combat_turn(
         session.phase = GamePhase::Exploring;
     }
 
-    logs
+    CombatTurnResult { logs, outcomes }
 }
 
 /// Run a flee attempt through bevy_battle. Returns (logs, fled_successfully).
@@ -912,9 +968,9 @@ mod tests {
         let owner = session.owner;
 
         let actions = vec![(owner, PlayerAction::Attack { target_idx: 0 })];
-        let logs = run_combat_turn(&mut session, &actions, false);
+        let result = run_combat_turn(&mut session, &actions, false);
 
-        assert!(!logs.is_empty(), "Should produce log entries");
+        assert!(!result.logs.is_empty(), "Should produce log entries");
         // Enemy should have taken damage (or player missed, either is valid)
         // The key test: sync_out wrote back to session
         let enemy = &session.enemies[0];
@@ -928,7 +984,7 @@ mod tests {
         let owner = session.owner;
 
         let actions = vec![(owner, PlayerAction::Defend)];
-        let _logs = run_combat_turn(&mut session, &actions, false);
+        let _result = run_combat_turn(&mut session, &actions, false);
 
         // After sync_out, defending should reflect the ECS state
         // Note: bevy_battle defend system sets defending=true, but enemy turn
