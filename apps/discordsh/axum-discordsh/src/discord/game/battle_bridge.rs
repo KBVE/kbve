@@ -320,15 +320,18 @@ impl CombatWorld {
         }
     }
 
-    /// Send player action intents, enemy turn request, and effect tick request,
-    /// then run one update cycle.
+    /// Send player action intents, enemy turn request, and optionally
+    /// effect tick request, then run one update cycle.
     ///
     /// If `skip_enemy_turns` is true, `EnemyTurnRequest` is not sent (used when
     /// first-strike already ran enemy turns via the old code path).
+    ///
+    /// If `tick_effects` is true, `TickEffectsRequest` is sent to tick DoTs.
     pub fn run_turn(
         &mut self,
         actions: &[(serenity::UserId, PlayerAction)],
         skip_enemy_turns: bool,
+        tick_effects: bool,
     ) {
         // Send player intents
         for (uid, action) in actions {
@@ -371,8 +374,10 @@ impl CombatWorld {
         if !skip_enemy_turns {
             self.app.world_mut().write_message(EnemyTurnRequest);
         }
-        // Always tick effects
-        self.app.world_mut().write_message(TickEffectsRequest);
+        // Tick effects (DoT damage, duration decrement)
+        if tick_effects {
+            self.app.world_mut().write_message(TickEffectsRequest);
+        }
 
         // Run one update cycle — all systems execute in order
         self.app.update();
@@ -559,9 +564,9 @@ pub fn outcome_to_log(outcome: &CombatOutcome, world: &CombatWorld) -> Option<St
         }
         CombatOutcome::FleeResult { success, .. } => {
             if *success {
-                Some("You successfully flee from combat!".to_owned())
+                Some("You dash through a narrow passage, escaping the fight!".to_owned())
             } else {
-                Some("You failed to escape!".to_owned())
+                Some("You stumble trying to flee! The enemy strikes!".to_owned())
             }
         }
         CombatOutcome::EnemyAttack {
@@ -676,7 +681,7 @@ pub fn run_combat_turn(
     skip_enemy_turns: bool,
 ) -> Vec<String> {
     let mut combat = CombatWorld::from_session(session);
-    combat.run_turn(actions, skip_enemy_turns);
+    combat.run_turn(actions, skip_enemy_turns, true);
 
     let outcomes = combat.collect_outcomes();
     let logs: Vec<String> = outcomes
@@ -701,6 +706,95 @@ pub fn run_combat_turn(
     }
 
     // If all enemies fled or died, transition to exploring
+    if !session.has_enemies() && session.phase == GamePhase::Combat {
+        session.phase = GamePhase::Exploring;
+    }
+
+    logs
+}
+
+/// Run a flee attempt through bevy_battle. Returns (logs, fled_successfully).
+///
+/// The flee roll + class bonus happen in the ECS flee_system.
+/// On failure, enemy turns run (unless `skip_enemy_turns` is true).
+/// Effect ticks always run.
+///
+/// The caller is responsible for session-level cleanup on success
+/// (generating a hallway room, clearing enemies, phase transition).
+pub fn run_flee_turn(
+    session: &mut SessionState,
+    actor: serenity::UserId,
+    skip_enemy_turns: bool,
+) -> (Vec<String>, bool) {
+    let depth = session.room.index as u32;
+    let mut combat = CombatWorld::from_session(session);
+    combat.run_turn(
+        &[(actor, PlayerAction::Flee { depth })],
+        skip_enemy_turns,
+        true,
+    );
+
+    let outcomes = combat.collect_outcomes();
+
+    let fled = outcomes
+        .iter()
+        .any(|o| matches!(o, CombatOutcome::FleeResult { success: true, .. }));
+
+    let logs: Vec<String> = outcomes
+        .iter()
+        .filter_map(|o| outcome_to_log(o, &combat))
+        .collect();
+
+    combat.sync_out(session);
+
+    // Handle enemy flee removal (same as run_combat_turn)
+    let fled_entities: Vec<Entity> = outcomes
+        .iter()
+        .filter_map(|o| match o {
+            CombatOutcome::EnemyFled { entity } => Some(*entity),
+            _ => None,
+        })
+        .collect();
+    for fled_entity in &fled_entities {
+        if let Some(idx) = combat.entity_map.enemy_index(*fled_entity) {
+            session.enemies.retain(|e| e.index != idx);
+        }
+    }
+
+    (logs, fled)
+}
+
+/// Run only enemy turns through bevy_battle (no player action, no effect ticks).
+///
+/// Used when the player's action was handled in logic.rs (UseItem, HealAlly)
+/// but enemies still need to take their turns. Effect ticks are NOT run here
+/// because the old code path only ran `enemy_turns()` after UseItem/HealAlly.
+pub fn run_enemy_turns_only(session: &mut SessionState, skip_enemy_turns: bool) -> Vec<String> {
+    let mut combat = CombatWorld::from_session(session);
+    combat.run_turn(&[], skip_enemy_turns, false);
+
+    let outcomes = combat.collect_outcomes();
+    let logs: Vec<String> = outcomes
+        .iter()
+        .filter_map(|o| outcome_to_log(o, &combat))
+        .collect();
+
+    combat.sync_out(session);
+
+    // Remove enemies that fled
+    let fled_entities: Vec<Entity> = outcomes
+        .iter()
+        .filter_map(|o| match o {
+            CombatOutcome::EnemyFled { entity } => Some(*entity),
+            _ => None,
+        })
+        .collect();
+    for fled_entity in &fled_entities {
+        if let Some(idx) = combat.entity_map.enemy_index(*fled_entity) {
+            session.enemies.retain(|e| e.index != idx);
+        }
+    }
+
     if !session.has_enemies() && session.phase == GamePhase::Combat {
         session.phase = GamePhase::Exploring;
     }

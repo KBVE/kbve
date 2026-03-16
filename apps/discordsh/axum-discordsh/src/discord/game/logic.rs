@@ -12,6 +12,7 @@ const CLERIC_HEALS_PER_COMBAT: u8 = 1;
 
 /// Pick an enemy target: 50% the acting player, 50% a random alive party member.
 /// In solo mode, always targets the actor.
+#[allow(dead_code)] // Used only in tests; production uses bevy_battle ECS
 fn pick_enemy_target(session: &SessionState, actor: serenity::UserId) -> serenity::UserId {
     if session.mode == SessionMode::Solo {
         return actor;
@@ -205,13 +206,16 @@ pub fn apply_action(
         GameAction::HealAlly(target_uid) => {
             let msg = apply_heal_ally(session, target_uid, actor)?;
             let mut logs = vec![msg];
-            // In solo mode or if all actions resolved, continue with enemy turns
+            // In solo mode, enemy turns run through bridge (no effect ticks,
+            // no death handling — same as old behavior)
             if session.mode == SessionMode::Solo {
                 let (fs_logs, first_strike_fired) = maybe_first_strike(session, actor);
                 logs.extend(fs_logs);
-                if !first_strike_fired {
-                    let target = pick_enemy_target(session, actor);
-                    logs.extend(enemy_turns(session, target));
+                if !session.all_players_dead() {
+                    logs.extend(battle_bridge::run_enemy_turns_only(
+                        session,
+                        first_strike_fired,
+                    ));
                 }
             }
             logs
@@ -227,12 +231,16 @@ pub fn apply_action(
         GameAction::UseItem(ref item_id, target_opt) => {
             let msg = apply_item(session, item_id, actor, target_opt)?;
             let mut logs = vec![msg];
+            // In combat, enemy turns run through bridge (no effect ticks,
+            // no death handling — deaths are handled on next Attack turn)
             if session.phase == GamePhase::Combat {
                 let (fs_logs, first_strike_fired) = maybe_first_strike(session, actor);
                 logs.extend(fs_logs);
-                if !first_strike_fired {
-                    let target = pick_enemy_target(session, actor);
-                    logs.extend(enemy_turns(session, target));
+                if !session.all_players_dead() {
+                    logs.extend(battle_bridge::run_enemy_turns_only(
+                        session,
+                        first_strike_fired,
+                    ));
                 }
             }
             logs
@@ -321,8 +329,10 @@ fn maybe_first_strike(session: &mut SessionState, actor: serenity::UserId) -> (V
 
     session.enemies_had_first_strike = true;
     let mut logs = vec!["The enemy strikes first!".to_owned()];
-    let target = pick_enemy_target(session, actor);
-    logs.extend(enemy_turns(session, target));
+    // Enemy turns run through bevy_battle bridge (skip_enemy_turns=false
+    // because this IS the enemy turn; no player actions sent).
+    logs.extend(battle_bridge::run_enemy_turns_only(session, false));
+    logs.extend(handle_enemy_deaths(session, actor));
     (logs, true)
 }
 
@@ -369,12 +379,12 @@ fn resolve_combat_turn_solo(
         if player.stunned_turns > 0 {
             player.stunned_turns -= 1;
             logs.push(format!("{} is stunned and cannot act!", player.name));
-            // Enemy still takes turn (unless first strike already covered it)
-            if !first_strike_fired {
-                let target = pick_enemy_target(session, actor);
-                logs.extend(enemy_turns(session, target));
-            }
-            logs.extend(tick_all_effects(session, actor));
+            // Enemy turns + effect ticks through bridge
+            logs.extend(battle_bridge::run_enemy_turns_only(
+                session,
+                first_strike_fired,
+            ));
+            logs.extend(handle_enemy_deaths(session, actor));
             return logs;
         }
     }
@@ -584,271 +594,6 @@ fn resolve_combat_turn_party(
     for player in session.players.values_mut() {
         player.defending = false;
     }
-
-    logs
-}
-
-/// Resolve a single player's attack against a specific enemy.
-fn resolve_player_attack(
-    session: &mut SessionState,
-    actor: serenity::UserId,
-    target_idx: u8,
-) -> Vec<String> {
-    let mut logs = Vec::new();
-    let mut rng = rand::rng();
-
-    let accuracy = effective_accuracy(session, actor);
-
-    // Read player stats in a single borrow
-    let (
-        player_name,
-        player_class,
-        base_damage_bonus,
-        crit_chance,
-        weapon_id,
-        sharp_stacks,
-        is_weakened,
-        first_attack,
-    ) = {
-        let p = session.player(actor);
-        (
-            p.name.clone(),
-            p.class.clone(),
-            p.base_damage_bonus,
-            p.crit_chance,
-            p.weapon.clone(),
-            p.effect_stacks(&EffectKind::Sharpened),
-            p.has_effect(&EffectKind::Weakened),
-            p.first_attack_in_combat,
-        )
-    };
-
-    // Look up weapon gear data once (used for bonus damage, crit bonus, lifesteal)
-    let weapon_gear = weapon_id.as_ref().and_then(|id| content::find_gear(id));
-    let weapon_bonus = weapon_gear.map(|g| g.bonus_damage).unwrap_or(0);
-    let gear_crit_bonus = weapon_gear
-        .and_then(|g| match &g.special {
-            Some(GearSpecial::CritBonus { percent }) => Some(*percent as f32 / 100.0),
-            _ => None,
-        })
-        .unwrap_or(0.0);
-    let lifesteal_pct = weapon_gear.and_then(|g| match &g.special {
-        Some(GearSpecial::LifeSteal { percent }) => Some(*percent as f32 / 100.0),
-        _ => None,
-    });
-
-    // Calculate base damage
-    let mut dmg = rng.random_range(6..=12) + base_damage_bonus + weapon_bonus;
-
-    // Sharpened effect bonus
-    dmg += 3 * sharp_stacks as i32;
-
-    // Weakened effect
-    if is_weakened {
-        dmg = (dmg as f32 * 0.7) as i32;
-    }
-
-    // Warrior charge: +4 bonus damage on first attack (50% chance, blocked by first-strike enemies)
-    let first_strike_blocked = session.any_enemy_has_first_strike();
-    let is_charge = player_class == ClassType::Warrior
-        && first_attack
-        && !first_strike_blocked
-        && rng.random::<f32>() < 0.50;
-    if is_charge {
-        dmg += 4;
-    }
-
-    // Resolve the target enemy index for Vec access
-    let enemy_vec_idx = if session.enemy_at(target_idx).is_some() {
-        session.enemies.iter().position(|e| e.index == target_idx)
-    } else {
-        debug!(
-            target_idx,
-            enemies_alive = session.enemies.len(),
-            enemy_indices = ?session.enemies.iter().map(|e| e.index).collect::<Vec<_>>(),
-            "Target index not found, falling back to first alive enemy"
-        );
-        if session.enemies.is_empty() {
-            None
-        } else {
-            Some(0)
-        }
-    };
-    let enemy_vec_idx = match enemy_vec_idx {
-        Some(i) => i,
-        None => return logs,
-    };
-
-    let enemy_name = session.enemies[enemy_vec_idx].name.clone();
-
-    // Accuracy check
-    if rng.random_range(0.0f32..1.0) > accuracy {
-        logs.push(format!("{}'s attack missed!", player_name));
-        return logs;
-    }
-
-    // Critical hit check
-    let mut effective_crit = crit_chance + gear_crit_bonus;
-    if player_class == ClassType::Rogue
-        && first_attack
-        && !first_strike_blocked
-        && rng.random::<f32>() < 0.50
-    {
-        effective_crit = 1.0; // Rogue ambush: guaranteed crit (50% chance, blocked by first-strike)
-    }
-    let crit = rng.random::<f32>() < effective_crit;
-    if crit {
-        dmg *= 2;
-    }
-
-    // Apply damage to enemy (scoped borrow)
-    {
-        let enemy = &mut session.enemies[enemy_vec_idx];
-        dmg = (dmg - enemy.armor).max(1);
-        enemy.hp -= dmg;
-    }
-
-    let crit_msg = if crit { " Critical hit!" } else { "" };
-
-    // Attack flavor text + immediate enemy effects (charge stun, stagger)
-    if is_charge {
-        logs.push(format!(
-            "{} spots an opening and charges into {}! {} damage!{}",
-            player_name, enemy_name, dmg, crit_msg
-        ));
-        session.enemies[enemy_vec_idx].effects.push(EffectInstance {
-            kind: EffectKind::Stunned,
-            stacks: 1,
-            turns_left: 1,
-        });
-        logs.push(format!("The {} is stunned from the charge!", enemy_name));
-    } else if player_class == ClassType::Rogue && first_attack && crit {
-        logs.push(format!(
-            "{} strikes from the shadows, ambushing {}! {} damage! Critical hit!",
-            player_name, enemy_name, dmg
-        ));
-    } else {
-        logs.push(format!(
-            "{} strikes {} for {} damage!{}",
-            player_name, enemy_name, dmg, crit_msg
-        ));
-
-        // Warrior passive: 20% chance to stagger (apply Stunned 1 turn)
-        if player_class == ClassType::Warrior && rng.random::<f32>() < 0.20 {
-            session.enemies[enemy_vec_idx].effects.push(EffectInstance {
-                kind: EffectKind::Stunned,
-                stacks: 1,
-                turns_left: 1,
-            });
-            logs.push(format!("{} staggers the {}!", player_name, enemy_name));
-        }
-    }
-
-    // ── Class combat procs (random buffs on attack) ────────────────
-    let enemy_alive = session.enemies[enemy_vec_idx].hp > 0;
-    match player_class {
-        ClassType::Warrior => {
-            // Battle Fury: 15% chance to gain Sharpened (+3 dmg) for 2 turns
-            if rng.random::<f32>() < 0.15 {
-                session.player_mut(actor).effects.push(EffectInstance {
-                    kind: EffectKind::Sharpened,
-                    stacks: 1,
-                    turns_left: 2,
-                });
-                logs.push(format!(
-                    "{} feels a surge of battle fury! (+3 attack for 2 turns)",
-                    player_name
-                ));
-            }
-            // Iron Resolve: 12% chance to gain Shielded for 2 turns
-            if rng.random::<f32>() < 0.12 {
-                session.player_mut(actor).effects.push(EffectInstance {
-                    kind: EffectKind::Shielded,
-                    stacks: 1,
-                    turns_left: 2,
-                });
-                logs.push(format!(
-                    "{}'s resolve hardens like iron! (Shielded for 2 turns)",
-                    player_name
-                ));
-            }
-        }
-        ClassType::Rogue => {
-            // Envenom: 20% chance to poison the enemy for 3 turns
-            if enemy_alive && rng.random::<f32>() < 0.20 {
-                session.enemies[enemy_vec_idx].effects.push(EffectInstance {
-                    kind: EffectKind::Poison,
-                    stacks: 1,
-                    turns_left: 3,
-                });
-                logs.push(format!(
-                    "{}'s blade leaves a poisoned wound on the {}!",
-                    player_name, enemy_name
-                ));
-            }
-            // Shadow Step: 10% chance to gain Shielded for 1 turn
-            if rng.random::<f32>() < 0.10 {
-                session.player_mut(actor).effects.push(EffectInstance {
-                    kind: EffectKind::Shielded,
-                    stacks: 1,
-                    turns_left: 1,
-                });
-                logs.push(format!(
-                    "{} melts into the shadows! (Shielded for 1 turn)",
-                    player_name
-                ));
-            }
-        }
-        ClassType::Cleric => {
-            // Blessing of Light: 20% chance to gain Shielded for 2 turns
-            if rng.random::<f32>() < 0.20 {
-                session.player_mut(actor).effects.push(EffectInstance {
-                    kind: EffectKind::Shielded,
-                    stacks: 1,
-                    turns_left: 2,
-                });
-                logs.push(format!(
-                    "A divine blessing shields {}! (Shielded for 2 turns)",
-                    player_name
-                ));
-            }
-            // Holy Smite: 15% chance to weaken the enemy for 2 turns
-            if enemy_alive && rng.random::<f32>() < 0.15 {
-                session.enemies[enemy_vec_idx].effects.push(EffectInstance {
-                    kind: EffectKind::Weakened,
-                    stacks: 1,
-                    turns_left: 2,
-                });
-                logs.push(format!(
-                    "{}'s holy strike weakens the {}!",
-                    player_name, enemy_name
-                ));
-            }
-        }
-    }
-
-    // Boss enrage check
-    {
-        let is_boss_room = session.room.room_type == RoomType::Boss;
-        let enemy = &mut session.enemies[enemy_vec_idx];
-        if enemy.hp > 0 && enemy.hp <= enemy.max_hp / 2 && !enemy.enraged && is_boss_room {
-            enemy.enraged = true;
-            logs.push("The boss enters a furious rage!".to_owned());
-        }
-    }
-
-    // LifeSteal from weapon
-    if let Some(pct) = lifesteal_pct {
-        let heal = (dmg as f32 * pct) as i32;
-        if heal > 0 {
-            let player = session.player_mut(actor);
-            player.hp = (player.hp + heal).min(player.max_hp);
-            logs.push(format!("Life steal! +{} HP", heal));
-        }
-    }
-
-    // Mark first attack as used
-    session.player_mut(actor).first_attack_in_combat = false;
 
     logs
 }
@@ -1131,6 +876,7 @@ fn roll_new_intent(enemy: &EnemyState, rng: &mut impl rand::Rng) -> Intent {
 }
 
 /// Execute a single enemy's turn against a target player.
+#[allow(dead_code)] // Used only in tests; production uses bevy_battle ECS
 fn single_enemy_turn(
     session: &mut SessionState,
     enemy_vec_idx: usize,
@@ -1458,6 +1204,7 @@ fn single_enemy_turn(
 }
 
 /// Execute all enemies' turns (convenience wrapper for solo mode).
+#[allow(dead_code)] // Used only in tests; production uses bevy_battle ECS
 fn enemy_turns(session: &mut SessionState, default_target: serenity::UserId) -> Vec<String> {
     let mut logs = Vec::new();
 
@@ -1481,42 +1228,42 @@ fn enemy_turns(session: &mut SessionState, default_target: serenity::UserId) -> 
 
 // ── Flee resolution ─────────────────────────────────────────────────
 
+/// Flee via bevy_battle ECS bridge.
+///
+/// First-strike is handled here (session-level pre-check). The flee roll +
+/// class bonus + enemy turns (on failure) are delegated to the bridge.
 fn resolve_flee(session: &mut SessionState, actor: serenity::UserId) -> Vec<String> {
     let mut logs = Vec::new();
 
     // First-strike: enemies strike before the flee attempt
-    let (fs_logs, _) = maybe_first_strike(session, actor);
+    let (fs_logs, first_strike_fired) = maybe_first_strike(session, actor);
     logs.extend(fs_logs);
     if session.all_players_dead() {
         return logs;
     }
 
-    let mut rng = rand::rng();
+    // Run flee attempt through bridge (enemy turns run on failure)
+    let (flee_logs, fled) = battle_bridge::run_flee_turn(session, actor, first_strike_fired);
+    logs.extend(flee_logs);
 
-    // Base 60% success, -5% per room depth, min 30%
-    let mut flee_chance = (0.60 - session.room.index as f32 * 0.05).max(0.30);
-
-    // Rogue class: +15% flee chance bonus
-    if session.player(actor).class == ClassType::Rogue {
-        flee_chance = (flee_chance + 0.15).min(1.0);
-    }
-
-    let roll: f32 = rng.random();
-
-    if roll < flee_chance {
-        // Success — escape to hallway
+    if fled {
+        // Session-level cleanup: escape to hallway
         let hallway = content::generate_hallway_room(session.room.index);
         session.room = hallway;
         session.enemies.clear();
         session.phase = GamePhase::Exploring;
-        logs.push("You dash through a narrow passage, escaping the fight!".to_owned());
-        logs
-    } else {
-        // Failure — enemy gets a free hit on the fleeing player
-        logs.push("You stumble trying to flee! The enemy strikes!".to_owned());
-        logs.extend(enemy_turns(session, actor)); // Always hits the fleeing player
-        logs
     }
+
+    // Handle deaths from enemy attacks on failed flee
+    if !fled {
+        logs.extend(handle_enemy_deaths(session, actor));
+    }
+
+    if session.all_players_dead() {
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
+    }
+
+    logs
 }
 
 // ── Item usage ──────────────────────────────────────────────────────
@@ -2098,6 +1845,7 @@ pub fn complete_pending_travel(session: &mut SessionState) -> Vec<String> {
 
 /// Tick all effects: apply DoT damage, decrement turns, remove expired.
 /// Returns (log messages, total tick damage to apply to the entity).
+#[allow(dead_code)] // Used only in tests; production uses bevy_battle ECS
 fn tick_effects(effects: &mut Vec<EffectInstance>) -> (Vec<String>, i32) {
     let mut logs = Vec::new();
     let mut tick_dmg = 0i32;
@@ -2123,51 +1871,6 @@ fn tick_effects(effects: &mut Vec<EffectInstance>) -> (Vec<String>, i32) {
 
     effects.retain(|e| e.turns_left > 0);
     (logs, tick_dmg)
-}
-
-/// Tick a single player's effects and apply damage.
-fn tick_player_effects(session: &mut SessionState, uid: serenity::UserId) -> Vec<String> {
-    let mut logs = Vec::new();
-    let (effect_logs, tick_dmg) = tick_effects(&mut session.player_mut(uid).effects);
-    logs.extend(effect_logs);
-    if tick_dmg > 0 {
-        let player = session.player_mut(uid);
-        player.hp -= tick_dmg;
-        if player.hp <= 0 {
-            player.alive = false;
-            if session.all_players_dead() {
-                session.phase = GamePhase::GameOver(GameOverReason::Defeated);
-            }
-            logs.push(format!(
-                "{} succumbed to afflictions...",
-                session.player(uid).name
-            ));
-        }
-    }
-    logs
-}
-
-/// Tick effects for the actor (solo mode convenience).
-fn tick_all_effects(session: &mut SessionState, actor: serenity::UserId) -> Vec<String> {
-    tick_player_effects(session, actor)
-}
-
-/// Tick effects on all enemies.
-fn tick_all_enemy_effects(session: &mut SessionState) -> Vec<String> {
-    let mut logs = Vec::new();
-
-    for i in 0..session.enemies.len() {
-        let (enemy_effect_logs, enemy_tick_dmg) = tick_effects(&mut session.enemies[i].effects);
-        let enemy_name = session.enemies[i].name.clone();
-        for log in enemy_effect_logs {
-            logs.push(format!("[{}] {}", enemy_name, log));
-        }
-        if enemy_tick_dmg > 0 {
-            session.enemies[i].hp -= enemy_tick_dmg;
-        }
-    }
-
-    logs
 }
 
 // ── Equip gear ──────────────────────────────────────────────────────
@@ -2727,6 +2430,7 @@ fn add_item_to_inventory(inventory: &mut Vec<ItemStack>, item_id: &str) -> bool 
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
+#[allow(dead_code)] // Used only in tests; production uses bevy_battle ECS
 fn effective_accuracy(session: &SessionState, actor: serenity::UserId) -> f32 {
     let mut acc = session.player(actor).accuracy;
     for modifier in &session.room.modifiers {
