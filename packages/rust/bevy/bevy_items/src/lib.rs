@@ -27,6 +27,8 @@
 //! let db = ItemDb::from_bytes(bytes).expect("Failed to decode item registry");
 //! ```
 
+#[cfg(feature = "inventory")]
+pub mod inventory_adapter;
 pub mod json;
 mod proto;
 mod registry;
