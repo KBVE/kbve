@@ -2,7 +2,9 @@ use bevy::asset::RenderAssetUsages;
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
-use super::common::{CreaturePool, GameTime, day_factor, flutter_offset, hash_f32, scene_center};
+use super::common::{
+    CreatureMeshes, CreaturePool, GameTime, day_factor, flutter_offset, hash_f32, scene_center,
+};
 use super::firefly::Firefly;
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
@@ -74,7 +76,7 @@ enum ButterflyState {
 }
 
 #[derive(Component)]
-pub(super) struct Butterfly {
+pub(crate) struct Butterfly {
     phase: f32,
     anchor: Vec3,
     wander_speed: f32,
@@ -92,7 +94,7 @@ pub(super) struct Butterfly {
 
 /// Two-winged butterfly mesh with distinct upper and lower wing lobes.
 /// Wing span ~0.5 units (~16px at 32px/unit).
-fn build_mesh() -> Mesh {
+pub(super) fn build_butterfly_mesh() -> Mesh {
     let positions = vec![
         [0.0, 0.02, 0.0],    // 0: body top
         [-0.22, 0.05, 0.0],  // 1: left upper wing inner
@@ -166,16 +168,13 @@ fn apply_flap_and_billboard(
 
 pub(super) fn spawn_butterflies(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
+    creature_meshes: Res<CreatureMeshes>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut pool: ResMut<CreaturePool>,
 ) {
-    if pool.butterflies_spawned {
-        return;
-    }
     pool.butterflies_spawned = true;
 
-    let wing_mesh = meshes.add(build_mesh());
+    let wing_mesh = creature_meshes.butterfly_wings.clone();
 
     for i in 0..BUTTERFLY_COUNT {
         let seed = (i as u32).wrapping_add(500);

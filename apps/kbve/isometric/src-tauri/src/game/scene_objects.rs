@@ -232,10 +232,10 @@ impl Plugin for SceneObjectsPlugin {
             (
                 animate_crystal.run_if(any_with_component::<AnimatedCrystal>),
                 rotate_boxes.run_if(any_with_component::<RotatingBox>),
-                update_occlusion,
-                update_hover_highlight,
-                draw_hover_outline,
-                update_hovered_snapshot,
+                update_occlusion.run_if(any_with_component::<Interactable>),
+                update_hover_highlight.run_if(any_with_component::<Hovered>),
+                draw_hover_outline.run_if(any_with_component::<HoverOutline>),
+                update_hovered_snapshot.run_if(any_with_component::<Hovered>),
                 detect_click_selection,
             ),
         );

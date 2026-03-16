@@ -94,6 +94,9 @@ pub struct PixelatePlugin;
 impl Plugin for PixelatePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(FullscreenMaterialPlugin::<PixelateSettings>::default());
-        app.add_systems(Update, sync_scale_factor);
+        app.add_systems(
+            Update,
+            sync_scale_factor.run_if(any_with_component::<PixelateSettings>),
+        );
     }
 }

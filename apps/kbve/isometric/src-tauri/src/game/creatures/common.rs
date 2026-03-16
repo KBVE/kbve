@@ -12,6 +12,14 @@ pub struct CreaturePool {
     pub frogs_spawned: bool,
 }
 
+/// Pre-built mesh handles created once at Startup to avoid allocating
+/// mesh assets during spawn systems.
+#[derive(Resource)]
+pub struct CreatureMeshes {
+    pub firefly_sphere: Handle<Mesh>,
+    pub butterfly_wings: Handle<Mesh>,
+}
+
 // ---------------------------------------------------------------------------
 // Game time — unified clock that defers to server when connected.
 // Creature modules read this instead of DayCycle directly.
