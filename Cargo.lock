@@ -1183,6 +1183,7 @@ dependencies = [
  "axum",
  "axum-extra",
  "bevy_battle",
+ "bevy_inventory",
  "bevy_items",
  "dashmap 6.1.0",
  "dotenvy",
@@ -2120,6 +2121,7 @@ name = "bevy_items"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_inventory",
  "prost",
  "prost-build",
  "serde",
