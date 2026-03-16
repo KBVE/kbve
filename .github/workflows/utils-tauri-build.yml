@@ -166,8 +166,8 @@ jobs:
               with:
                   name: ${{ inputs.app_name }}-linux
                   path: |
-                      ${{ inputs.project_path }}/src-tauri/target/release/bundle/deb/*.deb
-                      ${{ inputs.project_path }}/src-tauri/target/release/bundle/appimage/*.AppImage
+                      dist/target/release/bundle/deb/*.deb
+                      dist/target/release/bundle/appimage/*.AppImage
                   if-no-files-found: warn
                   retention-days: 14
 
@@ -268,8 +268,8 @@ jobs:
               with:
                   name: ${{ inputs.app_name }}-macos
                   path: |
-                      ${{ inputs.project_path }}/src-tauri/target/release/bundle/dmg/*.dmg
-                      ${{ inputs.project_path }}/src-tauri/target/release/bundle/macos/*.app
+                      dist/target/release/bundle/dmg/*.dmg
+                      dist/target/release/bundle/macos/*.app
                   if-no-files-found: warn
                   retention-days: 14
 
@@ -367,8 +367,8 @@ jobs:
               with:
                   name: ${{ inputs.app_name }}-windows
                   path: |
-                      ${{ inputs.project_path }}/src-tauri/target/release/bundle/msi/*.msi
-                      ${{ inputs.project_path }}/src-tauri/target/release/bundle/nsis/*.exe
+                      dist/target/release/bundle/msi/*.msi
+                      dist/target/release/bundle/nsis/*.exe
                   if-no-files-found: warn
                   retention-days: 14
 
