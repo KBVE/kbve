@@ -39,7 +39,7 @@ fn to_bb_effect(kind: &EffectKind) -> bevy_battle::EffectKind {
 }
 
 /// Convert bevy_battle EffectKind → session EffectKind.
-fn from_bb_effect(kind: &bevy_battle::EffectKind) -> EffectKind {
+pub(super) fn from_bb_effect(kind: &bevy_battle::EffectKind) -> EffectKind {
     match kind {
         bevy_battle::EffectKind::Poison => EffectKind::Poison,
         bevy_battle::EffectKind::Burning => EffectKind::Burning,
@@ -84,7 +84,7 @@ fn to_bb_intent(intent: &Intent) -> bevy_battle::Intent {
 }
 
 /// Convert bevy_battle Intent → session Intent.
-fn from_bb_intent(intent: &bevy_battle::Intent) -> Intent {
+pub(super) fn from_bb_intent(intent: &bevy_battle::Intent) -> Intent {
     match intent {
         bevy_battle::Intent::Attack { dmg } => Intent::Attack { dmg: *dmg },
         bevy_battle::Intent::HeavyAttack { dmg } => Intent::HeavyAttack { dmg: *dmg },
@@ -111,6 +111,15 @@ fn to_bb_class(class: &ClassType) -> bevy_battle::ClassType {
         ClassType::Warrior => bevy_battle::ClassType::Warrior,
         ClassType::Rogue => bevy_battle::ClassType::Rogue,
         ClassType::Cleric => bevy_battle::ClassType::Cleric,
+    }
+}
+
+/// Convert bevy_battle ClassType → session ClassType.
+pub(super) fn from_bb_class(class: &bevy_battle::ClassType) -> ClassType {
+    match class {
+        bevy_battle::ClassType::Warrior => ClassType::Warrior,
+        bevy_battle::ClassType::Rogue => ClassType::Rogue,
+        bevy_battle::ClassType::Cleric => ClassType::Cleric,
     }
 }
 
@@ -581,6 +590,11 @@ impl CombatWorld {
         inv.count(kind)
     }
 
+    /// Capture a render-ready snapshot of the current combat state.
+    pub fn snapshot(&mut self) -> bevy_battle::snapshot::CombatSnapshot {
+        bevy_battle::snapshot::capture(self.app.world_mut())
+    }
+
     /// Read combat outcomes from the ECS after update.
     pub fn collect_outcomes(&self) -> Vec<CombatOutcome> {
         let outcomes = self.app.world().resource::<Messages<CombatOutcome>>();
@@ -875,6 +889,8 @@ pub fn outcome_to_log(outcome: &CombatOutcome, world: &CombatWorld) -> Option<St
 pub struct CombatTurnResult {
     pub logs: Vec<String>,
     pub outcomes: Vec<CombatOutcome>,
+    /// Render-ready snapshot of combat state after this turn.
+    pub snapshot: Option<bevy_battle::snapshot::CombatSnapshot>,
 }
 
 /// Run a full combat turn through bevy_battle and return results.
@@ -903,6 +919,9 @@ pub fn run_combat_turn(
         .filter_map(|o| outcome_to_log(o, &combat))
         .collect();
 
+    // Capture render-ready snapshot before sync_out mutates session
+    let snapshot = Some(combat.snapshot());
+
     combat.sync_out(session);
 
     // Remove enemies that fled (EnemyFled outcome → remove from session)
@@ -924,7 +943,11 @@ pub fn run_combat_turn(
         session.phase = GamePhase::Exploring;
     }
 
-    CombatTurnResult { logs, outcomes }
+    CombatTurnResult {
+        logs,
+        outcomes,
+        snapshot,
+    }
 }
 
 /// Run a flee attempt through bevy_battle. Returns (logs, fled_successfully).
