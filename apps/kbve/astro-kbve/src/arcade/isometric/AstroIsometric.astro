@@ -38,10 +38,43 @@
 	<link rel="stylesheet" crossorigin href="/isometric/assets/index.css" />
 	<script is:inline>
 		(function () {
+			// Downscale droid workers to free threads for WASM pthreads
+			function downscaleDroid() {
+				if (
+					window.kbve &&
+					typeof window.kbve.downscale === 'function'
+				) {
+					window.kbve.downscale().catch(function (e) {
+						console.warn('[Isometric] Droid downscale failed:', e);
+					});
+					return;
+				}
+				// Poll until droid is ready (max ~5s)
+				var attempts = 0;
+				var poll = setInterval(function () {
+					attempts++;
+					if (
+						window.kbve &&
+						typeof window.kbve.downscale === 'function'
+					) {
+						clearInterval(poll);
+						window.kbve.downscale().catch(function (e) {
+							console.warn(
+								'[Isometric] Droid downscale failed:',
+								e,
+							);
+						});
+					} else if (attempts > 50) {
+						clearInterval(poll);
+					}
+				}, 100);
+			}
+
 			if (navigator.gpu) {
 				document.getElementById('game-loading').style.display = 'flex';
 				document.getElementById('bevy-canvas').style.display = '';
 				document.getElementById('root').style.display = '';
+				downscaleDroid();
 				var s = document.createElement('script');
 				s.type = 'module';
 				s.src = '/isometric/assets/index.js';
