@@ -477,7 +477,7 @@ pub struct Npc {
     pub id: ::prost::alloc::string::String,
     /// URL-safe identifier, e.g. "glass-slime"
     #[prost(string, tag = "2")]
-    pub slug: ::prost::alloc::string::String,
+    pub r#ref: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
     pub name: ::prost::alloc::string::String,
     /// e.g. "The Shattered King"

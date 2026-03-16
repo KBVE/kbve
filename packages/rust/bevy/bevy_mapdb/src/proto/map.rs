@@ -63,7 +63,7 @@ pub struct Zone {
     pub id: ::prost::alloc::string::String,
     /// URL-safe identifier, e.g. "crystal-caverns"
     #[prost(string, tag = "2")]
-    pub slug: ::prost::alloc::string::String,
+    pub r#ref: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
     pub name: ::prost::alloc::string::String,
     #[prost(string, optional, tag = "4")]
@@ -180,7 +180,7 @@ pub struct PointOfInterest {
     #[prost(string, tag = "1")]
     pub id: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
-    pub slug: ::prost::alloc::string::String,
+    pub r#ref: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
     pub name: ::prost::alloc::string::String,
     #[prost(string, optional, tag = "4")]
@@ -417,7 +417,7 @@ pub struct WorldObjectDef {
     #[prost(string, tag = "1")]
     pub id: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
-    pub slug: ::prost::alloc::string::String,
+    pub r#ref: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
     pub name: ::prost::alloc::string::String,
     #[prost(string, optional, tag = "4")]
@@ -626,7 +626,7 @@ pub struct Region {
     #[prost(string, tag = "1")]
     pub id: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
-    pub slug: ::prost::alloc::string::String,
+    pub r#ref: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
     pub name: ::prost::alloc::string::String,
     #[prost(string, optional, tag = "4")]
