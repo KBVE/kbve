@@ -105,7 +105,8 @@ pub fn build_static_router(config: &StaticConfig) -> Router {
 /// Middleware that adds COOP/COEP headers to /isometric/ responses,
 /// enabling SharedArrayBuffer for WASM pthreads.
 async fn coop_coep_isometric(req: axum::extract::Request, next: Next) -> impl IntoResponse {
-    let is_isometric = req.uri().path().starts_with("/isometric");
+    let path = req.uri().path();
+    let is_isometric = path.starts_with("/isometric") || path.starts_with("/arcade/isometric");
     let mut resp = next.run(req).await;
     if is_isometric {
         let headers = resp.headers_mut();
