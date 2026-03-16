@@ -19,11 +19,7 @@ export function ScaleTest() {
 	const refreshState = useCallback(() => {
 		const kbve = (window as any).kbve;
 		if (!kbve) return;
-		setScaleLevel(
-			typeof kbve.scaleLevel === 'function'
-				? kbve.scaleLevel()
-				: 'unknown',
-		);
+		setScaleLevel(getScaleLevel());
 		setHasOverlay(!!kbve.overlay);
 		setHasCanvasWorker(!!kbve.uiux?.worker);
 		setHasGateway(!!kbve.gateway);
