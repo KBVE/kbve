@@ -268,7 +268,7 @@ export type QuestExtension = z.infer<typeof QuestExtensionSchema>;
 // Quest
 export const QuestSchema = z.object({
 	id: z.string(),
-	slug: z.string(),
+	ref: z.string(),
 	title: z.string(),
 	description: z.string().optional(),
 	lore: z.string().optional(),
@@ -313,7 +313,7 @@ export type Quest = z.infer<typeof QuestSchema>;
 // QuestChain
 export const QuestChainSchema = z.object({
 	id: z.string(),
-	slug: z.string(),
+	ref: z.string(),
 	name: z.string(),
 	description: z.string().optional(),
 	quest_refs: z.array(z.string()).optional(),

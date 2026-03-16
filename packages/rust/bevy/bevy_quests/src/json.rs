@@ -33,7 +33,7 @@ impl std::error::Error for JsonLoadError {}
 /// The expected JSON shape is:
 /// ```json
 /// {
-///   "quests": [ { "id": "...", "slug": "auto-cooker-9000", "title": "Auto Cooker 9000", ... } ],
+///   "quests": [ { "id": "...", "ref": "auto-cooker-9000", "title": "Auto Cooker 9000", ... } ],
 ///   "key": { "auto-cooker-9000": 0, ... }
 /// }
 /// ```
@@ -58,7 +58,7 @@ pub fn parse_questdb_json(json_str: &str) -> Result<Vec<quest::Quest>, JsonLoadE
 }
 
 fn json_value_to_quest(v: &Value) -> Option<quest::Quest> {
-    let slug = v.get("slug")?.as_str()?.to_string();
+    let slug = v.get("ref")?.as_str()?.to_string();
     let id = v
         .get("id")
         .and_then(|v| v.as_str())
@@ -72,7 +72,7 @@ fn json_value_to_quest(v: &Value) -> Option<quest::Quest> {
 
     Some(quest::Quest {
         id,
-        slug,
+        r#ref: slug,
         title,
         description: str_opt(v, "description"),
         lore: str_opt(v, "lore"),

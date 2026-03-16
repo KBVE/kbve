@@ -6,16 +6,16 @@ use prost::Message;
 use crate::proto::map;
 
 /// Stable numeric identifier for a map entity (zone, region, or object def),
-/// derived from its slug.
+/// derived from its ref.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct ProtoMapId(pub u64);
 
 impl ProtoMapId {
-    /// Create an id from a slug using a stable hash.
-    pub fn from_slug(slug: &str) -> Self {
+    /// Create an id from a ref using a stable hash.
+    pub fn from_ref(r: &str) -> Self {
         use std::hash::{Hash, Hasher};
         let mut h = std::collections::hash_map::DefaultHasher::new();
-        slug.hash(&mut h);
+        r.hash(&mut h);
         Self(h.finish())
     }
 }
@@ -29,17 +29,17 @@ impl ProtoMapId {
 pub struct MapDb {
     // Zones
     zones_by_id: HashMap<ProtoMapId, map::Zone>,
-    zones_by_slug: HashMap<String, ProtoMapId>,
+    zones_by_ref: HashMap<String, ProtoMapId>,
     zones_by_ulid: HashMap<String, ProtoMapId>,
 
     // Regions
     regions_by_id: HashMap<ProtoMapId, map::Region>,
-    regions_by_slug: HashMap<String, ProtoMapId>,
+    regions_by_ref: HashMap<String, ProtoMapId>,
     regions_by_ulid: HashMap<String, ProtoMapId>,
 
     // World object definitions
     object_defs_by_id: HashMap<ProtoMapId, map::WorldObjectDef>,
-    object_defs_by_slug: HashMap<String, ProtoMapId>,
+    object_defs_by_ref: HashMap<String, ProtoMapId>,
     object_defs_by_ulid: HashMap<String, ProtoMapId>,
 }
 
@@ -77,8 +77,8 @@ impl MapDb {
 
     /// Insert a zone into the database.
     pub fn insert_zone(&mut self, zone: map::Zone) {
-        let id = ProtoMapId::from_slug(&zone.slug);
-        self.zones_by_slug.insert(zone.slug.clone(), id);
+        let id = ProtoMapId::from_ref(&zone.r#ref);
+        self.zones_by_ref.insert(zone.r#ref.clone(), id);
         if !zone.id.is_empty() {
             self.zones_by_ulid.insert(zone.id.clone(), id);
         }
@@ -90,9 +90,9 @@ impl MapDb {
         self.zones_by_id.get(&id)
     }
 
-    /// Look up a zone by slug.
-    pub fn get_zone_by_slug(&self, slug: &str) -> Option<&map::Zone> {
-        let id = self.zones_by_slug.get(slug)?;
+    /// Look up a zone by ref.
+    pub fn get_zone_by_ref(&self, r: &str) -> Option<&map::Zone> {
+        let id = self.zones_by_ref.get(r)?;
         self.zones_by_id.get(id)
     }
 
@@ -134,8 +134,8 @@ impl MapDb {
 
     /// Insert a region into the database.
     pub fn insert_region(&mut self, region: map::Region) {
-        let id = ProtoMapId::from_slug(&region.slug);
-        self.regions_by_slug.insert(region.slug.clone(), id);
+        let id = ProtoMapId::from_ref(&region.r#ref);
+        self.regions_by_ref.insert(region.r#ref.clone(), id);
         if !region.id.is_empty() {
             self.regions_by_ulid.insert(region.id.clone(), id);
         }
@@ -147,9 +147,9 @@ impl MapDb {
         self.regions_by_id.get(&id)
     }
 
-    /// Look up a region by slug.
-    pub fn get_region_by_slug(&self, slug: &str) -> Option<&map::Region> {
-        let id = self.regions_by_slug.get(slug)?;
+    /// Look up a region by ref.
+    pub fn get_region_by_ref(&self, r: &str) -> Option<&map::Region> {
+        let id = self.regions_by_ref.get(r)?;
         self.regions_by_id.get(id)
     }
 
@@ -175,8 +175,8 @@ impl MapDb {
 
     /// Insert a world object definition into the database.
     pub fn insert_object_def(&mut self, obj_def: map::WorldObjectDef) {
-        let id = ProtoMapId::from_slug(&obj_def.slug);
-        self.object_defs_by_slug.insert(obj_def.slug.clone(), id);
+        let id = ProtoMapId::from_ref(&obj_def.r#ref);
+        self.object_defs_by_ref.insert(obj_def.r#ref.clone(), id);
         if !obj_def.id.is_empty() {
             self.object_defs_by_ulid.insert(obj_def.id.clone(), id);
         }
@@ -188,9 +188,9 @@ impl MapDb {
         self.object_defs_by_id.get(&id)
     }
 
-    /// Look up a world object definition by slug.
-    pub fn get_object_def_by_slug(&self, slug: &str) -> Option<&map::WorldObjectDef> {
-        let id = self.object_defs_by_slug.get(slug)?;
+    /// Look up a world object definition by ref.
+    pub fn get_object_def_by_ref(&self, r: &str) -> Option<&map::WorldObjectDef> {
+        let id = self.object_defs_by_ref.get(r)?;
         self.object_defs_by_id.get(id)
     }
 

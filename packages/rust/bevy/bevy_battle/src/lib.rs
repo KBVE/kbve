@@ -22,6 +22,7 @@
 pub mod component;
 pub mod event;
 pub mod resource;
+pub mod snapshot;
 pub mod system;
 pub mod types;
 

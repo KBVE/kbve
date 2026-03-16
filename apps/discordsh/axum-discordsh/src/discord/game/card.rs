@@ -1,6 +1,8 @@
 use askama::Template;
+use bevy_battle::snapshot::CombatSnapshot;
 use kbve::{FontDb, render_svg_to_png};
 
+use super::battle_bridge::{from_bb_class, from_bb_effect, from_bb_intent};
 use super::types::*;
 
 // ── Pre-computed display values ─────────────────────────────────────
@@ -473,6 +475,219 @@ impl GameCardTemplate {
             party_alive: session.players.values().filter(|p| p.alive).count(),
         }
     }
+
+    /// Build a card template using combat fields from a [`CombatSnapshot`] and
+    /// session-level fields (gold, XP, gear, room, phase) from [`SessionState`].
+    ///
+    /// This ensures the card renders exactly what bevy_battle computed, rather
+    /// than re-deriving display data from the synced SessionState.
+    pub fn from_snapshot(snap: &CombatSnapshot, session: &SessionState) -> Self {
+        let (phase_color, phase_color_dark) = phase_colors(session);
+
+        // Build player panels — match snapshot players to session players by name
+        let roster = session.roster();
+        let (offsets, compact) = player_y_offsets(roster.len().max(snap.players.len()));
+
+        let players: Vec<PlayerPanel> = snap
+            .players
+            .iter()
+            .enumerate()
+            .map(|(i, sp)| {
+                let y = offsets[i.min(offsets.len() - 1)];
+
+                // Find the matching session player for non-combat fields
+                let session_player = roster
+                    .iter()
+                    .find(|(_, p)| p.name == sp.name)
+                    .map(|(_, p)| *p);
+
+                let gold = session_player.map(|p| p.gold).unwrap_or(0);
+                let level = session_player.map(|p| p.level).unwrap_or(1);
+                let xp = session_player.map(|p| p.xp).unwrap_or(0);
+                let xp_to_next = session_player.map(|p| p.xp_to_next).unwrap_or(100);
+                let class_label = session_player
+                    .map(|p| p.class.label().to_string())
+                    .unwrap_or_else(|| from_bb_class(&sp.class).label().to_string());
+
+                // Build weapon/armor display strings from session
+                let weapon_display = session_player
+                    .and_then(|p| p.weapon.as_ref())
+                    .and_then(|wid| super::content::find_gear(wid))
+                    .map(|g| format!("\u{2694} {}", g.name))
+                    .unwrap_or_default();
+                let armor_display = session_player
+                    .and_then(|p| p.armor_gear.as_ref())
+                    .and_then(|aid| super::content::find_gear(aid))
+                    .map(|g| format!("\u{1F6E1} {}", g.name))
+                    .unwrap_or_default();
+
+                // Convert snapshot effects to session EffectInstances for badge building
+                let effects: Vec<EffectInstance> = sp
+                    .effects
+                    .iter()
+                    .map(|e| EffectInstance {
+                        kind: from_bb_effect(&e.kind),
+                        stacks: e.stacks,
+                        turns_left: e.turns_left,
+                    })
+                    .collect();
+
+                let xp_width = if xp_to_next > 0 {
+                    (xp as f32 / xp_to_next as f32 * HP_BAR_MAX_WIDTH as f32)
+                        .min(HP_BAR_MAX_WIDTH as f32) as u32
+                } else {
+                    0
+                };
+
+                if compact {
+                    PlayerPanel {
+                        name: sp.name.clone(),
+                        hp: sp.hp.max(0),
+                        max_hp: sp.max_hp,
+                        hp_width: hp_bar_width(sp.hp, sp.max_hp),
+                        hp_color: hp_ratio_color(sp.hp, sp.max_hp),
+                        armor: sp.armor,
+                        gold,
+                        effects: build_effect_badges(&effects, 30),
+                        alive: sp.alive,
+                        compact: true,
+                        y_name: y,
+                        y_bar: y + 8,
+                        y_bar_text: y + 20,
+                        y_stats: y + 36,
+                        y_effects: y + 50,
+                        y_effects_text: y + 53,
+                        xp_width,
+                        level,
+                        class_label,
+                        y_xp_bar: y + 24,
+                        y_xp_bar_text: y + 28,
+                        weapon_display: String::new(),
+                        armor_display: String::new(),
+                        y_gear: 0,
+                    }
+                } else {
+                    let y_bar = y + 11;
+                    let hp_bar_h: u32 = 22;
+                    let y_xp_bar = y_bar + hp_bar_h + 2;
+                    let y_gear = y_xp_bar + 16;
+                    let y_stats = y_gear + 18;
+                    let y_effects = y_stats + 30;
+                    PlayerPanel {
+                        name: sp.name.clone(),
+                        hp: sp.hp.max(0),
+                        max_hp: sp.max_hp,
+                        hp_width: hp_bar_width(sp.hp, sp.max_hp),
+                        hp_color: hp_ratio_color(sp.hp, sp.max_hp),
+                        armor: sp.armor,
+                        gold,
+                        effects: build_effect_badges(&effects, 30),
+                        alive: sp.alive,
+                        compact: false,
+                        y_name: y,
+                        y_bar,
+                        y_bar_text: y + 27,
+                        y_stats,
+                        y_effects,
+                        y_effects_text: y_effects + 4,
+                        xp_width,
+                        level,
+                        class_label,
+                        y_xp_bar,
+                        y_xp_bar_text: y_xp_bar + 4,
+                        weapon_display,
+                        armor_display,
+                        y_gear,
+                    }
+                }
+            })
+            .collect();
+
+        // Build enemy panels from snapshot
+        let has_enemy = !snap.enemies.is_empty();
+        let enemy_count = snap.enemies.len();
+        let enemies: Vec<EnemyPanel> = if has_enemy {
+            let (y_offsets, font_size_name, font_size_stats, hp_bar_height) =
+                enemy_y_layout(enemy_count);
+
+            snap.enemies
+                .iter()
+                .enumerate()
+                .map(|(i, se)| {
+                    let y_name = y_offsets[i.min(y_offsets.len() - 1)];
+                    let y_hp_bar = y_name + 11;
+                    let y_hp_text = y_hp_bar + (hp_bar_height * 3 / 4);
+                    let y_def = y_hp_bar + hp_bar_height + 20;
+                    let y_intent = y_def + 20;
+                    let y_effects = y_intent + 30;
+
+                    let session_intent = from_bb_intent(&se.intent);
+                    let (icon, text) = intent_to_icon_and_text(&session_intent);
+                    let display_name = if se.enraged {
+                        format!("{} \u{1F525}", se.name)
+                    } else {
+                        se.name.clone()
+                    };
+
+                    let effects: Vec<EffectInstance> = se
+                        .effects
+                        .iter()
+                        .map(|e| EffectInstance {
+                            kind: from_bb_effect(&e.kind),
+                            stacks: e.stacks,
+                            turns_left: e.turns_left,
+                        })
+                        .collect();
+
+                    EnemyPanel {
+                        name: display_name,
+                        level: se.level,
+                        hp: se.hp.max(0),
+                        max_hp: se.max_hp,
+                        hp_width: hp_bar_width(se.hp, se.max_hp),
+                        armor: se.armor,
+                        y_name,
+                        y_hp_bar,
+                        y_hp_text,
+                        y_def,
+                        y_intent_box: y_intent - 4,
+                        y_intent_text: y_intent + 8,
+                        y_effects,
+                        y_effects_text: y_effects + 4,
+                        intent_icon: icon,
+                        intent_text: text,
+                        effects: build_effect_badges(&effects, 430),
+                        font_size_name,
+                        font_size_stats,
+                        hp_bar_height,
+                    }
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
+
+        Self {
+            phase_color,
+            phase_color_dark,
+            room_number: session.room.index + 1,
+            room_name: session.room.name.clone(),
+            phase_label: phase_label(&session.phase).to_owned(),
+
+            players,
+
+            has_enemy,
+            enemies,
+            enemy_count,
+
+            room_badges: build_room_badges(session),
+            turn: session.turn,
+
+            is_party_mode: session.mode == SessionMode::Party,
+            party_count: session.players.len(),
+            party_alive: snap.players.iter().filter(|p| p.alive).count(),
+        }
+    }
 }
 
 // ── Map card display types ──────────────────────────────────────────
@@ -679,6 +894,38 @@ pub async fn render_game_card(session: &SessionState, fontdb: FontDb) -> Result<
     tokio::task::spawn_blocking(move || render_game_card_blocking(&session_clone, &fontdb))
         .await
         .map_err(|e| format!("Render task panicked: {e}"))?
+}
+
+/// Render the game card using a [`CombatSnapshot`] for combat fields (CPU-bound).
+///
+/// Combat data (HP, armor, effects, intent) comes directly from the ECS snapshot,
+/// while session-level data (gold, XP, gear, room, phase) comes from SessionState.
+pub fn render_game_card_with_snapshot_blocking(
+    snapshot: &CombatSnapshot,
+    session: &SessionState,
+    fontdb: &FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = GameCardTemplate::from_snapshot(snapshot, session);
+    let svg_string = template
+        .render()
+        .map_err(|e| format!("SVG template error: {e}"))?;
+
+    render_svg_to_png(&svg_string, fontdb).map_err(|e| format!("SVG render error: {e}"))
+}
+
+/// Async snapshot-aware render — clones data and renders on a blocking thread.
+pub async fn render_game_card_with_snapshot(
+    snapshot: &CombatSnapshot,
+    session: &SessionState,
+    fontdb: FontDb,
+) -> Result<Vec<u8>, String> {
+    let snap_clone = snapshot.clone();
+    let session_clone = session.clone();
+    tokio::task::spawn_blocking(move || {
+        render_game_card_with_snapshot_blocking(&snap_clone, &session_clone, &fontdb)
+    })
+    .await
+    .map_err(|e| format!("Render task panicked: {e}"))?
 }
 
 // ── Default OG image ────────────────────────────────────────────────
@@ -1644,5 +1891,106 @@ mod tests {
         let db = test_fontdb();
         let png = render_inventory_card_blocking(player, &db);
         assert!(png.is_ok(), "Full inventory render failed: {:?}", png.err());
+    }
+
+    // ── Snapshot-based card tests ───────────────────────────────────
+
+    #[test]
+    fn test_from_snapshot_combat() {
+        use bevy_battle::snapshot::*;
+
+        let session = test_session();
+        let snap = CombatSnapshot {
+            players: vec![PlayerSnapshot {
+                name: "Adventurer".to_owned(),
+                hp: 35,
+                max_hp: 50,
+                armor: 3,
+                defending: false,
+                effects: vec![EffectSnapshot {
+                    kind: bevy_battle::EffectKind::Poison,
+                    stacks: 2,
+                    turns_left: 3,
+                }],
+                class: bevy_battle::ClassType::Warrior,
+                alive: true,
+            }],
+            enemies: vec![EnemySnapshot {
+                name: "Goblin".to_owned(),
+                index: 0,
+                level: 2,
+                hp: 15,
+                max_hp: 30,
+                armor: 1,
+                intent: bevy_battle::Intent::Attack { dmg: 7 },
+                enraged: false,
+                effects: vec![],
+                alive: true,
+            }],
+        };
+
+        let template = GameCardTemplate::from_snapshot(&snap, &session);
+
+        // Player fields from snapshot
+        assert_eq!(template.players.len(), 1);
+        assert_eq!(template.players[0].hp, 35);
+        assert_eq!(template.players[0].max_hp, 50);
+        assert_eq!(template.players[0].armor, 3);
+        assert_eq!(template.players[0].effects.len(), 1);
+        assert_eq!(template.players[0].effects[0].label, "PSN");
+
+        // Enemy fields from snapshot
+        assert!(template.has_enemy);
+        assert_eq!(template.enemies.len(), 1);
+        assert_eq!(template.enemies[0].hp, 15);
+        assert_eq!(template.enemies[0].max_hp, 30);
+        assert_eq!(template.enemies[0].armor, 1);
+        assert!(template.enemies[0].intent_text.contains("7"));
+
+        // Session fields preserved
+        assert_eq!(template.turn, 3);
+    }
+
+    #[test]
+    fn render_snapshot_card_produces_png() {
+        use bevy_battle::snapshot::*;
+
+        let db = test_fontdb();
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+
+        let snap = CombatSnapshot {
+            players: vec![PlayerSnapshot {
+                name: "Adventurer".to_owned(),
+                hp: 40,
+                max_hp: 50,
+                armor: 5,
+                defending: true,
+                effects: vec![],
+                class: bevy_battle::ClassType::Warrior,
+                alive: true,
+            }],
+            enemies: vec![EnemySnapshot {
+                name: "Slime".to_owned(),
+                index: 0,
+                level: 1,
+                hp: 20,
+                max_hp: 20,
+                armor: 0,
+                intent: bevy_battle::Intent::Defend { armor: 3 },
+                enraged: false,
+                effects: vec![EffectSnapshot {
+                    kind: bevy_battle::EffectKind::Burning,
+                    stacks: 1,
+                    turns_left: 2,
+                }],
+                alive: true,
+            }],
+        };
+
+        let png = render_game_card_with_snapshot_blocking(&snap, &session, &db);
+        assert!(png.is_ok(), "Snapshot render failed: {:?}", png.err());
+        let bytes = png.unwrap();
+        assert_eq!(&bytes[0..4], &[0x89, 0x50, 0x4E, 0x47]);
     }
 }

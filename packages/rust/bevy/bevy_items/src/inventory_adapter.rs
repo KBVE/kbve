@@ -44,11 +44,11 @@ pub fn get_item_db() -> Option<&'static ItemDb> {
 /// A lightweight item identifier that implements [`ItemKind`] by looking up
 /// metadata from the global [`ItemDb`].
 ///
-/// Wraps a [`ProtoItemId`] (stable hash of the item slug) and an optional
-/// cached slug string for serialization round-tripping.
+/// Wraps a [`ProtoItemId`] (stable hash of the item ref) and an optional
+/// cached ref string for serialization round-tripping.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ProtoItemKind {
-    /// The stable numeric ID derived from the item slug.
+    /// The stable numeric ID derived from the item ref.
     pub id: ProtoItemId,
 }
 
@@ -58,10 +58,10 @@ impl ProtoItemKind {
         Self { id }
     }
 
-    /// Create from an item slug (e.g. `"fire-flask"`).
-    pub fn from_slug(slug: &str) -> Self {
+    /// Create from an item ref (e.g. `"fire-flask"`).
+    pub fn from_ref(r: &str) -> Self {
         Self {
-            id: ProtoItemId::from_slug(slug),
+            id: ProtoItemId::from_ref(r),
         }
     }
 
@@ -94,20 +94,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn proto_item_kind_from_slug() {
-        let kind = ProtoItemKind::from_slug("potion");
-        assert_eq!(kind.id, ProtoItemId::from_slug("potion"));
+    fn proto_item_kind_from_ref() {
+        let kind = ProtoItemKind::from_ref("potion");
+        assert_eq!(kind.id, ProtoItemId::from_ref("potion"));
     }
 
     #[test]
     fn display_name_without_db_returns_unknown() {
-        let kind = ProtoItemKind::from_slug("nonexistent");
+        let kind = ProtoItemKind::from_ref("nonexistent");
         assert_eq!(kind.display_name(), "Unknown");
     }
 
     #[test]
     fn max_stack_without_db_returns_one() {
-        let kind = ProtoItemKind::from_slug("nonexistent");
+        let kind = ProtoItemKind::from_ref("nonexistent");
         assert_eq!(kind.max_stack(), 1);
     }
 }

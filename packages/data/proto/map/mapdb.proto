@@ -242,7 +242,7 @@ message Color {
 // Zone definition — a named region of the world
 message Zone {
   string id = 1;                        // ULID
-  string slug = 2;                      // URL-safe identifier, e.g. "crystal-caverns"
+  string ref = 2;                       // URL-safe identifier, e.g. "crystal-caverns"
   string name = 3;
   optional string description = 4;
   optional string lore = 5;
@@ -320,7 +320,7 @@ message ZoneConnection {
 // A notable location within a zone
 message PointOfInterest {
   string id = 1;                        // ULID
-  string slug = 2;
+  string ref = 2;
   string name = 3;
   optional string description = 4;
 
@@ -456,7 +456,7 @@ message WaterConfig {
 // A world object definition (archetype / template)
 message WorldObjectDef {
   string id = 1;                        // ULID
-  string slug = 2;
+  string ref = 2;
   string name = 3;
   optional string description = 4;
 
@@ -576,7 +576,7 @@ message SpawnPoint {
 // A region / continent / world that contains multiple zones
 message Region {
   string id = 1;                        // ULID
-  string slug = 2;
+  string ref = 2;
   string name = 3;
   optional string description = 4;
   optional string lore = 5;

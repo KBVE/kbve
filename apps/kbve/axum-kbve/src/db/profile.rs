@@ -347,7 +347,7 @@ impl ProfileService {
                 .and_then(|d| {
                     d.get("nickname")
                         .or_else(|| d.get("name"))
-                        .or_else(|| d.get("slug"))
+                        .or_else(|| d.get("ref"))
                         .or_else(|| d.get("preferred_username"))
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string())
@@ -462,7 +462,7 @@ impl ProfileService {
                 .and_then(|d| {
                     d.get("nickname")
                         .or_else(|| d.get("name"))
-                        .or_else(|| d.get("slug"))
+                        .or_else(|| d.get("ref"))
                         .or_else(|| d.get("preferred_username"))
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string())

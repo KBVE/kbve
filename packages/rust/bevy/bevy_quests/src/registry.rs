@@ -5,7 +5,7 @@ use prost::Message;
 
 use crate::proto::quest;
 
-/// Stable numeric identifier for a quest, derived from its slug.
+/// Stable numeric identifier for a quest, derived from its ref.
 ///
 /// Used as a lightweight key for cross-system references (quest logs,
 /// network packets, save files). The full quest data lives in [`QuestDb`].
@@ -13,11 +13,11 @@ use crate::proto::quest;
 pub struct ProtoQuestId(pub u64);
 
 impl ProtoQuestId {
-    /// Create an id from a quest slug using a stable hash.
-    pub fn from_slug(slug: &str) -> Self {
+    /// Create an id from a quest ref using a stable hash.
+    pub fn from_ref(r: &str) -> Self {
         use std::hash::{Hash, Hasher};
         let mut h = std::collections::hash_map::DefaultHasher::new();
-        slug.hash(&mut h);
+        r.hash(&mut h);
         Self(h.finish())
     }
 }
@@ -25,12 +25,12 @@ impl ProtoQuestId {
 /// Bevy resource holding all proto-defined quest data.
 ///
 /// Loaded once at startup from a proto-encoded `QuestRegistry` binary or
-/// built programmatically. Provides fast lookups by [`ProtoQuestId`], slug,
+/// built programmatically. Provides fast lookups by [`ProtoQuestId`], ref,
 /// ULID, or category.
 #[derive(Resource, Default)]
 pub struct QuestDb {
     by_id: HashMap<ProtoQuestId, quest::Quest>,
-    by_slug: HashMap<String, ProtoQuestId>,
+    by_ref: HashMap<String, ProtoQuestId>,
     by_ulid: HashMap<String, ProtoQuestId>,
     display_titles: HashMap<ProtoQuestId, &'static str>,
     chains: Vec<quest::QuestChain>,
@@ -68,10 +68,10 @@ impl QuestDb {
 
     /// Insert a single quest into the registry.
     pub fn insert(&mut self, quest: quest::Quest) {
-        let id = ProtoQuestId::from_slug(&quest.slug);
+        let id = ProtoQuestId::from_ref(&quest.r#ref);
         let title: &'static str = Box::leak(quest.title.clone().into_boxed_str());
         self.display_titles.insert(id, title);
-        self.by_slug.insert(quest.slug.clone(), id);
+        self.by_ref.insert(quest.r#ref.clone(), id);
         if !quest.id.is_empty() {
             self.by_ulid.insert(quest.id.clone(), id);
         }
@@ -83,9 +83,9 @@ impl QuestDb {
         self.by_id.get(&id)
     }
 
-    /// Look up a quest by its URL slug (e.g. `"auto-cooker-9000"`).
-    pub fn get_by_slug(&self, slug: &str) -> Option<&quest::Quest> {
-        let id = self.by_slug.get(slug)?;
+    /// Look up a quest by its ref (e.g. `"auto-cooker-9000"`).
+    pub fn get_by_ref(&self, r: &str) -> Option<&quest::Quest> {
+        let id = self.by_ref.get(r)?;
         self.by_id.get(id)
     }
 
@@ -95,9 +95,9 @@ impl QuestDb {
         self.by_id.get(id)
     }
 
-    /// Resolve a slug to a [`ProtoQuestId`].
-    pub fn id_for_slug(&self, slug: &str) -> Option<ProtoQuestId> {
-        self.by_slug.get(slug).copied()
+    /// Resolve a ref to a [`ProtoQuestId`].
+    pub fn id_for_ref(&self, r: &str) -> Option<ProtoQuestId> {
+        self.by_ref.get(r).copied()
     }
 
     /// Get the cached display title for a quest.

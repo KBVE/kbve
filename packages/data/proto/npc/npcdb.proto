@@ -360,7 +360,7 @@ message NpcExtension {
 message Npc {
   // Identity
   string id = 1;                    // ULID
-  string slug = 2;                  // URL-safe identifier, e.g. "glass-slime"
+  string ref = 2;                   // URL-safe identifier, e.g. "glass-slime"
   string name = 3;
   optional string title = 4;        // e.g. "The Shattered King"
   optional string description = 5;
