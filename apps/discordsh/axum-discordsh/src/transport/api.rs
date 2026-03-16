@@ -138,6 +138,7 @@ mod tests {
             show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
+            quest_journal: QuestJournal::default(),
         };
         state.sessions.create(session);
 
@@ -198,6 +199,7 @@ mod tests {
             show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
+            quest_journal: QuestJournal::default(),
         };
         state.sessions.create(session);
 

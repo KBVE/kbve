@@ -586,6 +586,134 @@ pub struct RoomState {
     pub story_event: Option<StoryEvent>,
 }
 
+// ── Quest tracking ──────────────────────────────────────────────────
+
+/// Status of an objective within an active quest.
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct ObjectiveProgress {
+    pub objective_id: String,
+    pub current: i32,
+    pub required: i32,
+}
+
+impl ObjectiveProgress {
+    pub fn is_complete(&self) -> bool {
+        self.current >= self.required
+    }
+}
+
+/// Status of an active quest step.
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct StepProgress {
+    pub step_id: String,
+    pub objectives: Vec<ObjectiveProgress>,
+}
+
+impl StepProgress {
+    pub fn is_complete(&self) -> bool {
+        self.objectives.iter().all(|o| o.is_complete())
+    }
+}
+
+/// Tracks the state of a single quest for a player.
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct ActiveQuest {
+    /// The quest ref slug (e.g. "slime-slayer").
+    pub quest_ref: String,
+    /// Index of the current step in the quest's step list.
+    pub current_step: usize,
+    /// Progress for each step (only the current step is actively tracked).
+    pub steps: Vec<StepProgress>,
+}
+
+impl ActiveQuest {
+    /// Whether all steps are complete.
+    pub fn is_complete(&self) -> bool {
+        self.steps.iter().all(|s| s.is_complete())
+    }
+
+    /// Get the current step progress, if it exists.
+    pub fn current_step_progress(&self) -> Option<&StepProgress> {
+        self.steps.get(self.current_step)
+    }
+
+    /// Get a mutable reference to the current step progress.
+    pub fn current_step_progress_mut(&mut self) -> Option<&mut StepProgress> {
+        self.steps.get_mut(self.current_step)
+    }
+
+    /// Advance to the next step if the current one is complete.
+    /// Returns true if advanced, false if already at the last step or not complete.
+    pub fn try_advance_step(&mut self) -> bool {
+        if let Some(step) = self.steps.get(self.current_step) {
+            if step.is_complete() && self.current_step + 1 < self.steps.len() {
+                self.current_step += 1;
+                return true;
+            }
+        }
+        false
+    }
+}
+
+/// Per-session quest journal tracking active, completed, and failed quests.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct QuestJournal {
+    /// Currently active quests (max ~5 at a time for UX).
+    pub active: Vec<ActiveQuest>,
+    /// Refs of completed quests (persisted across sessions eventually).
+    pub completed: Vec<String>,
+    /// Refs of failed/abandoned quests.
+    pub abandoned: Vec<String>,
+}
+
+impl QuestJournal {
+    /// Find an active quest by ref.
+    pub fn find_active(&self, quest_ref: &str) -> Option<&ActiveQuest> {
+        self.active.iter().find(|q| q.quest_ref == quest_ref)
+    }
+
+    /// Find a mutable active quest by ref.
+    pub fn find_active_mut(&mut self, quest_ref: &str) -> Option<&mut ActiveQuest> {
+        self.active.iter_mut().find(|q| q.quest_ref == quest_ref)
+    }
+
+    /// Whether a quest ref is currently active.
+    pub fn is_active(&self, quest_ref: &str) -> bool {
+        self.active.iter().any(|q| q.quest_ref == quest_ref)
+    }
+
+    /// Whether a quest ref has been completed.
+    pub fn is_completed(&self, quest_ref: &str) -> bool {
+        self.completed.iter().any(|r| r == quest_ref)
+    }
+
+    /// Whether a quest ref has been abandoned.
+    pub fn is_abandoned(&self, quest_ref: &str) -> bool {
+        self.abandoned.iter().any(|r| r == quest_ref)
+    }
+
+    /// Remove a quest from active and move it to completed.
+    pub fn complete_quest(&mut self, quest_ref: &str) {
+        self.active.retain(|q| q.quest_ref != quest_ref);
+        if !self.is_completed(quest_ref) {
+            self.completed.push(quest_ref.to_owned());
+        }
+    }
+
+    /// Remove a quest from active and move it to abandoned.
+    pub fn abandon_quest(&mut self, quest_ref: &str) {
+        self.active.retain(|q| q.quest_ref != quest_ref);
+        if !self.is_abandoned(quest_ref) {
+            self.abandoned.push(quest_ref.to_owned());
+        }
+    }
+
+    /// Number of active quests.
+    pub fn active_count(&self) -> usize {
+        self.active.len()
+    }
+}
+
 // ── Game action ─────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, PartialEq)]
@@ -610,6 +738,9 @@ pub enum GameAction {
     ViewInventory,
     Revive(serenity::UserId),
     Gift(ItemId, serenity::UserId),
+    AcceptQuest(String),
+    AbandonQuest(String),
+    ViewQuests,
 }
 
 // ── Session mode ────────────────────────────────────────────────────
@@ -660,6 +791,7 @@ pub struct SessionState {
     #[serde(skip)]
     pub pending_destination: Option<MapPos>,
     pub enemies_had_first_strike: bool,
+    pub quest_journal: QuestJournal,
 }
 
 impl SessionState {
@@ -875,6 +1007,7 @@ mod tests {
             show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
+            quest_journal: QuestJournal::default(),
         };
         let roster = session.roster();
         assert_eq!(roster.len(), 2);
@@ -961,6 +1094,7 @@ mod tests {
             show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
+            quest_journal: QuestJournal::default(),
         };
 
         assert!(session.has_enemies());
@@ -1129,6 +1263,7 @@ mod tests {
             show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
+            quest_journal: QuestJournal::default(),
         };
         assert!(!session.show_inventory);
     }
@@ -1193,6 +1328,7 @@ mod tests {
             show_inventory: true,
             pending_destination: Some(MapPos::new(1, 0)),
             enemies_had_first_strike: false,
+            quest_journal: QuestJournal::default(),
         };
 
         let json = serde_json::to_string(&session).unwrap();

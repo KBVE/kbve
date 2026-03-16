@@ -1,0 +1,69 @@
+---
+id: "01JX26BB2NDUNGEONDELVER0002"
+ref: "dungeon-delver"
+drafted: false
+title: "Dungeon Delver"
+description: "Venture deep into the dungeon and explore its forgotten corridors."
+category: "main"
+tags:
+  - "discordsh"
+  - "exploration"
+  - "beginner"
+hidden: false
+repeatable: false
+recommended_level: 1
+steps:
+  - id: "step-explore-rooms"
+    title: "Explore the Dungeon"
+    objectives:
+      - id: "obj-visit-5-rooms"
+        description: "Explore 5 different rooms"
+        type: "explore"
+        required_amount: 5
+rewards:
+  currency: 75
+  xp: 50
+triggers:
+  - "player:level:1"
+  - "area:dungeon"
+next_quest_ref: "shadow-hunter"
+---
+
+import {
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+} from '@astrojs/starlight/components';
+
+import { Giscus } from '@/components/astropad';
+
+<Aside>
+The dungeon stretches endlessly beneath the surface. Map its corridors and
+discover what secrets lie within.
+</Aside>
+
+## Quest Overview
+
+<CardGrid>
+  <Card title="Objective" icon="mdi:map-search">
+    Explore 5 different rooms in a single dungeon run. Each new tile you visit
+    counts toward the goal.
+  </Card>
+  <Card title="Reward" icon="mdi:treasure-chest">
+    75 gold and 50 XP. Completing this quest unlocks Shadow Hunter.
+  </Card>
+</CardGrid>
+
+## Steps to Completion
+
+<Steps>
+1. **Start exploring**
+   Move through the dungeon using the directional buttons.
+2. **Visit 5 rooms**
+   Each new room you enter counts. Revisiting rooms does not count.
+3. **Quest complete**
+   The reward is granted automatically once you visit the fifth room.
+</Steps>
+
+<Giscus />

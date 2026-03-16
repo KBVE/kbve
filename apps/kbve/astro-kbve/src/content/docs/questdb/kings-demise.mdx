@@ -1,0 +1,95 @@
+---
+id: "01JX26DD4NKINGSDEMISE000004"
+ref: "kings-demise"
+drafted: false
+title: "The King's Demise"
+description: "The Shattered King rules the deepest level of the dungeon. End his reign of terror."
+category: "main"
+tags:
+  - "discordsh"
+  - "combat"
+  - "boss"
+  - "endgame"
+hidden: false
+repeatable: false
+recommended_level: 5
+prerequisites:
+  quest_refs:
+    - "shadow-hunter"
+  level_requirement: 3
+steps:
+  - id: "step-prepare"
+    title: "Prepare for the Final Battle"
+    objectives:
+      - id: "obj-kill-10-enemies"
+        description: "Defeat 10 enemies to prove you are ready"
+        type: "kill"
+        required_amount: 10
+  - id: "step-defeat-king"
+    title: "Defeat the Shattered King"
+    objectives:
+      - id: "obj-kill-shattered-king"
+        description: "Defeat the Shattered King"
+        type: "kill"
+        target_refs:
+          - "the-shattered-king"
+        required_amount: 1
+rewards:
+  currency: 500
+  xp: 300
+  items:
+    - item_ref: "excalibur"
+      amount: 1
+  achievement:
+    api_name: "ACH_KINGS_DEMISE"
+    name: "Kingslayer"
+    description: "Defeated the Shattered King in the deepest dungeon."
+    hidden: false
+    min_value: 0
+    max_value: 1
+triggers:
+  - "quest:complete:shadow-hunter"
+next_quest_ref: null
+---
+
+import {
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+} from '@astrojs/starlight/components';
+
+import { Giscus } from '@/components/astropad';
+
+<Aside type="danger">
+The Shattered King is the ultimate challenge. His AOE attacks devastate entire
+parties. Only the most prepared adventurers should attempt this quest.
+</Aside>
+
+## Quest Overview
+
+<CardGrid>
+  <Card title="Phase 1" icon="mdi:sword-cross">
+    Defeat 10 enemies across your dungeon runs to prove your combat prowess.
+  </Card>
+  <Card title="Phase 2" icon="mdi:crown">
+    Face the Shattered King in the deepest boss room. He uses devastating AOE
+    attacks and has massive HP.
+  </Card>
+  <Card title="Reward" icon="mdi:trophy">
+    500 gold, 300 XP, Excalibur, and the Kingslayer achievement.
+  </Card>
+</CardGrid>
+
+## Steps to Completion
+
+<Steps>
+1. **Build your strength**
+   Defeat 10 enemies in the dungeon to complete the first step.
+2. **Find the Shattered King**
+   Navigate to a boss room in the deepest area of the dungeon.
+3. **End his reign**
+   Defeat the Shattered King. Bring potions, gear, and allies.
+</Steps>
+
+<Giscus />
