@@ -315,7 +315,7 @@ pub struct Item {
     pub id: ::prost::alloc::string::String,
     /// URL-safe identifier, e.g. "fire-flask"
     #[prost(string, tag = "2")]
-    pub slug: ::prost::alloc::string::String,
+    pub r#ref: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
     pub name: ::prost::alloc::string::String,
     /// Display title override

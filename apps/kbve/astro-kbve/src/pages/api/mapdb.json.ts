@@ -11,8 +11,8 @@ export const GET = async () => {
 	const index: Record<string, number> = {};
 
 	for (const entry of mapEntries) {
-		const { id, slug, name, type } = entry.data;
-		if (!id || !slug || !name || !type) continue;
+		const { id, ref, name, type } = entry.data;
+		if (!id || !ref || !name || !type) continue;
 
 		const mapObject = {
 			...entry.data,
@@ -22,7 +22,7 @@ export const GET = async () => {
 		mapObjects.push(mapObject as IMapObject);
 
 		index[id] = idx;
-		index[slug] = idx;
+		index[ref] = idx;
 		index[name] = idx;
 	}
 
@@ -37,21 +37,21 @@ export const GET = async () => {
 
 function validateMapObjectUniqueness(objects: IMapObject[]) {
 	const seenIds = new Set<string>();
-	const seenSlugs = new Set<string>();
+	const seenRefs = new Set<string>();
 	const seenNames = new Set<string>();
 
 	for (const obj of objects) {
 		if (seenIds.has(obj.id)) {
 			throw new Error(`Duplicate ULID detected: ${obj.id}`);
 		}
-		if (seenSlugs.has(obj.slug)) {
-			throw new Error(`Duplicate slug detected: ${obj.slug}`);
+		if (seenRefs.has(obj.ref)) {
+			throw new Error(`Duplicate ref detected: ${obj.ref}`);
 		}
 		if (seenNames.has(obj.name)) {
 			throw new Error(`Duplicate name detected: ${obj.name}`);
 		}
 		seenIds.add(obj.id);
-		seenSlugs.add(obj.slug);
+		seenRefs.add(obj.ref);
 		seenNames.add(obj.name);
 	}
 }

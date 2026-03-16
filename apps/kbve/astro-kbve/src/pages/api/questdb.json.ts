@@ -9,8 +9,8 @@ export const GET = async () => {
 	const quests: any[] = [];
 
 	for (const entry of questEntries) {
-		const { id, slug } = entry.data as any;
-		if (!id || !slug) continue;
+		const { id, ref } = entry.data as any;
+		if (!id || !ref) continue;
 
 		const quest = {
 			...entry.data,
@@ -21,7 +21,7 @@ export const GET = async () => {
 		quests.push(quest);
 
 		key[id] = index;
-		key[slug] = index;
+		key[ref] = index;
 	}
 
 	return new Response(JSON.stringify({ quests, key }), {

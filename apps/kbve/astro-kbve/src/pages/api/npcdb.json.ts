@@ -11,8 +11,8 @@ export const GET = async () => {
 	const index: Record<string, number> = {};
 
 	for (const entry of npcEntries) {
-		const { id, slug, name } = entry.data;
-		if (!id || !slug || !name) continue;
+		const { id, ref, name } = entry.data;
+		if (!id || !ref || !name) continue;
 
 		const npc = {
 			...entry.data,
@@ -22,7 +22,7 @@ export const GET = async () => {
 		npcs.push(npc as INpc);
 
 		index[id] = idx;
-		index[slug] = idx;
+		index[ref] = idx;
 		index[name] = idx;
 	}
 
@@ -37,21 +37,21 @@ export const GET = async () => {
 
 function validateNpcUniqueness(npcs: INpc[]) {
 	const seenIds = new Set<string>();
-	const seenSlugs = new Set<string>();
+	const seenRefs = new Set<string>();
 	const seenNames = new Set<string>();
 
 	for (const npc of npcs) {
 		if (seenIds.has(npc.id)) {
 			throw new Error(`Duplicate NPC id detected: ${npc.id}`);
 		}
-		if (seenSlugs.has(npc.slug)) {
-			throw new Error(`Duplicate NPC slug detected: ${npc.slug}`);
+		if (seenRefs.has(npc.ref)) {
+			throw new Error(`Duplicate NPC ref detected: ${npc.ref}`);
 		}
 		if (seenNames.has(npc.name)) {
 			throw new Error(`Duplicate NPC name detected: ${npc.name}`);
 		}
 		seenIds.add(npc.id);
-		seenSlugs.add(npc.slug);
+		seenRefs.add(npc.ref);
 		seenNames.add(npc.name);
 	}
 }

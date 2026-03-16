@@ -2,7 +2,7 @@
 	"items": [
 		{
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRSD",
-			"slug": "alchemist-stardust",
+			"ref": "alchemist-stardust",
 			"name": "Alchemist Stardust",
 			"title": "Alchemist Stardust",
 			"description": "An ethereal substance harvested from the exits of black holes. \nThis spinozian object shimmers with the memory of ancient stars and forgotten constants.\n",
@@ -43,7 +43,7 @@
 		},
 		{
 			"id": "01JWFA5N2C1SFDP1S7331YF4A6",
-			"slug": "anime-body-pillow",
+			"ref": "anime-body-pillow",
 			"name": "Anime Body Pillow",
 			"title": "Anime Body Pillow",
 			"description": "A full-length comfort pillow featuring a vaguely familiar animated figure.\nOne side smiles. The other... doesn't.\n",
@@ -83,7 +83,7 @@
 		},
 		{
 			"id": "01KKR7QNRC81EVK4PF70V5E3FR",
-			"slug": "antidote",
+			"ref": "antidote",
 			"name": "Antidote",
 			"title": "Antidote",
 			"description": "A cleansing tonic that removes all negative status effects.",
@@ -101,7 +101,7 @@
 		},
 		{
 			"id": "01JWN7TN1P44J963328VP0YNFF",
-			"slug": "auto-cooker-9000",
+			"ref": "auto-cooker-9000",
 			"name": "Auto Cooker 9000",
 			"title": "Auto Cooker 9000",
 			"description": "An intelligent cooking device capable of preparing meals from raw code, DNA, or grocery leftovers. It hums with culinary ambition.",
@@ -142,7 +142,7 @@
 		},
 		{
 			"id": "01KKR7QNRCPH4QEYXHHXV2301B",
-			"slug": "bandage",
+			"ref": "bandage",
 			"name": "Bandage",
 			"title": "Bandage",
 			"description": "A simple cloth bandage that heals 5 HP and stops bleeding.",
@@ -163,7 +163,7 @@
 		},
 		{
 			"id": "01JWJAVCGHH345RKABKR1D04XF",
-			"slug": "beer",
+			"ref": "beer",
 			"name": "Beer",
 			"title": "Beer",
 			"description": "A frothy, golden beverage brewed from hops, grain, and patience. \nGrants mild strength, courage, and unfortunate honesty.\n",
@@ -195,7 +195,7 @@
 		},
 		{
 			"id": "01J263S362R0Q3TV8T4DFMR8Z5",
-			"slug": "blue-shark",
+			"ref": "blue-shark",
 			"name": "Blue Shark",
 			"title": "Blue Shark",
 			"description": "A heavy fish that heals the consumer's health and provides mana.",
@@ -232,7 +232,7 @@
 		},
 		{
 			"id": "01KKR7QNRCXEWSCSYHRKEVJ20N",
-			"slug": "bomb",
+			"ref": "bomb",
 			"name": "Bomb",
 			"title": "Bomb",
 			"description": "An explosive device that deals 10 damage to a single enemy.",
@@ -250,7 +250,7 @@
 		},
 		{
 			"id": "01JW9Z6VRWVN2RXGWNEVVG9RTJ",
-			"slug": "bone",
+			"ref": "bone",
 			"name": "Bone",
 			"title": "Bone",
 			"description": "A simple piece of organic matter. Alchemists value it. Dogs adore it. Spirits… tolerate it.\n",
@@ -290,7 +290,7 @@
 		},
 		{
 			"id": "01JX4H5YJKEBYQT4QZ2PHTYMY5",
-			"slug": "brainrot-laptop",
+			"ref": "brainrot-laptop",
 			"name": "Brainrot Laptop",
 			"title": "Brainrot Laptop",
 			"description": "A decrepit notebook exuding fumes of outdated code and decaying circuits.\nBooting it may infect you with ancient memes and unpatched exploits.\n",
@@ -326,7 +326,7 @@
 		},
 		{
 			"id": "01JWG7MYCBHXK5WP2WS6AQYMSC",
-			"slug": "brown-curry-sauce",
+			"ref": "brown-curry-sauce",
 			"name": "Brown Curry Sauce",
 			"title": "Brown Curry Sauce",
 			"description": "A savory, aromatic sauce made from a mysterious brown roux, aged spices, and memory-triggering heat.\nOften paired with rice, dreams, or cold mornings.\n",
@@ -358,7 +358,7 @@
 		},
 		{
 			"id": "01JWJ9XF2P7MFM2W96T55XTGA7",
-			"slug": "butter",
+			"ref": "butter",
 			"name": "Butter",
 			"title": "Butter",
 			"description": "\"A smooth, golden block of churned dairy. Adds flavor, enhances potions, and is surprisingly useful in rituals requiring softness or slip.\"\n",
@@ -394,7 +394,7 @@
 		},
 		{
 			"id": "01KKR7QNRCDVADFBQ4TTESGDQA",
-			"slug": "campfire-kit",
+			"ref": "campfire-kit",
 			"name": "Campfire Kit",
 			"title": "Campfire Kit",
 			"description": "Set up camp and rest. Heals 50% HP and clears debuffs for the whole party.",
@@ -412,7 +412,7 @@
 		},
 		{
 			"id": "01KKR7QNRCHKCKBSFQW8Z8DC7G",
-			"slug": "chain-mail",
+			"ref": "chain-mail",
 			"name": "Chain Mail",
 			"title": "Chain Mail",
 			"description": "Interlocking metal rings providing solid defense. +4 armor, +5 HP.",
@@ -432,7 +432,7 @@
 		},
 		{
 			"id": "01JWG4CAABY3EHB65EBTG77J5A",
-			"slug": "cheddar-cheese",
+			"ref": "cheddar-cheese",
 			"name": "Cheddar Cheese",
 			"title": "Cheddar Cheese",
 			"description": "A dense wedge of aged cheddar, sharp enough to wake the senses and smooth enough to win hearts.\nCrumbles perfectly.\nSmells like victory.\n",
@@ -469,7 +469,7 @@
 		},
 		{
 			"id": "01KKR7QNRC18GWKPEPKM2VDYWM",
-			"slug": "crystal-armor",
+			"ref": "crystal-armor",
 			"name": "Crystal Armor",
 			"title": "Crystal Armor",
 			"description": "Armor forged from enchanted crystal. +6 armor, +10 HP.",
@@ -489,7 +489,7 @@
 		},
 		{
 			"id": "01JWCWVCGTZRJQ3FD5Z0MVS5XH",
-			"slug": "data-cd",
+			"ref": "data-cd",
 			"name": "Data CD",
 			"title": "Data CD",
 			"description": "A disc etched with quantum-layer encoding.\nLooks like a Blu-ray.\nReads like a library.\nFeels like infinity.\n",
@@ -529,7 +529,7 @@
 		},
 		{
 			"id": "01KKR7QNRCD9Z8VG601R379C71",
-			"slug": "dragon-scale",
+			"ref": "dragon-scale",
 			"name": "Dragon Scale",
 			"title": "Dragon Scale",
 			"description": "Scales shed by an ancient dragon, forged into legendary armor. +8 armor, +15 HP, 10% damage reduction.",
@@ -551,7 +551,7 @@
 		},
 		{
 			"id": "01J27QABD2GPFNRVK69S51HSGB",
-			"slug": "ecto-cooler-drank-type-95",
+			"ref": "ecto-cooler-drank-type-95",
 			"name": "Ecto Cooler Drank Type 95",
 			"title": "Ecto Cooler Drank Type 95",
 			"description": "A magical ectoplasmic brew that heals wounds and restores energy.",
@@ -588,7 +588,7 @@
 		},
 		{
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRJJ",
-			"slug": "eds-jelly-jam",
+			"ref": "eds-jelly-jam",
 			"name": "Ed's Jelly Jam",
 			"title": "Ed's Jelly Jam",
 			"description": "Jar of rich, purple jelly jam made from mysterious grapes and questionable sugar ratios.\nSweet, strange, and wildly energizing.\n",
@@ -625,7 +625,7 @@
 		},
 		{
 			"id": "01KKR7QNRCNNPNQD46DYT110R9",
-			"slug": "elixir",
+			"ref": "elixir",
 			"name": "Elixir",
 			"title": "Elixir",
 			"description": "A legendary potion that fully restores HP to maximum.",
@@ -643,7 +643,7 @@
 		},
 		{
 			"id": "01KKR7QNRCNZ64AGRD8M3H09YP",
-			"slug": "excalibur",
+			"ref": "excalibur",
 			"name": "Excalibur",
 			"title": "Excalibur",
 			"description": "The legendary blade of kings. +6 attack, +5 HP, +10% crit chance.",
@@ -665,7 +665,7 @@
 		},
 		{
 			"id": "01KKR7QNRC7V62X0C8J3ZX22DA",
-			"slug": "fire-flask",
+			"ref": "fire-flask",
 			"name": "Fire Flask",
 			"title": "Fire Flask",
 			"description": "A flask of volatile liquid that deals 8 damage and inflicts Burning for 3 turns.",
@@ -691,7 +691,7 @@
 		},
 		{
 			"id": "01KKR7QNRC0XKBPFD6BNWV57SR",
-			"slug": "flame-axe",
+			"ref": "flame-axe",
 			"name": "Flame Axe",
 			"title": "Flame Axe",
 			"description": "An axe wreathed in smoldering embers. +4 attack damage.",
@@ -708,7 +708,7 @@
 		},
 		{
 			"id": "01JWG25PJN79DJP822GGKN8B1R",
-			"slug": "fresh-milk",
+			"ref": "fresh-milk",
 			"name": "Fresh Milk",
 			"title": "Fresh Milk",
 			"description": "A cold bottle of nutrient-rich milk.\nSourced from friendly creatures or brave robots.\n",
@@ -745,7 +745,7 @@
 		},
 		{
 			"id": "01JWFY6R3G5BQ7FZ7Q3KPKHY2C",
-			"slug": "fried-fish-taco",
+			"ref": "fried-fish-taco",
 			"name": "Fish Taco",
 			"title": "Fried Fish Taco",
 			"description": "A warm, folded miracle of fried fish, spice, and crunchy greens. \nIt smells way too good to survive long in your pack.\n",
@@ -781,7 +781,7 @@
 		},
 		{
 			"id": "01JWAXYK9QWKYVTDG21614F3KT",
-			"slug": "frozen-pizza-rolls",
+			"ref": "frozen-pizza-rolls",
 			"name": "Frozen Pizza Rolls",
 			"title": "Frozen Pizza Rolls",
 			"description": "A bag of bite-sized molten pockets of faux-Italian fury. \nCaution: may cause tongue trauma when overheated.\n",
@@ -822,7 +822,7 @@
 		},
 		{
 			"id": "01JX11B4TZ6BN2WB3DBVETSZYW",
-			"slug": "garlic-bread",
+			"ref": "garlic-bread",
 			"name": "Garlic Bread",
 			"title": "Garlic Bread",
 			"description": "A warm slice of bread slathered in butter and garlic.\nComfort food that boosts morale for weary adventurers.\n",
@@ -858,7 +858,7 @@
 		},
 		{
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRGN",
-			"slug": "gin",
+			"ref": "gin",
 			"name": "Gin",
 			"title": "Gin",
 			"description": "A clear, fragrant spirit infused with juniper berries and botanical madness. \nSmoother than truth and sharper than betrayal.\n",
@@ -897,7 +897,7 @@
 		},
 		{
 			"id": "01KKR7QNRC6837QFCM9K0BD1N9",
-			"slug": "glass-stiletto",
+			"ref": "glass-stiletto",
 			"name": "Glass Stiletto",
 			"title": "Glass Stiletto",
 			"description": "A razor-thin blade of enchanted glass. +3 attack, +15% crit chance.",
@@ -919,7 +919,7 @@
 		},
 		{
 			"id": "01JX55ZPSYC91ERYPHP47FPQAN",
-			"slug": "gravity-boots",
+			"ref": "gravity-boots",
 			"name": "Gravity Boots",
 			"title": "Gravity Boots",
 			"description": "Heavy-duty boots fitted with microthrusters and magnetic soles.\nWearing them lets you defy gravity for short bursts.\n",
@@ -959,7 +959,7 @@
 		},
 		{
 			"id": "01JWG89BEEKCWWYQ9XVAM53CJ6",
-			"slug": "green-pasta-sauce",
+			"ref": "green-pasta-sauce",
 			"name": "Green Pasta Sauce",
 			"title": "Green Pasta Sauce",
 			"description": "A vibrant, verdant sauce made from wild herbs, synthesized basil, and mysterious nutrient gels.\nRefreshing, revitalizing, and oddly photoreactive.\n",
@@ -998,7 +998,7 @@
 		},
 		{
 			"id": "01JWFZBV4K5T7KNFYKY7Q5YF29",
-			"slug": "grilled-fish-burrito",
+			"ref": "grilled-fish-burrito",
 			"name": "Grilled Fish Burrito",
 			"title": "Grilled Fish Burrito",
 			"description": "A tightly wrapped masterpiece of grilled fish, rice, beans, and smoldering spices.\nWarm, heavy, and oddly inspiring.\n",
@@ -1035,7 +1035,7 @@
 		},
 		{
 			"id": "01JWAPWQT370ZK76K32JGVBZWV",
-			"slug": "herbal-medi-wrap",
+			"ref": "herbal-medi-wrap",
 			"name": "Herbal Medi-Wrap",
 			"title": "Herbal Medi-Wrap",
 			"description": "A bandage infused with crushed herbs and natural oils.\nCools the skin, closes wounds, and smells faintly of mint and earth.\n",
@@ -1077,7 +1077,7 @@
 		},
 		{
 			"id": "01JX5617TYSVQC68T3R8ZA91ND",
-			"slug": "holographic-arcade-token",
+			"ref": "holographic-arcade-token",
 			"name": "Holographic Arcade Token",
 			"title": "Holographic Arcade Token",
 			"description": "A translucent coin shimmering with neon hues.\nInsert it into any retro cabinet to unlock hidden game modes.\n",
@@ -1109,7 +1109,7 @@
 		},
 		{
 			"id": "01JWG8KEBJPJ3WRW8RDMD3066S",
-			"slug": "ink-pasta-sauce",
+			"ref": "ink-pasta-sauce",
 			"name": "Ink Pasta Sauce",
 			"title": "Ink Pasta Sauce",
 			"description": "A jet-black sauce made from harvested squid ink, deep ocean salts, and forbidden emulsifiers. Dark, savory, and a little bit cursed.",
@@ -1145,7 +1145,7 @@
 		},
 		{
 			"id": "01KKR7QNRCCDST7FEYK9CFPX26",
-			"slug": "iron-mace",
+			"ref": "iron-mace",
 			"name": "Iron Mace",
 			"title": "Iron Mace",
 			"description": "A heavy blunt weapon forged from solid iron. +3 attack damage.",
@@ -1162,7 +1162,7 @@
 		},
 		{
 			"id": "01KKR7QNRCWS11606Z2MJC11QA",
-			"slug": "iron-skin-potion",
+			"ref": "iron-skin-potion",
 			"name": "Iron Skin Potion",
 			"title": "Iron Skin Potion",
 			"description": "A metallic brew that grants the Shielded effect for 3 turns.",
@@ -1187,7 +1187,7 @@
 		},
 		{
 			"id": "01JWAB140RVZX5C7M8622AZXGA",
-			"slug": "jar-of-honey",
+			"ref": "jar-of-honey",
 			"name": "Jar of Honey",
 			"title": "Jar of Honey",
 			"description": "A golden jar of concentrated sweetness. \nRestores health, soothes minds, and binds the tongue of liars.\n",
@@ -1224,7 +1224,7 @@
 		},
 		{
 			"id": "01JWAWYPGZHJW1Q103D8M2Q29W",
-			"slug": "jareds-teddy-bear",
+			"ref": "jareds-teddy-bear",
 			"name": "Jared's Teddy Bear",
 			"title": "Jared's Teddy Bear",
 			"description": "A ziplock bag stuffed with old newspaper and sealed with tape. \nA smiley face is drawn in marker. It crinkles when hugged.\n",
@@ -1264,7 +1264,7 @@
 		},
 		{
 			"id": "01JWB04MV4JB6P79G5ZF3XQ122",
-			"slug": "kiwi-jigsaw",
+			"ref": "kiwi-jigsaw",
 			"name": "Kiwi Jigsaw",
 			"title": "Kiwi Jigsaw",
 			"description": "A taxidermy kiwi bird stitched atop a grim ceramic mask. \nEqual parts adorable and unnerving.\nIt watches. It judges.\n",
@@ -1304,7 +1304,7 @@
 		},
 		{
 			"id": "01JW9Y29NQCWSS8B2ET09YZ6T7",
-			"slug": "krispee-air-fryer",
+			"ref": "krispee-air-fryer",
 			"name": "Krispee Air Fryer",
 			"title": "Krispee Air Fryer",
 			"description": "A countertop relic of culinary efficiency.\nInfuses meals with crispiness, joy, and possibly low-level radiation.\n",
@@ -1345,7 +1345,7 @@
 		},
 		{
 			"id": "01JWCXER3NRHA3J4DNCJN250MX",
-			"slug": "kryptonite-book",
+			"ref": "kryptonite-book",
 			"name": "Kryptonite Book",
 			"title": "Kryptonite Book",
 			"description": "A tattered manual on the undoing of the invincible.\nIt reads like both scripture and strategy.\nThe margins are deeply unnerving.\n",
@@ -1385,7 +1385,7 @@
 		},
 		{
 			"id": "01KKR7QNRC3B4Y2629KQY1YDB6",
-			"slug": "leather-vest",
+			"ref": "leather-vest",
 			"name": "Leather Vest",
 			"title": "Leather Vest",
 			"description": "A basic leather vest offering modest protection. +2 armor.",
@@ -1402,7 +1402,7 @@
 		},
 		{
 			"id": "01JWG9JF11KYG4DAXF1VTKYZWS",
-			"slug": "lobster",
+			"ref": "lobster",
 			"name": "Lobster",
 			"title": "Lobster",
 			"description": "A large, armored crustacean pulled from the deep.\nIts meat is prized, its shell revered, and its behavior is disturbingly strategic.\n",
@@ -1434,7 +1434,7 @@
 		},
 		{
 			"id": "01JWG9ZCRB9JW5F4DHMRXQ2VM8",
-			"slug": "lobster-soup",
+			"ref": "lobster-soup",
 			"name": "Lobster Soup",
 			"title": "Lobster Soup",
 			"description": "A rich and creamy soup made from deep-sea lobster, bone broth, and rare roots.\nIt nourishes the body and stirs forgotten tides in the mind.\n",
@@ -1466,7 +1466,7 @@
 		},
 		{
 			"id": "01JX727N5R6EKJ61NME0QD08RW",
-			"slug": "lunar-lantern",
+			"ref": "lunar-lantern",
 			"name": "Lunar Lantern",
 			"title": "Lunar Lantern",
 			"description": "A lantern forged with moonstone dust.\nIlluminates hidden paths and dispels minor illusions when bathed in moonlight.\n",
@@ -1507,7 +1507,7 @@
 		},
 		{
 			"id": "01J269PK47V1DWX2S1251DEASD",
-			"slug": "magic-nemo",
+			"ref": "magic-nemo",
 			"name": "Magic Nemo",
 			"title": "Magic Nemo",
 			"description": "A magical fish that will fuel your wizard powers. You are now a harry wizard, be careful of pots.",
@@ -1539,7 +1539,7 @@
 		},
 		{
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRMM",
-			"slug": "microchip-motherboard",
+			"ref": "microchip-motherboard",
 			"name": "Microchip Motherboard",
 			"title": "Microchip Motherboard",
 			"description": "A core circuit board etched with microscopic pathways and ancient logic gates.\n",
@@ -1579,7 +1579,7 @@
 		},
 		{
 			"id": "01JWA62X4JRK6MMNJBFEZENK0V",
-			"slug": "natural-beeswax",
+			"ref": "natural-beeswax",
 			"name": "Natural Beeswax",
 			"title": "Natural Beeswax",
 			"description": "Golden, pliable, and faintly fragrant.\nHarvested from industrious bees and used in candles, salves, and alchemical seals.\n",
@@ -1619,7 +1619,7 @@
 		},
 		{
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRJW",
-			"slug": "noodles-girthy-pharma-potion",
+			"ref": "noodles-girthy-pharma-potion",
 			"name": "Noodles Girthy Pharma Potion",
 			"title": "Noodles Girthy Pharma Potion",
 			"description": "A thick, glistening potion infused with unknown pharmaceutical enhancers. It buzzes with dubious vitality.",
@@ -1658,7 +1658,7 @@
 		},
 		{
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRPX",
-			"slug": "paradox-sack-of-potatoes",
+			"ref": "paradox-sack-of-potatoes",
 			"name": "Paradox Sack of Potatoes",
 			"title": "Paradox Sack of Potatoes",
 			"description": "An ordinary sack of potatoes, except for the hum. It vibrates with an energy that predates logic and the redshift.",
@@ -1696,7 +1696,7 @@
 		},
 		{
 			"id": "01KKR7QNRCKPV43AZDEN3GMME7",
-			"slug": "phoenix-feather",
+			"ref": "phoenix-feather",
 			"name": "Phoenix Feather",
 			"title": "Phoenix Feather",
 			"description": "A radiant feather that revives a fallen party member at 30% HP.",
@@ -1714,7 +1714,7 @@
 		},
 		{
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRPP",
-			"slug": "pied-piper-jacket",
+			"ref": "pied-piper-jacket",
 			"name": "Pied Piper Jacket",
 			"title": "Pied Piper Jacket",
 			"description": "A vibrant coat woven from misdirection and melody. Whistles faintly when no one’s speaking. Creatures tend to follow.",
@@ -1755,7 +1755,7 @@
 		},
 		{
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRZZ",
-			"slug": "pocket-prophet-of-profit",
+			"ref": "pocket-prophet-of-profit",
 			"name": "Pocket Prophet of Profit",
 			"title": "Pocket Prophet of Profit",
 			"description": "A whispering idol from the subprime depths. It glows faintly with insider congressional knowledge and financial dread.",
@@ -1798,7 +1798,7 @@
 		},
 		{
 			"id": "01JWCKTE3TC42CNP3X24TM0BA1",
-			"slug": "portable-powerbank",
+			"ref": "portable-powerbank",
 			"name": "Portable Powerbank",
 			"title": "Portable Powerbank",
 			"description": "A compact energy reservoir built to survive collapse and recharge whatever still runs.\nBuzzes faintly when shaken.\n",
@@ -1839,7 +1839,7 @@
 		},
 		{
 			"id": "01KKR7QNRATCW9JB66FKPMYB65",
-			"slug": "potion",
+			"ref": "potion",
 			"name": "Potion",
 			"title": "Potion",
 			"description": "A basic healing potion that restores 15 HP.",
@@ -1857,7 +1857,7 @@
 		},
 		{
 			"id": "01JW8GK1Z1DYXTB7KB8RRKP87B",
-			"slug": "propagandist-laptop",
+			"ref": "propagandist-laptop",
 			"name": "Propagandist Laptop",
 			"title": "Propagandist Laptop",
 			"description": "An outdated laptop brimming with influence campaigns and forgotten scripts. The fan runs louder when lies are typed.\nWhy does it keep saying that it runs arch? Oh god, its update is several exa-holy-bytes, are those just node modules?!\n",
@@ -1899,7 +1899,7 @@
 		},
 		{
 			"id": "01JWJGBXT7E6VSVV6E6D6N2AT5",
-			"slug": "punk-skateboard",
+			"ref": "punk-skateboard",
 			"name": "Punk Skateboard",
 			"title": "Punk Skateboard",
 			"description": "This is a custom board wrapped in duct tape, spray paint, and noise. \nBuilt for speed, flair, and unfiltered rebellion.\n",
@@ -1935,7 +1935,7 @@
 		},
 		{
 			"id": "01JX0YM8XTR59QQ83STSSM0P93",
-			"slug": "quantum-coffee",
+			"ref": "quantum-coffee",
 			"name": "Quantum Coffee",
 			"title": "Quantum Coffee",
 			"description": "A steaming cup of dark roast vibrating with quantum particles.\nSip carefully, as time may bend around you.\n",
@@ -1967,7 +1967,7 @@
 		},
 		{
 			"id": "01JX4H2NVFGJ1F74KGHYQFTN6M",
-			"slug": "quantum-energy-drink",
+			"ref": "quantum-energy-drink",
 			"name": "Quantum Energy Drink",
 			"title": "Quantum Energy Drink",
 			"description": "A neon can fizzing with entangled particles.\nQuenches your thirst while amplifying raw reaction speed.\n",
@@ -2003,7 +2003,7 @@
 		},
 		{
 			"id": "01JW9MMAPMYMX7F6C1XYMNT9BN",
-			"slug": "quick-toolbelt",
+			"ref": "quick-toolbelt",
 			"name": "Quick Toolbelt",
 			"title": "Quick Toolbelt",
 			"description": "A compact set of precision tools designed for on-the-fly fixes. Ideal for rapid-response engineers and grease-streaked survivalists.\n",
@@ -2044,7 +2044,7 @@
 		},
 		{
 			"id": "01KKR7QNRC4PXBN13CNS1YR9HY",
-			"slug": "rage-draught",
+			"ref": "rage-draught",
 			"name": "Rage Draught",
 			"title": "Rage Draught",
 			"description": "A fiery tonic that sharpens your weapon for 4 turns with doubled potency (+6 dmg).",
@@ -2069,7 +2069,7 @@
 		},
 		{
 			"id": "01KKR7QNRCTKXB470J4ENW4KCK",
-			"slug": "rations",
+			"ref": "rations",
 			"name": "Rations",
 			"title": "Rations",
 			"description": "Dried travel food that heals 8 HP. Best used out of combat.",
@@ -2087,7 +2087,7 @@
 		},
 		{
 			"id": "01JWCX61HFPET0VWXTZFDG4D06",
-			"slug": "rebel-radio",
+			"ref": "rebel-radio",
 			"name": "Rebel Radio",
 			"title": "Rebel Radio",
 			"description": "Scrappy handheld transceiver patched together with stolen parts and righteous fury.\nTuned to voices the regime can not and must not hear.\n",
@@ -2128,7 +2128,7 @@
 		},
 		{
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRRC",
-			"slug": "retro-crt-monitor",
+			"ref": "retro-crt-monitor",
 			"name": "Retro CRT Monitor",
 			"title": "Retro CRT Monitor",
 			"description": "A bulky, curved-screen terminal from the golden age of glass and static.\nDisplays 8-bit data streams and shell interfaces with haunting clarity.\n",
@@ -2168,7 +2168,7 @@
 		},
 		{
 			"id": "01JWCCEP0B8M6NPSXCW8XQPW6G",
-			"slug": "rubber-tire",
+			"ref": "rubber-tire",
 			"name": "Rubber Tire",
 			"title": "Rubber Tire",
 			"description": "A durable circular frame of vulcanized rubber.\nOnce part of a vehicle, now part of your future project—or a makeshift barricade.\n",
@@ -2208,7 +2208,7 @@
 		},
 		{
 			"id": "01KKR7QNRC5MQGKPW28R7FR2X6",
-			"slug": "runeguard-plate",
+			"ref": "runeguard-plate",
 			"name": "Runeguard Plate",
 			"title": "Runeguard Plate",
 			"description": "Ancient plate armor inscribed with protective runes. +5 armor, +5 HP, reflects 2 damage.",
@@ -2230,7 +2230,7 @@
 		},
 		{
 			"id": "01KKR7QNRCH0N5SPC9X86XRC96",
-			"slug": "rusty-sword",
+			"ref": "rusty-sword",
 			"name": "Rusty Sword",
 			"title": "Rusty Sword",
 			"description": "A worn but serviceable blade. Adds +2 attack damage.",
@@ -2247,7 +2247,7 @@
 		},
 		{
 			"id": "01JW0R6C62QK3WVJHR05XZ5K1T",
-			"slug": "salmon",
+			"ref": "salmon",
 			"name": "Salmon",
 			"title": "Salmon",
 			"description": "A fresh salmon, delicious and nutritious! It can be used for cooking!",
@@ -2279,7 +2279,7 @@
 		},
 		{
 			"id": "01KKR7QNRC1W3SZRYP385BX2ST",
-			"slug": "shadow-cloak",
+			"ref": "shadow-cloak",
 			"name": "Shadow Cloak",
 			"title": "Shadow Cloak",
 			"description": "A cloak woven from shadow threads. +3 armor, +1 attack.",
@@ -2299,7 +2299,7 @@
 		},
 		{
 			"id": "01KKR7QNRCCGPJS1BY1R6NEN8B",
-			"slug": "shadow-dagger",
+			"ref": "shadow-dagger",
 			"name": "Shadow Dagger",
 			"title": "Shadow Dagger",
 			"description": "A dark-forged dagger that strikes with precision. +3 attack, +5% crit chance.",
@@ -2321,7 +2321,7 @@
 		},
 		{
 			"id": "01KKR7QNRCN8GS74B9NMC7DDDW",
-			"slug": "smoke-bomb",
+			"ref": "smoke-bomb",
 			"name": "Smoke Bomb",
 			"title": "Smoke Bomb",
 			"description": "Releases a thick cloud of smoke, guaranteeing escape from combat.",
@@ -2339,7 +2339,7 @@
 		},
 		{
 			"id": "01JX0YKWS3482FA3MBZ9EZQD31",
-			"slug": "spicy-nacho-supreme",
+			"ref": "spicy-nacho-supreme",
 			"name": "Spicy Nacho Supreme",
 			"title": "Spicy Nacho Supreme",
 			"description": "A mountain of crunchy chips smothered in molten cheese and blistering peppers.\nSo hot it might actually cause hallucinations, but totally worth it.\n",
@@ -2375,7 +2375,7 @@
 		},
 		{
 			"id": "01FC6AB642E4FA4FF6A771F20D",
-			"slug": "spicy-ramen",
+			"ref": "spicy-ramen",
 			"name": "Spicy Ramen",
 			"title": "Spicy Ramen",
 			"description": "A bowl of fiery noodles swirling with chili oil and cosmic broth.\nRumored to restore courage and ignite the senses.\n",
@@ -2412,7 +2412,7 @@
 		},
 		{
 			"id": "01KKR7QNRCF2PAF55RNCVZ5H5S",
-			"slug": "spiked-plate",
+			"ref": "spiked-plate",
 			"name": "Spiked Plate",
 			"title": "Spiked Plate",
 			"description": "Armor covered in sharp spikes that damage attackers. +5 armor, reflects 3 damage.",
@@ -2434,7 +2434,7 @@
 		},
 		{
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRSC",
-			"slug": "spooky-skull-candle",
+			"ref": "spooky-skull-candle",
 			"name": "Spooky Skull Candle",
 			"title": "Spooky Skull Candle",
 			"description": "A macabre light source carved from bone and wax.\nFlickers when nearby spirits grow restless.\n",
@@ -2475,7 +2475,7 @@
 		},
 		{
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRBH",
-			"slug": "steel-beehive",
+			"ref": "steel-beehive",
 			"name": "Steel Beehive",
 			"title": "Steel Beehive",
 			"description": "A durable apiary unit engineered for optimal wax and honey yield.\nBuzzes softly even when no bees are visible.\n",
@@ -2516,7 +2516,7 @@
 		},
 		{
 			"id": "01JWJGC4NYQ7K4MW6YBVD6GYQ5",
-			"slug": "surfer-longboard",
+			"ref": "surfer-longboard",
 			"name": "Surfer Longboard",
 			"title": "Surfer Longboard",
 			"description": "A sleek, ocean-worn board designed for smooth cruising. \nWhether it's sand, boardwalk, or soft metal tiles, this ride flows with tidal grace.\n",
@@ -2556,7 +2556,7 @@
 		},
 		{
 			"id": "01JWG6FTDT249H8AGN439GEXQQ",
-			"slug": "swiss-cheese",
+			"ref": "swiss-cheese",
 			"name": "Swiss Cheese",
 			"title": "Swiss Cheese",
 			"description": "A wedge of holey delight, aged with care and mystery.\nSmells mild but lingers forever.\n",
@@ -2593,7 +2593,7 @@
 		},
 		{
 			"id": "01JX5620BTQ558YAXW4704SRG5",
-			"slug": "synthwave-popcorn",
+			"ref": "synthwave-popcorn",
 			"name": "Synthwave Popcorn",
 			"title": "Synthwave Popcorn",
 			"description": "A technicolor bag of popcorn that crackles with neon butter.\nPopular at retro arcades and midnight holo-concerts.\n",
@@ -2629,7 +2629,7 @@
 		},
 		{
 			"id": "01KKR7QNRC3336DJ0D3SJA8SA7",
-			"slug": "teleport-rune",
+			"ref": "teleport-rune",
 			"name": "Teleport Rune",
 			"title": "Teleport Rune",
 			"description": "An inscribed stone that teleports the party back to the nearest city.",
@@ -2647,7 +2647,7 @@
 		},
 		{
 			"id": "01JWFZW7DF410GYBT5202S753D",
-			"slug": "tex-mex-pizza",
+			"ref": "tex-mex-pizza",
 			"name": "Tex-Mex Pizza",
 			"title": "Tex-Mex Pizza",
 			"description": "A greasy flatbread of defiance topped with beans, jalapeños, questionable meats, and destiny. Spicy. Regretful. Legendary.\n",
@@ -2683,7 +2683,7 @@
 		},
 		{
 			"id": "01JWG0HJSK6K77SAKSRC31VH4T",
-			"slug": "texas-bbq-brisket",
+			"ref": "texas-bbq-brisket",
 			"name": "Texas BBQ Brisket",
 			"title": "Texas BBQ Brisket",
 			"description": "A thick-cut slab of smoked brisket slathered in secret sauce.\nTender enough to cry over.\nBold enough to punch fate in the face.\n",
@@ -2720,7 +2720,7 @@
 		},
 		{
 			"id": "01JWG51QXSF2QB8G743A60W5TV",
-			"slug": "tomato-pasta-sauce",
+			"ref": "tomato-pasta-sauce",
 			"name": "Tomato Pasta Sauce",
 			"title": "Tomato Pasta Sauce",
 			"description": "A hearty, slow-simmered sauce made with sun-ripened tomatoes, garlic, herbs, and just enough ambition to feed a village or start a rebellion.\n",
@@ -2752,7 +2752,7 @@
 		},
 		{
 			"id": "01KKR7QNRCECPB1TANAW22C8B2",
-			"slug": "trap-kit",
+			"ref": "trap-kit",
 			"name": "Trap Kit",
 			"title": "Trap Kit",
 			"description": "Deploys a trap that reflects 5 damage back to attackers for 2 turns.",
@@ -2777,7 +2777,7 @@
 		},
 		{
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRSK",
-			"slug": "undead-humanoid-skull",
+			"ref": "undead-humanoid-skull",
 			"name": "Undead Humanoid Skull",
 			"title": "Undead Humanoid Skull",
 			"description": "The cranium of a fallen being, drained of soul but rich in residue.\nStill warm in places it shouldn’t be.\n",
@@ -2818,7 +2818,7 @@
 		},
 		{
 			"id": "01JWJCC6PEH1BFGXGTD6ETW0TV",
-			"slug": "vampire-blood-gelato",
+			"ref": "vampire-blood-gelato",
 			"name": "Vampire Blood Gelato",
 			"title": "Vampire Blood Gelato",
 			"description": "\"A rich, frozen dessert crafted from distilled vampire blood, bitter nightfruit, and crowned with a candied heart. Sweetness meets sin.\"\n",
@@ -2850,7 +2850,7 @@
 		},
 		{
 			"id": "01KKR7QNRCAJDADA45HXS0KGWF",
-			"slug": "vampiric-blade",
+			"ref": "vampiric-blade",
 			"name": "Vampiric Blade",
 			"title": "Vampiric Blade",
 			"description": "A cursed sword that siphons life force. +3 attack, 20% lifesteal.",
@@ -2872,7 +2872,7 @@
 		},
 		{
 			"id": "01JWJC0PYN7P81PD279GGNVYA4",
-			"slug": "vampirie-blood-champagne",
+			"ref": "vampirie-blood-champagne",
 			"name": "Vampire Blood Champagne",
 			"title": "Vampire Blood Champagne",
 			"description": "A luxurious sparkling crimson drink brewed from fermented nightberries and a drop of ancient blood. \nThe bottle fizzes with forbidden joy and primal allure.\n",
@@ -2904,7 +2904,7 @@
 		},
 		{
 			"id": "01JWCWCH9FEJXHMW48JYJ94Q8F",
-			"slug": "vhs-tape",
+			"ref": "vhs-tape",
 			"name": "VHS Tape",
 			"title": "VHS Tape",
 			"description": "A magnetic black rectangle filled with grainy memories and static secrets.\nNo label.\nNo mercy.\n",
@@ -2944,7 +2944,7 @@
 		},
 		{
 			"id": "01KKR7QNRCYBZP4ZZ0WCCBBKA4",
-			"slug": "vitality-potion",
+			"ref": "vitality-potion",
 			"name": "Vitality Potion",
 			"title": "Vitality Potion",
 			"description": "A potent healing potion that restores 25 HP.",
@@ -2962,7 +2962,7 @@
 		},
 		{
 			"id": "01JWG6H44RKRK9TKTHNGRNMA2N",
-			"slug": "vodka",
+			"ref": "vodka",
 			"name": "Vodka",
 			"title": "Vodka",
 			"description": "A clear, high-proof spirit distilled from fermented starch. \nBurns the throat, blurs the edges, and briefly silences the voices.\n",
@@ -2999,7 +2999,7 @@
 		},
 		{
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRVK",
-			"slug": "vodka-sauce",
+			"ref": "vodka-sauce",
 			"name": "Vodka Sauce",
 			"title": "Vodka Sauce",
 			"description": "A smooth and creamy tomato sauce spiked with ethanol extract.\nComfort food with an edge, best used warm… or as improvised fuel.\n",
@@ -3036,7 +3036,7 @@
 		},
 		{
 			"id": "01KKR7QNRCF2G0B210XXC8HSVA",
-			"slug": "void-scythe",
+			"ref": "void-scythe",
 			"name": "Void Scythe",
 			"title": "Void Scythe",
 			"description": "A weapon from beyond the veil. +7 attack, 15% lifesteal.",
@@ -3058,7 +3058,7 @@
 		},
 		{
 			"id": "01KKR7QNRCT4AA6ZG8P0Z37NM0",
-			"slug": "ward",
+			"ref": "ward",
 			"name": "Ward",
 			"title": "Ward",
 			"description": "A protective charm that grants the Shielded effect for 2 turns.",
@@ -3083,7 +3083,7 @@
 		},
 		{
 			"id": "01KKR7QNRCB0P53ECK35DY6AZQ",
-			"slug": "whetstone",
+			"ref": "whetstone",
 			"name": "Whetstone",
 			"title": "Whetstone",
 			"description": "Sharpens your weapon, granting +3 bonus damage for 3 turns.",
@@ -3108,7 +3108,7 @@
 		},
 		{
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRMB",
-			"slug": "z90-murderbot",
+			"ref": "z90-murderbot",
 			"name": "Z90 MurderBot",
 			"title": "Z90 MurderBot",
 			"description": "A pocket-sized murder console with a glitched smile. Booting it unleashes unpredictable swarms—some helpful, some... not.",

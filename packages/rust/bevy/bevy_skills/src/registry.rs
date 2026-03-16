@@ -4,16 +4,16 @@ use bevy::prelude::*;
 
 use crate::xp::XpCurve;
 
-/// Stable identifier for a skill, derived from its slug.
+/// Stable identifier for a skill, derived from its ref.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct SkillId(pub u64);
 
 impl SkillId {
-    /// Create a skill ID from a slug using a stable hash.
-    pub fn from_slug(slug: &str) -> Self {
+    /// Create a skill ID from a ref using a stable hash.
+    pub fn from_ref(r: &str) -> Self {
         use std::hash::{Hash, Hasher};
         let mut h = std::collections::hash_map::DefaultHasher::new();
-        slug.hash(&mut h);
+        r.hash(&mut h);
         Self(h.finish())
     }
 }
@@ -22,7 +22,7 @@ impl SkillId {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct SkillDef {
     /// URL-safe identifier (e.g. "mining", "cooking", "swordsmanship").
-    pub slug: String,
+    pub r#ref: String,
     /// Display name shown in UI.
     pub name: String,
     /// XP curve for this skill. If None, uses the registry default.
@@ -35,20 +35,20 @@ pub struct SkillDef {
 
 /// Bevy resource holding all skill definitions.
 ///
-/// Loaded at startup. Provides lookups by [`SkillId`] or slug.
+/// Loaded at startup. Provides lookups by [`SkillId`] or ref.
 /// Games register their skills here before any XP is granted.
 #[derive(Resource, Default)]
 pub struct SkillRegistry {
     defs: HashMap<SkillId, SkillDef>,
-    by_slug: HashMap<String, SkillId>,
+    by_ref: HashMap<String, SkillId>,
     default_curve: XpCurve,
 }
 
 impl SkillRegistry {
     /// Register a new skill definition.
     pub fn register(&mut self, def: SkillDef) -> SkillId {
-        let id = SkillId::from_slug(&def.slug);
-        self.by_slug.insert(def.slug.clone(), id);
+        let id = SkillId::from_ref(&def.r#ref);
+        self.by_ref.insert(def.r#ref.clone(), id);
         self.defs.insert(id, def);
         id
     }
@@ -70,15 +70,15 @@ impl SkillRegistry {
         self.defs.get(&id)
     }
 
-    /// Look up a skill definition by slug.
-    pub fn get_by_slug(&self, slug: &str) -> Option<&SkillDef> {
-        let id = self.by_slug.get(slug)?;
+    /// Look up a skill definition by ref.
+    pub fn get_by_ref(&self, r: &str) -> Option<&SkillDef> {
+        let id = self.by_ref.get(r)?;
         self.defs.get(id)
     }
 
-    /// Resolve a slug to a [`SkillId`].
-    pub fn id_for_slug(&self, slug: &str) -> Option<SkillId> {
-        self.by_slug.get(slug).copied()
+    /// Resolve a ref to a [`SkillId`].
+    pub fn id_for_ref(&self, r: &str) -> Option<SkillId> {
+        self.by_ref.get(r).copied()
     }
 
     /// Get the XP curve for a skill, falling back to the registry default.

@@ -12,8 +12,8 @@ export const GET = async () => {
 	const items: any[] = [];
 
 	for (const entry of itemEntries) {
-		const { id, name, key, slug } = entry.data;
-		if (!id || !name || key === undefined || !slug) continue;
+		const { id, name, key, ref } = entry.data;
+		if (!id || !name || key === undefined || !ref) continue;
 
 		const item = {
 			...entry.data,
@@ -25,7 +25,7 @@ export const GET = async () => {
 		index[id] = idx;
 		index[name] = idx;
 		index[String(key)] = idx;
-		index[slug] = idx;
+		index[ref] = idx;
 	}
 
 	validateItemUniqueness(items);

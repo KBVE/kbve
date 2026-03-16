@@ -206,7 +206,7 @@ export type MapExtension = z.infer<typeof MapExtensionSchema>;
 // Region
 export const RegionSchema = z.object({
 	id: z.string(),
-	slug: z.string(),
+	ref: z.string(),
 	name: z.string(),
 	description: z.string().optional(),
 	lore: z.string().optional(),
@@ -329,7 +329,7 @@ export type GridPos = z.infer<typeof GridPosSchema>;
 // PointOfInterest
 export const PointOfInterestSchema = z.object({
 	id: z.string(),
-	slug: z.string(),
+	ref: z.string(),
 	name: z.string(),
 	description: z.string().optional(),
 	type: PoiTypeSchema,
@@ -445,7 +445,7 @@ export type DungeonConfig = z.infer<typeof DungeonConfigSchema>;
 // Zone
 export const ZoneSchema = z.object({
 	id: z.string(),
-	slug: z.string(),
+	ref: z.string(),
 	name: z.string(),
 	description: z.string().optional(),
 	lore: z.string().optional(),
@@ -492,7 +492,7 @@ export type BuildCost = z.infer<typeof BuildCostSchema>;
 // WorldObjectDef
 export const WorldObjectDefSchema = z.object({
 	id: z.string(),
-	slug: z.string(),
+	ref: z.string(),
 	name: z.string(),
 	description: z.string().optional(),
 	type: WorldObjectTypeSchema,
