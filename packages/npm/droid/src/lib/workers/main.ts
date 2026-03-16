@@ -8,7 +8,7 @@ import type { CanvasWorkerAPI } from './canvas-worker';
 import { getModManager } from '../mod/mod-manager';
 import { scopeData } from './data';
 import { dispatchAsync, renderVNode } from './tools';
-import type { VirtualNode } from '../types/modules';
+import type { VirtualNode, ModManager } from '../types/modules';
 import type { PanelPayload, PanelId } from '../types/panel-types';
 import { DroidEvents } from './events';
 import {
@@ -41,6 +41,160 @@ type WorkerUIMessage =
 const EXPECTED_DB_VERSION = '1.0.3';
 let initialized = false;
 let _initPromise: Promise<void> | null = null;
+
+// --- Scale State ---
+export type DroidScaleLevel = 'full' | 'minimal';
+
+interface DroidWorkerRefs {
+	canvasWorkerRaw?: Worker;
+	canvasWorkerProxy?: Remote<CanvasWorkerAPI>;
+	canvasWorkerOpts?: { workerRef?: Worker; workerURL?: string };
+	modInitOpts?: { resolver?: (url: string) => string };
+	gatewayConfig?: GatewayConfig;
+}
+
+let _scaleLevel: DroidScaleLevel = 'full';
+const _workerRefs: DroidWorkerRefs = {};
+
+/**
+ * Returns the current droid scale level.
+ */
+export function getScaleLevel(): DroidScaleLevel {
+	return _scaleLevel;
+}
+
+/**
+ * Downscale droid to minimal mode: terminates canvas worker, mod workers,
+ * gateway worker pool, and overlay manager. Keeps DB SharedWorker + WS
+ * SharedWorker alive for session/auth persistence.
+ *
+ * Call this before loading heavy WASM/pthread workloads.
+ */
+export async function downscale(): Promise<void> {
+	if (_scaleLevel === 'minimal') {
+		console.log('[DROID] Already in minimal mode');
+		return;
+	}
+
+	console.log('[DROID] Downscaling to minimal mode...');
+
+	// 1. Destroy overlay manager (unbinds canvas)
+	if (window.kbve?.overlay) {
+		try {
+			await (window.kbve.overlay as OverlayManager).destroy();
+		} catch (e) {
+			console.warn('[DROID] Overlay destroy error:', e);
+		}
+		delete window.kbve.overlay;
+	}
+
+	// 2. Terminate all mods
+	if (window.kbve?.mod) {
+		const mod = window.kbve.mod as ModManager;
+		for (const handle of Object.values(mod.registry)) {
+			try {
+				mod.unload(handle.id);
+			} catch (e) {
+				console.warn('[DROID] Mod unload error:', e);
+			}
+		}
+	}
+
+	// 3. Terminate gateway (worker pool + strategy workers)
+	if (window.kbve?.gateway) {
+		try {
+			(window.kbve.gateway as SupabaseGateway).terminate();
+		} catch (e) {
+			console.warn('[DROID] Gateway terminate error:', e);
+		}
+		delete window.kbve.gateway;
+	}
+
+	// 4. Terminate canvas worker
+	if (_workerRefs.canvasWorkerRaw) {
+		try {
+			_workerRefs.canvasWorkerRaw.terminate();
+		} catch (e) {
+			console.warn('[DROID] Canvas worker terminate error:', e);
+		}
+		_workerRefs.canvasWorkerRaw = undefined;
+		_workerRefs.canvasWorkerProxy = undefined;
+		if (window.kbve?.uiux) {
+			(window.kbve.uiux as Record<string, unknown>)['worker'] = undefined;
+		}
+	}
+
+	_scaleLevel = 'minimal';
+
+	window.kbve?.events?.emit('droid-downscale', {
+		timestamp: Date.now(),
+		level: 'minimal',
+	});
+
+	console.log('[DROID] Downscaled to minimal mode (DB + WS workers active)');
+}
+
+/**
+ * Upscale droid back to full mode: re-initializes canvas worker, mod manager,
+ * overlay manager, and gateway.
+ *
+ * Call this when the heavy workload is done and you want full droid features.
+ */
+export async function upscale(): Promise<void> {
+	if (_scaleLevel === 'full') {
+		console.log('[DROID] Already in full mode');
+		return;
+	}
+
+	console.log('[DROID] Upscaling to full mode...');
+
+	try {
+		// 1. Re-init canvas worker
+		const canvasWorker = initDedicatedWorker(
+			'canvas-worker',
+			_workerRefs.canvasWorkerOpts,
+		);
+		_workerRefs.canvasWorkerRaw = canvasWorker;
+		const canvasProxy = wrap<CanvasWorkerAPI>(canvasWorker);
+		_workerRefs.canvasWorkerProxy = canvasProxy;
+
+		if (window.kbve?.uiux) {
+			(window.kbve.uiux as Record<string, unknown>)['worker'] =
+				canvasProxy;
+		}
+
+		// 2. Re-init mod manager
+		if (window.kbve?.mod) {
+			const mod = await getModManager(_workerRefs.modInitOpts?.resolver);
+			window.kbve.mod = mod;
+		}
+
+		// 3. Re-init gateway if we had one
+		if (_workerRefs.gatewayConfig) {
+			const gateway = new SupabaseGateway(_workerRefs.gatewayConfig);
+			window.kbve.gateway = gateway;
+		}
+
+		// 4. Re-init overlay manager
+		const overlay = new OverlayManager({
+			preferredPath: 'auto',
+			canvasWorker: canvasProxy,
+		});
+		window.kbve.overlay = overlay;
+
+		_scaleLevel = 'full';
+
+		window.kbve?.events?.emit('droid-upscale', {
+			timestamp: Date.now(),
+			level: 'full',
+		});
+
+		console.log('[DROID] Upscaled to full mode');
+	} catch (err) {
+		console.error('[DROID] Upscale failed:', err);
+		throw err;
+	}
+}
 
 export function resolveWorkerURL(name: string, fallback?: string): string {
 	if (!name)
@@ -143,9 +297,9 @@ async function initWsComlink(opts?: {
 async function initCanvasComlink(opts?: {
 	workerRef?: Worker;
 	workerURL?: string;
-}): Promise<Remote<CanvasWorkerAPI>> {
+}): Promise<{ proxy: Remote<CanvasWorkerAPI>; raw: Worker }> {
 	const worker = initDedicatedWorker('canvas-worker', opts);
-	return wrap<CanvasWorkerAPI>(worker);
+	return { proxy: wrap<CanvasWorkerAPI>(worker), raw: worker };
 }
 
 async function finalize(
@@ -490,10 +644,17 @@ export async function main(opts?: {
 			try {
 				console.log('[DROID] Initializing workers...');
 
-				const canvas = await initCanvasComlink({
+				const canvasOpts = {
 					workerRef: opts?.workerRefs?.canvasWorker,
 					workerURL: opts?.workerURLs?.['canvasWorker'],
-				});
+				};
+				const { proxy: canvas, raw: canvasRaw } =
+					await initCanvasComlink(canvasOpts);
+
+				// Store refs for downscale/upscale
+				_workerRefs.canvasWorkerRaw = canvasRaw;
+				_workerRefs.canvasWorkerProxy = canvas;
+				_workerRefs.canvasWorkerOpts = canvasOpts;
 
 				const { api, isFirstConnection: dbFirst } =
 					await initStorageComlink({
@@ -514,9 +675,10 @@ export async function main(opts?: {
 				const isLeaderTab = dbFirst && wsFirst;
 
 				console.log('[DROID] Initializing mod manager...');
-				const mod = await getModManager(
-					(url) => opts?.workerURLs?.[url] ?? url,
-				);
+				const modResolver = (url: string) =>
+					opts?.workerURLs?.[url] ?? url;
+				_workerRefs.modInitOpts = { resolver: modResolver };
+				const mod = await getModManager(modResolver);
 				const events = DroidEvents;
 
 				for (const handle of Object.values(mod.registry)) {
@@ -542,6 +704,7 @@ export async function main(opts?: {
 				let gateway: SupabaseGateway | undefined;
 				if (opts?.gateway) {
 					console.log('[DROID] Initializing SupabaseGateway...');
+					_workerRefs.gatewayConfig = opts.gateway;
 					gateway = new SupabaseGateway(opts.gateway);
 				}
 
@@ -560,6 +723,9 @@ export async function main(opts?: {
 					mod,
 					events,
 					overlay,
+					downscale,
+					upscale,
+					scaleLevel: getScaleLevel,
 					...(gateway ? { gateway } : {}),
 				};
 

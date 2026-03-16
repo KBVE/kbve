@@ -1,3 +1,10 @@
+export {
+	downscale,
+	upscale,
+	getScaleLevel,
+	type DroidScaleLevel,
+} from './workers/main.js';
+
 export async function droid(opts?: {
 	workerURLs?: Record<string, string>;
 	workerRefs?: {
