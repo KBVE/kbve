@@ -41,3 +41,13 @@ def get_logger(name: str = __name__) -> logging.Logger:
 
 # Create a default app logger instance
 logger = logging.getLogger("app")
+
+
+def sanitize_log(value: str) -> str:
+    """
+    Sanitize a user-provided value for safe inclusion in log messages.
+    Strips newlines and carriage returns to prevent log injection (CWE-117).
+    """
+    if not isinstance(value, str):
+        value = str(value)
+    return value.replace('\n', '').replace('\r', '')
