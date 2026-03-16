@@ -1,169 +1,70 @@
-//! Lightweight BVH (Bounding Volume Hierarchy) with AABBs for hover raycasting.
+//! Tile-based hover map for O(1) cursor-to-entity lookup.
 //!
-//! Replaces avian3d `SpatialQuery::cast_ray` for hover detection with a
-//! purpose-built structure that only indexes hoverable entities — far fewer
-//! nodes than the full physics world.
+//! Every hoverable entity (tree, rock, flower, mushroom) has a [`TileCoord`].
+//! This module maintains a `DashMap<(i32, i32), Entity>` that maps tile
+//! coordinates to their hoverable entity. Hover detection becomes:
 //!
-//! Tree construction is offloaded via [`bevy_tasker::spawn`] so the main
-//! thread only collects entity positions and swaps in the finished tree.
+//! 1. Unproject cursor screen position to world XZ via the orthographic camera.
+//! 2. Convert world XZ to tile coordinates.
+//! 3. Look up the tile (+ neighbors for large objects) in the DashMap.
+//!
+//! O(1) insert, O(1) remove, O(1) lookup. No tree rebuild, no worker dispatch.
+//! Thread-safe via DashMap for networked object placements.
 
 use bevy::prelude::*;
-use crossbeam_channel::{Receiver, Sender};
+use dashmap::DashMap;
 
 use super::scene_objects::HoverOutline;
+use super::tilemap::TileCoord;
 
 // ---------------------------------------------------------------------------
-// AABB
+// HoverMap resource
 // ---------------------------------------------------------------------------
 
-#[derive(Clone, Copy)]
-struct Aabb {
-    min: Vec3,
-    max: Vec3,
-}
-
-// Safety: Vec3 is Send+Sync, Aabb is just two Vec3s.
-unsafe impl Send for Aabb {}
-unsafe impl Sync for Aabb {}
-
-impl Aabb {
-    #[inline]
-    fn from_center_half(center: Vec3, half: Vec3) -> Self {
-        Self {
-            min: center - half,
-            max: center + half,
-        }
-    }
-
-    #[inline]
-    fn merge(a: &Self, b: &Self) -> Self {
-        Self {
-            min: a.min.min(b.min),
-            max: a.max.max(b.max),
-        }
-    }
-
-    #[inline]
-    fn ray_hit(&self, origin: Vec3, inv_dir: Vec3, max_t: f32) -> Option<f32> {
-        let t1 = (self.min - origin) * inv_dir;
-        let t2 = (self.max - origin) * inv_dir;
-
-        let tmin = t1.min(t2);
-        let tmax = t1.max(t2);
-
-        let enter = tmin.x.max(tmin.y).max(tmin.z).max(0.0);
-        let exit = tmax.x.min(tmax.y).min(tmax.z);
-
-        if exit >= enter && enter <= max_t {
-            Some(enter)
-        } else {
-            None
-        }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// BVH node
-// ---------------------------------------------------------------------------
-
-#[derive(Clone)]
-struct BvhNode {
-    aabb: Aabb,
-    entity: Option<Entity>,
-    children: [u32; 2],
-}
-
-// Safety: Entity is Send+Sync (it's an index+generation u64).
-unsafe impl Send for BvhNode {}
-unsafe impl Sync for BvhNode {}
-
-// ---------------------------------------------------------------------------
-// Build input leaf
-// ---------------------------------------------------------------------------
-
-struct BuildLeaf {
-    aabb: Aabb,
-    entity: Entity,
-    center: Vec3,
-}
-
-// Safety: same as above — Entity + Vec3 are Send.
-unsafe impl Send for BuildLeaf {}
-
-// ---------------------------------------------------------------------------
-// HoverBvh resource
-// ---------------------------------------------------------------------------
-
+/// DashMap from tile (tx, tz) → hoverable entity. Thread-safe for network inserts.
 #[derive(Resource)]
-pub struct HoverBvh {
-    nodes: Vec<BvhNode>,
-    rx: Receiver<Vec<BvhNode>>,
-    tx: Sender<Vec<BvhNode>>,
-    dirty: bool,
-    building: bool,
+pub struct HoverMap {
+    pub map: DashMap<(i32, i32), Entity>,
 }
 
-impl Default for HoverBvh {
+impl Default for HoverMap {
     fn default() -> Self {
-        let (tx, rx) = crossbeam_channel::bounded(1);
         Self {
-            nodes: Vec::new(),
-            rx,
-            tx,
-            dirty: true,
-            building: false,
+            map: DashMap::with_capacity(256),
         }
     }
 }
 
-impl HoverBvh {
-    pub fn mark_dirty(&mut self) {
-        self.dirty = true;
-    }
+impl HoverMap {
+    /// Look up which entity (if any) occupies a world XZ position.
+    /// Checks the target tile and its 8 neighbors to handle objects that
+    /// visually overlap adjacent tiles.
+    pub fn lookup(&self, world_x: f32, world_z: f32) -> Option<Entity> {
+        let tx = world_x.floor() as i32;
+        let tz = world_z.floor() as i32;
 
-    pub fn cast_ray(&self, origin: Vec3, direction: Vec3, max_dist: f32) -> Option<Entity> {
-        if self.nodes.is_empty() {
-            return None;
+        // Check center tile first (most likely hit).
+        if let Some(entry) = self.map.get(&(tx, tz)) {
+            return Some(*entry);
         }
 
-        let inv_dir = Vec3::new(
-            safe_inv(direction.x),
-            safe_inv(direction.y),
-            safe_inv(direction.z),
-        );
-
-        let mut best_t = max_dist;
-        let mut best_entity: Option<Entity> = None;
-
-        let mut stack = [0u32; 64];
-        let mut sp = 1;
-        stack[0] = 0;
-
-        while sp > 0 {
-            sp -= 1;
-            let ni = stack[sp] as usize;
-            let node = &self.nodes[ni];
-
-            if node.aabb.ray_hit(origin, inv_dir, best_t).is_none() {
-                continue;
-            }
-
-            if let Some(entity) = node.entity {
-                if let Some(t) = node.aabb.ray_hit(origin, inv_dir, best_t) {
-                    if t < best_t {
-                        best_t = t;
-                        best_entity = Some(entity);
-                    }
-                }
-            } else if sp + 2 <= 64 {
-                stack[sp] = node.children[0];
-                sp += 1;
-                stack[sp] = node.children[1];
-                sp += 1;
+        // Check 8 neighbors for objects that visually span tiles.
+        for &(dx, dz) in &[
+            (-1, -1),
+            (-1, 0),
+            (-1, 1),
+            (0, -1),
+            (0, 1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
+        ] {
+            if let Some(entry) = self.map.get(&(tx + dx, tz + dz)) {
+                return Some(*entry);
             }
         }
 
-        best_entity
+        None
     }
 }
 
@@ -171,161 +72,63 @@ impl HoverBvh {
 // Systems
 // ---------------------------------------------------------------------------
 
-/// Check for completed builds, then kick off new ones when dirty.
-pub fn rebuild_hover_bvh(
-    mut bvh: ResMut<HoverBvh>,
-    query: Query<(Entity, &GlobalTransform, &HoverOutline)>,
+/// Insert newly spawned hoverable entities into the map.
+pub fn insert_hoverables(
+    query: Query<(Entity, &TileCoord), Added<HoverOutline>>,
+    hover_map: Res<HoverMap>,
 ) {
-    // Drain completed build from worker.
-    if let Ok(nodes) = bvh.rx.try_recv() {
-        bvh.nodes = nodes;
-        bvh.building = false;
-    }
-
-    // Don't start a new build while one is in flight.
-    if bvh.building || !bvh.dirty {
-        return;
-    }
-    bvh.dirty = false;
-
-    // Collect leaf data on main thread (ECS queries are main-thread only).
-    let items: Vec<(Entity, Vec3, Vec3)> = query
-        .iter()
-        .map(|(entity, gt, outline)| (entity, gt.translation(), outline.half_extents))
-        .collect();
-
-    if items.is_empty() {
-        bvh.nodes.clear();
-        return;
-    }
-
-    // Dispatch build to worker.
-    bvh.building = true;
-    let tx = bvh.tx.clone();
-    bevy_tasker::spawn(async move {
-        let nodes = build_bvh(items);
-        let _ = tx.send(nodes);
-    })
-    .detach();
-}
-
-/// Mark BVH dirty when hoverable entities are added or removed.
-pub fn mark_bvh_dirty_on_change(
-    added: Query<(), Added<HoverOutline>>,
-    removed: RemovedComponents<HoverOutline>,
-    mut bvh: ResMut<HoverBvh>,
-) {
-    if !added.is_empty() || !removed.is_empty() {
-        bvh.mark_dirty();
+    for (entity, tile) in &query {
+        hover_map.map.insert((tile.tx, tile.tz), entity);
     }
 }
 
-// ---------------------------------------------------------------------------
-// Off-thread BVH construction
-// ---------------------------------------------------------------------------
-
-fn build_bvh(items: Vec<(Entity, Vec3, Vec3)>) -> Vec<BvhNode> {
-    let mut leaves: Vec<BuildLeaf> = items
-        .into_iter()
-        .map(|(entity, center, half)| BuildLeaf {
-            aabb: Aabb::from_center_half(center, half),
-            entity,
-            center,
-        })
-        .collect();
-
-    let mut nodes = Vec::with_capacity(leaves.len() * 2);
-    build_recursive(&mut nodes, &mut leaves);
-    nodes
+/// Remove despawned hoverable entities from the map.
+pub fn remove_hoverables(mut removed: RemovedComponents<HoverOutline>, hover_map: Res<HoverMap>) {
+    for entity in removed.read() {
+        // DashMap doesn't have remove-by-value, so scan for the entity.
+        // This only runs when entities are despawned (rare), not per-frame.
+        hover_map.map.retain(|_, &mut e| e != entity);
+    }
 }
 
-fn build_recursive(nodes: &mut Vec<BvhNode>, leaves: &mut [BuildLeaf]) -> u32 {
-    let idx = nodes.len() as u32;
-
-    if leaves.len() == 1 {
-        nodes.push(BvhNode {
-            aabb: leaves[0].aabb,
-            entity: Some(leaves[0].entity),
-            children: [0, 0],
-        });
-        return idx;
-    }
-
-    if leaves.len() == 2 {
-        let bounds = Aabb::merge(&leaves[0].aabb, &leaves[1].aabb);
-        nodes.push(BvhNode {
-            aabb: bounds,
-            entity: None,
-            children: [idx + 1, idx + 2],
-        });
-        nodes.push(BvhNode {
-            aabb: leaves[0].aabb,
-            entity: Some(leaves[0].entity),
-            children: [0, 0],
-        });
-        nodes.push(BvhNode {
-            aabb: leaves[1].aabb,
-            entity: Some(leaves[1].entity),
-            children: [0, 0],
-        });
-        return idx;
-    }
-
-    let mut bounds = leaves[0].aabb;
-    for leaf in leaves.iter().skip(1) {
-        bounds = Aabb::merge(&bounds, &leaf.aabb);
-    }
-
-    let extent = bounds.max - bounds.min;
-    let axis = if extent.x >= extent.y && extent.x >= extent.z {
-        0
-    } else if extent.y >= extent.z {
-        1
-    } else {
-        2
+/// Unproject cursor screen position to world XZ on the ground plane (Y ≈ 0).
+pub fn cursor_to_world_xz(
+    cam_gt: &GlobalTransform,
+    projection: &Projection,
+    window: &Window,
+    cursor_pos: Vec2,
+) -> Option<Vec2> {
+    let Projection::Orthographic(ortho) = projection else {
+        return None;
     };
-    let mid = (bounds.min[axis] + bounds.max[axis]) * 0.5;
+    let viewport_height = match ortho.scaling_mode {
+        bevy::camera::ScalingMode::FixedVertical { viewport_height } => viewport_height,
+        _ => return None,
+    };
+    let half_h = (viewport_height / 2.0) * ortho.scale;
+    let aspect = window.width() / window.height();
+    let half_w = half_h * aspect;
 
-    let mut split = partition_by(leaves, |l| l.center[axis] < mid);
-    if split == 0 || split == leaves.len() {
-        split = leaves.len() / 2;
+    let ndc_x = (cursor_pos.x / window.width()) * 2.0 - 1.0;
+    let ndc_y = 1.0 - (cursor_pos.y / window.height()) * 2.0;
+
+    let cam_tf = cam_gt.compute_transform();
+    let right = cam_tf.right().as_vec3();
+    let up = cam_tf.up().as_vec3();
+    let forward = cam_tf.forward().as_vec3();
+
+    let ray_origin = cam_tf.translation + right * (ndc_x * half_w) + up * (ndc_y * half_h);
+
+    // Intersect ray with Y=0 ground plane.
+    // ray_origin.y + t * forward.y = 0  →  t = -ray_origin.y / forward.y
+    if forward.y.abs() < 1e-6 {
+        return None; // Ray is parallel to ground
+    }
+    let t = -ray_origin.y / forward.y;
+    if t < 0.0 {
+        return None; // Ground is behind camera
     }
 
-    let placeholder = nodes.len();
-    nodes.push(BvhNode {
-        aabb: bounds,
-        entity: None,
-        children: [0, 0],
-    });
-
-    let left = build_recursive(nodes, &mut leaves[..split]);
-    let right = build_recursive(nodes, &mut leaves[split..]);
-
-    nodes[placeholder].children = [left, right];
-
-    idx
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-fn partition_by<T>(slice: &mut [T], pred: impl Fn(&T) -> bool) -> usize {
-    let mut i = 0;
-    for j in 0..slice.len() {
-        if pred(&slice[j]) {
-            slice.swap(i, j);
-            i += 1;
-        }
-    }
-    i
-}
-
-#[inline]
-fn safe_inv(x: f32) -> f32 {
-    if x.abs() < 1e-10 {
-        if x >= 0.0 { 1e10 } else { -1e10 }
-    } else {
-        1.0 / x
-    }
+    let hit = ray_origin + forward * t;
+    Some(Vec2::new(hit.x, hit.z))
 }

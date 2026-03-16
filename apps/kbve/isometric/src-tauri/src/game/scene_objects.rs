@@ -231,12 +231,12 @@ pub struct SceneObjectsPlugin;
 impl Plugin for SceneObjectsPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<LastCursorPos>();
-        app.init_resource::<super::hover_bvh::HoverBvh>();
+        app.init_resource::<super::hover_bvh::HoverMap>();
         app.add_systems(
             Update,
             (
-                super::hover_bvh::mark_bvh_dirty_on_change,
-                super::hover_bvh::rebuild_hover_bvh,
+                super::hover_bvh::insert_hoverables,
+                super::hover_bvh::remove_hoverables,
                 animate_crystal.run_if(any_with_component::<AnimatedCrystal>),
                 rotate_boxes.run_if(any_with_component::<RotatingBox>),
                 update_occlusion.run_if(any_with_component::<Occludable>),
@@ -247,7 +247,7 @@ impl Plugin for SceneObjectsPlugin {
             ),
         );
 
-        // BVH raycast hover — replaces avian3d SpatialQuery for hover detection
+        // Tile-based hover detection via DashMap lookup
         #[cfg(not(target_arch = "wasm32"))]
         app.add_systems(Update, raycast_hover_detection_desktop);
         #[cfg(target_arch = "wasm32")]
@@ -265,14 +265,13 @@ pub(crate) fn on_pointer_out(trigger: On<Pointer<Out>>, mut commands: Commands) 
     commands.entity(trigger.event_target()).remove::<Hovered>();
 }
 
-/// Custom hover detection using avian3d raycasting through the scene camera.
-/// Scene camera renders to offscreen texture, so MeshPickingPlugin can't map cursor.
+/// Tile-based hover detection: unproject cursor to world XZ, look up DashMap.
 #[cfg(not(target_arch = "wasm32"))]
 fn raycast_hover_detection_desktop(
     windows: Query<&Window, With<PrimaryWindow>>,
     cursor: Res<BridgedCursorPosition>,
     camera_query: Query<(&GlobalTransform, &Projection), With<IsometricCamera>>,
-    bvh: Res<super::hover_bvh::HoverBvh>,
+    hover_map: Res<super::hover_bvh::HoverMap>,
     current_hovered: Query<Entity, With<Hovered>>,
     mut last_cursor: ResMut<LastCursorPos>,
     mut commands: Commands,
@@ -282,7 +281,6 @@ fn raycast_hover_detection_desktop(
         return;
     };
 
-    // Remove hover if cursor is outside window
     let Some(cursor_pos) = cursor.position else {
         last_cursor.0 = None;
         for entity in &current_hovered {
@@ -291,7 +289,7 @@ fn raycast_hover_detection_desktop(
         return;
     };
 
-    // Skip expensive raycast if cursor hasn't moved
+    // Skip if cursor hasn't moved
     if let Some(prev) = last_cursor.0 {
         if (prev - cursor_pos).length_squared() < 0.5 {
             return;
@@ -299,35 +297,10 @@ fn raycast_hover_detection_desktop(
     }
     last_cursor.0 = Some(cursor_pos);
 
-    // Extract orthographic half-extents from the scene camera's projection
-    let Projection::Orthographic(ortho) = projection else {
-        return;
-    };
-    let viewport_height = match ortho.scaling_mode {
-        bevy::camera::ScalingMode::FixedVertical { viewport_height } => viewport_height,
-        _ => return,
-    };
-    let half_h = (viewport_height / 2.0) * ortho.scale;
-    let aspect = window.width() / window.height();
-    let half_w = half_h * aspect;
+    // Unproject cursor to world XZ, then tile lookup
+    let new_hovered = super::hover_bvh::cursor_to_world_xz(cam_gt, projection, window, cursor_pos)
+        .and_then(|xz| hover_map.lookup(xz.x, xz.y));
 
-    // Cursor to NDC
-    let ndc_x = (cursor_pos.x / window.width()) * 2.0 - 1.0;
-    let ndc_y = 1.0 - (cursor_pos.y / window.height()) * 2.0;
-
-    // Compute orthographic ray from scene camera
-    let cam_tf = cam_gt.compute_transform();
-    let right = cam_tf.right().as_vec3();
-    let up = cam_tf.up().as_vec3();
-    let forward = cam_tf.forward().as_vec3();
-
-    let ray_origin = cam_tf.translation + right * (ndc_x * half_w) + up * (ndc_y * half_h);
-    let ray_dir = forward;
-
-    // Cast ray through BVH (only hoverable entities, no physics overhead)
-    let new_hovered = bvh.cast_ray(ray_origin, ray_dir, 1000.0);
-
-    // Update Hovered components
     for entity in &current_hovered {
         if Some(entity) != new_hovered {
             commands.entity(entity).remove::<Hovered>();
@@ -341,11 +314,12 @@ fn raycast_hover_detection_desktop(
 }
 
 /// WASM hover detection: same avian3d raycast approach but reads cursor from the Window.
+/// WASM tile-based hover detection.
 #[cfg(target_arch = "wasm32")]
 fn raycast_hover_detection_wasm(
     windows: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&GlobalTransform, &Projection), With<IsometricCamera>>,
-    bvh: Res<super::hover_bvh::HoverBvh>,
+    hover_map: Res<super::hover_bvh::HoverMap>,
     current_hovered: Query<Entity, With<Hovered>>,
     joystick: Res<VirtualJoystickState>,
     mut last_cursor: ResMut<LastCursorPos>,
@@ -356,7 +330,6 @@ fn raycast_hover_detection_wasm(
         return;
     };
 
-    // Skip raycasting when the pointer is captured by the joystick UI.
     if joystick.pointer_captured {
         last_cursor.0 = None;
         for entity in &current_hovered {
@@ -373,7 +346,6 @@ fn raycast_hover_detection_wasm(
         return;
     };
 
-    // Skip expensive raycast if cursor hasn't moved
     if let Some(prev) = last_cursor.0 {
         if (prev - cursor_pos).length_squared() < 0.5 {
             return;
@@ -381,30 +353,8 @@ fn raycast_hover_detection_wasm(
     }
     last_cursor.0 = Some(cursor_pos);
 
-    let Projection::Orthographic(ortho) = projection else {
-        return;
-    };
-    let viewport_height = match ortho.scaling_mode {
-        bevy::camera::ScalingMode::FixedVertical { viewport_height } => viewport_height,
-        _ => return,
-    };
-    let half_h = (viewport_height / 2.0) * ortho.scale;
-    let aspect = window.width() / window.height();
-    let half_w = half_h * aspect;
-
-    let ndc_x = (cursor_pos.x / window.width()) * 2.0 - 1.0;
-    let ndc_y = 1.0 - (cursor_pos.y / window.height()) * 2.0;
-
-    let cam_tf = cam_gt.compute_transform();
-    let right = cam_tf.right().as_vec3();
-    let up = cam_tf.up().as_vec3();
-    let forward = cam_tf.forward().as_vec3();
-
-    let ray_origin = cam_tf.translation + right * (ndc_x * half_w) + up * (ndc_y * half_h);
-    let ray_dir = forward;
-
-    // Cast ray through BVH (only hoverable entities, no physics overhead)
-    let new_hovered = bvh.cast_ray(ray_origin, ray_dir, 1000.0);
+    let new_hovered = super::hover_bvh::cursor_to_world_xz(cam_gt, projection, window, cursor_pos)
+        .and_then(|xz| hover_map.lookup(xz.x, xz.y));
 
     for entity in &current_hovered {
         if Some(entity) != new_hovered {
