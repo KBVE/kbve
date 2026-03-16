@@ -3,8 +3,12 @@
 //! Replaces avian3d `SpatialQuery::cast_ray` for hover detection with a
 //! purpose-built structure that only indexes hoverable entities — far fewer
 //! nodes than the full physics world.
+//!
+//! Tree construction is offloaded via [`bevy_tasker::spawn`] so the main
+//! thread only collects entity positions and swaps in the finished tree.
 
 use bevy::prelude::*;
+use crossbeam_channel::{Receiver, Sender};
 
 use super::scene_objects::HoverOutline;
 
@@ -17,6 +21,10 @@ struct Aabb {
     min: Vec3,
     max: Vec3,
 }
+
+// Safety: Vec3 is Send+Sync, Aabb is just two Vec3s.
+unsafe impl Send for Aabb {}
+unsafe impl Sync for Aabb {}
 
 impl Aabb {
     #[inline]
@@ -35,7 +43,6 @@ impl Aabb {
         }
     }
 
-    /// Slab-method ray-AABB intersection. Returns `Some(t)` for nearest hit.
     #[inline]
     fn ray_hit(&self, origin: Vec3, inv_dir: Vec3, max_t: f32) -> Option<f32> {
         let t1 = (self.min - origin) * inv_dir;
@@ -56,42 +63,57 @@ impl Aabb {
 }
 
 // ---------------------------------------------------------------------------
-// BVH node (flat array)
+// BVH node
 // ---------------------------------------------------------------------------
 
 #[derive(Clone)]
 struct BvhNode {
     aabb: Aabb,
-    /// Leaf: `Some(entity)`. Internal: `None`.
     entity: Option<Entity>,
-    /// Internal nodes: indices of left and right children.
     children: [u32; 2],
 }
+
+// Safety: Entity is Send+Sync (it's an index+generation u64).
+unsafe impl Send for BvhNode {}
+unsafe impl Sync for BvhNode {}
+
+// ---------------------------------------------------------------------------
+// Build input leaf
+// ---------------------------------------------------------------------------
+
+struct BuildLeaf {
+    aabb: Aabb,
+    entity: Entity,
+    center: Vec3,
+}
+
+// Safety: same as above — Entity + Vec3 are Send.
+unsafe impl Send for BuildLeaf {}
 
 // ---------------------------------------------------------------------------
 // HoverBvh resource
 // ---------------------------------------------------------------------------
 
-/// A BVH built from hoverable entities for fast ray queries.
 #[derive(Resource)]
 pub struct HoverBvh {
     nodes: Vec<BvhNode>,
+    rx: Receiver<Vec<BvhNode>>,
+    tx: Sender<Vec<BvhNode>>,
     dirty: bool,
+    building: bool,
 }
 
 impl Default for HoverBvh {
     fn default() -> Self {
+        let (tx, rx) = crossbeam_channel::bounded(1);
         Self {
             nodes: Vec::new(),
+            rx,
+            tx,
             dirty: true,
+            building: false,
         }
     }
-}
-
-struct Leaf {
-    aabb: Aabb,
-    entity: Entity,
-    center: Vec3,
 }
 
 impl HoverBvh {
@@ -99,7 +121,6 @@ impl HoverBvh {
         self.dirty = true;
     }
 
-    /// Cast a ray and return the closest hit entity.
     pub fn cast_ray(&self, origin: Vec3, direction: Vec3, max_dist: f32) -> Option<Entity> {
         if self.nodes.is_empty() {
             return None;
@@ -114,7 +135,6 @@ impl HoverBvh {
         let mut best_t = max_dist;
         let mut best_entity: Option<Entity> = None;
 
-        // Iterative traversal with explicit stack.
         let mut stack = [0u32; 64];
         let mut sp = 1;
         stack[0] = 0;
@@ -129,8 +149,6 @@ impl HoverBvh {
             }
 
             if let Some(entity) = node.entity {
-                // Leaf — we already know it hits (ray_hit passed).
-                // Re-check to get exact t.
                 if let Some(t) = node.aabb.ray_hit(origin, inv_dir, best_t) {
                     if t < best_t {
                         best_t = t;
@@ -153,40 +171,75 @@ impl HoverBvh {
 // Systems
 // ---------------------------------------------------------------------------
 
-/// Rebuild the BVH when it's marked dirty (entities added/removed).
+/// Check for completed builds, then kick off new ones when dirty.
 pub fn rebuild_hover_bvh(
     mut bvh: ResMut<HoverBvh>,
     query: Query<(Entity, &GlobalTransform, &HoverOutline)>,
 ) {
-    if !bvh.dirty {
+    // Drain completed build from worker.
+    if let Ok(nodes) = bvh.rx.try_recv() {
+        bvh.nodes = nodes;
+        bvh.building = false;
+    }
+
+    // Don't start a new build while one is in flight.
+    if bvh.building || !bvh.dirty {
         return;
     }
     bvh.dirty = false;
 
-    bvh.nodes.clear();
-
-    let mut leaves: Vec<Leaf> = query
+    // Collect leaf data on main thread (ECS queries are main-thread only).
+    let items: Vec<(Entity, Vec3, Vec3)> = query
         .iter()
-        .map(|(entity, gt, outline)| {
-            let center = gt.translation();
-            Leaf {
-                aabb: Aabb::from_center_half(center, outline.half_extents),
-                entity,
-                center,
-            }
-        })
+        .map(|(entity, gt, outline)| (entity, gt.translation(), outline.half_extents))
         .collect();
 
-    if leaves.is_empty() {
+    if items.is_empty() {
+        bvh.nodes.clear();
         return;
     }
 
-    // Reserve ~2n nodes.
-    bvh.nodes.reserve(leaves.len() * 2);
-    build_recursive(&mut bvh.nodes, &mut leaves);
+    // Dispatch build to worker.
+    bvh.building = true;
+    let tx = bvh.tx.clone();
+    bevy_tasker::spawn(async move {
+        let nodes = build_bvh(items);
+        let _ = tx.send(nodes);
+    })
+    .detach();
 }
 
-fn build_recursive(nodes: &mut Vec<BvhNode>, leaves: &mut [Leaf]) -> u32 {
+/// Mark BVH dirty when hoverable entities are added or removed.
+pub fn mark_bvh_dirty_on_change(
+    added: Query<(), Added<HoverOutline>>,
+    removed: RemovedComponents<HoverOutline>,
+    mut bvh: ResMut<HoverBvh>,
+) {
+    if !added.is_empty() || !removed.is_empty() {
+        bvh.mark_dirty();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Off-thread BVH construction
+// ---------------------------------------------------------------------------
+
+fn build_bvh(items: Vec<(Entity, Vec3, Vec3)>) -> Vec<BvhNode> {
+    let mut leaves: Vec<BuildLeaf> = items
+        .into_iter()
+        .map(|(entity, center, half)| BuildLeaf {
+            aabb: Aabb::from_center_half(center, half),
+            entity,
+            center,
+        })
+        .collect();
+
+    let mut nodes = Vec::with_capacity(leaves.len() * 2);
+    build_recursive(&mut nodes, &mut leaves);
+    nodes
+}
+
+fn build_recursive(nodes: &mut Vec<BvhNode>, leaves: &mut [BuildLeaf]) -> u32 {
     let idx = nodes.len() as u32;
 
     if leaves.len() == 1 {
@@ -199,7 +252,6 @@ fn build_recursive(nodes: &mut Vec<BvhNode>, leaves: &mut [Leaf]) -> u32 {
     }
 
     if leaves.len() == 2 {
-        // Two leaves — create parent + two leaf children directly.
         let bounds = Aabb::merge(&leaves[0].aabb, &leaves[1].aabb);
         nodes.push(BvhNode {
             aabb: bounds,
@@ -219,13 +271,11 @@ fn build_recursive(nodes: &mut Vec<BvhNode>, leaves: &mut [Leaf]) -> u32 {
         return idx;
     }
 
-    // Bounding AABB.
     let mut bounds = leaves[0].aabb;
     for leaf in leaves.iter().skip(1) {
         bounds = Aabb::merge(&bounds, &leaf.aabb);
     }
 
-    // Split along longest axis at midpoint.
     let extent = bounds.max - bounds.min;
     let axis = if extent.x >= extent.y && extent.x >= extent.z {
         0
@@ -241,7 +291,6 @@ fn build_recursive(nodes: &mut Vec<BvhNode>, leaves: &mut [Leaf]) -> u32 {
         split = leaves.len() / 2;
     }
 
-    // Push placeholder for this internal node.
     let placeholder = nodes.len();
     nodes.push(BvhNode {
         aabb: bounds,
@@ -255,17 +304,6 @@ fn build_recursive(nodes: &mut Vec<BvhNode>, leaves: &mut [Leaf]) -> u32 {
     nodes[placeholder].children = [left, right];
 
     idx
-}
-
-/// Mark BVH dirty when hoverable entities are added or removed.
-pub fn mark_bvh_dirty_on_change(
-    added: Query<(), Added<HoverOutline>>,
-    removed: RemovedComponents<HoverOutline>,
-    mut bvh: ResMut<HoverBvh>,
-) {
-    if !added.is_empty() || !removed.is_empty() {
-        bvh.mark_dirty();
-    }
 }
 
 // ---------------------------------------------------------------------------
