@@ -1,4 +1,3 @@
-use avian3d::prelude::*;
 use bevy::picking::events::{Out, Over, Pointer};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -9,7 +8,7 @@ use super::player::Player;
 use super::tilemap::TileCoord;
 use super::virtual_joystick::VirtualJoystickState;
 
-// Desktop: bridged cursor for avian3d raycast hover detection
+// Desktop: bridged cursor for BVH raycast hover detection
 #[cfg(not(target_arch = "wasm32"))]
 use super::input_bridge::BridgedCursorPosition;
 
@@ -40,10 +39,10 @@ pub(crate) struct OriginalEmissive(pub(crate) LinearRgba);
 #[derive(Component)]
 struct Hovered;
 
-/// Visual half-extents for the hover outline gizmo.
+/// Visual half-extents for the hover outline gizmo. Also used by [`super::hover_bvh`].
 #[derive(Component)]
-pub(crate) struct HoverOutline {
-    pub(crate) half_extents: Vec3,
+pub struct HoverOutline {
+    pub half_extents: Vec3,
 }
 
 #[derive(Component)]
@@ -232,9 +231,12 @@ pub struct SceneObjectsPlugin;
 impl Plugin for SceneObjectsPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<LastCursorPos>();
+        app.init_resource::<super::hover_bvh::HoverBvh>();
         app.add_systems(
             Update,
             (
+                super::hover_bvh::mark_bvh_dirty_on_change,
+                super::hover_bvh::rebuild_hover_bvh,
                 animate_crystal.run_if(any_with_component::<AnimatedCrystal>),
                 rotate_boxes.run_if(any_with_component::<RotatingBox>),
                 update_occlusion.run_if(any_with_component::<Occludable>),
@@ -245,7 +247,7 @@ impl Plugin for SceneObjectsPlugin {
             ),
         );
 
-        // Avian raycast hover — MeshPickingPlugin can't work with offscreen render target
+        // BVH raycast hover — replaces avian3d SpatialQuery for hover detection
         #[cfg(not(target_arch = "wasm32"))]
         app.add_systems(Update, raycast_hover_detection_desktop);
         #[cfg(target_arch = "wasm32")]
@@ -270,10 +272,8 @@ fn raycast_hover_detection_desktop(
     windows: Query<&Window, With<PrimaryWindow>>,
     cursor: Res<BridgedCursorPosition>,
     camera_query: Query<(&GlobalTransform, &Projection), With<IsometricCamera>>,
-    spatial_query: SpatialQuery,
-    hoverable: Query<(), With<HoverOutline>>,
+    bvh: Res<super::hover_bvh::HoverBvh>,
     current_hovered: Query<Entity, With<Hovered>>,
-    player_query: Query<Entity, With<Player>>,
     mut last_cursor: ResMut<LastCursorPos>,
     mut commands: Commands,
 ) {
@@ -324,24 +324,8 @@ fn raycast_hover_detection_desktop(
     let ray_origin = cam_tf.translation + right * (ndc_x * half_w) + up * (ndc_y * half_h);
     let ray_dir = forward;
 
-    // Build filter excluding the player
-    let filter = if let Ok(player_entity) = player_query.single() {
-        SpatialQueryFilter::default().with_excluded_entities([player_entity])
-    } else {
-        SpatialQueryFilter::default()
-    };
-
-    // Cast ray and check if hit entity has HoverOutline
-    let new_hovered = Dir3::new(ray_dir)
-        .ok()
-        .and_then(|dir| spatial_query.cast_ray(ray_origin, dir, 1000.0, true, &filter))
-        .and_then(|hit| {
-            if hoverable.get(hit.entity).is_ok() {
-                Some(hit.entity)
-            } else {
-                None
-            }
-        });
+    // Cast ray through BVH (only hoverable entities, no physics overhead)
+    let new_hovered = bvh.cast_ray(ray_origin, ray_dir, 1000.0);
 
     // Update Hovered components
     for entity in &current_hovered {
@@ -361,10 +345,8 @@ fn raycast_hover_detection_desktop(
 fn raycast_hover_detection_wasm(
     windows: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&GlobalTransform, &Projection), With<IsometricCamera>>,
-    spatial_query: SpatialQuery,
-    hoverable: Query<(), With<HoverOutline>>,
+    bvh: Res<super::hover_bvh::HoverBvh>,
     current_hovered: Query<Entity, With<Hovered>>,
-    player_query: Query<Entity, With<Player>>,
     joystick: Res<VirtualJoystickState>,
     mut last_cursor: ResMut<LastCursorPos>,
     mut commands: Commands,
@@ -421,22 +403,8 @@ fn raycast_hover_detection_wasm(
     let ray_origin = cam_tf.translation + right * (ndc_x * half_w) + up * (ndc_y * half_h);
     let ray_dir = forward;
 
-    let filter = if let Ok(player_entity) = player_query.single() {
-        SpatialQueryFilter::default().with_excluded_entities([player_entity])
-    } else {
-        SpatialQueryFilter::default()
-    };
-
-    let new_hovered = Dir3::new(ray_dir)
-        .ok()
-        .and_then(|dir| spatial_query.cast_ray(ray_origin, dir, 1000.0, true, &filter))
-        .and_then(|hit| {
-            if hoverable.get(hit.entity).is_ok() {
-                Some(hit.entity)
-            } else {
-                None
-            }
-        });
+    // Cast ray through BVH (only hoverable entities, no physics overhead)
+    let new_hovered = bvh.cast_ray(ray_origin, ray_dir, 1000.0);
 
     for entity in &current_hovered {
         if Some(entity) != new_hovered {

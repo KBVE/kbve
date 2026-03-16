@@ -2,6 +2,7 @@ pub mod actions;
 pub mod camera;
 pub mod creatures;
 pub mod grass;
+pub mod hover_bvh;
 pub mod input_bridge;
 pub mod inventory;
 pub mod mushrooms;
