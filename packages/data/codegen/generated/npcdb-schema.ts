@@ -412,7 +412,7 @@ export type NpcExtension = z.infer<typeof NpcExtensionSchema>;
 // Npc
 export const NpcSchema = z.object({
 	id: z.string(),
-	slug: z.string(),
+	ref: z.string(),
 	name: z.string(),
 	title: z.string().optional(),
 	description: z.string().optional(),

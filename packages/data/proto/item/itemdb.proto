@@ -308,7 +308,7 @@ message ItemExtension {
 message Item {
   // Identity
   string id = 1;                        // ULID
-  string slug = 2;                      // URL-safe identifier, e.g. "fire-flask"
+  string ref = 2;                       // URL-safe identifier, e.g. "fire-flask"
   string name = 3;
   optional string title = 4;            // Display title override
   optional string description = 5;

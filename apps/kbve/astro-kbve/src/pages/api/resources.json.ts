@@ -13,14 +13,14 @@ export const GET = async () => {
 	const index: Record<string, number> = {};
 
 	for (const entry of mapEntries) {
-		const { id, slug, name } = entry.data;
-		if (!id || !slug || !name) continue;
+		const { id, ref, name } = entry.data;
+		if (!id || !ref || !name) continue;
 
 		const idx = resources.length;
 		resources.push(entry.data as IMapObject);
 
 		index[id] = idx;
-		index[slug] = idx;
+		index[ref] = idx;
 		index[name] = idx;
 	}
 

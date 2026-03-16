@@ -237,7 +237,7 @@ message QuestExtension {
 message Quest {
   // Identity
   string id = 1;                         // ULID
-  string slug = 2;                       // URL-safe identifier, e.g. "auto-cooker-9000"
+  string ref = 2;                        // URL-safe identifier, e.g. "auto-cooker-9000"
   string title = 3;
   optional string description = 4;
   optional string lore = 5;              // Extended backstory / flavor text
@@ -321,7 +321,7 @@ message Quest {
 
 message QuestChain {
   string id = 1;                         // ULID
-  string slug = 2;
+  string ref = 2;
   string name = 3;
   optional string description = 4;
   repeated string quest_refs = 5;        // Ordered list of quest IDs in this chain
