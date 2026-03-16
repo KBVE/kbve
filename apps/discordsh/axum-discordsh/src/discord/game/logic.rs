@@ -37,6 +37,53 @@ const CLERIC_HEALS_PER_COMBAT: u8 = 1;
 
 // ── Quest progress helpers ──────────────────────────────────────────
 
+/// Populate `room.available_quests` with quest refs the owner can accept,
+/// and return log lines describing each offered quest.
+fn offer_available_quests(session: &mut SessionState) -> Vec<String> {
+    let player_level = session.owner_player().level;
+    let available = proto_bridge::quests_for_level(player_level as i32);
+    let journal = &session.quest_journal;
+
+    let mut offered = Vec::new();
+    let mut quest_refs = Vec::new();
+
+    for quest in available {
+        // Skip quests already active, completed (non-repeatable), or that don't meet prereqs
+        if journal.is_active(&quest.r#ref) {
+            continue;
+        }
+        if journal.is_completed(&quest.r#ref) {
+            let repeatable = quest.repeatable.unwrap_or(false);
+            if !repeatable {
+                continue;
+            }
+        }
+        if !proto_bridge::meets_prerequisites(quest, player_level, journal) {
+            continue;
+        }
+
+        let category = bevy_quests::QuestCategory::try_from(quest.category)
+            .map(|c| match c {
+                bevy_quests::QuestCategory::Main => "Main",
+                bevy_quests::QuestCategory::Side => "Side",
+                bevy_quests::QuestCategory::Challenge => "Challenge",
+                _ => "Quest",
+            })
+            .unwrap_or("Quest");
+
+        offered.push(format!(
+            "  [{}] {} (Lv.{})",
+            category,
+            quest.title,
+            quest.recommended_level.unwrap_or(1)
+        ));
+        quest_refs.push(quest.r#ref.clone());
+    }
+
+    session.room.available_quests = quest_refs;
+    offered
+}
+
 /// Advance "kill" objectives in all active quests.
 ///
 /// `enemy_ref` is the NPC ref slug of the killed enemy (e.g. "glass-slime").
@@ -387,8 +434,14 @@ fn validate_action(
             }
         }
         GameAction::AcceptQuest(_) => {
-            if session.phase != GamePhase::City && session.phase != GamePhase::Exploring {
-                return Err("You can only accept quests while exploring or in a city.".to_owned());
+            if session.phase != GamePhase::City
+                && session.phase != GamePhase::Exploring
+                && session.phase != GamePhase::Merchant
+            {
+                return Err(
+                    "You can only accept quests while exploring, in a city, or at a merchant."
+                        .to_owned(),
+                );
             }
         }
         GameAction::AbandonQuest(_) | GameAction::ViewQuests => {
@@ -1967,6 +2020,13 @@ fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
         RoomType::Merchant => {
             session.room.merchant_stock = content::generate_merchant_stock(pos.depth());
             logs.push("A cloaked merchant gestures at wares.".to_owned());
+            let offered = offer_available_quests(session);
+            if !offered.is_empty() {
+                logs.push("A quest board hangs on the wall:".to_owned());
+                for line in offered {
+                    logs.push(line);
+                }
+            }
             session.phase = GamePhase::Merchant;
         }
         RoomType::Story => {
@@ -1985,6 +2045,13 @@ fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
             logs.push(
                 "You enter an underground city. Torches flicker along carved walls.".to_owned(),
             );
+            let offered = offer_available_quests(session);
+            if !offered.is_empty() {
+                logs.push("A hooded figure beckons from the tavern corner:".to_owned());
+                for line in offered {
+                    logs.push(line);
+                }
+            }
             session.phase = GamePhase::City;
         }
     }
@@ -10078,5 +10145,179 @@ mod tests {
                 session.phase
             );
         }
+    }
+
+    // ── Quest NPC encounter tests ──────────────────────────────────
+
+    #[test]
+    fn quest_offers_shown_on_city_arrival() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        // Arrive at a city tile
+        let mut tile = session
+            .map
+            .tiles
+            .get(&session.map.position)
+            .unwrap()
+            .clone();
+        tile.room_type = RoomType::UndergroundCity;
+        session.map.tiles.insert(session.map.position, tile);
+        let pos = session.map.position;
+        let logs = arrive_at_tile(&mut session, pos);
+        // Should mention quest offers and populate available_quests
+        let has_quest_offer = logs.iter().any(|l| l.contains("["));
+        let has_intro = logs
+            .iter()
+            .any(|l| l.contains("hooded figure") || l.contains("tavern"));
+        if !session.room.available_quests.is_empty() {
+            assert!(has_quest_offer, "City arrival should list available quests");
+            assert!(has_intro, "City should have quest giver intro text");
+        }
+    }
+
+    #[test]
+    fn quest_offers_shown_on_merchant_arrival() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        let mut tile = session
+            .map
+            .tiles
+            .get(&session.map.position)
+            .unwrap()
+            .clone();
+        tile.room_type = RoomType::Merchant;
+        session.map.tiles.insert(session.map.position, tile);
+        let pos = session.map.position;
+        let logs = arrive_at_tile(&mut session, pos);
+        let has_quest_offer = logs.iter().any(|l| l.contains("["));
+        let has_intro = logs.iter().any(|l| l.contains("quest board"));
+        if !session.room.available_quests.is_empty() {
+            assert!(
+                has_quest_offer,
+                "Merchant arrival should list available quests"
+            );
+            assert!(has_intro, "Merchant should have quest board intro text");
+        }
+    }
+
+    #[test]
+    fn accept_quest_allowed_at_merchant() {
+        let mut session = test_session();
+        session.phase = GamePhase::Merchant;
+        let result = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_ok(), "AcceptQuest should be allowed at merchant");
+        assert!(session.quest_journal.is_active("slime-slayer"));
+    }
+
+    #[test]
+    fn completed_quests_not_offered() {
+        let mut session = test_session();
+        session
+            .quest_journal
+            .completed
+            .push("slime-slayer".to_owned());
+        session.phase = GamePhase::Exploring;
+        let mut tile = session
+            .map
+            .tiles
+            .get(&session.map.position)
+            .unwrap()
+            .clone();
+        tile.room_type = RoomType::UndergroundCity;
+        session.map.tiles.insert(session.map.position, tile);
+        let pos = session.map.position;
+        let _ = arrive_at_tile(&mut session, pos);
+        assert!(
+            !session
+                .room
+                .available_quests
+                .contains(&"slime-slayer".to_owned()),
+            "Completed non-repeatable quests should not be offered"
+        );
+    }
+
+    #[test]
+    fn active_quests_not_offered() {
+        let mut session = test_session();
+        let proto = proto_bridge::find_quest_by_ref("slime-slayer").unwrap();
+        session
+            .quest_journal
+            .active
+            .push(proto_bridge::build_active_quest(proto));
+        let mut tile = session
+            .map
+            .tiles
+            .get(&session.map.position)
+            .unwrap()
+            .clone();
+        tile.room_type = RoomType::UndergroundCity;
+        session.map.tiles.insert(session.map.position, tile);
+        let pos = session.map.position;
+        let _ = arrive_at_tile(&mut session, pos);
+        assert!(
+            !session
+                .room
+                .available_quests
+                .contains(&"slime-slayer".to_owned()),
+            "Already active quests should not be offered"
+        );
+    }
+
+    #[test]
+    fn quest_tracker_in_card_template() {
+        use crate::discord::game::card::GameCardTemplate;
+
+        let mut session = test_session();
+        let proto = proto_bridge::find_quest_by_ref("slime-slayer").unwrap();
+        let mut aq = proto_bridge::build_active_quest(proto);
+        // Simulate partial progress
+        if let Some(step) = aq.steps.get_mut(0) {
+            if let Some(obj) = step.objectives.get_mut(0) {
+                obj.current = 1;
+            }
+        }
+        session.quest_journal.active.push(aq);
+
+        let card = GameCardTemplate::from_session(&session);
+        assert!(card.has_quests);
+        assert_eq!(card.quest_trackers.len(), 1);
+        assert_eq!(card.quest_trackers[0].title, "Slime Slayer");
+        assert!(card.quest_trackers[0].progress.contains("1/3"));
+    }
+
+    #[test]
+    fn quest_tracker_max_two_shown() {
+        use crate::discord::game::card::GameCardTemplate;
+
+        let mut session = test_session();
+        for qref in &["slime-slayer", "dungeon-delver", "treasure-seeker"] {
+            let proto = proto_bridge::find_quest_by_ref(qref).unwrap();
+            session
+                .quest_journal
+                .active
+                .push(proto_bridge::build_active_quest(proto));
+        }
+
+        let card = GameCardTemplate::from_session(&session);
+        assert!(card.has_quests);
+        assert_eq!(
+            card.quest_trackers.len(),
+            2,
+            "Only 2 quest trackers shown on card"
+        );
+    }
+
+    #[test]
+    fn no_quest_tracker_when_empty() {
+        use crate::discord::game::card::GameCardTemplate;
+
+        let session = test_session();
+        let card = GameCardTemplate::from_session(&session);
+        assert!(!card.has_quests);
+        assert!(card.quest_trackers.is_empty());
     }
 }

@@ -1125,6 +1125,7 @@ mod tests {
                 hazards: vec![],
                 merchant_stock: vec![],
                 story_event: None,
+                available_quests: vec![],
             },
             log: vec![],
             show_items: false,
