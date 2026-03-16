@@ -3,6 +3,7 @@ use bevy::prelude::*;
 
 use super::state::PlayerState;
 use super::terrain::TerrainMap;
+use super::tilemap::TerrainReady;
 use super::virtual_joystick::VirtualJoystickState;
 
 /// Fired when the player takes fall damage. The networking layer picks this up
@@ -131,10 +132,17 @@ fn move_player(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut joystick: ResMut<VirtualJoystickState>,
     time: Res<Time>,
+    terrain_ready: Option<Res<TerrainReady>>,
+    terrain: Res<TerrainMap>,
     spatial_query: SpatialQuery,
     sensor_query: Query<Entity, With<Sensor>>,
     mut query: Query<(Entity, &mut Transform, &mut PlayerPhysics), With<Player>>,
 ) {
+    // Freeze player until terrain colliders exist around spawn area.
+    if terrain_ready.is_none() {
+        return;
+    }
+
     for (entity, mut transform, mut physics) in &mut query {
         // WASD + Arrow keys → isometric directions
         let mut direction = Vec3::ZERO;
@@ -223,6 +231,20 @@ fn move_player(
         }
 
         transform.translation += resolved_h + resolved_v;
+
+        // --- Fallback floor: prevent falling through unloaded chunks ---
+        // If the player is below the terrain surface (e.g. chunk collider not
+        // yet spawned), snap them back up. This is the last line of defense.
+        let floor_y = terrain.height_at_loaded(
+            transform.translation.x.round() as i32,
+            transform.translation.z.round() as i32,
+        );
+        let min_y = floor_y + PLAYER_HEIGHT / 2.0;
+        if transform.translation.y < min_y - 0.5 {
+            transform.translation.y = min_y + 0.1;
+            physics.velocity_y = 0.0;
+            physics.on_ground = true;
+        }
     }
 }
 
