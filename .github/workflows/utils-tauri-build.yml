@@ -92,10 +92,16 @@ jobs:
                     libayatana-appindicator3-dev libxdo-dev \
                     libasound2-dev libudev-dev libvulkan-dev
 
-            - name: Setup Rust
+            - name: Setup Rust (stable)
               uses: dtolnay/rust-toolchain@stable
               with:
                   targets: wasm32-unknown-unknown
+
+            - name: Setup Rust (nightly for -Z build-std WASM)
+              uses: dtolnay/rust-toolchain@nightly
+              with:
+                  targets: wasm32-unknown-unknown
+                  components: rust-src
 
             - name: Setup Cargo Cache
               uses: actions/cache@v5
@@ -195,10 +201,16 @@ jobs:
                   fetch-depth: 0
                   submodules: recursive
 
-            - name: Setup Rust
+            - name: Setup Rust (stable)
               uses: dtolnay/rust-toolchain@stable
               with:
                   targets: wasm32-unknown-unknown
+
+            - name: Setup Rust (nightly for -Z build-std WASM)
+              uses: dtolnay/rust-toolchain@nightly
+              with:
+                  targets: wasm32-unknown-unknown
+                  components: rust-src
 
             - name: Rust Cache
               uses: Swatinem/rust-cache@v2
@@ -288,10 +300,16 @@ jobs:
                   fetch-depth: 0
                   submodules: recursive
 
-            - name: Setup Rust
+            - name: Setup Rust (stable)
               uses: dtolnay/rust-toolchain@stable
               with:
                   targets: wasm32-unknown-unknown
+
+            - name: Setup Rust (nightly for -Z build-std WASM)
+              uses: dtolnay/rust-toolchain@nightly
+              with:
+                  targets: wasm32-unknown-unknown
+                  components: rust-src
 
             - name: Rust Cache
               uses: Swatinem/rust-cache@v2
