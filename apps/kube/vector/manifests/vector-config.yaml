@@ -5,7 +5,7 @@ metadata:
     name: vector-config
     namespace: vector
     annotations:
-        kbve.sh/last-updated: '2026-03-16'
+        kbve.sh/last-updated: '2026-03-16T14:00:00Z'
 data:
     vector.yml: |
         api:
@@ -42,7 +42,7 @@ data:
               if is_empty(string(.event_message) ?? "") { abort }
 
               # Strip ANSI escape codes
-              .event_message = replace(.event_message, r'\x1b\[[0-9;]*m', "")
+              .event_message = replace!(string!(.event_message), r'\x1b\[[0-9;]*m', "")
 
               # Try parsing JSON messages (argocd, etc.) to extract level/msg
               parsed, err = parse_json(.event_message)

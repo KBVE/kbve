@@ -1,19 +1,33 @@
 {
+	"name": "bevy_cam",
 	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "library",
 	"sourceRoot": "packages/rust/bevy/bevy_cam/src",
+	"tags": [],
 	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build -p bevy_cam"],
+				"cwd": "packages/rust/bevy/bevy_cam"
+			}
+		},
 		"test": {
 			"executor": "nx:run-commands",
-			"cache": true,
 			"options": {
 				"commands": ["cargo test -p bevy_cam"],
 				"cwd": "packages/rust/bevy/bevy_cam"
 			}
 		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo clippy -p bevy_cam -- -D warnings"],
+				"cwd": "packages/rust/bevy/bevy_cam"
+			}
+		},
 		"check-wasm": {
 			"executor": "nx:run-commands",
-			"cache": true,
 			"options": {
 				"commands": [
 					"cargo +nightly check -p bevy_cam --target wasm32-unknown-unknown"
@@ -23,7 +37,6 @@
 		},
 		"check-desktop": {
 			"executor": "nx:run-commands",
-			"cache": true,
 			"options": {
 				"commands": ["cargo check -p bevy_cam"],
 				"cwd": "packages/rust/bevy/bevy_cam"
@@ -31,16 +44,23 @@
 		},
 		"e2e": {
 			"executor": "nx:run-commands",
-			"cache": true,
 			"options": {
-				"parallel": true,
+				"parallel": false,
 				"commands": [
 					"nx run bevy_cam:test",
 					"nx run bevy_cam:check-wasm",
 					"nx run bevy_cam:check-desktop"
 				]
 			}
+		},
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p bevy_cam --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
 		}
-	},
-	"tags": []
+	}
 }

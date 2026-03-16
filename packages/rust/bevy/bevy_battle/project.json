@@ -1,0 +1,66 @@
+{
+	"name": "bevy_battle",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/bevy/bevy_battle/src",
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build -p bevy_battle"],
+				"cwd": "packages/rust/bevy/bevy_battle"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p bevy_battle"],
+				"cwd": "packages/rust/bevy/bevy_battle"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo clippy -p bevy_battle -- -D warnings"],
+				"cwd": "packages/rust/bevy/bevy_battle"
+			}
+		},
+		"check-wasm": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo +nightly check -p bevy_battle --target wasm32-unknown-unknown"
+				],
+				"cwd": "packages/rust/bevy/bevy_battle"
+			}
+		},
+		"check-desktop": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo check -p bevy_battle"],
+				"cwd": "packages/rust/bevy/bevy_battle"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"nx run bevy_battle:test",
+					"nx run bevy_battle:check-wasm",
+					"nx run bevy_battle:check-desktop"
+				]
+			}
+		},
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p bevy_battle --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
+		}
+	}
+}

@@ -1,0 +1,66 @@
+{
+	"name": "bevy_player",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/bevy/bevy_player/src",
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build -p bevy_player"],
+				"cwd": "packages/rust/bevy/bevy_player"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p bevy_player"],
+				"cwd": "packages/rust/bevy/bevy_player"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo clippy -p bevy_player -- -D warnings"],
+				"cwd": "packages/rust/bevy/bevy_player"
+			}
+		},
+		"check-wasm": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo +nightly check -p bevy_player --target wasm32-unknown-unknown"
+				],
+				"cwd": "packages/rust/bevy/bevy_player"
+			}
+		},
+		"check-desktop": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo check -p bevy_player"],
+				"cwd": "packages/rust/bevy/bevy_player"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"nx run bevy_player:test",
+					"nx run bevy_player:check-wasm",
+					"nx run bevy_player:check-desktop"
+				]
+			}
+		},
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p bevy_player --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
+		}
+	}
+}

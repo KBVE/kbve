@@ -1,0 +1,66 @@
+{
+	"name": "bevy_mapdb",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/bevy/bevy_mapdb/src",
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build -p bevy_mapdb"],
+				"cwd": "packages/rust/bevy/bevy_mapdb"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p bevy_mapdb"],
+				"cwd": "packages/rust/bevy/bevy_mapdb"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo clippy -p bevy_mapdb -- -D warnings"],
+				"cwd": "packages/rust/bevy/bevy_mapdb"
+			}
+		},
+		"check-wasm": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo +nightly check -p bevy_mapdb --target wasm32-unknown-unknown"
+				],
+				"cwd": "packages/rust/bevy/bevy_mapdb"
+			}
+		},
+		"check-desktop": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo check -p bevy_mapdb"],
+				"cwd": "packages/rust/bevy/bevy_mapdb"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"nx run bevy_mapdb:test",
+					"nx run bevy_mapdb:check-wasm",
+					"nx run bevy_mapdb:check-desktop"
+				]
+			}
+		},
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p bevy_mapdb --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
+		}
+	}
+}

@@ -1,0 +1,66 @@
+{
+	"name": "bevy_inventory",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/bevy/bevy_inventory/src",
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build -p bevy_inventory"],
+				"cwd": "packages/rust/bevy/bevy_inventory"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p bevy_inventory"],
+				"cwd": "packages/rust/bevy/bevy_inventory"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo clippy -p bevy_inventory -- -D warnings"],
+				"cwd": "packages/rust/bevy/bevy_inventory"
+			}
+		},
+		"check-wasm": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo +nightly check -p bevy_inventory --target wasm32-unknown-unknown"
+				],
+				"cwd": "packages/rust/bevy/bevy_inventory"
+			}
+		},
+		"check-desktop": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo check -p bevy_inventory"],
+				"cwd": "packages/rust/bevy/bevy_inventory"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"nx run bevy_inventory:test",
+					"nx run bevy_inventory:check-wasm",
+					"nx run bevy_inventory:check-desktop"
+				]
+			}
+		},
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p bevy_inventory --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
+		}
+	}
+}

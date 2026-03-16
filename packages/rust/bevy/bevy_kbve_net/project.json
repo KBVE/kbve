@@ -1,0 +1,66 @@
+{
+	"name": "bevy_kbve_net",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/bevy/bevy_kbve_net/src",
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build -p bevy_kbve_net"],
+				"cwd": "packages/rust/bevy/bevy_kbve_net"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p bevy_kbve_net"],
+				"cwd": "packages/rust/bevy/bevy_kbve_net"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo clippy -p bevy_kbve_net -- -D warnings"],
+				"cwd": "packages/rust/bevy/bevy_kbve_net"
+			}
+		},
+		"check-wasm": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo +nightly check -p bevy_kbve_net --target wasm32-unknown-unknown"
+				],
+				"cwd": "packages/rust/bevy/bevy_kbve_net"
+			}
+		},
+		"check-desktop": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo check -p bevy_kbve_net"],
+				"cwd": "packages/rust/bevy/bevy_kbve_net"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"nx run bevy_kbve_net:test",
+					"nx run bevy_kbve_net:check-wasm",
+					"nx run bevy_kbve_net:check-desktop"
+				]
+			}
+		},
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p bevy_kbve_net --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
+		}
+	}
+}

@@ -77,7 +77,9 @@ struct EnergyOrb;
 // ---------------------------------------------------------------------------
 
 const ORB_SIZE: f32 = 80.0;
-const ORB_MARGIN: f32 = 16.0;
+const ORB_MARGIN: f32 = 12.0;
+/// Gap between stacked orbs.
+const ORB_GAP: f32 = 6.0;
 
 // ---------------------------------------------------------------------------
 // Plugin
@@ -115,20 +117,7 @@ fn spawn_orbs(mut commands: Commands, mut orb_materials: ResMut<Assets<OrbMateri
         },
     });
 
-    commands.spawn((
-        Node {
-            position_type: PositionType::Absolute,
-            left: Val::Px(ORB_MARGIN),
-            bottom: Val::Px(ORB_MARGIN + 120.0 + 12.0), // above the virtual joystick
-            width: Val::Px(ORB_SIZE),
-            height: Val::Px(ORB_SIZE),
-            ..default()
-        },
-        MaterialNode(hp_mat),
-        HealthOrb,
-    ));
-
-    // Mana orb — bottom-right
+    // Mana orb
     let mp_mat = orb_materials.add(OrbMaterial {
         uniforms: OrbUniforms {
             fill: 1.0,
@@ -142,21 +131,7 @@ fn spawn_orbs(mut commands: Commands, mut orb_materials: ResMut<Assets<OrbMateri
         },
     });
 
-    // Mana orb — bottom-right, above action buttons (24px margin + 56+12+56 = 148px)
-    commands.spawn((
-        Node {
-            position_type: PositionType::Absolute,
-            right: Val::Px(ORB_MARGIN),
-            bottom: Val::Px(160.0),
-            width: Val::Px(ORB_SIZE),
-            height: Val::Px(ORB_SIZE),
-            ..default()
-        },
-        MaterialNode(mp_mat),
-        ManaOrb,
-    ));
-
-    // Energy orb — bottom-right, above mana orb
+    // Energy orb
     let ep_mat = orb_materials.add(OrbMaterial {
         uniforms: OrbUniforms {
             fill: 1.0,
@@ -170,18 +145,55 @@ fn spawn_orbs(mut commands: Commands, mut orb_materials: ResMut<Assets<OrbMateri
         },
     });
 
-    commands.spawn((
-        Node {
+    // Container — left edge, vertically centered, stacks HP / MP / EP top-to-bottom
+    commands
+        .spawn(Node {
             position_type: PositionType::Absolute,
-            right: Val::Px(ORB_MARGIN),
-            bottom: Val::Px(160.0 + ORB_SIZE + 8.0), // above mana orb
-            width: Val::Px(ORB_SIZE),
-            height: Val::Px(ORB_SIZE),
+            left: Val::Px(ORB_MARGIN),
+            top: Val::Percent(50.0),
+            // Shift up by half the total stack height so the group is truly centred.
+            // Total height = 3 × ORB_SIZE + 2 × ORB_GAP
+            margin: UiRect {
+                top: Val::Px(-((3.0 * ORB_SIZE + 2.0 * ORB_GAP) / 2.0)),
+                ..default()
+            },
+            flex_direction: FlexDirection::Column,
+            row_gap: Val::Px(ORB_GAP),
+            align_items: AlignItems::Center,
             ..default()
-        },
-        MaterialNode(ep_mat),
-        EnergyOrb,
-    ));
+        })
+        .with_children(|parent| {
+            // HP (top)
+            parent.spawn((
+                Node {
+                    width: Val::Px(ORB_SIZE),
+                    height: Val::Px(ORB_SIZE),
+                    ..default()
+                },
+                MaterialNode(hp_mat),
+                HealthOrb,
+            ));
+            // MP (middle)
+            parent.spawn((
+                Node {
+                    width: Val::Px(ORB_SIZE),
+                    height: Val::Px(ORB_SIZE),
+                    ..default()
+                },
+                MaterialNode(mp_mat),
+                ManaOrb,
+            ));
+            // EP (bottom)
+            parent.spawn((
+                Node {
+                    width: Val::Px(ORB_SIZE),
+                    height: Val::Px(ORB_SIZE),
+                    ..default()
+                },
+                MaterialNode(ep_mat),
+                EnergyOrb,
+            ));
+        });
 }
 
 // ---------------------------------------------------------------------------

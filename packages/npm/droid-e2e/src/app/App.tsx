@@ -3,28 +3,57 @@ import { WorkerTest } from './WorkerTest';
 import { GatewayTest } from './GatewayTest';
 import { EventBusTest } from './EventBusTest';
 import { StateTest } from './StateTest';
+import { ScaleTest } from './ScaleTest';
 
-type View = 'menu' | 'workers' | 'gateway' | 'events' | 'state' | 'all';
+type View =
+	| 'menu'
+	| 'workers'
+	| 'gateway'
+	| 'events'
+	| 'state'
+	| 'scale'
+	| 'all';
 
 export function App() {
 	const [view, setView] = useState<View>('menu');
 
 	return (
-		<div data-testid="droid-e2e-root" style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
+		<div
+			data-testid="droid-e2e-root"
+			style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
 			<h1>Droid E2E Test Harness</h1>
 
-			<nav data-testid="nav" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-				<button data-testid="nav-workers" onClick={() => setView('workers')}>
+			<nav
+				data-testid="nav"
+				style={{
+					display: 'flex',
+					gap: '0.5rem',
+					marginBottom: '1rem',
+				}}>
+				<button
+					data-testid="nav-workers"
+					onClick={() => setView('workers')}>
 					Workers
 				</button>
-				<button data-testid="nav-gateway" onClick={() => setView('gateway')}>
+				<button
+					data-testid="nav-gateway"
+					onClick={() => setView('gateway')}>
 					Gateway
 				</button>
-				<button data-testid="nav-events" onClick={() => setView('events')}>
+				<button
+					data-testid="nav-events"
+					onClick={() => setView('events')}>
 					Events
 				</button>
-				<button data-testid="nav-state" onClick={() => setView('state')}>
+				<button
+					data-testid="nav-state"
+					onClick={() => setView('state')}>
 					State
+				</button>
+				<button
+					data-testid="nav-scale"
+					onClick={() => setView('scale')}>
+					Scale
 				</button>
 				<button data-testid="nav-all" onClick={() => setView('all')}>
 					All
@@ -44,6 +73,7 @@ export function App() {
 			{(view === 'gateway' || view === 'all') && <GatewayTest />}
 			{(view === 'events' || view === 'all') && <EventBusTest />}
 			{(view === 'state' || view === 'all') && <StateTest />}
+			{(view === 'scale' || view === 'all') && <ScaleTest />}
 		</div>
 	);
 }

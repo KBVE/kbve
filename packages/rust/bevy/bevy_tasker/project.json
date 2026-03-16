@@ -1,0 +1,66 @@
+{
+	"name": "bevy_tasker",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/bevy/bevy_tasker/src",
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build -p bevy_tasker"],
+				"cwd": "packages/rust/bevy/bevy_tasker"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p bevy_tasker"],
+				"cwd": "packages/rust/bevy/bevy_tasker"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo clippy -p bevy_tasker -- -D warnings"],
+				"cwd": "packages/rust/bevy/bevy_tasker"
+			}
+		},
+		"check-wasm": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo +nightly check -p bevy_tasker --target wasm32-unknown-unknown"
+				],
+				"cwd": "packages/rust/bevy/bevy_tasker"
+			}
+		},
+		"check-desktop": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo check -p bevy_tasker"],
+				"cwd": "packages/rust/bevy/bevy_tasker"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"nx run bevy_tasker:test",
+					"nx run bevy_tasker:check-wasm",
+					"nx run bevy_tasker:check-desktop"
+				]
+			}
+		},
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p bevy_tasker --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
+		}
+	}
+}
