@@ -6,6 +6,8 @@ metadata:
     labels:
         app: supabase-analytics
         component: analytics
+    annotations:
+        kbve.sh/last-updated: '2026-03-16'
 spec:
     replicas: 1
     selector:
