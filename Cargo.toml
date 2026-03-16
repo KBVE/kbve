@@ -27,6 +27,7 @@ members = [
 	'packages/rust/bevy/bevy_quests',
 	'packages/rust/bevy/bevy_battle',
 	'packages/rust/bevy/bevy_skills',
+	'packages/rust/bevy/bevy_tasker',
 ]
 
 [profile.dev]

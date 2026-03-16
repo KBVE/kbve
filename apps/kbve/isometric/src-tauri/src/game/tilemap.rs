@@ -5,14 +5,20 @@ use bevy::prelude::*;
 
 use avian3d::prelude::*;
 
+use std::collections::HashSet;
+
+use crossbeam_channel::{Receiver, Sender};
+use dashmap::DashSet;
+
 use super::camera::IsometricCamera;
 use super::mushrooms;
 use super::player::Player;
 use super::rocks;
 use super::scene_objects::{
-    FlowerArchetype, HoverOutline, Interactable, InteractableKind, on_pointer_out, on_pointer_over,
+    FlowerArchetype, HoverOutline, Interactable, InteractableKind, MushroomKind, RockKind,
+    on_pointer_out, on_pointer_over,
 };
-use super::terrain::{CHUNK_SIZE, TerrainMap, hash2d};
+use super::terrain::{CHUNK_SIZE, MAX_HEIGHT, NOISE_SCALE, TerrainMap, hash2d, terrain_height};
 use super::water::{WATER_LEVEL, WaterMaterial};
 use super::weather::{BlobShadow, BlobShadowAssets};
 
@@ -1268,11 +1274,425 @@ pub(super) struct TileMaterials {
 #[derive(Resource)]
 pub struct TerrainReady;
 
+// ---------------------------------------------------------------------------
+// Async chunk computation pipeline
+// ---------------------------------------------------------------------------
+
+/// Raw mesh vertex data — Send-safe, no Bevy types.
+#[derive(Default)]
+struct RawMeshData {
+    positions: Vec<[f32; 3]>,
+    normals: Vec<[f32; 3]>,
+    colors: Vec<[f32; 4]>,
+    indices: Vec<u32>,
+}
+
+/// Raw mesh vertex data with UV coordinates.
+#[derive(Default)]
+struct RawMeshDataUV {
+    positions: Vec<[f32; 3]>,
+    normals: Vec<[f32; 3]>,
+    colors: Vec<[f32; 4]>,
+    uvs: Vec<[f32; 2]>,
+    indices: Vec<u32>,
+}
+
+/// Vegetation spawn decision (computed off-thread, materialized on main thread).
+#[allow(dead_code)]
+enum VegetationSpawn {
+    Tree {
+        tx: i32,
+        tz: i32,
+        column_h: f32,
+    },
+    Rock {
+        tx: i32,
+        tz: i32,
+        column_h: f32,
+        world_x: f32,
+        world_z: f32,
+        rock_y: f32,
+        rot_y: f32,
+        kind: RockKind,
+    },
+    Flower {
+        tx: i32,
+        tz: i32,
+        arch_idx: usize,
+        world_x: f32,
+        world_z: f32,
+        flower_y: f32,
+    },
+    Mushroom {
+        tx: i32,
+        tz: i32,
+        world_x: f32,
+        world_z: f32,
+        mush_y: f32,
+        rot_y: f32,
+        kind: MushroomKind,
+    },
+}
+
+/// Complete geometry for one chunk, computed off the main thread.
+struct ChunkGeometry {
+    cx: i32,
+    cz: i32,
+    is_near: bool,
+    body: RawMeshData,
+    cap: RawMeshData,
+    grass: RawMeshDataUV,
+    water: RawMeshData,
+    /// Collider sub-shapes: (position, full_extents) in chunk-local space.
+    colliders: Vec<(Vec3, Vec3)>,
+    vegetation: Vec<VegetationSpawn>,
+}
+
+/// Crossbeam MPSC channel for completed chunk geometries.
+/// Workers send results via the Sender; the main thread drains via the Receiver.
+/// Lock-free on the receive side — no contention with worker threads.
+#[derive(Resource)]
+struct ChunkResultChannel {
+    tx: Sender<ChunkGeometry>,
+    rx: Receiver<ChunkGeometry>,
+}
+
+impl Default for ChunkResultChannel {
+    fn default() -> Self {
+        let (tx, rx) = crossbeam_channel::unbounded();
+        Self { tx, rx }
+    }
+}
+
+/// Tracks which chunks are currently in-flight (dispatched but not yet finalized).
+/// Prevents duplicate dispatches for the same chunk coordinates.
+#[derive(Resource, Default)]
+struct InFlightChunks(DashSet<(i32, i32)>);
+
+/// Tracks the player's previous chunk position for speculative precomputation.
+#[derive(Resource, Default)]
+struct PlayerChunkHistory {
+    prev: Option<(i32, i32)>,
+    curr: Option<(i32, i32)>,
+}
+
+/// Pure function: compute all mesh geometry + vegetation decisions for a chunk.
+/// Runs on a web worker (WASM) or compute thread pool (desktop).
+fn compute_chunk_geometry(
+    seed: u32,
+    cx: i32,
+    cz: i32,
+    is_near: bool,
+    collected: HashSet<(i32, i32)>,
+) -> ChunkGeometry {
+    let base_x = cx * CHUNK_SIZE;
+    let base_z = cz * CHUNK_SIZE;
+    let tile_count = (CHUNK_SIZE * CHUNK_SIZE) as usize;
+
+    // Height lookup — pure, no TerrainMap needed.
+    let h_at = |tx: i32, tz: i32| -> f32 { terrain_height(tx, tz, seed, MAX_HEIGHT, NOISE_SCALE) };
+
+    let mut body = RawMeshData {
+        positions: Vec::with_capacity(tile_count * 24),
+        normals: Vec::with_capacity(tile_count * 24),
+        colors: Vec::with_capacity(tile_count * 24),
+        indices: Vec::with_capacity(tile_count * 36),
+    };
+    let mut cap = RawMeshData {
+        positions: Vec::with_capacity(tile_count * 24),
+        normals: Vec::with_capacity(tile_count * 24),
+        colors: Vec::with_capacity(tile_count * 24),
+        indices: Vec::with_capacity(tile_count * 36),
+    };
+    let mut grass = RawMeshDataUV::default();
+    let mut water = RawMeshData::default();
+    let mut colliders: Vec<(Vec3, Vec3)> = Vec::with_capacity(tile_count);
+    let mut vegetation = Vec::new();
+
+    for dx in 0..CHUNK_SIZE {
+        for dz in 0..CHUNK_SIZE {
+            let tx = base_x + dx;
+            let tz = base_z + dz;
+            let h = h_at(tx, tz);
+            let column_h = h.max(0.5);
+
+            let band = match h as i32 {
+                0..=1 => 0,
+                2..=3 => 1,
+                4..=5 => 2,
+                _ => 3,
+            };
+
+            let lx = dx as f32 * TILE_SIZE;
+            let lz = dz as f32 * TILE_SIZE;
+
+            // --- Body column ---
+            let body_h = column_h - CAP_HEIGHT;
+            let nb = |ntx: i32, ntz: i32| -> f32 { h_at(ntx, ntz).max(0.5) - CAP_HEIGHT };
+            push_terrain_body(
+                &mut body.positions,
+                &mut body.normals,
+                &mut body.colors,
+                &mut body.indices,
+                Vec3::new(lx, body_h / 2.0, lz),
+                Vec3::new(TILE_SIZE / 2.0, body_h / 2.0, TILE_SIZE / 2.0),
+                body_vertex_color(band),
+                body_h,
+                [
+                    nb(tx + 1, tz),
+                    nb(tx - 1, tz),
+                    nb(tx, tz + 1),
+                    nb(tx, tz - 1),
+                ],
+            );
+
+            // --- Collider sub-shape ---
+            colliders.push((
+                Vec3::new(lx, column_h / 2.0, lz),
+                Vec3::new(TILE_SIZE, column_h, TILE_SIZE),
+            ));
+
+            // --- Cap / grass ---
+            let inset = |nh: f32| if h - nh >= 1.0 { EDGE_INSET } else { 0.0 };
+            let inset_nx = inset(h_at(tx - 1, tz));
+            let inset_px = inset(h_at(tx + 1, tz));
+            let inset_nz = inset(h_at(tx, tz - 1));
+            let inset_pz = inset(h_at(tx, tz + 1));
+
+            let cap_w = TILE_SIZE - inset_nx - inset_px;
+            let cap_d = TILE_SIZE - inset_nz - inset_pz;
+            let cap_offset_x = (inset_nx - inset_px) / 2.0;
+            let cap_offset_z = (inset_nz - inset_pz) / 2.0;
+
+            let cap_center = Vec3::new(
+                lx + cap_offset_x,
+                body_h + CAP_HEIGHT / 2.0 + 0.005,
+                lz + cap_offset_z,
+            );
+            let cap_half = Vec3::new(cap_w / 2.0, CAP_HEIGHT / 2.0, cap_d / 2.0);
+
+            if band == 0 {
+                let tile_hash = hash2d(tx + 5701, tz + 3109);
+                let tile_idx = (tile_hash * (GRASS_TILE_ROWS as f32 * TILESET_COLS)) as usize;
+                let tile_col_idx = tile_idx % TILESET_COLS as usize;
+                let tile_row_idx = tile_idx / TILESET_COLS as usize;
+                let side = cap_vertex_color(band, tx, tz);
+                push_cuboid_uv_top(
+                    &mut grass.positions,
+                    &mut grass.normals,
+                    &mut grass.colors,
+                    &mut grass.uvs,
+                    &mut grass.indices,
+                    cap_center,
+                    cap_half,
+                    tile_col_idx,
+                    tile_row_idx,
+                    side,
+                );
+            } else {
+                push_cuboid(
+                    &mut cap.positions,
+                    &mut cap.normals,
+                    &mut cap.colors,
+                    &mut cap.indices,
+                    cap_center,
+                    cap_half,
+                    cap_vertex_color(band, tx, tz),
+                );
+            }
+
+            // --- Water surface ---
+            if h < WATER_LEVEL {
+                let wy = WATER_LEVEL;
+                let half = TILE_SIZE / 2.0;
+                let base_vert = water.positions.len() as u32;
+
+                let is_edge = |ntx: i32, ntz: i32| -> bool { h_at(ntx, ntz) >= WATER_LEVEL };
+                let has_land_neighbor = is_edge(tx - 1, tz)
+                    || is_edge(tx + 1, tz)
+                    || is_edge(tx, tz - 1)
+                    || is_edge(tx, tz + 1);
+                let foam_alpha = if has_land_neighbor { 0.3 } else { 1.0 };
+
+                water.positions.extend_from_slice(&[
+                    [lx - half, wy, lz - half],
+                    [lx + half, wy, lz - half],
+                    [lx + half, wy, lz + half],
+                    [lx - half, wy, lz + half],
+                ]);
+                water.normals.extend_from_slice(&[
+                    [0.0, 1.0, 0.0],
+                    [0.0, 1.0, 0.0],
+                    [0.0, 1.0, 0.0],
+                    [0.0, 1.0, 0.0],
+                ]);
+                water.colors.extend_from_slice(&[
+                    [1.0, 1.0, 1.0, foam_alpha],
+                    [1.0, 1.0, 1.0, foam_alpha],
+                    [1.0, 1.0, 1.0, foam_alpha],
+                    [1.0, 1.0, 1.0, foam_alpha],
+                ]);
+                water.indices.extend_from_slice(&[
+                    base_vert,
+                    base_vert + 1,
+                    base_vert + 2,
+                    base_vert,
+                    base_vert + 2,
+                    base_vert + 3,
+                ]);
+            }
+
+            // --- Vegetation decisions (band 0 only) ---
+            if band == 0 {
+                let mut tile_occupied = false;
+
+                // Trees
+                let tree_noise = hash2d(tx + 11317, tz + 5471);
+                if tree_noise < 0.055 {
+                    tile_occupied = true;
+                    if !collected.contains(&(tx, tz)) {
+                        vegetation.push(VegetationSpawn::Tree { tx, tz, column_h });
+                    }
+                }
+
+                // Rocks
+                if !tile_occupied {
+                    let rock_noise = hash2d(tx + 19457, tz + 12391);
+                    if rock_noise < 0.025 {
+                        tile_occupied = true;
+                        if !collected.contains(&(tx, tz)) {
+                            let jx = ((hash2d(tx + 19557, tz + 12391) - 0.5) * 0.4 / VEG_SNAP)
+                                .round()
+                                * VEG_SNAP;
+                            let jz = ((hash2d(tx + 19457, tz + 12491) - 0.5) * 0.4 / VEG_SNAP)
+                                .round()
+                                * VEG_SNAP;
+                            let world_x = tx as f32 * TILE_SIZE + jx;
+                            let world_z = tz as f32 * TILE_SIZE + jz;
+                            let rock_y = column_h + 0.002;
+                            let kind = rocks::rock_kind_from_hash(tx, tz);
+                            let rot_y =
+                                hash2d(tx * 8311 + 2477, tz * 7193 + 3319) * std::f32::consts::TAU;
+                            vegetation.push(VegetationSpawn::Rock {
+                                tx,
+                                tz,
+                                column_h,
+                                world_x,
+                                world_z,
+                                rock_y,
+                                rot_y,
+                                kind,
+                            });
+                        }
+                    }
+                }
+
+                // Flowers
+                if !tile_occupied {
+                    let flower_noise = hash2d(tx + 13721, tz + 8293);
+                    if flower_noise < 0.12 {
+                        tile_occupied = true;
+                        if !collected.contains(&(tx, tz)) {
+                            let arch_idx =
+                                (hash2d(tx + 13821, tz + 8393) * NUM_FLORA_SPECIES as f32) as usize
+                                    % NUM_FLORA_SPECIES;
+                            let jx = ((hash2d(tx + 13921, tz + 8293) - 0.5) * 0.6 / VEG_SNAP)
+                                .round()
+                                * VEG_SNAP;
+                            let jz = ((hash2d(tx + 13721, tz + 8493) - 0.5) * 0.6 / VEG_SNAP)
+                                .round()
+                                * VEG_SNAP;
+                            let world_x = tx as f32 * TILE_SIZE + jx;
+                            let world_z = tz as f32 * TILE_SIZE + jz;
+                            let flower_y = column_h + 0.002;
+                            vegetation.push(VegetationSpawn::Flower {
+                                tx,
+                                tz,
+                                arch_idx,
+                                world_x,
+                                world_z,
+                                flower_y,
+                            });
+                        }
+                    }
+                }
+
+                // Mushrooms
+                if !tile_occupied {
+                    let mush_noise = hash2d(tx + 23017, tz + 17293);
+                    if mush_noise < 0.04 {
+                        if !collected.contains(&(tx, tz)) {
+                            let jx = ((hash2d(tx + 23117, tz + 17293) - 0.5) * 0.5 / VEG_SNAP)
+                                .round()
+                                * VEG_SNAP;
+                            let jz = ((hash2d(tx + 23017, tz + 17393) - 0.5) * 0.5 / VEG_SNAP)
+                                .round()
+                                * VEG_SNAP;
+                            let world_x = tx as f32 * TILE_SIZE + jx;
+                            let world_z = tz as f32 * TILE_SIZE + jz;
+                            let mush_y = column_h + 0.002;
+                            let kind = mushrooms::mushroom_kind_from_hash(tx, tz);
+                            let rot_y =
+                                hash2d(tx * 9311 + 3477, tz * 8193 + 4319) * std::f32::consts::TAU;
+                            vegetation.push(VegetationSpawn::Mushroom {
+                                tx,
+                                tz,
+                                world_x,
+                                world_z,
+                                mush_y,
+                                rot_y,
+                                kind,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    ChunkGeometry {
+        cx,
+        cz,
+        is_near,
+        body,
+        cap,
+        grass,
+        water,
+        colliders,
+        vegetation,
+    }
+}
+
+/// Spawn a chunk computation on the appropriate thread pool.
+fn dispatch_chunk_task(
+    seed: u32,
+    cx: i32,
+    cz: i32,
+    is_near: bool,
+    collected: HashSet<(i32, i32)>,
+    tx: Sender<ChunkGeometry>,
+    in_flight: &DashSet<(i32, i32)>,
+) {
+    // Skip if already in-flight.
+    if !in_flight.insert((cx, cz)) {
+        return;
+    }
+
+    bevy_tasker::spawn(async move {
+        let geometry = compute_chunk_geometry(seed, cx, cz, is_near, collected);
+        let _ = tx.send(geometry);
+    })
+    .detach();
+}
+
 pub struct TilemapPlugin;
 
 impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CollectedTiles>();
+        app.init_resource::<ChunkResultChannel>();
+        app.init_resource::<InFlightChunks>();
+        app.init_resource::<PlayerChunkHistory>();
         app.add_systems(Startup, setup_tile_materials);
         // Run chunk spawning before player movement so colliders exist
         // before the first shape cast of each frame.
@@ -1397,6 +1817,9 @@ fn process_chunk_spawns_and_despawns(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut terrain: ResMut<TerrainMap>,
+    chunk_channel: Res<ChunkResultChannel>,
+    in_flight: Res<InFlightChunks>,
+    mut chunk_history: ResMut<PlayerChunkHistory>,
     tile_materials: Option<Res<TileMaterials>>,
     blob_shadow: Option<Res<BlobShadowAssets>>,
     player_query: Query<&Transform, With<Player>>,
@@ -1410,7 +1833,7 @@ fn process_chunk_spawns_and_despawns(
         return;
     };
 
-    // Despawn chunks (all at once — despawning is cheap)
+    // ── Phase 1: Despawn chunks (cheap — all at once) ──────────────────────
     let despawns: Vec<(i32, i32, Vec<Entity>)> = terrain.chunks_to_despawn.drain(..).collect();
     for (_cx, _cz, entities) in despawns {
         for entity in entities {
@@ -1418,8 +1841,7 @@ fn process_chunk_spawns_and_despawns(
         }
     }
 
-    // Rate-limiting: always spawn player's chunk + neighbors immediately,
-    // rate-limit distant chunks to avoid frame spikes.
+    // ── Phase 2: Dispatch async tasks for new chunks ───────────────────────
     let player_chunk = player_query.single().ok().map(|tf| {
         TerrainMap::tile_to_chunk(
             tf.translation.x.round() as i32,
@@ -1427,414 +1849,128 @@ fn process_chunk_spawns_and_despawns(
         )
     });
 
-    #[cfg(target_arch = "wasm32")]
-    const MAX_DISTANT_SPAWNS: usize = 1;
-    #[cfg(not(target_arch = "wasm32"))]
-    const MAX_DISTANT_SPAWNS: usize = 2;
+    let seed = terrain.seed;
+    let collected = collected_tiles.0.clone();
+    let tx = chunk_channel.tx.clone();
 
-    let mut near: Vec<(i32, i32)> = Vec::new();
-    let mut far: Vec<(i32, i32)> = Vec::new();
     for (cx, cz) in terrain.chunks_to_spawn.drain(..) {
         let is_near = player_chunk
             .map(|(pcx, pcz)| (cx - pcx).abs() <= 1 && (cz - pcz).abs() <= 1)
             .unwrap_or(true);
-        if is_near {
-            near.push((cx, cz));
-        } else {
-            far.push((cx, cz));
-        }
+
+        // Submit ALL chunks to the thread pool / web workers — no rate
+        // limiting on submission. The workers run in parallel; finalization
+        // (entity spawning) is rate-limited below.
+        dispatch_chunk_task(
+            seed,
+            cx,
+            cz,
+            is_near,
+            collected.clone(),
+            tx.clone(),
+            &in_flight.0,
+        );
     }
-    let had_near = !near.is_empty();
-    far.truncate(MAX_DISTANT_SPAWNS);
-    let mut spawns = near;
-    spawns.extend(far);
 
-    for (cx, cz) in &spawns {
-        let mut entities = Vec::new();
-        let base_x = cx * CHUNK_SIZE;
-        let base_z = cz * CHUNK_SIZE;
+    // ── Phase 2b: Speculative precomputation ──────────────────────────────
+    // Predict player movement direction from chunk history and speculatively
+    // dispatch chunks 1-2 rings ahead in that direction.
+    if let Some((pcx, pcz)) = player_chunk {
+        let prev = chunk_history.curr;
+        chunk_history.curr = Some((pcx, pcz));
+        chunk_history.prev = prev;
 
-        // ---- Build combined body, cap, vegetation meshes + compound collider ----
-        let tile_count = (CHUNK_SIZE * CHUNK_SIZE) as usize;
-        let mut body_pos = Vec::with_capacity(tile_count * 24);
-        let mut body_nor = Vec::with_capacity(tile_count * 24);
-        let mut body_col = Vec::with_capacity(tile_count * 24);
-        let mut body_idx = Vec::with_capacity(tile_count * 36);
-
-        let mut cap_pos = Vec::with_capacity(tile_count * 24);
-        let mut cap_nor = Vec::with_capacity(tile_count * 24);
-        let mut cap_col = Vec::with_capacity(tile_count * 24);
-        let mut cap_idx = Vec::with_capacity(tile_count * 36);
-
-        let mut collider_shapes: Vec<(Vec3, Quat, Collider)> = Vec::with_capacity(tile_count);
-        // Note: avian3d Collider::cuboid takes FULL extents (not half)
-
-        // Grass cap tiles (band 0) — separate mesh with UV-mapped tileset texture
-        let mut grass_pos: Vec<[f32; 3]> = Vec::new();
-        let mut grass_nor: Vec<[f32; 3]> = Vec::new();
-        let mut grass_col: Vec<[f32; 4]> = Vec::new();
-        let mut grass_uvs: Vec<[f32; 2]> = Vec::new();
-        let mut grass_idx: Vec<u32> = Vec::new();
-
-        // Water surface quads for tiles below water level
-        let mut water_pos: Vec<[f32; 3]> = Vec::new();
-        let mut water_nor: Vec<[f32; 3]> = Vec::new();
-        let mut water_col: Vec<[f32; 4]> = Vec::new();
-        let mut water_idx: Vec<u32> = Vec::new();
-
-        for dx in 0..CHUNK_SIZE {
-            for dz in 0..CHUNK_SIZE {
-                let tx = base_x + dx;
-                let tz = base_z + dz;
-                let h = terrain.height_at(tx, tz);
-                let column_h = h.max(0.5);
-
-                let band = match h as i32 {
-                    0..=1 => 0,
-                    2..=3 => 1,
-                    4..=5 => 2,
-                    _ => 3,
-                };
-
-                // Chunk-local position
-                let lx = dx as f32 * TILE_SIZE;
-                let lz = dz as f32 * TILE_SIZE;
-
-                // --- Body column (face-culled: skip top/bottom + hidden sides) ---
-                let body_h = column_h - CAP_HEIGHT;
-                let mut nb = |ntx: i32, ntz: i32| -> f32 {
-                    terrain.height_at(ntx, ntz).max(0.5) - CAP_HEIGHT
-                };
-                push_terrain_body(
-                    &mut body_pos,
-                    &mut body_nor,
-                    &mut body_col,
-                    &mut body_idx,
-                    Vec3::new(lx, body_h / 2.0, lz),
-                    Vec3::new(TILE_SIZE / 2.0, body_h / 2.0, TILE_SIZE / 2.0),
-                    body_vertex_color(band),
-                    body_h,
-                    [
-                        nb(tx + 1, tz),
-                        nb(tx - 1, tz),
-                        nb(tx, tz + 1),
-                        nb(tx, tz - 1),
-                    ],
-                );
-
-                // Collider sub-shape (relative to chunk entity).
-                // Use full column_h (not body_h) so the collider top matches
-                // the visual cap surface — prevents feet clipping into the cap.
-                collider_shapes.push((
-                    Vec3::new(lx, column_h / 2.0, lz),
-                    Quat::IDENTITY,
-                    Collider::cuboid(TILE_SIZE, column_h, TILE_SIZE),
-                ));
-
-                // --- Cap cuboid (with edge insets) ---
-                let inset = |nh: f32| if h - nh >= 1.0 { EDGE_INSET } else { 0.0 };
-                let inset_nx = inset(terrain.height_at(tx - 1, tz));
-                let inset_px = inset(terrain.height_at(tx + 1, tz));
-                let inset_nz = inset(terrain.height_at(tx, tz - 1));
-                let inset_pz = inset(terrain.height_at(tx, tz + 1));
-
-                let cap_w = TILE_SIZE - inset_nx - inset_px;
-                let cap_d = TILE_SIZE - inset_nz - inset_pz;
-                let cap_offset_x = (inset_nx - inset_px) / 2.0;
-                let cap_offset_z = (inset_nz - inset_pz) / 2.0;
-
-                let cap_center = Vec3::new(
-                    lx + cap_offset_x,
-                    body_h + CAP_HEIGHT / 2.0 + 0.005,
-                    lz + cap_offset_z,
-                );
-                let cap_half = Vec3::new(cap_w / 2.0, CAP_HEIGHT / 2.0, cap_d / 2.0);
-
-                if band == 0 {
-                    // Grass: UV-mapped top face from tileset, pick a random
-                    // tile from the first 4 rows (32 grass variants).
-                    let tile_hash = hash2d(tx + 5701, tz + 3109);
-                    let tile_idx = (tile_hash * (GRASS_TILE_ROWS as f32 * TILESET_COLS)) as usize;
-                    let tile_col_idx = tile_idx % TILESET_COLS as usize;
-                    let tile_row_idx = tile_idx / TILESET_COLS as usize;
-                    let side = cap_vertex_color(band, tx, tz);
-                    push_cuboid_uv_top(
-                        &mut grass_pos,
-                        &mut grass_nor,
-                        &mut grass_col,
-                        &mut grass_uvs,
-                        &mut grass_idx,
-                        cap_center,
-                        cap_half,
-                        tile_col_idx,
-                        tile_row_idx,
-                        side,
-                    );
-                } else {
-                    push_cuboid(
-                        &mut cap_pos,
-                        &mut cap_nor,
-                        &mut cap_col,
-                        &mut cap_idx,
-                        cap_center,
-                        cap_half,
-                        cap_vertex_color(band, tx, tz),
-                    );
-                }
-
-                // --- Water surface (tiles below water level) ---
-                if h < WATER_LEVEL {
-                    let wy = WATER_LEVEL;
-                    let half = TILE_SIZE / 2.0;
-                    let base_vert = water_pos.len() as u32;
-
-                    // Flat quad facing up at water level
-                    // Check neighbors to set foam alpha (1.0 = no foam, < 1.0 = foam edge)
-                    let mut is_edge =
-                        |ntx: i32, ntz: i32| -> bool { terrain.height_at(ntx, ntz) >= WATER_LEVEL };
-                    let has_land_neighbor = is_edge(tx - 1, tz)
-                        || is_edge(tx + 1, tz)
-                        || is_edge(tx, tz - 1)
-                        || is_edge(tx, tz + 1);
-                    let foam_alpha = if has_land_neighbor { 0.3 } else { 1.0 };
-
-                    water_pos.extend_from_slice(&[
-                        [lx - half, wy, lz - half],
-                        [lx + half, wy, lz - half],
-                        [lx + half, wy, lz + half],
-                        [lx - half, wy, lz + half],
-                    ]);
-                    water_nor.extend_from_slice(&[
-                        [0.0, 1.0, 0.0],
-                        [0.0, 1.0, 0.0],
-                        [0.0, 1.0, 0.0],
-                        [0.0, 1.0, 0.0],
-                    ]);
-                    water_col.extend_from_slice(&[
-                        [1.0, 1.0, 1.0, foam_alpha],
-                        [1.0, 1.0, 1.0, foam_alpha],
-                        [1.0, 1.0, 1.0, foam_alpha],
-                        [1.0, 1.0, 1.0, foam_alpha],
-                    ]);
-                    water_idx.extend_from_slice(&[
-                        base_vert,
-                        base_vert + 1,
-                        base_vert + 2,
-                        base_vert,
-                        base_vert + 2,
-                        base_vert + 3,
-                    ]);
-                }
-
-                // --- Vegetation: grass blade billboards disabled (pixel swim) ---
-                // TODO: bake grass blade detail into the ground tileset texture instead
-                if band == 0 {
-                    // --- Overlap-aware spawn: trees > rocks > flowers ---
-                    let mut tile_occupied = false;
-
-                    // Trees (highest priority)
-                    let tree_noise = hash2d(tx + 11317, tz + 5471);
-                    if tree_noise < 0.055 {
-                        tile_occupied = true;
-                        if !collected_tiles.0.contains(&(tx, tz)) {
-                            let (tree_entity, shadow_entity) = super::trees::spawn_tree_entity(
-                                &mut commands,
-                                &mut meshes,
-                                tile_materials.tree_body_mat.clone(),
-                                blob_shadow.mesh.clone(),
-                                blob_shadow.material.clone(),
-                                tx,
-                                tz,
-                                column_h,
+        if let (Some((prev_cx, prev_cz)), Some((curr_cx, curr_cz))) =
+            (chunk_history.prev, chunk_history.curr)
+        {
+            let dx = (curr_cx - prev_cx).clamp(-1, 1);
+            let dz = (curr_cz - prev_cz).clamp(-1, 1);
+            if dx != 0 || dz != 0 {
+                // Speculatively compute 2 rings ahead in the movement direction.
+                for ring in 1..=2i32 {
+                    let spec_cx = curr_cx + dx * ring;
+                    let spec_cz = curr_cz + dz * ring;
+                    // Also compute the two adjacent chunks to cover diagonal movement.
+                    for &(ox, oz) in &[(0, 0), (dz, dx), (-dz, -dx)] {
+                        let scx = spec_cx + ox;
+                        let scz = spec_cz + oz;
+                        // Only dispatch if terrain doesn't already have this chunk.
+                        if !terrain.is_chunk_loaded(scx, scz) {
+                            dispatch_chunk_task(
+                                seed,
+                                scx,
+                                scz,
+                                false,
+                                collected.clone(),
+                                tx.clone(),
+                                &in_flight.0,
                             );
-                            commands.entity(tree_entity).insert(TileCoord { tx, tz });
-                            entities.push(tree_entity);
-                            entities.push(shadow_entity);
-                        }
-                    }
-
-                    // Rocks (skip if tree already on this tile)
-                    if !tile_occupied {
-                        let rock_noise = hash2d(tx + 19457, tz + 12391);
-                        if rock_noise < 0.025 {
-                            tile_occupied = true;
-                            if !collected_tiles.0.contains(&(tx, tz)) {
-                                let jx = ((hash2d(tx + 19557, tz + 12391) - 0.5) * 0.4 / VEG_SNAP)
-                                    .round()
-                                    * VEG_SNAP;
-                                let jz = ((hash2d(tx + 19457, tz + 12491) - 0.5) * 0.4 / VEG_SNAP)
-                                    .round()
-                                    * VEG_SNAP;
-                                let world_x = tx as f32 * TILE_SIZE + jx;
-                                let world_z = tz as f32 * TILE_SIZE + jz;
-                                let rock_y = column_h + 0.002;
-
-                                let kind = rocks::rock_kind_from_hash(tx, tz);
-                                let params = rocks::RockParams {
-                                    world_x,
-                                    world_z,
-                                    base_y: rock_y,
-                                    kind,
-                                    tx,
-                                    tz,
-                                };
-                                let (rock_mesh, max_hw, total_h) =
-                                    rocks::build_rock(&params, &mut meshes);
-
-                                let rot_y = hash2d(tx * 8311 + 2477, tz * 7193 + 3319)
-                                    * std::f32::consts::TAU;
-                                let rock_entity = commands
-                                    .spawn((
-                                        Mesh3d(rock_mesh),
-                                        MeshMaterial3d(tile_materials.rock_body_mat.clone()),
-                                        Transform::from_xyz(world_x, rock_y, world_z)
-                                            .with_rotation(Quat::from_rotation_y(rot_y)),
-                                        RigidBody::Static,
-                                        Collider::cuboid(max_hw * 1.6, total_h, max_hw * 1.6),
-                                        HoverOutline {
-                                            half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
-                                        },
-                                        Interactable {
-                                            kind: InteractableKind::Rock,
-                                        },
-                                        kind,
-                                        TileCoord { tx, tz },
-                                    ))
-                                    .observe(on_pointer_over)
-                                    .observe(on_pointer_out)
-                                    .id();
-                                entities.push(rock_entity);
-
-                                // Dynamic blob shadow disc
-                                let shadow_entity = commands
-                                    .spawn((
-                                        Mesh3d(blob_shadow.mesh.clone()),
-                                        MeshMaterial3d(blob_shadow.material.clone()),
-                                        Transform::from_xyz(world_x, rock_y + 0.001, world_z),
-                                        BlobShadow {
-                                            anchor: Vec3::new(world_x, rock_y + 0.001, world_z),
-                                            radius: max_hw * 1.4,
-                                            object_height: total_h,
-                                        },
-                                        Pickable::IGNORE,
-                                    ))
-                                    .id();
-                                entities.push(shadow_entity);
-                            }
-                        }
-                    }
-
-                    // Flowers (skip if tree or rock already on this tile)
-                    if !tile_occupied {
-                        let flower_noise = hash2d(tx + 13721, tz + 8293);
-                        if flower_noise < 0.12 {
-                            tile_occupied = true;
-                            if !collected_tiles.0.contains(&(tx, tz)) {
-                                let arch_idx = (hash2d(tx + 13821, tz + 8393)
-                                    * NUM_FLORA_SPECIES as f32)
-                                    as usize
-                                    % NUM_FLORA_SPECIES;
-                                let archetype = match arch_idx {
-                                    0 => FlowerArchetype::Tulip,
-                                    1 => FlowerArchetype::Daisy,
-                                    2 => FlowerArchetype::Lavender,
-                                    3 => FlowerArchetype::Bell,
-                                    4 => FlowerArchetype::Wildflower,
-                                    5 => FlowerArchetype::Sunflower,
-                                    6 => FlowerArchetype::Rose,
-                                    7 => FlowerArchetype::Cornflower,
-                                    8 => FlowerArchetype::Allium,
-                                    _ => FlowerArchetype::BlueOrchid,
-                                };
-
-                                let jx = ((hash2d(tx + 13921, tz + 8293) - 0.5) * 0.6 / VEG_SNAP)
-                                    .round()
-                                    * VEG_SNAP;
-                                let jz = ((hash2d(tx + 13721, tz + 8493) - 0.5) * 0.6 / VEG_SNAP)
-                                    .round()
-                                    * VEG_SNAP;
-                                let world_x = tx as f32 * TILE_SIZE + jx;
-                                let world_z = tz as f32 * TILE_SIZE + jz;
-                                let flower_y = column_h + 0.002;
-
-                                let flower_entity = commands
-                                    .spawn((
-                                        Mesh3d(tile_materials.flower_meshes[arch_idx].clone()),
-                                        MeshMaterial3d(tile_materials.flower_mat.clone()),
-                                        Transform::from_xyz(world_x, flower_y, world_z),
-                                        RigidBody::Static,
-                                        Collider::cuboid(0.4, 0.5, 0.4),
-                                        Sensor,
-                                        HoverOutline {
-                                            half_extents: Vec3::new(0.2, 0.25, 0.2),
-                                        },
-                                        Interactable {
-                                            kind: InteractableKind::Flower,
-                                        },
-                                        archetype,
-                                        TileCoord { tx, tz },
-                                    ))
-                                    .observe(on_pointer_over)
-                                    .observe(on_pointer_out)
-                                    .id();
-                                entities.push(flower_entity);
-                            }
-                        }
-                    }
-
-                    // Mushrooms (skip if anything else on this tile)
-                    if !tile_occupied {
-                        let mush_noise = hash2d(tx + 23017, tz + 17293);
-                        if mush_noise < 0.04 {
-                            if !collected_tiles.0.contains(&(tx, tz)) {
-                                let jx = ((hash2d(tx + 23117, tz + 17293) - 0.5) * 0.5 / VEG_SNAP)
-                                    .round()
-                                    * VEG_SNAP;
-                                let jz = ((hash2d(tx + 23017, tz + 17393) - 0.5) * 0.5 / VEG_SNAP)
-                                    .round()
-                                    * VEG_SNAP;
-                                let world_x = tx as f32 * TILE_SIZE + jx;
-                                let world_z = tz as f32 * TILE_SIZE + jz;
-                                let mush_y = column_h + 0.002;
-
-                                let kind = mushrooms::mushroom_kind_from_hash(tx, tz);
-                                let params = mushrooms::MushroomParams { tx, tz, kind };
-                                let (mush_mesh, max_hw, total_h) =
-                                    mushrooms::build_mushroom(&params, &mut meshes);
-
-                                let rot_y = hash2d(tx * 9311 + 3477, tz * 8193 + 4319)
-                                    * std::f32::consts::TAU;
-                                let mush_entity = commands
-                                    .spawn((
-                                        Mesh3d(mush_mesh),
-                                        MeshMaterial3d(tile_materials.tree_body_mat.clone()),
-                                        Transform::from_xyz(world_x, mush_y, world_z)
-                                            .with_rotation(Quat::from_rotation_y(rot_y)),
-                                        RigidBody::Static,
-                                        Collider::cuboid(max_hw * 1.6, total_h, max_hw * 1.6),
-                                        Sensor,
-                                        HoverOutline {
-                                            half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
-                                        },
-                                        Interactable {
-                                            kind: InteractableKind::Mushroom,
-                                        },
-                                        kind,
-                                        TileCoord { tx, tz },
-                                    ))
-                                    .observe(on_pointer_over)
-                                    .observe(on_pointer_out)
-                                    .id();
-                                entities.push(mush_entity);
-                            }
                         }
                     }
                 }
             }
         }
+    }
 
-        // Spawn body entity (combined mesh + compound collider)
-        let body_mesh = meshes.add(build_chunk_mesh(body_pos, body_nor, body_col, body_idx));
+    // ── Phase 3: Finalize completed chunks ─────────────────────────────────
+    // Drain the crossbeam channel — lock-free, no contention with workers.
+    let mut results: Vec<ChunkGeometry> = chunk_channel.rx.try_iter().collect();
+
+    // Mark drained chunks as no longer in-flight.
+    for g in &results {
+        in_flight.0.remove(&(g.cx, g.cz));
+    }
+
+    // Sort near chunks first so they get priority.
+    results.sort_by_key(|g| if g.is_near { 0i32 } else { 1 });
+
+    // With pthreads, workers produce results faster — increase finalization budget.
+    #[cfg(target_arch = "wasm32")]
+    const MAX_DISTANT_FINALIZES: usize = 4;
+    #[cfg(not(target_arch = "wasm32"))]
+    const MAX_DISTANT_FINALIZES: usize = 8;
+
+    let mut far_finalized = 0usize;
+    let mut had_near = false;
+
+    for geometry in results {
+        // Skip speculative chunks whose terrain data hasn't been loaded yet.
+        // Re-queue them — they'll finalize once the terrain system catches up.
+        if !terrain.is_chunk_loaded(geometry.cx, geometry.cz) {
+            let _ = chunk_channel.tx.send(geometry);
+            continue;
+        }
+
+        if !geometry.is_near {
+            far_finalized += 1;
+            if far_finalized > MAX_DISTANT_FINALIZES {
+                // Re-queue for next frame via the channel.
+                let _ = chunk_channel.tx.send(geometry);
+                continue;
+            }
+        } else {
+            had_near = true;
+        }
+
+        let cx = geometry.cx;
+        let cz = geometry.cz;
+        let base_x = cx * CHUNK_SIZE;
+        let base_z = cz * CHUNK_SIZE;
+        let mut entities = Vec::new();
+
+        // ── Terrain meshes from pre-computed vertex data ───────────────
+        let body_mesh = meshes.add(build_chunk_mesh(
+            geometry.body.positions,
+            geometry.body.normals,
+            geometry.body.colors,
+            geometry.body.indices,
+        ));
+        let collider_shapes: Vec<(Vec3, Quat, Collider)> = geometry
+            .colliders
+            .iter()
+            .map(|(pos, ext)| (*pos, Quat::IDENTITY, Collider::cuboid(ext.x, ext.y, ext.z)))
+            .collect();
+
         let body_entity = commands
             .spawn((
                 Mesh3d(body_mesh),
@@ -1847,9 +1983,13 @@ fn process_chunk_spawns_and_despawns(
             .id();
         entities.push(body_entity);
 
-        // Spawn cap entity (combined mesh for non-grass bands, no collider)
-        if !cap_pos.is_empty() {
-            let cap_mesh = meshes.add(build_chunk_mesh(cap_pos, cap_nor, cap_col, cap_idx));
+        if !geometry.cap.positions.is_empty() {
+            let cap_mesh = meshes.add(build_chunk_mesh(
+                geometry.cap.positions,
+                geometry.cap.normals,
+                geometry.cap.colors,
+                geometry.cap.indices,
+            ));
             let cap_entity = commands
                 .spawn((
                     Mesh3d(cap_mesh),
@@ -1861,10 +2001,13 @@ fn process_chunk_spawns_and_despawns(
             entities.push(cap_entity);
         }
 
-        // Spawn grass cap entity (UV-mapped tileset texture)
-        if !grass_pos.is_empty() {
+        if !geometry.grass.positions.is_empty() {
             let grass_mesh = meshes.add(build_chunk_mesh_uv(
-                grass_pos, grass_nor, grass_col, grass_uvs, grass_idx,
+                geometry.grass.positions,
+                geometry.grass.normals,
+                geometry.grass.colors,
+                geometry.grass.uvs,
+                geometry.grass.indices,
             ));
             let grass_entity = commands
                 .spawn((
@@ -1877,10 +2020,13 @@ fn process_chunk_spawns_and_despawns(
             entities.push(grass_entity);
         }
 
-        // Spawn water entity (combined mesh, transparent material)
-        if !water_pos.is_empty() {
-            let water_mesh =
-                meshes.add(build_chunk_mesh(water_pos, water_nor, water_col, water_idx));
+        if !geometry.water.positions.is_empty() {
+            let water_mesh = meshes.add(build_chunk_mesh(
+                geometry.water.positions,
+                geometry.water.normals,
+                geometry.water.colors,
+                geometry.water.indices,
+            ));
             let water_entity = commands
                 .spawn((
                     Mesh3d(water_mesh),
@@ -1892,10 +2038,164 @@ fn process_chunk_spawns_and_despawns(
             entities.push(water_entity);
         }
 
-        terrain.link_chunk_entities(*cx, *cz, entities);
+        // ── Vegetation entities (main-thread only — needs Commands) ────
+        for veg in geometry.vegetation {
+            match veg {
+                VegetationSpawn::Tree { tx, tz, column_h } => {
+                    let (tree_entity, shadow_entity) = super::trees::spawn_tree_entity(
+                        &mut commands,
+                        &mut meshes,
+                        tile_materials.tree_body_mat.clone(),
+                        blob_shadow.mesh.clone(),
+                        blob_shadow.material.clone(),
+                        tx,
+                        tz,
+                        column_h,
+                    );
+                    commands.entity(tree_entity).insert(TileCoord { tx, tz });
+                    entities.push(tree_entity);
+                    entities.push(shadow_entity);
+                }
+                VegetationSpawn::Rock {
+                    tx,
+                    tz,
+                    column_h: _,
+                    world_x,
+                    world_z,
+                    rock_y,
+                    rot_y,
+                    kind,
+                } => {
+                    let params = rocks::RockParams {
+                        world_x,
+                        world_z,
+                        base_y: rock_y,
+                        kind,
+                        tx,
+                        tz,
+                    };
+                    let (rock_mesh, max_hw, total_h) = rocks::build_rock(&params, &mut meshes);
+                    let rock_entity = commands
+                        .spawn((
+                            Mesh3d(rock_mesh),
+                            MeshMaterial3d(tile_materials.rock_body_mat.clone()),
+                            Transform::from_xyz(world_x, rock_y, world_z)
+                                .with_rotation(Quat::from_rotation_y(rot_y)),
+                            RigidBody::Static,
+                            Collider::cuboid(max_hw * 1.6, total_h, max_hw * 1.6),
+                            HoverOutline {
+                                half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
+                            },
+                            Interactable {
+                                kind: InteractableKind::Rock,
+                            },
+                            kind,
+                            TileCoord { tx, tz },
+                        ))
+                        .observe(on_pointer_over)
+                        .observe(on_pointer_out)
+                        .id();
+                    entities.push(rock_entity);
+
+                    let shadow_entity = commands
+                        .spawn((
+                            Mesh3d(blob_shadow.mesh.clone()),
+                            MeshMaterial3d(blob_shadow.material.clone()),
+                            Transform::from_xyz(world_x, rock_y + 0.001, world_z),
+                            BlobShadow {
+                                anchor: Vec3::new(world_x, rock_y + 0.001, world_z),
+                                radius: max_hw * 1.4,
+                                object_height: total_h,
+                            },
+                            Pickable::IGNORE,
+                        ))
+                        .id();
+                    entities.push(shadow_entity);
+                }
+                VegetationSpawn::Flower {
+                    tx,
+                    tz,
+                    arch_idx,
+                    world_x,
+                    world_z,
+                    flower_y,
+                } => {
+                    let archetype = match arch_idx {
+                        0 => FlowerArchetype::Tulip,
+                        1 => FlowerArchetype::Daisy,
+                        2 => FlowerArchetype::Lavender,
+                        3 => FlowerArchetype::Bell,
+                        4 => FlowerArchetype::Wildflower,
+                        5 => FlowerArchetype::Sunflower,
+                        6 => FlowerArchetype::Rose,
+                        7 => FlowerArchetype::Cornflower,
+                        8 => FlowerArchetype::Allium,
+                        _ => FlowerArchetype::BlueOrchid,
+                    };
+                    let flower_entity = commands
+                        .spawn((
+                            Mesh3d(tile_materials.flower_meshes[arch_idx].clone()),
+                            MeshMaterial3d(tile_materials.flower_mat.clone()),
+                            Transform::from_xyz(world_x, flower_y, world_z),
+                            RigidBody::Static,
+                            Collider::cuboid(0.4, 0.5, 0.4),
+                            Sensor,
+                            HoverOutline {
+                                half_extents: Vec3::new(0.2, 0.25, 0.2),
+                            },
+                            Interactable {
+                                kind: InteractableKind::Flower,
+                            },
+                            archetype,
+                            TileCoord { tx, tz },
+                        ))
+                        .observe(on_pointer_over)
+                        .observe(on_pointer_out)
+                        .id();
+                    entities.push(flower_entity);
+                }
+                VegetationSpawn::Mushroom {
+                    tx,
+                    tz,
+                    world_x,
+                    world_z,
+                    mush_y,
+                    rot_y,
+                    kind,
+                } => {
+                    let params = mushrooms::MushroomParams { tx, tz, kind };
+                    let (mush_mesh, max_hw, total_h) =
+                        mushrooms::build_mushroom(&params, &mut meshes);
+                    let mush_entity = commands
+                        .spawn((
+                            Mesh3d(mush_mesh),
+                            MeshMaterial3d(tile_materials.tree_body_mat.clone()),
+                            Transform::from_xyz(world_x, mush_y, world_z)
+                                .with_rotation(Quat::from_rotation_y(rot_y)),
+                            RigidBody::Static,
+                            Collider::cuboid(max_hw * 1.6, total_h, max_hw * 1.6),
+                            Sensor,
+                            HoverOutline {
+                                half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
+                            },
+                            Interactable {
+                                kind: InteractableKind::Mushroom,
+                            },
+                            kind,
+                            TileCoord { tx, tz },
+                        ))
+                        .observe(on_pointer_over)
+                        .observe(on_pointer_out)
+                        .id();
+                    entities.push(mush_entity);
+                }
+            }
+        }
+
+        terrain.link_chunk_entities(cx, cz, entities);
     }
 
-    // Once the player's immediate chunks have been spawned (with colliders),
+    // Once at least one near chunk has been finalized (with colliders),
     // insert TerrainReady so the player controller can start moving.
     if had_near && terrain_ready.is_none() {
         commands.insert_resource(TerrainReady);

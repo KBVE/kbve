@@ -165,10 +165,10 @@ impl Plugin for ActionsPlugin {
             Update,
             (
                 process_action_buffer,
-                animate_tree_chop,
-                animate_rock_mine,
-                animate_forageable_collect,
-                animate_smoke_particles,
+                animate_tree_chop.run_if(any_with_component::<ChoppingTree>),
+                animate_rock_mine.run_if(any_with_component::<MiningRock>),
+                animate_forageable_collect.run_if(any_with_component::<CollectingForageable>),
+                animate_smoke_particles.run_if(any_with_component::<SmokeParticle>),
             ),
         );
     }

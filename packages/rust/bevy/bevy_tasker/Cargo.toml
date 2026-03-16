@@ -1,0 +1,19 @@
+[package]
+name = "bevy_tasker"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Cross-platform async task spawning for Bevy — web workers via microtask queue on WASM, thread pool on desktop."
+homepage = "https://kbve.com/"
+repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_tasker"
+
+[dependencies]
+async-task = { version = "4.7", default-features = false }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = { version = "0.3", default-features = false }
+wasm-bindgen = { version = "0.2", default-features = false }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+crossbeam-channel = "0.5"

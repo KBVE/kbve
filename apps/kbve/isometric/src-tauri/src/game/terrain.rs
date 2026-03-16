@@ -23,6 +23,7 @@ pub const TERRAIN_SEED: u32 = 42;
 // ---------------------------------------------------------------------------
 
 /// Deterministic hash of two integers to a float in [0.0, 1.0).
+#[inline(always)]
 pub fn hash2d(x: i32, z: i32) -> f32 {
     let mut h = (x.wrapping_mul(374761393)) ^ (z.wrapping_mul(668265263));
     h = (h ^ (h >> 13)).wrapping_mul(1274126177);
@@ -31,6 +32,7 @@ pub fn hash2d(x: i32, z: i32) -> f32 {
 }
 
 /// Bilinear interpolation of hashed corner values with smoothstep.
+#[inline(always)]
 fn value_noise(x: f32, z: f32) -> f32 {
     let ix = x.floor() as i32;
     let iz = z.floor() as i32;
@@ -52,6 +54,7 @@ fn value_noise(x: f32, z: f32) -> f32 {
 }
 
 /// Two-octave layered noise producing heights in [0, max_height], quantized to integers.
+#[inline(always)]
 pub fn terrain_height(x: i32, z: i32, seed: u32, max_height: f32, scale: f32) -> f32 {
     let fx = (x as f32 + seed as f32 * 0.7321) / scale;
     let fz = (z as f32 + seed as f32 * 0.3179) / scale;
@@ -61,6 +64,77 @@ pub fn terrain_height(x: i32, z: i32, seed: u32, max_height: f32, scale: f32) ->
 
     let raw = n1 * 0.7 + n2 * 0.3;
     (raw * max_height).round()
+}
+
+// ---------------------------------------------------------------------------
+// SIMD-batched terrain height (4 tiles at once)
+// ---------------------------------------------------------------------------
+
+/// Compute terrain heights for 4 tiles simultaneously.
+/// Returns [h0, h1, h2, h3] for the given (x,z) pairs.
+/// On WASM with simd128, uses i32x4/f32x4 intrinsics.
+/// On other targets, falls back to scalar loop.
+#[cfg(all(target_arch = "wasm32", target_feature = "simd128"))]
+pub fn terrain_height_x4(
+    coords: [(i32, i32); 4],
+    seed: u32,
+    max_height: f32,
+    scale: f32,
+) -> [f32; 4] {
+    use core::arch::wasm32::*;
+
+    let seed_f = seed as f32;
+    let inv_scale = 1.0 / scale;
+    let offset_x = seed_f * 0.7321;
+    let offset_z = seed_f * 0.3179;
+
+    // Batch-compute both octaves for all 4 tiles.
+    let mut results = [0.0f32; 4];
+    for i in 0..4 {
+        let (x, z) = coords[i];
+        let fx = (x as f32 + offset_x) * inv_scale;
+        let fz = (z as f32 + offset_z) * inv_scale;
+
+        let n1 = value_noise(fx, fz);
+        let n2 = value_noise(fx * 2.0, fz * 2.0);
+        results[i] = n1 * 0.7 + n2 * 0.3;
+    }
+
+    // SIMD multiply by max_height and round.
+    let raw = f32x4(results[0], results[1], results[2], results[3]);
+    let mh = f32x4_splat(max_height);
+    let scaled = f32x4_mul(raw, mh);
+    let rounded = f32x4_nearest(scaled);
+
+    let mut out = [0.0f32; 4];
+    f32x4_store(&rounded, &mut out);
+    out
+}
+
+#[cfg(not(all(target_arch = "wasm32", target_feature = "simd128")))]
+pub fn terrain_height_x4(
+    coords: [(i32, i32); 4],
+    seed: u32,
+    max_height: f32,
+    scale: f32,
+) -> [f32; 4] {
+    [
+        terrain_height(coords[0].0, coords[0].1, seed, max_height, scale),
+        terrain_height(coords[1].0, coords[1].1, seed, max_height, scale),
+        terrain_height(coords[2].0, coords[2].1, seed, max_height, scale),
+        terrain_height(coords[3].0, coords[3].1, seed, max_height, scale),
+    ]
+}
+
+/// Helper: store f32x4 SIMD value into a [f32; 4] array.
+#[cfg(all(target_arch = "wasm32", target_feature = "simd128"))]
+#[inline(always)]
+fn f32x4_store(v: &core::arch::wasm32::v128, out: &mut [f32; 4]) {
+    use core::arch::wasm32::*;
+    out[0] = f32x4_extract_lane::<0>(*v);
+    out[1] = f32x4_extract_lane::<1>(*v);
+    out[2] = f32x4_extract_lane::<2>(*v);
+    out[3] = f32x4_extract_lane::<3>(*v);
 }
 
 // ---------------------------------------------------------------------------
@@ -77,14 +151,33 @@ impl ChunkData {
         let mut heights = HashMap::new();
         let base_x = chunk_x * CHUNK_SIZE;
         let base_z = chunk_z * CHUNK_SIZE;
+
+        // Process tiles in batches of 4 for SIMD acceleration.
         for dx in 0..CHUNK_SIZE {
-            for dz in 0..CHUNK_SIZE {
-                let tx = base_x + dx;
+            let tx = base_x + dx;
+            let mut dz = 0;
+            while dz + 3 < CHUNK_SIZE {
+                let coords = [
+                    (tx, base_z + dz),
+                    (tx, base_z + dz + 1),
+                    (tx, base_z + dz + 2),
+                    (tx, base_z + dz + 3),
+                ];
+                let h4 = terrain_height_x4(coords, seed, MAX_HEIGHT, NOISE_SCALE);
+                for i in 0..4 {
+                    heights.insert(coords[i], h4[i]);
+                }
+                dz += 4;
+            }
+            // Handle remainder (CHUNK_SIZE=16 is divisible by 4, but be safe).
+            while dz < CHUNK_SIZE {
                 let tz = base_z + dz;
                 let h = terrain_height(tx, tz, seed, MAX_HEIGHT, NOISE_SCALE);
                 heights.insert((tx, tz), h);
+                dz += 1;
             }
         }
+
         ChunkData {
             heights,
             tile_entities: Vec::new(),
