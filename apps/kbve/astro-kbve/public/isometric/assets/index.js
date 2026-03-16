@@ -18061,8 +18061,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_119605,
-				__wasm_bindgen_func_elem_119606,
+				wasm.__wasm_bindgen_func_elem_119659,
+				__wasm_bindgen_func_elem_119660,
 			);
 			return addHeapObject(i);
 		},
@@ -18070,8 +18070,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_170393,
-				__wasm_bindgen_func_elem_170394,
+				wasm.__wasm_bindgen_func_elem_170447,
+				__wasm_bindgen_func_elem_170448,
 			);
 			return addHeapObject(i);
 		},
@@ -18079,8 +18079,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_182367,
-				__wasm_bindgen_func_elem_182368,
+				wasm.__wasm_bindgen_func_elem_182421,
+				__wasm_bindgen_func_elem_182422,
 			);
 			return addHeapObject(i);
 		},
@@ -18088,8 +18088,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_55860,
-				__wasm_bindgen_func_elem_55861,
+				wasm.__wasm_bindgen_func_elem_55914,
+				__wasm_bindgen_func_elem_55915,
 			);
 			return addHeapObject(i);
 		},
@@ -18097,8 +18097,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_55860,
-				__wasm_bindgen_func_elem_55870,
+				wasm.__wasm_bindgen_func_elem_55914,
+				__wasm_bindgen_func_elem_55924,
 			);
 			return addHeapObject(i);
 		},
@@ -18106,8 +18106,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_55860,
-				__wasm_bindgen_func_elem_55861_5,
+				wasm.__wasm_bindgen_func_elem_55914,
+				__wasm_bindgen_func_elem_55915_5,
 			);
 			return addHeapObject(i);
 		},
@@ -18115,8 +18115,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_55860,
-				__wasm_bindgen_func_elem_55861_6,
+				wasm.__wasm_bindgen_func_elem_55914,
+				__wasm_bindgen_func_elem_55915_6,
 			);
 			return addHeapObject(i);
 		},
@@ -18124,8 +18124,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_55860,
-				__wasm_bindgen_func_elem_55861_7,
+				wasm.__wasm_bindgen_func_elem_55914,
+				__wasm_bindgen_func_elem_55915_7,
 			);
 			return addHeapObject(i);
 		},
@@ -18133,8 +18133,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_55860,
-				__wasm_bindgen_func_elem_55861_8,
+				wasm.__wasm_bindgen_func_elem_55914,
+				__wasm_bindgen_func_elem_55915_8,
 			);
 			return addHeapObject(i);
 		},
@@ -18142,8 +18142,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_55860,
-				__wasm_bindgen_func_elem_55861_9,
+				wasm.__wasm_bindgen_func_elem_55914,
+				__wasm_bindgen_func_elem_55915_9,
 			);
 			return addHeapObject(i);
 		},
@@ -18151,8 +18151,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_55860,
-				__wasm_bindgen_func_elem_55861_10,
+				wasm.__wasm_bindgen_func_elem_55914,
+				__wasm_bindgen_func_elem_55915_10,
 			);
 			return addHeapObject(i);
 		},
@@ -18160,8 +18160,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_55860,
-				__wasm_bindgen_func_elem_55861_11,
+				wasm.__wasm_bindgen_func_elem_55914,
+				__wasm_bindgen_func_elem_55915_11,
 			);
 			return addHeapObject(i);
 		},
@@ -18169,8 +18169,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_55860,
-				__wasm_bindgen_func_elem_55863,
+				wasm.__wasm_bindgen_func_elem_55914,
+				__wasm_bindgen_func_elem_55917,
 			);
 			return addHeapObject(i);
 		},
@@ -18178,8 +18178,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_55860,
-				__wasm_bindgen_func_elem_55874,
+				wasm.__wasm_bindgen_func_elem_55914,
+				__wasm_bindgen_func_elem_55928,
 			);
 			return addHeapObject(i);
 		},
@@ -18187,8 +18187,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_8983,
-				__wasm_bindgen_func_elem_8984,
+				wasm.__wasm_bindgen_func_elem_8998,
+				__wasm_bindgen_func_elem_8999,
 			);
 			return addHeapObject(i);
 		},
@@ -18196,8 +18196,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_8983,
-				__wasm_bindgen_func_elem_8984_15,
+				wasm.__wasm_bindgen_func_elem_8998,
+				__wasm_bindgen_func_elem_8999_15,
 			);
 			return addHeapObject(i);
 		},
@@ -18205,8 +18205,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_8983,
-				__wasm_bindgen_func_elem_8984_16,
+				wasm.__wasm_bindgen_func_elem_8998,
+				__wasm_bindgen_func_elem_8999_16,
 			);
 			return addHeapObject(i);
 		},
@@ -18214,8 +18214,8 @@ function __wbg_get_imports() {
 			const i = makeMutClosure(
 				a,
 				c,
-				wasm.__wasm_bindgen_func_elem_109261,
-				__wasm_bindgen_func_elem_109262,
+				wasm.__wasm_bindgen_func_elem_109315,
+				__wasm_bindgen_func_elem_109316,
 			);
 			return addHeapObject(i);
 		},
@@ -18270,62 +18270,62 @@ const lAudioContext =
 		: typeof webkitAudioContext < 'u'
 			? webkitAudioContext
 			: void 0;
-function __wasm_bindgen_func_elem_170394(a, c) {
-	wasm.__wasm_bindgen_func_elem_170394(a, c);
+function __wasm_bindgen_func_elem_170448(a, c) {
+	wasm.__wasm_bindgen_func_elem_170448(a, c);
 }
-function __wasm_bindgen_func_elem_55874(a, c) {
-	wasm.__wasm_bindgen_func_elem_55874(a, c);
+function __wasm_bindgen_func_elem_55928(a, c) {
+	wasm.__wasm_bindgen_func_elem_55928(a, c);
 }
-function __wasm_bindgen_func_elem_109262(a, c) {
-	wasm.__wasm_bindgen_func_elem_109262(a, c);
+function __wasm_bindgen_func_elem_109316(a, c) {
+	wasm.__wasm_bindgen_func_elem_109316(a, c);
 }
-function __wasm_bindgen_func_elem_119606(a, c, i) {
-	wasm.__wasm_bindgen_func_elem_119606(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_119660(a, c, i) {
+	wasm.__wasm_bindgen_func_elem_119660(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55861(a, c, i) {
-	wasm.__wasm_bindgen_func_elem_55861(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55915(a, c, i) {
+	wasm.__wasm_bindgen_func_elem_55915(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55861_5(a, c, i) {
-	wasm.__wasm_bindgen_func_elem_55861_5(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55915_5(a, c, i) {
+	wasm.__wasm_bindgen_func_elem_55915_5(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55861_6(a, c, i) {
-	wasm.__wasm_bindgen_func_elem_55861_6(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55915_6(a, c, i) {
+	wasm.__wasm_bindgen_func_elem_55915_6(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55861_7(a, c, i) {
-	wasm.__wasm_bindgen_func_elem_55861_7(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55915_7(a, c, i) {
+	wasm.__wasm_bindgen_func_elem_55915_7(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55861_8(a, c, i) {
-	wasm.__wasm_bindgen_func_elem_55861_8(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55915_8(a, c, i) {
+	wasm.__wasm_bindgen_func_elem_55915_8(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55861_9(a, c, i) {
-	wasm.__wasm_bindgen_func_elem_55861_9(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55915_9(a, c, i) {
+	wasm.__wasm_bindgen_func_elem_55915_9(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55861_10(a, c, i) {
-	wasm.__wasm_bindgen_func_elem_55861_10(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55915_10(a, c, i) {
+	wasm.__wasm_bindgen_func_elem_55915_10(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55861_11(a, c, i) {
-	wasm.__wasm_bindgen_func_elem_55861_11(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_55915_11(a, c, i) {
+	wasm.__wasm_bindgen_func_elem_55915_11(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_55863(a, c, i) {
-	wasm.__wasm_bindgen_func_elem_55863(
+function __wasm_bindgen_func_elem_55917(a, c, i) {
+	wasm.__wasm_bindgen_func_elem_55917(
 		a,
 		c,
 		isLikeNone(i) ? 0 : addHeapObject(i),
 	);
 }
-function __wasm_bindgen_func_elem_8984(a, c, i) {
-	wasm.__wasm_bindgen_func_elem_8984(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_8999(a, c, i) {
+	wasm.__wasm_bindgen_func_elem_8999(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_8984_15(a, c, i) {
-	wasm.__wasm_bindgen_func_elem_8984_15(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_8999_15(a, c, i) {
+	wasm.__wasm_bindgen_func_elem_8999_15(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_8984_16(a, c, i) {
-	wasm.__wasm_bindgen_func_elem_8984_16(a, c, addHeapObject(i));
+function __wasm_bindgen_func_elem_8999_16(a, c, i) {
+	wasm.__wasm_bindgen_func_elem_8999_16(a, c, addHeapObject(i));
 }
-function __wasm_bindgen_func_elem_182368(a, c, i) {
+function __wasm_bindgen_func_elem_182422(a, c, i) {
 	try {
 		const b = wasm.__wbindgen_add_to_stack_pointer(-16);
-		wasm.__wasm_bindgen_func_elem_182368(b, a, c, addHeapObject(i));
+		wasm.__wasm_bindgen_func_elem_182422(b, a, c, addHeapObject(i));
 		var f = getDataViewMemory0().getInt32(b + 0, true),
 			_ = getDataViewMemory0().getInt32(b + 4, true);
 		if (_) throw takeObject(f);
@@ -18333,8 +18333,8 @@ function __wasm_bindgen_func_elem_182368(a, c, i) {
 		wasm.__wbindgen_add_to_stack_pointer(16);
 	}
 }
-function __wasm_bindgen_func_elem_55870(a, c, i, f) {
-	wasm.__wasm_bindgen_func_elem_55870(
+function __wasm_bindgen_func_elem_55924(a, c, i, f) {
+	wasm.__wasm_bindgen_func_elem_55924(
 		a,
 		c,
 		addHeapObject(i),

@@ -433,7 +433,11 @@ fn resolve_combat_turn_solo(
     logs
 }
 
-/// Party mode combat: resolve immediately, auto-defending for other players.
+/// Party mode combat: resolve immediately via bevy_battle ECS bridge.
+///
+/// First-strike, stun, UseItem, HealAlly, and ToggleItems are handled
+/// here (session-level concerns). Attack/Defend are delegated to
+/// `battle_bridge::run_combat_turn`.
 fn resolve_combat_turn_party(
     session: &mut SessionState,
     player_action: GameAction,
@@ -454,7 +458,6 @@ fn resolve_combat_turn_party(
 
     // All actions resolved — process them
     let mut logs = Vec::new();
-    let mut rng = rand::rng();
 
     // First-strike: enemies with initiative attack before the players
     let (fs_logs, first_strike_fired) = maybe_first_strike(session, actor);
@@ -467,9 +470,15 @@ fn resolve_combat_turn_party(
     // Collect all pending actions
     let actions: Vec<(serenity::UserId, GameAction)> = session.pending_actions.drain().collect();
 
-    // Resolve each player's action
+    // Phase 1: Process session-level actions first.
+    // Defend is handled here (custom auto-defend text + Cleric prayer proc).
+    // UseItem/HealAlly/ToggleItems are session-level operations.
+    // Attack actions are collected for bridge delegation.
+    let mut bridge_actions: Vec<(serenity::UserId, battle_bridge::PlayerAction)> = Vec::new();
+    let mut rng = rand::rng();
+
     for (uid, action) in &actions {
-        // Stunned check
+        // Stunned check (legacy field, not in bevy_battle)
         {
             let player = session.player_mut(*uid);
             if player.stunned_turns > 0 {
@@ -480,7 +489,13 @@ fn resolve_combat_turn_party(
         }
 
         let target_idx = match action {
-            GameAction::AttackTarget(idx) => *idx,
+            GameAction::AttackTarget(idx) => {
+                if session.enemy_at(*idx).is_some() {
+                    *idx
+                } else {
+                    session.enemies.first().map(|e| e.index).unwrap_or(0)
+                }
+            }
             _ => session.enemies.first().map(|e| e.index).unwrap_or(0),
         };
         debug!(
@@ -488,14 +503,17 @@ fn resolve_combat_turn_party(
             action = ?action,
             target_idx,
             enemy_count = session.enemies.len(),
-            "Party combat action resolution"
+            "Party combat action resolution (bridge)"
         );
 
         match action {
             GameAction::Attack | GameAction::AttackTarget(_) => {
-                logs.extend(resolve_player_attack(session, *uid, target_idx));
+                bridge_actions.push((*uid, battle_bridge::PlayerAction::Attack { target_idx }));
             }
             GameAction::Defend => {
+                // Defend handled in logic.rs: set flag, emit log, run Cleric proc.
+                // The defending flag is synced into ECS via from_session so the
+                // bridge still applies damage reduction correctly.
                 let player = session.player_mut(*uid);
                 player.defending = true;
                 let pname = player.name.clone();
@@ -540,59 +558,31 @@ fn resolve_combat_turn_party(
         }
     }
 
-    // Handle enemy deaths from player attacks
+    // Phase 2: Run Attack actions + enemy turns + effect ticks through
+    // bevy_battle ECS bridge. Always run the bridge so effects tick even
+    // when no attacks are submitted.
+    // Skip enemy turns if first-strike already ran them this round.
+    logs.extend(battle_bridge::run_combat_turn(
+        session,
+        &bridge_actions,
+        first_strike_fired,
+    ));
+
+    // Handle loot/xp/gold for dead enemies (bridge synced HP back)
     let first_actor = actions
         .first()
         .map(|(uid, _)| *uid)
         .unwrap_or(session.owner);
     logs.extend(handle_enemy_deaths(session, first_actor));
 
-    if !session.has_enemies() {
-        // Reset defending for all
-        for player in session.players.values_mut() {
-            player.defending = false;
-        }
-        return logs;
+    // Check for game over (bridge synced player alive status)
+    if session.all_players_dead() {
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
     }
-
-    // All enemies take turns — skip if first strike already ran enemy turns
-    if !first_strike_fired {
-        let alive_ids = session.alive_player_ids();
-        for enemy_idx in 0..session.enemies.len() {
-            if session.enemies[enemy_idx].hp <= 0 {
-                continue;
-            }
-            let target = if alive_ids.is_empty() {
-                session.owner
-            } else {
-                let mut rng = rand::rng();
-                alive_ids[rng.random_range(0..alive_ids.len())]
-            };
-            logs.extend(single_enemy_turn(session, enemy_idx, target));
-        }
-    }
-
-    // Tick effects for all alive players
-    for &uid in &actions.iter().map(|(uid, _)| *uid).collect::<Vec<_>>() {
-        if session.players.get(&uid).is_some_and(|p| p.alive) {
-            logs.extend(tick_player_effects(session, uid));
-        }
-    }
-
-    // Tick enemy effects
-    logs.extend(tick_all_enemy_effects(session));
-
-    // Check enemy deaths from DoT
-    logs.extend(handle_enemy_deaths(session, first_actor));
 
     // Reset defending for all players
     for player in session.players.values_mut() {
         player.defending = false;
-    }
-
-    // Restore to Combat phase if enemies remain
-    if session.has_enemies() {
-        session.phase = GamePhase::Combat;
     }
 
     logs

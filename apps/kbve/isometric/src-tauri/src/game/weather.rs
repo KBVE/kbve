@@ -6,6 +6,7 @@ use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
 use super::camera::IsometricCamera;
+use super::tilemap::TileMaterials;
 use super::trees::TreeWindSway;
 
 // ---------------------------------------------------------------------------
@@ -47,6 +48,8 @@ struct SunParams {
     ambient_brightness: f32,
     /// Ambient color.
     ambient_color: Color,
+    /// 0.0 at night, 1.0 at zenith — used to tint unlit materials.
+    sun_height: f32,
 }
 
 /// Compute sun parameters for a given game hour.
@@ -104,6 +107,7 @@ fn sun_params(hour: f32) -> SunParams {
         color,
         ambient_brightness,
         ambient_color,
+        sun_height,
     }
 }
 
@@ -374,12 +378,48 @@ fn update_sun_position(
     ambient.color = params.ambient_color;
     ambient.brightness = params.ambient_brightness;
 
-    // Update sun
+    // Update sun.
+    // Quantise the light *direction* to discrete angular steps so the shadow
+    // cascade's basis vectors don't rotate every frame. Without this, even
+    // texel-snapping the cascade translation can't prevent shadow wobble
+    // because the entire shadow grid orientation shifts continuously.
+    // Colour and intensity still interpolate smoothly (no shadow geometry impact).
+    let snap_angle = std::f32::consts::PI / 720.0; // 0.25° steps
+    let snapped_dir = Vec3::new(
+        (params.direction.x / snap_angle).round() * snap_angle,
+        (params.direction.y / snap_angle).round() * snap_angle,
+        (params.direction.z / snap_angle).round() * snap_angle,
+    )
+    .normalize();
     for (mut light, mut tf) in &mut sun_query {
         light.illuminance = params.illuminance;
         light.color = params.color;
-        let sun_pos = -params.direction * 20.0;
+        let sun_pos = -snapped_dir * 20.0;
         *tf = Transform::from_translation(sun_pos).looking_at(Vec3::ZERO, Vec3::Y);
+    }
+}
+
+/// Tint the unlit tree material based on time of day.
+/// At zenith (sun_height=1): full vertex-color brightness.
+/// At night (sun_height=0): darkened + cool blue tint to match the ambient.
+fn tint_trees_for_daynight(
+    day: Res<DayCycle>,
+    tile_materials: Option<Res<TileMaterials>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let Some(tile_mats) = tile_materials else {
+        return;
+    };
+    let params = sun_params(day.hour);
+    let h = params.sun_height;
+
+    // Night floor: dark desaturated blue-grey.
+    // Day peak slightly above 1.0 so noon trees pop with warm sunlit vibrancy.
+    let r = 0.18 + h * 0.92;
+    let g = 0.20 + h * 0.90;
+    let b = 0.28 + h * 0.75;
+    if let Some(mat) = materials.get_mut(&tile_mats.tree_body_mat) {
+        mat.base_color = Color::srgb(r, g, b);
     }
 }
 
@@ -403,8 +443,9 @@ fn animate_veg_wind(
         let gust = (t * gust_speed + sway.phase).sin() * veg_amp
             + (t * gust_speed * 2.1 + sway.phase * 1.8).sin() * veg_amp * 0.4;
         let flutter = (t * gust_speed * 3.0 + sway.phase * 1.3).sin() * veg_amp * 0.2;
-        let ox = dx * gust + (-dz) * flutter;
-        let oz = dz * gust + dx * flutter;
+        let pixel_snap = 1.0 / 32.0;
+        let ox = ((dx * gust + (-dz) * flutter) / pixel_snap).round() * pixel_snap;
+        let oz = ((dz * gust + dx * flutter) / pixel_snap).round() * pixel_snap;
         tf.translation = sway.base_translation + Vec3::new(ox, 0.0, oz);
     }
 }
@@ -579,6 +620,7 @@ impl Plugin for WeatherPlugin {
             (
                 update_day_cycle,
                 update_sun_position,
+                tint_trees_for_daynight,
                 update_blob_shadows,
                 animate_veg_wind,
                 animate_tree_wind,

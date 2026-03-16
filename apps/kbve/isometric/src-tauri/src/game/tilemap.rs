@@ -1240,11 +1240,11 @@ fn build_flower_mesh(arch_idx: usize) -> Mesh {
 // ---------------------------------------------------------------------------
 
 #[derive(Resource)]
-struct TileMaterials {
+pub(super) struct TileMaterials {
     chunk_body_mat: Handle<StandardMaterial>,
     chunk_cap_mat: Handle<StandardMaterial>,
-    /// Unlit, matte material for tree trunk+canopy domes — vertex colors carry all tonal info.
-    tree_body_mat: Handle<StandardMaterial>,
+    /// Unlit tree material — base_color modulated by day/night cycle in weather.rs.
+    pub(super) tree_body_mat: Handle<StandardMaterial>,
     /// Textured grass cap material (tileset-based).
     grass_cap_mat: Handle<StandardMaterial>,
     /// Alpha-masked material for grass blade billboards (disabled — pixel swim).
@@ -1298,8 +1298,8 @@ fn setup_tile_materials(
         reflectance: 0.0,
         ..default()
     });
-    // Unlit tree material: vertex colors carry all tonal info (highlight/mid/shadow/deep).
-    // No PBR lighting means the toon post-process bands cleanly painted colors.
+    // Unlit tree material: vertex colors carry all tonal info.
+    // base_color is modulated by the day/night system in weather.rs to darken at night.
     let tree_body_mat = materials.add(StandardMaterial {
         base_color: Color::WHITE,
         unlit: true,
@@ -1646,8 +1646,12 @@ fn process_chunk_spawns_and_despawns(
                         if rock_noise < 0.025 {
                             tile_occupied = true;
                             if !collected_tiles.0.contains(&(tx, tz)) {
-                                let jx = (hash2d(tx + 19557, tz + 12391) - 0.5) * 0.4;
-                                let jz = (hash2d(tx + 19457, tz + 12491) - 0.5) * 0.4;
+                                let jx = ((hash2d(tx + 19557, tz + 12391) - 0.5) * 0.4 / VEG_SNAP)
+                                    .round()
+                                    * VEG_SNAP;
+                                let jz = ((hash2d(tx + 19457, tz + 12491) - 0.5) * 0.4 / VEG_SNAP)
+                                    .round()
+                                    * VEG_SNAP;
                                 let world_x = tx as f32 * TILE_SIZE + jx;
                                 let world_z = tz as f32 * TILE_SIZE + jz;
                                 let rock_y = column_h + 0.002;
@@ -1730,8 +1734,12 @@ fn process_chunk_spawns_and_despawns(
                                     _ => FlowerArchetype::BlueOrchid,
                                 };
 
-                                let jx = (hash2d(tx + 13921, tz + 8293) - 0.5) * 0.6;
-                                let jz = (hash2d(tx + 13721, tz + 8493) - 0.5) * 0.6;
+                                let jx = ((hash2d(tx + 13921, tz + 8293) - 0.5) * 0.6 / VEG_SNAP)
+                                    .round()
+                                    * VEG_SNAP;
+                                let jz = ((hash2d(tx + 13721, tz + 8493) - 0.5) * 0.6 / VEG_SNAP)
+                                    .round()
+                                    * VEG_SNAP;
                                 let world_x = tx as f32 * TILE_SIZE + jx;
                                 let world_z = tz as f32 * TILE_SIZE + jz;
                                 let flower_y = column_h + 0.002;
@@ -1766,8 +1774,12 @@ fn process_chunk_spawns_and_despawns(
                         let mush_noise = hash2d(tx + 23017, tz + 17293);
                         if mush_noise < 0.04 {
                             if !collected_tiles.0.contains(&(tx, tz)) {
-                                let jx = (hash2d(tx + 23117, tz + 17293) - 0.5) * 0.5;
-                                let jz = (hash2d(tx + 23017, tz + 17393) - 0.5) * 0.5;
+                                let jx = ((hash2d(tx + 23117, tz + 17293) - 0.5) * 0.5 / VEG_SNAP)
+                                    .round()
+                                    * VEG_SNAP;
+                                let jz = ((hash2d(tx + 23017, tz + 17393) - 0.5) * 0.5 / VEG_SNAP)
+                                    .round()
+                                    * VEG_SNAP;
                                 let world_x = tx as f32 * TILE_SIZE + jx;
                                 let world_z = tz as f32 * TILE_SIZE + jz;
                                 let mush_y = column_h + 0.002;

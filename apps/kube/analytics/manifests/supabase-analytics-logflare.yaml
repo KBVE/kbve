@@ -6,6 +6,8 @@ metadata:
     labels:
         app: supabase-analytics
         component: analytics
+    annotations:
+        kbve.sh/last-updated: '2026-03-16'
 spec:
     replicas: 1
     selector:
@@ -19,13 +21,13 @@ spec:
         spec:
             initContainers:
                 - name: tzdata-init
-                  image: supabase/logflare:1.21.0
+                  image: supabase/logflare:1.34.14
                   command:
                       - sh
                       - -c
                       - |
                           echo "Copying tzdata from base image..."
-                          cp -r /opt/app/rel/logflare/lib/tzdata-1.1.2/priv/* /tzdata-cache/
+                          cp -r /opt/app/rel/logflare/lib/tzdata-1.1.3/priv/* /tzdata-cache/
                           echo "Tzdata init completed"
                           ls -la /tzdata-cache/
                   volumeMounts:
@@ -41,7 +43,7 @@ spec:
                               - ALL
             containers:
                 - name: logflare
-                  image: supabase/logflare:1.21.0
+                  image: supabase/logflare:1.34.14
                   ports:
                       - containerPort: 4000
                         name: http
@@ -150,7 +152,7 @@ spec:
 
                   volumeMounts:
                       - name: tzdata-cache
-                        mountPath: /opt/app/rel/logflare/lib/tzdata-1.1.2/priv
+                        mountPath: /opt/app/rel/logflare/lib/tzdata-1.1.3/priv
 
                   securityContext:
                       runAsNonRoot: true

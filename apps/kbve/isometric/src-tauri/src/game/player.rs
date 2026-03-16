@@ -132,6 +132,7 @@ fn move_player(
     mut joystick: ResMut<VirtualJoystickState>,
     time: Res<Time>,
     spatial_query: SpatialQuery,
+    sensor_query: Query<Entity, With<Sensor>>,
     mut query: Query<(Entity, &mut Transform, &mut PlayerPhysics), With<Player>>,
 ) {
     for (entity, mut transform, mut physics) in &mut query {
@@ -185,7 +186,11 @@ fn move_player(
             PLAYER_HEIGHT * 0.9,
             PLAYER_HALF_Z * 2.0 * 0.85,
         );
-        let base_filter = SpatialQueryFilter::default().with_excluded_entities([entity]);
+        // Exclude self + all Sensor entities (flowers, mushrooms) from sweep.
+        // Sensors should be walkable — only solid geometry blocks the player.
+        let mut excluded: Vec<Entity> = vec![entity];
+        excluded.extend(sensor_query.iter());
+        let base_filter = SpatialQueryFilter::default().with_excluded_entities(excluded.clone());
         let pos = transform.translation;
 
         // Exclude entities that already overlap the sweep collider at the
@@ -193,13 +198,10 @@ fn move_player(
         // to return distance 0 in every direction, freezing the player.
         let overlapping =
             spatial_query.shape_intersections(&sweep_collider, pos, Quat::IDENTITY, &base_filter);
-        let filter = if overlapping.is_empty() {
-            base_filter
-        } else {
-            let mut excluded: Vec<Entity> = vec![entity];
+        if !overlapping.is_empty() {
             excluded.extend_from_slice(&overlapping);
-            SpatialQueryFilter::default().with_excluded_entities(excluded)
-        };
+        }
+        let filter = SpatialQueryFilter::default().with_excluded_entities(excluded);
 
         // Sweep horizontal movement (XZ) — slide along walls by trying each
         // axis independently when the combined sweep is blocked.

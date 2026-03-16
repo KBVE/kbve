@@ -41,8 +41,10 @@
 			"dependsOn": ["build"],
 			"executor": "nx:run-commands",
 			"options": {
+				"parallel": false,
 				"commands": [
 					"rm -rf ../astro-kbve/public/isometric",
+					"mkdir -p ../astro-kbve/public",
 					"cp -r dist ../astro-kbve/public/isometric"
 				],
 				"cwd": "apps/kbve/isometric"
