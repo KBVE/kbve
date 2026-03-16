@@ -5,7 +5,7 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, Field, UUID4
 from .supabase_service import supabase_conn
-from notification_bot.utils.logger import logger
+from notification_bot.utils.logger import logger, sanitize_log
 
 
 # Pydantic Models for User Provider Operations
@@ -96,7 +96,7 @@ class UserManager:
             return None
 
         except Exception as e:
-            logger.error(f"Error finding user by Discord ID {discord_id}: {e}")
+            logger.error("Error finding user by Discord ID %s: %s", sanitize_log(discord_id), e)
             return None
 
     async def find_user_by_provider(
@@ -139,7 +139,7 @@ class UserManager:
             return None
 
         except Exception as e:
-            logger.error(f"Error finding user by {provider} ID {provider_id}: {e}")
+            logger.error("Error finding user by %s ID %s: %s", sanitize_log(provider), sanitize_log(provider_id), e)
             return None
 
     async def get_user_all_providers(self, user_id: str) -> Optional[UserAllProviders]:
@@ -179,7 +179,7 @@ class UserManager:
             return None
 
         except Exception as e:
-            logger.error(f"Error getting all providers for user {user_id}: {e}")
+            logger.error("Error getting all providers for user %s: %s", sanitize_log(user_id), e)
             return None
 
     async def sync_user_provider_relationships(self, user_id: str) -> SyncResult:
@@ -214,7 +214,7 @@ class UserManager:
             )
 
         except Exception as e:
-            logger.error(f"Error syncing provider relationships for user {user_id}: {e}")
+            logger.error("Error syncing provider relationships for user %s: %s", sanitize_log(user_id), e)
             return SyncResult(
                 success=False,
                 synced_providers=[],
@@ -249,13 +249,15 @@ class UserManager:
             }).execute()
 
             if result.data:
-                logger.info(f"Successfully linked {provider} ID {provider_id} to user {user_id}")
+                logger.info("Successfully linked %s ID %s to user %s", sanitize_log(
+                    provider), sanitize_log(provider_id), sanitize_log(user_id))
                 return str(result.data)
 
             return None
 
         except Exception as e:
-            logger.error(f"Error linking {provider} ID {provider_id} to user {user_id}: {e}")
+            logger.error("Error linking %s ID %s to user %s: %s", sanitize_log(
+                provider), sanitize_log(provider_id), sanitize_log(user_id), e)
             return None
 
     async def unlink_user_provider(self, user_id: str, provider: str) -> bool:
@@ -280,15 +282,15 @@ class UserManager:
             if result.data:
                 success = result.data
                 if success:
-                    logger.info(f"Successfully unlinked {provider} from user {user_id}")
+                    logger.info("Successfully unlinked %s from user %s", sanitize_log(provider), sanitize_log(user_id))
                 else:
-                    logger.warning(f"No {provider} provider found for user {user_id}")
+                    logger.warning("No %s provider found for user %s", sanitize_log(provider), sanitize_log(user_id))
                 return success
 
             return False
 
         except Exception as e:
-            logger.error(f"Error unlinking {provider} from user {user_id}: {e}")
+            logger.error("Error unlinking %s from user %s: %s", sanitize_log(provider), sanitize_log(user_id), e)
             return False
 
     async def get_user_providers_list(self, user_id: str) -> List[UserProvider]:
@@ -320,7 +322,7 @@ class UserManager:
             return providers
 
         except Exception as e:
-            logger.error(f"Error getting provider list for user {user_id}: {e}")
+            logger.error("Error getting provider list for user %s: %s", sanitize_log(user_id), e)
             return []
 
 
