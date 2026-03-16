@@ -330,7 +330,7 @@ export type ItemExtension = z.infer<typeof ItemExtensionSchema>;
 // Item
 export const ItemSchema = z.object({
 	id: z.string(),
-	slug: z.string(),
+	ref: z.string(),
 	name: z.string(),
 	title: z.string().optional(),
 	description: z.string().optional(),

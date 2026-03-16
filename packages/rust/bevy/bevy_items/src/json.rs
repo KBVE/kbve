@@ -38,7 +38,7 @@ impl std::error::Error for JsonLoadError {}
 /// The expected JSON shape is:
 /// ```json
 /// {
-///   "items": [ { "id": "...", "slug": "blue-shark", "name": "Blue Shark", ... } ],
+///   "items": [ { "id": "...", "ref": "blue-shark", "name": "Blue Shark", ... } ],
 ///   "index": { "blue-shark": 0, ... }
 /// }
 /// ```
@@ -63,7 +63,7 @@ pub fn parse_itemdb_json(json_str: &str) -> Result<Vec<item::Item>, JsonLoadErro
 }
 
 fn json_value_to_item(v: &Value) -> Option<item::Item> {
-    let slug = v.get("slug")?.as_str()?.to_string();
+    let slug = v.get("ref")?.as_str()?.to_string();
     let id = v
         .get("id")
         .and_then(|v| v.as_str())
@@ -77,7 +77,7 @@ fn json_value_to_item(v: &Value) -> Option<item::Item> {
 
     Some(item::Item {
         id,
-        slug,
+        r#ref: slug,
         name,
         title: str_opt(v, "title"),
         description: str_opt(v, "description"),

@@ -5,7 +5,7 @@ use prost::Message;
 
 use crate::proto::item;
 
-/// Stable numeric identifier for an item, derived from its slug.
+/// Stable numeric identifier for an item, derived from its ref.
 ///
 /// Used as a lightweight key for cross-system references (inventory slots,
 /// network packets, save files). The full item data lives in [`ItemDb`].
@@ -13,11 +13,11 @@ use crate::proto::item;
 pub struct ProtoItemId(pub u64);
 
 impl ProtoItemId {
-    /// Create an id from an item slug using a stable hash.
-    pub fn from_slug(slug: &str) -> Self {
+    /// Create an id from an item ref using a stable hash.
+    pub fn from_ref(r: &str) -> Self {
         use std::hash::{Hash, Hasher};
         let mut h = std::collections::hash_map::DefaultHasher::new();
-        slug.hash(&mut h);
+        r.hash(&mut h);
         Self(h.finish())
     }
 }
@@ -25,12 +25,12 @@ impl ProtoItemId {
 /// Bevy resource holding all proto-defined item data.
 ///
 /// Loaded once at startup from a proto-encoded `ItemRegistry` binary or
-/// built programmatically. Provides fast lookups by [`ProtoItemId`], slug,
+/// built programmatically. Provides fast lookups by [`ProtoItemId`], ref,
 /// ULID, or type-flag bitmask.
 #[derive(Resource, Default)]
 pub struct ItemDb {
     by_id: HashMap<ProtoItemId, item::Item>,
-    by_slug: HashMap<String, ProtoItemId>,
+    by_ref: HashMap<String, ProtoItemId>,
     by_ulid: HashMap<String, ProtoItemId>,
     display_names: HashMap<ProtoItemId, &'static str>,
 }
@@ -66,10 +66,10 @@ impl ItemDb {
 
     /// Insert a single item into the registry.
     pub fn insert(&mut self, item: item::Item) {
-        let id = ProtoItemId::from_slug(&item.slug);
+        let id = ProtoItemId::from_ref(&item.r#ref);
         let name: &'static str = Box::leak(item.name.clone().into_boxed_str());
         self.display_names.insert(id, name);
-        self.by_slug.insert(item.slug.clone(), id);
+        self.by_ref.insert(item.r#ref.clone(), id);
         if !item.id.is_empty() {
             self.by_ulid.insert(item.id.clone(), id);
         }
@@ -81,9 +81,9 @@ impl ItemDb {
         self.by_id.get(&id)
     }
 
-    /// Look up an item by its URL slug (e.g. `"fire-flask"`).
-    pub fn get_by_slug(&self, slug: &str) -> Option<&item::Item> {
-        let id = self.by_slug.get(slug)?;
+    /// Look up an item by its ref (e.g. `"fire-flask"`).
+    pub fn get_by_ref(&self, r: &str) -> Option<&item::Item> {
+        let id = self.by_ref.get(r)?;
         self.by_id.get(id)
     }
 
@@ -93,9 +93,9 @@ impl ItemDb {
         self.by_id.get(id)
     }
 
-    /// Resolve a slug to a [`ProtoItemId`].
-    pub fn id_for_slug(&self, slug: &str) -> Option<ProtoItemId> {
-        self.by_slug.get(slug).copied()
+    /// Resolve a ref to a [`ProtoItemId`].
+    pub fn id_for_ref(&self, r: &str) -> Option<ProtoItemId> {
+        self.by_ref.get(r).copied()
     }
 
     /// Get the cached display name for an item.

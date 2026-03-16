@@ -5,7 +5,7 @@ use prost::Message;
 
 use crate::proto::npc;
 
-/// Stable numeric identifier for an NPC, derived from its slug.
+/// Stable numeric identifier for an NPC, derived from its ref.
 ///
 /// Used as a lightweight key for cross-system references (spawn tables,
 /// network packets, save files). The full NPC data lives in [`NpcDb`].
@@ -13,11 +13,11 @@ use crate::proto::npc;
 pub struct ProtoNpcId(pub u64);
 
 impl ProtoNpcId {
-    /// Create an id from an NPC slug using a stable hash.
-    pub fn from_slug(slug: &str) -> Self {
+    /// Create an id from an NPC ref using a stable hash.
+    pub fn from_ref(r: &str) -> Self {
         use std::hash::{Hash, Hasher};
         let mut h = std::collections::hash_map::DefaultHasher::new();
-        slug.hash(&mut h);
+        r.hash(&mut h);
         Self(h.finish())
     }
 }
@@ -25,12 +25,12 @@ impl ProtoNpcId {
 /// Bevy resource holding all proto-defined NPC data.
 ///
 /// Loaded once at startup from a proto-encoded `NpcRegistry` binary or
-/// built programmatically. Provides fast lookups by [`ProtoNpcId`], slug,
+/// built programmatically. Provides fast lookups by [`ProtoNpcId`], ref,
 /// ULID, or type-flag bitmask.
 #[derive(Resource, Default)]
 pub struct NpcDb {
     by_id: HashMap<ProtoNpcId, npc::Npc>,
-    by_slug: HashMap<String, ProtoNpcId>,
+    by_ref: HashMap<String, ProtoNpcId>,
     by_ulid: HashMap<String, ProtoNpcId>,
     display_names: HashMap<ProtoNpcId, &'static str>,
 }
@@ -63,10 +63,10 @@ impl NpcDb {
 
     /// Insert a single NPC into the database.
     pub fn insert(&mut self, npc: npc::Npc) {
-        let id = ProtoNpcId::from_slug(&npc.slug);
+        let id = ProtoNpcId::from_ref(&npc.r#ref);
         let name: &'static str = Box::leak(npc.name.clone().into_boxed_str());
         self.display_names.insert(id, name);
-        self.by_slug.insert(npc.slug.clone(), id);
+        self.by_ref.insert(npc.r#ref.clone(), id);
         if !npc.id.is_empty() {
             self.by_ulid.insert(npc.id.clone(), id);
         }
@@ -78,9 +78,9 @@ impl NpcDb {
         self.by_id.get(&id)
     }
 
-    /// Look up an NPC by its URL slug (e.g. `"glass-slime"`).
-    pub fn get_by_slug(&self, slug: &str) -> Option<&npc::Npc> {
-        let id = self.by_slug.get(slug)?;
+    /// Look up an NPC by its ref (e.g. `"glass-slime"`).
+    pub fn get_by_ref(&self, r: &str) -> Option<&npc::Npc> {
+        let id = self.by_ref.get(r)?;
         self.by_id.get(id)
     }
 
@@ -90,9 +90,9 @@ impl NpcDb {
         self.by_id.get(id)
     }
 
-    /// Resolve a slug to a [`ProtoNpcId`].
-    pub fn id_for_slug(&self, slug: &str) -> Option<ProtoNpcId> {
-        self.by_slug.get(slug).copied()
+    /// Resolve a ref to a [`ProtoNpcId`].
+    pub fn id_for_ref(&self, r: &str) -> Option<ProtoNpcId> {
+        self.by_ref.get(r).copied()
     }
 
     /// Get the cached display name for an NPC.
