@@ -1,7 +1,22 @@
+#![cfg_attr(target_arch = "wasm32", feature(thread_local))]
+
 use std::sync::atomic::AtomicUsize;
 
 /// Shared FPS counter — written by desktop runner, readable on all targets.
 pub static AVERAGE_FRAME_RATE: AtomicUsize = AtomicUsize::new(0);
+
+// Force wasm-ld to emit __wasm_init_tls for wasm-bindgen threading support.
+// The TLS variable must be genuinely used to prevent LLVM from eliminating it.
+#[cfg(target_arch = "wasm32")]
+#[thread_local]
+static TLS_ANCHOR: core::cell::Cell<u32> = core::cell::Cell::new(0);
+
+#[cfg(target_arch = "wasm32")]
+#[unsafe(no_mangle)]
+pub extern "C" fn force_tls_anchor() -> u32 {
+    TLS_ANCHOR.set(TLS_ANCHOR.get().wrapping_add(1));
+    TLS_ANCHOR.get()
+}
 
 pub mod commands;
 pub mod game;
@@ -30,6 +45,9 @@ pub use bevy_tasker::worker_entry_point;
 pub fn wasm_main() {
     console_error_panic_hook::set_once();
     console_log::init_with_level(log::Level::Info).expect("logger");
+
+    // Touch TLS anchor to ensure wasm-ld emits __wasm_init_tls
+    force_tls_anchor();
 
     use avian3d::prelude::*;
     use bevy::prelude::*;
