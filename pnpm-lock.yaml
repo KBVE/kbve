@@ -185,8 +185,8 @@ importers:
                 specifier: 5.3.6
                 version: 5.3.6(@babel/core@7.26.10)(react-dom@19.2.4(react@19.2.4))(react-is@19.2.4)(react@19.2.4)
             tailwind-merge:
-                specifier: ^2.5.4
-                version: 2.5.4
+                specifier: ^3.5.0
+                version: 3.5.0
             tailwindcss-animate:
                 specifier: ^1.0.7
                 version: 1.0.7(tailwindcss@4.1.3)
@@ -23701,10 +23701,10 @@ packages:
             }
         engines: { node: ^14.18.0 || >=16.0.0 }
 
-    tailwind-merge@2.5.4:
+    tailwind-merge@3.5.0:
         resolution:
             {
-                integrity: sha512-0q8cfZHMu9nuYP/b5Shb7Y7Sh1B7Nnl5GqNr1U+n2p6+mybvRtayrQ+0042Z5byvTA8ihjlP8Odo8/VnHbZu4Q==,
+                integrity: sha512-I8K9wewnVDkL1NTGoqWmVEIlUcB9gFriAEkXkfCjX5ib8ezGxtR3xD7iZIxrfArjEsH7F1CHD4RFUtxefdqV/A==,
             }
 
     tailwindcss-animate@1.0.7:
@@ -44252,7 +44252,7 @@ snapshots:
         dependencies:
             '@pkgr/core': 0.2.9
 
-    tailwind-merge@2.5.4: {}
+    tailwind-merge@3.5.0: {}
 
     tailwindcss-animate@1.0.7(tailwindcss@4.1.3):
         dependencies:
