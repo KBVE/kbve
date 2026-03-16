@@ -16,10 +16,12 @@ data:
           kubernetes_logs:
             type: kubernetes_logs
             self_node_name: "${VECTOR_SELF_NODE_NAME}"
-            extra_namespace_label_selector: "kubernetes.io/metadata.name=kilobase"
             exclude_paths_glob_patterns:
               - "**/supabase-vector-*/**"
               - "**/vector/**"
+              - "**/kube-system/**"
+              - "**/kube-node-lease/**"
+              - "**/kube-public/**"
             auto_partial_merge: true
             data_dir: "/vector-data-dir"
 
@@ -29,11 +31,11 @@ data:
             inputs:
               - kubernetes_logs
             source: |-
-              .project = "default"
               .event_message = del(.message)
               .appname = del(.kubernetes.container_name)
               .pod_name = del(.kubernetes.pod_name)
               .pod_namespace = del(.kubernetes.pod_namespace)
+              .project = string(.pod_namespace) ?? "default"
               del(.kubernetes)
               del(.source_type)
               del(.stream)
