@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { go_online, get_online_status } from '../../wasm-pkg/isometric_game.js';
 import { GlassPanel } from '../ui/shared/GlassPanel';
 
@@ -70,16 +70,47 @@ async function getSupabaseJwt(): Promise<string> {
 	});
 }
 
+/** Build the WebSocket URL for the current environment. */
+function resolveWsUrl(): string {
+	const hostname = window.location.hostname;
+	const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+	return isLocal ? 'ws://127.0.0.1:5000' : `wss://${hostname}/ws`;
+}
+
 export function GoOnlineButton() {
 	const [online, setOnline] = useState(false);
 	const [connecting, setConnecting] = useState(false);
 	const [hasAuth, setHasAuth] = useState<boolean | null>(null);
+
+	// Track whether the user has opted into going online this session.
+	// Used by the visibilitychange handler to auto-reconnect.
+	const wantOnline = useRef(false);
+	// Guard against concurrent reconnect attempts.
+	const reconnecting = useRef(false);
 
 	// Check if user is logged in (has a Supabase session)
 	useEffect(() => {
 		getSupabaseJwt().then((jwt) => setHasAuth(jwt.length > 0));
 	}, []);
 
+	// Shared connect logic — used by both the button and auto-reconnect.
+	const doConnect = useCallback(async () => {
+		if (reconnecting.current) return;
+		reconnecting.current = true;
+		try {
+			const jwt = await getSupabaseJwt();
+			const wsUrl = resolveWsUrl();
+			go_online(wsUrl, jwt);
+		} finally {
+			// Clear the guard after a short delay so the status poll
+			// has time to detect the new connection attempt.
+			setTimeout(() => {
+				reconnecting.current = false;
+			}, 2000);
+		}
+	}, []);
+
+	// Poll connection status every 500ms.
 	useEffect(() => {
 		const interval = setInterval(() => {
 			try {
@@ -93,21 +124,45 @@ export function GoOnlineButton() {
 		return () => clearInterval(interval);
 	}, []);
 
+	// Auto-reconnect when the tab becomes visible again.
+	// Browsers throttle / tear down WebSocket connections in backgrounded
+	// tabs. When the user returns and we detect the connection dropped,
+	// silently reconnect using the same params.
+	useEffect(() => {
+		const onVisibilityChange = () => {
+			if (document.visibilityState !== 'visible') return;
+			if (!wantOnline.current) return;
+
+			// Give the status poll a moment to settle — the connection may
+			// still be alive but the poll hasn't fired yet.
+			setTimeout(() => {
+				try {
+					if (!get_online_status()) {
+						console.log(
+							'[GoOnlineButton] tab resumed, connection lost — auto-reconnecting',
+						);
+						setConnecting(true);
+						doConnect();
+					}
+				} catch {
+					// WASM not ready
+				}
+			}, 600);
+		};
+
+		document.addEventListener('visibilitychange', onVisibilityChange);
+		return () =>
+			document.removeEventListener(
+				'visibilitychange',
+				onVisibilityChange,
+			);
+	}, [doConnect]);
+
 	const handleClick = async () => {
 		if (online || connecting) return;
 		setConnecting(true);
-		try {
-			const jwt = await getSupabaseJwt();
-			const hostname = window.location.hostname;
-			const isLocal =
-				hostname === 'localhost' || hostname === '127.0.0.1';
-			const wsUrl = isLocal
-				? 'ws://127.0.0.1:5000'
-				: `wss://${hostname}/ws`;
-			go_online(wsUrl, jwt);
-		} catch {
-			setConnecting(false);
-		}
+		wantOnline.current = true;
+		await doConnect();
 	};
 
 	// Don't show button if auth check hasn't completed
