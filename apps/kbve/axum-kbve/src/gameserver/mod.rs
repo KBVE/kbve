@@ -498,13 +498,35 @@ fn process_auth_messages(
 ) {
     for (entity, mut receiver, mut sender) in &mut query {
         for msg in receiver.receive() {
+            // --- Guest path: empty JWT → anonymous session ---
+            // Works regardless of whether SUPABASE_JWT_SECRET is set.
+            // Guests get a unique counter-based identity (guest_0, guest_1, …).
+            if msg.jwt.is_empty() || msg.jwt.trim().is_empty() {
+                let guest_idx = PLAYER_COUNTER.load(std::sync::atomic::Ordering::Relaxed);
+                let guest_user_id = format!("guest_{guest_idx}");
+                tracing::info!("client {entity:?} connecting as guest: {guest_user_id}");
+                let player_id = user_id_to_player_id(&guest_user_id);
+                let player_entity = spawn_player(&mut commands, player_id);
+                sender.send::<GameChannel>(AuthResponse {
+                    success: true,
+                    user_id: guest_user_id.clone(),
+                    player_id,
+                });
+                commands.entity(entity).remove::<PendingAuth>();
+                authenticated.0.insert(entity, guest_user_id);
+                client_player_map.0.insert(entity, player_entity);
+                continue;
+            }
+
+            // --- JWT path: validate with Supabase secret ---
             if jwt_secret.0.is_empty() {
-                tracing::warn!(
-                    "SUPABASE_JWT_SECRET not set — skipping JWT validation for {entity:?}"
-                );
-                // Anonymous: use counter-based ID (unique per session)
+                // No secret configured — treat any JWT as anonymous
+                // (dev/staging environments without Supabase)
                 let anon_idx = PLAYER_COUNTER.load(std::sync::atomic::Ordering::Relaxed);
                 let anon_user_id = format!("anon_{anon_idx}");
+                tracing::warn!(
+                    "SUPABASE_JWT_SECRET not set — accepting {entity:?} as {anon_user_id}"
+                );
                 let player_id = user_id_to_player_id(&anon_user_id);
                 let player_entity = spawn_player(&mut commands, player_id);
                 sender.send::<GameChannel>(AuthResponse {
@@ -516,7 +538,6 @@ fn process_auth_messages(
                 authenticated.0.insert(entity, anon_user_id.clone());
                 client_player_map.0.insert(entity, player_entity);
 
-                // Kick off async username lookup
                 let _ = profile_tx.0.send(ProfileRequest::LookupUsername {
                     player_entity,
                     user_id: anon_user_id,
@@ -539,7 +560,6 @@ fn process_auth_messages(
                     authenticated.0.insert(entity, user_id.clone());
                     client_player_map.0.insert(entity, player_entity);
 
-                    // Kick off async username lookup
                     let _ = profile_tx.0.send(ProfileRequest::LookupUsername {
                         player_entity,
                         user_id,
