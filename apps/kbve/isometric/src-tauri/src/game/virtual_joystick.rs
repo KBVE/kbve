@@ -45,6 +45,8 @@ struct ActionButton;
 #[derive(Resource, Default)]
 struct JoystickDrag {
     active: bool,
+    /// The touch ID that started the drag (prevents multi-touch confusion).
+    touch_id: Option<u64>,
     /// Center of the joystick base in logical pixels.
     center: Vec2,
 }
@@ -54,19 +56,21 @@ struct JoystickDrag {
 // ---------------------------------------------------------------------------
 
 /// Joystick base diameter in logical pixels.
-const BASE_SIZE: f32 = 120.0;
+const BASE_SIZE: f32 = 160.0;
 /// Knob diameter in logical pixels.
-const KNOB_SIZE: f32 = 48.0;
+const KNOB_SIZE: f32 = 64.0;
 /// Maximum knob travel from center (in pixels).
 const MAX_TRAVEL: f32 = (BASE_SIZE - KNOB_SIZE) / 2.0;
 /// Margin from bottom-left corner.
-const MARGIN: f32 = 24.0;
+const MARGIN: f32 = 32.0;
 /// Action button size.
-const ACTION_BTN_SIZE: f32 = 56.0;
+const ACTION_BTN_SIZE: f32 = 72.0;
 /// Margin from bottom-right corner for action buttons.
-const ACTION_MARGIN: f32 = 24.0;
+const ACTION_MARGIN: f32 = 28.0;
 /// Gap between stacked action buttons.
-const ACTION_GAP: f32 = 12.0;
+const ACTION_GAP: f32 = 14.0;
+/// Dead zone — ignore knob movement below this fraction of MAX_TRAVEL.
+const DEAD_ZONE: f32 = 0.1;
 
 // ---------------------------------------------------------------------------
 // Plugin
@@ -150,7 +154,7 @@ fn spawn_joystick_ui(mut commands: Commands) {
                 .with_child((
                     Text::new("ACT".to_string()),
                     TextFont {
-                        font_size: 11.0,
+                        font_size: 14.0,
                         ..default()
                     },
                     TextColor(Color::srgba(1.0, 1.0, 1.0, 0.7)),
@@ -174,7 +178,7 @@ fn spawn_joystick_ui(mut commands: Commands) {
                 .with_child((
                     Text::new("JMP".to_string()),
                     TextFont {
-                        font_size: 11.0,
+                        font_size: 14.0,
                         ..default()
                     },
                     TextColor(Color::srgba(1.0, 1.0, 1.0, 0.7)),
@@ -220,87 +224,125 @@ fn handle_joystick_input(
         return;
     };
 
-    // Determine active pointer position (touch takes priority over mouse)
-    let pointer_pos = if let Some(touch) = touches.iter().next() {
-        Some(touch.position())
-    } else {
-        window.cursor_position()
-    };
-
-    let pointer_pressed =
-        !touches.iter().next().is_none() || mouse_button.pressed(MouseButton::Left);
-
-    // Use Bevy UI Interaction to detect press on the joystick base —
-    // this properly blocks input from passing through to the 3D scene.
-    let base_interaction = base_query
-        .single()
-        .ok()
-        .copied()
-        .unwrap_or(Interaction::None);
     let base_center = Vec2::new(
         MARGIN + BASE_SIZE / 2.0,
         window.height() - MARGIN - BASE_SIZE / 2.0,
     );
 
-    // Tell scene picking systems to ignore raycasts when pointer is on the joystick.
+    // ---- Touch-based drag (tracks a specific finger) ----
+
+    // Check if the tracked touch is still active
+    if let Some(tid) = drag.touch_id {
+        if let Some(touch) = touches.get_pressed(tid) {
+            // Still held — update position
+            update_joystick(
+                touch.position(),
+                &mut drag,
+                &mut joystick_state,
+                &mut knob_query,
+            );
+            joystick_state.pointer_captured = true;
+            return;
+        }
+        // Touch released — end drag
+        reset_joystick(&mut drag, &mut joystick_state, &mut knob_query);
+    }
+
+    // Check for new touch starting on the joystick base area
+    for touch in touches.iter_just_pressed() {
+        let pos = touch.position();
+        if (pos - base_center).length() <= BASE_SIZE / 2.0 {
+            drag.active = true;
+            drag.touch_id = Some(touch.id());
+            drag.center = base_center;
+            joystick_state.pointer_captured = true;
+            update_joystick(pos, &mut drag, &mut joystick_state, &mut knob_query);
+            return;
+        }
+    }
+
+    // ---- Mouse fallback (desktop) ----
+
+    let base_interaction = base_query
+        .single()
+        .ok()
+        .copied()
+        .unwrap_or(Interaction::None);
+
     joystick_state.pointer_captured = base_interaction != Interaction::None || drag.active;
 
-    // Start drag when Bevy UI reports a press on the base
-    if base_interaction == Interaction::Pressed && !drag.active {
+    if base_interaction == Interaction::Pressed && !drag.active && drag.touch_id.is_none() {
         drag.active = true;
+        drag.touch_id = None;
         drag.center = base_center;
     }
 
-    // End drag when pointer released
-    if !pointer_pressed {
-        drag.active = false;
+    if drag.active && drag.touch_id.is_none() {
+        if !mouse_button.pressed(MouseButton::Left) {
+            reset_joystick(&mut drag, &mut joystick_state, &mut knob_query);
+            return;
+        }
+        if let Some(pos) = window.cursor_position() {
+            update_joystick(pos, &mut drag, &mut joystick_state, &mut knob_query);
+        }
+    }
+}
+
+fn update_joystick(
+    pos: Vec2,
+    drag: &mut JoystickDrag,
+    joystick_state: &mut VirtualJoystickState,
+    knob_query: &mut Query<&mut Node, (With<JoystickKnob>, Without<JoystickBase>)>,
+) {
+    let offset = pos - drag.center;
+    let distance = offset.length();
+    let clamped_distance = distance.min(MAX_TRAVEL);
+    let norm = if distance > 1.0 {
+        offset / distance
+    } else {
+        Vec2::ZERO
+    };
+    let clamped_offset = norm * clamped_distance;
+
+    // Move the knob visually
+    if let Ok(mut knob_node) = knob_query.single_mut() {
+        knob_node.left = Val::Px(clamped_offset.x);
+        knob_node.top = Val::Px(clamped_offset.y);
+    }
+
+    // Apply dead zone
+    let intensity = clamped_distance / MAX_TRAVEL;
+    if intensity < DEAD_ZONE {
         joystick_state.active = false;
         joystick_state.direction = Vec3::ZERO;
-
-        // Reset knob to center
-        if let Ok(mut knob_node) = knob_query.single_mut() {
-            knob_node.left = Val::Auto;
-            knob_node.top = Val::Auto;
-        }
         return;
     }
 
-    // Update joystick while dragging
-    if drag.active {
-        if let Some(pos) = pointer_pos {
-            let offset = pos - drag.center;
-            let distance = offset.length();
-            let clamped_distance = distance.min(MAX_TRAVEL);
-            let norm = if distance > 1.0 {
-                offset / distance
-            } else {
-                Vec2::ZERO
-            };
-            let clamped_offset = norm * clamped_distance;
+    // Remap intensity past dead zone to 0..1
+    let remapped = (intensity - DEAD_ZONE) / (1.0 - DEAD_ZONE);
+    let screen_x = norm.x * remapped;
+    let screen_y = -norm.y * remapped;
 
-            // Move the knob visually
-            if let Ok(mut knob_node) = knob_query.single_mut() {
-                // Knob is centered by flexbox; use margin to offset it
-                knob_node.left = Val::Px(clamped_offset.x);
-                // Screen Y is down, but we want up = negative Y offset
-                knob_node.top = Val::Px(clamped_offset.y);
-            }
+    // Map screen axes to isometric: right=(1,0,-1), up=(-1,0,-1)
+    let iso_dir = Vec3::new(screen_x - screen_y, 0.0, -screen_x - screen_y);
 
-            // Convert screen direction to isometric world direction.
-            // Screen right → isometric (+X, -Z), Screen up → isometric (-X, -Z)
-            let intensity = clamped_distance / MAX_TRAVEL; // 0..1 analog
-            let screen_x = norm.x * intensity;
-            let screen_y = -norm.y * intensity; // flip Y (screen down → world forward)
+    joystick_state.active = iso_dir.length_squared() > 0.001;
+    joystick_state.direction = iso_dir;
+}
 
-            // Map screen axes to isometric: right=(1,0,-1), up=(-1,0,-1)
-            let iso_dir = Vec3::new(
-                screen_x - screen_y, // right component - up component
-                0.0,
-                -screen_x - screen_y, // negative of both
-            );
+fn reset_joystick(
+    drag: &mut JoystickDrag,
+    joystick_state: &mut VirtualJoystickState,
+    knob_query: &mut Query<&mut Node, (With<JoystickKnob>, Without<JoystickBase>)>,
+) {
+    drag.active = false;
+    drag.touch_id = None;
+    joystick_state.active = false;
+    joystick_state.direction = Vec3::ZERO;
+    joystick_state.pointer_captured = false;
 
-            joystick_state.active = iso_dir.length_squared() > 0.001;
-            joystick_state.direction = iso_dir;
-        }
+    if let Ok(mut knob_node) = knob_query.single_mut() {
+        knob_node.left = Val::Auto;
+        knob_node.top = Val::Auto;
     }
 }
