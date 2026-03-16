@@ -1240,11 +1240,11 @@ fn build_flower_mesh(arch_idx: usize) -> Mesh {
 // ---------------------------------------------------------------------------
 
 #[derive(Resource)]
-struct TileMaterials {
+pub(super) struct TileMaterials {
     chunk_body_mat: Handle<StandardMaterial>,
     chunk_cap_mat: Handle<StandardMaterial>,
-    /// Unlit, matte material for tree trunk+canopy domes — vertex colors carry all tonal info.
-    tree_body_mat: Handle<StandardMaterial>,
+    /// Unlit tree material — base_color modulated by day/night cycle in weather.rs.
+    pub(super) tree_body_mat: Handle<StandardMaterial>,
     /// Textured grass cap material (tileset-based).
     grass_cap_mat: Handle<StandardMaterial>,
     /// Alpha-masked material for grass blade billboards (disabled — pixel swim).
@@ -1298,8 +1298,8 @@ fn setup_tile_materials(
         reflectance: 0.0,
         ..default()
     });
-    // Unlit tree material: vertex colors carry all tonal info (highlight/mid/shadow/deep).
-    // No PBR lighting means the toon post-process bands cleanly painted colors.
+    // Unlit tree material: vertex colors carry all tonal info.
+    // base_color is modulated by the day/night system in weather.rs to darken at night.
     let tree_body_mat = materials.add(StandardMaterial {
         base_color: Color::WHITE,
         unlit: true,

@@ -6,6 +6,7 @@ use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
 use super::camera::IsometricCamera;
+use super::tilemap::TileMaterials;
 use super::trees::TreeWindSway;
 
 // ---------------------------------------------------------------------------
@@ -47,6 +48,8 @@ struct SunParams {
     ambient_brightness: f32,
     /// Ambient color.
     ambient_color: Color,
+    /// 0.0 at night, 1.0 at zenith — used to tint unlit materials.
+    sun_height: f32,
 }
 
 /// Compute sun parameters for a given game hour.
@@ -104,6 +107,7 @@ fn sun_params(hour: f32) -> SunParams {
         color,
         ambient_brightness,
         ambient_color,
+        sun_height,
     }
 }
 
@@ -395,6 +399,30 @@ fn update_sun_position(
     }
 }
 
+/// Tint the unlit tree material based on time of day.
+/// At zenith (sun_height=1): full vertex-color brightness.
+/// At night (sun_height=0): darkened + cool blue tint to match the ambient.
+fn tint_trees_for_daynight(
+    day: Res<DayCycle>,
+    tile_materials: Option<Res<TileMaterials>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let Some(tile_mats) = tile_materials else {
+        return;
+    };
+    let params = sun_params(day.hour);
+    let h = params.sun_height;
+
+    // Night floor: dark desaturated blue-grey.
+    // Day peak slightly above 1.0 so noon trees pop with warm sunlit vibrancy.
+    let r = 0.18 + h * 0.92;
+    let g = 0.20 + h * 0.90;
+    let b = 0.28 + h * 0.75;
+    if let Some(mat) = materials.get_mut(&tile_mats.tree_body_mat) {
+        mat.base_color = Color::srgb(r, g, b);
+    }
+}
+
 fn animate_veg_wind(
     time: Res<Time>,
     wind: Res<WindState>,
@@ -592,6 +620,7 @@ impl Plugin for WeatherPlugin {
             (
                 update_day_cycle,
                 update_sun_position,
+                tint_trees_for_daynight,
                 update_blob_shadows,
                 animate_veg_wind,
                 animate_tree_wind,

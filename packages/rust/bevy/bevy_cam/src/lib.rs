@@ -52,6 +52,7 @@ use bevy::image::ImageSampler;
 use bevy::input::mouse::MouseWheel;
 use bevy::prelude::*;
 use bevy::render::render_resource::TextureFormat;
+use bevy::transform::TransformSystems;
 use bevy::window::PrimaryWindow;
 
 // ── Configuration ───────────────────────────────────────────────────────
@@ -211,6 +212,11 @@ impl Plugin for IsometricCameraPlugin {
         app.insert_resource(axes);
         app.add_systems(Startup, setup_camera);
         app.add_systems(Update, handle_zoom_input);
+        // CameraUpdate must run BEFORE TransformPropagate so that both the
+        // snapped camera Transform and the sub-pixel quad Transform are
+        // propagated to GlobalTransform in the same frame. Without this,
+        // the renderer sees a 1-frame-old quad offset → visible stutter.
+        app.configure_sets(PostUpdate, CameraUpdate.before(TransformSystems::Propagate));
         app.add_systems(
             PostUpdate,
             (
