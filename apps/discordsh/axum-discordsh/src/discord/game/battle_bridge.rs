@@ -1006,7 +1006,10 @@ pub fn run_flee_turn(
 /// Used when the player's action was handled in logic.rs (UseItem, HealAlly)
 /// but enemies still need to take their turns. Effect ticks are NOT run here
 /// because the old code path only ran `enemy_turns()` after UseItem/HealAlly.
-pub fn run_enemy_turns_only(session: &mut SessionState, skip_enemy_turns: bool) -> Vec<String> {
+pub fn run_enemy_turns_only(
+    session: &mut SessionState,
+    skip_enemy_turns: bool,
+) -> CombatTurnResult {
     let mut combat = CombatWorld::from_session(session);
     combat.run_turn(&[], skip_enemy_turns, false);
 
@@ -1016,6 +1019,7 @@ pub fn run_enemy_turns_only(session: &mut SessionState, skip_enemy_turns: bool) 
         .filter_map(|o| outcome_to_log(o, &combat))
         .collect();
 
+    let snapshot = Some(combat.snapshot());
     combat.sync_out(session);
 
     // Remove enemies that fled
@@ -1036,7 +1040,11 @@ pub fn run_enemy_turns_only(session: &mut SessionState, skip_enemy_turns: bool) 
         session.phase = GamePhase::Exploring;
     }
 
-    logs
+    CombatTurnResult {
+        logs,
+        outcomes,
+        snapshot,
+    }
 }
 
 #[cfg(test)]
