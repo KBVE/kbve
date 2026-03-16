@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-    name: logflare-ch-setup-v4-script
+    name: logflare-ch-setup-v5-script
     namespace: kilobase
 data:
     setup.sh: |
@@ -39,7 +39,7 @@ data:
         # --- Create the logflare database ---
         echo "Creating logflare database..."
         DB_RESULT=$(curl -sf --max-time 10 "${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}" \
-          -d "CREATE DATABASE IF NOT EXISTS ${CH_DATABASE}" 2>&1) || {
+          -d "CREATE DATABASE IF NOT EXISTS ${CH_DATABASE} ON CLUSTER 'cluster'" 2>&1) || {
           echo "ERROR: Failed to create database: ${DB_RESULT}"
           exit 1
         }
@@ -48,7 +48,7 @@ data:
         # --- Create logflare SQL user (idempotent) ---
         echo "Creating logflare SQL user..."
         USER_RESULT=$(curl -sf --max-time 10 "${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}" \
-          -d "CREATE USER IF NOT EXISTS ${CH_USERNAME} IDENTIFIED WITH sha256_password BY '${CH_PASSWORD}'" 2>&1) || {
+          -d "CREATE USER IF NOT EXISTS ${CH_USERNAME} ON CLUSTER 'cluster' IDENTIFIED WITH sha256_password BY '${CH_PASSWORD}'" 2>&1) || {
           echo "ERROR: Failed to create logflare user: ${USER_RESULT}"
           exit 1
         }
@@ -57,7 +57,7 @@ data:
         # --- Grant permissions to logflare user ---
         echo "Granting permissions..."
         GRANT_RESULT=$(curl -sf --max-time 10 "${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}" \
-          -d "GRANT ALL ON ${CH_DATABASE}.* TO ${CH_USERNAME}" 2>&1) || {
+          -d "GRANT ALL ON ${CH_DATABASE}.* TO ${CH_USERNAME} ON CLUSTER 'cluster'" 2>&1) || {
           echo "ERROR: Failed to grant permissions: ${GRANT_RESULT}"
           exit 1
         }
@@ -142,18 +142,21 @@ data:
 apiVersion: batch/v1
 kind: Job
 metadata:
-    name: logflare-ch-setup-v4
+    name: logflare-ch-setup-v5
     namespace: kilobase
     labels:
-        app: logflare-ch-setup-v4
+        app: logflare-ch-setup-v5
         component: analytics
+    annotations:
+        kbve.sh/last-updated: '2026-03-16'
+        argocd.argoproj.io/hook: PostSync
 spec:
     ttlSecondsAfterFinished: 86400
     backoffLimit: 3
     template:
         metadata:
             labels:
-                app: logflare-ch-setup-v4
+                app: logflare-ch-setup-v5
         spec:
             restartPolicy: OnFailure
             containers:
@@ -230,5 +233,5 @@ spec:
             volumes:
                 - name: setup-script
                   configMap:
-                      name: logflare-ch-setup-v4-script
+                      name: logflare-ch-setup-v5-script
                       defaultMode: 0555
