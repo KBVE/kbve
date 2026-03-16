@@ -1263,14 +1263,23 @@ pub(super) struct TileMaterials {
     water_mat: Handle<WaterMaterial>,
 }
 
-/// Global wind state. Speed in MPH drives all sway amplitudes.
+/// Inserted once the player's spawn-area chunks (and their colliders) have
+/// been spawned. Player movement is frozen until this resource exists.
+#[derive(Resource)]
+pub struct TerrainReady;
+
 pub struct TilemapPlugin;
 
 impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CollectedTiles>();
         app.add_systems(Startup, setup_tile_materials);
-        app.add_systems(Update, process_chunk_spawns_and_despawns);
+        // Run chunk spawning before player movement so colliders exist
+        // before the first shape cast of each frame.
+        app.add_systems(
+            Update,
+            process_chunk_spawns_and_despawns.before(super::player::PlayerMovement),
+        );
     }
 }
 
@@ -1392,6 +1401,7 @@ fn process_chunk_spawns_and_despawns(
     blob_shadow: Option<Res<BlobShadowAssets>>,
     player_query: Query<&Transform, With<Player>>,
     collected_tiles: Res<CollectedTiles>,
+    terrain_ready: Option<Res<TerrainReady>>,
 ) {
     let Some(tile_materials) = tile_materials else {
         return;
@@ -1434,6 +1444,7 @@ fn process_chunk_spawns_and_despawns(
             far.push((cx, cz));
         }
     }
+    let had_near = !near.is_empty();
     far.truncate(MAX_DISTANT_SPAWNS);
     let mut spawns = near;
     spawns.extend(far);
@@ -1880,5 +1891,12 @@ fn process_chunk_spawns_and_despawns(
         }
 
         terrain.link_chunk_entities(*cx, *cz, entities);
+    }
+
+    // Once the player's immediate chunks have been spawned (with colliders),
+    // insert TerrainReady so the player controller can start moving.
+    if had_near && terrain_ready.is_none() {
+        commands.insert_resource(TerrainReady);
+        info!("[tilemap] TerrainReady — spawn-area colliders are live");
     }
 }
