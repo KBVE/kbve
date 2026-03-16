@@ -3,6 +3,10 @@
 
 // eslint-disable-next-line no-restricted-globals
 self.onmessage = async (e) => {
+	// Only accept messages from same origin (code scanning fix).
+	// eslint-disable-next-line no-restricted-globals
+	if (e.origin && e.origin !== 'null' && e.origin !== location.origin) return;
+
 	const { module, memory, bindgenUrl } = e.data;
 
 	try {
