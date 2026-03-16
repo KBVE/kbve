@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { droid, workerURLs, getScaleLevel } from '@kbve/droid';
+import { droid, workerURLs } from '@kbve/droid';
 import type { DroidScaleLevel } from '@kbve/droid';
 
 export function ScaleTest() {
