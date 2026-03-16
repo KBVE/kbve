@@ -6,6 +6,8 @@ mod frog;
 use bevy::prelude::*;
 
 use common::CreaturePool;
+pub use common::GameTime;
+pub use frog::FrogMaterials;
 
 /// Registers all creature systems.
 ///
@@ -19,6 +21,8 @@ pub struct CreaturesPlugin;
 impl Plugin for CreaturesPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CreaturePool>();
+        app.init_resource::<common::GameTime>();
+        app.init_resource::<FrogMaterials>();
         app.add_systems(
             Update,
             (

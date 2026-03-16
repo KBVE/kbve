@@ -13,6 +13,30 @@ pub struct CreaturePool {
 }
 
 // ---------------------------------------------------------------------------
+// Game time — unified clock that defers to server when connected.
+// Creature modules read this instead of DayCycle directly.
+// ---------------------------------------------------------------------------
+
+/// Canonical game time shared across all creature modules.
+/// Updated each frame by the `sync_game_time` system in weather.rs.
+#[derive(Resource)]
+pub struct GameTime {
+    /// Current game hour (0.0–24.0).
+    pub hour: f32,
+    /// Global creature seed — deterministic across all connected clients.
+    pub creature_seed: u64,
+}
+
+impl Default for GameTime {
+    fn default() -> Self {
+        Self {
+            hour: 10.0,
+            creature_seed: 0,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Deterministic pseudo-random (no deps, WASM-safe)
 // ---------------------------------------------------------------------------
 

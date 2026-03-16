@@ -14,9 +14,10 @@ use lightyear::prelude::server::*;
 use lightyear::prelude::*;
 
 use bevy_kbve_net::{
-    AuthMessage, AuthResponse, CollectRequest, DamageEvent, GameChannel, ObjectRemoved,
-    ObjectRespawned, PlayerName, PositionUpdate, ProtocolPlugin, SetUsernameRequest,
-    SetUsernameResponse, TileKey,
+    AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
+    CreatureKind, DamageEvent, GameChannel, ObjectRemoved, ObjectRespawned, PlayerName,
+    PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, TileKey, TimeChannel,
+    TimeSyncMessage,
 };
 
 /// Server tick rate: 20 Hz (matching client).
@@ -54,6 +55,66 @@ const MAX_COLLECT_DISTANCE: f32 = 3.0;
 /// When enough time passes, the object respawns (entry removed).
 #[derive(Resource, Default)]
 struct CollectedObjects(HashMap<TileKey, f64>);
+
+// ---------------------------------------------------------------------------
+// Day/night cycle & creature sync
+// ---------------------------------------------------------------------------
+
+/// Server-authoritative game clock. 1 real minute = 1 game hour (60× speed).
+#[derive(Resource)]
+struct DayCycle {
+    hour: f32,
+    speed: f32,
+}
+
+impl Default for DayCycle {
+    fn default() -> Self {
+        Self {
+            hour: 10.0,
+            speed: 1.0 / 60.0,
+        }
+    }
+}
+
+/// Global seed for deterministic creature spawning — all clients share this.
+#[derive(Resource)]
+struct CreatureSeed(u64);
+
+impl Default for CreatureSeed {
+    fn default() -> Self {
+        Self(0x4B_BE_F0_2026)
+    }
+}
+
+/// Server wind state (simple static default for now).
+#[derive(Resource)]
+struct WindState {
+    speed_mph: f32,
+    direction: (f32, f32),
+}
+
+impl Default for WindState {
+    fn default() -> Self {
+        Self {
+            speed_mph: 5.0,
+            direction: (0.7, 0.7),
+        }
+    }
+}
+
+/// Tracks which creatures have been captured (kind + index).
+#[derive(Resource, Default)]
+struct CapturedCreatures(std::collections::HashSet<(CreatureKind, u32)>);
+
+/// Timer for periodic time sync broadcasts.
+#[derive(Resource)]
+struct TimeSyncTimer(Timer);
+
+impl Default for TimeSyncTimer {
+    fn default() -> Self {
+        Self(Timer::from_seconds(5.0, TimerMode::Repeating))
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Profile bridge: Bevy ↔ tokio async communication
@@ -242,6 +303,11 @@ fn run_bevy_app(
     app.init_resource::<AuthenticatedClients>();
     app.init_resource::<ClientPlayerMap>();
     app.init_resource::<CollectedObjects>();
+    app.init_resource::<DayCycle>();
+    app.init_resource::<CreatureSeed>();
+    app.init_resource::<WindState>();
+    app.init_resource::<CapturedCreatures>();
+    app.init_resource::<TimeSyncTimer>();
 
     // Profile bridge resources
     app.insert_resource(ProfileBridgeTx(profile_tx));
@@ -284,6 +350,15 @@ fn run_bevy_app(
 
     // Process set-username requests from clients
     app.add_systems(Update, process_set_username_requests);
+
+    // Advance server day/night cycle
+    app.add_systems(Update, update_server_day_cycle);
+
+    // Broadcast time sync to all connected clients periodically
+    app.add_systems(Update, broadcast_time_sync);
+
+    // Send time sync immediately to newly authenticated clients
+    app.add_systems(Update, send_time_sync_to_new_clients);
 
     // Periodic debug heartbeat
     app.add_systems(Update, server_debug_heartbeat);
@@ -805,5 +880,74 @@ fn process_set_username_requests(
                 username: msg.username,
             });
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Day/night cycle & time sync systems
+// ---------------------------------------------------------------------------
+
+/// Advance the server-authoritative day/night clock each tick.
+fn update_server_day_cycle(time: Res<Time>, mut day: ResMut<DayCycle>) {
+    day.hour += day.speed * time.delta_secs();
+    if day.hour >= 24.0 {
+        day.hour -= 24.0;
+    }
+}
+
+/// Every 5 seconds, broadcast the canonical game time to all connected clients.
+fn broadcast_time_sync(
+    time: Res<Time>,
+    mut timer: ResMut<TimeSyncTimer>,
+    day: Res<DayCycle>,
+    seed: Res<CreatureSeed>,
+    wind: Res<WindState>,
+    mut senders: Query<&mut MessageSender<TimeSyncMessage>, With<Connected>>,
+) {
+    timer.0.tick(time.delta());
+    if !timer.0.just_finished() {
+        return;
+    }
+
+    let msg = TimeSyncMessage {
+        game_hour: day.hour,
+        day_speed: day.speed,
+        creature_seed: seed.0,
+        wind_speed_mph: wind.speed_mph,
+        wind_direction: wind.direction,
+    };
+
+    for mut sender in &mut senders {
+        sender.send::<TimeChannel>(msg.clone());
+    }
+}
+
+/// Immediately send the current time sync to newly authenticated clients
+/// so they don't have to wait up to 5 seconds for the first broadcast.
+fn send_time_sync_to_new_clients(
+    authenticated: Res<AuthenticatedClients>,
+    day: Res<DayCycle>,
+    seed: Res<CreatureSeed>,
+    wind: Res<WindState>,
+    mut senders: Query<(Entity, &mut MessageSender<TimeSyncMessage>), Added<ReplicationSender>>,
+) {
+    for (entity, mut sender) in &mut senders {
+        if !authenticated.0.contains_key(&entity) {
+            continue;
+        }
+
+        let msg = TimeSyncMessage {
+            game_hour: day.hour,
+            day_speed: day.speed,
+            creature_seed: seed.0,
+            wind_speed_mph: wind.speed_mph,
+            wind_direction: wind.direction,
+        };
+
+        sender.send::<TimeChannel>(msg);
+        tracing::info!(
+            "[gameserver] sent initial time sync to new client {entity:?} (hour={:.1})",
+            day.hour
+        );
     }
 }

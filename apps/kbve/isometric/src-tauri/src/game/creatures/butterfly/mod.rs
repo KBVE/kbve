@@ -2,11 +2,11 @@ use bevy::asset::RenderAssetUsages;
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
-use super::common::{CreaturePool, day_factor, flutter_offset, hash_f32, scene_center};
+use super::common::{CreaturePool, GameTime, day_factor, flutter_offset, hash_f32, scene_center};
 use super::firefly::Firefly;
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
-use crate::game::weather::{DayCycle, WindState};
+use crate::game::weather::WindState;
 
 const BUTTERFLY_COUNT: usize = 14;
 /// Minimum height above terrain surface for butterfly flight.
@@ -15,15 +15,15 @@ const MIN_FLY_HEIGHT: f32 = 0.8;
 const MAX_FLY_HEIGHT_EXTRA: f32 = 1.5;
 
 /// XZ distance from scene center that triggers exit flight.
-const EXIT_TRIGGER: f32 = 10.0;
+const EXIT_TRIGGER: f32 = 18.0;
 /// Radius at which entering butterflies spawn (edge of visible area).
-const ENTER_RADIUS: f32 = 12.0;
+const ENTER_RADIUS: f32 = 22.0;
 /// Flight speed (units/sec) during entry.
 const ENTER_SPEED: f32 = 2.5;
 /// Flight speed (units/sec) during exit.
 const EXIT_SPEED: f32 = 3.0;
 /// Total distance a butterfly travels while exiting before going idle.
-const EXIT_DISTANCE: f32 = 8.0;
+const EXIT_DISTANCE: f32 = 10.0;
 
 // ---------------------------------------------------------------------------
 // Color palette
@@ -217,7 +217,7 @@ pub(super) fn spawn_butterflies(
 
 pub(super) fn animate_butterflies(
     time: Res<Time>,
-    day: Res<DayCycle>,
+    game_time: Res<GameTime>,
     wind: Res<WindState>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut terrain: ResMut<TerrainMap>,
@@ -232,7 +232,7 @@ pub(super) fn animate_butterflies(
     };
     let dt = time.delta_secs();
     let t = time.elapsed_secs();
-    let df = day_factor(day.hour);
+    let df = day_factor(game_time.hour);
 
     if df < 0.01 {
         for (mut tf, mut bfly, mut vis) in &mut bfly_q {
@@ -276,8 +276,8 @@ pub(super) fn animate_butterflies(
                     let rx = hash_f32(seed + 300) * 2.0 - 1.0;
                     let rz = hash_f32(seed + 400) * 2.0 - 1.0;
                     let ry2 = hash_f32(seed + 500);
-                    let target_x = center.x + rx * 6.0;
-                    let target_z = center.z + rz * 6.0;
+                    let target_x = center.x + rx * 12.0;
+                    let target_z = center.z + rz * 12.0;
                     let ground_t = terrain.height_at_world(target_x, target_z);
                     let target = Vec3::new(
                         target_x,

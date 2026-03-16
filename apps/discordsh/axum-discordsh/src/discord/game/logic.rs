@@ -423,11 +423,9 @@ fn resolve_combat_turn_solo(
 
     // Run combat through bevy_battle ECS.
     // Skip enemy turns if first-strike already ran them this round.
-    logs.extend(battle_bridge::run_combat_turn(
-        session,
-        &[(actor, bridge_action)],
-        first_strike_fired,
-    ));
+    let result =
+        battle_bridge::run_combat_turn(session, &[(actor, bridge_action)], first_strike_fired);
+    logs.extend(result.logs);
 
     // Handle loot/xp/gold for dead enemies (bridge synced HP back)
     logs.extend(handle_enemy_deaths(session, actor));
@@ -446,8 +444,8 @@ fn resolve_combat_turn_solo(
 /// Party mode combat: resolve immediately via bevy_battle ECS bridge.
 ///
 /// First-strike, stun, UseItem, HealAlly, and ToggleItems are handled
-/// here (session-level concerns). Attack/Defend are delegated to
-/// `battle_bridge::run_combat_turn`.
+/// here (session-level concerns). Attack and Defend (including auto-defend
+/// with custom log text) are delegated to `battle_bridge::run_combat_turn`.
 fn resolve_combat_turn_party(
     session: &mut SessionState,
     player_action: GameAction,
@@ -481,11 +479,10 @@ fn resolve_combat_turn_party(
     let actions: Vec<(serenity::UserId, GameAction)> = session.pending_actions.drain().collect();
 
     // Phase 1: Process session-level actions first.
-    // Defend is handled here (custom auto-defend text + Cleric prayer proc).
+    // Defend goes through bridge (defending flag + Cleric prayer proc).
     // UseItem/HealAlly/ToggleItems are session-level operations.
-    // Attack actions are collected for bridge delegation.
+    // Attack/Defend actions are collected for bridge delegation.
     let mut bridge_actions: Vec<(serenity::UserId, battle_bridge::PlayerAction)> = Vec::new();
-    let mut rng = rand::rng();
 
     for (uid, action) in &actions {
         // Stunned check (legacy field, not in bevy_battle)
@@ -521,35 +518,16 @@ fn resolve_combat_turn_party(
                 bridge_actions.push((*uid, battle_bridge::PlayerAction::Attack { target_idx }));
             }
             GameAction::Defend => {
-                // Defend handled in logic.rs: set flag, emit log, run Cleric proc.
-                // The defending flag is synced into ECS via from_session so the
-                // bridge still applies damage reduction correctly.
-                let player = session.player_mut(*uid);
-                player.defending = true;
-                let pname = player.name.clone();
-                let pclass = player.class.clone();
+                // Auto-defended players get custom log text here; the bridge
+                // handles the actual defending flag + Cleric prayer proc.
                 if auto_defended.contains(uid) {
+                    let pname = session.player(*uid).name.clone();
                     logs.push(format!(
                         "{} takes a defensive stance, covering the party's flank!",
                         pname
                     ));
-                } else {
-                    logs.push(format!("{} braces for impact!", pname));
                 }
-
-                // Cleric defend proc: Prayer of Healing (25% chance)
-                if pclass == ClassType::Cleric && rng.random::<f32>() < 0.25 {
-                    let heal = rng.random_range(5..=10);
-                    let player = session.player_mut(*uid);
-                    let healed = heal.min(player.max_hp - player.hp);
-                    player.hp = (player.hp + heal).min(player.max_hp);
-                    if healed > 0 {
-                        logs.push(format!(
-                            "{} whispers a prayer, restoring {} HP!",
-                            pname, healed
-                        ));
-                    }
-                }
+                bridge_actions.push((*uid, battle_bridge::PlayerAction::Defend));
             }
             GameAction::UseItem(item_id, target_opt) => {
                 match apply_item(session, item_id, *uid, *target_opt) {
@@ -568,15 +546,28 @@ fn resolve_combat_turn_party(
         }
     }
 
-    // Phase 2: Run Attack actions + enemy turns + effect ticks through
+    // Collect auto-defended player names to filter their Defend logs from bridge
+    let auto_defend_names: Vec<String> = auto_defended
+        .iter()
+        .map(|uid| session.player(*uid).name.clone())
+        .collect();
+
+    // Phase 2: Run Attack + Defend actions + enemy turns + effect ticks through
     // bevy_battle ECS bridge. Always run the bridge so effects tick even
     // when no attacks are submitted.
     // Skip enemy turns if first-strike already ran them this round.
-    logs.extend(battle_bridge::run_combat_turn(
-        session,
-        &bridge_actions,
-        first_strike_fired,
-    ));
+    let result = battle_bridge::run_combat_turn(session, &bridge_actions, first_strike_fired);
+
+    // Filter out "braces for impact!" logs for auto-defended players (they
+    // already got custom text above). Keep all other logs.
+    for log in &result.logs {
+        let is_auto_defend_log = auto_defend_names
+            .iter()
+            .any(|name| *log == format!("{} braces for impact!", name));
+        if !is_auto_defend_log {
+            logs.push(log.clone());
+        }
+    }
 
     // Handle loot/xp/gold for dead enemies (bridge synced HP back)
     let first_actor = actions

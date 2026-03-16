@@ -50,6 +50,14 @@
 		"@nx/vitest:test": {
 			"cache": true,
 			"inputs": ["default", "^production"]
+		},
+		"coverage": {
+			"cache": false,
+			"inputs": ["default", "^production"]
+		},
+		"stats": {
+			"cache": true,
+			"inputs": ["default"]
 		}
 	},
 	"namedInputs": {

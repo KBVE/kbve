@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
-use super::common::{CreaturePool, hash_f32, night_factor, scene_center};
+use super::common::{CreaturePool, GameTime, hash_f32, night_factor, scene_center};
 use crate::game::camera::IsometricCamera;
-use crate::game::weather::{DayCycle, WindState};
+use crate::game::weather::WindState;
 
 const FIREFLY_COUNT: usize = 40;
 
@@ -53,7 +53,7 @@ pub(super) fn spawn_fireflies(
                     color: Color::srgb(0.4, 0.85, 0.25),
                     intensity: 0.0,
                     radius: 0.05,
-                    range: 3.0,
+                    range: 5.0,
                     shadows_enabled: false,
                     ..default()
                 },
@@ -83,7 +83,7 @@ pub(super) fn spawn_fireflies(
 
 pub(super) fn animate_fireflies(
     time: Res<Time>,
-    day: Res<DayCycle>,
+    game_time: Res<GameTime>,
     wind: Res<WindState>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     camera_q: Query<&Transform, With<IsometricCamera>>,
@@ -98,7 +98,7 @@ pub(super) fn animate_fireflies(
     };
     let dt = time.delta_secs();
     let t = time.elapsed_secs();
-    let nf = night_factor(day.hour);
+    let nf = night_factor(game_time.hour);
 
     if nf < 0.01 {
         for (_, mut fly, mut vis) in &mut fly_q {
@@ -123,13 +123,13 @@ pub(super) fn animate_fireflies(
             fly.glow_phase -= 1.0;
         }
 
-        let dist_to_scene = (fly.anchor - center).length();
-        if dist_to_scene > 14.0 || fly.anchor.y < -50.0 {
+        let dist_to_scene = Vec2::new(fly.anchor.x - center.x, fly.anchor.z - center.z).length();
+        if dist_to_scene > 24.0 || fly.anchor.y < -50.0 {
             let seed = (fly.phase * 10000.0) as u32 + (t * 3.7) as u32;
             let rx = hash_f32(seed) * 2.0 - 1.0;
             let rz = hash_f32(seed + 100) * 2.0 - 1.0;
             let ry = hash_f32(seed + 200);
-            fly.anchor = center + Vec3::new(rx * 10.0, 1.5 + ry * 2.5, rz * 10.0);
+            fly.anchor = center + Vec3::new(rx * 18.0, 1.5 + ry * 2.5, rz * 18.0);
         }
 
         let p = fly.phase;
@@ -158,13 +158,13 @@ pub(super) fn animate_fireflies(
         let intensity = glow * nf;
 
         if let Some(mat) = materials.get_mut(&fly.mat_handle) {
-            let emit = intensity * 4.0;
+            let emit = intensity * 12.0;
             mat.emissive = LinearRgba::new(0.3 * emit, 0.85 * emit, 0.15 * emit, 1.0);
-            mat.base_color = Color::srgba(0.5, 0.9, 0.3, intensity * 0.8 + 0.1 * nf);
+            mat.base_color = Color::srgba(0.5, 0.9, 0.3, intensity * 0.9 + 0.15 * nf);
         }
 
         if let Ok((mut pl, mut ltf, mut lvis)) = light_q.get_mut(fly.light_entity) {
-            pl.intensity = intensity * 800.0;
+            pl.intensity = intensity * 2800.0;
             ltf.translation = pos;
             *lvis = if intensity > 0.01 {
                 Visibility::Visible

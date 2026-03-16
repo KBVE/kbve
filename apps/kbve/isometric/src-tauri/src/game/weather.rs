@@ -6,6 +6,8 @@ use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
 use super::camera::IsometricCamera;
+use super::creatures::{FrogMaterials, GameTime};
+use super::net::ServerTime;
 use super::tilemap::TileMaterials;
 use super::trees::TreeWindSway;
 
@@ -84,7 +86,7 @@ fn sun_params(hour: f32) -> SunParams {
 
     // Illuminance: gentle accent — pixel-art style relies on ambient, not harsh shadows.
     // ~2:1 ratio with ambient keeps valleys readable.
-    let illuminance = 15.0 + sun_height * 1800.0;
+    let illuminance = 35.0 + sun_height * 1780.0;
 
     // Light color: warm golden near horizon, white at zenith, cool blue at night.
     let lr = 0.4 + sun_height * 0.6;
@@ -94,7 +96,7 @@ fn sun_params(hour: f32) -> SunParams {
 
     // Ambient: dominant fill — the main brightness source in a stylized world.
     // Shadowed areas (valleys) should be tinted, never crushed to dark.
-    let ambient_brightness = 350.0 + sun_height * 650.0;
+    let ambient_brightness = 420.0 + sun_height * 580.0;
     let ambient_color = Color::srgb(
         0.55 + sun_height * 0.35,
         0.60 + sun_height * 0.32,
@@ -358,11 +360,43 @@ fn update_blob_shadows(
     }
 }
 
-/// Advance the game clock. 1 real second = `speed` game-hours (default 1/60).
-fn update_day_cycle(time: Res<Time>, mut day: ResMut<DayCycle>) {
-    day.hour += time.delta_secs() * day.speed;
+/// Advance the game clock. When connected to a server, snap to the server's
+/// authoritative time and interpolate locally between syncs. Otherwise run
+/// the local clock at default speed.
+fn update_day_cycle(
+    time: Res<Time>,
+    mut day: ResMut<DayCycle>,
+    server_time: Option<Res<ServerTime>>,
+) {
+    if let Some(st) = server_time {
+        if st.active {
+            // Smoothly interpolate toward server time to avoid jarring snaps.
+            // Use the server's day_speed for local extrapolation between syncs.
+            day.speed = st.day_speed;
+            let target = st.game_hour;
+            let diff = target - day.hour;
+            // Handle wrap-around (e.g. server=0.1, local=23.9 → diff should be +0.2)
+            let wrapped_diff = if diff > 12.0 {
+                diff - 24.0
+            } else if diff < -12.0 {
+                diff + 24.0
+            } else {
+                diff
+            };
+            // Blend: fast correction (10x/sec) so we converge within a few frames
+            let correction = wrapped_diff * (10.0 * time.delta_secs()).min(1.0);
+            day.hour += time.delta_secs() * day.speed + correction;
+        } else {
+            day.hour += time.delta_secs() * day.speed;
+        }
+    } else {
+        day.hour += time.delta_secs() * day.speed;
+    }
     if day.hour >= 24.0 {
         day.hour -= 24.0;
+    }
+    if day.hour < 0.0 {
+        day.hour += 24.0;
     }
 }
 
@@ -420,6 +454,44 @@ fn tint_trees_for_daynight(
     let b = 0.28 + h * 0.75;
     if let Some(mat) = materials.get_mut(&tile_mats.tree_body_mat) {
         mat.base_color = Color::srgb(r, g, b);
+    }
+}
+
+/// Tint unlit frog materials based on time of day (same curve as trees).
+fn tint_frogs_for_daynight(
+    day: Res<DayCycle>,
+    frog_mats: Option<Res<FrogMaterials>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let Some(frog_mats) = frog_mats else {
+        return;
+    };
+    let params = sun_params(day.hour);
+    let h = params.sun_height;
+
+    let r = 0.18 + h * 0.92;
+    let g = 0.20 + h * 0.90;
+    let b = 0.28 + h * 0.75;
+
+    for handle in &frog_mats.handles {
+        if let Some(mat) = materials.get_mut(handle) {
+            mat.base_color = Color::srgb(r, g, b);
+        }
+    }
+}
+
+/// Copy the current DayCycle hour and server creature seed into the shared GameTime resource.
+/// Creature modules read GameTime instead of DayCycle directly.
+fn sync_game_time(
+    day: Res<DayCycle>,
+    server_time: Option<Res<ServerTime>>,
+    mut game_time: ResMut<GameTime>,
+) {
+    game_time.hour = day.hour;
+    if let Some(st) = server_time {
+        if st.active {
+            game_time.creature_seed = st.creature_seed;
+        }
     }
 }
 
@@ -619,8 +691,10 @@ impl Plugin for WeatherPlugin {
             Update,
             (
                 update_day_cycle,
+                sync_game_time.after(update_day_cycle),
                 update_sun_position,
                 tint_trees_for_daynight,
+                tint_frogs_for_daynight,
                 update_blob_shadows,
                 animate_veg_wind,
                 animate_tree_wind,
