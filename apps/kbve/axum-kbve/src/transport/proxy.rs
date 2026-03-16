@@ -372,6 +372,55 @@ pub async fn argo_proxy_handler(path: Option<Path<String>>, req: Request<Body>) 
 }
 
 // ---------------------------------------------------------------------------
+// ClickHouse logs proxy singleton
+// ---------------------------------------------------------------------------
+
+static CLICKHOUSE_LOGS: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_clickhouse_logs_proxy() -> bool {
+    let supabase_url = match std::env::var("SUPABASE_URL") {
+        Ok(u) => u.trim_end_matches('/').to_string(),
+        Err(_) => return false,
+    };
+    let upstream = format!("{supabase_url}/functions/v1/logs");
+
+    let service_role_key = match std::env::var("SUPABASE_SERVICE_ROLE_KEY") {
+        Ok(k) => k,
+        Err(_) => return false,
+    };
+
+    let client = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(5))
+        .timeout(Duration::from_secs(30))
+        .build()
+        .expect("failed to build reqwest client for clickhouse logs proxy");
+
+    CLICKHOUSE_LOGS
+        .set(ServiceProxy {
+            name: "ClickHouse Logs",
+            client,
+            upstream,
+            upstream_token: Some(service_role_key),
+        })
+        .is_ok()
+}
+
+pub async fn clickhouse_logs_proxy_handler(
+    path: Option<Path<String>>,
+    req: Request<Body>,
+) -> Response {
+    match CLICKHOUSE_LOGS.get() {
+        Some(proxy) => proxy.handle(path, req).await,
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "ClickHouse logs proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Convert axum HeaderMap to reqwest HeaderMap
 // ---------------------------------------------------------------------------
 
