@@ -4,6 +4,8 @@
 //! plugin used by both client and server.
 
 pub mod inputs;
+#[cfg(feature = "npcdb")]
+pub mod npcdb;
 pub mod protocol;
 pub mod worldgen;
 

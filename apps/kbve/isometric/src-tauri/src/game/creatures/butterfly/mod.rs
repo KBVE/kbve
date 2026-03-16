@@ -158,7 +158,7 @@ pub(super) fn spawn_butterflies(
     let npc_id = registry
         .npc_db
         .id_for_ref(NPC_REF)
-        .unwrap_or(bevy_npc::ProtoNpcId(0));
+        .unwrap_or(bevy_kbve_net::npcdb::ProtoNpcId(0));
     let count = config.pool_size;
 
     let wing_mesh = creature_meshes.butterfly_wings.clone();

@@ -13,6 +13,7 @@ use bevy::prelude::*;
 use lightyear::prelude::server::*;
 use lightyear::prelude::*;
 
+use bevy_kbve_net::npcdb::{self, CreatureRegistry};
 use bevy_kbve_net::{
     AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
     CreatureKind, DamageEvent, GameChannel, ObjectRemoved, ObjectRespawned, PlayerName,
@@ -102,7 +103,8 @@ impl Default for WindState {
     }
 }
 
-/// Tracks which creatures have been captured (kind + index).
+/// Tracks which creatures have been captured (kind + creature_index).
+/// The server validates capture requests against the CreatureRegistry.
 #[derive(Resource, Default)]
 struct CapturedCreatures(std::collections::HashSet<(CreatureKind, u32)>);
 
@@ -307,6 +309,7 @@ fn run_bevy_app(
     app.init_resource::<CreatureSeed>();
     app.init_resource::<WindState>();
     app.init_resource::<CapturedCreatures>();
+    app.insert_resource(npcdb::build_creature_registry());
     app.init_resource::<TimeSyncTimer>();
 
     // Profile bridge resources
@@ -359,6 +362,9 @@ fn run_bevy_app(
 
     // Send time sync immediately to newly authenticated clients
     app.add_systems(Update, send_time_sync_to_new_clients);
+
+    // Process creature capture requests from clients
+    app.add_systems(Update, process_creature_captures);
 
     // Periodic debug heartbeat
     app.add_systems(Update, server_debug_heartbeat);
@@ -785,6 +791,85 @@ fn tick_respawns(
             let msg = ObjectRespawned { tile, kind };
             for mut sender in &mut senders {
                 sender.send::<bevy_kbve_net::GameChannel>(msg.clone());
+            }
+        }
+    }
+}
+
+/// Process creature capture requests: validate against CreatureRegistry, track, broadcast.
+fn process_creature_captures(
+    registry: Res<CreatureRegistry>,
+    client_player_map: Res<ClientPlayerMap>,
+    mut captured: ResMut<CapturedCreatures>,
+    mut receivers: Query<
+        (Entity, &mut MessageReceiver<CreatureCaptureRequest>),
+        Without<PendingAuth>,
+    >,
+    player_ids: Query<&bevy_kbve_net::PlayerId>,
+    mut senders: Query<&mut MessageSender<CreatureCaptured>, With<Connected>>,
+) {
+    for (client_entity, mut receiver) in &mut receivers {
+        for msg in receiver.receive() {
+            let key = (msg.kind, msg.creature_index);
+
+            // Already captured?
+            if captured.0.contains(&key) {
+                tracing::warn!(
+                    "[gameserver] creature {:?} #{} already captured — ignoring",
+                    msg.kind,
+                    msg.creature_index
+                );
+                continue;
+            }
+
+            // Validate creature_index against registry pool_size
+            let npc_ref = match msg.kind {
+                CreatureKind::Firefly => "meadow-firefly",
+                CreatureKind::Butterfly => "woodland-butterfly",
+                CreatureKind::Frog => "green-toad",
+            };
+            if let Some(config) = registry.config_by_ref(npc_ref) {
+                if msg.creature_index as usize >= config.pool_size {
+                    tracing::warn!(
+                        "[gameserver] invalid creature_index {} for {:?} (pool_size={})",
+                        msg.creature_index,
+                        msg.kind,
+                        config.pool_size
+                    );
+                    continue;
+                }
+            } else {
+                tracing::warn!(
+                    "[gameserver] unknown creature ref '{npc_ref}' for {:?}",
+                    msg.kind
+                );
+                continue;
+            }
+
+            // Track the capture
+            captured.0.insert(key);
+
+            let captor_id = client_player_map
+                .0
+                .get(&client_entity)
+                .and_then(|&pe| player_ids.get(pe).ok())
+                .map(|pid| pid.0)
+                .unwrap_or(0);
+
+            tracing::info!(
+                "[gameserver] creature captured: {:?} #{} by player {captor_id}",
+                msg.kind,
+                msg.creature_index
+            );
+
+            // Broadcast to all connected clients
+            let broadcast = CreatureCaptured {
+                kind: msg.kind,
+                creature_index: msg.creature_index,
+                captor_player_id: captor_id,
+            };
+            for mut sender in &mut senders {
+                sender.send::<GameChannel>(broadcast.clone());
             }
         }
     }
