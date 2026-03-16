@@ -151,7 +151,7 @@ pub(super) fn spawn_frogs(
     let npc_id = registry
         .npc_db
         .id_for_ref(NPC_REF)
-        .unwrap_or(bevy_npc::ProtoNpcId(0));
+        .unwrap_or(bevy_kbve_net::npcdb::ProtoNpcId(0));
     let count = config.pool_size;
 
     let texture: Handle<Image> = asset_server.load("textures/frog_green_mob.png");

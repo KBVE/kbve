@@ -7,8 +7,8 @@
 //! Config (pool size, chunk size, spawn chance) is read from [`CreatureRegistry`]
 //! rather than hardcoded, so tuning can happen at the NpcDb level.
 
+use super::creature::ProtoNpcId;
 use bevy::prelude::*;
-use bevy_npc::ProtoNpcId;
 use std::collections::HashSet;
 
 use super::common::{CreatureMeshes, CreaturePool, GameTime, night_factor, scene_center};
