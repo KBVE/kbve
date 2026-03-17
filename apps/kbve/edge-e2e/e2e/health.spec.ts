@@ -6,7 +6,7 @@ import { createJwt } from './helpers/jwt';
 
 /** Parse version.toml — single source of truth for version + function registry. */
 function parseManifest() {
-	const tomlPath = resolve(__dirname, '../../../edge/version.toml');
+	const tomlPath = resolve(__dirname, '../../edge/version.toml');
 	const content = readFileSync(tomlPath, 'utf-8');
 
 	const versionMatch = content.match(/^version\s*=\s*"([^"]+)"/m);
