@@ -1,0 +1,264 @@
+---
+import { INpcSchema } from '@/data/schema';
+
+const { data } = Astro.props;
+const npc = INpcSchema.parse(data);
+
+const rarityColors: Record<string, string> = {
+	common: 'text-zinc-400',
+	uncommon: 'text-green-400',
+	rare: 'text-blue-400',
+	epic: 'text-purple-400',
+	legendary: 'text-orange-400',
+	mythic: 'text-red-400',
+};
+
+const elementColors: Record<string, string> = {
+	fire: 'text-red-400',
+	ice: 'text-cyan-300',
+	lightning: 'text-yellow-300',
+	poison: 'text-green-400',
+	shadow: 'text-purple-400',
+	holy: 'text-amber-200',
+	arcane: 'text-indigo-400',
+	earth: 'text-amber-600',
+	wind: 'text-teal-300',
+};
+
+const elementEmoji: Record<string, string> = {
+	fire: '🔥',
+	ice: '❄️',
+	lightning: '⚡',
+	poison: '🧪',
+	shadow: '🌑',
+	holy: '✨',
+	arcane: '🔮',
+	earth: '🪨',
+	wind: '💨',
+};
+
+function formatAction(action: string): string {
+	return action.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+---
+
+<section class="px-6 py-6 sm:px-8 lg:px-12">
+	<div class="max-w-3xl mx-auto">
+		<div
+			class="rounded-2xl p-6 border transition duration-300 space-y-4
+			backdrop-blur-md bg-white/5 dark:bg-white/10
+			border-white/10 dark:border-white/10
+			shadow-[inset_0_0_0.5px_rgba(255,255,255,0.1)]
+			hover:shadow-purple-400/30 dark:hover:shadow-purple-300/30">
+			<!-- Header -->
+			<div class="flex items-center gap-3">
+				{
+					npc.img && (
+						<img
+							src={npc.img}
+							alt={npc.name}
+							class="w-14 h-14 rounded-lg object-contain"
+						/>
+					)
+				}
+				<div>
+					<h3 class="text-lg font-semibold">{npc.name}</h3>
+					<div class="flex flex-wrap items-center gap-2 text-xs mt-1">
+						{
+							npc.rarity && (
+								<span
+									class={`font-medium uppercase ${rarityColors[npc.rarity] ?? 'text-zinc-400'}`}>
+									{npc.rarity}
+								</span>
+							)
+						}
+						{
+							npc.rank && (
+								<span class="text-zinc-500 capitalize">
+									{npc.rank.replace(/_/g, ' ')}
+								</span>
+							)
+						}
+						{
+							npc.level !== undefined && (
+								<span class="text-zinc-500">
+									Lv. {npc.level}
+								</span>
+							)
+						}
+					</div>
+				</div>
+			</div>
+
+			<p class="text-sm text-zinc-300">{npc.description}</p>
+
+			<!-- Identity -->
+			<ul class="text-sm text-zinc-400 space-y-1">
+				{
+					npc.family && (
+						<li>
+							<strong>Family:</strong>{' '}
+							<span class="capitalize">{npc.family}</span>
+						</li>
+					)
+				}
+				{
+					npc.personality && (
+						<li>
+							<strong>Personality:</strong>{' '}
+							<span class="capitalize">{npc.personality}</span>
+						</li>
+					)
+				}
+				{
+					npc.element && (
+						<li>
+							<strong>Element:</strong>
+							<span
+								class={
+									elementColors[npc.element] ??
+									'text-zinc-300'
+								}>
+								{elementEmoji[npc.element] ?? ''} {npc.element}
+							</span>
+						</li>
+					)
+				}
+			</ul>
+
+			<!-- Combat Stats -->
+			{
+				npc.stats && (
+					<>
+						<hr class="my-4 border-white/10" />
+						<div class="text-sm">
+							<strong class="text-cyan-400">Combat Stats</strong>
+							<div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+								<div class="flex justify-between px-3 py-1.5 rounded-lg bg-white/5">
+									<span class="text-zinc-400">HP</span>
+									<span class="text-green-400 font-medium">
+										{npc.stats.hp}/{npc.stats.max_hp}
+									</span>
+								</div>
+								<div class="flex justify-between px-3 py-1.5 rounded-lg bg-white/5">
+									<span class="text-zinc-400">ATK</span>
+									<span class="text-red-400 font-medium">
+										{npc.stats.attack}
+									</span>
+								</div>
+								<div class="flex justify-between px-3 py-1.5 rounded-lg bg-white/5">
+									<span class="text-zinc-400">DEF</span>
+									<span class="text-blue-400 font-medium">
+										{npc.stats.defense}
+									</span>
+								</div>
+								<div class="flex justify-between px-3 py-1.5 rounded-lg bg-white/5">
+									<span class="text-zinc-400">SPD</span>
+									<span class="text-yellow-300 font-medium">
+										{npc.stats.speed}
+									</span>
+								</div>
+								{npc.stats.armor !== undefined &&
+									npc.stats.armor > 0 && (
+										<div class="flex justify-between px-3 py-1.5 rounded-lg bg-white/5">
+											<span class="text-zinc-400">
+												Armor
+											</span>
+											<span class="text-amber-400 font-medium">
+												{npc.stats.armor}
+											</span>
+										</div>
+									)}
+							</div>
+						</div>
+					</>
+				)
+			}
+
+			<!-- Behavior -->
+			{
+				npc.behavior && (
+					<>
+						<hr class="my-4 border-white/10" />
+						<div class="text-sm">
+							<strong class="text-cyan-400">Behavior</strong>
+							<ul class="mt-2 space-y-1 text-zinc-400">
+								{npc.behavior.movement_type && (
+									<li>
+										<strong>Movement:</strong>{' '}
+										<span class="capitalize">
+											{npc.behavior.movement_type.replace(
+												/_/g,
+												' ',
+											)}
+										</span>
+									</li>
+								)}
+								{npc.behavior.first_strike && (
+									<li class="text-red-400">Strikes first!</li>
+								)}
+							</ul>
+						</div>
+					</>
+				)
+			}
+
+			<!-- Flavor Text -->
+			{
+				npc.flavor_text && npc.flavor_text.length > 0 && (
+					<>
+						<hr class="my-4 border-white/10" />
+						<div class="text-sm">
+							<strong class="text-cyan-400">Flavor Text</strong>
+							<div class="mt-2 space-y-3">
+								{npc.flavor_text.map(
+									(ft: {
+										action: string;
+										messages: string[];
+									}) => (
+										<div>
+											<span class="text-xs font-medium uppercase text-purple-400">
+												{formatAction(ft.action)}
+											</span>
+											<ul class="mt-1 space-y-1 ml-3">
+												{ft.messages.map(
+													(msg: string) => (
+														<li class="text-zinc-400 text-xs italic">
+															"{msg}"
+														</li>
+													),
+												)}
+											</ul>
+										</div>
+									),
+								)}
+							</div>
+						</div>
+					</>
+				)
+			}
+
+			<!-- Lore -->
+			{
+				npc.lore && (
+					<>
+						<hr class="my-4 border-white/10" />
+						<div class="text-sm">
+							<strong class="text-cyan-400">Lore</strong>
+							<blockquote class="mt-2 pl-3 border-l-2 border-purple-400/40 text-zinc-400 italic text-xs">
+								{npc.lore}
+							</blockquote>
+						</div>
+					</>
+				)
+			}
+
+			<!-- Technical Footer -->
+			<div
+				class="pt-3 border-t border-white/10 flex flex-wrap gap-4 text-[0.65rem] text-zinc-600 font-mono">
+				{npc.id && <span>ID: {npc.id}</span>}
+				{npc.ref && <span>REF: {npc.ref}</span>}
+			</div>
+		</div>
+	</div>
+</section>
