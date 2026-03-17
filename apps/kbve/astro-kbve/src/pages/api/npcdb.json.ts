@@ -49,7 +49,7 @@ export const GET = async () => {
 
 	validateNpcUniqueness(npcs);
 
-	return new Response(JSON.stringify(npcs, null, '\t'), {
+	return new Response(JSON.stringify({ npcs, index }, null, '\t'), {
 		headers: {
 			'Content-Type': 'application/json',
 		},
