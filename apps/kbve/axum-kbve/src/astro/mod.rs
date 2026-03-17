@@ -106,6 +106,12 @@ pub fn build_static_router(config: &StaticConfig) -> Router {
 
 /// Middleware that adds COOP/COEP headers to /isometric/ responses,
 /// enabling SharedArrayBuffer for WASM pthreads.
+///
+/// Uses `credentialless` instead of `require-corp` for COEP so that
+/// cross-origin fetches (e.g. Supabase SDK → supabase.kbve.com) are
+/// allowed without requiring the remote server to send CORP headers.
+/// `credentialless` still enables SharedArrayBuffer while permitting
+/// cross-origin requests that don't use cookies.
 async fn coop_coep_isometric(req: axum::extract::Request, next: Next) -> impl IntoResponse {
     let path = req.uri().path();
     let is_isometric = path.starts_with("/isometric") || path.starts_with("/arcade/isometric");
@@ -118,7 +124,7 @@ async fn coop_coep_isometric(req: axum::extract::Request, next: Next) -> impl In
         );
         headers.insert(
             header::HeaderName::from_static("cross-origin-embedder-policy"),
-            HeaderValue::from_static("require-corp"),
+            HeaderValue::from_static("credentialless"),
         );
     }
     resp
