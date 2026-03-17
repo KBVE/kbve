@@ -1187,6 +1187,7 @@ dependencies = [
  "bevy_items",
  "bevy_npc",
  "bevy_quests",
+ "chrono",
  "dashmap 6.1.0",
  "dotenvy",
  "http-body-util",

@@ -7,18 +7,72 @@ import {
 	Personalities,
 	Elements,
 	CreatureFamilies,
+	MovementTypes,
+	DifficultyModes,
+	EquipSlots,
 } from '../../../../../../packages/data/codegen/generated/npcdb-schema';
 
-/** Map a string enum value to its proto integer index. */
-function toProtoInt(arr: readonly string[], value: unknown): number {
-	if (typeof value === 'number') return value;
-	const idx = arr.indexOf(value as string);
-	return idx >= 0 ? idx : 0;
+/**
+ * Field-name → enum array mapping for proto integer conversion.
+ * Every enum field in the proto Npc graph that prost expects as i32
+ * must be listed here so recursive conversion catches nested objects.
+ */
+const ENUM_FIELDS: Record<string, readonly string[]> = {
+	type_flags: NpcTypeFlags,
+	rarity: NpcRarities,
+	rank: NpcRanks,
+	personality: Personalities,
+	element: Elements,
+	family: CreatureFamilies,
+	movement_type: MovementTypes,
+	mode: DifficultyModes,
+	slot: EquipSlots,
+};
+
+/** Recursively walk an object, converting any string enum field to its proto integer index. */
+function convertEnums(obj: unknown): unknown {
+	if (Array.isArray(obj)) return obj.map(convertEnums);
+	if (obj !== null && typeof obj === 'object') {
+		const out: Record<string, unknown> = {};
+		for (const [key, val] of Object.entries(
+			obj as Record<string, unknown>,
+		)) {
+			const arr = ENUM_FIELDS[key];
+			if (arr && typeof val === 'string') {
+				const idx = arr.indexOf(val);
+				out[key] = idx >= 0 ? idx : 0;
+			} else {
+				out[key] = convertEnums(val);
+			}
+		}
+		return out;
+	}
+	return obj;
 }
+
+/**
+ * Default values for all repeated/optional proto fields on the Npc message.
+ * Prost serde expects these to be present even when empty.
+ */
+const NPC_DEFAULTS: Record<string, unknown> = {
+	tags: [],
+	abilities: [],
+	weaknesses: [],
+	resistances: [],
+	status_immunities: [],
+	intent_weights: [],
+	spawn_rules: [],
+	phase_rules: [],
+	difficulty_overrides: [],
+	dialogue: [],
+	quest_refs: [],
+	extensions: [],
+	flavor_text: [],
+};
 
 export const GET = async () => {
 	const npcEntries = (await getCollection('npcdb')).filter(
-		(entry) =>
+		(entry: { id: string; data: Record<string, unknown> }) =>
 			!entry.id.endsWith('index.mdx') && entry.data.drafted !== true,
 	);
 
@@ -29,18 +83,10 @@ export const GET = async () => {
 		const { id, ref, name } = entry.data;
 		if (!id || !ref || !name) continue;
 
-		const npc = {
-			...entry.data,
-			type_flags: toProtoInt(NpcTypeFlags, entry.data.type_flags),
-			rarity: toProtoInt(NpcRarities, entry.data.rarity),
-			rank: toProtoInt(NpcRanks, entry.data.rank),
-			personality: toProtoInt(Personalities, entry.data.personality),
-			element: toProtoInt(Elements, entry.data.element),
-			family: toProtoInt(CreatureFamilies, entry.data.family),
-		};
+		const npc = { ...NPC_DEFAULTS, ...convertEnums(entry.data) } as INpc;
 
 		const idx = npcs.length;
-		npcs.push(npc as INpc);
+		npcs.push(npc);
 
 		index[id] = idx;
 		index[ref] = idx;
@@ -49,7 +95,7 @@ export const GET = async () => {
 
 	validateNpcUniqueness(npcs);
 
-	return new Response(JSON.stringify({ npcs, index }, null, '\t'), {
+	return new Response(JSON.stringify(npcs, null, '\t'), {
 		headers: {
 			'Content-Type': 'application/json',
 		},
