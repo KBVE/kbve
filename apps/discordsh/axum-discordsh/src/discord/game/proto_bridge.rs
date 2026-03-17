@@ -355,6 +355,10 @@ fn proto_personality(p: i32) -> Personality {
         Ok(bevy_npc::Personality::Stoic) => Personality::Stoic,
         Ok(bevy_npc::Personality::Feral) => Personality::Feral,
         Ok(bevy_npc::Personality::Ancient) => Personality::Ancient,
+        Ok(bevy_npc::Personality::Cheerful) => Personality::Cheerful,
+        Ok(bevy_npc::Personality::Mysterious) => Personality::Mysterious,
+        Ok(bevy_npc::Personality::Cowardly) => Personality::Cowardly,
+        Ok(bevy_npc::Personality::Noble) => Personality::Noble,
         Ok(bevy_npc::Personality::Passive) => Personality::Passive,
         _ => Personality::Feral,
     }
@@ -1016,6 +1020,11 @@ mod tests {
         assert_eq!(proto_personality(4), Personality::Stoic);
         assert_eq!(proto_personality(5), Personality::Feral);
         assert_eq!(proto_personality(6), Personality::Ancient);
+        assert_eq!(proto_personality(7), Personality::Cheerful);
+        assert_eq!(proto_personality(8), Personality::Mysterious);
+        assert_eq!(proto_personality(9), Personality::Cowardly);
+        assert_eq!(proto_personality(10), Personality::Noble);
+        assert_eq!(proto_personality(11), Personality::Passive);
     }
 
     #[test]

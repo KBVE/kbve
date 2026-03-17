@@ -508,6 +508,14 @@ pub enum Personality {
     Feral,
     /// Ancient, weary — speaks in riddles, references the past.
     Ancient,
+    /// Cheerful, upbeat — jokes mid-combat, stays positive.
+    Cheerful,
+    /// Mysterious, enigmatic — cryptic remarks, veiled threats.
+    Mysterious,
+    /// Cowardly, skittish — flees early, begs for mercy.
+    Cowardly,
+    /// Noble, honorable — fights with dignity, respects foes.
+    Noble,
     /// Passive, docile — ambient creatures, rarely aggressive.
     Passive,
 }
