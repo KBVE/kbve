@@ -120,6 +120,9 @@ async fn event_handler(
                 });
             }
 
+            // Spawn GitHub board scheduler (posts notice/task boards on interval)
+            super::scheduler::spawn_github_board_scheduler(data.app.clone());
+
             // Record shard in tracker (best-effort)
             if let Some(ref tracker) = data.app.tracker {
                 let instance_id = std::env::var("HOSTNAME")
