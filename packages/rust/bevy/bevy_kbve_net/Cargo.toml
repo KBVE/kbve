@@ -6,7 +6,7 @@ description = "Shared lightyear protocol for KBVE multiplayer — replicated com
 
 [features]
 default = []
-npcdb = ["bevy_npc"]
+npcdb = ["bevy_npc/creature"]
 
 [dependencies]
 bevy = { version = "0.18", default-features = false, features = ["bevy_state", "bevy_render"] }

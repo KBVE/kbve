@@ -29,6 +29,8 @@ use super::player::{FallDamageEvent, Player};
 use super::scene_objects::CollectEvent;
 use super::state::PlayerState;
 use super::tilemap::{CollectedTiles, TileCoord};
+use bevy_kbve_net::npcdb::ProtoNpcId;
+use bevy_kbve_net::npcdb::creature::CapturedCreatures;
 
 /// Default WebSocket URL — only set for native (desktop) dev builds.
 /// On WASM the URL MUST come from JS via `request_go_online()`.
@@ -329,7 +331,7 @@ fn on_disconnected(
     pending_auth.jwt = None;
     pending_auth.sent = false;
     server_time.active = false;
-    captured_creatures.0.clear();
+    captured_creatures.clear();
 
     // Despawn all remote player visuals
     let mut count = 0u32;
@@ -646,27 +648,52 @@ fn forward_collect_to_server(
     }
 }
 
-/// Fired when the player attempts to capture a creature (e.g. via click interaction).
-/// The networking layer forwards this to the server as a `CreatureCaptureRequest`.
-#[derive(Event)]
-pub struct CreatureCaptureEvent {
-    pub kind: CreatureKind,
-    pub creature_index: u32,
+// Re-export the shared CreatureCaptureEvent so game code can trigger captures
+// without depending on bevy_npc directly.
+pub use bevy_kbve_net::npcdb::creature::CreatureCaptureEvent;
+
+/// Map a `ProtoNpcId` to the protocol's `CreatureKind` for wire messages.
+/// This is the bridge between the game-agnostic `ProtoNpcId` and the
+/// hardcoded protocol enum (to be removed when protocol migrates to ProtoNpcId).
+fn npc_id_to_creature_kind(npc_id: ProtoNpcId) -> Option<CreatureKind> {
+    // Compare against known NPC ref hashes
+    let firefly_id = ProtoNpcId::from_ref("meadow-firefly");
+    let butterfly_id = ProtoNpcId::from_ref("woodland-butterfly");
+    let frog_id = ProtoNpcId::from_ref("green-toad");
+
+    if npc_id == firefly_id {
+        Some(CreatureKind::Firefly)
+    } else if npc_id == butterfly_id {
+        Some(CreatureKind::Butterfly)
+    } else if npc_id == frog_id {
+        Some(CreatureKind::Frog)
+    } else {
+        None
+    }
 }
 
 /// Forward a local creature capture attempt to the server.
+/// Bridges the game-agnostic `CreatureCaptureEvent` (ProtoNpcId-based) to
+/// the wire protocol's `CreatureCaptureRequest` (CreatureKind-based).
 fn forward_creature_capture_to_server(
     trigger: On<CreatureCaptureEvent>,
     mut senders: Query<&mut MessageSender<CreatureCaptureRequest>, With<Connected>>,
 ) {
     let event = &*trigger;
+    let Some(kind) = npc_id_to_creature_kind(event.npc_id) else {
+        warn!(
+            "[net] cannot send capture request: unknown npc_id {:?}",
+            event.npc_id
+        );
+        return;
+    };
     info!(
         "[net] sending creature capture request: {:?} index={}",
-        event.kind, event.creature_index
+        kind, event.creature_index
     );
     for mut sender in &mut senders {
         sender.send::<GameChannel>(CreatureCaptureRequest {
-            kind: event.kind,
+            kind,
             creature_index: event.creature_index,
         });
     }
@@ -928,17 +955,21 @@ fn receive_time_sync(
     }
 }
 
-/// Client-side set of captured creatures, keyed by (CreatureKind, creature_index).
-/// Used to prevent re-capturing and to restore state on reconnect.
-#[derive(Resource, Default)]
-struct CapturedCreatures(std::collections::HashSet<(CreatureKind, u32)>);
-
 /// Map a protocol `CreatureKind` to a client `RenderKind` for entity matching.
 fn creature_kind_to_render_kind(kind: CreatureKind) -> RenderKind {
     match kind {
         CreatureKind::Firefly => RenderKind::Emissive,
         CreatureKind::Butterfly => RenderKind::Billboard,
         CreatureKind::Frog => RenderKind::Sprite,
+    }
+}
+
+/// Map a protocol `CreatureKind` to a `ProtoNpcId` for the shared capture tracker.
+fn creature_kind_to_npc_id(kind: CreatureKind) -> ProtoNpcId {
+    match kind {
+        CreatureKind::Firefly => ProtoNpcId::from_ref("meadow-firefly"),
+        CreatureKind::Butterfly => ProtoNpcId::from_ref("woodland-butterfly"),
+        CreatureKind::Frog => ProtoNpcId::from_ref("green-toad"),
     }
 }
 
@@ -951,9 +982,10 @@ fn receive_creature_captured(
     for (_entity, mut receiver) in &mut query {
         for msg in receiver.receive() {
             let render_kind = creature_kind_to_render_kind(msg.kind);
+            let npc_id = creature_kind_to_npc_id(msg.kind);
 
-            // Record in our local set
-            captured.0.insert((msg.kind, msg.creature_index));
+            // Record in shared capture tracker
+            captured.insert(npc_id, msg.creature_index);
 
             // Find the matching pool entity and mark as captured
             let mut found = false;
