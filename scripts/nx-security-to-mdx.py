@@ -177,8 +177,6 @@ def parse_python(raw) -> dict:
 
     for dep in deps:
         for vuln in dep.get("vulns", []):
-            sev = normalize_severity(vuln.get("fix_versions", [""])[0]
-                                     if False else "medium")
             # pip-audit doesn't provide severity, default to medium
             sev = "medium"
             severities[sev] += 1
