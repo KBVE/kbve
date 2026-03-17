@@ -33,7 +33,36 @@ import { Adsense } from '@/components/astropad';
 
     Deep dive into the avian engine for bevy, what I did notice was that it is a bit young and needs some additional improvements.
     The major issue that I see moving forward is enabling the `simd` and `enhanced-determinism`, I will try to get both added asap.
-    We can start with the simd, since I did add 128 integration earlier. 
+    We can start with the simd, since I did add 128 integration earlier.
+
+### Bevy NPCDB
+
+-   05:42PM
+
+    The plan is to keep the bevy npcdb integration between the discord mud bot and the actual bevy game itself.
+    This will be really interesting to see the integration between a MUD and the ISOMetric game, almost a weird experiment to an extent.
+    We can go crazy and have a side chat that exists within the page too.
+    So many ideas, but the execution time and getting things working is such a pain.
+
+### Edge Function Updates
+
+-   06:51PM
+
+    The edge functions will be our restful api call to the clickhouse, I am thinking this would make things easier to understand and build from.
+    Later on, I do want to update the `jedi` crate to handle the clickhouse integrations as well.
+    Okay so the edge functions are able to query the clickhouse, now we need to make sure the axum-kbve has the integration for
+    The dashboard is already hooked up so that only admins can access it, so that should then make it easier for us to restrict the proxy calls to the clickhouse.
+    After this integration, we can use this to resolve the argo dashboard nginx issue!
+    Later on, I want to expand kong around to further lockdown the requests that get made.
+    Well actually that might not be too much of a pain since kong already can verify the jwts, so that might be easier then I thought.
+
+### Issue Ticket Clusterin
+
+- 09:31PM
+
+    We currently have around 50~ issue tickets, I am going to try to create some more to help with the flow of the repo.
+    There could be some prompts that I could write up to help with the information, maybe using the security
+    In addition, I am thinking we expand the github dashboard, so that we have
 
 ## 2025
 
@@ -63,7 +92,7 @@ Having a buddy while doing any type of software is a huge benefit, I think pair 
 
 
 
-### JSON 
+### JSON
 
 The JSON Map is what holds all the information for the tileset and editing the game/map data directly through the tileset editor, [Map Editor](https://thorbjorn.itch.io/tiled?ac=MbLnMaiNXvG) and [Dev Tools](https://github.com/zewa666/grid-engine-devtools).
 
