@@ -103,6 +103,13 @@ async fn main() -> anyhow::Result<()> {
         info!("ArgoCD proxy not configured (ARGOCD_UPSTREAM_URL not set)");
     }
 
+    // Initialize ClickHouse logs proxy (optional - for /dashboard/clickhouse)
+    if transport::proxy::init_clickhouse_logs_proxy() {
+        info!("ClickHouse logs proxy initialized - /dashboard/clickhouse/proxy enabled");
+    } else {
+        info!("ClickHouse logs proxy not configured (CLICKHOUSE_LOGS_UPSTREAM_URL not set)");
+    }
+
     // Initialize game server (headless Bevy + lightyear + avian3d)
     // Runs in its own thread; lightyear binds WebSocket on GAME_WS_ADDR (default :5000)
     gameserver::init_gameserver();

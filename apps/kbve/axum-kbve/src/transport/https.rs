@@ -182,6 +182,14 @@ fn router(state: AppState) -> Router {
         .route(
             "/dashboard/argo/proxy",
             any(super::proxy::argo_proxy_handler),
+        )
+        .route(
+            "/dashboard/clickhouse/proxy/{*path}",
+            any(super::proxy::clickhouse_logs_proxy_handler),
+        )
+        .route(
+            "/dashboard/clickhouse/proxy",
+            any(super::proxy::clickhouse_logs_proxy_handler),
         );
 
     // Game server WebSocket is now handled by lightyear on a separate port
