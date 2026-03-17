@@ -13,7 +13,7 @@ use bevy::prelude::*;
 use lightyear::prelude::server::*;
 use lightyear::prelude::*;
 
-use bevy_kbve_net::npcdb::{self, CreatureRegistry};
+use bevy_kbve_net::npcdb::{self, CreatureRegistry, ProtoNpcId, creature::CapturedCreatures};
 use bevy_kbve_net::{
     AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
     CreatureKind, DamageEvent, GameChannel, ObjectRemoved, ObjectRespawned, PlayerName,
@@ -103,10 +103,32 @@ impl Default for WindState {
     }
 }
 
-/// Tracks which creatures have been captured (kind + creature_index).
-/// The server validates capture requests against the CreatureRegistry.
-#[derive(Resource, Default)]
-struct CapturedCreatures(std::collections::HashSet<(CreatureKind, u32)>);
+/// Map a protocol `CreatureKind` to its NPC ref string.
+fn creature_kind_to_npc_ref(kind: CreatureKind) -> &'static str {
+    match kind {
+        CreatureKind::Firefly => "meadow-firefly",
+        CreatureKind::Butterfly => "woodland-butterfly",
+        CreatureKind::Frog => "green-toad",
+    }
+}
+
+/// Map a protocol `CreatureKind` to a `ProtoNpcId`.
+fn creature_kind_to_npc_id(kind: CreatureKind) -> ProtoNpcId {
+    ProtoNpcId::from_ref(creature_kind_to_npc_ref(kind))
+}
+
+/// Map a `ProtoNpcId` back to a protocol `CreatureKind` (for wire messages).
+fn npc_id_to_creature_kind(npc_id: ProtoNpcId) -> Option<CreatureKind> {
+    if npc_id == ProtoNpcId::from_ref("meadow-firefly") {
+        Some(CreatureKind::Firefly)
+    } else if npc_id == ProtoNpcId::from_ref("woodland-butterfly") {
+        Some(CreatureKind::Butterfly)
+    } else if npc_id == ProtoNpcId::from_ref("green-toad") {
+        Some(CreatureKind::Frog)
+    } else {
+        None
+    }
+}
 
 /// Timer for periodic time sync broadcasts.
 #[derive(Resource)]
@@ -817,10 +839,10 @@ fn process_creature_captures(
 ) {
     for (client_entity, mut receiver) in &mut receivers {
         for msg in receiver.receive() {
-            let key = (msg.kind, msg.creature_index);
+            let npc_id = creature_kind_to_npc_id(msg.kind);
 
             // Already captured?
-            if captured.0.contains(&key) {
+            if captured.is_captured(npc_id, msg.creature_index) {
                 tracing::warn!(
                     "[gameserver] creature {:?} #{} already captured — ignoring",
                     msg.kind,
@@ -830,11 +852,7 @@ fn process_creature_captures(
             }
 
             // Validate creature_index against registry pool_size
-            let npc_ref = match msg.kind {
-                CreatureKind::Firefly => "meadow-firefly",
-                CreatureKind::Butterfly => "woodland-butterfly",
-                CreatureKind::Frog => "green-toad",
-            };
+            let npc_ref = creature_kind_to_npc_ref(msg.kind);
             if let Some(config) = registry.config_by_ref(npc_ref) {
                 if msg.creature_index as usize >= config.pool_size {
                     tracing::warn!(
@@ -854,7 +872,7 @@ fn process_creature_captures(
             }
 
             // Track the capture
-            captured.0.insert(key);
+            captured.insert(npc_id, msg.creature_index);
 
             let captor_id = client_player_map
                 .0
@@ -1071,7 +1089,7 @@ fn send_captured_state_to_new_clients(
     captured: Res<CapturedCreatures>,
     mut senders: Query<(Entity, &mut MessageSender<CreatureCaptured>), Added<ReplicationSender>>,
 ) {
-    if captured.0.is_empty() {
+    if captured.is_empty() {
         return;
     }
 
@@ -1082,10 +1100,13 @@ fn send_captured_state_to_new_clients(
 
         tracing::info!(
             "[gameserver] sending {} captured creatures to new client {entity:?}",
-            captured.0.len()
+            captured.len()
         );
 
-        for &(kind, creature_index) in &captured.0 {
+        for &(npc_id, creature_index) in captured.iter() {
+            let Some(kind) = npc_id_to_creature_kind(npc_id) else {
+                continue;
+            };
             sender.send::<GameChannel>(CreatureCaptured {
                 kind,
                 creature_index,
