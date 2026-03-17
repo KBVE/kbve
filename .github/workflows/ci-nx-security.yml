@@ -1,0 +1,366 @@
+name: CI - Weekly NX Security Audit
+
+on:
+    schedule:
+        - cron: '0 6 * * 3' # Wednesday 06:00 UTC
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}
+    cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+    # ── Fork & actor guard (mirrors utils-self-hosted-job) ───
+    guard:
+        name: Fork Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            allowed: ${{ steps.check.outputs.allowed }}
+        steps:
+            - name: Verify origin and actor
+              id: check
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
+                        const headRepo = context.payload.pull_request?.head?.repo?.full_name;
+                        const baseRepo = context.payload.repository?.full_name;
+                        if (headRepo && headRepo !== baseRepo) {
+                          core.error(`Blocked: fork PR from ${headRepo} cannot use self-hosted runners`);
+                          core.setOutput('allowed', 'false');
+                          return;
+                        }
+                      }
+                      try {
+                        const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          username: context.actor,
+                        });
+                        const level = data.permission;
+                        if (level === 'admin' || level === 'write') {
+                          core.info(`Actor ${context.actor} has ${level} access — allowed`);
+                          core.setOutput('allowed', 'true');
+                        } else {
+                          core.error(`Actor ${context.actor} has ${level} access — insufficient`);
+                          core.setOutput('allowed', 'false');
+                        }
+                      } catch (err) {
+                        core.error(`Permission check failed: ${err.message}`);
+                        core.setOutput('allowed', 'false');
+                      }
+
+    generate:
+        name: Generate NX Security Audit
+        needs: guard
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: arc-runner-set
+        timeout-minutes: 60
+        permissions:
+            contents: write
+            pull-requests: write
+            security-events: read
+
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::NX security audit: actor=${{ github.actor }}, event=${{ github.event_name }}, ref=${{ github.ref }}, run_id=${{ github.run_id }}, time=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+            - name: Checkout dev branch
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+                  fetch-depth: 1
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Install pnpm Dependencies
+              run: pnpm install
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.12'
+
+            - name: Setup Rust toolchain
+              run: |
+                  set -euo pipefail
+                  if command -v rustup &>/dev/null; then
+                    rustup update stable
+                  else
+                    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+                    echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+                  fi
+
+            - name: Install audit tools
+              run: |
+                  set -euo pipefail
+                  # cargo-audit
+                  if ! command -v cargo-audit &>/dev/null; then
+                    cargo install cargo-audit --locked
+                    echo "cargo-audit installed: $(cargo audit --version)"
+                  else
+                    echo "cargo-audit already available: $(cargo audit --version)"
+                  fi
+                  # pip-audit
+                  pip install pip-audit
+                  echo "pip-audit installed: $(pip-audit --version)"
+
+            # ── Generate timestamp ─────────────────────────────────
+            - name: Generate metadata
+              id: meta
+              run: |
+                  echo "report_date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+                  echo "report_timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+            # ── Run audits ─────────────────────────────────────────
+            - name: Run pnpm audit
+              run: |
+                  set -euo pipefail
+                  pnpm audit --json > /tmp/pnpm-audit.json 2>&1 || true
+                  echo "pnpm audit captured ($(wc -c < /tmp/pnpm-audit.json | xargs) bytes)"
+
+            - name: Run cargo audit
+              run: |
+                  set -euo pipefail
+                  cargo audit --json > /tmp/cargo-audit.json 2>&1 || true
+                  echo "cargo audit captured ($(wc -c < /tmp/cargo-audit.json | xargs) bytes)"
+
+            - name: Run pip audit
+              run: |
+                  set -euo pipefail
+                  # Discover Python requirement files and audit them
+                  FOUND_REQS=0
+                  echo '[]' > /tmp/pip-audit.json
+
+                  for req_file in $(find packages/python -name 'requirements*.txt' -o -name 'pyproject.toml' 2>/dev/null | head -20); do
+                    if [[ "$req_file" == *.txt ]]; then
+                      pip-audit --requirement "$req_file" --format=json >> /tmp/pip-audit-partial.json 2>/dev/null || true
+                      FOUND_REQS=1
+                    fi
+                  done
+
+                  # If we found pyproject.toml files, try auditing installed packages
+                  if [ "$FOUND_REQS" -eq 0 ]; then
+                    pip-audit --format=json > /tmp/pip-audit.json 2>/dev/null || true
+                  fi
+
+                  echo "pip audit captured ($(wc -c < /tmp/pip-audit.json | xargs) bytes)"
+
+            - name: Fetch CodeQL alerts
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -euo pipefail
+                  gh api repos/${{ github.repository }}/code-scanning/alerts \
+                    --paginate \
+                    -q '[.[] | select(.state == "open")]' \
+                    > /tmp/codeql-alerts.json 2>/dev/null || echo '[]' > /tmp/codeql-alerts.json
+
+                  COUNT=$(python3 -c "import json; print(len(json.load(open('/tmp/codeql-alerts.json'))))" 2>/dev/null || echo 0)
+                  echo "CodeQL open alerts: $COUNT"
+
+            - name: Fetch Dependabot alerts
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -euo pipefail
+                  gh api repos/${{ github.repository }}/dependabot/alerts \
+                    --paginate \
+                    -q '[.[] | select(.state == "open")]' \
+                    > /tmp/dependabot-alerts.json 2>/dev/null || echo '[]' > /tmp/dependabot-alerts.json
+
+                  COUNT=$(python3 -c "import json; print(len(json.load(open('/tmp/dependabot-alerts.json'))))" 2>/dev/null || echo 0)
+                  echo "Dependabot open alerts: $COUNT"
+
+            # ── Aggregate raw data ─────────────────────────────────
+            - name: Aggregate security data
+              run: |
+                  set -euo pipefail
+                  python3 -c "
+                  import json
+                  data = {
+                      'npm': json.load(open('/tmp/pnpm-audit.json')),
+                      'cargo': json.load(open('/tmp/cargo-audit.json')),
+                      'python': json.load(open('/tmp/pip-audit.json')),
+                      'codeql': json.load(open('/tmp/codeql-alerts.json')),
+                      'dependabot': json.load(open('/tmp/dependabot-alerts.json')),
+                  }
+                  json.dump(data, open('/tmp/nx-security-raw.json', 'w'), indent=2)
+                  print(f'Aggregated {len(data)} ecosystems')
+                  "
+
+            # ── Build outputs ──────────────────────────────────────
+            - name: Build NX Security JSON
+              run: |
+                  set -euo pipefail
+                  DEST="apps/kbve/astro-kbve/public/data/nx/nx-security.json"
+                  mkdir -p "$(dirname "$DEST")"
+                  python3 scripts/nx-security-to-mdx.py \
+                    --input /tmp/nx-security-raw.json \
+                    --json-out "$DEST" \
+                    --timestamp "${{ steps.meta.outputs.report_timestamp }}"
+                  echo "NX security JSON written ($(wc -c < "$DEST" | xargs) bytes)"
+
+            - name: Build NX Security MDX
+              run: |
+                  set -euo pipefail
+                  DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/nx-security.mdx"
+                  mkdir -p "$(dirname "$DEST")"
+                  python3 scripts/nx-security-to-mdx.py \
+                    --input /tmp/nx-security-raw.json \
+                    --mdx-out "$DEST" \
+                    --timestamp "${{ steps.meta.outputs.report_timestamp }}"
+                  echo "NX security MDX written ($(wc -c < "$DEST" | xargs) bytes)"
+
+            # ── Validate generated files ───────────────────────────
+            - name: Validate generated files
+              run: |
+                  set -euo pipefail
+                  MDX="apps/kbve/astro-kbve/src/content/docs/dashboard/nx-security.mdx"
+                  JSON="apps/kbve/astro-kbve/public/data/nx/nx-security.json"
+
+                  # Validate MDX
+                  if [ ! -s "$MDX" ]; then
+                    echo "::error::Generated MDX is empty: $MDX"
+                    exit 1
+                  fi
+                  if ! head -1 "$MDX" | grep -q '^---$'; then
+                    echo "::error::Missing YAML frontmatter in $MDX"
+                    exit 1
+                  fi
+                  if ! grep -q 'CardGrid' "$MDX"; then
+                    echo "::warning::MDX missing Starlight CardGrid component"
+                  fi
+                  if ! grep -q 'Tabs' "$MDX"; then
+                    echo "::warning::MDX missing Starlight Tabs component"
+                  fi
+                  echo "OK: $MDX ($(wc -c < "$MDX" | xargs) bytes)"
+
+                  # Validate JSON
+                  if [ ! -s "$JSON" ]; then
+                    echo "::error::Generated JSON is empty: $JSON"
+                    exit 1
+                  fi
+                  python3 -c "import json; d=json.load(open('$JSON')); assert 'summary' in d; assert 'ecosystems' in d"
+                  echo "OK: $JSON ($(wc -c < "$JSON" | xargs) bytes)"
+
+            # ── Commit & PR ────────────────────────────────────────
+            - name: Commit and push
+              id: commit
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -euo pipefail
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+
+                  BRANCH_NAME="chore/nx-security-$(date +%Y%m%d)"
+                  REPORT_DATE="${{ steps.meta.outputs.report_date }}"
+
+                  git add \
+                    apps/kbve/astro-kbve/src/content/docs/dashboard/nx-security.mdx \
+                    apps/kbve/astro-kbve/public/data/nx/nx-security.json
+
+                  if git diff --cached --quiet; then
+                    echo "No changes to commit"
+                    echo "pushed=false" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  # Guard: if branch already exists on remote, skip to avoid conflicts
+                  if git ls-remote --exit-code --heads origin "$BRANCH_NAME" > /dev/null 2>&1; then
+                    echo "::warning::Branch $BRANCH_NAME already exists on remote — skipping push"
+                    echo "pushed=false" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  git checkout -b "$BRANCH_NAME"
+                  git commit -m "chore(astro-kbve): weekly security audit report ${REPORT_DATE}"
+                  git push -u origin "$BRANCH_NAME"
+
+                  echo "pushed=true" >> "$GITHUB_OUTPUT"
+                  echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+            - name: Install GitHub CLI
+              if: steps.commit.outputs.pushed == 'true'
+              run: |
+                  set -euo pipefail
+                  if command -v gh &>/dev/null; then
+                    echo "gh already installed: $(gh --version | head -1)"
+                  else
+                    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+                      | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+                    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+                      | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+                    sudo apt-get update -qq
+                    sudo apt-get install -y -qq gh
+                    echo "gh installed: $(gh --version | head -1)"
+                  fi
+
+            - name: Create PR
+              if: steps.commit.outputs.pushed == 'true'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -euo pipefail
+                  BRANCH_NAME="${{ steps.commit.outputs.branch_name }}"
+                  REPORT_DATE="${{ steps.meta.outputs.report_date }}"
+
+                  EXISTING=$(gh pr list --base dev --head "$BRANCH_NAME" --state open --json number -q '.[0].number' || echo "")
+                  if [ -n "$EXISTING" ]; then
+                    echo "PR #$EXISTING already exists for $BRANCH_NAME"
+                    exit 0
+                  fi
+
+                  cat > /tmp/pr-body.md << 'PRBODY'
+                  ## Summary
+                  - Weekly auto-generated security audit across all monorepo ecosystems
+                  - Aggregates: pnpm audit, cargo audit, pip-audit, CodeQL alerts, Dependabot alerts
+                  - Normalized severity breakdown (critical/high/medium/low) per ecosystem
+
+                  ## Content
+                  - dashboard/nx-security.mdx: Starlight page with severity cards, ecosystem breakdown, and per-ecosystem detail tabs
+                  - public/data/nx/nx-security.json: Structured security data for programmatic consumption
+
+                  ## Preview on KBVE Studio
+                  - [Security Audit Report](https://kbve.com/dashboard/nx-security/)
+
+                  ## Test Plan
+                  - Verify security audit page renders correctly on [KBVE Studio](https://kbve.com/)
+                  - Verify severity cards and ecosystem tabs display data
+                  - Check JSON at /data/nx/nx-security.json is valid
+
+                  ---
+                  *Auto-generated by ci-nx-security.yml*
+                  PRBODY
+
+                  sed 's/^                  //' /tmp/pr-body.md > /tmp/pr-body-clean.md
+
+                  gh pr create \
+                    --base dev \
+                    --head "$BRANCH_NAME" \
+                    --title "chore(astro-kbve): weekly security audit ${REPORT_DATE}" \
+                    --body-file /tmp/pr-body-clean.md
+
+            # ── Cleanup ────────────────────────────────────────────
+            - name: Cleanup workspace
+              if: always()
+              run: |
+                  echo "Cleaning up workspace..."
+                  rm -f /tmp/pnpm-audit.json /tmp/cargo-audit.json /tmp/pip-audit.json \
+                    /tmp/pip-audit-partial.json /tmp/codeql-alerts.json /tmp/dependabot-alerts.json \
+                    /tmp/nx-security-raw.json /tmp/pr-body.md /tmp/pr-body-clean.md
+                  rm -rf "$GITHUB_WORKSPACE"/* "$GITHUB_WORKSPACE"/.[!.]* 2>/dev/null || true
