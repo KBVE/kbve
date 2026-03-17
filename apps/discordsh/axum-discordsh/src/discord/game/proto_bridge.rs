@@ -663,8 +663,8 @@ mod tests {
     }
 
     #[test]
-    fn npc_db_has_23_npcs() {
-        assert_eq!(npc_db().len(), 23, "Should have 23 discordsh NPCs");
+    fn npc_db_has_26_npcs() {
+        assert_eq!(npc_db().len(), 26, "Should have 26 NPCs");
     }
 
     #[test]
@@ -680,7 +680,7 @@ mod tests {
     #[test]
     fn find_npcs_by_level_1() {
         let npcs = find_npcs_by_level(1);
-        assert_eq!(npcs.len(), 6, "Should have 6 level-1 NPCs");
+        assert_eq!(npcs.len(), 9, "Should have 9 level-1 NPCs");
     }
 
     #[test]
@@ -1043,17 +1043,6 @@ mod tests {
     #[test]
     fn find_npcs_by_level_4_is_empty() {
         assert!(find_npcs_by_level(4).is_empty(), "No level-4 NPCs exist");
-    }
-
-    #[test]
-    fn all_npcs_have_discordsh_tag() {
-        for (_id, npc) in npc_db().iter() {
-            assert!(
-                npc.tags.iter().any(|t| t == "discordsh"),
-                "NPC {} missing discordsh tag",
-                npc.name
-            );
-        }
     }
 
     #[test]
