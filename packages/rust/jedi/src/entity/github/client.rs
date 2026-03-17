@@ -247,3 +247,230 @@ impl GitHubClient {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ── Fixture helpers ──────────────────────────────────────────────
+
+    fn make_issue(number: u64, updated_at: &str, labels: Vec<&str>) -> GitHubIssue {
+        GitHubIssue {
+            number,
+            title: format!("Issue #{number}"),
+            state: "open".to_string(),
+            user: GitHubUser {
+                login: "testuser".to_string(),
+            },
+            labels: labels
+                .into_iter()
+                .map(|n| GitHubLabel {
+                    name: n.to_string(),
+                    color: None,
+                })
+                .collect(),
+            created_at: updated_at.to_string(),
+            updated_at: updated_at.to_string(),
+            html_url: format!("https://github.com/test/repo/issues/{number}"),
+            pull_request: None,
+        }
+    }
+
+    fn make_pull(number: u64, updated_at: &str, draft: bool) -> GitHubPull {
+        GitHubPull {
+            number,
+            title: format!("PR #{number}"),
+            state: "open".to_string(),
+            user: GitHubUser {
+                login: "testuser".to_string(),
+            },
+            head: GitHubRef {
+                ref_name: "feature-branch".to_string(),
+                sha: "abc123".to_string(),
+            },
+            created_at: updated_at.to_string(),
+            updated_at: updated_at.to_string(),
+            html_url: format!("https://github.com/test/repo/pull/{number}"),
+            draft,
+        }
+    }
+
+    fn days_ago(days: i64) -> String {
+        (chrono::Utc::now() - chrono::Duration::days(days))
+            .to_rfc3339_opts(chrono::SecondsFormat::Secs, true)
+    }
+
+    // ── Type deserialization ─────────────────────────────────────────
+
+    #[test]
+    fn deserialize_issue_json() {
+        let json = r#"{
+            "number": 42,
+            "title": "Test issue",
+            "state": "open",
+            "user": {"login": "octocat"},
+            "labels": [{"name": "bug", "color": "d73a4a"}],
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-02T00:00:00Z",
+            "html_url": "https://github.com/test/repo/issues/42"
+        }"#;
+        let issue: GitHubIssue = serde_json::from_str(json).unwrap();
+        assert_eq!(issue.number, 42);
+        assert_eq!(issue.title, "Test issue");
+        assert_eq!(issue.user.login, "octocat");
+        assert_eq!(issue.labels.len(), 1);
+        assert_eq!(issue.labels[0].name, "bug");
+        assert!(!issue.is_pull_request());
+    }
+
+    #[test]
+    fn deserialize_issue_with_pr_field() {
+        let json = r#"{
+            "number": 10,
+            "title": "PR as issue",
+            "state": "open",
+            "user": {"login": "octocat"},
+            "labels": [],
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-02T00:00:00Z",
+            "html_url": "https://github.com/test/repo/issues/10",
+            "pull_request": {"url": "https://api.github.com/repos/test/repo/pulls/10"}
+        }"#;
+        let issue: GitHubIssue = serde_json::from_str(json).unwrap();
+        assert!(issue.is_pull_request());
+    }
+
+    #[test]
+    fn deserialize_pull_json() {
+        let json = r#"{
+            "number": 99,
+            "title": "Add feature",
+            "state": "open",
+            "user": {"login": "dev"},
+            "head": {"ref": "feat/new", "sha": "deadbeef"},
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-03T00:00:00Z",
+            "html_url": "https://github.com/test/repo/pull/99",
+            "draft": true
+        }"#;
+        let pull: GitHubPull = serde_json::from_str(json).unwrap();
+        assert_eq!(pull.number, 99);
+        assert_eq!(pull.head.ref_name, "feat/new");
+        assert!(pull.draft);
+    }
+
+    #[test]
+    fn deserialize_commit_json() {
+        let json = r#"{
+            "sha": "abc123def",
+            "commit": {
+                "message": "fix: resolve bug",
+                "author": {"name": "Dev", "date": "2026-01-01T12:00:00Z"}
+            },
+            "html_url": "https://github.com/test/repo/commit/abc123def"
+        }"#;
+        let commit: GitHubCommit = serde_json::from_str(json).unwrap();
+        assert_eq!(commit.sha, "abc123def");
+        assert_eq!(commit.commit.message, "fix: resolve bug");
+        assert_eq!(commit.commit.author.name, "Dev");
+    }
+
+    #[test]
+    fn deserialize_repo_json() {
+        let json = r#"{
+            "name": "kbve",
+            "full_name": "KBVE/kbve",
+            "description": "A monorepo",
+            "html_url": "https://github.com/KBVE/kbve",
+            "default_branch": "main",
+            "open_issues_count": 150
+        }"#;
+        let repo: GitHubRepo = serde_json::from_str(json).unwrap();
+        assert_eq!(repo.full_name, "KBVE/kbve");
+        assert_eq!(repo.default_branch, "main");
+        assert_eq!(repo.open_issues_count, 150);
+    }
+
+    #[test]
+    fn deserialize_branch_protection_json() {
+        let json = r#"{
+            "required_status_checks": {"strict": true, "contexts": ["ci/build"]},
+            "enforce_admins": {"enabled": true}
+        }"#;
+        let bp: GitHubBranchProtection = serde_json::from_str(json).unwrap();
+        assert!(bp.required_status_checks.unwrap().strict);
+        assert!(bp.enforce_admins.unwrap().enabled);
+    }
+
+    #[test]
+    fn deserialize_issue_missing_optional_labels() {
+        let json = r#"{
+            "number": 1,
+            "title": "No labels",
+            "state": "open",
+            "user": {"login": "u"},
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z",
+            "html_url": "https://example.com/1"
+        }"#;
+        let issue: GitHubIssue = serde_json::from_str(json).unwrap();
+        assert!(issue.labels.is_empty());
+    }
+
+    // ── Stale filtering ──────────────────────────────────────────────
+
+    #[test]
+    fn stale_issues_filters_by_threshold() {
+        let issues = vec![
+            make_issue(1, &days_ago(10), vec![]),
+            make_issue(2, &days_ago(2), vec![]),
+            make_issue(3, &days_ago(5), vec![]),
+        ];
+        let stale = GitHubClient::stale_issues(&issues, 3);
+        assert_eq!(stale.len(), 2);
+        assert!(stale.iter().any(|i| i.number == 1));
+        assert!(stale.iter().any(|i| i.number == 3));
+    }
+
+    #[test]
+    fn stale_issues_empty_when_all_recent() {
+        let issues = vec![
+            make_issue(1, &days_ago(0), vec![]),
+            make_issue(2, &days_ago(1), vec![]),
+        ];
+        let stale = GitHubClient::stale_issues(&issues, 7);
+        assert!(stale.is_empty());
+    }
+
+    #[test]
+    fn stale_pulls_filters_by_threshold() {
+        let pulls = vec![
+            make_pull(1, &days_ago(15), false),
+            make_pull(2, &days_ago(1), true),
+        ];
+        let stale = GitHubClient::stale_pulls(&pulls, 7);
+        assert_eq!(stale.len(), 1);
+        assert_eq!(stale[0].number, 1);
+    }
+
+    #[test]
+    fn stale_issues_handles_invalid_dates() {
+        let issues = vec![make_issue(1, "not-a-date", vec![])];
+        let stale = GitHubClient::stale_issues(&issues, 1);
+        assert!(stale.is_empty());
+    }
+
+    #[test]
+    fn stale_issues_empty_input() {
+        let stale = GitHubClient::stale_issues(&[], 1);
+        assert!(stale.is_empty());
+    }
+
+    // ── Client construction ──────────────────────────────────────────
+
+    #[test]
+    fn with_base_url_trims_trailing_slash() {
+        let client = GitHubClient::new("tok").with_base_url("https://gh.example.com/");
+        assert_eq!(client.base_url, "https://gh.example.com");
+    }
+}
