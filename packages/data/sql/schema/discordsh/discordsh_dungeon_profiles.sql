@@ -18,6 +18,41 @@
 BEGIN;
 
 -- ===========================================
+-- VALIDATION FUNCTION: inventory shape
+--
+-- Validates JSONB is an array of {item_id: string, qty: number >= 1}.
+-- Uses jsonb_array_elements (portable across PG 14+).
+-- ===========================================
+
+CREATE OR REPLACE FUNCTION discordsh.is_valid_inventory(inv JSONB)
+RETURNS BOOLEAN
+LANGUAGE plpgsql IMMUTABLE
+SET search_path = ''
+AS $$
+DECLARE
+    elem JSONB;
+BEGIN
+    IF inv IS NULL THEN RETURN true; END IF;
+    IF jsonb_typeof(inv) != 'array' THEN RETURN false; END IF;
+
+    FOR elem IN SELECT value FROM jsonb_array_elements(inv)
+    LOOP
+        IF jsonb_typeof(elem) != 'object'
+            OR NOT (elem ? 'item_id')
+            OR NOT (elem ? 'qty')
+            OR jsonb_typeof(elem->'item_id') != 'string'
+            OR jsonb_typeof(elem->'qty') != 'number'
+            OR (elem->>'qty')::numeric < 1
+        THEN
+            RETURN false;
+        END IF;
+    END LOOP;
+
+    RETURN true;
+END;
+$$;
+
+-- ===========================================
 -- TABLE: discordsh.dungeon_profiles
 --
 -- One row per Discord user. Keyed on discord_id (BIGINT snowflake),
@@ -61,23 +96,9 @@ CREATE TABLE IF NOT EXISTS discordsh.dungeon_profiles (
     armor_gear              TEXT
                             CHECK (armor_gear IS NULL OR char_length(armor_gear) BETWEEN 1 AND 100),
 
-    -- Inventory: JSONB array of {item_id, qty} objects
-    -- Shape-validated: must be array of objects with string item_id and numeric qty >= 1
+    -- Inventory: JSONB array of {item_id, qty} objects — shape-validated
     inventory               JSONB NOT NULL DEFAULT '[]'::JSONB
-                            CHECK (
-                                jsonb_typeof(inventory) = 'array'
-                                AND NOT jsonb_path_exists(
-                                    inventory,
-                                    '$[*] ? (
-                                        type() != "object" ||
-                                        !exists(@.item_id) ||
-                                        !exists(@.qty) ||
-                                        @.item_id.type() != "string" ||
-                                        @.qty.type() != "number" ||
-                                        @.qty < 1
-                                    )'
-                                )
-                            ),
+                            CHECK (discordsh.is_valid_inventory(inventory)),
 
     -- Completed quest slugs
     completed_quests        TEXT[] NOT NULL DEFAULT '{}',
@@ -98,6 +119,11 @@ COMMENT ON COLUMN discordsh.dungeon_profiles.inventory IS
 
 -- Explicit revoke for defense in depth
 REVOKE ALL ON discordsh.dungeon_profiles FROM PUBLIC, anon, authenticated;
+
+-- Validation function ownership/grants
+REVOKE ALL ON FUNCTION discordsh.is_valid_inventory(JSONB) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION discordsh.is_valid_inventory(JSONB) TO service_role;
+ALTER FUNCTION discordsh.is_valid_inventory(JSONB) OWNER TO service_role;
 
 -- ===========================================
 -- TABLE: discordsh.dungeon_runs
@@ -629,6 +655,9 @@ BEGIN
     PERFORM 'discordsh.service_load_profile(bigint)'::regprocedure;
     PERFORM 'discordsh.service_upsert_profile(bigint, text, smallint, smallint, int, int, int, int, int, int, int, int, int, int, text, text, jsonb, text[], smallint, int, int, int, int, int, int, smallint, int)'::regprocedure;
     PERFORM 'discordsh.service_leaderboard(smallint, int)'::regprocedure;
+
+    -- Verify validation function exists
+    PERFORM 'discordsh.is_valid_inventory(jsonb)'::regprocedure;
 
     -- Verify trigger functions exist
     PERFORM 'discordsh.trg_dungeon_profiles_updated_at()'::regprocedure;

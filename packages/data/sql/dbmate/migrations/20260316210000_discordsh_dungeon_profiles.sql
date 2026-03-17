@@ -14,6 +14,45 @@
 -- ============================================================
 
 -- ===========================================
+-- VALIDATION FUNCTION: inventory shape
+--
+-- Validates JSONB is an array of {item_id: string, qty: number >= 1}.
+-- Uses jsonb_array_elements (portable across PG 14+).
+-- ===========================================
+
+CREATE OR REPLACE FUNCTION discordsh.is_valid_inventory(inv JSONB)
+RETURNS BOOLEAN
+LANGUAGE plpgsql IMMUTABLE
+SET search_path = ''
+AS $$
+DECLARE
+    elem JSONB;
+BEGIN
+    IF inv IS NULL THEN RETURN true; END IF;
+    IF jsonb_typeof(inv) != 'array' THEN RETURN false; END IF;
+
+    FOR elem IN SELECT value FROM jsonb_array_elements(inv)
+    LOOP
+        IF jsonb_typeof(elem) != 'object'
+            OR NOT (elem ? 'item_id')
+            OR NOT (elem ? 'qty')
+            OR jsonb_typeof(elem->'item_id') != 'string'
+            OR jsonb_typeof(elem->'qty') != 'number'
+            OR (elem->>'qty')::numeric < 1
+        THEN
+            RETURN false;
+        END IF;
+    END LOOP;
+
+    RETURN true;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION discordsh.is_valid_inventory(JSONB) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION discordsh.is_valid_inventory(JSONB) TO service_role;
+ALTER FUNCTION discordsh.is_valid_inventory(JSONB) OWNER TO service_role;
+
+-- ===========================================
 -- TABLE: discordsh.dungeon_profiles
 -- ===========================================
 
@@ -56,20 +95,7 @@ CREATE TABLE IF NOT EXISTS discordsh.dungeon_profiles (
 
     -- Inventory: JSONB array of {item_id, qty} objects — shape-validated
     inventory               JSONB NOT NULL DEFAULT '[]'::JSONB
-                            CHECK (
-                                jsonb_typeof(inventory) = 'array'
-                                AND NOT jsonb_path_exists(
-                                    inventory,
-                                    '$[*] ? (
-                                        type() != "object" ||
-                                        !exists(@.item_id) ||
-                                        !exists(@.qty) ||
-                                        @.item_id.type() != "string" ||
-                                        @.qty.type() != "number" ||
-                                        @.qty < 1
-                                    )'
-                                )
-                            ),
+                            CHECK (discordsh.is_valid_inventory(inventory)),
 
     -- Completed quest slugs
     completed_quests        TEXT[] NOT NULL DEFAULT '{}',
@@ -582,3 +608,4 @@ DROP FUNCTION IF EXISTS discordsh.trg_dungeon_profiles_updated_at();
 
 DROP TABLE IF EXISTS discordsh.dungeon_runs;
 DROP TABLE IF EXISTS discordsh.dungeon_profiles;
+DROP FUNCTION IF EXISTS discordsh.is_valid_inventory(JSONB);
