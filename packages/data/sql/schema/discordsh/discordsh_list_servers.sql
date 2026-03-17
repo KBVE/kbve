@@ -1,28 +1,37 @@
--- migrate:up
-
--- ---------------------------------------------------------------------------
--- discordsh_list_servers — Paginated server listing with sort + filter
+-- ============================================================
+-- DISCORDSH LIST SERVERS — Paginated server directory listing
 --
--- Called via Supabase RPC from the discordsh edge function.
--- Uses the existing composite indexes on discordsh.servers for each sort mode.
--- ---------------------------------------------------------------------------
-
--- ---------------------------------------------------------------------------
--- discordsh.service_list_servers — Internal paginated server listing
---
--- Paginated, sortable, filterable server directory query.
--- Called only by proxy_list_servers (the public surface).
+-- Two functions:
+--   service_list_servers  — internal, service_role only
+--   proxy_list_servers    — public proxy in public schema
 --
 -- Security:
---   - SECURITY DEFINER with search_path locked to ''
---   - Owned by service_role, execute revoked from PUBLIC/anon/authenticated
---   - Only proxy_list_servers calls this
+--   - service_list_servers: SECURITY INVOKER, search_path='',
+--     owned by service_role, no access for anon/authenticated
+--     (runs under caller context — proxy elevates, service executes)
+--   - proxy_list_servers: SECURITY DEFINER, search_path='',
+--     owned by service_role, service_role only (no anon/authenticated)
+--   - Edge function calls proxy with service_role key, caches result
+--   - proxy is the only call surface and the single privilege boundary
 --
 -- Sort modes: votes (default), members, newest, bumped
 -- Category filter: optional SMALLINT matching ANY(categories)
--- Pagination: LIMIT/OFFSET with clamped inputs
+-- Pagination: LIMIT/OFFSET with clamped inputs (1-50 per page)
 -- Tie-breaking: created_at DESC, server_id DESC for stable ordering
--- ---------------------------------------------------------------------------
+--
+-- Depends on: discordsh_servers.sql (discordsh.servers table + indexes)
+-- ============================================================
+
+BEGIN;
+
+-- ===========================================
+-- SERVICE FUNCTION: List servers (internal)
+--
+-- Paginated, sortable, filterable server directory query.
+-- Called only by proxy_list_servers.
+-- Input validation: sort normalized to lowercase, unknown sorts
+-- default to 'votes', limit clamped to 1-50.
+-- ===========================================
 
 CREATE OR REPLACE FUNCTION discordsh.service_list_servers(
     p_limit     INT       DEFAULT 24,
@@ -113,12 +122,12 @@ REVOKE ALL ON FUNCTION discordsh.service_list_servers(INT, INT, TEXT, SMALLINT) 
 GRANT EXECUTE ON FUNCTION discordsh.service_list_servers(INT, INT, TEXT, SMALLINT) TO service_role;
 ALTER FUNCTION discordsh.service_list_servers(INT, INT, TEXT, SMALLINT) OWNER TO service_role;
 
--- ---------------------------------------------------------------------------
--- public.proxy_list_servers — Proxy for PostgREST (service_role only)
+-- ===========================================
+-- PROXY FUNCTION: List servers (public)
 --
 -- Thin wrapper that delegates to discordsh.service_list_servers.
 -- service_role only — edge function calls this with service key and caches.
--- ---------------------------------------------------------------------------
+-- ===========================================
 
 CREATE OR REPLACE FUNCTION public.proxy_list_servers(
     p_limit     INT       DEFAULT 24,
@@ -158,7 +167,55 @@ REVOKE ALL ON FUNCTION public.proxy_list_servers(INT, INT, TEXT, SMALLINT) FROM 
 GRANT EXECUTE ON FUNCTION public.proxy_list_servers(INT, INT, TEXT, SMALLINT) TO service_role;
 ALTER FUNCTION public.proxy_list_servers(INT, INT, TEXT, SMALLINT) OWNER TO service_role;
 
--- migrate:down
+-- ===========================================
+-- VERIFICATION
+-- ===========================================
 
-DROP FUNCTION IF EXISTS public.proxy_list_servers(INT, INT, TEXT, SMALLINT);
-DROP FUNCTION IF EXISTS discordsh.service_list_servers(INT, INT, TEXT, SMALLINT);
+DO $$
+BEGIN
+    PERFORM set_config('search_path', '', true);
+
+    -- Verify functions exist
+    PERFORM 'discordsh.service_list_servers(int, int, text, smallint)'::regprocedure;
+    PERFORM 'public.proxy_list_servers(int, int, text, smallint)'::regprocedure;
+
+    -- Verify service function is locked down
+    IF has_function_privilege('anon', 'discordsh.service_list_servers(int, int, text, smallint)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'anon must NOT have execute on discordsh.service_list_servers';
+    END IF;
+
+    IF has_function_privilege('authenticated', 'discordsh.service_list_servers(int, int, text, smallint)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'authenticated must NOT have execute on discordsh.service_list_servers';
+    END IF;
+
+    -- Verify proxy is NOT accessible to anon or authenticated (service_role only)
+    IF has_function_privilege('anon', 'public.proxy_list_servers(int, int, text, smallint)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'anon must NOT have execute on public.proxy_list_servers';
+    END IF;
+
+    IF has_function_privilege('authenticated', 'public.proxy_list_servers(int, int, text, smallint)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'authenticated must NOT have execute on public.proxy_list_servers';
+    END IF;
+
+    -- Verify ownership
+    IF EXISTS (
+        SELECT 1 FROM pg_proc
+        WHERE oid = 'discordsh.service_list_servers(int, int, text, smallint)'::regprocedure
+          AND pg_get_userbyid(proowner) <> 'service_role'
+    ) THEN
+        RAISE EXCEPTION 'discordsh.service_list_servers must be owned by service_role';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM pg_proc
+        WHERE oid = 'public.proxy_list_servers(int, int, text, smallint)'::regprocedure
+          AND pg_get_userbyid(proowner) <> 'service_role'
+    ) THEN
+        RAISE EXCEPTION 'public.proxy_list_servers must be owned by service_role';
+    END IF;
+
+    RAISE NOTICE 'discordsh_list_servers.sql: service + proxy functions verified successfully.';
+END;
+$$ LANGUAGE plpgsql;
+
+COMMIT;

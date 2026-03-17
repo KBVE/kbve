@@ -104,6 +104,16 @@ jobs:
                     echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
                   fi
 
+            - name: Install build tools
+              run: |
+                  set -euo pipefail
+                  if ! command -v cc &>/dev/null; then
+                    apt-get update -qq && apt-get install -y -qq build-essential pkg-config libssl-dev
+                    echo "build-essential installed"
+                  else
+                    echo "cc already available: $(cc --version | head -1)"
+                  fi
+
             - name: Install audit tools
               run: |
                   set -euo pipefail
