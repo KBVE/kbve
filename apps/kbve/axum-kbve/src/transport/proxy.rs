@@ -324,9 +324,8 @@ pub fn init_argo_proxy() -> bool {
 
     let mut builder = Client::builder()
         .redirect(reqwest::redirect::Policy::none())
-        .http1_only()
-        .connect_timeout(Duration::from_secs(5))
-        .timeout(Duration::from_secs(15));
+        .connect_timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(120));
 
     if let Ok(ca_path) = std::env::var("ARGOCD_CA_CERT_PATH") {
         match std::fs::read(&ca_path) {
