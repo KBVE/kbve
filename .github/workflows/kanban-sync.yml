@@ -247,6 +247,17 @@ jobs:
                       fs.writeFileSync(jsonDest, JSON.stringify(kanban, null, '\t') + '\n');
                       core.info(`Wrote ${jsonDest} (${allItems.length} items)`);
 
+                      // Escape MDX-unsafe characters in text destined for MDX tables
+                      function escapeMdx(str) {
+                        return str
+                          .replace(/&/g, '&amp;')
+                          .replace(/</g, '&lt;')
+                          .replace(/>/g, '&gt;')
+                          .replace(/\{/g, '&#123;')
+                          .replace(/\}/g, '&#125;')
+                          .replace(/\|/g, '\\|');
+                      }
+
                       // Build MDX
                       const lines = [];
                       lines.push('---');
@@ -284,6 +295,36 @@ jobs:
                       lines.push('</CardGrid>');
                       lines.push('');
 
+                      // Mermaid pie chart for status distribution
+                      const activeColumns = COLUMNS.filter(c => summary[c] > 0);
+                      if (activeColumns.length > 0) {
+                        lines.push('### Distribution');
+                        lines.push('');
+                        lines.push('```mermaid');
+                        lines.push('pie title Items by Status');
+                        for (const col of activeColumns) {
+                          lines.push(`    "${col}" : ${summary[col]}`);
+                        }
+                        lines.push('```');
+                        lines.push('');
+                      }
+
+                      // Mermaid flowchart for kanban pipeline
+                      lines.push('### Pipeline Flow');
+                      lines.push('');
+                      lines.push('```mermaid');
+                      lines.push('flowchart LR');
+                      for (let i = 0; i < COLUMNS.length; i++) {
+                        const col = COLUMNS[i];
+                        const count = summary[col];
+                        lines.push(`    ${col.replace(/ /g, '_')}["${col}<br/>${count}"]`);
+                        if (i < COLUMNS.length - 1) {
+                          lines.push(`    ${col.replace(/ /g, '_')} --> ${COLUMNS[i+1].replace(/ /g, '_')}`);
+                        }
+                      }
+                      lines.push('```');
+                      lines.push('');
+
                       for (const col of COLUMNS) {
                         const items = columns[col];
                         if (items.length === 0) continue;
@@ -293,7 +334,7 @@ jobs:
                         lines.push('|---|-------|----------|-----------|--------|');
                         for (const it of items) {
                           const num = it.url ? `[#${it.number}](${it.url})` : (it.number || '—');
-                          const title = it.title.replace(/\|/g, '\\|').substring(0, 80);
+                          const title = escapeMdx(it.title).substring(0, 80);
                           const priority = it.matrix || '—';
                           const assignees = it.assignees.join(', ') || '—';
                           const labels = it.labels.slice(0, 3).join(', ') || '—';
