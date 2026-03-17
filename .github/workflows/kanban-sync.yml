@@ -395,35 +395,6 @@ jobs:
                   ITEM_COUNT=$(python3 -c "import json; d=json.load(open('$JSON')); print(d['project']['total_items'])")
                   echo "Validated: $ITEM_COUNT project items"
 
-            # ── Install dependencies (cached) ─────────────────────
-            - name: Setup pnpm
-              if: steps.token_check.outputs.skip != 'true'
-              uses: pnpm/action-setup@v4
-              with:
-                  version: 10
-
-            - name: Setup Node v24 with pnpm cache
-              if: steps.token_check.outputs.skip != 'true'
-              uses: actions/setup-node@v6
-              with:
-                  node-version: 24
-                  cache: pnpm
-
-            - name: Install dependencies
-              if: steps.token_check.outputs.skip != 'true'
-              run: pnpm install --frozen-lockfile
-
-            # ── Build astro-kbve ──────────────────────────────────
-            # Full production build — the only real guarantee that the
-            # generated MDX doesn't break a page route, import, or render.
-            - name: Build astro-kbve
-              if: steps.token_check.outputs.skip != 'true'
-              run: pnpm nx run astro-kbve:build
-              env:
-                  NX_DAEMON: false
-                  NODE_OPTIONS: --max-old-space-size=8192
-                  UV_THREADPOOL_SIZE: 4
-
             # ── Commit & push ─────────────────────────────────────
             - name: Commit and push
               id: commit
@@ -488,7 +459,7 @@ jobs:
                   - Daily snapshot of [KBVE Project Board](https://github.com/orgs/KBVE/projects/5) (${TOTAL} items)
                   - \`nx-kanban.json\`: machine-readable board state at \`src/data/\`
                   - \`nx-kanban.mdx\`: static dashboard page at \`/dashboard/nx-kanban\`
-                  - Passed \`astro check\` type validation before merge
+                  - Passes \`astro build\` gate before auto-merge
 
                   ## Test plan
                   - Verify MDX renders at \`/dashboard/nx-kanban/\`
@@ -505,11 +476,41 @@ jobs:
                   echo "Created PR #$PR_NUMBER: $PR_URL"
                   echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
+            # ── Build gate ────────────────────────────────────────
+            # Install deps and run a full astro build so we know the site
+            # compiles before auto-merging. Runs only when a PR was created/found.
+            - name: Setup pnpm
+              if: steps.pr.outputs.pr_number != ''
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+
+            - name: Setup Node v24 with pnpm cache
+              if: steps.pr.outputs.pr_number != ''
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: pnpm
+
+            - name: Install dependencies
+              if: steps.pr.outputs.pr_number != ''
+              run: pnpm install --frozen-lockfile
+
+            - name: Build astro-kbve
+              id: build
+              if: steps.pr.outputs.pr_number != ''
+              run: pnpm nx run astro-kbve:build
+              env:
+                  NX_DAEMON: false
+                  NODE_OPTIONS: --max-old-space-size=8192
+                  UV_THREADPOOL_SIZE: 4
+
             # ── Auto-approve and squash-merge ─────────────────────
             # Uses UNITY_PAT (a separate account) to approve, then squash-merges.
             # Mirrors the ci-atom.yml auto_merge pattern.
+            # Only runs if both PR exists and build passed.
             - name: Auto-approve and merge
-              if: steps.pr.outputs.pr_number != ''
+              if: steps.pr.outputs.pr_number != '' && steps.build.outcome == 'success'
               uses: actions/github-script@v8
               with:
                   github-token: ${{ secrets.UNITY_PAT }}
@@ -522,7 +523,7 @@ jobs:
                         repo: context.repo.repo,
                         pull_number: prNumber,
                         event: 'APPROVE',
-                        body: 'Auto-approved by kanban-sync — astro check passed.',
+                        body: 'Auto-approved by kanban-sync — astro build passed.',
                       });
                       core.info(`PR #${prNumber} approved`);
 
