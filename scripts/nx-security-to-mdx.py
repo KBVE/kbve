@@ -429,6 +429,17 @@ def write_mdx(data: dict, timestamp: str, path: str):
     print(f"MDX written to {path} ({total} total findings)")
 
 
+def _escape_mdx(text: str) -> str:
+    """Escape characters that MDX/JSX would interpret as markup."""
+    return (text
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("{", "&#123;")
+            .replace("}", "&#125;")
+            .replace("|", "\\|"))
+
+
 def _write_advisory_tab(out, label: str, eco: dict, key: str = "advisories"):
     """Write a tab for advisory-style ecosystems (npm/cargo/python)."""
     out.write(f'  <TabItem label="{label}">\n\n')
@@ -452,6 +463,7 @@ def _write_advisory_tab(out, label: str, eco: dict, key: str = "advisories"):
             # Truncate long titles
             if len(title) > 60:
                 title = title[:57] + "..."
+            title = _escape_mdx(title)
             url = item.get("url", "")
             link = f"[Details]({url})" if url else ""
             out.write(f"| {sev} | `{pkg}` | {title} | {link} |\n")
