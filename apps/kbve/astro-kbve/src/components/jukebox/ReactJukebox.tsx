@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
 	SkipBack,
@@ -11,6 +11,7 @@ import {
 	Volume2,
 	CloudRain,
 	Waves,
+	Cloud,
 	X,
 } from 'lucide-react';
 
@@ -62,7 +63,7 @@ interface Genre {
 interface Props {
 	genres: Genre[];
 }
-type AmbientMode = 'off' | 'rain' | 'ocean';
+type AmbientMode = 'off' | 'rain' | 'ocean' | 'clouds';
 
 // ─── Ambient effect GLSL ──────────────────────────────────────────────────────
 // Vertex shader bypasses camera — clip-space fill
@@ -161,10 +162,91 @@ const oceanFrag = /* glsl */ `
   }
 `;
 
+// Cloud shader — adapted from mrdoob's example.
+// Uses iResolution + iTime uniforms; outputs sky+cloud colour with alpha mask
+// so it overlays as a semi-transparent layer over the video.
+const cloudFrag = /* glsl */ `
+  precision highp float;
+  uniform vec2  iResolution;
+  uniform float iTime;
+  uniform float uIntensity;
+
+  vec3 hsv2rgb(float h, float s, float v) {
+    vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+    vec3 p = abs(fract(vec3(h) + K.xyz) * 6.0 - K.www);
+    return v * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), s);
+  }
+
+  void main() {
+    vec2 FC = gl_FragCoord.xy;
+    vec2 r  = iResolution.xy;
+
+    vec3 d = vec3((FC.x - 0.5*r.x) / r.x,
+                  (FC.y - 0.5*r.y) / r.y,
+                  0.57);
+    d.y -= 0.28;
+    d.x -= 0.12;
+
+    float a  = sin(iTime * 0.055) * 0.5;
+    float ca = cos(a), sa = sin(a);
+    d.xz = mat2(ca, -sa, sa, ca) * d.xz;
+
+    float e = 0.0, g = 0.0, R = 0.0, s = 0.0;
+    vec3 q = vec3(0.0, -1.0, -1.0);
+    vec3 p;
+    vec4 o = vec4(0.0);
+
+    for (float i = 1.0; i <= 79.0; i++) {
+      o.rgb -= hsv2rgb(0.58, R + g * 0.18, e - e * i / 4.5);
+      s = 2.8;
+      q += d * e * R * 0.6;
+      p  = q;
+      g += p.y / s;
+
+      float oldPx = p.x;
+      R = length(p);
+      float newPy = exp2(mod(-0.25 - p.z, s) / R);
+      p = vec3(R, newPy, oldPx);
+      p.y -= 1.0;
+      e    = p.y;
+
+      float tOff = iTime * 0.08;
+      for (s = 2.8; s < 1000.0; s += s) {
+        e -= abs(dot(sin(p.xzy * s + e * p.y + tOff),
+                     cos(p.zzz * s - e       + tOff)) / s * 0.32);
+      }
+    }
+
+    vec3 col = clamp(-o.rgb, 0.0, 1.0);
+    col = pow(col, vec3(0.4545));
+    float lum = dot(col, vec3(0.299, 0.587, 0.114));
+
+    float c = clamp((lum - 0.02) / 0.75, 0.0, 1.0);
+    c = pow(c, 0.5);
+
+    vec3 shadow    = vec3(0.62, 0.70, 0.78);
+    vec3 highlight = vec3(0.99, 0.97, 0.91);
+    vec3 cloudCol  = mix(shadow, highlight, c);
+    vec3 sky       = vec3(0.53, 0.78, 0.90);
+    float mask     = clamp(c * 4.0, 0.0, 1.0);
+    vec3 finalCol  = mix(sky, cloudCol, mask);
+
+    // Use cloud density as alpha so video shows through thin areas
+    gl_FragColor = vec4(finalCol, clamp(lum * 1.4, 0.0, 1.0) * uIntensity * 0.72);
+  }
+`;
+
+// Cloud shader needs iResolution — use a wrapper that injects canvas size
+const cloudVert = /* glsl */ `
+  varying vec2 vUv;
+  void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }
+`;
+
 // ─── R3F ambient effect mesh ──────────────────────────────────────────────────
 const fragByMode: Record<Exclude<AmbientMode, 'off'>, string> = {
 	rain: rainFrag,
 	ocean: oceanFrag,
+	clouds: cloudFrag,
 };
 
 function AmbientEffect({
@@ -174,22 +256,31 @@ function AmbientEffect({
 	mode: Exclude<AmbientMode, 'off'>;
 	color: string;
 }) {
+	const { size } = useThree();
+
 	const uniforms = useRef({
 		uTime: { value: 0 },
 		uColor: { value: new THREE.Color(color) },
 		uIntensity: { value: 0.0 },
+		// Cloud shader extras (ignored by rain/ocean)
+		iResolution: {
+			value: new THREE.Vector2(size.width, size.height),
+		},
 	});
+
+	// Use the right vertex shader for clouds (needs vUv-less path)
+	const vert = mode === 'clouds' ? cloudVert : ambientVert;
 
 	const mat = useMemo(
 		() =>
 			new THREE.ShaderMaterial({
 				uniforms: uniforms.current,
-				vertexShader: ambientVert,
+				vertexShader: vert,
 				fragmentShader: fragByMode[mode],
 				transparent: true,
 				depthWrite: false,
 			}),
-		[mode],
+		[mode, vert],
 	);
 
 	useEffect(() => () => mat.dispose(), [mat]);
@@ -197,6 +288,7 @@ function AmbientEffect({
 	useFrame(({ clock }) => {
 		uniforms.current.uTime.value = clock.elapsedTime;
 		uniforms.current.uColor.value.set(color);
+		uniforms.current.iResolution.value.set(size.width, size.height);
 		uniforms.current.uIntensity.value = THREE.MathUtils.lerp(
 			uniforms.current.uIntensity.value,
 			1.0,
@@ -310,6 +402,70 @@ function useAmbientAudio(mode: AmbientMode, volume: number) {
 	);
 }
 
+// ─── Custom tooltip ───────────────────────────────────────────────────────────
+function Tooltip({
+	text,
+	children,
+}: {
+	text: string;
+	children: React.ReactNode;
+}) {
+	const [visible, setVisible] = useState(false);
+	const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	const show = () => {
+		timer.current = setTimeout(() => setVisible(true), 250);
+	};
+	const hide = () => {
+		if (timer.current) clearTimeout(timer.current);
+		setVisible(false);
+	};
+
+	return (
+		<div
+			style={{ position: 'relative', display: 'inline-flex' }}
+			onMouseEnter={show}
+			onMouseLeave={hide}>
+			{children}
+			{visible && (
+				<div
+					style={{
+						position: 'absolute',
+						bottom: 'calc(100% + 7px)',
+						left: '50%',
+						transform: 'translateX(-50%)',
+						whiteSpace: 'nowrap',
+						padding: '3px 9px',
+						borderRadius: '5px',
+						fontSize: '11px',
+						lineHeight: '1.4',
+						pointerEvents: 'none',
+						zIndex: 9999,
+						background: 'var(--sl-color-bg-nav)',
+						color: 'var(--sl-color-text)',
+						border: '1px solid var(--sl-color-hairline)',
+						boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+					}}>
+					{text}
+					<span
+						style={{
+							position: 'absolute',
+							top: '100%',
+							left: '50%',
+							transform: 'translateX(-50%)',
+							width: 0,
+							height: 0,
+							borderLeft: '5px solid transparent',
+							borderRight: '5px solid transparent',
+							borderTop: '5px solid var(--sl-color-hairline)',
+						}}
+					/>
+				</div>
+			)}
+		</div>
+	);
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(s: number) {
 	if (!s || !isFinite(s)) return '0:00';
@@ -355,6 +511,9 @@ export default function ReactJukebox({ genres }: Props) {
 	// pixelFactor: 1 = normal, 2–8 = actual CSS-scale pixelation of the iframe
 	const [pixelFactor, setPixelFactor] = useState(1);
 	const [ambientMode, setAmbientMode] = useState<AmbientMode>('off');
+	// Track titles fetched from YouTube oEmbed (no API key needed)
+	const [titles, setTitles] = useState<Record<string, string>>({});
+	const fetchedIds = useRef<Set<string>>(new Set());
 
 	const deckAEl = useRef<HTMLDivElement>(null!);
 	const deckBEl = useRef<HTMLDivElement>(null!);
@@ -394,6 +553,37 @@ export default function ReactJukebox({ genres }: Props) {
 
 	// Ambient audio synthesis
 	useAmbientAudio(ambientMode, volume);
+
+	// ── Fetch track titles via YouTube oEmbed (no API key, CORS-enabled) ───
+	useEffect(() => {
+		const ids = [...(genre?.tracks ?? []), ...(genre?.sets ?? [])].filter(
+			(id) => !fetchedIds.current.has(id),
+		);
+		if (!ids.length) return;
+
+		// Mark as in-flight immediately to prevent duplicate requests
+		ids.forEach((id) => fetchedIds.current.add(id));
+
+		Promise.all(
+			ids.map(async (id) => {
+				try {
+					const res = await fetch(
+						`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`,
+					);
+					if (!res.ok) return null;
+					const data = (await res.json()) as { title: string };
+					return [id, data.title] as const;
+				} catch {
+					return null;
+				}
+			}),
+		).then((results) => {
+			const next: Record<string, string> = {};
+			for (const r of results) if (r) next[r[0]] = r[1];
+			if (Object.keys(next).length)
+				setTitles((prev) => ({ ...prev, ...next }));
+		});
+	}, [genre?.slug]); // refetch when genre changes
 
 	// ── Poll playback time ──────────────────────────────────────────────────
 	useEffect(() => {
@@ -683,7 +873,7 @@ export default function ReactJukebox({ genres }: Props) {
 
 	return (
 		<div
-			className="flex h-full overflow-hidden"
+			className="not-content flex h-full overflow-hidden"
 			style={{ background: 'var(--sl-color-bg, #0d0d1a)' }}>
 			{/* ── Genre sidebar ──────────────────────────────────────── */}
 			<div
@@ -853,75 +1043,84 @@ export default function ReactJukebox({ genres }: Props) {
 					{/* Transport + pixel + ambient + volume */}
 					<div className="flex items-center gap-1.5 flex-wrap">
 						{/* Prev */}
-						<button
-							onClick={() =>
-								currentIdx > 0 &&
-								playTrack(allItems[currentIdx - 1])
-							}
-							disabled={currentIdx <= 0}
-							style={{
-								...btnBase,
-								opacity: currentIdx <= 0 ? 0.3 : 1,
-								cursor:
-									currentIdx <= 0 ? 'not-allowed' : 'pointer',
-							}}
-							title="Previous">
-							<SkipBack size={14} />
-						</button>
-						<button
-							onClick={rewind}
-							style={btnBase}
-							title="Back 10s">
-							<Rewind size={14} />
-						</button>
-						<button
-							onClick={togglePlay}
-							style={{ ...btnAccent, padding: '6px 12px' }}
-							title={playing ? 'Pause' : 'Play'}>
-							{playing ? <Pause size={16} /> : <Play size={16} />}
-						</button>
-						<button
-							onClick={forward}
-							style={btnBase}
-							title="Forward 10s">
-							<FastForward size={14} />
-						</button>
-						<button
-							onClick={() => triggerTransition()}
-							disabled={
-								transitioning ||
-								currentIdx >= allItems.length - 1
-							}
-							style={{
-								...btnAccent,
-								opacity:
+						<Tooltip text="Previous track">
+							<button
+								onClick={() =>
+									currentIdx > 0 &&
+									playTrack(allItems[currentIdx - 1])
+								}
+								disabled={currentIdx <= 0}
+								style={{
+									...btnBase,
+									opacity: currentIdx <= 0 ? 0.3 : 1,
+									cursor:
+										currentIdx <= 0
+											? 'not-allowed'
+											: 'pointer',
+								}}>
+								<SkipBack size={14} />
+							</button>
+						</Tooltip>
+						<Tooltip text="Back 10s">
+							<button onClick={rewind} style={btnBase}>
+								<Rewind size={14} />
+							</button>
+						</Tooltip>
+						<Tooltip text={playing ? 'Pause' : 'Play'}>
+							<button
+								onClick={togglePlay}
+								style={{ ...btnAccent, padding: '6px 12px' }}>
+								{playing ? (
+									<Pause size={16} />
+								) : (
+									<Play size={16} />
+								)}
+							</button>
+						</Tooltip>
+						<Tooltip text="Forward 10s">
+							<button onClick={forward} style={btnBase}>
+								<FastForward size={14} />
+							</button>
+						</Tooltip>
+						<Tooltip text="Next track (DJ mix)">
+							<button
+								onClick={() => triggerTransition()}
+								disabled={
 									transitioning ||
 									currentIdx >= allItems.length - 1
-										? 0.3
-										: 1,
-								cursor:
-									transitioning ||
-									currentIdx >= allItems.length - 1
-										? 'not-allowed'
-										: 'pointer',
-							}}
-							title="Next (DJ mix)">
-							<SkipForward size={14} />
-						</button>
+								}
+								style={{
+									...btnAccent,
+									opacity:
+										transitioning ||
+										currentIdx >= allItems.length - 1
+											? 0.3
+											: 1,
+									cursor:
+										transitioning ||
+										currentIdx >= allItems.length - 1
+											? 'not-allowed'
+											: 'pointer',
+								}}>
+								<SkipForward size={14} />
+							</button>
+						</Tooltip>
 
-						{/* Track label */}
+						{/* Now playing — shows fetched title if available */}
 						<span
-							className="flex-1 font-mono text-[10px] truncate px-1 min-w-0"
+							className="flex-1 text-[10px] truncate px-1 min-w-0"
 							style={{ color: 'var(--sl-color-gray-3)' }}>
-							{activeId ?? '—'}
+							{activeId ? (titles[activeId] ?? activeId) : '—'}
 						</span>
 
-						{/* Pixel factor knob — controls CSS iframe scale-down */}
-						<span
-							className="text-[9px] font-mono flex-shrink-0"
-							style={{ color: 'var(--sl-color-gray-4)' }}>
-							PX
-						</span>
+						{/* Pixel factor knob */}
+						<Tooltip text={`Pixel size: ${pixelFactor}×`}>
+							<span
+								className="text-[9px] font-mono flex-shrink-0 cursor-default"
+								style={{ color: 'var(--sl-color-gray-4)' }}>
+								PX
+							</span>
+						</Tooltip>
 						<input
 							type="range"
 							min={1}
@@ -932,7 +1131,6 @@ export default function ReactJukebox({ genres }: Props) {
 								setPixelFactor(parseInt(e.target.value))
 							}
 							className="w-14"
-							title={`Pixel size: ${pixelFactor}×`}
 							style={{ accentColor: 'var(--sl-color-accent)' }}
 						/>
 
@@ -944,29 +1142,39 @@ export default function ReactJukebox({ genres }: Props) {
 						</span>
 						{(
 							[
-								{ mode: 'off', icon: <X size={12} /> },
 								{
-									mode: 'rain',
-									icon: <CloudRain size={12} />,
+									mode: 'off' as const,
+									icon: <X size={12} />,
+									label: 'No ambient FX',
 								},
-								{ mode: 'ocean', icon: <Waves size={12} /> },
+								{
+									mode: 'rain' as const,
+									icon: <CloudRain size={12} />,
+									label: 'Rain — visual + audio',
+								},
+								{
+									mode: 'ocean' as const,
+									icon: <Waves size={12} />,
+									label: 'Ocean waves — visual + audio',
+								},
+								{
+									mode: 'clouds' as const,
+									icon: <Cloud size={12} />,
+									label: 'Clouds — volumetric shader',
+								},
 							] as const
-						).map(({ mode, icon }) => (
-							<button
-								key={mode}
-								onClick={() => setAmbientMode(mode)}
-								style={
-									ambientMode === mode ? btnAccent : btnBase
-								}
-								title={
-									mode === 'off'
-										? 'No FX'
-										: mode === 'rain'
-											? 'Rain'
-											: 'Ocean waves'
-								}>
-								{icon}
-							</button>
+						).map(({ mode, icon, label }) => (
+							<Tooltip key={mode} text={label}>
+								<button
+									onClick={() => setAmbientMode(mode)}
+									style={
+										ambientMode === mode
+											? btnAccent
+											: btnBase
+									}>
+									{icon}
+								</button>
+							</Tooltip>
 						))}
 
 						{/* Volume */}
@@ -1026,8 +1234,8 @@ export default function ReactJukebox({ genres }: Props) {
 												}}>
 												{i + 1}
 											</span>
-											<span className="font-mono text-xs truncate">
-												{id}
+											<span className="text-xs truncate">
+												{titles[id] ?? id}
 											</span>
 											{id === activeId && (
 												<span
@@ -1082,8 +1290,8 @@ export default function ReactJukebox({ genres }: Props) {
 												}}>
 												{i + 1}
 											</span>
-											<span className="font-mono text-xs truncate">
-												{id}
+											<span className="text-xs truncate">
+												{titles[id] ?? id}
 											</span>
 											{id === activeId && (
 												<span
