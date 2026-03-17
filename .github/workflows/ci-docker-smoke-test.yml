@@ -302,3 +302,38 @@ jobs:
                     --head "$BRANCH_NAME" \
                     --title "chore(docker): pin base image digests $(date +%Y-%m-%d)" \
                     --body-file /tmp/pr-body.md
+
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces failures as GitHub issues (#8186).
+    # Scheduled workflows are easy to miss without this; failures go unnoticed
+    # until the weekly digest pin silently stops working.
+    # ---------------------------------------------------------------------------
+    track_resolve_failure:
+        name: Track Resolve Failure
+        if: ${{ always() && needs.resolve_digests.result == 'failure' }}
+        needs: [resolve_digests]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - Docker Smoke Test'
+            job_name: 'resolve_digests'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.resolve_digests.result }}
+
+    track_smoke_failure:
+        name: Track Smoke Build Failure
+        if: ${{ always() && needs.smoke_build.result == 'failure' }}
+        needs: [smoke_build]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - Docker Smoke Test'
+            job_name: 'smoke_build'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.smoke_build.result }}

@@ -1,0 +1,264 @@
+name: CI - Bevy
+
+on:
+    workflow_run:
+        workflows: ['CI - Main']
+        types: [completed]
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+    # ---------------------------------------------------------------------------
+    # Guard: skip if triggered by a failed CI - Main run.
+    # workflow_dispatch bypasses this check so builds can be re-run manually.
+    # ---------------------------------------------------------------------------
+    guard:
+        name: Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            should_run: ${{ steps.check.outputs.should_run }}
+        steps:
+            - name: Check trigger condition
+              id: check
+              run: |
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                    echo "should_run=true" >> "$GITHUB_OUTPUT"
+                  elif [ "${{ github.event.workflow_run.conclusion }}" = "success" ]; then
+                    echo "should_run=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "CI - Main did not succeed (conclusion: ${{ github.event.workflow_run.conclusion }}), skipping."
+                    echo "should_run=false" >> "$GITHUB_OUTPUT"
+                  fi
+
+    # ---------------------------------------------------------------------------
+    # File alteration detection — did the isometric project change?
+    # ---------------------------------------------------------------------------
+    alter:
+        name: Detect Changes
+        needs: [guard]
+        if: needs.guard.outputs.should_run == 'true'
+        permissions:
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-file-alterations.yml@main
+        with:
+            branch: 'main'
+
+    # ---------------------------------------------------------------------------
+    # WASM build — the only active build target.
+    # Bevy compiles to wasm32-unknown-unknown via wasm-pack, bundled by Vite.
+    # ---------------------------------------------------------------------------
+    build_wasm:
+        name: Build WASM (isometric)
+        needs: [alter]
+        if: needs.alter.outputs.isometric == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 120
+        permissions:
+            contents: read
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+                  submodules: recursive
+
+            - name: Setup Rust nightly (wasm32 + rust-src for -Z build-std atomics)
+              uses: dtolnay/rust-toolchain@nightly
+              with:
+                  targets: wasm32-unknown-unknown
+                  components: rust-src
+
+            - name: Rust Cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  cache-on-failure: true
+
+            - name: Install wasm-pack
+              run: cargo install wasm-pack --locked
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm dependencies
+              run: pnpm install
+
+            - name: Install project-local npm dependencies
+              working-directory: apps/kbve/isometric
+              run: npm install
+
+            - name: Build WASM + Frontend
+              working-directory: apps/kbve/isometric
+              run: pnpm build
+              env:
+                  CI: true
+
+            - name: Upload WASM artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: isometric-game-wasm
+                  path: apps/kbve/isometric/dist/
+                  if-no-files-found: warn
+                  retention-days: 14
+
+    # ---------------------------------------------------------------------------
+    # Deploy WASM build into astro-kbve public dir and open a PR to dev.
+    # ---------------------------------------------------------------------------
+    deploy_wasm:
+        name: Deploy WASM to Astro
+        needs: [build_wasm]
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+            pull-requests: write
+        steps:
+            - name: Checkout dev
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+                  fetch-depth: 1
+
+            - name: Download WASM artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: isometric-game-wasm
+                  path: wasm-dist
+
+            - name: Copy WASM assets into astro-kbve
+              run: |
+                  DEPLOY_DIR="apps/kbve/astro-kbve/public/isometric"
+                  rm -rf "$DEPLOY_DIR"
+                  mkdir -p "$DEPLOY_DIR"
+                  cp -r wasm-dist/* "$DEPLOY_DIR/"
+                  rm -rf wasm-dist
+
+            - name: Check for changes
+              id: diff
+              run: |
+                  if git diff --quiet; then
+                    echo "changed=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "changed=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Create deploy branch and PR
+              if: steps.diff.outputs.changed == 'true'
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  BRANCH="deploy/isometric-wasm-$(date +%s)"
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git checkout -b "$BRANCH"
+                  git add -A
+                  git commit -m "deploy(isometric): update WASM build assets"
+                  git push -u origin "$BRANCH"
+                  gh pr create \
+                    --base dev \
+                    --head "$BRANCH" \
+                    --title "deploy(isometric): update WASM build" \
+                    --body "Automated WASM deployment for the isometric Bevy game.
+
+                  Built from commit ${{ github.sha }}."
+
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces build failures as GitHub issues (#8186).
+    # Runs on any failure so async failures are not silently dropped.
+    # ---------------------------------------------------------------------------
+    track_failure:
+        name: Track Failures
+        if: always() && (needs.build_wasm.result == 'failure' || needs.deploy_wasm.result == 'failure')
+        needs: [build_wasm, deploy_wasm]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - Bevy'
+            job_name: ${{ needs.build_wasm.result == 'failure' && 'build_wasm' || 'deploy_wasm' }}
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'failure'
+
+    # ---------------------------------------------------------------------------
+    # Future build targets — disabled, scaffolded for when native builds land.
+    #
+    # To enable a target:
+    #   1. Uncomment the job block below
+    #   2. Add it to the needs list in track_failure
+    #   3. Ensure the runner is available
+    #
+    # build_macos:
+    #   name: Build macOS (native)
+    #   needs: [alter]
+    #   if: needs.alter.outputs.isometric == 'true'
+    #   runs-on: macos-latest
+    #   timeout-minutes: 120
+    #   steps:
+    #     - uses: actions/checkout@v6
+    #     - uses: dtolnay/rust-toolchain@stable
+    #     - run: cargo build --release
+    #       working-directory: apps/kbve/isometric/src-tauri  # update path when native
+    #
+    # build_linux:
+    #   name: Build Linux (native)
+    #   needs: [alter]
+    #   if: needs.alter.outputs.isometric == 'true'
+    #   runs-on: ubuntu-latest
+    #   timeout-minutes: 120
+    #   steps:
+    #     - uses: actions/checkout@v6
+    #     - uses: dtolnay/rust-toolchain@stable
+    #     - run: cargo build --release
+    #
+    # build_windows:
+    #   name: Build Windows (native)
+    #   needs: [alter]
+    #   if: needs.alter.outputs.isometric == 'true'
+    #   runs-on: windows-latest
+    #   timeout-minutes: 120
+    #   steps:
+    #     - uses: actions/checkout@v6
+    #     - uses: dtolnay/rust-toolchain@stable
+    #     - run: cargo build --release
+    #
+    # build_ios:
+    #   name: Build iOS (native)
+    #   needs: [alter]
+    #   if: needs.alter.outputs.isometric == 'true'
+    #   runs-on: macos-latest
+    #   timeout-minutes: 120
+    #   steps:
+    #     - uses: actions/checkout@v6
+    #     - uses: dtolnay/rust-toolchain@stable
+    #       with:
+    #         targets: aarch64-apple-ios
+    #     - run: cargo build --release --target aarch64-apple-ios
+    # ---------------------------------------------------------------------------

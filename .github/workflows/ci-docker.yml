@@ -1,0 +1,319 @@
+name: CI - Docker
+
+on:
+    workflow_run:
+        workflows: ['CI - Main']
+        types: [completed]
+    workflow_dispatch:
+
+# Do not cancel in-progress runs — mid-flight docker pushes must complete.
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+    # ---------------------------------------------------------------------------
+    # Guard: skip if triggered by a failed CI - Main run.
+    # workflow_dispatch bypasses this so individual rebuilds can be forced.
+    # ---------------------------------------------------------------------------
+    guard:
+        name: Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            should_run: ${{ steps.check.outputs.should_run }}
+        steps:
+            - name: Check trigger condition
+              id: check
+              run: |
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                    echo "should_run=true" >> "$GITHUB_OUTPUT"
+                  elif [ "${{ github.event.workflow_run.conclusion }}" = "success" ]; then
+                    echo "should_run=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "CI - Main did not succeed (conclusion: ${{ github.event.workflow_run.conclusion }}), skipping."
+                    echo "should_run=false" >> "$GITHUB_OUTPUT"
+                  fi
+
+    # ---------------------------------------------------------------------------
+    # File alteration detection — which docker apps changed?
+    # ci-docker owns this check independently so it can run standalone.
+    # ---------------------------------------------------------------------------
+    alter:
+        name: Detect Changes
+        needs: [guard]
+        if: needs.guard.outputs.should_run == 'true'
+        permissions:
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-file-alterations.yml@main
+        with:
+            branch: 'main'
+
+    # ---------------------------------------------------------------------------
+    # Base images — builder layers used by downstream app images.
+    # Built before any app image so the cache is warm.
+    # ---------------------------------------------------------------------------
+    generate_base_docker_matrix:
+        name: Generate Base Image Matrix
+        needs: [alter]
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                  { "name": "mc",           "target": "base", "condition": "${{ needs.alter.outputs.mc_base }}",          "image": "ghcr.io/kbve/mc-rust-base" },
+                  { "name": "discordsh",    "target": "base", "condition": "${{ needs.alter.outputs.discordsh_base }}",   "image": "ghcr.io/kbve/discordsh-build-base" },
+                  { "name": "axum-kbve",   "target": "base", "condition": "${{ needs.alter.outputs.kbve_base }}",        "image": "ghcr.io/kbve/kbve-build-base" },
+                  { "name": "cryptothrone", "target": "base", "condition": "${{ needs.alter.outputs.cryptothrone_base }}", "image": "ghcr.io/kbve/cryptothrone-build-base" }
+                ]
+
+    build_base_images:
+        name: Build Base Images
+        needs: [generate_base_docker_matrix]
+        if: ${{ needs.generate_base_docker_matrix.outputs.matrix != 'null' }}
+        permissions:
+            contents: read
+            packages: write
+        strategy:
+            fail-fast: false
+            matrix: ${{ fromJson(needs.generate_base_docker_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/utils-publish-docker-image.yml@main
+        with:
+            project: ${{ matrix.name }}
+            target: ${{ matrix.target }}
+            image: ${{ matrix.image }}
+        secrets:
+            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+            DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+            MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # ---------------------------------------------------------------------------
+    # E2E matrix — builds app images, runs e2e tests, pushes ci-{sha} tag to GHCR.
+    # The ci-{sha} tag is what publish_docker promotes — no second full build needed.
+    # ---------------------------------------------------------------------------
+    generate_e2e_docker_matrix:
+        name: Generate E2E Matrix
+        needs: [alter]
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                  { "name": "herbmail",     "condition": "${{ needs.alter.outputs.herbmail }}",    "image": "kbve/herbmail" },
+                  { "name": "memes",        "condition": "${{ needs.alter.outputs.memes }}",       "image": "kbve/memes" },
+                  { "name": "irc",          "condition": "${{ needs.alter.outputs.irc_gateway }}", "image": "kbve/irc-gateway" },
+                  { "name": "discordsh",    "condition": "${{ needs.alter.outputs.discordsh }}",   "image": "kbve/discordsh" },
+                  { "name": "mc",           "condition": "${{ needs.alter.outputs.mc }}",          "image": "kbve/mc" },
+                  { "name": "edge",         "condition": "${{ needs.alter.outputs.edge }}",        "image": "kbve/edge" },
+                  { "name": "cryptothrone", "condition": "${{ needs.alter.outputs.cryptothrone }}", "image": "kbve/cryptothrone" },
+                  { "name": "axum-kbve-e2e", "condition": "${{ needs.alter.outputs.astro_kbve }}", "runner": "arc-runner-set", "image": "kbve/kbve" }
+                ]
+
+    test_docker:
+        name: Test Docker Apps
+        needs: [generate_e2e_docker_matrix, build_base_images]
+        if: ${{ always() && needs.generate_e2e_docker_matrix.outputs.matrix != 'null' && !failure() && !cancelled() }}
+        permissions:
+            contents: read
+            packages: write
+        strategy:
+            fail-fast: false
+            matrix: ${{ fromJson(needs.generate_e2e_docker_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/docker-test-app.yml@main
+        with:
+            project: ${{ matrix.name }}
+            runner: ${{ matrix.runner || 'ubuntu-latest' }}
+            image: ${{ matrix.image || '' }}
+
+    # ---------------------------------------------------------------------------
+    # Publish matrix — full list of app images with e2e_name for result filtering.
+    # collect_docker_results gates this against which e2e tests actually passed.
+    # ---------------------------------------------------------------------------
+    generate_docker_matrix:
+        name: Generate Publish Matrix
+        needs: [alter]
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                  { "name": "kilobase",    "target": "container", "condition": "${{ needs.alter.outputs.kilobase }}" },
+                  { "name": "herbmail",    "target": "container", "condition": "${{ needs.alter.outputs.herbmail }}",    "e2e_name": "herbmail",     "image": "kbve/herbmail",    "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml" },
+                  { "name": "memes",       "target": "container", "condition": "${{ needs.alter.outputs.memes }}",       "e2e_name": "memes",        "image": "kbve/memes",       "cargo_toml": "apps/memes/axum-memes/Cargo.toml" },
+                  { "name": "irc-gateway", "target": "container", "condition": "${{ needs.alter.outputs.irc_gateway }}", "e2e_name": "irc",          "image": "kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml" },
+                  { "name": "discordsh",   "target": "container", "condition": "${{ needs.alter.outputs.discordsh }}",   "e2e_name": "discordsh",    "image": "kbve/discordsh",   "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml" },
+                  { "name": "mc",          "target": "container", "condition": "${{ needs.alter.outputs.mc }}",          "e2e_name": "mc",           "image": "kbve/mc" },
+                  { "name": "edge",        "target": "container", "condition": "${{ needs.alter.outputs.edge }}",        "e2e_name": "edge",         "image": "kbve/edge",        "cargo_toml": "apps/kbve/edge/version.toml" },
+                  { "name": "cryptothrone","target": "container", "condition": "${{ needs.alter.outputs.cryptothrone }}", "e2e_name": "cryptothrone", "image": "kbve/cryptothrone","cargo_toml": "apps/cryptothrone/axum-cryptothrone/Cargo.toml" },
+                  { "name": "axum-kbve",  "target": "container", "condition": "${{ needs.alter.outputs.astro_kbve }}",  "e2e_name": "axum-kbve-e2e","image": "kbve/kbve",        "cargo_toml": "apps/kbve/axum-kbve/Cargo.toml" }
+                ]
+
+    collect_docker_results:
+        name: Collect Docker Test Results
+        needs: [test_docker, generate_docker_matrix, generate_e2e_docker_matrix]
+        if: ${{ always() && needs.generate_docker_matrix.outputs.matrix != 'null' }}
+        runs-on: ubuntu-latest
+        outputs:
+            publish_matrix: ${{ steps.filter.outputs.publish_matrix }}
+        steps:
+            - name: Download test markers
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: test-passed-docker-*
+                  path: ./test-results
+                  merge-multiple: false
+              continue-on-error: true
+
+            - name: Build filtered publish matrix
+              id: filter
+              env:
+                  PUBLISH_MATRIX: ${{ needs.generate_docker_matrix.outputs.matrix }}
+              run: |
+                  echo "::group::Debug test-results"
+                  if [ -d "./test-results" ]; then
+                    find ./test-results -type f -ls
+                    PASSED=$(find ./test-results -name 'test-result.txt' -exec cat {} \;)
+                    echo "Passed: $PASSED"
+                  else
+                    echo "No test-results directory"
+                    PASSED=""
+                  fi
+                  echo "::endgroup::"
+                  FILTERED=$(echo "$PUBLISH_MATRIX" | jq -c --arg passed "$PASSED" '{
+                    include: [.include[] | select(
+                      (.e2e_name | not) or
+                      (.e2e_name as $e | $passed | split("\n") | any(. == $e))
+                    )]
+                  } | if (.include | length) == 0 then null else . end')
+                  echo "publish_matrix=$FILTERED" >> "$GITHUB_OUTPUT"
+
+    # ---------------------------------------------------------------------------
+    # Publish — promotes the ci-{sha} image already built by test_docker.
+    # Falls back to a full rebuild only if the CI image is not found in GHCR.
+    # This is the build-once pattern: build in e2e, promote to release.
+    # ---------------------------------------------------------------------------
+    publish_docker:
+        name: Publish Docker Images
+        needs: [collect_docker_results]
+        if: ${{ !cancelled() && needs.collect_docker_results.result == 'success' && needs.collect_docker_results.outputs.publish_matrix != 'null' && needs.collect_docker_results.outputs.publish_matrix != '' }}
+        permissions:
+            contents: read
+            packages: write
+        strategy:
+            fail-fast: false
+            matrix: ${{ fromJson(needs.collect_docker_results.outputs.publish_matrix) }}
+        uses: KBVE/kbve/.github/workflows/utils-publish-docker-image.yml@main
+        with:
+            project: ${{ matrix.name }}
+            target: ${{ matrix.target }}
+            image: ${{ matrix.image || '' }}
+            cargo_toml: ${{ matrix.cargo_toml || '' }}
+        secrets:
+            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+            DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+            MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # ---------------------------------------------------------------------------
+    # Kube manifest updates — bumps image tags in deployment YAMLs after publish.
+    # ---------------------------------------------------------------------------
+    generate_kube_update_matrix:
+        name: Generate Kube Update Matrix
+        needs: [alter]
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                  { "name": "herbmail",    "condition": "${{ needs.alter.outputs.herbmail }}",    "e2e_name": "herbmail",     "image_name": "ghcr.io/kbve/herbmail",    "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml",          "deployment_yaml": "apps/kube/herbmail/manifest/herbmail-deployment.yaml" },
+                  { "name": "memes",       "condition": "${{ needs.alter.outputs.memes }}",       "e2e_name": "memes",        "image_name": "ghcr.io/kbve/memes",       "cargo_toml": "apps/memes/axum-memes/Cargo.toml",                "deployment_yaml": "apps/kube/memes/manifest/memes-deployment.yaml" },
+                  { "name": "irc-gateway", "condition": "${{ needs.alter.outputs.irc_gateway }}", "e2e_name": "irc",          "image_name": "ghcr.io/kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml",                 "deployment_yaml": "apps/kube/irc/manifests/irc-gateway-deployment.yaml" },
+                  { "name": "discordsh",   "condition": "${{ needs.alter.outputs.discordsh }}",   "e2e_name": "discordsh",    "image_name": "ghcr.io/kbve/discordsh",   "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml",        "deployment_yaml": "apps/kube/discordsh/manifest/deployment.yaml" },
+                  { "name": "mc",          "condition": "${{ needs.alter.outputs.mc }}",          "e2e_name": "mc",           "image_name": "ghcr.io/kbve/mc",          "cargo_toml": "apps/mc/plugins/kbve-mc-plugin/Cargo.toml",       "deployment_yaml": "apps/kube/mc/manifest/deployment.yaml" },
+                  { "name": "cryptothrone","condition": "${{ needs.alter.outputs.cryptothrone }}", "e2e_name": "cryptothrone", "image_name": "ghcr.io/kbve/cryptothrone","cargo_toml": "apps/cryptothrone/axum-cryptothrone/Cargo.toml",  "deployment_yaml": "apps/kube/cryptothrone/manifest/cryptothrone-deployment.yaml" },
+                  { "name": "edge",        "condition": "${{ needs.alter.outputs.edge }}",        "e2e_name": "edge",         "image_name": "ghcr.io/kbve/edge",        "cargo_toml": "apps/kbve/edge/version.toml",                     "deployment_yaml": "apps/kube/functions/manifests/functions-deployment.yaml" },
+                  { "name": "axum-kbve",  "condition": "${{ needs.alter.outputs.astro_kbve }}",  "e2e_name": "axum-kbve-e2e","image_name": "ghcr.io/kbve/kbve",        "cargo_toml": "apps/kbve/axum-kbve/Cargo.toml",                  "deployment_yaml": "apps/kube/kbve/manifest/kbve-deployment.yaml" }
+                ]
+
+    collect_kube_results:
+        name: Collect Kube Update Results
+        needs:
+            [
+                publish_docker,
+                generate_kube_update_matrix,
+                collect_docker_results,
+            ]
+        if: ${{ always() && needs.generate_kube_update_matrix.outputs.matrix != 'null' }}
+        runs-on: ubuntu-latest
+        outputs:
+            matrix: ${{ steps.filter.outputs.matrix }}
+        steps:
+            - name: Download test markers
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: test-passed-docker-*
+                  path: ./test-results
+                  merge-multiple: false
+              continue-on-error: true
+
+            - name: Build filtered kube matrix
+              id: filter
+              env:
+                  KUBE_MATRIX: ${{ needs.generate_kube_update_matrix.outputs.matrix }}
+              run: |
+                  echo "::group::Debug test-results"
+                  if [ -d "./test-results" ]; then
+                    find ./test-results -type f -ls
+                    PASSED=$(find ./test-results -name 'test-result.txt' -exec cat {} \;)
+                    echo "Passed: $PASSED"
+                  else
+                    echo "No test-results directory"
+                    PASSED=""
+                  fi
+                  echo "::endgroup::"
+                  FILTERED=$(echo "$KUBE_MATRIX" | jq -c --arg passed "$PASSED" '{
+                    include: [.include[] | select(
+                      (.e2e_name | not) or
+                      (.e2e_name as $e | $passed | split("\n") | any(. == $e))
+                    )]
+                  } | if (.include | length) == 0 then null else . end')
+                  echo "matrix=$FILTERED" >> "$GITHUB_OUTPUT"
+
+    update_kube_manifests:
+        name: Update Kube Manifests
+        needs: [collect_kube_results]
+        if: ${{ !cancelled() && needs.collect_kube_results.result == 'success' && needs.collect_kube_results.outputs.matrix != 'null' && needs.collect_kube_results.outputs.matrix != '' }}
+        permissions:
+            contents: write
+            pull-requests: write
+        strategy:
+            fail-fast: false
+            matrix: ${{ fromJson(needs.collect_kube_results.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/utils-update-kube-manifest.yml@main
+        with:
+            app_name: ${{ matrix.name }}
+            image_name: ${{ matrix.image_name }}
+            cargo_toml: ${{ matrix.cargo_toml }}
+            deployment_yaml: ${{ matrix.deployment_yaml }}
+
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces failures as GitHub issues (#8186).
+    # Catches any failure in the docker pipeline without blocking ci-main.
+    # ---------------------------------------------------------------------------
+    track_failure:
+        name: Track Failures
+        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        needs:
+            [
+                build_base_images,
+                test_docker,
+                publish_docker,
+                update_kube_manifests,
+            ]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - Docker'
+            job_name: 'docker-pipeline'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'failure'

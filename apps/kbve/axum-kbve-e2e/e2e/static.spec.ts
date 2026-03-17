@@ -45,7 +45,7 @@ describe('Static file serving', () => {
 				'same-origin',
 			);
 			expect(res.headers.get('cross-origin-embedder-policy')).toBe(
-				'require-corp',
+				'credentialless',
 			);
 		}
 	});
@@ -57,7 +57,7 @@ describe('Static file serving', () => {
 				'same-origin',
 			);
 			expect(res.headers.get('cross-origin-embedder-policy')).toBe(
-				'require-corp',
+				'credentialless',
 			);
 		}
 	});

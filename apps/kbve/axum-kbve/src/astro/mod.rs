@@ -106,6 +106,12 @@ pub fn build_static_router(config: &StaticConfig) -> Router {
 
 /// Middleware that adds COOP/COEP headers to /isometric/ responses,
 /// enabling SharedArrayBuffer for WASM pthreads.
+///
+/// Uses `credentialless` instead of `require-corp` for COEP so that
+/// cross-origin fetches (e.g. Supabase SDK → supabase.kbve.com) are
+/// allowed without requiring the remote server to send CORP headers.
+/// `credentialless` still enables SharedArrayBuffer while permitting
+/// cross-origin requests that don't use cookies.
 async fn coop_coep_isometric(req: axum::extract::Request, next: Next) -> impl IntoResponse {
     let path = req.uri().path();
     let is_isometric = path.starts_with("/isometric") || path.starts_with("/arcade/isometric");
@@ -118,14 +124,19 @@ async fn coop_coep_isometric(req: axum::extract::Request, next: Next) -> impl In
         );
         headers.insert(
             header::HeaderName::from_static("cross-origin-embedder-policy"),
-            HeaderValue::from_static("require-corp"),
+            HeaderValue::from_static("credentialless"),
         );
     }
     resp
 }
 
-/// Middleware that adds Cross-Origin-Resource-Policy to /_astro/ and /assets/
-/// responses so they are loadable under COEP: require-corp from the isometric page.
+/// Middleware that adds Cross-Origin-Resource-Policy to static asset directories so they
+/// are loadable under COEP from the isometric page.
+///
+/// `/_astro/` bundles also receive `Cross-Origin-Embedder-Policy: credentialless` so that
+/// any bundle loaded as a Web Worker (e.g. the Supabase/droid worker) inherits
+/// cross-origin isolation from the parent page.  Without this, `self.crossOriginIsolated`
+/// inside the worker is `false` and Atomics / SharedArrayBuffer are unavailable.
 async fn corp_astro_assets(req: axum::extract::Request, next: Next) -> impl IntoResponse {
     let path = req.uri().path();
     let needs_corp = path.starts_with("/_astro")
@@ -133,11 +144,18 @@ async fn corp_astro_assets(req: axum::extract::Request, next: Next) -> impl Into
         || path.starts_with("/pagefind")
         || path.starts_with("/chunks")
         || path.starts_with("/images");
+    let is_astro_bundle = path.starts_with("/_astro");
     let mut resp = next.run(req).await;
     if needs_corp {
         resp.headers_mut().insert(
             header::HeaderName::from_static("cross-origin-resource-policy"),
             HeaderValue::from_static("same-origin"),
+        );
+    }
+    if is_astro_bundle {
+        resp.headers_mut().insert(
+            header::HeaderName::from_static("cross-origin-embedder-policy"),
+            HeaderValue::from_static("credentialless"),
         );
     }
     resp
