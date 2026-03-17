@@ -100,6 +100,8 @@ pub fn build_static_router(config: &StaticConfig) -> Router {
         // Isometric game requires cross-origin isolation for SharedArrayBuffer (WASM pthreads).
         // Scoped to /isometric/ paths only to avoid breaking other pages.
         .layer(axum::middleware::from_fn(coop_coep_isometric))
+        // Mark /_astro/ assets with CORP so they satisfy COEP when loaded by the isometric page.
+        .layer(axum::middleware::from_fn(corp_astro_assets))
 }
 
 /// Middleware that adds COOP/COEP headers to /isometric/ responses,
@@ -117,6 +119,25 @@ async fn coop_coep_isometric(req: axum::extract::Request, next: Next) -> impl In
         headers.insert(
             header::HeaderName::from_static("cross-origin-embedder-policy"),
             HeaderValue::from_static("require-corp"),
+        );
+    }
+    resp
+}
+
+/// Middleware that adds Cross-Origin-Resource-Policy to /_astro/ and /assets/
+/// responses so they are loadable under COEP: require-corp from the isometric page.
+async fn corp_astro_assets(req: axum::extract::Request, next: Next) -> impl IntoResponse {
+    let path = req.uri().path();
+    let needs_corp = path.starts_with("/_astro")
+        || path.starts_with("/assets")
+        || path.starts_with("/pagefind")
+        || path.starts_with("/chunks")
+        || path.starts_with("/images");
+    let mut resp = next.run(req).await;
+    if needs_corp {
+        resp.headers_mut().insert(
+            header::HeaderName::from_static("cross-origin-resource-policy"),
+            HeaderValue::from_static("same-origin"),
         );
     }
     resp

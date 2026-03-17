@@ -62,6 +62,22 @@ describe('Static file serving', () => {
 		}
 	});
 
+	it('returns CORP header on /_astro/ assets for COEP compatibility', async () => {
+		// Fetch the arcade page to discover an _astro asset path
+		const page = await fetch(`${BASE_URL}/arcade/isometric/`);
+		if (page.status !== 200) return;
+		const html = await page.text();
+		const match = html.match(/\/_astro\/[^"'\s]+\.js/);
+		if (!match) return;
+		const astroAsset = match[0];
+		const res = await fetch(`${BASE_URL}${astroAsset}`);
+		if (res.status === 200) {
+			expect(res.headers.get('cross-origin-resource-policy')).toBe(
+				'same-origin',
+			);
+		}
+	});
+
 	it('supports precompressed content via Accept-Encoding', async () => {
 		const res = await fetch(`${BASE_URL}/health`, {
 			headers: { 'Accept-Encoding': 'gzip, deflate, br' },
