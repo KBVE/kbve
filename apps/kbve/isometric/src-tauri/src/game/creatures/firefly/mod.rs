@@ -1,40 +1,63 @@
-use bevy::prelude::*;
+//! Server-seeded firefly system using the unified Creature + EmissiveData components.
+//!
+//! Firefly world positions are deterministically derived from `GameTime::creature_seed`,
+//! divided into spatial chunks. All clients with the same seed see identical firefly
+//! placements, enabling collection/capture mechanics.
+//!
+//! Config (pool size, chunk size, spawn chance) is read from [`CreatureRegistry`]
+//! rather than hardcoded, so tuning can happen at the NpcDb level.
 
-use super::common::{CreatureMeshes, CreaturePool, GameTime, hash_f32, night_factor, scene_center};
+use super::creature::ProtoNpcId;
+use bevy::prelude::*;
+use std::collections::HashSet;
+
+use super::common::{CreatureMeshes, CreaturePool, GameTime, night_factor, scene_center};
+use super::creature::{self, Creature, CreatureRegistry, CreatureState, EmissiveData, RenderKind};
 use crate::game::camera::IsometricCamera;
 use crate::game::weather::WindState;
 
-const FIREFLY_COUNT: usize = 40;
+/// NPC ref slug for fireflies in the CreatureRegistry.
+const NPC_REF: &str = "meadow-firefly";
 
-#[derive(Component)]
-pub(crate) struct Firefly {
-    phase: f32,
-    anchor: Vec3,
-    glow_phase: f32,
-    glow_period: f32,
-    orbit_radius: f32,
-    orbit_speed: f32,
-    mat_handle: Handle<StandardMaterial>,
-    light_entity: Entity,
+/// How many chunks in each direction from the camera to scan.
+const VIEW_RADIUS: i32 = 3;
+
+// ---------------------------------------------------------------------------
+// Resources
+// ---------------------------------------------------------------------------
+
+/// Tracks active slot assignments and the last-seen creature_seed.
+#[derive(Resource, Default)]
+pub(super) struct FireflyState {
+    active_slots: HashSet<(i32, i32, u16)>,
+    last_seed: u64,
 }
 
+// ---------------------------------------------------------------------------
+// Systems
+// ---------------------------------------------------------------------------
+
+/// One-time spawn of the entity pool. All entities start hidden and unassigned.
+/// Pool size is read from the CreatureRegistry.
 pub(super) fn spawn_fireflies(
     mut commands: Commands,
     creature_meshes: Res<CreatureMeshes>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut pool: ResMut<CreaturePool>,
+    registry: Res<CreatureRegistry>,
 ) {
     pool.fireflies_spawned = true;
 
+    let Some(config) = registry.config_by_ref(NPC_REF) else {
+        warn!("[firefly] no registry config for '{NPC_REF}' — skipping spawn");
+        return;
+    };
+    let npc_id = registry.npc_db.id_for_ref(NPC_REF).unwrap_or(ProtoNpcId(0));
+    let pool_size = config.pool_size;
+
     let fly_mesh = creature_meshes.firefly_sphere.clone();
 
-    for i in 0..FIREFLY_COUNT {
-        let seed = i as u32;
-        let phase = hash_f32(seed * 7 + 1);
-        let glow_period = 2.0 + hash_f32(seed * 13 + 3) * 3.0;
-        let orbit_radius = 0.4 + hash_f32(seed * 19 + 5) * 0.8;
-        let orbit_speed = 0.6 + hash_f32(seed * 23 + 7) * 0.8;
-
+    for _ in 0..pool_size {
         let mat = materials.add(StandardMaterial {
             base_color: Color::srgba(0.5, 0.9, 0.3, 0.0),
             emissive: LinearRgba::new(0.0, 0.0, 0.0, 1.0),
@@ -64,84 +87,218 @@ pub(super) fn spawn_fireflies(
             MeshMaterial3d(mat),
             Transform::from_xyz(0.0, -100.0, 0.0),
             Visibility::Hidden,
-            Firefly {
-                phase,
-                anchor: Vec3::ZERO,
-                glow_phase: phase,
-                glow_period,
-                orbit_radius,
-                orbit_speed,
+            Creature {
+                npc_id,
+                render_kind: RenderKind::Emissive,
+                state: CreatureState::Pooled,
+                slot_seed: 0,
+                assigned_slot: None,
+                anchor: Vec3::new(0.0, -100.0, 0.0),
+                phase: 0.0,
                 mat_handle: mat_clone,
+            },
+            EmissiveData {
                 light_entity,
+                glow_phase: 0.0,
+                glow_period: 3.0,
+                orbit_radius: 0.5,
+                orbit_speed: 0.7,
             },
         ));
     }
+
+    info!("[firefly] spawned {pool_size} pooled entities");
 }
 
+/// Per-frame slot assignment: determines which chunk slots are visible near the
+/// camera and assigns/unassigns pool entities to match.
+pub(super) fn assign_firefly_slots(
+    game_time: Res<GameTime>,
+    camera_q: Query<&Transform, With<IsometricCamera>>,
+    registry: Res<CreatureRegistry>,
+    mut state: ResMut<FireflyState>,
+    mut fly_q: Query<(Entity, &mut Creature, &mut EmissiveData, &mut Visibility)>,
+    mut light_vis_q: Query<&mut Visibility, (Without<Creature>, Without<IsometricCamera>)>,
+) {
+    let Ok(cam_tf) = camera_q.single() else {
+        return;
+    };
+    let Some(config) = registry.config_by_ref(NPC_REF) else {
+        return;
+    };
+
+    let center = scene_center(cam_tf.translation);
+    let seed = game_time.creature_seed;
+    let chunk_size = config.chunk_size;
+    let per_chunk = config.per_chunk;
+    let spawn_chance = config.spawn_chance;
+    let pool_size = config.pool_size;
+
+    // Seed change → full reset (all entities return to pool)
+    if seed != state.last_seed {
+        state.last_seed = seed;
+        state.active_slots.clear();
+        for (_, mut cr, ed, mut vis) in &mut fly_q {
+            if let Ok(mut lvis) = light_vis_q.get_mut(ed.light_entity) {
+                *lvis = Visibility::Hidden;
+            }
+            cr.assigned_slot = None;
+            cr.state = CreatureState::Pooled;
+            *vis = Visibility::Hidden;
+        }
+    }
+
+    let cam_cx = (center.x / chunk_size).floor() as i32;
+    let cam_cz = (center.z / chunk_size).floor() as i32;
+
+    // Enumerate visible slots, sorted by distance to camera center
+    let capacity = ((VIEW_RADIUS * 2 + 1) * (VIEW_RADIUS * 2 + 1)) as usize * per_chunk;
+    let mut candidates: Vec<((i32, i32, u16), u32, Vec3)> = Vec::with_capacity(capacity);
+    for dx in -VIEW_RADIUS..=VIEW_RADIUS {
+        for dz in -VIEW_RADIUS..=VIEW_RADIUS {
+            let cx = cam_cx + dx;
+            let cz = cam_cz + dz;
+            for idx in 0..per_chunk {
+                let idx16 = idx as u16;
+                let ss = creature::slot_seed(seed, cx, cz, idx16);
+                if !creature::slot_active(ss, spawn_chance) {
+                    continue;
+                }
+                let anchor = creature::slot_anchor(ss, cx, cz, chunk_size);
+                candidates.push(((cx, cz, idx16), ss, anchor));
+            }
+        }
+    }
+    candidates.sort_by(|a, b| {
+        let da = (a.2.x - center.x).powi(2) + (a.2.z - center.z).powi(2);
+        let db = (b.2.x - center.x).powi(2) + (b.2.z - center.z).powi(2);
+        da.partial_cmp(&db).unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    let target_set: HashSet<(i32, i32, u16)> =
+        candidates.iter().take(pool_size).map(|c| c.0).collect();
+
+    // Snapshot entity states (releases borrow so we can get_mut later)
+    let snapshot: Vec<(Entity, Option<(i32, i32, u16)>, Entity)> = fly_q
+        .iter()
+        .map(|(e, cr, ed, _)| (e, cr.assigned_slot, ed.light_entity))
+        .collect();
+
+    // Unassign entities whose slots left the view; collect free entity IDs
+    let mut free_entities: Vec<Entity> = Vec::new();
+    for &(entity, assigned, light_entity) in &snapshot {
+        if let Some(slot) = assigned {
+            if !target_set.contains(&slot) {
+                state.active_slots.remove(&slot);
+                if let Ok((_, mut cr, _, mut vis)) = fly_q.get_mut(entity) {
+                    cr.assigned_slot = None;
+                    cr.state = CreatureState::Pooled;
+                    *vis = Visibility::Hidden;
+                }
+                if let Ok(mut lvis) = light_vis_q.get_mut(light_entity) {
+                    *lvis = Visibility::Hidden;
+                }
+                free_entities.push(entity);
+            }
+        } else {
+            free_entities.push(entity);
+        }
+    }
+
+    // Assign free entities to unoccupied target slots (closest first)
+    let mut free_idx = 0;
+    for &(slot, ss, anchor) in candidates.iter().take(pool_size) {
+        if state.active_slots.contains(&slot) {
+            continue;
+        }
+        if free_idx >= free_entities.len() {
+            break;
+        }
+        let entity = free_entities[free_idx];
+        free_idx += 1;
+        if let Ok((_, mut cr, mut ed, mut vis)) = fly_q.get_mut(entity) {
+            creature::apply_slot_base(&mut cr, ss, anchor, slot);
+            creature::apply_slot_emissive(&mut ed, ss);
+            state.active_slots.insert(slot);
+            // Visibility set by animate based on night_factor
+            *vis = Visibility::Hidden;
+        }
+    }
+}
+
+/// Per-frame animation: orbital motion, glow pulse, wind drift, night-factor visibility.
 pub(super) fn animate_fireflies(
     time: Res<Time>,
     game_time: Res<GameTime>,
     wind: Res<WindState>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    camera_q: Query<&Transform, With<IsometricCamera>>,
-    mut fly_q: Query<(&mut Transform, &mut Firefly, &mut Visibility), Without<IsometricCamera>>,
+    mut fly_q: Query<
+        (
+            &mut Transform,
+            &mut Creature,
+            &mut EmissiveData,
+            &mut Visibility,
+        ),
+        Without<IsometricCamera>,
+    >,
     mut light_q: Query<
         (&mut PointLight, &mut Transform, &mut Visibility),
-        (Without<IsometricCamera>, Without<Firefly>),
+        (Without<IsometricCamera>, Without<Creature>),
     >,
 ) {
-    let Ok(cam_tf) = camera_q.single() else {
-        return;
-    };
     let dt = time.delta_secs();
     let t = time.elapsed_secs();
     let nf = night_factor(game_time.hour);
 
+    // Daytime: hide all active fireflies
     if nf < 0.01 {
-        for (_, mut fly, mut vis) in &mut fly_q {
-            *vis = Visibility::Hidden;
-            fly.anchor.y = -100.0;
-            if let Ok((mut pl, _, mut lvis)) = light_q.get_mut(fly.light_entity) {
-                pl.intensity = 0.0;
-                *lvis = Visibility::Hidden;
+        for (_, cr, ed, mut vis) in &mut fly_q {
+            if cr.state == CreatureState::Active {
+                *vis = Visibility::Hidden;
+                if let Ok((mut pl, _, mut lvis)) = light_q.get_mut(ed.light_entity) {
+                    pl.intensity = 0.0;
+                    *lvis = Visibility::Hidden;
+                }
             }
         }
         return;
     }
 
-    let cam_pos = cam_tf.translation;
-    let center = scene_center(cam_pos);
     let (wd_x, wd_z) = wind.direction;
     let wind_drift = wind.speed_mph * 0.003;
 
-    for (mut tf, mut fly, mut vis) in &mut fly_q {
-        fly.glow_phase += dt / fly.glow_period;
-        if fly.glow_phase >= 1.0 {
-            fly.glow_phase -= 1.0;
+    for (mut tf, cr, mut ed, mut vis) in &mut fly_q {
+        // Skip pooled/captured entities
+        if cr.state != CreatureState::Active {
+            continue;
         }
 
-        let dist_to_scene = Vec2::new(fly.anchor.x - center.x, fly.anchor.z - center.z).length();
-        if dist_to_scene > 24.0 || fly.anchor.y < -50.0 {
-            let seed = (fly.phase * 10000.0) as u32 + (t * 3.7) as u32;
-            let rx = hash_f32(seed) * 2.0 - 1.0;
-            let rz = hash_f32(seed + 100) * 2.0 - 1.0;
-            let ry = hash_f32(seed + 200);
-            fly.anchor = center + Vec3::new(rx * 18.0, 1.5 + ry * 2.5, rz * 18.0);
+        *vis = Visibility::Visible;
+
+        // Advance glow phase
+        ed.glow_phase += dt / ed.glow_period;
+        if ed.glow_phase >= 1.0 {
+            ed.glow_phase -= 1.0;
         }
 
-        let p = fly.phase;
-        let spd = fly.orbit_speed;
-        let r = fly.orbit_radius;
+        // Orbital motion around anchor
+        let p = cr.phase;
+        let spd = ed.orbit_speed;
+        let r = ed.orbit_radius;
         let ox = (t * spd * 0.7 + p * 6.28).sin() * r + (t * spd * 1.3 + p * 3.14).sin() * r * 0.4;
         let oy = (t * spd * 0.5 + p * 4.71).sin() * 0.3 + (t * spd * 1.1 + p * 2.09).cos() * 0.15;
         let oz = (t * spd * 0.9 + p * 5.24).cos() * r + (t * spd * 1.7 + p * 1.57).cos() * r * 0.3;
 
-        let wind_off = Vec3::new(wd_x * wind_drift * t, 0.0, wd_z * wind_drift * t);
-        let pos = fly.anchor + Vec3::new(ox, oy, oz) + wind_off;
+        let wind_off = Vec3::new(
+            wd_x * wind_drift * (t % 60.0),
+            0.0,
+            wd_z * wind_drift * (t % 60.0),
+        );
+        let pos = cr.anchor + Vec3::new(ox, oy, oz) + wind_off;
         tf.translation = pos;
-        *vis = Visibility::Visible;
 
-        let pulse_t = fly.glow_phase;
+        // Double-pulse glow pattern
+        let pulse_t = ed.glow_phase;
         let glow = if pulse_t < 0.15 {
             (pulse_t / 0.15 * std::f32::consts::PI).sin()
         } else if pulse_t < 0.25 {
@@ -154,13 +311,13 @@ pub(super) fn animate_fireflies(
 
         let intensity = glow * nf;
 
-        if let Some(mat) = materials.get_mut(&fly.mat_handle) {
+        if let Some(mat) = materials.get_mut(&cr.mat_handle) {
             let emit = intensity * 12.0;
             mat.emissive = LinearRgba::new(0.3 * emit, 0.85 * emit, 0.15 * emit, 1.0);
             mat.base_color = Color::srgba(0.5, 0.9, 0.3, intensity * 0.9 + 0.15 * nf);
         }
 
-        if let Ok((mut pl, mut ltf, mut lvis)) = light_q.get_mut(fly.light_entity) {
+        if let Ok((mut pl, mut ltf, mut lvis)) = light_q.get_mut(ed.light_entity) {
             pl.intensity = intensity * 2800.0;
             ltf.translation = pos;
             *lvis = if intensity > 0.01 {

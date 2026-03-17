@@ -1,0 +1,52 @@
+---
+title: 'Woodland Butterfly'
+description: |
+    A colorful butterfly that flutters through sunlit meadows, entering from the edges and wandering lazily on the breeze.
+ref: 'woodland-butterfly'
+id: '01KKWBVKEMG5SA4RHTXPQMEC63'
+name: 'Woodland Butterfly'
+type_flags: 1
+rarity: 'common'
+personality: 'passive'
+rank: 'minion'
+family: 'beast'
+element: 'nature'
+level: 1
+stats:
+    hp: 1
+    max_hp: 1
+    attack: 0
+    defense: 0
+    speed: 2
+    armor: 0
+behavior:
+    movement_type: 'random_wander'
+    first_strike: false
+spatial:
+    walk_speed: 0.35
+    can_fly: true
+spawn_rules:
+    - zone: 'grassland'
+      spawn_weight: 1.0
+phase_rules:
+    - time_start: 700
+      time_end: 1800
+creature_config:
+    render_kind: 'billboard'
+    pool_size: 14
+    chunk_size: 16.0
+    per_chunk: 2
+    spawn_chance: 0.45
+    schedule: 'day'
+lore: |
+    Woodland Butterflies come in seven distinct color morphs — from monarch orange to purple emperor.
+    They drift in from the edges of the visible world, flutter around a wander anchor, and glide away
+    when they stray too far. Gentle wind pushes them along their path.
+credits: |
+    KBVE Isometric ambient creature system.
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+A colorful butterfly that flutters through sunlit meadows, entering from the edges and wandering lazily on the breeze.

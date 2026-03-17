@@ -1,0 +1,52 @@
+---
+title: 'Green Toad'
+description: |
+    A small amphibian that sits idle in the grass, croaks occasionally, and hops to nearby spots during the day.
+ref: 'green-toad'
+id: '01KKWBVKEN10357T9ZZ4BNJCG9'
+name: 'Green Toad'
+type_flags: 1
+rarity: 'common'
+personality: 'passive'
+rank: 'minion'
+family: 'beast'
+element: 'nature'
+level: 1
+stats:
+    hp: 3
+    max_hp: 3
+    attack: 0
+    defense: 0
+    speed: 1
+    armor: 0
+behavior:
+    movement_type: 'random_wander'
+    first_strike: false
+spatial:
+    walk_speed: 2.0
+    can_fly: false
+spawn_rules:
+    - zone: 'grassland'
+      spawn_weight: 1.0
+phase_rules:
+    - time_start: 700
+      time_end: 1800
+creature_config:
+    render_kind: 'sprite'
+    pool_size: 8
+    chunk_size: 16.0
+    per_chunk: 1
+    spawn_chance: 0.35
+    schedule: 'day'
+lore: |
+    Green Toads are common grassland amphibians known for their rhythmic croaking and sudden, arcing hops.
+    They use a sprite-sheet animation with idle, croak emote, and hop cycles across a 9x5 frame grid.
+    Occasionally they pause to puff up their throat in a charming display before launching to a new spot.
+credits: |
+    KBVE Isometric ambient creature system.
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+A small amphibian that sits idle in the grass, croaks occasionally, and hops to nearby spots during the day.

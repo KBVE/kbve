@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/mapdb.binpb
  * Config: ../mapdb-zod-config.json
- * Generated: 2026-03-14T23:06:22.910Z
+ * Generated: 2026-03-17T03:20:10.909Z
  */
 
 import { z } from 'zod';
@@ -109,32 +109,6 @@ export type WorldObjectTypeValue = (typeof WorldObjectTypes)[number];
 
 export const WorldObjectTypeSchema = z.enum(WorldObjectTypes);
 
-export const ResourceTypes = [
-	'wood',
-	'stone',
-	'flower',
-	'mushroom',
-	'crystal',
-	'water',
-	'ore',
-] as const;
-
-export type ResourceTypeValue = (typeof ResourceTypes)[number];
-
-export const ResourceTypeSchema = z.enum(ResourceTypes);
-
-export const ContainerTypes = ['crate', 'chest', 'barrel'] as const;
-
-export type ContainerTypeValue = (typeof ContainerTypes)[number];
-
-export const ContainerTypeSchema = z.enum(ContainerTypes);
-
-export const CraftingStationTypes = ['workbench', 'furnace', 'anvil'] as const;
-
-export type CraftingStationTypeValue = (typeof CraftingStationTypes)[number];
-
-export const CraftingStationTypeSchema = z.enum(CraftingStationTypes);
-
 export const PoiTypes = [
 	'town',
 	'village',
@@ -186,6 +160,32 @@ export const SpawnCategories = [
 export type SpawnCategoryValue = (typeof SpawnCategories)[number];
 
 export const SpawnCategorySchema = z.enum(SpawnCategories);
+
+export const ResourceTypes = [
+	'wood',
+	'stone',
+	'flower',
+	'mushroom',
+	'crystal',
+	'water',
+	'ore',
+] as const;
+
+export type ResourceTypeValue = (typeof ResourceTypes)[number];
+
+export const ResourceTypeSchema = z.enum(ResourceTypes);
+
+export const ContainerTypes = ['crate', 'chest', 'barrel'] as const;
+
+export type ContainerTypeValue = (typeof ContainerTypes)[number];
+
+export const ContainerTypeSchema = z.enum(ContainerTypes);
+
+export const CraftingStationTypes = ['workbench', 'furnace', 'anvil'] as const;
+
+export type CraftingStationTypeValue = (typeof CraftingStationTypes)[number];
+
+export const CraftingStationTypeSchema = z.enum(CraftingStationTypes);
 
 // MapExtension
 export const MapExtensionSchema = z.object({
@@ -497,6 +497,9 @@ export const WorldObjectDefSchema = z.object({
 	description: z.string().optional(),
 	type: WorldObjectTypeSchema,
 	sub_kind: z.string().optional(),
+	resource_type: ResourceTypeSchema.optional(),
+	container_type: ContainerTypeSchema.optional(),
+	crafting_station_type: CraftingStationTypeSchema.optional(),
 	model_ref: z.string().optional(),
 	icon: z.string().optional(),
 	scale: z.number().optional(),

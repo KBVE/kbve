@@ -93,13 +93,18 @@ pub async fn system_database_speed_test(
 pub async fn call_n8n_service() -> impl IntoResponse {
     let client = reqwest::Client::new();
 
-    // Attempt to call the first service
-    if let Ok(resp) = client.get("http://n8n:5678/workflows").send().await {
+    // Use env var for internal n8n URL (defaults to public HTTPS endpoint)
+    let n8n_url = std::env::var("N8N_WORKFLOWS_URL")
+        .unwrap_or_else(|_| "https://automation.kbve.com/workflows".to_string());
+
+    // Attempt to call the primary service
+    if let Ok(resp) = client.get(&n8n_url).send().await {
         if let Ok(json) = resp.json::<Value>().await {
             return (StatusCode::OK, Json(json));
         }
     }
 
+    // Fallback to public endpoint
     match client
         .get("https://automation.kbve.com/workflows")
         .send()
@@ -116,9 +121,7 @@ pub async fn call_n8n_service() -> impl IntoResponse {
         },
         Err(e) => (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(
-                json!({"error": format!("Failed to call both n8n and automation.kbve.com services: {}", e)}),
-            ),
+            Json(json!({"error": format!("Failed to call n8n service: {}", e)})),
         ),
     }
 }

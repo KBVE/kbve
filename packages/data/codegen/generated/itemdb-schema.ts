@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/itemdb.binpb
  * Config: ../itemdb-zod-config.json
- * Generated: 2026-03-14T23:06:22.907Z
+ * Generated: 2026-03-17T03:20:10.906Z
  */
 
 import { z } from 'zod';

@@ -1,0 +1,52 @@
+---
+title: 'Meadow Firefly'
+description: |
+    A tiny luminescent spirit that drifts through grasslands at night, pulsing with a soft green glow.
+ref: 'meadow-firefly'
+id: '01KKWBVKEK4SR70NMKE1SST5H4'
+name: 'Meadow Firefly'
+type_flags: 1
+rarity: 'common'
+personality: 'passive'
+rank: 'minion'
+family: 'spirit'
+element: 'light'
+level: 1
+stats:
+    hp: 1
+    max_hp: 1
+    attack: 0
+    defense: 0
+    speed: 3
+    armor: 0
+behavior:
+    movement_type: 'random_wander'
+    first_strike: false
+spatial:
+    walk_speed: 0.7
+    can_fly: true
+spawn_rules:
+    - zone: 'grassland'
+      spawn_weight: 0.55
+phase_rules:
+    - time_start: 1900
+      time_end: 530
+creature_config:
+    render_kind: 'emissive'
+    pool_size: 80
+    chunk_size: 12.0
+    per_chunk: 3
+    spawn_chance: 0.55
+    schedule: 'night'
+lore: |
+    Meadow Fireflies are gentle spirits of fading starlight, drawn to open grasslands after dusk.
+    Their synchronized double-pulse glow has inspired countless folk tales about fairy lanterns
+    guiding lost travelers home.
+credits: |
+    KBVE Isometric ambient creature system.
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+A tiny luminescent spirit that drifts through grasslands at night, pulsing with a soft green glow.

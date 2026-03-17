@@ -4,6 +4,7 @@ use tracing::{error, info};
 use crate::discord::bot::{Data, Error};
 
 use super::logic;
+use super::persistence;
 use super::render;
 use super::types::{Direction, GameAction, GamePhase};
 
@@ -308,6 +309,11 @@ pub async fn handle_game_component(
     // Apply action (now safe — we already acknowledged the interaction)
     match logic::apply_action(&mut session, action.clone(), actor) {
         Ok(result) => {
+            // Check if game just ended — save all players
+            if let GamePhase::GameOver(ref reason) = session.phase {
+                persistence::save_all_players(&data.app.profiles, &session, reason);
+            }
+
             // Render components while we still hold the lock
             let components = render::render_components(&session);
             let session_clone = session.clone();

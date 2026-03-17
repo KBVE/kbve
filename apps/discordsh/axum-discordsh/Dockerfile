@@ -102,6 +102,7 @@ COPY packages/rust/bevy/bevy_inventory/Cargo.toml packages/rust/bevy/bevy_invent
 COPY packages/rust/bevy/bevy_items/Cargo.toml packages/rust/bevy/bevy_items/Cargo.toml
 COPY packages/rust/bevy/bevy_battle/Cargo.toml packages/rust/bevy/bevy_battle/Cargo.toml
 COPY packages/rust/bevy/bevy_npc/Cargo.toml packages/rust/bevy/bevy_npc/Cargo.toml
+COPY packages/rust/bevy/bevy_quests/Cargo.toml packages/rust/bevy/bevy_quests/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
@@ -111,7 +112,8 @@ RUN mkdir -p apps/discordsh/axum-discordsh/src && echo "fn main() {}" > apps/dis
     mkdir -p packages/rust/bevy/bevy_inventory/src && echo "" > packages/rust/bevy/bevy_inventory/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_items/src && echo "" > packages/rust/bevy/bevy_items/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_battle/src && echo "" > packages/rust/bevy/bevy_battle/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_npc/src && echo "" > packages/rust/bevy/bevy_npc/src/lib.rs
+    mkdir -p packages/rust/bevy/bevy_npc/src && echo "" > packages/rust/bevy/bevy_npc/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_quests/src && echo "" > packages/rust/bevy/bevy_quests/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -148,10 +150,11 @@ COPY packages/rust/bevy/bevy_inventory packages/rust/bevy/bevy_inventory
 COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
 COPY packages/rust/bevy/bevy_battle packages/rust/bevy/bevy_battle
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
+COPY packages/rust/bevy/bevy_quests packages/rust/bevy/bevy_quests
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --release -p kbve -p jedi -p bevy_inventory -p bevy_items -p bevy_battle -p bevy_npc
+    cargo build --release -p kbve -p jedi -p bevy_inventory -p bevy_items -p bevy_battle -p bevy_npc -p bevy_quests
 
 # ============================================================================
 # [STAGE F] - Build Application
@@ -173,6 +176,7 @@ COPY packages/rust/bevy/bevy_inventory packages/rust/bevy/bevy_inventory
 COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
 COPY packages/rust/bevy/bevy_battle packages/rust/bevy/bevy_battle
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
+COPY packages/rust/bevy/bevy_quests packages/rust/bevy/bevy_quests
 
 # Application source (most frequently changing — placed last for cache)
 COPY apps/discordsh/axum-discordsh apps/discordsh/axum-discordsh

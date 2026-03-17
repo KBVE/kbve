@@ -3,47 +3,56 @@
 		"npc.NpcTypeFlag": {
 			"mode": "const_array",
 			"stripPrefix": "NPC_TYPE_",
-			"caseTransform": "lowercase"
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		},
 		"npc.Personality": {
 			"mode": "const_array",
 			"stripPrefix": "PERSONALITY_",
-			"caseTransform": "lowercase"
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		},
 		"npc.Element": {
 			"mode": "const_array",
 			"stripPrefix": "ELEMENT_",
-			"caseTransform": "lowercase"
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		},
 		"npc.NpcRarity": {
 			"mode": "const_array",
 			"stripPrefix": "NPC_RARITY_",
-			"caseTransform": "lowercase"
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		},
 		"npc.NpcRank": {
 			"mode": "const_array",
 			"stripPrefix": "NPC_RANK_",
-			"caseTransform": "lowercase"
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		},
 		"npc.CreatureFamily": {
 			"mode": "const_array",
 			"stripPrefix": "CREATURE_FAMILY_",
-			"caseTransform": "lowercase"
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		},
 		"npc.MovementType": {
 			"mode": "const_array",
 			"stripPrefix": "MOVEMENT_",
-			"caseTransform": "lowercase"
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		},
 		"npc.DifficultyMode": {
 			"mode": "const_array",
 			"stripPrefix": "DIFFICULTY_",
-			"caseTransform": "lowercase"
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		},
 		"npc.EquipSlot": {
 			"mode": "const_array",
 			"stripPrefix": "EQUIP_SLOT_",
-			"caseTransform": "lowercase"
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		}
 	},
 

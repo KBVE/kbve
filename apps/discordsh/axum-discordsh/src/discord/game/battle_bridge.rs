@@ -132,6 +132,11 @@ fn to_bb_personality(p: &Personality) -> bevy_battle::Personality {
         Personality::Stoic => bevy_battle::Personality::Stoic,
         Personality::Feral => bevy_battle::Personality::Feral,
         Personality::Ancient => bevy_battle::Personality::Ancient,
+        Personality::Cheerful => bevy_battle::Personality::Cheerful,
+        Personality::Mysterious => bevy_battle::Personality::Mysterious,
+        Personality::Cowardly => bevy_battle::Personality::Cowardly,
+        Personality::Noble => bevy_battle::Personality::Noble,
+        Personality::Passive => bevy_battle::Personality::Passive,
     }
 }
 
@@ -1085,6 +1090,7 @@ mod tests {
                 lifetime_gold_earned: 0,
                 lifetime_rooms_cleared: 0,
                 lifetime_bosses_defeated: 0,
+                saved_snapshot: None,
             },
         );
 
@@ -1125,6 +1131,7 @@ mod tests {
                 hazards: vec![],
                 merchant_stock: vec![],
                 story_event: None,
+                available_quests: vec![],
             },
             log: vec![],
             show_items: false,
@@ -1140,6 +1147,7 @@ mod tests {
             show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
+            quest_journal: QuestJournal::default(),
         }
     }
 

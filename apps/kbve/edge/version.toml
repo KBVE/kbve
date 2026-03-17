@@ -1,1 +1,41 @@
 version = "0.1.11"
+
+[[functions]]
+name = "health"
+label = "Health"
+description = "Core health check"
+
+[[functions]]
+name = "meme"
+label = "Meme"
+description = "Meme feed and reactions"
+
+[[functions]]
+name = "mc"
+label = "Minecraft"
+description = "MC data operations"
+
+[[functions]]
+name = "discordsh"
+label = "Discord"
+description = "Discord server integration"
+
+[[functions]]
+name = "user-vault"
+label = "User Vault"
+description = "User API token management"
+
+[[functions]]
+name = "guild-vault"
+label = "Guild Vault"
+description = "Guild token management"
+
+[[functions]]
+name = "vault-reader"
+label = "Vault Reader"
+description = "System secret access"
+
+[[functions]]
+name = "logs"
+label = "Logs"
+description = "ClickHouse observability logs"

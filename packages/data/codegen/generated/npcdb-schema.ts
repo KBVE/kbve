@@ -3,12 +3,13 @@
  *
  * Source: ../descriptors/npcdb.binpb
  * Config: ../npcdb-zod-config.json
- * Generated: 2026-03-14T23:06:22.904Z
+ * Generated: 2026-03-17T03:20:10.904Z
  */
 
 import { z } from 'zod';
 
 export const NpcTypeFlags = [
+	'none',
 	'enemy',
 	'merchant',
 	'quest_giver',
@@ -27,6 +28,7 @@ export type NpcTypeFlag = (typeof NpcTypeFlags)[number];
 export const NpcTypeFlagSchema = z.enum(NpcTypeFlags);
 
 export const Personalities = [
+	'unspecified',
 	'aggressive',
 	'cunning',
 	'fearful',
@@ -37,6 +39,7 @@ export const Personalities = [
 	'mysterious',
 	'cowardly',
 	'noble',
+	'passive',
 ] as const;
 
 export type PersonalityValue = (typeof Personalities)[number];
@@ -44,6 +47,7 @@ export type PersonalityValue = (typeof Personalities)[number];
 export const PersonalitySchema = z.enum(Personalities);
 
 export const Elements = [
+	'none',
 	'fire',
 	'ice',
 	'lightning',
@@ -53,6 +57,8 @@ export const Elements = [
 	'arcane',
 	'earth',
 	'wind',
+	'nature',
+	'light',
 ] as const;
 
 export type ElementValue = (typeof Elements)[number];
@@ -60,6 +66,7 @@ export type ElementValue = (typeof Elements)[number];
 export const ElementSchema = z.enum(Elements);
 
 export const NpcRarities = [
+	'common',
 	'uncommon',
 	'rare',
 	'epic',
@@ -71,13 +78,20 @@ export type NpcRarityValue = (typeof NpcRarities)[number];
 
 export const NpcRaritySchema = z.enum(NpcRarities);
 
-export const NpcRanks = ['elite', 'rare_elite', 'world_boss'] as const;
+export const NpcRanks = [
+	'normal',
+	'minion',
+	'elite',
+	'rare_elite',
+	'world_boss',
+] as const;
 
 export type NpcRankValue = (typeof NpcRanks)[number];
 
 export const NpcRankSchema = z.enum(NpcRanks);
 
 export const CreatureFamilies = [
+	'unspecified',
 	'beast',
 	'undead',
 	'demon',
@@ -95,19 +109,25 @@ export type CreatureFamilyValue = (typeof CreatureFamilies)[number];
 
 export const CreatureFamilySchema = z.enum(CreatureFamilies);
 
-export const MovementTypes = ['random_wander', 'patrol', 'scripted'] as const;
+export const MovementTypes = [
+	'stationary',
+	'random_wander',
+	'patrol',
+	'scripted',
+] as const;
 
 export type MovementTypeValue = (typeof MovementTypes)[number];
 
 export const MovementTypeSchema = z.enum(MovementTypes);
 
-export const DifficultyModes = ['hard', 'heroic', 'mythic'] as const;
+export const DifficultyModes = ['normal', 'hard', 'heroic', 'mythic'] as const;
 
 export type DifficultyModeValue = (typeof DifficultyModes)[number];
 
 export const DifficultyModeSchema = z.enum(DifficultyModes);
 
 export const EquipSlots = [
+	'unspecified',
 	'head',
 	'chest',
 	'legs',

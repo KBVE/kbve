@@ -12,6 +12,13 @@ class APIConnector:
         self.session = aiohttp.ClientSession(timeout=ClientTimeout(total=timeout))
         self.websocket = websocket
 
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
+        return False
+
     async def _request(self, method: str, endpoint: str, **kwargs) -> Any:
         url = f"{self.base_url}/{endpoint}"
         headers = self._prepare_headers(kwargs.pop('auth', None))
@@ -69,6 +76,7 @@ class APIConnector:
             return msg.data
         elif msg.type in (aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.ERROR):
             raise Exception("WebSocket connection closed or encountered an error.")
+        raise Exception(f"Unexpected WebSocket message type: {msg.type}")
 
     def _prepare_headers(self, auth: Optional[str] = None) -> dict:
         """Prepare headers for HTTP or WebSocket connection."""

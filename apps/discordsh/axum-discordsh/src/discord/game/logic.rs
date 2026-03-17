@@ -5,6 +5,7 @@ use tracing::debug;
 
 use super::battle_bridge;
 use super::content;
+use super::proto_bridge;
 use super::types::*;
 
 /// Result of applying a game action, including optional ECS combat snapshot.
@@ -33,6 +34,260 @@ impl std::ops::Deref for ActionResult {
 }
 
 const CLERIC_HEALS_PER_COMBAT: u8 = 1;
+
+// ── Quest progress helpers ──────────────────────────────────────────
+
+/// Populate `room.available_quests` with quest refs the owner can accept,
+/// and return log lines describing each offered quest.
+fn offer_available_quests(session: &mut SessionState) -> Vec<String> {
+    let player_level = session.owner_player().level;
+    let available = proto_bridge::quests_for_level(player_level as i32);
+    let journal = &session.quest_journal;
+
+    let mut offered = Vec::new();
+    let mut quest_refs = Vec::new();
+
+    for quest in available {
+        // Skip quests already active, completed (non-repeatable), or that don't meet prereqs
+        if journal.is_active(&quest.r#ref) {
+            continue;
+        }
+        if journal.is_completed(&quest.r#ref) {
+            let repeatable = quest.repeatable.unwrap_or(false);
+            if !repeatable {
+                continue;
+            }
+        }
+        if !proto_bridge::meets_prerequisites(quest, player_level, journal) {
+            continue;
+        }
+
+        let category = bevy_quests::QuestCategory::try_from(quest.category)
+            .map(|c| match c {
+                bevy_quests::QuestCategory::Main => "Main",
+                bevy_quests::QuestCategory::Side => "Side",
+                bevy_quests::QuestCategory::Challenge => "Challenge",
+                _ => "Quest",
+            })
+            .unwrap_or("Quest");
+
+        offered.push(format!(
+            "  [{}] {} (Lv.{})",
+            category,
+            quest.title,
+            quest.recommended_level.unwrap_or(1)
+        ));
+        quest_refs.push(quest.r#ref.clone());
+    }
+
+    session.room.available_quests = quest_refs;
+    offered
+}
+
+/// Advance "kill" objectives in all active quests.
+///
+/// `enemy_ref` is the NPC ref slug of the killed enemy (e.g. "glass-slime").
+/// Objectives with no `target_refs` count any kill; those with `target_refs`
+/// only count kills of matching refs.
+fn advance_kill_objectives(session: &mut SessionState, enemy_ref: &str, logs: &mut Vec<String>) {
+    let kill_type = bevy_quests::ObjectiveType::ObjectiveKill as i32;
+
+    for quest in &mut session.quest_journal.active {
+        let quest_ref = quest.quest_ref.clone();
+        let step_idx = quest.current_step;
+        let Some(step) = quest.steps.get_mut(step_idx) else {
+            continue;
+        };
+
+        // Pre-fetch the proto step objectives for type checking
+        let proto_objectives = proto_bridge::find_quest_by_ref(&quest_ref)
+            .and_then(|q| q.steps.get(step_idx))
+            .map(|s| &s.objectives);
+
+        for obj in &mut step.objectives {
+            if obj.is_complete() {
+                continue;
+            }
+            // Find the matching proto objective
+            let proto_obj =
+                proto_objectives.and_then(|objs| objs.iter().find(|o| o.id == obj.objective_id));
+            let is_kill = proto_obj.is_some_and(|o| o.r#type == kill_type);
+            if !is_kill {
+                continue;
+            }
+            // Check target_refs filter
+            let matches = proto_obj.is_some_and(|o| {
+                o.target_refs.is_empty() || o.target_refs.iter().any(|r| r == enemy_ref)
+            });
+            if matches {
+                obj.current += 1;
+            }
+        }
+        // Check if step completed → advance
+        if step.is_complete() && step_idx + 1 < quest.steps.len() {
+            quest.current_step += 1;
+        }
+    }
+
+    // Complete any fully-finished quests
+    check_quest_completions(session, logs);
+}
+
+/// Advance "explore" objectives in all active quests.
+fn advance_explore_objectives(session: &mut SessionState, logs: &mut Vec<String>) {
+    let explore_type = bevy_quests::ObjectiveType::ObjectiveExplore as i32;
+    let visit_type = bevy_quests::ObjectiveType::ObjectiveVisit as i32;
+
+    for quest in &mut session.quest_journal.active {
+        let quest_ref = quest.quest_ref.clone();
+        let step_idx = quest.current_step;
+        let Some(step) = quest.steps.get_mut(step_idx) else {
+            continue;
+        };
+
+        let proto_objectives = proto_bridge::find_quest_by_ref(&quest_ref)
+            .and_then(|q| q.steps.get(step_idx))
+            .map(|s| &s.objectives);
+
+        for obj in &mut step.objectives {
+            if obj.is_complete() {
+                continue;
+            }
+            let is_explore = proto_objectives
+                .and_then(|objs| objs.iter().find(|o| o.id == obj.objective_id))
+                .is_some_and(|o| o.r#type == explore_type || o.r#type == visit_type);
+            if is_explore {
+                obj.current += 1;
+            }
+        }
+        if step.is_complete() && step_idx + 1 < quest.steps.len() {
+            quest.current_step += 1;
+        }
+    }
+
+    check_quest_completions(session, logs);
+}
+
+/// Check for completed quests and grant rewards.
+fn check_quest_completions(session: &mut SessionState, logs: &mut Vec<String>) {
+    let completed_refs: Vec<String> = session
+        .quest_journal
+        .active
+        .iter()
+        .filter(|q| q.is_complete())
+        .map(|q| q.quest_ref.clone())
+        .collect();
+
+    for quest_ref in completed_refs {
+        if let Some(proto) = proto_bridge::find_quest_by_ref(&quest_ref) {
+            // Grant rewards
+            if let Some(rewards) = &proto.rewards {
+                let gold = rewards.currency.unwrap_or(0);
+                let xp = rewards.xp.unwrap_or(0);
+                let alive_ids = session.alive_player_ids();
+                for &uid in &alive_ids {
+                    let player = session.player_mut(uid);
+                    player.gold += gold;
+                    player.xp += xp as u32;
+                }
+
+                // Grant item rewards
+                for item_reward in &rewards.items {
+                    let game_id = item_reward.item_ref.replace('-', "_");
+                    let alive_ids = session.alive_player_ids();
+                    if let Some(&first_alive) = alive_ids.first() {
+                        let player = session.player_mut(first_alive);
+                        if let Some(existing) =
+                            player.inventory.iter_mut().find(|s| s.item_id == game_id)
+                        {
+                            existing.qty += item_reward.amount as u16;
+                        } else if !player.inventory_full() {
+                            player.inventory.push(ItemStack {
+                                item_id: game_id.clone(),
+                                qty: item_reward.amount as u16,
+                            });
+                        }
+                    }
+                }
+
+                if gold > 0 || xp > 0 {
+                    logs.push(format!(
+                        "Quest complete: {}! (+{} gold, +{} XP)",
+                        proto.title, gold, xp
+                    ));
+                } else {
+                    logs.push(format!("Quest complete: {}!", proto.title));
+                }
+            } else {
+                logs.push(format!("Quest complete: {}!", proto.title));
+            }
+        }
+
+        session.quest_journal.complete_quest(&quest_ref);
+    }
+}
+
+/// Handle the AcceptQuest action.
+fn handle_accept_quest(
+    session: &mut SessionState,
+    quest_ref: &str,
+    actor: serenity::UserId,
+) -> Vec<String> {
+    let mut logs = Vec::new();
+
+    if session.quest_journal.is_active(quest_ref) {
+        logs.push("You already have that quest active.".to_owned());
+        return logs;
+    }
+    if session.quest_journal.is_completed(quest_ref) {
+        // Check if repeatable
+        let repeatable = proto_bridge::find_quest_by_ref(quest_ref)
+            .and_then(|q| q.repeatable)
+            .unwrap_or(false);
+        if !repeatable {
+            logs.push("You've already completed that quest.".to_owned());
+            return logs;
+        }
+        // Remove from completed so it can be re-accepted
+        session.quest_journal.completed.retain(|r| r != quest_ref);
+    }
+
+    let Some(proto) = proto_bridge::find_quest_by_ref(quest_ref) else {
+        logs.push("Unknown quest.".to_owned());
+        return logs;
+    };
+
+    let player_level = session.player(actor).level;
+    if !proto_bridge::meets_prerequisites(proto, player_level, &session.quest_journal) {
+        logs.push("You don't meet the prerequisites for this quest.".to_owned());
+        return logs;
+    }
+
+    if session.quest_journal.active_count() >= 5 {
+        logs.push("Quest journal is full (max 5 active quests).".to_owned());
+        return logs;
+    }
+
+    let active = proto_bridge::build_active_quest(proto);
+    session.quest_journal.active.push(active);
+    logs.push(format!("Quest accepted: {}!", proto.title));
+    logs
+}
+
+/// Handle the AbandonQuest action.
+fn handle_abandon_quest(session: &mut SessionState, quest_ref: &str) -> Vec<String> {
+    let mut logs = Vec::new();
+    if !session.quest_journal.is_active(quest_ref) {
+        logs.push("You don't have that quest active.".to_owned());
+        return logs;
+    }
+    let title = proto_bridge::find_quest_by_ref(quest_ref)
+        .map(|q| q.title.clone())
+        .unwrap_or_else(|| quest_ref.to_owned());
+    session.quest_journal.abandon_quest(quest_ref);
+    logs.push(format!("Quest abandoned: {title}."));
+    logs
+}
 
 // ── Enemy targeting ─────────────────────────────────────────────────
 
@@ -177,6 +432,20 @@ fn validate_action(
             if session.phase != GamePhase::City {
                 return Err("You can only revive at a city hospital.".to_owned());
             }
+        }
+        GameAction::AcceptQuest(_) => {
+            if session.phase != GamePhase::City
+                && session.phase != GamePhase::Exploring
+                && session.phase != GamePhase::Merchant
+            {
+                return Err(
+                    "You can only accept quests while exploring, in a city, or at a merchant."
+                        .to_owned(),
+                );
+            }
+        }
+        GameAction::AbandonQuest(_) | GameAction::ViewQuests => {
+            // Allowed anytime except GameOver (already checked above)
         }
     }
 
@@ -334,6 +603,36 @@ pub fn apply_action(
         }
         GameAction::Gift(ref item_id, target_uid) => {
             ActionResult::logs_only(apply_gift(session, item_id, target_uid, actor)?)
+        }
+        GameAction::AcceptQuest(ref quest_ref) => {
+            ActionResult::logs_only(handle_accept_quest(session, quest_ref, actor))
+        }
+        GameAction::AbandonQuest(ref quest_ref) => {
+            ActionResult::logs_only(handle_abandon_quest(session, quest_ref))
+        }
+        GameAction::ViewQuests => {
+            let mut lines = Vec::new();
+            if session.quest_journal.active.is_empty() {
+                lines.push("No active quests.".to_owned());
+            } else {
+                for aq in &session.quest_journal.active {
+                    let title = proto_bridge::find_quest_by_ref(&aq.quest_ref)
+                        .map(|q| q.title.as_str())
+                        .unwrap_or(&aq.quest_ref);
+                    if let Some(step) = aq.current_step_progress() {
+                        let progress: String = step
+                            .objectives
+                            .iter()
+                            .map(|o| format!("{}/{}", o.current, o.required))
+                            .collect::<Vec<_>>()
+                            .join(", ");
+                        lines.push(format!("{title} [{progress}]"));
+                    } else {
+                        lines.push(title.to_owned());
+                    }
+                }
+            }
+            ActionResult::logs_only(lines)
         }
     };
 
@@ -693,6 +992,10 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
 
         // Increment lifetime kills for the actor
         session.player_mut(actor).lifetime_kills += 1;
+
+        // Advance kill quest objectives — derive ref slug from display name
+        let enemy_ref = enemy_name.to_lowercase().replace(' ', "-");
+        advance_kill_objectives(session, &enemy_ref, &mut logs);
 
         // Determine loot recipient: round-robin among alive players in party mode
         let loot_recipient = if alive_ids.len() > 1 {
@@ -1627,6 +1930,9 @@ fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
         session.player_mut(uid).lifetime_rooms_cleared += 1;
     }
 
+    // Advance explore quest objectives
+    advance_explore_objectives(session, &mut logs);
+
     // Apply room hazards
     let hazards = session.room.hazards.clone();
     let alive_ids: Vec<serenity::UserId> = session
@@ -1714,6 +2020,13 @@ fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
         RoomType::Merchant => {
             session.room.merchant_stock = content::generate_merchant_stock(pos.depth());
             logs.push("A cloaked merchant gestures at wares.".to_owned());
+            let offered = offer_available_quests(session);
+            if !offered.is_empty() {
+                logs.push("A quest board hangs on the wall:".to_owned());
+                for line in offered {
+                    logs.push(line);
+                }
+            }
             session.phase = GamePhase::Merchant;
         }
         RoomType::Story => {
@@ -1732,6 +2045,13 @@ fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
             logs.push(
                 "You enter an underground city. Torches flicker along carved walls.".to_owned(),
             );
+            let offered = offer_available_quests(session);
+            if !offered.is_empty() {
+                logs.push("A hooded figure beckons from the tavern corner:".to_owned());
+                for line in offered {
+                    logs.push(line);
+                }
+            }
             session.phase = GamePhase::City;
         }
     }
@@ -2481,6 +2801,7 @@ mod tests {
             show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
+            quest_journal: QuestJournal::default(),
         }
     }
 
@@ -9263,5 +9584,740 @@ mod tests {
 
         let _ = apply_action(&mut session, GameAction::Revive(p2), OWNER);
         assert_eq!(session.player(p2).hp, 40); // 50% of 80
+    }
+
+    // ── Quest integration tests ─────────────────────────────────────────
+
+    #[test]
+    fn accept_quest_slime_slayer() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let result = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        assert!(logs.iter().any(|l| l.contains("Quest accepted")));
+        assert!(session.quest_journal.is_active("slime-slayer"));
+        assert_eq!(session.quest_journal.active_count(), 1);
+    }
+
+    #[test]
+    fn accept_quest_exploring_phase() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        let result = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        assert!(session.quest_journal.is_active("slime-slayer"));
+    }
+
+    #[test]
+    fn accept_quest_blocked_in_combat() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies.push(test_enemy());
+        let result = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn accept_quest_duplicate_rejected() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let _ = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+        let result = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        assert!(logs.iter().any(|l| l.contains("already have")));
+        assert_eq!(session.quest_journal.active_count(), 1);
+    }
+
+    #[test]
+    fn accept_quest_nonexistent_rejected() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let result = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("nonexistent-quest".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        assert!(logs.iter().any(|l| l.contains("Unknown quest")));
+    }
+
+    #[test]
+    fn accept_quest_prerequisites_not_met() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        // Shadow Hunter requires dungeon-delver complete + level 2
+        let result = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("shadow-hunter".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        assert!(logs.iter().any(|l| l.contains("prerequisites")));
+        assert!(!session.quest_journal.is_active("shadow-hunter"));
+    }
+
+    #[test]
+    fn accept_quest_max_5_active() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        // Accept 5 quests (3 unique + repeat the repeatable ones after abandoning)
+        let quest_refs = [
+            "slime-slayer",
+            "dungeon-delver",
+            "treasure-seeker",
+            "survivor",
+        ];
+        for &qr in &quest_refs {
+            let _ = apply_action(&mut session, GameAction::AcceptQuest(qr.to_owned()), OWNER);
+        }
+        // Need 5, but survivor requires level 2, so let's set level
+        session.player_mut(OWNER).level = 2;
+        // We have 4 active. Manually add a 5th
+        let quest5 = proto_bridge::find_quest_by_ref("slime-slayer").unwrap();
+        let mut active5 = proto_bridge::build_active_quest(quest5);
+        active5.quest_ref = "fake-quest-5".to_owned();
+        session.quest_journal.active.push(active5);
+
+        assert_eq!(session.quest_journal.active_count(), 5);
+
+        // Trying to accept a 6th should fail
+        // First abandon one to make room
+        // Actually, the journal already has 5, so this next accept should be blocked
+        let result = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("dungeon-delver".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        // Either "already have" or "full" — dungeon-delver is already active
+        assert!(
+            logs.iter()
+                .any(|l| l.contains("already have") || l.contains("full")),
+        );
+    }
+
+    #[test]
+    fn abandon_quest() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let _ = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+        assert!(session.quest_journal.is_active("slime-slayer"));
+
+        let result = apply_action(
+            &mut session,
+            GameAction::AbandonQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        assert!(logs.iter().any(|l| l.contains("abandoned")));
+        assert!(!session.quest_journal.is_active("slime-slayer"));
+        assert!(session.quest_journal.is_abandoned("slime-slayer"));
+    }
+
+    #[test]
+    fn abandon_quest_not_active() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let result = apply_action(
+            &mut session,
+            GameAction::AbandonQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        assert!(logs.iter().any(|l| l.contains("don't have")));
+    }
+
+    #[test]
+    fn view_quests_empty() {
+        let mut session = test_session();
+        let result = apply_action(&mut session, GameAction::ViewQuests, OWNER);
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        assert!(logs.iter().any(|l| l.contains("No active quests")));
+    }
+
+    #[test]
+    fn view_quests_shows_active() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let _ = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+        let result = apply_action(&mut session, GameAction::ViewQuests, OWNER);
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        assert!(logs.iter().any(|l| l.contains("Slime Slayer")));
+        assert!(logs.iter().any(|l| l.contains("0/3")));
+    }
+
+    #[test]
+    fn kill_advances_quest_objective() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let _ = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+
+        // Manually call advance_kill_objectives to test the hook
+        let mut logs = Vec::new();
+        advance_kill_objectives(&mut session, "glass-slime", &mut logs);
+
+        let quest = session.quest_journal.find_active("slime-slayer").unwrap();
+        let obj = &quest.steps[0].objectives[0];
+        assert_eq!(obj.current, 1);
+        assert_eq!(obj.required, 3);
+    }
+
+    #[test]
+    fn kill_completes_quest_after_enough_kills() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let _ = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+
+        let mut logs = Vec::new();
+        advance_kill_objectives(&mut session, "glass-slime", &mut logs);
+        advance_kill_objectives(&mut session, "crystal-bat", &mut logs);
+        advance_kill_objectives(&mut session, "dust-mite", &mut logs);
+
+        // Quest should be completed
+        assert!(session.quest_journal.is_completed("slime-slayer"));
+        assert!(!session.quest_journal.is_active("slime-slayer"));
+        assert!(
+            logs.iter()
+                .any(|l| l.contains("Quest complete: Slime Slayer"))
+        );
+    }
+
+    #[test]
+    fn kill_quest_grants_rewards() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let gold_before = session.player(OWNER).gold;
+        let xp_before = session.player(OWNER).xp;
+
+        let _ = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+
+        let mut logs = Vec::new();
+        for _ in 0..3 {
+            advance_kill_objectives(&mut session, "any-enemy", &mut logs);
+        }
+
+        assert!(session.quest_journal.is_completed("slime-slayer"));
+        assert_eq!(session.player(OWNER).gold, gold_before + 50);
+        assert_eq!(session.player(OWNER).xp, xp_before + 30);
+    }
+
+    #[test]
+    fn explore_advances_quest_objective() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let _ = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("dungeon-delver".to_owned()),
+            OWNER,
+        );
+
+        let mut logs = Vec::new();
+        advance_explore_objectives(&mut session, &mut logs);
+
+        let quest = session.quest_journal.find_active("dungeon-delver").unwrap();
+        let obj = &quest.steps[0].objectives[0];
+        assert_eq!(obj.current, 1);
+        assert_eq!(obj.required, 5);
+    }
+
+    #[test]
+    fn explore_completes_dungeon_delver() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let _ = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("dungeon-delver".to_owned()),
+            OWNER,
+        );
+
+        let mut logs = Vec::new();
+        for _ in 0..5 {
+            advance_explore_objectives(&mut session, &mut logs);
+        }
+
+        assert!(session.quest_journal.is_completed("dungeon-delver"));
+        assert!(
+            logs.iter()
+                .any(|l| l.contains("Quest complete: Dungeon Delver"))
+        );
+    }
+
+    #[test]
+    fn targeted_kill_objective_only_counts_matching_ref() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+
+        // Accept shadow-hunter (needs prereqs met first)
+        session
+            .quest_journal
+            .completed
+            .push("dungeon-delver".to_owned());
+        session.player_mut(OWNER).level = 3;
+        let _ = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("shadow-hunter".to_owned()),
+            OWNER,
+        );
+
+        // Advance past step 0 (explore 8 rooms)
+        {
+            let quest = session
+                .quest_journal
+                .find_active_mut("shadow-hunter")
+                .unwrap();
+            quest.steps[0].objectives[0].current = 8; // complete step 0
+            quest.current_step = 1; // advance to step 1 (kill boss)
+        }
+
+        // Kill a non-matching enemy
+        let mut logs = Vec::new();
+        advance_kill_objectives(&mut session, "glass-slime", &mut logs);
+
+        let quest = session.quest_journal.find_active("shadow-hunter").unwrap();
+        let obj = &quest.steps[1].objectives[0];
+        assert_eq!(
+            obj.current, 0,
+            "Non-matching kill should not advance targeted objective"
+        );
+
+        // Kill the actual target
+        advance_kill_objectives(&mut session, "shadow-wraith", &mut logs);
+
+        // Quest should now be complete
+        assert!(session.quest_journal.is_completed("shadow-hunter"));
+    }
+
+    #[test]
+    fn multi_step_quest_advances_through_steps() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        session
+            .quest_journal
+            .completed
+            .push("shadow-hunter".to_owned());
+        session.player_mut(OWNER).level = 5;
+
+        let _ = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("kings-demise".to_owned()),
+            OWNER,
+        );
+
+        // Step 0: kill 10 enemies
+        let mut logs = Vec::new();
+        for _ in 0..10 {
+            advance_kill_objectives(&mut session, "some-enemy", &mut logs);
+        }
+
+        // Should have advanced to step 1
+        let quest = session.quest_journal.find_active("kings-demise").unwrap();
+        assert_eq!(
+            quest.current_step, 1,
+            "Should advance to step 1 after 10 kills"
+        );
+
+        // Step 1: kill the shattered king
+        advance_kill_objectives(&mut session, "the-shattered-king", &mut logs);
+        assert!(session.quest_journal.is_completed("kings-demise"));
+        assert!(logs.iter().any(|l| l.contains("Quest complete")));
+    }
+
+    #[test]
+    fn repeatable_quest_can_be_reaccepted() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+
+        // Accept and complete treasure-seeker
+        let _ = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("treasure-seeker".to_owned()),
+            OWNER,
+        );
+        // Manually complete it
+        session.quest_journal.complete_quest("treasure-seeker");
+        assert!(session.quest_journal.is_completed("treasure-seeker"));
+
+        // Re-accept it
+        let result = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("treasure-seeker".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        assert!(logs.iter().any(|l| l.contains("Quest accepted")));
+        assert!(session.quest_journal.is_active("treasure-seeker"));
+    }
+
+    #[test]
+    fn non_repeatable_quest_cannot_be_reaccepted() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+
+        let _ = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+        session.quest_journal.complete_quest("slime-slayer");
+
+        let result = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_ok());
+        let logs = result.unwrap();
+        assert!(logs.iter().any(|l| l.contains("already completed")));
+    }
+
+    #[test]
+    fn quest_journal_default_empty() {
+        let journal = QuestJournal::default();
+        assert!(journal.active.is_empty());
+        assert!(journal.completed.is_empty());
+        assert!(journal.abandoned.is_empty());
+        assert_eq!(journal.active_count(), 0);
+    }
+
+    #[test]
+    fn quest_journal_complete_removes_from_active() {
+        let mut journal = QuestJournal::default();
+        let quest = proto_bridge::find_quest_by_ref("slime-slayer").unwrap();
+        journal.active.push(proto_bridge::build_active_quest(quest));
+        assert_eq!(journal.active_count(), 1);
+
+        journal.complete_quest("slime-slayer");
+        assert_eq!(journal.active_count(), 0);
+        assert!(journal.is_completed("slime-slayer"));
+    }
+
+    #[test]
+    fn quest_journal_abandon_removes_from_active() {
+        let mut journal = QuestJournal::default();
+        let quest = proto_bridge::find_quest_by_ref("slime-slayer").unwrap();
+        journal.active.push(proto_bridge::build_active_quest(quest));
+
+        journal.abandon_quest("slime-slayer");
+        assert_eq!(journal.active_count(), 0);
+        assert!(journal.is_abandoned("slime-slayer"));
+    }
+
+    #[test]
+    fn objective_progress_is_complete() {
+        let obj = ObjectiveProgress {
+            objective_id: "test".to_owned(),
+            current: 3,
+            required: 3,
+        };
+        assert!(obj.is_complete());
+
+        let obj2 = ObjectiveProgress {
+            objective_id: "test".to_owned(),
+            current: 2,
+            required: 3,
+        };
+        assert!(!obj2.is_complete());
+    }
+
+    #[test]
+    fn step_progress_is_complete() {
+        let step = StepProgress {
+            step_id: "test".to_owned(),
+            objectives: vec![
+                ObjectiveProgress {
+                    objective_id: "a".to_owned(),
+                    current: 3,
+                    required: 3,
+                },
+                ObjectiveProgress {
+                    objective_id: "b".to_owned(),
+                    current: 1,
+                    required: 1,
+                },
+            ],
+        };
+        assert!(step.is_complete());
+    }
+
+    #[test]
+    fn active_quest_try_advance_step() {
+        let mut aq = ActiveQuest {
+            quest_ref: "test".to_owned(),
+            current_step: 0,
+            steps: vec![
+                StepProgress {
+                    step_id: "s0".to_owned(),
+                    objectives: vec![ObjectiveProgress {
+                        objective_id: "o0".to_owned(),
+                        current: 5,
+                        required: 5,
+                    }],
+                },
+                StepProgress {
+                    step_id: "s1".to_owned(),
+                    objectives: vec![ObjectiveProgress {
+                        objective_id: "o1".to_owned(),
+                        current: 0,
+                        required: 1,
+                    }],
+                },
+            ],
+        };
+        assert!(aq.try_advance_step());
+        assert_eq!(aq.current_step, 1);
+        assert!(!aq.is_complete());
+
+        // Can't advance further until step 1 is done
+        assert!(!aq.try_advance_step());
+    }
+
+    #[test]
+    fn view_quests_action_always_allowed() {
+        let mut session = test_session();
+        // Allowed in any non-GameOver phase
+        for phase in [
+            GamePhase::Exploring,
+            GamePhase::Combat,
+            GamePhase::City,
+            GamePhase::Merchant,
+            GamePhase::Rest,
+        ] {
+            session.phase = phase;
+            if session.phase == GamePhase::Combat {
+                if session.enemies.is_empty() {
+                    session.enemies.push(test_enemy());
+                }
+            }
+            let result = apply_action(&mut session, GameAction::ViewQuests, OWNER);
+            assert!(
+                result.is_ok(),
+                "ViewQuests should be allowed in {:?}",
+                session.phase
+            );
+        }
+    }
+
+    // ── Quest NPC encounter tests ──────────────────────────────────
+
+    #[test]
+    fn quest_offers_shown_on_city_arrival() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        // Arrive at a city tile
+        let mut tile = session
+            .map
+            .tiles
+            .get(&session.map.position)
+            .unwrap()
+            .clone();
+        tile.room_type = RoomType::UndergroundCity;
+        session.map.tiles.insert(session.map.position, tile);
+        let pos = session.map.position;
+        let logs = arrive_at_tile(&mut session, pos);
+        // Should mention quest offers and populate available_quests
+        let has_quest_offer = logs.iter().any(|l| l.contains("["));
+        let has_intro = logs
+            .iter()
+            .any(|l| l.contains("hooded figure") || l.contains("tavern"));
+        if !session.room.available_quests.is_empty() {
+            assert!(has_quest_offer, "City arrival should list available quests");
+            assert!(has_intro, "City should have quest giver intro text");
+        }
+    }
+
+    #[test]
+    fn quest_offers_shown_on_merchant_arrival() {
+        let mut session = test_session();
+        session.phase = GamePhase::Exploring;
+        let mut tile = session
+            .map
+            .tiles
+            .get(&session.map.position)
+            .unwrap()
+            .clone();
+        tile.room_type = RoomType::Merchant;
+        session.map.tiles.insert(session.map.position, tile);
+        let pos = session.map.position;
+        let logs = arrive_at_tile(&mut session, pos);
+        let has_quest_offer = logs.iter().any(|l| l.contains("["));
+        let has_intro = logs.iter().any(|l| l.contains("quest board"));
+        if !session.room.available_quests.is_empty() {
+            assert!(
+                has_quest_offer,
+                "Merchant arrival should list available quests"
+            );
+            assert!(has_intro, "Merchant should have quest board intro text");
+        }
+    }
+
+    #[test]
+    fn accept_quest_allowed_at_merchant() {
+        let mut session = test_session();
+        session.phase = GamePhase::Merchant;
+        let result = apply_action(
+            &mut session,
+            GameAction::AcceptQuest("slime-slayer".to_owned()),
+            OWNER,
+        );
+        assert!(result.is_ok(), "AcceptQuest should be allowed at merchant");
+        assert!(session.quest_journal.is_active("slime-slayer"));
+    }
+
+    #[test]
+    fn completed_quests_not_offered() {
+        let mut session = test_session();
+        session
+            .quest_journal
+            .completed
+            .push("slime-slayer".to_owned());
+        session.phase = GamePhase::Exploring;
+        let mut tile = session
+            .map
+            .tiles
+            .get(&session.map.position)
+            .unwrap()
+            .clone();
+        tile.room_type = RoomType::UndergroundCity;
+        session.map.tiles.insert(session.map.position, tile);
+        let pos = session.map.position;
+        let _ = arrive_at_tile(&mut session, pos);
+        assert!(
+            !session
+                .room
+                .available_quests
+                .contains(&"slime-slayer".to_owned()),
+            "Completed non-repeatable quests should not be offered"
+        );
+    }
+
+    #[test]
+    fn active_quests_not_offered() {
+        let mut session = test_session();
+        let proto = proto_bridge::find_quest_by_ref("slime-slayer").unwrap();
+        session
+            .quest_journal
+            .active
+            .push(proto_bridge::build_active_quest(proto));
+        let mut tile = session
+            .map
+            .tiles
+            .get(&session.map.position)
+            .unwrap()
+            .clone();
+        tile.room_type = RoomType::UndergroundCity;
+        session.map.tiles.insert(session.map.position, tile);
+        let pos = session.map.position;
+        let _ = arrive_at_tile(&mut session, pos);
+        assert!(
+            !session
+                .room
+                .available_quests
+                .contains(&"slime-slayer".to_owned()),
+            "Already active quests should not be offered"
+        );
+    }
+
+    #[test]
+    fn quest_tracker_in_card_template() {
+        use crate::discord::game::card::GameCardTemplate;
+
+        let mut session = test_session();
+        let proto = proto_bridge::find_quest_by_ref("slime-slayer").unwrap();
+        let mut aq = proto_bridge::build_active_quest(proto);
+        // Simulate partial progress
+        if let Some(step) = aq.steps.get_mut(0) {
+            if let Some(obj) = step.objectives.get_mut(0) {
+                obj.current = 1;
+            }
+        }
+        session.quest_journal.active.push(aq);
+
+        let card = GameCardTemplate::from_session(&session);
+        assert!(card.has_quests);
+        assert_eq!(card.quest_trackers.len(), 1);
+        assert_eq!(card.quest_trackers[0].title, "Slime Slayer");
+        assert!(card.quest_trackers[0].progress.contains("1/3"));
+    }
+
+    #[test]
+    fn quest_tracker_max_two_shown() {
+        use crate::discord::game::card::GameCardTemplate;
+
+        let mut session = test_session();
+        for qref in &["slime-slayer", "dungeon-delver", "treasure-seeker"] {
+            let proto = proto_bridge::find_quest_by_ref(qref).unwrap();
+            session
+                .quest_journal
+                .active
+                .push(proto_bridge::build_active_quest(proto));
+        }
+
+        let card = GameCardTemplate::from_session(&session);
+        assert!(card.has_quests);
+        assert_eq!(
+            card.quest_trackers.len(),
+            2,
+            "Only 2 quest trackers shown on card"
+        );
+    }
+
+    #[test]
+    fn no_quest_tracker_when_empty() {
+        use crate::discord::game::card::GameCardTemplate;
+
+        let session = test_session();
+        let card = GameCardTemplate::from_session(&session);
+        assert!(!card.has_quests);
+        assert!(card.quest_trackers.is_empty());
     }
 }

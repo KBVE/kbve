@@ -1,5 +1,6 @@
 mod butterfly;
 pub mod common;
+pub mod creature;
 mod firefly;
 mod frog;
 
@@ -7,6 +8,10 @@ use bevy::prelude::*;
 
 pub use common::GameTime;
 use common::{CreatureMeshes, CreaturePool};
+pub use creature::{
+    Creature, CreatureConfig, CreatureRegistry, CreatureState, EmissiveData, RenderKind,
+    TimeSchedule,
+};
 pub use frog::FrogMaterials;
 
 /// Build creature meshes once at Startup to avoid allocating during spawn.
@@ -17,31 +22,68 @@ fn setup_creature_meshes(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>
     });
 }
 
+/// Load the NpcDb-driven creature registry at startup.
+fn setup_creature_registry(mut commands: Commands) {
+    let registry = creature::build_creature_registry();
+    info!(
+        "[creatures] registry loaded: {} creature types",
+        registry.creature_ids.len()
+    );
+    for (id, npc, config) in registry.iter_creatures() {
+        info!(
+            "[creatures]   {} (id={:?}, family={}, render={:?}, pool={})",
+            npc.name, id, npc.family, config.render_kind, config.pool_size
+        );
+    }
+    commands.insert_resource(registry);
+}
+
 /// Registers all creature systems.
 ///
-/// To add a new creature:
-/// 1. Create a `<name>/` directory with `mod.rs` (and any assets)
-/// 2. Add `mod <name>;` above
-/// 3. Add a `<name>_spawned: bool` field to `CreaturePool` in `common.rs`
-/// 4. Register spawn + animate systems below
+/// ## Architecture
+///
+/// The creature system has two layers:
+///
+/// 1. **NpcDb registry** ([`CreatureRegistry`]) — game-agnostic NPC definitions
+///    from proto + game-specific spawn/render configs. Loaded at startup.
+///
+/// 2. **Per-type systems** (firefly, butterfly, frog) — each uses the unified
+///    [`Creature`] component with render-specific companions (`EmissiveData`,
+///    `BillboardData`, `SpriteData`). New creature types should follow this pattern.
 pub struct CreaturesPlugin;
 
 impl Plugin for CreaturesPlugin {
     fn build(&self, app: &mut App) {
+        // --- Unified NpcDb-driven registry ---
+        app.add_systems(Startup, setup_creature_registry);
+
+        // --- Legacy per-type resources ---
         app.init_resource::<CreaturePool>();
         app.init_resource::<common::GameTime>();
         app.init_resource::<FrogMaterials>();
+        app.init_resource::<firefly::FireflyState>();
         app.add_systems(Startup, setup_creature_meshes);
+
+        // --- Per-type systems ---
         app.add_systems(
             Update,
             (
+                // Fireflies (unified Creature + EmissiveData)
                 firefly::spawn_fireflies.run_if(|pool: Res<CreaturePool>| !pool.fireflies_spawned),
-                firefly::animate_fireflies.run_if(any_with_component::<firefly::Firefly>),
+                firefly::assign_firefly_slots
+                    .after(firefly::spawn_fireflies)
+                    .run_if(any_with_component::<creature::EmissiveData>),
+                firefly::animate_fireflies
+                    .after(firefly::assign_firefly_slots)
+                    .run_if(any_with_component::<creature::EmissiveData>),
+                // Butterflies (unified Creature + BillboardData)
                 butterfly::spawn_butterflies
                     .run_if(|pool: Res<CreaturePool>| !pool.butterflies_spawned),
-                butterfly::animate_butterflies.run_if(any_with_component::<butterfly::Butterfly>),
+                butterfly::animate_butterflies
+                    .run_if(any_with_component::<creature::BillboardData>),
+                // Frogs (unified Creature + SpriteData)
                 frog::spawn_frogs.run_if(|pool: Res<CreaturePool>| !pool.frogs_spawned),
-                frog::animate_frogs.run_if(any_with_component::<frog::Frog>),
+                frog::animate_frogs.run_if(any_with_component::<creature::SpriteData>),
             ),
         );
     }

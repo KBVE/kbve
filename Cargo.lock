@@ -1186,11 +1186,13 @@ dependencies = [
  "bevy_inventory",
  "bevy_items",
  "bevy_npc",
+ "bevy_quests",
  "dashmap 6.1.0",
  "dotenvy",
  "http-body-util",
  "jedi",
  "kbve",
+ "lru",
  "num_cpus",
  "poise",
  "rand 0.10.0",
@@ -1271,7 +1273,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.55"
+version = "1.0.56"
 dependencies = [
  "anyhow",
  "askama",
@@ -2135,6 +2137,7 @@ version = "0.1.0"
 dependencies = [
  "avian3d",
  "bevy",
+ "bevy_npc",
  "lightyear",
  "serde",
 ]

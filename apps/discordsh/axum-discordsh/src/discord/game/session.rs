@@ -68,7 +68,12 @@ impl SessionStore {
 
     /// Remove sessions that have been idle longer than `timeout`.
     /// Called periodically by a background task.
-    pub fn cleanup_expired(&self, timeout: Duration) {
+    /// Saves player profiles before removing expired sessions.
+    pub fn cleanup_expired(
+        &self,
+        timeout: Duration,
+        profiles: Option<&std::sync::Arc<super::persistence::ProfileStore>>,
+    ) {
         let now = Instant::now();
         let mut to_remove = Vec::new();
 
@@ -77,6 +82,14 @@ impl SessionStore {
                 && now.duration_since(session.last_action_at) > timeout
             {
                 session.phase = GamePhase::GameOver(GameOverReason::Expired);
+                // Save all players before expiring
+                if let Some(profiles) = profiles {
+                    super::persistence::save_all_players(
+                        profiles,
+                        &session,
+                        &GameOverReason::Expired,
+                    );
+                }
                 to_remove.push(entry.key().clone());
             }
         }
@@ -132,6 +145,7 @@ mod tests {
             show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
+            quest_journal: QuestJournal::default(),
         }
     }
 
@@ -193,7 +207,7 @@ mod tests {
         store.create(test_state("new_one", 200, 2));
 
         assert_eq!(store.count(), 2);
-        store.cleanup_expired(Duration::from_secs(600));
+        store.cleanup_expired(Duration::from_secs(600), None);
         assert_eq!(store.count(), 1);
         assert!(store.get("new_one").is_some());
         assert!(store.get("old_one").is_none());

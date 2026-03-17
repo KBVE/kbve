@@ -135,4 +135,9 @@ pub enum Personality {
     Stoic,
     Feral,
     Ancient,
+    Cheerful,
+    Mysterious,
+    Cowardly,
+    Noble,
+    Passive,
 }

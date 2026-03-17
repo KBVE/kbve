@@ -1,0 +1,260 @@
+{
+	"quests": [
+		{
+			"id": "01JX26AA1NSLIMESLAYER000001",
+			"ref": "slime-slayer",
+			"title": "Slime Slayer",
+			"description": "The dungeon's lower tunnels are overrun with slimes. Clear them out to prove your worth.",
+			"category": "side",
+			"tags": ["discordsh", "combat", "beginner"],
+			"hidden": false,
+			"repeatable": false,
+			"recommended_level": 1,
+			"steps": [
+				{
+					"id": "step-kill-slimes",
+					"title": "Exterminate the Slimes",
+					"objectives": [
+						{
+							"id": "obj-kill-3-enemies",
+							"description": "Defeat 3 enemies in the dungeon",
+							"type": "kill",
+							"required_amount": 3
+						}
+					]
+				}
+			],
+			"rewards": {
+				"currency": 50,
+				"xp": 30
+			},
+			"triggers": ["player:level:1", "area:dungeon"]
+		},
+		{
+			"id": "01JX26BB2NDUNGEONDELVER0002",
+			"ref": "dungeon-delver",
+			"title": "Dungeon Delver",
+			"description": "Venture deep into the dungeon and explore its forgotten corridors.",
+			"category": "main",
+			"tags": ["discordsh", "exploration", "beginner"],
+			"hidden": false,
+			"repeatable": false,
+			"recommended_level": 1,
+			"steps": [
+				{
+					"id": "step-explore-rooms",
+					"title": "Explore the Dungeon",
+					"objectives": [
+						{
+							"id": "obj-visit-5-rooms",
+							"description": "Explore 5 different rooms",
+							"type": "explore",
+							"required_amount": 5
+						}
+					]
+				}
+			],
+			"rewards": {
+				"currency": 75,
+				"xp": 50
+			},
+			"triggers": ["player:level:1", "area:dungeon"],
+			"next_quest_ref": "shadow-hunter"
+		},
+		{
+			"id": "01JX26CC3NSHADOWHUNTER00003",
+			"ref": "shadow-hunter",
+			"title": "Shadow Hunter",
+			"description": "A powerful shadow wraith has been sighted in the deeper levels. Track it down and destroy it.",
+			"category": "main",
+			"tags": ["discordsh", "combat", "boss"],
+			"hidden": false,
+			"repeatable": false,
+			"recommended_level": 3,
+			"prerequisites": {
+				"quest_refs": ["dungeon-delver"],
+				"level_requirement": 2
+			},
+			"steps": [
+				{
+					"id": "step-reach-depth",
+					"title": "Descend to the Depths",
+					"objectives": [
+						{
+							"id": "obj-explore-rooms",
+							"description": "Explore 8 rooms to reach the deeper levels",
+							"type": "explore",
+							"required_amount": 8
+						}
+					]
+				},
+				{
+					"id": "step-slay-boss",
+					"title": "Slay the Shadow Wraith",
+					"objectives": [
+						{
+							"id": "obj-kill-boss",
+							"description": "Defeat a boss enemy",
+							"type": "kill",
+							"target_refs": ["shadow-wraith"],
+							"required_amount": 1
+						}
+					]
+				}
+			],
+			"rewards": {
+				"currency": 200,
+				"xp": 150,
+				"items": [
+					{
+						"item_ref": "smoke-bomb",
+						"amount": 3
+					}
+				]
+			},
+			"triggers": ["quest:complete:dungeon-delver"],
+			"next_quest_ref": "kings-demise"
+		},
+		{
+			"id": "01JX26DD4NKINGSDEMISE000004",
+			"ref": "kings-demise",
+			"title": "The King's Demise",
+			"description": "The Shattered King rules the deepest level of the dungeon. End his reign of terror.",
+			"category": "main",
+			"tags": ["discordsh", "combat", "boss", "endgame"],
+			"hidden": false,
+			"repeatable": false,
+			"recommended_level": 5,
+			"prerequisites": {
+				"quest_refs": ["shadow-hunter"],
+				"level_requirement": 3
+			},
+			"steps": [
+				{
+					"id": "step-prepare",
+					"title": "Prepare for the Final Battle",
+					"objectives": [
+						{
+							"id": "obj-kill-10-enemies",
+							"description": "Defeat 10 enemies to prove you are ready",
+							"type": "kill",
+							"required_amount": 10
+						}
+					]
+				},
+				{
+					"id": "step-defeat-king",
+					"title": "Defeat the Shattered King",
+					"objectives": [
+						{
+							"id": "obj-kill-shattered-king",
+							"description": "Defeat the Shattered King",
+							"type": "kill",
+							"target_refs": ["the-shattered-king"],
+							"required_amount": 1
+						}
+					]
+				}
+			],
+			"rewards": {
+				"currency": 500,
+				"xp": 300,
+				"items": [
+					{
+						"item_ref": "excalibur",
+						"amount": 1
+					}
+				],
+				"achievement": {
+					"api_name": "ACH_KINGS_DEMISE",
+					"name": "Kingslayer",
+					"description": "Defeated the Shattered King in the deepest dungeon.",
+					"hidden": false,
+					"min_value": 0,
+					"max_value": 1
+				}
+			},
+			"triggers": ["quest:complete:shadow-hunter"]
+		},
+		{
+			"id": "01JX26EE5NTREASURESEEKER005",
+			"ref": "treasure-seeker",
+			"title": "Treasure Seeker",
+			"description": "The dungeon is filled with hidden riches. Collect gold from treasure rooms and enemy loot.",
+			"category": "side",
+			"tags": ["discordsh", "loot", "beginner"],
+			"hidden": false,
+			"repeatable": true,
+			"recommended_level": 1,
+			"steps": [
+				{
+					"id": "step-collect-gold",
+					"title": "Amass a Fortune",
+					"objectives": [
+						{
+							"id": "obj-earn-100-gold",
+							"description": "Earn 100 gold in a single dungeon run",
+							"type": "collect",
+							"required_amount": 100
+						}
+					]
+				}
+			],
+			"rewards": {
+				"currency": 25,
+				"xp": 20,
+				"items": [
+					{
+						"item_ref": "potion",
+						"amount": 2
+					}
+				]
+			},
+			"triggers": ["player:level:1", "area:dungeon"]
+		},
+		{
+			"id": "01JX26FF6NSURVIVOR00000006",
+			"ref": "survivor",
+			"title": "Survivor",
+			"description": "The dungeon is merciless. Prove you can endure by clearing rooms without falling in battle.",
+			"category": "challenge",
+			"tags": ["discordsh", "survival", "challenge"],
+			"hidden": false,
+			"repeatable": true,
+			"recommended_level": 2,
+			"steps": [
+				{
+					"id": "step-clear-rooms",
+					"title": "Clear Rooms Without Dying",
+					"objectives": [
+						{
+							"id": "obj-clear-3-rooms",
+							"description": "Clear 3 combat rooms without dying",
+							"type": "explore",
+							"required_amount": 3
+						}
+					]
+				}
+			],
+			"rewards": {
+				"currency": 100,
+				"xp": 75,
+				"items": [
+					{
+						"item_ref": "campfire-kit",
+						"amount": 1
+					}
+				]
+			},
+			"triggers": ["player:level:2", "area:dungeon"]
+		}
+	],
+	"key": {
+		"slime-slayer": 0,
+		"dungeon-delver": 1,
+		"shadow-hunter": 2,
+		"kings-demise": 3,
+		"treasure-seeker": 4,
+		"survivor": 5
+	}
+}

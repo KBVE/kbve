@@ -38,6 +38,30 @@ describe('Static file serving', () => {
 		expect(res.status).toBe(404);
 	});
 
+	it('returns COOP/COEP headers on /arcade/isometric/ for SharedArrayBuffer', async () => {
+		const res = await fetch(`${BASE_URL}/arcade/isometric/`);
+		if (res.status === 200) {
+			expect(res.headers.get('cross-origin-opener-policy')).toBe(
+				'same-origin',
+			);
+			expect(res.headers.get('cross-origin-embedder-policy')).toBe(
+				'require-corp',
+			);
+		}
+	});
+
+	it('returns COOP/COEP headers on /isometric/ asset paths', async () => {
+		const res = await fetch(`${BASE_URL}/isometric/wasm-worker.js`);
+		if (res.status === 200) {
+			expect(res.headers.get('cross-origin-opener-policy')).toBe(
+				'same-origin',
+			);
+			expect(res.headers.get('cross-origin-embedder-policy')).toBe(
+				'require-corp',
+			);
+		}
+	});
+
 	it('supports precompressed content via Accept-Encoding', async () => {
 		const res = await fetch(`${BASE_URL}/health`, {
 			headers: { 'Accept-Encoding': 'gzip, deflate, br' },

@@ -23,6 +23,13 @@ pub struct RoomBadge {
     pub color: &'static str,
 }
 
+/// Pre-computed display values for an active quest tracker entry.
+pub struct QuestTracker {
+    pub title: String,
+    pub progress: String,
+    pub y: u32,
+}
+
 /// Pre-computed display values for a single player panel in the SVG card.
 pub struct PlayerPanel {
     pub name: String,
@@ -108,6 +115,10 @@ pub struct GameCardTemplate {
     pub is_party_mode: bool,
     pub party_count: usize,
     pub party_alive: usize,
+
+    // Quest tracker (up to 2 active quests shown)
+    pub quest_trackers: Vec<QuestTracker>,
+    pub has_quests: bool,
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -272,6 +283,39 @@ fn build_room_badges(session: &SessionState) -> Vec<RoomBadge> {
     }
 
     badges
+}
+
+fn build_quest_trackers(session: &SessionState) -> Vec<QuestTracker> {
+    // Show up to 2 active quests in the card footer area
+    session
+        .quest_journal
+        .active
+        .iter()
+        .take(2)
+        .enumerate()
+        .map(|(i, aq)| {
+            let title = super::proto_bridge::find_quest_by_ref(&aq.quest_ref)
+                .map(|q| q.title.as_str())
+                .unwrap_or(&aq.quest_ref);
+
+            let progress = aq
+                .current_step_progress()
+                .map(|step| {
+                    step.objectives
+                        .iter()
+                        .map(|o| format!("{}/{}", o.current, o.required))
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                })
+                .unwrap_or_else(|| "Done".to_owned());
+
+            QuestTracker {
+                title: title.to_owned(),
+                progress,
+                y: 330 - (i as u32 * 14),
+            }
+        })
+        .collect()
 }
 
 // ── Template construction ───────────────────────────────────────────
@@ -473,6 +517,9 @@ impl GameCardTemplate {
             is_party_mode: session.mode == SessionMode::Party,
             party_count: session.players.len(),
             party_alive: session.players.values().filter(|p| p.alive).count(),
+
+            quest_trackers: build_quest_trackers(session),
+            has_quests: !session.quest_journal.active.is_empty(),
         }
     }
 
@@ -686,6 +733,9 @@ impl GameCardTemplate {
             is_party_mode: session.mode == SessionMode::Party,
             party_count: session.players.len(),
             party_alive: snap.players.iter().filter(|p| p.alive).count(),
+
+            quest_trackers: build_quest_trackers(session),
+            has_quests: !session.quest_journal.active.is_empty(),
         }
     }
 }
@@ -1179,6 +1229,7 @@ mod tests {
             show_inventory: false,
             pending_destination: None,
             enemies_had_first_strike: false,
+            quest_journal: QuestJournal::default(),
         }
     }
 

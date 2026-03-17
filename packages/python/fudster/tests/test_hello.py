@@ -123,3 +123,9 @@ def test_utils_importable():
     assert RSSUtility is not None
     assert KRDecorator is not None
     assert DynamicEndpoint is not None
+
+
+def test_api_connector_context_manager():
+    """Test APIConnector supports async context manager protocol."""
+    assert hasattr(APIConnector, '__aenter__')
+    assert hasattr(APIConnector, '__aexit__')

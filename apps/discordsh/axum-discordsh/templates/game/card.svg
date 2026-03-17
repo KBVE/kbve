@@ -85,6 +85,13 @@
   {% endfor %}
   {% endif %}
 
+  {% if has_quests %}
+  <!-- ─── Quest tracker ─── -->
+  {% for qt in quest_trackers %}
+  <text x="780" y="{{ qt.y }}" text-anchor="end" font-family="Alagard, sans-serif" font-size="9" fill="#f39c12">{{ qt.title }} [{{ qt.progress }}]</text>
+  {% endfor %}
+  {% endif %}
+
   <!-- ─── Room badges strip ─── -->
   {% for badge in room_badges %}
   <rect x="{{ badge.x }}" y="345" width="{{ badge.width }}" height="26" rx="8" fill="{{ badge.color }}" opacity="0.7"/>
