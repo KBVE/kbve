@@ -37,6 +37,7 @@ lru = "0.16"
 uuid = { version = "1", features = ["v4", "serde"] }
 rand = "0.10"
 rand_chacha = "0.10"
+chrono = "0.4"
 
 # Workspace path dependencies
 jedi = { path = "../../../packages/rust/jedi" }
