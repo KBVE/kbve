@@ -89,7 +89,134 @@ message ServerTag {
 }
 
 // =============================================================================
-// Requests / Responses
+// Dungeon — Player Persistence
+// =============================================================================
+
+// Session outcome for run history
+enum DungeonOutcome {
+  DUNGEON_OUTCOME_UNSPECIFIED = 0;
+  DUNGEON_OUTCOME_VICTORY = 1;
+  DUNGEON_OUTCOME_DEFEATED = 2;
+  DUNGEON_OUTCOME_ESCAPED = 3;
+  DUNGEON_OUTCOME_EXPIRED = 4;
+}
+
+// Player class (maps to ClassType in Rust game types)
+enum DungeonClass {
+  DUNGEON_CLASS_UNSPECIFIED = 0;
+  DUNGEON_CLASS_WARRIOR = 1;
+  DUNGEON_CLASS_ROGUE = 2;
+  DUNGEON_CLASS_CLERIC = 3;
+}
+
+// Leaderboard sort category
+enum LeaderboardCategory {
+  LEADERBOARD_CATEGORY_UNSPECIFIED = 0;
+  LEADERBOARD_CATEGORY_XP = 1;
+  LEADERBOARD_CATEGORY_KILLS = 2;
+  LEADERBOARD_CATEGORY_BOSSES = 3;
+  LEADERBOARD_CATEGORY_ROOMS = 4;
+  LEADERBOARD_CATEGORY_GOLD = 5;
+}
+
+// A single inventory slot (persisted as JSONB in SQL)
+message DungeonInventorySlot {
+  string item_id = 1;
+  int32 qty = 2;
+}
+
+// Persistent player profile — one per Discord user (keyed on discord_id BIGINT)
+message DungeonProfile {
+  int64 discord_id = 1;                      // Discord snowflake (u64)
+  string discord_name = 2;                   // Display name at last save
+  DungeonClass class = 3;                    // Last played class
+  int32 level = 4;                           // Player level (1+)
+  int32 xp = 5;                             // Current XP
+  int32 xp_to_next = 6;                     // XP needed for next level
+
+  // Economy
+  int32 gold = 7;
+
+  // Lifetime stats (monotonically increasing)
+  int32 lifetime_kills = 8;
+  int32 lifetime_gold_earned = 9;
+  int32 lifetime_rooms_cleared = 10;
+  int32 lifetime_bosses_defeated = 11;
+  int32 lifetime_deaths = 12;
+  int32 lifetime_victories = 13;
+  int32 lifetime_escapes = 14;
+
+  // Equipment
+  optional string weapon = 15;              // Gear ID or absent
+  optional string armor_gear = 16;          // Gear ID or absent
+
+  // Inventory & quests
+  repeated DungeonInventorySlot inventory = 17;
+  repeated string completed_quests = 18;    // Quest ref slugs
+
+  // Timestamps (ISO 8601 strings from SQL)
+  optional string created_at = 19;
+  optional string updated_at = 20;
+}
+
+// A single completed dungeon run (append-only history)
+message DungeonRun {
+  int64 id = 1;                              // Auto-generated PK
+  int64 discord_id = 2;                      // FK to DungeonProfile
+  DungeonOutcome outcome = 3;
+  int32 rooms_cleared = 4;
+  int32 kills = 5;
+  int32 gold_earned = 6;
+  int32 gold_lost = 7;
+  int32 bosses_defeated = 8;
+  int32 xp_earned = 9;
+  int32 level_at_end = 10;
+  optional int32 duration_secs = 11;         // Wall time of session
+  optional string ended_at = 12;             // ISO 8601
+}
+
+// A leaderboard entry (returned from ranking queries)
+message LeaderboardEntry {
+  int64 rank = 1;
+  int64 discord_id = 2;
+  string discord_name = 3;
+  int32 level = 4;
+  int64 value = 5;                           // Category-specific score
+}
+
+// =============================================================================
+// Requests / Responses — Dungeon Persistence
+// =============================================================================
+
+message LoadProfileRequest {
+  int64 discord_id = 1;
+}
+
+message LoadProfileResponse {
+  bool found = 1;
+  optional DungeonProfile profile = 2;
+}
+
+message SaveProfileRequest {
+  DungeonProfile profile = 1;
+  DungeonRun run = 2;                        // Run summary to log
+}
+
+message SaveProfileResponse {
+  kbve.common.Result result = 1;
+}
+
+message LeaderboardRequest {
+  LeaderboardCategory category = 1;
+  int32 limit = 2;                           // Max entries (1-50, default 10)
+}
+
+message LeaderboardResponse {
+  repeated LeaderboardEntry entries = 1;
+}
+
+// =============================================================================
+// Requests / Responses — Server Directory
 // =============================================================================
 
 // --- List servers (feed) ---
@@ -176,4 +303,9 @@ service DiscordShData {
   // Engagement
   rpc VoteServer (VoteServerRequest) returns (VoteServerResponse);
   rpc BumpServer (BumpServerRequest) returns (BumpServerResponse);
+
+  // Dungeon — Player persistence
+  rpc LoadProfile (LoadProfileRequest) returns (LoadProfileResponse);
+  rpc SaveProfile (SaveProfileRequest) returns (SaveProfileResponse);
+  rpc GetLeaderboard (LeaderboardRequest) returns (LeaderboardResponse);
 }

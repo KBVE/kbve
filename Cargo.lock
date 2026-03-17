@@ -1192,6 +1192,7 @@ dependencies = [
  "http-body-util",
  "jedi",
  "kbve",
+ "lru",
  "num_cpus",
  "poise",
  "rand 0.10.0",

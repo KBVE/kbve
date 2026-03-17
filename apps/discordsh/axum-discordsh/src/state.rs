@@ -7,7 +7,7 @@ use tokio::sync::{Notify, RwLock};
 
 use kbve::{FontDb, MemberCache};
 
-use crate::discord::game::SessionStore;
+use crate::discord::game::{ProfileStore, SessionStore};
 use crate::health::HealthMonitor;
 use crate::tracker::ShardTracker;
 
@@ -51,6 +51,10 @@ pub struct AppState {
     // ── Membership ─────────────────────────────────────────────────
     /// LRU-cached membership lookup (Supabase-backed when available).
     pub members: Arc<MemberCache>,
+
+    // ── Player persistence ──────────────────────────────────────────
+    /// LRU-cached dungeon profile store (Supabase-backed when available).
+    pub profiles: Arc<ProfileStore>,
 
     // ── Image rendering ──────────────────────────────────────────
     /// Shared font database for SVG-to-PNG rendering (loaded once at startup).
@@ -97,6 +101,7 @@ impl AppState {
             bot_http: RwLock::new(None),
             sessions: Arc::new(SessionStore::new()),
             members: Arc::new(MemberCache::from_env()),
+            profiles: Arc::new(ProfileStore::from_env()),
             fontdb,
         }
     }

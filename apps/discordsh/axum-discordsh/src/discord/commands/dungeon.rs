@@ -6,10 +6,13 @@ use poise::serenity_prelude as serenity;
 use kbve::MemberStatus;
 
 use crate::discord::bot::{Context, Error};
-use crate::discord::game::{self, card, content, render, types::*};
+use crate::discord::game::{self, card, content, persistence, render, types::*};
 
 /// Dungeon crawler game — stress-test embeds, buttons, and select menus.
-#[poise::command(slash_command, subcommands("start", "join", "leave", "status", "end"))]
+#[poise::command(
+    slash_command,
+    subcommands("start", "join", "leave", "status", "end", "leaderboard")
+)]
 pub async fn dungeon(_ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
@@ -76,7 +79,7 @@ async fn start(
     let (class_hp, class_armor, class_dmg, class_crit, class_gold) =
         content::class_starting_stats(&player_class);
 
-    let player = PlayerState {
+    let mut player = PlayerState {
         name: player_name,
         inventory: content::starting_inventory(),
         member_status: member_tag,
@@ -89,6 +92,14 @@ async fn start(
         crit_chance: class_crit,
         ..PlayerState::default()
     };
+
+    // Load persisted profile and apply to player
+    let mut quest_journal = QuestJournal::default();
+    let saved_profile = ctx.data().app.profiles.load(user.get()).await;
+    if let Some(ref profile) = saved_profile {
+        persistence::apply_profile_to_player(profile, &mut player, &mut quest_journal);
+        player.saved_snapshot = Some(profile.clone());
+    }
 
     // We need to send the message first to get the MessageId
     let session_state = SessionState {
@@ -117,7 +128,7 @@ async fn start(
         show_inventory: false,
         pending_destination: None,
         enemies_had_first_strike: false,
-        quest_journal: QuestJournal::default(),
+        quest_journal,
     };
 
     let components = render::render_components(&session_state);
@@ -300,7 +311,7 @@ async fn join(
     let (class_hp, class_armor, class_dmg, class_crit, class_gold) =
         content::class_starting_stats(&joiner_class);
 
-    let joiner_player = PlayerState {
+    let mut joiner_player = PlayerState {
         name: joiner_name,
         inventory: content::starting_inventory(),
         member_status: joiner_tag,
@@ -313,6 +324,18 @@ async fn join(
         crit_chance: class_crit,
         ..PlayerState::default()
     };
+
+    // Load persisted profile for joining player
+    let saved_profile = ctx.data().app.profiles.load(user.get()).await;
+    if let Some(ref profile) = saved_profile {
+        persistence::apply_profile_to_player(
+            profile,
+            &mut joiner_player,
+            &mut session.quest_journal,
+        );
+        joiner_player.saved_snapshot = Some(profile.clone());
+    }
+
     session.players.insert(user, joiner_player);
 
     session
@@ -373,13 +396,27 @@ async fn leave(ctx: Context<'_>) -> Result<(), Error> {
     let mut session = handle.lock().await;
 
     if session.owner == user {
-        // Owner leaving ends the session
+        // Owner leaving ends the session — save all players
         session.phase = GamePhase::GameOver(GameOverReason::Escaped);
+        persistence::save_all_players(&ctx.data().app.profiles, &session, &GameOverReason::Escaped);
         drop(session);
         ctx.data().app.sessions.remove(&sid);
         ctx.send(poise::CreateReply::default().content("Session ended (owner left)."))
             .await?;
     } else {
+        // Save the leaving player's progress (escaped)
+        if let Some(player) = session.players.get(&user) {
+            let (profile, run) = persistence::extract_save_payload(
+                user.get(),
+                &player.name,
+                player,
+                &session.quest_journal,
+                &GameOverReason::Escaped,
+                player.saved_snapshot.as_ref(),
+                &session,
+            );
+            ctx.data().app.profiles.save_async(profile, run);
+        }
         session.party.retain(|&id| id != user);
         session.players.remove(&user);
         session
@@ -475,11 +512,64 @@ async fn end(ctx: Context<'_>) -> Result<(), Error> {
         return Ok(());
     }
 
+    // Save all players before ending
+    persistence::save_all_players(&ctx.data().app.profiles, &session, &GameOverReason::Escaped);
+
     drop(session);
     ctx.data().app.sessions.remove(&sid);
 
     ctx.send(poise::CreateReply::default().content(format!("Dungeon session `{}` ended.", sid)))
         .await?;
+
+    Ok(())
+}
+
+/// View the dungeon leaderboard.
+#[poise::command(slash_command)]
+async fn leaderboard(
+    ctx: Context<'_>,
+    #[description = "Category: xp, kills, bosses, rooms, gold"] category: Option<String>,
+) -> Result<(), Error> {
+    let (cat_id, cat_label) = match category.as_deref() {
+        Some("kills") => (2i16, "Kills"),
+        Some("bosses") => (3i16, "Bosses Defeated"),
+        Some("rooms") => (4i16, "Rooms Cleared"),
+        Some("gold") => (5i16, "Gold Earned"),
+        _ => (1i16, "XP"),
+    };
+
+    let entries = ctx.data().app.profiles.leaderboard(cat_id, 10).await;
+
+    if entries.is_empty() {
+        ctx.send(
+            poise::CreateReply::default()
+                .content("No leaderboard data yet. Play some dungeons!")
+                .ephemeral(true),
+        )
+        .await?;
+        return Ok(());
+    }
+
+    let mut lines = Vec::new();
+    for entry in &entries {
+        let medal = match entry.rank {
+            1 => "\u{1F947}",
+            2 => "\u{1F948}",
+            3 => "\u{1F949}",
+            _ => "\u{25AB}",
+        };
+        lines.push(format!(
+            "{} **#{}** {} — Lv.{} | {} **{}**",
+            medal, entry.rank, entry.discord_name, entry.level, cat_label, entry.value
+        ));
+    }
+
+    let embed = serenity::CreateEmbed::new()
+        .title(format!("Dungeon Leaderboard — {}", cat_label))
+        .description(lines.join("\n"))
+        .color(0xFFD700);
+
+    ctx.send(poise::CreateReply::default().embed(embed)).await?;
 
     Ok(())
 }
