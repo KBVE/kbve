@@ -1,6 +1,16 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
+import {
+	SkipBack,
+	Rewind,
+	Play,
+	Pause,
+	FastForward,
+	SkipForward,
+	Volume2,
+	Grip,
+} from 'lucide-react';
 
 // ─── Minimal YT IFrame API types ──────────────────────────────────────────────
 declare global {
@@ -51,52 +61,60 @@ interface Props {
 	genres: Genre[];
 }
 
-// ─── Pixel overlay GLSL ───────────────────────────────────────────────────────
-// Vertex shader writes clip-space directly — bypasses camera, always fills canvas
-const vertexShader = `
-varying vec2 vUv;
-void main() {
-  vUv = uv;
-  gl_Position = vec4(position.xy, 0.0, 1.0);
-}
+// ─── GLSL for the offscreen (low-res) pass ────────────────────────────────────
+// Renders an animated retro pattern at (canvas / pixelSize) resolution.
+// Each texel → one chunky pixel block after NearestFilter upsampling.
+const offVert = /* glsl */ `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = vec4(position.xy, 0.0, 1.0);
+  }
+`;
+const offFrag = /* glsl */ `
+  uniform float uTime;
+  uniform vec3  uColor;
+  uniform float uIntensity;
+  varying vec2  vUv;
+
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.545);
+  }
+
+  void main() {
+    // Stable per-pixel random using fragment coordinates
+    float t   = floor(uTime * (3.0 + uIntensity * 6.0));
+    float rnd = hash(gl_FragCoord.xy + vec2(t * 137.0, t * 41.0));
+
+    // ~20 % of pixels light up each time step
+    float lit = step(0.80, rnd);
+
+    // Slow scan-band drifting downward
+    float scanY = fract(vUv.y - uTime * 0.08 * uIntensity);
+    float scan  = smoothstep(0.0, 0.12, scanY)
+                * (1.0 - smoothstep(0.55, 0.75, scanY));
+
+    float alpha  = (scan * 0.14 + lit * 0.55) * uIntensity;
+    vec3  col    = uColor * (0.65 + scan * 0.35 + lit * 0.35);
+    gl_FragColor = vec4(col, alpha);
+  }
 `;
 
-// CRT-style dot-matrix grid overlay.  No video sampling needed —
-// it's a stylistic screen filter rendered on top of the iframe.
-const fragmentShader = `
-uniform float uTime;
-uniform float uPixelSize;
-uniform vec3  uColor;
-uniform float uIntensity;
-
-varying vec2 vUv;
-
-void main() {
-  // Grid cell coordinates (0..1 within each cell)
-  vec2 cell = fract(vUv * uPixelSize);
-
-  // Distance from center of cell → circular dot
-  float dist = length(cell - vec2(0.5));
-  float dot_ = 1.0 - smoothstep(0.12, 0.36, dist);
-
-  // Scanline: every other row slightly dimmer
-  float row      = floor(vUv.y * uPixelSize);
-  float scanline  = mod(row, 2.0) < 1.0 ? 1.0 : 0.45;
-
-  // Slow heartbeat pulse when playing
-  float pulse = sin(uTime * 1.8) * 0.07 + 0.93;
-
-  // Soft vignette — brighter centre
-  vec2  c       = vUv - vec2(0.5);
-  float vignette = 1.0 - smoothstep(0.25, 0.72, length(c));
-
-  float alpha = dot_ * scanline * vignette * uIntensity * pulse * 0.38;
-  gl_FragColor  = vec4(uColor, alpha);
-}
+// Display pass — samples the pixelated render target full-screen
+const dispVert = /* glsl */ `
+  varying vec2 vUv;
+  void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }
+`;
+const dispFrag = /* glsl */ `
+  uniform sampler2D tPixel;
+  varying vec2 vUv;
+  void main() { gl_FragColor = texture2D(tPixel, vUv); }
 `;
 
-// ─── R3F pixel overlay mesh ───────────────────────────────────────────────────
-function PixelOverlay({
+// ─── R3F pixel overlay — two-pass WebGLRenderTarget approach ─────────────────
+// Pass 1: render animated pattern to a low-res target (size / pixelSize)
+// Pass 2: display with NearestFilter → chunky pixel blocks (real pixelation)
+function PixelatedOverlay({
 	color,
 	playing,
 	pixelSize,
@@ -105,36 +123,91 @@ function PixelOverlay({
 	playing: boolean;
 	pixelSize: number;
 }) {
-	const uniforms = useMemo(
-		() => ({
-			uTime: { value: 0 },
-			uPixelSize: { value: pixelSize },
-			uColor: { value: new THREE.Color(color) },
-			uIntensity: { value: playing ? 1.0 : 0.2 },
-		}),
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[],
-	);
+	const { gl, size } = useThree();
+
+	// Stable refs for uniforms — avoids recreating materials on every render
+	const offUniforms = useRef({
+		uTime: { value: 0 },
+		uColor: { value: new THREE.Color(color) },
+		uIntensity: { value: 0.0 },
+	});
+	const dispUniforms = useRef<{ tPixel: { value: THREE.Texture | null } }>({
+		tPixel: { value: null },
+	});
+
+	// Offscreen scene + camera (created once)
+	const { offScene, offCam } = useMemo(() => {
+		const offScene = new THREE.Scene();
+		const offCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+		const mat = new THREE.ShaderMaterial({
+			uniforms: offUniforms.current,
+			vertexShader: offVert,
+			fragmentShader: offFrag,
+			transparent: true,
+			depthWrite: false,
+		});
+		offScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
+		return { offScene, offCam };
+	}, []);
+
+	// Cleanup offscreen scene on unmount
+	useEffect(() => {
+		return () => {
+			offScene.traverse((obj) => {
+				if (obj instanceof THREE.Mesh) {
+					obj.geometry.dispose();
+					(obj.material as THREE.Material).dispose();
+				}
+			});
+		};
+	}, [offScene]);
+
+	// Low-res render target — recreated when size or pixelSize changes
+	const rtRef = useRef<THREE.WebGLRenderTarget | null>(null);
+
+	useEffect(() => {
+		const w = Math.max(1, Math.floor(size.width / pixelSize));
+		const h = Math.max(1, Math.floor(size.height / pixelSize));
+		const rt = new THREE.WebGLRenderTarget(w, h, {
+			minFilter: THREE.NearestFilter,
+			magFilter: THREE.NearestFilter,
+		});
+		rtRef.current = rt;
+		dispUniforms.current.tPixel.value = rt.texture;
+		return () => {
+			rt.dispose();
+			rtRef.current = null;
+		};
+	}, [size.width, size.height, pixelSize]);
 
 	useFrame(({ clock }) => {
-		uniforms.uTime.value = clock.elapsedTime;
-		uniforms.uPixelSize.value = pixelSize;
-		uniforms.uColor.value.set(color);
-		uniforms.uIntensity.value = THREE.MathUtils.lerp(
-			uniforms.uIntensity.value,
-			playing ? 1.0 : 0.15,
-			0.05,
+		const rt = rtRef.current;
+		if (!rt) return;
+
+		offUniforms.current.uTime.value = clock.elapsedTime;
+		offUniforms.current.uColor.value.set(color);
+		offUniforms.current.uIntensity.value = THREE.MathUtils.lerp(
+			offUniforms.current.uIntensity.value,
+			playing ? 1.0 : 0.08,
+			0.06,
 		);
+
+		// Render the animated pattern to the low-res target
+		gl.setRenderTarget(rt);
+		gl.render(offScene, offCam);
+		gl.setRenderTarget(null);
+
+		// Keep display uniform in sync (rt may have been recreated by useEffect)
+		dispUniforms.current.tPixel.value = rt.texture;
 	});
 
 	return (
 		<mesh>
-			{/* 2×2 plane in NDC — vertex shader maps this to full clip space */}
 			<planeGeometry args={[2, 2]} />
 			<shaderMaterial
-				uniforms={uniforms}
-				vertexShader={vertexShader}
-				fragmentShader={fragmentShader}
+				uniforms={dispUniforms.current}
+				vertexShader={dispVert}
+				fragmentShader={dispFrag}
 				transparent
 				depthWrite={false}
 			/>
@@ -150,21 +223,20 @@ function fmt(s: number) {
 	return `${m}:${sec.toString().padStart(2, '0')}`;
 }
 
+// Shared button style helpers
 const btnBase: React.CSSProperties = {
 	display: 'flex',
 	alignItems: 'center',
 	justifyContent: 'center',
-	padding: '4px 8px',
-	borderRadius: '4px',
+	padding: '5px 8px',
+	borderRadius: '6px',
 	cursor: 'pointer',
-	fontSize: '14px',
-	lineHeight: 1,
 	background: 'var(--sl-color-bg-nav)',
 	color: 'var(--sl-color-text)',
 	border: '1px solid var(--sl-color-hairline)',
-	transition: 'opacity 0.15s',
+	transition: 'opacity 0.15s, background 0.15s',
+	flexShrink: 0,
 };
-
 const btnAccent: React.CSSProperties = {
 	...btnBase,
 	background: 'var(--sl-color-accent-low)',
@@ -174,7 +246,6 @@ const btnAccent: React.CSSProperties = {
 
 // ─── Main component ────────────────────────────────────────────────────────────
 export default function ReactJukebox({ genres }: Props) {
-	// UI state
 	const [genreSlug, setGenreSlug] = useState(genres[0]?.slug ?? '');
 	const [activeDeck, setActiveDeck] = useState<'A' | 'B'>('A');
 	const [deckAId, setDeckAId] = useState<string | null>(null);
@@ -186,15 +257,13 @@ export default function ReactJukebox({ genres }: Props) {
 	const [currentTime, setCurrentTime] = useState(0);
 	const [duration, setDuration] = useState(0);
 	const [volume, setVolume] = useState(80);
-	const [pixelSize, setPixelSize] = useState(40);
+	const [pixelSize, setPixelSize] = useState(6);
 
-	// YT player refs — created once, updated via API calls not remounts
 	const deckAEl = useRef<HTMLDivElement>(null!);
 	const deckBEl = useRef<HTMLDivElement>(null!);
 	const playerA = useRef<YTPlayer | null>(null);
 	const playerB = useRef<YTPlayer | null>(null);
 
-	// Mirror mutable state into refs so YT callbacks never go stale
 	const st = useRef({
 		activeDeck: 'A' as 'A' | 'B',
 		deckAId: null as string | null,
@@ -209,7 +278,6 @@ export default function ReactJukebox({ genres }: Props) {
 		[genre],
 	);
 
-	// Keep ref in sync every render
 	useEffect(() => {
 		st.current.activeDeck = activeDeck;
 		st.current.deckAId = deckAId;
@@ -218,6 +286,7 @@ export default function ReactJukebox({ genres }: Props) {
 	});
 
 	const activeId = activeDeck === 'A' ? deckAId : deckBId;
+	const inactiveId = activeDeck === 'A' ? deckBId : deckAId;
 	const currentIdx = activeId ? allItems.indexOf(activeId) : -1;
 
 	const getActivePlayer = useCallback(
@@ -237,7 +306,7 @@ export default function ReactJukebox({ genres }: Props) {
 				const d = p.getDuration();
 				if (d > 0) setDuration(d);
 			} catch {
-				// player not ready yet
+				// player not ready
 			}
 		}, 500);
 		return () => clearInterval(id);
@@ -492,8 +561,7 @@ export default function ReactJukebox({ genres }: Props) {
 	);
 
 	// ── Deck visual styles ──────────────────────────────────────────────────
-	// Active deck fills available space; inactive deck is a fixed narrow
-	// "next up" preview column — not meant to be interacted with directly.
+	// Active deck fills available space; inactive is a fixed narrow preview.
 	const deckStyle = (deck: 'A' | 'B'): React.CSSProperties => {
 		const isActive = deck === activeDeck;
 		return {
@@ -506,12 +574,9 @@ export default function ReactJukebox({ genres }: Props) {
 			position: 'relative',
 			overflow: 'hidden',
 			borderRadius: '8px',
-			// Inactive deck is display-only — block pointer events on its surface
 			pointerEvents: isActive ? 'auto' : 'none',
 		};
 	};
-
-	const inactiveId = activeDeck === 'A' ? deckBId : deckAId;
 
 	return (
 		<div
@@ -563,12 +628,12 @@ export default function ReactJukebox({ genres }: Props) {
 					{/* Deck A */}
 					<div style={deckStyle('A')}>
 						<div ref={deckAEl} className="w-full h-full" />
-						{/* Pixel overlay — always rendered, intensity driven by active+playing */}
+						{/* Pixelated overlay — strictly over the video, pointer-events off */}
 						<div
 							className="absolute inset-0"
 							style={{ pointerEvents: 'none' }}>
 							<Canvas style={{ background: 'transparent' }}>
-								<PixelOverlay
+								<PixelatedOverlay
 									color={accentColor}
 									playing={playing && activeDeck === 'A'}
 									pixelSize={pixelSize}
@@ -581,30 +646,29 @@ export default function ReactJukebox({ genres }: Props) {
 								background:
 									'var(--sl-color-accent-low, rgba(0,0,0,.5))',
 								color: 'var(--sl-color-accent-high, #a78bfa)',
+								pointerEvents: 'none',
 							}}>
 							{activeDeck === 'A' ? '▶ DECK A' : '⏸ DECK A'}
 						</div>
 					</div>
 
-					{/* Deck B */}
+					{/* Deck B — narrow preview, not interactive */}
 					<div style={deckStyle('B')}>
 						<div ref={deckBEl} className="w-full h-full" />
-						{/* Pixel overlay over video only */}
 						<div
 							className="absolute inset-0"
 							style={{ pointerEvents: 'none' }}>
 							<Canvas style={{ background: 'transparent' }}>
-								<PixelOverlay
+								<PixelatedOverlay
 									color={accentColor}
 									playing={playing && activeDeck === 'B'}
 									pixelSize={pixelSize}
 								/>
 							</Canvas>
 						</div>
-						{/* When inactive: dim overlay + "NEXT" label centered */}
-						{activeDeck === 'A' && (
+						{activeDeck === 'A' ? (
 							<div
-								className="absolute inset-0 flex flex-col items-center justify-end pb-3 gap-1"
+								className="absolute inset-0 flex flex-col items-center justify-end pb-3"
 								style={{
 									background: 'rgba(0,0,0,0.35)',
 									pointerEvents: 'none',
@@ -620,9 +684,7 @@ export default function ReactJukebox({ genres }: Props) {
 									UP NEXT
 								</span>
 							</div>
-						)}
-						{/* Active label when B is playing */}
-						{activeDeck === 'B' && (
+						) : (
 							<div
 								className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded font-mono tracking-widest"
 								style={{
@@ -639,7 +701,7 @@ export default function ReactJukebox({ genres }: Props) {
 
 				{/* ── Controls ────────────────────────────────────────── */}
 				<div
-					className="flex flex-col gap-1.5 px-4 py-2 flex-shrink-0"
+					className="flex flex-col gap-2 px-4 py-2 flex-shrink-0"
 					style={{
 						borderTop: '1px solid var(--sl-color-hairline)',
 						borderBottom: '1px solid var(--sl-color-hairline)',
@@ -649,7 +711,7 @@ export default function ReactJukebox({ genres }: Props) {
 					{/* Progress bar */}
 					<div className="flex items-center gap-2">
 						<span
-							className="text-[10px] font-mono flex-shrink-0 w-8 text-right"
+							className="text-[10px] font-mono w-8 text-right flex-shrink-0"
 							style={{ color: 'var(--sl-color-gray-3)' }}>
 							{fmt(currentTime)}
 						</span>
@@ -660,18 +722,18 @@ export default function ReactJukebox({ genres }: Props) {
 							step={0.5}
 							value={currentTime}
 							onChange={handleSeek}
-							className="flex-1 h-1"
+							className="flex-1"
 							style={{ accentColor: 'var(--sl-color-accent)' }}
 						/>
 						<span
-							className="text-[10px] font-mono flex-shrink-0 w-8"
+							className="text-[10px] font-mono w-8 flex-shrink-0"
 							style={{ color: 'var(--sl-color-gray-3)' }}>
 							{fmt(duration)}
 						</span>
 					</div>
 
 					{/* Transport + volume + pixel knob */}
-					<div className="flex items-center gap-1.5 flex-wrap">
+					<div className="flex items-center gap-1.5">
 						{/* Prev */}
 						<button
 							onClick={() =>
@@ -686,7 +748,7 @@ export default function ReactJukebox({ genres }: Props) {
 									currentIdx <= 0 ? 'not-allowed' : 'pointer',
 							}}
 							title="Previous track">
-							⏮
+							<SkipBack size={14} />
 						</button>
 
 						{/* Rewind -10s */}
@@ -694,15 +756,15 @@ export default function ReactJukebox({ genres }: Props) {
 							onClick={rewind}
 							style={btnBase}
 							title="Back 10s">
-							⏪
+							<Rewind size={14} />
 						</button>
 
 						{/* Play / Pause */}
 						<button
 							onClick={togglePlay}
-							style={{ ...btnAccent, minWidth: '2.2rem' }}
+							style={{ ...btnAccent, padding: '6px 12px' }}
 							title={playing ? 'Pause' : 'Play'}>
-							{playing ? '⏸' : '▶'}
+							{playing ? <Pause size={16} /> : <Play size={16} />}
 						</button>
 
 						{/* Forward +10s */}
@@ -710,7 +772,7 @@ export default function ReactJukebox({ genres }: Props) {
 							onClick={forward}
 							style={btnBase}
 							title="Forward 10s">
-							⏩
+							<FastForward size={14} />
 						</button>
 
 						{/* Next (DJ transition) */}
@@ -733,45 +795,48 @@ export default function ReactJukebox({ genres }: Props) {
 										? 'not-allowed'
 										: 'pointer',
 							}}
-							title="Next track (DJ mix)">
-							{transitioning ? '⟳' : '⏭'}
+							title="Next (DJ mix)">
+							<SkipForward size={14} />
 						</button>
 
-						{/* Now playing label */}
+						{/* Track label */}
 						<span
-							className="flex-1 font-mono text-[10px] truncate px-1 min-w-0"
+							className="flex-1 font-mono text-[10px] truncate px-2 min-w-0"
 							style={{ color: 'var(--sl-color-gray-3)' }}>
 							{activeId ?? '—'}
 						</span>
 
 						{/* Pixel size knob */}
-						<span
-							className="text-[10px] flex-shrink-0"
-							style={{ color: 'var(--sl-color-gray-4)' }}
-							title="Pixel overlay size">
-							⊞
-						</span>
+						<Grip
+							size={12}
+							style={{
+								color: 'var(--sl-color-gray-4)',
+								flexShrink: 0,
+							}}
+							title="Pixel block size"
+						/>
 						<input
 							type="range"
-							min={8}
-							max={120}
-							step={4}
+							min={2}
+							max={24}
+							step={1}
 							value={pixelSize}
 							onChange={(e) =>
 								setPixelSize(parseInt(e.target.value))
 							}
 							className="w-14"
-							title="Pixel grid density"
+							title="Pixel block size"
 							style={{ accentColor: 'var(--sl-color-accent)' }}
 						/>
 
 						{/* Volume */}
-						<span
-							className="text-sm flex-shrink-0"
-							style={{ color: 'var(--sl-color-gray-3)' }}
-							title="Volume">
-							🔊
-						</span>
+						<Volume2
+							size={14}
+							style={{
+								color: 'var(--sl-color-gray-3)',
+								flexShrink: 0,
+							}}
+						/>
 						<input
 							type="range"
 							min={0}
@@ -805,12 +870,12 @@ export default function ReactJukebox({ genres }: Props) {
 											style={{
 												background:
 													id === activeId
-														? 'var(--sl-color-accent-low, rgba(167,139,250,.15))'
+														? 'var(--sl-color-accent-low)'
 														: 'transparent',
 												color:
 													id === activeId
-														? 'var(--sl-color-accent-high, #a78bfa)'
-														: 'var(--sl-color-text, #e0e0e0)',
+														? 'var(--sl-color-accent-high)'
+														: 'var(--sl-color-text)',
 												opacity:
 													id === inactiveId ? 0.6 : 1,
 											}}>
