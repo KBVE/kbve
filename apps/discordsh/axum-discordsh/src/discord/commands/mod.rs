@@ -1,5 +1,6 @@
 mod admin;
 mod dungeon;
+mod github_board;
 mod health;
 mod ping;
 mod status;
@@ -15,5 +16,6 @@ pub fn all() -> Vec<poise::Command<Data, Error>> {
         admin::restart(),
         admin::cleanup(),
         dungeon::dungeon(),
+        github_board::github(),
     ]
 }
