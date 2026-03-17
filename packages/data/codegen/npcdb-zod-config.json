@@ -18,12 +18,14 @@
 		"npc.NpcRarity": {
 			"mode": "const_array",
 			"stripPrefix": "NPC_RARITY_",
-			"caseTransform": "lowercase"
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		},
 		"npc.NpcRank": {
 			"mode": "const_array",
 			"stripPrefix": "NPC_RANK_",
-			"caseTransform": "lowercase"
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		},
 		"npc.CreatureFamily": {
 			"mode": "const_array",

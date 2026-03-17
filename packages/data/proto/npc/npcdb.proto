@@ -37,6 +37,7 @@ enum Personality {
   PERSONALITY_MYSTERIOUS = 8;
   PERSONALITY_COWARDLY = 9;
   PERSONALITY_NOBLE = 10;
+  PERSONALITY_PASSIVE = 11;
 }
 
 // Element / damage affinity
@@ -51,6 +52,8 @@ enum Element {
   ELEMENT_ARCANE = 7;
   ELEMENT_EARTH = 8;
   ELEMENT_WIND = 9;
+  ELEMENT_NATURE = 10;
+  ELEMENT_LIGHT = 11;
 }
 
 // Rarity tier
@@ -66,9 +69,10 @@ enum NpcRarity {
 // Combat rank — separate from rarity, affects difficulty expectation
 enum NpcRank {
   NPC_RANK_NORMAL = 0;
-  NPC_RANK_ELITE = 1;
-  NPC_RANK_RARE_ELITE = 2;
-  NPC_RANK_WORLD_BOSS = 3;
+  NPC_RANK_MINION = 1;
+  NPC_RANK_ELITE = 2;
+  NPC_RANK_RARE_ELITE = 3;
+  NPC_RANK_WORLD_BOSS = 4;
 }
 
 // Creature family — taxonomic grouping for ability targeting
