@@ -33,9 +33,12 @@ pub async fn serve(app_state: Arc<AppState>) -> Result<()> {
     let state = HttpState { app: app_state };
     let app = router(state);
 
-    axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
-        .await?;
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .with_graceful_shutdown(shutdown_signal())
+    .await?;
 
     Ok(())
 }
@@ -94,6 +97,7 @@ fn router(state: HttpState) -> Router {
 
     let svg_router = super::svg::router().with_state(state.clone());
     let api_router = super::api::router().with_state(state.clone());
+    let servers_router = crate::api::servers::router().with_state(state.clone());
 
     let dynamic_router = Router::new()
         .route("/health", get(health))
@@ -107,6 +111,7 @@ fn router(state: HttpState) -> Router {
     static_router
         .merge(svg_router)
         .merge(api_router)
+        .merge(servers_router)
         .merge(dynamic_router)
         .layer(middleware)
 }

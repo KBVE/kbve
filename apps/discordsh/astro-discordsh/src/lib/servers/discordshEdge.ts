@@ -62,6 +62,8 @@ export async function listServers(params: {
 	return callEdgePublic('list.servers', params);
 }
 
+const RUST_API_URL = '/api/servers/submit';
+
 export async function submitServer(params: {
 	server_id: string;
 	name: string;
@@ -74,5 +76,26 @@ export async function submitServer(params: {
 	categories?: number[];
 	tags?: string[];
 }): Promise<{ success: boolean; server_id?: string; message?: string }> {
-	return callEdge('server.submit', params);
+	const session = await authBridge.getSession();
+	if (!session?.access_token) {
+		return {
+			success: false,
+			message: 'Not authenticated. Please sign in.',
+		};
+	}
+
+	const res = await fetch(RUST_API_URL, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			...params,
+			auth_token: session.access_token,
+		}),
+	});
+
+	return (await res.json()) as {
+		success: boolean;
+		server_id?: string;
+		message?: string;
+	};
 }

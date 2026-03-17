@@ -7,6 +7,7 @@ use tokio::sync::{Notify, RwLock};
 
 use kbve::{FontDb, MemberCache};
 
+use crate::api::rate_limit::RateLimiter;
 use crate::discord::game::{ProfileStore, SessionStore};
 use crate::health::HealthMonitor;
 use crate::tracker::ShardTracker;
@@ -59,6 +60,13 @@ pub struct AppState {
     // ── Image rendering ──────────────────────────────────────────
     /// Shared font database for SVG-to-PNG rendering (loaded once at startup).
     pub fontdb: FontDb,
+
+    // ── HTTP client & rate limiting ────────────────────────────────
+    /// Shared reqwest client for outbound calls (edge functions, etc.).
+    pub http_client: reqwest::Client,
+
+    /// Rate limiter for server submission endpoint (5 req / 60s per IP).
+    pub submit_limiter: RateLimiter,
 }
 
 impl AppState {
@@ -91,6 +99,12 @@ impl AppState {
 
         tracing::info!(fonts = fontdb.len(), "Font database initialized");
 
+        let http_client = reqwest::Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(10))
+            .timeout(std::time::Duration::from_secs(30))
+            .build()
+            .expect("Failed to build HTTP client");
+
         Self {
             health_monitor,
             tracker,
@@ -103,6 +117,8 @@ impl AppState {
             members: Arc::new(MemberCache::from_env()),
             profiles: Arc::new(ProfileStore::from_env()),
             fontdb,
+            http_client,
+            submit_limiter: RateLimiter::new(5, 60),
         }
     }
 }
