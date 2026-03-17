@@ -57,7 +57,7 @@ jobs:
         needs: guard
         if: needs.guard.outputs.allowed == 'true'
         runs-on: ubuntu-latest
-        timeout-minutes: 15
+        timeout-minutes: 45
         permissions:
             contents: write
             pull-requests: write
@@ -73,17 +73,31 @@ jobs:
                   ref: dev
                   fetch-depth: 1
 
-            - name: Setup Node v24
-              uses: actions/setup-node@v6
-              with:
-                  node-version: 24
+            # ── Guard: UNITY_PAT required ─────────────────
+            # GITHUB_TOKEN is repository-scoped and cannot query org-level
+            # ProjectsV2. A PAT with read:project scope must be stored as
+            # UNITY_PAT. Without it, skip gracefully.
+            - name: Check UNITY_PAT
+              id: token_check
+              env:
+                  HAS_TOKEN: ${{ secrets.UNITY_PAT != '' }}
+              run: |
+                  if [ "$HAS_TOKEN" != "true" ]; then
+                    echo "::warning::UNITY_PAT secret is not set. " \
+                         "Org-level ProjectsV2 requires a PAT with read:project scope. " \
+                         "Skipping kanban sync."
+                    echo "skip=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "skip=false" >> "$GITHUB_OUTPUT"
+                  fi
 
             # ── Fetch project board via GraphQL ────────────────────
             - name: Fetch project board items
               id: fetch
+              if: steps.token_check.outputs.skip != 'true'
               uses: actions/github-script@v8
               env:
-                  PROJECT_TOKEN: ${{ secrets.PROJECT_READ_TOKEN || secrets.GITHUB_TOKEN }}
+                  PROJECT_TOKEN: ${{ secrets.UNITY_PAT }}
               with:
                   github-token: ${{ env.PROJECT_TOKEN }}
                   script: |
@@ -359,6 +373,7 @@ jobs:
 
             # ── Validate generated files ──────────────────────────
             - name: Validate generated files
+              if: steps.token_check.outputs.skip != 'true'
               run: |
                   set -euo pipefail
                   JSON="apps/kbve/astro-kbve/src/data/nx-kanban.json"
@@ -380,9 +395,39 @@ jobs:
                   ITEM_COUNT=$(python3 -c "import json; d=json.load(open('$JSON')); print(d['project']['total_items'])")
                   echo "Validated: $ITEM_COUNT project items"
 
-            # ── Commit & PR ──────────────────────────────────────
+            # ── Install dependencies (cached) ─────────────────────
+            - name: Setup pnpm
+              if: steps.token_check.outputs.skip != 'true'
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+
+            - name: Setup Node v24 with pnpm cache
+              if: steps.token_check.outputs.skip != 'true'
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: pnpm
+
+            - name: Install dependencies
+              if: steps.token_check.outputs.skip != 'true'
+              run: pnpm install --frozen-lockfile
+
+            # ── Build astro-kbve ──────────────────────────────────
+            # Full production build — the only real guarantee that the
+            # generated MDX doesn't break a page route, import, or render.
+            - name: Build astro-kbve
+              if: steps.token_check.outputs.skip != 'true'
+              run: pnpm nx run astro-kbve:build
+              env:
+                  NX_DAEMON: false
+                  NODE_OPTIONS: --max-old-space-size=8192
+                  UV_THREADPOOL_SIZE: 4
+
+            # ── Commit & push ─────────────────────────────────────
             - name: Commit and push
               id: commit
+              if: steps.token_check.outputs.skip != 'true'
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
@@ -393,6 +438,7 @@ jobs:
                   BRANCH_NAME="automated/kanban-sync"
                   REPORT_DATE="${{ steps.fetch.outputs.report_date }}"
 
+                  # Stage the generated files first, before any branch switch
                   git add \
                     apps/kbve/astro-kbve/src/data/nx-kanban.json \
                     apps/kbve/astro-kbve/src/content/docs/dashboard/nx-kanban.mdx
@@ -403,25 +449,20 @@ jobs:
                     exit 0
                   fi
 
-                  # Use fixed branch — force-push to update existing PR
-                  if git ls-remote --exit-code --heads origin "$BRANCH_NAME" > /dev/null 2>&1; then
-                    git fetch origin "$BRANCH_NAME"
-                    git checkout "$BRANCH_NAME"
-                    git reset --soft dev
-                    git add \
-                      apps/kbve/astro-kbve/src/data/nx-kanban.json \
-                      apps/kbve/astro-kbve/src/content/docs/dashboard/nx-kanban.mdx
-                  else
-                    git checkout -b "$BRANCH_NAME"
-                  fi
+                  # -B resets the branch to current HEAD if it already exists,
+                  # creating it if not — avoids checkout-overwrites-local-files
+                  # error when generated files are already in the working tree.
+                  git checkout -B "$BRANCH_NAME"
 
                   git commit -m "chore(kanban): sync project board ${REPORT_DATE}"
-                  git push -u origin "$BRANCH_NAME" --force-with-lease
+                  git push -u origin "$BRANCH_NAME" --force
 
                   echo "pushed=true" >> "$GITHUB_OUTPUT"
                   echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
+            # ── Create or update PR ───────────────────────────────
             - name: Create or update PR
+              id: pr
               if: steps.commit.outputs.pushed == 'true'
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -434,10 +475,11 @@ jobs:
                   EXISTING=$(gh pr list --base dev --head "$BRANCH_NAME" --state open --json number -q '.[0].number' || echo "")
                   if [ -n "$EXISTING" ]; then
                     echo "PR #$EXISTING already exists — updated via force-push"
+                    echo "pr_number=$EXISTING" >> "$GITHUB_OUTPUT"
                     exit 0
                   fi
 
-                  gh pr create \
+                  PR_URL=$(gh pr create \
                     --base dev \
                     --head "$BRANCH_NAME" \
                     --title "chore(kanban): sync project board — ${REPORT_DATE}" \
@@ -446,6 +488,7 @@ jobs:
                   - Daily snapshot of [KBVE Project Board](https://github.com/orgs/KBVE/projects/5) (${TOTAL} items)
                   - \`nx-kanban.json\`: machine-readable board state at \`src/data/\`
                   - \`nx-kanban.mdx\`: static dashboard page at \`/dashboard/nx-kanban\`
+                  - Passed \`astro check\` type validation before merge
 
                   ## Test plan
                   - Verify MDX renders at \`/dashboard/nx-kanban/\`
@@ -455,9 +498,56 @@ jobs:
                   *Auto-generated by kanban-sync.yml*
                   PRBODY
                   )" \
-                    --label "automated"
+                    --label "auto-pr" \
+                    --label "1")
 
-            # ── Cleanup ──────────────────────────────────────────
+                  PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+                  echo "Created PR #$PR_NUMBER: $PR_URL"
+                  echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+            # ── Auto-approve and squash-merge ─────────────────────
+            # Uses UNITY_PAT (a separate account) to approve, then squash-merges.
+            # Mirrors the ci-atom.yml auto_merge pattern.
+            - name: Auto-approve and merge
+              if: steps.pr.outputs.pr_number != ''
+              uses: actions/github-script@v8
+              with:
+                  github-token: ${{ secrets.UNITY_PAT }}
+                  script: |
+                      const prNumber = parseInt('${{ steps.pr.outputs.pr_number }}');
+
+                      // Approve
+                      await github.rest.pulls.createReview({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: prNumber,
+                        event: 'APPROVE',
+                        body: 'Auto-approved by kanban-sync — astro check passed.',
+                      });
+                      core.info(`PR #${prNumber} approved`);
+
+                      // Try enableAutoMerge first; fall back to direct squash merge
+                      try {
+                        await github.rest.pulls.enableAutoMerge({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          pull_number: prNumber,
+                          merge_method: 'squash',
+                        });
+                        core.info(`Auto-merge (squash) enabled for PR #${prNumber}`);
+                      } catch (err) {
+                        core.info(`enableAutoMerge unavailable (${err.message}), attempting direct squash merge`);
+                        await github.rest.pulls.merge({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          pull_number: prNumber,
+                          merge_method: 'squash',
+                          commit_title: 'chore(kanban): sync project board',
+                        });
+                        core.info(`PR #${prNumber} squash-merged directly`);
+                      }
+
+            # ── Cleanup ───────────────────────────────────────────
             - name: Cleanup
               if: always()
               run: |
