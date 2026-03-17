@@ -9,7 +9,8 @@ concurrency:
     group: ${{ github.workflow }}
     cancel-in-progress: true
 
-permissions: {}
+permissions:
+    issues: write
 
 jobs:
     # ── Fork & actor guard (mirrors utils-self-hosted-job) ───
