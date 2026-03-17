@@ -259,3 +259,226 @@ fn days_since_update(updated_at: &str) -> Option<u64> {
     let diff: chrono::TimeDelta = chrono::Utc::now() - dt;
     Some(diff.num_days().max(0) as u64)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use jedi::entity::github::{GitHubLabel, GitHubPull, GitHubRef, GitHubUser};
+
+    fn days_ago(days: i64) -> String {
+        (chrono::Utc::now() - chrono::Duration::days(days))
+            .to_rfc3339_opts(chrono::SecondsFormat::Secs, true)
+    }
+
+    fn make_issue(number: u64, updated_at: &str, labels: Vec<&str>) -> GitHubIssue {
+        GitHubIssue {
+            number,
+            title: format!("Issue #{number}"),
+            state: "open".to_string(),
+            user: GitHubUser {
+                login: "tester".to_string(),
+            },
+            labels: labels
+                .into_iter()
+                .map(|n| GitHubLabel {
+                    name: n.to_string(),
+                    color: None,
+                })
+                .collect(),
+            created_at: updated_at.to_string(),
+            updated_at: updated_at.to_string(),
+            html_url: format!("https://github.com/test/repo/issues/{number}"),
+            pull_request: None,
+        }
+    }
+
+    fn make_pull(number: u64, updated_at: &str) -> GitHubPull {
+        GitHubPull {
+            number,
+            title: format!("PR #{number}"),
+            state: "open".to_string(),
+            user: GitHubUser {
+                login: "tester".to_string(),
+            },
+            head: GitHubRef {
+                ref_name: "feat".to_string(),
+                sha: "abc".to_string(),
+            },
+            created_at: updated_at.to_string(),
+            updated_at: updated_at.to_string(),
+            html_url: format!("https://github.com/test/repo/pull/{number}"),
+            draft: false,
+        }
+    }
+
+    // ── NoticePriority ───────────────────────────────────────────────
+
+    #[test]
+    fn priority_from_labels_critical() {
+        let labels = vec![GitHubLabel {
+            name: "Critical".to_string(),
+            color: None,
+        }];
+        assert_eq!(
+            NoticePriority::from_labels(&labels),
+            NoticePriority::Critical
+        );
+    }
+
+    #[test]
+    fn priority_from_labels_blocker() {
+        let labels = vec![GitHubLabel {
+            name: "blocker".to_string(),
+            color: None,
+        }];
+        assert_eq!(
+            NoticePriority::from_labels(&labels),
+            NoticePriority::Critical
+        );
+    }
+
+    #[test]
+    fn priority_from_labels_high() {
+        let labels = vec![GitHubLabel {
+            name: "priority:high".to_string(),
+            color: None,
+        }];
+        assert_eq!(NoticePriority::from_labels(&labels), NoticePriority::High);
+    }
+
+    #[test]
+    fn priority_from_labels_urgent() {
+        let labels = vec![GitHubLabel {
+            name: "URGENT".to_string(),
+            color: None,
+        }];
+        assert_eq!(NoticePriority::from_labels(&labels), NoticePriority::High);
+    }
+
+    #[test]
+    fn priority_from_labels_medium() {
+        let labels = vec![GitHubLabel {
+            name: "medium".to_string(),
+            color: None,
+        }];
+        assert_eq!(NoticePriority::from_labels(&labels), NoticePriority::Medium);
+    }
+
+    #[test]
+    fn priority_from_labels_low() {
+        let labels = vec![GitHubLabel {
+            name: "low-priority".to_string(),
+            color: None,
+        }];
+        assert_eq!(NoticePriority::from_labels(&labels), NoticePriority::Low);
+    }
+
+    #[test]
+    fn priority_from_labels_default_medium() {
+        let labels = vec![GitHubLabel {
+            name: "enhancement".to_string(),
+            color: None,
+        }];
+        assert_eq!(NoticePriority::from_labels(&labels), NoticePriority::Medium);
+    }
+
+    #[test]
+    fn priority_from_empty_labels() {
+        assert_eq!(NoticePriority::from_labels(&[]), NoticePriority::Medium);
+    }
+
+    // ── NoticeItem ───────────────────────────────────────────────────
+
+    #[test]
+    fn notice_from_issue_fields() {
+        let issue = make_issue(42, "2026-01-01T00:00:00Z", vec!["critical"]);
+        let notice = NoticeItem::from_issue(&issue, Some(10));
+        assert_eq!(notice.number, 42);
+        assert_eq!(notice.reporter, "tester");
+        assert_eq!(notice.priority, NoticePriority::Critical);
+        assert_eq!(notice.stale_days, Some(10));
+    }
+
+    #[test]
+    fn notice_from_pull_fields() {
+        let pull = make_pull(99, "2026-01-01T00:00:00Z");
+        let notice = NoticeItem::from_pull(&pull, Some(5));
+        assert_eq!(notice.number, 99);
+        assert!(notice.title.starts_with("PR:"));
+        assert_eq!(notice.priority, NoticePriority::High);
+    }
+
+    // ── notices_from_stale ───────────────────────────────────────────
+
+    #[test]
+    fn notices_from_stale_filters_and_sorts() {
+        let issues = vec![
+            make_issue(1, &days_ago(10), vec!["low"]),
+            make_issue(2, &days_ago(1), vec![]),
+            make_issue(3, &days_ago(5), vec!["critical"]),
+        ];
+        let pulls = vec![make_pull(4, &days_ago(8))];
+
+        let notices = notices_from_stale(&issues, &pulls, 3);
+
+        // Issue 2 is recent (1 day), should be excluded
+        assert!(!notices.iter().any(|n| n.number == 2));
+        // Critical sorts first
+        assert_eq!(notices[0].number, 3);
+        assert_eq!(notices[0].priority, NoticePriority::Critical);
+    }
+
+    #[test]
+    fn notices_from_stale_empty_inputs() {
+        let notices = notices_from_stale(&[], &[], 3);
+        assert!(notices.is_empty());
+    }
+
+    // ── build_notice_board_summary ───────────────────────────────────
+
+    #[test]
+    fn summary_embed_empty_shows_all_clear() {
+        let embed = build_notice_board_summary(&[], "KBVE/kbve");
+        let json = serde_json::to_string(&embed).unwrap();
+        assert!(json.contains("All clear"));
+    }
+
+    #[test]
+    fn summary_embed_critical_is_red() {
+        let issue = make_issue(1, &days_ago(10), vec!["critical"]);
+        let notices = vec![NoticeItem::from_issue(&issue, Some(10))];
+        let embed = build_notice_board_summary(&notices, "test/repo");
+        let json = serde_json::to_string(&embed).unwrap();
+        // 0xE74C3C = 15158332
+        assert!(json.contains("15158332"));
+    }
+
+    // ── days_since_update ────────────────────────────────────────────
+
+    #[test]
+    fn days_since_valid_date() {
+        let ts = days_ago(5);
+        let result = days_since_update(&ts);
+        assert!(result.is_some());
+        assert!(result.unwrap() >= 4 && result.unwrap() <= 6);
+    }
+
+    #[test]
+    fn days_since_invalid_date() {
+        assert_eq!(days_since_update("not-a-date"), None);
+    }
+
+    // ── truncate ─────────────────────────────────────────────────────
+
+    #[test]
+    fn truncate_short_string() {
+        assert_eq!(truncate("hello", 10), "hello");
+    }
+
+    #[test]
+    fn truncate_long_string() {
+        let result = truncate("hello world this is long", 10);
+        assert!(result.len() <= 12); // 9 chars + "…"
+        assert!(result.ends_with('…'));
+    }
+}
