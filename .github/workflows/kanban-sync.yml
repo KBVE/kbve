@@ -57,7 +57,7 @@ jobs:
         needs: guard
         if: needs.guard.outputs.allowed == 'true'
         runs-on: ubuntu-latest
-        timeout-minutes: 30
+        timeout-minutes: 45
         permissions:
             contents: write
             pull-requests: write
@@ -413,14 +413,16 @@ jobs:
               if: steps.token_check.outputs.skip != 'true'
               run: pnpm install --frozen-lockfile
 
-            # ── Lint & type-check astro-kbve ──────────────────────
-            # astro check validates all .astro/.mdx TypeScript types without
-            # running a full production build — fast enough for daily CI.
-            - name: Lint generated MDX (astro check)
+            # ── Build astro-kbve ──────────────────────────────────
+            # Full production build — the only real guarantee that the
+            # generated MDX doesn't break a page route, import, or render.
+            - name: Build astro-kbve
               if: steps.token_check.outputs.skip != 'true'
-              run: pnpm nx run astro-kbve:check
+              run: pnpm nx run astro-kbve:build
               env:
                   NX_DAEMON: false
+                  NODE_OPTIONS: --max-old-space-size=8192
+                  UV_THREADPOOL_SIZE: 4
 
             # ── Commit & push ─────────────────────────────────────
             - name: Commit and push
