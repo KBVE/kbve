@@ -94,6 +94,8 @@ export const collections = {
 				mapdb: z.array(IMapObjectSchema).optional(),
 				npcdb: z.array(INpcSchema).optional(),
 				osrs: OSRSFrontmatterSchema.optional(),
+				'yt-tracks': z.array(z.string()).optional(),
+				'yt-sets': z.array(z.string()).optional(),
 			}),
 		}),
 	}),
