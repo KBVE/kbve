@@ -63,8 +63,7 @@
 					"load": true,
 					"push": false,
 					"tags": ["kbve/edge:latest"],
-					"cache-from": ["type=gha,scope=edge"],
-					"cache-to": ["type=gha,scope=edge,mode=max"]
+					"no-cache": true
 				}
 			}
 		},
