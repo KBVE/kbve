@@ -1,5 +1,5 @@
 //! Scheduled background tasks — auto-posts GitHub board embeds to a
-//! designated Discord channel on a configurable interval.
+//! designated Discord thread on a configurable interval.
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -21,7 +21,8 @@ const DEFAULT_STALE_DAYS: u64 = 3;
 
 /// Configuration for the GitHub board scheduler, read from env vars.
 struct SchedulerConfig {
-    channel_id: ChannelId,
+    /// The thread (or channel) to post embeds into.
+    thread_id: ChannelId,
     interval: Duration,
     owner: String,
     repo: String,
@@ -31,13 +32,13 @@ struct SchedulerConfig {
 impl SchedulerConfig {
     /// Try to build config from environment variables.
     ///
-    /// Required: `GITHUB_BOARD_CHANNEL_ID`
+    /// Required: `GITHUB_BOARD_THREAD_ID` — the Discord thread to post into
     /// Optional:
     /// - `GITHUB_BOARD_INTERVAL_SECS` (default: 21600 = 6h)
     /// - `GITHUB_BOARD_REPO` (default: "KBVE/kbve")
     /// - `GITHUB_BOARD_STALE_DAYS` (default: 3)
     fn from_env() -> Option<Self> {
-        let channel_id = std::env::var("GITHUB_BOARD_CHANNEL_ID")
+        let thread_id = std::env::var("GITHUB_BOARD_THREAD_ID")
             .ok()
             .and_then(|s| s.parse::<u64>().ok())
             .map(ChannelId::new)?;
@@ -61,7 +62,7 @@ impl SchedulerConfig {
             .unwrap_or(DEFAULT_STALE_DAYS);
 
         Some(Self {
-            channel_id,
+            thread_id,
             interval: Duration::from_secs(interval_secs),
             owner,
             repo,
@@ -78,13 +79,13 @@ pub fn spawn_github_board_scheduler(app: Arc<AppState>) {
     let config = match SchedulerConfig::from_env() {
         Some(c) => c,
         None => {
-            info!("GITHUB_BOARD_CHANNEL_ID not set, GitHub board scheduler disabled");
+            info!("GITHUB_BOARD_THREAD_ID not set, GitHub board scheduler disabled");
             return;
         }
     };
 
     info!(
-        channel_id = %config.channel_id,
+        thread_id = %config.thread_id,
         interval_secs = config.interval.as_secs(),
         repo = format!("{}/{}", config.owner, config.repo),
         stale_days = config.stale_days,
@@ -148,10 +149,10 @@ async fn post_boards(
     // Post both embeds in a single message
     let message = CreateMessage::new().embed(notice_embed).embed(task_embed);
 
-    config.channel_id.send_message(&*http, message).await?;
+    config.thread_id.send_message(&*http, message).await?;
 
     info!(
-        channel_id = %config.channel_id,
+        thread_id = %config.thread_id,
         notices = notices.len(),
         tasks = tasks.len(),
         "Scheduled GitHub board posted"
