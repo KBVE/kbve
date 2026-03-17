@@ -33,6 +33,11 @@ interface YTPlayer {
 	mute(): void;
 	unMute(): void;
 	destroy(): void;
+	getDuration(): number;
+	getCurrentTime(): number;
+	seekTo(seconds: number, allowSeekAhead: boolean): void;
+	setVolume(volume: number): void;
+	getVolume(): number;
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -46,59 +51,126 @@ interface Props {
 	genres: Genre[];
 }
 
-// ─── R3F ambient particle overlay ─────────────────────────────────────────────
-function AmbientParticles({
+// ─── Pixel overlay GLSL ───────────────────────────────────────────────────────
+// Vertex shader writes clip-space directly — bypasses camera, always fills canvas
+const vertexShader = `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = vec4(position.xy, 0.0, 1.0);
+}
+`;
+
+// CRT-style dot-matrix grid overlay.  No video sampling needed —
+// it's a stylistic screen filter rendered on top of the iframe.
+const fragmentShader = `
+uniform float uTime;
+uniform float uPixelSize;
+uniform vec3  uColor;
+uniform float uIntensity;
+
+varying vec2 vUv;
+
+void main() {
+  // Grid cell coordinates (0..1 within each cell)
+  vec2 cell = fract(vUv * uPixelSize);
+
+  // Distance from center of cell → circular dot
+  float dist = length(cell - vec2(0.5));
+  float dot_ = 1.0 - smoothstep(0.12, 0.36, dist);
+
+  // Scanline: every other row slightly dimmer
+  float row      = floor(vUv.y * uPixelSize);
+  float scanline  = mod(row, 2.0) < 1.0 ? 1.0 : 0.45;
+
+  // Slow heartbeat pulse when playing
+  float pulse = sin(uTime * 1.8) * 0.07 + 0.93;
+
+  // Soft vignette — brighter centre
+  vec2  c       = vUv - vec2(0.5);
+  float vignette = 1.0 - smoothstep(0.25, 0.72, length(c));
+
+  float alpha = dot_ * scanline * vignette * uIntensity * pulse * 0.38;
+  gl_FragColor  = vec4(uColor, alpha);
+}
+`;
+
+// ─── R3F pixel overlay mesh ───────────────────────────────────────────────────
+function PixelOverlay({
 	color,
 	playing,
+	pixelSize,
 }: {
 	color: string;
 	playing: boolean;
+	pixelSize: number;
 }) {
-	const ref = useRef<THREE.Points>(null!);
-	const count = 80;
+	const uniforms = useMemo(
+		() => ({
+			uTime: { value: 0 },
+			uPixelSize: { value: pixelSize },
+			uColor: { value: new THREE.Color(color) },
+			uIntensity: { value: playing ? 1.0 : 0.2 },
+		}),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[],
+	);
 
-	const { positions, speeds } = useMemo(() => {
-		const positions = new Float32Array(count * 3);
-		const speeds = new Float32Array(count);
-		for (let i = 0; i < count; i++) {
-			positions[i * 3] = (Math.random() - 0.5) * 8;
-			positions[i * 3 + 1] = Math.random() * 8 - 4;
-			positions[i * 3 + 2] = 0;
-			speeds[i] = 0.003 + Math.random() * 0.008;
-		}
-		return { positions, speeds };
-	}, []);
-
-	useFrame(() => {
-		if (!ref.current) return;
-		const pos = ref.current.geometry.attributes.position
-			.array as Float32Array;
-		const rate = playing ? 1 : 0.15;
-		for (let i = 0; i < count; i++) {
-			pos[i * 3 + 1] += speeds[i] * rate;
-			if (pos[i * 3 + 1] > 4.5) pos[i * 3 + 1] = -4.5;
-		}
-		ref.current.geometry.attributes.position.needsUpdate = true;
+	useFrame(({ clock }) => {
+		uniforms.uTime.value = clock.elapsedTime;
+		uniforms.uPixelSize.value = pixelSize;
+		uniforms.uColor.value.set(color);
+		uniforms.uIntensity.value = THREE.MathUtils.lerp(
+			uniforms.uIntensity.value,
+			playing ? 1.0 : 0.15,
+			0.05,
+		);
 	});
 
 	return (
-		<points ref={ref}>
-			<bufferGeometry>
-				<bufferAttribute
-					attach="attributes-position"
-					args={[positions, 3]}
-				/>
-			</bufferGeometry>
-			<pointsMaterial
-				size={0.06}
-				color={color}
+		<mesh>
+			{/* 2×2 plane in NDC — vertex shader maps this to full clip space */}
+			<planeGeometry args={[2, 2]} />
+			<shaderMaterial
+				uniforms={uniforms}
+				vertexShader={vertexShader}
+				fragmentShader={fragmentShader}
 				transparent
-				opacity={0.45}
-				sizeAttenuation
+				depthWrite={false}
 			/>
-		</points>
+		</mesh>
 	);
 }
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function fmt(s: number) {
+	if (!s || !isFinite(s)) return '0:00';
+	const m = Math.floor(s / 60);
+	const sec = Math.floor(s % 60);
+	return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+const btnBase: React.CSSProperties = {
+	display: 'flex',
+	alignItems: 'center',
+	justifyContent: 'center',
+	padding: '4px 8px',
+	borderRadius: '4px',
+	cursor: 'pointer',
+	fontSize: '14px',
+	lineHeight: 1,
+	background: 'var(--sl-color-bg-nav)',
+	color: 'var(--sl-color-text)',
+	border: '1px solid var(--sl-color-hairline)',
+	transition: 'opacity 0.15s',
+};
+
+const btnAccent: React.CSSProperties = {
+	...btnBase,
+	background: 'var(--sl-color-accent-low)',
+	color: 'var(--sl-color-accent-high)',
+	border: '1px solid var(--sl-color-accent)',
+};
 
 // ─── Main component ────────────────────────────────────────────────────────────
 export default function ReactJukebox({ genres }: Props) {
@@ -111,6 +183,10 @@ export default function ReactJukebox({ genres }: Props) {
 	const [ytReady, setYtReady] = useState(false);
 	const [playing, setPlaying] = useState(false);
 	const [accentColor, setAccentColor] = useState('#a78bfa');
+	const [currentTime, setCurrentTime] = useState(0);
+	const [duration, setDuration] = useState(0);
+	const [volume, setVolume] = useState(80);
+	const [pixelSize, setPixelSize] = useState(40);
 
 	// YT player refs — created once, updated via API calls not remounts
 	const deckAEl = useRef<HTMLDivElement>(null!);
@@ -133,7 +209,7 @@ export default function ReactJukebox({ genres }: Props) {
 		[genre],
 	);
 
-	// Keep ref in sync
+	// Keep ref in sync every render
 	useEffect(() => {
 		st.current.activeDeck = activeDeck;
 		st.current.deckAId = deckAId;
@@ -141,13 +217,35 @@ export default function ReactJukebox({ genres }: Props) {
 		st.current.allItems = allItems;
 	});
 
-	// Derived: which ID is on which deck
 	const activeId = activeDeck === 'A' ? deckAId : deckBId;
 	const currentIdx = activeId ? allItems.indexOf(activeId) : -1;
 
+	const getActivePlayer = useCallback(
+		() =>
+			st.current.activeDeck === 'A' ? playerA.current : playerB.current,
+		[],
+	);
+
+	// ── Poll playback time ──────────────────────────────────────────────────
+	useEffect(() => {
+		if (!playing) return;
+		const id = setInterval(() => {
+			const p = getActivePlayer();
+			if (!p) return;
+			try {
+				setCurrentTime(p.getCurrentTime());
+				const d = p.getDuration();
+				if (d > 0) setDuration(d);
+			} catch {
+				// player not ready yet
+			}
+		}, 500);
+		return () => clearInterval(id);
+	}, [playing, getActivePlayer]);
+
 	// ── Load YT IFrame API ──────────────────────────────────────────────────
 	useEffect(() => {
-		if ((window as any).YT?.Player) {
+		if ((window as unknown as { YT?: { Player?: unknown } }).YT?.Player) {
 			setYtReady(true);
 			return;
 		}
@@ -160,7 +258,7 @@ export default function ReactJukebox({ genres }: Props) {
 		};
 	}, []);
 
-	// ── Read Starlight accent color for R3F ────────────────────────────────
+	// ── Read Starlight accent color ────────────────────────────────────────
 	useEffect(() => {
 		const c = getComputedStyle(document.documentElement)
 			.getPropertyValue('--sl-color-accent')
@@ -168,7 +266,7 @@ export default function ReactJukebox({ genres }: Props) {
 		if (c) setAccentColor(c);
 	}, []);
 
-	// ── Transition: swap decks ──────────────────────────────────────────────
+	// ── Deck swap transition ────────────────────────────────────────────────
 	const triggerTransition = useCallback((incomingId?: string) => {
 		const s = st.current;
 		if (s.transitioning) return;
@@ -181,7 +279,6 @@ export default function ReactJukebox({ genres }: Props) {
 		s.transitioning = true;
 		setTransitioning(true);
 
-		// Start playing incoming deck
 		incomingPlayer?.unMute();
 		incomingPlayer?.playVideo();
 
@@ -191,14 +288,13 @@ export default function ReactJukebox({ genres }: Props) {
 				const inactivePlayer =
 					prev === 'A' ? playerA.current : playerB.current;
 
-				// Cue next-next into the now-idle deck
 				const items = s.allItems;
-				const nowPlayingIdx = items.indexOf(
+				const nowIdx = items.indexOf(
 					prev === 'A' ? (s.deckBId ?? '') : (s.deckAId ?? ''),
 				);
 				const nextNextId =
-					nowPlayingIdx >= 0 && nowPlayingIdx + 1 < items.length
-						? items[nowPlayingIdx + 1]
+					nowIdx >= 0 && nowIdx + 1 < items.length
+						? items[nowIdx + 1]
 						: null;
 
 				if (nextNextId) {
@@ -212,6 +308,7 @@ export default function ReactJukebox({ genres }: Props) {
 
 			s.transitioning = false;
 			setTransitioning(false);
+			setCurrentTime(0);
 		}, 700);
 	}, []);
 
@@ -225,7 +322,6 @@ export default function ReactJukebox({ genres }: Props) {
 		let secondId: string | null = null;
 
 		if (ytParam) {
-			// Find the genre that has this track
 			for (const g of genres) {
 				const items = [...g.tracks, ...g.sets];
 				const idx = items.indexOf(ytParam);
@@ -252,14 +348,12 @@ export default function ReactJukebox({ genres }: Props) {
 		st.current.deckAId = firstId;
 		st.current.deckBId = secondId;
 
-		// Update URL param
 		if (firstId) {
 			const url = new URL(window.location.href);
 			url.searchParams.set('yt', firstId);
 			window.history.replaceState({}, '', url.toString());
 		}
 
-		// Deck A: plays immediately
 		playerA.current = new window.YT.Player(deckAEl.current, {
 			videoId: firstId ?? undefined,
 			playerVars: {
@@ -270,18 +364,24 @@ export default function ReactJukebox({ genres }: Props) {
 				playsinline: 1,
 			},
 			events: {
+				onReady: (e) => {
+					e.target.setVolume(volume);
+				},
 				onStateChange: (e) => {
-					if (e.data === 1) setPlaying(true);
-					if (e.data === 2) setPlaying(false);
-					if (e.data === 0) {
-						// Video ended — auto-advance
-						if (!st.current.transitioning) triggerTransition();
+					if (e.data === 1) {
+						setPlaying(true);
+						try {
+							const d = e.target.getDuration();
+							if (d > 0) setDuration(d);
+						} catch {}
 					}
+					if (e.data === 2) setPlaying(false);
+					if (e.data === 0 && !st.current.transitioning)
+						triggerTransition();
 				},
 			},
 		});
 
-		// Deck B: preloaded, muted, not playing
 		playerB.current = new window.YT.Player(deckBEl.current, {
 			videoId: secondId ?? undefined,
 			playerVars: {
@@ -298,6 +398,7 @@ export default function ReactJukebox({ genres }: Props) {
 			playerA.current?.destroy();
 			playerB.current?.destroy();
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ytReady]);
 
 	// ── Manual track select ─────────────────────────────────────────────────
@@ -308,14 +409,13 @@ export default function ReactJukebox({ genres }: Props) {
 		const nextPlayer =
 			s.activeDeck === 'A' ? playerB.current : playerA.current;
 
-		// Load on active deck
 		activePlayer?.loadVideoById(ytId);
 		setPlaying(true);
+		setCurrentTime(0);
 
 		if (s.activeDeck === 'A') setDeckAId(ytId);
 		else setDeckBId(ytId);
 
-		// Preload the next track on the other deck
 		const items = s.allItems;
 		const idx = items.indexOf(ytId);
 		const nextId =
@@ -344,22 +444,74 @@ export default function ReactJukebox({ genres }: Props) {
 		[genres, playTrack],
 	);
 
-	// ── Deck visual styles (flex-grow animates) ─────────────────────────────
-	const deckStyle = (deck: 'A' | 'B') => {
+	// ── Transport controls ──────────────────────────────────────────────────
+	const togglePlay = useCallback(() => {
+		const p = getActivePlayer();
+		if (!p) return;
+		if (playing) {
+			p.pauseVideo();
+			setPlaying(false);
+		} else {
+			p.playVideo();
+			setPlaying(true);
+		}
+	}, [playing, getActivePlayer]);
+
+	const rewind = useCallback(() => {
+		const p = getActivePlayer();
+		if (!p) return;
+		const t = Math.max(0, currentTime - 10);
+		p.seekTo(t, true);
+		setCurrentTime(t);
+	}, [currentTime, getActivePlayer]);
+
+	const forward = useCallback(() => {
+		const p = getActivePlayer();
+		if (!p) return;
+		const t = Math.min(duration || Infinity, currentTime + 10);
+		p.seekTo(t, true);
+		setCurrentTime(t);
+	}, [currentTime, duration, getActivePlayer]);
+
+	const handleSeek = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			const t = parseFloat(e.target.value);
+			getActivePlayer()?.seekTo(t, true);
+			setCurrentTime(t);
+		},
+		[getActivePlayer],
+	);
+
+	const handleVolume = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			const v = parseInt(e.target.value);
+			setVolume(v);
+			getActivePlayer()?.setVolume(v);
+		},
+		[getActivePlayer],
+	);
+
+	// ── Deck visual styles ──────────────────────────────────────────────────
+	// Active deck fills available space; inactive deck is a fixed narrow
+	// "next up" preview column — not meant to be interacted with directly.
+	const deckStyle = (deck: 'A' | 'B'): React.CSSProperties => {
 		const isActive = deck === activeDeck;
 		return {
-			flexGrow: isActive ? 1.7 : 1,
-			flexBasis: 0,
-			minWidth: 0,
-			opacity: isActive ? 1 : 0.65,
-			transform: isActive ? 'scale(1)' : 'scale(0.97)',
+			flex: isActive ? '1 1 0' : '0 0 130px',
+			minWidth: isActive ? 0 : '130px',
+			maxWidth: isActive ? undefined : '130px',
+			opacity: isActive ? 1 : 0.6,
 			transition:
-				'flex-grow 0.65s cubic-bezier(.4,0,.2,1), opacity 0.65s ease, transform 0.65s ease',
-			position: 'relative' as const,
-			overflow: 'hidden' as const,
+				'flex 0.65s cubic-bezier(.4,0,.2,1), opacity 0.65s ease',
+			position: 'relative',
+			overflow: 'hidden',
 			borderRadius: '8px',
+			// Inactive deck is display-only — block pointer events on its surface
+			pointerEvents: isActive ? 'auto' : 'none',
 		};
 	};
+
+	const inactiveId = activeDeck === 'A' ? deckBId : deckAId;
 
 	return (
 		<div
@@ -411,22 +563,18 @@ export default function ReactJukebox({ genres }: Props) {
 					{/* Deck A */}
 					<div style={deckStyle('A')}>
 						<div ref={deckAEl} className="w-full h-full" />
-						{/* R3F overlay on active deck */}
-						{activeDeck === 'A' && (
-							<div
-								className="absolute inset-0"
-								style={{ pointerEvents: 'none' }}>
-								<Canvas
-									style={{ background: 'transparent' }}
-									camera={{ position: [0, 0, 5], fov: 50 }}>
-									<AmbientParticles
-										color={accentColor}
-										playing={playing}
-									/>
-								</Canvas>
-							</div>
-						)}
-						{/* Deck label */}
+						{/* Pixel overlay — always rendered, intensity driven by active+playing */}
+						<div
+							className="absolute inset-0"
+							style={{ pointerEvents: 'none' }}>
+							<Canvas style={{ background: 'transparent' }}>
+								<PixelOverlay
+									color={accentColor}
+									playing={playing && activeDeck === 'A'}
+									pixelSize={pixelSize}
+								/>
+							</Canvas>
+						</div>
 						<div
 							className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded font-mono tracking-widest"
 							style={{
@@ -441,33 +589,39 @@ export default function ReactJukebox({ genres }: Props) {
 					{/* Deck B */}
 					<div style={deckStyle('B')}>
 						<div ref={deckBEl} className="w-full h-full" />
-						{/* R3F overlay on active deck */}
-						{activeDeck === 'B' && (
-							<div
-								className="absolute inset-0"
-								style={{ pointerEvents: 'none' }}>
-								<Canvas
-									style={{ background: 'transparent' }}
-									camera={{ position: [0, 0, 5], fov: 50 }}>
-									<AmbientParticles
-										color={accentColor}
-										playing={playing}
-									/>
-								</Canvas>
-							</div>
-						)}
-						{/* Next label on inactive deck */}
+						{/* Pixel overlay over video only */}
+						<div
+							className="absolute inset-0"
+							style={{ pointerEvents: 'none' }}>
+							<Canvas style={{ background: 'transparent' }}>
+								<PixelOverlay
+									color={accentColor}
+									playing={playing && activeDeck === 'B'}
+									pixelSize={pixelSize}
+								/>
+							</Canvas>
+						</div>
+						{/* When inactive: dim overlay + "NEXT" label centered */}
 						{activeDeck === 'A' && (
 							<div
-								className="absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded font-mono tracking-widest"
+								className="absolute inset-0 flex flex-col items-center justify-end pb-3 gap-1"
 								style={{
-									background:
-										'var(--sl-color-accent-low, rgba(0,0,0,.5))',
-									color: 'var(--sl-color-text-accent)',
+									background: 'rgba(0,0,0,0.35)',
+									pointerEvents: 'none',
 								}}>
-								NEXT
+								<span
+									className="text-[9px] uppercase tracking-widest font-mono px-2 py-0.5 rounded"
+									style={{
+										background:
+											'var(--sl-color-accent-low)',
+										color: 'var(--sl-color-accent-high)',
+										border: '1px solid var(--sl-color-accent)',
+									}}>
+									UP NEXT
+								</span>
 							</div>
 						)}
+						{/* Active label when B is playing */}
 						{activeDeck === 'B' && (
 							<div
 								className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded font-mono tracking-widest"
@@ -475,68 +629,162 @@ export default function ReactJukebox({ genres }: Props) {
 									background:
 										'var(--sl-color-accent-low, rgba(0,0,0,.5))',
 									color: 'var(--sl-color-accent-high, #a78bfa)',
+									pointerEvents: 'none',
 								}}>
 								▶ DECK B
-							</div>
-						)}
-						{activeDeck === 'A' && deckBId && (
-							<div
-								className="absolute bottom-2 left-2 text-[10px] px-2 py-0.5 rounded font-mono"
-								style={{
-									background: 'rgba(0,0,0,.5)',
-									color: 'var(--sl-color-text-accent)',
-								}}>
-								{deckBId}
 							</div>
 						)}
 					</div>
 				</div>
 
-				{/* Controls bar */}
+				{/* ── Controls ────────────────────────────────────────── */}
 				<div
-					className="flex items-center gap-3 px-4 py-2 flex-shrink-0"
+					className="flex flex-col gap-1.5 px-4 py-2 flex-shrink-0"
 					style={{
 						borderTop: '1px solid var(--sl-color-hairline)',
 						borderBottom: '1px solid var(--sl-color-hairline)',
 						background:
 							'var(--sl-color-bg-nav, rgba(255,255,255,.03))',
 					}}>
-					<button
-						onClick={() =>
-							currentIdx > 0 &&
-							playTrack(allItems[currentIdx - 1])
-						}
-						disabled={currentIdx <= 0}
-						className="px-3 py-1 rounded text-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-						style={{
-							background: 'var(--sl-color-bg-nav)',
-							color: 'var(--sl-color-text)',
-							border: '1px solid var(--sl-color-hairline)',
-						}}>
-						◀ Prev
-					</button>
-					<span
-						className="flex-1 font-mono text-xs truncate"
-						style={{ color: 'var(--sl-color-gray-3, #808090)' }}>
-						{activeId ?? '—'}
-					</span>
-					<button
-						onClick={() => triggerTransition()}
-						disabled={
-							transitioning || currentIdx >= allItems.length - 1
-						}
-						className="px-3 py-1 rounded text-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-						style={{
-							background:
-								'var(--sl-color-accent-low, rgba(167,139,250,.15))',
-							color: 'var(--sl-color-accent-high, #a78bfa)',
-							border: '1px solid var(--sl-color-accent)',
-						}}>
-						{transitioning ? '⟳ mixing…' : 'Next ▶'}
-					</button>
+					{/* Progress bar */}
+					<div className="flex items-center gap-2">
+						<span
+							className="text-[10px] font-mono flex-shrink-0 w-8 text-right"
+							style={{ color: 'var(--sl-color-gray-3)' }}>
+							{fmt(currentTime)}
+						</span>
+						<input
+							type="range"
+							min={0}
+							max={duration || 100}
+							step={0.5}
+							value={currentTime}
+							onChange={handleSeek}
+							className="flex-1 h-1"
+							style={{ accentColor: 'var(--sl-color-accent)' }}
+						/>
+						<span
+							className="text-[10px] font-mono flex-shrink-0 w-8"
+							style={{ color: 'var(--sl-color-gray-3)' }}>
+							{fmt(duration)}
+						</span>
+					</div>
+
+					{/* Transport + volume + pixel knob */}
+					<div className="flex items-center gap-1.5 flex-wrap">
+						{/* Prev */}
+						<button
+							onClick={() =>
+								currentIdx > 0 &&
+								playTrack(allItems[currentIdx - 1])
+							}
+							disabled={currentIdx <= 0}
+							style={{
+								...btnBase,
+								opacity: currentIdx <= 0 ? 0.3 : 1,
+								cursor:
+									currentIdx <= 0 ? 'not-allowed' : 'pointer',
+							}}
+							title="Previous track">
+							⏮
+						</button>
+
+						{/* Rewind -10s */}
+						<button
+							onClick={rewind}
+							style={btnBase}
+							title="Back 10s">
+							⏪
+						</button>
+
+						{/* Play / Pause */}
+						<button
+							onClick={togglePlay}
+							style={{ ...btnAccent, minWidth: '2.2rem' }}
+							title={playing ? 'Pause' : 'Play'}>
+							{playing ? '⏸' : '▶'}
+						</button>
+
+						{/* Forward +10s */}
+						<button
+							onClick={forward}
+							style={btnBase}
+							title="Forward 10s">
+							⏩
+						</button>
+
+						{/* Next (DJ transition) */}
+						<button
+							onClick={() => triggerTransition()}
+							disabled={
+								transitioning ||
+								currentIdx >= allItems.length - 1
+							}
+							style={{
+								...btnAccent,
+								opacity:
+									transitioning ||
+									currentIdx >= allItems.length - 1
+										? 0.3
+										: 1,
+								cursor:
+									transitioning ||
+									currentIdx >= allItems.length - 1
+										? 'not-allowed'
+										: 'pointer',
+							}}
+							title="Next track (DJ mix)">
+							{transitioning ? '⟳' : '⏭'}
+						</button>
+
+						{/* Now playing label */}
+						<span
+							className="flex-1 font-mono text-[10px] truncate px-1 min-w-0"
+							style={{ color: 'var(--sl-color-gray-3)' }}>
+							{activeId ?? '—'}
+						</span>
+
+						{/* Pixel size knob */}
+						<span
+							className="text-[10px] flex-shrink-0"
+							style={{ color: 'var(--sl-color-gray-4)' }}
+							title="Pixel overlay size">
+							⊞
+						</span>
+						<input
+							type="range"
+							min={8}
+							max={120}
+							step={4}
+							value={pixelSize}
+							onChange={(e) =>
+								setPixelSize(parseInt(e.target.value))
+							}
+							className="w-14"
+							title="Pixel grid density"
+							style={{ accentColor: 'var(--sl-color-accent)' }}
+						/>
+
+						{/* Volume */}
+						<span
+							className="text-sm flex-shrink-0"
+							style={{ color: 'var(--sl-color-gray-3)' }}
+							title="Volume">
+							🔊
+						</span>
+						<input
+							type="range"
+							min={0}
+							max={100}
+							value={volume}
+							onChange={handleVolume}
+							className="w-16"
+							style={{ accentColor: 'var(--sl-color-accent)' }}
+						/>
+					</div>
 				</div>
 
-				{/* Track list */}
+				{/* ── Track list ───────────────────────────────────────── */}
 				<div className="flex-1 overflow-y-auto px-4 py-3">
 					{genre && (
 						<>
@@ -564,12 +812,7 @@ export default function ReactJukebox({ genres }: Props) {
 														? 'var(--sl-color-accent-high, #a78bfa)'
 														: 'var(--sl-color-text, #e0e0e0)',
 												opacity:
-													id ===
-													(activeDeck === 'A'
-														? deckBId
-														: deckAId)
-														? 0.6
-														: 1,
+													id === inactiveId ? 0.6 : 1,
 											}}>
 											<span
 												className="w-5 text-xs text-right flex-shrink-0"
@@ -590,10 +833,7 @@ export default function ReactJukebox({ genres }: Props) {
 													♪
 												</span>
 											)}
-											{id ===
-												(activeDeck === 'A'
-													? deckBId
-													: deckAId) && (
+											{id === inactiveId && (
 												<span
 													className="ml-auto flex-shrink-0 text-[10px]"
 													style={{
@@ -635,7 +875,7 @@ export default function ReactJukebox({ genres }: Props) {
 												style={{
 													color: 'var(--sl-color-accent)',
 												}}>
-												▶
+												{i + 1}
 											</span>
 											<span className="font-mono text-xs truncate">
 												{id}
