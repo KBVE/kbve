@@ -33,10 +33,22 @@ export const DroidFirstConnectSchema = z.object({
 	}),
 });
 
+export const DroidDownscaleSchema = z.object({
+	timestamp: z.number(),
+	level: z.string(),
+});
+
+export const DroidUpscaleSchema = z.object({
+	timestamp: z.number(),
+	level: z.string(),
+});
+
 export const DroidEventSchemas = {
 	'droid-first-connect': DroidFirstConnectSchema,
 	'droid-ready': DroidReadySchema,
 	'droid-mod-ready': DroidModReadySchema,
+	'droid-downscale': DroidDownscaleSchema,
+	'droid-upscale': DroidUpscaleSchema,
 	'panel-open': PanelEventSchema,
 	'panel-close': PanelEventSchema,
 	'toast-added': ToastPayloadSchema,
