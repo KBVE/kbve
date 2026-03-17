@@ -114,20 +114,25 @@ def parse_cargo(raw) -> dict:
     vuln_list = raw.get("vulnerabilities", {}).get("list", [])
     for entry in vuln_list:
         adv = entry.get("advisory", {})
-        # Derive severity from CVSS or informational flag
+        # Derive severity from informational flag or CVSS score
         if adv.get("informational"):
             sev = "info"
         elif adv.get("cvss"):
-            score = float(adv["cvss"].split("/")[0].replace("CVSS:3.1/", "")
-                          if "/" in str(adv["cvss"]) else "0")
-            if score >= 9.0:
+            cvss_raw = str(adv["cvss"])
+            try:
+                # cargo audit cvss is a vector string (CVSS:3.1/AV:N/...),
+                # not a numeric score. Try float() in case a score is provided.
+                score = float(cvss_raw)
+            except ValueError:
+                score = None
+            if score is not None and score >= 9.0:
                 sev = "critical"
-            elif score >= 7.0:
+            elif score is not None and score >= 7.0:
                 sev = "high"
-            elif score >= 4.0:
+            elif score is not None and score >= 4.0:
                 sev = "medium"
             else:
-                sev = "low"
+                sev = "medium"
         else:
             sev = "medium"
 

@@ -374,3 +374,15 @@ jobs:
                     /tmp/pip-audit-partial.json /tmp/codeql-alerts.json /tmp/dependabot-alerts.json \
                     /tmp/nx-security-raw.json /tmp/pr-body.md /tmp/pr-body-clean.md
                   rm -rf "$GITHUB_WORKSPACE"/* "$GITHUB_WORKSPACE"/.[!.]* 2>/dev/null || true
+
+    track-generate:
+        name: Track Generate Job
+        if: always()
+        needs: [generate]
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
+        with:
+            workflow_name: 'CI - Weekly NX Security Audit'
+            job_name: 'Generate NX Security Audit'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.generate.result }}

@@ -1,0 +1,201 @@
+name: CI Failure Tracker
+
+on:
+    workflow_call:
+        inputs:
+            workflow_name:
+                required: true
+                type: string
+            job_name:
+                required: true
+                type: string
+            run_id:
+                required: true
+                type: string
+            run_url:
+                required: true
+                type: string
+            status:
+                required: true
+                type: string # "failure", "success", "cancelled", "skipped"
+
+jobs:
+    track:
+        if: inputs.status == 'failure' || inputs.status == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            issues: write
+
+        steps:
+            - name: Search for existing failure issue
+              id: search
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  WORKFLOW_NAME: ${{ inputs.workflow_name }}
+                  JOB_NAME: ${{ inputs.job_name }}
+              run: |
+                  set -euo pipefail
+                  TITLE="[CI] ${WORKFLOW_NAME} / ${JOB_NAME} — Failed"
+                  ISSUE=$(gh issue list --repo "${{ github.repository }}" \
+                    --search "\"$TITLE\" in:title" \
+                    --state open --json number,title \
+                    --jq "[.[] | select(.title == \"$TITLE\")][0].number // empty")
+                  echo "issue_number=${ISSUE:-}" >> "$GITHUB_OUTPUT"
+                  echo "title=$TITLE" >> "$GITHUB_OUTPUT"
+                  if [ -n "${ISSUE:-}" ]; then
+                    echo "Found open issue #$ISSUE"
+                  else
+                    echo "No open issue found"
+                  fi
+
+            - name: Extract failed step logs
+              if: inputs.status == 'failure'
+              id: logs
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  JOB_NAME: ${{ inputs.job_name }}
+                  RUN_ID: ${{ inputs.run_id }}
+              run: |
+                  set -euo pipefail
+                  # Find the job ID by name
+                  JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}/jobs" \
+                    --jq ".jobs[] | select(.name | contains(\"${JOB_NAME}\")) | .id" \
+                    2>/dev/null | head -1 || echo "")
+
+                  FAILED_STEP=""
+                  if [ -n "$JOB_ID" ]; then
+                    FAILED_STEP=$(gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}/jobs" \
+                      --jq ".jobs[] | select(.id == ${JOB_ID}) | .steps[] | select(.conclusion == \"failure\") | .name" \
+                      2>/dev/null | head -1 || echo "")
+                  fi
+
+                  # Try to get log snippet — logs may not be available yet
+                  LOG_SNIPPET="See [run logs](${{ inputs.run_url }}) for details."
+                  if [ -n "$JOB_ID" ]; then
+                    RAW_LOG=$(gh api "repos/${{ github.repository }}/actions/jobs/${JOB_ID}/logs" \
+                      2>/dev/null || echo "")
+                    if [ -n "$RAW_LOG" ]; then
+                      LOG_SNIPPET=$(echo "$RAW_LOG" | tail -50 | head -50)
+                    fi
+                  fi
+
+                  # Write to file to avoid delimiter issues
+                  echo "$LOG_SNIPPET" > /tmp/log_snippet.txt
+                  echo "failed_step=${FAILED_STEP:-unknown}" >> "$GITHUB_OUTPUT"
+
+            - name: Create new failure issue
+              if: inputs.status == 'failure' && steps.search.outputs.issue_number == ''
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  TITLE: ${{ steps.search.outputs.title }}
+                  WORKFLOW_NAME: ${{ inputs.workflow_name }}
+                  JOB_NAME: ${{ inputs.job_name }}
+                  RUN_ID: ${{ inputs.run_id }}
+                  RUN_URL: ${{ inputs.run_url }}
+                  FAILED_STEP: ${{ steps.logs.outputs.failed_step }}
+              run: |
+                  set -euo pipefail
+                  TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+                  LOG_SNIPPET=$(cat /tmp/log_snippet.txt 2>/dev/null || echo "Logs unavailable")
+
+                  cat > /tmp/issue-body.md << ISSUEEOF
+                  ## ${TITLE}
+
+                  **Workflow:** ${WORKFLOW_NAME}
+                  **Job:** ${JOB_NAME}
+                  **Failed step:** ${FAILED_STEP}
+                  **Status:** Failing since ${TIMESTAMP}
+                  **Consecutive failures:** 1
+
+                  ### Latest Failure
+
+                  - **Run:** [#${RUN_ID}](${RUN_URL})
+                  - **Trigger:** ${{ github.event_name }}
+                  - **Ref:** ${{ github.ref }}
+
+                  ### Error Summary
+
+                  \`\`\`
+                  ${LOG_SNIPPET}
+                  \`\`\`
+
+                  ### Failure History
+
+                  | # | Date | Run | Ref | Trigger |
+                  |---|------|-----|-----|---------|
+                  | 1 | ${TIMESTAMP} | [#${RUN_ID}](${RUN_URL}) | ${{ github.ref }} | ${{ github.event_name }} |
+
+                  ---
+                  *Auto-generated by ci-failure-tracker*
+                  ISSUEEOF
+
+                  sed 's/^                  //' /tmp/issue-body.md > /tmp/issue-body-clean.md
+
+                  gh issue create --repo "${{ github.repository }}" \
+                    --title "$TITLE" \
+                    --label "bug,ci,6" \
+                    --body-file /tmp/issue-body-clean.md
+
+            - name: Comment on existing failure issue
+              if: inputs.status == 'failure' && steps.search.outputs.issue_number != ''
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  ISSUE_NUMBER: ${{ steps.search.outputs.issue_number }}
+                  RUN_ID: ${{ inputs.run_id }}
+                  RUN_URL: ${{ inputs.run_url }}
+                  FAILED_STEP: ${{ steps.logs.outputs.failed_step }}
+              run: |
+                  set -euo pipefail
+                  TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+                  LOG_SNIPPET=$(cat /tmp/log_snippet.txt 2>/dev/null || echo "Logs unavailable")
+
+                  cat > /tmp/comment-body.md << COMMENTEOF
+                  ## Failure — ${TIMESTAMP}
+
+                  - **Run:** [#${RUN_ID}](${RUN_URL})
+                  - **Failed step:** ${FAILED_STEP}
+                  - **Ref:** ${{ github.ref }}
+                  - **Trigger:** ${{ github.event_name }}
+
+                  \`\`\`
+                  ${LOG_SNIPPET}
+                  \`\`\`
+                  COMMENTEOF
+
+                  sed 's/^                  //' /tmp/comment-body.md > /tmp/comment-body-clean.md
+
+                  gh issue comment "$ISSUE_NUMBER" \
+                    --repo "${{ github.repository }}" \
+                    --body-file /tmp/comment-body-clean.md
+
+            - name: Close resolved issue
+              if: inputs.status == 'success' && steps.search.outputs.issue_number != ''
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  ISSUE_NUMBER: ${{ steps.search.outputs.issue_number }}
+                  RUN_ID: ${{ inputs.run_id }}
+                  RUN_URL: ${{ inputs.run_url }}
+              run: |
+                  set -euo pipefail
+                  TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+                  cat > /tmp/resolve-body.md << RESOLVEEOF
+                  ## Resolved — ${TIMESTAMP}
+
+                  - **Run:** [#${RUN_ID}](${RUN_URL})
+                  - **Ref:** ${{ github.ref }}
+                  - **Trigger:** ${{ github.event_name }}
+
+                  Auto-closing this issue.
+                  RESOLVEEOF
+
+                  sed 's/^                  //' /tmp/resolve-body.md > /tmp/resolve-body-clean.md
+
+                  gh issue comment "$ISSUE_NUMBER" \
+                    --repo "${{ github.repository }}" \
+                    --body-file /tmp/resolve-body-clean.md
+
+                  gh issue close "$ISSUE_NUMBER" \
+                    --repo "${{ github.repository }}" \
+                    --reason completed
