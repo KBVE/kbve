@@ -11,6 +11,13 @@ repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_npc
 keywords = ["bevy", "npc", "gamedev", "protobuf", "plugin"]
 categories = ["game-development", "game-engines"]
 
+[features]
+default = []
+## Game-agnostic ECS components for creature pooling, capture, and interaction.
+## Enables `bevy_npc::creature` module with `CreaturePoolIndex`, `CreatureState`,
+## `CapturedCreatures`, `CreatureCaptureEvent`, and `CreaturePlugin`.
+creature = []
+
 [dependencies]
 bevy = { version = "0.18", default-features = false, features = [
     "bevy_state",
