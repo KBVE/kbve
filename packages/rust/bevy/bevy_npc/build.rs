@@ -29,6 +29,7 @@ fn main() {
     prost_build::Config::new()
         .out_dir(&out_dir)
         .type_attribute(".npc", "#[derive(serde::Serialize, serde::Deserialize)]")
+        .message_attribute(".npc", "#[serde(default)]")
         .compile_protos(
             &[npc_proto.to_str().unwrap()],
             &[
