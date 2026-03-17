@@ -130,8 +130,13 @@ async fn coop_coep_isometric(req: axum::extract::Request, next: Next) -> impl In
     resp
 }
 
-/// Middleware that adds Cross-Origin-Resource-Policy to /_astro/ and /assets/
-/// responses so they are loadable under COEP: require-corp from the isometric page.
+/// Middleware that adds Cross-Origin-Resource-Policy to static asset directories so they
+/// are loadable under COEP from the isometric page.
+///
+/// `/_astro/` bundles also receive `Cross-Origin-Embedder-Policy: credentialless` so that
+/// any bundle loaded as a Web Worker (e.g. the Supabase/droid worker) inherits
+/// cross-origin isolation from the parent page.  Without this, `self.crossOriginIsolated`
+/// inside the worker is `false` and Atomics / SharedArrayBuffer are unavailable.
 async fn corp_astro_assets(req: axum::extract::Request, next: Next) -> impl IntoResponse {
     let path = req.uri().path();
     let needs_corp = path.starts_with("/_astro")
@@ -139,11 +144,18 @@ async fn corp_astro_assets(req: axum::extract::Request, next: Next) -> impl Into
         || path.starts_with("/pagefind")
         || path.starts_with("/chunks")
         || path.starts_with("/images");
+    let is_astro_bundle = path.starts_with("/_astro");
     let mut resp = next.run(req).await;
     if needs_corp {
         resp.headers_mut().insert(
             header::HeaderName::from_static("cross-origin-resource-policy"),
             HeaderValue::from_static("same-origin"),
+        );
+    }
+    if is_astro_bundle {
+        resp.headers_mut().insert(
+            header::HeaderName::from_static("cross-origin-embedder-policy"),
+            HeaderValue::from_static("credentialless"),
         );
     }
     resp
