@@ -3,12 +3,13 @@
  *
  * Source: ../descriptors/npcdb.binpb
  * Config: ../npcdb-zod-config.json
- * Generated: 2026-03-17T00:10:29.314Z
+ * Generated: 2026-03-17T03:20:10.904Z
  */
 
 import { z } from 'zod';
 
 export const NpcTypeFlags = [
+	'none',
 	'enemy',
 	'merchant',
 	'quest_giver',
@@ -27,6 +28,7 @@ export type NpcTypeFlag = (typeof NpcTypeFlags)[number];
 export const NpcTypeFlagSchema = z.enum(NpcTypeFlags);
 
 export const Personalities = [
+	'unspecified',
 	'aggressive',
 	'cunning',
 	'fearful',
@@ -45,6 +47,7 @@ export type PersonalityValue = (typeof Personalities)[number];
 export const PersonalitySchema = z.enum(Personalities);
 
 export const Elements = [
+	'none',
 	'fire',
 	'ice',
 	'lightning',
@@ -88,6 +91,7 @@ export type NpcRankValue = (typeof NpcRanks)[number];
 export const NpcRankSchema = z.enum(NpcRanks);
 
 export const CreatureFamilies = [
+	'unspecified',
 	'beast',
 	'undead',
 	'demon',
@@ -105,19 +109,25 @@ export type CreatureFamilyValue = (typeof CreatureFamilies)[number];
 
 export const CreatureFamilySchema = z.enum(CreatureFamilies);
 
-export const MovementTypes = ['random_wander', 'patrol', 'scripted'] as const;
+export const MovementTypes = [
+	'stationary',
+	'random_wander',
+	'patrol',
+	'scripted',
+] as const;
 
 export type MovementTypeValue = (typeof MovementTypes)[number];
 
 export const MovementTypeSchema = z.enum(MovementTypes);
 
-export const DifficultyModes = ['hard', 'heroic', 'mythic'] as const;
+export const DifficultyModes = ['normal', 'hard', 'heroic', 'mythic'] as const;
 
 export type DifficultyModeValue = (typeof DifficultyModes)[number];
 
 export const DifficultyModeSchema = z.enum(DifficultyModes);
 
 export const EquipSlots = [
+	'unspecified',
 	'head',
 	'chest',
 	'legs',

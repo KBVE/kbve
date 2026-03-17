@@ -594,6 +594,38 @@ pub fn flavor_attack(personality: Personality, name: &str, target: &str, dmg: i3
             ];
             pick(&mut rng, pool)
         }
+        Personality::Cheerful => {
+            let pool: &[&str] = &[
+                "{name} laughs and swings at {target}! \"Nothing personal!\" {dmg} damage!",
+                "{name} winks at {target} and lands a playful jab for {dmg} damage!",
+                "{name} hums a little tune while smacking {target} for {dmg} damage!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Mysterious => {
+            let pool: &[&str] = &[
+                "{name} materializes behind {target} — {dmg} damage. \"You never saw me.\"",
+                "{name} whispers something unknowable and strikes {target} for {dmg} damage.",
+                "A shadow extends from {name}, lashing {target} for {dmg} damage.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cowardly => {
+            let pool: &[&str] = &[
+                "{name} winces and takes a reluctant swipe at {target}. {dmg} damage!",
+                "{name} closes its eyes and flails at {target}! {dmg} damage!",
+                "\"P-please don't hurt me!\" {name} swats at {target} for {dmg} damage!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Noble => {
+            let pool: &[&str] = &[
+                "{name} salutes and delivers a precise strike to {target}. {dmg} damage.",
+                "{name} engages {target} with honor. A clean blow for {dmg} damage.",
+                "\"Defend yourself!\" {name} strikes {target} with disciplined form. {dmg} damage.",
+            ];
+            pick(&mut rng, pool)
+        }
         Personality::Passive => {
             let pool: &[&str] = &[
                 "{name} bumps into {target} clumsily. {dmg} damage.",
@@ -658,6 +690,37 @@ pub fn flavor_heavy_attack(personality: Personality, name: &str, target: &str, d
             ];
             pick(&mut rng, pool)
         }
+        Personality::Cheerful => {
+            let pool: &[&str] = &[
+                "{name} winds up with a grin and SLAMS {target}! \"Wow, that was a good one!\" {dmg} damage!",
+                "{name} giggles and unleashes a massive hit on {target}! {dmg} damage!",
+                "\"Here comes the big one!\" {name} clobbers {target} for {dmg} damage!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Mysterious => {
+            let pool: &[&str] = &[
+                "Reality bends as {name} delivers a devastating blow to {target}. {dmg} damage.",
+                "{name} strikes from between dimensions — {target} reels from {dmg} damage!",
+                "\"The veil parts for no one.\" {name} devastates {target} for {dmg} damage.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cowardly => {
+            let pool: &[&str] = &[
+                "{name} trips and accidentally headbutts {target} with bone-crushing force! {dmg} damage!",
+                "\"I didn't mean to!\" {name} panics and wallops {target} for {dmg} damage!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Noble => {
+            let pool: &[&str] = &[
+                "{name} declares, \"For honor!\" and delivers a devastating blow to {target}! {dmg} damage!",
+                "{name} channels righteous fury into a mighty strike against {target}! {dmg} damage!",
+                "{name} raises its weapon high and brings it down with full force on {target}! {dmg} damage!",
+            ];
+            pick(&mut rng, pool)
+        }
         Personality::Passive => {
             let pool: &[&str] = &[
                 "{name} stumbles and crashes into {target} with unexpected force! {dmg} damage!",
@@ -714,6 +777,34 @@ pub fn flavor_defend(personality: Personality, name: &str, armor: i32) -> String
             let pool: &[&str] = &[
                 "{name} draws on ancient wards. \"Patience is its own shield.\" (+{armor} armor)",
                 "{name} whispers a protective incantation. (+{armor} armor)",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cheerful => {
+            let pool: &[&str] = &[
+                "{name} puts up its guard with a smile. \"Can't hurt what you can't hit!\" (+{armor} armor)",
+                "{name} cheerfully hunkers down. \"Safety first!\" (+{armor} armor)",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Mysterious => {
+            let pool: &[&str] = &[
+                "{name} folds space around itself, warping incoming blows. (+{armor} armor)",
+                "{name} shimmers and becomes harder to strike. (+{armor} armor)",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cowardly => {
+            let pool: &[&str] = &[
+                "{name} ducks behind the nearest cover, whimpering. (+{armor} armor)",
+                "{name} shields its face with both arms, trembling. (+{armor} armor)",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Noble => {
+            let pool: &[&str] = &[
+                "{name} raises its shield with practiced grace. (+{armor} armor)",
+                "{name} assumes a disciplined defensive stance. (+{armor} armor)",
             ];
             pick(&mut rng, pool)
         }
@@ -775,6 +866,34 @@ pub fn flavor_charge(personality: Personality, name: &str) -> String {
             ];
             pick(&mut rng, pool)
         }
+        Personality::Cheerful => {
+            let pool: &[&str] = &[
+                "{name} bounces excitedly, energy building! \"Ooh, this is gonna be fun!\"",
+                "{name} hums louder, a warm glow gathering around it!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Mysterious => {
+            let pool: &[&str] = &[
+                "{name} begins to chant in an unknown tongue, reality rippling...",
+                "The air grows cold around {name}. Something is gathering beyond the veil...",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cowardly => {
+            let pool: &[&str] = &[
+                "{name} cowers, accidentally building up power from sheer panic!",
+                "{name} whimpers and clenches its fists, desperate energy swirling!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Noble => {
+            let pool: &[&str] = &[
+                "{name} plants its feet and draws upon inner resolve. \"Prepare yourself!\"",
+                "{name} steadies its breathing, channeling disciplined power...",
+            ];
+            pick(&mut rng, pool)
+        }
         Personality::Passive => {
             let pool: &[&str] = &[
                 "{name} puffs up, trying to look bigger than it is...",
@@ -830,6 +949,35 @@ pub fn flavor_flee(personality: Personality, name: &str) -> String {
             let pool: &[&str] = &[
                 "The {name} fades into the mist. \"Another time, another age...\"",
                 "The {name} withdraws. \"Even I must yield to time.\"",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cheerful => {
+            let pool: &[&str] = &[
+                "The {name} waves goodbye! \"Great fight! Let's do it again sometime!\"",
+                "The {name} skips away laughing. \"No hard feelings!\"",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Mysterious => {
+            let pool: &[&str] = &[
+                "The {name} dissolves into shadow. \"We shall meet again... when the stars align.\"",
+                "The {name} folds into itself and vanishes without a trace.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cowardly => {
+            let pool: &[&str] = &[
+                "The {name} shrieks \"I SURRENDER!\" and scrambles away on all fours!",
+                "The {name} sobs uncontrollably and flees, tripping over its own feet!",
+                "The {name} throws its weapon away and sprints in blind terror!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Noble => {
+            let pool: &[&str] = &[
+                "The {name} bows respectfully. \"You have bested me. Until we meet again.\"",
+                "The {name} sheathes its weapon with dignity and withdraws.",
             ];
             pick(&mut rng, pool)
         }
@@ -890,6 +1038,34 @@ pub fn flavor_debuff(personality: Personality, name: &str, target: &str, effect:
             ];
             pick(&mut rng, pool)
         }
+        Personality::Cheerful => {
+            let pool: &[&str] = &[
+                "{name} giggles and tosses {effect} at {target}! \"Oops, sorry about that!\"",
+                "{name} cheerfully hexes {target} with {effect}! \"It'll wear off... probably!\"",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Mysterious => {
+            let pool: &[&str] = &[
+                "{name} traces a sigil in the air. {target} is marked with {effect}.",
+                "\"The pattern demands it.\" {name} binds {target} with {effect}.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cowardly => {
+            let pool: &[&str] = &[
+                "{name} hurls {effect} at {target} while hiding behind a rock!",
+                "\"S-stay away!\" {name} flings {effect} at {target} in a panic!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Noble => {
+            let pool: &[&str] = &[
+                "{name} regretfully applies {effect} to {target}. \"Forgive the dishonor.\"",
+                "{name} channels {effect} at {target} with solemn resolve.",
+            ];
+            pick(&mut rng, pool)
+        }
         Personality::Passive => {
             let pool: &[&str] = &[
                 "{name} accidentally brushes against {target}, leaving behind {effect}!",
@@ -947,6 +1123,34 @@ pub fn flavor_aoe(personality: Personality, name: &str, dmg: i32) -> String {
             ];
             pick(&mut rng, pool)
         }
+        Personality::Cheerful => {
+            let pool: &[&str] = &[
+                "{name} spins around joyfully, sending shockwaves everywhere! {dmg} damage to all!",
+                "\"Wheeee!\" {name} erupts with radiant energy! {dmg} damage to all!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Mysterious => {
+            let pool: &[&str] = &[
+                "Reality fractures around {name}. Everyone takes {dmg} damage.",
+                "{name} opens a rift — dark energy pours out, dealing {dmg} damage to all!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cowardly => {
+            let pool: &[&str] = &[
+                "{name} flails in total panic, accidentally hitting everyone for {dmg} damage!",
+                "\"STAY BACK!\" {name} unleashes wild energy in every direction! {dmg} damage to all!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Noble => {
+            let pool: &[&str] = &[
+                "{name} raises its weapon skyward and unleashes a righteous blast! {dmg} damage to all!",
+                "\"Face judgment!\" {name} sweeps the battlefield for {dmg} damage to all!",
+            ];
+            pick(&mut rng, pool)
+        }
         Personality::Passive => {
             let pool: &[&str] = &[
                 "{name} stumbles around in a panic, bumping into everyone! {dmg} damage to all!",
@@ -996,6 +1200,34 @@ pub fn flavor_heal(personality: Personality, name: &str, amount: i32) -> String 
             let pool: &[&str] = &[
                 "{name} draws life from the dungeon walls. +{amount} HP.",
                 "\"The old bones mend.\" {name} heals for {amount}.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cheerful => {
+            let pool: &[&str] = &[
+                "{name} patches itself up with a whistle and a smile! +{amount} HP!",
+                "{name} snacks on something and grins. \"Good as new!\" +{amount} HP!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Mysterious => {
+            let pool: &[&str] = &[
+                "{name} draws life from somewhere unseen. +{amount} HP.",
+                "Shadows coil around {name}'s wounds, mending them. +{amount} HP.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cowardly => {
+            let pool: &[&str] = &[
+                "{name} hastily slaps a bandage on while crying. +{amount} HP!",
+                "{name} gulps down a potion between sobs. +{amount} HP!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Noble => {
+            let pool: &[&str] = &[
+                "{name} tends to its wounds with practiced dignity. +{amount} HP.",
+                "{name} takes a measured breath, restoring {amount} HP.",
             ];
             pick(&mut rng, pool)
         }
@@ -1051,6 +1283,34 @@ pub fn flavor_stunned(personality: Personality, name: &str) -> String {
             let pool: &[&str] = &[
                 "{name} pauses, ancient eyes flickering with confusion.",
                 "\"Impossible...\" {name} is stunned.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cheerful => {
+            let pool: &[&str] = &[
+                "{name} wobbles dizzily. \"Whoa, the room's spinning! Fun!\"",
+                "{name} stumbles and laughs, too dazed to act!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Mysterious => {
+            let pool: &[&str] = &[
+                "{name} flickers like a candle in the wind, momentarily disrupted.",
+                "The enigma surrounding {name} falters — it is stunned.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cowardly => {
+            let pool: &[&str] = &[
+                "{name} faints from the shock! ...it's still breathing, though.",
+                "{name} yelps and freezes, too terrified to move!",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Noble => {
+            let pool: &[&str] = &[
+                "{name} staggers but holds its composure. Stunned.",
+                "{name} takes the blow with grace, but cannot act.",
             ];
             pick(&mut rng, pool)
         }
@@ -1123,6 +1383,34 @@ pub fn flavor_emotional_reaction(
                 ];
                 pick(&mut rng, pool)
             }
+            Personality::Cheerful => {
+                let pool: &[&str] = &[
+                    "*{name}'s smile finally falters. \"Okay... that one actually hurt...\"*",
+                    "*{name} tries to laugh, but only manages a weak cough.*",
+                ];
+                pick(&mut rng, pool)
+            }
+            Personality::Mysterious => {
+                let pool: &[&str] = &[
+                    "*The shadows around {name} begin to unravel...*",
+                    "*{name}'s enigmatic aura dims to almost nothing.*",
+                ];
+                pick(&mut rng, pool)
+            }
+            Personality::Cowardly => {
+                let pool: &[&str] = &[
+                    "*{name} is sobbing openly, begging for its life between gasps.*",
+                    "*{name} crawls along the ground, too broken to even flee.*",
+                ];
+                pick(&mut rng, pool)
+            }
+            Personality::Noble => {
+                let pool: &[&str] = &[
+                    "*{name} kneels, bloodied but unbowed. \"I will not beg.\"*",
+                    "*{name}'s grip tightens on its weapon. \"A noble end, then.\"*",
+                ];
+                pick(&mut rng, pool)
+            }
             Personality::Passive => {
                 let pool: &[&str] = &[
                     "*{name} lets out a soft, pitiful croak...*",
@@ -1168,6 +1456,27 @@ pub fn flavor_emotional_reaction(
             Personality::Ancient => {
                 let pool: &[&str] =
                     &["*{name} murmurs, \"A worthy opponent... it has been too long.\"*"];
+                pick(&mut rng, pool)
+            }
+            Personality::Cheerful => {
+                let pool: &[&str] = &["*{name} winces but forces a grin. \"Just a scratch!\"*"];
+                pick(&mut rng, pool)
+            }
+            Personality::Mysterious => {
+                let pool: &[&str] =
+                    &["*{name}'s form flickers, revealing something else beneath...*"];
+                pick(&mut rng, pool)
+            }
+            Personality::Cowardly => {
+                let pool: &[&str] = &[
+                    "*{name} whimpers, \"Please... I don't want to die here!\"*",
+                    "*{name} is visibly shaking, looking for any way out.*",
+                ];
+                pick(&mut rng, pool)
+            }
+            Personality::Noble => {
+                let pool: &[&str] =
+                    &["*{name} straightens despite its wounds. \"I will not falter.\"*"];
                 pick(&mut rng, pool)
             }
             Personality::Passive => {
@@ -1231,6 +1540,38 @@ pub fn flavor_death(personality: Personality, name: &str) -> String {
                 "{name} sighs, \"At last... rest.\" and crumbles to dust.",
                 "{name} whispers, \"The cycle continues...\" and fades away.",
                 "{name} falls, and for a moment the dungeon itself seems to mourn.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cheerful => {
+            let pool: &[&str] = &[
+                "{name} grins one last time. \"Good game...\" and collapses.",
+                "{name} gives a thumbs up as it falls. \"That was... fun...\"",
+                "{name} laughs softly and goes still, a smile frozen on its face.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Mysterious => {
+            let pool: &[&str] = &[
+                "{name} dissolves into mist, leaving only an echo: \"This is not the end...\"",
+                "{name} shatters like glass, each fragment reflecting a different reality.",
+                "The shadows swallow {name} whole. Was it ever truly here?",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Cowardly => {
+            let pool: &[&str] = &[
+                "{name} collapses with a final, pathetic whimper.",
+                "{name} falls, looking almost relieved the fight is over.",
+                "\"I knew this would happen...\" {name} crumples to the ground.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Noble => {
+            let pool: &[&str] = &[
+                "{name} falls to one knee, then bows its head. \"Well fought.\"",
+                "{name} salutes its opponent with its last breath and collapses.",
+                "{name} falls with dignity, weapon still raised in a final salute.",
             ];
             pick(&mut rng, pool)
         }
@@ -2930,6 +3271,10 @@ mod tests {
             Personality::Stoic,
             Personality::Feral,
             Personality::Ancient,
+            Personality::Cheerful,
+            Personality::Mysterious,
+            Personality::Cowardly,
+            Personality::Noble,
             Personality::Passive,
         ] {
             let msg = flavor_attack(personality, "Goblin", "Hero", 10);
@@ -2948,6 +3293,10 @@ mod tests {
             Personality::Stoic,
             Personality::Feral,
             Personality::Ancient,
+            Personality::Cheerful,
+            Personality::Mysterious,
+            Personality::Cowardly,
+            Personality::Noble,
             Personality::Passive,
         ] {
             let msg = flavor_heavy_attack(personality, "Dragon", "Warrior", 25);
@@ -2965,6 +3314,10 @@ mod tests {
             Personality::Stoic,
             Personality::Feral,
             Personality::Ancient,
+            Personality::Cheerful,
+            Personality::Mysterious,
+            Personality::Cowardly,
+            Personality::Noble,
             Personality::Passive,
         ] {
             let msg = flavor_defend(personality, "Golem", 5);
@@ -2981,6 +3334,10 @@ mod tests {
             Personality::Stoic,
             Personality::Feral,
             Personality::Ancient,
+            Personality::Cheerful,
+            Personality::Mysterious,
+            Personality::Cowardly,
+            Personality::Noble,
             Personality::Passive,
         ] {
             let msg = flavor_charge(personality, "Knight");
@@ -2997,6 +3354,10 @@ mod tests {
             Personality::Stoic,
             Personality::Feral,
             Personality::Ancient,
+            Personality::Cheerful,
+            Personality::Mysterious,
+            Personality::Cowardly,
+            Personality::Noble,
             Personality::Passive,
         ] {
             let msg = flavor_flee(personality, "Imp");
@@ -3034,6 +3395,10 @@ mod tests {
             Personality::Stoic,
             Personality::Feral,
             Personality::Ancient,
+            Personality::Cheerful,
+            Personality::Mysterious,
+            Personality::Cowardly,
+            Personality::Noble,
             Personality::Passive,
         ] {
             let msg = flavor_stunned(personality, "Bat");
@@ -3050,6 +3415,10 @@ mod tests {
             Personality::Stoic,
             Personality::Feral,
             Personality::Ancient,
+            Personality::Cheerful,
+            Personality::Mysterious,
+            Personality::Cowardly,
+            Personality::Noble,
             Personality::Passive,
         ] {
             let msg = flavor_death(personality, "Wraith");

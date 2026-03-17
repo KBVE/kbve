@@ -132,6 +132,10 @@ fn to_bb_personality(p: &Personality) -> bevy_battle::Personality {
         Personality::Stoic => bevy_battle::Personality::Stoic,
         Personality::Feral => bevy_battle::Personality::Feral,
         Personality::Ancient => bevy_battle::Personality::Ancient,
+        Personality::Cheerful => bevy_battle::Personality::Cheerful,
+        Personality::Mysterious => bevy_battle::Personality::Mysterious,
+        Personality::Cowardly => bevy_battle::Personality::Cowardly,
+        Personality::Noble => bevy_battle::Personality::Noble,
         Personality::Passive => bevy_battle::Personality::Passive,
     }
 }
