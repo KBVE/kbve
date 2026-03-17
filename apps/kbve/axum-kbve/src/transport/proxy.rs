@@ -50,8 +50,19 @@ impl ServiceProxy {
 
         let method = req.method().clone();
         let mut headers = req_headers;
+
+        // Strip hop-by-hop and content-negotiation headers before forwarding
+        // upstream. These must not cross proxy boundaries per RFC 7230 §6.1.
+        // accept-encoding is removed so upstream never compresses — we buffer
+        // the full body and re-serve it, so we need the raw bytes.
         headers.remove(header::HOST);
         headers.remove(header::AUTHORIZATION);
+        headers.remove(header::ACCEPT_ENCODING);
+        headers.remove(header::CONNECTION);
+        headers.remove("te");
+        headers.remove("trailers");
+        headers.remove("upgrade");
+        headers.remove("proxy-connection");
 
         // Inject upstream auth token if configured
         if let Some(token) = &self.upstream_token {
@@ -123,14 +134,38 @@ impl ServiceProxy {
         let status =
             StatusCode::from_u16(upstream_status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
 
-        // Collect headers before consuming the body
+        // Collect headers before consuming the body.
+        // Use `append` to preserve multi-value headers (e.g. Set-Cookie, Vary).
         let mut resp_headers = HeaderMap::new();
         for (k, v) in upstream_resp.headers() {
             if let Ok(name) = axum::http::HeaderName::from_bytes(k.as_str().as_bytes()) {
                 if let Ok(val) = HeaderValue::from_bytes(v.as_bytes()) {
-                    resp_headers.insert(name, val);
+                    resp_headers.append(name, val);
                 }
             }
+        }
+
+        // Strip hop-by-hop headers from the upstream response — they must not
+        // be forwarded to the downstream client (RFC 7230 §6.1). In particular:
+        //   transfer-encoding — body is already fully buffered; axum sets the
+        //                        correct content-length automatically.
+        //   connection        — forwarding "close" would make hyper close the
+        //                        nginx keep-alive connection prematurely, which
+        //                        nginx logs as "upstream prematurely closed".
+        //   content-encoding  — reqwest may have decoded the body; forwarding
+        //                        the original encoding header would mismatch.
+        const HOP_BY_HOP: &[&str] = &[
+            "transfer-encoding",
+            "connection",
+            "keep-alive",
+            "content-encoding",
+            "upgrade",
+            "proxy-connection",
+            "te",
+            "trailers",
+        ];
+        for h in HOP_BY_HOP {
+            resp_headers.remove(*h);
         }
 
         let resp_body = match upstream_resp.bytes().await {
@@ -428,7 +463,8 @@ fn reqwest_headers(headers: &HeaderMap) -> reqwest::header::HeaderMap {
     for (k, v) in headers {
         if let Ok(name) = reqwest::header::HeaderName::from_bytes(k.as_str().as_bytes()) {
             if let Ok(val) = reqwest::header::HeaderValue::from_bytes(v.as_bytes()) {
-                out.insert(name, val);
+                // Use append to preserve multi-value headers (Accept, Cookie, etc.)
+                out.append(name, val);
             }
         }
     }
