@@ -1,5 +1,20 @@
 import { getCollection } from 'astro:content';
 import type { INpc } from '@/data/schema';
+import {
+	NpcTypeFlags,
+	NpcRarities,
+	NpcRanks,
+	Personalities,
+	Elements,
+	CreatureFamilies,
+} from '../../../../../../packages/data/codegen/generated/npcdb-schema';
+
+/** Map a string enum value to its proto integer index. */
+function toProtoInt(arr: readonly string[], value: unknown): number {
+	if (typeof value === 'number') return value;
+	const idx = arr.indexOf(value as string);
+	return idx >= 0 ? idx : 0;
+}
 
 export const GET = async () => {
 	const npcEntries = (await getCollection('npcdb')).filter(
@@ -16,6 +31,12 @@ export const GET = async () => {
 
 		const npc = {
 			...entry.data,
+			type_flags: toProtoInt(NpcTypeFlags, entry.data.type_flags),
+			rarity: toProtoInt(NpcRarities, entry.data.rarity),
+			rank: toProtoInt(NpcRanks, entry.data.rank),
+			personality: toProtoInt(Personalities, entry.data.personality),
+			element: toProtoInt(Elements, entry.data.element),
+			family: toProtoInt(CreatureFamilies, entry.data.family),
 		};
 
 		const idx = npcs.length;
@@ -28,7 +49,7 @@ export const GET = async () => {
 
 	validateNpcUniqueness(npcs);
 
-	return new Response(JSON.stringify({ npcs, index }, null, 2), {
+	return new Response(JSON.stringify(npcs, null, '\t'), {
 		headers: {
 			'Content-Type': 'application/json',
 		},

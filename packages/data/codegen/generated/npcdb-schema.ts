@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/npcdb.binpb
  * Config: ../npcdb-zod-config.json
- * Generated: 2026-03-14T23:06:22.904Z
+ * Generated: 2026-03-17T00:10:29.314Z
  */
 
 import { z } from 'zod';
@@ -37,6 +37,7 @@ export const Personalities = [
 	'mysterious',
 	'cowardly',
 	'noble',
+	'passive',
 ] as const;
 
 export type PersonalityValue = (typeof Personalities)[number];
@@ -53,6 +54,8 @@ export const Elements = [
 	'arcane',
 	'earth',
 	'wind',
+	'nature',
+	'light',
 ] as const;
 
 export type ElementValue = (typeof Elements)[number];
@@ -60,6 +63,7 @@ export type ElementValue = (typeof Elements)[number];
 export const ElementSchema = z.enum(Elements);
 
 export const NpcRarities = [
+	'common',
 	'uncommon',
 	'rare',
 	'epic',
@@ -71,7 +75,13 @@ export type NpcRarityValue = (typeof NpcRarities)[number];
 
 export const NpcRaritySchema = z.enum(NpcRarities);
 
-export const NpcRanks = ['elite', 'rare_elite', 'world_boss'] as const;
+export const NpcRanks = [
+	'normal',
+	'minion',
+	'elite',
+	'rare_elite',
+	'world_boss',
+] as const;
 
 export type NpcRankValue = (typeof NpcRanks)[number];
 

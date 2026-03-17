@@ -594,6 +594,14 @@ pub fn flavor_attack(personality: Personality, name: &str, target: &str, dmg: i3
             ];
             pick(&mut rng, pool)
         }
+        Personality::Passive => {
+            let pool: &[&str] = &[
+                "{name} bumps into {target} clumsily. {dmg} damage.",
+                "{name} flails in surprise and grazes {target} for {dmg} damage.",
+                "{name} accidentally swats {target}. {dmg} damage.",
+            ];
+            pick(&mut rng, pool)
+        }
     }
     .replace("{name}", name)
     .replace("{target}", target)
@@ -650,6 +658,13 @@ pub fn flavor_heavy_attack(personality: Personality, name: &str, target: &str, d
             ];
             pick(&mut rng, pool)
         }
+        Personality::Passive => {
+            let pool: &[&str] = &[
+                "{name} stumbles and crashes into {target} with unexpected force! {dmg} damage!",
+                "{name} panics and thrashes wildly, hitting {target} for {dmg} damage!",
+            ];
+            pick(&mut rng, pool)
+        }
     }
     .replace("{name}", name)
     .replace("{target}", target)
@@ -699,6 +714,13 @@ pub fn flavor_defend(personality: Personality, name: &str, armor: i32) -> String
             let pool: &[&str] = &[
                 "{name} draws on ancient wards. \"Patience is its own shield.\" (+{armor} armor)",
                 "{name} whispers a protective incantation. (+{armor} armor)",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Passive => {
+            let pool: &[&str] = &[
+                "{name} curls up and tries to look small. (+{armor} armor)",
+                "{name} retreats into its shell. (+{armor} armor)",
             ];
             pick(&mut rng, pool)
         }
@@ -753,6 +775,13 @@ pub fn flavor_charge(personality: Personality, name: &str) -> String {
             ];
             pick(&mut rng, pool)
         }
+        Personality::Passive => {
+            let pool: &[&str] = &[
+                "{name} puffs up, trying to look bigger than it is...",
+                "{name} shivers and braces itself, gathering courage...",
+            ];
+            pick(&mut rng, pool)
+        }
     }
     .replace("{name}", name)
 }
@@ -801,6 +830,13 @@ pub fn flavor_flee(personality: Personality, name: &str) -> String {
             let pool: &[&str] = &[
                 "The {name} fades into the mist. \"Another time, another age...\"",
                 "The {name} withdraws. \"Even I must yield to time.\"",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Passive => {
+            let pool: &[&str] = &[
+                "The {name} hops away without a care in the world.",
+                "The {name} waddles off, losing interest in the fight.",
             ];
             pick(&mut rng, pool)
         }
@@ -854,6 +890,13 @@ pub fn flavor_debuff(personality: Personality, name: &str, target: &str, effect:
             ];
             pick(&mut rng, pool)
         }
+        Personality::Passive => {
+            let pool: &[&str] = &[
+                "{name} accidentally brushes against {target}, leaving behind {effect}!",
+                "{name} sneezes on {target}! {effect} applied!",
+            ];
+            pick(&mut rng, pool)
+        }
     }
     .replace("{name}", name)
     .replace("{target}", target)
@@ -904,6 +947,12 @@ pub fn flavor_aoe(personality: Personality, name: &str, dmg: i32) -> String {
             ];
             pick(&mut rng, pool)
         }
+        Personality::Passive => {
+            let pool: &[&str] = &[
+                "{name} stumbles around in a panic, bumping into everyone! {dmg} damage to all!",
+            ];
+            pick(&mut rng, pool)
+        }
     }
     .replace("{name}", name)
     .replace("{dmg}", &dmg.to_string())
@@ -947,6 +996,13 @@ pub fn flavor_heal(personality: Personality, name: &str, amount: i32) -> String 
             let pool: &[&str] = &[
                 "{name} draws life from the dungeon walls. +{amount} HP.",
                 "\"The old bones mend.\" {name} heals for {amount}.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Passive => {
+            let pool: &[&str] = &[
+                "{name} nibbles on some moss and recovers {amount} HP.",
+                "{name} finds a quiet spot to rest. +{amount} HP.",
             ];
             pick(&mut rng, pool)
         }
@@ -995,6 +1051,13 @@ pub fn flavor_stunned(personality: Personality, name: &str) -> String {
             let pool: &[&str] = &[
                 "{name} pauses, ancient eyes flickering with confusion.",
                 "\"Impossible...\" {name} is stunned.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Passive => {
+            let pool: &[&str] = &[
+                "{name} blinks in confusion, completely dazed.",
+                "{name} sits down, bewildered.",
             ];
             pick(&mut rng, pool)
         }
@@ -1060,6 +1123,13 @@ pub fn flavor_emotional_reaction(
                 ];
                 pick(&mut rng, pool)
             }
+            Personality::Passive => {
+                let pool: &[&str] = &[
+                    "*{name} lets out a soft, pitiful croak...*",
+                    "*{name} lies still, barely breathing.*",
+                ];
+                pick(&mut rng, pool)
+            }
         };
         Some(msg.replace("{name}", name))
     } else if hp_percent <= 0.40 {
@@ -1098,6 +1168,11 @@ pub fn flavor_emotional_reaction(
             Personality::Ancient => {
                 let pool: &[&str] =
                     &["*{name} murmurs, \"A worthy opponent... it has been too long.\"*"];
+                pick(&mut rng, pool)
+            }
+            Personality::Passive => {
+                let pool: &[&str] =
+                    &["*{name} looks around nervously, wondering how it got here.*"];
                 pick(&mut rng, pool)
             }
         };
@@ -1156,6 +1231,14 @@ pub fn flavor_death(personality: Personality, name: &str) -> String {
                 "{name} sighs, \"At last... rest.\" and crumbles to dust.",
                 "{name} whispers, \"The cycle continues...\" and fades away.",
                 "{name} falls, and for a moment the dungeon itself seems to mourn.",
+            ];
+            pick(&mut rng, pool)
+        }
+        Personality::Passive => {
+            let pool: &[&str] = &[
+                "{name} lets out one last gentle croak and goes still.",
+                "{name} topples over peacefully. It didn't seem to mind.",
+                "{name} fades away quietly, as if it was never really here.",
             ];
             pick(&mut rng, pool)
         }
@@ -2847,6 +2930,7 @@ mod tests {
             Personality::Stoic,
             Personality::Feral,
             Personality::Ancient,
+            Personality::Passive,
         ] {
             let msg = flavor_attack(personality, "Goblin", "Hero", 10);
             assert!(msg.contains("Goblin"), "should contain enemy name: {msg}");
@@ -2864,6 +2948,7 @@ mod tests {
             Personality::Stoic,
             Personality::Feral,
             Personality::Ancient,
+            Personality::Passive,
         ] {
             let msg = flavor_heavy_attack(personality, "Dragon", "Warrior", 25);
             assert!(msg.contains("Dragon"), "{msg}");
@@ -2880,6 +2965,7 @@ mod tests {
             Personality::Stoic,
             Personality::Feral,
             Personality::Ancient,
+            Personality::Passive,
         ] {
             let msg = flavor_defend(personality, "Golem", 5);
             assert!(msg.contains("5"), "should contain armor value: {msg}");
@@ -2895,6 +2981,7 @@ mod tests {
             Personality::Stoic,
             Personality::Feral,
             Personality::Ancient,
+            Personality::Passive,
         ] {
             let msg = flavor_charge(personality, "Knight");
             assert!(msg.contains("Knight"), "{msg}");
@@ -2910,6 +2997,7 @@ mod tests {
             Personality::Stoic,
             Personality::Feral,
             Personality::Ancient,
+            Personality::Passive,
         ] {
             let msg = flavor_flee(personality, "Imp");
             assert!(msg.contains("Imp"), "{msg}");
@@ -2946,6 +3034,7 @@ mod tests {
             Personality::Stoic,
             Personality::Feral,
             Personality::Ancient,
+            Personality::Passive,
         ] {
             let msg = flavor_stunned(personality, "Bat");
             assert!(msg.contains("Bat"), "{msg}");
@@ -2961,6 +3050,7 @@ mod tests {
             Personality::Stoic,
             Personality::Feral,
             Personality::Ancient,
+            Personality::Passive,
         ] {
             let msg = flavor_death(personality, "Wraith");
             assert!(msg.contains("Wraith"), "{msg}");

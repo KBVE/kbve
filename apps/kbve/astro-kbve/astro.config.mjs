@@ -149,6 +149,11 @@ export default defineConfig({
 					autogenerate: { directory: 'mapdb' },
 				},
 				{
+					label: 'NpcDB',
+					collapsed: true,
+					autogenerate: { directory: 'npcdb' },
+				},
+				{
 					label: 'Blog',
 					autogenerate: { directory: 'blog' },
 				},

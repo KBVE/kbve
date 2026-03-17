@@ -710,6 +710,7 @@ pub enum Personality {
     Mysterious = 8,
     Cowardly = 9,
     Noble = 10,
+    Passive = 11,
 }
 impl Personality {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -729,6 +730,7 @@ impl Personality {
             Self::Mysterious => "PERSONALITY_MYSTERIOUS",
             Self::Cowardly => "PERSONALITY_COWARDLY",
             Self::Noble => "PERSONALITY_NOBLE",
+            Self::Passive => "PERSONALITY_PASSIVE",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -745,6 +747,7 @@ impl Personality {
             "PERSONALITY_MYSTERIOUS" => Some(Self::Mysterious),
             "PERSONALITY_COWARDLY" => Some(Self::Cowardly),
             "PERSONALITY_NOBLE" => Some(Self::Noble),
+            "PERSONALITY_PASSIVE" => Some(Self::Passive),
             _ => None,
         }
     }
@@ -775,6 +778,8 @@ pub enum Element {
     Arcane = 7,
     Earth = 8,
     Wind = 9,
+    Nature = 10,
+    Light = 11,
 }
 impl Element {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -793,6 +798,8 @@ impl Element {
             Self::Arcane => "ELEMENT_ARCANE",
             Self::Earth => "ELEMENT_EARTH",
             Self::Wind => "ELEMENT_WIND",
+            Self::Nature => "ELEMENT_NATURE",
+            Self::Light => "ELEMENT_LIGHT",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -808,6 +815,8 @@ impl Element {
             "ELEMENT_ARCANE" => Some(Self::Arcane),
             "ELEMENT_EARTH" => Some(Self::Earth),
             "ELEMENT_WIND" => Some(Self::Wind),
+            "ELEMENT_NATURE" => Some(Self::Nature),
+            "ELEMENT_LIGHT" => Some(Self::Light),
             _ => None,
         }
     }
@@ -880,9 +889,10 @@ impl NpcRarity {
 #[repr(i32)]
 pub enum NpcRank {
     Normal = 0,
-    Elite = 1,
-    RareElite = 2,
-    WorldBoss = 3,
+    Minion = 1,
+    Elite = 2,
+    RareElite = 3,
+    WorldBoss = 4,
 }
 impl NpcRank {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -892,6 +902,7 @@ impl NpcRank {
     pub fn as_str_name(&self) -> &'static str {
         match self {
             Self::Normal => "NPC_RANK_NORMAL",
+            Self::Minion => "NPC_RANK_MINION",
             Self::Elite => "NPC_RANK_ELITE",
             Self::RareElite => "NPC_RANK_RARE_ELITE",
             Self::WorldBoss => "NPC_RANK_WORLD_BOSS",
@@ -901,6 +912,7 @@ impl NpcRank {
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
             "NPC_RANK_NORMAL" => Some(Self::Normal),
+            "NPC_RANK_MINION" => Some(Self::Minion),
             "NPC_RANK_ELITE" => Some(Self::Elite),
             "NPC_RANK_RARE_ELITE" => Some(Self::RareElite),
             "NPC_RANK_WORLD_BOSS" => Some(Self::WorldBoss),
