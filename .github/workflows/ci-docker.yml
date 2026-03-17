@@ -1,319 +1,282 @@
 name: CI - Docker
 
 on:
-    workflow_run:
-        workflows: ['CI - Main']
-        types: [completed]
     workflow_dispatch:
+        inputs:
+            app_name:
+                description: 'App name to build (e.g. axum-kbve, discordsh, mc)'
+                required: true
+                type: string
+            sha:
+                description: 'Git SHA that triggered this dispatch'
+                required: true
+                type: string
+            dispatched_at:
+                description: 'Unix timestamp when this was dispatched (queue guard)'
+                required: true
+                type: string
 
-# Do not cancel in-progress runs — mid-flight docker pushes must complete.
+# Per-app concurrency — never cancel in-progress runs.
+# GitHub Actions keeps one pending slot: if two runs queue for the same app,
+# the latest pending replaces the older pending, but the running job is safe.
 concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
+    group: ci-docker-${{ inputs.app_name }}
     cancel-in-progress: false
 
 permissions: {}
 
 jobs:
     # ---------------------------------------------------------------------------
-    # Guard: skip if triggered by a failed CI - Main run.
-    # workflow_dispatch bypasses this so individual rebuilds can be forced.
+    # Queue Guard — fail loudly if this run has been waiting > 2 hours.
+    # Prevents stale deploys: if axum-kbve v5.0.10 queues behind v5.0.11,
+    # the v5.0.10 run should give up rather than deploy an older image.
     # ---------------------------------------------------------------------------
-    guard:
-        name: Guard
+    queue_guard:
+        name: Queue Guard
         runs-on: ubuntu-latest
-        timeout-minutes: 2
-        outputs:
-            should_run: ${{ steps.check.outputs.should_run }}
+        timeout-minutes: 5
         steps:
-            - name: Check trigger condition
-              id: check
+            - name: Check queue age
               run: |
-                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-                    echo "should_run=true" >> "$GITHUB_OUTPUT"
-                  elif [ "${{ github.event.workflow_run.conclusion }}" = "success" ]; then
-                    echo "should_run=true" >> "$GITHUB_OUTPUT"
-                  else
-                    echo "CI - Main did not succeed (conclusion: ${{ github.event.workflow_run.conclusion }}), skipping."
-                    echo "should_run=false" >> "$GITHUB_OUTPUT"
+                  NOW=$(date +%s)
+                  DISPATCHED="${{ inputs.dispatched_at }}"
+                  AGE=$(( NOW - DISPATCHED ))
+                  echo "App: ${{ inputs.app_name }}"
+                  echo "SHA: ${{ inputs.sha }}"
+                  echo "Queued for ${AGE}s (dispatched_at=$DISPATCHED, now=$NOW)"
+                  if [ "$AGE" -gt 7200 ]; then
+                    echo "::error::Queue timeout: ${{ inputs.app_name }} waited ${AGE}s (> 2h). Failing to prevent stale deploy."
+                    exit 1
                   fi
+                  echo "Queue age OK: ${AGE}s"
 
     # ---------------------------------------------------------------------------
-    # File alteration detection — which docker apps changed?
-    # ci-docker owns this check independently so it can run standalone.
+    # Config — resolve all per-app settings from a single case statement.
+    # Single source of truth for runner, image, e2e, cargo_toml, kube manifest,
+    # whether a base image exists, and whether a docker-test step should run.
     # ---------------------------------------------------------------------------
-    alter:
-        name: Detect Changes
-        needs: [guard]
-        if: needs.guard.outputs.should_run == 'true'
-        permissions:
-            contents: read
-        uses: KBVE/kbve/.github/workflows/utils-file-alterations.yml@main
-        with:
-            branch: 'main'
+    config:
+        name: Resolve App Config
+        needs: [queue_guard]
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        outputs:
+            runner: ${{ steps.resolve.outputs.runner }}
+            image: ${{ steps.resolve.outputs.image }}
+            e2e_name: ${{ steps.resolve.outputs.e2e_name }}
+            cargo_toml: ${{ steps.resolve.outputs.cargo_toml }}
+            deployment_yaml: ${{ steps.resolve.outputs.deployment_yaml }}
+            has_base: ${{ steps.resolve.outputs.has_base }}
+            base_image: ${{ steps.resolve.outputs.base_image }}
+            has_test: ${{ steps.resolve.outputs.has_test }}
+        steps:
+            - name: Resolve config for ${{ inputs.app_name }}
+              id: resolve
+              run: |
+                  case "${{ inputs.app_name }}" in
+                    axum-kbve)
+                      echo "runner=arc-runner-set"                                                         >> "$GITHUB_OUTPUT"
+                      echo "image=kbve/kbve"                                                               >> "$GITHUB_OUTPUT"
+                      echo "e2e_name=axum-kbve-e2e"                                                        >> "$GITHUB_OUTPUT"
+                      echo "cargo_toml=apps/kbve/axum-kbve/Cargo.toml"                                    >> "$GITHUB_OUTPUT"
+                      echo "deployment_yaml=apps/kube/kbve/manifest/kbve-deployment.yaml"                 >> "$GITHUB_OUTPUT"
+                      echo "has_base=true"                                                                 >> "$GITHUB_OUTPUT"
+                      echo "base_image=ghcr.io/kbve/kbve-build-base"                                      >> "$GITHUB_OUTPUT"
+                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      ;;
+                    herbmail)
+                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
+                      echo "image=kbve/herbmail"                                                           >> "$GITHUB_OUTPUT"
+                      echo "e2e_name=herbmail"                                                             >> "$GITHUB_OUTPUT"
+                      echo "cargo_toml=apps/herbmail/axum-herbmail/Cargo.toml"                             >> "$GITHUB_OUTPUT"
+                      echo "deployment_yaml=apps/kube/herbmail/manifest/herbmail-deployment.yaml"          >> "$GITHUB_OUTPUT"
+                      echo "has_base=false"                                                                >> "$GITHUB_OUTPUT"
+                      echo "base_image="                                                                   >> "$GITHUB_OUTPUT"
+                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      ;;
+                    memes)
+                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
+                      echo "image=kbve/memes"                                                              >> "$GITHUB_OUTPUT"
+                      echo "e2e_name=memes"                                                                >> "$GITHUB_OUTPUT"
+                      echo "cargo_toml=apps/memes/axum-memes/Cargo.toml"                                   >> "$GITHUB_OUTPUT"
+                      echo "deployment_yaml=apps/kube/memes/manifest/memes-deployment.yaml"               >> "$GITHUB_OUTPUT"
+                      echo "has_base=false"                                                                >> "$GITHUB_OUTPUT"
+                      echo "base_image="                                                                   >> "$GITHUB_OUTPUT"
+                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      ;;
+                    irc-gateway)
+                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
+                      echo "image=kbve/irc-gateway"                                                        >> "$GITHUB_OUTPUT"
+                      echo "e2e_name=irc"                                                                  >> "$GITHUB_OUTPUT"
+                      echo "cargo_toml=apps/irc/irc-gateway/Cargo.toml"                                   >> "$GITHUB_OUTPUT"
+                      echo "deployment_yaml=apps/kube/irc/manifests/irc-gateway-deployment.yaml"          >> "$GITHUB_OUTPUT"
+                      echo "has_base=false"                                                                >> "$GITHUB_OUTPUT"
+                      echo "base_image="                                                                   >> "$GITHUB_OUTPUT"
+                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      ;;
+                    discordsh)
+                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
+                      echo "image=kbve/discordsh"                                                          >> "$GITHUB_OUTPUT"
+                      echo "e2e_name=discordsh"                                                            >> "$GITHUB_OUTPUT"
+                      echo "cargo_toml=apps/discordsh/axum-discordsh/Cargo.toml"                           >> "$GITHUB_OUTPUT"
+                      echo "deployment_yaml=apps/kube/discordsh/manifest/deployment.yaml"                 >> "$GITHUB_OUTPUT"
+                      echo "has_base=true"                                                                 >> "$GITHUB_OUTPUT"
+                      echo "base_image=ghcr.io/kbve/discordsh-build-base"                                 >> "$GITHUB_OUTPUT"
+                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      ;;
+                    mc)
+                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
+                      echo "image=kbve/mc"                                                                 >> "$GITHUB_OUTPUT"
+                      echo "e2e_name=mc"                                                                   >> "$GITHUB_OUTPUT"
+                      echo "cargo_toml=apps/mc/plugins/kbve-mc-plugin/Cargo.toml"                         >> "$GITHUB_OUTPUT"
+                      echo "deployment_yaml=apps/kube/mc/manifest/deployment.yaml"                        >> "$GITHUB_OUTPUT"
+                      echo "has_base=true"                                                                 >> "$GITHUB_OUTPUT"
+                      echo "base_image=ghcr.io/kbve/mc-rust-base"                                         >> "$GITHUB_OUTPUT"
+                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      ;;
+                    edge)
+                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
+                      echo "image=kbve/edge"                                                               >> "$GITHUB_OUTPUT"
+                      echo "e2e_name=edge"                                                                 >> "$GITHUB_OUTPUT"
+                      echo "cargo_toml=apps/kbve/edge/version.toml"                                       >> "$GITHUB_OUTPUT"
+                      echo "deployment_yaml=apps/kube/functions/manifests/functions-deployment.yaml"      >> "$GITHUB_OUTPUT"
+                      echo "has_base=false"                                                                >> "$GITHUB_OUTPUT"
+                      echo "base_image="                                                                   >> "$GITHUB_OUTPUT"
+                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      ;;
+                    cryptothrone)
+                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
+                      echo "image=kbve/cryptothrone"                                                       >> "$GITHUB_OUTPUT"
+                      echo "e2e_name=cryptothrone"                                                         >> "$GITHUB_OUTPUT"
+                      echo "cargo_toml=apps/cryptothrone/axum-cryptothrone/Cargo.toml"                    >> "$GITHUB_OUTPUT"
+                      echo "deployment_yaml=apps/kube/cryptothrone/manifest/cryptothrone-deployment.yaml" >> "$GITHUB_OUTPUT"
+                      echo "has_base=true"                                                                 >> "$GITHUB_OUTPUT"
+                      echo "base_image=ghcr.io/kbve/cryptothrone-build-base"                              >> "$GITHUB_OUTPUT"
+                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      ;;
+                    kilobase)
+                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
+                      echo "image=kbve/kilobase"                                                           >> "$GITHUB_OUTPUT"
+                      echo "e2e_name="                                                                     >> "$GITHUB_OUTPUT"
+                      echo "cargo_toml="                                                                   >> "$GITHUB_OUTPUT"
+                      echo "deployment_yaml="                                                              >> "$GITHUB_OUTPUT"
+                      echo "has_base=false"                                                                >> "$GITHUB_OUTPUT"
+                      echo "base_image="                                                                   >> "$GITHUB_OUTPUT"
+                      echo "has_test=false"                                                                >> "$GITHUB_OUTPUT"
+                      ;;
+                    *)
+                      echo "::error::Unknown app_name: ${{ inputs.app_name }}"
+                      exit 1
+                      ;;
+                  esac
 
     # ---------------------------------------------------------------------------
-    # Base images — builder layers used by downstream app images.
-    # Built before any app image so the cache is warm.
+    # Build Base — only for apps with a Dockerfile.base builder layer.
+    # Warms the build cache before the app image build in test/publish.
     # ---------------------------------------------------------------------------
-    generate_base_docker_matrix:
-        name: Generate Base Image Matrix
-        needs: [alter]
-        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-        with:
-            items: |
-                [
-                  { "name": "mc",           "target": "base", "condition": "${{ needs.alter.outputs.mc_base }}",          "image": "ghcr.io/kbve/mc-rust-base" },
-                  { "name": "discordsh",    "target": "base", "condition": "${{ needs.alter.outputs.discordsh_base }}",   "image": "ghcr.io/kbve/discordsh-build-base" },
-                  { "name": "axum-kbve",   "target": "base", "condition": "${{ needs.alter.outputs.kbve_base }}",        "image": "ghcr.io/kbve/kbve-build-base" },
-                  { "name": "cryptothrone", "target": "base", "condition": "${{ needs.alter.outputs.cryptothrone_base }}", "image": "ghcr.io/kbve/cryptothrone-build-base" }
-                ]
-
-    build_base_images:
-        name: Build Base Images
-        needs: [generate_base_docker_matrix]
-        if: ${{ needs.generate_base_docker_matrix.outputs.matrix != 'null' }}
+    build_base:
+        name: Build Base Image
+        needs: [config]
+        if: needs.config.outputs.has_base == 'true'
         permissions:
             contents: read
             packages: write
-        strategy:
-            fail-fast: false
-            matrix: ${{ fromJson(needs.generate_base_docker_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-publish-docker-image.yml@main
         with:
-            project: ${{ matrix.name }}
-            target: ${{ matrix.target }}
-            image: ${{ matrix.image }}
+            project: ${{ inputs.app_name }}
+            target: base
+            image: ${{ needs.config.outputs.base_image }}
         secrets:
             DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
             DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
             MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # ---------------------------------------------------------------------------
-    # E2E matrix — builds app images, runs e2e tests, pushes ci-{sha} tag to GHCR.
-    # The ci-{sha} tag is what publish_docker promotes — no second full build needed.
+    # Test — builds the app image, tags as ci-{sha} in GHCR, runs e2e tests.
+    # Skipped for apps that have no e2e suite (e.g. kilobase).
+    # The ci-{sha} tag is what publish promotes — no second full build needed.
     # ---------------------------------------------------------------------------
-    generate_e2e_docker_matrix:
-        name: Generate E2E Matrix
-        needs: [alter]
-        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-        with:
-            items: |
-                [
-                  { "name": "herbmail",     "condition": "${{ needs.alter.outputs.herbmail }}",    "image": "kbve/herbmail" },
-                  { "name": "memes",        "condition": "${{ needs.alter.outputs.memes }}",       "image": "kbve/memes" },
-                  { "name": "irc",          "condition": "${{ needs.alter.outputs.irc_gateway }}", "image": "kbve/irc-gateway" },
-                  { "name": "discordsh",    "condition": "${{ needs.alter.outputs.discordsh }}",   "image": "kbve/discordsh" },
-                  { "name": "mc",           "condition": "${{ needs.alter.outputs.mc }}",          "image": "kbve/mc" },
-                  { "name": "edge",         "condition": "${{ needs.alter.outputs.edge }}",        "image": "kbve/edge" },
-                  { "name": "cryptothrone", "condition": "${{ needs.alter.outputs.cryptothrone }}", "image": "kbve/cryptothrone" },
-                  { "name": "axum-kbve-e2e", "condition": "${{ needs.alter.outputs.astro_kbve }}", "runner": "arc-runner-set", "image": "kbve/kbve" }
-                ]
-
-    test_docker:
-        name: Test Docker Apps
-        needs: [generate_e2e_docker_matrix, build_base_images]
-        if: ${{ always() && needs.generate_e2e_docker_matrix.outputs.matrix != 'null' && !failure() && !cancelled() }}
+    test:
+        name: Test Docker
+        needs: [config, build_base]
+        if: |
+            always() &&
+            needs.config.result == 'success' &&
+            needs.config.outputs.has_test == 'true' &&
+            (needs.build_base.result == 'success' || needs.build_base.result == 'skipped') &&
+            !cancelled()
         permissions:
             contents: read
             packages: write
-        strategy:
-            fail-fast: false
-            matrix: ${{ fromJson(needs.generate_e2e_docker_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/docker-test-app.yml@main
         with:
-            project: ${{ matrix.name }}
-            runner: ${{ matrix.runner || 'ubuntu-latest' }}
-            image: ${{ matrix.image || '' }}
+            project: ${{ inputs.app_name }}
+            runner: ${{ needs.config.outputs.runner }}
+            image: ${{ needs.config.outputs.image }}
 
     # ---------------------------------------------------------------------------
-    # Publish matrix — full list of app images with e2e_name for result filtering.
-    # collect_docker_results gates this against which e2e tests actually passed.
+    # Publish — promotes the ci-{sha} tag built in test to the release tag.
+    # Falls back to a full rebuild only if the ci-{sha} image is not in GHCR.
+    # For apps without a test step (kilobase) this is the primary build path.
     # ---------------------------------------------------------------------------
-    generate_docker_matrix:
-        name: Generate Publish Matrix
-        needs: [alter]
-        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-        with:
-            items: |
-                [
-                  { "name": "kilobase",    "target": "container", "condition": "${{ needs.alter.outputs.kilobase }}" },
-                  { "name": "herbmail",    "target": "container", "condition": "${{ needs.alter.outputs.herbmail }}",    "e2e_name": "herbmail",     "image": "kbve/herbmail",    "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml" },
-                  { "name": "memes",       "target": "container", "condition": "${{ needs.alter.outputs.memes }}",       "e2e_name": "memes",        "image": "kbve/memes",       "cargo_toml": "apps/memes/axum-memes/Cargo.toml" },
-                  { "name": "irc-gateway", "target": "container", "condition": "${{ needs.alter.outputs.irc_gateway }}", "e2e_name": "irc",          "image": "kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml" },
-                  { "name": "discordsh",   "target": "container", "condition": "${{ needs.alter.outputs.discordsh }}",   "e2e_name": "discordsh",    "image": "kbve/discordsh",   "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml" },
-                  { "name": "mc",          "target": "container", "condition": "${{ needs.alter.outputs.mc }}",          "e2e_name": "mc",           "image": "kbve/mc" },
-                  { "name": "edge",        "target": "container", "condition": "${{ needs.alter.outputs.edge }}",        "e2e_name": "edge",         "image": "kbve/edge",        "cargo_toml": "apps/kbve/edge/version.toml" },
-                  { "name": "cryptothrone","target": "container", "condition": "${{ needs.alter.outputs.cryptothrone }}", "e2e_name": "cryptothrone", "image": "kbve/cryptothrone","cargo_toml": "apps/cryptothrone/axum-cryptothrone/Cargo.toml" },
-                  { "name": "axum-kbve",  "target": "container", "condition": "${{ needs.alter.outputs.astro_kbve }}",  "e2e_name": "axum-kbve-e2e","image": "kbve/kbve",        "cargo_toml": "apps/kbve/axum-kbve/Cargo.toml" }
-                ]
-
-    collect_docker_results:
-        name: Collect Docker Test Results
-        needs: [test_docker, generate_docker_matrix, generate_e2e_docker_matrix]
-        if: ${{ always() && needs.generate_docker_matrix.outputs.matrix != 'null' }}
-        runs-on: ubuntu-latest
-        outputs:
-            publish_matrix: ${{ steps.filter.outputs.publish_matrix }}
-        steps:
-            - name: Download test markers
-              uses: actions/download-artifact@v8
-              with:
-                  pattern: test-passed-docker-*
-                  path: ./test-results
-                  merge-multiple: false
-              continue-on-error: true
-
-            - name: Build filtered publish matrix
-              id: filter
-              env:
-                  PUBLISH_MATRIX: ${{ needs.generate_docker_matrix.outputs.matrix }}
-              run: |
-                  echo "::group::Debug test-results"
-                  if [ -d "./test-results" ]; then
-                    find ./test-results -type f -ls
-                    PASSED=$(find ./test-results -name 'test-result.txt' -exec cat {} \;)
-                    echo "Passed: $PASSED"
-                  else
-                    echo "No test-results directory"
-                    PASSED=""
-                  fi
-                  echo "::endgroup::"
-                  FILTERED=$(echo "$PUBLISH_MATRIX" | jq -c --arg passed "$PASSED" '{
-                    include: [.include[] | select(
-                      (.e2e_name | not) or
-                      (.e2e_name as $e | $passed | split("\n") | any(. == $e))
-                    )]
-                  } | if (.include | length) == 0 then null else . end')
-                  echo "publish_matrix=$FILTERED" >> "$GITHUB_OUTPUT"
-
-    # ---------------------------------------------------------------------------
-    # Publish — promotes the ci-{sha} image already built by test_docker.
-    # Falls back to a full rebuild only if the CI image is not found in GHCR.
-    # This is the build-once pattern: build in e2e, promote to release.
-    # ---------------------------------------------------------------------------
-    publish_docker:
-        name: Publish Docker Images
-        needs: [collect_docker_results]
-        if: ${{ !cancelled() && needs.collect_docker_results.result == 'success' && needs.collect_docker_results.outputs.publish_matrix != 'null' && needs.collect_docker_results.outputs.publish_matrix != '' }}
+    publish:
+        name: Publish Docker
+        needs: [config, test]
+        if: |
+            always() &&
+            !cancelled() &&
+            needs.config.result == 'success' &&
+            (needs.test.result == 'success' || needs.test.result == 'skipped')
         permissions:
             contents: read
             packages: write
-        strategy:
-            fail-fast: false
-            matrix: ${{ fromJson(needs.collect_docker_results.outputs.publish_matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-publish-docker-image.yml@main
         with:
-            project: ${{ matrix.name }}
-            target: ${{ matrix.target }}
-            image: ${{ matrix.image || '' }}
-            cargo_toml: ${{ matrix.cargo_toml || '' }}
+            project: ${{ inputs.app_name }}
+            target: container
+            image: ${{ needs.config.outputs.image }}
+            cargo_toml: ${{ needs.config.outputs.cargo_toml }}
         secrets:
             DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
             DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
             MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # ---------------------------------------------------------------------------
-    # Kube manifest updates — bumps image tags in deployment YAMLs after publish.
+    # Update Kube — bumps the image tag in the app's deployment YAML and opens a PR.
+    # Skipped for apps without a kube deployment (kilobase, edge-less apps).
     # ---------------------------------------------------------------------------
-    generate_kube_update_matrix:
-        name: Generate Kube Update Matrix
-        needs: [alter]
-        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-        with:
-            items: |
-                [
-                  { "name": "herbmail",    "condition": "${{ needs.alter.outputs.herbmail }}",    "e2e_name": "herbmail",     "image_name": "ghcr.io/kbve/herbmail",    "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml",          "deployment_yaml": "apps/kube/herbmail/manifest/herbmail-deployment.yaml" },
-                  { "name": "memes",       "condition": "${{ needs.alter.outputs.memes }}",       "e2e_name": "memes",        "image_name": "ghcr.io/kbve/memes",       "cargo_toml": "apps/memes/axum-memes/Cargo.toml",                "deployment_yaml": "apps/kube/memes/manifest/memes-deployment.yaml" },
-                  { "name": "irc-gateway", "condition": "${{ needs.alter.outputs.irc_gateway }}", "e2e_name": "irc",          "image_name": "ghcr.io/kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml",                 "deployment_yaml": "apps/kube/irc/manifests/irc-gateway-deployment.yaml" },
-                  { "name": "discordsh",   "condition": "${{ needs.alter.outputs.discordsh }}",   "e2e_name": "discordsh",    "image_name": "ghcr.io/kbve/discordsh",   "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml",        "deployment_yaml": "apps/kube/discordsh/manifest/deployment.yaml" },
-                  { "name": "mc",          "condition": "${{ needs.alter.outputs.mc }}",          "e2e_name": "mc",           "image_name": "ghcr.io/kbve/mc",          "cargo_toml": "apps/mc/plugins/kbve-mc-plugin/Cargo.toml",       "deployment_yaml": "apps/kube/mc/manifest/deployment.yaml" },
-                  { "name": "cryptothrone","condition": "${{ needs.alter.outputs.cryptothrone }}", "e2e_name": "cryptothrone", "image_name": "ghcr.io/kbve/cryptothrone","cargo_toml": "apps/cryptothrone/axum-cryptothrone/Cargo.toml",  "deployment_yaml": "apps/kube/cryptothrone/manifest/cryptothrone-deployment.yaml" },
-                  { "name": "edge",        "condition": "${{ needs.alter.outputs.edge }}",        "e2e_name": "edge",         "image_name": "ghcr.io/kbve/edge",        "cargo_toml": "apps/kbve/edge/version.toml",                     "deployment_yaml": "apps/kube/functions/manifests/functions-deployment.yaml" },
-                  { "name": "axum-kbve",  "condition": "${{ needs.alter.outputs.astro_kbve }}",  "e2e_name": "axum-kbve-e2e","image_name": "ghcr.io/kbve/kbve",        "cargo_toml": "apps/kbve/axum-kbve/Cargo.toml",                  "deployment_yaml": "apps/kube/kbve/manifest/kbve-deployment.yaml" }
-                ]
-
-    collect_kube_results:
-        name: Collect Kube Update Results
-        needs:
-            [
-                publish_docker,
-                generate_kube_update_matrix,
-                collect_docker_results,
-            ]
-        if: ${{ always() && needs.generate_kube_update_matrix.outputs.matrix != 'null' }}
-        runs-on: ubuntu-latest
-        outputs:
-            matrix: ${{ steps.filter.outputs.matrix }}
-        steps:
-            - name: Download test markers
-              uses: actions/download-artifact@v8
-              with:
-                  pattern: test-passed-docker-*
-                  path: ./test-results
-                  merge-multiple: false
-              continue-on-error: true
-
-            - name: Build filtered kube matrix
-              id: filter
-              env:
-                  KUBE_MATRIX: ${{ needs.generate_kube_update_matrix.outputs.matrix }}
-              run: |
-                  echo "::group::Debug test-results"
-                  if [ -d "./test-results" ]; then
-                    find ./test-results -type f -ls
-                    PASSED=$(find ./test-results -name 'test-result.txt' -exec cat {} \;)
-                    echo "Passed: $PASSED"
-                  else
-                    echo "No test-results directory"
-                    PASSED=""
-                  fi
-                  echo "::endgroup::"
-                  FILTERED=$(echo "$KUBE_MATRIX" | jq -c --arg passed "$PASSED" '{
-                    include: [.include[] | select(
-                      (.e2e_name | not) or
-                      (.e2e_name as $e | $passed | split("\n") | any(. == $e))
-                    )]
-                  } | if (.include | length) == 0 then null else . end')
-                  echo "matrix=$FILTERED" >> "$GITHUB_OUTPUT"
-
-    update_kube_manifests:
-        name: Update Kube Manifests
-        needs: [collect_kube_results]
-        if: ${{ !cancelled() && needs.collect_kube_results.result == 'success' && needs.collect_kube_results.outputs.matrix != 'null' && needs.collect_kube_results.outputs.matrix != '' }}
+    update_kube:
+        name: Update Kube Manifest
+        needs: [config, publish]
+        if: |
+            always() &&
+            needs.publish.result == 'success' &&
+            needs.config.outputs.deployment_yaml != ''
         permissions:
             contents: write
             pull-requests: write
-        strategy:
-            fail-fast: false
-            matrix: ${{ fromJson(needs.collect_kube_results.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-update-kube-manifest.yml@main
         with:
-            app_name: ${{ matrix.name }}
-            image_name: ${{ matrix.image_name }}
-            cargo_toml: ${{ matrix.cargo_toml }}
-            deployment_yaml: ${{ matrix.deployment_yaml }}
+            app_name: ${{ inputs.app_name }}
+            image_name: ghcr.io/${{ needs.config.outputs.image }}
+            cargo_toml: ${{ needs.config.outputs.cargo_toml }}
+            deployment_yaml: ${{ needs.config.outputs.deployment_yaml }}
 
     # ---------------------------------------------------------------------------
-    # Failure tracker — surfaces failures as GitHub issues (#8186).
-    # Catches any failure in the docker pipeline without blocking ci-main.
+    # Failure Tracker — opens a GitHub issue on any pipeline failure (#8186).
+    # Per-app job_name makes the issue title actionable: "CI - Docker / axum-kbve"
     # ---------------------------------------------------------------------------
     track_failure:
         name: Track Failures
         if: ${{ always() && contains(needs.*.result, 'failure') }}
-        needs:
-            [
-                build_base_images,
-                test_docker,
-                publish_docker,
-                update_kube_manifests,
-            ]
+        needs: [build_base, test, publish, update_kube]
         permissions:
             issues: write
             contents: read
         uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
         with:
             workflow_name: 'CI - Docker'
-            job_name: 'docker-pipeline'
+            job_name: ${{ inputs.app_name }}
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: 'failure'

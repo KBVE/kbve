@@ -62,5 +62,49 @@ jobs:
             branch: 'main'
 
     ## Bevy / Isometric — moved to ci-bevy.yml (async, workflow_run triggered)
-    ## Docker — moved to ci-docker.yml (async, workflow_run triggered)
     ## NPM / Crates / Python / Godot — moved to ci-publish.yml (async, workflow_run triggered)
+
+    # ---------------------------------------------------------------------------
+    # Docker dispatch — fires one ci-docker.yml run per changed app.
+    # Each run gets its own concurrency group (ci-docker-{app_name}) so apps
+    # build fully in parallel and never block each other.
+    # Queue guard inside ci-docker.yml drops stale runs that waited > 2h.
+    # ---------------------------------------------------------------------------
+    dispatch_docker:
+        name: Dispatch Docker Apps
+        needs: ['alter']
+        if: github.repository == 'kbve/kbve' && needs.alter.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            actions: write
+        steps:
+            - name: Dispatch per changed app
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  DISPATCHED_AT=$(date +%s)
+                  SHA="${{ github.sha }}"
+
+                  dispatch() {
+                    local app="$1"
+                    echo "Dispatching ci-docker.yml for: $app"
+                    gh workflow run ci-docker.yml \
+                      --repo "${{ github.repository }}" \
+                      --ref main \
+                      --field app_name="$app" \
+                      --field sha="$SHA" \
+                      --field dispatched_at="$DISPATCHED_AT"
+                  }
+
+                  [ "${{ needs.alter.outputs.astro_kbve }}"   = "true" ] && dispatch "axum-kbve"
+                  [ "${{ needs.alter.outputs.herbmail }}"      = "true" ] && dispatch "herbmail"
+                  [ "${{ needs.alter.outputs.memes }}"         = "true" ] && dispatch "memes"
+                  [ "${{ needs.alter.outputs.irc_gateway }}"   = "true" ] && dispatch "irc-gateway"
+                  [ "${{ needs.alter.outputs.discordsh }}"     = "true" ] && dispatch "discordsh"
+                  [ "${{ needs.alter.outputs.mc }}"            = "true" ] && dispatch "mc"
+                  [ "${{ needs.alter.outputs.edge }}"          = "true" ] && dispatch "edge"
+                  [ "${{ needs.alter.outputs.cryptothrone }}"  = "true" ] && dispatch "cryptothrone"
+                  [ "${{ needs.alter.outputs.kilobase }}"      = "true" ] && dispatch "kilobase"
+
+                  echo "All dispatches complete"
