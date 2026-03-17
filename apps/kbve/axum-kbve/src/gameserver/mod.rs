@@ -366,6 +366,12 @@ fn run_bevy_app(
     // Process creature capture requests from clients
     app.add_systems(Update, process_creature_captures);
 
+    // Send captured creatures state to newly connected clients
+    app.add_systems(Update, send_captured_state_to_new_clients);
+
+    // Timeout clients that never authenticate
+    app.add_systems(Update, timeout_pending_auth);
+
     // Periodic debug heartbeat
     app.add_systems(Update, server_debug_heartbeat);
 
@@ -468,13 +474,14 @@ fn server_debug_heartbeat(
 
 /// When a new client connects, add ReplicationSender so lightyear can replicate
 /// entities to this client, and mark as pending authentication.
-fn handle_new_connection(trigger: On<Add, Connected>, mut commands: Commands) {
+fn handle_new_connection(trigger: On<Add, Connected>, mut commands: Commands, time: Res<Time>) {
     let client_entity = trigger.entity;
     tracing::info!(
         "[gameserver] NEW CLIENT — entity {client_entity:?} connected, inserting PendingAuth + ReplicationSender"
     );
     commands.entity(client_entity).insert((
         PendingAuth,
+        ConnectedAt(time.elapsed_secs()),
         ReplicationSender::new(
             REPLICATION_SEND_INTERVAL,
             SendUpdatesMode::SinceLastAck,
@@ -1054,5 +1061,64 @@ fn send_time_sync_to_new_clients(
             "[gameserver] sent initial time sync to new client {entity:?} (hour={:.1})",
             day.hour
         );
+    }
+}
+
+/// When a new client authenticates, send them all currently captured creatures
+/// so they know which ones are unavailable.
+fn send_captured_state_to_new_clients(
+    authenticated: Res<AuthenticatedClients>,
+    captured: Res<CapturedCreatures>,
+    mut senders: Query<(Entity, &mut MessageSender<CreatureCaptured>), Added<ReplicationSender>>,
+) {
+    if captured.0.is_empty() {
+        return;
+    }
+
+    for (entity, mut sender) in &mut senders {
+        if !authenticated.0.contains_key(&entity) {
+            continue;
+        }
+
+        tracing::info!(
+            "[gameserver] sending {} captured creatures to new client {entity:?}",
+            captured.0.len()
+        );
+
+        for &(kind, creature_index) in &captured.0 {
+            sender.send::<GameChannel>(CreatureCaptured {
+                kind,
+                creature_index,
+                captor_player_id: 0,
+            });
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// PendingAuth timeout
+// ---------------------------------------------------------------------------
+
+/// Maximum seconds a client can remain in PendingAuth before being disconnected.
+const PENDING_AUTH_TIMEOUT_SECS: f32 = 10.0;
+
+/// Timestamp when a client connected (for PendingAuth timeout).
+#[derive(Component)]
+struct ConnectedAt(f32);
+
+/// Despawn clients that have been pending auth for too long.
+fn timeout_pending_auth(
+    mut commands: Commands,
+    time: Res<Time>,
+    query: Query<(Entity, &ConnectedAt), With<PendingAuth>>,
+) {
+    let now = time.elapsed_secs();
+    for (entity, connected_at) in &query {
+        if now - connected_at.0 > PENDING_AUTH_TIMEOUT_SECS {
+            tracing::warn!(
+                "[gameserver] client {entity:?} timed out waiting for auth — disconnecting"
+            );
+            commands.entity(entity).despawn();
+        }
     }
 }

@@ -12,7 +12,9 @@ use bevy::prelude::*;
 use std::collections::HashSet;
 
 use super::common::{CreatureMeshes, CreaturePool, GameTime, night_factor, scene_center};
-use super::creature::{self, Creature, CreatureRegistry, CreatureState, EmissiveData, RenderKind};
+use super::creature::{
+    self, Creature, CreaturePoolIndex, CreatureRegistry, CreatureState, EmissiveData, RenderKind,
+};
 use crate::game::camera::IsometricCamera;
 use crate::game::weather::WindState;
 
@@ -57,7 +59,7 @@ pub(super) fn spawn_fireflies(
 
     let fly_mesh = creature_meshes.firefly_sphere.clone();
 
-    for _ in 0..pool_size {
+    for i in 0..pool_size {
         let mat = materials.add(StandardMaterial {
             base_color: Color::srgba(0.5, 0.9, 0.3, 0.0),
             emissive: LinearRgba::new(0.0, 0.0, 0.0, 1.0),
@@ -104,6 +106,7 @@ pub(super) fn spawn_fireflies(
                 orbit_radius: 0.5,
                 orbit_speed: 0.7,
             },
+            CreaturePoolIndex(i as u32),
         ));
     }
 
