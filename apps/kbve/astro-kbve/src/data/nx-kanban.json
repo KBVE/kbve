@@ -1,0 +1,44 @@
+{
+	"generated_at": "1970-01-01T00:00:00.000Z",
+	"project": {
+		"title": "KBVE",
+		"url": "https://github.com/orgs/KBVE/projects/5",
+		"total_items": 0
+	},
+	"summary": {
+		"Theory": 0,
+		"AI": 0,
+		"Todo": 0,
+		"Backlog": 0,
+		"Error": 0,
+		"Support": 0,
+		"Staging": 0,
+		"Review": 0,
+		"Done": 0
+	},
+	"columns": {
+		"Theory": [],
+		"AI": [],
+		"Todo": [],
+		"Backlog": [],
+		"Error": [],
+		"Support": [],
+		"Staging": [],
+		"Review": [],
+		"Done": []
+	},
+	"views": {
+		"kanban": {
+			"number": 1,
+			"url": "https://github.com/orgs/KBVE/projects/5/views/1"
+		},
+		"task": {
+			"number": 2,
+			"url": "https://github.com/orgs/KBVE/projects/5/views/2"
+		},
+		"map": {
+			"number": 3,
+			"url": "https://github.com/orgs/KBVE/projects/5/views/3"
+		}
+	}
+}

@@ -1,0 +1,423 @@
+name: CI - Daily Kanban Sync
+
+on:
+    schedule:
+        - cron: '0 6 * * *' # Daily 06:00 UTC
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}
+    cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+    guard:
+        name: Fork Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            allowed: ${{ steps.check.outputs.allowed }}
+        steps:
+            - name: Verify origin and actor
+              id: check
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
+                        const headRepo = context.payload.pull_request?.head?.repo?.full_name;
+                        const baseRepo = context.payload.repository?.full_name;
+                        if (headRepo && headRepo !== baseRepo) {
+                          core.error(`Blocked: fork PR from ${headRepo} cannot use self-hosted runners`);
+                          core.setOutput('allowed', 'false');
+                          return;
+                        }
+                      }
+                      try {
+                        const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          username: context.actor,
+                        });
+                        const level = data.permission;
+                        if (level === 'admin' || level === 'write') {
+                          core.info(`Actor ${context.actor} has ${level} access — allowed`);
+                          core.setOutput('allowed', 'true');
+                        } else {
+                          core.error(`Actor ${context.actor} has ${level} access — insufficient`);
+                          core.setOutput('allowed', 'false');
+                        }
+                      } catch (err) {
+                        core.error(`Permission check failed: ${err.message}`);
+                        core.setOutput('allowed', 'false');
+                      }
+
+    sync:
+        name: Sync Kanban Board
+        needs: guard
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: write
+            pull-requests: write
+
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::Kanban sync: actor=${{ github.actor }}, event=${{ github.event_name }}, ref=${{ github.ref }}, run_id=${{ github.run_id }}, time=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+            - name: Checkout dev branch
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+                  fetch-depth: 1
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            # ── Fetch project board via GraphQL ────────────────────
+            - name: Fetch project board items
+              id: fetch
+              uses: actions/github-script@v8
+              env:
+                  PROJECT_TOKEN: ${{ secrets.PROJECT_READ_TOKEN || secrets.GITHUB_TOKEN }}
+              with:
+                  github-token: ${{ env.PROJECT_TOKEN }}
+                  script: |
+                      const fs = require('fs');
+
+                      const COLUMNS = ['Theory', 'AI', 'Todo', 'Backlog', 'Error', 'Support', 'Staging', 'Review', 'Done'];
+
+                      const query = `
+                        query($org: String!, $num: Int!, $cursor: String) {
+                          organization(login: $org) {
+                            projectV2(number: $num) {
+                              title
+                              url
+                              items(first: 100, after: $cursor) {
+                                pageInfo { hasNextPage endCursor }
+                                nodes {
+                                  type
+                                  fieldValues(first: 15) {
+                                    nodes {
+                                      ... on ProjectV2ItemFieldTextValue {
+                                        text
+                                        field { ... on ProjectV2Field { name } }
+                                      }
+                                      ... on ProjectV2ItemFieldSingleSelectValue {
+                                        name
+                                        field { ... on ProjectV2SingleSelectField { name } }
+                                      }
+                                      ... on ProjectV2ItemFieldDateValue {
+                                        date
+                                        field { ... on ProjectV2Field { name } }
+                                      }
+                                      ... on ProjectV2ItemFieldNumberValue {
+                                        number
+                                        field { ... on ProjectV2Field { name } }
+                                      }
+                                      ... on ProjectV2ItemFieldIterationValue {
+                                        title
+                                        field { ... on ProjectV2IterationField { name } }
+                                      }
+                                    }
+                                  }
+                                  content {
+                                    ... on Issue {
+                                      title number state url
+                                      labels(first: 10) { nodes { name } }
+                                      assignees(first: 5) { nodes { login } }
+                                      milestone { title }
+                                    }
+                                    ... on PullRequest {
+                                      title number state url
+                                      labels(first: 10) { nodes { name } }
+                                      assignees(first: 5) { nodes { login } }
+                                      milestone { title }
+                                    }
+                                    ... on DraftIssue {
+                                      title
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      `;
+
+                      let allItems = [];
+                      let cursor = null;
+                      let projectTitle = '';
+                      let projectUrl = '';
+
+                      for (let page = 0; page < 20; page++) {
+                        const result = await github.graphql(query, {
+                          org: 'KBVE',
+                          num: 5,
+                          cursor: cursor,
+                        });
+
+                        const project = result.organization.projectV2;
+                        projectTitle = project.title;
+                        projectUrl = project.url;
+
+                        allItems.push(...project.items.nodes);
+
+                        if (!project.items.pageInfo.hasNextPage) break;
+                        cursor = project.items.pageInfo.endCursor;
+                      }
+
+                      core.info(`Fetched ${allItems.length} items from project "${projectTitle}"`);
+
+                      // Parse items
+                      const columns = {};
+                      for (const col of COLUMNS) columns[col] = [];
+
+                      for (const item of allItems) {
+                        const content = item.content || {};
+                        const fields = item.fieldValues?.nodes || [];
+
+                        let status = null;
+                        let matrix = null;
+                        let date = null;
+
+                        for (const fv of fields) {
+                          const fieldName = fv.field?.name;
+                          if (!fieldName) continue;
+                          if (fieldName === 'Status') status = fv.name;
+                          if (fieldName === 'Matrix') matrix = fv.number != null ? String(fv.number) : fv.text;
+                          if (fieldName === 'Date') date = fv.date;
+                        }
+
+                        if (!status || !COLUMNS.includes(status)) continue;
+
+                        const entry = {
+                          type: item.type || 'DRAFT_ISSUE',
+                          number: content.number || null,
+                          title: content.title || '(untitled)',
+                          state: content.state || null,
+                          url: content.url || null,
+                          assignees: (content.assignees?.nodes || []).map(a => a.login),
+                          labels: (content.labels?.nodes || []).map(l => l.name),
+                          matrix: matrix || null,
+                          date: date || null,
+                          milestone: content.milestone?.title || null,
+                        };
+
+                        columns[status].push(entry);
+                      }
+
+                      // Sort each column by matrix priority (higher first)
+                      for (const col of COLUMNS) {
+                        columns[col].sort((a, b) => {
+                          const am = parseInt(a.matrix) || 0;
+                          const bm = parseInt(b.matrix) || 0;
+                          return bm - am;
+                        });
+                      }
+
+                      const summary = {};
+                      for (const col of COLUMNS) summary[col] = columns[col].length;
+
+                      const timestamp = new Date().toISOString();
+
+                      const kanban = {
+                        generated_at: timestamp,
+                        project: {
+                          title: projectTitle,
+                          url: projectUrl,
+                          total_items: allItems.length,
+                        },
+                        summary,
+                        columns,
+                        views: {
+                          kanban: { number: 1, url: 'https://github.com/orgs/KBVE/projects/5/views/1' },
+                          task: { number: 2, url: 'https://github.com/orgs/KBVE/projects/5/views/2' },
+                          map: { number: 3, url: 'https://github.com/orgs/KBVE/projects/5/views/3' },
+                        },
+                      };
+
+                      // Write JSON
+                      const jsonDest = 'apps/kbve/astro-kbve/src/data/nx-kanban.json';
+                      fs.mkdirSync(require('path').dirname(jsonDest), { recursive: true });
+                      fs.writeFileSync(jsonDest, JSON.stringify(kanban, null, '\t') + '\n');
+                      core.info(`Wrote ${jsonDest} (${allItems.length} items)`);
+
+                      // Build MDX
+                      const lines = [];
+                      lines.push('---');
+                      lines.push('title: Project Kanban');
+                      lines.push('description: |');
+                      lines.push('    Daily auto-generated snapshot of the KBVE project board.');
+                      lines.push('sidebar:');
+                      lines.push('    label: Kanban');
+                      lines.push('    order: 110');
+                      lines.push('editUrl: false');
+                      lines.push('---');
+                      lines.push('');
+                      lines.push("import { Card, CardGrid } from '@astrojs/starlight/components';");
+                      lines.push('');
+                      lines.push('## Project Board Snapshot');
+                      lines.push('');
+                      lines.push(':::note[Auto-generated]');
+                      lines.push(`Last synced: **${timestamp}** — updated daily by \`kanban-sync\`.`);
+                      lines.push(`Source: [KBVE Project Board](${projectUrl})`);
+                      lines.push(':::');
+                      lines.push('');
+                      lines.push('### Summary');
+                      lines.push('');
+                      lines.push('<CardGrid>');
+                      for (const col of COLUMNS) {
+                        const icon = {
+                          Theory: 'star', AI: 'rocket', Todo: 'list-format',
+                          Backlog: 'document', Error: 'warning', Support: 'information',
+                          Staging: 'setting', Review: 'approve-check', Done: 'approve-check-circle',
+                        }[col] || 'document';
+                        lines.push(`  <Card title="${col}" icon="${icon}">`);
+                        lines.push(`    **${summary[col]}** items`);
+                        lines.push(`  </Card>`);
+                      }
+                      lines.push('</CardGrid>');
+                      lines.push('');
+
+                      for (const col of COLUMNS) {
+                        const items = columns[col];
+                        if (items.length === 0) continue;
+                        lines.push(`### ${col} (${items.length})`);
+                        lines.push('');
+                        lines.push('| # | Title | Priority | Assignees | Labels |');
+                        lines.push('|---|-------|----------|-----------|--------|');
+                        for (const it of items) {
+                          const num = it.url ? `[#${it.number}](${it.url})` : (it.number || '—');
+                          const title = it.title.replace(/\|/g, '\\|').substring(0, 80);
+                          const priority = it.matrix || '—';
+                          const assignees = it.assignees.join(', ') || '—';
+                          const labels = it.labels.slice(0, 3).join(', ') || '—';
+                          lines.push(`| ${num} | ${title} | ${priority} | ${assignees} | ${labels} |`);
+                        }
+                        lines.push('');
+                      }
+
+                      lines.push('---');
+                      lines.push('');
+                      lines.push('*Auto-generated by [kanban-sync.yml](https://github.com/KBVE/kbve/actions/workflows/kanban-sync.yml)*');
+                      lines.push('');
+
+                      const mdxDest = 'apps/kbve/astro-kbve/src/content/docs/dashboard/nx-kanban.mdx';
+                      fs.mkdirSync(require('path').dirname(mdxDest), { recursive: true });
+                      fs.writeFileSync(mdxDest, lines.join('\n'));
+                      core.info(`Wrote ${mdxDest}`);
+
+                      core.setOutput('timestamp', timestamp);
+                      core.setOutput('total_items', String(allItems.length));
+                      core.setOutput('report_date', timestamp.split('T')[0]);
+
+            # ── Validate generated files ──────────────────────────
+            - name: Validate generated files
+              run: |
+                  set -euo pipefail
+                  JSON="apps/kbve/astro-kbve/src/data/nx-kanban.json"
+                  MDX="apps/kbve/astro-kbve/src/content/docs/dashboard/nx-kanban.mdx"
+
+                  for f in "$JSON" "$MDX"; do
+                    if [ ! -s "$f" ]; then
+                      echo "::error::Generated file is empty: $f"
+                      exit 1
+                    fi
+                    echo "OK: $f ($(wc -c < "$f" | xargs) bytes)"
+                  done
+
+                  if ! head -1 "$MDX" | grep -q '^---$'; then
+                    echo "::error::Missing YAML frontmatter in $MDX"
+                    exit 1
+                  fi
+
+                  ITEM_COUNT=$(python3 -c "import json; d=json.load(open('$JSON')); print(d['project']['total_items'])")
+                  echo "Validated: $ITEM_COUNT project items"
+
+            # ── Commit & PR ──────────────────────────────────────
+            - name: Commit and push
+              id: commit
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -euo pipefail
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+
+                  BRANCH_NAME="automated/kanban-sync"
+                  REPORT_DATE="${{ steps.fetch.outputs.report_date }}"
+
+                  git add \
+                    apps/kbve/astro-kbve/src/data/nx-kanban.json \
+                    apps/kbve/astro-kbve/src/content/docs/dashboard/nx-kanban.mdx
+
+                  if git diff --cached --quiet; then
+                    echo "No changes to commit"
+                    echo "pushed=false" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  # Use fixed branch — force-push to update existing PR
+                  if git ls-remote --exit-code --heads origin "$BRANCH_NAME" > /dev/null 2>&1; then
+                    git fetch origin "$BRANCH_NAME"
+                    git checkout "$BRANCH_NAME"
+                    git reset --soft dev
+                    git add \
+                      apps/kbve/astro-kbve/src/data/nx-kanban.json \
+                      apps/kbve/astro-kbve/src/content/docs/dashboard/nx-kanban.mdx
+                  else
+                    git checkout -b "$BRANCH_NAME"
+                  fi
+
+                  git commit -m "chore(kanban): sync project board ${REPORT_DATE}"
+                  git push -u origin "$BRANCH_NAME" --force-with-lease
+
+                  echo "pushed=true" >> "$GITHUB_OUTPUT"
+                  echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+            - name: Create or update PR
+              if: steps.commit.outputs.pushed == 'true'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -euo pipefail
+                  BRANCH_NAME="${{ steps.commit.outputs.branch_name }}"
+                  REPORT_DATE="${{ steps.fetch.outputs.report_date }}"
+                  TOTAL="${{ steps.fetch.outputs.total_items }}"
+
+                  EXISTING=$(gh pr list --base dev --head "$BRANCH_NAME" --state open --json number -q '.[0].number' || echo "")
+                  if [ -n "$EXISTING" ]; then
+                    echo "PR #$EXISTING already exists — updated via force-push"
+                    exit 0
+                  fi
+
+                  gh pr create \
+                    --base dev \
+                    --head "$BRANCH_NAME" \
+                    --title "chore(kanban): sync project board — ${REPORT_DATE}" \
+                    --body "$(cat <<PRBODY
+                  ## Summary
+                  - Daily snapshot of [KBVE Project Board](https://github.com/orgs/KBVE/projects/5) (${TOTAL} items)
+                  - \`nx-kanban.json\`: machine-readable board state at \`src/data/\`
+                  - \`nx-kanban.mdx\`: static dashboard page at \`/dashboard/nx-kanban\`
+
+                  ## Test plan
+                  - Verify MDX renders at \`/dashboard/nx-kanban/\`
+                  - Verify JSON structure has all kanban columns
+
+                  ---
+                  *Auto-generated by kanban-sync.yml*
+                  PRBODY
+                  )" \
+                    --label "automated"
+
+            # ── Cleanup ──────────────────────────────────────────
+            - name: Cleanup
+              if: always()
+              run: |
+                  rm -rf "$GITHUB_WORKSPACE"/* "$GITHUB_WORKSPACE"/.[!.]* 2>/dev/null || true
