@@ -14,6 +14,7 @@ import {
 	XCircle,
 	AlertCircle,
 	Clock,
+	ShieldAlert,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -88,6 +89,15 @@ interface ClickHouseSummary {
 	errors: number;
 	warns: number;
 	namespaces: number;
+}
+
+interface SecuritySummary {
+	generated_at: string;
+	critical: number;
+	high: number;
+	medium: number;
+	low: number;
+	total: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -319,6 +329,41 @@ async function fetchClickHouseSummary(
 
 		const summary = { totalLogs, errors, warns, namespaces: ns.size };
 		setCache('cache:dashboard:ch-summary', summary);
+		return summary;
+	} catch {
+		return null;
+	}
+}
+
+async function fetchSecuritySummary(): Promise<SecuritySummary | null> {
+	const cached = getCache<SecuritySummary>(
+		'cache:dashboard:security-summary',
+	);
+	if (cached) return cached;
+
+	try {
+		const resp = await fetch('/data/nx/nx-security.json', {
+			signal: AbortSignal.timeout(8000),
+		});
+		if (!resp.ok) return null;
+		const data = await resp.json();
+		const s = data?.summary;
+		if (!s) return null;
+
+		const summary: SecuritySummary = {
+			generated_at: data.generated_at ?? '',
+			critical: s.critical ?? 0,
+			high: s.high ?? 0,
+			medium: s.medium ?? 0,
+			low: s.low ?? 0,
+			total:
+				(s.critical ?? 0) +
+				(s.high ?? 0) +
+				(s.medium ?? 0) +
+				(s.low ?? 0) +
+				(s.info ?? 0),
+		};
+		setCache('cache:dashboard:security-summary', summary);
 		return summary;
 	} catch {
 		return null;
@@ -605,6 +650,7 @@ function SystemStatusBanner({
 	argoStatus,
 	edgeStatus,
 	clickhouseStatus,
+	securityStatus,
 	lastUpdated,
 	onRefresh,
 	refreshing,
@@ -613,6 +659,7 @@ function SystemStatusBanner({
 	argoStatus: ServiceStatus;
 	edgeStatus: ServiceStatus;
 	clickhouseStatus: ServiceStatus;
+	securityStatus: ServiceStatus;
 	lastUpdated: Date | null;
 	onRefresh: () => void;
 	refreshing: boolean;
@@ -621,7 +668,8 @@ function SystemStatusBanner({
 		grafanaStatus === 'ok' &&
 		argoStatus === 'ok' &&
 		edgeStatus === 'ok' &&
-		clickhouseStatus === 'ok';
+		clickhouseStatus === 'ok' &&
+		securityStatus === 'ok';
 	const anyError =
 		grafanaStatus === 'error' ||
 		argoStatus === 'error' ||
@@ -631,7 +679,8 @@ function SystemStatusBanner({
 		grafanaStatus === 'loading' ||
 		argoStatus === 'loading' ||
 		edgeStatus === 'loading' ||
-		clickhouseStatus === 'loading';
+		clickhouseStatus === 'loading' ||
+		securityStatus === 'loading';
 
 	const overallColor = anyLoading
 		? '#94a3b8'
@@ -653,6 +702,7 @@ function SystemStatusBanner({
 		{ name: 'Deployments', status: argoStatus },
 		{ name: 'Edge', status: edgeStatus },
 		{ name: 'Logs', status: clickhouseStatus },
+		{ name: 'Security', status: securityStatus },
 	];
 
 	return (
@@ -787,6 +837,7 @@ export default function ReactDashboardHome() {
 	const [clickhouse, setClickhouse] = useState<ClickHouseSummary | null>(
 		null,
 	);
+	const [security, setSecurity] = useState<SecuritySummary | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
@@ -795,6 +846,8 @@ export default function ReactDashboardHome() {
 	const [argoStatus, setArgoStatus] = useState<ServiceStatus>('loading');
 	const [edgeStatus, setEdgeStatus] = useState<ServiceStatus>('loading');
 	const [clickhouseStatus, setClickhouseStatus] =
+		useState<ServiceStatus>('loading');
+	const [securityStatus, setSecurityStatus] =
 		useState<ServiceStatus>('loading');
 
 	// Auth init
@@ -833,11 +886,18 @@ export default function ReactDashboardHome() {
 		setArgoStatus('loading');
 		setEdgeStatus('loading');
 		setClickhouseStatus('loading');
+		setSecurityStatus('loading');
 
 		const edgePromise = fetchEdgeSummary().then((e) => {
 			setEdge(e);
 			setEdgeStatus(e ? 'ok' : 'unavailable');
 			return e;
+		});
+
+		const securityPromise = fetchSecuritySummary().then((s) => {
+			setSecurity(s);
+			setSecurityStatus(s ? 'ok' : 'unavailable');
+			return s;
 		});
 
 		if (accessToken) {
@@ -868,9 +928,10 @@ export default function ReactDashboardHome() {
 				argoPromise,
 				edgePromise,
 				clickhousePromise,
+				securityPromise,
 			]);
 		} else {
-			await edgePromise;
+			await Promise.all([edgePromise, securityPromise]);
 		}
 
 		setLastUpdated(new Date());
@@ -982,6 +1043,7 @@ export default function ReactDashboardHome() {
 				argoStatus={argoStatus}
 				edgeStatus={edgeStatus}
 				clickhouseStatus={clickhouseStatus}
+				securityStatus={securityStatus}
 				lastUpdated={lastUpdated}
 				onRefresh={fetchAll}
 				refreshing={loading}
@@ -1146,6 +1208,54 @@ export default function ReactDashboardHome() {
 							<MetricValue
 								label="Namespaces"
 								value={clickhouse.namespaces}
+							/>
+						</>
+					) : (
+						<UnavailableMessage />
+					)}
+				</ServiceCard>
+
+				{/* Security Audit */}
+				<ServiceCard
+					title="Security Audit"
+					description="Weekly vulnerability scan across all ecosystems"
+					href="/dashboard/nx-security/"
+					icon={<ShieldAlert size={18} />}
+					accentColor="#ef4444"
+					status={securityStatus}>
+					{securityStatus === 'loading' ? (
+						<LoadingPlaceholder />
+					) : security ? (
+						<>
+							<MetricValue
+								label="Critical"
+								value={security.critical}
+								color={
+									security.critical > 0
+										? '#ef4444'
+										: '#22c55e'
+								}
+							/>
+							<MetricValue
+								label="High"
+								value={security.high}
+								color={
+									security.high > 0 ? '#f59e0b' : '#22c55e'
+								}
+							/>
+							<MetricValue
+								label="Medium"
+								value={security.medium}
+								color="#94a3b8"
+							/>
+							<MetricValue
+								label="Total"
+								value={security.total}
+								color={
+									security.critical + security.high > 0
+										? '#ef4444'
+										: '#22c55e'
+								}
 							/>
 						</>
 					) : (
