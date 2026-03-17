@@ -16,13 +16,14 @@ use lightyear::prelude::client::*;
 use lightyear::prelude::*;
 
 use bevy_kbve_net::{
-    AuthMessage, AuthResponse, CollectRequest, DamageEvent, DamageSource, GameChannel,
-    ObjectRemoved, ObjectRespawned, PlayerColor, PlayerId, PlayerName, PlayerVitals,
-    PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, TileKey, TimeChannel,
-    TimeSyncMessage,
+    AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
+    CreatureKind, DamageEvent, DamageSource, GameChannel, ObjectRemoved, ObjectRespawned,
+    PlayerColor, PlayerId, PlayerName, PlayerVitals, PositionUpdate, ProtocolPlugin,
+    SetUsernameRequest, SetUsernameResponse, TileKey, TimeChannel, TimeSyncMessage,
 };
 
 use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
+use super::creatures::{Creature, CreaturePoolIndex, CreatureState, RenderKind};
 use super::inventory::{ItemKind, LootEvent};
 use super::player::{FallDamageEvent, Player};
 use super::scene_objects::CollectEvent;
@@ -169,6 +170,7 @@ impl Plugin for NetPlugin {
         app.init_resource::<PendingAuth>();
         app.init_resource::<MyPlayerId>();
         app.init_resource::<ServerTime>();
+        app.init_resource::<CapturedCreatures>();
 
         // Watch for go-online requests from JS
         app.add_systems(Update, poll_go_online_request);
@@ -205,6 +207,9 @@ impl Plugin for NetPlugin {
 
         // Receive time sync from server
         app.add_systems(Update, receive_time_sync);
+
+        // Receive creature capture broadcasts from server
+        app.add_systems(Update, receive_creature_captured);
 
         // Username display systems
         app.add_systems(
@@ -310,6 +315,7 @@ fn on_disconnected(
     mut my_player_id: ResMut<MyPlayerId>,
     mut pending_auth: ResMut<PendingAuth>,
     mut server_time: ResMut<ServerTime>,
+    mut captured_creatures: ResMut<CapturedCreatures>,
     remote_players: Query<Entity, With<RemotePlayer>>,
     own_replicated: Query<Entity, With<OwnReplicatedPlayer>>,
 ) {
@@ -322,6 +328,7 @@ fn on_disconnected(
     pending_auth.jwt = None;
     pending_auth.sent = false;
     server_time.active = false;
+    captured_creatures.0.clear();
 
     // Despawn all remote player visuals
     let mut count = 0u32;
@@ -889,6 +896,59 @@ fn receive_time_sync(
                     msg.game_hour, msg.day_speed, msg.creature_seed
                 );
                 server_time.active = true;
+            }
+        }
+    }
+}
+
+/// Client-side set of captured creatures, keyed by (CreatureKind, creature_index).
+/// Used to prevent re-capturing and to restore state on reconnect.
+#[derive(Resource, Default)]
+struct CapturedCreatures(std::collections::HashSet<(CreatureKind, u32)>);
+
+/// Map a protocol `CreatureKind` to a client `RenderKind` for entity matching.
+fn creature_kind_to_render_kind(kind: CreatureKind) -> RenderKind {
+    match kind {
+        CreatureKind::Firefly => RenderKind::Emissive,
+        CreatureKind::Butterfly => RenderKind::Billboard,
+        CreatureKind::Frog => RenderKind::Sprite,
+    }
+}
+
+/// Receive CreatureCaptured messages from the server and mark matching pool entities.
+fn receive_creature_captured(
+    mut captured: ResMut<CapturedCreatures>,
+    mut query: Query<(Entity, &mut MessageReceiver<CreatureCaptured>)>,
+    mut creatures: Query<(&mut Creature, &CreaturePoolIndex, &mut Visibility)>,
+) {
+    for (_entity, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            let render_kind = creature_kind_to_render_kind(msg.kind);
+
+            // Record in our local set
+            captured.0.insert((msg.kind, msg.creature_index));
+
+            // Find the matching pool entity and mark as captured
+            let mut found = false;
+            for (mut creature, pool_idx, mut vis) in &mut creatures {
+                if creature.render_kind == render_kind && pool_idx.0 == msg.creature_index {
+                    creature.state = CreatureState::Captured;
+                    creature.assigned_slot = None;
+                    *vis = Visibility::Hidden;
+                    found = true;
+                    info!(
+                        "[net] creature captured: {:?} index={} by player={}",
+                        msg.kind, msg.creature_index, msg.captor_player_id
+                    );
+                    break;
+                }
+            }
+
+            if !found {
+                warn!(
+                    "[net] received CreatureCaptured for {:?} index={} but no matching pool entity found",
+                    msg.kind, msg.creature_index
+                );
             }
         }
     }

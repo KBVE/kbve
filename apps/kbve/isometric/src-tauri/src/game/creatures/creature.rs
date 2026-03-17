@@ -28,6 +28,11 @@ pub enum CreatureState {
     Captured,
 }
 
+/// Pool index for identifying a creature entity within its type pool.
+/// Used to match `CreatureCaptured` messages from the server to the correct entity.
+#[derive(Component, Clone, Copy, Debug)]
+pub struct CreaturePoolIndex(pub u32);
+
 // ---------------------------------------------------------------------------
 // Core component — shared by ALL creature types (client-side ECS)
 // ---------------------------------------------------------------------------

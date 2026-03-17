@@ -9,8 +9,8 @@ use bevy::prelude::*;
 pub use common::GameTime;
 use common::{CreatureMeshes, CreaturePool};
 pub use creature::{
-    Creature, CreatureConfig, CreatureRegistry, CreatureState, EmissiveData, RenderKind,
-    TimeSchedule,
+    Creature, CreatureConfig, CreaturePoolIndex, CreatureRegistry, CreatureState, EmissiveData,
+    RenderKind, TimeSchedule,
 };
 pub use frog::FrogMaterials;
 
