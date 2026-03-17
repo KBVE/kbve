@@ -1,4 +1,4 @@
-version = "0.1.13"
+version = "0.1.14"
 
 [[functions]]
 name = "health"
@@ -34,6 +34,11 @@ description = "Guild token management"
 name = "vault-reader"
 label = "Vault Reader"
 description = "System secret access"
+
+[[functions]]
+name = "argo"
+label = "Argo"
+description = "ArgoCD API proxy with diagnostics"
 
 [[functions]]
 name = "logs"

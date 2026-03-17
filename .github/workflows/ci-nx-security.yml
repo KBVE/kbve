@@ -9,7 +9,8 @@ concurrency:
     group: ${{ github.workflow }}
     cancel-in-progress: true
 
-permissions: {}
+permissions:
+    issues: write
 
 jobs:
     # ── Fork & actor guard (mirrors utils-self-hosted-job) ───
@@ -379,7 +380,7 @@ jobs:
         name: Track Generate Job
         if: always()
         needs: [generate]
-        uses: ./.github/workflows/utils-ci-failure-tracker.yml
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
         with:
             workflow_name: 'CI - Weekly NX Security Audit'
             job_name: 'Generate NX Security Audit'
