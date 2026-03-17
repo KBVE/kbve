@@ -227,9 +227,10 @@ impl Plugin for NetPlugin {
         // ghost flicker before spawn_remote_player_visuals decides visibility.
         app.add_observer(hide_new_replicated_player);
 
-        // Forward fall damage / collect events to server via observers
+        // Forward fall damage / collect / capture events to server via observers
         app.add_observer(forward_fall_damage_to_server);
         app.add_observer(forward_collect_to_server);
+        app.add_observer(forward_creature_capture_to_server);
 
         // --- Debug observers for connection lifecycle ---
         // Lightyear-level states
@@ -642,6 +643,32 @@ fn forward_collect_to_server(
     );
     for mut sender in &mut senders {
         sender.send::<GameChannel>(CollectRequest { tile });
+    }
+}
+
+/// Fired when the player attempts to capture a creature (e.g. via click interaction).
+/// The networking layer forwards this to the server as a `CreatureCaptureRequest`.
+#[derive(Event)]
+pub struct CreatureCaptureEvent {
+    pub kind: CreatureKind,
+    pub creature_index: u32,
+}
+
+/// Forward a local creature capture attempt to the server.
+fn forward_creature_capture_to_server(
+    trigger: On<CreatureCaptureEvent>,
+    mut senders: Query<&mut MessageSender<CreatureCaptureRequest>, With<Connected>>,
+) {
+    let event = &*trigger;
+    info!(
+        "[net] sending creature capture request: {:?} index={}",
+        event.kind, event.creature_index
+    );
+    for mut sender in &mut senders {
+        sender.send::<GameChannel>(CreatureCaptureRequest {
+            kind: event.kind,
+            creature_index: event.creature_index,
+        });
     }
 }
 
