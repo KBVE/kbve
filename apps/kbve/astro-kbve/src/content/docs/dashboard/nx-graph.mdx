@@ -13,21 +13,21 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## NX Dependency Graph
 
 :::note[Auto-generated]
-Last generated: **2026-03-16T07:28:33Z** — updated every Tuesday by `ci-weekly-nx-report`.
+Last generated: **2026-03-17T06:24:58Z** — updated every Tuesday by `ci-weekly-nx-report`.
 :::
 
 <CardGrid>
-  <Card title="27 Apps" icon="rocket">
-    @kbve/source, astro-cryptothrone, astro-discordsh, astro-herbmail, astro-irc, astro-kbve + 21 more
+  <Card title="25 Apps" icon="rocket">
+    @kbve/source, astro-cryptothrone, astro-discordsh, astro-herbmail, astro-irc, astro-kbve + 19 more
   </Card>
   <Card title="14 E2es" icon="approve-check-circle">
     astro-cryptothrone-e2e, astro-e2e, astro-kbve-e2e, axum-kbve-e2e, devops-e2e, discordsh-e2e + 8 more
   </Card>
-  <Card title="13 Libs" icon="puzzle">
-    astro, devops, droid, erust, holy, jedi + 7 more
+  <Card title="25 Libs" icon="puzzle">
+    astro, bevy_battle, bevy_cam, bevy_inventory, bevy_items, bevy_kbve_net + 19 more
   </Card>
   <Card title="36 Dependencies" icon="random">
-    Across 54 projects in the monorepo.
+    Across 64 projects in the monorepo.
   </Card>
 </CardGrid>
 
@@ -95,8 +95,8 @@ graph LR
     mc_e2e["mc-e2e"] --> mc["mc"]
     memes_e2e["memes-e2e"] --> astro_memes["astro-memes"]
     memes_e2e["memes-e2e"] --> axum_memes["axum-memes"]
-    class _kbve_source,astro_cryptothrone,astro_discordsh,astro_herbmail,astro_irc,astro_kbve,astro_mc,astro_memes,axum_cryptothrone,axum_discordsh,axum_herbmail,axum_kbve,axum_memes,cryptothrone,discordsh,edge,herbmail,irc,irc_gateway,isometric,kilobase,mc,memes,notification_bot,pydesk,react_phaser_fish_chip,react_phaser_travelbox app
-    class astro,devops,droid,erust,holy,jedi,kbve,khashvault,laser,python_fudster,python_kbve,q,soul lib
+    class _kbve_source,astro_cryptothrone,astro_discordsh,astro_herbmail,astro_irc,astro_kbve,astro_mc,astro_memes,axum_cryptothrone,axum_discordsh,axum_herbmail,axum_kbve,axum_memes,cryptothrone,discordsh,edge,herbmail,irc,irc_gateway,isometric,kilobase,mc,memes,notification_bot,pydesk app
+    class astro,bevy_battle,bevy_cam,bevy_inventory,bevy_items,bevy_kbve_net,bevy_mapdb,bevy_npc,bevy_player,bevy_quests,bevy_skills,bevy_statemachine,bevy_tasker,devops,droid,erust,holy,jedi,kbve,khashvault,laser,python_fudster,python_kbve,q,soul lib
     class astro_cryptothrone_e2e,astro_e2e,astro_kbve_e2e,axum_kbve_e2e,devops_e2e,discordsh_e2e,droid_e2e,edge_e2e,herbmail_e2e,irc_e2e,khashvault_e2e,laser_e2e,mc_e2e,memes_e2e e2e
 ```
 
@@ -127,6 +127,18 @@ graph LR
 | **axum-kbve** | app | `apps/kbve/axum-kbve` | 0 | 1 |
 | **axum-kbve-e2e** | e2e | `apps/kbve/axum-kbve-e2e` | 1 | 0 |
 | **axum-memes** | app | `apps/memes/axum-memes` | 0 | 1 |
+| **bevy_battle** | lib | `packages/rust/bevy/bevy_battle` | 0 | 0 |
+| **bevy_cam** | lib | `packages/rust/bevy/bevy_cam` | 0 | 0 |
+| **bevy_inventory** | lib | `packages/rust/bevy/bevy_inventory` | 0 | 0 |
+| **bevy_items** | lib | `packages/rust/bevy/bevy_items` | 0 | 0 |
+| **bevy_kbve_net** | lib | `packages/rust/bevy/bevy_kbve_net` | 0 | 0 |
+| **bevy_mapdb** | lib | `packages/rust/bevy/bevy_mapdb` | 0 | 0 |
+| **bevy_npc** | lib | `packages/rust/bevy/bevy_npc` | 0 | 0 |
+| **bevy_player** | lib | `packages/rust/bevy/bevy_player` | 0 | 0 |
+| **bevy_quests** | lib | `packages/rust/bevy/bevy_quests` | 0 | 0 |
+| **bevy_skills** | lib | `packages/rust/bevy/bevy_skills` | 0 | 0 |
+| **bevy_statemachine** | lib | `packages/rust/bevy/bevy_statemachine` | 0 | 0 |
+| **bevy_tasker** | lib | `packages/rust/bevy/bevy_tasker` | 0 | 0 |
 | **cryptothrone** | app | `apps/cryptothrone` | 0 | 0 |
 | **devops** | lib | `packages/npm/devops` | 0 | 4 |
 | **devops-e2e** | e2e | `packages/npm/devops-e2e` | 3 | 0 |
@@ -160,8 +172,6 @@ graph LR
 | **python-fudster** | lib | `packages/python/fudster` | 0 | 0 |
 | **python-kbve** | lib | `packages/python/kbve` | 0 | 0 |
 | **q** | lib | `packages/rust/q` | 0 | 0 |
-| **react-phaser-fish-chip** | app | `apps/gamejam/react-phaser-fish-chip` | 0 | 0 |
-| **react-phaser-travelbox** | app | `apps/gamejam/react-phaser-travelbox` | 0 | 0 |
 | **soul** | lib | `packages/rust/soul` | 0 | 0 |
 
   </TabItem>
