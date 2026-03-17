@@ -78,12 +78,31 @@ jobs:
               with:
                   node-version: 24
 
+            # ── Guard: UNITY_PAT required ─────────────────
+            # GITHUB_TOKEN is repository-scoped and cannot query org-level
+            # ProjectsV2. A PAT with read:project scope must be stored as
+            # UNITY_PAT. Without it, skip gracefully.
+            - name: Check UNITY_PAT
+              id: token_check
+              env:
+                  HAS_TOKEN: ${{ secrets.UNITY_PAT != '' }}
+              run: |
+                  if [ "$HAS_TOKEN" != "true" ]; then
+                    echo "::warning::UNITY_PAT secret is not set. " \
+                         "Org-level ProjectsV2 requires a PAT with read:project scope. " \
+                         "Skipping kanban sync."
+                    echo "skip=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "skip=false" >> "$GITHUB_OUTPUT"
+                  fi
+
             # ── Fetch project board via GraphQL ────────────────────
             - name: Fetch project board items
               id: fetch
+              if: steps.token_check.outputs.skip != 'true'
               uses: actions/github-script@v8
               env:
-                  PROJECT_TOKEN: ${{ secrets.PROJECT_READ_TOKEN || secrets.GITHUB_TOKEN }}
+                  PROJECT_TOKEN: ${{ secrets.UNITY_PAT }}
               with:
                   github-token: ${{ env.PROJECT_TOKEN }}
                   script: |
