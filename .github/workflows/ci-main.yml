@@ -108,3 +108,76 @@ jobs:
                   [ "${{ needs.alter.outputs.kilobase }}"      = "true" ] && dispatch "kilobase"
 
                   echo "All dispatches complete"
+
+    # ---------------------------------------------------------------------------
+    # Publish dispatch — fires one ci-publish.yml run per changed package.
+    # Each run is isolated: npm/droid never blocks crates/q or python/fudster.
+    # ---------------------------------------------------------------------------
+    dispatch_publish:
+        name: Dispatch Publish Packages
+        needs: ['alter']
+        if: github.repository == 'kbve/kbve' && needs.alter.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            actions: write
+        steps:
+            - name: Dispatch per changed package
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  DISPATCHED_AT=$(date +%s)
+                  SHA="${{ github.sha }}"
+
+                  dispatch_npm() {
+                    echo "Dispatching ci-publish.yml npm/$1"
+                    gh workflow run ci-publish.yml \
+                      --repo "${{ github.repository }}" \
+                      --ref main \
+                      --field package_type="npm" \
+                      --field package_name="$1" \
+                      --field dispatched_at="$DISPATCHED_AT"
+                  }
+
+                  dispatch_crate() {
+                    echo "Dispatching ci-publish.yml crates/$1"
+                    gh workflow run ci-publish.yml \
+                      --repo "${{ github.repository }}" \
+                      --ref main \
+                      --field package_type="crates" \
+                      --field package_name="$1" \
+                      --field dispatched_at="$DISPATCHED_AT"
+                  }
+
+                  dispatch_python() {
+                    local project="$1"
+                    local pypi="$2"
+                    echo "Dispatching ci-publish.yml python/$project"
+                    gh workflow run ci-publish.yml \
+                      --repo "${{ github.repository }}" \
+                      --ref main \
+                      --field package_type="python" \
+                      --field package_name="$project" \
+                      --field pypi_name="$pypi" \
+                      --field dispatched_at="$DISPATCHED_AT"
+                  }
+
+                  # NPM
+                  [ "${{ needs.alter.outputs.droid }}"      = "true" ] && dispatch_npm "droid"
+                  [ "${{ needs.alter.outputs.laser }}"      = "true" ] && dispatch_npm "laser"
+                  [ "${{ needs.alter.outputs.devops }}"     = "true" ] && dispatch_npm "devops"
+                  [ "${{ needs.alter.outputs.khashvault }}" = "true" ] && dispatch_npm "khashvault"
+
+                  # Rust Crates
+                  [ "${{ needs.alter.outputs.q_crate }}"     = "true" ] && dispatch_crate "q"
+                  [ "${{ needs.alter.outputs.jedi_crate }}"  = "true" ] && dispatch_crate "jedi"
+                  [ "${{ needs.alter.outputs.soul_crate }}"  = "true" ] && dispatch_crate "soul"
+                  [ "${{ needs.alter.outputs.kbve_crate }}"  = "true" ] && dispatch_crate "kbve"
+                  [ "${{ needs.alter.outputs.erust_crate }}" = "true" ] && dispatch_crate "erust"
+                  [ "${{ needs.alter.outputs.holy_crate }}"  = "true" ] && dispatch_crate "holy"
+
+                  # Python
+                  [ "${{ needs.alter.outputs.py_lib_fudster }}" = "true" ] && dispatch_python "python-fudster" "fudster"
+                  [ "${{ needs.alter.outputs.py_lib_kbve }}"    = "true" ] && dispatch_python "python-kbve"    "kbve"
+
+                  echo "All publish dispatches complete"
