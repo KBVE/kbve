@@ -3,6 +3,7 @@ mod dungeon;
 mod health;
 mod ping;
 mod status;
+mod vault;
 
 use crate::discord::bot::{Data, Error};
 
@@ -15,5 +16,6 @@ pub fn all() -> Vec<poise::Command<Data, Error>> {
         admin::restart(),
         admin::cleanup(),
         dungeon::dungeon(),
+        vault::vault(),
     ]
 }
