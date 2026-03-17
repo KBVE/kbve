@@ -110,11 +110,12 @@ async fn event_handler(
             // Spawn session cleanup task for Embed Dungeon
             {
                 let sessions = data.app.sessions.clone();
+                let profiles = data.app.profiles.clone();
                 tokio::spawn(async move {
                     let mut interval = tokio::time::interval(Duration::from_secs(60));
                     loop {
                         interval.tick().await;
-                        sessions.cleanup_expired(Duration::from_secs(7200));
+                        sessions.cleanup_expired(Duration::from_secs(7200), Some(&profiles));
                     }
                 });
             }

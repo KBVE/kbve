@@ -1085,6 +1085,7 @@ mod tests {
                 lifetime_gold_earned: 0,
                 lifetime_rooms_cleared: 0,
                 lifetime_bosses_defeated: 0,
+                saved_snapshot: None,
             },
         );
 

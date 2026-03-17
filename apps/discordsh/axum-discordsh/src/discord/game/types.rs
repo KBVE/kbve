@@ -426,6 +426,9 @@ pub struct PlayerState {
     pub lifetime_gold_earned: u32,
     pub lifetime_rooms_cleared: u32,
     pub lifetime_bosses_defeated: u32,
+    /// Snapshot of the loaded profile at session start (for death penalty diff).
+    #[serde(skip)]
+    pub saved_snapshot: Option<super::persistence::DungeonProfile>,
 }
 
 impl Default for PlayerState {
@@ -457,6 +460,7 @@ impl Default for PlayerState {
             lifetime_gold_earned: 0,
             lifetime_rooms_cleared: 0,
             lifetime_bosses_defeated: 0,
+            saved_snapshot: None,
         }
     }
 }
