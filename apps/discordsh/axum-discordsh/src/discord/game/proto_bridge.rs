@@ -355,6 +355,7 @@ fn proto_personality(p: i32) -> Personality {
         Ok(bevy_npc::Personality::Stoic) => Personality::Stoic,
         Ok(bevy_npc::Personality::Feral) => Personality::Feral,
         Ok(bevy_npc::Personality::Ancient) => Personality::Ancient,
+        Ok(bevy_npc::Personality::Passive) => Personality::Passive,
         _ => Personality::Feral,
     }
 }

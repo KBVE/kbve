@@ -504,6 +504,8 @@ pub enum Personality {
     Feral,
     /// Ancient, weary — speaks in riddles, references the past.
     Ancient,
+    /// Passive, docile — ambient creatures, rarely aggressive.
+    Passive,
 }
 
 // ── Enemy state ─────────────────────────────────────────────────────
