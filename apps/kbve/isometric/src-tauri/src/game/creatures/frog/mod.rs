@@ -10,7 +10,8 @@ use bevy::prelude::*;
 
 use super::common::{CreaturePool, GameTime, day_factor, hash_f32, scene_center};
 use super::creature::{
-    Creature, CreatureRegistry, CreatureState, RenderKind, SpriteData, SpriteHopState,
+    Creature, CreaturePoolIndex, CreatureRegistry, CreatureState, RenderKind, SpriteData,
+    SpriteHopState,
 };
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
@@ -199,6 +200,7 @@ pub(super) fn spawn_frogs(
                 facing_left: hash_f32(seed * 67 + 3) > 0.5,
                 hop_state: SpriteHopState::Idle { timer: idle_timer },
             },
+            CreaturePoolIndex(i as u32),
         ));
     }
 

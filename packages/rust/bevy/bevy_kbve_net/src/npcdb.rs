@@ -10,6 +10,8 @@ use bevy::prelude::*;
 // Re-export bevy_npc types so downstream crates don't need a direct dep.
 pub use bevy_npc;
 pub use bevy_npc::ProtoNpcId;
+// Re-export creature module (game-agnostic ECS components).
+pub use bevy_npc::creature;
 
 use bevy_npc::{self as npc_types, NpcDb};
 

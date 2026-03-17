@@ -12,8 +12,8 @@ use super::common::{
     CreatureMeshes, CreaturePool, GameTime, day_factor, flutter_offset, hash_f32, scene_center,
 };
 use super::creature::{
-    BillboardData, BillboardFlightState, Creature, CreatureRegistry, CreatureState, EmissiveData,
-    RenderKind,
+    BillboardData, BillboardFlightState, Creature, CreaturePoolIndex, CreatureRegistry,
+    CreatureState, EmissiveData, RenderKind,
 };
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
@@ -204,6 +204,7 @@ pub(super) fn spawn_butterflies(
                 flight_state: BillboardFlightState::Idle,
                 idle_cooldown,
             },
+            CreaturePoolIndex(i as u32),
         ));
     }
 

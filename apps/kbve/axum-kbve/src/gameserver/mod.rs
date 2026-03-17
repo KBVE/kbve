@@ -13,7 +13,7 @@ use bevy::prelude::*;
 use lightyear::prelude::server::*;
 use lightyear::prelude::*;
 
-use bevy_kbve_net::npcdb::{self, CreatureRegistry};
+use bevy_kbve_net::npcdb::{self, CreatureRegistry, ProtoNpcId, creature::CapturedCreatures};
 use bevy_kbve_net::{
     AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
     CreatureKind, DamageEvent, GameChannel, ObjectRemoved, ObjectRespawned, PlayerName,
@@ -103,10 +103,32 @@ impl Default for WindState {
     }
 }
 
-/// Tracks which creatures have been captured (kind + creature_index).
-/// The server validates capture requests against the CreatureRegistry.
-#[derive(Resource, Default)]
-struct CapturedCreatures(std::collections::HashSet<(CreatureKind, u32)>);
+/// Map a protocol `CreatureKind` to its NPC ref string.
+fn creature_kind_to_npc_ref(kind: CreatureKind) -> &'static str {
+    match kind {
+        CreatureKind::Firefly => "meadow-firefly",
+        CreatureKind::Butterfly => "woodland-butterfly",
+        CreatureKind::Frog => "green-toad",
+    }
+}
+
+/// Map a protocol `CreatureKind` to a `ProtoNpcId`.
+fn creature_kind_to_npc_id(kind: CreatureKind) -> ProtoNpcId {
+    ProtoNpcId::from_ref(creature_kind_to_npc_ref(kind))
+}
+
+/// Map a `ProtoNpcId` back to a protocol `CreatureKind` (for wire messages).
+fn npc_id_to_creature_kind(npc_id: ProtoNpcId) -> Option<CreatureKind> {
+    if npc_id == ProtoNpcId::from_ref("meadow-firefly") {
+        Some(CreatureKind::Firefly)
+    } else if npc_id == ProtoNpcId::from_ref("woodland-butterfly") {
+        Some(CreatureKind::Butterfly)
+    } else if npc_id == ProtoNpcId::from_ref("green-toad") {
+        Some(CreatureKind::Frog)
+    } else {
+        None
+    }
+}
 
 /// Timer for periodic time sync broadcasts.
 #[derive(Resource)]
@@ -366,6 +388,12 @@ fn run_bevy_app(
     // Process creature capture requests from clients
     app.add_systems(Update, process_creature_captures);
 
+    // Send captured creatures state to newly connected clients
+    app.add_systems(Update, send_captured_state_to_new_clients);
+
+    // Timeout clients that never authenticate
+    app.add_systems(Update, timeout_pending_auth);
+
     // Periodic debug heartbeat
     app.add_systems(Update, server_debug_heartbeat);
 
@@ -468,13 +496,14 @@ fn server_debug_heartbeat(
 
 /// When a new client connects, add ReplicationSender so lightyear can replicate
 /// entities to this client, and mark as pending authentication.
-fn handle_new_connection(trigger: On<Add, Connected>, mut commands: Commands) {
+fn handle_new_connection(trigger: On<Add, Connected>, mut commands: Commands, time: Res<Time>) {
     let client_entity = trigger.entity;
     tracing::info!(
         "[gameserver] NEW CLIENT — entity {client_entity:?} connected, inserting PendingAuth + ReplicationSender"
     );
     commands.entity(client_entity).insert((
         PendingAuth,
+        ConnectedAt(time.elapsed_secs()),
         ReplicationSender::new(
             REPLICATION_SEND_INTERVAL,
             SendUpdatesMode::SinceLastAck,
@@ -810,10 +839,10 @@ fn process_creature_captures(
 ) {
     for (client_entity, mut receiver) in &mut receivers {
         for msg in receiver.receive() {
-            let key = (msg.kind, msg.creature_index);
+            let npc_id = creature_kind_to_npc_id(msg.kind);
 
             // Already captured?
-            if captured.0.contains(&key) {
+            if captured.is_captured(npc_id, msg.creature_index) {
                 tracing::warn!(
                     "[gameserver] creature {:?} #{} already captured — ignoring",
                     msg.kind,
@@ -823,11 +852,7 @@ fn process_creature_captures(
             }
 
             // Validate creature_index against registry pool_size
-            let npc_ref = match msg.kind {
-                CreatureKind::Firefly => "meadow-firefly",
-                CreatureKind::Butterfly => "woodland-butterfly",
-                CreatureKind::Frog => "green-toad",
-            };
+            let npc_ref = creature_kind_to_npc_ref(msg.kind);
             if let Some(config) = registry.config_by_ref(npc_ref) {
                 if msg.creature_index as usize >= config.pool_size {
                     tracing::warn!(
@@ -847,7 +872,7 @@ fn process_creature_captures(
             }
 
             // Track the capture
-            captured.0.insert(key);
+            captured.insert(npc_id, msg.creature_index);
 
             let captor_id = client_player_map
                 .0
@@ -1054,5 +1079,67 @@ fn send_time_sync_to_new_clients(
             "[gameserver] sent initial time sync to new client {entity:?} (hour={:.1})",
             day.hour
         );
+    }
+}
+
+/// When a new client authenticates, send them all currently captured creatures
+/// so they know which ones are unavailable.
+fn send_captured_state_to_new_clients(
+    authenticated: Res<AuthenticatedClients>,
+    captured: Res<CapturedCreatures>,
+    mut senders: Query<(Entity, &mut MessageSender<CreatureCaptured>), Added<ReplicationSender>>,
+) {
+    if captured.is_empty() {
+        return;
+    }
+
+    for (entity, mut sender) in &mut senders {
+        if !authenticated.0.contains_key(&entity) {
+            continue;
+        }
+
+        tracing::info!(
+            "[gameserver] sending {} captured creatures to new client {entity:?}",
+            captured.len()
+        );
+
+        for &(npc_id, creature_index) in captured.iter() {
+            let Some(kind) = npc_id_to_creature_kind(npc_id) else {
+                continue;
+            };
+            sender.send::<GameChannel>(CreatureCaptured {
+                kind,
+                creature_index,
+                captor_player_id: 0,
+            });
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// PendingAuth timeout
+// ---------------------------------------------------------------------------
+
+/// Maximum seconds a client can remain in PendingAuth before being disconnected.
+const PENDING_AUTH_TIMEOUT_SECS: f32 = 10.0;
+
+/// Timestamp when a client connected (for PendingAuth timeout).
+#[derive(Component)]
+struct ConnectedAt(f32);
+
+/// Despawn clients that have been pending auth for too long.
+fn timeout_pending_auth(
+    mut commands: Commands,
+    time: Res<Time>,
+    query: Query<(Entity, &ConnectedAt), With<PendingAuth>>,
+) {
+    let now = time.elapsed_secs();
+    for (entity, connected_at) in &query {
+        if now - connected_at.0 > PENDING_AUTH_TIMEOUT_SECS {
+            tracing::warn!(
+                "[gameserver] client {entity:?} timed out waiting for auth — disconnecting"
+            );
+            commands.entity(entity).despawn();
+        }
     }
 }

@@ -473,4 +473,226 @@ mod tests {
         let client = GitHubClient::new("tok").with_base_url("https://gh.example.com/");
         assert_eq!(client.base_url, "https://gh.example.com");
     }
+
+    // ── Mock Axum server helpers ─────────────────────────────────────
+
+    use axum::{Router, routing::get};
+
+    /// Start a mock HTTP server and return its base URL (e.g. "http://127.0.0.1:PORT").
+    async fn mock_server(app: Router) -> String {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        format!("http://{addr}")
+    }
+
+    // ── Error mapping (HTTP status → JediError) ─────────────────────
+
+    #[tokio::test]
+    async fn error_401_maps_to_unauthorized() {
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/issues",
+            get(|| async { axum::http::StatusCode::UNAUTHORIZED }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("bad-token").with_base_url(&base);
+
+        let err = client.list_issues("o", "r", None, None).await.unwrap_err();
+        assert!(matches!(err, JediError::Unauthorized), "got: {err:?}");
+    }
+
+    #[tokio::test]
+    async fn error_403_maps_to_forbidden() {
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/issues",
+            get(|| async { axum::http::StatusCode::FORBIDDEN }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let err = client.list_issues("o", "r", None, None).await.unwrap_err();
+        assert!(matches!(err, JediError::Forbidden), "got: {err:?}");
+    }
+
+    #[tokio::test]
+    async fn error_404_maps_to_not_found() {
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/issues",
+            get(|| async { axum::http::StatusCode::NOT_FOUND }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let err = client.list_issues("o", "r", None, None).await.unwrap_err();
+        assert!(matches!(err, JediError::NotFound), "got: {err:?}");
+    }
+
+    #[tokio::test]
+    async fn error_429_maps_to_forbidden() {
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/issues",
+            get(|| async { axum::http::StatusCode::TOO_MANY_REQUESTS }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let err = client.list_issues("o", "r", None, None).await.unwrap_err();
+        assert!(matches!(err, JediError::Forbidden), "got: {err:?}");
+    }
+
+    #[tokio::test]
+    async fn error_500_maps_to_internal() {
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/issues",
+            get(|| async { axum::http::StatusCode::INTERNAL_SERVER_ERROR }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let err = client.list_issues("o", "r", None, None).await.unwrap_err();
+        assert!(matches!(err, JediError::Internal(_)), "got: {err:?}");
+    }
+
+    // ── Rate limit header parsing ────────────────────────────────────
+
+    #[tokio::test]
+    async fn rate_limit_low_logs_warning() {
+        // The check_rate_limit method logs but doesn't error — we verify
+        // the request still succeeds when rate limit headers are present.
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/issues",
+            get(|| async {
+                (
+                    [
+                        ("x-ratelimit-remaining", "5"),
+                        ("x-ratelimit-reset", "1700000000"),
+                    ],
+                    "[]",
+                )
+            }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let issues = client.list_issues("o", "r", None, None).await.unwrap();
+        assert!(issues.is_empty());
+    }
+
+    #[tokio::test]
+    async fn rate_limit_healthy_no_issue() {
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/issues",
+            get(|| async {
+                (
+                    [
+                        ("x-ratelimit-remaining", "4999"),
+                        ("x-ratelimit-reset", "1700000000"),
+                    ],
+                    "[]",
+                )
+            }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let issues = client.list_issues("o", "r", None, None).await.unwrap();
+        assert!(issues.is_empty());
+    }
+
+    // ── list_issues filters out PRs ──────────────────────────────────
+
+    #[tokio::test]
+    async fn list_issues_filters_pull_requests() {
+        let body = r#"[
+            {
+                "number": 1, "title": "Real issue", "state": "open",
+                "user": {"login": "u"}, "labels": [],
+                "created_at": "2026-01-01T00:00:00Z",
+                "updated_at": "2026-01-01T00:00:00Z",
+                "html_url": "https://example.com/1"
+            },
+            {
+                "number": 2, "title": "Sneaky PR", "state": "open",
+                "user": {"login": "u"}, "labels": [],
+                "created_at": "2026-01-01T00:00:00Z",
+                "updated_at": "2026-01-01T00:00:00Z",
+                "html_url": "https://example.com/2",
+                "pull_request": {"url": "https://api.example.com/pulls/2"}
+            }
+        ]"#;
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/issues",
+            get(move || async move { body }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let issues = client.list_issues("o", "r", None, None).await.unwrap();
+        assert_eq!(issues.len(), 1);
+        assert_eq!(issues[0].number, 1);
+    }
+
+    // ── list_pulls success ───────────────────────────────────────────
+
+    #[tokio::test]
+    async fn list_pulls_success() {
+        let body = r#"[{
+            "number": 42, "title": "My PR", "state": "open",
+            "user": {"login": "dev"},
+            "head": {"ref": "feat/x", "sha": "abc"},
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z",
+            "html_url": "https://example.com/pull/42",
+            "draft": false
+        }]"#;
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/pulls",
+            get(move || async move { body }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let pulls = client
+            .list_pulls("o", "r", Some("open"), Some(10))
+            .await
+            .unwrap();
+        assert_eq!(pulls.len(), 1);
+        assert_eq!(pulls[0].number, 42);
+        assert_eq!(pulls[0].head.ref_name, "feat/x");
+    }
+
+    // ── get_repo success ─────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn get_repo_success() {
+        let body = r#"{
+            "name": "kbve", "full_name": "KBVE/kbve",
+            "description": "Mono", "html_url": "https://github.com/KBVE/kbve",
+            "default_branch": "main", "open_issues_count": 42
+        }"#;
+        let app = Router::new().route("/repos/{owner}/{repo}", get(move || async move { body }));
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let repo = client.get_repo("KBVE", "kbve").await.unwrap();
+        assert_eq!(repo.full_name, "KBVE/kbve");
+        assert_eq!(repo.open_issues_count, 42);
+    }
+
+    // ── Invalid JSON → parse error ───────────────────────────────────
+
+    #[tokio::test]
+    async fn invalid_json_maps_to_parse_error() {
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/issues",
+            get(|| async { "not json at all" }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let err = client.list_issues("o", "r", None, None).await.unwrap_err();
+        assert!(matches!(err, JediError::Parse(_)), "got: {err:?}");
+    }
 }

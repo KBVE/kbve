@@ -30,6 +30,9 @@
 mod proto;
 mod registry;
 
+#[cfg(feature = "creature")]
+pub mod creature;
+
 // Re-export all proto-generated NPC types
 pub use proto::npc::*;
 

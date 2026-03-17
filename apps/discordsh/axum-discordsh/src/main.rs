@@ -1,3 +1,4 @@
+mod api;
 mod astro;
 mod discord;
 mod health;

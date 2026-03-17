@@ -12,21 +12,10 @@ pub use bevy_kbve_net::npcdb::{
     build_creature_registry, hash_f32, slot_active, slot_anchor, slot_seed,
 };
 
-// ---------------------------------------------------------------------------
-// Client-only enums
-// ---------------------------------------------------------------------------
-
-/// Current lifecycle state of a creature entity in the pool.
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
-pub enum CreatureState {
-    /// In the pool, not assigned to a world slot. Hidden.
-    #[default]
-    Pooled,
-    /// Assigned to a deterministic world slot. Visible (subject to time-of-day).
-    Active,
-    /// Captured by a player. Slot is blocked across all clients.
-    Captured,
-}
+// Re-export game-agnostic creature types from bevy_npc::creature.
+pub use bevy_kbve_net::npcdb::creature::{
+    CapturedCreatures, CreatureCaptureEvent, CreaturePoolIndex, CreatureState,
+};
 
 // ---------------------------------------------------------------------------
 // Core component — shared by ALL creature types (client-side ECS)

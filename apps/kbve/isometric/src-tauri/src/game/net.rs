@@ -16,18 +16,21 @@ use lightyear::prelude::client::*;
 use lightyear::prelude::*;
 
 use bevy_kbve_net::{
-    AuthMessage, AuthResponse, CollectRequest, DamageEvent, DamageSource, GameChannel,
-    ObjectRemoved, ObjectRespawned, PlayerColor, PlayerId, PlayerName, PlayerVitals,
-    PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, TileKey, TimeChannel,
-    TimeSyncMessage,
+    AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
+    CreatureKind, DamageEvent, DamageSource, GameChannel, ObjectRemoved, ObjectRespawned,
+    PlayerColor, PlayerId, PlayerName, PlayerVitals, PositionUpdate, ProtocolPlugin,
+    SetUsernameRequest, SetUsernameResponse, TileKey, TimeChannel, TimeSyncMessage,
 };
 
 use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
+use super::creatures::{Creature, CreaturePoolIndex, CreatureState, RenderKind};
 use super::inventory::{ItemKind, LootEvent};
 use super::player::{FallDamageEvent, Player};
 use super::scene_objects::CollectEvent;
 use super::state::PlayerState;
 use super::tilemap::{CollectedTiles, TileCoord};
+use bevy_kbve_net::npcdb::ProtoNpcId;
+use bevy_kbve_net::npcdb::creature::CapturedCreatures;
 
 /// Default WebSocket URL — only set for native (desktop) dev builds.
 /// On WASM the URL MUST come from JS via `request_go_online()`.
@@ -169,6 +172,7 @@ impl Plugin for NetPlugin {
         app.init_resource::<PendingAuth>();
         app.init_resource::<MyPlayerId>();
         app.init_resource::<ServerTime>();
+        app.init_resource::<CapturedCreatures>();
 
         // Watch for go-online requests from JS
         app.add_systems(Update, poll_go_online_request);
@@ -206,6 +210,9 @@ impl Plugin for NetPlugin {
         // Receive time sync from server
         app.add_systems(Update, receive_time_sync);
 
+        // Receive creature capture broadcasts from server
+        app.add_systems(Update, receive_creature_captured);
+
         // Username display systems
         app.add_systems(
             Update,
@@ -222,9 +229,10 @@ impl Plugin for NetPlugin {
         // ghost flicker before spawn_remote_player_visuals decides visibility.
         app.add_observer(hide_new_replicated_player);
 
-        // Forward fall damage / collect events to server via observers
+        // Forward fall damage / collect / capture events to server via observers
         app.add_observer(forward_fall_damage_to_server);
         app.add_observer(forward_collect_to_server);
+        app.add_observer(forward_creature_capture_to_server);
 
         // --- Debug observers for connection lifecycle ---
         // Lightyear-level states
@@ -310,6 +318,7 @@ fn on_disconnected(
     mut my_player_id: ResMut<MyPlayerId>,
     mut pending_auth: ResMut<PendingAuth>,
     mut server_time: ResMut<ServerTime>,
+    mut captured_creatures: ResMut<CapturedCreatures>,
     remote_players: Query<Entity, With<RemotePlayer>>,
     own_replicated: Query<Entity, With<OwnReplicatedPlayer>>,
 ) {
@@ -322,6 +331,7 @@ fn on_disconnected(
     pending_auth.jwt = None;
     pending_auth.sent = false;
     server_time.active = false;
+    captured_creatures.clear();
 
     // Despawn all remote player visuals
     let mut count = 0u32;
@@ -638,6 +648,57 @@ fn forward_collect_to_server(
     }
 }
 
+// Re-export the shared CreatureCaptureEvent so game code can trigger captures
+// without depending on bevy_npc directly.
+pub use bevy_kbve_net::npcdb::creature::CreatureCaptureEvent;
+
+/// Map a `ProtoNpcId` to the protocol's `CreatureKind` for wire messages.
+/// This is the bridge between the game-agnostic `ProtoNpcId` and the
+/// hardcoded protocol enum (to be removed when protocol migrates to ProtoNpcId).
+fn npc_id_to_creature_kind(npc_id: ProtoNpcId) -> Option<CreatureKind> {
+    // Compare against known NPC ref hashes
+    let firefly_id = ProtoNpcId::from_ref("meadow-firefly");
+    let butterfly_id = ProtoNpcId::from_ref("woodland-butterfly");
+    let frog_id = ProtoNpcId::from_ref("green-toad");
+
+    if npc_id == firefly_id {
+        Some(CreatureKind::Firefly)
+    } else if npc_id == butterfly_id {
+        Some(CreatureKind::Butterfly)
+    } else if npc_id == frog_id {
+        Some(CreatureKind::Frog)
+    } else {
+        None
+    }
+}
+
+/// Forward a local creature capture attempt to the server.
+/// Bridges the game-agnostic `CreatureCaptureEvent` (ProtoNpcId-based) to
+/// the wire protocol's `CreatureCaptureRequest` (CreatureKind-based).
+fn forward_creature_capture_to_server(
+    trigger: On<CreatureCaptureEvent>,
+    mut senders: Query<&mut MessageSender<CreatureCaptureRequest>, With<Connected>>,
+) {
+    let event = &*trigger;
+    let Some(kind) = npc_id_to_creature_kind(event.npc_id) else {
+        warn!(
+            "[net] cannot send capture request: unknown npc_id {:?}",
+            event.npc_id
+        );
+        return;
+    };
+    info!(
+        "[net] sending creature capture request: {:?} index={}",
+        kind, event.creature_index
+    );
+    for mut sender in &mut senders {
+        sender.send::<GameChannel>(CreatureCaptureRequest {
+            kind,
+            creature_index: event.creature_index,
+        });
+    }
+}
+
 /// Forward local FallDamageEvent to the server as a DamageEvent.
 fn forward_fall_damage_to_server(
     trigger: On<FallDamageEvent>,
@@ -889,6 +950,64 @@ fn receive_time_sync(
                     msg.game_hour, msg.day_speed, msg.creature_seed
                 );
                 server_time.active = true;
+            }
+        }
+    }
+}
+
+/// Map a protocol `CreatureKind` to a client `RenderKind` for entity matching.
+fn creature_kind_to_render_kind(kind: CreatureKind) -> RenderKind {
+    match kind {
+        CreatureKind::Firefly => RenderKind::Emissive,
+        CreatureKind::Butterfly => RenderKind::Billboard,
+        CreatureKind::Frog => RenderKind::Sprite,
+    }
+}
+
+/// Map a protocol `CreatureKind` to a `ProtoNpcId` for the shared capture tracker.
+fn creature_kind_to_npc_id(kind: CreatureKind) -> ProtoNpcId {
+    match kind {
+        CreatureKind::Firefly => ProtoNpcId::from_ref("meadow-firefly"),
+        CreatureKind::Butterfly => ProtoNpcId::from_ref("woodland-butterfly"),
+        CreatureKind::Frog => ProtoNpcId::from_ref("green-toad"),
+    }
+}
+
+/// Receive CreatureCaptured messages from the server and mark matching pool entities.
+fn receive_creature_captured(
+    mut captured: ResMut<CapturedCreatures>,
+    mut query: Query<(Entity, &mut MessageReceiver<CreatureCaptured>)>,
+    mut creatures: Query<(&mut Creature, &CreaturePoolIndex, &mut Visibility)>,
+) {
+    for (_entity, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            let render_kind = creature_kind_to_render_kind(msg.kind);
+            let npc_id = creature_kind_to_npc_id(msg.kind);
+
+            // Record in shared capture tracker
+            captured.insert(npc_id, msg.creature_index);
+
+            // Find the matching pool entity and mark as captured
+            let mut found = false;
+            for (mut creature, pool_idx, mut vis) in &mut creatures {
+                if creature.render_kind == render_kind && pool_idx.0 == msg.creature_index {
+                    creature.state = CreatureState::Captured;
+                    creature.assigned_slot = None;
+                    *vis = Visibility::Hidden;
+                    found = true;
+                    info!(
+                        "[net] creature captured: {:?} index={} by player={}",
+                        msg.kind, msg.creature_index, msg.captor_player_id
+                    );
+                    break;
+                }
+            }
+
+            if !found {
+                warn!(
+                    "[net] received CreatureCaptured for {:?} index={} but no matching pool entity found",
+                    msg.kind, msg.creature_index
+                );
             }
         }
     }
