@@ -136,6 +136,7 @@ class ChromeClient:
             return f"Failed to navigate to GitLab sign-in page: {e}"
         finally:
             await self.stop_chrome_async()
+        return "GitLab sign-in page navigation completed."
 
     async def close(self):
         pass

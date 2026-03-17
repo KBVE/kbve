@@ -59,9 +59,10 @@ class DiscordClient:
                 if attempt < retries - 1:
                     await sleep(2)
                 else:
-                    raise e
+                    raise
             finally:
                 await self.chrome_client.stop_chrome_async()
+        return "Discord login failed after all retries."
 
     async def verify_login(self):
         """
