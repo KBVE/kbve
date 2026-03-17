@@ -431,7 +431,7 @@ jobs:
                   git checkout -B "$BRANCH_NAME"
 
                   git commit -m "chore(kanban): sync project board ${REPORT_DATE}"
-                  git push -u origin "$BRANCH_NAME" --force-with-lease
+                  git push -u origin "$BRANCH_NAME" --force
 
                   echo "pushed=true" >> "$GITHUB_OUTPUT"
                   echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
