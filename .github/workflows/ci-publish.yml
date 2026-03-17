@@ -1,365 +1,161 @@
 name: CI - Publish
 
 on:
-    workflow_run:
-        workflows: ['CI - Main']
-        types: [completed]
     workflow_dispatch:
+        inputs:
+            package_type:
+                description: 'Package type: npm | crates | python'
+                required: true
+                type: string
+            package_name:
+                description: 'Package / project name (e.g. droid, q, python-fudster)'
+                required: true
+                type: string
+            pypi_name:
+                description: 'PyPI distribution name — python only (e.g. fudster, kbve)'
+                required: false
+                type: string
+                default: ''
+            dispatched_at:
+                description: 'Unix timestamp when this was dispatched (queue guard)'
+                required: true
+                type: string
 
+# Per-package concurrency — never cancel in-progress runs.
+# The queue guard enforces a 2h stale-run limit; the running job is always safe.
 concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
+    group: ci-publish-${{ inputs.package_type }}-${{ inputs.package_name }}
     cancel-in-progress: false
 
 permissions: {}
 
 jobs:
     # ---------------------------------------------------------------------------
-    # Guard: skip if triggered by a failed CI - Main run.
-    # workflow_dispatch bypasses this for manual re-publishes.
+    # Queue Guard — fail loudly if this run has been waiting > 2 hours.
     # ---------------------------------------------------------------------------
-    guard:
-        name: Guard
+    queue_guard:
+        name: Queue Guard
         runs-on: ubuntu-latest
-        timeout-minutes: 2
-        outputs:
-            should_run: ${{ steps.check.outputs.should_run }}
+        timeout-minutes: 5
         steps:
-            - name: Check trigger condition
-              id: check
+            - name: Check queue age
               run: |
-                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-                    echo "should_run=true" >> "$GITHUB_OUTPUT"
-                  elif [ "${{ github.event.workflow_run.conclusion }}" = "success" ]; then
-                    echo "should_run=true" >> "$GITHUB_OUTPUT"
-                  else
-                    echo "CI - Main did not succeed (conclusion: ${{ github.event.workflow_run.conclusion }}), skipping."
-                    echo "should_run=false" >> "$GITHUB_OUTPUT"
+                  NOW=$(date +%s)
+                  DISPATCHED="${{ inputs.dispatched_at }}"
+                  AGE=$(( NOW - DISPATCHED ))
+                  echo "Package: ${{ inputs.package_type }}/${{ inputs.package_name }}"
+                  echo "Queued for ${AGE}s (dispatched_at=$DISPATCHED, now=$NOW)"
+                  if [ "$AGE" -gt 7200 ]; then
+                    echo "::error::Queue timeout: ${{ inputs.package_name }} waited ${AGE}s (> 2h). Failing to prevent stale publish."
+                    exit 1
                   fi
-
-    # ---------------------------------------------------------------------------
-    # File alteration detection — which packages changed?
-    # ci-publish owns this independently so it can run standalone.
-    # ---------------------------------------------------------------------------
-    alter:
-        name: Detect Changes
-        needs: [guard]
-        if: needs.guard.outputs.should_run == 'true'
-        permissions:
-            contents: read
-        uses: KBVE/kbve/.github/workflows/utils-file-alterations.yml@main
-        with:
-            branch: 'main'
+                  echo "Queue age OK: ${AGE}s"
 
     # ===========================================================================
-    # NPM — test then publish packages that changed and pass tests
-    # Version check is inside utils-npm-publish.yml (local vs registry)
+    # NPM — test then publish (only runs when package_type == 'npm')
     # ===========================================================================
-    generate_npm_matrix:
-        name: Generate NPM Matrix
-        needs: [alter]
-        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-        with:
-            items: |
-                [
-                    { "name": "droid",      "condition": "${{ needs.alter.outputs.droid == 'true' }}",      "project": "droid" },
-                    { "name": "laser",      "condition": "${{ needs.alter.outputs.laser == 'true' }}",      "project": "laser" },
-                    { "name": "devops",     "condition": "${{ needs.alter.outputs.devops == 'true' }}",     "project": "devops" },
-                    { "name": "khashvault", "condition": "${{ needs.alter.outputs.khashvault == 'true' }}", "project": "khashvault" }
-                ]
-
     test_npm:
-        name: Test NPM
-        needs: [generate_npm_matrix]
-        if: ${{ needs.generate_npm_matrix.outputs.matrix != 'null' }}
+        name: Test NPM — ${{ inputs.package_name }}
+        needs: [queue_guard]
+        if: inputs.package_type == 'npm'
         permissions:
             contents: read
-        strategy:
-            fail-fast: false
-            matrix: ${{ fromJson(needs.generate_npm_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/npm-test-package.yml@main
         with:
-            project: ${{ matrix.project }}
-
-    collect_npm_results:
-        name: Collect NPM Test Results
-        needs: [test_npm, generate_npm_matrix]
-        if: ${{ always() && needs.generate_npm_matrix.outputs.matrix != 'null' }}
-        runs-on: ubuntu-latest
-        outputs:
-            matrix: ${{ steps.filter.outputs.matrix }}
-        steps:
-            - name: Download test markers
-              uses: actions/download-artifact@v8
-              with:
-                  pattern: test-passed-npm-*
-                  path: ./test-results
-              continue-on-error: true
-
-            - name: Build filtered publish matrix
-              id: filter
-              env:
-                  FULL_MATRIX: ${{ needs.generate_npm_matrix.outputs.matrix }}
-              run: |
-                  if [ -d "./test-results" ]; then
-                    PASSED=$(find ./test-results -name 'test-result.txt' -exec cat {} \;)
-                  else
-                    PASSED=""
-                  fi
-                  FILTERED=$(echo "$FULL_MATRIX" | jq -c --arg passed "$PASSED" '{
-                    include: [.include[] | select(.name as $n | $passed | split("\n") | any(. == $n))]
-                  } | if (.include | length) == 0 then null else . end')
-                  echo "matrix=$FILTERED" >> "$GITHUB_OUTPUT"
+            project: ${{ inputs.package_name }}
 
     publish_npm:
-        name: Publish NPM
-        needs: [collect_npm_results]
-        if: ${{ needs.collect_npm_results.outputs.matrix != 'null' }}
+        name: Publish NPM — ${{ inputs.package_name }}
+        needs: [test_npm]
+        if: always() && inputs.package_type == 'npm' && needs.test_npm.result == 'success'
         permissions:
             contents: read
             id-token: write
-        strategy:
-            fail-fast: false
-            matrix: ${{ fromJson(needs.collect_npm_results.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-npm-publish.yml@main
         with:
-            project: ${{ matrix.project }}
+            project: ${{ inputs.package_name }}
         secrets:
             NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     # ===========================================================================
-    # Rust Crates — test then publish crates that changed and pass tests
-    # Version check is inside rust-publish-crate.yml (local vs crates.io)
+    # Rust Crates — test then publish (only runs when package_type == 'crates')
     # ===========================================================================
-    generate_crates_matrix:
-        name: Generate Crates Matrix
-        needs: [alter]
-        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-        with:
-            items: |
-                [
-                    { "name": "q",     "condition": "${{ needs.alter.outputs.q_crate }}" },
-                    { "name": "jedi",  "condition": "${{ needs.alter.outputs.jedi_crate }}" },
-                    { "name": "soul",  "condition": "${{ needs.alter.outputs.soul_crate }}" },
-                    { "name": "kbve",  "condition": "${{ needs.alter.outputs.kbve_crate }}" },
-                    { "name": "erust", "condition": "${{ needs.alter.outputs.erust_crate }}" },
-                    { "name": "holy",  "condition": "${{ needs.alter.outputs.holy_crate }}" }
-                ]
-
     test_crates:
-        name: Test Rust Crates
-        needs: [generate_crates_matrix]
-        if: ${{ needs.generate_crates_matrix.outputs.matrix != 'null' }}
+        name: Test Crate — ${{ inputs.package_name }}
+        needs: [queue_guard]
+        if: inputs.package_type == 'crates'
         permissions:
             contents: read
-        strategy:
-            fail-fast: false
-            matrix: ${{ fromJson(needs.generate_crates_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/rust-test-crate.yml@main
         with:
-            package: ${{ matrix.name }}
-
-    collect_crate_results:
-        name: Collect Crate Test Results
-        needs: [test_crates, generate_crates_matrix]
-        if: ${{ always() && needs.generate_crates_matrix.outputs.matrix != 'null' }}
-        runs-on: ubuntu-latest
-        outputs:
-            matrix: ${{ steps.filter.outputs.matrix }}
-        steps:
-            - name: Download test markers
-              uses: actions/download-artifact@v8
-              with:
-                  pattern: test-passed-crate-*
-                  path: ./test-results
-              continue-on-error: true
-
-            - name: Build filtered publish matrix
-              id: filter
-              env:
-                  FULL_MATRIX: ${{ needs.generate_crates_matrix.outputs.matrix }}
-              run: |
-                  if [ -d "./test-results" ]; then
-                    PASSED=$(find ./test-results -name 'test-result.txt' -exec cat {} \;)
-                  else
-                    PASSED=""
-                  fi
-                  FILTERED=$(echo "$FULL_MATRIX" | jq -c --arg passed "$PASSED" '{
-                    include: [.include[] | select(.name as $n | $passed | split("\n") | any(. == $n))]
-                  } | if (.include | length) == 0 then null else . end')
-                  echo "matrix=$FILTERED" >> "$GITHUB_OUTPUT"
+            package: ${{ inputs.package_name }}
 
     publish_crates:
-        name: Publish Rust Crates
-        needs: [collect_crate_results]
-        if: ${{ needs.collect_crate_results.outputs.matrix != 'null' }}
+        name: Publish Crate — ${{ inputs.package_name }}
+        needs: [test_crates]
+        if: always() && inputs.package_type == 'crates' && needs.test_crates.result == 'success'
         permissions:
             id-token: write
             contents: write
             packages: write
             issues: write
             pull-requests: write
-        strategy:
-            fail-fast: false
-            matrix: ${{ fromJson(needs.collect_crate_results.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
         with:
-            package: ${{ matrix.name }}
+            package: ${{ inputs.package_name }}
         secrets:
             CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 
     # ===========================================================================
-    # Python — test then publish packages that changed and pass tests
-    # Version check is inside utils-python-publish.yml (local vs PyPI)
+    # Python — test then publish (only runs when package_type == 'python')
     # ===========================================================================
-    generate_python_matrix:
-        name: Generate Python Matrix
-        needs: [alter]
-        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-        with:
-            items: |
-                [
-                    { "name": "python-fudster", "condition": "${{ needs.alter.outputs.py_lib_fudster == 'true' }}", "project": "python-fudster", "pypi_name": "fudster" },
-                    { "name": "python-kbve",    "condition": "${{ needs.alter.outputs.py_lib_kbve == 'true' }}",    "project": "python-kbve",    "pypi_name": "kbve" }
-                ]
-
     test_python:
-        name: Test Python
-        needs: [generate_python_matrix]
-        if: ${{ needs.generate_python_matrix.outputs.matrix != 'null' }}
+        name: Test Python — ${{ inputs.package_name }}
+        needs: [queue_guard]
+        if: inputs.package_type == 'python'
         permissions:
             contents: read
-        strategy:
-            fail-fast: false
-            matrix: ${{ fromJson(needs.generate_python_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/python-test-package.yml@main
         with:
-            project: ${{ matrix.project }}
-
-    collect_python_results:
-        name: Collect Python Test Results
-        needs: [test_python, generate_python_matrix]
-        if: ${{ always() && needs.generate_python_matrix.outputs.matrix != 'null' }}
-        runs-on: ubuntu-latest
-        outputs:
-            matrix: ${{ steps.filter.outputs.matrix }}
-        steps:
-            - name: Download test markers
-              uses: actions/download-artifact@v8
-              with:
-                  pattern: test-passed-python-*
-                  path: ./test-results
-              continue-on-error: true
-
-            - name: Build filtered publish matrix
-              id: filter
-              env:
-                  FULL_MATRIX: ${{ needs.generate_python_matrix.outputs.matrix }}
-              run: |
-                  if [ -d "./test-results" ]; then
-                    PASSED=$(find ./test-results -name 'test-result.txt' -exec cat {} \;)
-                  else
-                    PASSED=""
-                  fi
-                  FILTERED=$(echo "$FULL_MATRIX" | jq -c --arg passed "$PASSED" '{
-                    include: [.include[] | select(.name as $n | $passed | split("\n") | any(. == $n))]
-                  } | if (.include | length) == 0 then null else . end')
-                  echo "matrix=$FILTERED" >> "$GITHUB_OUTPUT"
+            project: ${{ inputs.package_name }}
 
     publish_python:
-        name: Publish Python
-        needs: [collect_python_results]
-        if: ${{ needs.collect_python_results.outputs.matrix != 'null' }}
+        name: Publish Python — ${{ inputs.package_name }}
+        needs: [test_python]
+        if: always() && inputs.package_type == 'python' && needs.test_python.result == 'success'
         permissions:
             contents: read
             id-token: write
-        strategy:
-            fail-fast: false
-            matrix: ${{ fromJson(needs.collect_python_results.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-python-publish.yml@main
         with:
-            project: ${{ matrix.project }}
-            pypi_name: ${{ matrix.pypi_name }}
+            project: ${{ inputs.package_name }}
+            pypi_name: ${{ inputs.pypi_name }}
         secrets:
             PYPI_TOKEN: ${{ secrets.PYPI_API_SCOPE_TOKEN }}
 
-    # ===========================================================================
-    # Godot — build and publish to Itch if changed
-    # ===========================================================================
-    generate_godot_matrix:
-        name: Generate Godot Matrix
-        needs: [alter]
-        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-        with:
-            items: |
-                []
-
-    publish_godot:
-        name: Publish Godot Game on Itch
-        needs: [generate_godot_matrix]
-        if: ${{ needs.generate_godot_matrix.outputs.matrix != 'null' }}
-        permissions:
-            contents: read
-        strategy:
-            fail-fast: false
-            matrix: ${{ fromJson(needs.generate_godot_matrix.outputs.matrix) }}
-        uses: KBVE/kbve/.github/workflows/utils-godot-itch-build-pipeline.yml@main
-        with:
-            branch: ${{ matrix.branch }}
-            deploy_to_itch: ${{ matrix.deploy_to_itch }}
-            godot_version: ${{ matrix.godot_version }}
-            export_name: ${{ matrix.export_name }}
-            project_path: ${{ matrix.project_path }}
-            build_artifact_name: ${{ matrix.build_artifact_name }}
-            itch_username: ${{ matrix.itch_username }}
-            itch_gameid: ${{ matrix.itch_gameid }}
-        secrets:
-            butler_api: ${{ secrets.ITCH_API }}
-
     # ---------------------------------------------------------------------------
-    # Failure tracker — surfaces publish failures as GitHub issues (#8186).
-    # Each domain tracked separately for clear failure ownership.
+    # Failure Tracker — opens a GitHub issue on any pipeline failure (#8186).
+    # Per-package job_name makes the issue title actionable.
     # ---------------------------------------------------------------------------
-    track_npm_failure:
-        name: Track NPM Failure
-        if: ${{ always() && (needs.test_npm.result == 'failure' || needs.publish_npm.result == 'failure') }}
-        needs: [test_npm, publish_npm]
+    track_failure:
+        name: Track Failures
+        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        needs:
+            [
+                test_npm,
+                publish_npm,
+                test_crates,
+                publish_crates,
+                test_python,
+                publish_python,
+            ]
         permissions:
             issues: write
             contents: read
         uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
         with:
             workflow_name: 'CI - Publish'
-            job_name: ${{ needs.test_npm.result == 'failure' && 'test_npm' || 'publish_npm' }}
-            run_id: ${{ github.run_id }}
-            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: 'failure'
-
-    track_crates_failure:
-        name: Track Crates Failure
-        if: ${{ always() && (needs.test_crates.result == 'failure' || needs.publish_crates.result == 'failure') }}
-        needs: [test_crates, publish_crates]
-        permissions:
-            issues: write
-            contents: read
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
-        with:
-            workflow_name: 'CI - Publish'
-            job_name: ${{ needs.test_crates.result == 'failure' && 'test_crates' || 'publish_crates' }}
-            run_id: ${{ github.run_id }}
-            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: 'failure'
-
-    track_python_failure:
-        name: Track Python Failure
-        if: ${{ always() && (needs.test_python.result == 'failure' || needs.publish_python.result == 'failure') }}
-        needs: [test_python, publish_python]
-        permissions:
-            issues: write
-            contents: read
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
-        with:
-            workflow_name: 'CI - Publish'
-            job_name: ${{ needs.test_python.result == 'failure' && 'test_python' || 'publish_python' }}
+            job_name: '${{ inputs.package_type }}/${{ inputs.package_name }}'
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: 'failure'

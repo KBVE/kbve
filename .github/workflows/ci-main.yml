@@ -62,5 +62,122 @@ jobs:
             branch: 'main'
 
     ## Bevy / Isometric — moved to ci-bevy.yml (async, workflow_run triggered)
-    ## Docker — moved to ci-docker.yml (async, workflow_run triggered)
     ## NPM / Crates / Python / Godot — moved to ci-publish.yml (async, workflow_run triggered)
+
+    # ---------------------------------------------------------------------------
+    # Docker dispatch — fires one ci-docker.yml run per changed app.
+    # Each run gets its own concurrency group (ci-docker-{app_name}) so apps
+    # build fully in parallel and never block each other.
+    # Queue guard inside ci-docker.yml drops stale runs that waited > 2h.
+    # ---------------------------------------------------------------------------
+    dispatch_docker:
+        name: Dispatch Docker Apps
+        needs: ['alter']
+        if: github.repository == 'kbve/kbve' && needs.alter.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            actions: write
+        steps:
+            - name: Dispatch per changed app
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  DISPATCHED_AT=$(date +%s)
+                  SHA="${{ github.sha }}"
+
+                  dispatch() {
+                    local app="$1"
+                    echo "Dispatching ci-docker.yml for: $app"
+                    gh workflow run ci-docker.yml \
+                      --repo "${{ github.repository }}" \
+                      --ref main \
+                      --field app_name="$app" \
+                      --field sha="$SHA" \
+                      --field dispatched_at="$DISPATCHED_AT"
+                  }
+
+                  [ "${{ needs.alter.outputs.astro_kbve }}"   = "true" ] && dispatch "axum-kbve"
+                  [ "${{ needs.alter.outputs.herbmail }}"      = "true" ] && dispatch "herbmail"
+                  [ "${{ needs.alter.outputs.memes }}"         = "true" ] && dispatch "memes"
+                  [ "${{ needs.alter.outputs.irc_gateway }}"   = "true" ] && dispatch "irc-gateway"
+                  [ "${{ needs.alter.outputs.discordsh }}"     = "true" ] && dispatch "discordsh"
+                  [ "${{ needs.alter.outputs.mc }}"            = "true" ] && dispatch "mc"
+                  [ "${{ needs.alter.outputs.edge }}"          = "true" ] && dispatch "edge"
+                  [ "${{ needs.alter.outputs.cryptothrone }}"  = "true" ] && dispatch "cryptothrone"
+                  [ "${{ needs.alter.outputs.kilobase }}"      = "true" ] && dispatch "kilobase"
+
+                  echo "All dispatches complete"
+
+    # ---------------------------------------------------------------------------
+    # Publish dispatch — fires one ci-publish.yml run per changed package.
+    # Each run is isolated: npm/droid never blocks crates/q or python/fudster.
+    # ---------------------------------------------------------------------------
+    dispatch_publish:
+        name: Dispatch Publish Packages
+        needs: ['alter']
+        if: github.repository == 'kbve/kbve' && needs.alter.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            actions: write
+        steps:
+            - name: Dispatch per changed package
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  DISPATCHED_AT=$(date +%s)
+                  SHA="${{ github.sha }}"
+
+                  dispatch_npm() {
+                    echo "Dispatching ci-publish.yml npm/$1"
+                    gh workflow run ci-publish.yml \
+                      --repo "${{ github.repository }}" \
+                      --ref main \
+                      --field package_type="npm" \
+                      --field package_name="$1" \
+                      --field dispatched_at="$DISPATCHED_AT"
+                  }
+
+                  dispatch_crate() {
+                    echo "Dispatching ci-publish.yml crates/$1"
+                    gh workflow run ci-publish.yml \
+                      --repo "${{ github.repository }}" \
+                      --ref main \
+                      --field package_type="crates" \
+                      --field package_name="$1" \
+                      --field dispatched_at="$DISPATCHED_AT"
+                  }
+
+                  dispatch_python() {
+                    local project="$1"
+                    local pypi="$2"
+                    echo "Dispatching ci-publish.yml python/$project"
+                    gh workflow run ci-publish.yml \
+                      --repo "${{ github.repository }}" \
+                      --ref main \
+                      --field package_type="python" \
+                      --field package_name="$project" \
+                      --field pypi_name="$pypi" \
+                      --field dispatched_at="$DISPATCHED_AT"
+                  }
+
+                  # NPM
+                  [ "${{ needs.alter.outputs.droid }}"      = "true" ] && dispatch_npm "droid"
+                  [ "${{ needs.alter.outputs.laser }}"      = "true" ] && dispatch_npm "laser"
+                  [ "${{ needs.alter.outputs.devops }}"     = "true" ] && dispatch_npm "devops"
+                  [ "${{ needs.alter.outputs.khashvault }}" = "true" ] && dispatch_npm "khashvault"
+
+                  # Rust Crates
+                  [ "${{ needs.alter.outputs.q_crate }}"     = "true" ] && dispatch_crate "q"
+                  [ "${{ needs.alter.outputs.jedi_crate }}"  = "true" ] && dispatch_crate "jedi"
+                  [ "${{ needs.alter.outputs.soul_crate }}"  = "true" ] && dispatch_crate "soul"
+                  [ "${{ needs.alter.outputs.kbve_crate }}"  = "true" ] && dispatch_crate "kbve"
+                  [ "${{ needs.alter.outputs.erust_crate }}" = "true" ] && dispatch_crate "erust"
+                  [ "${{ needs.alter.outputs.holy_crate }}"  = "true" ] && dispatch_crate "holy"
+
+                  # Python
+                  [ "${{ needs.alter.outputs.py_lib_fudster }}" = "true" ] && dispatch_python "python-fudster" "fudster"
+                  [ "${{ needs.alter.outputs.py_lib_kbve }}"    = "true" ] && dispatch_python "python-kbve"    "kbve"
+
+                  echo "All publish dispatches complete"
