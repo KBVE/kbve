@@ -103,7 +103,6 @@ async function handleAppStatus(name: string) {
 }
 
 async function handleHealth() {
-  const start = performance.now();
   const result = await argoFetch("/healthz", 10000);
   return {
     argocd_reachable: result.status === 200,
