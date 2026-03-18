@@ -1,5 +1,6 @@
 pub mod actions;
 pub mod camera;
+pub mod client_profile;
 pub mod creatures;
 pub mod grass;
 pub mod hover_bvh;
