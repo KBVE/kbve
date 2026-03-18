@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 import { resolve } from 'path';
 
 const workspaceRoot = resolve(__dirname, '../../..');
-const port = 4321;
+const port = Number(process.env['E2E_PORT']) || 4321;
 const baseURL = `http://localhost:${port}`;
 
 export default defineConfig({
@@ -26,7 +26,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: './kbve.sh -nx axum-discordsh:dev',
+		command: `HTTP_PORT=${port} ./kbve.sh -nx axum-discordsh:dev`,
 		cwd: workspaceRoot,
 		url: `${baseURL}/health`,
 		reuseExistingServer: false,
