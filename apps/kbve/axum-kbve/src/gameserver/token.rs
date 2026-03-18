@@ -65,26 +65,14 @@ pub async fn game_token_handler(
         .unwrap_or(DEFAULT_WT_PORT);
 
     // The address embedded in the ConnectToken — what the Netcode client
-    // actually connects to. Must be a reachable address (not 0.0.0.0).
-    // Use the request hostname resolved to an IP + the WS port.
-    let game_addr: SocketAddr = format!("{request_host}:{ws_port}")
-        .parse()
-        .or_else(|_| {
-            // Hostname might not parse as SocketAddr directly (e.g. "localhost:5000")
-            // Resolve it: for localhost, use 127.0.0.1
-            use std::net::ToSocketAddrs;
-            format!("{request_host}:{ws_port}")
-                .to_socket_addrs()
-                .ok()
-                .and_then(|mut addrs| addrs.next())
-                .ok_or("failed to resolve")
-        })
-        .map_err(|e| {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("cannot resolve game address {request_host}:{ws_port}: {e}"),
-            )
-        })?;
+    // actually connects to. Must be a reachable IPv4 address (not 0.0.0.0).
+    // The game server binds on 0.0.0.0 (IPv4), so we must resolve to IPv4.
+    let game_addr: SocketAddr = resolve_ipv4(&request_host, ws_port).map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("cannot resolve game address {request_host}:{ws_port}: {e}"),
+        )
+    })?;
 
     // Determine client_id and user_data from JWT
     let (client_id, user_data) = match req.jwt.as_deref() {
@@ -164,4 +152,37 @@ fn extract_hostname(headers: &HeaderMap) -> String {
             h.split(':').next().unwrap_or(h).to_string()
         })
         .unwrap_or_else(|| "localhost".to_string())
+}
+
+/// Resolve a hostname + port to an IPv4 SocketAddr.
+/// The game server binds on 0.0.0.0 (IPv4 only), so the ConnectToken must
+/// embed an IPv4 address. macOS resolves "localhost" to [::1] (IPv6) first,
+/// which would cause ERR_CONNECTION_REFUSED.
+fn resolve_ipv4(host: &str, port: u16) -> Result<SocketAddr, String> {
+    use std::net::{IpAddr, Ipv4Addr, ToSocketAddrs};
+
+    // Fast path: already an IPv4 address (e.g. "127.0.0.1")
+    if let Ok(addr) = format!("{host}:{port}").parse::<SocketAddr>() {
+        if addr.is_ipv4() {
+            return Ok(addr);
+        }
+    }
+
+    // Resolve and pick the first IPv4 result
+    let addrs = format!("{host}:{port}")
+        .to_socket_addrs()
+        .map_err(|e| format!("DNS resolution failed: {e}"))?;
+
+    for addr in addrs {
+        if addr.is_ipv4() {
+            return Ok(addr);
+        }
+    }
+
+    // Fallback: if hostname is "localhost" and no IPv4 found, use 127.0.0.1
+    if host == "localhost" {
+        return Ok(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port));
+    }
+
+    Err(format!("no IPv4 address found for {host}"))
 }
