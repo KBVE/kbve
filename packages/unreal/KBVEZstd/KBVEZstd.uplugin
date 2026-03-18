@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.5.7",
+	"FriendlyName": "KBVE Zstd",
+	"Description": "Unreal Engine wrapper for zstd 1.5.7 — fast real-time compression algorithm.",
+	"Category": "Third Party",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"DocsURL": "https://github.com/facebook/zstd",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"EnabledByDefault": false,
+	"Modules": [
+		{
+			"Name": "KBVEZstd",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

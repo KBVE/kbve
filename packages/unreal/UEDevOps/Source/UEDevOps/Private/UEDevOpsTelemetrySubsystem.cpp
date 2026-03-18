@@ -13,11 +13,9 @@
 #include "HAL/PlatformTime.h"
 #include "TimerManager.h"
 
-THIRD_PARTY_INCLUDES_START
-#include "yyjson.h"
-#include "xxhash.h"
-#include "zstd.h"
-THIRD_PARTY_INCLUDES_END
+#include "KBVEYYJson.h"
+#include "KBVEXXHash.h"
+#include "KBVEZstd.h"
 
 DEFINE_LOG_CATEGORY(LogUEDevOps);
 

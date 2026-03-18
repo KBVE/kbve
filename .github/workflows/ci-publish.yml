@@ -22,10 +22,10 @@ on:
                 type: string
                 default: ''
             ue_image_tags:
-                description: 'JSON array of Epic UE image tags — unreal only (e.g. ["dev-5.7.3","dev-5.6.1"])'
+                description: 'JSON array of Epic UE image tags — unreal only (e.g. ["dev-5.7.4","dev-5.6.1"])'
                 required: false
                 type: string
-                default: '["dev-5.7.3"]'
+                default: '["dev-5.7.4"]'
             deploy_to_itch:
                 description: 'Deploy to itch.io — unreal only'
                 required: false
@@ -33,6 +33,11 @@ on:
                 default: false
             itch_game_id:
                 description: 'Itch.io game ID — unreal only (e.g. uedevops)'
+                required: false
+                type: string
+                default: ''
+            unreal_dependency_plugins:
+                description: 'Space-separated paths to dependency plugins — unreal only (e.g. packages/unreal/KBVEYYJson packages/unreal/KBVEZstd)'
                 required: false
                 type: string
                 default: ''
@@ -180,6 +185,7 @@ jobs:
             itch_username: kbve
             itch_game_id: ${{ inputs.itch_game_id }}
             itch_channel: plugin
+            dependency_plugin_paths: ${{ inputs.unreal_dependency_plugins }}
         secrets:
             epic_pat: ${{ secrets.UNITY_PAT }}
             butler_api: ${{ secrets.butler_api }}
