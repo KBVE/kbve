@@ -9,8 +9,15 @@
  * ZSTD_DISABLE_ASM avoids inline assembly for portable cross-platform builds.
  */
 
+#include "CoreMinimal.h"
+
 #define ZSTD_DISABLE_ASM 1
 #undef ZSTD_MULTITHREAD
+
+// Prevent macro redefinition errors — UE defines these in CoreMiscDefines.h,
+// zstd redefines them in compiler.h. Undef UE's versions before entering zstd.
+#undef LIKELY
+#undef UNLIKELY
 
 THIRD_PARTY_INCLUDES_START
 
