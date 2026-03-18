@@ -235,6 +235,13 @@ Example of calling the KBVE Shell
 
 ### Matrix
 
+<Aside type="caution" title="Deprecated">
+
+The matrix-based crate publish strategy shown below has been replaced by the **fanout pipeline** (see [Docker](#docker) above).
+Each crate now gets its own independent `ci-publish.yml` dispatch with per-package concurrency groups, eliminating the single-matrix bottleneck.
+
+</Aside>
+
 #### Crate Publish
 
 <Aside type="tip">
@@ -244,8 +251,11 @@ Remember to setup your secrets for the `CRATES_TOKEN`!
 </Aside>
 
 These are brief notes on the `rust-publish-crate.yml` within our monorepo, which is used to publish Rust crates to crates.io.
+The old matrix approach used a single job to filter changed crates and fan them out via `strategy.matrix`.
+This has been superseded by per-crate `workflow_dispatch` runs fired from `ci-main.yml`'s `dispatch_publish` job, where each crate (q, jedi, soul, kbve, erust, holy) gets its own isolated `ci-publish.yml` run with concurrency group `ci-publish-crates-{name}`.
 
 ```yaml
+# Legacy matrix pattern (replaced by fanout dispatch)
 generate_crates_matrix:
     needs: ['deploy', 'alter', 'globals']
     runs-on: ubuntu-latest
@@ -601,6 +611,94 @@ Boost your Godot development workflow with these handy GitHub Actions references
 These resources will help you integrate GitHub Actions into your Godot projects, ensuring efficient and reliable automation throughout your development process.
 
 #### Docker
+
+The KBVE monorepo uses a **fanout CI pipeline** for Docker applications, where each app gets its own independent workflow run with a dedicated concurrency group.
+This design ensures that a failure in one app (e.g., `discordsh`) never blocks another (e.g., `axum-kbve`), and all apps build fully in parallel.
+
+The pipeline operates across three phases:
+
+**Phase 1 — Detection** (`ci-main.yml`): A push to `main` triggers file-change detection via `utils-file-alterations.yml`, which scans path patterns for 40+ packages and apps.
+
+**Phase 2 — Dispatch** (`ci-main.yml`): Two dispatch jobs read the detection outputs and fire independent `workflow_dispatch` events:
+
+- `dispatch_docker` — one `ci-docker.yml` run per changed Docker app (9 apps: axum-kbve, herbmail, memes, irc-gateway, discordsh, mc, edge, cryptothrone, kilobase)
+- `dispatch_publish` — one `ci-publish.yml` run per changed package across npm (4), crates (6), and python (2) ecosystems
+
+**Phase 3 — Execution** (per-app / per-package isolation):
+
+Each dispatched `ci-docker.yml` run flows through:
+
+1. **Queue Guard** — fails if the run waited more than 2 hours, preventing stale deploys
+2. **Config** — a case statement resolves runner, image name, e2e project, Cargo.toml path, deployment YAML, and whether tests exist
+3. **Test** — builds a `ci-{sha}` image and runs e2e tests (skipped for apps without a test suite)
+4. **Publish** — promotes the `ci-{sha}` tag to a release tag in GHCR
+5. **Update Kube** — bumps the image tag in the Kubernetes deployment manifest and opens a PR
+6. **Track Failure** — opens a GitHub issue per app on failure (e.g., "CI - Docker / axum-kbve — Failed")
+
+Each dispatched `ci-publish.yml` run has conditional job blocks per package type (npm, crates, python), each following a test → publish flow with the same queue guard and failure tracking.
+
+<Aside type="tip" title="Concurrency Groups">
+
+Per-app concurrency groups (`ci-docker-{app_name}`) and per-package groups (`ci-publish-{type}-{name}`) mean that apps and packages never block each other.
+The `cancel-in-progress: false` setting ensures running jobs are never cancelled — only the latest pending run replaces an older pending one.
+
+</Aside>
+
+Here is a simplified example of how `ci-main.yml` dispatches per-app Docker builds:
+
+```yaml
+dispatch_docker:
+    needs: ['alter']
+    runs-on: ubuntu-latest
+    steps:
+        - name: Dispatch per changed app
+          env:
+              GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run: |
+              DISPATCHED_AT=$(date +%s)
+              SHA="${{ github.sha }}"
+
+              dispatch() {
+                gh workflow run ci-docker.yml \
+                  --repo "${{ github.repository }}" \
+                  --ref main \
+                  --field app_name="$1" \
+                  --field sha="$SHA" \
+                  --field dispatched_at="$DISPATCHED_AT"
+              }
+
+              [ "${{ needs.alter.outputs.astro_kbve }}" = "true" ] && dispatch "axum-kbve"
+              [ "${{ needs.alter.outputs.discordsh }}" = "true" ]  && dispatch "discordsh"
+              # ... one line per app
+```
+
+And the receiving `ci-docker.yml` uses per-app concurrency:
+
+```yaml
+on:
+    workflow_dispatch:
+        inputs:
+            app_name:
+                required: true
+                type: string
+            sha:
+                required: true
+                type: string
+            dispatched_at:
+                required: true
+                type: string
+
+concurrency:
+    group: ci-docker-${{ inputs.app_name }}
+    cancel-in-progress: false
+```
+
+<Aside type="caution" title="Queue Guard">
+
+The queue guard prevents stale deploys by checking the elapsed time since dispatch.
+If a run for `axum-kbve` v5.0.10 queues behind v5.0.11 and waits longer than 2 hours, it fails rather than deploying an older image over a newer one.
+
+</Aside>
 
 ---
 
