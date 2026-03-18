@@ -50,7 +50,7 @@ on:
                 description: 'Self-hosted runner label'
                 required: false
                 type: string
-                default: 'arc-runner-set'
+                default: 'arc-runner-ue'
             build_timeout:
                 description: 'Build job timeout in minutes'
                 required: false
