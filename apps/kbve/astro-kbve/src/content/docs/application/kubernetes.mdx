@@ -16,6 +16,8 @@ import {
   CardGrid,
   Code,
   FileTree,
+  Tabs,
+  TabItem,
 } from '@astrojs/starlight/components';
 
 import { Giscus, Adsense } from '@/components/astropad';
@@ -223,6 +225,227 @@ Access might require `root`.
         ```
 
         -   std out: storage provisioners.
+
+---
+
+## Namespace Orphan Check
+
+Over time, Kubernetes clusters accumulate stale namespaces — leftover from decommissioned apps, experiments, or renamed projects.
+These orphaned namespaces cause real problems: controllers like `external-secrets` continuously attempt to reconcile resources in them, generating errors such as `"client is not allowed to get secrets"` and polluting logs with noise that masks actual incidents.
+
+### Why Orphaned Namespaces Matter
+
+```mermaid
+flowchart LR
+    A["App Decommissioned"] --> B["Namespace Left Behind"]
+    B --> C["Stale SecretStores"]
+    B --> D["Stale Ingresses"]
+    B --> E["Stale Secrets"]
+    C --> F["external-secrets\nreconciler errors"]
+    D --> G["ingress-nginx\nsync churn"]
+    E --> H["Unrotated credentials\nin cluster"]
+    F --> I["Log noise masks\nreal incidents"]
+    G --> I
+    H --> J["Security risk"]
+```
+
+When a namespace is removed from Git but not from the cluster, its resources become orphans. Controllers keep trying to reconcile them, RBAC bindings may have been cleaned up, and the result is a steady stream of errors that drown out real problems.
+
+<CardGrid>
+  <Card title="Controller Errors" icon="warning">
+    Operators like `external-secrets` and `cert-manager` continuously retry failed reconciliation on orphaned resources, wasting cycles and flooding logs.
+  </Card>
+  <Card title="Ingress Sync Churn" icon="random">
+    Stale `Ingress` resources trigger the ingress controller to re-sync on every loop, even though no backend exists to serve traffic.
+  </Card>
+  <Card title="Security Risk" icon="error">
+    Orphaned `Secret` resources may contain database credentials, API keys, or TLS certs that are never rotated and remain accessible to anyone with namespace-level RBAC.
+  </Card>
+  <Card title="Resource Waste" icon="close">
+    Orphaned `Services` of type `LoadBalancer` can hold cloud provider IPs, incurring cost for endpoints that serve nothing.
+  </Card>
+</CardGrid>
+
+### How the Audit Works
+
+```mermaid
+flowchart TD
+    Start["kubectl get ns"] --> Loop["For each namespace"]
+    Loop --> Protected{"System\nnamespace?"}
+    Protected -->|"Yes (kube-system, default, ...)"| Skip["Skip"]
+    Protected -->|No| Count["Count workload resources"]
+    Count --> Check{"pods + deploys +\nsts + jobs > 0?"}
+    Check -->|Yes| Active["ACTIVE"]
+    Check -->|No| Empty["EMPTY"]
+    Empty --> Linger["Report lingering resources:\nsvcs, secrets, ingress,\nextSecrets, secretStores"]
+    Active --> Report["Report workload counts"]
+    Linger --> Next["Next namespace"]
+    Report --> Next
+    Skip --> Next
+    Next --> Loop
+```
+
+<Tabs>
+  <TabItem label="What It Checks">
+
+The script classifies each namespace by checking for **active workloads** and **lingering resources**:
+
+**Active workload indicators** — if any of these exist, the namespace is marked `ACTIVE`:
+
+| Resource     | Why it indicates activity                           |
+| ------------ | --------------------------------------------------- |
+| Pods         | Running containers mean the namespace is in use     |
+| Deployments  | Declared workloads, even if scaled to zero          |
+| StatefulSets | Stateful apps like databases or message queues      |
+| Jobs         | Batch processing, migrations, or CronJob children   |
+
+**Lingering resource indicators** — reported for `EMPTY` namespaces to help prioritize cleanup:
+
+| Resource        | Risk if orphaned                                       |
+| --------------- | ------------------------------------------------------ |
+| Services        | LoadBalancer types hold cloud IPs, incur cost          |
+| Secrets         | Unrotated credentials remain accessible                |
+| Ingresses       | Trigger ingress controller sync loops                  |
+| ExternalSecrets | Cause reconciler errors when SecretStore is broken     |
+| SecretStores    | Fail RBAC validation, generate continuous error logs   |
+
+System namespaces (`default`, `kube-system`, `kube-public`, `kube-node-lease`) are automatically skipped.
+
+  </TabItem>
+  <TabItem label="Proof of Concept">
+
+The full script is located at `scripts/kubectl-namespace-orphan-check.sh` and can be run directly against any cluster with `kubectl` access.
+
+```bash
+#!/usr/bin/env bash
+# kubectl-namespace-orphan-check.sh — Identify namespaces with no active workloads
+# Safe: read-only, never deletes anything
+
+set -euo pipefail
+
+PROTECTED="default|kube-system|kube-public|kube-node-lease"
+
+echo "=== Namespace Audit ==="
+echo ""
+
+for ns in $(kubectl get ns -o jsonpath='{.items[*].metadata.name}'); do
+  # Skip protected system namespaces
+  if echo "$ns" | grep -qE "^($PROTECTED)$"; then
+    continue
+  fi
+
+  pods=$(kubectl get pods -n "$ns" --no-headers 2>/dev/null | wc -l | tr -d ' ')
+  deploys=$(kubectl get deployments -n "$ns" --no-headers 2>/dev/null | wc -l | tr -d ' ')
+  statefulsets=$(kubectl get statefulsets -n "$ns" --no-headers 2>/dev/null | wc -l | tr -d ' ')
+  jobs=$(kubectl get jobs -n "$ns" --no-headers 2>/dev/null | wc -l | tr -d ' ')
+  svcs=$(kubectl get svc -n "$ns" --no-headers 2>/dev/null | wc -l | tr -d ' ')
+  secrets=$(kubectl get secrets -n "$ns" --no-headers 2>/dev/null | wc -l | tr -d ' ')
+  ingresses=$(kubectl get ingress -n "$ns" --no-headers 2>/dev/null | wc -l | tr -d ' ')
+  externalsecrets=$(kubectl get externalsecrets -n "$ns" --no-headers 2>/dev/null | wc -l | tr -d ' ')
+  secretstores=$(kubectl get secretstores -n "$ns" --no-headers 2>/dev/null | wc -l | tr -d ' ')
+
+  total=$((pods + deploys + statefulsets + jobs))
+
+  if [ "$total" -eq 0 ]; then
+    echo "EMPTY   $ns  (svcs=$svcs secrets=$secrets ingress=$ingresses extSecrets=$externalsecrets secretStores=$secretstores)"
+  else
+    echo "ACTIVE  $ns  (pods=$pods deploy=$deploys sts=$statefulsets jobs=$jobs)"
+  fi
+done
+```
+
+  </TabItem>
+  <TabItem label="Usage">
+
+Run the script from the repository root:
+
+```shell
+./scripts/kubectl-namespace-orphan-check.sh
+```
+
+**Prerequisites:** `kubectl` must be installed and configured with a valid kubeconfig pointing to the target cluster. The `externalsecrets` and `secretstores` resource checks require the External Secrets Operator CRDs — if they are not installed, those counts will silently return `0`.
+
+**Example output:**
+
+```
+=== Namespace Audit ===
+
+ACTIVE  kilobase      (pods=12 deploy=4 sts=2 jobs=0)
+ACTIVE  mc            (pods=3 deploy=1 sts=0 jobs=0)
+EMPTY   bugwars       (svcs=1 secrets=2 ingress=1 extSecrets=0 secretStores=1)
+EMPTY   old-staging   (svcs=0 secrets=1 ingress=0 extSecrets=0 secretStores=0)
+```
+
+  </TabItem>
+  <TabItem label="Cleanup">
+
+<Steps>
+
+1. **Run the audit** to identify empty namespaces:
+
+    ```shell
+    ./scripts/kubectl-namespace-orphan-check.sh
+    ```
+
+2. **Inspect lingering resources** in each empty namespace before deleting:
+
+    ```shell
+    kubectl get all,secrets,ingress,externalsecrets,secretstores -n bugwars
+    ```
+
+3. **Confirm with your team** that the namespace is truly decommissioned and no longer referenced by any active service, ArgoCD Application, or CI pipeline.
+
+4. **Delete the namespace** — this removes all resources within it:
+
+    ```shell
+    kubectl delete namespace bugwars
+    ```
+
+5. **Verify the errors are gone** by checking your observability pipeline (ClickHouse logs, Grafana dashboards) for reconciler errors referencing the deleted namespace.
+
+</Steps>
+
+<Aside type="caution">
+Deleting a namespace removes **all** resources within it — secrets, configmaps, RBAC bindings, PVCs, and more. This operation is irreversible. Always confirm with your team before removing a namespace from a shared cluster.
+</Aside>
+
+  </TabItem>
+  <TabItem label="Limitations">
+
+This script is a **proof of concept** with known limitations:
+
+- **CronJobs with no active children** — a namespace with only `CronJob` resources (no running `Job` pods) will be flagged as `EMPTY`, even though it is still actively scheduled. The script checks `Jobs`, not `CronJobs`.
+- **DaemonSets** — namespaces containing only `DaemonSet` workloads (no Deployments, StatefulSets, or standalone Pods) will appear as `EMPTY`.
+- **Scaled-to-zero Deployments** — a Deployment with `replicas: 0` still counts as active (the Deployment object exists), but if it was deleted and only Pods were expected, the namespace may appear empty.
+- **Custom resources** — workloads managed by custom operators (e.g., `KafkaTopic`, `PostgresCluster`, `VirtualService`) are not checked. Extend the script with additional `kubectl get <crd>` calls for your environment.
+- **Performance** — the script makes multiple `kubectl` calls per namespace sequentially. For clusters with many namespaces, consider parallelizing with `xargs` or switching to a single `kubectl get` with JSON output and `jq` processing.
+
+```mermaid
+flowchart LR
+    subgraph "Detected"
+        Pods
+        Deployments
+        StatefulSets
+        Jobs
+    end
+    subgraph "Not Detected"
+        CronJobs
+        DaemonSets
+        CustomResources["Custom CRDs"]
+    end
+    subgraph "Reported as Lingering"
+        Services
+        Secrets
+        Ingresses
+        ExternalSecrets
+        SecretStores
+    end
+```
+
+Future improvements could include CronJob detection, DaemonSet awareness, age-based filtering (flag namespaces idle for more than N days), and integration with CI to run on a schedule with Slack/Discord notifications.
+
+  </TabItem>
+</Tabs>
 
 ---
 
