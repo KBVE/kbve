@@ -612,39 +612,147 @@ These resources will help you integrate GitHub Actions into your Godot projects,
 
 #### Docker
 
-The KBVE monorepo uses a **fanout CI pipeline** for Docker applications, where each app gets its own independent workflow run with a dedicated concurrency group.
-This design ensures that a failure in one app (e.g., `discordsh`) never blocks another (e.g., `axum-kbve`), and all apps build fully in parallel.
+The KBVE monorepo uses a **fanout CI pipeline** for Docker applications.
+Instead of a single workflow that builds all apps in a matrix, `ci-main.yml` dispatches one independent `ci-docker.yml` run per changed app.
+Each dispatch is a fully isolated GitHub Actions workflow run with its own concurrency group, logs, re-run button, and failure tracker.
 
-The pipeline operates across three phases:
+##### Why Fanout over Matrix
 
-**Phase 1 — Detection** (`ci-main.yml`): A push to `main` triggers file-change detection via `utils-file-alterations.yml`, which scans path patterns for 40+ packages and apps.
+| | Matrix (old) | Fanout dispatch (current) |
+|--|---|---|
+| App A fails → App B blocked? | Possible (shared workflow) | No — independent runs |
+| Independent re-run per app | No — re-runs entire matrix | Yes — re-run just that app |
+| Logs per app | Interleaved in one run | Own workflow run, own logs |
+| Concurrency control per app | No | Yes — `ci-docker-{app_name}` |
+| Failure tracker per app | Single issue for all | One issue per app |
+
+##### Pipeline Architecture
+
+```mermaid
+flowchart TD
+    push["push to main"] --> main["CI - Main<br/>globals → alter → dispatch"]
+
+    main -->|"app=axum-kbve"| d1["CI - Docker<br/>axum-kbve"]
+    main -->|"app=discordsh"| d2["CI - Docker<br/>discordsh"]
+    main -->|"app=mc"| d3["CI - Docker<br/>mc"]
+    main -->|"app=edge"| d4["CI - Docker<br/>edge"]
+    main -->|"app=..."| dn["CI - Docker<br/>..."]
+
+    d1 --> p1["queue_guard → config → test → publish → kube"]
+    d2 --> p2["queue_guard → config → test → publish → kube"]
+    d3 --> p3["queue_guard → config → test → publish → kube"]
+    d4 --> p4["queue_guard → config → test → publish → kube"]
+```
+
+##### Three Phases
+
+**Phase 1 — Detection** (`ci-main.yml`): A push to `main` triggers `utils-file-alterations.yml`, which scans path patterns using glob matching (via `changed-files`) across 40+ packages and apps.
+Each app has its own set of watched paths — for example, `astro_kbve` watches `apps/kbve/astro-kbve/**`, `apps/kbve/axum-kbve/**`, and several `packages/npm/` directories.
 
 **Phase 2 — Dispatch** (`ci-main.yml`): Two dispatch jobs read the detection outputs and fire independent `workflow_dispatch` events:
 
-- `dispatch_docker` — one `ci-docker.yml` run per changed Docker app (9 apps: axum-kbve, herbmail, memes, irc-gateway, discordsh, mc, edge, cryptothrone, kilobase)
-- `dispatch_publish` — one `ci-publish.yml` run per changed package across npm (4), crates (6), and python (2) ecosystems
+- `dispatch_docker` — one `ci-docker.yml` run per changed Docker app
+- `dispatch_publish` — one `ci-publish.yml` run per changed package (npm, crates, or python)
 
-**Phase 3 — Execution** (per-app / per-package isolation):
+Each dispatch passes three fields: `app_name`, `sha` (the triggering commit), and `dispatched_at` (unix timestamp for queue guard timing).
 
-Each dispatched `ci-docker.yml` run flows through:
+**Phase 3 — Execution** (`ci-docker.yml`, one run per app):
 
-1. **Queue Guard** — fails if the run waited more than 2 hours, preventing stale deploys
-2. **Config** — a case statement resolves runner, image name, e2e project, Cargo.toml path, deployment YAML, and whether tests exist
-3. **Test** — builds a `ci-{sha}` image and runs e2e tests (skipped for apps without a test suite)
-4. **Publish** — promotes the `ci-{sha}` tag to a release tag in GHCR
-5. **Update Kube** — bumps the image tag in the Kubernetes deployment manifest and opens a PR
-6. **Track Failure** — opens a GitHub issue per app on failure (e.g., "CI - Docker / axum-kbve — Failed")
+<Steps>
 
-Each dispatched `ci-publish.yml` run has conditional job blocks per package type (npm, crates, python), each following a test → publish flow with the same queue guard and failure tracking.
+1. **Queue Guard** (5 min timeout) — compares `dispatched_at` against current time. Fails loudly if the run waited more than 2 hours in the concurrency queue, preventing stale image deployment.
 
-<Aside type="tip" title="Concurrency Groups">
+2. **Config** (5 min timeout) — a single `case` statement resolves all per-app settings from the `app_name` input: runner type, Docker image name, e2e project, Cargo.toml path, deployment YAML, and whether tests exist.
 
-Per-app concurrency groups (`ci-docker-{app_name}`) and per-package groups (`ci-publish-{type}-{name}`) mean that apps and packages never block each other.
-The `cancel-in-progress: false` setting ensures running jobs are never cancelled — only the latest pending run replaces an older pending one.
+3. **Test** (conditional) — calls `docker-test-app.yml` which builds a `ci-{sha}` tagged image in GHCR and runs the app's e2e test suite against it. Skipped for apps without tests (e.g., `kilobase`).
+
+4. **Publish** — calls `utils-publish-docker-image.yml` which promotes the tested `ci-{sha}` tag to a release tag, or rebuilds if the CI image is missing.
+
+5. **Update Kube** (conditional) — calls `utils-update-kube-manifest.yml` which bumps the image tag in the Kubernetes deployment YAML and opens a PR to `main`. Skipped for apps without a `deployment_yaml`.
+
+6. **Track Failure** — if any prior job failed, calls `utils-ci-failure-tracker.yml` which creates or updates a GitHub issue titled `[CI] CI - Docker / {app_name} — Failed`.
+
+</Steps>
+
+##### Docker App Registry
+
+| App | Image | Runner | E2E | Has Kube Deployment |
+|-----|-------|--------|-----|---------------------|
+| axum-kbve | `kbve/kbve` | arc-runner-set | axum-kbve-e2e | Yes |
+| herbmail | `kbve/herbmail` | ubuntu-latest | herbmail | Yes |
+| memes | `kbve/memes` | ubuntu-latest | — | Yes |
+| irc-gateway | `kbve/irc-gateway` | ubuntu-latest | — | Yes |
+| discordsh | `kbve/discordsh` | ubuntu-latest | discordsh-e2e | Yes |
+| mc | `kbve/mc` | ubuntu-latest | mc | Yes |
+| edge | `kbve/edge` | ubuntu-latest | edge-e2e | Yes |
+| cryptothrone | `kbve/cryptothrone` | ubuntu-latest | cryptothrone-e2e | Yes |
+| kilobase | `kbve/kilobase` | ubuntu-latest | — | No |
+
+##### Concurrency & Queuing
+
+Each dispatched run uses a per-app concurrency group with `cancel-in-progress: false`:
+
+```yaml
+concurrency:
+    group: ci-docker-${{ inputs.app_name }}
+    cancel-in-progress: false
+```
+
+```mermaid
+sequenceDiagram
+    participant M as ci-main
+    participant Q as ci-docker queue (axum-kbve)
+    participant R as Runner
+
+    M->>Q: dispatch v5.0.10 (Run A)
+    R->>Q: Run A starts — RUNNING
+    M->>Q: dispatch v5.0.11 (Run B)
+    Q-->>R: Run B → PENDING (waits for A)
+    M->>Q: dispatch v5.0.11+hotfix (Run C)
+    Q-->>R: Run C replaces B as PENDING (B cancelled)
+    R->>Q: Run A completes
+    R->>Q: Run C starts — RUNNING
+```
+
+<Aside type="tip" title="Why cancel-in-progress: false">
+
+Setting `cancel-in-progress: true` would cancel the *currently running* build mid-flight — dangerous if it's mid-push to GHCR.
+With `false`, the in-flight run always completes safely.
+Only the *pending* slot rotates: the newest pending dispatch replaces any older pending one, naturally de-duplicating redundant builds of the same version.
 
 </Aside>
 
-Here is a simplified example of how `ci-main.yml` dispatches per-app Docker builds:
+##### Queue Guard
+
+The queue guard is the first job in every `ci-docker.yml` run.
+It converts GitHub's silent pending-run cancellation into a visible, tracked failure:
+
+```yaml
+queue_guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+        - name: Check queue age
+          run: |
+              DISPATCHED_AT="${{ inputs.dispatched_at }}"
+              NOW=$(date +%s)
+              AGE=$(( NOW - DISPATCHED_AT ))
+              MAX_QUEUE_SECONDS=7200
+              if [ $AGE -gt $MAX_QUEUE_SECONDS ]; then
+                echo "::error::Run for ${{ inputs.app_name }} queued for ${AGE}s (limit: ${MAX_QUEUE_SECONDS}s)."
+                exit 1
+              fi
+              echo "Queue age: ${AGE}s — within threshold."
+```
+
+<Aside type="caution" title="Stale Deploy Protection">
+
+Without the queue guard, a run dispatched for `axum-kbve` v5.0.10 could sit in the concurrency queue for hours, then deploy *after* v5.0.11 has already shipped — rolling back production to an older image.
+The 2-hour threshold catches this scenario and fails loudly, opening a failure tracker issue so the team can re-dispatch.
+
+</Aside>
+
+##### Dispatch Example
 
 ```yaml
 dispatch_docker:
@@ -667,36 +775,94 @@ dispatch_docker:
                   --field dispatched_at="$DISPATCHED_AT"
               }
 
-              [ "${{ needs.alter.outputs.astro_kbve }}" = "true" ] && dispatch "axum-kbve"
-              [ "${{ needs.alter.outputs.discordsh }}" = "true" ]  && dispatch "discordsh"
-              # ... one line per app
+              [ "${{ needs.alter.outputs.astro_kbve }}" = "true" ]    && dispatch "axum-kbve"
+              [ "${{ needs.alter.outputs.discordsh }}" = "true" ]     && dispatch "discordsh"
+              [ "${{ needs.alter.outputs.herbmail }}" = "true" ]      && dispatch "herbmail"
+              [ "${{ needs.alter.outputs.memes }}" = "true" ]         && dispatch "memes"
+              [ "${{ needs.alter.outputs.irc_gateway }}" = "true" ]   && dispatch "irc-gateway"
+              [ "${{ needs.alter.outputs.mc }}" = "true" ]            && dispatch "mc"
+              [ "${{ needs.alter.outputs.edge }}" = "true" ]          && dispatch "edge"
+              [ "${{ needs.alter.outputs.cryptothrone }}" = "true" ]  && dispatch "cryptothrone"
+              [ "${{ needs.alter.outputs.kilobase }}" = "true" ]      && dispatch "kilobase"
 ```
 
-And the receiving `ci-docker.yml` uses per-app concurrency:
+#### Package Publishing
+
+The same fanout pattern applies to package publishing.
+`ci-main.yml`'s `dispatch_publish` job fires one `ci-publish.yml` run per changed package, with per-package concurrency groups (`ci-publish-{type}-{name}`).
+
+```mermaid
+flowchart TD
+    main["CI - Main<br/>dispatch_publish"] -->|"npm/droid"| n1["ci-publish.yml<br/>npm → droid"]
+    main -->|"npm/laser"| n2["ci-publish.yml<br/>npm → laser"]
+    main -->|"crates/kbve"| c1["ci-publish.yml<br/>crates → kbve"]
+    main -->|"crates/jedi"| c2["ci-publish.yml<br/>crates → jedi"]
+    main -->|"python/fudster"| p1["ci-publish.yml<br/>python → fudster"]
+    main -->|"..."| pn["..."]
+
+    n1 --> t1["queue_guard → test → publish"]
+    c1 --> t2["queue_guard → test → publish"]
+    p1 --> t3["queue_guard → test → publish"]
+```
+
+Each `ci-publish.yml` run receives `package_type` (npm, crates, or python), `package_name`, and an optional `pypi_name` for Python packages.
+The workflow uses conditional jobs — only the matching package type's test and publish jobs run:
+
+| Type | Packages | Registry | Secret |
+|------|----------|----------|--------|
+| npm | droid, laser, devops, khashvault | npmjs.com | `NPM_TOKEN` |
+| crates | q, jedi, soul, kbve, erust, holy | crates.io | `CRATES_TOKEN` |
+| python | fudster, kbve | pypi.org | `PYPI_API_SCOPE_TOKEN` |
+
+#### Failure Tracking
+
+Every dispatched workflow (Docker and publish) includes a `track_failure` job that calls `utils-ci-failure-tracker.yml`.
+This reusable workflow provides automatic incident management for CI failures:
+
+- **On failure**: Creates a GitHub issue titled `[CI] {workflow} / {app_name} — Failed` with labels `bug`, `ci`. The issue body includes the failed step name, timestamp, run link, and the last 50 lines of the failed job's logs. If an issue already exists, it appends a comment with the new failure details.
+- **On success**: If a previously-opened failure issue exists, it adds a "Resolved" comment and auto-closes the issue.
+
+```mermaid
+flowchart LR
+    fail["Job fails"] --> search["Search for open issue<br/>[CI] workflow / app — Failed"]
+    search -->|"Not found"| create["Create issue<br/>with logs + run link"]
+    search -->|"Found"| comment["Comment on issue<br/>increment failure count"]
+
+    success["Job succeeds"] --> search2["Search for open issue"]
+    search2 -->|"Found"| close["Comment 'Resolved'<br/>close issue"]
+    search2 -->|"Not found"| noop["No action"]
+```
+
+This ensures every CI failure is visible, tracked, and automatically resolved — no manual triage needed for transient failures.
+
+#### File Alteration Detection
+
+The `utils-file-alterations.yml` reusable workflow is the detection layer that powers both dispatch jobs.
+It uses the `changed-files` action with glob patterns to produce boolean outputs for every monorepo package and app.
+
+Each app's detection patterns include its own source files plus key dependencies:
 
 ```yaml
-on:
-    workflow_dispatch:
-        inputs:
-            app_name:
-                required: true
-                type: string
-            sha:
-                required: true
-                type: string
-            dispatched_at:
-                required: true
-                type: string
-
-concurrency:
-    group: ci-docker-${{ inputs.app_name }}
-    cancel-in-progress: false
+# Example: astro_kbve watches its own source AND shared npm packages
+astro_kbve:
+    - 'apps/kbve/astro-kbve/**'
+    - 'apps/kbve/axum-kbve/**'
+    - 'packages/npm/astro/**'
+    - 'packages/npm/droid/**'
+    - 'packages/npm/laser/**'
 ```
 
-<Aside type="caution" title="Queue Guard">
+The dispatch jobs in `ci-main.yml` then check these outputs:
 
-The queue guard prevents stale deploys by checking the elapsed time since dispatch.
-If a run for `axum-kbve` v5.0.10 queues behind v5.0.11 and waits longer than 2 hours, it fails rather than deploying an older image over a newer one.
+```yaml
+[ "${{ needs.alter.outputs.astro_kbve }}" = "true" ] && dispatch "axum-kbve"
+```
+
+<Aside type="caution" title="Shared Dependency Coverage">
+
+App-level alteration signals may not cover all transitive Rust crate dependencies.
+For example, a change to `packages/rust/kbve/src/lib.rs` affects `axum-kbve`, `discordsh`, and `cryptothrone` at compile time, but those apps' alter patterns may not include `packages/rust/kbve/**`.
+Broadening the alter patterns or OR-ing the `*_base` signals into dispatch conditions addresses this gap.
 
 </Aside>
 
