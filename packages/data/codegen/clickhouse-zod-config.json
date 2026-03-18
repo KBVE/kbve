@@ -1,0 +1,47 @@
+{
+	"enums": {
+		"clickhouse.SeverityLevel": {
+			"mode": "const_array",
+			"stripPrefix": "SEVERITY_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "SeverityLevels",
+			"sourceEnum": "clickhouse.SeverityLevel",
+			"typeName": "SeverityLevelValue",
+			"zodSchemaName": "SeverityLevelSchema"
+		}
+	],
+
+	"passthrough": [
+		"clickhouse.KeyValue",
+		"clickhouse.TimeRange",
+		"clickhouse.Pagination",
+		"clickhouse.LogEntry",
+		"clickhouse.LogStatsBucket"
+	],
+
+	"nullable": [
+		"clickhouse.LogQueryRequest.pod_namespace",
+		"clickhouse.LogQueryRequest.service",
+		"clickhouse.LogQueryRequest.level",
+		"clickhouse.LogQueryRequest.search",
+		"clickhouse.LogQueryRequest.time_range",
+		"clickhouse.LogQueryRequest.pagination",
+		"clickhouse.LogStatsRequest.time_range",
+		"clickhouse.TailRequest.pod_namespace",
+		"clickhouse.TailRequest.service",
+		"clickhouse.TailRequest.level",
+		"clickhouse.TailRequest.search"
+	],
+
+	"refinements": {
+		"clickhouse.Pagination.limit": ".min(1).max(500)",
+		"clickhouse.Pagination.offset": ".min(0)",
+		"clickhouse.TailRequest.poll_interval_ms": ".min(100).max(30000)"
+	}
+}
