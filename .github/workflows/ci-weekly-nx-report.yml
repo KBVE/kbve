@@ -462,3 +462,21 @@ jobs:
                   echo "Cleaning up workspace..."
                   rm -f /tmp/nx-report-raw.txt /tmp/nx-graph.json /tmp/loc-stats.txt /tmp/coverage-report.txt /tmp/pr-body.md /tmp/pr-body-clean.md
                   rm -rf "$GITHUB_WORKSPACE"/* "$GITHUB_WORKSPACE"/.[!.]* 2>/dev/null || true
+
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces failures as GitHub issues (#8186).
+    # Weekly scheduled workflow — failures go unnoticed for an entire week.
+    # ---------------------------------------------------------------------------
+    track-generate:
+        name: Track Generate Job
+        if: always()
+        needs: [generate]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Weekly NX Report'
+            job_name: 'Generate NX Report & Graph'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.generate.result }}

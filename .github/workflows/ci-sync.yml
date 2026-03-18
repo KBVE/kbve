@@ -213,6 +213,38 @@ jobs:
                         }
                       }
 
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces failures as GitHub issues (#8186).
+    # Sync automation — failures can leave branches in inconsistent state.
+    # ---------------------------------------------------------------------------
+    track-sync:
+        name: Track Sync
+        if: always()
+        needs: [sync_dev_with_main]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Sync Branches'
+            job_name: 'Sync Dev with Main (Safe)'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.sync_dev_with_main.result }}
+
+    track-cleanup:
+        name: Track Cleanup
+        if: always()
+        needs: [cleanup_orphaned_atomic_branches]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Sync Branches'
+            job_name: 'Cleanup Orphaned Atomic Branches'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.cleanup_orphaned_atomic_branches.result }}
+
     close_explicit_keyword_issues:
         name: 'Close Issues with Explicit Keywords'
         runs-on: ubuntu-latest

@@ -87,6 +87,38 @@ jobs:
               with:
                   category: /language:rust
 
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces failures as GitHub issues (#8186).
+    # Security scanning — failures should not go unnoticed.
+    # ---------------------------------------------------------------------------
+    track-codeql:
+        name: Track CodeQL Analysis
+        if: always()
+        needs: [codeql]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Security (CodeQL)'
+            job_name: 'CodeQL Analysis'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.codeql.result }}
+
+    track-codeql-rust:
+        name: Track CodeQL Rust Analysis
+        if: always()
+        needs: [codeql-rust]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Security (CodeQL)'
+            job_name: 'CodeQL Rust Analysis'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.codeql-rust.result }}
+
     dependency-review:
         name: Dependency Review
         runs-on: ubuntu-latest
