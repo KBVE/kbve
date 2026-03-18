@@ -32,7 +32,7 @@ export default function ReactAuthLogin() {
 				'min-h-[400px] sm:min-h-[450px] md:min-h-[500px]',
 			)}>
 			<div className="auth-content">
-				<h2>Sign In to BugWars</h2>
+				<h2>Sign In to KBVE</h2>
 				<p className="auth-description">
 					Sign in to access your account, save your progress, and
 					compete on the leaderboards.
