@@ -59,6 +59,7 @@ lightyear = { version = "0.26", default-features = false, features = [
     "input_native",
     "websocket",
     "netcode",
+    "webtransport",
 ] }
 base64 = "0.22"
 rand = "0.9"

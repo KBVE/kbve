@@ -161,6 +161,10 @@ impl Default for ServerTime {
 struct TokenFetchResult {
     token_bytes: [u8; 2048],
     server_url: String,
+    /// WebTransport URL (empty if server doesn't offer WT).
+    server_wt_url: String,
+    /// SHA-256 cert digest for self-signed WebTransport certs.
+    cert_digest: String,
 }
 
 /// Resource tracking whether a WASM token fetch is in flight.
@@ -456,8 +460,28 @@ fn poll_go_online_request(
         let token_bytes =
             net_config::base64_to_token_bytes(&token_b64).expect("base64_to_token_bytes failed");
 
+        // Check for local WebTransport cert digest
+        let cert_digest_path = std::env::var("GAME_WT_DIGEST")
+            .unwrap_or_else(|_| "apps/kbve/isometric/certificates/digest.txt".to_string());
+        let (wt_url, cert_digest) = match std::fs::read_to_string(&cert_digest_path) {
+            Ok(digest) => {
+                let digest = digest.trim().to_owned();
+                // Derive WT address from WS address (port + 1)
+                let wt_port = socket_addr.port() + 1;
+                let wt_addr = format!("https://{}:{wt_port}", socket_addr.ip());
+                (wt_addr, digest)
+            }
+            Err(_) => (String::new(), String::new()),
+        };
+
+        let transport = TransportConfig {
+            ws_url: resolved_ws.clone(),
+            wt_url,
+            cert_digest,
+        };
+
         info!("[net] desktop: generated ConnectToken locally, connecting...");
-        connect_to_server(&mut commands, &resolved_ws, &token_bytes);
+        connect_to_server(&mut commands, &transport, &token_bytes);
     }
 
     // --- WASM path: fetch token from auth endpoint ---
@@ -475,16 +499,18 @@ fn poll_go_online_request(
 
         wasm_bindgen_futures::spawn_local(async move {
             match fetch_game_token(&api_base, &jwt_for_fetch).await {
-                Ok((token_bytes, server_url)) => {
-                    let ws = if server_url.is_empty() {
+                Ok(result) => {
+                    let ws = if result.server_url.is_empty() {
                         ws_url
                     } else {
-                        server_url
+                        result.server_url
                     };
                     if let Ok(mut guard) = PENDING_TOKEN_RESULT.lock() {
                         *guard = Some(TokenFetchResult {
-                            token_bytes,
+                            token_bytes: result.token_bytes,
                             server_url: ws,
+                            server_wt_url: result.server_wt_url,
+                            cert_digest: result.cert_digest,
                         });
                     }
                 }
@@ -513,11 +539,27 @@ fn poll_token_fetch_result(mut commands: Commands, mut pending_token: ResMut<Pen
     };
 
     pending_token.in_flight = false;
+
+    let transport = TransportConfig {
+        ws_url: result.server_url.clone(),
+        wt_url: result.server_wt_url.clone(),
+        cert_digest: result.cert_digest.clone(),
+    };
+
+    let transport_name = if !transport.wt_url.is_empty() {
+        "WebTransport"
+    } else {
+        "WebSocket"
+    };
     info!(
-        "[net] WASM token fetch complete, connecting to {}",
-        result.server_url
+        "[net] WASM token fetch complete, connecting via {transport_name} to {}",
+        if !transport.wt_url.is_empty() {
+            &transport.wt_url
+        } else {
+            &transport.ws_url
+        }
     );
-    connect_to_server(&mut commands, &result.server_url, &result.token_bytes);
+    connect_to_server(&mut commands, &transport, &result.token_bytes);
 }
 
 /// Derive the HTTP API base URL from a WebSocket URL.
@@ -547,9 +589,18 @@ fn derive_api_base(ws_url: &str) -> String {
     }
 }
 
+/// Result from the game-token API.
+#[cfg(target_arch = "wasm32")]
+struct GameTokenResult {
+    token_bytes: [u8; 2048],
+    server_url: String,
+    server_wt_url: String,
+    cert_digest: String,
+}
+
 /// Fetch a ConnectToken from the auth API (WASM only).
 #[cfg(target_arch = "wasm32")]
-async fn fetch_game_token(api_base: &str, jwt: &str) -> Result<([u8; 2048], String), String> {
+async fn fetch_game_token(api_base: &str, jwt: &str) -> Result<GameTokenResult, String> {
     use wasm_bindgen::JsCast;
     use wasm_bindgen_futures::JsFuture;
     use web_sys::{Request, RequestInit, RequestMode, Response};
@@ -590,9 +641,19 @@ async fn fetch_game_token(api_base: &str, jwt: &str) -> Result<([u8; 2048], Stri
         .as_str()
         .ok_or("missing 'token' field")?;
     let server_url = token_resp["server_url"].as_str().unwrap_or("").to_owned();
+    let server_wt_url = token_resp["server_wt_url"]
+        .as_str()
+        .unwrap_or("")
+        .to_owned();
+    let cert_digest = token_resp["cert_digest"].as_str().unwrap_or("").to_owned();
 
     let token_bytes = bevy_kbve_net::net_config::base64_to_token_bytes(token_b64)?;
-    Ok((token_bytes, server_url))
+    Ok(GameTokenResult {
+        token_bytes,
+        server_url,
+        server_wt_url,
+        cert_digest,
+    })
 }
 
 /// Send AuthMessage to server once the connection is established.
@@ -996,48 +1057,102 @@ fn receive_object_respawned(
     }
 }
 
-/// Initiate a Netcode + WebSocket connection to the game server.
-fn connect_to_server(commands: &mut Commands, ws_url: &str, token_bytes: &[u8]) {
-    use lightyear::netcode::prelude::client::*;
-    use lightyear::websocket::prelude::client::*;
+/// Transport selection for the game server connection.
+struct TransportConfig {
+    /// WebSocket URL (always available).
+    ws_url: String,
+    /// WebTransport URL (empty = not available).
+    wt_url: String,
+    /// Certificate digest for self-signed WebTransport certs (hex, 64 chars).
+    cert_digest: String,
+}
 
-    // Belt: refuse empty URLs (WASM default when JS didn't provide one)
-    if ws_url.is_empty() {
-        warn!(
-            "[net] connect_to_server called with empty URL — aborting. JS must pass a server URL via request_go_online()"
-        );
+/// Initiate a Netcode connection to the game server.
+/// Prefers WebTransport when available, falls back to WebSocket.
+fn connect_to_server(commands: &mut Commands, transport: &TransportConfig, token_bytes: &[u8]) {
+    use lightyear::netcode::prelude::client::*;
+
+    // Belt: refuse empty URLs
+    if transport.ws_url.is_empty() && transport.wt_url.is_empty() {
+        warn!("[net] connect_to_server called with no URLs — aborting");
         return;
     }
 
     // Suspenders: on WASM release builds, block any localhost/127.0.0.1 connection
     #[cfg(all(target_arch = "wasm32", not(debug_assertions)))]
     {
-        if ws_url.contains("127.0.0.1") || ws_url.contains("localhost") {
+        let check_url = if !transport.wt_url.is_empty() {
+            &transport.wt_url
+        } else {
+            &transport.ws_url
+        };
+        if check_url.contains("127.0.0.1") || check_url.contains("localhost") {
             warn!(
-                "[net] BLOCKED localhost connection on WASM: {ws_url} — JS must provide the production server URL"
+                "[net] BLOCKED localhost connection on WASM: {check_url} — JS must provide the production server URL"
             );
             return;
         }
     }
 
-    info!("[net] connect_to_server — spawning NetcodeClient for {ws_url}");
-
     let token = ConnectToken::try_from_bytes(token_bytes).expect("invalid ConnectToken bytes");
     let netcode = NetcodeClient::new(Authentication::Token(token), NetcodeConfig::default())
         .expect("NetcodeClient init failed");
 
-    let ws_io = WebSocketClientIo::from_url(ClientConfig::default(), ws_url.to_owned());
+    // Try WebTransport first, fall back to WebSocket
+    if !transport.wt_url.is_empty() {
+        use lightyear::webtransport::prelude::client::*;
 
-    let client_entity = commands
-        .spawn((netcode, ws_io, ReplicationReceiver::default()))
-        .id();
+        info!(
+            "[net] connect_to_server — using WebTransport: {} (digest={}...)",
+            transport.wt_url,
+            &transport.cert_digest[..16.min(transport.cert_digest.len())]
+        );
 
-    info!("[net] NetcodeClient entity spawned: {client_entity:?}");
+        // Parse the server address from the URL (https://host:port)
+        let addr_str = transport
+            .wt_url
+            .trim_start_matches("https://")
+            .trim_start_matches("http://");
+        let server_addr: std::net::SocketAddr = addr_str
+            .parse()
+            .unwrap_or_else(|_| "127.0.0.1:5001".parse().unwrap());
 
-    commands.trigger(Connect {
-        entity: client_entity,
-    });
-    info!("[net] Connect trigger dispatched — Netcode handshake starting");
+        let client_entity = commands
+            .spawn((
+                netcode,
+                PeerAddr(server_addr),
+                WebTransportClientIo {
+                    certificate_digest: transport.cert_digest.clone(),
+                },
+                ReplicationReceiver::default(),
+            ))
+            .id();
+
+        info!("[net] NetcodeClient+WebTransport entity spawned: {client_entity:?}");
+        commands.trigger(Connect {
+            entity: client_entity,
+        });
+        info!("[net] Connect trigger dispatched — Netcode+WebTransport handshake starting");
+    } else {
+        use lightyear::websocket::prelude::client::*;
+
+        info!(
+            "[net] connect_to_server — using WebSocket: {}",
+            transport.ws_url
+        );
+
+        let ws_io = WebSocketClientIo::from_url(ClientConfig::default(), transport.ws_url.clone());
+
+        let client_entity = commands
+            .spawn((netcode, ws_io, ReplicationReceiver::default()))
+            .id();
+
+        info!("[net] NetcodeClient+WebSocket entity spawned: {client_entity:?}");
+        commands.trigger(Connect {
+            entity: client_entity,
+        });
+        info!("[net] Connect trigger dispatched — Netcode+WebSocket handshake starting");
+    }
 }
 
 /// Update PlayerNameLabel text to match the parent entity's replicated PlayerName.

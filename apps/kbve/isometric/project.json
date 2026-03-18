@@ -23,7 +23,7 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-					"lsof -ti:1420 | xargs kill 2>/dev/null; lsof -ti:5000 | xargs kill 2>/dev/null; set -a && [ -f ../../../.env ] && . ../../../.env && set +a && export PATH=\"$HOME/.cargo/bin:$PATH\" && command -v wasm-bindgen >/dev/null || cargo install wasm-bindgen-cli@0.2.114 --locked && cd src-tauri && RUSTUP_TOOLCHAIN=nightly cargo build --lib --target wasm32-unknown-unknown -Z build-std=panic_abort,std && wasm-bindgen ../../../../dist/target/wasm32-unknown-unknown/debug/isometric_game.wasm --out-dir ../wasm-pkg --target web --out-name isometric_game --debug && cd .. && cargo run -p axum-kbve & pnpm dev"
+					"lsof -ti:1420 | xargs kill 2>/dev/null; lsof -ti:5000 | xargs kill 2>/dev/null; lsof -ti:5001 | xargs kill 2>/dev/null; set -a && [ -f ../../../.env ] && . ../../../.env && set +a && export PATH=\"$HOME/.cargo/bin:$PATH\" && command -v wasm-bindgen >/dev/null || cargo install wasm-bindgen-cli@0.2.114 --locked && cd src-tauri && RUSTUP_TOOLCHAIN=nightly cargo build --lib --target wasm32-unknown-unknown -Z build-std=panic_abort,std && wasm-bindgen ../../../../dist/target/wasm32-unknown-unknown/debug/isometric_game.wasm --out-dir ../wasm-pkg --target web --out-name isometric_game --debug && cd .. && cargo run -p axum-kbve & pnpm dev"
 				],
 				"cwd": "apps/kbve/isometric"
 			}

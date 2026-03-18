@@ -32,6 +32,9 @@ const REPLICATION_SEND_INTERVAL: Duration = Duration::from_millis(100);
 /// Default WebSocket listen address for the game server.
 const DEFAULT_WS_ADDR: &str = "0.0.0.0:5000";
 
+/// Default WebTransport (QUIC) listen address for the game server.
+const DEFAULT_WT_ADDR: &str = "0.0.0.0:5001";
+
 /// Supabase JWT secret for token validation (read from env at startup).
 #[derive(Resource)]
 struct JwtSecret(String);
@@ -194,7 +197,15 @@ pub fn init_gameserver() {
         .parse()
         .expect("invalid GAME_WS_ADDR");
 
+    let wt_addr: SocketAddr = std::env::var("GAME_WT_ADDR")
+        .unwrap_or_else(|_| DEFAULT_WT_ADDR.to_string())
+        .parse()
+        .expect("invalid GAME_WT_ADDR");
+
     let jwt_secret = std::env::var("SUPABASE_JWT_SECRET").unwrap_or_default();
+
+    // Load WebTransport TLS certificate (optional — WT disabled if not present)
+    let wt_identity = load_webtransport_identity();
 
     // Profile bridge channels (Bevy ↔ tokio)
     let (req_tx, req_rx) = mpsc::channel::<ProfileRequest>();
@@ -208,8 +219,42 @@ pub fn init_gameserver() {
 
     std::thread::spawn(move || {
         tracing::info!("game server starting on ws://{ws_addr}");
-        run_bevy_app(ws_addr, jwt_secret, req_tx, resp_rx);
+        if wt_identity.is_some() {
+            tracing::info!("WebTransport enabled on https://{wt_addr}");
+        }
+        run_bevy_app(ws_addr, wt_addr, jwt_secret, wt_identity, req_tx, resp_rx);
     });
+}
+
+/// Create a WebTransport TLS identity.
+///
+/// - If `GAME_WT_DISABLE=1`, returns None (WebTransport disabled).
+/// - Otherwise generates a self-signed cert (14-day, ECDSA P-256) with SANs
+///   for localhost/127.0.0.1/::1 — the canonical lightyear dev pattern.
+///   The SHA-256 digest is stored globally so the token endpoint can serve it.
+fn load_webtransport_identity() -> Option<lightyear::webtransport::prelude::Identity> {
+    use lightyear::webtransport::prelude::Identity;
+
+    if std::env::var("GAME_WT_DISABLE").unwrap_or_default() == "1" {
+        tracing::info!("GAME_WT_DISABLE=1 — WebTransport disabled");
+        return None;
+    }
+
+    let identity =
+        Identity::self_signed(&["localhost", "127.0.0.1", "::1"]).expect("self-signed cert");
+
+    // Compute and store the digest globally for the token endpoint
+    let cert_chain = identity.certificate_chain();
+    let certs = cert_chain.as_slice();
+    if let Some(cert) = certs.first() {
+        let digest = cert.hash();
+        // Format digest as uppercase hex without colons (lightyear client format)
+        let digest_hex: String = digest.as_ref().iter().map(|b| format!("{b:02X}")).collect();
+        tracing::info!("WebTransport cert digest: {digest_hex}");
+        let _ = CERT_DIGEST.set(digest_hex);
+    }
+
+    Some(identity)
 }
 
 /// Async bridge task: receives profile requests from Bevy, calls DB, sends responses back.
@@ -294,7 +339,9 @@ async fn profile_bridge_task(
 
 fn run_bevy_app(
     ws_addr: SocketAddr,
+    wt_addr: SocketAddr,
     jwt_secret: String,
+    wt_identity: Option<lightyear::webtransport::prelude::Identity>,
     profile_tx: mpsc::Sender<ProfileRequest>,
     profile_rx: mpsc::Receiver<ProfileResponse>,
 ) {
@@ -344,12 +391,28 @@ fn run_bevy_app(
     app.insert_resource(ProfileBridgeTx(profile_tx));
     app.insert_resource(ProfileBridgeRx(std::sync::Mutex::new(profile_rx)));
 
-    // Spawn the server listener on startup
+    // Store WebTransport identity as a resource so the startup system can take it
+    if let Some(identity) = wt_identity {
+        app.insert_resource(PendingWtIdentity(Some(identity)));
+    } else {
+        app.insert_resource(PendingWtIdentity(None));
+    }
+    app.insert_resource(WtAddr(wt_addr));
+
+    // Spawn the server listeners on startup
     let startup_addr = ws_addr;
     let startup_key = private_key;
-    app.add_systems(Startup, move |mut commands: Commands| {
-        start_server(&mut commands, startup_addr, startup_key);
-    });
+    app.add_systems(
+        Startup,
+        move |mut commands: Commands,
+              mut wt_id: ResMut<PendingWtIdentity>,
+              wt_addr: Res<WtAddr>| {
+            start_server(&mut commands, startup_addr, startup_key);
+            if let Some(identity) = wt_id.0.take() {
+                start_webtransport_server(&mut commands, wt_addr.0, startup_key, identity);
+            }
+        },
+    );
 
     // Handle new client connections (mark as pending auth)
     app.add_observer(handle_new_connection);
@@ -408,10 +471,32 @@ fn run_bevy_app(
     app.run();
 }
 
+/// Pending WebTransport identity — taken once during Startup.
+#[derive(Resource)]
+struct PendingWtIdentity(Option<lightyear::webtransport::prelude::Identity>);
+
+/// WebTransport listen address.
+#[derive(Resource)]
+struct WtAddr(SocketAddr);
+
 /// Shared netcode keys for the game server.
 #[derive(Resource)]
 struct NetcodeKeys {
+    #[allow(dead_code)]
     private_key: [u8; 32],
+}
+
+/// WebTransport certificate digest (SHA-256 hex, 64 chars).
+/// Stored in an Arc so the token endpoint (async Axum) can read it.
+#[derive(Clone)]
+pub struct CertDigest(pub std::sync::Arc<String>);
+
+/// Global accessor for the cert digest (set once at startup).
+static CERT_DIGEST: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+
+/// Read the cert digest from the global store (for the token endpoint).
+pub fn get_cert_digest() -> &'static str {
+    CERT_DIGEST.get().map(|s| s.as_str()).unwrap_or("")
 }
 
 /// Spawn the lightyear WebSocket server entity with Netcode authentication.
@@ -447,6 +532,42 @@ fn start_server(commands: &mut Commands, ws_addr: SocketAddr, private_key: [u8; 
         entity: server_entity,
     });
     tracing::info!("[gameserver] lightyear Netcode+WebSocket server starting on {ws_addr}");
+}
+
+/// Spawn a lightyear WebTransport server entity with Netcode authentication.
+fn start_webtransport_server(
+    commands: &mut Commands,
+    wt_addr: SocketAddr,
+    private_key: [u8; 32],
+    identity: lightyear::webtransport::prelude::Identity,
+) {
+    use lightyear::webtransport::prelude::server::*;
+
+    tracing::info!("[gameserver] start_webtransport_server — binding to {wt_addr}");
+
+    let netcode_config = lightyear::netcode::prelude::server::NetcodeConfig {
+        protocol_id: bevy_kbve_net::net_config::KBVE_PROTOCOL_ID,
+        private_key,
+        client_timeout_secs: 15,
+        ..Default::default()
+    };
+
+    let wt_entity = commands
+        .spawn((
+            NetcodeServer::new(netcode_config),
+            LocalAddr(wt_addr),
+            WebTransportServerIo {
+                certificate: identity,
+            },
+        ))
+        .id();
+
+    tracing::info!(
+        "[gameserver] NetcodeServer+WebTransport entity spawned: {wt_entity:?} — triggering Start"
+    );
+
+    commands.trigger(Start { entity: wt_entity });
+    tracing::info!("[gameserver] lightyear Netcode+WebTransport server starting on {wt_addr}");
 }
 
 /// Debug observer: fires when lightyear adds `Connecting` to a client entity on the server side.

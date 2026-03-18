@@ -34,6 +34,9 @@ spec:
                       - name: ws
                         containerPort: 5000
                         protocol: TCP
+                      - name: wt
+                        containerPort: 5001
+                        protocol: UDP
                   livenessProbe:
                       httpGet:
                           path: /health
@@ -134,3 +137,7 @@ spec:
           port: 5000
           targetPort: 5000
           protocol: TCP
+        - name: wt
+          port: 5001
+          targetPort: 5001
+          protocol: UDP

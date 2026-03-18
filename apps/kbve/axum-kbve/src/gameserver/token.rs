@@ -13,9 +13,11 @@ use std::net::SocketAddr;
 
 use bevy_kbve_net::net_config;
 
-/// Default game server address for token generation.
-/// Must match the address the game server is listening on.
+/// Default game server address for token generation (WebSocket).
 const DEFAULT_GAME_ADDR: &str = "127.0.0.1:5000";
+
+/// Default WebTransport address for token generation.
+const DEFAULT_GAME_WT_ADDR: &str = "127.0.0.1:5001";
 
 #[derive(Deserialize)]
 pub struct TokenRequest {
@@ -29,6 +31,10 @@ pub struct TokenResponse {
     pub token: String,
     /// The WebSocket URL the client should connect to.
     pub server_url: String,
+    /// The WebTransport (HTTPS/QUIC) URL. Empty if WT is not available.
+    pub server_wt_url: String,
+    /// SHA-256 certificate digest (hex, 64 chars). Empty if using a trusted cert.
+    pub cert_digest: String,
 }
 
 /// `POST /api/v1/auth/game-token`
@@ -94,8 +100,22 @@ pub async fn game_token_handler(
     // Build the WebSocket URL for the client
     let server_url = format!("ws://{game_addr}");
 
+    // Build the WebTransport URL and cert digest (if available)
+    let cert_digest = super::get_cert_digest().to_owned();
+    let server_wt_url = if !cert_digest.is_empty() {
+        let wt_addr: SocketAddr = std::env::var("GAME_WT_ADDR")
+            .unwrap_or_else(|_| DEFAULT_GAME_WT_ADDR.to_string())
+            .parse()
+            .unwrap_or_else(|_| DEFAULT_GAME_WT_ADDR.parse().unwrap());
+        format!("https://{wt_addr}")
+    } else {
+        String::new()
+    };
+
     Ok(Json(TokenResponse {
         token: b64,
         server_url,
+        server_wt_url,
+        cert_digest,
     }))
 }
