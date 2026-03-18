@@ -19,7 +19,7 @@
 
 use bevy::prelude::*;
 
-use super::phase::{GamePhase, PreFlight, TransportKind};
+use super::phase::{GamePhase, PlayMode, PreFlight, TransportKind};
 use super::ui_color;
 
 // ---------------------------------------------------------------------------
@@ -297,6 +297,7 @@ fn update_auth_label(
 
 fn handle_title_buttons(
     mut next_phase: ResMut<NextState<GamePhase>>,
+    mut play_mode: ResMut<PlayMode>,
     online_q: Query<&Interaction, (Changed<Interaction>, With<PlayOnlineBtn>)>,
     offline_q: Query<
         &Interaction,
@@ -316,12 +317,13 @@ fn handle_title_buttons(
         ),
     >,
 ) {
-    // Play Online — transition to Playing, triggers go-online flow
+    // Play Online — transition to Connecting, triggers go-online flow
     for interaction in &online_q {
         if *interaction == Interaction::Pressed {
-            info!("[title] Play Online pressed — transitioning to Playing");
+            info!("[title] Play Online pressed — transitioning to Connecting");
+            *play_mode = PlayMode::Online;
             super::net::request_go_online("", "");
-            next_phase.set(GamePhase::Playing);
+            next_phase.set(GamePhase::Connecting);
         }
     }
 
@@ -329,6 +331,7 @@ fn handle_title_buttons(
     for interaction in &offline_q {
         if *interaction == Interaction::Pressed {
             info!("[title] Play Offline pressed — transitioning to Playing");
+            *play_mode = PlayMode::Offline;
             next_phase.set(GamePhase::Playing);
         }
     }
