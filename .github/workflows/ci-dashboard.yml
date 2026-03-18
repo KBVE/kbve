@@ -1,0 +1,1227 @@
+name: CI - Daily Dashboard
+
+on:
+    schedule:
+        - cron: '0 8 * * *' # Daily 03:00 ET / 08:00 UTC
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}
+    cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+    # ── Fork & actor guard ───────────────────────────────────
+    guard:
+        name: Fork Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            allowed: ${{ steps.check.outputs.allowed }}
+        steps:
+            - name: Verify origin and actor
+              id: check
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
+                        const headRepo = context.payload.pull_request?.head?.repo?.full_name;
+                        const baseRepo = context.payload.repository?.full_name;
+                        if (headRepo && headRepo !== baseRepo) {
+                          core.error(`Blocked: fork PR from ${headRepo} cannot use self-hosted runners`);
+                          core.setOutput('allowed', 'false');
+                          return;
+                        }
+                      }
+                      try {
+                        const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          username: context.actor,
+                        });
+                        const level = data.permission;
+                        if (level === 'admin' || level === 'write') {
+                          core.info(`Actor ${context.actor} has ${level} access — allowed`);
+                          core.setOutput('allowed', 'true');
+                        } else {
+                          core.error(`Actor ${context.actor} has ${level} access — insufficient`);
+                          core.setOutput('allowed', 'false');
+                        }
+                      } catch (err) {
+                        core.error(`Permission check failed: ${err.message}`);
+                        core.setOutput('allowed', 'false');
+                      }
+
+    # ══════════════════════════════════════════════════════════
+    # Job 1: Security Audit (pnpm, cargo, pip, CodeQL, Dependabot)
+    # ══════════════════════════════════════════════════════════
+    security:
+        name: Security Audit
+        needs: guard
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: arc-runner-set
+        timeout-minutes: 60
+        permissions:
+            contents: read
+            security-events: read
+
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::Dashboard security: actor=${{ github.actor }}, event=${{ github.event_name }}, run=${{ github.run_id }}, time=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+            - name: Checkout dev branch
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+                  fetch-depth: 1
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Install pnpm Dependencies
+              run: pnpm install
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.12'
+
+            - name: Setup Rust toolchain
+              run: |
+                  set -euo pipefail
+                  if command -v rustup &>/dev/null; then
+                    rustup update stable
+                  else
+                    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+                    echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+                  fi
+
+            - name: Install build tools
+              run: |
+                  set -euo pipefail
+                  if ! command -v cc &>/dev/null; then
+                    apt-get update -qq && apt-get install -y -qq build-essential pkg-config libssl-dev
+                    echo "build-essential installed"
+                  else
+                    echo "cc already available: $(cc --version | head -1)"
+                  fi
+
+            - name: Install audit tools
+              run: |
+                  set -euo pipefail
+                  if ! command -v cargo-audit &>/dev/null; then
+                    cargo install cargo-audit --locked
+                    echo "cargo-audit installed: $(cargo audit --version)"
+                  else
+                    echo "cargo-audit already available: $(cargo audit --version)"
+                  fi
+                  pip install pip-audit
+                  echo "pip-audit installed: $(pip-audit --version)"
+
+            - name: Generate metadata
+              id: meta
+              run: |
+                  echo "report_date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+                  echo "report_timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+            - name: Run pnpm audit
+              run: |
+                  set -euo pipefail
+                  pnpm audit --json > /tmp/pnpm-audit.json 2>&1 || true
+                  echo "pnpm audit captured ($(wc -c < /tmp/pnpm-audit.json | xargs) bytes)"
+
+            - name: Run cargo audit
+              run: |
+                  set -euo pipefail
+                  cargo audit --json > /tmp/cargo-audit.json 2>&1 || true
+                  echo "cargo audit captured ($(wc -c < /tmp/cargo-audit.json | xargs) bytes)"
+
+            - name: Run pip audit
+              run: |
+                  set -euo pipefail
+                  FOUND_REQS=0
+                  echo '[]' > /tmp/pip-audit.json
+
+                  for req_file in $(find packages/python -name 'requirements*.txt' -o -name 'pyproject.toml' 2>/dev/null | head -20); do
+                    if [[ "$req_file" == *.txt ]]; then
+                      pip-audit --requirement "$req_file" --format=json >> /tmp/pip-audit-partial.json 2>/dev/null || true
+                      FOUND_REQS=1
+                    fi
+                  done
+
+                  if [ "$FOUND_REQS" -eq 0 ]; then
+                    pip-audit --format=json > /tmp/pip-audit.json 2>/dev/null || true
+                  fi
+
+                  echo "pip audit captured ($(wc -c < /tmp/pip-audit.json | xargs) bytes)"
+
+            - name: Fetch CodeQL alerts
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -euo pipefail
+                  gh api repos/${{ github.repository }}/code-scanning/alerts \
+                    --paginate \
+                    -q '[.[] | select(.state == "open")]' \
+                    > /tmp/codeql-alerts.json 2>/dev/null || echo '[]' > /tmp/codeql-alerts.json
+
+                  COUNT=$(python3 -c "import json; print(len(json.load(open('/tmp/codeql-alerts.json'))))" 2>/dev/null || echo 0)
+                  echo "CodeQL open alerts: $COUNT"
+
+            - name: Fetch Dependabot alerts
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -euo pipefail
+                  gh api repos/${{ github.repository }}/dependabot/alerts \
+                    --paginate \
+                    -q '[.[] | select(.state == "open")]' \
+                    > /tmp/dependabot-alerts.json 2>/dev/null || echo '[]' > /tmp/dependabot-alerts.json
+
+                  COUNT=$(python3 -c "import json; print(len(json.load(open('/tmp/dependabot-alerts.json'))))" 2>/dev/null || echo 0)
+                  echo "Dependabot open alerts: $COUNT"
+
+            - name: Aggregate security data
+              run: |
+                  set -euo pipefail
+                  python3 -c "
+                  import json
+                  data = {
+                      'npm': json.load(open('/tmp/pnpm-audit.json')),
+                      'cargo': json.load(open('/tmp/cargo-audit.json')),
+                      'python': json.load(open('/tmp/pip-audit.json')),
+                      'codeql': json.load(open('/tmp/codeql-alerts.json')),
+                      'dependabot': json.load(open('/tmp/dependabot-alerts.json')),
+                  }
+                  json.dump(data, open('/tmp/nx-security-raw.json', 'w'), indent=2)
+                  print(f'Aggregated {len(data)} ecosystems')
+                  "
+
+            - name: Build Security JSON
+              run: |
+                  set -euo pipefail
+                  DEST="apps/kbve/astro-kbve/public/data/nx/nx-security.json"
+                  mkdir -p "$(dirname "$DEST")"
+                  python3 scripts/nx-security-to-mdx.py \
+                    --input /tmp/nx-security-raw.json \
+                    --json-out "$DEST" \
+                    --timestamp "${{ steps.meta.outputs.report_timestamp }}"
+                  echo "Security JSON written ($(wc -c < "$DEST" | xargs) bytes)"
+
+            - name: Build Security MDX
+              run: |
+                  set -euo pipefail
+                  DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/security.mdx"
+                  mkdir -p "$(dirname "$DEST")"
+                  python3 scripts/nx-security-to-mdx.py \
+                    --input /tmp/nx-security-raw.json \
+                    --mdx-out "$DEST" \
+                    --timestamp "${{ steps.meta.outputs.report_timestamp }}"
+                  echo "Security MDX written ($(wc -c < "$DEST" | xargs) bytes)"
+
+            - name: Validate generated files
+              run: |
+                  set -euo pipefail
+                  MDX="apps/kbve/astro-kbve/src/content/docs/dashboard/security.mdx"
+                  JSON="apps/kbve/astro-kbve/public/data/nx/nx-security.json"
+
+                  if [ ! -s "$MDX" ]; then
+                    echo "::error::Generated MDX is empty: $MDX"
+                    exit 1
+                  fi
+                  if ! head -1 "$MDX" | grep -q '^---$'; then
+                    echo "::error::Missing YAML frontmatter in $MDX"
+                    exit 1
+                  fi
+                  echo "OK: $MDX ($(wc -c < "$MDX" | xargs) bytes)"
+
+                  if [ ! -s "$JSON" ]; then
+                    echo "::error::Generated JSON is empty: $JSON"
+                    exit 1
+                  fi
+                  python3 -c "import json; d=json.load(open('$JSON')); assert 'summary' in d; assert 'ecosystems' in d"
+                  echo "OK: $JSON ($(wc -c < "$JSON" | xargs) bytes)"
+
+            - name: Upload security artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dashboard-security
+                  retention-days: 1
+                  path: |
+                      apps/kbve/astro-kbve/src/content/docs/dashboard/security.mdx
+                      apps/kbve/astro-kbve/public/data/nx/nx-security.json
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  rm -f /tmp/pnpm-audit.json /tmp/cargo-audit.json /tmp/pip-audit.json \
+                    /tmp/pip-audit-partial.json /tmp/codeql-alerts.json /tmp/dependabot-alerts.json \
+                    /tmp/nx-security-raw.json
+
+    # ══════════════════════════════════════════════════════════
+    # Job 2: NX Report + Graph (versions, LOC, coverage, deps)
+    # ══════════════════════════════════════════════════════════
+    report:
+        name: NX Report & Graph
+        needs: guard
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: arc-runner-set
+        timeout-minutes: 120
+        permissions:
+            contents: read
+
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::Dashboard report: actor=${{ github.actor }}, event=${{ github.event_name }}, run=${{ github.run_id }}, time=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+            - name: Checkout dev branch
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+                  fetch-depth: 1
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install
+
+            - name: Setup Nx Cache
+              uses: actions/cache@v5
+              with:
+                  path: .nx/cache
+                  key: ${{ runner.os }}-nx-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-nx-${{ hashFiles('**/pnpm-lock.yaml') }}-
+                      ${{ runner.os }}-nx-
+
+            - name: Generate NX Report
+              id: nx-report
+              run: |
+                  set -euo pipefail
+                  pnpm nx report 2>&1 | sed 's/\x1b\[[0-9;]*m//g' > /tmp/nx-report-raw.txt || true
+                  echo "report_date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+                  echo "report_timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+            - name: Validate NX Report output
+              run: |
+                  set -euo pipefail
+                  if [ ! -s /tmp/nx-report-raw.txt ]; then
+                    echo "::error::NX report output is empty"
+                    exit 1
+                  fi
+                  echo "NX report validated ($(wc -l < /tmp/nx-report-raw.txt) lines)"
+
+            - name: Generate NX Graph JSON
+              run: |
+                  set -euo pipefail
+                  pnpm nx graph --file=/tmp/nx-graph.json --open=false
+                  rm -rf static 2>/dev/null || true
+
+            - name: Validate NX Graph JSON
+              run: |
+                  set -euo pipefail
+                  if [ ! -s /tmp/nx-graph.json ]; then
+                    echo "::error::NX graph JSON is empty"
+                    exit 1
+                  fi
+                  NODE_COUNT=$(python3 -c "import json; d=json.load(open('/tmp/nx-graph.json')); print(len(d['graph']['nodes']))")
+                  if [ "$NODE_COUNT" -eq 0 ]; then
+                    echo "::error::NX graph has zero nodes"
+                    exit 1
+                  fi
+                  echo "NX graph validated ($NODE_COUNT nodes)"
+
+            - name: Install scc
+              run: |
+                  set -euo pipefail
+                  if command -v scc &>/dev/null; then
+                    echo "scc already installed: $(scc --version)"
+                  else
+                    SCC_VERSION="3.5.0"
+                    curl -fsSL "https://github.com/boyter/scc/releases/download/v${SCC_VERSION}/scc_Linux_x86_64.tar.gz" \
+                      | tar xz -C /usr/local/bin scc
+                    chmod +x /usr/local/bin/scc
+                    echo "scc installed: $(scc --version)"
+                  fi
+
+            - name: Generate LOC Stats
+              run: |
+                  set -euo pipefail
+                  scc . --exclude-dir=node_modules,dist,.nx,.git,target,coverage,pumpkin,ergo,postgres --no-cocomo 2>&1 \
+                    | sed 's/\x1b\[[0-9;]*m//g' > /tmp/loc-stats.txt \
+                    || npx --yes cloc . --exclude-dir=node_modules,dist,.nx,.git,target,coverage,pumpkin,ergo,postgres 2>&1 \
+                      > /tmp/loc-stats.txt
+                  echo "LOC stats generated ($(wc -l < /tmp/loc-stats.txt) lines)"
+
+            - name: Run Coverage for npm packages
+              run: |
+                  set -euo pipefail
+                  pnpm nx run-many -t coverage --projects=droid,devops,khashvault,laser 2>&1 \
+                    | sed 's/\x1b\[[0-9;]*m//g' > /tmp/coverage-report.txt || true
+                  echo "Coverage report generated ($(wc -l < /tmp/coverage-report.txt) lines)"
+
+            - name: Build NX Report MDX
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  REPORT_DATE="${{ steps.nx-report.outputs.report_date }}"
+                  REPORT_TIMESTAMP="${{ steps.nx-report.outputs.report_timestamp }}"
+                  DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/report.mdx"
+                  mkdir -p "$(dirname "$DEST")"
+
+                  NODE_VER=$(grep "^Node" /tmp/nx-report-raw.txt | awk -F: '{print $2}' | xargs)
+                  OS_INFO=$(grep "^OS" /tmp/nx-report-raw.txt | awk -F: '{print $2}' | xargs)
+                  NX_VER=$(grep "^nx " /tmp/nx-report-raw.txt | awk '{print $NF}' | xargs)
+                  PNPM_VER=$(grep "^pnpm" /tmp/nx-report-raw.txt | awk -F: '{print $2}' | xargs)
+
+                  {
+                    printf '%s\n' '---'
+                    printf '%s\n' 'title: NX Workspace Report'
+                    printf '%s\n' 'description: |'
+                    printf '%s\n' '    Daily auto-generated NX workspace report for the KBVE monorepo.'
+                    printf '%s\n' 'sidebar:'
+                    printf '%s\n' '    label: Report'
+                    printf '%s\n' '    order: 100'
+                    printf '%s\n' 'editUrl: false'
+                    printf '%s\n' '---'
+                    printf '\n'
+                    printf '%s\n' "import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';"
+                    printf '\n'
+                    printf '%s\n' "## NX Workspace Report"
+                    printf '\n'
+                    printf '%s\n' ":::note[Auto-generated]"
+                    printf '%s\n' "Last generated: **${REPORT_TIMESTAMP}** — updated daily by \`ci-dashboard\`."
+                    printf '%s\n' ":::"
+                    printf '\n'
+                    printf '%s\n' "### Environment"
+                    printf '\n'
+                    printf '%s\n' "<CardGrid>"
+                    printf '%s\n' "  <Card title=\"Node\" icon=\"seti:nodejs\">"
+                    printf '%s\n' "    ${NODE_VER}"
+                    printf '%s\n' "  </Card>"
+                    printf '%s\n' "  <Card title=\"Nx\" icon=\"setting\">"
+                    printf '%s\n' "    ${NX_VER}"
+                    printf '%s\n' "  </Card>"
+                    printf '%s\n' "  <Card title=\"pnpm\" icon=\"rocket\">"
+                    printf '%s\n' "    ${PNPM_VER}"
+                    printf '%s\n' "  </Card>"
+                    printf '%s\n' "  <Card title=\"OS\" icon=\"linux\">"
+                    printf '%s\n' "    ${OS_INFO}"
+                    printf '%s\n' "  </Card>"
+                    printf '%s\n' "</CardGrid>"
+                    printf '\n'
+                    printf '%s\n' "<Tabs>"
+                    printf '%s\n' '  <TabItem label="NX Report">'
+                    printf '\n'
+                    printf '%s\n' '```'
+                    cat /tmp/nx-report-raw.txt
+                    printf '%s\n' '```'
+                    printf '\n'
+                    printf '%s\n' '  </TabItem>'
+                    printf '%s\n' '  <TabItem label="LOC Statistics">'
+                    printf '\n'
+                    printf '%s\n' '```'
+                    cat /tmp/loc-stats.txt
+                    printf '%s\n' '```'
+                    printf '\n'
+                    printf '%s\n' '  </TabItem>'
+                    if [ -s /tmp/coverage-report.txt ]; then
+                      printf '%s\n' '  <TabItem label="Coverage">'
+                      printf '\n'
+                      printf '%s\n' '```'
+                      cat /tmp/coverage-report.txt
+                      printf '%s\n' '```'
+                      printf '\n'
+                      printf '%s\n' '  </TabItem>'
+                    fi
+                    printf '%s\n' '</Tabs>'
+                    printf '\n'
+                    printf '%s\n' '---'
+                    printf '\n'
+                    printf '%s\n' '*Auto-generated by [ci-dashboard.yml](https://github.com/KBVE/kbve/actions/workflows/ci-dashboard.yml)*'
+                  } > "$DEST"
+
+            - name: Build NX Graph MDX
+              run: |
+                  set -euo pipefail
+                  DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/graph.mdx"
+                  TIMESTAMP="${{ steps.nx-report.outputs.report_timestamp }}"
+                  python3 scripts/nx-graph-to-mdx.py /tmp/nx-graph.json "$DEST" "$TIMESTAMP"
+
+            - name: Build NX Report JSON
+              run: |
+                  set -euo pipefail
+                  REPORT_TIMESTAMP="${{ steps.nx-report.outputs.report_timestamp }}"
+                  DEST="apps/kbve/astro-kbve/public/data/nx/nx-report.json"
+                  mkdir -p "$(dirname "$DEST")"
+
+                  NODE_VER=$(grep "^Node" /tmp/nx-report-raw.txt | awk -F: '{print $2}' | xargs)
+                  OS_INFO=$(grep "^OS" /tmp/nx-report-raw.txt | awk -F: '{print $2}' | xargs)
+                  NX_VER=$(grep "^nx " /tmp/nx-report-raw.txt | awk '{print $NF}' | xargs)
+                  PNPM_VER=$(grep "^pnpm" /tmp/nx-report-raw.txt | awk -F: '{print $2}' | xargs)
+
+                  LOC_STATS=$(cat /tmp/loc-stats.txt)
+                  COVERAGE=""
+                  if [ -s /tmp/coverage-report.txt ]; then
+                    COVERAGE=$(cat /tmp/coverage-report.txt)
+                  fi
+
+                  python3 -c "
+                  import json, sys
+                  report = {
+                      'generated_at': sys.argv[1],
+                      'environment': {
+                          'node': sys.argv[2],
+                          'nx': sys.argv[3],
+                          'pnpm': sys.argv[4],
+                          'os': sys.argv[5],
+                      },
+                      'nx_report': open('/tmp/nx-report-raw.txt').read(),
+                      'loc_stats': sys.argv[6],
+                      'coverage': sys.argv[7] if sys.argv[7] else None,
+                  }
+                  json.dump(report, open(sys.argv[8], 'w'), indent=2)
+                  " "$REPORT_TIMESTAMP" "$NODE_VER" "$NX_VER" "$PNPM_VER" "$OS_INFO" \
+                    "$LOC_STATS" "$COVERAGE" "$DEST"
+
+                  echo "NX report JSON written ($(wc -c < "$DEST" | xargs) bytes)"
+
+            - name: Copy NX Graph JSON
+              run: |
+                  set -euo pipefail
+                  DEST="apps/kbve/astro-kbve/public/data/nx/nx-graph.json"
+                  cp /tmp/nx-graph.json "$DEST"
+                  echo "NX graph JSON copied ($(wc -c < "$DEST" | xargs) bytes)"
+
+            - name: Validate generated MDX files
+              run: |
+                  set -euo pipefail
+                  REPORT="apps/kbve/astro-kbve/src/content/docs/dashboard/report.mdx"
+                  GRAPH="apps/kbve/astro-kbve/src/content/docs/dashboard/graph.mdx"
+
+                  for f in "$REPORT" "$GRAPH"; do
+                    if [ ! -s "$f" ]; then
+                      echo "::error::Generated file is empty: $f"
+                      exit 1
+                    fi
+                    if ! head -1 "$f" | grep -q '^---$'; then
+                      echo "::error::Missing YAML frontmatter in $f"
+                      exit 1
+                    fi
+                    echo "OK: $f ($(wc -c < "$f" | xargs) bytes)"
+                  done
+
+            - name: Upload report artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dashboard-report
+                  retention-days: 1
+                  path: |
+                      apps/kbve/astro-kbve/src/content/docs/dashboard/report.mdx
+                      apps/kbve/astro-kbve/src/content/docs/dashboard/graph.mdx
+                      apps/kbve/astro-kbve/public/data/nx/nx-report.json
+                      apps/kbve/astro-kbve/public/data/nx/nx-graph.json
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  rm -f /tmp/nx-report-raw.txt /tmp/nx-graph.json /tmp/loc-stats.txt /tmp/coverage-report.txt
+
+    # ══════════════════════════════════════════════════════════
+    # Job 3: Kanban Sync (GitHub Projects v2)
+    # ══════════════════════════════════════════════════════════
+    kanban:
+        name: Kanban Sync
+        needs: guard
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 45
+        permissions:
+            contents: read
+
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::Dashboard kanban: actor=${{ github.actor }}, event=${{ github.event_name }}, run=${{ github.run_id }}, time=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+            - name: Checkout dev branch
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+                  fetch-depth: 1
+
+            - name: Check UNITY_PAT
+              id: token_check
+              env:
+                  HAS_TOKEN: ${{ secrets.UNITY_PAT != '' }}
+              run: |
+                  if [ "$HAS_TOKEN" != "true" ]; then
+                    echo "::warning::UNITY_PAT secret is not set — skipping kanban sync."
+                    echo "skip=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "skip=false" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Fetch project board items
+              id: fetch
+              if: steps.token_check.outputs.skip != 'true'
+              uses: actions/github-script@v8
+              env:
+                  PROJECT_TOKEN: ${{ secrets.UNITY_PAT }}
+              with:
+                  github-token: ${{ env.PROJECT_TOKEN }}
+                  script: |
+                      const fs = require('fs');
+
+                      const COLUMNS = ['Theory', 'AI', 'Todo', 'Backlog', 'Error', 'Support', 'Staging', 'Review', 'Done'];
+
+                      const query = `
+                        query($org: String!, $num: Int!, $cursor: String) {
+                          organization(login: $org) {
+                            projectV2(number: $num) {
+                              title
+                              url
+                              items(first: 100, after: $cursor) {
+                                pageInfo { hasNextPage endCursor }
+                                nodes {
+                                  type
+                                  fieldValues(first: 15) {
+                                    nodes {
+                                      ... on ProjectV2ItemFieldTextValue {
+                                        text
+                                        field { ... on ProjectV2Field { name } }
+                                      }
+                                      ... on ProjectV2ItemFieldSingleSelectValue {
+                                        name
+                                        field { ... on ProjectV2SingleSelectField { name } }
+                                      }
+                                      ... on ProjectV2ItemFieldDateValue {
+                                        date
+                                        field { ... on ProjectV2Field { name } }
+                                      }
+                                      ... on ProjectV2ItemFieldNumberValue {
+                                        number
+                                        field { ... on ProjectV2Field { name } }
+                                      }
+                                      ... on ProjectV2ItemFieldIterationValue {
+                                        title
+                                        field { ... on ProjectV2IterationField { name } }
+                                      }
+                                    }
+                                  }
+                                  content {
+                                    ... on Issue {
+                                      title number state url
+                                      labels(first: 10) { nodes { name } }
+                                      assignees(first: 5) { nodes { login } }
+                                      milestone { title }
+                                    }
+                                    ... on PullRequest {
+                                      title number state url
+                                      labels(first: 10) { nodes { name } }
+                                      assignees(first: 5) { nodes { login } }
+                                      milestone { title }
+                                    }
+                                    ... on DraftIssue {
+                                      title
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      `;
+
+                      let allItems = [];
+                      let cursor = null;
+                      let projectTitle = '';
+                      let projectUrl = '';
+
+                      for (let page = 0; page < 20; page++) {
+                        const result = await github.graphql(query, {
+                          org: 'KBVE',
+                          num: 5,
+                          cursor: cursor,
+                        });
+
+                        const project = result.organization.projectV2;
+                        projectTitle = project.title;
+                        projectUrl = project.url;
+
+                        allItems.push(...project.items.nodes);
+
+                        if (!project.items.pageInfo.hasNextPage) break;
+                        cursor = project.items.pageInfo.endCursor;
+                      }
+
+                      core.info(`Fetched ${allItems.length} items from project "${projectTitle}"`);
+
+                      // Parse items
+                      const columns = {};
+                      for (const col of COLUMNS) columns[col] = [];
+
+                      for (const item of allItems) {
+                        const content = item.content || {};
+                        const fields = item.fieldValues?.nodes || [];
+
+                        let status = null;
+                        let matrix = null;
+                        let date = null;
+
+                        for (const fv of fields) {
+                          const fieldName = fv.field?.name;
+                          if (!fieldName) continue;
+                          if (fieldName === 'Status') status = fv.name;
+                          if (fieldName === 'Matrix') matrix = fv.number != null ? String(fv.number) : fv.text;
+                          if (fieldName === 'Date') date = fv.date;
+                        }
+
+                        if (!status || !COLUMNS.includes(status)) continue;
+
+                        const entry = {
+                          type: item.type || 'DRAFT_ISSUE',
+                          number: content.number || null,
+                          title: content.title || '(untitled)',
+                          state: content.state || null,
+                          url: content.url || null,
+                          assignees: (content.assignees?.nodes || []).map(a => a.login),
+                          labels: (content.labels?.nodes || []).map(l => l.name),
+                          matrix: matrix || null,
+                          date: date || null,
+                          milestone: content.milestone?.title || null,
+                        };
+
+                        columns[status].push(entry);
+                      }
+
+                      // Sort each column by matrix priority (higher first)
+                      for (const col of COLUMNS) {
+                        columns[col].sort((a, b) => {
+                          const am = parseInt(a.matrix) || 0;
+                          const bm = parseInt(b.matrix) || 0;
+                          return bm - am;
+                        });
+                      }
+
+                      const summary = {};
+                      for (const col of COLUMNS) summary[col] = columns[col].length;
+
+                      const timestamp = new Date().toISOString();
+                      const totalItems = allItems.length;
+
+                      // Compute velocity metrics
+                      const doneCount = summary['Done'] || 0;
+                      const activeCount = (summary['Todo'] || 0) + (summary['Staging'] || 0) + (summary['Review'] || 0);
+                      const blockedCount = (summary['Error'] || 0) + (summary['Support'] || 0);
+
+                      const kanban = {
+                        generated_at: timestamp,
+                        project: {
+                          title: projectTitle,
+                          url: projectUrl,
+                          total_items: totalItems,
+                        },
+                        summary,
+                        columns,
+                        views: {
+                          kanban: { number: 1, url: 'https://github.com/orgs/KBVE/projects/5/views/1' },
+                          task: { number: 2, url: 'https://github.com/orgs/KBVE/projects/5/views/2' },
+                          map: { number: 3, url: 'https://github.com/orgs/KBVE/projects/5/views/3' },
+                        },
+                      };
+
+                      // Write JSON
+                      const jsonDest = 'apps/kbve/astro-kbve/src/data/nx-kanban.json';
+                      fs.mkdirSync(require('path').dirname(jsonDest), { recursive: true });
+                      fs.writeFileSync(jsonDest, JSON.stringify(kanban, null, '\t') + '\n');
+                      core.info(`Wrote ${jsonDest} (${totalItems} items)`);
+
+                      // Escape MDX-unsafe characters
+                      function escapeMdx(str) {
+                        return str
+                          .replace(/&/g, '&amp;')
+                          .replace(/</g, '&lt;')
+                          .replace(/>/g, '&gt;')
+                          .replace(/\{/g, '&#123;')
+                          .replace(/\}/g, '&#125;')
+                          .replace(/\|/g, '\\|');
+                      }
+
+                      // Build MDX
+                      const lines = [];
+                      lines.push('---');
+                      lines.push('title: Project Kanban');
+                      lines.push('description: |');
+                      lines.push('    Daily auto-generated snapshot of the KBVE project board.');
+                      lines.push('sidebar:');
+                      lines.push('    label: Kanban');
+                      lines.push('    order: 110');
+                      lines.push('editUrl: false');
+                      lines.push('---');
+                      lines.push('');
+                      lines.push("import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';");
+                      lines.push('');
+                      lines.push('## Project Board Snapshot');
+                      lines.push('');
+                      lines.push(':::note[Auto-generated]');
+                      lines.push(`Last synced: **${timestamp}** — updated daily by \`ci-dashboard\`.`);
+                      lines.push(`Source: [KBVE Project Board](${projectUrl})`);
+                      lines.push(':::');
+                      lines.push('');
+
+                      // Summary cards
+                      lines.push('### Summary');
+                      lines.push('');
+                      lines.push('<CardGrid>');
+                      for (const col of COLUMNS) {
+                        const icon = {
+                          Theory: 'star', AI: 'rocket', Todo: 'list-format',
+                          Backlog: 'document', Error: 'warning', Support: 'information',
+                          Staging: 'setting', Review: 'approve-check', Done: 'approve-check-circle',
+                        }[col] || 'document';
+                        lines.push(`  <Card title="${col}" icon="${icon}">`);
+                        lines.push(`    **${summary[col]}** items`);
+                        lines.push(`  </Card>`);
+                      }
+                      lines.push('</CardGrid>');
+                      lines.push('');
+
+                      // Mermaid pie chart for status distribution
+                      const activeColumns = COLUMNS.filter(c => summary[c] > 0);
+                      lines.push('<Tabs>');
+                      lines.push('  <TabItem label="Distribution">');
+                      lines.push('');
+                      if (activeColumns.length > 0) {
+                        lines.push('```mermaid');
+                        lines.push('pie showData');
+                        lines.push('    title Items by Status');
+                        for (const col of activeColumns) {
+                          lines.push(`    "${col}" : ${summary[col]}`);
+                        }
+                        lines.push('```');
+                        lines.push('');
+                      }
+
+                      // Velocity gauge — active vs blocked vs done
+                      lines.push('```mermaid');
+                      lines.push('pie showData');
+                      lines.push('    title Work State');
+                      if (activeCount > 0) lines.push(`    "Active (Todo+Staging+Review)" : ${activeCount}`);
+                      if (blockedCount > 0) lines.push(`    "Blocked (Error+Support)" : ${blockedCount}`);
+                      if (doneCount > 0) lines.push(`    "Done" : ${doneCount}`);
+                      const planningCount = (summary['Theory'] || 0) + (summary['AI'] || 0) + (summary['Backlog'] || 0);
+                      if (planningCount > 0) lines.push(`    "Planning (Theory+AI+Backlog)" : ${planningCount}`);
+                      lines.push('```');
+                      lines.push('');
+                      lines.push('  </TabItem>');
+
+                      // Pipeline flow tab
+                      lines.push('  <TabItem label="Pipeline">');
+                      lines.push('');
+                      lines.push('```mermaid');
+                      lines.push('flowchart LR');
+                      // Style definitions
+                      lines.push('    classDef planning fill:#8b5cf6,stroke:#6d28d9,color:#fff');
+                      lines.push('    classDef active fill:#3b82f6,stroke:#1d4ed8,color:#fff');
+                      lines.push('    classDef blocked fill:#ef4444,stroke:#b91c1c,color:#fff');
+                      lines.push('    classDef done fill:#10b981,stroke:#059669,color:#fff');
+                      for (let i = 0; i < COLUMNS.length; i++) {
+                        const col = COLUMNS[i];
+                        const count = summary[col];
+                        const id = col.replace(/ /g, '_');
+                        lines.push(`    ${id}["${col}<br/><strong>${count}</strong>"]`);
+                        if (i < COLUMNS.length - 1) {
+                          lines.push(`    ${id} --> ${COLUMNS[i+1].replace(/ /g, '_')}`);
+                        }
+                      }
+                      // Apply classes
+                      lines.push('    class Theory,AI,Backlog planning');
+                      lines.push('    class Todo,Staging,Review active');
+                      lines.push('    class Error,Support blocked');
+                      lines.push('    class Done done');
+                      lines.push('```');
+                      lines.push('');
+
+                      // Legend
+                      lines.push(':::tip[Legend]');
+                      lines.push('**Purple** = Planning &nbsp; **Blue** = Active &nbsp; **Red** = Blocked &nbsp; **Green** = Done');
+                      lines.push(':::');
+                      lines.push('');
+                      lines.push('  </TabItem>');
+
+                      // Burndown-style tab — items by type
+                      lines.push('  <TabItem label="Breakdown">');
+                      lines.push('');
+
+                      // Count items by type across all columns
+                      const typeCounts = {};
+                      for (const col of COLUMNS) {
+                        for (const item of columns[col]) {
+                          const t = item.type || 'DRAFT_ISSUE';
+                          typeCounts[t] = (typeCounts[t] || 0) + 1;
+                        }
+                      }
+
+                      lines.push('```mermaid');
+                      lines.push('pie showData');
+                      lines.push('    title Items by Type');
+                      for (const [t, c] of Object.entries(typeCounts).sort((a,b) => b[1] - a[1])) {
+                        const label = t.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+                        lines.push(`    "${label}" : ${c}`);
+                      }
+                      lines.push('```');
+                      lines.push('');
+
+                      // Label frequency chart
+                      const labelCounts = {};
+                      for (const col of COLUMNS) {
+                        for (const item of columns[col]) {
+                          for (const lbl of item.labels) {
+                            labelCounts[lbl] = (labelCounts[lbl] || 0) + 1;
+                          }
+                        }
+                      }
+                      const topLabels = Object.entries(labelCounts).sort((a,b) => b[1] - a[1]).slice(0, 10);
+                      if (topLabels.length > 0) {
+                        lines.push('#### Top Labels');
+                        lines.push('');
+                        lines.push('| Label | Count |');
+                        lines.push('|-------|:-----:|');
+                        for (const [lbl, cnt] of topLabels) {
+                          lines.push(`| ${escapeMdx(lbl)} | ${cnt} |`);
+                        }
+                        lines.push('');
+                      }
+
+                      lines.push('  </TabItem>');
+                      lines.push('</Tabs>');
+                      lines.push('');
+
+                      // Per-column tables
+                      for (const col of COLUMNS) {
+                        const items = columns[col];
+                        if (items.length === 0) continue;
+                        lines.push(`### ${col} (${items.length})`);
+                        lines.push('');
+                        lines.push('| # | Title | Priority | Assignees | Labels |');
+                        lines.push('|---|-------|----------|-----------|--------|');
+                        for (const it of items) {
+                          const num = it.url ? `[#${it.number}](${it.url})` : (it.number || '—');
+                          const title = escapeMdx(it.title).substring(0, 80);
+                          const priority = it.matrix || '—';
+                          const assignees = it.assignees.join(', ') || '—';
+                          const labels = it.labels.slice(0, 3).join(', ') || '—';
+                          lines.push(`| ${num} | ${title} | ${priority} | ${assignees} | ${labels} |`);
+                        }
+                        lines.push('');
+                      }
+
+                      lines.push('---');
+                      lines.push('');
+                      lines.push('*Auto-generated by [ci-dashboard.yml](https://github.com/KBVE/kbve/actions/workflows/ci-dashboard.yml)*');
+                      lines.push('');
+
+                      const mdxDest = 'apps/kbve/astro-kbve/src/content/docs/dashboard/kanban.mdx';
+                      fs.mkdirSync(require('path').dirname(mdxDest), { recursive: true });
+                      fs.writeFileSync(mdxDest, lines.join('\n'));
+                      core.info(`Wrote ${mdxDest}`);
+
+                      core.setOutput('timestamp', timestamp);
+                      core.setOutput('total_items', String(totalItems));
+                      core.setOutput('report_date', timestamp.split('T')[0]);
+
+            - name: Validate generated files
+              if: steps.token_check.outputs.skip != 'true'
+              run: |
+                  set -euo pipefail
+                  JSON="apps/kbve/astro-kbve/src/data/nx-kanban.json"
+                  MDX="apps/kbve/astro-kbve/src/content/docs/dashboard/kanban.mdx"
+
+                  for f in "$JSON" "$MDX"; do
+                    if [ ! -s "$f" ]; then
+                      echo "::error::Generated file is empty: $f"
+                      exit 1
+                    fi
+                    echo "OK: $f ($(wc -c < "$f" | xargs) bytes)"
+                  done
+
+                  if ! head -1 "$MDX" | grep -q '^---$'; then
+                    echo "::error::Missing YAML frontmatter in $MDX"
+                    exit 1
+                  fi
+
+            - name: Upload kanban artifacts
+              if: steps.token_check.outputs.skip != 'true'
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dashboard-kanban
+                  retention-days: 1
+                  path: |
+                      apps/kbve/astro-kbve/src/content/docs/dashboard/kanban.mdx
+                      apps/kbve/astro-kbve/src/data/nx-kanban.json
+
+    # ══════════════════════════════════════════════════════════
+    # Job 4: Commit & PR (collects all artifacts, single PR)
+    # ══════════════════════════════════════════════════════════
+    commit:
+        name: Commit & PR
+        needs: [security, report, kanban]
+        if: always() && needs.guard.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            contents: write
+            pull-requests: write
+
+        steps:
+            - name: Checkout dev branch
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+                  fetch-depth: 1
+
+            - name: Download all artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  merge-multiple: true
+
+            - name: Remove old MDX files
+              run: |
+                  set -euo pipefail
+                  DASHBOARD="apps/kbve/astro-kbve/src/content/docs/dashboard"
+                  for old in nx-security.mdx nx-report.mdx nx-graph.mdx nx-kanban.mdx; do
+                    if [ -f "$DASHBOARD/$old" ]; then
+                      git rm "$DASHBOARD/$old" 2>/dev/null || rm -f "$DASHBOARD/$old"
+                      echo "Removed old $old"
+                    fi
+                  done
+
+            - name: Stage generated files
+              run: |
+                  set -euo pipefail
+                  git add -f \
+                    apps/kbve/astro-kbve/src/content/docs/dashboard/security.mdx \
+                    apps/kbve/astro-kbve/src/content/docs/dashboard/report.mdx \
+                    apps/kbve/astro-kbve/src/content/docs/dashboard/graph.mdx \
+                    apps/kbve/astro-kbve/src/content/docs/dashboard/kanban.mdx \
+                    apps/kbve/astro-kbve/public/data/nx/nx-security.json \
+                    apps/kbve/astro-kbve/public/data/nx/nx-report.json \
+                    apps/kbve/astro-kbve/public/data/nx/nx-graph.json \
+                    apps/kbve/astro-kbve/src/data/nx-kanban.json \
+                    2>/dev/null || true
+
+            - name: Commit and push
+              id: commit
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -euo pipefail
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+
+                  BRANCH_NAME="automated/dashboard-sync"
+                  REPORT_DATE="$(date -u +%Y-%m-%d)"
+
+                  if git diff --cached --quiet; then
+                    echo "No changes to commit"
+                    echo "pushed=false" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  git checkout -B "$BRANCH_NAME"
+                  git commit -m "chore(dashboard): daily dashboard sync ${REPORT_DATE}"
+                  git push -u origin "$BRANCH_NAME" --force
+
+                  echo "pushed=true" >> "$GITHUB_OUTPUT"
+                  echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+                  echo "report_date=$REPORT_DATE" >> "$GITHUB_OUTPUT"
+
+            - name: Create or update PR
+              id: pr
+              if: steps.commit.outputs.pushed == 'true'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -euo pipefail
+                  BRANCH_NAME="${{ steps.commit.outputs.branch_name }}"
+                  REPORT_DATE="${{ steps.commit.outputs.report_date }}"
+
+                  EXISTING=$(gh pr list --base dev --head "$BRANCH_NAME" --state open --json number -q '.[0].number' || echo "")
+                  if [ -n "$EXISTING" ]; then
+                    echo "PR #$EXISTING already exists — updated via force-push"
+                    echo "pr_number=$EXISTING" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  PR_URL=$(gh pr create \
+                    --base dev \
+                    --head "$BRANCH_NAME" \
+                    --title "chore(dashboard): daily sync — ${REPORT_DATE}" \
+                    --body "$(cat <<'PRBODY'
+                  ## Summary
+                  - Daily consolidated dashboard sync: security audit, NX report, dependency graph, kanban board
+                  - Security: pnpm, cargo, pip audits + CodeQL + Dependabot alerts
+                  - Report: NX environment, LOC stats, coverage
+                  - Graph: dependency diagram with mermaid visualization
+                  - Kanban: project board snapshot with pipeline flow diagrams
+
+                  ## Content
+                  - `dashboard/security.mdx` — security audit page
+                  - `dashboard/report.mdx` — NX workspace report
+                  - `dashboard/graph.mdx` — dependency graph with mermaid diagram
+                  - `dashboard/kanban.mdx` — project board snapshot
+
+                  ## Test plan
+                  - Verify all 4 dashboard pages render at `/dashboard/{security,report,graph,kanban}/`
+                  - Check mermaid diagrams render correctly
+                  - Verify JSON data files are valid
+
+                  ---
+                  *Auto-generated by ci-dashboard.yml*
+                  PRBODY
+                  )" \
+                    --label "auto-pr")
+
+                  PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+                  echo "Created PR #$PR_NUMBER: $PR_URL"
+                  echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+            # Build gate + auto-merge (same pattern as kanban-sync)
+            - name: Setup pnpm
+              if: steps.pr.outputs.pr_number != ''
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+
+            - name: Setup Node v24 with pnpm cache
+              if: steps.pr.outputs.pr_number != ''
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: pnpm
+
+            - name: Install dependencies
+              if: steps.pr.outputs.pr_number != ''
+              run: pnpm install --frozen-lockfile
+
+            - name: Build astro-kbve
+              id: build
+              if: steps.pr.outputs.pr_number != ''
+              run: pnpm nx run astro-kbve:build
+              env:
+                  NX_DAEMON: false
+                  NODE_OPTIONS: --max-old-space-size=8192
+                  UV_THREADPOOL_SIZE: 4
+
+            - name: Auto-approve and merge
+              if: steps.pr.outputs.pr_number != '' && steps.build.outcome == 'success'
+              uses: actions/github-script@v8
+              with:
+                  github-token: ${{ secrets.UNITY_PAT }}
+                  script: |
+                      const prNumber = parseInt('${{ steps.pr.outputs.pr_number }}');
+
+                      await github.rest.pulls.createReview({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: prNumber,
+                        event: 'APPROVE',
+                        body: 'Auto-approved by ci-dashboard — astro build passed.',
+                      });
+                      core.info(`PR #${prNumber} approved`);
+
+                      try {
+                        await github.rest.pulls.enableAutoMerge({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          pull_number: prNumber,
+                          merge_method: 'squash',
+                        });
+                        core.info(`Auto-merge (squash) enabled for PR #${prNumber}`);
+                      } catch (err) {
+                        core.info(`enableAutoMerge unavailable (${err.message}), attempting direct squash merge`);
+                        await github.rest.pulls.merge({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          pull_number: prNumber,
+                          merge_method: 'squash',
+                          commit_title: 'chore(dashboard): daily sync',
+                        });
+                        core.info(`PR #${prNumber} squash-merged directly`);
+                      }
+
+    # ── Failure tracker ──────────────────────────────────────
+    track-security:
+        name: Track Security Job
+        if: always()
+        needs: [security]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Daily Dashboard'
+            job_name: 'Security Audit'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.security.result }}
+
+    track-report:
+        name: Track Report Job
+        if: always()
+        needs: [report]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Daily Dashboard'
+            job_name: 'NX Report & Graph'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.report.result }}
+
+    track-kanban:
+        name: Track Kanban Job
+        if: always()
+        needs: [kanban]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Daily Dashboard'
+            job_name: 'Kanban Sync'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.kanban.result }}
