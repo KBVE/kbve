@@ -1,8 +1,5 @@
 # Claude Code worktrees create full repo copies that confuse NX project graph
 .claude/
 
-# Git submodules contain their own Cargo.toml/package.json that break NX project graph
+# Directories with their own Cargo.toml/package.json that break NX project graph
 apps/kbve/edge/edge-runtime/
-apps/mc/pumpkin/
-apps/irc/ergo/
-apps/postgres/

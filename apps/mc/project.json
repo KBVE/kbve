@@ -157,13 +157,6 @@
 				"parallel": false
 			}
 		},
-		"submodule-update": {
-			"executor": "nx:run-commands",
-			"options": {
-				"commands": ["git submodule update --remote apps/mc/pumpkin"],
-				"parallel": false
-			}
-		},
 		"e2e": {
 			"executor": "nx:run-commands",
 			"cache": false,

@@ -81,7 +81,6 @@ jobs:
               uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-                  submodules: recursive
 
             - name: Install Linux system dependencies
               run: |
@@ -200,7 +199,6 @@ jobs:
               uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-                  submodules: recursive
 
             - name: Setup Rust (stable)
               uses: dtolnay/rust-toolchain@stable
@@ -299,7 +297,6 @@ jobs:
               uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-                  submodules: recursive
 
             - name: Setup Rust (stable)
               uses: dtolnay/rust-toolchain@stable
@@ -398,7 +395,6 @@ jobs:
               uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-                  submodules: recursive
 
             - name: Setup Rust (nightly for -Z build-std + atomics)
               uses: dtolnay/rust-toolchain@nightly
