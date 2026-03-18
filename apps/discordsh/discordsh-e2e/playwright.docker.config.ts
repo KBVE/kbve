@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
 const workspaceRoot = resolve(__dirname, '../../..');
-const port = 4321;
+const port = Number(process.env['E2E_PORT']) || 4321;
 const baseURL = `http://localhost:${port}`;
 
 const cargoToml = readFileSync(
@@ -35,7 +35,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: `${killPort} docker run --rm --name discordsh-e2e-test -p ${port}:${port} kbve/discordsh:${version}`,
+		command: `${killPort} docker run --rm --name discordsh-e2e-test -e HTTP_PORT=${port} -p ${port}:${port} kbve/discordsh:${version}`,
 		url: `${baseURL}/health`,
 		reuseExistingServer: false,
 		timeout: 30_000,

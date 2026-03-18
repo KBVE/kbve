@@ -87,7 +87,9 @@ test.describe('Smoke: Cache-Control Headers', () => {
 // Sitemap-driven route sampling
 // ---------------------------------------------------------------------------
 
-const BASE_URL = process.env['BASE_URL'] || 'http://localhost:4321';
+const BASE_URL =
+	process.env['BASE_URL'] ||
+	`http://localhost:${process.env['E2E_PORT'] || '4321'}`;
 
 test.describe('Smoke: Sitemap Routes', () => {
 	test('sitemap exists and is parseable', async ({ request }) => {

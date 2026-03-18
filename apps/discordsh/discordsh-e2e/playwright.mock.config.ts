@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
 const workspaceRoot = resolve(__dirname, '../../..');
-const port = 4321;
+const port = Number(process.env['E2E_PORT']) || 4321;
 const baseURL = `http://localhost:${port}`;
 
 // Mockoon ports — must match docker-compose-poc-dev.yaml
@@ -33,7 +33,7 @@ const cleanup = [
 const startCmd = [
 	cleanup,
 	'sleep 1',
-	`DISCORDSH_IMAGE=kbve/discordsh:${version} docker compose -f ${composePath} up --abort-on-container-exit`,
+	`DISCORDSH_IMAGE=kbve/discordsh:${version} DISCORDSH_PORT=${port} docker compose -f ${composePath} up --abort-on-container-exit`,
 ].join(' && ');
 
 export default defineConfig({
