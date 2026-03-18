@@ -84,6 +84,15 @@ int32 UUEDevOpsBlueprintLibrary::GetPendingEventCount(const UObject* WorldContex
 	return 0;
 }
 
+FString UUEDevOpsBlueprintLibrary::GetSessionId(const UObject* WorldContextObject)
+{
+	if (UUEDevOpsTelemetrySubsystem* Sub = GetTelemetrySubsystem(WorldContextObject))
+	{
+		return Sub->GetSessionId();
+	}
+	return FString();
+}
+
 TMap<FString, FString> UUEDevOpsBlueprintLibrary::GetDeviceInfo()
 {
 	TMap<FString, FString> Info;

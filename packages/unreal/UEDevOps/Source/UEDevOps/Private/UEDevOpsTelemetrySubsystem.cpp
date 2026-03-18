@@ -7,13 +7,16 @@
 #include "Interfaces/IHttpResponse.h"
 #include "Serialization/JsonWriter.h"
 #include "Misc/App.h"
+#include "Misc/CoreDelegates.h"
 #include "Misc/DateTime.h"
+#include "Misc/Guid.h"
 #include "Misc/OutputDeviceRedirector.h"
+#include "HAL/PlatformTime.h"
 #include "TimerManager.h"
 
 DEFINE_LOG_CATEGORY(LogUEDevOps);
 
-// ─── Static severity strings (allocated once, never freed) ───────────────────
+// ─── Static severity/category strings (allocated once, never freed) ──────────
 namespace UEDevOpsInternal
 {
 	static const FString SevFatal   = TEXT("fatal");
@@ -24,12 +27,19 @@ namespace UEDevOpsInternal
 	static const FString CatError       = TEXT("error");
 	static const FString CatPerformance = TEXT("performance");
 	static const FString CatLog         = TEXT("log");
+	static const FString CatCrash       = TEXT("crash");
+	static const FString CatEnsure      = TEXT("ensure");
+	static const FString CatHitch       = TEXT("hitch");
 
 	static const FString MetaValue       = TEXT("value");
 	static const FString MetaLogCategory = TEXT("logCategory");
+	static const FString MetaFrameTimeMs = TEXT("frameTimeMs");
+	static const FString MetaThresholdMs = TEXT("thresholdMs");
 }
 
-// ─── Initialize / Deinitialize ───────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+// Initialize / Deinitialize
+// ═════════════════════════════════════════════════════════════════════════════
 
 void UUEDevOpsTelemetrySubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -41,10 +51,13 @@ void UUEDevOpsTelemetrySubsystem::Initialize(FSubsystemCollectionBase& Collectio
 		return;
 	}
 
-	// Pre-reserve queue to configured max — eliminates reallocs during gameplay
+	// ── Session ID (generated once, included in every payload) ───────────
+	CachedSessionId = FGuid::NewGuid().ToString(EGuidFormats::DigitsWithHyphens);
+
+	// ── Pre-reserve queue ────────────────────────────────────────────────
 	EventQueue.Reserve(Settings->MaxQueueSize);
 
-	// Cache immutable strings once — zero per-flush string construction
+	// ── Cache immutable strings ──────────────────────────────────────────
 	CachedPlatformName   = FPlatformProperties::PlatformName();
 	CachedBuildConfig    = LexToString(FApp::GetBuildConfiguration());
 	CachedProjectVersion = FApp::GetBuildVersion();
@@ -54,10 +67,14 @@ void UUEDevOpsTelemetrySubsystem::Initialize(FSubsystemCollectionBase& Collectio
 		CachedAuthHeader = FString::Printf(TEXT("Bearer %s"), *Settings->TelemetryAuthToken);
 	}
 
-	// Pre-size the serialization buffer (rough estimate: ~256 bytes per event)
+	// ── Pre-size serialization buffer ────────────────────────────────────
 	SerializeBuffer.Reserve(Settings->MaxQueueSize * 256);
 
-	// Auto-flush timer
+	// ── Rate limiter init ────────────────────────────────────────────────
+	LogTokensRemaining = Settings->LogRateLimitPerSecond;
+	LogTokenLastRefillTime = FPlatformTime::Seconds();
+
+	// ── Auto-flush timer ─────────────────────────────────────────────────
 	if (Settings->FlushIntervalSeconds > 0.0f)
 	{
 		if (UWorld* World = GetGameInstance()->GetWorld())
@@ -72,17 +89,42 @@ void UUEDevOpsTelemetrySubsystem::Initialize(FSubsystemCollectionBase& Collectio
 		}
 	}
 
+	// ── Feature hooks ────────────────────────────────────────────────────
 	SetupLogCapture();
+	SetupCrashHandlers();
+	SetupHitchDetection();
+
+	UE_LOG(LogUEDevOps, Log, TEXT("Initialized (session=%s, queue=%d, flush=%.1fs, logRate=%d/s, retries=%d, hitches=%s@%.0fms)"),
+		*CachedSessionId,
+		Settings->MaxQueueSize,
+		Settings->FlushIntervalSeconds,
+		Settings->LogRateLimitPerSecond,
+		Settings->MaxRetryAttempts,
+		Settings->bAutoDetectHitches ? TEXT("on") : TEXT("off"),
+		Settings->HitchThresholdMs);
 }
 
 void UUEDevOpsTelemetrySubsystem::Deinitialize()
 {
+	TeardownHitchDetection();
+	TeardownCrashHandlers();
 	TeardownLogCapture();
 
 	// Flush remaining events
 	if (EventQueue.Num() > 0)
 	{
 		FlushEvents();
+	}
+
+	// Clear retry queue (best effort — we're shutting down)
+	RetryQueue.Empty();
+
+	if (RetryTimerHandle.IsValid())
+	{
+		if (UWorld* World = GetGameInstance()->GetWorld())
+		{
+			World->GetTimerManager().ClearTimer(RetryTimerHandle);
+		}
 	}
 
 	if (FlushTimerHandle.IsValid())
@@ -96,7 +138,9 @@ void UUEDevOpsTelemetrySubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
-// ─── Event Recording ─────────────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+// Event Recording
+// ═════════════════════════════════════════════════════════════════════════════
 
 void UUEDevOpsTelemetrySubsystem::RecordEvent(const FDevOpsTelemetryEvent& InEvent)
 {
@@ -143,7 +187,9 @@ void UUEDevOpsTelemetrySubsystem::ReportPerformance(const FString& MetricName, f
 	EnqueueInternal(MoveTemp(Event));
 }
 
-// ─── Flush & Serialize ───────────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+// Flush & Serialize
+// ═════════════════════════════════════════════════════════════════════════════
 
 void UUEDevOpsTelemetrySubsystem::FlushEvents()
 {
@@ -156,33 +202,29 @@ void UUEDevOpsTelemetrySubsystem::FlushEvents()
 	if (!Settings || Settings->TelemetryEndpointURL.IsEmpty())
 	{
 		UE_LOG(LogUEDevOps, Warning, TEXT("TelemetryEndpointURL is not configured. Discarding %d events."), EventQueue.Num());
-		EventQueue.Reset(); // Reset keeps allocated capacity, Empty frees it
+		EventQueue.Reset();
 		return;
 	}
 
 	// Swap-and-flush: move queue out so new events can still enqueue during serialization
 	TArray<FDevOpsTelemetryEvent> Batch;
 	Swap(Batch, EventQueue);
-	// Re-reserve the now-empty queue for the next batch
 	EventQueue.Reserve(Settings->MaxQueueSize);
 
-	// Reuse the persistent buffer — Reset() preserves capacity
+	// Reuse the persistent buffer
 	SerializeBuffer.Reset();
 	SerializeEventsInto(Batch, SerializeBuffer);
 
-	// Move the buffer contents into the POST — avoids copying the payload string
 	PostPayload(MoveTemp(SerializeBuffer));
 }
 
 void UUEDevOpsTelemetrySubsystem::SerializeEventsInto(
 	const TArray<FDevOpsTelemetryEvent>& Events, FString& OutBuffer) const
 {
-	// Direct TJsonWriter serialization — no FJsonObject intermediary tree.
-	// This eliminates N × MakeShared<FJsonObject> + N × MakeShared<FJsonValueObject>
-	// allocations that the old approach created per flush.
 	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutBuffer);
 
 	Writer->WriteObjectStart();
+	Writer->WriteValue(TEXT("sessionId"), CachedSessionId);
 	Writer->WriteArrayStart(TEXT("events"));
 
 	for (const FDevOpsTelemetryEvent& Event : Events)
@@ -221,18 +263,31 @@ void UUEDevOpsTelemetrySubsystem::OnTimerFlush()
 	FlushEvents();
 }
 
-// ─── HTTP POST ───────────────────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+// HTTP POST with Retry
+// ═════════════════════════════════════════════════════════════════════════════
 
 void UUEDevOpsTelemetrySubsystem::PostPayload(FString&& JsonPayload)
 {
 	const UUEDevOpsSettings* Settings = UUEDevOpsSettings::Get();
+	if (!Settings)
+	{
+		return;
+	}
+
+	// Capture payload for potential retry (copy before move)
+	const int32 MaxRetries = Settings->MaxRetryAttempts;
+	FString PayloadCopy;
+	if (MaxRetries > 0)
+	{
+		PayloadCopy = JsonPayload;
+	}
 
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
 	Request->SetURL(Settings->TelemetryEndpointURL);
 	Request->SetVerb(TEXT("POST"));
 	Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
 
-	// Use cached auth header — no per-POST Printf
 	if (!CachedAuthHeader.IsEmpty())
 	{
 		Request->SetHeader(TEXT("Authorization"), CachedAuthHeader);
@@ -240,20 +295,170 @@ void UUEDevOpsTelemetrySubsystem::PostPayload(FString&& JsonPayload)
 
 	Request->SetContentAsString(MoveTemp(JsonPayload));
 
+	// Weak pointer to avoid preventing GC of the subsystem
+	TWeakObjectPtr<UUEDevOpsTelemetrySubsystem> WeakThis(this);
+
 	Request->OnProcessRequestComplete().BindLambda(
-		[](FHttpRequestPtr Req, FHttpResponsePtr Resp, bool bSuccess)
+		[WeakThis, PayloadForRetry = MoveTemp(PayloadCopy), MaxRetries]
+		(FHttpRequestPtr Req, FHttpResponsePtr Resp, bool bSuccess) mutable
 		{
-			if (!bSuccess || !Resp.IsValid() || !EHttpResponseCodes::IsOk(Resp->GetResponseCode()))
+			const bool bOk = bSuccess && Resp.IsValid() && EHttpResponseCodes::IsOk(Resp->GetResponseCode());
+			if (!bOk)
 			{
-				UE_LOG(LogUEDevOps, Warning, TEXT("Telemetry POST failed (code %d)"),
-					Resp.IsValid() ? Resp->GetResponseCode() : 0);
+				const int32 Code = Resp.IsValid() ? Resp->GetResponseCode() : 0;
+				UE_LOG(LogUEDevOps, Warning, TEXT("Telemetry POST failed (code %d)"), Code);
+
+				// Enqueue for retry if retries are enabled
+				if (MaxRetries > 0 && WeakThis.IsValid() && !PayloadForRetry.IsEmpty())
+				{
+					FRetryEntry Entry;
+					Entry.Payload = MoveTemp(PayloadForRetry);
+					Entry.Attempt = 1;
+					WeakThis->RetryQueue.Add(MoveTemp(Entry));
+					WeakThis->ScheduleRetry();
+				}
 			}
 		});
 
 	Request->ProcessRequest();
 }
 
-// ─── Log Capture ─────────────────────────────────────────────────────────────
+void UUEDevOpsTelemetrySubsystem::ScheduleRetry()
+{
+	// Don't schedule if a timer is already pending
+	if (RetryTimerHandle.IsValid())
+	{
+		return;
+	}
+
+	const UUEDevOpsSettings* Settings = UUEDevOpsSettings::Get();
+	if (!Settings || RetryQueue.Num() == 0)
+	{
+		return;
+	}
+
+	// Exponential backoff: base * 2^(attempt-1)
+	const float Delay = Settings->RetryBaseDelaySeconds * FMath::Pow(2.0f, static_cast<float>(RetryQueue[0].Attempt - 1));
+
+	if (UWorld* World = GetGameInstance()->GetWorld())
+	{
+		World->GetTimerManager().SetTimer(
+			RetryTimerHandle,
+			this,
+			&UUEDevOpsTelemetrySubsystem::ProcessRetryQueue,
+			Delay,
+			false
+		);
+	}
+}
+
+void UUEDevOpsTelemetrySubsystem::ProcessRetryQueue()
+{
+	RetryTimerHandle.Invalidate();
+
+	if (RetryQueue.Num() == 0)
+	{
+		return;
+	}
+
+	const UUEDevOpsSettings* Settings = UUEDevOpsSettings::Get();
+	if (!Settings)
+	{
+		RetryQueue.Empty();
+		return;
+	}
+
+	// Take the oldest entry
+	FRetryEntry Entry = MoveTemp(RetryQueue[0]);
+	RetryQueue.RemoveAt(0, EAllowShrinking::No);
+
+	const int32 MaxRetries = Settings->MaxRetryAttempts;
+	const int32 CurrentAttempt = Entry.Attempt;
+
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
+	Request->SetURL(Settings->TelemetryEndpointURL);
+	Request->SetVerb(TEXT("POST"));
+	Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+
+	if (!CachedAuthHeader.IsEmpty())
+	{
+		Request->SetHeader(TEXT("Authorization"), CachedAuthHeader);
+	}
+
+	Request->SetContentAsString(Entry.Payload);
+
+	TWeakObjectPtr<UUEDevOpsTelemetrySubsystem> WeakThis(this);
+
+	Request->OnProcessRequestComplete().BindLambda(
+		[WeakThis, PayloadForRetry = MoveTemp(Entry.Payload), CurrentAttempt, MaxRetries]
+		(FHttpRequestPtr Req, FHttpResponsePtr Resp, bool bSuccess) mutable
+		{
+			const bool bOk = bSuccess && Resp.IsValid() && EHttpResponseCodes::IsOk(Resp->GetResponseCode());
+			if (!bOk && WeakThis.IsValid())
+			{
+				const int32 Code = Resp.IsValid() ? Resp->GetResponseCode() : 0;
+
+				if (CurrentAttempt < MaxRetries)
+				{
+					UE_LOG(LogUEDevOps, Warning, TEXT("Retry %d/%d failed (code %d), scheduling next attempt"),
+						CurrentAttempt, MaxRetries, Code);
+
+					FRetryEntry NewEntry;
+					NewEntry.Payload = MoveTemp(PayloadForRetry);
+					NewEntry.Attempt = CurrentAttempt + 1;
+					WeakThis->RetryQueue.Add(MoveTemp(NewEntry));
+					WeakThis->ScheduleRetry();
+				}
+				else
+				{
+					UE_LOG(LogUEDevOps, Error, TEXT("Telemetry POST failed after %d retries (code %d). Data lost."),
+						MaxRetries, Code);
+				}
+			}
+			else if (bOk)
+			{
+				UE_LOG(LogUEDevOps, Log, TEXT("Retry %d/%d succeeded"), CurrentAttempt, MaxRetries);
+			}
+
+			// If there are more entries in the queue, keep processing
+			if (WeakThis.IsValid() && WeakThis->RetryQueue.Num() > 0)
+			{
+				WeakThis->ScheduleRetry();
+			}
+		});
+
+	Request->ProcessRequest();
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Rate Limiter (Token Bucket)
+// ═════════════════════════════════════════════════════════════════════════════
+
+bool UUEDevOpsTelemetrySubsystem::ConsumeLogToken()
+{
+	const double Now = FPlatformTime::Seconds();
+	const double Elapsed = Now - LogTokenLastRefillTime;
+
+	if (Elapsed >= 1.0)
+	{
+		// Refill bucket
+		const UUEDevOpsSettings* Settings = UUEDevOpsSettings::Get();
+		LogTokensRemaining = Settings ? Settings->LogRateLimitPerSecond : 10;
+		LogTokenLastRefillTime = Now;
+	}
+
+	if (LogTokensRemaining > 0)
+	{
+		--LogTokensRemaining;
+		return true;
+	}
+
+	return false;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Log Capture
+// ═════════════════════════════════════════════════════════════════════════════
 
 /** FOutputDevice that forwards log messages to the telemetry subsystem. */
 class FDevOpsLogCapture : public FOutputDevice
@@ -269,10 +474,22 @@ public:
 			return;
 		}
 
-		// Build event using cached static strings — zero FString construction for category/severity
+		// Ignore our own log category to prevent feedback loops
+		static const FName OurCategory(TEXT("LogUEDevOps"));
+		if (Category == OurCategory)
+		{
+			return;
+		}
+
+		// Rate limit: drop events if bucket is empty
+		if (!Owner->ConsumeLogToken())
+		{
+			return;
+		}
+
 		FDevOpsTelemetryEvent Event;
 		Event.Category = UEDevOpsInternal::CatLog;
-		Event.Message = Message; // Single FString construction (unavoidable — TCHAR* to FString)
+		Event.Message = Message;
 
 		switch (Verbosity)
 		{
@@ -284,7 +501,6 @@ public:
 
 		Event.Metadata.Add(UEDevOpsInternal::MetaLogCategory, Category.ToString());
 
-		// Move into queue — no copy of the event
 		Owner->RecordEvent(MoveTemp(Event));
 	}
 };
@@ -311,4 +527,120 @@ void UUEDevOpsTelemetrySubsystem::TeardownLogCapture()
 		delete LogCaptureDevice;
 		LogCaptureDevice = nullptr;
 	}
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Crash / Ensure Hooks
+// ═════════════════════════════════════════════════════════════════════════════
+
+void UUEDevOpsTelemetrySubsystem::SetupCrashHandlers()
+{
+	const UUEDevOpsSettings* Settings = UUEDevOpsSettings::Get();
+	if (!Settings || !Settings->bCaptureCrashesAndEnsures)
+	{
+		return;
+	}
+
+	CrashDelegateHandle = FCoreDelegates::OnHandleSystemError.AddUObject(
+		this, &UUEDevOpsTelemetrySubsystem::OnSystemError);
+
+	EnsureDelegateHandle = FCoreDelegates::OnHandleSystemEnsure.AddUObject(
+		this, &UUEDevOpsTelemetrySubsystem::OnSystemEnsure);
+}
+
+void UUEDevOpsTelemetrySubsystem::TeardownCrashHandlers()
+{
+	if (CrashDelegateHandle.IsValid())
+	{
+		FCoreDelegates::OnHandleSystemError.Remove(CrashDelegateHandle);
+		CrashDelegateHandle.Reset();
+	}
+
+	if (EnsureDelegateHandle.IsValid())
+	{
+		FCoreDelegates::OnHandleSystemEnsure.Remove(EnsureDelegateHandle);
+		EnsureDelegateHandle.Reset();
+	}
+}
+
+void UUEDevOpsTelemetrySubsystem::OnSystemError()
+{
+	// CRASH HANDLER — keep allocations minimal, engine is in an unstable state.
+	FDevOpsTelemetryEvent Event;
+	Event.Category = UEDevOpsInternal::CatCrash;
+	Event.Message = TEXT("Fatal system error detected");
+	Event.Severity = UEDevOpsInternal::SevFatal;
+	Event.Timestamp = FDateTime::UtcNow().ToIso8601();
+
+	EventQueue.Add(MoveTemp(Event));
+
+	// Best-effort flush — fire and forget, the process may be killed any moment
+	FlushEvents();
+}
+
+void UUEDevOpsTelemetrySubsystem::OnSystemEnsure()
+{
+	// Ensure (soft assert) — engine continues running, safe to allocate normally
+	FDevOpsTelemetryEvent Event;
+	Event.Category = UEDevOpsInternal::CatEnsure;
+	Event.Message = TEXT("Ensure condition failed");
+	Event.Severity = UEDevOpsInternal::SevError;
+
+	EnqueueInternal(MoveTemp(Event));
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Hitch Detection
+// ═════════════════════════════════════════════════════════════════════════════
+
+void UUEDevOpsTelemetrySubsystem::SetupHitchDetection()
+{
+	const UUEDevOpsSettings* Settings = UUEDevOpsSettings::Get();
+	if (!Settings || !Settings->bAutoDetectHitches)
+	{
+		return;
+	}
+
+	HitchThresholdSeconds = Settings->HitchThresholdMs / 1000.0f;
+	LastFrameStartSeconds = FPlatformTime::Seconds();
+
+	FrameBeginDelegateHandle = FCoreDelegates::OnBeginFrame.AddUObject(
+		this, &UUEDevOpsTelemetrySubsystem::OnFrameBegin);
+
+	bHitchDetectionActive = true;
+}
+
+void UUEDevOpsTelemetrySubsystem::TeardownHitchDetection()
+{
+	if (bHitchDetectionActive)
+	{
+		FCoreDelegates::OnBeginFrame.Remove(FrameBeginDelegateHandle);
+		FrameBeginDelegateHandle.Reset();
+		bHitchDetectionActive = false;
+	}
+}
+
+void UUEDevOpsTelemetrySubsystem::OnFrameBegin()
+{
+	const double Now = FPlatformTime::Seconds();
+	const float FrameDelta = static_cast<float>(Now - LastFrameStartSeconds);
+
+	if (FrameDelta > HitchThresholdSeconds && LastFrameStartSeconds > 0.0)
+	{
+		const float FrameMs = FrameDelta * 1000.0f;
+
+		FDevOpsTelemetryEvent Event;
+		Event.Category = UEDevOpsInternal::CatHitch;
+		Event.Message = FString::Printf(TEXT("Frame hitch: %.1fms"), FrameMs);
+		Event.Severity = (FrameMs > HitchThresholdSeconds * 1000.0f * 4.0f)
+			? UEDevOpsInternal::SevError
+			: UEDevOpsInternal::SevWarning;
+		Event.Metadata.Add(UEDevOpsInternal::MetaFrameTimeMs, FString::SanitizeFloat(FrameMs));
+		Event.Metadata.Add(UEDevOpsInternal::MetaThresholdMs,
+			FString::SanitizeFloat(HitchThresholdSeconds * 1000.0f));
+
+		EnqueueInternal(MoveTemp(Event));
+	}
+
+	LastFrameStartSeconds = Now;
 }

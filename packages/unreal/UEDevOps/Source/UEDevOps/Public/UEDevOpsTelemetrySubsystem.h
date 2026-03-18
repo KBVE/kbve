@@ -37,12 +37,13 @@ struct UEDEVOPS_API FDevOpsTelemetryEvent
  * Game-instance subsystem that queues telemetry events and POSTs them
  * to a configurable HTTP endpoint. Usable from Blueprints and C++.
  *
- * Optimized for minimal per-event allocation:
- * - EventQueue pre-reserved to MaxQueueSize
- * - Direct TJsonWriter serialization (no FJsonObject intermediary tree)
- * - Immutable platform/build/auth strings cached once at init
- * - Serialization buffer reused across flushes
- * - Swap-and-flush: queue remains available during POST serialization
+ * Features:
+ * - Zero-alloc hot path (pre-reserved queue, cached strings, direct serialization)
+ * - Session ID for backend event correlation
+ * - Token-bucket rate limiter on log capture (prevents error-spam floods)
+ * - Exponential-backoff retry on failed POSTs
+ * - FCoreDelegates crash/ensure hooks
+ * - Automatic frame hitch detection
  */
 UCLASS()
 class UEDEVOPS_API UUEDevOpsTelemetrySubsystem : public UGameInstanceSubsystem
@@ -76,6 +77,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "UEDevOps|Telemetry")
 	int32 GetQueuedEventCount() const;
 
+	/** Returns the unique session ID generated at subsystem init. */
+	UFUNCTION(BlueprintPure, Category = "UEDevOps|Telemetry")
+	const FString& GetSessionId() const { return CachedSessionId; }
+
 private:
 	void OnTimerFlush();
 	void PostPayload(FString&& JsonPayload);
@@ -84,19 +89,55 @@ private:
 	void TeardownLogCapture();
 	void EnqueueInternal(FDevOpsTelemetryEvent&& Event);
 
-	/** Pre-reserved event queue. */
+	// ─── Rate Limiter ────────────────────────────────────────────────────
+	/** Returns true if a log event is allowed through the token bucket. */
+	bool ConsumeLogToken();
+	int32 LogTokensRemaining = 0;
+	double LogTokenLastRefillTime = 0.0;
+
+	// ─── Retry ───────────────────────────────────────────────────────────
+	struct FRetryEntry
+	{
+		FString Payload;
+		int32 Attempt;
+	};
+	TArray<FRetryEntry> RetryQueue;
+	FTimerHandle RetryTimerHandle;
+	void ProcessRetryQueue();
+	void ScheduleRetry();
+
+	// ─── Crash / Ensure ──────────────────────────────────────────────────
+	void SetupCrashHandlers();
+	void TeardownCrashHandlers();
+	void OnSystemError();
+	void OnSystemEnsure();
+	FDelegateHandle CrashDelegateHandle;
+	FDelegateHandle EnsureDelegateHandle;
+
+	// ─── Hitch Detection ─────────────────────────────────────────────────
+	void SetupHitchDetection();
+	void TeardownHitchDetection();
+	void OnFrameBegin();
+	double LastFrameStartSeconds = 0.0;
+	float HitchThresholdSeconds = 0.05f;
+	FDelegateHandle FrameBeginDelegateHandle;
+	bool bHitchDetectionActive = false;
+
+	// ─── Event Queue ─────────────────────────────────────────────────────
 	TArray<FDevOpsTelemetryEvent> EventQueue;
 	FTimerHandle FlushTimerHandle;
 
 	/** Reusable serialization buffer — Reset() instead of reallocating each flush. */
 	FString SerializeBuffer;
 
-	/** Cached immutable strings (computed once in Initialize). */
+	// ─── Cached Immutable Strings ────────────────────────────────────────
+	FString CachedSessionId;
 	FString CachedPlatformName;
 	FString CachedBuildConfig;
 	FString CachedProjectVersion;
 	FString CachedAuthHeader;
 
 	/** Custom output device registered with GLog to intercept log messages. */
+	friend class FDevOpsLogCapture;
 	class FDevOpsLogCapture* LogCaptureDevice = nullptr;
 };
