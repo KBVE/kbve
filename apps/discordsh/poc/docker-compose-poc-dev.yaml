@@ -1,0 +1,95 @@
+# POC: Mockoon-backed local E2E environment for discordsh
+#
+# Usage:
+#   docker compose -f apps/discordsh/poc/docker-compose-poc-dev.yaml up
+#
+# Architecture:
+#   discordsh          — real bot binary (existing Dockerfile)
+#   mockoon-github     — mockoon/cli serving github-mock.json  (port 4010)
+#   mockoon-discord    — mockoon/cli serving discord-mock.json  (port 4011)
+#
+# Note: serenity/poise does NOT support custom Discord REST base URLs.
+# The Discord mock is useful for inspecting request payloads via Mockoon
+# logs, but the bot's gateway connection will still attempt to reach
+# real Discord. For full E2E the bot needs a valid DISCORD_TOKEN;
+# GitHub API calls are fully redirected to the mock.
+
+services:
+    # ── Mockoon: GitHub API Mock ──────────────────────────────────────
+    mockoon-github:
+        image: mockoon/cli:latest
+        command: ['--data', '/data/github-mock.json', '--port', '4010']
+        volumes:
+            - ./mockoon:/data:ro
+        ports:
+            - '4010:4010'
+        healthcheck:
+            test:
+                ['CMD', 'wget', '-qO-', 'http://localhost:4010/repos/KBVE/kbve']
+            interval: 5s
+            timeout: 3s
+            retries: 5
+        restart: unless-stopped
+
+    # ── Mockoon: Discord REST API Mock ────────────────────────────────
+    mockoon-discord:
+        image: mockoon/cli:latest
+        command: ['--data', '/data/discord-mock.json', '--port', '4011']
+        volumes:
+            - ./mockoon:/data:ro
+        ports:
+            - '4011:4011'
+        healthcheck:
+            test:
+                [
+                    'CMD',
+                    'wget',
+                    '-qO-',
+                    'http://localhost:4011/api/v10/users/@me',
+                ]
+            interval: 5s
+            timeout: 3s
+            retries: 5
+        restart: unless-stopped
+
+    # ── discordsh bot ─────────────────────────────────────────────────
+    # Builds from the existing Dockerfile at the repo root context.
+    # GitHub API calls are redirected to the Mockoon mock.
+    #
+    # DISCORD_TOKEN is still required for the bot to start (serenity
+    # needs a real token for gateway auth). For local-only testing you
+    # can use a throwaway bot token from a test application.
+    discordsh:
+        build:
+            context: ../../../
+            dockerfile: apps/discordsh/axum-discordsh/Dockerfile
+        ports:
+            - '4321:4321'
+        environment:
+            # ── GitHub mock redirect ──────────────────────────────────────
+            GITHUB_API_BASE_URL: 'http://mockoon-github:4010'
+            GITHUB_TOKEN: 'mock-github-pat-for-local-testing'
+
+            # ── Discord configuration ─────────────────────────────────────
+            # Replace with a real bot token from a test Discord application,
+            # or leave as-is to test GitHub-only paths (bot won't connect).
+            DISCORD_TOKEN: '${DISCORD_TOKEN:-mock-discord-token}'
+
+            # ── Scheduler configuration ───────────────────────────────────
+            # Point the scheduler at a mock channel. The bot will POST
+            # embeds to mockoon-discord which logs the request payloads.
+            GITHUB_BOARD_THREAD_ID: '1234567890123456789'
+            GITHUB_BOARD_INTERVAL_SECS: '30'
+            GITHUB_BOARD_REPO: 'KBVE/kbve'
+            GITHUB_BOARD_STALE_DAYS: '3'
+
+            # ── Runtime ───────────────────────────────────────────────────
+            HTTP_HOST: '0.0.0.0'
+            HTTP_PORT: '4321'
+            RUST_LOG: 'axum_discordsh=debug,tower_http=debug,kbve=debug,jedi=debug'
+        depends_on:
+            mockoon-github:
+                condition: service_healthy
+            mockoon-discord:
+                condition: service_healthy
+        restart: unless-stopped
