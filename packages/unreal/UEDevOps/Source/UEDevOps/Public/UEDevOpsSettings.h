@@ -80,6 +80,28 @@ public:
 		meta = (ClampMin = "0.5", ClampMax = "60.0"))
 	float RetryBaseDelaySeconds = 2.0f;
 
+	// ─── Compression ─────────────────────────────────────────────────────
+
+	/** Compress telemetry payloads with zstd before POSTing (Content-Encoding: zstd) */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Compression")
+	bool bCompressPayload = true;
+
+	/** Zstd compression level (1=fastest, 19=best ratio, 3=default) */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Compression",
+		meta = (EditCondition = "bCompressPayload", ClampMin = "1", ClampMax = "19"))
+	int32 CompressionLevel = 3;
+
+	// ─── Deduplication ───────────────────────────────────────────────────
+
+	/** Collapse duplicate events (same category+message+severity) within a time window */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Deduplication")
+	bool bDeduplicateEvents = true;
+
+	/** Time window in seconds for deduplication (duplicates within this window are collapsed) */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Deduplication",
+		meta = (EditCondition = "bDeduplicateEvents", ClampMin = "1.0", ClampMax = "300.0"))
+	float DedupWindowSeconds = 30.0f;
+
 	// ─── Crash & Ensure ──────────────────────────────────────────────────
 
 	/** Hook into FCoreDelegates to capture crashes and ensures as telemetry events */

@@ -95,6 +95,19 @@ private:
 	int32 LogTokensRemaining = 0;
 	double LogTokenLastRefillTime = 0.0;
 
+	// ─── Deduplication (xxHash) ──────────────────────────────────────────
+	struct FDedupEntry
+	{
+		FDevOpsTelemetryEvent Event;
+		int32 Count;
+		double FirstSeenTime;
+	};
+	TMap<uint64, FDedupEntry> DedupMap;
+	/** Check dedup map; returns true if event was collapsed (caller should NOT enqueue). */
+	bool TryDeduplicateEvent(FDevOpsTelemetryEvent& Event);
+	/** Flush all collapsed dedup entries into the EventQueue. */
+	void FlushDedupEntries();
+
 	// ─── Retry ───────────────────────────────────────────────────────────
 	struct FRetryEntry
 	{
