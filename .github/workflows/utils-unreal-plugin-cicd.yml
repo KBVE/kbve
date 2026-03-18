@@ -128,6 +128,7 @@ jobs:
             contents: read
         outputs:
             version: ${{ steps.extract.outputs.version }}
+            published_version: ${{ steps.extract.outputs.published_version }}
             should_release: ${{ steps.compare.outputs.should_release }}
             tag: ${{ steps.compare.outputs.tag }}
             zip_name: ${{ steps.extract.outputs.zip_name }}
@@ -135,9 +136,10 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v6
 
-            - name: Extract version from .uplugin
+            - name: Extract versions
               id: extract
               run: |
+                  # --- .uplugin version (source of truth for desired version) ---
                   UPLUGIN="${{ inputs.plugin_path }}/${{ inputs.plugin_name }}.uplugin"
                   if [ ! -f "${UPLUGIN}" ]; then
                     echo "::error::Plugin file not found: ${UPLUGIN}"
@@ -148,28 +150,44 @@ jobs:
                     echo "::error::Could not extract VersionName from ${UPLUGIN}"
                     exit 1
                   fi
-                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-                  echo "zip_name=${{ inputs.plugin_name }}-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
-                  echo "::notice::Plugin ${{ inputs.plugin_name }} version: ${VERSION}"
 
-            - name: Compare against existing releases
+                  # --- version.toml (last published version) ---
+                  VERSION_TOML="${{ inputs.plugin_path }}/version.toml"
+                  if [ -f "${VERSION_TOML}" ]; then
+                    PUBLISHED=$(grep -m1 '^version' "${VERSION_TOML}" | sed 's/version = "\(.*\)"/\1/')
+                  else
+                    PUBLISHED="0.0.0"
+                  fi
+
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "published_version=${PUBLISHED}" >> "$GITHUB_OUTPUT"
+                  echo "zip_name=${{ inputs.plugin_name }}-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
+                  echo "::notice::Plugin ${{ inputs.plugin_name }} — uplugin: ${VERSION}, published: ${PUBLISHED}"
+
+            - name: Compare versions
               id: compare
               env:
                   GH_TOKEN: ${{ github.token }}
               run: |
+                  VERSION="${{ steps.extract.outputs.version }}"
+                  PUBLISHED="${{ steps.extract.outputs.published_version }}"
+
                   PREFIX="${{ inputs.release_tag_prefix }}"
                   if [ -z "${PREFIX}" ]; then
                     PREFIX=$(echo "${{ inputs.plugin_name }}" | tr '[:upper:]' '[:lower:]')
                     PREFIX="${PREFIX}-v"
                   fi
-                  TAG="${PREFIX}${{ steps.extract.outputs.version }}"
+                  TAG="${PREFIX}${VERSION}"
                   echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
 
-                  if gh release view "${TAG}" --json tagName >/dev/null 2>&1; then
-                    echo "::notice::Release ${TAG} already exists — skipping publish"
+                  if [ "${VERSION}" = "${PUBLISHED}" ]; then
+                    echo "::notice::version.toml matches .uplugin (${VERSION}) — skipping publish"
+                    echo "should_release=false" >> "$GITHUB_OUTPUT"
+                  elif gh release view "${TAG}" --json tagName >/dev/null 2>&1; then
+                    echo "::notice::Release ${TAG} already exists (version.toml stale) — skipping publish"
                     echo "should_release=false" >> "$GITHUB_OUTPUT"
                   else
-                    echo "::notice::Release ${TAG} not found — will publish"
+                    echo "::notice::New version ${VERSION} (was ${PUBLISHED}) — will publish"
                     echo "should_release=true" >> "$GITHUB_OUTPUT"
                   fi
 
@@ -327,5 +345,48 @@ jobs:
                   gameData: ./deploy/${{ inputs.plugin_name }}
                   itchUsername: ${{ inputs.itch_username }}
                   itchGameId: ${{ inputs.itch_game_id }}
-                  buildChannel: ${{ inputs.itch_channel }}
+                  buildChannel: ${{ inputs.itch_channel }}-v${{ needs.version-check.outputs.version }}
                   buildNumber: ${{ needs.version-check.outputs.version }}
+
+    # ── Update version.toml ────────────────────────────────────
+    update-version:
+        name: PR version.toml update
+        needs: [version-check, build, release]
+        if: needs.version-check.outputs.should_release == 'true' && needs.build.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+            pull-requests: write
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+
+            - name: Update version.toml
+              run: |
+                  VERSION_TOML="${{ inputs.plugin_path }}/version.toml"
+                  echo 'version = "${{ needs.version-check.outputs.version }}"' > "${VERSION_TOML}"
+                  cat "${VERSION_TOML}"
+
+            - name: Create PR
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  PLUGIN="${{ inputs.plugin_name }}"
+                  VERSION="${{ needs.version-check.outputs.version }}"
+                  BRANCH="auto/update-${PLUGIN,,}-version-${VERSION}"
+
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git checkout -b "${BRANCH}"
+                  git add "${{ inputs.plugin_path }}/version.toml"
+                  git commit -m "chore(${{ inputs.plugin_name }}): update version.toml to ${VERSION} [skip ci]"
+                  git push origin "${BRANCH}"
+
+                  gh pr create \
+                    --base dev \
+                    --head "${BRANCH}" \
+                    --title "chore(${PLUGIN}): update version.toml to ${VERSION}" \
+                    --body "Automated post-publish update. ${PLUGIN} v${VERSION} has been released and deployed."
