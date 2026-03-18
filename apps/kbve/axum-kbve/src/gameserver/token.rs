@@ -97,12 +97,12 @@ pub async fn game_token_handler(
     let b64 =
         net_config::token_to_base64(token).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))?;
 
-    // Build the WebSocket URL for the client
-    let server_url = format!("ws://{game_addr}");
+    // Build the WebSocket URL for the client (wss:// — server uses TLS)
+    let server_url = format!("wss://{game_addr}");
 
     // Build the WebTransport URL and cert digest (if available)
     let cert_digest = super::get_cert_digest().to_owned();
-    let server_wt_url = if !cert_digest.is_empty() {
+    let server_wt_url = if super::is_wt_enabled() {
         let wt_addr: SocketAddr = std::env::var("GAME_WT_ADDR")
             .unwrap_or_else(|_| DEFAULT_GAME_WT_ADDR.to_string())
             .parse()
@@ -111,6 +111,16 @@ pub async fn game_token_handler(
     } else {
         String::new()
     };
+
+    tracing::info!(
+        "[game-token] issuing token: ws_url={server_url} wt_url={} digest_len={}",
+        if server_wt_url.is_empty() {
+            "<empty>"
+        } else {
+            &server_wt_url
+        },
+        cert_digest.len(),
+    );
 
     Ok(Json(TokenResponse {
         token: b64,

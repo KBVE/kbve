@@ -17,7 +17,7 @@ use lightyear::prelude::*;
 
 use bevy_kbve_net::npcdb::{self, CreatureRegistry, ProtoNpcId, creature::CapturedCreatures};
 use bevy_kbve_net::{
-    AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
+    AuthAck, AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
     CreatureKind, DamageEvent, GameChannel, ObjectRemoved, ObjectRespawned, PlayerName,
     PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, TileKey, TimeChannel,
     TimeSyncMessage,
@@ -50,6 +50,13 @@ struct ClientPlayerMap(HashMap<Entity, Entity>);
 /// Marker: client has not yet sent a valid AuthMessage.
 #[derive(Component)]
 struct PendingAuth;
+
+/// Marker: client authenticated but hasn't completed the 4-step handshake.
+/// Stores the server_time challenge that the client must echo back in AuthAck.
+#[derive(Component)]
+struct PendingAck {
+    server_time: u64,
+}
 
 /// How long (in seconds) before a collected object respawns.
 const RESPAWN_COOLDOWN_SECS: f64 = 300.0; // 5 minutes
@@ -207,6 +214,21 @@ pub fn init_gameserver() {
     // Load WebTransport TLS certificate (optional — WT disabled if not present)
     let wt_identity = load_webtransport_identity();
 
+    // Verify cert digest was set (critical for token endpoint to return WT URL)
+    let digest = get_cert_digest();
+    if digest.is_empty() {
+        tracing::warn!(
+            "[gameserver] CERT_DIGEST is EMPTY — token endpoint will NOT return WebTransport URL, clients will fall back to WebSocket"
+        );
+    } else {
+        tracing::info!(
+            "[gameserver] CERT_DIGEST set: {}...{} ({}chars) — WT enabled in token endpoint",
+            &digest[..8],
+            &digest[digest.len() - 8..],
+            digest.len()
+        );
+    }
+
     // Profile bridge channels (Bevy ↔ tokio)
     let (req_tx, req_rx) = mpsc::channel::<ProfileRequest>();
     let (resp_tx, resp_rx) = mpsc::channel::<ProfileResponse>();
@@ -258,10 +280,11 @@ fn load_webtransport_identity() -> Option<lightyear::webtransport::prelude::Iden
             });
             match identity {
                 Ok(id) => {
-                    // Production cert (Let's Encrypt) — browser trusts the CA,
-                    // no digest needed. Leave CERT_DIGEST empty.
+                    // Trusted cert (mkcert / Let's Encrypt) — browser trusts the CA,
+                    // no digest pinning needed. Leave CERT_DIGEST empty.
+                    WT_ENABLED.store(true, std::sync::atomic::Ordering::Relaxed);
                     tracing::info!(
-                        "WebTransport using production TLS cert (no digest pinning needed)"
+                        "WebTransport using trusted TLS cert (no digest pinning needed)"
                     );
                     return Some(id);
                 }
@@ -279,17 +302,36 @@ fn load_webtransport_identity() -> Option<lightyear::webtransport::prelude::Iden
     }
 
     // --- Dev path: self-signed cert ---
+    tracing::info!("[wt-cert] generating self-signed cert...");
     let identity =
         Identity::self_signed(&["localhost", "127.0.0.1", "::1"]).expect("self-signed cert");
+    WT_ENABLED.store(true, std::sync::atomic::Ordering::Relaxed);
+    tracing::info!("[wt-cert] self-signed identity created OK");
 
     // Store digest so WASM clients can pin the self-signed cert
     let cert_chain = identity.certificate_chain();
     let certs = cert_chain.as_slice();
+    tracing::info!("[wt-cert] certificate chain length: {}", certs.len());
     if let Some(cert) = certs.first() {
         let digest = cert.hash();
-        let digest_hex: String = digest.as_ref().iter().map(|b| format!("{b:02X}")).collect();
-        tracing::info!("WebTransport self-signed cert digest: {digest_hex}");
-        let _ = CERT_DIGEST.set(digest_hex);
+        let raw_bytes: &[u8] = digest.as_ref();
+        tracing::info!("[wt-cert] hash returned {} bytes", raw_bytes.len());
+        let digest_hex: String = raw_bytes.iter().map(|b| format!("{b:02X}")).collect();
+        tracing::info!(
+            "[wt-cert] self-signed cert digest: {digest_hex} (len={})",
+            digest_hex.len()
+        );
+        let set_result = CERT_DIGEST.set(digest_hex);
+        if set_result.is_err() {
+            tracing::error!("[wt-cert] CERT_DIGEST.set() FAILED — OnceLock already set!");
+        } else {
+            tracing::info!(
+                "[wt-cert] CERT_DIGEST stored OK — get_cert_digest() = '{}'",
+                get_cert_digest()
+            );
+        }
+    } else {
+        tracing::error!("[wt-cert] certificate chain is EMPTY — cannot extract digest!");
     }
 
     Some(identity)
@@ -460,8 +502,16 @@ fn run_bevy_app(
     app.add_observer(on_server_connected);
     app.add_observer(on_server_disconnected);
 
-    // Process auth messages from clients
+    // Debug observers for link/transport lifecycle — traces the path from
+    // WebSocket accept → per-client Link → Linked → Netcode processing
+    app.add_observer(debug_on_linking_added);
+    app.add_observer(debug_on_linked_added);
+    app.add_observer(debug_on_unlinked_added);
+
+    // Process auth messages from clients (steps 2-3 of handshake)
     app.add_systems(Update, process_auth_messages);
+    // Verify AuthAck echo (step 4 of handshake)
+    app.add_systems(Update, verify_auth_ack);
 
     // Receive position updates from clients and apply to their player entities
     app.add_systems(Update, process_position_updates);
@@ -504,6 +554,8 @@ fn run_bevy_app(
 
     // Periodic debug heartbeat
     app.add_systems(Update, server_debug_heartbeat);
+    app.add_systems(Update, server_debug_link_buffers);
+    app.add_systems(Update, server_debug_netcode_collection);
 
     tracing::info!("game server Bevy app running");
     app.run();
@@ -532,20 +584,33 @@ pub struct CertDigest(pub std::sync::Arc<String>);
 /// Global accessor for the cert digest (set once at startup).
 static CERT_DIGEST: std::sync::OnceLock<String> = std::sync::OnceLock::new();
 
+/// Whether WebTransport is enabled (set once at startup).
+static WT_ENABLED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
 /// Read the cert digest from the global store (for the token endpoint).
 pub fn get_cert_digest() -> &'static str {
     CERT_DIGEST.get().map(|s| s.as_str()).unwrap_or("")
 }
 
+/// Check whether WebTransport is enabled.
+pub fn is_wt_enabled() -> bool {
+    WT_ENABLED.load(std::sync::atomic::Ordering::Relaxed)
+}
+
 /// Spawn the lightyear WebSocket server entity with Netcode authentication.
+/// Loads mkcert/production TLS certs from `GAME_WS_CERT`/`GAME_WS_KEY` env vars,
+/// falling back to self-signed if not set.
 fn start_server(commands: &mut Commands, ws_addr: SocketAddr, private_key: [u8; 32]) {
     use lightyear::websocket::prelude::server::*;
 
     tracing::info!("[gameserver] start_server — binding to {ws_addr}");
 
+    let ws_identity = load_ws_identity();
+    tracing::info!("[gameserver] WebSocket TLS identity loaded");
+
     let ws_config = ServerConfig::builder()
         .with_bind_address(ws_addr)
-        .with_no_encryption();
+        .with_identity(ws_identity);
 
     let netcode_config = lightyear::netcode::prelude::server::NetcodeConfig {
         protocol_id: bevy_kbve_net::net_config::KBVE_PROTOCOL_ID,
@@ -570,6 +635,52 @@ fn start_server(commands: &mut Commands, ws_addr: SocketAddr, private_key: [u8; 
         entity: server_entity,
     });
     tracing::info!("[gameserver] lightyear Netcode+WebSocket server starting on {ws_addr}");
+}
+
+/// Load WebSocket TLS identity from PEM files (mkcert/production) or generate self-signed.
+fn load_ws_identity() -> lightyear::websocket::server::Identity {
+    let cert_path = std::env::var("GAME_WS_CERT").ok();
+    let key_path = std::env::var("GAME_WS_KEY").ok();
+
+    if let (Some(cert_file), Some(key_file)) = (cert_path, key_path) {
+        match load_pem_identity(&cert_file, &key_file) {
+            Ok(identity) => {
+                tracing::info!("[gameserver] WS TLS loaded from PEM: {cert_file}");
+                return identity;
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "[gameserver] failed to load WS PEM certs: {e} — falling back to self-signed"
+                );
+            }
+        }
+    }
+
+    tracing::info!("[gameserver] WS TLS using self-signed cert");
+    lightyear::websocket::server::Identity::self_signed(["localhost", "127.0.0.1", "::1"])
+        .expect("failed to generate self-signed cert for WebSocket server")
+}
+
+/// Parse PEM cert+key files into a lightyear websocket Identity.
+fn load_pem_identity(
+    cert_path: &str,
+    key_path: &str,
+) -> anyhow::Result<lightyear::websocket::server::Identity> {
+    use rustls_pemfile::{certs, private_key};
+    use std::io::BufReader;
+
+    let cert_file = std::fs::File::open(cert_path)?;
+    let key_file = std::fs::File::open(key_path)?;
+
+    let cert_chain: Vec<_> =
+        certs(&mut BufReader::new(cert_file)).collect::<Result<Vec<_>, _>>()?;
+
+    let key_der = private_key(&mut BufReader::new(key_file))?
+        .ok_or_else(|| anyhow::anyhow!("no private key found in {key_path}"))?;
+
+    Ok(lightyear::websocket::server::Identity::new(
+        cert_chain, key_der,
+    ))
 }
 
 /// Spawn a lightyear WebTransport server entity with Netcode authentication.
@@ -606,6 +717,34 @@ fn start_webtransport_server(
 
     commands.trigger(Start { entity: wt_entity });
     tracing::info!("[gameserver] lightyear Netcode+WebTransport server starting on {wt_addr}");
+}
+
+// ---------------------------------------------------------------------------
+// Debug observers — transport + link lifecycle tracing
+// ---------------------------------------------------------------------------
+
+/// Fires when Linking is added to a Link entity (transport connecting).
+fn debug_on_linking_added(trigger: On<Add, Linking>) {
+    let entity = trigger.entity;
+    tracing::info!(
+        "[gameserver][link-debug] LINKING added — entity {entity:?} (transport connecting)"
+    );
+}
+
+/// Fires when Linked is added to a Link entity (transport connected — packets can flow).
+fn debug_on_linked_added(trigger: On<Add, Linked>) {
+    let entity = trigger.entity;
+    tracing::info!(
+        "[gameserver][link-debug] LINKED added — entity {entity:?} (transport ready, packets can flow)"
+    );
+}
+
+/// Fires when Unlinked is added (transport failed or closed).
+fn debug_on_unlinked_added(trigger: On<Add, Unlinked>) {
+    let entity = trigger.entity;
+    tracing::warn!(
+        "[gameserver][link-debug] UNLINKED added — entity {entity:?} (transport closed)"
+    );
 }
 
 /// Debug observer: fires when lightyear adds `Connecting` to a client entity on the server side.
@@ -674,6 +813,76 @@ fn server_debug_heartbeat(
     }
 }
 
+/// Periodic system: logs Link buffer states every ~2 seconds.
+/// This helps diagnose whether packets from WebSocket clients reach the Link layer.
+fn server_debug_link_buffers(
+    time: Res<Time>,
+    mut timer: Local<Option<Timer>>,
+    link_q: Query<(Entity, &Link, Has<Linked>, Has<Linking>)>,
+) {
+    let t = timer.get_or_insert_with(|| Timer::from_seconds(2.0, TimerMode::Repeating));
+    t.tick(time.delta());
+    if !t.just_finished() {
+        return;
+    }
+
+    // Log all Link entities with non-empty buffers or active connections
+    for (entity, link, is_linked, is_linking) in &link_q {
+        let send_len = link.send.len();
+        let recv_len = link.recv.len();
+        if send_len > 0 || recv_len > 0 || is_linked || is_linking {
+            tracing::info!(
+                "[gameserver][link-buffers] Link entity={entity:?} send={send_len} recv={recv_len} linked={is_linked} linking={is_linking}"
+            );
+        }
+    }
+}
+
+/// Diagnostic: logs per-NetcodeServer collection() size every ~2s.
+/// This reveals whether WT/WS connections produce Link entities visible to the Netcode layer.
+fn server_debug_netcode_collection(
+    time: Res<Time>,
+    mut timer: Local<Option<Timer>>,
+    server_q: Query<(
+        Entity,
+        &NetcodeServer,
+        &Server,
+        Has<Linked>,
+        Option<&LocalAddr>,
+    )>,
+    link_q: Query<(Entity, &Link, Has<Linked>), With<LinkOf>>,
+) {
+    let t = timer.get_or_insert_with(|| Timer::from_seconds(2.0, TimerMode::Repeating));
+    t.tick(time.delta());
+    if !t.just_finished() {
+        return;
+    }
+
+    for (entity, _netcode, server, is_linked, local_addr) in &server_q {
+        let addr = local_addr.map(|a| a.0.to_string()).unwrap_or_default();
+        let collection = server.collection();
+        let count = collection.len();
+        if count > 0 || is_linked {
+            tracing::info!(
+                "[gameserver][netcode-diag] Server entity={entity:?} addr={addr} linked={is_linked} collection_size={count}"
+            );
+            for &link_entity in collection {
+                if let Ok((le, link, le_linked)) = link_q.get(link_entity) {
+                    tracing::info!(
+                        "[gameserver][netcode-diag]   Link {le:?} send={} recv={} linked={le_linked}",
+                        link.send.len(),
+                        link.recv.len(),
+                    );
+                } else {
+                    tracing::warn!(
+                        "[gameserver][netcode-diag]   Link {link_entity:?} NOT found in link_q (missing Link or LinkOf?)"
+                    );
+                }
+            }
+        }
+    }
+}
+
 /// When a new client connects (Netcode handshake complete), add ReplicationSender
 /// so lightyear can replicate entities to this client, and mark as pending authentication.
 fn handle_new_connection(
@@ -713,10 +922,20 @@ fn handle_new_connection(
     tracing::info!("[gameserver] PendingAuth + ReplicationSender inserted for {client_entity:?}");
 }
 
+/// Encode the current game hour as a millihour challenge value.
+/// This ties the handshake to the world clock — client must echo it back.
+fn game_time_challenge(day: &DayCycle) -> u64 {
+    (day.hour * 1000.0) as u64
+}
+
 /// Check for AuthMessage from connected clients and validate their JWT.
+/// On success, sends AuthResponse with a `server_time` challenge (game clock)
+/// and inserts PendingAck — the client must echo server_time in AuthAck to
+/// complete the 4-step handshake.
 fn process_auth_messages(
     mut commands: Commands,
     jwt_secret: Res<JwtSecret>,
+    day: Res<DayCycle>,
     mut authenticated: ResMut<AuthenticatedClients>,
     mut client_player_map: ResMut<ClientPlayerMap>,
     profile_tx: Res<ProfileBridgeTx>,
@@ -731,21 +950,27 @@ fn process_auth_messages(
 ) {
     for (entity, mut receiver, mut sender) in &mut query {
         for msg in receiver.receive() {
+            let server_time = game_time_challenge(&day);
+
             // --- Guest path: empty JWT → anonymous session ---
-            // Works regardless of whether SUPABASE_JWT_SECRET is set.
-            // Guests get a unique counter-based identity (guest_0, guest_1, …).
             if msg.jwt.is_empty() || msg.jwt.trim().is_empty() {
                 let guest_idx = PLAYER_COUNTER.load(std::sync::atomic::Ordering::Relaxed);
                 let guest_user_id = format!("guest_{guest_idx}");
-                tracing::info!("client {entity:?} connecting as guest: {guest_user_id}");
+                tracing::info!(
+                    "client {entity:?} connecting as guest: {guest_user_id} (challenge={server_time})"
+                );
                 let player_id = user_id_to_player_id(&guest_user_id);
                 let player_entity = spawn_player(&mut commands, player_id);
                 sender.send::<GameChannel>(AuthResponse {
                     success: true,
                     user_id: guest_user_id.clone(),
                     player_id,
+                    server_time,
                 });
-                commands.entity(entity).remove::<PendingAuth>();
+                commands
+                    .entity(entity)
+                    .remove::<PendingAuth>()
+                    .insert(PendingAck { server_time });
                 authenticated.0.insert(entity, guest_user_id);
                 client_player_map.0.insert(entity, player_entity);
                 continue;
@@ -753,12 +978,10 @@ fn process_auth_messages(
 
             // --- JWT path: validate with Supabase secret ---
             if jwt_secret.0.is_empty() {
-                // No secret configured — treat any JWT as anonymous
-                // (dev/staging environments without Supabase)
                 let anon_idx = PLAYER_COUNTER.load(std::sync::atomic::Ordering::Relaxed);
                 let anon_user_id = format!("anon_{anon_idx}");
                 tracing::warn!(
-                    "SUPABASE_JWT_SECRET not set — accepting {entity:?} as {anon_user_id}"
+                    "SUPABASE_JWT_SECRET not set — accepting {entity:?} as {anon_user_id} (challenge={server_time})"
                 );
                 let player_id = user_id_to_player_id(&anon_user_id);
                 let player_entity = spawn_player(&mut commands, player_id);
@@ -766,8 +989,12 @@ fn process_auth_messages(
                     success: true,
                     user_id: anon_user_id.clone(),
                     player_id,
+                    server_time,
                 });
-                commands.entity(entity).remove::<PendingAuth>();
+                commands
+                    .entity(entity)
+                    .remove::<PendingAuth>()
+                    .insert(PendingAck { server_time });
                 authenticated.0.insert(entity, anon_user_id.clone());
                 client_player_map.0.insert(entity, player_entity);
 
@@ -781,15 +1008,21 @@ fn process_auth_messages(
             match crate::auth::validate_token(&msg.jwt, &jwt_secret.0) {
                 Ok(token_data) => {
                     let user_id = token_data.claims.sub.clone();
-                    tracing::info!("client {entity:?} authenticated as user {user_id}");
+                    tracing::info!(
+                        "client {entity:?} authenticated as user {user_id} (challenge={server_time})"
+                    );
                     let player_id = user_id_to_player_id(&user_id);
                     let player_entity = spawn_player(&mut commands, player_id);
                     sender.send::<GameChannel>(AuthResponse {
                         success: true,
                         user_id: user_id.clone(),
                         player_id,
+                        server_time,
                     });
-                    commands.entity(entity).remove::<PendingAuth>();
+                    commands
+                        .entity(entity)
+                        .remove::<PendingAuth>()
+                        .insert(PendingAck { server_time });
                     authenticated.0.insert(entity, user_id.clone());
                     client_player_map.0.insert(entity, player_entity);
 
@@ -809,8 +1042,37 @@ fn process_auth_messages(
                         success: false,
                         user_id: String::new(),
                         player_id: 0,
+                        server_time: 0,
                     });
                 }
+            }
+        }
+    }
+}
+
+/// Verify AuthAck from clients — step 4 of the 4-step handshake.
+/// Client must echo back the exact `server_time` from AuthResponse.
+/// On success: removes PendingAck, client is fully confirmed.
+/// On failure: disconnects the client (possible replay/spoof).
+fn verify_auth_ack(
+    mut commands: Commands,
+    mut query: Query<(Entity, &PendingAck, &mut MessageReceiver<AuthAck>)>,
+) {
+    for (entity, pending, mut receiver) in &mut query {
+        for ack in receiver.receive() {
+            if ack.server_time == pending.server_time {
+                tracing::info!(
+                    "[gameserver] AuthAck OK — client {entity:?} echoed server_time={} — handshake complete",
+                    ack.server_time
+                );
+                commands.entity(entity).remove::<PendingAck>();
+            } else {
+                tracing::warn!(
+                    "[gameserver] AuthAck MISMATCH — client {entity:?} sent {} but expected {} — disconnecting",
+                    ack.server_time,
+                    pending.server_time
+                );
+                commands.trigger(lightyear::prelude::Disconnect { entity });
             }
         }
     }
