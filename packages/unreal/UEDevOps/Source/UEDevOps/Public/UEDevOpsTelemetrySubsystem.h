@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Engine/TimerHandle.h"
 #include "UEDevOpsTelemetrySubsystem.generated.h"
 
 USTRUCT(BlueprintType)
