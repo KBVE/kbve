@@ -1,11 +1,3 @@
-# Pre-built Rust build base image (override with --build-arg BUILD_BASE=...)
-#
-# CI mode:   BUILD_BASE=ghcr.io/kbve/discordsh-build-base:latest
-#             → skips inline Rust stages, pulls pre-built foundation from GHCR
-# Local mode: BUILD_BASE=foundation (default)
-#             → builds everything inline (no external image needed)
-ARG BUILD_BASE=foundation
-
 # ============================================================================
 # [STAGE A] - Build Astro Static Site
 # ============================================================================
@@ -67,8 +59,8 @@ RUN find . -type f \( \
     echo "Precompression complete (brotli-11 + gzip-9)"
 
 # ============================================================================
-# Inline Rust build stages (used when BUILD_BASE=foundation, i.e. local mode)
-# When BUILD_BASE points to an external image, these stages are skipped entirely.
+# Rust build stages — cargo-chef separates dependency compilation from source.
+# BuildKit layer cache handles incremental rebuilds across runs.
 # ============================================================================
 
 # [STAGE C] - Rust Base Image
@@ -158,12 +150,8 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 
 # ============================================================================
 # [STAGE F] - Build Application
-#
-# Uses BUILD_BASE (default: "foundation" = inline stages above).
-# In CI, set BUILD_BASE=ghcr.io/kbve/discordsh-build-base:latest to skip
-# all inline Rust stages and use the pre-built GHCR image instead.
 # ============================================================================
-FROM ${BUILD_BASE} AS builder
+FROM foundation AS builder
 
 # Astro build output (precompressed) → placed into templates/dist
 COPY --from=astro-precompressor /static /app/apps/discordsh/axum-discordsh/templates/dist
