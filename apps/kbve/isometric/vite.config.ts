@@ -49,6 +49,16 @@ export default defineConfig(async () => ({
 			'Cross-Origin-Embedder-Policy': 'credentialless',
 		},
 		proxy: {
+			// Game server routes → axum (3080)
+			'/api/v1/telemetry': {
+				target: 'http://127.0.0.1:3080',
+				changeOrigin: true,
+			},
+			'/api/v1/auth/game-token': {
+				target: 'http://127.0.0.1:3080',
+				changeOrigin: true,
+			},
+			// Everything else → Astro (4321)
 			'/api': {
 				target: 'http://127.0.0.1:4321',
 				changeOrigin: true,
