@@ -129,13 +129,13 @@ COPY ./apps/mc/plugins /plugins
 # Inject Astro-built players page as Askama template (compiled into the .so)
 COPY --from=astro-builder /app/dist/apps/astro-mc/players/index.html /plugins/kbve-mc-plugin/templates/askama/players.html
 ENV CARGO_TARGET_DIR=/pumpkin/target
+RUN mkdir -p /built-plugins
 RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
     cargo build --release --manifest-path /plugins/kbve-mc-plugin/Cargo.toml \
-    && mkdir -p /built-plugins \
-    && cp /pumpkin/target/release/libkbve_mc_plugin.so /built-plugins/ 2>/dev/null \
-    || cp /pumpkin/target/release/libkbve_mc_plugin.dylib /built-plugins/ 2>/dev/null \
-    || true
+    && { cp /pumpkin/target/release/libkbve_mc_plugin.so /built-plugins/ 2>/dev/null \
+         || cp /pumpkin/target/release/libkbve_mc_plugin.dylib /built-plugins/ 2>/dev/null \
+         || true; }
 
 # --- Resource pack (fast, runs in parallel with rust builds) ---
 FROM alpine:3.23 AS pack-builder
