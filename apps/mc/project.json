@@ -103,7 +103,8 @@
 			"options": {
 				"engine": "docker",
 				"context": ".",
-				"file": "apps/mc/Dockerfile.dev",
+				"file": "apps/mc/Dockerfile",
+				"build-args": ["VARIANT=dev"],
 				"load": true
 			},
 			"configurations": {

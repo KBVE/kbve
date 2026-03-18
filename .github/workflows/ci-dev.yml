@@ -306,7 +306,8 @@ jobs:
               uses: docker/build-push-action@v7
               with:
                   context: .
-                  file: apps/mc/Dockerfile.dev
+                  file: apps/mc/Dockerfile
+                  build-args: VARIANT=dev
                   push: false
                   load: true
                   tags: kbve/mc:dev
