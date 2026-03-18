@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "3.51.3",
+	"FriendlyName": "KBVE SQLite",
+	"Description": "Unreal Engine wrapper for SQLite 3.51.3 — self-contained, serverless, zero-configuration SQL database engine.",
+	"Category": "Third Party",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"DocsURL": "https://sqlite.org/docs.html",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"EnabledByDefault": false,
+	"Modules": [
+		{
+			"Name": "KBVESQLite",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

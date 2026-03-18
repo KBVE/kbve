@@ -75,15 +75,31 @@ pub async fn serve(state: AppState) -> Result<()> {
         .unwrap_or(4321);
     let addr: SocketAddr = format!("{host}:{port}").parse()?;
 
-    let listener = tuned_listener(addr)?;
-
-    info!("HTTP listening on http://{addr}");
-
     let app = router(state);
 
-    axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
-        .await?;
+    let cert_path = std::env::var("HTTP_CERT").ok();
+    let key_path = std::env::var("HTTP_KEY").ok();
+
+    if let (Some(cert), Some(key)) = (cert_path, key_path) {
+        // TLS mode — mkcert or production certs
+        let tls_config = axum_server::tls_rustls::RustlsConfig::from_pem_file(&cert, &key)
+            .await
+            .map_err(|e| anyhow::anyhow!("failed to load TLS certs ({cert}, {key}): {e}"))?;
+
+        info!("HTTPS listening on https://{addr}");
+
+        axum_server::bind_rustls(addr, tls_config)
+            .serve(app.into_make_service())
+            .await?;
+    } else {
+        // Plain HTTP (production behind reverse proxy, or legacy dev)
+        let listener = tuned_listener(addr)?;
+        info!("HTTP listening on http://{addr}");
+
+        axum::serve(listener, app)
+            .with_graceful_shutdown(shutdown_signal())
+            .await?;
+    }
 
     Ok(())
 }
@@ -153,6 +169,10 @@ fn router(state: AppState) -> Router {
         .route(
             "/api/v1/auth/game-token",
             post(crate::gameserver::token::game_token_handler),
+        )
+        .route(
+            "/api/v1/telemetry/report",
+            post(crate::telemetry::report_handler),
         )
         .route("/@{username}", get(profile_handler))
         .route("/osrs/{item}", get(osrs_item_handler))

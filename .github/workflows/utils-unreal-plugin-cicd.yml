@@ -1,0 +1,431 @@
+name: Unreal Plugin Build & Publish
+
+on:
+    workflow_call:
+        inputs:
+            plugin_path:
+                description: 'Path to plugin directory relative to repo root (e.g. packages/unreal/UEDevOps)'
+                required: true
+                type: string
+            plugin_name:
+                description: 'Plugin name — must match the .uplugin filename (e.g. UEDevOps)'
+                required: true
+                type: string
+            ue_image_tag:
+                description: 'Epic UE container image tag (e.g. dev-5.7)'
+                required: false
+                type: string
+                default: 'dev-5.7.4'
+            target_platforms:
+                description: 'Target platforms for BuildPlugin (e.g. Linux, Win64, Linux+Win64)'
+                required: false
+                type: string
+                default: 'Linux'
+            release_tag_prefix:
+                description: 'GitHub Release tag prefix (e.g. uedevops-v → uedevops-v0.1.0)'
+                required: false
+                type: string
+                default: ''
+            deploy_to_itch:
+                description: 'Deploy to itch.io after successful build'
+                required: false
+                type: boolean
+                default: false
+            itch_username:
+                description: 'Itch.io username'
+                required: false
+                type: string
+                default: 'kbve'
+            itch_game_id:
+                description: 'Itch.io game/project ID'
+                required: false
+                type: string
+                default: ''
+            itch_channel:
+                description: 'Itch.io build channel'
+                required: false
+                type: string
+                default: 'plugin'
+            dependency_plugin_paths:
+                description: 'Space-separated paths to dependency plugins (e.g. packages/unreal/KBVEYYJson packages/unreal/KBVEZstd)'
+                required: false
+                type: string
+                default: ''
+            runner:
+                description: 'Self-hosted runner label'
+                required: false
+                type: string
+                default: 'arc-runner-ue'
+            build_timeout:
+                description: 'Build job timeout in minutes'
+                required: false
+                type: number
+                default: 60
+        secrets:
+            epic_pat:
+                description: 'PAT with access to ghcr.io/epicgames/unreal-engine'
+                required: true
+            butler_api:
+                description: 'Itch.io Butler API key'
+                required: false
+        outputs:
+            version:
+                description: 'Plugin version extracted from .uplugin'
+                value: ${{ jobs.version-check.outputs.version }}
+            should_release:
+                description: 'Whether a new release was created'
+                value: ${{ jobs.version-check.outputs.should_release }}
+            build_result:
+                description: 'Build job result'
+                value: ${{ jobs.build.result }}
+
+permissions: {}
+
+jobs:
+    # ── Fork Guard ──────────────────────────────────────────────
+    guard:
+        name: Fork Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            allowed: ${{ steps.check.outputs.allowed }}
+        steps:
+            - name: Verify origin and actor
+              id: check
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
+                        const headRepo = context.payload.pull_request?.head?.repo?.full_name;
+                        const baseRepo = context.payload.repository?.full_name;
+                        if (headRepo && headRepo !== baseRepo) {
+                          core.error(`Blocked: fork PR from ${headRepo}`);
+                          core.setOutput('allowed', 'false');
+                          return;
+                        }
+                      }
+                      try {
+                        const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          username: context.actor,
+                        });
+                        const level = data.permission;
+                        if (level === 'admin' || level === 'write') {
+                          core.setOutput('allowed', 'true');
+                        } else {
+                          core.error(`Actor ${context.actor} has ${level} access — insufficient`);
+                          core.setOutput('allowed', 'false');
+                        }
+                      } catch (err) {
+                        core.error(`Permission check failed: ${err.message}`);
+                        core.setOutput('allowed', 'false');
+                      }
+
+    # ── Version Check ───────────────────────────────────────────
+    version-check:
+        name: Version Gate
+        needs: guard
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        outputs:
+            version: ${{ steps.extract.outputs.version }}
+            published_version: ${{ steps.extract.outputs.published_version }}
+            should_release: ${{ steps.compare.outputs.should_release }}
+            tag: ${{ steps.compare.outputs.tag }}
+            zip_name: ${{ steps.extract.outputs.zip_name }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Extract versions
+              id: extract
+              run: |
+                  # --- .uplugin version (source of truth for desired version) ---
+                  UPLUGIN="${{ inputs.plugin_path }}/${{ inputs.plugin_name }}.uplugin"
+                  if [ ! -f "${UPLUGIN}" ]; then
+                    echo "::error::Plugin file not found: ${UPLUGIN}"
+                    exit 1
+                  fi
+                  VERSION=$(jq -r '.VersionName' "${UPLUGIN}")
+                  if [ -z "${VERSION}" ] || [ "${VERSION}" = "null" ]; then
+                    echo "::error::Could not extract VersionName from ${UPLUGIN}"
+                    exit 1
+                  fi
+
+                  # --- version.toml (last published version) ---
+                  VERSION_TOML="${{ inputs.plugin_path }}/version.toml"
+                  if [ -f "${VERSION_TOML}" ]; then
+                    PUBLISHED=$(grep -m1 '^version' "${VERSION_TOML}" | sed 's/version = "\(.*\)"/\1/')
+                  else
+                    PUBLISHED="0.0.0"
+                  fi
+
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "published_version=${PUBLISHED}" >> "$GITHUB_OUTPUT"
+                  echo "zip_name=${{ inputs.plugin_name }}-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
+                  echo "::notice::Plugin ${{ inputs.plugin_name }} — uplugin: ${VERSION}, published: ${PUBLISHED}"
+
+            - name: Compare versions
+              id: compare
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  VERSION="${{ steps.extract.outputs.version }}"
+                  PUBLISHED="${{ steps.extract.outputs.published_version }}"
+
+                  PREFIX="${{ inputs.release_tag_prefix }}"
+                  if [ -z "${PREFIX}" ]; then
+                    PREFIX=$(echo "${{ inputs.plugin_name }}" | tr '[:upper:]' '[:lower:]')
+                    PREFIX="${PREFIX}-v"
+                  fi
+                  TAG="${PREFIX}${VERSION}"
+                  echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+                  if [ "${VERSION}" = "${PUBLISHED}" ]; then
+                    echo "::notice::version.toml matches .uplugin (${VERSION}) — skipping publish"
+                    echo "should_release=false" >> "$GITHUB_OUTPUT"
+                  elif gh release view "${TAG}" --json tagName >/dev/null 2>&1; then
+                    echo "::notice::Release ${TAG} already exists (version.toml stale) — skipping publish"
+                    echo "should_release=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "::notice::New version ${VERSION} (was ${PUBLISHED}) — will publish"
+                    echo "should_release=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+    # ── Build Plugin ────────────────────────────────────────────
+    build:
+        name: Build Plugin (${{ inputs.plugin_name }})
+        needs: [guard, version-check]
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: ${{ inputs.runner }}
+        timeout-minutes: ${{ inputs.build_timeout }}
+        permissions:
+            contents: read
+            packages: read
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::Unreal plugin build: plugin=${{ inputs.plugin_name }}, version=${{ needs.version-check.outputs.version }}, image=ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}, actor=${{ github.actor }}"
+
+            - name: Checkout repository
+              uses: actions/checkout@v6
+
+            - name: Login to GitHub Container Registry
+              run: |
+                  echo "${{ secrets.epic_pat }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            - name: Pull Unreal Engine image
+              run: |
+                  docker pull "ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}"
+
+            - name: Prepare dependency plugins
+              if: inputs.dependency_plugin_paths != ''
+              run: |
+                  mkdir -p "${{ github.workspace }}/_deps"
+                  for dep_path in ${{ inputs.dependency_plugin_paths }}; do
+                    dep_name=$(basename "$dep_path")
+                    echo "::notice::Copying dependency plugin: ${dep_name} from ${dep_path}"
+                    cp -r "${{ github.workspace }}/${dep_path}" "${{ github.workspace }}/_deps/${dep_name}"
+                  done
+                  echo "Dependency plugins staged:"
+                  ls -la "${{ github.workspace }}/_deps/"
+
+            - name: Build plugin with RunUAT
+              run: |
+                  mkdir -p "${{ github.workspace }}/output"
+
+                  # Build volume mounts — always include plugin and output
+                  DOCKER_VOLS="-v ${{ github.workspace }}/${{ inputs.plugin_path }}:/plugin"
+                  DOCKER_VOLS="${DOCKER_VOLS} -v ${{ github.workspace }}/output:/output"
+
+                  # Mount dependency plugins if any
+                  if [ -d "${{ github.workspace }}/_deps" ] && [ "$(ls -A "${{ github.workspace }}/_deps")" ]; then
+                    DOCKER_VOLS="${DOCKER_VOLS} -v ${{ github.workspace }}/_deps:/deps:ro"
+                  fi
+
+                  docker run --rm \
+                    ${DOCKER_VOLS} \
+                    "ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}" \
+                    /bin/bash -c '
+                      set -euo pipefail
+
+                      # Locate engine root and RunUAT
+                      RUNUAT=""
+                      ENGINE_ROOT=""
+                      for candidate in \
+                        /home/ue4/UnrealEngine \
+                        /home/epic/UnrealEngine \
+                        /UnrealEngine; do
+                        if [ -f "$candidate/Engine/Build/BatchFiles/RunUAT.sh" ]; then
+                          RUNUAT="$candidate/Engine/Build/BatchFiles/RunUAT.sh"
+                          ENGINE_ROOT="$candidate"
+                          break
+                        fi
+                      done
+
+                      if [ -z "$RUNUAT" ]; then
+                        echo "::error::RunUAT.sh not found in container — scanning filesystem"
+                        find / -name "RunUAT.sh" 2>/dev/null || true
+                        exit 1
+                      fi
+
+                      echo "::notice::RunUAT located at: $RUNUAT"
+                      echo "::notice::Engine root: $ENGINE_ROOT"
+
+                      # Install dependency plugins into engine Marketplace directory
+                      if [ -d /deps ]; then
+                        MARKETPLACE_DIR="$ENGINE_ROOT/Engine/Plugins/Marketplace"
+                        mkdir -p "$MARKETPLACE_DIR"
+                        for dep in /deps/*/; do
+                          dep_name=$(basename "$dep")
+                          echo "::notice::Installing dependency plugin: $dep_name → $MARKETPLACE_DIR/$dep_name"
+                          cp -r "$dep" "$MARKETPLACE_DIR/$dep_name"
+                        done
+                      fi
+
+                      "$RUNUAT" BuildPlugin \
+                        -Plugin=/plugin/${{ inputs.plugin_name }}.uplugin \
+                        -Package=/output/${{ inputs.plugin_name }} \
+                        -TargetPlatforms=${{ inputs.target_platforms }} \
+                        -Rocket \
+                        -StrictIncludes
+                    '
+
+            - name: Verify build output
+              run: |
+                  if [ ! -f "output/${{ inputs.plugin_name }}/${{ inputs.plugin_name }}.uplugin" ]; then
+                    echo "::error::Build output missing — .uplugin not found"
+                    ls -laR output/ 2>/dev/null | head -50 || true
+                    exit 1
+                  fi
+                  echo "::notice::Build succeeded for ${{ inputs.plugin_name }}"
+                  find "output/${{ inputs.plugin_name }}" -type f | head -30
+
+            - name: Package plugin zip
+              run: |
+                  cd output
+                  zip -r "${{ needs.version-check.outputs.zip_name }}" "${{ inputs.plugin_name }}/"
+                  ls -lh "${{ needs.version-check.outputs.zip_name }}"
+
+            - name: Upload build artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.plugin_name }}-v${{ needs.version-check.outputs.version }}
+                  path: output/${{ needs.version-check.outputs.zip_name }}
+                  retention-days: 30
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  docker logout ghcr.io 2>/dev/null || true
+                  docker system prune -f 2>/dev/null || true
+                  rm -rf "$GITHUB_WORKSPACE"/* "$GITHUB_WORKSPACE"/.[!.]* 2>/dev/null || true
+
+    # ── GitHub Release ──────────────────────────────────────────
+    release:
+        name: Create GitHub Release
+        needs: [version-check, build]
+        if: needs.version-check.outputs.should_release == 'true' && needs.build.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+        steps:
+            - name: Download build artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: ${{ inputs.plugin_name }}-v${{ needs.version-check.outputs.version }}
+                  path: ./artifact
+
+            - name: Create release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  gh release create "${{ needs.version-check.outputs.tag }}" \
+                    --repo "${{ github.repository }}" \
+                    --title "${{ inputs.plugin_name }} v${{ needs.version-check.outputs.version }}" \
+                    --notes "${{ inputs.plugin_name }} plugin v${{ needs.version-check.outputs.version }} built against UE ${{ inputs.ue_image_tag }}" \
+                    --prerelease \
+                    "./artifact/${{ needs.version-check.outputs.zip_name }}"
+
+    # ── Itch.io Deploy ──────────────────────────────────────────
+    itch-deploy:
+        name: Deploy to itch.io
+        needs: [version-check, build, release]
+        if: |
+            always() &&
+            needs.build.result == 'success' &&
+            inputs.deploy_to_itch == true &&
+            inputs.itch_game_id != ''
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: read
+        steps:
+            - name: Download build artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: ${{ inputs.plugin_name }}-v${{ needs.version-check.outputs.version }}
+                  path: ./artifact
+
+            - name: Extract zip for butler
+              run: |
+                  mkdir -p ./deploy
+                  unzip "./artifact/${{ needs.version-check.outputs.zip_name }}" -d ./deploy
+
+            - name: Deploy to itch.io
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.butler_api }}
+                  gameData: ./deploy/${{ inputs.plugin_name }}
+                  itchUsername: ${{ inputs.itch_username }}
+                  itchGameId: ${{ inputs.itch_game_id }}
+                  buildChannel: ${{ inputs.itch_channel }}-v${{ needs.version-check.outputs.version }}
+                  buildNumber: ${{ needs.version-check.outputs.version }}
+
+    # ── Update version.toml ────────────────────────────────────
+    update-version:
+        name: PR version.toml update
+        needs: [version-check, build, release]
+        if: needs.version-check.outputs.should_release == 'true' && needs.build.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+            pull-requests: write
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+
+            - name: Update version.toml
+              run: |
+                  VERSION_TOML="${{ inputs.plugin_path }}/version.toml"
+                  echo 'version = "${{ needs.version-check.outputs.version }}"' > "${VERSION_TOML}"
+                  cat "${VERSION_TOML}"
+
+            - name: Create PR
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  PLUGIN="${{ inputs.plugin_name }}"
+                  VERSION="${{ needs.version-check.outputs.version }}"
+                  BRANCH="auto/update-${PLUGIN,,}-version-${VERSION}"
+
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git checkout -b "${BRANCH}"
+                  git add "${{ inputs.plugin_path }}/version.toml"
+                  git commit -m "chore(${{ inputs.plugin_name }}): update version.toml to ${VERSION} [skip ci]"
+                  git push origin "${BRANCH}"
+
+                  gh pr create \
+                    --base dev \
+                    --head "${BRANCH}" \
+                    --title "chore(${PLUGIN}): update version.toml to ${VERSION}" \
+                    --body "Automated post-publish update. ${PLUGIN} v${VERSION} has been released and deployed."

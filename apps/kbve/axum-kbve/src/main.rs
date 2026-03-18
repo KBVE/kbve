@@ -3,6 +3,7 @@ mod auth;
 mod db;
 pub mod gameserver;
 mod proto;
+mod telemetry;
 mod transport;
 
 use tracing::{info, warn};
@@ -19,6 +20,11 @@ mod allocator {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Install rustls crypto provider before any TLS usage (axum-server, lightyear, etc.)
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .expect("failed to install rustls CryptoProvider");
+
     // Load .env before anything reads env vars
     dotenvy::dotenv().ok();
 
@@ -26,7 +32,11 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-                format!("{}=info,tower_http=debug", env!("CARGO_CRATE_NAME")).into()
+                format!(
+                    "{}=info,tower_http=debug,client_telemetry=warn",
+                    env!("CARGO_CRATE_NAME")
+                )
+                .into()
             }),
         )
         .with(tracing_subscriber::fmt::layer())

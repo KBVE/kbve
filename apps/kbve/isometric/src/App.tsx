@@ -2,7 +2,6 @@ import { HUD } from './components/HUD';
 import { Inventory } from './components/Inventory';
 import { FPSCounter } from './components/FPSCounter';
 import { ObjectLabel } from './components/ObjectLabel';
-import { GoOnlineButton } from './components/GoOnlineButton';
 import { useObjectSelection } from './hooks/useObjectSelection';
 
 function App() {
@@ -14,7 +13,6 @@ function App() {
 			<HUD />
 			<Inventory />
 			<ObjectLabel />
-			<GoOnlineButton />
 		</div>
 	);
 }

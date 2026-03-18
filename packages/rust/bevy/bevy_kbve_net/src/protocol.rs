@@ -57,13 +57,29 @@ pub struct AuthMessage {
     pub jwt: String,
 }
 
-/// Server response to an auth attempt.
+/// Server response to an auth attempt (step 3 of 4-step handshake).
+/// Includes `server_time` as a challenge — client must echo it back in `AuthAck`.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AuthResponse {
     pub success: bool,
     pub user_id: String,
     /// Server-assigned player entity ID so the client knows which replicated entity is theirs.
     pub player_id: u64,
+    /// Server timestamp (millis since UNIX epoch) — client echoes in AuthAck to prove receipt.
+    pub server_time: u64,
+}
+
+/// Client echoes the server_time from AuthResponse to complete the 4-step handshake.
+/// ```text
+/// 1. client → server  (get JWT)
+/// 2. game   → server  AuthMessage { jwt }
+/// 3. server → game    AuthResponse { server_time, … }
+/// 4. game   → server  AuthAck { server_time }   ← this message
+/// ```
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct AuthAck {
+    /// Must match the `server_time` from the AuthResponse.
+    pub server_time: u64,
 }
 
 /// Client sends its position to the server each tick (client-authoritative movement).
@@ -213,6 +229,9 @@ impl Plugin for ProtocolPlugin {
         // AuthResponse: server → client
         app.register_message::<AuthResponse>()
             .add_direction(NetworkDirection::ServerToClient);
+        // AuthAck: client → server (step 4 of handshake)
+        app.register_message::<AuthAck>()
+            .add_direction(NetworkDirection::ClientToServer);
         // PositionUpdate: client → server
         app.register_message::<PositionUpdate>()
             .add_direction(NetworkDirection::ClientToServer);

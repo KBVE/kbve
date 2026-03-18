@@ -7,6 +7,7 @@ import {
   validateReportDetail,
   validateReportReason,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // Meme Report Module
@@ -44,7 +45,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_report_meme");
     }
 
     // NULL means user already has an open report for this meme

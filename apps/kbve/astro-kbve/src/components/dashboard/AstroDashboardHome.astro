@@ -1,5 +1,7 @@
 ---
-import ReactDashboardHome from './ReactDashboardHome';
+import ReactHomeAuth from './ReactHomeAuth';
+import ReactHomeStatusBanner from './ReactHomeStatusBanner';
+import ReactHomeServiceCards from './ReactHomeServiceCards';
 ---
 
 <section
@@ -7,7 +9,19 @@ import ReactDashboardHome from './ReactDashboardHome';
 	class="dashboard-home-wrapper"
 	aria-label="Dashboard home">
 	<div id="dashboard-home-content" class="dashboard-home-content">
-		<ReactDashboardHome client:only="react" />
+		<ReactHomeAuth client:only="react">
+			<div class="not-content home-dashboard">
+				<!-- Island: Header + System Status Banner -->
+				<div id="home-status-banner">
+					<ReactHomeStatusBanner client:only="react" />
+				</div>
+
+				<!-- Island: Service cards grid -->
+				<div id="home-service-cards">
+					<ReactHomeServiceCards client:only="react" />
+				</div>
+			</div>
+		</ReactHomeAuth>
 	</div>
 </section>
 
@@ -29,6 +43,19 @@ import ReactDashboardHome from './ReactDashboardHome';
 	@media (min-width: 768px) {
 		.dashboard-home-content {
 			padding: 2rem 1.5rem;
+		}
+	}
+
+	.home-dashboard {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		min-height: 60vh;
+	}
+
+	:global(@keyframes spin) {
+		to {
+			transform: rotate(360deg);
 		}
 	}
 </style>

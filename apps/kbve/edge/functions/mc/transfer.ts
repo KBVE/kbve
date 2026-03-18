@@ -5,6 +5,7 @@ import {
   requireServiceRole,
   validateMcUuid,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // MC Transfer Module
@@ -43,7 +44,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_record_transfers");
     }
 
     return jsonResponse({ success: true, recorded_count: data });
@@ -77,7 +78,7 @@ const handlers: Record<string, Handler> = {
     );
 
     if (error) {
-      return jsonResponse({ error: error.message }, 400);
+      return safeRpcError(error, "service_get_transfer_history");
     }
 
     const transfers = Array.isArray(data) ? data : [];

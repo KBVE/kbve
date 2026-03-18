@@ -1,5 +1,8 @@
 ---
-import ReactGrafanaDashboard from './ReactGrafanaDashboard';
+import ReactGrafanaAuth from './ReactGrafanaAuth';
+import ReactGrafanaHeader from './ReactGrafanaHeader';
+import ReactGrafanaNodes from './ReactGrafanaNodes';
+import ReactGrafanaK8s from './ReactGrafanaK8s';
 ---
 
 <section
@@ -7,7 +10,24 @@ import ReactGrafanaDashboard from './ReactGrafanaDashboard';
 	class="grafana-dashboard-wrapper"
 	aria-label="Grafana monitoring dashboard">
 	<div id="dashboard-content" class="dashboard-content">
-		<ReactGrafanaDashboard client:only="react" />
+		<ReactGrafanaAuth client:only="react">
+			<div class="not-content grafana-dashboard">
+				<!-- Island: Header (title, cache badge, time range, refresh) -->
+				<div id="grafana-header">
+					<ReactGrafanaHeader client:only="react" />
+				</div>
+
+				<!-- Island: Node section (stat cards, drill-downs, charts) -->
+				<div id="grafana-nodes">
+					<ReactGrafanaNodes client:only="react" />
+				</div>
+
+				<!-- Island: K8s section (stat cards, drill-downs, pods chart) -->
+				<div id="grafana-k8s">
+					<ReactGrafanaK8s client:only="react" />
+				</div>
+			</div>
+		</ReactGrafanaAuth>
 	</div>
 </section>
 
@@ -29,6 +49,18 @@ import ReactGrafanaDashboard from './ReactGrafanaDashboard';
 	@media (min-width: 768px) {
 		.dashboard-content {
 			padding: 2rem 1.5rem;
+		}
+	}
+
+	.grafana-dashboard {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	:global(@keyframes spin) {
+		to {
+			transform: rotate(360deg);
 		}
 	}
 </style>

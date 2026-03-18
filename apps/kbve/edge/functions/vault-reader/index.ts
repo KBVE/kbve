@@ -2,6 +2,15 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jwtVerify } from "https://deno.land/x/jose@v4.14.4/index.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import {
+  SECRET_NAME_RE,
+  MAX_SECRET_VALUE_LENGTH,
+  UUID_RE,
+} from "../_shared/formats.ts";
+import {
+  rejectIllegalChars,
+  requireJsonContentType,
+} from "../_shared/validators.ts";
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -19,6 +28,9 @@ serve(async (req) => {
       },
     );
   }
+
+  const ctErr = requireJsonContentType(req);
+  if (ctErr) return ctErr;
 
   try {
     const body = await req.json();
@@ -123,10 +135,25 @@ serve(async (req) => {
     if (command === "get") {
       const { secret_id } = body;
 
-      if (!secret_id) {
+      if (!secret_id || typeof secret_id !== "string") {
         return new Response(
           JSON.stringify({
             error: "secret_id is required for get command",
+          }),
+          {
+            status: 400,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      }
+
+      if (!UUID_RE.test(secret_id)) {
+        return new Response(
+          JSON.stringify({
+            error: "secret_id must be a valid UUID",
           }),
           {
             status: 400,
@@ -147,14 +174,17 @@ serve(async (req) => {
       );
 
       if (error) {
-        console.error("Error fetching secret via RPC:", error);
-        return new Response(JSON.stringify({ error: error.message }), {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
+        console.error("Error fetching secret via RPC:", error.message);
+        return new Response(
+          JSON.stringify({ error: "Failed to retrieve secret" }),
+          {
+            status: 500,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
           },
-        });
+        );
       }
 
       if (!data || !Array.isArray(data) || data.length === 0) {
@@ -210,6 +240,45 @@ serve(async (req) => {
         );
       }
 
+      // Validate secret_name format
+      if (typeof secret_name !== "string" || !SECRET_NAME_RE.test(secret_name)) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "secret_name must be 1-100 chars: alphanumeric, underscore, or dash",
+          }),
+          {
+            status: 400,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      }
+
+      const illegalName = rejectIllegalChars(secret_name, "secret_name");
+      if (illegalName) return illegalName;
+
+      // Validate secret_value length
+      if (
+        typeof secret_value !== "string" ||
+        secret_value.length > MAX_SECRET_VALUE_LENGTH
+      ) {
+        return new Response(
+          JSON.stringify({
+            error: `secret_value must be a string of at most ${MAX_SECRET_VALUE_LENGTH} characters`,
+          }),
+          {
+            status: 400,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      }
+
       // Call our RPC function to set the secret in vault
       const { data, error } = await supabase.rpc("set_vault_secret", {
         secret_name: secret_name,
@@ -218,14 +287,17 @@ serve(async (req) => {
       });
 
       if (error) {
-        console.error("Error setting secret via RPC:", error);
-        return new Response(JSON.stringify({ error: error.message }), {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
+        console.error("Error setting secret via RPC:", error.message);
+        return new Response(
+          JSON.stringify({ error: "Failed to store secret" }),
+          {
+            status: 500,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
           },
-        });
+        );
       }
 
       return new Response(

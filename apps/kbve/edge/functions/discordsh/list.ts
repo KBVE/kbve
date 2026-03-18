@@ -3,6 +3,7 @@ import {
   type DiscordshRequest,
   jsonResponse,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // Discordsh List Module
@@ -37,7 +38,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 500);
+      return safeRpcError(error, "proxy_list_servers");
     }
 
     const rows = Array.isArray(data) ? data : [];

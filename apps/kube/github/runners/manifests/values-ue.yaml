@@ -1,0 +1,121 @@
+# ARC Runner Scale Set — Unreal Engine builds
+# Dedicated runner with persistent DinD cache for UE container images.
+# Workflows use: runs-on: arc-runner-ue
+
+runnerScaleSetName: 'arc-runner-ue'
+
+# GitHub configuration
+githubConfigUrl: 'https://github.com/kbve'
+githubConfigSecret: github-arc-token
+
+# Controller service account reference
+controllerServiceAccount:
+    name: arc-controller
+    namespace: arc-systems
+
+# Scaling — UE builds are heavy, keep pool small
+minRunners: 0
+maxRunners: 3
+
+template:
+    spec:
+        initContainers:
+            - name: init-dind-externals
+              image: ghcr.io/actions/actions-runner:2.332.0
+              command:
+                  [
+                      'cp',
+                      '-r',
+                      '-v',
+                      '/home/runner/externals/.',
+                      '/home/runner/tmpDir/',
+                  ]
+              volumeMounts:
+                  - name: dind-externals
+                    mountPath: /home/runner/tmpDir
+        containers:
+            - name: runner
+              image: ghcr.io/actions/actions-runner:2.332.0
+              command:
+                  [
+                      '/bin/bash',
+                      '-c',
+                      "echo 'root ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && /home/runner/run.sh",
+                  ]
+              env:
+                  - name: DOCKER_HOST
+                    value: tcp://localhost:2376
+                  - name: RUNNER_ALLOW_RUNASROOT
+                    value: '1'
+              resources:
+                  limits:
+                      cpu: '12'
+                      memory: 24Gi
+                  requests:
+                      cpu: '4'
+                      memory: 8Gi
+              securityContext:
+                  runAsUser: 0
+                  runAsGroup: 0
+              volumeMounts:
+                  - name: work
+                    mountPath: /home/runner/_work
+                  - name: dind-sock
+                    mountPath: /var/run
+                  - name: dind-externals
+                    mountPath: /home/runner/externals
+            # Docker-in-Docker sidecar with persistent image cache
+            - name: dind
+              image: docker:29.2.1-dind
+              args:
+                  - dockerd
+                  - --host=unix:///var/run/docker.sock
+                  - --host=tcp://0.0.0.0:2376
+                  - --tls=false
+              securityContext:
+                  privileged: true
+              resources:
+                  limits:
+                      cpu: '12'
+                      memory: 32Gi
+                  requests:
+                      cpu: '2'
+                      memory: 4Gi
+              volumeMounts:
+                  - name: work
+                    mountPath: /home/runner/_work
+                  - name: dind-sock
+                    mountPath: /var/run
+                  - name: dind-externals
+                    mountPath: /home/runner/externals
+                  - name: dind-storage
+                    mountPath: /var/lib/docker
+        volumes:
+            - name: work
+              emptyDir: {}
+            - name: dind-sock
+              emptyDir: {}
+            - name: dind-externals
+              emptyDir: {}
+            - name: dind-storage
+              persistentVolumeClaim:
+                  claimName: arc-dind-ue-cache
+
+listenerTemplate:
+    spec:
+        containers:
+            - name: listener
+              resources:
+                  limits:
+                      cpu: 250m
+                      memory: 256Mi
+                  requests:
+                      cpu: 50m
+                      memory: 64Mi
+              securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  runAsNonRoot: true
+                  capabilities:
+                      drop:
+                          - ALL

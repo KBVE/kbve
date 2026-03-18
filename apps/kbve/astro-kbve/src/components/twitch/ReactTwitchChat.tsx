@@ -1,6 +1,4 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useStore } from '@nanostores/react';
-import { twitchService } from './ServiceTwitch';
 
 export interface ReactTwitchChatProps {
 	channel: string;

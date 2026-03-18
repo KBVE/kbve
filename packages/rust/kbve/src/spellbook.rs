@@ -34,6 +34,7 @@ macro_rules! spellbook_create_cookie {
             .max_age(time::Duration::hours($duration))
             .same_site(axum_extra::extract::cookie::SameSite::Lax)
             .http_only(true)
+            .secure(true)
             .build()
     };
 }

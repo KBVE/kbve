@@ -12,7 +12,7 @@ pub mod worldgen;
 
 pub use inputs::PlayerInput;
 pub use protocol::{
-    AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
+    AuthAck, AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
     CreatureKind, DamageEvent, DamageSource, GameChannel, ObjectRemoved, ObjectRespawned,
     PlayerColor, PlayerId, PlayerName, PlayerVitals, PositionUpdate, ProtocolPlugin,
     SetUsernameRequest, SetUsernameResponse, TimeChannel, TimeSyncMessage,

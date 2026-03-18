@@ -35,7 +35,6 @@ const ReactTwitchEmbed: React.FC<ReactTwitchEmbedProps> = ({
 	const streamFrameRef = useRef<HTMLIFrameElement | null>(null);
 	const chatFrameRef = useRef<HTMLIFrameElement | null>(null);
 
-	const isLoading = useStore(twitchService.isLoadingAtom);
 	const error = useStore(twitchService.errorAtom);
 	const embedUrl = useStore(twitchService.embedUrlAtom);
 	const chatUrl = useStore(twitchService.chatUrlAtom);
@@ -45,7 +44,6 @@ const ReactTwitchEmbed: React.FC<ReactTwitchEmbedProps> = ({
 
 	const [streamLoaded, setStreamLoaded] = useState(false);
 	const [chatLoaded, setChatLoaded] = useState(false);
-	const [activeTheme, setActiveTheme] = useState<'dark' | 'light'>('dark');
 
 	// Initialize service on mount
 	useEffect(() => {
@@ -57,24 +55,7 @@ const ReactTwitchEmbed: React.FC<ReactTwitchEmbedProps> = ({
 			muted,
 		});
 
-		// Set initial theme
-		const resolvedTheme =
-			theme === 'auto'
-				? window.matchMedia('(prefers-color-scheme: dark)').matches
-					? 'dark'
-					: 'light'
-				: theme;
-		setActiveTheme(resolvedTheme);
-
-		// Subscribe to theme changes
-		const unsubscribe = twitchService.subscribeToThemeChanges(
-			(newTheme) => {
-				setActiveTheme(newTheme);
-			},
-		);
-
 		return () => {
-			unsubscribe();
 			twitchService.reset();
 		};
 	}, [channel, type, theme, autoplay, muted]);

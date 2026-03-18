@@ -409,4 +409,4 @@ npm run build
 
 ## License
 
-Part of the BugWars project.
+Part of the KBVE project.

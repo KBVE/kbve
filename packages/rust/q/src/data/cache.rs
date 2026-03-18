@@ -66,7 +66,7 @@ pub struct CacheManager {
 #[godot_api]
 impl INode for CacheManager {
     fn init(base: Base<Self::Base>) -> Self {
-        let shader_cache = Gd::from_init_fn(|base| ShaderCache::init(base));
+        let shader_cache = Gd::from_init_fn(ShaderCache::init);
 
         Self {
             base,

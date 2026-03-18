@@ -6,6 +6,7 @@ import {
   validateSnowflake,
   verifyCaptcha,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // Discordsh Vote Module
@@ -35,7 +36,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "proxy_cast_vote");
     }
 
     const row = Array.isArray(data) ? data[0] : data;

@@ -17,7 +17,7 @@ use lightyear::prelude::client::*;
 use lightyear::prelude::*;
 
 use bevy_kbve_net::{
-    AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
+    AuthAck, AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
     CreatureKind, DamageEvent, DamageSource, GameChannel, ObjectRemoved, ObjectRespawned,
     PlayerColor, PlayerId, PlayerName, PlayerVitals, PositionUpdate, ProtocolPlugin,
     SetUsernameRequest, SetUsernameResponse, TileKey, TimeSyncMessage,
@@ -36,7 +36,7 @@ use bevy_kbve_net::npcdb::creature::CapturedCreatures;
 /// Default WebSocket URL — only set for native (desktop) dev builds.
 /// On WASM the URL MUST come from JS via `request_go_online()`.
 #[cfg(not(target_arch = "wasm32"))]
-const DEFAULT_WS_URL: &str = "ws://127.0.0.1:5000";
+const DEFAULT_WS_URL: &str = "wss://127.0.0.1:5000";
 #[cfg(target_arch = "wasm32")]
 const DEFAULT_WS_URL: &str = "";
 
@@ -263,8 +263,14 @@ impl Plugin for NetPlugin {
         app.add_observer(on_linking);
         app.add_observer(on_unlinked);
 
+        // Safety net: abort if the handshake doesn't complete within HANDSHAKE_TIMEOUT_SECS
+        app.add_systems(Update, check_handshake_timeout);
+
         // Periodic connection-state heartbeat (logs every ~2 seconds)
         app.add_systems(Update, debug_connection_heartbeat);
+
+        // Deferred cleanup of disconnected client entities (one frame delay)
+        app.add_systems(Last, cleanup_pending_despawn);
 
         info!("[net] NetPlugin::build — all systems registered");
     }
@@ -276,28 +282,75 @@ fn on_linking(trigger: On<Add, lightyear::prelude::Linking>) {
     info!("[net][link] LINKING — entity {entity:?} transport connection starting");
 }
 
-/// Debug: link layer — Unlinked added (transport failed or closed).
-fn on_unlinked(trigger: On<Add, lightyear::prelude::Unlinked>) {
+/// Link layer — Unlinked added (transport failed or closed).
+/// If in online mode and never connected, return to title screen.
+fn on_unlinked(
+    trigger: On<Add, lightyear::prelude::Unlinked>,
+    mut commands: Commands,
+    mut next_phase: ResMut<NextState<super::phase::GamePhase>>,
+    play_mode: Res<super::phase::PlayMode>,
+    was_connected_q: Query<(), With<WasConnected>>,
+) {
     let entity = trigger.entity;
     warn!("[net][link] UNLINKED — entity {entity:?} transport failed or closed");
+
+    // If we never reached Connected and player chose Online, go back to title
+    if *play_mode == super::phase::PlayMode::Online && was_connected_q.get(entity).is_err() {
+        warn!("[net] connection failed before handshake completed — returning to title screen");
+        super::telemetry::report_error(
+            "netcode handshake failed — transport unlinked before Connected",
+        );
+        commands.entity(entity).insert(PendingDespawn);
+        next_phase.set(super::phase::GamePhase::Title);
+    }
 }
 
-/// Debug: lightyear Connecting added.
-fn on_connecting(trigger: On<Add, Connecting>) {
+/// Marker added when a connection attempt begins (Connecting state).
+/// Distinguishes "initial spawn Disconnected" from "connection failed Disconnected".
+#[derive(Component)]
+struct ConnectionAttempted;
+
+/// Tracks when the Connecting state began so we can time out stale handshakes.
+#[derive(Component)]
+struct HandshakeStartedAt(std::time::Instant);
+
+/// Maximum time to wait for the Netcode handshake before aborting.
+const HANDSHAKE_TIMEOUT_SECS: f64 = 10.0;
+
+/// Lightyear Connecting added — mark entity so we know a connection was attempted.
+fn on_connecting(trigger: On<Add, Connecting>, mut commands: Commands) {
     let entity = trigger.entity;
+    commands.entity(entity).insert((
+        ConnectionAttempted,
+        HandshakeStartedAt(std::time::Instant::now()),
+    ));
     info!("[net][lifecycle] CONNECTING — entity {entity:?} lightyear handshake in progress");
 }
 
-/// Debug: lightyear Connected added.
-fn on_connected(trigger: On<Add, Connected>) {
+/// Lightyear Connected added — mark entity so on_disconnected knows this was real.
+fn on_connected(trigger: On<Add, Connected>, mut commands: Commands) {
     let entity = trigger.entity;
+    commands.entity(entity).insert(WasConnected);
     info!("[net][lifecycle] CONNECTED — entity {entity:?} fully connected!");
 }
 
+/// Marker for client entities that should be despawned next frame.
+/// We defer despawn by one frame so lightyear's deferred commands (PeerAddr
+/// insert, etc.) can flush without panicking on a despawned entity.
+#[derive(Component)]
+struct PendingDespawn;
+
+/// Marker added after a real connection is established, so we can distinguish
+/// "initial Disconnected from #[require]" vs "actual disconnection after being online".
+#[derive(Component)]
+struct WasConnected;
+
 /// When we lose connection, reset all networking state so the player can reconnect.
 /// Remote player entities are despawned since we won't receive further updates.
-/// The disconnected Client entity itself is also despawned to prevent stale
-/// entities from interfering with future connections.
+/// The disconnected Client entity is marked `PendingDespawn` and cleaned up next frame.
+///
+/// IMPORTANT: `NetcodeClient` has `#[require(Disconnected)]`, so this observer
+/// fires on initial spawn too. We skip cleanup if no connection was ever attempted.
 fn on_disconnected(
     trigger: On<Add, Disconnected>,
     mut commands: Commands,
@@ -305,11 +358,23 @@ fn on_disconnected(
     mut pending_auth: ResMut<PendingAuth>,
     mut server_time: ResMut<ServerTime>,
     mut captured_creatures: ResMut<CapturedCreatures>,
+    mut next_phase: ResMut<NextState<super::phase::GamePhase>>,
+    play_mode: Res<super::phase::PlayMode>,
     remote_players: Query<Entity, With<RemotePlayer>>,
     own_replicated: Query<Entity, With<OwnReplicatedPlayer>>,
+    attempted_q: Query<(), With<ConnectionAttempted>>,
 ) {
     let entity = trigger.entity;
+
+    // NetcodeClient spawns with Disconnected as a required component.
+    // Only run cleanup if a connection was actually attempted (Connecting was reached).
+    if attempted_q.get(entity).is_err() {
+        info!("[net][lifecycle] DISCONNECTED (initial state) — entity {entity:?}, ignoring");
+        return;
+    }
+
     warn!("[net][lifecycle] DISCONNECTED — entity {entity:?} lost connection");
+    super::telemetry::report_warn(&format!("client disconnected entity={entity:?}"));
 
     // Reset connection state
     IS_CONNECTED.store(false, Ordering::Release);
@@ -336,12 +401,51 @@ fn on_disconnected(
         info!("[net] despawned own replicated entity {own_entity:?} after disconnect");
     }
 
-    // Despawn the disconnected Client entity itself to prevent stale entities
-    // from interfering with the next connection attempt.
-    commands.entity(entity).despawn();
-    info!("[net] despawned disconnected client entity {entity:?}");
+    // Mark the disconnected Client entity for deferred despawn (next frame).
+    // Despawning it immediately inside this observer causes panics because
+    // lightyear's deferred commands (PeerAddr insert, etc.) still target it.
+    commands.entity(entity).insert(PendingDespawn);
+    info!("[net] marked disconnected client entity {entity:?} for deferred despawn");
+
+    // If the player chose "Play Online", return to the title screen on disconnect
+    // so they can retry or switch to offline mode.
+    if *play_mode == super::phase::PlayMode::Online {
+        info!("[net] online mode — returning to title screen after disconnect");
+        next_phase.set(super::phase::GamePhase::Title);
+    }
 
     info!("[net] connection state reset — ready for reconnection");
+}
+
+/// Safety net: if the Netcode handshake doesn't complete within HANDSHAKE_TIMEOUT_SECS,
+/// abort the connection and return to the title screen instead of spinning forever.
+fn check_handshake_timeout(
+    mut commands: Commands,
+    mut next_phase: ResMut<NextState<super::phase::GamePhase>>,
+    query: Query<(Entity, &HandshakeStartedAt), (With<Connecting>, Without<Connected>)>,
+) {
+    for (entity, started) in &query {
+        let elapsed = started.0.elapsed().as_secs_f64();
+        if elapsed >= HANDSHAKE_TIMEOUT_SECS {
+            warn!(
+                "[net] handshake timeout after {elapsed:.1}s — aborting connection for entity {entity:?}"
+            );
+            super::telemetry::report_error(&format!(
+                "handshake timeout after {elapsed:.1}s — server did not complete Netcode handshake"
+            ));
+            commands.entity(entity).insert(PendingDespawn);
+            next_phase.set(super::phase::GamePhase::Title);
+        }
+    }
+}
+
+/// Deferred cleanup: despawn entities marked `PendingDespawn` after one frame
+/// so lightyear's deferred commands have had time to flush.
+fn cleanup_pending_despawn(mut commands: Commands, query: Query<Entity, With<PendingDespawn>>) {
+    for entity in &query {
+        commands.entity(entity).despawn();
+        info!("[net] deferred despawn of client entity {entity:?}");
+    }
 }
 
 /// Timer resource for throttling heartbeat logs.
@@ -361,6 +465,12 @@ fn debug_connection_heartbeat(
     connecting_q: Query<Entity, With<Connecting>>,
     connected_q: Query<Entity, With<Connected>>,
     disconnected_q: Query<Entity, With<Disconnected>>,
+    link_q: Query<(
+        Entity,
+        &lightyear::prelude::Link,
+        Has<lightyear::prelude::Linked>,
+        Has<lightyear::prelude::Linking>,
+    )>,
 ) {
     timer.0.tick(time.delta());
     if !timer.0.just_finished() {
@@ -376,6 +486,49 @@ fn debug_connection_heartbeat(
             "[net][heartbeat] connecting={connecting:?} connected={connected:?} disconnected={disconnected:?} is_online={}",
             IS_CONNECTED.load(Ordering::Relaxed)
         );
+    }
+
+    // Log link buffer states to diagnose packet flow
+    for (entity, link, is_linked, is_linking) in &link_q {
+        let send_len = link.send.len();
+        let recv_len = link.recv.len();
+        if send_len > 0 || recv_len > 0 || is_linked || is_linking {
+            info!(
+                "[net][heartbeat] link entity={entity:?} send={send_len} recv={recv_len} linked={is_linked} linking={is_linking}"
+            );
+        }
+    }
+}
+
+/// PostUpdate diagnostic: logs link.send AFTER netcode writes packets but BEFORE
+/// aeronet drains them to the WebSocket. Kept as dead code for future debugging;
+/// register in plugin build() when needed.
+#[allow(dead_code)]
+fn debug_post_netcode_send(
+    query: Query<
+        (
+            Entity,
+            &lightyear::prelude::Link,
+            &NetcodeClient,
+            Has<lightyear::prelude::Linked>,
+            Has<Connecting>,
+            Has<Disconnected>,
+        ),
+        Without<Connected>,
+    >,
+) {
+    for (entity, link, client, is_linked, is_connecting, is_disconnected) in &query {
+        let send_len = link.send.len();
+        let recv_len = link.recv.len();
+        let pending = client.inner.is_pending();
+        let error = client.inner.is_error();
+        if is_connecting || is_linked {
+            debug!(
+                "[net][post-send] entity={entity:?} send={send_len} recv={recv_len} \
+                 linked={is_linked} connecting={is_connecting} disconnected={is_disconnected} \
+                 netcode_pending={pending} netcode_error={error}"
+            );
+        }
     }
 }
 
@@ -516,6 +669,7 @@ fn poll_go_online_request(
                 }
                 Err(e) => {
                     log::error!("[net] WASM token fetch failed: {e}");
+                    crate::game::telemetry::report_error(&format!("token fetch failed: {e}"));
                     // Reset in_flight so user can retry
                     // (PendingTokenFetch is a Bevy resource, can't access from async;
                     //  poll_token_fetch_result handles the reset when it sees no result)
@@ -540,9 +694,28 @@ fn poll_token_fetch_result(mut commands: Commands, mut pending_token: ResMut<Pen
 
     pending_token.in_flight = false;
 
+    // Use the server URL directly — WebSocket connections are NOT subject
+    // to COEP restrictions, so cross-origin WS to a different port works.
+    // The Vite proxy approach caused Netcode handshake failures due to
+    // frame buffering/rewriting by http-proxy.
+    let ws_url = result.server_url.clone();
+
+    // Check if the browser actually supports WebTransport (Safari does not).
+    // If not, clear the WT URL so we fall back to WebSocket.
+    let wt_url = if !result.server_wt_url.is_empty() && has_webtransport_support() {
+        result.server_wt_url.clone()
+    } else {
+        if !result.server_wt_url.is_empty() {
+            info!(
+                "[net] WebTransport URL provided but browser lacks WebTransport API — falling back to WebSocket"
+            );
+        }
+        String::new()
+    };
+
     let transport = TransportConfig {
-        ws_url: result.server_url.clone(),
-        wt_url: result.server_wt_url.clone(),
+        ws_url,
+        wt_url,
         cert_digest: result.cert_digest.clone(),
     };
 
@@ -560,6 +733,23 @@ fn poll_token_fetch_result(mut commands: Commands, mut pending_token: ResMut<Pen
         }
     );
     connect_to_server(&mut commands, &transport, &result.token_bytes);
+}
+
+/// Check if the browser supports the WebTransport API.
+/// Safari does not support WebTransport — returns false so the client falls back to WebSocket.
+#[cfg(target_arch = "wasm32")]
+fn has_webtransport_support() -> bool {
+    use wasm_bindgen::prelude::*;
+
+    let global = js_sys::global();
+    let wt = js_sys::Reflect::get(&global, &JsValue::from_str("WebTransport"));
+    matches!(wt, Ok(val) if !val.is_undefined())
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn has_webtransport_support() -> bool {
+    // Desktop: WebTransport is handled natively by lightyear, always supported
+    true
 }
 
 /// Derive the HTTP API base URL from a WebSocket URL.
@@ -696,19 +886,41 @@ fn send_auth_on_connect(
 fn receive_auth_response(
     mut commands: Commands,
     mut my_player_id: ResMut<MyPlayerId>,
-    mut query: Query<(Entity, &mut MessageReceiver<AuthResponse>)>,
+    mut next_phase: ResMut<NextState<super::phase::GamePhase>>,
+    phase: Res<State<super::phase::GamePhase>>,
+    mut query: Query<(
+        Entity,
+        &mut MessageReceiver<AuthResponse>,
+        &mut MessageSender<AuthAck>,
+    )>,
 ) {
-    for (entity, mut receiver) in &mut query {
+    for (entity, mut receiver, mut ack_sender) in &mut query {
         for msg in receiver.receive() {
             if msg.success {
                 my_player_id.0 = Some(msg.player_id);
                 IS_CONNECTED.store(true, Ordering::Release);
                 info!(
-                    "[net] AUTH SUCCESS from entity {entity:?} — user='{}' player_id={} IS_CONNECTED=true",
-                    msg.user_id, msg.player_id
+                    "[net] AUTH SUCCESS from entity {entity:?} — user='{}' player_id={} server_time={} IS_CONNECTED=true",
+                    msg.user_id, msg.player_id, msg.server_time
                 );
+
+                // Step 4: echo server_time back to complete the 4-step handshake
+                ack_sender.send::<GameChannel>(AuthAck {
+                    server_time: msg.server_time,
+                });
+                info!(
+                    "[net] AuthAck sent — echoed server_time={}",
+                    msg.server_time
+                );
+
+                // Gate: only now transition from Connecting → Playing
+                if **phase == super::phase::GamePhase::Connecting {
+                    info!("[net] handshake complete — transitioning Connecting → Playing");
+                    next_phase.set(super::phase::GamePhase::Playing);
+                }
             } else {
                 warn!("[net] AUTH FAILED from entity {entity:?} — triggering Disconnect to reset");
+                super::telemetry::report_error("server auth failed — disconnecting");
                 // Trigger a graceful disconnect so on_disconnected cleans up
                 // and the user can retry (e.g. after refreshing their JWT).
                 commands.trigger(Disconnect { entity });
@@ -1080,17 +1292,23 @@ fn connect_to_server(commands: &mut Commands, transport: &TransportConfig, token
         return;
     }
 
-    // Suspenders: on WASM release builds, block any localhost/127.0.0.1 connection
-    #[cfg(all(target_arch = "wasm32", not(debug_assertions)))]
+    // Safety: on WASM release builds, block localhost game-server connections
+    // UNLESS the page itself is served from localhost (local dev via quick script).
+    #[cfg(target_arch = "wasm32")]
     {
         let check_url = if !transport.wt_url.is_empty() {
             &transport.wt_url
         } else {
             &transport.ws_url
         };
-        if check_url.contains("127.0.0.1") || check_url.contains("localhost") {
+        let is_local_target = check_url.contains("127.0.0.1") || check_url.contains("localhost");
+        let page_is_local = web_sys::window()
+            .and_then(|w| w.location().hostname().ok())
+            .map(|h| h == "localhost" || h == "127.0.0.1")
+            .unwrap_or(false);
+        if is_local_target && !page_is_local {
             warn!(
-                "[net] BLOCKED localhost connection on WASM: {check_url} — JS must provide the production server URL"
+                "[net] BLOCKED localhost connection on WASM: {check_url} — page is not localhost"
             );
             return;
         }
@@ -1143,7 +1361,14 @@ fn connect_to_server(commands: &mut Commands, transport: &TransportConfig, token
             transport.ws_url
         );
 
-        let ws_io = WebSocketClientIo::from_url(ClientConfig::default(), transport.ws_url.clone());
+        // Desktop: skip cert validation (server uses self-signed cert for dev)
+        // WASM: browser handles TLS natively via web_sys::WebSocket
+        #[cfg(not(target_arch = "wasm32"))]
+        let ws_config = ClientConfig::builder().with_no_cert_validation();
+        #[cfg(target_arch = "wasm32")]
+        let ws_config = ClientConfig::default();
+
+        let ws_io = WebSocketClientIo::from_url(ws_config, transport.ws_url.clone());
 
         let client_entity = commands
             .spawn((netcode, ws_io, ReplicationReceiver::default()))

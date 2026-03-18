@@ -7,6 +7,7 @@ import {
   requireUserToken,
   validateMcUuid,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // MC Auth Module
@@ -36,7 +37,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "proxy_request_link");
     }
 
     return jsonResponse({ success: true, verification_code: data });
@@ -66,7 +67,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_verify_link");
     }
 
     if (data) {
@@ -86,7 +87,7 @@ const handlers: Record<string, Handler> = {
     const { data, error } = await supabase.rpc("proxy_get_link_status");
 
     if (error) {
-      return jsonResponse({ found: false, error: error.message }, 400);
+      return safeRpcError(error, "proxy_get_link_status");
     }
 
     if (!data || (Array.isArray(data) && data.length === 0)) {
@@ -112,7 +113,7 @@ const handlers: Record<string, Handler> = {
     );
 
     if (error) {
-      return jsonResponse({ found: false, error: error.message }, 400);
+      return safeRpcError(error, "service_get_user_by_mc_uuid");
     }
 
     if (!data || (Array.isArray(data) && data.length === 0)) {
@@ -131,7 +132,7 @@ const handlers: Record<string, Handler> = {
     const { data, error } = await supabase.rpc("proxy_unlink");
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "proxy_unlink");
     }
 
     return jsonResponse({ success: true, was_linked: data });

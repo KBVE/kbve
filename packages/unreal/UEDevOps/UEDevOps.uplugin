@@ -1,0 +1,44 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "UEDevOps",
+	"Description": "DevOps toolkit for Unreal Engine: telemetry, error reporting, GitHub integration, and in-game diagnostics exposed as Blueprint nodes and editor utilities.",
+	"Category": "Developer Tools",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"EnabledByDefault": false,
+	"Modules": [
+		{
+			"Name": "UEDevOps",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "UEDevOpsEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "KBVEYYJson",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEXXHash",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEZstd",
+			"Enabled": true
+		}
+	]
+}

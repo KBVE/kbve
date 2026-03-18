@@ -1,5 +1,7 @@
 ---
-import ReactEdgeDashboard from './ReactEdgeDashboard';
+import ReactEdgeHeader from './ReactEdgeHeader';
+import ReactEdgeSummary from './ReactEdgeSummary';
+import ReactEdgeStatusGrid from './ReactEdgeStatusGrid';
 ---
 
 <section
@@ -7,7 +9,22 @@ import ReactEdgeDashboard from './ReactEdgeDashboard';
 	class="edge-dashboard-wrapper"
 	aria-label="Edge function health dashboard">
 	<div id="dashboard-content" class="dashboard-content">
-		<ReactEdgeDashboard client:only="react" />
+		<div class="not-content edge-dashboard">
+			<!-- Island: Header (title, cache badge, refresh button) -->
+			<div id="edge-header">
+				<ReactEdgeHeader client:only="react" />
+			</div>
+
+			<!-- Island: Summary bar + error banner -->
+			<div id="edge-summary">
+				<ReactEdgeSummary client:only="react" />
+			</div>
+
+			<!-- Island: Status card grid -->
+			<div id="edge-status-grid">
+				<ReactEdgeStatusGrid client:only="react" />
+			</div>
+		</div>
 	</div>
 </section>
 
@@ -29,6 +46,18 @@ import ReactEdgeDashboard from './ReactEdgeDashboard';
 	@media (min-width: 768px) {
 		.dashboard-content {
 			padding: 2rem 1.5rem;
+		}
+	}
+
+	.edge-dashboard {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	:global(@keyframes spin) {
+		to {
+			transform: rotate(360deg);
 		}
 	}
 </style>

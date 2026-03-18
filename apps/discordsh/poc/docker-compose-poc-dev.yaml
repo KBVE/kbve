@@ -84,7 +84,7 @@ services:
             context: ../../../
             dockerfile: apps/discordsh/axum-discordsh/Dockerfile
         ports:
-            - '4321:4321'
+            - '${DISCORDSH_PORT:-4321}:${DISCORDSH_PORT:-4321}'
         environment:
             # ── GitHub mock redirect ──────────────────────────────────────
             GITHUB_API_BASE_URL: 'http://mockoon-github:4010'
@@ -105,7 +105,7 @@ services:
 
             # ── Runtime ───────────────────────────────────────────────────
             HTTP_HOST: '0.0.0.0'
-            HTTP_PORT: '4321'
+            HTTP_PORT: '${DISCORDSH_PORT:-4321}'
             RUST_LOG: 'axum_discordsh=debug,tower_http=debug,kbve=debug,jedi=debug'
         depends_on:
             mockoon-github:

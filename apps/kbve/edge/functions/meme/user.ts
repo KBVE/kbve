@@ -5,6 +5,7 @@ import {
   requireAuthenticated,
   validateMemeIdArray,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // Meme User Module -- Batch state lookups for current user
@@ -37,7 +38,7 @@ const handlers: Record<string, Handler> = {
     );
 
     if (error) {
-      return jsonResponse({ error: error.message }, 400);
+      return safeRpcError(error, "service_get_user_reactions");
     }
 
     const reactions = Array.isArray(data) ? data : [];
@@ -64,7 +65,7 @@ const handlers: Record<string, Handler> = {
     );
 
     if (error) {
-      return jsonResponse({ error: error.message }, 400);
+      return safeRpcError(error, "service_get_user_saves");
     }
 
     const saves = Array.isArray(data)
