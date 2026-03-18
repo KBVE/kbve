@@ -500,9 +500,10 @@ fn run_bevy_app(
     }
     app.insert_resource(WtAddr(wt_addr));
 
-    // Spawn a SINGLE server entity with all transports.
-    // lightyear's Replicate::to_clients(NetworkTarget::All) uses single() to find
-    // THE Server entity — having two Server entities causes replication to silently fail.
+    // Spawn exactly ONE server entity — lightyear's Replicate::to_clients(NetworkTarget::All)
+    // calls single() on the Server query, so multiple Server entities causes silent failure.
+    // When WebTransport is available, use it exclusively (preferred transport).
+    // Fall back to WebSocket only when WT is disabled.
     let startup_ws_addr = ws_addr;
     let startup_key = private_key;
     app.add_systems(
@@ -510,13 +511,11 @@ fn run_bevy_app(
         move |mut commands: Commands,
               mut wt_id: ResMut<PendingWtIdentity>,
               wt_addr: Res<WtAddr>| {
-            start_unified_server(
-                &mut commands,
-                startup_ws_addr,
-                wt_addr.0,
-                startup_key,
-                wt_id.0.take(),
-            );
+            if let Some(identity) = wt_id.0.take() {
+                start_webtransport_server(&mut commands, wt_addr.0, startup_key, identity);
+            } else {
+                start_websocket_server(&mut commands, startup_ws_addr, startup_key);
+            }
         },
     );
 
@@ -623,29 +622,13 @@ pub fn is_wt_enabled() -> bool {
     WT_ENABLED.load(std::sync::atomic::Ordering::Relaxed)
 }
 
-/// Spawn the lightyear WebSocket server entity with Netcode authentication.
-/// Loads mkcert/production TLS certs from `GAME_WS_CERT`/`GAME_WS_KEY` env vars,
-/// falling back to self-signed if not set.
-/// Spawn a single unified server entity with WebSocket + optional WebTransport.
-///
-/// lightyear's `Replicate::to_clients(NetworkTarget::All)` calls `single()` on the
-/// `Server` query, so there MUST be exactly one `Server` entity. Each transport IO
-/// plugin listens for `Start` on its own component type, so a single `Start` trigger
-/// activates both WS and WT listeners on the same entity.
-fn start_unified_server(
-    commands: &mut Commands,
-    ws_addr: SocketAddr,
-    wt_addr: SocketAddr,
-    private_key: [u8; 32],
-    wt_identity: Option<lightyear::webtransport::prelude::Identity>,
-) {
+/// Spawn a WebSocket-only server entity (fallback when WebTransport is disabled).
+fn start_websocket_server(commands: &mut Commands, ws_addr: SocketAddr, private_key: [u8; 32]) {
     use lightyear::websocket::prelude::server::*;
 
-    tracing::info!("[gameserver] start_unified_server — WS on {ws_addr}, WT on {wt_addr}");
+    tracing::info!("[gameserver] starting WebSocket-only server on {ws_addr}");
 
     let ws_identity = load_ws_identity();
-    tracing::info!("[gameserver] WebSocket TLS identity loaded");
-
     let ws_config = ServerConfig::builder()
         .with_bind_address(ws_addr)
         .with_identity(ws_identity);
@@ -657,39 +640,53 @@ fn start_unified_server(
         ..Default::default()
     };
 
-    let has_wt = wt_identity.is_some();
+    let server_entity = commands
+        .spawn((
+            NetcodeServer::new(netcode_config),
+            LocalAddr(ws_addr),
+            WebSocketServerIo { config: ws_config },
+        ))
+        .id();
 
-    let mut server_entity_commands = commands.spawn((
-        NetcodeServer::new(netcode_config),
-        LocalAddr(ws_addr),
-        WebSocketServerIo { config: ws_config },
-    ));
+    commands.trigger(Start {
+        entity: server_entity,
+    });
+    tracing::info!("[gameserver] WebSocket server entity {server_entity:?} started on {ws_addr}");
+}
 
-    if let Some(identity) = wt_identity {
-        tracing::info!("[gameserver] WebTransport enabled — adding WT IO to server entity");
-        server_entity_commands.insert(
-            lightyear::webtransport::prelude::server::WebTransportServerIo {
+/// Spawn a WebTransport-only server entity (preferred transport).
+fn start_webtransport_server(
+    commands: &mut Commands,
+    wt_addr: SocketAddr,
+    private_key: [u8; 32],
+    identity: lightyear::webtransport::prelude::Identity,
+) {
+    use lightyear::webtransport::prelude::server::*;
+
+    tracing::info!("[gameserver] starting WebTransport-only server on {wt_addr}");
+
+    let netcode_config = lightyear::netcode::prelude::server::NetcodeConfig {
+        protocol_id: bevy_kbve_net::net_config::KBVE_PROTOCOL_ID,
+        private_key,
+        client_timeout_secs: 15,
+        ..Default::default()
+    };
+
+    let server_entity = commands
+        .spawn((
+            NetcodeServer::new(netcode_config),
+            LocalAddr(wt_addr),
+            WebTransportServerIo {
                 certificate: identity,
             },
-        );
-    }
-
-    let server_entity = server_entity_commands.id();
-
-    tracing::info!(
-        "[gameserver] unified server entity spawned: {server_entity:?} — triggering Start"
-    );
+        ))
+        .id();
 
     commands.trigger(Start {
         entity: server_entity,
     });
     tracing::info!(
-        "[gameserver] lightyear server starting (WS on {ws_addr}, WT: {})",
-        if has_wt {
-            format!("on {wt_addr}")
-        } else {
-            "disabled".to_string()
-        }
+        "[gameserver] WebTransport server entity {server_entity:?} started on {wt_addr}"
     );
 }
 

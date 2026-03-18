@@ -122,14 +122,15 @@ pub async fn game_token_handler(
     let b64 =
         net_config::token_to_base64(token).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))?;
 
-    // Build URLs using the request hostname so they work for the client
-    let server_url = format!("wss://{request_host}:{ws_port}");
-
+    // Build URLs using the request hostname so they work for the client.
+    // Only one transport is active at a time (WT preferred, WS fallback).
     let cert_digest = super::get_cert_digest().to_owned();
-    let server_wt_url = if super::is_wt_enabled() {
-        format!("https://{request_host}:{wt_port}")
+    let (server_url, server_wt_url) = if super::is_wt_enabled() {
+        // WT-only mode: no WS server running
+        (String::new(), format!("https://{request_host}:{wt_port}"))
     } else {
-        String::new()
+        // WS-only mode: no WT server running
+        (format!("wss://{request_host}:{ws_port}"), String::new())
     };
 
     tracing::info!(
