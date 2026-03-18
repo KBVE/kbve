@@ -18,6 +18,13 @@
 			"options": {
 				"config": "apps/discordsh/discordsh-e2e/playwright.docker.config.ts"
 			}
+		},
+		"e2e:mock": {
+			"executor": "@nx/playwright:playwright",
+			"cache": false,
+			"options": {
+				"config": "apps/discordsh/discordsh-e2e/playwright.mock.config.ts"
+			}
 		}
 	},
 	"tags": []

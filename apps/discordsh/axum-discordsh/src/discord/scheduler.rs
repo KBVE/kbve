@@ -126,6 +126,10 @@ async fn post_boards(
         .ok_or("No GitHub token available for scheduled board posts")?;
 
     let gh = GitHubClient::new(&token);
+    let gh = match std::env::var("GITHUB_API_BASE_URL") {
+        Ok(url) if !url.is_empty() => gh.with_base_url(&url),
+        _ => gh,
+    };
     let full_name = format!("{}/{}", config.owner, config.repo);
 
     // Fetch issues and pulls concurrently

@@ -22,7 +22,12 @@ async fn get_github_client(ctx: Context<'_>) -> Result<GitHubClient, String> {
             "No GitHub token configured for this server. A server admin can store one at <https://kbve.com>.".to_string()
         })?;
 
-    Ok(GitHubClient::new(&token))
+    let client = GitHubClient::new(&token);
+    let client = match std::env::var("GITHUB_API_BASE_URL") {
+        Ok(url) if !url.is_empty() => client.with_base_url(&url),
+        _ => client,
+    };
+    Ok(client)
 }
 
 async fn send_error(ctx: Context<'_>, msg: &str) -> Result<(), Error> {
