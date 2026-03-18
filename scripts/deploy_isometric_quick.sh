@@ -74,13 +74,16 @@ cat > "$STAGING_DIR/index.html" <<'REDIRECT'
 <html><head><meta http-equiv="refresh" content="0;url=/isometric/"></head></html>
 REDIRECT
 
-# ── Export cert paths for axum HTTPS + game server WS/WT ──
+# ── Export cert paths for axum HTTPS + game server WS ──
+# mkcert certs work for HTTPS and WebSocket (browser trusts the local CA).
+# WebTransport intentionally omits GAME_WT_CERT/KEY so the server generates
+# a self-signed cert — Chrome's serverCertificateHashes requires truly
+# self-signed certs (≤14 day, no CA chain). mkcert certs are CA-signed
+# and will be rejected by Chrome's QUIC stack even with the correct hash.
 export HTTP_CERT="$CERT_DIR/localhost+2.pem"
 export HTTP_KEY="$CERT_DIR/localhost+2-key.pem"
 export GAME_WS_CERT="$CERT_DIR/localhost+2.pem"
 export GAME_WS_KEY="$CERT_DIR/localhost+2-key.pem"
-export GAME_WT_CERT="$CERT_DIR/localhost+2.pem"
-export GAME_WT_KEY="$CERT_DIR/localhost+2-key.pem"
 
 # ── Point axum's static file serving at the staged output ──
 export STATIC_DIR="$STAGING_DIR"
