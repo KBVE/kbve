@@ -2,7 +2,8 @@
 set -euo pipefail
 
 # deploy_isometric_quick.sh
-# Builds WASM client, generates self-signed WT cert, starts axum server + Astro dev server.
+# Builds WASM client, generates mkcert TLS certs, starts axum-kbve as a single
+# HTTPS server that serves the game client + REST API + game server.
 # Usage: ./scripts/deploy_isometric_quick.sh  (or via `nx run isometric:quick`)
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -10,7 +11,7 @@ ISO_DIR="$REPO_ROOT/apps/kbve/isometric"
 CERT_DIR="$ISO_DIR/certificates"
 
 # ── Kill stale processes on our ports ──
-for port in 1420 5000 5001; do
+for port in 1420 3080 5000 5001; do
   lsof -ti:"$port" | xargs kill 2>/dev/null || true
 done
 
@@ -26,9 +27,17 @@ if ! command -v wasm-bindgen >/dev/null; then
   cargo install wasm-bindgen-cli@0.2.114 --locked
 fi
 
-# ── Generate self-signed WebTransport cert (lazy — skips if still valid >24h) ──
-if [ -x "$CERT_DIR/generate.sh" ]; then
-  "$CERT_DIR/generate.sh" --lazy
+# ── Generate mkcert certs (if not present) ──
+if ! command -v mkcert >/dev/null; then
+  echo "ERROR: mkcert not found. Install with: brew install mkcert && mkcert -install"
+  exit 1
+fi
+
+if [ ! -f "$CERT_DIR/localhost+2.pem" ] || [ ! -f "$CERT_DIR/localhost+2-key.pem" ]; then
+  echo "[quick] Generating mkcert certs for localhost..."
+  cd "$CERT_DIR"
+  mkcert localhost 127.0.0.1 ::1
+  cd "$REPO_ROOT"
 fi
 
 # ── Build WASM client ──
@@ -46,12 +55,40 @@ wasm-bindgen \
 
 cd "$ISO_DIR"
 
-# ── Export cert paths for local dev ──
-if [ -f "$CERT_DIR/cert.pem" ] && [ -f "$CERT_DIR/key.pem" ]; then
-  export GAME_WT_CERT="$CERT_DIR/cert.pem"
-  export GAME_WT_KEY="$CERT_DIR/key.pem"
-fi
+# ── Build the static site (Vite production build) ──
+echo "[quick] Building static site with Vite..."
+pnpm build
 
-# ── Start axum game server in background, then Astro dev server in foreground ──
-cargo run -p axum-kbve &
-pnpm dev
+# ── Stage build output to match production path structure ──
+# Vite builds with base: '/isometric/', so assets reference /isometric/...
+# Production: /arcade/isometric/ (Astro wrapper) + /isometric/ (game assets)
+# We nest the Vite output under a staging dir so axum serves it at /isometric/
+STAGING_DIR="$ISO_DIR/.quick-staging"
+rm -rf "$STAGING_DIR"
+mkdir -p "$STAGING_DIR/isometric"
+cp -r "$ISO_DIR/dist/"* "$STAGING_DIR/isometric/"
+
+# Create a minimal redirect at root → /isometric/
+cat > "$STAGING_DIR/index.html" <<'REDIRECT'
+<!DOCTYPE html>
+<html><head><meta http-equiv="refresh" content="0;url=/isometric/"></head></html>
+REDIRECT
+
+# ── Export cert paths for axum HTTPS + game server WS/WT ──
+export HTTP_CERT="$CERT_DIR/localhost+2.pem"
+export HTTP_KEY="$CERT_DIR/localhost+2-key.pem"
+export GAME_WS_CERT="$CERT_DIR/localhost+2.pem"
+export GAME_WS_KEY="$CERT_DIR/localhost+2-key.pem"
+export GAME_WT_CERT="$CERT_DIR/localhost+2.pem"
+export GAME_WT_KEY="$CERT_DIR/localhost+2-key.pem"
+
+# ── Point axum's static file serving at the staged output ──
+export STATIC_DIR="$STAGING_DIR"
+export HTTP_PORT="${HTTP_PORT:-3080}"
+
+echo "[quick] Starting axum-kbve (HTTPS on port $HTTP_PORT)..."
+echo "[quick]   -> https://localhost:$HTTP_PORT/isometric/"
+echo "[quick]   -> Game WS on :5000, WT on :5001"
+
+# ── Run axum as the single server (foreground) ──
+cargo run -p axum-kbve
