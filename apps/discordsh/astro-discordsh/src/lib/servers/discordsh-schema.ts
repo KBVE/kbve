@@ -3,7 +3,7 @@
  *
  * Source: ../../../../../../packages/data/codegen/descriptors/discordsh.binpb
  * Config: ../../../../../../packages/data/codegen/discordsh-zod-config.json
- * Generated: 2026-03-12T21:12:35.630Z
+ * Generated: 2026-03-18T04:55:50.924Z
  */
 
 import { z } from 'zod';

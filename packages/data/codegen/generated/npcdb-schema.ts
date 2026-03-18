@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/npcdb.binpb
  * Config: ../npcdb-zod-config.json
- * Generated: 2026-03-18T04:38:57.544Z
+ * Generated: 2026-03-18T04:55:50.914Z
  */
 
 import { z } from 'zod';

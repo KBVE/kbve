@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/mapdb.binpb
  * Config: ../mapdb-zod-config.json
- * Generated: 2026-03-18T04:38:57.550Z
+ * Generated: 2026-03-18T04:55:50.920Z
  */
 
 import { z } from 'zod';
