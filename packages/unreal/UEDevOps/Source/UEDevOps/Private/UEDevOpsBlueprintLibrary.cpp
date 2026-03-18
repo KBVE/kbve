@@ -6,7 +6,7 @@
 
 static UUEDevOpsTelemetrySubsystem* GetTelemetrySubsystem(const UObject* WorldContextObject)
 {
-	if (!WorldContextObject)
+	if (!WorldContextObject || !GEngine)
 	{
 		return nullptr;
 	}
@@ -52,7 +52,8 @@ void UUEDevOpsBlueprintLibrary::SendTelemetryEvent(
 
 	if (UUEDevOpsTelemetrySubsystem* Sub = GetTelemetrySubsystem(WorldContextObject))
 	{
-		Sub->RecordEvent(Event);
+		// Move into subsystem — avoids copying the event
+		Sub->RecordEvent(MoveTemp(Event));
 	}
 }
 
@@ -86,6 +87,7 @@ int32 UUEDevOpsBlueprintLibrary::GetPendingEventCount(const UObject* WorldContex
 TMap<FString, FString> UUEDevOpsBlueprintLibrary::GetDeviceInfo()
 {
 	TMap<FString, FString> Info;
+	Info.Reserve(6);
 	Info.Add(TEXT("Platform"), FPlatformProperties::PlatformName());
 	Info.Add(TEXT("CPUBrand"), FPlatformMisc::GetCPUBrand());
 	Info.Add(TEXT("CPUCores"), FString::FromInt(FPlatformMisc::NumberOfCores()));

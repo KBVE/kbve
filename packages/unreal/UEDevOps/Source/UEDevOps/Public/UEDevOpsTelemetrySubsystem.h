@@ -5,6 +5,8 @@
 #include "Engine/TimerHandle.h"
 #include "UEDevOpsTelemetrySubsystem.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogUEDevOps, Log, All);
+
 USTRUCT(BlueprintType)
 struct UEDEVOPS_API FDevOpsTelemetryEvent
 {
@@ -34,6 +36,13 @@ struct UEDEVOPS_API FDevOpsTelemetryEvent
 /**
  * Game-instance subsystem that queues telemetry events and POSTs them
  * to a configurable HTTP endpoint. Usable from Blueprints and C++.
+ *
+ * Optimized for minimal per-event allocation:
+ * - EventQueue pre-reserved to MaxQueueSize
+ * - Direct TJsonWriter serialization (no FJsonObject intermediary tree)
+ * - Immutable platform/build/auth strings cached once at init
+ * - Serialization buffer reused across flushes
+ * - Swap-and-flush: queue remains available during POST serialization
  */
 UCLASS()
 class UEDEVOPS_API UUEDevOpsTelemetrySubsystem : public UGameInstanceSubsystem
@@ -47,6 +56,9 @@ public:
 	/** Queue a telemetry event. Flushed automatically or via FlushEvents(). */
 	UFUNCTION(BlueprintCallable, Category = "UEDevOps|Telemetry")
 	void RecordEvent(const FDevOpsTelemetryEvent& Event);
+
+	/** C++ fast path: move an event into the queue without copying. */
+	void RecordEvent(FDevOpsTelemetryEvent&& Event);
 
 	/** Convenience: record a player error with a message and optional metadata. */
 	UFUNCTION(BlueprintCallable, Category = "UEDevOps|Telemetry")
@@ -66,13 +78,24 @@ public:
 
 private:
 	void OnTimerFlush();
-	void PostPayload(const FString& JsonPayload);
-	FString SerializeQueue() const;
+	void PostPayload(FString&& JsonPayload);
+	void SerializeEventsInto(const TArray<FDevOpsTelemetryEvent>& Events, FString& OutBuffer) const;
 	void SetupLogCapture();
 	void TeardownLogCapture();
+	void EnqueueInternal(FDevOpsTelemetryEvent&& Event);
 
+	/** Pre-reserved event queue. */
 	TArray<FDevOpsTelemetryEvent> EventQueue;
 	FTimerHandle FlushTimerHandle;
+
+	/** Reusable serialization buffer — Reset() instead of reallocating each flush. */
+	FString SerializeBuffer;
+
+	/** Cached immutable strings (computed once in Initialize). */
+	FString CachedPlatformName;
+	FString CachedBuildConfig;
+	FString CachedProjectVersion;
+	FString CachedAuthHeader;
 
 	/** Custom output device registered with GLog to intercept log messages. */
 	class FDevOpsLogCapture* LogCaptureDevice = nullptr;
