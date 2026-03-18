@@ -8,6 +8,7 @@ import {
   validateLimit,
   validateMemeId,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // Meme Comment Module
@@ -42,7 +43,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ error: error.message }, 400);
+      return safeRpcError(error, "service_fetch_comments");
     }
 
     const comments = Array.isArray(data) ? data : [];
@@ -74,7 +75,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ error: error.message }, 400);
+      return safeRpcError(error, "service_fetch_replies");
     }
 
     const replies = Array.isArray(data) ? data : [];
@@ -113,7 +114,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_create_comment");
     }
 
     return jsonResponse({ success: true, comment_id: data });
@@ -136,7 +137,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_delete_comment");
     }
 
     if (!data) {

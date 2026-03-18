@@ -5,6 +5,7 @@ import {
   validateMemeId,
   validateTag,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // Meme Feed Module
@@ -56,7 +57,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ error: error.message }, 400);
+      return safeRpcError(error, "service_fetch_feed");
     }
 
     const memes = Array.isArray(data) ? data : [];
@@ -79,7 +80,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_increment_view");
     }
 
     return jsonResponse({ success: true });
@@ -96,7 +97,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_increment_share");
     }
 
     return jsonResponse({ success: true });

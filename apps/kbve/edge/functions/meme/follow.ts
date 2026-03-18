@@ -5,6 +5,7 @@ import {
   requireAuthenticated,
   validateUserId,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // Meme Follow Module
@@ -42,7 +43,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_follow");
     }
 
     return jsonResponse({ success: true, is_new: data });
@@ -65,7 +66,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_unfollow");
     }
 
     return jsonResponse({ success: true, was_following: data });

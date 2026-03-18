@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { requireJsonContentType } from "../_shared/validators.ts";
 import {
   extractToken,
   jsonResponse,
@@ -69,6 +70,9 @@ serve(async (req) => {
     return jsonResponse({ error: "Only POST method is allowed" }, 405);
   }
 
+  const ctErr = requireJsonContentType(req);
+  if (ctErr) return ctErr;
+
   try {
     // Try to parse JWT — anonymous access is allowed for some actions
     let token = "";
@@ -123,12 +127,14 @@ serve(async (req) => {
     return mod.handler({ token, claims, body, action });
   } catch (err) {
     console.error("meme error:", err);
-    const message = err instanceof Error
+    const rawMessage = err instanceof Error
       ? err.message
       : "Internal server error";
-    const status = message.includes("authorization") || message.includes("JWT")
-      ? 401
-      : 500;
-    return jsonResponse({ error: message }, status);
+    const isAuthError =
+      rawMessage.includes("authorization") || rawMessage.includes("JWT");
+    if (isAuthError) {
+      return jsonResponse({ error: rawMessage }, 401);
+    }
+    return jsonResponse({ error: "Internal server error" }, 500);
   }
 });

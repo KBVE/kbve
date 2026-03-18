@@ -7,6 +7,7 @@ import {
   validateLimit,
   validateUserId,
 } from "./_shared.ts";
+import { validateSafeUrl, safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // Meme Profile Module
@@ -32,7 +33,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ error: error.message }, 400);
+      return safeRpcError(error, "service_get_profile");
     }
 
     const rows = Array.isArray(data) ? data : [];
@@ -78,24 +79,29 @@ const handlers: Record<string, Handler> = {
       }
     }
 
-    // Validate avatar_url if provided
+    // Validate avatar_url if provided (SSRF-safe)
     if (avatar_url !== undefined && avatar_url !== null) {
-      if (
-        typeof avatar_url !== "string" ||
-        !avatar_url.startsWith("https://")
-      ) {
+      const urlErr = validateSafeUrl(avatar_url, "avatar_url", {
+        required: false,
+      });
+      if (urlErr) return urlErr;
+    }
+
+    // Validate bio if provided (trim before checking length)
+    if (bio !== undefined && bio !== null) {
+      if (typeof bio !== "string") {
+        return jsonResponse({ error: "bio must be a string" }, 400);
+      }
+      const trimmedBio = bio.trim();
+      if (trimmedBio.length > 500) {
         return jsonResponse(
-          { error: "avatar_url must be a valid HTTPS URL" },
+          { error: "bio must be at most 500 characters" },
           400,
         );
       }
-    }
-
-    // Validate bio if provided
-    if (bio !== undefined && bio !== null) {
-      if (typeof bio !== "string" || bio.length > 500) {
+      if (trimmedBio.length === 0) {
         return jsonResponse(
-          { error: "bio must be at most 500 characters" },
+          { error: "bio must not be empty or whitespace-only" },
           400,
         );
       }
@@ -110,7 +116,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_upsert_profile");
     }
 
     return jsonResponse({ success: true });
@@ -136,7 +142,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ error: error.message }, 400);
+      return safeRpcError(error, "service_get_user_memes");
     }
 
     const memes = Array.isArray(data) ? data : [];

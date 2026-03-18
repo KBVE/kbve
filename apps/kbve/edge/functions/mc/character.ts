@@ -6,6 +6,7 @@ import {
   requireServiceRole,
   validateMcUuid,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // MC Character Module — DND-style RPG character system
@@ -84,7 +85,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_save_character");
     }
 
     return jsonResponse({ success: true, player_uuid: data });
@@ -108,7 +109,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ found: false, error: error.message }, 400);
+      return safeRpcError(error, "service_load_character");
     }
 
     if (!data || (Array.isArray(data) && data.length === 0)) {
@@ -147,7 +148,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_add_experience");
     }
 
     if (!data || (Array.isArray(data) && data.length === 0)) {

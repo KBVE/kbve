@@ -5,6 +5,7 @@ import {
   requireAuthenticated,
   validateMemeId,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // Meme Save Module
@@ -34,7 +35,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_save_meme");
     }
 
     return jsonResponse({ success: true, is_new_save: data });
@@ -57,7 +58,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_unsave_meme");
     }
 
     return jsonResponse({ success: true, was_saved: data });

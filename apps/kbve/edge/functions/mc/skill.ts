@@ -6,6 +6,7 @@ import {
   requireServiceRole,
   validateMcUuid,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // MC Skill Module — Per-skill progression (skill tree)
@@ -105,7 +106,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_save_skill_tree");
     }
 
     return jsonResponse({ success: true, skills_saved: data });
@@ -129,7 +130,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ found: false, error: error.message }, 400);
+      return safeRpcError(error, "service_load_skill_tree");
     }
 
     if (!data || (Array.isArray(data) && data.length === 0)) {
@@ -187,7 +188,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_add_skill_xp");
     }
 
     if (!data || (Array.isArray(data) && data.length === 0)) {
