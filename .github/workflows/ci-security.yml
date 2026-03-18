@@ -50,6 +50,7 @@ jobs:
                           - 'apps/mc/pumpkin'
                           - 'apps/irc/ergo'
                           - 'apps/postgres'
+                          - 'apps/kbve/astro-kbve/public/isometric/assets'
 
             - name: Auto-build
               uses: github/codeql-action/autobuild@v4
@@ -84,6 +85,7 @@ jobs:
                           - 'apps/mc/pumpkin'
                           - 'apps/irc/ergo'
                           - 'apps/postgres'
+                          - 'apps/kbve/astro-kbve/public/isometric/assets'
 
             - name: Auto-build
               uses: github/codeql-action/autobuild@v4
