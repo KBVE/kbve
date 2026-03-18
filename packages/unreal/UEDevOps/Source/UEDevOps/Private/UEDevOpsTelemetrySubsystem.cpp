@@ -1,5 +1,7 @@
 #include "UEDevOpsTelemetrySubsystem.h"
 #include "UEDevOpsSettings.h"
+#include "Engine/GameInstance.h"
+#include "Engine/World.h"
 #include "HttpModule.h"
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
@@ -9,6 +11,7 @@
 #include "Dom/JsonValue.h"
 #include "Misc/App.h"
 #include "Misc/DateTime.h"
+#include "Misc/OutputDeviceRedirector.h"
 #include "TimerManager.h"
 
 void UUEDevOpsTelemetrySubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -189,6 +192,37 @@ void UUEDevOpsTelemetrySubsystem::PostPayload(const FString& JsonPayload)
 	Request->ProcessRequest();
 }
 
+/** FOutputDevice that forwards log messages to the telemetry subsystem. */
+class FDevOpsLogCapture : public FOutputDevice
+{
+public:
+	UUEDevOpsTelemetrySubsystem* Owner = nullptr;
+	ELogVerbosity::Type MinVerbosity = ELogVerbosity::Warning;
+
+	virtual void Serialize(const TCHAR* Message, ELogVerbosity::Type Verbosity, const FName& Category) override
+	{
+		if (!Owner || Verbosity > MinVerbosity)
+		{
+			return;
+		}
+
+		FDevOpsTelemetryEvent Event;
+		Event.Category = TEXT("log");
+		Event.Message = Message;
+
+		switch (Verbosity)
+		{
+		case ELogVerbosity::Fatal:   Event.Severity = TEXT("fatal"); break;
+		case ELogVerbosity::Error:   Event.Severity = TEXT("error"); break;
+		case ELogVerbosity::Warning: Event.Severity = TEXT("warning"); break;
+		default:                     Event.Severity = TEXT("info"); break;
+		}
+
+		Event.Metadata.Add(TEXT("logCategory"), Category.ToString());
+		Owner->RecordEvent(Event);
+	}
+};
+
 void UUEDevOpsTelemetrySubsystem::SetupLogCapture()
 {
 	const UUEDevOpsSettings* Settings = UUEDevOpsSettings::Get();
@@ -197,35 +231,18 @@ void UUEDevOpsTelemetrySubsystem::SetupLogCapture()
 		return;
 	}
 
-	const ELogVerbosity::Type EngineMinVerbosity = UUEDevOpsSettings::ToEngineVerbosity(Settings->MinLogVerbosity);
-	LogOutputHandle = FOutputDeviceRedirector::Get()->OnLogMessage().AddLambda(
-		[this, MinVerbosity = EngineMinVerbosity](const TCHAR* Message, ELogVerbosity::Type Verbosity, const FName& Category)
-		{
-			if (Verbosity <= MinVerbosity)
-			{
-				FDevOpsTelemetryEvent Event;
-				Event.Category = TEXT("log");
-				Event.Message = Message;
-
-				switch (Verbosity)
-				{
-				case ELogVerbosity::Fatal:   Event.Severity = TEXT("fatal"); break;
-				case ELogVerbosity::Error:   Event.Severity = TEXT("error"); break;
-				case ELogVerbosity::Warning: Event.Severity = TEXT("warning"); break;
-				default:                     Event.Severity = TEXT("info"); break;
-				}
-
-				Event.Metadata.Add(TEXT("logCategory"), Category.ToString());
-				RecordEvent(Event);
-			}
-		});
+	LogCaptureDevice = new FDevOpsLogCapture();
+	LogCaptureDevice->Owner = this;
+	LogCaptureDevice->MinVerbosity = UUEDevOpsSettings::ToEngineVerbosity(Settings->MinLogVerbosity);
+	GLog->AddOutputDevice(LogCaptureDevice);
 }
 
 void UUEDevOpsTelemetrySubsystem::TeardownLogCapture()
 {
-	if (LogOutputHandle.IsValid())
+	if (LogCaptureDevice)
 	{
-		FOutputDeviceRedirector::Get()->OnLogMessage().Remove(LogOutputHandle);
-		LogOutputHandle.Reset();
+		GLog->RemoveOutputDevice(LogCaptureDevice);
+		delete LogCaptureDevice;
+		LogCaptureDevice = nullptr;
 	}
 }

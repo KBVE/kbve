@@ -73,5 +73,7 @@ private:
 
 	TArray<FDevOpsTelemetryEvent> EventQueue;
 	FTimerHandle FlushTimerHandle;
-	FDelegateHandle LogOutputHandle;
+
+	/** Custom output device registered with GLog to intercept log messages. */
+	class FDevOpsLogCapture* LogCaptureDevice = nullptr;
 };
