@@ -1236,17 +1236,23 @@ fn connect_to_server(commands: &mut Commands, transport: &TransportConfig, token
         return;
     }
 
-    // Suspenders: on WASM release builds, block any localhost/127.0.0.1 connection
-    #[cfg(all(target_arch = "wasm32", not(debug_assertions)))]
+    // Safety: on WASM release builds, block localhost game-server connections
+    // UNLESS the page itself is served from localhost (local dev via quick script).
+    #[cfg(target_arch = "wasm32")]
     {
         let check_url = if !transport.wt_url.is_empty() {
             &transport.wt_url
         } else {
             &transport.ws_url
         };
-        if check_url.contains("127.0.0.1") || check_url.contains("localhost") {
+        let is_local_target = check_url.contains("127.0.0.1") || check_url.contains("localhost");
+        let page_is_local = web_sys::window()
+            .and_then(|w| w.location().hostname().ok())
+            .map(|h| h == "localhost" || h == "127.0.0.1")
+            .unwrap_or(false);
+        if is_local_target && !page_is_local {
             warn!(
-                "[net] BLOCKED localhost connection on WASM: {check_url} — JS must provide the production server URL"
+                "[net] BLOCKED localhost connection on WASM: {check_url} — page is not localhost"
             );
             return;
         }

@@ -6,18 +6,21 @@
 //! a Netcode connection to the game server.
 
 use axum::Json;
-use axum::http::StatusCode;
+use axum::http::{HeaderMap, StatusCode};
 use lightyear::netcode::ConnectToken;
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 
 use bevy_kbve_net::net_config;
 
-/// Default game server address for token generation (WebSocket).
-const DEFAULT_GAME_ADDR: &str = "127.0.0.1:5000";
+/// Default game server bind address (WebSocket).
+const DEFAULT_GAME_ADDR: &str = "0.0.0.0:5000";
 
-/// Default WebTransport address for token generation.
-const DEFAULT_GAME_WT_ADDR: &str = "127.0.0.1:5001";
+/// Default WS port (used when deriving URL from Host header).
+const DEFAULT_WS_PORT: u16 = 5000;
+
+/// Default WT port (used when deriving URL from Host header).
+const DEFAULT_WT_PORT: u16 = 5001;
 
 #[derive(Deserialize)]
 pub struct TokenRequest {
@@ -40,8 +43,11 @@ pub struct TokenResponse {
 /// `POST /api/v1/auth/game-token`
 ///
 /// Validates the optional JWT, generates a Netcode `ConnectToken`, and returns
-/// it along with the game server address.
+/// it along with the game server address. The returned URLs use the same hostname
+/// the client used to reach this endpoint (from the Host header), so they work
+/// correctly in both local dev (`localhost`) and production (`kbve.com`).
 pub async fn game_token_handler(
+    headers: HeaderMap,
     Json(req): Json<TokenRequest>,
 ) -> Result<Json<TokenResponse>, (StatusCode, String)> {
     let private_key = net_config::load_private_key();
@@ -57,6 +63,20 @@ pub async fn game_token_handler(
                 format!("bad GAME_WS_ADDR: {e}"),
             )
         })?;
+
+    // Extract hostname from the request's Host header so returned URLs
+    // match what the client used to reach us (localhost, kbve.com, etc.).
+    let request_host = extract_hostname(&headers);
+
+    // Determine WS/WT ports from env or defaults
+    let ws_port: u16 = std::env::var("GAME_WS_ADDR")
+        .ok()
+        .and_then(|s| s.rsplit_once(':').and_then(|(_, p)| p.parse().ok()))
+        .unwrap_or(DEFAULT_WS_PORT);
+    let wt_port: u16 = std::env::var("GAME_WT_ADDR")
+        .ok()
+        .and_then(|s| s.rsplit_once(':').and_then(|(_, p)| p.parse().ok()))
+        .unwrap_or(DEFAULT_WT_PORT);
 
     // Determine client_id and user_data from JWT
     let (client_id, user_data) = match req.jwt.as_deref() {
@@ -97,23 +117,18 @@ pub async fn game_token_handler(
     let b64 =
         net_config::token_to_base64(token).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))?;
 
-    // Build the WebSocket URL for the client (wss:// — server uses TLS)
-    let server_url = format!("wss://{game_addr}");
+    // Build URLs using the request hostname so they work for the client
+    let server_url = format!("wss://{request_host}:{ws_port}");
 
-    // Build the WebTransport URL and cert digest (if available)
     let cert_digest = super::get_cert_digest().to_owned();
     let server_wt_url = if super::is_wt_enabled() {
-        let wt_addr: SocketAddr = std::env::var("GAME_WT_ADDR")
-            .unwrap_or_else(|_| DEFAULT_GAME_WT_ADDR.to_string())
-            .parse()
-            .unwrap_or_else(|_| DEFAULT_GAME_WT_ADDR.parse().unwrap());
-        format!("https://{wt_addr}")
+        format!("https://{request_host}:{wt_port}")
     } else {
         String::new()
     };
 
     tracing::info!(
-        "[game-token] issuing token: ws_url={server_url} wt_url={} digest_len={}",
+        "[game-token] issuing token: ws_url={server_url} wt_url={} digest_len={} host={request_host}",
         if server_wt_url.is_empty() {
             "<empty>"
         } else {
@@ -128,4 +143,17 @@ pub async fn game_token_handler(
         server_wt_url,
         cert_digest,
     }))
+}
+
+/// Extract just the hostname (no port) from the request's Host header.
+/// Falls back to "localhost" if not present.
+fn extract_hostname(headers: &HeaderMap) -> String {
+    headers
+        .get("host")
+        .and_then(|v| v.to_str().ok())
+        .map(|h| {
+            // Strip port if present (e.g., "localhost:3080" → "localhost")
+            h.split(':').next().unwrap_or(h).to_string()
+        })
+        .unwrap_or_else(|| "localhost".to_string())
 }
