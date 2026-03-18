@@ -1,0 +1,45 @@
+---
+import { getCollection } from 'astro:content';
+import ReactJukebox from './ReactJukebox';
+
+const allDocs = await getCollection('docs');
+
+const genres = allDocs
+	.filter(
+		(entry) => entry.id.startsWith('music/') && entry.id !== 'music/index',
+	)
+	.sort(
+		(a, b) =>
+			(a.data.sidebar?.order ?? 9999) - (b.data.sidebar?.order ?? 9999),
+	)
+	.map((entry) => ({
+		slug: entry.id.replace('music/', ''),
+		title: entry.data.title,
+		tracks: (entry.data['yt-tracks'] as string[] | undefined) ?? [],
+		sets: (entry.data['yt-sets'] as string[] | undefined) ?? [],
+	}))
+	.filter((g) => g.tracks.length > 0 || g.sets.length > 0);
+---
+
+<div class="not-content jukebox-host">
+	<ReactJukebox genres={genres} client:only="react" />
+</div>
+
+<style>
+	.jukebox-host {
+		position: fixed;
+		top: var(--sl-nav-height, 64px);
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 100;
+		background: #0d0d1a;
+	}
+
+	:global(body:has(.jukebox-host) .right-sidebar),
+	:global(body:has(.jukebox-host) [data-pagefind-ignore] aside),
+	:global(body:has(.jukebox-host) footer),
+	:global(body:has(.jukebox-host) .sl-sidebar) {
+		display: none !important;
+	}
+</style>

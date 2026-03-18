@@ -210,7 +210,7 @@ jobs:
             packages: write
         uses: KBVE/kbve/.github/workflows/docker-test-app.yml@main
         with:
-            project: ${{ inputs.app_name }}
+            project: ${{ needs.config.outputs.e2e_name }}
             runner: ${{ needs.config.outputs.runner }}
             image: ${{ needs.config.outputs.image }}
 
