@@ -1,6 +1,15 @@
-# Pumpkin source — cloned at build time (no submodule dependency)
+# Unified MC Dockerfile — supports prod and dev variants via VARIANT build arg.
+# Usage:
+#   Prod:  docker build -t kbve-mc .
+#   Dev:   docker build --build-arg VARIANT=dev -t kbve-mc:dev .
+#          docker run -p 25565:25565 -p 8080:8080 -p 25575:25575 \
+#            -v $PWD/logs:/pumpkin/logs \
+#            -v $PWD/world:/pumpkin/world kbve-mc:dev
+
+# Build configuration
 ARG PUMPKIN_REPO=https://github.com/KBVE/Pumpkin.git
 ARG PUMPKIN_REF=e749ef61e9bdcd3968fe70fe63d19d953cf6ba3d
+ARG VARIANT=prod
 
 # ============================================================================
 # [STAGE A] - Build Astro Static Site
@@ -15,23 +24,14 @@ ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 WORKDIR /app
 
-# Copy root dependency and config files (layer-cached separately from source)
 COPY package.json pnpm-lock.yaml .npmrc tsconfig.base.json ./
-
-# Install all dependencies (hoisted mode - all go to root node_modules)
 RUN pnpm install --frozen-lockfile
 
-# Copy workspace package sources (TypeScript path aliases resolve to these)
 COPY packages/npm/astro/ packages/npm/astro/
 COPY packages/npm/droid/ packages/npm/droid/
-
-# Copy generated schemas (content collections may import these)
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
-
-# Copy astro-mc source
 COPY apps/mc/astro-mc/ apps/mc/astro-mc/
 
-# Build astro site
 WORKDIR /app/apps/mc/astro-mc
 RUN rm -rf .astro && npx astro sync && \
     UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
@@ -118,7 +118,7 @@ FROM deps AS builder
 COPY --from=pumpkin-source /pumpkin .
 RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
-    cargo build --release && cp target/release/pumpkin ./pumpkin.release
+    cargo build --release && cp target/release/pumpkin /pumpkin.bin
 
 # ============================================================================
 # --- Plugin: build (parallel with pumpkin, reuses all pre-compiled crates) ---
@@ -137,7 +137,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/git/db \
          || cp /pumpkin/target/release/libkbve_mc_plugin.dylib /built-plugins/ 2>/dev/null \
          || true; }
 
-# --- Resource pack ---
+# --- Resource pack (fast, runs in parallel with rust builds) ---
 FROM alpine:3.23 AS pack-builder
 RUN apk add --no-cache zip coreutils
 COPY ./apps/mc/data/resource-pack /resource-pack
@@ -145,28 +145,34 @@ RUN cd /resource-pack && zip -r /kbve-resource-pack.zip . -x '.*' -x '__MACOSX/*
 RUN SHA1=$(sha1sum /kbve-resource-pack.zip | awk '{print $1}') && \
     printf '[resource_pack]\nenabled = true\nurl = "http://localhost:8080/kbve-resource-pack.zip"\nsha1 = "%s"\nforce = true\nprompt_message = "KBVE Resource Pack - Custom items and textures"\n\n[world]\nlighting = "default"\nautosave_ticks = 6000\n\n[world.chunk]\ntype = "anvil"\nwrite_in_place = false\n\n[world.chunk.compression]\nalgorithm = "LZ4"\nlevel = 6\n\n[networking.rcon]\nenabled = true\naddress = "0.0.0.0:25575"\npassword = "kbve-rcon"\nmax_connections = 5\n' "$SHA1" > /features.toml
 
+# ============================================================================
 # --- Final image ---
+# ============================================================================
 FROM alpine:3.23
+ARG VARIANT
 
-COPY --from=builder /pumpkin/pumpkin.release /bin/pumpkin
+COPY --from=builder /pumpkin.bin /bin/pumpkin
 COPY --from=plugin-builder /built-plugins/ /pumpkin/plugins/
 
 WORKDIR /pumpkin
 
-# Bake in custom server config and icon
 COPY ./apps/mc/data/config/configuration.toml /pumpkin/config/configuration.toml
 COPY ./apps/mc/data/server_icon.png /pumpkin/server_icon.png
 
-# Resource pack: zip served by axum, config for Pumpkin
 COPY --from=pack-builder /kbve-resource-pack.zip /pumpkin/resource-pack.zip
 COPY --from=pack-builder /features.toml /pumpkin/config/features.toml
 
 # Static Astro site: served by plugin's axum server
 COPY --from=astro-precompressor /static /pumpkin/web
 
-# Entrypoint: templates RESOURCE_PACK_URL env var into features.toml at startup
-COPY ./apps/mc/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Copy both entrypoints, select based on VARIANT
+COPY ./apps/mc/entrypoint.sh /entrypoint.prod.sh
+COPY ./apps/mc/entrypoint.dev.sh /entrypoint.dev.sh
+RUN cp /entrypoint.${VARIANT}.sh /entrypoint.sh && chmod +x /entrypoint.sh \
+    && rm /entrypoint.prod.sh /entrypoint.dev.sh
+
+# Create mountable directories (used by dev for log/world persistence, harmless in prod)
+RUN mkdir -p /pumpkin/logs /pumpkin/world
 
 RUN apk upgrade --no-cache && apk add --no-cache libgcc && chown -R 2613:2613 .
 
