@@ -3,7 +3,29 @@
 (function () {
 	var ENDPOINT = '/api/v1/telemetry/report';
 	var ALLOWED_LEVELS = { warn: 1, error: 1 };
-	var sid = Math.random().toString(36).slice(2, 10);
+
+	/** Generate a cryptographically secure random session id. */
+	function secureRandomId(length) {
+		var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+		var result = '';
+		var cryptoObj = window.crypto || window.msCrypto;
+		if (!cryptoObj || !cryptoObj.getRandomValues) {
+			for (var i = 0; i < length; i++) {
+				result += chars.charAt(
+					Math.floor(Math.random() * chars.length),
+				);
+			}
+			return result;
+		}
+		var bytes = new Uint8Array(length);
+		cryptoObj.getRandomValues(bytes);
+		for (var j = 0; j < length; j++) {
+			result += chars.charAt(bytes[j] % chars.length);
+		}
+		return result;
+	}
+
+	var sid = secureRandomId(8);
 	var sent = 0;
 	var MAX = 50;
 	var reporting = false;
