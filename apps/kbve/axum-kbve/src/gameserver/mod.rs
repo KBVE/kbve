@@ -228,10 +228,15 @@ pub fn init_gameserver() {
 
 /// Create a WebTransport TLS identity.
 ///
-/// - If `GAME_WT_DISABLE=1`, returns None (WebTransport disabled).
-/// - Otherwise generates a self-signed cert (14-day, ECDSA P-256) with SANs
-///   for localhost/127.0.0.1/::1 — the canonical lightyear dev pattern.
-///   The SHA-256 digest is stored globally so the token endpoint can serve it.
+/// Priority:
+/// 1. `GAME_WT_DISABLE=1` → None (WebTransport disabled)
+/// 2. `GAME_WT_CERT` + `GAME_WT_KEY` → load PEM files (production, Let's Encrypt)
+/// 3. Fallback → self-signed cert (local dev, 14-day validity)
+///
+/// For production certs (Let's Encrypt), the browser trusts the CA natively so
+/// `cert_digest` is left empty — no pinning needed.
+/// For self-signed certs, the SHA-256 digest is stored globally so the token
+/// endpoint can serve it to WASM clients.
 fn load_webtransport_identity() -> Option<lightyear::webtransport::prelude::Identity> {
     use lightyear::webtransport::prelude::Identity;
 
@@ -240,17 +245,50 @@ fn load_webtransport_identity() -> Option<lightyear::webtransport::prelude::Iden
         return None;
     }
 
+    // --- Production path: load cert from PEM files ---
+    let cert_path = std::env::var("GAME_WT_CERT").ok();
+    let key_path = std::env::var("GAME_WT_KEY").ok();
+
+    if let (Some(cert_path), Some(key_path)) = (cert_path, key_path) {
+        if std::path::Path::new(&cert_path).exists() && std::path::Path::new(&key_path).exists() {
+            tracing::info!("loading WebTransport cert from {cert_path}");
+            let identity = tokio::task::block_in_place(|| {
+                tokio::runtime::Handle::current()
+                    .block_on(Identity::load_pemfiles(&cert_path, &key_path))
+            });
+            match identity {
+                Ok(id) => {
+                    // Production cert (Let's Encrypt) — browser trusts the CA,
+                    // no digest needed. Leave CERT_DIGEST empty.
+                    tracing::info!(
+                        "WebTransport using production TLS cert (no digest pinning needed)"
+                    );
+                    return Some(id);
+                }
+                Err(e) => {
+                    tracing::error!(
+                        "failed to load WebTransport cert: {e} — falling back to self-signed"
+                    );
+                }
+            }
+        } else {
+            tracing::warn!(
+                "GAME_WT_CERT/KEY set but files not found — falling back to self-signed"
+            );
+        }
+    }
+
+    // --- Dev path: self-signed cert ---
     let identity =
         Identity::self_signed(&["localhost", "127.0.0.1", "::1"]).expect("self-signed cert");
 
-    // Compute and store the digest globally for the token endpoint
+    // Store digest so WASM clients can pin the self-signed cert
     let cert_chain = identity.certificate_chain();
     let certs = cert_chain.as_slice();
     if let Some(cert) = certs.first() {
         let digest = cert.hash();
-        // Format digest as uppercase hex without colons (lightyear client format)
         let digest_hex: String = digest.as_ref().iter().map(|b| format!("{b:02X}")).collect();
-        tracing::info!("WebTransport cert digest: {digest_hex}");
+        tracing::info!("WebTransport self-signed cert digest: {digest_hex}");
         let _ = CERT_DIGEST.set(digest_hex);
     }
 
