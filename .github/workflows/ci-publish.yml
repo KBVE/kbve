@@ -21,11 +21,11 @@ on:
                 required: false
                 type: string
                 default: ''
-            ue_image_tag:
-                description: 'Epic UE container image tag — unreal only (e.g. dev-5.7)'
+            ue_image_tags:
+                description: 'JSON array of Epic UE image tags — unreal only (e.g. ["dev-5.7.3","dev-5.6.1"])'
                 required: false
                 type: string
-                default: 'dev-5.7'
+                default: '["dev-5.7.3"]'
             deploy_to_itch:
                 description: 'Deploy to itch.io — unreal only'
                 required: false
@@ -154,21 +154,27 @@ jobs:
             PYPI_TOKEN: ${{ secrets.PYPI_API_SCOPE_TOKEN }}
 
     # ===========================================================================
-    # Unreal — build then publish (only runs when package_type == 'unreal')
+    # Unreal — matrix across UE versions, build then publish
+    # (only runs when package_type == 'unreal')
     # ===========================================================================
     publish_unreal:
-        name: Publish Unreal — ${{ inputs.package_name }}
+        name: Publish Unreal — ${{ inputs.package_name }} (${{ matrix.ue_tag }})
         needs: [queue_guard]
         if: inputs.package_type == 'unreal'
+        strategy:
+            fail-fast: false
+            matrix:
+                ue_tag: ${{ fromJson(inputs.ue_image_tags) }}
         permissions:
             contents: write
             packages: read
             issues: write
+            pull-requests: write
         uses: ./.github/workflows/utils-unreal-plugin-cicd.yml
         with:
             plugin_path: ${{ inputs.unreal_plugin_path }}
             plugin_name: ${{ inputs.package_name }}
-            ue_image_tag: ${{ inputs.ue_image_tag }}
+            ue_image_tag: ${{ matrix.ue_tag }}
             target_platforms: Linux
             deploy_to_itch: ${{ inputs.deploy_to_itch }}
             itch_username: kbve

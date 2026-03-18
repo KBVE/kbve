@@ -15,7 +15,7 @@ on:
                 description: 'Epic UE container image tag (e.g. dev-5.7)'
                 required: false
                 type: string
-                default: 'dev-5.7'
+                default: 'dev-5.7.3'
             target_platforms:
                 description: 'Target platforms for BuildPlugin (e.g. Linux, Win64, Linux+Win64)'
                 required: false
