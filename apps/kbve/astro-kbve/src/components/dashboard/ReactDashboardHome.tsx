@@ -1218,8 +1218,8 @@ export default function ReactDashboardHome() {
 				{/* Security Audit */}
 				<ServiceCard
 					title="Security Audit"
-					description="Weekly vulnerability scan across all ecosystems"
-					href="/dashboard/nx-security/"
+					description="Daily vulnerability scan across all ecosystems"
+					href="/dashboard/security/"
 					icon={<ShieldAlert size={18} />}
 					accentColor="#ef4444"
 					status={securityStatus}>
