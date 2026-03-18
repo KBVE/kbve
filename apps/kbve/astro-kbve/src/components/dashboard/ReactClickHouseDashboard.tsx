@@ -1,3 +1,25 @@
+// ---------------------------------------------------------------------------
+// @deprecated — SLATED FOR REMOVAL
+//
+// This monolithic component has been replaced by the nanostore island
+// architecture. All state now lives in clickhouseService.ts and the UI is
+// split across targeted React islands:
+//
+//   clickhouseService.ts   — nanostore singleton (atoms + computed)
+//   ReactCHAuth.tsx        — auth gate
+//   ReactCHHeader.tsx      — time range + refresh
+//   ReactCHSummary.tsx     — summary bar counters
+//   ReactCHNamespaceGrid.tsx — sort controls + namespace cards
+//   ReactCHFilterBar.tsx   — filter dropdowns, search, chips
+//   ReactCHLogStream.tsx   — log entries + footer
+//   ReactCHQueryTabs.tsx   — query tab manager with polling + dnd
+//
+// AstroClickHouseDashboard.astro mounts each island independently.
+// This file is kept temporarily for reference. Do not import it.
+//
+// TODO: Remove this file once the island architecture is verified in prod.
+// ---------------------------------------------------------------------------
+
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { initSupa, getSupa } from '@/lib/supa';
 import {

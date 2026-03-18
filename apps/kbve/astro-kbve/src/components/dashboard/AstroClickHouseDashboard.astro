@@ -5,6 +5,7 @@ import ReactCHSummary from './ReactCHSummary';
 import ReactCHNamespaceGrid from './ReactCHNamespaceGrid';
 import ReactCHFilterBar from './ReactCHFilterBar';
 import ReactCHLogStream from './ReactCHLogStream';
+import ReactCHQueryTabs from './ReactCHQueryTabs';
 ---
 
 <section
@@ -40,6 +41,11 @@ import ReactCHLogStream from './ReactCHLogStream';
 					<div id="ch-log-stream">
 						<ReactCHLogStream client:only="react" />
 					</div>
+				</div>
+
+				<!-- Island: Query tabs (pinned queries, polling, dnd, presets) -->
+				<div id="ch-query-tabs">
+					<ReactCHQueryTabs client:only="react" />
 				</div>
 			</div>
 		</ReactCHAuth>
