@@ -97,6 +97,14 @@ pub async fn call_n8n_service() -> impl IntoResponse {
     let n8n_url = std::env::var("N8N_WORKFLOWS_URL")
         .unwrap_or_else(|_| "https://automation.kbve.com/workflows".to_string());
 
+    // Enforce HTTPS to prevent cleartext transmission (CodeQL CWE-319)
+    if !n8n_url.starts_with("https://") {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({"error": "N8N_WORKFLOWS_URL must use HTTPS"})),
+        );
+    }
+
     // Attempt to call the primary service
     if let Ok(resp) = client.get(&n8n_url).send().await {
         if let Ok(json) = resp.json::<Value>().await {

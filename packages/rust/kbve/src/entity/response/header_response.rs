@@ -43,6 +43,7 @@ impl HeaderResponse {
             .max_age(duration)
             .same_site(same_site)
             .http_only(http_only)
+            .secure(true)
             .build();
 
         let cookie_value = cookie.to_string();
