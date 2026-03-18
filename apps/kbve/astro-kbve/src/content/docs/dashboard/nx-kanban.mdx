@@ -13,7 +13,7 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-03-17T22:39:12.915Z** — updated daily by `kanban-sync`.
+Last synced: **2026-03-18T06:21:31.538Z** — updated daily by `kanban-sync`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -27,13 +27,13 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **1** items
   </Card>
   <Card title="Todo" icon="list-format">
-    **6** items
+    **5** items
   </Card>
   <Card title="Backlog" icon="document">
     **7** items
   </Card>
   <Card title="Error" icon="warning">
-    **12** items
+    **11** items
   </Card>
   <Card title="Support" icon="information">
     **0** items
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **2** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **136** items
+    **143** items
   </Card>
 </CardGrid>
 
@@ -55,12 +55,12 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 pie title Items by Status
     "Theory" : 16
     "AI" : 1
-    "Todo" : 6
+    "Todo" : 5
     "Backlog" : 7
-    "Error" : 12
+    "Error" : 11
     "Staging" : 4
     "Review" : 2
-    "Done" : 136
+    "Done" : 143
 ```
 
 ### Pipeline Flow
@@ -71,11 +71,11 @@ flowchart LR
     Theory --> AI
     AI["AI<br/>1"]
     AI --> Todo
-    Todo["Todo<br/>6"]
+    Todo["Todo<br/>5"]
     Todo --> Backlog
     Backlog["Backlog<br/>7"]
     Backlog --> Error
-    Error["Error<br/>12"]
+    Error["Error<br/>11"]
     Error --> Support
     Support["Support<br/>0"]
     Support --> Staging
@@ -83,7 +83,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/>2"]
     Review --> Done
-    Done["Done<br/>136"]
+    Done["Done<br/>143"]
 ```
 
 ### Theory (16)
@@ -113,7 +113,7 @@ flowchart LR
 |---|-------|----------|-----------|--------|
 | [#4906](https://github.com/KBVE/kbve/issues/4906) | [Bug] : [Unity] : Character Orchestrator | — | h0lybyte | 0, bug, unity |
 
-### Todo (6)
+### Todo (5)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -122,7 +122,6 @@ flowchart LR
 | [#6939](https://github.com/KBVE/kbve/issues/6939) | [EPIC] Agent Orchestration Tab | — | — | 0, todo |
 | [#8134](https://github.com/KBVE/kbve/issues/8134) | feat(proto): ClickHouse schema source of truth via protobuf → zod → vector pipel | — | h0lybyte | 4, documentation, todo |
 | [#8170](https://github.com/KBVE/kbve/issues/8170) | feat(proto): ArgoCD application state schema via protobuf → zod → edge pipeline | — | h0lybyte | 4, documentation, todo |
-| [#8202](https://github.com/KBVE/kbve/issues/8202) | feat(astro-kbve): /music/ splash page with Jukebox YouTube player component | — | — | enhancement, todo |
 
 ### Backlog (7)
 
@@ -136,7 +135,7 @@ flowchart LR
 | [#7548](https://github.com/KBVE/kbve/issues/7548) | feat(memes): responsive bento grid feed + dedicated meme pages | — | h0lybyte | 1, backlog |
 | [#7709](https://github.com/KBVE/kbve/issues/7709) | [CRYPTOTHRONE] Inventory System, Event Bridge, and Gameplay Loop Completion | — | h0lybyte | 1, enhancement, backlog |
 
-### Error (12)
+### Error (11)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -151,7 +150,6 @@ flowchart LR
 | [#7956](https://github.com/KBVE/kbve/issues/7956) | chore(astro-kbve): re-enable starlight-site-graph after Zod 4 / Astro 6 support | — | — | 1, bug, backlog |
 | [#8169](https://github.com/KBVE/kbve/issues/8169) | [CI] Docker image version mismatch — cached binary reports stale version | — | — | 6, bug, ci |
 | [#8172](https://github.com/KBVE/kbve/issues/8172) | [ISOMETRIC] Lint deployments — validate WASM build assets before merge | — | — | 6, bug, ci |
-| [#8183](https://github.com/KBVE/kbve/issues/8183) | [SECURITY] Exclude generated WASM assets from CodeQL scanning | — | — | 6, bug, ci |
 
 ### Staging (4)
 
@@ -167,9 +165,9 @@ flowchart LR
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
 | [#8050](https://github.com/KBVE/kbve/pull/8050) | Release: 4 features, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#8203](https://github.com/KBVE/kbve/pull/8203) | Release: 1 feature, 3 fixes → Main | — | — | auto-pr, dev→main |
+| [#8209](https://github.com/KBVE/kbve/pull/8209) | Release: 8 features, 10 fixes, 2 refactors, 5 chores → Main | — | — | auto-pr, dev→main |
 
-### Done (136)
+### Done (143)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -304,11 +302,18 @@ flowchart LR
 | [#8164](https://github.com/KBVE/kbve/pull/8164) | Atomic: kube axum-kbve v1.0.58 | — | — | auto-pr, atomic |
 | [#8175](https://github.com/KBVE/kbve/pull/8175) | Release: 1 fix, 1 doc, 1 test → Main | — | — | auto-pr, dev→main |
 | [#8181](https://github.com/KBVE/kbve/pull/8181) | Release: 4 features, 1 fix, 1 test, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#8183](https://github.com/KBVE/kbve/issues/8183) | [SECURITY] Exclude generated WASM assets from CodeQL scanning | — | — | 6, bug, ci |
 | [#8192](https://github.com/KBVE/kbve/pull/8192) | Atomic: kube axum-kbve v1.0.60 | — | — | auto-pr, atomic |
 | [#8193](https://github.com/KBVE/kbve/pull/8193) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
 | [#8195](https://github.com/KBVE/kbve/pull/8195) | Release: 3 fixes, 1 CI → Main | — | — | auto-pr, dev→main |
 | [#8196](https://github.com/KBVE/kbve/issues/8196) | [CI] Refactor ci-main.yml into dispatcher + independent domain workflows | — | — | 6, bug, ci |
 | [#8200](https://github.com/KBVE/kbve/pull/8200) | Atomic: coep assets fix | — | — | auto-pr, atomic |
+| [#8202](https://github.com/KBVE/kbve/issues/8202) | feat(astro-kbve): /music/ splash page with Jukebox YouTube player component | — | — | enhancement, todo |
+| [#8203](https://github.com/KBVE/kbve/pull/8203) | Release: 2 features, 5 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#8206](https://github.com/KBVE/kbve/pull/8206) | chore(kanban): sync project board — 2026-03-17 | — | — | 1, auto-pr |
+| [#8207](https://github.com/KBVE/kbve/pull/8207) | Atomic: kube axum-kbve v1.0.61 | — | — | auto-pr, atomic |
+| [#8211](https://github.com/KBVE/kbve/pull/8211) | fix(isometric): Safari WebGPU crashes — setBindGroup SharedArrayBuffer shim + wi | — | — | 1, auto-pr |
+| [#8212](https://github.com/KBVE/kbve/pull/8212) | Atomic: astro queued rendering | — | — | auto-pr, atomic |
 
 ---
 
