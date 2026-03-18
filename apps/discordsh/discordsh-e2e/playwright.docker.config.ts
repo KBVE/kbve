@@ -6,7 +6,10 @@ const workspaceRoot = resolve(__dirname, '../../..');
 const port = 4321;
 const baseURL = `http://localhost:${port}`;
 
-const cargoToml = readFileSync(resolve(workspaceRoot, 'apps/discordsh/axum-discordsh/Cargo.toml'), 'utf-8');
+const cargoToml = readFileSync(
+	resolve(workspaceRoot, 'apps/discordsh/axum-discordsh/Cargo.toml'),
+	'utf-8',
+);
 const version = cargoToml.match(/^version\s*=\s*"(.+)"/m)?.[1] ?? '0.1.0';
 
 const killPort = `lsof -ti:${port} | xargs kill -9 2>/dev/null; sleep 1;`;
@@ -24,6 +27,7 @@ export default defineConfig({
 	projects: [
 		{
 			name: 'docker',
+			testIgnore: /mock-api/,
 			use: {
 				...devices['Desktop Chrome'],
 				baseURL,
