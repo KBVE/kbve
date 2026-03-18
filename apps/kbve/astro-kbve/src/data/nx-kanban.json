@@ -1,20 +1,20 @@
 {
-	"generated_at": "2026-03-17T22:39:12.915Z",
+	"generated_at": "2026-03-18T06:21:31.538Z",
 	"project": {
 		"title": "KBVE",
 		"url": "https://github.com/orgs/KBVE/projects/5",
-		"total_items": 185
+		"total_items": 190
 	},
 	"summary": {
 		"Theory": 16,
 		"AI": 1,
-		"Todo": 6,
+		"Todo": 5,
 		"Backlog": 7,
-		"Error": 12,
+		"Error": 11,
 		"Support": 0,
 		"Staging": 4,
 		"Review": 2,
-		"Done": 136
+		"Done": 143
 	},
 	"columns": {
 		"Theory": [
@@ -407,21 +407,6 @@
 				"matrix": null,
 				"date": "2026-03-17",
 				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 8202,
-				"title": "feat(astro-kbve): /music/ splash page with Jukebox YouTube player component",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/8202",
-				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo"
-				],
-				"matrix": null,
-				"date": "2026-03-17",
-				"milestone": null
 			}
 		],
 		"Backlog": [
@@ -735,23 +720,6 @@
 				"matrix": null,
 				"date": "2026-03-17",
 				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 8183,
-				"title": "[SECURITY] Exclude generated WASM assets from CodeQL scanning",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/8183",
-				"assignees": [],
-				"labels": [
-					"6",
-					"bug",
-					"ci",
-					"docker"
-				],
-				"matrix": null,
-				"date": "2026-03-17",
-				"milestone": null
 			}
 		],
 		"Support": [],
@@ -840,10 +808,10 @@
 			},
 			{
 				"type": "PULL_REQUEST",
-				"number": 8203,
-				"title": "Release: 1 feature, 3 fixes → Main",
+				"number": 8209,
+				"title": "Release: 8 features, 10 fixes, 2 refactors, 5 chores → Main",
 				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/pull/8203",
+				"url": "https://github.com/KBVE/kbve/pull/8209",
 				"assignees": [],
 				"labels": [
 					"auto-pr",
@@ -2834,6 +2802,23 @@
 				"milestone": null
 			},
 			{
+				"type": "ISSUE",
+				"number": 8183,
+				"title": "[SECURITY] Exclude generated WASM assets from CodeQL scanning",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/8183",
+				"assignees": [],
+				"labels": [
+					"6",
+					"bug",
+					"ci",
+					"docker"
+				],
+				"matrix": null,
+				"date": "2026-03-17",
+				"milestone": null
+			},
+			{
 				"type": "PULL_REQUEST",
 				"number": 8192,
 				"title": "Atomic: kube axum-kbve v1.0.60",
@@ -2901,6 +2886,96 @@
 				"title": "Atomic: coep assets fix",
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/8200",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 8202,
+				"title": "feat(astro-kbve): /music/ splash page with Jukebox YouTube player component",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/8202",
+				"assignees": [],
+				"labels": [
+					"enhancement",
+					"todo"
+				],
+				"matrix": null,
+				"date": "2026-03-17",
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8203,
+				"title": "Release: 2 features, 5 fixes, 2 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8203",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8206,
+				"title": "chore(kanban): sync project board — 2026-03-17",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8206",
+				"assignees": [],
+				"labels": [
+					"1",
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8207,
+				"title": "Atomic: kube axum-kbve v1.0.61",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8207",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8211,
+				"title": "fix(isometric): Safari WebGPU crashes — setBindGroup SharedArrayBuffer shim + winit resize defer",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8211",
+				"assignees": [],
+				"labels": [
+					"1",
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8212,
+				"title": "Atomic: astro queued rendering",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8212",
 				"assignees": [],
 				"labels": [
 					"auto-pr",
