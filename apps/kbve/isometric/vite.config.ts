@@ -46,7 +46,7 @@ export default defineConfig(async () => ({
 		},
 		headers: {
 			'Cross-Origin-Opener-Policy': 'same-origin',
-			'Cross-Origin-Embedder-Policy': 'require-corp',
+			'Cross-Origin-Embedder-Policy': 'credentialless',
 		},
 	},
 	optimizeDeps: {
