@@ -8,8 +8,9 @@
 # Logs are written to the mounted logs/ directory (gitignored).
 # World data persists in the mounted world/ directory (gitignored).
 
-# Pre-built Rust base image (override with --build-arg BASE_IMAGE=...)
-ARG BASE_IMAGE=ghcr.io/kbve/mc-rust-base:latest
+# Pumpkin source — cloned at build time (no submodule dependency)
+ARG PUMPKIN_REPO=https://github.com/KBVE/Pumpkin.git
+ARG PUMPKIN_REF=e749ef61e9bdcd3968fe70fe63d19d953cf6ba3d
 
 # ============================================================================
 # [STAGE A] - Build Astro Static Site
@@ -62,50 +63,68 @@ RUN find . -type f \( \
     echo "Precompression complete (brotli-11 + gzip-9)"
 
 # ============================================================================
-# Rust build stages — use pre-built base image (foundation + core cached)
+# [STAGE C] - Clone Pumpkin Source
 # ============================================================================
-FROM ${BASE_IMAGE} AS core
+FROM alpine/git AS pumpkin-source
+ARG PUMPKIN_REPO
+ARG PUMPKIN_REF
+RUN git init /pumpkin && \
+    cd /pumpkin && \
+    git remote add origin ${PUMPKIN_REPO} && \
+    git fetch --depth 1 origin ${PUMPKIN_REF} && \
+    git checkout FETCH_HEAD
 
-# --- Pumpkin: build server (parallel with plugin) ---
-#     Copy full workspace so source is always fresh even if the base image is stale.
-#     The base image still provides cached .rlib artifacts for incremental builds.
-FROM core AS builder
-COPY ./apps/mc/pumpkin/rust-toolchain.toml /pumpkin/rust-toolchain.toml
+# ============================================================================
+# Rust build stages — cargo-chef separates dependency compilation from source.
+# BuildKit layer cache handles incremental rebuilds across runs.
+# ============================================================================
+
+# [STAGE D] - Rust Base Image
+FROM rust:1.94-alpine3.23 AS rust-base
+RUN apk add --no-cache musl-dev openssl-dev openssl-libs-static git
+RUN cargo install cargo-chef --locked
+WORKDIR /pumpkin
+
+# [STAGE E] - Cargo Chef Planner
+FROM rust-base AS planner
+COPY --from=pumpkin-source /pumpkin .
+RUN cargo chef prepare --recipe-path recipe.json
+
+# [STAGE F] - Cargo Chef Cook (Cache External Dependencies)
+FROM rust-base AS deps
+COPY --from=pumpkin-source /pumpkin/rust-toolchain.toml ./
 RUN rustup show active-toolchain || rustup toolchain install
-COPY ./apps/mc/pumpkin/Cargo.toml ./apps/mc/pumpkin/Cargo.lock /pumpkin/
-COPY ./apps/mc/pumpkin/assets /pumpkin/assets
-COPY ./apps/mc/pumpkin/pumpkin /pumpkin/pumpkin
-COPY ./apps/mc/pumpkin/pumpkin-nbt /pumpkin/pumpkin-nbt
-COPY ./apps/mc/pumpkin/pumpkin-api-macros /pumpkin/pumpkin-api-macros
-COPY ./apps/mc/pumpkin/pumpkin-util /pumpkin/pumpkin-util
-COPY ./apps/mc/pumpkin/pumpkin-data /pumpkin/pumpkin-data
-COPY ./apps/mc/pumpkin/pumpkin-macros /pumpkin/pumpkin-macros
-COPY ./apps/mc/pumpkin/pumpkin-config /pumpkin/pumpkin-config
-COPY ./apps/mc/pumpkin/pumpkin-codegen /pumpkin/pumpkin-codegen
-COPY ./apps/mc/pumpkin/pumpkin-world /pumpkin/pumpkin-world
-COPY ./apps/mc/pumpkin/pumpkin-protocol /pumpkin/pumpkin-protocol
-COPY ./apps/mc/pumpkin/pumpkin-inventory /pumpkin/pumpkin-inventory
+COPY --from=planner /pumpkin/recipe.json recipe.json
+COPY --from=planner /pumpkin/Cargo.toml /pumpkin/Cargo.lock ./
+COPY --from=pumpkin-source /pumpkin/pumpkin /pumpkin/pumpkin
+COPY --from=pumpkin-source /pumpkin/pumpkin-nbt /pumpkin/pumpkin-nbt
+COPY --from=pumpkin-source /pumpkin/pumpkin-api-macros /pumpkin/pumpkin-api-macros
+COPY --from=pumpkin-source /pumpkin/pumpkin-util /pumpkin/pumpkin-util
+COPY --from=pumpkin-source /pumpkin/pumpkin-data /pumpkin/pumpkin-data
+COPY --from=pumpkin-source /pumpkin/pumpkin-macros /pumpkin/pumpkin-macros
+COPY --from=pumpkin-source /pumpkin/pumpkin-config /pumpkin/pumpkin-config
+COPY --from=pumpkin-source /pumpkin/pumpkin-codegen /pumpkin/pumpkin-codegen
+COPY --from=pumpkin-source /pumpkin/pumpkin-world /pumpkin/pumpkin-world
+COPY --from=pumpkin-source /pumpkin/pumpkin-protocol /pumpkin/pumpkin-protocol
+COPY --from=pumpkin-source /pumpkin/pumpkin-inventory /pumpkin/pumpkin-inventory
+RUN --mount=type=cache,target=/usr/local/cargo/git/db \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo chef cook --release --recipe-path recipe.json
+
+# ============================================================================
+# --- Pumpkin: build server (parallel with plugin) ---
+# ============================================================================
+FROM deps AS builder
+COPY --from=pumpkin-source /pumpkin .
 RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
     cargo build --release && cp target/release/pumpkin /pumpkin.bin
 
+# ============================================================================
 # --- Plugin: build (parallel with pumpkin, reuses all pre-compiled crates) ---
-FROM core AS plugin-builder
-COPY ./apps/mc/pumpkin/rust-toolchain.toml /pumpkin/rust-toolchain.toml
-RUN rustup show active-toolchain || rustup toolchain install
-COPY ./apps/mc/pumpkin/Cargo.toml ./apps/mc/pumpkin/Cargo.lock /pumpkin/
-COPY ./apps/mc/pumpkin/assets /pumpkin/assets
-COPY ./apps/mc/pumpkin/pumpkin /pumpkin/pumpkin
-COPY ./apps/mc/pumpkin/pumpkin-nbt /pumpkin/pumpkin-nbt
-COPY ./apps/mc/pumpkin/pumpkin-api-macros /pumpkin/pumpkin-api-macros
-COPY ./apps/mc/pumpkin/pumpkin-util /pumpkin/pumpkin-util
-COPY ./apps/mc/pumpkin/pumpkin-data /pumpkin/pumpkin-data
-COPY ./apps/mc/pumpkin/pumpkin-macros /pumpkin/pumpkin-macros
-COPY ./apps/mc/pumpkin/pumpkin-config /pumpkin/pumpkin-config
-COPY ./apps/mc/pumpkin/pumpkin-codegen /pumpkin/pumpkin-codegen
-COPY ./apps/mc/pumpkin/pumpkin-world /pumpkin/pumpkin-world
-COPY ./apps/mc/pumpkin/pumpkin-protocol /pumpkin/pumpkin-protocol
-COPY ./apps/mc/pumpkin/pumpkin-inventory /pumpkin/pumpkin-inventory
+# ============================================================================
+FROM deps AS plugin-builder
+COPY --from=pumpkin-source /pumpkin .
 COPY ./apps/mc/plugins /plugins
 # Inject Astro-built players page as Askama template (compiled into the .so)
 COPY --from=astro-builder /app/dist/apps/astro-mc/players/index.html /plugins/kbve-mc-plugin/templates/askama/players.html
