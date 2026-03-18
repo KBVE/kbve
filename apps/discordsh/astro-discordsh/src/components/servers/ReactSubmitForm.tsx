@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CATEGORIES } from '@/lib/servers/types';
-import { SubmitServerRequestSchema } from '@/lib/servers/discordsh-schema';
+import { SubmitServerRequestSchema } from '@kbve/codegen/discordsh-schema';
 import { submitServer } from '@/lib/servers/discordshEdge';
 import { useHCaptcha } from '@/lib/servers/useHCaptcha';
 import { z } from 'zod';
