@@ -15,6 +15,7 @@ pub mod player;
 pub mod rocks;
 pub mod scene_objects;
 pub mod state;
+pub mod telemetry;
 pub mod terrain;
 pub mod tilemap;
 pub mod title_screen;
