@@ -1,0 +1,3 @@
+#include "KBVEYYJson.h"
+
+IMPLEMENT_MODULE(FKBVEYYJsonModule, KBVEYYJson)

@@ -26,5 +26,19 @@
 			"Type": "Editor",
 			"LoadingPhase": "Default"
 		}
+	],
+	"Plugins": [
+		{
+			"Name": "KBVEYYJson",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEXXHash",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEZstd",
+			"Enabled": true
+		}
 	]
 }

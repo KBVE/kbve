@@ -1,0 +1,3 @@
+#include "KBVEXXHash.h"
+
+IMPLEMENT_MODULE(FKBVEXXHashModule, KBVEXXHash)

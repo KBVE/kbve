@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.12.0",
+	"FriendlyName": "KBVE YYJson",
+	"Description": "Unreal Engine wrapper for yyjson 0.12.0 — fast JSON serialization library.",
+	"Category": "Third Party",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"DocsURL": "https://github.com/ibireme/yyjson",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"EnabledByDefault": false,
+	"Modules": [
+		{
+			"Name": "KBVEYYJson",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
