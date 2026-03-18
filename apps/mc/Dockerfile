@@ -77,11 +77,14 @@ RUN git init /pumpkin && \
 # ============================================================================
 # Rust build stages — cargo-chef separates dependency compilation from source.
 # BuildKit layer cache handles incremental rebuilds across runs.
+# Uses Debian (glibc) because the plugin is a cdylib (.so) which musl cannot produce.
 # ============================================================================
 
-# [STAGE D] - Rust Base Image
-FROM rust:1.94-alpine3.23 AS rust-base
-RUN apk add --no-cache musl-dev openssl-dev openssl-libs-static git
+# [STAGE D] - Rust Base Image (glibc — required for cdylib plugin)
+FROM rust:1.94-slim-bookworm AS rust-base
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends pkg-config libssl-dev git && \
+    rm -rf /var/lib/apt/lists/*
 RUN cargo install cargo-chef --locked
 WORKDIR /pumpkin
 
@@ -146,9 +149,9 @@ RUN SHA1=$(sha1sum /kbve-resource-pack.zip | awk '{print $1}') && \
     printf '[resource_pack]\nenabled = true\nurl = "http://localhost:8080/kbve-resource-pack.zip"\nsha1 = "%s"\nforce = true\nprompt_message = "KBVE Resource Pack - Custom items and textures"\n\n[world]\nlighting = "default"\nautosave_ticks = 6000\n\n[world.chunk]\ntype = "anvil"\nwrite_in_place = false\n\n[world.chunk.compression]\nalgorithm = "LZ4"\nlevel = 6\n\n[networking.rcon]\nenabled = true\naddress = "0.0.0.0:25575"\npassword = "kbve-rcon"\nmax_connections = 5\n' "$SHA1" > /features.toml
 
 # ============================================================================
-# --- Final image ---
+# --- Final image (Debian slim — glibc required to load plugin .so) ---
 # ============================================================================
-FROM alpine:3.23
+FROM debian:bookworm-slim
 ARG VARIANT
 
 COPY --from=builder /pumpkin.bin /bin/pumpkin
@@ -174,7 +177,11 @@ RUN cp /entrypoint.${VARIANT}.sh /entrypoint.sh && chmod +x /entrypoint.sh \
 # Create mountable directories (used by dev for log/world persistence, harmless in prod)
 RUN mkdir -p /pumpkin/logs /pumpkin/world
 
-RUN apk upgrade --no-cache && apk add --no-cache libgcc && chown -R 2613:2613 .
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libgcc-s1 libssl3 && \
+    rm -rf /var/lib/apt/lists/* && \
+    useradd -u 2613 -U -s /usr/sbin/nologin pumpkin && \
+    chown -R 2613:2613 .
 
 ENV RUST_BACKTRACE=1
 EXPOSE 25565 8080 25575
