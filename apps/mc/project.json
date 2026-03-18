@@ -204,55 +204,6 @@
 				],
 				"parallel": false
 			}
-		},
-		"basex": {
-			"executor": "@nx-tools/nx-container:build",
-			"defaultConfiguration": "local",
-			"options": {
-				"engine": "docker",
-				"context": ".",
-				"file": "apps/mc/Dockerfile.base",
-				"load": true
-			},
-			"configurations": {
-				"local": {
-					"load": true,
-					"push": false,
-					"tags": ["ghcr.io/kbve/mc-rust-base:latest"]
-				},
-				"production": {
-					"load": true,
-					"push": false,
-					"tags": ["ghcr.io/kbve/mc-rust-base:latest"],
-					"cache-from": [
-						"type=registry,ref=ghcr.io/kbve/mc-rust-base:buildcache"
-					],
-					"cache-to": [
-						"type=registry,ref=ghcr.io/kbve/mc-rust-base:buildcache,mode=max"
-					]
-				}
-			}
-		},
-		"base": {
-			"executor": "nx:run-commands",
-			"defaultConfiguration": "local",
-			"options": {
-				"parallel": false
-			},
-			"configurations": {
-				"local": {
-					"commands": [
-						"./kbve.sh -nx mc:basex",
-						"VERSION=$(cat apps/mc/SERVER_VERSION | tr -d \"\\n\") && docker tag ghcr.io/kbve/mc-rust-base:latest ghcr.io/kbve/mc-rust-base:$VERSION && echo \"Tagged ghcr.io/kbve/mc-rust-base:$VERSION\""
-					]
-				},
-				"production": {
-					"commands": [
-						"./kbve.sh -nx mc:basex --configuration=production",
-						"VERSION=$(cat apps/mc/SERVER_VERSION | tr -d \"\\n\") && docker tag ghcr.io/kbve/mc-rust-base:latest ghcr.io/kbve/mc-rust-base:$VERSION && echo \"Tagged ghcr.io/kbve/mc-rust-base:$VERSION\""
-					]
-				}
-			}
 		}
 	},
 	"tags": []
