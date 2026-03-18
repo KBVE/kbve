@@ -26,7 +26,3 @@ spec:
           port: 8067
           targetPort: 8067
           protocol: TCP
-        - name: metrics
-          port: 6060
-          targetPort: 6060
-          protocol: TCP
