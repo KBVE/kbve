@@ -222,7 +222,7 @@ jobs:
                   mkdir -p "${{ github.workspace }}/output"
 
                   docker run --rm \
-                    -v "${{ github.workspace }}/${{ inputs.plugin_path }}":/plugin:ro \
+                    -v "${{ github.workspace }}/${{ inputs.plugin_path }}":/plugin \
                     -v "${{ github.workspace }}/output":/output \
                     "ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}" \
                     /bin/bash -c '

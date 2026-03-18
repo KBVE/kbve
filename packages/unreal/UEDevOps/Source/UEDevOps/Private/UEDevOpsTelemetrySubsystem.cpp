@@ -197,8 +197,9 @@ void UUEDevOpsTelemetrySubsystem::SetupLogCapture()
 		return;
 	}
 
+	const ELogVerbosity::Type EngineMinVerbosity = UUEDevOpsSettings::ToEngineVerbosity(Settings->MinLogVerbosity);
 	LogOutputHandle = FOutputDeviceRedirector::Get()->OnLogMessage().AddLambda(
-		[this, MinVerbosity = Settings->MinLogVerbosity](const TCHAR* Message, ELogVerbosity::Type Verbosity, const FName& Category)
+		[this, MinVerbosity = EngineMinVerbosity](const TCHAR* Message, ELogVerbosity::Type Verbosity, const FName& Category)
 		{
 			if (Verbosity <= MinVerbosity)
 			{
