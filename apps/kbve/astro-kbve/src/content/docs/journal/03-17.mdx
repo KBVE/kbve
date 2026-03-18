@@ -1,7 +1,7 @@
 ---
 title: 'March: 17'
 category: Daily
-date: 2025-03-17 12:00:00
+date: 2026-03-17 12:00:00
 client: Self
 unsplash: 1615563821068-a15bbe32b305
 img: https://images.unsplash.com/photo-1615563821068-a15bbe32b305?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -17,6 +17,17 @@ import { Adsense } from '@/components/astropad';
 
 
 ## Notes
+
+## 2026
+
+### CI Main FanOut Pipelines
+
+-   10:21PM
+
+    Spent the day implementing a fanout approach to the workflows.
+    The idea here is to move away from a sync based main and move towards an async deployment, which then creates issue tickets for failures.
+    The end goal will be to have full loops with each code change then triggering an issue ticket, follow up response, ect... 
+    Afterwards, I am thinking of integrating an additional layer of automation within the pipeline.
 
 ## 2025
 
