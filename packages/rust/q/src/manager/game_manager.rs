@@ -32,13 +32,13 @@ impl INode for GameManager {
 
         let user_data_cache = Some(UserDataCache::new());
 
-        let clock_master = Gd::from_init_fn(|base| ClockMaster::init(base));
-        let cache_manager = Gd::from_init_fn(|base| CacheManager::init(base));
-        let music_manager = Gd::from_init_fn(|base| MusicManager::init(base));
-        let gui_manager = Gd::from_init_fn(|base| GUIManager::init(base));
-        let browser_manager = Gd::from_init_fn(|base| BrowserManager::init(base));
-        let entity_manager = Gd::from_init_fn(|base| EntityManager::init(base));
-        let event_bridge = Gd::from_init_fn(|base| EventBridge::init(base));
+        let clock_master = Gd::from_init_fn(ClockMaster::init);
+        let cache_manager = Gd::from_init_fn(CacheManager::init);
+        let music_manager = Gd::from_init_fn(MusicManager::init);
+        let gui_manager = Gd::from_init_fn(GUIManager::init);
+        let browser_manager = Gd::from_init_fn(BrowserManager::init);
+        let entity_manager = Gd::from_init_fn(EntityManager::init);
+        let event_bridge = Gd::from_init_fn(EventBridge::init);
 
         Self {
             base,

@@ -116,10 +116,10 @@ impl EventBridge {
         match request_type {
             "spawn_entity" => {
                 let parts: Vec<&str> = payload.split(',').collect();
-                if parts.len() == 2 {
-                    if let (Ok(x), Ok(y)) = (parts[0].trim().parse(), parts[1].trim().parse()) {
-                        return GameRequest::SpawnEntity { x, y };
-                    }
+                if parts.len() == 2
+                    && let (Ok(x), Ok(y)) = (parts[0].trim().parse(), parts[1].trim().parse())
+                {
+                    return GameRequest::SpawnEntity { x, y };
                 }
                 GameRequest::Custom(request_type.to_string(), payload.to_string())
             }
@@ -128,14 +128,14 @@ impl EventBridge {
             },
             "update_position" => {
                 let parts: Vec<&str> = payload.split(',').collect();
-                if parts.len() == 3 {
-                    if let (Ok(x), Ok(y)) = (parts[1].trim().parse(), parts[2].trim().parse()) {
-                        return GameRequest::UpdatePosition {
-                            id: parts[0].trim().to_string(),
-                            x,
-                            y,
-                        };
-                    }
+                if parts.len() == 3
+                    && let (Ok(x), Ok(y)) = (parts[1].trim().parse(), parts[2].trim().parse())
+                {
+                    return GameRequest::UpdatePosition {
+                        id: parts[0].trim().to_string(),
+                        x,
+                        y,
+                    };
                 }
                 GameRequest::Custom(request_type.to_string(), payload.to_string())
             }

@@ -46,8 +46,6 @@ pub fn enable_mac_always_on_top() {
 #[cfg(target_os = "macos")]
 use std::ffi::c_void;
 #[cfg(target_os = "macos")]
-use std::mem::transmute;
-#[cfg(target_os = "macos")]
 use std::ptr::NonNull;
 
 #[cfg(target_os = "macos")]
@@ -73,7 +71,8 @@ impl MacOSWryBrowserOptions {
         unsafe {
             Ok(WindowHandle::borrow_raw(RawWindowHandle::AppKit(
                 AppKitWindowHandle::new({
-                    let ptr: *mut c_void = transmute(window_handle);
+                    let ptr: *mut c_void =
+                        std::ptr::with_exposed_provenance_mut(window_handle as usize);
                     NonNull::new(ptr).expect("Id<T> should never be null")
                 }),
             )))

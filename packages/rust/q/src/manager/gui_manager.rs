@@ -81,10 +81,11 @@ impl ICanvasLayer for GUIManager {
     }
 
     fn input(&mut self, event: Gd<InputEvent>) {
-        if let Ok(key_event) = event.try_cast::<InputEventKey>() {
-            if key_event.is_pressed() && key_event.get_keycode() == Key::QUOTELEFT {
-                self.toggle_mouse_passthrough();
-            }
+        if let Ok(key_event) = event.try_cast::<InputEventKey>()
+            && key_event.is_pressed()
+            && key_event.get_keycode() == Key::QUOTELEFT
+        {
+            self.toggle_mouse_passthrough();
         }
     }
 }

@@ -338,8 +338,8 @@ impl MusicManager {
         }
 
         self.blend_state = Some(BlendState {
-            active_name: active_name.into(),
-            idle_name: idle_name.into(),
+            active_name,
+            idle_name,
             start_volume: self.global_music_volume,
             target_volume: self.global_music_volume,
             duration: blend_duration,
