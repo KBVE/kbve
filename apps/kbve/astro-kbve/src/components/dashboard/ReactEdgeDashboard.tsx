@@ -1,3 +1,16 @@
+/**
+ * @deprecated — SLATED FOR REMOVAL
+ *
+ * This monolithic component has been replaced by the nanostore island architecture:
+ *   - edgeService.ts        → Nanostore singleton (state + API logic)
+ *   - ReactEdgeHeader.tsx    → Header island (title, cache badge, refresh)
+ *   - ReactEdgeSummary.tsx   → Summary bar + error banner island
+ *   - ReactEdgeStatusGrid.tsx → Status card grid island
+ *   - AstroEdgeDashboard.astro → Static Astro shell mounting all islands
+ *
+ * Remove this file once all references are confirmed migrated.
+ */
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { SUPABASE_URL } from '@/lib/supa';
 import {

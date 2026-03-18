@@ -1,3 +1,17 @@
+/**
+ * @deprecated — SLATED FOR REMOVAL
+ *
+ * This monolithic component has been replaced by the nanostore island architecture:
+ *   - grafanaService.ts         → Nanostore singleton (state + API logic)
+ *   - ReactGrafanaAuth.tsx      → Auth gate with OAuth buttons island
+ *   - ReactGrafanaHeader.tsx    → Header island (title, time range, refresh)
+ *   - ReactGrafanaNodes.tsx     → Node metrics, drill-downs, charts island
+ *   - ReactGrafanaK8s.tsx       → K8s metrics, drill-downs, pods chart island
+ *   - AstroGrafanaDashboard.astro → Static Astro shell mounting all islands
+ *
+ * Remove this file once all references are confirmed migrated.
+ */
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { initSupa, getSupa } from '@/lib/supa';
 import { useAuthBridge } from '@/components/auth';

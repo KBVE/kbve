@@ -1,3 +1,17 @@
+/**
+ * @deprecated — SLATED FOR REMOVAL
+ *
+ * This monolithic component has been replaced by the nanostore island architecture:
+ *   - argoService.ts         → Nanostore singleton (state + API logic)
+ *   - ReactArgoAuth.tsx      → Auth gate island
+ *   - ReactArgoHeader.tsx    → Header island (title, last updated, refresh)
+ *   - ReactArgoSummary.tsx   → Error banner + summary stat cards island
+ *   - ReactArgoAppTable.tsx  → Application table with expandable resource trees island
+ *   - AstroArgoDashboard.astro → Static Astro shell mounting all islands
+ *
+ * Remove this file once all references are confirmed migrated.
+ */
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { initSupa, getSupa } from '@/lib/supa';
 import {
