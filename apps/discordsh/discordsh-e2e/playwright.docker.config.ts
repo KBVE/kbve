@@ -12,7 +12,7 @@ const cargoToml = readFileSync(
 );
 const version = cargoToml.match(/^version\s*=\s*"(.+)"/m)?.[1] ?? '0.1.0';
 
-const killPort = `lsof -ti:${port} | xargs kill -9 2>/dev/null; sleep 1;`;
+const killPort = `docker rm -f discordsh-e2e-test 2>/dev/null; lsof -ti:${port} | xargs kill -9 2>/dev/null; sleep 1;`;
 
 export default defineConfig({
 	testDir: './e2e',
@@ -40,4 +40,5 @@ export default defineConfig({
 		reuseExistingServer: false,
 		timeout: 30_000,
 	},
+	globalTeardown: resolve(__dirname, 'docker-teardown.ts'),
 });
