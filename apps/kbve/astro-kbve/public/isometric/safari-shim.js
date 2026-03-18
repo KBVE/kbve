@@ -4,15 +4,16 @@
  *
  * Must be loaded as a plain <script> (not type="module") BEFORE the WASM module.
  *
- * Bug 1 — setBindGroup SharedArrayBuffer rejection (wgpu 27.x + Safari)
+ * Bug 1 — setBindGroup cross-realm Uint32Array rejection (wgpu 27.x + Safari)
  * -----------------------------------------------------------------------
- * The WASM binary is compiled with +atomics / --shared-memory, so the WASM heap
- * is a SharedArrayBuffer. wgpu creates Uint32Array *views* into that shared heap
- * and passes them to GPURenderPassEncoder/GPUComputePassEncoder.setBindGroup() as
- * the dynamicOffsetsData argument. Safari's WebGPU enforces the spec and rejects
- * SharedArrayBuffer-backed TypedArrays here; Chrome is lenient.
- * Fix: intercept setBindGroup and copy any SharedArrayBuffer-backed view into a
- * fresh ArrayBuffer-backed Uint32Array before forwarding to the native method.
+ * wgpu creates Uint32Array views from the WASM heap and passes them to
+ * GPURenderPassEncoder/GPUComputePassEncoder.setBindGroup() as dynamicOffsetsData.
+ * Safari's native setBindGroup does an instanceof Uint32Array check which fails
+ * for cross-realm typed arrays (created inside the WASM module context).
+ * This affects both SharedArrayBuffer-backed (release --shared-memory) and regular
+ * ArrayBuffer-backed (debug) builds.
+ * Fix: intercept setBindGroup and always copy any typed-array-like third argument
+ * into a fresh local-realm Uint32Array before forwarding to the native method.
  *
  * Bug 2 — winit RefCell re-entrant borrow (winit 0.30.x + Safari)
  * -----------------------------------------------------------------------
@@ -26,18 +27,30 @@
 	function patchSetBindGroup(proto) {
 		if (!proto || typeof proto.setBindGroup !== 'function') return;
 		var orig = proto.setBindGroup;
-		proto.setBindGroup = function (index, bg, offsets, start, len) {
+		proto.setBindGroup = function () {
+			var args = arguments;
+			var offsets = args[2];
 			if (
-				offsets instanceof Uint32Array &&
-				offsets.buffer instanceof SharedArrayBuffer
+				offsets &&
+				typeof offsets.length === 'number' &&
+				offsets.buffer
 			) {
-				var s = start !== undefined ? start : 0;
-				var l = len !== undefined ? len : offsets.length;
-				var copy = new Uint32Array(l);
-				copy.set(offsets.subarray(s, s + l));
-				return orig.call(this, index, bg, copy, 0, l);
+				// Copy into a fresh local-realm Uint32Array backed by a plain
+				// ArrayBuffer. Covers cross-realm typed arrays AND same-realm
+				// Uint32Arrays backed by SharedArrayBuffer (WASM shared memory).
+				var start = args[3] !== undefined ? args[3] : 0;
+				var len = args[4] !== undefined ? args[4] : offsets.length;
+				var copy = new Uint32Array(len);
+				for (var i = 0; i < len; i++) copy[i] = offsets[start + i];
+				return orig.call(this, args[0], args[1], copy, 0, len);
 			}
-			return orig.call(this, index, bg, offsets, start, len);
+			// 2-arg form: setBindGroup(index, bindGroup) — no offsets.
+			// Pass exactly the args we received to avoid Safari interpreting
+			// trailing undefined values as the 5-arg overload.
+			if (args.length <= 2) {
+				return orig.call(this, args[0], args[1]);
+			}
+			return orig.call(this, args[0], args[1], offsets, args[3], args[4]);
 		};
 	}
 
