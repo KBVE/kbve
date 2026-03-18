@@ -316,6 +316,15 @@ function getWebSocketStatus() {
 
 // Handle incoming messages
 self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
+	// Validate message origin to prevent cross-origin attacks (CodeQL CWE-020)
+	if (e.origin && e.origin !== self.location.origin) {
+		console.warn(
+			'[WebSocket Worker] Rejected message from unexpected origin:',
+			e.origin,
+		);
+		return;
+	}
+
 	const msg = e.data;
 	const { id, type } = msg;
 
