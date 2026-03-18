@@ -3,6 +3,8 @@
 //! Runs the authoritative physics simulation and lightyear replication in a
 //! dedicated thread alongside the existing Axum REST API.
 
+pub mod token;
+
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::mpsc;
@@ -322,6 +324,10 @@ fn run_bevy_app(
     // lightyear–avian3d bridge
     app.add_plugins(lightyear_avian3d::prelude::LightyearAvianPlugin::default());
 
+    // Netcode keys
+    let private_key = bevy_kbve_net::net_config::load_private_key();
+    app.insert_resource(NetcodeKeys { private_key });
+
     // Auth resources
     app.insert_resource(JwtSecret(jwt_secret));
     app.init_resource::<AuthenticatedClients>();
@@ -340,8 +346,9 @@ fn run_bevy_app(
 
     // Spawn the server listener on startup
     let startup_addr = ws_addr;
+    let startup_key = private_key;
     app.add_systems(Startup, move |mut commands: Commands| {
-        start_server(&mut commands, startup_addr);
+        start_server(&mut commands, startup_addr, startup_key);
     });
 
     // Handle new client connections (mark as pending auth)
@@ -401,31 +408,45 @@ fn run_bevy_app(
     app.run();
 }
 
-/// Spawn the lightyear WebSocket server entity and trigger it to start listening.
-fn start_server(commands: &mut Commands, ws_addr: SocketAddr) {
+/// Shared netcode keys for the game server.
+#[derive(Resource)]
+struct NetcodeKeys {
+    private_key: [u8; 32],
+}
+
+/// Spawn the lightyear WebSocket server entity with Netcode authentication.
+fn start_server(commands: &mut Commands, ws_addr: SocketAddr, private_key: [u8; 32]) {
     use lightyear::websocket::prelude::server::*;
 
     tracing::info!("[gameserver] start_server — binding to {ws_addr}");
 
-    let config = ServerConfig::builder()
+    let ws_config = ServerConfig::builder()
         .with_bind_address(ws_addr)
         .with_no_encryption();
 
+    let netcode_config = lightyear::netcode::prelude::server::NetcodeConfig {
+        protocol_id: bevy_kbve_net::net_config::KBVE_PROTOCOL_ID,
+        private_key,
+        client_timeout_secs: 15,
+        ..Default::default()
+    };
+
     let server_entity = commands
         .spawn((
-            lightyear::prelude::server::RawServer,
-            Server::default(),
+            NetcodeServer::new(netcode_config),
             LocalAddr(ws_addr),
-            WebSocketServerIo { config },
+            WebSocketServerIo { config: ws_config },
         ))
         .id();
 
-    tracing::info!("[gameserver] server entity spawned: {server_entity:?} — triggering LinkStart");
+    tracing::info!(
+        "[gameserver] NetcodeServer entity spawned: {server_entity:?} — triggering Start"
+    );
 
-    commands.trigger(LinkStart {
+    commands.trigger(Start {
         entity: server_entity,
     });
-    tracing::info!("[gameserver] lightyear WebSocket server listening on {ws_addr}");
+    tracing::info!("[gameserver] lightyear Netcode+WebSocket server starting on {ws_addr}");
 }
 
 /// Debug observer: fires when lightyear adds `Connecting` to a client entity on the server side.
@@ -494,13 +515,33 @@ fn server_debug_heartbeat(
     }
 }
 
-/// When a new client connects, add ReplicationSender so lightyear can replicate
-/// entities to this client, and mark as pending authentication.
-fn handle_new_connection(trigger: On<Add, Connected>, mut commands: Commands, time: Res<Time>) {
+/// When a new client connects (Netcode handshake complete), add ReplicationSender
+/// so lightyear can replicate entities to this client, and mark as pending authentication.
+fn handle_new_connection(
+    trigger: On<Add, Connected>,
+    mut commands: Commands,
+    time: Res<Time>,
+    token_data_q: Query<&lightyear::netcode::prelude::server::TokenUserData>,
+) {
     let client_entity = trigger.entity;
-    tracing::info!(
-        "[gameserver] NEW CLIENT — entity {client_entity:?} connected, inserting PendingAuth + ReplicationSender"
-    );
+
+    // Extract user info from the Netcode token's user_data if available
+    if let Ok(token_data) = token_data_q.get(client_entity) {
+        if let Some(user_id) = bevy_kbve_net::net_config::unpack_user_data(&token_data.0) {
+            tracing::info!(
+                "[gameserver] NEW CLIENT — entity {client_entity:?} connected (token user_id: {user_id})"
+            );
+        } else {
+            tracing::info!(
+                "[gameserver] NEW CLIENT — entity {client_entity:?} connected (guest token)"
+            );
+        }
+    } else {
+        tracing::info!(
+            "[gameserver] NEW CLIENT — entity {client_entity:?} connected (no token data)"
+        );
+    }
+
     commands.entity(client_entity).insert((
         PendingAuth,
         ConnectedAt(time.elapsed_secs()),
@@ -510,9 +551,7 @@ fn handle_new_connection(trigger: On<Add, Connected>, mut commands: Commands, ti
             false,
         ),
     ));
-    tracing::info!(
-        "[gameserver] ReplicationSender inserted for {client_entity:?} (interval={REPLICATION_SEND_INTERVAL:?})"
-    );
+    tracing::info!("[gameserver] PendingAuth + ReplicationSender inserted for {client_entity:?}");
 }
 
 /// Check for AuthMessage from connected clients and validate their JWT.

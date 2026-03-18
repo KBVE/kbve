@@ -12,6 +12,7 @@ use std::time::Duration;
 
 use avian3d::prelude::*;
 use bevy::prelude::*;
+use lightyear::netcode::ConnectToken;
 use lightyear::prelude::client::*;
 use lightyear::prelude::*;
 
@@ -19,7 +20,7 @@ use bevy_kbve_net::{
     AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
     CreatureKind, DamageEvent, DamageSource, GameChannel, ObjectRemoved, ObjectRespawned,
     PlayerColor, PlayerId, PlayerName, PlayerVitals, PositionUpdate, ProtocolPlugin,
-    SetUsernameRequest, SetUsernameResponse, TileKey, TimeChannel, TimeSyncMessage,
+    SetUsernameRequest, SetUsernameResponse, TileKey, TimeSyncMessage,
 };
 
 use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
@@ -53,6 +54,9 @@ static AUTH_JWT: Mutex<Option<String>> = Mutex::new(None);
 
 /// Atomic flag indicating whether we are currently connected.
 static IS_CONNECTED: AtomicBool = AtomicBool::new(false);
+
+/// Pending token fetch result from async WASM HTTP request.
+static PENDING_TOKEN_RESULT: Mutex<Option<TokenFetchResult>> = Mutex::new(None);
 
 /// Pending set-username request from JS, consumed by Bevy system.
 static SET_USERNAME_REQUEST: Mutex<Option<String>> = Mutex::new(None);
@@ -153,6 +157,18 @@ impl Default for ServerTime {
     }
 }
 
+/// Result of an async token fetch (WASM path).
+struct TokenFetchResult {
+    token_bytes: [u8; 2048],
+    server_url: String,
+}
+
+/// Resource tracking whether a WASM token fetch is in flight.
+#[derive(Resource, Default)]
+struct PendingTokenFetch {
+    in_flight: bool,
+}
+
 pub struct NetPlugin;
 
 impl Plugin for NetPlugin {
@@ -173,9 +189,11 @@ impl Plugin for NetPlugin {
         app.init_resource::<MyPlayerId>();
         app.init_resource::<ServerTime>();
         app.init_resource::<CapturedCreatures>();
+        app.init_resource::<PendingTokenFetch>();
 
-        // Watch for go-online requests from JS
+        // Watch for go-online requests from JS / poll async token results
         app.add_systems(Update, poll_go_online_request);
+        app.add_systems(Update, poll_token_fetch_result);
 
         // Send auth message once connected
         app.add_systems(Update, send_auth_on_connect.after(poll_go_online_request));
@@ -235,16 +253,11 @@ impl Plugin for NetPlugin {
         app.add_observer(forward_creature_capture_to_server);
 
         // --- Debug observers for connection lifecycle ---
-        // Lightyear-level states
         app.add_observer(on_connecting);
         app.add_observer(on_connected);
         app.add_observer(on_disconnected);
-        // Link-level states (aeronet ↔ lightyear bridge)
         app.add_observer(on_linking);
-        app.add_observer(on_linked);
         app.add_observer(on_unlinked);
-        // Aeronet session endpoint (fires when aeronet spawns the session entity)
-        app.add_observer(on_session_endpoint);
 
         // Periodic connection-state heartbeat (logs every ~2 seconds)
         app.add_systems(Update, debug_connection_heartbeat);
@@ -259,41 +272,10 @@ fn on_linking(trigger: On<Add, lightyear::prelude::Linking>) {
     info!("[net][link] LINKING — entity {entity:?} transport connection starting");
 }
 
-/// When the link layer connects, promote to lightyear Connected state.
-/// This replaces RawConnectionPlugin::on_linked which requires LocalAddr
-/// (not available on WASM WebSocket).
-fn on_linked(
-    trigger: On<Add, lightyear::prelude::Linked>,
-    query: Query<Entity, With<Client>>,
-    mut commands: Commands,
-) {
-    let entity = trigger.entity;
-    info!("[net][link] LINKED — entity {entity:?} transport connected!");
-
-    // Only promote our Client entity, not other linked entities
-    if query.get(entity).is_ok() {
-        use lightyear::prelude::*;
-        info!("[net][link] promoting entity {entity:?} to Connected (raw connection bridge)");
-        commands.entity(entity).insert((
-            Connected,
-            lightyear::prelude::LocalId(lightyear::prelude::PeerId::Raw(
-                std::net::SocketAddr::new(std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST), 0),
-            )),
-            lightyear::prelude::RemoteId(lightyear::prelude::PeerId::Server),
-        ));
-    }
-}
-
 /// Debug: link layer — Unlinked added (transport failed or closed).
 fn on_unlinked(trigger: On<Add, lightyear::prelude::Unlinked>) {
     let entity = trigger.entity;
     warn!("[net][link] UNLINKED — entity {entity:?} transport failed or closed");
-}
-
-/// Debug: fires when LinkStart is triggered (our trigger → lightyear processes it).
-fn on_session_endpoint(trigger: On<lightyear::prelude::LinkStart>) {
-    let entity = trigger.entity;
-    info!("[net][link] LINKSTART triggered — entity {entity:?}");
 }
 
 /// Debug: lightyear Connecting added.
@@ -393,11 +375,15 @@ fn debug_connection_heartbeat(
     }
 }
 
-/// Bevy system that checks the atomic flag each frame and connects when requested.
+/// Bevy system that checks the atomic flag each frame and initiates token acquisition.
+///
+/// **Desktop**: generates a token locally (shared dev key, no HTTP roundtrip).
+/// **WASM**: fires an async fetch to `/api/v1/auth/game-token`, result polled by `poll_token_fetch_result`.
 fn poll_go_online_request(
     mut commands: Commands,
     addr: Res<GameServerAddr>,
     mut pending_auth: ResMut<PendingAuth>,
+    mut pending_token: ResMut<PendingTokenFetch>,
 ) {
     if !GO_ONLINE_REQUESTED.swap(false, Ordering::AcqRel) {
         return;
@@ -410,25 +396,203 @@ fn poll_go_online_request(
         return;
     }
 
+    if pending_token.in_flight {
+        info!("[net] token fetch already in flight — ignoring duplicate request");
+        return;
+    }
+
     // Grab the JWT before connecting
     let jwt = AUTH_JWT.lock().ok().and_then(|mut g| g.take());
     let has_jwt = jwt.is_some();
-    pending_auth.jwt = jwt;
+    pending_auth.jwt = jwt.clone();
     pending_auth.sent = false;
 
     // Re-resolve address from override (JS may have set it after resource init)
-    let resolved = SERVER_URL_OVERRIDE
+    let resolved_ws = SERVER_URL_OVERRIDE
         .lock()
         .ok()
         .and_then(|g| g.clone())
         .unwrap_or_else(|| addr.0.clone());
-    let resolved_addr = GameServerAddr(resolved);
 
+    info!("[net] resolved server address: {resolved_ws} | has_jwt: {has_jwt}");
+
+    // --- Desktop path: generate token locally ---
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        use bevy_kbve_net::net_config;
+
+        let private_key = net_config::load_private_key();
+        let protocol_id = net_config::KBVE_PROTOCOL_ID;
+        let client_id = rand::random::<u64>().max(1);
+
+        // Parse the WS address for the token (needs a SocketAddr)
+        let socket_addr: std::net::SocketAddr = resolved_ws
+            .trim_start_matches("ws://")
+            .trim_start_matches("wss://")
+            .parse()
+            .unwrap_or_else(|_| "127.0.0.1:5000".parse().unwrap());
+
+        let user_data = match &jwt {
+            Some(j) if !j.is_empty() => {
+                // In desktop dev mode, pack a placeholder user_data
+                net_config::pack_user_data("desktop-dev-user")
+            }
+            _ => [0u8; 256],
+        };
+
+        let token = lightyear::netcode::ConnectToken::build(
+            socket_addr,
+            protocol_id,
+            client_id,
+            private_key,
+        )
+        .user_data(user_data)
+        .expire_seconds(120)
+        .timeout_seconds(15)
+        .generate()
+        .expect("ConnectToken generation failed");
+
+        let token_b64 = net_config::token_to_base64(token).expect("token_to_base64 failed");
+        let token_bytes =
+            net_config::base64_to_token_bytes(&token_b64).expect("base64_to_token_bytes failed");
+
+        info!("[net] desktop: generated ConnectToken locally, connecting...");
+        connect_to_server(&mut commands, &resolved_ws, &token_bytes);
+    }
+
+    // --- WASM path: fetch token from auth endpoint ---
+    #[cfg(target_arch = "wasm32")]
+    {
+        pending_token.in_flight = true;
+
+        let jwt_for_fetch = jwt.unwrap_or_default();
+        let ws_url = resolved_ws.clone();
+
+        // Derive the API base URL from the WS URL
+        // e.g. ws://127.0.0.1:5000 → http://127.0.0.1:3080
+        // e.g. wss://kbve.com/ws → https://kbve.com
+        let api_base = derive_api_base(&ws_url);
+
+        wasm_bindgen_futures::spawn_local(async move {
+            match fetch_game_token(&api_base, &jwt_for_fetch).await {
+                Ok((token_bytes, server_url)) => {
+                    let ws = if server_url.is_empty() {
+                        ws_url
+                    } else {
+                        server_url
+                    };
+                    if let Ok(mut guard) = PENDING_TOKEN_RESULT.lock() {
+                        *guard = Some(TokenFetchResult {
+                            token_bytes,
+                            server_url: ws,
+                        });
+                    }
+                }
+                Err(e) => {
+                    log::error!("[net] WASM token fetch failed: {e}");
+                    // Reset in_flight so user can retry
+                    // (PendingTokenFetch is a Bevy resource, can't access from async;
+                    //  poll_token_fetch_result handles the reset when it sees no result)
+                }
+            }
+        });
+
+        info!("[net] WASM: async token fetch dispatched");
+    }
+}
+
+/// System that polls for completed WASM token fetch results and initiates connection.
+fn poll_token_fetch_result(mut commands: Commands, mut pending_token: ResMut<PendingTokenFetch>) {
+    if !pending_token.in_flight {
+        return;
+    }
+
+    let result = PENDING_TOKEN_RESULT.lock().ok().and_then(|mut g| g.take());
+    let Some(result) = result else {
+        return;
+    };
+
+    pending_token.in_flight = false;
     info!(
-        "[net] resolved server address: {} | has_jwt: {has_jwt}",
-        resolved_addr.0
+        "[net] WASM token fetch complete, connecting to {}",
+        result.server_url
     );
-    connect_to_server(&mut commands, &resolved_addr);
+    connect_to_server(&mut commands, &result.server_url, &result.token_bytes);
+}
+
+/// Derive the HTTP API base URL from a WebSocket URL.
+#[cfg(target_arch = "wasm32")]
+fn derive_api_base(ws_url: &str) -> String {
+    // For production: wss://kbve.com/ws → https://kbve.com
+    // For dev: ws://127.0.0.1:5000 → http://127.0.0.1:3080
+    if ws_url.starts_with("wss://") {
+        let host = ws_url
+            .trim_start_matches("wss://")
+            .split('/')
+            .next()
+            .unwrap_or("");
+        format!("https://{host}")
+    } else if ws_url.starts_with("ws://") {
+        let host_port = ws_url
+            .trim_start_matches("ws://")
+            .split('/')
+            .next()
+            .unwrap_or("");
+        // Replace game server port with API port for dev
+        let host = host_port.split(':').next().unwrap_or("127.0.0.1");
+        format!("http://{host}:3080")
+    } else {
+        // Fallback: use relative URL (same origin)
+        String::new()
+    }
+}
+
+/// Fetch a ConnectToken from the auth API (WASM only).
+#[cfg(target_arch = "wasm32")]
+async fn fetch_game_token(api_base: &str, jwt: &str) -> Result<([u8; 2048], String), String> {
+    use wasm_bindgen::JsCast;
+    use wasm_bindgen_futures::JsFuture;
+    use web_sys::{Request, RequestInit, RequestMode, Response};
+
+    let url = format!("{api_base}/api/v1/auth/game-token");
+    let body = serde_json::json!({ "jwt": jwt }).to_string();
+
+    let mut opts = RequestInit::new();
+    opts.method("POST");
+    opts.mode(RequestMode::Cors);
+    opts.body(Some(&wasm_bindgen::JsValue::from_str(&body)));
+
+    let request = Request::new_with_str_and_init(&url, &opts)
+        .map_err(|e| format!("Request::new failed: {e:?}"))?;
+    request
+        .headers()
+        .set("Content-Type", "application/json")
+        .map_err(|e| format!("set header failed: {e:?}"))?;
+
+    let window = web_sys::window().ok_or("no window")?;
+    let resp_value = JsFuture::from(window.fetch_with_request(&request))
+        .await
+        .map_err(|e| format!("fetch failed: {e:?}"))?;
+
+    let resp: Response = resp_value.dyn_into().map_err(|_| "response cast failed")?;
+    if !resp.ok() {
+        return Err(format!("HTTP {}", resp.status()));
+    }
+
+    let json_value = JsFuture::from(resp.json().map_err(|e| format!("json() failed: {e:?}"))?)
+        .await
+        .map_err(|e| format!("json parse failed: {e:?}"))?;
+
+    let token_resp: serde_json::Value = serde_wasm_bindgen::from_value(json_value)
+        .map_err(|e| format!("deserialize failed: {e}"))?;
+
+    let token_b64 = token_resp["token"]
+        .as_str()
+        .ok_or("missing 'token' field")?;
+    let server_url = token_resp["server_url"].as_str().unwrap_or("").to_owned();
+
+    let token_bytes = bevy_kbve_net::net_config::base64_to_token_bytes(token_b64)?;
+    Ok((token_bytes, server_url))
 }
 
 /// Send AuthMessage to server once the connection is established.
@@ -832,11 +996,10 @@ fn receive_object_respawned(
     }
 }
 
-/// Initiate a WebSocket connection to the game server.
-fn connect_to_server(commands: &mut Commands, addr: &GameServerAddr) {
+/// Initiate a Netcode + WebSocket connection to the game server.
+fn connect_to_server(commands: &mut Commands, ws_url: &str, token_bytes: &[u8]) {
+    use lightyear::netcode::prelude::client::*;
     use lightyear::websocket::prelude::client::*;
-
-    let ws_url = &addr.0;
 
     // Belt: refuse empty URLs (WASM default when JS didn't provide one)
     if ws_url.is_empty() {
@@ -846,8 +1009,8 @@ fn connect_to_server(commands: &mut Commands, addr: &GameServerAddr) {
         return;
     }
 
-    // Suspenders: on WASM, block any localhost/127.0.0.1 connection
-    #[cfg(target_arch = "wasm32")]
+    // Suspenders: on WASM release builds, block any localhost/127.0.0.1 connection
+    #[cfg(all(target_arch = "wasm32", not(debug_assertions)))]
     {
         if ws_url.contains("127.0.0.1") || ws_url.contains("localhost") {
             warn!(
@@ -857,25 +1020,24 @@ fn connect_to_server(commands: &mut Commands, addr: &GameServerAddr) {
         }
     }
 
-    info!("[net] connect_to_server — spawning client entity for {ws_url}");
+    info!("[net] connect_to_server — spawning NetcodeClient for {ws_url}");
 
-    let ws_io = WebSocketClientIo::from_url(ClientConfig::default(), ws_url.clone());
-    info!("[net] WebSocketClientIo created (url={ws_url})");
+    let token = ConnectToken::try_from_bytes(token_bytes).expect("invalid ConnectToken bytes");
+    let netcode = NetcodeClient::new(Authentication::Token(token), NetcodeConfig::default())
+        .expect("NetcodeClient init failed");
+
+    let ws_io = WebSocketClientIo::from_url(ClientConfig::default(), ws_url.to_owned());
 
     let client_entity = commands
-        .spawn((Client::default(), ws_io, ReplicationReceiver::default()))
+        .spawn((netcode, ws_io, ReplicationReceiver::default()))
         .id();
 
-    info!("[net] client entity spawned: {client_entity:?} — triggering Connect (entity-targeted)");
+    info!("[net] NetcodeClient entity spawned: {client_entity:?}");
 
-    // Trigger Connect + LinkStart to initiate the connection
     commands.trigger(Connect {
         entity: client_entity,
     });
-    commands.trigger(lightyear::prelude::LinkStart {
-        entity: client_entity,
-    });
-    info!("[net] Connect trigger dispatched — waiting for Connecting → Connected lifecycle");
+    info!("[net] Connect trigger dispatched — Netcode handshake starting");
 }
 
 /// Update PlayerNameLabel text to match the parent entity's replicated PlayerName.

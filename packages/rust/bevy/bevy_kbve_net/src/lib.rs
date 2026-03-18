@@ -4,6 +4,7 @@
 //! plugin used by both client and server.
 
 pub mod inputs;
+pub mod net_config;
 #[cfg(feature = "npcdb")]
 pub mod npcdb;
 pub mod protocol;

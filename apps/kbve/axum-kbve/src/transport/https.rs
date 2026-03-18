@@ -150,6 +150,10 @@ fn router(state: AppState) -> Router {
         .route("/api/v1/profile/me", get(profile_me_handler))
         .route("/api/v1/profile/username", post(set_username_handler))
         .route("/api/v1/profile/{username}", get(profile_api_handler))
+        .route(
+            "/api/v1/auth/game-token",
+            post(crate::gameserver::token::game_token_handler),
+        )
         .route("/@{username}", get(profile_handler))
         .route("/osrs/{item}", get(osrs_item_handler))
         .route("/osrs/{item}/", get(osrs_item_handler_trailing))
