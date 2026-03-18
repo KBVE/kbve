@@ -24,7 +24,6 @@ import {
 	RefreshCw,
 	Download,
 	Upload,
-	Save,
 	Bookmark,
 	GripVertical,
 	Timer,
