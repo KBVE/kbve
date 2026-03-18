@@ -1,15 +1,7 @@
 import { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { homeService, statusColor, type ServiceStatus } from './homeService';
-import {
-	Activity,
-	RefreshCw,
-	Clock,
-	CheckCircle2,
-	XCircle,
-	AlertCircle,
-	Loader2,
-} from 'lucide-react';
+import { Activity, RefreshCw, Clock } from 'lucide-react';
 
 function StatusDot({ status }: { status: ServiceStatus }) {
 	const color = statusColor(status);
