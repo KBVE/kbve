@@ -1,4 +1,4 @@
-name: UEDevOps Build, Test & Publish
+name: CI — UEDevOps
 
 on:
     workflow_dispatch:
@@ -9,7 +9,7 @@ on:
                 type: boolean
                 default: false
             ue_image_tag:
-                description: 'Epic UE container image tag (e.g. dev-5.7)'
+                description: 'Epic UE container image tag'
                 required: false
                 type: string
                 default: 'dev-5.7'
@@ -18,247 +18,19 @@ on:
         paths:
             - 'packages/unreal/UEDevOps/**'
 
-env:
-    PLUGIN_PATH: packages/unreal/UEDevOps
-    PLUGIN_FILE: packages/unreal/UEDevOps/UEDevOps.uplugin
-    UE_IMAGE: ghcr.io/epicgames/unreal-engine
-    UE_IMAGE_TAG: ${{ inputs.ue_image_tag || 'dev-5.7' }}
-    ITCH_USERNAME: kbve
-    ITCH_GAME_ID: uedevops
-
-permissions: {}
-
 jobs:
-    # ── Fork Guard ──────────────────────────────────────────────
-    guard:
-        name: Fork Guard
-        runs-on: ubuntu-latest
-        timeout-minutes: 2
-        outputs:
-            allowed: ${{ steps.check.outputs.allowed }}
-        steps:
-            - name: Verify origin and actor
-              id: check
-              uses: actions/github-script@v8
-              with:
-                  script: |
-                      if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
-                        const headRepo = context.payload.pull_request?.head?.repo?.full_name;
-                        const baseRepo = context.payload.repository?.full_name;
-                        if (headRepo && headRepo !== baseRepo) {
-                          core.error(`Blocked: fork PR from ${headRepo}`);
-                          core.setOutput('allowed', 'false');
-                          return;
-                        }
-                      }
-                      try {
-                        const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
-                          owner: context.repo.owner,
-                          repo: context.repo.repo,
-                          username: context.actor,
-                        });
-                        const level = data.permission;
-                        if (level === 'admin' || level === 'write') {
-                          core.setOutput('allowed', 'true');
-                        } else {
-                          core.error(`Actor ${context.actor} has ${level} access — insufficient`);
-                          core.setOutput('allowed', 'false');
-                        }
-                      } catch (err) {
-                        core.error(`Permission check failed: ${err.message}`);
-                        core.setOutput('allowed', 'false');
-                      }
-
-    # ── Version Check ───────────────────────────────────────────
-    version-check:
-        name: Version Gate
-        needs: guard
-        if: needs.guard.outputs.allowed == 'true'
-        runs-on: ubuntu-latest
-        timeout-minutes: 5
-        permissions:
-            contents: read
-        outputs:
-            version: ${{ steps.extract.outputs.version }}
-            should_release: ${{ steps.compare.outputs.should_release }}
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v6
-
-            - name: Extract version from .uplugin
-              id: extract
-              run: |
-                  VERSION=$(jq -r '.VersionName' "${{ env.PLUGIN_FILE }}")
-                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-                  echo "::notice::Plugin version: ${VERSION}"
-
-            - name: Compare against existing releases
-              id: compare
-              env:
-                  GH_TOKEN: ${{ github.token }}
-              run: |
-                  TAG="uedevops-v${{ steps.extract.outputs.version }}"
-                  if gh release view "${TAG}" --json tagName >/dev/null 2>&1; then
-                    echo "::notice::Release ${TAG} already exists — skipping publish"
-                    echo "should_release=false" >> "$GITHUB_OUTPUT"
-                  else
-                    echo "::notice::Release ${TAG} not found — will publish"
-                    echo "should_release=true" >> "$GITHUB_OUTPUT"
-                  fi
-
-    # ── Build Plugin ────────────────────────────────────────────
-    build:
-        name: Build Plugin (UE ${{ inputs.ue_image_tag || 'dev-5.7' }})
-        needs: [guard, version-check]
-        if: needs.guard.outputs.allowed == 'true'
-        runs-on: arc-runner-set
-        timeout-minutes: 60
-        permissions:
-            contents: read
-            packages: read
-        steps:
-            - name: Audit log
-              run: |
-                  echo "::notice::UEDevOps build: actor=${{ github.actor }}, version=${{ needs.version-check.outputs.version }}, image=${{ env.UE_IMAGE }}:${{ env.UE_IMAGE_TAG }}"
-
-            - name: Checkout repository
-              uses: actions/checkout@v6
-
-            - name: Login to GitHub Container Registry
-              run: |
-                  echo "${{ secrets.UNITY_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-            - name: Pull Unreal Engine image
-              run: |
-                  docker pull "${{ env.UE_IMAGE }}:${{ env.UE_IMAGE_TAG }}"
-
-            - name: Build plugin with RunUAT
-              run: |
-                  mkdir -p ${{ github.workspace }}/output
-
-                  docker run --rm \
-                    -v "${{ github.workspace }}/${{ env.PLUGIN_PATH }}":/plugin:ro \
-                    -v "${{ github.workspace }}/output":/output \
-                    "${{ env.UE_IMAGE }}:${{ env.UE_IMAGE_TAG }}" \
-                    /bin/bash -c '
-                      set -euo pipefail
-
-                      # Locate RunUAT — path varies by image layout
-                      RUNUAT=""
-                      for candidate in \
-                        /home/ue4/UnrealEngine/Engine/Build/BatchFiles/RunUAT.sh \
-                        /home/epic/UnrealEngine/Engine/Build/BatchFiles/RunUAT.sh \
-                        /UnrealEngine/Engine/Build/BatchFiles/RunUAT.sh; do
-                        if [ -f "$candidate" ]; then
-                          RUNUAT="$candidate"
-                          break
-                        fi
-                      done
-
-                      if [ -z "$RUNUAT" ]; then
-                        echo "::error::RunUAT.sh not found in container"
-                        find / -name "RunUAT.sh" 2>/dev/null || true
-                        exit 1
-                      fi
-
-                      echo "Using RunUAT at: $RUNUAT"
-
-                      "$RUNUAT" BuildPlugin \
-                        -Plugin=/plugin/UEDevOps.uplugin \
-                        -Package=/output/UEDevOps \
-                        -TargetPlatforms=Linux \
-                        -Rocket \
-                        -StrictIncludes
-                    '
-
-            - name: Verify build output
-              run: |
-                  if [ ! -f output/UEDevOps/UEDevOps.uplugin ]; then
-                    echo "::error::Build output missing — UEDevOps.uplugin not found in output"
-                    ls -la output/ || true
-                    exit 1
-                  fi
-                  echo "::notice::Build succeeded"
-                  find output/UEDevOps -type f | head -30
-
-            - name: Package plugin zip
-              run: |
-                  cd output
-                  zip -r UEDevOps-v${{ needs.version-check.outputs.version }}.zip UEDevOps/
-                  ls -lh UEDevOps-v${{ needs.version-check.outputs.version }}.zip
-
-            - name: Upload build artifact
-              uses: actions/upload-artifact@v7
-              with:
-                  name: UEDevOps-v${{ needs.version-check.outputs.version }}
-                  path: output/UEDevOps-v${{ needs.version-check.outputs.version }}.zip
-                  retention-days: 30
-
-            - name: Cleanup
-              if: always()
-              run: |
-                  docker logout ghcr.io 2>/dev/null || true
-                  docker system prune -f 2>/dev/null || true
-                  rm -rf "$GITHUB_WORKSPACE"/* "$GITHUB_WORKSPACE"/.[!.]* 2>/dev/null || true
-
-    # ── GitHub Release ──────────────────────────────────────────
-    release:
-        name: Create GitHub Release
-        needs: [version-check, build]
-        if: needs.version-check.outputs.should_release == 'true'
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        permissions:
-            contents: write
-        steps:
-            - name: Download build artifact
-              uses: actions/download-artifact@v8
-              with:
-                  name: UEDevOps-v${{ needs.version-check.outputs.version }}
-                  path: ./artifact
-
-            - name: Create release
-              env:
-                  GH_TOKEN: ${{ github.token }}
-              run: |
-                  TAG="uedevops-v${{ needs.version-check.outputs.version }}"
-                  gh release create "${TAG}" \
-                    --repo "${{ github.repository }}" \
-                    --title "UEDevOps v${{ needs.version-check.outputs.version }}" \
-                    --notes "UEDevOps plugin v${{ needs.version-check.outputs.version }} built against UE ${{ env.UE_IMAGE_TAG }}" \
-                    --prerelease \
-                    ./artifact/UEDevOps-v${{ needs.version-check.outputs.version }}.zip
-
-    # ── Itch.io Deploy ──────────────────────────────────────────
-    itch-deploy:
-        name: Deploy to itch.io
-        needs: [version-check, build, release]
-        if: |
-            always() &&
-            needs.build.result == 'success' &&
-            (needs.version-check.outputs.should_release == 'true' || inputs.deploy_to_itch == true)
-        runs-on: ubuntu-latest
-        timeout-minutes: 15
-        permissions:
-            contents: read
-        steps:
-            - name: Download build artifact
-              uses: actions/download-artifact@v8
-              with:
-                  name: UEDevOps-v${{ needs.version-check.outputs.version }}
-                  path: ./artifact
-
-            - name: Extract zip for butler
-              run: |
-                  mkdir -p ./deploy
-                  unzip ./artifact/UEDevOps-v${{ needs.version-check.outputs.version }}.zip -d ./deploy
-
-            - name: Deploy to itch.io
-              uses: KikimoraGames/itch-publish@v0.0.3
-              with:
-                  butlerApiKey: ${{ secrets.butler_api }}
-                  gameData: ./deploy/UEDevOps
-                  itchUsername: ${{ env.ITCH_USERNAME }}
-                  itchGameId: ${{ env.ITCH_GAME_ID }}
-                  buildChannel: plugin
-                  buildNumber: ${{ needs.version-check.outputs.version }}
+    uedevops:
+        name: UEDevOps
+        uses: ./.github/workflows/utils-unreal-plugin-cicd.yml
+        with:
+            plugin_path: packages/unreal/UEDevOps
+            plugin_name: UEDevOps
+            ue_image_tag: ${{ inputs.ue_image_tag || 'dev-5.7' }}
+            target_platforms: Linux
+            deploy_to_itch: ${{ inputs.deploy_to_itch || false }}
+            itch_username: kbve
+            itch_game_id: uedevops
+            itch_channel: plugin
+        secrets:
+            epic_pat: ${{ secrets.UNITY_PAT }}
+            butler_api: ${{ secrets.butler_api }}
