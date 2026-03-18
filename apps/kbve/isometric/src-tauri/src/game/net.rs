@@ -493,7 +493,7 @@ fn poll_go_online_request(
         let ws_url = resolved_ws.clone();
 
         // Derive the API base URL from the WS URL
-        // e.g. ws://127.0.0.1:5000 → http://127.0.0.1:3080
+        // e.g. ws://127.0.0.1:5000 → http://127.0.0.1:4321
         // e.g. wss://kbve.com/ws → https://kbve.com
         let api_base = derive_api_base(&ws_url);
 
@@ -566,7 +566,9 @@ fn poll_token_fetch_result(mut commands: Commands, mut pending_token: ResMut<Pen
 #[cfg(target_arch = "wasm32")]
 fn derive_api_base(ws_url: &str) -> String {
     // For production: wss://kbve.com/ws → https://kbve.com
-    // For dev: ws://127.0.0.1:5000 → http://127.0.0.1:3080
+    // For production: wss://kbve.com/ws → https://kbve.com
+    // For dev: ws://127.0.0.1:5000 → http://127.0.0.1:4321
+    // Empty URL → empty string (relative URL, works with Vite proxy)
     if ws_url.starts_with("wss://") {
         let host = ws_url
             .trim_start_matches("wss://")
@@ -580,11 +582,11 @@ fn derive_api_base(ws_url: &str) -> String {
             .split('/')
             .next()
             .unwrap_or("");
-        // Replace game server port with API port for dev
+        // Replace game server port with HTTP API port for dev
         let host = host_port.split(':').next().unwrap_or("127.0.0.1");
-        format!("http://{host}:3080")
+        format!("http://{host}:4321")
     } else {
-        // Fallback: use relative URL (same origin)
+        // Fallback: use relative URL (same origin — works with Vite proxy in dev)
         String::new()
     }
 }
