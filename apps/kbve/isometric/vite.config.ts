@@ -48,6 +48,12 @@ export default defineConfig(async () => ({
 			'Cross-Origin-Opener-Policy': 'same-origin',
 			'Cross-Origin-Embedder-Policy': 'credentialless',
 		},
+		proxy: {
+			'/api': {
+				target: 'http://127.0.0.1:3080',
+				changeOrigin: true,
+			},
+		},
 	},
 	optimizeDeps: {
 		exclude: ['isometric_game'],
