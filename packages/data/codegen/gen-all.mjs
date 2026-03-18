@@ -41,6 +41,11 @@ const protos = [
 		protoFile: 'map/mapdb.proto',
 		package: 'map',
 	},
+	{
+		name: 'clickhouse',
+		protoFile: 'jedi/clickhouse.proto',
+		package: 'clickhouse',
+	},
 ];
 
 console.log('=== Proto-to-Zod Pipeline ===\n');

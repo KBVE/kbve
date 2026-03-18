@@ -1,0 +1,177 @@
+syntax = "proto3";
+
+package clickhouse;
+
+// =============================================================================
+// ClickHouse gRPC Proto — Foundation Schema
+// =============================================================================
+//
+// Defines the ClickHouse service interface for the React <-> Axum <-> ClickHouse
+// gRPC pipeline. Replaces the current edge-function HTTP path with typed,
+// streaming-capable RPCs.
+//
+// Domain: observability (logs, metrics, traces) stored in ClickHouse.
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum SeverityLevel {
+  SEVERITY_UNSPECIFIED = 0;
+  TRACE   = 1;
+  DEBUG   = 2;
+  INFO    = 3;
+  WARN    = 4;
+  ERROR   = 5;
+  FATAL   = 6;
+}
+
+// ---------------------------------------------------------------------------
+// Common types
+// ---------------------------------------------------------------------------
+
+// Key-value pair for flexible attribute maps (mirrors OTEL resource/scope attrs).
+message KeyValue {
+  string key   = 1;
+  string value = 2;
+}
+
+// Time range filter used across log/metric/trace queries.
+message TimeRange {
+  // Unix epoch nanoseconds (matches ClickHouse DateTime64(9)).
+  uint64 start_ns = 1;
+  uint64 end_ns   = 2;
+}
+
+// Pagination cursor for large result sets.
+message Pagination {
+  uint32 limit  = 1;  // Max rows to return (capped server-side).
+  uint32 offset = 2;  // Row offset for page-based navigation.
+}
+
+// ---------------------------------------------------------------------------
+// Log messages — maps to observability.logs_raw
+// ---------------------------------------------------------------------------
+
+message LogEntry {
+  string         timestamp      = 1;  // ISO-8601 or DateTime64 string
+  string         pod_namespace  = 2;
+  string         service        = 3;
+  SeverityLevel  level          = 4;
+  string         message        = 5;
+  string         pod_name       = 6;
+  string         metadata       = 7;  // JSON blob
+  string         trace_id       = 8;
+  string         span_id        = 9;
+}
+
+message LogQueryRequest {
+  optional string         pod_namespace = 1;
+  optional string         service       = 2;
+  optional SeverityLevel  level         = 3;
+  optional string         search        = 4;  // ILIKE pattern
+  optional TimeRange      time_range    = 5;
+  optional Pagination     pagination    = 6;
+}
+
+message LogQueryResponse {
+  repeated LogEntry rows  = 1;
+  uint64            count = 2;
+}
+
+// ---------------------------------------------------------------------------
+// Log stats — aggregated counts by namespace/service/level
+// ---------------------------------------------------------------------------
+
+message LogStatsRequest {
+  optional TimeRange time_range = 1;
+}
+
+message LogStatsBucket {
+  string pod_namespace = 1;
+  string service       = 2;
+  string level         = 3;
+  uint64 count         = 4;
+}
+
+message LogStatsResponse {
+  repeated LogStatsBucket buckets = 1;
+  uint64                  count   = 2;
+}
+
+// ---------------------------------------------------------------------------
+// Generic query — escape hatch for ad-hoc SQL (service_role only)
+// ---------------------------------------------------------------------------
+
+message RawQueryRequest {
+  string query = 1;  // Raw ClickHouse SQL
+}
+
+message RawQueryResponse {
+  bytes  data  = 1;  // JSON-encoded rows
+  uint64 count = 2;
+}
+
+// ---------------------------------------------------------------------------
+// Insert — batch row insertion
+// ---------------------------------------------------------------------------
+
+message InsertRequest {
+  string         table = 1;
+  repeated bytes rows  = 2;  // Each element is a JSON-encoded row
+}
+
+message InsertResponse {
+  bool   success    = 1;
+  uint64 rows_added = 2;
+}
+
+// ---------------------------------------------------------------------------
+// DDL — schema management (admin only)
+// ---------------------------------------------------------------------------
+
+message DdlRequest {
+  string statement = 1;
+}
+
+message DdlResponse {
+  bool   success   = 1;
+  string statement = 2;
+}
+
+// ---------------------------------------------------------------------------
+// Tail — live log streaming (server-side stream)
+// ---------------------------------------------------------------------------
+
+message TailRequest {
+  optional string         pod_namespace = 1;
+  optional string         service       = 2;
+  optional SeverityLevel  level         = 3;
+  optional string         search        = 4;
+  uint32                  poll_interval_ms = 5;  // Server poll cadence
+}
+
+// ---------------------------------------------------------------------------
+// Service
+// ---------------------------------------------------------------------------
+
+service ClickHouseService {
+  // Structured log queries with typed filters.
+  rpc QueryLogs(LogQueryRequest)   returns (LogQueryResponse);
+
+  // Aggregated log statistics.
+  rpc QueryLogStats(LogStatsRequest) returns (LogStatsResponse);
+
+  // Raw SQL passthrough (service_role auth required).
+  rpc RawQuery(RawQueryRequest)    returns (RawQueryResponse);
+
+  // Batch insert rows into a table.
+  rpc Insert(InsertRequest)        returns (InsertResponse);
+
+  // DDL execution (admin auth required).
+  rpc ExecuteDdl(DdlRequest)       returns (DdlResponse);
+
+  // Server-streaming RPC — live tail of logs.
+  rpc TailLogs(TailRequest)        returns (stream LogEntry);
+}
