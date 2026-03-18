@@ -615,12 +615,26 @@ fn poll_go_online_request(
     pending_auth.jwt = jwt.clone();
     pending_auth.sent = false;
 
-    // Re-resolve address from override (JS may have set it after resource init)
+    // Re-resolve address: check JS override first, then resource, then derive from origin.
     let resolved_ws = SERVER_URL_OVERRIDE
         .lock()
         .ok()
         .and_then(|g| g.clone())
-        .unwrap_or_else(|| addr.0.clone());
+        .or_else(|| {
+            let a = &addr.0;
+            if a.is_empty() { None } else { Some(a.clone()) }
+        })
+        .unwrap_or_else(|| {
+            // Last resort on WASM: derive from window.location at connection time.
+            #[cfg(target_arch = "wasm32")]
+            {
+                resolve_ws_url_from_origin()
+            }
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                DEFAULT_WS_URL.to_owned()
+            }
+        });
 
     info!(
         "[net] resolved server address: {resolved_ws} | has_jwt: {has_jwt} | transport: {}",
