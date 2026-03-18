@@ -3,7 +3,6 @@
 
 const MIGRATION_KEY = 'sb-auth-migrated';
 const OLD_DB_NAME = 'sb-auth';
-const NEW_DB_NAME = 'sb-auth-v2';
 
 /**
  * Migrates data from old sb-auth database to new sb-auth-v2 database
