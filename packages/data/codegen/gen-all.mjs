@@ -57,7 +57,6 @@ const protos = [
 		name: 'discordsh',
 		protoFile: 'kbve/discordsh.proto',
 		package: 'kbve.discordsh',
-		outputPath: '../../../apps/discordsh/astro-discordsh/src/lib/servers/discordsh-schema.ts',
 	},
 ];
 

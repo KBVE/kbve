@@ -5,6 +5,7 @@
  */
 
 export * from './clickhouse-schema.js';
+export * from './discordsh-schema.js';
 export * from './itemdb-schema.js';
 export * from './mapdb-schema.js';
 export * from './npcdb-schema.js';
