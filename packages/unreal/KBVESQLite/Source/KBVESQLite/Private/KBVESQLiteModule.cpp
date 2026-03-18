@@ -1,0 +1,3 @@
+#include "KBVESQLite.h"
+
+IMPLEMENT_MODULE(FKBVESQLiteModule, KBVESQLite)
