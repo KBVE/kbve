@@ -1,3 +1,16 @@
+/**
+ * @deprecated — SLATED FOR REMOVAL
+ *
+ * This monolithic component has been replaced by the nanostore island architecture:
+ *   - homeService.ts              → Nanostore singleton (state + API logic)
+ *   - ReactHomeAuth.tsx           → Auth gate island
+ *   - ReactHomeStatusBanner.tsx   → Header + system status banner island
+ *   - ReactHomeServiceCards.tsx   → 5-service card grid island
+ *   - AstroDashboardHome.astro    → Static Astro shell mounting all islands
+ *
+ * Remove this file once all references are confirmed migrated.
+ */
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { initSupa, getSupa } from '@/lib/supa';
 import {
