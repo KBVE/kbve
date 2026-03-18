@@ -5,6 +5,7 @@ import {
   requireNonEmpty,
   requireServiceRole,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // MC Container Module
@@ -51,7 +52,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_save_container");
     }
 
     return jsonResponse({ success: true, container_id: data });
@@ -75,7 +76,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ found: false, error: error.message }, 400);
+      return safeRpcError(error, "service_load_container");
     }
 
     if (!data || (Array.isArray(data) && data.length === 0)) {

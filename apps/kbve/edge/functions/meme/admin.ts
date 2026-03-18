@@ -5,6 +5,8 @@ import {
   requireServiceRole,
   validateTag,
 } from "./_shared.ts";
+import { HEX_RE, UUID_RE } from "../_shared/formats.ts";
+import { validateSafeUrl, safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // Meme Admin Module — service_role only
@@ -12,11 +14,6 @@ import {
 // Actions:
 //   create  -- Insert a new meme (URL reference + metadata)
 // ---------------------------------------------------------------------------
-
-const HTTPS_RE = /^https:\/\/.+/;
-const HEX_RE = /^[a-f0-9]+$/;
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type Handler = (memeReq: MemeRequest) => Promise<Response>;
 
@@ -52,19 +49,9 @@ const handlers: Record<string, Handler> = {
       return jsonResponse({ error: "author_id must be a valid UUID" }, 400);
     }
 
-    // asset_url: required HTTPS URL
-    if (!asset_url || typeof asset_url !== "string") {
-      return jsonResponse({ error: "asset_url is required" }, 400);
-    }
-    if (
-      !HTTPS_RE.test(asset_url) ||
-      asset_url.length > 2048
-    ) {
-      return jsonResponse(
-        { error: "asset_url must be a valid HTTPS URL (max 2048 chars)" },
-        400,
-      );
-    }
+    // asset_url: required HTTPS URL (SSRF-safe)
+    const assetUrlErr = validateSafeUrl(asset_url, "asset_url");
+    if (assetUrlErr) return assetUrlErr;
 
     // title: optional, max 200 chars
     if (title !== undefined && title !== null) {
@@ -90,33 +77,17 @@ const handlers: Record<string, Handler> = {
       );
     }
 
-    // thumbnail_url: optional HTTPS
-    if (thumbnail_url !== undefined && thumbnail_url !== null) {
-      if (
-        typeof thumbnail_url !== "string" ||
-        !HTTPS_RE.test(thumbnail_url) ||
-        thumbnail_url.length > 2048
-      ) {
-        return jsonResponse(
-          { error: "thumbnail_url must be a valid HTTPS URL" },
-          400,
-        );
-      }
-    }
+    // thumbnail_url: optional HTTPS (SSRF-safe)
+    const thumbErr = validateSafeUrl(thumbnail_url, "thumbnail_url", {
+      required: false,
+    });
+    if (thumbErr) return thumbErr;
 
-    // source_url: optional HTTPS
-    if (source_url !== undefined && source_url !== null) {
-      if (
-        typeof source_url !== "string" ||
-        !HTTPS_RE.test(source_url) ||
-        source_url.length > 2048
-      ) {
-        return jsonResponse(
-          { error: "source_url must be a valid HTTPS URL" },
-          400,
-        );
-      }
-    }
+    // source_url: optional HTTPS (SSRF-safe)
+    const srcErr = validateSafeUrl(source_url, "source_url", {
+      required: false,
+    });
+    if (srcErr) return srcErr;
 
     // width/height: optional positive integers
     const safeWidth = width !== undefined ? Number(width) : null;
@@ -215,8 +186,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      console.error("service_create_meme error:", error);
-      return jsonResponse({ error: error.message }, 400);
+      return safeRpcError(error, "service_create_meme");
     }
 
     return jsonResponse({

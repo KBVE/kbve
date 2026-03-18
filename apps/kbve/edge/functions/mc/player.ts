@@ -6,6 +6,7 @@ import {
   requireServiceRole,
   validateMcUuid,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // MC Player Module
@@ -40,7 +41,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_save_player");
     }
 
     return jsonResponse({ success: true, player_uuid: data });
@@ -64,7 +65,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ found: false, error: error.message }, 400);
+      return safeRpcError(error, "service_load_player");
     }
 
     if (!data || (Array.isArray(data) && data.length === 0)) {

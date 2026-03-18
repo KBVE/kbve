@@ -7,6 +7,7 @@ import {
   parseJwt,
   requireServiceRole,
 } from "../_shared/supabase.ts";
+import { requireJsonContentType } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // Logs Edge Function — Query observability.logs_raw in ClickHouse
@@ -21,6 +22,7 @@ import {
 const MAX_LIMIT = 500;
 const DEFAULT_LIMIT = 100;
 const MAX_MINUTES = 10080; // 7 days
+const MAX_SEARCH_LENGTH = 100;
 
 const ch = createClient({
   url: Deno.env.get("CLICKHOUSE_ENDPOINT") ?? "",
@@ -62,8 +64,10 @@ async function handleQuery(params: QueryParams) {
   }
 
   if (params.search) {
+    // Limit search length to prevent wildcard abuse
+    const search = String(params.search).slice(0, MAX_SEARCH_LENGTH);
     conditions.push("message ILIKE {search:String}");
-    queryParams.search = `%${params.search}%`;
+    queryParams.search = `%${search}%`;
   }
 
   const limit = Math.min(
@@ -120,6 +124,9 @@ serve(async (req) => {
     return jsonResponse({ error: "Only POST method is allowed" }, 405);
   }
 
+  const ctErr = requireJsonContentType(req);
+  if (ctErr) return ctErr;
+
   try {
     const token = extractToken(req);
     const claims = await parseJwt(token);
@@ -156,10 +163,13 @@ serve(async (req) => {
     return jsonResponse(result);
   } catch (err) {
     console.error("logs error:", err);
-    const message =
+    const rawMessage =
       err instanceof Error ? err.message : "Internal server error";
-    const status =
-      message.includes("authorization") || message.includes("JWT") ? 401 : 500;
-    return jsonResponse({ error: message }, status);
+    const isAuthError =
+      rawMessage.includes("authorization") || rawMessage.includes("JWT");
+    if (isAuthError) {
+      return jsonResponse({ error: rawMessage }, 401);
+    }
+    return jsonResponse({ error: "Internal server error" }, 500);
   }
 });

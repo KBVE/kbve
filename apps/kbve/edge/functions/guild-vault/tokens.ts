@@ -12,6 +12,7 @@ import {
   validateUuid,
   verifyGuildOwnership,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // Guild token CRUD handlers — all use service client + Discord ownership
@@ -71,7 +72,7 @@ const handlers: Record<string, Handler> = {
 
     if (error) {
       invalidateOwnershipCache(userId, server_id as string);
-      return jsonResponse({ error: error.message }, 400);
+      return safeRpcError(error, "guild_vault_rpc");
     }
 
     const row = Array.isArray(data) ? data[0] : data;
@@ -112,7 +113,7 @@ const handlers: Record<string, Handler> = {
 
     if (error) {
       invalidateOwnershipCache(userId, server_id as string);
-      return jsonResponse({ error: error.message }, 400);
+      return safeRpcError(error, "guild_vault_rpc");
     }
 
     const tokens = Array.isArray(data) ? data : [];
@@ -150,7 +151,7 @@ const handlers: Record<string, Handler> = {
 
     if (error) {
       invalidateOwnershipCache(userId, server_id as string);
-      return jsonResponse({ error: error.message }, 400);
+      return safeRpcError(error, "guild_vault_rpc");
     }
 
     const row = Array.isArray(data) ? data[0] : data;
@@ -206,7 +207,7 @@ const handlers: Record<string, Handler> = {
 
     if (error) {
       invalidateOwnershipCache(userId, server_id as string);
-      return jsonResponse({ error: error.message }, 400);
+      return safeRpcError(error, "guild_vault_rpc");
     }
 
     const row = Array.isArray(data) ? data[0] : data;

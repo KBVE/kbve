@@ -6,6 +6,7 @@ import {
   validateMemeId,
   validateReaction,
 } from "./_shared.ts";
+import { safeRpcError } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // Meme Reaction Module
@@ -39,7 +40,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_react");
     }
 
     return jsonResponse({ success: true, meme_id: data });
@@ -62,7 +63,7 @@ const handlers: Record<string, Handler> = {
     });
 
     if (error) {
-      return jsonResponse({ success: false, error: error.message }, 400);
+      return safeRpcError(error, "service_unreact");
     }
 
     return jsonResponse({ success: true, was_reacted: data });

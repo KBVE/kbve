@@ -6,6 +6,7 @@ import {
   type JwtClaims,
   parseJwt,
 } from "../_shared/supabase.ts";
+import { requireJsonContentType } from "../_shared/validators.ts";
 import { handleTokens, TOKEN_ACTIONS } from "./tokens.ts";
 
 // ---------------------------------------------------------------------------
@@ -89,6 +90,9 @@ serve(async (req) => {
     return jsonResponse({ error: "Only POST method is allowed" }, 405);
   }
 
+  const ctErr = requireJsonContentType(req);
+  if (ctErr) return ctErr;
+
   try {
     const token = extractToken(req);
     const claims = await parseJwt(token);
@@ -145,12 +149,14 @@ serve(async (req) => {
     });
   } catch (err) {
     console.error("user-vault error:", err);
-    const message = err instanceof Error
+    const rawMessage = err instanceof Error
       ? err.message
       : "Internal server error";
-    const status = message.includes("authorization") || message.includes("JWT")
-      ? 401
-      : 500;
-    return jsonResponse({ error: message }, status);
+    const isAuthError =
+      rawMessage.includes("authorization") || rawMessage.includes("JWT");
+    if (isAuthError) {
+      return jsonResponse({ error: rawMessage }, 401);
+    }
+    return jsonResponse({ error: "Internal server error" }, 500);
   }
 });
