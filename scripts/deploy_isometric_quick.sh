@@ -42,7 +42,26 @@ fi
 
 # ── Build WASM client ──
 cd "$ISO_DIR/src-tauri"
-RUSTUP_TOOLCHAIN=nightly cargo build --lib \
+
+# Remap absolute paths so the WASM binary doesn't leak the build machine's
+# home directory (e.g. /Users/<username>/.cargo/...) into shipped artifacts.
+# RUSTFLAGS env overrides .cargo/config.toml target rustflags, so we must
+# include ALL wasm flags here when remap is needed.
+WASM_REMAP_FLAGS="\
+  -C target-feature=+atomics,+bulk-memory,+mutable-globals,+reference-types,+simd128 \
+  -C llvm-args=--wasm-enable-sjlj \
+  -C link-arg=--import-memory \
+  -C link-arg=--shared-memory \
+  -C link-arg=--max-memory=4294967296 \
+  -C link-arg=--export=__wasm_init_tls \
+  -C link-arg=--export=__tls_size \
+  -C link-arg=--export=__tls_align \
+  -C link-arg=--export=__tls_base \
+  --remap-path-prefix=$HOME/.cargo/registry/src=cargo \
+  --remap-path-prefix=$HOME/.rustup/toolchains=rustup \
+  --remap-path-prefix=$HOME=~"
+
+RUSTUP_TOOLCHAIN=nightly RUSTFLAGS="$WASM_REMAP_FLAGS" cargo build --lib \
   --target wasm32-unknown-unknown \
   -Z build-std=panic_abort,std
 

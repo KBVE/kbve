@@ -500,10 +500,13 @@ fn run_bevy_app(
     }
     app.insert_resource(WtAddr(wt_addr));
 
-    // Spawn exactly ONE server entity — lightyear's Replicate::to_clients(NetworkTarget::All)
-    // calls single() on the Server query, so multiple Server entities causes silent failure.
-    // When WebTransport is available, use it exclusively (preferred transport).
-    // Fall back to WebSocket only when WT is disabled.
+    // Spawn exactly ONE server entity with both transports.
+    // lightyear's Replicate::to_clients(NetworkTarget::All) calls single() on the
+    // Server query — multiple Server entities causes silent replication failure.
+    //
+    // WS binds from its ServerConfig (not LocalAddr), WT binds from LocalAddr.
+    // So we set LocalAddr to the WT address and WS still binds correctly.
+    // Chrome uses WT, Safari falls back to WS — both land in the same Server.collection().
     let startup_ws_addr = ws_addr;
     let startup_key = private_key;
     app.add_systems(
@@ -511,11 +514,13 @@ fn run_bevy_app(
         move |mut commands: Commands,
               mut wt_id: ResMut<PendingWtIdentity>,
               wt_addr: Res<WtAddr>| {
-            if let Some(identity) = wt_id.0.take() {
-                start_webtransport_server(&mut commands, wt_addr.0, startup_key, identity);
-            } else {
-                start_websocket_server(&mut commands, startup_ws_addr, startup_key);
-            }
+            start_server(
+                &mut commands,
+                startup_ws_addr,
+                wt_addr.0,
+                startup_key,
+                wt_id.0.take(),
+            );
         },
     );
 
@@ -622,11 +627,33 @@ pub fn is_wt_enabled() -> bool {
     WT_ENABLED.load(std::sync::atomic::Ordering::Relaxed)
 }
 
-/// Spawn a WebSocket-only server entity (fallback when WebTransport is disabled).
-fn start_websocket_server(commands: &mut Commands, ws_addr: SocketAddr, private_key: [u8; 32]) {
+/// Spawn a single server entity with WebSocket + optional WebTransport.
+///
+/// lightyear's `Replicate::to_clients(NetworkTarget::All)` calls `single()` on the
+/// `Server` query — there MUST be exactly one `Server` entity.
+///
+/// WS binds from its `ServerConfig` (address baked into the config builder), so it
+/// ignores `LocalAddr`. WT binds from `LocalAddr`. Setting `LocalAddr` to the WT
+/// address lets both transports coexist on one entity with correct binding.
+fn start_server(
+    commands: &mut Commands,
+    ws_addr: SocketAddr,
+    wt_addr: SocketAddr,
+    private_key: [u8; 32],
+    wt_identity: Option<lightyear::webtransport::prelude::Identity>,
+) {
     use lightyear::websocket::prelude::server::*;
 
-    tracing::info!("[gameserver] starting WebSocket-only server on {ws_addr}");
+    let has_wt = wt_identity.is_some();
+
+    tracing::info!(
+        "[gameserver] starting server — WS on {ws_addr}, WT: {}",
+        if has_wt {
+            format!("on {wt_addr}")
+        } else {
+            "disabled".to_string()
+        }
+    );
 
     let ws_identity = load_ws_identity();
     let ws_config = ServerConfig::builder()
@@ -640,54 +667,30 @@ fn start_websocket_server(commands: &mut Commands, ws_addr: SocketAddr, private_
         ..Default::default()
     };
 
-    let server_entity = commands
-        .spawn((
-            NetcodeServer::new(netcode_config),
-            LocalAddr(ws_addr),
-            WebSocketServerIo { config: ws_config },
-        ))
-        .id();
+    // LocalAddr is set to wt_addr — WT uses it for binding, WS ignores it
+    // (WS binds from its ServerConfig). If WT is disabled, use ws_addr.
+    let local_addr = if has_wt { wt_addr } else { ws_addr };
 
-    commands.trigger(Start {
-        entity: server_entity,
-    });
-    tracing::info!("[gameserver] WebSocket server entity {server_entity:?} started on {ws_addr}");
-}
+    let mut entity_cmds = commands.spawn((
+        NetcodeServer::new(netcode_config),
+        LocalAddr(local_addr),
+        WebSocketServerIo { config: ws_config },
+    ));
 
-/// Spawn a WebTransport-only server entity (preferred transport).
-fn start_webtransport_server(
-    commands: &mut Commands,
-    wt_addr: SocketAddr,
-    private_key: [u8; 32],
-    identity: lightyear::webtransport::prelude::Identity,
-) {
-    use lightyear::webtransport::prelude::server::*;
-
-    tracing::info!("[gameserver] starting WebTransport-only server on {wt_addr}");
-
-    let netcode_config = lightyear::netcode::prelude::server::NetcodeConfig {
-        protocol_id: bevy_kbve_net::net_config::KBVE_PROTOCOL_ID,
-        private_key,
-        client_timeout_secs: 15,
-        ..Default::default()
-    };
-
-    let server_entity = commands
-        .spawn((
-            NetcodeServer::new(netcode_config),
-            LocalAddr(wt_addr),
-            WebTransportServerIo {
+    if let Some(identity) = wt_identity {
+        entity_cmds.insert(
+            lightyear::webtransport::prelude::server::WebTransportServerIo {
                 certificate: identity,
             },
-        ))
-        .id();
+        );
+    }
+
+    let server_entity = entity_cmds.id();
 
     commands.trigger(Start {
         entity: server_entity,
     });
-    tracing::info!(
-        "[gameserver] WebTransport server entity {server_entity:?} started on {wt_addr}"
-    );
+    tracing::info!("[gameserver] server entity {server_entity:?} started");
 }
 
 /// Load WebSocket TLS identity from PEM files (mkcert/production) or generate self-signed.

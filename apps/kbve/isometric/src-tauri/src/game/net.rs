@@ -263,17 +263,11 @@ impl Plugin for NetPlugin {
         app.add_observer(on_linking);
         app.add_observer(on_unlinked);
 
+        // Safety net: abort if the handshake doesn't complete within HANDSHAKE_TIMEOUT_SECS
+        app.add_systems(Update, check_handshake_timeout);
+
         // Periodic connection-state heartbeat (logs every ~2 seconds)
         app.add_systems(Update, debug_connection_heartbeat);
-
-        // PostUpdate diagnostic: runs AFTER netcode send, BEFORE aeronet drain.
-        // This is the only place to observe packets in link.send before they're flushed.
-        app.add_systems(
-            PostUpdate,
-            debug_post_netcode_send
-                .after(lightyear::prelude::ConnectionSystems::Send)
-                .before(lightyear::prelude::LinkSystems::Send),
-        );
 
         // Deferred cleanup of disconnected client entities (one frame delay)
         app.add_systems(Last, cleanup_pending_despawn);
@@ -316,10 +310,20 @@ fn on_unlinked(
 #[derive(Component)]
 struct ConnectionAttempted;
 
+/// Tracks when the Connecting state began so we can time out stale handshakes.
+#[derive(Component)]
+struct HandshakeStartedAt(std::time::Instant);
+
+/// Maximum time to wait for the Netcode handshake before aborting.
+const HANDSHAKE_TIMEOUT_SECS: f64 = 10.0;
+
 /// Lightyear Connecting added — mark entity so we know a connection was attempted.
 fn on_connecting(trigger: On<Add, Connecting>, mut commands: Commands) {
     let entity = trigger.entity;
-    commands.entity(entity).insert(ConnectionAttempted);
+    commands.entity(entity).insert((
+        ConnectionAttempted,
+        HandshakeStartedAt(std::time::Instant::now()),
+    ));
     info!("[net][lifecycle] CONNECTING — entity {entity:?} lightyear handshake in progress");
 }
 
@@ -413,6 +417,28 @@ fn on_disconnected(
     info!("[net] connection state reset — ready for reconnection");
 }
 
+/// Safety net: if the Netcode handshake doesn't complete within HANDSHAKE_TIMEOUT_SECS,
+/// abort the connection and return to the title screen instead of spinning forever.
+fn check_handshake_timeout(
+    mut commands: Commands,
+    mut next_phase: ResMut<NextState<super::phase::GamePhase>>,
+    query: Query<(Entity, &HandshakeStartedAt), (With<Connecting>, Without<Connected>)>,
+) {
+    for (entity, started) in &query {
+        let elapsed = started.0.elapsed().as_secs_f64();
+        if elapsed >= HANDSHAKE_TIMEOUT_SECS {
+            warn!(
+                "[net] handshake timeout after {elapsed:.1}s — aborting connection for entity {entity:?}"
+            );
+            super::telemetry::report_error(&format!(
+                "handshake timeout after {elapsed:.1}s — server did not complete Netcode handshake"
+            ));
+            commands.entity(entity).insert(PendingDespawn);
+            next_phase.set(super::phase::GamePhase::Title);
+        }
+    }
+}
+
 /// Deferred cleanup: despawn entities marked `PendingDespawn` after one frame
 /// so lightyear's deferred commands have had time to flush.
 fn cleanup_pending_despawn(mut commands: Commands, query: Query<Entity, With<PendingDespawn>>) {
@@ -475,8 +501,9 @@ fn debug_connection_heartbeat(
 }
 
 /// PostUpdate diagnostic: logs link.send AFTER netcode writes packets but BEFORE
-/// aeronet drains them to the WebSocket. This is the only correct observation point.
-/// Also logs the NetcodeClient's internal connection state.
+/// aeronet drains them to the WebSocket. Kept as dead code for future debugging;
+/// register in plugin build() when needed.
+#[allow(dead_code)]
 fn debug_post_netcode_send(
     query: Query<
         (
@@ -495,9 +522,8 @@ fn debug_post_netcode_send(
         let recv_len = link.recv.len();
         let pending = client.inner.is_pending();
         let error = client.inner.is_error();
-        // Log every frame while connecting (not yet Connected)
         if is_connecting || is_linked {
-            info!(
+            debug!(
                 "[net][post-send] entity={entity:?} send={send_len} recv={recv_len} \
                  linked={is_linked} connecting={is_connecting} disconnected={is_disconnected} \
                  netcode_pending={pending} netcode_error={error}"
@@ -674,9 +700,22 @@ fn poll_token_fetch_result(mut commands: Commands, mut pending_token: ResMut<Pen
     // frame buffering/rewriting by http-proxy.
     let ws_url = result.server_url.clone();
 
+    // Check if the browser actually supports WebTransport (Safari does not).
+    // If not, clear the WT URL so we fall back to WebSocket.
+    let wt_url = if !result.server_wt_url.is_empty() && has_webtransport_support() {
+        result.server_wt_url.clone()
+    } else {
+        if !result.server_wt_url.is_empty() {
+            info!(
+                "[net] WebTransport URL provided but browser lacks WebTransport API — falling back to WebSocket"
+            );
+        }
+        String::new()
+    };
+
     let transport = TransportConfig {
         ws_url,
-        wt_url: result.server_wt_url.clone(),
+        wt_url,
         cert_digest: result.cert_digest.clone(),
     };
 
@@ -694,6 +733,23 @@ fn poll_token_fetch_result(mut commands: Commands, mut pending_token: ResMut<Pen
         }
     );
     connect_to_server(&mut commands, &transport, &result.token_bytes);
+}
+
+/// Check if the browser supports the WebTransport API.
+/// Safari does not support WebTransport — returns false so the client falls back to WebSocket.
+#[cfg(target_arch = "wasm32")]
+fn has_webtransport_support() -> bool {
+    use wasm_bindgen::prelude::*;
+
+    let global = js_sys::global();
+    let wt = js_sys::Reflect::get(&global, &JsValue::from_str("WebTransport"));
+    matches!(wt, Ok(val) if !val.is_undefined())
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn has_webtransport_support() -> bool {
+    // Desktop: WebTransport is handled natively by lightyear, always supported
+    true
 }
 
 /// Derive the HTTP API base URL from a WebSocket URL.

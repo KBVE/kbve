@@ -64,24 +64,29 @@ pub async fn game_token_handler(
         .and_then(|s| s.rsplit_once(':').and_then(|(_, p)| p.parse().ok()))
         .unwrap_or(DEFAULT_WT_PORT);
 
-    // The address embedded in the ConnectToken — what the Netcode client
-    // actually connects to. Must be a reachable IPv4 address (not 0.0.0.0).
-    // The game server binds on 0.0.0.0 (IPv4), so we must resolve to IPv4.
-    //
-    // Use the WT port when WebTransport is enabled (client prefers WT),
-    // otherwise the WS port. The Netcode layer overrides PeerAddr with the
-    // token's embedded address, so it must match the active transport.
-    let token_port = if super::is_wt_enabled() {
-        wt_port
-    } else {
-        ws_port
-    };
-    let game_addr: SocketAddr = resolve_ipv4(&request_host, token_port).map_err(|e| {
+    // The ConnectToken embeds server addresses that the Netcode client uses for
+    // the handshake. We include BOTH WS and WT addresses so the token works
+    // regardless of which transport the client picks (Safari=WS, Chrome=WT).
+    // The Netcode server validates that its own LocalAddr is in the token's
+    // server list. With both addresses present, either transport passes validation.
+    let ws_addr: SocketAddr = resolve_ipv4(&request_host, ws_port).map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("cannot resolve game address {request_host}:{token_port}: {e}"),
+            format!("cannot resolve game address {request_host}:{ws_port}: {e}"),
         )
     })?;
+
+    let mut server_addrs = vec![ws_addr];
+    if super::is_wt_enabled() {
+        let wt_addr: SocketAddr = resolve_ipv4(&request_host, wt_port).map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("cannot resolve game address {request_host}:{wt_port}: {e}"),
+            )
+        })?;
+        // WT first — Chrome clients prefer it and netcode tries addresses in order
+        server_addrs.insert(0, wt_addr);
+    }
 
     // Determine client_id and user_data from JWT
     let (client_id, user_data) = match req.jwt.as_deref() {
@@ -107,7 +112,7 @@ pub async fn game_token_handler(
         }
     };
 
-    let token = ConnectToken::build(game_addr, protocol_id, client_id, private_key)
+    let token = ConnectToken::build(&server_addrs[..], protocol_id, client_id, private_key)
         .user_data(user_data)
         .expire_seconds(120)
         .timeout_seconds(15)
@@ -122,15 +127,14 @@ pub async fn game_token_handler(
     let b64 =
         net_config::token_to_base64(token).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))?;
 
-    // Build URLs using the request hostname so they work for the client.
-    // Only one transport is active at a time (WT preferred, WS fallback).
+    // Build URLs — both transports are always available on the same server entity.
+    // Client picks WT when supported (Chrome), falls back to WS (Safari).
+    let server_url = format!("wss://{request_host}:{ws_port}");
     let cert_digest = super::get_cert_digest().to_owned();
-    let (server_url, server_wt_url) = if super::is_wt_enabled() {
-        // WT-only mode: no WS server running
-        (String::new(), format!("https://{request_host}:{wt_port}"))
+    let server_wt_url = if super::is_wt_enabled() {
+        format!("https://{request_host}:{wt_port}")
     } else {
-        // WS-only mode: no WT server running
-        (format!("wss://{request_host}:{ws_port}"), String::new())
+        String::new()
     };
 
     tracing::info!(
