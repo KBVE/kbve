@@ -1,6 +1,9 @@
 #include "UEDevOpsEditorModule.h"
 #include "ToolMenus.h"
+#include "Editor.h"
+#include "Engine/GameInstance.h"
 #include "UEDevOpsGitHubService.h"
+#include "UEDevOpsTelemetrySubsystem.h"
 
 #define LOCTEXT_NAMESPACE "FUEDevOpsEditorModule"
 
@@ -31,7 +34,6 @@ void FUEDevOpsEditorModule::RegisterMenus()
 		FSlateIcon(),
 		FUIAction(FExecuteAction::CreateLambda([]()
 		{
-			// In PIE, flush the telemetry subsystem
 			if (GEditor && GEditor->GetPIEWorldContext())
 			{
 				if (UWorld* PIEWorld = GEditor->GetPIEWorldContext()->World())

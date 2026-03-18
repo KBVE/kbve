@@ -50,4 +50,9 @@ public:
 	/** Returns basic device info (platform, GPU, RAM) as a string map. */
 	UFUNCTION(BlueprintPure, Category = "UEDevOps|Diagnostics")
 	static TMap<FString, FString> GetDeviceInfo();
+
+	/** Returns the unique session ID for this game instance. */
+	UFUNCTION(BlueprintPure, Category = "UEDevOps|Telemetry",
+		meta = (WorldContext = "WorldContextObject"))
+	static FString GetSessionId(const UObject* WorldContextObject);
 };

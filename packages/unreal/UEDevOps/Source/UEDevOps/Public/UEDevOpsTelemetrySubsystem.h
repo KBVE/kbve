@@ -2,7 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Engine/TimerHandle.h"
 #include "UEDevOpsTelemetrySubsystem.generated.h"
+
+DECLARE_LOG_CATEGORY_EXTERN(LogUEDevOps, Log, All);
 
 USTRUCT(BlueprintType)
 struct UEDEVOPS_API FDevOpsTelemetryEvent
@@ -33,6 +36,14 @@ struct UEDEVOPS_API FDevOpsTelemetryEvent
 /**
  * Game-instance subsystem that queues telemetry events and POSTs them
  * to a configurable HTTP endpoint. Usable from Blueprints and C++.
+ *
+ * Features:
+ * - Zero-alloc hot path (pre-reserved queue, cached strings, direct serialization)
+ * - Session ID for backend event correlation
+ * - Token-bucket rate limiter on log capture (prevents error-spam floods)
+ * - Exponential-backoff retry on failed POSTs
+ * - FCoreDelegates crash/ensure hooks
+ * - Automatic frame hitch detection
  */
 UCLASS()
 class UEDEVOPS_API UUEDevOpsTelemetrySubsystem : public UGameInstanceSubsystem
@@ -46,6 +57,9 @@ public:
 	/** Queue a telemetry event. Flushed automatically or via FlushEvents(). */
 	UFUNCTION(BlueprintCallable, Category = "UEDevOps|Telemetry")
 	void RecordEvent(const FDevOpsTelemetryEvent& Event);
+
+	/** C++ fast path: move an event into the queue without copying. */
+	void RecordEvent(FDevOpsTelemetryEvent&& Event);
 
 	/** Convenience: record a player error with a message and optional metadata. */
 	UFUNCTION(BlueprintCallable, Category = "UEDevOps|Telemetry")
@@ -63,14 +77,80 @@ public:
 	UFUNCTION(BlueprintPure, Category = "UEDevOps|Telemetry")
 	int32 GetQueuedEventCount() const;
 
+	/** Returns the unique session ID generated at subsystem init. */
+	UFUNCTION(BlueprintPure, Category = "UEDevOps|Telemetry")
+	const FString& GetSessionId() const { return CachedSessionId; }
+
 private:
 	void OnTimerFlush();
-	void PostPayload(const FString& JsonPayload);
-	FString SerializeQueue() const;
+	void PostPayload(FString&& JsonPayload);
+	void SerializeEventsInto(const TArray<FDevOpsTelemetryEvent>& Events, FString& OutBuffer) const;
 	void SetupLogCapture();
 	void TeardownLogCapture();
+	void EnqueueInternal(FDevOpsTelemetryEvent&& Event);
 
+	// ─── Rate Limiter ────────────────────────────────────────────────────
+	/** Returns true if a log event is allowed through the token bucket. */
+	bool ConsumeLogToken();
+	int32 LogTokensRemaining = 0;
+	double LogTokenLastRefillTime = 0.0;
+
+	// ─── Deduplication (xxHash) ──────────────────────────────────────────
+	struct FDedupEntry
+	{
+		FDevOpsTelemetryEvent Event;
+		int32 Count;
+		double FirstSeenTime;
+	};
+	TMap<uint64, FDedupEntry> DedupMap;
+	/** Check dedup map; returns true if event was collapsed (caller should NOT enqueue). */
+	bool TryDeduplicateEvent(FDevOpsTelemetryEvent& Event);
+	/** Flush all collapsed dedup entries into the EventQueue. */
+	void FlushDedupEntries();
+
+	// ─── Retry ───────────────────────────────────────────────────────────
+	struct FRetryEntry
+	{
+		FString Payload;
+		int32 Attempt;
+	};
+	TArray<FRetryEntry> RetryQueue;
+	FTimerHandle RetryTimerHandle;
+	void ProcessRetryQueue();
+	void ScheduleRetry();
+
+	// ─── Crash / Ensure ──────────────────────────────────────────────────
+	void SetupCrashHandlers();
+	void TeardownCrashHandlers();
+	void OnSystemError();
+	void OnSystemEnsure();
+	FDelegateHandle CrashDelegateHandle;
+	FDelegateHandle EnsureDelegateHandle;
+
+	// ─── Hitch Detection ─────────────────────────────────────────────────
+	void SetupHitchDetection();
+	void TeardownHitchDetection();
+	void OnFrameBegin();
+	double LastFrameStartSeconds = 0.0;
+	float HitchThresholdSeconds = 0.05f;
+	FDelegateHandle FrameBeginDelegateHandle;
+	bool bHitchDetectionActive = false;
+
+	// ─── Event Queue ─────────────────────────────────────────────────────
 	TArray<FDevOpsTelemetryEvent> EventQueue;
 	FTimerHandle FlushTimerHandle;
-	FDelegateHandle LogOutputHandle;
+
+	/** Reusable serialization buffer — Reset() instead of reallocating each flush. */
+	FString SerializeBuffer;
+
+	// ─── Cached Immutable Strings ────────────────────────────────────────
+	FString CachedSessionId;
+	FString CachedPlatformName;
+	FString CachedBuildConfig;
+	FString CachedProjectVersion;
+	FString CachedAuthHeader;
+
+	/** Custom output device registered with GLog to intercept log messages. */
+	friend class FDevOpsLogCapture;
+	class FDevOpsLogCapture* LogCaptureDevice = nullptr;
 };

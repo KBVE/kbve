@@ -9,8 +9,10 @@
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
 #include "Framework/Application/SlateApplication.h"
+#include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
+#include "Widgets/Input/SButton.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/SWindow.h"
 
@@ -254,15 +256,7 @@ void UUEDevOpsGitHubService::OpenCreateIssueDialog()
 
 				if (!Title.IsEmpty())
 				{
-					FOnGitHubIssueCreated Callback;
-					Callback.BindLambda([](bool bSuccess, const FDevOpsGitHubIssue& Issue)
-					{
-						if (bSuccess)
-						{
-							UE_LOG(LogTemp, Log, TEXT("UEDevOps: Created issue #%d: %s"), Issue.Number, *Issue.HTMLURL);
-						}
-					});
-					CreateIssue(Title, Body, TArray<FString>(), Callback);
+					CreateIssue(Title, Body, TArray<FString>(), FOnGitHubIssueCreated());
 				}
 
 				Window->RequestDestroyWindow();

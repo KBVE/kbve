@@ -1,10 +1,12 @@
 #include "UEDevOpsBlueprintLibrary.h"
+#include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
+#include "Engine/World.h"
 #include "GenericPlatform/GenericPlatformMisc.h"
 
 static UUEDevOpsTelemetrySubsystem* GetTelemetrySubsystem(const UObject* WorldContextObject)
 {
-	if (!WorldContextObject)
+	if (!WorldContextObject || !GEngine)
 	{
 		return nullptr;
 	}
@@ -50,7 +52,8 @@ void UUEDevOpsBlueprintLibrary::SendTelemetryEvent(
 
 	if (UUEDevOpsTelemetrySubsystem* Sub = GetTelemetrySubsystem(WorldContextObject))
 	{
-		Sub->RecordEvent(Event);
+		// Move into subsystem — avoids copying the event
+		Sub->RecordEvent(MoveTemp(Event));
 	}
 }
 
@@ -81,9 +84,19 @@ int32 UUEDevOpsBlueprintLibrary::GetPendingEventCount(const UObject* WorldContex
 	return 0;
 }
 
+FString UUEDevOpsBlueprintLibrary::GetSessionId(const UObject* WorldContextObject)
+{
+	if (UUEDevOpsTelemetrySubsystem* Sub = GetTelemetrySubsystem(WorldContextObject))
+	{
+		return Sub->GetSessionId();
+	}
+	return FString();
+}
+
 TMap<FString, FString> UUEDevOpsBlueprintLibrary::GetDeviceInfo()
 {
 	TMap<FString, FString> Info;
+	Info.Reserve(6);
 	Info.Add(TEXT("Platform"), FPlatformProperties::PlatformName());
 	Info.Add(TEXT("CPUBrand"), FPlatformMisc::GetCPUBrand());
 	Info.Add(TEXT("CPUCores"), FString::FromInt(FPlatformMisc::NumberOfCores()));

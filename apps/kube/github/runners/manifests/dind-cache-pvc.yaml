@@ -1,0 +1,20 @@
+# Persistent Docker-in-Docker cache for arc-runner-ue.
+# Stores pulled Unreal Engine container images so they
+# survive pod restarts and don't need to be re-downloaded.
+# Used exclusively by the arc-runner-ue scale set.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: arc-dind-ue-cache
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/component: dind-cache
+        app.kubernetes.io/part-of: arc-runner-ue
+        engine: unrealengine
+spec:
+    accessModes:
+        - ReadWriteMany
+    storageClassName: longhorn
+    resources:
+        requests:
+            storage: 150Gi

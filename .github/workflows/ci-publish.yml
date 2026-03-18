@@ -4,15 +4,35 @@ on:
     workflow_dispatch:
         inputs:
             package_type:
-                description: 'Package type: npm | crates | python'
+                description: 'Package type: npm | crates | python | unreal'
                 required: true
                 type: string
             package_name:
-                description: 'Package / project name (e.g. droid, q, python-fudster)'
+                description: 'Package / project name (e.g. droid, q, python-fudster, UEDevOps)'
                 required: true
                 type: string
             pypi_name:
                 description: 'PyPI distribution name — python only (e.g. fudster, kbve)'
+                required: false
+                type: string
+                default: ''
+            unreal_plugin_path:
+                description: 'Path to Unreal plugin dir — unreal only (e.g. packages/unreal/UEDevOps)'
+                required: false
+                type: string
+                default: ''
+            ue_image_tags:
+                description: 'JSON array of Epic UE image tags — unreal only (e.g. ["dev-5.7.3","dev-5.6.1"])'
+                required: false
+                type: string
+                default: '["dev-5.7.3"]'
+            deploy_to_itch:
+                description: 'Deploy to itch.io — unreal only'
+                required: false
+                type: boolean
+                default: false
+            itch_game_id:
+                description: 'Itch.io game ID — unreal only (e.g. uedevops)'
                 required: false
                 type: string
                 default: ''
@@ -133,6 +153,37 @@ jobs:
         secrets:
             PYPI_TOKEN: ${{ secrets.PYPI_API_SCOPE_TOKEN }}
 
+    # ===========================================================================
+    # Unreal — matrix across UE versions, build then publish
+    # (only runs when package_type == 'unreal')
+    # ===========================================================================
+    publish_unreal:
+        name: Publish Unreal — ${{ inputs.package_name }} (${{ matrix.ue_tag }})
+        needs: [queue_guard]
+        if: inputs.package_type == 'unreal'
+        strategy:
+            fail-fast: false
+            matrix:
+                ue_tag: ${{ fromJson(inputs.ue_image_tags) }}
+        permissions:
+            contents: write
+            packages: read
+            issues: write
+            pull-requests: write
+        uses: ./.github/workflows/utils-unreal-plugin-cicd.yml
+        with:
+            plugin_path: ${{ inputs.unreal_plugin_path }}
+            plugin_name: ${{ inputs.package_name }}
+            ue_image_tag: ${{ matrix.ue_tag }}
+            target_platforms: Linux
+            deploy_to_itch: ${{ inputs.deploy_to_itch }}
+            itch_username: kbve
+            itch_game_id: ${{ inputs.itch_game_id }}
+            itch_channel: plugin
+        secrets:
+            epic_pat: ${{ secrets.UNITY_PAT }}
+            butler_api: ${{ secrets.butler_api }}
+
     # ---------------------------------------------------------------------------
     # Failure Tracker — opens a GitHub issue on any pipeline failure (#8186).
     # Per-package job_name makes the issue title actionable.
@@ -148,6 +199,7 @@ jobs:
                 publish_crates,
                 test_python,
                 publish_python,
+                publish_unreal,
             ]
         permissions:
             issues: write
