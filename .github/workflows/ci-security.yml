@@ -37,8 +37,6 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v6
-              with:
-                  submodules: recursive
 
             - name: Initialize CodeQL
               uses: github/codeql-action/init@v4
@@ -47,9 +45,7 @@ jobs:
                   queries: security-and-quality
                   config: |
                       paths-ignore:
-                          - 'apps/mc/pumpkin'
                           - 'apps/irc/ergo'
-                          - 'apps/postgres'
                           - 'apps/kbve/astro-kbve/public/isometric/assets'
 
             - name: Auto-build
@@ -72,8 +68,6 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v6
-              with:
-                  submodules: recursive
 
             - name: Initialize CodeQL
               uses: github/codeql-action/init@v4
@@ -82,9 +76,7 @@ jobs:
                   queries: security-and-quality
                   config: |
                       paths-ignore:
-                          - 'apps/mc/pumpkin'
                           - 'apps/irc/ergo'
-                          - 'apps/postgres'
                           - 'apps/kbve/astro-kbve/public/isometric/assets'
 
             - name: Auto-build

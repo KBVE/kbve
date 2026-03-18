@@ -100,31 +100,6 @@ install_monorepo() {
     pnpm install
 }
 
-# Function to add optional submodule
-addOptionalSubmodule() {
-    local SUBMODULE_PATH=$1
-    local SUBMODULE_URL=$2
-
-    # Check if the necessary arguments are provided
-    if [ -z "$SUBMODULE_PATH" ] || [ -z "$SUBMODULE_URL" ]; then
-        echo "Error: Missing required arguments. You must provide both a submodule path and a submodule URL."
-        exit 1
-    fi
-
-    # Check if the submodule directory already exists
-    if [ ! -d "$SUBMODULE_PATH" ]; then
-        echo "Adding optional submodule..."
-        git submodule add $SUBMODULE_URL $SUBMODULE_PATH
-        echo "$SUBMODULE_PATH" >> .gitignore
-    else
-        echo "Submodule already exists."
-    fi
-
-    # Deduplicate .gitignore entries
-    awk '!seen[$0]++' .gitignore > temp && mv temp .gitignore
-}
-
-
 # Portable sed -i (macOS requires '' argument, Linux does not)
 sed_i() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -224,12 +199,6 @@ atomic_function() {
     echo "Branch: $branch_name (based on dev)"
     git worktree add "$worktree_dir" -b "$branch_name" "origin/dev"
 
-    # Initialize submodules in the worktree
-    if [ -f "$worktree_dir/.gitmodules" ]; then
-        echo "Initializing submodules in worktree..."
-        git -C "$worktree_dir" submodule update --init --recursive
-    fi
-
     # Copy .env if it exists in the main repo
     if [ -f "$main_repo/.env" ]; then
         echo "Copying .env from main repo..."
@@ -328,12 +297,6 @@ create_worktree() {
     echo "Branch: $branch_name (based on $base_branch)"
     git worktree add "$worktree_dir" -b "$branch_name" "origin/$base_branch"
 
-    # Initialize submodules in the worktree
-    if [ -f "$worktree_dir/.gitmodules" ]; then
-        echo "Initializing submodules in worktree..."
-        git -C "$worktree_dir" submodule update --init --recursive
-    fi
-
     # Copy .env if it exists in the main repo (gitignored, won't be in worktree)
     if [ -f "$main_repo/.env" ]; then
         echo "Copying .env from main repo..."
@@ -408,7 +371,6 @@ remove_worktree() {
         echo "Worktree directory not found: $worktree_dir"
         echo "Pruning any stale metadata..."
         git worktree prune
-        _cleanup_submodule_worktree_refs "$main_repo" "$worktree_dir"
         echo ""
         echo "Active worktrees:"
         git worktree list
@@ -449,34 +411,11 @@ remove_worktree() {
 
     echo "Removing worktree: $worktree_dir"
 
-    # --- Step 1: Deinit submodules ---
-    # Worktree submodules share the main repo's .git/modules/ directory.
-    # Removing the worktree without deinit leaves stale gitdir references
-    # inside .git/modules/<submodule>/worktrees/ which can crash editors
-    # (e.g. VS Code) and break future worktree or submodule operations.
-    if [ -f "$worktree_dir/.gitmodules" ]; then
-        echo "Deinitializing submodules in worktree..."
-        git -C "$worktree_dir" submodule deinit --all -f 2>/dev/null || true
-
-        # If deinit failed to fully clean submodule dirs (e.g. corrupt .git
-        # file refs), remove them manually so git worktree remove won't choke.
-        local sm_path
-        while IFS= read -r sm_path; do
-            [ -z "$sm_path" ] && continue
-            local sm_dir="$worktree_dir/$sm_path"
-            if [ -d "$sm_dir" ] && [ -f "$sm_dir/.git" ]; then
-                echo "  Cleaning leftover submodule dir: $sm_path"
-                rm -rf "$sm_dir"
-            fi
-        done < <(git config -f "$worktree_dir/.gitmodules" \
-            --get-regexp '^submodule\..*\.path$' 2>/dev/null | awk '{print $2}')
-    fi
-
-    # --- Step 2: Unlock if locked ---
+    # --- Step 1: Unlock if locked ---
     # A locked worktree cannot be removed; unlock it first.
     git worktree unlock "$worktree_dir" 2>/dev/null || true
 
-    # --- Step 3: Remove the worktree ---
+    # --- Step 2: Remove the worktree ---
     # Try clean removal, then force, then manual fallback.
     if git worktree remove "$worktree_dir" 2>/dev/null; then
         echo "Worktree removed cleanly."
@@ -487,16 +426,10 @@ remove_worktree() {
         rm -rf "$worktree_dir"
     fi
 
-    # --- Step 4: Prune stale worktree metadata from .git/worktrees ---
+    # --- Step 3: Prune stale worktree metadata from .git/worktrees ---
     git worktree prune
 
-    # --- Step 5: Clean submodule worktree back-references ---
-    # git worktree prune only cleans .git/worktrees/. Submodules maintain
-    # their own worktree refs in .git/modules/<submodule>/worktrees/<id>/
-    # which persist after removal and cause editors to crash on stale paths.
-    _cleanup_submodule_worktree_refs "$main_repo" "$worktree_dir"
-
-    # --- Step 6: Verify removal ---
+    # --- Step 4: Verify removal ---
     if [ -d "$worktree_dir" ]; then
         echo ""
         echo "WARNING: Directory still exists: $worktree_dir"
@@ -515,31 +448,6 @@ remove_worktree() {
     fi
     echo ""
     echo "Done."
-}
-
-# Clean stale submodule worktree back-references from .git/modules/.
-# Git does NOT clean these with 'git worktree prune'; they are the primary
-# cause of editor crashes after worktree removal in repos with submodules.
-_cleanup_submodule_worktree_refs() {
-    local main_repo="$1"
-    local worktree_dir="$2"
-    local modules_dir="$main_repo/.git/modules"
-
-    [ -d "$modules_dir" ] || return 0
-
-    local gitdir_file
-    while IFS= read -r gitdir_file; do
-        # Each gitdir file contains the absolute path to a worktree's .git.
-        # If it points into the removed worktree, its parent dir is stale.
-        local target
-        target=$(cat "$gitdir_file" 2>/dev/null)
-        if [ -n "$target" ] && [[ "$target" == "$worktree_dir"* ]]; then
-            local stale_dir
-            stale_dir=$(dirname "$gitdir_file")
-            echo "  Cleaning stale submodule ref: $stale_dir"
-            rm -rf "$stale_dir"
-        fi
-    done < <(find "$modules_dir" -path "*/worktrees/*/gitdir" -type f 2>/dev/null)
 }
 
 # ---------------------------------------------------------------------------

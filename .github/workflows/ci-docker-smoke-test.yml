@@ -25,30 +25,6 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v6
               continue-on-error: true
-              with:
-                  submodules: true
-
-            - name: Init submodules (with retry)
-              continue-on-error: true
-              run: |
-                  for i in 1 2 3; do
-                    git submodule update --init --recursive && break
-                    echo "Attempt $i failed, retrying in 10s..."
-                    sleep 10
-                  done
-
-            - name: Verify critical submodules
-              run: |
-                  failed=0
-                  for mod in apps/mc/pumpkin apps/postgres; do
-                    if [ ! -f "$mod/.git" ] && [ ! -d "$mod/.git" ]; then
-                      echo "::error::Critical submodule missing: $mod"
-                      failed=1
-                    else
-                      echo "OK: $mod"
-                    fi
-                  done
-                  exit $failed
 
             - name: Install crane
               uses: imjasonh/setup-crane@v0.5
@@ -117,7 +93,7 @@ jobs:
                       dockerfile: apps/mc/Dockerfile
                       context: .
                       cache_scope: smoke-mc
-                      submodules: true
+                      submodules: false
                     - name: herbmail
                       dockerfile: apps/herbmail/axum-herbmail/Dockerfile
                       context: .
@@ -160,30 +136,6 @@ jobs:
               continue-on-error: true
               with:
                   submodules: ${{ matrix.submodules }}
-
-            - name: Init submodules (with retry)
-              if: matrix.submodules
-              continue-on-error: true
-              run: |
-                  for i in 1 2 3; do
-                    git submodule update --init --recursive && break
-                    echo "Attempt $i failed, retrying in 10s..."
-                    sleep 10
-                  done
-
-            - name: Verify critical submodules
-              if: matrix.submodules
-              run: |
-                  failed=0
-                  for mod in apps/mc/pumpkin apps/postgres; do
-                    if [ ! -f "$mod/.git" ] && [ ! -d "$mod/.git" ]; then
-                      echo "::error::Critical submodule missing: $mod"
-                      failed=1
-                    else
-                      echo "OK: $mod"
-                    fi
-                  done
-                  exit $failed
 
             - name: Download pinned Dockerfiles
               if: needs.resolve_digests.outputs.digests_changed == 'true'
