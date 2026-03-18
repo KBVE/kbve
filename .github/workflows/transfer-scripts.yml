@@ -8,5 +8,22 @@ jobs:
         name: Transfer Scripts
         runs-on: ubuntu-latest
         steps:
-            -   name: Checkout the repository using git
-                uses: actions/checkout@v6
+            - name: Checkout the repository using git
+              uses: actions/checkout@v6
+
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces failures as GitHub issues (#8186).
+    # ---------------------------------------------------------------------------
+    track-release:
+        name: Track Transfer Scripts
+        if: always()
+        needs: [release]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'Transfer Scripts'
+            job_name: 'Transfer Scripts'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.release.result }}

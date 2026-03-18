@@ -173,3 +173,49 @@ jobs:
                     echo ""
                     echo "::warning::Monday E2E: $PASSED/$TOTAL projects passed"
                   fi
+
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces failures as GitHub issues (#8186).
+    # Scheduled workflows are easy to miss; failures go unnoticed until Monday.
+    # ---------------------------------------------------------------------------
+    track-discover:
+        name: Track Discover
+        if: always()
+        needs: [discover]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Monday E2E'
+            job_name: 'Discover E2E Projects'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.discover.result }}
+
+    track-e2e:
+        name: Track E2E
+        if: always()
+        needs: [e2e]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Monday E2E'
+            job_name: 'E2E'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.e2e.result }}
+
+    track-summary:
+        name: Track Summary
+        if: always()
+        needs: [summary]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Monday E2E'
+            job_name: 'Monday E2E Summary'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.summary.result }}

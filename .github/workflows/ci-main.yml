@@ -181,3 +181,79 @@ jobs:
                   [ "${{ needs.alter.outputs.py_lib_kbve }}"    = "true" ] && dispatch_python "python-kbve"    "kbve"
 
                   echo "All publish dispatches complete"
+
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces failures as GitHub issues (#8186).
+    # Release pipeline — failures here block deploys. Grouped by phase:
+    #   - Infrastructure (globals, sync, alter)
+    #   - Dispatch (docker, publish)
+    # ---------------------------------------------------------------------------
+    track-globals:
+        name: Track Globals
+        if: always()
+        needs: [globals]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Main'
+            job_name: 'Global Variables'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.globals.result }}
+
+    track-call-sync:
+        name: Track Call Sync
+        if: always()
+        needs: [call_sync]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Main'
+            job_name: 'Call Sync Workflow'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.call_sync.result }}
+
+    track-alter:
+        name: Track Alter
+        if: always()
+        needs: [alter]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Main'
+            job_name: 'Alpha Alters'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.alter.result }}
+
+    track-dispatch-docker:
+        name: Track Dispatch Docker
+        if: always()
+        needs: [dispatch_docker]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Main'
+            job_name: 'Dispatch Docker Apps'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.dispatch_docker.result }}
+
+    track-dispatch-publish:
+        name: Track Dispatch Publish
+        if: always()
+        needs: [dispatch_publish]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Main'
+            job_name: 'Dispatch Publish Packages'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.dispatch_publish.result }}

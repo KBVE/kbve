@@ -233,6 +233,75 @@ fn main() {
             "twitch.TwitchEventObject.object",
             "#[derive(serde::Serialize, serde::Deserialize)]",
         )
+        // ClickHouse
+        .type_attribute(
+            "clickhouse.SeverityLevel",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.KeyValue",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.TimeRange",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.Pagination",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.LogEntry",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.LogQueryRequest",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.LogQueryResponse",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.LogStatsRequest",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.LogStatsBucket",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.LogStatsResponse",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.RawQueryRequest",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.RawQueryResponse",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.InsertRequest",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.InsertResponse",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.DdlRequest",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.DdlResponse",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "clickhouse.TailRequest",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
         // .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
         // .field_attribute("status.StatusMessage.type", "#[bitflags]")
         .compile_protos(
@@ -241,6 +310,7 @@ fn main() {
                 "../../data/proto/jedi/groq.proto",
                 "../../data/proto/jedi/jedi.proto",
                 "../../data/proto/jedi/twitch.proto",
+                "../../data/proto/jedi/clickhouse.proto",
             ],
             &["../../data/proto/jedi", "../../data/proto"],
         )

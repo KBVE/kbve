@@ -1,0 +1,247 @@
+{
+	"uuid": "github-mock-env",
+	"lastMigration": 32,
+	"name": "GitHub API Mock",
+	"endpointPrefix": "",
+	"latency": 0,
+	"port": 4010,
+	"hostname": "0.0.0.0",
+	"folders": [],
+	"routes": [
+		{
+			"uuid": "gh-error-401",
+			"type": "http",
+			"documentation": "GET /repos/unauthorized/* — 401 error scenario for negative testing",
+			"method": "get",
+			"endpoint": "repos/unauthorized/:repo/issues",
+			"responses": [
+				{
+					"uuid": "gh-error-401-resp",
+					"body": "{\n  \"message\": \"Bad credentials\",\n  \"documentation_url\": \"https://docs.github.com/rest\"\n}",
+					"latency": 0,
+					"statusCode": 401,
+					"label": "401 Unauthorized",
+					"headers": [
+						{
+							"key": "content-type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"bodyType": "INLINE",
+					"filePath": "",
+					"databucketID": "",
+					"sendFileAsBody": false,
+					"rules": [],
+					"rulesOperator": "OR",
+					"disableTemplating": false,
+					"fallbackTo404": false,
+					"default": true,
+					"crudKey": "id"
+				}
+			],
+			"responseMode": null
+		},
+		{
+			"uuid": "gh-error-403",
+			"type": "http",
+			"documentation": "GET /repos/forbidden/* — 403 error scenario for negative testing",
+			"method": "get",
+			"endpoint": "repos/forbidden/:repo/issues",
+			"responses": [
+				{
+					"uuid": "gh-error-403-resp",
+					"body": "{\n  \"message\": \"API rate limit exceeded\",\n  \"documentation_url\": \"https://docs.github.com/rest/overview/rate-limits-for-the-rest-api\"\n}",
+					"latency": 0,
+					"statusCode": 403,
+					"label": "403 Forbidden / Rate Limited",
+					"headers": [
+						{
+							"key": "content-type",
+							"value": "application/json; charset=utf-8"
+						},
+						{ "key": "x-ratelimit-remaining", "value": "0" },
+						{ "key": "x-ratelimit-reset", "value": "1900000000" }
+					],
+					"bodyType": "INLINE",
+					"filePath": "",
+					"databucketID": "",
+					"sendFileAsBody": false,
+					"rules": [],
+					"rulesOperator": "OR",
+					"disableTemplating": false,
+					"fallbackTo404": false,
+					"default": true,
+					"crudKey": "id"
+				}
+			],
+			"responseMode": null
+		},
+		{
+			"uuid": "gh-error-404",
+			"type": "http",
+			"documentation": "GET /repos/notfound/* — 404 error scenario for negative testing",
+			"method": "get",
+			"endpoint": "repos/notfound/:repo/issues",
+			"responses": [
+				{
+					"uuid": "gh-error-404-resp",
+					"body": "{\n  \"message\": \"Not Found\",\n  \"documentation_url\": \"https://docs.github.com/rest\"\n}",
+					"latency": 0,
+					"statusCode": 404,
+					"label": "404 Not Found",
+					"headers": [
+						{
+							"key": "content-type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"bodyType": "INLINE",
+					"filePath": "",
+					"databucketID": "",
+					"sendFileAsBody": false,
+					"rules": [],
+					"rulesOperator": "OR",
+					"disableTemplating": false,
+					"fallbackTo404": false,
+					"default": true,
+					"crudKey": "id"
+				}
+			],
+			"responseMode": null
+		},
+		{
+			"uuid": "gh-list-issues",
+			"type": "http",
+			"documentation": "GET /repos/:owner/:repo/issues — canned issue list with labels",
+			"method": "get",
+			"endpoint": "repos/:owner/:repo/issues",
+			"responses": [
+				{
+					"uuid": "gh-list-issues-200",
+					"body": "[\n  {\n    \"number\": 8180,\n    \"title\": \"[DISCORDSH] POC: Mockoon docker-compose for local E2E testing\",\n    \"state\": \"open\",\n    \"user\": { \"login\": \"h0lybyte\" },\n    \"labels\": [\n      { \"name\": \"enhancement\", \"color\": \"a2eeef\" },\n      { \"name\": \"1\", \"color\": \"e7ba04\" }\n    ],\n    \"created_at\": \"2026-03-10T00:00:00Z\",\n    \"updated_at\": \"2026-03-15T12:00:00Z\",\n    \"html_url\": \"https://github.com/KBVE/kbve/issues/8180\"\n  },\n  {\n    \"number\": 7849,\n    \"title\": \"[DISCORDSH] Discord Bot E2E and Integration Testing\",\n    \"state\": \"open\",\n    \"user\": { \"login\": \"h0lybyte\" },\n    \"labels\": [\n      { \"name\": \"epic\", \"color\": \"3E4B9E\" }\n    ],\n    \"created_at\": \"2026-02-01T00:00:00Z\",\n    \"updated_at\": \"2026-02-10T00:00:00Z\",\n    \"html_url\": \"https://github.com/KBVE/kbve/issues/7849\"\n  },\n  {\n    \"number\": 100,\n    \"title\": \"Stale issue for testing (5 days old)\",\n    \"state\": \"open\",\n    \"user\": { \"login\": \"testuser\" },\n    \"labels\": [\n      { \"name\": \"bug\", \"color\": \"d73a4a\" }\n    ],\n    \"created_at\": \"2026-01-01T00:00:00Z\",\n    \"updated_at\": \"2026-01-01T00:00:00Z\",\n    \"html_url\": \"https://github.com/KBVE/kbve/issues/100\"\n  }\n]",
+					"latency": 0,
+					"statusCode": 200,
+					"label": "Success — canned issues",
+					"headers": [
+						{
+							"key": "content-type",
+							"value": "application/json; charset=utf-8"
+						},
+						{ "key": "x-ratelimit-limit", "value": "5000" },
+						{ "key": "x-ratelimit-remaining", "value": "4990" },
+						{ "key": "x-ratelimit-reset", "value": "1900000000" }
+					],
+					"bodyType": "INLINE",
+					"filePath": "",
+					"databucketID": "",
+					"sendFileAsBody": false,
+					"rules": [],
+					"rulesOperator": "OR",
+					"disableTemplating": false,
+					"fallbackTo404": false,
+					"default": true,
+					"crudKey": "id"
+				}
+			],
+			"responseMode": null
+		},
+		{
+			"uuid": "gh-list-pulls",
+			"type": "http",
+			"documentation": "GET /repos/:owner/:repo/pulls — canned PR list with draft flags",
+			"method": "get",
+			"endpoint": "repos/:owner/:repo/pulls",
+			"responses": [
+				{
+					"uuid": "gh-list-pulls-200",
+					"body": "[\n  {\n    \"number\": 8200,\n    \"title\": \"feat(discordsh): add mockoon POC\",\n    \"state\": \"open\",\n    \"user\": { \"login\": \"h0lybyte\" },\n    \"head\": { \"ref\": \"trunk/discordsh-mockoon-poc\", \"sha\": \"abc123\" },\n    \"created_at\": \"2026-03-17T00:00:00Z\",\n    \"updated_at\": \"2026-03-17T12:00:00Z\",\n    \"html_url\": \"https://github.com/KBVE/kbve/pull/8200\",\n    \"draft\": false\n  },\n  {\n    \"number\": 8199,\n    \"title\": \"chore(deps): bump dependencies\",\n    \"state\": \"open\",\n    \"user\": { \"login\": \"dependabot\" },\n    \"head\": { \"ref\": \"dependabot/bump\", \"sha\": \"def456\" },\n    \"created_at\": \"2026-03-16T00:00:00Z\",\n    \"updated_at\": \"2026-03-16T06:00:00Z\",\n    \"html_url\": \"https://github.com/KBVE/kbve/pull/8199\",\n    \"draft\": true\n  }\n]",
+					"latency": 0,
+					"statusCode": 200,
+					"label": "Success — canned PRs",
+					"headers": [
+						{
+							"key": "content-type",
+							"value": "application/json; charset=utf-8"
+						},
+						{ "key": "x-ratelimit-limit", "value": "5000" },
+						{ "key": "x-ratelimit-remaining", "value": "4988" },
+						{ "key": "x-ratelimit-reset", "value": "1900000000" }
+					],
+					"bodyType": "INLINE",
+					"filePath": "",
+					"databucketID": "",
+					"sendFileAsBody": false,
+					"rules": [],
+					"rulesOperator": "OR",
+					"disableTemplating": false,
+					"fallbackTo404": false,
+					"default": true,
+					"crudKey": "id"
+				}
+			],
+			"responseMode": null
+		},
+		{
+			"uuid": "gh-get-repo",
+			"type": "http",
+			"documentation": "GET /repos/:owner/:repo — repo metadata",
+			"method": "get",
+			"endpoint": "repos/:owner/:repo",
+			"responses": [
+				{
+					"uuid": "gh-get-repo-200",
+					"body": "{\n  \"name\": \"kbve\",\n  \"full_name\": \"KBVE/kbve\",\n  \"description\": \"KBVE Monorepo\",\n  \"html_url\": \"https://github.com/KBVE/kbve\",\n  \"default_branch\": \"main\",\n  \"open_issues_count\": 150\n}",
+					"latency": 0,
+					"statusCode": 200,
+					"label": "Success — repo metadata",
+					"headers": [
+						{
+							"key": "content-type",
+							"value": "application/json; charset=utf-8"
+						},
+						{ "key": "x-ratelimit-limit", "value": "5000" },
+						{ "key": "x-ratelimit-remaining", "value": "4985" },
+						{ "key": "x-ratelimit-reset", "value": "1900000000" }
+					],
+					"bodyType": "INLINE",
+					"filePath": "",
+					"databucketID": "",
+					"sendFileAsBody": false,
+					"rules": [],
+					"rulesOperator": "OR",
+					"disableTemplating": false,
+					"fallbackTo404": false,
+					"default": true,
+					"crudKey": "id"
+				}
+			],
+			"responseMode": null
+		}
+	],
+	"rootChildren": [
+		{ "type": "route", "uuid": "gh-error-401" },
+		{ "type": "route", "uuid": "gh-error-403" },
+		{ "type": "route", "uuid": "gh-error-404" },
+		{ "type": "route", "uuid": "gh-list-issues" },
+		{ "type": "route", "uuid": "gh-list-pulls" },
+		{ "type": "route", "uuid": "gh-get-repo" }
+	],
+	"proxyMode": false,
+	"proxyHost": "",
+	"proxyRemovePrefix": false,
+	"tlsOptions": {
+		"enabled": false,
+		"type": "CERT",
+		"pfxPath": "",
+		"certPath": "",
+		"keyPath": "",
+		"caPath": "",
+		"passphrase": ""
+	},
+	"cors": true,
+	"headers": [],
+	"proxyReqHeaders": [],
+	"proxyResHeaders": [],
+	"data": [],
+	"callbacks": []
+}

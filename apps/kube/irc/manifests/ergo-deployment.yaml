@@ -21,7 +21,7 @@ spec:
         spec:
             containers:
                 - name: ergo
-                  image: ghcr.io/kbve/ergo:stable
+                  image: ghcr.io/ergochat/ergo:stable
                   ports:
                       - containerPort: 6667
                         name: irc
@@ -31,8 +31,6 @@ spec:
                         name: websocket
                       - containerPort: 8067
                         name: websocket-proxy
-                      - containerPort: 6060
-                        name: metrics
                   volumeMounts:
                       - name: ergo-config
                         mountPath: /ircd/ircd.yaml

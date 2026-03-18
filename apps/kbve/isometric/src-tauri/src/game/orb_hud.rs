@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy::render::render_resource::{AsBindGroup, ShaderType};
 use bevy::shader::ShaderRef;
 
+use super::phase::GamePhase;
 use super::state::PlayerState;
 
 // ---------------------------------------------------------------------------
@@ -90,10 +91,12 @@ pub struct OrbHudPlugin;
 impl Plugin for OrbHudPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(UiMaterialPlugin::<OrbMaterial>::default());
-        app.add_systems(Startup, spawn_orbs);
+        app.add_systems(OnEnter(GamePhase::Playing), spawn_orbs);
         app.add_systems(
             Update,
-            update_orbs.run_if(resource_changed::<super::state::PlayerState>),
+            update_orbs.run_if(
+                in_state(GamePhase::Playing).and(resource_changed::<super::state::PlayerState>),
+            ),
         );
     }
 }
@@ -147,21 +150,24 @@ fn spawn_orbs(mut commands: Commands, mut orb_materials: ResMut<Assets<OrbMateri
 
     // Container — left edge, vertically centered, stacks HP / MP / EP top-to-bottom
     commands
-        .spawn(Node {
-            position_type: PositionType::Absolute,
-            left: Val::Px(ORB_MARGIN),
-            top: Val::Percent(50.0),
-            // Shift up by half the total stack height so the group is truly centred.
-            // Total height = 3 × ORB_SIZE + 2 × ORB_GAP
-            margin: UiRect {
-                top: Val::Px(-((3.0 * ORB_SIZE + 2.0 * ORB_GAP) / 2.0)),
+        .spawn((
+            Node {
+                position_type: PositionType::Absolute,
+                left: Val::Px(ORB_MARGIN),
+                top: Val::Percent(50.0),
+                // Shift up by half the total stack height so the group is truly centred.
+                // Total height = 3 × ORB_SIZE + 2 × ORB_GAP
+                margin: UiRect {
+                    top: Val::Px(-((3.0 * ORB_SIZE + 2.0 * ORB_GAP) / 2.0)),
+                    ..default()
+                },
+                flex_direction: FlexDirection::Column,
+                row_gap: Val::Px(ORB_GAP),
+                align_items: AlignItems::Center,
                 ..default()
             },
-            flex_direction: FlexDirection::Column,
-            row_gap: Val::Px(ORB_GAP),
-            align_items: AlignItems::Center,
-            ..default()
-        })
+            DespawnOnExit(GamePhase::Playing),
+        ))
         .with_children(|parent| {
             // HP (top)
             parent.spawn((

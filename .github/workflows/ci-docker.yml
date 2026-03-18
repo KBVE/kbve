@@ -53,7 +53,7 @@ jobs:
     # ---------------------------------------------------------------------------
     # Config — resolve all per-app settings from a single case statement.
     # Single source of truth for runner, image, e2e, cargo_toml, kube manifest,
-    # whether a base image exists, and whether a docker-test step should run.
+    # and whether a docker-test step should run.
     # ---------------------------------------------------------------------------
     config:
         name: Resolve App Config
@@ -66,8 +66,6 @@ jobs:
             e2e_name: ${{ steps.resolve.outputs.e2e_name }}
             cargo_toml: ${{ steps.resolve.outputs.cargo_toml }}
             deployment_yaml: ${{ steps.resolve.outputs.deployment_yaml }}
-            has_base: ${{ steps.resolve.outputs.has_base }}
-            base_image: ${{ steps.resolve.outputs.base_image }}
             has_test: ${{ steps.resolve.outputs.has_test }}
         steps:
             - name: Resolve config for ${{ inputs.app_name }}
@@ -80,8 +78,6 @@ jobs:
                       echo "e2e_name=axum-kbve-e2e"                                                        >> "$GITHUB_OUTPUT"
                       echo "cargo_toml=apps/kbve/axum-kbve/Cargo.toml"                                    >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/kbve/manifest/kbve-deployment.yaml"                 >> "$GITHUB_OUTPUT"
-                      echo "has_base=true"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "base_image=ghcr.io/kbve/kbve-build-base"                                      >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
                       ;;
                     herbmail)
@@ -90,8 +86,6 @@ jobs:
                       echo "e2e_name=herbmail"                                                             >> "$GITHUB_OUTPUT"
                       echo "cargo_toml=apps/herbmail/axum-herbmail/Cargo.toml"                             >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/herbmail/manifest/herbmail-deployment.yaml"          >> "$GITHUB_OUTPUT"
-                      echo "has_base=false"                                                                >> "$GITHUB_OUTPUT"
-                      echo "base_image="                                                                   >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
                       ;;
                     memes)
@@ -100,8 +94,6 @@ jobs:
                       echo "e2e_name=memes"                                                                >> "$GITHUB_OUTPUT"
                       echo "cargo_toml=apps/memes/axum-memes/Cargo.toml"                                   >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/memes/manifest/memes-deployment.yaml"               >> "$GITHUB_OUTPUT"
-                      echo "has_base=false"                                                                >> "$GITHUB_OUTPUT"
-                      echo "base_image="                                                                   >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
                       ;;
                     irc-gateway)
@@ -110,8 +102,6 @@ jobs:
                       echo "e2e_name=irc"                                                                  >> "$GITHUB_OUTPUT"
                       echo "cargo_toml=apps/irc/irc-gateway/Cargo.toml"                                   >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/irc/manifests/irc-gateway-deployment.yaml"          >> "$GITHUB_OUTPUT"
-                      echo "has_base=false"                                                                >> "$GITHUB_OUTPUT"
-                      echo "base_image="                                                                   >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
                       ;;
                     discordsh)
@@ -120,8 +110,6 @@ jobs:
                       echo "e2e_name=discordsh"                                                            >> "$GITHUB_OUTPUT"
                       echo "cargo_toml=apps/discordsh/axum-discordsh/Cargo.toml"                           >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/discordsh/manifest/deployment.yaml"                 >> "$GITHUB_OUTPUT"
-                      echo "has_base=true"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "base_image=ghcr.io/kbve/discordsh-build-base"                                 >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
                       ;;
                     mc)
@@ -130,8 +118,6 @@ jobs:
                       echo "e2e_name=mc"                                                                   >> "$GITHUB_OUTPUT"
                       echo "cargo_toml=apps/mc/plugins/kbve-mc-plugin/Cargo.toml"                         >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/mc/manifest/deployment.yaml"                        >> "$GITHUB_OUTPUT"
-                      echo "has_base=true"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "base_image=ghcr.io/kbve/mc-rust-base"                                         >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
                       ;;
                     edge)
@@ -140,8 +126,6 @@ jobs:
                       echo "e2e_name=edge"                                                                 >> "$GITHUB_OUTPUT"
                       echo "cargo_toml=apps/kbve/edge/version.toml"                                       >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/functions/manifests/functions-deployment.yaml"      >> "$GITHUB_OUTPUT"
-                      echo "has_base=false"                                                                >> "$GITHUB_OUTPUT"
-                      echo "base_image="                                                                   >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
                       ;;
                     cryptothrone)
@@ -150,8 +134,6 @@ jobs:
                       echo "e2e_name=cryptothrone"                                                         >> "$GITHUB_OUTPUT"
                       echo "cargo_toml=apps/cryptothrone/axum-cryptothrone/Cargo.toml"                    >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/cryptothrone/manifest/cryptothrone-deployment.yaml" >> "$GITHUB_OUTPUT"
-                      echo "has_base=true"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "base_image=ghcr.io/kbve/cryptothrone-build-base"                              >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
                       ;;
                     kilobase)
@@ -160,8 +142,6 @@ jobs:
                       echo "e2e_name="                                                                     >> "$GITHUB_OUTPUT"
                       echo "cargo_toml="                                                                   >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml="                                                              >> "$GITHUB_OUTPUT"
-                      echo "has_base=false"                                                                >> "$GITHUB_OUTPUT"
-                      echo "base_image="                                                                   >> "$GITHUB_OUTPUT"
                       echo "has_test=false"                                                                >> "$GITHUB_OUTPUT"
                       ;;
                     *)
@@ -171,39 +151,17 @@ jobs:
                   esac
 
     # ---------------------------------------------------------------------------
-    # Build Base — only for apps with a Dockerfile.base builder layer.
-    # Warms the build cache before the app image build in test/publish.
-    # ---------------------------------------------------------------------------
-    build_base:
-        name: Build Base Image
-        needs: [config]
-        if: needs.config.outputs.has_base == 'true'
-        permissions:
-            contents: read
-            packages: write
-        uses: KBVE/kbve/.github/workflows/utils-publish-docker-image.yml@main
-        with:
-            project: ${{ inputs.app_name }}
-            target: base
-            image: ${{ needs.config.outputs.base_image }}
-        secrets:
-            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-            DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-            MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    # ---------------------------------------------------------------------------
     # Test — builds the app image, tags as ci-{sha} in GHCR, runs e2e tests.
     # Skipped for apps that have no e2e suite (e.g. kilobase).
     # The ci-{sha} tag is what publish promotes — no second full build needed.
     # ---------------------------------------------------------------------------
     test:
         name: Test Docker
-        needs: [config, build_base]
+        needs: [config]
         if: |
             always() &&
             needs.config.result == 'success' &&
             needs.config.outputs.has_test == 'true' &&
-            (needs.build_base.result == 'success' || needs.build_base.result == 'skipped') &&
             !cancelled()
         permissions:
             contents: read
@@ -269,7 +227,7 @@ jobs:
     track_failure:
         name: Track Failures
         if: ${{ always() && contains(needs.*.result, 'failure') }}
-        needs: [build_base, test, publish, update_kube]
+        needs: [test, publish, update_kube]
         permissions:
             issues: write
             contents: read

@@ -18,7 +18,7 @@ export default defineConfig({
 	projects: [
 		{
 			name: 'dev',
-			testIgnore: /toast-welcome/,
+			testIgnore: /toast-welcome|mock-api/,
 			use: {
 				...devices['Desktop Chrome'],
 				baseURL,

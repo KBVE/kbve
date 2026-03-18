@@ -31,29 +31,6 @@ jobs:
               with:
                   fetch-depth: 0
                   token: ${{ secrets.GITHUB_TOKEN }}
-                  submodules: true
-
-            - name: Init submodules (with retry)
-              continue-on-error: true
-              run: |
-                  for i in 1 2 3; do
-                    git submodule update --init --recursive && break
-                    echo "Attempt $i failed, retrying in 10s..."
-                    sleep 10
-                  done
-
-            - name: Verify critical submodules
-              run: |
-                  failed=0
-                  for mod in apps/mc/pumpkin apps/postgres; do
-                    if [ ! -f "$mod/.git" ] && [ ! -d "$mod/.git" ]; then
-                      echo "::error::Critical submodule missing: $mod"
-                      failed=1
-                    else
-                      echo "OK: $mod"
-                    fi
-                  done
-                  exit $failed
 
             - name: Check if dev has changes for main
               id: check_changes
@@ -321,30 +298,6 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v6
               continue-on-error: true
-              with:
-                  submodules: true
-
-            - name: Init submodules (with retry)
-              continue-on-error: true
-              run: |
-                  for i in 1 2 3; do
-                    git submodule update --init --recursive && break
-                    echo "Attempt $i failed, retrying in 10s..."
-                    sleep 10
-                  done
-
-            - name: Verify critical submodules
-              run: |
-                  failed=0
-                  for mod in apps/mc/pumpkin apps/postgres; do
-                    if [ ! -f "$mod/.git" ] && [ ! -d "$mod/.git" ]; then
-                      echo "::error::Critical submodule missing: $mod"
-                      failed=1
-                    else
-                      echo "OK: $mod"
-                    fi
-                  done
-                  exit $failed
 
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v4
@@ -353,7 +306,8 @@ jobs:
               uses: docker/build-push-action@v7
               with:
                   context: .
-                  file: apps/mc/Dockerfile.dev
+                  file: apps/mc/Dockerfile
+                  build-args: VARIANT=dev
                   push: false
                   load: true
                   tags: kbve/mc:dev
@@ -387,3 +341,49 @@ jobs:
             base-ref: origin/main
             head-ref: origin/dev
             check-conflicts: true
+
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces failures as GitHub issues (#8186).
+    # Dev branch orchestrator — failures here break PR creation and Docker builds.
+    # ---------------------------------------------------------------------------
+    track-dev-to-main-pr:
+        name: Track Dev to Main PR
+        if: always()
+        needs: [dev_to_main_pr]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Dev'
+            job_name: 'Create/Update Dev to Main PR'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.dev_to_main_pr.result }}
+
+    track-dev-docker-mc:
+        name: Track Dev Docker MC
+        if: always()
+        needs: [dev_docker_mc]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Dev'
+            job_name: 'Dev Docker Build — MC'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.dev_docker_mc.result }}
+
+    track-validate-pr:
+        name: Track Validate PR
+        if: always()
+        needs: [validate_pr]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Dev'
+            job_name: 'Validate Dev→Main PR'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.validate_pr.result }}

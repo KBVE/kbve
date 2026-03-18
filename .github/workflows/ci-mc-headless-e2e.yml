@@ -44,29 +44,6 @@ jobs:
               continue-on-error: true
               with:
                   ref: ${{ inputs.branch }}
-                  submodules: true
-
-            - name: Init submodules (with retry)
-              continue-on-error: true
-              run: |
-                  for i in 1 2 3; do
-                    git submodule update --init --recursive && break
-                    echo "Attempt $i failed, retrying in 10s..."
-                    sleep 10
-                  done
-
-            - name: Verify critical submodules
-              run: |
-                  failed=0
-                  for mod in apps/mc/pumpkin apps/postgres; do
-                    if [ ! -f "$mod/.git" ] && [ ! -d "$mod/.git" ]; then
-                      echo "::error::Critical submodule missing: $mod"
-                      failed=1
-                    else
-                      echo "OK: $mod"
-                    fi
-                  done
-                  exit $failed
 
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v4
@@ -75,7 +52,8 @@ jobs:
               uses: docker/build-push-action@v7
               with:
                   context: .
-                  file: apps/mc/Dockerfile.dev
+                  file: apps/mc/Dockerfile
+                  build-args: VARIANT=dev
                   push: false
                   load: true
                   tags: kbve/mc:e2e
@@ -298,3 +276,21 @@ jobs:
             - name: Cleanup
               if: always()
               run: docker rm -f mc-e2e-pumpkin 2>/dev/null || true
+
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces failures as GitHub issues (#8186).
+    # Manual trigger — caller usually watches, but tracker ensures nothing slips.
+    # ---------------------------------------------------------------------------
+    track-headless-e2e:
+        name: Track Headless E2E
+        if: always()
+        needs: [headless-e2e]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'MC - Headless E2E'
+            job_name: 'MC Headless Client E2E'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.headless-e2e.result }}

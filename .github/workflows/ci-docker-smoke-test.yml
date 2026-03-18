@@ -25,30 +25,6 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v6
               continue-on-error: true
-              with:
-                  submodules: true
-
-            - name: Init submodules (with retry)
-              continue-on-error: true
-              run: |
-                  for i in 1 2 3; do
-                    git submodule update --init --recursive && break
-                    echo "Attempt $i failed, retrying in 10s..."
-                    sleep 10
-                  done
-
-            - name: Verify critical submodules
-              run: |
-                  failed=0
-                  for mod in apps/mc/pumpkin apps/postgres; do
-                    if [ ! -f "$mod/.git" ] && [ ! -d "$mod/.git" ]; then
-                      echo "::error::Critical submodule missing: $mod"
-                      failed=1
-                    else
-                      echo "OK: $mod"
-                    fi
-                  done
-                  exit $failed
 
             - name: Install crane
               uses: imjasonh/setup-crane@v0.5
@@ -117,7 +93,7 @@ jobs:
                       dockerfile: apps/mc/Dockerfile
                       context: .
                       cache_scope: smoke-mc
-                      submodules: true
+                      submodules: false
                     - name: herbmail
                       dockerfile: apps/herbmail/axum-herbmail/Dockerfile
                       context: .
@@ -160,30 +136,6 @@ jobs:
               continue-on-error: true
               with:
                   submodules: ${{ matrix.submodules }}
-
-            - name: Init submodules (with retry)
-              if: matrix.submodules
-              continue-on-error: true
-              run: |
-                  for i in 1 2 3; do
-                    git submodule update --init --recursive && break
-                    echo "Attempt $i failed, retrying in 10s..."
-                    sleep 10
-                  done
-
-            - name: Verify critical submodules
-              if: matrix.submodules
-              run: |
-                  failed=0
-                  for mod in apps/mc/pumpkin apps/postgres; do
-                    if [ ! -f "$mod/.git" ] && [ ! -d "$mod/.git" ]; then
-                      echo "::error::Critical submodule missing: $mod"
-                      failed=1
-                    else
-                      echo "OK: $mod"
-                    fi
-                  done
-                  exit $failed
 
             - name: Download pinned Dockerfiles
               if: needs.resolve_digests.outputs.digests_changed == 'true'
@@ -305,35 +257,47 @@ jobs:
 
     # ---------------------------------------------------------------------------
     # Failure tracker — surfaces failures as GitHub issues (#8186).
-    # Scheduled workflows are easy to miss without this; failures go unnoticed
-    # until the weekly digest pin silently stops working.
+    # Uses always() + status pass-through so the tracker can both create
+    # issues on failure AND auto-close them when the job recovers.
     # ---------------------------------------------------------------------------
-    track_resolve_failure:
-        name: Track Resolve Failure
-        if: ${{ always() && needs.resolve_digests.result == 'failure' }}
+    track-resolve-digests:
+        name: Track Resolve Digests
+        if: always()
         needs: [resolve_digests]
         permissions:
             issues: write
-            contents: read
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
         with:
             workflow_name: 'CI - Docker Smoke Test'
-            job_name: 'resolve_digests'
+            job_name: 'Resolve Base Image Digests'
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: ${{ needs.resolve_digests.result }}
 
-    track_smoke_failure:
-        name: Track Smoke Build Failure
-        if: ${{ always() && needs.smoke_build.result == 'failure' }}
+    track-smoke-build:
+        name: Track Smoke Build
+        if: always()
         needs: [smoke_build]
         permissions:
             issues: write
-            contents: read
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
         with:
             workflow_name: 'CI - Docker Smoke Test'
-            job_name: 'smoke_build'
+            job_name: 'Smoke Build'
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: ${{ needs.smoke_build.result }}
+
+    track-create-pr:
+        name: Track Create PR
+        if: always()
+        needs: [create_pr]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Docker Smoke Test'
+            job_name: 'Create Digest Update PR'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.create_pr.result }}

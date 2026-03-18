@@ -46,7 +46,13 @@ export default defineConfig(async () => ({
 		},
 		headers: {
 			'Cross-Origin-Opener-Policy': 'same-origin',
-			'Cross-Origin-Embedder-Policy': 'require-corp',
+			'Cross-Origin-Embedder-Policy': 'credentialless',
+		},
+		proxy: {
+			'/api': {
+				target: 'http://127.0.0.1:4321',
+				changeOrigin: true,
+			},
 		},
 	},
 	optimizeDeps: {

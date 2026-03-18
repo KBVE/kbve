@@ -1,0 +1,47 @@
+{
+	"name": "data-proto",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/data/proto",
+	"tags": ["scope:data", "type:proto"],
+	"targets": {
+		"generate-zod": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/**/*.proto",
+				"{workspaceRoot}/packages/data/codegen/*-zod-config.json"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/generated",
+				"{workspaceRoot}/packages/data/codegen/descriptors"
+			],
+			"options": {
+				"command": "npx tsx packages/data/codegen/gen-all.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"generate-buf": {
+			"executor": "nx:run-commands",
+			"inputs": ["{projectRoot}/**/*.proto"],
+			"outputs": [
+				"{workspaceRoot}/apps/kbve/astro-kbve/src/generated/proto"
+			],
+			"options": {
+				"command": "npx buf generate packages/data/proto --template apps/kbve/astro-kbve/buf.gen.yaml",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"generate": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"nx run data-proto:generate-zod",
+					"nx run data-proto:generate-buf"
+				],
+				"parallel": false
+			}
+		}
+	}
+}

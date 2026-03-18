@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
 use bevy::window::PrimaryWindow;
 
+use super::phase::GamePhase;
+
 // ---------------------------------------------------------------------------
 // Shared joystick state — read by player movement system
 // ---------------------------------------------------------------------------
@@ -82,8 +84,11 @@ impl Plugin for VirtualJoystickPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<VirtualJoystickState>();
         app.init_resource::<JoystickDrag>();
-        app.add_systems(Startup, spawn_joystick_ui);
-        app.add_systems(Update, (handle_joystick_input, handle_action_buttons));
+        app.add_systems(OnEnter(GamePhase::Playing), spawn_joystick_ui);
+        app.add_systems(
+            Update,
+            (handle_joystick_input, handle_action_buttons).run_if(in_state(GamePhase::Playing)),
+        );
     }
 }
 
@@ -94,17 +99,20 @@ impl Plugin for VirtualJoystickPlugin {
 fn spawn_joystick_ui(mut commands: Commands) {
     // Base: semi-transparent circle, bottom-left
     commands
-        .spawn(Node {
-            position_type: PositionType::Absolute,
-            left: Val::Px(MARGIN),
-            bottom: Val::Px(MARGIN),
-            width: Val::Px(BASE_SIZE),
-            height: Val::Px(BASE_SIZE),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            border_radius: BorderRadius::all(Val::Percent(50.0)),
-            ..default()
-        })
+        .spawn((
+            Node {
+                position_type: PositionType::Absolute,
+                left: Val::Px(MARGIN),
+                bottom: Val::Px(MARGIN),
+                width: Val::Px(BASE_SIZE),
+                height: Val::Px(BASE_SIZE),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                border_radius: BorderRadius::all(Val::Percent(50.0)),
+                ..default()
+            },
+            DespawnOnExit(GamePhase::Playing),
+        ))
         .insert(BackgroundColor(Color::srgba(1.0, 1.0, 1.0, 0.12)))
         .insert(Interaction::default())
         .insert(FocusPolicy::Block)
@@ -125,15 +133,18 @@ fn spawn_joystick_ui(mut commands: Commands) {
     // --- Action buttons (bottom-right) ---
     // Container for vertical button stack
     commands
-        .spawn(Node {
-            position_type: PositionType::Absolute,
-            right: Val::Px(ACTION_MARGIN),
-            bottom: Val::Px(ACTION_MARGIN),
-            flex_direction: FlexDirection::Column,
-            row_gap: Val::Px(ACTION_GAP),
-            align_items: AlignItems::Center,
-            ..default()
-        })
+        .spawn((
+            Node {
+                position_type: PositionType::Absolute,
+                right: Val::Px(ACTION_MARGIN),
+                bottom: Val::Px(ACTION_MARGIN),
+                flex_direction: FlexDirection::Column,
+                row_gap: Val::Px(ACTION_GAP),
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            DespawnOnExit(GamePhase::Playing),
+        ))
         .with_children(|parent| {
             // Action button (top of stack)
             parent

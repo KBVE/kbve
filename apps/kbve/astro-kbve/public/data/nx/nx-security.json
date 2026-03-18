@@ -1,18 +1,18 @@
 {
-	"generated_at": "2026-03-17T11:38:17Z",
+	"generated_at": "2026-03-18T06:24:23Z",
 	"summary": {
 		"critical": 1,
-		"high": 34,
+		"high": 35,
 		"medium": 21,
 		"low": 10,
 		"info": 28
 	},
 	"ecosystems": {
 		"npm": {
-			"total": 63,
+			"total": 64,
 			"severities": {
 				"critical": 1,
-				"high": 34,
+				"high": 35,
 				"medium": 18,
 				"low": 10,
 				"info": 0
@@ -458,6 +458,13 @@
 					"severity": "medium",
 					"package": "yauzl",
 					"url": "https://github.com/advisories/GHSA-gmq8-994r-jv83"
+				},
+				{
+					"id": "1114772",
+					"title": "fast-xml-parser affected by numeric entity expansion bypassing all entity expansion limits (incomplete fix for CVE-2026-26278)",
+					"severity": "high",
+					"package": "fast-xml-parser",
+					"url": "https://github.com/advisories/GHSA-8gc5-j5rx-235r"
 				}
 			]
 		},

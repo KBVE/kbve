@@ -234,3 +234,39 @@ jobs:
                   key: 'Matrix'
                   value: '6'
                   idref: ${{ github.event.issue.node_id }}
+
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces failures as GitHub issues (#8186).
+    # Event-driven label automation — low risk but tracked for completeness.
+    # Only tracks jobs that actually ran (each label job is conditional).
+    # ---------------------------------------------------------------------------
+    track-label-jobs:
+        name: Track Label Automation
+        if: always()
+        needs:
+            [
+                assign_ai,
+                assign_concepts,
+                assign_update,
+                assign_media,
+                assign_bug,
+                assign_todo,
+                assign_backlog,
+                assign_support,
+                assign_matrix_0,
+                assign_matrix_1,
+                assign_matrix_2,
+                assign_matrix_3,
+                assign_matrix_4,
+                assign_matrix_5,
+                assign_matrix_6,
+            ]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'Organize Labels'
+            job_name: 'Label Automation'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ (needs.assign_ai.result == 'failure' || needs.assign_concepts.result == 'failure' || needs.assign_update.result == 'failure' || needs.assign_media.result == 'failure' || needs.assign_bug.result == 'failure' || needs.assign_todo.result == 'failure' || needs.assign_backlog.result == 'failure' || needs.assign_support.result == 'failure' || needs.assign_matrix_0.result == 'failure' || needs.assign_matrix_1.result == 'failure' || needs.assign_matrix_2.result == 'failure' || needs.assign_matrix_3.result == 'failure' || needs.assign_matrix_4.result == 'failure' || needs.assign_matrix_5.result == 'failure' || needs.assign_matrix_6.result == 'failure') && 'failure' || 'success' }}

@@ -12,7 +12,8 @@
 			"@kbve/astro/components/*": [
 				"../../../packages/npm/astro/src/components/*"
 			],
-			"@kbve/droid": ["../../../packages/npm/droid/src/index.ts"]
+			"@kbve/droid": ["../../../packages/npm/droid/src/index.ts"],
+			"@kbve/codegen/*": ["../../../packages/data/codegen/generated/*"]
 		}
 	}
 }

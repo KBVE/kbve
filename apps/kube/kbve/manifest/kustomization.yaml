@@ -8,6 +8,7 @@ resources:
     - mc-rcon-externalsecret.yaml
     - argocd-auth-sealedsecret.yaml
     - kbve-internal-ca-cert.yaml
+    - kbve-wt-cert.yaml
     - kbve-deployment.yaml
     - nginx-ingress.yaml
     - kbve-ws-ingress.yaml

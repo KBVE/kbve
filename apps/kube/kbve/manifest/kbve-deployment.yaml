@@ -34,6 +34,9 @@ spec:
                       - name: ws
                         containerPort: 5000
                         protocol: TCP
+                      - name: wt
+                        containerPort: 5001
+                        protocol: UDP
                   livenessProbe:
                       httpGet:
                           path: /health
@@ -95,9 +98,16 @@ spec:
                                 key: argocd-auth-token
                       - name: ARGOCD_CA_CERT_PATH
                         value: '/etc/ssl/argocd/ca.crt'
+                      - name: GAME_WT_CERT
+                        value: '/etc/ssl/webtransport/tls.crt'
+                      - name: GAME_WT_KEY
+                        value: '/etc/ssl/webtransport/tls.key'
                   volumeMounts:
                       - name: argocd-ca
                         mountPath: /etc/ssl/argocd
+                        readOnly: true
+                      - name: wt-tls
+                        mountPath: /etc/ssl/webtransport
                         readOnly: true
                   resources:
                       requests:
@@ -113,6 +123,9 @@ spec:
                       items:
                           - key: ca.crt
                             path: ca.crt
+                - name: wt-tls
+                  secret:
+                      secretName: kbve-wt-tls
 ---
 apiVersion: v1
 kind: Service
@@ -134,3 +147,7 @@ spec:
           port: 5000
           targetPort: 5000
           protocol: TCP
+        - name: wt
+          port: 5001
+          targetPort: 5001
+          protocol: UDP

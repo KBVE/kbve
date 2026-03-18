@@ -15,7 +15,10 @@ lightyear = { version = "0.26", default-features = false, features = [
     "prediction",
     "interpolation",
     "input_native",
+    "netcode",
 ] }
 avian3d = { version = "0.5", default-features = false, features = ["3d", "f32", "parry-f32", "serialize"] }
 serde = { version = "1", features = ["derive"] }
+base64 = "0.22"
+hex = "0.4"
 bevy_npc = { path = "../bevy_npc", optional = true }
