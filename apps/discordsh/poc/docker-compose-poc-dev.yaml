@@ -18,23 +18,40 @@ services:
     # ── Mockoon: GitHub API Mock ──────────────────────────────────────
     mockoon-github:
         image: mockoon/cli:latest
-        command: ['--data', '/data/github-mock.json', '--port', '4010']
+        command:
+            [
+                '--data',
+                '/data/github-mock.json',
+                '--port',
+                '4010',
+                '--hostname',
+                '0.0.0.0',
+            ]
         volumes:
             - ./mockoon:/data:ro
         ports:
             - '4010:4010'
         healthcheck:
             test:
-                ['CMD', 'wget', '-qO-', 'http://localhost:4010/repos/KBVE/kbve']
+                ['CMD', 'wget', '-qO-', 'http://127.0.0.1:4010/repos/KBVE/kbve']
             interval: 5s
-            timeout: 3s
-            retries: 5
+            timeout: 5s
+            retries: 10
+            start_period: 10s
         restart: unless-stopped
 
     # ── Mockoon: Discord REST API Mock ────────────────────────────────
     mockoon-discord:
         image: mockoon/cli:latest
-        command: ['--data', '/data/discord-mock.json', '--port', '4011']
+        command:
+            [
+                '--data',
+                '/data/discord-mock.json',
+                '--port',
+                '4011',
+                '--hostname',
+                '0.0.0.0',
+            ]
         volumes:
             - ./mockoon:/data:ro
         ports:
@@ -45,21 +62,24 @@ services:
                     'CMD',
                     'wget',
                     '-qO-',
-                    'http://localhost:4011/api/v10/users/@me',
+                    'http://127.0.0.1:4011/api/v10/users/@me',
                 ]
             interval: 5s
-            timeout: 3s
-            retries: 5
+            timeout: 5s
+            retries: 10
+            start_period: 10s
         restart: unless-stopped
 
     # ── discordsh bot ─────────────────────────────────────────────────
-    # Builds from the existing Dockerfile at the repo root context.
+    # Uses a pre-built image when DISCORDSH_IMAGE is set (e.g. from
+    # the Nx container target), otherwise builds from Dockerfile.
     # GitHub API calls are redirected to the Mockoon mock.
     #
     # DISCORD_TOKEN is still required for the bot to start (serenity
     # needs a real token for gateway auth). For local-only testing you
     # can use a throwaway bot token from a test application.
     discordsh:
+        image: ${DISCORDSH_IMAGE:-}
         build:
             context: ../../../
             dockerfile: apps/discordsh/axum-discordsh/Dockerfile

@@ -10,7 +10,8 @@
 				"commands": [
 					"nx test axum-discordsh",
 					"nx container axum-discordsh",
-					"nx e2e:docker discordsh-e2e"
+					"nx e2e:docker discordsh-e2e",
+					"nx e2e:mock discordsh-e2e"
 				],
 				"parallel": false
 			}
