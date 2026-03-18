@@ -1,4 +1,26 @@
-import React, { useEffect, useState, useCallback } from 'react';
+// ---------------------------------------------------------------------------
+// @deprecated — SLATED FOR REMOVAL
+//
+// This monolithic component has been replaced by the nanostore island
+// architecture. All state now lives in clickhouseService.ts and the UI is
+// split across targeted React islands:
+//
+//   clickhouseService.ts   — nanostore singleton (atoms + computed)
+//   ReactCHAuth.tsx        — auth gate
+//   ReactCHHeader.tsx      — time range + refresh
+//   ReactCHSummary.tsx     — summary bar counters
+//   ReactCHNamespaceGrid.tsx — sort controls + namespace cards
+//   ReactCHFilterBar.tsx   — filter dropdowns, search, chips
+//   ReactCHLogStream.tsx   — log entries + footer
+//   ReactCHQueryTabs.tsx   — query tab manager with polling + dnd
+//
+// AstroClickHouseDashboard.astro mounts each island independently.
+// This file is kept temporarily for reference. Do not import it.
+//
+// TODO: Remove this file once the island architecture is verified in prod.
+// ---------------------------------------------------------------------------
+
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { initSupa, getSupa } from '@/lib/supa';
 import {
 	Database,
@@ -16,6 +38,8 @@ import {
 	XCircle,
 	Info,
 	Bug,
+	X,
+	ArrowUpDown,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -24,12 +48,14 @@ import {
 
 const PROXY_BASE = '/dashboard/clickhouse/proxy';
 const CACHE_TTL_MS = 60 * 1000; // 1 minute
+const SEARCH_DEBOUNCE_MS = 300;
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 type AuthState = 'loading' | 'authenticated' | 'unauthenticated' | 'forbidden';
+type SortField = 'total' | 'errors' | 'warns' | 'namespace';
 
 interface StatRow {
 	pod_namespace: string;
@@ -221,6 +247,26 @@ function buildNamespaceSummaries(stats: StatsData): NamespaceSummary[] {
 	return Array.from(map.values()).sort((a, b) => b.total - a.total);
 }
 
+function sortNamespaces(
+	summaries: NamespaceSummary[],
+	field: SortField,
+): NamespaceSummary[] {
+	const sorted = [...summaries];
+	switch (field) {
+		case 'errors':
+			return sorted.sort((a, b) => b.errors - a.errors);
+		case 'warns':
+			return sorted.sort((a, b) => b.warns - a.warns);
+		case 'namespace':
+			return sorted.sort((a, b) =>
+				a.namespace.localeCompare(b.namespace),
+			);
+		case 'total':
+		default:
+			return sorted.sort((a, b) => b.total - a.total);
+	}
+}
+
 function formatTimestamp(ts: string): string {
 	try {
 		const d = new Date(ts.replace(' ', 'T') + 'Z');
@@ -305,24 +351,86 @@ function LevelBadge({ level }: { level: string }) {
 	);
 }
 
-function NamespaceCard({
-	summary,
+function SeverityButton({
+	id,
+	count,
+	level,
+	isActive,
 	onClick,
 }: {
-	summary: NamespaceSummary;
+	id: string;
+	count: number;
+	level: string;
+	isActive: boolean;
 	onClick: () => void;
 }) {
-	const hasIssues = summary.errors > 0 || summary.warns > 0;
+	if (count === 0) return null;
+	const color = levelColor(level);
 	return (
 		<button
-			onClick={onClick}
+			id={id}
+			onClick={(e) => {
+				e.stopPropagation();
+				onClick();
+			}}
+			style={{
+				display: 'inline-flex',
+				alignItems: 'center',
+				gap: 4,
+				padding: '2px 8px',
+				borderRadius: 4,
+				fontSize: '0.75rem',
+				fontWeight: 600,
+				fontVariantNumeric: 'tabular-nums',
+				color: color,
+				background: isActive ? `${color}25` : 'transparent',
+				border: `1px solid ${isActive ? `${color}60` : 'transparent'}`,
+				cursor: 'pointer',
+				transition: 'all 0.15s',
+			}}>
+			{levelIcon(level)}
+			{count}{' '}
+			{level === 'warn'
+				? 'warns'
+				: level === 'info'
+					? 'info'
+					: level === 'debug'
+						? 'debug'
+						: 'errors'}
+		</button>
+	);
+}
+
+function NamespaceCard({
+	summary,
+	activeLevel,
+	activeNamespace,
+	onCardClick,
+	onSeverityClick,
+}: {
+	summary: NamespaceSummary;
+	activeLevel: string;
+	activeNamespace: string;
+	onCardClick: (ns: string) => void;
+	onSeverityClick: (ns: string, level: string) => void;
+}) {
+	const hasIssues = summary.errors > 0 || summary.warns > 0;
+	const isCardActive = activeNamespace === summary.namespace;
+	const errorIntensity = Math.min(summary.errors / 50, 1);
+	const borderColor = hasIssues
+		? `rgba(239, 68, 68, ${0.15 + errorIntensity * 0.35})`
+		: 'var(--sl-color-gray-5, #262626)';
+
+	return (
+		<div
+			onClick={() => onCardClick(summary.namespace)}
 			style={{
 				display: 'flex',
 				flexDirection: 'column',
-				gap: 8,
+				gap: 10,
 				padding: '1rem',
 				borderRadius: 10,
-				border: `1px solid ${hasIssues ? 'rgba(239, 68, 68, 0.2)' : 'var(--sl-color-gray-5, #262626)'}`,
+				border: `1px solid ${isCardActive ? 'var(--sl-color-accent, #06b6d4)' : borderColor}`,
 				background: 'var(--sl-color-bg-nav, #111)',
 				cursor: 'pointer',
 				textAlign: 'left',
@@ -332,76 +440,140 @@ function NamespaceCard({
 			<div
 				style={{
 					display: 'flex',
-					justifyContent: 'space-between',
-					alignItems: 'center',
+					flexDirection: 'column',
+					gap: 2,
 				}}>
 				<span
 					style={{
 						fontWeight: 600,
-						fontSize: '0.9rem',
+						fontSize: '1rem',
 						color: 'var(--sl-color-text, #e6edf3)',
 					}}>
 					{summary.namespace}
 				</span>
 				<span
 					style={{
-						fontSize: '0.75rem',
-						color: 'var(--sl-color-gray-3, #8b949e)',
+						fontSize: '0.8rem',
+						color: 'rgba(255, 255, 255, 0.5)',
 						fontVariantNumeric: 'tabular-nums',
+						fontWeight: 500,
 					}}>
 					{summary.total.toLocaleString()} logs
 				</span>
 			</div>
-			<div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-				{summary.errors > 0 && (
-					<span
-						style={{
-							fontSize: '0.75rem',
-							color: '#ef4444',
-							fontWeight: 600,
-							fontVariantNumeric: 'tabular-nums',
-						}}>
-						{summary.errors} errors
-					</span>
-				)}
-				{summary.warns > 0 && (
-					<span
-						style={{
-							fontSize: '0.75rem',
-							color: '#f59e0b',
-							fontWeight: 600,
-							fontVariantNumeric: 'tabular-nums',
-						}}>
-						{summary.warns} warns
-					</span>
-				)}
-				{summary.infos > 0 && (
-					<span
-						style={{
-							fontSize: '0.75rem',
-							color: '#3b82f6',
-							fontVariantNumeric: 'tabular-nums',
-						}}>
-						{summary.infos} info
-					</span>
-				)}
-				{summary.debugs > 0 && (
-					<span
-						style={{
-							fontSize: '0.75rem',
-							color: '#6b7280',
-							fontVariantNumeric: 'tabular-nums',
-						}}>
-						{summary.debugs} debug
-					</span>
-				)}
+			<div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+				<SeverityButton
+					id={`${summary.namespace}-error`}
+					count={summary.errors}
+					level="error"
+					isActive={isCardActive && activeLevel === 'error'}
+					onClick={() => onSeverityClick(summary.namespace, 'error')}
+				/>
+				<SeverityButton
+					id={`${summary.namespace}-warn`}
+					count={summary.warns}
+					level="warn"
+					isActive={isCardActive && activeLevel === 'warn'}
+					onClick={() => onSeverityClick(summary.namespace, 'warn')}
+				/>
+				<SeverityButton
+					id={`${summary.namespace}-info`}
+					count={summary.infos}
+					level="info"
+					isActive={isCardActive && activeLevel === 'info'}
+					onClick={() => onSeverityClick(summary.namespace, 'info')}
+				/>
+				<SeverityButton
+					id={`${summary.namespace}-debug`}
+					count={summary.debugs}
+					level="debug"
+					isActive={isCardActive && activeLevel === 'debug'}
+					onClick={() => onSeverityClick(summary.namespace, 'debug')}
+				/>
 			</div>
-		</button>
+		</div>
 	);
 }
 
-function LogEntry({ log }: { log: LogRow }) {
+function FilterChip({
+	label,
+	onRemove,
+}: {
+	label: string;
+	onRemove: () => void;
+}) {
+	return (
+		<span
+			style={{
+				display: 'inline-flex',
+				alignItems: 'center',
+				gap: 4,
+				padding: '2px 8px',
+				borderRadius: 4,
+				fontSize: '0.7rem',
+				fontWeight: 600,
+				color: 'var(--sl-color-accent, #06b6d4)',
+				background: 'rgba(6, 182, 212, 0.12)',
+				border: '1px solid rgba(6, 182, 212, 0.25)',
+			}}>
+			{label}
+			<button
+				onClick={(e) => {
+					e.stopPropagation();
+					onRemove();
+				}}
+				style={{
+					display: 'inline-flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					padding: 0,
+					border: 'none',
+					background: 'none',
+					color: 'var(--sl-color-accent, #06b6d4)',
+					cursor: 'pointer',
+					opacity: 0.7,
+				}}>
+				<X size={10} />
+			</button>
+		</span>
+	);
+}
+
+function LogEntry({
+	log,
+	searchHighlight,
+}: {
+	log: LogRow;
+	searchHighlight: string;
+}) {
 	const [expanded, setExpanded] = useState(false);
+
+	const highlightMessage = (msg: string, term: string) => {
+		if (!term) return msg;
+		const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+		const parts = msg.split(new RegExp(`(${escapedTerm})`, 'gi'));
+		if (parts.length === 1) return msg;
+		return (
+			<>
+				{parts.map((part, i) =>
+					part.toLowerCase() === term.toLowerCase() ? (
+						<mark
+							key={i}
+							style={{
+								background: 'rgba(6, 182, 212, 0.3)',
+								color: 'inherit',
+								borderRadius: 2,
+								padding: '0 1px',
+							}}>
+							{part}
+						</mark>
+					) : (
+						part
+					),
+				)}
+			</>
+		);
+	};
 
 	return (
 		<div
@@ -449,7 +621,7 @@ function LogEntry({ log }: { log: LogRow }) {
 						wordBreak: expanded ? 'break-all' : undefined,
 						fontFamily: 'monospace',
 					}}>
-					{log.message}
+					{highlightMessage(log.message, searchHighlight)}
 				</span>
 				<span
 					style={{ flexShrink: 0, color: 'var(--sl-color-gray-4)' }}>
@@ -560,12 +732,45 @@ export default function ReactClickHouseDashboard() {
 	const [loading, setLoading] = useState(true);
 	const [logsLoading, setLogsLoading] = useState(false);
 	const [minutes, setMinutes] = useState(60);
+	const [sortField, setSortField] = useState<SortField>('total');
 
 	// Filters
 	const [levelFilter, setLevelFilter] = useState<string>('');
 	const [namespaceFilter, setNamespaceFilter] = useState<string>('');
 	const [serviceFilter, setServiceFilter] = useState<string>('');
 	const [searchText, setSearchText] = useState<string>('');
+	const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+
+	const searchInputRef = useRef<HTMLInputElement>(null);
+	const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+	// Debounce search input
+	const handleSearchChange = useCallback((value: string) => {
+		setSearchText(value);
+		if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+		debounceTimerRef.current = setTimeout(() => {
+			setDebouncedSearch(value);
+		}, SEARCH_DEBOUNCE_MS);
+	}, []);
+
+	// Global keyboard shortcut: / to focus search
+	useEffect(() => {
+		const handler = (e: KeyboardEvent) => {
+			if (
+				e.key === '/' &&
+				!e.ctrlKey &&
+				!e.metaKey &&
+				document.activeElement?.tagName !== 'INPUT' &&
+				document.activeElement?.tagName !== 'TEXTAREA' &&
+				document.activeElement?.tagName !== 'SELECT'
+			) {
+				e.preventDefault();
+				searchInputRef.current?.focus();
+			}
+		};
+		document.addEventListener('keydown', handler);
+		return () => document.removeEventListener('keydown', handler);
+	}, []);
 
 	// Auth init
 	useEffect(() => {
@@ -619,7 +824,7 @@ export default function ReactClickHouseDashboard() {
 			if (levelFilter) params.level = levelFilter;
 			if (namespaceFilter) params.pod_namespace = namespaceFilter;
 			if (serviceFilter) params.service = serviceFilter;
-			if (searchText) params.search = searchText;
+			if (debouncedSearch) params.search = debouncedSearch;
 			const data = await fetchLogs(accessToken, params);
 			setLogs(data);
 		} catch (e) {
@@ -634,7 +839,7 @@ export default function ReactClickHouseDashboard() {
 		levelFilter,
 		namespaceFilter,
 		serviceFilter,
-		searchText,
+		debouncedSearch,
 	]);
 
 	useEffect(() => {
@@ -645,10 +850,25 @@ export default function ReactClickHouseDashboard() {
 		if (authState === 'authenticated') loadLogs();
 	}, [authState, loadLogs]);
 
-	// Quick filter from namespace card click
+	// Severity button click from namespace card
+	const handleSeverityClick = (ns: string, level: string) => {
+		if (namespaceFilter === ns && levelFilter === level) {
+			setNamespaceFilter('');
+			setLevelFilter('');
+		} else {
+			setNamespaceFilter(ns);
+			setLevelFilter(level);
+		}
+	};
+
+	// Namespace card click (filters to namespace, clears level)
 	const handleNamespaceClick = (ns: string) => {
-		setNamespaceFilter(ns);
-		setLevelFilter('error');
+		if (namespaceFilter === ns && !levelFilter) {
+			setNamespaceFilter('');
+		} else {
+			setNamespaceFilter(ns);
+			setLevelFilter('');
+		}
 	};
 
 	// Auth states
@@ -679,6 +899,7 @@ export default function ReactClickHouseDashboard() {
 	if (authState === 'forbidden') return <AccessRestrictedError />;
 
 	const namespaceSummaries = stats ? buildNamespaceSummaries(stats) : [];
+	const sortedNamespaces = sortNamespaces(namespaceSummaries, sortField);
 	const totalLogs = namespaceSummaries.reduce((s, n) => s + n.total, 0);
 	const totalErrors = namespaceSummaries.reduce((s, n) => s + n.errors, 0);
 	const totalWarns = namespaceSummaries.reduce((s, n) => s + n.warns, 0);
@@ -688,6 +909,17 @@ export default function ReactClickHouseDashboard() {
 		? [...new Set(stats.rows.map((r) => r.service))].sort()
 		: [];
 	const allNamespaces = namespaceSummaries.map((n) => n.namespace);
+
+	const hasActiveFilters =
+		levelFilter || namespaceFilter || serviceFilter || searchText;
+
+	// Sort options
+	const sortOptions: { label: string; value: SortField }[] = [
+		{ label: 'Total', value: 'total' },
+		{ label: 'Errors', value: 'errors' },
+		{ label: 'Warnings', value: 'warns' },
+		{ label: 'Name', value: 'namespace' },
+	];
 
 	return (
 		<div className="not-content" style={styles.dashboard}>
@@ -798,17 +1030,34 @@ export default function ReactClickHouseDashboard() {
 							</span>
 							<span
 								style={{
-									fontSize: '0.75rem',
-									color: 'var(--sl-color-gray-3)',
+									fontSize: '0.8rem',
+									color: 'rgba(255, 255, 255, 0.7)',
+									fontWeight: 500,
 								}}>
 								total logs
 							</span>
 						</div>
-						<div
+						<button
+							onClick={() => {
+								if (levelFilter === 'error') {
+									setLevelFilter('');
+								} else {
+									setLevelFilter('error');
+								}
+							}}
 							style={{
 								display: 'flex',
 								alignItems: 'center',
 								gap: 6,
+								padding: '4px 10px',
+								borderRadius: 6,
+								border: `1px solid ${levelFilter === 'error' ? 'rgba(239, 68, 68, 0.5)' : 'transparent'}`,
+								background:
+									levelFilter === 'error'
+										? 'rgba(239, 68, 68, 0.12)'
+										: 'transparent',
+								cursor: 'pointer',
+								transition: 'all 0.15s',
 							}}>
 							<XCircle size={14} style={{ color: '#ef4444' }} />
 							<span
@@ -822,17 +1071,34 @@ export default function ReactClickHouseDashboard() {
 							</span>
 							<span
 								style={{
-									fontSize: '0.75rem',
-									color: 'var(--sl-color-gray-3)',
+									fontSize: '0.8rem',
+									color: 'rgba(255, 255, 255, 0.7)',
+									fontWeight: 500,
 								}}>
 								errors
 							</span>
-						</div>
-						<div
+						</button>
+						<button
+							onClick={() => {
+								if (levelFilter === 'warn') {
+									setLevelFilter('');
+								} else {
+									setLevelFilter('warn');
+								}
+							}}
 							style={{
 								display: 'flex',
 								alignItems: 'center',
 								gap: 6,
+								padding: '4px 10px',
+								borderRadius: 6,
+								border: `1px solid ${levelFilter === 'warn' ? 'rgba(245, 158, 11, 0.5)' : 'transparent'}`,
+								background:
+									levelFilter === 'warn'
+										? 'rgba(245, 158, 11, 0.12)'
+										: 'transparent',
+								cursor: 'pointer',
+								transition: 'all 0.15s',
 							}}>
 							<AlertTriangle
 								size={14}
@@ -849,12 +1115,13 @@ export default function ReactClickHouseDashboard() {
 							</span>
 							<span
 								style={{
-									fontSize: '0.75rem',
-									color: 'var(--sl-color-gray-3)',
+									fontSize: '0.8rem',
+									color: 'rgba(255, 255, 255, 0.7)',
+									fontWeight: 500,
 								}}>
 								warnings
 							</span>
-						</div>
+						</button>
 						<div
 							style={{
 								display: 'flex',
@@ -863,13 +1130,16 @@ export default function ReactClickHouseDashboard() {
 								marginLeft: 'auto',
 							}}>
 							<Clock
-								size={12}
-								style={{ color: 'var(--sl-color-gray-4)' }}
+								size={13}
+								style={{
+									color: 'rgba(255, 255, 255, 0.6)',
+								}}
 							/>
 							<span
 								style={{
-									fontSize: '0.7rem',
-									color: 'var(--sl-color-gray-4)',
+									fontSize: '0.8rem',
+									color: 'rgba(255, 255, 255, 0.7)',
+									fontWeight: 500,
 								}}>
 								{namespaceSummaries.length} namespaces
 							</span>
@@ -878,23 +1148,73 @@ export default function ReactClickHouseDashboard() {
 				)}
 			</div>
 
-			{/* Namespace overview grid */}
+			{/* Namespace sort + overview grid */}
 			{!loading && namespaceSummaries.length > 0 && (
-				<div
-					style={{
-						display: 'grid',
-						gridTemplateColumns:
-							'repeat(auto-fill, minmax(260px, 1fr))',
-						gap: '0.75rem',
-					}}>
-					{namespaceSummaries.map((ns) => (
-						<NamespaceCard
-							key={ns.namespace}
-							summary={ns}
-							onClick={() => handleNamespaceClick(ns.namespace)}
+				<>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 8,
+						}}>
+						<ArrowUpDown
+							size={13}
+							style={{
+								color: 'rgba(255, 255, 255, 0.5)',
+							}}
 						/>
-					))}
-				</div>
+						<span
+							style={{
+								fontSize: '0.75rem',
+								color: 'rgba(255, 255, 255, 0.5)',
+								fontWeight: 500,
+							}}>
+							Sort:
+						</span>
+						{sortOptions.map((opt) => (
+							<button
+								key={opt.value}
+								onClick={() => setSortField(opt.value)}
+								style={{
+									padding: '2px 8px',
+									borderRadius: 4,
+									border: `1px solid ${sortField === opt.value ? 'var(--sl-color-accent, #06b6d4)' : 'var(--sl-color-gray-5, #262626)'}`,
+									background:
+										sortField === opt.value
+											? 'rgba(6, 182, 212, 0.12)'
+											: 'transparent',
+									color:
+										sortField === opt.value
+											? 'var(--sl-color-accent, #06b6d4)'
+											: 'rgba(255, 255, 255, 0.5)',
+									fontSize: '0.7rem',
+									fontWeight: 500,
+									cursor: 'pointer',
+									transition: 'all 0.15s',
+								}}>
+								{opt.label}
+							</button>
+						))}
+					</div>
+					<div
+						style={{
+							display: 'grid',
+							gridTemplateColumns:
+								'repeat(auto-fill, minmax(260px, 1fr))',
+							gap: '0.75rem',
+						}}>
+						{sortedNamespaces.map((ns) => (
+							<NamespaceCard
+								key={ns.namespace}
+								summary={ns}
+								activeLevel={levelFilter}
+								activeNamespace={namespaceFilter}
+								onCardClick={handleNamespaceClick}
+								onSeverityClick={handleSeverityClick}
+							/>
+						))}
+					</div>
+				</>
 			)}
 
 			{/* Log explorer */}
@@ -905,102 +1225,167 @@ export default function ReactClickHouseDashboard() {
 					background: 'var(--sl-color-bg-nav, #111)',
 					overflow: 'hidden',
 				}}>
-				{/* Filter bar */}
+				{/* Filter bar - sticky */}
 				<div
 					style={{
 						padding: '0.75rem 1rem',
 						borderBottom:
 							'1px solid var(--sl-color-gray-5, #262626)',
 						display: 'flex',
+						flexDirection: 'column',
 						gap: 8,
-						flexWrap: 'wrap',
-						alignItems: 'center',
+						position: 'sticky',
+						top: 0,
+						zIndex: 10,
+						background: 'var(--sl-color-bg-nav, #111)',
 					}}>
-					<Filter
-						size={14}
-						style={{ color: 'var(--sl-color-gray-3)' }}
-					/>
-					<select
-						value={levelFilter}
-						onChange={(e) => setLevelFilter(e.target.value)}
-						style={styles.select}>
-						<option value="">All levels</option>
-						<option value="error">Error</option>
-						<option value="warn">Warn</option>
-						<option value="info">Info</option>
-						<option value="debug">Debug</option>
-					</select>
-					<select
-						value={namespaceFilter}
-						onChange={(e) => setNamespaceFilter(e.target.value)}
-						style={styles.select}>
-						<option value="">All namespaces</option>
-						{allNamespaces.map((ns) => (
-							<option key={ns} value={ns}>
-								{ns}
-							</option>
-						))}
-					</select>
-					<select
-						value={serviceFilter}
-						onChange={(e) => setServiceFilter(e.target.value)}
-						style={styles.select}>
-						<option value="">All services</option>
-						{allServices.map((svc) => (
-							<option key={svc} value={svc}>
-								{svc}
-							</option>
-						))}
-					</select>
 					<div
 						style={{
 							display: 'flex',
+							gap: 8,
+							flexWrap: 'wrap',
 							alignItems: 'center',
-							gap: 4,
-							flex: 1,
-							minWidth: 150,
 						}}>
-						<Search
+						<Filter
 							size={14}
-							style={{ color: 'var(--sl-color-gray-4)' }}
+							style={{ color: 'rgba(255, 255, 255, 0.6)' }}
 						/>
-						<input
-							type="text"
-							placeholder="Search messages..."
-							value={searchText}
-							onChange={(e) => setSearchText(e.target.value)}
-							onKeyDown={(e) => {
-								if (e.key === 'Enter') loadLogs();
-							}}
+						<select
+							value={levelFilter}
+							onChange={(e) => setLevelFilter(e.target.value)}
+							style={styles.select}>
+							<option value="">All levels</option>
+							<option value="error">Error</option>
+							<option value="warn">Warn</option>
+							<option value="info">Info</option>
+							<option value="debug">Debug</option>
+						</select>
+						<select
+							value={namespaceFilter}
+							onChange={(e) => setNamespaceFilter(e.target.value)}
+							style={styles.select}>
+							<option value="">All namespaces</option>
+							{allNamespaces.map((ns) => (
+								<option key={ns} value={ns}>
+									{ns}
+								</option>
+							))}
+						</select>
+						<select
+							value={serviceFilter}
+							onChange={(e) => setServiceFilter(e.target.value)}
+							style={styles.select}>
+							<option value="">All services</option>
+							{allServices.map((svc) => (
+								<option key={svc} value={svc}>
+									{svc}
+								</option>
+							))}
+						</select>
+						<div
 							style={{
-								...styles.select,
+								display: 'flex',
+								alignItems: 'center',
+								gap: 4,
 								flex: 1,
-								minWidth: 0,
-							}}
-						/>
-					</div>
-					{(levelFilter ||
-						namespaceFilter ||
-						serviceFilter ||
-						searchText) && (
-						<button
-							onClick={() => {
-								setLevelFilter('');
-								setNamespaceFilter('');
-								setServiceFilter('');
-								setSearchText('');
-							}}
-							style={{
-								padding: '4px 8px',
-								borderRadius: 4,
-								border: '1px solid var(--sl-color-gray-5)',
-								background: 'transparent',
-								color: 'var(--sl-color-gray-3)',
-								fontSize: '0.7rem',
-								cursor: 'pointer',
+								minWidth: 150,
 							}}>
-							Clear
-						</button>
+							<Search
+								size={14}
+								style={{
+									color: 'rgba(255, 255, 255, 0.5)',
+								}}
+							/>
+							<input
+								ref={searchInputRef}
+								type="text"
+								placeholder="Search logs... (press / to focus)"
+								value={searchText}
+								autoCorrect="off"
+								autoCapitalize="off"
+								spellCheck={false}
+								onChange={(e) =>
+									handleSearchChange(e.target.value)
+								}
+								onKeyDown={(e) => {
+									if (e.key === 'Enter') {
+										if (debounceTimerRef.current)
+											clearTimeout(
+												debounceTimerRef.current,
+											);
+										setDebouncedSearch(searchText);
+									}
+									if (e.key === 'Escape') {
+										handleSearchChange('');
+										setDebouncedSearch('');
+										searchInputRef.current?.blur();
+									}
+								}}
+								style={{
+									...styles.select,
+									flex: 1,
+									minWidth: 0,
+								}}
+							/>
+						</div>
+						{hasActiveFilters && (
+							<button
+								onClick={() => {
+									setLevelFilter('');
+									setNamespaceFilter('');
+									setServiceFilter('');
+									setSearchText('');
+									setDebouncedSearch('');
+								}}
+								style={{
+									padding: '4px 8px',
+									borderRadius: 4,
+									border: '1px solid var(--sl-color-gray-5)',
+									background: 'transparent',
+									color: 'rgba(255, 255, 255, 0.7)',
+									fontSize: '0.7rem',
+									cursor: 'pointer',
+								}}>
+								Clear
+							</button>
+						)}
+					</div>
+					{/* Active filter chips */}
+					{hasActiveFilters && (
+						<div
+							style={{
+								display: 'flex',
+								gap: 6,
+								flexWrap: 'wrap',
+							}}>
+							{levelFilter && (
+								<FilterChip
+									label={`level:${levelFilter}`}
+									onRemove={() => setLevelFilter('')}
+								/>
+							)}
+							{namespaceFilter && (
+								<FilterChip
+									label={`namespace:${namespaceFilter}`}
+									onRemove={() => setNamespaceFilter('')}
+								/>
+							)}
+							{serviceFilter && (
+								<FilterChip
+									label={`service:${serviceFilter}`}
+									onRemove={() => setServiceFilter('')}
+								/>
+							)}
+							{searchText && (
+								<FilterChip
+									label={`text:"${searchText}"`}
+									onRemove={() => {
+										setSearchText('');
+										setDebouncedSearch('');
+									}}
+								/>
+							)}
+						</div>
 					)}
 				</div>
 
@@ -1027,14 +1412,18 @@ export default function ReactClickHouseDashboard() {
 						</div>
 					) : logs && logs.rows.length > 0 ? (
 						logs.rows.map((log, i) => (
-							<LogEntry key={`${log.timestamp}-${i}`} log={log} />
+							<LogEntry
+								key={`${log.timestamp}-${i}`}
+								log={log}
+								searchHighlight={debouncedSearch}
+							/>
 						))
 					) : (
 						<div
 							style={{
 								padding: '2rem',
 								textAlign: 'center',
-								color: 'var(--sl-color-gray-4)',
+								color: 'rgba(255, 255, 255, 0.5)',
 								fontSize: '0.85rem',
 							}}>
 							<AlertCircle
@@ -1053,10 +1442,11 @@ export default function ReactClickHouseDashboard() {
 							padding: '0.5rem 1rem',
 							borderTop:
 								'1px solid var(--sl-color-gray-6, #1a1a1a)',
-							fontSize: '0.7rem',
-							color: 'var(--sl-color-gray-4)',
+							fontSize: '0.75rem',
+							color: 'rgba(255, 255, 255, 0.6)',
 							display: 'flex',
 							justifyContent: 'space-between',
+							fontWeight: 500,
 						}}>
 						<span>
 							Showing {logs.rows.length} of {logs.count} results
@@ -1095,9 +1485,10 @@ const styles: Record<string, React.CSSProperties> = {
 		alignItems: 'center',
 	},
 	subtitle: {
-		color: 'var(--sl-color-gray-3, #8b949e)',
+		color: 'rgba(255, 255, 255, 0.6)',
 		margin: '0.25rem 0 0',
 		fontSize: '0.85rem',
+		fontWeight: 500,
 	},
 	centeredMessage: {
 		display: 'flex',
@@ -1125,7 +1516,7 @@ const styles: Record<string, React.CSSProperties> = {
 		fontWeight: 600,
 	},
 	errorText: {
-		color: 'var(--sl-color-gray-3, #8b949e)',
+		color: 'rgba(255, 255, 255, 0.6)',
 		margin: 0,
 		fontSize: '0.85rem',
 	},

@@ -1,5 +1,11 @@
 ---
-import ReactClickHouseDashboard from './ReactClickHouseDashboard';
+import ReactCHAuth from './ReactCHAuth';
+import ReactCHHeader from './ReactCHHeader';
+import ReactCHSummary from './ReactCHSummary';
+import ReactCHNamespaceGrid from './ReactCHNamespaceGrid';
+import ReactCHFilterBar from './ReactCHFilterBar';
+import ReactCHLogStream from './ReactCHLogStream';
+import ReactCHQueryTabs from './ReactCHQueryTabs';
 ---
 
 <section
@@ -7,7 +13,42 @@ import ReactClickHouseDashboard from './ReactClickHouseDashboard';
 	class="clickhouse-dashboard-wrapper"
 	aria-label="ClickHouse logs dashboard">
 	<div id="dashboard-content" class="dashboard-content">
-		<ReactClickHouseDashboard client:only="react" />
+		<ReactCHAuth client:only="react">
+			<div class="not-content ch-dashboard">
+				<!-- Island: Header (time range selector, refresh) -->
+				<div id="ch-header">
+					<ReactCHHeader client:only="react" />
+				</div>
+
+				<!-- Island: Summary bar (total logs, errors, warnings, namespace count) -->
+				<div id="ch-summary">
+					<ReactCHSummary client:only="react" />
+				</div>
+
+				<!-- Island: Sort controls + namespace card grid -->
+				<div id="ch-namespace-grid" class="ch-namespace-section">
+					<ReactCHNamespaceGrid client:only="react" />
+				</div>
+
+				<!-- Static shell: Log explorer container -->
+				<div id="ch-log-explorer" class="ch-log-explorer">
+					<!-- Island: Filter bar (dropdowns, search, chips) -->
+					<div id="ch-filter-bar">
+						<ReactCHFilterBar client:only="react" />
+					</div>
+
+					<!-- Island: Log stream (entries, footer) -->
+					<div id="ch-log-stream">
+						<ReactCHLogStream client:only="react" />
+					</div>
+				</div>
+
+				<!-- Island: Query tabs (pinned queries, polling, dnd, presets) -->
+				<div id="ch-query-tabs">
+					<ReactCHQueryTabs client:only="react" />
+				</div>
+			</div>
+		</ReactCHAuth>
 	</div>
 </section>
 
@@ -29,6 +70,33 @@ import ReactClickHouseDashboard from './ReactClickHouseDashboard';
 	@media (min-width: 768px) {
 		.dashboard-content {
 			padding: 2rem 1.5rem;
+		}
+	}
+
+	/* Static layout shell - zero JS cost */
+	.ch-dashboard {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		min-height: 60vh;
+	}
+
+	.ch-log-explorer {
+		border-radius: 12px;
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		background: var(--sl-color-bg-nav, #111);
+		overflow: hidden;
+	}
+
+	.ch-namespace-section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	:global(@keyframes spin) {
+		to {
+			transform: rotate(360deg);
 		}
 	}
 </style>
