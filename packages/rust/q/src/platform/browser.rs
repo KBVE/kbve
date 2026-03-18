@@ -93,13 +93,13 @@ impl IControl for GodotBrowser {
                 });
 
             if !self.user_agent.is_empty() {
-                builder = builder.with_user_agent(&self.user_agent.to_string());
+                builder = builder.with_user_agent(self.user_agent.to_string());
             }
 
             if self.html.is_empty() && !self.url.is_empty() {
-                builder = builder.with_url(&self.url.to_string());
+                builder = builder.with_url(self.url.to_string());
             } else if !self.html.is_empty() && self.url.is_empty() {
-                builder = builder.with_html(&self.html.to_string());
+                builder = builder.with_html(self.html.to_string());
             }
 
             let webview_builder = builder;

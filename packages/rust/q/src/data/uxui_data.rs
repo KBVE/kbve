@@ -55,7 +55,7 @@ impl TryFrom<UxUiElement> for MenuButtonData {
         let params = props
             .get("params")
             .and_then(|v| v.as_array())
-            .map(|arr| arr.iter().cloned().collect())
+            .map(|arr| arr.to_vec())
             .unwrap_or_else(Vec::new);
 
         Ok(MenuButtonData {

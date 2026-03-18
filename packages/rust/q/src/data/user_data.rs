@@ -19,6 +19,7 @@ pub struct UserData {
 impl AbstractDataMap for UserData {}
 
 impl UserData {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         username: &str,
         email: &str,

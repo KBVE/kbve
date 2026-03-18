@@ -121,10 +121,10 @@ impl RuntimeManager {
     }
 
     pub fn send_map_message(&self, message: MapMessage) {
-        if let Some(sender) = &self.sender {
-            if sender.send(message).is_err() {
-                godot_print!("[Q] -> Failed to send message to global map handler");
-            }
+        if let Some(sender) = &self.sender
+            && sender.send(message).is_err()
+        {
+            godot_print!("[Q] -> Failed to send message to global map handler");
         }
     }
 

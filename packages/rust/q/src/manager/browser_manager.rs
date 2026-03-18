@@ -63,24 +63,24 @@ impl ICanvasLayer for BrowserManager {
 
         {
             let base = self.base_mut();
-            if let Some(tree) = base.get_tree() {
-                if let Some(mut root) = tree.get_root() {
-                    let callable = Callable::from_object_method(
-                        &base.clone().upcast::<Node>(),
-                        "on_window_resize",
-                    );
+            if let Some(tree) = base.get_tree()
+                && let Some(mut root) = tree.get_root()
+            {
+                let callable = Callable::from_object_method(
+                    &base.clone().upcast::<Node>(),
+                    "on_window_resize",
+                );
 
-                    let error = root.connect("size_changed", &callable);
-                    if error != godot::global::Error::OK {
-                        godot_error!(
-                            "[BrowserManager] Failed to connect root size_changed: {:?}",
-                            error
-                        );
-                    } else {
-                        godot_print!(
-                            "[BrowserManager] Connected root size_changed to on_window_resize."
-                        );
-                    }
+                let error = root.connect("size_changed", &callable);
+                if error != godot::global::Error::OK {
+                    godot_error!(
+                        "[BrowserManager] Failed to connect root size_changed: {:?}",
+                        error
+                    );
+                } else {
+                    godot_print!(
+                        "[BrowserManager] Connected root size_changed to on_window_resize."
+                    );
                 }
             }
         }
