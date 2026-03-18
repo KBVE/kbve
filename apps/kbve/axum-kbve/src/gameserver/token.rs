@@ -67,10 +67,19 @@ pub async fn game_token_handler(
     // The address embedded in the ConnectToken — what the Netcode client
     // actually connects to. Must be a reachable IPv4 address (not 0.0.0.0).
     // The game server binds on 0.0.0.0 (IPv4), so we must resolve to IPv4.
-    let game_addr: SocketAddr = resolve_ipv4(&request_host, ws_port).map_err(|e| {
+    //
+    // Use the WT port when WebTransport is enabled (client prefers WT),
+    // otherwise the WS port. The Netcode layer overrides PeerAddr with the
+    // token's embedded address, so it must match the active transport.
+    let token_port = if super::is_wt_enabled() {
+        wt_port
+    } else {
+        ws_port
+    };
+    let game_addr: SocketAddr = resolve_ipv4(&request_host, token_port).map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("cannot resolve game address {request_host}:{ws_port}: {e}"),
+            format!("cannot resolve game address {request_host}:{token_port}: {e}"),
         )
     })?;
 
