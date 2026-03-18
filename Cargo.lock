@@ -1274,13 +1274,14 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.62"
+version = "1.0.63"
 dependencies = [
  "anyhow",
  "askama",
  "avian3d",
  "axum",
  "axum-extra",
+ "axum-server",
  "base64 0.22.1",
  "bevy",
  "bevy_kbve_net",
@@ -1302,6 +1303,8 @@ dependencies = [
  "rayon",
  "regex",
  "reqwest 0.12.28",
+ "rustls 0.23.37",
+ "rustls-pemfile 2.2.0",
  "serde",
  "serde_json",
  "serial_test",
@@ -1352,6 +1355,28 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "axum-server"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c1ab4a3ec9ea8a657c72d99a03a824af695bd0fb5ec639ccbd9cd3543b41a5f9"
+dependencies = [
+ "arc-swap",
+ "bytes",
+ "fs-err",
+ "http 1.4.0",
+ "http-body 1.0.1",
+ "hyper 1.8.1",
+ "hyper-util",
+ "pin-project-lite",
+ "rustls 0.23.37",
+ "rustls-pemfile 2.2.0",
+ "rustls-pki-types",
+ "tokio",
+ "tokio-rustls 0.26.4",
+ "tower-service",
 ]
 
 [[package]]
@@ -5710,6 +5735,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
+]
+
+[[package]]
+name = "fs-err"
+version = "3.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73fde052dbfc920003cfd2c8e2c6e6d4cc7c1091538c3a24226cec0665ab08c0"
+dependencies = [
+ "autocfg",
+ "tokio",
 ]
 
 [[package]]
