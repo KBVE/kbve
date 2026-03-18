@@ -843,12 +843,12 @@ fn server_debug_link_buffers(
         return;
     }
 
-    // Log all Link entities with non-empty buffers or active connections
+    // Only log Link entities with actual traffic (non-empty buffers)
     for (entity, link, is_linked, is_linking) in &link_q {
         let send_len = link.send.len();
         let recv_len = link.recv.len();
-        if send_len > 0 || recv_len > 0 || is_linked || is_linking {
-            tracing::info!(
+        if send_len > 0 || recv_len > 0 {
+            tracing::debug!(
                 "[gameserver][link-buffers] Link entity={entity:?} send={send_len} recv={recv_len} linked={is_linked} linking={is_linking}"
             );
         }
@@ -879,7 +879,7 @@ fn server_debug_netcode_collection(
         let addr = local_addr.map(|a| a.0.to_string()).unwrap_or_default();
         let collection = server.collection();
         let count = collection.len();
-        if count > 0 || is_linked {
+        if count > 0 {
             tracing::info!(
                 "[gameserver][netcode-diag] Server entity={entity:?} addr={addr} linked={is_linked} collection_size={count}"
             );

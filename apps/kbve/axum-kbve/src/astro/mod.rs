@@ -104,14 +104,14 @@ pub fn build_static_router(config: &StaticConfig) -> Router {
         .layer(axum::middleware::from_fn(corp_astro_assets))
 }
 
-/// Middleware that adds COOP/COEP headers to /isometric/ responses,
+/// Middleware that adds COOP/COEP/CORP headers to /isometric/ responses,
 /// enabling SharedArrayBuffer for WASM pthreads.
 ///
-/// Uses `credentialless` instead of `require-corp` for COEP so that
-/// cross-origin fetches (e.g. Supabase SDK → supabase.kbve.com) are
-/// allowed without requiring the remote server to send CORP headers.
-/// `credentialless` still enables SharedArrayBuffer while permitting
-/// cross-origin requests that don't use cookies.
+/// Uses `require-corp` for COEP because Safari does not treat `credentialless`
+/// as enabling `crossOriginIsolated` (SharedArrayBuffer stays undefined).
+/// All sub-resources under /isometric/ are same-origin, so CORP: same-origin
+/// is sufficient. Cross-origin fetches (e.g. Supabase SDK) are handled by the
+/// client using `no-cors` mode or fetched outside the isolated context.
 async fn coop_coep_isometric(req: axum::extract::Request, next: Next) -> impl IntoResponse {
     let path = req.uri().path();
     let is_isometric = path.starts_with("/isometric") || path.starts_with("/arcade/isometric");
@@ -124,19 +124,25 @@ async fn coop_coep_isometric(req: axum::extract::Request, next: Next) -> impl In
         );
         headers.insert(
             header::HeaderName::from_static("cross-origin-embedder-policy"),
-            HeaderValue::from_static("credentialless"),
+            HeaderValue::from_static("require-corp"),
+        );
+        // Every sub-resource must have CORP under require-corp COEP.
+        // Same-origin covers all our own JS/WASM/assets.
+        headers.insert(
+            header::HeaderName::from_static("cross-origin-resource-policy"),
+            HeaderValue::from_static("same-origin"),
         );
     }
     resp
 }
 
 /// Middleware that adds Cross-Origin-Resource-Policy to static asset directories so they
-/// are loadable under COEP from the isometric page.
+/// are loadable under COEP: require-corp from the isometric page.
 ///
-/// `/_astro/` bundles also receive `Cross-Origin-Embedder-Policy: credentialless` so that
-/// any bundle loaded as a Web Worker (e.g. the Supabase/droid worker) inherits
-/// cross-origin isolation from the parent page.  Without this, `self.crossOriginIsolated`
-/// inside the worker is `false` and Atomics / SharedArrayBuffer are unavailable.
+/// `/_astro/` bundles also receive COEP: require-corp so that any bundle loaded as a
+/// Web Worker inherits cross-origin isolation from the parent page. Without this,
+/// `self.crossOriginIsolated` inside the worker is `false` and SharedArrayBuffer is
+/// unavailable (especially on Safari).
 async fn corp_astro_assets(req: axum::extract::Request, next: Next) -> impl IntoResponse {
     let path = req.uri().path();
     let needs_corp = path.starts_with("/_astro")
@@ -155,7 +161,7 @@ async fn corp_astro_assets(req: axum::extract::Request, next: Next) -> impl Into
     if is_astro_bundle {
         resp.headers_mut().insert(
             header::HeaderName::from_static("cross-origin-embedder-policy"),
-            HeaderValue::from_static("credentialless"),
+            HeaderValue::from_static("require-corp"),
         );
     }
     resp
