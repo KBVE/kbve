@@ -226,6 +226,59 @@ Access might require `root`.
 
 ---
 
+## Namespace Orphan Check
+
+Over time, Kubernetes clusters accumulate stale namespaces — leftover from decommissioned apps, experiments, or renamed projects.
+These orphaned namespaces cause real problems: controllers like `external-secrets` continuously attempt to reconcile resources in them, generating errors such as `"client is not allowed to get secrets"` and polluting logs with noise that masks actual incidents.
+
+The `kubectl-namespace-orphan-check.sh` script provides a read-only audit of every namespace in the cluster, classifying each as **ACTIVE** or **EMPTY** based on whether it contains running workloads (pods, deployments, statefulsets, jobs).
+
+### What it checks
+
+| Resource         | Determines    | Why it matters                                             |
+| ---------------- | ------------- | ---------------------------------------------------------- |
+| Pods             | Active status | Running containers mean the namespace is in use            |
+| Deployments      | Active status | Declared workloads, even if scaled to zero                 |
+| StatefulSets     | Active status | Stateful apps (databases, queues)                          |
+| Jobs             | Active status | Batch or migration workloads                               |
+| Services         | Lingering     | Orphaned services can hold stale LoadBalancer IPs          |
+| Secrets          | Lingering     | May contain credentials that should be rotated or removed  |
+| Ingresses        | Lingering     | Stale ingress rules cause controller sync churn            |
+| ExternalSecrets  | Lingering     | Trigger reconciler errors when their SecretStore is broken |
+| SecretStores     | Lingering     | Fail validation when RBAC is missing for the namespace     |
+
+System namespaces (`default`, `kube-system`, `kube-public`, `kube-node-lease`) are automatically skipped.
+
+### Usage
+
+```shell
+./scripts/kubectl-namespace-orphan-check.sh
+```
+
+### Example output
+
+```
+=== Namespace Audit ===
+
+ACTIVE  kilobase      (pods=12 deploy=4 sts=2 jobs=0)
+ACTIVE  mc            (pods=3 deploy=1 sts=0 jobs=0)
+EMPTY   bugwars       (svcs=1 secrets=2 ingress=1 extSecrets=0 secretStores=1)
+EMPTY   old-staging   (svcs=0 secrets=1 ingress=0 extSecrets=0 secretStores=0)
+```
+
+Namespaces flagged as `EMPTY` with lingering resources are candidates for cleanup.
+Before deleting, verify the namespace is truly decommissioned, then remove it:
+
+```shell
+kubectl delete namespace bugwars
+```
+
+<Aside type="caution">
+Deleting a namespace removes **all** resources within it (secrets, configmaps, RBAC bindings, etc.). Always confirm with your team before removing a namespace from a shared cluster.
+</Aside>
+
+---
+
 ## Patch
 
 -   Kube Patches
