@@ -1,5 +1,7 @@
 #include "UEDevOpsBlueprintLibrary.h"
+#include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
+#include "Engine/World.h"
 #include "GenericPlatform/GenericPlatformMisc.h"
 
 static UUEDevOpsTelemetrySubsystem* GetTelemetrySubsystem(const UObject* WorldContextObject)
