@@ -13,9 +13,6 @@ use std::net::SocketAddr;
 
 use bevy_kbve_net::net_config;
 
-/// Default game server bind address (WebSocket).
-const DEFAULT_GAME_ADDR: &str = "0.0.0.0:5000";
-
 /// Default WS port (used when deriving URL from Host header).
 const DEFAULT_WS_PORT: u16 = 5000;
 
@@ -53,17 +50,6 @@ pub async fn game_token_handler(
     let private_key = net_config::load_private_key();
     let protocol_id = net_config::KBVE_PROTOCOL_ID;
 
-    // The address embedded in the token — what the client connects to.
-    let game_addr: SocketAddr = std::env::var("GAME_WS_ADDR")
-        .unwrap_or_else(|_| DEFAULT_GAME_ADDR.to_string())
-        .parse()
-        .map_err(|e| {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("bad GAME_WS_ADDR: {e}"),
-            )
-        })?;
-
     // Extract hostname from the request's Host header so returned URLs
     // match what the client used to reach us (localhost, kbve.com, etc.).
     let request_host = extract_hostname(&headers);
@@ -77,6 +63,28 @@ pub async fn game_token_handler(
         .ok()
         .and_then(|s| s.rsplit_once(':').and_then(|(_, p)| p.parse().ok()))
         .unwrap_or(DEFAULT_WT_PORT);
+
+    // The address embedded in the ConnectToken — what the Netcode client
+    // actually connects to. Must be a reachable address (not 0.0.0.0).
+    // Use the request hostname resolved to an IP + the WS port.
+    let game_addr: SocketAddr = format!("{request_host}:{ws_port}")
+        .parse()
+        .or_else(|_| {
+            // Hostname might not parse as SocketAddr directly (e.g. "localhost:5000")
+            // Resolve it: for localhost, use 127.0.0.1
+            use std::net::ToSocketAddrs;
+            format!("{request_host}:{ws_port}")
+                .to_socket_addrs()
+                .ok()
+                .and_then(|mut addrs| addrs.next())
+                .ok_or("failed to resolve")
+        })
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("cannot resolve game address {request_host}:{ws_port}: {e}"),
+            )
+        })?;
 
     // Determine client_id and user_data from JWT
     let (client_id, user_data) = match req.jwt.as_deref() {
