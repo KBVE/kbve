@@ -7568,6 +7568,7 @@ dependencies = [
  "crossbeam-channel",
  "dashmap 6.1.0",
  "getrandom 0.2.17",
+ "js-sys",
  "lightyear",
  "log",
  "pollster",

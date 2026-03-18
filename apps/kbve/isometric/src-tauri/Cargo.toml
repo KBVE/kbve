@@ -88,6 +88,7 @@ features = ["webgpu"]
 # --- WASM-only dependencies ---
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2", features = ["js"] }
+js-sys = "0.3"
 wasm-bindgen = "=0.2.114"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [

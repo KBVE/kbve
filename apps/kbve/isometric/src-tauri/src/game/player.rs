@@ -2,6 +2,7 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 
 use super::camera::CameraFollowTarget;
+use super::phase::GamePhase;
 use super::state::PlayerState;
 use super::terrain::TerrainMap;
 use super::tilemap::TerrainReady;
@@ -76,13 +77,15 @@ impl Plugin for PlayerPlugin {
             Update,
             (move_player, sync_player_state)
                 .chain()
-                .in_set(PlayerMovement),
+                .in_set(PlayerMovement)
+                .run_if(in_state(GamePhase::Playing)),
         );
         app.add_systems(
             PostUpdate,
             process_player_ground_detection
                 .after(PhysicsSystems::Writeback)
-                .in_set(PlayerMovement),
+                .in_set(PlayerMovement)
+                .run_if(in_state(GamePhase::Playing)),
         );
     }
 }
