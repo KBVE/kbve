@@ -42,6 +42,49 @@
             }
             /* pointer-events managed per-component via Tailwind pointer-events-auto */
         </style>
+      <script>
+        // Safari WebGPU shim — must execute before the WASM module loads.
+        // See apps/kbve/isometric/index.html for full explanation.
+        (function() {
+            if (typeof GPURenderPassEncoder !== 'undefined') {
+                var _origR = GPURenderPassEncoder.prototype.setBindGroup;
+                GPURenderPassEncoder.prototype.setBindGroup = function(index, bg, offsets, start, len) {
+                    if (offsets instanceof Uint32Array && offsets.buffer instanceof SharedArrayBuffer) {
+                        var s = start !== undefined ? start : 0;
+                        var l = len !== undefined ? len : offsets.length;
+                        var copy = new Uint32Array(l);
+                        copy.set(offsets.subarray(s, s + l));
+                        return _origR.call(this, index, bg, copy, 0, l);
+                    }
+                    return _origR.call(this, index, bg, offsets, start, len);
+                };
+            }
+            if (typeof GPUComputePassEncoder !== 'undefined') {
+                var _origC = GPUComputePassEncoder.prototype.setBindGroup;
+                GPUComputePassEncoder.prototype.setBindGroup = function(index, bg, offsets, start, len) {
+                    if (offsets instanceof Uint32Array && offsets.buffer instanceof SharedArrayBuffer) {
+                        var s = start !== undefined ? start : 0;
+                        var l = len !== undefined ? len : offsets.length;
+                        var copy = new Uint32Array(l);
+                        copy.set(offsets.subarray(s, s + l));
+                        return _origC.call(this, index, bg, copy, 0, l);
+                    }
+                    return _origC.call(this, index, bg, offsets, start, len);
+                };
+            }
+            if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
+                var _origAEL = EventTarget.prototype.addEventListener;
+                var DEFER = { resize: true, orientationchange: true };
+                EventTarget.prototype.addEventListener = function(type, listener, options) {
+                    if (DEFER[type] && typeof listener === 'function') {
+                        var deferred = function(evt) { setTimeout(function() { listener(evt); }, 0); };
+                        return _origAEL.call(this, type, deferred, options);
+                    }
+                    return _origAEL.call(this, type, listener, options);
+                };
+            }
+        })();
+      </script>
       <script type="module" crossorigin src="/isometric/assets/index.js"></script>
       <link rel="stylesheet" crossorigin href="/isometric/assets/index.css">
     </head>
