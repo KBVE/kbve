@@ -275,3 +275,21 @@ jobs:
             - name: Cleanup
               if: always()
               run: docker rm -f mc-e2e-pumpkin 2>/dev/null || true
+
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces failures as GitHub issues (#8186).
+    # Manual trigger — caller usually watches, but tracker ensures nothing slips.
+    # ---------------------------------------------------------------------------
+    track-headless-e2e:
+        name: Track Headless E2E
+        if: always()
+        needs: [headless-e2e]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'MC - Headless E2E'
+            job_name: 'MC Headless Client E2E'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.headless-e2e.result }}

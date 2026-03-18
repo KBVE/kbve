@@ -563,3 +563,35 @@ jobs:
                   else
                     echo "### Auto-Merge: ${{ needs.auto_merge.result }}"
                   fi
+
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces failures as GitHub issues (#8186).
+    # Atomic branch failures silently break branch state without alerting.
+    # ---------------------------------------------------------------------------
+    track-run-tests:
+        name: Track Run Tests
+        if: always()
+        needs: [run_tests]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Atomic Branches'
+            job_name: 'Run Tests'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.run_tests.result }}
+
+    track-auto-merge:
+        name: Track Auto Merge
+        if: always()
+        needs: [auto_merge]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Atomic Branches'
+            job_name: 'Auto-Merge Authorized PRs'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.auto_merge.result }}

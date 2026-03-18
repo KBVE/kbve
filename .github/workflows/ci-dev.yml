@@ -340,3 +340,49 @@ jobs:
             base-ref: origin/main
             head-ref: origin/dev
             check-conflicts: true
+
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces failures as GitHub issues (#8186).
+    # Dev branch orchestrator — failures here break PR creation and Docker builds.
+    # ---------------------------------------------------------------------------
+    track-dev-to-main-pr:
+        name: Track Dev to Main PR
+        if: always()
+        needs: [dev_to_main_pr]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Dev'
+            job_name: 'Create/Update Dev to Main PR'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.dev_to_main_pr.result }}
+
+    track-dev-docker-mc:
+        name: Track Dev Docker MC
+        if: always()
+        needs: [dev_docker_mc]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Dev'
+            job_name: 'Dev Docker Build — MC'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.dev_docker_mc.result }}
+
+    track-validate-pr:
+        name: Track Validate PR
+        if: always()
+        needs: [validate_pr]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Dev'
+            job_name: 'Validate Dev→Main PR'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.validate_pr.result }}
