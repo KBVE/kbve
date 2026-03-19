@@ -6,36 +6,57 @@ export default function FeedSkeleton({
 	variant = 'mobile',
 }: FeedSkeletonProps) {
 	if (variant === 'desktop') {
+		const aspects = [
+			'16 / 9',
+			'4 / 3',
+			'3 / 4',
+			'4 / 3',
+			'1 / 1',
+			'4 / 3',
+			'3 / 4',
+			'16 / 9',
+		];
 		return (
 			<div
-				className="w-full min-h-screen px-4 md:px-6 lg:px-8 py-8"
-				style={{
-					backgroundColor: 'var(--sl-color-bg, #0a0a0a)',
-				}}>
-				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 max-w-7xl mx-auto">
-					{[...Array(8)].map((_, i) => (
+				className="w-full min-h-screen px-3 md:px-6 lg:px-8 py-6 md:py-10"
+				style={{ backgroundColor: '#0c0c0e' }}>
+				<div
+					className="max-w-7xl mx-auto"
+					style={{
+						columns: 'auto',
+						columnCount: 'auto',
+						columnWidth: '280px',
+						columnGap: '12px',
+					}}>
+					{aspects.map((aspect, i) => (
 						<div
 							key={i}
-							className={`rounded-2xl overflow-hidden ${
-								i % 7 === 3
-									? 'md:col-span-2 aspect-video'
-									: 'aspect-[4/3]'
-							}`}
 							style={{
-								background:
-									'linear-gradient(110deg, var(--sl-color-gray-6, #1c1c1e) 30%, var(--sl-color-gray-5, #27272a) 50%, var(--sl-color-gray-6, #1c1c1e) 70%)',
-								backgroundSize: '200% 100%',
-								animation: 'shimmer 1.5s ease-in-out infinite',
-								animationDelay: `${i * 80}ms`,
-								border: '1px solid rgba(255,255,255,0.04)',
-							}}
-						/>
+								breakInside: 'avoid',
+								marginBottom: '12px',
+							}}>
+							<div
+								className="rounded-xl overflow-hidden"
+								style={{
+									aspectRatio: aspect,
+									background:
+										'linear-gradient(110deg, #161618 30%, #1e1e21 50%, #161618 70%)',
+									backgroundSize: '200% 100%',
+									animation:
+										'shimmer 1.5s ease-in-out infinite',
+									animationDelay: `${i * 80}ms`,
+								}}
+							/>
+						</div>
 					))}
 				</div>
 				<style>{`
 					@keyframes shimmer {
 						0% { background-position: 200% 0; }
 						100% { background-position: -200% 0; }
+					}
+					@media (prefers-reduced-motion: reduce) {
+						* { animation-duration: 0.01ms !important; }
 					}
 				`}</style>
 			</div>
