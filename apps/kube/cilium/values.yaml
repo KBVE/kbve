@@ -4,12 +4,9 @@
 ipam:
     mode: kubernetes
 
-# kube-proxy replacement — DISABLED until Phase 1 CNI swap.
-# Setting this to true while kube-proxy is still running causes
-# health check port conflicts (both bind the same NodePort health
-# ports). Enable this ONLY after applying cilium-enable.yaml patch
-# which sets cluster.proxy.disabled=true in Talos machine config.
-kubeProxyReplacement: false
+# kube-proxy replacement — ENABLED. Phase 1 CNI swap completed 2026-03-19.
+# Talos machine config: cluster.proxy.disabled=true, cni.name=none.
+kubeProxyReplacement: true
 k8sServiceHost: localhost # KubePrism (already enabled on port 7445)
 k8sServicePort: 7445
 
