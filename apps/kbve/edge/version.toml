@@ -1,4 +1,4 @@
-version = "0.1.15"
+version = "0.1.16"
 
 [[functions]]
 name = "health"
@@ -44,3 +44,4 @@ description = "ArgoCD API proxy with diagnostics"
 name = "logs"
 label = "Logs"
 description = "ClickHouse observability logs"
+publish = true
