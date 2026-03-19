@@ -1,0 +1,20 @@
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+    name: public-ip-pool
+spec:
+    blocks:
+        - cidr: 142.132.206.74/32
+        - cidr: 142.132.206.71/32
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+    name: default
+spec:
+    loadBalancerIPs: true
+    interfaces:
+        - ^enp.*
+    nodeSelector:
+        matchLabels:
+            node.kbve.com/type: dedicated-server
