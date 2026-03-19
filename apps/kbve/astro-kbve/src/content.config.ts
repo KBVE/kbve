@@ -11,6 +11,7 @@ import {
 	IMapObjectSchema,
 	INpcSchema,
 	OSRSExtendedSchema,
+	ICiProjectSchema,
 } from '@/data/schema';
 
 const OSRSFrontmatterSchema = OSRSExtendedSchema;
@@ -50,6 +51,7 @@ const project = defineCollection({
 		pattern: '**/*.mdx',
 		base: './src/content/docs/project',
 	}),
+	schema: ICiProjectSchema,
 });
 
 const itemdb = defineCollection({
