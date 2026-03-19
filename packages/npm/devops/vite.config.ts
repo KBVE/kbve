@@ -30,6 +30,7 @@ export default defineConfig({
 		},
 		rollupOptions: {
 			external: [
+				'zod',
 				'@bufbuild/protobuf',
 				'@bufbuild/protobuf/wkt',
 				'axios',

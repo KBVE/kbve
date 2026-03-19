@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package kbve.ci;
+
+// =============================================================================
+// CI Registry — Source of truth for all tracked apps and packages.
+//
+// Every monorepo project that participates in CI dispatch (docker builds,
+// npm/crate/python/unreal publishes) is described here. The generated Zod
+// schemas power both Astro content validation and the dispatch manifest
+// builder in @kbve/devops.
+// =============================================================================
+
+// The dispatch pipeline a tracked item belongs to.
+enum DispatchPipeline {
+  DISPATCH_PIPELINE_UNSPECIFIED = 0;
+  DISPATCH_PIPELINE_DOCKER = 1;
+  DISPATCH_PIPELINE_NPM = 2;
+  DISPATCH_PIPELINE_CRATES = 3;
+  DISPATCH_PIPELINE_PYTHON = 4;
+  DISPATCH_PIPELINE_UNREAL = 5;
+}
+
+// A tracked item in the CI dispatch registry.
+// Each entry corresponds to one fan-out dispatch from ci-main.yml.
+message CiProject {
+  // --- Required fields (every tracked item) ---
+  string key = 1;                           // Alteration output key (e.g. "droid", "ue_kbvezstd")
+  string name = 2;                          // Human-readable project name
+  DispatchPipeline pipeline = 3;            // Which CI pipeline handles this item
+
+  // --- Identifiers (at least one per pipeline type) ---
+  optional string app_name = 4;             // Docker app name (docker pipeline)
+  optional string package_name = 5;         // Package/project name for publish (npm, crates, python)
+
+  // --- Python-specific ---
+  optional string pypi_name = 6;            // PyPI distribution name
+
+  // --- Unreal-specific ---
+  optional string plugin_name = 7;          // UE plugin name (matches .uplugin filename)
+  optional string plugin_path = 8;          // Path to plugin dir relative to repo root
+  optional string dependency_plugins = 9;   // Space-separated dependency plugin paths
+  optional string itch_game_id = 10;        // Itch.io game ID for deployment
+
+  // --- Documentation / metadata ---
+  optional string description = 11;         // Short description for docs
+  repeated string tags = 12;                // Categorization tags
+  optional string source_path = 13;         // Path to source directory relative to repo root
+}
+
+// The full registry — a flat list of all tracked items.
+message CiRegistry {
+  repeated CiProject projects = 1;
+}
