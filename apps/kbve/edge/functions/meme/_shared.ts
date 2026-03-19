@@ -113,11 +113,23 @@ export function validateMemeIdArray(
 }
 
 // Require an authenticated user (has sub claim in JWT)
+// DEPRECATED: With service_role lockdown, use extractUserId() instead.
 export function requireAuthenticated(claims: JwtClaims): Response | null {
   if (!claims.sub) {
     return jsonResponse({ error: "Authentication required" }, 401);
   }
   return null;
+}
+
+// Extract user_id from the request body (passed by axum gateway).
+// Returns the validated UUID or an error Response.
+export function extractUserId(
+  body: Record<string, unknown>,
+): { userId: string; error: null } | { userId: null; error: Response } {
+  const { user_id } = body;
+  const err = validateUserId(user_id);
+  if (err) return { userId: null, error: err };
+  return { userId: user_id as string, error: null };
 }
 
 // UUID format validation

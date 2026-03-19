@@ -1,8 +1,8 @@
 import {
   createServiceClient,
+  extractUserId,
   jsonResponse,
   type MemeRequest,
-  requireAuthenticated,
   validateCommentBody,
   validateCursor,
   validateLimit,
@@ -87,11 +87,9 @@ const handlers: Record<string, Handler> = {
     return jsonResponse({ replies, nextCursor, hasMore });
   },
 
-  async create({ claims, body }) {
-    const denied = requireAuthenticated(claims);
-    if (denied) return denied;
-
-    const userId = claims.sub;
+  async create({ body }) {
+    const { userId, error: userErr } = extractUserId(body);
+    if (userErr) return userErr;
 
     const { meme_id, body: commentBody, parent_id } = body;
     const memeErr = validateMemeId(meme_id);
@@ -120,11 +118,9 @@ const handlers: Record<string, Handler> = {
     return jsonResponse({ success: true, comment_id: data });
   },
 
-  async delete({ claims, body }) {
-    const denied = requireAuthenticated(claims);
-    if (denied) return denied;
-
-    const userId = claims.sub;
+  async delete({ body }) {
+    const { userId, error: userErr } = extractUserId(body);
+    if (userErr) return userErr;
 
     const { comment_id } = body;
     const idErr = validateMemeId(comment_id, "comment_id");

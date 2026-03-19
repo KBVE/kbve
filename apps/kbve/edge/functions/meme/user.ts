@@ -1,8 +1,8 @@
 import {
   createServiceClient,
+  extractUserId,
   jsonResponse,
   type MemeRequest,
-  requireAuthenticated,
   validateMemeIdArray,
 } from "./_shared.ts";
 import { safeRpcError } from "../_shared/validators.ts";
@@ -18,11 +18,9 @@ import { safeRpcError } from "../_shared/validators.ts";
 type Handler = (memeReq: MemeRequest) => Promise<Response>;
 
 const handlers: Record<string, Handler> = {
-  async reactions({ claims, body }) {
-    const denied = requireAuthenticated(claims);
-    if (denied) return denied;
-
-    const userId = claims.sub;
+  async reactions({ body }) {
+    const { userId, error: userErr } = extractUserId(body);
+    if (userErr) return userErr;
 
     const { meme_ids } = body;
     const idsErr = validateMemeIdArray(meme_ids);
@@ -45,11 +43,9 @@ const handlers: Record<string, Handler> = {
     return jsonResponse({ reactions });
   },
 
-  async saves({ claims, body }) {
-    const denied = requireAuthenticated(claims);
-    if (denied) return denied;
-
-    const userId = claims.sub;
+  async saves({ body }) {
+    const { userId, error: userErr } = extractUserId(body);
+    if (userErr) return userErr;
 
     const { meme_ids } = body;
     const idsErr = validateMemeIdArray(meme_ids);

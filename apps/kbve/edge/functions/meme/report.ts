@@ -1,8 +1,8 @@
 import {
   createServiceClient,
+  extractUserId,
   jsonResponse,
   type MemeRequest,
-  requireAuthenticated,
   validateMemeId,
   validateReportDetail,
   validateReportReason,
@@ -19,11 +19,9 @@ import { safeRpcError } from "../_shared/validators.ts";
 type Handler = (memeReq: MemeRequest) => Promise<Response>;
 
 const handlers: Record<string, Handler> = {
-  async create({ claims, body }) {
-    const denied = requireAuthenticated(claims);
-    if (denied) return denied;
-
-    const userId = claims.sub;
+  async create({ body }) {
+    const { userId, error: userErr } = extractUserId(body);
+    if (userErr) return userErr;
 
     const { meme_id, reason, detail } = body;
 
