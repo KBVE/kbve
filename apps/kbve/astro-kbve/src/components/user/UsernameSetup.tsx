@@ -1,75 +1,77 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { User, Check, AlertCircle, Loader2 } from 'lucide-react';
+
+const usernameSchema = z.object({
+	username: z
+		.string()
+		.min(3, 'Must be at least 3 characters')
+		.max(24, 'Must be 24 characters or fewer')
+		.regex(/^[a-zA-Z]/, 'Must start with a letter')
+		.regex(
+			/^[a-zA-Z][a-zA-Z0-9_]*$/,
+			'Only letters, numbers, and underscores',
+		)
+		.transform((v) => v.toLowerCase()),
+});
+
+type UsernameFormData = z.infer<typeof usernameSchema>;
 
 interface UsernameSetupProps {
 	accessToken: string;
 	onComplete: (username: string) => void;
 }
 
-const USERNAME_RE = /^[a-zA-Z][a-zA-Z0-9_]{2,23}$/;
-
-function validateUsername(value: string): string | null {
-	if (!value) return 'Username is required';
-	if (value.length < 3) return 'Must be at least 3 characters';
-	if (value.length > 24) return 'Must be 24 characters or fewer';
-	if (!/^[a-zA-Z]/.test(value)) return 'Must start with a letter';
-	if (!/^[a-zA-Z0-9_]+$/.test(value))
-		return 'Only letters, numbers, and underscores';
-	if (!USERNAME_RE.test(value)) return 'Invalid username format';
-	return null;
-}
-
 export default function UsernameSetup({
 	accessToken,
 	onComplete,
 }: UsernameSetupProps) {
-	const [username, setUsername] = useState('');
-	const [error, setError] = useState<string | null>(null);
-	const [submitting, setSubmitting] = useState(false);
+	const [serverError, setServerError] = useState<string | null>(null);
 
-	const clientError = username.length > 0 ? validateUsername(username) : null;
-	const isValid = username.length > 0 && !clientError;
+	const {
+		register,
+		handleSubmit,
+		watch,
+		formState: { errors, isSubmitting, isValid, isDirty },
+	} = useForm<UsernameFormData>({
+		resolver: zodResolver(usernameSchema),
+		mode: 'onChange',
+		defaultValues: { username: '' },
+	});
 
-	const handleSubmit = useCallback(
-		async (e: React.FormEvent) => {
-			e.preventDefault();
-			const err = validateUsername(username);
-			if (err) {
-				setError(err);
+	const username = watch('username');
+	const fieldError = errors.username?.message;
+	const showValid = isDirty && username.length >= 3 && !fieldError;
+
+	async function onSubmit(data: UsernameFormData) {
+		setServerError(null);
+
+		try {
+			const res = await fetch('/api/v1/profile/username', {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ username: data.username }),
+			});
+
+			if (!res.ok) {
+				const body = await res.json().catch(() => ({}));
+				setServerError(
+					body.error || body.message || 'Failed to set username',
+				);
 				return;
 			}
 
-			setError(null);
-			setSubmitting(true);
-
-			try {
-				const res = await fetch('/api/v1/profile/username', {
-					method: 'POST',
-					headers: {
-						Authorization: `Bearer ${accessToken}`,
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ username }),
-				});
-
-				if (!res.ok) {
-					const data = await res.json().catch(() => ({}));
-					setError(
-						data.error || data.message || 'Failed to set username',
-					);
-					return;
-				}
-
-				const data = await res.json();
-				onComplete(data.username || username);
-			} catch (e: any) {
-				setError(e?.message || 'Network error — please try again');
-			} finally {
-				setSubmitting(false);
-			}
-		},
-		[username, accessToken, onComplete],
-	);
+			const body = await res.json();
+			onComplete(body.username || data.username);
+		} catch (e: any) {
+			setServerError(e?.message || 'Network error — please try again');
+		}
+	}
 
 	return (
 		<div style={styles.container}>
@@ -85,23 +87,20 @@ export default function UsernameSetup({
 				your public profile and across all KBVE services.
 			</p>
 
-			<form onSubmit={handleSubmit} style={styles.form}>
+			<form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
 				<div style={styles.inputWrapper}>
 					<span style={styles.prefix}>@</span>
 					<input
+						{...register('username')}
 						type="text"
-						value={username}
-						onChange={(e) => {
-							setUsername(e.target.value.toLowerCase());
-							setError(null);
-						}}
 						placeholder="your_username"
 						maxLength={24}
 						autoFocus
-						disabled={submitting}
+						autoComplete="off"
+						disabled={isSubmitting}
 						style={styles.input}
 					/>
-					{isValid && !submitting && (
+					{showValid && !isSubmitting && (
 						<Check
 							size={16}
 							style={{ color: '#22c55e', flexShrink: 0 }}
@@ -111,7 +110,7 @@ export default function UsernameSetup({
 
 				{/* Validation hint */}
 				<div style={styles.hint}>
-					{clientError ? (
+					{fieldError ? (
 						<span style={{ color: '#f87171' }}>
 							<AlertCircle
 								size={12}
@@ -121,9 +120,9 @@ export default function UsernameSetup({
 									marginRight: 4,
 								}}
 							/>
-							{clientError}
+							{fieldError}
 						</span>
-					) : username.length > 0 ? (
+					) : showValid ? (
 						<span style={{ color: '#22c55e' }}>Looks good</span>
 					) : (
 						<span>
@@ -133,23 +132,25 @@ export default function UsernameSetup({
 				</div>
 
 				{/* Server error */}
-				{error && (
+				{serverError && (
 					<div style={styles.error}>
 						<AlertCircle size={14} />
-						{error}
+						{serverError}
 					</div>
 				)}
 
 				<button
 					type="submit"
-					disabled={!isValid || submitting}
+					disabled={!isValid || isSubmitting}
 					style={{
 						...styles.button,
-						opacity: !isValid || submitting ? 0.5 : 1,
+						opacity: !isValid || isSubmitting ? 0.5 : 1,
 						cursor:
-							!isValid || submitting ? 'not-allowed' : 'pointer',
+							!isValid || isSubmitting
+								? 'not-allowed'
+								: 'pointer',
 					}}>
-					{submitting ? (
+					{isSubmitting ? (
 						<>
 							<Loader2
 								size={16}
