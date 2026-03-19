@@ -3,3 +3,4 @@ customization:
         officialExtensions:
             - siderolabs/iscsi-tools
             - siderolabs/util-linux-tools
+            - siderolabs/wireguard-tools

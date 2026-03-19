@@ -1,0 +1,80 @@
+---
+// AskamaSocialMeta — Renders complete OG + Twitter Card + canonical + robots
+// meta tags using askama template variables.
+//
+// Include this component in any askama provider to get full social meta
+// without cluttering the MDX frontmatter. Axum fills the {{ vars }} at runtime.
+//
+// Required askama variables in the parent context:
+//   {{ title }}         — Page title
+//   {{ description }}   — Page description
+//   {{ canonical_url }} — Canonical URL
+//   {{ og_image }}      — Social sharing image URL
+//   {{ og_width }}      — Image width (integer, 0 if unknown)
+//   {{ og_height }}     — Image height (integer, 0 if unknown)
+//   {{ og_type }}       — OG type: "article", "profile", "website"
+//   {{ site_name }}     — Site name: "Meme.sh", "KBVE"
+//   {{ twitter_card }}  — Card type: "summary_large_image", "summary"
+//   {{ author }}        — Author name (empty string if none)
+//   {{ robots }}        — Robots directive: "index, follow"
+//   {{ locale }}        — OG locale: "en_US"
+
+interface Props {
+	class?: string;
+}
+
+// All values are askama template variables — output as literal strings.
+// Axum's askama engine fills these at request time.
+const socialMetaBlock = `
+<link rel="canonical" href="{{ canonical_url }}" />
+<meta name="robots" content="{{ robots }}" />
+<meta name="author" content="{{ author }}" />
+
+<meta property="og:title" content="{{ title }}" />
+<meta property="og:description" content="{{ description }}" />
+<meta property="og:url" content="{{ canonical_url }}" />
+<meta property="og:site_name" content="{{ site_name }}" />
+<meta property="og:type" content="{{ og_type }}" />
+<meta property="og:locale" content="{{ locale }}" />
+{% if !og_image.is_empty() %}
+<meta property="og:image" content="{{ og_image }}" />
+{% if og_width > 0 %}<meta property="og:image:width" content="{{ og_width }}" />{% endif %}
+{% if og_height > 0 %}<meta property="og:image:height" content="{{ og_height }}" />{% endif %}
+{% if !image_alt.is_empty() %}<meta property="og:image:alt" content="{{ image_alt }}" />{% endif %}
+{% endif %}
+
+<meta name="twitter:card" content="{{ twitter_card }}" />
+<meta name="twitter:title" content="{{ title }}" />
+<meta name="twitter:description" content="{{ description }}" />
+{% if !og_image.is_empty() %}
+<meta name="twitter:image" content="{{ og_image }}" />
+{% if !image_alt.is_empty() %}<meta name="twitter:image:alt" content="{{ image_alt }}" />{% endif %}
+{% endif %}
+{% if !twitter_site.is_empty() %}
+<meta name="twitter:site" content="{{ twitter_site }}" />
+{% endif %}
+{% if !twitter_creator.is_empty() %}
+<meta name="twitter:creator" content="{{ twitter_creator }}" />
+{% endif %}
+
+{% if let Some(published) = published_time %}
+<meta property="article:published_time" content="{{ published }}" />
+{% endif %}
+{% if let Some(modified) = modified_time %}
+<meta property="article:modified_time" content="{{ modified }}" />
+{% endif %}
+{% for tag in tags %}
+<meta property="article:tag" content="{{ tag }}" />
+{% endfor %}
+{% if let Some(sec) = section %}
+<meta property="article:section" content="{{ sec }}" />
+{% endif %}
+
+{% if let Some(color) = theme_color %}
+<meta name="theme-color" content="{{ color }}" />
+{% endif %}
+`;
+---
+
+{/* Inject askama social meta into <head> via Astro's head hoisting */}
+<Fragment set:html={socialMetaBlock} />
