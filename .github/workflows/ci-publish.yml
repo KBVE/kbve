@@ -144,8 +144,14 @@ jobs:
                   echo "local_version=${LOCAL}" >> "$GITHUB_OUTPUT"
                   echo "registry_version=${REGISTRY}" >> "$GITHUB_OUTPUT"
 
+                  # Semver comparison: only publish if local > registry
+                  HIGHEST=$(printf '%s\n%s' "$LOCAL" "$REGISTRY" | sort -V | tail -1)
+
                   if [ "$LOCAL" = "$REGISTRY" ]; then
                     echo "::notice::${TYPE}/${NAME} v${LOCAL} already published — tests will run, publish will be skipped."
+                    echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                  elif [ "$HIGHEST" != "$LOCAL" ]; then
+                    echo "::warning::${TYPE}/${NAME} v${LOCAL} is OLDER than registry v${REGISTRY} — skipping publish. Bump local version."
                     echo "should_publish=false" >> "$GITHUB_OUTPUT"
                   else
                     echo "::notice::${TYPE}/${NAME} v${LOCAL} is new (registry: ${REGISTRY}) — will publish after tests pass."
