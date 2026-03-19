@@ -74,7 +74,7 @@ serve(async (req) => {
   if (ctErr) return ctErr;
 
   try {
-    // Try to parse JWT — anonymous access is allowed for some actions
+    // All access requires service_role — axum gateway handles user auth
     let token = "";
     let claims: JwtClaims = { role: "anon" };
 
@@ -82,7 +82,14 @@ serve(async (req) => {
       token = extractToken(req);
       claims = await parseJwt(token);
     } catch {
-      // No token or invalid token — proceed as anonymous
+      return jsonResponse({ error: "Authentication required" }, 401);
+    }
+
+    if (claims.role !== "service_role") {
+      return jsonResponse(
+        { error: "Forbidden: service_role required. Use the API gateway." },
+        403,
+      );
     }
 
     const body = await req.json();

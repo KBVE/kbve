@@ -1,8 +1,8 @@
 import {
   createServiceClient,
+  extractUserId,
   jsonResponse,
   type MemeRequest,
-  requireAuthenticated,
   validateCursor,
   validateLimit,
   validateUserId,
@@ -40,11 +40,9 @@ const handlers: Record<string, Handler> = {
     return jsonResponse({ profile: rows[0] ?? null });
   },
 
-  async update({ claims, body }) {
-    const denied = requireAuthenticated(claims);
-    if (denied) return denied;
-
-    const userId = claims.sub;
+  async update({ body }) {
+    const { userId, error: userErr } = extractUserId(body);
+    if (userErr) return userErr;
 
     const { display_name, avatar_url, bio } = body;
 
