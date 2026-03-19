@@ -72,6 +72,9 @@ addopts = "--cov --cov-report html:'../../../coverage/packages/python/fudster/ht
 [tool.hatch.build.targets.wheel]
 packages = ["fudster"]
 
+[tool.uv.sources]
+kbve = { path = "../kbve", editable = true }
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
