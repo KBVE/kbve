@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // We need to test registry in isolation, so import the module functions directly.
 // The registry is module-scoped mutable state, so tests reflect cumulative state.

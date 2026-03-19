@@ -9,7 +9,16 @@
 ##   - Disables the default flannel CNI
 ##   - Disables kube-proxy (Cilium replaces it via eBPF)
 ##   - KubePrism is already enabled (port 7445) in current config
-##   - Disables forwardKubeDNSToHost to avoid CoreDNS conflict with BPF masquerade
+##   - Pins kubelet nodeIP to the primary address (prevents secondary
+##     IP from being advertised as InternalIP, which breaks kubelet
+##     API server communication)
+##
+## IMPORTANT: If you have added secondary IPs to the node, you MUST
+## include kubelet.nodeIP.validSubnets to pin the primary IP. Without
+## this, kubelet may pick the secondary IP and the API server won't
+## be able to reach it for logs/exec/port-forward.
+##
+## Applied to production 2026-03-19.
 ##
 ## Apply to each node one at a time (rolling upgrade):
 ##   talosctl patch machineconfig --nodes <control-plane> --patch @cilium-enable.yaml
@@ -24,6 +33,10 @@ cluster:
     proxy:
         disabled: true
 machine:
+    kubelet:
+        nodeIP:
+            validSubnets:
+                - 142.132.206.74/32
     features:
         kubePrism:
             enabled: true

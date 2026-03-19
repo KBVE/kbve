@@ -14,3 +14,4 @@ export {
 	onViewConfigAck,
 } from './bridge';
 export type { ViewStatus, ViewSnapshot, ViewEvent } from './bridge';
+export { useViewBridge } from './use-view-bridge';

@@ -70,6 +70,13 @@
 				"commands": ["nx exec -- astro sync"],
 				"parallel": false
 			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/memes/astro-memes",
+				"command": "vitest run --config vitest.config.ts"
+			}
 		}
 	}
 }

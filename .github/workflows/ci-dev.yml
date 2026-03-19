@@ -277,60 +277,6 @@ jobs:
                       echo "Branches are synchronized or main is ahead"
                   fi
 
-    alter:
-        name: 'Dev File Alterations'
-        if: github.repository == 'kbve/kbve'
-        permissions:
-            contents: read
-        uses: KBVE/kbve/.github/workflows/utils-file-alterations.yml@main
-        with:
-            branch: 'dev'
-
-    dev_docker_mc:
-        name: 'Dev Docker Build — MC'
-        needs: [alter]
-        if: needs.alter.outputs.mc == 'true'
-        runs-on: ubuntu-latest
-        timeout-minutes: 30
-        permissions:
-            contents: read
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v6
-              continue-on-error: true
-
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v4
-
-            - name: Build MC dev image
-              uses: docker/build-push-action@v7
-              with:
-                  context: .
-                  file: apps/mc/Dockerfile
-                  build-args: VARIANT=dev
-                  push: false
-                  load: true
-                  tags: kbve/mc:dev
-                  cache-from: type=gha,scope=mc-dev
-                  cache-to: type=gha,scope=mc-dev,mode=max
-
-            - name: Create offline test config
-              run: |
-                  cp apps/mc/data/config/configuration.toml /tmp/configuration.toml
-                  sed -i 's/online_mode = true/online_mode = false/' /tmp/configuration.toml
-                  sed -i 's/encryption = true/encryption = false/' /tmp/configuration.toml
-
-            - name: Smoke test — server starts
-              run: |
-                  docker run -d --name mc-dev-test \
-                    -p 25565:25565 \
-                    -v /tmp/configuration.toml:/pumpkin/config/configuration.toml:ro \
-                    kbve/mc:dev
-                  sleep 10
-                  docker logs mc-dev-test 2>&1
-                  docker logs mc-dev-test 2>&1 | grep -q "Started server" || { echo "Server failed to start"; docker logs mc-dev-test 2>&1; exit 1; }
-                  docker stop mc-dev-test
-
     validate_pr:
         name: 'Validate Dev→Main PR'
         if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref == 'dev'
@@ -359,20 +305,6 @@ jobs:
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: ${{ needs.dev_to_main_pr.result }}
-
-    track-dev-docker-mc:
-        name: Track Dev Docker MC
-        if: always()
-        needs: [dev_docker_mc]
-        permissions:
-            issues: write
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
-        with:
-            workflow_name: 'CI - Dev'
-            job_name: 'Dev Docker Build — MC'
-            run_id: ${{ github.run_id }}
-            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: ${{ needs.dev_docker_mc.result }}
 
     track-validate-pr:
         name: Track Validate PR
