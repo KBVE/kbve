@@ -9,6 +9,7 @@ use crate::resource::*;
 use crate::types::*;
 
 /// Process defend intents — set defending flag and handle Cleric prayer proc.
+#[allow(clippy::type_complexity)]
 pub fn defend_system(
     mut intents: MessageReader<DefendIntent>,
     mut outcomes: MessageWriter<CombatOutcome>,

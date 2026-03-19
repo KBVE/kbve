@@ -9,6 +9,7 @@ use crate::resource::*;
 use crate::types::*;
 
 /// Execute all enemy turns when `EnemyTurnRequest` is received.
+#[allow(clippy::type_complexity)]
 pub fn enemy_turn_system(
     mut requests: MessageReader<EnemyTurnRequest>,
     mut outcomes: MessageWriter<CombatOutcome>,
@@ -159,14 +160,14 @@ pub fn enemy_turn_system(
                 if let Ok((_, _, _, _, _, effects, _)) = players.get(*target_entity) {
                     let effect_thorns = effects.stacks(&EffectKind::Thorns) as i32;
                     let total = *target_thorns_gear + effect_thorns;
-                    if total > 0 {
-                        if let Ok((_, _, mut ehp, _, _, _, _)) = enemies.get_mut(*enemy_entity) {
-                            ehp.take_damage(total);
-                            outcomes.write(CombatOutcome::Thorns {
-                                target: *enemy_entity,
-                                reflected: total,
-                            });
-                        }
+                    if total > 0
+                        && let Ok((_, _, mut ehp, _, _, _, _)) = enemies.get_mut(*enemy_entity)
+                    {
+                        ehp.take_damage(total);
+                        outcomes.write(CombatOutcome::Thorns {
+                            target: *enemy_entity,
+                            reflected: total,
+                        });
                     }
                 }
             }

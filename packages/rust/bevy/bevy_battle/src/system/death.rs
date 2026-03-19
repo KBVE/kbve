@@ -6,6 +6,7 @@ use crate::component::*;
 use crate::event::*;
 
 /// Check all combatants for death (HP <= 0) and emit `CombatOutcome::Death`.
+#[allow(clippy::type_complexity)]
 pub fn death_check_system(
     mut commands: Commands,
     mut outcomes: MessageWriter<CombatOutcome>,
@@ -15,6 +16,7 @@ pub fn death_check_system(
 }
 
 /// Same check, runs again after effects tick to catch DoT kills.
+#[allow(clippy::type_complexity)]
 pub fn final_death_check_system(
     mut commands: Commands,
     mut outcomes: MessageWriter<CombatOutcome>,
@@ -23,6 +25,7 @@ pub fn final_death_check_system(
     check_deaths(&mut commands, &mut outcomes, &combatants);
 }
 
+#[allow(clippy::type_complexity)]
 fn check_deaths(
     commands: &mut Commands,
     outcomes: &mut MessageWriter<CombatOutcome>,
