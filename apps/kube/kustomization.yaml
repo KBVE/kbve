@@ -56,3 +56,7 @@ resources:
     # Consolidated: runners includes helm chart + ExternalSecret/SecretStore
     - github/controller/application.yaml
     - github/runners/application.yaml
+
+    # Cilium CNI + WireGuard (Phase 0 — ArgoCD discovers the app,
+    # but CNI swap requires Talos machine config patch in Phase 1)
+    - cilium/application.yaml
