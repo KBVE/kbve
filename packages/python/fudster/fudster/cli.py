@@ -73,6 +73,48 @@ def main() -> None:
     """Fudster CLI — workspace tooling powered by kbve core."""
 
 
+# ── version ──────────────────────────────────────────────────────────
+
+@main.command()
+def version() -> None:
+    """Show fudster and kbve versions."""
+    import fudster as _fudster
+    import kbve as _kbve
+    click.echo(f"fudster {_fudster.__version__}")
+    click.echo(f"kbve    {_kbve.__version__}")
+
+
+# ── info ─────────────────────────────────────────────────────────────
+
+@main.command()
+@click.option(
+    "--json", "as_json", is_flag=True, default=False,
+    help="Output as JSON instead of a table.",
+)
+def info(as_json: bool) -> None:
+    """Show available kbve modules and their status."""
+    from kbve.utils.module_info import list_modules
+
+    modules = list_modules()
+
+    if as_json:
+        import json as _json
+        data = [
+            {"name": m.name, "description": m.description,
+             "available": m.available}
+            for m in modules
+        ]
+        click.echo(_json.dumps(data, indent=2))
+    else:
+        click.echo("kbve modules:\n")
+        for m in modules:
+            status = click.style("ok", fg="green") if m.available \
+                else click.style("missing", fg="red")
+            click.echo(f"  [{status}] {m.name}")
+            click.echo(f"         {m.description}")
+        click.echo()
+
+
 # ── nx sub-group ─────────────────────────────────────────────────────
 
 @main.group()

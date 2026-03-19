@@ -379,3 +379,51 @@ def test_security_to_mdx_dependabot_tab(tmp_path):
     content = mdx_out.read_text()
     assert "axios" in content
     assert "SSRF" in content
+
+
+# ── version ──────────────────────────────────────────────────────────
+
+def test_version():
+    runner = CliRunner()
+    result = runner.invoke(main, ["version"])
+    assert result.exit_code == 0
+    assert "fudster" in result.output
+    assert "kbve" in result.output
+    assert "0.1.0" in result.output
+
+
+# ── info ─────────────────────────────────────────────────────────────
+
+def test_info():
+    runner = CliRunner()
+    result = runner.invoke(main, ["info"])
+    assert result.exit_code == 0
+    assert "kbve modules" in result.output
+    assert "kbve.server" in result.output
+    assert "kbve.nx.graph" in result.output
+    assert "kbve.mdx" in result.output
+    assert "kbve.utils" in result.output
+
+
+def test_info_json():
+    runner = CliRunner()
+    result = runner.invoke(main, ["info", "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert isinstance(data, list)
+    assert len(data) > 0
+    names = [m["name"] for m in data]
+    assert "kbve.server" in names
+    assert "kbve.nx.graph" in names
+    assert all("available" in m for m in data)
+    assert all("description" in m for m in data)
+
+
+def test_info_json_all_available():
+    runner = CliRunner()
+    result = runner.invoke(main, ["info", "--json"])
+    data = json.loads(result.output)
+    for m in data:
+        assert m["available"] is True, (
+            f"{m['name']} should be available"
+        )
