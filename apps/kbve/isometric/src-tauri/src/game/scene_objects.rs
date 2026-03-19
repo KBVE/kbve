@@ -297,9 +297,10 @@ fn raycast_hover_detection_desktop(
     }
     last_cursor.0 = Some(cursor_pos);
 
-    // Unproject cursor to world XZ, then tile lookup
-    let new_hovered = super::hover_bvh::cursor_to_world_xz(cam_gt, projection, window, cursor_pos)
-        .and_then(|xz| hover_map.lookup(xz.x, xz.y));
+    // Multi-plane pick: cast cursor ray against Y-planes from top to bottom
+    // so tall objects (trees) are picked at canopy height, not just base tile.
+    let new_hovered =
+        super::hover_bvh::cursor_pick(cam_gt, projection, window, cursor_pos, &hover_map);
 
     for entity in &current_hovered {
         if Some(entity) != new_hovered {
@@ -353,8 +354,8 @@ fn raycast_hover_detection_wasm(
     }
     last_cursor.0 = Some(cursor_pos);
 
-    let new_hovered = super::hover_bvh::cursor_to_world_xz(cam_gt, projection, window, cursor_pos)
-        .and_then(|xz| hover_map.lookup(xz.x, xz.y));
+    let new_hovered =
+        super::hover_bvh::cursor_pick(cam_gt, projection, window, cursor_pos, &hover_map);
 
     for entity in &current_hovered {
         if Some(entity) != new_hovered {
