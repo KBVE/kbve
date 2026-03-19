@@ -178,42 +178,44 @@ def test_routes_invalid_method(tmp_path):
 
 # ── APIConnector ─────────────────────────────────────────────────────
 # APIConnector creates an aiohttp.ClientSession eagerly in __init__,
-# which requires a running event loop. Test _prepare_headers via a
-# subclass that skips session creation.
+# which requires a running event loop. Test _prepare_headers by calling
+# the unbound method directly with a simple namespace object.
 
-def _make_connector_stub(**kwargs):
-    """Create an APIConnector-like object without aiohttp session."""
-    from fudster.api.api_connector import APIConnector
-
-    class Stub(APIConnector):
-        def __init__(self, base_url, **kw):
-            self.base_url = base_url
-            self.key = kw.get("key")
-            self.session = None
-            self.websocket = None
-
-    return Stub(**kwargs)
+def _make_connector_attrs(base_url="https://x.com", key=None):
+    """Create a simple namespace with APIConnector fields."""
+    from types import SimpleNamespace
+    return SimpleNamespace(
+        base_url=base_url,
+        key=key,
+        session=None,
+        websocket=None,
+    )
 
 
 def test_api_connector_prepare_headers():
-    conn = _make_connector_stub(base_url="https://x.com", key="secret")
-    headers = conn._prepare_headers(auth="header")
+    from fudster.api.api_connector import APIConnector
+    obj = _make_connector_attrs(key="secret")
+    headers = APIConnector._prepare_headers(obj, auth="header")
     assert headers["Authorization"] == "Bearer secret"
 
 
 def test_api_connector_prepare_headers_no_auth():
-    conn = _make_connector_stub(base_url="https://x.com", key="secret")
-    headers = conn._prepare_headers()
+    from fudster.api.api_connector import APIConnector
+    obj = _make_connector_attrs(key="secret")
+    headers = APIConnector._prepare_headers(obj)
     assert "Authorization" not in headers
 
 
 def test_api_connector_prepare_headers_no_key():
-    conn = _make_connector_stub(base_url="https://x.com")
-    headers = conn._prepare_headers(auth="header")
+    from fudster.api.api_connector import APIConnector
+    obj = _make_connector_attrs()
+    headers = APIConnector._prepare_headers(obj, auth="header")
     assert "Authorization" not in headers
 
 
 def test_api_connector_attributes():
-    conn = _make_connector_stub(base_url="https://api.example.com", key="tk")
-    assert conn.base_url == "https://api.example.com"
-    assert conn.key == "tk"
+    obj = _make_connector_attrs(
+        base_url="https://api.example.com", key="tk",
+    )
+    assert obj.base_url == "https://api.example.com"
+    assert obj.key == "tk"
