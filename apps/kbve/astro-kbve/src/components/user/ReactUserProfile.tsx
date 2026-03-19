@@ -1,9 +1,10 @@
 // ReactUserProfile - User profile dashboard with Supabase auth
 // Fetches enriched profile data from /api/v1/profile/me
 // Uses localStorage for client-side caching
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { initSupa, getSupa } from '@/lib/supa';
 import { useAuthBridge } from '@/components/auth';
+import UsernameSetup from './UsernameSetup';
 import {
 	User,
 	Settings,
@@ -667,6 +668,29 @@ export default function ReactUserProfile() {
 						</div>
 					</div>
 				</header>
+
+				{/* Username setup prompt — shown when user has no username */}
+				{apiProfile &&
+					!apiProfile.username &&
+					session?.access_token && (
+						<UsernameSetup
+							accessToken={session.access_token}
+							onComplete={(newUsername) => {
+								// Update the local profile state with the new username
+								setApiProfile((prev) =>
+									prev
+										? {
+												...prev,
+												username: newUsername,
+												profile_exists: true,
+											}
+										: prev,
+								);
+								// Invalidate cache so next load fetches fresh data
+								clearProfileCache();
+							}}
+						/>
+					)}
 
 				{/* Connection Status Indicator */}
 				<div style={styles.statusBar}>
