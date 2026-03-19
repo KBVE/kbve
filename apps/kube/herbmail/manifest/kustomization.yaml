@@ -3,7 +3,7 @@ kind: Kustomization
 namespace: herbmail
 
 resources:
-  - herbmail-serviceaccount.yaml
-  - herbmail-externalsecret.yaml
-  - herbmail-deployment.yaml
-  - nginx-ingress.yaml
+    - herbmail-serviceaccount.yaml
+    - herbmail-externalsecret.yaml
+    - herbmail-deployment.yaml
+    - httproute.yaml

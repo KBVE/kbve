@@ -5,4 +5,4 @@ namespace: cryptothrone
 resources:
     - cryptothrone-serviceaccount.yaml
     - cryptothrone-deployment.yaml
-    - cryptothrone-ingress.yaml
+    - httproute.yaml

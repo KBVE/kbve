@@ -59,5 +59,12 @@ gatewayAPI:
     enableAlpn: true
     enableAppProtocol: true
 
+# L2 announcements — replaces MetalLB
+l2announcements:
+    enabled: true
+
+externalIPs:
+    enabled: true
+
 operator:
     replicas: 1

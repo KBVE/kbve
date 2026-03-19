@@ -12,5 +12,3 @@ resources:
     - kbve-deployment.yaml
     - kbve-wt-lb.yaml
     - kbve-gateway.yaml
-    - nginx-ingress.yaml
-    - kbve-ws-ingress.yaml
