@@ -1,0 +1,138 @@
+{
+	"docker": [
+		{
+			"key": "astro_kbve",
+			"app_name": "axum-kbve"
+		},
+		{
+			"key": "cryptothrone",
+			"app_name": "cryptothrone"
+		},
+		{
+			"key": "discordsh",
+			"app_name": "discordsh"
+		},
+		{
+			"key": "edge",
+			"app_name": "edge"
+		},
+		{
+			"key": "herbmail",
+			"app_name": "herbmail"
+		},
+		{
+			"key": "irc_gateway",
+			"app_name": "irc-gateway"
+		},
+		{
+			"key": "kilobase",
+			"app_name": "kilobase"
+		},
+		{
+			"key": "mc",
+			"app_name": "mc"
+		},
+		{
+			"key": "memes",
+			"app_name": "memes"
+		}
+	],
+	"npm": [
+		{
+			"key": "devops",
+			"package_name": "devops"
+		},
+		{
+			"key": "droid",
+			"package_name": "droid"
+		},
+		{
+			"key": "khashvault",
+			"package_name": "khashvault"
+		},
+		{
+			"key": "laser",
+			"package_name": "laser"
+		}
+	],
+	"crates": [
+		{
+			"key": "erust_crate",
+			"package_name": "erust"
+		},
+		{
+			"key": "holy_crate",
+			"package_name": "holy"
+		},
+		{
+			"key": "jedi_crate",
+			"package_name": "jedi"
+		},
+		{
+			"key": "kbve_crate",
+			"package_name": "kbve"
+		},
+		{
+			"key": "q_crate",
+			"package_name": "q"
+		},
+		{
+			"key": "soul_crate",
+			"package_name": "soul"
+		}
+	],
+	"python": [
+		{
+			"key": "py_lib_fudster",
+			"package_name": "python-fudster",
+			"pypi_name": "fudster"
+		},
+		{
+			"key": "py_lib_kbve",
+			"package_name": "python-kbve",
+			"pypi_name": "kbve"
+		}
+	],
+	"unreal": [
+		{
+			"key": "ue_kbvesqlite",
+			"plugin_name": "KBVESQLite",
+			"plugin_path": "packages/unreal/KBVESQLite"
+		},
+		{
+			"key": "ue_kbvewasm",
+			"plugin_name": "KBVEWASM",
+			"plugin_path": "packages/unreal/KBVEWASM"
+		},
+		{
+			"key": "ue_kbvexxhash",
+			"plugin_name": "KBVEXXHash",
+			"plugin_path": "packages/unreal/KBVEXXHash"
+		},
+		{
+			"key": "ue_kbveyyjson",
+			"plugin_name": "KBVEYYJson",
+			"plugin_path": "packages/unreal/KBVEYYJson"
+		},
+		{
+			"key": "ue_kbvezstd",
+			"plugin_name": "KBVEZstd",
+			"plugin_path": "packages/unreal/KBVEZstd"
+		},
+		{
+			"key": "ue_devops",
+			"plugin_name": "UEDevOps",
+			"plugin_path": "packages/unreal/UEDevOps",
+			"dependency_plugins": "packages/unreal/KBVEYYJson packages/unreal/KBVEXXHash packages/unreal/KBVEZstd",
+			"itch_game_id": "uedevops"
+		}
+	],
+	"summary": {
+		"docker": 9,
+		"npm": 4,
+		"crates": 6,
+		"python": 2,
+		"unreal": 6,
+		"total": 27
+	}
+}
