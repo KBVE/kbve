@@ -569,3 +569,49 @@ def test_grpc_compile_help():
     assert "--proto-path" in result.output
     assert "--grpc-out" in result.output
     assert "--pyi-out" in result.output
+
+
+# ── claude subgroup ──────────────────────────────────────────────────
+
+def test_claude_help():
+    runner = CliRunner()
+    result = runner.invoke(main, ["claude", "--help"])
+    assert result.exit_code == 0
+    assert "usage" in result.output
+    assert "version" in result.output
+    assert "status" in result.output
+
+
+def test_claude_version():
+    runner = CliRunner()
+    result = runner.invoke(main, ["claude", "version"])
+    # Should work if claude is installed, or fail gracefully
+    assert isinstance(result.output, str)
+
+
+def test_claude_usage_json():
+    runner = CliRunner()
+    result = runner.invoke(main, ["claude", "usage", "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert "available" in data
+    assert "cost_usd" in data
+    assert "error" in data
+
+
+def test_claude_status_json():
+    runner = CliRunner()
+    result = runner.invoke(main, ["claude", "status", "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert "installed" in data
+    assert "version" in data
+    assert "usage_available" in data
+
+
+def test_claude_usage_help():
+    runner = CliRunner()
+    result = runner.invoke(main, ["claude", "usage", "--help"])
+    assert result.exit_code == 0
+    assert "--json" in result.output
+    assert "--timeout" in result.output
