@@ -74,7 +74,16 @@ Cluster: Talos Linux, Kubernetes 1.32.1, single /32 external IP (142.132.206.74)
 
 ---
 
-## Phase 1: Cilium as CNI + WireGuard (replace flannel)
+## Phase 1: Cilium as CNI + WireGuard (replace flannel) — COMPLETED 2026-03-19
+
+**Status:** COMPLETE. Cilium is the active CNI with kubeProxyReplacement and WireGuard encryption.
+
+### Lessons Learned
+
+1. **Do NOT set `kubeProxyReplacement: true` before the CNI swap.** Cilium and kube-proxy both try to bind the same health check NodePorts, causing cluster-wide DNS failures. Deploy Cilium with `kubeProxyReplacement: false` first, then flip to `true` at the same time as the Talos patch.
+2. **Pin `kubelet.nodeIP.validSubnets` when adding secondary IPs.** Without this, kubelet advertises the secondary IP as InternalIP. The API server can't reach kubelet on the wrong IP, breaking logs/exec/port-forward and causing pods to get stuck in Pending/ContainerCreating.
+3. **Cilium attaches eBPF programs to all interfaces even when flannel is the active CNI.** This can interfere with flannel's routing. The ideal sequence is: deploy Cilium → apply Talos CNI patch → restart all pods.
+4. **Restart all pods after the CNI swap.** Existing pods keep stale flannel networking. A rolling restart of all deployments/statefulsets is required.
 
 **Goal:** Swap the CNI to Cilium with WireGuard pod-to-pod encryption. No ingress changes. nginx stays.
 
