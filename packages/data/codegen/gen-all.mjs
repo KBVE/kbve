@@ -58,6 +58,11 @@ const protos = [
 		protoFile: 'kbve/discordsh.proto',
 		package: 'kbve.discordsh',
 	},
+	{
+		name: 'ci_registry',
+		protoFile: 'kbve/ci_registry.proto',
+		package: 'kbve.ci',
+	},
 ];
 
 // Optional filter: pass a proto name as CLI arg to regenerate only that one
