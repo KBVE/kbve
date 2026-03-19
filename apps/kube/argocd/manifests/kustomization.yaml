@@ -4,6 +4,7 @@ resources:
     - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
     - ingress.yaml
     - argocd-server-cert.yaml
+    - httproute.yaml
 patches:
     - path: patch-argocd-cm-cert-health.yaml
       target:

@@ -3,7 +3,7 @@ kind: Kustomization
 namespace: memes
 
 resources:
-  - memes-serviceaccount.yaml
-  - memes-externalsecret.yaml
-  - memes-deployment.yaml
-  - nginx-ingress.yaml
+    - memes-serviceaccount.yaml
+    - memes-externalsecret.yaml
+    - memes-deployment.yaml
+    - httproute.yaml

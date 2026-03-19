@@ -6,4 +6,4 @@ resources:
     - rentearth-serviceaccount.yaml
     - rentearth-externalsecret.yaml
     - rentearth-deployment.yaml
-    - nginx-ingress.yaml
+    - httproute.yaml

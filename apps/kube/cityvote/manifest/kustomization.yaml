@@ -3,5 +3,5 @@ kind: Kustomization
 namespace: cityvote
 
 resources:
-  - cityvote-deployment.yaml
-  - nginx-ingress.yaml
+    - cityvote-deployment.yaml
+    - httproute.yaml
