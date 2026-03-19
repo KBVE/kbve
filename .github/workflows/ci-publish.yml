@@ -282,6 +282,53 @@ jobs:
             butler_api: ${{ secrets.butler_api }}
 
     # ---------------------------------------------------------------------------
+    # Post-publish — update version.toml after successful publish.
+    # Uses the version_gate output to know what version was published.
+    # Unreal handles its own version.toml update inside utils-unreal-plugin-cicd.yml.
+    # ---------------------------------------------------------------------------
+    update_version_npm:
+        name: Update version.toml (npm)
+        needs: [publish_npm, version_gate]
+        if: always() && needs.publish_npm.result == 'success' && needs.version_gate.outputs.should_publish == 'true'
+        permissions:
+            contents: write
+            pull-requests: write
+        uses: KBVE/kbve/.github/workflows/utils-update-version-toml.yml@dev
+        with:
+            package_type: npm
+            package_name: ${{ inputs.package_name }}
+            version: ${{ needs.version_gate.outputs.local_version }}
+            version_toml_path: packages/npm/${{ inputs.package_name }}/version.toml
+
+    update_version_crates:
+        name: Update version.toml (crates)
+        needs: [publish_crates, version_gate]
+        if: always() && needs.publish_crates.result == 'success' && needs.version_gate.outputs.should_publish == 'true'
+        permissions:
+            contents: write
+            pull-requests: write
+        uses: KBVE/kbve/.github/workflows/utils-update-version-toml.yml@dev
+        with:
+            package_type: crates
+            package_name: ${{ inputs.package_name }}
+            version: ${{ needs.version_gate.outputs.local_version }}
+            version_toml_path: packages/rust/${{ inputs.package_name }}/version.toml
+
+    update_version_python:
+        name: Update version.toml (python)
+        needs: [publish_python, version_gate]
+        if: always() && needs.publish_python.result == 'success' && needs.version_gate.outputs.should_publish == 'true'
+        permissions:
+            contents: write
+            pull-requests: write
+        uses: KBVE/kbve/.github/workflows/utils-update-version-toml.yml@dev
+        with:
+            package_type: python
+            package_name: ${{ inputs.package_name }}
+            version: ${{ needs.version_gate.outputs.local_version }}
+            version_toml_path: packages/python/${{ inputs.pypi_name }}/version.toml
+
+    # ---------------------------------------------------------------------------
     # Failure Tracker — opens a GitHub issue on any pipeline failure (#8186).
     # Per-package job_name makes the issue title actionable.
     # ---------------------------------------------------------------------------
