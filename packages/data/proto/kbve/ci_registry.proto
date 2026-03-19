@@ -46,6 +46,9 @@ message CiProject {
   optional string description = 11;         // Short description for docs
   repeated string tags = 12;                // Categorization tags
   optional string source_path = 13;         // Path to source directory relative to repo root
+
+  // --- CI version tracking ---
+  optional string version_toml = 14;        // Path to version.toml relative to repo root
 }
 
 // The full registry — a flat list of all tracked items.

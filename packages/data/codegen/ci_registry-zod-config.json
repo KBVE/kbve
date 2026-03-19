@@ -33,6 +33,7 @@
 		"kbve.ci.CiProject.package_name": "z.string().min(1).max(64).optional()",
 		"kbve.ci.CiProject.pypi_name": "z.string().min(1).max(64).optional()",
 		"kbve.ci.CiProject.plugin_name": "z.string().min(1).max(64).optional()",
-		"kbve.ci.CiProject.itch_game_id": "z.string().min(1).max(64).optional()"
+		"kbve.ci.CiProject.itch_game_id": "z.string().min(1).max(64).optional()",
+		"kbve.ci.CiProject.version_toml": "z.string().max(256).optional()"
 	}
 }

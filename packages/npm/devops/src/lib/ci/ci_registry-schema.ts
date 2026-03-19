@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/ci_registry.binpb
  * Config: ../ci_registry-zod-config.json
- * Generated: 2026-03-19T00:54:04.143Z
+ * Generated: 2026-03-19T07:38:04.799Z
  */
 
 import { z } from 'zod';
@@ -51,6 +51,7 @@ export const CiProjectSchema = z.object({
 		.max(20, 'Maximum 20 tags')
 		.optional(),
 	source_path: z.string().max(256).optional(),
+	version_toml: z.string().max(256).optional(),
 });
 
 export type CiProject = z.infer<typeof CiProjectSchema>;
