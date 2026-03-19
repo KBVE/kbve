@@ -1,0 +1,25 @@
+[package]
+name = "kbve-desktop"
+version = "0.1.0"
+edition = "2021"
+description = "KBVE cross-platform desktop application — Tauri 2 + React"
+repository = "https://github.com/KBVE/kbve"
+license = "MIT"
+
+[lib]
+name = "kbve_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "kbve-desktop"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+tauri-plugin-store = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
