@@ -102,8 +102,8 @@ CREATE POLICY "authenticated_select_profiles" ON meme.meme_user_profiles
 
 CREATE POLICY "authenticated_update_own_profile" ON meme.meme_user_profiles
     FOR UPDATE TO authenticated
-    USING (user_id = auth.uid())
-    WITH CHECK (user_id = auth.uid());
+    USING (user_id = (select auth.uid()))
+    WITH CHECK (user_id = (select auth.uid()));
 
 -- Profile INSERT is service_role only (auto-created on first login)
 GRANT SELECT ON meme.meme_user_profiles TO anon;
@@ -180,11 +180,11 @@ CREATE POLICY "authenticated_select_follows" ON meme.meme_follows
 
 CREATE POLICY "authenticated_insert_own_follow" ON meme.meme_follows
     FOR INSERT TO authenticated
-    WITH CHECK (follower_id = auth.uid());
+    WITH CHECK (follower_id = (select auth.uid()));
 
 CREATE POLICY "authenticated_delete_own_follow" ON meme.meme_follows
     FOR DELETE TO authenticated
-    USING (follower_id = auth.uid());
+    USING (follower_id = (select auth.uid()));
 
 GRANT SELECT ON meme.meme_follows TO anon;
 GRANT SELECT, INSERT, DELETE ON meme.meme_follows TO authenticated;
@@ -264,20 +264,20 @@ CREATE POLICY "anon_select_public_collections" ON meme.meme_collections
 
 CREATE POLICY "authenticated_select_public_and_own" ON meme.meme_collections
     FOR SELECT TO authenticated
-    USING (is_public = true OR owner_id = auth.uid());
+    USING (is_public = true OR owner_id = (select auth.uid()));
 
 CREATE POLICY "authenticated_insert_own_collection" ON meme.meme_collections
     FOR INSERT TO authenticated
-    WITH CHECK (owner_id = auth.uid());
+    WITH CHECK (owner_id = (select auth.uid()));
 
 CREATE POLICY "authenticated_update_own_collection" ON meme.meme_collections
     FOR UPDATE TO authenticated
-    USING (owner_id = auth.uid())
-    WITH CHECK (owner_id = auth.uid());
+    USING (owner_id = (select auth.uid()))
+    WITH CHECK (owner_id = (select auth.uid()));
 
 CREATE POLICY "authenticated_delete_own_collection" ON meme.meme_collections
     FOR DELETE TO authenticated
-    USING (owner_id = auth.uid());
+    USING (owner_id = (select auth.uid()));
 
 GRANT SELECT ON meme.meme_collections TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON meme.meme_collections TO authenticated;
@@ -357,15 +357,15 @@ CREATE POLICY "service_role_full_access" ON meme.meme_saves
 
 CREATE POLICY "authenticated_select_own_saves" ON meme.meme_saves
     FOR SELECT TO authenticated
-    USING (user_id = auth.uid());
+    USING (user_id = (select auth.uid()));
 
 CREATE POLICY "authenticated_insert_own_save" ON meme.meme_saves
     FOR INSERT TO authenticated
-    WITH CHECK (user_id = auth.uid());
+    WITH CHECK (user_id = (select auth.uid()));
 
 CREATE POLICY "authenticated_delete_own_save" ON meme.meme_saves
     FOR DELETE TO authenticated
-    USING (user_id = auth.uid());
+    USING (user_id = (select auth.uid()));
 
 GRANT SELECT, INSERT, DELETE ON meme.meme_saves TO authenticated;
 

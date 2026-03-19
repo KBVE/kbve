@@ -81,16 +81,16 @@ CREATE POLICY "authenticated_select_reactions" ON meme.meme_reactions
 
 CREATE POLICY "authenticated_insert_own_reaction" ON meme.meme_reactions
     FOR INSERT TO authenticated
-    WITH CHECK (user_id = auth.uid());
+    WITH CHECK (user_id = (select auth.uid()));
 
 CREATE POLICY "authenticated_update_own_reaction" ON meme.meme_reactions
     FOR UPDATE TO authenticated
-    USING (user_id = auth.uid())
-    WITH CHECK (user_id = auth.uid());
+    USING (user_id = (select auth.uid()))
+    WITH CHECK (user_id = (select auth.uid()));
 
 CREATE POLICY "authenticated_delete_own_reaction" ON meme.meme_reactions
     FOR DELETE TO authenticated
-    USING (user_id = auth.uid());
+    USING (user_id = (select auth.uid()));
 
 GRANT SELECT ON meme.meme_reactions TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON meme.meme_reactions TO authenticated;
@@ -214,16 +214,16 @@ CREATE POLICY "authenticated_select_comments" ON meme.meme_comments
 
 CREATE POLICY "authenticated_insert_own_comment" ON meme.meme_comments
     FOR INSERT TO authenticated
-    WITH CHECK (author_id = auth.uid());
+    WITH CHECK (author_id = (select auth.uid()));
 
 CREATE POLICY "authenticated_update_own_comment" ON meme.meme_comments
     FOR UPDATE TO authenticated
-    USING (author_id = auth.uid())
-    WITH CHECK (author_id = auth.uid());
+    USING (author_id = (select auth.uid()))
+    WITH CHECK (author_id = (select auth.uid()));
 
 CREATE POLICY "authenticated_delete_own_comment" ON meme.meme_comments
     FOR DELETE TO authenticated
-    USING (author_id = auth.uid());
+    USING (author_id = (select auth.uid()));
 
 GRANT SELECT ON meme.meme_comments TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON meme.meme_comments TO authenticated;

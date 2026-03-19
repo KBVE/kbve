@@ -428,16 +428,16 @@ CREATE POLICY "anon_select_published" ON meme.memes
 
 CREATE POLICY "authenticated_select_published_and_own" ON meme.memes
     FOR SELECT TO authenticated
-    USING (status = 3 OR author_id = auth.uid());
+    USING (status = 3 OR author_id = (select auth.uid()));
 
 CREATE POLICY "authenticated_insert_own" ON meme.memes
     FOR INSERT TO authenticated
-    WITH CHECK (author_id = auth.uid() AND status = 1);
+    WITH CHECK (author_id = (select auth.uid()) AND status = 1);
 
 CREATE POLICY "authenticated_update_own" ON meme.memes
     FOR UPDATE TO authenticated
-    USING (author_id = auth.uid())
-    WITH CHECK (author_id = auth.uid());
+    USING (author_id = (select auth.uid()))
+    WITH CHECK (author_id = (select auth.uid()));
 
 GRANT SELECT ON meme.memes TO anon;
 GRANT SELECT, INSERT, UPDATE ON meme.memes TO authenticated;

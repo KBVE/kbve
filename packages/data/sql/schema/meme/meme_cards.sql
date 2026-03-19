@@ -142,20 +142,20 @@ CREATE POLICY "service_role_full_access" ON meme.meme_decks
 
 CREATE POLICY "authenticated_select_own_decks" ON meme.meme_decks
     FOR SELECT TO authenticated
-    USING (owner_id = auth.uid());
+    USING (owner_id = (select auth.uid()));
 
 CREATE POLICY "authenticated_insert_own_deck" ON meme.meme_decks
     FOR INSERT TO authenticated
-    WITH CHECK (owner_id = auth.uid());
+    WITH CHECK (owner_id = (select auth.uid()));
 
 CREATE POLICY "authenticated_update_own_deck" ON meme.meme_decks
     FOR UPDATE TO authenticated
-    USING (owner_id = auth.uid())
-    WITH CHECK (owner_id = auth.uid());
+    USING (owner_id = (select auth.uid()))
+    WITH CHECK (owner_id = (select auth.uid()));
 
 CREATE POLICY "authenticated_delete_own_deck" ON meme.meme_decks
     FOR DELETE TO authenticated
-    USING (owner_id = auth.uid());
+    USING (owner_id = (select auth.uid()));
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON meme.meme_decks TO authenticated;
 
@@ -192,21 +192,21 @@ CREATE POLICY "authenticated_select_own_deck_cards" ON meme.meme_deck_cards
     FOR SELECT TO authenticated
     USING (EXISTS (
         SELECT 1 FROM meme.meme_decks d
-        WHERE d.id = deck_id AND d.owner_id = auth.uid()
+        WHERE d.id = deck_id AND d.owner_id = (select auth.uid())
     ));
 
 CREATE POLICY "authenticated_insert_own_deck_cards" ON meme.meme_deck_cards
     FOR INSERT TO authenticated
     WITH CHECK (EXISTS (
         SELECT 1 FROM meme.meme_decks d
-        WHERE d.id = deck_id AND d.owner_id = auth.uid()
+        WHERE d.id = deck_id AND d.owner_id = (select auth.uid())
     ));
 
 CREATE POLICY "authenticated_delete_own_deck_cards" ON meme.meme_deck_cards
     FOR DELETE TO authenticated
     USING (EXISTS (
         SELECT 1 FROM meme.meme_decks d
-        WHERE d.id = deck_id AND d.owner_id = auth.uid()
+        WHERE d.id = deck_id AND d.owner_id = (select auth.uid())
     ));
 
 GRANT SELECT, INSERT, DELETE ON meme.meme_deck_cards TO authenticated;
@@ -311,7 +311,7 @@ CREATE POLICY "service_role_full_access" ON meme.battle_results
 
 CREATE POLICY "authenticated_select_own_battles" ON meme.battle_results
     FOR SELECT TO authenticated
-    USING (player_a_id = auth.uid() OR player_b_id = auth.uid());
+    USING (player_a_id = (select auth.uid()) OR player_b_id = (select auth.uid()));
 
 CREATE POLICY "anon_select_completed_battles" ON meme.battle_results
     FOR SELECT TO anon

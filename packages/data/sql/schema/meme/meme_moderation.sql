@@ -71,11 +71,11 @@ CREATE POLICY "service_role_full_access" ON meme.meme_reports
 
 CREATE POLICY "authenticated_insert_own_report" ON meme.meme_reports
     FOR INSERT TO authenticated
-    WITH CHECK (reporter_id = auth.uid());
+    WITH CHECK (reporter_id = (select auth.uid()));
 
 CREATE POLICY "authenticated_select_own_reports" ON meme.meme_reports
     FOR SELECT TO authenticated
-    USING (reporter_id = auth.uid());
+    USING (reporter_id = (select auth.uid()));
 
 -- No anon access, no UPDATE/DELETE for authenticated (moderation is service_role only)
 GRANT SELECT, INSERT ON meme.meme_reports TO authenticated;
