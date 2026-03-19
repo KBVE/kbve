@@ -270,6 +270,18 @@ wheels = [
 ]
 
 [[package]]
+name = "click"
+version = "8.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3d/fa/656b739db8587d7b5dfa22e22ed02566950fbfbcdc20311993483657a5c0/click-8.3.1.tar.gz", hash = "sha256:12ff4785d337a1bb490bb7e9c2b1ee5da3112e94a8622f26a6c77f5d2fc6842a", size = 295065, upload-time = "2025-11-15T20:45:42.706Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/98/78/01c019cdb5d6498122777c1a43056ebb3ebfeef2076d9d026bfe15583b2b/click-8.3.1-py3-none-any.whl", hash = "sha256:981153a64e25f12d547d3426c367a4857371575ee7ad18df2a6183ab0545b2a6", size = 108274, upload-time = "2025-11-15T20:45:41.139Z" },
+]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -515,8 +527,10 @@ dependencies = [
     { name = "anyio" },
     { name = "beautifulsoup4" },
     { name = "broadcaster" },
+    { name = "click" },
     { name = "fastapi" },
     { name = "jinja2" },
+    { name = "kbve" },
     { name = "lxml" },
     { name = "pydantic" },
     { name = "requests" },
@@ -564,10 +578,12 @@ requires-dist = [
     { name = "anyio", specifier = ">=4.0,<5.0" },
     { name = "beautifulsoup4", specifier = ">=4.12,<5.0" },
     { name = "broadcaster", specifier = ">=0.3,<1.0" },
+    { name = "click", specifier = ">=8.1,<9.0" },
     { name = "fastapi", specifier = ">=0.115,<1.0" },
     { name = "humancursor", marker = "extra == 'all'", specifier = ">=1.1,<2.0" },
     { name = "humancursor", marker = "extra == 'automation'", specifier = ">=1.1,<2.0" },
     { name = "jinja2", specifier = ">=3.0,<4.0" },
+    { name = "kbve", specifier = ">=0.1.0" },
     { name = "lxml", specifier = ">=5.0,<6.0" },
     { name = "numpy", marker = "extra == 'all'", specifier = ">=1.26,<3.0" },
     { name = "numpy", marker = "extra == 'automation'", specifier = ">=1.26,<3.0" },
@@ -674,6 +690,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/e1/db/870e5d5fb311b0bcf049630b5ba3abca2d339fd5e13ba175b4c13b456d08/jwcrypto-1.5.6.tar.gz", hash = "sha256:771a87762a0c081ae6166958a954f80848820b2ab066937dc8b8379d65b1b039", size = 87168, upload-time = "2024-03-06T19:58:31.831Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cd/58/4a1880ea64032185e9ae9f63940c9327c6952d5584ea544a8f66972f2fda/jwcrypto-1.5.6-py3-none-any.whl", hash = "sha256:150d2b0ebbdb8f40b77f543fb44ffd2baeff48788be71f67f03566692fd55789", size = 92520, upload-time = "2024-03-06T19:58:29.765Z" },
+]
+
+[[package]]
+name = "kbve"
+version = "1.0.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/56/df/208758112c93f27a3a46a086f9980648498f8572168a3faf72a1d368f799/kbve-1.0.3.tar.gz", hash = "sha256:43110ce899b444f8eb531bc8544e93312fd1b5f51fa84c6a06b5a345ccf7dfdf", size = 7524, upload-time = "2024-04-09T21:16:40.833Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cd/a5/383721ef41b458edc5cce78c55939adaf98a6a591062d4bf40ef90cc7d6d/kbve-1.0.3-py3-none-any.whl", hash = "sha256:39bb9317c74bc53b5f47346535a5e84a27a2579808b08a4a61de9766c5098a09", size = 9578, upload-time = "2024-04-09T21:16:39.158Z" },
 ]
 
 [[package]]

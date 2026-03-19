@@ -6,6 +6,7 @@ readme = "README.md"
 license = "LicenseRef-Proprietary"
 requires-python = ">=3.12,<3.14"
 dependencies = [
+    "kbve>=0.1.0",
     "pydantic>=1.10,<3.0",
     "fastapi>=0.115,<1.0",
     "broadcaster>=0.3,<1.0",
@@ -15,7 +16,11 @@ dependencies = [
     "aiohttp>=3.9,<4.0",
     "beautifulsoup4>=4.12,<5.0",
     "lxml>=5.0,<6.0",
+    "click>=8.1,<9.0",
 ]
+
+[project.scripts]
+fudster = "fudster.cli:main"
 
 [project.optional-dependencies]
 automation = [
