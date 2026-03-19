@@ -7926,6 +7926,7 @@ dependencies = [
 name = "kbve-desktop"
 version = "0.1.0"
 dependencies = [
+ "dashmap 6.1.0",
  "serde",
  "serde_json",
  "tauri",
@@ -7933,6 +7934,7 @@ dependencies = [
  "tauri-plugin-opener",
  "tauri-plugin-store",
  "tokio",
+ "tokio-util",
 ]
 
 [[package]]
@@ -16522,6 +16524,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-sink",
+ "futures-util",
  "pin-project-lite",
  "tokio",
 ]
