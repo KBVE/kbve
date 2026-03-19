@@ -57,6 +57,7 @@ resources:
     - github/controller/application.yaml
     - github/runners/application.yaml
 
-    # Cilium CNI + WireGuard (Phase 0 — ArgoCD discovers the app,
-    # but CNI swap requires Talos machine config patch in Phase 1)
+    # Gateway API CRDs (must sync before Cilium — sync-wave: -1)
+    - gateway-api/application.yaml
+    # Cilium CNI + WireGuard + Gateway API (Phase 1 complete)
     - cilium/application.yaml

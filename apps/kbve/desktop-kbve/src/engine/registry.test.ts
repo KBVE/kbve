@@ -40,7 +40,7 @@ describe('View Registry', () => {
 	it('retrieves a view by id', () => {
 		const view = getView('test-view');
 		expect(view).toBeDefined();
-		expect(view!.label).toBe('Test');
+		expect(view?.label).toBe('Test');
 	});
 
 	it('returns undefined for unknown id', () => {
