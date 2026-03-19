@@ -5,6 +5,7 @@ export type AuthTone = 'loading' | 'auth' | 'anon' | 'error';
 export interface AuthState {
 	tone: AuthTone;
 	name: string;
+	username: string | undefined;
 	avatar: string | undefined;
 	id: string;
 	error: string | undefined;
@@ -13,6 +14,7 @@ export interface AuthState {
 const DEFAULT_AUTH: AuthState = {
 	tone: 'loading',
 	name: '',
+	username: undefined,
 	avatar: undefined,
 	id: '',
 	error: undefined,

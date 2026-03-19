@@ -23,10 +23,12 @@ describe('DroidEventSchemas', () => {
 		expect(keys).toContain('tooltip-closed');
 		expect(keys).toContain('modal-opened');
 		expect(keys).toContain('modal-closed');
+		expect(keys).toContain('auth-ready');
+		expect(keys).toContain('auth-error');
 	});
 
-	it('has exactly 13 event types', () => {
-		expect(Object.keys(DroidEventSchemas)).toHaveLength(13);
+	it('has exactly 15 event types', () => {
+		expect(Object.keys(DroidEventSchemas)).toHaveLength(15);
 	});
 });
 

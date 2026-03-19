@@ -105,7 +105,9 @@ export default function ReactNav() {
 	const tone = auth.tone === 'loading' && error ? 'anon' : auth.tone;
 	const displayName =
 		tone === 'auth'
-			? auth.name
+			? auth.username
+				? `@${auth.username}`
+				: auth.name
 			: tone === 'loading'
 				? 'Loading…'
 				: 'KBVE Guest';
