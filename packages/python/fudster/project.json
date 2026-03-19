@@ -45,7 +45,9 @@
 		},
 		"lint": {
 			"executor": "@nxlv/python:flake8",
-			"outputs": ["{workspaceRoot}/reports/packages/python/fudster/pylint.txt"],
+			"outputs": [
+				"{workspaceRoot}/reports/packages/python/fudster/pylint.txt"
+			],
 			"options": {
 				"outputFile": "reports/packages/python/fudster/pylint.txt"
 			}
@@ -65,6 +67,27 @@
 			],
 			"options": {
 				"command": "uv run pytest tests/",
+				"cwd": "packages/python/fudster"
+			}
+		},
+		"cli": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "uv run fudster",
+				"cwd": "packages/python/fudster"
+			}
+		},
+		"graph-to-mdx": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "uv run fudster nx graph-to-mdx",
+				"cwd": "packages/python/fudster"
+			}
+		},
+		"security-to-mdx": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "uv run fudster nx security-to-mdx",
 				"cwd": "packages/python/fudster"
 			}
 		}
