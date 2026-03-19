@@ -1,4 +1,4 @@
-"""KBVE - Async server library with gRPC and HTTP support."""
+"""KBVE - Core library for async servers, Nx workspace tooling, and MDX rendering."""
 
 from .models.server_models import ServerConfig  # noqa: F401
 from .server.app_server import AppServer  # noqa: F401

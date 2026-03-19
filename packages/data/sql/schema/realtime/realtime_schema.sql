@@ -128,7 +128,7 @@ ON public.realtime_messages
 FOR INSERT
 TO authenticated
 WITH CHECK (
-    auth.uid() = user_id
+    (select auth.uid()) = user_id
 );
 
 -- Users can update their own messages
@@ -137,10 +137,10 @@ ON public.realtime_messages
 FOR UPDATE
 TO authenticated
 USING (
-    auth.uid() = user_id
+    (select auth.uid()) = user_id
 )
 WITH CHECK (
-    auth.uid() = user_id
+    (select auth.uid()) = user_id
 );
 
 -- Users can delete their own messages
@@ -149,7 +149,7 @@ ON public.realtime_messages
 FOR DELETE
 TO authenticated
 USING (
-    auth.uid() = user_id
+    (select auth.uid()) = user_id
 );
 
 -- Admin override policy (for system messages)

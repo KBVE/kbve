@@ -76,6 +76,82 @@ jobs:
                   fi
                   echo "Queue age OK: ${AGE}s"
 
+    # ---------------------------------------------------------------------------
+    # Version Gate — check if the version is already published.
+    # Tests always run. Publish jobs only run when should_publish == 'true'.
+    # This prevents wasted runner time and "already published" failures (#8270).
+    # ---------------------------------------------------------------------------
+    version_gate:
+        name: Version Gate
+        needs: [queue_guard]
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        outputs:
+            should_publish: ${{ steps.check.outputs.should_publish }}
+            local_version: ${{ steps.check.outputs.local_version }}
+            registry_version: ${{ steps.check.outputs.registry_version }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Check version against registry
+              id: check
+              run: |
+                  TYPE="${{ inputs.package_type }}"
+                  NAME="${{ inputs.package_name }}"
+                  LOCAL=""
+                  REGISTRY=""
+
+                  case "$TYPE" in
+                    npm)
+                      LOCAL=$(jq -r '.version' "packages/npm/${NAME}/package.json")
+                      REGISTRY=$(curl -sf "https://registry.npmjs.org/@kbve/${NAME}/latest" \
+                        | jq -r '.version // "0.0.0"' 2>/dev/null || echo "0.0.0")
+                      ;;
+                    crates)
+                      LOCAL=$(grep -m1 '^version' "packages/rust/${NAME}/Cargo.toml" \
+                        | sed 's/version = "\(.*\)"/\1/')
+                      REGISTRY=$(curl -sf "https://crates.io/api/v1/crates/${NAME}" \
+                        | jq -r '.crate.max_version // "0.0.0"' 2>/dev/null || echo "0.0.0")
+                      ;;
+                    python)
+                      PYPI="${{ inputs.pypi_name }}"
+                      LOCAL=$(grep -m1 '^version' "packages/python/${PYPI}/pyproject.toml" \
+                        | sed 's/version = "\(.*\)"/\1/')
+                      REGISTRY=$(curl -sf "https://pypi.org/pypi/${PYPI}/json" \
+                        | jq -r '.info.version // "0.0.0"' 2>/dev/null || echo "0.0.0")
+                      ;;
+                    unreal)
+                      UPLUGIN="${{ inputs.unreal_plugin_path }}/${NAME}.uplugin"
+                      LOCAL=$(jq -r '.VersionName' "$UPLUGIN" 2>/dev/null || echo "0.0.0")
+                      # Unreal uses version.toml as published version tracker
+                      VERSION_TOML="${{ inputs.unreal_plugin_path }}/version.toml"
+                      if [ -f "$VERSION_TOML" ]; then
+                        REGISTRY=$(grep -m1 '^version' "$VERSION_TOML" \
+                          | sed 's/version = "\(.*\)"/\1/')
+                      else
+                        REGISTRY="0.0.0"
+                      fi
+                      ;;
+                    *)
+                      echo "::error::Unknown package type: $TYPE"
+                      exit 1
+                      ;;
+                  esac
+
+                  echo "local_version=${LOCAL}" >> "$GITHUB_OUTPUT"
+                  echo "registry_version=${REGISTRY}" >> "$GITHUB_OUTPUT"
+
+                  if [ "$LOCAL" = "$REGISTRY" ]; then
+                    echo "::notice::${TYPE}/${NAME} v${LOCAL} already published — tests will run, publish will be skipped."
+                    echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "::notice::${TYPE}/${NAME} v${LOCAL} is new (registry: ${REGISTRY}) — will publish after tests pass."
+                    echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                  fi
+
     # ===========================================================================
     # NPM — test then publish (only runs when package_type == 'npm')
     # ===========================================================================
@@ -91,8 +167,8 @@ jobs:
 
     publish_npm:
         name: Publish NPM — ${{ inputs.package_name }}
-        needs: [test_npm]
-        if: always() && inputs.package_type == 'npm' && needs.test_npm.result == 'success'
+        needs: [test_npm, version_gate]
+        if: always() && inputs.package_type == 'npm' && needs.test_npm.result == 'success' && needs.version_gate.outputs.should_publish == 'true'
         permissions:
             contents: read
             id-token: write
@@ -117,8 +193,8 @@ jobs:
 
     publish_crates:
         name: Publish Crate — ${{ inputs.package_name }}
-        needs: [test_crates]
-        if: always() && inputs.package_type == 'crates' && needs.test_crates.result == 'success'
+        needs: [test_crates, version_gate]
+        if: always() && inputs.package_type == 'crates' && needs.test_crates.result == 'success' && needs.version_gate.outputs.should_publish == 'true'
         permissions:
             id-token: write
             contents: write
@@ -146,8 +222,8 @@ jobs:
 
     publish_python:
         name: Publish Python — ${{ inputs.package_name }}
-        needs: [test_python]
-        if: always() && inputs.package_type == 'python' && needs.test_python.result == 'success'
+        needs: [test_python, version_gate]
+        if: always() && inputs.package_type == 'python' && needs.test_python.result == 'success' && needs.version_gate.outputs.should_publish == 'true'
         permissions:
             contents: read
             id-token: write
@@ -164,8 +240,8 @@ jobs:
     # ===========================================================================
     publish_unreal:
         name: Publish Unreal — ${{ inputs.package_name }} (${{ matrix.ue_tag }})
-        needs: [queue_guard]
-        if: inputs.package_type == 'unreal'
+        needs: [queue_guard, version_gate]
+        if: inputs.package_type == 'unreal' && needs.version_gate.outputs.should_publish == 'true'
         strategy:
             fail-fast: false
             matrix:
@@ -199,6 +275,7 @@ jobs:
         if: ${{ always() && contains(needs.*.result, 'failure') }}
         needs:
             [
+                version_gate,
                 test_npm,
                 publish_npm,
                 test_crates,

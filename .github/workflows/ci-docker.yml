@@ -51,6 +51,90 @@ jobs:
                   echo "Queue age OK: ${AGE}s"
 
     # ---------------------------------------------------------------------------
+    # Version Gate — check if the image version is already published to GHCR.
+    # Tests always run. Publish + kube update only run when should_publish == 'true'.
+    # Prevents wasted builds when the version hasn't bumped (#8270).
+    # ---------------------------------------------------------------------------
+    version_gate:
+        name: Version Gate
+        needs: [queue_guard]
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+            packages: read
+        outputs:
+            should_publish: ${{ steps.check.outputs.should_publish }}
+            local_version: ${{ steps.check.outputs.local_version }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Check version against GHCR
+              id: check
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  APP="${{ inputs.app_name }}"
+                  LOCAL="unknown"
+
+                  # Resolve the cargo_toml/version source per app
+                  case "$APP" in
+                    axum-kbve)     TOML="apps/kbve/axum-kbve/Cargo.toml" ;;
+                    herbmail)      TOML="apps/herbmail/axum-herbmail/Cargo.toml" ;;
+                    memes)         TOML="apps/memes/axum-memes/Cargo.toml" ;;
+                    irc-gateway)   TOML="apps/irc/irc-gateway/Cargo.toml" ;;
+                    discordsh)     TOML="apps/discordsh/axum-discordsh/Cargo.toml" ;;
+                    mc)            TOML="apps/mc/plugins/kbve-mc-plugin/Cargo.toml" ;;
+                    edge)          TOML="apps/kbve/edge/version.toml" ;;
+                    cryptothrone)  TOML="apps/cryptothrone/axum-cryptothrone/Cargo.toml" ;;
+                    kilobase)      TOML="" ;;
+                    *)
+                      echo "::error::Unknown app: $APP"
+                      exit 1
+                      ;;
+                  esac
+
+                  if [ -n "$TOML" ] && [ -f "$TOML" ]; then
+                    LOCAL=$(grep -m1 '^version' "$TOML" | sed 's/version = "\(.*\)"/\1/')
+                  fi
+
+                  echo "local_version=${LOCAL}" >> "$GITHUB_OUTPUT"
+
+                  # If no version source, always publish (e.g. kilobase)
+                  if [ "$LOCAL" = "unknown" ]; then
+                    echo "::notice::${APP} has no version source — will always publish."
+                    echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  # Resolve GHCR image name
+                  case "$APP" in
+                    axum-kbve)     IMAGE="kbve/kbve" ;;
+                    herbmail)      IMAGE="kbve/herbmail" ;;
+                    memes)         IMAGE="kbve/memes" ;;
+                    irc-gateway)   IMAGE="kbve/irc-gateway" ;;
+                    discordsh)     IMAGE="kbve/discordsh" ;;
+                    mc)            IMAGE="kbve/mc" ;;
+                    edge)          IMAGE="kbve/edge" ;;
+                    cryptothrone)  IMAGE="kbve/cryptothrone" ;;
+                    kilobase)      IMAGE="kbve/kilobase" ;;
+                  esac
+
+                  # Check GHCR for existing tag
+                  STATUS=$(curl -sf -o /dev/null -w "%{http_code}" \
+                    -H "Authorization: Bearer $(echo ${{ github.token }} | base64)" \
+                    "https://ghcr.io/v2/${IMAGE}/manifests/${LOCAL}" 2>/dev/null || echo "000")
+
+                  if [ "$STATUS" = "200" ]; then
+                    echo "::notice::${APP} v${LOCAL} already exists in GHCR — tests will run, publish will be skipped."
+                    echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "::notice::${APP} v${LOCAL} not found in GHCR (HTTP ${STATUS}) — will publish after tests pass."
+                    echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+    # ---------------------------------------------------------------------------
     # Config — resolve all per-app settings from a single case statement.
     # Single source of truth for runner, image, e2e, cargo_toml, kube manifest,
     # and whether a docker-test step should run.
@@ -179,11 +263,12 @@ jobs:
     # ---------------------------------------------------------------------------
     publish:
         name: Publish Docker
-        needs: [config, test]
+        needs: [config, test, version_gate]
         if: |
             always() &&
             !cancelled() &&
             needs.config.result == 'success' &&
+            needs.version_gate.outputs.should_publish == 'true' &&
             (needs.test.result == 'success' || needs.test.result == 'skipped')
         permissions:
             contents: read
@@ -227,7 +312,7 @@ jobs:
     track_failure:
         name: Track Failures
         if: ${{ always() && contains(needs.*.result, 'failure') }}
-        needs: [test, publish, update_kube]
+        needs: [version_gate, test, publish, update_kube]
         permissions:
             issues: write
             contents: read

@@ -94,6 +94,13 @@
 				"command": "rm -rf apps/kbve/astro-kbve/src/generated/proto && mkdir -p apps/kbve/astro-kbve/src/generated/proto",
 				"cwd": "{workspaceRoot}"
 			}
+		},
+		"sync:ci-manifest": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "node -e \"const fs=require('fs');const src='dist/apps/astro-kbve/api/ci-registry.json';const dst='.github/ci-dispatch-manifest.json';if(!fs.existsSync(src)){console.error('Build output not found — run astro-kbve:build first');process.exit(1);}const data=JSON.parse(fs.readFileSync(src,'utf8'));const{index,...manifest}=data;fs.writeFileSync(dst,JSON.stringify(manifest,null,2)+'\\n');console.log('Wrote',dst,'—',manifest.summary.total,'tracked items');\"",
+				"cwd": "{workspaceRoot}"
+			}
 		}
 	}
 }
