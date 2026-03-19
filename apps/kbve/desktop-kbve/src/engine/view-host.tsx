@@ -262,13 +262,22 @@ function CardPanel({
 					</button>
 				</div>
 			</div>
-			<div className="card-body">
-				<p
-					className="text-xs"
-					style={{ color: 'var(--color-text-muted)' }}>
-					{getView(viewId)?.label ?? viewId} view content
-				</p>
-			</div>
+			<CardContent viewId={viewId} />
+		</div>
+	);
+}
+
+// ─── CardContent ─────────────────────────────────────────────────────────────
+// Renders the actual view component inside a card panel.
+
+function CardContent({ viewId }: { viewId: string }) {
+	const view = getView(viewId);
+	if (!view) return null;
+
+	const Component = view.component;
+	return (
+		<div className="card-body">
+			<Component />
 		</div>
 	);
 }
