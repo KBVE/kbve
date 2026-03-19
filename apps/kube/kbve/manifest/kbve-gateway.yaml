@@ -1,0 +1,62 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+    name: kbve-gateway
+    namespace: kbve
+    annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-dns
+spec:
+    gatewayClassName: cilium
+    # Pin the Envoy proxy pod to dedicated-server nodes only.
+    # Edge/IoT/dev workers should not handle external ingress traffic.
+    infrastructure:
+        labels:
+            node.kbve.com/type: dedicated-server
+    listeners:
+        - name: http
+          protocol: HTTP
+          port: 80
+          hostname: kbve.com
+          allowedRoutes:
+              namespaces:
+                  from: Same
+        - name: https
+          protocol: HTTPS
+          port: 443
+          hostname: kbve.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - name: kbve-gateway-tls
+          allowedRoutes:
+              namespaces:
+                  from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+    name: kbve-routes
+    namespace: kbve
+spec:
+    parentRefs:
+        - name: kbve-gateway
+          namespace: kbve
+    hostnames:
+        - kbve.com
+    rules:
+        # WebSocket route — must come before the catch-all
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /ws
+          backendRefs:
+              - name: kbve-service
+                port: 5000
+        # Default route — HTTP API + Astro frontend
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /
+          backendRefs:
+              - name: kbve-service
+                port: 4321

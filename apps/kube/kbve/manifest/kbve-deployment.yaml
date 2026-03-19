@@ -23,6 +23,15 @@ spec:
                 app: kbve
                 version: '1.0.22'
         spec:
+            affinity:
+                podAntiAffinity:
+                    preferredDuringSchedulingIgnoredDuringExecution:
+                        - weight: 100
+                          podAffinityTerm:
+                              labelSelector:
+                                  matchLabels:
+                                      app: kbve
+                              topologyKey: kubernetes.io/hostname
             containers:
                 - name: kbve
                   image: ghcr.io/kbve/kbve:1.0.64
