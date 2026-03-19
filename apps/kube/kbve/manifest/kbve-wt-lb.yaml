@@ -6,7 +6,8 @@ metadata:
     labels:
         app: kbve
     annotations:
-        lbipam.cilium.io/ips: '142.132.206.71'
+        lbipam.cilium.io/ips: '142.132.206.74'
+        lbipam.cilium.io/sharing-key: kbve-public
 spec:
     type: LoadBalancer
     externalTrafficPolicy: Local
