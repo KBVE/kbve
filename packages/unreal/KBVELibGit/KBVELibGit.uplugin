@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "KBVE LibGit",
+	"Description": "Editor-only Git plugin installer — uses libgit2 to clone, fetch, and manage public GitHub repos as local Unreal plugins.",
+	"Category": "Editor",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"DocsURL": "https://libgit2.org",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": true,
+	"Installed": false,
+	"EnabledByDefault": false,
+	"Modules": [
+		{
+			"Name": "KBVELibGit",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit"
+		}
+	]
+}
