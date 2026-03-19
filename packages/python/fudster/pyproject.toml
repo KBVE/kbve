@@ -1,6 +1,6 @@
 [project]
 name = "fudster"
-version = "0.1.0"
+version = "1.0.3"
 description = "Fudster - A composable ML library for haystack-ai and pgvector integrations"
 readme = "README.md"
 license = "LicenseRef-Proprietary"
