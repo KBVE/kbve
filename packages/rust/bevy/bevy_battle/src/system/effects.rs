@@ -6,6 +6,7 @@ use crate::component::*;
 use crate::event::*;
 
 /// Tick all active effects on all combatants.
+#[allow(clippy::type_complexity)]
 pub fn tick_effects_system(
     mut requests: MessageReader<TickEffectsRequest>,
     mut outcomes: MessageWriter<CombatOutcome>,

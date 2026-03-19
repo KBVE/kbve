@@ -5,21 +5,12 @@ use bevy::prelude::*;
 use crate::registry::SkillId;
 
 /// A single skill's state on an entity.
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 pub struct SkillEntry {
     /// Total accumulated XP.
     pub total_xp: u64,
     /// Current computed level (cached, updated by the XP system).
     pub level: u32,
-}
-
-impl Default for SkillEntry {
-    fn default() -> Self {
-        Self {
-            total_xp: 0,
-            level: 0,
-        }
-    }
 }
 
 /// Component holding all skill data for a single entity (player, NPC, etc.).
@@ -66,11 +57,6 @@ impl SkillProfile {
         if let Some(entry) = self.skills.get_mut(&id) {
             entry.level = level;
         }
-    }
-
-    /// Get a mutable reference to a skill entry, creating it if needed.
-    pub(crate) fn entry_mut(&mut self, id: SkillId) -> &mut SkillEntry {
-        self.skills.entry(id).or_default()
     }
 
     /// Iterate over all trained skills.

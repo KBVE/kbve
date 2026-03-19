@@ -9,6 +9,7 @@ use crate::resource::*;
 use crate::types::*;
 
 /// Resolve player attack intents.
+#[allow(clippy::type_complexity)]
 pub fn attack_system(
     mut intents: MessageReader<AttackIntent>,
     mut outcomes: MessageWriter<CombatOutcome>,
@@ -302,17 +303,17 @@ pub fn use_item_system(
                 }
             }
             UseEffect::DamageEnemy { amount } => {
-                if let Some(target) = intent.target {
-                    if let Ok((_name, mut hp, _effects)) = combatants.get_mut(target) {
-                        hp.take_damage(*amount);
-                        outcomes.write(CombatOutcome::Attack {
-                            attacker: intent.user,
-                            target,
-                            damage: *amount,
-                            crit: false,
-                            overkill: hp.is_dead(),
-                        });
-                    }
+                if let Some(target) = intent.target
+                    && let Ok((_name, mut hp, _effects)) = combatants.get_mut(target)
+                {
+                    hp.take_damage(*amount);
+                    outcomes.write(CombatOutcome::Attack {
+                        attacker: intent.user,
+                        target,
+                        damage: *amount,
+                        crit: false,
+                        overkill: hp.is_dead(),
+                    });
                 }
             }
             UseEffect::ApplyEffect {
@@ -356,28 +357,28 @@ pub fn use_item_system(
                 stacks,
                 turns,
             } => {
-                if let Some(target) = intent.target {
-                    if let Ok((_name, mut hp, mut effects)) = combatants.get_mut(target) {
-                        hp.take_damage(*damage);
-                        effects.add(EffectInstance {
-                            kind: *kind,
-                            stacks: *stacks,
-                            turns_left: *turns,
-                        });
-                        outcomes.write(CombatOutcome::Attack {
-                            attacker: intent.user,
-                            target,
-                            damage: *damage,
-                            crit: false,
-                            overkill: hp.is_dead(),
-                        });
-                        outcomes.write(CombatOutcome::EffectApplied {
-                            target,
-                            effect: *kind,
-                            stacks: *stacks,
-                            turns: *turns,
-                        });
-                    }
+                if let Some(target) = intent.target
+                    && let Ok((_name, mut hp, mut effects)) = combatants.get_mut(target)
+                {
+                    hp.take_damage(*damage);
+                    effects.add(EffectInstance {
+                        kind: *kind,
+                        stacks: *stacks,
+                        turns_left: *turns,
+                    });
+                    outcomes.write(CombatOutcome::Attack {
+                        attacker: intent.user,
+                        target,
+                        damage: *damage,
+                        crit: false,
+                        overkill: hp.is_dead(),
+                    });
+                    outcomes.write(CombatOutcome::EffectApplied {
+                        target,
+                        effect: *kind,
+                        stacks: *stacks,
+                        turns: *turns,
+                    });
                 }
             }
             // Session-level effects handled by bridge: GuaranteedFlee, CampfireRest, TeleportCity, ReviveAlly

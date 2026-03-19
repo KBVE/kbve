@@ -185,6 +185,7 @@ pub struct CameraUpdate;
 
 // ── Plugin ──────────────────────────────────────────────────────────────
 
+#[derive(Default)]
 pub struct IsometricCameraPlugin {
     config: CameraConfig,
 }
@@ -192,14 +193,6 @@ pub struct IsometricCameraPlugin {
 impl IsometricCameraPlugin {
     pub fn new(config: CameraConfig) -> Self {
         Self { config }
-    }
-}
-
-impl Default for IsometricCameraPlugin {
-    fn default() -> Self {
-        Self {
-            config: CameraConfig::default(),
-        }
     }
 }
 
