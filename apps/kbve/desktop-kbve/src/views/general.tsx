@@ -1,12 +1,27 @@
 import { SettingsCard } from '../components/SettingsCard';
 import { SettingsRow } from '../components/SettingsRow';
 import { ToggleSwitch } from '../components/ToggleSwitch';
+import { ViewStatusBadge } from '../components/ViewStatus';
 import { Slot } from '../engine';
+import { useViewBridge } from '../engine/use-view-bridge';
 import { useSettingsStore } from '../stores/settings';
 
 export function GeneralView() {
+	const bridge = useViewBridge('general');
+
 	return (
 		<div className="flex max-w-2xl flex-col gap-6">
+			<div className="flex items-center justify-between">
+				<ViewStatusBadge status={bridge.status} />
+				{bridge.loading && (
+					<span
+						className="text-xs"
+						style={{ color: 'var(--color-text-muted)' }}>
+						Connecting...
+					</span>
+				)}
+			</div>
+
 			<SettingsCard title="Appearance">
 				<SettingsRow
 					label="Theme"
