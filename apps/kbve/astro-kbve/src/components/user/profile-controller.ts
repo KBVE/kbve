@@ -8,7 +8,7 @@
  * States: loading → unauthenticated | username-setup | profile
  */
 
-import { $auth, setAuth } from '@kbve/droid';
+import { setAuth } from '@kbve/droid';
 import { initSupa, getSupa } from '@/lib/supa';
 
 // ── Element IDs (must match AstroProfileShell.astro) ─────────────────────────
