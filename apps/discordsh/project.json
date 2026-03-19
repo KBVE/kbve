@@ -11,7 +11,7 @@
 					"nx test axum-discordsh",
 					"nx container axum-discordsh",
 					"E2E_PORT=4322 nx e2e:docker discordsh-e2e",
-					"docker rm -f discordsh-e2e-test 2>/dev/null; lsof -ti:4322 | xargs kill -9 2>/dev/null; sleep 1; echo 'port 4322 released'",
+					"docker rm -f discordsh-e2e-test 2>/dev/null || true; lsof -ti:4322 | xargs kill -9 2>/dev/null || true; sleep 1; echo 'port 4322 released'",
 					"E2E_PORT=4323 nx e2e:mock discordsh-e2e"
 				],
 				"parallel": false
