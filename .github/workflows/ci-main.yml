@@ -180,6 +180,34 @@ jobs:
                   [ "${{ needs.alter.outputs.py_lib_fudster }}" = "true" ] && dispatch_python "python-fudster" "fudster"
                   [ "${{ needs.alter.outputs.py_lib_kbve }}"    = "true" ] && dispatch_python "python-kbve"    "kbve"
 
+                  dispatch_unreal() {
+                    local plugin_name="$1"
+                    local plugin_path="$2"
+                    local dep_plugins="${3:-}"
+                    local itch_game="${4:-}"
+                    local deploy_itch="false"
+                    if [ -n "$itch_game" ]; then deploy_itch="true"; fi
+                    echo "Dispatching ci-publish.yml unreal/$plugin_name"
+                    gh workflow run ci-publish.yml \
+                      --repo "${{ github.repository }}" \
+                      --ref main \
+                      --field package_type="unreal" \
+                      --field package_name="$plugin_name" \
+                      --field unreal_plugin_path="$plugin_path" \
+                      --field deploy_to_itch="$deploy_itch" \
+                      --field itch_game_id="$itch_game" \
+                      --field unreal_dependency_plugins="$dep_plugins" \
+                      --field dispatched_at="$DISPATCHED_AT"
+                  }
+
+                  # Unreal Plugins
+                  [ "${{ needs.alter.outputs.ue_kbvexxhash }}"  = "true" ] && dispatch_unreal "KBVEXXHash"  "packages/unreal/KBVEXXHash"
+                  [ "${{ needs.alter.outputs.ue_kbveyyjson }}"  = "true" ] && dispatch_unreal "KBVEYYJson"  "packages/unreal/KBVEYYJson"
+                  [ "${{ needs.alter.outputs.ue_kbvezstd }}"    = "true" ] && dispatch_unreal "KBVEZstd"    "packages/unreal/KBVEZstd"
+                  [ "${{ needs.alter.outputs.ue_kbvesqlite }}"  = "true" ] && dispatch_unreal "KBVESQLite"  "packages/unreal/KBVESQLite"
+                  [ "${{ needs.alter.outputs.ue_kbvewasm }}"    = "true" ] && dispatch_unreal "KBVEWASM"    "packages/unreal/KBVEWASM"
+                  [ "${{ needs.alter.outputs.ue_devops }}"      = "true" ] && dispatch_unreal "UEDevOps"    "packages/unreal/UEDevOps" "packages/unreal/KBVEYYJson packages/unreal/KBVEXXHash packages/unreal/KBVEZstd" "uedevops"
+
                   echo "All publish dispatches complete"
 
     # ---------------------------------------------------------------------------

@@ -102,10 +102,29 @@ on:
             edge:
                 description: 'Edge functions changed'
                 value: ${{ jobs.alter.outputs.edge }}
-            # ? Tauri
+            # ? Bevy
             isometric:
                 description: 'Isometric game changed'
                 value: ${{ jobs.alter.outputs.isometric }}
+            # ? Unreal
+            ue_devops:
+                description: 'UEDevOps plugin changed'
+                value: ${{ jobs.alter.outputs.ue_devops }}
+            ue_kbvewasm:
+                description: 'KBVEWASM plugin changed'
+                value: ${{ jobs.alter.outputs.ue_kbvewasm }}
+            ue_kbvexxhash:
+                description: 'KBVEXXHash plugin changed'
+                value: ${{ jobs.alter.outputs.ue_kbvexxhash }}
+            ue_kbveyyjson:
+                description: 'KBVEYYJson plugin changed'
+                value: ${{ jobs.alter.outputs.ue_kbveyyjson }}
+            ue_kbvezstd:
+                description: 'KBVEZstd plugin changed'
+                value: ${{ jobs.alter.outputs.ue_kbvezstd }}
+            ue_kbvesqlite:
+                description: 'KBVESQLite plugin changed'
+                value: ${{ jobs.alter.outputs.ue_kbvesqlite }}
 
 jobs:
     alter:
@@ -144,6 +163,12 @@ jobs:
             mc_plugin: ${{ steps.delta.outputs.mc_plugin_any_changed }}
             edge: ${{ steps.delta.outputs.edge_any_changed }}
             isometric: ${{ steps.delta.outputs.isometric_any_changed }}
+            ue_devops: ${{ steps.delta.outputs.ue_devops_any_changed }}
+            ue_kbvewasm: ${{ steps.delta.outputs.ue_kbvewasm_any_changed }}
+            ue_kbvexxhash: ${{ steps.delta.outputs.ue_kbvexxhash_any_changed }}
+            ue_kbveyyjson: ${{ steps.delta.outputs.ue_kbveyyjson_any_changed }}
+            ue_kbvezstd: ${{ steps.delta.outputs.ue_kbvezstd_any_changed }}
+            ue_kbvesqlite: ${{ steps.delta.outputs.ue_kbvesqlite_any_changed }}
 
         steps:
             - name: Checkout the repository
@@ -250,3 +275,21 @@ jobs:
                           - 'apps/kbve/isometric/package.json'
                           - 'apps/kbve/isometric/vite.config.ts'
                           - 'packages/rust/bevy/bevy_tasker/**'
+                      ue_devops:
+                          - 'packages/unreal/UEDevOps/Source/**'
+                          - 'packages/unreal/UEDevOps/UEDevOps.uplugin'
+                      ue_kbvewasm:
+                          - 'packages/unreal/KBVEWASM/Source/**'
+                          - 'packages/unreal/KBVEWASM/KBVEWASM.uplugin'
+                      ue_kbvexxhash:
+                          - 'packages/unreal/KBVEXXHash/Source/**'
+                          - 'packages/unreal/KBVEXXHash/KBVEXXHash.uplugin'
+                      ue_kbveyyjson:
+                          - 'packages/unreal/KBVEYYJson/Source/**'
+                          - 'packages/unreal/KBVEYYJson/KBVEYYJson.uplugin'
+                      ue_kbvezstd:
+                          - 'packages/unreal/KBVEZstd/Source/**'
+                          - 'packages/unreal/KBVEZstd/KBVEZstd.uplugin'
+                      ue_kbvesqlite:
+                          - 'packages/unreal/KBVESQLite/Source/**'
+                          - 'packages/unreal/KBVESQLite/KBVESQLite.uplugin'
