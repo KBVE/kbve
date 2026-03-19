@@ -1,7 +1,12 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useSpring, animated } from '@react-spring/web';
-import { ExternalLink, Eye, Flame } from 'lucide-react';
+import { ExternalLink, Eye, Flame, Play } from 'lucide-react';
 import type { FeedMeme } from '../../lib/memeService';
+import {
+	resolveMediaKind,
+	gridThumbnail,
+	showPlayOverlay,
+} from '../../lib/media';
 
 interface BentoMemeCardProps {
 	meme: FeedMeme;
@@ -44,7 +49,16 @@ export default function BentoMemeCard({
 	onExpand,
 	style,
 }: BentoMemeCardProps) {
-	const isVideo = meme.format === 2 || meme.format === 3;
+	const mediaKind = useMemo(
+		() => resolveMediaKind(meme.asset_url, meme.format),
+		[meme.asset_url, meme.format],
+	);
+	const thumbnail = useMemo(
+		() => gridThumbnail(meme.asset_url, meme.thumbnail_url),
+		[meme.asset_url, meme.thumbnail_url],
+	);
+	const hasPlayOverlay = showPlayOverlay(mediaKind);
+
 	const [hovered, setHovered] = useState(false);
 	const [imgLoaded, setImgLoaded] = useState(false);
 
@@ -93,26 +107,35 @@ export default function BentoMemeCard({
 				),
 				backgroundColor: '#161618',
 			}}>
-			{/* Aspect container — uses actual meme dimensions */}
+			{/* Aspect container — always static thumbnail in grid */}
 			<div className="w-full relative" style={{ aspectRatio: aspect }}>
-				{isVideo ? (
-					<video
-						src={meme.asset_url}
-						className="absolute inset-0 w-full h-full object-cover"
-						muted
-						playsInline
-						preload="metadata"
-						onLoadedData={() => setImgLoaded(true)}
-					/>
-				) : (
-					<img
-						src={meme.thumbnail_url || meme.asset_url}
-						alt={meme.title || 'Meme'}
-						className="absolute inset-0 w-full h-full object-cover select-none"
-						loading="lazy"
-						draggable={false}
-						onLoad={() => setImgLoaded(true)}
-					/>
+				<img
+					src={thumbnail}
+					alt={meme.title || 'Meme'}
+					className="absolute inset-0 w-full h-full object-cover select-none"
+					loading="lazy"
+					draggable={false}
+					onLoad={() => setImgLoaded(true)}
+				/>
+
+				{/* Play button overlay for video/YouTube */}
+				{hasPlayOverlay && imgLoaded && (
+					<div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+						<div
+							className="flex items-center justify-center rounded-full"
+							style={{
+								width: 44,
+								height: 44,
+								backgroundColor: 'rgba(0,0,0,0.55)',
+								backdropFilter: 'blur(4px)',
+							}}>
+							<Play
+								size={20}
+								className="text-white/90"
+								style={{ marginLeft: 2 }}
+							/>
+						</div>
+					</div>
 				)}
 
 				{/* Shimmer — fades out after image loads */}

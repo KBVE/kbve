@@ -1,8 +1,14 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useMemo } from 'react';
 import { useSpring, animated, config } from '@react-spring/web';
 import { X, ChevronLeft, ChevronRight, ExternalLink, User } from 'lucide-react';
 import ReactionBar from './ReactionBar';
 import type { FeedMeme } from '../../lib/memeService';
+import {
+	resolveMediaKind,
+	parseYouTubeUrl,
+	youTubeEmbedUrl,
+	type MediaKind,
+} from '../../lib/media';
 
 interface MemeLightboxProps {
 	meme: FeedMeme;
@@ -33,7 +39,10 @@ export default function MemeLightbox({
 	onPrev,
 	onNext,
 }: MemeLightboxProps) {
-	const isVideo = meme.format === 2 || meme.format === 3;
+	const mediaKind = useMemo(
+		() => resolveMediaKind(meme.asset_url, meme.format),
+		[meme.asset_url, meme.format],
+	);
 	const [closing, setClosing] = useState(false);
 
 	// Backdrop fade
@@ -151,33 +160,9 @@ export default function MemeLightbox({
 				<animated.div
 					className="flex-1 min-w-0 flex flex-col items-center"
 					style={{ opacity: memeSpring.opacity }}>
-					{/* Meme asset */}
+					{/* Meme asset — adapts to media type */}
 					<div className="max-h-[75vh] flex items-center justify-center w-full">
-						{isVideo ? (
-							<video
-								src={meme.asset_url}
-								className="max-w-full max-h-[75vh] object-contain rounded-2xl"
-								style={{
-									border: '1px solid rgba(255,255,255,0.08)',
-									boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-								}}
-								autoPlay
-								loop
-								muted
-								playsInline
-							/>
-						) : (
-							<img
-								src={meme.asset_url}
-								alt={meme.title || 'Meme'}
-								className="max-w-full max-h-[75vh] object-contain rounded-2xl select-none"
-								style={{
-									border: '1px solid rgba(255,255,255,0.08)',
-									boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-								}}
-								draggable={false}
-							/>
-						)}
+						<LightboxMedia meme={meme} mediaKind={mediaKind} />
 					</div>
 
 					{/* Info below image */}
@@ -287,5 +272,67 @@ export default function MemeLightbox({
 				</div>
 			</animated.div>
 		</animated.div>
+	);
+}
+
+// ── Media renderer for lightbox ──────────────────────────────────────
+
+const MEDIA_STYLE = {
+	border: '1px solid rgba(255,255,255,0.08)',
+	boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+};
+
+function LightboxMedia({
+	meme,
+	mediaKind,
+}: {
+	meme: FeedMeme;
+	mediaKind: MediaKind;
+}) {
+	if (mediaKind === 'youtube') {
+		const yt = parseYouTubeUrl(meme.asset_url);
+		if (yt) {
+			return (
+				<iframe
+					src={youTubeEmbedUrl(yt)}
+					title={meme.title || 'Video'}
+					className="rounded-2xl"
+					style={{
+						...MEDIA_STYLE,
+						width: '100%',
+						maxWidth: 854,
+						aspectRatio: '16 / 9',
+					}}
+					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+					allowFullScreen
+				/>
+			);
+		}
+	}
+
+	if (mediaKind === 'video' || mediaKind === 'gif') {
+		return (
+			<video
+				src={meme.asset_url}
+				className="max-w-full max-h-[75vh] object-contain rounded-2xl"
+				style={MEDIA_STYLE}
+				autoPlay
+				loop
+				muted={mediaKind === 'gif'}
+				controls={mediaKind === 'video'}
+				playsInline
+			/>
+		);
+	}
+
+	// image or unknown — render as <img>
+	return (
+		<img
+			src={meme.asset_url}
+			alt={meme.title || 'Meme'}
+			className="max-w-full max-h-[75vh] object-contain rounded-2xl select-none"
+			style={MEDIA_STYLE}
+			draggable={false}
+		/>
 	);
 }
