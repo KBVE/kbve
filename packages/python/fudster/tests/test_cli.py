@@ -427,3 +427,65 @@ def test_info_json_all_available():
         assert m["available"] is True, (
             f"{m['name']} should be available"
         )
+
+
+def test_info_includes_new_modules():
+    runner = CliRunner()
+    result = runner.invoke(main, ["info", "--json"])
+    data = json.loads(result.output)
+    names = [m["name"] for m in data]
+    assert "kbve.config" in names
+    assert "kbve.health" in names
+    assert "kbve.tasks" in names
+
+
+# ── serve ────────────────────────────────────────────────────────────
+
+def test_serve_help():
+    runner = CliRunner()
+    result = runner.invoke(main, ["serve", "--help"])
+    assert result.exit_code == 0
+    assert "--host" in result.output
+    assert "--port" in result.output
+    assert "--grpc-port" in result.output
+    assert "--env-file" in result.output
+
+
+# ── config ───────────────────────────────────────────────────────────
+
+def test_config_empty():
+    runner = CliRunner()
+    result = runner.invoke(main, ["config"])
+    assert result.exit_code == 0
+
+
+def test_config_with_env_file(tmp_path):
+    f = tmp_path / ".env"
+    f.write_text("TESTCLI_PORT=9090\nTESTCLI_HOST=127.0.0.1\n")
+
+    runner = CliRunner()
+    result = runner.invoke(main, [
+        "config",
+        "--env-file", str(f),
+        "--prefix", "TESTCLI",
+    ])
+    assert result.exit_code == 0
+    assert "port" in result.output
+    assert "9090" in result.output
+
+
+def test_config_json(tmp_path):
+    f = tmp_path / ".env"
+    f.write_text("JSONCFG_A=1\nJSONCFG_B=two\n")
+
+    runner = CliRunner()
+    result = runner.invoke(main, [
+        "config",
+        "--env-file", str(f),
+        "--prefix", "JSONCFG",
+        "--json",
+    ])
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert data["a"] == "1"
+    assert data["b"] == "two"

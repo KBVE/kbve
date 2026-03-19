@@ -115,6 +115,92 @@ def info(as_json: bool) -> None:
         click.echo()
 
 
+# ── serve ─────────────────────────────────────────────────────────────
+
+@main.command()
+@click.option("--host", default="0.0.0.0", help="Bind host.")
+@click.option("--port", default=8000, type=int, help="HTTP port.")
+@click.option("--grpc-port", default=50051, type=int, help="gRPC port.")
+@click.option("--log-level", default="info", help="Log level.")
+@click.option(
+    "--env-file", type=click.Path(), default=None,
+    help="Path to .env file for config.",
+)
+def serve(
+    host: str, port: int, grpc_port: int,
+    log_level: str, env_file: str | None,
+) -> None:
+    """Start a kbve microservice with health checks."""
+    import asyncio
+    from kbve import AppServer, ServerConfig
+    from kbve.config import apply_env_file
+    from kbve.health import HealthCheck, create_health_router
+
+    if env_file:
+        loaded = apply_env_file(env_file)
+        click.echo(f"Loaded {loaded} vars from {env_file}")
+
+    config = ServerConfig(
+        http_host=host,
+        http_port=port,
+        grpc_host=host,
+        grpc_port=grpc_port,
+        log_level=log_level,
+    )
+
+    hc = HealthCheck()
+    hc.add("self", lambda: True)
+
+    server = AppServer(config=config)
+    router = create_health_router(hc)
+    server.http.app.include_router(router)
+
+    addr = host + ":" + str(port)
+    click.echo(
+        f"Starting kbve server on {addr}"
+        f" (gRPC: {grpc_port})"
+    )
+    asyncio.run(server.serve())
+
+
+# ── config ───────────────────────────────────────────────────────────
+
+@main.command("config")
+@click.option(
+    "--env-file", type=click.Path(exists=True), default=None,
+    help="Path to .env file.",
+)
+@click.option("--prefix", default="", help="Env var prefix to filter.")
+@click.option(
+    "--json", "as_json", is_flag=True, default=False,
+    help="Output as JSON.",
+)
+def config_cmd(
+    env_file: str | None, prefix: str, as_json: bool,
+) -> None:
+    """Show resolved configuration from environment and .env files."""
+    from kbve.config import EnvConfig
+
+    cfg = EnvConfig.from_env(
+        prefix=prefix,
+        env_file=env_file,
+    )
+
+    if as_json:
+        click.echo(json.dumps(cfg.as_dict(), indent=2))
+    else:
+        values = cfg.as_dict()
+        if not values:
+            click.echo("No configuration values found.")
+            return
+        pfx = f" (prefix: {prefix})" if prefix else ""
+        header = "Configuration" + pfx
+        click.echo(header + ":\n")
+        for key, val in sorted(values.items()):
+            click.echo(f"  {key} = {val}")
+        click.echo()
+
+
 # ── nx sub-group ─────────────────────────────────────────────────────
 
 @main.group()
