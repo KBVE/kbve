@@ -13,14 +13,6 @@ export function ToggleSwitch({ checked = false, onChange }: ToggleSwitchProps) {
 	const dotRef = useRef<HTMLSpanElement>(null);
 	const stateRef = useRef(checked);
 
-	useEffect(() => {
-		// Sync if parent changes the prop
-		if (stateRef.current !== checked) {
-			stateRef.current = checked;
-			applyVisual(checked);
-		}
-	}, [checked]);
-
 	function applyVisual(on: boolean) {
 		if (btnRef.current) {
 			btnRef.current.style.backgroundColor = on
@@ -33,6 +25,14 @@ export function ToggleSwitch({ checked = false, onChange }: ToggleSwitchProps) {
 				: 'translateX(2px)';
 		}
 	}
+
+	useEffect(() => {
+		// Sync if parent changes the prop
+		if (stateRef.current !== checked) {
+			stateRef.current = checked;
+			applyVisual(checked);
+		}
+	}, [checked]);
 
 	function handleClick() {
 		const next = !stateRef.current;

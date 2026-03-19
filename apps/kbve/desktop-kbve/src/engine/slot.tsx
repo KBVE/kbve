@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useRef, useEffect, createElement, type CSSProperties } from 'react';
 
 type Subscribable<S> = {
