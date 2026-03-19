@@ -1,7 +1,7 @@
 [package]
 name = "soul"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 description = "Soul is a utility library for Solana, designed to accelerate proof-of-concept development."

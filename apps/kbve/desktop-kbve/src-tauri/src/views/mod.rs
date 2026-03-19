@@ -1,10 +1,14 @@
 mod command;
+mod emitter;
 mod handle;
 mod manager;
 mod view;
 
 // Concrete view implementations
 mod general;
+
+#[cfg(test)]
+mod tests;
 
 pub use command::{ViewCommand, ViewSnapshot, ViewStatus};
 pub use manager::ViewManager;

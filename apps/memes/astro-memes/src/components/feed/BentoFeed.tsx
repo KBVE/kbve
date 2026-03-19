@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { useTrail, config } from '@react-spring/web';
+import { useTrail } from '@react-spring/web';
 import BentoMemeCard from './BentoMemeCard';
 import MemeLightbox from './MemeLightbox';
 import type { FeedMeme } from '../../lib/memeService';
@@ -44,11 +44,11 @@ export default function BentoFeed({
 		return from;
 	}, [memes.length]);
 
-	// Trail animation for staggered card entrance
+	// Trail animation — smooth ease-out-quart, no spring overshoot
 	const trail = useTrail(memes.length, {
-		from: { opacity: 0, y: 24 },
+		from: { opacity: 0, y: 20 },
 		to: { opacity: 1, y: 0 },
-		config: { ...config.gentle, clamp: true },
+		config: { tension: 170, friction: 26, clamp: true },
 	});
 
 	// Infinite scroll sentinel
@@ -91,31 +91,44 @@ export default function BentoFeed({
 	return (
 		<>
 			<div
-				className="w-full min-h-screen px-4 md:px-6 lg:px-8 py-8"
-				style={{
-					backgroundColor: 'var(--sl-color-bg, #0a0a0a)',
-				}}>
-				{/* Bento grid */}
-				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 max-w-7xl mx-auto">
+				className="w-full min-h-screen px-3 md:px-6 lg:px-8 py-6 md:py-10"
+				style={{ backgroundColor: '#0c0c0e' }}>
+				{/* Bento grid — masonry-like columns with auto-fit */}
+				<div
+					className="max-w-7xl mx-auto"
+					style={{
+						columns: 'auto',
+						columnCount: 'auto',
+						columnWidth: '280px',
+						columnGap: '12px',
+					}}>
 					{trail.map((springStyle, i) => {
 						const meme = memes[i];
 						const shouldAnimate = i >= animateFrom;
+						// First card is hero; then every 8th for rhythm
+						const isFeatured = i === 0 || (i > 0 && i % 8 === 0);
 						return (
-							<BentoMemeCard
+							<div
 								key={meme.id}
-								meme={meme}
-								featured={i % 7 === 3}
-								onExpand={handleExpand}
-								style={
-									shouldAnimate
-										? {
-												opacity:
-													springStyle.opacity.get(),
-												transform: `translateY(${springStyle.y.get()}px)`,
-											}
-										: undefined
-								}
-							/>
+								style={{
+									breakInside: 'avoid',
+									marginBottom: '12px',
+								}}>
+								<BentoMemeCard
+									meme={meme}
+									featured={isFeatured}
+									onExpand={handleExpand}
+									style={
+										shouldAnimate
+											? {
+													opacity:
+														springStyle.opacity.get(),
+													transform: `translateY(${springStyle.y.get()}px)`,
+												}
+											: undefined
+									}
+								/>
+							</div>
 						);
 					})}
 				</div>
@@ -125,36 +138,48 @@ export default function BentoFeed({
 					<div ref={sentinelRef} style={{ height: 1 }} aria-hidden />
 				)}
 
-				{/* Loading more — shimmer skeleton cards */}
+				{/* Loading more — skeleton cards */}
 				{loadingMore && (
-					<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 max-w-7xl mx-auto mt-4">
+					<div
+						className="max-w-7xl mx-auto mt-3"
+						style={{
+							columns: 'auto',
+							columnCount: 'auto',
+							columnWidth: '280px',
+							columnGap: '12px',
+						}}>
 						{[...Array(4)].map((_, i) => (
 							<div
 								key={i}
-								className="aspect-[4/3] rounded-2xl overflow-hidden"
 								style={{
-									background:
-										'linear-gradient(110deg, var(--sl-color-gray-6, #1c1c1e) 30%, var(--sl-color-gray-5, #27272a) 50%, var(--sl-color-gray-6, #1c1c1e) 70%)',
-									backgroundSize: '200% 100%',
-									animation:
-										'shimmer 1.5s ease-in-out infinite',
-									animationDelay: `${i * 100}ms`,
-									border: '1px solid rgba(255,255,255,0.04)',
-								}}
-							/>
+									breakInside: 'avoid',
+									marginBottom: '12px',
+								}}>
+								<div
+									className="rounded-xl overflow-hidden"
+									style={{
+										aspectRatio:
+											i % 2 === 0 ? '4 / 3' : '3 / 4',
+										background:
+											'linear-gradient(110deg, #161618 30%, #1e1e21 50%, #161618 70%)',
+										backgroundSize: '200% 100%',
+										animation:
+											'shimmer 1.5s ease-in-out infinite',
+										animationDelay: `${i * 100}ms`,
+									}}
+								/>
+							</div>
 						))}
 					</div>
 				)}
 
 				{/* End of feed */}
 				{!hasMore && memes.length > 0 && (
-					<div className="flex items-center justify-center py-16">
+					<div className="flex items-center justify-center py-20">
 						<p
-							className="text-sm tracking-wide"
-							style={{
-								color: 'var(--sl-color-gray-3, #71717a)',
-							}}>
-							You've seen them all — for now.
+							className="text-[13px] tracking-widest uppercase"
+							style={{ color: '#3a3a3f' }}>
+							End of feed
 						</p>
 					</div>
 				)}

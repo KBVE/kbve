@@ -1,6 +1,6 @@
 [project]
 name = "kbve"
-version = "0.1.0"
+version = "1.0.13"
 description = "KBVE - API layer and complexity handler for async HTTP, WebSocket, gRPC, and broadcasting"
 readme = "README.md"
 license = "LicenseRef-Proprietary"

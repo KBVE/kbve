@@ -1,9 +1,11 @@
 use dashmap::DashMap;
+use tauri::AppHandle;
 use tokio::sync::{mpsc, watch};
 use tokio_util::sync::CancellationToken;
 
 use super::ViewError;
 use super::command::{ViewCommand, ViewSnapshot, ViewStatus};
+use super::emitter::ViewEmitter;
 use super::handle::ViewHandle;
 use super::view::ViewActor;
 
@@ -11,12 +13,14 @@ use super::view::ViewActor;
 /// Stored as Tauri managed state.
 pub struct ViewManager {
     views: DashMap<String, ViewHandle>,
+    app: AppHandle,
 }
 
 impl ViewManager {
-    pub fn new() -> Self {
+    pub fn new(app: AppHandle) -> Self {
         Self {
             views: DashMap::new(),
+            app,
         }
     }
 
@@ -32,8 +36,10 @@ impl ViewManager {
         let cancel = CancellationToken::new();
         let cancel_clone = cancel.clone();
 
+        let emitter = ViewEmitter::new(self.app.clone(), &id);
+
         let task = tokio::spawn(async move {
-            view.run(cmd_rx, status_tx, cancel_clone).await;
+            view.run(cmd_rx, status_tx, emitter, cancel_clone).await;
         });
 
         self.views.insert(
@@ -45,6 +51,12 @@ impl ViewManager {
                 task,
             },
         );
+    }
+
+    /// Create a ViewEmitter for a given view id.
+    #[allow(dead_code)]
+    pub fn create_emitter(&self, view_id: &str) -> ViewEmitter {
+        ViewEmitter::new(self.app.clone(), view_id)
     }
 
     /// Send a command to a view by id.
@@ -85,7 +97,6 @@ impl ViewManager {
     /// Shutdown all views gracefully.
     #[allow(dead_code)]
     pub async fn shutdown_all(&self) {
-        // Drain all entries — we take ownership of each handle to call shutdown.
         let handles: Vec<(String, ViewHandle)> = self
             .views
             .iter()

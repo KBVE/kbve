@@ -1,8 +1,8 @@
 import {
   createServiceClient,
+  extractUserId,
   jsonResponse,
   type MemeRequest,
-  requireAuthenticated,
   validateUserId,
 } from "./_shared.ts";
 import { safeRpcError } from "../_shared/validators.ts";
@@ -18,11 +18,9 @@ import { safeRpcError } from "../_shared/validators.ts";
 type Handler = (memeReq: MemeRequest) => Promise<Response>;
 
 const handlers: Record<string, Handler> = {
-  async add({ claims, body }) {
-    const denied = requireAuthenticated(claims);
-    if (denied) return denied;
-
-    const userId = claims.sub;
+  async add({ body }) {
+    const { userId, error: userErr } = extractUserId(body);
+    if (userErr) return userErr;
 
     const { following_id } = body;
     const idErr = validateUserId(following_id, "following_id");
@@ -49,11 +47,9 @@ const handlers: Record<string, Handler> = {
     return jsonResponse({ success: true, is_new: data });
   },
 
-  async remove({ claims, body }) {
-    const denied = requireAuthenticated(claims);
-    if (denied) return denied;
-
-    const userId = claims.sub;
+  async remove({ body }) {
+    const { userId, error: userErr } = extractUserId(body);
+    if (userErr) return userErr;
 
     const { following_id } = body;
     const idErr = validateUserId(following_id, "following_id");

@@ -2,12 +2,12 @@ use anyhow::Result;
 use std::{net::SocketAddr, sync::Arc, time::Duration};
 
 use axum::{
-    Json, Router,
+    Extension, Json, Router,
     extract::{Path, Query, Request, State},
     http::{HeaderName, HeaderValue, StatusCode, header},
-    middleware::Next,
+    middleware::{self, Next},
     response::{IntoResponse, Response},
-    routing::get,
+    routing::{get, post},
 };
 use serde::Deserialize;
 use tokio::net::TcpListener;
@@ -15,6 +15,7 @@ use tower_http::set_header::SetResponseHeaderLayer;
 use tracing::{info, warn};
 
 use crate::astro::askama::{MemeNotFoundTemplate, MemeTemplate, TemplateResponse};
+use crate::meme::auth::{AuthUser, optional_auth};
 use crate::meme::{Meme, MemeCache, MemeSupabaseClient};
 
 #[derive(Clone)]
@@ -28,6 +29,40 @@ pub struct FeedQuery {
     pub cursor: Option<String>,
     pub tag: Option<String>,
     pub limit: Option<i32>,
+}
+
+// ── Request bodies for POST endpoints ────────────────────────────────
+
+#[derive(Deserialize)]
+pub struct MemeIdBody {
+    pub meme_id: String,
+}
+
+#[derive(Deserialize)]
+pub struct ReactBody {
+    pub meme_id: String,
+    pub reaction: i32,
+}
+
+#[derive(Deserialize)]
+pub struct CommentListBody {
+    pub meme_id: String,
+    pub limit: Option<i32>,
+    pub cursor: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct CommentCreateBody {
+    pub meme_id: String,
+    pub body: String,
+    pub parent_id: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct ReportBody {
+    pub meme_id: String,
+    pub reason: i32,
+    pub detail: Option<String>,
 }
 
 pub async fn serve(state: AppState) -> Result<()> {
@@ -107,6 +142,16 @@ fn router(state: AppState) -> Router {
         .route("/meme/{id}", get(meme_page_handler))
         .route("/api/v1/meme/{id}", get(meme_api_handler))
         .route("/api/v1/feed", get(feed_api_handler))
+        .route("/api/v1/view", post(view_handler))
+        .route("/api/v1/share", post(share_handler))
+        .route("/api/v1/react", post(react_handler))
+        .route("/api/v1/unreact", post(unreact_handler))
+        .route("/api/v1/save", post(save_handler))
+        .route("/api/v1/unsave", post(unsave_handler))
+        .route("/api/v1/comments", post(list_comments_handler))
+        .route("/api/v1/comment", post(create_comment_handler))
+        .route("/api/v1/report", post(report_handler))
+        .layer(middleware::from_fn(optional_auth))
         .with_state(state);
 
     let public_router = Router::new().route("/health", get(health));
@@ -311,6 +356,448 @@ async fn feed_api_handler(
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(serde_json::json!({"error": "Failed to fetch feed"})),
+            )
+                .into_response()
+        }
+    }
+}
+
+// ── Anonymous POST handlers ──────────────────────────────────────────
+
+/// POST /api/v1/view — track a meme view (anonymous)
+async fn view_handler(State(state): State<AppState>, Json(body): Json<MemeIdBody>) -> Response {
+    if !is_valid_ulid(&body.meme_id) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "Invalid meme_id"})),
+        )
+            .into_response();
+    }
+    let supabase = match &state.supabase {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({"error": "Service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+    match supabase.track_view(&body.meme_id).await {
+        Ok(()) => Json(serde_json::json!({"success": true})).into_response(),
+        Err(e) => {
+            warn!(error = %e, "track_view failed");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({"error": "Internal error"})),
+            )
+                .into_response()
+        }
+    }
+}
+
+/// POST /api/v1/share — track a meme share (anonymous)
+async fn share_handler(State(state): State<AppState>, Json(body): Json<MemeIdBody>) -> Response {
+    if !is_valid_ulid(&body.meme_id) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "Invalid meme_id"})),
+        )
+            .into_response();
+    }
+    let supabase = match &state.supabase {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({"error": "Service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+    match supabase.track_share(&body.meme_id).await {
+        Ok(()) => Json(serde_json::json!({"success": true})).into_response(),
+        Err(e) => {
+            warn!(error = %e, "track_share failed");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({"error": "Internal error"})),
+            )
+                .into_response()
+        }
+    }
+}
+
+/// POST /api/v1/comments — list comments for a meme (anonymous)
+async fn list_comments_handler(
+    State(state): State<AppState>,
+    Json(body): Json<CommentListBody>,
+) -> Response {
+    if !is_valid_ulid(&body.meme_id) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "Invalid meme_id"})),
+        )
+            .into_response();
+    }
+    let limit = body.limit.unwrap_or(20).clamp(1, 50);
+    let supabase = match &state.supabase {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({"error": "Service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+    match supabase
+        .fetch_comments(&body.meme_id, limit, body.cursor.as_deref())
+        .await
+    {
+        Ok(data) => Json(data).into_response(),
+        Err(e) => {
+            warn!(error = %e, "fetch_comments failed");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({"error": "Internal error"})),
+            )
+                .into_response()
+        }
+    }
+}
+
+// ── Authenticated POST handlers ─────────────────────────────────────
+
+/// POST /api/v1/react — react to a meme (auth required)
+async fn react_handler(
+    State(state): State<AppState>,
+    auth: Option<Extension<AuthUser>>,
+    Json(body): Json<ReactBody>,
+) -> Response {
+    let user = match auth {
+        Some(Extension(u)) => u,
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(serde_json::json!({"error": "Authentication required"})),
+            )
+                .into_response();
+        }
+    };
+    if !is_valid_ulid(&body.meme_id) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "Invalid meme_id"})),
+        )
+            .into_response();
+    }
+    if !(1..=6).contains(&body.reaction) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "reaction must be 1-6"})),
+        )
+            .into_response();
+    }
+    let supabase = match &state.supabase {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({"error": "Service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+    match supabase
+        .react(&user.user_id, &body.meme_id, body.reaction)
+        .await
+    {
+        Ok(data) => Json(serde_json::json!({"success": true, "data": data})).into_response(),
+        Err(e) => {
+            warn!(error = %e, "react failed");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({"error": "Internal error"})),
+            )
+                .into_response()
+        }
+    }
+}
+
+/// POST /api/v1/unreact — remove reaction from a meme (auth required)
+async fn unreact_handler(
+    State(state): State<AppState>,
+    auth: Option<Extension<AuthUser>>,
+    Json(body): Json<MemeIdBody>,
+) -> Response {
+    let user = match auth {
+        Some(Extension(u)) => u,
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(serde_json::json!({"error": "Authentication required"})),
+            )
+                .into_response();
+        }
+    };
+    if !is_valid_ulid(&body.meme_id) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "Invalid meme_id"})),
+        )
+            .into_response();
+    }
+    let supabase = match &state.supabase {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({"error": "Service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+    match supabase.unreact(&user.user_id, &body.meme_id).await {
+        Ok(data) => Json(serde_json::json!({"success": true, "data": data})).into_response(),
+        Err(e) => {
+            warn!(error = %e, "unreact failed");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({"error": "Internal error"})),
+            )
+                .into_response()
+        }
+    }
+}
+
+/// POST /api/v1/save — save/bookmark a meme (auth required)
+async fn save_handler(
+    State(state): State<AppState>,
+    auth: Option<Extension<AuthUser>>,
+    Json(body): Json<MemeIdBody>,
+) -> Response {
+    let user = match auth {
+        Some(Extension(u)) => u,
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(serde_json::json!({"error": "Authentication required"})),
+            )
+                .into_response();
+        }
+    };
+    if !is_valid_ulid(&body.meme_id) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "Invalid meme_id"})),
+        )
+            .into_response();
+    }
+    let supabase = match &state.supabase {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({"error": "Service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+    match supabase.save_meme(&user.user_id, &body.meme_id).await {
+        Ok(data) => Json(serde_json::json!({"success": true, "data": data})).into_response(),
+        Err(e) => {
+            warn!(error = %e, "save_meme failed");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({"error": "Internal error"})),
+            )
+                .into_response()
+        }
+    }
+}
+
+/// POST /api/v1/unsave — unsave a meme (auth required)
+async fn unsave_handler(
+    State(state): State<AppState>,
+    auth: Option<Extension<AuthUser>>,
+    Json(body): Json<MemeIdBody>,
+) -> Response {
+    let user = match auth {
+        Some(Extension(u)) => u,
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(serde_json::json!({"error": "Authentication required"})),
+            )
+                .into_response();
+        }
+    };
+    if !is_valid_ulid(&body.meme_id) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "Invalid meme_id"})),
+        )
+            .into_response();
+    }
+    let supabase = match &state.supabase {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({"error": "Service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+    match supabase.unsave_meme(&user.user_id, &body.meme_id).await {
+        Ok(data) => Json(serde_json::json!({"success": true, "data": data})).into_response(),
+        Err(e) => {
+            warn!(error = %e, "unsave_meme failed");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({"error": "Internal error"})),
+            )
+                .into_response()
+        }
+    }
+}
+
+/// POST /api/v1/comment — create a comment (auth required)
+async fn create_comment_handler(
+    State(state): State<AppState>,
+    auth: Option<Extension<AuthUser>>,
+    Json(body): Json<CommentCreateBody>,
+) -> Response {
+    let user = match auth {
+        Some(Extension(u)) => u,
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(serde_json::json!({"error": "Authentication required"})),
+            )
+                .into_response();
+        }
+    };
+    if !is_valid_ulid(&body.meme_id) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "Invalid meme_id"})),
+        )
+            .into_response();
+    }
+    let trimmed = body.body.trim();
+    if trimmed.is_empty() || trimmed.len() > 500 {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "body must be 1-500 characters"})),
+        )
+            .into_response();
+    }
+    if let Some(ref pid) = body.parent_id {
+        if !is_valid_ulid(pid) {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({"error": "Invalid parent_id"})),
+            )
+                .into_response();
+        }
+    }
+    let supabase = match &state.supabase {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({"error": "Service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+    match supabase
+        .create_comment(
+            &user.user_id,
+            &body.meme_id,
+            trimmed,
+            body.parent_id.as_deref(),
+        )
+        .await
+    {
+        Ok(data) => Json(serde_json::json!({"success": true, "data": data})).into_response(),
+        Err(e) => {
+            warn!(error = %e, "create_comment failed");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({"error": "Internal error"})),
+            )
+                .into_response()
+        }
+    }
+}
+
+/// POST /api/v1/report — report a meme (auth required)
+async fn report_handler(
+    State(state): State<AppState>,
+    auth: Option<Extension<AuthUser>>,
+    Json(body): Json<ReportBody>,
+) -> Response {
+    let user = match auth {
+        Some(Extension(u)) => u,
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(serde_json::json!({"error": "Authentication required"})),
+            )
+                .into_response();
+        }
+    };
+    if !is_valid_ulid(&body.meme_id) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "Invalid meme_id"})),
+        )
+            .into_response();
+    }
+    if !(1..=7).contains(&body.reason) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "reason must be 1-7"})),
+        )
+            .into_response();
+    }
+    if let Some(ref d) = body.detail {
+        if d.len() > 2000 {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({"error": "detail must be <= 2000 chars"})),
+            )
+                .into_response();
+        }
+    }
+    let supabase = match &state.supabase {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({"error": "Service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+    match supabase
+        .report_meme(
+            &user.user_id,
+            &body.meme_id,
+            body.reason,
+            body.detail.as_deref(),
+        )
+        .await
+    {
+        Ok(data) => Json(serde_json::json!({"success": true, "data": data})).into_response(),
+        Err(e) => {
+            warn!(error = %e, "report_meme failed");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({"error": "Internal error"})),
             )
                 .into_response()
         }

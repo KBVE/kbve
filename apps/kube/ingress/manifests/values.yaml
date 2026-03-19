@@ -89,5 +89,8 @@ tcp:
     6667: 'irc/ergo-irc-service:6667'
     6697: 'irc/ergo-irc-service:6697'
 
-udp:
-    5001: 'kbve/kbve-service:5001'
+udp: {}
+# WebTransport (UDP 5001) is exposed via a dedicated LoadBalancer
+# Service (kbve-wt-lb) to bypass nginx's L4 stream proxy, which
+# lacks QUIC connection-ID awareness and has aggressive UDP
+# session timeouts that break long-lived QUIC connections.
