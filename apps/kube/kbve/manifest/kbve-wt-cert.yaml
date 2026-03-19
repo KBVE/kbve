@@ -10,6 +10,7 @@ spec:
         kind: ClusterIssuer
     dnsNames:
         - kbve.com
+        - '*.kbve.com'
     privateKey:
         algorithm: ECDSA
         size: 256
