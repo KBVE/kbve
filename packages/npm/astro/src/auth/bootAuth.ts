@@ -1,4 +1,4 @@
-import { $auth, type SupabaseGateway } from '@kbve/droid';
+import { $auth, DroidEvents, type SupabaseGateway } from '@kbve/droid';
 import type { AuthBridge } from './AuthBridge';
 
 let _booted = false;
@@ -62,13 +62,26 @@ export async function bootAuth(
 		}
 
 		gateway.on('auth', (msg: any) => pushSession(msg.session ?? null));
+
+		// Emit auth-ready event so consumers (e.g. navbar) can react
+		const state = $auth.get();
+		DroidEvents.emit('auth-ready', {
+			timestamp: Date.now(),
+			tone: state.tone === 'auth' ? 'auth' : 'anon',
+			name: state.name || undefined,
+		});
 	} catch (e: any) {
+		const message = e?.message ?? 'Failed to initialize auth';
 		$auth.set({
 			tone: 'error',
 			name: '',
 			avatar: undefined,
 			id: '',
-			error: e?.message ?? 'Failed to initialize auth',
+			error: message,
+		});
+		DroidEvents.emit('auth-error', {
+			timestamp: Date.now(),
+			message,
 		});
 	}
 }

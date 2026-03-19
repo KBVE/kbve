@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { initSupa } from '@/lib/supa';
 import { useAuthBridge } from '@/components/auth';
-import { $auth } from '@kbve/droid';
+import { $auth, DroidEvents } from '@kbve/droid';
 import { useStore } from '@nanostores/react';
 import { cn } from '@/lib/utils';
 import NavDropdown from './NavDropdown';
@@ -50,13 +50,20 @@ export default function ReactNav() {
 	}, []);
 
 	// Initialize Supabase gateway (bootAuth populates $auth)
-	// Includes a timeout so the navbar never stays stuck on "Loading..."
+	// Belt-and-suspenders: DroidEvents 'auth-ready'/'auth-error' clear the
+	// timeout immediately; the timeout is a fallback if events never fire.
 	useEffect(() => {
 		const AUTH_TIMEOUT_MS = 8000;
-		let timedOut = false;
+		let settled = false;
+
+		const cancel = () => {
+			settled = true;
+			clearTimeout(timeout);
+		};
 
 		const timeout = setTimeout(() => {
-			timedOut = true;
+			if (settled) return;
+			settled = true;
 			if ($auth.get().tone === 'loading') {
 				console.warn(
 					'[ReactNav] Auth timed out after',
@@ -67,15 +74,28 @@ export default function ReactNav() {
 			}
 		}, AUTH_TIMEOUT_MS);
 
+		// Listen for structured auth events from the DroidEventBus
+		const onReady = () => cancel();
+		const onError = (payload: { message: string }) => {
+			cancel();
+			setError(payload.message);
+		};
+		DroidEvents.on('auth-ready', onReady);
+		DroidEvents.on('auth-error', onError);
+
 		initSupa()
-			.then(() => clearTimeout(timeout))
+			.then(() => cancel())
 			.catch((e: any) => {
-				if (!timedOut) clearTimeout(timeout);
+				cancel();
 				console.error('[ReactNav] Initialization error:', e?.message);
 				setError(e?.message ?? 'Failed to initialize Supabase');
 			});
 
-		return () => clearTimeout(timeout);
+		return () => {
+			clearTimeout(timeout);
+			DroidEvents.off('auth-ready', onReady);
+			DroidEvents.off('auth-error', onError);
+		};
 	}, []);
 
 	const busy = authLoading;
