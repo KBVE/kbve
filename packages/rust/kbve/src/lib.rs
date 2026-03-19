@@ -9,6 +9,7 @@ pub mod guild;
 pub mod models;
 pub mod runes;
 pub mod schema;
+pub mod social;
 pub mod spellbook;
 pub mod utility;
 
