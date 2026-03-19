@@ -4,3 +4,4 @@ export * from './IMapSchema';
 export * from './INpcSchema';
 export * from './osrs';
 export * from './ICiProjectSchema';
+export * from './IClickHouseSchema';
