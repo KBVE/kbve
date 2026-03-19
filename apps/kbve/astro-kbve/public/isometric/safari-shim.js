@@ -107,6 +107,7 @@
 	) {
 		var OrigUint8Array = Uint8Array;
 
+		/* eslint-disable-next-line no-undef */
 		globalThis.Uint8Array = new Proxy(OrigUint8Array, {
 			construct: function (target, args) {
 				try {
