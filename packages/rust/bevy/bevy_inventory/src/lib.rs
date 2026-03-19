@@ -1087,10 +1087,10 @@ fn process_move_action<K: ItemKind>(
 
 #[cfg(feature = "snapshot")]
 fn snapshot_inventory<K: ItemKind>(inventory: Res<Inventory<K>>) {
-    if inventory.is_changed() {
-        if let Ok(json) = serde_json::to_string(inventory.as_ref()) {
-            snapshot_store::write(json);
-        }
+    if inventory.is_changed()
+        && let Ok(json) = serde_json::to_string(inventory.as_ref())
+    {
+        snapshot_store::write(json);
     }
 }
 

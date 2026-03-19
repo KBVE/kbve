@@ -80,7 +80,7 @@ fn capture_players(world: &mut World) -> Vec<PlayerSnapshot> {
             armor: armor.value,
             defending: stats.defending,
             effects: snapshot_effects(effects),
-            class: class.0.clone(),
+            class: class.0,
             alive: !is_dead,
         });
     }
@@ -123,7 +123,7 @@ fn snapshot_effects(effects: &ActiveEffects) -> Vec<EffectSnapshot> {
         .0
         .iter()
         .map(|e| EffectSnapshot {
-            kind: e.kind.clone(),
+            kind: e.kind,
             stacks: e.stacks,
             turns_left: e.turns_left,
         })

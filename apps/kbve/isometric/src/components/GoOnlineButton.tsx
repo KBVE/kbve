@@ -73,8 +73,11 @@ async function getSupabaseJwt(): Promise<string> {
 /** Build the WebSocket URL for the current environment. */
 function resolveWsUrl(): string {
 	const hostname = window.location.hostname;
+	const isSecure = window.location.protocol === 'https:';
 	const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
-	return isLocal ? 'ws://127.0.0.1:5000' : `wss://${hostname}/ws`;
+	// Always use wss:// when the page is served over HTTPS (Safari blocks mixed content).
+	const scheme = isSecure ? 'wss' : 'ws';
+	return isLocal ? `${scheme}://${hostname}:5000` : `wss://${hostname}/ws`;
 }
 
 export function GoOnlineButton() {

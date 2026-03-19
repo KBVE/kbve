@@ -106,8 +106,43 @@ impl Default for GameServerAddr {
             .ok()
             .and_then(|g| g.clone())
             .or_else(|| std::env::var("GAME_SERVER_URL").ok())
-            .unwrap_or_else(|| DEFAULT_WS_URL.to_owned());
+            .unwrap_or_else(|| {
+                #[cfg(not(target_arch = "wasm32"))]
+                {
+                    DEFAULT_WS_URL.to_owned()
+                }
+                #[cfg(target_arch = "wasm32")]
+                {
+                    // Derive WS URL from the page origin so the Bevy title
+                    // screen "Play Online" button works without JS providing a
+                    // URL. Matches the logic in GoOnlineButton.tsx resolveWsUrl().
+                    resolve_ws_url_from_origin()
+                }
+            });
         Self(url)
+    }
+}
+
+/// Derive the WebSocket URL from `window.location` (WASM only).
+/// `https://localhost:3080` → `wss://localhost:5000`
+/// `https://kbve.com` → `wss://kbve.com/ws`
+#[cfg(target_arch = "wasm32")]
+fn resolve_ws_url_from_origin() -> String {
+    let Some(window) = web_sys::window() else {
+        return String::new();
+    };
+    let Ok(protocol) = window.location().protocol() else {
+        return String::new();
+    };
+    let Ok(hostname) = window.location().hostname() else {
+        return String::new();
+    };
+    let scheme = if protocol == "https:" { "wss" } else { "ws" };
+    let is_local = hostname == "localhost" || hostname == "127.0.0.1";
+    if is_local {
+        format!("{scheme}://{hostname}:5000")
+    } else {
+        format!("{scheme}://{hostname}/ws")
     }
 }
 
@@ -178,6 +213,18 @@ pub struct NetPlugin;
 impl Plugin for NetPlugin {
     fn build(&self, app: &mut App) {
         info!("[net] NetPlugin::build — registering lightyear client plugins");
+
+        // Read browser capabilities probed by JS (localStorage).
+        // Must be inserted before any system that checks transport support.
+        let profile = super::client_profile::ClientProfile::from_local_storage();
+        info!(
+            "[net] ClientProfile: secure={} wt={} sab={} cores={}",
+            profile.secure_context,
+            profile.has_webtransport,
+            profile.has_shared_array_buffer,
+            profile.hardware_concurrency,
+        );
+        app.insert_resource(profile);
 
         // Lightyear client transport + replication machinery
         app.add_plugins(ClientPlugins {
@@ -311,18 +358,20 @@ fn on_unlinked(
 struct ConnectionAttempted;
 
 /// Tracks when the Connecting state began so we can time out stale handshakes.
+/// Stores `Time::elapsed_secs_f64()` instead of `std::time::Instant` because
+/// `Instant` panics on `wasm32-unknown-unknown` (no OS clock).
 #[derive(Component)]
-struct HandshakeStartedAt(std::time::Instant);
+struct HandshakeStartedAt(f64);
 
 /// Maximum time to wait for the Netcode handshake before aborting.
 const HANDSHAKE_TIMEOUT_SECS: f64 = 10.0;
 
 /// Lightyear Connecting added — mark entity so we know a connection was attempted.
-fn on_connecting(trigger: On<Add, Connecting>, mut commands: Commands) {
+fn on_connecting(trigger: On<Add, Connecting>, mut commands: Commands, time: Res<Time>) {
     let entity = trigger.entity;
     commands.entity(entity).insert((
         ConnectionAttempted,
-        HandshakeStartedAt(std::time::Instant::now()),
+        HandshakeStartedAt(time.elapsed_secs_f64()),
     ));
     info!("[net][lifecycle] CONNECTING — entity {entity:?} lightyear handshake in progress");
 }
@@ -422,10 +471,11 @@ fn on_disconnected(
 fn check_handshake_timeout(
     mut commands: Commands,
     mut next_phase: ResMut<NextState<super::phase::GamePhase>>,
+    time: Res<Time>,
     query: Query<(Entity, &HandshakeStartedAt), (With<Connecting>, Without<Connected>)>,
 ) {
     for (entity, started) in &query {
-        let elapsed = started.0.elapsed().as_secs_f64();
+        let elapsed = time.elapsed_secs_f64() - started.0;
         if elapsed >= HANDSHAKE_TIMEOUT_SECS {
             warn!(
                 "[net] handshake timeout after {elapsed:.1}s — aborting connection for entity {entity:?}"
@@ -539,6 +589,7 @@ fn debug_post_netcode_send(
 fn poll_go_online_request(
     mut commands: Commands,
     addr: Res<GameServerAddr>,
+    profile: Res<super::client_profile::ClientProfile>,
     mut pending_auth: ResMut<PendingAuth>,
     mut pending_token: ResMut<PendingTokenFetch>,
 ) {
@@ -564,14 +615,53 @@ fn poll_go_online_request(
     pending_auth.jwt = jwt.clone();
     pending_auth.sent = false;
 
-    // Re-resolve address from override (JS may have set it after resource init)
+    // Re-resolve address: check JS override first, then resource, then derive from origin.
     let resolved_ws = SERVER_URL_OVERRIDE
         .lock()
         .ok()
         .and_then(|g| g.clone())
-        .unwrap_or_else(|| addr.0.clone());
+        .or_else(|| {
+            let a = &addr.0;
+            if a.is_empty() { None } else { Some(a.clone()) }
+        })
+        .unwrap_or_else(|| {
+            // Last resort on WASM: derive from window.location at connection time.
+            #[cfg(target_arch = "wasm32")]
+            {
+                resolve_ws_url_from_origin()
+            }
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                DEFAULT_WS_URL.to_owned()
+            }
+        });
 
-    info!("[net] resolved server address: {resolved_ws} | has_jwt: {has_jwt}");
+    info!(
+        "[net] resolved server address: {resolved_ws} | has_jwt: {has_jwt} | transport: {}",
+        profile.preferred_transport()
+    );
+
+    // --- Pre-flight validation (reads ClientProfile, no JS interop) ---
+    if resolved_ws.is_empty() {
+        warn!("[net] no server URL configured — cannot connect");
+        super::telemetry::report_error("go-online failed: no server URL configured");
+        return;
+    }
+    if !resolved_ws.starts_with("ws://") && !resolved_ws.starts_with("wss://") {
+        warn!("[net] invalid server URL scheme (expected ws:// or wss://): {resolved_ws}");
+        super::telemetry::report_error(&format!(
+            "go-online failed: invalid URL scheme: {resolved_ws}"
+        ));
+        return;
+    }
+    // Browsers block insecure WebSockets from a secure page (mixed content).
+    if resolved_ws.starts_with("ws://") && profile.would_block_insecure_ws() {
+        warn!("[net] mixed content blocked: page is HTTPS but server URL is ws:// — use wss://");
+        super::telemetry::report_error(
+            "go-online failed: mixed content — ws:// from https:// page",
+        );
+        return;
+    }
 
     // --- Desktop path: generate token locally ---
     #[cfg(not(target_arch = "wasm32"))]
@@ -644,6 +734,7 @@ fn poll_go_online_request(
 
         let jwt_for_fetch = jwt.unwrap_or_default();
         let ws_url = resolved_ws.clone();
+        let prefers_wt = profile.has_webtransport;
 
         // Derive the API base URL from the WS URL
         // e.g. ws://127.0.0.1:5000 → http://127.0.0.1:4321
@@ -651,7 +742,7 @@ fn poll_go_online_request(
         let api_base = derive_api_base(&ws_url);
 
         wasm_bindgen_futures::spawn_local(async move {
-            match fetch_game_token(&api_base, &jwt_for_fetch).await {
+            match fetch_game_token(&api_base, &jwt_for_fetch, prefers_wt).await {
                 Ok(result) => {
                     let ws = if result.server_url.is_empty() {
                         ws_url
@@ -682,7 +773,11 @@ fn poll_go_online_request(
 }
 
 /// System that polls for completed WASM token fetch results and initiates connection.
-fn poll_token_fetch_result(mut commands: Commands, mut pending_token: ResMut<PendingTokenFetch>) {
+fn poll_token_fetch_result(
+    mut commands: Commands,
+    profile: Res<super::client_profile::ClientProfile>,
+    mut pending_token: ResMut<PendingTokenFetch>,
+) {
     if !pending_token.in_flight {
         return;
     }
@@ -700,9 +795,8 @@ fn poll_token_fetch_result(mut commands: Commands, mut pending_token: ResMut<Pen
     // frame buffering/rewriting by http-proxy.
     let ws_url = result.server_url.clone();
 
-    // Check if the browser actually supports WebTransport (Safari does not).
-    // If not, clear the WT URL so we fall back to WebSocket.
-    let wt_url = if !result.server_wt_url.is_empty() && has_webtransport_support() {
+    // Use ClientProfile to decide transport — no JS interop at connection time.
+    let wt_url = if !result.server_wt_url.is_empty() && profile.has_webtransport {
         result.server_wt_url.clone()
     } else {
         if !result.server_wt_url.is_empty() {
@@ -791,14 +885,28 @@ struct GameTokenResult {
 }
 
 /// Fetch a ConnectToken from the auth API (WASM only).
+///
+/// `prefers_wt` tells the server whether the browser supports WebTransport.
+/// The server uses this to order the addresses in the ConnectToken so the
+/// netcode handshake tries the right transport's port first, avoiding a
+/// wasted timeout on the wrong port (critical for Safari which only has WS).
 #[cfg(target_arch = "wasm32")]
-async fn fetch_game_token(api_base: &str, jwt: &str) -> Result<GameTokenResult, String> {
+async fn fetch_game_token(
+    api_base: &str,
+    jwt: &str,
+    prefers_wt: bool,
+) -> Result<GameTokenResult, String> {
     use wasm_bindgen::JsCast;
     use wasm_bindgen_futures::JsFuture;
     use web_sys::{Request, RequestInit, RequestMode, Response};
 
     let url = format!("{api_base}/api/v1/auth/game-token");
-    let body = serde_json::json!({ "jwt": jwt }).to_string();
+    let transport = if prefers_wt {
+        "webtransport"
+    } else {
+        "websocket"
+    };
+    let body = serde_json::json!({ "jwt": jwt, "transport": transport }).to_string();
 
     let mut opts = RequestInit::new();
     opts.method("POST");

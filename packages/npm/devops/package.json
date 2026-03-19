@@ -37,9 +37,10 @@
 	"dependencies": {
 		"@bufbuild/protobuf": "^2.11.0",
 		"axios": "^1.6.7",
-		"jsdom": "^22.1.0",
+		"jsdom": "~29.0.0",
 		"marked": "^17.0.3",
-		"dompurify": "^3.1.5"
+		"dompurify": "^3.1.5",
+		"zod": "^4.3.6"
 	},
 	"engines": {
 		"node": ">=22"

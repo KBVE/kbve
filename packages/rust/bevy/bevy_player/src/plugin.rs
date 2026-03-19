@@ -3,7 +3,7 @@ use bevy::prelude::*;
 
 use crate::config::{DirectionMap, PlayerConfig};
 use crate::ground::detect_ground;
-use crate::movement::{move_player, PlayerMovement};
+use crate::movement::{PlayerMovement, move_player};
 
 /// Bevy plugin that registers the player character controller systems.
 ///
@@ -24,6 +24,7 @@ use crate::movement::{move_player, PlayerMovement};
 ///         ..default()
 ///     }));
 /// ```
+#[derive(Default)]
 pub struct PlayerPlugin {
     config: PlayerConfig,
 }
@@ -32,14 +33,6 @@ impl PlayerPlugin {
     /// Create a player plugin with the given configuration.
     pub fn new(config: PlayerConfig) -> Self {
         Self { config }
-    }
-}
-
-impl Default for PlayerPlugin {
-    fn default() -> Self {
-        Self {
-            config: PlayerConfig::default(),
-        }
     }
 }
 

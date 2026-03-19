@@ -20,9 +20,41 @@ function hideLoadingScreen() {
 	}
 }
 
+/**
+ * Probe browser capabilities and persist to localStorage as JSON.
+ * Run ONCE before WASM init so the Rust side can read a complete
+ * ClientProfile without scattered JS interop calls.
+ */
+function probeClientProfile() {
+	const g = globalThis as Record<string, unknown>;
+	const profile = {
+		secure_context:
+			window.location.protocol === 'https:' ||
+			window.location.hostname === 'localhost',
+		has_webgpu: !!(navigator as unknown as { gpu?: unknown }).gpu,
+		has_webtransport: typeof g.WebTransport === 'function',
+		has_shared_array_buffer: typeof g.SharedArrayBuffer !== 'undefined',
+		has_offscreen_canvas: typeof g.OffscreenCanvas === 'function',
+		hardware_concurrency: navigator.hardwareConcurrency || 1,
+		// Keep it simple — no UA sniffing, just capability booleans.
+		timestamp: Date.now(),
+	};
+	try {
+		localStorage.setItem('kbve_client_profile', JSON.stringify(profile));
+	} catch {
+		// Private browsing or storage full — WASM will fall back to safe defaults.
+		console.warn(
+			'[profile] localStorage unavailable, WASM will use defaults',
+		);
+	}
+	return profile;
+}
+
 async function bootstrap() {
+	const profile = probeClientProfile();
+
 	// Verify WebGPU is available before loading the WASM game
-	if (!(navigator as unknown as { gpu?: unknown }).gpu) {
+	if (!profile.has_webgpu) {
 		const root = document.getElementById('root');
 		if (root) {
 			root.innerHTML =

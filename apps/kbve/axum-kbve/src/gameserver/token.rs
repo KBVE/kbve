@@ -23,6 +23,11 @@ const DEFAULT_WT_PORT: u16 = 5001;
 pub struct TokenRequest {
     /// Supabase JWT. Empty or absent for guest access.
     pub jwt: Option<String>,
+    /// Preferred transport: "webtransport" or "websocket".
+    /// Controls the order of server addresses in the ConnectToken so
+    /// the Netcode handshake tries the right port first. Defaults to
+    /// "webtransport" for backward compatibility (Chrome prefers WT).
+    pub transport: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -76,6 +81,17 @@ pub async fn game_token_handler(
         )
     })?;
 
+    // Build the server address list for the ConnectToken.
+    // Netcode tries addresses in order, so the preferred transport's port must
+    // come first to avoid a wasted timeout on the wrong port.
+    // Safari only supports WebSocket — if the client says "websocket", put WS
+    // first so the handshake succeeds on the first attempt.
+    let prefers_ws = req
+        .transport
+        .as_deref()
+        .map(|t| t.eq_ignore_ascii_case("websocket"))
+        .unwrap_or(false);
+
     let mut server_addrs = vec![ws_addr];
     if super::is_wt_enabled() {
         let wt_addr: SocketAddr = resolve_ipv4(&request_host, wt_port).map_err(|e| {
@@ -84,8 +100,13 @@ pub async fn game_token_handler(
                 format!("cannot resolve game address {request_host}:{wt_port}: {e}"),
             )
         })?;
-        // WT first — Chrome clients prefer it and netcode tries addresses in order
-        server_addrs.insert(0, wt_addr);
+        if prefers_ws {
+            // WS first — client can only use WebSocket (e.g. Safari)
+            server_addrs.push(wt_addr);
+        } else {
+            // WT first — client supports WebTransport (e.g. Chrome)
+            server_addrs.insert(0, wt_addr);
+        }
     }
 
     // Determine client_id and user_data from JWT
@@ -138,13 +159,14 @@ pub async fn game_token_handler(
     };
 
     tracing::info!(
-        "[game-token] issuing token: ws_url={server_url} wt_url={} digest_len={} host={request_host}",
+        "[game-token] issuing token: ws_url={server_url} wt_url={} digest_len={} host={request_host} transport={} addrs={server_addrs:?}",
         if server_wt_url.is_empty() {
             "<empty>"
         } else {
             &server_wt_url
         },
         cert_digest.len(),
+        req.transport.as_deref().unwrap_or("default"),
     );
 
     Ok(Json(TokenResponse {

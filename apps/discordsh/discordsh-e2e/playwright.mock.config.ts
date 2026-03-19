@@ -21,11 +21,15 @@ const composePath = 'apps/discordsh/poc/docker-compose-poc-dev.yaml';
 // Kill any leftover containers and ports from previous runs, then start
 // the full mock stack. The discordsh service in compose uses the
 // already-built local image (kbve/discordsh:{version}).
+// Each command uses `|| true` so cleanup always exits 0 — the startCmd
+// joins cleanup to docker-compose with `&&`, so a non-zero exit here
+// would skip the compose start entirely (xargs returns 123 when kill
+// is invoked with no arguments from empty lsof output).
 const cleanup = [
-	`docker compose -f ${composePath} down --remove-orphans 2>/dev/null`,
-	`lsof -ti:${port} | xargs kill -9 2>/dev/null`,
-	`lsof -ti:${GITHUB_MOCK_PORT} | xargs kill -9 2>/dev/null`,
-	`lsof -ti:${DISCORD_MOCK_PORT} | xargs kill -9 2>/dev/null`,
+	`docker compose -f ${composePath} down --remove-orphans 2>/dev/null || true`,
+	`lsof -ti:${port} | xargs kill -9 2>/dev/null || true`,
+	`lsof -ti:${GITHUB_MOCK_PORT} | xargs kill -9 2>/dev/null || true`,
+	`lsof -ti:${DISCORD_MOCK_PORT} | xargs kill -9 2>/dev/null || true`,
 ].join('; ');
 
 // Override the discordsh image tag via env so docker-compose uses the
