@@ -438,6 +438,298 @@ The other option would be to run a [docker](/application/docker/) image to do th
 
 ---
 
+## Askama
+
+Askama is a compile-time type-safe templating engine for Rust, inspired by Jinja2.
+It compiles templates into Rust code at build time, catching errors before runtime and producing zero-allocation rendering.
+In the KBVE monorepo, we use Askama with Axum to serve dynamic pages where Astro generates the HTML shell and Askama fills in the data.
+
+### Askama with Astro — The Template Pipeline
+
+The core pattern: **Astro builds the template, Axum fills in the variables at runtime.**
+
+This gives us the best of both worlds:
+- Astro's full static site shell (nav, CSS bundles, layout, Starlight integration)
+- Axum's dynamic data injection (meme content, user profiles, OG meta tags)
+
+#### How It Works
+
+```
+1. Astro build  →  outputs HTML with {{ askama_vars }} as literal text
+2. Copy step    →  moves Astro's output into Rust's templates/ directory
+3. Cargo build  →  askama compiles those HTML files into Rust code
+4. Runtime      →  Axum resolves data, askama substitutes {{ vars }}, serves HTML
+```
+
+The key insight is that Astro treats `{{ variable }}` as plain text — it does not interpret double curly braces.
+When Astro builds, the output HTML literally contains `{{ meme_id }}`, `{{ title }}`, etc.
+Askama then picks up that HTML file as a template and compiles it into type-checked Rust code.
+
+#### Build Order (Critical)
+
+Askama templates are compiled at **Rust build time**, not runtime.
+This means the Astro build output **must exist** before `cargo build` runs.
+
+**Local development:**
+```shell
+# 1. Build Astro first
+npx nx run astro-memes:build
+
+# 2. Copy the askama page output into Rust's template directory
+cp dist/apps/astro-memes/askama/meme/index.html \
+   apps/memes/axum-memes/templates/askama/meme.html
+
+# 3. Build Rust (askama compiles the template)
+cargo build --manifest-path apps/memes/axum-memes/Cargo.toml
+```
+
+**Dockerfile (multi-stage):**
+```dockerfile
+# Stage 1: Build Astro
+FROM node:22-alpine AS astro-build
+WORKDIR /app
+COPY . .
+RUN pnpm install && npx nx run astro-memes:build
+
+# Stage 2: Build Rust (askama needs Astro output)
+FROM rust:1.87 AS rust-build
+WORKDIR /app
+COPY . .
+COPY --from=astro-build /app/dist/apps/astro-memes /app/apps/memes/axum-memes/templates/dist
+RUN cargo build --release --manifest-path apps/memes/axum-memes/Cargo.toml
+
+# Stage 3: Runtime
+FROM debian:bookworm-slim
+COPY --from=rust-build /app/target/release/axum-memes /usr/local/bin/
+COPY --from=astro-build /app/dist/apps/astro-memes /app/templates/dist
+CMD ["axum-memes"]
+```
+
+The Rust build stage receives the Astro output via `COPY --from=astro-build`, ensuring askama can find and compile the templates.
+
+#### Creating an Askama-Powered Astro Page
+
+<Steps>
+
+1. **Create the Astro MDX page** with askama variables in the frontmatter.
+
+    Place it under `src/content/docs/askama/` so it builds to a known path.
+    Use askama template syntax (`{{ var }}`, `{% if %}`, `{% for %}`) directly in the frontmatter and component props — Astro outputs them as literal text.
+
+    ```mdx
+    ---
+    title: "{{ title }} | Meme.sh"
+    head:
+        - tag: meta
+          attrs:
+            property: "og:title"
+            content: "{{ title }}"
+        - tag: meta
+          attrs:
+            property: "og:image"
+            content: "{{ og_image }}"
+        - tag: meta
+          attrs:
+            property: "og:url"
+            content: "{{ canonical_url }}"
+    description: "{{ description }}"
+    template: splash
+    sidebar:
+        hidden: true
+    ---
+
+    import AskamaMyProvider from '@/components/providers/AskamaMyProvider.astro';
+
+    <AskamaMyProvider />
+    ```
+
+2. **Create the Astro provider component** that renders the page body with askama variables.
+
+    The provider defines askama template variables as JavaScript string literals.
+    These are injected into the HTML via `set:html` — Astro outputs them verbatim.
+
+    ```astro
+    ---
+    // AskamaMyProvider.astro
+    // Askama variables: {{ title }}, {{ body_content }}, {{ author }}
+
+    const askamaTitle = `{{ title }}`;
+    const authorBlock = `{% if !author.is_empty() %}
+    <p class="author">by {{ author }}</p>
+    {% endif %}`;
+    ---
+
+    <article data-id={`{{ item_id }}`}>
+        <h1 set:html={askamaTitle} />
+        <Fragment set:html={authorBlock} />
+        <!-- React island hydration target -->
+        <div id="interactive-island" data-id={`{{ item_id }}`}></div>
+    </article>
+
+    <style>
+        .author { color: #a1a1aa; font-size: 0.875rem; }
+    </style>
+    ```
+
+    Key patterns:
+    - Use backtick strings for askama variables: `` const x = `{{ var }}`; ``
+    - Use `set:html` to inject askama blocks containing conditionals/loops
+    - Use `<Fragment set:html={block} />` for multi-line askama blocks
+    - Include a `<div id="...">` for React island hydration if needed
+
+3. **Define the Rust askama struct** that maps to the template variables.
+
+    The struct fields must match the `{{ var }}` names in the template exactly.
+
+    ```rust
+    use askama::Template;
+
+    #[derive(Template)]
+    #[template(path = "askama/my_page.html")]
+    pub struct MyPageTemplate {
+        pub item_id: String,
+        pub title: String,
+        pub description: String,
+        pub canonical_url: String,
+        pub og_image: String,
+        pub author: String,
+        pub body_content: String,
+    }
+    ```
+
+    The `path` is relative to the `templates/` directory configured in `Cargo.toml`:
+    ```toml
+    [package.metadata.askama]
+    dirs = ["templates"]
+    ```
+
+4. **Create the Axum route handler** that fetches data and renders the template.
+
+    ```rust
+    async fn page_handler(
+        State(state): State<AppState>,
+        Path(id): Path<String>,
+    ) -> Response {
+        match resolve_item(&state, &id).await {
+            Ok(Some(item)) => {
+                let template = MyPageTemplate {
+                    item_id: item.id.clone(),
+                    title: item.title.clone(),
+                    description: item.description(),
+                    canonical_url: item.canonical_url(),
+                    og_image: item.thumbnail_url(),
+                    author: item.author_name.unwrap_or_default(),
+                    body_content: item.rendered_html(),
+                };
+                TemplateResponse(template).into_response()
+            }
+            Ok(None) => StatusCode::NOT_FOUND.into_response(),
+            Err(e) => {
+                warn!(error = %e, "failed to render page");
+                StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            }
+        }
+    }
+    ```
+
+5. **Wire the build pipeline** — ensure Astro builds before Rust.
+
+    In the Nx project config, add a dependency:
+    ```json
+    {
+        "targets": {
+            "build": {
+                "dependsOn": ["astro-memes:build"],
+                "executor": "nx:run-commands",
+                "options": {
+                    "command": "cargo build --release"
+                }
+            }
+        }
+    }
+    ```
+
+    Or in the Dockerfile, use multi-stage builds (see above).
+
+</Steps>
+
+### Askama Template Syntax Reference
+
+Askama uses Jinja2-style syntax. Here are the most common patterns used in Astro-generated templates:
+
+**Variable substitution:**
+```html
+<h1>{{ title }}</h1>
+<meta property="og:image" content="{{ og_image }}" />
+```
+
+**Conditionals:**
+```html
+{% if !author.is_empty() %}
+<p>by {{ author }}</p>
+{% endif %}
+
+{% if format_label == "video" %}
+<video src="{{ asset_url }}" controls></video>
+{% else %}
+<img src="{{ asset_url }}" alt="{{ title }}" />
+{% endif %}
+```
+
+**Option types (Rust `Option<T>`):**
+```html
+{% if let Some(avatar) = avatar_url %}
+<img src="{{ avatar }}" alt="avatar" />
+{% else %}
+<div class="placeholder">No avatar</div>
+{% endif %}
+```
+
+**Loops (Rust `Vec<T>`):**
+```html
+{% for tag in tags %}
+<span class="tag">{{ tag }}</span>
+{% endfor %}
+```
+
+**Filters:**
+```html
+{{ title|escape }}
+{{ content|safe }}
+{{ count|fmt("{:.1}") }}
+```
+
+**Integer comparisons:**
+```html
+{% if width > 0 %}width="{{ width }}"{% endif %}
+```
+
+### Common Pitfalls
+
+<Aside type="caution">
+
+**Build order matters.** If `cargo build` runs before `astro build`, askama will either use stale templates or fail to find them. Always build Astro first.
+
+**Astro does NOT escape `{{ }}`** — this is what makes the pattern work. Astro treats double curly braces as plain text in MDX frontmatter, `set:html` attributes, and backtick strings. Do NOT use them in Astro expressions (`{}`) — those are Astro's own interpolation syntax.
+
+**Template path must be correct.** The `#[template(path = "...")]` attribute is relative to the `templates/` directory. After the copy step, verify the file exists at the expected path before running `cargo build`.
+
+**Askama is strict about types.** If your template uses `{{ width }}` and the struct field is `Option<i32>`, askama will error. Use `{% if let Some(w) = width %}{{ w }}{% endif %}` for optional fields, or provide defaults in the handler (`.unwrap_or(0)`).
+
+**CSS in Astro components works normally.** Scoped `<style>` blocks in `.astro` files generate hashed class names that survive the askama pipeline — they are just static CSS in the final HTML.
+
+</Aside>
+
+### Existing Askama Pages in the Monorepo
+
+| App | Route | Template | Provider |
+|-----|-------|----------|----------|
+| kbve | `/@{username}` | `askama/profile.mdx` | `AskamaProfileProvider.astro` |
+| kbve | `/@{username}` (not found) | — | `AskamaProfileNotFoundProvider.astro` |
+| memes | `/meme/{id}` | `askama/meme.mdx` | `AskamaMemeProvider.astro` |
+
+---
+
 ## KBVE
 
 ---
