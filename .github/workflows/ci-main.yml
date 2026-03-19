@@ -115,73 +115,46 @@ jobs:
                     exit 1
                   fi
 
-                  # --- Semver comparison: returns "true" if local > registry ---
+                  # --- Semver comparison: returns "true" if local > published ---
+                  # Treats 0.0.0 as "not ready" — never publishes if either version is 0.0.0.
                   is_newer() {
-                    local local_v="$1" reg_v="$2"
-                    if [ "$local_v" = "$reg_v" ]; then echo "false"; return; fi
-                    # sort -V puts the smaller version first; if local is last, it's newer
-                    local highest=$(printf '%s\n%s' "$local_v" "$reg_v" | sort -V | tail -1)
+                    local local_v="$1" pub_v="$2"
+                    if [ -z "$local_v" ] || [ "$local_v" = "0.0.0" ]; then echo "false"; return; fi
+                    if [ -z "$pub_v" ] || [ "$pub_v" = "0.0.0" ]; then echo "false"; return; fi
+                    if [ "$local_v" = "$pub_v" ]; then echo "false"; return; fi
+                    local highest=$(printf '%s\n%s' "$local_v" "$pub_v" | sort -V | tail -1)
                     [ "$highest" = "$local_v" ] && echo "true" || echo "false"
                   }
 
-                  # --- Version check helpers (now use is_newer for semver) ---
-                  check_npm_version() {
-                    local pkg="$1"
-                    local local_v=$(jq -r '.version' "packages/npm/${pkg}/package.json" 2>/dev/null || echo "0.0.0")
-                    local reg_v=$(curl -sf "https://registry.npmjs.org/@kbve/${pkg}/latest" | jq -r '.version // "0.0.0"' 2>/dev/null || echo "0.0.0")
-                    is_newer "$local_v" "$reg_v"
-                  }
+                  # --- Universal version check via version.toml ---
+                  # Belt: checks publish flag. Suspenders: checks version + 0.0.0 guard.
+                  # No external API calls — purely file-based.
+                  check_version() {
+                    local source_file="$1" version_toml="$2"
+                    local local_v="0.0.0" pub_v="0.0.0" pub_flag="true"
 
-                  check_crate_version() {
-                    local pkg="$1"
-                    local local_v=$(grep -m1 '^version' "packages/rust/${pkg}/Cargo.toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
-                    local reg_v=$(curl -sf "https://crates.io/api/v1/crates/${pkg}" | jq -r '.crate.max_version // "0.0.0"' 2>/dev/null || echo "0.0.0")
-                    is_newer "$local_v" "$reg_v"
-                  }
-
-                  check_python_version() {
-                    local pypi="$1"
-                    local local_v=$(grep -m1 '^version' "packages/python/${pypi}/pyproject.toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
-                    local reg_v=$(curl -sf "https://pypi.org/pypi/${pypi}/json" | jq -r '.info.version // "0.0.0"' 2>/dev/null || echo "0.0.0")
-                    is_newer "$local_v" "$reg_v"
-                  }
-
-                  check_unreal_version() {
-                    local plugin_path="$1" plugin_name="$2"
-                    local local_v=$(jq -r '.VersionName' "${plugin_path}/${plugin_name}.uplugin" 2>/dev/null || echo "0.0.0")
-                    local reg_v="0.0.0"
-                    if [ -f "${plugin_path}/version.toml" ]; then
-                      reg_v=$(grep -m1 '^version' "${plugin_path}/version.toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                    # Belt: check publish flag
+                    if [ -f "$version_toml" ]; then
+                      pub_flag=$(grep -m1 '^publish' "$version_toml" | sed 's/publish = //' | tr -d ' "' 2>/dev/null || echo "true")
                     fi
-                    is_newer "$local_v" "$reg_v"
-                  }
+                    if [ "$pub_flag" = "false" ]; then echo "false"; return; fi
 
-                  check_docker_version() {
-                    local app="$1"
-                    local toml=""
-                    case "$app" in
-                      axum-kbve)     toml="apps/kbve/axum-kbve/Cargo.toml" ;;
-                      herbmail)      toml="apps/herbmail/axum-herbmail/Cargo.toml" ;;
-                      memes)         toml="apps/memes/axum-memes/Cargo.toml" ;;
-                      irc-gateway)   toml="apps/irc/irc-gateway/Cargo.toml" ;;
-                      discordsh)     toml="apps/discordsh/axum-discordsh/Cargo.toml" ;;
-                      mc)            toml="apps/mc/plugins/kbve-mc-plugin/Cargo.toml" ;;
-                      edge)          toml="apps/kbve/edge/version.toml" ;;
-                      cryptothrone)  toml="apps/cryptothrone/axum-cryptothrone/Cargo.toml" ;;
-                      *)             echo "true"; return ;;
-                    esac
-                    if [ ! -f "$toml" ]; then echo "true"; return; fi
-                    local local_v=$(grep -m1 '^version' "$toml" | sed 's/version = "\(.*\)"/\1/')
-                    local image=""
-                    case "$app" in
-                      axum-kbve) image="kbve/kbve" ;; herbmail) image="kbve/herbmail" ;;
-                      memes) image="kbve/memes" ;; irc-gateway) image="kbve/irc-gateway" ;;
-                      discordsh) image="kbve/discordsh" ;; mc) image="kbve/mc" ;;
-                      edge) image="kbve/edge" ;; cryptothrone) image="kbve/cryptothrone" ;;
-                      kilobase) image="kbve/kilobase" ;; *) echo "true"; return ;;
-                    esac
-                    local hub_status=$(curl -sf -o /dev/null -w "%{http_code}" "https://hub.docker.com/v2/repositories/${image}/tags/${local_v}" 2>/dev/null || echo "000")
-                    [ "$hub_status" != "200" ] && echo "true" || echo "false"
+                    # Read local version from source
+                    if [ -f "$source_file" ]; then
+                      case "$source_file" in
+                        *.json)    local_v=$(jq -r '.version // "0.0.0"' "$source_file" 2>/dev/null || echo "0.0.0") ;;
+                        *.uplugin) local_v=$(jq -r '.VersionName // "0.0.0"' "$source_file" 2>/dev/null || echo "0.0.0") ;;
+                        *)         local_v=$(grep -m1 '^version' "$source_file" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0") ;;
+                      esac
+                    fi
+
+                    # Read published version from version.toml
+                    if [ -f "$version_toml" ]; then
+                      pub_v=$(grep -m1 '^version' "$version_toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                    fi
+
+                    # Suspenders: 0.0.0 or empty = not ready
+                    is_newer "$local_v" "$pub_v"
                   }
 
                   # --- Check if alteration key is true ---
@@ -203,6 +176,23 @@ jobs:
                       --field package_type="$type" --field dispatched_at="$DISPATCHED_AT" "$@"
                   }
 
+                  # --- Resolve version source + version.toml per pipeline/entry ---
+                  resolve_docker_paths() {
+                    local app="$1"
+                    case "$app" in
+                      axum-kbve)    SRC="apps/kbve/axum-kbve/Cargo.toml";            VTOML="apps/kbve/axum-kbve/version.toml" ;;
+                      herbmail)     SRC="apps/herbmail/axum-herbmail/Cargo.toml";     VTOML="apps/herbmail/version.toml" ;;
+                      memes)        SRC="apps/memes/axum-memes/Cargo.toml";           VTOML="apps/memes/version.toml" ;;
+                      irc-gateway)  SRC="apps/irc/irc-gateway/Cargo.toml";            VTOML="apps/irc/version.toml" ;;
+                      discordsh)    SRC="apps/discordsh/axum-discordsh/Cargo.toml";   VTOML="apps/discordsh/version.toml" ;;
+                      mc)           SRC="apps/mc/plugins/kbve-mc-plugin/Cargo.toml";  VTOML="apps/mc/version.toml" ;;
+                      edge)         SRC="apps/kbve/edge/version.toml";                VTOML="apps/kbve/edge/version.toml" ;;
+                      cryptothrone) SRC="apps/cryptothrone/axum-cryptothrone/Cargo.toml"; VTOML="apps/cryptothrone/version.toml" ;;
+                      kilobase)     SRC=""; VTOML="" ;;
+                      *)            SRC=""; VTOML="" ;;
+                    esac
+                  }
+
                   # =================================================================
                   # Docker apps
                   # =================================================================
@@ -211,14 +201,18 @@ jobs:
                     key=$(echo "$entry" | jq -r '.key')
                     app=$(echo "$entry" | jq -r '.app_name')
                     altered=$(is_altered "$key")
+                    resolve_docker_paths "$app"
                     if [ "$altered" = "true" ]; then
                       echo "  ✓ $app — files changed, dispatching"
                       dispatch_docker "$app"
                       DISPATCHED=$((DISPATCHED + 1))
-                    elif [ "$(check_docker_version "$app")" = "true" ]; then
+                    elif [ -n "$SRC" ] && [ "$(check_version "$SRC" "$VTOML")" = "true" ]; then
                       echo "  ✓ $app — unpublished version, dispatching"
                       dispatch_docker "$app"
                       DISPATCHED=$((DISPATCHED + 1))
+                    elif [ -z "$SRC" ]; then
+                      echo "  · $app — no version source, skipping"
+                      SKIPPED=$((SKIPPED + 1))
                     else
                       echo "  · $app — no changes, version published, skipping"
                       SKIPPED=$((SKIPPED + 1))
@@ -237,7 +231,7 @@ jobs:
                       echo "  ✓ $pkg — files changed, dispatching"
                       dispatch_publish npm --field package_name="$pkg"
                       DISPATCHED=$((DISPATCHED + 1))
-                    elif [ "$(check_npm_version "$pkg")" = "true" ]; then
+                    elif [ "$(check_version "packages/npm/${pkg}/package.json" "packages/npm/${pkg}/version.toml")" = "true" ]; then
                       echo "  ✓ $pkg — unpublished version, dispatching"
                       dispatch_publish npm --field package_name="$pkg"
                       DISPATCHED=$((DISPATCHED + 1))
@@ -259,7 +253,7 @@ jobs:
                       echo "  ✓ $pkg — files changed, dispatching"
                       dispatch_publish crates --field package_name="$pkg"
                       DISPATCHED=$((DISPATCHED + 1))
-                    elif [ "$(check_crate_version "$pkg")" = "true" ]; then
+                    elif [ "$(check_version "packages/rust/${pkg}/Cargo.toml" "packages/rust/${pkg}/version.toml")" = "true" ]; then
                       echo "  ✓ $pkg — unpublished version, dispatching"
                       dispatch_publish crates --field package_name="$pkg"
                       DISPATCHED=$((DISPATCHED + 1))
@@ -282,7 +276,7 @@ jobs:
                       echo "  ✓ $pkg — files changed, dispatching"
                       dispatch_publish python --field package_name="$pkg" --field pypi_name="$pypi"
                       DISPATCHED=$((DISPATCHED + 1))
-                    elif [ "$(check_python_version "$pypi")" = "true" ]; then
+                    elif [ "$(check_version "packages/python/${pypi}/pyproject.toml" "packages/python/${pypi}/version.toml")" = "true" ]; then
                       echo "  ✓ $pkg — unpublished version, dispatching"
                       dispatch_publish python --field package_name="$pkg" --field pypi_name="$pypi"
                       DISPATCHED=$((DISPATCHED + 1))
@@ -307,7 +301,7 @@ jobs:
                     [ -n "$itch" ] && deploy_itch="true"
                     if [ "$altered" = "true" ]; then
                       echo "  ✓ $name — files changed, dispatching"
-                    elif [ "$(check_unreal_version "$path" "$name")" = "true" ]; then
+                    elif [ "$(check_version "${path}/${name}.uplugin" "${path}/version.toml")" = "true" ]; then
                       echo "  ✓ $name — unpublished version, dispatching"
                     else
                       echo "  · $name — no changes, version published, skipping"

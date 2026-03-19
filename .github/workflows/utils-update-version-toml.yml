@@ -1,0 +1,72 @@
+name: Update version.toml
+
+on:
+    workflow_call:
+        inputs:
+            package_type:
+                description: 'Package type (npm, crates, python, docker)'
+                required: true
+                type: string
+            package_name:
+                description: 'Package name for commit message'
+                required: true
+                type: string
+            version:
+                description: 'Version that was published'
+                required: true
+                type: string
+            version_toml_path:
+                description: 'Path to version.toml relative to repo root'
+                required: true
+                type: string
+
+jobs:
+    update:
+        name: PR version.toml → ${{ inputs.version }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+            pull-requests: write
+        steps:
+            - name: Checkout dev
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+
+            - name: Update version.toml
+              run: |
+                  VTOML="${{ inputs.version_toml_path }}"
+                  VERSION="${{ inputs.version }}"
+
+                  # Preserve publish flag if it exists
+                  PUBLISH_FLAG="true"
+                  if [ -f "$VTOML" ]; then
+                    PUBLISH_FLAG=$(grep -m1 '^publish' "$VTOML" | sed 's/publish = //' | tr -d ' "' 2>/dev/null || echo "true")
+                  fi
+
+                  printf 'version = "%s"\npublish = %s\n' "$VERSION" "$PUBLISH_FLAG" > "$VTOML"
+                  echo "Updated $VTOML:"
+                  cat "$VTOML"
+
+            - name: Create PR
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  PKG="${{ inputs.package_name }}"
+                  VERSION="${{ inputs.version }}"
+                  TYPE="${{ inputs.package_type }}"
+                  BRANCH="auto/update-${TYPE}-${PKG}-v${VERSION}"
+
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git checkout -b "${BRANCH}"
+                  git add "${{ inputs.version_toml_path }}"
+                  git commit -m "chore(${PKG}): update version.toml to ${VERSION} [skip ci]"
+                  git push origin "${BRANCH}"
+
+                  gh pr create \
+                    --base dev \
+                    --head "${BRANCH}" \
+                    --title "chore(${PKG}): update version.toml to ${VERSION}" \
+                    --body "Automated post-publish update. ${TYPE}/${PKG} v${VERSION} has been published."
