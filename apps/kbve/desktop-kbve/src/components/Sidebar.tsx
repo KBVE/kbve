@@ -1,16 +1,14 @@
 import { useRef, useEffect } from 'react';
 import { getViews } from '../engine';
 import { useAppStore } from '../stores/app';
-
-// ─── Sidebar ─────────────────────────────────────────────────────────────────
-// Reads view list from registry. Subscribes to app store for active view +
-// collapse state. Nav highlight updates via direct DOM patching — no React
-// re-render on navigation.
+import { ThemeSwitch } from './ThemeSwitch';
 
 export function Sidebar() {
 	const views = getViews();
 	const navRef = useRef<HTMLElement>(null);
 	const asideRef = useRef<HTMLElement>(null);
+	const brandFullRef = useRef<HTMLSpanElement>(null);
+	const brandShortRef = useRef<HTMLSpanElement>(null);
 
 	useEffect(() => {
 		const applyActive = (activeId: string) => {
@@ -20,24 +18,42 @@ export function Sidebar() {
 				const btn = buttons[i] as HTMLElement;
 				const isActive = btn.dataset.viewId === activeId;
 				btn.style.backgroundColor = isActive
-					? 'var(--color-accent)'
+					? 'var(--color-active)'
 					: 'transparent';
-				btn.className = btn.className
-					.replace(/font-medium|opacity-60 hover:opacity-100/g, '')
-					.trim();
-				btn.classList.add(isActive ? 'font-medium' : 'opacity-60');
+				btn.style.color = isActive
+					? 'var(--color-text)'
+					: 'var(--color-text-muted)';
 			}
 		};
 
 		const applyCollapse = (open: boolean) => {
 			if (!asideRef.current) return;
-			asideRef.current.style.width = open ? '14rem' : '3.5rem';
-			// Toggle label visibility
+			asideRef.current.style.width = open ? '15rem' : '5rem';
+
+			// Brand: crossfade "KBVE Desktop" ↔ "K"
+			if (brandFullRef.current && brandShortRef.current) {
+				brandFullRef.current.style.opacity = open ? '1' : '0';
+				brandFullRef.current.style.maxWidth = open ? '12rem' : '0';
+				brandFullRef.current.style.overflow = 'hidden';
+				brandShortRef.current.style.opacity = open ? '0' : '1';
+				brandShortRef.current.style.maxWidth = open ? '0' : '3rem';
+				brandShortRef.current.style.overflow = 'hidden';
+			}
+
+			// Nav labels
 			const labels = asideRef.current.querySelectorAll<HTMLElement>(
 				'[data-sidebar-label]',
 			);
 			labels.forEach((el) => {
-				el.style.display = open ? '' : 'none';
+				if (open) {
+					el.style.opacity = '1';
+					el.style.maxWidth = '10rem';
+					el.style.marginLeft = '';
+				} else {
+					el.style.opacity = '0';
+					el.style.maxWidth = '0';
+					el.style.marginLeft = '0';
+				}
 			});
 		};
 
@@ -62,65 +78,107 @@ export function Sidebar() {
 			ref={asideRef}
 			className="flex flex-col border-r transition-all duration-200"
 			style={{
-				width: '14rem',
+				width: '15rem',
 				backgroundColor: 'var(--color-surface)',
 				borderColor: 'var(--color-border)',
 			}}>
-			<div className="flex items-center justify-between p-3">
-				<span
-					data-sidebar-label
-					className="text-sm font-semibold tracking-wide opacity-70">
-					KBVE
-				</span>
-				<button
-					onClick={toggleSidebar}
-					className="rounded p-1 text-sm transition-colors hover:bg-white/10"
-					aria-label="Toggle sidebar">
-					<ToggleIcon />
-				</button>
+			{/* Brand + burger */}
+			<div className="sidebar-section flex items-center justify-between">
+				<div
+					className="relative flex items-center"
+					style={{ minHeight: '1.5rem' }}>
+					<span
+						ref={brandFullRef}
+						className="sidebar-label font-display text-heading font-semibold tracking-wide"
+						style={{
+							color: 'var(--color-text)',
+							whiteSpace: 'nowrap',
+						}}>
+						KBVE Desktop
+					</span>
+					<span
+						ref={brandShortRef}
+						className="sidebar-label font-display text-heading font-semibold"
+						style={{
+							color: 'var(--color-text)',
+							opacity: 0,
+							maxWidth: 0,
+						}}>
+						K
+					</span>
+				</div>
+				<BurgerToggle onClick={toggleSidebar} />
 			</div>
 
-			<nav ref={navRef} className="mt-2 flex flex-1 flex-col gap-1 px-2">
+			{/* Nav items */}
+			<nav
+				ref={navRef}
+				className="sidebar-nav flex flex-1 flex-col gap-1.5">
 				{views.map((view) => (
 					<button
 						key={view.id}
 						data-view-id={view.id}
 						onClick={() => setActiveView(view.id)}
-						className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors opacity-60"
-						style={{ backgroundColor: 'transparent' }}
+						className="flex items-center gap-4 rounded-lg px-4 py-3 text-caption transition-colors"
+						style={{
+							backgroundColor: 'transparent',
+							color: 'var(--color-text-muted)',
+						}}
 						title={view.label}>
-						<span className="text-base">{view.icon}</span>
-						<span data-sidebar-label>{view.label}</span>
+						<span className="flex-shrink-0">{view.icon}</span>
+						<span data-sidebar-label className="sidebar-label">
+							{view.label}
+						</span>
 					</button>
 				))}
 			</nav>
 
+			{/* Footer */}
 			<div
-				className="border-t p-3"
+				className="sidebar-section flex items-center justify-between border-t"
 				style={{ borderColor: 'var(--color-border)' }}>
 				<p
 					data-sidebar-label
-					className="text-xs"
+					className="sidebar-label text-small"
 					style={{ color: 'var(--color-text-muted)' }}>
 					v0.1.0
 				</p>
+				<ThemeSwitch />
 			</div>
 		</aside>
 	);
 }
 
-function ToggleIcon() {
-	const ref = useRef<HTMLSpanElement>(null);
+function BurgerToggle({ onClick }: { onClick: () => void }) {
+	const inputRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
+		// Sync checkbox to store — checked = collapsed (X shape)
+		const apply = (open: boolean) => {
+			if (inputRef.current) {
+				inputRef.current.checked = !open;
+			}
+		};
+		apply(useAppStore.getState().sidebarOpen);
+
 		return useAppStore.subscribe((state, prev) => {
-			if (state.sidebarOpen !== prev.sidebarOpen && ref.current) {
-				ref.current.textContent = state.sidebarOpen
-					? '\u25C0'
-					: '\u25B6';
+			if (state.sidebarOpen !== prev.sidebarOpen) {
+				apply(state.sidebarOpen);
 			}
 		});
 	}, []);
 
-	return <span ref={ref}>{'\u25C0'}</span>;
+	return (
+		<label
+			className="burger"
+			onClick={(e) => {
+				e.preventDefault();
+				onClick();
+			}}>
+			<input ref={inputRef} type="checkbox" />
+			<span />
+			<span />
+			<span />
+		</label>
+	);
 }

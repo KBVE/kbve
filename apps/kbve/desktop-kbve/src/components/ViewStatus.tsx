@@ -2,10 +2,10 @@ import { useRef, useEffect } from 'react';
 import type { ViewStatus } from '../engine/bridge';
 
 const STATUS_COLORS: Record<ViewStatus, string> = {
-	idle: '#8888a0',
-	running: '#22c55e',
-	paused: '#f59e0b',
-	stopped: '#ef4444',
+	idle: 'var(--color-status-idle)',
+	running: 'var(--color-status-running)',
+	paused: 'var(--color-status-paused)',
+	stopped: 'var(--color-status-stopped)',
 };
 
 const STATUS_LABELS: Record<ViewStatus, string> = {
@@ -49,7 +49,7 @@ export function ViewStatusBadge({ status }: ViewStatusBadgeProps) {
 			/>
 			<span
 				ref={labelRef}
-				className="text-xs"
+				className="text-caption"
 				style={{ color: 'var(--color-text-muted)' }}>
 				{STATUS_LABELS[status] ?? status}
 			</span>

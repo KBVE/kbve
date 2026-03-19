@@ -37,7 +37,9 @@ export function ViewHost() {
 	return (
 		<div className="relative flex-1 overflow-hidden">
 			{/* Base view layer */}
-			<div ref={baseRef} className="view-base h-full overflow-y-auto p-6">
+			<div
+				ref={baseRef}
+				className="view-base h-full overflow-y-auto px-10 py-8">
 				{views.map((view) => (
 					<div
 						key={view.id}
@@ -240,7 +242,7 @@ function CardPanel({
 			onPointerMove={handlePointerMove}
 			onPointerUp={handlePointerUp}>
 			<div className="card-header">
-				<h2 className="text-sm font-semibold">{label}</h2>
+				<h2 className="text-body font-semibold">{label}</h2>
 				<div className="flex items-center gap-1">
 					<button
 						className="card-btn"
@@ -326,8 +328,8 @@ function CardTray() {
 					className="card-tray-pill"
 					style={{ display: 'none' }}
 					onClick={() => restoreCard(view.id)}>
-					<span className="text-xs">{view.icon}</span>
-					<span className="text-xs">{view.label}</span>
+					{view.icon}
+					<span className="text-caption">{view.label}</span>
 					<button
 						className="card-tray-close"
 						onClick={(e) => {

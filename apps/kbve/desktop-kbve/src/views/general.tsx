@@ -10,12 +10,12 @@ export function GeneralView() {
 	const bridge = useViewBridge('general');
 
 	return (
-		<div className="flex max-w-2xl flex-col gap-6">
+		<div className="flex max-w-2xl flex-col gap-8">
 			<div className="flex items-center justify-between">
 				<ViewStatusBadge status={bridge.status} />
 				{bridge.loading && (
 					<span
-						className="text-xs"
+						className="text-caption"
 						style={{ color: 'var(--color-text-muted)' }}>
 						Connecting...
 					</span>
@@ -52,7 +52,7 @@ export function GeneralView() {
 						select={(s) => s.language}
 						render={(lang) => (lang === 'en' ? 'English' : lang)}
 						tag="span"
-						className="rounded-md border px-3 py-1.5 text-sm"
+						className="rounded-md border px-3 py-1.5 text-body"
 						style={{
 							backgroundColor: 'var(--color-bg)',
 							borderColor: 'var(--color-border)',
@@ -69,7 +69,7 @@ function ThemeSelect() {
 	const setTheme = useSettingsStore((s) => s.setTheme);
 	return (
 		<select
-			className="rounded-md border px-3 py-1.5 text-sm"
+			className="rounded-md border px-3 py-1.5 text-body"
 			style={{
 				backgroundColor: 'var(--color-bg)',
 				borderColor: 'var(--color-border)',
