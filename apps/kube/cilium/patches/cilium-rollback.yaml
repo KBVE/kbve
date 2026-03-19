@@ -1,0 +1,15 @@
+## Talos machine config patch — rollback to flannel + kube-proxy
+## Apply: talosctl patch machineconfig --nodes <node> --patch @cilium-rollback.yaml
+##
+## Use this if Cilium fails to start or causes networking issues.
+## After applying to all nodes:
+##   1. Delete the Cilium ArgoCD Application (or disable auto-sync)
+##   2. kubectl delete ds cilium -n kube-system
+##   3. Pods will reconnect via flannel once nodes finish reconfiguring
+
+cluster:
+    network:
+        cni:
+            name: flannel
+    proxy:
+        disabled: false

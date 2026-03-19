@@ -207,7 +207,7 @@ jobs:
                   # Docker apps
                   # =================================================================
                   echo "=== Docker Apps ==="
-                  for entry in $(jq -c '.docker[]' "$MANIFEST"); do
+                  while IFS= read -r entry; do
                     key=$(echo "$entry" | jq -r '.key')
                     app=$(echo "$entry" | jq -r '.app_name')
                     altered=$(is_altered "$key")
@@ -223,13 +223,13 @@ jobs:
                       echo "  · $app — no changes, version published, skipping"
                       SKIPPED=$((SKIPPED + 1))
                     fi
-                  done
+                  done < <(jq -c '.docker[]' "$MANIFEST")
 
                   # =================================================================
                   # NPM packages
                   # =================================================================
                   echo "=== NPM Packages ==="
-                  for entry in $(jq -c '.npm[]' "$MANIFEST"); do
+                  while IFS= read -r entry; do
                     key=$(echo "$entry" | jq -r '.key')
                     pkg=$(echo "$entry" | jq -r '.package_name')
                     altered=$(is_altered "$key")
@@ -245,13 +245,13 @@ jobs:
                       echo "  · $pkg — no changes, version published, skipping"
                       SKIPPED=$((SKIPPED + 1))
                     fi
-                  done
+                  done < <(jq -c '.npm[]' "$MANIFEST")
 
                   # =================================================================
                   # Rust crates
                   # =================================================================
                   echo "=== Rust Crates ==="
-                  for entry in $(jq -c '.crates[]' "$MANIFEST"); do
+                  while IFS= read -r entry; do
                     key=$(echo "$entry" | jq -r '.key')
                     pkg=$(echo "$entry" | jq -r '.package_name')
                     altered=$(is_altered "$key")
@@ -267,13 +267,13 @@ jobs:
                       echo "  · $pkg — no changes, version published, skipping"
                       SKIPPED=$((SKIPPED + 1))
                     fi
-                  done
+                  done < <(jq -c '.crates[]' "$MANIFEST")
 
                   # =================================================================
                   # Python packages
                   # =================================================================
                   echo "=== Python Packages ==="
-                  for entry in $(jq -c '.python[]' "$MANIFEST"); do
+                  while IFS= read -r entry; do
                     key=$(echo "$entry" | jq -r '.key')
                     pkg=$(echo "$entry" | jq -r '.package_name')
                     pypi=$(echo "$entry" | jq -r '.pypi_name')
@@ -290,13 +290,13 @@ jobs:
                       echo "  · $pkg — no changes, version published, skipping"
                       SKIPPED=$((SKIPPED + 1))
                     fi
-                  done
+                  done < <(jq -c '.python[]' "$MANIFEST")
 
                   # =================================================================
                   # Unreal plugins
                   # =================================================================
                   echo "=== Unreal Plugins ==="
-                  for entry in $(jq -c '.unreal[]' "$MANIFEST"); do
+                  while IFS= read -r entry; do
                     key=$(echo "$entry" | jq -r '.key')
                     name=$(echo "$entry" | jq -r '.plugin_name')
                     path=$(echo "$entry" | jq -r '.plugin_path')
@@ -321,7 +321,7 @@ jobs:
                       --field itch_game_id="$itch" \
                       --field unreal_dependency_plugins="$deps"
                     DISPATCHED=$((DISPATCHED + 1))
-                  done
+                  done < <(jq -c '.unreal[]' "$MANIFEST")
 
                   echo ""
                   echo "=== Summary: ${DISPATCHED} dispatched, ${SKIPPED} skipped ==="
