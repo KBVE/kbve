@@ -1,0 +1,62 @@
+## Cilium Helm values for Talos Linux (v1.8.0+)
+## Reference: https://docs.siderolabs.com/kubernetes-guides/cni/deploying-cilium
+
+ipam:
+    mode: kubernetes
+
+# Replace kube-proxy (requires cluster.proxy.disabled=true in Talos machine config)
+kubeProxyReplacement: true
+k8sServiceHost: localhost # KubePrism (already enabled on port 7445)
+k8sServicePort: 7445
+
+# Talos cgroup v2 — do not auto-mount, use host path
+cgroup:
+    autoMount:
+        enabled: false
+    hostRoot: /sys/fs/cgroup
+
+# Talos security — SYS_MODULE not allowed, must be explicitly excluded
+securityContext:
+    capabilities:
+        ciliumAgent:
+            - CHOWN
+            - KILL
+            - NET_ADMIN
+            - NET_RAW
+            - IPC_LOCK
+            - SYS_ADMIN
+            - SYS_RESOURCE
+            - DAC_OVERRIDE
+            - FOWNER
+            - SETGID
+            - SETUID
+        cleanCiliumState:
+            - NET_ADMIN
+            - SYS_ADMIN
+            - SYS_RESOURCE
+
+# WireGuard encryption — pod-to-pod + node-to-node
+# This is separate from the infra-level WireGuard (wg0) that connects
+# NUC workers to the Hetzner control plane. Cilium WireGuard encrypts
+# all east-west pod traffic across nodes using per-node keys on UDP 51871.
+encryption:
+    enabled: true
+    type: wireguard
+    nodeEncryption: true
+
+# Observability — Hubble network flow visibility
+hubble:
+    enabled: true
+    relay:
+        enabled: true
+    ui:
+        enabled: true
+
+# Gateway API — enabled now so CRDs are installed, ready for Phase 2/5
+gatewayAPI:
+    enabled: true
+    enableAlpn: true
+    enableAppProtocol: true
+
+operator:
+    replicas: 1
