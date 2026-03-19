@@ -96,44 +96,32 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v6
 
-            - name: Check version against registry
+            - name: Check version against version.toml
               id: check
               run: |
                   TYPE="${{ inputs.package_type }}"
                   NAME="${{ inputs.package_name }}"
                   LOCAL=""
-                  REGISTRY=""
+                  PUBLISHED=""
 
                   case "$TYPE" in
                     npm)
-                      LOCAL=$(jq -r '.version' "packages/npm/${NAME}/package.json")
-                      REGISTRY=$(curl -sf "https://registry.npmjs.org/@kbve/${NAME}/latest" \
-                        | jq -r '.version // "0.0.0"' 2>/dev/null || echo "0.0.0")
+                      LOCAL=$(jq -r '.version' "packages/npm/${NAME}/package.json" 2>/dev/null || echo "0.0.0")
+                      VTOML="packages/npm/${NAME}/version.toml"
                       ;;
                     crates)
-                      LOCAL=$(grep -m1 '^version' "packages/rust/${NAME}/Cargo.toml" \
-                        | sed 's/version = "\(.*\)"/\1/')
-                      REGISTRY=$(curl -sf "https://crates.io/api/v1/crates/${NAME}" \
-                        | jq -r '.crate.max_version // "0.0.0"' 2>/dev/null || echo "0.0.0")
+                      LOCAL=$(grep -m1 '^version' "packages/rust/${NAME}/Cargo.toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                      VTOML="packages/rust/${NAME}/version.toml"
                       ;;
                     python)
                       PYPI="${{ inputs.pypi_name }}"
-                      LOCAL=$(grep -m1 '^version' "packages/python/${PYPI}/pyproject.toml" \
-                        | sed 's/version = "\(.*\)"/\1/')
-                      REGISTRY=$(curl -sf "https://pypi.org/pypi/${PYPI}/json" \
-                        | jq -r '.info.version // "0.0.0"' 2>/dev/null || echo "0.0.0")
+                      LOCAL=$(grep -m1 '^version' "packages/python/${PYPI}/pyproject.toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                      VTOML="packages/python/${PYPI}/version.toml"
                       ;;
                     unreal)
                       UPLUGIN="${{ inputs.unreal_plugin_path }}/${NAME}.uplugin"
                       LOCAL=$(jq -r '.VersionName' "$UPLUGIN" 2>/dev/null || echo "0.0.0")
-                      # Unreal uses version.toml as published version tracker
-                      VERSION_TOML="${{ inputs.unreal_plugin_path }}/version.toml"
-                      if [ -f "$VERSION_TOML" ]; then
-                        REGISTRY=$(grep -m1 '^version' "$VERSION_TOML" \
-                          | sed 's/version = "\(.*\)"/\1/')
-                      else
-                        REGISTRY="0.0.0"
-                      fi
+                      VTOML="${{ inputs.unreal_plugin_path }}/version.toml"
                       ;;
                     *)
                       echo "::error::Unknown package type: $TYPE"
@@ -141,20 +129,25 @@ jobs:
                       ;;
                   esac
 
+                  if [ -f "$VTOML" ]; then
+                    PUBLISHED=$(grep -m1 '^version' "$VTOML" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                  else
+                    PUBLISHED="0.0.0"
+                  fi
+
                   echo "local_version=${LOCAL}" >> "$GITHUB_OUTPUT"
-                  echo "registry_version=${REGISTRY}" >> "$GITHUB_OUTPUT"
+                  echo "registry_version=${PUBLISHED}" >> "$GITHUB_OUTPUT"
 
-                  # Semver comparison: only publish if local > registry
-                  HIGHEST=$(printf '%s\n%s' "$LOCAL" "$REGISTRY" | sort -V | tail -1)
+                  HIGHEST=$(printf '%s\n%s' "$LOCAL" "$PUBLISHED" | sort -V | tail -1)
 
-                  if [ "$LOCAL" = "$REGISTRY" ]; then
-                    echo "::notice::${TYPE}/${NAME} v${LOCAL} already published — tests will run, publish will be skipped."
+                  if [ "$LOCAL" = "$PUBLISHED" ]; then
+                    echo "::notice::${TYPE}/${NAME} v${LOCAL} matches version.toml — tests will run, publish will be skipped."
                     echo "should_publish=false" >> "$GITHUB_OUTPUT"
                   elif [ "$HIGHEST" != "$LOCAL" ]; then
-                    echo "::warning::${TYPE}/${NAME} v${LOCAL} is OLDER than registry v${REGISTRY} — skipping publish. Bump local version."
+                    echo "::warning::${TYPE}/${NAME} v${LOCAL} is OLDER than version.toml v${PUBLISHED} — skipping. Bump local version."
                     echo "should_publish=false" >> "$GITHUB_OUTPUT"
                   else
-                    echo "::notice::${TYPE}/${NAME} v${LOCAL} is new (registry: ${REGISTRY}) — will publish after tests pass."
+                    echo "::notice::${TYPE}/${NAME} v${LOCAL} > version.toml v${PUBLISHED} — will publish after tests pass."
                     echo "should_publish=true" >> "$GITHUB_OUTPUT"
                   fi
 

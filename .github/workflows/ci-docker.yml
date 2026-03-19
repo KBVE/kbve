@@ -62,7 +62,6 @@ jobs:
         timeout-minutes: 5
         permissions:
             contents: read
-            packages: read
         outputs:
             should_publish: ${{ steps.check.outputs.should_publish }}
             local_version: ${{ steps.check.outputs.local_version }}
@@ -70,67 +69,53 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v6
 
-            - name: Check version against GHCR
+            - name: Check version against version.toml
               id: check
-              env:
-                  GH_TOKEN: ${{ github.token }}
               run: |
                   APP="${{ inputs.app_name }}"
-                  LOCAL="unknown"
+                  SRC="" VTOML=""
 
-                  # Resolve the cargo_toml/version source per app
                   case "$APP" in
-                    axum-kbve)     TOML="apps/kbve/axum-kbve/Cargo.toml" ;;
-                    herbmail)      TOML="apps/herbmail/axum-herbmail/Cargo.toml" ;;
-                    memes)         TOML="apps/memes/axum-memes/Cargo.toml" ;;
-                    irc-gateway)   TOML="apps/irc/irc-gateway/Cargo.toml" ;;
-                    discordsh)     TOML="apps/discordsh/axum-discordsh/Cargo.toml" ;;
-                    mc)            TOML="apps/mc/plugins/kbve-mc-plugin/Cargo.toml" ;;
-                    edge)          TOML="apps/kbve/edge/version.toml" ;;
-                    cryptothrone)  TOML="apps/cryptothrone/axum-cryptothrone/Cargo.toml" ;;
-                    kilobase)      TOML="" ;;
+                    axum-kbve)    SRC="apps/kbve/axum-kbve/Cargo.toml";            VTOML="apps/kbve/axum-kbve/version.toml" ;;
+                    herbmail)     SRC="apps/herbmail/axum-herbmail/Cargo.toml";     VTOML="apps/herbmail/version.toml" ;;
+                    memes)        SRC="apps/memes/axum-memes/Cargo.toml";           VTOML="apps/memes/version.toml" ;;
+                    irc-gateway)  SRC="apps/irc/irc-gateway/Cargo.toml";            VTOML="apps/irc/version.toml" ;;
+                    discordsh)    SRC="apps/discordsh/axum-discordsh/Cargo.toml";   VTOML="apps/discordsh/version.toml" ;;
+                    mc)           SRC="apps/mc/plugins/kbve-mc-plugin/Cargo.toml";  VTOML="apps/mc/version.toml" ;;
+                    edge)         SRC="apps/kbve/edge/version.toml";                VTOML="apps/kbve/edge/version.toml" ;;
+                    cryptothrone) SRC="apps/cryptothrone/axum-cryptothrone/Cargo.toml"; VTOML="apps/cryptothrone/version.toml" ;;
+                    kilobase)     SRC=""; VTOML="" ;;
                     *)
                       echo "::error::Unknown app: $APP"
                       exit 1
                       ;;
                   esac
 
-                  if [ -n "$TOML" ] && [ -f "$TOML" ]; then
-                    LOCAL=$(grep -m1 '^version' "$TOML" | sed 's/version = "\(.*\)"/\1/')
+                  if [ -z "$SRC" ]; then
+                    echo "::notice::${APP} has no version source — will always publish on file changes."
+                    echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                    echo "local_version=unknown" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  LOCAL=$(grep -m1 '^version' "$SRC" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                  PUBLISHED="0.0.0"
+                  if [ -f "$VTOML" ]; then
+                    PUBLISHED=$(grep -m1 '^version' "$VTOML" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
                   fi
 
                   echo "local_version=${LOCAL}" >> "$GITHUB_OUTPUT"
 
-                  # If no version source, always publish (e.g. kilobase)
-                  if [ "$LOCAL" = "unknown" ]; then
-                    echo "::notice::${APP} has no version source — will always publish."
-                    echo "should_publish=true" >> "$GITHUB_OUTPUT"
-                    exit 0
-                  fi
+                  HIGHEST=$(printf '%s\n%s' "$LOCAL" "$PUBLISHED" | sort -V | tail -1)
 
-                  # Resolve GHCR image name
-                  case "$APP" in
-                    axum-kbve)     IMAGE="kbve/kbve" ;;
-                    herbmail)      IMAGE="kbve/herbmail" ;;
-                    memes)         IMAGE="kbve/memes" ;;
-                    irc-gateway)   IMAGE="kbve/irc-gateway" ;;
-                    discordsh)     IMAGE="kbve/discordsh" ;;
-                    mc)            IMAGE="kbve/mc" ;;
-                    edge)          IMAGE="kbve/edge" ;;
-                    cryptothrone)  IMAGE="kbve/cryptothrone" ;;
-                    kilobase)      IMAGE="kbve/kilobase" ;;
-                  esac
-
-                  # Check GHCR for existing tag
-                  STATUS=$(curl -sf -o /dev/null -w "%{http_code}" \
-                    -H "Authorization: Bearer $(echo ${{ github.token }} | base64)" \
-                    "https://ghcr.io/v2/${IMAGE}/manifests/${LOCAL}" 2>/dev/null || echo "000")
-
-                  if [ "$STATUS" = "200" ]; then
-                    echo "::notice::${APP} v${LOCAL} already exists in GHCR — tests will run, publish will be skipped."
+                  if [ "$LOCAL" = "$PUBLISHED" ]; then
+                    echo "::notice::${APP} v${LOCAL} matches version.toml — tests will run, publish will be skipped."
+                    echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                  elif [ "$HIGHEST" != "$LOCAL" ]; then
+                    echo "::warning::${APP} v${LOCAL} is OLDER than version.toml v${PUBLISHED} — skipping. Bump local version."
                     echo "should_publish=false" >> "$GITHUB_OUTPUT"
                   else
-                    echo "::notice::${APP} v${LOCAL} not found in GHCR (HTTP ${STATUS}) — will publish after tests pass."
+                    echo "::notice::${APP} v${LOCAL} > version.toml v${PUBLISHED} — will publish after tests pass."
                     echo "should_publish=true" >> "$GITHUB_OUTPUT"
                   fi
 
