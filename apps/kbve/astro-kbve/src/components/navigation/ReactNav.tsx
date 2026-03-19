@@ -100,9 +100,9 @@ export default function ReactNav() {
 
 	const busy = authLoading;
 
-	// Derive tone: promote to 'error' if init failed while store is still loading,
-	// or to 'anon' on timeout so the user sees "KBVE Guest" instead of "Loading..."
-	const tone = auth.tone === 'loading' && error ? 'error' : auth.tone;
+	// Any error or timeout degrades to 'anon' (guest) — never show 'error' or
+	// stuck 'loading' to the user. They can retry sign-in from the menu.
+	const tone = auth.tone === 'loading' && error ? 'anon' : auth.tone;
 	const displayName =
 		tone === 'auth'
 			? auth.name

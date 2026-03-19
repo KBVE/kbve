@@ -72,12 +72,15 @@ export async function bootAuth(
 		});
 	} catch (e: any) {
 		const message = e?.message ?? 'Failed to initialize auth';
+		console.warn('[bootAuth] Auth failed, falling back to guest:', message);
+		// Reset to anonymous — auth errors should never leave the user stuck.
+		// The UI shows the guest experience; user can retry sign-in manually.
 		$auth.set({
-			tone: 'error',
+			tone: 'anon',
 			name: '',
 			avatar: undefined,
 			id: '',
-			error: message,
+			error: undefined,
 		});
 		DroidEvents.emit('auth-error', {
 			timestamp: Date.now(),
