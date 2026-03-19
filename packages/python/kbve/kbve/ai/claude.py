@@ -96,7 +96,7 @@ def _parse_usage_output(raw: str) -> ClaudeUsage:
             usage.percent_used = data.get("percent_used")
             return usage
     except (json.JSONDecodeError, ValueError):
-        pass
+        pass  # Not JSON — fall through to human-readable parser
 
     # Parse human-readable output
     cost_match = re.search(
