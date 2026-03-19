@@ -1274,7 +1274,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.63"
+version = "1.0.64"
 dependencies = [
  "anyhow",
  "askama",
@@ -1341,6 +1341,7 @@ dependencies = [
  "dotenvy",
  "http-body-util",
  "jedi",
+ "jsonwebtoken",
  "kbve",
  "num_cpus",
  "reqwest 0.12.28",

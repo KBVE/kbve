@@ -23,12 +23,31 @@ import { Adsense } from '@/components/astropad';
 -   08:45PM
 
     There are two situations we will need to work out!
-    The first is making sure that each of the unreal plugins will be published onto fab. 
+    The first is making sure that each of the unreal plugins will be published onto fab.
     However before we can even do that, we need to figure out the best way to handle dispatches.
     Then there is another major issue, the plugins need to be kept up to date with the different versions of unreal that come out.
     So the battle is basically two areas, one is a source of truth of all applications and packages.
 
 
+### Astro Project Schema
+
+  - 08:56PM
+    - The proto is the first layer in our source of truth, then we wrap it into the zod layer, apply the mdx front matter and get a json of the projects, which would include [/application](Applications and packages)
+
+### Discord SH Build Failure
+
+  - 09:33PM
+    - Looking through the notes, it seems that our main failure point that has been holding us back is the e2e, which we need to make sure that it does not continue to happen. However I did notice that we need to have more of a flow of when main gets pushes and merges, it could be that we might have to figure out a clean way to handle the backlog of pushes.
+
+### MDX Linter
+
+  - 09:50PM
+    - Maybe we need a python script that runs through our journals that takes what I am writing and neatly flags, optimzes and turns all my journal entries into something way cooler? I am still trying to think it through, there could be something cool that I can do with it. Maybe instead of directly linting here, we could just make a secondary script that goes through the journal entries, maybe once a week and does a sharp clean up and sync, actually we could have it be daily, where it does a general sweep of the daily entry.
+
+### Desktoppi
+
+  - 10:11PM
+    - Not the official name but I am going to clean up handy and look at making a more optimized build as a KBVE Application. But there could be some other improvements that I am thinking about having compared to the original handy application. The biggest improvement will be the way that we load and handle models.
 
 ## 2025
 
@@ -46,7 +65,7 @@ import { Adsense } from '@/components/astropad';
     Forking the whole monorepo and working on it under `h0lybyte` is the goal for this Q2.
     If everything goes as planned, then we can look at the azure and gitlab pipelines afterwards, ideally making it so the monorepo can stay replicated in multiple locations.
     The repo structure will be like this:
-    
+
     1.  Github for Public.
     2.  Gitlab for Private Teams + Outside Developers - focus on backend applications.
     3.  Azure for Private Internal + Code for non-monorepo behaviors, like Unity.
@@ -77,7 +96,7 @@ So the outline of the App stack would be like this:
 - Phaser
 - Colyseus
 
-Plugins: 
+Plugins:
 
 - Enabled3D , this being optional.
 - Grid Engine, this being optional.
