@@ -70,49 +70,161 @@ Cluster: Talos Linux, Kubernetes 1.32.1, single /32 external IP (142.132.206.74)
 
 ---
 
-## Phase 1: Cilium as CNI (replace flannel)
+## Phase 1: Cilium as CNI + WireGuard (replace flannel)
 
-**Goal:** Swap the CNI to Cilium. No ingress changes. nginx stays.
+**Goal:** Swap the CNI to Cilium with WireGuard pod-to-pod encryption. No ingress changes. nginx stays.
 
-### Talos Machine Config Changes
+Reference: https://docs.siderolabs.com/kubernetes-guides/cni/deploying-cilium
 
-Talos manages the CNI. To switch to Cilium:
+### Talos Machine Config Patch
 
 ```yaml
-# talos machine config patch
 cluster:
     network:
         cni:
             name: none # disable default flannel
     proxy:
         disabled: true # Cilium replaces kube-proxy
+machine:
+    features:
+        kubePrism:
+            enabled: true # required — Cilium uses localhost:7445 for API access
+            port: 7445
+    sysctls:
+        net.core.bpf_jit_enable: '1' # JIT for eBPF performance
 ```
 
-Then install Cilium via Helm:
+Apply via: `talosctl gen config my-cluster https://<endpoint>:6443 --config-patch @cilium-patch.yaml`
+Or patch existing: `talosctl patch machineconfig --patch @cilium-patch.yaml`
+
+### Talos-Specific Gotchas
+
+1. **No `SYS_MODULE` capability** — Talos does not allow loading kernel modules from workloads. The Helm values must explicitly set the security context capabilities without `SYS_MODULE`.
+2. **KubePrism required** — Cilium connects to the API server via `localhost:7445` (KubePrism proxy), not the external control plane endpoint. This avoids a chicken-and-egg problem where Cilium needs networking to reach the API server.
+3. **cgroup v2 mounts** — Talos uses cgroup v2. Cilium must not auto-mount; use the host path `/sys/fs/cgroup` instead.
+4. **CoreDNS conflict** — `forwardKubeDNSToHost=true` (Talos default) combined with `bpf.masquerade=true` breaks CoreDNS. Set `forwardKubeDNSToHost=false` in machine config if enabling BPF masquerade.
+5. **Pod Security** — Cilium agent requires privileged namespace. Apply `pod-security.kubernetes.io/enforce=privileged` label to `kube-system`.
+6. **Inline manifests (recommended by Siderolabs for production)** — Template the Helm chart and embed the output in `cluster.inlineManifests` on control plane nodes only. Manifests deploy at bootstrap time before any other workloads. Use `talosctl upgrade-k8s` for updates (Talos never auto-deletes/updates inline manifests).
+
+### Helm Values
+
+```yaml
+# apps/kube/cilium/values.yaml
+ipam:
+    mode: kubernetes
+
+kubeProxyReplacement: true
+k8sServiceHost: localhost # KubePrism
+k8sServicePort: 7445 # KubePrism port
+
+# Talos cgroup v2
+cgroup:
+    autoMount:
+        enabled: false
+    hostRoot: /sys/fs/cgroup
+
+# Talos security — no SYS_MODULE
+securityContext:
+    capabilities:
+        ciliumAgent:
+            - CHOWN
+            - KILL
+            - NET_ADMIN
+            - NET_RAW
+            - IPC_LOCK
+            - SYS_ADMIN
+            - SYS_RESOURCE
+            - DAC_OVERRIDE
+            - FOWNER
+            - SETGID
+            - SETUID
+        cleanCiliumState:
+            - NET_ADMIN
+            - SYS_ADMIN
+            - SYS_RESOURCE
+
+# WireGuard encryption (pod-to-pod + node-to-node)
+encryption:
+    enabled: true
+    type: wireguard
+    nodeEncryption: true # also encrypt node-to-node, pod-to-node traffic
+
+# Observability
+hubble:
+    enabled: true
+    relay:
+        enabled: true
+    ui:
+        enabled: true
+
+# Gateway API (prep for Phase 2/5)
+gatewayAPI:
+    enabled: true
+    enableAlpn: true
+    enableAppProtocol: true
+
+operator:
+    replicas: 1
+```
+
+### WireGuard Details
+
+Cilium's WireGuard integration provides transparent encryption at the network layer with zero application changes.
+
+- **Coverage (default):** Pod-to-pod traffic between Cilium-managed endpoints
+- **Coverage (`nodeEncryption: true`):** Also encrypts node-to-node, pod-to-node, and node-to-pod traffic
+- **Not encrypted:** Traffic within the same node (observable locally anyway)
+- **Kernel requirement:** Linux 5.6+ with `CONFIG_WIREGUARD=m` (Talos kernel includes this)
+- **Port:** UDP 51871 must be reachable between all cluster nodes
+- **Key management:** Fully automatic — Cilium generates and rotates WireGuard keys per node, no manual key distribution
+- **Performance:** Kernel-space WireGuard, no userspace overhead, minimal latency impact
+
+**What this protects:**
+
+- All east-west traffic between pods across nodes is encrypted — Supabase ↔ Kong, game server ↔ database, n8n ↔ APIs
+- Node-to-node traffic (kubelet, etcd, control plane) when `nodeEncryption: true`
+- Eliminates the need for application-level mTLS for internal service communication
+
+**Limitations:**
+
+- Control-plane nodes auto-opt-out of node encryption (label `node-role.kubernetes.io/control-plane`) to prevent bootstrap deadlock
+- Packets may briefly drop during WireGuard device reconfiguration on endpoint/node updates
+- All clusters in a Cluster Mesh must have WireGuard enabled (no mixed mode)
+
+### Deployment Method
+
+**Option A: Helm via ArgoCD (simpler, fits existing workflow)**
+
+Create `apps/kube/cilium/application.yaml` pointing to the Cilium Helm chart with the values above. ArgoCD manages lifecycle. Easier to iterate during initial rollout.
+
+**Option B: Inline manifests (recommended by Siderolabs for production)**
 
 ```bash
-helm install cilium cilium/cilium \
+# Template the Helm chart
+helm template cilium cilium/cilium \
+  --version 1.18.0 \
   --namespace kube-system \
-  --set ipam.mode=kubernetes \
-  --set kubeProxyReplacement=true \
-  --set k8sServiceHost=<TALOS_API_IP> \
-  --set k8sServicePort=6443 \
-  --set hubble.enabled=true \
-  --set hubble.relay.enabled=true \
-  --set hubble.ui.enabled=true \
-  --set operator.replicas=1
+  -f values.yaml > cilium-manifests.yaml
+
+# Embed in Talos machine config (control plane nodes only)
+talosctl patch machineconfig --patch @inline-cilium-patch.yaml
 ```
 
-### ArgoCD Application
+Inline manifests deploy at bootstrap time before any workloads, avoiding the gap where pods have no CNI. However, updates require `talosctl upgrade-k8s` instead of `kubectl apply`.
 
-Create `apps/kube/cilium/application.yaml` to manage Cilium via ArgoCD (Helm source).
+**Recommendation:** Start with Option A (ArgoCD Helm) for easier iteration. Move to inline manifests once the config is battle-tested.
 
 ### Validation Checklist
 
 - [ ] All pods in Running state after CNI swap
-- [ ] CoreDNS resolving correctly
+- [ ] `cilium status` shows all agents healthy
+- [ ] CoreDNS resolving correctly (especially if `bpf.masquerade` enabled)
 - [ ] Pod-to-pod connectivity across nodes
 - [ ] Pod-to-service connectivity
+- [ ] **WireGuard:** `cilium encrypt status` shows WireGuard interfaces up, keys established per node
+- [ ] **WireGuard:** `hubble observe --namespace kbve` shows flows with encryption indicator
+- [ ] **WireGuard:** UDP 51871 open between all nodes (`ss -ulnp | grep 51871`)
+- [ ] **WireGuard:** `tcpdump -i eth0 -n udp port 51871` confirms encrypted traffic between nodes
 - [ ] nginx ingress controller still functional (all 16 ingresses respond)
 - [ ] Kong proxy still routing Supabase traffic
 - [ ] WebSocket connections work (kbve.com/ws, chat.kbve.com, cityvote.com)
@@ -120,14 +232,14 @@ Create `apps/kube/cilium/application.yaml` to manage Cilium via ArgoCD (Helm sou
 - [ ] IRC TCP stream proxies work (6667, 6697)
 - [ ] MetalLB still assigning 142.132.206.74
 - [ ] NetworkPolicies enforced (test RCON restriction, runner egress)
-- [ ] Hubble UI accessible (port-forward hubble-ui)
+- [ ] Hubble UI accessible (`kubectl port-forward -n kube-system svc/hubble-ui 12000:80`)
 - [ ] cert-manager renewals still work (check pending CertificateRequests)
 
 ### Risk
 
 **High.** CNI swap causes brief network disruption. All pods lose networking during the transition and must re-establish connections. Schedule during maintenance window.
 
-**Mitigation:** Talos supports `talosctl upgrade` with CNI changes applied atomically per node. Rolling node upgrades limit blast radius.
+**Mitigation:** Talos supports `talosctl upgrade` with config changes applied atomically per node. Rolling node upgrades limit blast radius. If Cilium fails to start, revert machine config to re-enable flannel.
 
 ---
 
