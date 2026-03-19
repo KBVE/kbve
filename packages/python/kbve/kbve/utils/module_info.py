@@ -30,6 +30,7 @@ _MODULES = [
     ("kbve.config", "Environment-aware configuration loader"),
     ("kbve.health", "Health check primitives for microservices"),
     ("kbve.tasks", "Async task runner for background work"),
+    ("kbve.grpc", "gRPC client factory, interceptors, and proto helpers"),
     ("kbve.api", "API clients and utilities"),
 ]
 
