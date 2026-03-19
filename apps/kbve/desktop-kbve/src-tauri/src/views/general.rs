@@ -12,6 +12,7 @@ pub struct GeneralViewActor {
     language: String,
     launch_at_login: bool,
     start_minimized: bool,
+    emitter: Option<ViewEmitter>,
 }
 
 impl GeneralViewActor {
@@ -21,6 +22,24 @@ impl GeneralViewActor {
             language: "en".to_string(),
             launch_at_login: false,
             start_minimized: false,
+            emitter: None,
+        }
+    }
+
+    #[cfg(test)]
+    pub fn new_without_emitter() -> Self {
+        Self::new()
+    }
+
+    fn emit_status(&self, status: ViewStatus) {
+        if let Some(ref emitter) = self.emitter {
+            emitter.emit_status(status);
+        }
+    }
+
+    fn emit_config(&self, config: &serde_json::Value) {
+        if let Some(ref emitter) = self.emitter {
+            emitter.emit_config(config);
         }
     }
 
@@ -65,8 +84,21 @@ impl ViewActor for GeneralViewActor {
         emitter: ViewEmitter,
         cancel: CancellationToken,
     ) {
+        self.emitter = Some(emitter);
+        self.run_loop(&mut cmd_rx, &status_tx, &cancel).await;
+    }
+}
+
+impl GeneralViewActor {
+    /// Shared run loop used by both the ViewActor trait and tests.
+    async fn run_loop(
+        &mut self,
+        cmd_rx: &mut mpsc::Receiver<ViewCommand>,
+        status_tx: &watch::Sender<ViewStatus>,
+        cancel: &CancellationToken,
+    ) {
         let _ = status_tx.send(ViewStatus::Running);
-        emitter.emit_status(ViewStatus::Running);
+        self.emit_status(ViewStatus::Running);
 
         loop {
             tokio::select! {
@@ -78,15 +110,15 @@ impl ViewActor for GeneralViewActor {
                         None => break,
                         Some(ViewCommand::Start) => {
                             let _ = status_tx.send(ViewStatus::Running);
-                            emitter.emit_status(ViewStatus::Running);
+                            self.emit_status(ViewStatus::Running);
                         }
                         Some(ViewCommand::Stop) => {
                             let _ = status_tx.send(ViewStatus::Paused);
-                            emitter.emit_status(ViewStatus::Paused);
+                            self.emit_status(ViewStatus::Paused);
                         }
                         Some(ViewCommand::UpdateConfig(config)) => {
                             self.handle_config_update(&config);
-                            emitter.emit_config(&config);
+                            self.emit_config(&config);
                         }
                         Some(ViewCommand::GetSnapshot(reply)) => {
                             let _ = reply.send(self.snapshot());
@@ -103,6 +135,17 @@ impl ViewActor for GeneralViewActor {
         }
 
         let _ = status_tx.send(ViewStatus::Stopped);
-        emitter.emit_status(ViewStatus::Stopped);
+        self.emit_status(ViewStatus::Stopped);
+    }
+
+    /// Test-only entry point — runs the actor loop without requiring a ViewEmitter.
+    #[cfg(test)]
+    pub async fn run_without_emitter(
+        mut self,
+        mut cmd_rx: mpsc::Receiver<ViewCommand>,
+        status_tx: watch::Sender<ViewStatus>,
+        cancel: CancellationToken,
+    ) {
+        self.run_loop(&mut cmd_rx, &status_tx, &cancel).await;
     }
 }

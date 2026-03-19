@@ -53,6 +53,12 @@ impl ViewManager {
         );
     }
 
+    /// Create a ViewEmitter for a given view id.
+    #[allow(dead_code)]
+    pub fn create_emitter(&self, view_id: &str) -> ViewEmitter {
+        ViewEmitter::new(self.app.clone(), view_id)
+    }
+
     /// Send a command to a view by id.
     pub async fn send(&self, view_id: &str, cmd: ViewCommand) -> Result<(), ViewError> {
         let handle = self
