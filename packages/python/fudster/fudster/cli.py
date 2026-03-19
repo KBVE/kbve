@@ -201,6 +201,82 @@ def config_cmd(
         click.echo()
 
 
+# ── grpc sub-group ───────────────────────────────────────────────────
+
+@main.group("grpc")
+def grpc_group() -> None:
+    """gRPC utilities — health check, proto compilation."""
+
+
+@grpc_group.command("health")
+@click.argument("target", default="localhost:50051")
+@click.option("--timeout", default=5.0, type=float, help="Timeout in seconds.")
+def grpc_health(target: str, timeout: float) -> None:
+    """Check gRPC health of a remote server."""
+    import asyncio
+    from kbve.grpc.client import check_health
+
+    result = asyncio.get_event_loop().run_until_complete(
+        check_health(target, timeout=timeout)
+    )
+    if result["healthy"]:
+        click.secho(
+            f"  {target} -> {result['status']}", fg="green",
+        )
+    else:
+        err = result.get("error", "")
+        msg = f"  {target} -> {result['status']}"
+        if err:
+            msg += f" ({err})"
+        click.secho(msg, fg="red")
+    raise SystemExit(0 if result["healthy"] else 1)
+
+
+@grpc_group.command("compile")
+@click.argument("proto_files", nargs=-1, required=True)
+@click.option(
+    "--proto-path", default=".", type=click.Path(exists=True),
+    help="Directory to search for imports.",
+)
+@click.option(
+    "--python-out", default=".", type=click.Path(),
+    help="Output directory for _pb2.py files.",
+)
+@click.option(
+    "--grpc-out", default=None, type=click.Path(),
+    help="Output directory for _pb2_grpc.py files.",
+)
+@click.option(
+    "--pyi-out", default=None, type=click.Path(),
+    help="Output directory for .pyi type stubs.",
+)
+def grpc_compile(
+    proto_files: tuple[str, ...],
+    proto_path: str,
+    python_out: str,
+    grpc_out: str | None,
+    pyi_out: str | None,
+) -> None:
+    """Compile .proto files to Python."""
+    from kbve.grpc.compiler import compile_proto
+
+    exit_code = compile_proto(
+        proto_files=list(proto_files),
+        proto_path=proto_path,
+        python_out=python_out,
+        grpc_out=grpc_out,
+        pyi_out=pyi_out,
+    )
+    if exit_code == 0:
+        click.secho(
+            f"Compiled {len(proto_files)} proto file(s)", fg="green",
+        )
+    else:
+        msg = "Proto compilation failed (exit " + str(exit_code) + ")"
+        click.secho(msg, fg="red")
+    raise SystemExit(exit_code)
+
+
 # ── nx sub-group ─────────────────────────────────────────────────────
 
 @main.group()
