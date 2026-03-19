@@ -10,5 +10,6 @@ resources:
     - kbve-internal-ca-cert.yaml
     - kbve-wt-cert.yaml
     - kbve-deployment.yaml
+    - kbve-wt-lb.yaml
     - nginx-ingress.yaml
     - kbve-ws-ingress.yaml
