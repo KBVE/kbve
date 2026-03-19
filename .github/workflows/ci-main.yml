@@ -127,24 +127,33 @@ jobs:
                   }
 
                   # --- Universal version check via version.toml ---
-                  # Reads the local source version and the published version from version.toml.
+                  # Belt: checks publish flag. Suspenders: checks version + 0.0.0 guard.
                   # No external API calls — purely file-based.
                   check_version() {
                     local source_file="$1" version_toml="$2"
-                    local local_v="0.0.0" pub_v="0.0.0"
+                    local local_v="0.0.0" pub_v="0.0.0" pub_flag="true"
 
+                    # Belt: check publish flag
+                    if [ -f "$version_toml" ]; then
+                      pub_flag=$(grep -m1 '^publish' "$version_toml" | sed 's/publish = //' | tr -d ' "' 2>/dev/null || echo "true")
+                    fi
+                    if [ "$pub_flag" = "false" ]; then echo "false"; return; fi
+
+                    # Read local version from source
                     if [ -f "$source_file" ]; then
                       case "$source_file" in
-                        *.json)   local_v=$(jq -r '.version // "0.0.0"' "$source_file" 2>/dev/null || echo "0.0.0") ;;
+                        *.json)    local_v=$(jq -r '.version // "0.0.0"' "$source_file" 2>/dev/null || echo "0.0.0") ;;
                         *.uplugin) local_v=$(jq -r '.VersionName // "0.0.0"' "$source_file" 2>/dev/null || echo "0.0.0") ;;
-                        *)        local_v=$(grep -m1 '^version' "$source_file" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0") ;;
+                        *)         local_v=$(grep -m1 '^version' "$source_file" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0") ;;
                       esac
                     fi
 
+                    # Read published version from version.toml
                     if [ -f "$version_toml" ]; then
                       pub_v=$(grep -m1 '^version' "$version_toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
                     fi
 
+                    # Suspenders: 0.0.0 or empty = not ready
                     is_newer "$local_v" "$pub_v"
                   }
 

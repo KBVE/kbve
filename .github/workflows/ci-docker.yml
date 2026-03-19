@@ -100,11 +100,20 @@ jobs:
 
                   LOCAL=$(grep -m1 '^version' "$SRC" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
                   PUBLISHED="0.0.0"
+                  PUBLISH_FLAG="true"
                   if [ -f "$VTOML" ]; then
                     PUBLISHED=$(grep -m1 '^version' "$VTOML" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                    PUBLISH_FLAG=$(grep -m1 '^publish' "$VTOML" | sed 's/publish = //' | tr -d ' "' 2>/dev/null || echo "true")
                   fi
 
                   echo "local_version=${LOCAL}" >> "$GITHUB_OUTPUT"
+
+                  # Belt: explicit publish flag
+                  if [ "$PUBLISH_FLAG" = "false" ]; then
+                    echo "::notice::${APP} has publish = false in version.toml — skipping."
+                    echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
 
                   if [ -z "$LOCAL" ] || [ "$LOCAL" = "0.0.0" ]; then
                     echo "::notice::${APP} local version is ${LOCAL:-empty} — skipping publish."
