@@ -43,6 +43,17 @@ export const DroidUpscaleSchema = z.object({
 	level: z.string(),
 });
 
+export const AuthReadySchema = z.object({
+	timestamp: z.number(),
+	tone: z.enum(['auth', 'anon']),
+	name: z.string().optional(),
+});
+
+export const AuthErrorSchema = z.object({
+	timestamp: z.number(),
+	message: z.string(),
+});
+
 export const DroidEventSchemas = {
 	'droid-first-connect': DroidFirstConnectSchema,
 	'droid-ready': DroidReadySchema,
@@ -57,6 +68,8 @@ export const DroidEventSchemas = {
 	'tooltip-closed': TooltipPayloadSchema.pick({ id: true }),
 	'modal-opened': ModalPayloadSchema,
 	'modal-closed': ModalPayloadSchema.pick({ id: true }),
+	'auth-ready': AuthReadySchema,
+	'auth-error': AuthErrorSchema,
 };
 
 export type DroidEventMap = {

@@ -1,8 +1,8 @@
-import type { ComponentType } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 
 export interface ViewDefinition {
 	id: string;
 	label: string;
-	icon: string;
+	icon: ReactNode;
 	component: ComponentType;
 }

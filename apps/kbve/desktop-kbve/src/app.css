@@ -1,15 +1,74 @@
 @import 'tailwindcss';
+@source "./**/*.{ts,tsx}";
 
-:root {
-	--color-bg: #0f0f14;
-	--color-surface: #1a1a24;
-	--color-surface-hover: #22222e;
-	--color-border: #2a2a3a;
-	--color-text: #e4e4ef;
-	--color-text-muted: #8888a0;
-	--color-accent: #6366f1;
-	--color-accent-hover: #818cf8;
+/* ─── Font ────────────────────────────────────────────────────────────────── */
+
+@font-face {
+	font-family: 'Garamond';
+	src: url('/fonts/garamond-book-condensed.otf') format('opentype');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
 }
+
+/* ─── Design Tokens ───────────────────────────────────────────────────────── */
+/*  5-stop neutral ramp: #F6F7F8  #E1E4E8  #B4BBC5  #6A7484  #2A2F38       */
+
+/* Dark (default) */
+:root,
+[data-theme='dark'] {
+	--color-bg: #2a2f38;
+	--color-surface: #323842;
+	--color-surface-hover: #3a414c;
+	--color-active: #3a414c;
+	--color-border: #3e4550;
+	--color-text: #f6f7f8;
+	--color-text-muted: #b4bbc5;
+	--color-accent: #6a7484;
+	--color-accent-hover: #b4bbc5;
+	--color-toggle-on: #e1e4e8;
+	--color-toggle-dot: #2a2f38;
+	--color-shadow: rgba(0, 0, 0, 0.3);
+	--color-shadow-light: rgba(0, 0, 0, 0.1);
+	--color-backdrop: rgba(0, 0, 0, 0.4);
+	--color-status-idle: #b4bbc5;
+	--color-status-running: #6bcb77;
+	--color-status-paused: #ffd93d;
+	--color-status-stopped: #ff6b6b;
+}
+
+/* Light */
+[data-theme='light'] {
+	--color-bg: #f6f7f8;
+	--color-surface: #ffffff;
+	--color-surface-hover: #e1e4e8;
+	--color-active: #e1e4e8;
+	--color-border: #d1d5db;
+	--color-text: #2a2f38;
+	--color-text-muted: #6a7484;
+	--color-accent: #b4bbc5;
+	--color-accent-hover: #6a7484;
+	--color-toggle-on: #2a2f38;
+	--color-toggle-dot: #f6f7f8;
+	--color-shadow: rgba(0, 0, 0, 0.08);
+	--color-shadow-light: rgba(0, 0, 0, 0.04);
+	--color-backdrop: rgba(0, 0, 0, 0.2);
+	--color-status-idle: #6a7484;
+	--color-status-running: #16a34a;
+	--color-status-paused: #d97706;
+	--color-status-stopped: #dc2626;
+}
+
+/* ─── Typography Scale (3 sizes only) ─────────────────────────────────────── */
+
+@theme {
+	--font-display: 'Garamond', 'Georgia', serif;
+	--font-sans:
+		'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
+		sans-serif;
+}
+
+/* ─── Reset ───────────────────────────────────────────────────────────────── */
 
 * {
 	margin: 0;
@@ -25,18 +84,250 @@ body,
 	overflow: hidden;
 	background: var(--color-bg);
 	color: var(--color-text);
-	font-family:
-		'Inter',
-		-apple-system,
-		BlinkMacSystemFont,
-		'Segoe UI',
-		system-ui,
-		sans-serif;
+	font-family: var(--font-sans);
+	font-size: 13px;
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+	transition:
+		background-color 300ms ease,
+		color 300ms ease;
+}
+
+/* ─── Utility: Font Sizes ─────────────────────────────────────────────────── */
+
+.text-body {
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.text-caption {
+	font-size: 11px;
+	line-height: 1.45;
+}
+
+.text-small {
+	font-size: 11px;
+	line-height: 1.45;
+}
+
+.text-heading {
+	font-size: 15px;
+	line-height: 1.4;
+}
+
+.font-display {
+	font-family: var(--font-display);
+}
+
+/* ─── Sidebar ─────────────────────────────────────────────────────────────── */
+
+/* Margin-based inset for all sidebar sections (brand, footer) */
+.sidebar-section {
+	margin: 0 1rem;
+	padding: 1.25rem 0.5rem;
+}
+
+/* Nav uses its own margin so buttons can bleed to full width on hover */
+.sidebar-nav {
+	margin: 0 0.75rem;
+}
+
+/* Labels fade + collapse when sidebar closes */
+.sidebar-label {
+	overflow: hidden;
+	white-space: nowrap;
+	opacity: 1;
+	max-width: 10rem;
+	transition:
+		opacity 180ms ease-out,
+		max-width 200ms ease-out,
+		margin-left 200ms ease-out;
+}
+
+/* ─── Burger Toggle ───────────────────────────────────────────────────────── */
+
+.burger {
+	position: relative;
+	width: 24px;
+	height: 18px;
+	background: transparent;
+	cursor: pointer;
+	display: block;
+	flex-shrink: 0;
+}
+
+.burger input {
+	display: none;
+}
+
+.burger span {
+	display: block;
+	position: absolute;
+	height: 2px;
+	width: 100%;
+	background: var(--color-text-muted);
+	border-radius: 9px;
+	opacity: 1;
+	left: 0;
+	transform: rotate(0deg);
+	transition: 0.25s ease-in-out;
+}
+
+.burger span:nth-of-type(1) {
+	top: 0;
+	transform-origin: left center;
+}
+
+.burger span:nth-of-type(2) {
+	top: 50%;
+	transform: translateY(-50%);
+	transform-origin: left center;
+}
+
+.burger span:nth-of-type(3) {
+	top: 100%;
+	transform-origin: left center;
+	transform: translateY(-100%);
+}
+
+.burger input:checked ~ span:nth-of-type(1) {
+	transform: rotate(45deg);
+	top: -1px;
+	left: 3px;
+}
+
+.burger input:checked ~ span:nth-of-type(2) {
+	width: 0%;
+	opacity: 0;
+}
+
+.burger input:checked ~ span:nth-of-type(3) {
+	transform: rotate(-45deg);
+	top: 17px;
+	left: 3px;
+}
+
+.burger:hover span {
+	background: var(--color-text);
+}
+
+/* ─── Theme Switch (moon/sun) ─────────────────────────────────────────────── */
+
+.theme-switch {
+	position: relative;
+	display: inline-block;
+	width: 3.2em;
+	height: 1.76em;
+	font-size: 14px;
+	border-radius: 30px;
+	box-shadow: 0 0 8px var(--color-shadow-light);
+	flex-shrink: 0;
+}
+
+.theme-switch input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+	position: absolute;
+}
+
+.theme-slider {
+	position: absolute;
+	cursor: pointer;
+	inset: 0;
+	background-color: var(--color-bg);
+	border: 1px solid var(--color-border);
+	transition: 0.4s;
+	border-radius: 30px;
+	overflow: hidden;
+}
+
+.theme-slider:before {
+	position: absolute;
+	content: '';
+	height: 1em;
+	width: 1em;
+	border-radius: 50%;
+	left: 0.38em;
+	bottom: 0.38em;
+	transition: 0.4s;
+	transition-timing-function: cubic-bezier(0.81, -0.04, 0.38, 1.5);
+	box-shadow: inset 8px -4px 0px 0px var(--color-text);
+}
+
+.theme-switch input:checked + .theme-slider {
+	background-color: #87ceeb;
+	border-color: #6db8d4;
+}
+
+.theme-switch input:checked + .theme-slider:before {
+	transform: translateX(1.44em);
+	box-shadow: inset 15px -4px 0px 15px #ffd048;
+}
+
+.star {
+	background-color: var(--color-text);
+	border-radius: 50%;
+	position: absolute;
+	width: 4px;
+	height: 4px;
+	transition: all 0.4s;
+}
+
+.star_1 {
+	left: 2em;
+	top: 0.35em;
+}
+
+.star_2 {
+	left: 1.75em;
+	top: 0.95em;
+}
+
+.star_3 {
+	left: 2.4em;
+	top: 0.7em;
+}
+
+.theme-switch input:checked ~ .theme-slider .star {
+	opacity: 0;
+}
+
+.cloud {
+	width: 2.8em;
+	position: absolute;
+	bottom: -1.1em;
+	left: -0.9em;
+	opacity: 0;
+	transition: all 0.4s;
+	color: #fff;
+}
+
+.theme-switch input:checked ~ .theme-slider .cloud {
+	opacity: 1;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+	width: 6px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--color-border);
+	border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--color-accent);
 }
 
 /* ─── View Transition Animations ──────────────────────────────────────────── */
 
-/* Base view layer — fade transition on swap */
 .view-base > [data-view-id] {
 	animation: view-fade-in 150ms ease-out;
 }
@@ -54,19 +345,17 @@ body,
 
 /* ─── Card Stack System ───────────────────────────────────────────────────── */
 
-/* Backdrop — dims base view when cards are open */
 .card-backdrop {
 	position: absolute;
 	inset: 0;
 	z-index: 90;
-	background: rgba(0, 0, 0, 0.4);
+	background: var(--color-backdrop);
 	backdrop-filter: blur(3px);
 	transition:
 		opacity 250ms ease-out,
 		backdrop-filter 250ms ease-out;
 }
 
-/* Container for all card panels */
 .card-container {
 	position: absolute;
 	top: 0;
@@ -78,7 +367,6 @@ body,
 	pointer-events: none;
 }
 
-/* Individual card panel */
 .card-panel {
 	position: absolute;
 	inset: 0;
@@ -92,22 +380,19 @@ body,
 		transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
 		opacity 200ms ease-out,
 		filter 200ms ease-out;
-	box-shadow: -8px 0 32px rgba(0, 0, 0, 0.3);
+	box-shadow: -8px 0 32px var(--color-shadow);
 	touch-action: none;
 	will-change: transform;
 }
 
-/* Card entered — slide into view */
 .card-panel.card-enter {
 	transform: translateX(0) scale(1);
 }
 
-/* Disable transitions during drag */
 .card-panel.card-dragging {
 	transition: none !important;
 }
 
-/* Card header — drag handle */
 .card-header {
 	display: flex;
 	align-items: center;
@@ -122,7 +407,6 @@ body,
 	cursor: grabbing;
 }
 
-/* Card control buttons */
 .card-btn {
 	width: 1.5rem;
 	height: 1.5rem;
@@ -130,7 +414,7 @@ body,
 	align-items: center;
 	justify-content: center;
 	border-radius: 6px;
-	font-size: 0.75rem;
+	font-size: 11px;
 	color: var(--color-text-muted);
 	transition:
 		background-color 150ms,
@@ -142,7 +426,6 @@ body,
 	color: var(--color-text);
 }
 
-/* Card body */
 .card-body {
 	flex: 1;
 	padding: 1.25rem;
@@ -182,21 +465,22 @@ body,
 	border: 1px solid var(--color-border);
 	border-radius: 9999px;
 	cursor: pointer;
+	font-size: 11px;
 	transition:
 		background-color 150ms,
 		transform 150ms,
 		box-shadow 150ms;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	box-shadow: 0 2px 8px var(--color-shadow-light);
 }
 
 .card-tray-pill:hover {
 	background: var(--color-surface-hover);
 	transform: translateY(-2px);
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 4px 12px var(--color-shadow);
 }
 
 .card-tray-close {
-	font-size: 0.625rem;
+	font-size: 9px;
 	color: var(--color-text-muted);
 	margin-left: 0.25rem;
 	transition: color 150ms;

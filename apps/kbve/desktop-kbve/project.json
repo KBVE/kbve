@@ -14,7 +14,16 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-					"lsof -ti:1421 | xargs kill 2>/dev/null; export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm dev"
+					"lsof -ti:1421 | xargs kill 2>/dev/null; export PATH=\"$HOME/.cargo/bin:$PATH\" && cargo tauri dev"
+				],
+				"cwd": "apps/kbve/desktop-kbve"
+			}
+		},
+		"dev:web": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"lsof -ti:1421 | xargs kill 2>/dev/null; pnpm dev"
 				],
 				"cwd": "apps/kbve/desktop-kbve"
 			}

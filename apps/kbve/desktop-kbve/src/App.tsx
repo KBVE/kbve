@@ -19,7 +19,7 @@ export default function App() {
 function Header() {
 	return (
 		<header
-			className="flex items-center border-b px-6 py-4"
+			className="flex items-center border-b px-8 py-6"
 			style={{
 				backgroundColor: 'var(--color-surface)',
 				borderColor: 'var(--color-border)',
@@ -29,7 +29,7 @@ function Header() {
 				select={(s) => s.activeView}
 				render={(id) => getView(id)?.label ?? id}
 				tag="h1"
-				className="text-lg font-semibold"
+				className="font-display text-heading font-semibold"
 			/>
 		</header>
 	);

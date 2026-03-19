@@ -2,6 +2,7 @@
 
 import json
 
+import pytest
 from click.testing import CliRunner
 
 from fudster.cli import main
@@ -489,3 +490,82 @@ def test_config_json(tmp_path):
     data = json.loads(result.output)
     assert data["a"] == "1"
     assert data["b"] == "two"
+
+
+# ── grpc subgroup ────────────────────────────────────────────────────
+
+def test_grpc_help():
+    runner = CliRunner()
+    result = runner.invoke(main, ["grpc", "--help"])
+    assert result.exit_code == 0
+    assert "health" in result.output
+    assert "compile" in result.output
+
+
+def test_grpc_health_unreachable():
+    runner = CliRunner()
+    result = runner.invoke(main, [
+        "grpc", "health", "localhost:1", "--timeout", "0.5",
+    ])
+    assert result.exit_code != 0
+    assert "UNREACHABLE" in result.output or "ERROR" in result.output
+
+
+def _has_grpc_tools():
+    try:
+        import grpc_tools  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
+@pytest.mark.skipif(
+    not _has_grpc_tools(),
+    reason="grpcio-tools not installed",
+)
+def test_grpc_compile_success(tmp_path):
+    proto_file = tmp_path / "cli_test.proto"
+    proto_file.write_text(
+        'syntax = "proto3";\n'
+        "package clipkg;\n"
+        "message CliMsg { string v = 1; }\n"
+    )
+
+    runner = CliRunner()
+    result = runner.invoke(main, [
+        "grpc", "compile",
+        str(proto_file),
+        "--proto-path", str(tmp_path),
+        "--python-out", str(tmp_path),
+    ])
+    assert result.exit_code == 0
+    assert "Compiled" in result.output
+    assert (tmp_path / "cli_test_pb2.py").exists()
+
+
+@pytest.mark.skipif(
+    not _has_grpc_tools(),
+    reason="grpcio-tools not installed",
+)
+def test_grpc_compile_bad_proto(tmp_path):
+    proto_file = tmp_path / "bad.proto"
+    proto_file.write_text("invalid proto")
+
+    runner = CliRunner()
+    result = runner.invoke(main, [
+        "grpc", "compile",
+        str(proto_file),
+        "--proto-path", str(tmp_path),
+        "--python-out", str(tmp_path),
+    ])
+    assert result.exit_code != 0
+    assert "failed" in result.output
+
+
+def test_grpc_compile_help():
+    runner = CliRunner()
+    result = runner.invoke(main, ["grpc", "compile", "--help"])
+    assert result.exit_code == 0
+    assert "--proto-path" in result.output
+    assert "--grpc-out" in result.output
+    assert "--pyi-out" in result.output

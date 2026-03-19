@@ -11,7 +11,7 @@ export function SettingsRow({
 }: SettingsRowProps) {
 	return (
 		<div
-			className="flex items-center justify-between px-4 py-3 transition-colors"
+			className="flex items-center justify-between px-6 py-5 transition-colors"
 			onMouseEnter={(e) =>
 				(e.currentTarget.style.backgroundColor =
 					'var(--color-surface-hover)')
@@ -19,10 +19,10 @@ export function SettingsRow({
 			onMouseLeave={(e) =>
 				(e.currentTarget.style.backgroundColor = 'transparent')
 			}>
-			<div className="flex flex-col gap-0.5">
-				<span className="text-sm">{label}</span>
+			<div className="flex flex-col gap-1.5">
+				<span className="text-body">{label}</span>
 				<span
-					className="text-xs"
+					className="text-caption"
 					style={{ color: 'var(--color-text-muted)' }}>
 					{description}
 				</span>

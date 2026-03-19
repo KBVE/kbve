@@ -1,5 +1,6 @@
 mod views;
 
+use std::sync::Arc;
 use tauri::{Manager, State};
 use views::{ViewCommand, ViewError, ViewManager, ViewSnapshot, ViewStatus};
 
@@ -10,19 +11,19 @@ fn greet(name: &str) -> String {
 
 /// Send a Start command to a view actor.
 #[tauri::command]
-async fn view_start(id: String, manager: State<'_, ViewManager>) -> Result<(), ViewError> {
+async fn view_start(id: String, manager: State<'_, Arc<ViewManager>>) -> Result<(), ViewError> {
     manager.send(&id, ViewCommand::Start).await
 }
 
 /// Send a Stop command to a view actor.
 #[tauri::command]
-async fn view_stop(id: String, manager: State<'_, ViewManager>) -> Result<(), ViewError> {
+async fn view_stop(id: String, manager: State<'_, Arc<ViewManager>>) -> Result<(), ViewError> {
     manager.send(&id, ViewCommand::Stop).await
 }
 
 /// Get the current status of a view.
 #[tauri::command]
-fn view_status(id: String, manager: State<'_, ViewManager>) -> Result<ViewStatus, ViewError> {
+fn view_status(id: String, manager: State<'_, Arc<ViewManager>>) -> Result<ViewStatus, ViewError> {
     manager.status(&id)
 }
 
@@ -30,7 +31,7 @@ fn view_status(id: String, manager: State<'_, ViewManager>) -> Result<ViewStatus
 #[tauri::command]
 async fn view_snapshot(
     id: String,
-    manager: State<'_, ViewManager>,
+    manager: State<'_, Arc<ViewManager>>,
 ) -> Result<ViewSnapshot, ViewError> {
     manager.snapshot(&id).await
 }
@@ -40,14 +41,14 @@ async fn view_snapshot(
 async fn view_update_config(
     id: String,
     config: serde_json::Value,
-    manager: State<'_, ViewManager>,
+    manager: State<'_, Arc<ViewManager>>,
 ) -> Result<(), ViewError> {
     manager.send(&id, ViewCommand::UpdateConfig(config)).await
 }
 
 /// List all registered views and their statuses.
 #[tauri::command]
-fn view_list(manager: State<'_, ViewManager>) -> Vec<(String, ViewStatus)> {
+fn view_list(manager: State<'_, Arc<ViewManager>>) -> Vec<(String, ViewStatus)> {
     manager.list()
 }
 
@@ -58,9 +59,14 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .setup(|app| {
             let handle = app.handle().clone();
-            let manager = ViewManager::new(handle);
-            views::register_all(&manager);
-            app.manage(manager);
+            let manager = Arc::new(ViewManager::new(handle));
+            app.manage(manager.clone());
+
+            // Defer view registration to run inside the Tokio runtime
+            tauri::async_runtime::spawn(async move {
+                views::register_all(&manager);
+            });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

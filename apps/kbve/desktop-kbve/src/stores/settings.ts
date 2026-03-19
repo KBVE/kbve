@@ -30,6 +30,14 @@ export const useSettingsStore = create<SettingsState>()((set) => ({
 	setTheme: (theme) => {
 		set({ theme });
 		syncToBackend({ theme });
+		// Apply data-theme attribute so CSS variables switch immediately
+		const resolved =
+			theme === 'system'
+				? window.matchMedia('(prefers-color-scheme: dark)').matches
+					? 'dark'
+					: 'light'
+				: theme;
+		document.documentElement.setAttribute('data-theme', resolved);
 	},
 	setLaunchAtLogin: (launchAtLogin) => {
 		set({ launchAtLogin });

@@ -40,6 +40,14 @@ const DEFAULT_WS_URL: &str = "wss://127.0.0.1:5000";
 #[cfg(target_arch = "wasm32")]
 const DEFAULT_WS_URL: &str = "";
 
+/// Production WebTransport hostname. The WASM client rewrites WT URLs
+/// to use this dedicated subdomain so QUIC traffic routes through the
+/// dedicated `isometric-wt-lb` LoadBalancer instead of the main gateway.
+const WT_HOST: &str = "wt.kbve.com";
+
+/// Default WebTransport port.
+const WT_PORT: u16 = 5001;
+
 /// Tick rate matching the server (20 Hz).
 const TICK_DURATION: Duration = Duration::from_millis(50);
 
@@ -144,6 +152,20 @@ fn resolve_ws_url_from_origin() -> String {
     } else {
         format!("{scheme}://{hostname}/ws")
     }
+}
+
+/// Rewrite a WebTransport URL to use the dedicated `wt.kbve.com` subdomain.
+/// Local dev URLs (localhost / 127.0.0.1) are left unchanged.
+/// e.g. `https://kbve.com:5001` → `https://wt.kbve.com:5001`
+fn rewrite_wt_url(url: &str) -> String {
+    if url.is_empty() {
+        return String::new();
+    }
+    // Don't rewrite local dev URLs
+    if url.contains("localhost") || url.contains("127.0.0.1") {
+        return url.to_owned();
+    }
+    format!("https://{WT_HOST}:{WT_PORT}")
 }
 
 /// Tracks pending JWT that needs to be sent after connection is established.
@@ -796,8 +818,10 @@ fn poll_token_fetch_result(
     let ws_url = result.server_url.clone();
 
     // Use ClientProfile to decide transport — no JS interop at connection time.
+    // Rewrite the WT URL to use the dedicated wt.kbve.com subdomain so QUIC
+    // traffic routes through the isometric-wt-lb LoadBalancer.
     let wt_url = if !result.server_wt_url.is_empty() && profile.has_webtransport {
-        result.server_wt_url.clone()
+        rewrite_wt_url(&result.server_wt_url)
     } else {
         if !result.server_wt_url.is_empty() {
             info!(

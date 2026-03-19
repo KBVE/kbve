@@ -16,7 +16,7 @@ export function ToggleSwitch({ checked = false, onChange }: ToggleSwitchProps) {
 	function applyVisual(on: boolean) {
 		if (btnRef.current) {
 			btnRef.current.style.backgroundColor = on
-				? 'var(--color-accent)'
+				? 'var(--color-toggle-on)'
 				: 'var(--color-border)';
 		}
 		if (dotRef.current) {
@@ -47,14 +47,15 @@ export function ToggleSwitch({ checked = false, onChange }: ToggleSwitchProps) {
 			className="relative h-6 w-11 rounded-full transition-colors"
 			style={{
 				backgroundColor: checked
-					? 'var(--color-accent)'
+					? 'var(--color-toggle-on)'
 					: 'var(--color-border)',
 			}}
 			onClick={handleClick}>
 			<span
 				ref={dotRef}
-				className="absolute top-1 block h-4 w-4 rounded-full bg-white shadow transition-transform"
+				className="absolute top-1 block h-4 w-4 rounded-full shadow transition-transform"
 				style={{
+					backgroundColor: 'var(--color-toggle-dot)',
 					transform: checked ? 'translateX(20px)' : 'translateX(2px)',
 				}}
 			/>
