@@ -46,6 +46,9 @@ jobs:
             - name: Regenerate all proto schemas
               run: npx tsx packages/data/codegen/gen-all.mjs
 
+            - name: Format generated schemas (match committed formatting)
+              run: npx prettier --write 'packages/data/codegen/generated/*.ts'
+
             - name: Generate proto registry
               run: npx tsx packages/data/codegen/generate-proto-registry.mjs > /tmp/nx-proto.json
 
