@@ -27,6 +27,9 @@ _MODULES = [
     ("kbve.mdx", "Starlight MDX rendering primitives"),
     ("kbve.mdx.escape", "MDX/JSX text escaping"),
     ("kbve.utils", "JSON, file, and data helpers"),
+    ("kbve.config", "Environment-aware configuration loader"),
+    ("kbve.health", "Health check primitives for microservices"),
+    ("kbve.tasks", "Async task runner for background work"),
     ("kbve.api", "API clients and utilities"),
 ]
 
