@@ -50,20 +50,43 @@ export default function ReactNav() {
 	}, []);
 
 	// Initialize Supabase gateway (bootAuth populates $auth)
+	// Includes a timeout so the navbar never stays stuck on "Loading..."
 	useEffect(() => {
-		initSupa().catch((e: any) => {
-			console.error('[ReactNav] Initialization error:', e?.message);
-			setError(e?.message ?? 'Failed to initialize Supabase');
-		});
+		const AUTH_TIMEOUT_MS = 8000;
+		let timedOut = false;
+
+		const timeout = setTimeout(() => {
+			timedOut = true;
+			if ($auth.get().tone === 'loading') {
+				console.warn(
+					'[ReactNav] Auth timed out after',
+					AUTH_TIMEOUT_MS,
+					'ms',
+				);
+				setError('Auth timed out');
+			}
+		}, AUTH_TIMEOUT_MS);
+
+		initSupa()
+			.then(() => clearTimeout(timeout))
+			.catch((e: any) => {
+				if (!timedOut) clearTimeout(timeout);
+				console.error('[ReactNav] Initialization error:', e?.message);
+				setError(e?.message ?? 'Failed to initialize Supabase');
+			});
+
+		return () => clearTimeout(timeout);
 	}, []);
 
 	const busy = authLoading;
 
+	// Derive tone: promote to 'error' if init failed while store is still loading,
+	// or to 'anon' on timeout so the user sees "KBVE Guest" instead of "Loading..."
 	const tone = auth.tone === 'loading' && error ? 'error' : auth.tone;
 	const displayName =
-		auth.tone === 'auth'
+		tone === 'auth'
 			? auth.name
-			: auth.tone === 'loading'
+			: tone === 'loading'
 				? 'Loading…'
 				: 'KBVE Guest';
 	const avatarUrl = auth.avatar;
