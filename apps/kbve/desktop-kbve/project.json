@@ -28,6 +28,20 @@
 				"cwd": "apps/kbve/desktop-kbve"
 			}
 		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["npx vitest run --config vitest.config.ts"],
+				"cwd": "apps/kbve/desktop-kbve"
+			}
+		},
+		"test:rust": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p kbve-desktop"],
+				"cwd": "apps/kbve/desktop-kbve/src-tauri"
+			}
+		},
 		"build:tauri": {
 			"executor": "nx:run-commands",
 			"options": {
