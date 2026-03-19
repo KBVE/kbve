@@ -22,5 +22,7 @@ tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 tauri-plugin-store = "2"
 tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+dashmap = "6"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

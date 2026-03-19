@@ -1,25 +1,21 @@
+mod command;
+mod handle;
+mod manager;
+mod view;
+
+// Concrete view implementations
+mod general;
+
+pub use command::{ViewCommand, ViewSnapshot, ViewStatus};
+pub use manager::ViewManager;
+
+// Re-exported for use by concrete view implementations and future consumers.
+#[allow(unused_imports)]
+pub use handle::ViewHandle;
+#[allow(unused_imports)]
+pub use view::ViewActor;
+
 use serde::{Deserialize, Serialize};
-use std::future::Future;
-use std::pin::Pin;
-
-/// Trait that each backend view module implements.
-/// Views are self-contained async units that register their own Tauri commands
-/// and manage their own state lifecycle.
-pub trait View: Send + Sync + 'static {
-    /// Unique identifier matching the frontend view registry id.
-    fn id(&self) -> &'static str;
-
-    /// Called once during app startup. Use for async initialization
-    /// (spawning background tasks, loading config, etc).
-    fn init(&self) -> Pin<Box<dyn Future<Output = Result<(), ViewError>> + Send + '_>> {
-        Box::pin(async { Ok(()) })
-    }
-
-    /// Called during graceful shutdown. Clean up resources, cancel tasks.
-    fn shutdown(&self) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
-        Box::pin(async {})
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ViewError {
@@ -38,4 +34,9 @@ impl From<String> for ViewError {
     fn from(message: String) -> Self {
         Self { message }
     }
+}
+
+/// Register all concrete view actors with the manager.
+pub fn register_all(manager: &ViewManager) {
+    manager.register(general::GeneralViewActor::new());
 }
