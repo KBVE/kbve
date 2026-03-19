@@ -63,11 +63,13 @@ jobs:
 
                   echo ""
                   echo "=== Checking for uncommitted changes ==="
-                  if git diff --exit-code -- packages/data/codegen/generated/; then
-                    echo "✓ No drift detected — generated schemas match committed versions"
-                  else
+                  # Ignore timestamp-only diffs in the "Generated:" header comment
+                  if git diff -- packages/data/codegen/generated/ | grep '^[+-]' | grep -v '^[+-][+-][+-]' | grep -v '^\s*[+-]\s*\* Generated:' | grep -q '^[+-]'; then
                     echo "::error::Proto drift detected! Generated schemas differ from committed versions. Run: npx tsx packages/data/codegen/gen-all.mjs"
+                    git diff --stat -- packages/data/codegen/generated/
                     exit 1
+                  else
+                    echo "✓ No drift detected — generated schemas match committed versions (timestamp-only changes ignored)"
                   fi
 
             - name: Upload registry artifact
