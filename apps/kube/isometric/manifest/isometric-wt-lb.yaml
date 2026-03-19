@@ -1,0 +1,23 @@
+## Dedicated LoadBalancer for WebTransport (QUIC/UDP) on wt.kbve.com:5001.
+## Bypasses the Cilium Gateway / nginx L4 proxy — QUIC needs direct
+## UDP path with connection-ID awareness that L7 proxies lack.
+apiVersion: v1
+kind: Service
+metadata:
+    name: isometric-wt-lb
+    namespace: kbve
+    labels:
+        app: kbve
+        component: webtransport
+    annotations:
+        lbipam.cilium.io/sharing-key: kbve-shared
+spec:
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+    selector:
+        app: kbve
+    ports:
+        - name: wt
+          port: 5001
+          targetPort: 5001
+          protocol: UDP
