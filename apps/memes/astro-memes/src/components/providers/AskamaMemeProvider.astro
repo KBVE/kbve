@@ -2,17 +2,18 @@
 // AskamaMemeProvider — Renders the meme detail page shell.
 //
 // Askama variables (filled by axum at request time):
-//   {{ meme_id }}       — ULID of the meme
-//   {{ title }}         — Meme title or "Untitled Meme"
-//   {{ description }}   — OG description ("A image by author on Meme.sh")
-//   {{ asset_url }}     — Full-size asset URL
-//   {{ og_image }}      — Thumbnail or asset URL for OG image
-//   {{ format_label }}  — "image", "GIF", "video", "animated image"
-//   {{ width }}         — Asset width (0 if unknown)
-//   {{ height }}        — Asset height (0 if unknown)
-//   {{ author_name }}   — Author display name (empty string if none)
-//   {{ tags }}          — Vec<String> of tags
-//   {{ canonical_url }} — https://meme.sh/meme/{id}
+//   Core:   {{ meme_id }}, {{ title }}, {{ description }}, {{ canonical_url }}
+//   Media:  {{ asset_url }}, {{ og_image }}, {{ format_label }},
+//           {{ width }}, {{ height }}
+//   Social: {{ author }}, {{ tags }}, {{ site_name }}, {{ og_type }},
+//           {{ og_width }}, {{ og_height }}, {{ locale }}, {{ robots }},
+//           {{ twitter_card }}, {{ twitter_site }}, {{ twitter_creator }},
+//           {{ image_alt }}, {{ theme_color }}
+//
+// Social meta tags are rendered by AskamaSocialMeta — no need to
+// duplicate OG/Twitter tags in MDX frontmatter.
+
+import AskamaSocialMeta from './AskamaSocialMeta.astro';
 
 interface Props {
 	class?: string;
@@ -26,7 +27,7 @@ const memeId = `{{ meme_id }}`;
 const memeTitle = `{{ title }}`;
 const assetUrl = `{{ asset_url }}`;
 const formatLabel = `{{ format_label }}`;
-const authorName = `{{ author_name }}`;
+const authorName = `{{ author }}`;
 
 // Media block — conditionally renders video or image based on format_label
 const mediaBlock = `{% if format_label == "video" %}
@@ -51,10 +52,10 @@ const mediaBlock = `{% if format_label == "video" %}
 {% endif %}`;
 
 // Author block
-const authorBlock = `{% if !author_name.is_empty() %}
+const authorBlock = `{% if !author.is_empty() %}
 <p class="meme-detail__author">
 	<span class="meme-detail__author-label">by</span>
-	<span class="meme-detail__author-name">{{ author_name }}</span>
+	<span class="meme-detail__author-name">{{ author }}</span>
 </p>
 {% endif %}`;
 
@@ -67,6 +68,8 @@ const tagsBlock = `{% if !tags.is_empty() %}
 </div>
 {% endif %}`;
 ---
+
+<AskamaSocialMeta />
 
 <article class={`meme-detail ${className}`} data-meme-id={memeId}>
 	<div class="meme-detail__container">
