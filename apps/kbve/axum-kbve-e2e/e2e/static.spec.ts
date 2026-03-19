@@ -44,8 +44,9 @@ describe('Static file serving', () => {
 			expect(res.headers.get('cross-origin-opener-policy')).toBe(
 				'same-origin',
 			);
+			// require-corp used instead of credentialless for Safari SharedArrayBuffer support
 			expect(res.headers.get('cross-origin-embedder-policy')).toBe(
-				'credentialless',
+				'require-corp',
 			);
 		}
 	});
@@ -56,8 +57,9 @@ describe('Static file serving', () => {
 			expect(res.headers.get('cross-origin-opener-policy')).toBe(
 				'same-origin',
 			);
+			// require-corp used instead of credentialless for Safari SharedArrayBuffer support
 			expect(res.headers.get('cross-origin-embedder-policy')).toBe(
-				'credentialless',
+				'require-corp',
 			);
 		}
 	});
