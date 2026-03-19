@@ -2,6 +2,7 @@ use tokio::sync::{mpsc, watch};
 use tokio_util::sync::CancellationToken;
 
 use super::command::{ViewCommand, ViewSnapshot, ViewStatus};
+use super::emitter::ViewEmitter;
 use super::view::ViewActor;
 
 /// The General settings view actor.
@@ -36,7 +37,7 @@ impl GeneralViewActor {
         }
     }
 
-    fn handle_config_update(&mut self, config: serde_json::Value) {
+    fn handle_config_update(&mut self, config: &serde_json::Value) {
         if let Some(theme) = config.get("theme").and_then(|v| v.as_str()) {
             self.theme = theme.to_string();
         }
@@ -61,9 +62,11 @@ impl ViewActor for GeneralViewActor {
         mut self,
         mut cmd_rx: mpsc::Receiver<ViewCommand>,
         status_tx: watch::Sender<ViewStatus>,
+        emitter: ViewEmitter,
         cancel: CancellationToken,
     ) {
         let _ = status_tx.send(ViewStatus::Running);
+        emitter.emit_status(ViewStatus::Running);
 
         loop {
             tokio::select! {
@@ -72,22 +75,23 @@ impl ViewActor for GeneralViewActor {
                 }
                 cmd = cmd_rx.recv() => {
                     match cmd {
-                        None => break, // All senders dropped
+                        None => break,
                         Some(ViewCommand::Start) => {
                             let _ = status_tx.send(ViewStatus::Running);
+                            emitter.emit_status(ViewStatus::Running);
                         }
                         Some(ViewCommand::Stop) => {
                             let _ = status_tx.send(ViewStatus::Paused);
+                            emitter.emit_status(ViewStatus::Paused);
                         }
                         Some(ViewCommand::UpdateConfig(config)) => {
-                            self.handle_config_update(config);
+                            self.handle_config_update(&config);
+                            emitter.emit_config(&config);
                         }
                         Some(ViewCommand::GetSnapshot(reply)) => {
                             let _ = reply.send(self.snapshot());
                         }
-                        Some(ViewCommand::PushData(_)) => {
-                            // General view doesn't process raw data
-                        }
+                        Some(ViewCommand::PushData(_)) => {}
                         Some(ViewCommand::Custom { reply, .. }) => {
                             if let Some(reply) = reply {
                                 let _ = reply.send(serde_json::json!({"ok": true}));
@@ -99,5 +103,6 @@ impl ViewActor for GeneralViewActor {
         }
 
         let _ = status_tx.send(ViewStatus::Stopped);
+        emitter.emit_status(ViewStatus::Stopped);
     }
 }

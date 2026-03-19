@@ -33,3 +33,67 @@ body,
 		system-ui,
 		sans-serif;
 }
+
+/* ─── View Transition Animations ──────────────────────────────────────────── */
+
+/* Base view layer — fade transition on swap */
+.view-base > [data-view-id] {
+	animation: view-fade-in 150ms ease-out;
+}
+
+@keyframes view-fade-in {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Stack backdrop — semi-transparent overlay */
+.view-stack-backdrop {
+	position: absolute;
+	inset: 0;
+	z-index: 50;
+	background: rgba(0, 0, 0, 0.5);
+	transition:
+		opacity 200ms ease-out,
+		backdrop-filter 200ms ease-out;
+	backdrop-filter: blur(2px);
+	display: flex;
+	justify-content: flex-end;
+}
+
+/* Stacked view panel — slides in from right */
+.view-stack-panel {
+	width: 28rem;
+	max-width: 90%;
+	height: 100%;
+	background: var(--color-surface);
+	border-left: 1px solid var(--color-border);
+	transform: translateX(100%);
+	transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+}
+
+.view-stack-panel.view-stack-enter {
+	transform: translateX(0);
+}
+
+.view-stack-panel-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 1rem 1.5rem;
+	border-bottom: 1px solid var(--color-border);
+}
+
+.view-stack-panel-body {
+	flex: 1;
+	padding: 1.5rem;
+	overflow-y: auto;
+}

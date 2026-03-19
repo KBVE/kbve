@@ -1,4 +1,5 @@
 mod command;
+mod emitter;
 mod handle;
 mod manager;
 mod view;

@@ -1,6 +1,6 @@
 mod views;
 
-use tauri::State;
+use tauri::{Manager, State};
 use views::{ViewCommand, ViewError, ViewManager, ViewSnapshot, ViewStatus};
 
 #[tauri::command]
@@ -53,13 +53,16 @@ fn view_list(manager: State<'_, ViewManager>) -> Vec<(String, ViewStatus)> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let manager = ViewManager::new();
-    views::register_all(&manager);
-
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::default().build())
-        .manage(manager)
+        .setup(|app| {
+            let handle = app.handle().clone();
+            let manager = ViewManager::new(handle);
+            views::register_all(&manager);
+            app.manage(manager);
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             greet,
             view_start,
