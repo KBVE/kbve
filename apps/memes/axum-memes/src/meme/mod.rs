@@ -1,3 +1,4 @@
+pub mod auth;
 mod cache;
 mod model;
 mod supabase;
