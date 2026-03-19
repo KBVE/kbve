@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { initSupa } from '@/lib/supa';
 import { useAuthBridge } from '@/components/auth';
-import { $auth } from '@kbve/droid';
+import { $auth, DroidEvents } from '@kbve/droid';
 import { useStore } from '@nanostores/react';
 import { cn } from '@/lib/utils';
 import NavDropdown from './NavDropdown';
@@ -50,20 +50,63 @@ export default function ReactNav() {
 	}, []);
 
 	// Initialize Supabase gateway (bootAuth populates $auth)
+	// Belt-and-suspenders: DroidEvents 'auth-ready'/'auth-error' clear the
+	// timeout immediately; the timeout is a fallback if events never fire.
 	useEffect(() => {
-		initSupa().catch((e: any) => {
-			console.error('[ReactNav] Initialization error:', e?.message);
-			setError(e?.message ?? 'Failed to initialize Supabase');
-		});
+		const AUTH_TIMEOUT_MS = 8000;
+		let settled = false;
+
+		const cancel = () => {
+			settled = true;
+			clearTimeout(timeout);
+		};
+
+		const timeout = setTimeout(() => {
+			if (settled) return;
+			settled = true;
+			if ($auth.get().tone === 'loading') {
+				console.warn(
+					'[ReactNav] Auth timed out after',
+					AUTH_TIMEOUT_MS,
+					'ms',
+				);
+				setError('Auth timed out');
+			}
+		}, AUTH_TIMEOUT_MS);
+
+		// Listen for structured auth events from the DroidEventBus
+		const onReady = () => cancel();
+		const onError = (payload: { message: string }) => {
+			cancel();
+			setError(payload.message);
+		};
+		DroidEvents.on('auth-ready', onReady);
+		DroidEvents.on('auth-error', onError);
+
+		initSupa()
+			.then(() => cancel())
+			.catch((e: any) => {
+				cancel();
+				console.error('[ReactNav] Initialization error:', e?.message);
+				setError(e?.message ?? 'Failed to initialize Supabase');
+			});
+
+		return () => {
+			clearTimeout(timeout);
+			DroidEvents.off('auth-ready', onReady);
+			DroidEvents.off('auth-error', onError);
+		};
 	}, []);
 
 	const busy = authLoading;
 
-	const tone = auth.tone === 'loading' && error ? 'error' : auth.tone;
+	// Any error or timeout degrades to 'anon' (guest) — never show 'error' or
+	// stuck 'loading' to the user. They can retry sign-in from the menu.
+	const tone = auth.tone === 'loading' && error ? 'anon' : auth.tone;
 	const displayName =
-		auth.tone === 'auth'
+		tone === 'auth'
 			? auth.name
-			: auth.tone === 'loading'
+			: tone === 'loading'
 				? 'Loading…'
 				: 'KBVE Guest';
 	const avatarUrl = auth.avatar;

@@ -3,15 +3,18 @@ import ReactNav from '@/components/navigation/ReactNav.tsx';
 ---
 
 <nav class="flex items-center gap-3">
-	{/* Static shell - shown until React hydrates */}
-	<div id="nav-static-shell" class="contents">
+	{
+		/* Static shell - shown until React hydrates. CSS animation stops the
+	    spinner and shows "KBVE Guest" after 10s if JS never takes over. */
+	}
+	<div id="nav-static-shell" class="contents nav-shell-loading">
 		{/* Status indicator */}
 		<div
 			id="nav-status-icon"
 			data-x-kbve="status-icon"
 			class="inline-flex items-center justify-center w-5 h-5 transition-opacity duration-300">
 			<svg
-				class="w-4 h-4 text-gray-400 animate-spin"
+				class="w-4 h-4 text-gray-400 animate-spin nav-shell-spinner"
 				xmlns="http://www.w3.org/2000/svg"
 				fill="none"
 				viewBox="0 0 24 24">
@@ -57,7 +60,10 @@ import ReactNav from '@/components/navigation/ReactNav.tsx';
 				data-x-kbve="username"
 				class="font-medium transition-opacity duration-300">
 				<span
-					class="inline-block h-4 w-16 rounded-md bg-gray-300 dark:bg-gray-700 animate-pulse">
+					class="nav-shell-skeleton inline-block h-4 w-16 rounded-md bg-gray-300 dark:bg-gray-700 animate-pulse">
+				</span>
+				<span class="nav-shell-fallback hidden text-sm">
+					KBVE Guest
 				</span>
 			</span>
 		</span>
@@ -161,4 +167,19 @@ import ReactNav from '@/components/navigation/ReactNav.tsx';
 		updateAvatar,
 		updateUsername,
 	};
+
+	// Static shell fallback: if React never hydrates within 10s,
+	// stop the spinner and show "KBVE Guest" so the user isn't stuck.
+	const SHELL_TIMEOUT_MS = 10_000;
+	setTimeout(() => {
+		const shell = document.getElementById('nav-static-shell');
+		if (!shell || shell.style.display === 'none') return;
+		// React didn't take over — degrade gracefully
+		const spinner = shell.querySelector('.nav-shell-spinner');
+		if (spinner) spinner.classList.remove('animate-spin');
+		const skeleton = shell.querySelector('.nav-shell-skeleton');
+		if (skeleton) (skeleton as HTMLElement).style.display = 'none';
+		const fallback = shell.querySelector('.nav-shell-fallback');
+		if (fallback) (fallback as HTMLElement).classList.remove('hidden');
+	}, SHELL_TIMEOUT_MS);
 </script>
