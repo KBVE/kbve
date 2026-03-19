@@ -106,17 +106,24 @@ jobs:
 
                   echo "local_version=${LOCAL}" >> "$GITHUB_OUTPUT"
 
-                  HIGHEST=$(printf '%s\n%s' "$LOCAL" "$PUBLISHED" | sort -V | tail -1)
-
-                  if [ "$LOCAL" = "$PUBLISHED" ]; then
+                  if [ -z "$LOCAL" ] || [ "$LOCAL" = "0.0.0" ]; then
+                    echo "::notice::${APP} local version is ${LOCAL:-empty} — skipping publish."
+                    echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                  elif [ -z "$PUBLISHED" ] || [ "$PUBLISHED" = "0.0.0" ]; then
+                    echo "::notice::${APP} version.toml is ${PUBLISHED:-empty} — skipping publish (not initialized)."
+                    echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                  elif [ "$LOCAL" = "$PUBLISHED" ]; then
                     echo "::notice::${APP} v${LOCAL} matches version.toml — tests will run, publish will be skipped."
                     echo "should_publish=false" >> "$GITHUB_OUTPUT"
-                  elif [ "$HIGHEST" != "$LOCAL" ]; then
-                    echo "::warning::${APP} v${LOCAL} is OLDER than version.toml v${PUBLISHED} — skipping. Bump local version."
-                    echo "should_publish=false" >> "$GITHUB_OUTPUT"
                   else
-                    echo "::notice::${APP} v${LOCAL} > version.toml v${PUBLISHED} — will publish after tests pass."
-                    echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                    HIGHEST=$(printf '%s\n%s' "$LOCAL" "$PUBLISHED" | sort -V | tail -1)
+                    if [ "$HIGHEST" != "$LOCAL" ]; then
+                      echo "::warning::${APP} v${LOCAL} is OLDER than version.toml v${PUBLISHED} — skipping. Bump local version."
+                      echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                    else
+                      echo "::notice::${APP} v${LOCAL} > version.toml v${PUBLISHED} — will publish after tests pass."
+                      echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                    fi
                   fi
 
     # ---------------------------------------------------------------------------

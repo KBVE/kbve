@@ -116,8 +116,11 @@ jobs:
                   fi
 
                   # --- Semver comparison: returns "true" if local > published ---
+                  # Treats 0.0.0 as "not ready" — never publishes if either version is 0.0.0.
                   is_newer() {
                     local local_v="$1" pub_v="$2"
+                    if [ -z "$local_v" ] || [ "$local_v" = "0.0.0" ]; then echo "false"; return; fi
+                    if [ -z "$pub_v" ] || [ "$pub_v" = "0.0.0" ]; then echo "false"; return; fi
                     if [ "$local_v" = "$pub_v" ]; then echo "false"; return; fi
                     local highest=$(printf '%s\n%s' "$local_v" "$pub_v" | sort -V | tail -1)
                     [ "$highest" = "$local_v" ] && echo "true" || echo "false"
