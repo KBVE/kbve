@@ -1,0 +1,32 @@
+## Talos machine config patch — enable Cilium CNI
+## Apply: talosctl patch machineconfig --nodes <node> --patch @cilium-enable.yaml
+##
+## Prerequisites:
+##   1. Cilium Helm chart deployed via ArgoCD (application.yaml)
+##   2. Maintenance window scheduled (CNI swap disrupts pod networking)
+##
+## This patch:
+##   - Disables the default flannel CNI
+##   - Disables kube-proxy (Cilium replaces it via eBPF)
+##   - KubePrism is already enabled (port 7445) in current config
+##   - Disables forwardKubeDNSToHost to avoid CoreDNS conflict with BPF masquerade
+##
+## Apply to each node one at a time (rolling upgrade):
+##   talosctl patch machineconfig --nodes <control-plane> --patch @cilium-enable.yaml
+##   # wait for node to come back and cilium agent to be Running
+##   talosctl patch machineconfig --nodes <worker-1> --patch @cilium-enable.yaml
+##   # repeat for each worker
+
+cluster:
+    network:
+        cni:
+            name: none
+    proxy:
+        disabled: true
+machine:
+    features:
+        kubePrism:
+            enabled: true
+            port: 7445
+    sysctls:
+        net.core.bpf_jit_enable: '1'

@@ -58,15 +58,19 @@ Cluster: Talos Linux, Kubernetes 1.32.1, single /32 external IP (142.132.206.74)
 
 **Goal:** Validate Cilium compatibility with Talos and establish rollback plan.
 
-- [ ] Confirm Talos version supports Cilium CNI swap (Talos 1.6+ has native Cilium support via machine config)
-- [ ] Document current pod CIDR (10.244.0.0/16) and service CIDR (10.96.0.0/12)
+- [x] Confirm Talos version supports Cilium CNI swap — **Talos v1.8.0** (installer: `ghcr.io/siderolabs/installer:v1.8.0`), well above 1.6+ requirement
+- [x] Document current pod CIDR (10.244.0.0/16) and service CIDR (10.96.0.0/12) — confirmed in `talos-worker.yaml`
+- [x] KubePrism already enabled on port 7445 — no machine config change needed for this
+- [x] WireGuard tools system extension already installed (`siderolabs/wireguard-tools`) — kernel module available
+- [x] Infra-level WireGuard (wg0, port 51820, 10.0.0.0/24) already connects NUC workers to Hetzner control plane — Cilium WireGuard (port 51871) is a separate layer for pod traffic
+- [ ] `cluster.proxy.disabled` is currently `false` — must flip to `true` during Phase 1 cutover
 - [ ] Snapshot current MetalLB IP assignments: `kubectl get svc -A -o wide | grep LoadBalancer`
 - [ ] Back up all Ingress resources: `kubectl get ingress -A -o yaml > ingress-backup.yaml`
 - [ ] Back up MetalLB config: `kubectl get ipaddresspool,l2advertisement -n metallb-system -o yaml`
-- [ ] Verify cert-manager has no hard dependency on nginx (it doesn't — HTTP01 solver uses any ingress class)
-- [ ] Create `apps/kube/cilium/` ArgoCD Application structure (this directory)
+- [x] cert-manager check — `letsencrypt-dns` and `internal-ca-issuer` are nginx-independent. **However**, `letsencrypt-http` ClusterIssuer has `ingressClassName: nginx` hardcoded in all 5 HTTP01 solvers (kbve.com, discord.sh, herbmail.com, meme.sh, cryptothrone.com). Must update to `cilium` during Phase 2 ingress migration.
+- [x] Create `apps/kube/cilium/` ArgoCD Application structure — `application.yaml`, `values.yaml`, `patches/`
 
-**Rollback plan:** Talos machine config can revert CNI. Keep flannel config in version control.
+**Rollback plan:** `patches/cilium-rollback.yaml` reverts to flannel + kube-proxy. Apply per-node via `talosctl patch machineconfig`, then remove Cilium ArgoCD Application.
 
 ---
 
