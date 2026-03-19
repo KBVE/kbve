@@ -1,0 +1,46 @@
+{
+	"name": "desktop-kbve",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/kbve/desktop-kbve",
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": ["apps/kbve/desktop-kbve/src/**/*.{ts,tsx}"]
+			}
+		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"lsof -ti:1421 | xargs kill 2>/dev/null; export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm dev"
+				],
+				"cwd": "apps/kbve/desktop-kbve"
+			}
+		},
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm build"
+				],
+				"cwd": "apps/kbve/desktop-kbve"
+			}
+		},
+		"build:tauri": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo tauri build"],
+				"cwd": "apps/kbve/desktop-kbve"
+			},
+			"configurations": {
+				"production": {
+					"commands": ["cargo tauri build --release"],
+					"cwd": "apps/kbve/desktop-kbve"
+				}
+			}
+		}
+	},
+	"tags": []
+}
