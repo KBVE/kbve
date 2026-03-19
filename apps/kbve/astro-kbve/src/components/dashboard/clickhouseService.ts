@@ -2,8 +2,18 @@ import { atom, computed } from 'nanostores';
 import { initSupa, getSupa } from '@/lib/supa';
 
 // ---------------------------------------------------------------------------
-// Types
+// Types — sourced from proto-generated ClickHouse schema
 // ---------------------------------------------------------------------------
+
+import type {
+	LogRow,
+	StatRow,
+	StatsData,
+	QueryData,
+	QueryParams,
+} from '@/data/schema';
+
+export type { LogRow, StatRow, StatsData, QueryData, QueryParams };
 
 export type AuthState =
 	| 'loading'
@@ -12,33 +22,6 @@ export type AuthState =
 	| 'forbidden';
 export type SortField = 'total' | 'errors' | 'warns' | 'namespace';
 
-export interface StatRow {
-	pod_namespace: string;
-	service: string;
-	level: string;
-	cnt: string;
-}
-
-export interface LogRow {
-	timestamp: string;
-	pod_namespace: string;
-	service: string;
-	level: string;
-	message: string;
-	pod_name: string;
-	metadata: string;
-}
-
-export interface StatsData {
-	rows: StatRow[];
-	count: number;
-}
-
-export interface QueryData {
-	rows: LogRow[];
-	count: number;
-}
-
 export interface NamespaceSummary {
 	namespace: string;
 	total: number;
@@ -46,15 +29,6 @@ export interface NamespaceSummary {
 	warns: number;
 	infos: number;
 	debugs: number;
-}
-
-export interface QueryParams {
-	minutes?: number;
-	level?: string;
-	service?: string;
-	pod_namespace?: string;
-	search?: string;
-	limit?: number;
 }
 
 export interface QueryTab {

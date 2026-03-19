@@ -1,0 +1,81 @@
+name: Proto Drift Check
+
+on:
+    schedule:
+        # Weekly: Sunday midnight UTC
+        - cron: '0 0 * * 0'
+    pull_request:
+        paths:
+            - 'packages/data/proto/**'
+            - 'packages/data/codegen/**'
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    drift_check:
+        name: Proto Drift Check
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Setup Node
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Install protoc
+              run: |
+                  PROTOC_VERSION=29.5
+                  curl -sLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
+                  sudo unzip -o "protoc-${PROTOC_VERSION}-linux-x86_64.zip" -d /usr/local
+                  protoc --version
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Regenerate all proto schemas
+              run: npx tsx packages/data/codegen/gen-all.mjs
+
+            - name: Format generated schemas (match committed formatting)
+              run: npx prettier --write 'packages/data/codegen/generated/*.ts'
+
+            - name: Generate proto registry
+              run: npx tsx packages/data/codegen/generate-proto-registry.mjs > /tmp/nx-proto.json
+
+            - name: Check for drift
+              run: |
+                  echo "=== Proto Registry Summary ==="
+                  jq '.summary' /tmp/nx-proto.json
+
+                  echo ""
+                  echo "=== Orphaned Protos (have messages but no codegen) ==="
+                  jq -r '.orphaned_protos[]' /tmp/nx-proto.json || echo "  (none)"
+
+                  echo ""
+                  echo "=== Checking for uncommitted changes ==="
+                  # Ignore timestamp-only diffs in the "Generated:" header comment
+                  if git diff -- packages/data/codegen/generated/ | grep '^[+-]' | grep -v '^[+-][+-][+-]' | grep -v '^\s*[+-]\s*\* Generated:' | grep -q '^[+-]'; then
+                    echo "::error::Proto drift detected! Generated schemas differ from committed versions. Run: npx tsx packages/data/codegen/gen-all.mjs"
+                    git diff --stat -- packages/data/codegen/generated/
+                    exit 1
+                  else
+                    echo "✓ No drift detected — generated schemas match committed versions (timestamp-only changes ignored)"
+                  fi
+
+            - name: Upload registry artifact
+              if: always()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: nx-proto-registry
+                  path: /tmp/nx-proto.json
+                  retention-days: 30
