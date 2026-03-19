@@ -4,18 +4,24 @@ Manages PostgreSQL schema migrations for the KBVE Supabase cluster (`supabase-cl
 
 ## Applied Migrations
 
-| Version          | Name                      | Schema      | Objects                                  |
-| ---------------- | ------------------------- | ----------- | ---------------------------------------- |
-| `20260227210000` | `mc_schema_init`          | `mc`        | 6 tables, 28 functions                   |
-| `20260227215000` | `gen_ulid`                | `public`    | 1 function (`gen_ulid()`)                |
-| `20260227220000` | `meme_schema_init`        | `meme`      | 14 tables, 18 functions                  |
-| `20260228000000` | `discordsh_schema_init`   | `discordsh` | 2 tables, 13 functions                   |
-| `20260228210000` | `meme_rpcs`               | `meme`      | +7 service RPC functions                 |
-| `20260228220000` | `osrs_schema_init`        | `osrs`      | 9 tables, 11 functions                   |
-| `20260228230000` | `discordsh_update_server` | `discordsh` | +2 functions, removes direct UPDATE      |
-| `20260301210000` | `meme_rpcs_v2`            | `meme`      | +12 service RPC functions                |
-| `20260302000000` | `discordsh_guild_vault`   | `discordsh` | 1 table, 7 functions (guild token vault) |
-| `20260302100000` | `n8n_schema_init`         | `n8n`       | Schema creation for n8n workflow engine  |
+| Version          | Name                          | Schema      | Objects                                   |
+| ---------------- | ----------------------------- | ----------- | ----------------------------------------- |
+| `20260227210000` | `mc_schema_init`              | `mc`        | 6 tables, 28 functions                    |
+| `20260227215000` | `gen_ulid`                    | `public`    | 1 function (`gen_ulid()`)                 |
+| `20260227220000` | `meme_schema_init`            | `meme`      | 14 tables, 18 functions                   |
+| `20260228000000` | `discordsh_schema_init`       | `discordsh` | 2 tables, 13 functions                    |
+| `20260228210000` | `meme_rpcs`                   | `meme`      | +7 service RPC functions                  |
+| `20260228220000` | `osrs_schema_init`            | `osrs`      | 9 tables, 11 functions                    |
+| `20260228230000` | `discordsh_update_server`     | `discordsh` | +2 functions, removes direct UPDATE       |
+| `20260301210000` | `meme_rpcs_v2`                | `meme`      | +12 service RPC functions                 |
+| `20260302000000` | `discordsh_guild_vault`       | `discordsh` | 1 table, 7 functions (guild token vault)  |
+| `20260302100000` | `n8n_schema_init`             | `n8n`       | Schema creation for n8n workflow engine   |
+| `20260303210000` | `meme_create_rpc`             | `meme`      | +1 function (`service_create_meme`)       |
+| `20260304210000` | `meme_service_get_meme_by_id` | `meme`      | +1 function (`service_get_meme_by_id`)    |
+| `20260307210000` | `staff_schema_init`           | `staff`     | 2 tables, 12 functions (permissions)      |
+| `20260312183000` | `discordsh_list_servers`      | `discordsh` | +1 function (`service_list_servers`)      |
+| `20260316210000` | `discordsh_dungeon_profiles`  | `discordsh` | 2 tables, 4 functions (dungeon RPG)       |
+| `20260318210000` | `rls_subquery_auth_uid`       | _multi_     | ALTER 39 RLS policies (perf optimization) |
 
 Migration state is tracked in `dbmate.schema_migrations` (not `public`) to isolate it from PostgREST/RPC.
 
@@ -30,14 +36,14 @@ Migration state is tracked in `dbmate.schema_migrations` (not `public`) to isola
 
 ### `meme` — Meme platform
 
-14 tables covering memes, user profiles, reactions, saves, comments, follows, reports, collections, templates, card battler system. 37 functions total (18 trigger/core + 7 v1 RPCs + 12 v2 RPCs).
+14 tables covering memes, user profiles, reactions, saves, comments, follows, reports, collections, templates, card battler system. 39 functions total (18 trigger/core + 7 v1 RPCs + 12 v2 RPCs + `service_create_meme` + `service_get_meme_by_id`).
 
 - **Source**: `../schema/meme/`
 - **Access**: service_role only for all RPC functions; tables have RLS with per-role SELECT policies
 
 ### `discordsh` — Discord server directory
 
-3 tables (`servers`, `votes`, `guild_tokens`), 22 functions. Server listing directory with voting, categorization, moderation, and per-guild encrypted token vault.
+5 tables (`servers`, `votes`, `guild_tokens`, `dungeon_profiles`, `dungeon_runs`), 27 functions. Server listing directory with voting, categorization, moderation, per-guild encrypted token vault, paginated listing, and a dungeon RPG system with player profiles, runs, and leaderboards.
 
 - **Source**: `../schema/discordsh/` + `../schema/vault/guild_tokens.sql`
 - **Access**: anon/authenticated can SELECT active servers; all writes gated through proxy functions (`proxy_submit_server`, `proxy_update_server`, `proxy_cast_vote`). Guild vault is service_role only — no proxy functions, accessed via edge functions.
@@ -60,6 +66,14 @@ Schema container only — n8n TypeORM manages its own 23 tables (workflows, exec
 - **Source**: `../schema/n8n/`
 - **Access**: postgres (superuser) + service_role (read); anon/authenticated blocked entirely
 - **Integration**: n8n workflows call KBVE service functions directly via SQL (no HTTP hop)
+
+### `staff` — Staff permissions and audit log
+
+2 tables (`members`, `audit_log`), 12 functions. Bitwise permission system for staff roles with privilege escalation guards and an immutable audit trail.
+
+- **Source**: `../schema/staff/`
+- **Access**: `is_staff()` and `staff_permissions()` are public RPCs (authenticated); `proxy_check_staff()`, `proxy_has_permission()`, `proxy_audit_log()` for authenticated users; `service_grant()`, `service_revoke()`, `service_remove()` for service_role only
+- **Permission layout**: Core roles (bits 0-7), Features (bits 8-15), Admin ops (bits 16-23), Superadmin (bit 30)
 
 ### `public` — Shared utilities
 
@@ -92,15 +106,17 @@ schema/
     mc_character.sql       # Character table only
     mc_skill.sql           # Skill table only
   meme/                  # Meme platform
-    meme_core.sql          # Core tables (memes, user_profiles)
-    meme_engagement.sql    # Reactions, saves, collections
-    meme_social.sql        # Comments, follows
+    meme_core.sql          # Core tables (memes, templates), shared triggers + validation
+    meme_engagement.sql    # Reactions, comments
+    meme_social.sql        # User profiles, follows, collections, saves
     meme_moderation.sql    # Reports
-    meme_cards.sql         # Card battler system
+    meme_cards.sql         # Card battler (card stats, decks, deck cards, player stats, battles)
     meme_rpcs.sql          # All service RPC functions
   discordsh/             # Discord server directory
-    discordsh_servers.sql  # Schema, servers table, submit + update functions
+    discordsh_servers.sql  # Schema, servers table, submit + update + list functions
     discordsh_votes.sql    # Votes table, cast_vote functions
+  staff/                 # Staff permissions
+    staff.sql              # Members, audit_log, 12 functions (grant/revoke/check)
   vault/                 # Vault token storage
     api_tokens.sql         # User-scoped API token vault (private.api_tokens)
     service_proxy.sql      # Service-role wrappers for user tokens
@@ -142,15 +158,27 @@ docker compose down -v
 
 **When to run this**: After bumping the n8n image version, before updating the kube manifest. Verifies TypeORM migrations still work with the `n8n` custom schema.
 
-### Production-replica test (CNPG image)
+### Production-replica test (CNPG kilobase image)
 
-Use `docker-compose.yml` with the production image (`ghcr.io/kbve/postgres:17.4.1.069-kilobase`). Requires `platform: linux/amd64` on ARM Macs (Rosetta via OrbStack/Docker Desktop).
+Uses the production CNPG image with the `supabase` database. Requires `platform: linux/amd64` on ARM Macs (Rosetta via OrbStack/Docker Desktop).
 
-Update `.env` to point to `supabase` database:
-
+```bash
+cp kilobase-docker-compose.yml docker-compose.yml
+docker compose up -d
+# Wait for postgres health check, then apply migrations:
+DATABASE_URL="postgresql://postgres:postgres@localhost:54322/supabase?sslmode=disable&search_path=dbmate,public" \
+  dbmate --no-dump-schema --migrations-dir migrations up
+# Verify:
+DATABASE_URL="postgresql://postgres:postgres@localhost:54322/supabase?sslmode=disable&search_path=dbmate,public" \
+  dbmate --migrations-dir migrations status
+# Test rollback:
+DATABASE_URL="postgresql://postgres:postgres@localhost:54322/supabase?sslmode=disable&search_path=dbmate,public" \
+  dbmate --no-dump-schema --migrations-dir migrations rollback
+# Tear down:
+docker compose down -v
 ```
-DATABASE_URL="postgresql://postgres:postgres@localhost:54322/supabase?sslmode=disable&search_path=dbmate,public"
-```
+
+**Note**: The `public.realtime_messages` table is Supabase-managed and does not exist in local test environments. Migrations that alter its policies use conditional `DO` blocks to skip gracefully.
 
 ## Production Deployment
 
@@ -210,9 +238,11 @@ DROP FUNCTION IF EXISTS <schema>.<function_name>(...);
 dbmate/
   .env                    # Connection string (gitignored)
   .gitignore              # Excludes .env, docker-compose.yml, schema dump artifacts
-  dev-docker-compose.yml  # Committed template (vanilla postgres:17-alpine)
-  n8n-docker-compose.yml  # Committed template (postgres + n8n for integration testing)
-  docker-compose.yml      # Local override (gitignored)
+  dev-docker-compose.yml      # Committed template (vanilla postgres:17-alpine)
+  kilobase-docker-compose.yml # Committed template (CNPG production image, migration testing)
+  n8n-docker-compose.yml      # Committed template (postgres + n8n for integration testing)
+  n8n-prod-docker-compose.yml # Committed template (CNPG image + redis + n8n for full stack)
+  docker-compose.yml          # Local override (gitignored)
   README.md
   init/                   # Docker entrypoint scripts (run alphabetically on first start)
     00-roles.sql            # Supabase-compatible roles (service_role, anon, authenticated, etc.)
@@ -231,6 +261,12 @@ dbmate/
     20260301210000_meme_rpcs_v2.sql
     20260302000000_discordsh_guild_vault.sql
     20260302100000_n8n_schema_init.sql
+    20260303210000_meme_create_rpc.sql
+    20260304210000_meme_service_get_meme_by_id.sql
+    20260307210000_staff_schema_init.sql
+    20260312183000_discordsh_list_servers.sql
+    20260316210000_discordsh_dungeon_profiles.sql
+    20260318210000_rls_subquery_auth_uid.sql
 ```
 
 ## Important Notes

@@ -170,27 +170,37 @@ ALTER POLICY "authenticated_select_own_reports" ON meme.meme_reports
     USING (reporter_id = (select auth.uid()));
 
 -- ===========================================
--- REALTIME — public.realtime_messages (3 policies)
--- ===========================================
-
-ALTER POLICY "authenticated_users_insert_messages" ON public.realtime_messages
-    WITH CHECK ((select auth.uid()) = user_id);
-
-ALTER POLICY "users_update_own_messages" ON public.realtime_messages
-    USING ((select auth.uid()) = user_id);
-
-ALTER POLICY "users_update_own_messages" ON public.realtime_messages
-    WITH CHECK ((select auth.uid()) = user_id);
-
-ALTER POLICY "users_delete_own_messages" ON public.realtime_messages
-    USING ((select auth.uid()) = user_id);
-
--- ===========================================
 -- DISCORDSH — discordsh.servers (1 policy)
 -- ===========================================
 
 ALTER POLICY "authenticated_select_active_and_own" ON discordsh.servers
     USING (status = 1 OR owner_id = (select auth.uid()));
+
+-- ===========================================
+-- REALTIME — public.realtime_messages (3 policies)
+-- Wrapped in DO block: table only exists in Supabase-managed environments,
+-- not in local dev/test postgres.
+-- ===========================================
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'realtime_messages'
+    ) THEN
+        EXECUTE 'ALTER POLICY "authenticated_users_insert_messages" ON public.realtime_messages
+            WITH CHECK ((select auth.uid()) = user_id)';
+        EXECUTE 'ALTER POLICY "users_update_own_messages" ON public.realtime_messages
+            USING ((select auth.uid()) = user_id)';
+        EXECUTE 'ALTER POLICY "users_update_own_messages" ON public.realtime_messages
+            WITH CHECK ((select auth.uid()) = user_id)';
+        EXECUTE 'ALTER POLICY "users_delete_own_messages" ON public.realtime_messages
+            USING ((select auth.uid()) = user_id)';
+        RAISE NOTICE 'realtime_messages: 4 policy clauses updated';
+    ELSE
+        RAISE NOTICE 'realtime_messages: table not found (local env), skipping';
+    END IF;
+END $$;
 
 COMMIT;
 
@@ -300,18 +310,26 @@ ALTER POLICY "authenticated_insert_own_report" ON meme.meme_reports
 ALTER POLICY "authenticated_select_own_reports" ON meme.meme_reports
     USING (reporter_id = auth.uid());
 
--- public.realtime_messages
-ALTER POLICY "authenticated_users_insert_messages" ON public.realtime_messages
-    WITH CHECK (auth.uid() = user_id);
-ALTER POLICY "users_update_own_messages" ON public.realtime_messages
-    USING (auth.uid() = user_id);
-ALTER POLICY "users_update_own_messages" ON public.realtime_messages
-    WITH CHECK (auth.uid() = user_id);
-ALTER POLICY "users_delete_own_messages" ON public.realtime_messages
-    USING (auth.uid() = user_id);
-
 -- discordsh.servers
 ALTER POLICY "authenticated_select_active_and_own" ON discordsh.servers
     USING (status = 1 OR owner_id = auth.uid());
+
+-- public.realtime_messages (conditional — table only exists in Supabase)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'realtime_messages'
+    ) THEN
+        EXECUTE 'ALTER POLICY "authenticated_users_insert_messages" ON public.realtime_messages
+            WITH CHECK (auth.uid() = user_id)';
+        EXECUTE 'ALTER POLICY "users_update_own_messages" ON public.realtime_messages
+            USING (auth.uid() = user_id)';
+        EXECUTE 'ALTER POLICY "users_update_own_messages" ON public.realtime_messages
+            WITH CHECK (auth.uid() = user_id)';
+        EXECUTE 'ALTER POLICY "users_delete_own_messages" ON public.realtime_messages
+            USING (auth.uid() = user_id)';
+    END IF;
+END $$;
 
 COMMIT;
