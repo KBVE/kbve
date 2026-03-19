@@ -386,7 +386,7 @@ CREATE POLICY "anon_select_active" ON discordsh.servers
 
 CREATE POLICY "authenticated_select_active_and_own" ON discordsh.servers
     FOR SELECT TO authenticated
-    USING (status = 1 OR owner_id = auth.uid());
+    USING (status = 1 OR owner_id = (select auth.uid()));
 
 -- No INSERT or UPDATE policy for authenticated — all writes gated through proxy functions
 -- INSERT via proxy_submit_server, UPDATE via proxy_update_server

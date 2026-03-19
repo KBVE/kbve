@@ -100,7 +100,7 @@ BEGIN
         ON public.realtime_messages
         FOR INSERT
         TO authenticated
-        WITH CHECK (auth.uid() = user_id)';
+        WITH CHECK ((select auth.uid()) = user_id)';
     END IF;
 END $$;
 
