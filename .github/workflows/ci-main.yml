@@ -65,150 +65,249 @@ jobs:
     ## NPM / Crates / Python / Godot — moved to ci-publish.yml (async, workflow_run triggered)
 
     # ---------------------------------------------------------------------------
-    # Docker dispatch — fires one ci-docker.yml run per changed app.
-    # Each run gets its own concurrency group (ci-docker-{app_name}) so apps
-    # build fully in parallel and never block each other.
-    # Queue guard inside ci-docker.yml drops stale runs that waited > 2h.
+    # Manifest-driven dispatch — reads .github/ci-dispatch-manifest.json and
+    # dispatches ci-docker.yml / ci-publish.yml per entry.
+    #
+    # For each entry:
+    #   1. Check file alteration output → dispatch if true
+    #   2. If false, check local version vs registry → dispatch if unpublished
+    #
+    # This handles the edge case where a publish fails and no files change
+    # on the next push — the unpublished version still gets re-dispatched.
     # ---------------------------------------------------------------------------
-    dispatch_docker:
-        name: Dispatch Docker Apps
+    dispatch:
+        name: Manifest Dispatch
         needs: ['alter']
         if: github.repository == 'kbve/kbve' && needs.alter.result == 'success'
         runs-on: ubuntu-latest
-        timeout-minutes: 5
+        timeout-minutes: 10
         permissions:
+            contents: read
             actions: write
         steps:
-            - name: Dispatch per changed app
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Dispatch from manifest
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  REPO: ${{ github.repository }}
+                  SHA: ${{ github.sha }}
+                  ALTERATIONS: >-
+                      ${{ toJson(needs.alter.outputs) }}
               run: |
+                  set -euo pipefail
                   DISPATCHED_AT=$(date +%s)
-                  SHA="${{ github.sha }}"
+                  MANIFEST=".github/ci-dispatch-manifest.json"
+                  DISPATCHED=0
+                  SKIPPED=0
 
-                  dispatch() {
+                  if [ ! -f "$MANIFEST" ]; then
+                    echo "::error::Manifest not found: $MANIFEST"
+                    exit 1
+                  fi
+
+                  # --- Version check helpers ---
+                  check_npm_version() {
+                    local pkg="$1"
+                    local local_v=$(jq -r '.version' "packages/npm/${pkg}/package.json" 2>/dev/null || echo "0.0.0")
+                    local reg_v=$(curl -sf "https://registry.npmjs.org/@kbve/${pkg}/latest" | jq -r '.version // "0.0.0"' 2>/dev/null || echo "0.0.0")
+                    [ "$local_v" != "$reg_v" ] && echo "true" || echo "false"
+                  }
+
+                  check_crate_version() {
+                    local pkg="$1"
+                    local local_v=$(grep -m1 '^version' "packages/rust/${pkg}/Cargo.toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                    local reg_v=$(curl -sf "https://crates.io/api/v1/crates/${pkg}" | jq -r '.crate.max_version // "0.0.0"' 2>/dev/null || echo "0.0.0")
+                    [ "$local_v" != "$reg_v" ] && echo "true" || echo "false"
+                  }
+
+                  check_python_version() {
+                    local pypi="$1"
+                    local local_v=$(grep -m1 '^version' "packages/python/${pypi}/pyproject.toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                    local reg_v=$(curl -sf "https://pypi.org/pypi/${pypi}/json" | jq -r '.info.version // "0.0.0"' 2>/dev/null || echo "0.0.0")
+                    [ "$local_v" != "$reg_v" ] && echo "true" || echo "false"
+                  }
+
+                  check_unreal_version() {
+                    local plugin_path="$1" plugin_name="$2"
+                    local local_v=$(jq -r '.VersionName' "${plugin_path}/${plugin_name}.uplugin" 2>/dev/null || echo "0.0.0")
+                    local reg_v="0.0.0"
+                    if [ -f "${plugin_path}/version.toml" ]; then
+                      reg_v=$(grep -m1 '^version' "${plugin_path}/version.toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                    fi
+                    [ "$local_v" != "$reg_v" ] && echo "true" || echo "false"
+                  }
+
+                  check_docker_version() {
                     local app="$1"
-                    echo "Dispatching ci-docker.yml for: $app"
-                    gh workflow run ci-docker.yml \
-                      --repo "${{ github.repository }}" \
-                      --ref main \
-                      --field app_name="$app" \
-                      --field sha="$SHA" \
-                      --field dispatched_at="$DISPATCHED_AT"
+                    local toml=""
+                    case "$app" in
+                      axum-kbve)     toml="apps/kbve/axum-kbve/Cargo.toml" ;;
+                      herbmail)      toml="apps/herbmail/axum-herbmail/Cargo.toml" ;;
+                      memes)         toml="apps/memes/axum-memes/Cargo.toml" ;;
+                      irc-gateway)   toml="apps/irc/irc-gateway/Cargo.toml" ;;
+                      discordsh)     toml="apps/discordsh/axum-discordsh/Cargo.toml" ;;
+                      mc)            toml="apps/mc/plugins/kbve-mc-plugin/Cargo.toml" ;;
+                      edge)          toml="apps/kbve/edge/version.toml" ;;
+                      cryptothrone)  toml="apps/cryptothrone/axum-cryptothrone/Cargo.toml" ;;
+                      *)             echo "true"; return ;;
+                    esac
+                    if [ ! -f "$toml" ]; then echo "true"; return; fi
+                    local local_v=$(grep -m1 '^version' "$toml" | sed 's/version = "\(.*\)"/\1/')
+                    local image=""
+                    case "$app" in
+                      axum-kbve) image="kbve/kbve" ;; herbmail) image="kbve/herbmail" ;;
+                      memes) image="kbve/memes" ;; irc-gateway) image="kbve/irc-gateway" ;;
+                      discordsh) image="kbve/discordsh" ;; mc) image="kbve/mc" ;;
+                      edge) image="kbve/edge" ;; cryptothrone) image="kbve/cryptothrone" ;;
+                      kilobase) image="kbve/kilobase" ;; *) echo "true"; return ;;
+                    esac
+                    local status=$(curl -sf -o /dev/null -w "%{http_code}" "https://hub.docker.com/v2/repositories/${image}/tags/${local_v}" 2>/dev/null || echo "000")
+                    [ "$status" != "200" ] && echo "true" || echo "false"
                   }
 
-                  [ "${{ needs.alter.outputs.astro_kbve }}"   = "true" ] && dispatch "axum-kbve"
-                  [ "${{ needs.alter.outputs.herbmail }}"      = "true" ] && dispatch "herbmail"
-                  [ "${{ needs.alter.outputs.memes }}"         = "true" ] && dispatch "memes"
-                  [ "${{ needs.alter.outputs.irc_gateway }}"   = "true" ] && dispatch "irc-gateway"
-                  [ "${{ needs.alter.outputs.discordsh }}"     = "true" ] && dispatch "discordsh"
-                  [ "${{ needs.alter.outputs.mc }}"            = "true" ] && dispatch "mc"
-                  [ "${{ needs.alter.outputs.edge }}"          = "true" ] && dispatch "edge"
-                  [ "${{ needs.alter.outputs.cryptothrone }}"  = "true" ] && dispatch "cryptothrone"
-                  [ "${{ needs.alter.outputs.kilobase }}"      = "true" ] && dispatch "kilobase"
-
-                  echo "All dispatches complete"
-
-    # ---------------------------------------------------------------------------
-    # Publish dispatch — fires one ci-publish.yml run per changed package.
-    # Each run is isolated: npm/droid never blocks crates/q or python/fudster.
-    # ---------------------------------------------------------------------------
-    dispatch_publish:
-        name: Dispatch Publish Packages
-        needs: ['alter']
-        if: github.repository == 'kbve/kbve' && needs.alter.result == 'success'
-        runs-on: ubuntu-latest
-        timeout-minutes: 5
-        permissions:
-            actions: write
-        steps:
-            - name: Dispatch per changed package
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  DISPATCHED_AT=$(date +%s)
-                  SHA="${{ github.sha }}"
-
-                  dispatch_npm() {
-                    echo "Dispatching ci-publish.yml npm/$1"
-                    gh workflow run ci-publish.yml \
-                      --repo "${{ github.repository }}" \
-                      --ref main \
-                      --field package_type="npm" \
-                      --field package_name="$1" \
-                      --field dispatched_at="$DISPATCHED_AT"
+                  # --- Check if alteration key is true ---
+                  is_altered() {
+                    local key="$1"
+                    echo "$ALTERATIONS" | jq -r --arg k "$key" '.[$k] // "false"' 2>/dev/null
                   }
 
-                  dispatch_crate() {
-                    echo "Dispatching ci-publish.yml crates/$1"
-                    gh workflow run ci-publish.yml \
-                      --repo "${{ github.repository }}" \
-                      --ref main \
-                      --field package_type="crates" \
-                      --field package_name="$1" \
-                      --field dispatched_at="$DISPATCHED_AT"
+                  # --- Dispatch helpers ---
+                  dispatch_docker() {
+                    local app="$1"
+                    gh workflow run ci-docker.yml --repo "$REPO" --ref main \
+                      --field app_name="$app" --field sha="$SHA" --field dispatched_at="$DISPATCHED_AT"
                   }
 
-                  dispatch_python() {
-                    local project="$1"
-                    local pypi="$2"
-                    echo "Dispatching ci-publish.yml python/$project"
-                    gh workflow run ci-publish.yml \
-                      --repo "${{ github.repository }}" \
-                      --ref main \
-                      --field package_type="python" \
-                      --field package_name="$project" \
-                      --field pypi_name="$pypi" \
-                      --field dispatched_at="$DISPATCHED_AT"
+                  dispatch_publish() {
+                    local type="$1"; shift
+                    gh workflow run ci-publish.yml --repo "$REPO" --ref main \
+                      --field package_type="$type" --field dispatched_at="$DISPATCHED_AT" "$@"
                   }
 
-                  # NPM
-                  [ "${{ needs.alter.outputs.droid }}"      = "true" ] && dispatch_npm "droid"
-                  [ "${{ needs.alter.outputs.laser }}"      = "true" ] && dispatch_npm "laser"
-                  [ "${{ needs.alter.outputs.devops }}"     = "true" ] && dispatch_npm "devops"
-                  [ "${{ needs.alter.outputs.khashvault }}" = "true" ] && dispatch_npm "khashvault"
+                  # =================================================================
+                  # Docker apps
+                  # =================================================================
+                  echo "=== Docker Apps ==="
+                  for entry in $(jq -c '.docker[]' "$MANIFEST"); do
+                    key=$(echo "$entry" | jq -r '.key')
+                    app=$(echo "$entry" | jq -r '.app_name')
+                    altered=$(is_altered "$key")
+                    if [ "$altered" = "true" ]; then
+                      echo "  ✓ $app — files changed, dispatching"
+                      dispatch_docker "$app"
+                      DISPATCHED=$((DISPATCHED + 1))
+                    elif [ "$(check_docker_version "$app")" = "true" ]; then
+                      echo "  ✓ $app — unpublished version, dispatching"
+                      dispatch_docker "$app"
+                      DISPATCHED=$((DISPATCHED + 1))
+                    else
+                      echo "  · $app — no changes, version published, skipping"
+                      SKIPPED=$((SKIPPED + 1))
+                    fi
+                  done
 
-                  # Rust Crates
-                  [ "${{ needs.alter.outputs.q_crate }}"     = "true" ] && dispatch_crate "q"
-                  [ "${{ needs.alter.outputs.jedi_crate }}"  = "true" ] && dispatch_crate "jedi"
-                  [ "${{ needs.alter.outputs.soul_crate }}"  = "true" ] && dispatch_crate "soul"
-                  [ "${{ needs.alter.outputs.kbve_crate }}"  = "true" ] && dispatch_crate "kbve"
-                  [ "${{ needs.alter.outputs.erust_crate }}" = "true" ] && dispatch_crate "erust"
-                  [ "${{ needs.alter.outputs.holy_crate }}"  = "true" ] && dispatch_crate "holy"
+                  # =================================================================
+                  # NPM packages
+                  # =================================================================
+                  echo "=== NPM Packages ==="
+                  for entry in $(jq -c '.npm[]' "$MANIFEST"); do
+                    key=$(echo "$entry" | jq -r '.key')
+                    pkg=$(echo "$entry" | jq -r '.package_name')
+                    altered=$(is_altered "$key")
+                    if [ "$altered" = "true" ]; then
+                      echo "  ✓ $pkg — files changed, dispatching"
+                      dispatch_publish npm --field package_name="$pkg"
+                      DISPATCHED=$((DISPATCHED + 1))
+                    elif [ "$(check_npm_version "$pkg")" = "true" ]; then
+                      echo "  ✓ $pkg — unpublished version, dispatching"
+                      dispatch_publish npm --field package_name="$pkg"
+                      DISPATCHED=$((DISPATCHED + 1))
+                    else
+                      echo "  · $pkg — no changes, version published, skipping"
+                      SKIPPED=$((SKIPPED + 1))
+                    fi
+                  done
 
-                  # Python
-                  [ "${{ needs.alter.outputs.py_lib_fudster }}" = "true" ] && dispatch_python "python-fudster" "fudster"
-                  [ "${{ needs.alter.outputs.py_lib_kbve }}"    = "true" ] && dispatch_python "python-kbve"    "kbve"
+                  # =================================================================
+                  # Rust crates
+                  # =================================================================
+                  echo "=== Rust Crates ==="
+                  for entry in $(jq -c '.crates[]' "$MANIFEST"); do
+                    key=$(echo "$entry" | jq -r '.key')
+                    pkg=$(echo "$entry" | jq -r '.package_name')
+                    altered=$(is_altered "$key")
+                    if [ "$altered" = "true" ]; then
+                      echo "  ✓ $pkg — files changed, dispatching"
+                      dispatch_publish crates --field package_name="$pkg"
+                      DISPATCHED=$((DISPATCHED + 1))
+                    elif [ "$(check_crate_version "$pkg")" = "true" ]; then
+                      echo "  ✓ $pkg — unpublished version, dispatching"
+                      dispatch_publish crates --field package_name="$pkg"
+                      DISPATCHED=$((DISPATCHED + 1))
+                    else
+                      echo "  · $pkg — no changes, version published, skipping"
+                      SKIPPED=$((SKIPPED + 1))
+                    fi
+                  done
 
-                  dispatch_unreal() {
-                    local plugin_name="$1"
-                    local plugin_path="$2"
-                    local dep_plugins="${3:-}"
-                    local itch_game="${4:-}"
-                    local deploy_itch="false"
-                    if [ -n "$itch_game" ]; then deploy_itch="true"; fi
-                    echo "Dispatching ci-publish.yml unreal/$plugin_name"
-                    gh workflow run ci-publish.yml \
-                      --repo "${{ github.repository }}" \
-                      --ref main \
-                      --field package_type="unreal" \
-                      --field package_name="$plugin_name" \
-                      --field unreal_plugin_path="$plugin_path" \
+                  # =================================================================
+                  # Python packages
+                  # =================================================================
+                  echo "=== Python Packages ==="
+                  for entry in $(jq -c '.python[]' "$MANIFEST"); do
+                    key=$(echo "$entry" | jq -r '.key')
+                    pkg=$(echo "$entry" | jq -r '.package_name')
+                    pypi=$(echo "$entry" | jq -r '.pypi_name')
+                    altered=$(is_altered "$key")
+                    if [ "$altered" = "true" ]; then
+                      echo "  ✓ $pkg — files changed, dispatching"
+                      dispatch_publish python --field package_name="$pkg" --field pypi_name="$pypi"
+                      DISPATCHED=$((DISPATCHED + 1))
+                    elif [ "$(check_python_version "$pypi")" = "true" ]; then
+                      echo "  ✓ $pkg — unpublished version, dispatching"
+                      dispatch_publish python --field package_name="$pkg" --field pypi_name="$pypi"
+                      DISPATCHED=$((DISPATCHED + 1))
+                    else
+                      echo "  · $pkg — no changes, version published, skipping"
+                      SKIPPED=$((SKIPPED + 1))
+                    fi
+                  done
+
+                  # =================================================================
+                  # Unreal plugins
+                  # =================================================================
+                  echo "=== Unreal Plugins ==="
+                  for entry in $(jq -c '.unreal[]' "$MANIFEST"); do
+                    key=$(echo "$entry" | jq -r '.key')
+                    name=$(echo "$entry" | jq -r '.plugin_name')
+                    path=$(echo "$entry" | jq -r '.plugin_path')
+                    deps=$(echo "$entry" | jq -r '.dependency_plugins // ""')
+                    itch=$(echo "$entry" | jq -r '.itch_game_id // ""')
+                    altered=$(is_altered "$key")
+                    deploy_itch="false"
+                    [ -n "$itch" ] && deploy_itch="true"
+                    if [ "$altered" = "true" ]; then
+                      echo "  ✓ $name — files changed, dispatching"
+                    elif [ "$(check_unreal_version "$path" "$name")" = "true" ]; then
+                      echo "  ✓ $name — unpublished version, dispatching"
+                    else
+                      echo "  · $name — no changes, version published, skipping"
+                      SKIPPED=$((SKIPPED + 1))
+                      continue
+                    fi
+                    dispatch_publish unreal \
+                      --field package_name="$name" \
+                      --field unreal_plugin_path="$path" \
                       --field deploy_to_itch="$deploy_itch" \
-                      --field itch_game_id="$itch_game" \
-                      --field unreal_dependency_plugins="$dep_plugins" \
-                      --field dispatched_at="$DISPATCHED_AT"
-                  }
+                      --field itch_game_id="$itch" \
+                      --field unreal_dependency_plugins="$deps"
+                    DISPATCHED=$((DISPATCHED + 1))
+                  done
 
-                  # Unreal Plugins
-                  [ "${{ needs.alter.outputs.ue_kbvexxhash }}"  = "true" ] && dispatch_unreal "KBVEXXHash"  "packages/unreal/KBVEXXHash"
-                  [ "${{ needs.alter.outputs.ue_kbveyyjson }}"  = "true" ] && dispatch_unreal "KBVEYYJson"  "packages/unreal/KBVEYYJson"
-                  [ "${{ needs.alter.outputs.ue_kbvezstd }}"    = "true" ] && dispatch_unreal "KBVEZstd"    "packages/unreal/KBVEZstd"
-                  [ "${{ needs.alter.outputs.ue_kbvesqlite }}"  = "true" ] && dispatch_unreal "KBVESQLite"  "packages/unreal/KBVESQLite"
-                  [ "${{ needs.alter.outputs.ue_kbvewasm }}"    = "true" ] && dispatch_unreal "KBVEWASM"    "packages/unreal/KBVEWASM"
-                  [ "${{ needs.alter.outputs.ue_devops }}"      = "true" ] && dispatch_unreal "UEDevOps"    "packages/unreal/UEDevOps" "packages/unreal/KBVEYYJson packages/unreal/KBVEXXHash packages/unreal/KBVEZstd" "uedevops"
-
-                  echo "All publish dispatches complete"
+                  echo ""
+                  echo "=== Summary: ${DISPATCHED} dispatched, ${SKIPPED} skipped ==="
 
     # ---------------------------------------------------------------------------
     # Failure tracker — surfaces failures as GitHub issues (#8186).
@@ -258,30 +357,16 @@ jobs:
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: ${{ needs.alter.result }}
 
-    track-dispatch-docker:
-        name: Track Dispatch Docker
+    track-dispatch:
+        name: Track Dispatch
         if: always()
-        needs: [dispatch_docker]
+        needs: [dispatch]
         permissions:
             issues: write
         uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
         with:
             workflow_name: 'CI - Main'
-            job_name: 'Dispatch Docker Apps'
+            job_name: 'Manifest Dispatch'
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: ${{ needs.dispatch_docker.result }}
-
-    track-dispatch-publish:
-        name: Track Dispatch Publish
-        if: always()
-        needs: [dispatch_publish]
-        permissions:
-            issues: write
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
-        with:
-            workflow_name: 'CI - Main'
-            job_name: 'Dispatch Publish Packages'
-            run_id: ${{ github.run_id }}
-            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: ${{ needs.dispatch_publish.result }}
+            status: ${{ needs.dispatch.result }}
