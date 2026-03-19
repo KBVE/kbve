@@ -8,6 +8,7 @@ function pushSession(session: any) {
 		$auth.set({
 			tone: 'anon',
 			name: '',
+			username: undefined,
 			avatar: undefined,
 			id: '',
 			error: undefined,
@@ -15,6 +16,8 @@ function pushSession(session: any) {
 		return;
 	}
 	const u = session.user;
+	// Preserve existing username if already set (profile fetch fills it later)
+	const currentUsername = $auth.get().username;
 	$auth.set({
 		tone: 'auth',
 		name:
@@ -22,6 +25,7 @@ function pushSession(session: any) {
 			u.user_metadata?.name ||
 			u.email?.split('@')[0] ||
 			'User',
+		username: currentUsername,
 		avatar:
 			u.user_metadata?.avatar_url ||
 			u.user_metadata?.picture ||
@@ -78,6 +82,7 @@ export async function bootAuth(
 		$auth.set({
 			tone: 'anon',
 			name: '',
+			username: undefined,
 			avatar: undefined,
 			id: '',
 			error: undefined,

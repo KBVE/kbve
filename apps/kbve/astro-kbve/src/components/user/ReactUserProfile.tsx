@@ -4,6 +4,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { initSupa, getSupa } from '@/lib/supa';
 import { useAuthBridge } from '@/components/auth';
+import { setAuth } from '@kbve/droid';
+import UsernameSetup from './UsernameSetup';
 import {
 	User,
 	Settings,
@@ -306,6 +308,10 @@ export default function ReactUserProfile() {
 				setApiProfile(freshProfile);
 				setFromCache(false);
 				apiOk = true;
+				// Sync username to global auth store so navbar/other components can use it
+				if (freshProfile.username) {
+					setAuth({ username: freshProfile.username });
+				}
 				console.log('[ReactUserProfile] API OK - profile fetched');
 			} else {
 				// API returned null but didn't throw - partial success
@@ -667,6 +673,31 @@ export default function ReactUserProfile() {
 						</div>
 					</div>
 				</header>
+
+				{/* Username setup prompt — shown when user has no username */}
+				{apiProfile &&
+					!apiProfile.username &&
+					session?.access_token && (
+						<UsernameSetup
+							accessToken={session.access_token}
+							onComplete={(newUsername) => {
+								// Update local profile state
+								setApiProfile((prev) =>
+									prev
+										? {
+												...prev,
+												username: newUsername,
+												profile_exists: true,
+											}
+										: prev,
+								);
+								// Sync to global auth store
+								setAuth({ username: newUsername });
+								// Invalidate cache so next load fetches fresh data
+								clearProfileCache();
+							}}
+						/>
+					)}
 
 				{/* Connection Status Indicator */}
 				<div style={styles.statusBar}>

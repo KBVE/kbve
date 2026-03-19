@@ -201,6 +201,108 @@ def config_cmd(
         click.echo()
 
 
+# ── claude sub-group ─────────────────────────────────────────────────
+
+@main.group("claude")
+def claude_group() -> None:
+    """Claude Code utilities — usage tracking, version info."""
+
+
+@claude_group.command("usage")
+@click.option(
+    "--json", "as_json", is_flag=True, default=False,
+    help="Output as JSON.",
+)
+@click.option(
+    "--timeout", default=15.0, type=float,
+    help="Timeout in seconds.",
+)
+def claude_usage(as_json: bool, timeout: float) -> None:
+    """Show Claude Code usage for the current session."""
+    from kbve.ai.claude import get_usage
+
+    usage = get_usage(timeout=timeout)
+
+    if as_json:
+        click.echo(json.dumps(usage.as_dict(), indent=2))
+    elif usage.error:
+        click.secho(f"Error: {usage.error}", fg="red")
+    else:
+        click.echo("Claude Code usage:\n")
+        if usage.cost_usd is not None:
+            click.echo("  Cost: $" + format(usage.cost_usd, ".4f"))
+        if usage.total_tokens is not None:
+            click.echo("  Total tokens: " + format(usage.total_tokens, ","))
+        if usage.input_tokens is not None:
+            click.echo("  Input tokens: " + format(usage.input_tokens, ","))
+        if usage.output_tokens is not None:
+            click.echo("  Output tokens: " + format(usage.output_tokens, ","))
+        if usage.cache_read_tokens is not None:
+            click.echo(
+                "  Cache read: " + format(usage.cache_read_tokens, ",")
+            )
+        if usage.cache_write_tokens is not None:
+            click.echo(
+                "  Cache write: " + format(usage.cache_write_tokens, ",")
+            )
+        if usage.percent_used is not None:
+            click.echo(f"  Used: {usage.percent_used}%")
+        if usage.duration_s is not None:
+            click.echo(f"  Duration: {usage.duration_s}s")
+        click.echo()
+
+
+@claude_group.command("version")
+def claude_version() -> None:
+    """Show installed Claude Code version."""
+    from kbve.ai.claude import get_claude_version
+
+    result = get_claude_version()
+    if result.success:
+        click.echo(f"Claude Code: {result.stdout}")
+    else:
+        click.secho(f"Error: {result.stderr}", fg="red")
+        raise SystemExit(1)
+
+
+@claude_group.command("status")
+@click.option(
+    "--json", "as_json", is_flag=True, default=False,
+    help="Output as JSON.",
+)
+def claude_status(as_json: bool) -> None:
+    """Check if Claude Code is available and report status."""
+    from kbve.ai.claude import get_claude_version, get_usage
+
+    ver = get_claude_version()
+    usage = get_usage(timeout=5.0)
+
+    status = {
+        "installed": ver.success,
+        "version": ver.stdout if ver.success else None,
+        "usage_available": usage.available and usage.error is None,
+        "cost_usd": usage.cost_usd,
+        "percent_used": usage.percent_used,
+    }
+
+    if as_json:
+        click.echo(json.dumps(status, indent=2))
+    else:
+        if ver.success:
+            click.secho(f"  Claude Code: {ver.stdout}", fg="green")
+        else:
+            click.secho("  Claude Code: not found", fg="red")
+
+        if usage.available and usage.error is None:
+            if usage.cost_usd is not None:
+                click.echo("  Cost: $" + format(usage.cost_usd, ".4f"))
+            if usage.percent_used is not None:
+                click.echo(f"  Used: {usage.percent_used}%")
+        elif usage.error:
+            click.echo(f"  Usage: {usage.error}")
+        click.echo()
+
+
 # ── grpc sub-group ───────────────────────────────────────────────────
 
 @main.group("grpc")
