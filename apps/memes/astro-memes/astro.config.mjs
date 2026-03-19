@@ -18,6 +18,7 @@ export default defineConfig({
         './src/styles/global.css',
       ],
       components: {
+        Head: './src/components/starlight/Head.astro',
         Header: './src/components/header/Header.astro',
         Footer: './src/components/starlight/Footer.astro',
         PageTitle: './src/components/starlight/PageTitle.astro',

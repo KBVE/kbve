@@ -1,0 +1,56 @@
+---
+// Custom Head override for astro-memes.
+//
+// For askama pages (path starts with "askama/"), we strip Starlight's
+// default OG, Twitter, canonical, and description meta tags — those are
+// rendered by AskamaSocialMeta.astro with askama template variables that
+// axum fills at runtime.
+//
+// For all other pages, we render the full default head as normal.
+
+interface HeadEntry {
+	tag: string;
+	attrs?: Record<string, string | undefined>;
+	content?: string;
+}
+
+const { head } = Astro.locals.starlightRoute;
+const entryId: string = Astro.locals.starlightRoute.entry.id;
+const isAskama = entryId.startsWith('askama/');
+
+// Tags to strip on askama pages — AskamaSocialMeta handles these
+const ASKAMA_STRIP_PROPS = new Set([
+	'og:title',
+	'og:type',
+	'og:url',
+	'og:locale',
+	'og:description',
+	'og:site_name',
+	'twitter:card',
+]);
+
+function shouldStrip(entry: HeadEntry): boolean {
+	if (!isAskama) return false;
+	if (entry.tag === 'title') return true;
+	if (entry.tag === 'link' && entry.attrs?.rel === 'canonical') return true;
+	if (entry.tag === 'meta' && entry.attrs?.name === 'description')
+		return true;
+	if (entry.tag === 'meta') {
+		const prop = entry.attrs?.property;
+		const name = entry.attrs?.name;
+		if (prop && ASKAMA_STRIP_PROPS.has(prop)) return true;
+		if (name && ASKAMA_STRIP_PROPS.has(name)) return true;
+	}
+	return false;
+}
+
+const filteredHead: HeadEntry[] = (head as HeadEntry[]).filter(
+	(entry) => !shouldStrip(entry),
+);
+---
+
+{
+	filteredHead.map(({ tag: Tag, attrs, content }) => (
+		<Tag {...attrs} set:html={content} />
+	))
+}
