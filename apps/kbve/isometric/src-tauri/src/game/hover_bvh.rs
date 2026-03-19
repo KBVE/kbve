@@ -1,12 +1,12 @@
 //! Tile-based hover map for O(1) cursor-to-entity lookup.
 //!
 //! Every hoverable entity (tree, rock, flower, mushroom) has a [`TileCoord`].
-//! This module maintains a `DashMap<(i32, i32), Entity>` that maps tile
-//! coordinates to their hoverable entity. Hover detection becomes:
+//! This module maintains a `DashMap<(i32, i32), HoverEntry>` that maps tile
+//! coordinates to their hoverable entity plus its vertical bounds.
 //!
-//! 1. Unproject cursor screen position to world XZ via the orthographic camera.
-//! 2. Convert world XZ to tile coordinates.
-//! 3. Look up the tile (+ neighbors for large objects) in the DashMap.
+//! Hover detection casts the cursor ray against multiple Y-planes (ground
+//! through max object height) so tall objects like trees are picked when the
+//! cursor is over their canopy, not just their base tile.
 //!
 //! O(1) insert, O(1) remove, O(1) lookup. No tree rebuild, no worker dispatch.
 //! Thread-safe via DashMap for networked object placements.
@@ -21,10 +21,28 @@ use super::tilemap::TileCoord;
 // HoverMap resource
 // ---------------------------------------------------------------------------
 
-/// DashMap from tile (tx, tz) → hoverable entity. Thread-safe for network inserts.
+/// Maximum Y-plane to test when casting the cursor ray. Objects taller than
+/// this won't be pickable above this height (trees top out around 4-5 units).
+const MAX_HOVER_Y: f32 = 6.0;
+
+/// Step size between Y-plane tests. 1.0 gives 7 planes (0..=6) which is
+/// plenty for tile-sized objects while keeping the lookup count bounded.
+const Y_PLANE_STEP: f32 = 1.0;
+
+/// Entry stored per tile: the entity plus its vertical span.
+#[derive(Clone, Copy)]
+pub struct HoverEntry {
+    pub entity: Entity,
+    /// Bottom of the object (world Y of base).
+    pub y_min: f32,
+    /// Top of the object (world Y of base + full height).
+    pub y_max: f32,
+}
+
+/// DashMap from tile (tx, tz) → hoverable entity + height. Thread-safe for network inserts.
 #[derive(Resource)]
 pub struct HoverMap {
-    pub map: DashMap<(i32, i32), Entity>,
+    pub map: DashMap<(i32, i32), HoverEntry>,
 }
 
 impl Default for HoverMap {
@@ -36,16 +54,18 @@ impl Default for HoverMap {
 }
 
 impl HoverMap {
-    /// Look up which entity (if any) occupies a world XZ position.
-    /// Checks the target tile and its 8 neighbors to handle objects that
-    /// visually overlap adjacent tiles.
-    pub fn lookup(&self, world_x: f32, world_z: f32) -> Option<Entity> {
+    /// Look up which entity (if any) occupies a world XZ position at a given
+    /// Y height. Checks the target tile and its 8 neighbors, returning the
+    /// first entity whose vertical range contains `y`.
+    fn lookup_at_y(&self, world_x: f32, world_z: f32, y: f32) -> Option<Entity> {
         let tx = world_x.floor() as i32;
         let tz = world_z.floor() as i32;
 
         // Check center tile first (most likely hit).
         if let Some(entry) = self.map.get(&(tx, tz)) {
-            return Some(*entry);
+            if y >= entry.y_min && y <= entry.y_max {
+                return Some(entry.entity);
+            }
         }
 
         // Check 8 neighbors for objects that visually span tiles.
@@ -60,7 +80,37 @@ impl HoverMap {
             (1, 1),
         ] {
             if let Some(entry) = self.map.get(&(tx + dx, tz + dz)) {
-                return Some(*entry);
+                if y >= entry.y_min && y <= entry.y_max {
+                    return Some(entry.entity);
+                }
+            }
+        }
+
+        None
+    }
+
+    /// Legacy lookup without height check — kept for callers that don't need
+    /// multi-plane picking (e.g. click handlers that already have a Hovered entity).
+    pub fn lookup(&self, world_x: f32, world_z: f32) -> Option<Entity> {
+        let tx = world_x.floor() as i32;
+        let tz = world_z.floor() as i32;
+
+        if let Some(entry) = self.map.get(&(tx, tz)) {
+            return Some(entry.entity);
+        }
+
+        for &(dx, dz) in &[
+            (-1, -1),
+            (-1, 0),
+            (-1, 1),
+            (0, -1),
+            (0, 1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
+        ] {
+            if let Some(entry) = self.map.get(&(tx + dx, tz + dz)) {
+                return Some(entry.entity);
             }
         }
 
@@ -72,13 +122,20 @@ impl HoverMap {
 // Systems
 // ---------------------------------------------------------------------------
 
-/// Insert newly spawned hoverable entities into the map.
+/// Insert newly spawned hoverable entities into the map, recording their
+/// vertical bounds from Transform.y and HoverOutline.half_extents.y.
 pub fn insert_hoverables(
-    query: Query<(Entity, &TileCoord), Added<HoverOutline>>,
+    query: Query<(Entity, &TileCoord, &Transform, &HoverOutline), Added<HoverOutline>>,
     hover_map: Res<HoverMap>,
 ) {
-    for (entity, tile) in &query {
-        hover_map.map.insert((tile.tx, tile.tz), entity);
+    for (entity, tile, transform, outline) in &query {
+        let base_y = transform.translation.y;
+        let entry = HoverEntry {
+            entity,
+            y_min: base_y - outline.half_extents.y,
+            y_max: base_y + outline.half_extents.y,
+        };
+        hover_map.map.insert((tile.tx, tile.tz), entry);
     }
 }
 
@@ -87,17 +144,23 @@ pub fn remove_hoverables(mut removed: RemovedComponents<HoverOutline>, hover_map
     for entity in removed.read() {
         // DashMap doesn't have remove-by-value, so scan for the entity.
         // This only runs when entities are despawned (rare), not per-frame.
-        hover_map.map.retain(|_, &mut e| e != entity);
+        hover_map.map.retain(|_, entry| entry.entity != entity);
     }
 }
 
-/// Unproject cursor screen position to world XZ on the ground plane (Y ≈ 0).
-pub fn cursor_to_world_xz(
+// ---------------------------------------------------------------------------
+// Ray construction
+// ---------------------------------------------------------------------------
+
+/// Build a ray (origin, direction) from the orthographic camera through the
+/// cursor's screen position. Returns None if the camera isn't orthographic
+/// or uses an unsupported scaling mode.
+fn cursor_ray(
     cam_gt: &GlobalTransform,
     projection: &Projection,
     window: &Window,
     cursor_pos: Vec2,
-) -> Option<Vec2> {
+) -> Option<(Vec3, Vec3)> {
     let Projection::Orthographic(ortho) = projection else {
         return None;
     };
@@ -119,16 +182,62 @@ pub fn cursor_to_world_xz(
 
     let ray_origin = cam_tf.translation + right * (ndc_x * half_w) + up * (ndc_y * half_h);
 
-    // Intersect ray with Y=0 ground plane.
-    // ray_origin.y + t * forward.y = 0  →  t = -ray_origin.y / forward.y
-    if forward.y.abs() < 1e-6 {
-        return None; // Ray is parallel to ground
+    Some((ray_origin, forward))
+}
+
+/// Intersect a ray with a horizontal plane at the given Y value.
+/// Returns the XZ world coordinates of the hit, or None if the ray is
+/// parallel to the plane or the plane is behind the camera.
+fn ray_hit_y_plane(ray_origin: Vec3, ray_dir: Vec3, y: f32) -> Option<Vec2> {
+    if ray_dir.y.abs() < 1e-6 {
+        return None;
     }
-    let t = -ray_origin.y / forward.y;
+    let t = (y - ray_origin.y) / ray_dir.y;
     if t < 0.0 {
-        return None; // Ground is behind camera
+        return None;
+    }
+    let hit = ray_origin + ray_dir * t;
+    Some(Vec2::new(hit.x, hit.z))
+}
+
+// ---------------------------------------------------------------------------
+// Public picking entry point
+// ---------------------------------------------------------------------------
+
+/// Multi-plane cursor picking. Casts the cursor ray against Y-planes from
+/// MAX_HOVER_Y down to 0, returning the first entity whose vertical bounds
+/// contain the tested plane. This correctly picks tall objects (trees) when
+/// the cursor is over their canopy rather than their base tile.
+pub fn cursor_pick(
+    cam_gt: &GlobalTransform,
+    projection: &Projection,
+    window: &Window,
+    cursor_pos: Vec2,
+    hover_map: &HoverMap,
+) -> Option<Entity> {
+    let (ray_origin, ray_dir) = cursor_ray(cam_gt, projection, window, cursor_pos)?;
+
+    // Sweep Y-planes from top to bottom so elevated geometry wins over ground.
+    let mut y = MAX_HOVER_Y;
+    while y >= 0.0 {
+        if let Some(xz) = ray_hit_y_plane(ray_origin, ray_dir, y) {
+            if let Some(entity) = hover_map.lookup_at_y(xz.x, xz.y, y) {
+                return Some(entity);
+            }
+        }
+        y -= Y_PLANE_STEP;
     }
 
-    let hit = ray_origin + forward * t;
-    Some(Vec2::new(hit.x, hit.z))
+    None
+}
+
+/// Legacy single-plane unproject (Y=0 only). Kept for backward compatibility.
+pub fn cursor_to_world_xz(
+    cam_gt: &GlobalTransform,
+    projection: &Projection,
+    window: &Window,
+    cursor_pos: Vec2,
+) -> Option<Vec2> {
+    let (ray_origin, ray_dir) = cursor_ray(cam_gt, projection, window, cursor_pos)?;
+    ray_hit_y_plane(ray_origin, ray_dir, 0.0)
 }
