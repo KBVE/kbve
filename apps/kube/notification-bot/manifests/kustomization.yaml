@@ -4,8 +4,8 @@ kind: Kustomization
 namespace: discord
 
 resources:
-  - notification-bot-deployment.yaml
-  - notification-bot-service.yaml
-  - notification-bot-ingress.yaml
-  - notification-bot-rbac.yaml
-  - notification-bot-externalsecret.yaml
+    - notification-bot-deployment.yaml
+    - notification-bot-service.yaml
+    - httproute.yaml
+    - notification-bot-rbac.yaml
+    - notification-bot-externalsecret.yaml
