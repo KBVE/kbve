@@ -379,6 +379,81 @@ def grpc_compile(
     raise SystemExit(exit_code)
 
 
+# ── gdrive sub-group ────────────────────────────────────────────────
+
+@main.group("gdrive")
+def gdrive_group() -> None:
+    """Google Drive utilities — PDF extraction, conversion."""
+
+
+@gdrive_group.command("pdf-to-md")
+@click.argument("url")
+@click.option(
+    "--output", "-o", type=click.Path(), default=None,
+    help="Write Markdown to a file instead of stdout.",
+)
+@click.option(
+    "--image-dir", type=click.Path(), default=None,
+    help="Directory to save extracted page images.",
+)
+@click.option(
+    "--no-ocr", is_flag=True, default=False,
+    help="Skip OCR even if pytesseract is available.",
+)
+@click.option(
+    "--headed", is_flag=True, default=False,
+    help="Run the browser with a visible window.",
+)
+@click.option(
+    "--scroll-pause", type=float, default=0.6,
+    help="Seconds between scroll steps (default: 0.6).",
+)
+def gdrive_pdf_to_md(
+    url: str,
+    output: str | None,
+    image_dir: str | None,
+    no_ocr: bool,
+    headed: bool,
+    scroll_pause: float,
+) -> None:
+    """Extract a view-only Google Drive PDF and convert to Markdown.
+
+    Accepts a Google Drive share/view link, opens it in a headless
+    browser, captures every rendered page image, and produces Markdown
+    output (with OCR text when pytesseract is installed).
+
+    \b
+    Example:
+        fudster gdrive pdf-to-md "https://drive.google.com/file/d/ABC123/view"
+        fudster gdrive pdf-to-md URL -o output.md --image-dir ./pages
+    """
+    from fudster.apps.gdrive_pdf import extract_gdrive_pdf
+
+    click.echo(f"Extracting PDF from: {url}")
+
+    try:
+        md = extract_gdrive_pdf(
+            url,
+            headless=not headed,
+            output_dir=image_dir,
+            scroll_pause=scroll_pause,
+            use_ocr=not no_ocr,
+        )
+    except ValueError as exc:
+        click.secho(f"Error: {exc}", fg="red")
+        raise SystemExit(1)
+    except ImportError as exc:
+        click.secho(f"Missing dependency: {exc}", fg="red")
+        raise SystemExit(1)
+
+    if output:
+        from pathlib import Path
+        Path(output).write_text(md, encoding="utf-8")
+        click.secho(f"Markdown written to {output}", fg="green")
+    else:
+        click.echo(md)
+
+
 # ── nx sub-group ─────────────────────────────────────────────────────
 
 @main.group()
