@@ -53,11 +53,6 @@ return (function() {
 })();
 """
 
-# Fallback: screenshot-based capture for each page role element
-_PAGE_COUNT_JS = """
-return document.querySelectorAll('div[role="listitem"]').length;
-"""
-
 
 def _parse_file_id(url: str) -> str:
     """Extract the Google Drive file ID from a URL."""
@@ -161,7 +156,8 @@ def _images_to_markdown(
                 continue
 
         # Fallback: save image and reference it
-        img_path = output_dir / f"page_{idx:03d}.png"
+        img_name = "page_{:03d}.png".format(idx)
+        img_path = output_dir / img_name
         img_path.write_bytes(img_bytes)
         parts.append(f"![{page_label}]({img_path})\n")
 
