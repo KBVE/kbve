@@ -70,13 +70,22 @@ async function getSupabaseJwt(): Promise<string> {
 	});
 }
 
-/** Build the WebSocket URL for the current environment. */
+/** Read the WebSocket URL from the ClientProfile in localStorage. */
 function resolveWsUrl(): string {
+	try {
+		const raw = localStorage.getItem('kbve_client_profile');
+		if (raw) {
+			const profile = JSON.parse(raw);
+			if (profile.ws_url) return profile.ws_url;
+		}
+	} catch {
+		/* fall through */
+	}
+	// Fallback: derive from origin (should never happen if main.tsx ran first)
 	const hostname = window.location.hostname;
 	const isSecure = window.location.protocol === 'https:';
-	const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
-	// Always use wss:// when the page is served over HTTPS (Safari blocks mixed content).
 	const scheme = isSecure ? 'wss' : 'ws';
+	const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
 	return isLocal ? `${scheme}://${hostname}:5000` : `wss://${hostname}/ws`;
 }
 

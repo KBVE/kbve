@@ -24,6 +24,12 @@ pub struct ClientProfile {
     pub has_offscreen_canvas: bool,
     /// `navigator.hardwareConcurrency` (fallback: 1).
     pub hardware_concurrency: u32,
+    /// REST API base URL (e.g. `https://kbve.com` or `https://localhost:3080`).
+    pub api_base: String,
+    /// WebSocket game server URL (e.g. `wss://kbve.com/ws` or `wss://localhost:5000`).
+    pub ws_url: String,
+    /// WebTransport game server URL (e.g. `https://wt.kbve.com:5001` or `https://localhost:5001`).
+    pub wt_url: String,
 }
 
 impl Default for ClientProfile {
@@ -35,6 +41,9 @@ impl Default for ClientProfile {
             has_shared_array_buffer: false,
             has_offscreen_canvas: false,
             hardware_concurrency: 1,
+            api_base: String::new(),
+            ws_url: String::new(),
+            wt_url: String::new(),
         }
     }
 }
@@ -67,6 +76,9 @@ impl ClientProfile {
                 .as_u64()
                 .unwrap_or(1)
                 .min(u32::MAX as u64) as u32,
+            api_base: v["api_base"].as_str().unwrap_or("").to_owned(),
+            ws_url: v["ws_url"].as_str().unwrap_or("").to_owned(),
+            wt_url: v["wt_url"].as_str().unwrap_or("").to_owned(),
         }
     }
 
@@ -82,6 +94,9 @@ impl ClientProfile {
             hardware_concurrency: std::thread::available_parallelism()
                 .map(|n| n.get() as u32)
                 .unwrap_or(4),
+            api_base: "https://127.0.0.1:3080".to_owned(),
+            ws_url: "wss://127.0.0.1:5000".to_owned(),
+            wt_url: "https://127.0.0.1:5001".to_owned(),
         }
     }
 
