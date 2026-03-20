@@ -3,4 +3,5 @@ kind: Kustomization
 
 resources:
     - httproute.yaml
+    - sealed-admin.yaml
     # Future: actions-runner.yaml
