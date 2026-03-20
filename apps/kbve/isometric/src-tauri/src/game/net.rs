@@ -37,16 +37,6 @@ use bevy_kbve_net::npcdb::creature::CapturedCreatures;
 /// On WASM the URL MUST come from JS via `request_go_online()`.
 #[cfg(not(target_arch = "wasm32"))]
 const DEFAULT_WS_URL: &str = "wss://127.0.0.1:5000";
-#[cfg(target_arch = "wasm32")]
-const DEFAULT_WS_URL: &str = "";
-
-/// Production WebTransport hostname. The WASM client rewrites WT URLs
-/// to use this dedicated subdomain so QUIC traffic routes through the
-/// dedicated `isometric-wt-lb` LoadBalancer instead of the main gateway.
-const WT_HOST: &str = "wt.kbve.com";
-
-/// Default WebTransport port.
-const WT_PORT: u16 = 5001;
 
 /// Tick rate matching the server (20 Hz).
 const TICK_DURATION: Duration = Duration::from_millis(50);
@@ -121,51 +111,13 @@ impl Default for GameServerAddr {
                 }
                 #[cfg(target_arch = "wasm32")]
                 {
-                    // Derive WS URL from the page origin so the Bevy title
-                    // screen "Play Online" button works without JS providing a
-                    // URL. Matches the logic in GoOnlineButton.tsx resolveWsUrl().
-                    resolve_ws_url_from_origin()
+                    // On WASM, endpoints come from ClientProfile (localStorage).
+                    // Return empty — poll_go_online_request will read from profile.
+                    String::new()
                 }
             });
         Self(url)
     }
-}
-
-/// Derive the WebSocket URL from `window.location` (WASM only).
-/// `https://localhost:3080` → `wss://localhost:5000`
-/// `https://kbve.com` → `wss://kbve.com/ws`
-#[cfg(target_arch = "wasm32")]
-fn resolve_ws_url_from_origin() -> String {
-    let Some(window) = web_sys::window() else {
-        return String::new();
-    };
-    let Ok(protocol) = window.location().protocol() else {
-        return String::new();
-    };
-    let Ok(hostname) = window.location().hostname() else {
-        return String::new();
-    };
-    let scheme = if protocol == "https:" { "wss" } else { "ws" };
-    let is_local = hostname == "localhost" || hostname == "127.0.0.1";
-    if is_local {
-        format!("{scheme}://{hostname}:5000")
-    } else {
-        format!("{scheme}://{hostname}/ws")
-    }
-}
-
-/// Rewrite a WebTransport URL to use the dedicated `wt.kbve.com` subdomain.
-/// Local dev URLs (localhost / 127.0.0.1) are left unchanged.
-/// e.g. `https://kbve.com:5001` → `https://wt.kbve.com:5001`
-fn rewrite_wt_url(url: &str) -> String {
-    if url.is_empty() {
-        return String::new();
-    }
-    // Don't rewrite local dev URLs
-    if url.contains("localhost") || url.contains("127.0.0.1") {
-        return url.to_owned();
-    }
-    format!("https://{WT_HOST}:{WT_PORT}")
 }
 
 /// Tracks pending JWT that needs to be sent after connection is established.
@@ -240,11 +192,14 @@ impl Plugin for NetPlugin {
         // Must be inserted before any system that checks transport support.
         let profile = super::client_profile::ClientProfile::from_local_storage();
         info!(
-            "[net] ClientProfile: secure={} wt={} sab={} cores={}",
+            "[net] ClientProfile: secure={} wt={} sab={} cores={} api={} ws={} wt_url={}",
             profile.secure_context,
             profile.has_webtransport,
             profile.has_shared_array_buffer,
             profile.hardware_concurrency,
+            profile.api_base,
+            profile.ws_url,
+            profile.wt_url,
         );
         app.insert_resource(profile);
 
@@ -637,7 +592,7 @@ fn poll_go_online_request(
     pending_auth.jwt = jwt.clone();
     pending_auth.sent = false;
 
-    // Re-resolve address: check JS override first, then resource, then derive from origin.
+    // Re-resolve address: check JS override first, then resource, then ClientProfile.
     let resolved_ws = SERVER_URL_OVERRIDE
         .lock()
         .ok()
@@ -647,14 +602,17 @@ fn poll_go_online_request(
             if a.is_empty() { None } else { Some(a.clone()) }
         })
         .unwrap_or_else(|| {
-            // Last resort on WASM: derive from window.location at connection time.
-            #[cfg(target_arch = "wasm32")]
-            {
-                resolve_ws_url_from_origin()
+            // Fallback: read from ClientProfile (JS-resolved endpoints).
+            if !profile.ws_url.is_empty() {
+                return profile.ws_url.clone();
             }
             #[cfg(not(target_arch = "wasm32"))]
             {
                 DEFAULT_WS_URL.to_owned()
+            }
+            #[cfg(target_arch = "wasm32")]
+            {
+                String::new()
             }
         });
 
@@ -758,10 +716,8 @@ fn poll_go_online_request(
         let ws_url = resolved_ws.clone();
         let prefers_wt = profile.has_webtransport;
 
-        // Derive the API base URL from the WS URL
-        // e.g. ws://127.0.0.1:5000 → http://127.0.0.1:4321
-        // e.g. wss://kbve.com/ws → https://kbve.com
-        let api_base = derive_api_base(&ws_url);
+        // API base comes from ClientProfile — resolved once by JS at page load.
+        let api_base = profile.api_base.clone();
 
         wasm_bindgen_futures::spawn_local(async move {
             match fetch_game_token(&api_base, &jwt_for_fetch, prefers_wt).await {
@@ -817,11 +773,14 @@ fn poll_token_fetch_result(
     // frame buffering/rewriting by http-proxy.
     let ws_url = result.server_url.clone();
 
-    // Use ClientProfile to decide transport — no JS interop at connection time.
-    // Rewrite the WT URL to use the dedicated wt.kbve.com subdomain so QUIC
-    // traffic routes through the isometric-wt-lb LoadBalancer.
+    // Use ClientProfile to decide transport — WT URL comes from the profile
+    // (resolved once by JS), so QUIC traffic routes to the correct endpoint.
     let wt_url = if !result.server_wt_url.is_empty() && profile.has_webtransport {
-        rewrite_wt_url(&result.server_wt_url)
+        if profile.wt_url.is_empty() {
+            result.server_wt_url.clone()
+        } else {
+            profile.wt_url.clone()
+        }
     } else {
         if !result.server_wt_url.is_empty() {
             info!(
@@ -868,35 +827,6 @@ fn has_webtransport_support() -> bool {
 fn has_webtransport_support() -> bool {
     // Desktop: WebTransport is handled natively by lightyear, always supported
     true
-}
-
-/// Derive the HTTP API base URL from a WebSocket URL.
-#[cfg(target_arch = "wasm32")]
-fn derive_api_base(ws_url: &str) -> String {
-    // For production: wss://kbve.com/ws → https://kbve.com
-    // For production: wss://kbve.com/ws → https://kbve.com
-    // For dev: ws://127.0.0.1:5000 → http://127.0.0.1:4321
-    // Empty URL → empty string (relative URL, works with Vite proxy)
-    if ws_url.starts_with("wss://") {
-        let host = ws_url
-            .trim_start_matches("wss://")
-            .split('/')
-            .next()
-            .unwrap_or("");
-        format!("https://{host}")
-    } else if ws_url.starts_with("ws://") {
-        let host_port = ws_url
-            .trim_start_matches("ws://")
-            .split('/')
-            .next()
-            .unwrap_or("");
-        // Replace game server port with HTTP API port for dev
-        let host = host_port.split(':').next().unwrap_or("127.0.0.1");
-        format!("http://{host}:4321")
-    } else {
-        // Fallback: use relative URL (same origin — works with Vite proxy in dev)
-        String::new()
-    }
 }
 
 /// Result from the game-token API.
