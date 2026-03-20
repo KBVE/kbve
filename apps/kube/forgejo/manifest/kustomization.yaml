@@ -4,4 +4,6 @@ kind: Kustomization
 resources:
     - httproute.yaml
     - sealed-admin.yaml
+    - forgejo-db-external-secret.yaml
+    - forgejo-redis-external-secret.yaml
     # Future: actions-runner.yaml

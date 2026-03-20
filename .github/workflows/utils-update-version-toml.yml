@@ -39,13 +39,13 @@ jobs:
                   VTOML="${{ inputs.version_toml_path }}"
                   VERSION="${{ inputs.version }}"
 
-                  # Preserve publish flag if it exists
-                  PUBLISH_FLAG="true"
-                  if [ -f "$VTOML" ]; then
-                    PUBLISH_FLAG=$(grep -m1 '^publish' "$VTOML" | sed 's/publish = //' | tr -d ' "' 2>/dev/null || echo "true")
+                  if [ -f "$VTOML" ] && grep -q '^version' "$VTOML"; then
+                    # In-place update preserves all other content (e.g. function registry)
+                    sed -i "s/^version = .*/version = \"${VERSION}\"/" "$VTOML"
+                  else
+                    # Fresh file — simple two-line version.toml
+                    printf 'version = "%s"\npublish = true\n' "$VERSION" > "$VTOML"
                   fi
-
-                  printf 'version = "%s"\npublish = %s\n' "$VERSION" "$PUBLISH_FLAG" > "$VTOML"
                   echo "Updated $VTOML:"
                   cat "$VTOML"
 

@@ -82,7 +82,7 @@ jobs:
                     irc-gateway)  SRC="apps/irc/irc-gateway/Cargo.toml";            VTOML="apps/irc/version.toml" ;;
                     discordsh)    SRC="apps/discordsh/axum-discordsh/Cargo.toml";   VTOML="apps/discordsh/version.toml" ;;
                     mc)           SRC="apps/mc/plugins/kbve-mc-plugin/Cargo.toml";  VTOML="apps/mc/version.toml" ;;
-                    edge)         SRC="apps/kbve/edge/version.toml";                VTOML="apps/kbve/edge/version.toml" ;;
+                    edge)         SRC="apps/kbve/edge/deno.json";                   VTOML="apps/kbve/edge/version.toml" ;;
                     cryptothrone) SRC="apps/cryptothrone/axum-cryptothrone/Cargo.toml"; VTOML="apps/cryptothrone/version.toml" ;;
                     kilobase)     SRC=""; VTOML="" ;;
                     *)
@@ -98,7 +98,10 @@ jobs:
                     exit 0
                   fi
 
-                  LOCAL=$(grep -m1 '^version' "$SRC" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                  case "$SRC" in
+                    *.json) LOCAL=$(jq -r '.version // "0.0.0"' "$SRC" 2>/dev/null || echo "0.0.0") ;;
+                    *)      LOCAL=$(grep -m1 '^version' "$SRC" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0") ;;
+                  esac
                   PUBLISHED="0.0.0"
                   PUBLISH_FLAG="true"
                   if [ -f "$VTOML" ]; then
@@ -216,7 +219,7 @@ jobs:
                       echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
                       echo "image=kbve/edge"                                                               >> "$GITHUB_OUTPUT"
                       echo "e2e_name=edge"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "cargo_toml=apps/kbve/edge/version.toml"                                       >> "$GITHUB_OUTPUT"
+                      echo "cargo_toml=apps/kbve/edge/deno.json"                                          >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/functions/manifests/functions-deployment.yaml"      >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
                       echo "version_toml=apps/kbve/edge/version.toml"                                      >> "$GITHUB_OUTPUT"

@@ -56,8 +56,7 @@ spec:
                               DB_TYPE: postgres
                               HOST: supabase-cluster-pooler-rw.kilobase.svc.cluster.local:5432
                               NAME: supabase
-                              USER: forgejo
-                              PASSWD: ''
+                              USER: postgres
                               SSL_MODE: require
                               SCHEMA: forgejo
                           lfs:
@@ -71,9 +70,38 @@ spec:
                           repository:
                               DEFAULT_PRIVATE: private
                               ENABLE_PUSH_CREATE_USER: true
+                          cache:
+                              ADAPTER: redis
+                          session:
+                              PROVIDER: redis
+                          queue:
+                              TYPE: redis
                           mirror:
                               ENABLED: true
                               DEFAULT_INTERVAL: 10m
+                      additionalConfigFromEnvs:
+                          - name: FORGEJO__DATABASE__PASSWD
+                            valueFrom:
+                                secretKeyRef:
+                                    name: forgejo-db
+                                    key: password
+                          - name: REDIS_PASSWORD
+                            valueFrom:
+                                secretKeyRef:
+                                    name: forgejo-redis
+                                    key: password
+                          - name: FORGEJO__CACHE__HOST
+                            value: redis://default:$(REDIS_PASSWORD)@redis-master.redis.svc.cluster.local:6379/0?pool_size=100&idle_timeout=180s
+                          - name: FORGEJO__SESSION__PROVIDER_CONFIG
+                            value: redis://default:$(REDIS_PASSWORD)@redis-master.redis.svc.cluster.local:6379/2?pool_size=100&idle_timeout=180s
+                          - name: FORGEJO__QUEUE__CONN_STR
+                            value: redis://default:$(REDIS_PASSWORD)@redis-master.redis.svc.cluster.local:6379/1
+
+                  valkey-cluster:
+                      enabled: false
+
+                  redis-cluster:
+                      enabled: false
 
                   postgresql:
                       enabled: false

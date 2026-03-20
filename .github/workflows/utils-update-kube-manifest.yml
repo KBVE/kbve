@@ -35,11 +35,14 @@ jobs:
                   ref: main
                   path: main-ref
 
-            - name: Extract version from Cargo.toml
+            - name: Extract version from source file
               id: version
               run: |
-                  NEW_VER=$(grep -m1 '^version' "main-ref/${{ inputs.cargo_toml }}" \
-                    | sed 's/version = "\(.*\)"/\1/')
+                  SRC="main-ref/${{ inputs.cargo_toml }}"
+                  case "$SRC" in
+                    *.json) NEW_VER=$(jq -r '.version // "0.0.0"' "$SRC" 2>/dev/null) ;;
+                    *)      NEW_VER=$(grep -m1 '^version' "$SRC" | sed 's/version = "\(.*\)"/\1/') ;;
+                  esac
                   echo "new_version=$NEW_VER" >> "$GITHUB_OUTPUT"
                   echo "Resolved version: $NEW_VER"
 
