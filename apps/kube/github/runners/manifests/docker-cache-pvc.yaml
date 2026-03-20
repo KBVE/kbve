@@ -1,0 +1,15 @@
+# Dedicated PVC for Docker buildx local cache on the secondary SSD (sdb).
+# Separated from the general runner cache to avoid I/O contention and
+# prevent large Rust builds from starving other caches.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: arc-runner-docker-cache
+    namespace: arc-runners
+spec:
+    accessModes:
+        - ReadWriteMany
+    storageClassName: longhorn-sdb
+    resources:
+        requests:
+            storage: 100Gi
