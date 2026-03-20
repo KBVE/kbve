@@ -8,7 +8,6 @@ pnpm-lock.yaml
 .DS_Store
 package.json
 tsconfig.json
-deno.json
 functions/types.d.ts
 .env
 edge-runtime/

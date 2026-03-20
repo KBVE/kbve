@@ -186,7 +186,7 @@ jobs:
                       irc-gateway)  SRC="apps/irc/irc-gateway/Cargo.toml";            VTOML="apps/irc/version.toml" ;;
                       discordsh)    SRC="apps/discordsh/axum-discordsh/Cargo.toml";   VTOML="apps/discordsh/version.toml" ;;
                       mc)           SRC="apps/mc/plugins/kbve-mc-plugin/Cargo.toml";  VTOML="apps/mc/version.toml" ;;
-                      edge)         SRC="apps/kbve/edge/version.toml";                VTOML="apps/kbve/edge/version.toml" ;;
+                      edge)         SRC="apps/kbve/edge/deno.json";                   VTOML="apps/kbve/edge/version.toml" ;;
                       cryptothrone) SRC="apps/cryptothrone/axum-cryptothrone/Cargo.toml"; VTOML="apps/cryptothrone/version.toml" ;;
                       kilobase)     SRC=""; VTOML="" ;;
                       *)            SRC=""; VTOML="" ;;
