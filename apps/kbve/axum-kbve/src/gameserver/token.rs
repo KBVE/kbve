@@ -69,23 +69,48 @@ pub async fn game_token_handler(
         .and_then(|s| s.rsplit_once(':').and_then(|(_, p)| p.parse().ok()))
         .unwrap_or(DEFAULT_WT_PORT);
 
-    // The ConnectToken embeds server addresses that the Netcode client uses for
-    // the handshake. We include BOTH WS and WT addresses so the token works
-    // regardless of which transport the client picks (Safari=WS, Chrome=WT).
-    // The Netcode server validates that its own LocalAddr is in the token's
-    // server list. With both addresses present, either transport passes validation.
-    let ws_addr: SocketAddr = resolve_ipv4(&request_host, ws_port).map_err(|e| {
+    // --- Cascading host resolution for ConnectToken addresses ---
+    //
+    // The ConnectToken embeds IP addresses the client connects to. We try
+    // multiple candidate hostnames in priority order and use the first one
+    // that resolves to a valid IPv4 address. This handles:
+    //   1. GAME_SERVER_HOST env (explicit origin, e.g. wt.kbve.com → origin IP)
+    //   2. Host header (works for local dev where API == game server)
+    //   3. localhost (last resort)
+    //
+    // Production issue: the API sits behind Cloudflare (kbve.com → CF edge IP)
+    // but the game server listens on the origin. Without the cascade, the token
+    // would embed the CF IP and QUIC/WebTransport would time out.
+    let resolve_candidates: Vec<String> = {
+        let mut c = Vec::with_capacity(3);
+        if let Ok(env_host) = std::env::var("GAME_SERVER_HOST") {
+            if !env_host.is_empty() {
+                c.push(env_host);
+            }
+        }
+        c.push(request_host.clone());
+        if request_host != "localhost" {
+            c.push("localhost".to_string());
+        }
+        c
+    };
+
+    let (final_host, ws_addr) = resolve_first_valid(&resolve_candidates, ws_port).map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("cannot resolve game address {request_host}:{ws_port}: {e}"),
+            format!(
+                "cannot resolve game server from candidates {resolve_candidates:?}:{ws_port}: {e}"
+            ),
         )
     })?;
+
+    tracing::info!(
+        "[game-token] host resolution: candidates={resolve_candidates:?} → final_host={final_host} ws_addr={ws_addr}"
+    );
 
     // Build the server address list for the ConnectToken.
     // Netcode tries addresses in order, so the preferred transport's port must
     // come first to avoid a wasted timeout on the wrong port.
-    // Safari only supports WebSocket — if the client says "websocket", put WS
-    // first so the handshake succeeds on the first attempt.
     let prefers_ws = req
         .transport
         .as_deref()
@@ -94,17 +119,16 @@ pub async fn game_token_handler(
 
     let mut server_addrs = vec![ws_addr];
     if super::is_wt_enabled() {
-        let wt_addr: SocketAddr = resolve_ipv4(&request_host, wt_port).map_err(|e| {
+        // Use the same final_host that resolved successfully for WS
+        let wt_addr: SocketAddr = resolve_ipv4(&final_host, wt_port).map_err(|e| {
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                format!("cannot resolve game address {request_host}:{wt_port}: {e}"),
+                format!("cannot resolve game address {final_host}:{wt_port}: {e}"),
             )
         })?;
         if prefers_ws {
-            // WS first — client can only use WebSocket (e.g. Safari)
             server_addrs.push(wt_addr);
         } else {
-            // WT first — client supports WebTransport (e.g. Chrome)
             server_addrs.insert(0, wt_addr);
         }
     }
@@ -148,18 +172,19 @@ pub async fn game_token_handler(
     let b64 =
         net_config::token_to_base64(token).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))?;
 
-    // Build URLs — both transports are always available on the same server entity.
-    // Client picks WT when supported (Chrome), falls back to WS (Safari).
+    // Build transport URLs — WS and WT take different routes:
+    //   WS:  wss://{request_host}:5000  — Cloudflare proxies TCP/WSS fine
+    //   WT:  https://{final_host}:5001  — QUIC/UDP must hit origin directly
     let server_url = format!("wss://{request_host}:{ws_port}");
     let cert_digest = super::get_cert_digest().to_owned();
     let server_wt_url = if super::is_wt_enabled() {
-        format!("https://{request_host}:{wt_port}")
+        format!("https://{final_host}:{wt_port}")
     } else {
         String::new()
     };
 
     tracing::info!(
-        "[game-token] issuing token: ws_url={server_url} wt_url={} digest_len={} host={request_host} transport={} addrs={server_addrs:?}",
+        "[game-token] issuing token: ws_url={server_url} wt_url={} digest_len={} host={request_host} final_host={final_host} transport={} addrs={server_addrs:?}",
         if server_wt_url.is_empty() {
             "<empty>"
         } else {
@@ -188,6 +213,22 @@ fn extract_hostname(headers: &HeaderMap) -> String {
             h.split(':').next().unwrap_or(h).to_string()
         })
         .unwrap_or_else(|| "localhost".to_string())
+}
+
+/// Try each candidate hostname in order, returning the first that resolves to
+/// a valid IPv4 address. Returns `(winning_host, resolved_addr)`.
+fn resolve_first_valid(candidates: &[String], port: u16) -> Result<(String, SocketAddr), String> {
+    let mut last_err = String::new();
+    for host in candidates {
+        match resolve_ipv4(host, port) {
+            Ok(addr) => return Ok((host.clone(), addr)),
+            Err(e) => {
+                tracing::debug!("[game-token] resolve candidate '{host}:{port}' failed: {e}");
+                last_err = e;
+            }
+        }
+    }
+    Err(format!("all candidates failed (last: {last_err})"))
 }
 
 /// Resolve a hostname + port to an IPv4 SocketAddr.
