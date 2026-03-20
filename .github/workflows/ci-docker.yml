@@ -152,6 +152,7 @@ jobs:
             cargo_toml: ${{ steps.resolve.outputs.cargo_toml }}
             deployment_yaml: ${{ steps.resolve.outputs.deployment_yaml }}
             has_test: ${{ steps.resolve.outputs.has_test }}
+            version_toml: ${{ steps.resolve.outputs.version_toml }}
         steps:
             - name: Resolve config for ${{ inputs.app_name }}
               id: resolve
@@ -164,6 +165,7 @@ jobs:
                       echo "cargo_toml=apps/kbve/axum-kbve/Cargo.toml"                                    >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/kbve/manifest/kbve-deployment.yaml"                 >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      echo "version_toml=apps/kbve/axum-kbve/version.toml"                                >> "$GITHUB_OUTPUT"
                       ;;
                     herbmail)
                       echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
@@ -172,6 +174,7 @@ jobs:
                       echo "cargo_toml=apps/herbmail/axum-herbmail/Cargo.toml"                             >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/herbmail/manifest/herbmail-deployment.yaml"          >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      echo "version_toml=apps/herbmail/version.toml"                                       >> "$GITHUB_OUTPUT"
                       ;;
                     memes)
                       echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
@@ -180,6 +183,7 @@ jobs:
                       echo "cargo_toml=apps/memes/axum-memes/Cargo.toml"                                   >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/memes/manifest/memes-deployment.yaml"               >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      echo "version_toml=apps/memes/version.toml"                                          >> "$GITHUB_OUTPUT"
                       ;;
                     irc-gateway)
                       echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
@@ -188,6 +192,7 @@ jobs:
                       echo "cargo_toml=apps/irc/irc-gateway/Cargo.toml"                                   >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/irc/manifests/irc-gateway-deployment.yaml"          >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      echo "version_toml=apps/irc/version.toml"                                            >> "$GITHUB_OUTPUT"
                       ;;
                     discordsh)
                       echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
@@ -196,6 +201,7 @@ jobs:
                       echo "cargo_toml=apps/discordsh/axum-discordsh/Cargo.toml"                           >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/discordsh/manifest/deployment.yaml"                 >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      echo "version_toml=apps/discordsh/version.toml"                                      >> "$GITHUB_OUTPUT"
                       ;;
                     mc)
                       echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
@@ -204,6 +210,7 @@ jobs:
                       echo "cargo_toml=apps/mc/plugins/kbve-mc-plugin/Cargo.toml"                         >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/mc/manifest/deployment.yaml"                        >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      echo "version_toml=apps/mc/version.toml"                                             >> "$GITHUB_OUTPUT"
                       ;;
                     edge)
                       echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
@@ -212,6 +219,7 @@ jobs:
                       echo "cargo_toml=apps/kbve/edge/version.toml"                                       >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/functions/manifests/functions-deployment.yaml"      >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      echo "version_toml=apps/kbve/edge/version.toml"                                      >> "$GITHUB_OUTPUT"
                       ;;
                     cryptothrone)
                       echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
@@ -220,6 +228,7 @@ jobs:
                       echo "cargo_toml=apps/cryptothrone/axum-cryptothrone/Cargo.toml"                    >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/cryptothrone/manifest/cryptothrone-deployment.yaml" >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
+                      echo "version_toml=apps/cryptothrone/version.toml"                                   >> "$GITHUB_OUTPUT"
                       ;;
                     kilobase)
                       echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
@@ -228,6 +237,7 @@ jobs:
                       echo "cargo_toml="                                                                   >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml="                                                              >> "$GITHUB_OUTPUT"
                       echo "has_test=false"                                                                >> "$GITHUB_OUTPUT"
+                      echo "version_toml="                                                                 >> "$GITHUB_OUTPUT"
                       ;;
                     *)
                       echo "::error::Unknown app_name: ${{ inputs.app_name }}"
@@ -307,13 +317,35 @@ jobs:
             deployment_yaml: ${{ needs.config.outputs.deployment_yaml }}
 
     # ---------------------------------------------------------------------------
+    # Post-publish — update version.toml after successful Docker publish.
+    # Closes the feedback loop so version_gate skips re-publishing the same tag.
+    # ---------------------------------------------------------------------------
+    update_version_docker:
+        name: Update version.toml (docker)
+        needs: [config, version_gate, publish]
+        if: |
+            always() &&
+            needs.publish.result == 'success' &&
+            needs.version_gate.outputs.should_publish == 'true' &&
+            needs.config.outputs.version_toml != ''
+        permissions:
+            contents: write
+            pull-requests: write
+        uses: KBVE/kbve/.github/workflows/utils-update-version-toml.yml@dev
+        with:
+            package_type: docker
+            package_name: ${{ inputs.app_name }}
+            version: ${{ needs.version_gate.outputs.local_version }}
+            version_toml_path: ${{ needs.config.outputs.version_toml }}
+
+    # ---------------------------------------------------------------------------
     # Failure Tracker — opens a GitHub issue on any pipeline failure (#8186).
     # Per-app job_name makes the issue title actionable: "CI - Docker / axum-kbve"
     # ---------------------------------------------------------------------------
     track_failure:
         name: Track Failures
         if: ${{ always() && contains(needs.*.result, 'failure') }}
-        needs: [version_gate, test, publish, update_kube]
+        needs: [version_gate, test, publish, update_kube, update_version_docker]
         permissions:
             issues: write
             contents: read
