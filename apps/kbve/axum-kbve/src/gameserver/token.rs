@@ -59,6 +59,15 @@ pub async fn game_token_handler(
     // match what the client used to reach us (localhost, kbve.com, etc.).
     let request_host = extract_hostname(&headers);
 
+    // For ConnectToken address resolution, use GAME_SERVER_HOST if set.
+    // In production the API is behind Cloudflare (kbve.com → CF IP), but
+    // the game server listens on the origin. GAME_SERVER_HOST should point
+    // to a DNS-only record (e.g. wt.kbve.com) that resolves to the origin IP.
+    let resolve_host = std::env::var("GAME_SERVER_HOST")
+        .ok()
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| request_host.clone());
+
     // Determine WS/WT ports from env or defaults
     let ws_port: u16 = std::env::var("GAME_WS_ADDR")
         .ok()
@@ -74,10 +83,10 @@ pub async fn game_token_handler(
     // regardless of which transport the client picks (Safari=WS, Chrome=WT).
     // The Netcode server validates that its own LocalAddr is in the token's
     // server list. With both addresses present, either transport passes validation.
-    let ws_addr: SocketAddr = resolve_ipv4(&request_host, ws_port).map_err(|e| {
+    let ws_addr: SocketAddr = resolve_ipv4(&resolve_host, ws_port).map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("cannot resolve game address {request_host}:{ws_port}: {e}"),
+            format!("cannot resolve game address {resolve_host}:{ws_port}: {e}"),
         )
     })?;
 
@@ -94,10 +103,10 @@ pub async fn game_token_handler(
 
     let mut server_addrs = vec![ws_addr];
     if super::is_wt_enabled() {
-        let wt_addr: SocketAddr = resolve_ipv4(&request_host, wt_port).map_err(|e| {
+        let wt_addr: SocketAddr = resolve_ipv4(&resolve_host, wt_port).map_err(|e| {
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                format!("cannot resolve game address {request_host}:{wt_port}: {e}"),
+                format!("cannot resolve game address {resolve_host}:{wt_port}: {e}"),
             )
         })?;
         if prefers_ws {
@@ -159,7 +168,7 @@ pub async fn game_token_handler(
     };
 
     tracing::info!(
-        "[game-token] issuing token: ws_url={server_url} wt_url={} digest_len={} host={request_host} transport={} addrs={server_addrs:?}",
+        "[game-token] issuing token: ws_url={server_url} wt_url={} digest_len={} host={request_host} resolve_host={resolve_host} transport={} addrs={server_addrs:?}",
         if server_wt_url.is_empty() {
             "<empty>"
         } else {
