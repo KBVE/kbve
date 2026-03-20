@@ -1,0 +1,17 @@
+# StorageClass pinned to the secondary SSD (sdb) via Longhorn disk tags.
+# The sdb disk on talos-4bn-whr is tagged: ["dedicated", "ssd"]
+# Use this class for large, volatile caches that benefit from dedicated I/O.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+    name: longhorn-sdb
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+parameters:
+    numberOfReplicas: '1'
+    dataLocality: disabled
+    staleReplicaTimeout: '30'
+    fsType: ext4
+    diskSelector: ssd
