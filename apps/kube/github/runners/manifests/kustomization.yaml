@@ -9,6 +9,8 @@ metadata:
 resources:
     - namespace.yaml
     - github-arc-externalsecret.yaml
+    - longhorn-sdb-storageclass.yaml
     - runner-cache-pvc.yaml
+    - docker-cache-pvc.yaml
     - dind-cache-pvc.yaml
     - cache-cleanup-cronjob.yaml

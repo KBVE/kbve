@@ -1,19 +1,28 @@
-# CronJob to cleanup old cache entries and prevent PVC from filling up
-# Runs daily at 3 AM UTC
+# Tiered cache cleanup strategy for ARC runner PVC.
+#
+# Three tiers run at different intervals:
+#   1. Light  (every 6h)  — remove files not modified in 3 days
+#   2. Medium (daily)     — age cleanup + per-app 15Gi cap enforcement
+#   3. Heavy  (every 3d)  — all of the above + capacity gate (nuke largest if >80%)
+#
+# Uses mtime (not atime) because Longhorn/NFS may mount with noatime.
+# All three share the same PVC mount at /cache.
+---
+# ── Tier 1: Light — every 6 hours ──────────────────────────────────────────
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-    name: arc-runner-cache-cleanup
+    name: arc-cache-cleanup-light
     namespace: arc-runners
 spec:
-    schedule: '0 3 * * *' # Daily at 3 AM UTC
+    schedule: '0 */6 * * *'
     concurrencyPolicy: Forbid
     successfulJobsHistoryLimit: 3
     failedJobsHistoryLimit: 3
     jobTemplate:
         spec:
             activeDeadlineSeconds: 300
-            ttlSecondsAfterFinished: 86400 # Clean up job after 24 hours
+            ttlSecondsAfterFinished: 86400
             backoffLimit: 0
             template:
                 spec:
@@ -28,6 +37,9 @@ spec:
                     containers:
                         - name: cache-cleanup
                           image: alpine:3.21
+                          env:
+                              - name: AGE_DAYS
+                                value: '3'
                           securityContext:
                               allowPrivilegeEscalation: false
                               readOnlyRootFilesystem: true
@@ -38,25 +50,18 @@ spec:
                               - /bin/sh
                               - -c
                               - |
-                                  echo "=== Cache Cleanup Started ==="
-                                  echo "Current cache usage:"
-                                  du -sh /cache/* 2>/dev/null || echo "Cache is empty"
-                                  df -h /cache
-                                  echo ""
+                                  set -e
+                                  CACHE="/cache"
+                                  echo "=== Light Cleanup (every 6h) ==="
+                                  df -h ${CACHE}
 
-                                  # Remove files not accessed in 14 days
-                                  echo "Removing files not accessed in 14 days..."
-                                  find /cache -type f -atime +14 -delete 2>/dev/null || true
+                                  echo "Removing files not modified in ${AGE_DAYS} days..."
+                                  REMOVED=$(find ${CACHE} -type f -mtime +${AGE_DAYS} -delete -print 2>/dev/null | wc -l)
+                                  echo "  Removed ${REMOVED} stale files"
+                                  find ${CACHE} -type d -empty -delete 2>/dev/null || true
 
-                                  # Remove empty directories
-                                  echo "Removing empty directories..."
-                                  find /cache -type d -empty -delete 2>/dev/null || true
-
-                                  echo ""
-                                  echo "Cache usage after cleanup:"
-                                  du -sh /cache/* 2>/dev/null || echo "Cache is empty"
-                                  df -h /cache
-                                  echo "=== Cache Cleanup Completed ==="
+                                  df -h ${CACHE}
+                                  echo "=== Light Cleanup Done ==="
                           resources:
                               limits:
                                   cpu: 100m
@@ -67,7 +72,254 @@ spec:
                           volumeMounts:
                               - name: runner-cache
                                 mountPath: /cache
+                              - name: docker-cache
+                                mountPath: /cache/docker
                     volumes:
                         - name: runner-cache
                           persistentVolumeClaim:
                               claimName: arc-runner-cache
+                        - name: docker-cache
+                          persistentVolumeClaim:
+                              claimName: arc-runner-docker-cache
+---
+# ── Tier 2: Medium — daily at 3 AM UTC ────────────────────────────────────
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: arc-cache-cleanup-medium
+    namespace: arc-runners
+spec:
+    schedule: '0 3 * * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        spec:
+            activeDeadlineSeconds: 600
+            ttlSecondsAfterFinished: 86400
+            backoffLimit: 0
+            template:
+                spec:
+                    restartPolicy: Never
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1000
+                        runAsGroup: 1000
+                        fsGroup: 1000
+                        seccompProfile:
+                            type: RuntimeDefault
+                    containers:
+                        - name: cache-cleanup
+                          image: alpine:3.21
+                          env:
+                              - name: AGE_DAYS
+                                value: '3'
+                              - name: APP_CAP_GB
+                                value: '15'
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL
+                          command:
+                              - /bin/sh
+                              - -c
+                              - |
+                                  set -e
+                                  CACHE="/cache"
+                                  APP_CAP_KB=$((APP_CAP_GB * 1024 * 1024))
+
+                                  echo "=== Medium Cleanup (daily) ==="
+                                  echo "Config: age=${AGE_DAYS}d  app_cap=${APP_CAP_GB}Gi"
+                                  echo ""
+                                  echo "Before:"
+                                  du -sh ${CACHE}/* 2>/dev/null || echo "  (empty)"
+                                  df -h ${CACHE}
+                                  echo ""
+
+                                  # Phase 1: Age-based
+                                  echo "Phase 1: Removing files not modified in ${AGE_DAYS} days..."
+                                  REMOVED=$(find ${CACHE} -type f -mtime +${AGE_DAYS} -delete -print 2>/dev/null | wc -l)
+                                  echo "  Removed ${REMOVED} stale files"
+                                  find ${CACHE} -type d -empty -delete 2>/dev/null || true
+
+                                  # Phase 2: Per-app cap
+                                  echo "Phase 2: Enforcing per-app cap of ${APP_CAP_GB}Gi..."
+                                  for APP_DIR in ${CACHE}/docker/*/; do
+                                      [ -d "${APP_DIR}" ] || continue
+                                      APP_NAME=$(basename "${APP_DIR}")
+                                      APP_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
+                                      if [ "${APP_KB}" -gt "${APP_CAP_KB}" ]; then
+                                          APP_MB=$((APP_KB / 1024))
+                                          echo "  ${APP_NAME}: ${APP_MB}Mi exceeds cap — pruning oldest files..."
+                                          find "${APP_DIR}" -type f 2>/dev/null \
+                                              | xargs ls -tr 2>/dev/null \
+                                              | while IFS= read -r FILE; do
+                                                  rm -f "${FILE}" 2>/dev/null
+                                                  CUR_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
+                                                  [ "${CUR_KB}" -le "${APP_CAP_KB}" ] && break
+                                              done
+                                          NEW_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
+                                          echo "  ${APP_NAME}: reduced to $((NEW_KB / 1024))Mi"
+                                      else
+                                          echo "  ${APP_NAME}: $((APP_KB / 1024))Mi — OK"
+                                      fi
+                                  done
+                                  find ${CACHE} -type d -empty -delete 2>/dev/null || true
+
+                                  echo ""
+                                  echo "After:"
+                                  du -sh ${CACHE}/* 2>/dev/null || echo "  (empty)"
+                                  df -h ${CACHE}
+                                  echo "=== Medium Cleanup Done ==="
+                          resources:
+                              limits:
+                                  cpu: 200m
+                                  memory: 256Mi
+                              requests:
+                                  cpu: 50m
+                                  memory: 64Mi
+                          volumeMounts:
+                              - name: runner-cache
+                                mountPath: /cache
+                              - name: docker-cache
+                                mountPath: /cache/docker
+                    volumes:
+                        - name: runner-cache
+                          persistentVolumeClaim:
+                              claimName: arc-runner-cache
+                        - name: docker-cache
+                          persistentVolumeClaim:
+                              claimName: arc-runner-docker-cache
+---
+# ── Tier 3: Heavy — every 3 days at 4 AM UTC ──────────────────────────────
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: arc-cache-cleanup-heavy
+    namespace: arc-runners
+spec:
+    schedule: '0 4 */3 * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        spec:
+            activeDeadlineSeconds: 900
+            ttlSecondsAfterFinished: 86400
+            backoffLimit: 0
+            template:
+                spec:
+                    restartPolicy: Never
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1000
+                        runAsGroup: 1000
+                        fsGroup: 1000
+                        seccompProfile:
+                            type: RuntimeDefault
+                    containers:
+                        - name: cache-cleanup
+                          image: alpine:3.21
+                          env:
+                              - name: AGE_DAYS
+                                value: '3'
+                              - name: APP_CAP_GB
+                                value: '15'
+                              - name: CAPACITY_PCT
+                                value: '80'
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL
+                          command:
+                              - /bin/sh
+                              - -c
+                              - |
+                                  set -e
+                                  CACHE="/cache"
+                                  APP_CAP_KB=$((APP_CAP_GB * 1024 * 1024))
+
+                                  echo "=== Heavy Cleanup (every 3 days) ==="
+                                  echo "Config: age=${AGE_DAYS}d  app_cap=${APP_CAP_GB}Gi  capacity_limit=${CAPACITY_PCT}%"
+                                  echo ""
+                                  echo "Before:"
+                                  du -sh ${CACHE}/* 2>/dev/null || echo "  (empty)"
+                                  df -h ${CACHE}
+                                  echo ""
+
+                                  # Phase 1: Age-based
+                                  echo "Phase 1: Removing files not modified in ${AGE_DAYS} days..."
+                                  REMOVED=$(find ${CACHE} -type f -mtime +${AGE_DAYS} -delete -print 2>/dev/null | wc -l)
+                                  echo "  Removed ${REMOVED} stale files"
+                                  find ${CACHE} -type d -empty -delete 2>/dev/null || true
+
+                                  # Phase 2: Per-app cap
+                                  echo "Phase 2: Enforcing per-app cap of ${APP_CAP_GB}Gi..."
+                                  for APP_DIR in ${CACHE}/docker/*/; do
+                                      [ -d "${APP_DIR}" ] || continue
+                                      APP_NAME=$(basename "${APP_DIR}")
+                                      APP_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
+                                      if [ "${APP_KB}" -gt "${APP_CAP_KB}" ]; then
+                                          APP_MB=$((APP_KB / 1024))
+                                          echo "  ${APP_NAME}: ${APP_MB}Mi exceeds cap — pruning oldest files..."
+                                          find "${APP_DIR}" -type f 2>/dev/null \
+                                              | xargs ls -tr 2>/dev/null \
+                                              | while IFS= read -r FILE; do
+                                                  rm -f "${FILE}" 2>/dev/null
+                                                  CUR_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
+                                                  [ "${CUR_KB}" -le "${APP_CAP_KB}" ] && break
+                                              done
+                                          NEW_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
+                                          echo "  ${APP_NAME}: reduced to $((NEW_KB / 1024))Mi"
+                                      else
+                                          echo "  ${APP_NAME}: $((APP_KB / 1024))Mi — OK"
+                                      fi
+                                  done
+                                  find ${CACHE} -type d -empty -delete 2>/dev/null || true
+
+                                  # Phase 3: Capacity-based emergency cleanup
+                                  echo "Phase 3: Checking overall PVC capacity..."
+                                  USAGE=$(df ${CACHE} | tail -1 | awk '{gsub(/%/,""); print $5}')
+                                  echo "  Current usage: ${USAGE}%"
+                                  while [ "${USAGE}" -gt "${CAPACITY_PCT}" ]; do
+                                      LARGEST=$(du -sk ${CACHE}/docker/*/ 2>/dev/null | sort -rn | head -1 | cut -f2)
+                                      if [ -z "${LARGEST}" ]; then
+                                          echo "  No more app cache dirs to remove — giving up"
+                                          break
+                                      fi
+                                      LNAME=$(basename "${LARGEST}")
+                                      LKB=$(du -sk "${LARGEST}" 2>/dev/null | cut -f1)
+                                      echo "  Usage ${USAGE}% > ${CAPACITY_PCT}% — removing ${LNAME} ($((LKB / 1024))Mi)"
+                                      rm -rf "${LARGEST}"
+                                      USAGE=$(df ${CACHE} | tail -1 | awk '{gsub(/%/,""); print $5}')
+                                  done
+                                  find ${CACHE} -type d -empty -delete 2>/dev/null || true
+
+                                  echo ""
+                                  echo "After:"
+                                  du -sh ${CACHE}/* 2>/dev/null || echo "  (empty)"
+                                  df -h ${CACHE}
+                                  echo "=== Heavy Cleanup Done ==="
+                          resources:
+                              limits:
+                                  cpu: 200m
+                                  memory: 256Mi
+                              requests:
+                                  cpu: 50m
+                                  memory: 64Mi
+                          volumeMounts:
+                              - name: runner-cache
+                                mountPath: /cache
+                              - name: docker-cache
+                                mountPath: /cache/docker
+                    volumes:
+                        - name: runner-cache
+                          persistentVolumeClaim:
+                              claimName: arc-runner-cache
+                        - name: docker-cache
+                          persistentVolumeClaim:
+                              claimName: arc-runner-docker-cache
