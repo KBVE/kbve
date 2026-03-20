@@ -51,9 +51,12 @@ jobs:
               id: version_check
               if: ${{ inputs.image != '' && inputs.cargo_toml != '' }}
               run: |
-                  LOCAL_VERSION=$(grep -m1 '^version' "${{ inputs.cargo_toml }}" \
-                    | sed 's/version = "\(.*\)"/\1/')
-                  echo "Local version from Cargo.toml: $LOCAL_VERSION"
+                  CARGO_TOML="${{ inputs.cargo_toml }}"
+                  case "$CARGO_TOML" in
+                    *.json) LOCAL_VERSION=$(jq -r '.version // "0.0.0"' "$CARGO_TOML" 2>/dev/null) ;;
+                    *)      LOCAL_VERSION=$(grep -m1 '^version' "$CARGO_TOML" | sed 's/version = "\(.*\)"/\1/') ;;
+                  esac
+                  echo "Local version: $LOCAL_VERSION"
 
                   STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
                     "https://hub.docker.com/v2/repositories/${{ inputs.image }}/tags/$LOCAL_VERSION")
@@ -87,8 +90,11 @@ jobs:
                   echo "Attempting to pull CI image: ${CI_IMAGE}"
                   if docker pull "${CI_IMAGE}" 2>/dev/null; then
                     echo "found=true" >> "$GITHUB_OUTPUT"
-                    LOCAL_VERSION=$(grep -m1 '^version' "${{ inputs.cargo_toml }}" \
-                      | sed 's/version = "\(.*\)"/\1/')
+                    CARGO_TOML="${{ inputs.cargo_toml }}"
+                    case "$CARGO_TOML" in
+                      *.json) LOCAL_VERSION=$(jq -r '.version // "0.0.0"' "$CARGO_TOML" 2>/dev/null) ;;
+                      *)      LOCAL_VERSION=$(grep -m1 '^version' "$CARGO_TOML" | sed 's/version = "\(.*\)"/\1/') ;;
+                    esac
 
                     docker tag "${CI_IMAGE}" "${{ inputs.image }}:latest"
                     docker tag "${CI_IMAGE}" "${{ inputs.image }}:${LOCAL_VERSION}"

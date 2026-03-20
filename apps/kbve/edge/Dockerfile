@@ -1,14 +1,17 @@
-# Stage 1: Bake version.toml into a TypeScript module.
+# Stage 1: Bake version + function registry into a TypeScript module.
 # Worker isolates run in a sandbox that blocks Deno.readTextFile outside
 # the service path, so the manifest must be an importable module.
+# Version comes from deno.json (developer source of truth).
+# Function registry comes from version.toml.
 FROM alpine:3.21 AS baker
 
+COPY ./deno.json /tmp/deno.json
 COPY ./version.toml /tmp/version.toml
 
 RUN set -eu; \
     TOML="/tmp/version.toml"; \
     OUT="/tmp/manifest.ts"; \
-    VERSION=$(grep '^version' "$TOML" | head -1 | sed 's/.*"\(.*\)"/\1/'); \
+    VERSION=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' /tmp/deno.json | head -1); \
     FUNCS="["; FIRST=true; NAME=""; LABEL=""; DESC=""; \
     while IFS= read -r line; do \
       case "$line" in \
