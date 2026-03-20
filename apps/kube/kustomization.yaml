@@ -63,3 +63,6 @@ resources:
     - cilium/application.yaml
     # Cilium LB IPAM — IP pools + L2 announcements (replaces MetalLB)
     - cilium/lb-application.yaml
+
+    # Forgejo — Git LFS server + Actions runner, UE asset storage on sdb
+    - forgejo/application.yaml

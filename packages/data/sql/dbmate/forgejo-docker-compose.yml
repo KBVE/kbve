@@ -1,0 +1,71 @@
+# Local Postgres + Forgejo for testing schema isolation.
+#
+# Runs both services together so you can verify:
+#   - Forgejo boots with SCHEMA=forgejo
+#   - xorm creates all 125 tables in the forgejo schema
+#   - Zero tables leak into public schema
+#   - Existing schemas (mc, meme, discordsh, n8n, etc.) are unaffected
+#   - Forgejo web UI is accessible at http://localhost:3333
+#
+# Usage:
+#   cp forgejo-docker-compose.yml docker-compose.yml
+#   docker compose up -d
+#   # Wait for postgres to be healthy, then apply migrations:
+#   DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres?sslmode=disable&search_path=dbmate,public" \
+#     dbmate --no-dump-schema --migrations-dir migrations up
+#   # Wait ~15s for Forgejo to run xorm migrations, then verify:
+#   psql "postgresql://postgres:postgres@localhost:54322/postgres" -c "\dt forgejo.*"
+#   # Confirm zero tables in public:
+#   psql "postgresql://postgres:postgres@localhost:54322/postgres" -c "\dt public.*"
+#   # Open Forgejo:
+#   open http://localhost:3333
+#   # Tear down:
+#   docker compose down -v
+
+services:
+    postgres:
+        image: postgres:17-alpine
+        ports:
+            - '54322:5432'
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: postgres
+        volumes:
+            - ./init:/docker-entrypoint-initdb.d
+            - pgdata:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U postgres']
+            interval: 5s
+            timeout: 3s
+            retries: 5
+
+    forgejo:
+        image: codeberg.org/forgejo/forgejo:12
+        ports:
+            - '3333:3000'
+            - '2222:22'
+        environment:
+            - FORGEJO__database__DB_TYPE=postgres
+            - FORGEJO__database__HOST=postgres:5432
+            - FORGEJO__database__NAME=postgres
+            - FORGEJO__database__USER=postgres
+            - FORGEJO__database__PASSWD=postgres
+            - FORGEJO__database__SCHEMA=forgejo
+            - FORGEJO__database__SSL_MODE=disable
+            - FORGEJO__security__INSTALL_LOCK=true
+            - FORGEJO__server__ROOT_URL=http://localhost:3333
+            - FORGEJO__server__LFS_START_SERVER=true
+            - FORGEJO__lfs__STORAGE_TYPE=local
+            - FORGEJO__lfs__PATH=/data/lfs
+            - FORGEJO__service__DISABLE_REGISTRATION=false
+            - FORGEJO__actions__ENABLED=true
+        volumes:
+            - forgejo-data:/data
+        depends_on:
+            postgres:
+                condition: service_healthy
+
+volumes:
+    pgdata:
+    forgejo-data:

@@ -1,0 +1,96 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: forgejo
+    namespace: argocd
+spec:
+    project: default
+    sources:
+        - chart: forgejo
+          repoURL: https://code.forgejo.org/forgejo-helm
+          targetRevision: 13.0.1
+          helm:
+              valuesObject:
+                  global:
+                      storageClass: longhorn
+
+                  replicaCount: 1
+
+                  image:
+                      registry: codeberg.org
+                      repository: forgejo/forgejo
+                      tag: '12'
+
+                  service:
+                      http:
+                          type: ClusterIP
+                          port: 3000
+                      ssh:
+                          type: NodePort
+                          port: 2222
+                          nodePort: 30022
+
+                  ingress:
+                      enabled: false
+
+                  persistence:
+                      enabled: true
+                      size: 50Gi
+                      storageClass: longhorn
+                      accessModes:
+                          - ReadWriteOnce
+
+                  gitea:
+                      admin:
+                          existingSecret: forgejo-admin
+                      config:
+                          server:
+                              DOMAIN: forgejo.kbve.com
+                              ROOT_URL: https://forgejo.kbve.com
+                              SSH_DOMAIN: forgejo.kbve.com
+                              SSH_PORT: 2222
+                              SSH_LISTEN_PORT: 2222
+                              LFS_START_SERVER: true
+                              LFS_JWT_SECRET: ''
+                          database:
+                              DB_TYPE: postgres
+                              HOST: supabase-cluster-pooler-rw.kilobase.svc.cluster.local:5432
+                              NAME: supabase
+                              USER: forgejo
+                              PASSWD: ''
+                              SSL_MODE: require
+                              SCHEMA: forgejo
+                          lfs:
+                              STORAGE_TYPE: local
+                              PATH: /data/lfs
+                          service:
+                              DISABLE_REGISTRATION: true
+                              REQUIRE_SIGNIN_VIEW: true
+                          actions:
+                              ENABLED: true
+                          repository:
+                              DEFAULT_PRIVATE: private
+                              ENABLE_PUSH_CREATE_USER: true
+                          mirror:
+                              ENABLED: true
+                              DEFAULT_INTERVAL: 10m
+
+                  postgresql:
+                      enabled: false
+
+                  postgresql-ha:
+                      enabled: false
+
+        - repoURL: https://github.com/KBVE/kbve.git
+          targetRevision: main
+          path: apps/kube/forgejo/manifest
+
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: forgejo
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=true
