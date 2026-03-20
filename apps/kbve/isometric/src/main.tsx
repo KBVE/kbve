@@ -25,8 +25,31 @@ function hideLoadingScreen() {
  * Run ONCE before WASM init so the Rust side can read a complete
  * ClientProfile without scattered JS interop calls.
  */
+function resolveEndpoints() {
+	const hostname = window.location.hostname;
+	const protocol = window.location.protocol;
+	const isSecure = protocol === 'https:';
+	const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+	const wsScheme = isSecure ? 'wss' : 'ws';
+
+	if (isLocal) {
+		const port = window.location.port || (isSecure ? '443' : '80');
+		return {
+			api_base: `${protocol}//${hostname}:${port}`,
+			ws_url: `${wsScheme}://${hostname}:5000`,
+			wt_url: `https://${hostname}:5001`,
+		};
+	}
+	return {
+		api_base: `https://${hostname}`,
+		ws_url: `wss://${hostname}/ws`,
+		wt_url: `https://wt.${hostname}:5001`,
+	};
+}
+
 function probeClientProfile() {
 	const g = globalThis as Record<string, unknown>;
+	const endpoints = resolveEndpoints();
 	const profile = {
 		secure_context:
 			window.location.protocol === 'https:' ||
@@ -36,7 +59,7 @@ function probeClientProfile() {
 		has_shared_array_buffer: typeof g.SharedArrayBuffer !== 'undefined',
 		has_offscreen_canvas: typeof g.OffscreenCanvas === 'function',
 		hardware_concurrency: navigator.hardwareConcurrency || 1,
-		// Keep it simple — no UA sniffing, just capability booleans.
+		...endpoints,
 		timestamp: Date.now(),
 	};
 	try {
