@@ -1,0 +1,13 @@
+## Talos machine config patch — mount sdb for Longhorn storage
+## Apply: talosctl patch machineconfig --nodes <node> --patch @longhorn-sdb.yaml
+##
+## This mounts the second Samsung 960GB SSD (/dev/sdb) at /var/mnt/longhorn-sdb
+## for use as a dedicated Longhorn storage disk.
+##
+## The disk will be formatted as XFS on first apply.
+
+machine:
+    disks:
+        - device: /dev/sdb
+          partitions:
+              - mountpoint: /var/mnt/longhorn-sdb

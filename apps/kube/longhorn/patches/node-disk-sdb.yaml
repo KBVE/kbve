@@ -1,0 +1,30 @@
+## Longhorn node disk patch — add sdb as dedicated storage
+## Applied: 2026-03-20
+## Node: talos-4bn-whr
+##
+## This is a runtime patch (not managed by ArgoCD).
+## Longhorn manages disk config per-node via the nodes.longhorn.io CR.
+##
+## To re-apply:
+##   kubectl -n longhorn-system patch nodes.longhorn.io talos-4bn-whr --type merge -p "$(cat node-disk-sdb.json)"
+##
+## Prerequisites:
+##   - sdb mounted at /var/mnt/longhorn-sdb via Talos machine config
+##     (see apps/kube/talos/patches/longhorn-sdb.yaml)
+
+apiVersion: longhorn.io/v1beta2
+kind: Node
+metadata:
+    name: talos-4bn-whr
+    namespace: longhorn-system
+spec:
+    disks:
+        sdb-longhorn:
+            allowScheduling: true
+            diskType: filesystem
+            evictionRequested: false
+            path: /var/mnt/longhorn-sdb
+            storageReserved: 0
+            tags:
+                - ssd
+                - dedicated
