@@ -17,4 +17,4 @@ spec:
     storageClassName: longhorn-sdb
     resources:
         requests:
-            storage: 200Gi
+            storage: 300Gi
