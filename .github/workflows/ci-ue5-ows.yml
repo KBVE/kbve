@@ -1,0 +1,281 @@
+name: CI - OWS Stack
+
+on:
+    workflow_dispatch:
+        inputs:
+            build_services:
+                description: 'Build OWS .NET microservices'
+                required: false
+                type: boolean
+                default: true
+            build_ue5_server:
+                description: 'Build HubWorldMMO UE5 dedicated server'
+                required: false
+                type: boolean
+                default: false
+            skip_version_gate:
+                description: 'Skip version gate (force rebuild)'
+                required: false
+                type: boolean
+                default: false
+
+concurrency:
+    group: ci-ue5-ows-${{ github.ref }}
+    cancel-in-progress: false
+
+permissions: {}
+
+env:
+    VERSION_TOML: apps/ows/version.toml
+
+jobs:
+    # ── Version Gate ─────────────────────────────────────────
+    version_gate:
+        name: Version Gate
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        outputs:
+            version: ${{ steps.check.outputs.version }}
+            should_publish: ${{ steps.check.outputs.should_publish }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Read version and check GHCR
+              id: check
+              run: |
+                  VERSION=$(grep -m1 '^version' "${{ env.VERSION_TOML }}" | sed 's/version = "\(.*\)"/\1/')
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "OWS version: ${VERSION}"
+
+                  if [ "${{ inputs.skip_version_gate }}" = "true" ]; then
+                    echo "Version gate skipped by input."
+                    echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  # Check if any OWS service image already exists at this version
+                  STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+                    -H "Authorization: Bearer $(echo ${{ github.token }} | base64)" \
+                    "https://ghcr.io/v2/kbve/ows-publicapi/manifests/${VERSION}" 2>/dev/null || echo "000")
+
+                  if [ "$STATUS" = "200" ]; then
+                    echo "OWS v${VERSION} already published — skipping."
+                    echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "OWS v${VERSION} not found (HTTP ${STATUS}) — will publish."
+                    echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+    # ── Build OWS .NET Services (matrix) ─────────────────────
+    build_services:
+        name: Build ${{ matrix.service }}
+        needs: [version_gate]
+        if: |
+            inputs.build_services &&
+            needs.version_gate.outputs.should_publish == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            contents: read
+            packages: write
+        strategy:
+            fail-fast: false
+            matrix:
+                service:
+                    - publicapi
+                    - instancemanagement
+                    - characterpersistence
+                    - globaldata
+                    - management
+        env:
+            NX_NO_CLOUD: true
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Get pnpm Store
+              id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v4
+
+            - name: Login to GHCR
+              uses: docker/login-action@v4
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ github.token }}
+
+            - name: Login to Docker Hub
+              uses: docker/login-action@v4
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Build OWS ${{ matrix.service }}
+              run: |
+                  pnpm nx run ows:container-${{ matrix.service }} --configuration=production --no-cloud
+
+            - name: Tag with version
+              run: |
+                  VERSION="${{ needs.version_gate.outputs.version }}"
+                  IMAGE="kbve/ows-${{ matrix.service }}"
+
+                  docker tag "${IMAGE}:latest" "${IMAGE}:${VERSION}"
+                  docker tag "${IMAGE}:latest" "ghcr.io/${IMAGE}:latest"
+                  docker tag "${IMAGE}:latest" "ghcr.io/${IMAGE}:${VERSION}"
+
+                  echo "Tagged ${IMAGE}:{latest,${VERSION}} and ghcr.io/${IMAGE}:{latest,${VERSION}}"
+
+            - name: Push to GHCR and Docker Hub
+              run: |
+                  VERSION="${{ needs.version_gate.outputs.version }}"
+                  IMAGE="kbve/ows-${{ matrix.service }}"
+
+                  docker push "${IMAGE}:latest"
+                  docker push "${IMAGE}:${VERSION}"
+                  docker push "ghcr.io/${IMAGE}:latest"
+                  docker push "ghcr.io/${IMAGE}:${VERSION}"
+
+    # ── Build HubWorldMMO UE5 Dedicated Server ───────────────
+    build_ue5_server:
+        name: Build HubWorldMMO Dedicated Server
+        needs: [version_gate]
+        if: inputs.build_ue5_server
+        runs-on: arc-runner-ue
+        timeout-minutes: 480
+        permissions:
+            contents: read
+            packages: write
+        env:
+            ENGINE_CACHE_PATH: /mnt/longhorn/angelscript-engine
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Login to GHCR
+              uses: docker/login-action@v4
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ github.token }}
+
+            - name: Build HubWorldMMO Dedicated Server
+              run: |
+                  echo "TODO: Build HubWorldMMO headless Linux dedicated server"
+                  echo "This requires:"
+                  echo "  1. UE5 engine source at ${ENGINE_CACHE_PATH}"
+                  echo "  2. HubWorldMMO project source"
+                  echo "  3. RunUAT BuildCookRun for LinuxServer target"
+                  echo "  4. Package into Docker image"
+                  echo "Skipping until HubWorldMMO project is integrated."
+
+    # ── Update Kube Manifests ────────────────────────────────
+    update_kube:
+        name: Update Kube Manifests
+        needs: [version_gate, build_services]
+        if: |
+            always() &&
+            needs.build_services.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+            pull-requests: write
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Update deployment image tags
+              run: |
+                  VERSION="${{ needs.version_gate.outputs.version }}"
+                  DEPLOY="apps/kube/ows/manifest/deployment.yaml"
+
+                  for SERVICE in publicapi instancemanagement characterpersistence globaldata management; do
+                    sed -i "s|ghcr.io/kbve/ows-${SERVICE}:.*|ghcr.io/kbve/ows-${SERVICE}:${VERSION}|g" "$DEPLOY"
+                    echo "Updated ows-${SERVICE} to ${VERSION}"
+                  done
+
+            - name: Create PR for kube manifest update
+              uses: peter-evans/create-pull-request@v7
+              with:
+                  token: ${{ github.token }}
+                  commit-message: 'chore(kube): update OWS images to v${{ needs.version_gate.outputs.version }}'
+                  title: 'chore(kube): update OWS images to v${{ needs.version_gate.outputs.version }}'
+                  body: |
+                      Updates all 5 OWS service deployment images to v${{ needs.version_gate.outputs.version }}.
+
+                      Triggered by CI - OWS Stack workflow.
+                  branch: auto/ows-kube-${{ needs.version_gate.outputs.version }}
+                  base: dev
+                  labels: automated
+
+    # ── Update version.toml ──────────────────────────────────
+    update_version:
+        name: Update version.toml
+        needs: [version_gate, build_services]
+        if: |
+            always() &&
+            needs.build_services.result == 'success' &&
+            needs.version_gate.outputs.should_publish == 'true'
+        permissions:
+            contents: write
+            pull-requests: write
+        uses: KBVE/kbve/.github/workflows/utils-update-version-toml.yml@dev
+        with:
+            package_type: docker
+            package_name: ows
+            version: ${{ needs.version_gate.outputs.version }}
+            version_toml_path: apps/ows/version.toml
+
+    # ── Failure Tracker ──────────────────────────────────────
+    track_failure:
+        name: Track Failures
+        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        needs:
+            [
+                version_gate,
+                build_services,
+                build_ue5_server,
+                update_kube,
+                update_version,
+            ]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - OWS Stack'
+            job_name: 'ows'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'failure'

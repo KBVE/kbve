@@ -25,6 +25,9 @@ COPY ows-instance-management/OWSInstanceManagement.csproj ows-instance-managemen
 COPY ows-character-persistence/OWSCharacterPersistence.csproj ows-character-persistence/
 COPY ows-global-data/OWSGlobalData.csproj ows-global-data/
 COPY ows-management/OWSManagement.csproj ows-management/
+COPY ows-instance-launcher/OWSInstanceLauncher.csproj ows-instance-launcher/
+COPY ows-benchmarks/OWSBenchmarks.csproj ows-benchmarks/
+COPY ows-tests/OWSTests.csproj ows-tests/
 COPY OWS.sln .
 
 RUN dotnet restore OWS.sln
