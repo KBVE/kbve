@@ -10,10 +10,48 @@ spec:
     hostnames:
         - forgejo.kbve.com
     rules:
+        # Forgejo REST API (token auth, CI, deploy keys)
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /api/
+          backendRefs:
+              - name: forgejo-http
+                port: 3000
+        # Container registry API
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /v2/
+          backendRefs:
+              - name: forgejo-http
+                port: 3000
+        # Internal Forgejo routes (avatars, assets, webhooks)
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /-/
+          backendRefs:
+              - name: forgejo-http
+                port: 3000
+        # Git HTTP traffic for KBVE org repos (clone, push, fetch, LFS)
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /KBVE/
+          backendRefs:
+              - name: forgejo-http
+                port: 3000
+        # Redirect everything else to kbve.com/dashboard
         - matches:
               - path:
                     type: PathPrefix
                     value: /
-          backendRefs:
-              - name: forgejo-http
-                port: 3000
+          filters:
+              - type: RequestRedirect
+                requestRedirect:
+                    hostname: kbve.com
+                    path:
+                        type: ReplaceFullPath
+                        replaceFullPath: /dashboard
+                    statusCode: 302

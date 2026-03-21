@@ -34,7 +34,7 @@ spec:
                               topologyKey: kubernetes.io/hostname
             containers:
                 - name: kbve
-                  image: ghcr.io/kbve/kbve:1.0.68
+                  image: ghcr.io/kbve/kbve:1.0.69
                   imagePullPolicy: Always
                   ports:
                       - name: http
@@ -107,6 +107,13 @@ spec:
                                 key: argocd-auth-token
                       - name: ARGOCD_CA_CERT_PATH
                         value: '/etc/ssl/argocd/ca.crt'
+                      - name: FORGEJO_UPSTREAM_URL
+                        value: 'http://forgejo-http.forgejo.svc.cluster.local:3000'
+                      - name: FORGEJO_AUTH_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: forgejo-deploy-keys
+                                key: api-token
                       - name: GAME_WT_CERT
                         value: '/etc/ssl/webtransport/tls.crt'
                       - name: GAME_WT_KEY
