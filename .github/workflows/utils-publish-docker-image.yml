@@ -22,6 +22,16 @@ on:
                 required: false
                 type: string
                 default: main
+            version_source:
+                description: 'Path to MDX/JSON file with version field (for pre-build sync)'
+                required: false
+                type: string
+                default: ''
+            version_target:
+                description: 'Path to Cargo.toml/package.json to write version into before build'
+                required: false
+                type: string
+                default: ''
         secrets:
             MY_GITHUB_TOKEN:
                 required: true
@@ -155,6 +165,21 @@ jobs:
               with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Sync version from MDX to build manifest
+              if: ${{ steps.version_check.outputs.should_publish != 'false' && steps.promote.outputs.found != 'true' && inputs.version_source != '' && inputs.version_target != '' }}
+              run: |
+                  SRC="${{ inputs.version_source }}"
+                  TGT="${{ inputs.version_target }}"
+                  case "$SRC" in
+                    *.mdx) VER=$(sed -n 's/^version: *"\([^"]*\)"/\1/p' "$SRC" | head -1) ;;
+                    *.json) VER=$(jq -r '.version // ""' "$SRC" 2>/dev/null) ;;
+                    *) VER="" ;;
+                  esac
+                  if [ -n "$VER" ]; then
+                    sed -i "s/^version = .*/version = \"${VER}\"/" "$TGT"
+                    echo "Synced version ${VER} → ${TGT}"
+                  fi
 
             - name: Build Docker Image with Nx
               if: ${{ steps.version_check.outputs.should_publish != 'false' && steps.promote.outputs.found != 'true' }}

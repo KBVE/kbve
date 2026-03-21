@@ -15,18 +15,21 @@ import { DispatchPipelines } from '@/data/schema';
 interface DockerEntry {
 	key: string;
 	app_name: string;
+	version?: string;
 	version_toml?: string;
 }
 
 interface NpmEntry {
 	key: string;
 	package_name: string;
+	version?: string;
 	version_toml?: string;
 }
 
 interface CratesEntry {
 	key: string;
 	package_name: string;
+	version?: string;
 	version_toml?: string;
 }
 
@@ -34,6 +37,7 @@ interface PythonEntry {
 	key: string;
 	package_name: string;
 	pypi_name: string;
+	version?: string;
 	version_toml?: string;
 }
 
@@ -43,6 +47,7 @@ interface UnrealEntry {
 	plugin_path: string;
 	dependency_plugins?: string;
 	itch_game_id?: string;
+	version?: string;
 	version_toml?: string;
 }
 
@@ -66,12 +71,14 @@ interface DispatchManifest {
 /** Build a typed manifest entry from the frontmatter data, or null if required fields are missing. */
 function toManifestEntry(d: ICiProject): ManifestEntry | null {
 	const vt = d.version_toml;
+	const ver = d.version;
 	switch (d.pipeline) {
 		case 'docker':
 			return d.app_name
 				? {
 						key: d.key!,
 						app_name: d.app_name,
+						...(ver && { version: ver }),
 						...(vt && { version_toml: vt }),
 					}
 				: null;
@@ -81,6 +88,7 @@ function toManifestEntry(d: ICiProject): ManifestEntry | null {
 				? {
 						key: d.key!,
 						package_name: d.package_name,
+						...(ver && { version: ver }),
 						...(vt && { version_toml: vt }),
 					}
 				: null;
@@ -90,6 +98,7 @@ function toManifestEntry(d: ICiProject): ManifestEntry | null {
 						key: d.key!,
 						package_name: d.package_name,
 						pypi_name: d.pypi_name,
+						...(ver && { version: ver }),
 						...(vt && { version_toml: vt }),
 					}
 				: null;
@@ -103,6 +112,7 @@ function toManifestEntry(d: ICiProject): ManifestEntry | null {
 			if (d.dependency_plugins)
 				ue.dependency_plugins = d.dependency_plugins;
 			if (d.itch_game_id) ue.itch_game_id = d.itch_game_id;
+			if (ver) ue.version = ver;
 			if (vt) ue.version_toml = vt;
 			return ue;
 		}
