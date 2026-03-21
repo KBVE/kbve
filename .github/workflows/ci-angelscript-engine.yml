@@ -155,6 +155,11 @@ jobs:
                     git clean -fdx -e "Engine/Binaries" -e "Engine/Intermediate"
                     Pop-Location
                   } else {
+                    # Clear non-git directory if it exists (e.g. empty PVC mount)
+                    if (Test-Path $CachePath) {
+                      Write-Host "::notice::Clearing non-git directory at $CachePath"
+                      Remove-Item -Recurse -Force "$CachePath\*"
+                    }
                     Write-Host "::notice::Fresh clone of engine source"
                     git clone --depth 1 --branch ${{ inputs.engine_ref }} `
                       "https://x-access-token:${env:UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" `
@@ -246,6 +251,11 @@ jobs:
                     git checkout FETCH_HEAD
                     git clean -fdx -e "Engine/Binaries" -e "Engine/Intermediate"
                   else
+                    # Clear non-git directory if it exists (e.g. empty PVC mount)
+                    if [ -d "${CACHE}" ]; then
+                      echo "::notice::Clearing non-git directory at ${CACHE}"
+                      rm -rf "${CACHE:?}"/*
+                    fi
                     echo "::notice::Fresh clone of engine source"
                     git clone --depth 1 --branch ${{ inputs.engine_ref }} \
                       "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" \
@@ -334,6 +344,11 @@ jobs:
                     git checkout FETCH_HEAD
                     git clean -fdx -e "Engine/Binaries" -e "Engine/Intermediate"
                   else
+                    # Clear non-git directory if it exists (e.g. empty PVC mount)
+                    if [ -d "${CACHE}" ]; then
+                      echo "::notice::Clearing non-git directory at ${CACHE}"
+                      rm -rf "${CACHE:?}"/*
+                    fi
                     echo "::notice::Fresh clone of engine source"
                     git clone --depth 1 --branch ${{ inputs.engine_ref }} \
                       "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" \
