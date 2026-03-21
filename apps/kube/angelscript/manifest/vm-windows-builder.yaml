@@ -72,6 +72,7 @@ spec:
                 component: windows-builder
                 kubevirt.io/domain: windows-builder
         spec:
+            evictionStrategy: LiveMigrate
             domain:
                 cpu:
                     cores: 8
@@ -100,7 +101,7 @@ spec:
                               bus: virtio
                     interfaces:
                         - name: default
-                          bridge: {}
+                          masquerade: {}
                     inputs:
                         - type: tablet
                           bus: usb
@@ -146,7 +147,7 @@ spec:
                       claimName: windows-builder-iso
                 - name: virtio-drivers
                   containerDisk:
-                      image: quay.io/kubevirt/virtio-container-disk:v1.5.0
+                      image: quay.io/kubevirt/virtio-container-disk:v1.7.2
                 - name: shared-storage
                   persistentVolumeClaim:
                       claimName: builder-shared-storage
