@@ -14,6 +14,12 @@ spec:
               - path:
                     type: PathPrefix
                     value: /
-          backendRefs:
-              - name: argocd-server
-                port: 443
+          filters:
+              - type: RequestRedirect
+                requestRedirect:
+                    scheme: https
+                    hostname: kbve.com
+                    path:
+                        type: ReplaceFullPath
+                        replaceFullPath: /dashboard
+                    statusCode: 301
