@@ -1,0 +1,20 @@
+# Shared Longhorn PVC for staging ISOs, Xcode .xip, installers, etc.
+# Mounted as a data disk on both Windows and macOS builder VMs.
+# Upload files via virtctl or kubectl cp, then access from inside each VM.
+# RWX so both VMs can mount simultaneously.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: builder-shared-storage
+    namespace: angelscript
+    labels:
+        app: angelscript
+        component: shared-storage
+spec:
+    accessModes:
+        - ReadWriteMany
+    storageClassName: longhorn
+    resources:
+        requests:
+            # 50Gi: Windows ISO ~6Gi + Xcode .xip ~12Gi + misc installers
+            storage: 50Gi

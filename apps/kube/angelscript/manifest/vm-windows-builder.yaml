@@ -1,0 +1,152 @@
+# Windows VM for MSVC + UE AngelScript builds via GitHub Actions runner.
+# Requires: KubeVirt operator + CDI deployed in the cluster.
+#
+# Provisioning steps (one-time, after KubeVirt + CDI are running):
+#   1. Upload Windows ISO directly into the PVC via virtctl:
+#        virtctl image-upload pvc windows-builder-iso \
+#          --size=8Gi \
+#          --image-path=./windows-server-2022.iso \
+#          --storage-class=longhorn \
+#          --namespace=angelscript \
+#          --insecure
+#   2. Start the VM (ArgoCD sets running: true, or use virtctl start)
+#   3. Connect via VNC and install Windows:
+#        virtctl vnc windows-builder -n angelscript
+#   4. Inside Windows, install:
+#      - virtio-win drivers (from the virtio CD-ROM attached below)
+#      - Visual Studio Build Tools (MSVC)
+#      - GitHub Actions runner (configured for KBVE/UnrealEngine-Angelscript)
+#   5. After setup, the VM runs as a persistent self-hosted runner.
+---
+# ISO PVC — created empty, then populated via virtctl image-upload.
+# This avoids needing an HTTP-accessible URL for the ISO.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: windows-builder-iso
+    namespace: angelscript
+    labels:
+        app: angelscript
+        component: windows-builder
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn
+    resources:
+        requests:
+            storage: 8Gi
+---
+# Root disk — blank Longhorn volume for the Windows installation
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: windows-builder-rootdisk
+    namespace: angelscript
+    labels:
+        app: angelscript
+        component: windows-builder
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn
+    resources:
+        requests:
+            # 120Gi: Windows ~30Gi + MSVC ~20Gi + UE build cache ~50Gi + headroom
+            storage: 120Gi
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+    name: windows-builder
+    namespace: angelscript
+    labels:
+        app: angelscript
+        component: windows-builder
+spec:
+    # Keep the VM running — it acts as a persistent self-hosted runner
+    running: true
+    template:
+        metadata:
+            labels:
+                app: angelscript
+                component: windows-builder
+                kubevirt.io/domain: windows-builder
+        spec:
+            domain:
+                cpu:
+                    cores: 8
+                    sockets: 1
+                    threads: 1
+                devices:
+                    disks:
+                        # Root disk — Windows installation
+                        - name: rootdisk
+                          disk:
+                              bus: virtio
+                          bootOrder: 1
+                        # Windows ISO — used for initial install, can be removed after
+                        - name: iso
+                          cdrom:
+                              bus: sata
+                          bootOrder: 2
+                        # virtio-win drivers ISO — needed during Windows install
+                        - name: virtio-drivers
+                          cdrom:
+                              bus: sata
+                          bootOrder: 3
+                        # Shared storage — ISOs, installers, Xcode .xip staging
+                        - name: shared-storage
+                          disk:
+                              bus: virtio
+                    interfaces:
+                        - name: default
+                          bridge: {}
+                    inputs:
+                        - type: tablet
+                          bus: usb
+                          name: tablet
+                features:
+                    acpi: {}
+                    hyperv:
+                        relaxed: {}
+                        vapic: {}
+                        spinlocks:
+                            spinlocks: 8191
+                clock:
+                    utc: {}
+                    timer:
+                        hpet:
+                            present: false
+                        pit:
+                            tickPolicy: delay
+                        rtc:
+                            tickPolicy: catchup
+                        hyperv: {}
+                machine:
+                    type: q35
+                memory:
+                    guest: 16Gi
+                resources:
+                    requests:
+                        memory: 16Gi
+                        cpu: '8'
+                    limits:
+                        memory: 20Gi
+                        cpu: '10'
+            networks:
+                - name: default
+                  pod: {}
+            terminationGracePeriodSeconds: 3600
+            volumes:
+                - name: rootdisk
+                  persistentVolumeClaim:
+                      claimName: windows-builder-rootdisk
+                - name: iso
+                  persistentVolumeClaim:
+                      claimName: windows-builder-iso
+                - name: virtio-drivers
+                  containerDisk:
+                      image: quay.io/kubevirt/virtio-container-disk:v1.5.0
+                - name: shared-storage
+                  persistentVolumeClaim:
+                      claimName: builder-shared-storage

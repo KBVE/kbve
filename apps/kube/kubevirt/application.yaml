@@ -1,0 +1,43 @@
+# KubeVirt operator — enables VM workloads on Talos (KVM built into kernel)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: kubevirt-operator
+    namespace: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '1'
+    finalizers:
+        - resources-finalizer.argocd.argoproj.io
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/KBVE/kbve
+        targetRevision: main
+        path: apps/kube/kubevirt/manifests
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: kubevirt
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+            - PruneLast=true
+        retry:
+            limit: 5
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m
+    ignoreDifferences:
+        - group: admissionregistration.k8s.io
+          kind: ValidatingWebhookConfiguration
+          jsonPointers:
+              - /webhooks/0/clientConfig/caBundle
+        - group: admissionregistration.k8s.io
+          kind: MutatingWebhookConfiguration
+          jsonPointers:
+              - /webhooks/0/clientConfig/caBundle
+    revisionHistoryLimit: 3

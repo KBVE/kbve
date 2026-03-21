@@ -1,0 +1,35 @@
+# One-shot Job to apply the upstream CDI operator + CR.
+# CDI enables importing disk images (ISOs, qcow2) into PVCs for KubeVirt VMs.
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: cdi-operator-bootstrap
+    namespace: cdi
+    annotations:
+        argocd.argoproj.io/sync-wave: '-1'
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+    backoffLimit: 3
+    ttlSecondsAfterFinished: 300
+    template:
+        metadata:
+            labels:
+                app: cdi-bootstrap
+        spec:
+            serviceAccountName: cdi-bootstrap
+            restartPolicy: OnFailure
+            containers:
+                - name: kubectl
+                  image: bitnami/kubectl:1.31
+                  command:
+                      - /bin/sh
+                      - -c
+                      - |
+                          set -e
+                          CDI_VERSION="v1.61.0"
+                          echo "Applying CDI operator ${CDI_VERSION}..."
+                          kubectl apply -f "https://github.com/kubevirt/containerized-data-importer/releases/download/${CDI_VERSION}/cdi-operator.yaml"
+                          echo "Applying CDI CR..."
+                          kubectl apply -f "https://github.com/kubevirt/containerized-data-importer/releases/download/${CDI_VERSION}/cdi-cr.yaml"
+                          echo "CDI deployed."
