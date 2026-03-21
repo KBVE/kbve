@@ -185,7 +185,7 @@ jobs:
                       herbmail)     SRC="apps/herbmail/axum-herbmail/Cargo.toml";     VTOML="apps/herbmail/version.toml" ;;
                       memes)        SRC="apps/memes/axum-memes/Cargo.toml";           VTOML="apps/memes/version.toml" ;;
                       irc-gateway)  SRC="apps/irc/irc-gateway/Cargo.toml";            VTOML="apps/irc/version.toml" ;;
-                      discordsh)    SRC="apps/discordsh/axum-discordsh/Cargo.toml";   VTOML="apps/discordsh/version.toml" ;;
+                      discordsh)    SRC="apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx"; VTOML="apps/discordsh/version.toml" ;;
                       mc)           SRC="apps/mc/plugins/kbve-mc-plugin/Cargo.toml";  VTOML="apps/mc/version.toml" ;;
                       edge)         SRC="apps/kbve/astro-kbve/src/content/docs/project/edge.mdx"; VTOML="apps/kbve/edge/version.toml" ;;
                       cryptothrone) SRC="apps/cryptothrone/axum-cryptothrone/Cargo.toml"; VTOML="apps/cryptothrone/version.toml" ;;

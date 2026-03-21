@@ -80,7 +80,7 @@ jobs:
                     herbmail)     SRC="apps/herbmail/axum-herbmail/Cargo.toml";     VTOML="apps/herbmail/version.toml" ;;
                     memes)        SRC="apps/memes/axum-memes/Cargo.toml";           VTOML="apps/memes/version.toml" ;;
                     irc-gateway)  SRC="apps/irc/irc-gateway/Cargo.toml";            VTOML="apps/irc/version.toml" ;;
-                    discordsh)    SRC="apps/discordsh/axum-discordsh/Cargo.toml";   VTOML="apps/discordsh/version.toml" ;;
+                    discordsh)    SRC="apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx"; VTOML="apps/discordsh/version.toml" ;;
                     mc)           SRC="apps/mc/plugins/kbve-mc-plugin/Cargo.toml";  VTOML="apps/mc/version.toml" ;;
                     edge)         SRC="apps/kbve/astro-kbve/src/content/docs/project/edge.mdx"; VTOML="apps/kbve/edge/version.toml" ;;
                     cryptothrone) SRC="apps/cryptothrone/axum-cryptothrone/Cargo.toml"; VTOML="apps/cryptothrone/version.toml" ;;
@@ -206,10 +206,12 @@ jobs:
                       echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
                       echo "image=kbve/discordsh"                                                          >> "$GITHUB_OUTPUT"
                       echo "e2e_name=discordsh"                                                            >> "$GITHUB_OUTPUT"
-                      echo "cargo_toml=apps/discordsh/axum-discordsh/Cargo.toml"                           >> "$GITHUB_OUTPUT"
+                      echo "cargo_toml=apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx"       >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/discordsh/manifest/deployment.yaml"                 >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
                       echo "version_toml=apps/discordsh/version.toml"                                      >> "$GITHUB_OUTPUT"
+                      echo "version_source=apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx"   >> "$GITHUB_OUTPUT"
+                      echo "version_target=apps/discordsh/axum-discordsh/Cargo.toml"                      >> "$GITHUB_OUTPUT"
                       ;;
                     mc)
                       echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
