@@ -1,0 +1,19 @@
+# Dedicated Longhorn PVC for storing ISO images (Windows, virtio-win, etc.)
+# CDI DataVolumes can reference this as a source, or ISOs can be uploaded
+# directly via virtctl image-upload.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: kubevirt-iso-storage
+    namespace: kubevirt
+    labels:
+        app: kubevirt
+        component: iso-storage
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn
+    resources:
+        requests:
+            # 50Gi: Windows Server ~6Gi + virtio-win ~0.5Gi + headroom for additional ISOs
+            storage: 50Gi

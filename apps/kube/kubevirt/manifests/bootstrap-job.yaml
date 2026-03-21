@@ -1,0 +1,36 @@
+# One-shot Job to apply the upstream KubeVirt operator manifest.
+# The operator YAML is ~10k lines and changes per release, so we pull it
+# at deploy time rather than vendoring it into the repo.
+# After the operator pods are running, the KubeVirt CR in operator.yaml
+# tells it what features to enable.
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: kubevirt-operator-bootstrap
+    namespace: kubevirt
+    annotations:
+        argocd.argoproj.io/sync-wave: '-1'
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+    backoffLimit: 3
+    ttlSecondsAfterFinished: 300
+    template:
+        metadata:
+            labels:
+                app: kubevirt-bootstrap
+        spec:
+            serviceAccountName: kubevirt-bootstrap
+            restartPolicy: OnFailure
+            containers:
+                - name: kubectl
+                  image: bitnami/kubectl:1.31
+                  command:
+                      - /bin/sh
+                      - -c
+                      - |
+                          set -e
+                          KUBEVIRT_VERSION="v1.5.0"
+                          echo "Applying KubeVirt operator ${KUBEVIRT_VERSION}..."
+                          kubectl apply -f "https://github.com/kubevirt/kubevirt/releases/download/${KUBEVIRT_VERSION}/kubevirt-operator.yaml"
+                          echo "KubeVirt operator applied."
