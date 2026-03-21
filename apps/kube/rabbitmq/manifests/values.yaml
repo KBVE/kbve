@@ -3,6 +3,11 @@
 # Note: Bitnami chart references non-existent bitnami/* images on Docker Hub.
 #       We override to use the official rabbitmqoperator/* images instead.
 
+# -- Allow non-Bitnami images (required to bypass Bitnami's NOTES.txt security gate)
+global:
+    security:
+        allowInsecureImages: true
+
 # -- Cluster Operator settings
 clusterOperator:
     replicaCount: 1

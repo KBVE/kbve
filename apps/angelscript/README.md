@@ -13,17 +13,25 @@ Automated builds for the private [KBVE/UnrealEngine-Angelscript](https://github.
 ## How It Works
 
 1. **Trigger**: Manual `workflow_dispatch` on `ci-angelscript-engine.yml`
-2. **Version gate**: Checks `version.toml` against existing GitHub Releases
-3. **Plugin bundle**: Reads `plugins.json`, bundles all listed plugins from `packages/unreal/`
-4. **Build**: Clones/updates the private engine repo, injects plugins, builds per-platform
-5. **Release**: Uploads artifacts to GitHub Release, pushes Docker image for Linux server
-6. **Version update**: Auto-PRs `version.toml` bump after successful release
+2. **Version gate**: Checks `version.toml` against existing releases on `KBVE/UnrealEngine-Angelscript`
+3. **Build**: Clones/updates the private engine repo, builds per-platform
+4. **Release**: Uploads artifacts to GitHub Release on the private repo, pushes Docker image for Linux server
+5. **Version update**: Auto-PRs `version.toml` + kube image tag bump
+
+## Plugins
+
+Plugins are built and released **separately** from the editor:
+
+- Plugin source lives in `packages/unreal/` in this monorepo
+- Plugin CI runs via `utils-unreal-plugin-cicd.yml` (stock UE containers)
+- Plugin releases land on `KBVE/kbve` GitHub Releases (e.g., `uedevops-v0.1.0`)
+- Users download the editor from the private repo, then download plugin zips from kbve releases and drop them into the editor's `Plugins/` folder
 
 ## Engine Source Caching (Longhorn)
 
 To avoid re-cloning the full engine repo (~50GB+) on every build, ARC runners mount a Longhorn PVC:
 
-- PVC: `apps/kube/angelscript/pvc-engine-cache.yaml` (200Gi, `ReadWriteOnce`)
+- PVC: `apps/kube/github/runners/manifests/engine-cache-pvc.yaml` (200Gi on `longhorn-sdb`)
 - Mount path: `/mnt/longhorn/angelscript-engine`
 - First build clones fresh; subsequent builds do `git fetch + checkout`
 
@@ -44,5 +52,4 @@ To avoid re-cloning the full engine repo (~50GB+) on every build, ARC runners mo
 
 - `project.json` — Nx project definition
 - `version.toml` — Version gate (updated after each release)
-- `plugins.json` — Custom UE plugins to inject into engine builds
 - `Dockerfile.dedicated-server` — Linux dedicated server container image

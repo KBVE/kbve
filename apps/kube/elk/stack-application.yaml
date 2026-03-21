@@ -3,8 +3,12 @@ kind: Application
 metadata:
     name: elk-stack
     namespace: argocd
+    labels:
+        kbve.sh/app: elk
+        kbve.sh/component: stack
     annotations:
         argocd.argoproj.io/sync-wave: '3'
+        kbve.sh/last-updated: '2026-03-20'
 spec:
     project: default
     sources:

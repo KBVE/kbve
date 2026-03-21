@@ -6,4 +6,5 @@ resources:
     - sealed-admin.yaml
     - rbac.yaml
     - forgejo-externalsecret.yaml
+    - sealed-deploy-keys.yaml
     # Future: actions-runner.yaml

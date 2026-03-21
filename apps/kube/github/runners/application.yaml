@@ -16,7 +16,7 @@ spec:
               releaseName: arc-runner-set
               valueFiles:
                   - $values/apps/kube/github/runners/manifests/values.yaml
-        # Helm chart for the Unreal Engine runner scale set
+        # Helm chart for the Unreal Engine runner scale set (Linux)
         - repoURL: ghcr.io/actions/actions-runner-controller-charts
           targetRevision: 0.9.3
           chart: gha-runner-scale-set
@@ -24,6 +24,22 @@ spec:
               releaseName: arc-runner-ue
               valueFiles:
                   - $values/apps/kube/github/runners/manifests/values-ue.yaml
+        # Helm chart for the UE Windows runner scale set (requires Windows nodes)
+        - repoURL: ghcr.io/actions/actions-runner-controller-charts
+          targetRevision: 0.9.3
+          chart: gha-runner-scale-set
+          helm:
+              releaseName: arc-runner-ue-win
+              valueFiles:
+                  - $values/apps/kube/github/runners/manifests/values-ue-win.yaml
+        # Helm chart for the UE macOS runner scale set (requires Mac nodes)
+        - repoURL: ghcr.io/actions/actions-runner-controller-charts
+          targetRevision: 0.9.3
+          chart: gha-runner-scale-set
+          helm:
+              releaseName: arc-runner-ue-mac
+              valueFiles:
+                  - $values/apps/kube/github/runners/manifests/values-ue-mac.yaml
         # Values file reference
         - repoURL: https://github.com/kbve/kbve
           targetRevision: main

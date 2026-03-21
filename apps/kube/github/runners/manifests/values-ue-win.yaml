@@ -1,0 +1,79 @@
+# ARC Runner Scale Set — Unreal Engine Windows builds
+# Requires a Windows Server node in the cluster with node label:
+#   kubernetes.io/os: windows
+# Workflows use: runs-on: arc-runner-ue-win
+#
+# NOTE: This runner set will only schedule pods if Windows nodes exist.
+# Without Windows nodes, it stays at 0 runners harmlessly.
+
+runnerScaleSetName: 'arc-runner-ue-win'
+
+# GitHub configuration
+githubConfigUrl: 'https://github.com/kbve'
+githubConfigSecret: github-arc-token
+
+# Controller service account reference
+controllerServiceAccount:
+    name: arc-controller
+    namespace: arc-systems
+
+# Scaling — Windows UE builds are heavy
+minRunners: 0
+maxRunners: 2
+
+template:
+    metadata:
+        annotations:
+            kbve.com/restart-trigger: '20260320-initial'
+    spec:
+        nodeSelector:
+            kubernetes.io/os: windows
+        tolerations:
+            - key: os
+              operator: Equal
+              value: windows
+              effect: NoSchedule
+        containers:
+            - name: runner
+              # Windows runner image — use the Windows variant
+              image: ghcr.io/actions/actions-runner:2.333.0
+              env:
+                  - name: RUNNER_ALLOW_RUNASROOT
+                    value: '1'
+              resources:
+                  limits:
+                      cpu: '12'
+                      memory: 24Gi
+                  requests:
+                      cpu: '4'
+                      memory: 8Gi
+              volumeMounts:
+                  - name: work
+                    mountPath: /home/runner/_work
+                  - name: engine-cache
+                    mountPath: /mnt/longhorn/angelscript-engine
+        volumes:
+            - name: work
+              emptyDir: {}
+            - name: engine-cache
+              persistentVolumeClaim:
+                  claimName: arc-engine-cache
+
+listenerTemplate:
+    spec:
+        containers:
+            - name: listener
+              resources:
+                  limits:
+                      cpu: 250m
+                      memory: 256Mi
+                  requests:
+                      cpu: 50m
+                      memory: 64Mi
+              securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  runAsNonRoot: true
+                  capabilities:
+                      drop:
+                          - ALL
