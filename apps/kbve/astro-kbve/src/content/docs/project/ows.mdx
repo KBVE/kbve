@@ -1,0 +1,48 @@
+---
+title: OWS
+description: |
+    Open World Server — .NET 8 backend for multiplayer UE5 game instances.
+sidebar:
+    label: OWS
+    order: 60
+tags:
+    - docker
+    - dotnet
+    - game
+key: ows
+pipeline: docker
+app_name: ows
+version: "0.1.0"
+source_path: apps/ows
+version_toml: apps/ows/version.toml
+author: h0lybyte
+license: MIT
+status: active
+---
+
+## Overview
+
+Open World Server (OWS) is a .NET 8 backend stack for managing multiplayer
+Unreal Engine 5 game instances. It provides player authentication, character
+persistence, zone instance management, and a global data store.
+
+### Services
+
+| Service | Purpose |
+|---------|---------|
+| PublicAPI | Player login, registration, character creation |
+| InstanceManagement | Zone/server instance orchestration |
+| CharacterPersistence | Character stats, abilities, inventory |
+| GlobalData | Global key/value data store |
+| Management | Admin web dashboard (Vue 3) |
+
+### Infrastructure
+
+- **Database**: PostgreSQL (via Kilobase CNPG cluster)
+- **Messaging**: RabbitMQ (existing k8s operator)
+- **Cache**: ValKey (existing k8s deployment)
+
+### References
+
+- [Issue #8404](https://github.com/KBVE/kbve/issues/8404)
+- [OWS upstream](https://github.com/Dartanlla/OWS)
