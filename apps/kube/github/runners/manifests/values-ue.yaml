@@ -51,6 +51,11 @@ template:
                     value: tcp://localhost:2376
                   - name: RUNNER_ALLOW_RUNASROOT
                     value: '1'
+                  - name: FORGEJO_API_TOKEN
+                    valueFrom:
+                        secretKeyRef:
+                            name: forgejo-lfs-credentials
+                            key: api-token
               resources:
                   limits:
                       cpu: '12'
