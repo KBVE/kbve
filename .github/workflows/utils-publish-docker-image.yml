@@ -54,6 +54,7 @@ jobs:
                   CARGO_TOML="${{ inputs.cargo_toml }}"
                   case "$CARGO_TOML" in
                     *.json) LOCAL_VERSION=$(jq -r '.version // "0.0.0"' "$CARGO_TOML" 2>/dev/null) ;;
+                    *.mdx)  LOCAL_VERSION=$(sed -n 's/^version: *"\([^"]*\)"/\1/p' "$CARGO_TOML" | head -1) ;;
                     *)      LOCAL_VERSION=$(grep -m1 '^version' "$CARGO_TOML" | sed 's/version = "\(.*\)"/\1/') ;;
                   esac
                   echo "Local version: $LOCAL_VERSION"
@@ -93,6 +94,7 @@ jobs:
                     CARGO_TOML="${{ inputs.cargo_toml }}"
                     case "$CARGO_TOML" in
                       *.json) LOCAL_VERSION=$(jq -r '.version // "0.0.0"' "$CARGO_TOML" 2>/dev/null) ;;
+                      *.mdx)  LOCAL_VERSION=$(sed -n 's/^version: *"\([^"]*\)"/\1/p' "$CARGO_TOML" | head -1) ;;
                       *)      LOCAL_VERSION=$(grep -m1 '^version' "$CARGO_TOML" | sed 's/version = "\(.*\)"/\1/') ;;
                     esac
 

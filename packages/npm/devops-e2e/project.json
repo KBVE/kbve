@@ -3,15 +3,15 @@
 	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"sourceRoot": "packages/npm/devops-e2e/src",
 	"projectType": "application",
-	"implicitDependencies": ["devops"],
 	"tags": [],
+	"implicitDependencies": ["devops"],
 	"targets": {
 		"e2e": {
 			"executor": "@nx/vitest:test",
 			"outputs": ["{options.reportsDirectory}"],
 			"options": {
 				"configFile": "packages/npm/devops-e2e/vite.config.ts",
-				"reportsDirectory": "../../../coverage/packages/npm/devops-e2e"
+				"reportsDirectory": "{projectRoot}/../../../coverage/packages/npm/devops-e2e"
 			},
 			"dependsOn": ["devops:build"]
 		}

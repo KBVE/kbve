@@ -165,8 +165,7 @@ jobs:
                     Push-Location $CachePath
                     git remote set-url origin "https://x-access-token:${env:UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
                     git fetch origin ${{ inputs.engine_ref }}
-                    git checkout FETCH_HEAD
-                    git clean -fdx -e "Engine/Binaries" -e "Engine/Intermediate" -e ".ue4dependencies" -e ".git/ue4-gitdeps"
+                    git reset --hard FETCH_HEAD
                     Pop-Location
                   } else {
                     # Clear non-git directory if it exists (e.g. empty PVC mount)
@@ -271,8 +270,7 @@ jobs:
                     cd "${CACHE}"
                     git remote set-url origin "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
                     git fetch origin ${{ inputs.engine_ref }}
-                    git checkout FETCH_HEAD
-                    git clean -fdx -e "Engine/Binaries" -e "Engine/Intermediate" -e ".ue4dependencies" -e ".git/ue4-gitdeps"
+                    git reset --hard FETCH_HEAD
                   else
                     # Clear non-git directory if it exists (e.g. empty PVC mount)
                     if [ -d "${CACHE}" ]; then
@@ -360,7 +358,8 @@ jobs:
                     shared-mime-info \
                     libssl-dev \
                     python3 \
-                    curl
+                    curl \
+                    zip
 
             - name: Checkout monorepo
               uses: actions/checkout@v6
@@ -376,8 +375,7 @@ jobs:
                     cd "${CACHE}"
                     git remote set-url origin "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
                     git fetch origin ${{ inputs.engine_ref }}
-                    git checkout FETCH_HEAD
-                    git clean -fdx -e "Engine/Binaries" -e "Engine/Intermediate" -e ".ue4dependencies" -e ".git/ue4-gitdeps"
+                    git reset --hard FETCH_HEAD
                   else
                     # Clear non-git directory if it exists (e.g. empty PVC mount)
                     if [ -d "${CACHE}" ]; then

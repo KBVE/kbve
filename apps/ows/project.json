@@ -1,0 +1,338 @@
+{
+	"name": "ows",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/ows",
+	"targets": {
+		"container-all": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"./kbve.sh -nx ows:container-publicapi --no-cloud",
+					"./kbve.sh -nx ows:container-instancemanagement --no-cloud",
+					"./kbve.sh -nx ows:container-characterpersistence --no-cloud",
+					"./kbve.sh -nx ows:container-globaldata --no-cloud",
+					"./kbve.sh -nx ows:container-management --no-cloud"
+				],
+				"parallel": true
+			}
+		},
+		"container-publicapi": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx ows:containerx-publicapi --no-cloud",
+						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-publicapi:latest kbve/ows-publicapi:$VERSION && echo \"Tagged kbve/ows-publicapi:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx ows:containerx-publicapi --configuration=production --no-cloud",
+						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-publicapi:latest kbve/ows-publicapi:$VERSION && docker tag ghcr.io/kbve/ows-publicapi:latest ghcr.io/kbve/ows-publicapi:$VERSION && echo \"Tagged kbve/ows-publicapi:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx-publicapi": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/ows",
+				"file": "apps/ows/Dockerfile",
+				"target": "publicapi",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/ows-publicapi:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/ows-publicapi:buildcache"
+					]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": [
+							"ghcr.io/kbve/ows-publicapi",
+							"kbve/ows-publicapi"
+						],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=gha",
+						"type=registry,ref=ghcr.io/kbve/ows-publicapi:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/ows-publicapi:buildcache,mode=max"
+					]
+				}
+			}
+		},
+		"container-instancemanagement": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx ows:containerx-instancemanagement --no-cloud",
+						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-instancemanagement:latest kbve/ows-instancemanagement:$VERSION && echo \"Tagged kbve/ows-instancemanagement:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx ows:containerx-instancemanagement --configuration=production --no-cloud",
+						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-instancemanagement:latest kbve/ows-instancemanagement:$VERSION && docker tag ghcr.io/kbve/ows-instancemanagement:latest ghcr.io/kbve/ows-instancemanagement:$VERSION && echo \"Tagged kbve/ows-instancemanagement:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx-instancemanagement": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/ows",
+				"file": "apps/ows/Dockerfile",
+				"target": "instancemanagement",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/ows-instancemanagement:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/ows-instancemanagement:buildcache"
+					]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": [
+							"ghcr.io/kbve/ows-instancemanagement",
+							"kbve/ows-instancemanagement"
+						],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=gha",
+						"type=registry,ref=ghcr.io/kbve/ows-instancemanagement:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/ows-instancemanagement:buildcache,mode=max"
+					]
+				}
+			}
+		},
+		"container-characterpersistence": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx ows:containerx-characterpersistence --no-cloud",
+						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-characterpersistence:latest kbve/ows-characterpersistence:$VERSION && echo \"Tagged kbve/ows-characterpersistence:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx ows:containerx-characterpersistence --configuration=production --no-cloud",
+						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-characterpersistence:latest kbve/ows-characterpersistence:$VERSION && docker tag ghcr.io/kbve/ows-characterpersistence:latest ghcr.io/kbve/ows-characterpersistence:$VERSION && echo \"Tagged kbve/ows-characterpersistence:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx-characterpersistence": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/ows",
+				"file": "apps/ows/Dockerfile",
+				"target": "characterpersistence",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/ows-characterpersistence:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/ows-characterpersistence:buildcache"
+					]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": [
+							"ghcr.io/kbve/ows-characterpersistence",
+							"kbve/ows-characterpersistence"
+						],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=gha",
+						"type=registry,ref=ghcr.io/kbve/ows-characterpersistence:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/ows-characterpersistence:buildcache,mode=max"
+					]
+				}
+			}
+		},
+		"container-globaldata": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx ows:containerx-globaldata --no-cloud",
+						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-globaldata:latest kbve/ows-globaldata:$VERSION && echo \"Tagged kbve/ows-globaldata:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx ows:containerx-globaldata --configuration=production --no-cloud",
+						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-globaldata:latest kbve/ows-globaldata:$VERSION && docker tag ghcr.io/kbve/ows-globaldata:latest ghcr.io/kbve/ows-globaldata:$VERSION && echo \"Tagged kbve/ows-globaldata:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx-globaldata": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/ows",
+				"file": "apps/ows/Dockerfile",
+				"target": "globaldata",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/ows-globaldata:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/ows-globaldata:buildcache"
+					]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": [
+							"ghcr.io/kbve/ows-globaldata",
+							"kbve/ows-globaldata"
+						],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=gha",
+						"type=registry,ref=ghcr.io/kbve/ows-globaldata:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/ows-globaldata:buildcache,mode=max"
+					]
+				}
+			}
+		},
+		"container-management": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx ows:containerx-management --no-cloud",
+						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-management:latest kbve/ows-management:$VERSION && echo \"Tagged kbve/ows-management:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx ows:containerx-management --configuration=production --no-cloud",
+						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-management:latest kbve/ows-management:$VERSION && docker tag ghcr.io/kbve/ows-management:latest ghcr.io/kbve/ows-management:$VERSION && echo \"Tagged kbve/ows-management:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx-management": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/ows",
+				"file": "apps/ows/Dockerfile",
+				"target": "management",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/ows-management:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/ows-management:buildcache"
+					]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": [
+							"ghcr.io/kbve/ows-management",
+							"kbve/ows-management"
+						],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=gha",
+						"type=registry,ref=ghcr.io/kbve/ows-management:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/ows-management:buildcache,mode=max"
+					]
+				}
+			}
+		},
+		"restore": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["dotnet restore apps/ows/OWS.sln"],
+				"parallel": false
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"dotnet test apps/ows/OWS.sln --no-build --verbosity normal"
+				],
+				"parallel": false
+			}
+		}
+	},
+	"tags": ["scope:ows", "type:app"]
+}
