@@ -23,6 +23,7 @@ spec:
                 app: kbve
                 version: '1.0.22'
         spec:
+            serviceAccountName: kbve-app
             affinity:
                 podAntiAffinity:
                     preferredDuringSchedulingIgnoredDuringExecution:
@@ -114,6 +115,10 @@ spec:
                             secretKeyRef:
                                 name: forgejo-deploy-keys
                                 key: api-token
+                      - name: KUBEVIRT_API_URL
+                        value: 'https://kubernetes.default.svc'
+                      - name: KUBEVIRT_CA_CERT_PATH
+                        value: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt'
                       - name: GAME_SERVER_HOST
                         value: 'wt.kbve.com'
                       - name: GAME_WT_CERT

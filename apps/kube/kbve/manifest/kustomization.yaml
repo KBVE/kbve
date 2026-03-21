@@ -10,5 +10,6 @@ resources:
     - argocd-auth-sealedsecret.yaml
     - kbve-internal-ca-cert.yaml
     - kbve-wt-cert.yaml
+    - kubevirt-rbac.yaml
     - kbve-deployment.yaml
     - kbve-gateway.yaml
