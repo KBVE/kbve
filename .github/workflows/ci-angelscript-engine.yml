@@ -7,7 +7,7 @@ on:
                 description: 'Platforms to build (comma-separated: windows,mac,linux)'
                 required: true
                 type: string
-                default: 'windows,mac,linux'
+                default: 'linux'
             engine_ref:
                 description: 'Branch or tag to build from UnrealEngine-Angelscript'
                 required: false
@@ -128,21 +128,18 @@ jobs:
             needs.guard.outputs.allowed == 'true' &&
             needs.version-gate.outputs.should_build == 'true' &&
             contains(inputs.platforms, 'windows')
-        runs-on: arc-runner-ue-win
+        runs-on: windows-latest
         timeout-minutes: 360
         permissions:
             contents: read
-        env:
-            ENGINE_REF: ${{ inputs.engine_ref }}
         steps:
             - name: Audit log
               run: |
-                  echo "::notice::Windows build: ref=${{ inputs.engine_ref }}, actor=${{ github.actor }}, version=${{ needs.version-gate.outputs.version }}"
+                  echo "::notice::Windows build (GitHub-hosted): ref=${{ inputs.engine_ref }}, actor=${{ github.actor }}, version=${{ needs.version-gate.outputs.version }}"
 
             - name: Verify build tools
               shell: pwsh
               run: |
-                  # Verify Visual Studio / MSVC build tools are available
                   $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
                   if (Test-Path $vsWhere) {
                     $vsPath = & $vsWhere -latest -property installationPath
@@ -150,53 +147,36 @@ jobs:
                   } else {
                     Write-Host "::warning::vswhere not found — MSVC may not be installed"
                   }
-                  # Ensure git LFS is available for engine deps
                   git lfs version
 
-            - name: Clone or update engine source
+            - name: Clone engine source
               env:
                   UNITY_PAT: ${{ secrets.UNITY_PAT }}
               shell: pwsh
               run: |
-                  $CachePath = "${{ env.ENGINE_CACHE_PATH }}"
-
-                  if (Test-Path "$CachePath\.git") {
-                    Write-Host "::notice::Using cached engine source at $CachePath"
-                    Push-Location $CachePath
-                    git remote set-url origin "https://x-access-token:${env:UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
-                    git fetch origin ${{ inputs.engine_ref }}
-                    git reset --hard FETCH_HEAD
-                    Pop-Location
-                  } else {
-                    # Clear non-git directory if it exists (e.g. empty PVC mount)
-                    if (Test-Path $CachePath) {
-                      Write-Host "::notice::Clearing non-git directory at $CachePath"
-                      Remove-Item -Recurse -Force "$CachePath\*"
-                    }
-                    Write-Host "::notice::Fresh clone of engine source"
-                    git clone --depth 1 --branch ${{ inputs.engine_ref }} `
-                      "https://x-access-token:${env:UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" `
-                      $CachePath
-                  }
+                  # GitHub-hosted — no persistent cache, always fresh clone
+                  git clone --depth 1 --branch ${{ inputs.engine_ref }} `
+                    "https://x-access-token:${env:UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" `
+                    engine
 
             - name: Run Setup
               shell: pwsh
               run: |
-                  Push-Location "${{ env.ENGINE_CACHE_PATH }}"
+                  Push-Location engine
                   .\Setup.bat
                   Pop-Location
 
             - name: Generate project files
               shell: pwsh
               run: |
-                  Push-Location "${{ env.ENGINE_CACHE_PATH }}"
+                  Push-Location engine
                   .\GenerateProjectFiles.bat
                   Pop-Location
 
             - name: Build Editor (Win64)
               shell: pwsh
               run: |
-                  Push-Location "${{ env.ENGINE_CACHE_PATH }}"
+                  Push-Location engine
                   .\Engine\Build\BatchFiles\RunUAT.bat BuildTarget `
                     -target=UnrealEditor `
                     -platform=Win64 `
@@ -213,9 +193,7 @@ jobs:
                   $OutDir = "angelscript-win64-v${Version}"
                   New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
 
-                  # Copy editor binaries
-                  Copy-Item -Recurse "${{ env.ENGINE_CACHE_PATH }}\Engine\Binaries\Win64\*" "$OutDir\"
-
+                  Copy-Item -Recurse "engine\Engine\Binaries\Win64\*" "$OutDir\"
                   Compress-Archive -Path $OutDir -DestinationPath "angelscript-win64-v${Version}.zip"
 
             - name: Upload Windows artifact
@@ -229,9 +207,11 @@ jobs:
               if: always()
               shell: pwsh
               run: |
-                  Push-Location "${{ env.ENGINE_CACHE_PATH }}"
-                  git remote set-url origin "https://github.com/${{ env.ENGINE_REPO }}.git"
-                  Pop-Location
+                  if (Test-Path "engine\.git") {
+                    Push-Location engine
+                    git remote set-url origin "https://github.com/${{ env.ENGINE_REPO }}.git"
+                    Pop-Location
+                  }
 
     # ── Mac Client Build (x86) ──────────────────────────────────
     build-mac:
