@@ -34,7 +34,7 @@ metadata:
     name: ${SVC_NAME}
     namespace: ${NAMESPACE}
     labels:
-        kubevirt.io/vm: ${VM_NAME}
+        vm.kubevirt.io/name: ${VM_NAME}
         kbve.com/managed-by: vm-rdp-script
 spec:
     externalTrafficPolicy: Local
@@ -44,7 +44,7 @@ spec:
           protocol: TCP
           targetPort: 3389
     selector:
-        kubevirt.io/vm: ${VM_NAME}
+        vm.kubevirt.io/name: ${VM_NAME}
     type: LoadBalancer
 EOF
 
@@ -61,7 +61,7 @@ metadata:
 spec:
     endpointSelector:
         matchLabels:
-            kubevirt.io/vm: ${VM_NAME}
+            vm.kubevirt.io/name: ${VM_NAME}
     ingress:
         - fromCIDR:
               - ${MY_IP}/32
