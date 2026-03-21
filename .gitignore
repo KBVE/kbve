@@ -108,3 +108,7 @@ vite.config.*.timestamp*
 # Python
 .venv
 vitest.config.*.timestamp*
+
+# .NET
+**/obj/
+/artifacts/

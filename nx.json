@@ -69,7 +69,10 @@
 			"!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
 			"!{projectRoot}/tsconfig.spec.json",
 			"!{projectRoot}/src/test-setup.[jt]s",
-			"!{projectRoot}/test-setup.[jt]s"
+			"!{projectRoot}/test-setup.[jt]s",
+			"!{projectRoot}/**/*.Tests/**/*",
+			"!{projectRoot}/**/bin/**/*",
+			"!{projectRoot}/**/obj/**/*"
 		],
 		"sharedGlobals": ["{workspaceRoot}/go.work"]
 	},
@@ -102,7 +105,8 @@
 			"options": {
 				"testTargetName": "test"
 			}
-		}
+		},
+		"@nx/dotnet"
 	],
 	"defaultProject": "kbve.com",
 	"generators": {
