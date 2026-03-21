@@ -358,7 +358,8 @@ jobs:
                     shared-mime-info \
                     libssl-dev \
                     python3 \
-                    curl
+                    curl \
+                    zip
 
             - name: Checkout monorepo
               uses: actions/checkout@v6
