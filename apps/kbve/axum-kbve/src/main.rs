@@ -120,6 +120,13 @@ async fn main() -> anyhow::Result<()> {
         info!("ClickHouse logs proxy not configured (CLICKHOUSE_LOGS_UPSTREAM_URL not set)");
     }
 
+    // Initialize Forgejo reverse proxy (optional - for /dashboard/forgejo)
+    if transport::proxy::init_forgejo_proxy() {
+        info!("Forgejo proxy initialized - /dashboard/forgejo/proxy enabled");
+    } else {
+        info!("Forgejo proxy not configured (FORGEJO_UPSTREAM_URL not set)");
+    }
+
     // Initialize game server (headless Bevy + lightyear + avian3d)
     // Runs in its own thread; lightyear binds WebSocket on GAME_WS_ADDR (default :5000)
     gameserver::init_gameserver();

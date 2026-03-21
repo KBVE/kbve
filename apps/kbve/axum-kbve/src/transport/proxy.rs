@@ -455,6 +455,51 @@ pub async fn clickhouse_logs_proxy_handler(
 }
 
 // ---------------------------------------------------------------------------
+// Forgejo proxy singleton
+// ---------------------------------------------------------------------------
+
+static FORGEJO: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_forgejo_proxy() -> bool {
+    let upstream = match std::env::var("FORGEJO_UPSTREAM_URL") {
+        Ok(u) => u.trim_end_matches('/').to_string(),
+        Err(_) => return false,
+    };
+
+    let auth_token = match std::env::var("FORGEJO_AUTH_TOKEN") {
+        Ok(t) => t,
+        Err(_) => return false,
+    };
+
+    let client = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(5))
+        .timeout(Duration::from_secs(15))
+        .build()
+        .expect("failed to build reqwest client for forgejo proxy");
+
+    FORGEJO
+        .set(ServiceProxy {
+            name: "Forgejo",
+            client,
+            upstream,
+            upstream_token: Some(auth_token),
+        })
+        .is_ok()
+}
+
+pub async fn forgejo_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
+    match FORGEJO.get() {
+        Some(proxy) => proxy.handle(path, req).await,
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Forgejo proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Convert axum HeaderMap to reqwest HeaderMap
 // ---------------------------------------------------------------------------
 
