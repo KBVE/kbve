@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: ows-server-binary
+    namespace: ows
+    labels:
+        app.kubernetes.io/part-of: ows
+        app.kubernetes.io/component: dedicated-server
+spec:
+    accessModes:
+        - ReadWriteMany
+    storageClassName: longhorn
+    resources:
+        requests:
+            storage: 50Gi

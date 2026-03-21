@@ -172,6 +172,10 @@ jobs:
                   docker push "ghcr.io/${IMAGE}:${VERSION}"
 
     # ── Build HubWorldMMO UE5 Dedicated Server ───────────────
+    # Builds on-host using the cached engine source at ENGINE_CACHE_PATH.
+    # Output is saved to a Longhorn RWX PVC (ows-server-binary) so
+    # OWSInstanceLauncher pods can mount and spawn server instances
+    # without baking the binary into a Docker image.
     build_ue5_server:
         name: Build HubWorldMMO Dedicated Server
         needs: [version_gate]
@@ -180,27 +184,59 @@ jobs:
         timeout-minutes: 480
         permissions:
             contents: read
-            packages: write
         env:
-            UE_IMAGE: ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}
+            ENGINE_CACHE_PATH: /mnt/longhorn/angelscript-engine
             CHUCK_REPO: KBVE/chuck
-            SERVER_IMAGE: ghcr.io/kbve/ows-hubworld-server
 
         steps:
             - name: Checkout monorepo
               uses: actions/checkout@v6
 
-            - name: Login to GHCR (Epic UE5 registry)
-              uses: docker/login-action@v4
-              with:
-                  registry: ghcr.io
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.UNITY_PAT }}
-
-            - name: Pull UE5 Docker image
+            - name: Install build dependencies
               run: |
-                  echo "::notice::Pulling ${{ env.UE_IMAGE }}"
-                  docker pull "${{ env.UE_IMAGE }}"
+                  sudo apt-get update
+                  sudo apt-get install -y \
+                    build-essential \
+                    clang \
+                    xdg-utils \
+                    shared-mime-info \
+                    libssl-dev \
+                    python3 \
+                    curl
+
+            - name: Clone or update engine source
+              env:
+                  UNITY_PAT: ${{ secrets.UNITY_PAT }}
+              run: |
+                  CACHE="${{ env.ENGINE_CACHE_PATH }}"
+
+                  if [ -d "${CACHE}/.git" ]; then
+                    echo "::notice::Using cached engine source at ${CACHE}"
+                    cd "${CACHE}"
+                    git remote set-url origin "https://x-access-token:${UNITY_PAT}@github.com/KBVE/UnrealEngine-Angelscript.git"
+                    git fetch origin ${{ inputs.ue_image_tag || 'angelscript-master' }}
+                    git reset --hard FETCH_HEAD
+                  else
+                    if [ -d "${CACHE}" ]; then
+                      rm -rf "${CACHE:?}"/*
+                    fi
+                    echo "::notice::Fresh clone of engine source"
+                    git clone --depth 1 --branch ${{ inputs.ue_image_tag || 'angelscript-master' }} \
+                      "https://x-access-token:${UNITY_PAT}@github.com/KBVE/UnrealEngine-Angelscript.git" \
+                      "${CACHE}"
+                  fi
+
+            - name: Run engine setup
+              run: |
+                  cd "${{ env.ENGINE_CACHE_PATH }}"
+                  chmod +x Setup.sh
+                  ./Setup.sh
+
+            - name: Generate project files
+              run: |
+                  cd "${{ env.ENGINE_CACHE_PATH }}"
+                  chmod +x GenerateProjectFiles.sh
+                  ./GenerateProjectFiles.sh
 
             - name: Clone HubWorldMMO
               run: |
@@ -210,77 +246,86 @@ jobs:
 
             - name: Build dedicated server
               run: |
-                  PROJECT_DIR="/tmp/chuck/HubWorldMMO"
+                  cd "${{ env.ENGINE_CACHE_PATH }}"
+                  ./Engine/Build/BatchFiles/RunUAT.sh BuildCookRun \
+                    -project=/tmp/chuck/HubWorldMMO/OWSHubWorldMMO.uproject \
+                    -targetplatform=Linux \
+                    -target=OWSHubWorldMMOServer \
+                    -server \
+                    -serverconfig=Development \
+                    -cook \
+                    -allmaps \
+                    -build \
+                    -stage \
+                    -pak \
+                    -archive \
+                    -archivedirectory=/tmp/ue5-build-output \
+                    -unattended \
+                    -utf8output \
+                    -NoP4
 
-                  docker run --rm \
-                    -v "${PROJECT_DIR}:/project" \
-                    -v "/tmp/ue5-build-output:/output" \
-                    "${{ env.UE_IMAGE }}" \
-                    /bin/bash -c '
-                      set -euo pipefail
-
-                      /home/ue4/UnrealEngine/Engine/Build/BatchFiles/RunUAT.sh BuildCookRun \
-                        -project=/project/OWSHubWorldMMO.uproject \
-                        -targetplatform=Linux \
-                        -target=OWSHubWorldMMOServer \
-                        -server \
-                        -serverconfig=Development \
-                        -cook \
-                        -allmaps \
-                        -build \
-                        -stage \
-                        -pak \
-                        -archive \
-                        -archivedirectory=/output \
-                        -unattended \
-                        -utf8output \
-                        -NoP4
-                    '
-
-            - name: Package server Docker image
+            - name: Locate server output
+              id: locate
               run: |
                   VERSION="${{ needs.version_gate.outputs.version }}"
-                  BUILD_DIR="/tmp/ue5-build-output"
-
-                  # Find the staged server output
-                  SERVER_DIR=$(find "${BUILD_DIR}" -name "LinuxServer" -type d | head -1)
+                  SERVER_DIR=$(find /tmp/ue5-build-output -name "LinuxServer" -type d | head -1)
                   if [ -z "${SERVER_DIR}" ]; then
-                    echo "::error::LinuxServer output not found in ${BUILD_DIR}"
-                    find "${BUILD_DIR}" -maxdepth 3 -type d
+                    echo "::error::LinuxServer output not found"
+                    find /tmp/ue5-build-output -maxdepth 3 -type d
                     exit 1
                   fi
+                  echo "server_dir=${SERVER_DIR}" >> "$GITHUB_OUTPUT"
+                  echo "::notice::Server v${VERSION} built ($(du -sh ${SERVER_DIR} | cut -f1))"
 
-                  cat > /tmp/Dockerfile.server <<'DOCKERFILE'
-                  FROM ubuntu:22.04
-                  RUN apt-get update && apt-get install -y --no-install-recommends \
-                      libssl3 libcurl4 && \
-                      rm -rf /var/lib/apt/lists/* && \
-                      useradd -m -u 1000 ue5
-                  WORKDIR /server
-                  COPY --chown=1000:1000 . /server/
-                  RUN chmod +x /server/OWSHubWorldMMOServer
-                  USER 1000
-                  EXPOSE 7777/udp
-                  ENTRYPOINT ["/server/OWSHubWorldMMOServer"]
-                  DOCKERFILE
+            - name: Configure kubectl
+              run: |
+                  mkdir -p ~/.kube
+                  echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
 
-                  docker build \
-                    -t "${{ env.SERVER_IMAGE }}:${VERSION}" \
-                    -t "${{ env.SERVER_IMAGE }}:latest" \
-                    -f /tmp/Dockerfile.server \
-                    "${SERVER_DIR}"
-
-            - name: Push server image
+            - name: Deploy server to OWS PVC
               run: |
                   VERSION="${{ needs.version_gate.outputs.version }}"
-                  docker push "${{ env.SERVER_IMAGE }}:${VERSION}"
-                  docker push "${{ env.SERVER_IMAGE }}:latest"
-                  echo "::notice::Pushed ${{ env.SERVER_IMAGE }}:${VERSION}"
+                  SERVER_DIR="${{ steps.locate.outputs.server_dir }}"
+
+                  # Spin up a temp pod in ows namespace with the PVC mounted
+                  kubectl apply -f - <<EOF
+                  apiVersion: v1
+                  kind: Pod
+                  metadata:
+                    name: ows-server-sync
+                    namespace: ows
+                  spec:
+                    containers:
+                      - name: sync
+                        image: busybox:1.37
+                        command: ["sleep", "600"]
+                        volumeMounts:
+                          - name: server-binary
+                            mountPath: /server
+                    volumes:
+                      - name: server-binary
+                        persistentVolumeClaim:
+                          claimName: ows-server-binary
+                    restartPolicy: Never
+                  EOF
+
+                  kubectl wait --for=condition=Ready pod/ows-server-sync -n ows --timeout=120s
+
+                  # Copy server files into versioned directory on PVC
+                  kubectl exec -n ows ows-server-sync -- mkdir -p "/server/${VERSION}"
+                  cd "${SERVER_DIR}" && tar cf - . | kubectl exec -i -n ows ows-server-sync -- tar xf - -C "/server/${VERSION}/"
+                  kubectl exec -n ows ows-server-sync -- ln -sfn "/server/${VERSION}" /server/latest
+                  kubectl exec -n ows ows-server-sync -- ls -la "/server/${VERSION}/" | head -10
+
+                  echo "::notice::Server v${VERSION} deployed to ows-server-binary PVC"
 
             - name: Cleanup
               if: always()
               run: |
-                  docker logout ghcr.io 2>/dev/null || true
+                  kubectl delete pod ows-server-sync -n ows --ignore-not-found --grace-period=0 2>/dev/null || true
+                  rm -f ~/.kube/config 2>/dev/null || true
+                  cd "${{ env.ENGINE_CACHE_PATH }}" 2>/dev/null && \
+                    git remote set-url origin "https://github.com/KBVE/UnrealEngine-Angelscript.git" || true
                   rm -rf /tmp/chuck /tmp/ue5-build-output 2>/dev/null || true
 
     # ── Update Kube Manifests ────────────────────────────────
