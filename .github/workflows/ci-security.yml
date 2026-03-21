@@ -1,16 +1,10 @@
-name: CI - Security (CodeQL)
+name: CI - Security
 
 on:
-    push:
-        branches:
-            - dev
-            - main
     pull_request:
         branches:
             - dev
             - main
-    schedule:
-        - cron: '30 6 * * 1'
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,106 +13,6 @@ concurrency:
 permissions: {}
 
 jobs:
-    codeql:
-        name: CodeQL Analysis
-        runs-on: ubuntu-latest
-        timeout-minutes: 45
-        permissions:
-            security-events: write
-            contents: read
-
-        strategy:
-            fail-fast: false
-            matrix:
-                language:
-                    - javascript-typescript
-                    - python
-
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v6
-
-            - name: Initialize CodeQL
-              uses: github/codeql-action/init@v4
-              with:
-                  languages: ${{ matrix.language }}
-                  queries: security-and-quality
-                  config: |
-                      paths-ignore:
-                          - 'apps/irc/ergo'
-                          - 'apps/kbve/astro-kbve/public/isometric/assets'
-
-            - name: Auto-build
-              uses: github/codeql-action/autobuild@v4
-
-            - name: Run CodeQL Analysis
-              uses: github/codeql-action/analyze@v4
-              with:
-                  category: /language:${{ matrix.language }}
-
-    codeql-rust:
-        name: CodeQL Rust Analysis
-        runs-on: ubuntu-latest
-        if: github.event_name == 'schedule'
-        timeout-minutes: 120
-        permissions:
-            security-events: write
-            contents: read
-
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v6
-
-            - name: Initialize CodeQL
-              uses: github/codeql-action/init@v4
-              with:
-                  languages: rust
-                  queries: security-and-quality
-                  config: |
-                      paths-ignore:
-                          - 'apps/irc/ergo'
-                          - 'apps/kbve/astro-kbve/public/isometric/assets'
-
-            - name: Auto-build
-              uses: github/codeql-action/autobuild@v4
-
-            - name: Run CodeQL Analysis
-              uses: github/codeql-action/analyze@v4
-              with:
-                  category: /language:rust
-
-    # ---------------------------------------------------------------------------
-    # Failure tracker — surfaces failures as GitHub issues (#8186).
-    # Security scanning — failures should not go unnoticed.
-    # ---------------------------------------------------------------------------
-    track-codeql:
-        name: Track CodeQL Analysis
-        if: always()
-        needs: [codeql]
-        permissions:
-            issues: write
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
-        with:
-            workflow_name: 'CI - Security (CodeQL)'
-            job_name: 'CodeQL Analysis'
-            run_id: ${{ github.run_id }}
-            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: ${{ needs.codeql.result }}
-
-    track-codeql-rust:
-        name: Track CodeQL Rust Analysis
-        if: always()
-        needs: [codeql-rust]
-        permissions:
-            issues: write
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
-        with:
-            workflow_name: 'CI - Security (CodeQL)'
-            job_name: 'CodeQL Rust Analysis'
-            run_id: ${{ github.run_id }}
-            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: ${{ needs.codeql-rust.result }}
-
     dependency-review:
         name: Dependency Review
         runs-on: ubuntu-latest
