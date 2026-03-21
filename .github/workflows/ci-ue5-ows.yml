@@ -242,10 +242,19 @@ jobs:
             - name: Clone HubWorldMMO
               run: |
                   git lfs install
-                  git clone --depth 1 \
+
+                  # Clone from GitHub (skip LFS smudge — LFS is on Forgejo)
+                  GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 \
                     "https://x-access-token:${{ secrets.UNITY_PAT }}@github.com/${{ env.CHUCK_REPO }}.git" \
                     /tmp/chuck
+
                   cd /tmp/chuck
+
+                  # Point LFS to internal Forgejo HTTPS (LFS objects live there, not GitHub)
+                  git config lfs.url "http://forgejo-http.forgejo.svc.cluster.local:3000/KBVE/chuck.git/info/lfs"
+                  git config credential.helper store
+                  echo "http://x-access-token:${FORGEJO_API_TOKEN}@forgejo-http.forgejo.svc.cluster.local:3000" > ~/.git-credentials
+
                   git lfs pull
 
             - name: Build dedicated server
