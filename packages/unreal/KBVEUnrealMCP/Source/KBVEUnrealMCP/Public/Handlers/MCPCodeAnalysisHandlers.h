@@ -9,4 +9,10 @@ class FMCPCodeAnalysisHandlers
 {
 public:
 	static void Register(FMCPHandlerRegistry& Registry);
+
+private:
+	static void HandleAnalyzeClass(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
+	static void HandleFindReferences(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
+	static void HandleSearchCode(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
+	static void HandleGetHierarchy(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
 };
