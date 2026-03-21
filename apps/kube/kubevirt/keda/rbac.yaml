@@ -1,0 +1,36 @@
+# RBAC for the VM scaler Job — needs permission to start/stop VMs
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: vm-scaler
+    namespace: angelscript
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: vm-scaler
+    namespace: angelscript
+rules:
+    - apiGroups: ['kubevirt.io']
+      resources: ['virtualmachines']
+      verbs: ['get', 'list', 'patch', 'update']
+    - apiGroups: ['kubevirt.io']
+      resources: ['virtualmachineinstances']
+      verbs: ['get', 'list']
+    - apiGroups: ['subresources.kubevirt.io']
+      resources: ['virtualmachines/start', 'virtualmachines/stop']
+      verbs: ['update']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: vm-scaler
+    namespace: angelscript
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: vm-scaler
+subjects:
+    - kind: ServiceAccount
+      name: vm-scaler
+      namespace: angelscript

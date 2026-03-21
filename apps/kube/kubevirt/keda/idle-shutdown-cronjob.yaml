@@ -1,0 +1,66 @@
+# CronJob to stop idle VMs — runs every 15 minutes.
+# Checks if the GitHub runner agent inside the VM has been idle for 30+ minutes.
+# This is the "scale down" side — KEDA ScaledJobs handle "scale up".
+# VMs can always be manually started/stopped via virtctl regardless.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: vm-idle-shutdown
+    namespace: angelscript
+spec:
+    schedule: '*/15 * * * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        spec:
+            backoffLimit: 1
+            ttlSecondsAfterFinished: 300
+            template:
+                spec:
+                    serviceAccountName: vm-scaler
+                    restartPolicy: OnFailure
+                    containers:
+                        - name: idle-checker
+                          image: bitnami/kubectl:1.32
+                          command:
+                              - /bin/sh
+                              - -c
+                              - |
+                                  set -e
+                                  NAMESPACE="angelscript"
+                                  IDLE_THRESHOLD_MINUTES=30
+
+                                  for VM_NAME in windows-builder macos-builder; do
+                                      # Skip if VM is not running
+                                      STATUS=$(kubectl get vm "${VM_NAME}" -n "${NAMESPACE}" -o jsonpath='{.status.printableStatus}' 2>/dev/null || echo "Unknown")
+                                      if [ "${STATUS}" != "Running" ]; then
+                                          echo "${VM_NAME}: not running (${STATUS}), skipping."
+                                          continue
+                                      fi
+
+                                      # Check how long the VMI has been running
+                                      CREATED=$(kubectl get vmi "${VM_NAME}" -n "${NAMESPACE}" -o jsonpath='{.metadata.creationTimestamp}' 2>/dev/null || echo "")
+                                      if [ -z "${CREATED}" ]; then
+                                          echo "${VM_NAME}: no VMI found, skipping."
+                                          continue
+                                      fi
+
+                                      # Calculate age in minutes
+                                      CREATED_EPOCH=$(date -d "${CREATED}" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "${CREATED}" +%s 2>/dev/null || echo "0")
+                                      NOW_EPOCH=$(date +%s)
+                                      AGE_MINUTES=$(( (NOW_EPOCH - CREATED_EPOCH) / 60 ))
+
+                                      echo "${VM_NAME}: running for ${AGE_MINUTES} minutes."
+
+                                      if [ "${AGE_MINUTES}" -gt "${IDLE_THRESHOLD_MINUTES}" ]; then
+                                          echo "${VM_NAME}: idle for >${IDLE_THRESHOLD_MINUTES}m, stopping..."
+                                          kubectl proxy --port=8001 &
+                                          sleep 2
+                                          curl -s -X PUT \
+                                              "http://localhost:8001/apis/subresources.kubevirt.io/v1/namespaces/${NAMESPACE}/virtualmachines/${VM_NAME}/stop" \
+                                              -H "Content-Type: application/json" -d '{}'
+                                          kill %1 2>/dev/null || true
+                                          echo "${VM_NAME}: stop requested."
+                                      fi
+                                  done
