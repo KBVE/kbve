@@ -28,7 +28,7 @@ export const CI_PROJECTS: CiProject[] = ProjectArraySchema.parse([
 		name: 'Axum KBVE',
 		pipeline: 'docker',
 		app_name: 'axum-kbve',
-		version: '1.0.66',
+		version: '1.0.68',
 		description: 'Main KBVE website (Astro + Axum)',
 		source_path: 'apps/kbve/astro-kbve',
 		author: 'h0lybyte',
