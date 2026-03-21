@@ -120,49 +120,10 @@ jobs:
                     echo "should_build=true" >> "$GITHUB_OUTPUT"
                   fi
 
-    # ── Prepare Plugin Bundle ───────────────────────────────────
-    prepare-plugins:
-        name: Bundle Custom Plugins
-        needs: [guard, version-gate]
-        if: needs.guard.outputs.allowed == 'true' && needs.version-gate.outputs.should_build == 'true'
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        permissions:
-            contents: read
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v6
-
-            - name: Bundle plugins from manifest
-              run: |
-                  mkdir -p plugin-bundle
-
-                  # Read plugins.json and copy each plugin
-                  PLUGINS=$(jq -r '.plugins[].path' apps/angelscript/plugins.json)
-                  for plugin_path in ${PLUGINS}; do
-                    plugin_name=$(basename "${plugin_path}")
-                    if [ -d "${plugin_path}" ]; then
-                      echo "::notice::Bundling plugin: ${plugin_name} from ${plugin_path}"
-                      cp -r "${plugin_path}" "plugin-bundle/${plugin_name}"
-                    else
-                      echo "::warning::Plugin path not found: ${plugin_path} — skipping"
-                    fi
-                  done
-
-                  echo "Plugin bundle contents:"
-                  ls -la plugin-bundle/
-
-            - name: Upload plugin bundle
-              uses: actions/upload-artifact@v7
-              with:
-                  name: plugin-bundle
-                  path: plugin-bundle/
-                  retention-days: 1
-
     # ── Windows Client Build (x86) ──────────────────────────────
     build-windows:
         name: Build Windows Client (x86)
-        needs: [guard, version-gate, prepare-plugins]
+        needs: [guard, version-gate]
         if: |
             needs.guard.outputs.allowed == 'true' &&
             needs.version-gate.outputs.should_build == 'true' &&
@@ -177,15 +138,6 @@ jobs:
             - name: Audit log
               run: |
                   echo "::notice::Windows build: ref=${{ inputs.engine_ref }}, actor=${{ github.actor }}, version=${{ needs.version-gate.outputs.version }}"
-
-            - name: Checkout monorepo
-              uses: actions/checkout@v6
-
-            - name: Download plugin bundle
-              uses: actions/download-artifact@v8
-              with:
-                  name: plugin-bundle
-                  path: plugin-bundle
 
             - name: Clone or update engine source
               env:
@@ -207,18 +159,6 @@ jobs:
                     git clone --depth 1 --branch ${{ inputs.engine_ref }} `
                       "https://x-access-token:${env:UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" `
                       $CachePath
-                  }
-
-            - name: Inject custom plugins
-              shell: pwsh
-              run: |
-                  $PluginDest = "${{ env.ENGINE_CACHE_PATH }}\Engine\Plugins\KBVE"
-                  New-Item -ItemType Directory -Path $PluginDest -Force | Out-Null
-
-                  Get-ChildItem -Path "plugin-bundle" -Directory | ForEach-Object {
-                    $dest = Join-Path $PluginDest $_.Name
-                    Write-Host "::notice::Installing plugin: $($_.Name) -> $dest"
-                    Copy-Item -Recurse -Force $_.FullName $dest
                   }
 
             - name: Run Setup
@@ -278,7 +218,7 @@ jobs:
     # ── Mac Client Build (x86) ──────────────────────────────────
     build-mac:
         name: Build Mac Client (x86)
-        needs: [guard, version-gate, prepare-plugins]
+        needs: [guard, version-gate]
         if: |
             needs.guard.outputs.allowed == 'true' &&
             needs.version-gate.outputs.should_build == 'true' &&
@@ -291,15 +231,6 @@ jobs:
             - name: Audit log
               run: |
                   echo "::notice::Mac build: ref=${{ inputs.engine_ref }}, actor=${{ github.actor }}, version=${{ needs.version-gate.outputs.version }}"
-
-            - name: Checkout monorepo
-              uses: actions/checkout@v6
-
-            - name: Download plugin bundle
-              uses: actions/download-artifact@v8
-              with:
-                  name: plugin-bundle
-                  path: plugin-bundle
 
             - name: Clone or update engine source
               env:
@@ -320,17 +251,6 @@ jobs:
                       "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" \
                       "${CACHE}"
                   fi
-
-            - name: Inject custom plugins
-              run: |
-                  PLUGIN_DEST="${{ env.ENGINE_CACHE_PATH }}/Engine/Plugins/KBVE"
-                  mkdir -p "${PLUGIN_DEST}"
-
-                  for plugin_dir in plugin-bundle/*/; do
-                    plugin_name=$(basename "${plugin_dir}")
-                    echo "::notice::Installing plugin: ${plugin_name} → ${PLUGIN_DEST}/${plugin_name}"
-                    cp -r "${plugin_dir}" "${PLUGIN_DEST}/${plugin_name}"
-                  done
 
             - name: Run Setup
               run: |
@@ -382,7 +302,7 @@ jobs:
     # ── Linux Dedicated Server Build (x86) ──────────────────────
     build-linux:
         name: Build Linux Dedicated Server (x86)
-        needs: [guard, version-gate, prepare-plugins]
+        needs: [guard, version-gate]
         if: |
             needs.guard.outputs.allowed == 'true' &&
             needs.version-gate.outputs.should_build == 'true' &&
@@ -399,12 +319,6 @@ jobs:
 
             - name: Checkout monorepo
               uses: actions/checkout@v6
-
-            - name: Download plugin bundle
-              uses: actions/download-artifact@v8
-              with:
-                  name: plugin-bundle
-                  path: plugin-bundle
 
             - name: Clone or update engine source
               env:
@@ -425,17 +339,6 @@ jobs:
                       "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" \
                       "${CACHE}"
                   fi
-
-            - name: Inject custom plugins
-              run: |
-                  PLUGIN_DEST="${{ env.ENGINE_CACHE_PATH }}/Engine/Plugins/KBVE"
-                  mkdir -p "${PLUGIN_DEST}"
-
-                  for plugin_dir in plugin-bundle/*/; do
-                    plugin_name=$(basename "${plugin_dir}")
-                    echo "::notice::Installing plugin: ${plugin_name} → ${PLUGIN_DEST}/${plugin_name}"
-                    cp -r "${plugin_dir}" "${PLUGIN_DEST}/${plugin_name}"
-                  done
 
             - name: Run Setup
               run: |
