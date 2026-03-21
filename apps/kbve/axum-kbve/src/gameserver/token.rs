@@ -173,9 +173,9 @@ pub async fn game_token_handler(
         net_config::token_to_base64(token).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))?;
 
     // Build transport URLs — WS and WT take different routes:
-    //   WS:  wss://{request_host}:5000  — Cloudflare proxies TCP/WSS fine
-    //   WT:  https://{final_host}:5001  — QUIC/UDP must hit origin directly
-    let server_url = format!("wss://{request_host}:{ws_port}");
+    //   WS:  wss://{request_host}/ws — path-based, gateway routes /ws → port 5000
+    //   WT:  https://{final_host}:5001 — QUIC/UDP must hit origin directly
+    let server_url = format!("wss://{request_host}/ws");
     let cert_digest = super::get_cert_digest().to_owned();
     let server_wt_url = if super::is_wt_enabled() {
         format!("https://{final_host}:{wt_port}")

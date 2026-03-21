@@ -14,10 +14,10 @@ on:
                 type: boolean
                 default: false
             ue_image_tag:
-                description: 'Epic UE container image tag (e.g. dev-5.7)'
+                description: 'Epic UE container image tag (e.g. dev-slim-5.7)'
                 required: false
                 type: string
-                default: 'dev-5.7'
+                default: 'dev-slim-5.7'
             skip_version_gate:
                 description: 'Skip version gate (force rebuild)'
                 required: false
