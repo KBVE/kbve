@@ -1,0 +1,90 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: ows-publicapi
+    namespace: ows
+    labels:
+        app: ows-publicapi
+        app.kubernetes.io/part-of: ows
+spec:
+    type: ClusterIP
+    selector:
+        app: ows-publicapi
+    ports:
+        - name: http
+          port: 80
+          targetPort: 80
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: ows-instancemanagement
+    namespace: ows
+    labels:
+        app: ows-instancemanagement
+        app.kubernetes.io/part-of: ows
+spec:
+    type: ClusterIP
+    selector:
+        app: ows-instancemanagement
+    ports:
+        - name: http
+          port: 80
+          targetPort: 80
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: ows-characterpersistence
+    namespace: ows
+    labels:
+        app: ows-characterpersistence
+        app.kubernetes.io/part-of: ows
+spec:
+    type: ClusterIP
+    selector:
+        app: ows-characterpersistence
+    ports:
+        - name: http
+          port: 80
+          targetPort: 80
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: ows-globaldata
+    namespace: ows
+    labels:
+        app: ows-globaldata
+        app.kubernetes.io/part-of: ows
+spec:
+    type: ClusterIP
+    selector:
+        app: ows-globaldata
+    ports:
+        - name: http
+          port: 80
+          targetPort: 80
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: ows-management
+    namespace: ows
+    labels:
+        app: ows-management
+        app.kubernetes.io/part-of: ows
+spec:
+    type: ClusterIP
+    selector:
+        app: ows-management
+    ports:
+        - name: http
+          port: 80
+          targetPort: 80
+          protocol: TCP

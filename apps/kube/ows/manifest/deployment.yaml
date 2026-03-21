@@ -1,0 +1,400 @@
+---
+# OWS Public API — player login, registration, character creation
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: ows-publicapi
+    namespace: ows
+    labels:
+        app: ows-publicapi
+        app.kubernetes.io/part-of: ows
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: ows-publicapi
+    template:
+        metadata:
+            labels:
+                app: ows-publicapi
+                app.kubernetes.io/part-of: ows
+        spec:
+            containers:
+                - name: ows-publicapi
+                  image: ghcr.io/kbve/ows-publicapi:0.1.0
+                  imagePullPolicy: Always
+                  env:
+                      - name: OWSStorageConfig__OWSDBBackend
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: DATABASE
+                      - name: OWSStorageConfig__OWSDBConnectionString
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-db-credentials
+                                key: db-connection-string
+                      - name: OWSAPIPathConfig__InternalPublicApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalPublicApiURL
+                      - name: OWSAPIPathConfig__InternalInstanceManagementApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalInstanceManagementApiURL
+                      - name: OWSAPIPathConfig__InternalCharacterPersistenceApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalCharacterPersistenceApiURL
+                  ports:
+                      - name: http
+                        containerPort: 80
+                        protocol: TCP
+                  resources:
+                      requests:
+                          memory: '128Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '512Mi'
+                          cpu: '500m'
+                  livenessProbe:
+                      httpGet:
+                          path: /swagger
+                          port: http
+                      initialDelaySeconds: 30
+                      periodSeconds: 15
+                  readinessProbe:
+                      httpGet:
+                          path: /swagger
+                          port: http
+                      initialDelaySeconds: 10
+                      periodSeconds: 5
+---
+# OWS Instance Management — zone/server instance orchestration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: ows-instancemanagement
+    namespace: ows
+    labels:
+        app: ows-instancemanagement
+        app.kubernetes.io/part-of: ows
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: ows-instancemanagement
+    template:
+        metadata:
+            labels:
+                app: ows-instancemanagement
+                app.kubernetes.io/part-of: ows
+        spec:
+            containers:
+                - name: ows-instancemanagement
+                  image: ghcr.io/kbve/ows-instancemanagement:0.1.0
+                  imagePullPolicy: Always
+                  env:
+                      - name: OWSStorageConfig__OWSDBBackend
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: DATABASE
+                      - name: OWSStorageConfig__OWSDBConnectionString
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-db-credentials
+                                key: db-connection-string
+                      - name: OWSAPIPathConfig__InternalPublicApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalPublicApiURL
+                      - name: OWSAPIPathConfig__InternalInstanceManagementApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalInstanceManagementApiURL
+                      - name: OWSAPIPathConfig__InternalCharacterPersistenceApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalCharacterPersistenceApiURL
+                      - name: RabbitMQOptions__RabbitMQHostName
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: RabbitMQHostName
+                      - name: RabbitMQOptions__RabbitMQPort
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: RabbitMQPort
+                  ports:
+                      - name: http
+                        containerPort: 80
+                        protocol: TCP
+                  resources:
+                      requests:
+                          memory: '128Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '512Mi'
+                          cpu: '500m'
+                  livenessProbe:
+                      httpGet:
+                          path: /swagger
+                          port: http
+                      initialDelaySeconds: 30
+                      periodSeconds: 15
+                  readinessProbe:
+                      httpGet:
+                          path: /swagger
+                          port: http
+                      initialDelaySeconds: 10
+                      periodSeconds: 5
+---
+# OWS Character Persistence — character stats, abilities, inventory
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: ows-characterpersistence
+    namespace: ows
+    labels:
+        app: ows-characterpersistence
+        app.kubernetes.io/part-of: ows
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: ows-characterpersistence
+    template:
+        metadata:
+            labels:
+                app: ows-characterpersistence
+                app.kubernetes.io/part-of: ows
+        spec:
+            containers:
+                - name: ows-characterpersistence
+                  image: ghcr.io/kbve/ows-characterpersistence:0.1.0
+                  imagePullPolicy: Always
+                  env:
+                      - name: OWSStorageConfig__OWSDBBackend
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: DATABASE
+                      - name: OWSStorageConfig__OWSDBConnectionString
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-db-credentials
+                                key: db-connection-string
+                      - name: OWSAPIPathConfig__InternalPublicApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalPublicApiURL
+                      - name: OWSAPIPathConfig__InternalInstanceManagementApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalInstanceManagementApiURL
+                      - name: OWSAPIPathConfig__InternalCharacterPersistenceApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalCharacterPersistenceApiURL
+                      - name: RabbitMQOptions__RabbitMQHostName
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: RabbitMQHostName
+                      - name: RabbitMQOptions__RabbitMQPort
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: RabbitMQPort
+                  ports:
+                      - name: http
+                        containerPort: 80
+                        protocol: TCP
+                  resources:
+                      requests:
+                          memory: '128Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '512Mi'
+                          cpu: '500m'
+                  livenessProbe:
+                      httpGet:
+                          path: /swagger
+                          port: http
+                      initialDelaySeconds: 30
+                      periodSeconds: 15
+                  readinessProbe:
+                      httpGet:
+                          path: /swagger
+                          port: http
+                      initialDelaySeconds: 10
+                      periodSeconds: 5
+---
+# OWS Global Data — global key/value data store
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: ows-globaldata
+    namespace: ows
+    labels:
+        app: ows-globaldata
+        app.kubernetes.io/part-of: ows
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: ows-globaldata
+    template:
+        metadata:
+            labels:
+                app: ows-globaldata
+                app.kubernetes.io/part-of: ows
+        spec:
+            containers:
+                - name: ows-globaldata
+                  image: ghcr.io/kbve/ows-globaldata:0.1.0
+                  imagePullPolicy: Always
+                  env:
+                      - name: OWSStorageConfig__OWSDBBackend
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: DATABASE
+                      - name: OWSStorageConfig__OWSDBConnectionString
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-db-credentials
+                                key: db-connection-string
+                      - name: OWSAPIPathConfig__InternalPublicApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalPublicApiURL
+                      - name: OWSAPIPathConfig__InternalInstanceManagementApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalInstanceManagementApiURL
+                      - name: OWSAPIPathConfig__InternalCharacterPersistenceApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalCharacterPersistenceApiURL
+                      - name: RabbitMQOptions__RabbitMQHostName
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: RabbitMQHostName
+                      - name: RabbitMQOptions__RabbitMQPort
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: RabbitMQPort
+                  ports:
+                      - name: http
+                        containerPort: 80
+                        protocol: TCP
+                  resources:
+                      requests:
+                          memory: '128Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '512Mi'
+                          cpu: '500m'
+                  livenessProbe:
+                      httpGet:
+                          path: /swagger
+                          port: http
+                      initialDelaySeconds: 30
+                      periodSeconds: 15
+                  readinessProbe:
+                      httpGet:
+                          path: /swagger
+                          port: http
+                      initialDelaySeconds: 10
+                      periodSeconds: 5
+---
+# OWS Management — admin web dashboard (Vue 3)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: ows-management
+    namespace: ows
+    labels:
+        app: ows-management
+        app.kubernetes.io/part-of: ows
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: ows-management
+    template:
+        metadata:
+            labels:
+                app: ows-management
+                app.kubernetes.io/part-of: ows
+        spec:
+            containers:
+                - name: ows-management
+                  image: ghcr.io/kbve/ows-management:0.1.0
+                  imagePullPolicy: Always
+                  env:
+                      - name: OWSStorageConfig__OWSDBBackend
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: DATABASE
+                      - name: OWSStorageConfig__OWSDBConnectionString
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-db-credentials
+                                key: db-connection-string
+                      - name: OWSAPIPathConfig__InternalPublicApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalPublicApiURL
+                      - name: OWSAPIPathConfig__InternalInstanceManagementApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalInstanceManagementApiURL
+                      - name: OWSAPIPathConfig__InternalCharacterPersistenceApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalCharacterPersistenceApiURL
+                  ports:
+                      - name: http
+                        containerPort: 80
+                        protocol: TCP
+                  resources:
+                      requests:
+                          memory: '128Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '512Mi'
+                          cpu: '500m'
+                  livenessProbe:
+                      httpGet:
+                          path: /
+                          port: http
+                      initialDelaySeconds: 30
+                      periodSeconds: 15
+                  readinessProbe:
+                      httpGet:
+                          path: /
+                          port: http
+                      initialDelaySeconds: 10
+                      periodSeconds: 5

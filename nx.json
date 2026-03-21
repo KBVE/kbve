@@ -91,7 +91,11 @@
 		},
 		{
 			"plugin": "@nx/vite/plugin",
-			"exclude": ["apps/kbve/isometric/**", "apps/kbve/desktop-kbve/**"],
+			"exclude": [
+				"apps/kbve/isometric/**",
+				"apps/kbve/desktop-kbve/**",
+				"apps/ows/**"
+			],
 			"options": {
 				"buildTargetName": "build",
 				"previewTargetName": "preview",
@@ -101,7 +105,11 @@
 		},
 		{
 			"plugin": "@nx/vitest",
-			"exclude": ["apps/kbve/isometric/**", "apps/kbve/desktop-kbve/**"],
+			"exclude": [
+				"apps/kbve/isometric/**",
+				"apps/kbve/desktop-kbve/**",
+				"apps/ows/**"
+			],
 			"options": {
 				"testTargetName": "test"
 			}
