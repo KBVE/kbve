@@ -403,28 +403,35 @@ Every UE API call is marshaled to the GameThread via `AsyncTask` for thread safe
 { "id": "uuid", "success": false, "error": { "code": "NOT_FOUND", "message": "Actor not found" } }
 ```
 
-**Implemented Handler Domains:**
+**Implemented Handler Domains (24 domains, 100+ methods):**
 
-| Domain | Methods |
-|--------|---------|
-| `actor.*` | spawn, delete, find, list, get/set_transform, get/set_property, duplicate, batch_transform, attach, detach, add_component |
-| `blueprint.*` | create, add_component, set_component_property, add_variable, add_function_node, add_event_node, connect_nodes, compile |
-| `asset.*` | search, get_info, get_references, get_dependents, list, validate |
-| `level.*` | get_info, list_levels, open, save, get_world_outliner |
-| `console.*` | execute (with safety validation), get_log |
-| `viewport.*` | get/set_camera, take_screenshot, focus_actor |
-| `python.*` | execute, evaluate |
-| `material.*` | create, modify, apply, get_info, set_parameter, create_instance |
-| `lighting.*` | spawn_light, set_properties, build_lighting, get_info |
-| `navigation.*` | rebuild_navmesh, test_path, get_info |
-| `physics.*` | set_properties, enable_simulation, get_info |
-| `performance.*` | get_stats, profile_gpu, get_memory_info |
-| `audio.*` | spawn_source, set_properties, play, stop, get_info |
-| `input.*` | create_action, create_mapping, get_info |
-| `landscape.*` | get_info |
-| `widget.*` | create |
-| `animation.*` | get_tracks |
-| `mcp.*` | ping, list_methods, server_info |
+| Domain | Methods | Status |
+|--------|---------|--------|
+| `actor.*` | spawn, delete, find, list, get/set_transform, get/set_property, duplicate, batch_transform, attach, detach, add_component | Complete |
+| `blueprint.*` | create, add_component, set_component_property, add_variable, add_function_node, add_event_node, connect_nodes, compile | Complete |
+| `asset.*` | search, get_info, get_references, get_dependents, list, validate | Complete |
+| `level.*` | get_info, list_levels, open, save, get_world_outliner | Complete |
+| `console.*` | execute (with safety validation), get_log | Complete |
+| `viewport.*` | get/set_camera, take_screenshot, focus_actor | Complete |
+| `python.*` | execute, evaluate | Complete |
+| `material.*` | create, modify, apply, get_info, set_parameter, create_instance | Complete |
+| `lighting.*` | spawn_light, set_properties, build_lighting, get_info | Complete |
+| `navigation.*` | rebuild_navmesh, test_path, get_info | Complete |
+| `physics.*` | set_properties, enable_simulation, get_info, add_constraint | Complete |
+| `performance.*` | get_stats, profile_gpu, get_memory_info | Complete |
+| `audio.*` | spawn_source, set_properties, play, stop, get_info | Complete |
+| `input.*` | create_action, create_mapping, bind_action, get_info | Complete |
+| `spline.*` | create, add_point, set_properties, get_info | Complete |
+| `codeanalysis.*` | analyze_class, find_references, search_code, get_hierarchy | Complete |
+| `network.*` | set_replication, get_info | Complete |
+| `geometry.*` | create_procedural_mesh (basic shapes), get_info | Complete |
+| `ai.*` | create_behavior_tree, set_blackboard, get_info | Complete |
+| `animation.*` | create_anim_bp, set_sequence, add_notify, get_tracks | Complete |
+| `niagara.*` | activate, deactivate, set_parameter, get_info | Complete |
+| `gameplay.*` | create_interaction, get_info (tags, GAS, trigger volumes) | Complete |
+| `landscape.*` | get_info | Partial |
+| `widget.*` | create | Partial |
+| `mcp.*` | ping, list_methods, server_info | Complete |
 
 **Safety features:**
 - Console command denylist (blocks `exit`, `quit`, `RestartEditor`, `crash` by default)
@@ -432,7 +439,20 @@ Every UE API call is marshaled to the GameThread via `AsyncTask` for thread safe
 - Path validation to prevent writes outside the project directory
 - Configurable rate limiting
 
-**Stubbed domains** (registered but return `NOT_IMPLEMENTED`, planned for future releases): ai, gameplay, network, niagara, spline, geometry, code_analysis, plus advanced operations in landscape, widget, animation, and physics.
+**Implementation Roadmap:**
+
+The following methods are registered but return `NOT_IMPLEMENTED`. Each is tracked for future PRs:
+
+| Domain | Stubbed Methods | Reason |
+|--------|----------------|--------|
+| `niagara.*` | create_system | Requires Niagara editor graph API for authoring new systems |
+| `landscape.*` | sculpt, flatten, smooth, paint_layer | Height/weight map editing requires editor mode tools |
+| `widget.*` | add_element, bind_event, set_property, add_to_viewport, remove | UMG widget tree manipulation needs Slate editor API wrapping |
+| `animation.*` | add_state, add_transition | AnimGraph state machine node manipulation is version-sensitive |
+| `gameplay.*` | add_ability, add_attribute | GAS is an optional plugin; needs conditional loading |
+| `network.*` | create_session | Depends on project-specific online subsystem config |
+| `geometry.*` | set_vertices | Requires ProceduralMeshComponent plugin |
+| `ai.*` | add_task | BT graph node editing requires specialized graph API |
 
 **License:** Part of the KBVE monorepo (MIT)
 
