@@ -1,0 +1,35 @@
+# KEDA-driven VM scaling for KubeVirt builder VMs.
+# Starts VMs when GitHub Actions jobs are queued, stops after idle.
+# Manual virtctl start/stop always works regardless.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: kubevirt-keda
+    namespace: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '3'
+    finalizers:
+        - resources-finalizer.argocd.argoproj.io
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/KBVE/kbve
+        targetRevision: main
+        path: apps/kube/kubevirt/keda
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: angelscript
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+        retry:
+            limit: 5
+            backoff:
+                duration: 10s
+                factor: 2
+                maxDuration: 5m
+    revisionHistoryLimit: 3

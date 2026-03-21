@@ -1,0 +1,64 @@
+# ConfigMap with the VM start/stop script used by KEDA ScaledJobs.
+# The script checks if the VM is already in the desired state before acting.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: vm-scaler-script
+    namespace: angelscript
+data:
+    scale.sh: |
+        #!/bin/sh
+        set -e
+        VM_NAME="${VM_NAME:?VM_NAME is required}"
+        ACTION="${ACTION:?ACTION is required (start|stop)}"
+        NAMESPACE="${NAMESPACE:-angelscript}"
+
+        echo "VM scaler: ${ACTION} ${VM_NAME} in ${NAMESPACE}"
+
+        # Check current state
+        STATUS=$(kubectl get vm "${VM_NAME}" -n "${NAMESPACE}" -o jsonpath='{.status.printableStatus}')
+        echo "Current status: ${STATUS}"
+
+        case "${ACTION}" in
+            start)
+                if [ "${STATUS}" = "Running" ]; then
+                    echo "VM is already running, nothing to do."
+                    exit 0
+                fi
+                echo "Starting VM..."
+                kubectl patch vm "${VM_NAME}" -n "${NAMESPACE}" --type merge \
+                    --subresource=status \
+                    -p '{}' 2>/dev/null || true
+                # Use the subresource API to start
+                kubectl proxy --port=8001 &
+                sleep 2
+                curl -s -X PUT \
+                    "http://localhost:8001/apis/subresources.kubevirt.io/v1/namespaces/${NAMESPACE}/virtualmachines/${VM_NAME}/start" \
+                    -H "Content-Type: application/json" -d '{}'
+                echo "VM ${VM_NAME} start requested."
+                # Wait for VM to be ready (up to 5 minutes)
+                for i in $(seq 1 60); do
+                    READY=$(kubectl get vmi "${VM_NAME}" -n "${NAMESPACE}" -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || echo "False")
+                    if [ "${READY}" = "True" ]; then
+                        echo "VM ${VM_NAME} is ready."
+                        exit 0
+                    fi
+                    echo "Waiting for VM to be ready... (${i}/60)"
+                    sleep 5
+                done
+                echo "VM started but not yet ready after 5 minutes."
+                ;;
+            stop)
+                if [ "${STATUS}" = "Stopped" ]; then
+                    echo "VM is already stopped, nothing to do."
+                    exit 0
+                fi
+                echo "Stopping VM..."
+                kubectl proxy --port=8001 &
+                sleep 2
+                curl -s -X PUT \
+                    "http://localhost:8001/apis/subresources.kubevirt.io/v1/namespaces/${NAMESPACE}/virtualmachines/${VM_NAME}/stop" \
+                    -H "Content-Type: application/json" -d '{}'
+                echo "VM ${VM_NAME} stop requested."
+                ;;
+        esac

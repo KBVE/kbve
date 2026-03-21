@@ -1,0 +1,108 @@
+# KEDA ScaledJobs for KubeVirt VM lifecycle.
+# Watches GitHub Actions for queued jobs targeting specific runner labels.
+# When jobs are queued → starts the VM. After idle → stops the VM.
+#
+# The GitHub PAT needs workflow + admin:org scope for the KEDA GitHub runner scaler.
+# Uses the same github-arc-token secret as the ARC runners.
+---
+# Windows VM — starts when jobs target 'ue-win-builder' label
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+    name: vm-start-windows-builder
+    namespace: angelscript
+spec:
+    jobTargetRef:
+        parallelism: 1
+        completions: 1
+        backoffLimit: 3
+        ttlSecondsAfterFinished: 300
+        template:
+            spec:
+                serviceAccountName: vm-scaler
+                restartPolicy: OnFailure
+                containers:
+                    - name: scaler
+                      image: bitnami/kubectl:1.32
+                      command: ['/bin/sh', '/scripts/scale.sh']
+                      env:
+                          - name: VM_NAME
+                            value: windows-builder
+                          - name: ACTION
+                            value: start
+                          - name: NAMESPACE
+                            value: angelscript
+                      volumeMounts:
+                          - name: script
+                            mountPath: /scripts
+                volumes:
+                    - name: script
+                      configMap:
+                          name: vm-scaler-script
+                          defaultMode: 0755
+    pollingInterval: 30
+    minReplicaCount: 0
+    maxReplicaCount: 1
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    triggers:
+        - type: github-runner
+          metadata:
+              owner: KBVE
+              repos: UnrealEngine-Angelscript
+              runnerScope: repo
+              labels: ue-win-builder
+              targetWorkflowQueueLength: '1'
+          authenticationRef:
+              name: github-runner-auth
+---
+# macOS VM — starts when jobs target 'ue-mac-builder' label
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+    name: vm-start-macos-builder
+    namespace: angelscript
+spec:
+    jobTargetRef:
+        parallelism: 1
+        completions: 1
+        backoffLimit: 3
+        ttlSecondsAfterFinished: 300
+        template:
+            spec:
+                serviceAccountName: vm-scaler
+                restartPolicy: OnFailure
+                containers:
+                    - name: scaler
+                      image: bitnami/kubectl:1.32
+                      command: ['/bin/sh', '/scripts/scale.sh']
+                      env:
+                          - name: VM_NAME
+                            value: macos-builder
+                          - name: ACTION
+                            value: start
+                          - name: NAMESPACE
+                            value: angelscript
+                      volumeMounts:
+                          - name: script
+                            mountPath: /scripts
+                volumes:
+                    - name: script
+                      configMap:
+                          name: vm-scaler-script
+                          defaultMode: 0755
+    pollingInterval: 30
+    minReplicaCount: 0
+    maxReplicaCount: 1
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    triggers:
+        - type: github-runner
+          metadata:
+              owner: KBVE
+              repos: UnrealEngine-Angelscript
+              runnerScope: repo
+              labels: ue-mac-builder
+              targetWorkflowQueueLength: '1'
+          authenticationRef:
+              name: github-runner-auth
