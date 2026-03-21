@@ -144,6 +144,7 @@ jobs:
                       case "$source_file" in
                         *.json)    local_v=$(jq -r '.version // "0.0.0"' "$source_file" 2>/dev/null || echo "0.0.0") ;;
                         *.uplugin) local_v=$(jq -r '.VersionName // "0.0.0"' "$source_file" 2>/dev/null || echo "0.0.0") ;;
+                        *.mdx)     local_v=$(sed -n 's/^version: *"\([^"]*\)"/\1/p' "$source_file" | head -1); [ -z "$local_v" ] && local_v="0.0.0" ;;
                         *)         local_v=$(grep -m1 '^version' "$source_file" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0") ;;
                       esac
                     fi
@@ -180,7 +181,7 @@ jobs:
                   resolve_docker_paths() {
                     local app="$1"
                     case "$app" in
-                      axum-kbve)    SRC="apps/kbve/axum-kbve/Cargo.toml";            VTOML="apps/kbve/axum-kbve/version.toml" ;;
+                      axum-kbve)    SRC="apps/kbve/astro-kbve/src/content/docs/project/api.mdx"; VTOML="apps/kbve/axum-kbve/version.toml" ;;
                       herbmail)     SRC="apps/herbmail/axum-herbmail/Cargo.toml";     VTOML="apps/herbmail/version.toml" ;;
                       memes)        SRC="apps/memes/axum-memes/Cargo.toml";           VTOML="apps/memes/version.toml" ;;
                       irc-gateway)  SRC="apps/irc/irc-gateway/Cargo.toml";            VTOML="apps/irc/version.toml" ;;

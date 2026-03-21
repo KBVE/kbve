@@ -41,6 +41,7 @@ jobs:
                   SRC="main-ref/${{ inputs.cargo_toml }}"
                   case "$SRC" in
                     *.json) NEW_VER=$(jq -r '.version // "0.0.0"' "$SRC" 2>/dev/null) ;;
+                    *.mdx)  NEW_VER=$(sed -n 's/^version: *"\([^"]*\)"/\1/p' "$SRC" | head -1) ;;
                     *)      NEW_VER=$(grep -m1 '^version' "$SRC" | sed 's/version = "\(.*\)"/\1/') ;;
                   esac
                   echo "new_version=$NEW_VER" >> "$GITHUB_OUTPUT"
