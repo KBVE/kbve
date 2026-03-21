@@ -323,4 +323,129 @@ A typical plugin contains:
 Plugins can be scaffolded from the editor via Edit > Plugins > Add, or created manually by setting up the directory structure and `.uplugin` descriptor.
 The engine supports several module types: `Runtime`, `Editor`, `DeveloperTool`, and `Program`, each loaded at different stages of the engine lifecycle.
 
+---
+
+## KBVE Plugins
+
+KBVE maintains a collection of open-source Unreal Engine plugins at `packages/unreal/` in the monorepo.
+All plugins follow a consistent structure: `.uplugin` descriptor, `version.toml` for versioning, `Source/` with `Public/` and `Private/` directories, and `ThirdParty/` for vendored libraries with their licenses.
+
+### KBVETinyBVH
+
+A runtime plugin wrapping [jbikker/tinybvh](https://github.com/jbikker/tinybvh) v1.6.7, a single-header BVH (Bounding Volume Hierarchy) construction and traversal library for ray tracing.
+TinyBVH provides data structures for rapidly finding ray-triangle intersections in virtual scenes.
+
+**Features:**
+- CPU BVH construction and traversal via `tiny_bvh.h`
+- OpenCL GPU traversal kernels for hardware-accelerated ray tracing
+- Vulkan compute shader support
+- Scene loading utilities via `tiny_scene.h`
+- Auto-detects SSE4.2, AVX, AVX2, and NEON SIMD
+
+**Included files:**
+- `tiny_bvh.h` — Core library (CPU)
+- `tiny_ocl.h` — OpenCL helper for GPU traversal
+- `tiny_scene.h` — Scene/GLTF loading utilities
+- OpenCL kernels: `traverse.cl`, `traverse_bvh2.cl`, `traverse_bvh4.cl`, `traverse_cwbvh.cl`, `traverse_tlas.cl`, `tools.cl`, `wavefront.cl`, `wavefront2.cl`, `raytracer.cl`
+- Vulkan compute: `traverse.comp`
+
+**Usage:**
+
+```cpp
+#include "KBVETinyBVH.h"
+
+// Build a BVH from triangle data
+tinybvh::BVH bvh;
+bvh.Build((tinybvh::bvhvec4*)MyTriData, TriangleCount);
+
+// Cast a ray
+tinybvh::Ray ray(
+    tinybvh::bvhvec3(0, 0, 0),
+    tinybvh::bvhvec3(0, 0, 1),
+    1e30f
+);
+bvh.Intersect(ray);
+// Intersection info is in ray.hit
+```
+
+**License:** MIT (included at `ThirdParty/tinybvh/LICENSE`)
+
+### KBVEUnrealMCP
+
+An editor-only plugin that exposes a WebSocket JSON command server for AI-assisted Unreal Engine development.
+Any external MCP (Model Context Protocol) bridge — Python, TypeScript, or Node.js — can connect to the plugin and control the editor programmatically.
+Targets UE 5.7+.
+
+**Architecture:**
+
+```
+[AI Client] --MCP--> [External Bridge] --WebSocket--> [KBVEUnrealMCP Plugin]
+                                                           |
+                                               TMap<FString, Handler> dispatch
+                                                           |
+                                               GameThread UE API execution
+```
+
+The plugin runs a WebSocket server on port `9777` (configurable in Project Settings under KBVE Unreal MCP).
+All handler methods are dispatched via a `TMap`-based registry for O(1) lookup.
+Every UE API call is marshaled to the GameThread via `AsyncTask` for thread safety.
+
+**JSON Protocol:**
+
+```json
+// Request
+{ "id": "uuid", "method": "actor.spawn", "params": { "class_path": "/Script/Engine.PointLight", "location": [0, 0, 200] } }
+
+// Response
+{ "id": "uuid", "success": true, "result": { "actor_name": "PointLight_0", "actor_label": "PointLight_0" } }
+
+// Error
+{ "id": "uuid", "success": false, "error": { "code": "NOT_FOUND", "message": "Actor not found" } }
+```
+
+**Implemented Handler Domains:**
+
+| Domain | Methods |
+|--------|---------|
+| `actor.*` | spawn, delete, find, list, get/set_transform, get/set_property, duplicate, batch_transform, attach, detach, add_component |
+| `blueprint.*` | create, add_component, set_component_property, add_variable, add_function_node, add_event_node, connect_nodes, compile |
+| `asset.*` | search, get_info, get_references, get_dependents, list, validate |
+| `level.*` | get_info, list_levels, open, save, get_world_outliner |
+| `console.*` | execute (with safety validation), get_log |
+| `viewport.*` | get/set_camera, take_screenshot, focus_actor |
+| `python.*` | execute, evaluate |
+| `material.*` | create, modify, apply, get_info, set_parameter, create_instance |
+| `lighting.*` | spawn_light, set_properties, build_lighting, get_info |
+| `navigation.*` | rebuild_navmesh, test_path, get_info |
+| `physics.*` | set_properties, enable_simulation, get_info |
+| `performance.*` | get_stats, profile_gpu, get_memory_info |
+| `audio.*` | spawn_source, set_properties, play, stop, get_info |
+| `input.*` | create_action, create_mapping, get_info |
+| `landscape.*` | get_info |
+| `widget.*` | create |
+| `animation.*` | get_tracks |
+| `mcp.*` | ping, list_methods, server_info |
+
+**Safety features:**
+- Console command denylist (blocks `exit`, `quit`, `RestartEditor`, `crash` by default)
+- Python execution toggle
+- Path validation to prevent writes outside the project directory
+- Configurable rate limiting
+
+**Stubbed domains** (registered but return `NOT_IMPLEMENTED`, planned for future releases): ai, gameplay, network, niagara, spline, geometry, code_analysis, plus advanced operations in landscape, widget, animation, and physics.
+
+**License:** Part of the KBVE monorepo (MIT)
+
+### Other KBVE Plugins
+
+| Plugin | Description | Third-Party License |
+|--------|-------------|-------------------|
+| **KBVEXXHash** | xxHash 0.8.3 — extremely fast non-cryptographic hash | BSD 2-Clause |
+| **KBVEZstd** | Zstandard 1.5.7 — fast lossless compression | BSD 3-Clause |
+| **KBVESQLite** | SQLite — embedded SQL database | Public Domain |
+| **KBVEYYJson** | yyjson — fast JSON parser | MIT |
+| **KBVELibGit** | libgit2 — Git repository management from the editor | GPL-2.0 with linking exception |
+| **KBVEWASM** | WebAssembly runtime integration | Various |
+| **UEDevOps** | DevOps toolkit: telemetry, error reporting, GitHub integration | KBVE (MIT) |
+
 <Giscus />
