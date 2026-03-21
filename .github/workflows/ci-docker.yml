@@ -76,7 +76,7 @@ jobs:
                   SRC="" VTOML=""
 
                   case "$APP" in
-                    axum-kbve)    SRC="apps/kbve/axum-kbve/Cargo.toml";            VTOML="apps/kbve/axum-kbve/version.toml" ;;
+                    axum-kbve)    SRC="apps/kbve/astro-kbve/src/content/docs/project/api.mdx"; VTOML="apps/kbve/axum-kbve/version.toml" ;;
                     herbmail)     SRC="apps/herbmail/axum-herbmail/Cargo.toml";     VTOML="apps/herbmail/version.toml" ;;
                     memes)        SRC="apps/memes/axum-memes/Cargo.toml";           VTOML="apps/memes/version.toml" ;;
                     irc-gateway)  SRC="apps/irc/irc-gateway/Cargo.toml";            VTOML="apps/irc/version.toml" ;;
@@ -100,6 +100,7 @@ jobs:
 
                   case "$SRC" in
                     *.json) LOCAL=$(jq -r '.version // "0.0.0"' "$SRC" 2>/dev/null || echo "0.0.0") ;;
+                    *.mdx)  LOCAL=$(sed -n 's/^version: *"\([^"]*\)"/\1/p' "$SRC" | head -1); [ -z "$LOCAL" ] && LOCAL="0.0.0" ;;
                     *)      LOCAL=$(grep -m1 '^version' "$SRC" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0") ;;
                   esac
                   PUBLISHED="0.0.0"
@@ -165,7 +166,7 @@ jobs:
                       echo "runner=arc-runner-set"                                                         >> "$GITHUB_OUTPUT"
                       echo "image=kbve/kbve"                                                               >> "$GITHUB_OUTPUT"
                       echo "e2e_name=axum-kbve-e2e"                                                        >> "$GITHUB_OUTPUT"
-                      echo "cargo_toml=apps/kbve/axum-kbve/Cargo.toml"                                    >> "$GITHUB_OUTPUT"
+                      echo "cargo_toml=apps/kbve/astro-kbve/src/content/docs/project/api.mdx"              >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/kbve/manifest/kbve-deployment.yaml"                 >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
                       echo "version_toml=apps/kbve/axum-kbve/version.toml"                                >> "$GITHUB_OUTPUT"
