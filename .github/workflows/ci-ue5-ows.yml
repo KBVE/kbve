@@ -145,6 +145,8 @@ jobs:
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
             - name: Build OWS ${{ matrix.service }}
+              env:
+                  INPUT_GITHUB_TOKEN: ${{ github.token }}
               run: |
                   pnpm nx run ows:container-${{ matrix.service }} --configuration=production --no-cloud
 

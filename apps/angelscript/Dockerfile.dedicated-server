@@ -1,85 +1,39 @@
-# ── Stage 1: Build the Linux Dedicated Server ─────────────────────
-# This stage compiles the UE-AngelScript engine for LinuxServer target.
-# The engine source is expected to be mounted or copied in at /engine.
+# Minimal runtime image for the AngelScript UE dedicated server.
+# CI pre-builds the server binaries, then copies them into this image.
 #
-# Usage (CI builds this via ci-angelscript-engine.yml):
-#   docker build \
-#     --build-arg ENGINE_DIR=/engine \
-#     --build-arg UE_TARGET=UnrealEditor \
-#     -f apps/angelscript/Dockerfile.dedicated-server \
-#     -t ghcr.io/kbve/angelscript-server:latest .
+# Build context expects:
+#   server/   — pre-built Linux server binaries from the engine build
+#
+# Usage (called by ci-angelscript-engine.yml):
+#   docker build -f Dockerfile.dedicated-server -t ghcr.io/kbve/angelscript-server:0.1.0 .
 
-FROM ubuntu:22.04 AS builder
-
-ARG DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    clang \
-    cmake \
-    git \
-    curl \
-    ca-certificates \
-    libssl-dev \
-    libc++-dev \
-    libc++abi-dev \
-    python3 \
-    python3-pip \
-    mono-complete \
-    xdg-user-dirs \
-    shared-mime-info \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /engine
-
-# Engine source is copied in by CI (cloned from private repo + plugins injected)
-COPY engine/ /engine/
-
-# Run setup to download engine dependencies
-RUN chmod +x /engine/Setup.sh && /engine/Setup.sh
-
-# Generate project files
-RUN chmod +x /engine/GenerateProjectFiles.sh && /engine/GenerateProjectFiles.sh
-
-# Build the dedicated server target
-RUN cd /engine && \
-    ./Engine/Build/BatchFiles/RunUAT.sh BuildCookRun \
-    -project=/engine/Engine/Build/InstalledBuild.xml \
-    -noP4 \
-    -platform=Linux \
-    -server \
-    -serverconfig=Development \
-    -cook \
-    -build \
-    -stage \
-    -pak \
-    -archive \
-    -archivedirectory=/output \
-    -unattended \
-    -utf8output
-
-# ── Stage 2: Minimal runtime image ────────────────────────────────
-FROM ubuntu:22.04 AS runtime
+FROM ubuntu:24.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    libssl3 \
-    libc++1 \
-    libc++abi1 \
+# Install minimal runtime dependencies in a single layer
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       ca-certificates \
+       libssl3t64 \
+       libc++1 \
+       libc++abi1 \
+       libcurl4t64 \
     && rm -rf /var/lib/apt/lists/* \
     && useradd -m -s /bin/bash ue-server
 
-COPY --from=builder /output/ /server/
+COPY server/ /server/
 
-RUN chown -R ue-server:ue-server /server
+RUN chmod -R +x /server/ \
+    && chown -R ue-server:ue-server /server
 
 USER ue-server
 WORKDIR /server
 
 EXPOSE 7777/udp
 EXPOSE 7777/tcp
+EXPOSE 27015/udp
+EXPOSE 15000/udp
 
-ENTRYPOINT ["/server/LinuxServer/Binaries/Linux/UnrealServer"]
+ENTRYPOINT ["/server/UnrealServer"]
 CMD ["-log", "-Port=7777"]
