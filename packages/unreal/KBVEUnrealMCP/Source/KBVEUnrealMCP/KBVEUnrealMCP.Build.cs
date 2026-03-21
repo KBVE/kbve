@@ -44,6 +44,12 @@ public class KBVEUnrealMCP : ModuleRules
 			"UMG",
 			// Landscape
 			"Landscape",
+			// AI
+			"AIModule",
+			// Gameplay Tags
+			"GameplayTags",
+			// Niagara (runtime component access)
+			"Niagara",
 			// Settings
 			"DeveloperSettings"
 		});
