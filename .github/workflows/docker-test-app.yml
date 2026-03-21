@@ -59,7 +59,10 @@ jobs:
                     *) VER="" ;;
                   esac
                   if [ -n "$VER" ]; then
-                    sed -i "s/^version = .*/version = \"${VER}\"/" "$TGT"
+                    case "$TGT" in
+                      *.json) jq --arg v "$VER" '.version = $v' "$TGT" > "${TGT}.tmp" && mv "${TGT}.tmp" "$TGT" ;;
+                      *)      sed -i "s/^version = .*/version = \"${VER}\"/" "$TGT" ;;
+                    esac
                     echo "Synced version ${VER} → ${TGT}"
                   fi
 

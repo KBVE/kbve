@@ -82,7 +82,7 @@ jobs:
                     irc-gateway)  SRC="apps/irc/irc-gateway/Cargo.toml";            VTOML="apps/irc/version.toml" ;;
                     discordsh)    SRC="apps/discordsh/axum-discordsh/Cargo.toml";   VTOML="apps/discordsh/version.toml" ;;
                     mc)           SRC="apps/mc/plugins/kbve-mc-plugin/Cargo.toml";  VTOML="apps/mc/version.toml" ;;
-                    edge)         SRC="apps/kbve/edge/deno.json";                   VTOML="apps/kbve/edge/version.toml" ;;
+                    edge)         SRC="apps/kbve/astro-kbve/src/content/docs/project/edge.mdx"; VTOML="apps/kbve/edge/version.toml" ;;
                     cryptothrone) SRC="apps/cryptothrone/axum-cryptothrone/Cargo.toml"; VTOML="apps/cryptothrone/version.toml" ;;
                     kilobase)     SRC=""; VTOML="" ;;
                     *)
@@ -224,10 +224,12 @@ jobs:
                       echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
                       echo "image=kbve/edge"                                                               >> "$GITHUB_OUTPUT"
                       echo "e2e_name=edge"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "cargo_toml=apps/kbve/edge/deno.json"                                          >> "$GITHUB_OUTPUT"
+                      echo "cargo_toml=apps/kbve/astro-kbve/src/content/docs/project/edge.mdx"            >> "$GITHUB_OUTPUT"
                       echo "deployment_yaml=apps/kube/functions/manifests/functions-deployment.yaml"      >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
                       echo "version_toml=apps/kbve/edge/version.toml"                                      >> "$GITHUB_OUTPUT"
+                      echo "version_source=apps/kbve/astro-kbve/src/content/docs/project/edge.mdx"        >> "$GITHUB_OUTPUT"
+                      echo "version_target=apps/kbve/edge/deno.json"                                      >> "$GITHUB_OUTPUT"
                       ;;
                     cryptothrone)
                       echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
