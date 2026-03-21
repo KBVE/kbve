@@ -1,37 +1,30 @@
 # Valkey configuration — secondary key-value store alongside Redis
-# Valkey is an open-source Redis fork maintained by the Linux Foundation
-architecture: standalone
+# Official valkey-io/valkey-helm chart (not Bitnami)
 
 auth:
     enabled: true
-    existingSecret: valkey-auth
-    existingSecretPasswordKey: valkey-password
+    aclUsers:
+        default:
+            permissions: '~* &* +@all'
+            passwordKey: valkey-password
+    usersExistingSecret: valkey-auth
 
-master:
-    service:
-        type: ClusterIP
-        ports:
-            valkey: 6379
-    persistence:
-        enabled: true
-        size: 8Gi
-        storageClass: 'longhorn'
-    resources:
-        requests:
-            memory: '256Mi'
-            cpu: '100m'
-        limits:
-            memory: '512Mi'
-            cpu: '500m'
+dataStorage:
+    enabled: true
+    requestedSize: 8Gi
+    className: longhorn
+    accessModes:
+        - ReadWriteOnce
+
+resources:
+    requests:
+        memory: '256Mi'
+        cpu: '100m'
+    limits:
+        memory: '512Mi'
+        cpu: '500m'
 
 metrics:
     enabled: true
     serviceMonitor:
         enabled: true
-        namespace: valkey
-
-networkPolicy:
-    enabled: true
-    allowExternal: true
-    ingressNSMatchLabels: {}
-    ingressNSPodMatchLabels: {}
