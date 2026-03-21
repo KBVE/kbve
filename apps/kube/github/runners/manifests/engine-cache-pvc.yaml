@@ -1,0 +1,20 @@
+# Persistent cache for UnrealEngine-Angelscript source (~50GB+).
+# Mounted at /mnt/longhorn/angelscript-engine on UE runner pods.
+# First build clones the private repo; subsequent builds do git fetch + checkout.
+# Uses secondary SSD (longhorn-sdb) for dedicated I/O on heavy engine builds.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: arc-engine-cache
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/component: engine-cache
+        app.kubernetes.io/part-of: arc-runner-ue
+        engine: unrealengine
+spec:
+    accessModes:
+        - ReadWriteMany
+    storageClassName: longhorn-sdb
+    resources:
+        requests:
+            storage: 200Gi

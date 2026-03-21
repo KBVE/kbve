@@ -1,0 +1,89 @@
+# ARC Runner Scale Set — Unreal Engine macOS builds
+# macOS cannot run in containers. This runner set uses containerMode: null
+# (bare-metal / non-containerized) and requires a Mac node registered as a
+# Kubernetes worker with node label:
+#   kbve.com/os: macos
+#
+# Setup options for the Mac node:
+#   1. Mac mini with Talos/K3s agent joined to the cluster
+#   2. MacStadium / AWS EC2 Mac instance with K8s agent
+#   3. Standalone self-hosted runner (register directly with GitHub,
+#      label it "arc-runner-ue-mac" — no ARC needed)
+#
+# Option 3 is simplest: install the GH runner agent on a Mac, label it
+# arc-runner-ue-mac, and skip this Helm release entirely.
+#
+# Workflows use: runs-on: arc-runner-ue-mac
+#
+# NOTE: This runner set will only schedule pods if macOS nodes exist.
+# Without them, it stays at 0 runners harmlessly.
+
+runnerScaleSetName: 'arc-runner-ue-mac'
+
+# GitHub configuration
+githubConfigUrl: 'https://github.com/kbve'
+githubConfigSecret: github-arc-token
+
+# Controller service account reference
+controllerServiceAccount:
+    name: arc-controller
+    namespace: arc-systems
+
+# Scaling — Mac UE builds are heavy
+minRunners: 0
+maxRunners: 2
+
+# Non-containerized mode — runner agent runs directly on the host
+containerMode:
+    type: kubernetes
+
+template:
+    metadata:
+        annotations:
+            kbve.com/restart-trigger: '20260320-initial'
+    spec:
+        nodeSelector:
+            kbve.com/os: macos
+        tolerations:
+            - key: os
+              operator: Equal
+              value: macos
+              effect: NoSchedule
+        containers:
+            - name: runner
+              image: ghcr.io/actions/actions-runner:2.333.0
+              env:
+                  - name: RUNNER_ALLOW_RUNASROOT
+                    value: '1'
+              resources:
+                  limits:
+                      cpu: '8'
+                      memory: 16Gi
+                  requests:
+                      cpu: '4'
+                      memory: 8Gi
+              volumeMounts:
+                  - name: work
+                    mountPath: /home/runner/_work
+        volumes:
+            - name: work
+              emptyDir: {}
+
+listenerTemplate:
+    spec:
+        containers:
+            - name: listener
+              resources:
+                  limits:
+                      cpu: 250m
+                      memory: 256Mi
+                  requests:
+                      cpu: 50m
+                      memory: 64Mi
+              securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  runAsNonRoot: true
+                  capabilities:
+                      drop:
+                          - ALL
