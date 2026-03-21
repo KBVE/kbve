@@ -433,14 +433,16 @@ jobs:
               run: |
                   VERSION="${{ needs.version-gate.outputs.version }}"
 
-                  # Prepare engine directory for Docker context
-                  mkdir -p docker-context/engine
-                  cp -r "${{ env.ENGINE_CACHE_PATH }}/Engine/Binaries/Linux" docker-context/engine/
+                  # Prepare Docker context with pre-built server binaries
+                  mkdir -p docker-context/server
+                  cp -r "${{ env.ENGINE_CACHE_PATH }}/Engine/Binaries/Linux/"* docker-context/server/
                   cp apps/angelscript/Dockerfile.dedicated-server docker-context/Dockerfile
 
                   echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
+                  # Use --network=host to avoid overlay-in-overlay issues in DinD
                   docker build \
+                    --network=host \
                     -t "${{ env.DOCKER_IMAGE }}:${VERSION}" \
                     -t "${{ env.DOCKER_IMAGE }}:latest" \
                     -f docker-context/Dockerfile \
