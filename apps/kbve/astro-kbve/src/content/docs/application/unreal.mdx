@@ -420,17 +420,17 @@ Every UE API call is marshaled to the GameThread via `AsyncTask` for thread safe
 | `physics.*` | set_properties, enable_simulation, get_info, add_constraint | Complete |
 | `performance.*` | get_stats, profile_gpu, get_memory_info | Complete |
 | `audio.*` | spawn_source, set_properties, play, stop, get_info | Complete |
-| `input.*` | create_action, create_mapping, get_info | Complete |
+| `input.*` | create_action, create_mapping, bind_action, get_info | Complete |
 | `spline.*` | create, add_point, set_properties, get_info | Complete |
 | `codeanalysis.*` | analyze_class, find_references, search_code, get_hierarchy | Complete |
 | `network.*` | set_replication, get_info | Complete |
 | `geometry.*` | create_procedural_mesh (basic shapes), get_info | Complete |
 | `ai.*` | create_behavior_tree, set_blackboard, get_info | Complete |
 | `animation.*` | create_anim_bp, set_sequence, add_notify, get_tracks | Complete |
-| `niagara.*` | activate, deactivate, get_info | Partial |
+| `niagara.*` | activate, deactivate, set_parameter, get_info | Complete |
+| `gameplay.*` | create_interaction, get_info (tags, GAS, trigger volumes) | Complete |
 | `landscape.*` | get_info | Partial |
 | `widget.*` | create | Partial |
-| `gameplay.*` | get_info (gameplay tags, GAS availability) | Partial |
 | `mcp.*` | ping, list_methods, server_info | Complete |
 
 **Safety features:**
@@ -445,15 +445,14 @@ The following methods are registered but return `NOT_IMPLEMENTED`. Each is track
 
 | Domain | Stubbed Methods | Reason |
 |--------|----------------|--------|
-| `niagara.*` | create_system, set_parameter | Requires deep Niagara editor graph API |
+| `niagara.*` | create_system | Requires Niagara editor graph API for authoring new systems |
 | `landscape.*` | sculpt, flatten, smooth, paint_layer | Height/weight map editing requires editor mode tools |
 | `widget.*` | add_element, bind_event, set_property, add_to_viewport, remove | UMG widget tree manipulation needs Slate editor API wrapping |
 | `animation.*` | add_state, add_transition | AnimGraph state machine node manipulation is version-sensitive |
-| `gameplay.*` | add_ability, add_attribute, create_interaction | GAS is an optional plugin; needs conditional loading |
+| `gameplay.*` | add_ability, add_attribute | GAS is an optional plugin; needs conditional loading |
 | `network.*` | create_session | Depends on project-specific online subsystem config |
 | `geometry.*` | set_vertices | Requires ProceduralMeshComponent plugin |
 | `ai.*` | add_task | BT graph node editing requires specialized graph API |
-| `input.*` | bind_action | Requires IMC asset mutation with key binding structs |
 
 **License:** Part of the KBVE monorepo (MIT)
 
