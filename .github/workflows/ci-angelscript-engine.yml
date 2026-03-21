@@ -100,7 +100,7 @@ jobs:
             - name: Compare versions
               id: compare
               env:
-                  GH_TOKEN: ${{ github.token }}
+                  GH_TOKEN: ${{ secrets.UNITY_PAT }}
               run: |
                   VERSION="${{ steps.extract.outputs.version }}"
                   TAG="angelscript-v${VERSION}"
@@ -112,11 +112,11 @@ jobs:
                   elif [ "${VERSION}" = "0.0.0" ]; then
                     echo "::notice::Version is 0.0.0 — initial build"
                     echo "should_build=true" >> "$GITHUB_OUTPUT"
-                  elif gh release view "${TAG}" --json tagName >/dev/null 2>&1; then
-                    echo "::notice::Release ${TAG} already exists — skipping build"
+                  elif gh release view "${TAG}" --repo "${{ env.ENGINE_REPO }}" --json tagName >/dev/null 2>&1; then
+                    echo "::notice::Release ${TAG} already exists on ${{ env.ENGINE_REPO }} — skipping build"
                     echo "should_build=false" >> "$GITHUB_OUTPUT"
                   else
-                    echo "::notice::No existing release for ${TAG} — will build"
+                    echo "::notice::No existing release for ${TAG} on ${{ env.ENGINE_REPO }} — will build"
                     echo "should_build=true" >> "$GITHUB_OUTPUT"
                   fi
 
@@ -189,7 +189,7 @@ jobs:
 
             - name: Clone or update engine source
               env:
-                  ENGINE_PAT: ${{ secrets.ENGINE_PAT }}
+                  UNITY_PAT: ${{ secrets.UNITY_PAT }}
               shell: pwsh
               run: |
                   $CachePath = "${{ env.ENGINE_CACHE_PATH }}"
@@ -197,7 +197,7 @@ jobs:
                   if (Test-Path "$CachePath\.git") {
                     Write-Host "::notice::Using cached engine source at $CachePath"
                     Push-Location $CachePath
-                    git remote set-url origin "https://x-access-token:${env:ENGINE_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
+                    git remote set-url origin "https://x-access-token:${env:UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
                     git fetch origin ${{ inputs.engine_ref }}
                     git checkout FETCH_HEAD
                     git clean -fdx -e "Engine/Binaries" -e "Engine/Intermediate"
@@ -205,7 +205,7 @@ jobs:
                   } else {
                     Write-Host "::notice::Fresh clone of engine source"
                     git clone --depth 1 --branch ${{ inputs.engine_ref }} `
-                      "https://x-access-token:${env:ENGINE_PAT}@github.com/${{ env.ENGINE_REPO }}.git" `
+                      "https://x-access-token:${env:UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" `
                       $CachePath
                   }
 
@@ -303,21 +303,21 @@ jobs:
 
             - name: Clone or update engine source
               env:
-                  ENGINE_PAT: ${{ secrets.ENGINE_PAT }}
+                  UNITY_PAT: ${{ secrets.UNITY_PAT }}
               run: |
                   CACHE="${{ env.ENGINE_CACHE_PATH }}"
 
                   if [ -d "${CACHE}/.git" ]; then
                     echo "::notice::Using cached engine source at ${CACHE}"
                     cd "${CACHE}"
-                    git remote set-url origin "https://x-access-token:${ENGINE_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
+                    git remote set-url origin "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
                     git fetch origin ${{ inputs.engine_ref }}
                     git checkout FETCH_HEAD
                     git clean -fdx -e "Engine/Binaries" -e "Engine/Intermediate"
                   else
                     echo "::notice::Fresh clone of engine source"
                     git clone --depth 1 --branch ${{ inputs.engine_ref }} \
-                      "https://x-access-token:${ENGINE_PAT}@github.com/${{ env.ENGINE_REPO }}.git" \
+                      "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" \
                       "${CACHE}"
                   fi
 
@@ -408,21 +408,21 @@ jobs:
 
             - name: Clone or update engine source
               env:
-                  ENGINE_PAT: ${{ secrets.ENGINE_PAT }}
+                  UNITY_PAT: ${{ secrets.UNITY_PAT }}
               run: |
                   CACHE="${{ env.ENGINE_CACHE_PATH }}"
 
                   if [ -d "${CACHE}/.git" ]; then
                     echo "::notice::Using cached engine source at ${CACHE}"
                     cd "${CACHE}"
-                    git remote set-url origin "https://x-access-token:${ENGINE_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
+                    git remote set-url origin "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
                     git fetch origin ${{ inputs.engine_ref }}
                     git checkout FETCH_HEAD
                     git clean -fdx -e "Engine/Binaries" -e "Engine/Intermediate"
                   else
                     echo "::notice::Fresh clone of engine source"
                     git clone --depth 1 --branch ${{ inputs.engine_ref }} \
-                      "https://x-access-token:${ENGINE_PAT}@github.com/${{ env.ENGINE_REPO }}.git" \
+                      "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" \
                       "${CACHE}"
                   fi
 
@@ -508,7 +508,7 @@ jobs:
                   docker logout ghcr.io 2>/dev/null || true
                   docker system prune -f 2>/dev/null || true
 
-    # ── GitHub Release ──────────────────────────────────────────
+    # ── GitHub Release (on KBVE/UnrealEngine-Angelscript) ───────
     release:
         name: Create GitHub Release
         needs: [version-gate, build-windows, build-mac, build-linux]
@@ -522,7 +522,7 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 15
         permissions:
-            contents: write
+            contents: read
         steps:
             - name: Download all artifacts
               uses: actions/download-artifact@v8
@@ -531,9 +531,9 @@ jobs:
                   pattern: angelscript-*
                   merge-multiple: false
 
-            - name: Create release
+            - name: Create release on private repo
               env:
-                  GH_TOKEN: ${{ github.token }}
+                  GH_TOKEN: ${{ secrets.UNITY_PAT }}
               run: |
                   VERSION="${{ needs.version-gate.outputs.version }}"
                   TAG="${{ needs.version-gate.outputs.tag }}"
@@ -541,12 +541,12 @@ jobs:
                   # Collect all zip files from artifact directories
                   find ./artifacts -name "*.zip" -type f > /tmp/release_files.txt
 
-                  echo "::notice::Creating release ${TAG} with artifacts:"
+                  echo "::notice::Creating release ${TAG} on ${{ env.ENGINE_REPO }} with artifacts:"
                   cat /tmp/release_files.txt
 
                   RELEASE_NOTES="## AngelScript Engine v${VERSION}
 
-                  Built from \`${{ env.ENGINE_REPO }}\` ref: \`${{ inputs.engine_ref }}\`
+                  Built from ref: \`${{ inputs.engine_ref }}\`
 
                   ### Artifacts
                   | Platform | Status |
@@ -554,6 +554,9 @@ jobs:
                   | Windows x86 | ${{ needs.build-windows.result }} |
                   | Mac x86 | ${{ needs.build-mac.result }} |
                   | Linux Server | ${{ needs.build-linux.result }} |
+
+                  ### Docker
+                  Linux dedicated server image: \`${{ env.DOCKER_IMAGE }}:${VERSION}\`
                   "
 
                   # Build gh release create command with all files
@@ -563,17 +566,20 @@ jobs:
                   done < /tmp/release_files.txt
 
                   eval gh release create "${TAG}" \
-                    --repo "${{ github.repository }}" \
+                    --repo "${{ env.ENGINE_REPO }}" \
                     --title "AngelScript Engine v${VERSION}" \
                     --notes "'${RELEASE_NOTES}'" \
                     --prerelease \
                     ${UPLOAD_ARGS}
 
-    # ── Update version.toml ─────────────────────────────────────
+    # ── Update version.toml + kube image tag ──────────────────────
     update-version:
-        name: PR version.toml update
-        needs: [version-gate, release]
-        if: needs.version-gate.outputs.should_build == 'true' && needs.release.result == 'success'
+        name: PR version.toml + kube image update
+        needs: [version-gate, release, build-linux]
+        if: |
+            always() &&
+            needs.version-gate.outputs.should_build == 'true' &&
+            needs.release.result == 'success'
         runs-on: ubuntu-latest
         timeout-minutes: 10
         permissions:
@@ -590,6 +596,16 @@ jobs:
                   echo 'version = "${{ needs.version-gate.outputs.version }}"' > apps/angelscript/version.toml
                   cat apps/angelscript/version.toml
 
+            - name: Update kube deployment image tag
+              if: needs.build-linux.result == 'success'
+              run: |
+                  VERSION="${{ needs.version-gate.outputs.version }}"
+                  DEPLOY="apps/kube/angelscript/manifest/deployment.yaml"
+
+                  sed -i "s|image: ghcr.io/kbve/angelscript-server:.*|image: ghcr.io/kbve/angelscript-server:${VERSION}|" "${DEPLOY}"
+                  echo "::notice::Updated deployment image to ghcr.io/kbve/angelscript-server:${VERSION}"
+                  grep "image:" "${DEPLOY}"
+
             - name: Create PR
               env:
                   GH_TOKEN: ${{ github.token }}
@@ -601,11 +617,12 @@ jobs:
                   git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
                   git checkout -b "${BRANCH}"
                   git add apps/angelscript/version.toml
-                  git commit -m "chore(angelscript): update version.toml to ${VERSION} [skip ci]"
+                  git add apps/kube/angelscript/manifest/deployment.yaml
+                  git commit -m "chore(angelscript): update version.toml + kube image to ${VERSION} [skip ci]"
                   git push origin "${BRANCH}"
 
                   gh pr create \
                     --base dev \
                     --head "${BRANCH}" \
-                    --title "chore(angelscript): update version.toml to ${VERSION}" \
-                    --body "Automated post-build update. AngelScript Engine v${VERSION} has been released."
+                    --title "chore(angelscript): update to v${VERSION}" \
+                    --body "Automated post-build update. AngelScript Engine v${VERSION} released on ${{ env.ENGINE_REPO }}. Docker image: \`${{ env.DOCKER_IMAGE }}:${VERSION}\`"

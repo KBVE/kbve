@@ -27,12 +27,18 @@ To avoid re-cloning the full engine repo (~50GB+) on every build, ARC runners mo
 - Mount path: `/mnt/longhorn/angelscript-engine`
 - First build clones fresh; subsequent builds do `git fetch + checkout`
 
+## Release Strategy
+
+- **Windows + Mac**: Released on [KBVE/UnrealEngine-Angelscript](https://github.com/KBVE/UnrealEngine-Angelscript) as zip attachments
+- **Linux Docker**: Pushed to `ghcr.io/kbve/angelscript-server:{version}`
+- **Kube deployment**: Auto-PR bumps image tag in `apps/kube/angelscript/manifest/deployment.yaml`
+
 ## Secrets Required
 
-| Secret         | Description                                                    |
-| -------------- | -------------------------------------------------------------- |
-| `ENGINE_PAT`   | GitHub PAT with read access to `KBVE/UnrealEngine-Angelscript` |
-| `GITHUB_TOKEN` | Auto-provided, used for GHCR push and release creation         |
+| Secret         | Description                                                                         |
+| -------------- | ----------------------------------------------------------------------------------- |
+| `UNITY_PAT`    | GitHub PAT with read + release access to `KBVE/UnrealEngine-Angelscript` (existing) |
+| `GITHUB_TOKEN` | Auto-provided, used for GHCR push and kube image tag PR                             |
 
 ## Files
 
