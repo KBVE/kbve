@@ -72,6 +72,8 @@ template:
                   - name: engine-cache
                     mountPath: /mnt/longhorn/angelscript-engine
             # Docker-in-Docker sidecar with persistent image cache
+            # Uses fuse-overlayfs storage driver for Longhorn PVC compatibility
+            # (native overlayfs fails on whiteout opaque dirs with Longhorn backing)
             - name: dind
               image: docker:29.3.0-dind
               args:
@@ -79,6 +81,7 @@ template:
                   - --host=unix:///var/run/docker.sock
                   - --host=tcp://0.0.0.0:2376
                   - --tls=false
+                  - --storage-driver=fuse-overlayfs
               securityContext:
                   privileged: true
               resources:
