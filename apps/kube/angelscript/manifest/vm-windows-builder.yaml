@@ -2,39 +2,24 @@
 # Requires: KubeVirt operator + CDI deployed in the cluster.
 #
 # Provisioning steps (one-time, after KubeVirt + CDI are running):
-#   1. Upload Windows ISO directly into the PVC via virtctl:
-#        virtctl image-upload pvc windows-builder-iso \
+#   1. Port-forward the CDI upload proxy:
+#        kubectl port-forward -n cdi svc/cdi-uploadproxy 8443:443
+#   2. Upload Windows ISO via virtctl DataVolume:
+#        virtctl image-upload dv windows-server-builder-iso \
 #          --size=8Gi \
-#          --image-path=./windows-server-2022.iso \
+#          --image-path=/Users/alappatel/Downloads/win_server.iso \
 #          --storage-class=longhorn \
 #          --namespace=angelscript \
+#          --uploadproxy-url=https://localhost:8443 \
 #          --insecure
-#   2. Start the VM (ArgoCD sets running: true, or use virtctl start)
-#   3. Connect via VNC and install Windows:
+#   3. Start the VM: virtctl start windows-builder -n angelscript
+#   4. Connect via VNC and install Windows:
 #        virtctl vnc windows-builder -n angelscript
-#   4. Inside Windows, install:
+#   5. Inside Windows, install:
 #      - virtio-win drivers (from the virtio CD-ROM attached below)
 #      - Visual Studio Build Tools (MSVC)
 #      - GitHub Actions runner (configured for KBVE/UnrealEngine-Angelscript)
-#   5. After setup, the VM runs as a persistent self-hosted runner.
----
-# ISO PVC — created empty, then populated via virtctl image-upload.
-# This avoids needing an HTTP-accessible URL for the ISO.
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-    name: windows-builder-iso
-    namespace: angelscript
-    labels:
-        app: angelscript
-        component: windows-builder
-spec:
-    accessModes:
-        - ReadWriteOnce
-    storageClassName: longhorn
-    resources:
-        requests:
-            storage: 8Gi
+#   6. After setup, the VM runs as a persistent self-hosted runner.
 ---
 # Root disk — blank Longhorn volume for the Windows installation
 apiVersion: v1
@@ -63,8 +48,8 @@ metadata:
         app: angelscript
         component: windows-builder
 spec:
-    # Keep the VM running — it acts as a persistent self-hosted runner
-    running: true
+    # Default to stopped — start manually after ISO upload
+    running: false
     template:
         metadata:
             labels:
@@ -85,7 +70,7 @@ spec:
                           disk:
                               bus: virtio
                           bootOrder: 1
-                        # Windows ISO — used for initial install, can be removed after
+                        # Windows ISO — uploaded via virtctl, managed by CDI DataVolume
                         - name: iso
                           cdrom:
                               bus: sata
@@ -143,8 +128,8 @@ spec:
                   persistentVolumeClaim:
                       claimName: windows-builder-rootdisk
                 - name: iso
-                  persistentVolumeClaim:
-                      claimName: windows-builder-iso
+                  dataVolume:
+                      name: windows-server-builder-iso
                 - name: virtio-drivers
                   containerDisk:
                       image: quay.io/kubevirt/virtio-container-disk:v1.7.2
