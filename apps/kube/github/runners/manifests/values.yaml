@@ -27,7 +27,11 @@ maxRunners: 10
 # runnerGroup: "default"
 
 # Runner container configuration with Docker-in-Docker support
+# Bump RESTART_TRIGGER to force a pod rollout without changing images.
 template:
+    metadata:
+        annotations:
+            kbve.com/restart-trigger: '20260320-image-bump'
     spec:
         # Init container to copy externals for DinD
         initContainers:

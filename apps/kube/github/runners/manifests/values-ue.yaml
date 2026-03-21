@@ -17,7 +17,11 @@ controllerServiceAccount:
 minRunners: 0
 maxRunners: 3
 
+# Bump RESTART_TRIGGER to force a pod rollout without changing images.
 template:
+    metadata:
+        annotations:
+            kbve.com/restart-trigger: '20260320-image-bump'
     spec:
         initContainers:
             - name: init-dind-externals
