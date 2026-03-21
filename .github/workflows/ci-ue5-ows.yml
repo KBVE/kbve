@@ -202,7 +202,8 @@ jobs:
                     shared-mime-info \
                     libssl-dev \
                     python3 \
-                    curl
+                    curl \
+                    git-lfs
 
             - name: Clone or update engine source
               env:
