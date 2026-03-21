@@ -7,11 +7,9 @@ metadata:
     namespace: cdi
     annotations:
         argocd.argoproj.io/sync-wave: '-1'
-        argocd.argoproj.io/hook: Sync
-        argocd.argoproj.io/hook-delete-policy: HookSucceeded
 spec:
     backoffLimit: 3
-    ttlSecondsAfterFinished: 300
+    ttlSecondsAfterFinished: 600
     template:
         metadata:
             labels:
