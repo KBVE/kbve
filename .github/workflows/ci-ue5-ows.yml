@@ -250,10 +250,8 @@ jobs:
 
                   cd /tmp/chuck
 
-                  # Point LFS to internal Forgejo HTTPS (LFS objects live there, not GitHub)
-                  git config lfs.url "http://forgejo-http.forgejo.svc.cluster.local:3000/KBVE/chuck.git/info/lfs"
-                  git config credential.helper store
-                  echo "http://x-access-token:${FORGEJO_API_TOKEN}@forgejo-http.forgejo.svc.cluster.local:3000" > ~/.git-credentials
+                  # Point LFS to internal Forgejo HTTPS with token inline (LFS objects live on Forgejo, not GitHub)
+                  git config lfs.url "http://x-access-token:${FORGEJO_API_TOKEN}@forgejo-http.forgejo.svc.cluster.local:3000/KBVE/chuck.git/info/lfs"
 
                   git lfs pull
 
