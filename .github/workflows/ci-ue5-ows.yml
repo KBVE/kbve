@@ -13,11 +13,11 @@ on:
                 required: false
                 type: boolean
                 default: false
-            ue_image_tag:
-                description: 'Epic UE container image tag (e.g. dev-slim-5.7)'
+            engine_ref:
+                description: 'Engine git branch/tag (KBVE/UnrealEngine-Angelscript)'
                 required: false
                 type: string
-                default: 'dev-slim-5.7'
+                default: 'angelscript-master'
             skip_version_gate:
                 description: 'Skip version gate (force rebuild)'
                 required: false
@@ -214,14 +214,14 @@ jobs:
                     echo "::notice::Using cached engine source at ${CACHE}"
                     cd "${CACHE}"
                     git remote set-url origin "https://x-access-token:${UNITY_PAT}@github.com/KBVE/UnrealEngine-Angelscript.git"
-                    git fetch origin ${{ inputs.ue_image_tag || 'angelscript-master' }}
+                    git fetch origin ${{ inputs.engine_ref || 'angelscript-master' }}
                     git reset --hard FETCH_HEAD
                   else
                     if [ -d "${CACHE}" ]; then
                       rm -rf "${CACHE:?}"/*
                     fi
                     echo "::notice::Fresh clone of engine source"
-                    git clone --depth 1 --branch ${{ inputs.ue_image_tag || 'angelscript-master' }} \
+                    git clone --depth 1 --branch ${{ inputs.engine_ref || 'angelscript-master' }} \
                       "https://x-access-token:${UNITY_PAT}@github.com/KBVE/UnrealEngine-Angelscript.git" \
                       "${CACHE}"
                   fi
