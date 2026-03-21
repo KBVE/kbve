@@ -240,9 +240,12 @@ jobs:
 
             - name: Clone HubWorldMMO
               run: |
+                  git lfs install
                   git clone --depth 1 \
                     "https://x-access-token:${{ secrets.UNITY_PAT }}@github.com/${{ env.CHUCK_REPO }}.git" \
                     /tmp/chuck
+                  cd /tmp/chuck
+                  git lfs pull
 
             - name: Build dedicated server
               run: |
