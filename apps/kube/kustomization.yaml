@@ -77,6 +77,7 @@ resources:
     - forgejo/application.yaml
 
     # KubeVirt — VM workloads on Talos (KVM in kernel, no extensions needed)
+    # Operators installed manually: kubectl apply -f <upstream-operator.yaml>
+    # ArgoCD manages namespace + KubeVirt CR + shared storage
     - kubevirt/application.yaml
     - kubevirt/cr-application.yaml
-    - kubevirt/cdi-application.yaml
