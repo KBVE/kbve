@@ -13,6 +13,11 @@ on:
                 required: false
                 type: boolean
                 default: false
+            ue_image_tag:
+                description: 'Epic UE container image tag (e.g. dev-5.7)'
+                required: false
+                type: string
+                default: 'dev-5.7'
             skip_version_gate:
                 description: 'Skip version gate (force rebuild)'
                 required: false
@@ -175,7 +180,7 @@ jobs:
             contents: read
             packages: write
         env:
-            UE_IMAGE: ghcr.io/epicgames/unreal-engine:dev-5.7.4
+            UE_IMAGE: ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}
             CHUCK_REPO: KBVE/chuck
             SERVER_IMAGE: ghcr.io/kbve/ows-hubworld-server
 
