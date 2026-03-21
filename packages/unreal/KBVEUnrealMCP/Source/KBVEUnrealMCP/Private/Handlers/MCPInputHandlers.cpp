@@ -4,12 +4,14 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputModifiers.h"
 
 void FMCPInputHandlers::Register(FMCPHandlerRegistry& Registry)
 {
 	Registry.RegisterHandler(TEXT("input.create_action"), &HandleCreateAction);
 	Registry.RegisterHandler(TEXT("input.create_mapping"), &HandleCreateMapping);
-	Registry.RegisterHandler(TEXT("input.bind_action"), MCPProtocolHelpers::MakeStub(TEXT("input.bind_action")));
+	Registry.RegisterHandler(TEXT("input.bind_action"), &HandleBindAction);
 	Registry.RegisterHandler(TEXT("input.get_info"), &HandleGetInfo);
 }
 
@@ -59,7 +61,47 @@ void FMCPInputHandlers::HandleCreateMapping(const TSharedPtr<FJsonObject>& Param
 
 void FMCPInputHandlers::HandleBindAction(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
 {
-	MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_IMPLEMENTED"), TEXT("input.bind_action is not yet implemented"));
+	FString IMCPath = Params->GetStringField(TEXT("mapping_context_path"));
+	FString ActionPath = Params->GetStringField(TEXT("action_path"));
+	FString KeyName = Params->GetStringField(TEXT("key"));
+
+	if (IMCPath.IsEmpty() || ActionPath.IsEmpty() || KeyName.IsEmpty())
+	{
+		MCPProtocolHelpers::Fail(OnComplete, TEXT("INVALID_PARAMS"), TEXT("'mapping_context_path', 'action_path', and 'key' are required"));
+		return;
+	}
+
+	UInputMappingContext* IMC = LoadObject<UInputMappingContext>(nullptr, *IMCPath);
+	if (!IMC)
+	{
+		MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), FString::Printf(TEXT("Mapping context not found: %s"), *IMCPath));
+		return;
+	}
+
+	UInputAction* Action = LoadObject<UInputAction>(nullptr, *ActionPath);
+	if (!Action)
+	{
+		MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), FString::Printf(TEXT("Input action not found: %s"), *ActionPath));
+		return;
+	}
+
+	FKey Key(*KeyName);
+	if (!Key.IsValid())
+	{
+		MCPProtocolHelpers::Fail(OnComplete, TEXT("INVALID_KEY"), FString::Printf(TEXT("Invalid key name: %s"), *KeyName));
+		return;
+	}
+
+	FEnhancedActionKeyMapping& Mapping = IMC->MapKey(Action, Key);
+
+	IMC->MarkPackageDirty();
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetStringField(TEXT("mapping_context"), IMC->GetName());
+	Result->SetStringField(TEXT("action"), Action->GetName());
+	Result->SetStringField(TEXT("key"), KeyName);
+	Result->SetBoolField(TEXT("bound"), true);
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
 }
 
 void FMCPInputHandlers::HandleGetInfo(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
