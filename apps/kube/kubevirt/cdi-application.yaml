@@ -1,4 +1,6 @@
 # CDI (Containerized Data Importer) — imports disk images (Windows ISO) into PVCs
+# Bootstrap Job applies upstream CDI operator + CR YAML.
+# SkipDryRunOnMissingResource handles CRD chicken-and-egg ordering.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -25,10 +27,11 @@ spec:
             - CreateNamespace=true
             - ServerSideApply=true
             - PruneLast=true
+            - SkipDryRunOnMissingResource=true
         retry:
-            limit: 5
+            limit: 10
             backoff:
-                duration: 5s
+                duration: 15s
                 factor: 2
-                maxDuration: 3m
+                maxDuration: 10m
     revisionHistoryLimit: 3
