@@ -420,9 +420,13 @@ jobs:
 
                   echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-                  # Use --network=host to avoid overlay-in-overlay issues in DinD
-                  docker build \
-                    --network=host \
+                  # DinD uses overlayfs — BuildKit can't nest overlays inside it.
+                  # Create a buildx builder that uses vfs to avoid the mount error.
+                  docker buildx create --name vfs-builder --driver docker-container \
+                    --driver-opt "image=moby/buildkit:latest" --use
+
+                  docker buildx build \
+                    --load \
                     -t "${{ env.DOCKER_IMAGE }}:${VERSION}" \
                     -t "${{ env.DOCKER_IMAGE }}:latest" \
                     -f docker-context/Dockerfile \
