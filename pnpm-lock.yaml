@@ -279,8 +279,8 @@ importers:
                 specifier: 22.5.4
                 version: 22.5.4(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.8(@swc/helpers@0.5.18)))
             '@nx/dotnet':
-                specifier: ^22.6.1
-                version: 22.6.1(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.8(@swc/helpers@0.5.18)))
+                specifier: ^22.5.4
+                version: 22.5.4(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.8(@swc/helpers@0.5.18)))
             '@nx/esbuild':
                 specifier: 22.5.4
                 version: 22.5.4(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.8(@swc/helpers@0.5.18))(esbuild@0.25.0)(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.8(@swc/helpers@0.5.18)))(verdaccio@6.0.5(encoding@0.1.13)(typanion@3.14.0))
@@ -5086,24 +5086,16 @@ packages:
         peerDependencies:
             nx: '>= 21 <= 23 || ^22.0.0-0'
 
-    '@nx/devkit@22.6.1':
-        resolution:
-            {
-                integrity: sha512-/mwG9zWY1phsWvMKzP0yZ4pE6aH0kLH31DuCYj4eLbhuUu0STL3xSdjPPzhDHf71R4K3YnuvG97e2qiGDbG5Qw==,
-            }
-        peerDependencies:
-            nx: '>= 21 <= 23 || ^22.0.0-0'
-
     '@nx/docker@22.5.4':
         resolution:
             {
                 integrity: sha512-nO4CKMWoq680dDkQSx8q1bZRI0io0yct1nx1w8NWSnnhKPB5Hbi6tXcFXsrSvoR3C02OyS9TRDw0Vc5eXjW3uA==,
             }
 
-    '@nx/dotnet@22.6.1':
+    '@nx/dotnet@22.5.4':
         resolution:
             {
-                integrity: sha512-vdbEdqPNzMiWPbedUXPvQJ3YtyZcTequlDBWHf8Xg1uY/wpslJ+PLOwUtTfZO2aWwbmBXHvYspUqKGvylYSv5w==,
+                integrity: sha512-EEbdN8oimhpoURUKqRNgwkuXdiGMia8A1no35Yk+NIEz7Da+pdz5OwBWIM0eVTUFPUrQUSSaAmQBF9Y/vbIk7g==,
             }
 
     '@nx/esbuild@22.5.4':
@@ -30518,17 +30510,6 @@ snapshots:
             tslib: 2.8.1
             yargs-parser: 21.1.1
 
-    '@nx/devkit@22.6.1(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.8(@swc/helpers@0.5.18)))':
-        dependencies:
-            '@zkochan/js-yaml': 0.0.7
-            ejs: 3.1.10
-            enquirer: 2.3.6
-            minimatch: 10.2.4
-            nx: 22.5.4(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.8(@swc/helpers@0.5.18))
-            semver: 7.7.4
-            tslib: 2.8.1
-            yargs-parser: 21.1.1
-
     '@nx/docker@22.5.4(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.8(@swc/helpers@0.5.18)))':
         dependencies:
             '@nx/devkit': 22.5.4(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.8(@swc/helpers@0.5.18)))
@@ -30537,9 +30518,9 @@ snapshots:
         transitivePeerDependencies:
             - nx
 
-    '@nx/dotnet@22.6.1(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.8(@swc/helpers@0.5.18)))':
+    '@nx/dotnet@22.5.4(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.8(@swc/helpers@0.5.18)))':
         dependencies:
-            '@nx/devkit': 22.6.1(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.8(@swc/helpers@0.5.18)))
+            '@nx/devkit': 22.5.4(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.8(@swc/helpers@0.5.18)))
             ignore: 7.0.5
             tslib: 2.8.1
         transitivePeerDependencies:

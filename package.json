@@ -21,7 +21,7 @@
 		"@nanostores/react": "^1.0.0",
 		"@nx-tools/nx-container": "^7.2.1",
 		"@nx/devkit": "22.5.4",
-		"@nx/dotnet": "^22.6.1",
+		"@nx/dotnet": "^22.5.4",
 		"@nx/esbuild": "22.5.4",
 		"@nx/eslint": "22.5.4",
 		"@nx/eslint-plugin": "22.5.4",
