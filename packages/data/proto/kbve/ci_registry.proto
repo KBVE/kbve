@@ -49,6 +49,18 @@ message CiProject {
 
   // --- CI version tracking ---
   optional string version_toml = 14;        // Path to version.toml relative to repo root
+  optional string version = 15;             // Release version (semver x.y.z)
+
+  // --- Project metadata ---
+  optional string author = 16;              // Primary maintainer
+  optional string license = 17;             // SPDX license identifier (MIT, Apache-2.0, etc.)
+  optional string repository_url = 18;      // Package or project URL
+  optional string homepage_url = 19;        // Public-facing page
+  optional string status = 20;              // Lifecycle: active, beta, deprecated, archived
+
+  // --- Unreal-specific metadata ---
+  optional string min_engine_version = 21;  // Minimum UE version (e.g. "5.4")
+  repeated string supported_platforms = 22; // Win64, Linux, Mac, etc.
 }
 
 // The full registry — a flat list of all tracked items.

@@ -1,0 +1,15 @@
+# Persistent storage for UE dedicated server data (saved games, configs, logs)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: angelscript-server-data
+    namespace: angelscript
+    labels:
+        app: angelscript
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn
+    resources:
+        requests:
+            storage: 50Gi

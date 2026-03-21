@@ -1,0 +1,36 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: angelscript-network
+    namespace: angelscript
+    labels:
+        app: angelscript
+spec:
+    podSelector:
+        matchLabels:
+            app: angelscript
+    policyTypes:
+        - Ingress
+        - Egress
+    ingress:
+        # Allow game traffic
+        - ports:
+              - port: 7777
+                protocol: UDP
+              - port: 7777
+                protocol: TCP
+              - port: 27015
+                protocol: UDP
+              - port: 15000
+                protocol: UDP
+    egress:
+        # Allow DNS
+        - ports:
+              - port: 53
+                protocol: UDP
+              - port: 53
+                protocol: TCP
+        # Allow HTTPS (for any API calls / telemetry)
+        - ports:
+              - port: 443
+                protocol: TCP

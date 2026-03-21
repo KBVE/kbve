@@ -54,6 +54,8 @@ resources:
     - rabbitmq/application.yaml
     - rentearth/application.yaml
     - cryptothrone/application.yaml
+    # AngelScript UE dedicated server
+    - angelscript/application.yaml
     # GitHub Actions Runner Controller (ARC)
     # Consolidated: controller includes helm chart + sealed secret + RBAC
     # Consolidated: runners includes helm chart + ExternalSecret/SecretStore
@@ -66,6 +68,10 @@ resources:
     - cilium/application.yaml
     # Cilium LB IPAM — IP pools + L2 announcements (replaces MetalLB)
     - cilium/lb-application.yaml
+
+    # ECK (Elastic Cloud on Kubernetes) — operator + Elasticsearch + Kibana
+    - elk/application.yaml
+    - elk/stack-application.yaml
 
     # Forgejo — Git LFS server + Actions runner, UE asset storage on sdb
     - forgejo/application.yaml

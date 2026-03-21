@@ -1,9 +1,15 @@
 # RabbitMQ Cluster Operator configuration
 # Chart: bitnami/rabbitmq-cluster-operator
+# Note: Bitnami chart references non-existent bitnami/* images on Docker Hub.
+#       We override to use the official rabbitmqoperator/* images instead.
 
 # -- Cluster Operator settings
 clusterOperator:
     replicaCount: 1
+    image:
+        registry: docker.io
+        repository: rabbitmqoperator/cluster-operator
+        tag: '2.16.1'
     resources:
         requests:
             memory: '128Mi'
@@ -12,10 +18,26 @@ clusterOperator:
             memory: '256Mi'
             cpu: '250m'
 
+# -- RabbitMQ broker image used by the operator when creating RabbitmqCluster pods
+rabbitmqImage:
+    registry: docker.io
+    repository: rabbitmq
+    tag: '4.1.3-management'
+
+# -- Default credential updater
+credentialUpdaterImage:
+    registry: docker.io
+    repository: rabbitmqoperator/default-user-credential-updater
+    tag: '1.0.8'
+
 # -- Messaging Topology Operator (manages queues, exchanges, bindings, users, etc. via CRDs)
 msgTopologyOperator:
     enabled: true
     replicaCount: 1
+    image:
+        registry: docker.io
+        repository: rabbitmqoperator/messaging-topology-operator
+        tag: '1.17.4'
     resources:
         requests:
             memory: '128Mi'

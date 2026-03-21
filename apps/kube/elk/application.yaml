@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: eck-operator
+    namespace: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '2'
+spec:
+    project: default
+    sources:
+        - repoURL: https://helm.elastic.co
+          targetRevision: 2.16.1
+          chart: eck-operator
+          helm:
+              releaseName: eck-operator
+              valueFiles:
+                  - $values/apps/kube/elk/manifests/values.yaml
+        - repoURL: https://github.com/kbve/kbve
+          targetRevision: main
+          ref: values
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: elastic-system
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
