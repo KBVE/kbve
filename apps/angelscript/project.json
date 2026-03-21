@@ -1,0 +1,22 @@
+{
+	"name": "angelscript",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/angelscript",
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"echo 'Angelscript engine builds run via GitHub Actions CI — use workflow_dispatch to trigger.'"
+				]
+			}
+		},
+		"version": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cat apps/angelscript/version.toml"]
+			}
+		}
+	}
+}
