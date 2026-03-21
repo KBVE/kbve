@@ -48,8 +48,7 @@ metadata:
         app: angelscript
         component: windows-builder
 spec:
-    # Default to stopped — start manually after ISO upload
-    running: false
+    runStrategy: Manual
     template:
         metadata:
             labels:
