@@ -1,4 +1,7 @@
 # KubeVirt operator — enables VM workloads on Talos (KVM built into kernel)
+# Bootstrap Job (sync-wave -1) applies upstream operator YAML to install CRDs,
+# then the KubeVirt CR (sync-wave 0) configures the deployment.
+# SkipDryRunOnMissingResource lets ArgoCD handle the CRD chicken-and-egg.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -25,12 +28,13 @@ spec:
             - CreateNamespace=true
             - ServerSideApply=true
             - PruneLast=true
+            - SkipDryRunOnMissingResource=true
         retry:
-            limit: 5
+            limit: 10
             backoff:
-                duration: 5s
+                duration: 15s
                 factor: 2
-                maxDuration: 3m
+                maxDuration: 10m
     ignoreDifferences:
         - group: admissionregistration.k8s.io
           kind: ValidatingWebhookConfiguration
