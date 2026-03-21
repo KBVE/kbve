@@ -83,7 +83,7 @@ jobs:
             - name: Setup .NET SDK
               uses: actions/setup-dotnet@v4
               with:
-                  dotnet-version: '9.0.x'
+                  dotnet-version: '8.0.x'
 
             - name: Setup pnpm v10
               uses: pnpm/action-setup@v4
