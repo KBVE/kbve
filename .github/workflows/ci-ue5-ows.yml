@@ -213,7 +213,21 @@ jobs:
                     libxcomposite1 \
                     libxdamage1 \
                     libxrandr2 \
-                    libpango-1.0-0
+                    libpango-1.0-0 \
+                    libcairo2 \
+                    libglib2.0-0 \
+                    libgdk-pixbuf-2.0-0 \
+                    libfontconfig1 \
+                    libfreetype6 \
+                    libx11-6 \
+                    libx11-xcb1 \
+                    libxcb1 \
+                    libxext6 \
+                    libxfixes3 \
+                    libxi6 \
+                    libxrender1 \
+                    libxtst6 \
+                    libasound2t64
 
             - name: Clone or update engine source
               env:
