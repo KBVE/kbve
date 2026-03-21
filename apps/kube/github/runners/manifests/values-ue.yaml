@@ -68,6 +68,9 @@ template:
                     mountPath: /var/run
                   - name: dind-externals
                     mountPath: /home/runner/externals
+                  # Persistent engine source cache for AngelScript builds
+                  - name: engine-cache
+                    mountPath: /mnt/longhorn/angelscript-engine
             # Docker-in-Docker sidecar with persistent image cache
             - name: dind
               image: docker:29.3.0-dind
@@ -104,6 +107,9 @@ template:
             - name: dind-storage
               persistentVolumeClaim:
                   claimName: arc-dind-ue-cache
+            - name: engine-cache
+              persistentVolumeClaim:
+                  claimName: arc-engine-cache
 
 listenerTemplate:
     spec:
