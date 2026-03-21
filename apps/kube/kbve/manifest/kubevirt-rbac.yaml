@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: kbve-app
+    namespace: kbve
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+    name: kbve-kubevirt-manager
+rules:
+    - apiGroups: ['kubevirt.io']
+      resources:
+          - virtualmachines
+          - virtualmachineinstances
+      verbs: ['get', 'list', 'watch', 'patch', 'update']
+    - apiGroups: ['subresources.kubevirt.io']
+      resources:
+          - virtualmachines/start
+          - virtualmachines/stop
+          - virtualmachines/restart
+          - virtualmachineinstances/vnc
+      verbs: ['update', 'get']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+    name: kbve-kubevirt-manager
+subjects:
+    - kind: ServiceAccount
+      name: kbve-app
+      namespace: kbve
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: kbve-kubevirt-manager

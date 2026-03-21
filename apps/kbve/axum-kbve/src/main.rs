@@ -127,6 +127,13 @@ async fn main() -> anyhow::Result<()> {
         info!("Forgejo proxy not configured (FORGEJO_UPSTREAM_URL not set)");
     }
 
+    // Initialize KubeVirt proxy (optional - for /dashboard/vm)
+    if transport::proxy::init_kubevirt_proxy() {
+        info!("KubeVirt proxy initialized - /dashboard/vm/proxy enabled");
+    } else {
+        info!("KubeVirt proxy not configured (KUBEVIRT_API_URL not set)");
+    }
+
     // Initialize game server (headless Bevy + lightyear + avian3d)
     // Runs in its own thread; lightyear binds WebSocket on GAME_WS_ADDR (default :5000)
     gameserver::init_gameserver();

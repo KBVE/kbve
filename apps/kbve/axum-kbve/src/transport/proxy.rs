@@ -500,6 +500,88 @@ pub async fn forgejo_proxy_handler(path: Option<Path<String>>, req: Request<Body
 }
 
 // ---------------------------------------------------------------------------
+// KubeVirt proxy singleton (Kubernetes API for VM control)
+// ---------------------------------------------------------------------------
+
+static KUBEVIRT: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_kubevirt_proxy() -> bool {
+    let upstream = match std::env::var("KUBEVIRT_API_URL") {
+        Ok(u) => u.trim_end_matches('/').to_string(),
+        Err(_) => return false,
+    };
+
+    let auth_token = match std::env::var("KUBEVIRT_TOKEN") {
+        Ok(t) => t,
+        Err(_) => {
+            // Fall back to in-cluster service account token
+            match std::fs::read_to_string("/var/run/secrets/kubernetes.io/serviceaccount/token") {
+                Ok(t) => t.trim().to_string(),
+                Err(_) => return false,
+            }
+        }
+    };
+
+    let mut builder = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(30));
+
+    // Load CA cert for K8s API TLS verification
+    if let Ok(ca_path) = std::env::var("KUBEVIRT_CA_CERT_PATH") {
+        match std::fs::read(&ca_path) {
+            Ok(pem) => match reqwest::Certificate::from_pem(&pem) {
+                Ok(cert) => {
+                    builder = builder.add_root_certificate(cert);
+                    debug!("loaded KubeVirt CA certificate from {ca_path}");
+                }
+                Err(e) => {
+                    warn!("failed to parse KubeVirt CA cert at {ca_path}: {e}");
+                    return false;
+                }
+            },
+            Err(e) => {
+                warn!("failed to read KubeVirt CA cert at {ca_path}: {e}");
+                return false;
+            }
+        }
+    } else {
+        // Fall back to in-cluster CA
+        let ca_path = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt";
+        if let Ok(pem) = std::fs::read(ca_path) {
+            if let Ok(cert) = reqwest::Certificate::from_pem(&pem) {
+                builder = builder.add_root_certificate(cert);
+                debug!("loaded in-cluster CA certificate from {ca_path}");
+            }
+        }
+    }
+
+    let client = builder
+        .build()
+        .expect("failed to build reqwest client for kubevirt proxy");
+
+    KUBEVIRT
+        .set(ServiceProxy {
+            name: "KubeVirt",
+            client,
+            upstream,
+            upstream_token: Some(auth_token),
+        })
+        .is_ok()
+}
+
+pub async fn kubevirt_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
+    match KUBEVIRT.get() {
+        Some(proxy) => proxy.handle(path, req).await,
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "KubeVirt proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Convert axum HeaderMap to reqwest HeaderMap
 // ---------------------------------------------------------------------------
 
