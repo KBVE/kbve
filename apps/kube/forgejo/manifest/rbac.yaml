@@ -79,6 +79,32 @@ subjects:
       name: arc-runners-external-secrets
       namespace: arc-runners
 ---
+# Role: Allow kbve ExternalSecrets SA to read forgejo-deploy-keys secret
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: kbve-forgejo-access
+    namespace: forgejo
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['forgejo-deploy-keys']
+      verbs: ['get']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: kbve-forgejo-access-binding
+    namespace: forgejo
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: kbve-forgejo-access
+subjects:
+    - kind: ServiceAccount
+      name: kbve-external-secrets
+      namespace: kbve
+---
 # NetworkPolicy: Allow forgejo pods to reach Redis on port 6379
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
