@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: rabbitmq
+    namespace: argocd
+spec:
+    project: default
+    sources:
+        - repoURL: https://charts.bitnami.com/bitnami
+          targetRevision: 4.4.34
+          chart: rabbitmq-cluster-operator
+          helm:
+              releaseName: rabbitmq-cluster-operator
+              valueFiles:
+                  - $values/apps/kube/rabbitmq/manifests/values.yaml
+        - repoURL: https://github.com/kbve/kbve
+          targetRevision: main
+          ref: values
+        - repoURL: https://github.com/kbve/kbve
+          targetRevision: main
+          path: apps/kube/rabbitmq/manifests
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: rabbitmq-system
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+            - RespectIgnoreDifferences=true
+        retry:
+            limit: 3
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m

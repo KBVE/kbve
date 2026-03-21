@@ -1,0 +1,28 @@
+# RabbitMQ Cluster Operator configuration
+# Chart: bitnami/rabbitmq-cluster-operator
+
+# -- Cluster Operator settings
+clusterOperator:
+    replicaCount: 1
+    resources:
+        requests:
+            memory: '128Mi'
+            cpu: '100m'
+        limits:
+            memory: '256Mi'
+            cpu: '250m'
+
+# -- Messaging Topology Operator (manages queues, exchanges, bindings, users, etc. via CRDs)
+msgTopologyOperator:
+    enabled: true
+    replicaCount: 1
+    resources:
+        requests:
+            memory: '128Mi'
+            cpu: '100m'
+        limits:
+            memory: '256Mi'
+            cpu: '250m'
+
+# -- Install CRDs (RabbitmqCluster, Queue, Exchange, Binding, User, etc.)
+useCRDs: true

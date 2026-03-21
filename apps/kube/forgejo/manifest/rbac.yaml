@@ -1,0 +1,75 @@
+# Role: Allow forgejo ExternalSecrets SA to read supabase-cluster-app secret
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: forgejo-supabase-access
+    namespace: kilobase
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['supabase-cluster-app']
+      verbs: ['get']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: forgejo-supabase-access-binding
+    namespace: kilobase
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: forgejo-supabase-access
+subjects:
+    - kind: ServiceAccount
+      name: forgejo-external-secrets
+      namespace: forgejo
+---
+# Role: Allow forgejo ExternalSecrets SA to read redis-auth secret
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: forgejo-redis-access
+    namespace: redis
+rules:
+    - apiGroups: ['']
+      resources: ['services', 'endpoints']
+      verbs: ['get', 'list']
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['redis-auth']
+      verbs: ['get']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: forgejo-redis-access-binding
+    namespace: redis
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: forgejo-redis-access
+subjects:
+    - kind: ServiceAccount
+      name: forgejo-external-secrets
+      namespace: forgejo
+---
+# NetworkPolicy: Allow forgejo pods to reach Redis on port 6379
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: allow-forgejo-to-redis
+    namespace: redis
+spec:
+    podSelector:
+        matchLabels:
+            app.kubernetes.io/name: redis
+    policyTypes:
+        - Ingress
+    ingress:
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        name: forgejo
+          ports:
+              - protocol: TCP
+                port: 6379

@@ -17,11 +17,15 @@ controllerServiceAccount:
 minRunners: 0
 maxRunners: 3
 
+# Bump RESTART_TRIGGER to force a pod rollout without changing images.
 template:
+    metadata:
+        annotations:
+            kbve.com/restart-trigger: '20260320-image-bump'
     spec:
         initContainers:
             - name: init-dind-externals
-              image: ghcr.io/actions/actions-runner:2.332.0
+              image: ghcr.io/actions/actions-runner:2.333.0
               command:
                   [
                       'cp',
@@ -35,7 +39,7 @@ template:
                     mountPath: /home/runner/tmpDir
         containers:
             - name: runner
-              image: ghcr.io/actions/actions-runner:2.332.0
+              image: ghcr.io/actions/actions-runner:2.333.0
               command:
                   [
                       '/bin/bash',
@@ -66,7 +70,7 @@ template:
                     mountPath: /home/runner/externals
             # Docker-in-Docker sidecar with persistent image cache
             - name: dind
-              image: docker:29.2.1-dind
+              image: docker:29.3.0-dind
               args:
                   - dockerd
                   - --host=unix:///var/run/docker.sock
