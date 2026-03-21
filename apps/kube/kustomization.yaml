@@ -81,3 +81,5 @@ resources:
     # ArgoCD manages namespace + KubeVirt CR + shared storage
     - kubevirt/application.yaml
     - kubevirt/cr-application.yaml
+    # KEDA-driven VM scaling — start/stop VMs based on GitHub Actions queue
+    - kubevirt/keda-application.yaml
