@@ -998,8 +998,8 @@ jobs:
     # ══════════════════════════════════════════════════════════
     commit:
         name: Commit & PR
-        needs: [security, report, kanban]
-        if: always() && needs.guard.result == 'success'
+        needs: [guard, security, report, kanban]
+        if: always() && needs.guard.outputs.allowed == 'true'
         runs-on: ubuntu-latest
         timeout-minutes: 30
         permissions:
@@ -1016,7 +1016,30 @@ jobs:
             - name: Download all artifacts
               uses: actions/download-artifact@v4
               with:
+                  path: .
                   merge-multiple: true
+
+            - name: Verify downloaded artifacts
+              run: |
+                  set -euo pipefail
+                  echo "=== Checking artifact files ==="
+                  for f in \
+                    apps/kbve/astro-kbve/src/content/docs/dashboard/security.mdx \
+                    apps/kbve/astro-kbve/src/content/docs/dashboard/report.mdx \
+                    apps/kbve/astro-kbve/src/content/docs/dashboard/graph.mdx \
+                    apps/kbve/astro-kbve/src/content/docs/dashboard/kanban.mdx \
+                    apps/kbve/astro-kbve/public/data/nx/nx-security.json \
+                    apps/kbve/astro-kbve/public/data/nx/nx-report.json \
+                    apps/kbve/astro-kbve/public/data/nx/nx-graph.json \
+                    apps/kbve/astro-kbve/src/data/nx-kanban.json; do
+                    if [ -f "$f" ]; then
+                      echo "OK: $f ($(wc -c < "$f" | xargs) bytes)"
+                    else
+                      echo "MISSING: $f"
+                    fi
+                  done
+                  echo "=== Git status ==="
+                  git status --short | head -20
 
             - name: Remove old MDX files
               run: |
@@ -1032,7 +1055,8 @@ jobs:
             - name: Stage generated files
               run: |
                   set -euo pipefail
-                  git add -f \
+                  STAGED=0
+                  for f in \
                     apps/kbve/astro-kbve/src/content/docs/dashboard/security.mdx \
                     apps/kbve/astro-kbve/src/content/docs/dashboard/report.mdx \
                     apps/kbve/astro-kbve/src/content/docs/dashboard/graph.mdx \
@@ -1040,8 +1064,16 @@ jobs:
                     apps/kbve/astro-kbve/public/data/nx/nx-security.json \
                     apps/kbve/astro-kbve/public/data/nx/nx-report.json \
                     apps/kbve/astro-kbve/public/data/nx/nx-graph.json \
-                    apps/kbve/astro-kbve/src/data/nx-kanban.json \
-                    2>/dev/null || true
+                    apps/kbve/astro-kbve/src/data/nx-kanban.json; do
+                    if [ -f "$f" ]; then
+                      git add -f "$f"
+                      STAGED=$((STAGED + 1))
+                    else
+                      echo "::warning::Missing: $f"
+                    fi
+                  done
+                  echo "Staged $STAGED files"
+                  git diff --cached --stat
 
             - name: Commit and push
               id: commit
