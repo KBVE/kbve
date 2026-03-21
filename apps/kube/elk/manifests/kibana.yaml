@@ -3,8 +3,14 @@ kind: Kibana
 metadata:
     name: kibana
     namespace: elastic-stack
+    labels:
+        kbve.sh/app: elk
+        kbve.sh/component: kibana
+    annotations:
+        kbve.sh/last-updated: '2026-03-20'
+        kbve.sh/rollout-restart: '2026-03-20T00:00:00Z'
 spec:
-    version: 8.17.3
+    version: 8.19.13
     count: 1
     elasticsearchRef:
         name: elasticsearch
