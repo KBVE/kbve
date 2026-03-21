@@ -1,35 +1,40 @@
 # Windows VM for MSVC + UE AngelScript builds via GitHub Actions runner.
 # Requires: KubeVirt operator + CDI deployed in the cluster.
-# The Windows ISO must be imported into a DataVolume before this VM can start.
 #
 # Provisioning steps (one-time, after KubeVirt + CDI are running):
-#   1. Upload a Windows Server 2022 ISO to an HTTP-accessible location
-#   2. Create the DataVolume below (CDI imports the ISO into a Longhorn PVC)
-#   3. Boot the VM, install Windows, then install:
+#   1. Upload Windows ISO directly into the PVC via virtctl:
+#        virtctl image-upload pvc windows-builder-iso \
+#          --size=8Gi \
+#          --image-path=./windows-server-2022.iso \
+#          --storage-class=longhorn \
+#          --namespace=angelscript \
+#          --insecure
+#   2. Start the VM (ArgoCD sets running: true, or use virtctl start)
+#   3. Connect via VNC and install Windows:
+#        virtctl vnc windows-builder -n angelscript
+#   4. Inside Windows, install:
+#      - virtio-win drivers (from the virtio CD-ROM attached below)
 #      - Visual Studio Build Tools (MSVC)
 #      - GitHub Actions runner (configured for KBVE/UnrealEngine-Angelscript)
-#      - virtio-win drivers (from the virtio CD-ROM attached below)
-#   4. After setup, the VM runs as a persistent self-hosted runner.
+#   5. After setup, the VM runs as a persistent self-hosted runner.
 ---
-# DataVolume — CDI imports the Windows ISO into a Longhorn PVC.
-# Replace the URL with your actual Windows Server ISO location.
-apiVersion: cdi.kubevirt.io/v1beta1
-kind: DataVolume
+# ISO PVC — created empty, then populated via virtctl image-upload.
+# This avoids needing an HTTP-accessible URL for the ISO.
+apiVersion: v1
+kind: PersistentVolumeClaim
 metadata:
     name: windows-builder-iso
     namespace: angelscript
+    labels:
+        app: angelscript
+        component: windows-builder
 spec:
-    source:
-        http:
-            # TODO: Replace with the actual Windows Server 2022 ISO URL
-            url: 'https://example.com/windows-server-2022.iso'
-    pvc:
-        accessModes:
-            - ReadWriteOnce
-        storageClassName: longhorn
-        resources:
-            requests:
-                storage: 8Gi
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn
+    resources:
+        requests:
+            storage: 8Gi
 ---
 # Root disk — blank Longhorn volume for the Windows installation
 apiVersion: v1
@@ -133,8 +138,8 @@ spec:
                   persistentVolumeClaim:
                       claimName: windows-builder-rootdisk
                 - name: iso
-                  dataVolume:
-                      name: windows-builder-iso
+                  persistentVolumeClaim:
+                      claimName: windows-builder-iso
                 - name: virtio-drivers
                   containerDisk:
                       image: quay.io/kubevirt/virtio-container-disk:v1.5.0

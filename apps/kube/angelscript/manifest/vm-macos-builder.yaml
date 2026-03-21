@@ -1,0 +1,148 @@
+# macOS VM for Xcode + UE AngelScript builds via GitHub Actions runner.
+# Requires: KubeVirt operator + CDI deployed in the cluster.
+# Uses OSX-KVM approach (https://github.com/kholia/OSX-KVM) for KVM-based macOS.
+#
+# IMPORTANT: Running macOS VMs requires genuine Apple hardware (Mac Pro, etc.)
+# per Apple's EULA. Only deploy this on Apple-branded physical hosts.
+#
+# Provisioning steps (one-time, after KubeVirt + CDI are running):
+#   1. Prepare a macOS install image (qcow2 or raw) using OSX-KVM tools:
+#        - Clone https://github.com/kholia/OSX-KVM
+#        - Run fetch-macOS-v2.py to download the BaseSystem.dmg
+#        - Convert to raw: qemu-img convert BaseSystem.dmg -O raw BaseSystem.img
+#   2. Upload the install image into the PVC via virtctl:
+#        virtctl image-upload pvc macos-builder-iso \
+#          --size=16Gi \
+#          --image-path=./BaseSystem.img \
+#          --storage-class=longhorn \
+#          --namespace=angelscript \
+#          --insecure
+#   3. Start the VM (ArgoCD sets running: false by default — manual start):
+#        virtctl start macos-builder -n angelscript
+#   4. Connect via VNC and install macOS:
+#        virtctl vnc macos-builder -n angelscript
+#   5. Inside macOS, install:
+#      - Xcode + Command Line Tools
+#      - GitHub Actions runner (configured for KBVE/UnrealEngine-Angelscript)
+#   6. After setup, set running: true and the VM becomes a persistent runner.
+---
+# ISO PVC — created empty, then populated via virtctl image-upload.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: macos-builder-iso
+    namespace: angelscript
+    labels:
+        app: angelscript
+        component: macos-builder
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn
+    resources:
+        requests:
+            storage: 16Gi
+---
+# Root disk — blank Longhorn volume for the macOS installation
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: macos-builder-rootdisk
+    namespace: angelscript
+    labels:
+        app: angelscript
+        component: macos-builder
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn
+    resources:
+        requests:
+            # 256Gi: macOS ~30Gi + Xcode ~25Gi + UE build cache ~150Gi + headroom
+            storage: 256Gi
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+    name: macos-builder
+    namespace: angelscript
+    labels:
+        app: angelscript
+        component: macos-builder
+spec:
+    # Default to stopped — start manually after uploading the install image
+    running: false
+    template:
+        metadata:
+            labels:
+                app: angelscript
+                component: macos-builder
+                kubevirt.io/domain: macos-builder
+        spec:
+            domain:
+                cpu:
+                    cores: 8
+                    sockets: 1
+                    threads: 2
+                    model: Penryn
+                    features:
+                        - name: invtsc
+                          policy: require
+                        - name: vmx
+                          policy: require
+                        - name: ssse3
+                          policy: require
+                        - name: sse4.1
+                          policy: require
+                        - name: sse4.2
+                          policy: require
+                        - name: avx
+                          policy: require
+                        - name: avx2
+                          policy: require
+                devices:
+                    disks:
+                        # Root disk — macOS installation
+                        - name: rootdisk
+                          disk:
+                              bus: sata
+                          bootOrder: 1
+                        # macOS install image — used for initial install
+                        - name: iso
+                          cdrom:
+                              bus: sata
+                          bootOrder: 2
+                    interfaces:
+                        - name: default
+                          bridge: {}
+                    inputs:
+                        - type: tablet
+                          bus: usb
+                          name: tablet
+                    useVirtioTransitional: true
+                features:
+                    acpi: {}
+                clock:
+                    utc: {}
+                machine:
+                    type: q35
+                memory:
+                    guest: 16Gi
+                resources:
+                    requests:
+                        memory: 16Gi
+                        cpu: '8'
+                    limits:
+                        memory: 20Gi
+                        cpu: '10'
+            networks:
+                - name: default
+                  pod: {}
+            terminationGracePeriodSeconds: 3600
+            volumes:
+                - name: rootdisk
+                  persistentVolumeClaim:
+                      claimName: macos-builder-rootdisk
+                - name: iso
+                  persistentVolumeClaim:
+                      claimName: macos-builder-iso
