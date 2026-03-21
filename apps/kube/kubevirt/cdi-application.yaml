@@ -1,6 +1,8 @@
 # CDI (Containerized Data Importer) — imports disk images (Windows ISO) into PVCs
-# Bootstrap Job applies upstream CDI operator + CR YAML.
-# SkipDryRunOnMissingResource handles CRD chicken-and-egg ordering.
+# CDI operator is installed manually via:
+#   export VERSION=$(curl -sI https://github.com/kubevirt/containerized-data-importer/releases/latest | grep location | awk -F/ '{print $NF}' | tr -d '\r')
+#   kubectl apply -f https://github.com/kubevirt/containerized-data-importer/releases/download/${VERSION}/cdi-operator.yaml
+# ArgoCD manages the namespace + CDI CR.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -21,17 +23,16 @@ spec:
         namespace: cdi
     syncPolicy:
         automated:
-            prune: true
+            prune: false
             selfHeal: true
         syncOptions:
             - CreateNamespace=true
             - ServerSideApply=true
-            - PruneLast=true
             - SkipDryRunOnMissingResource=true
         retry:
-            limit: 10
+            limit: 5
             backoff:
-                duration: 15s
+                duration: 10s
                 factor: 2
-                maxDuration: 10m
+                maxDuration: 5m
     revisionHistoryLimit: 3

@@ -1,7 +1,7 @@
-# KubeVirt operator — enables VM workloads on Talos (KVM built into kernel)
-# Bootstrap Job (sync-wave -1) applies upstream operator YAML to install CRDs,
-# then the KubeVirt CR (sync-wave 0) configures the deployment.
-# SkipDryRunOnMissingResource lets ArgoCD handle the CRD chicken-and-egg.
+# KubeVirt namespace — operator is installed manually via:
+#   export RELEASE=$(curl https://storage.googleapis.com/kubevirt-prow/release/kubevirt/kubevirt/stable.txt)
+#   kubectl apply -f https://github.com/kubevirt/kubevirt/releases/download/${RELEASE}/kubevirt-operator.yaml
+# ArgoCD manages the namespace + KubeVirt CR (via kubevirt-cr app).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -22,26 +22,15 @@ spec:
         namespace: kubevirt
     syncPolicy:
         automated:
-            prune: true
+            prune: false
             selfHeal: true
         syncOptions:
             - CreateNamespace=true
             - ServerSideApply=true
-            - PruneLast=true
-            - SkipDryRunOnMissingResource=true
         retry:
-            limit: 10
+            limit: 5
             backoff:
-                duration: 15s
+                duration: 10s
                 factor: 2
-                maxDuration: 10m
-    ignoreDifferences:
-        - group: admissionregistration.k8s.io
-          kind: ValidatingWebhookConfiguration
-          jsonPointers:
-              - /webhooks/0/clientConfig/caBundle
-        - group: admissionregistration.k8s.io
-          kind: MutatingWebhookConfiguration
-          jsonPointers:
-              - /webhooks/0/clientConfig/caBundle
+                maxDuration: 5m
     revisionHistoryLimit: 3
