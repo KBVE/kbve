@@ -17,6 +17,8 @@ interface DockerEntry {
 	app_name: string;
 	version?: string;
 	version_toml?: string;
+	version_source?: string;
+	source_path?: string;
 }
 
 interface NpmEntry {
@@ -69,7 +71,7 @@ interface DispatchManifest {
 }
 
 /** Build a typed manifest entry from the frontmatter data, or null if required fields are missing. */
-function toManifestEntry(d: ICiProject): ManifestEntry | null {
+function toManifestEntry(d: ICiProject, mdxPath?: string): ManifestEntry | null {
 	const vt = d.version_toml;
 	const ver = d.version;
 	switch (d.pipeline) {
@@ -80,6 +82,8 @@ function toManifestEntry(d: ICiProject): ManifestEntry | null {
 						app_name: d.app_name,
 						...(ver && { version: ver }),
 						...(vt && { version_toml: vt }),
+						...(mdxPath && { version_source: mdxPath }),
+						...(d.source_path && { source_path: d.source_path }),
 					}
 				: null;
 		case 'npm':
@@ -160,7 +164,9 @@ export const GET = async () => {
 		const d = entry.data as ICiProject;
 		if (!d.key || !d.pipeline) continue;
 
-		const me = toManifestEntry(d);
+		// Derive the MDX path from the Astro entry ID for version_source
+		const mdxPath = `apps/kbve/astro-kbve/src/content/docs/project/${entry.id}.mdx`;
+		const me = toManifestEntry(d, mdxPath);
 		if (!me) continue;
 
 		const pipeline = d.pipeline as keyof Pick<

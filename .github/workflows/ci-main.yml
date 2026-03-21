@@ -177,32 +177,16 @@ jobs:
                       --field package_type="$type" --field dispatched_at="$DISPATCHED_AT" "$@"
                   }
 
-                  # --- Resolve version source + version.toml per pipeline/entry ---
-                  resolve_docker_paths() {
-                    local app="$1"
-                    case "$app" in
-                      axum-kbve)    SRC="apps/kbve/astro-kbve/src/content/docs/project/api.mdx"; VTOML="apps/kbve/axum-kbve/version.toml" ;;
-                      herbmail)     SRC="apps/herbmail/axum-herbmail/Cargo.toml";     VTOML="apps/herbmail/version.toml" ;;
-                      memes)        SRC="apps/memes/axum-memes/Cargo.toml";           VTOML="apps/memes/version.toml" ;;
-                      irc-gateway)  SRC="apps/irc/irc-gateway/Cargo.toml";            VTOML="apps/irc/version.toml" ;;
-                      discordsh)    SRC="apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx"; VTOML="apps/discordsh/version.toml" ;;
-                      mc)           SRC="apps/mc/plugins/kbve-mc-plugin/Cargo.toml";  VTOML="apps/mc/version.toml" ;;
-                      edge)         SRC="apps/kbve/astro-kbve/src/content/docs/project/edge.mdx"; VTOML="apps/kbve/edge/version.toml" ;;
-                      cryptothrone) SRC="apps/cryptothrone/axum-cryptothrone/Cargo.toml"; VTOML="apps/cryptothrone/version.toml" ;;
-                      kilobase)     SRC=""; VTOML="" ;;
-                      *)            SRC=""; VTOML="" ;;
-                    esac
-                  }
-
                   # =================================================================
-                  # Docker apps
+                  # Docker apps — version_source and version_toml read from manifest
                   # =================================================================
                   echo "=== Docker Apps ==="
                   while IFS= read -r entry; do
                     key=$(echo "$entry" | jq -r '.key')
                     app=$(echo "$entry" | jq -r '.app_name')
+                    SRC=$(echo "$entry" | jq -r '.version_source // empty')
+                    VTOML=$(echo "$entry" | jq -r '.version_toml // empty')
                     altered=$(is_altered "$key")
-                    resolve_docker_paths "$app"
                     if [ "$altered" = "true" ]; then
                       echo "  ✓ $app — files changed, dispatching"
                       dispatch_docker "$app"

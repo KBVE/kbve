@@ -73,23 +73,19 @@ jobs:
               id: check
               run: |
                   APP="${{ inputs.app_name }}"
-                  SRC="" VTOML=""
+                  MANIFEST=".github/ci-dispatch-manifest.json"
 
-                  case "$APP" in
-                    axum-kbve)    SRC="apps/kbve/astro-kbve/src/content/docs/project/api.mdx"; VTOML="apps/kbve/axum-kbve/version.toml" ;;
-                    herbmail)     SRC="apps/herbmail/axum-herbmail/Cargo.toml";     VTOML="apps/herbmail/version.toml" ;;
-                    memes)        SRC="apps/memes/axum-memes/Cargo.toml";           VTOML="apps/memes/version.toml" ;;
-                    irc-gateway)  SRC="apps/irc/irc-gateway/Cargo.toml";            VTOML="apps/irc/version.toml" ;;
-                    discordsh)    SRC="apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx"; VTOML="apps/discordsh/version.toml" ;;
-                    mc)           SRC="apps/mc/plugins/kbve-mc-plugin/Cargo.toml";  VTOML="apps/mc/version.toml" ;;
-                    edge)         SRC="apps/kbve/astro-kbve/src/content/docs/project/edge.mdx"; VTOML="apps/kbve/edge/version.toml" ;;
-                    cryptothrone) SRC="apps/cryptothrone/axum-cryptothrone/Cargo.toml"; VTOML="apps/cryptothrone/version.toml" ;;
-                    kilobase)     SRC=""; VTOML="" ;;
-                    *)
-                      echo "::error::Unknown app: $APP"
-                      exit 1
-                      ;;
-                  esac
+                  # Look up version_source and version_toml from manifest
+                  ENTRY=$(jq -c --arg app "$APP" '.docker[] | select(.app_name == $app)' "$MANIFEST" 2>/dev/null)
+                  if [ -z "$ENTRY" ]; then
+                    echo "::notice::${APP} not found in manifest — will always publish."
+                    echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                    echo "local_version=unknown" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  SRC=$(echo "$ENTRY" | jq -r '.version_source // empty')
+                  VTOML=$(echo "$ENTRY" | jq -r '.version_toml // empty')
 
                   if [ -z "$SRC" ]; then
                     echo "::notice::${APP} has no version source — will always publish on file changes."
