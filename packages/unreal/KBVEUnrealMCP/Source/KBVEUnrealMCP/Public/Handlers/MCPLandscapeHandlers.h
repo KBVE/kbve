@@ -9,4 +9,7 @@ class FMCPLandscapeHandlers
 {
 public:
 	static void Register(FMCPHandlerRegistry& Registry);
+
+private:
+	static void HandleGetInfo(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
 };

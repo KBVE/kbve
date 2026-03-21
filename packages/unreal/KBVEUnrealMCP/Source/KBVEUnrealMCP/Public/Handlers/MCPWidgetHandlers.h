@@ -9,4 +9,7 @@ class FMCPWidgetHandlers
 {
 public:
 	static void Register(FMCPHandlerRegistry& Registry);
+
+private:
+	static void HandleCreate(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
 };

@@ -38,6 +38,12 @@ public class KBVEUnrealMCP : ModuleRules
 			"AssetTools",
 			// Navigation
 			"NavigationSystem",
+			// Enhanced Input
+			"EnhancedInput",
+			// UMG
+			"UMG",
+			// Landscape
+			"Landscape",
 			// Settings
 			"DeveloperSettings"
 		});
