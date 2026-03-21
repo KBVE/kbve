@@ -1,14 +1,15 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: discordsh-config
-  namespace: discordsh
-  labels:
-    app: discordsh
+    name: discordsh-config
+    namespace: discordsh
+    labels:
+        app: discordsh
 data:
-  PUBLIC_SUPABASE_URL: "https://api.kbve.com"
-  PUBLIC_SUPABASE_ANON_KEY: "placeholder-anon-key"
-  PUBLIC_API_URL: "https://api.kbve.com"
-  PUBLIC_WS_URL: "wss://ws.kbve.com"
-  PUBLIC_DISCORD_CLIENT_ID: "placeholder-discord-client-id"
-  PUBLIC_ENV: "production"
+    PUBLIC_SUPABASE_URL: 'https://api.kbve.com'
+    PUBLIC_SUPABASE_ANON_KEY: 'placeholder-anon-key'
+    PUBLIC_API_URL: 'https://api.kbve.com'
+    PUBLIC_WS_URL: 'wss://ws.kbve.com'
+    PUBLIC_DISCORD_CLIENT_ID: 'placeholder-discord-client-id'
+    PUBLIC_ENV: 'production'
+    RUST_LOG: 'debug'
