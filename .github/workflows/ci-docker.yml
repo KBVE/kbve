@@ -157,6 +157,8 @@ jobs:
             deployment_yaml: ${{ steps.resolve.outputs.deployment_yaml }}
             has_test: ${{ steps.resolve.outputs.has_test }}
             version_toml: ${{ steps.resolve.outputs.version_toml }}
+            version_source: ${{ steps.resolve.outputs.version_source }}
+            version_target: ${{ steps.resolve.outputs.version_target }}
         steps:
             - name: Resolve config for ${{ inputs.app_name }}
               id: resolve
@@ -170,6 +172,8 @@ jobs:
                       echo "deployment_yaml=apps/kube/kbve/manifest/kbve-deployment.yaml"                 >> "$GITHUB_OUTPUT"
                       echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
                       echo "version_toml=apps/kbve/axum-kbve/version.toml"                                >> "$GITHUB_OUTPUT"
+                      echo "version_source=apps/kbve/astro-kbve/src/content/docs/project/api.mdx"         >> "$GITHUB_OUTPUT"
+                      echo "version_target=apps/kbve/axum-kbve/Cargo.toml"                                >> "$GITHUB_OUTPUT"
                       ;;
                     herbmail)
                       echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
@@ -270,6 +274,8 @@ jobs:
             project: ${{ needs.config.outputs.e2e_name }}
             runner: ${{ needs.config.outputs.runner }}
             image: ${{ needs.config.outputs.image }}
+            version_source: ${{ needs.config.outputs.version_source }}
+            version_target: ${{ needs.config.outputs.version_target }}
 
     # ---------------------------------------------------------------------------
     # Publish — promotes the ci-{sha} tag built in test to the release tag.
@@ -294,6 +300,8 @@ jobs:
             target: container
             image: ${{ needs.config.outputs.image }}
             cargo_toml: ${{ needs.config.outputs.cargo_toml }}
+            version_source: ${{ needs.config.outputs.version_source }}
+            version_target: ${{ needs.config.outputs.version_target }}
         secrets:
             DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
             DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
