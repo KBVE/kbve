@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: valkey
+    namespace: argocd
+spec:
+    project: default
+    sources:
+        - repoURL: https://charts.bitnami.com/bitnami
+          targetRevision: 3.0.5
+          chart: valkey
+          helm:
+              releaseName: valkey
+              valueFiles:
+                  - $values/apps/kube/valkey/manifests/values.yaml
+        - repoURL: https://github.com/kbve/kbve
+          targetRevision: main
+          ref: values
+        - repoURL: https://github.com/kbve/kbve
+          targetRevision: main
+          path: apps/kube/valkey/manifests
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: valkey
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
