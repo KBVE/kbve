@@ -24,6 +24,8 @@ resources:
     - external-secrets/application.yaml
     - monitoring/application.yaml
     - redis/application.yaml
+    # Valkey — open-source Redis fork (Linux Foundation), secondary key-value store
+    - valkey/application.yaml
     - storage/application.yaml
     - irc/application.yaml
     - kilobase/application.yaml
