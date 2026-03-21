@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: angelscript
+    labels:
+        name: angelscript
+        pod-security.kubernetes.io/enforce: baseline

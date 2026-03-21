@@ -1,0 +1,33 @@
+{
+	"description": "Custom UE plugins to inject into the AngelScript engine build",
+	"plugins": [
+		{
+			"name": "KBVESQLite",
+			"path": "packages/unreal/KBVESQLite"
+		},
+		{
+			"name": "KBVEWASM",
+			"path": "packages/unreal/KBVEWASM"
+		},
+		{
+			"name": "KBVEXXHash",
+			"path": "packages/unreal/KBVEXXHash"
+		},
+		{
+			"name": "KBVEYYJson",
+			"path": "packages/unreal/KBVEYYJson"
+		},
+		{
+			"name": "KBVEZstd",
+			"path": "packages/unreal/KBVEZstd"
+		},
+		{
+			"name": "UEDevOps",
+			"path": "packages/unreal/UEDevOps"
+		},
+		{
+			"name": "KBVELibGit",
+			"path": "packages/unreal/KBVELibGit"
+		}
+	]
+}
