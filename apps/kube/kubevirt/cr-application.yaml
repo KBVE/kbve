@@ -1,0 +1,36 @@
+# KubeVirt CR + shared storage — syncs AFTER the operator bootstrap Job
+# installs CRDs. Sync-wave 2 ensures the operator is ready.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: kubevirt-cr
+    namespace: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '2'
+    finalizers:
+        - resources-finalizer.argocd.argoproj.io
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/KBVE/kbve
+        targetRevision: main
+        path: apps/kube/kubevirt/cr
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: kubevirt
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+            - PruneLast=true
+            - SkipDryRunOnMissingResource=true
+        retry:
+            limit: 10
+            backoff:
+                duration: 15s
+                factor: 2
+                maxDuration: 10m
+    revisionHistoryLimit: 3
