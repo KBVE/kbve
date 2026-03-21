@@ -114,7 +114,10 @@
 				"testTargetName": "test"
 			}
 		},
-		"@nx/dotnet"
+		{
+			"plugin": "@nx/dotnet",
+			"include": ["apps/ows/**"]
+		}
 	],
 	"defaultProject": "kbve.com",
 	"generators": {
