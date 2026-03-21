@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: angelscript-server
+    namespace: angelscript
+    labels:
+        app: angelscript
+spec:
+    replicas: 1
+    strategy:
+        type: Recreate
+    selector:
+        matchLabels:
+            app: angelscript
+    template:
+        metadata:
+            labels:
+                app: angelscript
+        spec:
+            securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                fsGroup: 1000
+            containers:
+                - name: angelscript-server
+                  image: ghcr.io/kbve/angelscript-server:0.0.0
+                  imagePullPolicy: Always
+                  args:
+                      - '-log'
+                      - '-Port=7777'
+                  ports:
+                      - name: game-udp
+                        containerPort: 7777
+                        protocol: UDP
+                      - name: game-tcp
+                        containerPort: 7777
+                        protocol: TCP
+                      - name: query
+                        containerPort: 27015
+                        protocol: UDP
+                      - name: beacon
+                        containerPort: 15000
+                        protocol: UDP
+                  volumeMounts:
+                      - name: server-data
+                        mountPath: /server/data
+                  resources:
+                      requests:
+                          memory: '4Gi'
+                          cpu: '2000m'
+                      limits:
+                          memory: '8Gi'
+                          cpu: '4000m'
+                  livenessProbe:
+                      tcpSocket:
+                          port: game-tcp
+                      initialDelaySeconds: 60
+                      periodSeconds: 15
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+                  readinessProbe:
+                      tcpSocket:
+                          port: game-tcp
+                      initialDelaySeconds: 30
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+            volumes:
+                - name: server-data
+                  persistentVolumeClaim:
+                      claimName: angelscript-server-data
