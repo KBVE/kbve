@@ -94,6 +94,10 @@ spec:
                           cdrom:
                               bus: sata
                           bootOrder: 3
+                        # Shared storage — ISOs, installers, Xcode .xip staging
+                        - name: shared-storage
+                          disk:
+                              bus: virtio
                     interfaces:
                         - name: default
                           bridge: {}
@@ -143,3 +147,6 @@ spec:
                 - name: virtio-drivers
                   containerDisk:
                       image: quay.io/kubevirt/virtio-container-disk:v1.5.0
+                - name: shared-storage
+                  persistentVolumeClaim:
+                      claimName: builder-shared-storage

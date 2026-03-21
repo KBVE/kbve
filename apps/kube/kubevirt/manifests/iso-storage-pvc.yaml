@@ -1,19 +1,20 @@
-# Dedicated Longhorn PVC for storing ISO images (Windows, virtio-win, etc.)
-# CDI DataVolumes can reference this as a source, or ISOs can be uploaded
-# directly via virtctl image-upload.
+# Shared Longhorn PVC for staging ISOs, Xcode .xip, installers, etc.
+# Mounted as a data disk on both Windows and macOS builder VMs.
+# Upload files via virtctl or kubectl cp, then access from inside each VM.
+# RWX so both VMs can mount simultaneously.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-    name: kubevirt-iso-storage
-    namespace: kubevirt
+    name: builder-shared-storage
+    namespace: angelscript
     labels:
-        app: kubevirt
-        component: iso-storage
+        app: angelscript
+        component: shared-storage
 spec:
     accessModes:
-        - ReadWriteOnce
+        - ReadWriteMany
     storageClassName: longhorn
     resources:
         requests:
-            # 50Gi: Windows Server ~6Gi + virtio-win ~0.5Gi + headroom for additional ISOs
+            # 50Gi: Windows ISO ~6Gi + Xcode .xip ~12Gi + misc installers
             storage: 50Gi
