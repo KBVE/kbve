@@ -49,6 +49,7 @@ resources:
     - herbmail/application.yaml
     - memes/application.yaml
     - n8n/application.yaml
+    - rabbitmq/application.yaml
     - rentearth/application.yaml
     - cryptothrone/application.yaml
     # GitHub Actions Runner Controller (ARC)

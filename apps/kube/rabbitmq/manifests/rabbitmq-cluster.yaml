@@ -1,0 +1,24 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+    name: rabbitmq
+    namespace: rabbitmq-system
+spec:
+    replicas: 1
+    resources:
+        requests:
+            memory: '256Mi'
+            cpu: '100m'
+        limits:
+            memory: '512Mi'
+            cpu: '500m'
+    persistence:
+        storageClassName: longhorn
+        storage: 10Gi
+    rabbitmq:
+        additionalConfig: |
+            default_user_tags.administrator = true
+            disk_free_limit.absolute = 1GB
+            log.console.level = warning
+    service:
+        type: ClusterIP
