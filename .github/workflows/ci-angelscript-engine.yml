@@ -12,7 +12,7 @@ on:
                 description: 'Branch or tag to build from UnrealEngine-Angelscript'
                 required: false
                 type: string
-                default: 'main'
+                default: 'angelscript-master'
             skip_version_gate:
                 description: 'Skip version gate (force rebuild)'
                 required: false
