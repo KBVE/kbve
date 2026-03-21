@@ -1,0 +1,21 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+    name: kibana
+    namespace: elastic-stack
+spec:
+    version: 8.17.3
+    count: 1
+    elasticsearchRef:
+        name: elasticsearch
+    podTemplate:
+        spec:
+            containers:
+                - name: kibana
+                  resources:
+                      limits:
+                          cpu: '1'
+                          memory: 1Gi
+                      requests:
+                          cpu: 250m
+                          memory: 512Mi

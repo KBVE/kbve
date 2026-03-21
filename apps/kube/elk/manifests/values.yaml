@@ -1,0 +1,18 @@
+# ECK Operator Helm values
+# https://github.com/elastic/cloud-on-k8s/tree/main/deploy/eck-operator
+
+# Manage CRDs with the operator chart
+manageCrds: true
+
+# Resource limits for the operator
+resources:
+    limits:
+        cpu: 200m
+        memory: 256Mi
+    requests:
+        cpu: 100m
+        memory: 128Mi
+
+# Restrict operator to watch only the elastic-stack namespace
+managedNamespaces:
+    - elastic-stack

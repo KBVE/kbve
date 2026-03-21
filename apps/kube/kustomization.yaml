@@ -69,5 +69,9 @@ resources:
     # Cilium LB IPAM — IP pools + L2 announcements (replaces MetalLB)
     - cilium/lb-application.yaml
 
+    # ECK (Elastic Cloud on Kubernetes) — operator + Elasticsearch + Kibana
+    - elk/application.yaml
+    - elk/stack-application.yaml
+
     # Forgejo — Git LFS server + Actions runner, UE asset storage on sdb
     - forgejo/application.yaml

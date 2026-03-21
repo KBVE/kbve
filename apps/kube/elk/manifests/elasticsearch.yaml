@@ -1,0 +1,33 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+    name: elasticsearch
+    namespace: elastic-stack
+spec:
+    version: 8.17.3
+    nodeSets:
+        - name: default
+          count: 1
+          config:
+              node.store.allow_mmap: false
+          podTemplate:
+              spec:
+                  containers:
+                      - name: elasticsearch
+                        resources:
+                            limits:
+                                cpu: '2'
+                                memory: 4Gi
+                            requests:
+                                cpu: 500m
+                                memory: 2Gi
+          volumeClaimTemplates:
+              - metadata:
+                    name: elasticsearch-data
+                spec:
+                    accessModes:
+                        - ReadWriteOnce
+                    resources:
+                        requests:
+                            storage: 50Gi
+                    storageClassName: longhorn
