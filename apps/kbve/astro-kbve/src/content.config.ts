@@ -46,6 +46,13 @@ const application = defineCollection({
 	}),
 });
 
+const gdd = defineCollection({
+	loader: glob({
+		pattern: '**/*.mdx',
+		base: './src/content/docs/gdd',
+	}),
+});
+
 const project = defineCollection({
 	loader: glob({
 		pattern: '**/*.mdx',
@@ -105,6 +112,7 @@ export const collections = {
 	questdb,
 	npcdb,
 	application,
+	gdd,
 	project,
 	mapdb,
 };

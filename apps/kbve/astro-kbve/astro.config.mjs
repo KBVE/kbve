@@ -96,6 +96,11 @@ export default defineConfig({
 					autogenerate: { directory: 'project' },
 				},
 				{
+					label: 'GDD',
+					collapsed: true,
+					autogenerate: { directory: 'gdd' },
+				},
+				{
 					label: 'Memes',
 					autogenerate: { directory: 'memes' },
 				},

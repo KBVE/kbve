@@ -1,0 +1,91 @@
+---
+title: Unreal Engine
+description: |
+    Unreal Engine is a powerful real-time 3D creation platform developed by Epic Games, widely used for building high-fidelity games, simulations, and interactive experiences.
+    The engine offers advanced rendering capabilities, including Nanite virtualized geometry and Lumen global illumination, alongside robust tools for animation, physics, and AI.
+    With support for C++ and Blueprints visual scripting, Unreal Engine provides flexibility for both programmers and designers across industries including gaming, film, architecture, and automotive.
+sidebar:
+    label: Unreal Engine
+    order: 1302
+unsplash: 1542751371-adc38448a05e
+img: https://images.unsplash.com/photo-1542751371-adc38448a05e?fit=crop&w=1400&h=700&q=75
+tags:
+    - game-engine
+    - software
+---
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
+import { Giscus, Adsense } from '@/components/astropad';
+
+## Information
+
+Unreal Engine is a leading real-time 3D creation platform developed by Epic Games, powering some of the most visually stunning games and interactive experiences in the industry.
+Originally launched in 1998, the engine has evolved through multiple generations, with Unreal Engine 5 introducing groundbreaking features like Nanite virtualized geometry for film-quality assets and Lumen for fully dynamic global illumination and reflections.
+The engine supports development across PC, consoles, mobile, VR, and AR platforms, making it a versatile choice for a wide range of projects.
+
+Unreal Engine uses C++ as its primary programming language, offering direct access to the engine's source code for deep customization.
+For rapid prototyping and designer-friendly workflows, the Blueprints visual scripting system allows logic creation without writing code.
+The engine also includes a comprehensive suite of tools for animation (Sequencer, Control Rig), audio (MetaSounds), world building (World Partition, PCG), and multiplayer networking.
+
+<Adsense />
+
+---
+
+## Getting Started
+
+To begin developing with Unreal Engine, download the Epic Games Launcher and install the desired engine version.
+Projects can be created from templates covering common game genres and application types.
+The editor provides a viewport for scene composition, a content browser for asset management, and a details panel for property editing.
+
+<Aside>
+Unreal Engine is free to use with a 5% royalty on gross revenue after the first $1 million USD per product. Review the EULA for full licensing terms.
+</Aside>
+
+---
+
+## Blueprints
+
+Blueprints is Unreal Engine's visual scripting system that allows designers and developers to create gameplay logic, UI interactions, and procedural content without writing C++ code.
+Blueprint graphs use nodes connected by wires to define execution flow and data relationships.
+Blueprints can be used standalone or in conjunction with C++ classes for hybrid workflows.
+
+---
+
+## C++ Development
+
+Unreal Engine's C++ framework uses a custom build system (Unreal Build Tool) and a reflection system powered by macros like `UCLASS`, `UPROPERTY`, and `UFUNCTION`.
+These macros expose C++ types to the editor, Blueprints, and the garbage collector.
+The Gameplay Framework provides base classes such as `AActor`, `APawn`, `ACharacter`, and `AGameModeBase` for structuring game logic.
+
+---
+
+## Rendering
+
+Unreal Engine 5 introduced Nanite and Lumen as core rendering technologies.
+Nanite enables the use of film-quality source art with millions of polygons directly in scenes, automatically handling LOD and streaming.
+Lumen provides real-time global illumination and reflections without baking, adapting dynamically to scene changes.
+
+---
+
+## Multiplayer
+
+Unreal Engine includes a built-in networking framework with server-authoritative replication, RPCs (Remote Procedure Calls), and relevancy management.
+The engine supports dedicated servers, listen servers, and peer-to-peer topologies.
+For large-scale multiplayer, Epic provides tools and integrations for session management and matchmaking.
+
+---
+
+## Plugins
+
+Unreal Engine supports a plugin architecture for extending editor and runtime functionality.
+Plugins can be written in C++ or Blueprints and distributed via the Unreal Marketplace or as source.
+
+<Giscus />
