@@ -203,7 +203,17 @@ jobs:
                     libssl-dev \
                     python3 \
                     curl \
-                    git-lfs
+                    git-lfs \
+                    libnss3 \
+                    libatk1.0-0 \
+                    libatk-bridge2.0-0 \
+                    libcups2 \
+                    libgbm1 \
+                    libxkbcommon0 \
+                    libxcomposite1 \
+                    libxdamage1 \
+                    libxrandr2 \
+                    libpango-1.0-0
 
             - name: Clone or update engine source
               env:
