@@ -166,5 +166,6 @@
 				"cacheableOperations": ["lint", "test", "e2e"]
 			}
 		}
-	}
+	},
+	"analytics": false
 }
