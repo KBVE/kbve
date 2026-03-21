@@ -175,28 +175,103 @@ jobs:
             contents: read
             packages: write
         env:
-            ENGINE_CACHE_PATH: /mnt/longhorn/angelscript-engine
+            UE_IMAGE: ghcr.io/epicgames/unreal-engine:dev-5.7.4
+            CHUCK_REPO: KBVE/chuck
+            SERVER_IMAGE: ghcr.io/kbve/ows-hubworld-server
 
         steps:
-            - name: Checkout
+            - name: Checkout monorepo
               uses: actions/checkout@v6
 
-            - name: Login to GHCR
-              uses: docker/login-action@v4
-              with:
-                  registry: ghcr.io
-                  username: ${{ github.actor }}
-                  password: ${{ github.token }}
-
-            - name: Build HubWorldMMO Dedicated Server
+            - name: Login to GHCR (Epic + KBVE)
               run: |
-                  echo "TODO: Build HubWorldMMO headless Linux dedicated server"
-                  echo "This requires:"
-                  echo "  1. UE5 engine source at ${ENGINE_CACHE_PATH}"
-                  echo "  2. HubWorldMMO project source"
-                  echo "  3. RunUAT BuildCookRun for LinuxServer target"
-                  echo "  4. Package into Docker image"
-                  echo "Skipping until HubWorldMMO project is integrated."
+                  echo "${{ secrets.KBVE_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            - name: Pull UE5 Docker image
+              run: |
+                  echo "::notice::Pulling ${{ env.UE_IMAGE }}"
+                  docker pull "${{ env.UE_IMAGE }}"
+
+            - name: Clone HubWorldMMO
+              run: |
+                  git clone --depth 1 \
+                    "https://x-access-token:${{ secrets.KBVE_PAT }}@github.com/${{ env.CHUCK_REPO }}.git" \
+                    /tmp/chuck
+
+            - name: Build dedicated server
+              run: |
+                  PROJECT_DIR="/tmp/chuck/HubWorldMMO"
+
+                  docker run --rm \
+                    -v "${PROJECT_DIR}:/project" \
+                    -v "/tmp/ue5-build-output:/output" \
+                    "${{ env.UE_IMAGE }}" \
+                    /bin/bash -c '
+                      set -euo pipefail
+
+                      /home/ue4/UnrealEngine/Engine/Build/BatchFiles/RunUAT.sh BuildCookRun \
+                        -project=/project/OWSHubWorldMMO.uproject \
+                        -targetplatform=Linux \
+                        -target=OWSHubWorldMMOServer \
+                        -server \
+                        -serverconfig=Development \
+                        -cook \
+                        -allmaps \
+                        -build \
+                        -stage \
+                        -pak \
+                        -archive \
+                        -archivedirectory=/output \
+                        -unattended \
+                        -utf8output \
+                        -NoP4
+                    '
+
+            - name: Package server Docker image
+              run: |
+                  VERSION="${{ needs.version_gate.outputs.version }}"
+                  BUILD_DIR="/tmp/ue5-build-output"
+
+                  # Find the staged server output
+                  SERVER_DIR=$(find "${BUILD_DIR}" -name "LinuxServer" -type d | head -1)
+                  if [ -z "${SERVER_DIR}" ]; then
+                    echo "::error::LinuxServer output not found in ${BUILD_DIR}"
+                    find "${BUILD_DIR}" -maxdepth 3 -type d
+                    exit 1
+                  fi
+
+                  cat > /tmp/Dockerfile.server <<'DOCKERFILE'
+                  FROM ubuntu:22.04
+                  RUN apt-get update && apt-get install -y --no-install-recommends \
+                      libssl3 libcurl4 && \
+                      rm -rf /var/lib/apt/lists/* && \
+                      useradd -m -u 1000 ue5
+                  WORKDIR /server
+                  COPY --chown=1000:1000 . /server/
+                  RUN chmod +x /server/OWSHubWorldMMOServer
+                  USER 1000
+                  EXPOSE 7777/udp
+                  ENTRYPOINT ["/server/OWSHubWorldMMOServer"]
+                  DOCKERFILE
+
+                  docker build \
+                    -t "${{ env.SERVER_IMAGE }}:${VERSION}" \
+                    -t "${{ env.SERVER_IMAGE }}:latest" \
+                    -f /tmp/Dockerfile.server \
+                    "${SERVER_DIR}"
+
+            - name: Push server image
+              run: |
+                  VERSION="${{ needs.version_gate.outputs.version }}"
+                  docker push "${{ env.SERVER_IMAGE }}:${VERSION}"
+                  docker push "${{ env.SERVER_IMAGE }}:latest"
+                  echo "::notice::Pushed ${{ env.SERVER_IMAGE }}:${VERSION}"
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  docker logout ghcr.io 2>/dev/null || true
+                  rm -rf /tmp/chuck /tmp/ue5-build-output 2>/dev/null || true
 
     # ── Update Kube Manifests ────────────────────────────────
     update_kube:
