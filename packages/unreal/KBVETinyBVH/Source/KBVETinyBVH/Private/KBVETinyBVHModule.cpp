@@ -1,0 +1,3 @@
+#include "KBVETinyBVH.h"
+
+IMPLEMENT_MODULE(FKBVETinyBVHModule, KBVETinyBVH)
