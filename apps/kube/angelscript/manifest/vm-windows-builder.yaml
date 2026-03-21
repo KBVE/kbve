@@ -1,0 +1,140 @@
+# Windows VM for MSVC + UE AngelScript builds via GitHub Actions runner.
+# Requires: KubeVirt operator + CDI deployed in the cluster.
+# The Windows ISO must be imported into a DataVolume before this VM can start.
+#
+# Provisioning steps (one-time, after KubeVirt + CDI are running):
+#   1. Upload a Windows Server 2022 ISO to an HTTP-accessible location
+#   2. Create the DataVolume below (CDI imports the ISO into a Longhorn PVC)
+#   3. Boot the VM, install Windows, then install:
+#      - Visual Studio Build Tools (MSVC)
+#      - GitHub Actions runner (configured for KBVE/UnrealEngine-Angelscript)
+#      - virtio-win drivers (from the virtio CD-ROM attached below)
+#   4. After setup, the VM runs as a persistent self-hosted runner.
+---
+# DataVolume — CDI imports the Windows ISO into a Longhorn PVC.
+# Replace the URL with your actual Windows Server ISO location.
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+    name: windows-builder-iso
+    namespace: angelscript
+spec:
+    source:
+        http:
+            # TODO: Replace with the actual Windows Server 2022 ISO URL
+            url: 'https://example.com/windows-server-2022.iso'
+    pvc:
+        accessModes:
+            - ReadWriteOnce
+        storageClassName: longhorn
+        resources:
+            requests:
+                storage: 8Gi
+---
+# Root disk — blank Longhorn volume for the Windows installation
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: windows-builder-rootdisk
+    namespace: angelscript
+    labels:
+        app: angelscript
+        component: windows-builder
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn
+    resources:
+        requests:
+            # 120Gi: Windows ~30Gi + MSVC ~20Gi + UE build cache ~50Gi + headroom
+            storage: 120Gi
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+    name: windows-builder
+    namespace: angelscript
+    labels:
+        app: angelscript
+        component: windows-builder
+spec:
+    # Keep the VM running — it acts as a persistent self-hosted runner
+    running: true
+    template:
+        metadata:
+            labels:
+                app: angelscript
+                component: windows-builder
+                kubevirt.io/domain: windows-builder
+        spec:
+            domain:
+                cpu:
+                    cores: 8
+                    sockets: 1
+                    threads: 1
+                devices:
+                    disks:
+                        # Root disk — Windows installation
+                        - name: rootdisk
+                          disk:
+                              bus: virtio
+                          bootOrder: 1
+                        # Windows ISO — used for initial install, can be removed after
+                        - name: iso
+                          cdrom:
+                              bus: sata
+                          bootOrder: 2
+                        # virtio-win drivers ISO — needed during Windows install
+                        - name: virtio-drivers
+                          cdrom:
+                              bus: sata
+                          bootOrder: 3
+                    interfaces:
+                        - name: default
+                          bridge: {}
+                    inputs:
+                        - type: tablet
+                          bus: usb
+                          name: tablet
+                features:
+                    acpi: {}
+                    hyperv:
+                        relaxed: {}
+                        vapic: {}
+                        spinlocks:
+                            spinlocks: 8191
+                clock:
+                    utc: {}
+                    timer:
+                        hpet:
+                            present: false
+                        pit:
+                            tickPolicy: delay
+                        rtc:
+                            tickPolicy: catchup
+                        hyperv: {}
+                machine:
+                    type: q35
+                memory:
+                    guest: 16Gi
+                resources:
+                    requests:
+                        memory: 16Gi
+                        cpu: '8'
+                    limits:
+                        memory: 20Gi
+                        cpu: '10'
+            networks:
+                - name: default
+                  pod: {}
+            terminationGracePeriodSeconds: 3600
+            volumes:
+                - name: rootdisk
+                  persistentVolumeClaim:
+                      claimName: windows-builder-rootdisk
+                - name: iso
+                  dataVolume:
+                      name: windows-builder-iso
+                - name: virtio-drivers
+                  containerDisk:
+                      image: quay.io/kubevirt/virtio-container-disk:v1.5.0

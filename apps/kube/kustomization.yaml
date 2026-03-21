@@ -75,3 +75,7 @@ resources:
 
     # Forgejo — Git LFS server + Actions runner, UE asset storage on sdb
     - forgejo/application.yaml
+
+    # KubeVirt — VM workloads on Talos (KVM in kernel, no extensions needed)
+    - kubevirt/application.yaml
+    - kubevirt/cdi-application.yaml
