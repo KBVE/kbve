@@ -1,31 +1,25 @@
-# KubeVirt operator — deployed via upstream release manifest
-# Talos ships with KVM in the kernel; no extensions or machine config patches needed.
-# Update the URL version to upgrade KubeVirt.
-#
-# Upstream source (pinned):
-#   https://github.com/kubevirt/kubevirt/releases/download/v1.5.0/kubevirt-operator.yaml
-#
-# We inline the KubeVirt CR here so ArgoCD manages the full lifecycle.
-# The operator YAML is too large to inline — apply it once manually or
-# use a Job to bootstrap. This file contains the KubeVirt CR that tells
-# the operator what to deploy.
----
+# KubeVirt CR — configures the operator deployment.
+# Based on Talos docs: https://docs.siderolabs.com/talos/v1.12/advanced-guides/install-kubevirt
 apiVersion: kubevirt.io/v1
 kind: KubeVirt
 metadata:
     name: kubevirt
     namespace: kubevirt
 spec:
-    certificateRotateStrategy: {}
     configuration:
         developerConfiguration:
             featureGates:
                 - LiveMigration
-                - Sidecar
                 - HotplugVolumes
+                - NetworkBindingPlugins
+        smbios:
+            sku: TalosCloud
+            version: v0.1.0
+            manufacturer: Talos Virtualization
+            product: talosvm
+            family: ccio
         network:
             permitBridgeInterfaceOnPodNetwork: true
-    customizeComponents: {}
     imagePullPolicy: IfNotPresent
     workloadUpdateStrategy:
         workloadUpdateMethods:
