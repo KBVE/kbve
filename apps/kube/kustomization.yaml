@@ -78,4 +78,5 @@ resources:
 
     # KubeVirt — VM workloads on Talos (KVM in kernel, no extensions needed)
     - kubevirt/application.yaml
+    - kubevirt/cr-application.yaml
     - kubevirt/cdi-application.yaml
