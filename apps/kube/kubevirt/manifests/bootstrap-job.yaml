@@ -1,15 +1,15 @@
 # One-shot Job to apply the upstream KubeVirt operator manifest.
-# The operator YAML is ~10k lines and changes per release, so we pull it
-# at deploy time rather than vendoring it into the repo.
+# Latest stable check: curl https://storage.googleapis.com/kubevirt-prow/release/kubevirt/kubevirt/stable.txt
+# Bump the Job name suffix when upgrading to force a re-run.
 apiVersion: batch/v1
 kind: Job
 metadata:
-    name: kubevirt-operator-bootstrap
+    name: kubevirt-operator-bootstrap-v1-7-2
     namespace: kubevirt
     annotations:
         argocd.argoproj.io/sync-wave: '-1'
 spec:
-    backoffLimit: 3
+    backoffLimit: 5
     ttlSecondsAfterFinished: 600
     template:
         metadata:
@@ -26,7 +26,9 @@ spec:
                       - -c
                       - |
                           set -e
-                          KUBEVIRT_VERSION="v1.5.0"
+                          KUBEVIRT_VERSION="v1.7.2"
                           echo "Applying KubeVirt operator ${KUBEVIRT_VERSION}..."
                           kubectl apply -f "https://github.com/kubevirt/kubevirt/releases/download/${KUBEVIRT_VERSION}/kubevirt-operator.yaml"
-                          echo "KubeVirt operator applied."
+                          echo "Waiting for CRDs to register..."
+                          kubectl wait --for=condition=Established crd/kubevirts.kubevirt.io --timeout=120s
+                          echo "KubeVirt operator ${KUBEVIRT_VERSION} applied and CRDs registered."

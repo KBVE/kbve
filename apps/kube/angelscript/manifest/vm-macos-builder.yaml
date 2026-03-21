@@ -79,6 +79,7 @@ spec:
                 component: macos-builder
                 kubevirt.io/domain: macos-builder
         spec:
+            evictionStrategy: LiveMigrate
             domain:
                 cpu:
                     cores: 8
@@ -118,7 +119,7 @@ spec:
                               bus: sata
                     interfaces:
                         - name: default
-                          bridge: {}
+                          masquerade: {}
                     inputs:
                         - type: tablet
                           bus: usb
