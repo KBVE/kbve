@@ -32,7 +32,7 @@ template:
         # Init container to copy externals for DinD
         initContainers:
             - name: init-dind-externals
-              image: ghcr.io/actions/actions-runner:2.332.0
+              image: ghcr.io/actions/actions-runner:2.333.0
               command:
                   [
                       'cp',
@@ -46,7 +46,7 @@ template:
                     mountPath: /home/runner/tmpDir
         containers:
             - name: runner
-              image: ghcr.io/actions/actions-runner:2.332.0
+              image: ghcr.io/actions/actions-runner:2.333.0
               # Fix sudoers for root before starting runner (Unity builder uses sudo)
               command:
                   [
@@ -85,7 +85,7 @@ template:
             # Docker-in-Docker sidecar
             # Note: Unity builds request high resources, DinD needs headroom
             - name: dind
-              image: docker:29.2.1-dind
+              image: docker:29.3.0-dind
               args:
                   - dockerd
                   - --host=unix:///var/run/docker.sock
