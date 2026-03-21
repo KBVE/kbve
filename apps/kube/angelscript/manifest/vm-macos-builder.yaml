@@ -112,6 +112,10 @@ spec:
                           cdrom:
                               bus: sata
                           bootOrder: 2
+                        # Shared storage — ISOs, Xcode .xip, installers staging
+                        - name: shared-storage
+                          disk:
+                              bus: sata
                     interfaces:
                         - name: default
                           bridge: {}
@@ -146,3 +150,6 @@ spec:
                 - name: iso
                   persistentVolumeClaim:
                       claimName: macos-builder-iso
+                - name: shared-storage
+                  persistentVolumeClaim:
+                      claimName: builder-shared-storage
