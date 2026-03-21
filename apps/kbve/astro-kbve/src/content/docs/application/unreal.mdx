@@ -57,6 +57,23 @@ Blueprints is Unreal Engine's visual scripting system that allows designers and 
 Blueprint graphs use nodes connected by wires to define execution flow and data relationships.
 Blueprints can be used standalone or in conjunction with C++ classes for hybrid workflows.
 
+### Blueprint Types
+
+- **Level Blueprint** - A specialized Blueprint scoped to a single level, useful for level-specific scripting such as triggers, cutscenes, and door mechanics.
+- **Blueprint Class** - A reusable asset that defines a new class with components, variables, and logic. Most gameplay actors are Blueprint Classes.
+- **Blueprint Interface** - Defines a contract of functions that multiple Blueprint Classes can implement without inheritance coupling.
+- **Blueprint Macro Library** - A collection of reusable macro graphs that can be shared across multiple Blueprints.
+- **Blueprint Function Library** - A static function container accessible from any Blueprint, useful for utility operations.
+
+### Blueprint Communication
+
+Blueprints communicate through several patterns depending on the relationship between actors:
+
+- **Direct References** - Dragging actor references into the graph for tightly coupled communication.
+- **Event Dispatchers** - A publish/subscribe pattern where one Blueprint broadcasts an event and others bind to it.
+- **Interfaces** - Sending messages to actors without knowing their concrete type, enabling loose coupling.
+- **Casting** - Converting a reference to a specific type to access its unique variables and functions.
+
 ---
 
 ## C++ Development
@@ -64,6 +81,32 @@ Blueprints can be used standalone or in conjunction with C++ classes for hybrid 
 Unreal Engine's C++ framework uses a custom build system (Unreal Build Tool) and a reflection system powered by macros like `UCLASS`, `UPROPERTY`, and `UFUNCTION`.
 These macros expose C++ types to the editor, Blueprints, and the garbage collector.
 The Gameplay Framework provides base classes such as `AActor`, `APawn`, `ACharacter`, and `AGameModeBase` for structuring game logic.
+
+### Gameplay Framework
+
+The Gameplay Framework establishes the class hierarchy that most Unreal projects build upon:
+
+- **UObject** - Base class for all engine objects, providing reflection, serialization, and garbage collection.
+- **AActor** - Any object that can be placed or spawned in a level. Has a transform, components, and lifecycle events.
+- **APawn** - An Actor that can be possessed by a Controller, representing an entity in the world.
+- **ACharacter** - A Pawn with a CharacterMovementComponent for walking, jumping, swimming, and flying.
+- **APlayerController** - Handles player input and possesses a Pawn. One per human player.
+- **AGameModeBase** - Defines the rules of the game, spawn logic, and match state. Exists only on the server in multiplayer.
+- **AGameStateBase** - Replicated state visible to all clients, such as scores and match timers.
+
+### Modules and Build System
+
+Unreal projects are organized into modules, each with a `.Build.cs` file that declares dependencies, include paths, and compilation settings.
+The Unreal Build Tool (UBT) processes these files to generate platform-specific project files and compile the engine and game code.
+The Unreal Header Tool (UHT) runs before compilation to parse reflection macros and generate boilerplate code for serialization, replication, and Blueprint exposure.
+
+### Common Macros
+
+- `UCLASS()` - Marks a class for the reflection system. Supports specifiers like `Blueprintable`, `Abstract`, and `Config`.
+- `UPROPERTY()` - Exposes a member variable to the editor, Blueprints, serialization, or replication.
+- `UFUNCTION()` - Exposes a function to Blueprints, the editor, or the networking system (RPCs).
+- `USTRUCT()` - Marks a struct for reflection, enabling serialization and Blueprint access.
+- `UENUM()` - Marks an enum for reflection, making it usable in Blueprints and the editor.
 
 ---
 
@@ -73,6 +116,136 @@ Unreal Engine 5 introduced Nanite and Lumen as core rendering technologies.
 Nanite enables the use of film-quality source art with millions of polygons directly in scenes, automatically handling LOD and streaming.
 Lumen provides real-time global illumination and reflections without baking, adapting dynamically to scene changes.
 
+### Nanite
+
+Nanite is a virtualized geometry system that intelligently streams and processes only the triangles visible on screen.
+It eliminates the need for manual LOD authoring, polygon budgets, and draw call optimization for static meshes.
+Nanite meshes can contain billions of source triangles, with the system automatically managing detail reduction based on screen coverage.
+
+<Aside>
+Nanite does not currently support skeletal meshes, translucent materials, or world-position-offset deformation. Plan your asset pipeline accordingly.
+</Aside>
+
+### Lumen
+
+Lumen is a fully dynamic global illumination and reflections system that works at multiple scales.
+It uses a combination of screen-space tracing, mesh distance fields, and surface caching to produce realistic indirect lighting in real time.
+Lumen eliminates the need for baked lightmaps in most scenarios, allowing artists to iterate on lighting without waiting for build times.
+
+### Virtual Shadow Maps
+
+Virtual Shadow Maps (VSM) provide high-resolution, per-pixel shadow mapping that scales with Nanite geometry.
+VSMs are cached and updated incrementally, reducing the performance cost of complex shadow-casting scenes.
+
+### Render Pipeline Options
+
+- **Deferred Rendering** - The default pipeline, optimized for complex scenes with many dynamic lights.
+- **Forward Rendering** - Optional pipeline with MSAA support, useful for VR and mobile targets where anti-aliasing quality is critical.
+- **Path Tracer** - A reference ray tracer for offline-quality rendering, useful for architectural visualization and film production.
+
+---
+
+## World Building
+
+Unreal Engine provides several systems for creating and managing large game worlds.
+
+### World Partition
+
+World Partition is a distance-based streaming system that replaces the older World Composition and level streaming approaches.
+It divides the world into a grid of cells that load and unload automatically based on player proximity.
+This enables seamless open worlds without manual sub-level management.
+
+### Procedural Content Generation (PCG)
+
+The PCG framework allows designers to create rule-based systems for populating worlds with foliage, props, roads, and other environmental details.
+PCG graphs define operations like point sampling, filtering, mesh spawning, and attribute-based randomization.
+Results can be generated at edit time or at runtime for dynamic environments.
+
+### Landscape
+
+The Landscape system handles large-scale outdoor terrain with heightmap-based geometry, multi-layer material painting, and foliage placement.
+Landscapes support LOD streaming and can span kilometers while maintaining reasonable memory and draw call budgets.
+
+---
+
+## Animation
+
+Unreal Engine's animation system supports skeletal meshes, blend spaces, state machines, and procedural animation through several tools.
+
+### Animation Blueprints
+
+Animation Blueprints (AnimBP) drive skeletal mesh animation using an AnimGraph that blends poses, evaluates state machines, and applies modifiers each frame.
+The Event Graph handles logic such as reading movement speed from the owning Pawn to drive blend parameters.
+
+### Sequencer
+
+Sequencer is the cinematic editor for creating in-game cutscenes, trailers, and scripted sequences.
+It supports keyframing transforms, material parameters, camera cuts, audio tracks, and Blueprint events on a multi-track timeline.
+
+### Control Rig
+
+Control Rig provides a node-based rigging system for creating custom animation controllers directly in the engine.
+It is used for procedural adjustments like IK solvers, look-at constraints, and physics-driven secondary motion.
+
+### MetaHuman
+
+MetaHuman is a framework for creating photorealistic digital humans with high-fidelity facial animation, hair simulation, and body rigs.
+MetaHumans are created via the MetaHuman Creator web tool and imported into Unreal projects as ready-to-animate assets.
+
+---
+
+## Audio
+
+### MetaSounds
+
+MetaSounds is a node-based audio system that replaces the legacy Sound Cue editor.
+It provides a programmable DSP graph for designing procedural audio, interactive music systems, and real-time sound effects with full control over signal routing and parameter modulation.
+
+### Sound Classes and Mixes
+
+Sound Classes group audio sources by category (dialogue, music, SFX) for volume control and ducking.
+Sound Mixes define cross-class blending rules, such as lowering music volume when dialogue plays.
+
+---
+
+## Physics
+
+Unreal Engine uses Chaos Physics as its default physics engine, providing rigid body simulation, cloth, destruction, and vehicle dynamics.
+
+### Chaos Destruction
+
+The Chaos Destruction system enables real-time fracturing of geometry collections.
+Meshes are pre-fractured in the editor using Voronoi patterns or custom fracture planes, then simulated at runtime with strain-based breaking thresholds.
+
+### Chaos Vehicles
+
+Chaos Vehicles provide a physics-driven vehicle simulation with suspension, tire friction curves, engine torque, and transmission modeling.
+
+---
+
+## AI
+
+Unreal Engine includes several systems for building artificial intelligence in games.
+
+### Behavior Trees
+
+Behavior Trees define AI decision-making through a tree of tasks, decorators, and services evaluated by an AI Controller.
+Tasks perform actions, decorators gate execution based on conditions, and services run periodically to update the Blackboard.
+
+### Blackboard
+
+The Blackboard is a key-value data store used by Behavior Trees to share state such as target locations, health values, and alert levels.
+
+### Environment Query System (EQS)
+
+EQS generates and scores spatial queries to help AI select optimal positions for actions like cover, flanking, or patrolling.
+Queries define a set of test points, apply scoring functions (distance, line of sight, dot product), and return the best-scoring result.
+
+### Navigation
+
+The NavMesh system generates walkable surfaces for AI pathfinding.
+Nav Mesh Bounds Volumes define the area to generate navigation, and Nav Modifiers can adjust costs, exclude regions, or create custom area types.
+
 ---
 
 ## Multiplayer
@@ -81,11 +254,73 @@ Unreal Engine includes a built-in networking framework with server-authoritative
 The engine supports dedicated servers, listen servers, and peer-to-peer topologies.
 For large-scale multiplayer, Epic provides tools and integrations for session management and matchmaking.
 
+### Replication
+
+Replication is the process of synchronizing actor state from the server to connected clients.
+Properties marked with `UPROPERTY(Replicated)` or `UPROPERTY(ReplicatedUsing=OnRep_Function)` are automatically sent to relevant clients.
+Replication conditions (`COND_OwnerOnly`, `COND_SkipOwner`, `COND_InitialOnly`) control when and to whom properties replicate.
+
+### RPCs
+
+Remote Procedure Calls allow functions to execute across the network boundary:
+
+- **Server RPCs** - Called on a client, executed on the server. Used for input validation and authoritative game actions.
+- **Client RPCs** - Called on the server, executed on the owning client. Used for cosmetic feedback and UI updates.
+- **Multicast RPCs** - Called on the server, executed on all connected clients. Used for effects visible to everyone.
+
+### Dedicated Servers
+
+Unreal supports headless dedicated server builds that run the authoritative game simulation without rendering.
+Server builds exclude client-only content and rendering code, reducing binary size and resource usage.
+
+---
+
+## Platform
+
+Unreal Engine supports deployment to a wide range of platforms from a single project.
+
+### Supported Platforms
+
+- **Desktop** - Windows, macOS, Linux
+- **Console** - PlayStation 5, Xbox Series X|S, Nintendo Switch
+- **Mobile** - iOS, Android
+- **XR** - Meta Quest, Apple Vision Pro, SteamVR, PlayStation VR2
+
+### Packaging and Distribution
+
+Projects are packaged through the editor or command line using `UnrealBuildTool` and `RunUAT`.
+Packaging produces a standalone build with cooked content optimized for the target platform.
+
+---
+
+## CICD
+
+For continuous integration with Unreal Engine, builds are typically automated using `RunUAT` (Unreal Automation Tool) scripts.
+Common CI tasks include compiling the project, cooking content, running automated tests, and packaging for distribution.
+
+<Aside>
+Unreal builds require significant disk space and memory. Plan CI runner specs accordingly — expect 50+ GB disk and 16+ GB RAM for non-trivial projects.
+</Aside>
+
 ---
 
 ## Plugins
 
 Unreal Engine supports a plugin architecture for extending editor and runtime functionality.
 Plugins can be written in C++ or Blueprints and distributed via the Unreal Marketplace or as source.
+
+### Plugin Structure
+
+A typical plugin contains:
+
+- **`.uplugin` file** - JSON descriptor with plugin metadata, module definitions, and dependencies.
+- **Source module(s)** - C++ modules with `.Build.cs` files, each producing a DLL or static library.
+- **Content** - Optional assets (meshes, materials, Blueprints) bundled with the plugin.
+- **Shaders** - Optional custom shader files (`.usf`, `.ush`) for rendering extensions.
+
+### Creating a Plugin
+
+Plugins can be scaffolded from the editor via Edit > Plugins > Add, or created manually by setting up the directory structure and `.uplugin` descriptor.
+The engine supports several module types: `Runtime`, `Editor`, `DeveloperTool`, and `Program`, each loaded at different stages of the engine lifecycle.
 
 <Giscus />

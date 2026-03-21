@@ -42,4 +42,198 @@ GDDs are living documents. Update them as the project evolves to keep them usefu
 
 <Adsense />
 
+---
+
+## Core Concept
+
+The core concept section is the foundation of any GDD. It should communicate the game's identity in a way that anyone on the team can understand and repeat.
+
+### Elevator Pitch
+
+A one to three sentence description of the game that captures its essence.
+The pitch should answer: what does the player do, why is it fun, and what makes it different?
+
+### Genre and Influences
+
+Define the primary genre (RPG, FPS, puzzle, simulation, etc.) and list reference titles that inform the design.
+Influences help align the team on tone, pacing, and player expectations without requiring lengthy descriptions.
+
+### Target Audience
+
+Identify who the game is for: age range, gaming experience level, platform preferences, and play session length.
+Audience definition drives decisions across art style, difficulty, monetization, and marketing.
+
+### Unique Selling Points
+
+List three to five features that differentiate the game from competitors.
+These should be concrete and testable, not aspirational adjectives.
+
+---
+
+## Gameplay Mechanics
+
+Mechanics are the verbs of your game — the actions players take and the rules governing those actions.
+
+### Core Loop
+
+The core loop is the repeating cycle of actions that forms the foundation of moment-to-moment gameplay.
+A well-defined core loop answers: what does the player do every 30 seconds, every 5 minutes, and every session?
+
+### Controls and Input
+
+Document the control scheme for each supported platform.
+Include button mappings, touch gesture definitions, and accessibility considerations such as remappable controls and input assist options.
+
+### Progression Systems
+
+Define how the player advances through the game: leveling, skill trees, unlockable content, story progression, or score-based ranking.
+Specify the pacing curve — how quickly players gain power and how that scales with content difficulty.
+
+### Difficulty and Balancing
+
+Outline the approach to difficulty: fixed tiers, dynamic scaling, or player-selected modes.
+Include target metrics for completion rates, time-to-kill, and resource economy curves.
+
+---
+
+## Systems Design
+
+Systems are the interconnected rules that create emergent gameplay and long-term engagement.
+
+### Economy
+
+Define all currencies, resources, and value flows in the game.
+Map sources (where resources come from), sinks (where they go), and conversion rates between resource types.
+
+### Inventory and Items
+
+Describe the inventory model: slot-based, weight-based, or unlimited.
+Categorize item types (consumables, equipment, key items, crafting materials) and define rarity tiers if applicable.
+
+### Combat
+
+Document the combat model: real-time, turn-based, hybrid, or physics-driven.
+Include damage formulas, hit detection approach, status effects, and the role of player skill versus character stats.
+
+### AI Behavior
+
+Outline the AI architecture: behavior trees, state machines, utility scoring, or GOAP (Goal-Oriented Action Planning).
+Define AI archetypes (melee rusher, ranged sniper, support healer) and their decision-making priorities.
+
+### Multiplayer Architecture
+
+If the game supports multiplayer, specify the networking model: client-server, peer-to-peer, or hybrid.
+Document authority rules, lag compensation strategy, matchmaking criteria, and anti-cheat considerations.
+
+---
+
+## Narrative
+
+Narrative design covers everything from overarching story structure to the smallest bark of dialogue.
+
+### Story Structure
+
+Define the narrative arc: linear, branching, open-world emergent, or procedurally generated.
+Outline acts, major plot points, and the relationship between story progression and gameplay progression.
+
+### Characters
+
+Document major characters with their role in the story, personality traits, motivations, and relationship to the player character.
+Include notes on voice direction and visual design references.
+
+### Dialogue Systems
+
+Specify the dialogue implementation: linear cutscenes, branching dialogue trees, keyword-based systems, or fully dynamic conversation.
+Define how player choices affect narrative outcomes and whether dialogue is voiced, text-only, or a hybrid.
+
+### World-Building
+
+Describe the setting: time period, geography, factions, history, and cultural details that inform environmental design and NPC behavior.
+World-building should serve gameplay — every lore detail should either explain a mechanic or enrich player immersion.
+
+---
+
+## Technical Specifications
+
+The technical section ensures engineering, art, and design are aligned on constraints and tooling.
+
+### Engine and Platform
+
+State the engine choice and version, target platforms, and minimum hardware specifications.
+Document any engine modifications, custom plugins, or middleware dependencies.
+
+### Performance Budgets
+
+Define target frame rates, memory budgets, loading time limits, and draw call ceilings for each platform.
+Performance budgets should be testable and tracked throughout development.
+
+### Tooling and Pipelines
+
+List the tools used for content creation, version control, CI/CD, and testing.
+Document the asset pipeline from source art to in-engine format, including naming conventions and directory structure.
+
+### Data Architecture
+
+Describe how game data is structured: configuration files, databases, save systems, and cloud sync.
+Specify serialization formats, schema versioning strategy, and data migration plans.
+
+---
+
+## Art and Audio Direction
+
+### Visual Style
+
+Define the art direction: realistic, stylized, pixel art, cel-shaded, or mixed.
+Include reference images, color palettes, and guidelines for asset consistency.
+
+### Animation Guidelines
+
+Document animation principles for the project: frame count targets, blend time standards, root motion usage, and procedural animation boundaries.
+
+### Sound Design
+
+Outline the approach to sound effects: realistic, exaggerated, abstract, or adaptive.
+Define the audio mix hierarchy and how sounds interact with gameplay events.
+
+### Music
+
+Describe the musical direction: genre, instrumentation, adaptive layers, and transition rules.
+Specify how music responds to gameplay states such as exploration, combat, menus, and cutscenes.
+
+---
+
+## Milestones and Scope
+
+### Feature Prioritization
+
+Categorize features into tiers:
+
+- **Must Have** - Core features required for the game to function and be fun.
+- **Should Have** - Features that significantly improve the experience but are not blockers.
+- **Nice to Have** - Polish features, bonus content, and stretch goals.
+- **Cut List** - Features explicitly descoped to manage timeline and budget.
+
+### Development Phases
+
+Define the major phases of development and their exit criteria:
+
+- **Pre-Production** - Concept validation, vertical slice, tech prototype, team ramp-up.
+- **Production** - Content creation, feature implementation, iterative playtesting.
+- **Alpha** - Feature complete, all content in first pass, focus shifts to bug fixing and balancing.
+- **Beta** - Content complete, performance optimization, platform certification preparation.
+- **Gold / Launch** - Final build, day-one patch preparation, live operations plan.
+
+### Risk Register
+
+Identify known risks to the project: technical unknowns, team capacity, third-party dependencies, and market timing.
+For each risk, document the likelihood, impact, and mitigation strategy.
+
+---
+
+## GDD Templates
+
+When creating a new GDD for a specific project, start from the outline above and fill in each section with concrete details.
+Remove sections that do not apply to your project rather than leaving them empty.
+A focused 10-page GDD is more useful than a 100-page document that no one reads.
+
 <Giscus />
