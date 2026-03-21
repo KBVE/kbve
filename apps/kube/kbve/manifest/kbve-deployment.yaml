@@ -114,6 +114,8 @@ spec:
                             secretKeyRef:
                                 name: forgejo-deploy-keys
                                 key: api-token
+                      - name: GAME_SERVER_HOST
+                        value: 'wt.kbve.com'
                       - name: GAME_WT_CERT
                         value: '/etc/ssl/webtransport/tls.crt'
                       - name: GAME_WT_KEY

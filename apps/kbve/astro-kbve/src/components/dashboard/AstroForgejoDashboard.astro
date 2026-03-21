@@ -3,6 +3,8 @@ import ReactForgejoAuth from './ReactForgejoAuth';
 import ReactForgejoHeader from './ReactForgejoHeader';
 import ReactForgejoSummary from './ReactForgejoSummary';
 import ReactForgejoRepoTable from './ReactForgejoRepoTable';
+import ReactForgejoOrgCards from './ReactForgejoOrgCards';
+import ReactForgejoUserGrid from './ReactForgejoUserGrid';
 ---
 
 <section
@@ -17,14 +19,24 @@ import ReactForgejoRepoTable from './ReactForgejoRepoTable';
 					<ReactForgejoHeader client:only="react" />
 				</div>
 
-				<!-- Island: Error banner + summary stat cards + loading state -->
+				<!-- Island: Summary stat cards + language breakdown -->
 				<div id="forgejo-summary">
 					<ReactForgejoSummary client:only="react" />
 				</div>
 
-				<!-- Island: Repository table -->
+				<!-- Island: Repository table with expandable detail rows -->
 				<div id="forgejo-repo-table">
 					<ReactForgejoRepoTable client:only="react" />
+				</div>
+
+				<!-- Island: Organization cards -->
+				<div id="forgejo-orgs">
+					<ReactForgejoOrgCards client:only="react" />
+				</div>
+
+				<!-- Island: User grid -->
+				<div id="forgejo-users">
+					<ReactForgejoUserGrid client:only="react" />
 				</div>
 			</div>
 		</ReactForgejoAuth>
