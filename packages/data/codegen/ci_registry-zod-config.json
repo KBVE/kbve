@@ -34,6 +34,14 @@
 		"kbve.ci.CiProject.pypi_name": "z.string().min(1).max(64).optional()",
 		"kbve.ci.CiProject.plugin_name": "z.string().min(1).max(64).optional()",
 		"kbve.ci.CiProject.itch_game_id": "z.string().min(1).max(64).optional()",
-		"kbve.ci.CiProject.version_toml": "z.string().max(256).optional()"
+		"kbve.ci.CiProject.version_toml": "z.string().max(256).optional()",
+		"kbve.ci.CiProject.version": "z.string().regex(/^\\d+\\.\\d+\\.\\d+$/, 'Must be valid semver (x.y.z)').optional()",
+		"kbve.ci.CiProject.author": "z.string().min(1).max(128).optional()",
+		"kbve.ci.CiProject.license": "z.string().min(1).max(64).optional()",
+		"kbve.ci.CiProject.repository_url": "z.string().url().max(512).optional()",
+		"kbve.ci.CiProject.homepage_url": "z.string().url().max(512).optional()",
+		"kbve.ci.CiProject.status": "z.enum(['active', 'beta', 'deprecated', 'archived']).optional()",
+		"kbve.ci.CiProject.min_engine_version": "z.string().max(32).optional()",
+		"kbve.ci.CiProject.supported_platforms": "z.array(z.string().min(1).max(32)).max(10).optional()"
 	}
 }

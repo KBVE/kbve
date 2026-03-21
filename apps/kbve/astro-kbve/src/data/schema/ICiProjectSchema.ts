@@ -46,6 +46,14 @@ export const ICiProjectSchema = AstroProjectExtensions.extend({
 	itch_game_id: CiProjectSchema.shape.itch_game_id,
 	source_path: CiProjectSchema.shape.source_path,
 	version_toml: CiProjectSchema.shape.version_toml,
+	version: CiProjectSchema.shape.version,
+	author: CiProjectSchema.shape.author,
+	license: CiProjectSchema.shape.license,
+	repository_url: CiProjectSchema.shape.repository_url,
+	homepage_url: CiProjectSchema.shape.homepage_url,
+	status: CiProjectSchema.shape.status,
+	min_engine_version: CiProjectSchema.shape.min_engine_version,
+	supported_platforms: CiProjectSchema.shape.supported_platforms,
 });
 
 export type ICiProject = z.infer<typeof ICiProjectSchema>;
