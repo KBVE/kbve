@@ -9,8 +9,6 @@
 -- Ref: https://github.com/KBVE/kbve/issues/7761
 -- ============================================================
 
-BEGIN;
-
 -- ===========================================
 -- MEME SCHEMA — meme.memes (4 policies)
 -- ===========================================
@@ -202,12 +200,8 @@ BEGIN
     END IF;
 END $$;
 
-COMMIT;
-
 -- migrate:down
 -- Revert all policies back to bare auth.uid() calls
-
-BEGIN;
 
 -- meme.memes
 ALTER POLICY "authenticated_select_published_and_own" ON meme.memes
@@ -331,5 +325,3 @@ BEGIN
             USING (auth.uid() = user_id)';
     END IF;
 END $$;
-
-COMMIT;
