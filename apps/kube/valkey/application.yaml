@@ -6,8 +6,8 @@ metadata:
 spec:
     project: default
     sources:
-        - repoURL: https://charts.bitnami.com/bitnami
-          targetRevision: 3.0.5
+        - repoURL: https://valkey-io.github.io/valkey-helm/
+          targetRevision: 0.9.3
           chart: valkey
           helm:
               releaseName: valkey
