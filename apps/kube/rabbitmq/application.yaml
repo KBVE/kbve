@@ -3,6 +3,8 @@ kind: Application
 metadata:
     name: rabbitmq
     namespace: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '3'
 spec:
     project: default
     sources:
