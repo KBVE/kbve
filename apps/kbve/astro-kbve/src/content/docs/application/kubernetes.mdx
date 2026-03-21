@@ -601,6 +601,86 @@ Confirm -> Run `vcluster --version` to confirm that the install was sucessful.
 
 ---
 
+## KubeVirt
+
+KubeVirt enables running virtual machines on Kubernetes using KVM. On Talos, KVM is built into the kernel — no extensions or machine config patches needed.
+
+Reference: [Talos KubeVirt Guide](https://docs.siderolabs.com/talos/v1.12/advanced-guides/install-kubevirt)
+
+### Operator Install (One-Time)
+
+```shell
+# KubeVirt operator
+export RELEASE=$(curl https://storage.googleapis.com/kubevirt-prow/release/kubevirt/kubevirt/stable.txt)
+kubectl apply -f https://github.com/kubevirt/kubevirt/releases/download/${RELEASE}/kubevirt-operator.yaml
+
+# CDI operator (Containerized Data Importer)
+export CDI_VERSION=$(curl -sI https://github.com/kubevirt/containerized-data-importer/releases/latest | grep -i location | awk -F/ '{print $NF}' | tr -d '\r')
+kubectl apply -f https://github.com/kubevirt/containerized-data-importer/releases/download/${CDI_VERSION}/cdi-operator.yaml
+```
+
+### virtctl Install
+
+```shell
+brew install virtctl
+```
+
+### VM Management
+
+```shell
+# Start a VM
+virtctl start windows-builder -n angelscript
+
+# Stop a VM
+virtctl stop windows-builder -n angelscript
+
+# Force stop
+virtctl stop windows-builder -n angelscript --force --grace-period=0
+
+# Check VM status
+kubectl get vm -n angelscript
+kubectl get vmi -n angelscript
+```
+
+### VNC Access (noVNC in Browser)
+
+```shell
+# Terminal 1: VNC proxy
+virtctl vnc windows-builder -n angelscript --proxy-only --port=5901
+
+# Terminal 2: noVNC web proxy (open http://localhost:6080/vnc.html)
+/tmp/noVNC/utils/novnc_proxy --vnc localhost:5901 --listen 6080
+```
+
+### ISO Upload via CDI
+
+```shell
+# Terminal 1: Port-forward CDI upload proxy
+kubectl port-forward -n cdi svc/cdi-uploadproxy 8443:443
+
+# Terminal 2: Upload ISO via DataVolume
+virtctl image-upload dv windows-server-builder-iso \
+  --size=8Gi \
+  --image-path=/path/to/windows-server.iso \
+  --storage-class=longhorn \
+  --namespace=angelscript \
+  --uploadproxy-url=https://localhost:8443 \
+  --insecure
+```
+
+### Quick Start (All-in-One)
+
+```shell
+# Start VM + VNC proxy + noVNC browser access
+virtctl start windows-builder -n angelscript && \
+  sleep 20 && \
+  virtctl vnc windows-builder -n angelscript --proxy-only --port=5901 &
+/tmp/noVNC/utils/novnc_proxy --vnc localhost:5901 --listen 6080
+# Open http://localhost:6080/vnc.html
+```
+
+---
+
 ## Sealed Secrets
 
 ### Encoding

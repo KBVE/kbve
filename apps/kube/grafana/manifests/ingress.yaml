@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: grafana-redirect
+    namespace: default
+    annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+        nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+        nginx.ingress.kubernetes.io/permanent-redirect: 'https://kbve.com/dashboard'
+        cert-manager.io/cluster-issuer: 'letsencrypt-http'
+spec:
+    ingressClassName: nginx
+    rules:
+        - host: grafana.kbve.com
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: placeholder
+                            port:
+                                number: 80
+    tls:
+        - hosts:
+              - grafana.kbve.com
+          secretName: grafana-redirect-tls
