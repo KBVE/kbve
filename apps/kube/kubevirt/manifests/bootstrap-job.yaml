@@ -1,8 +1,6 @@
 # One-shot Job to apply the upstream KubeVirt operator manifest.
 # The operator YAML is ~10k lines and changes per release, so we pull it
 # at deploy time rather than vendoring it into the repo.
-# After the operator pods are running, the KubeVirt CR in operator.yaml
-# tells it what features to enable.
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -10,11 +8,9 @@ metadata:
     namespace: kubevirt
     annotations:
         argocd.argoproj.io/sync-wave: '-1'
-        argocd.argoproj.io/hook: Sync
-        argocd.argoproj.io/hook-delete-policy: HookSucceeded
 spec:
     backoffLimit: 3
-    ttlSecondsAfterFinished: 300
+    ttlSecondsAfterFinished: 600
     template:
         metadata:
             labels:
