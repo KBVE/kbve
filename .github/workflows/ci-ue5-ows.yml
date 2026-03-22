@@ -321,10 +321,10 @@ jobs:
                   echo "server_dir=${SERVER_DIR}" >> "$GITHUB_OUTPUT"
                   echo "::notice::Server v${VERSION} built ($(du -sh ${SERVER_DIR} | cut -f1))"
 
-            - name: Configure kubectl
+            - name: Install kubectl
               run: |
-                  mkdir -p ~/.kube
-                  echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+                  curl -LO "https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                  chmod +x kubectl && sudo mv kubectl /usr/local/bin/
 
             - name: Deploy server to OWS PVC
               run: |
@@ -367,7 +367,6 @@ jobs:
               if: always()
               run: |
                   kubectl delete pod ows-server-sync -n ows --ignore-not-found --grace-period=0 2>/dev/null || true
-                  rm -f ~/.kube/config 2>/dev/null || true
                   cd "${{ env.ENGINE_CACHE_PATH }}" 2>/dev/null && \
                     git remote set-url origin "https://github.com/KBVE/UnrealEngine-Angelscript.git" || true
                   rm -rf /tmp/chuck /tmp/ue5-build-output 2>/dev/null || true

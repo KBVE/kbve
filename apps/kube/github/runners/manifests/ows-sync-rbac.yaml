@@ -1,0 +1,49 @@
+---
+# ServiceAccount for OWS server sync — mounted on arc-runner-ue pods.
+# Scoped RBAC: can only create/delete/exec the ows-server-sync pod
+# in the ows namespace. No other cluster access.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: ows-server-sync
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/part-of: ows
+---
+# Role in ows namespace — only pods named ows-server-sync
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: ows-server-sync
+    namespace: ows
+    labels:
+        app.kubernetes.io/part-of: ows
+rules:
+    - apiGroups: ['']
+      resources: ['pods']
+      resourceNames: ['ows-server-sync']
+      verbs: ['get', 'create', 'delete']
+    - apiGroups: ['']
+      resources: ['pods']
+      verbs: ['create']
+    - apiGroups: ['']
+      resources: ['pods/exec']
+      resourceNames: ['ows-server-sync']
+      verbs: ['create']
+---
+# Bind the arc-runners SA to the ows namespace role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: ows-server-sync
+    namespace: ows
+    labels:
+        app.kubernetes.io/part-of: ows
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: ows-server-sync
+subjects:
+    - kind: ServiceAccount
+      name: ows-server-sync
+      namespace: arc-runners

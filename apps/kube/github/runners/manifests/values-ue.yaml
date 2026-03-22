@@ -23,6 +23,7 @@ template:
         annotations:
             kbve.com/restart-trigger: '20260320-image-bump'
     spec:
+        serviceAccountName: ows-server-sync
         initContainers:
             - name: init-dind-externals
               image: ghcr.io/actions/actions-runner:2.333.0
