@@ -25,12 +25,10 @@ spec:
             serviceAccountName: ows-launcher-external-secrets
             containers:
                 - name: ows-instance-launcher
-                  image: ghcr.io/kbve/ows-instance-launcher:0.1.1
+                  image: ghcr.io/kbve/ows-instance-launcher:0.1.0
                   env:
-                      - name: RabbitMQOptions__RabbitMQHostName
-                        value: 'rabbitmq.rabbitmq-system.svc.cluster.local'
-                      - name: RabbitMQOptions__RabbitMQPort
-                        value: '5672'
+                      - name: ASPNETCORE_ENVIRONMENT
+                        value: 'Production'
                       - name: RabbitMQOptions__RabbitMQUserName
                         valueFrom:
                             secretKeyRef:
@@ -41,14 +39,14 @@ spec:
                             secretKeyRef:
                                 name: ows-launcher-rabbitmq-credentials
                                 key: password
-                      - name: OWSInstanceLauncherOptions__PathToDedicatedServer
-                        value: '/server/latest/OWSHubWorldMMOServer'
-                      - name: OWSInstanceLauncherOptions__PathToUProject
-                        value: '/server/latest/OWSHubWorldMMO.uproject'
-                      - name: OWSInstanceLauncherOptions__IsServerEditor
-                        value: 'false'
-                      - name: OWSInstanceLauncherOptions__StartingInstancePort
-                        value: '7778'
+                      - name: OWSInstanceLauncherOptions__ServerIP
+                        valueFrom:
+                            fieldRef:
+                                fieldPath: status.podIP
+                      - name: OWSInstanceLauncherOptions__InternalServerIP
+                        valueFrom:
+                            fieldRef:
+                                fieldPath: status.podIP
                   ports:
                       - name: http
                         containerPort: 8181
