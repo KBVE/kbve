@@ -57,11 +57,14 @@ hubble:
     ui:
         enabled: true
 
-# Gateway API — enabled now so CRDs are installed, ready for Phase 2/5
+# Gateway API — host-network mode to work around 1.19.x external access regression
+# Ref: https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/gateway-api/#host-network-mode
 gatewayAPI:
     enabled: true
     enableAlpn: true
     enableAppProtocol: true
+    hostNetwork:
+        enabled: true
 
 # L2 announcements — replaces MetalLB
 l2announcements:
