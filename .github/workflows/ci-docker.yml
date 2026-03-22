@@ -156,6 +156,11 @@ jobs:
             version_source: ${{ steps.resolve.outputs.version_source }}
             version_target: ${{ steps.resolve.outputs.version_target }}
         steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  sparse-checkout: .github/ci-dispatch-manifest.json
+                  sparse-checkout-cone-mode: false
             - name: Resolve config from manifest
               id: resolve
               run: |
