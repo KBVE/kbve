@@ -18,7 +18,13 @@ interface DockerEntry {
 	version?: string;
 	version_toml?: string;
 	version_source?: string;
+	version_target?: string;
 	source_path?: string;
+	runner?: string;
+	image?: string;
+	e2e_name?: string;
+	deployment_yaml?: string;
+	has_test?: boolean;
 }
 
 interface NpmEntry {
@@ -76,16 +82,21 @@ function toManifestEntry(d: ICiProject, mdxPath?: string): ManifestEntry | null 
 	const ver = d.version;
 	switch (d.pipeline) {
 		case 'docker':
-			return d.app_name
-				? {
-						key: d.key!,
-						app_name: d.app_name,
-						...(ver && { version: ver }),
-						...(vt && { version_toml: vt }),
-						...(mdxPath && { version_source: mdxPath }),
-						...(d.source_path && { source_path: d.source_path }),
-					}
-				: null;
+			if (!d.app_name) return null;
+			return {
+				key: d.key!,
+				app_name: d.app_name,
+				...(ver && { version: ver }),
+				...(vt && { version_toml: vt }),
+				...(mdxPath && { version_source: mdxPath }),
+				...(d.version_target && { version_target: d.version_target }),
+				...(d.source_path && { source_path: d.source_path }),
+				...(d.runner && { runner: d.runner }),
+				...(d.image && { image: d.image }),
+				...(d.e2e_name && { e2e_name: d.e2e_name }),
+				...(d.deployment_yaml && { deployment_yaml: d.deployment_yaml }),
+				...(d.has_test !== undefined && { has_test: d.has_test }),
+			};
 		case 'npm':
 		case 'crates':
 			return d.package_name

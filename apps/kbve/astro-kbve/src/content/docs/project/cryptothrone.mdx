@@ -18,6 +18,12 @@ app_name: cryptothrone
 version: "0.1.4"
 source_path: apps/cryptothrone
 version_toml: apps/cryptothrone/version.toml
+version_target: apps/cryptothrone/axum-cryptothrone/Cargo.toml
+runner: ubuntu-latest
+image: kbve/cryptothrone
+e2e_name: cryptothrone
+deployment_yaml: apps/kube/cryptothrone/manifest/cryptothrone-deployment.yaml
+has_test: true
 author: h0lybyte
 license: KBVE
 status: active

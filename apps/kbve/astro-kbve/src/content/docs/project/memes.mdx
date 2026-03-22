@@ -14,6 +14,12 @@ app_name: memes
 version: "0.1.7"
 source_path: apps/memes
 version_toml: apps/memes/version.toml
+version_target: apps/memes/axum-memes/Cargo.toml
+runner: ubuntu-latest
+image: kbve/memes
+e2e_name: memes
+deployment_yaml: apps/kube/memes/manifest/memes-deployment.yaml
+has_test: true
 author: h0lybyte
 license: KBVE
 status: active

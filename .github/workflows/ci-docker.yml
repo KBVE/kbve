@@ -156,102 +156,27 @@ jobs:
             version_source: ${{ steps.resolve.outputs.version_source }}
             version_target: ${{ steps.resolve.outputs.version_target }}
         steps:
-            - name: Resolve config for ${{ inputs.app_name }}
+            - name: Resolve config from manifest
               id: resolve
               run: |
-                  case "${{ inputs.app_name }}" in
-                    axum-kbve)
-                      echo "runner=arc-runner-set"                                                         >> "$GITHUB_OUTPUT"
-                      echo "image=kbve/kbve"                                                               >> "$GITHUB_OUTPUT"
-                      echo "e2e_name=axum-kbve-e2e"                                                        >> "$GITHUB_OUTPUT"
-                      echo "cargo_toml=apps/kbve/astro-kbve/src/content/docs/project/api.mdx"              >> "$GITHUB_OUTPUT"
-                      echo "deployment_yaml=apps/kube/kbve/manifest/kbve-deployment.yaml"                 >> "$GITHUB_OUTPUT"
-                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "version_toml=apps/kbve/axum-kbve/version.toml"                                >> "$GITHUB_OUTPUT"
-                      echo "version_source=apps/kbve/astro-kbve/src/content/docs/project/api.mdx"         >> "$GITHUB_OUTPUT"
-                      echo "version_target=apps/kbve/axum-kbve/Cargo.toml"                                >> "$GITHUB_OUTPUT"
-                      ;;
-                    herbmail)
-                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
-                      echo "image=kbve/herbmail"                                                           >> "$GITHUB_OUTPUT"
-                      echo "e2e_name=herbmail"                                                             >> "$GITHUB_OUTPUT"
-                      echo "cargo_toml=apps/herbmail/axum-herbmail/Cargo.toml"                             >> "$GITHUB_OUTPUT"
-                      echo "deployment_yaml=apps/kube/herbmail/manifest/herbmail-deployment.yaml"          >> "$GITHUB_OUTPUT"
-                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "version_toml=apps/herbmail/version.toml"                                       >> "$GITHUB_OUTPUT"
-                      ;;
-                    memes)
-                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
-                      echo "image=kbve/memes"                                                              >> "$GITHUB_OUTPUT"
-                      echo "e2e_name=memes"                                                                >> "$GITHUB_OUTPUT"
-                      echo "cargo_toml=apps/memes/axum-memes/Cargo.toml"                                   >> "$GITHUB_OUTPUT"
-                      echo "deployment_yaml=apps/kube/memes/manifest/memes-deployment.yaml"               >> "$GITHUB_OUTPUT"
-                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "version_toml=apps/memes/version.toml"                                          >> "$GITHUB_OUTPUT"
-                      ;;
-                    irc-gateway)
-                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
-                      echo "image=kbve/irc-gateway"                                                        >> "$GITHUB_OUTPUT"
-                      echo "e2e_name=irc"                                                                  >> "$GITHUB_OUTPUT"
-                      echo "cargo_toml=apps/irc/irc-gateway/Cargo.toml"                                   >> "$GITHUB_OUTPUT"
-                      echo "deployment_yaml=apps/kube/irc/manifests/irc-gateway-deployment.yaml"          >> "$GITHUB_OUTPUT"
-                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "version_toml=apps/irc/version.toml"                                            >> "$GITHUB_OUTPUT"
-                      ;;
-                    discordsh)
-                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
-                      echo "image=kbve/discordsh"                                                          >> "$GITHUB_OUTPUT"
-                      echo "e2e_name=discordsh"                                                            >> "$GITHUB_OUTPUT"
-                      echo "cargo_toml=apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx"       >> "$GITHUB_OUTPUT"
-                      echo "deployment_yaml=apps/kube/discordsh/manifest/deployment.yaml"                 >> "$GITHUB_OUTPUT"
-                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "version_toml=apps/discordsh/version.toml"                                      >> "$GITHUB_OUTPUT"
-                      echo "version_source=apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx"   >> "$GITHUB_OUTPUT"
-                      echo "version_target=apps/discordsh/axum-discordsh/Cargo.toml"                      >> "$GITHUB_OUTPUT"
-                      ;;
-                    mc)
-                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
-                      echo "image=kbve/mc"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "e2e_name=mc"                                                                   >> "$GITHUB_OUTPUT"
-                      echo "cargo_toml=apps/mc/plugins/kbve-mc-plugin/Cargo.toml"                         >> "$GITHUB_OUTPUT"
-                      echo "deployment_yaml=apps/kube/mc/manifest/deployment.yaml"                        >> "$GITHUB_OUTPUT"
-                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "version_toml=apps/mc/version.toml"                                             >> "$GITHUB_OUTPUT"
-                      ;;
-                    edge)
-                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
-                      echo "image=kbve/edge"                                                               >> "$GITHUB_OUTPUT"
-                      echo "e2e_name=edge"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "cargo_toml=apps/kbve/astro-kbve/src/content/docs/project/edge.mdx"            >> "$GITHUB_OUTPUT"
-                      echo "deployment_yaml=apps/kube/functions/manifests/functions-deployment.yaml"      >> "$GITHUB_OUTPUT"
-                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "version_toml=apps/kbve/edge/version.toml"                                      >> "$GITHUB_OUTPUT"
-                      echo "version_source=apps/kbve/astro-kbve/src/content/docs/project/edge.mdx"        >> "$GITHUB_OUTPUT"
-                      echo "version_target=apps/kbve/edge/deno.json"                                      >> "$GITHUB_OUTPUT"
-                      ;;
-                    cryptothrone)
-                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
-                      echo "image=kbve/cryptothrone"                                                       >> "$GITHUB_OUTPUT"
-                      echo "e2e_name=cryptothrone"                                                         >> "$GITHUB_OUTPUT"
-                      echo "cargo_toml=apps/cryptothrone/axum-cryptothrone/Cargo.toml"                    >> "$GITHUB_OUTPUT"
-                      echo "deployment_yaml=apps/kube/cryptothrone/manifest/cryptothrone-deployment.yaml" >> "$GITHUB_OUTPUT"
-                      echo "has_test=true"                                                                 >> "$GITHUB_OUTPUT"
-                      echo "version_toml=apps/cryptothrone/version.toml"                                   >> "$GITHUB_OUTPUT"
-                      ;;
-                    kilobase)
-                      echo "runner=ubuntu-latest"                                                          >> "$GITHUB_OUTPUT"
-                      echo "image=kbve/kilobase"                                                           >> "$GITHUB_OUTPUT"
-                      echo "e2e_name="                                                                     >> "$GITHUB_OUTPUT"
-                      echo "cargo_toml="                                                                   >> "$GITHUB_OUTPUT"
-                      echo "deployment_yaml="                                                              >> "$GITHUB_OUTPUT"
-                      echo "has_test=false"                                                                >> "$GITHUB_OUTPUT"
-                      echo "version_toml="                                                                 >> "$GITHUB_OUTPUT"
-                      ;;
-                    *)
-                      echo "::error::Unknown app_name: ${{ inputs.app_name }}"
-                      exit 1
-                      ;;
-                  esac
+                  APP="${{ inputs.app_name }}"
+                  MANIFEST=".github/ci-dispatch-manifest.json"
+
+                  ENTRY=$(jq -c --arg app "$APP" '.docker[] | select(.app_name == $app)' "$MANIFEST" 2>/dev/null)
+                  if [ -z "$ENTRY" ]; then
+                    echo "::error::App '$APP' not found in manifest"
+                    exit 1
+                  fi
+
+                  echo "runner=$(echo "$ENTRY" | jq -r '.runner // "ubuntu-latest"')"       >> "$GITHUB_OUTPUT"
+                  echo "image=$(echo "$ENTRY" | jq -r '.image // empty')"                   >> "$GITHUB_OUTPUT"
+                  echo "e2e_name=$(echo "$ENTRY" | jq -r '.e2e_name // empty')"              >> "$GITHUB_OUTPUT"
+                  echo "cargo_toml=$(echo "$ENTRY" | jq -r '.version_source // empty')"      >> "$GITHUB_OUTPUT"
+                  echo "deployment_yaml=$(echo "$ENTRY" | jq -r '.deployment_yaml // empty')" >> "$GITHUB_OUTPUT"
+                  echo "has_test=$(echo "$ENTRY" | jq -r '.has_test // true')"               >> "$GITHUB_OUTPUT"
+                  echo "version_toml=$(echo "$ENTRY" | jq -r '.version_toml // empty')"      >> "$GITHUB_OUTPUT"
+                  echo "version_source=$(echo "$ENTRY" | jq -r '.version_source // empty')"  >> "$GITHUB_OUTPUT"
+                  echo "version_target=$(echo "$ENTRY" | jq -r '.version_target // empty')"  >> "$GITHUB_OUTPUT"
 
     # ---------------------------------------------------------------------------
     # Test — builds the app image, tags as ci-{sha} in GHCR, runs e2e tests.

@@ -279,19 +279,19 @@ jobs:
 
                   git lfs pull
 
-            - name: Create build user
+            - name: Prepare non-root build
               run: |
-                  # UE5 UnrealEditor-Cmd refuses to run as root during cook
-                  useradd -m -u 1000 ue5build || true
-                  chown -R ue5build:ue5build /tmp/chuck
-                  chown -R ue5build:ue5build "${{ env.ENGINE_CACHE_PATH }}"
+                  # UE5 UnrealEditor-Cmd refuses to run as root during cook.
+                  # Use the existing 'runner' user (uid 1000) on arc-runner-ue.
+                  chown -R runner:runner /tmp/chuck
+                  chown -R runner:runner "${{ env.ENGINE_CACHE_PATH }}"
                   mkdir -p /tmp/ue5-build-output
-                  chown -R ue5build:ue5build /tmp/ue5-build-output
+                  chown -R runner:runner /tmp/ue5-build-output
 
             - name: Build dedicated server
               run: |
                   cd "${{ env.ENGINE_CACHE_PATH }}"
-                  sudo -u ue5build ./Engine/Build/BatchFiles/RunUAT.sh BuildCookRun \
+                  sudo -u runner ./Engine/Build/BatchFiles/RunUAT.sh BuildCookRun \
                     -project=/tmp/chuck/HubWorldMMO/OWSHubWorldMMO.uproject \
                     -targetplatform=Linux \
                     -target=OWSHubWorldMMOServer \
