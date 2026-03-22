@@ -1,6 +1,10 @@
 ## Cilium Helm values for Talos Linux (v1.8.0+)
 ## Reference: https://docs.siderolabs.com/kubernetes-guides/cni/deploying-cilium
 
+# CNI — allow Multus to coexist with Cilium
+cni:
+    exclusive: false
+
 ipam:
     mode: kubernetes
 
