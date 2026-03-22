@@ -1,0 +1,78 @@
+name: CI - Unreal Engine
+
+on:
+    workflow_dispatch:
+        inputs:
+            task:
+                description: 'Which UE task to run'
+                required: true
+                type: choice
+                options:
+                    - ows-server
+                    - win-setup
+                    - engine-build
+            engine_ref:
+                description: 'Engine git branch/tag (for ows-server and engine-build)'
+                required: false
+                type: string
+                default: 'angelscript-master'
+            platforms:
+                description: 'Engine build platforms (comma-separated: windows,mac,linux)'
+                required: false
+                type: string
+                default: 'linux'
+            skip_version_gate:
+                description: 'Skip version gate for engine build'
+                required: false
+                type: boolean
+                default: false
+
+concurrency:
+    group: ci-ue-${{ inputs.task }}
+    cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+    # ── OWS UE5 Dedicated Server Build ─────────────────────────
+    ows_server:
+        name: OWS Server
+        if: inputs.task == 'ows-server'
+        uses: KBVE/kbve/.github/workflows/ci-ue5-ows.yml@dev
+        with:
+            engine_ref: ${{ inputs.engine_ref }}
+        secrets: inherit
+
+    # ── Windows VM Setup ───────────────────────────────────────
+    win_setup:
+        name: Win Setup
+        if: inputs.task == 'win-setup'
+        uses: KBVE/kbve/.github/workflows/ci-ue-win-setup.yml@dev
+        secrets: inherit
+
+    # ── AngelScript Engine Build ───────────────────────────────
+    engine_build:
+        name: Engine Build
+        if: inputs.task == 'engine-build'
+        uses: KBVE/kbve/.github/workflows/ci-angelscript-engine.yml@dev
+        with:
+            platforms: ${{ inputs.platforms }}
+            engine_ref: ${{ inputs.engine_ref }}
+            skip_version_gate: ${{ inputs.skip_version_gate }}
+        secrets: inherit
+
+    # ── Failure Tracker ────────────────────────────────────────
+    track_failure:
+        name: Track Failures
+        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        needs: [ows_server, win_setup, engine_build]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Unreal Engine'
+            job_name: ${{ inputs.task }}
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'failure'
