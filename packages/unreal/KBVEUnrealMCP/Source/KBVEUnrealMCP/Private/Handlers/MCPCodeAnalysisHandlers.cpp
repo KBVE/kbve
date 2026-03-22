@@ -10,6 +10,9 @@ void FMCPCodeAnalysisHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("codeanalysis.find_references"), &HandleFindReferences);
 	Registry.RegisterHandler(TEXT("codeanalysis.search_code"), &HandleSearchCode);
 	Registry.RegisterHandler(TEXT("codeanalysis.get_hierarchy"), &HandleGetHierarchy);
+	Registry.RegisterHandler(TEXT("codeanalysis.list_classes"), &HandleListClasses);
+	Registry.RegisterHandler(TEXT("codeanalysis.list_functions"), &HandleListFunctions);
+	Registry.RegisterHandler(TEXT("codeanalysis.list_properties"), &HandleListProperties);
 }
 
 void FMCPCodeAnalysisHandlers::HandleAnalyzeClass(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
@@ -168,5 +171,103 @@ void FMCPCodeAnalysisHandlers::HandleGetHierarchy(const TSharedPtr<FJsonObject>&
 	Result->SetArrayField(TEXT("hierarchy"), Ancestors);
 	Result->SetArrayField(TEXT("interfaces"), Interfaces);
 	Result->SetNumberField(TEXT("depth"), Ancestors.Num());
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+void FMCPCodeAnalysisHandlers::HandleListClasses(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString ParentFilter = Params->GetStringField(TEXT("parent_class"));
+	int32 MaxResults = (int32)Params->GetNumberField(TEXT("max_results"));
+	if (MaxResults <= 0) MaxResults = 100;
+
+	UClass* ParentClass = nullptr;
+	if (!ParentFilter.IsEmpty())
+	{
+		for (TObjectIterator<UClass> It; It; ++It)
+			if (It->GetName() == ParentFilter) { ParentClass = *It; break; }
+	}
+
+	TArray<TSharedPtr<FJsonValue>> Classes;
+	for (TObjectIterator<UClass> It; It; ++It)
+	{
+		if (ParentClass && !It->IsChildOf(ParentClass)) continue;
+		TSharedPtr<FJsonObject> C = MakeShared<FJsonObject>();
+		C->SetStringField(TEXT("name"), It->GetName());
+		C->SetStringField(TEXT("parent"), It->GetSuperClass() ? It->GetSuperClass()->GetName() : TEXT("none"));
+		C->SetBoolField(TEXT("abstract"), It->HasAnyClassFlags(CLASS_Abstract));
+		Classes.Add(MakeShared<FJsonValueObject>(C));
+		if (Classes.Num() >= MaxResults) break;
+	}
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetArrayField(TEXT("classes"), Classes);
+	Result->SetNumberField(TEXT("count"), Classes.Num());
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+void FMCPCodeAnalysisHandlers::HandleListFunctions(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString ClassName = Params->GetStringField(TEXT("class_name"));
+	if (ClassName.IsEmpty()) { MCPProtocolHelpers::Fail(OnComplete, TEXT("INVALID_PARAMS"), TEXT("'class_name' is required")); return; }
+
+	UClass* FoundClass = nullptr;
+	for (TObjectIterator<UClass> It; It; ++It)
+		if (It->GetName() == ClassName) { FoundClass = *It; break; }
+	if (!FoundClass) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), FString::Printf(TEXT("Class not found: %s"), *ClassName)); return; }
+
+	bool bIncludeInherited = Params->GetBoolField(TEXT("include_inherited"));
+
+	TArray<TSharedPtr<FJsonValue>> Funcs;
+	EFieldIteratorFlags::SuperClassFlags SuperFlag = bIncludeInherited ? EFieldIteratorFlags::IncludeSuper : EFieldIteratorFlags::ExcludeSuper;
+	for (TFieldIterator<UFunction> It(FoundClass, SuperFlag); It; ++It)
+	{
+		TSharedPtr<FJsonObject> F = MakeShared<FJsonObject>();
+		F->SetStringField(TEXT("name"), It->GetName());
+		F->SetBoolField(TEXT("blueprint_callable"), It->HasAnyFunctionFlags(FUNC_BlueprintCallable));
+		F->SetBoolField(TEXT("blueprint_pure"), It->HasAnyFunctionFlags(FUNC_BlueprintPure));
+		F->SetBoolField(TEXT("is_event"), It->HasAnyFunctionFlags(FUNC_Event));
+		F->SetBoolField(TEXT("is_static"), It->HasAnyFunctionFlags(FUNC_Static));
+		F->SetNumberField(TEXT("param_count"), It->NumParms);
+		F->SetStringField(TEXT("owner"), It->GetOwnerClass() ? It->GetOwnerClass()->GetName() : TEXT("unknown"));
+		Funcs.Add(MakeShared<FJsonValueObject>(F));
+	}
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetStringField(TEXT("class"), FoundClass->GetName());
+	Result->SetArrayField(TEXT("functions"), Funcs);
+	Result->SetNumberField(TEXT("count"), Funcs.Num());
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+void FMCPCodeAnalysisHandlers::HandleListProperties(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString ClassName = Params->GetStringField(TEXT("class_name"));
+	if (ClassName.IsEmpty()) { MCPProtocolHelpers::Fail(OnComplete, TEXT("INVALID_PARAMS"), TEXT("'class_name' is required")); return; }
+
+	UClass* FoundClass = nullptr;
+	for (TObjectIterator<UClass> It; It; ++It)
+		if (It->GetName() == ClassName) { FoundClass = *It; break; }
+	if (!FoundClass) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), FString::Printf(TEXT("Class not found: %s"), *ClassName)); return; }
+
+	bool bIncludeInherited = Params->GetBoolField(TEXT("include_inherited"));
+
+	TArray<TSharedPtr<FJsonValue>> Props;
+	EFieldIteratorFlags::SuperClassFlags SuperFlag = bIncludeInherited ? EFieldIteratorFlags::IncludeSuper : EFieldIteratorFlags::ExcludeSuper;
+	for (TFieldIterator<FProperty> It(FoundClass, SuperFlag); It; ++It)
+	{
+		TSharedPtr<FJsonObject> P = MakeShared<FJsonObject>();
+		P->SetStringField(TEXT("name"), It->GetName());
+		P->SetStringField(TEXT("type"), It->GetCPPType());
+		P->SetBoolField(TEXT("blueprint_visible"), It->HasAnyPropertyFlags(CPF_BlueprintVisible));
+		P->SetBoolField(TEXT("edit_anywhere"), It->HasAnyPropertyFlags(CPF_Edit));
+		P->SetBoolField(TEXT("replicated"), It->HasAnyPropertyFlags(CPF_Net));
+		P->SetStringField(TEXT("category"), It->GetMetaData(TEXT("Category")));
+		Props.Add(MakeShared<FJsonValueObject>(P));
+	}
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetStringField(TEXT("class"), FoundClass->GetName());
+	Result->SetArrayField(TEXT("properties"), Props);
+	Result->SetNumberField(TEXT("count"), Props.Num());
 	MCPProtocolHelpers::Succeed(OnComplete, Result);
 }

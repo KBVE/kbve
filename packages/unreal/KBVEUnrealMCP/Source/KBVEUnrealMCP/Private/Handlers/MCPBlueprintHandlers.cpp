@@ -28,6 +28,17 @@ void FMCPBlueprintHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("blueprint.add_event_node"), &HandleAddEventNode);
 	Registry.RegisterHandler(TEXT("blueprint.connect_nodes"), &HandleConnectNodes);
 	Registry.RegisterHandler(TEXT("blueprint.compile"), &HandleCompile);
+	// Phase 8
+	Registry.RegisterHandler(TEXT("blueprint.get_graph"), &HandleGetGraph);
+	Registry.RegisterHandler(TEXT("blueprint.delete_node"), &HandleDeleteNode);
+	Registry.RegisterHandler(TEXT("blueprint.disconnect_pin"), &HandleDisconnectPin);
+	Registry.RegisterHandler(TEXT("blueprint.set_pin_default"), &HandleSetPinDefault);
+	Registry.RegisterHandler(TEXT("blueprint.set_default"), &HandleSetDefault);
+	Registry.RegisterHandler(TEXT("blueprint.remove_variable"), &HandleRemoveVariable);
+	Registry.RegisterHandler(TEXT("blueprint.remove_component"), &HandleRemoveComponent);
+	Registry.RegisterHandler(TEXT("blueprint.reparent"), &HandleReparent);
+	Registry.RegisterHandler(TEXT("blueprint.validate"), &HandleValidate);
+	Registry.RegisterHandler(TEXT("blueprint.list_components"), &HandleListComponents);
 }
 
 void FMCPBlueprintHandlers::HandleCreate(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
@@ -449,5 +460,270 @@ void FMCPBlueprintHandlers::HandleCompile(const TSharedPtr<FJsonObject>& Params,
 	Result->SetStringField(TEXT("blueprint"), Blueprint->GetName());
 	Result->SetBoolField(TEXT("compiled"), Blueprint->Status == BS_UpToDate);
 	Result->SetStringField(TEXT("status"), Blueprint->Status == BS_UpToDate ? TEXT("success") : TEXT("error"));
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+// ─── Phase 8: Graph introspection + manipulation ────────────────────────────
+
+void FMCPBlueprintHandlers::HandleGetGraph(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString BlueprintPath = Params->GetStringField(TEXT("blueprint_path"));
+	UBlueprint* Blueprint = LoadObject<UBlueprint>(nullptr, *BlueprintPath);
+	if (!Blueprint) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintPath)); return; }
+
+	UEdGraph* EventGraph = FBlueprintEditorUtils::FindEventGraph(Blueprint);
+	if (!EventGraph) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NO_GRAPH"), TEXT("No event graph")); return; }
+
+	TArray<TSharedPtr<FJsonValue>> Nodes;
+	for (UEdGraphNode* Node : EventGraph->Nodes)
+	{
+		TSharedPtr<FJsonObject> N = MakeShared<FJsonObject>();
+		N->SetStringField(TEXT("node_id"), Node->NodeGuid.ToString());
+		N->SetStringField(TEXT("class"), Node->GetClass()->GetName());
+		N->SetStringField(TEXT("title"), Node->GetNodeTitle(ENodeTitleType::FullTitle).ToString());
+		N->SetNumberField(TEXT("pos_x"), Node->NodePosX);
+		N->SetNumberField(TEXT("pos_y"), Node->NodePosY);
+		N->SetStringField(TEXT("comment"), Node->NodeComment);
+
+		TArray<TSharedPtr<FJsonValue>> Pins;
+		for (UEdGraphPin* Pin : Node->Pins)
+		{
+			TSharedPtr<FJsonObject> P = MakeShared<FJsonObject>();
+			P->SetStringField(TEXT("name"), Pin->PinName.ToString());
+			P->SetStringField(TEXT("type"), Pin->PinType.PinCategory.ToString());
+			P->SetStringField(TEXT("direction"), Pin->Direction == EGPD_Input ? TEXT("input") : TEXT("output"));
+			P->SetStringField(TEXT("default_value"), Pin->DefaultValue);
+			P->SetNumberField(TEXT("connections"), Pin->LinkedTo.Num());
+			Pins.Add(MakeShared<FJsonValueObject>(P));
+		}
+		N->SetArrayField(TEXT("pins"), Pins);
+		Nodes.Add(MakeShared<FJsonValueObject>(N));
+	}
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetStringField(TEXT("blueprint"), Blueprint->GetName());
+	Result->SetStringField(TEXT("graph"), EventGraph->GetName());
+	Result->SetArrayField(TEXT("nodes"), Nodes);
+	Result->SetNumberField(TEXT("node_count"), Nodes.Num());
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+void FMCPBlueprintHandlers::HandleDeleteNode(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString BlueprintPath = Params->GetStringField(TEXT("blueprint_path"));
+	FString NodeId = Params->GetStringField(TEXT("node_id"));
+	UBlueprint* Blueprint = LoadObject<UBlueprint>(nullptr, *BlueprintPath);
+	if (!Blueprint) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Blueprint not found")); return; }
+
+	UEdGraph* EventGraph = FBlueprintEditorUtils::FindEventGraph(Blueprint);
+	if (!EventGraph) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NO_GRAPH"), TEXT("No event graph")); return; }
+
+	FGuid TargetGuid;
+	FGuid::Parse(NodeId, TargetGuid);
+	UEdGraphNode* TargetNode = nullptr;
+	for (UEdGraphNode* Node : EventGraph->Nodes)
+		if (Node->NodeGuid == TargetGuid) { TargetNode = Node; break; }
+
+	if (!TargetNode) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Node not found")); return; }
+
+	TargetNode->BreakAllNodeLinks();
+	EventGraph->RemoveNode(TargetNode);
+	FBlueprintEditorUtils::MarkBlueprintAsModified(Blueprint);
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetStringField(TEXT("deleted_node"), NodeId);
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+void FMCPBlueprintHandlers::HandleDisconnectPin(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString BlueprintPath = Params->GetStringField(TEXT("blueprint_path"));
+	FString NodeId = Params->GetStringField(TEXT("node_id"));
+	FString PinName = Params->GetStringField(TEXT("pin_name"));
+	UBlueprint* Blueprint = LoadObject<UBlueprint>(nullptr, *BlueprintPath);
+	if (!Blueprint) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Blueprint not found")); return; }
+
+	UEdGraph* EventGraph = FBlueprintEditorUtils::FindEventGraph(Blueprint);
+	if (!EventGraph) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NO_GRAPH"), TEXT("No event graph")); return; }
+
+	FGuid TargetGuid;
+	FGuid::Parse(NodeId, TargetGuid);
+	UEdGraphNode* Node = nullptr;
+	for (UEdGraphNode* N : EventGraph->Nodes)
+		if (N->NodeGuid == TargetGuid) { Node = N; break; }
+
+	if (!Node) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Node not found")); return; }
+
+	UEdGraphPin* Pin = nullptr;
+	for (UEdGraphPin* P : Node->Pins)
+		if (P->PinName.ToString() == PinName) { Pin = P; break; }
+
+	if (!Pin) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Pin not found")); return; }
+
+	int32 BrokenCount = Pin->LinkedTo.Num();
+	Pin->BreakAllPinLinks();
+	FBlueprintEditorUtils::MarkBlueprintAsModified(Blueprint);
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetNumberField(TEXT("disconnected"), BrokenCount);
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+void FMCPBlueprintHandlers::HandleSetPinDefault(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString BlueprintPath = Params->GetStringField(TEXT("blueprint_path"));
+	FString NodeId = Params->GetStringField(TEXT("node_id"));
+	FString PinName = Params->GetStringField(TEXT("pin_name"));
+	FString DefaultValue = Params->GetStringField(TEXT("default_value"));
+
+	UBlueprint* Blueprint = LoadObject<UBlueprint>(nullptr, *BlueprintPath);
+	if (!Blueprint) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Blueprint not found")); return; }
+
+	UEdGraph* EventGraph = FBlueprintEditorUtils::FindEventGraph(Blueprint);
+	if (!EventGraph) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NO_GRAPH"), TEXT("No event graph")); return; }
+
+	FGuid TargetGuid;
+	FGuid::Parse(NodeId, TargetGuid);
+	UEdGraphNode* Node = nullptr;
+	for (UEdGraphNode* N : EventGraph->Nodes)
+		if (N->NodeGuid == TargetGuid) { Node = N; break; }
+	if (!Node) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Node not found")); return; }
+
+	UEdGraphPin* Pin = nullptr;
+	for (UEdGraphPin* P : Node->Pins)
+		if (P->PinName.ToString() == PinName) { Pin = P; break; }
+	if (!Pin) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Pin not found")); return; }
+
+	Pin->DefaultValue = DefaultValue;
+	FBlueprintEditorUtils::MarkBlueprintAsModified(Blueprint);
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetStringField(TEXT("pin"), PinName);
+	Result->SetStringField(TEXT("default_value"), DefaultValue);
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+void FMCPBlueprintHandlers::HandleSetDefault(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString BlueprintPath = Params->GetStringField(TEXT("blueprint_path"));
+	FString PropertyName = Params->GetStringField(TEXT("property_name"));
+	FString PropertyValue = Params->GetStringField(TEXT("property_value"));
+
+	UBlueprint* Blueprint = LoadObject<UBlueprint>(nullptr, *BlueprintPath);
+	if (!Blueprint) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Blueprint not found")); return; }
+
+	UObject* CDO = Blueprint->GeneratedClass ? Blueprint->GeneratedClass->GetDefaultObject() : nullptr;
+	if (!CDO) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NO_CDO"), TEXT("No CDO available — compile first")); return; }
+
+	FProperty* Prop = Blueprint->GeneratedClass->FindPropertyByName(*PropertyName);
+	if (!Prop) { MCPProtocolHelpers::Fail(OnComplete, TEXT("INVALID_PROPERTY"), FString::Printf(TEXT("Property not found: %s"), *PropertyName)); return; }
+
+	void* ValuePtr = Prop->ContainerPtrToValuePtr<void>(CDO);
+	if (!Prop->ImportText_Direct(*PropertyValue, ValuePtr, CDO, PPF_None))
+	{ MCPProtocolHelpers::Fail(OnComplete, TEXT("SET_FAILED"), TEXT("Failed to set default value")); return; }
+
+	Blueprint->MarkPackageDirty();
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetStringField(TEXT("blueprint"), Blueprint->GetName());
+	Result->SetStringField(TEXT("property"), PropertyName);
+	Result->SetBoolField(TEXT("updated"), true);
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+void FMCPBlueprintHandlers::HandleRemoveVariable(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString BlueprintPath = Params->GetStringField(TEXT("blueprint_path"));
+	FString VariableName = Params->GetStringField(TEXT("variable_name"));
+
+	UBlueprint* Blueprint = LoadObject<UBlueprint>(nullptr, *BlueprintPath);
+	if (!Blueprint) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Blueprint not found")); return; }
+
+	FBlueprintEditorUtils::RemoveMemberVariable(Blueprint, FName(*VariableName));
+	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetStringField(TEXT("removed"), VariableName);
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+void FMCPBlueprintHandlers::HandleRemoveComponent(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString BlueprintPath = Params->GetStringField(TEXT("blueprint_path"));
+	FString ComponentName = Params->GetStringField(TEXT("component_name"));
+
+	UBlueprint* Blueprint = LoadObject<UBlueprint>(nullptr, *BlueprintPath);
+	if (!Blueprint) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Blueprint not found")); return; }
+
+	USCS_Node* FoundNode = nullptr;
+	for (USCS_Node* Node : Blueprint->SimpleConstructionScript->GetAllNodes())
+		if (Node->GetVariableName().ToString() == ComponentName) { FoundNode = Node; break; }
+
+	if (!FoundNode) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), FString::Printf(TEXT("Component not found: %s"), *ComponentName)); return; }
+
+	Blueprint->SimpleConstructionScript->RemoveNode(FoundNode);
+	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetStringField(TEXT("removed"), ComponentName);
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+void FMCPBlueprintHandlers::HandleReparent(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString BlueprintPath = Params->GetStringField(TEXT("blueprint_path"));
+	FString NewParentPath = Params->GetStringField(TEXT("new_parent_class"));
+
+	UBlueprint* Blueprint = LoadObject<UBlueprint>(nullptr, *BlueprintPath);
+	if (!Blueprint) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Blueprint not found")); return; }
+
+	UClass* NewParent = FindObject<UClass>(nullptr, *NewParentPath);
+	if (!NewParent) NewParent = LoadObject<UClass>(nullptr, *NewParentPath);
+	if (!NewParent) { MCPProtocolHelpers::Fail(OnComplete, TEXT("INVALID_CLASS"), FString::Printf(TEXT("Class not found: %s"), *NewParentPath)); return; }
+
+	Blueprint->ParentClass = NewParent;
+	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetStringField(TEXT("blueprint"), Blueprint->GetName());
+	Result->SetStringField(TEXT("new_parent"), NewParent->GetName());
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+void FMCPBlueprintHandlers::HandleValidate(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString BlueprintPath = Params->GetStringField(TEXT("blueprint_path"));
+	UBlueprint* Blueprint = LoadObject<UBlueprint>(nullptr, *BlueprintPath);
+	if (!Blueprint) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Blueprint not found")); return; }
+
+	FKismetEditorUtilities::CompileBlueprint(Blueprint);
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetStringField(TEXT("blueprint"), Blueprint->GetName());
+	Result->SetBoolField(TEXT("valid"), Blueprint->Status == BS_UpToDate);
+	Result->SetStringField(TEXT("status"), Blueprint->Status == BS_UpToDate ? TEXT("up_to_date") :
+		Blueprint->Status == BS_Error ? TEXT("error") : TEXT("dirty"));
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+void FMCPBlueprintHandlers::HandleListComponents(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString BlueprintPath = Params->GetStringField(TEXT("blueprint_path"));
+	UBlueprint* Blueprint = LoadObject<UBlueprint>(nullptr, *BlueprintPath);
+	if (!Blueprint) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Blueprint not found")); return; }
+
+	TArray<TSharedPtr<FJsonValue>> Components;
+	for (USCS_Node* Node : Blueprint->SimpleConstructionScript->GetAllNodes())
+	{
+		TSharedPtr<FJsonObject> C = MakeShared<FJsonObject>();
+		C->SetStringField(TEXT("name"), Node->GetVariableName().ToString());
+		C->SetStringField(TEXT("class"), Node->ComponentClass ? Node->ComponentClass->GetName() : TEXT("unknown"));
+		C->SetBoolField(TEXT("is_root"), Node == Blueprint->SimpleConstructionScript->GetDefaultSceneRootNode());
+		Components.Add(MakeShared<FJsonValueObject>(C));
+	}
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetArrayField(TEXT("components"), Components);
+	Result->SetNumberField(TEXT("count"), Components.Num());
 	MCPProtocolHelpers::Succeed(OnComplete, Result);
 }

@@ -15,4 +15,7 @@ private:
 	static void HandleFindReferences(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
 	static void HandleSearchCode(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
 	static void HandleGetHierarchy(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
+	static void HandleListClasses(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
+	static void HandleListFunctions(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
+	static void HandleListProperties(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
 };
