@@ -315,9 +315,173 @@ serve(async (req) => {
       );
     }
 
+    // Handle GET_BY_GUILD command (bot-facing guild token lookup)
+    if (command === "get_by_guild") {
+      const { server_id, service } = body;
+
+      if (!server_id || !service) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "server_id and service are required for get_by_guild command",
+          }),
+          {
+            status: 400,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      }
+
+      const { data, error } = await supabase.rpc("bot_get_guild_token", {
+        p_server_id: server_id,
+        p_service: service,
+      });
+
+      if (error) {
+        console.error("Error fetching guild token via RPC:", error.message);
+        return new Response(
+          JSON.stringify({ error: "Failed to retrieve guild token" }),
+          {
+            status: 500,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      }
+
+      if (!data) {
+        return new Response(
+          JSON.stringify({
+            error: "No active token found for this guild and service",
+          }),
+          {
+            status: 404,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          id: "",
+          name: `guild/${server_id}/tokens/${service}`,
+          description: null,
+          decrypted_secret: data,
+          created_at: "",
+          updated_at: "",
+        }),
+        {
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+    }
+
+    // Handle GET_BY_TAG command (alias for get_by_guild, parses tag format)
+    if (command === "get_by_tag") {
+      const { tag } = body;
+
+      if (!tag || typeof tag !== "string") {
+        return new Response(
+          JSON.stringify({
+            error: "tag is required for get_by_tag command",
+          }),
+          {
+            status: 400,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      }
+
+      // Parse tag format: "github_pat:1234567890" -> service=github, server_id=1234567890
+      const colonIdx = tag.indexOf(":");
+      if (colonIdx === -1) {
+        return new Response(
+          JSON.stringify({
+            error: 'Invalid tag format. Expected "service_name:server_id"',
+          }),
+          {
+            status: 400,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      }
+
+      const tagService = tag.substring(0, colonIdx).replace(/_pat$/, "");
+      const tagServerId = tag.substring(colonIdx + 1);
+
+      const { data, error } = await supabase.rpc("bot_get_guild_token", {
+        p_server_id: tagServerId,
+        p_service: tagService,
+      });
+
+      if (error) {
+        console.error("Error fetching guild token via tag RPC:", error.message);
+        return new Response(
+          JSON.stringify({ error: "Failed to retrieve guild token" }),
+          {
+            status: 500,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      }
+
+      if (!data) {
+        return new Response(
+          JSON.stringify({ error: "No active token found for tag" }),
+          {
+            status: 404,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          id: "",
+          name: tag,
+          description: null,
+          decrypted_secret: data,
+          created_at: "",
+          updated_at: "",
+        }),
+        {
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+    }
+
     // Invalid command
     return new Response(
-      JSON.stringify({ error: 'Invalid command. Use "get" or "set"' }),
+      JSON.stringify({
+        error:
+          'Invalid command. Use "get", "set", "get_by_guild", or "get_by_tag"',
+      }),
       {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
