@@ -21,7 +21,7 @@ maxRunners: 3
 template:
     metadata:
         annotations:
-            kbve.com/restart-trigger: '20260320-image-bump'
+            kbve.com/restart-trigger: '20260322-runner-as-uid1000'
     spec:
         initContainers:
             - name: init-dind-externals
@@ -40,17 +40,10 @@ template:
         containers:
             - name: runner
               image: ghcr.io/actions/actions-runner:2.333.0
-              command:
-                  [
-                      '/bin/bash',
-                      '-c',
-                      "echo 'root ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && /home/runner/run.sh",
-                  ]
+              command: ['/home/runner/run.sh']
               env:
                   - name: DOCKER_HOST
                     value: tcp://localhost:2376
-                  - name: RUNNER_ALLOW_RUNASROOT
-                    value: '1'
                   - name: FORGEJO_API_TOKEN
                     valueFrom:
                         secretKeyRef:
@@ -58,14 +51,14 @@ template:
                             key: api-token
               resources:
                   limits:
-                      cpu: '12'
-                      memory: 24Gi
+                      cpu: '16'
+                      memory: 48Gi
                   requests:
                       cpu: '4'
-                      memory: 8Gi
+                      memory: 16Gi
               securityContext:
-                  runAsUser: 0
-                  runAsGroup: 0
+                  runAsUser: 1000
+                  runAsGroup: 1000
               volumeMounts:
                   - name: work
                     mountPath: /home/runner/_work
@@ -91,11 +84,11 @@ template:
                   privileged: true
               resources:
                   limits:
-                      cpu: '12'
-                      memory: 32Gi
+                      cpu: '4'
+                      memory: 8Gi
                   requests:
-                      cpu: '2'
-                      memory: 4Gi
+                      cpu: '1'
+                      memory: 2Gi
               volumeMounts:
                   - name: work
                     mountPath: /home/runner/_work

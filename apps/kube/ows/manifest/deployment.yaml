@@ -21,7 +21,7 @@ spec:
         spec:
             containers:
                 - name: ows-publicapi
-                  image: ghcr.io/kbve/ows-publicapi:0.1.0
+                  image: ghcr.io/kbve/ows-publicapi:0.1.1
                   imagePullPolicy: Always
                   env:
                       - name: OWSStorageConfig__OWSDBBackend
@@ -95,7 +95,7 @@ spec:
         spec:
             containers:
                 - name: ows-instancemanagement
-                  image: ghcr.io/kbve/ows-instancemanagement:0.1.0
+                  image: ghcr.io/kbve/ows-instancemanagement:0.1.1
                   imagePullPolicy: Always
                   env:
                       - name: OWSStorageConfig__OWSDBBackend
@@ -189,7 +189,7 @@ spec:
         spec:
             containers:
                 - name: ows-characterpersistence
-                  image: ghcr.io/kbve/ows-characterpersistence:0.1.0
+                  image: ghcr.io/kbve/ows-characterpersistence:0.1.1
                   imagePullPolicy: Always
                   env:
                       - name: OWSStorageConfig__OWSDBBackend
@@ -283,7 +283,7 @@ spec:
         spec:
             containers:
                 - name: ows-globaldata
-                  image: ghcr.io/kbve/ows-globaldata:0.1.0
+                  image: ghcr.io/kbve/ows-globaldata:0.1.1
                   imagePullPolicy: Always
                   env:
                       - name: OWSStorageConfig__OWSDBBackend
@@ -377,7 +377,7 @@ spec:
         spec:
             containers:
                 - name: ows-management
-                  image: ghcr.io/kbve/ows-management:0.1.0
+                  image: ghcr.io/kbve/ows-management:0.1.1
                   imagePullPolicy: Always
                   env:
                       - name: OWSStorageConfig__OWSDBBackend
@@ -405,6 +405,11 @@ spec:
                             configMapKeyRef:
                                 name: ows-config
                                 key: InternalCharacterPersistenceApiURL
+                      - name: OWSAPIPathConfig__InternalGlobalDataApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalGlobalDataApiURL
                   ports:
                       - name: http
                         containerPort: 80

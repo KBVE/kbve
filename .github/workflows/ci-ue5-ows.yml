@@ -228,6 +228,8 @@ jobs:
                     libxrender1 \
                     libxtst6 \
                     libasound2t64
+                  # Ensure runner user can sudo for setup scripts
+                  echo 'runner ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/runner
 
             - name: Configure git safe directories
               run: |
@@ -259,14 +261,28 @@ jobs:
             - name: Run engine setup
               run: |
                   cd "${{ env.ENGINE_CACHE_PATH }}"
-                  chmod +x Setup.sh
-                  ./Setup.sh
+                  ENGINE_REF="${{ inputs.engine_ref || 'angelscript-master' }}"
+                  MARKER=".setup-done-${ENGINE_REF}"
+                  if [ -f "${MARKER}" ]; then
+                    echo "::notice::Setup already completed for ${ENGINE_REF} — skipping"
+                  else
+                    chmod +x Setup.sh
+                    ./Setup.sh
+                    touch "${MARKER}"
+                  fi
 
             - name: Generate project files
               run: |
                   cd "${{ env.ENGINE_CACHE_PATH }}"
-                  chmod +x GenerateProjectFiles.sh
-                  ./GenerateProjectFiles.sh
+                  ENGINE_REF="${{ inputs.engine_ref || 'angelscript-master' }}"
+                  MARKER=".genproj-done-${ENGINE_REF}"
+                  if [ -f "${MARKER}" ]; then
+                    echo "::notice::Project files already generated for ${ENGINE_REF} — skipping"
+                  else
+                    chmod +x GenerateProjectFiles.sh
+                    ./GenerateProjectFiles.sh
+                    touch "${MARKER}"
+                  fi
 
             - name: Clone HubWorldMMO
               run: |
@@ -284,19 +300,13 @@ jobs:
 
                   git lfs pull
 
-            - name: Prepare non-root build
-              run: |
-                  # UE5 UnrealEditor-Cmd refuses to run as root during cook.
-                  # Use the existing 'runner' user (uid 1000) on arc-runner-ue.
-                  chown -R runner:runner /tmp/chuck
-                  chown -R runner:runner "${{ env.ENGINE_CACHE_PATH }}"
-                  mkdir -p /tmp/ue5-build-output
-                  chown -R runner:runner /tmp/ue5-build-output
+            - name: Prepare build output
+              run: mkdir -p /tmp/ue5-build-output
 
             - name: Build dedicated server
               run: |
                   cd "${{ env.ENGINE_CACHE_PATH }}"
-                  sudo -u runner ./Engine/Build/BatchFiles/RunUAT.sh BuildCookRun \
+                  ./Engine/Build/BatchFiles/RunUAT.sh BuildCookRun \
                     -project=/tmp/chuck/HubWorldMMO/OWSHubWorldMMO.uproject \
                     -targetplatform=Linux \
                     -target=OWSHubWorldMMOServer \
