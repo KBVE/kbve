@@ -1,0 +1,19 @@
+---
+# KEDA TriggerAuthentication — RabbitMQ credentials from ExternalSecret
+# Used by ScaledObjects to authenticate against the RabbitMQ cluster
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+    name: ows-rabbitmq-auth
+    namespace: ows
+spec:
+    secretTargetRef:
+        - parameter: host
+          name: ows-rabbitmq-credentials
+          key: host
+        - parameter: username
+          name: ows-rabbitmq-credentials
+          key: username
+        - parameter: password
+          name: ows-rabbitmq-credentials
+          key: password

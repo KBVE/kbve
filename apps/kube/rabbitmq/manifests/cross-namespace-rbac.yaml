@@ -1,0 +1,26 @@
+---
+# Cross-namespace RBAC for OWS to access RabbitMQ operator-generated secrets
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: rabbitmq-secrets-reader
+    namespace: rabbitmq-system
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['rabbitmq-default-user']
+      verbs: ['get', 'list', 'watch']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: ows-read-rabbitmq-secrets
+    namespace: rabbitmq-system
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: rabbitmq-secrets-reader
+subjects:
+    - kind: ServiceAccount
+      name: ows-external-secrets
+      namespace: ows
