@@ -188,15 +188,29 @@ jobs:
                           draft: false
                         });
                         prNumber = pr.data.number;
-
-                        await github.rest.issues.addLabels({
-                          owner: context.repo.owner,
-                          repo: context.repo.repo,
-                          issue_number: prNumber,
-                          labels: ['auto-pr', 'dev→main']
-                        });
-
                         console.log(`Created PR #${prNumber}`);
+
+                        // Retry label application — GitHub's graph index
+                        // can lag behind PR creation, causing a 422 if the
+                        // node ID isn't resolvable yet.
+                        for (let attempt = 1; attempt <= 3; attempt++) {
+                          try {
+                            await github.rest.issues.addLabels({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              issue_number: prNumber,
+                              labels: ['auto-pr', 'dev→main']
+                            });
+                            break;
+                          } catch (labelErr) {
+                            if (attempt === 3) {
+                              console.warn(`Failed to add labels after ${attempt} attempts: ${labelErr.message}`);
+                            } else {
+                              console.log(`Label attempt ${attempt} failed, retrying in 2s...`);
+                              await new Promise(r => setTimeout(r, 2000));
+                            }
+                          }
+                        }
                       }
 
                       // Always update title and body to reflect latest commits
