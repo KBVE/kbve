@@ -1,8 +1,8 @@
-name: CI - Monday E2E
+name: CI - E2E
 
 on:
     schedule:
-        - cron: '0 6 * * 1' # Monday 06:00 UTC
+        - cron: '0 6 * * 1' # Weekly Monday 06:00 UTC
     workflow_dispatch:
         inputs:
             branch:
@@ -128,7 +128,7 @@ jobs:
     # Job 3: Summary — collect results and report.
     # -----------------------------------------------------------------------
     summary:
-        name: Monday E2E Summary
+        name: E2E Summary
         needs: [discover, e2e]
         if: always()
         runs-on: ubuntu-latest
@@ -148,7 +148,7 @@ jobs:
               env:
                   MATRIX: ${{ needs.discover.outputs.matrix }}
               run: |
-                  echo "## Monday E2E Results" >> "$GITHUB_STEP_SUMMARY"
+                  echo "## E2E Results" >> "$GITHUB_STEP_SUMMARY"
                   echo "" >> "$GITHUB_STEP_SUMMARY"
                   echo "| Project | Status |" >> "$GITHUB_STEP_SUMMARY"
                   echo "|---------|--------|" >> "$GITHUB_STEP_SUMMARY"
@@ -171,7 +171,7 @@ jobs:
 
                   if [ "$PASSED" -lt "$TOTAL" ]; then
                     echo ""
-                    echo "::warning::Monday E2E: $PASSED/$TOTAL projects passed"
+                    echo "::warning::E2E: $PASSED/$TOTAL projects passed"
                   fi
 
     # ---------------------------------------------------------------------------
@@ -186,7 +186,7 @@ jobs:
             issues: write
         uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
         with:
-            workflow_name: 'CI - Monday E2E'
+            workflow_name: 'CI - E2E'
             job_name: 'Discover E2E Projects'
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -200,7 +200,7 @@ jobs:
             issues: write
         uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
         with:
-            workflow_name: 'CI - Monday E2E'
+            workflow_name: 'CI - E2E'
             job_name: 'E2E'
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -214,8 +214,8 @@ jobs:
             issues: write
         uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
         with:
-            workflow_name: 'CI - Monday E2E'
-            job_name: 'Monday E2E Summary'
+            workflow_name: 'CI - E2E'
+            job_name: 'E2E Summary'
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: ${{ needs.summary.result }}
