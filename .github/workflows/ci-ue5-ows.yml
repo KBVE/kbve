@@ -1,6 +1,12 @@
 name: CI - OWS UE5 Server
 
 on:
+    workflow_call:
+        inputs:
+            engine_ref:
+                required: false
+                type: string
+                default: 'angelscript-master'
     workflow_dispatch:
         inputs:
             engine_ref:

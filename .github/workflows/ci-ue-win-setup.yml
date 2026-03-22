@@ -1,6 +1,7 @@
 name: UE Win Setup
 
 on:
+    workflow_call: {}
     workflow_dispatch:
         inputs:
             install_vs_buildtools:

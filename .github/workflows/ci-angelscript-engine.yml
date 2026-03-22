@@ -1,6 +1,24 @@
 name: AngelScript Engine Build
 
 on:
+    workflow_call:
+        inputs:
+            platforms:
+                required: false
+                type: string
+                default: 'linux'
+            engine_ref:
+                required: false
+                type: string
+                default: 'angelscript-master'
+            skip_version_gate:
+                required: false
+                type: boolean
+                default: false
+            build_dedicated_server:
+                required: false
+                type: boolean
+                default: true
     workflow_dispatch:
         inputs:
             platforms:
