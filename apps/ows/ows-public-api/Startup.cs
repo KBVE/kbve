@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.EntityFrameworkCore;
@@ -68,13 +67,9 @@ namespace OWSPublicAPI
 
             services.AddMvcCore(config => {
                 config.EnableEndpointRouting = false;
-                //IHttpRequestStreamReaderFactory readerFactory = services.BuildServiceProvider().GetRequiredService<IHttpRequestStreamReaderFactory>();
-                //config.ModelBinderProviders.Insert(0, new Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider(config.InputFormatters, readerFactory));
-                //config.ModelBinderProviders.Insert(0, new QueryModelBinderProvider(container));
             })
             .AddViews()
-            .AddApiExplorer()
-            .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            .AddApiExplorer();
 
             services.AddSimpleInjector(container, options => {
                 options.AddAspNetCore()
@@ -148,7 +143,25 @@ namespace OWSPublicAPI
             app.Map("/health", a => a.Run(async ctx =>
             {
                 ctx.Response.ContentType = "application/json";
-                await ctx.Response.WriteAsync("{\"status\":\"ok\"}");
+                bool dbOk = false;
+                try
+                {
+                    var connStr = Configuration.GetSection("OWSStorageConfig")?.GetValue<string>("OWSDBConnectionString");
+                    if (!string.IsNullOrEmpty(connStr))
+                    {
+                        using var conn = new Npgsql.NpgsqlConnection(connStr);
+                        await conn.OpenAsync();
+                        using var cmd = conn.CreateCommand();
+                        cmd.CommandText = "SELECT 1";
+                        await cmd.ExecuteScalarAsync();
+                        dbOk = true;
+                    }
+                }
+                catch { }
+                ctx.Response.StatusCode = dbOk ? 200 : 503;
+                await ctx.Response.WriteAsync(dbOk
+                    ? "{\"status\":\"healthy\",\"database\":true}"
+                    : "{\"status\":\"degraded\",\"database\":false}");
             }));
 
             app.UseMvc();
