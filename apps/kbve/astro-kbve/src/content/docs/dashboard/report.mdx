@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## NX Workspace Report
 
 :::note[Auto-generated]
-Last generated: **2026-03-17T06:24:58Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-03-22T05:30:53Z** — updated daily by `ci-dashboard`.
 :::
 
 ### Environment
@@ -23,7 +23,7 @@ Last generated: **2026-03-17T06:24:58Z** — updated daily by `ci-dashboard`.
     24.14.0
   </Card>
   <Card title="Nx" icon="setting">
-    22.5.4
+    22.6.1
   </Card>
   <Card title="pnpm" icon="rocket">
     10.32.1
@@ -37,6 +37,7 @@ Last generated: **2026-03-17T06:24:58Z** — updated daily by `ci-dashboard`.
   <TabItem label="NX Report">
 
 ```
+Failed to run MSBuild analyzer: Failed to run msbuild-analyzer: spawnSync dotnet ENOENT
 
  NX   Report complete - copy this into the issue template
 
@@ -46,24 +47,25 @@ Native Target  : x86_64-linux
 pnpm           : 10.32.1
 daemon         : Disabled
 
-nx                     : 22.5.4
-@nx/js                 : 22.5.4
-@nx/eslint             : 22.5.4
-@nx/workspace          : 22.5.4
-@nx/jest               : 22.5.4
-@nx/devkit             : 22.5.4
-@nx/esbuild            : 22.5.4
-@nx/eslint-plugin      : 22.5.4
-@nx/module-federation  : 22.5.4
-@nx/node               : 22.5.4
-@nx/playwright         : 22.5.4
-@nx/react              : 22.5.4
-@nx/rollup             : 22.5.4
-@nx/vite               : 22.5.4
-@nx/vitest             : 22.5.4
-@nx/web                : 22.5.4
-@nx/webpack            : 22.5.4
-@nx/docker             : 22.5.4
+nx                     : 22.6.1
+@nx/js                 : 22.6.1
+@nx/eslint             : 22.6.1
+@nx/workspace          : 22.6.1
+@nx/jest               : 22.6.1
+@nx/devkit             : 22.6.1
+@nx/dotnet             : 22.6.1
+@nx/esbuild            : 22.6.1
+@nx/eslint-plugin      : 22.6.1
+@nx/module-federation  : 22.6.1
+@nx/node               : 22.6.1
+@nx/playwright         : 22.6.1
+@nx/react              : 22.6.1
+@nx/rollup             : 22.6.1
+@nx/vite               : 22.6.1
+@nx/vitest             : 22.6.1
+@nx/web                : 22.6.1
+@nx/webpack            : 22.6.1
+@nx/docker             : 22.6.1
 typescript             : 5.9.3
 ---------------------------------------
 Registered Plugins:
@@ -72,6 +74,7 @@ Registered Plugins:
 @nx/eslint/plugin
 @nx/vite/plugin
 @nx/vitest
+@nx/dotnet
 ---------------------------------------
 Community plugins:
 @monodon/rust          : 2.3.0
@@ -79,6 +82,30 @@ Community plugins:
 @nxlv/python           : 22.0.5
 ---------------------------------------
 Cache Usage: 0.00 B / 89.18 GB
+---------------------------------------
+⚠️ Unable to construct project graph.
+Failed to process project graph.
+     - Error: Failed to run msbuild-analyzer: spawnSync dotnet ENOENT
+      at runAnalyzer (/home/runner/_work/kbve/kbve/node_modules/@nx/dotnet/dist/analyzer/analyzer-client.js:129:15)
+      at analyzeProjects (/home/runner/_work/kbve/kbve/node_modules/@nx/dotnet/dist/analyzer/analyzer-client.js:161:24)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async exports.createNodesV2 (/home/runner/_work/kbve/kbve/node_modules/@nx/dotnet/dist/plugins/create-nodes.js:85:28)
+      at async LoadedNxPlugin.createNodes (/home/runner/_work/kbve/kbve/node_modules/nx/src/project-graph/plugins/loaded-nx-plugin.js:27:36)
+      at async LoadedNxPlugin.createNodes.<computed> (/home/runner/_work/kbve/kbve/node_modules/nx/src/project-graph/plugins/loaded-nx-plugin.js:42:36)
+      at async createNodes (/home/runner/_work/kbve/kbve/node_modules/nx/src/project-graph/plugins/isolation/plugin-worker.js:74:36)
+      at async consumeMessage (/home/runner/_work/kbve/kbve/node_modules/nx/src/project-graph/plugins/isolation/messaging.js:57:27)
+    The "@nx/dotnet" plugin threw an error while creating dependencies: There was an error analyzing .NET projects. See earlier logs.
+    Error: There was an error analyzing .NET projects. See earlier logs.
+        at Object.createDependencies (/home/runner/_work/kbve/kbve/node_modules/@nx/dotnet/dist/plugins/create-dependencies.js:14:15)
+        at LoadedNxPlugin.createDependencies (/home/runner/_work/kbve/kbve/node_modules/nx/src/project-graph/plugins/loaded-nx-plugin.js:71:65)
+        at createDependencies (/home/runner/_work/kbve/kbve/node_modules/nx/src/project-graph/plugins/isolation/plugin-worker.js:86:49)
+        at consumeMessage (/home/runner/_work/kbve/kbve/node_modules/nx/src/project-graph/plugins/isolation/messaging.js:57:33)
+        at /home/runner/_work/kbve/kbve/node_modules/nx/src/project-graph/plugins/isolation/plugin-worker.js:39:47
+        at Socket.<anonymous> (/home/runner/_work/kbve/kbve/node_modules/nx/src/utils/consume-messages-from-socket.js:25:21)
+        at Socket.emit (node:events:508:28)
+        at addChunk (node:internal/streams/readable:563:12)
+        at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+        at Readable.push (node:internal/streams/readable:394:5)
 
 ```
 
@@ -89,37 +116,47 @@ Cache Usage: 0.00 B / 89.18 GB
 ───────────────────────────────────────────────────────────────────────────────
 Language                 Files     Lines   Blanks  Comments     Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-MDX                       7215    496880    98573         0   398307          0
-TypeScript                 548     80273     8801      5179    66293       8504
-Rust                       392     96273    10044      8704    77525       4813
-YAML                       307     23237     1308       794    21135          0
-C#                         246     35888     5020      4376    26492       2936
-JSON                       201     21300       36         0    21264          0
-Astro                      131     23297     1872       777    20648        478
-Python                     101      8039     1192       862     5985        769
-SQL                         91     26042     3588      3680    18774        219
-Markdown                    72     14475     3536         0    10939          0
-HTML                        69      6999      556        63     6380          0
-TOML                        51      1530      161        23     1346         15
-JavaScript                  36     28641      332       359    27950        658
-Protocol Buffers            22      5465      792       822     3851          0
-Shell                       21      2618      385       449     1784        277
-SVG                         12       392       49        54      289         65
-TypeScript Typings          12        83        8        26       49          5
-Dockerfile                  11      1802      419       337     1046        219
-CSS                         10      2388       90        30     2268          0
+MDX                       7246    499692    99088         0   400604          0
+TypeScript                 658    102095    10624      6186    85285      10880
+C#                         486     53280     7115      6755    39410       3254
+Rust                       423    105080    10936      9732    84412       5303
+YAML                       405     29840     1711      1464    26665          0
+JSON                       246     44963       45         0    44918          0
+C Header                   229    105113     8999     50572    45542       5119
+Python                     140     14454     2409      1414    10631       1161
+Astro                      138     24598     1958       869    21771        520
+SQL                         95     27129     3758      3943    19428        227
+C                           83    381822    28720     85598   267504      47760
+Markdown                    82     15651     3826         0    11825          0
+TOML                        82      1668      169        26     1473         15
+HTML                        71      7029      556        63     6410          0
+C++                         53      6385      978       174     5233        834
+JavaScript                  47     30880      389       534    29957        728
+Shell                       26      3070      448       535     2087        327
+Protocol Buffers            24      5711      838       889     3984          0
+TypeScript Typings          15       103       10        31       62          5
+SVG                         14       398       49        54      295         65
+CSS                         13      2916      173        56     2687          0
+Dockerfile                  12      1958      440       364     1154        233
+MSBuild                     12       577        1         0      576          7
+Vue                         10       651       81        24      546         19
+License                      8       349       63         0      286          0
+Plain Text                   8       572       14         0      558          0
+Razor                        8       112       10         0      102          2
 WebGPU Shading Lang…         8      1434      254       264      916         34
-Plain Text                   6       524        3         0      521          0
-Docker ignore                4        85        7        10       68          0
-XML                          3        10        0         0       10          0
+XML                          8      1150        0         1     1149          0
+INI                          7        51        0        29       22          0
+Assembly                     4       765      108       152      505          3
+Docker ignore                4        66        7        10       49          0
 Elixir                       1       185       30        22      133         22
 GDScript                     1        33        5         1       27          5
-License                      1         1        0         0        1          0
+GLSL                         1        10        0         0       10          0
 Nix                          1        44        9         9       26          3
+Powershell                   1       124       15        25       84          7
 ───────────────────────────────────────────────────────────────────────────────
-Total                     9573    877938   137070     26841   714027      19022
+Total                    10670   1469958   183836    169796  1116326      76533
 ───────────────────────────────────────────────────────────────────────────────
-Processed 26644328 bytes, 26.644 megabytes (SI)
+Processed 47808068 bytes, 47.808 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
@@ -127,447 +164,11 @@ Processed 26644328 bytes, 26.644 megabytes (SI)
   <TabItem label="Coverage">
 
 ```
+Failed to run MSBuild analyzer: Failed to run msbuild-analyzer: spawnSync dotnet ENOENT
 
- NX   Running target coverage for 4 projects:
+ NX   Failed to process project graph.
 
-- droid
-- devops
-- khashvault
-- laser
-
-
-
-::group::✅ > nx run devops:coverage
-
-> vitest run --coverage --config packages/npm/devops/vite.config.ts
-
-
- RUN  v4.0.9 /home/runner/_work/kbve/kbve/packages/npm/devops
-      Coverage enabled with v8
-
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should create a new PR when none exists
-GitHub Event Name: undefined
-Using github.ref: feature-branch
-
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should create a new PR when none exists
-Pull request created from feature-branch to main
-
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should add comment when PR already exists
-GitHub Event Name: undefined
-Using github.ref: feature-branch
-
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should add comment when PR already exists
-Pull request from feature-branch to main already exists. Comment added.
-
-stderr | src/lib/client/github/issues.spec.ts > _$gha_createIssueComment > should throw when API call fails
-Error creating issue comment: Error: API Error
-    at /home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/issues.spec.ts:72:7
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
-    at processTicksAndRejections (node:internal/process/task_queues:104:5)
-    at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
-    at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
-
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should use context.payload.pull_request.head.ref when github.ref is not available
-GitHub Event Name: undefined
-Using context.payload.pull_request.head.ref: pr-branch
-
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should use context.payload.pull_request.head.ref when github.ref is not available
-Pull request created from pr-branch to main
-
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should fall back to context.ref when github.ref and payload are unavailable
-GitHub Event Name: undefined
-Using context.ref: fallback-branch
-
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should fall back to context.ref when github.ref and payload are unavailable
-Pull request created from fallback-branch to main
-
-stdout | src/lib/client/github/issues.spec.ts > _$gha_verifyMatrixLabel > should add label 0 when no matrix labels are present
-No matrix labels present. Added label: 0
-
-stdout | src/lib/client/github/issues.spec.ts > _$gha_verifyMatrixLabel > should keep highest label and remove lower ones when multiple matrix labels exist
-Removed lower labels, kept highest label: 5
-
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should throw when no branch can be determined
-GitHub Event Name: undefined
-
-stderr | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should throw when no branch can be determined
-Unable to determine the reference branch.
-Error creating or updating pull request: Error: Unable to determine the reference branch.
-    at _$gha_createOrUpdatePR (/home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/pulls.ts:224:10)
-    at /home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/pulls.spec.ts:208:7
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
-    at processTicksAndRejections (node:internal/process/task_queues:104:5)
-    at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
-
- ✓ src/lib/client/github/issues.spec.ts (17 tests) 74ms
- ✓ src/lib/codegen/__tests__/emitter.spec.ts (19 tests) 15ms
- ✓ src/lib/client/github/pulls.spec.ts (9 tests) 82ms
- ✓ src/lib/codegen/__tests__/field-mapper.spec.ts (46 tests) 18ms
- ✓ src/lib/codegen/__tests__/topo-sort.spec.ts (15 tests) 14ms
- ✓ src/lib/codegen/__tests__/enum-mapper.spec.ts (18 tests) 9ms
-stderr | src/lib/client/github/docker.spec.ts > _$gha_runDockerContainer > should throw on invalid port
-Error sanitizing input: Error: Invalid port number. Port must be a number between 1 and 65535.
-    at sanitizePort (/home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/sanitization.ts:140:11)
-    at _$gha_runDockerContainer (/home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.ts:25:21)
-    at /home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:62:7
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
-    at processTicksAndRejections (node:internal/process/task_queues:104:5)
-
-stderr | src/lib/client/github/docker.spec.ts > _$gha_runDockerContainer > should throw on restricted port
-Error sanitizing input: Error: Port 443 is restricted and cannot be used.
-    at sanitizePort (/home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/sanitization.ts:144:11)
-    at _$gha_runDockerContainer (/home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.ts:25:21)
-    at /home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:71:7
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
-    at processTicksAndRejections (node:internal/process/task_queues:104:5)
-
-stderr | src/lib/client/github/docker.spec.ts > _$gha_runDockerContainer > should throw on empty container name
-Error sanitizing input: Error: Invalid container name. Container name must be alphanumeric and can include underscores.
-    at sanitizeContainerName (/home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/sanitization.ts:159:11)
-    at _$gha_runDockerContainer (/home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.ts:26:21)
-    at /home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:80:7
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
-    at processTicksAndRejections (node:internal/process/task_queues:104:5)
-
-stderr | src/lib/client/github/docker.spec.ts > _$gha_runDockerContainer > should throw on empty image name
-Error sanitizing input: Error: Invalid container image name. Image name must be alphanumeric and can include underscores, slashes, colons, and periods.
-    at sanitizeContainerImage (/home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/sanitization.ts:174:11)
-    at _$gha_runDockerContainer (/home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.ts:27:22)
-    at /home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:89:7
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
-    at processTicksAndRejections (node:internal/process/task_queues:104:5)
-
-stdout | src/lib/client/github/docker.spec.ts > _$gha_runDockerContainer > should succeed with valid inputs when exec succeeds
-Docker container started successfully: container-id-123
-
-stderr | src/lib/client/github/docker.spec.ts > _$gha_runDockerContainer > should report error and throw when exec fails
-Error running Docker container: Error: Docker not found
-    at /home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:108:37
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
-    at processTicksAndRejections (node:internal/process/task_queues:104:5)
-    at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
-    at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
-
-stderr | src/lib/client/github/docker.spec.ts > _$gha_stopDockerContainer > should throw on invalid container name
-Error sanitizing container name: Error: Invalid container name. Container name must be alphanumeric and can include underscores.
-    at sanitizeContainerName (/home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/sanitization.ts:159:11)
-    at _$gha_stopDockerContainer (/home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.ts:64:21)
-    at /home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:134:7
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
-    at processTicksAndRejections (node:internal/process/task_queues:104:5)
-
-stdout | src/lib/client/github/docker.spec.ts > _$gha_stopDockerContainer > should succeed when both stop and remove succeed
-Docker container stopped successfully: ok
-
-stdout | src/lib/client/github/docker.spec.ts > _$gha_stopDockerContainer > should succeed when both stop and remove succeed
-Docker container removed successfully: ok
-
- ✓ src/lib/client/github/actions.spec.ts (7 tests) 5ms
-stderr | src/lib/client/github/docker.spec.ts > _$gha_stopDockerContainer > should throw when stop command fails
-Error stopping Docker container: Error: Container not running
-    at /home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:150:37
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
-    at processTicksAndRejections (node:internal/process/task_queues:104:5)
-    at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
-    at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
-
-stdout | src/lib/client/github/docker.spec.ts > _$gha_stopDockerContainer > should throw when stop succeeds but remove fails
-Docker container stopped successfully: stopped
-
-stderr | src/lib/client/github/docker.spec.ts > _$gha_stopDockerContainer > should throw when stop succeeds but remove fails
-Error removing Docker container: Error: Remove failed
-    at /home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:162:30
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
-    at processTicksAndRejections (node:internal/process/task_queues:104:5)
-    at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
-    at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
-
- ✓ src/lib/sanitization.spec.ts (48 tests) 228ms
- ✓ src/lib/client/github/docker.spec.ts (10 tests) 21ms
-stderr | src/lib/client/yt.spec.ts > fetchYoutubeTitle > should return null for an invalid YouTube URL
-Invalid YouTube URL
-
-stderr | src/lib/client/yt.spec.ts > fetchYoutubeTitle > should return null if the title is not found
-No valid video found on the page
-
- ✓ src/lib/client/yt.spec.ts (10 tests) 90ms
- ✓ src/lib/api.spec.ts (5 tests) 108ms
-
- Test Files  11 passed (11)
-      Tests  204 passed (204)
-   Start at  06:25:06
-   Duration  1.78s (transform 1.59s, setup 0ms, collect 6.67s, tests 663ms, environment 2ms, prepare 658ms)
-
- % Coverage report from v8
--------------------|---------|----------|---------|---------|-------------------
-File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
--------------------|---------|----------|---------|---------|-------------------
-All files          |   78.31 |    77.65 |   79.43 |   78.15 |                   
- src               |     100 |      100 |     100 |     100 |                   
-  types.ts         |     100 |      100 |     100 |     100 |                   
- src/lib           |   75.32 |    80.55 |   93.75 |   75.32 |                   
-  api.ts           |   48.64 |    57.14 |      80 |   48.64 | ...49-150,167-210 
-  sanitization.ts  |     100 |    95.45 |     100 |     100 | 44                
- src/lib/client    |    87.5 |    82.35 |     100 |    87.5 |                   
-  yt.ts            |    87.5 |    82.35 |     100 |    87.5 | 45-48             
- .../client/github |   58.09 |    41.53 |   67.56 |   57.98 |                   
-  actions.ts       |     100 |      100 |     100 |     100 |                   
-  docker.ts        |     100 |       50 |     100 |     100 | 45-104            
-  issues.ts        |   72.97 |      100 |     100 |   72.22 | ...36-237,254-255 
-  pulls.ts         |   31.93 |    28.57 |      20 |    32.2 | ...28-229,286-382 
-  types.ts         |     100 |      100 |     100 |     100 |                   
- src/lib/codegen   |   92.02 |    85.71 |   96.55 |   92.36 |                   
-  emitter.ts       |   98.03 |    88.46 |     100 |     100 | ...79,101,112,199 
-  enum-mapper.ts   |     100 |    96.29 |     100 |     100 | 25                
-  field-mapper.ts  |   85.84 |    83.14 |   91.66 |   85.18 | ...81,290,295,300 
-  topo-sort.ts     |      88 |    78.57 |     100 |   86.95 | 43-46,89-90       
- ...egen/__tests__ |    87.5 |     90.9 |   63.63 |   87.01 |                   
-  ...-factories.ts |    87.5 |     90.9 |   63.63 |   87.01 | ...88,319,361,385 
--------------------|---------|----------|---------|---------|-------------------
-::endgroup::
-::group::✅ > nx run laser:coverage
-
-> vitest run --coverage --config packages/npm/laser/vite.config.ts
-
-
- RUN  v4.0.9 /home/runner/_work/kbve/kbve/packages/npm/laser
-      Coverage enabled with v8
-
- ✓ src/lib/spatial/quadtree.spec.ts (8 tests) 8ms
- ✓ src/lib/phaser/monsters/bird.spec.ts (9 tests) 11ms
- ✓ src/lib/core/events.spec.ts (8 tests) 10ms
- ✓ src/lib/phaser/player-controller.spec.ts (6 tests) 55ms
-stderr | src/lib/r3f/Stage.spec.tsx > Stage > should render a Canvas wrapper
-<ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
-The tag <ambientLight> is unrecognized in this browser. If you meant to render a React component, start its name with an uppercase letter.
-The tag <mesh> is unrecognized in this browser. If you meant to render a React component, start its name with an uppercase letter.
-
-stderr | src/lib/r3f/Stage.spec.tsx > Stage > should pass className to Canvas
-<ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
-
-stderr | src/lib/r3f/Stage.spec.tsx > Stage > should render children inside Canvas
-<ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
-
- ✓ src/lib/r3f/use-game-loop.spec.tsx (3 tests) 27ms
- ✓ src/lib/r3f/Stage.spec.tsx (3 tests) 39ms
- ✓ src/lib/phaser/use-phaser-event.spec.tsx (7 tests) 37ms
- ✓ src/lib/phaser/use-phaser.spec.tsx (3 tests) 41ms
- ✓ src/lib/phaser/PhaserGame.spec.tsx (10 tests) 128ms
-
- Test Files  9 passed (9)
-      Tests  57 passed (57)
-   Start at  06:25:05
-   Duration  1.81s (transform 1.23s, setup 0ms, collect 2.52s, tests 356ms, environment 7.66s, prepare 737ms)
-
- % Coverage report from v8
--------------------|---------|----------|---------|---------|-------------------
-File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
--------------------|---------|----------|---------|---------|-------------------
-All files          |    63.5 |    50.79 |   75.47 |   66.92 |                   
- core              |     100 |      100 |     100 |     100 |                   
-  events.ts        |     100 |      100 |     100 |     100 |                   
- phaser            |      50 |    39.13 |   55.17 |   53.37 |                   
-  PhaserGame.tsx   |      92 |    83.33 |   83.33 |   95.83 | 36                
-  ...controller.ts |   75.43 |    66.12 |     100 |   75.43 | ...43,145,147,149 
-  ...aser-event.ts |     100 |      100 |     100 |     100 |                   
-  use-phaser.ts    |     100 |      100 |     100 |     100 |                   
-  ...l-joystick.ts |       0 |        0 |       0 |       0 | 32-162            
- phaser/monsters   |     100 |      100 |     100 |     100 |                   
-  bird.ts          |     100 |      100 |     100 |     100 |                   
- r3f/components    |     100 |      100 |     100 |     100 |                   
-  Stage.tsx        |     100 |      100 |     100 |     100 |                   
- r3f/hooks         |     100 |      100 |     100 |     100 |                   
-  use-game-loop.ts |     100 |      100 |     100 |     100 |                   
- spatial           |   82.81 |    80.85 |     100 |   86.66 |                   
-  quadtree.ts      |   82.81 |    80.85 |     100 |   86.66 | 65-68,83,93-96    
--------------------|---------|----------|---------|---------|-------------------
-::endgroup::
-::group::✅ > nx run droid:coverage
-
-> vitest run --coverage --config packages/npm/droid/vite.config.ts
-
-
- RUN  v4.0.9 /home/runner/_work/kbve/kbve/packages/npm/droid
-      Coverage enabled with v8
-
- ✓ src/lib/mod/module/supabase/mod-supabase.spec.ts (4 tests) 5ms
-stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
-[DROID]: droid<T>
-
-stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
-[DROID]: Main<T>
-[DROID] Initializing workers...
-
-stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
-[init-worker] Initializing database...
-
-stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
-[init-worker] DB initialized to version 1.0.3
-
-stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
-[DROID] Initializing mod manager...
-
-stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
-[KBVE] Global API ready
-
-stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
-[DROID]: droid<T> => await WorkerRefs + URLs
-
- ✓ src/lib/droid.spec.ts (1 test) 130ms
-
- Test Files  2 passed (2)
-      Tests  5 passed (5)
-   Start at  06:25:05
-   Duration  2.09s (transform 455ms, setup 142ms, collect 481ms, tests 135ms, environment 1.91s, prepare 169ms)
-
- % Coverage report from v8
--------------------|---------|----------|---------|---------|-------------------
-File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
--------------------|---------|----------|---------|---------|-------------------
-All files          |   16.81 |     8.34 |   11.57 |   17.59 |                   
- lib               |   63.63 |       50 |   33.33 |   63.63 |                   
-  droid.ts         |   63.63 |       50 |   33.33 |   63.63 | 32-43             
- lib/gateway       |    0.48 |        0 |       0 |    0.49 |                   
-  ...aseGateway.ts |       0 |        0 |       0 |       0 | 40-181            
-  ...munication.ts |    2.38 |        0 |       0 |    2.38 | 18-116,128-131    
-  WorkerPool.ts    |       0 |        0 |       0 |       0 | 20-297            
-  capabilities.ts  |       0 |        0 |       0 |       0 | 10-78             
- ...way/strategies |       0 |        0 |       0 |       0 |                   
-  ...ctStrategy.ts |       0 |        0 |       0 |       0 | 31-441            
-  ...erStrategy.ts |       0 |        0 |       0 |       0 | 37-276            
-  ...erStrategy.ts |       0 |        0 |       0 |       0 | 26-276            
- lib/mod           |      20 |       10 |   16.66 |   22.72 |                   
-  mod-manager.ts   |      20 |       10 |   16.66 |   22.72 | 19-66             
- ...odule/supabase |   38.46 |    33.33 |   66.66 |   38.46 |                   
-  mod-supabase.ts  |   38.46 |    33.33 |   66.66 |   38.46 | 26-44,53-54,62-66 
- lib/state         |   25.17 |    14.86 |   21.21 |   26.15 |                   
-  auth.ts          |      40 |      100 |       0 |      40 | 24-29             
-  ...ay-manager.ts |    8.33 |     3.33 |    9.09 |    8.33 | 37-122            
-  theme-sync.ts    |      55 |     37.5 |      50 |      55 | 33-45,57-63       
-  toasts.ts        |    5.26 |        0 |       0 |    6.66 | 11-33             
-  ui.ts            |    12.5 |        0 |       0 |   13.63 | 9-43              
-  welcome-toast.ts |   42.85 |    43.75 |   66.66 |   43.75 | ...49,58-61,72-74 
- lib/types         |      98 |      100 |   66.66 |   97.91 |                   
-  event-types.ts   |     100 |      100 |     100 |     100 |                   
-  jedi.ts          |     100 |      100 |     100 |     100 |                   
-  panel-types.ts   |     100 |      100 |     100 |     100 |                   
-  ...vent-types.ts |   85.71 |      100 |       0 |   85.71 | 7                 
- lib/workers       |   21.49 |    12.38 |   18.12 |    22.2 |                   
-  ...i-renderer.ts |    7.89 |        0 |       0 |    8.33 | 64-264            
-  canvas-worker.ts |   10.71 |        0 |       0 |    10.9 | 44,58-188         
-  data.ts          |    1.12 |        0 |       0 |    1.12 | 7-217             
-  db-worker.ts     |   24.41 |    13.33 |   22.22 |    25.6 | ...63-166,177-232 
-  events.ts        |   33.33 |       50 |   16.66 |   33.33 | 12-21,32-36,43-60 
-  flexbuilder.ts   |       0 |      100 |       0 |       0 | 5                 
-  init.ts          |   69.23 |    66.66 |     100 |   69.23 | 28-29,41,46       
-  main.ts          |   32.64 |     21.7 |      35 |    33.8 | ...45,759-761,766 
-  ...-db-worker.ts |       0 |        0 |       0 |       0 |                   
-  ...red-worker.ts |       0 |        0 |       0 |       0 |                   
-  tools.ts         |       0 |        0 |       0 |       0 | 4-59              
-  ws-worker.ts     |   22.42 |     4.54 |   16.66 |    23.3 | ...85-167,175-186 
--------------------|---------|----------|---------|---------|-------------------
-::endgroup::
-::group::✅ > nx run khashvault:coverage
-
-> vitest run --coverage --config packages/npm/khashvault/vite.config.ts
-
-
- RUN  v4.0.9 /home/runner/_work/kbve/kbve/packages/npm/khashvault
-      Coverage enabled with v8
-
- ✓ src/lib/worker/worker.spec.ts (5 tests) 6ms
- ✓ src/lib/keys/keys.spec.ts (6 tests) 12ms
- ✓ src/lib/storage/storage.spec.ts (7 tests) 14ms
- ✓ src/lib/hash/hash.spec.ts (7 tests) 13ms
- ✓ src/lib/storage/indexeddb.spec.ts (7 tests) 27ms
- ✓ src/lib/pgp/pgp.spec.ts (4 tests) 169ms
- ✓ src/lib/aes/aes.spec.ts (7 tests) 471ms
- ✓ src/lib/kdf/kdf.spec.ts (5 tests) 711ms
-
- Test Files  8 passed (8)
-      Tests  48 passed (48)
-   Start at  06:25:09
-   Duration  1.57s (transform 1.02s, setup 962ms, collect 845ms, tests 1.42s, environment 2.40s, prepare 274ms)
-
- % Coverage report from v8
--------------------|---------|----------|---------|---------|--------------------------------
-File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s              
--------------------|---------|----------|---------|---------|--------------------------------
-All files          |   75.42 |     44.2 |   80.51 |   78.86 |                                
- lib               |    62.5 |       50 |   58.82 |   60.52 |                                
-  errors.ts        |   36.84 |      100 |   33.33 |   36.84 | 13-24,37-52,65-66              
-  utils.ts         |   85.71 |       50 |    87.5 |   84.21 | 8,18,66                        
- lib/aes           |   83.33 |       40 |     100 |    90.9 |                                
-  aes.ts           |   83.33 |       40 |     100 |    90.9 | 37-38                          
- lib/hash          |   68.42 |       20 |     100 |   76.47 |                                
-  hash.ts          |   68.42 |       20 |     100 |   76.47 | 21-22,43-44                    
- lib/kdf           |   77.77 |    66.66 |     100 |      84 |                                
-  kdf.ts           |   77.77 |    66.66 |     100 |      84 | 47-48,85-86                    
- lib/keys          |   65.38 |       40 |     100 |   73.91 |                                
-  keys.ts          |   65.38 |       40 |     100 |   73.91 | 20-21,43-44,77-78              
- lib/pgp           |   70.83 |     42.3 |     100 |   80.95 |                                
-  pgp.ts           |   70.83 |     42.3 |     100 |   80.95 | 32-33,58-59                    
- lib/storage       |   83.18 |     42.1 |   81.08 |   84.84 |                                
-  indexeddb.ts     |   83.33 |     40.9 |   75.86 |   84.28 | 34,55-63,89,97-105,118,133,144 
-  storage.ts       |   82.85 |    43.75 |     100 |    86.2 | 24-25,38-39                    
- lib/worker        |      70 |    33.33 |      80 |      70 |                                
-  shared-buffer.ts |      70 |    33.33 |      80 |      70 | 20,44,77-80                    
--------------------|---------|----------|---------|---------|--------------------------------
-::endgroup::
-
-
- NX   Successfully ran target coverage for 4 projects
-
+Pass --verbose to see the stacktraces.
 
 ```
 
