@@ -1,0 +1,70 @@
+---
+# ValKey — user session cache for OWS (Redis-compatible)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: ows-valkey
+    namespace: ows
+    labels:
+        app: ows-valkey
+        app.kubernetes.io/part-of: ows
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: ows-valkey
+    template:
+        metadata:
+            labels:
+                app: ows-valkey
+                app.kubernetes.io/part-of: ows
+        spec:
+            containers:
+                - name: valkey
+                  image: valkey/valkey:8-alpine
+                  command: ['valkey-server', '--appendonly', 'yes']
+                  ports:
+                      - name: valkey
+                        containerPort: 6379
+                        protocol: TCP
+                  resources:
+                      requests:
+                          memory: '64Mi'
+                          cpu: '50m'
+                      limits:
+                          memory: '256Mi'
+                          cpu: '250m'
+                  livenessProbe:
+                      exec:
+                          command: ['valkey-cli', 'ping']
+                      initialDelaySeconds: 10
+                      periodSeconds: 10
+                  readinessProbe:
+                      exec:
+                          command: ['valkey-cli', 'ping']
+                      initialDelaySeconds: 5
+                      periodSeconds: 5
+                  volumeMounts:
+                      - name: data
+                        mountPath: /data
+            volumes:
+                - name: data
+                  emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: ows-valkey
+    namespace: ows
+    labels:
+        app: ows-valkey
+        app.kubernetes.io/part-of: ows
+spec:
+    type: ClusterIP
+    selector:
+        app: ows-valkey
+    ports:
+        - name: valkey
+          port: 6379
+          targetPort: 6379
+          protocol: TCP
