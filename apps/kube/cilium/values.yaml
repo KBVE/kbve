@@ -56,13 +56,14 @@ encryption:
     type: wireguard
     nodeEncryption: true
 
-# Observability — Hubble network flow visibility
+# Observability — Hubble DISABLED due to nil pointer crash in observer.
+# Re-enable after upgrading to a Cilium version with the fix.
 hubble:
-    enabled: true
+    enabled: false
     relay:
-        enabled: true
+        enabled: false
     ui:
-        enabled: true
+        enabled: false
 
 # Gateway API — LB service mode (working on 1.18.0)
 gatewayAPI:
