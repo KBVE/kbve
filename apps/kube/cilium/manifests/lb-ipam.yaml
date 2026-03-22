@@ -15,6 +15,7 @@ spec:
     loadBalancerIPs: true
     interfaces:
         - ^enp.*
+        - ^br.*
     nodeSelector:
         matchLabels:
             node.kbve.com/type: dedicated-server
