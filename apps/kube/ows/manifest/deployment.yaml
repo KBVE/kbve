@@ -21,7 +21,7 @@ spec:
         spec:
             containers:
                 - name: ows-publicapi
-                  image: ghcr.io/kbve/ows-publicapi:0.1.3
+                  image: ghcr.io/kbve/ows-publicapi:0.1.4
                   imagePullPolicy: Always
                   env:
                       - name: OWSStorageConfig__OWSDBBackend
@@ -110,7 +110,7 @@ spec:
         spec:
             containers:
                 - name: ows-instancemanagement
-                  image: ghcr.io/kbve/ows-instancemanagement:0.1.2
+                  image: ghcr.io/kbve/ows-instancemanagement:0.1.4
                   imagePullPolicy: Always
                   env:
                       - name: OWSStorageConfig__OWSDBBackend
@@ -209,7 +209,7 @@ spec:
         spec:
             containers:
                 - name: ows-characterpersistence
-                  image: ghcr.io/kbve/ows-characterpersistence:0.1.2
+                  image: ghcr.io/kbve/ows-characterpersistence:0.1.4
                   imagePullPolicy: Always
                   env:
                       - name: OWSStorageConfig__OWSDBBackend
@@ -308,7 +308,7 @@ spec:
         spec:
             containers:
                 - name: ows-globaldata
-                  image: ghcr.io/kbve/ows-globaldata:0.1.3
+                  image: ghcr.io/kbve/ows-globaldata:0.1.4
                   imagePullPolicy: Always
                   env:
                       - name: OWSStorageConfig__OWSDBBackend
@@ -407,7 +407,7 @@ spec:
         spec:
             containers:
                 - name: ows-management
-                  image: ghcr.io/kbve/ows-management:0.1.3
+                  image: ghcr.io/kbve/ows-management:0.1.4
                   imagePullPolicy: Always
                   env:
                       - name: OWSStorageConfig__OWSDBBackend
