@@ -54,34 +54,14 @@ hubble:
     ui:
         enabled: true
 
-# Gateway API — host-network mode bypasses broken LB→Envoy TPROXY path in 1.19.x
-# Envoy binds directly on the node, no LoadBalancer service needed.
-# Host-network and LB service modes are mutually exclusive.
-# Ref: https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/gateway-api/#host-network-mode
+# Gateway API — LB service mode (working on 1.18.0)
 gatewayAPI:
     enabled: true
     enableAlpn: true
     enableAppProtocol: true
-    hostNetwork:
-        enabled: true
-        nodes:
-            matchLabels:
-                node.kbve.com/type: dedicated-server
-
-# Envoy — capabilities for host-network mode on Talos
-# NET_BIND_SERVICE for privileged ports (80/443)
-# NET_ADMIN + BPF for Cilium datapath integration
-envoy:
-    enabled: true
-    securityContext:
-        capabilities:
-            keepCapNetBindService: true
-            envoy:
-                - NET_BIND_SERVICE
-                - NET_ADMIN
-                - BPF
 
 # L2 announcements — replaces MetalLB
+# Includes ^br.* for bridge interface support
 l2announcements:
     enabled: true
 
