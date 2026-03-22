@@ -1,0 +1,30 @@
+---
+title: OWS Management
+description: |
+    OWS Management — admin web dashboard (Vue 3) for server operators.
+sidebar:
+    label: OWS Management
+    order: 65
+tags:
+    - docker
+    - dotnet
+key: ows_management
+pipeline: docker
+app_name: ows-management
+version: "0.1.2"
+source_path: apps/ows
+version_toml: apps/ows/version.toml
+runner: ubuntu-latest
+image: kbve/ows-management
+deployment_yaml: apps/kube/ows/manifest/deployment.yaml
+has_test: false
+target: container-management
+nx_project: ows
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+OWS Management is the admin web dashboard (Vue 3 + ASP.NET Core) for server operators to manage players, zones, and global configuration.

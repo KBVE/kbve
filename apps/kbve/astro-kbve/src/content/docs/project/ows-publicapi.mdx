@@ -1,0 +1,30 @@
+---
+title: OWS PublicAPI
+description: |
+    OWS Public API — player login, registration, character creation.
+sidebar:
+    label: OWS PublicAPI
+    order: 61
+tags:
+    - docker
+    - dotnet
+key: ows_publicapi
+pipeline: docker
+app_name: ows-publicapi
+version: "0.1.2"
+source_path: apps/ows
+version_toml: apps/ows/version.toml
+runner: ubuntu-latest
+image: kbve/ows-publicapi
+deployment_yaml: apps/kube/ows/manifest/deployment.yaml
+has_test: false
+target: container-publicapi
+nx_project: ows
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+OWS Public API handles player authentication, registration, and character creation for the HubWorldMMO multiplayer backend.

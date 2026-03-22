@@ -1,0 +1,30 @@
+---
+title: OWS GlobalData
+description: |
+    OWS Global Data — distributed key/value world state store.
+sidebar:
+    label: OWS GlobalData
+    order: 64
+tags:
+    - docker
+    - dotnet
+key: ows_globaldata
+pipeline: docker
+app_name: ows-globaldata
+version: "0.1.2"
+source_path: apps/ows
+version_toml: apps/ows/version.toml
+runner: ubuntu-latest
+image: kbve/ows-globaldata
+deployment_yaml: apps/kube/ows/manifest/deployment.yaml
+has_test: false
+target: container-globaldata
+nx_project: ows
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+OWS Global Data provides a distributed key/value store for world state, shared across all game server instances in the HubWorldMMO backend.

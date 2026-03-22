@@ -265,9 +265,21 @@ jobs:
                           - 'apps/kbve/edge/project.json'
                           - 'apps/kbve/edge/deno.json'
                           - 'apps/kbve/edge/version.toml'
-                      ows:
+                      ows_publicapi:
                           - 'apps/ows/**'
-                          - 'apps/kbve/astro-kbve/src/content/docs/project/ows.mdx'
+                          - 'apps/kbve/astro-kbve/src/content/docs/project/ows-publicapi.mdx'
+                      ows_instancemanagement:
+                          - 'apps/ows/**'
+                          - 'apps/kbve/astro-kbve/src/content/docs/project/ows-instancemanagement.mdx'
+                      ows_characterpersistence:
+                          - 'apps/ows/**'
+                          - 'apps/kbve/astro-kbve/src/content/docs/project/ows-characterpersistence.mdx'
+                      ows_globaldata:
+                          - 'apps/ows/**'
+                          - 'apps/kbve/astro-kbve/src/content/docs/project/ows-globaldata.mdx'
+                      ows_management:
+                          - 'apps/ows/**'
+                          - 'apps/kbve/astro-kbve/src/content/docs/project/ows-management.mdx'
                       isometric:
                           - 'apps/kbve/isometric/src/**'
                           - 'apps/kbve/isometric/public/**'
