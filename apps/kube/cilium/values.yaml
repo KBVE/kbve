@@ -68,7 +68,9 @@ gatewayAPI:
             matchLabels:
                 node.kbve.com/type: dedicated-server
 
-# Envoy — NET_BIND_SERVICE required for privileged ports (80/443) in host-network mode
+# Envoy — capabilities for host-network mode on Talos
+# NET_BIND_SERVICE for privileged ports (80/443)
+# NET_ADMIN + BPF for Cilium datapath integration
 envoy:
     enabled: true
     securityContext:
@@ -76,6 +78,8 @@ envoy:
             keepCapNetBindService: true
             envoy:
                 - NET_BIND_SERVICE
+                - NET_ADMIN
+                - BPF
 
 # L2 announcements — replaces MetalLB
 l2announcements:
