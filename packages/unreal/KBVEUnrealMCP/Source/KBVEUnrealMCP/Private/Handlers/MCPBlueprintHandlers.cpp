@@ -13,6 +13,9 @@
 #include "AssetToolsModule.h"
 #include "UObject/SavePackage.h"
 #include "Factories/BlueprintFactory.h"
+#include "Engine/SimpleConstructionScript.h"
+#include "Engine/SCS_Node.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Components/SceneComponent.h"
 
 void FMCPBlueprintHandlers::Register(FMCPHandlerRegistry& Registry)
@@ -419,7 +422,8 @@ void FMCPBlueprintHandlers::HandleConnectNodes(const TSharedPtr<FJsonObject>& Pa
 		return;
 	}
 
-	bool bConnected = SourcePin->MakeLinkTo(TargetPin);
+	SourcePin->MakeLinkTo(TargetPin);
+	bool bConnected = SourcePin->LinkedTo.Contains(TargetPin);
 
 	FBlueprintEditorUtils::MarkBlueprintAsModified(Blueprint);
 

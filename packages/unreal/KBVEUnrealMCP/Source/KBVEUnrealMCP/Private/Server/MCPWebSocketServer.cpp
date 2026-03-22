@@ -1,10 +1,12 @@
 #include "Server/MCPWebSocketServer.h"
 #include "Server/MCPProtocol.h"
 #include "Registry/MCPHandlerRegistry.h"
-#include "IWebSocketServer.h"
-#include "IWebSocketNetworkingModule.h"
+#include "Common/TcpListener.h"
+#include "Sockets.h"
+#include "SocketSubsystem.h"
 #include "HAL/RunnableThread.h"
 #include "Async/Async.h"
+#include "IPAddress.h"
 
 DEFINE_LOG_CATEGORY(LogMCPServer);
 
@@ -26,29 +28,31 @@ void FMCPWebSocketServer::StartServer()
 		return;
 	}
 
-	FWebSocketClientConnectedCallBack ConnectedCallback;
-	ConnectedCallback.BindRaw(this, &FMCPWebSocketServer::OnClientConnected);
+	FIPv4Endpoint Endpoint(FIPv4Address::Any, Port);
+	Listener = MakeShared<FTcpListener>(Endpoint);
+	Listener->OnConnectionAccepted().BindRaw(this, &FMCPWebSocketServer::OnConnectionAccepted);
 
-	IWebSocketServer* RawServer = FModuleManager::Get().IsModuleLoaded(TEXT("WebSockets"))
-		? FModuleManager::Get().LoadModuleChecked<IWebSocketNetworkingModule>(TEXT("WebSockets")).CreateServer(Port, ConnectedCallback)
-		: nullptr;
-
-	if (!RawServer)
+	if (!Listener->Init())
 	{
-		UE_LOG(LogMCPServer, Error, TEXT("Failed to create WebSocket server on port %d"), Port);
+		UE_LOG(LogMCPServer, Error, TEXT("Failed to start TCP listener on port %d"), Port);
+		Listener.Reset();
 		return;
 	}
 
-	WebSocketServer = TSharedPtr<IWebSocketServer>(RawServer);
 	bShouldRun = true;
-	Thread = FRunnableThread::Create(this, TEXT("MCPWebSocketServer"), 0, TPri_Normal);
+	Thread = FRunnableThread::Create(this, TEXT("MCPTCPServer"), 0, TPri_Normal);
 
-	UE_LOG(LogMCPServer, Log, TEXT("MCP WebSocket server started on port %d"), Port);
+	UE_LOG(LogMCPServer, Log, TEXT("MCP TCP server started on port %d"), Port);
 }
 
 void FMCPWebSocketServer::StopServer()
 {
 	bShouldRun = false;
+
+	if (Listener.IsValid())
+	{
+		Listener->Stop();
+	}
 
 	if (Thread)
 	{
@@ -59,12 +63,20 @@ void FMCPWebSocketServer::StopServer()
 
 	{
 		FScopeLock Lock(&ConnectionsLock);
+		for (TSharedPtr<FMCPConnection>& Conn : Connections)
+		{
+			if (Conn->Socket)
+			{
+				Conn->Socket->Close();
+				ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(Conn->Socket);
+			}
+		}
 		Connections.Empty();
 	}
 
-	WebSocketServer.Reset();
+	Listener.Reset();
 
-	UE_LOG(LogMCPServer, Log, TEXT("MCP WebSocket server stopped"));
+	UE_LOG(LogMCPServer, Log, TEXT("MCP TCP server stopped"));
 }
 
 bool FMCPWebSocketServer::Init()
@@ -76,10 +88,22 @@ uint32 FMCPWebSocketServer::Run()
 {
 	while (bShouldRun)
 	{
-		if (WebSocketServer.IsValid())
+		// Move pending sockets to connections
 		{
-			WebSocketServer->Tick();
+			FScopeLock Lock(&PendingLock);
+			for (FSocket* PendingSocket : PendingSockets)
+			{
+				TSharedPtr<FMCPConnection> NewConn = MakeShared<FMCPConnection>(PendingSocket);
+				PendingSocket->SetNoDelay(true);
+
+				FScopeLock ConnLock(&ConnectionsLock);
+				Connections.Add(NewConn);
+				UE_LOG(LogMCPServer, Log, TEXT("MCP client connected: %s"), *NewConn->ClientId);
+			}
+			PendingSockets.Empty();
 		}
+
+		ProcessConnections();
 		FPlatformProcess::Sleep(0.01f);
 	}
 	return 0;
@@ -90,53 +114,68 @@ void FMCPWebSocketServer::Stop()
 	bShouldRun = false;
 }
 
+bool FMCPWebSocketServer::OnConnectionAccepted(FSocket* ClientSocket, const FIPv4Endpoint& Endpoint)
+{
+	FScopeLock Lock(&PendingLock);
+	PendingSockets.Add(ClientSocket);
+	return true;
+}
+
+void FMCPWebSocketServer::ProcessConnections()
+{
+	FScopeLock Lock(&ConnectionsLock);
+
+	for (int32 i = Connections.Num() - 1; i >= 0; --i)
+	{
+		TSharedPtr<FMCPConnection>& Conn = Connections[i];
+		if (!Conn->Socket || Conn->Socket->GetConnectionState() != SCS_Connected)
+		{
+			UE_LOG(LogMCPServer, Log, TEXT("MCP client disconnected: %s"), *Conn->ClientId);
+			if (Conn->Socket)
+			{
+				Conn->Socket->Close();
+				ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(Conn->Socket);
+			}
+			Connections.RemoveAt(i);
+			continue;
+		}
+
+		uint32 PendingDataSize = 0;
+		if (Conn->Socket->HasPendingData(PendingDataSize) && PendingDataSize > 0)
+		{
+			TArray<uint8> Buffer;
+			Buffer.SetNumUninitialized(FMath::Min(PendingDataSize, (uint32)65536));
+			int32 BytesRead = 0;
+
+			if (Conn->Socket->Recv(Buffer.GetData(), Buffer.Num(), BytesRead))
+			{
+				FString Received = FString(BytesRead, UTF8_TO_TCHAR(reinterpret_cast<const char*>(Buffer.GetData())));
+				Conn->ReceiveBuffer += Received;
+
+				// Process newline-delimited messages
+				int32 NewlineIdx;
+				while (Conn->ReceiveBuffer.FindChar(TEXT('\n'), NewlineIdx))
+				{
+					FString Message = Conn->ReceiveBuffer.Left(NewlineIdx).TrimStartAndEnd();
+					Conn->ReceiveBuffer.RightChopInline(NewlineIdx + 1);
+
+					if (!Message.IsEmpty())
+					{
+						ProcessMessage(Message, Conn);
+					}
+				}
+			}
+		}
+	}
+}
+
 int32 FMCPWebSocketServer::GetConnectionCount() const
 {
 	FScopeLock Lock(const_cast<FCriticalSection*>(&ConnectionsLock));
 	return Connections.Num();
 }
 
-void FMCPWebSocketServer::OnClientConnected(INetworkingWebSocket* ClientSocket)
-{
-	if (!ClientSocket)
-	{
-		return;
-	}
-
-	TSharedPtr<FMCPConnection> Connection = MakeShared<FMCPConnection>(ClientSocket);
-
-	FWebSocketPacketRecievedCallBack ReceiveCallback;
-	ReceiveCallback.BindRaw(this, &FMCPWebSocketServer::OnMessage, ClientSocket);
-	ClientSocket->SetReceiveCallBack(ReceiveCallback);
-
-	FWebSocketInfoCallBack ClosedCallback;
-	ClosedCallback.BindRaw(this, &FMCPWebSocketServer::OnClientDisconnected, ClientSocket);
-	ClientSocket->SetSocketClosedCallBack(ClosedCallback);
-
-	{
-		FScopeLock Lock(&ConnectionsLock);
-		Connections.Add(ClientSocket, Connection);
-	}
-
-	UE_LOG(LogMCPServer, Log, TEXT("MCP client connected: %s"), *Connection->ClientId);
-}
-
-void FMCPWebSocketServer::OnMessage(void* Data, int32 Count, INetworkingWebSocket* Client)
-{
-	if (!Data || Count <= 0)
-	{
-		return;
-	}
-
-	TArray<uint8> RawData;
-	RawData.Append(static_cast<uint8*>(Data), Count);
-	FString Message = FString(UTF8_TO_TCHAR(reinterpret_cast<const char*>(RawData.GetData())));
-	Message = Message.Left(Count);
-
-	OnRawMessage(Message, Client);
-}
-
-void FMCPWebSocketServer::OnRawMessage(const FString& RawMessage, INetworkingWebSocket* Client)
+void FMCPWebSocketServer::ProcessMessage(const FString& RawMessage, TSharedPtr<FMCPConnection> Connection)
 {
 	FString Id, Method;
 	TSharedPtr<FJsonObject> Params;
@@ -146,36 +185,26 @@ void FMCPWebSocketServer::OnRawMessage(const FString& RawMessage, INetworkingWeb
 		FString ErrorResponse = MCPProtocol::FormatResponse(
 			TEXT("unknown"), false,
 			MCPProtocolHelpers::MakeError(TEXT("PARSE_ERROR"), TEXT("Invalid JSON request")));
-		SendToClient(Client, ErrorResponse);
+		SendToClient(Connection, ErrorResponse);
 		return;
 	}
 
-	// Handle heartbeat locally
+	// Handle heartbeat locally on the network thread
 	if (Method == TEXT("mcp.ping"))
 	{
 		TSharedPtr<FJsonObject> Result = MakeShared<FJsonObject>();
 		Result->SetStringField(TEXT("status"), TEXT("ok"));
 		Result->SetNumberField(TEXT("timestamp"), FPlatformTime::Seconds());
-		SendToClient(Client, MCPProtocol::FormatResponse(Id, true, Result));
+		SendToClient(Connection, MCPProtocol::FormatResponse(Id, true, Result));
 		return;
 	}
 
 	// Dispatch to handler on GameThread
-	TWeakPtr<FMCPConnection> WeakConn;
-	{
-		FScopeLock Lock(&ConnectionsLock);
-		TSharedPtr<FMCPConnection>* Found = Connections.Find(Client);
-		if (Found)
-		{
-			WeakConn = *Found;
-		}
-	}
-
-	INetworkingWebSocket* ClientCapture = Client;
+	TWeakPtr<FMCPConnection> WeakConn = Connection;
 	FMCPHandlerRegistry* RegistryPtr = &Registry;
 	FMCPWebSocketServer* Self = this;
 
-	AsyncTask(ENamedThreads::GameThread, [RegistryPtr, Method, Params, Id, ClientCapture, Self, WeakConn]()
+	AsyncTask(ENamedThreads::GameThread, [RegistryPtr, Method, Params, Id, Self, WeakConn]()
 	{
 		TSharedPtr<FMCPConnection> Conn = WeakConn.Pin();
 		if (!Conn.IsValid())
@@ -184,10 +213,10 @@ void FMCPWebSocketServer::OnRawMessage(const FString& RawMessage, INetworkingWeb
 		}
 
 		FMCPResponseDelegate OnComplete;
-		OnComplete.BindLambda([Self, ClientCapture, Id](bool bSuccess, TSharedPtr<FJsonObject> ResultOrError)
+		OnComplete.BindLambda([Self, Conn, Id](bool bSuccess, TSharedPtr<FJsonObject> ResultOrError)
 		{
 			FString Response = MCPProtocol::FormatResponse(Id, bSuccess, ResultOrError);
-			Self->SendToClient(ClientCapture, Response);
+			Self->SendToClient(Conn, Response);
 		});
 
 		if (!RegistryPtr->Dispatch(Method, Params, OnComplete))
@@ -195,33 +224,20 @@ void FMCPWebSocketServer::OnRawMessage(const FString& RawMessage, INetworkingWeb
 			FString Response = MCPProtocol::FormatResponse(Id, false,
 				MCPProtocolHelpers::MakeError(TEXT("METHOD_NOT_FOUND"),
 					FString::Printf(TEXT("Unknown method: %s"), *Method)));
-			Self->SendToClient(ClientCapture, Response);
+			Self->SendToClient(Conn, Response);
 		}
 	});
 }
 
-void FMCPWebSocketServer::OnClientDisconnected(INetworkingWebSocket* Client)
+void FMCPWebSocketServer::SendToClient(TSharedPtr<FMCPConnection> Connection, const FString& Message)
 {
-	FScopeLock Lock(&ConnectionsLock);
-	TSharedPtr<FMCPConnection>* Found = Connections.Find(Client);
-	if (Found)
-	{
-		UE_LOG(LogMCPServer, Log, TEXT("MCP client disconnected: %s"), *(*Found)->ClientId);
-		Connections.Remove(Client);
-	}
-}
-
-void FMCPWebSocketServer::SendToClient(INetworkingWebSocket* Client, const FString& Message)
-{
-	if (!Client)
+	if (!Connection.IsValid() || !Connection->Socket)
 	{
 		return;
 	}
 
-	FTCHARToUTF8 Converter(*Message);
-	FScopeLock Lock(&ConnectionsLock);
-	if (Connections.Contains(Client))
-	{
-		Client->Send(reinterpret_cast<const uint8*>(Converter.Get()), Converter.Length(), false);
-	}
+	FString MessageWithNewline = Message + TEXT("\n");
+	FTCHARToUTF8 Converter(*MessageWithNewline);
+	int32 BytesSent = 0;
+	Connection->Socket->Send(reinterpret_cast<const uint8*>(Converter.Get()), Converter.Length(), BytesSent);
 }

@@ -67,6 +67,8 @@ void FMCPNetworkHandlers::HandleGetInfo(const TSharedPtr<FJsonObject>& Params, F
 	Result->SetNumberField(TEXT("total_actors"), TotalActors);
 	Result->SetNumberField(TEXT("replicated_actors"), ReplicatedActors.Num());
 	Result->SetArrayField(TEXT("replicated"), ReplicatedActors);
-	Result->SetStringField(TEXT("net_mode"), StaticEnum<ENetMode>()->GetNameStringByValue((int64)World->GetNetMode()));
+	ENetMode NetMode = World->GetNetMode();
+	FString NetModeStr = NetMode == NM_Standalone ? TEXT("Standalone") : NetMode == NM_DedicatedServer ? TEXT("DedicatedServer") : NetMode == NM_ListenServer ? TEXT("ListenServer") : TEXT("Client");
+	Result->SetStringField(TEXT("net_mode"), NetModeStr);
 	MCPProtocolHelpers::Succeed(OnComplete, Result);
 }

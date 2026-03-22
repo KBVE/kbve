@@ -3,11 +3,12 @@
 #include "CoreMinimal.h"
 #include "HAL/Runnable.h"
 #include "HAL/ThreadSafeBool.h"
+#include "Interfaces/IPv4/IPv4Endpoint.h"
 #include "Server/MCPConnection.h"
 
 class FMCPHandlerRegistry;
-class IWebSocketServer;
-class INetworkingWebSocket;
+class FTcpListener;
+class FSocket;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogMCPServer, Log, All);
 
@@ -29,19 +30,20 @@ public:
 	virtual void Stop() override;
 
 private:
-	void OnClientConnected(INetworkingWebSocket* ClientSocket);
-	void OnMessage(void* Data, int32 Count, INetworkingWebSocket* Client);
-	void OnRawMessage(const FString& RawMessage, INetworkingWebSocket* Client);
-	void OnClientDisconnected(INetworkingWebSocket* Client);
+	bool OnConnectionAccepted(FSocket* ClientSocket, const FIPv4Endpoint& Endpoint);
+	void ProcessConnections();
+	void ProcessMessage(const FString& RawMessage, TSharedPtr<FMCPConnection> Connection);
 
-	void SendToClient(INetworkingWebSocket* Client, const FString& Message);
+	void SendToClient(TSharedPtr<FMCPConnection> Connection, const FString& Message);
 
 	FMCPHandlerRegistry& Registry;
 	int32 Port;
 
-	TSharedPtr<IWebSocketServer> WebSocketServer;
-	TMap<INetworkingWebSocket*, TSharedPtr<FMCPConnection>> Connections;
+	TSharedPtr<FTcpListener> Listener;
+	TArray<TSharedPtr<FMCPConnection>> Connections;
+	TArray<FSocket*> PendingSockets;
 	FCriticalSection ConnectionsLock;
+	FCriticalSection PendingLock;
 
 	FRunnableThread* Thread = nullptr;
 	FThreadSafeBool bShouldRun;
