@@ -62,13 +62,13 @@ spec:
                           cpu: '500m'
                   livenessProbe:
                       httpGet:
-                          path: /swagger
+                          path: /health
                           port: http
                       initialDelaySeconds: 30
                       periodSeconds: 15
                   readinessProbe:
                       httpGet:
-                          path: /swagger
+                          path: /health
                           port: http
                       initialDelaySeconds: 10
                       periodSeconds: 5
@@ -133,6 +133,16 @@ spec:
                             configMapKeyRef:
                                 name: ows-config
                                 key: RabbitMQPort
+                      - name: RabbitMQOptions__RabbitMQUserName
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-rabbitmq-credentials
+                                key: username
+                      - name: RabbitMQOptions__RabbitMQPassword
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-rabbitmq-credentials
+                                key: password
                   ports:
                       - name: http
                         containerPort: 80
@@ -146,13 +156,13 @@ spec:
                           cpu: '500m'
                   livenessProbe:
                       httpGet:
-                          path: /swagger
+                          path: /health
                           port: http
                       initialDelaySeconds: 30
                       periodSeconds: 15
                   readinessProbe:
                       httpGet:
-                          path: /swagger
+                          path: /health
                           port: http
                       initialDelaySeconds: 10
                       periodSeconds: 5
@@ -217,6 +227,16 @@ spec:
                             configMapKeyRef:
                                 name: ows-config
                                 key: RabbitMQPort
+                      - name: RabbitMQOptions__RabbitMQUserName
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-rabbitmq-credentials
+                                key: username
+                      - name: RabbitMQOptions__RabbitMQPassword
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-rabbitmq-credentials
+                                key: password
                   ports:
                       - name: http
                         containerPort: 80
@@ -230,13 +250,13 @@ spec:
                           cpu: '500m'
                   livenessProbe:
                       httpGet:
-                          path: /swagger
+                          path: /health
                           port: http
                       initialDelaySeconds: 30
                       periodSeconds: 15
                   readinessProbe:
                       httpGet:
-                          path: /swagger
+                          path: /health
                           port: http
                       initialDelaySeconds: 10
                       periodSeconds: 5
@@ -301,6 +321,16 @@ spec:
                             configMapKeyRef:
                                 name: ows-config
                                 key: RabbitMQPort
+                      - name: RabbitMQOptions__RabbitMQUserName
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-rabbitmq-credentials
+                                key: username
+                      - name: RabbitMQOptions__RabbitMQPassword
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-rabbitmq-credentials
+                                key: password
                   ports:
                       - name: http
                         containerPort: 80
@@ -314,13 +344,13 @@ spec:
                           cpu: '500m'
                   livenessProbe:
                       httpGet:
-                          path: /swagger
+                          path: /health
                           port: http
                       initialDelaySeconds: 30
                       periodSeconds: 15
                   readinessProbe:
                       httpGet:
-                          path: /swagger
+                          path: /health
                           port: http
                       initialDelaySeconds: 10
                       periodSeconds: 5

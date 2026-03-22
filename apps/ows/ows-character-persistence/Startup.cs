@@ -112,6 +112,12 @@ namespace OWSCharacterPersistence
 
             //app.UseAuthorization();
 
+            app.Map("/health", a => a.Run(async ctx =>
+            {
+                ctx.Response.ContentType = "application/json";
+                await ctx.Response.WriteAsync("{\"status\":\"ok\"}");
+            }));
+
             app.UseMvc();
 
             app.UseSwagger(/*c =>
