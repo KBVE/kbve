@@ -431,7 +431,7 @@ Verified compiling on UE 5.7.4 (Mac, universal binary).
 | `animation.*` | create_anim_bp, set_sequence, add_notify, get_tracks | Complete |
 | `niagara.*` | create_system, activate, deactivate, set_parameter, get_info | Complete |
 | `gameplay.*` | create_interaction, get_info (tags, GAS, trigger volumes) | Complete |
-| `landscape.*` | sculpt, get_info | Partial |
+| `landscape.*` | sculpt, flatten, smooth, get_info | Partial |
 | `widget.*` | create, set_property, get_info | Partial |
 | `mcp.*` | ping, list_methods, server_info | Complete |
 
@@ -447,7 +447,7 @@ The following methods are registered but return `NOT_IMPLEMENTED`. Each is track
 
 | Domain | Stubbed Methods | Reason |
 |--------|----------------|--------|
-| `landscape.*` | flatten, smooth, paint_layer | Variants of sculpt with different blend modes |
+| `landscape.*` | paint_layer | Weight map painting requires layer info setup |
 | `widget.*` | add_element, bind_event, add_to_viewport, remove | UMG widget tree manipulation + PIE-only viewport ops |
 | `animation.*` | add_state, add_transition | AnimGraph state machine node manipulation is version-sensitive |
 | `gameplay.*` | add_ability, add_attribute | GAS is an optional plugin; needs conditional loading |
