@@ -18,6 +18,9 @@ import {
 	XCircle,
 	AlertCircle,
 	ShieldAlert,
+	Kanban,
+	FileText,
+	Network,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -131,6 +134,7 @@ function ServiceCard({
 	accentColor,
 	status,
 	children,
+	span,
 }: {
 	title: string;
 	description: string;
@@ -139,6 +143,7 @@ function ServiceCard({
 	accentColor: string;
 	status: ServiceStatus;
 	children: React.ReactNode;
+	span?: number;
 }) {
 	const [hovered, setHovered] = useState(false);
 
@@ -149,6 +154,7 @@ function ServiceCard({
 			style={{
 				display: 'flex',
 				flexDirection: 'column',
+				gridColumn: span ? `span ${span}` : undefined,
 				borderRadius: 12,
 				border: `1px solid ${hovered ? 'var(--sl-color-gray-4, #4b5563)' : 'var(--sl-color-gray-5, #262626)'}`,
 				background: 'var(--sl-color-bg-nav, #111)',
@@ -289,18 +295,96 @@ function ServiceCard({
 // Main
 // ---------------------------------------------------------------------------
 
+function KanbanColumnBar({ columns }: { columns: Record<string, number> }) {
+	const entries = Object.entries(columns).filter(([, v]) => v > 0);
+	const total = entries.reduce((s, [, v]) => s + v, 0);
+	if (total === 0) return null;
+
+	const colColors: Record<string, string> = {
+		Theory: '#8b5cf6',
+		AI: '#06b6d4',
+		Todo: '#3b82f6',
+		Backlog: '#6366f1',
+		Error: '#ef4444',
+		Support: '#f59e0b',
+		Staging: '#f97316',
+		Review: '#eab308',
+		Done: '#22c55e',
+	};
+
+	return (
+		<div style={{ width: '100%' }}>
+			<div
+				style={{
+					display: 'flex',
+					height: 6,
+					borderRadius: 3,
+					overflow: 'hidden',
+					background: 'var(--sl-color-gray-5, #30363d)',
+					marginBottom: 6,
+				}}>
+				{entries.map(([col, count]) => (
+					<div
+						key={col}
+						title={`${col}: ${count}`}
+						style={{
+							width: `${(count / total) * 100}%`,
+							background: colColors[col] ?? '#6b7280',
+							minWidth: count > 0 ? 2 : 0,
+						}}
+					/>
+				))}
+			</div>
+			<div
+				style={{
+					display: 'flex',
+					flexWrap: 'wrap',
+					gap: '0.3rem 0.6rem',
+				}}>
+				{entries.map(([col, count]) => (
+					<span
+						key={col}
+						style={{
+							display: 'inline-flex',
+							alignItems: 'center',
+							gap: 3,
+							fontSize: '0.65rem',
+							color: 'var(--sl-color-gray-3, #8b949e)',
+						}}>
+						<span
+							style={{
+								width: 6,
+								height: 6,
+								borderRadius: '50%',
+								background: colColors[col] ?? '#6b7280',
+							}}
+						/>
+						{col} {count}
+					</span>
+				))}
+			</div>
+		</div>
+	);
+}
+
 export default function ReactHomeServiceCards() {
 	const grafana = useStore(homeService.$grafana);
 	const argo = useStore(homeService.$argo);
 	const edge = useStore(homeService.$edge);
 	const clickhouse = useStore(homeService.$clickhouse);
 	const security = useStore(homeService.$security);
+	const kanban = useStore(homeService.$kanban);
+	const report = useStore(homeService.$report);
+	const graph = useStore(homeService.$graph);
 
 	const grafanaStatus = useStore(homeService.$grafanaStatus);
 	const argoStatus = useStore(homeService.$argoStatus);
 	const edgeStatus = useStore(homeService.$edgeStatus);
 	const clickhouseStatus = useStore(homeService.$clickhouseStatus);
 	const securityStatus = useStore(homeService.$securityStatus);
+	const kanbanStatus = useStore(homeService.$kanbanStatus);
+	const reportStatus = useStore(homeService.$reportStatus);
+	const graphStatus = useStore(homeService.$graphStatus);
 
 	return (
 		<div
@@ -502,6 +586,170 @@ export default function ReactHomeServiceCards() {
 									? '#ef4444'
 									: '#22c55e'
 							}
+						/>
+					</>
+				) : (
+					<UnavailableMessage />
+				)}
+			</ServiceCard>
+
+			{/* Kanban Board — spans 3 columns */}
+			<ServiceCard
+				title="Project Board"
+				description="GitHub Projects kanban pipeline"
+				href="/dashboard/kanban/"
+				icon={<Kanban size={18} />}
+				accentColor="#3b82f6"
+				status={kanbanStatus}
+				span={3}>
+				{kanbanStatus === 'loading' ? (
+					<LoadingPlaceholder />
+				) : kanban ? (
+					<div
+						style={{
+							display: 'flex',
+							flexDirection: 'column',
+							gap: 10,
+							width: '100%',
+						}}>
+						<div
+							style={{
+								display: 'flex',
+								gap: '1.25rem',
+								flexWrap: 'wrap',
+							}}>
+							<MetricValue
+								label="Total Items"
+								value={kanban.total_items}
+								color="#3b82f6"
+							/>
+							<MetricValue
+								label="Done"
+								value={kanban.done}
+								color="#22c55e"
+							/>
+							<MetricValue
+								label="Active"
+								value={kanban.active}
+								color="#f59e0b"
+							/>
+							{kanban.error > 0 && (
+								<MetricValue
+									label="Error"
+									value={kanban.error}
+									color="#ef4444"
+								/>
+							)}
+						</div>
+						<KanbanColumnBar columns={kanban.columns} />
+					</div>
+				) : (
+					<UnavailableMessage />
+				)}
+			</ServiceCard>
+
+			{/* Report — spans 2 columns */}
+			<ServiceCard
+				title="Workspace Report"
+				description="NX monorepo environment & LOC stats"
+				href="/dashboard/report/"
+				icon={<FileText size={18} />}
+				accentColor="#a855f7"
+				status={reportStatus}
+				span={2}>
+				{reportStatus === 'loading' ? (
+					<LoadingPlaceholder />
+				) : report ? (
+					<div
+						style={{
+							display: 'flex',
+							flexDirection: 'column',
+							gap: 8,
+							width: '100%',
+						}}>
+						<div
+							style={{
+								display: 'flex',
+								gap: '1.25rem',
+								flexWrap: 'wrap',
+							}}>
+							<MetricValue
+								label="Files"
+								value={report.totalFiles.toLocaleString()}
+								color="#a855f7"
+							/>
+							<MetricValue
+								label="Lines"
+								value={report.totalLines.toLocaleString()}
+								color="#06b6d4"
+							/>
+							<MetricValue label="Node" value={report.node} />
+							<MetricValue label="Nx" value={report.nx} />
+							<MetricValue label="pnpm" value={report.pnpm} />
+						</div>
+						{report.topLanguages.length > 0 && (
+							<div
+								style={{
+									display: 'flex',
+									flexWrap: 'wrap',
+									gap: '0.4rem 0.8rem',
+								}}>
+								{report.topLanguages.map((l) => (
+									<span
+										key={l.name}
+										style={{
+											fontSize: '0.65rem',
+											color: 'var(--sl-color-gray-3, #8b949e)',
+										}}>
+										{l.name}{' '}
+										<span
+											style={{
+												color: '#a855f7',
+												fontWeight: 600,
+											}}>
+											{l.lines.toLocaleString()}
+										</span>
+									</span>
+								))}
+							</div>
+						)}
+					</div>
+				) : (
+					<UnavailableMessage />
+				)}
+			</ServiceCard>
+
+			{/* Graph — 1 column */}
+			<ServiceCard
+				title="Dependency Graph"
+				description="NX project dependency map"
+				href="/dashboard/graph/"
+				icon={<Network size={18} />}
+				accentColor="#14b8a6"
+				status={graphStatus}>
+				{graphStatus === 'loading' ? (
+					<LoadingPlaceholder />
+				) : graph ? (
+					<>
+						<MetricValue
+							label="Projects"
+							value={graph.totalProjects}
+							color="#14b8a6"
+						/>
+						<MetricValue
+							label="Apps"
+							value={graph.apps}
+							color="#3b82f6"
+						/>
+						<MetricValue
+							label="Libs"
+							value={graph.libs}
+							color="#8b5cf6"
+						/>
+						<MetricValue
+							label="E2E"
+							value={graph.e2e}
+							color="#6b7280"
 						/>
 					</>
 				) : (

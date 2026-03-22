@@ -44,6 +44,33 @@ export interface SecuritySummary {
 	total: number;
 }
 
+export interface KanbanSummary {
+	generated_at: string;
+	total_items: number;
+	columns: Record<string, number>;
+	done: number;
+	active: number;
+	error: number;
+}
+
+export interface ReportSummary {
+	generated_at: string;
+	node: string;
+	nx: string;
+	pnpm: string;
+	os: string;
+	totalFiles: number;
+	totalLines: number;
+	topLanguages: Array<{ name: string; lines: number }>;
+}
+
+export interface GraphSummary {
+	totalProjects: number;
+	apps: number;
+	libs: number;
+	e2e: number;
+}
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -353,6 +380,126 @@ async function fetchSecuritySummary(): Promise<SecuritySummary | null> {
 	}
 }
 
+async function fetchKanbanSummary(): Promise<KanbanSummary | null> {
+	const cached = getCache<KanbanSummary>('cache:dashboard:kanban-summary');
+	if (cached) return cached;
+
+	try {
+		const resp = await fetch('/data/nx/nx-kanban.json', {
+			signal: AbortSignal.timeout(8000),
+		});
+		if (!resp.ok) return null;
+		const data = await resp.json();
+		const cols: Record<string, number> = data?.summary ?? {};
+		const done = cols['Done'] ?? 0;
+		const error = cols['Error'] ?? 0;
+		const active = Object.entries(cols)
+			.filter(([k]) => k !== 'Done')
+			.reduce((s, [, v]) => s + v, 0);
+
+		const summary: KanbanSummary = {
+			generated_at: data.generated_at ?? '',
+			total_items: data.project?.total_items ?? 0,
+			columns: cols,
+			done,
+			active,
+			error,
+		};
+		setCache('cache:dashboard:kanban-summary', summary);
+		return summary;
+	} catch {
+		return null;
+	}
+}
+
+async function fetchReportSummary(): Promise<ReportSummary | null> {
+	const cached = getCache<ReportSummary>('cache:dashboard:report-summary');
+	if (cached) return cached;
+
+	try {
+		const resp = await fetch('/data/nx/nx-report.json', {
+			signal: AbortSignal.timeout(8000),
+		});
+		if (!resp.ok) return null;
+		const data = await resp.json();
+		const env = data?.environment ?? {};
+
+		// Parse LOC stats from scc output
+		let totalFiles = 0;
+		let totalLines = 0;
+		const topLanguages: Array<{ name: string; lines: number }> = [];
+
+		const locRaw: string = data?.loc_stats ?? '';
+		if (locRaw) {
+			const lines = locRaw.split('\n');
+			for (const line of lines) {
+				// scc output: Language, Files, Lines, Blanks, Comments, Code, Complexity
+				const match = line.match(
+					/^\s*(\S[\w\s#+.]+?)\s{2,}(\d+)\s+(\d+)\s+/,
+				);
+				if (match && match[1] !== 'Total' && match[1] !== 'Language') {
+					const lang = match[1].trim();
+					const files = parseInt(match[2], 10);
+					const loc = parseInt(match[3], 10);
+					totalFiles += files;
+					totalLines += loc;
+					topLanguages.push({ name: lang, lines: loc });
+				}
+				if (line.trim().startsWith('Total')) {
+					const totalMatch = line.match(/Total\s+(\d+)\s+(\d+)/);
+					if (totalMatch) {
+						totalFiles = parseInt(totalMatch[1], 10);
+						totalLines = parseInt(totalMatch[2], 10);
+					}
+				}
+			}
+		}
+
+		topLanguages.sort((a, b) => b.lines - a.lines);
+
+		const summary: ReportSummary = {
+			generated_at: data.generated_at ?? '',
+			node: env.node ?? '?',
+			nx: env.nx ?? '?',
+			pnpm: env.pnpm ?? '?',
+			os: env.os ?? '?',
+			totalFiles,
+			totalLines,
+			topLanguages: topLanguages.slice(0, 5),
+		};
+		setCache('cache:dashboard:report-summary', summary);
+		return summary;
+	} catch {
+		return null;
+	}
+}
+
+async function fetchGraphSummary(): Promise<GraphSummary | null> {
+	const cached = getCache<GraphSummary>('cache:dashboard:graph-summary');
+	if (cached) return cached;
+
+	try {
+		const resp = await fetch('/data/nx/nx-graph.json', {
+			signal: AbortSignal.timeout(8000),
+		});
+		if (!resp.ok) return null;
+		const data = await resp.json();
+		const nodes = data?.graph?.nodes ?? {};
+		const entries = Object.values(nodes) as Array<{ type: string }>;
+
+		const summary: GraphSummary = {
+			totalProjects: entries.length,
+			apps: entries.filter((n) => n.type === 'app').length,
+			libs: entries.filter((n) => n.type === 'lib').length,
+			e2e: entries.filter((n) => n.type === 'e2e').length,
+		};
+		setCache('cache:dashboard:graph-summary', summary);
+		return summary;
+	} catch {
+		return null;
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Status helpers (exported for islands)
 // ---------------------------------------------------------------------------
@@ -404,6 +551,9 @@ class HomeService {
 	public readonly $edge = atom<EdgeSummary | null>(null);
 	public readonly $clickhouse = atom<ClickHouseSummary | null>(null);
 	public readonly $security = atom<SecuritySummary | null>(null);
+	public readonly $kanban = atom<KanbanSummary | null>(null);
+	public readonly $report = atom<ReportSummary | null>(null);
+	public readonly $graph = atom<GraphSummary | null>(null);
 
 	// Loading
 	public readonly $loading = atom<boolean>(true);
@@ -415,6 +565,9 @@ class HomeService {
 	public readonly $edgeStatus = atom<ServiceStatus>('loading');
 	public readonly $clickhouseStatus = atom<ServiceStatus>('loading');
 	public readonly $securityStatus = atom<ServiceStatus>('loading');
+	public readonly $kanbanStatus = atom<ServiceStatus>('loading');
+	public readonly $reportStatus = atom<ServiceStatus>('loading');
+	public readonly $graphStatus = atom<ServiceStatus>('loading');
 
 	// Computed
 	public readonly $allOk = computed(
@@ -486,9 +639,13 @@ class HomeService {
 		this.$edgeStatus.set('loading');
 		this.$clickhouseStatus.set('loading');
 		this.$securityStatus.set('loading');
+		this.$kanbanStatus.set('loading');
+		this.$reportStatus.set('loading');
+		this.$graphStatus.set('loading');
 
 		const token = this.$accessToken.get();
 
+		// Static JSON fetches (no auth required)
 		const edgePromise = fetchEdgeSummary().then((e) => {
 			this.$edge.set(e);
 			this.$edgeStatus.set(e ? 'ok' : 'unavailable');
@@ -497,6 +654,21 @@ class HomeService {
 		const securityPromise = fetchSecuritySummary().then((s) => {
 			this.$security.set(s);
 			this.$securityStatus.set(s ? 'ok' : 'unavailable');
+		});
+
+		const kanbanPromise = fetchKanbanSummary().then((k) => {
+			this.$kanban.set(k);
+			this.$kanbanStatus.set(k ? 'ok' : 'unavailable');
+		});
+
+		const reportPromise = fetchReportSummary().then((r) => {
+			this.$report.set(r);
+			this.$reportStatus.set(r ? 'ok' : 'unavailable');
+		});
+
+		const graphPromise = fetchGraphSummary().then((g) => {
+			this.$graph.set(g);
+			this.$graphStatus.set(g ? 'ok' : 'unavailable');
 		});
 
 		if (token) {
@@ -523,9 +695,18 @@ class HomeService {
 				edgePromise,
 				clickhousePromise,
 				securityPromise,
+				kanbanPromise,
+				reportPromise,
+				graphPromise,
 			]);
 		} else {
-			await Promise.all([edgePromise, securityPromise]);
+			await Promise.all([
+				edgePromise,
+				securityPromise,
+				kanbanPromise,
+				reportPromise,
+				graphPromise,
+			]);
 		}
 
 		this.$lastUpdated.set(new Date());
