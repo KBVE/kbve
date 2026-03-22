@@ -123,16 +123,74 @@
 			"has_test": true
 		},
 		{
-			"key": "ows",
-			"app_name": "ows",
-			"version": "0.1.1",
+			"key": "ows_characterpersistence",
+			"app_name": "ows-characterpersistence",
+			"version": "0.1.2",
 			"version_toml": "apps/ows/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows.mdx",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-characterpersistence.mdx",
+			"source_path": "apps/ows",
+			"runner": "ubuntu-latest",
+			"image": "kbve/ows-characterpersistence",
+			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
+			"has_test": false,
+			"target": "container-characterpersistence",
+			"nx_project": "ows"
+		},
+		{
+			"key": "ows_globaldata",
+			"app_name": "ows-globaldata",
+			"version": "0.1.2",
+			"version_toml": "apps/ows/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-globaldata.mdx",
+			"source_path": "apps/ows",
+			"runner": "ubuntu-latest",
+			"image": "kbve/ows-globaldata",
+			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
+			"has_test": false,
+			"target": "container-globaldata",
+			"nx_project": "ows"
+		},
+		{
+			"key": "ows_instancemanagement",
+			"app_name": "ows-instancemanagement",
+			"version": "0.1.2",
+			"version_toml": "apps/ows/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-instancemanagement.mdx",
+			"source_path": "apps/ows",
+			"runner": "ubuntu-latest",
+			"image": "kbve/ows-instancemanagement",
+			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
+			"has_test": false,
+			"target": "container-instancemanagement",
+			"nx_project": "ows"
+		},
+		{
+			"key": "ows_management",
+			"app_name": "ows-management",
+			"version": "0.1.2",
+			"version_toml": "apps/ows/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-management.mdx",
+			"source_path": "apps/ows",
+			"runner": "ubuntu-latest",
+			"image": "kbve/ows-management",
+			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
+			"has_test": false,
+			"target": "container-management",
+			"nx_project": "ows"
+		},
+		{
+			"key": "ows_publicapi",
+			"app_name": "ows-publicapi",
+			"version": "0.1.2",
+			"version_toml": "apps/ows/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-publicapi.mdx",
 			"source_path": "apps/ows",
 			"runner": "ubuntu-latest",
 			"image": "kbve/ows-publicapi",
 			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
-			"has_test": false
+			"has_test": false,
+			"target": "container-publicapi",
+			"nx_project": "ows"
 		}
 	],
 	"npm": [
@@ -262,11 +320,11 @@
 		}
 	],
 	"summary": {
-		"docker": 10,
+		"docker": 14,
 		"npm": 4,
 		"crates": 6,
 		"python": 2,
 		"unreal": 6,
-		"total": 28
+		"total": 32
 	}
 }

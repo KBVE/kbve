@@ -11,3 +11,5 @@ data:
     InternalGlobalDataApiURL: 'http://ows-globaldata.ows.svc.cluster.local/'
     RabbitMQHostName: 'rabbitmq.rabbitmq-system.svc.cluster.local'
     RabbitMQPort: '5672'
+    UserSessionCacheHostName: 'ows-valkey.ows.svc.cluster.local'
+    UserSessionCachePort: '6379'
