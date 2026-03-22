@@ -691,7 +691,7 @@ namespace OWSData.SQL
 
         public static readonly string AddUser = @"WITH new_user AS (
 				SELECT gen_random_uuid() AS UserGUID,
-					crypt(@Password, gen_salt('md5')) AS PasswordHash
+					crypt(@Password, gen_salt('bf', 10)) AS PasswordHash
 			),
 			ins AS (
 				INSERT INTO Users (UserGUID, CustomerGUID, FirstName, LastName, Email, PasswordHash, CreateDate, LastAccess, Role)
