@@ -202,8 +202,9 @@
 						</svg>
 						<span>Settings</span>
 					</a>
-					<a
-						href="/auth/logout"
+					<button
+						id="profile-logout-btn"
+						type="button"
 						class="profile-action-card profile-action-danger">
 						<svg
 							width="24"
@@ -220,7 +221,7 @@
 							<line x1="21" y1="12" x2="9" y2="12"></line>
 						</svg>
 						<span>Sign Out</span>
-					</a>
+					</button>
 				</div>
 			</section>
 
@@ -554,6 +555,8 @@
 		color: var(--sl-color-white, #e6edf3);
 		text-decoration: none;
 		font-size: 0.8125rem;
+		font-family: inherit;
+		cursor: pointer;
 		transition: background 0.2s;
 	}
 	.profile-action-card:hover {

@@ -72,6 +72,7 @@ export default defineConfig({
 				SiteTitle: './src/components/navigation/SiteTitle.astro',
 				PageSidebar: './src/components/pagesidebar/PageSidebar.astro',
 				Footer: './src/components/footer/AstroFooter.astro',
+				Sidebar: './src/components/sidebar/Sidebar.astro',
 			},
 			// TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
 			// plugins: [starlightSiteGraph({ ... })],
@@ -79,10 +80,22 @@ export default defineConfig({
 				{
 					label: 'Dashboard',
 					collapsed: false,
-					autogenerate: { directory: 'dashboard' },
+					items: [
+						{ label: 'Overview', slug: 'dashboard' },
+						{ label: 'Kanban', slug: 'dashboard/kanban' },
+						{ label: 'Report', slug: 'dashboard/report' },
+						{ label: 'Graph', slug: 'dashboard/graph' },
+						{ label: 'Security', slug: 'dashboard/security' },
+						{ label: 'ArgoCD', slug: 'dashboard/argo' },
+						{ label: 'ClickHouse', slug: 'dashboard/clickhouse' },
+						{ label: 'Edge', slug: 'dashboard/edge' },
+						{ label: 'Forgejo', slug: 'dashboard/forgejo' },
+						{ label: 'Grafana', slug: 'dashboard/grafana' },
+					],
 				},
 				{
 					label: 'Guides',
+					collapsed: true,
 					autogenerate: { directory: 'guides' },
 				},
 				{
@@ -96,17 +109,13 @@ export default defineConfig({
 					autogenerate: { directory: 'project' },
 				},
 				{
-					label: 'GDD',
-					collapsed: true,
-					autogenerate: { directory: 'gdd' },
-				},
-				{
 					label: 'Memes',
+					collapsed: true,
 					autogenerate: { directory: 'memes' },
 				},
 				{
 					label: 'Minecraft',
-					collapsed: false,
+					collapsed: true,
 					autogenerate: { directory: 'mc' },
 				},
 				{
@@ -134,32 +143,39 @@ export default defineConfig({
 					],
 				},
 				{
+					label: 'Game Data',
+					collapsed: true,
+					items: [
+						{
+							label: 'GDD',
+							autogenerate: { directory: 'gdd' },
+						},
+						{
+							label: 'ItemDB',
+							autogenerate: { directory: 'itemdb' },
+						},
+						{
+							label: 'QuestDB',
+							autogenerate: { directory: 'questdb' },
+						},
+						{
+							label: 'MapDB',
+							autogenerate: { directory: 'mapdb' },
+						},
+						{
+							label: 'NpcDB',
+							autogenerate: { directory: 'npcdb' },
+						},
+					],
+				},
+				{
 					label: 'Theory',
 					collapsed: true,
 					autogenerate: { directory: 'theory' },
 				},
 				{
-					label: 'ItemDB',
-					collapsed: true,
-					autogenerate: { directory: 'itemdb' },
-				},
-				{
-					label: 'QuestDB',
-					collapsed: true,
-					autogenerate: { directory: 'questdb' },
-				},
-				{
-					label: 'MapDB',
-					collapsed: true,
-					autogenerate: { directory: 'mapdb' },
-				},
-				{
-					label: 'NpcDB',
-					collapsed: true,
-					autogenerate: { directory: 'npcdb' },
-				},
-				{
 					label: 'Blog',
+					collapsed: true,
 					autogenerate: { directory: 'blog' },
 				},
 				{

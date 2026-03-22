@@ -6,12 +6,25 @@
  * no React rendering for layout-level state changes.
  *
  * States: loading → unauthenticated | username-setup | profile
+ *
+ * Features:
+ * - 8s init timeout prevents infinite loading
+ * - Auth change listener handles sign-in/sign-out without page reload
+ * - Cache-first profile loading with background refresh
+ * - Vanilla username form with real-time validation
  */
 
 import { setAuth } from '@kbve/droid';
 import { initSupa, getSupa } from '@/lib/supa';
 
-// ── Element IDs (must match AstroProfileShell.astro) ─────────────────────────
+// ── Constants ───────────────────────────────────────────────────────────────
+
+const INIT_TIMEOUT_MS = 8_000;
+const PROFILE_CACHE_KEY = 'cache:profile:me';
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const USERNAME_RE = /^[a-zA-Z][a-zA-Z0-9_]{2,23}$/;
+
+// ── Element IDs (must match AstroProfileShell.astro) ────────────────────────
 
 const IDs = {
 	shell: 'profile-shell',
@@ -19,24 +32,37 @@ const IDs = {
 	unauth: 'profile-state-unauth',
 	usernameSetup: 'profile-state-username',
 	profile: 'profile-state-profile',
-	// Slots for dynamic content within the static profile card
 	profileName: 'profile-slot-name',
 	profileEmail: 'profile-slot-email',
-	profileAvatar: 'profile-slot-avatar',
 	profileAvatarLetter: 'profile-slot-avatar-letter',
 	profileAvatarImg: 'profile-slot-avatar-img',
-	profileUsername: 'profile-slot-username',
 	profilePublicLink: 'profile-slot-public-link',
-	profileBadges: 'profile-slot-badges',
 	profileProviders: 'profile-slot-providers',
-	// Username form elements
 	usernameInput: 'profile-username-input',
 	usernameHint: 'profile-username-hint',
 	usernameError: 'profile-username-error',
 	usernameSubmit: 'profile-username-submit',
+	logoutBtn: 'profile-logout-btn',
 } as const;
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Types ───────────────────────────────────────────────────────────────────
+
+interface ApiProfile {
+	username: string;
+	user_id: string;
+	email?: string;
+	profile_exists: boolean;
+	discord?: {
+		username?: string;
+		avatar_url?: string;
+		is_guild_member?: boolean;
+	};
+	github?: { username?: string; avatar_url?: string };
+	twitch?: { username?: string; avatar_url?: string; is_live?: boolean };
+	connected_providers?: string[];
+}
+
+// ── DOM helpers ─────────────────────────────────────────────────────────────
 
 function el(id: string): HTMLElement | null {
 	return document.getElementById(id);
@@ -68,25 +94,7 @@ function switchState(
 	}
 }
 
-// ── Profile API ──────────────────────────────────────────────────────────────
-
-const PROFILE_CACHE_KEY = 'cache:profile:me';
-const CACHE_TTL_MS = 5 * 60 * 1000;
-
-interface ApiProfile {
-	username: string;
-	user_id: string;
-	email?: string;
-	profile_exists: boolean;
-	discord?: {
-		username?: string;
-		avatar_url?: string;
-		is_guild_member?: boolean;
-	};
-	github?: { username?: string; avatar_url?: string };
-	twitch?: { username?: string; avatar_url?: string; is_live?: boolean };
-	connected_providers?: string[];
-}
+// ── Cache ───────────────────────────────────────────────────────────────────
 
 function getCachedProfile(userId: string): ApiProfile | null {
 	try {
@@ -116,6 +124,16 @@ function setCachedProfile(profile: ApiProfile) {
 	}
 }
 
+function clearProfileCache() {
+	try {
+		localStorage.removeItem(PROFILE_CACHE_KEY);
+	} catch {
+		/* best effort */
+	}
+}
+
+// ── Profile API ─────────────────────────────────────────────────────────────
+
 async function fetchProfile(token: string): Promise<ApiProfile | null> {
 	try {
 		const res = await fetch('/api/v1/profile/me', {
@@ -133,7 +151,7 @@ async function fetchProfile(token: string): Promise<ApiProfile | null> {
 	}
 }
 
-// ── Populate profile card slots ──────────────────────────────────────────────
+// ── Populate profile card slots ─────────────────────────────────────────────
 
 function populateProfile(profile: ApiProfile, session: any) {
 	const user = session?.user;
@@ -200,9 +218,7 @@ function populateProfile(profile: ApiProfile, session: any) {
 	}
 }
 
-// ── Username form handling ───────────────────────────────────────────────────
-
-const USERNAME_RE = /^[a-zA-Z][a-zA-Z0-9_]{2,23}$/;
+// ── Username form handling ──────────────────────────────────────────────────
 
 function validateUsername(value: string): string | null {
 	if (!value) return 'Username is required';
@@ -215,17 +231,21 @@ function validateUsername(value: string): string | null {
 	return null;
 }
 
+let usernameFormBound = false;
+
 function setupUsernameForm(
 	token: string,
 	onSuccess: (username: string) => void,
 ) {
+	if (usernameFormBound) return;
+	usernameFormBound = true;
+
 	const input = el(IDs.usernameInput) as HTMLInputElement | null;
 	const hint = el(IDs.usernameHint);
 	const errorEl = el(IDs.usernameError);
 	const submit = el(IDs.usernameSubmit) as HTMLButtonElement | null;
 	if (!input || !submit) return;
 
-	// Real-time validation
 	input.addEventListener('input', () => {
 		const val = input.value.toLowerCase();
 		input.value = val;
@@ -246,7 +266,6 @@ function setupUsernameForm(
 		submit.disabled = !!err || val.length < 3;
 	});
 
-	// Submit
 	submit.addEventListener('click', async (e) => {
 		e.preventDefault();
 		const val = input.value.toLowerCase();
@@ -290,24 +309,38 @@ function setupUsernameForm(
 	});
 }
 
-// ── Main boot ────────────────────────────────────────────────────────────────
+// ── Logout ──────────────────────────────────────────────────────────────────
 
-export async function bootProfile() {
-	switchState('loading');
+function wireLogout() {
+	const btn = el(IDs.logoutBtn);
+	if (!btn) return;
 
-	try {
-		await initSupa();
-	} catch {
-		// Auth failed — show guest state
-		switchState('unauth');
-		return;
-	}
+	btn.addEventListener('click', async (e) => {
+		e.preventDefault();
+		try {
+			clearProfileCache();
+			const supa = getSupa();
+			await supa.signOut();
+			window.location.href = '/';
+		} catch (err: any) {
+			console.error('[profile] Logout failed:', err?.message);
+		}
+	});
+}
 
-	const supa = getSupa();
-	const s = await supa.getSession().catch(() => null);
-	const session = s?.session ?? null;
+// ── Session handler (shared between boot and auth listener) ─────────────────
 
+async function handleSession(session: any) {
 	if (!session?.user) {
+		clearProfileCache();
+		setAuth({
+			tone: 'anon',
+			name: '',
+			username: undefined,
+			avatar: undefined,
+			id: '',
+			error: undefined,
+		});
 		switchState('unauth');
 		return;
 	}
@@ -315,32 +348,24 @@ export async function bootProfile() {
 	const token = session.access_token;
 	const userId = session.user.id;
 
-	// Try cache first for instant display
+	// Cache-first for instant display
 	const cached = getCachedProfile(userId);
-	let profile = cached;
-
-	if (cached) {
-		if (cached.username) {
-			populateProfile(cached, session);
-			switchState('profile');
-		} else {
-			switchState('usernameSetup');
-		}
+	if (cached?.username) {
+		populateProfile(cached, session);
+		switchState('profile');
 	}
 
 	// Fetch fresh from API
 	const fresh = await fetchProfile(token);
 	if (fresh) {
-		profile = fresh;
 		if (fresh.username) {
 			populateProfile(fresh, session);
 			switchState('profile');
-		} else if (!cached?.username) {
-			// Still no username — show setup form
+		} else {
+			// No username — show setup form
 			switchState('usernameSetup');
 			setupUsernameForm(token, (newUsername) => {
-				// Username claimed — update and switch to profile view
-				const updated = {
+				const updated: ApiProfile = {
 					...fresh,
 					username: newUsername,
 					profile_exists: true,
@@ -359,19 +384,42 @@ export async function bootProfile() {
 		);
 		switchState('profile');
 	}
+}
 
-	// Also set up the form if we showed it from cache
-	if (profile && !profile.username) {
-		setupUsernameForm(token, (newUsername) => {
-			const updated = {
-				...(profile as ApiProfile),
-				username: newUsername,
-				profile_exists: true,
-			};
-			setCachedProfile(updated);
-			populateProfile(updated, session);
-			setAuth({ username: newUsername });
-			switchState('profile');
-		});
+// ── Main boot ───────────────────────────────────────────────────────────────
+
+export async function bootProfile() {
+	switchState('loading');
+	wireLogout();
+
+	// Init with timeout — never hang forever
+	try {
+		await Promise.race([
+			initSupa(),
+			new Promise<never>((_, reject) =>
+				setTimeout(
+					() => reject(new Error('Supabase init timed out')),
+					INIT_TIMEOUT_MS,
+				),
+			),
+		]);
+	} catch {
+		switchState('unauth');
+		return;
 	}
+
+	const supa = getSupa();
+
+	// Get current session
+	const s = await supa.getSession().catch(() => null);
+	const session = s?.session ?? null;
+
+	// Handle current state
+	await handleSession(session);
+
+	// Listen for auth changes (sign-in / sign-out from other tabs or navbar)
+	supa.on('auth', async (msg: any) => {
+		const newSession = msg.session ?? null;
+		await handleSession(newSession);
+	});
 }
