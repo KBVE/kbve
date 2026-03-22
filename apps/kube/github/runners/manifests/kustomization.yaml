@@ -13,4 +13,7 @@ resources:
     - runner-cache-pvc.yaml
     - docker-cache-pvc.yaml
     - dind-cache-pvc.yaml
+    - engine-cache-pvc.yaml
+    - ows-server-build-pvc.yaml
+    - ows-instance-launcher.yaml
     - cache-cleanup-cronjob.yaml
