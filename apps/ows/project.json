@@ -4,17 +4,31 @@
 	"projectType": "application",
 	"sourceRoot": "apps/ows",
 	"targets": {
-		"container-all": {
+		"container": {
 			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
 			"options": {
-				"commands": [
-					"./kbve.sh -nx ows:container-publicapi --no-cloud",
-					"./kbve.sh -nx ows:container-instancemanagement --no-cloud",
-					"./kbve.sh -nx ows:container-characterpersistence --no-cloud",
-					"./kbve.sh -nx ows:container-globaldata --no-cloud",
-					"./kbve.sh -nx ows:container-management --no-cloud"
-				],
-				"parallel": true
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx ows:container-publicapi --no-cloud",
+						"./kbve.sh -nx ows:container-instancemanagement --no-cloud",
+						"./kbve.sh -nx ows:container-characterpersistence --no-cloud",
+						"./kbve.sh -nx ows:container-globaldata --no-cloud",
+						"./kbve.sh -nx ows:container-management --no-cloud"
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx ows:container-publicapi --configuration=production --no-cloud",
+						"./kbve.sh -nx ows:container-instancemanagement --configuration=production --no-cloud",
+						"./kbve.sh -nx ows:container-characterpersistence --configuration=production --no-cloud",
+						"./kbve.sh -nx ows:container-globaldata --configuration=production --no-cloud",
+						"./kbve.sh -nx ows:container-management --configuration=production --no-cloud"
+					]
+				}
 			}
 		},
 		"container-publicapi": {

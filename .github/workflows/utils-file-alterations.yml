@@ -265,6 +265,9 @@ jobs:
                           - 'apps/kbve/edge/project.json'
                           - 'apps/kbve/edge/deno.json'
                           - 'apps/kbve/edge/version.toml'
+                      ows:
+                          - 'apps/ows/**'
+                          - 'apps/kbve/astro-kbve/src/content/docs/project/ows.mdx'
                       isometric:
                           - 'apps/kbve/isometric/src/**'
                           - 'apps/kbve/isometric/public/**'
