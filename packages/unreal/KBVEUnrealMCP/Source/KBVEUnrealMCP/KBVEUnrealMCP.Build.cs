@@ -44,6 +44,8 @@ public class KBVEUnrealMCP : ModuleRules
 			"UMGEditor",
 			// Landscape
 			"Landscape",
+			"Foliage",
+			"LandscapeEditor",
 			// AI
 			"AIModule",
 			// Gameplay Tags
