@@ -1,0 +1,33 @@
+---
+# Cross-namespace RBAC — allow ows-external-secrets SA to read
+# RabbitMQ operator-managed credentials in rabbitmq-system namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: rabbitmq-secrets-reader-for-ows
+    namespace: rabbitmq-system
+    labels:
+        app.kubernetes.io/name: ows
+        app.kubernetes.io/component: rbac
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['rabbitmq-default-user']
+      verbs: ['get', 'list', 'watch']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: ows-read-rabbitmq-secrets
+    namespace: rabbitmq-system
+    labels:
+        app.kubernetes.io/name: ows
+        app.kubernetes.io/component: rbac
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: rabbitmq-secrets-reader-for-ows
+subjects:
+    - kind: ServiceAccount
+      name: ows-external-secrets
+      namespace: ows
