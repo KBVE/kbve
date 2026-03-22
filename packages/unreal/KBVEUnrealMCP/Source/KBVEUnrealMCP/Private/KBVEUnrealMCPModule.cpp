@@ -1,6 +1,7 @@
 #include "KBVEUnrealMCPModule.h"
 #include "KBVEUnrealMCPSettings.h"
 #include "Registry/MCPHandlerRegistry.h"
+#include "Registry/MCPSafetyValidator.h"
 #include "Server/MCPWebSocketServer.h"
 
 // Phase 1 — Fully implemented handlers

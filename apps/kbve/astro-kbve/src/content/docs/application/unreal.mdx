@@ -379,16 +379,18 @@ Targets UE 5.7+.
 **Architecture:**
 
 ```
-[AI Client] --MCP--> [External Bridge] --WebSocket--> [KBVEUnrealMCP Plugin]
-                                                           |
-                                               TMap<FString, Handler> dispatch
-                                                           |
-                                               GameThread UE API execution
+[AI Client] --MCP--> [External Bridge] --TCP (JSON\n)--> [KBVEUnrealMCP Plugin]
+                                                              |
+                                                  TMap<FString, Handler> dispatch
+                                                              |
+                                                  GameThread UE API execution
 ```
 
-The plugin runs a WebSocket server on port `9777` (configurable in Project Settings under KBVE Unreal MCP).
+The plugin runs a TCP server on port `9777` (configurable in Project Settings under KBVE Unreal MCP).
+Clients connect via TCP and send newline-delimited JSON (`\n` terminated).
 All handler methods are dispatched via a `TMap`-based registry for O(1) lookup.
 Every UE API call is marshaled to the GameThread via `AsyncTask` for thread safety.
+Verified compiling on UE 5.7.4 (Mac, universal binary).
 
 **JSON Protocol:**
 
