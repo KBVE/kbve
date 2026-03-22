@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.EntityFrameworkCore;
@@ -68,13 +67,9 @@ namespace OWSPublicAPI
 
             services.AddMvcCore(config => {
                 config.EnableEndpointRouting = false;
-                //IHttpRequestStreamReaderFactory readerFactory = services.BuildServiceProvider().GetRequiredService<IHttpRequestStreamReaderFactory>();
-                //config.ModelBinderProviders.Insert(0, new Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider(config.InputFormatters, readerFactory));
-                //config.ModelBinderProviders.Insert(0, new QueryModelBinderProvider(container));
             })
             .AddViews()
-            .AddApiExplorer()
-            .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            .AddApiExplorer();
 
             services.AddSimpleInjector(container, options => {
                 options.AddAspNetCore()
