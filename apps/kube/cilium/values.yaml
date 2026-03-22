@@ -41,9 +41,6 @@ securityContext:
             - SYS_RESOURCE
 
 # WireGuard encryption — pod-to-pod + node-to-node
-# This is separate from the infra-level WireGuard (wg0) that connects
-# NUC workers to the Hetzner control plane. Cilium WireGuard encrypts
-# all east-west pod traffic across nodes using per-node keys on UDP 51871.
 encryption:
     enabled: true
     type: wireguard
@@ -57,7 +54,9 @@ hubble:
     ui:
         enabled: true
 
-# Gateway API — host-network mode to work around 1.19.x external access regression
+# Gateway API — host-network mode bypasses broken LB→Envoy TPROXY path in 1.19.x
+# Envoy binds directly on the node, no LoadBalancer service needed.
+# Host-network and LB service modes are mutually exclusive.
 # Ref: https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/gateway-api/#host-network-mode
 gatewayAPI:
     enabled: true
@@ -65,6 +64,18 @@ gatewayAPI:
     enableAppProtocol: true
     hostNetwork:
         enabled: true
+        nodes:
+            matchLabels:
+                node.kbve.com/type: dedicated-server
+
+# Envoy — NET_BIND_SERVICE required for privileged ports (80/443) in host-network mode
+envoy:
+    enabled: true
+    securityContext:
+        capabilities:
+            keepCapNetBindService: true
+            envoy:
+                - NET_BIND_SERVICE
 
 # L2 announcements — replaces MetalLB
 l2announcements:
