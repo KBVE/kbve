@@ -49,6 +49,21 @@ spec:
                             configMapKeyRef:
                                 name: ows-config
                                 key: InternalCharacterPersistenceApiURL
+                      - name: OWSAPIPathConfig__InternalGlobalDataApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalGlobalDataApiURL
+                      - name: UserSessionCacheOptions__HostName
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: UserSessionCacheHostName
+                      - name: UserSessionCacheOptions__Port
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: UserSessionCachePort
                   ports:
                       - name: http
                         containerPort: 80
@@ -143,6 +158,11 @@ spec:
                             secretKeyRef:
                                 name: ows-rabbitmq-credentials
                                 key: password
+                      - name: OWSAPIPathConfig__InternalGlobalDataApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalGlobalDataApiURL
                   ports:
                       - name: http
                         containerPort: 80
@@ -237,6 +257,11 @@ spec:
                             secretKeyRef:
                                 name: ows-rabbitmq-credentials
                                 key: password
+                      - name: OWSAPIPathConfig__InternalGlobalDataApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalGlobalDataApiURL
                   ports:
                       - name: http
                         containerPort: 80
@@ -331,6 +356,11 @@ spec:
                             secretKeyRef:
                                 name: ows-rabbitmq-credentials
                                 key: password
+                      - name: OWSAPIPathConfig__InternalGlobalDataApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalGlobalDataApiURL
                   ports:
                       - name: http
                         containerPort: 80
