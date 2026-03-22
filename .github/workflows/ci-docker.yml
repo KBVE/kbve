@@ -178,7 +178,7 @@ jobs:
                   echo "e2e_name=$(echo "$ENTRY" | jq -r '.e2e_name // empty')"              >> "$GITHUB_OUTPUT"
                   echo "cargo_toml=$(echo "$ENTRY" | jq -r '.version_source // empty')"      >> "$GITHUB_OUTPUT"
                   echo "deployment_yaml=$(echo "$ENTRY" | jq -r '.deployment_yaml // empty')" >> "$GITHUB_OUTPUT"
-                  echo "has_test=$(echo "$ENTRY" | jq -r '.has_test // true')"               >> "$GITHUB_OUTPUT"
+                  echo "has_test=$(echo "$ENTRY" | jq -r 'if .has_test == false then "false" else "true" end')" >> "$GITHUB_OUTPUT"
                   echo "version_toml=$(echo "$ENTRY" | jq -r '.version_toml // empty')"      >> "$GITHUB_OUTPUT"
                   echo "version_source=$(echo "$ENTRY" | jq -r '.version_source // empty')"  >> "$GITHUB_OUTPUT"
                   echo "version_target=$(echo "$ENTRY" | jq -r '.version_target // empty')"  >> "$GITHUB_OUTPUT"
