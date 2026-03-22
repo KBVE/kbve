@@ -86,6 +86,10 @@ spec:
                     interfaces:
                         - name: default
                           masquerade: {}
+                        # Direct internet via Hetzner additional IP + virtual MAC
+                        - name: hetzner
+                          bridge: {}
+                          macAddress: '00:50:56:00:BA:57'
                     inputs:
                         - type: tablet
                           bus: usb
@@ -121,6 +125,9 @@ spec:
             networks:
                 - name: default
                   pod: {}
+                - name: hetzner
+                  multus:
+                      networkName: angelscript/hetzner-direct
             terminationGracePeriodSeconds: 3600
             volumes:
                 - name: rootdisk

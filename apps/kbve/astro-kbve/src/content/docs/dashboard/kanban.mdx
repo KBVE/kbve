@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-03-22T05:27:05.548Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-03-22T08:12:56.848Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -33,7 +33,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **7** items
   </Card>
   <Card title="Error" icon="warning">
-    **11** items
+    **10** items
   </Card>
   <Card title="Support" icon="information">
     **0** items
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **1** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **189** items
+    **198** items
   </Card>
 </CardGrid>
 
@@ -59,18 +59,18 @@ pie showData
     "AI" : 1
     "Todo" : 5
     "Backlog" : 7
-    "Error" : 11
+    "Error" : 10
     "Staging" : 4
     "Review" : 1
-    "Done" : 189
+    "Done" : 198
 ```
 
 ```mermaid
 pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 10
-    "Blocked (Error+Support)" : 11
-    "Done" : 189
+    "Blocked (Error+Support)" : 10
+    "Done" : 198
     "Planning (Theory+AI+Backlog)" : 26
 ```
 
@@ -91,7 +91,7 @@ flowchart LR
     Todo --> Backlog
     Backlog["Backlog<br/><strong>7</strong>"]
     Backlog --> Error
-    Error["Error<br/><strong>11</strong>"]
+    Error["Error<br/><strong>10</strong>"]
     Error --> Support
     Support["Support<br/><strong>0</strong>"]
     Support --> Staging
@@ -99,7 +99,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>1</strong>"]
     Review --> Done
-    Done["Done<br/><strong>189</strong>"]
+    Done["Done<br/><strong>198</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,7 +116,7 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 176
+    "Pull Request" : 184
     "Issue" : 60
 ```
 
@@ -124,9 +124,9 @@ pie showData
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 176 |
-| dev→main | 106 |
-| atomic | 67 |
+| auto-pr | 184 |
+| dev→main | 110 |
+| atomic | 70 |
 | enhancement | 29 |
 | 0 | 23 |
 | unity | 16 |
@@ -189,7 +189,7 @@ pie showData
 | [#7548](https://github.com/KBVE/kbve/issues/7548) | feat(memes): responsive bento grid feed + dedicated meme pages | — | h0lybyte | 1, backlog |
 | [#7709](https://github.com/KBVE/kbve/issues/7709) | [CRYPTOTHRONE] Inventory System, Event Bridge, and Gameplay Loop Completion | — | h0lybyte | 1, enhancement, backlog |
 
-### Error (11)
+### Error (10)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -200,7 +200,6 @@ pie showData
 | [#4623](https://github.com/KBVE/kbve/issues/4623) | [Bug] : [Unity] : Procedural Map Generation | — | h0lybyte | 2, bug, unity |
 | [#4797](https://github.com/KBVE/kbve/issues/4797) | [Bug] : [Unity] : Enemy Ai should attack player structures, if players are not a | — | h0lybyte | 4, bug, unity |
 | [#6705](https://github.com/KBVE/kbve/issues/6705) | [Bug] : [Unity] : Chip Character Sheet Off Center Sprites | — | h0lybyte | 0, bug, unity |
-| [#7761](https://github.com/KBVE/kbve/issues/7761) | [PSQL] Schema Optimizations - Memes, Realtime, Discordsh | — | h0lybyte | 3, bug, security |
 | [#7956](https://github.com/KBVE/kbve/issues/7956) | chore(astro-kbve): re-enable starlight-site-graph after Zod 4 / Astro 6 support | — | — | 1, bug, backlog |
 | [#8169](https://github.com/KBVE/kbve/issues/8169) | [CI] Docker image version mismatch — cached binary reports stale version | — | — | 6, bug, ci |
 | [#8172](https://github.com/KBVE/kbve/issues/8172) | [ISOMETRIC] Lint deployments — validate WASM build assets before merge | — | — | 6, bug, ci |
@@ -220,7 +219,7 @@ pie showData
 |---|-------|----------|-----------|--------|
 | [#8050](https://github.com/KBVE/kbve/pull/8050) | Release: 4 features, 1 chore → Main | — | — | auto-pr, dev→main |
 
-### Done (189)
+### Done (198)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -304,6 +303,7 @@ pie showData
 | [#8123](https://github.com/KBVE/kbve/pull/8123) | Release: 7 features, 7 fixes, 1 refactor, 1 test, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#8137](https://github.com/KBVE/kbve/issues/8137) | feat(ci): daily kanban sync workflow — nx-kanban.json + nx-kanban.mdx from GitHu | — | — | 4, documentation |
 | [#7849](https://github.com/KBVE/kbve/issues/7849) | [DISCORDSH] GitHub API ↔ Supabase Vault ↔ Discord Embed Integration | — | h0lybyte | 6, enhancement |
+| [#7761](https://github.com/KBVE/kbve/issues/7761) | [PSQL] Schema Optimizations - Memes, Realtime, Discordsh | — | h0lybyte | 3, bug, security |
 | [#8015](https://github.com/KBVE/kbve/issues/8015) | feat: migrate Supabase Analytics from PostgreSQL to ClickHouse | — | h0lybyte | 5, enhancement, todo |
 | [#7866](https://github.com/KBVE/kbve/issues/7866) | [ISOMETRIC] [BEVY] Replace MeshPickingPlugin with Rapier raycast hover detection | — | h0lybyte | 1, backlog, rust |
 | [#7855](https://github.com/KBVE/kbve/issues/7855) | [DISCORDSH] Add slash commands and scheduled triggers for embeds | — | h0lybyte | 0, enhancement, rust |
@@ -413,6 +413,14 @@ pie showData
 | [#8544](https://github.com/KBVE/kbve/pull/8544) | Release: 1 fix, 1 refactor, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#8546](https://github.com/KBVE/kbve/pull/8546) | Release: 3 features, 3 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#8550](https://github.com/KBVE/kbve/pull/8550) | Atomic: fix ows kubectl | — | — | auto-pr, atomic |
+| [#8557](https://github.com/KBVE/kbve/pull/8557) | chore(dashboard): daily sync — 2026-03-22 | — | — | auto-pr |
+| [#8558](https://github.com/KBVE/kbve/pull/8558) | Release: 3 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#8562](https://github.com/KBVE/kbve/pull/8562) | Atomic: fix ows kustomize | — | — | auto-pr, atomic |
+| [#8564](https://github.com/KBVE/kbve/pull/8564) | Release: 1 fix, 4 chores → Main | — | — | auto-pr, dev→main |
+| [#8566](https://github.com/KBVE/kbve/pull/8566) | Atomic: fix ows safe dir | — | — | auto-pr, atomic |
+| [#8568](https://github.com/KBVE/kbve/pull/8568) | Atomic: kube discordsh v0.1.34 | — | — | auto-pr, atomic |
+| [#8572](https://github.com/KBVE/kbve/pull/8572) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
+| [#8576](https://github.com/KBVE/kbve/pull/8576) | Release: 1 feature, 1 chore → Main | — | — | auto-pr, dev→main |
 
 ---
 

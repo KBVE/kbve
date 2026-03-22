@@ -31,6 +31,7 @@
 #include "Handlers/MCPSplineHandlers.h"
 #include "Handlers/MCPGeometryHandlers.h"
 #include "Handlers/MCPCodeAnalysisHandlers.h"
+#include "Handlers/MCPEditorHandlers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogKBVEUnrealMCP, Log, All);
 
@@ -136,6 +137,9 @@ void FKBVEUnrealMCPModule::RegisterAllHandlers()
 	FMCPSplineHandlers::Register(*Registry);
 	FMCPGeometryHandlers::Register(*Registry);
 	FMCPCodeAnalysisHandlers::Register(*Registry);
+
+	// Phase 8 — Editor utilities
+	FMCPEditorHandlers::Register(*Registry);
 }
 
 IMPLEMENT_MODULE(FKBVEUnrealMCPModule, KBVEUnrealMCP)
