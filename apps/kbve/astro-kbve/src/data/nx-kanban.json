@@ -1,20 +1,20 @@
 {
-	"generated_at": "2026-03-22T05:27:05.548Z",
+	"generated_at": "2026-03-22T08:12:56.848Z",
 	"project": {
 		"title": "KBVE",
 		"url": "https://github.com/orgs/KBVE/projects/5",
-		"total_items": 237
+		"total_items": 245
 	},
 	"summary": {
 		"Theory": 18,
 		"AI": 1,
 		"Todo": 5,
 		"Backlog": 7,
-		"Error": 11,
+		"Error": 10,
 		"Support": 0,
 		"Staging": 4,
 		"Review": 1,
-		"Done": 189
+		"Done": 198
 	},
 	"columns": {
 		"Theory": [
@@ -679,24 +679,6 @@
 				],
 				"matrix": null,
 				"date": "2025-11-23",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 7761,
-				"title": "[PSQL] Schema Optimizations - Memes, Realtime, Discordsh",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/7761",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"3",
-					"bug",
-					"security"
-				],
-				"matrix": null,
-				"date": "2026-03-17",
 				"milestone": null
 			},
 			{
@@ -2036,6 +2018,24 @@
 				"labels": [
 					"6",
 					"enhancement"
+				],
+				"matrix": null,
+				"date": "2026-03-17",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 7761,
+				"title": "[PSQL] Schema Optimizations - Memes, Realtime, Discordsh",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/7761",
+				"assignees": [
+					"h0lybyte"
+				],
+				"labels": [
+					"3",
+					"bug",
+					"security"
 				],
 				"matrix": null,
 				"date": "2026-03-17",
@@ -3686,6 +3686,125 @@
 				"labels": [
 					"auto-pr",
 					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8557,
+				"title": "chore(dashboard): daily sync — 2026-03-22",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8557",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8558,
+				"title": "Release: 3 fixes, 2 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8558",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8562,
+				"title": "Atomic: fix ows kustomize",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8562",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8564,
+				"title": "Release: 1 fix, 4 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8564",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8566,
+				"title": "Atomic: fix ows safe dir",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8566",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8568,
+				"title": "Atomic: kube discordsh v0.1.34",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8568",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8572,
+				"title": "Release: 1 fix → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8572",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8576,
+				"title": "Release: 1 feature, 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8576",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
 				],
 				"matrix": null,
 				"date": null,
