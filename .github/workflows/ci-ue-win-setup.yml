@@ -188,3 +188,19 @@ jobs:
         steps:
             - name: Scale down file server
               run: kubectl scale deploy file-server -n angelscript --replicas=0
+
+    # ── Failure tracker ──────────────────────────────────────
+    track-failure:
+        name: Track Failures
+        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        needs: [install, cleanup]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'UE Win Setup'
+            job_name: 'UE Win Setup'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: failure

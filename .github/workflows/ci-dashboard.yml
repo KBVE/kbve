@@ -994,11 +994,97 @@ jobs:
                       apps/kbve/astro-kbve/src/data/nx-kanban.json
 
     # ══════════════════════════════════════════════════════════
-    # Job 4: Commit & PR (collects all artifacts, single PR)
+    # Job 4: Proto Drift Check (regenerate schemas, verify no drift)
+    # ══════════════════════════════════════════════════════════
+    proto_drift:
+        name: Proto Drift Check
+        needs: guard
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: read
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Install protoc
+              run: |
+                  PROTOC_VERSION=29.5
+                  curl -sLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
+                  sudo unzip -o "protoc-${PROTOC_VERSION}-linux-x86_64.zip" -d /usr/local
+                  protoc --version
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Regenerate all proto schemas
+              run: npx tsx packages/data/codegen/gen-all.mjs
+
+            - name: Format generated schemas
+              run: npx prettier --write 'packages/data/codegen/generated/*.ts'
+
+            - name: Generate proto registry
+              run: npx tsx packages/data/codegen/generate-proto-registry.mjs > /tmp/nx-proto.json
+
+            - name: Check for drift
+              id: drift
+              run: |
+                  DRIFT="false"
+                  DRIFT_FILES=""
+                  if git diff -- packages/data/codegen/generated/ | grep '^[+-]' | grep -v '^[+-][+-][+-]' | grep -v '^\s*[+-]\s*\* Generated:' | grep -q '^[+-]'; then
+                    echo "::error::Proto drift detected! Generated schemas differ from committed versions. Run: npx tsx packages/data/codegen/gen-all.mjs"
+                    DRIFT="true"
+                    DRIFT_FILES=$(git diff --name-only -- packages/data/codegen/generated/ | tr '\n' ', ')
+                    git diff --stat -- packages/data/codegen/generated/
+                  else
+                    echo "No drift detected — generated schemas match committed versions"
+                  fi
+                  echo "drift=$DRIFT" >> "$GITHUB_OUTPUT"
+                  echo "drift_files=$DRIFT_FILES" >> "$GITHUB_OUTPUT"
+
+            - name: Build proto dashboard JSON
+              run: |
+                  set -euo pipefail
+                  TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+                  DEST="apps/kbve/astro-kbve/public/data/nx/nx-proto.json"
+                  mkdir -p "$(dirname "$DEST")"
+                  jq --arg ts "$TIMESTAMP" \
+                     --arg drift "${{ steps.drift.outputs.drift }}" \
+                     --arg drift_files "${{ steps.drift.outputs.drift_files }}" \
+                     '. + {checked_at: $ts, drift_detected: ($drift == "true"), drift_files: ($drift_files | split(",") | map(select(. != "")))}' \
+                     /tmp/nx-proto.json > "$DEST"
+                  echo "Proto dashboard JSON written ($(wc -c < "$DEST" | xargs) bytes)"
+
+            - name: Upload proto artifacts
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dashboard-proto
+                  retention-days: 1
+                  path: |
+                      apps/kbve/astro-kbve/public/data/nx/nx-proto.json
+
+    # ══════════════════════════════════════════════════════════
+    # Job 5: Commit & PR (collects all artifacts, single PR)
     # ══════════════════════════════════════════════════════════
     commit:
         name: Commit & PR
-        needs: [guard, security, report, kanban]
+        needs: [guard, security, report, kanban, proto_drift]
         if: always() && needs.guard.outputs.allowed == 'true'
         runs-on: ubuntu-latest
         timeout-minutes: 30
@@ -1051,6 +1137,7 @@ jobs:
                         nx-report.json)   DEST="apps/kbve/astro-kbve/public/data/nx/nx-report.json" ;;
                         nx-graph.json)    DEST="apps/kbve/astro-kbve/public/data/nx/nx-graph.json" ;;
                         nx-kanban.json)   DEST="apps/kbve/astro-kbve/src/data/nx-kanban.json" ;;
+                        nx-proto.json)    DEST="apps/kbve/astro-kbve/public/data/nx/nx-proto.json" ;;
                         *) echo "  SKIP: $BASENAME (unknown)"; continue ;;
                       esac
                       mkdir -p "$(dirname "$DEST")"
@@ -1084,6 +1171,7 @@ jobs:
                     apps/kbve/astro-kbve/public/data/nx/nx-security.json \
                     apps/kbve/astro-kbve/public/data/nx/nx-report.json \
                     apps/kbve/astro-kbve/public/data/nx/nx-graph.json \
+                    apps/kbve/astro-kbve/public/data/nx/nx-proto.json \
                     apps/kbve/astro-kbve/src/data/nx-kanban.json; do
                     if [ -f "$f" ]; then
                       git add -f "$f"
@@ -1277,3 +1365,17 @@ jobs:
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: ${{ needs.kanban.result }}
+
+    track-proto-drift:
+        name: Track Proto Drift
+        if: always()
+        needs: [proto_drift]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Daily Dashboard'
+            job_name: 'Proto Drift Check'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.proto_drift.result }}
