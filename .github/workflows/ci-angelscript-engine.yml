@@ -563,3 +563,27 @@ jobs:
                     --head "${BRANCH}" \
                     --title "chore(angelscript): update to v${VERSION}" \
                     --body "Automated post-build update. AngelScript Engine v${VERSION} released on ${{ env.ENGINE_REPO }}. Docker image: \`${{ env.DOCKER_IMAGE }}:${VERSION}\`"
+
+    # ── Failure tracker ──────────────────────────────────────
+    track-failure:
+        name: Track Failures
+        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        needs:
+            [
+                guard,
+                version-gate,
+                build-windows,
+                build-mac,
+                build-linux,
+                release,
+            ]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'AngelScript Engine Build'
+            job_name: 'AngelScript'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: failure
