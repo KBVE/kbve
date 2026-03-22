@@ -25,9 +25,67 @@ on:
                 default: true
 
 jobs:
-    setup:
-        name: Setup UE5 Windows Builder
+    # Job 1: Download installers on a Linux pod (fast internet, no NAT issues)
+    # and stage them on the file-server shared storage
+    stage-downloads:
+        name: Stage Installers
+        runs-on: arc-runner-set
+        steps:
+            - name: Scale up file server
+              id: fileserver
+              run: |
+                  kubectl scale deploy file-server -n angelscript --replicas=1
+                  echo "Waiting for file server pod..."
+                  kubectl wait --for=condition=ready pod -l app=file-server -n angelscript --timeout=120s
+                  POD=$(kubectl get pods -n angelscript -l app=file-server -o jsonpath='{.items[0].metadata.name}')
+                  echo "pod=${POD}" >> "$GITHUB_OUTPUT"
+
+            - name: Download VS Build Tools bootstrapper
+              if: inputs.install_vs_buildtools
+              run: |
+                  kubectl exec -n angelscript ${{ steps.fileserver.outputs.pod }} -- \
+                    wget -q -O /shared/vs_buildtools.exe "https://aka.ms/vs/17/release/vs_buildtools.exe"
+                  echo "VS Build Tools bootstrapper staged."
+
+            - name: Download Python installer
+              if: inputs.install_python
+              run: |
+                  kubectl exec -n angelscript ${{ steps.fileserver.outputs.pod }} -- \
+                    wget -q -O /shared/python-install.exe "https://www.python.org/ftp/python/3.12.8/python-3.12.8-amd64.exe"
+                  echo "Python installer staged."
+
+            - name: Download .NET install script
+              if: inputs.install_dotnet
+              run: |
+                  kubectl exec -n angelscript ${{ steps.fileserver.outputs.pod }} -- \
+                    wget -q -O /shared/dotnet-install.ps1 "https://dot.net/v1/dotnet-install.ps1"
+                  echo ".NET install script staged."
+
+            - name: Download DirectX Runtime
+              if: inputs.install_directx
+              run: |
+                  kubectl exec -n angelscript ${{ steps.fileserver.outputs.pod }} -- \
+                    wget -q -O /shared/dxsetup.exe "https://download.microsoft.com/download/1/7/1/1718CCC4-6315-4D8E-9543-8E28A4E18C4C/dxwebsetup.exe"
+                  echo "DirectX Runtime staged."
+
+            - name: Download CMake installer
+              if: inputs.install_cmake
+              run: |
+                  kubectl exec -n angelscript ${{ steps.fileserver.outputs.pod }} -- \
+                    wget -q -O /shared/cmake-install.msi "https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-windows-x86_64.msi"
+                  echo "CMake installer staged."
+
+            - name: List staged files
+              run: |
+                  kubectl exec -n angelscript ${{ steps.fileserver.outputs.pod }} -- ls -lh /shared/
+
+    # Job 2: Install from cluster-internal HTTP server (no internet needed)
+    install:
+        name: Install on UE5-Win
         runs-on: UE5-Win
+        needs: stage-downloads
+        env:
+            FILE_SERVER: http://file-server.angelscript.svc:8080
         steps:
             - name: System Info
               run: |
@@ -35,29 +93,29 @@ jobs:
                   Write-Host "OS: $([System.Environment]::OSVersion)"
                   Write-Host "CPU: $((Get-CimInstance Win32_Processor).Name)"
                   Write-Host "RAM: $([math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 1)) GB"
-                  Write-Host "Disk: $([math]::Round((Get-CimInstance Win32_LogicalDisk -Filter 'DeviceID=''C:''').FreeSpace / 1GB, 1)) GB free"
-                  Write-Host "Time: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss UTC')"
+                  Write-Host "Disk: $([math]::Round((Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='C:'").FreeSpace / 1GB, 1)) GB free"
                   git --version
 
             - name: Install Visual Studio 2022 Build Tools
               if: inputs.install_vs_buildtools
+              timeout-minutes: 30
               run: |
                   if (Test-Path "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools") {
                       Write-Host "VS Build Tools already installed, skipping."
                       exit 0
                   }
-                  Write-Host "Downloading VS Build Tools..."
-                  curl.exe -L -o C:\vs_buildtools.exe "https://aka.ms/vs/17/release/vs_buildtools.exe"
+                  Write-Host "Downloading from file server..."
+                  curl.exe -o C:\vs_buildtools.exe "$env:FILE_SERVER/vs_buildtools.exe"
                   Write-Host "Installing VS Build Tools (this takes 10-15 minutes)..."
-                  Start-Process C:\vs_buildtools.exe -ArgumentList @(
+                  $p = Start-Process C:\vs_buildtools.exe -ArgumentList @(
                       '--add', 'Microsoft.VisualStudio.Workload.VCTools',
                       '--add', 'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
                       '--add', 'Microsoft.VisualStudio.Component.Windows11SDK.26100',
                       '--add', 'Microsoft.Component.MSBuild',
                       '--includeRecommended',
                       '--quiet', '--wait', '--norestart'
-                  ) -Wait
-                  Write-Host "VS Build Tools installed."
+                  ) -Wait -PassThru
+                  Write-Host "VS Build Tools installer exited with code: $($p.ExitCode)"
 
             - name: Install Python 3
               if: inputs.install_python
@@ -66,8 +124,8 @@ jobs:
                       Write-Host "Python already installed: $(python --version)"
                       exit 0
                   }
-                  Write-Host "Downloading Python..."
-                  curl.exe -L -o C:\python-install.exe "https://www.python.org/ftp/python/3.15.0/python-3.15.0-amd64.exe"
+                  Write-Host "Downloading from file server..."
+                  curl.exe -o C:\python-install.exe "$env:FILE_SERVER/python-install.exe"
                   Start-Process C:\python-install.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1' -Wait
                   Write-Host "Python installed."
 
@@ -78,16 +136,16 @@ jobs:
                       Write-Host ".NET already installed: $(dotnet --version)"
                       exit 0
                   }
-                  Write-Host "Downloading .NET install script..."
-                  Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile C:\dotnet-install.ps1 -UseBasicParsing
+                  Write-Host "Downloading from file server..."
+                  curl.exe -o C:\dotnet-install.ps1 "$env:FILE_SERVER/dotnet-install.ps1"
                   & C:\dotnet-install.ps1 -Channel 8.0
                   Write-Host ".NET SDK 8.0 installed."
 
             - name: Install DirectX Runtime
               if: inputs.install_directx
               run: |
-                  Write-Host "Downloading DirectX Runtime..."
-                  curl.exe -L -o C:\dxsetup.exe "https://download.microsoft.com/download/1/7/1/1718CCC4-6315-4D8E-9543-8E28A4E18C4C/dxwebsetup.exe"
+                  Write-Host "Downloading from file server..."
+                  curl.exe -o C:\dxsetup.exe "$env:FILE_SERVER/dxsetup.exe"
                   Start-Process C:\dxsetup.exe -ArgumentList '/Q' -Wait
                   Write-Host "DirectX Runtime installed."
 
@@ -98,29 +156,35 @@ jobs:
                       Write-Host "CMake already installed: $(cmake --version | Select-Object -First 1)"
                       exit 0
                   }
-                  Write-Host "Downloading CMake..."
-                  curl.exe -L -o C:\cmake-install.msi "https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-windows-x86_64.msi"
+                  Write-Host "Downloading from file server..."
+                  curl.exe -o C:\cmake-install.msi "$env:FILE_SERVER/cmake-install.msi"
                   Start-Process msiexec.exe -ArgumentList '/i C:\cmake-install.msi /quiet /norestart ADD_CMAKE_TO_PATH=System' -Wait
                   Write-Host "CMake installed."
 
             - name: Verify Installation
               run: |
                   Write-Host "=== Installed Tools ==="
-                  $tools = @{
-                      'git' = { git --version }
-                      'python' = { python --version }
-                      'dotnet' = { dotnet --version }
-                      'cmake' = { cmake --version | Select-Object -First 1 }
-                      'cl.exe' = {
+                  $checks = @(
+                      @{ Name='git'; Cmd={ git --version } },
+                      @{ Name='python'; Cmd={ python --version } },
+                      @{ Name='dotnet'; Cmd={ dotnet --version } },
+                      @{ Name='cmake'; Cmd={ cmake --version | Select-Object -First 1 } },
+                      @{ Name='cl.exe'; Cmd={
                           $cl = Get-ChildItem "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64\cl.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-                          if ($cl) { "$($cl.FullName)" } else { "NOT FOUND" }
-                      }
+                          if ($cl) { $cl.FullName } else { "NOT FOUND" }
+                      }}
+                  )
+                  foreach ($check in $checks) {
+                      try { $r = & $check.Cmd 2>&1; Write-Host "  $($check.Name): $r" }
+                      catch { Write-Host "  $($check.Name): NOT INSTALLED" }
                   }
-                  foreach ($tool in $tools.GetEnumerator()) {
-                      try {
-                          $result = & $tool.Value 2>&1
-                          Write-Host "  $($tool.Key): $result"
-                      } catch {
-                          Write-Host "  $($tool.Key): NOT INSTALLED" -ForegroundColor Yellow
-                      }
-                  }
+
+    # Job 3: Scale down file server
+    cleanup:
+        name: Cleanup
+        runs-on: arc-runner-set
+        needs: install
+        if: always()
+        steps:
+            - name: Scale down file server
+              run: kubectl scale deploy file-server -n angelscript --replicas=0
