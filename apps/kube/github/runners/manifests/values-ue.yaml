@@ -76,6 +76,9 @@ template:
                   # Persistent engine source cache for AngelScript builds
                   - name: engine-cache
                     mountPath: /mnt/longhorn/angelscript-engine
+                  # OWS cooked server output
+                  - name: ows-server-build
+                    mountPath: /mnt/longhorn/ows-server
             # Docker-in-Docker sidecar with persistent image cache
             - name: dind
               image: docker:29.3.0-dind
@@ -115,6 +118,9 @@ template:
             - name: engine-cache
               persistentVolumeClaim:
                   claimName: arc-engine-cache
+            - name: ows-server-build
+              persistentVolumeClaim:
+                  claimName: ows-server-build
 
 listenerTemplate:
     spec:

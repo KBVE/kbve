@@ -7,6 +7,7 @@
 #include "LevelEditor.h"
 #include "Misc/FileHelper.h"
 #include "ImageUtils.h"
+#include "EngineUtils.h"
 
 void FMCPViewportHandlers::Register(FMCPHandlerRegistry& Registry)
 {

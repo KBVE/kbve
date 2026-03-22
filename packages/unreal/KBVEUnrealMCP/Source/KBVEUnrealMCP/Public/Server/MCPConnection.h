@@ -1,15 +1,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-class INetworkingWebSocket;
+#include "Sockets.h"
 
 struct FMCPConnection
 {
 	FString ClientId;
-	INetworkingWebSocket* Socket = nullptr;
+	FSocket* Socket = nullptr;
 	double LastHeartbeatTime = 0.0;
+	FString ReceiveBuffer;
 
 	FMCPConnection() = default;
-	explicit FMCPConnection(INetworkingWebSocket* InSocket);
+	explicit FMCPConnection(FSocket* InSocket);
 };

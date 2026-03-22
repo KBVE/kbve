@@ -308,8 +308,7 @@ jobs:
                     -utf8output \
                     -NoP4
 
-            - name: Locate server output
-              id: locate
+            - name: Deploy server to PVC
               run: |
                   VERSION="${{ needs.version_gate.outputs.version }}"
                   SERVER_DIR=$(find /tmp/ue5-build-output -name "LinuxServer" -type d | head -1)
@@ -318,56 +317,20 @@ jobs:
                     find /tmp/ue5-build-output -maxdepth 3 -type d
                     exit 1
                   fi
-                  echo "server_dir=${SERVER_DIR}" >> "$GITHUB_OUTPUT"
-                  echo "::notice::Server v${VERSION} built ($(du -sh ${SERVER_DIR} | cut -f1))"
 
-            - name: Configure kubectl
-              run: |
-                  mkdir -p ~/.kube
-                  echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+                  # Copy to versioned directory on the PVC (mounted at /mnt/longhorn/ows-server)
+                  DEST="/mnt/longhorn/ows-server/${VERSION}"
+                  mkdir -p "${DEST}"
+                  cp -r "${SERVER_DIR}/." "${DEST}/"
+                  chmod -R 755 "${DEST}"
+                  ln -sfn "${DEST}" /mnt/longhorn/ows-server/latest
 
-            - name: Deploy server to OWS PVC
-              run: |
-                  VERSION="${{ needs.version_gate.outputs.version }}"
-                  SERVER_DIR="${{ steps.locate.outputs.server_dir }}"
-
-                  # Spin up a temp pod in ows namespace with the PVC mounted
-                  kubectl apply -f - <<EOF
-                  apiVersion: v1
-                  kind: Pod
-                  metadata:
-                    name: ows-server-sync
-                    namespace: ows
-                  spec:
-                    containers:
-                      - name: sync
-                        image: busybox:1.37
-                        command: ["sleep", "600"]
-                        volumeMounts:
-                          - name: server-binary
-                            mountPath: /server
-                    volumes:
-                      - name: server-binary
-                        persistentVolumeClaim:
-                          claimName: ows-server-binary
-                    restartPolicy: Never
-                  EOF
-
-                  kubectl wait --for=condition=Ready pod/ows-server-sync -n ows --timeout=120s
-
-                  # Copy server files into versioned directory on PVC
-                  kubectl exec -n ows ows-server-sync -- mkdir -p "/server/${VERSION}"
-                  cd "${SERVER_DIR}" && tar cf - . | kubectl exec -i -n ows ows-server-sync -- tar xf - -C "/server/${VERSION}/"
-                  kubectl exec -n ows ows-server-sync -- ln -sfn "/server/${VERSION}" /server/latest
-                  kubectl exec -n ows ows-server-sync -- ls -la "/server/${VERSION}/" | head -10
-
-                  echo "::notice::Server v${VERSION} deployed to ows-server-binary PVC"
+                  echo "::notice::Server v${VERSION} deployed to ows-server-build PVC ($(du -sh ${DEST} | cut -f1))"
+                  ls -la "${DEST}/" | head -10
 
             - name: Cleanup
               if: always()
               run: |
-                  kubectl delete pod ows-server-sync -n ows --ignore-not-found --grace-period=0 2>/dev/null || true
-                  rm -f ~/.kube/config 2>/dev/null || true
                   cd "${{ env.ENGINE_CACHE_PATH }}" 2>/dev/null && \
                     git remote set-url origin "https://github.com/KBVE/UnrealEngine-Angelscript.git" || true
                   rm -rf /tmp/chuck /tmp/ue5-build-output 2>/dev/null || true

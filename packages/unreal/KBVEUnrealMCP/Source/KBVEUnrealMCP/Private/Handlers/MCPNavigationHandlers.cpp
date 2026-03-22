@@ -77,7 +77,7 @@ void FMCPNavigationHandlers::HandleGetInfo(const TSharedPtr<FJsonObject>& Params
 	Result->SetBoolField(TEXT("nav_system_present"), NavSys != nullptr);
 	if (NavSys)
 	{
-		Result->SetBoolField(TEXT("is_navigation_built"), NavSys->IsNavigationBuilt(FNavigationSystem::GetDefaultNavDataConfig()));
+		Result->SetBoolField(TEXT("is_navigation_built"), NavSys->IsNavigationBuilt(World->GetWorldSettings()));
 	}
 	MCPProtocolHelpers::Succeed(OnComplete, Result);
 }

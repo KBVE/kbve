@@ -25,8 +25,7 @@ public class KBVEUnrealMCP : ModuleRules
 			"SlateCore",
 			"InputCore",
 			"LevelEditor",
-			// WebSocket server
-			"WebSockets",
+			// TCP server
 			"Networking",
 			"Sockets",
 			// Blueprint editing
@@ -42,6 +41,7 @@ public class KBVEUnrealMCP : ModuleRules
 			"EnhancedInput",
 			// UMG
 			"UMG",
+			"UMGEditor",
 			// Landscape
 			"Landscape",
 			// AI
@@ -50,6 +50,8 @@ public class KBVEUnrealMCP : ModuleRules
 			"GameplayTags",
 			// Niagara (runtime component access)
 			"Niagara",
+			// RHI (GPU adapter info)
+			"RHI",
 			// Settings
 			"DeveloperSettings"
 		});

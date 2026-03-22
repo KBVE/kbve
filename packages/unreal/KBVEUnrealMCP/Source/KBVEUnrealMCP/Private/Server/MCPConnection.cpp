@@ -1,6 +1,6 @@
 #include "Server/MCPConnection.h"
 
-FMCPConnection::FMCPConnection(INetworkingWebSocket* InSocket)
+FMCPConnection::FMCPConnection(FSocket* InSocket)
 	: Socket(InSocket)
 	, LastHeartbeatTime(FPlatformTime::Seconds())
 {

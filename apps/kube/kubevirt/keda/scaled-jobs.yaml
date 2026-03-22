@@ -5,7 +5,7 @@
 # The GitHub PAT needs workflow + admin:org scope for the KEDA GitHub runner scaler.
 # Uses the same github-arc-token secret as the ARC runners.
 ---
-# Windows VM — starts when jobs target 'ue-win-builder' label
+# Windows VM — starts when jobs target 'UE5-Win' label
 apiVersion: keda.sh/v1alpha1
 kind: ScaledJob
 metadata:
@@ -23,7 +23,7 @@ spec:
                 restartPolicy: OnFailure
                 containers:
                     - name: scaler
-                      image: bitnami/kubectl:1.32
+                      image: registry.k8s.io/kubectl:v1.33.2
                       command: ['/bin/sh', '/scripts/scale.sh']
                       env:
                           - name: VM_NAME
@@ -49,14 +49,13 @@ spec:
         - type: github-runner
           metadata:
               owner: KBVE
-              repos: UnrealEngine-Angelscript
-              runnerScope: repo
-              labels: ue-win-builder
+              runnerScope: org
+              labels: UE5-Win
               targetWorkflowQueueLength: '1'
           authenticationRef:
               name: github-runner-auth
 ---
-# macOS VM — starts when jobs target 'ue-mac-builder' label
+# macOS VM — starts when jobs target 'UE5-Mac' label
 apiVersion: keda.sh/v1alpha1
 kind: ScaledJob
 metadata:
@@ -74,7 +73,7 @@ spec:
                 restartPolicy: OnFailure
                 containers:
                     - name: scaler
-                      image: bitnami/kubectl:1.32
+                      image: registry.k8s.io/kubectl:v1.33.2
                       command: ['/bin/sh', '/scripts/scale.sh']
                       env:
                           - name: VM_NAME
@@ -100,9 +99,8 @@ spec:
         - type: github-runner
           metadata:
               owner: KBVE
-              repos: UnrealEngine-Angelscript
-              runnerScope: repo
-              labels: ue-mac-builder
+              runnerScope: org
+              labels: UE5-Mac
               targetWorkflowQueueLength: '1'
           authenticationRef:
               name: github-runner-auth

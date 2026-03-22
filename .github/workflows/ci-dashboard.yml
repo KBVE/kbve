@@ -1016,30 +1016,50 @@ jobs:
             - name: Download all artifacts
               uses: actions/download-artifact@v4
               with:
-                  path: .
+                  path: /tmp/dashboard-artifacts
                   merge-multiple: true
 
-            - name: Verify downloaded artifacts
+            - name: Copy artifacts into checkout
               run: |
                   set -euo pipefail
-                  echo "=== Checking artifact files ==="
-                  for f in \
-                    apps/kbve/astro-kbve/src/content/docs/dashboard/security.mdx \
-                    apps/kbve/astro-kbve/src/content/docs/dashboard/report.mdx \
-                    apps/kbve/astro-kbve/src/content/docs/dashboard/graph.mdx \
-                    apps/kbve/astro-kbve/src/content/docs/dashboard/kanban.mdx \
-                    apps/kbve/astro-kbve/public/data/nx/nx-security.json \
-                    apps/kbve/astro-kbve/public/data/nx/nx-report.json \
-                    apps/kbve/astro-kbve/public/data/nx/nx-graph.json \
-                    apps/kbve/astro-kbve/src/data/nx-kanban.json; do
-                    if [ -f "$f" ]; then
-                      echo "OK: $f ($(wc -c < "$f" | xargs) bytes)"
+                  SRC="/tmp/dashboard-artifacts"
+                  echo "=== Artifact download contents ==="
+                  find "$SRC" -type f | sort
+                  echo "=== Copying to workspace ==="
+                  COPIED=0
+                  # Find all files in the artifact dir and copy them, preserving
+                  # the path relative to whichever ancestor the artifact stored.
+                  # Try full workspace-relative path first, then fall back to
+                  # searching by filename.
+                  for f in $(find "$SRC" -type f); do
+                    REL="${f#$SRC/}"
+                    # If the relative path starts with apps/ or packages/, it's a full path
+                    if [[ "$REL" == apps/* ]] || [[ "$REL" == packages/* ]]; then
+                      mkdir -p "$(dirname "$REL")"
+                      cp -f "$f" "$REL"
+                      echo "  $REL ($(wc -c < "$f" | xargs) bytes)"
+                      COPIED=$((COPIED + 1))
                     else
-                      echo "MISSING: $f"
+                      # Artifact path was stripped — match by filename
+                      BASENAME="$(basename "$f")"
+                      case "$BASENAME" in
+                        security.mdx) DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/security.mdx" ;;
+                        report.mdx)   DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/report.mdx" ;;
+                        graph.mdx)    DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/graph.mdx" ;;
+                        kanban.mdx)   DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/kanban.mdx" ;;
+                        nx-security.json) DEST="apps/kbve/astro-kbve/public/data/nx/nx-security.json" ;;
+                        nx-report.json)   DEST="apps/kbve/astro-kbve/public/data/nx/nx-report.json" ;;
+                        nx-graph.json)    DEST="apps/kbve/astro-kbve/public/data/nx/nx-graph.json" ;;
+                        nx-kanban.json)   DEST="apps/kbve/astro-kbve/src/data/nx-kanban.json" ;;
+                        *) echo "  SKIP: $BASENAME (unknown)"; continue ;;
+                      esac
+                      mkdir -p "$(dirname "$DEST")"
+                      cp -f "$f" "$DEST"
+                      echo "  $BASENAME → $DEST ($(wc -c < "$f" | xargs) bytes)"
+                      COPIED=$((COPIED + 1))
                     fi
                   done
-                  echo "=== Git status ==="
-                  git status --short | head -20
+                  echo "Copied $COPIED files from artifacts"
 
             - name: Remove old MDX files
               run: |

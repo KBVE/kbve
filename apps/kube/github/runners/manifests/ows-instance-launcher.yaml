@@ -1,0 +1,77 @@
+---
+# OWSInstanceLauncher — spawns UE5 dedicated server instances via RabbitMQ.
+# Lives in arc-runners namespace alongside the ows-server-build PVC
+# so it can directly access the cooked server binary without
+# cross-namespace volume mounts.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: ows-instance-launcher
+    namespace: arc-runners
+    labels:
+        app: ows-instance-launcher
+        app.kubernetes.io/part-of: ows
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: ows-instance-launcher
+    template:
+        metadata:
+            labels:
+                app: ows-instance-launcher
+                app.kubernetes.io/part-of: ows
+        spec:
+            containers:
+                - name: ows-instance-launcher
+                  image: ghcr.io/kbve/ows-instance-launcher:0.1.0
+                  env:
+                      - name: RabbitMQOptions__RabbitMQHostName
+                        value: 'rabbitmq.rabbitmq-system.svc.cluster.local'
+                      - name: RabbitMQOptions__RabbitMQPort
+                        value: '5672'
+                      - name: OWSInstanceLauncherOptions__PathToDedicatedServer
+                        value: '/server/latest/OWSHubWorldMMOServer'
+                      - name: OWSInstanceLauncherOptions__PathToUProject
+                        value: '/server/latest/OWSHubWorldMMO.uproject'
+                      - name: OWSInstanceLauncherOptions__IsServerEditor
+                        value: 'false'
+                      - name: OWSInstanceLauncherOptions__StartingInstancePort
+                        value: '7778'
+                  ports:
+                      - name: http
+                        containerPort: 8181
+                        protocol: TCP
+                  volumeMounts:
+                      - name: server-binary
+                        mountPath: /server
+                        readOnly: true
+                  resources:
+                      requests:
+                          memory: '128Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '512Mi'
+                          cpu: '500m'
+            volumes:
+                - name: server-binary
+                  persistentVolumeClaim:
+                      claimName: ows-server-build
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: ows-instance-launcher
+    namespace: arc-runners
+    labels:
+        app: ows-instance-launcher
+        app.kubernetes.io/part-of: ows
+spec:
+    type: ClusterIP
+    selector:
+        app: ows-instance-launcher
+    ports:
+        - name: http
+          port: 8181
+          targetPort: 8181
+          protocol: TCP
