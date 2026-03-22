@@ -14,6 +14,12 @@ app_name: irc-gateway
 version: "0.1.2"
 source_path: apps/irc
 version_toml: apps/irc/version.toml
+version_target: apps/irc/irc-gateway/Cargo.toml
+runner: ubuntu-latest
+image: kbve/irc-gateway
+e2e_name: irc
+deployment_yaml: apps/kube/irc/manifests/irc-gateway-deployment.yaml
+has_test: true
 author: h0lybyte
 license: KBVE
 status: active
