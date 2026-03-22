@@ -155,6 +155,8 @@ jobs:
             version_toml: ${{ steps.resolve.outputs.version_toml }}
             version_source: ${{ steps.resolve.outputs.version_source }}
             version_target: ${{ steps.resolve.outputs.version_target }}
+            target: ${{ steps.resolve.outputs.target }}
+            nx_project: ${{ steps.resolve.outputs.nx_project }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -182,6 +184,8 @@ jobs:
                   echo "version_toml=$(echo "$ENTRY" | jq -r '.version_toml // empty')"      >> "$GITHUB_OUTPUT"
                   echo "version_source=$(echo "$ENTRY" | jq -r '.version_source // empty')"  >> "$GITHUB_OUTPUT"
                   echo "version_target=$(echo "$ENTRY" | jq -r '.version_target // empty')"  >> "$GITHUB_OUTPUT"
+                  echo "target=$(echo "$ENTRY" | jq -r '.target // "container"')"              >> "$GITHUB_OUTPUT"
+                  echo "nx_project=$(echo "$ENTRY" | jq -r '.nx_project // empty')"            >> "$GITHUB_OUTPUT"
 
     # ---------------------------------------------------------------------------
     # Test — builds the app image, tags as ci-{sha} in GHCR, runs e2e tests.
@@ -226,8 +230,8 @@ jobs:
             packages: write
         uses: KBVE/kbve/.github/workflows/utils-publish-docker-image.yml@main
         with:
-            project: ${{ inputs.app_name }}
-            target: container
+            project: ${{ needs.config.outputs.nx_project || inputs.app_name }}
+            target: ${{ needs.config.outputs.target }}
             image: ${{ needs.config.outputs.image }}
             cargo_toml: ${{ needs.config.outputs.cargo_toml }}
             version_source: ${{ needs.config.outputs.version_source }}

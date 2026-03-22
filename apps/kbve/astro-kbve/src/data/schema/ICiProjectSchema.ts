@@ -33,6 +33,8 @@ const AstroProjectExtensions = z.object({
 	deployment_yaml: z.string().max(256).optional(),
 	version_target: z.string().max(256).optional(),
 	has_test: z.boolean().optional(),
+	target: z.string().max(64).optional(),
+	nx_project: z.string().max(64).optional(),
 });
 
 // ---------------------------------------------------------------------------
