@@ -1,0 +1,36 @@
+# File server for transferring files to/from KubeVirt VMs.
+# No selfHeal — replicas can be scaled up/down manually without ArgoCD reverting.
+# Scale up: kubectl scale deploy file-server -n angelscript --replicas=1
+# Scale down: kubectl scale deploy file-server -n angelscript --replicas=0
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: kubevirt-file-server
+    namespace: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '3'
+    finalizers:
+        - resources-finalizer.argocd.argoproj.io
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/KBVE/kbve
+        targetRevision: main
+        path: apps/kube/kubevirt/file-server
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: angelscript
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: false
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+        retry:
+            limit: 3
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m
+    revisionHistoryLimit: 3

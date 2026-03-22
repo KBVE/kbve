@@ -83,3 +83,5 @@ resources:
     - kubevirt/cr-application.yaml
     # KEDA-driven VM scaling — start/stop VMs based on GitHub Actions queue
     - kubevirt/keda-application.yaml
+    # File server — scale up to transfer files to VMs, scale down when done
+    - kubevirt/file-server-application.yaml
