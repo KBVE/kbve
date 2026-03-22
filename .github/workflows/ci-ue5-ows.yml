@@ -229,6 +229,11 @@ jobs:
                     libxtst6 \
                     libasound2t64
 
+            - name: Configure git safe directories
+              run: |
+                  git config --global --add safe.directory /mnt/longhorn/angelscript-engine
+                  git config --global --add safe.directory /tmp/chuck
+
             - name: Clone or update engine source
               env:
                   UNITY_PAT: ${{ secrets.UNITY_PAT }}
