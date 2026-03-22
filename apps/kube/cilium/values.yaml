@@ -5,6 +5,16 @@
 cni:
     exclusive: false
 
+# Device — pin Cilium external/native device to br0 after bridge setup.
+# br0 holds the node IP (142.132.206.74) and default route.
+# Without this, Cilium auto-detects flannel.1 (legacy) which can't serve external LB traffic.
+devices:
+    - br0
+
+# NodePort direct routing device — must match the external-facing interface.
+nodePort:
+    directRoutingDevice: br0
+
 ipam:
     mode: kubernetes
 
