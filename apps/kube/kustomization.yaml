@@ -76,6 +76,9 @@ resources:
     # Forgejo — Git LFS server + Actions runner, UE asset storage on sdb
     - forgejo/application.yaml
 
+    # Multus CNI — multiple network interfaces for KubeVirt VMs
+    - multus/application.yaml
+
     # KubeVirt — VM workloads on Talos (KVM in kernel, no extensions needed)
     # Operators installed manually: kubectl apply -f <upstream-operator.yaml>
     # ArgoCD manages namespace + KubeVirt CR + shared storage

@@ -1,0 +1,38 @@
+# Multus CNI — enables multiple network interfaces on pods/VMs.
+# Required for KubeVirt VMs to get direct network access via macvlan.
+# Installs the Multus DaemonSet + CRDs via upstream manifest.
+# Our NetworkAttachmentDefinitions are in a separate app.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: multus
+    namespace: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '0'
+    finalizers:
+        - resources-finalizer.argocd.argoproj.io
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/k8snetworkplumbingwg/multus-cni
+        targetRevision: v4.2.1
+        path: deployments
+        directory:
+            include: 'multus-daemonset-thick.yml'
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: kube-system
+    syncPolicy:
+        automated:
+            prune: false
+            selfHeal: true
+        syncOptions:
+            - ServerSideApply=true
+            - CreateNamespace=true
+        retry:
+            limit: 5
+            backoff:
+                duration: 10s
+                factor: 2
+                maxDuration: 5m
+    revisionHistoryLimit: 3
