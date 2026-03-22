@@ -25,6 +25,8 @@ interface DockerEntry {
 	e2e_name?: string;
 	deployment_yaml?: string;
 	has_test?: boolean;
+	target?: string;
+	nx_project?: string;
 }
 
 interface NpmEntry {
@@ -77,7 +79,10 @@ interface DispatchManifest {
 }
 
 /** Build a typed manifest entry from the frontmatter data, or null if required fields are missing. */
-function toManifestEntry(d: ICiProject, mdxPath?: string): ManifestEntry | null {
+function toManifestEntry(
+	d: ICiProject,
+	mdxPath?: string,
+): ManifestEntry | null {
 	const vt = d.version_toml;
 	const ver = d.version;
 	switch (d.pipeline) {
@@ -94,8 +99,12 @@ function toManifestEntry(d: ICiProject, mdxPath?: string): ManifestEntry | null 
 				...(d.runner && { runner: d.runner }),
 				...(d.image && { image: d.image }),
 				...(d.e2e_name && { e2e_name: d.e2e_name }),
-				...(d.deployment_yaml && { deployment_yaml: d.deployment_yaml }),
+				...(d.deployment_yaml && {
+					deployment_yaml: d.deployment_yaml,
+				}),
 				...(d.has_test !== undefined && { has_test: d.has_test }),
+				...(d.target && { target: d.target }),
+				...(d.nx_project && { nx_project: d.nx_project }),
 			};
 		case 'npm':
 		case 'crates':
