@@ -1,5 +1,5 @@
 {
-  "version": "0.1.17",
+  "version": "0.1.20",
   "compilerOptions": {
     "lib": ["deno.window"],
     "strict": true

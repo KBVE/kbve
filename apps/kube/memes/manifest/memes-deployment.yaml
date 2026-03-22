@@ -16,11 +16,11 @@ spec:
         rollout-restart: "2026-03-05T05:12:54Z"
       labels:
         app: memes
-        version: "0.1.6"
+        version: "0.1.7"
     spec:
       containers:
       - name: memes
-        image: ghcr.io/kbve/memes:0.1.6
+        image: ghcr.io/kbve/memes:0.1.7
         imagePullPolicy: Always
         ports:
         - containerPort: 4321

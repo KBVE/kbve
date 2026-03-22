@@ -429,10 +429,10 @@ Verified compiling on UE 5.7.4 (Mac, universal binary).
 | `geometry.*` | create_procedural_mesh (basic shapes), get_info | Complete |
 | `ai.*` | create_behavior_tree, set_blackboard, get_info | Complete |
 | `animation.*` | create_anim_bp, set_sequence, add_notify, get_tracks | Complete |
-| `niagara.*` | activate, deactivate, set_parameter, get_info | Complete |
+| `niagara.*` | create_system, activate, deactivate, set_parameter, get_info | Complete |
 | `gameplay.*` | create_interaction, get_info (tags, GAS, trigger volumes) | Complete |
-| `landscape.*` | get_info | Partial |
-| `widget.*` | create | Partial |
+| `landscape.*` | sculpt, get_info | Partial |
+| `widget.*` | create, set_property, get_info | Partial |
 | `mcp.*` | ping, list_methods, server_info | Complete |
 
 **Safety features:**
@@ -447,9 +447,8 @@ The following methods are registered but return `NOT_IMPLEMENTED`. Each is track
 
 | Domain | Stubbed Methods | Reason |
 |--------|----------------|--------|
-| `niagara.*` | create_system | Requires Niagara editor graph API for authoring new systems |
-| `landscape.*` | sculpt, flatten, smooth, paint_layer | Height/weight map editing requires editor mode tools |
-| `widget.*` | add_element, bind_event, set_property, add_to_viewport, remove | UMG widget tree manipulation needs Slate editor API wrapping |
+| `landscape.*` | flatten, smooth, paint_layer | Variants of sculpt with different blend modes |
+| `widget.*` | add_element, bind_event, add_to_viewport, remove | UMG widget tree manipulation + PIE-only viewport ops |
 | `animation.*` | add_state, add_transition | AnimGraph state machine node manipulation is version-sensitive |
 | `gameplay.*` | add_ability, add_attribute | GAS is an optional plugin; needs conditional loading |
 | `network.*` | create_session | Depends on project-specific online subsystem config |

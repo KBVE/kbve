@@ -12,4 +12,6 @@ public:
 
 private:
 	static void HandleCreate(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
+	static void HandleSetProperty(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
+	static void HandleGetInfo(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
 };
