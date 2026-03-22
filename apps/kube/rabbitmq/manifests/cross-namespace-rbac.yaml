@@ -24,3 +24,6 @@ subjects:
     - kind: ServiceAccount
       name: ows-external-secrets
       namespace: ows
+    - kind: ServiceAccount
+      name: ows-launcher-external-secrets
+      namespace: arc-runners

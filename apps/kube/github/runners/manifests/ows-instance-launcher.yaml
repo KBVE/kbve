@@ -22,14 +22,25 @@ spec:
                 app: ows-instance-launcher
                 app.kubernetes.io/part-of: ows
         spec:
+            serviceAccountName: ows-launcher-external-secrets
             containers:
                 - name: ows-instance-launcher
-                  image: ghcr.io/kbve/ows-instance-launcher:0.1.0
+                  image: ghcr.io/kbve/ows-instance-launcher:0.1.1
                   env:
                       - name: RabbitMQOptions__RabbitMQHostName
                         value: 'rabbitmq.rabbitmq-system.svc.cluster.local'
                       - name: RabbitMQOptions__RabbitMQPort
                         value: '5672'
+                      - name: RabbitMQOptions__RabbitMQUserName
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-launcher-rabbitmq-credentials
+                                key: username
+                      - name: RabbitMQOptions__RabbitMQPassword
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-launcher-rabbitmq-credentials
+                                key: password
                       - name: OWSInstanceLauncherOptions__PathToDedicatedServer
                         value: '/server/latest/OWSHubWorldMMOServer'
                       - name: OWSInstanceLauncherOptions__PathToUProject
