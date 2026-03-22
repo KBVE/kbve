@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-03-18T06:24:23Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-03-22T05:31:07Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**36** critical/high severity findings across the monorepo.
+**38** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,13 +26,13 @@ Last generated: **2026-03-18T06:24:23Z** — updated daily by `ci-dashboard`.
   <Card title="1 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="35 High" icon="error">
+  <Card title="37 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="21 Medium" icon="information">
+  <Card title="29 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
-  <Card title="10 Low" icon="approve-check-circle">
+  <Card title="6 Low" icon="approve-check-circle">
     Low-severity findings across all ecosystems.
   </Card>
 </CardGrid>
@@ -41,10 +41,10 @@ Last generated: **2026-03-18T06:24:23Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **64** advisories
+    **65** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
-    **31** advisories
+    **36** advisories
   </Card>
   <Card title="Python" icon="seti:python">
     **0** advisories
@@ -57,17 +57,37 @@ Last generated: **2026-03-18T06:24:23Z** — updated daily by `ci-dashboard`.
   </Card>
 </CardGrid>
 
+### Severity Distribution
+
+```mermaid
+pie showData
+    title Findings by Severity
+    "Critical" : 1
+    "High" : 37
+    "Medium" : 29
+    "Low" : 6
+```
+
+### Findings by Ecosystem
+
+```mermaid
+pie showData
+    title Findings by Ecosystem
+    "npm" : 65
+    "Cargo" : 36
+```
+
 <Tabs>
   <TabItem label="Summary">
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 35 | 18 | 10 | 64 |
-| **Cargo** | 0 | 0 | 3 | 0 | 31 |
+| **npm** | 1 | 37 | 21 | 6 | 65 |
+| **Cargo** | 0 | 0 | 8 | 0 | 36 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 35 | 21 | 10 | 95 |
+| **Total** | 1 | 37 | 29 | 6 | 101 |
 
   </TabItem>
   <TabItem label="npm">
@@ -109,7 +129,9 @@ Last generated: **2026-03-18T06:24:23Z** — updated daily by `ci-dashboard`.
 | High | `flatted` | flatted vulnerable to unbounded recursion DoS in parse() ... | [Details](https://github.com/advisories/GHSA-25h7-pfq9-p65f) |
 | High | `undici` | Undici has Unbounded Memory Consumption in WebSocket perm... | [Details](https://github.com/advisories/GHSA-vrm6-8vpv-qv8q) |
 | High | `undici` | Undici has Unhandled Exception in WebSocket Client Due to... | [Details](https://github.com/advisories/GHSA-v9p9-hfj2-hcw8) |
+| High | `flatted` | Prototype Pollution via parse() in NodeJS flatted | [Details](https://github.com/advisories/GHSA-rf6f-7fwh-wjgh) |
 | High | `fast-xml-parser` | fast-xml-parser affected by numeric entity expansion bypa... | [Details](https://github.com/advisories/GHSA-8gc5-j5rx-235r) |
+| High | `h3` | h3 has a Server-Sent Events Injection via Unsanitized New... | [Details](https://github.com/advisories/GHSA-22cc-p3c6-wpvm) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `validator` | validator.js has a URL validation bypass vulnerability in... | [Details](https://github.com/advisories/GHSA-9965-vmph-33xx) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
@@ -124,29 +146,33 @@ Last generated: **2026-03-18T06:24:23Z** — updated daily by `ci-dashboard`.
 | Medium | `dompurify` | DOMPurify contains a Cross-site Scripting vulnerability | [Details](https://github.com/advisories/GHSA-v8jm-5vwx-cfxm) |
 | Medium | `dompurify` | DOMPurify contains a Cross-site Scripting vulnerability | [Details](https://github.com/advisories/GHSA-v2wj-7wpq-c8vv) |
 | Medium | `file-type` | file-type affected by infinite loop in ASF parser on malf... | [Details](https://github.com/advisories/GHSA-5v7r-6r5c-r473) |
-| Medium | `devalue` | devalue has prototype pollution in devalue.parse and deva... | [Details](https://github.com/advisories/GHSA-cfw5-2vxh-hr84) |
 | Medium | `undici` | Undici has an HTTP Request/Response Smuggling issue | [Details](https://github.com/advisories/GHSA-2mjp-6q6p-2qxm) |
 | Medium | `undici` | Undici has CRLF Injection in undici via `upgrade` option | [Details](https://github.com/advisories/GHSA-4992-7rv2-5pvq) |
 | Medium | `yauzl` | yauzl contains an off-by-one error | [Details](https://github.com/advisories/GHSA-gmq8-994r-jv83) |
+| Medium | `h3` | h3 has a Path Traversal via Percent-Encoded Dot Segments ... | [Details](https://github.com/advisories/GHSA-wr4h-v87w-p3r7) |
+| Medium | `fast-xml-parser` | Entity Expansion Limits Bypassed When Set to Zero Due to ... | [Details](https://github.com/advisories/GHSA-jp2q-39xq-3w4g) |
+| Medium | `h3` | h3: SSE Event Injection via Unsanitized Carriage Return (... | [Details](https://github.com/advisories/GHSA-4hxc-9384-m385) |
+| Medium | `h3` | h3: Double Decoding in `serveStatic` Bypasses `resolveDot... | [Details](https://github.com/advisories/GHSA-72gr-qfp7-vwhw) |
 | Low | `brace-expansion` | brace-expansion Regular Expression Denial of Service vuln... | [Details](https://github.com/advisories/GHSA-v6h2-p8h4-qcjw) |
 | Low | `brace-expansion` | brace-expansion Regular Expression Denial of Service vuln... | [Details](https://github.com/advisories/GHSA-v6h2-p8h4-qcjw) |
 | Low | `on-headers` | on-headers is vulnerable to http response header manipula... | [Details](https://github.com/advisories/GHSA-76c9-3jph-rj3q) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
-| Low | `devalue` | devalue affected by CPU and memory amplification from spa... | [Details](https://github.com/advisories/GHSA-33hq-fvwr-56pm) |
-| Low | `devalue` | devalue `uneval`ed code can create objects with polluted ... | [Details](https://github.com/advisories/GHSA-8qm3-746x-r74r) |
-| Low | `@tootallnate/once` | @tootallnate/once vulnerable to Incorrect Control Flow Sc... | [Details](https://github.com/advisories/GHSA-vpq2-c234-7xj6) |
-| Low | `devalue` | Sveltejs devalue's `devalue.parse` and `devalue.unflatten... | [Details](https://github.com/advisories/GHSA-mwv9-gp5h-frr4) |
 
   </TabItem>
   <TabItem label="Cargo">
 
 | Severity | Package | Advisory | Link |
 |----------|---------|----------|------|
+| Medium | `aws-lc-sys` | AWS-LC X.509 Name Constraints Bypass via Wildcard/Unicode CN |  |
+| Medium | `aws-lc-sys` | CRL Distribution Point Scope Check Logic Error in AWS-LC | [Details](https://aws.amazon.com/security/security-bulletins/2026-010-AWS) |
 | Medium | `curve25519-dalek` | Timing variability in `curve25519-dalek`'s `Scalar29::sub... | [Details](https://github.com/dalek-cryptography/curve25519-dalek/pull/659) |
 | Medium | `ed25519-dalek` | Double Public Key Signing Function Oracle Attack on `ed25... | [Details](https://github.com/MystenLabs/ed25519-unsafe-libs) |
 | Medium | `rsa` | Marvin Attack: potential key recovery through timing side... | [Details](https://github.com/RustCrypto/RSA/issues/19#issuecomment-1822995643) |
+| Medium | `rustls-webpki` | CRLs not considered authorative by Distribution Point due... |  |
+| Medium | `rustls-webpki` | CRLs not considered authorative by Distribution Point due... |  |
+| Medium | `rustls-webpki` | CRLs not considered authorative by Distribution Point due... |  |
 | Info | `atk` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `atk-sys` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `atty` | `atty` is unmaintained | [Details](https://github.com/softprops/atty/issues/57) |
