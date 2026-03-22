@@ -4,6 +4,7 @@
 #include "Registry/MCPHandlerTypes.h"
 
 class FMCPHandlerRegistry;
+class ALandscapeProxy;
 
 class FMCPLandscapeHandlers
 {
@@ -12,5 +13,9 @@ public:
 
 private:
 	static void HandleSculpt(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
+	static void HandleFlatten(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
+	static void HandleSmooth(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
 	static void HandleGetInfo(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
+
+	static ALandscapeProxy* FindLandscape(UWorld* World, const FString& Name);
 };
