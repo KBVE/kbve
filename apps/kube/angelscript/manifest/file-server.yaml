@@ -1,0 +1,81 @@
+# File server for transferring files to/from KubeVirt VMs.
+# Default replicas: 0 — scale up when needed, scale down when done.
+#
+# Usage:
+#   kubectl scale deploy file-server -n angelscript --replicas=1
+#   kubectl cp /local/file.exe file-server-xxx:/shared/ -n angelscript
+#   # From inside VM: curl http://file-server.angelscript.svc:8080/file.exe -o C:\file.exe
+#   kubectl scale deploy file-server -n angelscript --replicas=0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: file-server
+    namespace: angelscript
+    labels:
+        app: file-server
+spec:
+    replicas: 0
+    selector:
+        matchLabels:
+            app: file-server
+    template:
+        metadata:
+            labels:
+                app: file-server
+        spec:
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                fsGroup: 1000
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: server
+                  image: python:3.12-alpine
+                  command:
+                      [
+                          'python3',
+                          '-m',
+                          'http.server',
+                          '8080',
+                          '--directory',
+                          '/shared',
+                      ]
+                  ports:
+                      - containerPort: 8080
+                        name: http
+                  volumeMounts:
+                      - name: shared
+                        mountPath: /shared
+                  resources:
+                      requests:
+                          cpu: 50m
+                          memory: 64Mi
+                      limits:
+                          cpu: 500m
+                          memory: 256Mi
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
+            volumes:
+                - name: shared
+                  persistentVolumeClaim:
+                      claimName: builder-shared-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: file-server
+    namespace: angelscript
+    labels:
+        app: file-server
+spec:
+    selector:
+        app: file-server
+    ports:
+        - port: 8080
+          targetPort: 8080
+          name: http
