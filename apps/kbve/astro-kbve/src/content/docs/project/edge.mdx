@@ -14,6 +14,12 @@ app_name: edge
 version: "0.1.20"
 source_path: apps/kbve/edge
 version_toml: apps/kbve/edge/version.toml
+version_target: apps/kbve/edge/deno.json
+runner: ubuntu-latest
+image: kbve/edge
+e2e_name: edge
+deployment_yaml: apps/kube/functions/manifests/functions-deployment.yaml
+has_test: true
 author: h0lybyte
 license: KBVE
 status: active

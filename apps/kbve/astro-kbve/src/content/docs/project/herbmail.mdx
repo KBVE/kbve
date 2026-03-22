@@ -16,6 +16,12 @@ app_name: herbmail
 version: "0.1.0"
 source_path: apps/herbmail
 version_toml: apps/herbmail/version.toml
+version_target: apps/herbmail/axum-herbmail/Cargo.toml
+runner: ubuntu-latest
+image: kbve/herbmail
+e2e_name: herbmail
+deployment_yaml: apps/kube/herbmail/manifest/herbmail-deployment.yaml
+has_test: true
 author: h0lybyte
 license: KBVE
 status: active

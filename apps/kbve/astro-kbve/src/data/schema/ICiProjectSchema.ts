@@ -26,6 +26,13 @@ export type {
 const AstroProjectExtensions = z.object({
 	unsplash: z.string().optional(),
 	img: z.string().url().optional(),
+	// CI deployment config — drives ci-docker.yml without case statements
+	runner: z.string().max(64).optional(),
+	image: z.string().max(128).optional(),
+	e2e_name: z.string().max(64).optional(),
+	deployment_yaml: z.string().max(256).optional(),
+	version_target: z.string().max(256).optional(),
+	has_test: z.boolean().optional(),
 });
 
 // ---------------------------------------------------------------------------

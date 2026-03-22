@@ -16,6 +16,12 @@ app_name: discordsh
 version: "0.1.33"
 source_path: apps/discordsh
 version_toml: apps/discordsh/version.toml
+version_target: apps/discordsh/axum-discordsh/Cargo.toml
+runner: ubuntu-latest
+image: kbve/discordsh
+e2e_name: discordsh
+deployment_yaml: apps/kube/discordsh/manifest/deployment.yaml
+has_test: true
 author: h0lybyte
 license: KBVE
 status: active

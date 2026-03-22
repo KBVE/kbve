@@ -15,6 +15,12 @@ app_name: axum-kbve
 version: "1.0.70"
 source_path: apps/kbve/astro-kbve
 version_toml: apps/kbve/axum-kbve/version.toml
+version_target: apps/kbve/axum-kbve/Cargo.toml
+runner: arc-runner-set
+image: kbve/kbve
+e2e_name: axum-kbve-e2e
+deployment_yaml: apps/kube/kbve/manifest/kbve-deployment.yaml
+has_test: true
 author: h0lybyte
 license: KBVE
 status: active
