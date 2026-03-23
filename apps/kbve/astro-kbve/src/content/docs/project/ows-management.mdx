@@ -13,8 +13,8 @@ pipeline: docker
 app_name: ows-management
 version: "0.10.2"
 source_path: apps/ows
-version_toml: apps/ows/version.toml
-version_target: apps/ows/version.toml
+version_toml: apps/ows/ows-management/version.toml
+version_target: apps/ows/ows-management/version.toml
 runner: ubuntu-latest
 image: kbve/ows-management
 deployment_yaml: apps/kube/ows/manifest/deployment.yaml
