@@ -1,0 +1,116 @@
+---
+# OWSInstanceLauncher — consumes RabbitMQ spin-up messages and creates
+# Agones GameServerAllocations. No longer spawns OS processes or needs
+# direct PVC access — Agones manages game server pods.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: ows-instancelauncher
+    namespace: ows
+    labels:
+        app: ows-instancelauncher
+        app.kubernetes.io/part-of: ows
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: ows-instancelauncher
+    template:
+        metadata:
+            labels:
+                app: ows-instancelauncher
+                app.kubernetes.io/part-of: ows
+        spec:
+            containers:
+                - name: ows-instancelauncher
+                  image: ghcr.io/kbve/ows-instancelauncher:0.10.4
+                  env:
+                      - name: ASPNETCORE_ENVIRONMENT
+                        value: 'Production'
+                      - name: OWSStorageConfig__OWSDBBackend
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: DATABASE
+                      - name: OWSStorageConfig__OWSDBConnectionString
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-db-credentials
+                                key: db-connection-string
+                      - name: RabbitMQOptions__RabbitMQUserName
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-rabbitmq-credentials
+                                key: username
+                      - name: RabbitMQOptions__RabbitMQPassword
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-rabbitmq-credentials
+                                key: password
+                      - name: RabbitMQOptions__RabbitMQHostName
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: RabbitMQHostName
+                      - name: RabbitMQOptions__RabbitMQPort
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: RabbitMQPort
+                      - name: OWSAPIPathConfig__InternalPublicApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalPublicApiURL
+                      - name: OWSAPIPathConfig__InternalInstanceManagementApiURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: ows-config
+                                key: InternalInstanceManagementApiURL
+                      - name: OWSInstanceLauncherOptions__ServerIP
+                        value: 'game.chuckrpg.com'
+                      - name: OWSInstanceLauncherOptions__InternalServerIP
+                        valueFrom:
+                            fieldRef:
+                                fieldPath: status.podIP
+                  ports:
+                      - name: http
+                        containerPort: 80
+                        protocol: TCP
+                  resources:
+                      requests:
+                          memory: '128Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '512Mi'
+                          cpu: '500m'
+                  livenessProbe:
+                      httpGet:
+                          path: /health
+                          port: http
+                      initialDelaySeconds: 30
+                      periodSeconds: 15
+                  readinessProbe:
+                      httpGet:
+                          path: /health
+                          port: http
+                      initialDelaySeconds: 10
+                      periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: ows-instancelauncher
+    namespace: ows
+    labels:
+        app: ows-instancelauncher
+        app.kubernetes.io/part-of: ows
+spec:
+    type: ClusterIP
+    selector:
+        app: ows-instancelauncher
+    ports:
+        - name: http
+          port: 80
+          targetPort: 80
+          protocol: TCP
