@@ -266,6 +266,25 @@ impl<'a> CharsRepo<'a> {
         Ok(data)
     }
 
+    pub async fn get_default_custom_data(
+        &self,
+        customer_guid: Uuid,
+        default_set_name: &str,
+    ) -> Result<Vec<CustomCharacterData>, RowsError> {
+        let data = sqlx::query_as::<_, CustomCharacterData>(
+            "SELECT dcd.customfieldname AS custom_field_name, dcd.fieldvalue AS field_value
+             FROM defaultcustomcharacterdata dcd
+             JOIN defaultcharactervalues dcv ON dcv.defaultcharactervaluesid = dcd.defaultcharactervaluesid
+               AND dcv.customerguid = dcd.customerguid
+             WHERE dcd.customerguid = $1 AND dcv.defaultsetname = $2",
+        )
+        .bind(customer_guid)
+        .bind(default_set_name)
+        .fetch_all(self.0)
+        .await?;
+        Ok(data)
+    }
+
     pub async fn create_character(
         &self,
         customer_guid: Uuid,
@@ -676,6 +695,77 @@ impl<'a> InstanceRepo<'a> {
         .execute(self.0)
         .await?;
         Ok(())
+    }
+
+    pub async fn spin_up_server_instance(
+        &self,
+        customer_guid: Uuid,
+        world_server_id: i32,
+        zone_instance_id: i32,
+        zone_name: &str,
+        port: i32,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "INSERT INTO mapinstances (customerguid, worldserverid, mapid, port, status)
+             SELECT $1, $2, m.mapid, $4, 1
+             FROM maps m WHERE m.customerguid = $1 AND m.zonename = $3
+             ON CONFLICT DO NOTHING",
+        )
+        .bind(customer_guid)
+        .bind(world_server_id)
+        .bind(zone_name)
+        .bind(port)
+        .execute(self.0)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn shut_down_server_instance(
+        &self,
+        customer_guid: Uuid,
+        zone_instance_id: i32,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "UPDATE mapinstances SET status = 0 WHERE customerguid = $1 AND mapinstanceid = $2",
+        )
+        .bind(customer_guid)
+        .bind(zone_instance_id)
+        .execute(self.0)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn get_zone_instances_for_zone(
+        &self,
+        customer_guid: Uuid,
+        zone_name: &str,
+    ) -> Result<Vec<ZoneInstance>, RowsError> {
+        let zones = sqlx::query_as::<_, ZoneInstance>(
+            "SELECT mi.*, m.mapname AS map_name, m.mapmode AS map_mode,
+                    m.softplayercap AS soft_player_cap,
+                    m.hardplayercap AS hard_player_cap,
+                    m.minutestoshutdownafterempty AS minutes_to_shutdown_after_empty
+             FROM mapinstances mi
+             JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
+             WHERE mi.customerguid = $1 AND m.zonename = $2",
+        )
+        .bind(customer_guid)
+        .bind(zone_name)
+        .fetch_all(self.0)
+        .await?;
+        Ok(zones)
+    }
+
+    pub async fn get_current_world_time(
+        &self,
+        customer_guid: Uuid,
+        world_server_id: i32,
+    ) -> Result<i64, RowsError> {
+        let row: Option<(i64,)> =
+            sqlx::query_as("SELECT EXTRACT(EPOCH FROM NOW())::bigint AS current_world_time")
+                .fetch_optional(self.0)
+                .await?;
+        Ok(row.map(|r| r.0).unwrap_or(0))
     }
 }
 

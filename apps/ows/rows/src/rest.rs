@@ -94,7 +94,15 @@ fn public_api_routes(hs: HandlerState) -> Router {
             "/api/Users/GetServerToConnectTo",
             post(get_server_to_connect_to),
         )
+        .route(
+            "/api/Users/UserSessionSetSelectedCharacter",
+            post(user_session_set_selected_char),
+        )
         .route("/api/Characters/ByName", post(get_char_by_name_public))
+        .route(
+            "/api/Characters/GetDefaultCustomData",
+            post(get_default_custom_data),
+        )
         .route("/api/System/Status", get(system_status))
         .layer(middleware::from_fn(require_customer_guid))
         .with_state(hs)
@@ -405,6 +413,30 @@ fn instance_mgmt_routes(hs: HandlerState) -> Router {
             "/api/Instance/StartInstanceLauncher",
             get(start_instance_launcher),
         )
+        .route(
+            "/api/Instance/ShutDownInstanceLauncher",
+            post(shut_down_instance_launcher),
+        )
+        .route(
+            "/api/Instance/SpinUpServerInstance",
+            post(spin_up_server_instance),
+        )
+        .route(
+            "/api/Instance/ShutDownServerInstance",
+            post(shut_down_server_instance),
+        )
+        .route(
+            "/api/Instance/GetServerToConnectTo",
+            post(instance_get_server_to_connect_to),
+        )
+        .route(
+            "/api/Instance/GetZoneInstancesForZone",
+            post(get_zone_instances_for_zone),
+        )
+        .route(
+            "/api/Instance/GetCurrentWorldTime",
+            post(get_current_world_time),
+        )
         .layer(middleware::from_fn(require_customer_guid))
         .with_state(hs)
 }
@@ -526,6 +558,169 @@ async fn start_instance_launcher(State(hs): State<HandlerState>, headers: Header
         Ok(id) => id.to_string(),
         Err(_) => "-1".to_string(),
     }
+}
+
+async fn shut_down_instance_launcher(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+) -> Json<SuccessResponse> {
+    let customer_guid = extract_customer_guid(&headers);
+    // world_server_id would come from the launcher's state — use 0 as fallback
+    match hs.svc.shut_down_launcher(customer_guid, 0).await {
+        Ok(()) => Json(SuccessResponse::ok()),
+        Err(e) => Json(SuccessResponse::err(e.to_string())),
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct SpinUpDto {
+    #[serde(rename = "WorldServerID")]
+    world_server_id: i32,
+    #[serde(rename = "ZoneInstanceID")]
+    zone_instance_id: i32,
+    zone_name: String,
+    port: i32,
+}
+
+async fn spin_up_server_instance(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<SpinUpDto>,
+) -> Json<SuccessResponse> {
+    let customer_guid = extract_customer_guid(&headers);
+    match hs
+        .svc
+        .spin_up_server_instance(
+            customer_guid,
+            body.world_server_id,
+            body.zone_instance_id,
+            &body.zone_name,
+            body.port,
+        )
+        .await
+    {
+        Ok(()) => Json(SuccessResponse::ok()),
+        Err(e) => Json(SuccessResponse::err(e.to_string())),
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct ShutDownServerDto {
+    #[serde(rename = "WorldServerID")]
+    _world_server_id: i32,
+    #[serde(rename = "ZoneInstanceID")]
+    zone_instance_id: i32,
+}
+
+async fn shut_down_server_instance(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<ShutDownServerDto>,
+) -> Json<SuccessResponse> {
+    let customer_guid = extract_customer_guid(&headers);
+    match hs
+        .svc
+        .shut_down_server_instance(customer_guid, body.zone_instance_id)
+        .await
+    {
+        Ok(()) => Json(SuccessResponse::ok()),
+        Err(e) => Json(SuccessResponse::err(e.to_string())),
+    }
+}
+
+async fn instance_get_server_to_connect_to(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<GetServerDto>,
+) -> ApiResult<crate::models::JoinMapResult> {
+    let customer_guid = extract_customer_guid(&headers);
+    let result = hs
+        .svc
+        .get_server_to_connect_to(customer_guid, &body.character_name, &body.zone_name)
+        .await?;
+    Ok(Json(result))
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct ZoneNameDto {
+    map_name: String,
+}
+
+async fn get_zone_instances_for_zone(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<ZoneNameDto>,
+) -> ApiResult<Vec<crate::models::ZoneInstance>> {
+    let customer_guid = extract_customer_guid(&headers);
+    let zones = hs
+        .svc
+        .get_zone_instances_for_zone(customer_guid, &body.map_name)
+        .await?;
+    Ok(Json(zones))
+}
+
+#[derive(Deserialize)]
+struct WorldTimeWrapper {
+    request: WorldTimePayload,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct WorldTimePayload {
+    #[serde(rename = "WorldServerID")]
+    world_server_id: i32,
+}
+
+async fn get_current_world_time(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<WorldTimeWrapper>,
+) -> Json<serde_json::Value> {
+    let customer_guid = extract_customer_guid(&headers);
+    match hs
+        .svc
+        .get_current_world_time(customer_guid, body.request.world_server_id)
+        .await
+    {
+        Ok(time) => Json(serde_json::json!({"currentWorldTime": time})),
+        Err(e) => Json(serde_json::json!({"error": e.to_string()})),
+    }
+}
+
+async fn user_session_set_selected_char(
+    State(hs): State<HandlerState>,
+    Json(body): Json<SetSelectedCharDto>,
+) -> Json<SuccessResponse> {
+    match hs
+        .svc
+        .set_selected_character_and_get_session(body.user_session_guid, &body.character_name)
+        .await
+    {
+        Ok(_) => Json(SuccessResponse::ok()),
+        Err(e) => Json(SuccessResponse::err(e.to_string())),
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct DefaultCustomDataDto {
+    default_set_name: String,
+}
+
+async fn get_default_custom_data(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<DefaultCustomDataDto>,
+) -> ApiResult<CustomDataRows> {
+    let customer_guid = extract_customer_guid(&headers);
+    let repo = crate::repo::CharsRepo(&hs.app.db);
+    let data = repo
+        .get_default_custom_data(customer_guid, &body.default_set_name)
+        .await?;
+    Ok(Json(CustomDataRows { rows: data }))
 }
 
 // ─── Character Persistence ───────────────────────────────────
