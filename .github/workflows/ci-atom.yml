@@ -62,11 +62,11 @@ jobs:
 
                   echo "Validating branch: $BRANCH_NAME"
 
-                  # Strict validation: atom- prefix + alphanumeric/hyphens only
-                  if [[ ! "$BRANCH_NAME" =~ ^atom-[a-zA-Z0-9-]+$ ]]; then
+                  # Strict validation: atom- prefix + alphanumeric/hyphens/dots only
+                  if [[ ! "$BRANCH_NAME" =~ ^atom-[a-zA-Z0-9.-]+$ ]]; then
                       echo "Invalid branch name: $BRANCH_NAME"
-                      echo "Valid format: atom-[a-zA-Z0-9-]+"
-                      echo "Examples: atom-12151430-fix-login, atom-12151430-update-docs"
+                      echo "Valid format: atom-[a-zA-Z0-9.-]+"
+                      echo "Examples: atom-12151430-fix-login, atom-post-publish-app-v1.0.0"
                       exit 1
                   fi
 
