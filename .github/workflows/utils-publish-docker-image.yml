@@ -188,6 +188,18 @@ jobs:
               run: |
                   pnpm nx run ${{ inputs.project }}:${{ inputs.target }} --configuration=production --no-cloud
 
+            - name: Ensure image is in Docker daemon
+              if: ${{ steps.version_check.outputs.should_publish != 'false' && steps.promote.outputs.found != 'true' && inputs.image != '' }}
+              run: |
+                  if ! docker image inspect "${{ inputs.image }}:latest" >/dev/null 2>&1; then
+                    echo "Image not in Docker daemon (buildx docker-container driver). Saving and loading..."
+                    docker buildx build --platform linux/amd64 \
+                      -f $(find . -path "*/${{ inputs.project }}/Dockerfile" -print -quit) \
+                      -t "${{ inputs.image }}:latest" \
+                      --output=type=docker \
+                      . 2>/dev/null || echo "::warning::Could not re-export image, Trivy may fail"
+                  fi
+
             - name: Scan Docker image with Trivy
               if: ${{ steps.version_check.outputs.should_publish != 'false' && inputs.image != '' }}
               uses: aquasecurity/trivy-action@0.35.0
