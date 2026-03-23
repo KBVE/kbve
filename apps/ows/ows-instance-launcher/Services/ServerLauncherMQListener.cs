@@ -56,7 +56,12 @@ namespace OWSInstanceLauncher.Services
             if (String.IsNullOrEmpty(owsInstanceLauncherOptions.Value.LauncherGuid))
             {
                 _launcherGUID = Guid.NewGuid();
-                _owsInstanceLauncherOptions.Update(x => x.LauncherGuid = _launcherGUID.ToString());
+                // In Agones mode, appsettings.json is read-only (chiseled image).
+                // Only persist the GUID if not in Agones mode.
+                if (String.IsNullOrEmpty(Environment.GetEnvironmentVariable("OWS_USE_AGONES")))
+                {
+                    _owsInstanceLauncherOptions.Update(x => x.LauncherGuid = _launcherGUID.ToString());
+                }
                 Log.Information($"New Launcher GUID Generated: {_launcherGUID}");
             }
             else
@@ -80,10 +85,10 @@ namespace OWSInstanceLauncher.Services
             InitRabbitMQ();
         }
 
-        public void RegisterLauncher()
+        public async void RegisterLauncher()
         {
             Log.Information($"Attempting to register Launcher GUID: {_launcherGUID}");
-            var isregistered = RegisterInstanceLauncherRequest();
+            var isregistered = await RegisterInstanceLauncherRequestAsync();
 
             if (isregistered == 1)
             {
@@ -108,7 +113,7 @@ namespace OWSInstanceLauncher.Services
 
             if (worldServerID < 1)
             {
-                worldServerID = StartInstanceLauncherRequest();
+                worldServerID = StartInstanceLauncherRequestAsync().GetAwaiter().GetResult();
                 _owsInstanceLauncherDataRepository.SetWorldServerID(worldServerID);
             }
 
@@ -194,14 +199,14 @@ namespace OWSInstanceLauncher.Services
             //Server Spin Up
             var serverSpinUpConsumer = new AsyncEventingBasicConsumer(serverSpinUpChannel);
 
-            serverSpinUpConsumer.Received += (model, ea) =>
+            serverSpinUpConsumer.Received += async (model, ea) =>
             {
                 try
                 {
                     var body = ea.Body;
                     MQSpinUpServerMessage serverSpinUpMessage = MQSpinUpServerMessage.Deserialize(body.ToArray());
                     Log.Information($"Server Spin Up Message Received: {serverSpinUpMessage.CustomerGUID} WorldServerID: {serverSpinUpMessage.WorldServerID} ZoneInstanceID: {serverSpinUpMessage.ZoneInstanceID} MapName: {serverSpinUpMessage.MapName} Port: {serverSpinUpMessage.Port}");
-                    HandleServerSpinUpMessage(
+                    await HandleServerSpinUpMessageAsync(
                         serverSpinUpMessage.CustomerGUID,
                         serverSpinUpMessage.WorldServerID,
                         serverSpinUpMessage.ZoneInstanceID,
@@ -215,8 +220,6 @@ namespace OWSInstanceLauncher.Services
                     Log.Error(ex, "Failed to process server spin-up message");
                     serverSpinUpChannel.BasicNack(ea.DeliveryTag, multiple: false, requeue: true);
                 }
-
-                return Task.CompletedTask;
             };
 
             serverSpinUpConsumer.Shutdown += OnServerSpinUpConsumerShutdown;
@@ -231,14 +234,14 @@ namespace OWSInstanceLauncher.Services
             //Server Shut Down
             var serverShutDownConsumer = new AsyncEventingBasicConsumer(serverShutDownChannel);
 
-            serverShutDownConsumer.Received += (model, ea) =>
+            serverShutDownConsumer.Received += async (model, ea) =>
             {
                 try
                 {
                     Log.Information("Server Shut Down Message Received");
                     var body = ea.Body;
                     MQShutDownServerMessage serverShutDownMessage = MQShutDownServerMessage.Deserialize(body.ToArray());
-                    HandleServerShutDownMessage(
+                    await HandleServerShutDownMessageAsync(
                         serverShutDownMessage.CustomerGUID,
                         serverShutDownMessage.ZoneInstanceID
                     );
@@ -250,8 +253,6 @@ namespace OWSInstanceLauncher.Services
                     Log.Error(ex, "Failed to process server shut-down message");
                     serverShutDownChannel.BasicNack(ea.DeliveryTag, multiple: false, requeue: true);
                 }
-
-                return Task.CompletedTask;
             };
 
             serverShutDownConsumer.Shutdown += OnServerShutDownConsumerShutdown;
@@ -266,7 +267,7 @@ namespace OWSInstanceLauncher.Services
             //return Task.CompletedTask;
         }
 
-        private void HandleServerSpinUpMessage(Guid customerGUID, int worldServerID, int zoneInstanceID, string mapName, int port)
+        private async Task HandleServerSpinUpMessageAsync(Guid customerGUID, int worldServerID, int zoneInstanceID, string mapName, int port)
         {
             Log.Information($"Starting up {customerGUID} : {worldServerID} : {mapName} : {port}");
 
@@ -278,12 +279,11 @@ namespace OWSInstanceLauncher.Services
             }
 
             // Allocate a GameServer from Agones Fleet
-            var allocationTask = _agonesAllocator.AllocateAsync(mapName, zoneInstanceID);
-            var allocation = allocationTask.GetAwaiter().GetResult();
+            var allocation = await _agonesAllocator.AllocateAsync(mapName, zoneInstanceID);
 
-            if (allocation == null)
+            if (!allocation.Success)
             {
-                Log.Error($"Failed to allocate GameServer for map {mapName} zone {zoneInstanceID}. No servers available in fleet.");
+                Log.Error($"Failed to allocate GameServer for map {mapName} zone {zoneInstanceID}. Error: {allocation.ErrorCode} — {allocation.ErrorMessage}");
                 return;
             }
 
@@ -302,7 +302,7 @@ namespace OWSInstanceLauncher.Services
             Log.Information($"{customerGUID} : {worldServerID} : {mapName} : {allocation.Port} allocated via Agones. GameServer: {allocation.GameServerName} at {allocation.Address}:{allocation.Port}");
         }
 
-        private void HandleServerShutDownMessage(Guid customerGUID, int zoneInstanceID)
+        private async Task HandleServerShutDownMessageAsync(Guid customerGUID, int zoneInstanceID)
         {
             Log.Information($"Shutting down {customerGUID} : {zoneInstanceID}");
 
@@ -315,7 +315,7 @@ namespace OWSInstanceLauncher.Services
 
             if (_zoneToGameServer.TryGetValue(zoneInstanceID, out var gameServerName))
             {
-                var result = _agonesAllocator.DeallocateAsync(gameServerName).GetAwaiter().GetResult();
+                var result = await _agonesAllocator.DeallocateAsync(gameServerName);
                 if (result)
                 {
                     _zoneToGameServer.Remove(zoneInstanceID);
@@ -328,19 +328,19 @@ namespace OWSInstanceLauncher.Services
             }
         }
 
-        private void ShutDownAllZoneServerInstances()
+        private async Task ShutDownAllZoneServerInstancesAsync()
         {
             Log.Information("Shutting down all Server Instances via Agones...");
 
             foreach (var kvp in _zoneToGameServer)
             {
-                _agonesAllocator.DeallocateAsync(kvp.Value).GetAwaiter().GetResult();
+                await _agonesAllocator.DeallocateAsync(kvp.Value);
                 Log.Information($"Deallocated GameServer {kvp.Value} for zone {kvp.Key}");
             }
             _zoneToGameServer.Clear();
         }
 
-        private int RegisterInstanceLauncherRequest()
+        private async Task<int> RegisterInstanceLauncherRequestAsync()
         {
             try
             {
@@ -360,23 +360,15 @@ namespace OWSInstanceLauncher.Services
 
                 var RegisterLauncherPayloadRequest = new StringContent(JsonSerializer.Serialize(RegisterLauncherPayload), Encoding.UTF8, "application/json");
 
-                var responseMessageAsync = instanceManagementHttpClient.PostAsync("api/Instance/RegisterLauncher", RegisterLauncherPayloadRequest);
-                var responseMessage = responseMessageAsync.Result;
-                var responseContentAsync = responseMessage.Content.ReadAsStringAsync();
+                var responseMessage = await instanceManagementHttpClient.PostAsync("api/Instance/RegisterLauncher", RegisterLauncherPayloadRequest);
 
-                if (responseMessage == null)
-                {
-                    return -1;
-                }
-
-                if (!responseMessage.IsSuccessStatusCode)
+                if (responseMessage == null || !responseMessage.IsSuccessStatusCode)
                 {
                     return -1;
                 }
 
                 return 1;
             }
-
             catch (Exception ex)
             {
                 Log.Error($"Error connecting to Instance Management API: {ex.Message} - {ex.InnerException}");
@@ -385,7 +377,7 @@ namespace OWSInstanceLauncher.Services
             return -1;
         }
 
-        private int StartInstanceLauncherRequest()
+        private async Task<int> StartInstanceLauncherRequestAsync()
         {
             try
             {
@@ -397,24 +389,16 @@ namespace OWSInstanceLauncher.Services
                     Method = HttpMethod.Get
                 };
                 request.Headers.Add("X-LauncherGUID", _launcherGUID.ToString());
-                var responseMessageAsync = instanceManagementHttpClient.SendAsync(request);
-                var responseMessage = responseMessageAsync.Result;
+                var responseMessage = await instanceManagementHttpClient.SendAsync(request);
 
-                if (responseMessage == null)
+                if (responseMessage == null || !responseMessage.IsSuccessStatusCode)
                 {
                     return -1;
                 }
 
-                if (!responseMessage.IsSuccessStatusCode)
-                {
-                    return -1;
-                }
+                string responseContentString = await responseMessage.Content.ReadAsStringAsync();
 
-                var responseContentAsync = responseMessage.Content.ReadAsStringAsync();
-                string responseContentString = responseContentAsync.Result;
-
-                int worldServerID = -1;
-                if (Int32.TryParse(responseContentString, out worldServerID))
+                if (Int32.TryParse(responseContentString, out int worldServerID))
                 {
                     return worldServerID;
                 }
@@ -493,11 +477,8 @@ namespace OWSInstanceLauncher.Services
 
             if (_worldServerId > 0)
             {
-                var shutDownTask = ShutDownInstanceLauncherRequest(_worldServerId);
-
-                shutDownTask.Wait();
-
-                ShutDownAllZoneServerInstances();
+                ShutDownInstanceLauncherRequest(_worldServerId).GetAwaiter().GetResult();
+                ShutDownAllZoneServerInstancesAsync().GetAwaiter().GetResult();
             }
 
             if (serverSpinUpChannel != null)

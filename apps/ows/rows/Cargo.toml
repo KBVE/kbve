@@ -1,0 +1,71 @@
+[package]
+name = "rows"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Rust OWS — single-binary game backend (REST + gRPC)"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.0", features = ["full", "rt-multi-thread"] }
+
+# REST (axum)
+axum = { version = "0.8.5", features = ["macros"] }
+axum-extra = { version = "0.12.1", features = ["cookie"] }
+
+# gRPC (tonic)
+tonic = "0.13"
+prost = "0.13"
+prost-types = "0.13"
+
+# Tower (shared middleware layer for axum + tonic multiplexing)
+tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit", "steer"] }
+tower-http = { version = "0.6.8", features = ["compression-full", "limit", "trace", "cors", "set-header"] }
+hyper = { version = "1", features = ["full"] }
+hyper-util = { version = "0.1", features = ["tokio", "server-auto", "http1", "http2"] }
+http = "1"
+http-body = "1"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio", "tls-rustls", "postgres", "uuid", "chrono", "json"] }
+
+# Auth / crypto
+uuid = { version = "1", features = ["v4", "serde"] }
+jsonwebtoken = "9"
+argon2 = "0.5"
+
+# Observability
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Messaging (RabbitMQ)
+lapin = "2"
+
+# K8s / Agones
+kube = { version = "0.99", features = ["runtime", "derive", "client"] }
+k8s-openapi = { version = "0.24", features = ["v1_32"] }
+
+# Utilities
+anyhow = "1.0"
+thiserror = "2"
+dotenvy = "0.15"
+chrono = { version = "0.4", features = ["serde"] }
+
+# Workspace path dependencies
+jedi = { path = "../../../packages/rust/jedi" }
+kbve = { path = "../../../packages/rust/kbve" }
+
+[build-dependencies]
+tonic-build = "0.13"
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = { version = "0.6", optional = true }
+
+[features]
+default = []
+jemalloc = ["dep:tikv-jemallocator"]

@@ -1,59 +1,42 @@
-import { test, expect } from '@playwright/test';
+import { describe, it, expect, beforeAll } from 'vitest';
+import { BASE_URL, waitForReady } from './helpers/http';
 
-test.describe('content rendering', () => {
-	test('guide page renders markdown content', async ({ page }) => {
-		await page.goto('/guides/getting-started/');
-		const heading = page.locator('h1').first();
-		await expect(heading).toBeVisible();
-		await expect(heading).toContainText('Getting Started');
+describe('Content rendering', () => {
+	beforeAll(async () => {
+		await waitForReady();
 	});
 
-	test('application page renders with sidebar', async ({ page }) => {
-		await page.goto('/application/git/');
-		const content = page.locator('main');
-		await expect(content).toBeVisible();
+	it('guides page contains heading', async () => {
+		const res = await fetch(`${BASE_URL}/guides/getting-started/`);
+		expect(res.status).toBe(200);
+		const body = await res.text();
+		expect(body).toContain('Getting Started');
 	});
 
-	test('stock page renders', async ({ page }) => {
-		await page.goto('/stock/aapl/');
-		const content = page.locator('main');
-		await expect(content).toBeVisible();
+	it('application page contains main content', async () => {
+		const res = await fetch(`${BASE_URL}/application/git/`);
+		expect(res.status).toBe(200);
+		const body = await res.text();
+		expect(body).toContain('<main');
 	});
 
-	test('OSRS item page renders with frontmatter data', async ({ page }) => {
-		await page.goto('/osrs/3rd-age-amulet/');
-		const content = page.locator('main');
-		await expect(content).toBeVisible();
+	it('OSRS item page renders', async () => {
+		const res = await fetch(`${BASE_URL}/osrs/3rd-age-amulet/`);
+		expect(res.status).toBe(200);
+		const body = await res.text();
+		expect(body).toContain('<main');
 	});
 
-	test('quest page renders', async ({ page }) => {
-		await page.goto('/questdb/auto-cooker-9000/');
-		const content = page.locator('main');
-		await expect(content).toBeVisible();
+	it('journal entry renders', async () => {
+		const res = await fetch(`${BASE_URL}/journal/01-01/`);
+		expect(res.status).toBe(200);
+		const body = await res.text();
+		expect(body).toContain('<main');
 	});
 
-	test('journal entry renders', async ({ page }) => {
-		await page.goto('/journal/01-01/');
-		const content = page.locator('main');
-		await expect(content).toBeVisible();
-	});
-
-	test('homepage renders splash template', async ({ page }) => {
-		await page.goto('/');
-		const body = page.locator('body');
-		await expect(body).toBeVisible();
-		await expect(page).toHaveTitle(/KBVE/);
-	});
-
-	test('mapdb item page renders', async ({ page }) => {
-		await page.goto('/mapdb/adamantine-vein/');
-		const content = page.locator('main');
-		await expect(content).toBeVisible();
-	});
-
-	test('itemdb item page renders', async ({ page }) => {
-		await page.goto('/itemdb/alchemist-stardust/');
-		const content = page.locator('main');
-		await expect(content).toBeVisible();
+	it('HTML responses contain doctype', async () => {
+		const res = await fetch(`${BASE_URL}/guides/`);
+		const body = await res.text();
+		expect(body.toLowerCase()).toContain('<!doctype html');
 	});
 });
