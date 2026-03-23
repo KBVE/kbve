@@ -1,6 +1,7 @@
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use serde_json::json;
+use serde::Serialize;
+use std::borrow::Cow;
 
 #[derive(Debug, thiserror::Error)]
 pub enum RowsError {
@@ -29,6 +30,17 @@ impl RowsError {
         }
     }
 
+    pub fn code(&self) -> &'static str {
+        match self {
+            Self::NotFound(_) => "NOT_FOUND",
+            Self::Unauthorized => "UNAUTHORIZED",
+            Self::BadRequest(_) => "BAD_REQUEST",
+            Self::Conflict(_) => "CONFLICT",
+            Self::Database(_) => "DATABASE_ERROR",
+            Self::Internal(_) => "INTERNAL_ERROR",
+        }
+    }
+
     pub fn into_tonic(self) -> tonic::Status {
         match &self {
             Self::NotFound(m) => tonic::Status::not_found(m),
@@ -41,19 +53,28 @@ impl RowsError {
     }
 }
 
+#[derive(Serialize)]
+struct ApiErrorBody<'a> {
+    success: bool,
+    code: &'a str,
+    #[serde(rename = "errorMessage")]
+    error_message: Cow<'a, str>,
+}
+
 impl IntoResponse for RowsError {
     fn into_response(self) -> Response {
         let status = self.status();
-        let body = axum::Json(json!({
-            "success": false,
-            "errorMessage": self.to_string(),
-        }));
-        (status, body).into_response()
+        let body = ApiErrorBody {
+            success: false,
+            code: self.code(),
+            error_message: Cow::Owned(self.to_string()),
+        };
+        (status, axum::Json(body)).into_response()
     }
 }
 
-/// OWS-compatible success/error response
-#[derive(serde::Serialize)]
+/// OWS-compatible success/error response.
+#[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SuccessResponse {
     pub success: bool,
@@ -72,6 +93,25 @@ impl SuccessResponse {
         Self {
             success: false,
             error_message: msg.into(),
+        }
+    }
+}
+
+pub type ApiResult<T> = Result<axum::Json<T>, RowsError>;
+
+/// Serialize a value to Json response. Returns error JSON on failure instead of panicking.
+/// Uses to_value (single pass through serde) — safe replacement for .unwrap().
+pub fn json_or_500<T: Serialize>(val: &T) -> axum::Json<serde_json::Value> {
+    match serde_json::to_value(val) {
+        Ok(v) => axum::Json(v),
+        Err(e) => {
+            tracing::error!(error = %e, "JSON serialization failed");
+            axum::Json(serde_json::Value::Object({
+                let mut m = serde_json::Map::with_capacity(2);
+                m.insert("success".into(), false.into());
+                m.insert("errorMessage".into(), "Internal serialization error".into());
+                m
+            }))
         }
     }
 }

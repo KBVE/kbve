@@ -1,4 +1,4 @@
-use crate::error::SuccessResponse;
+use crate::error::{SuccessResponse, json_or_500};
 use crate::middleware::{extract_customer_guid, require_customer_guid};
 use crate::repo::*;
 use crate::state::AppState;
@@ -70,7 +70,7 @@ async fn login(
 ) -> Json<serde_json::Value> {
     let repo = UsersRepo(&state.db);
     match repo.login(&body.email, &body.password).await {
-        Ok(result) => Json(serde_json::to_value(result).unwrap()),
+        Ok(result) => json_or_500(&result),
         Err(e) => Json(json!({
             "authenticated": false,
             "userSessionGuid": null,
@@ -93,7 +93,7 @@ async fn get_user_session(
 
     let repo = UsersRepo(&state.db);
     match repo.get_session(session_guid).await {
-        Ok(Some(session)) => Json(serde_json::to_value(session).unwrap()),
+        Ok(Some(session)) => json_or_500(&session),
         Ok(None) => Json(json!({"success": false, "errorMessage": "Session not found"})),
         Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
     }
@@ -124,7 +124,7 @@ async fn get_all_characters(
     };
 
     match repo.get_all_characters(customer_guid, user_guid).await {
-        Ok(chars) => Json(serde_json::to_value(chars).unwrap()),
+        Ok(chars) => json_or_500(&chars),
         Err(_) => Json(json!([])),
     }
 }
@@ -166,7 +166,7 @@ async fn get_server_to_connect_to(
                     }
                 }
             }
-            Json(serde_json::to_value(result).unwrap())
+            json_or_500(&result)
         }
         Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
     }
@@ -189,7 +189,7 @@ async fn get_char_by_name_public(
     let repo = CharsRepo(&state.db);
 
     match repo.get_by_name(customer_guid, &body.character_name).await {
-        Ok(Some(ch)) => Json(serde_json::to_value(ch).unwrap()),
+        Ok(Some(ch)) => json_or_500(&ch),
         Ok(None) => Json(json!({"success": false, "errorMessage": "Character not found"})),
         Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
     }
@@ -399,7 +399,7 @@ async fn get_zone_instances(
         .get_zone_instances(customer_guid, body.request.world_server_id)
         .await
     {
-        Ok(zones) => Json(serde_json::to_value(zones).unwrap()),
+        Ok(zones) => json_or_500(&zones),
         Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
     }
 }
@@ -452,7 +452,7 @@ async fn get_char_by_name(
     let repo = CharsRepo(&state.db);
 
     match repo.get_by_name(customer_guid, &body.character_name).await {
-        Ok(Some(ch)) => Json(serde_json::to_value(ch).unwrap()),
+        Ok(Some(ch)) => json_or_500(&ch),
         Ok(None) => Json(json!({"success": false, "errorMessage": "Character not found"})),
         Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
     }
@@ -492,28 +492,28 @@ async fn update_all_positions(
     let repo = CharsRepo(&state.db);
 
     // Parse pipe-separated format: CharName:X:Y:Z:RX:RY:RZ|CharName2:...
+    // Zero-alloc: use split iterator instead of collecting into Vec
     for entry in body.serialized_player_location_data.split('|') {
-        let parts: Vec<&str> = entry.split(':').collect();
-        if parts.len() < 7 {
-            continue;
-        }
-        let char_name = parts[0];
-        let Ok(x) = parts[1].parse::<f64>() else {
-            continue;
-        };
-        let Ok(y) = parts[2].parse::<f64>() else {
-            continue;
-        };
-        let Ok(z) = parts[3].parse::<f64>() else {
+        let mut it = entry.splitn(8, ':'); // max 7 fields + remainder
+        let Some(char_name) = it.next() else { continue };
+        let (Some(sx), Some(sy), Some(sz), Some(srx), Some(sry), Some(srz)) = (
+            it.next(),
+            it.next(),
+            it.next(),
+            it.next(),
+            it.next(),
+            it.next(),
+        ) else {
             continue;
         };
-        let Ok(rx) = parts[4].parse::<f64>() else {
-            continue;
-        };
-        let Ok(ry) = parts[5].parse::<f64>() else {
-            continue;
-        };
-        let Ok(rz) = parts[6].parse::<f64>() else {
+        let (Ok(x), Ok(y), Ok(z), Ok(rx), Ok(ry), Ok(rz)) = (
+            sx.parse::<f64>(),
+            sy.parse::<f64>(),
+            sz.parse::<f64>(),
+            srx.parse::<f64>(),
+            sry.parse::<f64>(),
+            srz.parse::<f64>(),
+        ) else {
             continue;
         };
 
@@ -521,7 +521,7 @@ async fn update_all_positions(
             .update_position(customer_guid, char_name, x, y, z, rx, ry, rz)
             .await
         {
-            tracing::warn!("Failed to update position for {char_name}: {e}");
+            tracing::warn!(char_name, error = %e, "position update failed");
         }
     }
 
@@ -634,7 +634,7 @@ async fn get_character_abilities(
         .get_character_abilities(customer_guid, &body.character_name)
         .await
     {
-        Ok(abilities) => Json(serde_json::to_value(abilities).unwrap()),
+        Ok(abilities) => json_or_500(&abilities),
         Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
     }
 }
@@ -801,7 +801,7 @@ async fn get_global_data(
     let repo = GlobalDataRepo(&state.db);
 
     match repo.get(customer_guid, &key).await {
-        Ok(Some(data)) => Json(serde_json::to_value(data).unwrap()),
+        Ok(Some(data)) => json_or_500(&data),
         Ok(None) => Json(json!(null)),
         Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
     }
