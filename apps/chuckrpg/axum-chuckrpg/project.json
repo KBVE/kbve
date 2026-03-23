@@ -1,0 +1,25 @@
+{
+	"name": "axum-chuckrpg",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/chuckrpg/axum-chuckrpg/src",
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build --release -p axum-chuckrpg"],
+				"cwd": "{workspaceRoot}"
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"docker buildx build --platform linux/amd64 -f apps/chuckrpg/axum-chuckrpg/Dockerfile -t axum-chuckrpg:latest --load ."
+				],
+				"cwd": "{workspaceRoot}"
+			}
+		}
+	}
+}
