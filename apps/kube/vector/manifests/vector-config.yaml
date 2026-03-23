@@ -5,7 +5,7 @@ metadata:
     name: vector-config
     namespace: vector
     annotations:
-        kbve.sh/last-updated: '2026-03-16T22:00:00Z'
+        kbve.sh/last-updated: '2026-03-23T18:00:00Z'
 data:
     vector.yml: |
         api:
@@ -18,6 +18,9 @@ data:
             self_node_name: "${VECTOR_SELF_NODE_NAME}"
             exclude_paths_glob_patterns:
               - "**/vector_*/**"
+              - "**/kube-system_*/**"
+              - "**/kube-node-lease_*/**"
+              - "**/kube-public_*/**"
             auto_partial_merge: true
             data_dir: "/vector-data-dir"
 
