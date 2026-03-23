@@ -23,7 +23,7 @@ spec:
         spec:
             containers:
                 - name: ows-instancelauncher
-                  image: ghcr.io/kbve/ows-instancelauncher:0.10.4
+                  image: ghcr.io/kbve/ows-instancelauncher:0.10.5
                   env:
                       - name: ASPNETCORE_ENVIRONMENT
                         value: 'Production'
