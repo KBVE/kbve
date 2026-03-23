@@ -1,21 +1,79 @@
 import { useStore } from '@nanostores/react';
 import { edgeService, type FunctionHealth } from './edgeService';
-import { CheckCircle, XCircle, Loader2, Zap, Clock } from 'lucide-react';
+import {
+	CheckCircle,
+	XCircle,
+	Loader2,
+	Zap,
+	Clock,
+	Server,
+	Globe,
+} from 'lucide-react';
 
-function StatusCard({ fn }: { fn: FunctionHealth }) {
-	const statusColor =
-		fn.status === 'ok'
+type Status = 'ok' | 'error' | 'pending';
+
+function StatusBadge({
+	label,
+	icon,
+	status,
+	latencyMs,
+	error,
+}: {
+	label: string;
+	icon: React.ReactNode;
+	status: Status;
+	latencyMs?: number;
+	error?: string;
+}) {
+	const color =
+		status === 'ok'
 			? '#22c55e'
-			: fn.status === 'error'
+			: status === 'error'
 				? '#ef4444'
-				: 'var(--sl-color-gray-3, #8b949e)';
+				: 'var(--sl-color-gray-4, #6b7280)';
 
 	const StatusIcon =
-		fn.status === 'ok'
-			? CheckCircle
-			: fn.status === 'error'
-				? XCircle
-				: Loader2;
+		status === 'ok' ? CheckCircle : status === 'error' ? XCircle : Loader2;
+
+	return (
+		<div
+			style={{
+				display: 'flex',
+				alignItems: 'center',
+				gap: '0.4rem',
+				padding: '4px 8px',
+				borderRadius: '6px',
+				background: `${color}12`,
+				border: `1px solid ${color}30`,
+				fontSize: '0.72rem',
+			}}>
+			{icon}
+			<StatusIcon size={12} style={{ color, flexShrink: 0 }} />
+			<span style={{ color, fontWeight: 600 }}>{label}</span>
+			{latencyMs != null && (
+				<span
+					style={{
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						fontVariantNumeric: 'tabular-nums',
+					}}>
+					{latencyMs}ms
+				</span>
+			)}
+			{error && status === 'error' && (
+				<span style={{ color: '#fca5a5', marginLeft: 2 }}>{error}</span>
+			)}
+		</div>
+	);
+}
+
+function StatusCard({ fn }: { fn: FunctionHealth }) {
+	// Overall status: ok if either passes, error if both fail
+	const overall =
+		fn.proxyStatus === 'ok' || fn.directStatus === 'ok' ? 'ok' : 'error';
+	const borderColor =
+		overall === 'ok'
+			? 'var(--sl-color-gray-5, #262626)'
+			: 'rgba(239, 68, 68, 0.3)';
 
 	return (
 		<div
@@ -25,16 +83,30 @@ function StatusCard({ fn }: { fn: FunctionHealth }) {
 				gap: '0.5rem',
 				padding: '1.25rem',
 				borderRadius: '12px',
-				border: '1px solid var(--sl-color-gray-5, #262626)',
+				border: `1px solid ${borderColor}`,
 				background: 'var(--sl-color-bg-nav, #111)',
 			}}>
+			{/* Header */}
 			<div
 				style={{
 					display: 'flex',
 					alignItems: 'center',
 					gap: '0.5rem',
 				}}>
-				<StatusIcon size={18} style={{ color: statusColor }} />
+				<span
+					style={{
+						display: 'inline-block',
+						width: 8,
+						height: 8,
+						borderRadius: '50%',
+						background: overall === 'ok' ? '#22c55e' : '#ef4444',
+						boxShadow:
+							overall === 'ok'
+								? '0 0 6px #22c55e'
+								: '0 0 6px #ef4444',
+						flexShrink: 0,
+					}}
+				/>
 				<span
 					style={{
 						color: 'var(--sl-color-text, #e6edf3)',
@@ -44,21 +116,9 @@ function StatusCard({ fn }: { fn: FunctionHealth }) {
 					}}>
 					{fn.label}
 				</span>
-				{fn.latencyMs != null && (
-					<span
-						style={{
-							padding: '2px 6px',
-							borderRadius: '4px',
-							background: 'var(--sl-color-gray-6, #1c1c1c)',
-							color: 'var(--sl-color-gray-3, #8b949e)',
-							fontSize: '0.7rem',
-							fontWeight: 500,
-							fontVariantNumeric: 'tabular-nums',
-						}}>
-						{fn.latencyMs}ms
-					</span>
-				)}
 			</div>
+
+			{/* Description */}
 			<div
 				style={{
 					color: 'var(--sl-color-gray-3, #8b949e)',
@@ -66,6 +126,31 @@ function StatusCard({ fn }: { fn: FunctionHealth }) {
 				}}>
 				{fn.description}
 			</div>
+
+			{/* Dual status badges */}
+			<div
+				style={{
+					display: 'flex',
+					gap: '0.5rem',
+					flexWrap: 'wrap',
+				}}>
+				<StatusBadge
+					label="Proxy"
+					icon={<Server size={11} style={{ color: '#8b949e' }} />}
+					status={fn.proxyStatus}
+					latencyMs={fn.proxyLatencyMs}
+					error={fn.proxyError}
+				/>
+				<StatusBadge
+					label="Direct"
+					icon={<Globe size={11} style={{ color: '#8b949e' }} />}
+					status={fn.directStatus}
+					latencyMs={fn.directLatencyMs}
+					error={fn.directError}
+				/>
+			</div>
+
+			{/* Version + timestamp (from health only) */}
 			{fn.version && (
 				<div
 					style={{
@@ -98,18 +183,6 @@ function StatusCard({ fn }: { fn: FunctionHealth }) {
 					</span>
 				</div>
 			)}
-			{fn.error && (
-				<div
-					style={{
-						color: '#fca5a5',
-						fontSize: '0.75rem',
-						padding: '4px 8px',
-						borderRadius: '4px',
-						background: 'rgba(239,68,68,0.1)',
-					}}>
-					{fn.error}
-				</div>
-			)}
 		</div>
 	);
 }
@@ -121,7 +194,7 @@ export default function ReactEdgeStatusGrid() {
 		<div
 			style={{
 				display: 'grid',
-				gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+				gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
 				gap: '1rem',
 			}}>
 			{functions.map((fn) => (

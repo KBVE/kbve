@@ -11,15 +11,20 @@ export interface EdgeFunctionDef {
 	description: string;
 }
 
+export type CheckMode = 'proxy' | 'direct';
+
 export interface FunctionHealth {
 	name: string;
 	label: string;
 	description: string;
-	status: 'ok' | 'error' | 'pending';
+	proxyStatus: 'ok' | 'error' | 'pending';
+	proxyLatencyMs?: number;
+	proxyError?: string;
+	directStatus: 'ok' | 'error' | 'pending';
+	directLatencyMs?: number;
+	directError?: string;
 	version?: string;
-	latencyMs?: number;
 	timestamp?: string;
-	error?: string;
 }
 
 interface CachedHealth {
@@ -31,9 +36,11 @@ interface CachedHealth {
 // Constants
 // ---------------------------------------------------------------------------
 
-const EDGE_CACHE_KEY = 'cache:edge:health';
+const EDGE_CACHE_KEY = 'cache:edge:health-v2';
 const CACHE_TTL_MS = 30 * 1000;
 const FETCH_TIMEOUT_MS = 10_000;
+const RETRY_DELAY_MS = 2000;
+const PROXY_BASE = '/dashboard/edge/proxy';
 
 // ---------------------------------------------------------------------------
 // Cache helpers
@@ -60,56 +67,90 @@ function setCachedHealth(data: CachedHealth): void {
 }
 
 // ---------------------------------------------------------------------------
-// API helpers
+// Fetch with retry
 // ---------------------------------------------------------------------------
 
-async function checkFunctionHealth(
+async function fetchWithRetry(
+	url: string,
+	opts: RequestInit,
+	retries = 1,
+): Promise<Response> {
+	for (let i = 0; i <= retries; i++) {
+		try {
+			const controller = new AbortController();
+			const timeout = setTimeout(
+				() => controller.abort(),
+				FETCH_TIMEOUT_MS,
+			);
+			const resp = await fetch(url, {
+				...opts,
+				signal: controller.signal,
+			});
+			clearTimeout(timeout);
+			return resp;
+		} catch (e) {
+			if (i < retries) {
+				await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+				continue;
+			}
+			throw e;
+		}
+	}
+	throw new Error('unreachable');
+}
+
+// ---------------------------------------------------------------------------
+// Check helpers — one for proxy, one for direct
+// ---------------------------------------------------------------------------
+
+async function checkViaProxy(
 	fn: EdgeFunctionDef,
-): Promise<FunctionHealth> {
-	const url = `${SUPABASE_URL}/functions/v1/${fn.name}`;
+	token: string,
+): Promise<
+	Pick<
+		FunctionHealth,
+		| 'proxyStatus'
+		| 'proxyLatencyMs'
+		| 'proxyError'
+		| 'version'
+		| 'timestamp'
+	>
+> {
+	const url = `${PROXY_BASE}/${fn.name}`;
 	const start = performance.now();
 
 	try {
-		const controller = new AbortController();
-		const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 		const method = fn.name === 'health' ? 'GET' : 'OPTIONS';
-
-		const resp = await fetch(url, {
+		const resp = await fetchWithRetry(url, {
 			method,
-			signal: controller.signal,
+			headers: { Authorization: `Bearer ${token}` },
 		});
-		clearTimeout(timeout);
-
 		const latencyMs = Math.round(performance.now() - start);
 
 		if (fn.name === 'health' && resp.ok) {
 			const data = await resp.json();
 			return {
-				...fn,
-				status: 'ok',
+				proxyStatus: 'ok',
+				proxyLatencyMs: latencyMs,
 				version: data.version,
 				timestamp: data.timestamp,
-				latencyMs,
 			};
 		}
 
-		if (method === 'OPTIONS' && resp.ok) {
-			return { ...fn, status: 'ok', latencyMs };
+		if (resp.ok) {
+			return { proxyStatus: 'ok', proxyLatencyMs: latencyMs };
 		}
 
 		return {
-			...fn,
-			status: 'error',
-			latencyMs,
-			error: `HTTP ${resp.status}`,
+			proxyStatus: 'error',
+			proxyLatencyMs: latencyMs,
+			proxyError: `HTTP ${resp.status}`,
 		};
 	} catch (e: unknown) {
-		const latencyMs = Math.round(performance.now() - start);
 		return {
-			...fn,
-			status: 'error',
-			latencyMs,
-			error:
+			proxyStatus: 'error',
+			proxyLatencyMs: Math.round(performance.now() - start),
+			proxyError:
 				e instanceof Error
 					? e.name === 'AbortError'
 						? 'Timeout'
@@ -119,23 +160,82 @@ async function checkFunctionHealth(
 	}
 }
 
-async function fetchManifest(): Promise<EdgeFunctionDef[]> {
-	const url = `${SUPABASE_URL}/functions/v1/health`;
-	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+async function checkViaDirect(
+	fn: EdgeFunctionDef,
+): Promise<
+	Pick<FunctionHealth, 'directStatus' | 'directLatencyMs' | 'directError'>
+> {
+	const url = `${SUPABASE_URL}/functions/v1/${fn.name}`;
+	const start = performance.now();
 
 	try {
-		const resp = await fetch(url, { signal: controller.signal });
-		clearTimeout(timeout);
+		const method = fn.name === 'health' ? 'GET' : 'OPTIONS';
+		const resp = await fetchWithRetry(url, { method });
+		const latencyMs = Math.round(performance.now() - start);
 
-		if (!resp.ok) return [];
+		if (resp.ok) {
+			return { directStatus: 'ok', directLatencyMs: latencyMs };
+		}
 
-		const data = await resp.json();
-		if (Array.isArray(data.functions) && data.functions.length > 0) {
-			return data.functions;
+		return {
+			directStatus: 'error',
+			directLatencyMs: latencyMs,
+			directError: `HTTP ${resp.status}`,
+		};
+	} catch (e: unknown) {
+		return {
+			directStatus: 'error',
+			directLatencyMs: Math.round(performance.now() - start),
+			directError:
+				e instanceof Error
+					? e.name === 'AbortError'
+						? 'Timeout'
+						: e.message
+					: 'Unknown error',
+		};
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Manifest fetcher — try proxy first, fallback to direct
+// ---------------------------------------------------------------------------
+
+async function fetchManifest(token: string | null): Promise<EdgeFunctionDef[]> {
+	// Try proxy first (more reliable, cluster-internal)
+	if (token) {
+		try {
+			const resp = await fetchWithRetry(`${PROXY_BASE}/health`, {
+				method: 'GET',
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			if (resp.ok) {
+				const data = await resp.json();
+				if (
+					Array.isArray(data.functions) &&
+					data.functions.length > 0
+				) {
+					return data.functions;
+				}
+			}
+		} catch {
+			// fall through to direct
+		}
+	}
+
+	// Direct fallback
+	try {
+		const resp = await fetchWithRetry(
+			`${SUPABASE_URL}/functions/v1/health`,
+			{ method: 'GET' },
+		);
+		if (resp.ok) {
+			const data = await resp.json();
+			if (Array.isArray(data.functions) && data.functions.length > 0) {
+				return data.functions;
+			}
 		}
 	} catch {
-		// Health unreachable
+		// both failed
 	}
 
 	return [];
@@ -152,21 +252,37 @@ class EdgeService {
 	public readonly $refreshing = atom<boolean>(false);
 	public readonly $error = atom<string | null>(null);
 	public readonly $lastChecked = atom<Date | null>(null);
+	public readonly $accessToken = atom<string | null>(null);
 
-	// Computed
+	// Computed — overall status uses proxy as primary, direct as secondary
 	public readonly $okCount = computed(
 		[this.$functions],
-		(fns) => fns.filter((f) => f.status === 'ok').length,
+		(fns) =>
+			fns.filter((f) => f.proxyStatus === 'ok' || f.directStatus === 'ok')
+				.length,
 	);
 
 	public readonly $errorCount = computed(
 		[this.$functions],
-		(fns) => fns.filter((f) => f.status === 'error').length,
+		(fns) =>
+			fns.filter(
+				(f) => f.proxyStatus === 'error' && f.directStatus === 'error',
+			).length,
 	);
 
 	public readonly $totalCount = computed(
 		[this.$functions],
 		(fns) => fns.length,
+	);
+
+	public readonly $proxyOkCount = computed(
+		[this.$functions],
+		(fns) => fns.filter((f) => f.proxyStatus === 'ok').length,
+	);
+
+	public readonly $directOkCount = computed(
+		[this.$functions],
+		(fns) => fns.filter((f) => f.directStatus === 'ok').length,
 	);
 
 	// --- Actions ---
@@ -186,8 +302,10 @@ class EdgeService {
 		this.$error.set(null);
 		this.$fromCache.set(false);
 
+		const token = this.$accessToken.get();
+
 		try {
-			const manifest = await fetchManifest();
+			const manifest = await fetchManifest(token);
 
 			if (manifest.length === 0) {
 				this.$error.set(
@@ -198,9 +316,27 @@ class EdgeService {
 				return;
 			}
 
+			// Run proxy and direct checks in parallel for each function
 			const results = await Promise.all(
-				manifest.map(checkFunctionHealth),
+				manifest.map(async (fn) => {
+					const [proxyResult, directResult] = await Promise.all([
+						token
+							? checkViaProxy(fn, token)
+							: Promise.resolve({
+									proxyStatus: 'pending' as const,
+									proxyError: 'Not authenticated',
+								}),
+						checkViaDirect(fn),
+					]);
+
+					return {
+						...fn,
+						...proxyResult,
+						...directResult,
+					} as FunctionHealth;
+				}),
 			);
+
 			this.$functions.set(results);
 			this.$lastChecked.set(new Date());
 

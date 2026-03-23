@@ -1,17 +1,41 @@
 import { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { edgeService } from './edgeService';
-import { Activity, XCircle, Clock, AlertCircle } from 'lucide-react';
+import { initSupa, getSupa } from '@/lib/supa';
+import {
+	Activity,
+	XCircle,
+	Clock,
+	AlertCircle,
+	Server,
+	Globe,
+} from 'lucide-react';
 
 export default function ReactEdgeSummary() {
 	const okCount = useStore(edgeService.$okCount);
 	const errorCount = useStore(edgeService.$errorCount);
 	const totalCount = useStore(edgeService.$totalCount);
+	const proxyOk = useStore(edgeService.$proxyOkCount);
+	const directOk = useStore(edgeService.$directOkCount);
 	const lastChecked = useStore(edgeService.$lastChecked);
 	const error = useStore(edgeService.$error);
 
 	useEffect(() => {
-		edgeService.fetchHealth();
+		(async () => {
+			// Try to get auth token for proxy checks
+			try {
+				await initSupa();
+				const supa = getSupa();
+				const result = await supa.getSession().catch(() => null);
+				const token = result?.session?.access_token ?? null;
+				if (token) {
+					edgeService.$accessToken.set(token as string);
+				}
+			} catch {
+				// No auth — proxy checks will show as pending
+			}
+			edgeService.fetchHealth();
+		})();
 	}, []);
 
 	return (
@@ -41,6 +65,40 @@ export default function ReactEdgeSummary() {
 						{okCount}/{totalCount} operational
 					</span>
 				</div>
+				{totalCount > 0 && (
+					<>
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								gap: '0.4rem',
+								color:
+									proxyOk === totalCount
+										? '#22c55e'
+										: '#f59e0b',
+							}}>
+							<Server size={14} />
+							<span>
+								Proxy {proxyOk}/{totalCount}
+							</span>
+						</div>
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								gap: '0.4rem',
+								color:
+									directOk === totalCount
+										? '#22c55e'
+										: '#f59e0b',
+							}}>
+							<Globe size={14} />
+							<span>
+								Direct {directOk}/{totalCount}
+							</span>
+						</div>
+					</>
+				)}
 				{errorCount > 0 && (
 					<div
 						style={{
@@ -50,9 +108,7 @@ export default function ReactEdgeSummary() {
 							color: '#fca5a5',
 						}}>
 						<XCircle size={16} />
-						<span>
-							{errorCount} {errorCount === 1 ? 'issue' : 'issues'}
-						</span>
+						<span>{errorCount} both-fail</span>
 					</div>
 				)}
 				{lastChecked && (
