@@ -3,6 +3,7 @@ mod convert;
 mod db;
 mod error;
 mod grpc;
+mod jobs;
 mod middleware;
 mod models;
 mod mq;
@@ -89,6 +90,13 @@ async fn main() -> anyhow::Result<()> {
 
     // Transport-agnostic service layer
     let svc = Arc::new(service::OWSService::new(app_state.clone()));
+
+    // Background jobs (health monitoring, cleanup)
+    jobs::spawn_all(svc.clone());
+
+    // RabbitMQ consumer (instance launcher handshake)
+    // world_server_id=0 is a placeholder — real value comes from register_launcher
+    mq::spawn_consumer(&rabbitmq_url, 0, svc.clone()).await;
 
     // gRPC services
     let grpc_router = grpc::router(svc.clone());
