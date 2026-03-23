@@ -341,9 +341,7 @@
 		"test": {
 			"executor": "nx:run-commands",
 			"options": {
-				"commands": [
-					"dotnet test apps/ows/OWS.sln --no-build --verbosity normal"
-				],
+				"commands": ["dotnet test apps/ows/OWS.sln --verbosity normal"],
 				"parallel": false
 			}
 		}

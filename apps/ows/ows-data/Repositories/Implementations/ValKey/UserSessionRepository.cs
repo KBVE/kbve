@@ -9,12 +9,25 @@ namespace OWSData.Repositories.Implementations.ValKey
 {
     public class UserSessionRepository : IUserSessionRepository
     {
-        private const string ValKeyConnectionString = "localhost:6379,password=YourValkeyPa$$word";
         private static readonly Lazy<ConnectionMultiplexer> Connection =
-            new(() => ConnectionMultiplexer.Connect(ValKeyConnectionString));
+            new(() => ConnectionMultiplexer.Connect(GetConnectionString()));
 
         private static IDatabase Database => Connection.Value.GetDatabase();
         private static string keyPrefix = "user:session:";
+
+        private static string GetConnectionString()
+        {
+            var host = Environment.GetEnvironmentVariable("UserSessionCacheOptions__HostName") ?? "localhost";
+            var port = Environment.GetEnvironmentVariable("UserSessionCacheOptions__Port") ?? "6379";
+            var password = Environment.GetEnvironmentVariable("UserSessionCacheOptions__Password");
+
+            var connStr = $"{host}:{port}";
+            if (!string.IsNullOrEmpty(password))
+            {
+                connStr += $",password={password}";
+            }
+            return connStr;
+        }
 
         private string constructUserSessionKeyFromUserGuid(Guid UserGuid)
         {

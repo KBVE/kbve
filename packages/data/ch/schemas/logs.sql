@@ -7,7 +7,7 @@
 --
 -- Engine: MergeTree (default). Logflare config overrides for production:
 --   config :logflare, :clickhouse_backend_adaptor, engine: "ReplicatedMergeTree"
--- TTL: 90 days
+-- TTL: 45 days
 -- Partition: daily by timestamp
 -- =============================================================================
 
@@ -44,7 +44,7 @@ ENGINE = MergeTree
 PARTITION BY toDate(timestamp)
 PRIMARY KEY (project, source_name, toDateTime(timestamp))
 ORDER BY (project, source_name, toDateTime(timestamp), timestamp)
-TTL toDateTime(timestamp) + INTERVAL 90 DAY
+TTL toDateTime(timestamp) + INTERVAL 45 DAY
 SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
 
 
@@ -82,5 +82,5 @@ CREATE TABLE IF NOT EXISTS logflare.simple_otel_logs_template (
 ENGINE = MergeTree
 PARTITION BY toDate(timestamp)
 ORDER BY (source_name, project, timestamp_hour)
-TTL toDateTime(timestamp) + INTERVAL 90 DAY
+TTL toDateTime(timestamp) + INTERVAL 45 DAY
 SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
