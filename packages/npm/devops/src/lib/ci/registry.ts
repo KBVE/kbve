@@ -141,6 +141,23 @@ export const CI_PROJECTS: CiProject[] = ProjectArraySchema.parse([
 		status: 'active',
 		tags: ['docker', 'database'],
 	},
+	{
+		key: 'chuckrpg',
+		name: 'ChuckRPG',
+		pipeline: 'docker',
+		app_name: 'axum-chuckrpg',
+		test_framework: 'rust',
+		description: 'ChuckRPG game backend (Axum)',
+		source_path: 'apps/chuckrpg/axum-chuckrpg',
+		version_toml: 'apps/chuckrpg/axum-chuckrpg/version.toml',
+		runner: 'ubuntu-latest',
+		image: 'kbve/chuckrpg',
+		deployment_yaml: 'apps/kube/chuckrpg/manifest/deployment.yaml',
+		author: 'h0lybyte',
+		license: 'KBVE',
+		status: 'active',
+		tags: ['docker', 'gaming'],
+	},
 
 	// ── OWS (C# / .NET) Docker Apps ───────────────────────────
 	{
