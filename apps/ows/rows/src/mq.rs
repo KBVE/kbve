@@ -257,6 +257,19 @@ async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
                 }
                 Err(e) => {
                     error!(error = %e, zone = msg.zone_instance_id, "Agones allocation failed");
+                    // Dead letter: reject without requeue after 3 delivery attempts.
+                    // RabbitMQ will route to DLX if configured, otherwise discard.
+                    if delivery.delivery_tag > 2 {
+                        warn!(
+                            zone = msg.zone_instance_id,
+                            "DLQ: rejecting after repeated failures"
+                        );
+                        let _ = delivery.reject(BasicRejectOptions { requeue: false }).await;
+                        continue;
+                    }
+                    // Requeue for retry
+                    let _ = delivery.reject(BasicRejectOptions { requeue: true }).await;
+                    continue;
                 }
             }
         }

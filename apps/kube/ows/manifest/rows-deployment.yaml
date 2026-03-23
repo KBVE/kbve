@@ -1,0 +1,109 @@
+---
+# ROWS — Rust OWS single-binary game backend (REST + gRPC)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: rows
+    namespace: ows
+    labels:
+        app: rows
+        app.kubernetes.io/part-of: ows
+spec:
+    replicas: 1
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 0
+    selector:
+        matchLabels:
+            app: rows
+    template:
+        metadata:
+            labels:
+                app: rows
+                app.kubernetes.io/part-of: ows
+        spec:
+            serviceAccountName: ows-external-secrets
+            containers:
+                - name: rows
+                  image: ghcr.io/kbve/rows:0.1.0
+                  imagePullPolicy: Always
+                  env:
+                      - name: HTTP_HOST
+                        value: '0.0.0.0'
+                      - name: HTTP_PORT
+                        value: '4322'
+                      - name: RUST_LOG
+                        value: 'info'
+                      - name: DATABASE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-db-credentials
+                                key: db-connection-string
+                      - name: RABBITMQ_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-rabbitmq-credentials
+                                key: amqp-url
+                      - name: OWS_API_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-customer-guid
+                                key: customer-guid
+                      - name: AGONES_NAMESPACE
+                        value: 'ows'
+                      - name: AGONES_FLEET
+                        value: 'ows-hubworld'
+                  ports:
+                      - name: http
+                        containerPort: 4322
+                        protocol: TCP
+                      - name: grpc
+                        containerPort: 50051
+                        protocol: TCP
+                  resources:
+                      requests:
+                          memory: '128Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '512Mi'
+                          cpu: '500m'
+                  livenessProbe:
+                      httpGet:
+                          path: /health
+                          port: http
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                      timeoutSeconds: 3
+                      failureThreshold: 3
+                  readinessProbe:
+                      httpGet:
+                          path: /ready
+                          port: http
+                      initialDelaySeconds: 3
+                      periodSeconds: 5
+                      timeoutSeconds: 3
+                      failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: rows
+    namespace: ows
+    labels:
+        app: rows
+        app.kubernetes.io/part-of: ows
+spec:
+    type: ClusterIP
+    selector:
+        app: rows
+    ports:
+        - name: http
+          port: 4322
+          targetPort: 4322
+          protocol: TCP
+        - name: grpc
+          port: 50051
+          targetPort: 50051
+          protocol: TCP

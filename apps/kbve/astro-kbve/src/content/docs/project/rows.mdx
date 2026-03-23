@@ -1,0 +1,67 @@
+---
+title: ROWS
+description: |
+    ROWS (Rust OWS) — single-binary game backend combining REST + gRPC in one service. Replaces the multi-service .NET OWS stack with a unified Rust implementation.
+sidebar:
+    label: ROWS
+    order: 66
+tags:
+    - docker
+    - rust
+    - ows
+key: rows
+pipeline: docker
+app_name: rows
+version: "0.1.0"
+source_path: apps/ows/rows
+version_toml: apps/ows/rows/version.toml
+version_target: apps/ows/rows/Cargo.toml
+runner: ubuntu-latest
+image: kbve/rows
+deployment_yaml: apps/kube/ows/manifest/deployment.yaml
+has_test: false
+author: h0lybyte
+license: KBVE
+status: beta
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## ROWS — Rust Open World Server
+
+ROWS is a single-binary Rust reimplementation of the OWS (Open World Server) game backend. It consolidates the five .NET microservices (PublicAPI, InstanceManagement, CharacterPersistence, GlobalData, Management) into one unified service with both REST and gRPC interfaces.
+
+### Architecture
+
+- **REST API** (Axum) — player-facing endpoints: login, registration, character CRUD, zone connections
+- **gRPC** (Tonic) — internal service-to-service communication and UE5 dedicated server coordination
+- **RabbitMQ** — async job queue for instance lifecycle events (spin-up, shutdown, health checks)
+- **PostgreSQL** — persistent storage for accounts, characters, abilities, world state
+- **ValKey** — session cache and ephemeral game state
+- **Agones** — game server fleet management for UE5 dedicated server instances
+
+### Endpoints
+
+| Group | Path Prefix | Description |
+|-------|------------|-------------|
+| Auth | `/api/users/*` | Login, register, session management |
+| Characters | `/api/characters/*` | Character CRUD, class selection |
+| Zones | `/api/zones/*` | Zone listing, server-to-connect-to |
+| Instance | `/api/instance/*` | Server instance lifecycle |
+| Global | `/api/global/*` | Key/value world state |
+| Health | `/health`, `/ready` | Liveness and readiness probes |
+| gRPC | Port 50051 | Internal service mesh |
+
+<Aside type="caution" title="Alpha Status">
+    ROWS is in active development. The .NET OWS services remain the production deployment
+    until ROWS reaches feature parity and passes integration testing against the same
+    database schema and RabbitMQ message contracts.
+</Aside>
+
+### Deployment
+
+ROWS deploys as a single Docker image (`ghcr.io/kbve/rows`) into the `ows` Kubernetes namespace alongside the existing .NET services. During the migration period, both stacks can run in parallel with traffic routing controlled via HTTPRoute rules.
+
+The container exposes:
+- **Port 4322** — REST API (Axum)
+- **Port 50051** — gRPC (Tonic)

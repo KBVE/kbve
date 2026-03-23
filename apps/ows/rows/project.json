@@ -5,19 +5,99 @@
 	"sourceRoot": "apps/ows/rows/src",
 	"targets": {
 		"build": {
-			"executor": "nx:run-commands",
+			"executor": "@monodon/rust:build",
+			"outputs": ["{options.target-dir}"],
 			"options": {
-				"commands": ["cargo build --release -p rows"],
-				"cwd": "{workspaceRoot}"
+				"target-dir": "dist/target/rows"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"test": {
+			"executor": "@monodon/rust:test",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/rows"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"lint": {
+			"executor": "@monodon/rust:lint",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/rows"
+			}
+		},
+		"run": {
+			"executor": "@monodon/rust:run",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/rows"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
 			}
 		},
 		"container": {
 			"executor": "nx:run-commands",
+			"dependsOn": [],
+			"defaultConfiguration": "local",
 			"options": {
-				"commands": [
-					"docker buildx build --platform linux/amd64 -f apps/ows/rows/Dockerfile -t kbve/rows:latest --load ."
-				],
-				"cwd": "{workspaceRoot}"
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx rows:containerx",
+						"VERSION=$(grep '^version' apps/ows/rows/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/rows:latest kbve/rows:$VERSION && echo \"Tagged kbve/rows:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx rows:containerx --configuration=production",
+						"VERSION=$(grep '^version' apps/ows/rows/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/rows:latest kbve/rows:$VERSION && docker tag kbve/rows:latest ghcr.io/kbve/rows:latest && docker tag kbve/rows:latest ghcr.io/kbve/rows:$VERSION && echo \"Tagged kbve/rows:$VERSION and ghcr.io/kbve/rows:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/ows/rows/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/rows:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": ["ghcr.io/kbve/rows", "kbve/rows"],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/rows:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/rows:buildcache,mode=max"
+					]
+				}
 			}
 		}
 	},

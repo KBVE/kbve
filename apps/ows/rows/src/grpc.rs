@@ -249,6 +249,21 @@ impl InstanceManagement for InstanceManagementService {
             "ShutDownInstance not yet implemented",
         ))
     }
+
+    async fn update_number_of_players(
+        &self,
+        req: Request<UpdateNumberOfPlayersRequest>,
+    ) -> Result<Response<UpdateNumberOfPlayersResponse>, Status> {
+        let r = req.get_ref();
+        let guid = self.svc.state().config.customer_guid;
+        self.svc
+            .update_number_of_players(guid, r.zone_instance_id, r.number_of_players)
+            .await
+            .map_err(to_status)?;
+        Ok(Response::new(UpdateNumberOfPlayersResponse {
+            success: true,
+        }))
+    }
 }
 
 // ──────────────────────────────────────────────
@@ -395,6 +410,71 @@ impl GlobalDataService for GlobalDataServiceImpl {
 }
 
 // ──────────────────────────────────────────────
+// Game Server Health — bi-directional streaming
+// ──────────────────────────────────────────────
+
+use crate::proto::rows::game_server_health_server::{GameServerHealth, GameServerHealthServer};
+use crate::proto::rows::{ServerCommand, ServerHeartbeat};
+use tokio_stream::wrappers::ReceiverStream;
+
+pub struct GameServerHealthService {
+    svc: Arc<OWSService>,
+}
+
+#[tonic::async_trait]
+impl GameServerHealth for GameServerHealthService {
+    type HealthStreamStream = ReceiverStream<Result<ServerCommand, Status>>;
+
+    async fn health_stream(
+        &self,
+        request: Request<tonic::Streaming<ServerHeartbeat>>,
+    ) -> Result<Response<Self::HealthStreamStream>, Status> {
+        let mut stream = request.into_inner();
+        let svc = self.svc.clone();
+        let (tx, rx) = tokio::sync::mpsc::channel(32);
+
+        tokio::spawn(async move {
+            let guid = svc.state().config.customer_guid;
+
+            while let Ok(Some(heartbeat)) = stream.message().await {
+                tracing::debug!(
+                    zone = heartbeat.zone_instance_id,
+                    players = heartbeat.number_of_players,
+                    cpu = heartbeat.cpu_usage,
+                    mem = heartbeat.memory_usage_mb,
+                    "Heartbeat received"
+                );
+
+                // Update player count in DB
+                if let Err(e) = svc
+                    .update_number_of_players(
+                        guid,
+                        heartbeat.zone_instance_id,
+                        heartbeat.number_of_players,
+                    )
+                    .await
+                {
+                    tracing::warn!(error = %e, "Failed to update player count from heartbeat");
+                }
+
+                // Send acknowledgement command back
+                let cmd = ServerCommand {
+                    command: "ack".to_string(),
+                    payload: String::new(),
+                };
+                if tx.send(Ok(cmd)).await.is_err() {
+                    break; // client disconnected
+                }
+            }
+
+            tracing::info!("Game server health stream ended");
+        });
+
+        Ok(Response::new(ReceiverStream::new(rx)))
+    }
+}
+
+// ──────────────────────────────────────────────
 // Router
 // ──────────────────────────────────────────────
 
@@ -406,5 +486,8 @@ pub fn router(svc: Arc<OWSService>) -> tonic::service::Routes {
         .add_service(CharacterPersistenceServer::new(
             CharacterPersistenceService { svc: svc.clone() },
         ))
-        .add_service(GlobalDataServiceServer::new(GlobalDataServiceImpl { svc }))
+        .add_service(GlobalDataServiceServer::new(GlobalDataServiceImpl {
+            svc: svc.clone(),
+        }))
+        .add_service(GameServerHealthServer::new(GameServerHealthService { svc }))
 }

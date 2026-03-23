@@ -66,4 +66,63 @@ impl OWSService {
         repo.update_number_of_players(customer_guid, zone_instance_id, number_of_players)
             .await
     }
+
+    pub async fn spin_up_server_instance(
+        &self,
+        customer_guid: Uuid,
+        world_server_id: i32,
+        zone_instance_id: i32,
+        zone_name: &str,
+        port: i32,
+    ) -> Result<(), RowsError> {
+        let repo = InstanceRepo(&self.state.db);
+        repo.spin_up_server_instance(
+            customer_guid,
+            world_server_id,
+            zone_instance_id,
+            zone_name,
+            port,
+        )
+        .await
+    }
+
+    pub async fn shut_down_server_instance(
+        &self,
+        customer_guid: Uuid,
+        zone_instance_id: i32,
+    ) -> Result<(), RowsError> {
+        let repo = InstanceRepo(&self.state.db);
+        repo.shut_down_server_instance(customer_guid, zone_instance_id)
+            .await
+    }
+
+    pub async fn shut_down_launcher(
+        &self,
+        customer_guid: Uuid,
+        world_server_id: i32,
+    ) -> Result<(), RowsError> {
+        let repo = InstanceRepo(&self.state.db);
+        repo.shut_down_launcher(customer_guid, world_server_id)
+            .await
+    }
+
+    pub async fn get_zone_instances_for_zone(
+        &self,
+        customer_guid: Uuid,
+        zone_name: &str,
+    ) -> Result<Vec<crate::models::ZoneInstance>, RowsError> {
+        let repo = InstanceRepo(&self.state.db);
+        repo.get_zone_instances_for_zone(customer_guid, zone_name)
+            .await
+    }
+
+    pub async fn get_current_world_time(
+        &self,
+        customer_guid: Uuid,
+        world_server_id: i32,
+    ) -> Result<i64, RowsError> {
+        let repo = InstanceRepo(&self.state.db);
+        repo.get_current_world_time(customer_guid, world_server_id)
+            .await
+    }
 }
