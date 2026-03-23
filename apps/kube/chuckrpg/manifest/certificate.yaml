@@ -1,12 +1,12 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-    name: chuckrpg-api-tls
+    name: chuckrpg-tls
     namespace: chuckrpg
 spec:
-    secretName: chuckrpg-api-tls
+    secretName: chuckrpg-tls
     dnsNames:
-        - api.chuckrpg.com
+        - chuckrpg.com
     issuerRef:
         name: letsencrypt-http
         kind: ClusterIssuer
@@ -15,12 +15,12 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-    name: chuckrpg-tls
+    name: chuckrpg-api-tls
     namespace: chuckrpg
 spec:
-    secretName: chuckrpg-tls
+    secretName: chuckrpg-api-tls
     dnsNames:
-        - chuckrpg.com
+        - api.chuckrpg.com
     issuerRef:
         name: letsencrypt-http
         kind: ClusterIssuer

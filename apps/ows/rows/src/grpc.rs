@@ -3,6 +3,8 @@ use tonic::{Request, Response, Status};
 use tracing::{error, info};
 use uuid::Uuid;
 
+use crate::convert::to_proto_characters;
+
 use crate::proto::rows::character_persistence_server::{
     CharacterPersistence, CharacterPersistenceServer,
 };
@@ -113,9 +115,8 @@ impl PublicApi for PublicApiService {
             .await
             .map_err(|e| e.into_tonic())?;
 
-        // Convert DB models to proto — for now return empty (proto Character != DB Character)
         Ok(Response::new(GetCharactersResponse {
-            characters: Vec::new(), // TODO: map DB Character → proto Character
+            characters: to_proto_characters(&chars),
         }))
     }
 
@@ -223,14 +224,13 @@ impl PublicApi for PublicApiService {
             .user_guid
             .ok_or_else(|| Status::not_found("No user in session"))?;
 
-        let _chars = repo
+        let chars = repo
             .get_all_characters(self.state.config.customer_guid, user_guid)
             .await
             .map_err(|e| e.into_tonic())?;
 
-        // TODO: map DB Character → proto Character
         Ok(Response::new(GetAllCharactersResponse {
-            characters: Vec::new(),
+            characters: to_proto_characters(&chars),
         }))
     }
 }

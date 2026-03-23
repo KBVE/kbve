@@ -1,0 +1,25 @@
+{
+	"name": "rows",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/ows/rows/src",
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build --release -p rows"],
+				"cwd": "{workspaceRoot}"
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"docker buildx build --platform linux/amd64 -f apps/ows/rows/Dockerfile -t kbve/rows:latest --load ."
+				],
+				"cwd": "{workspaceRoot}"
+			}
+		}
+	},
+	"tags": ["docker", "rust", "ows"]
+}
