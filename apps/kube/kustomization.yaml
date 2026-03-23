@@ -52,6 +52,8 @@ resources:
     - memes/application.yaml
     - n8n/application.yaml
     - rabbitmq/application.yaml
+    # Agones — game server operator (GameServer/Fleet/Allocator CRDs)
+    - agones/application.yaml
     # OWS — Open World Server .NET microservices (5 services + ValKey)
     - ows/application.yaml
     - rentearth/application.yaml

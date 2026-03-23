@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: agones
+    namespace: argocd
+spec:
+    project: default
+    sources:
+        - repoURL: https://agones.dev/chart/stable
+          targetRevision: 1.56.0
+          chart: agones
+          helm:
+              releaseName: agones
+              valueFiles:
+                  - $values/apps/kube/agones/values.yaml
+        - repoURL: https://github.com/kbve/kbve
+          targetRevision: main
+          ref: values
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: agones-system
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+            - RespectIgnoreDifferences=true
+        retry:
+            limit: 3
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m
