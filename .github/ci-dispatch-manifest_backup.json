@@ -139,7 +139,7 @@
 		{
 			"key": "ows_characterpersistence",
 			"app_name": "ows-characterpersistence",
-			"version": "0.10.4",
+			"version": "0.10.3",
 			"version_toml": "apps/ows/ows-character-persistence/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-characterpersistence.mdx",
 			"version_target": "apps/ows/ows-character-persistence/OWSCharacterPersistence.csproj",
@@ -154,7 +154,7 @@
 		{
 			"key": "ows_globaldata",
 			"app_name": "ows-globaldata",
-			"version": "0.10.4",
+			"version": "0.10.3",
 			"version_toml": "apps/ows/ows-global-data/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-globaldata.mdx",
 			"version_target": "apps/ows/ows-global-data/OWSGlobalData.csproj",
@@ -169,7 +169,7 @@
 		{
 			"key": "ows_instancelauncher",
 			"app_name": "ows-instancelauncher",
-			"version": "0.10.4",
+			"version": "0.10.3",
 			"version_toml": "apps/ows/ows-instance-launcher/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-instancelauncher.mdx",
 			"version_target": "apps/ows/ows-instance-launcher/OWSInstanceLauncher.csproj",
@@ -184,7 +184,7 @@
 		{
 			"key": "ows_instancemanagement",
 			"app_name": "ows-instancemanagement",
-			"version": "0.10.4",
+			"version": "0.10.3",
 			"version_toml": "apps/ows/ows-instance-management/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-instancemanagement.mdx",
 			"version_target": "apps/ows/ows-instance-management/OWSInstanceManagement.csproj",
@@ -199,7 +199,7 @@
 		{
 			"key": "ows_management",
 			"app_name": "ows-management",
-			"version": "0.10.4",
+			"version": "0.10.3",
 			"version_toml": "apps/ows/ows-management/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-management.mdx",
 			"version_target": "apps/ows/ows-management/OWSManagement.csproj",
@@ -214,7 +214,7 @@
 		{
 			"key": "ows_publicapi",
 			"app_name": "ows-publicapi",
-			"version": "0.10.4",
+			"version": "0.10.3",
 			"version_toml": "apps/ows/ows-public-api/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-publicapi.mdx",
 			"version_target": "apps/ows/ows-public-api/OWSPublicAPI.csproj",
