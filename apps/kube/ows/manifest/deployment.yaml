@@ -453,13 +453,13 @@ spec:
                           cpu: '500m'
                   livenessProbe:
                       httpGet:
-                          path: /
+                          path: /health
                           port: http
                       initialDelaySeconds: 30
                       periodSeconds: 15
                   readinessProbe:
                       httpGet:
-                          path: /
+                          path: /health
                           port: http
                       initialDelaySeconds: 10
                       periodSeconds: 5
