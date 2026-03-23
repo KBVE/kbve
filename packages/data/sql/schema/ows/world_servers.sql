@@ -12,6 +12,9 @@ CREATE TABLE WorldServers
     ServerStatus            SMALLINT    DEFAULT 0    NOT NULL,
     InternalServerIP        VARCHAR(50) DEFAULT ''   NOT NULL,
     StartingMapInstancePort INT         DEFAULT 7778 NOT NULL,
+    ZoneServerGUID          UUID                     NULL,
     CONSTRAINT PK_WorldServers
-        PRIMARY KEY (CustomerGUID, WorldServerID)
+        PRIMARY KEY (CustomerGUID, WorldServerID),
+    CONSTRAINT AK_ZoneServers
+        UNIQUE (CustomerGUID, ZoneServerGUID)
 );
