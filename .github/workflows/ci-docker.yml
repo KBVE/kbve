@@ -284,35 +284,11 @@ jobs:
             MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # ---------------------------------------------------------------------------
-    # Update Kube — bumps the image tag in the app's deployment YAML and opens a PR.
-    # Skipped for apps without a kube deployment (kilobase, edge-less apps).
+    # Post-publish — single atomic PR: version.toml + Cargo.toml + kube manifest.
+    # Replaces separate update_kube + update_version_docker to prevent race conditions.
     # ---------------------------------------------------------------------------
-    update_kube:
-        name: Update Kube Manifest
-        needs: [config, publish]
-        if: |
-            always() &&
-            needs.publish.result == 'success' &&
-            needs.config.outputs.deployment_yaml != ''
-        permissions:
-            contents: write
-            pull-requests: write
-            actions: write
-        uses: KBVE/kbve/.github/workflows/utils-update-kube-manifest.yml@main
-        with:
-            app_name: ${{ inputs.app_name }}
-            image_name: ghcr.io/${{ needs.config.outputs.image }}
-            cargo_toml: ${{ needs.config.outputs.cargo_toml }}
-            deployment_yaml: ${{ needs.config.outputs.deployment_yaml }}
-        secrets:
-            TRIGGER_PAT: ${{ secrets.UNITY_PAT }}
-
-    # ---------------------------------------------------------------------------
-    # Post-publish — update version.toml after successful Docker publish.
-    # Closes the feedback loop so version_gate skips re-publishing the same tag.
-    # ---------------------------------------------------------------------------
-    update_version_docker:
-        name: Update version.toml (docker)
+    post_publish:
+        name: Post-Publish Sync
         needs: [config, version_gate, publish]
         if: |
             always() &&
@@ -323,13 +299,16 @@ jobs:
             contents: write
             pull-requests: write
             actions: write
-        uses: KBVE/kbve/.github/workflows/utils-update-version-toml.yml@dev
+        uses: KBVE/kbve/.github/workflows/utils-post-publish.yml@main
         with:
-            package_type: docker
-            package_name: ${{ inputs.app_name }}
+            app_name: ${{ inputs.app_name }}
             version: ${{ needs.version_gate.outputs.local_version }}
             version_toml_path: ${{ needs.config.outputs.version_toml }}
             version_target_path: ${{ needs.config.outputs.version_target }}
+            image_name: ghcr.io/${{ needs.config.outputs.image }}
+            deployment_yaml: ${{ needs.config.outputs.deployment_yaml }}
+        secrets:
+            TRIGGER_PAT: ${{ secrets.UNITY_PAT }}
 
     # ---------------------------------------------------------------------------
     # Failure Tracker — opens a GitHub issue on any pipeline failure (#8186).
@@ -338,7 +317,7 @@ jobs:
     track_failure:
         name: Track Failures
         if: ${{ always() && contains(needs.*.result, 'failure') }}
-        needs: [version_gate, test, publish, update_kube, update_version_docker]
+        needs: [version_gate, test, publish, post_publish]
         permissions:
             issues: write
             contents: read
