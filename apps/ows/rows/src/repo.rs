@@ -196,6 +196,67 @@ impl<'a> UsersRepo<'a> {
             .await?;
         Ok(())
     }
+
+    // ─── Management (Admin) ──────────────────────────────────
+
+    pub async fn list_users(&self, customer_guid: Uuid) -> Result<Vec<UserInfo>, RowsError> {
+        let users = sqlx::query_as::<_, UserInfo>(
+            "SELECT userguid AS user_guid, firstname AS first_name, lastname AS last_name,
+                    email, role, createdate AS create_date
+             FROM users WHERE customerguid = $1
+             ORDER BY createdate DESC LIMIT 100",
+        )
+        .bind(customer_guid)
+        .fetch_all(self.0)
+        .await?;
+        Ok(users)
+    }
+
+    pub async fn create_user_admin(
+        &self,
+        customer_guid: Uuid,
+        first_name: &str,
+        last_name: &str,
+        email: &str,
+        password_hash: &str,
+    ) -> Result<Uuid, RowsError> {
+        let user_guid = Uuid::new_v4();
+        sqlx::query(
+            "INSERT INTO users (customerguid, userguid, firstname, lastname, email, passwordhash, role, createdate)
+             VALUES ($1, $2, $3, $4, $5, $6, 'Player', NOW())",
+        )
+        .bind(customer_guid)
+        .bind(user_guid)
+        .bind(first_name)
+        .bind(last_name)
+        .bind(email)
+        .bind(password_hash)
+        .execute(self.0)
+        .await?;
+        Ok(user_guid)
+    }
+
+    pub async fn update_user_admin(
+        &self,
+        customer_guid: Uuid,
+        user_guid: Uuid,
+        first_name: &str,
+        last_name: &str,
+        email: &str,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "UPDATE users SET firstname = $3, lastname = $4, email = $5
+             WHERE customerguid = $1 AND userguid = $2",
+        )
+        .bind(customer_guid)
+        .bind(user_guid)
+        .bind(first_name)
+        .bind(last_name)
+        .bind(email)
+        .execute(self.0)
+        .await?;
+        Ok(())
+    }
 }
 
 /// Characters repository — CRUD, position, stats.
@@ -264,6 +325,24 @@ impl<'a> CharsRepo<'a> {
         .await?;
 
         Ok(data)
+    }
+
+    pub async fn get_character_statuses(
+        &self,
+        customer_guid: Uuid,
+        char_name: &str,
+    ) -> Result<Vec<CharacterStatus>, RowsError> {
+        let statuses = sqlx::query_as::<_, CharacterStatus>(
+            "SELECT c.charname AS char_name, c.mapname AS map_name,
+                    (c.mapname IS NOT NULL) AS is_online
+             FROM characters c
+             WHERE c.customerguid = $1 AND c.charname = $2",
+        )
+        .bind(customer_guid)
+        .bind(char_name)
+        .fetch_all(self.0)
+        .await?;
+        Ok(statuses)
     }
 
     pub async fn get_default_custom_data(
@@ -766,6 +845,58 @@ impl<'a> InstanceRepo<'a> {
                 .fetch_optional(self.0)
                 .await?;
         Ok(row.map(|r| r.0).unwrap_or(0))
+    }
+
+    pub async fn get_zone_instance(
+        &self,
+        customer_guid: Uuid,
+        zone_instance_id: i32,
+    ) -> Result<Option<ServerInstanceInfo>, RowsError> {
+        let info = sqlx::query_as::<_, ServerInstanceInfo>(
+            "SELECT m.mapname AS map_name, m.zonename AS zone_name,
+                    m.worldcompcontainsfilter AS world_comp_contains_filter,
+                    m.worldcomplistfilter AS world_comp_list_filter,
+                    mi.mapinstanceid AS map_instance_id, mi.status,
+                    ws.maxnumberofinstances AS max_number_of_instances,
+                    ws.activestarttime AS active_start_time,
+                    ws.serverstatus AS server_status,
+                    ws.internalserverip AS internal_server_ip
+             FROM mapinstances mi
+             JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
+             JOIN worldservers ws ON ws.worldserverid = mi.worldserverid AND ws.customerguid = mi.customerguid
+             WHERE mi.customerguid = $1 AND mi.mapinstanceid = $2",
+        )
+        .bind(customer_guid)
+        .bind(zone_instance_id)
+        .fetch_optional(self.0)
+        .await?;
+        Ok(info)
+    }
+
+    pub async fn get_server_instance_from_port(
+        &self,
+        customer_guid: Uuid,
+        port: i32,
+    ) -> Result<Option<ServerInstanceInfo>, RowsError> {
+        let info = sqlx::query_as::<_, ServerInstanceInfo>(
+            "SELECT m.mapname AS map_name, m.zonename AS zone_name,
+                    m.worldcompcontainsfilter AS world_comp_contains_filter,
+                    m.worldcomplistfilter AS world_comp_list_filter,
+                    mi.mapinstanceid AS map_instance_id, mi.status,
+                    ws.maxnumberofinstances AS max_number_of_instances,
+                    ws.activestarttime AS active_start_time,
+                    ws.serverstatus AS server_status,
+                    ws.internalserverip AS internal_server_ip
+             FROM mapinstances mi
+             JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
+             JOIN worldservers ws ON ws.worldserverid = mi.worldserverid AND ws.customerguid = mi.customerguid
+             WHERE mi.customerguid = $1 AND mi.port = $2",
+        )
+        .bind(customer_guid)
+        .bind(port)
+        .fetch_optional(self.0)
+        .await?;
+        Ok(info)
     }
 }
 

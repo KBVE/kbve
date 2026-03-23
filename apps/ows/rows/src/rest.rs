@@ -30,6 +30,7 @@ pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
     let global = global_data_routes(hs.clone());
     let abilities = abilities_routes(hs.clone());
     let zones = zones_routes(hs.clone());
+    let management = management_routes(hs.clone());
 
     Router::new()
         .route("/health", get(health))
@@ -40,6 +41,7 @@ pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
         .merge(global)
         .merge(abilities)
         .merge(zones)
+        .merge(management)
 }
 
 async fn health() -> Json<HealthResponse> {
@@ -408,6 +410,11 @@ fn instance_mgmt_routes(hs: HandlerState) -> Router {
             "/api/Instance/UpdateNumberOfPlayers",
             post(update_number_of_players),
         )
+        .route("/api/Instance/GetZoneInstance", post(get_zone_instance))
+        .route(
+            "/api/Instance/GetServerInstanceFromPort",
+            post(get_server_instance_from_port),
+        )
         .route("/api/Instance/RegisterLauncher", post(register_launcher))
         .route(
             "/api/Instance/StartInstanceLauncher",
@@ -742,6 +749,10 @@ fn character_persistence_routes(hs: HandlerState) -> Router {
             post(update_all_positions),
         )
         .route("/api/Characters/PlayerLogout", post(player_logout))
+        .route(
+            "/api/Status/GetCharacterStatuses",
+            post(get_character_statuses),
+        )
         .layer(middleware::from_fn(require_customer_guid))
         .with_state(hs)
 }
@@ -1149,4 +1160,153 @@ async fn get_global_data(
     let customer_guid = extract_customer_guid(&headers);
     let data = hs.svc.get_global_data(customer_guid, &key).await?;
     Ok(Json(data))
+}
+
+// ─── Instance Lookups ────────────────────────────────────────
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct ZoneInstanceIdDto {
+    zone_instance_id: i32,
+}
+
+async fn get_zone_instance(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<ZoneInstanceIdDto>,
+) -> ApiResult<Option<crate::models::ServerInstanceInfo>> {
+    let customer_guid = extract_customer_guid(&headers);
+    let repo = crate::repo::InstanceRepo(&hs.app.db);
+    let info = repo
+        .get_zone_instance(customer_guid, body.zone_instance_id)
+        .await?;
+    Ok(Json(info))
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct PortDto {
+    port: i32,
+}
+
+async fn get_server_instance_from_port(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<PortDto>,
+) -> ApiResult<Option<crate::models::ServerInstanceInfo>> {
+    let customer_guid = extract_customer_guid(&headers);
+    let repo = crate::repo::InstanceRepo(&hs.app.db);
+    let info = repo
+        .get_server_instance_from_port(customer_guid, body.port)
+        .await?;
+    Ok(Json(info))
+}
+
+// ─── Character Statuses ──────────────────────────────────────
+
+async fn get_character_statuses(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<CharNameDto>,
+) -> ApiResult<Vec<crate::models::CharacterStatus>> {
+    let customer_guid = extract_customer_guid(&headers);
+    let repo = crate::repo::CharsRepo(&hs.app.db);
+    let statuses = repo
+        .get_character_statuses(customer_guid, &body.character_name)
+        .await?;
+    Ok(Json(statuses))
+}
+
+// ─── Management (Admin) ─────────────────────────────────────
+
+fn management_routes(hs: HandlerState) -> Router {
+    Router::new()
+        .route(
+            "/api/Users",
+            get(list_users).post(create_user_admin).put(edit_user_admin),
+        )
+        .layer(middleware::from_fn(require_customer_guid))
+        .with_state(hs)
+}
+
+async fn list_users(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+) -> ApiResult<Vec<crate::models::UserInfo>> {
+    let customer_guid = extract_customer_guid(&headers);
+    let repo = crate::repo::UsersRepo(&hs.app.db);
+    let users = repo.list_users(customer_guid).await?;
+    Ok(Json(users))
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct CreateUserAdminDto {
+    first_name: String,
+    last_name: String,
+    email: String,
+    password: String,
+}
+
+async fn create_user_admin(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<CreateUserAdminDto>,
+) -> Json<SuccessResponse> {
+    let customer_guid = extract_customer_guid(&headers);
+    use argon2::{
+        Argon2, PasswordHasher,
+        password_hash::{SaltString, rand_core::OsRng},
+    };
+    let salt = SaltString::generate(&mut OsRng);
+    let hash = match Argon2::default().hash_password(body.password.as_bytes(), &salt) {
+        Ok(h) => h.to_string(),
+        Err(e) => return Json(SuccessResponse::err(format!("Hash error: {e}"))),
+    };
+    let repo = crate::repo::UsersRepo(&hs.app.db);
+    match repo
+        .create_user_admin(
+            customer_guid,
+            &body.first_name,
+            &body.last_name,
+            &body.email,
+            &hash,
+        )
+        .await
+    {
+        Ok(_) => Json(SuccessResponse::ok()),
+        Err(e) => Json(SuccessResponse::err(e.to_string())),
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct EditUserAdminDto {
+    #[serde(rename = "UserGUID")]
+    user_guid: Uuid,
+    first_name: String,
+    last_name: String,
+    email: String,
+}
+
+async fn edit_user_admin(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<EditUserAdminDto>,
+) -> Json<SuccessResponse> {
+    let customer_guid = extract_customer_guid(&headers);
+    let repo = crate::repo::UsersRepo(&hs.app.db);
+    match repo
+        .update_user_admin(
+            customer_guid,
+            body.user_guid,
+            &body.first_name,
+            &body.last_name,
+            &body.email,
+        )
+        .await
+    {
+        Ok(()) => Json(SuccessResponse::ok()),
+        Err(e) => Json(SuccessResponse::err(e.to_string())),
+    }
 }

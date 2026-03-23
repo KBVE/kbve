@@ -206,6 +206,43 @@ pub struct AbilityBarAbility {
     pub custom_json: Option<String>,
 }
 
+/// Server instance info from GetZoneInstance / GetServerInstanceFromPort
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct ServerInstanceInfo {
+    pub map_name: String,
+    pub zone_name: Option<String>,
+    pub world_comp_contains_filter: Option<String>,
+    pub world_comp_list_filter: Option<String>,
+    pub map_instance_id: i32,
+    pub status: i32,
+    pub max_number_of_instances: i32,
+    pub active_start_time: Option<NaiveDateTime>,
+    pub server_status: i16,
+    pub internal_server_ip: Option<String>,
+}
+
+/// Character online/offline status
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct CharacterStatus {
+    pub char_name: String,
+    pub map_name: Option<String>,
+    pub is_online: bool,
+}
+
+/// User info for management endpoints
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct UserInfo {
+    pub user_guid: Uuid,
+    pub first_name: String,
+    pub last_name: String,
+    pub email: String,
+    pub role: String,
+    pub create_date: Option<NaiveDateTime>,
+}
+
 /// Health check response
 #[derive(Serialize)]
 pub struct HealthResponse {
