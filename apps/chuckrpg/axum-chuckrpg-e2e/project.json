@@ -21,7 +21,7 @@
 			"options": {
 				"commands": [
 					"docker rm -f axum-chuckrpg-e2e 2>/dev/null || true",
-					"docker run -d --name axum-chuckrpg-e2e -p 4324:4322 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4322 -e RUST_LOG=info kbve/chuckrpg:latest",
+					"docker run -d --name axum-chuckrpg-e2e -p 4324:4322 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4322 -e RUST_LOG=info ghcr.io/kbve/chuckrpg:latest",
 					"npx vitest run; EC=$?; docker rm -f axum-chuckrpg-e2e 2>/dev/null || true; exit $EC"
 				],
 				"parallel": false,
