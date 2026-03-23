@@ -8,6 +8,7 @@ use axum::{
     extract::{Path, State},
     http::HeaderMap,
     middleware,
+    response::IntoResponse,
     routing::{get, post},
 };
 use serde::Deserialize;
@@ -32,6 +33,7 @@ pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
 
     Router::new()
         .route("/health", get(health))
+        .route("/ready", get(readiness).with_state(hs.clone()))
         .merge(public)
         .merge(instance)
         .merge(character)
@@ -45,6 +47,28 @@ async fn health() -> Json<HealthResponse> {
         status: "healthy",
         service: "rows",
     })
+}
+
+/// Deep readiness check — probes DB pool. Returns 503 if database is unavailable.
+async fn readiness(State(hs): State<HandlerState>) -> axum::response::Response {
+    let db_ok = sqlx::query("SELECT 1").execute(&hs.app.db).await.is_ok();
+
+    let status = if db_ok { "ready" } else { "degraded" };
+    let http_status = if db_ok {
+        axum::http::StatusCode::OK
+    } else {
+        axum::http::StatusCode::SERVICE_UNAVAILABLE
+    };
+
+    let body = serde_json::json!({
+        "status": status,
+        "service": "rows",
+        "database": db_ok,
+        "sessions_cached": hs.app.sessions.len(),
+        "zones_tracked": hs.app.zone_servers.len(),
+    });
+
+    (http_status, Json(body)).into_response()
 }
 
 // ─── Public API ──────────────────────────────────────────────
@@ -349,14 +373,65 @@ async fn get_zone_instances(
     Ok(Json(zones))
 }
 
-async fn register_launcher() -> Json<SuccessResponse> {
-    // TODO: persist launcher registration
-    Json(SuccessResponse::ok())
+#[derive(Deserialize)]
+struct RegisterLauncherWrapper {
+    #[serde(rename = "Request")]
+    request: RegisterLauncherPayload,
 }
 
-async fn start_instance_launcher() -> String {
-    // TODO: return world server ID
-    "-1".to_string()
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct RegisterLauncherPayload {
+    #[serde(rename = "launcherGUID")]
+    launcher_guid: String,
+    server_ip: String,
+    max_number_of_instances: i32,
+    internal_server_ip: String,
+    starting_instance_port: i32,
+}
+
+async fn register_launcher(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<RegisterLauncherWrapper>,
+) -> Json<SuccessResponse> {
+    let customer_guid = extract_customer_guid(&headers);
+    let r = &body.request;
+    let repo = crate::repo::InstanceRepo(&hs.app.db);
+    match repo
+        .register_launcher(
+            customer_guid,
+            &r.launcher_guid,
+            &r.server_ip,
+            r.max_number_of_instances,
+            &r.internal_server_ip,
+            r.starting_instance_port,
+        )
+        .await
+    {
+        Ok(id) => {
+            tracing::info!(world_server_id = id, "Launcher registered");
+            Json(SuccessResponse::ok())
+        }
+        Err(e) => Json(SuccessResponse::err(e.to_string())),
+    }
+}
+
+async fn start_instance_launcher(State(hs): State<HandlerState>, headers: HeaderMap) -> String {
+    let customer_guid = extract_customer_guid(&headers);
+    let launcher_guid = headers
+        .get("x-launcherguid")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("");
+
+    let repo = crate::repo::InstanceRepo(&hs.app.db);
+    match repo
+        .register_launcher(customer_guid, launcher_guid, "", 10, "", 7778)
+        .await
+    {
+        Ok(id) => id.to_string(),
+        Err(_) => "-1".to_string(),
+    }
 }
 
 // ─── Character Persistence ───────────────────────────────────

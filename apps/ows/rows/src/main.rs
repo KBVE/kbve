@@ -15,6 +15,9 @@ mod ws;
 
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
+use tower_http::cors::CorsLayer;
+use tower_http::limit::RequestBodyLimitLayer;
 use tracing::info;
 use uuid::Uuid;
 
@@ -57,7 +60,7 @@ async fn main() -> anyhow::Result<()> {
         .parse()?;
     let addr: SocketAddr = format!("{host}:{port}").parse()?;
 
-    // Database
+    // Database with retry
     let pool = db::connect(&database_url).await?;
     info!("Database connected");
 
@@ -75,7 +78,7 @@ async fn main() -> anyhow::Result<()> {
         "Agones initialization complete"
     );
 
-    // Build shared state — single Arc allocation
+    // Build shared state
     let app_state = state::AppState::builder()
         .db(pool)
         .customer_guid(Uuid::parse_str(&api_key)?)
@@ -84,13 +87,13 @@ async fn main() -> anyhow::Result<()> {
         .agones(agones_client)
         .build()?;
 
-    // Transport-agnostic service layer — shared across REST, gRPC, WebSocket
+    // Transport-agnostic service layer
     let svc = Arc::new(service::OWSService::new(app_state.clone()));
 
-    // gRPC services (tonic) — uses OWSService only
+    // gRPC services
     let grpc_router = grpc::router(svc.clone());
 
-    // REST routes (axum) — backward-compat with C# OWS API paths
+    // REST routes (backward-compat)
     let rest_router = rest::router(app_state, svc.clone());
 
     // WebSocket routes
@@ -100,12 +103,42 @@ async fn main() -> anyhow::Result<()> {
     let app = rest_router
         .merge(ws_router)
         .merge(grpc_router.into_axum_router())
-        .layer(axum::middleware::from_fn(trace::request_trace));
+        .layer(axum::middleware::from_fn(trace::request_trace))
+        .layer(RequestBodyLimitLayer::new(10 * 1024 * 1024)) // 10MB max body
+        .layer(CorsLayer::permissive());
 
-    info!("ROWS listening on {addr} (REST + gRPC multiplexed)");
+    info!("ROWS listening on {addr} (REST + gRPC + WS multiplexed)");
 
+    // Graceful shutdown: drain in-flight requests on SIGTERM/SIGINT
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await?;
 
+    info!("ROWS shutdown complete");
     Ok(())
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .expect("failed to install SIGTERM handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => info!("Received Ctrl+C, shutting down..."),
+        _ = terminate => info!("Received SIGTERM, shutting down..."),
+    }
 }
