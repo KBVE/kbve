@@ -943,6 +943,15 @@ case "$1" in
          [ -z "$2" ] && { echo "No argument specified. Usage: $0 -nx [argument]"; exit 1; }
         build_pnpm_nx "$2"
         ;;
+    -ue)
+        # Build + deploy UE5 dedicated server
+        # Usage: ./kbve.sh -ue chuck [version] [--skip-build] [--skip-deploy]
+        #        ./kbve.sh -ue hubworld [version] [--skip-build] [--skip-deploy]
+        shift
+        PROJECT="${1:-chuck}"
+        shift 2>/dev/null || true
+        bash "$(git rev-parse --show-toplevel)/apps/ows/scripts/deploy-server.sh" "$@" "--project=${PROJECT}"
+        ;;
     -worktree)
         shift
         create_worktree "$@"
@@ -1074,6 +1083,11 @@ case "$1" in
         echo "Version:"
         echo "  -cargobump [pkg]   Bump Cargo.toml patch version"
         echo "  -pythonbump [dir]  Bump pyproject.toml patch version"
+        echo ""
+        echo "Game Server:"
+        echo "  -ue <project> [ver] Build + deploy UE5 dedicated server"
+        echo "                      Projects: chuck (default), hubworld"
+        echo "                      Flags: --shipping, --skip-build, --skip-deploy"
         echo ""
         echo "Utilities:"
         echo "  -check [cmds...]   Check if commands are installed"

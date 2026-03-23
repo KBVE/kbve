@@ -1,0 +1,169 @@
+name: Post-Publish Update
+
+on:
+    workflow_call:
+        inputs:
+            app_name:
+                description: 'Application name (e.g., axum-kbve)'
+                required: true
+                type: string
+            version:
+                description: 'Version that was published'
+                required: true
+                type: string
+            version_toml_path:
+                description: 'Path to version.toml'
+                required: true
+                type: string
+            version_target_path:
+                description: 'Path to Cargo.toml/package.json to sync version into'
+                required: false
+                type: string
+                default: ''
+            image_name:
+                description: 'Full image name without tag (e.g., ghcr.io/kbve/kbve)'
+                required: false
+                type: string
+                default: ''
+            deployment_yaml:
+                description: 'Path to kube deployment YAML'
+                required: false
+                type: string
+                default: ''
+        secrets:
+            TRIGGER_PAT:
+                description: 'PAT for pushing atom branches'
+                required: true
+
+jobs:
+    update:
+        name: Post-publish v${{ inputs.version }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+            pull-requests: write
+            actions: write
+        steps:
+            - name: Checkout dev
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+                  token: ${{ secrets.TRIGGER_PAT }}
+
+            - name: Update version.toml
+              run: |
+                  VTOML="${{ inputs.version_toml_path }}"
+                  VERSION="${{ inputs.version }}"
+
+                  if [ -f "$VTOML" ] && grep -q '^version' "$VTOML"; then
+                    sed -i "s/^version = .*/version = \"${VERSION}\"/" "$VTOML"
+                  else
+                    printf 'version = "%s"\npublish = true\n' "$VERSION" > "$VTOML"
+                  fi
+                  echo "Updated $VTOML to $VERSION"
+
+            - name: Sync version target
+              if: inputs.version_target_path != ''
+              run: |
+                  TARGET="${{ inputs.version_target_path }}"
+                  VERSION="${{ inputs.version }}"
+
+                  if [ ! -f "$TARGET" ]; then
+                    echo "::warning::version_target '$TARGET' not found — skipping."
+                    exit 0
+                  fi
+
+                  case "$TARGET" in
+                    *.toml)
+                      sed -i "s/^version = .*/version = \"${VERSION}\"/" "$TARGET"
+                      ;;
+                    *.json)
+                      jq --arg v "$VERSION" '.version = $v' "$TARGET" > "$TARGET.tmp" && mv "$TARGET.tmp" "$TARGET"
+                      ;;
+                    *)
+                      echo "::warning::Unknown file type '$TARGET' — skipping."
+                      exit 0
+                      ;;
+                  esac
+                  echo "Synced $TARGET to $VERSION"
+
+            - name: Update kube deployment manifest
+              if: inputs.deployment_yaml != '' && inputs.image_name != ''
+              run: |
+                  FILE="${{ inputs.deployment_yaml }}"
+                  VERSION="${{ inputs.version }}"
+                  IMAGE="${{ inputs.image_name }}"
+
+                  if [ ! -f "$FILE" ]; then
+                    echo "::warning::deployment_yaml '$FILE' not found — skipping."
+                    exit 0
+                  fi
+
+                  OLD_TAG=$(grep -oP 'image: \S+:\K[^\s"]+' "$FILE" | head -1 || echo "unknown")
+
+                  sed -i "s|image: ${IMAGE}:.*|image: ${IMAGE}:${VERSION}|g" "$FILE"
+                  sed -i "s|version: \"${OLD_TAG}\"|version: \"${VERSION}\"|g" "$FILE"
+
+                  TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+                  sed -i "s|rollout-restart: \".*\"|rollout-restart: \"${TIMESTAMP}\"|g" "$FILE"
+
+                  echo "Updated $FILE: $OLD_TAG → $VERSION"
+
+            - name: Create single atomic PR
+              env:
+                  GITHUB_TOKEN: ${{ secrets.TRIGGER_PAT }}
+              run: |
+                  APP="${{ inputs.app_name }}"
+                  VERSION="${{ inputs.version }}"
+                  BRANCH="atom-post-publish-${APP}-v${VERSION}"
+
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+
+                  # Stage all changed files
+                  git add "${{ inputs.version_toml_path }}"
+                  if [ -n "${{ inputs.version_target_path }}" ] && [ -f "${{ inputs.version_target_path }}" ]; then
+                    git add "${{ inputs.version_target_path }}"
+                  fi
+                  if [ -n "${{ inputs.deployment_yaml }}" ] && [ -f "${{ inputs.deployment_yaml }}" ]; then
+                    git add "${{ inputs.deployment_yaml }}"
+                  fi
+
+                  if git diff --cached --quiet; then
+                    echo "::notice::All files already at v${VERSION} — nothing to commit."
+                    exit 0
+                  fi
+
+                  # Check if branch already exists (handle re-runs)
+                  if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+                    echo "::notice::Branch $BRANCH already exists — skipping."
+                    exit 0
+                  fi
+
+                  git checkout -b "$BRANCH"
+                  git commit -m "chore(${APP}): post-publish sync to v${VERSION} [skip ci]"
+                  git push -u origin "$BRANCH"
+
+                  CHANGED=$(git diff --name-only HEAD~1 | sed 's/^/- `/' | sed 's/$/`/')
+                  BODY=$(cat <<PREOF
+                  ## Post-publish sync for ${APP} v${VERSION}
+
+                  ${CHANGED}
+
+                  All version references updated in a single atomic commit to prevent race conditions.
+
+                  ---
+                  *Auto-generated by utils-post-publish.yml*
+                  PREOF
+                  )
+                  gh pr create \
+                    --base dev \
+                    --head "$BRANCH" \
+                    --title "Atomic: ${APP} v${VERSION} post-publish sync" \
+                    --body "$BODY" \
+                    --label "atomic,auto-pr"
+
+                  PR_NUM=$(gh pr view "$BRANCH" --json number --jq '.number')
+                  echo "Created PR #${PR_NUM}"
+                  gh workflow run ci-auto-merge-bot-prs.yml --field pr_number="${PR_NUM}" --repo ${{ github.repository }} || true

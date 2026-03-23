@@ -2,15 +2,19 @@
 set -euo pipefail
 
 # OWS Dedicated Server — Build & Deploy to PVC
-# Usage: ./deploy-server.sh [version] [--skip-build] [--skip-deploy]
+# Usage: ./deploy-server.sh [version] [--skip-build] [--skip-deploy] [--project chuck|hubworld] [--shipping]
 #
-# Builds HubWorldMMO Linux dedicated server in Docker,
+# Builds a UE5 Linux dedicated server in Docker,
 # then uploads to the ows-server-build PVC in arc-runners namespace.
+#
+# Projects:
+#   chuck    — Chuck/Chuck.uproject with ChuckServer target (default)
+#   hubworld — HubWorldMMO/OWSHubWorldMMO.uproject with OWSHubWorldMMOServer target
 #
 # Requirements:
 #   - Docker Desktop running
 #   - kubectl configured with cluster access
-#   - ghcr.io/epicgames/unreal-engine:dev-5.7.3 pulled locally
+#   - UE_IMAGE pulled locally
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
@@ -23,60 +27,95 @@ PVC_POD="ows-server-sync"
 
 SKIP_BUILD=false
 SKIP_DEPLOY=false
+PROJECT="chuck"
+SERVER_CONFIG="Development"
 
 for arg in "$@"; do
     case "$arg" in
         --skip-build)  SKIP_BUILD=true ;;
         --skip-deploy) SKIP_DEPLOY=true ;;
+        --shipping)    SERVER_CONFIG="Shipping" ;;
+        --project=*)   PROJECT="${arg#--project=}" ;;
+        chuck)         PROJECT="chuck" ;;
+        hubworld)      PROJECT="hubworld" ;;
     esac
 done
 
+# Project configuration
+case "$PROJECT" in
+    chuck)
+        UPROJECT_PATH="Chuck/Chuck.uproject"
+        SERVER_TARGET="ChuckServer"
+        SERVER_BIN_NAME="ChuckServer"
+        ;;
+    hubworld)
+        UPROJECT_PATH="HubWorldMMO/OWSHubWorldMMO.uproject"
+        SERVER_TARGET="OWSHubWorldMMOServer"
+        SERVER_BIN_NAME="OWSHubWorldMMOServer"
+        ;;
+    *)
+        echo "ERROR: Unknown project '${PROJECT}'. Use: chuck or hubworld"
+        exit 1
+        ;;
+esac
+
 echo "=== OWS Dedicated Server Deploy ==="
-echo "  Version:  ${VERSION}"
-echo "  Chuck:    ${CHUCK_DIR}"
+echo "  Project: ${PROJECT} (${SERVER_TARGET})"
+echo "  Config:  ${SERVER_CONFIG}"
+echo "  Version: ${VERSION}"
+echo "  Chuck:   ${CHUCK_DIR}"
 echo "  UE Image: ${UE_IMAGE}"
-echo "  Output:   ${OUTPUT_DIR}"
+echo "  Output:  ${OUTPUT_DIR}"
 echo ""
 
 # ── Validate ──────────────────────────────────────────────
-if [ ! -d "${CHUCK_DIR}/HubWorldMMO" ]; then
-    echo "ERROR: HubWorldMMO not found at ${CHUCK_DIR}/HubWorldMMO"
+if [ ! -f "${CHUCK_DIR}/${UPROJECT_PATH}" ]; then
+    echo "ERROR: Project not found at ${CHUCK_DIR}/${UPROJECT_PATH}"
     echo "Set CHUCK_DIR to the path of the chuck repo."
     exit 1
 fi
 
 # ── Build ─────────────────────────────────────────────────
 if [ "${SKIP_BUILD}" = false ]; then
-    echo ">>> Building Linux dedicated server in Docker..."
+    echo ">>> Building ${PROJECT} Linux dedicated server in Docker..."
     mkdir -p "${OUTPUT_DIR}"
     rm -rf "${OUTPUT_DIR:?}"/*
 
+    # Mount source as read-only, copy to writable location inside container.
+    # UE5 BuildCookRun writes to the project's Intermediate/ directory.
     docker run --rm \
-        -v "${CHUCK_DIR}:/tmp/chuck:ro" \
+        -v "${CHUCK_DIR}:/tmp/chuck-src:ro" \
         -v "${OUTPUT_DIR}:/tmp/ows-server-output" \
         "${UE_IMAGE}" \
-        /home/ue4/UnrealEngine/Engine/Build/BatchFiles/RunUAT.sh BuildCookRun \
-            -project=/tmp/chuck/HubWorldMMO/OWSHubWorldMMO.uproject \
-            -targetplatform=Linux \
-            -target=OWSHubWorldMMOServer \
-            -server \
-            -serverconfig=Development \
-            -cook \
-            -allmaps \
-            -build \
-            -stage \
-            -pak \
-            -archive \
-            -archivedirectory=/tmp/ows-server-output \
-            -unattended \
-            -utf8output \
-            -NoP4
+        bash -c "
+            cp -r /tmp/chuck-src /tmp/chuck && \
+            /home/ue4/UnrealEngine/Engine/Build/BatchFiles/RunUAT.sh BuildCookRun \
+                -project=/tmp/chuck/${UPROJECT_PATH} \
+                -targetplatform=Linux \
+                -target=${SERVER_TARGET} \
+                -server \
+                -serverconfig=${SERVER_CONFIG} \
+                -cook \
+                -allmaps \
+                -build \
+                -stage \
+                -pak \
+                -archive \
+                -archivedirectory=/tmp/ows-server-output \
+                -unattended \
+                -utf8output \
+                -NoP4
+        "
 
     if [ ! -d "${OUTPUT_DIR}/LinuxServer" ]; then
         echo "ERROR: Build succeeded but LinuxServer output not found."
         find "${OUTPUT_DIR}" -maxdepth 2 -type d
         exit 1
     fi
+
+    # Ensure binary is executable
+    find "${OUTPUT_DIR}/LinuxServer" -name "*.sh" -exec chmod 755 {} \;
+    find "${OUTPUT_DIR}/LinuxServer" -name "${SERVER_BIN_NAME}" -exec chmod 755 {} \;
 
     echo ">>> Build complete: $(du -sh "${OUTPUT_DIR}/LinuxServer" | cut -f1)"
 else
@@ -99,10 +138,16 @@ metadata:
   name: ${PVC_POD}
   namespace: ${PVC_NAMESPACE}
 spec:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
   containers:
     - name: sync
       image: busybox:1.37
       command: ["sleep", "600"]
+      securityContext:
+        allowPrivilegeEscalation: false
       volumeMounts:
         - name: server-build
           mountPath: /mnt/ows-server
@@ -122,9 +167,12 @@ PODEOF
     cd "${OUTPUT_DIR}"
     tar cf - LinuxServer | kubectl exec -i "${PVC_POD}" -n "${PVC_NAMESPACE}" -- tar xf - -C "/mnt/ows-server/${VERSION}/"
 
-    # Update latest symlink
+    # Ensure permissions
+    kubectl exec "${PVC_POD}" -n "${PVC_NAMESPACE}" -- chmod -R 755 "/mnt/ows-server/${VERSION}/"
+
+    # Update latest symlink (use relative path so it works regardless of mount point)
     kubectl exec "${PVC_POD}" -n "${PVC_NAMESPACE}" -- \
-        ln -sfn "/mnt/ows-server/${VERSION}" /mnt/ows-server/latest
+        ln -sfn "${VERSION}" /mnt/ows-server/latest
 
     # Show result
     echo ""
@@ -135,7 +183,8 @@ PODEOF
     kubectl delete pod "${PVC_POD}" -n "${PVC_NAMESPACE}" --grace-period=0
 
     echo ""
-    echo ">>> Server v${VERSION} deployed. OWSInstanceLauncher will use /mnt/ows-server/latest/"
+    echo ">>> Server v${VERSION} (${PROJECT}) deployed."
+    echo ">>> Agones Fleet will use /server/${VERSION}/LinuxServer/${SERVER_BIN_NAME}.sh"
 else
     echo ">>> Skipping deploy (--skip-deploy)"
 fi
