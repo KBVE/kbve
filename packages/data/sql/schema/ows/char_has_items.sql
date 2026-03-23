@@ -14,3 +14,10 @@ CREATE TABLE CharHasItems
     CONSTRAINT FK_CharHasItems_CharacterID
         FOREIGN KEY (CustomerGUID, CharacterID) REFERENCES Characters (CustomerGUID, CharacterID)
 );
+
+-- Security: CharHasItems
+ALTER TABLE CharHasItems ENABLE ROW LEVEL SECURITY;
+ALTER TABLE CharHasItems FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON CharHasItems FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharHasItems TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharHasItems TO ows;

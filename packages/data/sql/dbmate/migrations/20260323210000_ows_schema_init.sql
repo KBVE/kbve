@@ -2,12 +2,17 @@
 
 -- OWS (Open World Server) schema initialization
 -- Source: chuck/OWS/src/.docker/postgres/setup.sql + cumulative updates
--- 37 tables for the OWS game server framework
+-- 37 tables with RLS enabled, access restricted to service_role and ows
 
 CREATE SCHEMA IF NOT EXISTS ows;
 SET search_path TO ows;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto SCHEMA public;
+
+-- Schema-level security: block anon/authenticated/public from ows schema
+REVOKE ALL ON SCHEMA ows FROM anon, authenticated, PUBLIC;
+GRANT USAGE ON SCHEMA ows TO service_role;
+GRANT USAGE ON SCHEMA ows TO ows;
 
 CREATE TABLE DebugLog
 (
@@ -18,6 +23,12 @@ CREATE TABLE DebugLog
     DebugDesc    TEXT,
     CustomerGUID UUID
 );
+-- Security: DebugLog
+ALTER TABLE DebugLog ENABLE ROW LEVEL SECURITY;
+ALTER TABLE DebugLog FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON DebugLog FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON DebugLog TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON DebugLog TO ows;
 
 CREATE TABLE Customers
 (
@@ -38,11 +49,23 @@ CREATE TABLE Customers
     CreateDate         TIMESTAMP   DEFAULT NOW()             NOT NULL,
     NoPortForwarding   BOOLEAN         DEFAULT FALSE            NOT NULL
 );
+-- Security: Customers
+ALTER TABLE Customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Customers FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON Customers FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Customers TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Customers TO ows;
 
 CREATE TABLE OWSVersion
 (
     OWSDBVersion VARCHAR(10) NULL
 );
+-- Security: OWSVersion
+ALTER TABLE OWSVersion ENABLE ROW LEVEL SECURITY;
+ALTER TABLE OWSVersion FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON OWSVersion FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON OWSVersion TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON OWSVersion TO ows;
 
 CREATE TABLE WorldSettings
 (
@@ -52,6 +75,12 @@ CREATE TABLE WorldSettings
     CONSTRAINT PK_WorldSettings
         PRIMARY KEY (CustomerGUID, WorldSettingsID)
 );
+-- Security: WorldSettings
+ALTER TABLE WorldSettings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE WorldSettings FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON WorldSettings FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON WorldSettings TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON WorldSettings TO ows;
 
 CREATE TABLE AbilityTypes
 (
@@ -61,6 +90,12 @@ CREATE TABLE AbilityTypes
     CONSTRAINT PK_AbilityTypes
         PRIMARY KEY (AbilityTypeID, CustomerGUID)
 );
+-- Security: AbilityTypes
+ALTER TABLE AbilityTypes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE AbilityTypes FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON AbilityTypes FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON AbilityTypes TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON AbilityTypes TO ows;
 
 CREATE TABLE Abilities
 (
@@ -78,6 +113,12 @@ CREATE TABLE Abilities
     CONSTRAINT FK_Abilities_AbilityTypes
         FOREIGN KEY (CustomerGUID, AbilityTypeID) REFERENCES AbilityTypes (CustomerGUID, AbilityTypeID)
 );
+-- Security: Abilities
+ALTER TABLE Abilities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Abilities FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON Abilities FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Abilities TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Abilities TO ows;
 
 CREATE TABLE AreaOfInterestTypes
 (
@@ -86,6 +127,12 @@ CREATE TABLE AreaOfInterestTypes
             PRIMARY KEY,
     AreaOfInterestTypeDesc VARCHAR(50) NOT NULL
 );
+-- Security: AreaOfInterestTypes
+ALTER TABLE AreaOfInterestTypes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE AreaOfInterestTypes FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON AreaOfInterestTypes FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON AreaOfInterestTypes TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON AreaOfInterestTypes TO ows;
 
 CREATE TABLE AreasOfInterest
 (
@@ -105,6 +152,12 @@ CREATE TABLE AreasOfInterest
     CONSTRAINT PK_AreasOfInterest
         PRIMARY KEY (CustomerGUID, AreasOfInterestGUID)
 );
+-- Security: AreasOfInterest
+ALTER TABLE AreasOfInterest ENABLE ROW LEVEL SECURITY;
+ALTER TABLE AreasOfInterest FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON AreasOfInterest FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON AreasOfInterest TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON AreasOfInterest TO ows;
 
 CREATE TABLE Users
 (
@@ -122,6 +175,12 @@ CREATE TABLE Users
     CONSTRAINT AK_User
         UNIQUE (CustomerGUID, Email, Role)
 );
+-- Security: Users
+ALTER TABLE Users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Users FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON Users FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Users TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Users TO ows;
 
 CREATE TABLE Characters
 (
@@ -229,6 +288,12 @@ CREATE TABLE Characters
     CONSTRAINT FK_Characters_UserGUID
         FOREIGN KEY (UserGUID) REFERENCES Users (UserGUID)
 );
+-- Security: Characters
+ALTER TABLE Characters ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Characters FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON Characters FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Characters TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Characters TO ows;
 
 CREATE TABLE CharHasAbilities
 (
@@ -243,6 +308,12 @@ CREATE TABLE CharHasAbilities
     CONSTRAINT FK_CharHasAbilities_CharacterID
         FOREIGN KEY (CustomerGUID, CharacterID) REFERENCES Characters (CustomerGUID, CharacterID)
 );
+-- Security: CharHasAbilities
+ALTER TABLE CharHasAbilities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE CharHasAbilities FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON CharHasAbilities FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharHasAbilities TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharHasAbilities TO ows;
 
 CREATE TABLE CharAbilityBars
 (
@@ -256,6 +327,12 @@ CREATE TABLE CharAbilityBars
     CONSTRAINT PK_CharAbilityBars
         PRIMARY KEY (CustomerGUID, CharAbilityBarID)
 );
+-- Security: CharAbilityBars
+ALTER TABLE CharAbilityBars ENABLE ROW LEVEL SECURITY;
+ALTER TABLE CharAbilityBars FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON CharAbilityBars FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharAbilityBars TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharAbilityBars TO ows;
 
 CREATE TABLE CharAbilityBarAbilities
 (
@@ -272,6 +349,12 @@ CREATE TABLE CharAbilityBarAbilities
     CONSTRAINT FK_CharAbilityBarAbilities_CharHasAbilities
         FOREIGN KEY (CustomerGUID, CharHasAbilitiesID) REFERENCES CharHasAbilities (CustomerGUID, CharHasAbilitiesID)
 );
+-- Security: CharAbilityBarAbilities
+ALTER TABLE CharAbilityBarAbilities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE CharAbilityBarAbilities FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON CharAbilityBarAbilities FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharAbilityBarAbilities TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharAbilityBarAbilities TO ows;
 
 CREATE TABLE CharHasItems
 (
@@ -286,6 +369,12 @@ CREATE TABLE CharHasItems
     CONSTRAINT FK_CharHasItems_CharacterID
         FOREIGN KEY (CustomerGUID, CharacterID) REFERENCES Characters (CustomerGUID, CharacterID)
 );
+-- Security: CharHasItems
+ALTER TABLE CharHasItems ENABLE ROW LEVEL SECURITY;
+ALTER TABLE CharHasItems FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON CharHasItems FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharHasItems TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharHasItems TO ows;
 
 CREATE TABLE CharInventory
 (
@@ -299,6 +388,12 @@ CREATE TABLE CharInventory
     CONSTRAINT PK_CharInventory
         PRIMARY KEY (CustomerGUID, CharacterID, CharInventoryID)
 );
+-- Security: CharInventory
+ALTER TABLE CharInventory ENABLE ROW LEVEL SECURITY;
+ALTER TABLE CharInventory FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON CharInventory FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharInventory TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharInventory TO ows;
 
 CREATE TABLE CharInventoryItems
 (
@@ -315,6 +410,12 @@ CREATE TABLE CharInventoryItems
     CONSTRAINT PK_CharInventoryItems
         PRIMARY KEY (CustomerGUID, CharInventoryID, CharInventoryItemID)
 );
+-- Security: CharInventoryItems
+ALTER TABLE CharInventoryItems ENABLE ROW LEVEL SECURITY;
+ALTER TABLE CharInventoryItems FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON CharInventoryItems FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharInventoryItems TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharInventoryItems TO ows;
 
 CREATE TABLE CharOnMapInstance
 (
@@ -324,6 +425,12 @@ CREATE TABLE CharOnMapInstance
     CONSTRAINT PK_CharOnMapInstance
         PRIMARY KEY (CustomerGUID, CharacterID, MapInstanceID)
 );
+-- Security: CharOnMapInstance
+ALTER TABLE CharOnMapInstance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE CharOnMapInstance FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON CharOnMapInstance FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharOnMapInstance TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharOnMapInstance TO ows;
 
 CREATE TABLE ChatGroups
 (
@@ -333,6 +440,12 @@ CREATE TABLE ChatGroups
     CONSTRAINT PK_ChatGroups
         PRIMARY KEY (CustomerGUID, ChatGroupID)
 );
+-- Security: ChatGroups
+ALTER TABLE ChatGroups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ChatGroups FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON ChatGroups FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ChatGroups TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ChatGroups TO ows;
 
 CREATE TABLE ChatGroupUsers
 (
@@ -342,6 +455,12 @@ CREATE TABLE ChatGroupUsers
     CONSTRAINT PK_ChatGroupUsers
         PRIMARY KEY (CustomerGUID, ChatGroupID, CharacterID)
 );
+-- Security: ChatGroupUsers
+ALTER TABLE ChatGroupUsers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ChatGroupUsers FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON ChatGroupUsers FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ChatGroupUsers TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ChatGroupUsers TO ows;
 
 CREATE TABLE ChatMessages
 (
@@ -355,6 +474,12 @@ CREATE TABLE ChatMessages
     CONSTRAINT PK_ChatMessages
         PRIMARY KEY (CustomerGUID, ChatMessageID)
 );
+-- Security: ChatMessages
+ALTER TABLE ChatMessages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ChatMessages FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON ChatMessages FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ChatMessages TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ChatMessages TO ows;
 
 CREATE TABLE Class
 (
@@ -449,6 +574,12 @@ CREATE TABLE Class
     CONSTRAINT PK_Class
         PRIMARY KEY (CustomerGUID, ClassID)
 );
+-- Security: Class
+ALTER TABLE Class ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Class FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON Class FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Class TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Class TO ows;
 
 CREATE TABLE ClassInventory
 (
@@ -462,6 +593,12 @@ CREATE TABLE ClassInventory
     CONSTRAINT PK_ClassInventory
         PRIMARY KEY (ClassInventoryID)
 );
+-- Security: ClassInventory
+ALTER TABLE ClassInventory ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ClassInventory FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON ClassInventory FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ClassInventory TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ClassInventory TO ows;
 
 CREATE TABLE CustomCharacterData
 (
@@ -475,6 +612,12 @@ CREATE TABLE CustomCharacterData
     CONSTRAINT FK_CustomCharacterData_CharID
         FOREIGN KEY (CustomerGUID, CharacterID) REFERENCES Characters (CustomerGUID, CharacterID)
 );
+-- Security: CustomCharacterData
+ALTER TABLE CustomCharacterData ENABLE ROW LEVEL SECURITY;
+ALTER TABLE CustomCharacterData FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON CustomCharacterData FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CustomCharacterData TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CustomCharacterData TO ows;
 
 CREATE TABLE DefaultCharacterValues
 (
@@ -491,6 +634,12 @@ CREATE TABLE DefaultCharacterValues
     CONSTRAINT PK_DefaultCharacterValues
         PRIMARY KEY (DefaultCharacterValuesID, CustomerGUID)
 );
+-- Security: DefaultCharacterValues
+ALTER TABLE DefaultCharacterValues ENABLE ROW LEVEL SECURITY;
+ALTER TABLE DefaultCharacterValues FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON DefaultCharacterValues FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON DefaultCharacterValues TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON DefaultCharacterValues TO ows;
 
 CREATE TABLE DefaultCustomCharacterData
 (
@@ -504,6 +653,12 @@ CREATE TABLE DefaultCustomCharacterData
     CONSTRAINT FK_DefaultCustomCharacterData_DefaultCharacterValueID
         FOREIGN KEY (DefaultCharacterValuesID, CustomerGUID) REFERENCES DefaultCharacterValues (DefaultCharacterValuesID, CustomerGUID)
 );
+-- Security: DefaultCustomCharacterData
+ALTER TABLE DefaultCustomCharacterData ENABLE ROW LEVEL SECURITY;
+ALTER TABLE DefaultCustomCharacterData FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON DefaultCustomCharacterData FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON DefaultCustomCharacterData TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON DefaultCustomCharacterData TO ows;
 
 CREATE TABLE GlobalData
 (
@@ -513,6 +668,12 @@ CREATE TABLE GlobalData
     CONSTRAINT PK_GlobalData
         PRIMARY KEY (CustomerGUID, GlobalDataKey)
 );
+-- Security: GlobalData
+ALTER TABLE GlobalData ENABLE ROW LEVEL SECURITY;
+ALTER TABLE GlobalData FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON GlobalData FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON GlobalData TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON GlobalData TO ows;
 
 CREATE TABLE ItemTypes
 (
@@ -526,6 +687,12 @@ CREATE TABLE ItemTypes
     CONSTRAINT PK_ItemTypes
         PRIMARY KEY (CustomerGUID, ItemTypeID)
 );
+-- Security: ItemTypes
+ALTER TABLE ItemTypes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ItemTypes FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON ItemTypes FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ItemTypes TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ItemTypes TO ows;
 
 CREATE TABLE Items
 (
@@ -562,6 +729,12 @@ CREATE TABLE Items
     CONSTRAINT PK_Items
         PRIMARY KEY (CustomerGUID, ItemID)
 );
+-- Security: Items
+ALTER TABLE Items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Items FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON Items FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Items TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Items TO ows;
 
 CREATE TABLE MapInstances
 (
@@ -579,6 +752,12 @@ CREATE TABLE MapInstances
     CONSTRAINT PK_MapInstances
         PRIMARY KEY (CustomerGUID, MapInstanceID)
 );
+-- Security: MapInstances
+ALTER TABLE MapInstances ENABLE ROW LEVEL SECURITY;
+ALTER TABLE MapInstances FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON MapInstances FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON MapInstances TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON MapInstances TO ows;
 
 CREATE TABLE Maps
 (
@@ -598,6 +777,12 @@ CREATE TABLE Maps
     CONSTRAINT PK_Maps
         PRIMARY KEY (CustomerGUID, MapID)
 );
+-- Security: Maps
+ALTER TABLE Maps ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Maps FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON Maps FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Maps TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Maps TO ows;
 
 CREATE TABLE PlayerGroupTypes
 (
@@ -606,6 +791,12 @@ CREATE TABLE PlayerGroupTypes
     CONSTRAINT PK_PlayerGroupTypes
         PRIMARY KEY (PlayerGroupTypeID)
 );
+-- Security: PlayerGroupTypes
+ALTER TABLE PlayerGroupTypes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE PlayerGroupTypes FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON PlayerGroupTypes FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON PlayerGroupTypes TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON PlayerGroupTypes TO ows;
 
 CREATE TABLE PlayerGroup
 (
@@ -620,6 +811,12 @@ CREATE TABLE PlayerGroup
     CONSTRAINT FK_PlayerGroup_PlayerGroupType
         FOREIGN KEY (PlayerGroupTypeID) REFERENCES PlayerGroupTypes (PlayerGroupTypeID)
 );
+-- Security: PlayerGroup
+ALTER TABLE PlayerGroup ENABLE ROW LEVEL SECURITY;
+ALTER TABLE PlayerGroup FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON PlayerGroup FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON PlayerGroup TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON PlayerGroup TO ows;
 
 CREATE TABLE PlayerGroupCharacters
 (
@@ -631,6 +828,12 @@ CREATE TABLE PlayerGroupCharacters
     CONSTRAINT PK_PlayerGroupCharacters
         PRIMARY KEY (PlayerGroupID, CustomerGUID, CharacterID)
 );
+-- Security: PlayerGroupCharacters
+ALTER TABLE PlayerGroupCharacters ENABLE ROW LEVEL SECURITY;
+ALTER TABLE PlayerGroupCharacters FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON PlayerGroupCharacters FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON PlayerGroupCharacters TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON PlayerGroupCharacters TO ows;
 
 CREATE TABLE Races
 (
@@ -640,6 +843,12 @@ CREATE TABLE Races
     CONSTRAINT PK_Races
         PRIMARY KEY (CustomerGUID, RaceID)
 );
+-- Security: Races
+ALTER TABLE Races ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Races FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON Races FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Races TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Races TO ows;
 
 CREATE TABLE UserSessions
 (
@@ -653,6 +862,12 @@ CREATE TABLE UserSessions
     CONSTRAINT FK_UserSessions_UserGUID
         FOREIGN KEY (UserGUID) REFERENCES Users (UserGUID)
 );
+-- Security: UserSessions
+ALTER TABLE UserSessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE UserSessions FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON UserSessions FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON UserSessions TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON UserSessions TO ows;
 
 CREATE TABLE UsersInQueue
 (
@@ -664,6 +879,12 @@ CREATE TABLE UsersInQueue
     CONSTRAINT PK_UsersInQueue
         PRIMARY KEY (CustomerGUID, UserGUID, QueueName)
 );
+-- Security: UsersInQueue
+ALTER TABLE UsersInQueue ENABLE ROW LEVEL SECURITY;
+ALTER TABLE UsersInQueue FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON UsersInQueue FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON UsersInQueue TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON UsersInQueue TO ows;
 
 CREATE TABLE WorldServers
 (
@@ -682,6 +903,16 @@ CREATE TABLE WorldServers
     CONSTRAINT AK_ZoneServers
         UNIQUE (CustomerGUID, ZoneServerGUID)
 );
+-- Security: WorldServers
+ALTER TABLE WorldServers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE WorldServers FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON WorldServers FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON WorldServers TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON WorldServers TO ows;
+
+-- Grant sequence access for SERIAL columns
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ows TO service_role;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ows TO ows;
 
 
 -- migrate:down

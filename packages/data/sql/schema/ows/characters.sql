@@ -107,3 +107,10 @@ CREATE TABLE Characters
     CONSTRAINT FK_Characters_UserGUID
         FOREIGN KEY (UserGUID) REFERENCES Users (UserGUID)
 );
+
+-- Security: Characters
+ALTER TABLE Characters ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Characters FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON Characters FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Characters TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Characters TO ows;

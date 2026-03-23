@@ -13,3 +13,10 @@ CREATE TABLE DefaultCustomCharacterData
     CONSTRAINT FK_DefaultCustomCharacterData_DefaultCharacterValueID
         FOREIGN KEY (DefaultCharacterValuesID, CustomerGUID) REFERENCES DefaultCharacterValues (DefaultCharacterValuesID, CustomerGUID)
 );
+
+-- Security: DefaultCustomCharacterData
+ALTER TABLE DefaultCustomCharacterData ENABLE ROW LEVEL SECURITY;
+ALTER TABLE DefaultCustomCharacterData FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON DefaultCustomCharacterData FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON DefaultCustomCharacterData TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON DefaultCustomCharacterData TO ows;

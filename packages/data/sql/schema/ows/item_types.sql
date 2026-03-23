@@ -13,3 +13,10 @@ CREATE TABLE ItemTypes
     CONSTRAINT PK_ItemTypes
         PRIMARY KEY (CustomerGUID, ItemTypeID)
 );
+
+-- Security: ItemTypes
+ALTER TABLE ItemTypes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ItemTypes FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON ItemTypes FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ItemTypes TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ItemTypes TO ows;

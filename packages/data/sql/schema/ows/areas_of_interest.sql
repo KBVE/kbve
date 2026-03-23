@@ -19,3 +19,10 @@ CREATE TABLE AreasOfInterest
     CONSTRAINT PK_AreasOfInterest
         PRIMARY KEY (CustomerGUID, AreasOfInterestGUID)
 );
+
+-- Security: AreasOfInterest
+ALTER TABLE AreasOfInterest ENABLE ROW LEVEL SECURITY;
+ALTER TABLE AreasOfInterest FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON AreasOfInterest FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON AreasOfInterest TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON AreasOfInterest TO ows;

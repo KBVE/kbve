@@ -17,3 +17,10 @@ CREATE TABLE MapInstances
     CONSTRAINT PK_MapInstances
         PRIMARY KEY (CustomerGUID, MapInstanceID)
 );
+
+-- Security: MapInstances
+ALTER TABLE MapInstances ENABLE ROW LEVEL SECURITY;
+ALTER TABLE MapInstances FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON MapInstances FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON MapInstances TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON MapInstances TO ows;

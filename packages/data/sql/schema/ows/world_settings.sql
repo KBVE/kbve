@@ -9,3 +9,10 @@ CREATE TABLE WorldSettings
     CONSTRAINT PK_WorldSettings
         PRIMARY KEY (CustomerGUID, WorldSettingsID)
 );
+
+-- Security: WorldSettings
+ALTER TABLE WorldSettings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE WorldSettings FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON WorldSettings FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON WorldSettings TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON WorldSettings TO ows;

@@ -20,3 +20,10 @@ CREATE TABLE Customers
     CreateDate         TIMESTAMP   DEFAULT NOW()             NOT NULL,
     NoPortForwarding   BOOLEAN         DEFAULT FALSE            NOT NULL
 );
+
+-- Security: Customers
+ALTER TABLE Customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Customers FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON Customers FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Customers TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Customers TO ows;

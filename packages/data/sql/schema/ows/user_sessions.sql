@@ -13,3 +13,10 @@ CREATE TABLE UserSessions
     CONSTRAINT FK_UserSessions_UserGUID
         FOREIGN KEY (UserGUID) REFERENCES Users (UserGUID)
 );
+
+-- Security: UserSessions
+ALTER TABLE UserSessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE UserSessions FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON UserSessions FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON UserSessions TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON UserSessions TO ows;

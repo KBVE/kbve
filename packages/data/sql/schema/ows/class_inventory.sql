@@ -13,3 +13,10 @@ CREATE TABLE ClassInventory
     CONSTRAINT PK_ClassInventory
         PRIMARY KEY (ClassInventoryID)
 );
+
+-- Security: ClassInventory
+ALTER TABLE ClassInventory ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ClassInventory FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON ClassInventory FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ClassInventory TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ClassInventory TO ows;
