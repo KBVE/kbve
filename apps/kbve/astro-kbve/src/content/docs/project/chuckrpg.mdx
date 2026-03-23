@@ -18,7 +18,8 @@ version_target: apps/chuckrpg/axum-chuckrpg/Cargo.toml
 runner: ubuntu-latest
 image: kbve/chuckrpg
 deployment_yaml: apps/kube/chuckrpg/manifest/deployment.yaml
-has_test: false
+e2e_name: axum-chuckrpg-e2e
+has_test: true
 author: h0lybyte
 license: KBVE
 status: beta
