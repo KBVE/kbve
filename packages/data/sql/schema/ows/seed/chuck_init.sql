@@ -1,5 +1,6 @@
 -- Chuck OWS Seed Data
 -- Parameterized — no secrets in this file.
+-- Wrapped in a transaction — all-or-nothing. Aborts if customer already exists.
 --
 -- Usage:
 --   kubectl port-forward -n kilobase svc/supabase-cluster-rw 54322:5432
@@ -11,52 +12,56 @@
 
 SET search_path TO ows;
 
+BEGIN;
+
 DO $$
     DECLARE _CustomerGUID UUID;
     DECLARE _ServerIP TEXT;
     DECLARE _DefaultCharacterValuesID INT;
+    DECLARE _Existing INT;
 BEGIN
 
     _CustomerGUID := :'customer_guid';
     _ServerIP := :'server_ip';
 
+    -- Guard: abort if customer already seeded
+    SELECT COUNT(*) INTO _Existing FROM Customers WHERE CustomerGUID = _CustomerGUID;
+    IF _Existing > 0 THEN
+        RAISE NOTICE 'Customer % already exists — skipping seed.', _CustomerGUID;
+        RETURN;
+    END IF;
+
     RAISE NOTICE 'Chuck seed: CustomerGUID=%, ServerIP=%', _CustomerGUID, _ServerIP;
 
     -- Customer record
     INSERT INTO Customers (CustomerGUID, CustomerName, CustomerEmail, EnableAutoLoopBack, NoPortForwarding)
-    VALUES (_CustomerGUID, 'Chuck', 'admin@chuckrpg.com', true, true)
-    ON CONFLICT (CustomerGUID) DO NOTHING;
+    VALUES (_CustomerGUID, 'Chuck', 'admin@chuckrpg.com', true, true);
 
     -- MainWorld zone
-    IF NOT EXISTS (SELECT 1 FROM Maps WHERE CustomerGUID = _CustomerGUID AND ZoneName = 'MainWorld') THEN
-        INSERT INTO Maps (CustomerGUID, MapName, MapData, Width, Height, ZoneName, WorldCompContainsFilter, WorldCompListFilter, MapMode, SoftPlayerCap, HardPlayerCap, MinutesToShutdownAfterEmpty)
-        VALUES (_CustomerGUID, 'Lvl_ThirdPerson', NULL, 1, 1, 'MainWorld', '', '', 1, 60, 80, 1);
-        RAISE NOTICE 'Created MainWorld zone';
-    END IF;
+    INSERT INTO Maps (CustomerGUID, MapName, MapData, Width, Height, ZoneName, WorldCompContainsFilter, WorldCompListFilter, MapMode, SoftPlayerCap, HardPlayerCap, MinutesToShutdownAfterEmpty)
+    VALUES (_CustomerGUID, 'Lvl_ThirdPerson', NULL, 1, 1, 'MainWorld', '', '', 1, 60, 80, 1);
+    RAISE NOTICE 'Created MainWorld zone';
 
     -- World server
-    IF NOT EXISTS (SELECT 1 FROM WorldServers WHERE CustomerGUID = _CustomerGUID) THEN
-        INSERT INTO WorldServers (CustomerGUID, ServerIP, InternalServerIP, MaxNumberOfInstances, Port, ServerStatus, StartingMapInstancePort)
-        VALUES (_CustomerGUID, _ServerIP, '127.0.0.1', 10, 8181, 0, 7778);
-        RAISE NOTICE 'Created world server: %', _ServerIP;
-    END IF;
+    INSERT INTO WorldServers (CustomerGUID, ServerIP, InternalServerIP, MaxNumberOfInstances, Port, ServerStatus, StartingMapInstancePort)
+    VALUES (_CustomerGUID, _ServerIP, '127.0.0.1', 10, 8181, 0, 7778);
+    RAISE NOTICE 'Created world server: %', _ServerIP;
 
     -- Default character values
-    IF NOT EXISTS (SELECT 1 FROM DefaultCharacterValues WHERE CustomerGUID = _CustomerGUID AND DefaultSetName = 'Default') THEN
-        INSERT INTO DefaultCharacterValues (CustomerGUID, DefaultSetName, StartingMapName, X, Y, Z, RX, RY, RZ)
-        VALUES (_CustomerGUID, 'Default', 'MainWorld', -11, 19, 310, 0, 0, 0);
+    INSERT INTO DefaultCharacterValues (CustomerGUID, DefaultSetName, StartingMapName, X, Y, Z, RX, RY, RZ)
+    VALUES (_CustomerGUID, 'Default', 'MainWorld', -11, 19, 310, 0, 0, 0);
 
-        _DefaultCharacterValuesID := CURRVAL(PG_GET_SERIAL_SEQUENCE('defaultcharactervalues', 'defaultcharactervaluesid'));
+    _DefaultCharacterValuesID := CURRVAL(PG_GET_SERIAL_SEQUENCE('defaultcharactervalues', 'defaultcharactervaluesid'));
 
-        INSERT INTO DefaultCustomCharacterData (CustomerGUID, DefaultCharacterValuesID, CustomFieldName, FieldValue) VALUES
-            (_CustomerGUID, _DefaultCharacterValuesID, 'SkillTrees', '{"active": [], "saved": {}}'),
-            (_CustomerGUID, _DefaultCharacterValuesID, 'Professions', '{"major": [], "minor": {}}'),
-            (_CustomerGUID, _DefaultCharacterValuesID, 'ActionBars', '{"bars": []}'),
-            (_CustomerGUID, _DefaultCharacterValuesID, 'BagInventory', '{"items": []}'),
-            (_CustomerGUID, _DefaultCharacterValuesID, 'BaseCharacterStats', '{"Strength": 10, "Agility": 10, "Constitution": 10, "Intellect": 10, "Wisdom": 10, "Charisma": 10}');
+    INSERT INTO DefaultCustomCharacterData (CustomerGUID, DefaultCharacterValuesID, CustomFieldName, FieldValue) VALUES
+        (_CustomerGUID, _DefaultCharacterValuesID, 'SkillTrees', '{"active": [], "saved": {}}'),
+        (_CustomerGUID, _DefaultCharacterValuesID, 'Professions', '{"major": [], "minor": {}}'),
+        (_CustomerGUID, _DefaultCharacterValuesID, 'ActionBars', '{"bars": []}'),
+        (_CustomerGUID, _DefaultCharacterValuesID, 'BagInventory', '{"items": []}'),
+        (_CustomerGUID, _DefaultCharacterValuesID, 'BaseCharacterStats', '{"Strength": 10, "Agility": 10, "Constitution": 10, "Intellect": 10, "Wisdom": 10, "Charisma": 10}');
 
-        RAISE NOTICE 'Created default character values with ID: %', _DefaultCharacterValuesID;
-    END IF;
-
+    RAISE NOTICE 'Created default character values with ID: %', _DefaultCharacterValuesID;
     RAISE NOTICE '=== Chuck seed complete ===';
 END $$;
+
+COMMIT;
