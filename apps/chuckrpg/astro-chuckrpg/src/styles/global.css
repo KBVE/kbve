@@ -1,0 +1,104 @@
+@import 'tailwindcss';
+
+/* ── ChuckRPG theme: Medieval Fantasy ──
+   Inspired by weathered parchment, dark iron, deep forest,
+   warm firelight, and ancient stone. LotR meets WoW. */
+:root {
+	/* Core palette */
+	--ck-firelight: #d4a44c;
+	--ck-firelight-dim: #b8893d;
+	--ck-firelight-bright: #e8c06a;
+	--ck-parchment: #e8dcc8;
+	--ck-iron: #2a2a2e;
+	--ck-stone: #1a1a1f;
+	--ck-leather: #3d2e1e;
+	--ck-forest: #1b3a2a;
+	--ck-blood: #8b2020;
+
+	/* Starlight overrides */
+	--sl-color-white: #e8dcc8;
+	--sl-color-gray-1: #c4b89e;
+	--sl-color-gray-2: #9e9480;
+	--sl-color-gray-3: #6b6356;
+	--sl-color-gray-4: #3d3630;
+	--sl-color-gray-5: #252220;
+	--sl-color-gray-6: #1a1816;
+	--sl-color-black: #0f0e0c;
+
+	--sl-color-accent-low: #3d2800;
+	--sl-color-accent: #d4a44c;
+	--sl-color-accent-high: #e8c06a;
+
+	--sl-color-bg: var(--ck-stone);
+	--sl-color-bg-nav: rgba(26, 26, 31, 0.92);
+	--sl-color-bg-sidebar: #151518;
+	--sl-color-bg-inline-code: #1f1e1c;
+
+	--sl-color-hairline-light: #2e2a26;
+	--sl-color-hairline: #242120;
+	--sl-color-hairline-shade: var(--ck-stone);
+
+	--sl-color-text: var(--sl-color-gray-2);
+	--sl-color-text-accent: var(--ck-firelight);
+	--sl-color-backdrop-overlay: rgba(0, 0, 0, 0.8);
+
+	--sl-font: 'Cinzel', 'Palatino Linotype', 'Book Antiqua', serif;
+}
+
+/* Body font for readability — keep serif for headings only */
+body {
+	font-family: 'Lora', 'Georgia', serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: var(--sl-font);
+}
+
+/* ── Splash page: zero padding ── */
+[data-page-type='splash'] main {
+	padding: 0 !important;
+}
+
+/* ── Links: firelight hover ── */
+a:not(.ck-btn) {
+	transition: color 0.2s ease;
+}
+
+a:not(.ck-btn):hover {
+	color: var(--ck-firelight-bright);
+}
+
+/* ── Scrollbar: dark iron ── */
+::-webkit-scrollbar {
+	width: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: var(--ck-stone);
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--ck-leather);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--ck-firelight-dim);
+}
+
+/* ── Code blocks: parchment-on-dark ── */
+pre {
+	border: 1px solid var(--sl-color-hairline-light);
+	border-radius: 4px;
+}
+
+/* ── Sidebar active item: firelight glow ── */
+nav[aria-label='Main'] a[aria-current='page'] {
+	color: var(--ck-firelight) !important;
+	border-left-color: var(--ck-firelight) !important;
+}
