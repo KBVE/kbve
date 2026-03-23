@@ -13,8 +13,8 @@ pipeline: docker
 app_name: ows-instancelauncher
 version: "0.10.2"
 source_path: apps/ows
-version_toml: apps/ows/version.toml
-version_target: apps/ows/version.toml
+version_toml: apps/ows/ows-instance-launcher/version.toml
+version_target: apps/ows/ows-instance-launcher/version.toml
 runner: ubuntu-latest
 image: kbve/ows-instancelauncher
 deployment_yaml: apps/kube/github/runners/manifests/ows-instance-launcher.yaml
