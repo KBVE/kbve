@@ -187,15 +187,25 @@ namespace OWSInstanceLauncher.Services
 
             serverSpinUpConsumer.Received += (model, ea) =>
             {
-                var body = ea.Body;
-                MQSpinUpServerMessage serverSpinUpMessage = MQSpinUpServerMessage.Deserialize(body.ToArray());
-                Log.Information($"Server Spin Up Message Received: {serverSpinUpMessage.CustomerGUID} WorldServerID: {serverSpinUpMessage.WorldServerID} ZoneInstanceID: {serverSpinUpMessage.ZoneInstanceID} MapName: {serverSpinUpMessage.MapName} Port: {serverSpinUpMessage.Port}");
-                HandleServerSpinUpMessage(
-                    serverSpinUpMessage.CustomerGUID,
-                    serverSpinUpMessage.WorldServerID,
-                    serverSpinUpMessage.ZoneInstanceID,
-                    serverSpinUpMessage.MapName,
-                    serverSpinUpMessage.Port);
+                try
+                {
+                    var body = ea.Body;
+                    MQSpinUpServerMessage serverSpinUpMessage = MQSpinUpServerMessage.Deserialize(body.ToArray());
+                    Log.Information($"Server Spin Up Message Received: {serverSpinUpMessage.CustomerGUID} WorldServerID: {serverSpinUpMessage.WorldServerID} ZoneInstanceID: {serverSpinUpMessage.ZoneInstanceID} MapName: {serverSpinUpMessage.MapName} Port: {serverSpinUpMessage.Port}");
+                    HandleServerSpinUpMessage(
+                        serverSpinUpMessage.CustomerGUID,
+                        serverSpinUpMessage.WorldServerID,
+                        serverSpinUpMessage.ZoneInstanceID,
+                        serverSpinUpMessage.MapName,
+                        serverSpinUpMessage.Port);
+
+                    serverSpinUpChannel.BasicAck(ea.DeliveryTag, multiple: false);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to process server spin up message");
+                    serverSpinUpChannel.BasicNack(ea.DeliveryTag, multiple: false, requeue: true);
+                }
 
                 return Task.CompletedTask;
             };
@@ -206,7 +216,7 @@ namespace OWSInstanceLauncher.Services
             serverSpinUpConsumer.ConsumerCancelled += OnServerSpinUpConsumerConsumerCancelled;
 
             serverSpinUpChannel.BasicConsume(queue: serverSpinUpQueueNameGUID.ToString(),
-                                         autoAck: true,
+                                         autoAck: false,
                                          consumer: serverSpinUpConsumer);
 
             //Server Shut Down
@@ -214,13 +224,23 @@ namespace OWSInstanceLauncher.Services
 
             serverShutDownConsumer.Received += (model, ea) =>
             {
-                Log.Information("Message Received");
-                var body = ea.Body;
-                MQShutDownServerMessage serverShutDownMessage = MQShutDownServerMessage.Deserialize(body.ToArray());
-                HandleServerShutDownMessage(
-                    serverShutDownMessage.CustomerGUID,
-                    serverShutDownMessage.ZoneInstanceID
-                );
+                try
+                {
+                    Log.Information("Server Shut Down Message Received");
+                    var body = ea.Body;
+                    MQShutDownServerMessage serverShutDownMessage = MQShutDownServerMessage.Deserialize(body.ToArray());
+                    HandleServerShutDownMessage(
+                        serverShutDownMessage.CustomerGUID,
+                        serverShutDownMessage.ZoneInstanceID
+                    );
+
+                    serverShutDownChannel.BasicAck(ea.DeliveryTag, multiple: false);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to process server shut down message");
+                    serverShutDownChannel.BasicNack(ea.DeliveryTag, multiple: false, requeue: true);
+                }
 
                 return Task.CompletedTask;
             };
@@ -231,7 +251,7 @@ namespace OWSInstanceLauncher.Services
             serverShutDownConsumer.ConsumerCancelled += OnServerShutDownConsumerConsumerCancelled;
 
             serverShutDownChannel.BasicConsume(queue: serverShutDownQueueNameGUID.ToString(),
-                                         autoAck: true,
+                                         autoAck: false,
                                          consumer: serverShutDownConsumer);
 
             //return Task.CompletedTask;
