@@ -13,3 +13,10 @@ CREATE TABLE ChatMessages
     CONSTRAINT PK_ChatMessages
         PRIMARY KEY (CustomerGUID, ChatMessageID)
 );
+
+-- Security: ChatMessages
+ALTER TABLE ChatMessages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ChatMessages FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON ChatMessages FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ChatMessages TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ChatMessages TO ows;

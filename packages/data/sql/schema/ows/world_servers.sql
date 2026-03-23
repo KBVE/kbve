@@ -18,3 +18,10 @@ CREATE TABLE WorldServers
     CONSTRAINT AK_ZoneServers
         UNIQUE (CustomerGUID, ZoneServerGUID)
 );
+
+-- Security: WorldServers
+ALTER TABLE WorldServers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE WorldServers FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON WorldServers FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON WorldServers TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON WorldServers TO ows;

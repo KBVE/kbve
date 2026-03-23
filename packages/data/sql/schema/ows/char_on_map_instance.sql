@@ -9,3 +9,10 @@ CREATE TABLE CharOnMapInstance
     CONSTRAINT PK_CharOnMapInstance
         PRIMARY KEY (CustomerGUID, CharacterID, MapInstanceID)
 );
+
+-- Security: CharOnMapInstance
+ALTER TABLE CharOnMapInstance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE CharOnMapInstance FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON CharOnMapInstance FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharOnMapInstance TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharOnMapInstance TO ows;

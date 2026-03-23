@@ -16,3 +16,10 @@ CREATE TABLE DefaultCharacterValues
     CONSTRAINT PK_DefaultCharacterValues
         PRIMARY KEY (DefaultCharacterValuesID, CustomerGUID)
 );
+
+-- Security: DefaultCharacterValues
+ALTER TABLE DefaultCharacterValues ENABLE ROW LEVEL SECURITY;
+ALTER TABLE DefaultCharacterValues FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON DefaultCharacterValues FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON DefaultCharacterValues TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON DefaultCharacterValues TO ows;

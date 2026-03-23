@@ -11,3 +11,10 @@ CREATE TABLE UsersInQueue
     CONSTRAINT PK_UsersInQueue
         PRIMARY KEY (CustomerGUID, UserGUID, QueueName)
 );
+
+-- Security: UsersInQueue
+ALTER TABLE UsersInQueue ENABLE ROW LEVEL SECURITY;
+ALTER TABLE UsersInQueue FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON UsersInQueue FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON UsersInQueue TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON UsersInQueue TO ows;

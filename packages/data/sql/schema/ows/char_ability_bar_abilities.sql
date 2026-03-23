@@ -16,3 +16,10 @@ CREATE TABLE CharAbilityBarAbilities
     CONSTRAINT FK_CharAbilityBarAbilities_CharHasAbilities
         FOREIGN KEY (CustomerGUID, CharHasAbilitiesID) REFERENCES CharHasAbilities (CustomerGUID, CharHasAbilitiesID)
 );
+
+-- Security: CharAbilityBarAbilities
+ALTER TABLE CharAbilityBarAbilities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE CharAbilityBarAbilities FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON CharAbilityBarAbilities FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharAbilityBarAbilities TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharAbilityBarAbilities TO ows;

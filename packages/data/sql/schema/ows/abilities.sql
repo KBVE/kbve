@@ -17,3 +17,10 @@ CREATE TABLE Abilities
     CONSTRAINT FK_Abilities_AbilityTypes
         FOREIGN KEY (CustomerGUID, AbilityTypeID) REFERENCES AbilityTypes (CustomerGUID, AbilityTypeID)
 );
+
+-- Security: Abilities
+ALTER TABLE Abilities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE Abilities FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON Abilities FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Abilities TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Abilities TO ows;

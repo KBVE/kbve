@@ -13,3 +13,10 @@ CREATE TABLE CharInventory
     CONSTRAINT PK_CharInventory
         PRIMARY KEY (CustomerGUID, CharacterID, CharInventoryID)
 );
+
+-- Security: CharInventory
+ALTER TABLE CharInventory ENABLE ROW LEVEL SECURITY;
+ALTER TABLE CharInventory FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON CharInventory FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharInventory TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharInventory TO ows;

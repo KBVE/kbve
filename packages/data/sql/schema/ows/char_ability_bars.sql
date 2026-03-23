@@ -13,3 +13,10 @@ CREATE TABLE CharAbilityBars
     CONSTRAINT PK_CharAbilityBars
         PRIMARY KEY (CustomerGUID, CharAbilityBarID)
 );
+
+-- Security: CharAbilityBars
+ALTER TABLE CharAbilityBars ENABLE ROW LEVEL SECURITY;
+ALTER TABLE CharAbilityBars FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON CharAbilityBars FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharAbilityBars TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CharAbilityBars TO ows;
