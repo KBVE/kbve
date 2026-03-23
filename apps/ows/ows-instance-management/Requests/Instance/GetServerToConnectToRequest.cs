@@ -75,7 +75,7 @@ namespace OWSInstanceManagement.Requests.Instance
                 }
 
                 //Wait 5 seconds before the first CheckMapInstanceStatus to give it time to spin up
-                System.Threading.Thread.Sleep(5);
+                await Task.Delay(5000);
 
                 readyForPlayersToConnect = await WaitForServerReadyToConnect(joinMapByCharacterName.MapInstanceID);
             }
@@ -113,7 +113,7 @@ namespace OWSInstanceManagement.Requests.Instance
                     return true;
                 }
 
-                System.Threading.Thread.Sleep(2000);
+                await Task.Delay(2000);
             }
 
             return false;
