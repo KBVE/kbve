@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../ows-shared/OWSShared.csproj" />
+    <ProjectReference Include="../ows-data/OWSData.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="appsettings.json">
