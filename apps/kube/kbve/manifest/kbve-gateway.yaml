@@ -33,12 +33,24 @@ spec:
         - name: https-chuckrpg
           protocol: HTTPS
           port: 443
+          hostname: chuckrpg.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - name: chuckrpg-tls
+                    namespace: chuckrpg
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-chuckrpg-api
+          protocol: HTTPS
+          port: 443
           hostname: api.chuckrpg.com
           tls:
               mode: Terminate
               certificateRefs:
                   - name: chuckrpg-api-tls
-                    namespace: ows
+                    namespace: chuckrpg
           allowedRoutes:
               namespaces:
                   from: All
