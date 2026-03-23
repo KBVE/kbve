@@ -70,6 +70,8 @@ impl VaultClient {
     /// `service_role_key` is the service role key with elevated privileges for vault access.
     pub fn new(base_url: &str, service_role_key: &str) -> Self {
         let client = Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(5))
+            .timeout(std::time::Duration::from_secs(10))
             .build()
             .expect("Failed to build reqwest client for VaultClient");
 
