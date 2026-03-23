@@ -11,6 +11,7 @@ mod rest;
 pub mod service;
 mod state;
 mod trace;
+mod ws;
 
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -86,14 +87,18 @@ async fn main() -> anyhow::Result<()> {
     // Transport-agnostic service layer — shared across REST, gRPC, WebSocket
     let svc = Arc::new(service::OWSService::new(app_state.clone()));
 
-    // gRPC services (tonic)
-    let grpc_router = grpc::router(app_state.clone(), svc.clone());
+    // gRPC services (tonic) — uses OWSService only
+    let grpc_router = grpc::router(svc.clone());
 
     // REST routes (axum) — backward-compat with C# OWS API paths
-    let rest_router = rest::router(app_state, svc);
+    let rest_router = rest::router(app_state, svc.clone());
 
-    // Multiplex: gRPC (content-type: application/grpc) + REST on single port
+    // WebSocket routes
+    let ws_router = ws::router(svc);
+
+    // Multiplex: gRPC + REST + WebSocket on single port
     let app = rest_router
+        .merge(ws_router)
         .merge(grpc_router.into_axum_router())
         .layer(axum::middleware::from_fn(trace::request_trace));
 
