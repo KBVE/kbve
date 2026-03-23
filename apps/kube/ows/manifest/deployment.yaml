@@ -407,7 +407,7 @@ spec:
         spec:
             containers:
                 - name: ows-management
-                  image: ghcr.io/kbve/ows-management:0.1.9
+                  image: ghcr.io/kbve/ows-management:0.10.0
                   imagePullPolicy: Always
                   env:
                       - name: OWSStorageConfig__OWSDBBackend
