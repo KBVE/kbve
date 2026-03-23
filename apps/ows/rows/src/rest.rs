@@ -2,6 +2,7 @@ use crate::error::{ApiResult, RowsError, SuccessResponse};
 use crate::middleware::{extract_customer_guid, require_customer_guid};
 use crate::models::{CustomDataRows, HealthResponse};
 use crate::repo::*;
+use crate::service::OWSService;
 use crate::state::AppState;
 use axum::{
     Json, Router,
@@ -14,13 +15,21 @@ use serde::Deserialize;
 use std::sync::Arc;
 use uuid::Uuid;
 
-pub fn router(state: Arc<AppState>) -> Router {
-    let public = public_api_routes(state.clone());
-    let instance = instance_mgmt_routes(state.clone());
-    let character = character_persistence_routes(state.clone());
-    let global = global_data_routes(state.clone());
-    let abilities = abilities_routes(state.clone());
-    let zones = zones_routes(state.clone());
+/// Shared handler state — holds both AppState (for middleware) and OWSService (for logic).
+#[derive(Clone)]
+pub struct HandlerState {
+    pub app: Arc<AppState>,
+    pub svc: Arc<OWSService>,
+}
+
+pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
+    let hs = HandlerState { app, svc };
+    let public = public_api_routes(hs.clone());
+    let instance = instance_mgmt_routes(hs.clone());
+    let character = character_persistence_routes(hs.clone());
+    let global = global_data_routes(hs.clone());
+    let abilities = abilities_routes(hs.clone());
+    let zones = zones_routes(hs.clone());
 
     Router::new()
         .route("/health", get(health))
@@ -41,7 +50,7 @@ async fn health() -> Json<HealthResponse> {
 
 // ─── Public API ──────────────────────────────────────────────
 
-fn public_api_routes(state: Arc<AppState>) -> Router {
+fn public_api_routes(hs: HandlerState) -> Router {
     Router::new()
         .route("/api/Users/LoginAndCreateSession", post(login))
         .route("/api/Users/RegisterUser", post(register_user))
@@ -57,7 +66,7 @@ fn public_api_routes(state: Arc<AppState>) -> Router {
         .route("/api/Characters/ByName", post(get_char_by_name_public))
         .route("/api/System/Status", get(system_status))
         .layer(middleware::from_fn(require_customer_guid))
-        .with_state(state)
+        .with_state(hs)
 }
 
 #[derive(Deserialize)]
@@ -68,16 +77,15 @@ struct LoginDto {
 }
 
 async fn login(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     Json(body): Json<LoginDto>,
 ) -> ApiResult<crate::models::LoginResult> {
-    let repo = UsersRepo(&state.db);
-    let result = repo.login(&body.email, &body.password).await?;
+    let result = hs.svc.login(&body.email, &body.password).await?;
     Ok(Json(result))
 }
 
 async fn get_user_session(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>,
 ) -> ApiResult<crate::models::UserSession> {
     let session_guid = params
@@ -85,11 +93,7 @@ async fn get_user_session(
         .and_then(|s| Uuid::parse_str(s).ok())
         .ok_or_else(|| RowsError::BadRequest("Missing userSessionGUID".into()))?;
 
-    let repo = UsersRepo(&state.db);
-    let session = repo
-        .get_session(session_guid)
-        .await?
-        .ok_or_else(|| RowsError::NotFound("Session not found".into()))?;
+    let session = hs.svc.get_session(session_guid).await?;
     Ok(Json(session))
 }
 
@@ -101,23 +105,15 @@ struct GetAllCharsDto {
 }
 
 async fn get_all_characters(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<GetAllCharsDto>,
 ) -> ApiResult<Vec<crate::models::Character>> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = UsersRepo(&state.db);
-
-    let session = repo
-        .get_session(body.user_session_guid)
-        .await?
-        .ok_or_else(|| RowsError::NotFound("Session not found".into()))?;
-
-    let user_guid = session
-        .user_guid
-        .ok_or_else(|| RowsError::NotFound("No user in session".into()))?;
-
-    let chars = repo.get_all_characters(customer_guid, user_guid).await?;
+    let chars = hs
+        .svc
+        .get_all_characters(body.user_session_guid, customer_guid)
+        .await?;
     Ok(Json(chars))
 }
 
@@ -131,12 +127,12 @@ struct GetServerDto {
 }
 
 async fn get_server_to_connect_to(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<GetServerDto>,
 ) -> ApiResult<crate::models::JoinMapResult> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = InstanceRepo(&state.db);
+    let repo = InstanceRepo(&hs.app.db);
 
     let result = repo
         .join_map_by_char_name(customer_guid, &body.character_name, &body.zone_name)
@@ -144,7 +140,7 @@ async fn get_server_to_connect_to(
 
     // If we need to start a map and have MQ, publish spin-up
     if result.need_to_startup_map {
-        if let Some(ref mq) = state.mq {
+        if let Some(ref mq) = hs.app.mq {
             let msg = crate::mq::SpinUpMessage {
                 customer_guid: customer_guid.to_string(),
                 world_server_id: result.world_server_id,
@@ -169,12 +165,12 @@ struct GetByNameDto {
 }
 
 async fn get_char_by_name_public(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<GetByNameDto>,
 ) -> ApiResult<crate::models::Character> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&state.db);
+    let repo = CharsRepo(&hs.app.db);
     let ch = repo
         .get_by_name(customer_guid, &body.character_name)
         .await?
@@ -196,12 +192,12 @@ struct RegisterUserDto {
 }
 
 async fn register_user(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<RegisterUserDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = UsersRepo(&state.db);
+    let repo = UsersRepo(&hs.app.db);
 
     use argon2::{
         Argon2, PasswordHasher, password_hash::SaltString, password_hash::rand_core::OsRng,
@@ -235,10 +231,10 @@ struct LogoutDto {
 }
 
 async fn logout(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     Json(body): Json<LogoutDto>,
 ) -> Json<SuccessResponse> {
-    let repo = UsersRepo(&state.db);
+    let repo = UsersRepo(&hs.app.db);
     match repo.logout(body.user_session_guid).await {
         Ok(()) => Json(SuccessResponse::ok()),
         Err(e) => Json(SuccessResponse::err(e.to_string())),
@@ -255,13 +251,13 @@ struct CreateCharDto {
 }
 
 async fn create_character(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CreateCharDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let users = UsersRepo(&state.db);
-    let chars = CharsRepo(&state.db);
+    let users = UsersRepo(&hs.app.db);
+    let chars = CharsRepo(&hs.app.db);
 
     let user_guid = match users.get_session(body.user_session_guid).await {
         Ok(Some(s)) => match s.user_guid {
@@ -294,12 +290,12 @@ struct RemoveCharDto {
 }
 
 async fn remove_character(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<RemoveCharDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&state.db);
+    let repo = CharsRepo(&hs.app.db);
 
     match repo
         .remove_character(customer_guid, &body.character_name)
@@ -312,7 +308,7 @@ async fn remove_character(
 
 // ─── Instance Management ─────────────────────────────────────
 
-fn instance_mgmt_routes(state: Arc<AppState>) -> Router {
+fn instance_mgmt_routes(hs: HandlerState) -> Router {
     Router::new()
         .route("/api/Instance/SetZoneInstanceStatus", post(set_zone_status))
         .route(
@@ -325,7 +321,7 @@ fn instance_mgmt_routes(state: Arc<AppState>) -> Router {
             get(start_instance_launcher),
         )
         .layer(middleware::from_fn(require_customer_guid))
-        .with_state(state)
+        .with_state(hs)
 }
 
 #[derive(Deserialize)]
@@ -342,12 +338,12 @@ struct SetZoneStatusPayload {
 }
 
 async fn set_zone_status(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<SetZoneStatusWrapper>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = InstanceRepo(&state.db);
+    let repo = InstanceRepo(&hs.app.db);
 
     match repo
         .set_zone_status(
@@ -375,12 +371,12 @@ struct GetZoneInstancesPayload {
 }
 
 async fn get_zone_instances(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<GetZoneInstancesWrapper>,
 ) -> ApiResult<Vec<crate::models::ZoneInstance>> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = InstanceRepo(&state.db);
+    let repo = InstanceRepo(&hs.app.db);
     let zones = repo
         .get_zone_instances(customer_guid, body.request.world_server_id)
         .await?;
@@ -399,7 +395,7 @@ async fn start_instance_launcher() -> String {
 
 // ─── Character Persistence ───────────────────────────────────
 
-fn character_persistence_routes(state: Arc<AppState>) -> Router {
+fn character_persistence_routes(hs: HandlerState) -> Router {
     Router::new()
         .route("/api/Characters/GetByName", post(get_char_by_name))
         .route("/api/Characters/GetCustomData", post(get_custom_data))
@@ -417,7 +413,7 @@ fn character_persistence_routes(state: Arc<AppState>) -> Router {
         )
         .route("/api/Characters/PlayerLogout", post(player_logout))
         .layer(middleware::from_fn(require_customer_guid))
-        .with_state(state)
+        .with_state(hs)
 }
 
 #[derive(Deserialize)]
@@ -427,12 +423,12 @@ struct CharNameDto {
 }
 
 async fn get_char_by_name(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
 ) -> ApiResult<crate::models::Character> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&state.db);
+    let repo = CharsRepo(&hs.app.db);
     let ch = repo
         .get_by_name(customer_guid, &body.character_name)
         .await?
@@ -441,12 +437,12 @@ async fn get_char_by_name(
 }
 
 async fn get_custom_data(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
 ) -> ApiResult<CustomDataRows> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&state.db);
+    let repo = CharsRepo(&hs.app.db);
     let data = repo
         .get_custom_data(customer_guid, &body.character_name)
         .await?;
@@ -462,12 +458,12 @@ struct UpdatePositionsDto {
 }
 
 async fn update_all_positions(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<UpdatePositionsDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&state.db);
+    let repo = CharsRepo(&hs.app.db);
 
     // Parse pipe-separated format: CharName:X:Y:Z:RX:RY:RZ|CharName2:...
     // Zero-alloc: use split iterator instead of collecting into Vec
@@ -515,12 +511,12 @@ struct AddCustomDataDto {
 }
 
 async fn add_or_update_custom_data(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<AddCustomDataDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&state.db);
+    let repo = CharsRepo(&hs.app.db);
 
     match repo
         .add_or_update_custom_data(
@@ -546,12 +542,12 @@ struct UpdateStatsDto {
 }
 
 async fn update_character_stats(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<UpdateStatsDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&state.db);
+    let repo = CharsRepo(&hs.app.db);
 
     let stats_json = serde_json::to_string(&body.stats).unwrap_or_default();
     match repo
@@ -564,12 +560,12 @@ async fn update_character_stats(
 }
 
 async fn player_logout(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&state.db);
+    let repo = CharsRepo(&hs.app.db);
     match repo
         .player_logout(customer_guid, &body.character_name)
         .await
@@ -584,7 +580,7 @@ async fn player_logout(
 
 // ─── Abilities ───────────────────────────────────────────────
 
-fn abilities_routes(state: Arc<AppState>) -> Router {
+fn abilities_routes(hs: HandlerState) -> Router {
     Router::new()
         .route(
             "/api/Abilities/GetCharacterAbilities",
@@ -597,16 +593,16 @@ fn abilities_routes(state: Arc<AppState>) -> Router {
         )
         .route("/api/Abilities/GetAbilities", get(get_abilities_list))
         .layer(middleware::from_fn(require_customer_guid))
-        .with_state(state)
+        .with_state(hs)
 }
 
 async fn get_character_abilities(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
 ) -> ApiResult<Vec<crate::models::CharacterAbility>> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = AbilitiesRepo(&state.db);
+    let repo = AbilitiesRepo(&hs.app.db);
     let abilities = repo
         .get_character_abilities(customer_guid, &body.character_name)
         .await?;
@@ -622,12 +618,12 @@ struct AddAbilityDto {
 }
 
 async fn add_ability(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<AddAbilityDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = AbilitiesRepo(&state.db);
+    let repo = AbilitiesRepo(&hs.app.db);
 
     match repo
         .add_ability(
@@ -651,12 +647,12 @@ struct RemoveAbilityDto {
 }
 
 async fn remove_ability(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<RemoveAbilityDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = AbilitiesRepo(&state.db);
+    let repo = AbilitiesRepo(&hs.app.db);
 
     match repo
         .remove_ability(customer_guid, &body.character_name, &body.ability_name)
@@ -674,11 +670,11 @@ async fn get_abilities_list() -> Json<Vec<crate::models::CharacterAbility>> {
 
 // ─── Zones ───────────────────────────────────────────────────
 
-fn zones_routes(state: Arc<AppState>) -> Router {
+fn zones_routes(hs: HandlerState) -> Router {
     Router::new()
         .route("/api/Zones/AddZone", post(add_zone))
         .layer(middleware::from_fn(require_customer_guid))
-        .with_state(state)
+        .with_state(hs)
 }
 
 #[derive(Deserialize)]
@@ -698,12 +694,12 @@ struct AddZonePayload {
 }
 
 async fn add_zone(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<AddZoneWrapper>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = ZonesRepo(&state.db);
+    let repo = ZonesRepo(&hs.app.db);
     let z = &body.add_or_update_zone;
 
     match repo
@@ -724,7 +720,7 @@ async fn add_zone(
 
 // ─── Global Data ─────────────────────────────────────────────
 
-fn global_data_routes(state: Arc<AppState>) -> Router {
+fn global_data_routes(hs: HandlerState) -> Router {
     Router::new()
         .route(
             "/api/GlobalData/AddOrUpdateGlobalDataItem",
@@ -735,7 +731,7 @@ fn global_data_routes(state: Arc<AppState>) -> Router {
             get(get_global_data),
         )
         .layer(middleware::from_fn(require_customer_guid))
-        .with_state(state)
+        .with_state(hs)
 }
 
 #[derive(Deserialize)]
@@ -746,12 +742,12 @@ struct SetGlobalDataDto {
 }
 
 async fn set_global_data(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<SetGlobalDataDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = GlobalDataRepo(&state.db);
+    let repo = GlobalDataRepo(&hs.app.db);
 
     match repo
         .set(
@@ -767,12 +763,12 @@ async fn set_global_data(
 }
 
 async fn get_global_data(
-    State(state): State<Arc<AppState>>,
+    State(hs): State<HandlerState>,
     headers: HeaderMap,
     Path(key): Path<String>,
 ) -> ApiResult<Option<crate::models::GlobalData>> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = GlobalDataRepo(&state.db);
+    let repo = GlobalDataRepo(&hs.app.db);
     let data = repo.get(customer_guid, &key).await?;
     Ok(Json(data))
 }
