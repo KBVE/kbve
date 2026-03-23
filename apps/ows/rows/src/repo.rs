@@ -233,21 +233,118 @@ impl<'a> CharsRepo<'a> {
         Ok(())
     }
 
+    /// Allowlisted stat columns that can be updated via JSON.
+    const STAT_COLUMNS: &'static [&'static str] = &[
+        "health",
+        "maxhealth",
+        "healthregenrate",
+        "mana",
+        "maxmana",
+        "manaregenrate",
+        "energy",
+        "maxenergy",
+        "energyregenrate",
+        "stamina",
+        "maxstamina",
+        "staminaregenrate",
+        "strength",
+        "dexterity",
+        "constitution",
+        "intellect",
+        "wisdom",
+        "charisma",
+        "agility",
+        "baseattack",
+        "baseattackbonus",
+        "attackpower",
+        "attackspeed",
+        "critchance",
+        "critmultiplier",
+        "defense",
+        "perception",
+        "acrobatics",
+        "climb",
+        "stealth",
+        "spirit",
+        "magic",
+        "thirst",
+        "hunger",
+        "gold",
+        "silver",
+        "copper",
+        "score",
+        "freecurrency",
+        "premiumcurrency",
+        "fame",
+        "alignment",
+        "xp",
+        "size",
+        "weight",
+        "wounds",
+        "characterlevel",
+        "gender",
+        "teamnumber",
+        "hitdie",
+    ];
+
     pub async fn update_stats(
         &self,
         customer_guid: Uuid,
         char_name: &str,
         stats_json: &str,
     ) -> Result<(), RowsError> {
-        // Store stats JSON in a jsonb column or process via stored proc.
-        // For the skeleton, we store the raw JSON for later processing.
-        // Full implementation will parse individual stat fields.
-        let _stats: serde_json::Value = serde_json::from_str(stats_json)
+        let stats: serde_json::Value = serde_json::from_str(stats_json)
             .map_err(|e| RowsError::BadRequest(format!("Invalid stats JSON: {e}")))?;
 
-        // TODO: implement per-field UPDATE from parsed JSON
-        // For now, validate the JSON is parseable and return success
-        let _ = (customer_guid, char_name);
+        let obj = stats
+            .as_object()
+            .ok_or_else(|| RowsError::BadRequest("Stats must be a JSON object".into()))?;
+
+        // Build SET clause from allowlisted keys only (SQL injection safe)
+        let mut sets = Vec::new();
+        let mut vals: Vec<f64> = Vec::new();
+        let mut idx = 3u32; // $1 = customer_guid, $2 = charname
+
+        for (key, val) in obj {
+            let col = key.to_lowercase();
+            if Self::STAT_COLUMNS.contains(&col.as_str()) {
+                if let Some(n) = val.as_f64() {
+                    sets.push(format!("{col} = ${idx}"));
+                    vals.push(n);
+                    idx += 1;
+                }
+            }
+        }
+
+        if sets.is_empty() {
+            return Ok(());
+        }
+
+        let sql = format!(
+            "UPDATE characters SET {} WHERE customerguid = $1 AND charname = $2",
+            sets.join(", ")
+        );
+
+        let mut q = sqlx::query(&sql).bind(customer_guid).bind(char_name);
+        for v in &vals {
+            q = q.bind(v);
+        }
+        q.execute(self.0).await?;
+        Ok(())
+    }
+
+    pub async fn player_logout(
+        &self,
+        customer_guid: Uuid,
+        char_name: &str,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "UPDATE characters SET mapname = NULL WHERE customerguid = $1 AND charname = $2",
+        )
+        .bind(customer_guid)
+        .bind(char_name)
+        .execute(self.0)
+        .await?;
         Ok(())
     }
 
@@ -318,6 +415,92 @@ impl<'a> InstanceRepo<'a> {
         .await?;
 
         Ok(())
+    }
+
+    /// Core zone join logic — finds or creates a map instance for a character.
+    /// Returns server connection info. This is the heart of GetServerToConnectTo.
+    pub async fn join_map_by_char_name(
+        &self,
+        customer_guid: Uuid,
+        char_name: &str,
+        zone_name: &str,
+    ) -> Result<JoinMapResult, RowsError> {
+        // Try to find an existing ready instance for this zone
+        let existing: Option<JoinMapResult> = sqlx::query_as(
+            "SELECT ws.serverip AS server_ip,
+                    ws.internalserverip AS world_server_ip,
+                    ws.port AS world_server_port,
+                    mi.port,
+                    mi.mapinstanceid AS map_instance_id,
+                    m.mapname AS map_name_to_start,
+                    ws.worldserverid AS world_server_id,
+                    mi.status AS map_instance_status,
+                    false AS need_to_startup_map,
+                    false AS enable_auto_loopback,
+                    c.noportforwarding AS no_port_forwarding,
+                    true AS success,
+                    '' AS error_message
+             FROM maps m
+             JOIN mapinstances mi ON mi.mapid = m.mapid AND mi.customerguid = m.customerguid
+             JOIN worldservers ws ON ws.worldserverid = mi.worldserverid AND ws.customerguid = mi.customerguid
+             JOIN customers c ON c.customerguid = m.customerguid
+             WHERE m.customerguid = $1 AND m.zonename = $2 AND mi.status = 2
+             ORDER BY mi.numberofreportedplayers ASC
+             LIMIT 1",
+        )
+        .bind(customer_guid)
+        .bind(zone_name)
+        .fetch_optional(self.0)
+        .await?;
+
+        if let Some(result) = existing {
+            return Ok(result);
+        }
+
+        // No ready instance — need to spin one up
+        let pending: Option<JoinMapResult> = sqlx::query_as(
+            "SELECT ws.serverip AS server_ip,
+                    ws.internalserverip AS world_server_ip,
+                    ws.port AS world_server_port,
+                    0 AS port,
+                    0 AS map_instance_id,
+                    m.mapname AS map_name_to_start,
+                    ws.worldserverid AS world_server_id,
+                    0 AS map_instance_status,
+                    true AS need_to_startup_map,
+                    false AS enable_auto_loopback,
+                    c.noportforwarding AS no_port_forwarding,
+                    true AS success,
+                    '' AS error_message
+             FROM maps m
+             JOIN worldservers ws ON ws.customerguid = m.customerguid AND ws.serverstatus = 1
+             JOIN customers c ON c.customerguid = m.customerguid
+             WHERE m.customerguid = $1 AND m.zonename = $2
+             LIMIT 1",
+        )
+        .bind(customer_guid)
+        .bind(zone_name)
+        .fetch_optional(self.0)
+        .await?;
+
+        match pending {
+            Some(result) => Ok(result),
+            None => Ok(JoinMapResult {
+                server_ip: String::new(),
+                world_server_ip: String::new(),
+                world_server_port: 0,
+                port: 0,
+                map_instance_id: 0,
+                map_name_to_start: String::new(),
+                world_server_id: 0,
+                map_instance_status: 0,
+                need_to_startup_map: false,
+                enable_auto_loopback: false,
+                no_port_forwarding: false,
+                success: false,
+                error_message: format!("No zone found: {zone_name}"),
+            }),
+        }
     }
 
     pub async fn register_launcher(
