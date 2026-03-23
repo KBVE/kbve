@@ -39,6 +39,11 @@ spec:
                 failureThreshold: 5
             template:
                 spec:
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1000
+                        runAsGroup: 1000
+                        fsGroup: 1000
                     containers:
                         - name: ue5-server
                           image: ubuntu:24.04
@@ -61,7 +66,7 @@ spec:
                                     exit 1
                                   fi
 
-                                  chmod +x "${SERVER_BIN}"
+                                  echo "Starting UE5 dedicated server from ${SERVER_BIN}"
 
                                   # Agones SDK sets AGONES_SDK_GRPC_PORT
                                   # OWS uses command-line args for zone/port config
@@ -89,9 +94,7 @@ spec:
                           volumeMounts:
                               - name: server-binary
                                 mountPath: /server
-                                readOnly: true
                     volumes:
                         - name: server-binary
                           persistentVolumeClaim:
                               claimName: ows-server-build
-                              readOnly: true
