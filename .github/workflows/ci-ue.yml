@@ -1,5 +1,7 @@
 name: CI - Unreal Engine
 
+run-name: 'CI - UE / ${{ inputs.task }}'
+
 on:
     workflow_dispatch:
         inputs:
@@ -27,9 +29,7 @@ on:
                 type: boolean
                 default: false
 
-concurrency:
-    group: ci-ue-${{ inputs.task }}
-    cancel-in-progress: false
+# No workflow-level concurrency — tasks fan out independently.
 
 permissions: {}
 
