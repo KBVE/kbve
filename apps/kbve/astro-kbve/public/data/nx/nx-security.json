@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-03-22T08:42:56Z",
+  "generated_at": "2026-03-23T08:30:14Z",
   "summary": {
     "critical": 1,
-    "high": 37,
-    "medium": 29,
-    "low": 6,
+    "high": 31,
+    "medium": 27,
+    "low": 5,
     "info": 28
   },
   "ecosystems": {
     "npm": {
-      "total": 65,
+      "total": 56,
       "severities": {
         "critical": 1,
-        "high": 37,
-        "medium": 21,
-        "low": 6,
+        "high": 31,
+        "medium": 19,
+        "low": 5,
         "info": 0
       },
       "advisories": [
@@ -47,25 +47,11 @@
           "url": "https://github.com/advisories/GHSA-v6h2-p8h4-qcjw"
         },
         {
-          "id": "1106812",
-          "title": "on-headers is vulnerable to http response header manipulation",
-          "severity": "low",
-          "package": "on-headers",
-          "url": "https://github.com/advisories/GHSA-76c9-3jph-rj3q"
-        },
-        {
           "id": "1109208",
           "title": "Playwright downloads and installs browsers without verifying the authenticity of the SSL certificate",
           "severity": "high",
           "package": "playwright",
           "url": "https://github.com/advisories/GHSA-7mvr-c777-76hp"
-        },
-        {
-          "id": "1109241",
-          "title": "validator.js has a URL validation bypass vulnerability in its isURL function",
-          "severity": "medium",
-          "package": "validator",
-          "url": "https://github.com/advisories/GHSA-9965-vmph-33xx"
         },
         {
           "id": "1109538",
@@ -87,13 +73,6 @@
           "severity": "high",
           "package": "axios",
           "url": "https://github.com/advisories/GHSA-jr5f-v2jv-69x6"
-        },
-        {
-          "id": "1111244",
-          "title": "auth0/node-jws Improperly Verifies HMAC Signature",
-          "severity": "high",
-          "package": "jws",
-          "url": "https://github.com/advisories/GHSA-869p-cjfg-cm3x"
         },
         {
           "id": "1111772",
@@ -145,13 +124,6 @@
           "url": "https://github.com/advisories/GHSA-73rr-hh4g-fpgx"
         },
         {
-          "id": "1112713",
-          "title": "Validator is Vulnerable to Incomplete Filtering of One or More Instances of Special Elements",
-          "severity": "high",
-          "package": "validator",
-          "url": "https://github.com/advisories/GHSA-vghf-hv5q-vc2g"
-        },
-        {
           "id": "1112715",
           "title": "js-yaml has prototype pollution in merge (<<)",
           "severity": "medium",
@@ -181,13 +153,6 @@
         },
         {
           "id": "1113459",
-          "title": "minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern",
-          "severity": "high",
-          "package": "minimatch",
-          "url": "https://github.com/advisories/GHSA-3ppc-4f35-3m26"
-        },
-        {
-          "id": "1113461",
           "title": "minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern",
           "severity": "high",
           "package": "minimatch",
@@ -229,13 +194,6 @@
           "url": "https://github.com/advisories/GHSA-7r86-cg39-jmmj"
         },
         {
-          "id": "1113540",
-          "title": "minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments",
-          "severity": "high",
-          "package": "minimatch",
-          "url": "https://github.com/advisories/GHSA-7r86-cg39-jmmj"
-        },
-        {
           "id": "1113542",
           "title": "minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments",
           "severity": "high",
@@ -258,13 +216,6 @@
         },
         {
           "id": "1113546",
-          "title": "minimatch ReDoS: nested *() extglobs generate catastrophically backtracking regular expressions",
-          "severity": "high",
-          "package": "minimatch",
-          "url": "https://github.com/advisories/GHSA-23c5-xmqv-rm74"
-        },
-        {
-          "id": "1113548",
           "title": "minimatch ReDoS: nested *() extglobs generate catastrophically backtracking regular expressions",
           "severity": "high",
           "package": "minimatch",
@@ -439,13 +390,6 @@
           "url": "https://github.com/advisories/GHSA-rf6f-7fwh-wjgh"
         },
         {
-          "id": "1114952",
-          "title": "Entity Expansion Limits Bypassed When Set to Zero Due to JavaScript Falsy Evaluation in fast-xml-parser",
-          "severity": "medium",
-          "package": "fast-xml-parser",
-          "url": "https://github.com/advisories/GHSA-jp2q-39xq-3w4g"
-        },
-        {
           "id": "1115114",
           "title": "h3: SSE Event Injection via Unsanitized Carriage Return (`\\r`) in EventStream Data and Comment Fields (Bypass of CVE Fix)",
           "severity": "medium",
@@ -458,13 +402,6 @@
           "severity": "medium",
           "package": "h3",
           "url": "https://github.com/advisories/GHSA-72gr-qfp7-vwhw"
-        },
-        {
-          "id": "1115134",
-          "title": "fast-xml-parser affected by numeric entity expansion bypassing all entity expansion limits (incomplete fix for CVE-2026-26278)",
-          "severity": "high",
-          "package": "fast-xml-parser",
-          "url": "https://github.com/advisories/GHSA-8gc5-j5rx-235r"
         },
         {
           "id": "1115161",

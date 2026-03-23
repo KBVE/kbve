@@ -42,6 +42,7 @@ COPY ows-data/ ows-data/
 COPY ows-external-login/ ows-external-login/
 COPY ows-public-api/ ows-public-api/
 COPY ows-instance-management/ ows-instance-management/
+COPY ows-instance-launcher/ ows-instance-launcher/
 COPY ows-character-persistence/ ows-character-persistence/
 COPY ows-global-data/ ows-global-data/
 COPY ows-management/ ows-management/
@@ -57,6 +58,12 @@ RUN dotnet publish ows-public-api/OWSPublicAPI.csproj -c Release -o /app/publish
 # ============================================================================
 FROM source AS build-instancemanagement
 RUN dotnet publish ows-instance-management/OWSInstanceManagement.csproj -c Release -o /app/publish --no-restore
+
+# ============================================================================
+# [STAGE: build-instancelauncher]
+# ============================================================================
+FROM source AS build-instancelauncher
+RUN dotnet publish ows-instance-launcher/OWSInstanceLauncher.csproj -c Release -o /app/publish --no-restore
 
 # ============================================================================
 # [STAGE: build-characterpersistence]
@@ -112,6 +119,11 @@ FROM runtime-base AS globaldata
 WORKDIR /app
 COPY --from=build-globaldata /app/publish .
 ENTRYPOINT ["dotnet", "OWSGlobalData.dll"]
+
+FROM runtime-base AS instancelauncher
+WORKDIR /app
+COPY --from=build-instancelauncher /app/publish .
+ENTRYPOINT ["dotnet", "OWSInstanceLauncher.dll"]
 
 FROM runtime-base AS management
 WORKDIR /app
