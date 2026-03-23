@@ -84,10 +84,26 @@ spec:
                           env:
                               - name: GAME_PORT
                                 value: '7777'
-                              - name: OWS_API_URL
-                                value: http://ows-publicapi.ows.svc.cluster.local
-                              - name: OWS_INSTANCE_MGMT_URL
-                                value: http://ows-instancemanagement.ows.svc.cluster.local
+                              # OWS env vars — picked up by UE5 client plugin
+                              - name: OWS_API_PATH
+                                value: http://ows-publicapi.ows.svc.cluster.local/
+                              - name: OWS_INSTANCE_MANAGEMENT_PATH
+                                value: http://ows-instancemanagement.ows.svc.cluster.local/
+                              - name: OWS_CHARACTER_PERSISTENCE_PATH
+                                value: http://ows-characterpersistence.ows.svc.cluster.local/
+                              - name: OWS_GLOBAL_DATA_PATH
+                                value: http://ows-globaldata.ows.svc.cluster.local/
+                              # Secrets — synced from ows namespace via ExternalSecret
+                              - name: OWS_API_CUSTOMER_KEY
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: ows-gameserver-secrets
+                                        key: customer-guid
+                              - name: OWS_ENCRYPTION_KEY
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: ows-gameserver-secrets
+                                        key: encryption-key
                           resources:
                               requests:
                                   memory: 2Gi
