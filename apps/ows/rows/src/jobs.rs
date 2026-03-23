@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use std::time::Duration;
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 use crate::service::OWSService;
 
@@ -40,7 +40,7 @@ async fn zone_health_monitor(svc: Arc<OWSService>) {
 
         // Evict expired sessions (older than 24h) from cache
         // DashMap iteration is lock-free per-shard
-        let before = svc.state().sessions.len();
+        let _before = svc.state().sessions.len();
         // For now, we don't track login time in CachedSession — future enhancement
         // svc.state().sessions.retain(|_, v| v.login_time.elapsed() < Duration::from_secs(86400));
 

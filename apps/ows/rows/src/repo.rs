@@ -890,7 +890,7 @@ impl<'a> InstanceRepo<'a> {
     pub async fn join_map_by_char_name(
         &self,
         customer_guid: Uuid,
-        char_name: &str,
+        _char_name: &str,
         zone_name: &str,
     ) -> Result<JoinMapResult, RowsError> {
         // Try to find an existing ready instance for this zone
@@ -1180,7 +1180,7 @@ impl<'a> InstanceRepo<'a> {
         &self,
         customer_guid: Uuid,
         world_server_id: i32,
-        zone_instance_id: i32,
+        _zone_instance_id: i32,
         zone_name: &str,
         port: i32,
     ) -> Result<(), RowsError> {
@@ -1237,8 +1237,8 @@ impl<'a> InstanceRepo<'a> {
 
     pub async fn get_current_world_time(
         &self,
-        customer_guid: Uuid,
-        world_server_id: i32,
+        _customer_guid: Uuid,
+        _world_server_id: i32,
     ) -> Result<i64, RowsError> {
         let row: Option<(i64,)> =
             sqlx::query_as("SELECT EXTRACT(EPOCH FROM NOW())::bigint AS current_world_time")

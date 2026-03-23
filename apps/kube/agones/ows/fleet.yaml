@@ -2,9 +2,10 @@
 # Spawns UE5 dedicated server instances from the ows-server-build PVC.
 # Fleet starts at 0 replicas — FleetAutoscaler or manual allocation spins up servers.
 #
-# Server binary: /server/latest/LinuxServer/OWSHubWorldMMOServer.sh
-# UDP port: allocated by Agones (7777-7900 range)
-# Health: game server reports to OWS InstanceManagement API
+# Server binary: auto-detected from PVC (ChuckServer.sh)
+# UDP port: allocated by Agones (Dynamic policy)
+# Health: game server reports to ROWS via UpdateNumberOfPlayers
+# Backend: ROWS (single Rust binary replaces all 6 C# OWS microservices)
 apiVersion: agones.dev/v1
 kind: Fleet
 metadata:
@@ -84,15 +85,16 @@ spec:
                           env:
                               - name: GAME_PORT
                                 value: '7777'
-                              # OWS env vars — picked up by UE5 client plugin
+                              # ROWS — single binary replaces all C# OWS microservices
+                              # All API paths point to the same ROWS service
                               - name: OWS_API_PATH
-                                value: http://ows-publicapi.ows.svc.cluster.local/
+                                value: http://rows.ows.svc.cluster.local:4322/
                               - name: OWS_INSTANCE_MANAGEMENT_PATH
-                                value: http://ows-instancemanagement.ows.svc.cluster.local/
+                                value: http://rows.ows.svc.cluster.local:4322/
                               - name: OWS_CHARACTER_PERSISTENCE_PATH
-                                value: http://ows-characterpersistence.ows.svc.cluster.local/
+                                value: http://rows.ows.svc.cluster.local:4322/
                               - name: OWS_GLOBAL_DATA_PATH
-                                value: http://ows-globaldata.ows.svc.cluster.local/
+                                value: http://rows.ows.svc.cluster.local:4322/
                               # Secrets — synced from ows namespace via ExternalSecret
                               - name: OWS_API_CUSTOMER_KEY
                                 valueFrom:

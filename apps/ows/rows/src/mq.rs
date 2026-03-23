@@ -249,11 +249,34 @@ async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
                     info!(
                         zone = msg.zone_instance_id,
                         gs = %result.game_server_name,
+                        addr = %result.address,
+                        port = result.port,
                         "GameServer allocated"
                     );
+
+                    // Create mapinstance record in DB so join_map_by_char_name can find it.
+                    // Status=1 (launching) — UE5 server will set status=2 (ready) via UpdateNumberOfPlayers.
+                    let guid = svc.state().config.customer_guid;
+                    if let Err(e) = svc
+                        .spin_up_server_instance(
+                            guid,
+                            msg.world_server_id,
+                            msg.zone_instance_id,
+                            &msg.map_name,
+                            result.port,
+                        )
+                        .await
+                    {
+                        error!(error = %e, "Failed to create mapinstance record after allocation");
+                    }
+
                     svc.state()
                         .zone_servers
                         .insert(msg.zone_instance_id, result.game_server_name);
+
+                    // Release spin-up lock
+                    let lock_key = format!("{}:{}", msg.customer_guid, msg.map_name);
+                    svc.state().zone_spinup_locks.remove(&lock_key);
                 }
                 Err(e) => {
                     error!(error = %e, zone = msg.zone_instance_id, "Agones allocation failed");
