@@ -9,6 +9,13 @@ SET search_path TO ows;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto SCHEMA public;
 
+-- Create ows role (LOGIN disabled — used via connection string, not interactive)
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ows') THEN
+        CREATE ROLE ows NOLOGIN;
+    END IF;
+END $$;
+
 -- Schema-level security: block anon/authenticated/public from ows schema
 REVOKE ALL ON SCHEMA ows FROM anon, authenticated, PUBLIC;
 GRANT USAGE ON SCHEMA ows TO service_role;
