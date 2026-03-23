@@ -41,13 +41,13 @@
 				"local": {
 					"commands": [
 						"./kbve.sh -nx ows:containerx-publicapi --no-cloud",
-						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-publicapi:latest kbve/ows-publicapi:$VERSION && echo \"Tagged kbve/ows-publicapi:$VERSION\""
+						"VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-public-api/OWSPublicAPI.csproj | head -1) && docker tag kbve/ows-publicapi:latest kbve/ows-publicapi:$VERSION && echo \"Tagged kbve/ows-publicapi:$VERSION\""
 					]
 				},
 				"production": {
 					"commands": [
 						"./kbve.sh -nx ows:containerx-publicapi --configuration=production --no-cloud",
-						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-publicapi:latest kbve/ows-publicapi:$VERSION && docker tag ghcr.io/kbve/ows-publicapi:latest ghcr.io/kbve/ows-publicapi:$VERSION && echo \"Tagged kbve/ows-publicapi:$VERSION\""
+						"VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-public-api/OWSPublicAPI.csproj | head -1) && docker tag kbve/ows-publicapi:latest kbve/ows-publicapi:$VERSION && docker tag ghcr.io/kbve/ows-publicapi:latest ghcr.io/kbve/ows-publicapi:$VERSION && echo \"Tagged kbve/ows-publicapi:$VERSION\""
 					]
 				}
 			}
@@ -101,13 +101,13 @@
 				"local": {
 					"commands": [
 						"./kbve.sh -nx ows:containerx-instancemanagement --no-cloud",
-						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-instancemanagement:latest kbve/ows-instancemanagement:$VERSION && echo \"Tagged kbve/ows-instancemanagement:$VERSION\""
+						"VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-instance-management/OWSInstanceManagement.csproj | head -1) && docker tag kbve/ows-instancemanagement:latest kbve/ows-instancemanagement:$VERSION && echo \"Tagged kbve/ows-instancemanagement:$VERSION\""
 					]
 				},
 				"production": {
 					"commands": [
 						"./kbve.sh -nx ows:containerx-instancemanagement --configuration=production --no-cloud",
-						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-instancemanagement:latest kbve/ows-instancemanagement:$VERSION && docker tag ghcr.io/kbve/ows-instancemanagement:latest ghcr.io/kbve/ows-instancemanagement:$VERSION && echo \"Tagged kbve/ows-instancemanagement:$VERSION\""
+						"VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-instance-management/OWSInstanceManagement.csproj | head -1) && docker tag kbve/ows-instancemanagement:latest kbve/ows-instancemanagement:$VERSION && docker tag ghcr.io/kbve/ows-instancemanagement:latest ghcr.io/kbve/ows-instancemanagement:$VERSION && echo \"Tagged kbve/ows-instancemanagement:$VERSION\""
 					]
 				}
 			}
@@ -161,13 +161,13 @@
 				"local": {
 					"commands": [
 						"./kbve.sh -nx ows:containerx-characterpersistence --no-cloud",
-						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-characterpersistence:latest kbve/ows-characterpersistence:$VERSION && echo \"Tagged kbve/ows-characterpersistence:$VERSION\""
+						"VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-character-persistence/OWSCharacterPersistence.csproj | head -1) && docker tag kbve/ows-characterpersistence:latest kbve/ows-characterpersistence:$VERSION && echo \"Tagged kbve/ows-characterpersistence:$VERSION\""
 					]
 				},
 				"production": {
 					"commands": [
 						"./kbve.sh -nx ows:containerx-characterpersistence --configuration=production --no-cloud",
-						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-characterpersistence:latest kbve/ows-characterpersistence:$VERSION && docker tag ghcr.io/kbve/ows-characterpersistence:latest ghcr.io/kbve/ows-characterpersistence:$VERSION && echo \"Tagged kbve/ows-characterpersistence:$VERSION\""
+						"VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-character-persistence/OWSCharacterPersistence.csproj | head -1) && docker tag kbve/ows-characterpersistence:latest kbve/ows-characterpersistence:$VERSION && docker tag ghcr.io/kbve/ows-characterpersistence:latest ghcr.io/kbve/ows-characterpersistence:$VERSION && echo \"Tagged kbve/ows-characterpersistence:$VERSION\""
 					]
 				}
 			}
@@ -221,13 +221,13 @@
 				"local": {
 					"commands": [
 						"./kbve.sh -nx ows:containerx-globaldata --no-cloud",
-						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-globaldata:latest kbve/ows-globaldata:$VERSION && echo \"Tagged kbve/ows-globaldata:$VERSION\""
+						"VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-global-data/OWSGlobalData.csproj | head -1) && docker tag kbve/ows-globaldata:latest kbve/ows-globaldata:$VERSION && echo \"Tagged kbve/ows-globaldata:$VERSION\""
 					]
 				},
 				"production": {
 					"commands": [
 						"./kbve.sh -nx ows:containerx-globaldata --configuration=production --no-cloud",
-						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-globaldata:latest kbve/ows-globaldata:$VERSION && docker tag ghcr.io/kbve/ows-globaldata:latest ghcr.io/kbve/ows-globaldata:$VERSION && echo \"Tagged kbve/ows-globaldata:$VERSION\""
+						"VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-global-data/OWSGlobalData.csproj | head -1) && docker tag kbve/ows-globaldata:latest kbve/ows-globaldata:$VERSION && docker tag ghcr.io/kbve/ows-globaldata:latest ghcr.io/kbve/ows-globaldata:$VERSION && echo \"Tagged kbve/ows-globaldata:$VERSION\""
 					]
 				}
 			}
@@ -281,13 +281,13 @@
 				"local": {
 					"commands": [
 						"./kbve.sh -nx ows:containerx-management --no-cloud",
-						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-management:latest kbve/ows-management:$VERSION && echo \"Tagged kbve/ows-management:$VERSION\""
+						"VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-management/OWSManagement.csproj | head -1) && docker tag kbve/ows-management:latest kbve/ows-management:$VERSION && echo \"Tagged kbve/ows-management:$VERSION\""
 					]
 				},
 				"production": {
 					"commands": [
 						"./kbve.sh -nx ows:containerx-management --configuration=production --no-cloud",
-						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-management:latest kbve/ows-management:$VERSION && docker tag ghcr.io/kbve/ows-management:latest ghcr.io/kbve/ows-management:$VERSION && echo \"Tagged kbve/ows-management:$VERSION\""
+						"VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-management/OWSManagement.csproj | head -1) && docker tag kbve/ows-management:latest kbve/ows-management:$VERSION && docker tag ghcr.io/kbve/ows-management:latest ghcr.io/kbve/ows-management:$VERSION && echo \"Tagged kbve/ows-management:$VERSION\""
 					]
 				}
 			}
@@ -341,13 +341,13 @@
 				"local": {
 					"commands": [
 						"./kbve.sh -nx ows:containerx-instancelauncher --no-cloud",
-						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-instancelauncher:latest kbve/ows-instancelauncher:$VERSION && echo \"Tagged kbve/ows-instancelauncher:$VERSION\""
+						"VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-instance-launcher/OWSInstanceLauncher.csproj | head -1) && docker tag kbve/ows-instancelauncher:latest kbve/ows-instancelauncher:$VERSION && echo \"Tagged kbve/ows-instancelauncher:$VERSION\""
 					]
 				},
 				"production": {
 					"commands": [
 						"./kbve.sh -nx ows:containerx-instancelauncher --configuration=production --no-cloud",
-						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-instancelauncher:latest kbve/ows-instancelauncher:$VERSION && docker tag ghcr.io/kbve/ows-instancelauncher:latest ghcr.io/kbve/ows-instancelauncher:$VERSION && echo \"Tagged kbve/ows-instancelauncher:$VERSION\""
+						"VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-instance-launcher/OWSInstanceLauncher.csproj | head -1) && docker tag kbve/ows-instancelauncher:latest kbve/ows-instancelauncher:$VERSION && docker tag ghcr.io/kbve/ows-instancelauncher:latest ghcr.io/kbve/ows-instancelauncher:$VERSION && echo \"Tagged kbve/ows-instancelauncher:$VERSION\""
 					]
 				}
 			}
