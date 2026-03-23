@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: chuckrpg-deployment
+    namespace: chuckrpg
+    labels:
+        app: chuckrpg
+spec:
+    replicas: 1
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 0
+    selector:
+        matchLabels:
+            app: chuckrpg
+    template:
+        metadata:
+            labels:
+                app: chuckrpg
+        spec:
+            containers:
+                - name: chuckrpg
+                  image: ghcr.io/kbve/chuckrpg:0.1.0
+                  imagePullPolicy: Always
+                  ports:
+                      - name: http
+                        containerPort: 4322
+                        protocol: TCP
+                  livenessProbe:
+                      httpGet:
+                          path: /health
+                          port: http
+                      initialDelaySeconds: 15
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+                  readinessProbe:
+                      httpGet:
+                          path: /health
+                          port: http
+                      initialDelaySeconds: 5
+                      periodSeconds: 5
+                      timeoutSeconds: 3
+                      failureThreshold: 3
+                  env:
+                      - name: HTTP_HOST
+                        value: '0.0.0.0'
+                      - name: HTTP_PORT
+                        value: '4322'
+                      - name: RUST_LOG
+                        value: 'info'
+                  resources:
+                      requests:
+                          memory: '128Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '256Mi'
+                          cpu: '500m'
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: chuckrpg-service
+    namespace: chuckrpg
+    labels:
+        app: chuckrpg
+spec:
+    type: ClusterIP
+    selector:
+        app: chuckrpg
+    ports:
+        - name: http
+          port: 4322
+          targetPort: 4322
+          protocol: TCP

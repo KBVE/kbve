@@ -56,6 +56,8 @@ resources:
     - agones/application.yaml
     # OWS — Open World Server .NET microservices (5 services + ValKey)
     - ows/application.yaml
+    # ChuckRPG — game website + API
+    - chuckrpg/application.yaml
     - rentearth/application.yaml
     - cryptothrone/application.yaml
     # AngelScript UE dedicated server

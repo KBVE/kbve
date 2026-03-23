@@ -1,0 +1,17 @@
+[package]
+name = "axum-chuckrpg"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tower = { version = "0.5.3", features = ["util", "timeout"] }
+tower-http = { version = "0.6.8", features = ["compression-full", "cors", "trace", "fs", "set-header"] }
+axum = { version = "0.8.4", features = ["macros"] }
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
