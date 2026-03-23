@@ -134,7 +134,8 @@
 			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
 			"has_test": false,
 			"target": "container-characterpersistence",
-			"nx_project": "ows"
+			"nx_project": "ows",
+			"version_target": "apps/ows/version.toml"
 		},
 		{
 			"key": "ows_globaldata",
@@ -148,7 +149,8 @@
 			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
 			"has_test": false,
 			"target": "container-globaldata",
-			"nx_project": "ows"
+			"nx_project": "ows",
+			"version_target": "apps/ows/version.toml"
 		},
 		{
 			"key": "ows_instancemanagement",
@@ -162,7 +164,8 @@
 			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
 			"has_test": false,
 			"target": "container-instancemanagement",
-			"nx_project": "ows"
+			"nx_project": "ows",
+			"version_target": "apps/ows/version.toml"
 		},
 		{
 			"key": "ows_management",
@@ -176,7 +179,8 @@
 			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
 			"has_test": false,
 			"target": "container-management",
-			"nx_project": "ows"
+			"nx_project": "ows",
+			"version_target": "apps/ows/version.toml"
 		},
 		{
 			"key": "ows_publicapi",
@@ -190,7 +194,8 @@
 			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
 			"has_test": false,
 			"target": "container-publicapi",
-			"nx_project": "ows"
+			"nx_project": "ows",
+			"version_target": "apps/ows/version.toml"
 		}
 	],
 	"npm": [
