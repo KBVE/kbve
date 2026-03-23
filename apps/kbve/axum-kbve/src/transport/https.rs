@@ -230,6 +230,14 @@ fn router(state: AppState) -> Router {
         .route(
             "/dashboard/vm/proxy",
             any(super::proxy::kubevirt_proxy_handler),
+        )
+        .route(
+            "/dashboard/edge/proxy/{*path}",
+            any(super::proxy::edge_proxy_handler),
+        )
+        .route(
+            "/dashboard/edge/proxy",
+            any(super::proxy::edge_proxy_handler),
         );
 
     // Game server WebSocket is now handled by lightyear on a separate port
