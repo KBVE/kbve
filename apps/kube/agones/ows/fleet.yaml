@@ -46,12 +46,18 @@ spec:
                               - /bin/bash
                               - -c
                               - |
-                                  SERVER_DIR="/server/latest/LinuxServer"
+                                  # Find latest version directory (symlink may be broken due to mount path)
+                                  SERVER_DIR=$(find /server -maxdepth 2 -name "LinuxServer" -type d | head -1)
+                                  if [ -z "${SERVER_DIR}" ]; then
+                                    echo "ERROR: LinuxServer directory not found on PVC"
+                                    ls -la /server/ 2>/dev/null
+                                    exit 1
+                                  fi
                                   SERVER_BIN="${SERVER_DIR}/OWSHubWorldMMOServer.sh"
 
                                   if [ ! -f "${SERVER_BIN}" ]; then
                                     echo "ERROR: Server binary not found at ${SERVER_BIN}"
-                                    ls -la /server/ 2>/dev/null
+                                    ls -la "${SERVER_DIR}/" 2>/dev/null
                                     exit 1
                                   fi
 
