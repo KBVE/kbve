@@ -21,6 +21,19 @@ enum DispatchPipeline {
   DISPATCH_PIPELINE_UNREAL = 5;
 }
 
+// Language / framework that determines which CI toolchain is needed for tests.
+// Used by the E2E matrix to fan out with the correct runner setup.
+enum TestFramework {
+  TEST_FRAMEWORK_UNSPECIFIED = 0;
+  TEST_FRAMEWORK_RUST = 1;       // Cargo test + optional wasm32 target
+  TEST_FRAMEWORK_TYPESCRIPT = 2; // Vitest / Jest (Node)
+  TEST_FRAMEWORK_ASTRO = 3;     // Astro build + Playwright
+  TEST_FRAMEWORK_CSHARP = 4;    // dotnet test
+  TEST_FRAMEWORK_PYTHON = 5;    // pytest / uv
+  TEST_FRAMEWORK_DENO = 6;      // Deno test
+  TEST_FRAMEWORK_CPP = 7;       // Unreal Engine / C++ compile checks
+}
+
 // A tracked item in the CI dispatch registry.
 // Each entry corresponds to one fan-out dispatch from ci-main.yml.
 message CiProject {
@@ -61,6 +74,19 @@ message CiProject {
   // --- Unreal-specific metadata ---
   optional string min_engine_version = 21;  // Minimum UE version (e.g. "5.4")
   repeated string supported_platforms = 22; // Win64, Linux, Mac, etc.
+
+  // --- CI deployment config (drives docker/e2e workflows) ---
+  optional string runner = 23;              // CI runner label (e.g. "ubuntu-latest", "arc-runner-set")
+  optional string image = 24;              // Docker image name without registry (e.g. "kbve/edge")
+  optional string e2e_name = 25;           // Nx e2e project name (e.g. "edge-e2e")
+  optional string deployment_yaml = 26;    // Path to kube deployment YAML relative to repo root
+  optional string version_target = 27;     // Path to build manifest to sync version into (Cargo.toml, deno.json, etc.)
+  optional bool has_test = 28;             // Whether this project has a test target
+  optional string target = 29;             // Nx build target override (default: "build")
+  optional string nx_project = 30;         // Nx project name if different from key
+
+  // --- Test framework (E2E matrix fan-out) ---
+  TestFramework test_framework = 31;       // Which CI toolchain to use for tests
 }
 
 // The full registry — a flat list of all tracked items.
