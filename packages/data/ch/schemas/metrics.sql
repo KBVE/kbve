@@ -5,7 +5,7 @@
 -- OTEL-aligned metrics tables.
 --
 -- Engine: MergeTree (default)
--- TTL: 90 days
+-- TTL: 45 days
 -- Partition: daily by timestamp
 -- =============================================================================
 
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS logflare.otel_metrics_template (
 ENGINE = MergeTree
 PARTITION BY toDate(timestamp)
 ORDER BY (source_name, metric_name, project, timestamp_hour)
-TTL toDateTime(timestamp) + INTERVAL 90 DAY
+TTL toDateTime(timestamp) + INTERVAL 45 DAY
 SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
 
 
@@ -121,5 +121,5 @@ CREATE TABLE IF NOT EXISTS logflare.simple_otel_metrics_template (
 ENGINE = MergeTree
 PARTITION BY toDate(timestamp)
 ORDER BY (source_name, metric_name, project, timestamp_hour)
-TTL toDateTime(timestamp) + INTERVAL 90 DAY
+TTL toDateTime(timestamp) + INTERVAL 45 DAY
 SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
