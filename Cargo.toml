@@ -14,6 +14,7 @@ members = [
 	'apps/irc/irc-gateway',
 	'apps/discordsh/axum-discordsh',
 	'apps/kbve/axum-kbve',
+	'apps/chuckrpg/axum-chuckrpg',
 	'apps/cryptothrone/axum-cryptothrone',
 	'apps/kbve/isometric/src-tauri',
 	'apps/kbve/desktop-kbve/src-tauri',

@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.71",
+			"version": "1.0.72",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -13,6 +13,19 @@
 			"e2e_name": "axum-kbve-e2e",
 			"deployment_yaml": "apps/kube/kbve/manifest/kbve-deployment.yaml",
 			"has_test": true
+		},
+		{
+			"key": "chuckrpg",
+			"app_name": "axum-chuckrpg",
+			"version": "0.1.0",
+			"version_toml": "apps/chuckrpg/axum-chuckrpg/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/chuckrpg.mdx",
+			"version_target": "apps/chuckrpg/axum-chuckrpg/Cargo.toml",
+			"source_path": "apps/chuckrpg/axum-chuckrpg",
+			"runner": "ubuntu-latest",
+			"image": "kbve/chuckrpg",
+			"deployment_yaml": "apps/kube/chuckrpg/manifest/deployment.yaml",
+			"has_test": false
 		},
 		{
 			"key": "cryptothrone",
@@ -31,7 +44,7 @@
 		{
 			"key": "discordsh",
 			"app_name": "discordsh",
-			"version": "0.1.34",
+			"version": "0.1.35",
 			"version_toml": "apps/discordsh/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx",
 			"version_target": "apps/discordsh/axum-discordsh/Cargo.toml",
@@ -45,7 +58,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.20",
+			"version": "0.1.21",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -125,77 +138,92 @@
 		{
 			"key": "ows_characterpersistence",
 			"app_name": "ows-characterpersistence",
-			"version": "0.1.2",
+			"version": "0.10.1",
 			"version_toml": "apps/ows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-characterpersistence.mdx",
+			"version_target": "apps/ows/version.toml",
 			"source_path": "apps/ows",
 			"runner": "ubuntu-latest",
 			"image": "kbve/ows-characterpersistence",
 			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
 			"has_test": false,
 			"target": "container-characterpersistence",
-			"nx_project": "ows",
-			"version_target": "apps/ows/version.toml"
+			"nx_project": "ows"
 		},
 		{
 			"key": "ows_globaldata",
 			"app_name": "ows-globaldata",
-			"version": "0.1.2",
+			"version": "0.10.1",
 			"version_toml": "apps/ows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-globaldata.mdx",
+			"version_target": "apps/ows/version.toml",
 			"source_path": "apps/ows",
 			"runner": "ubuntu-latest",
 			"image": "kbve/ows-globaldata",
 			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
 			"has_test": false,
 			"target": "container-globaldata",
-			"nx_project": "ows",
-			"version_target": "apps/ows/version.toml"
+			"nx_project": "ows"
+		},
+		{
+			"key": "ows_instancelauncher",
+			"app_name": "ows-instancelauncher",
+			"version": "0.10.1",
+			"version_toml": "apps/ows/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-instancelauncher.mdx",
+			"version_target": "apps/ows/version.toml",
+			"source_path": "apps/ows",
+			"runner": "ubuntu-latest",
+			"image": "kbve/ows-instancelauncher",
+			"deployment_yaml": "apps/kube/github/runners/manifests/ows-instance-launcher.yaml",
+			"has_test": false,
+			"target": "container-instancelauncher",
+			"nx_project": "ows"
 		},
 		{
 			"key": "ows_instancemanagement",
 			"app_name": "ows-instancemanagement",
-			"version": "0.1.2",
+			"version": "0.10.1",
 			"version_toml": "apps/ows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-instancemanagement.mdx",
+			"version_target": "apps/ows/version.toml",
 			"source_path": "apps/ows",
 			"runner": "ubuntu-latest",
 			"image": "kbve/ows-instancemanagement",
 			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
 			"has_test": false,
 			"target": "container-instancemanagement",
-			"nx_project": "ows",
-			"version_target": "apps/ows/version.toml"
+			"nx_project": "ows"
 		},
 		{
 			"key": "ows_management",
 			"app_name": "ows-management",
-			"version": "0.1.2",
+			"version": "0.10.1",
 			"version_toml": "apps/ows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-management.mdx",
+			"version_target": "apps/ows/version.toml",
 			"source_path": "apps/ows",
 			"runner": "ubuntu-latest",
 			"image": "kbve/ows-management",
 			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
 			"has_test": false,
 			"target": "container-management",
-			"nx_project": "ows",
-			"version_target": "apps/ows/version.toml"
+			"nx_project": "ows"
 		},
 		{
 			"key": "ows_publicapi",
 			"app_name": "ows-publicapi",
-			"version": "0.1.2",
+			"version": "0.10.1",
 			"version_toml": "apps/ows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-publicapi.mdx",
+			"version_target": "apps/ows/version.toml",
 			"source_path": "apps/ows",
 			"runner": "ubuntu-latest",
 			"image": "kbve/ows-publicapi",
 			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
 			"has_test": false,
 			"target": "container-publicapi",
-			"nx_project": "ows",
-			"version_target": "apps/ows/version.toml"
+			"nx_project": "ows"
 		}
 	],
 	"npm": [
@@ -325,11 +353,11 @@
 		}
 	],
 	"summary": {
-		"docker": 14,
+		"docker": 16,
 		"npm": 4,
 		"crates": 6,
 		"python": 2,
 		"unreal": 6,
-		"total": 32
+		"total": 34
 	}
 }

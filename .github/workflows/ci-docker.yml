@@ -157,6 +157,7 @@ jobs:
             version_target: ${{ steps.resolve.outputs.version_target }}
             target: ${{ steps.resolve.outputs.target }}
             nx_project: ${{ steps.resolve.outputs.nx_project }}
+            source_path: ${{ steps.resolve.outputs.source_path }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -186,6 +187,7 @@ jobs:
                   echo "version_target=$(echo "$ENTRY" | jq -r '.version_target // empty')"  >> "$GITHUB_OUTPUT"
                   echo "target=$(echo "$ENTRY" | jq -r '.target // "container"')"              >> "$GITHUB_OUTPUT"
                   echo "nx_project=$(echo "$ENTRY" | jq -r '.nx_project // empty')"            >> "$GITHUB_OUTPUT"
+                  echo "source_path=$(echo "$ENTRY" | jq -r '.source_path // empty')"          >> "$GITHUB_OUTPUT"
 
     # ---------------------------------------------------------------------------
     # Test — builds the app image, tags as ci-{sha} in GHCR, runs e2e tests.
@@ -212,19 +214,59 @@ jobs:
             version_target: ${{ needs.config.outputs.version_target }}
 
     # ---------------------------------------------------------------------------
+    # Compile Check — runs `dotnet restore + test` via Nx for dotnet projects.
+    # Catches compilation errors before the Docker publish stage.
+    # Only runs when a .sln file exists in source_path (i.e. dotnet projects).
+    # ---------------------------------------------------------------------------
+    compile_check:
+        name: Compile Check
+        needs: [config]
+        if: |
+            always() &&
+            needs.config.result == 'success' &&
+            needs.config.outputs.source_path != '' &&
+            !cancelled()
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Check for .sln file
+              id: detect
+              run: |
+                  SLN=$(find "${{ needs.config.outputs.source_path }}" -maxdepth 1 -name '*.sln' -print -quit 2>/dev/null)
+                  if [ -n "$SLN" ]; then
+                    echo "is_dotnet=true" >> "$GITHUB_OUTPUT"
+                    echo "sln_path=$SLN" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "is_dotnet=false" >> "$GITHUB_OUTPUT"
+                  fi
+            - name: Setup .NET SDK
+              if: steps.detect.outputs.is_dotnet == 'true'
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: '8.0.x'
+            - name: Dotnet restore and build
+              if: steps.detect.outputs.is_dotnet == 'true'
+              run: |
+                  dotnet restore "${{ steps.detect.outputs.sln_path }}"
+                  dotnet build "${{ steps.detect.outputs.sln_path }}" --no-restore -c Release
+
+    # ---------------------------------------------------------------------------
     # Publish — promotes the ci-{sha} tag built in test to the release tag.
     # Falls back to a full rebuild only if the ci-{sha} image is not in GHCR.
     # For apps without a test step (kilobase) this is the primary build path.
     # ---------------------------------------------------------------------------
     publish:
         name: Publish Docker
-        needs: [config, test, version_gate]
+        needs: [config, test, compile_check, version_gate]
         if: |
             always() &&
             !cancelled() &&
             needs.config.result == 'success' &&
             needs.version_gate.outputs.should_publish == 'true' &&
-            (needs.test.result == 'success' || needs.test.result == 'skipped')
+            (needs.test.result == 'success' || needs.test.result == 'skipped') &&
+            (needs.compile_check.result == 'success' || needs.compile_check.result == 'skipped')
         permissions:
             contents: read
             packages: write
@@ -255,6 +297,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+            actions: write
         uses: KBVE/kbve/.github/workflows/utils-update-kube-manifest.yml@main
         with:
             app_name: ${{ inputs.app_name }}
@@ -277,6 +320,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+            actions: write
         uses: KBVE/kbve/.github/workflows/utils-update-version-toml.yml@dev
         with:
             package_type: docker

@@ -1,0 +1,29 @@
+---
+title: ChuckRPG
+description: |
+    ChuckRPG - Open world multiplayer RPG backend API.
+sidebar:
+    label: ChuckRPG
+    order: 30
+tags:
+    - game
+    - api
+key: chuckrpg
+pipeline: docker
+app_name: axum-chuckrpg
+version: "0.1.0"
+source_path: apps/chuckrpg/axum-chuckrpg
+version_toml: apps/chuckrpg/axum-chuckrpg/version.toml
+version_target: apps/chuckrpg/axum-chuckrpg/Cargo.toml
+runner: ubuntu-latest
+image: kbve/chuckrpg
+deployment_yaml: apps/kube/chuckrpg/manifest/deployment.yaml
+has_test: false
+author: h0lybyte
+license: KBVE
+status: beta
+---
+
+ChuckRPG is an open world multiplayer RPG powered by Unreal Engine with OWS (Open World Server) as the game backend.
+
+This project page tracks the `axum-chuckrpg` API service — the Rust-based backend that serves the ChuckRPG website and game API.
