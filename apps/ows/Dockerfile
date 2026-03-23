@@ -86,12 +86,9 @@ RUN npm run build
 # ============================================================================
 # Runtime base — HTTP only (no HTTPS certs in containers)
 # ============================================================================
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime-base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime-base
 ENV ASPNETCORE_URLS=http://+:80
 EXPOSE 80
-# Remove vulnerable System.Drawing.Common 4.7.0 from the shared framework (CVE-2021-24112).
-# Our apps ship 8.0.0 via Directory.Build.props, but Trivy flags the base image copy.
-RUN find /usr/share/dotnet -name 'System.Drawing.Common.dll' -delete 2>/dev/null || true
 
 # ============================================================================
 # Final service images
