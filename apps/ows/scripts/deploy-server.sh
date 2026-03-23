@@ -83,7 +83,8 @@ if [ "${SKIP_BUILD}" = false ]; then
 
     # Mount source as read-only, copy to writable location inside container.
     # UE5 BuildCookRun writes to the project's Intermediate/ directory.
-    docker run --rm \
+    docker run --rm -t \
+        --platform linux/amd64 \
         -v "${CHUCK_DIR}:/tmp/chuck-src:ro" \
         -v "${OUTPUT_DIR}:/tmp/ows-server-output" \
         "${UE_IMAGE}" \
