@@ -9,7 +9,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 use uuid::Uuid;
 
 use crate::service::OWSService;
@@ -23,7 +23,6 @@ use crate::service::OWSService;
 /// → { "id": 1, "result": { "authenticated": true, ... } }
 /// → { "id": 1, "error": { "code": "NOT_FOUND", "message": "..." } }
 /// ```
-
 pub fn router(svc: Arc<OWSService>) -> Router {
     Router::new().route("/ws", get(ws_upgrade)).with_state(svc)
 }

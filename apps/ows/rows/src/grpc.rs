@@ -16,6 +16,7 @@ use crate::proto::rows::*;
 use crate::service::OWSService;
 
 /// Helper: parse session GUID from string, return gRPC InvalidArgument on failure.
+#[allow(clippy::result_large_err)]
 fn parse_session(s: &str) -> Result<Uuid, Status> {
     Uuid::parse_str(s).map_err(|_| Status::invalid_argument("Invalid session GUID"))
 }

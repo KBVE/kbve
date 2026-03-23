@@ -136,8 +136,9 @@ async fn login(
 ///   2. Verify token against Supabase JWT / provider API
 ///   3. Find-or-create OWS user from Supabase user.id
 ///   4. Create session and return UserSessionGUID
-///   This enables direct Supabase Auth → OWS session bridging,
-///   removing the need for separate OWS account creation.
+///
+/// This enables direct Supabase Auth → OWS session bridging,
+/// removing the need for separate OWS account creation.
 #[derive(Deserialize)]
 #[serde(rename_all = "PascalCase")]
 struct ExternalLoginDto {
@@ -251,7 +252,7 @@ async fn register_user(
     headers: HeaderMap,
     Json(body): Json<RegisterUserDto>,
 ) -> Json<SuccessResponse> {
-    let customer_guid = extract_customer_guid(&headers);
+    let _customer_guid = extract_customer_guid(&headers);
     use argon2::{
         Argon2, PasswordHasher, password_hash::SaltString, password_hash::rand_core::OsRng,
     };

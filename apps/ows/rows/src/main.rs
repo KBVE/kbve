@@ -1,3 +1,8 @@
+// Allow structural warnings for WIP code — OWS parity requires many-arg functions
+// and some methods are implemented but not yet wired to routes.
+#![allow(clippy::too_many_arguments)]
+#![allow(dead_code)]
+
 mod agones;
 mod convert;
 mod db;
@@ -16,7 +21,6 @@ mod ws;
 
 use std::net::SocketAddr;
 use std::sync::Arc;
-use std::time::Duration;
 use tower_http::cors::CorsLayer;
 use tower_http::limit::RequestBodyLimitLayer;
 use tracing::info;
