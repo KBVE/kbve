@@ -110,7 +110,7 @@ spec:
         spec:
             containers:
                 - name: ows-instancemanagement
-                  image: ghcr.io/kbve/ows-instancemanagement:0.10.1
+                  image: ghcr.io/kbve/ows-instancemanagement:0.10.4
                   imagePullPolicy: Always
                   env:
                       - name: OWSStorageConfig__OWSDBBackend
