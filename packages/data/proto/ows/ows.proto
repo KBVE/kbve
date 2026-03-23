@@ -1,0 +1,482 @@
+syntax = "proto3";
+package ows;
+
+// ──────────────────────────────────────────────
+// Enums
+// ──────────────────────────────────────────────
+
+enum ServerStatus {
+  SERVER_STATUS_UNSPECIFIED = 0;
+  SERVER_STATUS_ONLINE      = 1;
+  SERVER_STATUS_OFFLINE     = 2;
+  SERVER_STATUS_LAUNCHING   = 3;
+  SERVER_STATUS_RESERVED    = 4;
+}
+
+enum MapMode {
+  MAP_MODE_UNSPECIFIED = 0;
+  MAP_MODE_OPEN_WORLD  = 1;
+  MAP_MODE_INSTANCED   = 2;
+  MAP_MODE_DUNGEON     = 3;
+}
+
+// ──────────────────────────────────────────────
+// Account & Auth
+// ──────────────────────────────────────────────
+
+message Customer {
+  string customer_guid         = 1;
+  string customer_name         = 2;
+  string customer_email        = 3;
+  optional string customer_phone = 4;
+  optional string stripe_customer_id = 5;
+  bool enable_debug_logging    = 6;
+  bool support_unicode         = 7;
+  bool no_port_forwarding      = 8;
+  bool developer_paid          = 9;
+  optional string free_trial_started = 10;
+}
+
+message User {
+  string user_guid       = 1;
+  string customer_guid   = 2;
+  string first_name      = 3;
+  string last_name       = 4;
+  string email           = 5;
+  string role            = 6;
+  optional string create_date  = 7;
+  optional string last_access  = 8;
+}
+
+message UserSession {
+  string customer_guid    = 1;
+  string user_session_guid = 2;
+  string user_guid        = 3;
+  optional string login_date  = 4;
+  optional string selected_character_name = 5;
+}
+
+// ──────────────────────────────────────────────
+// Characters
+// ──────────────────────────────────────────────
+
+message Character {
+  string customer_guid   = 1;
+  int32  character_id    = 2;
+  optional string user_guid = 3;
+  string email           = 4;
+  string char_name       = 5;
+  optional string map_name = 6;
+
+  // Position
+  double x  = 7;
+  double y  = 8;
+  double z  = 9;
+  double rx = 10;
+  double ry = 11;
+  double rz = 12;
+
+  // Core stats
+  double perception   = 13;
+  double acrobatics   = 14;
+  double climb        = 15;
+  double stealth      = 16;
+  double spirit       = 17;
+  double magic        = 18;
+  int32  team_number  = 19;
+  double thirst       = 20;
+  double hunger       = 21;
+  double gold         = 22;
+  double score        = 23;
+  int32  character_level = 24;
+  int32  gender       = 25;
+  double xp           = 26;
+  int32  hit_die      = 27;
+  double wounds       = 28;
+  double size         = 29;
+  double weight       = 30;
+
+  // Vitals
+  double max_health   = 31;
+  double health       = 32;
+  double health_regen_rate = 33;
+  double max_mana     = 34;
+  double mana         = 35;
+  double mana_regen_rate = 36;
+  double max_energy   = 37;
+  double energy       = 38;
+  double energy_regen_rate = 39;
+  double max_stamina  = 40;
+  double stamina      = 41;
+  double stamina_regen_rate = 42;
+
+  // Abilities
+  double strength     = 43;
+  double dexterity    = 44;
+  double constitution = 45;
+  double intellect    = 46;
+  double wisdom       = 47;
+  double charisma     = 48;
+  double agility      = 49;
+
+  // Combat
+  double base_attack       = 50;
+  double base_attack_bonus = 51;
+  double attack_power      = 52;
+  double attack_speed      = 53;
+  double crit_chance       = 54;
+  double crit_multiplier   = 55;
+  double defense           = 56;
+
+  // Currencies
+  double silver            = 57;
+  double copper            = 58;
+  double free_currency     = 59;
+  double premium_currency  = 60;
+  double fame              = 61;
+  double alignment         = 62;
+
+  // Admin flags
+  bool is_admin      = 63;
+  bool is_moderator  = 64;
+  bool is_internal_network_test_user = 65;
+  optional string default_pawn_class_path = 66;
+  optional string base_mesh = 67;
+  optional string class_name = 68;
+}
+
+message CharOnMapInstance {
+  string customer_guid  = 1;
+  int32  character_id   = 2;
+  int32  map_instance_id = 3;
+}
+
+message CustomCharacterData {
+  string customer_guid            = 1;
+  string custom_character_data_guid = 2;
+  int32  character_id             = 3;
+  string custom_field_name        = 4;
+  optional string field_value     = 5;
+}
+
+// ──────────────────────────────────────────────
+// World & Maps
+// ──────────────────────────────────────────────
+
+message WorldServer {
+  string customer_guid             = 1;
+  int32  world_server_id           = 2;
+  optional string server_ip        = 3;
+  int32  max_number_of_instances   = 4;
+  optional string active_start_time = 5;
+  int32  port                      = 6;
+  ServerStatus server_status       = 7;
+  optional string internal_server_ip = 8;
+  int32  starting_map_instance_port = 9;
+  optional string zone_server_guid = 10;
+}
+
+message Map {
+  string customer_guid = 1;
+  int32  map_id        = 2;
+  string map_name      = 3;
+  optional string zone_name = 4;
+  optional int32 width  = 5;
+  optional int32 height = 6;
+  MapMode map_mode     = 7;
+  int32   soft_player_cap = 8;
+  int32   hard_player_cap = 9;
+  int32   minutes_to_shutdown_after_empty = 10;
+  optional string world_comp_contains_filter = 11;
+  optional string world_comp_list_filter = 12;
+}
+
+message MapInstance {
+  string customer_guid   = 1;
+  int32  map_instance_id = 2;
+  int32  world_server_id = 3;
+  int32  map_id          = 4;
+  int32  port            = 5;
+  int32  status          = 6;
+  int32  number_of_reported_players = 7;
+  optional string last_update_from_server = 8;
+  optional string last_server_empty_date  = 9;
+  optional string map_instance_guid = 10;
+}
+
+message WorldSettings {
+  string customer_guid = 1;
+  int32  world_settings_id = 2;
+  optional string start_time = 3;
+  optional double time_multiplier = 4;
+}
+
+// ──────────────────────────────────────────────
+// Items & Inventory
+// ──────────────────────────────────────────────
+
+message ItemType {
+  int32  item_type_id   = 1;
+  string item_type_name = 2;
+  string customer_guid  = 3;
+  optional string item_type_desc = 4;
+  optional int32 user_item_type = 5;
+}
+
+message Item {
+  string customer_guid    = 1;
+  int32  item_id          = 2;
+  int32  item_type_id     = 3;
+  string item_name        = 4;
+  double item_weight      = 5;
+  bool   item_can_stack   = 6;
+  int32  item_stack_size  = 7;
+  bool   item_is_usable   = 8;
+  bool   item_is_consumed_on_use = 9;
+  optional string custom_data = 10;
+  int32  default_number_of_uses = 11;
+  int32  item_value       = 12;
+  int32  item_tier        = 13;
+  int32  item_quality     = 14;
+  bool   can_be_dropped   = 15;
+  bool   can_be_destroyed = 16;
+  double premium_currency_price = 17;
+  double free_currency_price = 18;
+  optional string item_mesh = 19;
+  optional string texture_to_use_for_icon = 20;
+  optional string item_code = 21;
+  optional string item_description = 22;
+}
+
+message CharHasItem {
+  string customer_guid = 1;
+  int32  character_id  = 2;
+  int32  char_has_item_id = 3;
+  int32  item_id       = 4;
+  int32  quantity      = 5;
+  bool   equipped      = 6;
+}
+
+message CharInventory {
+  string customer_guid   = 1;
+  int32  character_id    = 2;
+  int32  char_inventory_id = 3;
+  string inventory_name  = 4;
+  int32  inventory_size  = 5;
+  int32  inventory_width = 6;
+  int32  inventory_height = 7;
+}
+
+message CharInventoryItem {
+  string customer_guid         = 1;
+  int32  char_inventory_id     = 2;
+  int32  char_inventory_item_id = 3;
+  int32  item_id               = 4;
+  int32  in_slot_number        = 5;
+  int32  quantity              = 6;
+  int32  number_of_uses_left   = 7;
+  int32  condition             = 8;
+  optional string char_inventory_item_guid = 9;
+  optional string custom_data  = 10;
+}
+
+// ──────────────────────────────────────────────
+// Abilities & Classes
+// ──────────────────────────────────────────────
+
+message AbilityType {
+  int32  ability_type_id   = 1;
+  string ability_type_name = 2;
+  string customer_guid     = 3;
+}
+
+message Ability {
+  string customer_guid = 1;
+  int32  ability_id    = 2;
+  string ability_name  = 3;
+  int32  ability_type_id = 4;
+  optional string texture_to_use_for_icon = 5;
+  optional int32 class = 6;
+  optional int32 race  = 7;
+  optional string ability_custom_json = 8;
+  optional string gameplay_ability_class_name = 9;
+}
+
+message CharHasAbility {
+  string customer_guid      = 1;
+  int32  char_has_abilities_id = 2;
+  int32  character_id        = 3;
+  int32  ability_id          = 4;
+  int32  ability_level       = 5;
+  optional string char_has_abilities_custom_json = 6;
+}
+
+message CharAbilityBar {
+  string customer_guid  = 1;
+  int32  char_ability_bar_id = 2;
+  int32  character_id   = 3;
+  string ability_bar_name = 4;
+  optional string char_ability_bars_custom_json = 5;
+  int32  max_number_of_slots = 6;
+  int32  number_of_unlocked_slots = 7;
+}
+
+message CharAbilityBarAbility {
+  string customer_guid          = 1;
+  int32  char_ability_bar_ability_id = 2;
+  int32  char_ability_bar_id    = 3;
+  int32  char_has_abilities_id  = 4;
+  optional string char_ability_bar_abilities_custom_json = 5;
+  int32  in_slot_number         = 6;
+}
+
+message Class {
+  string customer_guid  = 1;
+  int32  class_id       = 2;
+  string class_name     = 3;
+  optional string description = 4;
+  optional string default_pawn_class_path = 5;
+  // Class uses same stat block as Character — omitted for brevity
+}
+
+message Race {
+  string customer_guid = 1;
+  int32  race_id       = 2;
+  string race_name     = 3;
+}
+
+// ──────────────────────────────────────────────
+// Chat
+// ──────────────────────────────────────────────
+
+message ChatGroup {
+  string customer_guid  = 1;
+  int32  chat_group_id  = 2;
+  string chat_group_name = 3;
+}
+
+message ChatGroupUser {
+  string customer_guid      = 1;
+  int32  chat_group_id      = 2;
+  int32  character_id       = 3;
+  int32  chat_group_user_id = 4;
+}
+
+message ChatMessage {
+  string customer_guid   = 1;
+  int32  chat_message_id = 2;
+  optional int32 chat_group_id = 3;
+  optional string sender_char_name = 4;
+  optional string message = 5;
+  optional string message_date = 6;
+}
+
+// ──────────────────────────────────────────────
+// Areas of Interest
+// ──────────────────────────────────────────────
+
+message AreaOfInterestType {
+  int32  area_of_interest_type_id   = 1;
+  string area_of_interest_type_desc = 2;
+}
+
+message AreaOfInterest {
+  string customer_guid          = 1;
+  string areas_of_interest_guid = 2;
+  int32  map_zone_id            = 3;
+  string area_of_interest_name  = 4;
+  double radius                 = 5;
+  int32  area_of_interest_type  = 6;
+  optional double x = 7;
+  optional double y = 8;
+  optional double z = 9;
+  optional double rx = 10;
+  optional double ry = 11;
+  optional double rz = 12;
+  optional string custom_data = 13;
+}
+
+// ──────────────────────────────────────────────
+// Player Groups
+// ──────────────────────────────────────────────
+
+message PlayerGroupType {
+  int32  player_group_type_id   = 1;
+  string player_group_type_name = 2;
+  string customer_guid          = 3;
+}
+
+message PlayerGroup {
+  string customer_guid    = 1;
+  int32  player_group_id  = 2;
+  int32  player_group_type_id = 3;
+  int32  character_id_owner = 4;
+  optional string player_group_name = 5;
+  int32  ready_state      = 6;
+  optional string create_date = 7;
+}
+
+message PlayerGroupCharacter {
+  string customer_guid    = 1;
+  int32  player_group_character_id = 2;
+  int32  player_group_id  = 3;
+  int32  character_id     = 4;
+  optional string date_added = 5;
+  int32  team_number      = 6;
+}
+
+// ──────────────────────────────────────────────
+// Misc
+// ──────────────────────────────────────────────
+
+message GlobalData {
+  string customer_guid     = 1;
+  string global_data_key   = 2;
+  optional string global_data_value = 3;
+}
+
+message DefaultCharacterValues {
+  string customer_guid   = 1;
+  int32  default_character_values_id = 2;
+  string default_set_name = 3;
+  string character_field  = 4;
+  string field_value      = 5;
+  optional string start_zone = 6;
+}
+
+message ClassInventory {
+  int32  class_inventory_id = 1;
+  string customer_guid      = 2;
+  int32  class_id           = 3;
+  string inventory_name     = 4;
+  int32  inventory_size     = 5;
+  int32  inventory_width    = 6;
+  int32  inventory_height   = 7;
+}
+
+message DebugLog {
+  int32  debug_log_id   = 1;
+  optional string debug_date = 2;
+  optional string debug_desc = 3;
+  optional string customer_guid = 4;
+}
+
+message DefaultCustomCharacterData {
+  string customer_guid                  = 1;
+  int32  default_custom_character_data_id = 2;
+  int32  default_character_values_id    = 3;
+  string custom_field_name              = 4;
+  string field_value                    = 5;
+}
+
+message UserInQueue {
+  string customer_guid      = 1;
+  string user_guid          = 2;
+  string queue_name         = 3;
+  string join_dt            = 4;
+  int32  match_making_score = 5;
+}
+
+message OWSVersion {
+  optional string ows_db_version = 1;
+}

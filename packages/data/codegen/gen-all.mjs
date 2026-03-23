@@ -63,6 +63,11 @@ const protos = [
 		protoFile: 'kbve/ci_registry.proto',
 		package: 'kbve.ci',
 	},
+	{
+		name: 'ows',
+		protoFile: 'ows/ows.proto',
+		package: 'ows',
+	},
 ];
 
 // Optional filter: pass a proto name as CLI arg to regenerate only that one

@@ -12,4 +12,5 @@ export * from './itemdb-schema.js';
 export * from './mapdb-schema.js';
 export * from './npcdb-schema.js';
 export * from './osrs-schema.js';
+export * from './ows-schema.js';
 export * from './questdb-schema.js';
