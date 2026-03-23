@@ -31,4 +31,20 @@ private:
 	static void HandleReparent(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
 	static void HandleValidate(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
 	static void HandleListComponents(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
+
+	// Phase 9 — snapshot/diff/restore
+	static void HandleSnapshotGraph(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
+	static void HandleDiffGraph(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
+	static void HandleRestoreGraph(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete);
+
+	// In-memory snapshot storage
+	struct FGraphSnapshot
+	{
+		FString BlueprintName;
+		FString GraphName;
+		TSharedPtr<FJsonObject> Data;
+		FDateTime Timestamp;
+	};
+	static TMap<FString, FGraphSnapshot> Snapshots;
+	static TSharedPtr<FJsonObject> CaptureGraphState(UEdGraph* Graph);
 };
