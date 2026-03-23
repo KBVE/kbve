@@ -16,7 +16,7 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-					"docker buildx build --platform linux/amd64 -f apps/chuckrpg/axum-chuckrpg/Dockerfile -t axum-chuckrpg:latest --load ."
+					"docker buildx build --platform linux/amd64 -f apps/chuckrpg/axum-chuckrpg/Dockerfile -t kbve/chuckrpg:latest --load ."
 				],
 				"cwd": "{workspaceRoot}"
 			}
