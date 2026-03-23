@@ -1,5 +1,6 @@
-use crate::error::{SuccessResponse, json_or_500};
+use crate::error::{ApiResult, RowsError, SuccessResponse};
 use crate::middleware::{extract_customer_guid, require_customer_guid};
+use crate::models::{CustomDataRows, HealthResponse};
 use crate::repo::*;
 use crate::state::AppState;
 use axum::{
@@ -10,7 +11,6 @@ use axum::{
     routing::{get, post},
 };
 use serde::Deserialize;
-use serde_json::json;
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -32,8 +32,11 @@ pub fn router(state: Arc<AppState>) -> Router {
         .merge(zones)
 }
 
-async fn health() -> Json<serde_json::Value> {
-    Json(json!({ "status": "healthy", "service": "rows" }))
+async fn health() -> Json<HealthResponse> {
+    Json(HealthResponse {
+        status: "healthy",
+        service: "rows",
+    })
 }
 
 // ─── Public API ──────────────────────────────────────────────
@@ -67,36 +70,27 @@ struct LoginDto {
 async fn login(
     State(state): State<Arc<AppState>>,
     Json(body): Json<LoginDto>,
-) -> Json<serde_json::Value> {
+) -> ApiResult<crate::models::LoginResult> {
     let repo = UsersRepo(&state.db);
-    match repo.login(&body.email, &body.password).await {
-        Ok(result) => json_or_500(&result),
-        Err(e) => Json(json!({
-            "authenticated": false,
-            "userSessionGuid": null,
-            "errorMessage": e.to_string()
-        })),
-    }
+    let result = repo.login(&body.email, &body.password).await?;
+    Ok(Json(result))
 }
 
 async fn get_user_session(
     State(state): State<Arc<AppState>>,
     axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>,
-) -> Json<serde_json::Value> {
-    let guid = params
+) -> ApiResult<crate::models::UserSession> {
+    let session_guid = params
         .get("userSessionGUID")
-        .and_then(|s| Uuid::parse_str(s).ok());
-
-    let Some(session_guid) = guid else {
-        return Json(json!({"success": false, "errorMessage": "Missing userSessionGUID"}));
-    };
+        .and_then(|s| Uuid::parse_str(s).ok())
+        .ok_or_else(|| RowsError::BadRequest("Missing userSessionGUID".into()))?;
 
     let repo = UsersRepo(&state.db);
-    match repo.get_session(session_guid).await {
-        Ok(Some(session)) => json_or_500(&session),
-        Ok(None) => Json(json!({"success": false, "errorMessage": "Session not found"})),
-        Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
-    }
+    let session = repo
+        .get_session(session_guid)
+        .await?
+        .ok_or_else(|| RowsError::NotFound("Session not found".into()))?;
+    Ok(Json(session))
 }
 
 #[derive(Deserialize)]
@@ -110,23 +104,21 @@ async fn get_all_characters(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
     Json(body): Json<GetAllCharsDto>,
-) -> Json<serde_json::Value> {
+) -> ApiResult<Vec<crate::models::Character>> {
     let customer_guid = extract_customer_guid(&headers);
     let repo = UsersRepo(&state.db);
 
-    let session = repo.get_session(body.user_session_guid).await;
-    let user_guid = match session {
-        Ok(Some(s)) => match s.user_guid {
-            Some(ug) => ug,
-            None => return Json(json!([])),
-        },
-        _ => return Json(json!([])),
-    };
+    let session = repo
+        .get_session(body.user_session_guid)
+        .await?
+        .ok_or_else(|| RowsError::NotFound("Session not found".into()))?;
 
-    match repo.get_all_characters(customer_guid, user_guid).await {
-        Ok(chars) => json_or_500(&chars),
-        Err(_) => Json(json!([])),
-    }
+    let user_guid = session
+        .user_guid
+        .ok_or_else(|| RowsError::NotFound("No user in session".into()))?;
+
+    let chars = repo.get_all_characters(customer_guid, user_guid).await?;
+    Ok(Json(chars))
 }
 
 #[derive(Deserialize)]
@@ -142,34 +134,30 @@ async fn get_server_to_connect_to(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
     Json(body): Json<GetServerDto>,
-) -> Json<serde_json::Value> {
+) -> ApiResult<crate::models::JoinMapResult> {
     let customer_guid = extract_customer_guid(&headers);
     let repo = InstanceRepo(&state.db);
 
-    match repo
+    let result = repo
         .join_map_by_char_name(customer_guid, &body.character_name, &body.zone_name)
-        .await
-    {
-        Ok(result) => {
-            // If we need to start a map and have MQ, publish spin-up
-            if result.need_to_startup_map {
-                if let Some(ref mq) = state.mq {
-                    let msg = crate::mq::SpinUpMessage {
-                        customer_guid: customer_guid.to_string(),
-                        world_server_id: result.world_server_id,
-                        zone_instance_id: result.map_instance_id,
-                        map_name: result.map_name_to_start.clone(),
-                        port: result.port,
-                    };
-                    if let Err(e) = mq.publish_spin_up(result.world_server_id, &msg).await {
-                        tracing::error!(error = %e, "Failed to publish spin-up message");
-                    }
-                }
+        .await?;
+
+    // If we need to start a map and have MQ, publish spin-up
+    if result.need_to_startup_map {
+        if let Some(ref mq) = state.mq {
+            let msg = crate::mq::SpinUpMessage {
+                customer_guid: customer_guid.to_string(),
+                world_server_id: result.world_server_id,
+                zone_instance_id: result.map_instance_id,
+                map_name: result.map_name_to_start.clone(),
+                port: result.port,
+            };
+            if let Err(e) = mq.publish_spin_up(result.world_server_id, &msg).await {
+                tracing::error!(error = %e, "Failed to publish spin-up message");
             }
-            json_or_500(&result)
         }
-        Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
     }
+    Ok(Json(result))
 }
 
 #[derive(Deserialize)]
@@ -184,15 +172,14 @@ async fn get_char_by_name_public(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
     Json(body): Json<GetByNameDto>,
-) -> Json<serde_json::Value> {
+) -> ApiResult<crate::models::Character> {
     let customer_guid = extract_customer_guid(&headers);
     let repo = CharsRepo(&state.db);
-
-    match repo.get_by_name(customer_guid, &body.character_name).await {
-        Ok(Some(ch)) => json_or_500(&ch),
-        Ok(None) => Json(json!({"success": false, "errorMessage": "Character not found"})),
-        Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
-    }
+    let ch = repo
+        .get_by_name(customer_guid, &body.character_name)
+        .await?
+        .ok_or_else(|| RowsError::NotFound("Character not found".into()))?;
+    Ok(Json(ch))
 }
 
 async fn system_status() -> Json<bool> {
@@ -391,17 +378,13 @@ async fn get_zone_instances(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
     Json(body): Json<GetZoneInstancesWrapper>,
-) -> Json<serde_json::Value> {
+) -> ApiResult<Vec<crate::models::ZoneInstance>> {
     let customer_guid = extract_customer_guid(&headers);
     let repo = InstanceRepo(&state.db);
-
-    match repo
+    let zones = repo
         .get_zone_instances(customer_guid, body.request.world_server_id)
-        .await
-    {
-        Ok(zones) => json_or_500(&zones),
-        Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
-    }
+        .await?;
+    Ok(Json(zones))
 }
 
 async fn register_launcher() -> Json<SuccessResponse> {
@@ -447,32 +430,27 @@ async fn get_char_by_name(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
-) -> Json<serde_json::Value> {
+) -> ApiResult<crate::models::Character> {
     let customer_guid = extract_customer_guid(&headers);
     let repo = CharsRepo(&state.db);
-
-    match repo.get_by_name(customer_guid, &body.character_name).await {
-        Ok(Some(ch)) => json_or_500(&ch),
-        Ok(None) => Json(json!({"success": false, "errorMessage": "Character not found"})),
-        Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
-    }
+    let ch = repo
+        .get_by_name(customer_guid, &body.character_name)
+        .await?
+        .ok_or_else(|| RowsError::NotFound("Character not found".into()))?;
+    Ok(Json(ch))
 }
 
 async fn get_custom_data(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
-) -> Json<serde_json::Value> {
+) -> ApiResult<CustomDataRows> {
     let customer_guid = extract_customer_guid(&headers);
     let repo = CharsRepo(&state.db);
-
-    match repo
+    let data = repo
         .get_custom_data(customer_guid, &body.character_name)
-        .await
-    {
-        Ok(data) => Json(json!({ "rows": data })),
-        Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
-    }
+        .await?;
+    Ok(Json(CustomDataRows { rows: data }))
 }
 
 #[derive(Deserialize)]
@@ -626,17 +604,13 @@ async fn get_character_abilities(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
-) -> Json<serde_json::Value> {
+) -> ApiResult<Vec<crate::models::CharacterAbility>> {
     let customer_guid = extract_customer_guid(&headers);
     let repo = AbilitiesRepo(&state.db);
-
-    match repo
+    let abilities = repo
         .get_character_abilities(customer_guid, &body.character_name)
-        .await
-    {
-        Ok(abilities) => json_or_500(&abilities),
-        Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
-    }
+        .await?;
+    Ok(Json(abilities))
 }
 
 #[derive(Deserialize)]
@@ -693,9 +667,9 @@ async fn remove_ability(
     }
 }
 
-async fn get_abilities_list() -> Json<serde_json::Value> {
+async fn get_abilities_list() -> Json<Vec<crate::models::CharacterAbility>> {
     // TODO: return all abilities for the customer
-    Json(json!([]))
+    Json(Vec::new())
 }
 
 // ─── Zones ───────────────────────────────────────────────────
@@ -796,13 +770,9 @@ async fn get_global_data(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
     Path(key): Path<String>,
-) -> Json<serde_json::Value> {
+) -> ApiResult<Option<crate::models::GlobalData>> {
     let customer_guid = extract_customer_guid(&headers);
     let repo = GlobalDataRepo(&state.db);
-
-    match repo.get(customer_guid, &key).await {
-        Ok(Some(data)) => json_or_500(&data),
-        Ok(None) => Json(json!(null)),
-        Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
-    }
+    let data = repo.get(customer_guid, &key).await?;
+    Ok(Json(data))
 }

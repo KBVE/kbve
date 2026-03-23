@@ -176,3 +176,16 @@ pub struct CharacterAbility {
     pub ability_level: i32,
     pub custom_json: Option<String>,
 }
+
+/// Typed wrapper for custom data rows response
+#[derive(Debug, Serialize)]
+pub struct CustomDataRows {
+    pub rows: Vec<CustomCharacterData>,
+}
+
+/// Health check response
+#[derive(Serialize)]
+pub struct HealthResponse {
+    pub status: &'static str,
+    pub service: &'static str,
+}
