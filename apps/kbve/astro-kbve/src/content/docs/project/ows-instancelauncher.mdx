@@ -1,0 +1,30 @@
+---
+title: OWS InstanceLauncher
+description: |
+    OWS Instance Launcher — spawns UE5 dedicated server instances via RabbitMQ.
+sidebar:
+    label: OWS Launcher
+    order: 63
+tags:
+    - docker
+    - dotnet
+key: ows_instancelauncher
+pipeline: docker
+app_name: ows-instancelauncher
+version: "0.10.0"
+source_path: apps/ows
+version_toml: apps/ows/version.toml
+version_target: apps/ows/version.toml
+runner: ubuntu-latest
+image: kbve/ows-instancelauncher
+deployment_yaml: apps/kube/github/runners/manifests/ows-instance-launcher.yaml
+has_test: false
+target: container-instancelauncher
+nx_project: ows
+author: h0lybyte
+license: KBVE
+---
+
+## OWS Instance Launcher
+
+Listens on RabbitMQ for server spin-up messages and launches UE5 dedicated server instances. Deployed in the `arc-runners` namespace alongside the server binary PVC.

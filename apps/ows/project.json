@@ -331,6 +331,66 @@
 				}
 			}
 		},
+		"container-instancelauncher": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx ows:containerx-instancelauncher --no-cloud",
+						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-instancelauncher:latest kbve/ows-instancelauncher:$VERSION && echo \"Tagged kbve/ows-instancelauncher:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx ows:containerx-instancelauncher --configuration=production --no-cloud",
+						"VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-instancelauncher:latest kbve/ows-instancelauncher:$VERSION && docker tag ghcr.io/kbve/ows-instancelauncher:latest ghcr.io/kbve/ows-instancelauncher:$VERSION && echo \"Tagged kbve/ows-instancelauncher:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx-instancelauncher": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/ows",
+				"file": "apps/ows/Dockerfile",
+				"target": "instancelauncher",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/ows-instancelauncher:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/ows-instancelauncher:buildcache"
+					]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": [
+							"ghcr.io/kbve/ows-instancelauncher",
+							"kbve/ows-instancelauncher"
+						],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=gha",
+						"type=registry,ref=ghcr.io/kbve/ows-instancelauncher:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/ows-instancelauncher:buildcache,mode=max"
+					]
+				}
+			}
+		},
 		"restore": {
 			"executor": "nx:run-commands",
 			"options": {
