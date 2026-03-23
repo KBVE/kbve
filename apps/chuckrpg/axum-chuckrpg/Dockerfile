@@ -107,9 +107,11 @@ RUN printf '[workspace]\nmembers = ["apps/chuckrpg/axum-chuckrpg"]\nresolver = "
 
 ENV RUSTFLAGS="-C link-arg=-fuse-ld=mold"
 
-COPY --from=astro-precompressor /static /app/apps/chuckrpg/axum-chuckrpg/templates/dist
-
+# Copy source first, then overlay Astro output (source has empty templates/dist)
 COPY apps/chuckrpg/axum-chuckrpg apps/chuckrpg/axum-chuckrpg
+
+# Overlay precompressed Astro output AFTER source copy
+COPY --from=astro-precompressor /static /app/apps/chuckrpg/axum-chuckrpg/templates/dist
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
