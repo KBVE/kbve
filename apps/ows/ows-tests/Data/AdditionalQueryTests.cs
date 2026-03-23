@@ -54,14 +54,14 @@ namespace OWSTests.Data
         public void UpdateCharacterPosition_Requires_CustomerGUID()
         {
             Assert.Contains("@CustomerGUID", GenericQueries.UpdateCharacterPosition);
-            Assert.Contains("@CharacterID", GenericQueries.UpdateCharacterPosition);
+            Assert.Contains("@CharName", GenericQueries.UpdateCharacterPosition);
         }
 
         [Fact]
         public void GetCharacterByName_Requires_CustomerGUID()
         {
             Assert.Contains("@CustomerGUID", GenericQueries.GetCharacterByName);
-            Assert.Contains("@CharacterName", GenericQueries.GetCharacterByName);
+            Assert.Contains("@CharName", GenericQueries.GetCharacterByName);
         }
 
         // ── Global Data ────────────────────────────────────────────────
@@ -101,7 +101,7 @@ namespace OWSTests.Data
         public void UserSessionSetSelectedCharacter_Requires_Session_And_Character()
         {
             Assert.Contains("@UserSessionGUID", GenericQueries.UserSessionSetSelectedCharacter);
-            Assert.Contains("@SelectedCharacterID", GenericQueries.UserSessionSetSelectedCharacter);
+            Assert.Contains("@SelectedCharacterName", GenericQueries.UserSessionSetSelectedCharacter);
         }
 
         // ── Map Instances ──────────────────────────────────────────────
