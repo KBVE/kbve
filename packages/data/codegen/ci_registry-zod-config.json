@@ -6,6 +6,11 @@
 			"mode": "const_array",
 			"stripPrefix": "DISPATCH_PIPELINE_",
 			"caseTransform": "lowercase"
+		},
+		"kbve.ci.TestFramework": {
+			"mode": "const_array",
+			"stripPrefix": "TEST_FRAMEWORK_",
+			"caseTransform": "lowercase"
 		}
 	},
 
@@ -15,6 +20,12 @@
 			"sourceEnum": "kbve.ci.DispatchPipeline",
 			"typeName": "DispatchPipelineValue",
 			"zodSchemaName": "DispatchPipelineSchema"
+		},
+		{
+			"name": "TestFrameworks",
+			"sourceEnum": "kbve.ci.TestFramework",
+			"typeName": "TestFrameworkValue",
+			"zodSchemaName": "TestFrameworkSchema"
 		}
 	],
 
@@ -42,6 +53,15 @@
 		"kbve.ci.CiProject.homepage_url": "z.string().url().max(512).optional()",
 		"kbve.ci.CiProject.status": "z.enum(['active', 'beta', 'deprecated', 'archived']).optional()",
 		"kbve.ci.CiProject.min_engine_version": "z.string().max(32).optional()",
-		"kbve.ci.CiProject.supported_platforms": "z.array(z.string().min(1).max(32)).max(10).optional()"
+		"kbve.ci.CiProject.supported_platforms": "z.array(z.string().min(1).max(32)).max(10).optional()",
+		"kbve.ci.CiProject.runner": "z.string().max(64).optional()",
+		"kbve.ci.CiProject.image": "z.string().max(128).optional()",
+		"kbve.ci.CiProject.e2e_name": "z.string().max(64).optional()",
+		"kbve.ci.CiProject.deployment_yaml": "z.string().max(256).optional()",
+		"kbve.ci.CiProject.version_target": "z.string().max(256).optional()",
+		"kbve.ci.CiProject.has_test": "z.boolean().optional()",
+		"kbve.ci.CiProject.target": "z.string().max(64).optional()",
+		"kbve.ci.CiProject.nx_project": "z.string().max(64).optional()",
+		"kbve.ci.CiProject.test_framework": "TestFrameworkSchema.optional()"
 	}
 }

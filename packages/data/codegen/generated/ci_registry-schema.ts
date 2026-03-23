@@ -20,6 +20,20 @@ export type DispatchPipelineValue = (typeof DispatchPipelines)[number];
 
 export const DispatchPipelineSchema = z.enum(DispatchPipelines);
 
+export const TestFrameworks = [
+	'rust',
+	'typescript',
+	'astro',
+	'csharp',
+	'python',
+	'deno',
+	'cpp',
+] as const;
+
+export type TestFrameworkValue = (typeof TestFrameworks)[number];
+
+export const TestFrameworkSchema = z.enum(TestFrameworks);
+
 // CiProject
 export const CiProjectSchema = z.object({
 	key: z
@@ -63,6 +77,15 @@ export const CiProjectSchema = z.object({
 	status: z.enum(['active', 'beta', 'deprecated', 'archived']).optional(),
 	min_engine_version: z.string().max(32).optional(),
 	supported_platforms: z.array(z.string().min(1).max(32)).max(10).optional(),
+	runner: z.string().max(64).optional(),
+	image: z.string().max(128).optional(),
+	e2e_name: z.string().max(64).optional(),
+	deployment_yaml: z.string().max(256).optional(),
+	version_target: z.string().max(256).optional(),
+	has_test: z.boolean().optional(),
+	target: z.string().max(64).optional(),
+	nx_project: z.string().max(64).optional(),
+	test_framework: TestFrameworkSchema.optional(),
 });
 
 export type CiProject = z.infer<typeof CiProjectSchema>;

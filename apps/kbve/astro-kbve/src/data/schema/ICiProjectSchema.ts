@@ -10,13 +10,21 @@ import {
 	CiProjectSchema,
 	DispatchPipelineSchema,
 	DispatchPipelines,
+	TestFrameworkSchema,
+	TestFrameworks,
 } from '../../../../../../packages/data/codegen/generated/ci_registry-schema';
 
 // Re-export generated types for downstream consumers
-export { DispatchPipelineSchema, DispatchPipelines };
+export {
+	DispatchPipelineSchema,
+	DispatchPipelines,
+	TestFrameworkSchema,
+	TestFrameworks,
+};
 export type {
 	CiProject,
 	DispatchPipelineValue,
+	TestFrameworkValue,
 } from '../../../../../../packages/data/codegen/generated/ci_registry-schema';
 
 // ---------------------------------------------------------------------------
@@ -26,15 +34,6 @@ export type {
 const AstroProjectExtensions = z.object({
 	unsplash: z.string().optional(),
 	img: z.string().url().optional(),
-	// CI deployment config — drives ci-docker.yml without case statements
-	runner: z.string().max(64).optional(),
-	image: z.string().max(128).optional(),
-	e2e_name: z.string().max(64).optional(),
-	deployment_yaml: z.string().max(256).optional(),
-	version_target: z.string().max(256).optional(),
-	has_test: z.boolean().optional(),
-	target: z.string().max(64).optional(),
-	nx_project: z.string().max(64).optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -63,6 +62,15 @@ export const ICiProjectSchema = AstroProjectExtensions.extend({
 	status: CiProjectSchema.shape.status,
 	min_engine_version: CiProjectSchema.shape.min_engine_version,
 	supported_platforms: CiProjectSchema.shape.supported_platforms,
+	runner: CiProjectSchema.shape.runner,
+	image: CiProjectSchema.shape.image,
+	e2e_name: CiProjectSchema.shape.e2e_name,
+	deployment_yaml: CiProjectSchema.shape.deployment_yaml,
+	version_target: CiProjectSchema.shape.version_target,
+	has_test: CiProjectSchema.shape.has_test,
+	target: CiProjectSchema.shape.target,
+	nx_project: CiProjectSchema.shape.nx_project,
+	test_framework: TestFrameworkSchema.optional(),
 });
 
 export type ICiProject = z.infer<typeof ICiProjectSchema>;
