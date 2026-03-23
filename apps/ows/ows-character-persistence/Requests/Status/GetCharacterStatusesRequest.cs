@@ -1,4 +1,5 @@
 ﻿using System;
+using Serilog;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -49,9 +50,17 @@ namespace OWSCharacterPersistence.Requests.Statuses
         /// </remarks>
         public async Task<IActionResult> Handle()
         {
-            output = await charactersRepository.GetCharByCharName(customerGUID, CharacterName);
+            try
+            {
+                output = await charactersRepository.GetCharByCharName(customerGUID, CharacterName);
 
-            return new OkObjectResult(output);
+                return new OkObjectResult(output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "GetCharacterStatusesRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

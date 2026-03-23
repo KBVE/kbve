@@ -3,6 +3,7 @@ using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 using OWSShared.RequestPayloads;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,9 +27,17 @@ namespace OWSInstanceManagement.Requests.Instance
 
         public async Task<IActionResult> Handle()
         {
-            _output = await _instanceManagementRepository.GetZoneInstancesForWorldServer(_customerGUID, Request.WorldServerID);
+            try
+            {
+                _output = await _instanceManagementRepository.GetZoneInstancesForWorldServer(_customerGUID, Request.WorldServerID);
 
-            return new OkObjectResult(_output);
+                return new OkObjectResult(_output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "GetZoneInstancesForWorldServerRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

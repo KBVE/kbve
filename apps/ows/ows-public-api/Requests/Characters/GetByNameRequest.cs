@@ -1,4 +1,5 @@
 ﻿using System;
+using Serilog;
 using System.Collections.Generic;
 using System.Net;
 using System.Runtime.CompilerServices;
@@ -53,61 +54,69 @@ namespace OWSPublicAPI.Requests.Characters
         /// </remarks>
         public async Task<IActionResult> Handle()
         {
-            CharacterAndCustomData Output = new CharacterAndCustomData();
-
-            //Get the User Session
-            GetUserSession userSession = await _usersRepository.GetUserSession(_customerGUID, new Guid(_getByNameDTO.UserSessionGUID));
-
-            //Make sure the User Session is valid
-            if (userSession == null || !userSession.UserGuid.HasValue)
+            try
             {
-                return new BadRequestObjectResult(Output);
-            }
+                CharacterAndCustomData Output = new CharacterAndCustomData();
 
-            //Get character data
-            GetCharByCharName characterData = await _charactersRepository.GetCharByCharName(_customerGUID, _getByNameDTO.CharacterName);
+                //Get the User Session
+                GetUserSession userSession = await _usersRepository.GetUserSession(_customerGUID, new Guid(_getByNameDTO.UserSessionGUID));
 
-            //Make sure the character data is valid and in the right User Session
-            if (characterData == null || !characterData.UserGuid.HasValue || characterData.UserGuid != userSession.UserGuid)
-            {
-                return new BadRequestObjectResult(Output);
-            }
-
-            //Assign the character data to the output object
-            Output.CharacterData = characterData;
-
-            //Get custom character data
-            IEnumerable<CustomCharacterData> customCharacterDataItems = await _charactersRepository.GetCustomCharacterData(_customerGUID, _getByNameDTO.CharacterName);
-
-            //Initialize the list
-            Output.CustomCharacterDataRows = new List<CustomCharacterDataDTO>();
-
-            //Loop through all the CustomCharacterData rows
-            foreach (CustomCharacterData currentCustomCharacterData in customCharacterDataItems)
-            {
-                //Use the ICustomCharacterDataSelector implementation to filter which fields are returned
-                if (_customCharacterDataSelector.ShouldExportThisCustomCharacterDataField(currentCustomCharacterData.CustomFieldName))
+                //Make sure the User Session is valid
+                if (userSession == null || !userSession.UserGuid.HasValue)
                 {
-                    CustomCharacterDataDTO customCharacterDataDTO = new CustomCharacterDataDTO()
-                    {
-                        CustomFieldName = currentCustomCharacterData.CustomFieldName,
-                        FieldValue = currentCustomCharacterData.FieldValue
-                    };
-
-                    //Add the filtered Custom Character Data
-                    Output.CustomCharacterDataRows.Add(customCharacterDataDTO);
+                    return new BadRequestObjectResult(Output);
                 }
+
+                //Get character data
+                GetCharByCharName characterData = await _charactersRepository.GetCharByCharName(_customerGUID, _getByNameDTO.CharacterName);
+
+                //Make sure the character data is valid and in the right User Session
+                if (characterData == null || !characterData.UserGuid.HasValue || characterData.UserGuid != userSession.UserGuid)
+                {
+                    return new BadRequestObjectResult(Output);
+                }
+
+                //Assign the character data to the output object
+                Output.CharacterData = characterData;
+
+                //Get custom character data
+                IEnumerable<CustomCharacterData> customCharacterDataItems = await _charactersRepository.GetCustomCharacterData(_customerGUID, _getByNameDTO.CharacterName);
+
+                //Initialize the list
+                Output.CustomCharacterDataRows = new List<CustomCharacterDataDTO>();
+
+                //Loop through all the CustomCharacterData rows
+                foreach (CustomCharacterData currentCustomCharacterData in customCharacterDataItems)
+                {
+                    //Use the ICustomCharacterDataSelector implementation to filter which fields are returned
+                    if (_customCharacterDataSelector.ShouldExportThisCustomCharacterDataField(currentCustomCharacterData.CustomFieldName))
+                    {
+                        CustomCharacterDataDTO customCharacterDataDTO = new CustomCharacterDataDTO()
+                        {
+                            CustomFieldName = currentCustomCharacterData.CustomFieldName,
+                            FieldValue = currentCustomCharacterData.FieldValue
+                        };
+
+                        //Add the filtered Custom Character Data
+                        Output.CustomCharacterDataRows.Add(customCharacterDataDTO);
+                    }
+                }
+
+                //Add Read-only Character Data
+                CustomCharacterDataDTO readOnlyCharacterData = new CustomCharacterDataDTO()
+                {
+                    CustomFieldName = "ReadOnlyCharacterData",
+                    FieldValue = await _getReadOnlyPublicCharacterData.GetReadOnlyPublicCharacterData(characterData.CharacterId)
+                };
+                Output.CustomCharacterDataRows.Add(readOnlyCharacterData);
+
+                return new OkObjectResult(Output);
             }
-
-            //Add Read-only Character Data
-            CustomCharacterDataDTO readOnlyCharacterData = new CustomCharacterDataDTO()
+            catch (Exception ex)
             {
-                CustomFieldName = "ReadOnlyCharacterData",
-                FieldValue = await _getReadOnlyPublicCharacterData.GetReadOnlyPublicCharacterData(characterData.CharacterId)
-            };
-            Output.CustomCharacterDataRows.Add(readOnlyCharacterData);
-
-            return new OkObjectResult(Output);
+                Log.Error(ex, "GetByNameRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

@@ -8,6 +8,7 @@ using OWSShared.Messages;
 using OWSShared.Options;
 using RabbitMQ.Client;
 using SimpleInjector;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,47 +38,55 @@ namespace OWSInstanceManagement.Requests.Instance
 
         public async Task<IActionResult> Handle()
         {
-            ConnectionFactory factory = new() 
-            { 
-                HostName = _rabbitMQOptions.Value.RabbitMQHostName,
-                Port = _rabbitMQOptions.Value.RabbitMQPort,
-                UserName = _rabbitMQOptions.Value.RabbitMQUserName, 
-                Password = _rabbitMQOptions.Value.RabbitMQPassword
-            };
-
-            using (var connection = factory.CreateConnection())
+            try
             {
-                using (var channel = connection.CreateModel())
+                ConnectionFactory factory = new() 
+                { 
+                    HostName = _rabbitMQOptions.Value.RabbitMQHostName,
+                    Port = _rabbitMQOptions.Value.RabbitMQPort,
+                    UserName = _rabbitMQOptions.Value.RabbitMQUserName, 
+                    Password = _rabbitMQOptions.Value.RabbitMQPassword
+                };
+
+                using (var connection = factory.CreateConnection())
                 {
-                    channel.ExchangeDeclare(exchange: "ows.serverspinup",
-                        type: "direct",
-                        durable: false,
-                        autoDelete: false);
-
-                    MQSpinUpServerMessage serverSpinUpMessage = new()
+                    using (var channel = connection.CreateModel())
                     {
-                        CustomerGUID = CustomerGUID,
-                        WorldServerID = WorldServerID,
-                        ZoneInstanceID = ZoneInstanceID,
-                        MapName = ZoneName,
-                        Port = Port
-                    };
+                        channel.ExchangeDeclare(exchange: "ows.serverspinup",
+                            type: "direct",
+                            durable: false,
+                            autoDelete: false);
 
-                    var body = serverSpinUpMessage.Serialize();
+                        MQSpinUpServerMessage serverSpinUpMessage = new()
+                        {
+                            CustomerGUID = CustomerGUID,
+                            WorldServerID = WorldServerID,
+                            ZoneInstanceID = ZoneInstanceID,
+                            MapName = ZoneName,
+                            Port = Port
+                        };
 
-                    channel.BasicPublish(exchange: "ows.serverspinup",
-                                         routingKey: String.Format("ows.serverspinup.{0}", WorldServerID),
-                                         basicProperties: null,
-                                         body: body);
+                        var body = serverSpinUpMessage.Serialize();
+
+                        channel.BasicPublish(exchange: "ows.serverspinup",
+                                             routingKey: String.Format("ows.serverspinup.{0}", WorldServerID),
+                                             basicProperties: null,
+                                             body: body);
+                    }
                 }
+
+                Output = new SuccessAndErrorMessage() {
+                    Success = true,
+                    ErrorMessage = ""
+                };
+
+                return new OkObjectResult(Output);
             }
-
-            Output = new SuccessAndErrorMessage() {
-                Success = true,
-                ErrorMessage = ""
-            };
-
-            return new OkObjectResult(Output);
+            catch (Exception ex)
+            {
+                Log.Error(ex, "SpinUpServerInstanceRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

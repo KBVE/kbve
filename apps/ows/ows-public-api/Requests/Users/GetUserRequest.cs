@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,9 +28,17 @@ namespace OWSPublicAPI.Requests.Users
 
         public async Task<IActionResult> Handle()
         {
-            output = await usersRepository.GetUser(customerGuid, userGuid);
+            try
+            {
+                output = await usersRepository.GetUser(customerGuid, userGuid);
 
-            return new OkObjectResult(output);
+                return new OkObjectResult(output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "GetUserRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

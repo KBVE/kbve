@@ -1,5 +1,7 @@
+use std::sync::Arc;
 use tonic::{Request, Response, Status};
-use tracing::info;
+use tracing::{error, info};
+use uuid::Uuid;
 
 use crate::proto::rows::character_persistence_server::{
     CharacterPersistence, CharacterPersistenceServer,
@@ -10,27 +12,81 @@ use crate::proto::rows::instance_management_server::{
 };
 use crate::proto::rows::public_api_server::{PublicApi, PublicApiServer};
 use crate::proto::rows::*;
+use crate::repo::*;
+use crate::state::AppState;
 
 // ──────────────────────────────────────────────
 // Public API
 // ──────────────────────────────────────────────
 
-#[derive(Debug, Default)]
-pub struct PublicApiService;
+pub struct PublicApiService {
+    state: Arc<AppState>,
+}
 
 #[tonic::async_trait]
 impl PublicApi for PublicApiService {
     async fn login(&self, req: Request<LoginRequest>) -> Result<Response<LoginResponse>, Status> {
-        info!("Login request for: {}", req.get_ref().email);
-        Err(Status::unimplemented("Login not yet implemented"))
+        let r = req.get_ref();
+        info!(email = %r.email, "gRPC Login");
+        let repo = UsersRepo(&self.state.db);
+
+        match repo.login(&r.email, &r.password).await {
+            Ok(result) => Ok(Response::new(LoginResponse {
+                success: result.authenticated,
+                user_session_guid: result
+                    .user_session_guid
+                    .map(|u| u.to_string())
+                    .unwrap_or_default(),
+                error: if result.error_message.is_empty() {
+                    None
+                } else {
+                    Some(result.error_message)
+                },
+            })),
+            Err(e) => {
+                error!(error = %e, "gRPC Login failed");
+                Err(e.into_tonic())
+            }
+        }
     }
 
     async fn register(
         &self,
         req: Request<RegisterRequest>,
     ) -> Result<Response<RegisterResponse>, Status> {
-        info!("Register request for: {}", req.get_ref().email);
-        Err(Status::unimplemented("Register not yet implemented"))
+        let r = req.get_ref();
+        info!(email = %r.email, "gRPC Register");
+
+        use argon2::{
+            Argon2, PasswordHasher,
+            password_hash::{SaltString, rand_core::OsRng},
+        };
+        let salt = SaltString::generate(&mut OsRng);
+        let hash = Argon2::default()
+            .hash_password(r.password.as_bytes(), &salt)
+            .map_err(|e| Status::internal(format!("Hash error: {e}")))?
+            .to_string();
+
+        let repo = UsersRepo(&self.state.db);
+        match repo
+            .register(
+                self.state.config.customer_guid,
+                &r.email,
+                &hash,
+                &r.first_name,
+                &r.last_name,
+            )
+            .await
+        {
+            Ok(_) => Ok(Response::new(RegisterResponse {
+                success: true,
+                error: None,
+            })),
+            Err(e) => {
+                error!(error = %e, "gRPC Register failed");
+                Err(e.into_tonic())
+            }
+        }
     }
 
     async fn get_characters(
@@ -77,8 +133,9 @@ impl PublicApi for PublicApiService {
 // Instance Management
 // ──────────────────────────────────────────────
 
-#[derive(Debug, Default)]
-pub struct InstanceManagementService;
+pub struct InstanceManagementService {
+    state: Arc<AppState>,
+}
 
 #[tonic::async_trait]
 impl InstanceManagement for InstanceManagementService {
@@ -120,11 +177,21 @@ impl InstanceManagement for InstanceManagementService {
 
     async fn set_zone_instance_status(
         &self,
-        _req: Request<SetZoneInstanceStatusRequest>,
+        req: Request<SetZoneInstanceStatusRequest>,
     ) -> Result<Response<SetZoneInstanceStatusResponse>, Status> {
-        Err(Status::unimplemented(
-            "SetZoneInstanceStatus not yet implemented",
-        ))
+        let r = req.get_ref();
+        let repo = InstanceRepo(&self.state.db);
+        repo.set_zone_status(
+            self.state.config.customer_guid,
+            r.zone_instance_id,
+            r.instance_status,
+        )
+        .await
+        .map_err(|e| e.into_tonic())?;
+
+        Ok(Response::new(SetZoneInstanceStatusResponse {
+            success: true,
+        }))
     }
 
     async fn spin_up_instance(
@@ -148,8 +215,9 @@ impl InstanceManagement for InstanceManagementService {
 // Character Persistence
 // ──────────────────────────────────────────────
 
-#[derive(Debug, Default)]
-pub struct CharacterPersistenceService;
+pub struct CharacterPersistenceService {
+    state: Arc<AppState>,
+}
 
 #[tonic::async_trait]
 impl CharacterPersistence for CharacterPersistenceService {
@@ -162,9 +230,24 @@ impl CharacterPersistence for CharacterPersistenceService {
 
     async fn update_position(
         &self,
-        _req: Request<UpdatePositionRequest>,
+        req: Request<UpdatePositionRequest>,
     ) -> Result<Response<UpdatePositionResponse>, Status> {
-        Err(Status::unimplemented("UpdatePosition not yet implemented"))
+        let r = req.get_ref();
+        let repo = CharsRepo(&self.state.db);
+        repo.update_position(
+            self.state.config.customer_guid,
+            &r.character_name,
+            r.x,
+            r.y,
+            r.z,
+            r.rx,
+            r.ry,
+            r.rz,
+        )
+        .await
+        .map_err(|e| e.into_tonic())?;
+
+        Ok(Response::new(UpdatePositionResponse { success: true }))
     }
 
     async fn update_stats(
@@ -176,9 +259,19 @@ impl CharacterPersistence for CharacterPersistenceService {
 
     async fn player_logout(
         &self,
-        _req: Request<PlayerLogoutRequest>,
+        req: Request<PlayerLogoutRequest>,
     ) -> Result<Response<PlayerLogoutResponse>, Status> {
-        Err(Status::unimplemented("PlayerLogout not yet implemented"))
+        let r = req.get_ref();
+        let session_guid = Uuid::parse_str(&r.user_session_guid)
+            .map_err(|_| Status::invalid_argument("Invalid session GUID"))?;
+
+        let repo = UsersRepo(&self.state.db);
+        repo.logout(session_guid)
+            .await
+            .map_err(|e| e.into_tonic())?;
+
+        info!(character = %r.character_name, "gRPC PlayerLogout");
+        Ok(Response::new(PlayerLogoutResponse { success: true }))
     }
 
     async fn join_map(
@@ -200,33 +293,65 @@ impl CharacterPersistence for CharacterPersistenceService {
 // Global Data
 // ──────────────────────────────────────────────
 
-#[derive(Debug, Default)]
-pub struct GlobalDataServiceImpl;
+pub struct GlobalDataServiceImpl {
+    state: Arc<AppState>,
+}
 
 #[tonic::async_trait]
 impl GlobalDataService for GlobalDataServiceImpl {
     async fn get_global_data(
         &self,
-        _req: Request<GetGlobalDataRequest>,
+        req: Request<GetGlobalDataRequest>,
     ) -> Result<Response<GetGlobalDataResponse>, Status> {
-        Err(Status::unimplemented("GetGlobalData not yet implemented"))
+        let r = req.get_ref();
+        let repo = GlobalDataRepo(&self.state.db);
+
+        let data = repo
+            .get(self.state.config.customer_guid, &r.global_data_key)
+            .await
+            .map_err(|e| e.into_tonic())?;
+
+        Ok(Response::new(GetGlobalDataResponse {
+            global_data_value: data.and_then(|d| d.global_data_value),
+        }))
     }
 
     async fn set_global_data(
         &self,
-        _req: Request<SetGlobalDataRequest>,
+        req: Request<SetGlobalDataRequest>,
     ) -> Result<Response<SetGlobalDataResponse>, Status> {
-        Err(Status::unimplemented("SetGlobalData not yet implemented"))
+        let r = req.get_ref();
+        let repo = GlobalDataRepo(&self.state.db);
+
+        repo.set(
+            self.state.config.customer_guid,
+            &r.global_data_key,
+            &r.global_data_value,
+        )
+        .await
+        .map_err(|e| e.into_tonic())?;
+
+        Ok(Response::new(SetGlobalDataResponse { success: true }))
     }
 }
 
 // ──────────────────────────────────────────────
-// Router — combines all gRPC services
+// Router — combines all gRPC services with shared state
 // ──────────────────────────────────────────────
 
-pub fn router() -> tonic::service::Routes {
-    tonic::service::Routes::new(PublicApiServer::new(PublicApiService))
-        .add_service(InstanceManagementServer::new(InstanceManagementService))
-        .add_service(CharacterPersistenceServer::new(CharacterPersistenceService))
-        .add_service(GlobalDataServiceServer::new(GlobalDataServiceImpl))
+pub fn router(state: Arc<AppState>) -> tonic::service::Routes {
+    tonic::service::Routes::new(PublicApiServer::new(PublicApiService {
+        state: state.clone(),
+    }))
+    .add_service(InstanceManagementServer::new(InstanceManagementService {
+        state: state.clone(),
+    }))
+    .add_service(CharacterPersistenceServer::new(
+        CharacterPersistenceService {
+            state: state.clone(),
+        },
+    ))
+    .add_service(GlobalDataServiceServer::new(GlobalDataServiceImpl {
+        state,
+    }))
 }

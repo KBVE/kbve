@@ -4,6 +4,7 @@ using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 using OWSShared.Messages;
 using RabbitMQ.Client;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,69 +30,77 @@ namespace OWSInstanceManagement.Requests.Instance
 
         public async Task<IActionResult> Handle()
         {
-            if (String.IsNullOrEmpty(ZoneName) || ZoneName == "GETLASTZONENAME")
+            try
             {
-                GetCharByCharName character = await charactersRepository.GetCharByCharName(CustomerGUID, CharacterName);
-
-                if (character == null || String.IsNullOrEmpty(character.MapName))
+                if (String.IsNullOrEmpty(ZoneName) || ZoneName == "GETLASTZONENAME")
                 {
-                    return new BadRequestResult();
-                }
+                    GetCharByCharName character = await charactersRepository.GetCharByCharName(CustomerGUID, CharacterName);
 
-                ZoneName = character.MapName;
-            }
-
-            JoinMapByCharName joinMapByCharacterName = await charactersRepository.JoinMapByCharName(CustomerGUID, CharacterName, ZoneName, PlayerGroupType);
-
-            bool readyForPlayersToConnect = false;
-
-            if (joinMapByCharacterName.NeedToStartupMap)
-            {
-                var factory = new ConnectionFactory() { HostName = "localhost" };
-
-                using (var connection = factory.CreateConnection())
-                {
-                    using (var channel = connection.CreateModel())
+                    if (character == null || String.IsNullOrEmpty(character.MapName))
                     {
-                        channel.ExchangeDeclare(exchange: "ServerSpinUp",
-                            type: "direct",
-                            durable: false,
-                            autoDelete: false);
-
-                        MQSpinUpServerMessage serverSpinUpMessage = new()
-                        {
-                            WorldServerID = joinMapByCharacterName.WorldServerID,
-                            MapName = ZoneName,
-                            Port = joinMapByCharacterName.WorldServerPort
-                        };
-
-                        var body = serverSpinUpMessage.Serialize();
-
-                        channel.BasicPublish(exchange: "ServerSpinUp",
-                                             routingKey: String.Format("ServerSpinUp.{0}" + joinMapByCharacterName.WorldServerID),
-                                             basicProperties: null,
-                                             body: body);
+                        return new BadRequestResult();
                     }
+
+                    ZoneName = character.MapName;
                 }
 
-                //Wait 5 seconds before the first CheckMapInstanceStatus to give it time to spin up
-                await Task.Delay(5000);
+                JoinMapByCharName joinMapByCharacterName = await charactersRepository.JoinMapByCharName(CustomerGUID, CharacterName, ZoneName, PlayerGroupType);
 
-                readyForPlayersToConnect = await WaitForServerReadyToConnect(joinMapByCharacterName.MapInstanceID);
-            }
-            else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 1)
-            {
-                //CheckMapInstanceStatus every 2 seconds for up to 90 seconds
-                readyForPlayersToConnect = await WaitForServerReadyToConnect(joinMapByCharacterName.MapInstanceID);
-            }
-            else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 2)
-            {
-                //The zone server is ready to connect to
-                readyForPlayersToConnect = true;
-            }
+                bool readyForPlayersToConnect = false;
 
-            Output = joinMapByCharacterName;
-            return new OkObjectResult(Output);
+                if (joinMapByCharacterName.NeedToStartupMap)
+                {
+                    var factory = new ConnectionFactory() { HostName = "localhost" };
+
+                    using (var connection = factory.CreateConnection())
+                    {
+                        using (var channel = connection.CreateModel())
+                        {
+                            channel.ExchangeDeclare(exchange: "ServerSpinUp",
+                                type: "direct",
+                                durable: false,
+                                autoDelete: false);
+
+                            MQSpinUpServerMessage serverSpinUpMessage = new()
+                            {
+                                WorldServerID = joinMapByCharacterName.WorldServerID,
+                                MapName = ZoneName,
+                                Port = joinMapByCharacterName.WorldServerPort
+                            };
+
+                            var body = serverSpinUpMessage.Serialize();
+
+                            channel.BasicPublish(exchange: "ServerSpinUp",
+                                                 routingKey: String.Format("ServerSpinUp.{0}" + joinMapByCharacterName.WorldServerID),
+                                                 basicProperties: null,
+                                                 body: body);
+                        }
+                    }
+
+                    //Wait 5 seconds before the first CheckMapInstanceStatus to give it time to spin up
+                    await Task.Delay(5000);
+
+                    readyForPlayersToConnect = await WaitForServerReadyToConnect(joinMapByCharacterName.MapInstanceID);
+                }
+                else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 1)
+                {
+                    //CheckMapInstanceStatus every 2 seconds for up to 90 seconds
+                    readyForPlayersToConnect = await WaitForServerReadyToConnect(joinMapByCharacterName.MapInstanceID);
+                }
+                else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 2)
+                {
+                    //The zone server is ready to connect to
+                    readyForPlayersToConnect = true;
+                }
+
+                Output = joinMapByCharacterName;
+                return new OkObjectResult(Output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "GetServerToConnectToRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
 
         private async Task<bool> WaitForServerReadyToConnect(int mapInstanceID)

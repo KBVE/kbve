@@ -2,6 +2,7 @@
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,9 +26,17 @@ namespace OWSCharacterPersistence.Requests.Characters
 
         public async Task<IActionResult> Handle()
         {
-            output = await charactersRepository.GetCharByCharName(customerGUID, CharacterName);
+            try
+            {
+                output = await charactersRepository.GetCharByCharName(customerGUID, CharacterName);
 
-            return new OkObjectResult(output);
+                return new OkObjectResult(output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "GetByNameRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

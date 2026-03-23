@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,19 +66,27 @@ namespace OWSPublicAPI.Requests.Users
         /// </remarks>
         public async Task<IActionResult> Handle()
         {
-            //Validate Character Name
-            string errorMessage = publicAPIInputValidation.ValidateCharacterName(CharacterName);
-
-            if (!String.IsNullOrEmpty(errorMessage))
+            try
             {
-                CreateCharacter createCharacterErrorMessage = new CreateCharacter();
-                createCharacterErrorMessage.ErrorMessage = errorMessage;
-                return new OkObjectResult(createCharacterErrorMessage);
+                //Validate Character Name
+                string errorMessage = publicAPIInputValidation.ValidateCharacterName(CharacterName);
+
+                if (!String.IsNullOrEmpty(errorMessage))
+                {
+                    CreateCharacter createCharacterErrorMessage = new CreateCharacter();
+                    createCharacterErrorMessage.ErrorMessage = errorMessage;
+                    return new OkObjectResult(createCharacterErrorMessage);
+                }
+
+                Output = await usersRepository.CreateCharacter(CustomerGUID, UserSessionGUID, CharacterName, ClassName);
+
+                return new OkObjectResult(Output);
             }
-
-            Output = await usersRepository.CreateCharacter(CustomerGUID, UserSessionGUID, CharacterName, ClassName);
-
-            return new OkObjectResult(Output);
+            catch (Exception ex)
+            {
+                Log.Error(ex, "CreateCharacterRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

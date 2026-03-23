@@ -1,4 +1,5 @@
 ﻿using System;
+using Serilog;
 using System.Collections.Generic;
 using System.Net;
 using System.Runtime.CompilerServices;
@@ -53,46 +54,54 @@ namespace OWSPublicAPI.Requests.Characters
         /// </remarks>
         public async Task<IActionResult> Handle()
         {
-            DefaultCustomDataRows Output = new DefaultCustomDataRows();
-
-            //Test if a valid Guid was passed
-            if (!Guid.TryParse(_getDefaultCustomCharacterDataDTO.UserSessionGUID, out Guid parsedGuid))
+            try
             {
-                return new BadRequestObjectResult(Output);
-            }
+                DefaultCustomDataRows Output = new DefaultCustomDataRows();
 
-            //Get the User Session
-            GetUserSession userSession = await _usersRepository.GetUserSession(_customerGUID, parsedGuid);
-
-            //Make sure the User Session is valid
-            if (userSession == null || !userSession.UserGuid.HasValue)
-            {
-                return new BadRequestObjectResult(Output);
-            }
-
-            IEnumerable<DefaultCustomData> customDataItems = await _charactersRepository.GetDefaultCustomCharacterData(_customerGUID, _getDefaultCustomCharacterDataDTO.DefaultSetName);
-            Output.Rows = new List<DefaultCustomData>();
-            //Loop through all the CustomCharacterData rows
-
-            foreach (DefaultCustomData currentCustomData in customDataItems)
-            {
-                //Use the ICustomCharacterDataSelector implementation to filter which fields are returned
-                if (_customDataSelector.ShouldExportThisCustomDataField(currentCustomData.CustomFieldName))
+                //Test if a valid Guid was passed
+                if (!Guid.TryParse(_getDefaultCustomCharacterDataDTO.UserSessionGUID, out Guid parsedGuid))
                 {
-                    DefaultCustomData customDataDTO = new DefaultCustomData()
-                    {
-                        CustomFieldName = currentCustomData.CustomFieldName,
-                        FieldValue = currentCustomData.FieldValue
-                    };
-                    //Add the filtered Custom Character Data
-                    Output.Rows.Add(customDataDTO);
+                    return new BadRequestObjectResult(Output);
                 }
+
+                //Get the User Session
+                GetUserSession userSession = await _usersRepository.GetUserSession(_customerGUID, parsedGuid);
+
+                //Make sure the User Session is valid
+                if (userSession == null || !userSession.UserGuid.HasValue)
+                {
+                    return new BadRequestObjectResult(Output);
+                }
+
+                IEnumerable<DefaultCustomData> customDataItems = await _charactersRepository.GetDefaultCustomCharacterData(_customerGUID, _getDefaultCustomCharacterDataDTO.DefaultSetName);
+                Output.Rows = new List<DefaultCustomData>();
+                //Loop through all the CustomCharacterData rows
+
+                foreach (DefaultCustomData currentCustomData in customDataItems)
+                {
+                    //Use the ICustomCharacterDataSelector implementation to filter which fields are returned
+                    if (_customDataSelector.ShouldExportThisCustomDataField(currentCustomData.CustomFieldName))
+                    {
+                        DefaultCustomData customDataDTO = new DefaultCustomData()
+                        {
+                            CustomFieldName = currentCustomData.CustomFieldName,
+                            FieldValue = currentCustomData.FieldValue
+                        };
+                        //Add the filtered Custom Character Data
+                        Output.Rows.Add(customDataDTO);
+                    }
+                }
+
+                // Output.Rows = await _charactersRepository.GetDefaultCustomCharacterData(_customerGUID, _getDefaultCustomCharacterDataDTO.DefaultSetName);
+
+
+                return new OkObjectResult(Output);
             }
-
-            // Output.Rows = await _charactersRepository.GetDefaultCustomCharacterData(_customerGUID, _getDefaultCustomCharacterDataDTO.DefaultSetName);
-
-
-            return new OkObjectResult(Output);
+            catch (Exception ex)
+            {
+                Log.Error(ex, "GetDefaultCustomDataRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }
