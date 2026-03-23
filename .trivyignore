@@ -1,0 +1,16 @@
+# Trivy false positive — System.Drawing.Common CVE-2021-24112
+#
+# Trivy reports System.Drawing.Common 4.7.0 but the actual shipped version
+# is 8.0.0, verified by:
+#   1. Directory.Build.props pins PackageReference to 8.0.0
+#   2. deps.json in published output contains only 8.0.0 references
+#   3. DLL file version is 8.0.9.3103
+#   4. dotnet list --include-transitive resolves to 8.0.0
+#   5. Persists across aspnet:8.0, aspnet:8.0-alpine, aspnet:8.0-jammy-chiseled
+#
+# Trivy reads the .NET assembly metadata version (4.7.x) which Microsoft
+# reuses across major releases for binary compatibility. This does not
+# reflect the NuGet package version (8.0.0) which contains the fix.
+#
+# Ref: https://github.com/aquasecurity/trivy/issues/7073
+CVE-2021-24112
