@@ -1,41 +1,71 @@
 name: Auto-merge bot PRs
 
 on:
-    pull_request:
-        types: [opened]
+    workflow_dispatch:
+        inputs:
+            pr_number:
+                description: 'PR number to auto-merge'
+                required: true
+                type: string
+    workflow_call:
+        inputs:
+            pr_number:
+                description: 'PR number to auto-merge'
+                required: true
+                type: string
 
 jobs:
     auto-merge:
-        # Guard: only KBVE/kbve repo, only github-actions[bot], only targeting dev
-        if: >-
-            github.repository == 'KBVE/kbve' &&
-            github.actor == 'github-actions[bot]' &&
-            github.event.pull_request.base.ref == 'dev' &&
-            (startsWith(github.event.pull_request.title, 'chore(ows-') ||
-             startsWith(github.event.pull_request.title, 'chore(axum-') ||
-             startsWith(github.event.pull_request.title, 'chore(edge') ||
-             startsWith(github.event.pull_request.title, 'chore(discordsh') ||
-             startsWith(github.event.pull_request.title, 'chore(herbmail') ||
-             startsWith(github.event.pull_request.title, 'chore(cryptothrone') ||
-             startsWith(github.event.pull_request.title, 'chore(cityvote') ||
-             startsWith(github.event.pull_request.title, 'Atomic: kube'))
+        if: github.repository == 'KBVE/kbve'
         runs-on: ubuntu-latest
         timeout-minutes: 5
         steps:
-            - name: Checkout for file validation
-              uses: actions/checkout@v6
-              with:
-                  ref: ${{ github.event.pull_request.head.ref }}
-                  fetch-depth: 2
-
-            - name: Validate changed files
+            - name: Validate PR
               id: validate
               run: |
-                  # Only allow version.toml and deployment YAML changes
-                  FILES=$(gh pr diff ${{ github.event.pull_request.number }} --name-only --repo ${{ github.repository }})
-                  echo "Changed files:"
-                  echo "$FILES"
+                  PR=$(gh pr view ${{ inputs.pr_number }} --json author,baseRefName,labels,title,files --repo ${{ github.repository }})
 
+                  AUTHOR=$(echo "$PR" | jq -r '.author.login')
+                  BASE=$(echo "$PR" | jq -r '.baseRefName')
+                  TITLE=$(echo "$PR" | jq -r '.title')
+                  LABELS=$(echo "$PR" | jq -r '.labels[].name' 2>/dev/null)
+
+                  echo "PR #${{ inputs.pr_number }}: author=$AUTHOR base=$BASE title=$TITLE"
+
+                  # Author check
+                  if [ "$AUTHOR" != "github-actions" ]; then
+                    echo "::error::Author '$AUTHOR' is not github-actions — aborting."
+                    exit 1
+                  fi
+
+                  # Base branch check
+                  if [ "$BASE" != "dev" ]; then
+                    echo "::error::Base branch '$BASE' is not dev — aborting."
+                    exit 1
+                  fi
+
+                  # Label check
+                  if ! echo "$LABELS" | grep -qE "^(atomic|auto-pr)$"; then
+                    echo "::error::Missing required label (atomic or auto-pr). Labels: $LABELS"
+                    exit 1
+                  fi
+
+                  # Title check
+                  TITLE_OK=false
+                  for PREFIX in "chore(ows-" "chore(axum-" "chore(edge" "chore(discordsh" "chore(herbmail" "chore(cryptothrone" "chore(cityvote" "Atomic: kube"; do
+                    if echo "$TITLE" | grep -q "^$PREFIX"; then
+                      TITLE_OK=true
+                      break
+                    fi
+                  done
+                  if [ "$TITLE_OK" != "true" ]; then
+                    echo "::error::Title '$TITLE' does not match any allowed prefix — aborting."
+                    exit 1
+                  fi
+
+                  # File allowlist check
+                  FILES=$(echo "$PR" | jq -r '.files[].path')
+                  echo "Changed files:"
                   ALLOWED=true
                   while IFS= read -r f; do
                     case "$f" in
@@ -43,37 +73,27 @@ jobs:
                         echo "  OK: $f"
                         ;;
                       *)
-                        echo "  BLOCKED: $f — not in allowlist"
+                        echo "  BLOCKED: $f"
                         ALLOWED=false
                         ;;
                     esac
                   done <<< "$FILES"
 
                   if [ "$ALLOWED" != "true" ]; then
-                    echo "::error::PR modifies files outside the allowlist — skipping auto-merge."
+                    echo "::error::PR modifies files outside the allowlist — aborting."
                     exit 1
                   fi
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Verify PR labels
-              run: |
-                  LABELS=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name' --repo ${{ github.repository }})
-                  if echo "$LABELS" | grep -qE "^(atomic|auto-pr)$"; then
-                    echo "Label check passed: $LABELS"
-                  else
-                    echo "::error::PR missing required label (atomic or auto-pr). Labels: $LABELS"
-                    exit 1
-                  fi
+                  echo "All checks passed."
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Approve PR
-              run: gh pr review ${{ github.event.pull_request.number }} --approve --repo ${{ github.repository }}
+              run: gh pr review ${{ inputs.pr_number }} --approve --repo ${{ github.repository }}
               env:
                   GH_TOKEN: ${{ secrets.UNITY_PAT }}
 
             - name: Enable auto-merge
-              run: gh pr merge ${{ github.event.pull_request.number }} --auto --squash --repo ${{ github.repository }}
+              run: gh pr merge ${{ inputs.pr_number }} --auto --squash --repo ${{ github.repository }}
               env:
                   GH_TOKEN: ${{ secrets.UNITY_PAT }}
