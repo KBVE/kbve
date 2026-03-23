@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using OWSShared.Interfaces;
+using Serilog;
 
 namespace OWSShared.Middleware
 {
@@ -19,23 +18,34 @@ namespace OWSShared.Middleware
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            try
+            // Skip auth for health endpoint
+            if (context.Request.Path.StartsWithSegments("/health"))
             {
-                _customerGuid.CustomerGUID = Guid.Parse(context.Request.Headers.FirstOrDefault(x =>
-                    string.Equals(x.Key, "X-CustomerGUID", StringComparison.CurrentCultureIgnoreCase)).Value.ToString());
-
-                if (_customerGuid.CustomerGUID == Guid.Empty)
-                {
-                    context.Response.Clear();
-                    context.Response.StatusCode = 401;
-                    await context.Response.WriteAsync("Unauthorized");
-                    return;
-                }
-            }
-            catch (Exception)
-            {
+                await next(context);
+                return;
             }
 
+            var headerValue = context.Request.Headers
+                .FirstOrDefault(x => string.Equals(x.Key, "X-CustomerGUID", StringComparison.OrdinalIgnoreCase))
+                .Value.ToString();
+
+            if (string.IsNullOrEmpty(headerValue))
+            {
+                Log.Warning("Missing X-CustomerGUID header from {RemoteIp}", context.Connection.RemoteIpAddress);
+                context.Response.StatusCode = 401;
+                await context.Response.WriteAsync("Unauthorized: missing X-CustomerGUID header");
+                return;
+            }
+
+            if (!Guid.TryParse(headerValue, out var parsedGuid) || parsedGuid == Guid.Empty)
+            {
+                Log.Warning("Invalid X-CustomerGUID header value from {RemoteIp}", context.Connection.RemoteIpAddress);
+                context.Response.StatusCode = 401;
+                await context.Response.WriteAsync("Unauthorized: invalid X-CustomerGUID header");
+                return;
+            }
+
+            _customerGuid.CustomerGUID = parsedGuid;
             await next(context);
         }
     }
