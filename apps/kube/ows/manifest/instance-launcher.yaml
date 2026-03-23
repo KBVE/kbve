@@ -27,6 +27,11 @@ spec:
                   env:
                       - name: ASPNETCORE_ENVIRONMENT
                         value: 'Production'
+                      - name: OWSInstanceLauncherOptions__OWSAPIKey
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-customer-guid
+                                key: customer-guid
                       - name: OWSStorageConfig__OWSDBBackend
                         valueFrom:
                             configMapKeyRef:

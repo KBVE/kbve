@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: ows-encryption-key
+    namespace: ows
+spec:
+    encryptedData:
+        encryption-key: AgCI2U4di+PIgcw0FG/gsLwVxbB2JnpFc+MKp1wxQbGOlUBDQAMP0KfUJRHIT/HAqxJFRahhJG2UpUysrfYgsSiwaCFNEpWrPtEZzLfXRKe8hFuzhTSJgpVbNd8ZMi9Tts0U6COMjqVpocEkb4L7OBQqfk5pUqxH5C19q6KWzwc0jWWWE/Q7k2MOX9Ob6l+kTBD97gOB8OoG1tjvCnQVIhL1BqZ7E2VZylNTNXdRrdF7cnXX5m/+RfSY34TqalJV2jDjkHHbbdygr/MNc7UmN2sYD+8+tX7eUMd9jqUoBRooVVidnLX+vjS9k98UnIqXAjHVuxLN38ZXqkQklyGPDAtknfFXM+UorR75Xb178Vaca+ovATl1W5k0Bx+skaACnAT4IqLvB+RPwl3vCtAiA5/eHeHwwRWskexDkv7EBQZFVyiZtfEI5LUUX5jFDddjA4kX9FE76GsWRUqS/SFsOeZ5Kl86SREU+f6fETi1vmMMrqjMQcXlNeIoB+FSb8PChByOPBxeWQIw3dKSSTOYqjOmdzndWRphDJH9rGZH2NQFV84TI7jvw9uAKYp4oj6CGvUqPynDbzIzCZfA4Z1PVSDh5akuMrZG/ogbg+5lMQ8U8e50F8AEAodC4Bj+N+uqeDudM71G59aFFMhOfyUCfYRIPwGWNSGjkTOaWMKDtrkuy0G9IdWsmMjSvJoEXGo7301UmT1jzdrQ3kNxamxsZ9j7WzDvFA+J01CkKJ0AA+rCXuRgp+xO/pqZGDnD61AQ4XHGZi2M3KSpScdgD31NCCzx
+    template:
+        metadata:
+            name: ows-encryption-key
+            namespace: ows
