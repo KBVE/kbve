@@ -209,7 +209,7 @@ spec:
         spec:
             containers:
                 - name: ows-characterpersistence
-                  image: ghcr.io/kbve/ows-characterpersistence:0.10.4
+                  image: ghcr.io/kbve/ows-characterpersistence:0.10.5
                   imagePullPolicy: Always
                   env:
                       - name: OWSStorageConfig__OWSDBBackend
