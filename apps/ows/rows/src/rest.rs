@@ -54,9 +54,12 @@ async fn health() -> Json<HealthResponse> {
 /// Deep readiness check — probes DB pool. Returns 503 if database is unavailable.
 async fn readiness(State(hs): State<HandlerState>) -> axum::response::Response {
     let db_ok = sqlx::query("SELECT 1").execute(&hs.app.db).await.is_ok();
+    let mq_ok = hs.app.mq.is_some();
+    let agones_ok = hs.app.agones.is_some();
 
-    let status = if db_ok { "ready" } else { "degraded" };
-    let http_status = if db_ok {
+    let all_ok = db_ok; // MQ and Agones are optional
+    let status = if all_ok { "ready" } else { "degraded" };
+    let http_status = if all_ok {
         axum::http::StatusCode::OK
     } else {
         axum::http::StatusCode::SERVICE_UNAVAILABLE
@@ -66,8 +69,11 @@ async fn readiness(State(hs): State<HandlerState>) -> axum::response::Response {
         "status": status,
         "service": "rows",
         "database": db_ok,
+        "rabbitmq": mq_ok,
+        "agones": agones_ok,
         "sessions_cached": hs.app.sessions.len(),
         "zones_tracked": hs.app.zone_servers.len(),
+        "spinup_locks": hs.app.zone_spinup_locks.len(),
     });
 
     (http_status, Json(body)).into_response()
