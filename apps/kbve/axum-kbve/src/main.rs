@@ -127,6 +127,13 @@ async fn main() -> anyhow::Result<()> {
         info!("Forgejo proxy not configured (FORGEJO_UPSTREAM_URL not set)");
     }
 
+    // Initialize Edge Functions proxy (optional - for /dashboard/edge)
+    if transport::proxy::init_edge_proxy() {
+        info!("Edge proxy initialized - /dashboard/edge/proxy enabled");
+    } else {
+        info!("Edge proxy not configured (SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set)");
+    }
+
     // Initialize KubeVirt proxy (optional - for /dashboard/vm)
     if transport::proxy::init_kubevirt_proxy() {
         info!("KubeVirt proxy initialized - /dashboard/vm/proxy enabled");
