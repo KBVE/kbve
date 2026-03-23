@@ -1,0 +1,240 @@
+syntax = "proto3";
+package rows;
+
+import "ows/ows.proto";
+
+// ──────────────────────────────────────────────
+// Public API — player-facing (login, characters, zones)
+// ──────────────────────────────────────────────
+
+service PublicApi {
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc GetCharacters(GetCharactersRequest) returns (GetCharactersResponse);
+  rpc CreateCharacter(CreateCharacterRequest) returns (CreateCharacterResponse);
+  rpc RemoveCharacter(RemoveCharacterRequest) returns (RemoveCharacterResponse);
+  rpc GetServerToConnectTo(GetServerToConnectToRequest) returns (GetServerToConnectToResponse);
+  rpc GetAllCharacters(GetAllCharactersRequest) returns (GetAllCharactersResponse);
+}
+
+// ──────────────────────────────────────────────
+// Instance Management — zone lifecycle
+// ──────────────────────────────────────────────
+
+service InstanceManagement {
+  rpc RegisterLauncher(RegisterLauncherRequest) returns (RegisterLauncherResponse);
+  rpc StartInstanceLauncher(StartInstanceLauncherRequest) returns (StartInstanceLauncherResponse);
+  rpc ShutDownInstanceLauncher(ShutDownInstanceLauncherRequest) returns (ShutDownInstanceLauncherResponse);
+  rpc GetZoneInstancesForWorldServer(GetZoneInstancesRequest) returns (GetZoneInstancesResponse);
+  rpc SetZoneInstanceStatus(SetZoneInstanceStatusRequest) returns (SetZoneInstanceStatusResponse);
+  rpc SpinUpInstance(SpinUpInstanceRequest) returns (SpinUpInstanceResponse);
+  rpc ShutDownInstance(ShutDownInstanceRequest) returns (ShutDownInstanceResponse);
+}
+
+// ──────────────────────────────────────────────
+// Character Persistence — save/load character state
+// ──────────────────────────────────────────────
+
+service CharacterPersistence {
+  rpc GetByName(GetCharacterByNameRequest) returns (ows.Character);
+  rpc UpdatePosition(UpdatePositionRequest) returns (UpdatePositionResponse);
+  rpc UpdateStats(UpdateStatsRequest) returns (UpdateStatsResponse);
+  rpc PlayerLogout(PlayerLogoutRequest) returns (PlayerLogoutResponse);
+  rpc JoinMap(JoinMapRequest) returns (JoinMapResponse);
+  rpc LeaveMap(LeaveMapRequest) returns (LeaveMapResponse);
+}
+
+// ──────────────────────────────────────────────
+// Global Data — shared world state
+// ──────────────────────────────────────────────
+
+service GlobalDataService {
+  rpc GetGlobalData(GetGlobalDataRequest) returns (GetGlobalDataResponse);
+  rpc SetGlobalData(SetGlobalDataRequest) returns (SetGlobalDataResponse);
+}
+
+// ──────────────────────────────────────────────
+// Request / Response messages
+// ──────────────────────────────────────────────
+
+// Public API
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+message LoginResponse {
+  bool success = 1;
+  string user_session_guid = 2;
+  optional string error = 3;
+}
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string first_name = 3;
+  string last_name = 4;
+}
+message RegisterResponse {
+  bool success = 1;
+  optional string error = 2;
+}
+message GetCharactersRequest {
+  string user_session_guid = 1;
+}
+message GetCharactersResponse {
+  repeated ows.Character characters = 1;
+}
+message CreateCharacterRequest {
+  string user_session_guid = 1;
+  string character_name = 2;
+  string class_name = 3;
+}
+message CreateCharacterResponse {
+  bool success = 1;
+  optional string error = 2;
+}
+message RemoveCharacterRequest {
+  string user_session_guid = 1;
+  string character_name = 2;
+}
+message RemoveCharacterResponse {
+  bool success = 1;
+  optional string error = 2;
+}
+message GetServerToConnectToRequest {
+  string user_session_guid = 1;
+  string character_name = 2;
+  int32 zone_id = 3;
+}
+message GetServerToConnectToResponse {
+  string server_ip = 1;
+  int32 port = 2;
+  optional string error = 3;
+}
+message GetAllCharactersRequest {
+  string user_session_guid = 1;
+}
+message GetAllCharactersResponse {
+  repeated ows.Character characters = 1;
+}
+
+// Instance Management
+message RegisterLauncherRequest {
+  string launcher_guid = 1;
+  string server_ip = 2;
+  int32 max_number_of_instances = 3;
+  string internal_server_ip = 4;
+  int32 starting_instance_port = 5;
+}
+message RegisterLauncherResponse {
+  bool success = 1;
+}
+message StartInstanceLauncherRequest {
+  string launcher_guid = 1;
+}
+message StartInstanceLauncherResponse {
+  int32 world_server_id = 1;
+}
+message ShutDownInstanceLauncherRequest {
+  int32 world_server_id = 1;
+  string launcher_guid = 2;
+}
+message ShutDownInstanceLauncherResponse {
+  bool success = 1;
+}
+message GetZoneInstancesRequest {
+  int32 world_server_id = 1;
+}
+message GetZoneInstancesResponse {
+  repeated ows.MapInstance zone_instances = 1;
+}
+message SetZoneInstanceStatusRequest {
+  int32 zone_instance_id = 1;
+  int32 instance_status = 2;
+}
+message SetZoneInstanceStatusResponse {
+  bool success = 1;
+}
+message SpinUpInstanceRequest {
+  int32 world_server_id = 1;
+  int32 zone_instance_id = 2;
+  string map_name = 3;
+  int32 port = 4;
+}
+message SpinUpInstanceResponse {
+  bool success = 1;
+  string server_ip = 2;
+  int32 port = 3;
+}
+message ShutDownInstanceRequest {
+  int32 zone_instance_id = 1;
+}
+message ShutDownInstanceResponse {
+  bool success = 1;
+}
+
+// Character Persistence
+message GetCharacterByNameRequest {
+  string user_session_guid = 1;
+  string character_name = 2;
+}
+message UpdatePositionRequest {
+  string user_session_guid = 1;
+  string character_name = 2;
+  double x = 3;
+  double y = 4;
+  double z = 5;
+  double rx = 6;
+  double ry = 7;
+  double rz = 8;
+}
+message UpdatePositionResponse {
+  bool success = 1;
+}
+message UpdateStatsRequest {
+  string user_session_guid = 1;
+  string character_name = 2;
+  string update_stats_json = 3;
+}
+message UpdateStatsResponse {
+  bool success = 1;
+}
+message PlayerLogoutRequest {
+  string user_session_guid = 1;
+  string character_name = 2;
+}
+message PlayerLogoutResponse {
+  bool success = 1;
+}
+message JoinMapRequest {
+  string user_session_guid = 1;
+  string character_name = 2;
+  string zone_name = 3;
+}
+message JoinMapResponse {
+  bool success = 1;
+  string server_ip = 2;
+  int32 port = 3;
+  optional string error = 4;
+}
+message LeaveMapRequest {
+  string user_session_guid = 1;
+  string character_name = 2;
+}
+message LeaveMapResponse {
+  bool success = 1;
+}
+
+// Global Data
+message GetGlobalDataRequest {
+  string global_data_key = 1;
+}
+message GetGlobalDataResponse {
+  optional string global_data_value = 1;
+}
+message SetGlobalDataRequest {
+  string global_data_key = 1;
+  string global_data_value = 2;
+}
+message SetGlobalDataResponse {
+  bool success = 1;
+}
