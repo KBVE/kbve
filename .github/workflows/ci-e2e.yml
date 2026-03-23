@@ -1,5 +1,7 @@
 name: CI - E2E
 
+run-name: 'CI - E2E / ${{ inputs.branch || github.ref_name }}'
+
 on:
     schedule:
         - cron: '0 6 * * 1' # Weekly Monday 06:00 UTC

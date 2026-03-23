@@ -1,5 +1,7 @@
 name: CI - Publish
 
+run-name: 'CI - Publish / ${{ inputs.package_type }} / ${{ inputs.package_name }}'
+
 on:
     workflow_dispatch:
         inputs:
@@ -46,11 +48,8 @@ on:
                 required: true
                 type: string
 
-# Per-package concurrency — never cancel in-progress runs.
-# The queue guard enforces a 2h stale-run limit; the running job is always safe.
-concurrency:
-    group: ci-publish-${{ inputs.package_type }}-${{ inputs.package_name }}
-    cancel-in-progress: false
+# No workflow-level concurrency — each package fans out independently.
+# Queue guard handles stale deploy protection per-package.
 
 permissions: {}
 
