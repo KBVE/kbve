@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/ci_registry.binpb
  * Config: ../ci_registry-zod-config.json
- * Generated: 2026-03-21T00:37:20.203Z
+ * Generated: 2026-03-23T07:45:50.210Z
  */
 
 import { z } from 'zod';
@@ -19,6 +19,20 @@ export const DispatchPipelines = [
 export type DispatchPipelineValue = (typeof DispatchPipelines)[number];
 
 export const DispatchPipelineSchema = z.enum(DispatchPipelines);
+
+export const TestFrameworks = [
+	'rust',
+	'typescript',
+	'astro',
+	'csharp',
+	'python',
+	'deno',
+	'cpp',
+] as const;
+
+export type TestFrameworkValue = (typeof TestFrameworks)[number];
+
+export const TestFrameworkSchema = z.enum(TestFrameworks);
 
 // CiProject
 export const CiProjectSchema = z.object({
@@ -63,6 +77,15 @@ export const CiProjectSchema = z.object({
 	status: z.enum(['active', 'beta', 'deprecated', 'archived']).optional(),
 	min_engine_version: z.string().max(32).optional(),
 	supported_platforms: z.array(z.string().min(1).max(32)).max(10).optional(),
+	runner: z.string().max(64).optional(),
+	image: z.string().max(128).optional(),
+	e2e_name: z.string().max(64).optional(),
+	deployment_yaml: z.string().max(256).optional(),
+	version_target: z.string().max(256).optional(),
+	has_test: z.boolean().optional(),
+	target: z.string().max(64).optional(),
+	nx_project: z.string().max(64).optional(),
+	test_framework: TestFrameworkSchema.optional(),
 });
 
 export type CiProject = z.infer<typeof CiProjectSchema>;

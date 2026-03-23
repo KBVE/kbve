@@ -54,6 +54,8 @@ resources:
     - rabbitmq/application.yaml
     # Agones — game server operator (GameServer/Fleet/Allocator CRDs)
     - agones/application.yaml
+    # Agones OWS — HubWorldMMO game server fleet
+    - agones/ows/application.yaml
     # OWS — Open World Server .NET microservices (5 services + ValKey)
     - ows/application.yaml
     # ChuckRPG — game website + API

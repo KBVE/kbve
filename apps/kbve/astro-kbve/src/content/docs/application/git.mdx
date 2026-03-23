@@ -1150,3 +1150,47 @@ Use the `--args` flag when running `nx run <project>:<target> --args="--verbose"
 	or exposing sensitive environment variables, as these could inadvertently
 	leak credentials or allow malicious code execution in your CI/CD pipeline.
 </Aside>
+
+---
+
+## Auto-Merge Bot PRs
+
+The `ci-auto-merge-bot-prs.yml` workflow provides automated, gated merging for bot-generated PRs that update version files and Kubernetes deployment manifests.
+It is never triggered directly by code pushes — only by explicit `workflow_dispatch` or `workflow_call` from other CI workflows.
+
+### Dispatch Chain
+
+The auto-merge bot sits at the end of a two-stage dispatch chain:
+
+1. **`ci-docker.yml` / `ci-publish.yml`** — after a successful image push or package publish, these workflows call the utility workflows below.
+2. **`utils-update-version-toml.yml`** — creates a PR on `dev` that updates the `version.toml` to match the just-published version, then dispatches `ci-auto-merge-bot-prs.yml` with the new PR number.
+3. **`utils-update-kube-manifest.yml`** — creates a PR on `dev` that updates the `deployment.yaml` image tag to the new version, then dispatches `ci-auto-merge-bot-prs.yml` with the new PR number.
+
+### Security Gates
+
+The bot enforces five checks before approving and merging:
+
+| Gate | Rule | Purpose |
+|------|------|---------|
+| **Author** | Must be `github-actions` | Prevents human PRs from being auto-merged |
+| **Base branch** | Must target `dev` | Never auto-merges to `main` |
+| **Labels** | Must have `atomic` or `auto-pr` | Ensures PR was created by an authorized workflow |
+| **Title prefix** | Must match an allowlist | Limits which apps can auto-merge |
+| **File allowlist** | Only `*/version.toml`, `*/deployment.yaml`, `*/manifest/*.yaml` | Prevents code changes from sneaking through |
+
+### Allowed Title Prefixes
+
+The following prefixes are permitted for auto-merge:
+
+- `chore(ows-*` — OWS service version updates
+- `chore(axum-*` — Axum service version updates
+- `chore(edge*` — Edge function updates
+- `chore(discordsh*` — Discord bot updates
+- `chore(herbmail*` — Herbmail updates
+- `chore(cryptothrone*` — Cryptothrone updates
+- `chore(cityvote*` — CityVote updates
+- `Atomic: kube*` — Kubernetes manifest updates
+
+<Aside type="caution" title="Adding New Apps">
+When onboarding a new app to the CI publish pipeline, add its title prefix to the allowlist in `ci-auto-merge-bot-prs.yml` or the version/kube PRs will not auto-merge.
+</Aside>
