@@ -72,6 +72,8 @@ jobs:
                   STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
                     "https://hub.docker.com/v2/repositories/${{ inputs.image }}/tags/$LOCAL_VERSION")
 
+                  echo "local_version=$LOCAL_VERSION" >> "$GITHUB_OUTPUT"
+
                   if [ "$STATUS" = "200" ]; then
                     echo "Tag $LOCAL_VERSION already exists on Docker Hub — skipping."
                     echo "should_publish=false" >> "$GITHUB_OUTPUT"
