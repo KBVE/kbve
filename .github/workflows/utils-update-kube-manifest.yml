@@ -27,6 +27,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+            actions: write
 
         steps:
             - name: Checkout main branch to read version
