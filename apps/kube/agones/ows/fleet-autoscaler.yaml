@@ -1,6 +1,7 @@
 # OWS Fleet Autoscaler — maintains a buffer of ready servers
 # When a GameServerAllocation claims a server, the scaler creates a new one
-# to maintain the buffer. Keeps 0 ready servers by default (scale from zero).
+# to maintain the buffer. bufferSize=1 keeps one warm server ready.
+# minReplicas=0 allows full scale-down when no servers are allocated.
 apiVersion: autoscaling.agones.dev/v1
 kind: FleetAutoscaler
 metadata:
@@ -14,6 +15,6 @@ spec:
     policy:
         type: Buffer
         buffer:
-            bufferSize: 0
+            bufferSize: 1
             minReplicas: 0
             maxReplicas: 5
