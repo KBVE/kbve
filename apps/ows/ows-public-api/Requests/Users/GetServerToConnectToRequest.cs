@@ -87,7 +87,7 @@ namespace OWSPublicAPI.Requests.Users
                 bool requestSuccess = await RequestServerSpinUp(joinMapByCharacterName.WorldServerID, joinMapByCharacterName.MapInstanceID, joinMapByCharacterName.MapNameToStart, joinMapByCharacterName.Port);
 
                 //Wait OWSGeneralConfig.SecondsToWaitBeforeFirstPollForSpinUp seconds before the first CheckMapInstanceStatus to give it time to spin up
-                System.Threading.Thread.Sleep(owsGeneralConfig.Value.SecondsToWaitBeforeFirstPollForSpinUp);
+                await Task.Delay(owsGeneralConfig.Value.SecondsToWaitBeforeFirstPollForSpinUp * 1000);
 
                 readyForPlayersToConnect = await WaitForServerReadyToConnect(CustomerGUID, joinMapByCharacterName.MapInstanceID);
             }
@@ -142,7 +142,7 @@ namespace OWSPublicAPI.Requests.Users
                     return true;
                 }
                 
-                System.Threading.Thread.Sleep(retrySeconds);
+                await Task.Delay(retrySeconds);
                 retryCount++;
             }
 
