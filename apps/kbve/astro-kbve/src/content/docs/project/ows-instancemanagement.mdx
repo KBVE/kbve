@@ -11,10 +11,10 @@ tags:
 key: ows_instancemanagement
 pipeline: docker
 app_name: ows-instancemanagement
-version: "0.10.2"
+version: "0.10.3"
 source_path: apps/ows
 version_toml: apps/ows/ows-instance-management/version.toml
-version_target: apps/ows/ows-instance-management/version.toml
+version_target: apps/ows/ows-instance-management/OWSInstanceManagement.csproj
 runner: ubuntu-latest
 image: kbve/ows-instancemanagement
 deployment_yaml: apps/kube/ows/manifest/deployment.yaml
