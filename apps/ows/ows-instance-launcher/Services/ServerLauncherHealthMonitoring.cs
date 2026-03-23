@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Serilog;
 
 namespace OWSInstanceLauncher.Services
@@ -31,7 +32,7 @@ namespace OWSInstanceLauncher.Services
             _owsInstanceLauncherDataRepository = owsInstanceLauncherDataRepository;
         }
 
-        public void DoWork()
+        public async void DoWork()
         {
             Log.Information("Server Health Monitoring is checking for broken Zone Server Instances...");
 
@@ -46,7 +47,7 @@ namespace OWSInstanceLauncher.Services
             Log.Information("Server Health Monitoring is getting a list of Zone Server Instances...");
 
             //Get a list of ZoneInstances from api/Instance/GetZoneInstancesForWorldServer
-            List<GetZoneInstancesForWorldServer> zoneInstances = GetZoneInstancesForWorldServer(worldServerID);
+            List<GetZoneInstancesForWorldServer> zoneInstances = await GetZoneInstancesForWorldServerAsync(worldServerID);
 
             foreach (var zoneInstance in zoneInstances)
             {
@@ -63,10 +64,8 @@ namespace OWSInstanceLauncher.Services
             Log.Information("Shutting Down OWS Server Health Monitoring...");
         }
 
-        private List<GetZoneInstancesForWorldServer> GetZoneInstancesForWorldServer(int worldServerId)
+        private async Task<List<GetZoneInstancesForWorldServer>> GetZoneInstancesForWorldServerAsync(int worldServerId)
         {
-            List<GetZoneInstancesForWorldServer> output;
-
             var instanceManagementHttpClient = _httpClientFactory.CreateClient("OWSInstanceManagement");
 
             var worldServerIDRequestPayload = new
@@ -79,21 +78,16 @@ namespace OWSInstanceLauncher.Services
 
             var getZoneInstancesForWorldServerRequest = new StringContent(JsonSerializer.Serialize(worldServerIDRequestPayload), Encoding.UTF8, "application/json");
 
-            var responseMessageTask = instanceManagementHttpClient.PostAsync("api/Instance/GetZoneInstancesForWorldServer", getZoneInstancesForWorldServerRequest);
-            var responseMessage = responseMessageTask.Result;
+            var responseMessage = await instanceManagementHttpClient.PostAsync("api/Instance/GetZoneInstancesForWorldServer", getZoneInstancesForWorldServerRequest);
 
             if (responseMessage.IsSuccessStatusCode)
             {
-                var responseContentAsync = responseMessage.Content.ReadAsStringAsync();
-                string responseContentString = responseContentAsync.Result;
-                output = JsonSerializer.Deserialize<List<GetZoneInstancesForWorldServer>>(responseContentString);
-            }
-            else
-            {
-                output = new List<GetZoneInstancesForWorldServer>();
+                string responseContentString = await responseMessage.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<List<GetZoneInstancesForWorldServer>>(responseContentString)
+                    ?? new List<GetZoneInstancesForWorldServer>();
             }
 
-            return output;
+            return new List<GetZoneInstancesForWorldServer>();
         }
     }
 }
