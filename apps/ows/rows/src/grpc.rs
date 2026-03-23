@@ -445,7 +445,10 @@ impl GlobalDataService for GlobalDataServiceImpl {
 // Router — combines all gRPC services with shared state
 // ──────────────────────────────────────────────
 
-pub fn router(state: Arc<AppState>) -> tonic::service::Routes {
+pub fn router(
+    state: Arc<AppState>,
+    _svc: Arc<crate::service::OWSService>,
+) -> tonic::service::Routes {
     tonic::service::Routes::new(PublicApiServer::new(PublicApiService {
         state: state.clone(),
     }))

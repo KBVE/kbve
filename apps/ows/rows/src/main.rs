@@ -8,10 +8,12 @@ mod models;
 mod mq;
 mod repo;
 mod rest;
+pub mod service;
 mod state;
 mod trace;
 
 use std::net::SocketAddr;
+use std::sync::Arc;
 use tracing::info;
 use uuid::Uuid;
 
@@ -81,11 +83,14 @@ async fn main() -> anyhow::Result<()> {
         .agones(agones_client)
         .build()?;
 
-    // gRPC services (tonic) — shares Arc<AppState>
-    let grpc_router = grpc::router(app_state.clone());
+    // Transport-agnostic service layer — shared across REST, gRPC, WebSocket
+    let svc = Arc::new(service::OWSService::new(app_state.clone()));
+
+    // gRPC services (tonic)
+    let grpc_router = grpc::router(app_state.clone(), svc.clone());
 
     // REST routes (axum) — backward-compat with C# OWS API paths
-    let rest_router = rest::router(app_state);
+    let rest_router = rest::router(app_state, svc);
 
     // Multiplex: gRPC (content-type: application/grpc) + REST on single port
     let app = rest_router

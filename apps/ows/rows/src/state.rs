@@ -1,6 +1,7 @@
 use crate::agones::AgonesClient;
 use crate::db::DbPool;
 use crate::mq::MqProducer;
+use crate::service::CachedSession;
 use dashmap::DashMap;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -8,8 +9,8 @@ use uuid::Uuid;
 /// Shared application state — single Arc allocation, no Clone on inner fields.
 pub struct AppState {
     pub db: DbPool,
-    /// In-memory session cache: user_session_guid → customer_guid
-    pub sessions: DashMap<Uuid, Uuid>,
+    /// In-memory session cache: user_session_guid → CachedSession
+    pub sessions: DashMap<Uuid, CachedSession>,
     /// Zone instance → GameServer name tracking (Agones)
     pub zone_servers: DashMap<i32, String>,
     pub config: AppConfig,
