@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: chuckrpg-ingress
+    namespace: chuckrpg
+    annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-http
+        nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+spec:
+    ingressClassName: nginx
+    tls:
+        - hosts:
+              - api.chuckrpg.com
+          secretName: chuckrpg-api-tls
+    rules:
+        - host: api.chuckrpg.com
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: chuckrpg-service
+                            port:
+                                number: 4322
