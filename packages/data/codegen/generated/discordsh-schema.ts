@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/discordsh.binpb
  * Config: ../discordsh-zod-config.json
- * Generated: 2026-03-21T00:37:20.202Z
+ * Generated: 2026-03-23T07:45:50.209Z
  */
 
 import { z } from 'zod';
