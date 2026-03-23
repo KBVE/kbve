@@ -1,0 +1,70 @@
+## Agones Helm values for Talos Linux + Cilium
+## Reference: https://agones.dev/site/docs/installation/install-agones/helm/
+
+# CRDs — let Helm manage them
+agones:
+    crds:
+        install: true
+        cleanupOnDelete: false
+
+    # Controller — manages GameServer/Fleet lifecycle
+    controller:
+        replicas: 2
+        resources:
+            requests:
+                cpu: 100m
+                memory: 128Mi
+            limits:
+                cpu: 500m
+                memory: 256Mi
+
+    # Extensions — webhooks and API extensions
+    extensions:
+        replicas: 2
+        resources:
+            requests:
+                cpu: 50m
+                memory: 64Mi
+            limits:
+                cpu: 200m
+                memory: 128Mi
+
+    # Allocator — handles GameServerAllocation requests
+    allocator:
+        replicas: 2
+        resources:
+            requests:
+                cpu: 50m
+                memory: 64Mi
+            limits:
+                cpu: 200m
+                memory: 128Mi
+        # Disable external allocator service for now — internal only
+        service:
+            serviceType: ClusterIP
+
+    # Ping — latency testing (disabled for now, enable when needed)
+    ping:
+        install: false
+
+    # Metrics — Prometheus integration
+    metrics:
+        prometheusEnabled: true
+        prometheusServiceDiscovery: true
+
+    # Feature gates
+    featureGates: ''
+
+# Game server defaults
+gameservers:
+    # Namespace for game servers — use OWS namespace
+    namespaces:
+        - ows
+
+    # Port range for game server host ports (UDP)
+    minPort: 7000
+    maxPort: 8000
+
+    # Node selector — only run game servers on dedicated-server nodes
+    nodeSelector:
+        node.kbve.com/type: dedicated-server
