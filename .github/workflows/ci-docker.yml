@@ -327,6 +327,7 @@ jobs:
             package_name: ${{ inputs.app_name }}
             version: ${{ needs.version_gate.outputs.local_version }}
             version_toml_path: ${{ needs.config.outputs.version_toml }}
+            version_target_path: ${{ needs.config.outputs.version_target }}
 
     # ---------------------------------------------------------------------------
     # Failure Tracker — opens a GitHub issue on any pipeline failure (#8186).
