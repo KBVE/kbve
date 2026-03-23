@@ -191,12 +191,19 @@ jobs:
             - name: Ensure image is in Docker daemon
               if: ${{ steps.version_check.outputs.should_publish != 'false' && steps.promote.outputs.found != 'true' && inputs.image != '' }}
               run: |
-                  if ! docker image inspect "${{ inputs.image }}:latest" >/dev/null 2>&1; then
-                    echo "Image not in Docker daemon (buildx docker-container driver). Saving and loading..."
+                  VERSION="${{ steps.version_check.outputs.local_version }}"
+                  IMAGE="${{ inputs.image }}"
+
+                  # Try to find the versioned image first, then tag as latest
+                  if docker image inspect "${IMAGE}:${VERSION}" >/dev/null 2>&1; then
+                    echo "Found ${IMAGE}:${VERSION}, tagging as latest"
+                    docker tag "${IMAGE}:${VERSION}" "${IMAGE}:latest"
+                  elif ! docker image inspect "${IMAGE}:latest" >/dev/null 2>&1; then
+                    echo "Image not in Docker daemon (buildx docker-container driver). Re-exporting..."
                     docker buildx build --platform linux/amd64 \
                       -f $(find . -path "*/${{ inputs.project }}/Dockerfile" -print -quit) \
-                      -t "${{ inputs.image }}:latest" \
-                      --output=type=docker \
+                      -t "${IMAGE}:latest" \
+                      --load \
                       . 2>/dev/null || echo "::warning::Could not re-export image, Trivy may fail"
                   fi
 
@@ -214,9 +221,28 @@ jobs:
             - name: Push Docker Images
               if: ${{ steps.version_check.outputs.should_publish != 'false' && inputs.image != '' }}
               run: |
-                  IMAGES=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E '${{ inputs.image }}' | grep -v '<none>' || true)
+                  IMAGE="${{ inputs.image }}"
+                  VERSION="${{ steps.version_check.outputs.local_version }}"
+
+                  # Ensure latest tag exists
+                  if docker image inspect "${IMAGE}:${VERSION}" >/dev/null 2>&1; then
+                    docker tag "${IMAGE}:${VERSION}" "${IMAGE}:latest"
+                  fi
+
+                  # Also tag for Docker Hub if image is on GHCR
+                  DOCKERHUB_IMAGE=""
+                  if echo "${IMAGE}" | grep -q "ghcr.io/"; then
+                    DOCKERHUB_IMAGE=$(echo "${IMAGE}" | sed 's|ghcr.io/||')
+                    for TAG in "${VERSION}" "latest"; do
+                      if docker image inspect "${IMAGE}:${TAG}" >/dev/null 2>&1; then
+                        docker tag "${IMAGE}:${TAG}" "${DOCKERHUB_IMAGE}:${TAG}"
+                      fi
+                    done
+                  fi
+
+                  IMAGES=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E "${IMAGE}|${DOCKERHUB_IMAGE}" | grep -v '<none>' | sort -u || true)
                   if [ -z "$IMAGES" ]; then
-                    echo "::error::No images found matching '${{ inputs.image }}'. Listing all images:"
+                    echo "::error::No images found matching '${IMAGE}'. Listing all images:"
                     docker images
                     exit 1
                   fi
