@@ -240,7 +240,11 @@ jobs:
                     done
                   fi
 
-                  IMAGES=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E "${IMAGE}|${DOCKERHUB_IMAGE}" | grep -v '<none>' | sort -u || true)
+                  GREP_PATTERN="${IMAGE}"
+                  if [ -n "${DOCKERHUB_IMAGE}" ]; then
+                    GREP_PATTERN="${IMAGE}|${DOCKERHUB_IMAGE}"
+                  fi
+                  IMAGES=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E "^(${GREP_PATTERN}):" | sort -u || true)
                   if [ -z "$IMAGES" ]; then
                     echo "::error::No images found matching '${IMAGE}'. Listing all images:"
                     docker images
