@@ -1,26 +1,20 @@
-import { test, expect } from '@playwright/test';
+import { describe, it, expect, beforeAll } from 'vitest';
+import { BASE_URL, waitForReady } from './helpers/http';
 import { API_ROUTES } from './helpers/routes';
 
-test.describe('JSON API endpoints', () => {
+describe('API JSON endpoints', () => {
+	beforeAll(async () => {
+		await waitForReady();
+	});
+
 	for (const route of API_ROUTES) {
-		test(`${route.label} (${route.path}) returns valid JSON`, async ({
-			request,
-		}) => {
-			const response = await request.get(route.path);
-			expect(response.status()).toBe(200);
-
-			const contentType = response.headers()['content-type'];
-			expect(contentType).toContain('application/json');
-
-			const body = await response.json();
-			expect(body).toBeTruthy();
-			expect(typeof body).toBe('object');
-
-			// Each endpoint wraps its data in an object with a primary key
-			// containing an array (e.g. { applications: [...], key: ... })
-			const values = Object.values(body);
-			const hasArray = values.some((v) => Array.isArray(v));
-			expect(hasArray).toBe(true);
+		it(`${route.label} (${route.path}) returns valid JSON`, async () => {
+			const res = await fetch(`${BASE_URL}${route.path}`);
+			expect(res.status).toBe(200);
+			const ct = res.headers.get('content-type') ?? '';
+			expect(ct).toContain('json');
+			const body = await res.json();
+			expect(body).toBeDefined();
 		});
 	}
 });

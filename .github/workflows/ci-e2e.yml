@@ -63,7 +63,7 @@ jobs:
                   #   bevy_*      — need Rust + wasm32 toolchain (not in docker-test-app.yml)
                   #   mc-e2e      — needs pre-built kbve/mc:local Docker image
                   #   kilobase    — needs pgrx/PostgreSQL build environment
-                  #   astro-e2e   — Astro 'astro:' protocol imports break on Node v24 ESM loader
+                  #   astro-e2e   — shared Astro harness (not a standalone test project)
                   PROJECTS=$(pnpm nx show projects --with-target e2e 2>/dev/null \
                     | grep -v '^q$' \
                     | grep -v '^bevy_' \
