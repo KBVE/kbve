@@ -86,7 +86,7 @@ RUN npm run build
 # ============================================================================
 # Runtime base — HTTP only (no HTTPS certs in containers)
 # ============================================================================
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime-base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled AS runtime-base
 ENV ASPNETCORE_URLS=http://+:80
 EXPOSE 80
 
