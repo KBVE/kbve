@@ -304,6 +304,8 @@ jobs:
             image_name: ghcr.io/${{ needs.config.outputs.image }}
             cargo_toml: ${{ needs.config.outputs.cargo_toml }}
             deployment_yaml: ${{ needs.config.outputs.deployment_yaml }}
+        secrets:
+            TRIGGER_PAT: ${{ secrets.UNITY_PAT }}
 
     # ---------------------------------------------------------------------------
     # Post-publish — update version.toml after successful Docker publish.
