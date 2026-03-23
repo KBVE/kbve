@@ -57,9 +57,10 @@ agones:
 
 # Game server defaults
 gameservers:
-    # Namespace for game servers — use OWS namespace
+    # Namespaces for game servers
     namespaces:
         - ows
+        - arc-runners
 
     # Port range for game server host ports (UDP)
     minPort: 7000
