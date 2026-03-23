@@ -1,30 +1,4 @@
 ---
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-    name: chuckrpg-tls
-    namespace: chuckrpg
-spec:
-    secretName: chuckrpg-tls
-    issuerRef:
-        name: letsencrypt-dns
-        kind: ClusterIssuer
-    dnsNames:
-        - chuckrpg.com
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-    name: chuckrpg-api-tls
-    namespace: chuckrpg
-spec:
-    secretName: chuckrpg-api-tls
-    issuerRef:
-        name: letsencrypt-dns
-        kind: ClusterIssuer
-    dnsNames:
-        - api.chuckrpg.com
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -49,7 +23,7 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
     name: chuckrpg-api-routes
-    namespace: chuckrpg
+    namespace: ows
 spec:
     parentRefs:
         - name: kbve-gateway
@@ -62,5 +36,5 @@ spec:
                     type: PathPrefix
                     value: /
           backendRefs:
-              - name: chuckrpg-service
-                port: 4322
+              - name: ows-publicapi
+                port: 80
