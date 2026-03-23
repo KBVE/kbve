@@ -97,6 +97,39 @@ impl<'a> UsersRepo<'a> {
 
         Ok(chars)
     }
+
+    pub async fn register(
+        &self,
+        customer_guid: Uuid,
+        email: &str,
+        password_hash: &str,
+        first_name: &str,
+        last_name: &str,
+    ) -> Result<Uuid, RowsError> {
+        let user_guid = Uuid::new_v4();
+        sqlx::query(
+            "INSERT INTO users (customerguid, userguid, email, passwordhash, firstname, lastname, role, createdate)
+             VALUES ($1, $2, $3, $4, $5, $6, 'Player', NOW())",
+        )
+        .bind(customer_guid)
+        .bind(user_guid)
+        .bind(email)
+        .bind(password_hash)
+        .bind(first_name)
+        .bind(last_name)
+        .execute(self.0)
+        .await?;
+
+        Ok(user_guid)
+    }
+
+    pub async fn logout(&self, session_guid: Uuid) -> Result<(), RowsError> {
+        sqlx::query("DELETE FROM usersessions WHERE usersessionguid = $1")
+            .bind(session_guid)
+            .execute(self.0)
+            .await?;
+        Ok(())
+    }
 }
 
 /// Characters repository — CRUD, position, stats.
@@ -166,6 +199,80 @@ impl<'a> CharsRepo<'a> {
 
         Ok(data)
     }
+
+    pub async fn create_character(
+        &self,
+        customer_guid: Uuid,
+        user_guid: Uuid,
+        char_name: &str,
+        class_name: &str,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "INSERT INTO characters (customerguid, userguid, charname, classname, createdate)
+             VALUES ($1, $2, $3, $4, NOW())",
+        )
+        .bind(customer_guid)
+        .bind(user_guid)
+        .bind(char_name)
+        .bind(class_name)
+        .execute(self.0)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn remove_character(
+        &self,
+        customer_guid: Uuid,
+        char_name: &str,
+    ) -> Result<(), RowsError> {
+        sqlx::query("DELETE FROM characters WHERE customerguid = $1 AND charname = $2")
+            .bind(customer_guid)
+            .bind(char_name)
+            .execute(self.0)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn update_stats(
+        &self,
+        customer_guid: Uuid,
+        char_name: &str,
+        stats_json: &str,
+    ) -> Result<(), RowsError> {
+        // Store stats JSON in a jsonb column or process via stored proc.
+        // For the skeleton, we store the raw JSON for later processing.
+        // Full implementation will parse individual stat fields.
+        let _stats: serde_json::Value = serde_json::from_str(stats_json)
+            .map_err(|e| RowsError::BadRequest(format!("Invalid stats JSON: {e}")))?;
+
+        // TODO: implement per-field UPDATE from parsed JSON
+        // For now, validate the JSON is parseable and return success
+        let _ = (customer_guid, char_name);
+        Ok(())
+    }
+
+    pub async fn add_or_update_custom_data(
+        &self,
+        customer_guid: Uuid,
+        char_name: &str,
+        field_name: &str,
+        field_value: &str,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "INSERT INTO customcharacterdata (customerguid, characterid, customfieldname, fieldvalue)
+             SELECT $1, c.characterid, $3, $4
+             FROM characters c WHERE c.customerguid = $1 AND c.charname = $2
+             ON CONFLICT (customerguid, characterid, customfieldname)
+             DO UPDATE SET fieldvalue = EXCLUDED.fieldvalue",
+        )
+        .bind(customer_guid)
+        .bind(char_name)
+        .bind(field_name)
+        .bind(field_value)
+        .execute(self.0)
+        .await?;
+        Ok(())
+    }
 }
 
 /// Instance management repository — zone lifecycle.
@@ -212,6 +319,48 @@ impl<'a> InstanceRepo<'a> {
 
         Ok(())
     }
+
+    pub async fn register_launcher(
+        &self,
+        customer_guid: Uuid,
+        launcher_guid: &str,
+        server_ip: &str,
+        max_instances: i32,
+        internal_ip: &str,
+        starting_port: i32,
+    ) -> Result<i32, RowsError> {
+        let row: Option<(i32,)> = sqlx::query_as(
+            "INSERT INTO worldservers (customerguid, serverip, maxnumberofinstances, internalserverip, startingmapinstanceport, zoneserverguid)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             RETURNING worldserverid",
+        )
+        .bind(customer_guid)
+        .bind(server_ip)
+        .bind(max_instances)
+        .bind(internal_ip)
+        .bind(starting_port)
+        .bind(launcher_guid)
+        .fetch_optional(self.0)
+        .await?;
+
+        Ok(row.map(|r| r.0).unwrap_or(-1))
+    }
+
+    pub async fn shut_down_launcher(
+        &self,
+        customer_guid: Uuid,
+        world_server_id: i32,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "UPDATE worldservers SET serverstatus = 0
+             WHERE customerguid = $1 AND worldserverid = $2",
+        )
+        .bind(customer_guid)
+        .bind(world_server_id)
+        .execute(self.0)
+        .await?;
+        Ok(())
+    }
 }
 
 /// Global data repository — key-value world state.
@@ -249,6 +398,108 @@ impl<'a> GlobalDataRepo<'a> {
         .execute(self.0)
         .await?;
 
+        Ok(())
+    }
+}
+
+/// Abilities repository — character abilities and ability bars.
+pub struct AbilitiesRepo<'a>(pub &'a DbPool);
+
+impl<'a> AbilitiesRepo<'a> {
+    pub async fn get_character_abilities(
+        &self,
+        customer_guid: Uuid,
+        char_name: &str,
+    ) -> Result<Vec<CharacterAbility>, RowsError> {
+        let abilities = sqlx::query_as::<_, CharacterAbility>(
+            "SELECT a.abilityname AS ability_name, cha.abilitylevel AS ability_level,
+                    cha.charhasabilitiescustomjson AS custom_json
+             FROM charhasabilities cha
+             JOIN abilities a ON a.abilityid = cha.abilityid AND a.customerguid = cha.customerguid
+             JOIN characters c ON c.characterid = cha.characterid AND c.customerguid = cha.customerguid
+             WHERE cha.customerguid = $1 AND c.charname = $2",
+        )
+        .bind(customer_guid)
+        .bind(char_name)
+        .fetch_all(self.0)
+        .await?;
+        Ok(abilities)
+    }
+
+    pub async fn add_ability(
+        &self,
+        customer_guid: Uuid,
+        char_name: &str,
+        ability_name: &str,
+        ability_level: i32,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "INSERT INTO charhasabilities (customerguid, characterid, abilityid, abilitylevel)
+             SELECT $1, c.characterid, a.abilityid, $4
+             FROM characters c, abilities a
+             WHERE c.customerguid = $1 AND c.charname = $2
+               AND a.customerguid = $1 AND a.abilityname = $3",
+        )
+        .bind(customer_guid)
+        .bind(char_name)
+        .bind(ability_name)
+        .bind(ability_level)
+        .execute(self.0)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn remove_ability(
+        &self,
+        customer_guid: Uuid,
+        char_name: &str,
+        ability_name: &str,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "DELETE FROM charhasabilities
+             WHERE customerguid = $1
+               AND characterid = (SELECT characterid FROM characters WHERE customerguid = $1 AND charname = $2)
+               AND abilityid = (SELECT abilityid FROM abilities WHERE customerguid = $1 AND abilityname = $3)",
+        )
+        .bind(customer_guid)
+        .bind(char_name)
+        .bind(ability_name)
+        .execute(self.0)
+        .await?;
+        Ok(())
+    }
+}
+
+/// Zones repository — map zone management.
+pub struct ZonesRepo<'a>(pub &'a DbPool);
+
+impl<'a> ZonesRepo<'a> {
+    pub async fn add_zone(
+        &self,
+        customer_guid: Uuid,
+        map_name: &str,
+        zone_name: &str,
+        soft_player_cap: i32,
+        hard_player_cap: i32,
+        map_mode: i32,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "INSERT INTO maps (customerguid, mapname, zonename, softplayercap, hardplayercap, mapmode)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             ON CONFLICT (customerguid, mapname) DO UPDATE
+             SET zonename = EXCLUDED.zonename,
+                 softplayercap = EXCLUDED.softplayercap,
+                 hardplayercap = EXCLUDED.hardplayercap,
+                 mapmode = EXCLUDED.mapmode",
+        )
+        .bind(customer_guid)
+        .bind(map_name)
+        .bind(zone_name)
+        .bind(soft_player_cap)
+        .bind(hard_player_cap)
+        .bind(map_mode)
+        .execute(self.0)
+        .await?;
         Ok(())
     }
 }

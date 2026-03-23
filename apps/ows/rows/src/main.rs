@@ -1,8 +1,10 @@
+mod agones;
 mod db;
 mod error;
 mod grpc;
 mod middleware;
 mod models;
+mod mq;
 mod repo;
 mod rest;
 mod state;

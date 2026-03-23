@@ -167,3 +167,12 @@ pub struct CustomCharacterData {
     pub custom_field_name: String,
     pub field_value: Option<String>,
 }
+
+/// Character ability
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct CharacterAbility {
+    pub ability_name: String,
+    pub ability_level: i32,
+    pub custom_json: Option<String>,
+}
