@@ -229,18 +229,31 @@ jobs:
                     docker tag "${IMAGE}:${VERSION}" "${IMAGE}:latest"
                   fi
 
-                  # Also tag for Docker Hub if image is on GHCR
-                  DOCKERHUB_IMAGE=""
+                  # Derive both GHCR and Docker Hub image names regardless of input format
                   if echo "${IMAGE}" | grep -q "ghcr.io/"; then
+                    GHCR_IMAGE="${IMAGE}"
                     DOCKERHUB_IMAGE=$(echo "${IMAGE}" | sed 's|ghcr.io/||')
-                    for TAG in "${VERSION}" "latest"; do
-                      if docker image inspect "${IMAGE}:${TAG}" >/dev/null 2>&1; then
-                        docker tag "${IMAGE}:${TAG}" "${DOCKERHUB_IMAGE}:${TAG}"
-                      fi
-                    done
+                  else
+                    DOCKERHUB_IMAGE="${IMAGE}"
+                    GHCR_IMAGE="ghcr.io/${IMAGE}"
                   fi
 
-                  IMAGES=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E "${IMAGE}|${DOCKERHUB_IMAGE}" | grep -v '<none>' | sort -u || true)
+                  # Ensure both registries have version + latest tags
+                  for REPO in "${GHCR_IMAGE}" "${DOCKERHUB_IMAGE}"; do
+                    for TAG in "${VERSION}" "latest"; do
+                      if ! docker image inspect "${REPO}:${TAG}" >/dev/null 2>&1; then
+                        # Try to create the tag from whichever source exists
+                        for SRC in "${IMAGE}:${TAG}" "${IMAGE}:latest" "${GHCR_IMAGE}:${TAG}" "${DOCKERHUB_IMAGE}:${TAG}"; do
+                          if docker image inspect "${SRC}" >/dev/null 2>&1; then
+                            docker tag "${SRC}" "${REPO}:${TAG}"
+                            break
+                          fi
+                        done
+                      fi
+                    done
+                  done
+
+                  IMAGES=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E "^(${GHCR_IMAGE}|${DOCKERHUB_IMAGE}):" | sort -u || true)
                   if [ -z "$IMAGES" ]; then
                     echo "::error::No images found matching '${IMAGE}'. Listing all images:"
                     docker images
