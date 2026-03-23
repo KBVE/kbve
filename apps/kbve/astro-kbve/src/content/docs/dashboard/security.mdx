@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-03-22T08:42:56Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-03-23T08:30:14Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**38** critical/high severity findings across the monorepo.
+**32** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,13 +26,13 @@ Last generated: **2026-03-22T08:42:56Z** — updated daily by `ci-dashboard`.
   <Card title="1 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="37 High" icon="error">
+  <Card title="31 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="29 Medium" icon="information">
+  <Card title="27 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
-  <Card title="6 Low" icon="approve-check-circle">
+  <Card title="5 Low" icon="approve-check-circle">
     Low-severity findings across all ecosystems.
   </Card>
 </CardGrid>
@@ -41,7 +41,7 @@ Last generated: **2026-03-22T08:42:56Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **65** advisories
+    **56** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **36** advisories
@@ -63,9 +63,9 @@ Last generated: **2026-03-22T08:42:56Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 1
-    "High" : 37
-    "Medium" : 29
-    "Low" : 6
+    "High" : 31
+    "Medium" : 27
+    "Low" : 5
 ```
 
 ### Findings by Ecosystem
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 65
+    "npm" : 56
     "Cargo" : 36
 ```
 
@@ -82,12 +82,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 37 | 21 | 6 | 65 |
+| **npm** | 1 | 31 | 19 | 5 | 56 |
 | **Cargo** | 0 | 0 | 8 | 0 | 36 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 37 | 29 | 6 | 101 |
+| **Total** | 1 | 31 | 27 | 5 | 92 |
 
   </TabItem>
   <TabItem label="npm">
@@ -99,11 +99,8 @@ pie showData
 | High | `playwright` | Playwright downloads and installs browsers without verify... | [Details](https://github.com/advisories/GHSA-7mvr-c777-76hp) |
 | High | `glob` | glob CLI: Command injection via -c/--cmd executes matches... | [Details](https://github.com/advisories/GHSA-5j98-mcp5-4vw2) |
 | High | `axios` | axios Requests Vulnerable To Possible SSRF and Credential... | [Details](https://github.com/advisories/GHSA-jr5f-v2jv-69x6) |
-| High | `jws` | auth0/node-jws Improperly Verifies HMAC Signature | [Details](https://github.com/advisories/GHSA-869p-cjfg-cm3x) |
 | High | `axios` | Axios is vulnerable to DoS attack through lack of data si... | [Details](https://github.com/advisories/GHSA-4hjh-wcwx-xvwj) |
-| High | `validator` | Validator is Vulnerable to Incomplete Filtering of One or... | [Details](https://github.com/advisories/GHSA-vghf-hv5q-vc2g) |
 | High | `axios` | Axios is Vulnerable to Denial of Service via __proto__ Ke... | [Details](https://github.com/advisories/GHSA-43fc-jf86-j433) |
-| High | `minimatch` | minimatch has a ReDoS via repeated wildcards with non-mat... | [Details](https://github.com/advisories/GHSA-3ppc-4f35-3m26) |
 | High | `minimatch` | minimatch has a ReDoS via repeated wildcards with non-mat... | [Details](https://github.com/advisories/GHSA-3ppc-4f35-3m26) |
 | High | `minimatch` | minimatch has a ReDoS via repeated wildcards with non-mat... | [Details](https://github.com/advisories/GHSA-3ppc-4f35-3m26) |
 | High | `minimatch` | minimatch has a ReDoS via repeated wildcards with non-mat... | [Details](https://github.com/advisories/GHSA-3ppc-4f35-3m26) |
@@ -113,8 +110,6 @@ pie showData
 | High | `minimatch` | minimatch has ReDoS: matchOne() combinatorial backtrackin... | [Details](https://github.com/advisories/GHSA-7r86-cg39-jmmj) |
 | High | `minimatch` | minimatch has ReDoS: matchOne() combinatorial backtrackin... | [Details](https://github.com/advisories/GHSA-7r86-cg39-jmmj) |
 | High | `minimatch` | minimatch has ReDoS: matchOne() combinatorial backtrackin... | [Details](https://github.com/advisories/GHSA-7r86-cg39-jmmj) |
-| High | `minimatch` | minimatch has ReDoS: matchOne() combinatorial backtrackin... | [Details](https://github.com/advisories/GHSA-7r86-cg39-jmmj) |
-| High | `minimatch` | minimatch ReDoS: nested *() extglobs generate catastrophi... | [Details](https://github.com/advisories/GHSA-23c5-xmqv-rm74) |
 | High | `minimatch` | minimatch ReDoS: nested *() extglobs generate catastrophi... | [Details](https://github.com/advisories/GHSA-23c5-xmqv-rm74) |
 | High | `minimatch` | minimatch ReDoS: nested *() extglobs generate catastrophi... | [Details](https://github.com/advisories/GHSA-23c5-xmqv-rm74) |
 | High | `minimatch` | minimatch ReDoS: nested *() extglobs generate catastrophi... | [Details](https://github.com/advisories/GHSA-23c5-xmqv-rm74) |
@@ -130,10 +125,8 @@ pie showData
 | High | `undici` | Undici has Unbounded Memory Consumption in WebSocket perm... | [Details](https://github.com/advisories/GHSA-vrm6-8vpv-qv8q) |
 | High | `undici` | Undici has Unhandled Exception in WebSocket Client Due to... | [Details](https://github.com/advisories/GHSA-v9p9-hfj2-hcw8) |
 | High | `flatted` | Prototype Pollution via parse() in NodeJS flatted | [Details](https://github.com/advisories/GHSA-rf6f-7fwh-wjgh) |
-| High | `fast-xml-parser` | fast-xml-parser affected by numeric entity expansion bypa... | [Details](https://github.com/advisories/GHSA-8gc5-j5rx-235r) |
 | High | `h3` | h3 has a Server-Sent Events Injection via Unsanitized New... | [Details](https://github.com/advisories/GHSA-22cc-p3c6-wpvm) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
-| Medium | `validator` | validator.js has a URL validation bypass vulnerability in... | [Details](https://github.com/advisories/GHSA-9965-vmph-33xx) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `lodash-es` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
 | Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
@@ -150,12 +143,10 @@ pie showData
 | Medium | `undici` | Undici has CRLF Injection in undici via `upgrade` option | [Details](https://github.com/advisories/GHSA-4992-7rv2-5pvq) |
 | Medium | `yauzl` | yauzl contains an off-by-one error | [Details](https://github.com/advisories/GHSA-gmq8-994r-jv83) |
 | Medium | `h3` | h3 has a Path Traversal via Percent-Encoded Dot Segments ... | [Details](https://github.com/advisories/GHSA-wr4h-v87w-p3r7) |
-| Medium | `fast-xml-parser` | Entity Expansion Limits Bypassed When Set to Zero Due to ... | [Details](https://github.com/advisories/GHSA-jp2q-39xq-3w4g) |
 | Medium | `h3` | h3: SSE Event Injection via Unsanitized Carriage Return (... | [Details](https://github.com/advisories/GHSA-4hxc-9384-m385) |
 | Medium | `h3` | h3: Double Decoding in `serveStatic` Bypasses `resolveDot... | [Details](https://github.com/advisories/GHSA-72gr-qfp7-vwhw) |
 | Low | `brace-expansion` | brace-expansion Regular Expression Denial of Service vuln... | [Details](https://github.com/advisories/GHSA-v6h2-p8h4-qcjw) |
 | Low | `brace-expansion` | brace-expansion Regular Expression Denial of Service vuln... | [Details](https://github.com/advisories/GHSA-v6h2-p8h4-qcjw) |
-| Low | `on-headers` | on-headers is vulnerable to http response header manipula... | [Details](https://github.com/advisories/GHSA-76c9-3jph-rj3q) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |

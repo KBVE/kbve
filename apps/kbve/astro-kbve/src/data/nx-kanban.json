@@ -1,20 +1,20 @@
 {
-	"generated_at": "2026-03-22T08:12:56.848Z",
+	"generated_at": "2026-03-23T08:26:10.225Z",
 	"project": {
 		"title": "KBVE",
 		"url": "https://github.com/orgs/KBVE/projects/5",
-		"total_items": 245
+		"total_items": 302
 	},
 	"summary": {
 		"Theory": 18,
 		"AI": 1,
 		"Todo": 5,
 		"Backlog": 7,
-		"Error": 10,
+		"Error": 11,
 		"Support": 0,
 		"Staging": 4,
-		"Review": 1,
-		"Done": 198
+		"Review": 3,
+		"Done": 252
 	},
 	"columns": {
 		"Theory": [
@@ -731,6 +731,21 @@
 				"matrix": null,
 				"date": "2026-03-17",
 				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 8664,
+				"title": "[UE5] [OWS] Security & code quality audit — 30+ findings",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/issues/8664",
+				"assignees": [],
+				"labels": [
+					"bug",
+					"ci"
+				],
+				"matrix": null,
+				"date": "2026-03-22",
+				"milestone": null
 			}
 		],
 		"Support": [],
@@ -816,6 +831,36 @@
 				"matrix": null,
 				"date": null,
 				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8787,
+				"title": "Atomic: bump discord sdk",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/pull/8787",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8790,
+				"title": "Atomic: bump ows versions",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/pull/8790",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
 			}
 		],
 		"Done": [
@@ -880,171 +925,6 @@
 				],
 				"matrix": null,
 				"date": "2026-03-07",
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 7756,
-				"title": "Release: 4 features, 2 fixes, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/7756",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 7765,
-				"title": "Release: 6 features, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/7765",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 7771,
-				"title": "Atomic: kube axum-kbve v1.0.33",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/7771",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 7776,
-				"title": "Release: 4 features, 4 fixes, 2 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/7776",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 7782,
-				"title": "Atomic: bump axum kbve 1034",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/7782",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 7784,
-				"title": "Release: 1 feature, 1 fix, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/7784",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 7785,
-				"title": "Atomic: kube axum-kbve v1.0.34",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/7785",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 7788,
-				"title": "Release: 1 feature, 1 fix, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/7788",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 7789,
-				"title": "Atomic: bump axum 1035",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/7789",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 7792,
-				"title": "Release: 2 features, 1 fix, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/7792",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 7794,
-				"title": "Atomic: kube axum-kbve v1.0.35",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/7794",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
 				"milestone": null
 			},
 			{
@@ -3801,6 +3681,980 @@
 				"title": "Release: 1 feature, 1 chore → Main",
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/8576",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8579,
+				"title": "Atomic: kube axum-kbve v1.0.71",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8579",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8580,
+				"title": "Release: 2 features, 3 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8580",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8582,
+				"title": "chore(dashboard): daily sync — 2026-03-22",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8582",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8589,
+				"title": "Release: 1 feature, 1 perf → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8589",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8591,
+				"title": "Release: 1 feature, 1 fix → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8591",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8602,
+				"title": "Release: 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8602",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8607,
+				"title": "Release: 2 fixes → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8607",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8609,
+				"title": "Release: 1 feature → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8609",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8612,
+				"title": "Release: 1 fix, 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8612",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8615,
+				"title": "Release: 2 fixes, 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8615",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8619,
+				"title": "Release: 1 fix → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8619",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8621,
+				"title": "Atomic: kube ows v0.1.2",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8621",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8623,
+				"title": "Release: 1 fix → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8623",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8625,
+				"title": "Release: 1 fix, 1 refactor → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8625",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8628,
+				"title": "Release: 1 feature → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8628",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8630,
+				"title": "Release: 1 fix → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8630",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8632,
+				"title": "Release: 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8632",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8636,
+				"title": "Atomic: kube ows-management v0.1.3",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8636",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8638,
+				"title": "Atomic: kube ows-publicapi v0.1.3",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8638",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8640,
+				"title": "Atomic: kube ows-globaldata v0.1.3",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8640",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8641,
+				"title": "Release: 1 fix, 6 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8641",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8644,
+				"title": "Atomic: kube ows-management v0.1.4",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8644",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8647,
+				"title": "Atomic: kube ows-instancemanagement v0.1.4",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8647",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8648,
+				"title": "Atomic: kube ows-characterpersistence v0.1.4",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8648",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8650,
+				"title": "Atomic: kube ows-globaldata v0.1.4",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8650",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8652,
+				"title": "Atomic: kube ows-publicapi v0.1.4",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8652",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8653,
+				"title": "Release: 10 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8653",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8654,
+				"title": "Atomic: ows gitignore",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8654",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8657,
+				"title": "Release: 2 fixes, 1 refactor → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8657",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8659,
+				"title": "Release: 3 features, 8 fixes, 1 test → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8659",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8667,
+				"title": "Atomic: fix ows valkey creds",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8667",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8668,
+				"title": "Atomic: fix ows auth middleware",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8668",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8671,
+				"title": "Atomic: fix ows rabbitmq ack",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/pull/8671",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8674,
+				"title": "Atomic: fix ows thread sleep",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8674",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8676,
+				"title": "Atomic: ows test suite",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8676",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8680,
+				"title": "Atomic: fix ows drawing cve",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8680",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8685,
+				"title": "Atomic: kube edge v0.1.21",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8685",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8690,
+				"title": "Release: 1 fix, 2 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8690",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8697,
+				"title": "Release: 1 fix → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8697",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8701,
+				"title": "Release: 1 feature → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8701",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8708,
+				"title": "Release: 1 fix → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8708",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8715,
+				"title": "Release: 1 fix → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8715",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8722,
+				"title": "Release: 1 feature → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8722",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8729,
+				"title": "Release: 1 fix → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8729",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8731,
+				"title": "Atomic: kube ows-characterpersistence v0.1.8",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8731",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8733,
+				"title": "Atomic: kube ows-instancemanagement v0.1.8",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8733",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8736,
+				"title": "Atomic: kube ows-globaldata v0.1.8",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8736",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8737,
+				"title": "Atomic: kube ows-publicapi v0.1.8",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8737",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8739,
+				"title": "Atomic: kube ows-management v0.1.8",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8739",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8740,
+				"title": "Release: 10 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8740",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8742,
+				"title": "Release: 1 feature → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8742",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8745,
+				"title": "Atomic: kube ows-globaldata v0.1.9",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8745",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8746,
+				"title": "Atomic: kube ows-publicapi v0.1.9",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8746",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8748,
+				"title": "Atomic: kube ows-instancemanagement v0.1.9",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8748",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8750,
+				"title": "Atomic: kube ows-management v0.1.9",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8750",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8752,
+				"title": "Atomic: kube ows-characterpersistence v0.1.9",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8752",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8754,
+				"title": "Release: 1 fix, 10 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8754",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8760,
+				"title": "Release: 1 feature, 1 fix, 11 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8760",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8765,
+				"title": "Atomic: kube ows-instancemanagement v0.10.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8765",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8767,
+				"title": "Atomic: kube ows-globaldata v0.10.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8767",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8768,
+				"title": "Atomic: kube ows-management v0.10.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8768",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8770,
+				"title": "Atomic: kube ows-characterpersistence v0.10.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8770",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8771,
+				"title": "Atomic: kube ows-publicapi v0.10.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8771",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8776,
+				"title": "Release: 2 features, 2 fixes, 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8776",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 8786,
+				"title": "Release: 1 feature, 2 fixes, 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/8786",
 				"assignees": [],
 				"labels": [
 					"auto-pr",

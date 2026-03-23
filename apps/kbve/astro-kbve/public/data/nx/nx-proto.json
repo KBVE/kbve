@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-03-22T08:13:52.647Z",
+  "generated_at": "2026-03-23T08:26:55.677Z",
   "summary": {
-    "total_protos": 23,
-    "registered": 8,
+    "total_protos": 24,
+    "registered": 9,
     "orphaned": 14,
     "utility_only": 1,
-    "total_messages": 409,
-    "total_enums": 80
+    "total_messages": 446,
+    "total_enums": 82
   },
   "protos": [
     {
@@ -842,6 +842,62 @@
       }
     },
     {
+      "proto": "packages/data/proto/ows/ows.proto",
+      "package": "ows",
+      "messages": [
+        "Customer",
+        "User",
+        "UserSession",
+        "Character",
+        "CharOnMapInstance",
+        "CustomCharacterData",
+        "WorldServer",
+        "Map",
+        "MapInstance",
+        "WorldSettings",
+        "ItemType",
+        "Item",
+        "CharHasItem",
+        "CharInventory",
+        "CharInventoryItem",
+        "AbilityType",
+        "Ability",
+        "CharHasAbility",
+        "CharAbilityBar",
+        "CharAbilityBarAbility",
+        "Class",
+        "Race",
+        "ChatGroup",
+        "ChatGroupUser",
+        "ChatMessage",
+        "AreaOfInterestType",
+        "AreaOfInterest",
+        "PlayerGroupType",
+        "PlayerGroup",
+        "PlayerGroupCharacter",
+        "GlobalData",
+        "DefaultCharacterValues",
+        "ClassInventory",
+        "DebugLog",
+        "DefaultCustomCharacterData",
+        "UserInQueue",
+        "OWSVersion"
+      ],
+      "enums": [
+        "ServerStatus",
+        "MapMode"
+      ],
+      "message_count": 37,
+      "enum_count": 2,
+      "codegen": {
+        "registered": true,
+        "name": "ows",
+        "zod_config": "packages/data/codegen/ows-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/ows-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/ows.binpb"
+      }
+    },
+    {
       "proto": "packages/data/proto/quest/questdb.proto",
       "package": "quest",
       "messages": [
@@ -896,7 +952,7 @@
     "packages/data/proto/kbve/staff.proto",
     "packages/data/proto/meme/meme.proto"
   ],
-  "checked_at": "2026-03-22T08:13:52Z",
+  "checked_at": "2026-03-23T08:26:55Z",
   "drift_detected": false,
   "drift_files": []
 }
