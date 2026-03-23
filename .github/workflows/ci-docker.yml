@@ -1,5 +1,7 @@
 name: CI - Docker
 
+run-name: 'CI - Docker / ${{ inputs.app_name }}'
+
 on:
     workflow_dispatch:
         inputs:
@@ -16,12 +18,10 @@ on:
                 required: true
                 type: string
 
-# Per-app concurrency — never cancel in-progress runs.
-# GitHub Actions keeps one pending slot: if two runs queue for the same app,
-# the latest pending replaces the older pending, but the running job is safe.
-concurrency:
-    group: ci-docker-${{ inputs.app_name }}
-    cancel-in-progress: false
+# No workflow-level concurrency — each app fans out independently.
+# Per-app serialization is handled by the queue_guard job (stale deploy
+# protection) rather than GitHub's concurrency groups, which can collapse
+# dispatches into one group when inputs aren't resolved for pending runs.
 
 permissions: {}
 
