@@ -21,7 +21,7 @@ spec:
         spec:
             containers:
                 - name: ows-publicapi
-                  image: ghcr.io/kbve/ows-publicapi:0.1.8
+                  image: ghcr.io/kbve/ows-publicapi:0.1.9
                   imagePullPolicy: Always
                   env:
                       - name: OWSStorageConfig__OWSDBBackend
