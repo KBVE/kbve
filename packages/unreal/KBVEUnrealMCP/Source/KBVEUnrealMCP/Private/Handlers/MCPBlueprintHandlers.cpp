@@ -39,6 +39,10 @@ void FMCPBlueprintHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("blueprint.reparent"), &HandleReparent);
 	Registry.RegisterHandler(TEXT("blueprint.validate"), &HandleValidate);
 	Registry.RegisterHandler(TEXT("blueprint.list_components"), &HandleListComponents);
+	// Phase 9 — snapshot/diff/restore
+	Registry.RegisterHandler(TEXT("blueprint.snapshot_graph"), &HandleSnapshotGraph);
+	Registry.RegisterHandler(TEXT("blueprint.diff_graph"), &HandleDiffGraph);
+	Registry.RegisterHandler(TEXT("blueprint.restore_graph"), &HandleRestoreGraph);
 }
 
 void FMCPBlueprintHandlers::HandleCreate(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
@@ -725,5 +729,288 @@ void FMCPBlueprintHandlers::HandleListComponents(const TSharedPtr<FJsonObject>& 
 	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
 	Result->SetArrayField(TEXT("components"), Components);
 	Result->SetNumberField(TEXT("count"), Components.Num());
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+// ---- Phase 9: Snapshot/Diff/Restore ----
+
+TMap<FString, FMCPBlueprintHandlers::FGraphSnapshot> FMCPBlueprintHandlers::Snapshots;
+
+TSharedPtr<FJsonObject> FMCPBlueprintHandlers::CaptureGraphState(UEdGraph* Graph)
+{
+	TSharedPtr<FJsonObject> State = MakeShared<FJsonObject>();
+	TArray<TSharedPtr<FJsonValue>> Nodes;
+
+	for (UEdGraphNode* Node : Graph->Nodes)
+	{
+		TSharedPtr<FJsonObject> NObj = MakeShared<FJsonObject>();
+		NObj->SetStringField(TEXT("id"), Node->GetName());
+		NObj->SetStringField(TEXT("class"), Node->GetClass()->GetName());
+		NObj->SetStringField(TEXT("title"), Node->GetNodeTitle(ENodeTitleType::FullTitle).ToString());
+		NObj->SetNumberField(TEXT("x"), Node->NodePosX);
+		NObj->SetNumberField(TEXT("y"), Node->NodePosY);
+		NObj->SetStringField(TEXT("comment"), Node->NodeComment);
+
+		TArray<TSharedPtr<FJsonValue>> Pins;
+		for (UEdGraphPin* Pin : Node->Pins)
+		{
+			TSharedPtr<FJsonObject> PObj = MakeShared<FJsonObject>();
+			PObj->SetStringField(TEXT("name"), Pin->PinName.ToString());
+			PObj->SetStringField(TEXT("direction"), Pin->Direction == EGPD_Input ? TEXT("input") : TEXT("output"));
+			PObj->SetStringField(TEXT("type"), Pin->PinType.PinCategory.ToString());
+			PObj->SetStringField(TEXT("default_value"), Pin->DefaultValue);
+			PObj->SetNumberField(TEXT("connections"), Pin->LinkedTo.Num());
+
+			TArray<TSharedPtr<FJsonValue>> Links;
+			for (UEdGraphPin* Linked : Pin->LinkedTo)
+			{
+				TSharedPtr<FJsonObject> LObj = MakeShared<FJsonObject>();
+				LObj->SetStringField(TEXT("node"), Linked->GetOwningNode()->GetName());
+				LObj->SetStringField(TEXT("pin"), Linked->PinName.ToString());
+				Links.Add(MakeShared<FJsonValueObject>(LObj));
+			}
+			PObj->SetArrayField(TEXT("links"), Links);
+			Pins.Add(MakeShared<FJsonValueObject>(PObj));
+		}
+		NObj->SetArrayField(TEXT("pins"), Pins);
+		Nodes.Add(MakeShared<FJsonValueObject>(NObj));
+	}
+
+	State->SetArrayField(TEXT("nodes"), Nodes);
+	State->SetNumberField(TEXT("node_count"), Graph->Nodes.Num());
+	return State;
+}
+
+void FMCPBlueprintHandlers::HandleSnapshotGraph(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString Name = Params->GetStringField(TEXT("name"));
+	if (Name.IsEmpty()) { MCPProtocolHelpers::Fail(OnComplete, TEXT("INVALID_PARAMS"), TEXT("'name' is required")); return; }
+
+	FString BPPath = FString::Printf(TEXT("/Game/%s.%s"), *Name, *Name);
+	UBlueprint* BP = LoadObject<UBlueprint>(nullptr, *BPPath);
+	if (!BP) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), FString::Printf(TEXT("Blueprint not found: %s"), *Name)); return; }
+
+	FString GraphName = Params->GetStringField(TEXT("graph"));
+
+	UEdGraph* Graph = nullptr;
+	if (GraphName.IsEmpty())
+	{
+		TArray<UEdGraph*> Graphs;
+		BP->GetAllGraphs(Graphs);
+		if (Graphs.Num() > 0) Graph = Graphs[0];
+	}
+	else
+	{
+		TArray<UEdGraph*> Graphs;
+		BP->GetAllGraphs(Graphs);
+		for (UEdGraph* G : Graphs)
+			if (G->GetName() == GraphName) { Graph = G; break; }
+	}
+
+	if (!Graph) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Graph not found")); return; }
+
+	FString SnapshotKey = Params->GetStringField(TEXT("snapshot_id"));
+	if (SnapshotKey.IsEmpty())
+		SnapshotKey = FString::Printf(TEXT("%s_%s_%s"), *Name, *Graph->GetName(), *FDateTime::Now().ToString());
+
+	FGraphSnapshot Snap;
+	Snap.BlueprintName = Name;
+	Snap.GraphName = Graph->GetName();
+	Snap.Data = CaptureGraphState(Graph);
+	Snap.Timestamp = FDateTime::Now();
+	Snapshots.Add(SnapshotKey, Snap);
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetStringField(TEXT("snapshot_id"), SnapshotKey);
+	Result->SetStringField(TEXT("blueprint"), Name);
+	Result->SetStringField(TEXT("graph"), Graph->GetName());
+	Result->SetNumberField(TEXT("node_count"), Graph->Nodes.Num());
+	Result->SetStringField(TEXT("timestamp"), Snap.Timestamp.ToString());
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+void FMCPBlueprintHandlers::HandleDiffGraph(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString SnapshotKey = Params->GetStringField(TEXT("snapshot_id"));
+	if (SnapshotKey.IsEmpty()) { MCPProtocolHelpers::Fail(OnComplete, TEXT("INVALID_PARAMS"), TEXT("'snapshot_id' is required")); return; }
+
+	FGraphSnapshot* Snap = Snapshots.Find(SnapshotKey);
+	if (!Snap) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), FString::Printf(TEXT("Snapshot not found: %s"), *SnapshotKey)); return; }
+
+	FString BPPath = FString::Printf(TEXT("/Game/%s.%s"), *Snap->BlueprintName, *Snap->BlueprintName);
+	UBlueprint* BP = LoadObject<UBlueprint>(nullptr, *BPPath);
+	if (!BP) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Blueprint no longer exists")); return; }
+
+	UEdGraph* Graph = nullptr;
+	TArray<UEdGraph*> Graphs;
+	BP->GetAllGraphs(Graphs);
+	for (UEdGraph* G : Graphs)
+		if (G->GetName() == Snap->GraphName) { Graph = G; break; }
+	if (!Graph) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Graph no longer exists")); return; }
+
+	TSharedPtr<FJsonObject> CurrentState = CaptureGraphState(Graph);
+
+	// Compare node counts
+	const TArray<TSharedPtr<FJsonValue>>* SnapNodes;
+	const TArray<TSharedPtr<FJsonValue>>* CurNodes;
+	Snap->Data->TryGetArrayField(TEXT("nodes"), SnapNodes);
+	CurrentState->TryGetArrayField(TEXT("nodes"), CurNodes);
+
+	TSet<FString> SnapNodeIds, CurNodeIds;
+	TMap<FString, TSharedPtr<FJsonObject>> SnapNodeMap, CurNodeMap;
+
+	if (SnapNodes)
+		for (auto& V : *SnapNodes)
+		{
+			auto Obj = V->AsObject();
+			FString Id = Obj->GetStringField(TEXT("id"));
+			SnapNodeIds.Add(Id);
+			SnapNodeMap.Add(Id, Obj);
+		}
+
+	if (CurNodes)
+		for (auto& V : *CurNodes)
+		{
+			auto Obj = V->AsObject();
+			FString Id = Obj->GetStringField(TEXT("id"));
+			CurNodeIds.Add(Id);
+			CurNodeMap.Add(Id, Obj);
+		}
+
+	TArray<TSharedPtr<FJsonValue>> Added, Removed, Modified;
+
+	for (const FString& Id : CurNodeIds)
+		if (!SnapNodeIds.Contains(Id))
+			Added.Add(MakeShared<FJsonValueString>(Id));
+
+	for (const FString& Id : SnapNodeIds)
+		if (!CurNodeIds.Contains(Id))
+			Removed.Add(MakeShared<FJsonValueString>(Id));
+
+	for (const FString& Id : CurNodeIds.Intersect(SnapNodeIds))
+	{
+		auto* S = SnapNodeMap.Find(Id);
+		auto* C = CurNodeMap.Find(Id);
+		if (S && C)
+		{
+			bool bDiff = false;
+			// Check position
+			if ((*S)->GetNumberField(TEXT("x")) != (*C)->GetNumberField(TEXT("x")) ||
+				(*S)->GetNumberField(TEXT("y")) != (*C)->GetNumberField(TEXT("y")))
+				bDiff = true;
+
+			// Check pin connections count change
+			const TArray<TSharedPtr<FJsonValue>>* SPins; const TArray<TSharedPtr<FJsonValue>>* CPins;
+			if ((*S)->TryGetArrayField(TEXT("pins"), SPins) && (*C)->TryGetArrayField(TEXT("pins"), CPins))
+			{
+				if (SPins->Num() != CPins->Num()) bDiff = true;
+			}
+
+			if (bDiff)
+				Modified.Add(MakeShared<FJsonValueString>(Id));
+		}
+	}
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetStringField(TEXT("snapshot_id"), SnapshotKey);
+	Result->SetArrayField(TEXT("added_nodes"), Added);
+	Result->SetArrayField(TEXT("removed_nodes"), Removed);
+	Result->SetArrayField(TEXT("modified_nodes"), Modified);
+	Result->SetNumberField(TEXT("snapshot_node_count"), SnapNodeIds.Num());
+	Result->SetNumberField(TEXT("current_node_count"), CurNodeIds.Num());
+	Result->SetBoolField(TEXT("has_changes"), Added.Num() > 0 || Removed.Num() > 0 || Modified.Num() > 0);
+	MCPProtocolHelpers::Succeed(OnComplete, Result);
+}
+
+void FMCPBlueprintHandlers::HandleRestoreGraph(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
+{
+	FString SnapshotKey = Params->GetStringField(TEXT("snapshot_id"));
+	if (SnapshotKey.IsEmpty()) { MCPProtocolHelpers::Fail(OnComplete, TEXT("INVALID_PARAMS"), TEXT("'snapshot_id' is required")); return; }
+
+	FGraphSnapshot* Snap = Snapshots.Find(SnapshotKey);
+	if (!Snap) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), FString::Printf(TEXT("Snapshot not found: %s"), *SnapshotKey)); return; }
+
+	FString BPPath = FString::Printf(TEXT("/Game/%s.%s"), *Snap->BlueprintName, *Snap->BlueprintName);
+	UBlueprint* BP = LoadObject<UBlueprint>(nullptr, *BPPath);
+	if (!BP) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Blueprint no longer exists")); return; }
+
+	UEdGraph* Graph = nullptr;
+	TArray<UEdGraph*> Graphs;
+	BP->GetAllGraphs(Graphs);
+	for (UEdGraph* G : Graphs)
+		if (G->GetName() == Snap->GraphName) { Graph = G; break; }
+	if (!Graph) { MCPProtocolHelpers::Fail(OnComplete, TEXT("NOT_FOUND"), TEXT("Graph no longer exists")); return; }
+
+	// Restore pin connections from snapshot
+	const TArray<TSharedPtr<FJsonValue>>* SnapNodes;
+	if (!Snap->Data->TryGetArrayField(TEXT("nodes"), SnapNodes))
+	{
+		MCPProtocolHelpers::Fail(OnComplete, TEXT("CORRUPT"), TEXT("Snapshot data is corrupt"));
+		return;
+	}
+
+	int32 RestoredConnections = 0;
+
+	// Build map of current nodes
+	TMap<FString, UEdGraphNode*> NodeMap;
+	for (UEdGraphNode* Node : Graph->Nodes)
+		NodeMap.Add(Node->GetName(), Node);
+
+	// Rewire connections from snapshot
+	for (auto& NodeVal : *SnapNodes)
+	{
+		auto NodeObj = NodeVal->AsObject();
+		FString NodeId = NodeObj->GetStringField(TEXT("id"));
+		UEdGraphNode** NodePtr = NodeMap.Find(NodeId);
+		if (!NodePtr) continue;
+
+		const TArray<TSharedPtr<FJsonValue>>* PinsArr;
+		if (!NodeObj->TryGetArrayField(TEXT("pins"), PinsArr)) continue;
+
+		for (auto& PinVal : *PinsArr)
+		{
+			auto PinObj = PinVal->AsObject();
+			FString PinName = PinObj->GetStringField(TEXT("name"));
+			FString Dir = PinObj->GetStringField(TEXT("direction"));
+			if (Dir != TEXT("output")) continue; // Only restore from output side
+
+			UEdGraphPin* SrcPin = nullptr;
+			for (UEdGraphPin* P : (*NodePtr)->Pins)
+				if (P->PinName.ToString() == PinName && P->Direction == EGPD_Output) { SrcPin = P; break; }
+			if (!SrcPin) continue;
+
+			const TArray<TSharedPtr<FJsonValue>>* LinksArr;
+			if (!PinObj->TryGetArrayField(TEXT("links"), LinksArr)) continue;
+
+			for (auto& LinkVal : *LinksArr)
+			{
+				auto LinkObj = LinkVal->AsObject();
+				FString TargetNodeId = LinkObj->GetStringField(TEXT("node"));
+				FString TargetPinName = LinkObj->GetStringField(TEXT("pin"));
+
+				UEdGraphNode** TargetNodePtr = NodeMap.Find(TargetNodeId);
+				if (!TargetNodePtr) continue;
+
+				UEdGraphPin* TgtPin = nullptr;
+				for (UEdGraphPin* P : (*TargetNodePtr)->Pins)
+					if (P->PinName.ToString() == TargetPinName && P->Direction == EGPD_Input) { TgtPin = P; break; }
+				if (!TgtPin) continue;
+
+				// Check if already connected
+				if (!SrcPin->LinkedTo.Contains(TgtPin))
+				{
+					SrcPin->MakeLinkTo(TgtPin);
+					RestoredConnections++;
+				}
+			}
+		}
+	}
+
+	FBlueprintEditorUtils::MarkBlueprintAsModified(BP);
+
+	TSharedPtr<FJsonObject> Result = MCPProtocolHelpers::MakeResult();
+	Result->SetStringField(TEXT("snapshot_id"), SnapshotKey);
+	Result->SetNumberField(TEXT("restored_connections"), RestoredConnections);
+	Result->SetBoolField(TEXT("restored"), true);
 	MCPProtocolHelpers::Succeed(OnComplete, Result);
 }
