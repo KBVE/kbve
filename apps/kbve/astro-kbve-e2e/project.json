@@ -3,34 +3,33 @@
 	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
 	"sourceRoot": "apps/kbve/astro-kbve-e2e/e2e",
-	"implicitDependencies": ["astro-kbve"],
+	"implicitDependencies": ["axum-kbve"],
 	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
 		"e2e": {
-			"executor": "@nx/playwright:playwright",
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["axum-kbve"],
+					"params": "forward"
+				}
+			],
 			"cache": false,
-			"dependsOn": ["astro-kbve:build"],
 			"options": {
-				"config": "apps/kbve/astro-kbve-e2e/playwright.config.ts"
+				"commands": [
+					"docker rm -f astro-kbve-e2e 2>/dev/null || true",
+					"docker run -d --name astro-kbve-e2e -p 4323:4321 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4321 -e RUST_LOG=info kbve/kbve:latest",
+					"npx vitest run; EC=$?; docker rm -f astro-kbve-e2e 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false,
+				"cwd": "apps/kbve/astro-kbve-e2e"
 			},
 			"configurations": {
-				"ci": {
-					"config": "apps/kbve/astro-kbve-e2e/playwright.preview.config.ts"
-				}
-			}
-		},
-		"e2e:preview": {
-			"executor": "@nx/playwright:playwright",
-			"cache": false,
-			"dependsOn": ["astro-kbve:build"],
-			"options": {
-				"config": "apps/kbve/astro-kbve-e2e/playwright.preview.config.ts"
-			}
-		},
-		"e2e:docker": {
-			"executor": "@nx/playwright:playwright",
-			"cache": false,
-			"options": {
-				"config": "apps/kbve/astro-kbve-e2e/playwright.docker.config.ts"
+				"ci": {}
 			}
 		}
 	},
