@@ -81,7 +81,7 @@ spec:
                           memory: '256Mi'
                           cpu: '500m'
                       limits:
-                          memory: '2048Mi'
+                          memory: '4096Mi'
                           cpu: '6000m'
                   securityContext:
                       runAsUser: 0
