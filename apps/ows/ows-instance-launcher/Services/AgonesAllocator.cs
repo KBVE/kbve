@@ -8,12 +8,28 @@ using System.Threading.Tasks;
 
 namespace OWSInstanceLauncher.Services
 {
+    public enum AgonesErrorCode
+    {
+        None,
+        FleetExhausted,
+        FleetNotFound,
+        ApiTimeout,
+        AuthFailure,
+        Unknown
+    }
+
     public class AgonesAllocationResult
     {
+        public bool Success { get; set; }
+        public AgonesErrorCode ErrorCode { get; set; } = AgonesErrorCode.None;
+        public string ErrorMessage { get; set; } = "";
         public string GameServerName { get; set; } = "";
         public string Address { get; set; } = "";
         public int Port { get; set; }
         public string State { get; set; } = "";
+
+        public static AgonesAllocationResult Fail(AgonesErrorCode code, string message) =>
+            new() { Success = false, ErrorCode = code, ErrorMessage = message };
     }
 
     public class AgonesAllocator : IDisposable
@@ -38,7 +54,7 @@ namespace OWSInstanceLauncher.Services
         /// Allocate a GameServer from the Agones Fleet.
         /// Creates a GameServerAllocation CR via the Kubernetes API.
         /// </summary>
-        public async Task<AgonesAllocationResult?> AllocateAsync(string mapName, int zoneInstanceId)
+        public async Task<AgonesAllocationResult> AllocateAsync(string mapName, int zoneInstanceId)
         {
             var allocation = new Dictionary<string, object>
             {
@@ -85,10 +101,18 @@ namespace OWSInstanceLauncher.Services
 
                 var state = root.GetProperty("status").GetProperty("state").GetString() ?? "";
 
+                if (state == "UnAllocated")
+                {
+                    Log.Warning("GameServerAllocation state is {State} — fleet exhausted, no ready servers", state);
+                    return AgonesAllocationResult.Fail(AgonesErrorCode.FleetExhausted,
+                        $"No ready GameServers in fleet {_fleetName}");
+                }
+
                 if (state != "Allocated")
                 {
-                    Log.Warning("GameServerAllocation state is {State}, not Allocated. No servers available?", state);
-                    return null;
+                    Log.Warning("GameServerAllocation state is {State}, expected Allocated", state);
+                    return AgonesAllocationResult.Fail(AgonesErrorCode.Unknown,
+                        $"Unexpected allocation state: {state}");
                 }
 
                 var address = root.GetProperty("status").GetProperty("address").GetString() ?? "";
@@ -108,6 +132,7 @@ namespace OWSInstanceLauncher.Services
 
                 var result = new AgonesAllocationResult
                 {
+                    Success = true,
                     GameServerName = gsName,
                     Address = address,
                     Port = port,
@@ -119,10 +144,28 @@ namespace OWSInstanceLauncher.Services
 
                 return result;
             }
+            catch (k8s.Autorest.HttpOperationException ex) when (ex.Response?.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                Log.Error(ex, "Fleet or namespace not found for map {Map} zone {Zone}", mapName, zoneInstanceId);
+                return AgonesAllocationResult.Fail(AgonesErrorCode.FleetNotFound,
+                    $"Fleet {_fleetName} not found in namespace {_namespace}");
+            }
+            catch (k8s.Autorest.HttpOperationException ex) when (ex.Response?.StatusCode == System.Net.HttpStatusCode.Unauthorized || ex.Response?.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                Log.Error(ex, "K8s auth failure for map {Map} zone {Zone}", mapName, zoneInstanceId);
+                return AgonesAllocationResult.Fail(AgonesErrorCode.AuthFailure,
+                    $"K8s API auth failure: {ex.Response?.StatusCode}");
+            }
+            catch (TaskCanceledException ex)
+            {
+                Log.Error(ex, "K8s API timeout for map {Map} zone {Zone}", mapName, zoneInstanceId);
+                return AgonesAllocationResult.Fail(AgonesErrorCode.ApiTimeout,
+                    "K8s API request timed out");
+            }
             catch (Exception ex)
             {
                 Log.Error(ex, "Failed to create GameServerAllocation for map {Map} zone {Zone}", mapName, zoneInstanceId);
-                return null;
+                return AgonesAllocationResult.Fail(AgonesErrorCode.Unknown, ex.Message);
             }
         }
 
