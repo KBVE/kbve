@@ -1,7 +1,6 @@
 use crate::error::{ApiResult, RowsError, SuccessResponse};
 use crate::middleware::{extract_customer_guid, require_customer_guid};
 use crate::models::{CustomDataRows, HealthResponse};
-use crate::repo::*;
 use crate::service::OWSService;
 use crate::state::AppState;
 use axum::{
@@ -132,27 +131,10 @@ async fn get_server_to_connect_to(
     Json(body): Json<GetServerDto>,
 ) -> ApiResult<crate::models::JoinMapResult> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = InstanceRepo(&hs.app.db);
-
-    let result = repo
-        .join_map_by_char_name(customer_guid, &body.character_name, &body.zone_name)
+    let result = hs
+        .svc
+        .get_server_to_connect_to(customer_guid, &body.character_name, &body.zone_name)
         .await?;
-
-    // If we need to start a map and have MQ, publish spin-up
-    if result.need_to_startup_map {
-        if let Some(ref mq) = hs.app.mq {
-            let msg = crate::mq::SpinUpMessage {
-                customer_guid: customer_guid.to_string(),
-                world_server_id: result.world_server_id,
-                zone_instance_id: result.map_instance_id,
-                map_name: result.map_name_to_start.clone(),
-                port: result.port,
-            };
-            if let Err(e) = mq.publish_spin_up(result.world_server_id, &msg).await {
-                tracing::error!(error = %e, "Failed to publish spin-up message");
-            }
-        }
-    }
     Ok(Json(result))
 }
 
@@ -170,11 +152,10 @@ async fn get_char_by_name_public(
     Json(body): Json<GetByNameDto>,
 ) -> ApiResult<crate::models::Character> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&hs.app.db);
-    let ch = repo
-        .get_by_name(customer_guid, &body.character_name)
-        .await?
-        .ok_or_else(|| RowsError::NotFound("Character not found".into()))?;
+    let ch = hs
+        .svc
+        .get_character_by_name(customer_guid, &body.character_name)
+        .await?;
     Ok(Json(ch))
 }
 
@@ -197,8 +178,6 @@ async fn register_user(
     Json(body): Json<RegisterUserDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = UsersRepo(&hs.app.db);
-
     use argon2::{
         Argon2, PasswordHasher, password_hash::SaltString, password_hash::rand_core::OsRng,
     };
@@ -208,9 +187,9 @@ async fn register_user(
         Err(e) => return Json(SuccessResponse::err(format!("Hash error: {e}"))),
     };
 
-    match repo
+    match hs
+        .svc
         .register(
-            customer_guid,
             &body.email,
             &password_hash,
             &body.first_name,
@@ -234,8 +213,7 @@ async fn logout(
     State(hs): State<HandlerState>,
     Json(body): Json<LogoutDto>,
 ) -> Json<SuccessResponse> {
-    let repo = UsersRepo(&hs.app.db);
-    match repo.logout(body.user_session_guid).await {
+    match hs.svc.logout(body.user_session_guid).await {
         Ok(()) => Json(SuccessResponse::ok()),
         Err(e) => Json(SuccessResponse::err(e.to_string())),
     }
@@ -256,21 +234,11 @@ async fn create_character(
     Json(body): Json<CreateCharDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let users = UsersRepo(&hs.app.db);
-    let chars = CharsRepo(&hs.app.db);
-
-    let user_guid = match users.get_session(body.user_session_guid).await {
-        Ok(Some(s)) => match s.user_guid {
-            Some(ug) => ug,
-            None => return Json(SuccessResponse::err("Invalid session")),
-        },
-        _ => return Json(SuccessResponse::err("Session not found")),
-    };
-
-    match chars
+    match hs
+        .svc
         .create_character(
+            body.user_session_guid,
             customer_guid,
-            user_guid,
             &body.character_name,
             &body.class_name,
         )
@@ -295,9 +263,8 @@ async fn remove_character(
     Json(body): Json<RemoveCharDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&hs.app.db);
-
-    match repo
+    match hs
+        .svc
         .remove_character(customer_guid, &body.character_name)
         .await
     {
@@ -343,9 +310,8 @@ async fn set_zone_status(
     Json(body): Json<SetZoneStatusWrapper>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = InstanceRepo(&hs.app.db);
-
-    match repo
+    match hs
+        .svc
         .set_zone_status(
             customer_guid,
             body.request.zone_instance_id,
@@ -376,8 +342,8 @@ async fn get_zone_instances(
     Json(body): Json<GetZoneInstancesWrapper>,
 ) -> ApiResult<Vec<crate::models::ZoneInstance>> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = InstanceRepo(&hs.app.db);
-    let zones = repo
+    let zones = hs
+        .svc
         .get_zone_instances(customer_guid, body.request.world_server_id)
         .await?;
     Ok(Json(zones))
@@ -428,11 +394,10 @@ async fn get_char_by_name(
     Json(body): Json<CharNameDto>,
 ) -> ApiResult<crate::models::Character> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&hs.app.db);
-    let ch = repo
-        .get_by_name(customer_guid, &body.character_name)
-        .await?
-        .ok_or_else(|| RowsError::NotFound("Character not found".into()))?;
+    let ch = hs
+        .svc
+        .get_character_by_name(customer_guid, &body.character_name)
+        .await?;
     Ok(Json(ch))
 }
 
@@ -442,8 +407,8 @@ async fn get_custom_data(
     Json(body): Json<CharNameDto>,
 ) -> ApiResult<CustomDataRows> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&hs.app.db);
-    let data = repo
+    let data = hs
+        .svc
         .get_custom_data(customer_guid, &body.character_name)
         .await?;
     Ok(Json(CustomDataRows { rows: data }))
@@ -463,12 +428,11 @@ async fn update_all_positions(
     Json(body): Json<UpdatePositionsDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&hs.app.db);
 
     // Parse pipe-separated format: CharName:X:Y:Z:RX:RY:RZ|CharName2:...
     // Zero-alloc: use split iterator instead of collecting into Vec
     for entry in body.serialized_player_location_data.split('|') {
-        let mut it = entry.splitn(8, ':'); // max 7 fields + remainder
+        let mut it = entry.splitn(8, ':');
         let Some(char_name) = it.next() else { continue };
         let (Some(sx), Some(sy), Some(sz), Some(srx), Some(sry), Some(srz)) = (
             it.next(),
@@ -491,7 +455,8 @@ async fn update_all_positions(
             continue;
         };
 
-        if let Err(e) = repo
+        if let Err(e) = hs
+            .svc
             .update_position(customer_guid, char_name, x, y, z, rx, ry, rz)
             .await
         {
@@ -516,9 +481,8 @@ async fn add_or_update_custom_data(
     Json(body): Json<AddCustomDataDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&hs.app.db);
-
-    match repo
+    match hs
+        .svc
         .add_or_update_custom_data(
             customer_guid,
             &body.character_name,
@@ -547,10 +511,9 @@ async fn update_character_stats(
     Json(body): Json<UpdateStatsDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&hs.app.db);
-
     let stats_json = serde_json::to_string(&body.stats).unwrap_or_default();
-    match repo
+    match hs
+        .svc
         .update_stats(customer_guid, &body.character_name, &stats_json)
         .await
     {
@@ -565,8 +528,8 @@ async fn player_logout(
     Json(body): Json<CharNameDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = CharsRepo(&hs.app.db);
-    match repo
+    match hs
+        .svc
         .player_logout(customer_guid, &body.character_name)
         .await
     {
@@ -602,8 +565,8 @@ async fn get_character_abilities(
     Json(body): Json<CharNameDto>,
 ) -> ApiResult<Vec<crate::models::CharacterAbility>> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = AbilitiesRepo(&hs.app.db);
-    let abilities = repo
+    let abilities = hs
+        .svc
         .get_character_abilities(customer_guid, &body.character_name)
         .await?;
     Ok(Json(abilities))
@@ -623,9 +586,8 @@ async fn add_ability(
     Json(body): Json<AddAbilityDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = AbilitiesRepo(&hs.app.db);
-
-    match repo
+    match hs
+        .svc
         .add_ability(
             customer_guid,
             &body.character_name,
@@ -652,9 +614,8 @@ async fn remove_ability(
     Json(body): Json<RemoveAbilityDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = AbilitiesRepo(&hs.app.db);
-
-    match repo
+    match hs
+        .svc
         .remove_ability(customer_guid, &body.character_name, &body.ability_name)
         .await
     {
@@ -699,10 +660,9 @@ async fn add_zone(
     Json(body): Json<AddZoneWrapper>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = ZonesRepo(&hs.app.db);
     let z = &body.add_or_update_zone;
-
-    match repo
+    match hs
+        .svc
         .add_zone(
             customer_guid,
             &z.map_name,
@@ -747,10 +707,9 @@ async fn set_global_data(
     Json(body): Json<SetGlobalDataDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = GlobalDataRepo(&hs.app.db);
-
-    match repo
-        .set(
+    match hs
+        .svc
+        .set_global_data(
             customer_guid,
             &body.global_data_key,
             &body.global_data_value,
@@ -768,7 +727,6 @@ async fn get_global_data(
     Path(key): Path<String>,
 ) -> ApiResult<Option<crate::models::GlobalData>> {
     let customer_guid = extract_customer_guid(&headers);
-    let repo = GlobalDataRepo(&hs.app.db);
-    let data = repo.get(customer_guid, &key).await?;
+    let data = hs.svc.get_global_data(customer_guid, &key).await?;
     Ok(Json(data))
 }
