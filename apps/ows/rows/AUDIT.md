@@ -35,7 +35,7 @@ CORS, body limits, and structured tracing.
 
 **Priority: P0**
 
-- [ ] Confirm sqlx respects `options=-c search_path=ows,extensions,public` in DATABASE_URL
+- [x] sqlx PgConnectOptions.options() sets search_path=ows,extensions,public at connect time
 - [ ] Integration test: login query with crypt() from extensions schema
 - [ ] Integration test: all queries against the ows schema
 
@@ -80,7 +80,7 @@ CORS, body limits, and structured tracing.
 - [x] `RegisterLauncher` / `StartInstanceLauncher` — WorldServer registration
 - [x] `SetZoneInstanceStatus` — mark zone ready/shutdown
 - [x] `GetZoneInstancesForWorldServer` — list active instances
-- [ ] Fix: use stable ZoneServerGUID to prevent row spam on restart
+- [x] Fix: use stable ZoneServerGUID upsert to prevent row spam on restart
 
 ### 6. RabbitMQ Integration
 
@@ -90,13 +90,13 @@ CORS, body limits, and structured tracing.
 - [x] Consume `ows.servershutdown.{WorldServerID}` messages
 - [x] Trigger Agones allocation on spin-up
 - [x] Trigger Agones deallocation on shutdown
-- [ ] Dead letter handling for failed allocations
+- [x] Dead letter handling for failed allocations (reject after 3 retries)
 
 ### 7. World Server Management
 
 **Priority: P1**
 
-- [ ] Prevent duplicate WorldServer rows (use upsert with stable GUID)
+- [x] Prevent duplicate WorldServer rows (upsert with stable ZoneServerGUID)
 - [x] Health monitoring loop (background job, 30s interval)
 - [x] Graceful shutdown (SIGTERM/SIGINT handler)
 
@@ -125,7 +125,7 @@ CORS, body limits, and structured tracing.
 
 - [x] pgcrypto crypt() SQL-side for existing bcrypt hashes
 - [x] Argon2 fallback for migrated passwords
-- [ ] Auto re-hash to argon2 on successful pgcrypto login (Option B completion)
+- [x] Auto re-hash to argon2 on successful pgcrypto login (fire-and-forget background task)
 
 ### 11. Agones Native
 
@@ -154,23 +154,22 @@ CORS, body limits, and structured tracing.
 
 - [x] gRPC service for SetZoneInstanceStatus
 - [x] gRPC service for UpdatePosition
-- [ ] gRPC service for UpdateNumberOfPlayers
+- [x] gRPC service for UpdateNumberOfPlayers
 - [ ] Bi-directional streaming for real-time server health
 
 ## Remaining Work
 
 1. **Integration tests** — test login, character CRUD, zone connection against real DB
 2. **CI pipeline entry** — add to dispatch manifest for automated builds
-3. **DB search_path verification** — confirm sqlx options parameter works
-4. **Stable launcher GUID** — prevent WorldServer row spam on restart
-5. **Dead letter queue** — handle failed Agones allocations
-6. **Prometheus metrics** — /metrics endpoint
-7. **Remove C# OWS deployments** — after shadow mode validation
+3. **Prometheus metrics** — /metrics endpoint
+4. **FleetAutoscaler integration** — Agones fleet scaling
+5. **Bi-directional gRPC streaming** — real-time server health
+6. **Remove C# OWS deployments** — after validation
 
 ## Migration Plan
 
 1. **Phase 1**: ~~Get ROWS login + character flow working~~ DONE
 2. **Phase 2**: ~~Get zone connection working with Agones~~ DONE
-3. **Phase 3**: Deploy ROWS alongside OWS C# (shadow mode, compare responses)
-4. **Phase 4**: Switch HTTPRoute from OWS to ROWS
+3. **Phase 3**: ~~Production hardening (shutdown, health, CORS, body limits)~~ DONE
+4. **Phase 4**: Deploy ROWS, switch HTTPRoute from OWS to ROWS
 5. **Phase 5**: Remove OWS C# deployments

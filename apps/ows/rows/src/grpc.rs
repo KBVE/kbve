@@ -249,6 +249,21 @@ impl InstanceManagement for InstanceManagementService {
             "ShutDownInstance not yet implemented",
         ))
     }
+
+    async fn update_number_of_players(
+        &self,
+        req: Request<UpdateNumberOfPlayersRequest>,
+    ) -> Result<Response<UpdateNumberOfPlayersResponse>, Status> {
+        let r = req.get_ref();
+        let guid = self.svc.state().config.customer_guid;
+        self.svc
+            .update_number_of_players(guid, r.zone_instance_id, r.number_of_players)
+            .await
+            .map_err(to_status)?;
+        Ok(Response::new(UpdateNumberOfPlayersResponse {
+            success: true,
+        }))
+    }
 }
 
 // ──────────────────────────────────────────────
