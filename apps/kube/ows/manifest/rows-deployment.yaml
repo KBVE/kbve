@@ -24,7 +24,7 @@ spec:
                 app: rows
                 app.kubernetes.io/part-of: ows
         spec:
-            serviceAccountName: ows-external-secrets
+            serviceAccountName: ows-instancelauncher
             containers:
                 - name: rows
                   image: ghcr.io/kbve/rows:0.1.0
@@ -52,15 +52,12 @@ spec:
                                 name: ows-customer-guid
                                 key: customer-guid
                       - name: AGONES_NAMESPACE
-                        value: 'ows'
+                        value: 'arc-runners'
                       - name: AGONES_FLEET
                         value: 'ows-hubworld'
                   ports:
                       - name: http
                         containerPort: 4322
-                        protocol: TCP
-                      - name: grpc
-                        containerPort: 50051
                         protocol: TCP
                   resources:
                       requests:
@@ -102,8 +99,4 @@ spec:
         - name: http
           port: 4322
           targetPort: 4322
-          protocol: TCP
-        - name: grpc
-          port: 50051
-          targetPort: 50051
           protocol: TCP
