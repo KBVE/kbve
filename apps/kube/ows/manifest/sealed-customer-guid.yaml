@@ -1,0 +1,12 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: ows-customer-guid
+    namespace: ows
+spec:
+    encryptedData:
+        customer-guid: AgA7WFwz9NoSszBdfxDr+2Xav+vQ+ICcAKYbyqmR64Puj1n/Str32PlU+HQ7MRJm/UEMKUUGkrnPLBQTvtM2Crw3ISuc0bu7IfBqwJ4ECA6vCQdIgvQqS6gZWR0uPBIsrx3XPu0HdLFYPszQoCYFk0Pi0aWBBArO2VXIjZATwwCmCGYHs6kVMIyk90aETYj7/A5X7HV0NevDUrBmDy/tfFUksKQjd8SJ2ubcJuCAucQhVNw0c2GuWDyF15AJH9cURnOn/31Tex5vIpm29mu/J32TE1tSRT0ShyFTY8nOz6xzMW3W7RdTWIEaJ9whSpu+faIVtmc8UD3/ebCXrTMM0szFAlX9VttjT3TxTutJKXEM2SDTVK+DA5U8ZjJ8xSzGC5eWz2+2B2fkPrZueo8atbUl45m0lC2Wd/LRRpuyxYz4f8BFWmecuJ5CcHwwmSyhWcbCa2eJ6dMr2QHWAuTFCEnARvkOYa+q05C8oSBITS4/ULnuWpZhKuL7A2aFQ6LuF9nF2hPt8vu7jq+tvVpKhJPNlZ0Dj+gHxEFfMQMNwi4MMB7ePpKXyokPq3JaOsisGOsPztktCX3FLVfRnkUX9oF4XHocjqtmYZGd8z1600b/E7/gXMMN95Gp9pq+sFhCybUw9UO8uqdKYeL73AfHsZbh8BUFF3Reozo0xPZgiVPxmTY0yvM1XZuteY3ZCjDHsOXfdipOOqy+qBiFEmurlMjNCCgZ2HDRkcdIf86Ci87Dnw1XqMk=
+    template:
+        metadata:
+            name: ows-customer-guid
+            namespace: ows
