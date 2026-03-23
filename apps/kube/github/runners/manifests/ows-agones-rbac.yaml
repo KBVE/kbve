@@ -1,0 +1,40 @@
+---
+# ServiceAccount for the InstanceLauncher pod
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: ows-instance-launcher
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/part-of: ows
+---
+# ClusterRole to create GameServerAllocations and manage GameServers
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+    name: ows-agones-allocator
+    labels:
+        app.kubernetes.io/part-of: ows
+rules:
+    - apiGroups: ['allocation.agones.dev']
+      resources: ['gameserverallocations']
+      verbs: ['create']
+    - apiGroups: ['agones.dev']
+      resources: ['gameservers']
+      verbs: ['get', 'list', 'delete']
+---
+# Bind the role to the InstanceLauncher ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+    name: ows-agones-allocator-binding
+    labels:
+        app.kubernetes.io/part-of: ows
+subjects:
+    - kind: ServiceAccount
+      name: ows-instance-launcher
+      namespace: arc-runners
+roleRef:
+    kind: ClusterRole
+    name: ows-agones-allocator
+    apiGroup: rbac.authorization.k8s.io

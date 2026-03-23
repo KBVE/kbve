@@ -19,6 +19,7 @@
     <PackageReference Include="SimpleInjector.Integration.AspNetCore.Mvc" Version="5.5.0" />
     <PackageReference Include="SimpleInjector.Integration.GenericHost" Version="5.5.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+    <PackageReference Include="KubernetesClient" Version="15.0.1" />
 
   </ItemGroup>
   <ItemGroup>
