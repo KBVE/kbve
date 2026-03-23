@@ -20,6 +20,31 @@ export default defineConfig({
 					lang: 'en',
 				},
 			},
+			customCss: ['./src/styles/global.css'],
+			head: [
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'preconnect',
+						href: 'https://fonts.googleapis.com',
+					},
+				},
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'preconnect',
+						href: 'https://fonts.gstatic.com',
+						crossorigin: true,
+					},
+				},
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'stylesheet',
+						href: 'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap',
+					},
+				},
+			],
 			sidebar: [
 				{
 					label: 'Getting Started',
