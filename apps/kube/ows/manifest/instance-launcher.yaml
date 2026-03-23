@@ -24,7 +24,7 @@ spec:
             serviceAccountName: ows-instancelauncher
             containers:
                 - name: ows-instancelauncher
-                  image: ghcr.io/kbve/ows-instancelauncher:0.10.5
+                  image: ghcr.io/kbve/ows-instancelauncher:0.10.6
                   env:
                       - name: ASPNETCORE_ENVIRONMENT
                         value: 'Production'
