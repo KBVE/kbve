@@ -91,8 +91,7 @@
 				},
 				"ci": {
 					"commands": [
-						"echo '=== Pre-build diagnostics ===' && df -h 2>/dev/null && echo '--- cgroup memory ---' && cat /sys/fs/cgroup/memory.max 2>/dev/null && cat /sys/fs/cgroup/memory.current 2>/dev/null || true && docker system df 2>/dev/null || true && docker buildx ls 2>/dev/null || true",
-						"BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --cache-from type=local,src=/home/runner/_cache/docker/axum-kbve --cache-to type=local,dest=/home/runner/_cache/docker/axum-kbve,mode=max --file apps/kbve/axum-kbve/Dockerfile .",
+						"BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --file apps/kbve/axum-kbve/Dockerfile .",
 						"VERSION=$(grep '^version' apps/kbve/axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve:latest kbve/kbve:$VERSION && echo \"Tagged kbve/kbve:$VERSION\""
 					]
 				}
@@ -131,13 +130,7 @@
 				"ci": {
 					"load": true,
 					"push": false,
-					"tags": ["kbve/kbve:latest"],
-					"cache-from": [
-						"type=local,src=/home/runner/_cache/docker/axum-kbve"
-					],
-					"cache-to": [
-						"type=local,dest=/home/runner/_cache/docker/axum-kbve,mode=max"
-					]
+					"tags": ["kbve/kbve:latest"]
 				}
 			}
 		}
