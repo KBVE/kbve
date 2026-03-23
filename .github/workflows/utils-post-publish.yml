@@ -142,7 +142,7 @@ jobs:
                   fi
 
                   git checkout -b "$BRANCH"
-                  git commit -m "chore(${APP}): post-publish sync to v${VERSION}"
+                  git commit -m "chore(${APP}): post-publish sync to v${VERSION} [skip ci]"
                   git push -u origin "$BRANCH"
 
                   CHANGED=$(git diff --name-only HEAD~1 | sed 's/^/- `/' | sed 's/$/`/')

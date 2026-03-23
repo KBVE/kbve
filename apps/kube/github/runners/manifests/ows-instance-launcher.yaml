@@ -40,7 +40,9 @@ spec:
                                 name: ows-launcher-rabbitmq-credentials
                                 key: password
                       - name: OWSInstanceLauncherOptions__ServerIP
-                        value: 'game.chuckrpg.com'
+                        valueFrom:
+                            fieldRef:
+                                fieldPath: status.podIP
                       - name: OWSInstanceLauncherOptions__InternalServerIP
                         valueFrom:
                             fieldRef:

@@ -13,5 +13,3 @@ data:
     RabbitMQPort: '5672'
     UserSessionCacheHostName: 'ows-valkey.ows.svc.cluster.local'
     UserSessionCachePort: '6379'
-    # External hostname for game clients connecting to dedicated servers
-    GameServerExternalHost: 'game.chuckrpg.com'
