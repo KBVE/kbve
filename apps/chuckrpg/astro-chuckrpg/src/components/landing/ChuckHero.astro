@@ -1,0 +1,325 @@
+---
+interface Props {
+	title?: string;
+	tagline?: string;
+	playLink?: string;
+	guidesLink?: string;
+}
+
+const {
+	title = 'ChuckRPG',
+	tagline = 'Forge your legend in a world of swords, sorcery, and endless adventure.',
+	playLink = '/game/overview/',
+	guidesLink = '/guides/introduction/',
+} = Astro.props;
+---
+
+<section class="ck-hero">
+	<div class="ck-hero__bg">
+		<div class="ck-hero__vignette"></div>
+		<div class="ck-hero__particles" aria-hidden="true"></div>
+	</div>
+
+	<div class="ck-hero__content">
+		<div class="ck-hero__emblem" aria-hidden="true">&#9876;</div>
+		<p class="ck-hero__label">Open World MMO</p>
+		<h1 class="ck-hero__title">
+			Forge Your<br />
+			<span class="ck-hero__title--accent">Legend</span>
+		</h1>
+		<p class="ck-hero__tagline">{tagline}</p>
+		<div class="ck-hero__actions">
+			<a href={playLink} class="ck-btn ck-btn--primary">
+				<span class="ck-btn__fill"></span>
+				<span class="ck-btn__text">Enter the Realm</span>
+			</a>
+			<a href={guidesLink} class="ck-btn ck-btn--ghost">
+				Adventurer's Guide
+			</a>
+		</div>
+	</div>
+
+	<div class="ck-hero__scroll" aria-hidden="true">
+		<span class="ck-hero__scroll-label">Descend</span>
+		<div class="ck-hero__scroll-line"></div>
+	</div>
+</section>
+
+<style>
+	.ck-hero {
+		position: relative;
+		width: 100%;
+		min-height: 100vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+		background: #0f0e0c;
+	}
+
+	.ck-hero__bg {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		background:
+			radial-gradient(
+				ellipse at 30% 40%,
+				rgba(27, 58, 42, 0.4) 0%,
+				transparent 60%
+			),
+			radial-gradient(
+				ellipse at 70% 60%,
+				rgba(61, 46, 30, 0.3) 0%,
+				transparent 50%
+			),
+			radial-gradient(
+				ellipse at 50% 50%,
+				rgba(15, 14, 12, 0.9) 0%,
+				#0f0e0c 100%
+			);
+	}
+
+	.ck-hero__vignette {
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(
+			ellipse at center,
+			transparent 40%,
+			rgba(0, 0, 0, 0.7) 100%
+		);
+		z-index: 1;
+	}
+
+	/* Floating ember particles */
+	.ck-hero__particles {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		background-image:
+			radial-gradient(
+				1px 1px at 20% 30%,
+				rgba(212, 164, 76, 0.6),
+				transparent
+			),
+			radial-gradient(
+				1px 1px at 40% 70%,
+				rgba(212, 164, 76, 0.4),
+				transparent
+			),
+			radial-gradient(
+				1px 1px at 60% 20%,
+				rgba(212, 164, 76, 0.5),
+				transparent
+			),
+			radial-gradient(
+				1px 1px at 80% 50%,
+				rgba(212, 164, 76, 0.3),
+				transparent
+			),
+			radial-gradient(
+				1.5px 1.5px at 15% 60%,
+				rgba(232, 192, 106, 0.6),
+				transparent
+			),
+			radial-gradient(
+				1.5px 1.5px at 55% 85%,
+				rgba(232, 192, 106, 0.4),
+				transparent
+			),
+			radial-gradient(
+				1px 1px at 75% 15%,
+				rgba(184, 137, 61, 0.5),
+				transparent
+			),
+			radial-gradient(
+				1px 1px at 90% 75%,
+				rgba(184, 137, 61, 0.3),
+				transparent
+			);
+		animation: ember-drift 12s ease-in-out infinite alternate;
+	}
+
+	@keyframes ember-drift {
+		0% {
+			transform: translateY(0) translateX(0);
+			opacity: 0.6;
+		}
+		100% {
+			transform: translateY(-20px) translateX(10px);
+			opacity: 1;
+		}
+	}
+
+	.ck-hero__content {
+		position: relative;
+		z-index: 2;
+		text-align: center;
+		padding: 2rem;
+		max-width: 54rem;
+		margin: 0 auto;
+	}
+
+	.ck-hero__emblem {
+		font-size: 2.5rem;
+		color: var(--ck-firelight);
+		opacity: 0.7;
+		margin-bottom: 1rem;
+		filter: drop-shadow(0 0 12px rgba(212, 164, 76, 0.4));
+	}
+
+	.ck-hero__label {
+		color: var(--ck-firelight);
+		font-size: 0.65rem;
+		letter-spacing: 0.35em;
+		text-transform: uppercase;
+		margin: 0 0 1.5rem;
+		font-family: 'Cinzel', serif;
+	}
+
+	.ck-hero__title {
+		font-family: 'Cinzel', 'Palatino Linotype', serif;
+		font-size: clamp(3rem, 8vw, 7rem);
+		font-weight: 400;
+		color: var(--ck-parchment);
+		margin: 0 0 1.5rem;
+		line-height: 1.05;
+		letter-spacing: 0.02em;
+		text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+	}
+
+	.ck-hero__title--accent {
+		font-style: italic;
+		color: var(--ck-firelight);
+		text-shadow:
+			0 0 30px rgba(212, 164, 76, 0.3),
+			0 2px 20px rgba(0, 0, 0, 0.6);
+	}
+
+	.ck-hero__tagline {
+		font-family: 'Lora', 'Georgia', serif;
+		font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+		color: rgba(232, 220, 200, 0.5);
+		font-weight: 400;
+		font-style: italic;
+		margin: 0 0 2.5rem;
+		line-height: 1.7;
+		max-width: 28rem;
+		margin-inline: auto;
+	}
+
+	.ck-hero__actions {
+		display: flex;
+		gap: 1rem;
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+
+	/* ── Buttons: iron + firelight ── */
+	.ck-btn {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.9rem 2.5rem;
+		font-family: 'Cinzel', serif;
+		font-size: 0.7rem;
+		font-weight: 600;
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
+		text-decoration: none;
+		transition: all 0.3s ease;
+		overflow: hidden;
+		border-radius: 2px;
+	}
+
+	.ck-btn--primary {
+		background: var(--ck-parchment);
+		color: var(--ck-stone);
+		border: 1px solid var(--ck-firelight-dim);
+	}
+
+	.ck-btn--primary:hover {
+		background: var(--ck-parchment);
+	}
+
+	.ck-btn__fill {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		width: 150%;
+		height: 150%;
+		background: var(--ck-firelight);
+		transform: translate(-110%, 60%) rotate(45deg);
+		transition: transform 0.5s ease;
+	}
+
+	.ck-btn--primary:hover .ck-btn__fill {
+		transform: translate(-10%, -10%) rotate(45deg);
+	}
+
+	.ck-btn__text {
+		position: relative;
+		z-index: 1;
+		transition: color 0.3s ease;
+	}
+
+	.ck-btn--primary:hover .ck-btn__text {
+		color: var(--ck-stone);
+	}
+
+	.ck-btn--ghost {
+		border: 1px solid var(--ck-firelight-dim);
+		color: var(--ck-firelight);
+		background: transparent;
+	}
+
+	.ck-btn--ghost:hover {
+		background: rgba(212, 164, 76, 0.15);
+		border-color: var(--ck-firelight);
+		color: var(--ck-firelight-bright);
+	}
+
+	/* ── Scroll indicator ── */
+	.ck-hero__scroll {
+		position: absolute;
+		bottom: 2.5rem;
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		opacity: 0.5;
+		animation: fade-bounce 3s infinite;
+	}
+
+	.ck-hero__scroll-label {
+		font-family: 'Cinzel', serif;
+		font-size: 0.5rem;
+		letter-spacing: 0.25em;
+		text-transform: uppercase;
+		color: rgba(232, 220, 200, 0.4);
+		margin-bottom: 0.5rem;
+	}
+
+	.ck-hero__scroll-line {
+		width: 1px;
+		height: 3rem;
+		background: linear-gradient(
+			to bottom,
+			var(--ck-firelight-dim),
+			transparent
+		);
+	}
+
+	@keyframes fade-bounce {
+		0%,
+		100% {
+			opacity: 0.5;
+			transform: translateX(-50%) translateY(0);
+		}
+		50% {
+			opacity: 0.25;
+			transform: translateX(-50%) translateY(6px);
+		}
+	}
+</style>
