@@ -9,6 +9,7 @@ using OWSShared.RequestPayloads;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -38,6 +39,9 @@ namespace OWSInstanceLauncher.Services
         private readonly int _MaxNumberOfInstances;
         private readonly string _InternalServerIP;
         private readonly int _StartingInstancePort;
+        private readonly AgonesAllocator _agonesAllocator;
+        // Maps zoneInstanceId → Agones GameServer name for shutdown
+        private readonly Dictionary<int, string> _zoneToGameServer = new();
 
         public ServerLauncherMQListener(IWritableOptions<OWSInstanceLauncherOptions> owsInstanceLauncherOptions, IOptions<APIPathOptions> owsAPIPathOptions, IOptions<RabbitMQOptions> rabbitMQOptions, IHttpClientFactory httpClientFactory, IZoneServerProcessesRepository zoneServerProcessesRepository,
             IOWSInstanceLauncherDataRepository owsInstanceLauncherDataRepository)
@@ -63,6 +67,11 @@ namespace OWSInstanceLauncher.Services
             _MaxNumberOfInstances = owsInstanceLauncherOptions.Value.MaxNumberOfInstances;
             _InternalServerIP = owsInstanceLauncherOptions.Value.InternalServerIP;
             _StartingInstancePort = owsInstanceLauncherOptions.Value.StartingInstancePort;
+
+            // Initialize Agones allocator for GameServer lifecycle
+            var agonesNamespace = Environment.GetEnvironmentVariable("AGONES_NAMESPACE") ?? "ows";
+            var agonesFleet = Environment.GetEnvironmentVariable("AGONES_FLEET") ?? "ows-hubworld";
+            _agonesAllocator = new AgonesAllocator(agonesNamespace, agonesFleet);
 
             RegisterLauncher();
 
@@ -268,44 +277,29 @@ namespace OWSInstanceLauncher.Services
                 return;
             }
 
-            //string PathToDedicatedServer = "E:\\Program Files\\Epic Games\\UE_4.25\\Engine\\Binaries\\Win64\\UE4Editor.exe";
-            //string ServerArguments = "\"C:\\OWS\\OpenWorldStarterPlugin\\OpenWorldStarter.uproject\" {0}?listen -server -log -nosteam -messaging -port={1}";
+            // Allocate a GameServer from Agones Fleet
+            var allocationTask = _agonesAllocator.AllocateAsync(mapName, zoneInstanceID);
+            var allocation = allocationTask.GetAwaiter().GetResult();
 
-            string serverArguments = (_owsInstanceLauncherOptions.Value.IsServerEditor ? "\"" + _owsInstanceLauncherOptions.Value.PathToUProject + "\" " : "")
-                + "{0}?listen -server "
-                + (_owsInstanceLauncherOptions.Value.UseServerLog ? "-log " : "")
-                + (_owsInstanceLauncherOptions.Value.UseNoSteam ? "-nosteam " : "")
-                + "-port={1} "
-                + "-zoneinstanceid={2}";
-
-            System.Diagnostics.Process proc = new System.Diagnostics.Process
+            if (allocation == null)
             {
-                StartInfo = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = _owsInstanceLauncherOptions.Value.PathToDedicatedServer,
-                    Arguments = Encoding.Default.GetString(Encoding.UTF8.GetBytes(String.Format(serverArguments, mapName, port, zoneInstanceID))),
-                    UseShellExecute = false,
-                    RedirectStandardOutput = false,
-                    CreateNoWindow = false
-                }
-            };
+                Log.Error($"Failed to allocate GameServer for map {mapName} zone {zoneInstanceID}. No servers available in fleet.");
+                return;
+            }
 
-            proc.Start();
-            //proc.WaitForInputIdle();
+            // Track the GameServer name for shutdown
+            _zoneToGameServer[zoneInstanceID] = allocation.GameServerName;
 
             _zoneServerProcessesRepository.AddZoneServerProcess(new ZoneServerProcess
             {
                 ZoneInstanceId = zoneInstanceID,
                 MapName = mapName,
-                Port = port,
-                ProcessId = proc.Id,
-                ProcessName = proc.ProcessName
+                Port = allocation.Port,
+                ProcessId = 0, // No OS process — Agones manages the pod
+                ProcessName = allocation.GameServerName
             });
 
-            Log.Information($"{customerGUID} : {worldServerID} : {mapName} : {port} has started.  ProcessId: {proc.Id}, ProcessName: {proc.ProcessName}");
-
-            //The server has finished spinning up.  Set the status to 2.
-            //_ = UpdateZoneServerStatusReady(zoneInstanceID);
+            Log.Information($"{customerGUID} : {worldServerID} : {mapName} : {allocation.Port} allocated via Agones. GameServer: {allocation.GameServerName} at {allocation.Address}:{allocation.Port}");
         }
 
         private void HandleServerShutDownMessage(Guid customerGUID, int zoneInstanceID)
@@ -319,35 +313,31 @@ namespace OWSInstanceLauncher.Services
                 return;
             }
 
-            int foundProcessId = _zoneServerProcessesRepository.FindZoneServerProcessId(zoneInstanceID);
-
-            if (foundProcessId > 0)
+            if (_zoneToGameServer.TryGetValue(zoneInstanceID, out var gameServerName))
             {
-                System.Diagnostics.Process procToKill = System.Diagnostics.Process.GetProcessById(foundProcessId);
-
-                if (procToKill != null)
+                var result = _agonesAllocator.DeallocateAsync(gameServerName).GetAwaiter().GetResult();
+                if (result)
                 {
-                    procToKill.Kill();
+                    _zoneToGameServer.Remove(zoneInstanceID);
+                    Log.Information($"Deallocated GameServer {gameServerName} for zone {zoneInstanceID}");
                 }
+            }
+            else
+            {
+                Log.Warning($"No tracked GameServer for zone {zoneInstanceID} — may have already been cleaned up");
             }
         }
 
         private void ShutDownAllZoneServerInstances()
         {
-            Log.Information("Shutting down all Server Instances...");
+            Log.Information("Shutting down all Server Instances via Agones...");
 
-            foreach (var zoneServerInstance in _zoneServerProcessesRepository.GetZoneServerProcesses())
+            foreach (var kvp in _zoneToGameServer)
             {
-                if (zoneServerInstance.ProcessId > 0)
-                {
-                    System.Diagnostics.Process procToKill = System.Diagnostics.Process.GetProcessById(zoneServerInstance.ProcessId);
-
-                    if (procToKill != null)
-                    {
-                        procToKill.Kill();
-                    }
-                }
+                _agonesAllocator.DeallocateAsync(kvp.Value).GetAwaiter().GetResult();
+                Log.Information($"Deallocated GameServer {kvp.Value} for zone {kvp.Key}");
             }
+            _zoneToGameServer.Clear();
         }
 
         private int RegisterInstanceLauncherRequest()
@@ -522,6 +512,8 @@ namespace OWSInstanceLauncher.Services
             {
                 connection.Close();
             }
+
+            _agonesAllocator?.Dispose();
 
             Log.Information("Done!");
         }
