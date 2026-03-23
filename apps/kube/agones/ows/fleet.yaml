@@ -1,0 +1,91 @@
+# OWS Game Server Fleet — managed by Agones
+# Spawns UE5 dedicated server instances from the ows-server-build PVC.
+# Fleet starts at 0 replicas — FleetAutoscaler or manual allocation spins up servers.
+#
+# Server binary: /server/latest/LinuxServer/OWSHubWorldMMOServer.sh
+# UDP port: allocated by Agones (7777-7900 range)
+# Health: game server reports to OWS InstanceManagement API
+apiVersion: agones.dev/v1
+kind: Fleet
+metadata:
+    name: ows-hubworld
+    namespace: arc-runners
+    labels:
+        app: ows-gameserver
+        app.kubernetes.io/part-of: ows
+spec:
+    replicas: 0
+    scheduling: Packed
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 25%
+            maxUnavailable: 25%
+    template:
+        metadata:
+            labels:
+                app: ows-gameserver
+                app.kubernetes.io/part-of: ows
+        spec:
+            ports:
+                - name: game
+                  portPolicy: Dynamic
+                  containerPort: 7777
+                  protocol: UDP
+            health:
+                disabled: false
+                initialDelaySeconds: 30
+                periodSeconds: 15
+                failureThreshold: 5
+            template:
+                spec:
+                    containers:
+                        - name: ue5-server
+                          image: ubuntu:24.04
+                          command:
+                              - /bin/bash
+                              - -c
+                              - |
+                                  SERVER_DIR="/server/latest/LinuxServer"
+                                  SERVER_BIN="${SERVER_DIR}/OWSHubWorldMMOServer.sh"
+
+                                  if [ ! -f "${SERVER_BIN}" ]; then
+                                    echo "ERROR: Server binary not found at ${SERVER_BIN}"
+                                    ls -la /server/ 2>/dev/null
+                                    exit 1
+                                  fi
+
+                                  chmod +x "${SERVER_BIN}"
+
+                                  # Agones SDK sets AGONES_SDK_GRPC_PORT
+                                  # OWS uses command-line args for zone/port config
+                                  exec "${SERVER_BIN}" \
+                                    -server \
+                                    -log \
+                                    -nosteam \
+                                    -unattended \
+                                    -port=${GAME_PORT:-7777} \
+                                    ${OWS_EXTRA_ARGS:-}
+                          env:
+                              - name: GAME_PORT
+                                value: '7777'
+                              - name: OWS_API_URL
+                                value: http://ows-publicapi.ows.svc.cluster.local
+                              - name: OWS_INSTANCE_MGMT_URL
+                                value: http://ows-instancemanagement.ows.svc.cluster.local
+                          resources:
+                              requests:
+                                  memory: 2Gi
+                                  cpu: '1'
+                              limits:
+                                  memory: 4Gi
+                                  cpu: '2'
+                          volumeMounts:
+                              - name: server-binary
+                                mountPath: /server
+                                readOnly: true
+                    volumes:
+                        - name: server-binary
+                          persistentVolumeClaim:
+                              claimName: ows-server-build
+                              readOnly: true
