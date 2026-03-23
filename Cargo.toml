@@ -16,6 +16,7 @@ members = [
 	'apps/kbve/axum-kbve',
 	'apps/chuckrpg/axum-chuckrpg',
 	'apps/cryptothrone/axum-cryptothrone',
+	'apps/ows/rows',
 	'apps/kbve/isometric/src-tauri',
 	'apps/kbve/desktop-kbve/src-tauri',
 	'packages/rust/bevy/bevy_inventory',
