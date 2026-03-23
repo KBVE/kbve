@@ -21,6 +21,7 @@ rules:
               'supabase-postgres',
               'supabase-db',
               'twitch-oauth-config',
+              'ows-db-password',
           ]
       verbs: ['get', 'list', 'watch']
 ---
