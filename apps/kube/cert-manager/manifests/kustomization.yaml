@@ -5,3 +5,13 @@ resources:
     - sealed-cloudflare-secrets.yaml
     - https://github.com/cert-manager/cert-manager/releases/download/v1.19.0/cert-manager.yaml
     - cluster-issuer.yaml
+
+patches:
+    - target:
+          kind: Deployment
+          name: cert-manager
+          namespace: cert-manager
+      patch: |
+          - op: add
+            path: /spec/template/spec/containers/0/args/-
+            value: '--feature-gates=ExperimentalGatewayAPISupport=true'
