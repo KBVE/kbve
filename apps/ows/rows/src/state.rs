@@ -1,10 +1,11 @@
+use crate::agones::AgonesClient;
 use crate::db::DbPool;
+use crate::mq::MqProducer;
 use dashmap::DashMap;
 use std::sync::Arc;
 use uuid::Uuid;
 
 /// Shared application state — single Arc allocation, no Clone on inner fields.
-/// Passed via axum `State<Arc<AppState>>` and tonic interceptors.
 pub struct AppState {
     pub db: DbPool,
     /// In-memory session cache: user_session_guid → customer_guid
@@ -12,13 +13,16 @@ pub struct AppState {
     /// Zone instance → GameServer name tracking (Agones)
     pub zone_servers: DashMap<i32, String>,
     pub config: AppConfig,
+    /// RabbitMQ producer (None if unavailable — non-fatal)
+    pub mq: Option<MqProducer>,
+    /// Agones allocator (None if not in-cluster — non-fatal)
+    pub agones: Option<AgonesClient>,
 }
 
 pub struct AppConfig {
     pub customer_guid: Uuid,
     pub agones_namespace: String,
     pub agones_fleet: String,
-    pub rabbitmq_url: String,
 }
 
 impl AppState {
@@ -33,7 +37,8 @@ pub struct AppStateBuilder {
     customer_guid: Option<Uuid>,
     agones_namespace: Option<String>,
     agones_fleet: Option<String>,
-    rabbitmq_url: Option<String>,
+    mq: Option<MqProducer>,
+    agones: Option<AgonesClient>,
 }
 
 impl AppStateBuilder {
@@ -47,14 +52,19 @@ impl AppStateBuilder {
         self
     }
 
-    pub fn agones(mut self, namespace: impl Into<String>, fleet: impl Into<String>) -> Self {
+    pub fn agones_config(mut self, namespace: impl Into<String>, fleet: impl Into<String>) -> Self {
         self.agones_namespace = Some(namespace.into());
         self.agones_fleet = Some(fleet.into());
         self
     }
 
-    pub fn rabbitmq(mut self, url: impl Into<String>) -> Self {
-        self.rabbitmq_url = Some(url.into());
+    pub fn mq(mut self, producer: Option<MqProducer>) -> Self {
+        self.mq = producer;
+        self
+    }
+
+    pub fn agones(mut self, client: Option<AgonesClient>) -> Self {
+        self.agones = client;
         self
     }
 
@@ -69,10 +79,9 @@ impl AppStateBuilder {
                     .ok_or_else(|| anyhow::anyhow!("OWS_API_KEY required"))?,
                 agones_namespace: self.agones_namespace.unwrap_or_else(|| "ows".into()),
                 agones_fleet: self.agones_fleet.unwrap_or_else(|| "ows-hubworld".into()),
-                rabbitmq_url: self
-                    .rabbitmq_url
-                    .unwrap_or_else(|| "amqp://dev:test@localhost:5672".into()),
             },
+            mq: self.mq,
+            agones: self.agones,
         }))
     }
 }
