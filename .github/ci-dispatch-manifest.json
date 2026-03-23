@@ -229,14 +229,14 @@
 		{
 			"key": "rows",
 			"app_name": "rows",
-			"version": "0.1.0",
+			"version": "0.1.1",
 			"version_toml": "apps/ows/rows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
 			"version_target": "apps/ows/rows/Cargo.toml",
 			"source_path": "apps/ows/rows",
 			"runner": "ubuntu-latest",
 			"image": "kbve/rows",
-			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
+			"deployment_yaml": "apps/kube/ows/manifest/rows-deployment.yaml",
 			"has_test": false
 		}
 	],
