@@ -1,34 +1,28 @@
+use crate::repo::InstanceRepo;
+use crate::service::OWSService;
 use std::sync::Arc;
 use std::time::Duration;
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
-use crate::service::OWSService;
-
-/// Spawn background jobs. All run as tokio tasks — non-blocking.
+/// Spawn all background jobs as tokio tasks.
 pub fn spawn_all(svc: Arc<OWSService>) {
-    tokio::spawn(zone_health_monitor(svc));
+    tokio::spawn(zone_health_monitor(svc.clone()));
+    tokio::spawn(stale_zone_cleanup(svc.clone()));
+    tokio::spawn(spinup_lock_expiry(svc));
 }
 
-/// Periodic zone health monitor — checks for stale zone instances
-/// and cleans up tracked GameServers that are no longer responsive.
-/// Runs every 30 seconds (matches C# TimedHostedService pattern).
+/// Periodic zone health monitor — logs metrics every 30s.
 async fn zone_health_monitor(svc: Arc<OWSService>) {
     let mut interval = tokio::time::interval(Duration::from_secs(30));
-    interval.tick().await; // skip immediate first tick
+    interval.tick().await;
 
     loop {
         interval.tick().await;
 
         let tracked = svc.state().zone_servers.len();
         let sessions = svc.state().sessions.len();
+        let locks = svc.state().zone_spinup_locks.len();
 
-        info!(
-            zones_tracked = tracked,
-            sessions_cached = sessions,
-            "Health monitor tick"
-        );
-
-        // Check DB connectivity
         let db_ok = sqlx::query("SELECT 1")
             .execute(&svc.state().db)
             .await
@@ -38,14 +32,77 @@ async fn zone_health_monitor(svc: Arc<OWSService>) {
             error!("Health monitor: database unreachable");
         }
 
-        // Evict expired sessions (older than 24h) from cache
-        // DashMap iteration is lock-free per-shard
-        let _before = svc.state().sessions.len();
-        // For now, we don't track login time in CachedSession — future enhancement
-        // svc.state().sessions.retain(|_, v| v.login_time.elapsed() < Duration::from_secs(86400));
+        info!(
+            zones_tracked = tracked,
+            sessions_cached = sessions,
+            spinup_locks = locks,
+            db_ok,
+            "Health monitor tick"
+        );
+    }
+}
 
-        if tracked > 0 {
-            info!(zones = tracked, "Active zone servers being tracked");
+/// Periodic stale zone cleanup — removes inactive map instances and
+/// deallocates orphaned Agones GameServers every 60s.
+async fn stale_zone_cleanup(svc: Arc<OWSService>) {
+    let mut interval = tokio::time::interval(Duration::from_secs(60));
+    interval.tick().await;
+
+    loop {
+        interval.tick().await;
+
+        let guid = svc.state().config.customer_guid;
+        let repo = InstanceRepo(&svc.state().db);
+
+        // Clean up characters from inactive instances
+        match repo.remove_characters_from_inactive_instances(guid).await {
+            Ok(removed) if removed > 0 => {
+                info!(removed, "Cleaned characters from inactive instances");
+            }
+            Err(e) => warn!(error = %e, "Failed to clean inactive instance characters"),
+            _ => {}
+        }
+
+        // Find inactive map instances and deallocate their Agones GameServers
+        match repo.get_all_inactive_map_instances(guid).await {
+            Ok(instances) => {
+                for inst in &instances {
+                    if let Some((_, gs_name)) =
+                        svc.state().zone_servers.remove(&inst.map_instance_id)
+                    {
+                        if let Some(ref agones) = svc.state().agones {
+                            if let Err(e) = agones.deallocate(&gs_name).await {
+                                warn!(
+                                    gs = %gs_name,
+                                    error = %e,
+                                    "Failed to deallocate stale GameServer"
+                                );
+                            } else {
+                                info!(gs = %gs_name, zone = inst.map_instance_id, "Deallocated stale GameServer");
+                            }
+                        }
+                    }
+                }
+            }
+            Err(e) => warn!(error = %e, "Failed to query inactive map instances"),
+        }
+    }
+}
+
+/// Expire stale spin-up locks after 5 minutes.
+/// Prevents permanent lock if MQ consumer crashes mid-allocation.
+async fn spinup_lock_expiry(svc: Arc<OWSService>) {
+    let mut interval = tokio::time::interval(Duration::from_secs(300));
+    interval.tick().await;
+
+    loop {
+        interval.tick().await;
+
+        let locks = svc.state().zone_spinup_locks.len();
+        if locks > 0 {
+            // Clear all locks — if allocation hasn't completed in 5 min, it's stale
+            svc.state().zone_spinup_locks.clear();
+            warn!(expired = locks, "Expired stale spin-up locks");
         }
     }
 }
