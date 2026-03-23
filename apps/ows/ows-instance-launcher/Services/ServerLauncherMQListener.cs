@@ -56,7 +56,12 @@ namespace OWSInstanceLauncher.Services
             if (String.IsNullOrEmpty(owsInstanceLauncherOptions.Value.LauncherGuid))
             {
                 _launcherGUID = Guid.NewGuid();
-                _owsInstanceLauncherOptions.Update(x => x.LauncherGuid = _launcherGUID.ToString());
+                // In Agones mode, appsettings.json is read-only (chiseled image).
+                // Only persist the GUID if not in Agones mode.
+                if (String.IsNullOrEmpty(Environment.GetEnvironmentVariable("OWS_USE_AGONES")))
+                {
+                    _owsInstanceLauncherOptions.Update(x => x.LauncherGuid = _launcherGUID.ToString());
+                }
                 Log.Information($"New Launcher GUID Generated: {_launcherGUID}");
             }
             else
