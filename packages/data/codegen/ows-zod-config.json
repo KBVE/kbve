@@ -1,0 +1,71 @@
+{
+	"enums": {
+		"ows.ServerStatus": {
+			"mode": "const_array",
+			"stripPrefix": "SERVER_STATUS_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		},
+		"ows.MapMode": {
+			"mode": "const_array",
+			"stripPrefix": "MAP_MODE_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "ServerStatuses",
+			"sourceEnum": "ows.ServerStatus",
+			"typeName": "ServerStatusValue",
+			"zodSchemaName": "ServerStatusSchema"
+		},
+		{
+			"name": "MapModes",
+			"sourceEnum": "ows.MapMode",
+			"typeName": "MapModeValue",
+			"zodSchemaName": "MapModeSchema"
+		}
+	],
+
+	"refinements": {
+		"ows.Customer.customer_guid": ".uuid()",
+		"ows.Customer.customer_email": ".email()",
+		"ows.Customer.customer_name": ".min(1).max(128)",
+		"ows.User.user_guid": ".uuid()",
+		"ows.User.customer_guid": ".uuid()",
+		"ows.User.email": ".email()",
+		"ows.User.first_name": ".min(1).max(50)",
+		"ows.User.last_name": ".min(1).max(50)",
+		"ows.UserSession.customer_guid": ".uuid()",
+		"ows.UserSession.user_session_guid": ".uuid()",
+		"ows.UserSession.user_guid": ".uuid()",
+		"ows.Character.customer_guid": ".uuid()",
+		"ows.Character.char_name": ".min(1).max(50)",
+		"ows.Character.character_level": ".min(0)",
+		"ows.WorldServer.customer_guid": ".uuid()",
+		"ows.WorldServer.port": ".min(1).max(65535)",
+		"ows.WorldServer.starting_map_instance_port": ".min(1).max(65535)",
+		"ows.WorldServer.max_number_of_instances": ".min(0)",
+		"ows.Map.customer_guid": ".uuid()",
+		"ows.Map.map_name": ".min(1).max(50)",
+		"ows.Map.soft_player_cap": ".min(0)",
+		"ows.Map.hard_player_cap": ".min(0)",
+		"ows.MapInstance.customer_guid": ".uuid()",
+		"ows.MapInstance.port": ".min(1).max(65535)",
+		"ows.Item.customer_guid": ".uuid()",
+		"ows.Item.item_name": ".min(1).max(100)",
+		"ows.Item.item_stack_size": ".min(1)",
+		"ows.Ability.customer_guid": ".uuid()",
+		"ows.Ability.ability_name": ".min(1).max(50)",
+		"ows.ChatMessage.message": ".max(2000)",
+		"ows.AreaOfInterest.customer_guid": ".uuid()",
+		"ows.AreaOfInterest.radius": ".min(0)",
+		"ows.GlobalData.customer_guid": ".uuid()",
+		"ows.GlobalData.global_data_key": ".min(1).max(50)",
+		"ows.UserInQueue.customer_guid": ".uuid()",
+		"ows.UserInQueue.user_guid": ".uuid()",
+		"ows.UserInQueue.queue_name": ".min(1).max(20)"
+	}
+}
