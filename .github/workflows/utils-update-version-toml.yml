@@ -19,6 +19,11 @@ on:
                 description: 'Path to version.toml relative to repo root'
                 required: true
                 type: string
+            version_target_path:
+                description: 'Path to the actual version file (Cargo.toml, package.json) to sync — optional'
+                required: false
+                type: string
+                default: ''
 
 jobs:
     update:
@@ -50,6 +55,33 @@ jobs:
                   echo "Updated $VTOML:"
                   cat "$VTOML"
 
+            - name: Sync version target file
+              if: inputs.version_target_path != ''
+              run: |
+                  TARGET="${{ inputs.version_target_path }}"
+                  VERSION="${{ inputs.version }}"
+
+                  if [ ! -f "$TARGET" ]; then
+                    echo "::warning::version_target_path '$TARGET' not found — skipping."
+                    exit 0
+                  fi
+
+                  case "$TARGET" in
+                    *.toml)
+                      sed -i "s/^version = .*/version = \"${VERSION}\"/" "$TARGET"
+                      ;;
+                    *.json)
+                      jq --arg v "$VERSION" '.version = $v' "$TARGET" > "$TARGET.tmp" && mv "$TARGET.tmp" "$TARGET"
+                      ;;
+                    *)
+                      echo "::warning::Unknown file type for '$TARGET' — skipping."
+                      exit 0
+                      ;;
+                  esac
+
+                  echo "Synced $TARGET to $VERSION:"
+                  grep -m1 'version' "$TARGET"
+
             - name: Create PR
               env:
                   GH_TOKEN: ${{ github.token }}
@@ -63,6 +95,9 @@ jobs:
                   git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
                   git add "${{ inputs.version_toml_path }}"
+                  if [ -n "${{ inputs.version_target_path }}" ] && [ -f "${{ inputs.version_target_path }}" ]; then
+                    git add "${{ inputs.version_target_path }}"
+                  fi
                   if git diff --cached --quiet; then
                     echo "::notice::version.toml already at ${VERSION} on dev — nothing to commit."
                     exit 0
