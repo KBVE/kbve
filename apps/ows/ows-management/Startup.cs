@@ -105,6 +105,13 @@ namespace OWSManagement
                 c.SwaggerEndpoint("./v1/swagger.json", "Open World Server Management API");
             });
 
+            app.Map("/health", a => a.Run(async ctx =>
+            {
+                ctx.Response.ContentType = "application/json";
+                ctx.Response.StatusCode = 200;
+                await ctx.Response.WriteAsync("{\"status\":\"healthy\"}");
+            }));
+
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
