@@ -55,6 +55,29 @@ service GlobalDataService {
 }
 
 // ──────────────────────────────────────────────
+// Game Server Health — bi-directional streaming
+// ──────────────────────────────────────────────
+
+service GameServerHealth {
+  // Bi-directional stream: game server sends heartbeats, ROWS sends commands.
+  // Replaces HTTP polling for UpdateNumberOfPlayers + status updates.
+  rpc HealthStream(stream ServerHeartbeat) returns (stream ServerCommand);
+}
+
+message ServerHeartbeat {
+  int32 zone_instance_id = 1;
+  int32 number_of_players = 2;
+  string server_status = 3;
+  double cpu_usage = 4;
+  double memory_usage_mb = 5;
+}
+
+message ServerCommand {
+  string command = 1;
+  string payload = 2;
+}
+
+// ──────────────────────────────────────────────
 // Request / Response messages
 // ──────────────────────────────────────────────
 

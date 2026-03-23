@@ -1,0 +1,27 @@
+# OWS FleetAutoscaler — scales game server fleet based on demand.
+# Buffer policy: maintain 2 ready servers for instant allocation.
+# Min: 0 (scale to zero when idle), Max: 10 (cluster capacity limit).
+apiVersion: autoscaling.agones.dev/v1
+kind: FleetAutoscaler
+metadata:
+    name: ows-hubworld-autoscaler
+    namespace: arc-runners
+    labels:
+        app: ows-gameserver
+        app.kubernetes.io/part-of: ows
+spec:
+    fleetName: ows-hubworld
+    policy:
+        type: Buffer
+        buffer:
+            # Keep 2 ready servers available for instant allocation
+            bufferSize: 2
+            # Minimum fleet size (0 = scale to zero when no players)
+            minReplicas: 0
+            # Maximum fleet size (cluster capacity)
+            maxReplicas: 10
+    # Sync interval — how often the autoscaler re-evaluates
+    sync:
+        type: FixedInterval
+        fixedInterval:
+            seconds: 30
