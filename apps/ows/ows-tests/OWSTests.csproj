@@ -17,6 +17,12 @@
   <ItemGroup>
     <ProjectReference Include="../ows-shared/OWSShared.csproj" />
     <ProjectReference Include="../ows-data/OWSData.csproj" />
+    <ProjectReference Include="../ows-management/OWSManagement.csproj" />
+    <ProjectReference Include="../ows-instance-management/OWSInstanceManagement.csproj" />
+    <ProjectReference Include="../ows-public-api/OWSPublicAPI.csproj" />
+    <ProjectReference Include="../ows-character-persistence/OWSCharacterPersistence.csproj" />
+    <ProjectReference Include="../ows-global-data/OWSGlobalData.csproj" />
+    <ProjectReference Include="../ows-instance-launcher/OWSInstanceLauncher.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="appsettings.json">
