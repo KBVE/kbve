@@ -21,12 +21,19 @@ spec:
                 app: ows-instancelauncher
                 app.kubernetes.io/part-of: ows
         spec:
+            serviceAccountName: ows-instancelauncher
             containers:
                 - name: ows-instancelauncher
                   image: ghcr.io/kbve/ows-instancelauncher:0.10.5
                   env:
                       - name: ASPNETCORE_ENVIRONMENT
                         value: 'Production'
+                      - name: OWS_USE_AGONES
+                        value: 'true'
+                      - name: AGONES_NAMESPACE
+                        value: 'arc-runners'
+                      - name: AGONES_FLEET
+                        value: 'ows-hubworld'
                       - name: OWSInstanceLauncherOptions__OWSAPIKey
                         valueFrom:
                             secretKeyRef:
