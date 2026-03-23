@@ -97,21 +97,6 @@ impl SuccessResponse {
     }
 }
 
+/// Handler return type — axum serializes Json<T> directly (single pass),
+/// errors go through RowsError::into_response (typed ApiErrorBody).
 pub type ApiResult<T> = Result<axum::Json<T>, RowsError>;
-
-/// Serialize a value to Json response. Returns error JSON on failure instead of panicking.
-/// Uses to_value (single pass through serde) — safe replacement for .unwrap().
-pub fn json_or_500<T: Serialize>(val: &T) -> axum::Json<serde_json::Value> {
-    match serde_json::to_value(val) {
-        Ok(v) => axum::Json(v),
-        Err(e) => {
-            tracing::error!(error = %e, "JSON serialization failed");
-            axum::Json(serde_json::Value::Object({
-                let mut m = serde_json::Map::with_capacity(2);
-                m.insert("success".into(), false.into());
-                m.insert("errorMessage".into(), "Internal serialization error".into());
-                m
-            }))
-        }
-    }
-}
