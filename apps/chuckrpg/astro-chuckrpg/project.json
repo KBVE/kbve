@@ -1,0 +1,43 @@
+{
+	"name": "astro-chuckrpg",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/chuckrpg/astro-chuckrpg/src",
+	"tags": [],
+	"targets": {
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/astro-chuckrpg",
+				"commands": [
+					"rm -rf .astro",
+					"nx exec -- astro sync",
+					"nx exec -- astro dev"
+				],
+				"parallel": false
+			}
+		},
+		"build": {
+			"executor": "nx:run-commands",
+			"outputs": ["{workspaceRoot}/dist/apps/astro-chuckrpg"],
+			"options": {
+				"cwd": "apps/chuckrpg/astro-chuckrpg",
+				"commands": [
+					"rm -rf .astro",
+					"nx exec -- astro sync",
+					"nx exec -- astro build"
+				],
+				"parallel": false
+			},
+			"cache": true
+		},
+		"preview": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/astro-chuckrpg",
+				"commands": ["nx exec -- astro preview"]
+			},
+			"dependsOn": ["build"]
+		}
+	}
+}
