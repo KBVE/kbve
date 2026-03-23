@@ -58,7 +58,11 @@ spec:
                                     ls -la /server/ 2>/dev/null
                                     exit 1
                                   fi
-                                  SERVER_BIN="${SERVER_DIR}/OWSHubWorldMMOServer.sh"
+                                  # Auto-detect server binary (.sh launcher script)
+                                  SERVER_BIN=$(find "${SERVER_DIR}" -maxdepth 1 -name "*Server.sh" | head -1)
+                                  if [ -z "${SERVER_BIN}" ]; then
+                                    SERVER_BIN="${SERVER_DIR}/ChuckServer.sh"
+                                  fi
 
                                   if [ ! -f "${SERVER_BIN}" ]; then
                                     echo "ERROR: Server binary not found at ${SERVER_BIN}"
