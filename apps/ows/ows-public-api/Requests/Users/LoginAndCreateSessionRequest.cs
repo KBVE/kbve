@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
+using Serilog;
 
 namespace OWSPublicAPI.Requests.Users
 {
@@ -20,21 +21,34 @@ namespace OWSPublicAPI.Requests.Users
 
         public void SetData(IUsersRepository usersRepository, IHeaderCustomerGUID customerGuid)
         {
-            //CustomerGUID = new Guid("56FB0902-6FE7-4BFE-B680-E3C8E497F016");
             this.customerGUID = customerGuid.CustomerGUID;
             this.usersRepository = usersRepository;
         }
 
         public async Task<IActionResult> Handle()
         {
-            output = await usersRepository.LoginAndCreateSession(customerGUID, Email, Password, false);
-
-            if (!output.Authenticated || !output.UserSessionGuid.HasValue || output.UserSessionGuid == Guid.Empty)
+            try
             {
-                output.ErrorMessage = "Username or Password is invalid!";
-            }
+                output = await usersRepository.LoginAndCreateSession(customerGUID, Email, Password, false);
 
-            return new OkObjectResult(output);
+                if (output == null)
+                {
+                    Log.Error("LoginAndCreateSession returned null for {Email}", Email);
+                    return new StatusCodeResult(500);
+                }
+
+                if (!output.Authenticated || !output.UserSessionGuid.HasValue || output.UserSessionGuid == Guid.Empty)
+                {
+                    output.ErrorMessage = "Username or Password is invalid!";
+                }
+
+                return new OkObjectResult(output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "LoginAndCreateSession failed for {Email} with CustomerGUID {CustomerGUID}", Email, customerGUID);
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

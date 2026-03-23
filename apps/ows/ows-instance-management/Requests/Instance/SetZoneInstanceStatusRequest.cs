@@ -3,6 +3,7 @@ using OWSData.Models.Composites;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 using OWSShared.RequestPayloads;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,15 +27,23 @@ namespace OWSInstanceManagement.Requests.Instance
 
         public async Task<IActionResult> Handle()
         {
-            await _instanceManagementRepository.SetZoneInstanceStatus(_customerGUID, request.ZoneInstanceID, request.InstanceStatus);
-
-            _output = new SuccessAndErrorMessage()
+            try
             {
-                Success = true,
-                ErrorMessage = ""
-            };
+                await _instanceManagementRepository.SetZoneInstanceStatus(_customerGUID, request.ZoneInstanceID, request.InstanceStatus);
 
-            return new OkObjectResult(_output);
+                _output = new SuccessAndErrorMessage()
+                {
+                    Success = true,
+                    ErrorMessage = ""
+                };
+
+                return new OkObjectResult(_output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "SetZoneInstanceStatusRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

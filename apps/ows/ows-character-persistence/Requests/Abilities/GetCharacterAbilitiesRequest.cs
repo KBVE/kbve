@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,9 +37,17 @@ namespace OWSCharacterPersistence.Requests.Abilities
 
         public async Task<IActionResult> Handle()
         {
-            output = await charactersRepository.GetCharacterAbilities(customerGUID, CharacterName);
+            try
+            {
+                output = await charactersRepository.GetCharacterAbilities(customerGUID, CharacterName);
 
-            return new OkObjectResult(output);
+                return new OkObjectResult(output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "GetCharacterAbilitiesRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

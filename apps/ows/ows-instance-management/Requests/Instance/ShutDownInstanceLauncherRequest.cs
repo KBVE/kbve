@@ -3,6 +3,7 @@ using OWSData.Models.Composites;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 using OWSShared.RequestPayloads;
+using Serilog;
 using System;
 using System.Threading.Tasks;
 
@@ -24,9 +25,17 @@ namespace OWSInstanceManagement.Requests.Instance
 
         public async Task<IActionResult> Handle()
         {
-            _output = await _instanceManagementRepository.ShutDownWorldServer(_customerGUID, Request.WorldServerID);
+            try
+            {
+                _output = await _instanceManagementRepository.ShutDownWorldServer(_customerGUID, Request.WorldServerID);
 
-            return new OkObjectResult(_output);
+                return new OkObjectResult(_output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "ShutDownInstanceLauncherRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

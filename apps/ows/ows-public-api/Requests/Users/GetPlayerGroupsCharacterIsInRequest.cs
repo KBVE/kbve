@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,9 +64,17 @@ namespace OWSPublicAPI.Requests.Users
         /// </remarks>
         public async Task<IActionResult> Handle()
         {
-            output = await usersRepository.GetPlayerGroupsCharacterIsIn(customerGUID, UserSessionGUID, CharacterName, PlayerGroupTypeID);
+            try
+            {
+                output = await usersRepository.GetPlayerGroupsCharacterIsIn(customerGUID, UserSessionGUID, CharacterName, PlayerGroupTypeID);
 
-            return new OkObjectResult(output);
+                return new OkObjectResult(output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "GetPlayerGroupsCharacterIsInRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

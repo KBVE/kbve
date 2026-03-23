@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,31 +58,39 @@ namespace OWSPublicAPI.Requests.Users
 
         public async Task<IActionResult> Handle()
         {
-            //Call external provider to get token
-            /*
-            string token = await externalLoginProvider.AuthenticateAsync(Email, Password, false);
-
-            if (!String.IsNullOrEmpty(token) && externalLoginProvider.ValidateLoginToken(token, Email))
+            try
             {
-                //Login to OWS
-                output = await usersRepository.LoginAndCreateSession(customerGUID, Email, Password);
+                //Call external provider to get token
+                /*
+                string token = await externalLoginProvider.AuthenticateAsync(Email, Password, false);
 
-                if (!output.Authenticated || !output.UserSessionGuid.HasValue || output.UserSessionGuid == Guid.Empty)
+                if (!String.IsNullOrEmpty(token) && externalLoginProvider.ValidateLoginToken(token, Email))
                 {
-                    output.ErrorMessage = "Username or Password is invalid!";
+                    //Login to OWS
+                    output = await usersRepository.LoginAndCreateSession(customerGUID, Email, Password);
+
+                    if (!output.Authenticated || !output.UserSessionGuid.HasValue || output.UserSessionGuid == Guid.Empty)
+                    {
+                        output.ErrorMessage = "Username or Password is invalid!";
+                    }
+
+                    return new OkObjectResult(output);
                 }
+                */
 
-                return new OkObjectResult(output);
-            }
-            */
-
-            //Not authenticated
-            _output = new PlayerLoginAndCreateSession();
-            _output.Authenticated = false;
-            _output.UserSessionGuid = Guid.Empty;
-            //output.ErrorMessage = externalLoginProvider.GetErrorFromToken(token);
-            return new OkObjectResult(_output);
+                //Not authenticated
+                _output = new PlayerLoginAndCreateSession();
+                _output.Authenticated = false;
+                _output.UserSessionGuid = Guid.Empty;
+                //output.ErrorMessage = externalLoginProvider.GetErrorFromToken(token);
+                return new OkObjectResult(_output);
             
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "ExternalLoginAndCreateSessionRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,9 +27,17 @@ namespace OWSPublicAPI.Requests.Users
 
         public async Task<IActionResult> Handle()
         {
-            output = await usersRepository.UserSessionSetSelectedCharacter(customerGUID, UserSessionGUID, SelectedCharacterName);
+            try
+            {
+                output = await usersRepository.UserSessionSetSelectedCharacter(customerGUID, UserSessionGUID, SelectedCharacterName);
 
-            return new OkObjectResult(output);
+                return new OkObjectResult(output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "UserSessionSetSelectedCharacterRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

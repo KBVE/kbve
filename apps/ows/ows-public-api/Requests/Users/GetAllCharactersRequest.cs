@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,9 +50,17 @@ namespace OWSPublicAPI.Requests.Users
         /// </remarks>
         public async Task<IActionResult> Handle()
         {
-            output = await usersRepository.GetAllCharacters(customerGUID, UserSessionGUID);
+            try
+            {
+                output = await usersRepository.GetAllCharacters(customerGUID, UserSessionGUID);
 
-            return new OkObjectResult(output);
+                return new OkObjectResult(output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "GetAllCharactersRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

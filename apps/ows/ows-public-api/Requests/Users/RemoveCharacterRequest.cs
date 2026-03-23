@@ -2,6 +2,7 @@
 using OWSData.Models.Composites;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,11 +57,19 @@ namespace OWSPublicAPI.Requests.Users
         /// </remarks>
         public async Task<IActionResult> Handle()
         {
-            SuccessAndErrorMessage output;
+            try
+            {
+                SuccessAndErrorMessage output;
 
-            output = await usersRepository.RemoveCharacter(CustomerGUID, UserSessionGUID, CharacterName);
+                output = await usersRepository.RemoveCharacter(CustomerGUID, UserSessionGUID, CharacterName);
 
-            return new OkObjectResult(output);
+                return new OkObjectResult(output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "RemoveCharacterRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

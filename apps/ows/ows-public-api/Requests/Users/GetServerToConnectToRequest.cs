@@ -41,82 +41,90 @@ namespace OWSPublicAPI.Requests.Users
 
         public async Task<IActionResult> Handle()
         {
-            Log.Information($"GetServerToConnectTo: Started...");
-            Output = new JoinMapByCharName();
-
-            //If ZoneName is empty, look it up from the character.  This is used for the inital login.
-            if (String.IsNullOrEmpty(ZoneName) || ZoneName == "GETLASTZONENAME")
+            try
             {
-                GetCharByCharName character = await charactersRepository.GetCharByCharName(CustomerGUID, CharacterName);
+                Log.Information($"GetServerToConnectTo: Started...");
+                Output = new JoinMapByCharName();
 
-                //If we can't find the character by name, then return BadRequest.
-                if (character == null)
+                //If ZoneName is empty, look it up from the character.  This is used for the inital login.
+                if (String.IsNullOrEmpty(ZoneName) || ZoneName == "GETLASTZONENAME")
                 {
-                    return new BadRequestResult();
+                    GetCharByCharName character = await charactersRepository.GetCharByCharName(CustomerGUID, CharacterName);
+
+                    //If we can't find the character by name, then return BadRequest.
+                    if (character == null)
+                    {
+                        return new BadRequestResult();
+                    }
+
+                    ZoneName = character.MapName;
+                    Log.Information($"GetServerToConnectTo: Using last ZoneName for CharacterName: {CharacterName} ZoneName: {ZoneName}");
                 }
 
-                ZoneName = character.MapName;
-                Log.Information($"GetServerToConnectTo: Using last ZoneName for CharacterName: {CharacterName} ZoneName: {ZoneName}");
-            }
+                //If the ZoneName is empty, return an error
+                if (String.IsNullOrEmpty(ZoneName))
+                {
+                    Log.Error($"GetServerToConnectTo: ZoneName is NULL or Empty.  Make sure the character is assigned to a Zone!");
+                    Output.Success = false;
+                    Output.ErrorMessage = "GetServerToConnectTo: ZoneName is NULL or Empty.  Make sure the character is assigned to a Zone!";
+                    return new OkObjectResult(Output);
+                }
 
-            //If the ZoneName is empty, return an error
-            if (String.IsNullOrEmpty(ZoneName))
-            {
-                Log.Error($"GetServerToConnectTo: ZoneName is NULL or Empty.  Make sure the character is assigned to a Zone!");
-                Output.Success = false;
-                Output.ErrorMessage = "GetServerToConnectTo: ZoneName is NULL or Empty.  Make sure the character is assigned to a Zone!";
+                JoinMapByCharName joinMapByCharacterName = await charactersRepository.JoinMapByCharName(CustomerGUID, CharacterName, ZoneName, PlayerGroupType);
+
+                bool readyForPlayersToConnect = false;
+
+                if (joinMapByCharacterName == null || joinMapByCharacterName.WorldServerID < 1)
+                {
+                    Log.Error($"GetServerToConnectTo: WorldServerID is less than 1.  Make sure you setup at least one valid World Server and that it is currently running!");
+                    Output.Success = false;
+                    Output.ErrorMessage = "GetServerToConnectTo: WorldServerID is less than 1.  Make sure you setup at least one valid World Server and that it is currently running!";
+                    return new OkObjectResult(Output);
+                }
+
+                //There is no zone server running that will accept our connection, so start up a new one
+                if (joinMapByCharacterName.NeedToStartupMap)
+                {
+                    Log.Information($"GetServerToConnectTo: Starting up server instance MapInstanceID: {joinMapByCharacterName.MapInstanceID}");
+                    bool requestSuccess = await RequestServerSpinUp(joinMapByCharacterName.WorldServerID, joinMapByCharacterName.MapInstanceID, joinMapByCharacterName.MapNameToStart, joinMapByCharacterName.Port);
+
+                    //Wait OWSGeneralConfig.SecondsToWaitBeforeFirstPollForSpinUp seconds before the first CheckMapInstanceStatus to give it time to spin up
+                    await Task.Delay(owsGeneralConfig.Value.SecondsToWaitBeforeFirstPollForSpinUp * 1000);
+
+                    readyForPlayersToConnect = await WaitForServerReadyToConnect(CustomerGUID, joinMapByCharacterName.MapInstanceID);
+                }
+                //We found a zone server we can connect to, but it is still spinning up.  Wait until it is ready to connect to (up to OWSGeneralConfig.SecondsToWaitForServerSpinUp seconds).
+                else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 1)
+                {
+                    Log.Information($"GetServerToConnectTo: We found a zone server we can connect to, but it is still spinning up.  Wait until it is ready to connect to (up to OWSGeneralConfig.SecondsToWaitForServerSpinUp seconds)");
+                    //CheckMapInstanceStatus every OWSGeneralConfig.SecondsToWaitInBetweenSpinUpPolling seconds for up to OWSGeneralConfig.SecondsToWaitForServerSpinUp seconds
+                    readyForPlayersToConnect = await WaitForServerReadyToConnect(CustomerGUID, joinMapByCharacterName.MapInstanceID);
+                }
+                //We found a zone server we can connect to and it is ready to connect
+                else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 2)
+                {
+                    Log.Information($"GetServerToConnectTo: We found a zone server we can connect to and it is ready to connect");
+                    //The zone server is ready to connect to
+                    readyForPlayersToConnect = true;
+                }
+
+                //The zone instance is ready, so connect the character to the map instance in our data store
+                if (readyForPlayersToConnect)
+                {
+                    Log.Information($"GetServerToConnectTo: The zone instance is ready, so connect the character to the map instance in our data store");
+                    await charactersRepository.AddCharacterToMapInstanceByCharName(CustomerGUID, CharacterName, joinMapByCharacterName.MapInstanceID);
+                }
+
+                Output = joinMapByCharacterName;
+                Output.Success = true;
+                Output.ErrorMessage = "";
                 return new OkObjectResult(Output);
             }
-
-            JoinMapByCharName joinMapByCharacterName = await charactersRepository.JoinMapByCharName(CustomerGUID, CharacterName, ZoneName, PlayerGroupType);
-
-            bool readyForPlayersToConnect = false;
-
-            if (joinMapByCharacterName == null || joinMapByCharacterName.WorldServerID < 1)
+            catch (Exception ex)
             {
-                Log.Error($"GetServerToConnectTo: WorldServerID is less than 1.  Make sure you setup at least one valid World Server and that it is currently running!");
-                Output.Success = false;
-                Output.ErrorMessage = "GetServerToConnectTo: WorldServerID is less than 1.  Make sure you setup at least one valid World Server and that it is currently running!";
-                return new OkObjectResult(Output);
+                Log.Error(ex, "GetServerToConnectToRequest.Handle failed");
+                return new StatusCodeResult(500);
             }
-
-            //There is no zone server running that will accept our connection, so start up a new one
-            if (joinMapByCharacterName.NeedToStartupMap)
-            {
-                Log.Information($"GetServerToConnectTo: Starting up server instance MapInstanceID: {joinMapByCharacterName.MapInstanceID}");
-                bool requestSuccess = await RequestServerSpinUp(joinMapByCharacterName.WorldServerID, joinMapByCharacterName.MapInstanceID, joinMapByCharacterName.MapNameToStart, joinMapByCharacterName.Port);
-
-                //Wait OWSGeneralConfig.SecondsToWaitBeforeFirstPollForSpinUp seconds before the first CheckMapInstanceStatus to give it time to spin up
-                await Task.Delay(owsGeneralConfig.Value.SecondsToWaitBeforeFirstPollForSpinUp * 1000);
-
-                readyForPlayersToConnect = await WaitForServerReadyToConnect(CustomerGUID, joinMapByCharacterName.MapInstanceID);
-            }
-            //We found a zone server we can connect to, but it is still spinning up.  Wait until it is ready to connect to (up to OWSGeneralConfig.SecondsToWaitForServerSpinUp seconds).
-            else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 1)
-            {
-                Log.Information($"GetServerToConnectTo: We found a zone server we can connect to, but it is still spinning up.  Wait until it is ready to connect to (up to OWSGeneralConfig.SecondsToWaitForServerSpinUp seconds)");
-                //CheckMapInstanceStatus every OWSGeneralConfig.SecondsToWaitInBetweenSpinUpPolling seconds for up to OWSGeneralConfig.SecondsToWaitForServerSpinUp seconds
-                readyForPlayersToConnect = await WaitForServerReadyToConnect(CustomerGUID, joinMapByCharacterName.MapInstanceID);
-            }
-            //We found a zone server we can connect to and it is ready to connect
-            else if (joinMapByCharacterName.MapInstanceID > 0 && joinMapByCharacterName.MapInstanceStatus == 2)
-            {
-                Log.Information($"GetServerToConnectTo: We found a zone server we can connect to and it is ready to connect");
-                //The zone server is ready to connect to
-                readyForPlayersToConnect = true;
-            }
-
-            //The zone instance is ready, so connect the character to the map instance in our data store
-            if (readyForPlayersToConnect)
-            {
-                Log.Information($"GetServerToConnectTo: The zone instance is ready, so connect the character to the map instance in our data store");
-                await charactersRepository.AddCharacterToMapInstanceByCharName(CustomerGUID, CharacterName, joinMapByCharacterName.MapInstanceID);
-            }
-
-            Output = joinMapByCharacterName;
-            Output.Success = true;
-            Output.ErrorMessage = "";
-            return new OkObjectResult(Output);
         }
 
         private async Task<bool> WaitForServerReadyToConnect(Guid customerGUID, int zoneInstanceID)
