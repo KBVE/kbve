@@ -6,6 +6,7 @@ using OWSShared.Interfaces;
 using OWSShared.Messages;
 using OWSShared.Options;
 using RabbitMQ.Client;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,49 +33,57 @@ namespace OWSInstanceManagement.Requests.Instance
 
         public async Task<IActionResult> Handle()
         {
-            //Set the ZoneInstance status to shutting down
-
-
-            //Send the servershutdown message to RabbitMQ
-            ConnectionFactory factory = new()
+            try
             {
-                HostName = _rabbitMQOptions.Value.RabbitMQHostName,
-                Port = _rabbitMQOptions.Value.RabbitMQPort,
-                UserName = _rabbitMQOptions.Value.RabbitMQUserName,
-                Password = _rabbitMQOptions.Value.RabbitMQPassword
-            };
+                //Set the ZoneInstance status to shutting down
 
-            using (var connection = factory.CreateConnection())
-            {
-                using (var channel = connection.CreateModel())
+
+                //Send the servershutdown message to RabbitMQ
+                ConnectionFactory factory = new()
                 {
-                    channel.ExchangeDeclare(exchange: "ows.servershutdown",
-                        type: "direct",
-                        durable: false,
-                        autoDelete: false);
+                    HostName = _rabbitMQOptions.Value.RabbitMQHostName,
+                    Port = _rabbitMQOptions.Value.RabbitMQPort,
+                    UserName = _rabbitMQOptions.Value.RabbitMQUserName,
+                    Password = _rabbitMQOptions.Value.RabbitMQPassword
+                };
 
-                    MQShutDownServerMessage serverSpinUpMessage = new() 
+                using (var connection = factory.CreateConnection())
+                {
+                    using (var channel = connection.CreateModel())
                     {
-                        CustomerGUID = CustomerGUID,
-                        ZoneInstanceID = ZoneInstanceID
-                    };
+                        channel.ExchangeDeclare(exchange: "ows.servershutdown",
+                            type: "direct",
+                            durable: false,
+                            autoDelete: false);
+
+                        MQShutDownServerMessage serverSpinUpMessage = new() 
+                        {
+                            CustomerGUID = CustomerGUID,
+                            ZoneInstanceID = ZoneInstanceID
+                        };
                     
-                    var body = serverSpinUpMessage.Serialize();
+                        var body = serverSpinUpMessage.Serialize();
 
-                    channel.BasicPublish(exchange: "ows.servershutdown",
-                                         routingKey: String.Format("ows.servershutdown.{0}", WorldServerID),
-                                         basicProperties: null,
-                                         body: body);
+                        channel.BasicPublish(exchange: "ows.servershutdown",
+                                             routingKey: String.Format("ows.servershutdown.{0}", WorldServerID),
+                                             basicProperties: null,
+                                             body: body);
+                    }
                 }
+
+                Output = new SuccessAndErrorMessage()
+                {
+                    Success = true,
+                    ErrorMessage = ""
+                };
+
+                return new OkObjectResult(Output);
             }
-
-            Output = new SuccessAndErrorMessage()
+            catch (Exception ex)
             {
-                Success = true,
-                ErrorMessage = ""
-            };
-
-            return new OkObjectResult(Output);
+                Log.Error(ex, "ShutDownServerInstanceRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

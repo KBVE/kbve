@@ -2,6 +2,7 @@
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,9 +32,17 @@ namespace OWSInstanceManagement.Requests.Instance
 
         public async Task<IActionResult> Handle()
         {
-            GetCurrentWorldTime output = await _instanceMangementRepository.GetCurrentWorldTime(CustomerGUID);
+            try
+            {
+                GetCurrentWorldTime output = await _instanceMangementRepository.GetCurrentWorldTime(CustomerGUID);
 
-            return new OkObjectResult(output);
+                return new OkObjectResult(output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "GetCurrentWorldTimeRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

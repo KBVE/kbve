@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
+using Serilog;
 using System;
 using System.Threading.Tasks;
 
@@ -23,9 +24,17 @@ namespace OWSInstanceManagement.Requests.Instance
 
         public async Task<IActionResult> Handle()
         {
-            _output = await _instanceManagementRepository.StartWorldServer(_customerGUID, _launcherGuid);
+            try
+            {
+                _output = await _instanceManagementRepository.StartWorldServer(_customerGUID, _launcherGuid);
 
-            return new OkObjectResult(_output);
+                return new OkObjectResult(_output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "StartInstanceLauncherRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

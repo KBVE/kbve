@@ -3,6 +3,7 @@ using OWSData.Models.Composites;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 using OWSShared.RequestPayloads;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,12 +26,20 @@ namespace OWSInstanceManagement.Requests.Zones
 
         public async Task<IActionResult> Handle()
         {
-            SuccessAndErrorMessage successAndErrorMessage = new SuccessAndErrorMessage();
+            try
+            {
+                SuccessAndErrorMessage successAndErrorMessage = new SuccessAndErrorMessage();
 
-            successAndErrorMessage = await instanceManagementRepository.AddZone(customerGUID, addOrUpdateZone.MapName, addOrUpdateZone.ZoneName, addOrUpdateZone.WorldCompContainsFilter, addOrUpdateZone.WorldCompListFilter, addOrUpdateZone.SoftPlayerCap, addOrUpdateZone.HardPlayerCap, 
-                addOrUpdateZone.MapMode);
+                successAndErrorMessage = await instanceManagementRepository.AddZone(customerGUID, addOrUpdateZone.MapName, addOrUpdateZone.ZoneName, addOrUpdateZone.WorldCompContainsFilter, addOrUpdateZone.WorldCompListFilter, addOrUpdateZone.SoftPlayerCap, addOrUpdateZone.HardPlayerCap, 
+                    addOrUpdateZone.MapMode);
 
-            return new OkObjectResult(successAndErrorMessage);
+                return new OkObjectResult(successAndErrorMessage);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "AddZoneRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

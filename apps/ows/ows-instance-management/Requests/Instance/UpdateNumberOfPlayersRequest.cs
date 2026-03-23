@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,9 +34,17 @@ namespace OWSInstanceManagement.Requests.Instance
 
         public async Task<IActionResult> Handle()
         {
-            var output = await _instanceMangementRepository.UpdateNumberOfPlayers(CustomerGUID, ZoneInstanceId, NumberOfConnectedPlayers);
+            try
+            {
+                var output = await _instanceMangementRepository.UpdateNumberOfPlayers(CustomerGUID, ZoneInstanceId, NumberOfConnectedPlayers);
 
-            return new OkObjectResult(output);
+                return new OkObjectResult(output);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "UpdateNumberOfPlayersRequest.Handle failed");
+                return new StatusCodeResult(500);
+            }
         }
     }
 }
