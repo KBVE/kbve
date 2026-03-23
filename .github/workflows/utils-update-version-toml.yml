@@ -75,4 +75,5 @@ jobs:
                     --base dev \
                     --head "${BRANCH}" \
                     --title "chore(${PKG}): update version.toml to ${VERSION}" \
-                    --body "Automated post-publish update. ${TYPE}/${PKG} v${VERSION} has been published."
+                    --body "Automated post-publish update. ${TYPE}/${PKG} v${VERSION} has been published." \
+                    --label "auto-pr"
