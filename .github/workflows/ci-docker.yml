@@ -255,6 +255,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+            actions: write
         uses: KBVE/kbve/.github/workflows/utils-update-kube-manifest.yml@main
         with:
             app_name: ${{ inputs.app_name }}
@@ -277,6 +278,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+            actions: write
         uses: KBVE/kbve/.github/workflows/utils-update-version-toml.yml@dev
         with:
             package_type: docker

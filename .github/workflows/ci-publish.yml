@@ -293,6 +293,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+            actions: write
         uses: KBVE/kbve/.github/workflows/utils-update-version-toml.yml@dev
         with:
             package_type: npm
@@ -307,6 +308,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+            actions: write
         uses: KBVE/kbve/.github/workflows/utils-update-version-toml.yml@dev
         with:
             package_type: crates
@@ -321,6 +323,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+            actions: write
         uses: KBVE/kbve/.github/workflows/utils-update-version-toml.yml@dev
         with:
             package_type: python
