@@ -78,6 +78,10 @@ async fn readiness(State(hs): State<HandlerState>) -> axum::response::Response {
 fn public_api_routes(hs: HandlerState) -> Router {
     Router::new()
         .route("/api/Users/LoginAndCreateSession", post(login))
+        .route(
+            "/api/Users/ExternalLoginAndCreateSession",
+            post(external_login),
+        )
         .route("/api/Users/RegisterUser", post(register_user))
         .route("/api/Users/Logout", post(logout))
         .route("/api/Users/GetUserSession", get(get_user_session))
@@ -123,6 +127,34 @@ async fn login(
 ) -> ApiResult<crate::models::LoginResult> {
     let result = hs.svc.login(&body.email, &body.password).await?;
     Ok(Json(result))
+}
+
+/// External login stub — future Supabase OAuth integration.
+///
+/// TODO(supabase): Implement external auth flow:
+///   1. Accept provider_token (Discord, GitHub, Google) from Supabase Auth
+///   2. Verify token against Supabase JWT / provider API
+///   3. Find-or-create OWS user from Supabase user.id
+///   4. Create session and return UserSessionGUID
+///   This enables direct Supabase Auth → OWS session bridging,
+///   removing the need for separate OWS account creation.
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct ExternalLoginDto {
+    provider: String,
+    provider_token: String,
+}
+
+async fn external_login(Json(body): Json<ExternalLoginDto>) -> Json<crate::models::LoginResult> {
+    tracing::info!(provider = %body.provider, "ExternalLogin called (not yet implemented)");
+    Json(crate::models::LoginResult {
+        authenticated: false,
+        user_session_guid: None,
+        error_message: format!(
+            "External login via '{}' not yet implemented. Future: Supabase OAuth integration.",
+            body.provider
+        ),
+    })
 }
 
 async fn get_user_session(
