@@ -1,5 +1,5 @@
 # ── Stage 1: Build ──────────────────────────────────────────
-FROM rust:1.87-slim-bookworm AS builder
+FROM rust:1.94-slim-bookworm AS builder
 
 RUN apt-get update && apt-get install -y \
     pkg-config libssl-dev protobuf-compiler \
@@ -7,21 +7,26 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /src
 
-# Create a standalone workspace (avoids pulling in root workspace members)
-RUN printf '[workspace]\nmembers = ["apps/ows/rows"]\nresolver = "2"\n' > Cargo.toml
+# Create a standalone workspace with all path dependencies
+RUN printf '[workspace]\nmembers = ["apps/ows/rows", "packages/rust/jedi", "packages/rust/kbve"]\nresolver = "2"\n' > Cargo.toml
 
-# Copy rows manifest for dependency caching
+# Copy workspace member manifests for dependency caching
 COPY apps/ows/rows/Cargo.toml apps/ows/rows/Cargo.toml
+COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
+COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
 COPY packages/data/proto/ packages/data/proto/
 COPY apps/ows/rows/proto/ apps/ows/rows/proto/
 COPY apps/ows/rows/build.rs apps/ows/rows/build.rs
 
-# Dummy main.rs for dependency layer caching
-RUN mkdir -p apps/ows/rows/src && \
-    echo 'fn main() {}' > apps/ows/rows/src/main.rs && \
+# Dummy sources for dependency layer caching
+RUN mkdir -p apps/ows/rows/src && echo 'fn main() {}' > apps/ows/rows/src/main.rs && \
+    mkdir -p packages/rust/jedi/src && echo '' > packages/rust/jedi/src/lib.rs && \
+    mkdir -p packages/rust/kbve/src && echo '' > packages/rust/kbve/src/lib.rs && \
     cargo build --release -p rows 2>/dev/null || true
 
-# Copy real source and rebuild
+# Copy real sources and rebuild
+COPY packages/rust/jedi/ packages/rust/jedi/
+COPY packages/rust/kbve/ packages/rust/kbve/
 COPY apps/ows/rows/src/ apps/ows/rows/src/
 RUN touch apps/ows/rows/src/main.rs && \
     cargo build --release -p rows
