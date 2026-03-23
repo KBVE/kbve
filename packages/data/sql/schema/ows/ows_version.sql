@@ -1,0 +1,14 @@
+-- OWS Schema: OWSVersion
+SET search_path TO ows;
+
+CREATE TABLE OWSVersion
+(
+    OWSDBVersion VARCHAR(10) NULL
+);
+
+-- Security: OWSVersion
+ALTER TABLE OWSVersion ENABLE ROW LEVEL SECURITY;
+ALTER TABLE OWSVersion FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON OWSVersion FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON OWSVersion TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON OWSVersion TO ows;
