@@ -18,17 +18,32 @@ impl OWSService {
             .await?;
 
         if result.need_to_startup_map {
-            if let Some(ref mq) = self.state.mq {
-                let msg = SpinUpMessage {
-                    customer_guid: customer_guid.to_string(),
-                    world_server_id: result.world_server_id,
-                    zone_instance_id: result.map_instance_id,
-                    map_name: result.map_name_to_start.clone(),
-                    port: result.port,
-                };
-                if let Err(e) = mq.publish_spin_up(result.world_server_id, &msg).await {
-                    tracing::error!(error = %e, "Failed to publish spin-up message");
+            // Spin-up lock: prevent duplicate Agones allocations for the same zone.
+            // If another request is already spinning up this zone, skip the publish.
+            let lock_key = format!("{customer_guid}:{zone_name}");
+            if self.state.zone_spinup_locks.contains_key(&lock_key) {
+                tracing::info!(
+                    zone = zone_name,
+                    "Zone spin-up already in progress, skipping duplicate"
+                );
+            } else {
+                self.state.zone_spinup_locks.insert(lock_key.clone(), true);
+
+                if let Some(ref mq) = self.state.mq {
+                    let msg = SpinUpMessage {
+                        customer_guid: customer_guid.to_string(),
+                        world_server_id: result.world_server_id,
+                        zone_instance_id: result.map_instance_id,
+                        map_name: result.map_name_to_start.clone(),
+                        port: result.port,
+                    };
+                    if let Err(e) = mq.publish_spin_up(result.world_server_id, &msg).await {
+                        tracing::error!(error = %e, "Failed to publish spin-up message");
+                        self.state.zone_spinup_locks.remove(&lock_key);
+                    }
                 }
+                // Lock is released by the MQ consumer after successful allocation,
+                // or by the background health job after timeout.
             }
         }
 
@@ -110,7 +125,7 @@ impl OWSService {
         &self,
         customer_guid: Uuid,
         zone_name: &str,
-    ) -> Result<Vec<crate::models::ZoneInstance>, RowsError> {
+    ) -> Result<Vec<ZoneInstance>, RowsError> {
         let repo = InstanceRepo(&self.state.db);
         repo.get_zone_instances_for_zone(customer_guid, zone_name)
             .await

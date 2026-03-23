@@ -13,6 +13,9 @@ pub struct AppState {
     pub sessions: DashMap<Uuid, CachedSession>,
     /// Zone instance → GameServer name tracking (Agones)
     pub zone_servers: DashMap<i32, String>,
+    /// Spin-up lock: zone_name → true if allocation is in progress.
+    /// Prevents duplicate Agones allocations for the same zone.
+    pub zone_spinup_locks: DashMap<String, bool>,
     pub config: AppConfig,
     /// RabbitMQ producer (None if unavailable — non-fatal)
     pub mq: Option<MqProducer>,
@@ -74,6 +77,7 @@ impl AppStateBuilder {
             db: self.db.ok_or_else(|| anyhow::anyhow!("db pool required"))?,
             sessions: DashMap::new(),
             zone_servers: DashMap::new(),
+            zone_spinup_locks: DashMap::new(),
             config: AppConfig {
                 customer_guid: self
                     .customer_guid
