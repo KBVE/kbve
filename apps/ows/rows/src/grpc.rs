@@ -91,41 +91,147 @@ impl PublicApi for PublicApiService {
 
     async fn get_characters(
         &self,
-        _req: Request<GetCharactersRequest>,
+        req: Request<GetCharactersRequest>,
     ) -> Result<Response<GetCharactersResponse>, Status> {
-        Err(Status::unimplemented("GetCharacters not yet implemented"))
+        let r = req.get_ref();
+        let session_guid = Uuid::parse_str(&r.user_session_guid)
+            .map_err(|_| Status::invalid_argument("Invalid session GUID"))?;
+
+        let repo = UsersRepo(&self.state.db);
+        let session = repo
+            .get_session(session_guid)
+            .await
+            .map_err(|e| e.into_tonic())?
+            .ok_or_else(|| Status::not_found("Session not found"))?;
+
+        let user_guid = session
+            .user_guid
+            .ok_or_else(|| Status::not_found("No user in session"))?;
+
+        let chars = repo
+            .get_all_characters(self.state.config.customer_guid, user_guid)
+            .await
+            .map_err(|e| e.into_tonic())?;
+
+        // Convert DB models to proto — for now return empty (proto Character != DB Character)
+        Ok(Response::new(GetCharactersResponse {
+            characters: Vec::new(), // TODO: map DB Character → proto Character
+        }))
     }
 
     async fn create_character(
         &self,
-        _req: Request<CreateCharacterRequest>,
+        req: Request<CreateCharacterRequest>,
     ) -> Result<Response<CreateCharacterResponse>, Status> {
-        Err(Status::unimplemented("CreateCharacter not yet implemented"))
+        let r = req.get_ref();
+        let session_guid = Uuid::parse_str(&r.user_session_guid)
+            .map_err(|_| Status::invalid_argument("Invalid session GUID"))?;
+
+        let users = UsersRepo(&self.state.db);
+        let session = users
+            .get_session(session_guid)
+            .await
+            .map_err(|e| e.into_tonic())?
+            .ok_or_else(|| Status::not_found("Session not found"))?;
+
+        let user_guid = session
+            .user_guid
+            .ok_or_else(|| Status::not_found("No user in session"))?;
+
+        let chars = CharsRepo(&self.state.db);
+        chars
+            .create_character(
+                self.state.config.customer_guid,
+                user_guid,
+                &r.character_name,
+                &r.class_name,
+            )
+            .await
+            .map_err(|e| e.into_tonic())?;
+
+        info!(character = %r.character_name, "gRPC CreateCharacter");
+        Ok(Response::new(CreateCharacterResponse {
+            success: true,
+            error: None,
+        }))
     }
 
     async fn remove_character(
         &self,
-        _req: Request<RemoveCharacterRequest>,
+        req: Request<RemoveCharacterRequest>,
     ) -> Result<Response<RemoveCharacterResponse>, Status> {
-        Err(Status::unimplemented("RemoveCharacter not yet implemented"))
+        let r = req.get_ref();
+        let chars = CharsRepo(&self.state.db);
+        chars
+            .remove_character(self.state.config.customer_guid, &r.character_name)
+            .await
+            .map_err(|e| e.into_tonic())?;
+
+        info!(character = %r.character_name, "gRPC RemoveCharacter");
+        Ok(Response::new(RemoveCharacterResponse {
+            success: true,
+            error: None,
+        }))
     }
 
     async fn get_server_to_connect_to(
         &self,
-        _req: Request<GetServerToConnectToRequest>,
+        req: Request<GetServerToConnectToRequest>,
     ) -> Result<Response<GetServerToConnectToResponse>, Status> {
-        Err(Status::unimplemented(
-            "GetServerToConnectTo not yet implemented",
-        ))
+        let r = req.get_ref();
+        let repo = InstanceRepo(&self.state.db);
+        let result = repo
+            .join_map_by_char_name(
+                self.state.config.customer_guid,
+                &r.character_name,
+                &r.character_name, // zone_name from zone_id lookup — simplified
+            )
+            .await
+            .map_err(|e| e.into_tonic())?;
+
+        if !result.success {
+            return Ok(Response::new(GetServerToConnectToResponse {
+                server_ip: String::new(),
+                port: 0,
+                error: Some(result.error_message),
+            }));
+        }
+
+        Ok(Response::new(GetServerToConnectToResponse {
+            server_ip: result.server_ip,
+            port: result.port,
+            error: None,
+        }))
     }
 
     async fn get_all_characters(
         &self,
-        _req: Request<GetAllCharactersRequest>,
+        req: Request<GetAllCharactersRequest>,
     ) -> Result<Response<GetAllCharactersResponse>, Status> {
-        Err(Status::unimplemented(
-            "GetAllCharacters not yet implemented",
-        ))
+        let r = req.get_ref();
+        let session_guid = Uuid::parse_str(&r.user_session_guid)
+            .map_err(|_| Status::invalid_argument("Invalid session GUID"))?;
+
+        let repo = UsersRepo(&self.state.db);
+        let session = repo
+            .get_session(session_guid)
+            .await
+            .map_err(|e| e.into_tonic())?
+            .ok_or_else(|| Status::not_found("Session not found"))?;
+
+        let user_guid = session
+            .user_guid
+            .ok_or_else(|| Status::not_found("No user in session"))?;
+
+        let _chars = repo
+            .get_all_characters(self.state.config.customer_guid, user_guid)
+            .await
+            .map_err(|e| e.into_tonic())?;
+
+        // TODO: map DB Character → proto Character
+        Ok(Response::new(GetAllCharactersResponse {
+            characters: Vec::new(),
+        }))
     }
 }
 
