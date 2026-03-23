@@ -78,10 +78,10 @@ spec:
                         readOnly: true
                   resources:
                       requests:
-                          memory: '64Mi'
+                          memory: '256Mi'
                           cpu: '500m'
                       limits:
-                          memory: '1024Mi'
+                          memory: '2048Mi'
                           cpu: '6000m'
                   securityContext:
                       runAsUser: 0
