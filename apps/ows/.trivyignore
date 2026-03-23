@@ -1,0 +1,5 @@
+# False positive: Trivy reports System.Drawing.Common 4.7.0 but the actual
+# published DLL is 8.0.0 (pinned via Directory.Build.props). The deps.json
+# and file version both confirm 8.0.0. Trivy misidentifies the version.
+# See: https://github.com/aquasecurity/trivy/issues/7073
+CVE-2021-24112
