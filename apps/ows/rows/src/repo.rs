@@ -300,30 +300,36 @@ impl<'a> CharsRepo<'a> {
             .as_object()
             .ok_or_else(|| RowsError::BadRequest("Stats must be a JSON object".into()))?;
 
-        // Build SET clause from allowlisted keys only (SQL injection safe)
-        let mut sets = Vec::new();
-        let mut vals: Vec<f64> = Vec::new();
+        // Build SET clause from allowlisted keys only (SQL injection safe).
+        // Pre-allocate with capacity to avoid realloc.
+        use std::fmt::Write;
+        let mut sql = String::with_capacity(256);
+        sql.push_str("UPDATE characters SET ");
+        let mut vals: Vec<f64> = Vec::with_capacity(obj.len().min(Self::STAT_COLUMNS.len()));
         let mut idx = 3u32; // $1 = customer_guid, $2 = charname
+        let mut first = true;
 
         for (key, val) in obj {
             let col = key.to_lowercase();
             if Self::STAT_COLUMNS.contains(&col.as_str()) {
                 if let Some(n) = val.as_f64() {
-                    sets.push(format!("{col} = ${idx}"));
+                    if !first {
+                        sql.push_str(", ");
+                    }
+                    // write! into pre-allocated String — no extra allocation
+                    let _ = write!(sql, "{col} = ${idx}");
                     vals.push(n);
                     idx += 1;
+                    first = false;
                 }
             }
         }
 
-        if sets.is_empty() {
-            return Ok(());
+        if first {
+            return Ok(()); // no valid columns
         }
 
-        let sql = format!(
-            "UPDATE characters SET {} WHERE customerguid = $1 AND charname = $2",
-            sets.join(", ")
-        );
+        sql.push_str(" WHERE customerguid = $1 AND charname = $2");
 
         let mut q = sqlx::query(&sql).bind(customer_guid).bind(char_name);
         for v in &vals {
