@@ -176,7 +176,7 @@
 			"source_path": "apps/ows",
 			"runner": "ubuntu-latest",
 			"image": "kbve/ows-instancelauncher",
-			"deployment_yaml": "apps/kube/github/runners/manifests/ows-instance-launcher.yaml",
+			"deployment_yaml": "apps/kube/ows/manifest/instance-launcher.yaml",
 			"has_test": false,
 			"target": "container-instancelauncher",
 			"nx_project": "ows"
