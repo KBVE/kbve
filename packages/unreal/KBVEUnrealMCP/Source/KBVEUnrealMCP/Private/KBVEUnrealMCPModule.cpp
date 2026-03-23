@@ -32,6 +32,9 @@
 #include "Handlers/MCPGeometryHandlers.h"
 #include "Handlers/MCPCodeAnalysisHandlers.h"
 #include "Handlers/MCPEditorHandlers.h"
+#include "Handlers/MCPFoliageHandlers.h"
+#include "Handlers/MCPPlacementHandlers.h"
+#include "Handlers/MCPStreamingHandlers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogKBVEUnrealMCP, Log, All);
 
@@ -140,6 +143,11 @@ void FKBVEUnrealMCPModule::RegisterAllHandlers()
 
 	// Phase 8 — Editor utilities
 	FMCPEditorHandlers::Register(*Registry);
+
+	// Phase 9 — Foliage, Placement, Streaming
+	FMCPFoliageHandlers::Register(*Registry);
+	FMCPPlacementHandlers::Register(*Registry);
+	FMCPStreamingHandlers::Register(*Registry);
 }
 
 IMPLEMENT_MODULE(FKBVEUnrealMCPModule, KBVEUnrealMCP)

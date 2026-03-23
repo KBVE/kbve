@@ -405,12 +405,12 @@ Verified compiling on UE 5.7.4 (Mac, universal binary).
 { "id": "uuid", "success": false, "error": { "code": "NOT_FOUND", "message": "Actor not found" } }
 ```
 
-**Implemented Handler Domains (25 domains, 150+ methods):**
+**Implemented Handler Domains (28 domains, 170+ methods):**
 
 | Domain | Methods | Status |
 |--------|---------|--------|
 | `actor.*` | spawn, delete, find, list, get/set_transform, get/set_property, duplicate, batch_transform, attach, detach, add_component | Complete |
-| `blueprint.*` | create, add/remove_component, list_components, set_component_property, add/remove_variable, add_function_node, add_event_node, connect_nodes, disconnect_pin, set_pin_default, delete_node, set_default, reparent, validate, compile, get_graph | Complete |
+| `blueprint.*` | create, add/remove_component, list_components, set_component_property, add/remove_variable, add_function_node, add_event_node, connect_nodes, disconnect_pin, set_pin_default, delete_node, set_default, reparent, validate, compile, get_graph, snapshot_graph, diff_graph, restore_graph | Complete |
 | `asset.*` | search, get_info, get_references, get_dependents, list, validate | Complete |
 | `level.*` | get_info, list_levels, open, save, get_world_outliner | Complete |
 | `console.*` | execute (with safety validation), get_log | Complete |
@@ -432,6 +432,9 @@ Verified compiling on UE 5.7.4 (Mac, universal binary).
 | `niagara.*` | create_system, activate, deactivate, set_parameter, get_info | Complete |
 | `gameplay.*` | create_interaction, get_info (tags, GAS, trigger volumes) | Complete |
 | `editor.*` | undo, redo, select, get_selection, rename_asset, delete_asset, find_in_radius, raycast, set_label, set_folder, add/remove_tag, find_by_tag | Complete |
+| `foliage.*` | paint (radial scatter with ground snap), remove (area clear), get_info (type/instance counts) | Complete |
+| `placement.*` | grid (rows x cols), circle (radial with face_center), scatter (random with ground snap + scale), along_spline (evenly distributed) | Complete |
+| `streaming.*` | list_levels (persistent + streaming), load_level, unload_level, set_visibility | Complete |
 | `landscape.*` | sculpt, flatten, smooth, get_info | Partial |
 | `widget.*` | create, set_property, get_info | Partial |
 | `mcp.*` | ping, list_methods, server_info | Complete |

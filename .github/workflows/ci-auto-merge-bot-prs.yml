@@ -69,7 +69,7 @@ jobs:
                   ALLOWED=true
                   while IFS= read -r f; do
                     case "$f" in
-                      */version.toml|*/deployment.yaml|*/manifest/*.yaml)
+                      */version.toml|*/Cargo.toml|*/package.json|*/deployment.yaml|*/manifest/*.yaml)
                         echo "  OK: $f"
                         ;;
                       *)
