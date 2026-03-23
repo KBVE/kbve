@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -53,6 +54,11 @@ namespace OWSInstanceLauncher
                 thereWasAStartupError = true;
                 Log.Error("Please enter a valid OWSAPIKey in appsettings.json!");
             }
+            //Skip PathToDedicatedServer checks when using Agones (K8s-native game server management)
+            else if (!String.IsNullOrEmpty(Environment.GetEnvironmentVariable("OWS_USE_AGONES")))
+            {
+                Log.Information("Agones mode enabled (OWS_USE_AGONES set) — skipping PathToDedicatedServer validation.");
+            }
             //Abort if there is not a valid PathToDedicatedServer in appsettings.json
             else if (String.IsNullOrEmpty(owsInstanceLauncherOptions.PathToDedicatedServer))
             {
@@ -68,7 +74,7 @@ namespace OWSInstanceLauncher
             //If using the UE4 editor, make sure there is a project path in Path To UProject
             else
             {
-                if (OperatingSystem.IsWindows() && owsInstanceLauncherOptions.PathToDedicatedServer.Contains("Editor.exe") || 
+                if (OperatingSystem.IsWindows() && owsInstanceLauncherOptions.PathToDedicatedServer.Contains("Editor.exe") ||
                     OperatingSystem.IsMacOS() && owsInstanceLauncherOptions.PathToDedicatedServer.EndsWith("UnrealEditor") ||
                     OperatingSystem.IsLinux() && owsInstanceLauncherOptions.PathToDedicatedServer.EndsWith("Editor"))
                 {
@@ -89,7 +95,7 @@ namespace OWSInstanceLauncher
                         thereWasAStartupError = true;
                         Log.Error("Because you are using UE4Editor.exe or UnrealEditor.exe, your PathToUProject in appsettings.json must contain a path to the uproject file.  Be sure to use escaped (double) backslashes in the path!");
                     }
-                }  
+                }
             }
 
             //If there was a startup error, don't continue any further.  Wait for shutdown.
@@ -157,6 +163,13 @@ namespace OWSInstanceLauncher
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+
+            app.Map("/health", a => a.Run(async ctx =>
+            {
+                ctx.Response.ContentType = "application/json";
+                ctx.Response.StatusCode = 200;
+                await ctx.Response.WriteAsync("{\"status\":\"healthy\",\"service\":\"instancelauncher\"}");
+            }));
 
             app.UseRouting();
 
