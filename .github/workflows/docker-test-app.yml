@@ -60,8 +60,9 @@ jobs:
                   esac
                   if [ -n "$VER" ]; then
                     case "$TGT" in
-                      *.json) jq --arg v "$VER" '.version = $v' "$TGT" > "${TGT}.tmp" && mv "${TGT}.tmp" "$TGT" ;;
-                      *)      sed -i "s/^version = .*/version = \"${VER}\"/" "$TGT" ;;
+                      *.json)   jq --arg v "$VER" '.version = $v' "$TGT" > "${TGT}.tmp" && mv "${TGT}.tmp" "$TGT" ;;
+                      *.csproj) sed -i "s|<Version>[^<]*</Version>|<Version>${VER}</Version>|" "$TGT" ;;
+                      *)        sed -i "s/^version = .*/version = \"${VER}\"/" "$TGT" ;;
                     esac
                     echo "Synced version ${VER} → ${TGT}"
                   fi

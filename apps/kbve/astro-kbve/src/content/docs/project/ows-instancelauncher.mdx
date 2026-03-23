@@ -11,10 +11,10 @@ tags:
 key: ows_instancelauncher
 pipeline: docker
 app_name: ows-instancelauncher
-version: "0.10.2"
+version: "0.10.3"
 source_path: apps/ows
 version_toml: apps/ows/ows-instance-launcher/version.toml
-version_target: apps/ows/ows-instance-launcher/version.toml
+version_target: apps/ows/ows-instance-launcher/OWSInstanceLauncher.csproj
 runner: ubuntu-latest
 image: kbve/ows-instancelauncher
 deployment_yaml: apps/kube/github/runners/manifests/ows-instance-launcher.yaml
