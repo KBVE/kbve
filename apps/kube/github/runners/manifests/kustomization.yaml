@@ -15,6 +15,4 @@ resources:
     - dind-cache-pvc.yaml
     - engine-cache-pvc.yaml
     - ows-server-build-pvc.yaml
-    - ows-launcher-secrets.yaml
-    - ows-instance-launcher.yaml
     - cache-cleanup-cronjob.yaml
