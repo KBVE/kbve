@@ -129,9 +129,47 @@ async fn get_all_characters(
     }
 }
 
-async fn get_server_to_connect_to() -> Json<serde_json::Value> {
-    // TODO: implement zone instance lookup + RabbitMQ spin-up
-    Json(json!({"success": false, "errorMessage": "Not yet implemented"}))
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct GetServerDto {
+    #[serde(rename = "UserSessionGUID")]
+    _user_session_guid: Uuid,
+    character_name: String,
+    zone_name: String,
+}
+
+async fn get_server_to_connect_to(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Json(body): Json<GetServerDto>,
+) -> Json<serde_json::Value> {
+    let customer_guid = extract_customer_guid(&headers);
+    let repo = InstanceRepo(&state.db);
+
+    match repo
+        .join_map_by_char_name(customer_guid, &body.character_name, &body.zone_name)
+        .await
+    {
+        Ok(result) => {
+            // If we need to start a map and have MQ, publish spin-up
+            if result.need_to_startup_map {
+                if let Some(ref mq) = state.mq {
+                    let msg = crate::mq::SpinUpMessage {
+                        customer_guid: customer_guid.to_string(),
+                        world_server_id: result.world_server_id,
+                        zone_instance_id: result.map_instance_id,
+                        map_name: result.map_name_to_start.clone(),
+                        port: result.port,
+                    };
+                    if let Err(e) = mq.publish_spin_up(result.world_server_id, &msg).await {
+                        tracing::error!(error = %e, "Failed to publish spin-up message");
+                    }
+                }
+            }
+            Json(serde_json::to_value(result).unwrap())
+        }
+        Err(e) => Json(json!({"success": false, "errorMessage": e.to_string()})),
+    }
 }
 
 #[derive(Deserialize)]
@@ -547,9 +585,23 @@ async fn update_character_stats(
     }
 }
 
-async fn player_logout() -> Json<SuccessResponse> {
-    // TODO: clear session, update character state
-    Json(SuccessResponse::ok())
+async fn player_logout(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Json(body): Json<CharNameDto>,
+) -> Json<SuccessResponse> {
+    let customer_guid = extract_customer_guid(&headers);
+    let repo = CharsRepo(&state.db);
+    match repo
+        .player_logout(customer_guid, &body.character_name)
+        .await
+    {
+        Ok(()) => Json(SuccessResponse::ok()),
+        Err(e) => {
+            tracing::error!(error = %e, "PlayerLogout failed");
+            Json(SuccessResponse::err(e.to_string()))
+        }
+    }
 }
 
 // ─── Abilities ───────────────────────────────────────────────
