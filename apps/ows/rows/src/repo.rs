@@ -27,7 +27,28 @@ impl<'a> UsersRepo<'a> {
 
         // If pgcrypto bcrypt didn't match, try app-side argon2
         let (customer_guid, user_guid) = match row {
-            Some(r) => r,
+            Some(r) => {
+                // Auto re-hash to argon2 (Option B migration) — fire-and-forget
+                let pool = self.0.clone();
+                let pw = password.to_string();
+                let email_owned = email.to_string();
+                tokio::spawn(async move {
+                    use argon2::{
+                        Argon2, PasswordHasher,
+                        password_hash::{SaltString, rand_core::OsRng},
+                    };
+                    let salt = SaltString::generate(&mut OsRng);
+                    if let Ok(new_hash) = Argon2::default().hash_password(pw.as_bytes(), &salt) {
+                        let _ = sqlx::query("UPDATE users SET passwordhash = $1 WHERE email = $2")
+                            .bind(new_hash.to_string())
+                            .bind(&email_owned)
+                            .execute(&pool)
+                            .await;
+                        tracing::info!(email = %email_owned, "Password migrated from bcrypt to argon2");
+                    }
+                });
+                r
+            }
             None => {
                 // Fallback: fetch hash and try argon2
                 let fallback: Option<(Uuid, Uuid, String)> = sqlx::query_as(
@@ -606,6 +627,8 @@ impl<'a> InstanceRepo<'a> {
         }
     }
 
+    /// Register or update a world server launcher. Uses UPSERT on the stable
+    /// ZoneServerGUID to prevent duplicate rows on launcher restart.
     pub async fn register_launcher(
         &self,
         customer_guid: Uuid,
@@ -616,8 +639,15 @@ impl<'a> InstanceRepo<'a> {
         starting_port: i32,
     ) -> Result<i32, RowsError> {
         let row: Option<(i32,)> = sqlx::query_as(
-            "INSERT INTO worldservers (customerguid, serverip, maxnumberofinstances, internalserverip, startingmapinstanceport, zoneserverguid)
-             VALUES ($1, $2, $3, $4, $5, $6)
+            "INSERT INTO worldservers (customerguid, serverip, maxnumberofinstances,
+                 internalserverip, startingmapinstanceport, zoneserverguid, serverstatus)
+             VALUES ($1, $2, $3, $4, $5, $6, 1)
+             ON CONFLICT (customerguid, zoneserverguid)
+             DO UPDATE SET serverip = EXCLUDED.serverip,
+                           maxnumberofinstances = EXCLUDED.maxnumberofinstances,
+                           internalserverip = EXCLUDED.internalserverip,
+                           startingmapinstanceport = EXCLUDED.startingmapinstanceport,
+                           serverstatus = 1
              RETURNING worldserverid",
         )
         .bind(customer_guid)

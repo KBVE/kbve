@@ -29,6 +29,7 @@ service InstanceManagement {
   rpc SetZoneInstanceStatus(SetZoneInstanceStatusRequest) returns (SetZoneInstanceStatusResponse);
   rpc SpinUpInstance(SpinUpInstanceRequest) returns (SpinUpInstanceResponse);
   rpc ShutDownInstance(ShutDownInstanceRequest) returns (ShutDownInstanceResponse);
+  rpc UpdateNumberOfPlayers(UpdateNumberOfPlayersRequest) returns (UpdateNumberOfPlayersResponse);
 }
 
 // ──────────────────────────────────────────────
@@ -169,6 +170,13 @@ message ShutDownInstanceRequest {
   int32 zone_instance_id = 1;
 }
 message ShutDownInstanceResponse {
+  bool success = 1;
+}
+message UpdateNumberOfPlayersRequest {
+  int32 zone_instance_id = 1;
+  int32 number_of_players = 2;
+}
+message UpdateNumberOfPlayersResponse {
   bool success = 1;
 }
 
