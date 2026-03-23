@@ -10,40 +10,69 @@ pub struct UsersRepo<'a>(pub &'a DbPool);
 
 impl<'a> UsersRepo<'a> {
     pub async fn login(&self, email: &str, password: &str) -> Result<LoginResult, RowsError> {
-        // OWS stores bcrypt/argon2 hashed passwords
-        let row: Option<(Uuid, Uuid, String)> = sqlx::query_as(
-            "SELECT c.customerguid, u.userguid, u.passwordhash
+        // Verify password SQL-side using pgcrypto crypt() — compatible with existing
+        // bcrypt hashes created by OWS C# (crypt(password, gen_salt('bf'))).
+        // Falls back to app-side argon2 for migrated passwords.
+        let row: Option<(Uuid, Uuid)> = sqlx::query_as(
+            "SELECT c.customerguid, u.userguid
              FROM users u
              JOIN customers c ON c.customerguid = u.customerguid
-             WHERE u.email = $1",
+             WHERE u.email = $1
+               AND u.passwordhash = crypt($2, u.passwordhash)",
         )
         .bind(email)
+        .bind(password)
         .fetch_optional(self.0)
         .await?;
 
-        let Some((customer_guid, user_guid, hash)) = row else {
-            return Ok(LoginResult {
-                authenticated: false,
-                user_session_guid: None,
-                error_message: "Invalid email or password".into(),
-            });
+        // If pgcrypto bcrypt didn't match, try app-side argon2
+        let (customer_guid, user_guid) = match row {
+            Some(r) => r,
+            None => {
+                // Fallback: fetch hash and try argon2
+                let fallback: Option<(Uuid, Uuid, String)> = sqlx::query_as(
+                    "SELECT c.customerguid, u.userguid, u.passwordhash
+                     FROM users u
+                     JOIN customers c ON c.customerguid = u.customerguid
+                     WHERE u.email = $1",
+                )
+                .bind(email)
+                .fetch_optional(self.0)
+                .await?;
+
+                let Some((cg, ug, hash)) = fallback else {
+                    return Ok(LoginResult {
+                        authenticated: false,
+                        user_session_guid: None,
+                        error_message: "Invalid email or password".into(),
+                    });
+                };
+
+                let valid = PasswordHash::new(&hash)
+                    .ok()
+                    .and_then(|ph| {
+                        Argon2::default()
+                            .verify_password(password.as_bytes(), &ph)
+                            .ok()
+                    })
+                    .is_some();
+
+                if !valid {
+                    return Ok(LoginResult {
+                        authenticated: false,
+                        user_session_guid: None,
+                        error_message: "Invalid email or password".into(),
+                    });
+                }
+                (cg, ug)
+            }
         };
 
-        let valid = PasswordHash::new(&hash)
-            .ok()
-            .and_then(|ph| {
-                Argon2::default()
-                    .verify_password(password.as_bytes(), &ph)
-                    .ok()
-            })
-            .is_some();
-        if !valid {
-            return Ok(LoginResult {
-                authenticated: false,
-                user_session_guid: None,
-                error_message: "Invalid email or password".into(),
-            });
-        }
+        // Delete old sessions for this user, then create new
+        sqlx::query("DELETE FROM usersessions WHERE userguid = $1")
+            .bind(user_guid)
+            .execute(self.0)
+            .await?;
 
         let session_guid = Uuid::new_v4();
         sqlx::query(
@@ -96,6 +125,22 @@ impl<'a> UsersRepo<'a> {
         .await?;
 
         Ok(chars)
+    }
+
+    pub async fn set_selected_character(
+        &self,
+        session_guid: Uuid,
+        char_name: &str,
+    ) -> Result<Option<UserSession>, RowsError> {
+        sqlx::query(
+            "UPDATE usersessions SET selectedcharactername = $2 WHERE usersessionguid = $1",
+        )
+        .bind(session_guid)
+        .bind(char_name)
+        .execute(self.0)
+        .await?;
+
+        self.get_session(session_guid).await
     }
 
     pub async fn register(
@@ -215,6 +260,39 @@ impl<'a> CharsRepo<'a> {
         .bind(user_guid)
         .bind(char_name)
         .bind(class_name)
+        .execute(self.0)
+        .await?;
+        Ok(())
+    }
+
+    /// Create character using default values from the DefaultCharacterValues table.
+    /// Matches C# CreateCharacterUsingDefaultCharacterValues endpoint.
+    pub async fn create_character_with_defaults(
+        &self,
+        customer_guid: Uuid,
+        user_guid: Uuid,
+        char_name: &str,
+        default_set_name: &str,
+    ) -> Result<(), RowsError> {
+        // Insert base character, then copy defaults from DefaultCharacterValues
+        sqlx::query(
+            "INSERT INTO characters (customerguid, userguid, charname, classname, createdate,
+                mapname, x, y, z, rx, ry, rz)
+             SELECT $1, $2, $3, dcv.fieldvalue, NOW(),
+                    dcv2.fieldvalue, 0, 0, 0, 0, 0, 0
+             FROM defaultcharactervalues dcv
+             LEFT JOIN defaultcharactervalues dcv2
+               ON dcv2.customerguid = dcv.customerguid
+               AND dcv2.defaultsetname = dcv.defaultsetname
+               AND dcv2.characterfield = 'StartZone'
+             WHERE dcv.customerguid = $1
+               AND dcv.defaultsetname = $4
+               AND dcv.characterfield = 'ClassName'",
+        )
+        .bind(customer_guid)
+        .bind(user_guid)
+        .bind(char_name)
+        .bind(default_set_name)
         .execute(self.0)
         .await?;
         Ok(())
@@ -420,6 +498,25 @@ impl<'a> InstanceRepo<'a> {
         .execute(self.0)
         .await?;
 
+        Ok(())
+    }
+
+    pub async fn update_number_of_players(
+        &self,
+        customer_guid: Uuid,
+        zone_instance_id: i32,
+        number_of_players: i32,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "UPDATE mapinstances
+             SET numberofreportedplayers = $3, lastupdatefromserver = NOW()
+             WHERE customerguid = $1 AND mapinstanceid = $2",
+        )
+        .bind(customer_guid)
+        .bind(zone_instance_id)
+        .bind(number_of_players)
+        .execute(self.0)
+        .await?;
         Ok(())
     }
 
@@ -656,6 +753,76 @@ impl<'a> AbilitiesRepo<'a> {
         .execute(self.0)
         .await?;
         Ok(())
+    }
+
+    pub async fn update_ability(
+        &self,
+        customer_guid: Uuid,
+        char_name: &str,
+        ability_name: &str,
+        ability_level: i32,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "UPDATE charhasabilities SET abilitylevel = $4
+             WHERE customerguid = $1
+               AND characterid = (SELECT characterid FROM characters WHERE customerguid = $1 AND charname = $2)
+               AND abilityid = (SELECT abilityid FROM abilities WHERE customerguid = $1 AND abilityname = $3)",
+        )
+        .bind(customer_guid)
+        .bind(char_name)
+        .bind(ability_name)
+        .bind(ability_level)
+        .execute(self.0)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn get_ability_bars(
+        &self,
+        customer_guid: Uuid,
+        char_name: &str,
+    ) -> Result<Vec<AbilityBar>, RowsError> {
+        let bars = sqlx::query_as::<_, AbilityBar>(
+            "SELECT cab.charabilitybarid AS char_ability_bar_id,
+                    cab.abilitybarname AS ability_bar_name,
+                    cab.maxnumberofslots AS max_number_of_slots,
+                    cab.numberofunlockedslots AS number_of_unlocked_slots,
+                    cab.charabilitybarscustomjson AS custom_json
+             FROM charabilitybar cab
+             JOIN characters c ON c.characterid = cab.characterid AND c.customerguid = cab.customerguid
+             WHERE cab.customerguid = $1 AND c.charname = $2",
+        )
+        .bind(customer_guid)
+        .bind(char_name)
+        .fetch_all(self.0)
+        .await?;
+        Ok(bars)
+    }
+
+    pub async fn get_ability_bars_and_abilities(
+        &self,
+        customer_guid: Uuid,
+        char_name: &str,
+    ) -> Result<Vec<AbilityBarAbility>, RowsError> {
+        let items = sqlx::query_as::<_, AbilityBarAbility>(
+            "SELECT cab.charabilitybarid AS char_ability_bar_id,
+                    cab.abilitybarname AS ability_bar_name,
+                    a.abilityname AS ability_name,
+                    cha.abilitylevel AS ability_level,
+                    caba.inslotnumber AS in_slot_number,
+                    caba.charabilitybarabilitiescustomjson AS custom_json
+             FROM charabilitybarability caba
+             JOIN charabilitybar cab ON cab.charabilitybarid = caba.charabilitybarid AND cab.customerguid = caba.customerguid
+             JOIN charhasabilities cha ON cha.charhasabilitiesid = caba.charhasabilitiesid AND cha.customerguid = caba.customerguid
+             JOIN abilities a ON a.abilityid = cha.abilityid AND a.customerguid = cha.customerguid
+             JOIN characters c ON c.characterid = cab.characterid AND c.customerguid = cab.customerguid
+             WHERE caba.customerguid = $1 AND c.charname = $2",
+        )
+        .bind(customer_guid)
+        .bind(char_name)
+        .fetch_all(self.0)
+        .await?;
+        Ok(items)
     }
 }
 

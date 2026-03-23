@@ -8,6 +8,7 @@ use axum::{
     extract::{Path, State},
     http::HeaderMap,
     middleware,
+    response::IntoResponse,
     routing::{get, post},
 };
 use serde::Deserialize;
@@ -32,6 +33,7 @@ pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
 
     Router::new()
         .route("/health", get(health))
+        .route("/ready", get(readiness).with_state(hs.clone()))
         .merge(public)
         .merge(instance)
         .merge(character)
@@ -47,6 +49,28 @@ async fn health() -> Json<HealthResponse> {
     })
 }
 
+/// Deep readiness check — probes DB pool. Returns 503 if database is unavailable.
+async fn readiness(State(hs): State<HandlerState>) -> axum::response::Response {
+    let db_ok = sqlx::query("SELECT 1").execute(&hs.app.db).await.is_ok();
+
+    let status = if db_ok { "ready" } else { "degraded" };
+    let http_status = if db_ok {
+        axum::http::StatusCode::OK
+    } else {
+        axum::http::StatusCode::SERVICE_UNAVAILABLE
+    };
+
+    let body = serde_json::json!({
+        "status": status,
+        "service": "rows",
+        "database": db_ok,
+        "sessions_cached": hs.app.sessions.len(),
+        "zones_tracked": hs.app.zone_servers.len(),
+    });
+
+    (http_status, Json(body)).into_response()
+}
+
 // ─── Public API ──────────────────────────────────────────────
 
 fn public_api_routes(hs: HandlerState) -> Router {
@@ -57,6 +81,14 @@ fn public_api_routes(hs: HandlerState) -> Router {
         .route("/api/Users/GetUserSession", get(get_user_session))
         .route("/api/Users/GetAllCharacters", post(get_all_characters))
         .route("/api/Users/CreateCharacter", post(create_character))
+        .route(
+            "/api/Users/CreateCharacterUsingDefaultCharacterValues",
+            post(create_char_defaults),
+        )
+        .route(
+            "/api/Users/SetSelectedCharacterAndGetUserSession",
+            post(set_selected_char),
+        )
         .route("/api/Users/RemoveCharacter", post(remove_character))
         .route(
             "/api/Users/GetServerToConnectTo",
@@ -273,6 +305,88 @@ async fn remove_character(
     }
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct CreateCharDefaultsDto {
+    #[serde(rename = "UserSessionGUID")]
+    user_session_guid: Uuid,
+    character_name: String,
+    default_set_name: String,
+}
+
+async fn create_char_defaults(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<CreateCharDefaultsDto>,
+) -> Json<SuccessResponse> {
+    let customer_guid = extract_customer_guid(&headers);
+    match hs
+        .svc
+        .create_character_with_defaults(
+            body.user_session_guid,
+            customer_guid,
+            &body.character_name,
+            &body.default_set_name,
+        )
+        .await
+    {
+        Ok(()) => Json(SuccessResponse::ok()),
+        Err(e) => Json(SuccessResponse::err(e.to_string())),
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct SetSelectedCharDto {
+    #[serde(rename = "UserSessionGUID")]
+    user_session_guid: Uuid,
+    character_name: String,
+}
+
+async fn set_selected_char(
+    State(hs): State<HandlerState>,
+    Json(body): Json<SetSelectedCharDto>,
+) -> ApiResult<crate::models::UserSession> {
+    let session = hs
+        .svc
+        .set_selected_character_and_get_session(body.user_session_guid, &body.character_name)
+        .await?;
+    Ok(Json(session))
+}
+
+#[derive(Deserialize)]
+struct UpdatePlayersWrapper {
+    request: UpdatePlayersPayload,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct UpdatePlayersPayload {
+    #[serde(rename = "ZoneInstanceID")]
+    zone_instance_id: i32,
+    number_of_players: i32,
+}
+
+async fn update_number_of_players(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<UpdatePlayersWrapper>,
+) -> Json<SuccessResponse> {
+    let customer_guid = extract_customer_guid(&headers);
+    match hs
+        .svc
+        .update_number_of_players(
+            customer_guid,
+            body.request.zone_instance_id,
+            body.request.number_of_players,
+        )
+        .await
+    {
+        Ok(()) => Json(SuccessResponse::ok()),
+        Err(e) => Json(SuccessResponse::err(e.to_string())),
+    }
+}
+
 // ─── Instance Management ─────────────────────────────────────
 
 fn instance_mgmt_routes(hs: HandlerState) -> Router {
@@ -281,6 +395,10 @@ fn instance_mgmt_routes(hs: HandlerState) -> Router {
         .route(
             "/api/Instance/GetZoneInstancesForWorldServer",
             post(get_zone_instances),
+        )
+        .route(
+            "/api/Instance/UpdateNumberOfPlayers",
+            post(update_number_of_players),
         )
         .route("/api/Instance/RegisterLauncher", post(register_launcher))
         .route(
@@ -349,14 +467,65 @@ async fn get_zone_instances(
     Ok(Json(zones))
 }
 
-async fn register_launcher() -> Json<SuccessResponse> {
-    // TODO: persist launcher registration
-    Json(SuccessResponse::ok())
+#[derive(Deserialize)]
+struct RegisterLauncherWrapper {
+    #[serde(rename = "Request")]
+    request: RegisterLauncherPayload,
 }
 
-async fn start_instance_launcher() -> String {
-    // TODO: return world server ID
-    "-1".to_string()
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct RegisterLauncherPayload {
+    #[serde(rename = "launcherGUID")]
+    launcher_guid: String,
+    server_ip: String,
+    max_number_of_instances: i32,
+    internal_server_ip: String,
+    starting_instance_port: i32,
+}
+
+async fn register_launcher(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<RegisterLauncherWrapper>,
+) -> Json<SuccessResponse> {
+    let customer_guid = extract_customer_guid(&headers);
+    let r = &body.request;
+    let repo = crate::repo::InstanceRepo(&hs.app.db);
+    match repo
+        .register_launcher(
+            customer_guid,
+            &r.launcher_guid,
+            &r.server_ip,
+            r.max_number_of_instances,
+            &r.internal_server_ip,
+            r.starting_instance_port,
+        )
+        .await
+    {
+        Ok(id) => {
+            tracing::info!(world_server_id = id, "Launcher registered");
+            Json(SuccessResponse::ok())
+        }
+        Err(e) => Json(SuccessResponse::err(e.to_string())),
+    }
+}
+
+async fn start_instance_launcher(State(hs): State<HandlerState>, headers: HeaderMap) -> String {
+    let customer_guid = extract_customer_guid(&headers);
+    let launcher_guid = headers
+        .get("x-launcherguid")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("");
+
+    let repo = crate::repo::InstanceRepo(&hs.app.db);
+    match repo
+        .register_launcher(customer_guid, launcher_guid, "", 10, "", 7778)
+        .await
+    {
+        Ok(id) => id.to_string(),
+        Err(_) => "-1".to_string(),
+    }
 }
 
 // ─── Character Persistence ───────────────────────────────────
@@ -554,6 +723,15 @@ fn abilities_routes(hs: HandlerState) -> Router {
             "/api/Abilities/RemoveAbilityFromCharacter",
             post(remove_ability),
         )
+        .route(
+            "/api/Abilities/UpdateAbilityOnCharacter",
+            post(update_ability),
+        )
+        .route("/api/Abilities/GetAbilityBars", post(get_ability_bars))
+        .route(
+            "/api/Abilities/GetAbilityBarsAndAbilities",
+            post(get_ability_bars_and_abilities),
+        )
         .route("/api/Abilities/GetAbilities", get(get_abilities_list))
         .layer(middleware::from_fn(require_customer_guid))
         .with_state(hs)
@@ -622,6 +800,53 @@ async fn remove_ability(
         Ok(()) => Json(SuccessResponse::ok()),
         Err(e) => Json(SuccessResponse::err(e.to_string())),
     }
+}
+
+async fn update_ability(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<AddAbilityDto>,
+) -> Json<SuccessResponse> {
+    let customer_guid = extract_customer_guid(&headers);
+    match hs
+        .svc
+        .update_ability(
+            customer_guid,
+            &body.character_name,
+            &body.ability_name,
+            body.ability_level,
+        )
+        .await
+    {
+        Ok(()) => Json(SuccessResponse::ok()),
+        Err(e) => Json(SuccessResponse::err(e.to_string())),
+    }
+}
+
+async fn get_ability_bars(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<CharNameDto>,
+) -> ApiResult<Vec<crate::models::AbilityBar>> {
+    let customer_guid = extract_customer_guid(&headers);
+    let bars = hs
+        .svc
+        .get_ability_bars(customer_guid, &body.character_name)
+        .await?;
+    Ok(Json(bars))
+}
+
+async fn get_ability_bars_and_abilities(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<CharNameDto>,
+) -> ApiResult<Vec<crate::models::AbilityBarAbility>> {
+    let customer_guid = extract_customer_guid(&headers);
+    let items = hs
+        .svc
+        .get_ability_bars_and_abilities(customer_guid, &body.character_name)
+        .await?;
+    Ok(Json(items))
 }
 
 async fn get_abilities_list() -> Json<Vec<crate::models::CharacterAbility>> {

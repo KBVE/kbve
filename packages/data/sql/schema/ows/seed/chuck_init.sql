@@ -5,24 +5,28 @@
 -- Usage:
 --   kubectl port-forward -n kilobase svc/supabase-cluster-rw 54322:5432
 --   GUID=$(kubectl get secret ows-customer-guid -n ows -o jsonpath='{.data.customer-guid}' | base64 -d)
+--   LAUNCHER_GUID="42a499a7-77b1-493a-9f7c-d9784740e228"
 --   PGPASSWORD=<pass> psql -h localhost -p 54322 -U ows -d supabase \
 --     -v customer_guid="'${GUID}'" \
 --     -v server_ip="'game.chuckrpg.com'" \
+--     -v launcher_guid="'${LAUNCHER_GUID}'" \
 --     -f packages/data/sql/schema/ows/seed/chuck_init.sql
 
-SET search_path TO ows;
+SET search_path TO ows, extensions, public;
 
 BEGIN;
 
 DO $$
     DECLARE _CustomerGUID UUID;
     DECLARE _ServerIP TEXT;
+    DECLARE _LauncherGUID UUID;
     DECLARE _DefaultCharacterValuesID INT;
     DECLARE _Existing INT;
 BEGIN
 
     _CustomerGUID := :'customer_guid';
     _ServerIP := :'server_ip';
+    _LauncherGUID := :'launcher_guid';
 
     -- Guard: abort if customer already seeded
     SELECT COUNT(*) INTO _Existing FROM Customers WHERE CustomerGUID = _CustomerGUID;
@@ -42,10 +46,10 @@ BEGIN
     VALUES (_CustomerGUID, 'Lvl_ThirdPerson', NULL, 1, 1, 'MainWorld', '', '', 1, 60, 80, 1);
     RAISE NOTICE 'Created MainWorld zone';
 
-    -- World server
-    INSERT INTO WorldServers (CustomerGUID, ServerIP, InternalServerIP, MaxNumberOfInstances, Port, ServerStatus, StartingMapInstancePort)
-    VALUES (_CustomerGUID, _ServerIP, '127.0.0.1', 10, 8181, 0, 7778);
-    RAISE NOTICE 'Created world server: %', _ServerIP;
+    -- World server (active, with stable launcher GUID for upsert)
+    INSERT INTO WorldServers (CustomerGUID, ServerIP, InternalServerIP, MaxNumberOfInstances, Port, ServerStatus, StartingMapInstancePort, ZoneServerGUID)
+    VALUES (_CustomerGUID, _ServerIP, '127.0.0.1', 10, 8181, 1, 7778, _LauncherGUID);
+    RAISE NOTICE 'Created world server: % (active, launcher=%)', _ServerIP, _LauncherGUID;
 
     -- Default character values
     INSERT INTO DefaultCharacterValues (CustomerGUID, DefaultSetName, StartingMapName, X, Y, Z, RX, RY, RZ)

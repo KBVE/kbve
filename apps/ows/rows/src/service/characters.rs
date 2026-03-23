@@ -40,6 +40,24 @@ impl OWSService {
             .await
     }
 
+    pub async fn create_character_with_defaults(
+        &self,
+        session_guid: Uuid,
+        customer_guid: Uuid,
+        char_name: &str,
+        default_set_name: &str,
+    ) -> Result<(), RowsError> {
+        let session = self.resolve_session(session_guid).await?;
+        let repo = CharsRepo(&self.state.db);
+        repo.create_character_with_defaults(
+            customer_guid,
+            session.user_guid,
+            char_name,
+            default_set_name,
+        )
+        .await
+    }
+
     pub async fn remove_character(
         &self,
         customer_guid: Uuid,

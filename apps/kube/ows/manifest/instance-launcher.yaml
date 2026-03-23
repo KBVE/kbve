@@ -34,6 +34,8 @@ spec:
                         value: 'arc-runners'
                       - name: AGONES_FLEET
                         value: 'ows-hubworld'
+                      - name: OWSInstanceLauncherOptions__LauncherGuid
+                        value: '42a499a7-77b1-493a-9f7c-d9784740e228'
                       - name: OWSInstanceLauncherOptions__OWSAPIKey
                         valueFrom:
                             secretKeyRef:

@@ -183,6 +183,29 @@ pub struct CustomDataRows {
     pub rows: Vec<CustomCharacterData>,
 }
 
+/// Ability bar
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct AbilityBar {
+    pub char_ability_bar_id: i32,
+    pub ability_bar_name: String,
+    pub max_number_of_slots: i32,
+    pub number_of_unlocked_slots: i32,
+    pub custom_json: Option<String>,
+}
+
+/// Ability bar with abilities
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct AbilityBarAbility {
+    pub char_ability_bar_id: i32,
+    pub ability_bar_name: String,
+    pub ability_name: String,
+    pub ability_level: i32,
+    pub in_slot_number: i32,
+    pub custom_json: Option<String>,
+}
+
 /// Health check response
 #[derive(Serialize)]
 pub struct HealthResponse {
