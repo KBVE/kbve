@@ -1,7 +1,13 @@
+# OWS API routing for api.chuckrpg.com
+# All 4 OWS services behind one domain. Routes by path:
+#   /api/Characters/GetByName, UpdateCharacterStats, etc. → characterpersistence
+#   /api/Instance/*, /api/Zones/*                         → instancemanagement
+#   /api/GlobalData/*                                     → globaldata
+#   /api/Users/*, /api/Characters/ByName, /health, /*     → publicapi (default)
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-    name: ows-publicapi-route
+    name: ows-api-routes
     namespace: ows
 spec:
     parentRefs:
@@ -10,6 +16,55 @@ spec:
     hostnames:
         - api.chuckrpg.com
     rules:
+        # CharacterPersistence — specific action routes
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /api/Characters/GetByName
+              - path:
+                    type: PathPrefix
+                    value: /api/Characters/GetCustomData
+              - path:
+                    type: PathPrefix
+                    value: /api/Characters/AddOrUpdateCustomData
+              - path:
+                    type: PathPrefix
+                    value: /api/Characters/UpdateCharacterStats
+              - path:
+                    type: PathPrefix
+                    value: /api/Characters/UpdateAllPlayerPositions
+              - path:
+                    type: PathPrefix
+                    value: /api/Characters/PlayerLogout
+              - path:
+                    type: PathPrefix
+                    value: /api/Abilities
+              - path:
+                    type: PathPrefix
+                    value: /api/Status
+          backendRefs:
+              - name: ows-characterpersistence
+                port: 80
+        # InstanceManagement
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /api/Instance
+              - path:
+                    type: PathPrefix
+                    value: /api/Zones
+          backendRefs:
+              - name: ows-instancemanagement
+                port: 80
+        # GlobalData
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /api/GlobalData
+          backendRefs:
+              - name: ows-globaldata
+                port: 80
+        # PublicAPI — default catch-all (Users, Characters/ByName, health, etc.)
         - matches:
               - path:
                     type: PathPrefix
