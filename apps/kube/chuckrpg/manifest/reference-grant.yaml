@@ -1,0 +1,13 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+    name: allow-gateway-tls
+    namespace: chuckrpg
+spec:
+    from:
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          namespace: kbve
+    to:
+        - group: ''
+          kind: Secret
