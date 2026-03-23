@@ -81,6 +81,14 @@ fn public_api_routes(hs: HandlerState) -> Router {
         .route("/api/Users/GetUserSession", get(get_user_session))
         .route("/api/Users/GetAllCharacters", post(get_all_characters))
         .route("/api/Users/CreateCharacter", post(create_character))
+        .route(
+            "/api/Users/CreateCharacterUsingDefaultCharacterValues",
+            post(create_char_defaults),
+        )
+        .route(
+            "/api/Users/SetSelectedCharacterAndGetUserSession",
+            post(set_selected_char),
+        )
         .route("/api/Users/RemoveCharacter", post(remove_character))
         .route(
             "/api/Users/GetServerToConnectTo",
@@ -297,6 +305,88 @@ async fn remove_character(
     }
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct CreateCharDefaultsDto {
+    #[serde(rename = "UserSessionGUID")]
+    user_session_guid: Uuid,
+    character_name: String,
+    default_set_name: String,
+}
+
+async fn create_char_defaults(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<CreateCharDefaultsDto>,
+) -> Json<SuccessResponse> {
+    let customer_guid = extract_customer_guid(&headers);
+    match hs
+        .svc
+        .create_character_with_defaults(
+            body.user_session_guid,
+            customer_guid,
+            &body.character_name,
+            &body.default_set_name,
+        )
+        .await
+    {
+        Ok(()) => Json(SuccessResponse::ok()),
+        Err(e) => Json(SuccessResponse::err(e.to_string())),
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct SetSelectedCharDto {
+    #[serde(rename = "UserSessionGUID")]
+    user_session_guid: Uuid,
+    character_name: String,
+}
+
+async fn set_selected_char(
+    State(hs): State<HandlerState>,
+    Json(body): Json<SetSelectedCharDto>,
+) -> ApiResult<crate::models::UserSession> {
+    let session = hs
+        .svc
+        .set_selected_character_and_get_session(body.user_session_guid, &body.character_name)
+        .await?;
+    Ok(Json(session))
+}
+
+#[derive(Deserialize)]
+struct UpdatePlayersWrapper {
+    request: UpdatePlayersPayload,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct UpdatePlayersPayload {
+    #[serde(rename = "ZoneInstanceID")]
+    zone_instance_id: i32,
+    number_of_players: i32,
+}
+
+async fn update_number_of_players(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<UpdatePlayersWrapper>,
+) -> Json<SuccessResponse> {
+    let customer_guid = extract_customer_guid(&headers);
+    match hs
+        .svc
+        .update_number_of_players(
+            customer_guid,
+            body.request.zone_instance_id,
+            body.request.number_of_players,
+        )
+        .await
+    {
+        Ok(()) => Json(SuccessResponse::ok()),
+        Err(e) => Json(SuccessResponse::err(e.to_string())),
+    }
+}
+
 // ─── Instance Management ─────────────────────────────────────
 
 fn instance_mgmt_routes(hs: HandlerState) -> Router {
@@ -305,6 +395,10 @@ fn instance_mgmt_routes(hs: HandlerState) -> Router {
         .route(
             "/api/Instance/GetZoneInstancesForWorldServer",
             post(get_zone_instances),
+        )
+        .route(
+            "/api/Instance/UpdateNumberOfPlayers",
+            post(update_number_of_players),
         )
         .route("/api/Instance/RegisterLauncher", post(register_launcher))
         .route(

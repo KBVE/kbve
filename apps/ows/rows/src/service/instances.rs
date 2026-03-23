@@ -55,4 +55,15 @@ impl OWSService {
         repo.set_zone_status(customer_guid, zone_instance_id, status)
             .await
     }
+
+    pub async fn update_number_of_players(
+        &self,
+        customer_guid: Uuid,
+        zone_instance_id: i32,
+        number_of_players: i32,
+    ) -> Result<(), RowsError> {
+        let repo = InstanceRepo(&self.state.db);
+        repo.update_number_of_players(customer_guid, zone_instance_id, number_of_players)
+            .await
+    }
 }

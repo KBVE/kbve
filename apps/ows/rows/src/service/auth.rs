@@ -86,4 +86,15 @@ impl OWSService {
         self.state.sessions.insert(session_guid, cached.clone());
         Ok(cached)
     }
+
+    pub async fn set_selected_character_and_get_session(
+        &self,
+        session_guid: Uuid,
+        char_name: &str,
+    ) -> Result<UserSession, RowsError> {
+        let repo = UsersRepo(&self.state.db);
+        repo.set_selected_character(session_guid, char_name)
+            .await?
+            .ok_or_else(|| RowsError::NotFound("Session not found".into()))
+    }
 }
