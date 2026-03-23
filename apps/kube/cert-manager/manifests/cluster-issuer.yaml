@@ -68,6 +68,17 @@ spec:
                           metadata:
                               annotations:
                                   cert-manager.io/http01-ingress-path-type: 'Prefix'
+
+            # --- Solver 6: CHUCKRPG.COM domains (Gateway API HTTP-01) ---
+            - selector:
+                  dnsZones:
+                      - chuckrpg.com
+              http01:
+                  gatewayHTTPRoute:
+                      parentRefs:
+                          - name: kbve-gateway
+                            namespace: kbve
+                            kind: Gateway
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
