@@ -145,6 +145,7 @@ jobs:
                         *.json)    local_v=$(jq -r '.version // "0.0.0"' "$source_file" 2>/dev/null || echo "0.0.0") ;;
                         *.uplugin) local_v=$(jq -r '.VersionName // "0.0.0"' "$source_file" 2>/dev/null || echo "0.0.0") ;;
                         *.mdx)     local_v=$(sed -n 's/^version: *"\([^"]*\)"/\1/p' "$source_file" | head -1); [ -z "$local_v" ] && local_v="0.0.0" ;;
+                        *.csproj)  local_v=$(sed -n 's/.*<Version>\([^<]*\)<\/Version>.*/\1/p' "$source_file" | head -1); [ -z "$local_v" ] && local_v="0.0.0" ;;
                         *)         local_v=$(grep -m1 '^version' "$source_file" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0") ;;
                       esac
                     fi
