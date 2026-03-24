@@ -2,6 +2,7 @@
 import MobileMenuFooter from 'virtual:starlight/components/MobileMenuFooter';
 import SidebarPersister from '@astrojs/starlight/components/SidebarPersister.astro';
 import SidebarSublist from '@astrojs/starlight/components/SidebarSublist.astro';
+import SidebarToggle from './SidebarToggle';
 
 const { sidebar } = Astro.locals.starlightRoute;
 ---
@@ -28,6 +29,8 @@ const { sidebar } = Astro.locals.starlightRoute;
 	</button>
 </div>
 
+<SidebarToggle client:load side="left" targetId="sl-sidebar-collapse-btn" />
+
 <SidebarPersister>
 	<SidebarSublist sublist={sidebar} />
 </SidebarPersister>
@@ -35,30 +38,3 @@ const { sidebar } = Astro.locals.starlightRoute;
 <div class="md:sl-hidden">
 	<MobileMenuFooter />
 </div>
-
-<script>
-	const btn = document.getElementById('sl-sidebar-collapse-btn');
-	const STORAGE_KEY = 'sl-sidebar-collapsed';
-
-	function applyState(collapsed: boolean) {
-		document.documentElement.setAttribute(
-			'data-sidebar-collapsed',
-			String(collapsed),
-		);
-	}
-
-	// Restore saved state on load
-	const saved = localStorage.getItem(STORAGE_KEY);
-	if (saved === 'true') {
-		applyState(true);
-	}
-
-	btn?.addEventListener('click', () => {
-		const isCollapsed =
-			document.documentElement.getAttribute('data-sidebar-collapsed') ===
-			'true';
-		const next = !isCollapsed;
-		applyState(next);
-		localStorage.setItem(STORAGE_KEY, String(next));
-	});
-</script>

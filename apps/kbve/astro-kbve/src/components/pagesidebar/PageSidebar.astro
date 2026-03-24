@@ -1,8 +1,37 @@
 ---
 import Default from '@astrojs/starlight/components/PageSidebar.astro';
+import SidebarToggle from '../sidebar/SidebarToggle';
 // TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
 // import { PageGraph, PageBacklinks } from 'starlight-site-graph/components';
 ---
+
+<div class="sl-right-sidebar-toggle-wrap">
+	<button
+		id="sl-right-sidebar-collapse-btn"
+		class="sl-sidebar-collapse-btn"
+		aria-label="Toggle right sidebar"
+		title="Toggle right sidebar">
+		<svg
+			class="sl-sidebar-collapse-icon"
+			xmlns="http://www.w3.org/2000/svg"
+			width="20"
+			height="20"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round">
+			<polyline points="9 18 15 12 9 6"></polyline>
+		</svg>
+	</button>
+</div>
+
+<SidebarToggle
+	client:load
+	side="right"
+	targetId="sl-right-sidebar-collapse-btn"
+/>
 
 <div class="mx-auto p-3">
 	<a
