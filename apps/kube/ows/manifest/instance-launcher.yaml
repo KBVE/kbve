@@ -11,7 +11,7 @@ metadata:
         app: ows-instancelauncher
         app.kubernetes.io/part-of: ows
 spec:
-    replicas: 1
+    replicas: 0
     selector:
         matchLabels:
             app: ows-instancelauncher
