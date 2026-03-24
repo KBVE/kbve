@@ -26,13 +26,14 @@ use tower_http::limit::RequestBodyLimitLayer;
 use tracing::info;
 use uuid::Uuid;
 
-/// Compiled protobuf types from ows.proto + rows.proto
+/// Compiled protobuf types from ows.proto + rows.proto.
+/// Vendored in src/proto/ — regenerate with `BUILD_PROTO=1 cargo build -p rows`.
 pub mod proto {
     pub mod ows {
-        tonic::include_proto!("ows");
+        include!("proto/ows.rs");
     }
     pub mod rows {
-        tonic::include_proto!("rows");
+        include!("proto/rows.rs");
     }
 }
 
