@@ -18,6 +18,10 @@ pub fn router() -> Router<HttpState> {
 
 /// JSON snapshot of a live game session.
 async fn session_json(State(state): State<HttpState>, Path(session_id): Path<String>) -> Response {
+    if !super::security::is_valid_session_id(&session_id) {
+        return (StatusCode::BAD_REQUEST, "invalid session id").into_response();
+    }
+
     let handle = match state.app.sessions.get(&session_id) {
         Some(h) => h,
         None => {
@@ -39,6 +43,10 @@ async fn session_json(State(state): State<HttpState>, Path(session_id): Path<Str
 
 /// Server-rendered session viewer page.
 async fn session_page(State(state): State<HttpState>, Path(session_id): Path<String>) -> Response {
+    if !super::security::is_valid_session_id(&session_id) {
+        return (StatusCode::BAD_REQUEST, "invalid session id").into_response();
+    }
+
     if state.app.sessions.get(&session_id).is_none() {
         return (StatusCode::NOT_FOUND, "Session not found").into_response();
     }
@@ -178,7 +186,7 @@ mod tests {
         players.insert(owner, PlayerState::default());
         let session = SessionState {
             id: uuid::Uuid::new_v4(),
-            short_id: "page1234".to_owned(),
+            short_id: "da6e1234".to_owned(),
             owner,
             party: Vec::new(),
             mode: SessionMode::Solo,
@@ -206,7 +214,7 @@ mod tests {
         let resp = app
             .oneshot(
                 Request::builder()
-                    .uri("/session/page1234")
+                    .uri("/session/da6e1234")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -216,7 +224,7 @@ mod tests {
         assert_eq!(resp.status(), StatusCode::OK);
         let body = resp.into_body().collect().await.unwrap().to_bytes();
         let html = String::from_utf8_lossy(&body);
-        assert!(html.contains("page1234"));
+        assert!(html.contains("da6e1234"));
         assert!(html.contains("Session Viewer"));
     }
 }

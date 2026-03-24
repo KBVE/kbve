@@ -125,15 +125,15 @@
             <img src="/svg/inventory/png/{{ short_id }}" alt="Inventory Card" loading="lazy" />
         </div>
 
-        <div id="session-data">
+        <div id="session-data" data-sid="{{ short_id }}">
             <p class="loading">Loading session data...</p>
         </div>
     </div>
 
     <script>
     (function() {
-        var sid = '{{ short_id }}';
         var container = document.getElementById('session-data');
+        var sid = container.getAttribute('data-sid');
 
         fetch('/api/session/' + sid)
             .then(function(r) {
