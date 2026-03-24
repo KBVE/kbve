@@ -27,7 +27,7 @@ spec:
             serviceAccountName: ows-instancelauncher
             containers:
                 - name: rows
-                  image: ghcr.io/kbve/rows:0.1.4
+                  image: ghcr.io/kbve/rows:0.1.5
                   imagePullPolicy: Always
                   env:
                       - name: HTTP_HOST
