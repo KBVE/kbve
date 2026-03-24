@@ -15,85 +15,224 @@ on:
                 type: string
 
 jobs:
-    auto-merge:
+    # ── Job 1: Read-only validation (GITHUB_TOKEN only) ──────────────────────
+    # Fetches PR metadata via API, validates against dispatch manifest.
+    # No write permissions — cannot approve, merge, or modify anything.
+    validate:
         if: github.repository == 'KBVE/kbve'
         runs-on: ubuntu-latest
         timeout-minutes: 5
+        outputs:
+            approved: ${{ steps.check.outputs.approved }}
+            app_name: ${{ steps.check.outputs.app_name }}
         steps:
-            - name: Validate PR
-              id: validate
-              run: |
-                  PR=$(gh pr view ${{ inputs.pr_number }} --json author,baseRefName,labels,title,files --repo ${{ github.repository }})
+            - name: Checkout manifest
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+                  sparse-checkout: .github/ci-dispatch-manifest.json
+                  sparse-checkout-cone-mode: false
 
-                  AUTHOR=$(echo "$PR" | jq -r '.author.login')
-                  BASE=$(echo "$PR" | jq -r '.baseRefName')
-                  TITLE=$(echo "$PR" | jq -r '.title')
-                  LABELS=$(echo "$PR" | jq -r '.labels[].name' 2>/dev/null)
+            - name: Validate PR against manifest
+              id: check
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      const fs = require('fs');
+                      const prNumber = parseInt('${{ inputs.pr_number }}');
 
-                  echo "PR #${{ inputs.pr_number }}: author=$AUTHOR base=$BASE title=$TITLE"
+                      // Fetch PR data via API — no shell interpolation of untrusted fields
+                      const { data: pr } = await github.rest.pulls.get({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: prNumber,
+                      });
+                      const { data: files } = await github.rest.pulls.listFiles({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: prNumber,
+                      });
 
-                  # Author check
-                  if [ "$AUTHOR" != "github-actions" ]; then
-                    echo "::error::Author '$AUTHOR' is not github-actions — aborting."
-                    exit 1
-                  fi
+                      // Two-pass sanitizer:
+                      // Pass 1 (blocklist): strip known-dangerous Unicode — RTL overrides,
+                      //   zero-width chars, bidi embeddings, control characters.
+                      // Pass 2 (allowlist): strip anything not in the safe character set.
+                      const sanitize = (s) => {
+                        const stripped = s.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u2028-\u202F\u2060-\u206F\uFEFF\uFFF0-\uFFFF]/g, '');
+                        return stripped.replace(/[^a-zA-Z0-9\-_.\/@: ()]/g, '');
+                      };
 
-                  # Base branch check
-                  if [ "$BASE" != "dev" ]; then
-                    echo "::error::Base branch '$BASE' is not dev — aborting."
-                    exit 1
-                  fi
+                      // Sanitize and verify every field — reject if ANY field
+                      // contained characters that were stripped.
+                      const verifiedSanitize = (raw, fieldName) => {
+                        const clean = sanitize(raw);
+                        if (clean !== raw) {
+                          core.setFailed(
+                            `Field '${fieldName}' contains invalid characters — aborting. ` +
+                            `Raw: '${JSON.stringify(raw)}' Clean: '${clean}'`
+                          );
+                          return null;
+                        }
+                        return clean;
+                      };
 
-                  # Label check
-                  if ! echo "$LABELS" | grep -qE "^(atomic|auto-pr)$"; then
-                    echo "::error::Missing required label (atomic or auto-pr). Labels: $LABELS"
-                    exit 1
-                  fi
+                      const author = verifiedSanitize(pr.user.login, 'author');
+                      if (author === null) return;
+                      const base = verifiedSanitize(pr.base.ref, 'base');
+                      if (base === null) return;
+                      const title = verifiedSanitize(pr.title, 'title');
+                      if (title === null) return;
 
-                  # Title check
-                  TITLE_OK=false
-                  for PREFIX in "chore(ows-" "chore(axum-" "chore(edge" "chore(discordsh" "chore(herbmail" "chore(cryptothrone" "chore(cityvote" "Atomic: kube"; do
-                    if echo "$TITLE" | grep -q "^$PREFIX"; then
-                      TITLE_OK=true
-                      break
-                    fi
-                  done
-                  if [ "$TITLE_OK" != "true" ]; then
-                    echo "::error::Title '$TITLE' does not match any allowed prefix — aborting."
-                    exit 1
-                  fi
+                      const rawLabels = (pr.labels || []).map(l => l.name);
+                      const labels = [];
+                      for (const raw of rawLabels) {
+                        const clean = verifiedSanitize(raw, `label '${sanitize(raw)}'`);
+                        if (clean === null) return;
+                        labels.push(clean);
+                      }
 
-                  # File allowlist check
-                  FILES=$(echo "$PR" | jq -r '.files[].path')
-                  echo "Changed files:"
-                  ALLOWED=true
-                  while IFS= read -r f; do
-                    case "$f" in
-                      */version.toml|*/Cargo.toml|*/package.json|*/deployment.yaml|*/manifest/*.yaml)
-                        echo "  OK: $f"
-                        ;;
-                      *)
-                        echo "  BLOCKED: $f"
-                        ALLOWED=false
-                        ;;
-                    esac
-                  done <<< "$FILES"
+                      const rawFiles = files.map(f => f.filename);
+                      const changedFiles = [];
+                      for (const raw of rawFiles) {
+                        const clean = verifiedSanitize(raw, `file '${sanitize(raw)}'`);
+                        if (clean === null) return;
+                        changedFiles.push(clean);
+                      }
 
-                  if [ "$ALLOWED" != "true" ]; then
-                    echo "::error::PR modifies files outside the allowlist — aborting."
-                    exit 1
-                  fi
+                      core.info(`PR #${prNumber}: author=${author} base=${base} title=${title}`);
+                      core.info(`Labels: ${labels.join(', ')}`);
+                      core.info(`Changed files: ${changedFiles.join(', ')}`);
 
-                  echo "All checks passed."
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                      // 1. Author — only github-actions bot
+                      if (author !== 'github-actions[bot]') {
+                        core.setFailed(`Author '${author}' is not github-actions[bot]`);
+                        return;
+                      }
 
+                      // 2. Base branch — only dev
+                      if (base !== 'dev') {
+                        core.setFailed(`Base branch '${base}' is not dev`);
+                        return;
+                      }
+
+                      // 3. Labels — must have atomic or auto-pr
+                      if (!labels.some(l => l === 'atomic' || l === 'auto-pr')) {
+                        core.setFailed(`Missing required label (atomic or auto-pr). Labels: ${labels}`);
+                        return;
+                      }
+
+                      // 4. Title — extract app name from "Atomic: <APP> v<VER> ..."
+                      const titleMatch = title.match(/^Atomic:\s+(.+?)\s+v(\d+\.\d+\.\d+)/);
+                      if (!titleMatch) {
+                        core.setFailed(`Title '${title}' does not match pattern "Atomic: <app> v<semver> ..."`);
+                        return;
+                      }
+                      const appName = titleMatch[1];
+                      core.info(`Extracted app name: '${appName}'`);
+
+                      // 5. Load manifest and find app entry
+                      const manifestPath = '.github/ci-dispatch-manifest.json';
+                      if (!fs.existsSync(manifestPath)) {
+                        core.setFailed(`Manifest not found at ${manifestPath}`);
+                        return;
+                      }
+                      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+
+                      const allEntries = [
+                        ...(manifest.docker || []),
+                        ...(manifest.npm || []),
+                        ...(manifest.crates || []),
+                        ...(manifest.python || []),
+                        ...(manifest.unreal || []),
+                      ];
+                      const entry = allEntries.find(
+                        e => e.app_name === appName || e.package_name === appName
+                      );
+
+                      if (!entry) {
+                        core.setFailed(`App '${appName}' not found in dispatch manifest`);
+                        return;
+                      }
+                      core.info(`Found '${appName}' in manifest (pipeline: ${entry.pipeline})`);
+
+                      // 6. Build allowed-file set from manifest entry (sanitized)
+                      const allowedFiles = new Set(
+                        [entry.version_toml, entry.version_target, entry.deployment_yaml]
+                          .filter(Boolean)
+                          .map(sanitize)
+                      );
+                      core.info(`Allowed files: ${[...allowedFiles].join(', ')}`);
+
+                      if (allowedFiles.size === 0) {
+                        core.setFailed(`App '${appName}' has no tracked files in manifest`);
+                        return;
+                      }
+
+                      // 7. Validate every changed file is in the allowed set
+                      const blocked = changedFiles.filter(f => !allowedFiles.has(f));
+                      if (blocked.length > 0) {
+                        core.setFailed(
+                          `PR modifies files not in manifest for '${appName}': ${blocked.join(', ')}`
+                        );
+                        return;
+                      }
+
+                      for (const f of changedFiles) {
+                        core.info(`  OK: ${f}`);
+                      }
+
+                      core.info(`All manifest-driven checks passed for '${appName}'.`);
+                      core.setOutput('approved', 'true');
+                      core.setOutput('app_name', appName);
+
+    # ── Job 2: Approve + merge (UNITY_PAT, gated on validation) ──────────────
+    # Only runs when validation job explicitly outputs approved=true.
+    # UNITY_PAT is never exposed to the validation logic.
+    merge:
+        needs: [validate]
+        if: needs.validate.outputs.approved == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
             - name: Approve PR
-              run: gh pr review ${{ inputs.pr_number }} --approve --repo ${{ github.repository }}
-              env:
-                  GH_TOKEN: ${{ secrets.UNITY_PAT }}
+              uses: actions/github-script@v8
+              with:
+                  github-token: ${{ secrets.UNITY_PAT }}
+                  script: |
+                      const prNumber = parseInt('${{ inputs.pr_number }}');
+                      const appName = '${{ needs.validate.outputs.app_name }}';
+
+                      await github.rest.pulls.createReview({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: prNumber,
+                        event: 'APPROVE',
+                        body: `Auto-approved — \`${appName}\` is registered in dispatch manifest.`,
+                      });
+                      core.info(`PR #${prNumber} approved for ${appName}`);
 
             - name: Enable auto-merge
-              run: gh pr merge ${{ inputs.pr_number }} --auto --squash --repo ${{ github.repository }}
-              env:
-                  GH_TOKEN: ${{ secrets.UNITY_PAT }}
+              uses: actions/github-script@v8
+              with:
+                  github-token: ${{ secrets.UNITY_PAT }}
+                  script: |
+                      const prNumber = parseInt('${{ inputs.pr_number }}');
+
+                      try {
+                        await github.rest.pulls.enableAutoMerge({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          pull_number: prNumber,
+                          merge_method: 'squash',
+                        });
+                        core.info(`Auto-merge (squash) enabled for PR #${prNumber}`);
+                      } catch (err) {
+                        core.info(`enableAutoMerge unavailable (${err.message}), attempting direct merge`);
+                        await github.rest.pulls.merge({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          pull_number: prNumber,
+                          merge_method: 'squash',
+                        });
+                        core.info(`PR #${prNumber} squash-merged directly`);
+                      }
