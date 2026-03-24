@@ -1,0 +1,261 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/Footer.astro';
+
+const currentYear = new Date().getFullYear();
+---
+
+<Default {...Astro.props}><slot /></Default>
+
+<div class="ck-footer not-content">
+	<div class="ck-footer__divider" aria-hidden="true">
+		<div class="ck-footer__divider-line"></div>
+	</div>
+
+	<div class="ck-footer__main">
+		<div class="ck-footer__brand">
+			<a href="/" class="ck-footer__brand-link" data-astro-prefetch>
+				<span class="ck-footer__logo-text">ChuckRPG</span>
+			</a>
+			<p class="ck-footer__brand-desc">
+				Open world multiplayer RPG powered by Unreal Engine and OWS.
+				<br />
+				Explore vast lands, forge alliances, and conquer the unknown.
+			</p>
+		</div>
+
+		<nav class="ck-footer__col">
+			<h6 class="ck-footer__title">Adventure</h6>
+			<a href="/guides/getting-started/">Getting Started</a>
+			<a href="/game/">Game</a>
+		</nav>
+
+		<nav class="ck-footer__col">
+			<h6 class="ck-footer__title">Kingdom</h6>
+			<a
+				href="https://kbve.com"
+				title="KBVE -- Open-source software, game development, and cloud infrastructure">
+				KBVE.com
+			</a>
+			<a
+				href="https://cryptothrone.com/"
+				title="CryptoThrone -- A 2D tile-based RPG">
+				CryptoThrone
+			</a>
+			<a href="https://github.com/kbve/kbve">GitHub</a>
+			<a href="https://discord.gg/kbve">Discord</a>
+		</nav>
+
+		<nav class="ck-footer__col">
+			<h6 class="ck-footer__title">Scrolls</h6>
+			<a href="https://kbve.com/legal/tos/">Terms of Use</a>
+			<a href="https://kbve.com/legal/privacy/">Privacy Policy</a>
+			<a href="https://kbve.com/legal/">Cookie Policy</a>
+		</nav>
+	</div>
+
+	<div class="ck-footer__bottom">
+		<span>
+			&copy; {currentYear}
+			<a href="/">ChuckRPG</a> &mdash; forged by <a
+				href="https://kbve.com">
+				KBVE
+			</a>
+		</span>
+		<div class="ck-footer__badges">
+			<a
+				href="https://github.com/kbve/kbve"
+				class="ck-footer__badge"
+				target="_blank"
+				rel="noopener noreferrer"
+				aria-label="GitHub">
+				<svg
+					viewBox="0 0 24 24"
+					width="18"
+					height="18"
+					fill="currentColor">
+					<path
+						d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z">
+					</path>
+				</svg>
+			</a>
+			<a
+				href="https://discord.gg/kbve"
+				class="ck-footer__badge"
+				target="_blank"
+				rel="noopener noreferrer"
+				aria-label="Discord">
+				<svg
+					viewBox="0 0 24 24"
+					width="18"
+					height="18"
+					fill="currentColor">
+					<path
+						d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z">
+					</path>
+				</svg>
+			</a>
+		</div>
+	</div>
+</div>
+
+<style>
+	.ck-footer {
+		margin-top: 0;
+		padding: 0 1.5rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.06);
+		background: var(--ck-stone, #1a1a1f);
+	}
+
+	.ck-footer__divider {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1.25rem 0 0;
+	}
+
+	.ck-footer__divider-line {
+		width: 3rem;
+		height: 1px;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			var(--ck-firelight),
+			transparent
+		);
+		opacity: 0.4;
+	}
+
+	.ck-footer__main {
+		display: grid;
+		grid-template-columns: 1.5fr repeat(3, 1fr);
+		gap: 2.5rem;
+		max-width: 72rem;
+		margin: 0 auto;
+		padding: 1.5rem 0 2rem;
+	}
+
+	.ck-footer__brand-link {
+		text-decoration: none;
+	}
+
+	.ck-footer__logo-text {
+		font-family: var(--sl-font);
+		font-size: 1.1rem;
+		font-weight: 600;
+		letter-spacing: 0.05em;
+		color: var(--ck-parchment, #e8dcc8);
+	}
+
+	.ck-footer__brand-desc {
+		margin-top: 0.75rem;
+		font-size: 0.8125rem;
+		line-height: 1.6;
+		color: var(--sl-color-gray-2, #9e9480);
+	}
+
+	.ck-footer__col {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+	}
+
+	.ck-footer__title {
+		font-family: var(--sl-font);
+		font-size: 0.65rem;
+		font-weight: 500;
+		text-transform: uppercase;
+		letter-spacing: 0.2em;
+		color: var(--ck-firelight);
+		margin-bottom: 0.25rem;
+	}
+
+	.ck-footer__col a {
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-2, #9e9480);
+		text-decoration: none;
+		transition: color 150ms ease;
+	}
+
+	.ck-footer__col a:hover {
+		color: var(--ck-firelight);
+	}
+
+	.ck-footer__bottom {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		max-width: 72rem;
+		margin: 0 auto;
+		padding: 1.25rem 0;
+		border-top: 1px solid
+			color-mix(in srgb, var(--ck-firelight) 10%, transparent);
+	}
+
+	.ck-footer__bottom span {
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-3, #6b6356);
+	}
+
+	.ck-footer__bottom a {
+		color: var(--sl-color-gray-2, #9e9480);
+		text-decoration: none;
+		font-weight: 500;
+		transition: color 150ms ease;
+	}
+
+	.ck-footer__bottom a:hover {
+		color: var(--ck-firelight);
+	}
+
+	.ck-footer__badges {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.ck-footer__badge {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: 0.5rem;
+		color: var(--sl-color-gray-2, #9e9480);
+		background: color-mix(in srgb, var(--ck-firelight) 8%, transparent);
+		border: 1px solid
+			color-mix(in srgb, var(--ck-firelight) 15%, transparent);
+		transition: all 200ms ease;
+	}
+
+	.ck-footer__badge:hover {
+		color: var(--ck-firelight);
+		border-color: color-mix(in srgb, var(--ck-firelight) 40%, transparent);
+		background: color-mix(in srgb, var(--ck-firelight) 15%, transparent);
+		transform: translateY(-2px);
+	}
+
+	@media (max-width: 768px) {
+		.ck-footer__main {
+			grid-template-columns: 1fr 1fr;
+			gap: 2rem;
+		}
+
+		.ck-footer__brand {
+			grid-column: 1 / -1;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.ck-footer__main {
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+		}
+
+		.ck-footer__bottom {
+			flex-direction: column;
+			gap: 1rem;
+			text-align: center;
+		}
+	}
+</style>

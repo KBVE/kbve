@@ -21,6 +21,10 @@ export default defineConfig({
 				},
 			},
 			customCss: ['./src/styles/global.css'],
+			components: {
+				PageTitle: './src/components/starlight/PageTitle.astro',
+				Footer: './src/components/starlight/Footer.astro',
+			},
 			head: [
 				{
 					tag: 'link',
