@@ -231,6 +231,18 @@ pub struct CharacterStatus {
     pub is_online: bool,
 }
 
+/// Player group membership
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct PlayerGroupMembership {
+    pub player_group_id: i32,
+    pub customer_guid: Uuid,
+    pub player_group_name: Option<String>,
+    pub player_group_type_id: i32,
+    pub ready_state: i32,
+    pub create_date: Option<NaiveDateTime>,
+}
+
 /// User info for management endpoints
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]

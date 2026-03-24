@@ -1,0 +1,1956 @@
+{
+	"openapi": "3.0.1",
+	"info": {
+		"title": "Open World Server Character Persistence API",
+		"version": "v1"
+	},
+	"paths": {
+		"/api/Abilities/AddAbilityToCharacter": {
+			"post": {
+				"tags": ["Abilities"],
+				"summary": "Add Ability To Character",
+				"description": "Adds an Ability to a Character and also sets the initial values of Ability Level and the per instance Custom JSON",
+				"requestBody": {
+					"description": "<b>AbilityName</b> - This is the name of the ability to add to the character.<br /><b>AbilityLevel</b> - This is a number representing the Ability Level of the ability to add.  If you need more per instance customization, use the Custom JSON field.<br /><b>CharacterName</b> - This is the name of the character to add the ability to.<br /><b>CharHasAbilitiesCustomJSON</b> - This field is used to store Custom JSON for the specific instance of this Ability.  If you have a system where each ability on a character has some kind of custom variation, then this is where to store that variation data.  In a system where an ability operates the same on every player, this field would not be used.  Don't store Ability Level in this field, as there is already a field for that.  If you need to store Custom JSON for ALL instances of an ability, use the Custom JSON on the Ability itself.",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddAbilityToCharacterRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddAbilityToCharacterRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddAbilityToCharacterRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Abilities/GetCharacterAbilities": {
+			"post": {
+				"tags": ["Abilities"],
+				"summary": "Get Character Abilities",
+				"description": "Gets a List of the Abilities on the Character specified with CharacterName",
+				"requestBody": {
+					"description": "<b>CharacterName</b> - This is the name of the character to get abilities for.",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetCharacterAbilitiesRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetCharacterAbilitiesRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetCharacterAbilitiesRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/GetCharacterAbilities"
+									}
+								}
+							},
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/GetCharacterAbilities"
+									}
+								}
+							},
+							"text/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/GetCharacterAbilities"
+									}
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Abilities/GetAbilities": {
+			"get": {
+				"tags": ["Abilities"],
+				"summary": "Get Abilities",
+				"description": "Gets a List of all Abilities",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/Abilities"
+									}
+								}
+							},
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/Abilities"
+									}
+								}
+							},
+							"text/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/Abilities"
+									}
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Abilities/GetAbilityBars": {
+			"post": {
+				"tags": ["Abilities"],
+				"summary": "Get Ability Bars",
+				"description": "Gets a List of Ability Bars for the Character specified with CharacterName",
+				"requestBody": {
+					"description": "<b>CharacterName</b> - This is the name of the character to get ability bars for.",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetAbilityBarsRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetAbilityBarsRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetAbilityBarsRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/GetAbilityBars"
+									}
+								}
+							},
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/GetAbilityBars"
+									}
+								}
+							},
+							"text/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/GetAbilityBars"
+									}
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Abilities/GetAbilityBarsAndAbilities": {
+			"post": {
+				"tags": ["Abilities"],
+				"summary": "Get Ability Bars and Abilities",
+				"description": "Gets a List of Ability Bars and the Abilities on those Bars for the Character specified with CharacterName",
+				"requestBody": {
+					"description": "<b>CharacterName</b> - This is the name of the character to get abilities for.",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetCharacterAbilitiesRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetCharacterAbilitiesRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetCharacterAbilitiesRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/GetAbilityBarsAndAbilities"
+									}
+								}
+							},
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/GetAbilityBarsAndAbilities"
+									}
+								}
+							},
+							"text/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/GetAbilityBarsAndAbilities"
+									}
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Abilities/RemoveAbilityFromCharacter": {
+			"post": {
+				"tags": ["Abilities"],
+				"summary": "Remove Ability From Character",
+				"description": "Removes an Ability from a Character",
+				"requestBody": {
+					"description": "<b>AbilityName</b> - This is the name of the ability to add to the character.<br /><b>CharacterName</b> - This is the name of the character to add the ability to.",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RemoveAbilityFromCharacterRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RemoveAbilityFromCharacterRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/RemoveAbilityFromCharacterRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Abilities/UpdateAbilityOnCharacter": {
+			"post": {
+				"tags": ["Abilities"],
+				"summary": "Update Ability on Character",
+				"description": "Adds an Ability to a Character and also sets the initial values of Ability Level and the per instance Custom JSON",
+				"requestBody": {
+					"description": "<b>AbilityName</b> - This is the name of the ability to update on the character.<br /><b>AbilityLevel</b> - This is a number representing the Ability Level of the ability to add.  If you need more per instance customization, use the Custom JSON field.<br /><b>CharacterName</b> - This is the name of the character to add the ability to.<br /><b>CharHasAbilitiesCustomJSON</b> - This field is used to store Custom JSON for the specific instance of this Ability.  If you have a system where each ability on a character has some kind of custom variation, then this is where to store that variation data.  In a system where an ability operates the same on every player, this field would not be used.  Don't store Ability Level in this field, as there is already a field for that.  If you need to store Custom JSON for ALL instances of an ability, use the Custom JSON on the Ability itself.",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateAbilityOnCharacterRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateAbilityOnCharacterRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateAbilityOnCharacterRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Characters/AddOrUpdateCustomData": {
+			"post": {
+				"tags": ["Characters"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddOrUpdateCustomDataRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddOrUpdateCustomDataRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddOrUpdateCustomDataRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK"
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Characters/GetByName": {
+			"post": {
+				"tags": ["Characters"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetByNameRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetByNameRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetByNameRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCharByCharName"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCharByCharName"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCharByCharName"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Characters/GetCustomData": {
+			"post": {
+				"tags": ["Characters"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetCustomDataRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetCustomDataRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetCustomDataRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/CustomCharacterDataRows"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CustomCharacterDataRows"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CustomCharacterDataRows"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Characters/UpdateAllPlayerPositions": {
+			"post": {
+				"tags": ["Characters"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateAllPlayerPositionsRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateAllPlayerPositionsRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateAllPlayerPositionsRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Characters/UpdateCharacterStats": {
+			"post": {
+				"tags": ["Characters"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateCharacterStatsRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateCharacterStatsRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateCharacterStatsRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Characters/PlayerLogout": {
+			"post": {
+				"tags": ["Characters"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/PlayerLogoutRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/PlayerLogoutRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/PlayerLogoutRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Status/GetCharacterStatuses": {
+			"post": {
+				"tags": ["Status"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetCharacterStatusesRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetCharacterStatusesRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetCharacterStatusesRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCharByCharName"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCharByCharName"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCharByCharName"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/System/Status": {
+			"get": {
+				"tags": ["System"],
+				"summary": "Gets the Api Status.",
+				"description": "Get the Api Status and return true",
+				"responses": {
+					"200": {
+						"description": "OK"
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"Abilities": {
+				"type": "object",
+				"properties": {
+					"customerGuid": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"abilityId": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"abilityName": {
+						"type": "string",
+						"nullable": true
+					},
+					"abilityTypeId": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"textureToUseForIcon": {
+						"type": "string",
+						"nullable": true
+					},
+					"class": {
+						"type": "integer",
+						"format": "int32",
+						"nullable": true
+					},
+					"race": {
+						"type": "integer",
+						"format": "int32",
+						"nullable": true
+					},
+					"abilityCustomJson": {
+						"type": "string",
+						"nullable": true
+					},
+					"gameplayAbilityClassName": {
+						"type": "string",
+						"nullable": true
+					},
+					"abilityTypeName": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"AddAbilityToCharacterRequest": {
+				"type": "object",
+				"properties": {
+					"abilityName": {
+						"type": "string",
+						"description": "Ability Name",
+						"nullable": true
+					},
+					"abilityLevel": {
+						"type": "integer",
+						"description": "Ability Level",
+						"format": "int32"
+					},
+					"characterName": {
+						"type": "string",
+						"description": "Character Name",
+						"nullable": true
+					},
+					"charHasAbilitiesCustomJSON": {
+						"type": "string",
+						"description": "Custom JSON",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false,
+				"description": "Add Ability To Character"
+			},
+			"AddOrUpdateCustomCharacterData": {
+				"type": "object",
+				"properties": {
+					"characterName": {
+						"type": "string",
+						"nullable": true
+					},
+					"customFieldName": {
+						"type": "string",
+						"nullable": true
+					},
+					"fieldValue": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"AddOrUpdateCustomDataRequest": {
+				"type": "object",
+				"properties": {
+					"addOrUpdateCustomCharacterData": {
+						"$ref": "#/components/schemas/AddOrUpdateCustomCharacterData"
+					}
+				},
+				"additionalProperties": false
+			},
+			"CustomCharacterData": {
+				"type": "object",
+				"properties": {
+					"customerGuid": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"customCharacterDataId": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"characterId": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"customFieldName": {
+						"type": "string",
+						"nullable": true
+					},
+					"fieldValue": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"CustomCharacterDataRows": {
+				"type": "object",
+				"properties": {
+					"rows": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/CustomCharacterData"
+						},
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"GetAbilityBars": {
+				"type": "object",
+				"properties": {
+					"charAbilityBarID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"abilityBarName": {
+						"type": "string",
+						"nullable": true
+					},
+					"characterID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"customerGUID": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"maxNumberOfSlots": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"numberOfUnlockedSlots": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"charAbilityBarsCustomJSON": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"GetAbilityBarsAndAbilities": {
+				"type": "object",
+				"properties": {
+					"abilityBarName": {
+						"type": "string",
+						"nullable": true
+					},
+					"charAbilityBarID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"charAbilityBarsCustomJSON": {
+						"type": "string",
+						"nullable": true
+					},
+					"characterID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"customerGUID": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"maxNumberOfSlots": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"numberOfUnlockedSlots": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"abilities": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/GetCharacterAbilities"
+						},
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"GetAbilityBarsRequest": {
+				"type": "object",
+				"properties": {
+					"characterName": {
+						"type": "string",
+						"description": "Character Name",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false,
+				"description": "Get Ability Bars"
+			},
+			"GetByNameRequest": {
+				"type": "object",
+				"properties": {
+					"characterName": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"GetCharByCharName": {
+				"type": "object",
+				"properties": {
+					"customerGuid": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"characterId": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"userGuid": {
+						"type": "string",
+						"format": "uuid",
+						"nullable": true
+					},
+					"email": {
+						"type": "string",
+						"nullable": true
+					},
+					"isAdmin": {
+						"type": "boolean"
+					},
+					"isModerator": {
+						"type": "boolean"
+					},
+					"CharacterName": {
+						"type": "string",
+						"nullable": true
+					},
+					"mapName": {
+						"type": "string",
+						"nullable": true
+					},
+					"x": {
+						"type": "number",
+						"format": "double"
+					},
+					"y": {
+						"type": "number",
+						"format": "double"
+					},
+					"z": {
+						"type": "number",
+						"format": "double"
+					},
+					"perception": {
+						"type": "number",
+						"format": "double"
+					},
+					"acrobatics": {
+						"type": "number",
+						"format": "double"
+					},
+					"climb": {
+						"type": "number",
+						"format": "double"
+					},
+					"stealth": {
+						"type": "number",
+						"format": "double"
+					},
+					"serverIp": {
+						"type": "string",
+						"nullable": true
+					},
+					"lastActivity": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"rx": {
+						"type": "number",
+						"format": "double"
+					},
+					"ry": {
+						"type": "number",
+						"format": "double"
+					},
+					"rz": {
+						"type": "number",
+						"format": "double"
+					},
+					"spirit": {
+						"type": "number",
+						"format": "double"
+					},
+					"magic": {
+						"type": "number",
+						"format": "double"
+					},
+					"teamNumber": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"thirst": {
+						"type": "number",
+						"format": "double"
+					},
+					"hunger": {
+						"type": "number",
+						"format": "double"
+					},
+					"gold": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"score": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"characterLevel": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"gender": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"xp": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"hitDie": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"wounds": {
+						"type": "number",
+						"format": "double"
+					},
+					"size": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"weight": {
+						"type": "number",
+						"format": "double"
+					},
+					"maxHealth": {
+						"type": "number",
+						"format": "double"
+					},
+					"health": {
+						"type": "number",
+						"format": "double"
+					},
+					"healthRegenRate": {
+						"type": "number",
+						"format": "double"
+					},
+					"maxMana": {
+						"type": "number",
+						"format": "double"
+					},
+					"mana": {
+						"type": "number",
+						"format": "double"
+					},
+					"manaRegenRate": {
+						"type": "number",
+						"format": "double"
+					},
+					"maxEnergy": {
+						"type": "number",
+						"format": "double"
+					},
+					"energy": {
+						"type": "number",
+						"format": "double"
+					},
+					"energyRegenRate": {
+						"type": "number",
+						"format": "double"
+					},
+					"maxFatigue": {
+						"type": "number",
+						"format": "double"
+					},
+					"fatigue": {
+						"type": "number",
+						"format": "double"
+					},
+					"fatigueRegenRate": {
+						"type": "number",
+						"format": "double"
+					},
+					"maxStamina": {
+						"type": "number",
+						"format": "double"
+					},
+					"stamina": {
+						"type": "number",
+						"format": "double"
+					},
+					"staminaRegenRate": {
+						"type": "number",
+						"format": "double"
+					},
+					"maxEndurance": {
+						"type": "number",
+						"format": "double"
+					},
+					"endurance": {
+						"type": "number",
+						"format": "double"
+					},
+					"enduranceRegenRate": {
+						"type": "number",
+						"format": "double"
+					},
+					"strength": {
+						"type": "number",
+						"format": "double"
+					},
+					"dexterity": {
+						"type": "number",
+						"format": "double"
+					},
+					"constitution": {
+						"type": "number",
+						"format": "double"
+					},
+					"intellect": {
+						"type": "number",
+						"format": "double"
+					},
+					"wisdom": {
+						"type": "number",
+						"format": "double"
+					},
+					"charisma": {
+						"type": "number",
+						"format": "double"
+					},
+					"agility": {
+						"type": "number",
+						"format": "double"
+					},
+					"fortitude": {
+						"type": "number",
+						"format": "double"
+					},
+					"reflex": {
+						"type": "number",
+						"format": "double"
+					},
+					"willpower": {
+						"type": "number",
+						"format": "double"
+					},
+					"baseAttack": {
+						"type": "number",
+						"format": "double"
+					},
+					"baseAttackBonus": {
+						"type": "number",
+						"format": "double"
+					},
+					"attackPower": {
+						"type": "number",
+						"format": "double"
+					},
+					"attackSpeed": {
+						"type": "number",
+						"format": "double"
+					},
+					"critChance": {
+						"type": "number",
+						"format": "double"
+					},
+					"critMultiplier": {
+						"type": "number",
+						"format": "double"
+					},
+					"haste": {
+						"type": "number",
+						"format": "double"
+					},
+					"spellPower": {
+						"type": "number",
+						"format": "double"
+					},
+					"spellPenetration": {
+						"type": "number",
+						"format": "double"
+					},
+					"defense": {
+						"type": "number",
+						"format": "double"
+					},
+					"dodge": {
+						"type": "number",
+						"format": "double"
+					},
+					"parry": {
+						"type": "number",
+						"format": "double"
+					},
+					"avoidance": {
+						"type": "number",
+						"format": "double"
+					},
+					"versatility": {
+						"type": "number",
+						"format": "double"
+					},
+					"multishot": {
+						"type": "number",
+						"format": "double"
+					},
+					"initiative": {
+						"type": "number",
+						"format": "double"
+					},
+					"naturalArmor": {
+						"type": "number",
+						"format": "double"
+					},
+					"physicalArmor": {
+						"type": "number",
+						"format": "double"
+					},
+					"bonusArmor": {
+						"type": "number",
+						"format": "double"
+					},
+					"forceArmor": {
+						"type": "number",
+						"format": "double"
+					},
+					"magicArmor": {
+						"type": "number",
+						"format": "double"
+					},
+					"resistance": {
+						"type": "number",
+						"format": "double"
+					},
+					"reloadSpeed": {
+						"type": "number",
+						"format": "double"
+					},
+					"range": {
+						"type": "number",
+						"format": "double"
+					},
+					"speed": {
+						"type": "number",
+						"format": "double"
+					},
+					"silver": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"copper": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"freeCurrency": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"premiumCurrency": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"fame": {
+						"type": "number",
+						"format": "double"
+					},
+					"alignment": {
+						"type": "number",
+						"format": "double"
+					},
+					"description": {
+						"type": "string",
+						"nullable": true
+					},
+					"defaultPawnClassPath": {
+						"type": "string",
+						"nullable": true
+					},
+					"isInternalNetworkTestUser": {
+						"type": "boolean"
+					},
+					"classId": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"baseMesh": {
+						"type": "string",
+						"nullable": true
+					},
+					"port": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"mapInstanceID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"className": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"GetCharacterAbilities": {
+				"type": "object",
+				"properties": {
+					"abilityID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"abilityCustomJSON": {
+						"type": "string",
+						"nullable": true
+					},
+					"abilityName": {
+						"type": "string",
+						"nullable": true
+					},
+					"abilityTypeID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"class": {
+						"type": "string",
+						"nullable": true
+					},
+					"customerGUID": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"race": {
+						"type": "string",
+						"nullable": true
+					},
+					"textureToUseForIcon": {
+						"type": "string",
+						"nullable": true
+					},
+					"gameplayAbilityClassName": {
+						"type": "string",
+						"nullable": true
+					},
+					"charHasAbilitiesID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"abilityLevel": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"charHasAbilitiesCustomJSON": {
+						"type": "string",
+						"nullable": true
+					},
+					"characterID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"charName": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"GetCharacterAbilitiesRequest": {
+				"type": "object",
+				"properties": {
+					"characterName": {
+						"type": "string",
+						"description": "Character Name",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false,
+				"description": "Get Character Abilities"
+			},
+			"GetCharacterStatusesRequest": {
+				"type": "object",
+				"properties": {
+					"characterName": {
+						"type": "string",
+						"description": "CharacterName",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false,
+				"description": "GetCharacterStatusesRequest"
+			},
+			"GetCustomDataRequest": {
+				"type": "object",
+				"properties": {
+					"characterName": {
+						"type": "string",
+						"description": "Character Name",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false,
+				"description": "Get Custom Data"
+			},
+			"PlayerLogoutRequest": {
+				"type": "object",
+				"properties": {
+					"characterName": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"RemoveAbilityFromCharacterRequest": {
+				"type": "object",
+				"properties": {
+					"abilityName": {
+						"type": "string",
+						"description": "Ability Name",
+						"nullable": true
+					},
+					"characterName": {
+						"type": "string",
+						"description": "Character Name",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false,
+				"description": "Remove Ability from Character"
+			},
+			"SuccessAndErrorMessage": {
+				"type": "object",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"errorMessage": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"UpdateAbilityOnCharacterRequest": {
+				"type": "object",
+				"properties": {
+					"abilityName": {
+						"type": "string",
+						"description": "Ability Name",
+						"nullable": true
+					},
+					"abilityLevel": {
+						"type": "integer",
+						"description": "Ability Level",
+						"format": "int32"
+					},
+					"characterName": {
+						"type": "string",
+						"description": "Character Name",
+						"nullable": true
+					},
+					"charHasAbilitiesCustomJSON": {
+						"type": "string",
+						"description": "Custom JSON",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false,
+				"description": "Update Ability on Character"
+			},
+			"UpdateAllPlayerPositionsRequest": {
+				"type": "object",
+				"properties": {
+					"serializedPlayerLocationData": {
+						"type": "string",
+						"nullable": true
+					},
+					"mapName": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"UpdateCharacterStats": {
+				"type": "object",
+				"properties": {
+					"charName": {
+						"type": "string",
+						"nullable": true
+					},
+					"characterLevel": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"gender": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"weight": {
+						"type": "number",
+						"format": "float"
+					},
+					"size": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"fame": {
+						"type": "number",
+						"format": "float"
+					},
+					"alignment": {
+						"type": "number",
+						"format": "float"
+					},
+					"description": {
+						"type": "string",
+						"nullable": true
+					},
+					"xp": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"x": {
+						"type": "number",
+						"format": "float"
+					},
+					"y": {
+						"type": "number",
+						"format": "float"
+					},
+					"z": {
+						"type": "number",
+						"format": "float"
+					},
+					"rx": {
+						"type": "number",
+						"format": "float"
+					},
+					"ry": {
+						"type": "number",
+						"format": "float"
+					},
+					"rz": {
+						"type": "number",
+						"format": "float"
+					},
+					"teamNumber": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"hitDie": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"wounds": {
+						"type": "number",
+						"format": "float"
+					},
+					"thirst": {
+						"type": "number",
+						"format": "float"
+					},
+					"hunger": {
+						"type": "number",
+						"format": "float"
+					},
+					"maxHealth": {
+						"type": "number",
+						"format": "float"
+					},
+					"health": {
+						"type": "number",
+						"format": "float"
+					},
+					"healthRegenRate": {
+						"type": "number",
+						"format": "float"
+					},
+					"maxMana": {
+						"type": "number",
+						"format": "float"
+					},
+					"mana": {
+						"type": "number",
+						"format": "float"
+					},
+					"manaRegenRate": {
+						"type": "number",
+						"format": "float"
+					},
+					"maxEnergy": {
+						"type": "number",
+						"format": "float"
+					},
+					"energy": {
+						"type": "number",
+						"format": "float"
+					},
+					"energyRegenRate": {
+						"type": "number",
+						"format": "float"
+					},
+					"maxFatigue": {
+						"type": "number",
+						"format": "float"
+					},
+					"fatigue": {
+						"type": "number",
+						"format": "float"
+					},
+					"fatigueRegenRate": {
+						"type": "number",
+						"format": "float"
+					},
+					"maxStamina": {
+						"type": "number",
+						"format": "float"
+					},
+					"stamina": {
+						"type": "number",
+						"format": "float"
+					},
+					"staminaRegenRate": {
+						"type": "number",
+						"format": "float"
+					},
+					"maxEndurance": {
+						"type": "number",
+						"format": "float"
+					},
+					"endurance": {
+						"type": "number",
+						"format": "float"
+					},
+					"enduranceRegenRate": {
+						"type": "number",
+						"format": "float"
+					},
+					"strength": {
+						"type": "number",
+						"format": "float"
+					},
+					"dexterity": {
+						"type": "number",
+						"format": "float"
+					},
+					"constitution": {
+						"type": "number",
+						"format": "float"
+					},
+					"intellect": {
+						"type": "number",
+						"format": "float"
+					},
+					"wisdom": {
+						"type": "number",
+						"format": "float"
+					},
+					"charisma": {
+						"type": "number",
+						"format": "float"
+					},
+					"agility": {
+						"type": "number",
+						"format": "float"
+					},
+					"spirit": {
+						"type": "number",
+						"format": "float"
+					},
+					"magic": {
+						"type": "number",
+						"format": "float"
+					},
+					"fortitude": {
+						"type": "number",
+						"format": "float"
+					},
+					"reflex": {
+						"type": "number",
+						"format": "float"
+					},
+					"willpower": {
+						"type": "number",
+						"format": "float"
+					},
+					"baseAttack": {
+						"type": "number",
+						"format": "float"
+					},
+					"baseAttackBonus": {
+						"type": "number",
+						"format": "float"
+					},
+					"attackPower": {
+						"type": "number",
+						"format": "float"
+					},
+					"attackSpeed": {
+						"type": "number",
+						"format": "float"
+					},
+					"critChance": {
+						"type": "number",
+						"format": "float"
+					},
+					"critMultiplier": {
+						"type": "number",
+						"format": "float"
+					},
+					"haste": {
+						"type": "number",
+						"format": "float"
+					},
+					"spellPower": {
+						"type": "number",
+						"format": "float"
+					},
+					"spellPenetration": {
+						"type": "number",
+						"format": "float"
+					},
+					"defense": {
+						"type": "number",
+						"format": "float"
+					},
+					"dodge": {
+						"type": "number",
+						"format": "float"
+					},
+					"parry": {
+						"type": "number",
+						"format": "float"
+					},
+					"avoidance": {
+						"type": "number",
+						"format": "float"
+					},
+					"versatility": {
+						"type": "number",
+						"format": "float"
+					},
+					"multishot": {
+						"type": "number",
+						"format": "float"
+					},
+					"initiative": {
+						"type": "number",
+						"format": "float"
+					},
+					"naturalArmor": {
+						"type": "number",
+						"format": "float"
+					},
+					"physicalArmor": {
+						"type": "number",
+						"format": "float"
+					},
+					"bonusArmor": {
+						"type": "number",
+						"format": "float"
+					},
+					"forceArmor": {
+						"type": "number",
+						"format": "float"
+					},
+					"magicArmor": {
+						"type": "number",
+						"format": "float"
+					},
+					"resistance": {
+						"type": "number",
+						"format": "float"
+					},
+					"reloadSpeed": {
+						"type": "number",
+						"format": "float"
+					},
+					"range": {
+						"type": "number",
+						"format": "float"
+					},
+					"speed": {
+						"type": "number",
+						"format": "float"
+					},
+					"gold": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"silver": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"copper": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"freeCurrency": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"premiumCurrency": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"perception": {
+						"type": "number",
+						"format": "float"
+					},
+					"acrobatics": {
+						"type": "number",
+						"format": "float"
+					},
+					"climb": {
+						"type": "number",
+						"format": "float"
+					},
+					"stealth": {
+						"type": "number",
+						"format": "float"
+					},
+					"score": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"customerGUID": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"UpdateCharacterStatsRequest": {
+				"type": "object",
+				"properties": {
+					"updateCharacterStats": {
+						"$ref": "#/components/schemas/UpdateCharacterStats"
+					}
+				},
+				"additionalProperties": false
+			}
+		},
+		"securitySchemes": {
+			"X-CustomerGUID": {
+				"type": "apiKey",
+				"description": "Authorization header using the X-CustomerGUID scheme",
+				"name": "X-CustomerGUID",
+				"in": "header"
+			}
+		}
+	}
+}
