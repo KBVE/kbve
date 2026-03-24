@@ -289,6 +289,7 @@ mod tests {
             updated_at: updated_at.to_string(),
             html_url: format!("https://github.com/test/repo/issues/{number}"),
             pull_request: None,
+            assignees: Vec::new(),
         }
     }
 
@@ -308,6 +309,8 @@ mod tests {
             updated_at: updated_at.to_string(),
             html_url: format!("https://github.com/test/repo/pull/{number}"),
             draft: false,
+            labels: Vec::new(),
+            assignees: Vec::new(),
         }
     }
 
