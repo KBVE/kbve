@@ -1,0 +1,180 @@
+{
+	"openapi": "3.0.1",
+	"info": {
+		"title": "Open World Server Global Data API",
+		"version": "v1"
+	},
+	"paths": {
+		"/api/GlobalData/AddOrUpdateGlobalDataItem": {
+			"post": {
+				"tags": ["GlobalData"],
+				"summary": "Add an item to Global Data",
+				"description": "Adds or updates a key/value pair to the Global Data system.",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddOrUpdateGlobalDataItemDTO"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddOrUpdateGlobalDataItemDTO"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddOrUpdateGlobalDataItemDTO"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/GlobalData/GetGlobalDataItem/{globalDataKey}": {
+			"get": {
+				"tags": ["GlobalData"],
+				"summary": "Gets an item from Global Data",
+				"description": "Gets an item from the Global Data system by looking it up based on globalDataKey",
+				"parameters": [
+					{
+						"name": "globalDataKey",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/GlobalData"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GlobalData"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GlobalData"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/System/Status": {
+			"get": {
+				"tags": ["System"],
+				"summary": "Gets the Api Status.",
+				"description": "Get the Api Status and return true",
+				"responses": {
+					"200": {
+						"description": "OK"
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"AddOrUpdateGlobalDataItemDTO": {
+				"type": "object",
+				"properties": {
+					"globalDataKey": {
+						"type": "string",
+						"nullable": true
+					},
+					"globalDataValue": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"GlobalData": {
+				"type": "object",
+				"properties": {
+					"customerGuid": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"globalDataKey": {
+						"type": "string",
+						"nullable": true
+					},
+					"globalDataValue": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"SuccessAndErrorMessage": {
+				"type": "object",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"errorMessage": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			}
+		},
+		"securitySchemes": {
+			"X-CustomerGUID": {
+				"type": "apiKey",
+				"description": "Authorization header using the X-CustomerGUID scheme",
+				"name": "X-CustomerGUID",
+				"in": "header"
+			}
+		}
+	}
+}

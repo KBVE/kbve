@@ -1,0 +1,1289 @@
+{
+	"openapi": "3.0.1",
+	"info": {
+		"title": "Open World Server Instance Management API",
+		"version": "v1"
+	},
+	"paths": {
+		"/api/Instance/SetZoneInstanceStatus": {
+			"post": {
+				"tags": ["Instance"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SetZoneInstanceStatusRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SetZoneInstanceStatusRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/SetZoneInstanceStatusRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Instance/ShutDownServerInstance": {
+			"post": {
+				"tags": ["Instance"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ShutDownServerInstanceRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ShutDownServerInstanceRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/ShutDownServerInstanceRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Instance/RegisterLauncher": {
+			"post": {
+				"tags": ["Instance"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RegisterInstanceLauncherRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RegisterInstanceLauncherRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/RegisterInstanceLauncherRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Instance/SpinUpServerInstance": {
+			"post": {
+				"tags": ["Instance"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SpinUpServerInstanceRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SpinUpServerInstanceRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/SpinUpServerInstanceRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Instance/StartInstanceLauncher": {
+			"get": {
+				"tags": ["Instance"],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "integer",
+									"format": "int32"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"type": "integer",
+									"format": "int32"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"type": "integer",
+									"format": "int32"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Instance/ShutDownInstanceLauncher": {
+			"post": {
+				"tags": ["Instance"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ShutDownInstanceLauncherRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ShutDownInstanceLauncherRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/ShutDownInstanceLauncherRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Instance/GetServerToConnectTo": {
+			"post": {
+				"tags": ["Instance"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetServerToConnectToRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetServerToConnectToRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetServerToConnectToRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/JoinMapByCharName"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/JoinMapByCharName"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/JoinMapByCharName"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Instance/GetZoneInstance": {
+			"post": {
+				"tags": ["Instance"],
+				"summary": "GetZoneInstance",
+				"description": "Get information on the server instance that matches the ZoneInstanceId in the POST data",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "integer",
+								"format": "int32"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"type": "integer",
+								"format": "int32"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"type": "integer",
+								"format": "int32"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/GetServerInstanceFromPort"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetServerInstanceFromPort"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetServerInstanceFromPort"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Instance/GetServerInstanceFromPort": {
+			"post": {
+				"tags": ["Instance"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetServerInstanceFromPortRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetServerInstanceFromPortRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetServerInstanceFromPortRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/GetServerInstanceFromPort"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetServerInstanceFromPort"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetServerInstanceFromPort"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Instance/GetZoneInstancesForWorldServer": {
+			"post": {
+				"tags": ["Instance"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetZoneInstancesForWorldServerRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetZoneInstancesForWorldServerRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetZoneInstancesForWorldServerRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/GetZoneInstancesForWorldServer"
+									}
+								}
+							},
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/GetZoneInstancesForWorldServer"
+									}
+								}
+							},
+							"text/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/GetZoneInstancesForWorldServer"
+									}
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Instance/UpdateNumberOfPlayers": {
+			"post": {
+				"tags": ["Instance"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateNumberOfPlayersRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateNumberOfPlayersRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateNumberOfPlayersRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Instance/GetZoneInstancesForZone": {
+			"post": {
+				"tags": ["Instance"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetZoneInstancesForZoneRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetZoneInstancesForZoneRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetZoneInstancesForZoneRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/GetZoneInstancesForZone"
+									}
+								}
+							},
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/GetZoneInstancesForZone"
+									}
+								}
+							},
+							"text/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/GetZoneInstancesForZone"
+									}
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Instance/GetCurrentWorldTime": {
+			"post": {
+				"tags": ["Instance"],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetCurrentWorldTimeRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetCurrentWorldTimeRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/GetCurrentWorldTimeRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCurrentWorldTime"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCurrentWorldTime"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetCurrentWorldTime"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/System/Status": {
+			"get": {
+				"tags": ["System"],
+				"summary": "Gets the Api Status.",
+				"description": "Get the Api Status and return true",
+				"responses": {
+					"200": {
+						"description": "OK"
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		},
+		"/api/Zones/AddZone": {
+			"post": {
+				"tags": ["Zones"],
+				"summary": "Add a Zone",
+				"description": "Add a Zone to the Maps table.",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddZoneRequest"
+							}
+						},
+						"text/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddZoneRequest"
+							}
+						},
+						"application/*+json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddZoneRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							},
+							"text/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessAndErrorMessage"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"X-CustomerGUID": []
+					}
+				]
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"AddOrUpdateZoneRequestPayload": {
+				"type": "object",
+				"properties": {
+					"customerGUID": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"mapID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"mapName": {
+						"type": "string",
+						"nullable": true
+					},
+					"zoneName": {
+						"type": "string",
+						"nullable": true
+					},
+					"worldCompContainsFilter": {
+						"type": "string",
+						"nullable": true
+					},
+					"worldCompListFilter": {
+						"type": "string",
+						"nullable": true
+					},
+					"softPlayerCap": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"hardPlayerCap": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"mapMode": {
+						"type": "integer",
+						"format": "int32"
+					}
+				},
+				"additionalProperties": false
+			},
+			"AddZoneRequest": {
+				"type": "object",
+				"properties": {
+					"addOrUpdateZone": {
+						"$ref": "#/components/schemas/AddOrUpdateZoneRequestPayload"
+					}
+				},
+				"additionalProperties": false
+			},
+			"GetCurrentWorldTime": {
+				"type": "object",
+				"properties": {
+					"currentWorldTime": {
+						"type": "integer",
+						"format": "int64"
+					}
+				},
+				"additionalProperties": false
+			},
+			"GetCurrentWorldTimeRequest": {
+				"type": "object",
+				"additionalProperties": false,
+				"description": "GetCurrentWorldTimeRequest"
+			},
+			"GetServerInstanceFromPort": {
+				"type": "object",
+				"properties": {
+					"mapName": {
+						"type": "string",
+						"nullable": true
+					},
+					"zoneName": {
+						"type": "string",
+						"nullable": true
+					},
+					"worldCompContainsFilter": {
+						"type": "string",
+						"nullable": true
+					},
+					"worldCompListFilter": {
+						"type": "string",
+						"nullable": true
+					},
+					"mapInstanceID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"status": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"maxNumberOfInstances": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"activeStartTime": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"serverStatus": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"internalServerIP": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"GetServerInstanceFromPortRequest": {
+				"type": "object",
+				"properties": {
+					"port": {
+						"type": "integer",
+						"format": "int32"
+					}
+				},
+				"additionalProperties": false,
+				"description": "GetServerInstanceFromPortRequest"
+			},
+			"GetServerToConnectToRequest": {
+				"type": "object",
+				"properties": {
+					"characterName": {
+						"type": "string",
+						"nullable": true
+					},
+					"zoneName": {
+						"type": "string",
+						"nullable": true
+					},
+					"playerGroupType": {
+						"type": "integer",
+						"format": "int32"
+					}
+				},
+				"additionalProperties": false
+			},
+			"GetZoneInstancesForWorldServer": {
+				"type": "object",
+				"properties": {
+					"customerGUID": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"mapInstanceID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"worldServerID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"mapID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"port": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"status": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"playerGoupID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"numberOfReportedPlayers": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"lastUpdateFromServer": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"lastServerEmptyDate": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"createDate": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"softPlayerCap": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"hardPlayerCap": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"mapName": {
+						"type": "string",
+						"nullable": true
+					},
+					"mapMode": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"minutesToShutdownAfterEmpty": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"minutesServerHasBeenEmpty": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"minutesSinceLastUpdate": {
+						"type": "integer",
+						"format": "int32"
+					}
+				},
+				"additionalProperties": false
+			},
+			"GetZoneInstancesForWorldServerRequest": {
+				"type": "object",
+				"properties": {
+					"request": {
+						"$ref": "#/components/schemas/WorldServerIDRequestPayload"
+					}
+				},
+				"additionalProperties": false
+			},
+			"GetZoneInstancesForZone": {
+				"type": "object",
+				"properties": {
+					"mapID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"mapName": {
+						"type": "string",
+						"nullable": true
+					},
+					"zoneName": {
+						"type": "string",
+						"nullable": true
+					},
+					"worldCompContainsFilter": {
+						"type": "string",
+						"nullable": true
+					},
+					"worldCompListFilter": {
+						"type": "string",
+						"nullable": true
+					},
+					"mapMode": {
+						"type": "string",
+						"nullable": true
+					},
+					"softPlayerCap": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"hardPlayerCap": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"minutesToShutdownAfterEmpty": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"mapInstanceID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"worldServerID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"port": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"status": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"playerGroupID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"numberOfReportedPlayers": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"lastUpdateFromServer": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"lastServerEmptyDate": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"createDate": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"GetZoneInstancesForZoneRequest": {
+				"type": "object",
+				"properties": {
+					"request": {
+						"$ref": "#/components/schemas/ZoneNameRequestPayload"
+					}
+				},
+				"additionalProperties": false,
+				"description": "Get a list of Zone Instances for a Zone"
+			},
+			"JoinMapByCharName": {
+				"type": "object",
+				"properties": {
+					"serverIP": {
+						"type": "string",
+						"nullable": true
+					},
+					"worldServerIP": {
+						"type": "string",
+						"nullable": true
+					},
+					"worldServerPort": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"port": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"mapInstanceID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"mapNameToStart": {
+						"type": "string",
+						"nullable": true
+					},
+					"worldServerID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"mapInstanceStatus": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"needToStartupMap": {
+						"type": "boolean"
+					},
+					"enableAutoLoopback": {
+						"type": "boolean"
+					},
+					"noPortForwarding": {
+						"type": "boolean"
+					},
+					"success": {
+						"type": "boolean"
+					},
+					"errorMessage": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"RegisterInstanceLauncherRequest": {
+				"type": "object",
+				"properties": {
+					"request": {
+						"$ref": "#/components/schemas/RegisterInstanceLauncherRequestPayload"
+					}
+				},
+				"additionalProperties": false
+			},
+			"RegisterInstanceLauncherRequestPayload": {
+				"type": "object",
+				"properties": {
+					"launcherGUID": {
+						"type": "string",
+						"nullable": true
+					},
+					"serverIP": {
+						"type": "string",
+						"nullable": true
+					},
+					"maxNumberOfInstances": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"internalServerIP": {
+						"type": "string",
+						"nullable": true
+					},
+					"startingInstancePort": {
+						"type": "integer",
+						"format": "int32"
+					}
+				},
+				"additionalProperties": false
+			},
+			"SetZoneInstanceStatusRequest": {
+				"type": "object",
+				"properties": {
+					"request": {
+						"$ref": "#/components/schemas/SetZoneInstanceStatusRequestPayload"
+					}
+				},
+				"additionalProperties": false
+			},
+			"SetZoneInstanceStatusRequestPayload": {
+				"type": "object",
+				"properties": {
+					"zoneInstanceID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"instanceStatus": {
+						"type": "integer",
+						"format": "int32"
+					}
+				},
+				"additionalProperties": false
+			},
+			"ShutDownInstanceLauncherRequest": {
+				"type": "object",
+				"properties": {
+					"request": {
+						"$ref": "#/components/schemas/WorldServerIDRequestPayload"
+					}
+				},
+				"additionalProperties": false
+			},
+			"ShutDownServerInstanceRequest": {
+				"type": "object",
+				"properties": {
+					"worldServerID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"zoneInstanceID": {
+						"type": "integer",
+						"format": "int32"
+					}
+				},
+				"additionalProperties": false
+			},
+			"SpinUpServerInstanceRequest": {
+				"type": "object",
+				"properties": {
+					"worldServerID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"zoneInstanceID": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"zoneName": {
+						"type": "string",
+						"nullable": true
+					},
+					"port": {
+						"type": "integer",
+						"format": "int32"
+					}
+				},
+				"additionalProperties": false
+			},
+			"SuccessAndErrorMessage": {
+				"type": "object",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"errorMessage": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			},
+			"UpdateNumberOfPlayersRequest": {
+				"type": "object",
+				"properties": {
+					"zoneInstanceId": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"numberOfConnectedPlayers": {
+						"type": "integer",
+						"format": "int32"
+					}
+				},
+				"additionalProperties": false,
+				"description": "UpdateNumberOfPlayersRequest"
+			},
+			"WorldServerIDRequestPayload": {
+				"type": "object",
+				"properties": {
+					"worldServerID": {
+						"type": "integer",
+						"format": "int32"
+					}
+				},
+				"additionalProperties": false
+			},
+			"ZoneNameRequestPayload": {
+				"type": "object",
+				"properties": {
+					"zoneName": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"additionalProperties": false
+			}
+		},
+		"securitySchemes": {
+			"X-CustomerGUID": {
+				"type": "apiKey",
+				"description": "Authorization header using the X-CustomerGUID scheme",
+				"name": "X-CustomerGUID",
+				"in": "header"
+			}
+		}
+	}
+}
