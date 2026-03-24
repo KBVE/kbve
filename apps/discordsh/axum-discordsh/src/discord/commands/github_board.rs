@@ -40,14 +40,16 @@ async fn send_error(ctx: Context<'_>, msg: &str) -> Result<(), Error> {
     Ok(())
 }
 
-/// Parse "owner/repo" string, falling back to "KBVE/kbve" if not provided.
-fn parse_repo(repo: &Option<String>) -> (&str, &str) {
-    match repo.as_deref() {
-        Some(r) if r.contains('/') => {
-            let parts: Vec<&str> = r.splitn(2, '/').collect();
-            (parts[0], parts[1])
+/// Parse "owner/repo" from the user argument, falling back to the
+/// default repo configured in `AppState` (resolved once at startup
+/// from `GITHUB_DEFAULT_REPO` → `GH_REPO` → `KBVE/kbve`).
+fn parse_repo(repo: &Option<String>, default: &(String, String)) -> (String, String) {
+    match repo.as_deref().filter(|r| r.contains('/')) {
+        Some(r) => {
+            let (owner, name) = r.split_once('/').unwrap();
+            (owner.to_owned(), name.to_owned())
         }
-        _ => ("KBVE", "kbve"),
+        None => default.clone(),
     }
 }
 
@@ -68,22 +70,22 @@ pub async fn github(_ctx: Context<'_>) -> Result<(), Error> {
 #[poise::command(slash_command)]
 async fn noticeboard(
     ctx: Context<'_>,
-    #[description = "Repository (owner/repo, default: KBVE/kbve)"] repo: Option<String>,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
     #[description = "Stale threshold in days (default: 3)"] stale_days: Option<u64>,
 ) -> Result<(), Error> {
     ctx.defer().await?;
 
     match tokio::time::timeout(COMMAND_TIMEOUT, async {
         let gh = get_github_client(ctx).await?;
-        let (owner, repo_name) = parse_repo(&repo);
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
         let threshold = stale_days.unwrap_or(3);
         let full_name = format!("{}/{}", owner, repo_name);
 
         let issues = gh
-            .list_issues(owner, repo_name, Some("open"), Some(100))
+            .list_issues(&owner, &repo_name, Some("open"), Some(100))
             .await;
         let pulls = gh
-            .list_pulls(owner, repo_name, Some("open"), Some(100))
+            .list_pulls(&owner, &repo_name, Some("open"), Some(100))
             .await;
 
         match (issues, pulls) {
@@ -134,19 +136,19 @@ async fn noticeboard(
 #[poise::command(slash_command)]
 async fn taskboard(
     ctx: Context<'_>,
-    #[description = "Repository (owner/repo, default: KBVE/kbve)"] repo: Option<String>,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
     #[description = "Phase/milestone name (shown in title)"] phase: Option<String>,
 ) -> Result<(), Error> {
     ctx.defer().await?;
 
     match tokio::time::timeout(COMMAND_TIMEOUT, async {
         let gh = get_github_client(ctx).await?;
-        let (owner, repo_name) = parse_repo(&repo);
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
         let full_name = format!("{}/{}", owner, repo_name);
         let phase_title = phase.as_deref().unwrap_or("Current Phase");
 
         let issues = gh
-            .list_issues(owner, repo_name, Some("open"), Some(100))
+            .list_issues(&owner, &repo_name, Some("open"), Some(100))
             .await;
 
         match issues {
@@ -197,19 +199,19 @@ async fn taskboard(
 #[poise::command(slash_command)]
 async fn issues(
     ctx: Context<'_>,
-    #[description = "Repository (owner/repo, default: KBVE/kbve)"] repo: Option<String>,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
     #[description = "Max results (default: 10, max: 25)"] limit: Option<u8>,
 ) -> Result<(), Error> {
     ctx.defer().await?;
 
     match tokio::time::timeout(COMMAND_TIMEOUT, async {
         let gh = get_github_client(ctx).await?;
-        let (owner, repo_name) = parse_repo(&repo);
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
         let full_name = format!("{}/{}", owner, repo_name);
         let count = limit.unwrap_or(10).min(25);
 
         match gh
-            .list_issues(owner, repo_name, Some("open"), Some(count))
+            .list_issues(&owner, &repo_name, Some("open"), Some(count))
             .await
         {
             Ok(issues) => {
@@ -275,19 +277,19 @@ async fn issues(
 #[poise::command(slash_command)]
 async fn pulls(
     ctx: Context<'_>,
-    #[description = "Repository (owner/repo, default: KBVE/kbve)"] repo: Option<String>,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
     #[description = "Max results (default: 10, max: 25)"] limit: Option<u8>,
 ) -> Result<(), Error> {
     ctx.defer().await?;
 
     match tokio::time::timeout(COMMAND_TIMEOUT, async {
         let gh = get_github_client(ctx).await?;
-        let (owner, repo_name) = parse_repo(&repo);
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
         let full_name = format!("{}/{}", owner, repo_name);
         let count = limit.unwrap_or(10).min(25);
 
         match gh
-            .list_pulls(owner, repo_name, Some("open"), Some(count))
+            .list_pulls(&owner, &repo_name, Some("open"), Some(count))
             .await
         {
             Ok(pulls) => {

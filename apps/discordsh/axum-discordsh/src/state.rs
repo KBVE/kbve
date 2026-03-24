@@ -67,6 +67,25 @@ pub struct AppState {
 
     /// Rate limiter for server submission endpoint (5 req / 60s per IP).
     pub submit_limiter: RateLimiter,
+
+    /// Default GitHub repo (owner, name) resolved once from
+    /// `GITHUB_DEFAULT_REPO` → `GH_REPO` → `KBVE/kbve`.
+    pub default_repo: (String, String),
+}
+
+/// Resolve the default GitHub repo from env vars (checked once at startup).
+///
+/// Priority: `GITHUB_DEFAULT_REPO` → `GH_REPO` → `KBVE/kbve`.
+fn resolve_default_repo() -> (String, String) {
+    let raw = std::env::var("GITHUB_DEFAULT_REPO")
+        .ok()
+        .filter(|s| s.contains('/'))
+        .or_else(|| std::env::var("GH_REPO").ok().filter(|s| s.contains('/')))
+        .unwrap_or_else(|| "KBVE/kbve".to_owned());
+
+    let (owner, name) = raw.split_once('/').unwrap();
+    tracing::info!(repo = %raw, "Default GitHub repo configured");
+    (owner.to_owned(), name.to_owned())
 }
 
 impl AppState {
@@ -119,6 +138,7 @@ impl AppState {
             fontdb,
             http_client,
             submit_limiter: RateLimiter::new(5, 60),
+            default_repo: resolve_default_repo(),
         }
     }
 }
