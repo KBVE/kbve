@@ -192,7 +192,7 @@ async fn get_user_session(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct GetAllCharsDto {
-    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     user_session_guid: Uuid,
 }
 
@@ -212,7 +212,7 @@ async fn get_all_characters(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct GetServerDto {
-    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     _user_session_guid: Uuid,
     character_name: String,
     zone_name: String,
@@ -234,7 +234,7 @@ async fn get_server_to_connect_to(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct GetByNameDto {
-    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     _user_session_guid: String,
     character_name: String,
 }
@@ -298,7 +298,7 @@ async fn register_user(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct LogoutDto {
-    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     user_session_guid: Uuid,
 }
 
@@ -315,7 +315,7 @@ async fn logout(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct CreateCharDto {
-    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     user_session_guid: Uuid,
     character_name: String,
     class_name: String,
@@ -345,7 +345,7 @@ async fn create_character(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct RemoveCharDto {
-    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     _user_session_guid: Uuid,
     character_name: String,
 }
@@ -369,7 +369,7 @@ async fn remove_character(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct CreateCharDefaultsDto {
-    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     user_session_guid: Uuid,
     character_name: String,
     default_set_name: String,
@@ -399,7 +399,7 @@ async fn create_char_defaults(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct SetSelectedCharDto {
-    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     user_session_guid: Uuid,
     character_name: String,
 }
@@ -770,7 +770,7 @@ struct DefaultCustomDataDto {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct GetPlayerGroupsDto {
-    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     _user_session_guid: Uuid,
     character_name: String,
     #[serde(rename = "playerGroupTypeID", alias = "PlayerGroupTypeID")]
