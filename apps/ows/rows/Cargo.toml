@@ -61,6 +61,7 @@ chrono = { version = "0.4", features = ["serde"] }
 async-trait = "0.1"
 futures-lite = "2"
 tokio-stream = "0.1"
+rustls = { version = "0.23", features = ["ring"] }
 
 # Workspace path dependencies
 jedi = { path = "../../../packages/rust/jedi" }

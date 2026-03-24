@@ -39,6 +39,12 @@ pub mod proto {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Install rustls crypto provider before any TLS operations (kube-rs, sqlx).
+    // Required since rustls 0.23+ no longer auto-selects a provider.
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .expect("Failed to install rustls crypto provider");
+
     dotenvy::dotenv().ok();
 
     tracing_subscriber::fmt()
