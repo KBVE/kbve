@@ -1,0 +1,26 @@
+---
+const route = Astro.locals.starlightRoute;
+const isSplash = route.entry.data.template === 'splash';
+---
+
+{
+	isSplash ? (
+		<span data-splash-no-title aria-hidden="true" style="display:none" />
+	) : (
+		<h1 id="_top">{route.entry.data.title}</h1>
+	)
+}
+
+<style is:global>
+	.content-panel:has([data-splash-no-title]) {
+		display: none !important;
+	}
+	.content-panel:has([data-splash-no-title]) + .content-panel {
+		padding: 0;
+	}
+	.content-panel:has([data-splash-no-title])
+		+ .content-panel
+		> .sl-container {
+		max-width: none;
+	}
+</style>
