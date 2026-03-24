@@ -6,13 +6,17 @@ use uuid::Uuid;
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct Character {
+    #[sqlx(rename = "customerguid")]
     pub customer_guid: Uuid,
+    #[sqlx(rename = "characterid")]
     pub character_id: i32,
+    #[sqlx(rename = "userguid")]
     pub user_guid: Option<Uuid>,
     pub email: String,
     #[sqlx(rename = "charname")]
     #[serde(rename = "characterName")]
     pub char_name: String,
+    #[sqlx(rename = "mapname")]
     #[serde(rename = "zoneName")]
     pub map_name: Option<String>,
     pub x: f64,
@@ -28,31 +32,42 @@ pub struct Character {
     pub stealth: f64,
     pub spirit: f64,
     pub magic: f64,
+    #[sqlx(rename = "teamnumber")]
     pub team_number: i32,
     pub thirst: f64,
     pub hunger: f64,
     pub gold: f64,
     pub score: f64,
+    #[sqlx(rename = "characterlevel")]
     #[serde(rename = "level")]
     pub character_level: i32,
     pub gender: i32,
     pub xp: f64,
+    #[sqlx(rename = "hitdie")]
     pub hit_die: i32,
     pub wounds: f64,
     pub size: f64,
     pub weight: f64,
     // Vitals
+    #[sqlx(rename = "maxhealth")]
     pub max_health: f64,
     pub health: f64,
+    #[sqlx(rename = "healthregenrate")]
     pub health_regen_rate: f64,
+    #[sqlx(rename = "maxmana")]
     pub max_mana: f64,
     pub mana: f64,
+    #[sqlx(rename = "manaregenrate")]
     pub mana_regen_rate: f64,
+    #[sqlx(rename = "maxenergy")]
     pub max_energy: f64,
     pub energy: f64,
+    #[sqlx(rename = "energyregenrate")]
     pub energy_regen_rate: f64,
+    #[sqlx(rename = "maxstamina")]
     pub max_stamina: f64,
     pub stamina: f64,
+    #[sqlx(rename = "staminaregenrate")]
     pub stamina_regen_rate: f64,
     // Abilities
     pub strength: f64,
@@ -63,25 +78,37 @@ pub struct Character {
     pub charisma: f64,
     pub agility: f64,
     // Combat
+    #[sqlx(rename = "baseattack")]
     pub base_attack: f64,
+    #[sqlx(rename = "baseattackbonus")]
     pub base_attack_bonus: f64,
+    #[sqlx(rename = "attackpower")]
     pub attack_power: f64,
+    #[sqlx(rename = "attackspeed")]
     pub attack_speed: f64,
+    #[sqlx(rename = "critchance")]
     pub crit_chance: f64,
+    #[sqlx(rename = "critmultiplier")]
     pub crit_multiplier: f64,
     pub defense: f64,
     // Currencies
     pub silver: f64,
     pub copper: f64,
+    #[sqlx(rename = "freecurrency")]
     pub free_currency: f64,
+    #[sqlx(rename = "premiumcurrency")]
     pub premium_currency: f64,
     pub fame: f64,
     pub alignment: f64,
     // Admin flags
+    #[sqlx(rename = "isadmin")]
     pub is_admin: bool,
+    #[sqlx(rename = "ismoderator")]
     pub is_moderator: bool,
+    #[sqlx(default)]
     #[serde(rename = "className")]
     pub class_name: Option<String>,
+    #[sqlx(rename = "createdate")]
     pub create_date: Option<NaiveDateTime>,
 }
 
@@ -89,8 +116,11 @@ pub struct Character {
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct UserSession {
+    #[sqlx(rename = "customerguid")]
     pub customer_guid: Uuid,
+    #[sqlx(rename = "userguid")]
     pub user_guid: Option<Uuid>,
+    #[sqlx(rename = "usersessionguid")]
     #[serde(rename = "userSessionGUID")]
     pub user_session_guid: Uuid,
     pub login_date: Option<NaiveDateTime>,
@@ -116,15 +146,23 @@ pub struct LoginResult {
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct ZoneInstance {
+    #[sqlx(rename = "customerguid")]
     pub customer_guid: Uuid,
+    #[sqlx(rename = "mapinstanceid")]
     pub map_instance_id: i32,
+    #[sqlx(rename = "worldserverid")]
     pub world_server_id: i32,
+    #[sqlx(rename = "mapid")]
     pub map_id: i32,
     pub port: i32,
     pub status: i32,
+    #[sqlx(rename = "numberofreportedplayers")]
     pub number_of_reported_players: i32,
+    #[sqlx(rename = "lastupdatefromserver")]
     pub last_update_from_server: Option<NaiveDateTime>,
+    #[sqlx(rename = "lastserveremptydate")]
     pub last_server_empty_date: Option<NaiveDateTime>,
+    #[sqlx(rename = "createdate")]
     pub create_date: Option<NaiveDateTime>,
     pub soft_player_cap: i32,
     pub hard_player_cap: i32,
