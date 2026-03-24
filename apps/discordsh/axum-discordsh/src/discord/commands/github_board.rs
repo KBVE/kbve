@@ -8,7 +8,7 @@ use crate::discord::bot::{Context, Error};
 use crate::discord::embeds::notice_board_embed::{build_notice_board_summary, notices_from_stale};
 use crate::discord::embeds::task_board_embed::{build_task_board_embed, tasks_from_issues};
 use crate::discord::github::resolve_github_token;
-use crate::discord::github_permissions::github_permission_check;
+use crate::discord::github_permissions::{CommandTier, check_tier, github_permission_check};
 
 /// Maximum time for the entire slash command operation (token resolve + API calls).
 /// Discord allows 15 minutes after defer, but we want fast feedback.
@@ -93,6 +93,9 @@ async fn noticeboard(
     #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
     #[description = "Stale threshold in days (default: 3)"] stale_days: Option<u64>,
 ) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Board).await? {
+        return Ok(());
+    }
     ctx.defer().await?;
 
     match tokio::time::timeout(COMMAND_TIMEOUT, async {
@@ -159,6 +162,9 @@ async fn taskboard(
     #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
     #[description = "Phase/milestone name (shown in title)"] phase: Option<String>,
 ) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Board).await? {
+        return Ok(());
+    }
     ctx.defer().await?;
 
     match tokio::time::timeout(COMMAND_TIMEOUT, async {
@@ -222,6 +228,9 @@ async fn issues(
     #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
     #[description = "Max results (default: 10, max: 25)"] limit: Option<u8>,
 ) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Read).await? {
+        return Ok(());
+    }
     ctx.defer().await?;
 
     match tokio::time::timeout(COMMAND_TIMEOUT, async {
@@ -306,6 +315,9 @@ async fn pulls(
     #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
     #[description = "Max results (default: 10, max: 25)"] limit: Option<u8>,
 ) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Read).await? {
+        return Ok(());
+    }
     ctx.defer().await?;
 
     match tokio::time::timeout(COMMAND_TIMEOUT, async {
@@ -385,6 +397,9 @@ async fn repo(
     ctx: Context<'_>,
     #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
 ) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Read).await? {
+        return Ok(());
+    }
     ctx.defer().await?;
 
     match tokio::time::timeout(COMMAND_TIMEOUT, async {
@@ -440,6 +455,9 @@ async fn commits(
     #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
     #[description = "Max results (default: 10, max: 25)"] limit: Option<u8>,
 ) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Read).await? {
+        return Ok(());
+    }
     ctx.defer().await?;
 
     match tokio::time::timeout(COMMAND_TIMEOUT, async {
