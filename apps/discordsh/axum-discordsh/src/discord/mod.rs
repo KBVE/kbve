@@ -5,4 +5,5 @@ pub mod embeds;
 pub mod game;
 #[allow(dead_code)]
 pub mod github;
+pub mod github_permissions;
 pub mod scheduler;

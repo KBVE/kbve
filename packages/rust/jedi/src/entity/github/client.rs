@@ -13,6 +13,7 @@ use reqwest::{Client, Response, StatusCode};
 use std::borrow::Cow;
 use tracing::warn;
 
+use super::policy::RepoPolicy;
 use super::types::*;
 use crate::entity::error::JediError;
 
@@ -24,6 +25,7 @@ pub struct GitHubClient {
     client: Client,
     token: String,
     base_url: String,
+    policy: RepoPolicy,
 }
 
 impl GitHubClient {
@@ -38,12 +40,20 @@ impl GitHubClient {
             client,
             token: token.to_string(),
             base_url: DEFAULT_BASE_URL.to_string(),
+            policy: RepoPolicy::open(),
         }
     }
 
     /// Override the base URL (useful for GitHub Enterprise or testing).
     pub fn with_base_url(mut self, url: &str) -> Self {
         self.base_url = url.trim_end_matches('/').to_string();
+        self
+    }
+
+    /// Attach a repo access policy. Requests to repos not in the policy
+    /// are rejected before any HTTP call is made.
+    pub fn with_policy(mut self, policy: RepoPolicy) -> Self {
+        self.policy = policy;
         self
     }
 
@@ -57,6 +67,7 @@ impl GitHubClient {
         state: Option<&str>,
         per_page: Option<u8>,
     ) -> Result<Vec<GitHubIssue>, JediError> {
+        self.policy.check(owner, repo)?;
         let url = format!("{}/repos/{}/{}/issues", self.base_url, owner, repo);
         let mut req = self.client.get(&url).bearer_auth(&self.token);
 
@@ -88,6 +99,7 @@ impl GitHubClient {
         state: Option<&str>,
         per_page: Option<u8>,
     ) -> Result<Vec<GitHubPull>, JediError> {
+        self.policy.check(owner, repo)?;
         let url = format!("{}/repos/{}/{}/pulls", self.base_url, owner, repo);
         let mut req = self.client.get(&url).bearer_auth(&self.token);
 
@@ -113,6 +125,7 @@ impl GitHubClient {
         since: Option<&str>,
         per_page: Option<u8>,
     ) -> Result<Vec<GitHubCommit>, JediError> {
+        self.policy.check(owner, repo)?;
         let url = format!("{}/repos/{}/{}/commits", self.base_url, owner, repo);
         let mut req = self.client.get(&url).bearer_auth(&self.token);
 
@@ -137,6 +150,7 @@ impl GitHubClient {
         repo: &str,
         branch: &str,
     ) -> Result<GitHubBranchProtection, JediError> {
+        self.policy.check(owner, repo)?;
         let url = format!(
             "{}/repos/{}/{}/branches/{}/protection",
             self.base_url, owner, repo, branch
@@ -156,6 +170,7 @@ impl GitHubClient {
 
     /// Fetch repository metadata.
     pub async fn get_repo(&self, owner: &str, repo: &str) -> Result<GitHubRepo, JediError> {
+        self.policy.check(owner, repo)?;
         let url = format!("{}/repos/{}/{}", self.base_url, owner, repo);
 
         let resp = self
@@ -273,6 +288,7 @@ mod tests {
             updated_at: updated_at.to_string(),
             html_url: format!("https://github.com/test/repo/issues/{number}"),
             pull_request: None,
+            assignees: Vec::new(),
         }
     }
 
@@ -292,6 +308,8 @@ mod tests {
             updated_at: updated_at.to_string(),
             html_url: format!("https://github.com/test/repo/pull/{number}"),
             draft,
+            labels: Vec::new(),
+            assignees: Vec::new(),
         }
     }
 
