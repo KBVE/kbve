@@ -53,11 +53,28 @@ jobs:
                         pull_number: prNumber,
                       });
 
-                      const author = pr.user.login;
-                      const base = pr.base.ref;
-                      const title = pr.title;
-                      const labels = (pr.labels || []).map(l => l.name);
-                      const changedFiles = files.map(f => f.filename);
+                      // Strip hidden/control Unicode from all untrusted strings.
+                      // Blocks RTL overrides, zero-width chars, bidi embeddings, etc.
+                      const sanitize = (s) => s.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u2028-\u202F\u2060-\u206F\uFEFF\uFFF0-\uFFFF]/g, '');
+
+                      const author = sanitize(pr.user.login);
+                      const base = sanitize(pr.base.ref);
+                      const title = sanitize(pr.title);
+                      const labels = (pr.labels || []).map(l => sanitize(l.name));
+                      const changedFiles = files.map(f => sanitize(f.filename));
+
+                      // Reject if sanitization altered the title (hidden chars were present)
+                      if (title !== pr.title) {
+                        core.setFailed(`PR title contains hidden/control characters — aborting.`);
+                        return;
+                      }
+
+                      // Reject if any filename was altered by sanitization
+                      const rawFiles = files.map(f => f.filename);
+                      if (changedFiles.some((f, i) => f !== rawFiles[i])) {
+                        core.setFailed(`PR contains filenames with hidden/control characters — aborting.`);
+                        return;
+                      }
 
                       core.info(`PR #${prNumber}: author=${author} base=${base} title=${title}`);
                       core.info(`Labels: ${labels.join(', ')}`);
@@ -115,10 +132,11 @@ jobs:
                       }
                       core.info(`Found '${appName}' in manifest (pipeline: ${entry.pipeline})`);
 
-                      // 6. Build allowed-file set from manifest entry
+                      // 6. Build allowed-file set from manifest entry (sanitized)
                       const allowedFiles = new Set(
                         [entry.version_toml, entry.version_target, entry.deployment_yaml]
                           .filter(Boolean)
+                          .map(sanitize)
                       );
                       core.info(`Allowed files: ${[...allowedFiles].join(', ')}`);
 
