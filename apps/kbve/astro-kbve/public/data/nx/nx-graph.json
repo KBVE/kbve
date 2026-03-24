@@ -698,6 +698,127 @@
           "implicitDependencies": []
         }
       },
+      "axum-chuckrpg-e2e": {
+        "name": "axum-chuckrpg-e2e",
+        "type": "e2e",
+        "data": {
+          "root": "apps/chuckrpg/axum-chuckrpg-e2e",
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "axum-chuckrpg-e2e",
+              "packageVersion": "0.0.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "targets": {
+            "test": {
+              "executor": "nx:noop",
+              "cache": false,
+              "options": {},
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "options": {
+                "cwd": "apps/chuckrpg/axum-chuckrpg-e2e",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects axum-chuckrpg-e2e --includeDependentProjects -- pnpm exec nx build-deps axum-chuckrpg-e2e"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "container",
+                  "projects": [
+                    "axum-chuckrpg"
+                  ],
+                  "params": "forward"
+                }
+              ],
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker rm -f axum-chuckrpg-e2e 2>/dev/null || true",
+                  "docker run -d --name axum-chuckrpg-e2e -p 4324:4322 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4322 -e RUST_LOG=info kbve/chuckrpg:latest",
+                  "npx vitest run; EC=$?; docker rm -f axum-chuckrpg-e2e 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false,
+                "cwd": "apps/chuckrpg/axum-chuckrpg-e2e"
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            }
+          },
+          "projectType": "application",
+          "name": "axum-chuckrpg-e2e",
+          "tags": [
+            "npm:private"
+          ],
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "implicitDependencies": [
+            "axum-chuckrpg"
+          ]
+        }
+      },
       "notification-bot": {
         "name": "notification-bot",
         "type": "app",
@@ -1998,6 +2119,74 @@
           "implicitDependencies": []
         }
       },
+      "astro-chuckrpg": {
+        "name": "astro-chuckrpg",
+        "type": "app",
+        "data": {
+          "root": "apps/chuckrpg/astro-chuckrpg",
+          "name": "astro-chuckrpg",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/chuckrpg/astro-chuckrpg/src",
+          "tags": [],
+          "targets": {
+            "dev": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/chuckrpg/astro-chuckrpg",
+                "commands": [
+                  "rm -rf .astro",
+                  "nx exec -- astro sync",
+                  "nx exec -- astro dev"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{workspaceRoot}/dist/apps/astro-chuckrpg"
+              ],
+              "options": {
+                "cwd": "apps/chuckrpg/astro-chuckrpg",
+                "commands": [
+                  "rm -rf .astro",
+                  "nx exec -- astro sync",
+                  "nx exec -- astro build"
+                ],
+                "parallel": false
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ]
+            },
+            "preview": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/chuckrpg/astro-chuckrpg",
+                "commands": [
+                  "nx exec -- astro preview"
+                ]
+              },
+              "dependsOn": [
+                "build"
+              ],
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "astro-herbmail": {
         "name": "astro-herbmail",
         "type": "app",
@@ -2146,6 +2335,51 @@
             "axum-discordsh",
             "astro-discordsh"
           ]
+        }
+      },
+      "axum-chuckrpg": {
+        "name": "axum-chuckrpg",
+        "type": "app",
+        "data": {
+          "root": "apps/chuckrpg/axum-chuckrpg",
+          "name": "axum-chuckrpg",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/chuckrpg/axum-chuckrpg/src",
+          "tags": [],
+          "targets": {
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo build --release -p axum-chuckrpg"
+                ],
+                "cwd": ""
+              },
+              "configurations": {},
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "container": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "docker buildx build --platform linux/amd64 -f apps/chuckrpg/axum-chuckrpg/Dockerfile -t kbve/chuckrpg:latest --load ."
+                ],
+                "cwd": ""
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
         }
       },
       "axum-herbmail": {
@@ -2824,57 +3058,121 @@
         "type": "e2e",
         "data": {
           "root": "apps/kbve/astro-kbve-e2e",
-          "name": "astro-kbve-e2e",
-          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-          "projectType": "application",
-          "sourceRoot": "apps/kbve/astro-kbve-e2e/e2e",
-          "tags": [],
-          "implicitDependencies": [
-            "astro-kbve"
-          ],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "astro-kbve-e2e",
+              "packageVersion": "0.0.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
           "targets": {
-            "e2e": {
-              "executor": "@nx/playwright:playwright",
+            "test": {
+              "executor": "nx:noop",
               "cache": false,
-              "dependsOn": [
-                "astro-kbve:build"
-              ],
-              "options": {
-                "config": "apps/kbve/astro-kbve-e2e/playwright.config.ts"
-              },
-              "configurations": {
-                "ci": {
-                  "config": "apps/kbve/astro-kbve-e2e/playwright.preview.config.ts"
-                }
-              },
+              "options": {},
+              "configurations": {},
               "parallelism": true,
               "inputs": [
                 "default",
                 "^production"
               ]
             },
-            "e2e:preview": {
-              "executor": "@nx/playwright:playwright",
-              "cache": false,
-              "dependsOn": [
-                "astro-kbve:build"
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
               ],
               "options": {
-                "config": "apps/kbve/astro-kbve-e2e/playwright.preview.config.ts"
+                "cwd": "apps/kbve/astro-kbve-e2e",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects astro-kbve-e2e --includeDependentProjects -- pnpm exec nx build-deps astro-kbve-e2e"
               },
               "configurations": {},
               "parallelism": true
             },
-            "e2e:docker": {
-              "executor": "@nx/playwright:playwright",
+            "e2e": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "container",
+                  "projects": [
+                    "axum-kbve"
+                  ],
+                  "params": "forward"
+                }
+              ],
               "cache": false,
               "options": {
-                "config": "apps/kbve/astro-kbve-e2e/playwright.docker.config.ts"
+                "commands": [
+                  "docker rm -f astro-kbve-e2e 2>/dev/null || true",
+                  "docker run -d --name astro-kbve-e2e -p 4323:4321 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4321 -e RUST_LOG=info kbve/kbve:latest",
+                  "npx vitest run; EC=$?; docker rm -f astro-kbve-e2e 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false,
+                "cwd": "apps/kbve/astro-kbve-e2e"
               },
-              "configurations": {},
-              "parallelism": true
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
             }
-          }
+          },
+          "projectType": "application",
+          "name": "astro-kbve-e2e",
+          "tags": [
+            "npm:private"
+          ],
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/kbve/astro-kbve-e2e/e2e",
+          "implicitDependencies": [
+            "axum-kbve"
+          ]
         }
       },
       "axum-kbve-e2e": {
@@ -5316,8 +5614,7 @@
                 },
                 "ci": {
                   "commands": [
-                    "echo '=== Pre-build diagnostics ===' && df -h 2>/dev/null && echo '--- cgroup memory ---' && cat /sys/fs/cgroup/memory.max 2>/dev/null && cat /sys/fs/cgroup/memory.current 2>/dev/null || true && docker system df 2>/dev/null || true && docker buildx ls 2>/dev/null || true",
-                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --cache-from type=local,src=/home/runner/_cache/docker/axum-kbve --cache-to type=local,dest=/home/runner/_cache/docker/axum-kbve,mode=max --file apps/kbve/axum-kbve/Dockerfile .",
+                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --file apps/kbve/axum-kbve/Dockerfile .",
                     "VERSION=$(grep '^version' apps/kbve/axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve:latest kbve/kbve:$VERSION && echo \"Tagged kbve/kbve:$VERSION\""
                   ]
                 }
@@ -5366,12 +5663,6 @@
                   "push": false,
                   "tags": [
                     "kbve/kbve:latest"
-                  ],
-                  "cache-from": [
-                    "type=local,src=/home/runner/_cache/docker/axum-kbve"
-                  ],
-                  "cache-to": [
-                    "type=local,dest=/home/runner/_cache/docker/axum-kbve,mode=max"
                   ]
                 }
               },
@@ -7973,6 +8264,63 @@
           "implicitDependencies": []
         }
       },
+      "rows-e2e": {
+        "name": "rows-e2e",
+        "type": "e2e",
+        "data": {
+          "root": "apps/ows/rows-e2e",
+          "name": "rows-e2e",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "implicitDependencies": [
+            "rows"
+          ],
+          "targets": {
+            "test": {
+              "executor": "nx:noop",
+              "cache": false,
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "container",
+                  "projects": [
+                    "rows"
+                  ],
+                  "params": "forward"
+                }
+              ],
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker rm -f rows-e2e 2>/dev/null || true",
+                  "docker run -d --name rows-e2e -p 4325:4322 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4322 -e RUST_LOG=info -e DATABASE_URL='' kbve/rows:latest",
+                  "npx vitest run; EC=$?; docker rm -f rows-e2e 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false,
+                "cwd": "apps/ows/rows-e2e"
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            }
+          },
+          "tags": []
+        }
+      },
       "angelscript": {
         "name": "angelscript",
         "type": "app",
@@ -8667,6 +9015,163 @@
           "implicitDependencies": []
         }
       },
+      "rows": {
+        "name": "rows",
+        "type": "app",
+        "data": {
+          "root": "apps/ows/rows",
+          "name": "rows",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/ows/rows/src",
+          "tags": [
+            "docker",
+            "rust",
+            "ows"
+          ],
+          "targets": {
+            "build": {
+              "executor": "@monodon/rust:build",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/rows"
+              },
+              "configurations": {
+                "production": {
+                  "release": true
+                }
+              },
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "@monodon/rust:test",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/rows"
+              },
+              "configurations": {
+                "production": {
+                  "release": true
+                }
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "lint": {
+              "executor": "@monodon/rust:lint",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/rows"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "run": {
+              "executor": "@monodon/rust:run",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/rows"
+              },
+              "configurations": {
+                "production": {
+                  "release": true
+                }
+              },
+              "parallelism": true
+            },
+            "container": {
+              "executor": "nx:run-commands",
+              "dependsOn": [],
+              "defaultConfiguration": "local",
+              "options": {
+                "parallel": false
+              },
+              "configurations": {
+                "local": {
+                  "commands": [
+                    "./kbve.sh -nx rows:containerx",
+                    "VERSION=$(grep '^version' apps/ows/rows/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/rows:latest kbve/rows:$VERSION && echo \"Tagged kbve/rows:$VERSION\""
+                  ]
+                },
+                "production": {
+                  "commands": [
+                    "./kbve.sh -nx rows:containerx --configuration=production",
+                    "VERSION=$(grep '^version' apps/ows/rows/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/rows:latest kbve/rows:$VERSION && docker tag kbve/rows:latest ghcr.io/kbve/rows:latest && docker tag kbve/rows:latest ghcr.io/kbve/rows:$VERSION && echo \"Tagged kbve/rows:$VERSION and ghcr.io/kbve/rows:$VERSION\""
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "containerx": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/ows/rows/Dockerfile",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/rows:latest"
+                  ]
+                },
+                "production": {
+                  "load": true,
+                  "push": false,
+                  "metadata": {
+                    "images": [
+                      "ghcr.io/kbve/rows",
+                      "kbve/rows"
+                    ],
+                    "tags": [
+                      "latest"
+                    ]
+                  },
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/rows:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/rows:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "pydesk": {
         "name": "pydesk",
         "type": "app",
@@ -8929,13 +9434,13 @@
                 "local": {
                   "commands": [
                     "./kbve.sh -nx ows:containerx-publicapi --no-cloud",
-                    "VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-publicapi:latest kbve/ows-publicapi:$VERSION && echo \"Tagged kbve/ows-publicapi:$VERSION\""
+                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-public-api/OWSPublicAPI.csproj | head -1) && docker tag kbve/ows-publicapi:latest kbve/ows-publicapi:$VERSION && echo \"Tagged kbve/ows-publicapi:$VERSION\""
                   ]
                 },
                 "production": {
                   "commands": [
                     "./kbve.sh -nx ows:containerx-publicapi --configuration=production --no-cloud",
-                    "VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-publicapi:latest kbve/ows-publicapi:$VERSION && docker tag ghcr.io/kbve/ows-publicapi:latest ghcr.io/kbve/ows-publicapi:$VERSION && echo \"Tagged kbve/ows-publicapi:$VERSION\""
+                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-public-api/OWSPublicAPI.csproj | head -1) && docker tag kbve/ows-publicapi:latest kbve/ows-publicapi:$VERSION && docker tag ghcr.io/kbve/ows-publicapi:latest ghcr.io/kbve/ows-publicapi:$VERSION && echo \"Tagged kbve/ows-publicapi:$VERSION\""
                   ]
                 }
               },
@@ -8995,13 +9500,13 @@
                 "local": {
                   "commands": [
                     "./kbve.sh -nx ows:containerx-instancemanagement --no-cloud",
-                    "VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-instancemanagement:latest kbve/ows-instancemanagement:$VERSION && echo \"Tagged kbve/ows-instancemanagement:$VERSION\""
+                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-instance-management/OWSInstanceManagement.csproj | head -1) && docker tag kbve/ows-instancemanagement:latest kbve/ows-instancemanagement:$VERSION && echo \"Tagged kbve/ows-instancemanagement:$VERSION\""
                   ]
                 },
                 "production": {
                   "commands": [
                     "./kbve.sh -nx ows:containerx-instancemanagement --configuration=production --no-cloud",
-                    "VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-instancemanagement:latest kbve/ows-instancemanagement:$VERSION && docker tag ghcr.io/kbve/ows-instancemanagement:latest ghcr.io/kbve/ows-instancemanagement:$VERSION && echo \"Tagged kbve/ows-instancemanagement:$VERSION\""
+                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-instance-management/OWSInstanceManagement.csproj | head -1) && docker tag kbve/ows-instancemanagement:latest kbve/ows-instancemanagement:$VERSION && docker tag ghcr.io/kbve/ows-instancemanagement:latest ghcr.io/kbve/ows-instancemanagement:$VERSION && echo \"Tagged kbve/ows-instancemanagement:$VERSION\""
                   ]
                 }
               },
@@ -9061,13 +9566,13 @@
                 "local": {
                   "commands": [
                     "./kbve.sh -nx ows:containerx-characterpersistence --no-cloud",
-                    "VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-characterpersistence:latest kbve/ows-characterpersistence:$VERSION && echo \"Tagged kbve/ows-characterpersistence:$VERSION\""
+                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-character-persistence/OWSCharacterPersistence.csproj | head -1) && docker tag kbve/ows-characterpersistence:latest kbve/ows-characterpersistence:$VERSION && echo \"Tagged kbve/ows-characterpersistence:$VERSION\""
                   ]
                 },
                 "production": {
                   "commands": [
                     "./kbve.sh -nx ows:containerx-characterpersistence --configuration=production --no-cloud",
-                    "VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-characterpersistence:latest kbve/ows-characterpersistence:$VERSION && docker tag ghcr.io/kbve/ows-characterpersistence:latest ghcr.io/kbve/ows-characterpersistence:$VERSION && echo \"Tagged kbve/ows-characterpersistence:$VERSION\""
+                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-character-persistence/OWSCharacterPersistence.csproj | head -1) && docker tag kbve/ows-characterpersistence:latest kbve/ows-characterpersistence:$VERSION && docker tag ghcr.io/kbve/ows-characterpersistence:latest ghcr.io/kbve/ows-characterpersistence:$VERSION && echo \"Tagged kbve/ows-characterpersistence:$VERSION\""
                   ]
                 }
               },
@@ -9127,13 +9632,13 @@
                 "local": {
                   "commands": [
                     "./kbve.sh -nx ows:containerx-globaldata --no-cloud",
-                    "VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-globaldata:latest kbve/ows-globaldata:$VERSION && echo \"Tagged kbve/ows-globaldata:$VERSION\""
+                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-global-data/OWSGlobalData.csproj | head -1) && docker tag kbve/ows-globaldata:latest kbve/ows-globaldata:$VERSION && echo \"Tagged kbve/ows-globaldata:$VERSION\""
                   ]
                 },
                 "production": {
                   "commands": [
                     "./kbve.sh -nx ows:containerx-globaldata --configuration=production --no-cloud",
-                    "VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-globaldata:latest kbve/ows-globaldata:$VERSION && docker tag ghcr.io/kbve/ows-globaldata:latest ghcr.io/kbve/ows-globaldata:$VERSION && echo \"Tagged kbve/ows-globaldata:$VERSION\""
+                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-global-data/OWSGlobalData.csproj | head -1) && docker tag kbve/ows-globaldata:latest kbve/ows-globaldata:$VERSION && docker tag ghcr.io/kbve/ows-globaldata:latest ghcr.io/kbve/ows-globaldata:$VERSION && echo \"Tagged kbve/ows-globaldata:$VERSION\""
                   ]
                 }
               },
@@ -9193,13 +9698,13 @@
                 "local": {
                   "commands": [
                     "./kbve.sh -nx ows:containerx-management --no-cloud",
-                    "VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-management:latest kbve/ows-management:$VERSION && echo \"Tagged kbve/ows-management:$VERSION\""
+                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-management/OWSManagement.csproj | head -1) && docker tag kbve/ows-management:latest kbve/ows-management:$VERSION && echo \"Tagged kbve/ows-management:$VERSION\""
                   ]
                 },
                 "production": {
                   "commands": [
                     "./kbve.sh -nx ows:containerx-management --configuration=production --no-cloud",
-                    "VERSION=$(grep '^version' apps/ows/version.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/ows-management:latest kbve/ows-management:$VERSION && docker tag ghcr.io/kbve/ows-management:latest ghcr.io/kbve/ows-management:$VERSION && echo \"Tagged kbve/ows-management:$VERSION\""
+                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-management/OWSManagement.csproj | head -1) && docker tag kbve/ows-management:latest kbve/ows-management:$VERSION && docker tag ghcr.io/kbve/ows-management:latest ghcr.io/kbve/ows-management:$VERSION && echo \"Tagged kbve/ows-management:$VERSION\""
                   ]
                 }
               },
@@ -9244,6 +9749,72 @@
                   ],
                   "cache-to": [
                     "type=registry,ref=ghcr.io/kbve/ows-management:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "container-instancelauncher": {
+              "executor": "nx:run-commands",
+              "defaultConfiguration": "local",
+              "options": {
+                "parallel": false
+              },
+              "configurations": {
+                "local": {
+                  "commands": [
+                    "./kbve.sh -nx ows:containerx-instancelauncher --no-cloud",
+                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-instance-launcher/OWSInstanceLauncher.csproj | head -1) && docker tag kbve/ows-instancelauncher:latest kbve/ows-instancelauncher:$VERSION && echo \"Tagged kbve/ows-instancelauncher:$VERSION\""
+                  ]
+                },
+                "production": {
+                  "commands": [
+                    "./kbve.sh -nx ows:containerx-instancelauncher --configuration=production --no-cloud",
+                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-instance-launcher/OWSInstanceLauncher.csproj | head -1) && docker tag kbve/ows-instancelauncher:latest kbve/ows-instancelauncher:$VERSION && docker tag ghcr.io/kbve/ows-instancelauncher:latest ghcr.io/kbve/ows-instancelauncher:$VERSION && echo \"Tagged kbve/ows-instancelauncher:$VERSION\""
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "containerx-instancelauncher": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": "apps/ows",
+                "file": "apps/ows/Dockerfile",
+                "target": "instancelauncher",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/ows-instancelauncher:latest"
+                  ],
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/ows-instancelauncher:buildcache"
+                  ]
+                },
+                "production": {
+                  "load": true,
+                  "push": false,
+                  "metadata": {
+                    "images": [
+                      "ghcr.io/kbve/ows-instancelauncher",
+                      "kbve/ows-instancelauncher"
+                    ],
+                    "tags": [
+                      "latest"
+                    ]
+                  },
+                  "cache-from": [
+                    "type=gha",
+                    "type=registry,ref=ghcr.io/kbve/ows-instancelauncher:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/ows-instancelauncher:buildcache,mode=max"
                   ]
                 }
               },
@@ -9622,6 +10193,13 @@
       "axum-cryptothrone": [],
       "bevy_inventory": [],
       "bevy_kbve_net": [],
+      "axum-chuckrpg-e2e": [
+        {
+          "source": "axum-chuckrpg-e2e",
+          "target": "axum-chuckrpg",
+          "type": "implicit"
+        }
+      ],
       "notification-bot": [],
       "astro-discordsh": [
         {
@@ -9643,6 +10221,7 @@
       "axum-discordsh": [],
       "bevy_items": [],
       "bevy_mapdb": [],
+      "astro-chuckrpg": [],
       "astro-herbmail": [
         {
           "source": "astro-herbmail",
@@ -9667,6 +10246,7 @@
           "type": "implicit"
         }
       ],
+      "axum-chuckrpg": [],
       "axum-herbmail": [],
       "bevy_cam": [],
       "bevy_npc": [],
@@ -9697,7 +10277,7 @@
       "astro-kbve-e2e": [
         {
           "source": "astro-kbve-e2e",
-          "target": "astro-kbve",
+          "target": "axum-kbve",
           "type": "implicit"
         }
       ],
@@ -9863,6 +10443,13 @@
       "laser": [],
       "soul": [],
       "cryptothrone": [],
+      "rows-e2e": [
+        {
+          "source": "rows-e2e",
+          "target": "rows",
+          "type": "implicit"
+        }
+      ],
       "angelscript": [],
       "astro-mc": [
         {
@@ -9899,6 +10486,7 @@
         }
       ],
       "herbmail": [],
+      "rows": [],
       "pydesk": [],
       "memes": [],
       "irc": [],
