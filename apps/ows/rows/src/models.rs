@@ -146,15 +146,23 @@ pub struct LoginResult {
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct ZoneInstance {
+    #[sqlx(rename = "customerguid")]
     pub customer_guid: Uuid,
+    #[sqlx(rename = "mapinstanceid")]
     pub map_instance_id: i32,
+    #[sqlx(rename = "worldserverid")]
     pub world_server_id: i32,
+    #[sqlx(rename = "mapid")]
     pub map_id: i32,
     pub port: i32,
     pub status: i32,
+    #[sqlx(rename = "numberofreportedplayers")]
     pub number_of_reported_players: i32,
+    #[sqlx(rename = "lastupdatefromserver")]
     pub last_update_from_server: Option<NaiveDateTime>,
+    #[sqlx(rename = "lastserveremptydate")]
     pub last_server_empty_date: Option<NaiveDateTime>,
+    #[sqlx(rename = "createdate")]
     pub create_date: Option<NaiveDateTime>,
     pub soft_player_cap: i32,
     pub hard_player_cap: i32,
