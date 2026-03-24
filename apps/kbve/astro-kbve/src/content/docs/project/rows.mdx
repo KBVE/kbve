@@ -12,7 +12,7 @@ tags:
 key: rows
 pipeline: docker
 app_name: rows
-version: "0.1.5"
+version: "0.1.6"
 source_path: apps/ows/rows
 version_toml: apps/ows/rows/version.toml
 version_target: apps/ows/rows/Cargo.toml
@@ -52,16 +52,14 @@ ROWS is a single-binary Rust reimplementation of the OWS (Open World Server) gam
 | Health | `/health`, `/ready` | Liveness and readiness probes |
 | gRPC | Port 50051 | Internal service mesh |
 
-<Aside type="caution" title="Alpha Status">
-    ROWS is in active development. The .NET OWS services remain the production deployment
-    until ROWS reaches feature parity and passes integration testing against the same
-    database schema and RabbitMQ message contracts.
+<Aside type="tip" title="Production">
+    ROWS is the production game backend. The legacy .NET OWS microservices have been fully
+    removed — all traffic on `api.chuckrpg.com` routes exclusively to ROWS.
 </Aside>
 
 ### Deployment
 
-ROWS deploys as a single Docker image (`ghcr.io/kbve/rows`) into the `ows` Kubernetes namespace alongside the existing .NET services. During the migration period, both stacks can run in parallel with traffic routing controlled via HTTPRoute rules.
+ROWS deploys as a single Docker image (`ghcr.io/kbve/rows`) into the `ows` Kubernetes namespace. ArgoCD syncs the manifest from `apps/kube/ows/manifest/rows-deployment.yaml` with auto-prune and self-heal enabled.
 
 The container exposes:
-- **Port 4322** — REST API (Axum)
-- **Port 50051** — gRPC (Tonic)
+- **Port 4322** — REST + gRPC multiplexed (Axum + Tonic on a single port)

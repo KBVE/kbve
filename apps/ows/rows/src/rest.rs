@@ -33,6 +33,7 @@ pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
     let management = management_routes(hs.clone());
 
     Router::new()
+        .route("/", get(root))
         .route("/health", get(health))
         .route("/ready", get(readiness).with_state(hs.clone()))
         .merge(public)
@@ -42,6 +43,13 @@ pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
         .merge(abilities)
         .merge(zones)
         .merge(management)
+}
+
+async fn root() -> Json<serde_json::Value> {
+    Json(serde_json::json!({
+        "service": "rows",
+        "status": "ok"
+    }))
 }
 
 async fn health() -> Json<HealthResponse> {
@@ -184,7 +192,7 @@ async fn get_user_session(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct GetAllCharsDto {
-    #[serde(rename = "userSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
     user_session_guid: Uuid,
 }
 
@@ -204,7 +212,7 @@ async fn get_all_characters(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct GetServerDto {
-    #[serde(rename = "userSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
     _user_session_guid: Uuid,
     character_name: String,
     zone_name: String,
@@ -226,7 +234,7 @@ async fn get_server_to_connect_to(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct GetByNameDto {
-    #[serde(rename = "userSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
     _user_session_guid: String,
     character_name: String,
 }
@@ -290,7 +298,7 @@ async fn register_user(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct LogoutDto {
-    #[serde(rename = "userSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
     user_session_guid: Uuid,
 }
 
@@ -307,7 +315,7 @@ async fn logout(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct CreateCharDto {
-    #[serde(rename = "userSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
     user_session_guid: Uuid,
     character_name: String,
     class_name: String,
@@ -337,7 +345,7 @@ async fn create_character(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct RemoveCharDto {
-    #[serde(rename = "userSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
     _user_session_guid: Uuid,
     character_name: String,
 }
@@ -361,7 +369,7 @@ async fn remove_character(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct CreateCharDefaultsDto {
-    #[serde(rename = "userSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
     user_session_guid: Uuid,
     character_name: String,
     default_set_name: String,
@@ -391,7 +399,7 @@ async fn create_char_defaults(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct SetSelectedCharDto {
-    #[serde(rename = "userSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
     user_session_guid: Uuid,
     character_name: String,
 }
@@ -498,7 +506,7 @@ struct SetZoneStatusWrapper {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct SetZoneStatusPayload {
-    #[serde(rename = "zoneInstanceID")]
+    #[serde(rename = "zoneInstanceID", alias = "ZoneInstanceID")]
     zone_instance_id: i32,
     instance_status: i32,
 }
@@ -531,7 +539,7 @@ struct GetZoneInstancesWrapper {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct GetZoneInstancesPayload {
-    #[serde(rename = "worldServerID")]
+    #[serde(rename = "worldServerID", alias = "WorldServerID")]
     world_server_id: i32,
 }
 
@@ -557,7 +565,7 @@ struct RegisterLauncherWrapper {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct RegisterLauncherPayload {
-    #[serde(rename = "launcherGUID")]
+    #[serde(rename = "launcherGUID", alias = "LauncherGUID")]
     launcher_guid: String,
     server_ip: String,
     max_number_of_instances: i32,
@@ -624,9 +632,9 @@ async fn shut_down_instance_launcher(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct SpinUpDto {
-    #[serde(rename = "worldServerID")]
+    #[serde(rename = "worldServerID", alias = "WorldServerID")]
     world_server_id: i32,
-    #[serde(rename = "zoneInstanceID")]
+    #[serde(rename = "zoneInstanceID", alias = "ZoneInstanceID")]
     zone_instance_id: i32,
     zone_name: String,
     port: i32,
@@ -657,9 +665,9 @@ async fn spin_up_server_instance(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ShutDownServerDto {
-    #[serde(rename = "worldServerID")]
+    #[serde(rename = "worldServerID", alias = "WorldServerID")]
     _world_server_id: i32,
-    #[serde(rename = "zoneInstanceID")]
+    #[serde(rename = "zoneInstanceID", alias = "ZoneInstanceID")]
     zone_instance_id: i32,
 }
 
@@ -719,7 +727,7 @@ struct WorldTimeWrapper {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct WorldTimePayload {
-    #[serde(rename = "worldServerID")]
+    #[serde(rename = "worldServerID", alias = "WorldServerID")]
     world_server_id: i32,
 }
 
@@ -762,10 +770,10 @@ struct DefaultCustomDataDto {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct GetPlayerGroupsDto {
-    #[serde(rename = "userSessionGUID")]
+    #[serde(rename = "userSessionGUID", alias = "UserSessionGUID")]
     _user_session_guid: Uuid,
     character_name: String,
-    #[serde(rename = "playerGroupTypeID")]
+    #[serde(rename = "playerGroupTypeID", alias = "PlayerGroupTypeID")]
     player_group_type_id: i32,
 }
 
