@@ -62,23 +62,41 @@ jobs:
                         return stripped.replace(/[^a-zA-Z0-9\-_.\/@: ()]/g, '');
                       };
 
-                      const author = sanitize(pr.user.login);
-                      const base = sanitize(pr.base.ref);
-                      const title = sanitize(pr.title);
-                      const labels = (pr.labels || []).map(l => sanitize(l.name));
-                      const changedFiles = files.map(f => sanitize(f.filename));
+                      // Sanitize and verify every field — reject if ANY field
+                      // contained characters that were stripped.
+                      const verifiedSanitize = (raw, fieldName) => {
+                        const clean = sanitize(raw);
+                        if (clean !== raw) {
+                          core.setFailed(
+                            `Field '${fieldName}' contains invalid characters — aborting. ` +
+                            `Raw: '${JSON.stringify(raw)}' Clean: '${clean}'`
+                          );
+                          return null;
+                        }
+                        return clean;
+                      };
 
-                      // Reject if sanitization altered the title (hidden chars were present)
-                      if (title !== pr.title) {
-                        core.setFailed(`PR title contains hidden/control characters — aborting.`);
-                        return;
+                      const author = verifiedSanitize(pr.user.login, 'author');
+                      if (author === null) return;
+                      const base = verifiedSanitize(pr.base.ref, 'base');
+                      if (base === null) return;
+                      const title = verifiedSanitize(pr.title, 'title');
+                      if (title === null) return;
+
+                      const rawLabels = (pr.labels || []).map(l => l.name);
+                      const labels = [];
+                      for (const raw of rawLabels) {
+                        const clean = verifiedSanitize(raw, `label '${sanitize(raw)}'`);
+                        if (clean === null) return;
+                        labels.push(clean);
                       }
 
-                      // Reject if any filename was altered by sanitization
                       const rawFiles = files.map(f => f.filename);
-                      if (changedFiles.some((f, i) => f !== rawFiles[i])) {
-                        core.setFailed(`PR contains filenames with hidden/control characters — aborting.`);
-                        return;
+                      const changedFiles = [];
+                      for (const raw of rawFiles) {
+                        const clean = verifiedSanitize(raw, `file '${sanitize(raw)}'`);
+                        if (clean === null) return;
+                        changedFiles.push(clean);
                       }
 
                       core.info(`PR #${prNumber}: author=${author} base=${base} title=${title}`);
