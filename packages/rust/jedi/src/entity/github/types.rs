@@ -18,6 +18,8 @@ pub struct GitHubIssue {
     pub updated_at: String,
     pub html_url: String,
     pub pull_request: Option<serde_json::Value>,
+    #[serde(default)]
+    pub assignees: Vec<GitHubUser>,
 }
 
 impl GitHubIssue {
@@ -41,6 +43,10 @@ pub struct GitHubPull {
     pub html_url: String,
     #[serde(default)]
     pub draft: bool,
+    #[serde(default)]
+    pub labels: Vec<GitHubLabel>,
+    #[serde(default)]
+    pub assignees: Vec<GitHubUser>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

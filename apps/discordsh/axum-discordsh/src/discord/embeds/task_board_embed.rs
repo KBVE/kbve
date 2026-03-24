@@ -213,6 +213,7 @@ mod tests {
             updated_at: "2026-01-02T00:00:00Z".to_string(),
             html_url: format!("https://github.com/test/repo/issues/{number}"),
             pull_request: None,
+            assignees: Vec::new(),
         }
     }
 

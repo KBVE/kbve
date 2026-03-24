@@ -9,6 +9,7 @@ use kbve::{FontDb, MemberCache};
 
 use crate::api::rate_limit::RateLimiter;
 use crate::discord::game::{ProfileStore, SessionStore};
+use crate::discord::github_permissions::GitHubCommandGuard;
 use crate::health::HealthMonitor;
 use crate::tracker::ShardTracker;
 
@@ -71,6 +72,12 @@ pub struct AppState {
     /// Default GitHub repo (owner, name) resolved once from
     /// `GITHUB_DEFAULT_REPO` → `GH_REPO` → `KBVE/kbve`.
     pub default_repo: (String, String),
+
+    /// GitHub repo access policy (allowlist resolved from `GITHUB_ALLOWED_REPOS`).
+    pub github_repo_policy: jedi::entity::github::RepoPolicy,
+
+    /// Discord-level guard for `/github` commands (rate limit + permissions).
+    pub github_guard: GitHubCommandGuard,
 }
 
 /// Resolve the default GitHub repo from env vars (checked once at startup).
@@ -139,6 +146,8 @@ impl AppState {
             http_client,
             submit_limiter: RateLimiter::new(5, 60),
             default_repo: resolve_default_repo(),
+            github_repo_policy: jedi::entity::github::RepoPolicy::from_env(),
+            github_guard: GitHubCommandGuard::from_env(),
         }
     }
 }
