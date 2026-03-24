@@ -1,5 +1,6 @@
 pub mod api;
 pub mod https;
+pub mod security;
 pub mod svg;
 
 use std::sync::Arc;
