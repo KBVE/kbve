@@ -409,14 +409,12 @@ impl SocialMetaBuilder {
 /// Presets for common social meta configurations.
 impl SocialMeta {
     /// Meme page preset — OG type "article", large image card, Meme.sh branding.
-    #[allow(clippy::too_many_arguments)]
     pub fn meme(
         title: impl Into<Cow<'static, str>>,
         description: impl Into<Cow<'static, str>>,
         canonical_url: impl Into<Cow<'static, str>>,
         image: impl Into<Cow<'static, str>>,
-        width: u32,
-        height: u32,
+        image_dimensions: (u32, u32),
         author: impl Into<Cow<'static, str>>,
         tags: Vec<Cow<'static, str>>,
     ) -> Self {
@@ -426,7 +424,7 @@ impl SocialMeta {
             .url(canonical.clone())
             .canonical_url(canonical)
             .image(image)
-            .image_dimensions(width, height)
+            .image_dimensions(image_dimensions.0, image_dimensions.1)
             .site_name("Meme.sh")
             .og_type("article")
             .twitter_card("summary_large_image")
@@ -564,8 +562,7 @@ mod tests {
             "A image by user1 on Meme.sh",
             "https://meme.sh/meme/01ABC",
             "https://cdn.meme.sh/t/abc.jpg",
-            800,
-            600,
+            (800, 600),
             "user1",
             vec![Cow::Borrowed("funny"), Cow::Borrowed("cats")],
         );
