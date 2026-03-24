@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-03-23T08:30:14Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-03-24T08:25:37Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**32** critical/high severity findings across the monorepo.
+**20** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,13 +26,13 @@ Last generated: **2026-03-23T08:30:14Z** — updated daily by `ci-dashboard`.
   <Card title="1 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="31 High" icon="error">
+  <Card title="19 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="27 Medium" icon="information">
+  <Card title="26 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
-  <Card title="5 Low" icon="approve-check-circle">
+  <Card title="3 Low" icon="approve-check-circle">
     Low-severity findings across all ecosystems.
   </Card>
 </CardGrid>
@@ -41,10 +41,10 @@ Last generated: **2026-03-23T08:30:14Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **56** advisories
+    **42** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
-    **36** advisories
+    **35** advisories
   </Card>
   <Card title="Python" icon="seti:python">
     **0** advisories
@@ -63,9 +63,9 @@ Last generated: **2026-03-23T08:30:14Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 1
-    "High" : 31
-    "Medium" : 27
-    "Low" : 5
+    "High" : 19
+    "Medium" : 26
+    "Low" : 3
 ```
 
 ### Findings by Ecosystem
@@ -73,8 +73,8 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 56
-    "Cargo" : 36
+    "npm" : 42
+    "Cargo" : 35
 ```
 
 <Tabs>
@@ -82,12 +82,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 31 | 19 | 5 | 56 |
-| **Cargo** | 0 | 0 | 8 | 0 | 36 |
+| **npm** | 1 | 19 | 19 | 3 | 42 |
+| **Cargo** | 0 | 0 | 7 | 0 | 35 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 31 | 27 | 5 | 92 |
+| **Total** | 1 | 19 | 26 | 3 | 77 |
 
   </TabItem>
   <TabItem label="npm">
@@ -101,19 +101,7 @@ pie showData
 | High | `axios` | axios Requests Vulnerable To Possible SSRF and Credential... | [Details](https://github.com/advisories/GHSA-jr5f-v2jv-69x6) |
 | High | `axios` | Axios is vulnerable to DoS attack through lack of data si... | [Details](https://github.com/advisories/GHSA-4hjh-wcwx-xvwj) |
 | High | `axios` | Axios is Vulnerable to Denial of Service via __proto__ Ke... | [Details](https://github.com/advisories/GHSA-43fc-jf86-j433) |
-| High | `minimatch` | minimatch has a ReDoS via repeated wildcards with non-mat... | [Details](https://github.com/advisories/GHSA-3ppc-4f35-3m26) |
-| High | `minimatch` | minimatch has a ReDoS via repeated wildcards with non-mat... | [Details](https://github.com/advisories/GHSA-3ppc-4f35-3m26) |
-| High | `minimatch` | minimatch has a ReDoS via repeated wildcards with non-mat... | [Details](https://github.com/advisories/GHSA-3ppc-4f35-3m26) |
-| High | `minimatch` | minimatch has a ReDoS via repeated wildcards with non-mat... | [Details](https://github.com/advisories/GHSA-3ppc-4f35-3m26) |
 | High | `rollup` | Rollup 4 has Arbitrary File Write via Path Traversal | [Details](https://github.com/advisories/GHSA-mw96-cpmx-2vgc) |
-| High | `minimatch` | minimatch has ReDoS: matchOne() combinatorial backtrackin... | [Details](https://github.com/advisories/GHSA-7r86-cg39-jmmj) |
-| High | `minimatch` | minimatch has ReDoS: matchOne() combinatorial backtrackin... | [Details](https://github.com/advisories/GHSA-7r86-cg39-jmmj) |
-| High | `minimatch` | minimatch has ReDoS: matchOne() combinatorial backtrackin... | [Details](https://github.com/advisories/GHSA-7r86-cg39-jmmj) |
-| High | `minimatch` | minimatch has ReDoS: matchOne() combinatorial backtrackin... | [Details](https://github.com/advisories/GHSA-7r86-cg39-jmmj) |
-| High | `minimatch` | minimatch ReDoS: nested *() extglobs generate catastrophi... | [Details](https://github.com/advisories/GHSA-23c5-xmqv-rm74) |
-| High | `minimatch` | minimatch ReDoS: nested *() extglobs generate catastrophi... | [Details](https://github.com/advisories/GHSA-23c5-xmqv-rm74) |
-| High | `minimatch` | minimatch ReDoS: nested *() extglobs generate catastrophi... | [Details](https://github.com/advisories/GHSA-23c5-xmqv-rm74) |
-| High | `minimatch` | minimatch ReDoS: nested *() extglobs generate catastrophi... | [Details](https://github.com/advisories/GHSA-23c5-xmqv-rm74) |
 | High | `koa` | Koa has Host Header Injection via ctx.hostname | [Details](https://github.com/advisories/GHSA-7gcc-r8m5-44qm) |
 | High | `serialize-javascript` | Serialize JavaScript is Vulnerable to RCE via RegExp.flag... | [Details](https://github.com/advisories/GHSA-5c6j-r48x-rmvq) |
 | High | `svgo` | SVGO DoS through entity expansion in DOCTYPE (Billion Lau... | [Details](https://github.com/advisories/GHSA-xpqw-6gx7-v673) |
@@ -145,8 +133,6 @@ pie showData
 | Medium | `h3` | h3 has a Path Traversal via Percent-Encoded Dot Segments ... | [Details](https://github.com/advisories/GHSA-wr4h-v87w-p3r7) |
 | Medium | `h3` | h3: SSE Event Injection via Unsanitized Carriage Return (... | [Details](https://github.com/advisories/GHSA-4hxc-9384-m385) |
 | Medium | `h3` | h3: Double Decoding in `serveStatic` Bypasses `resolveDot... | [Details](https://github.com/advisories/GHSA-72gr-qfp7-vwhw) |
-| Low | `brace-expansion` | brace-expansion Regular Expression Denial of Service vuln... | [Details](https://github.com/advisories/GHSA-v6h2-p8h4-qcjw) |
-| Low | `brace-expansion` | brace-expansion Regular Expression Denial of Service vuln... | [Details](https://github.com/advisories/GHSA-v6h2-p8h4-qcjw) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
@@ -161,9 +147,8 @@ pie showData
 | Medium | `curve25519-dalek` | Timing variability in `curve25519-dalek`'s `Scalar29::sub... | [Details](https://github.com/dalek-cryptography/curve25519-dalek/pull/659) |
 | Medium | `ed25519-dalek` | Double Public Key Signing Function Oracle Attack on `ed25... | [Details](https://github.com/MystenLabs/ed25519-unsafe-libs) |
 | Medium | `rsa` | Marvin Attack: potential key recovery through timing side... | [Details](https://github.com/RustCrypto/RSA/issues/19#issuecomment-1822995643) |
-| Medium | `rustls-webpki` | CRLs not considered authorative by Distribution Point due... |  |
-| Medium | `rustls-webpki` | CRLs not considered authorative by Distribution Point due... |  |
-| Medium | `rustls-webpki` | CRLs not considered authorative by Distribution Point due... |  |
+| Medium | `rustls-webpki` | CRLs not considered authoritative by Distribution Point d... |  |
+| Medium | `rustls-webpki` | CRLs not considered authoritative by Distribution Point d... |  |
 | Info | `atk` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `atk-sys` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `atty` | `atty` is unmaintained | [Details](https://github.com/softprops/atty/issues/57) |

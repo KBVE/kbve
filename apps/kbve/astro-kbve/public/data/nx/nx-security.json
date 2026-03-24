@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-03-23T08:30:14Z",
+  "generated_at": "2026-03-24T08:25:37Z",
   "summary": {
     "critical": 1,
-    "high": 31,
-    "medium": 27,
-    "low": 5,
+    "high": 19,
+    "medium": 26,
+    "low": 3,
     "info": 28
   },
   "ecosystems": {
     "npm": {
-      "total": 56,
+      "total": 42,
       "severities": {
         "critical": 1,
-        "high": 31,
+        "high": 19,
         "medium": 19,
-        "low": 5,
+        "low": 3,
         "info": 0
       },
       "advisories": [
@@ -31,20 +31,6 @@
           "severity": "high",
           "package": "axios",
           "url": "https://github.com/advisories/GHSA-8hc4-vh64-cxmj"
-        },
-        {
-          "id": "1105443",
-          "title": "brace-expansion Regular Expression Denial of Service vulnerability",
-          "severity": "low",
-          "package": "brace-expansion",
-          "url": "https://github.com/advisories/GHSA-v6h2-p8h4-qcjw"
-        },
-        {
-          "id": "1105444",
-          "title": "brace-expansion Regular Expression Denial of Service vulnerability",
-          "severity": "low",
-          "package": "brace-expansion",
-          "url": "https://github.com/advisories/GHSA-v6h2-p8h4-qcjw"
         },
         {
           "id": "1109208",
@@ -152,95 +138,11 @@
           "url": "https://github.com/advisories/GHSA-43fc-jf86-j433"
         },
         {
-          "id": "1113459",
-          "title": "minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern",
-          "severity": "high",
-          "package": "minimatch",
-          "url": "https://github.com/advisories/GHSA-3ppc-4f35-3m26"
-        },
-        {
-          "id": "1113463",
-          "title": "minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern",
-          "severity": "high",
-          "package": "minimatch",
-          "url": "https://github.com/advisories/GHSA-3ppc-4f35-3m26"
-        },
-        {
-          "id": "1113465",
-          "title": "minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern",
-          "severity": "high",
-          "package": "minimatch",
-          "url": "https://github.com/advisories/GHSA-3ppc-4f35-3m26"
-        },
-        {
-          "id": "1113466",
-          "title": "minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern",
-          "severity": "high",
-          "package": "minimatch",
-          "url": "https://github.com/advisories/GHSA-3ppc-4f35-3m26"
-        },
-        {
           "id": "1113515",
           "title": "Rollup 4 has Arbitrary File Write via Path Traversal",
           "severity": "high",
           "package": "rollup",
           "url": "https://github.com/advisories/GHSA-mw96-cpmx-2vgc"
-        },
-        {
-          "id": "1113538",
-          "title": "minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments",
-          "severity": "high",
-          "package": "minimatch",
-          "url": "https://github.com/advisories/GHSA-7r86-cg39-jmmj"
-        },
-        {
-          "id": "1113542",
-          "title": "minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments",
-          "severity": "high",
-          "package": "minimatch",
-          "url": "https://github.com/advisories/GHSA-7r86-cg39-jmmj"
-        },
-        {
-          "id": "1113544",
-          "title": "minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments",
-          "severity": "high",
-          "package": "minimatch",
-          "url": "https://github.com/advisories/GHSA-7r86-cg39-jmmj"
-        },
-        {
-          "id": "1113545",
-          "title": "minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments",
-          "severity": "high",
-          "package": "minimatch",
-          "url": "https://github.com/advisories/GHSA-7r86-cg39-jmmj"
-        },
-        {
-          "id": "1113546",
-          "title": "minimatch ReDoS: nested *() extglobs generate catastrophically backtracking regular expressions",
-          "severity": "high",
-          "package": "minimatch",
-          "url": "https://github.com/advisories/GHSA-23c5-xmqv-rm74"
-        },
-        {
-          "id": "1113550",
-          "title": "minimatch ReDoS: nested *() extglobs generate catastrophically backtracking regular expressions",
-          "severity": "high",
-          "package": "minimatch",
-          "url": "https://github.com/advisories/GHSA-23c5-xmqv-rm74"
-        },
-        {
-          "id": "1113552",
-          "title": "minimatch ReDoS: nested *() extglobs generate catastrophically backtracking regular expressions",
-          "severity": "high",
-          "package": "minimatch",
-          "url": "https://github.com/advisories/GHSA-23c5-xmqv-rm74"
-        },
-        {
-          "id": "1113553",
-          "title": "minimatch ReDoS: nested *() extglobs generate catastrophically backtracking regular expressions",
-          "severity": "high",
-          "package": "minimatch",
-          "url": "https://github.com/advisories/GHSA-23c5-xmqv-rm74"
         },
         {
           "id": "1113564",
@@ -413,11 +315,11 @@
       ]
     },
     "cargo": {
-      "total": 36,
+      "total": 35,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 8,
+        "medium": 7,
         "low": 0,
         "info": 28
       },
@@ -459,21 +361,14 @@
         },
         {
           "id": "RUSTSEC-2026-0049",
-          "title": "CRLs not considered authorative by Distribution Point due to faulty matching logic",
+          "title": "CRLs not considered authoritative by Distribution Point due to faulty matching logic",
           "severity": "medium",
           "package": "rustls-webpki",
           "url": null
         },
         {
           "id": "RUSTSEC-2026-0049",
-          "title": "CRLs not considered authorative by Distribution Point due to faulty matching logic",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0049",
-          "title": "CRLs not considered authorative by Distribution Point due to faulty matching logic",
+          "title": "CRLs not considered authoritative by Distribution Point due to faulty matching logic",
           "severity": "medium",
           "package": "rustls-webpki",
           "url": null
