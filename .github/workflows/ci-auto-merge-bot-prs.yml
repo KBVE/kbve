@@ -20,7 +20,14 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 5
         steps:
-            - name: Validate PR
+            - name: Checkout manifest
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+                  sparse-checkout: .github/ci-dispatch-manifest.json
+                  sparse-checkout-cone-mode: false
+
+            - name: Validate PR against manifest
               id: validate
               run: |
                   PR=$(gh pr view ${{ inputs.pr_number }} --json author,baseRefName,labels,title,files --repo ${{ github.repository }})
@@ -32,64 +39,101 @@ jobs:
 
                   echo "PR #${{ inputs.pr_number }}: author=$AUTHOR base=$BASE title=$TITLE"
 
-                  # Author check
+                  # Author check — only github-actions bot
                   if [ "$AUTHOR" != "github-actions" ]; then
                     echo "::error::Author '$AUTHOR' is not github-actions — aborting."
                     exit 1
                   fi
 
-                  # Base branch check
+                  # Base branch check — only dev
                   if [ "$BASE" != "dev" ]; then
                     echo "::error::Base branch '$BASE' is not dev — aborting."
                     exit 1
                   fi
 
-                  # Label check
+                  # Label check — must have atomic or auto-pr
                   if ! echo "$LABELS" | grep -qE "^(atomic|auto-pr)$"; then
                     echo "::error::Missing required label (atomic or auto-pr). Labels: $LABELS"
                     exit 1
                   fi
 
-                  # Title check
-                  TITLE_OK=false
-                  for PREFIX in "chore(ows-" "chore(axum-" "chore(edge" "chore(discordsh" "chore(herbmail" "chore(cryptothrone" "chore(cityvote" "Atomic: kube"; do
-                    if echo "$TITLE" | grep -q "^$PREFIX"; then
-                      TITLE_OK=true
-                      break
-                    fi
-                  done
-                  if [ "$TITLE_OK" != "true" ]; then
-                    echo "::error::Title '$TITLE' does not match any allowed prefix — aborting."
+                  # Title must match post-publish pattern: "Atomic: <APP> v<VER> post-publish sync"
+                  if ! echo "$TITLE" | grep -qE "^Atomic: .+ v[0-9]"; then
+                    echo "::error::Title '$TITLE' does not match expected pattern — aborting."
                     exit 1
                   fi
 
-                  # File allowlist check
+                  # Extract app name from title
+                  APP_NAME=$(echo "$TITLE" | sed -n 's/^Atomic: \(.*\) v[0-9].*/\1/p')
+                  echo "Extracted app name: '$APP_NAME'"
+
+                  if [ -z "$APP_NAME" ]; then
+                    echo "::error::Could not extract app name from title — aborting."
+                    exit 1
+                  fi
+
+                  # Build allowed-file set from manifest for this app
+                  MANIFEST=".github/ci-dispatch-manifest.json"
+                  if [ ! -f "$MANIFEST" ]; then
+                    echo "::error::Manifest not found at $MANIFEST — aborting."
+                    exit 1
+                  fi
+
+                  # Search all pipeline arrays for this app_name or package_name
+                  ENTRY=$(jq -r --arg app "$APP_NAME" '
+                    [.docker[]?, .npm[]?, .crates[]?, .python[]?, .unreal[]?]
+                    | map(select(.app_name == $app or .package_name == $app))
+                    | first // empty
+                  ' "$MANIFEST")
+
+                  if [ -z "$ENTRY" ] || [ "$ENTRY" = "null" ]; then
+                    echo "::error::App '$APP_NAME' not found in dispatch manifest — aborting."
+                    exit 1
+                  fi
+
+                  echo "Found app in manifest: $APP_NAME"
+
+                  # Collect all known paths for this app from the manifest
+                  ALLOWED_FILES=$(echo "$ENTRY" | jq -r '[
+                    .version_toml // empty,
+                    .version_target // empty,
+                    .deployment_yaml // empty
+                  ] | map(select(. != "")) | .[]')
+
+                  echo "Allowed files from manifest:"
+                  echo "$ALLOWED_FILES" | while read -r af; do echo "  $af"; done
+
+                  # Validate every changed file is in the allowed set
                   FILES=$(echo "$PR" | jq -r '.files[].path')
                   echo "Changed files:"
-                  ALLOWED=true
+                  ALL_OK=true
                   while IFS= read -r f; do
-                    case "$f" in
-                      */version.toml|*/Cargo.toml|*/package.json|*/deployment.yaml|*/manifest/*.yaml)
-                        echo "  OK: $f"
-                        ;;
-                      *)
-                        echo "  BLOCKED: $f"
-                        ALLOWED=false
-                        ;;
-                    esac
+                    MATCH=false
+                    while IFS= read -r allowed; do
+                      if [ "$f" = "$allowed" ]; then
+                        MATCH=true
+                        break
+                      fi
+                    done <<< "$ALLOWED_FILES"
+                    if [ "$MATCH" = "true" ]; then
+                      echo "  OK: $f"
+                    else
+                      echo "  BLOCKED: $f (not in manifest for $APP_NAME)"
+                      ALL_OK=false
+                    fi
                   done <<< "$FILES"
 
-                  if [ "$ALLOWED" != "true" ]; then
-                    echo "::error::PR modifies files outside the allowlist — aborting."
+                  if [ "$ALL_OK" != "true" ]; then
+                    echo "::error::PR modifies files not registered in manifest for '$APP_NAME' — aborting."
                     exit 1
                   fi
 
-                  echo "All checks passed."
+                  echo "All manifest-driven checks passed for '$APP_NAME'."
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Approve PR
-              run: gh pr review ${{ inputs.pr_number }} --approve --repo ${{ github.repository }}
+              run: gh pr review ${{ inputs.pr_number }} --approve --body "Auto-approved — app registered in dispatch manifest." --repo ${{ github.repository }}
               env:
                   GH_TOKEN: ${{ secrets.UNITY_PAT }}
 
