@@ -59,9 +59,27 @@ h6 {
 	font-family: var(--sl-font);
 }
 
-/* ── Splash page: zero padding ── */
+/* ── Splash page: full-bleed layout ── */
 [data-page-type='splash'] main {
 	padding: 0 !important;
+}
+
+[data-page-type='splash'] .content-panel {
+	padding: 0 !important;
+}
+
+[data-page-type='splash'] .sl-container {
+	max-width: none !important;
+	padding: 0 !important;
+}
+
+[data-page-type='splash'] .main-pane {
+	padding: 0 !important;
+}
+
+[data-page-type='splash'] article {
+	padding: 0 !important;
+	margin: 0 !important;
 }
 
 /* ── Links: firelight hover ── */

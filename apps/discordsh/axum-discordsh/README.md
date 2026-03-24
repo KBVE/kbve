@@ -41,14 +41,33 @@ Discord bot + HTTP server for the KBVE ecosystem. Combines a [poise](https://git
 
 ### GitHub Integration
 
-| Variable              | Required | Default                  | Description                                                          |
-| --------------------- | -------- | ------------------------ | -------------------------------------------------------------------- |
-| `GITHUB_TOKEN`        | No       | —                        | GitHub PAT for API calls. Checked first.                             |
-| `GITHUB_TOKEN_API`    | No       | —                        | Alternative GitHub token (checked if `GITHUB_TOKEN` is empty).       |
-| `GITHUB_TOKEN_PAT`    | No       | —                        | Alternative GitHub token (checked last before Vault fallback).       |
-| `GITHUB_API_BASE_URL` | No       | `https://api.github.com` | Override GitHub REST API base URL (for testing with Mockoon or GHE). |
+| Variable               | Required | Default                  | Description                                                                    |
+| ---------------------- | -------- | ------------------------ | ------------------------------------------------------------------------------ |
+| `GITHUB_TOKEN`         | No       | —                        | GitHub PAT for API calls. Checked first.                                       |
+| `GITHUB_TOKEN_API`     | No       | —                        | Alternative GitHub token (checked if `GITHUB_TOKEN` is empty).                 |
+| `GITHUB_TOKEN_PAT`     | No       | —                        | Alternative GitHub token (checked last before Vault fallback).                 |
+| `GITHUB_API_BASE_URL`  | No       | `https://api.github.com` | Override GitHub REST API base URL (for testing with Mockoon or GHE).           |
+| `GITHUB_DEFAULT_REPO`  | No       | —                        | Default `owner/repo` for `/github` commands when user omits the repo argument. |
+| `GH_REPO`              | No       | `KBVE/kbve`              | Fallback default repo if `GITHUB_DEFAULT_REPO` is unset.                       |
+| `GITHUB_ALLOWED_REPOS` | No       | (all)                    | Comma-separated `owner/repo` allowlist. Blocks API calls to unlisted repos.    |
 
 > Token resolution order: `GITHUB_TOKEN` → `GITHUB_TOKEN_API` → `GITHUB_TOKEN_PAT` → Supabase Vault (tag `github_pat:<guild_id>`).
+>
+> Default repo resolution order: `GITHUB_DEFAULT_REPO` → `GH_REPO` → `KBVE/kbve`.
+>
+> The repo allowlist is enforced at the `GitHubClient` level in the `jedi` crate — requests to repos not in the list are rejected before any HTTP call is made. If `GITHUB_ALLOWED_REPOS` is unset, all repos are allowed (open mode).
+
+### GitHub Command Permissions
+
+Controls who can use `/github` subcommands and how often.
+
+| Variable                      | Required | Default | Description                                                                                           |
+| ----------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------- |
+| `GITHUB_REQUIRED_PERMISSIONS` | No       | (none)  | Comma-separated Discord permission flags required to use `/github` commands (e.g. `MANAGE_MESSAGES`). |
+| `GITHUB_CMD_RATE_LIMIT`       | No       | `5`     | Maximum `/github` commands per user per rate-limit window.                                            |
+| `GITHUB_CMD_RATE_WINDOW`      | No       | `60`    | Rate-limit window duration in seconds.                                                                |
+
+> Supported permission flags: `ADMINISTRATOR`, `MANAGE_GUILD`, `MANAGE_MESSAGES`, `MANAGE_CHANNELS`, `MANAGE_ROLES`, `SEND_MESSAGES`, `VIEW_CHANNEL`, `MODERATE_MEMBERS`. Unknown flags are ignored with a warning.
 
 ### GitHub Board Scheduler
 
@@ -80,10 +99,19 @@ Auto-posts notice board and task board embeds to a Discord thread on a recurring
 | `/restart`                  | Restart bot shards (admin)           |
 | `/cleanup`                  | Clean up thread messages (admin)     |
 | `/dungeon start\|join\|...` | Embed Dungeon game commands          |
-| `/github noticeboard`       | Post blockers and stale issues/PRs   |
-| `/github taskboard`         | Post task progress by department     |
-| `/github issues`            | List open issues                     |
-| `/github pulls`             | List open PRs                        |
+
+### `/github` Subcommands
+
+All `/github` subcommands are gated by the permission check (`GITHUB_REQUIRED_PERMISSIONS`) and per-user rate limiter (`GITHUB_CMD_RATE_LIMIT`). Each accepts an optional `repo` argument in `owner/repo` format — defaults to `GITHUB_DEFAULT_REPO` / `GH_REPO` / `KBVE/kbve`.
+
+| Command               | Parameters                                   | Description                                                                                                      |
+| --------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `/github noticeboard` | `repo?`, `stale_days?` (default: 3)          | Fetches open issues + PRs, filters stale items, and posts a priority-sorted notice board embed (critical first). |
+| `/github taskboard`   | `repo?`, `phase?` (default: "Current Phase") | Groups open issues by department label (programming, qa, devops, etc.) and shows progress counts.                |
+| `/github issues`      | `repo?`, `limit?` (default: 10, max: 25)     | Lists open issues with labels, assignees, and links. Embed sidebar color matches the first label.                |
+| `/github pulls`       | `repo?`, `limit?` (default: 10, max: 25)     | Lists open PRs with branch, labels, assignees, and `[DRAFT]` markers.                                            |
+| `/github repo`        | `repo?`                                      | Shows repository info — description, default branch, and open issue count.                                       |
+| `/github commits`     | `repo?`, `limit?` (default: 10, max: 25)     | Shows recent commits with author, short SHA, and first line of the commit message.                               |
 
 ## Development
 

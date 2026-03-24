@@ -121,9 +121,9 @@
 	}
 }
 
-/* Collapsible sidebar toggle */
+/* Collapsible sidebar toggles (left + right) */
 @layer my-overrides {
-	/* Toggle button */
+	/* Shared toggle-button styles */
 	.sl-sidebar-toggle-wrap {
 		display: none;
 	}
@@ -153,15 +153,21 @@
 		transition: transform 0.2s ease;
 	}
 
-	/* Desktop only: show toggle + enable collapse */
+	/* Right-sidebar toggle wrapper (inside PageSidebar) */
+	.sl-right-sidebar-toggle-wrap {
+		display: none;
+	}
+
+	/* Desktop only: show toggles + enable collapse */
 	@media (min-width: 50rem) {
+		/* --- Left sidebar toggle --- */
 		.sl-sidebar-toggle-wrap {
 			display: flex;
 			justify-content: flex-end;
 			padding: 0.5rem 0.75rem 0;
 		}
 
-		/* Smooth sidebar width transition */
+		/* Smooth transitions */
 		.sidebar-pane,
 		.sidebar {
 			transition: width 0.2s ease;
@@ -170,36 +176,86 @@
 			transition: padding-inline-start 0.2s ease;
 		}
 
-		/* Collapsed state */
+		/* Left-sidebar collapsed: target elements directly instead of --sl-sidebar-width
+		   so the right sidebar is NOT affected */
 		:root[data-sidebar-collapsed='true'] {
-			--sl-sidebar-width: 3.5rem;
+			--sl-content-inline-start: 3.5rem;
+		}
+		:root[data-sidebar-collapsed='true'] .sidebar-pane {
+			width: 3.5rem;
+		}
+		:root[data-sidebar-collapsed='true'] .sidebar {
+			width: 3.5rem;
 		}
 
-		/* Rotate chevron when collapsed */
 		:root[data-sidebar-collapsed='true'] .sl-sidebar-collapse-icon {
 			transform: rotate(180deg);
 		}
 
-		/* Center the toggle button when collapsed */
 		:root[data-sidebar-collapsed='true'] .sl-sidebar-toggle-wrap {
 			justify-content: center;
 			padding: 0.5rem 0;
 		}
 
-		/* Hide sidebar text content when collapsed */
 		:root[data-sidebar-collapsed='true'] .sidebar-content ul {
 			display: none;
 		}
 
-		/* Hide mobile menu footer in collapsed state */
 		:root[data-sidebar-collapsed='true'] .sidebar-content > div {
 			display: none;
 		}
 
-		/* Reduce sidebar padding when collapsed */
 		:root[data-sidebar-collapsed='true'] .sidebar-content {
 			padding-inline: 0.25rem;
 			overflow: hidden;
+		}
+	}
+
+	/* Right sidebar: only visible at the ≥72rem breakpoint (matches Starlight) */
+	@media (min-width: 72rem) {
+		.sl-right-sidebar-toggle-wrap {
+			display: flex;
+			justify-content: flex-start;
+			padding: 0.5rem 0.75rem;
+		}
+
+		.right-sidebar-container {
+			transition:
+				width 0.2s ease,
+				opacity 0.2s ease;
+		}
+		.right-sidebar {
+			transition: opacity 0.2s ease;
+		}
+
+		/* Right-sidebar collapsed */
+		:root[data-right-sidebar-collapsed='true'] .right-sidebar-container {
+			width: 3rem;
+			min-width: 3rem;
+		}
+
+		:root[data-right-sidebar-collapsed='true'] .right-sidebar {
+			width: 3rem;
+		}
+
+		:root[data-right-sidebar-collapsed='true'] .right-sidebar-panel,
+		:root[data-right-sidebar-collapsed='true']
+			.right-sidebar
+			.sl-right-sidebar-toggle-wrap
+			~ * {
+			display: none;
+		}
+
+		:root[data-right-sidebar-collapsed='true']
+			.sl-right-sidebar-toggle-wrap {
+			justify-content: center;
+			padding: 0.5rem 0;
+		}
+
+		:root[data-right-sidebar-collapsed='true']
+			.sl-right-sidebar-toggle-wrap
+			.sl-sidebar-collapse-icon {
+			transform: rotate(180deg);
 		}
 	}
 }

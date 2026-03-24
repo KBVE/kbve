@@ -15,6 +15,17 @@ const {
 ---
 
 <section class="ck-hero">
+	<div class="ck-hero__video" aria-hidden="true">
+		<iframe
+			src="https://www.youtube.com/embed/aT66uumZ0Zo?autoplay=1&mute=1&loop=1&playlist=aT66uumZ0Zo&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1"
+			title=""
+			frameborder="0"
+			allow="autoplay; encrypted-media"
+			allowfullscreen>
+		</iframe>
+	</div>
+	<div class="ck-hero__video-overlay"></div>
+
 	<div class="ck-hero__bg">
 		<div class="ck-hero__vignette"></div>
 		<div class="ck-hero__particles" aria-hidden="true"></div>
@@ -57,25 +68,56 @@ const {
 		background: #0f0e0c;
 	}
 
-	.ck-hero__bg {
+	/* ── YouTube video background (deepest layer) ── */
+	.ck-hero__video {
 		position: absolute;
 		inset: 0;
 		z-index: 0;
+		pointer-events: none;
+		overflow: hidden;
+	}
+
+	.ck-hero__video iframe {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 120vw;
+		height: 120vh;
+		min-width: 120%;
+		min-height: 120%;
+		transform: translate(-50%, -50%);
+		object-fit: cover;
+		border: none;
+		pointer-events: none;
+	}
+
+	/* Semi-transparent stone overlay on top of video */
+	.ck-hero__video-overlay {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		background: rgba(15, 14, 12, 0.45);
+	}
+
+	.ck-hero__bg {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
 		background:
 			radial-gradient(
 				ellipse at 30% 40%,
-				rgba(27, 58, 42, 0.4) 0%,
+				rgba(27, 58, 42, 0.2) 0%,
 				transparent 60%
 			),
 			radial-gradient(
 				ellipse at 70% 60%,
-				rgba(61, 46, 30, 0.3) 0%,
+				rgba(61, 46, 30, 0.15) 0%,
 				transparent 50%
 			),
 			radial-gradient(
 				ellipse at 50% 50%,
-				rgba(15, 14, 12, 0.9) 0%,
-				#0f0e0c 100%
+				rgba(15, 14, 12, 0.3) 0%,
+				transparent 100%
 			);
 	}
 
@@ -152,7 +194,7 @@ const {
 
 	.ck-hero__content {
 		position: relative;
-		z-index: 2;
+		z-index: 3;
 		text-align: center;
 		padding: 2rem;
 		max-width: 54rem;
@@ -282,22 +324,24 @@ const {
 	/* ── Scroll indicator ── */
 	.ck-hero__scroll {
 		position: absolute;
-		bottom: 2.5rem;
+		bottom: 4rem;
 		left: 50%;
 		transform: translateX(-50%);
+		z-index: 3;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		opacity: 0.5;
-		animation: fade-bounce 3s infinite;
+		opacity: 1;
+		animation: fade-bounce 5s ease-in-out infinite;
 	}
 
 	.ck-hero__scroll-label {
 		font-family: 'Cinzel', serif;
-		font-size: 0.5rem;
+		font-size: 0.6rem;
 		letter-spacing: 0.25em;
 		text-transform: uppercase;
-		color: rgba(232, 220, 200, 0.4);
+		color: #fff;
+		text-shadow: 0 0 8px rgba(232, 220, 200, 0.6);
 		margin-bottom: 0.5rem;
 	}
 
@@ -314,12 +358,12 @@ const {
 	@keyframes fade-bounce {
 		0%,
 		100% {
-			opacity: 0.5;
+			opacity: 1;
 			transform: translateX(-50%) translateY(0);
 		}
 		50% {
-			opacity: 0.25;
-			transform: translateX(-50%) translateY(6px);
+			opacity: 0.45;
+			transform: translateX(-50%) translateY(14px);
 		}
 	}
 </style>

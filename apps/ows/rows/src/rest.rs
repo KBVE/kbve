@@ -506,7 +506,7 @@ struct SetZoneStatusWrapper {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct SetZoneStatusPayload {
-    #[serde(rename = "zoneInstanceID", alias = "ZoneInstanceID")]
+    #[serde(alias = "zoneInstanceID", alias = "ZoneInstanceID")]
     zone_instance_id: i32,
     instance_status: i32,
 }
@@ -539,7 +539,7 @@ struct GetZoneInstancesWrapper {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct GetZoneInstancesPayload {
-    #[serde(rename = "worldServerID", alias = "WorldServerID")]
+    #[serde(alias = "worldServerID", alias = "WorldServerID")]
     world_server_id: i32,
 }
 
@@ -565,7 +565,7 @@ struct RegisterLauncherWrapper {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct RegisterLauncherPayload {
-    #[serde(rename = "launcherGUID", alias = "LauncherGUID")]
+    #[serde(alias = "launcherGUID", alias = "LauncherGUID")]
     launcher_guid: String,
     server_ip: String,
     max_number_of_instances: i32,
@@ -632,9 +632,9 @@ async fn shut_down_instance_launcher(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct SpinUpDto {
-    #[serde(rename = "worldServerID", alias = "WorldServerID")]
+    #[serde(alias = "worldServerID", alias = "WorldServerID")]
     world_server_id: i32,
-    #[serde(rename = "zoneInstanceID", alias = "ZoneInstanceID")]
+    #[serde(alias = "zoneInstanceID", alias = "ZoneInstanceID")]
     zone_instance_id: i32,
     zone_name: String,
     port: i32,
@@ -665,9 +665,9 @@ async fn spin_up_server_instance(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ShutDownServerDto {
-    #[serde(rename = "worldServerID", alias = "WorldServerID")]
+    #[serde(alias = "worldServerID", alias = "WorldServerID")]
     _world_server_id: i32,
-    #[serde(rename = "zoneInstanceID", alias = "ZoneInstanceID")]
+    #[serde(alias = "zoneInstanceID", alias = "ZoneInstanceID")]
     zone_instance_id: i32,
 }
 
@@ -727,7 +727,7 @@ struct WorldTimeWrapper {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct WorldTimePayload {
-    #[serde(rename = "worldServerID", alias = "WorldServerID")]
+    #[serde(alias = "worldServerID", alias = "WorldServerID")]
     world_server_id: i32,
 }
 
@@ -773,7 +773,7 @@ struct GetPlayerGroupsDto {
     #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     _user_session_guid: Uuid,
     character_name: String,
-    #[serde(rename = "playerGroupTypeID", alias = "PlayerGroupTypeID")]
+    #[serde(alias = "playerGroupTypeID", alias = "PlayerGroupTypeID")]
     player_group_type_id: i32,
 }
 
@@ -1359,7 +1359,7 @@ async fn create_user_admin(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct EditUserAdminDto {
-    #[serde(rename = "UserGUID")]
+    #[serde(alias = "UserGUID", alias = "userGUId")]
     user_guid: Uuid,
     first_name: String,
     last_name: String,
