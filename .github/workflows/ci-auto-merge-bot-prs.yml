@@ -53,10 +53,14 @@ jobs:
                         pull_number: prNumber,
                       });
 
-                      // Allowlist sanitizer — only permits characters that belong in
-                      // file paths, app names, and PR titles. Everything else is stripped.
-                      // Allowed: a-z A-Z 0-9 - _ . / @ : space ( )
-                      const sanitize = (s) => s.replace(/[^a-zA-Z0-9\-_.\/@: ()]/g, '');
+                      // Two-pass sanitizer:
+                      // Pass 1 (blocklist): strip known-dangerous Unicode — RTL overrides,
+                      //   zero-width chars, bidi embeddings, control characters.
+                      // Pass 2 (allowlist): strip anything not in the safe character set.
+                      const sanitize = (s) => {
+                        const stripped = s.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u2028-\u202F\u2060-\u206F\uFEFF\uFFF0-\uFFFF]/g, '');
+                        return stripped.replace(/[^a-zA-Z0-9\-_.\/@: ()]/g, '');
+                      };
 
                       const author = sanitize(pr.user.login);
                       const base = sanitize(pr.base.ref);
