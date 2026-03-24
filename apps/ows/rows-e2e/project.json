@@ -1,0 +1,35 @@
+{
+	"name": "rows-e2e",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"implicitDependencies": ["rows"],
+	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["rows"],
+					"params": "forward"
+				}
+			],
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f rows-e2e 2>/dev/null || true",
+					"docker run -d --name rows-e2e -p 4325:4322 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4322 -e RUST_LOG=info -e DATABASE_URL='' kbve/rows:latest",
+					"npx vitest run; EC=$?; docker rm -f rows-e2e 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false,
+				"cwd": "apps/ows/rows-e2e"
+			},
+			"configurations": {
+				"ci": {}
+			}
+		}
+	}
+}
