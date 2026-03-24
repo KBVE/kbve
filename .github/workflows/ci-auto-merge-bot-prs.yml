@@ -15,10 +15,16 @@ on:
                 type: string
 
 jobs:
-    auto-merge:
+    # ── Job 1: Read-only validation (GITHUB_TOKEN only) ──────────────────────
+    # Fetches PR metadata via API, validates against dispatch manifest.
+    # No write permissions — cannot approve, merge, or modify anything.
+    validate:
         if: github.repository == 'KBVE/kbve'
         runs-on: ubuntu-latest
         timeout-minutes: 5
+        outputs:
+            approved: ${{ steps.check.outputs.approved }}
+            app_name: ${{ steps.check.outputs.app_name }}
         steps:
             - name: Checkout manifest
               uses: actions/checkout@v6
@@ -28,116 +34,164 @@ jobs:
                   sparse-checkout-cone-mode: false
 
             - name: Validate PR against manifest
-              id: validate
-              run: |
-                  PR=$(gh pr view ${{ inputs.pr_number }} --json author,baseRefName,labels,title,files --repo ${{ github.repository }})
+              id: check
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      const fs = require('fs');
+                      const prNumber = parseInt('${{ inputs.pr_number }}');
 
-                  AUTHOR=$(echo "$PR" | jq -r '.author.login')
-                  BASE=$(echo "$PR" | jq -r '.baseRefName')
-                  TITLE=$(echo "$PR" | jq -r '.title')
-                  LABELS=$(echo "$PR" | jq -r '.labels[].name' 2>/dev/null)
+                      // Fetch PR data via API — no shell interpolation of untrusted fields
+                      const { data: pr } = await github.rest.pulls.get({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: prNumber,
+                      });
+                      const { data: files } = await github.rest.pulls.listFiles({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: prNumber,
+                      });
 
-                  echo "PR #${{ inputs.pr_number }}: author=$AUTHOR base=$BASE title=$TITLE"
+                      const author = pr.user.login;
+                      const base = pr.base.ref;
+                      const title = pr.title;
+                      const labels = (pr.labels || []).map(l => l.name);
+                      const changedFiles = files.map(f => f.filename);
 
-                  # Author check — only github-actions bot
-                  if [ "$AUTHOR" != "github-actions" ]; then
-                    echo "::error::Author '$AUTHOR' is not github-actions — aborting."
-                    exit 1
-                  fi
+                      core.info(`PR #${prNumber}: author=${author} base=${base} title=${title}`);
+                      core.info(`Labels: ${labels.join(', ')}`);
+                      core.info(`Changed files: ${changedFiles.join(', ')}`);
 
-                  # Base branch check — only dev
-                  if [ "$BASE" != "dev" ]; then
-                    echo "::error::Base branch '$BASE' is not dev — aborting."
-                    exit 1
-                  fi
+                      // 1. Author — only github-actions bot
+                      if (author !== 'github-actions[bot]') {
+                        core.setFailed(`Author '${author}' is not github-actions[bot]`);
+                        return;
+                      }
 
-                  # Label check — must have atomic or auto-pr
-                  if ! echo "$LABELS" | grep -qE "^(atomic|auto-pr)$"; then
-                    echo "::error::Missing required label (atomic or auto-pr). Labels: $LABELS"
-                    exit 1
-                  fi
+                      // 2. Base branch — only dev
+                      if (base !== 'dev') {
+                        core.setFailed(`Base branch '${base}' is not dev`);
+                        return;
+                      }
 
-                  # Title must match post-publish pattern: "Atomic: <APP> v<VER> post-publish sync"
-                  if ! echo "$TITLE" | grep -qE "^Atomic: .+ v[0-9]"; then
-                    echo "::error::Title '$TITLE' does not match expected pattern — aborting."
-                    exit 1
-                  fi
+                      // 3. Labels — must have atomic or auto-pr
+                      if (!labels.some(l => l === 'atomic' || l === 'auto-pr')) {
+                        core.setFailed(`Missing required label (atomic or auto-pr). Labels: ${labels}`);
+                        return;
+                      }
 
-                  # Extract app name from title
-                  APP_NAME=$(echo "$TITLE" | sed -n 's/^Atomic: \(.*\) v[0-9].*/\1/p')
-                  echo "Extracted app name: '$APP_NAME'"
+                      // 4. Title — extract app name from "Atomic: <APP> v<VER> ..."
+                      const titleMatch = title.match(/^Atomic:\s+(.+?)\s+v(\d+\.\d+\.\d+)/);
+                      if (!titleMatch) {
+                        core.setFailed(`Title '${title}' does not match pattern "Atomic: <app> v<semver> ..."`);
+                        return;
+                      }
+                      const appName = titleMatch[1];
+                      core.info(`Extracted app name: '${appName}'`);
 
-                  if [ -z "$APP_NAME" ]; then
-                    echo "::error::Could not extract app name from title — aborting."
-                    exit 1
-                  fi
+                      // 5. Load manifest and find app entry
+                      const manifestPath = '.github/ci-dispatch-manifest.json';
+                      if (!fs.existsSync(manifestPath)) {
+                        core.setFailed(`Manifest not found at ${manifestPath}`);
+                        return;
+                      }
+                      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
-                  # Build allowed-file set from manifest for this app
-                  MANIFEST=".github/ci-dispatch-manifest.json"
-                  if [ ! -f "$MANIFEST" ]; then
-                    echo "::error::Manifest not found at $MANIFEST — aborting."
-                    exit 1
-                  fi
+                      const allEntries = [
+                        ...(manifest.docker || []),
+                        ...(manifest.npm || []),
+                        ...(manifest.crates || []),
+                        ...(manifest.python || []),
+                        ...(manifest.unreal || []),
+                      ];
+                      const entry = allEntries.find(
+                        e => e.app_name === appName || e.package_name === appName
+                      );
 
-                  # Search all pipeline arrays for this app_name or package_name
-                  ENTRY=$(jq -r --arg app "$APP_NAME" '
-                    [.docker[]?, .npm[]?, .crates[]?, .python[]?, .unreal[]?]
-                    | map(select(.app_name == $app or .package_name == $app))
-                    | first // empty
-                  ' "$MANIFEST")
+                      if (!entry) {
+                        core.setFailed(`App '${appName}' not found in dispatch manifest`);
+                        return;
+                      }
+                      core.info(`Found '${appName}' in manifest (pipeline: ${entry.pipeline})`);
 
-                  if [ -z "$ENTRY" ] || [ "$ENTRY" = "null" ]; then
-                    echo "::error::App '$APP_NAME' not found in dispatch manifest — aborting."
-                    exit 1
-                  fi
+                      // 6. Build allowed-file set from manifest entry
+                      const allowedFiles = new Set(
+                        [entry.version_toml, entry.version_target, entry.deployment_yaml]
+                          .filter(Boolean)
+                      );
+                      core.info(`Allowed files: ${[...allowedFiles].join(', ')}`);
 
-                  echo "Found app in manifest: $APP_NAME"
+                      if (allowedFiles.size === 0) {
+                        core.setFailed(`App '${appName}' has no tracked files in manifest`);
+                        return;
+                      }
 
-                  # Collect all known paths for this app from the manifest
-                  ALLOWED_FILES=$(echo "$ENTRY" | jq -r '[
-                    .version_toml // empty,
-                    .version_target // empty,
-                    .deployment_yaml // empty
-                  ] | map(select(. != "")) | .[]')
+                      // 7. Validate every changed file is in the allowed set
+                      const blocked = changedFiles.filter(f => !allowedFiles.has(f));
+                      if (blocked.length > 0) {
+                        core.setFailed(
+                          `PR modifies files not in manifest for '${appName}': ${blocked.join(', ')}`
+                        );
+                        return;
+                      }
 
-                  echo "Allowed files from manifest:"
-                  echo "$ALLOWED_FILES" | while read -r af; do echo "  $af"; done
+                      for (const f of changedFiles) {
+                        core.info(`  OK: ${f}`);
+                      }
 
-                  # Validate every changed file is in the allowed set
-                  FILES=$(echo "$PR" | jq -r '.files[].path')
-                  echo "Changed files:"
-                  ALL_OK=true
-                  while IFS= read -r f; do
-                    MATCH=false
-                    while IFS= read -r allowed; do
-                      if [ "$f" = "$allowed" ]; then
-                        MATCH=true
-                        break
-                      fi
-                    done <<< "$ALLOWED_FILES"
-                    if [ "$MATCH" = "true" ]; then
-                      echo "  OK: $f"
-                    else
-                      echo "  BLOCKED: $f (not in manifest for $APP_NAME)"
-                      ALL_OK=false
-                    fi
-                  done <<< "$FILES"
+                      core.info(`All manifest-driven checks passed for '${appName}'.`);
+                      core.setOutput('approved', 'true');
+                      core.setOutput('app_name', appName);
 
-                  if [ "$ALL_OK" != "true" ]; then
-                    echo "::error::PR modifies files not registered in manifest for '$APP_NAME' — aborting."
-                    exit 1
-                  fi
-
-                  echo "All manifest-driven checks passed for '$APP_NAME'."
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+    # ── Job 2: Approve + merge (UNITY_PAT, gated on validation) ──────────────
+    # Only runs when validation job explicitly outputs approved=true.
+    # UNITY_PAT is never exposed to the validation logic.
+    merge:
+        needs: [validate]
+        if: needs.validate.outputs.approved == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
             - name: Approve PR
-              run: gh pr review ${{ inputs.pr_number }} --approve --body "Auto-approved — app registered in dispatch manifest." --repo ${{ github.repository }}
-              env:
-                  GH_TOKEN: ${{ secrets.UNITY_PAT }}
+              uses: actions/github-script@v8
+              with:
+                  github-token: ${{ secrets.UNITY_PAT }}
+                  script: |
+                      const prNumber = parseInt('${{ inputs.pr_number }}');
+                      const appName = '${{ needs.validate.outputs.app_name }}';
+
+                      await github.rest.pulls.createReview({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: prNumber,
+                        event: 'APPROVE',
+                        body: `Auto-approved — \`${appName}\` is registered in dispatch manifest.`,
+                      });
+                      core.info(`PR #${prNumber} approved for ${appName}`);
 
             - name: Enable auto-merge
-              run: gh pr merge ${{ inputs.pr_number }} --auto --squash --repo ${{ github.repository }}
-              env:
-                  GH_TOKEN: ${{ secrets.UNITY_PAT }}
+              uses: actions/github-script@v8
+              with:
+                  github-token: ${{ secrets.UNITY_PAT }}
+                  script: |
+                      const prNumber = parseInt('${{ inputs.pr_number }}');
+
+                      try {
+                        await github.rest.pulls.enableAutoMerge({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          pull_number: prNumber,
+                          merge_method: 'squash',
+                        });
+                        core.info(`Auto-merge (squash) enabled for PR #${prNumber}`);
+                      } catch (err) {
+                        core.info(`enableAutoMerge unavailable (${err.message}), attempting direct merge`);
+                        await github.rest.pulls.merge({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          pull_number: prNumber,
+                          merge_method: 'squash',
+                        });
+                        core.info(`PR #${prNumber} squash-merged directly`);
+                      }
