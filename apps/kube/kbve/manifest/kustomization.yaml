@@ -13,3 +13,4 @@ resources:
     - kubevirt-rbac.yaml
     - kbve-deployment.yaml
     - kbve-gateway.yaml
+    - kbve-wt-lb.yaml
