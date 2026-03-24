@@ -40,7 +40,7 @@ spec:
                         valueFrom:
                             secretKeyRef:
                                 name: ows-db-credentials
-                                key: db-connection-string
+                                key: db-url
                       - name: RABBITMQ_URL
                         valueFrom:
                             secretKeyRef:
