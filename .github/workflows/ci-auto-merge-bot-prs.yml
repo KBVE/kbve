@@ -15,11 +15,37 @@ on:
                 type: string
 
 jobs:
+    # ── Job 0: Quick author gate (skips entire workflow for non-bot PRs) ─────
+    pre-check:
+        if: github.repository == 'KBVE/kbve'
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            is_bot: ${{ steps.gate.outputs.is_bot }}
+        steps:
+            - name: Check PR author
+              id: gate
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      const { data: pr } = await github.rest.pulls.get({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: parseInt('${{ inputs.pr_number }}'),
+                      });
+                      const author = pr.user.login;
+                      const isBot = author === 'github-actions[bot]';
+                      core.setOutput('is_bot', isBot ? 'true' : 'false');
+                      if (!isBot) {
+                        core.notice(`PR #${{ inputs.pr_number }} authored by '${author}' — skipping auto-merge (not a bot PR).`);
+                      }
+
     # ── Job 1: Read-only validation (GITHUB_TOKEN only) ──────────────────────
     # Fetches PR metadata via API, validates against dispatch manifest.
     # No write permissions — cannot approve, merge, or modify anything.
     validate:
-        if: github.repository == 'KBVE/kbve'
+        needs: [pre-check]
+        if: needs.pre-check.outputs.is_bot == 'true'
         runs-on: ubuntu-latest
         timeout-minutes: 5
         outputs:
