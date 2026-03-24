@@ -409,6 +409,7 @@ impl SocialMetaBuilder {
 /// Presets for common social meta configurations.
 impl SocialMeta {
     /// Meme page preset — OG type "article", large image card, Meme.sh branding.
+    #[allow(clippy::too_many_arguments)]
     pub fn meme(
         title: impl Into<Cow<'static, str>>,
         description: impl Into<Cow<'static, str>>,
