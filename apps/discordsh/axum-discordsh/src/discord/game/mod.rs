@@ -1,6 +1,7 @@
 pub mod battle_bridge;
 pub mod card;
 pub mod content;
+pub mod github_cards;
 pub mod logic;
 pub mod persistence;
 pub mod proto_bridge;
