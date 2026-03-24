@@ -152,6 +152,8 @@ jobs:
             - name: Install pnpm Dependencies
               if: ${{ steps.version_check.outputs.should_publish != 'false' && steps.promote.outputs.found != 'true' }}
               run: pnpm install
+              env:
+                  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
 
             - name: Set up QEMU
               if: ${{ steps.version_check.outputs.should_publish != 'false' && steps.promote.outputs.found != 'true' }}
