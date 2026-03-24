@@ -97,4 +97,15 @@ impl OWSService {
             .await?
             .ok_or_else(|| RowsError::NotFound("Session not found".into()))
     }
+
+    pub async fn get_player_groups_character_is_in(
+        &self,
+        customer_guid: uuid::Uuid,
+        char_name: &str,
+        player_group_type_id: i32,
+    ) -> Result<Vec<crate::models::PlayerGroupMembership>, RowsError> {
+        let repo = UsersRepo(&self.state.db);
+        repo.get_player_groups_character_is_in(customer_guid, char_name, player_group_type_id)
+            .await
+    }
 }

@@ -249,13 +249,22 @@ impl<'a> UsersRepo<'a> {
         customer_guid: Uuid,
         char_name: &str,
         player_group_type_id: i32,
-    ) -> Result<Vec<(i32, String, i32)>, RowsError> {
-        let groups: Vec<(i32, String, i32)> = sqlx::query_as(
-            "SELECT pg.playergroupid, COALESCE(pg.playergroupname, '') AS name, pg.readystate
-             FROM playergroup pg
-             JOIN playergroupcharacter pgc ON pgc.playergroupid = pg.playergroupid AND pgc.customerguid = pg.customerguid
-             JOIN characters c ON c.characterid = pgc.characterid AND c.customerguid = pgc.customerguid
-             WHERE pg.customerguid = $1 AND c.charname = $2 AND pg.playergrouptypeid = $3",
+    ) -> Result<Vec<PlayerGroupMembership>, RowsError> {
+        let groups = sqlx::query_as::<_, PlayerGroupMembership>(
+            "SELECT pg.playergroupid AS player_group_id,
+                    pg.customerguid AS customer_guid,
+                    pg.playergroupname AS player_group_name,
+                    pg.playergrouptypeid AS player_group_type_id,
+                    pg.readystate AS ready_state,
+                    pg.createdate AS create_date
+             FROM playergroupcharacters pgc
+             INNER JOIN playergroup pg ON pg.playergroupid = pgc.playergroupid
+                 AND pg.customerguid = pgc.customerguid
+             INNER JOIN characters c ON c.characterid = pgc.characterid
+                 AND c.customerguid = pgc.customerguid
+             WHERE pgc.customerguid = $1
+               AND c.charname = $2
+               AND (pg.playergrouptypeid = $3 OR $3 = 0)",
         )
         .bind(customer_guid)
         .bind(char_name)
