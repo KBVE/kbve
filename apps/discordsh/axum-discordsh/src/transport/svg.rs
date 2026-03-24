@@ -239,6 +239,10 @@ async fn og_default_png(State(state): State<HttpState>) -> Result<Response, SvgE
 
 /// Snapshot the session state (acquires lock briefly, clones, releases).
 fn snapshot_session(state: &HttpState, session_id: &str) -> Result<SessionState, SvgError> {
+    if !super::security::is_valid_session_id(session_id) {
+        return Err(SvgError::NotFound);
+    }
+
     let handle = state
         .app
         .sessions

@@ -49,6 +49,9 @@ fn router(state: HttpState) -> Router {
     let static_config = crate::astro::StaticConfig::from_env();
 
     let middleware = tower::ServiceBuilder::new()
+        .layer(axum::middleware::from_fn(
+            super::security::reject_path_traversal,
+        ))
         .layer(
             tower_http::trace::TraceLayer::new_for_http().make_span_with(
                 tower_http::trace::DefaultMakeSpan::new().level(tracing::Level::INFO),
