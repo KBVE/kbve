@@ -1,8 +1,26 @@
 # GetPlayerGroupsCharacterIsIn
 
-## Status: Not Implemented in ROWS
+## Status: Partially Implemented in ROWS
 
-This is the only OWS PublicAPI endpoint not yet implemented in ROWS.
+The repo function `UsersRepo::get_player_groups_character_is_in()` exists in `repo.rs:247` but:
+
+- **No REST route** — handler not wired in `rest.rs`
+- **SQL gaps vs OWS** (see below)
+
+### ROWS vs OWS SQL Differences
+
+| Issue           | OWS                                                                                                                                         | ROWS                                                              |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Wildcard filter | `AND (pg.PlayerGroupTypeID = @PlayerGroupTypeID OR @PlayerGroupTypeID = 0)`                                                                 | `AND pg.playergrouptypeid = $3` (no wildcard when type=0)         |
+| Return type     | Full struct: `PlayerGroupID`, `CustomerGUID`, `PlayerGroupName`, `PlayerGroupTypeID`, `ReadyState`, `CreateDate`, `DateAdded`, `TeamNumber` | Tuple `(i32, String, i32)` — only ID, name, readyState            |
+| Table name      | `PlayerGroupCharacters` (plural)                                                                                                            | `playergroupcharacter` (singular) — may break depending on schema |
+| Session join    | Joins `UserSessions` for validation                                                                                                         | No session validation                                             |
+
+### To Complete
+
+1. Fix SQL: add `OR $3 = 0` wildcard, add missing columns, verify table name
+2. Create proper response struct matching OWS schema
+3. Wire handler in `public_api_routes()` in `rest.rs`
 
 ## Endpoint
 
