@@ -1,10 +1,11 @@
-## Dedicated LoadBalancer for WebTransport (QUIC/UDP) on wt.kbve.com:5001.
-## Bypasses the Cilium Gateway / nginx L4 proxy — QUIC needs direct
+## Dedicated LoadBalancer for WebTransport (QUIC/UDP) on port 5001.
+## Bypasses the Cilium Gateway / L7 proxy — QUIC needs direct
 ## UDP path with connection-ID awareness that L7 proxies lack.
+## Shares the public IP with other kbve LoadBalancers via Cilium LB-IPAM.
 apiVersion: v1
 kind: Service
 metadata:
-    name: isometric-wt-lb
+    name: kbve-wt-lb
     namespace: kbve
     labels:
         app: kbve
