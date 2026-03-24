@@ -1267,7 +1267,7 @@ dependencies = [
 
 [[package]]
 name = "axum-chuckrpg"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "axum",
@@ -12988,6 +12988,7 @@ dependencies = [
  "chrono",
  "dashmap 6.1.0",
  "dotenvy",
+ "futures-lite",
  "http 1.4.0",
  "http-body 1.0.1",
  "hyper 1.8.1",
@@ -13006,6 +13007,7 @@ dependencies = [
  "thiserror 2.0.18",
  "tikv-jemallocator",
  "tokio",
+ "tokio-stream",
  "tonic 0.13.1",
  "tonic-build 0.13.1",
  "tower",

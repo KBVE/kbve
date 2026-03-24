@@ -33,6 +33,8 @@ pub enum AgonesError {
     NotAllocated { state: String },
     #[error("K8s API error: {0}")]
     ApiError(#[from] kube::Error),
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
     #[error("{0}")]
     Other(#[from] anyhow::Error),
 }
