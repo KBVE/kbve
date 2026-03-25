@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.73",
+			"version": "1.0.76",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -15,9 +15,19 @@
 			"has_test": true
 		},
 		{
+			"key": "chisel_ubuntu_axum",
+			"app_name": "chisel-ubuntu-axum",
+			"version": "24.04.1",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/chisel.mdx",
+			"source_path": "packages/docker/chisel-ubuntu-axum",
+			"runner": "ubuntu-latest",
+			"image": "kbve/chisel-ubuntu-axum",
+			"has_test": false
+		},
+		{
 			"key": "chuckrpg",
 			"app_name": "axum-chuckrpg",
-			"version": "0.1.2",
+			"version": "0.1.4",
 			"version_toml": "apps/chuckrpg/axum-chuckrpg/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/chuckrpg.mdx",
 			"version_target": "apps/chuckrpg/axum-chuckrpg/Cargo.toml",
@@ -45,7 +55,7 @@
 		{
 			"key": "discordsh",
 			"app_name": "discordsh",
-			"version": "0.1.35",
+			"version": "0.1.39",
 			"version_toml": "apps/discordsh/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx",
 			"version_target": "apps/discordsh/axum-discordsh/Cargo.toml",
@@ -229,7 +239,7 @@
 		{
 			"key": "rows",
 			"app_name": "rows",
-			"version": "0.1.1",
+			"version": "0.1.11",
 			"version_toml": "apps/ows/rows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
 			"version_target": "apps/ows/rows/Cargo.toml",
@@ -237,16 +247,6 @@
 			"runner": "ubuntu-latest",
 			"image": "kbve/rows",
 			"deployment_yaml": "apps/kube/ows/manifest/rows-deployment.yaml",
-			"has_test": false
-		},
-		{
-			"key": "chisel_ubuntu_axum",
-			"app_name": "chisel-ubuntu-axum",
-			"version": "24.04.1",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/chisel.mdx",
-			"source_path": "packages/docker/chisel-ubuntu-axum",
-			"runner": "ubuntu-latest",
-			"image": "kbve/chisel-ubuntu-axum",
 			"has_test": false
 		}
 	],
