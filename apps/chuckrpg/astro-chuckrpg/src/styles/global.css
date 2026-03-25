@@ -29,10 +29,29 @@
 	--sl-color-accent: #d4a44c;
 	--sl-color-accent-high: #e8c06a;
 
+	/* Semantic colors — medieval palette */
+	--sl-color-blue-low: #2a2218;
+	--sl-color-blue: var(--ck-firelight-dim);
+	--sl-color-blue-high: var(--ck-firelight-bright);
+	--sl-color-green-low: #1a2a1e;
+	--sl-color-green: #4a7a5a;
+	--sl-color-green-high: #7aaa8a;
+	--sl-color-orange-low: #2e1e0e;
+	--sl-color-orange: #c8854a;
+	--sl-color-orange-high: #e8a86a;
+	--sl-color-red-low: #2e1414;
+	--sl-color-red: var(--ck-blood);
+	--sl-color-red-high: #c44040;
+	--sl-color-purple-low: #221a2a;
+	--sl-color-purple: #7a5a8a;
+	--sl-color-purple-high: #aa8aba;
+
 	--sl-color-bg: var(--ck-stone);
 	--sl-color-bg-nav: rgba(26, 26, 31, 0.92);
 	--sl-color-bg-sidebar: #151518;
 	--sl-color-bg-inline-code: #1f1e1c;
+	--sl-color-text-invert: var(--ck-stone);
+	--sl-color-bg-accent: var(--ck-firelight);
 
 	--sl-color-hairline-light: #2e2a26;
 	--sl-color-hairline: #242120;

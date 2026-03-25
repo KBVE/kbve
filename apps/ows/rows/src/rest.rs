@@ -45,14 +45,20 @@ pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
         .merge(management)
 }
 
-async fn root() -> Json<serde_json::Value> {
+#[utoipa::path(get, path = "/", tag = "health",
+    responses((status = 200, description = "Service info"))
+)]
+pub async fn root() -> Json<serde_json::Value> {
     Json(serde_json::json!({
         "service": "rows",
         "status": "ok"
     }))
 }
 
-async fn health() -> Json<HealthResponse> {
+#[utoipa::path(get, path = "/health", tag = "health",
+    responses((status = 200, description = "Health check", body = HealthResponse))
+)]
+pub async fn health() -> Json<HealthResponse> {
     Json(HealthResponse {
         status: "healthy",
         service: "rows",
@@ -212,10 +218,12 @@ async fn get_all_characters(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct GetServerDto {
-    #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
-    _user_session_guid: Uuid,
+    #[serde(default, rename = "userSessionGUID", alias = "userSessionGUId")]
+    _user_session_guid: Option<Uuid>,
     character_name: String,
     zone_name: String,
+    #[serde(default)]
+    _player_group_type: Option<i32>,
 }
 
 async fn get_server_to_connect_to(
@@ -782,17 +790,26 @@ async fn get_player_groups(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<GetPlayerGroupsDto>,
-) -> ApiResult<Vec<crate::models::PlayerGroupMembership>> {
+) -> Json<serde_json::Value> {
     let customer_guid = extract_customer_guid(&headers);
-    let groups = hs
+    match hs
         .svc
         .get_player_groups_character_is_in(
             customer_guid,
             &body.character_name,
             body.player_group_type_id,
         )
-        .await?;
-    Ok(Json(groups))
+        .await
+    {
+        Ok(groups) => Json(serde_json::json!({
+            "success": "true",
+            "rows": groups,
+        })),
+        Err(e) => Json(serde_json::json!({
+            "success": "false",
+            "errmsg": e.to_string(),
+        })),
+    }
 }
 
 async fn get_default_custom_data(

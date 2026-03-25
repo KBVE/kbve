@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-24T08:25:37Z",
+  "generated_at": "2026-03-25T08:24:58Z",
   "summary": {
     "critical": 1,
     "high": 19,
-    "medium": 26,
+    "medium": 27,
     "low": 3,
     "info": 28
   },
@@ -572,15 +572,23 @@
       ]
     },
     "python": {
-      "total": 0,
+      "total": 1,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 0,
+        "medium": 1,
         "low": 0,
         "info": 0
       },
-      "advisories": []
+      "advisories": [
+        {
+          "id": "CVE-2026-4539",
+          "title": "A security flaw has been discovered in pygments up to 2.19.2. The impacted element is the function AdlLexer of the file pygments/lexers/archetype.py. The manipulation results in inefficient regular expression complexity. The attack is only possible with local access. The exploit has been released to the public and may be used for attacks. The project was informed of the problem early through an issue report but has not responded yet.",
+          "severity": "medium",
+          "package": "pygments",
+          "url": "https://osv.dev/vulnerability/CVE-2026-4539"
+        }
+      ]
     },
     "codeql": {
       "total": 0,

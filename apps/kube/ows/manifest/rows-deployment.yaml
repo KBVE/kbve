@@ -59,6 +59,9 @@ spec:
                       - name: http
                         containerPort: 4322
                         protocol: TCP
+                      - name: docs
+                        containerPort: 4323
+                        protocol: TCP
                   resources:
                       requests:
                           memory: '1Gi'

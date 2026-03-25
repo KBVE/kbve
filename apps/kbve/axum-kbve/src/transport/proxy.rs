@@ -628,6 +628,46 @@ pub async fn edge_proxy_handler(path: Option<Path<String>>, req: Request<Body>) 
 }
 
 // ---------------------------------------------------------------------------
+// ChuckRPG (ROWS Swagger) proxy singleton
+// ---------------------------------------------------------------------------
+
+static CHUCKRPG: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_chuckrpg_proxy() -> bool {
+    let upstream = match std::env::var("CHUCKRPG_UPSTREAM_URL") {
+        Ok(u) => u.trim_end_matches('/').to_string(),
+        Err(_) => return false,
+    };
+
+    let client = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(5))
+        .timeout(Duration::from_secs(15))
+        .build()
+        .expect("failed to build reqwest client for chuckrpg proxy");
+
+    CHUCKRPG
+        .set(ServiceProxy {
+            name: "ChuckRPG",
+            client,
+            upstream,
+            upstream_token: None,
+        })
+        .is_ok()
+}
+
+pub async fn chuckrpg_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
+    match CHUCKRPG.get() {
+        Some(proxy) => proxy.handle(path, req).await,
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "ChuckRPG proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Convert axum HeaderMap to reqwest HeaderMap
 // ---------------------------------------------------------------------------
 

@@ -53,6 +53,10 @@ k8s-openapi = { version = "0.24", features = ["v1_32"] }
 # Concurrent collections
 dashmap = "6.1"
 
+# OpenAPI documentation
+utoipa = { version = "5", features = ["axum_extras", "uuid", "chrono"] }
+utoipa-swagger-ui = { version = "9", features = ["axum"] }
+
 # Utilities
 anyhow = "1.0"
 thiserror = "2"

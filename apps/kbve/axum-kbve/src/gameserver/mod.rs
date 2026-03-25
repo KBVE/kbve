@@ -281,12 +281,12 @@ fn load_webtransport_identity() -> Option<lightyear::webtransport::prelude::Iden
             match identity {
                 Ok(id) => {
                     WT_ENABLED.store(true, std::sync::atomic::Ordering::Relaxed);
+                    // PEM cert from file = CA-signed (Let's Encrypt) = trusted by browsers.
+                    // Clients must NOT use serverCertificateHashes for trusted certs.
+                    WT_CERT_TRUSTED.store(true, std::sync::atomic::Ordering::Relaxed);
 
-                    // Compute cert digest — Chrome's WebTransport QUIC stack
-                    // does NOT trust local CAs (mkcert), so clients need the
-                    // SHA-256 hash for serverCertificateHashes pinning.
-                    // For production (Let's Encrypt), the digest is harmless
-                    // since the browser will trust the CA natively.
+                    // Compute cert digest for diagnostics and self-signed fallback.
+                    // For trusted certs the client should ignore this digest.
                     let cert_chain = id.certificate_chain();
                     let certs = cert_chain.as_slice();
                     if let Some(cert) = certs.first() {
@@ -617,6 +617,11 @@ static CERT_DIGEST: std::sync::OnceLock<String> = std::sync::OnceLock::new();
 /// Whether WebTransport is enabled (set once at startup).
 static WT_ENABLED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
+/// Whether the loaded cert is CA-signed (trusted) vs self-signed.
+/// Trusted certs (Let's Encrypt) must NOT use serverCertificateHashes — the browser
+/// validates them via the CA chain. Self-signed certs MUST use hash pinning.
+static WT_CERT_TRUSTED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
 /// Read the cert digest from the global store (for the token endpoint).
 pub fn get_cert_digest() -> &'static str {
     CERT_DIGEST.get().map(|s| s.as_str()).unwrap_or("")
@@ -625,6 +630,14 @@ pub fn get_cert_digest() -> &'static str {
 /// Check whether WebTransport is enabled.
 pub fn is_wt_enabled() -> bool {
     WT_ENABLED.load(std::sync::atomic::Ordering::Relaxed)
+}
+
+/// Check whether the WT cert is CA-signed (trusted by browsers natively).
+/// When true, clients must NOT use serverCertificateHashes and should
+/// connect via hostname so the browser validates the cert against the CA chain.
+/// When false, clients MUST use the cert_digest for hash pinning.
+pub fn is_wt_cert_trusted() -> bool {
+    WT_CERT_TRUSTED.load(std::sync::atomic::Ordering::Relaxed)
 }
 
 /// Spawn a single server entity with WebSocket + optional WebTransport.
