@@ -578,6 +578,47 @@ impl<'a> CharsRepo<'a> {
         Ok(data)
     }
 
+    /// Default stat columns for character INSERT — all NOT NULL in the DB.
+    const CHAR_DEFAULTS: &'static str = "
+        perception, acrobatics, climb, stealth, spirit, magic,
+        teamnumber, thirst, hunger, gold, score, characterlevel,
+        gender, xp, hitdie, wounds, size, weight,
+        maxhealth, health, healthregenrate,
+        maxmana, mana, manaregenrate,
+        maxenergy, energy, energyregenrate,
+        maxfatigue, fatigue, fatigueregenrate,
+        maxstamina, stamina, staminaregenrate,
+        maxendurance, endurance, enduranceregenrate,
+        strength, dexterity, constitution, intellect, wisdom, charisma, agility,
+        fortitude, reflex, willpower,
+        baseattack, baseattackbonus, attackpower, attackspeed,
+        critchance, critmultiplier, haste, spellpower, spellpenetration,
+        defense, dodge, parry, avoidance, versatility, multishot,
+        initiative, naturalarmor, physicalarmor, bonusarmor, forcearmor, magicarmor,
+        resistance, reloadspeed, range, speed,
+        silver, copper, freecurrency, premiumcurrency, fame, alignment,
+        isadmin, ismoderator";
+
+    const CHAR_ZEROS: &'static str = "
+        0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 1,
+        0, 0, 0, 0, 1, 0,
+        100, 100, 0,
+        100, 100, 0,
+        100, 100, 0,
+        100, 100, 0,
+        100, 100, 0,
+        100, 100, 0,
+        0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0,
+        false, false";
+
     pub async fn create_character(
         &self,
         customer_guid: Uuid,
@@ -585,17 +626,20 @@ impl<'a> CharsRepo<'a> {
         char_name: &str,
         _class_name: &str,
     ) -> Result<(), RowsError> {
-        sqlx::query(
-            "INSERT INTO characters (customerguid, userguid, charname, email, createdate)
-             SELECT $1, $2, $3, u.email, NOW()
+        let sql = format!(
+            "INSERT INTO characters (customerguid, userguid, charname, email, createdate, {})
+             SELECT $1, $2, $3, u.email, NOW(), {}
              FROM users u
              WHERE u.customerguid = $1 AND u.userguid = $2",
-        )
-        .bind(customer_guid)
-        .bind(user_guid)
-        .bind(char_name)
-        .execute(self.0)
-        .await?;
+            Self::CHAR_DEFAULTS,
+            Self::CHAR_ZEROS
+        );
+        sqlx::query(&sql)
+            .bind(customer_guid)
+            .bind(user_guid)
+            .bind(char_name)
+            .execute(self.0)
+            .await?;
         Ok(())
     }
 
@@ -608,23 +652,25 @@ impl<'a> CharsRepo<'a> {
         char_name: &str,
         default_set_name: &str,
     ) -> Result<(), RowsError> {
-        // Insert character using defaults from DefaultCharacterValues table
-        sqlx::query(
+        let sql = format!(
             "INSERT INTO characters (customerguid, userguid, charname, email, createdate,
-                mapname, x, y, z, rx, ry, rz)
+                mapname, x, y, z, rx, ry, rz, {})
              SELECT $1, $2, $3, u.email, NOW(),
-                    dcv.startingmapname, dcv.x, dcv.y, dcv.z, dcv.rx, dcv.ry, dcv.rz
+                    dcv.startingmapname, dcv.x, dcv.y, dcv.z, dcv.rx, dcv.ry, dcv.rz, {}
              FROM defaultcharactervalues dcv
              JOIN users u ON u.customerguid = $1 AND u.userguid = $2
              WHERE dcv.customerguid = $1
                AND dcv.defaultsetname = $4",
-        )
-        .bind(customer_guid)
-        .bind(user_guid)
-        .bind(char_name)
-        .bind(default_set_name)
-        .execute(self.0)
-        .await?;
+            Self::CHAR_DEFAULTS,
+            Self::CHAR_ZEROS
+        );
+        sqlx::query(&sql)
+            .bind(customer_guid)
+            .bind(user_guid)
+            .bind(char_name)
+            .bind(default_set_name)
+            .execute(self.0)
+            .await?;
         Ok(())
     }
 
