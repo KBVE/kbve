@@ -121,16 +121,28 @@ async fn main() -> anyhow::Result<()> {
     // WebSocket routes
     let ws_router = ws::router(svc);
 
-    // Multiplex: gRPC + REST + WebSocket + Swagger on single port
+    // Multiplex: gRPC + REST + WebSocket on single port (public)
     let app = rest_router
         .merge(ws_router)
-        .merge(
-            SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", openapi::ApiDoc::openapi()),
-        )
         .merge(grpc_router.into_axum_router())
         .layer(axum::middleware::from_fn(trace::request_trace))
         .layer(RequestBodyLimitLayer::new(10 * 1024 * 1024)) // 10MB max body
         .layer(CorsLayer::permissive());
+
+    // Swagger UI on internal-only port (not exposed via HTTPRoute/gateway)
+    let docs_port: u16 = std::env::var("DOCS_PORT")
+        .unwrap_or_else(|_| "4323".into())
+        .parse()
+        .unwrap_or(4323);
+    let docs_addr: SocketAddr = format!("{host}:{docs_port}").parse()?;
+    let docs_app = axum::Router::new().merge(
+        SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", openapi::ApiDoc::openapi()),
+    );
+    tokio::spawn(async move {
+        let listener = tokio::net::TcpListener::bind(docs_addr).await.unwrap();
+        info!("Swagger UI listening on {docs_addr} (internal only)");
+        axum::serve(listener, docs_app).await.ok();
+    });
 
     info!("ROWS listening on {addr} (REST + gRPC + WS multiplexed)");
 
