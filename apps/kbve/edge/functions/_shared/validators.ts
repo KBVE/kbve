@@ -11,6 +11,28 @@ import {
 } from "./formats.ts";
 
 // ---------------------------------------------------------------------------
+// Request body size limit
+// ---------------------------------------------------------------------------
+
+/** Maximum allowed request body size (1 MB). */
+const MAX_BODY_BYTES = 1_048_576;
+
+/**
+ * Reject requests with a Content-Length exceeding MAX_BODY_BYTES.
+ * Call this before `req.json()` in every router to prevent memory DoS.
+ */
+export function enforceBodySizeLimit(req: Request): Response | null {
+  const cl = req.headers.get("content-length");
+  if (cl && parseInt(cl, 10) > MAX_BODY_BYTES) {
+    return jsonResponse(
+      { error: `Request body exceeds maximum size of ${MAX_BODY_BYTES} bytes` },
+      413,
+    );
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Illegal character quick-reject
 // ---------------------------------------------------------------------------
 

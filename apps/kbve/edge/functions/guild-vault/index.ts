@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
-import { requireJsonContentType } from "../_shared/validators.ts";
+import { requireJsonContentType, enforceBodySizeLimit } from "../_shared/validators.ts";
 import {
   extractToken,
   type GuildVaultRequest,
@@ -66,6 +66,9 @@ serve(async (req) => {
     if (!sub || typeof sub !== "string") {
       return jsonResponse({ error: "JWT is missing sub claim" }, 401);
     }
+
+    const sizeErr = enforceBodySizeLimit(req);
+    if (sizeErr) return sizeErr;
 
     const body = await req.json();
     const { command } = body;

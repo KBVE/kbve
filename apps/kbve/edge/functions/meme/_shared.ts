@@ -12,6 +12,7 @@ export {
 
 import { jsonResponse } from "../_shared/supabase.ts";
 import type { JwtClaims } from "../_shared/supabase.ts";
+import { rejectIllegalChars } from "../_shared/validators.ts";
 
 // Meme-specific request type
 export interface MemeRequest {
@@ -149,7 +150,7 @@ export function validateUserId(
   return null;
 }
 
-// Comment body: 1-500 characters, non-empty
+// Comment body: 1-500 characters, non-empty, no illegal chars
 export function validateCommentBody(body: unknown): Response | null {
   if (!body || typeof body !== "string") {
     return jsonResponse({ error: "body is required" }, 400);
@@ -161,6 +162,8 @@ export function validateCommentBody(body: unknown): Response | null {
       400,
     );
   }
+  const charErr = rejectIllegalChars(trimmed, "body");
+  if (charErr) return charErr;
   return null;
 }
 
@@ -183,7 +186,7 @@ export function validateReportReason(reason: unknown): Response | null {
   return null;
 }
 
-// Report detail: optional, max 2000 characters
+// Report detail: optional, max 2000 characters, no illegal chars
 export function validateReportDetail(detail: unknown): Response | null {
   if (detail === undefined || detail === null) return null;
   if (typeof detail !== "string" || detail.length > 2000) {
@@ -192,6 +195,8 @@ export function validateReportDetail(detail: unknown): Response | null {
       400,
     );
   }
+  const charErr = rejectIllegalChars(detail, "detail");
+  if (charErr) return charErr;
   return null;
 }
 

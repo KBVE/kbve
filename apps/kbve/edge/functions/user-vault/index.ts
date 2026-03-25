@@ -6,7 +6,7 @@ import {
   type JwtClaims,
   parseJwt,
 } from "../_shared/supabase.ts";
-import { requireJsonContentType } from "../_shared/validators.ts";
+import { requireJsonContentType, enforceBodySizeLimit } from "../_shared/validators.ts";
 import { handleTokens, TOKEN_ACTIONS } from "./tokens.ts";
 
 // ---------------------------------------------------------------------------
@@ -96,6 +96,9 @@ serve(async (req) => {
   try {
     const token = extractToken(req);
     const claims = await parseJwt(token);
+    const sizeErr = enforceBodySizeLimit(req);
+    if (sizeErr) return sizeErr;
+
     const body = await req.json();
     const { command } = body;
 
