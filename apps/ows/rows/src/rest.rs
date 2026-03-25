@@ -401,13 +401,14 @@ async fn create_char_defaults(
 struct SetSelectedCharDto {
     #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     user_session_guid: Uuid,
+    #[serde(alias = "selectedCharacterName")]
     character_name: String,
 }
 
 async fn set_selected_char(
     State(hs): State<HandlerState>,
     Json(body): Json<SetSelectedCharDto>,
-) -> ApiResult<crate::models::UserSession> {
+) -> ApiResult<crate::models::UserSessionWithCharacter> {
     let session = hs
         .svc
         .set_selected_character_and_get_session(body.user_session_guid, &body.character_name)

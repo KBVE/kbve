@@ -132,6 +132,31 @@ impl<'a> UsersRepo<'a> {
         Ok(session)
     }
 
+    pub async fn get_session_with_character(
+        &self,
+        session_guid: Uuid,
+    ) -> Result<Option<crate::models::UserSessionWithCharacter>, RowsError> {
+        let session = sqlx::query_as::<_, crate::models::UserSessionWithCharacter>(
+            "SELECT us.customerguid, u.userguid, us.usersessionguid,
+                    us.selectedcharactername AS selected_character_name,
+                    u.email, u.firstname AS first_name, u.lastname AS last_name,
+                    u.createdate AS create_date, u.lastaccess AS last_access, u.role,
+                    c.characterid, c.charname, c.x, c.y, c.z, c.rx, c.ry, c.rz,
+                    c.mapname
+             FROM usersessions us
+             JOIN users u ON u.userguid = us.userguid AND u.customerguid = us.customerguid
+             LEFT JOIN characters c ON c.customerguid = us.customerguid
+                AND c.charname = us.selectedcharactername
+                AND c.userguid = us.userguid
+             WHERE us.usersessionguid = $1",
+        )
+        .bind(session_guid)
+        .fetch_optional(self.0)
+        .await?;
+
+        Ok(session)
+    }
+
     pub async fn get_all_characters(
         &self,
         customer_guid: Uuid,
