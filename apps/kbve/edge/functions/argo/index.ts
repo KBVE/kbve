@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { enforceBodySizeLimit } from "../_shared/validators.ts";
 import {
   extractToken,
   jsonResponse,
@@ -108,7 +109,7 @@ async function handleHealth() {
     argocd_reachable: result.status === 200,
     upstream_status: result.status,
     upstream_elapsed_ms: result.elapsed,
-    upstream_url: ARGOCD_URL ? `${ARGOCD_URL.slice(0, 30)}...` : "not configured",
+    upstream_configured: !!ARGOCD_URL,
     timestamp: new Date().toISOString(),
   };
 }
@@ -124,7 +125,7 @@ serve(async (req) => {
 
   if (!ARGOCD_URL || !ARGOCD_TOKEN) {
     return jsonResponse(
-      { error: "ArgoCD not configured (missing ARGOCD_UPSTREAM_URL or ARGOCD_AUTH_TOKEN)" },
+      { error: "Service unavailable" },
       503,
     );
   }
@@ -135,6 +136,9 @@ serve(async (req) => {
 
     const denied = requireServiceRole(claims);
     if (denied) return denied;
+
+    const sizeErr = enforceBodySizeLimit(req);
+    if (sizeErr) return sizeErr;
 
     const body = await req.json();
     const { command, ...params } = body;

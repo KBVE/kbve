@@ -19,7 +19,7 @@ const VALID_SORTS = new Set(["votes", "members", "newest", "bumped"]);
 const handlers: Record<string, Handler> = {
   async servers({ body }) {
     const limit = Math.min(Math.max(Number(body.limit) || 24, 1), 50);
-    const page = Math.max(Number(body.page) || 1, 1);
+    const page = Math.min(Math.max(Number(body.page) || 1, 1), 10000);
     const sort = typeof body.sort === "string" && VALID_SORTS.has(body.sort)
       ? body.sort
       : "votes";

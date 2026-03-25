@@ -76,8 +76,36 @@ serve(async (req: Request) => {
   const workerTimeoutMs = 1 * 60 * 1000;
   const noModuleCache = false;
   const importMapPath = null;
-  const envVarsObj = Deno.env.toObject();
-  const envVars: [string, string][] = Object.entries(envVarsObj);
+
+  // Principle of least privilege: only pass env vars that workers need.
+  // Secrets are allowlisted per-function; anything not listed is withheld.
+  const SHARED_ENV = [
+    "SUPABASE_URL",
+    "SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "JWT_SECRET",
+    "DENO_DEPLOYMENT_ID",
+  ];
+  const FUNCTION_ENV: Record<string, string[]> = {
+    discordsh: ["HCAPTCHA_SECRET"],
+    argo: ["ARGOCD_UPSTREAM_URL", "ARGOCD_AUTH_TOKEN"],
+    "guild-vault": [],
+    "user-vault": [],
+    "vault-reader": [],
+    meme: [],
+    mc: [],
+    ows: [],
+    logs: ["CLICKHOUSE_URL", "CLICKHOUSE_USER", "CLICKHOUSE_PASSWORD"],
+    health: [],
+  };
+  const allowedKeys = new Set([
+    ...SHARED_ENV,
+    ...(FUNCTION_ENV[service_name] || []),
+  ]);
+  const allEnv = Deno.env.toObject();
+  const envVars: [string, string][] = Object.entries(allEnv).filter(
+    ([key]) => allowedKeys.has(key),
+  );
 
   try {
     const worker = await EdgeRuntime.userWorkers.create({

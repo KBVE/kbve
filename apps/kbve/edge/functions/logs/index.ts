@@ -7,7 +7,7 @@ import {
   parseJwt,
   requireServiceRole,
 } from "../_shared/supabase.ts";
-import { requireJsonContentType } from "../_shared/validators.ts";
+import { requireJsonContentType, enforceBodySizeLimit } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
 // Logs Edge Function — Query observability.logs_raw in ClickHouse
@@ -133,6 +133,9 @@ serve(async (req) => {
 
     const denied = requireServiceRole(claims);
     if (denied) return denied;
+
+    const sizeErr = enforceBodySizeLimit(req);
+    if (sizeErr) return sizeErr;
 
     const body = await req.json();
     const { command, ...params } = body;

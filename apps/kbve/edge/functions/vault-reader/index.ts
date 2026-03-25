@@ -8,6 +8,7 @@ import {
   UUID_RE,
 } from "../_shared/formats.ts";
 import {
+  enforceBodySizeLimit,
   rejectIllegalChars,
   requireJsonContentType,
 } from "../_shared/validators.ts";
@@ -31,6 +32,9 @@ serve(async (req) => {
 
   const ctErr = requireJsonContentType(req);
   if (ctErr) return ctErr;
+
+  const sizeErr = enforceBodySizeLimit(req);
+  if (sizeErr) return sizeErr;
 
   try {
     const body = await req.json();
