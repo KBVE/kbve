@@ -558,16 +558,15 @@ impl<'a> CharsRepo<'a> {
         customer_guid: Uuid,
         user_guid: Uuid,
         char_name: &str,
-        class_name: &str,
+        _class_name: &str,
     ) -> Result<(), RowsError> {
         sqlx::query(
-            "INSERT INTO characters (customerguid, userguid, charname, classname, createdate)
-             VALUES ($1, $2, $3, $4, NOW())",
+            "INSERT INTO characters (customerguid, userguid, charname, createdate)
+             VALUES ($1, $2, $3, NOW())",
         )
         .bind(customer_guid)
         .bind(user_guid)
         .bind(char_name)
-        .bind(class_name)
         .execute(self.0)
         .await?;
         Ok(())
@@ -582,20 +581,15 @@ impl<'a> CharsRepo<'a> {
         char_name: &str,
         default_set_name: &str,
     ) -> Result<(), RowsError> {
-        // Insert base character, then copy defaults from DefaultCharacterValues
+        // Insert character using defaults from DefaultCharacterValues table
         sqlx::query(
-            "INSERT INTO characters (customerguid, userguid, charname, classname, createdate,
+            "INSERT INTO characters (customerguid, userguid, charname, createdate,
                 mapname, x, y, z, rx, ry, rz)
-             SELECT $1, $2, $3, dcv.fieldvalue, NOW(),
-                    dcv2.fieldvalue, 0, 0, 0, 0, 0, 0
+             SELECT $1, $2, $3, NOW(),
+                    dcv.startingmapname, dcv.x, dcv.y, dcv.z, dcv.rx, dcv.ry, dcv.rz
              FROM defaultcharactervalues dcv
-             LEFT JOIN defaultcharactervalues dcv2
-               ON dcv2.customerguid = dcv.customerguid
-               AND dcv2.defaultsetname = dcv.defaultsetname
-               AND dcv2.characterfield = 'StartZone'
              WHERE dcv.customerguid = $1
-               AND dcv.defaultsetname = $4
-               AND dcv.characterfield = 'ClassName'",
+               AND dcv.defaultsetname = $4",
         )
         .bind(customer_guid)
         .bind(user_guid)
