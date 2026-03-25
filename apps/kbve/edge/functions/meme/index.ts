@@ -75,8 +75,8 @@ serve(async (req) => {
 
   try {
     // All access requires service_role — axum gateway handles user auth
-    let token = "";
-    let claims: JwtClaims = { role: "anon" };
+    let token: string;
+    let claims: JwtClaims;
 
     try {
       token = extractToken(req);

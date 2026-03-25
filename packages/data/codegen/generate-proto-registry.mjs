@@ -51,7 +51,6 @@ const allProtos = findProtos(protoRoot);
 
 // Build registry
 const protos = allProtos.map((protoFile) => {
-	const name = protoFile.replace(/\.proto$/, '').replace(/\//g, '_').replace(/^[^_]+_/, '');
 	const fullPath = resolve(protoRoot, protoFile);
 	const content = readFileSync(fullPath, 'utf8');
 
