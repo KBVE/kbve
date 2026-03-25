@@ -939,25 +939,32 @@ async fn update_all_positions(
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct AddCustomDataDto {
+struct AddCustomDataWrapper {
+    add_or_update_custom_character_data: AddCustomDataPayload,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct AddCustomDataPayload {
     character_name: String,
-    custom_character_data_key: String,
-    custom_character_data_value: String,
+    custom_field_name: String,
+    field_value: String,
 }
 
 async fn add_or_update_custom_data(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
-    Json(body): Json<AddCustomDataDto>,
+    Json(body): Json<AddCustomDataWrapper>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
+    let data = &body.add_or_update_custom_character_data;
     match hs
         .svc
         .add_or_update_custom_data(
             customer_guid,
-            &body.character_name,
-            &body.custom_character_data_key,
-            &body.custom_character_data_value,
+            &data.character_name,
+            &data.custom_field_name,
+            &data.field_value,
         )
         .await
     {
@@ -969,6 +976,7 @@ async fn add_or_update_custom_data(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct UpdateStatsDto {
+    #[serde(alias = "charName", alias = "CharName")]
     character_name: String,
     // C# sends individual stat fields — we accept as JSON
     #[serde(flatten)]
