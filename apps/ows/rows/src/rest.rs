@@ -212,10 +212,12 @@ async fn get_all_characters(
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct GetServerDto {
-    #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
-    _user_session_guid: Uuid,
+    #[serde(default, rename = "userSessionGUID", alias = "userSessionGUId")]
+    _user_session_guid: Option<Uuid>,
     character_name: String,
     zone_name: String,
+    #[serde(default)]
+    _player_group_type: Option<i32>,
 }
 
 async fn get_server_to_connect_to(
