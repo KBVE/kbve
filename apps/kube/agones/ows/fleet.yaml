@@ -78,7 +78,6 @@ spec:
                                   # h0lybyte 03/25/2026 - Finding Agones
                                   # Force ChuckGameMode to ensure Agones SDK + ROWS registration runs
                                   exec "${SERVER_BIN}" \
-                                    /Game/ThirdPerson/Lvl_ThirdPerson \
                                     -server \
                                     -log \
                                     -nosteam \
