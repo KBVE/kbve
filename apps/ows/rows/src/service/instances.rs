@@ -2,7 +2,7 @@ use super::OWSService;
 use crate::error::RowsError;
 use crate::models::*;
 use crate::mq::SpinUpMessage;
-use crate::repo::InstanceRepo;
+use crate::repo::{CharsRepo, InstanceRepo};
 use uuid::Uuid;
 
 impl OWSService {
@@ -12,15 +12,33 @@ impl OWSService {
         char_name: &str,
         zone_name: &str,
     ) -> Result<JoinMapResult, RowsError> {
+        // Resolve GETLASTZONENAME: look up the character's last zone from the DB
+        let resolved_zone = if zone_name.is_empty() || zone_name == "GETLASTZONENAME" {
+            let chars_repo = CharsRepo(&self.state.db);
+            let character = chars_repo
+                .get_by_name(customer_guid, char_name)
+                .await?
+                .ok_or_else(|| RowsError::NotFound(format!("Character not found: {char_name}")))?;
+            character.map_name.unwrap_or_default()
+        } else {
+            zone_name.to_string()
+        };
+
+        if resolved_zone.is_empty() {
+            return Err(RowsError::BadRequest(
+                "ZoneName is empty. Make sure the character is assigned to a Zone!".into(),
+            ));
+        }
+
         let repo = InstanceRepo(&self.state.db);
         let result = repo
-            .join_map_by_char_name(customer_guid, char_name, zone_name)
+            .join_map_by_char_name(customer_guid, char_name, &resolved_zone)
             .await?;
 
         if result.need_to_startup_map {
             // Spin-up lock: prevent duplicate Agones allocations for the same zone.
             // If another request is already spinning up this zone, skip the publish.
-            let lock_key = format!("{customer_guid}:{zone_name}");
+            let lock_key = format!("{customer_guid}:{resolved_zone}");
             if self.state.zone_spinup_locks.contains_key(&lock_key) {
                 tracing::info!(
                     zone = zone_name,
