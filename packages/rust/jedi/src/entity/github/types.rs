@@ -2,7 +2,7 @@
 //!
 //! Only the fields we actually use are deserialized — GitHub returns much more.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 // ── Issues ──────────────────────────────────────────────────────────
 
@@ -143,6 +143,51 @@ pub struct GitHubIssueType {
     pub description: Option<String>,
     #[serde(default)]
     pub color: Option<String>,
+}
+
+// ── Comments ───────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct GitHubComment {
+    pub id: u64,
+    pub body: String,
+    pub user: GitHubUser,
+    pub created_at: String,
+    pub updated_at: String,
+    pub html_url: String,
+}
+
+// ── Request Payloads ───────────────────────────────────────────────
+
+/// Payload for creating a new issue via POST `/repos/{owner}/{repo}/issues`.
+#[derive(Debug, Clone, Serialize)]
+pub struct CreateIssueRequest {
+    pub title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub body: Option<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub labels: Vec<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub assignees: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
+    pub issue_type: Option<String>,
+}
+
+/// Payload for updating an issue via PATCH `/repos/{owner}/{repo}/issues/{number}`.
+#[derive(Debug, Clone, Default, Serialize)]
+pub struct UpdateIssueRequest {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub body: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub assignees: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
+    pub issue_type: Option<String>,
 }
 
 // ── Rate Limit ──────────────────────────────────────────────────────
