@@ -40,6 +40,9 @@ pub struct TokenResponse {
     pub server_wt_url: String,
     /// SHA-256 certificate digest (hex, 64 chars). Empty if using a trusted cert.
     pub cert_digest: String,
+    /// Certificate type: "trusted" (CA-signed, no hash pinning) or "self-signed"
+    /// (must use serverCertificateHashes with cert_digest). Empty if WT disabled.
+    pub cert_type: String,
 }
 
 /// `POST /api/v1/auth/game-token`
@@ -174,17 +177,44 @@ pub async fn game_token_handler(
 
     // Build transport URLs — WS and WT take different routes:
     //   WS:  wss://{request_host}/ws — path-based, gateway routes /ws → port 5000
-    //   WT:  https://{final_host}:5001 — QUIC/UDP must hit origin directly
+    //   WT:  https://{wt_host}:5001 — QUIC/UDP must hit origin directly
     let server_url = format!("wss://{request_host}/ws");
-    let cert_digest = super::get_cert_digest().to_owned();
+    let cert_trusted = super::is_wt_cert_trusted();
+    let cert_type = if !super::is_wt_enabled() {
+        String::new()
+    } else if cert_trusted {
+        "trusted".to_string()
+    } else {
+        "self-signed".to_string()
+    };
+
+    // For trusted (CA-signed) certs, the WT URL must use the hostname so the
+    // browser validates the cert against the CA chain (e.g. wt.kbve.com:5001).
+    // For self-signed certs, use the resolved IP since hash pinning doesn't
+    // care about hostname and avoids DNS resolution in the QUIC stack.
+    let cert_digest = if cert_trusted {
+        String::new()
+    } else {
+        super::get_cert_digest().to_owned()
+    };
+
+    // Determine the host for the WT URL
+    let wt_host = if cert_trusted {
+        // Use GAME_SERVER_HOST env var directly (hostname, not resolved IP)
+        std::env::var("GAME_SERVER_HOST").unwrap_or_else(|_| final_host.clone())
+    } else {
+        // Self-signed: use resolved IP
+        final_host.clone()
+    };
+
     let server_wt_url = if super::is_wt_enabled() {
-        format!("https://{final_host}:{wt_port}")
+        format!("https://{wt_host}:{wt_port}")
     } else {
         String::new()
     };
 
     tracing::info!(
-        "[game-token] issuing token: ws_url={server_url} wt_url={} digest_len={} host={request_host} final_host={final_host} transport={} addrs={server_addrs:?}",
+        "[game-token] issuing token: ws_url={server_url} wt_url={} cert_type={cert_type} digest_len={} host={request_host} final_host={final_host} transport={} addrs={server_addrs:?}",
         if server_wt_url.is_empty() {
             "<empty>"
         } else {
@@ -199,6 +229,7 @@ pub async fn game_token_handler(
         server_url,
         server_wt_url,
         cert_digest,
+        cert_type,
     }))
 }
 
