@@ -276,6 +276,19 @@ export const CI_PROJECTS: CiProject[] = ProjectArraySchema.parse([
 		status: 'active',
 		tags: ['docker', 'dotnet', 'ows'],
 	},
+	{
+		key: 'chisel_ubuntu_axum',
+		name: 'Chisel Ubuntu Axum',
+		pipeline: 'docker',
+		app_name: 'chisel-ubuntu-axum',
+		description:
+			'Shared chiseled Ubuntu 24.04 runtime base image for Axum services',
+		source_path: 'packages/docker/chisel-ubuntu-axum',
+		author: 'h0lybyte',
+		license: 'KBVE',
+		status: 'active',
+		tags: ['docker', 'base-image', 'chisel'],
+	},
 
 	// ── NPM Packages ───────────────────────────────────────────
 	{

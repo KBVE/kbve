@@ -1,4 +1,4 @@
-# ubuntu-axum
+# chisel-ubuntu-axum
 
 Shared chiseled Ubuntu 24.04 runtime base image for KBVE Axum services.
 
@@ -13,7 +13,7 @@ Shared chiseled Ubuntu 24.04 runtime base image for KBVE Axum services.
 ## Usage
 
 ```dockerfile
-FROM ghcr.io/kbve/ubuntu-axum:24.04 AS runtime
+FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/my-service /app/my-service
 
@@ -26,7 +26,7 @@ ENTRYPOINT ["/app/my-service"]
 
 ## Services using this base
 
-- `axum-discordsh`
+- `axum-discordsh` (planned)
 - `axum-kbve` (planned)
 - `axum-memes` (planned)
 - `axum-herbmail` (planned)
@@ -36,8 +36,9 @@ ENTRYPOINT ["/app/my-service"]
 ## Building
 
 ```bash
-docker build -t ghcr.io/kbve/ubuntu-axum:24.04 packages/docker/ubuntu-axum/
-docker push ghcr.io/kbve/ubuntu-axum:24.04
+npx nx run chisel-ubuntu-axum:container
+# Or manually:
+docker build -t ghcr.io/kbve/chisel-ubuntu-axum:24.04 packages/docker/chisel-ubuntu-axum/
 ```
 
 ## Environment Variables (pre-configured)

@@ -1,11 +1,11 @@
 # ============================================================================
-# ubuntu-axum — Shared chiseled Ubuntu runtime base for KBVE Axum services
+# chisel-ubuntu-axum — Shared chiseled Ubuntu runtime base for KBVE Axum services
 #
 # Includes: chiseled Ubuntu 24.04 rootfs + jemalloc + libpq + CA certs
-# Published to: ghcr.io/kbve/ubuntu-axum:24.04
+# Published to: ghcr.io/kbve/chisel-ubuntu-axum:24.04
 #
 # Usage in service Dockerfiles:
-#   FROM ghcr.io/kbve/ubuntu-axum:24.04 AS runtime
+#   FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04 AS runtime
 # ============================================================================
 
 # ── Stage 1: Chisel the Ubuntu rootfs ────────────────────────────────

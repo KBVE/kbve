@@ -238,6 +238,16 @@
 			"image": "kbve/rows",
 			"deployment_yaml": "apps/kube/ows/manifest/rows-deployment.yaml",
 			"has_test": false
+		},
+		{
+			"key": "chisel_ubuntu_axum",
+			"app_name": "chisel-ubuntu-axum",
+			"version": "24.04.1",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/chisel.mdx",
+			"source_path": "packages/docker/chisel-ubuntu-axum",
+			"runner": "ubuntu-latest",
+			"image": "kbve/chisel-ubuntu-axum",
+			"has_test": false
 		}
 	],
 	"npm": [
@@ -367,11 +377,11 @@
 		}
 	],
 	"summary": {
-		"docker": 17,
+		"docker": 18,
 		"npm": 4,
 		"crates": 6,
 		"python": 2,
 		"unreal": 6,
-		"total": 35
+		"total": 36
 	}
 }

@@ -1,0 +1,68 @@
+---
+title: Chisel Ubuntu Axum
+description: |
+    Shared chiseled Ubuntu 24.04 runtime base image for all KBVE Axum services. Includes jemalloc, libpq, and CA certificates.
+sidebar:
+    label: Chisel Base
+    order: 900
+unsplash: 1605745341112-85968b19335b
+img: https://images.unsplash.com/photo-1605745341112-85968b19335b?fit=crop&w=1400&h=700&q=75
+tags:
+    - docker
+    - infrastructure
+    - chisel
+key: chisel-ubuntu-axum
+pipeline: docker
+app_name: chisel-ubuntu-axum
+version: "24.04.1"
+source_path: packages/docker/chisel-ubuntu-axum
+runner: ubuntu-latest
+image: kbve/chisel-ubuntu-axum
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Chisel Ubuntu Axum
+
+Shared chiseled Ubuntu 24.04 runtime base image for all KBVE Axum services.
+
+### What is Chisel?
+
+[Chisel](https://github.com/canonical/chisel) is a tool from Canonical that slices Ubuntu packages into minimal filesystem layers. Instead of a full Ubuntu image (~80MB+), chisel extracts only the exact files needed — resulting in a scratch-based image with just the runtime libraries.
+
+### Contents
+
+- **Chiseled Ubuntu 24.04 rootfs** — minimal, no shell, no package manager
+- **jemalloc** — memory allocator pre-configured via `LD_PRELOAD`
+- **libpq5** — PostgreSQL client library
+- **CA certificates** — for HTTPS/TLS connections
+- **Non-root user** — `appuser:10001`
+
+### Usage
+
+Service Dockerfiles reference this as their runtime base:
+
+```dockerfile
+FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04 AS runtime
+
+COPY --from=builder --chown=10001:10001 /app/target/release/my-service /app/my-service
+
+EXPOSE 4321
+USER 10001:10001
+ENTRYPOINT ["/app/my-service"]
+```
+
+This eliminates ~3 Docker stages (chisel + jemalloc + libpq) from each service Dockerfile, saving build time and disk space in CI.
+
+### Services
+
+| Service | Status |
+|---|---|
+| `axum-discordsh` | planned |
+| `axum-kbve` | planned |
+| `axum-memes` | planned |
+| `axum-herbmail` | planned |
+| `axum-chuckrpg` | planned |
+| `axum-cryptothrone` | planned |
