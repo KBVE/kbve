@@ -91,9 +91,12 @@ impl OWSService {
         &self,
         session_guid: Uuid,
         char_name: &str,
-    ) -> Result<UserSession, RowsError> {
+    ) -> Result<UserSessionWithCharacter, RowsError> {
         let repo = UsersRepo(&self.state.db);
-        repo.set_selected_character(session_guid, char_name)
+        // First update the selected character
+        let _ = repo.set_selected_character(session_guid, char_name).await?;
+        // Then fetch session with character data (including position)
+        repo.get_session_with_character(session_guid)
             .await?
             .ok_or_else(|| RowsError::NotFound("Session not found".into()))
     }

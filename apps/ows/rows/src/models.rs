@@ -133,6 +133,57 @@ pub struct UserSession {
     pub role: String,
 }
 
+/// User session with selected character data — matches C# GetUserSession stored proc.
+/// UE OWS plugin reads these fields with PascalCase GetStringField/GetNumberField.
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct UserSessionWithCharacter {
+    #[sqlx(rename = "customerguid")]
+    #[serde(rename = "CustomerGUID")]
+    pub customer_guid: Uuid,
+    #[sqlx(rename = "userguid")]
+    #[serde(rename = "UserGUID")]
+    pub user_guid: Option<Uuid>,
+    #[sqlx(rename = "usersessionguid")]
+    #[serde(rename = "UserSessionGUID")]
+    pub user_session_guid: Uuid,
+    #[serde(rename = "SelectedCharacterName")]
+    pub selected_character_name: Option<String>,
+    #[serde(rename = "Email")]
+    pub email: String,
+    #[serde(rename = "FirstName")]
+    pub first_name: String,
+    #[serde(rename = "LastName")]
+    pub last_name: String,
+    #[serde(rename = "CreateDate")]
+    pub create_date: Option<NaiveDateTime>,
+    #[serde(rename = "LastAccess")]
+    pub last_access: Option<NaiveDateTime>,
+    #[serde(rename = "Role")]
+    pub role: String,
+    // Character data (from LEFT JOIN)
+    #[sqlx(rename = "characterid")]
+    #[serde(rename = "CharacterID")]
+    pub character_id: Option<i32>,
+    #[sqlx(rename = "charname")]
+    #[serde(rename = "CharName")]
+    pub char_name: Option<String>,
+    #[serde(rename = "X")]
+    pub x: Option<f64>,
+    #[serde(rename = "Y")]
+    pub y: Option<f64>,
+    #[serde(rename = "Z")]
+    pub z: Option<f64>,
+    #[serde(rename = "RX")]
+    pub rx: Option<f64>,
+    #[serde(rename = "RY")]
+    pub ry: Option<f64>,
+    #[serde(rename = "RZ")]
+    pub rz: Option<f64>,
+    #[sqlx(rename = "mapname")]
+    #[serde(rename = "ZoneName")]
+    pub zone_name: Option<String>,
+}
+
 /// Login result
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
