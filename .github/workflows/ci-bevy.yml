@@ -185,7 +185,12 @@ jobs:
                     --title "deploy(isometric): update WASM build" \
                     --body "Automated WASM deployment for the isometric Bevy game.
 
-                  Built from commit ${{ github.sha }}."
+                  Built from commit ${{ github.sha }}." \
+                    --label "auto-pr"
+
+                  PR_NUM=$(gh pr view "$BRANCH" --json number --jq '.number')
+                  echo "Created PR #${PR_NUM} — triggering auto-merge"
+                  gh workflow run ci-auto-merge-bot-prs.yml --field pr_number="${PR_NUM}" || true
 
     # ---------------------------------------------------------------------------
     # Failure tracker — surfaces build failures as GitHub issues (#8186).
