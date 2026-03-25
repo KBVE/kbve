@@ -164,55 +164,87 @@ jobs:
                         return;
                       }
 
-                      // 4. Title — extract app name from "Atomic: <APP> v<VER> ..."
-                      const titleMatch = title.match(/^Atomic:\s+(.+?)\s+v(\d+\.\d+\.\d+)/);
-                      if (!titleMatch) {
-                        core.setFailed(`Title '${title}' does not match pattern "Atomic: <app> v<semver> ..."`);
-                        return;
-                      }
-                      const appName = titleMatch[1];
-                      core.info(`Extracted app name: '${appName}'`);
+                      // 4. Title — two supported patterns:
+                      //    a) "Atomic: <APP> v<VER> ..." — post-publish sync (manifest-validated)
+                      //    b) "deploy(<SCOPE>): ..." — automated deploy PRs (path-prefix-validated)
+                      const atomicMatch = title.match(/^Atomic:\s+(.+?)\s+v(\d+\.\d+\.\d+)/);
+                      const deployMatch = title.match(/^deploy\(([a-zA-Z0-9_-]+)\):/);
 
-                      // 5. Load manifest and find app entry
-                      const manifestPath = '.github/ci-dispatch-manifest.json';
-                      if (!fs.existsSync(manifestPath)) {
-                        core.setFailed(`Manifest not found at ${manifestPath}`);
-                        return;
-                      }
-                      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-
-                      const allEntries = [
-                        ...(manifest.docker || []),
-                        ...(manifest.npm || []),
-                        ...(manifest.crates || []),
-                        ...(manifest.python || []),
-                        ...(manifest.unreal || []),
-                      ];
-                      const entry = allEntries.find(
-                        e => e.app_name === appName || e.package_name === appName
-                      );
-
-                      if (!entry) {
-                        core.setFailed(`App '${appName}' not found in dispatch manifest`);
-                        return;
-                      }
-                      core.info(`Found '${appName}' in manifest (pipeline: ${entry.pipeline})`);
-
-                      // 6. Build allowed-file set from manifest entry (sanitized)
-                      const allowedFiles = new Set(
-                        [entry.version_toml, entry.version_target, entry.deployment_yaml]
-                          .filter(Boolean)
-                          .map(sanitize)
-                      );
-                      core.info(`Allowed files: ${[...allowedFiles].join(', ')}`);
-
-                      if (allowedFiles.size === 0) {
-                        core.setFailed(`App '${appName}' has no tracked files in manifest`);
+                      if (!atomicMatch && !deployMatch) {
+                        core.setFailed(
+                          `Title '${title}' does not match "Atomic: <app> v<semver> ..." ` +
+                          `or "deploy(<scope>): ..." — aborting.`
+                        );
                         return;
                       }
 
-                      // 7. Validate every changed file is in the allowed set
-                      const blocked = changedFiles.filter(f => !allowedFiles.has(f));
+                      let blocked = [];
+
+                      if (atomicMatch) {
+                        // --- Path A: post-publish sync (manifest-validated) ---
+                        const appName = atomicMatch[1];
+                        core.info(`[atomic] Extracted app name: '${appName}'`);
+
+                        const manifestPath = '.github/ci-dispatch-manifest.json';
+                        if (!fs.existsSync(manifestPath)) {
+                          core.setFailed(`Manifest not found at ${manifestPath}`);
+                          return;
+                        }
+                        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+
+                        const allEntries = [
+                          ...(manifest.docker || []),
+                          ...(manifest.npm || []),
+                          ...(manifest.crates || []),
+                          ...(manifest.python || []),
+                          ...(manifest.unreal || []),
+                        ];
+                        const entry = allEntries.find(
+                          e => e.app_name === appName || e.package_name === appName
+                        );
+
+                        if (!entry) {
+                          core.setFailed(`App '${appName}' not found in dispatch manifest`);
+                          return;
+                        }
+                        core.info(`Found '${appName}' in manifest (pipeline: ${entry.pipeline})`);
+
+                        const allowedFiles = new Set(
+                          [entry.version_toml, entry.version_target, entry.deployment_yaml]
+                            .filter(Boolean)
+                            .map(sanitize)
+                        );
+                        core.info(`Allowed files: ${[...allowedFiles].join(', ')}`);
+
+                        if (allowedFiles.size === 0) {
+                          core.setFailed(`App '${appName}' has no tracked files in manifest`);
+                          return;
+                        }
+
+                        blocked = changedFiles.filter(f => !allowedFiles.has(f));
+                      } else {
+                        // --- Path B: deploy PRs (path-prefix-validated) ---
+                        // Allowed deploy scopes and their permitted file prefixes.
+                        // Each scope maps to a directory — all files must be under it.
+                        const deployAllowlist = {
+                          'isometric': 'apps/kbve/astro-kbve/public/isometric/',
+                        };
+
+                        const scope = deployMatch[1];
+                        core.info(`[deploy] Extracted scope: '${scope}'`);
+
+                        const allowedPrefix = deployAllowlist[scope];
+                        if (!allowedPrefix) {
+                          core.setFailed(
+                            `Deploy scope '${scope}' is not in the allowlist. ` +
+                            `Allowed: ${Object.keys(deployAllowlist).join(', ')}`
+                          );
+                          return;
+                        }
+                        core.info(`[deploy] Allowed prefix: '${allowedPrefix}'`);
+
+                        blocked = changedFiles.filter(f => !f.startsWith(allowedPrefix));
+                      }
                       if (blocked.length > 0) {
                         core.setFailed(
                           `PR modifies files not in manifest for '${appName}': ${blocked.join(', ')}`

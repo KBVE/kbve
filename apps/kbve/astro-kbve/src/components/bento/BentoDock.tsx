@@ -1,24 +1,14 @@
 /**
- * BentoDock — Right sidebar panel showing hidden bento cards.
+ * BentoDock — Right sidebar dock for hidden bento cards + global controls.
  *
- * Subscribes to bentoStore and renders hidden cards as clickable
- * icon pills. Click to restore a card to the grid.
- *
- * Mounted as a separate React island inside PageSidebar.astro.
+ * Listens for 'bento-hidden-changed' CustomEvents from the vanilla JS
+ * bento grid controller. Reads card metadata from DOM data attributes.
+ * No nanostores, no react-grid-layout dependency.
  */
 
-import { useStore } from '@nanostores/react';
-import {
-	$hiddenCardIds,
-	$editMode,
-	$bentoLayout,
-	showCard,
-	resetLayout,
-	toggleEditMode,
-} from './bentoStore';
+import { useState, useEffect, useCallback } from 'react';
 
 // ── Lucide icon paths ──
-
 const ICON_PATHS: Record<string, string[]> = {
 	'trending-up': ['M22 7 13.5 15.5 8.5 10.5 2 17', 'M16 7 22 7 22 13'],
 	bitcoin: [
@@ -61,7 +51,7 @@ const ICON_PATHS: Record<string, string[]> = {
 	],
 };
 
-function LucideIcon({ name, size = 16 }: { name: string; size?: number }) {
+function LucideIcon({ name, size = 14 }: { name: string; size?: number }) {
 	const paths = ICON_PATHS[name];
 	if (!paths) return null;
 	return (
@@ -82,191 +72,121 @@ function LucideIcon({ name, size = 16 }: { name: string; size?: number }) {
 	);
 }
 
-// ── Styles ──
+// ── Helpers ──
 
-const styles = {
-	container: {
-		padding: '0.75rem',
-		borderTop: '1px solid rgba(255, 255, 255, 0.06)',
-	} as React.CSSProperties,
-	header: {
-		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		marginBottom: '0.5rem',
-	} as React.CSSProperties,
-	label: {
-		fontSize: '0.7rem',
-		fontWeight: 600,
-		color: 'var(--sl-color-gray-3, #9ca3af)',
-		textTransform: 'uppercase' as const,
-		letterSpacing: '0.05em',
-	} as React.CSSProperties,
-	controls: {
-		display: 'flex',
-		gap: '0.375rem',
-	} as React.CSSProperties,
-	controlBtn: {
-		display: 'inline-flex',
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: '0.375rem',
-		flex: 1,
-		fontSize: '0.7rem',
-		fontWeight: 500,
-		padding: '0.375rem 0.5rem',
-		borderRadius: '0.5rem',
-		border: '1px solid rgba(255, 255, 255, 0.1)',
-		background: 'rgba(255, 255, 255, 0.04)',
-		color: 'var(--sl-color-gray-2, #d1d5db)',
-		cursor: 'pointer',
-		transition: 'all 0.15s',
-	} as React.CSSProperties,
-	controlBtnActive: {
-		background: 'rgba(56, 189, 248, 0.1)',
-		borderColor: 'rgba(56, 189, 248, 0.3)',
-		color: '#38bdf8',
-	} as React.CSSProperties,
-	list: {
-		display: 'flex',
-		flexDirection: 'column' as const,
-		gap: '0.375rem',
-	} as React.CSSProperties,
-	item: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: '0.5rem',
-		padding: '0.5rem 0.625rem',
-		borderRadius: '0.5rem',
-		border: '1px solid rgba(255, 255, 255, 0.06)',
-		background: 'rgba(255, 255, 255, 0.03)',
-		color: 'var(--sl-color-gray-2, #d1d5db)',
-		fontSize: '0.75rem',
-		cursor: 'pointer',
-		transition: 'all 0.15s',
-		width: '100%',
-		textAlign: 'left' as const,
-	} as React.CSSProperties,
-	iconWrap: {
-		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'center',
-		width: '1.75rem',
-		height: '1.75rem',
-		borderRadius: '0.375rem',
-		background: 'rgba(255, 255, 255, 0.05)',
-		color: 'var(--sl-color-text-accent, #38bdf8)',
-		flexShrink: 0,
-	} as React.CSSProperties,
-	itemTitle: {
-		flex: 1,
-		overflow: 'hidden',
-		textOverflow: 'ellipsis',
-		whiteSpace: 'nowrap' as const,
-	} as React.CSSProperties,
-	restoreLabel: {
-		fontSize: '0.6rem',
-		color: 'var(--sl-color-text-accent, #38bdf8)',
-		opacity: 0.7,
-	} as React.CSSProperties,
-	empty: {
-		fontSize: '0.7rem',
-		color: 'var(--sl-color-gray-3, #6b7280)',
-		textAlign: 'center' as const,
-		padding: '0.75rem 0',
-		opacity: 0.6,
-	} as React.CSSProperties,
-};
+function findPageKey(): string | null {
+	const grid = document.querySelector('[data-bento-page]');
+	return grid ? grid.getAttribute('data-bento-page') : null;
+}
+
+function getGridApi() {
+	const pk = findPageKey();
+	if (!pk) return null;
+	return (window as any).__bentoGrid?.[pk] || null;
+}
+
+interface HiddenCard {
+	id: string;
+	title: string;
+	icon: string;
+}
+
+// ── Component ──
 
 export default function BentoDock() {
-	const hiddenIds = useStore($hiddenCardIds);
-	const editMode = useStore($editMode);
-	const layout = useStore($bentoLayout);
+	const [hiddenCards, setHiddenCards] = useState<HiddenCard[]>([]);
+	const [hasGrid, setHasGrid] = useState(false);
 
-	// Only render if there's a bento grid on this page
-	if (layout.length === 0) return null;
+	// Read hidden card data from DOM
+	const refreshHidden = useCallback(() => {
+		const api = getGridApi();
+		if (!api) return;
 
-	// Read card metadata from DOM (same source as ReactBentoGrid)
-	const getCardMeta = (id: string) => {
-		const el = document.querySelector(`[data-bento-id="${id}"]`);
-		if (!el) return { title: id, icon: 'file-text' };
-		try {
-			const meta = JSON.parse(
-				(el as HTMLElement).dataset.bentoMeta || '{}',
-			);
-			return { title: meta.title || id, icon: meta.icon || 'file-text' };
-		} catch {
-			return { title: id, icon: 'file-text' };
-		}
+		setHasGrid(true);
+		const ids: string[] = api.getHidden();
+
+		const cards: HiddenCard[] = ids.map((id: string) => {
+			const el = document.querySelector(`[data-bento-id="${id}"]`);
+			return {
+				id,
+				title: el?.getAttribute('data-bento-title') || id,
+				icon: el?.getAttribute('data-bento-icon') || 'file-text',
+			};
+		});
+
+		setHiddenCards(cards);
+	}, []);
+
+	// Listen for events from vanilla JS controller
+	useEffect(() => {
+		// Initial check
+		const timer = setTimeout(refreshHidden, 100);
+
+		const handler = () => refreshHidden();
+		window.addEventListener('bento-hidden-changed', handler);
+		return () => {
+			clearTimeout(timer);
+			window.removeEventListener('bento-hidden-changed', handler);
+		};
+	}, [refreshHidden]);
+
+	if (!hasGrid) return null;
+
+	const showCard = (id: string) => {
+		const api = getGridApi();
+		if (api) api.show(id);
+	};
+
+	const resetAll = () => {
+		const api = getGridApi();
+		if (api) api.reset();
 	};
 
 	return (
-		<div style={styles.container}>
+		<div
+			style={{
+				padding: '0.75rem',
+				borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+			}}>
 			{/* Header */}
-			<div style={styles.header}>
-				<span style={styles.label}>Dashboard</span>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'space-between',
+					marginBottom: '0.5rem',
+				}}>
+				<span
+					style={{
+						fontSize: '0.7rem',
+						fontWeight: 600,
+						color: 'var(--sl-color-gray-3, #9ca3af)',
+						textTransform: 'uppercase' as const,
+						letterSpacing: '0.05em',
+					}}>
+					Dashboard
+				</span>
 			</div>
 
-			{/* Global controls */}
-			<div style={styles.controls}>
+			{/* Controls */}
+			<div style={{ display: 'flex', gap: '0.375rem' }}>
 				<button
 					style={{
-						...styles.controlBtn,
-						...(editMode ? styles.controlBtnActive : {}),
+						display: 'inline-flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						gap: '0.375rem',
+						flex: 1,
+						fontSize: '0.7rem',
+						fontWeight: 500,
+						padding: '0.375rem 0.5rem',
+						borderRadius: '0.5rem',
+						border: '1px solid rgba(255, 255, 255, 0.1)',
+						background: 'rgba(255, 255, 255, 0.04)',
+						color: 'var(--sl-color-gray-2, #d1d5db)',
+						cursor: 'pointer',
 					}}
-					onClick={toggleEditMode}
-					title={
-						editMode
-							? 'Unlocked — click to lock all cards'
-							: 'Locked — click to allow card editing'
-					}>
-					{editMode ? (
-						<svg
-							width="13"
-							height="13"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-							strokeLinecap="round"
-							strokeLinejoin="round">
-							<rect
-								width="18"
-								height="11"
-								x="3"
-								y="11"
-								rx="2"
-								ry="2"
-							/>
-							<path d="M7 11V7a5 5 0 0 1 9.9-1" />
-						</svg>
-					) : (
-						<svg
-							width="13"
-							height="13"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-							strokeLinecap="round"
-							strokeLinejoin="round">
-							<rect
-								width="18"
-								height="11"
-								x="3"
-								y="11"
-								rx="2"
-								ry="2"
-							/>
-							<path d="M7 11V7a5 5 0 0 1 10 0v4" />
-						</svg>
-					)}
-					<span>{editMode ? 'Unlocked' : 'Locked'}</span>
-				</button>
-
-				<button
-					style={styles.controlBtn}
-					onClick={() => resetLayout()}
+					onClick={resetAll}
 					title="Reset to default layout">
 					<svg
 						width="13"
@@ -285,47 +205,78 @@ export default function BentoDock() {
 			</div>
 
 			{/* Hidden cards */}
-			{hiddenIds.length > 0 && (
+			{hiddenCards.length > 0 && (
 				<>
 					<div
 						style={{
-							...styles.label,
+							fontSize: '0.7rem',
+							fontWeight: 600,
+							color: 'var(--sl-color-gray-3, #9ca3af)',
+							textTransform: 'uppercase' as const,
+							letterSpacing: '0.05em',
 							marginTop: '0.75rem',
 							marginBottom: '0.375rem',
 						}}>
-						Hidden ({hiddenIds.length})
+						Hidden ({hiddenCards.length})
 					</div>
-					<div style={styles.list}>
-						{hiddenIds.map((id) => {
-							const { title, icon } = getCardMeta(id);
-							return (
-								<button
-									key={id}
-									style={styles.item}
-									onClick={() => showCard(id)}
-									onMouseEnter={(e) => {
-										e.currentTarget.style.background =
-											'rgba(56, 189, 248, 0.06)';
-										e.currentTarget.style.borderColor =
-											'rgba(56, 189, 248, 0.2)';
-									}}
-									onMouseLeave={(e) => {
-										e.currentTarget.style.background =
-											'rgba(255, 255, 255, 0.03)';
-										e.currentTarget.style.borderColor =
-											'rgba(255, 255, 255, 0.06)';
-									}}
-									title={`Restore "${title}" to grid`}>
-									<div style={styles.iconWrap}>
-										<LucideIcon name={icon} size={14} />
-									</div>
-									<span style={styles.itemTitle}>
-										{title}
-									</span>
-									<span style={styles.restoreLabel}>+</span>
-								</button>
-							);
-						})}
+					<div
+						style={{
+							display: 'flex',
+							flexDirection: 'column',
+							gap: '0.375rem',
+						}}>
+						{hiddenCards.map(({ id, title, icon }) => (
+							<button
+								key={id}
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									gap: '0.5rem',
+									padding: '0.5rem 0.625rem',
+									borderRadius: '0.5rem',
+									border: '1px solid rgba(255, 255, 255, 0.06)',
+									background: 'rgba(255, 255, 255, 0.03)',
+									color: 'var(--sl-color-gray-2, #d1d5db)',
+									fontSize: '0.75rem',
+									cursor: 'pointer',
+									width: '100%',
+									textAlign: 'left' as const,
+								}}
+								onClick={() => showCard(id)}
+								title={`Restore "${title}" to grid`}>
+								<div
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										width: '1.75rem',
+										height: '1.75rem',
+										borderRadius: '0.375rem',
+										background: 'rgba(255, 255, 255, 0.05)',
+										color: 'var(--sl-color-text-accent, #38bdf8)',
+										flexShrink: 0,
+									}}>
+									<LucideIcon name={icon} />
+								</div>
+								<span
+									style={{
+										flex: 1,
+										overflow: 'hidden',
+										textOverflow: 'ellipsis',
+										whiteSpace: 'nowrap' as const,
+									}}>
+									{title}
+								</span>
+								<span
+									style={{
+										fontSize: '0.6rem',
+										color: 'var(--sl-color-text-accent, #38bdf8)',
+										opacity: 0.7,
+									}}>
+									+
+								</span>
+							</button>
+						))}
 					</div>
 				</>
 			)}

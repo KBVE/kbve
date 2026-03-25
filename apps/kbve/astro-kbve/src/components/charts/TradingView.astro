@@ -4,16 +4,16 @@ export interface Props {
 	widget?: string;
 }
 const { data, widget } = Astro.props;
+const containerId = `tv_${Math.random().toString(36).slice(2, 10)}`;
 ---
 
-<tv-widget data-data={data}>
+<tv-widget data-data={data} data-container-id={containerId}>
 	<div {...Astro.props}>
 		<!-- TradingView Widget BEGIN -->
 		<div
 			class="tradingview-widget-container"
 			style="width:100%;height:100%;display:flex;flex-direction:column;">
-			<div id="tradingview_1fdf2" style="width:100%;flex:1;min-height:0;">
-			</div>
+			<div id={containerId} style="width:100%;flex:1;min-height:0;"></div>
 			<div
 				class="tradingview-widget-copyright"
 				style="flex-shrink:0;padding-top:0.25rem;">
@@ -21,79 +21,185 @@ const { data, widget } = Astro.props;
 					<span class="blue-text">Stock charts {data}</span>
 				</a> by TradingView
 			</div>
-			<script
-				is:inline
-				data-astro-rerun
-				type="text/javascript"
-				src="https://s3.tradingview.com/tv.js"
-			></script>
 		</div>
 
 		<script type="text/javascript" is:inline data-astro-rerun>
-			document.addEventListener('DOMContentLoaded', function () {
+			(function () {
+				// ── Load TradingView library once ──
+				function ensureTVScript(cb) {
+					if (window.TradingView) return cb();
+					var existing = document.querySelector(
+						'script[src*="s3.tradingview.com/tv.js"]',
+					);
+					if (existing) {
+						existing.addEventListener('load', cb);
+						return;
+					}
+					var s = document.createElement('script');
+					s.src = 'https://s3.tradingview.com/tv.js';
+					s.async = true;
+					s.onload = cb;
+					document.head.appendChild(s);
+				}
+
+				// ── Custom element ──
 				if (!customElements.get('tv-widget')) {
 					class TradingViewer extends HTMLElement {
 						static get observedAttributes() {
-							return ['data-data']; // Watching for changes in 'data-data' attribute
+							return ['data-data'];
 						}
 
 						constructor() {
 							super();
 							this.widget = null;
+							this._healthCheck = null;
+							this._retryCount = 0;
+							this._maxRetries = 5;
 						}
 
 						connectedCallback() {
-							this.initTradingView();
+							this._initWidget();
+						}
+
+						disconnectedCallback() {
+							this._cleanup();
 						}
 
 						attributeChangedCallback(name, oldValue, newValue) {
 							if (name === 'data-data' && oldValue !== newValue) {
-								this.updateTradingView(newValue);
+								this._initWidget();
 							}
 						}
 
-						initTradingView() {
-							const data = this.dataset.data;
-							this.createWidget(data);
+						_initWidget() {
+							var self = this;
+							self._retryCount = 0;
+							ensureTVScript(function () {
+								self._createWidget();
+								self._startHealthCheck();
+							});
 						}
 
-						createWidget(data) {
+						_createWidget() {
+							var containerId = this.dataset.containerId;
+							var container =
+								document.getElementById(containerId);
+							if (!container) return;
+
+							// Clear previous iframe/widget
 							if (this.widget) {
-								this.widget.remove(); // Clean up the existing widget if any
+								try {
+									this.widget.remove();
+								} catch (e) {
+									/* noop */
+								}
+								this.widget = null;
 							}
-							if (window.TradingView) {
-								this.widget = new TradingView.widget({
-									autosize: true,
-									symbol: data,
-									interval: 'H',
-									timezone: 'Etc/UTC',
-									theme: 'dark',
-									style: '1',
-									locale: 'en',
-									toolbar_bg: '#f1f3f6',
-									enable_publishing: false,
-									allow_symbol_change: true,
-									container_id: 'tradingview_1fdf2',
-								});
+
+							// Clear any leftover iframes in the container
+							var staleFrames =
+								container.querySelectorAll('iframe');
+							staleFrames.forEach(function (f) {
+								f.remove();
+							});
+
+							if (!window.TradingView) return;
+
+							this.widget = new TradingView.widget({
+								autosize: true,
+								symbol: this.dataset.data || 'BITSTAMP:BTCUSD',
+								interval: 'H',
+								timezone: 'Etc/UTC',
+								theme: 'dark',
+								style: '1',
+								locale: 'en',
+								toolbar_bg: '#f1f3f6',
+								enable_publishing: false,
+								allow_symbol_change: true,
+								container_id: containerId,
+							});
+
+							this._retryCount = 0;
+						}
+
+						_startHealthCheck() {
+							this._stopHealthCheck();
+							var self = this;
+
+							// Check every 3s that the iframe is alive
+							this._healthCheck = setInterval(function () {
+								var containerId = self.dataset.containerId;
+								var container =
+									document.getElementById(containerId);
+								if (!container) {
+									self._stopHealthCheck();
+									return;
+								}
+
+								var iframe = container.querySelector('iframe');
+
+								// No iframe = widget failed to render
+								if (!iframe) {
+									if (self._retryCount < self._maxRetries) {
+										self._retryCount++;
+										self._createWidget();
+									} else {
+										self._stopHealthCheck();
+									}
+									return;
+								}
+
+								// iframe exists — check if it's still alive
+								try {
+									// If the iframe src is empty or about:blank, it's dead
+									var src = iframe.getAttribute('src') || '';
+									if (!src || src === 'about:blank') {
+										self._retryCount++;
+										if (
+											self._retryCount <= self._maxRetries
+										) {
+											self._createWidget();
+										}
+									} else {
+										// Healthy — reset retry counter
+										self._retryCount = 0;
+									}
+								} catch (e) {
+									// Cross-origin access error = iframe is loaded (healthy)
+									self._retryCount = 0;
+								}
+							}, 3000);
+						}
+
+						_stopHealthCheck() {
+							if (this._healthCheck) {
+								clearInterval(this._healthCheck);
+								this._healthCheck = null;
 							}
 						}
 
-						updateTradingView(data) {
-							const attemptInitialization = () => {
-								if (window.TradingView) {
-									clearInterval(initializationAttempt);
-									this.createWidget(data);
+						_cleanup() {
+							this._stopHealthCheck();
+							if (this.widget) {
+								try {
+									this.widget.remove();
+								} catch (e) {
+									/* noop */
 								}
-							};
-							const initializationAttempt = setInterval(
-								attemptInitialization,
-								100,
-							);
+								this.widget = null;
+							}
 						}
 					}
 					customElements.define('tv-widget', TradingViewer);
 				}
-			});
+
+				// ── Handle already-existing elements (HMR / Astro navigation) ──
+				document.querySelectorAll('tv-widget').forEach(function (el) {
+					if (!el.widget && el.isConnected) {
+						el._initWidget && el._initWidget();
+					}
+				});
+			})();
 		</script>
 		<!-- TradingView Widget END -->
 	</div>

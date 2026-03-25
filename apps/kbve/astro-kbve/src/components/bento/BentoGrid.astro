@@ -1,24 +1,4 @@
 ---
-/**
- * BentoGrid — Astro bridge for the interactive React bento dashboard.
- *
- * Renders each card's MDX Content into hidden DOM containers with
- * data-bento-id and data-bento-meta attributes. The ReactBentoGrid
- * island reads these on mount and takes over layout with
- * react-grid-layout (drag, resize, hide/show).
- *
- * Items shape (from frontmatter):
- *   - bentoId: string (unique ID, e.g. 'bitcoin-tradingview')
- *   - title: string
- *   - description?: string
- *   - bentoSize?: 'small' | 'medium' | 'large' | 'wide' | 'tall'
- *   - bentoColor?: string (tailwind gradient classes)
- *   - bentoOrder?: number (explicit grid order, lower = first)
- *   - icon?: string (lucide icon name)
- */
-
-import ReactBentoGrid from './ReactBentoGrid.tsx';
-
 interface BentoItem {
 	bentoId: string;
 	title: string;
@@ -37,93 +17,742 @@ interface Props {
 
 const { items, pageKey } = Astro.props;
 
-// Sort by bentoOrder (default 99)
 const sorted = [...items].sort(
 	(a, b) => (a.bentoOrder ?? 99) - (b.bentoOrder ?? 99),
 );
 
-// ── Build-time bento layout computation (bin-packing, 4-col grid) ──
-const COLS = 4;
-const SIZE_MAP: Record<
-	string,
-	{ w: number; h: number; minW: number; minH: number }
-> = {
-	small: { w: 1, h: 1, minW: 1, minH: 1 },
-	medium: { w: 2, h: 2, minW: 1, minH: 1 },
-	large: { w: 2, h: 3, minW: 2, minH: 2 },
-	wide: { w: 3, h: 1, minW: 2, minH: 1 },
-	tall: { w: 1, h: 3, minW: 1, minH: 2 },
+const sizeClassMap: Record<string, string> = {
+	small: 'bento-small',
+	medium: 'bento-medium',
+	large: 'bento-large',
+	wide: 'bento-wide',
+	tall: 'bento-tall',
 };
 
-// Simple bin-packing: for each card, find the first row where it fits
-function packBento(cards: typeof sorted) {
-	// Track the height of each column
-	const colHeights = new Array(COLS).fill(0);
-
-	return cards.map((card) => {
-		const dims = SIZE_MAP[card.bentoSize || 'medium'] || SIZE_MAP.medium;
-		const w = Math.min(dims.w, COLS);
-
-		// Find the best x position (leftmost column group with lowest max height)
-		let bestX = 0;
-		let bestY = Infinity;
-
-		for (let x = 0; x <= COLS - w; x++) {
-			// The y position is the max height of the columns this card would span
-			const maxH = Math.max(...colHeights.slice(x, x + w));
-			if (maxH < bestY) {
-				bestY = maxH;
-				bestX = x;
-			}
-		}
-
-		// Place the card
-		const item = {
-			i: card.bentoId,
-			x: bestX,
-			y: bestY,
-			w,
-			h: dims.h,
-			minW: dims.minW,
-			minH: dims.minH,
-		};
-
-		// Update column heights
-		for (let c = bestX; c < bestX + w; c++) {
-			colHeights[c] = bestY + dims.h;
-		}
-
-		return item;
-	});
-}
-
-const defaultLayout = packBento(sorted);
+const lucideIcons: Record<string, string[]> = {
+	'trending-up': ['M22 7 13.5 15.5 8.5 10.5 2 17', 'M16 7 22 7 22 13'],
+	bitcoin: [
+		'M11.767 19.089c4.924.868 6.14-6.025 1.216-6.894m-1.216 6.894L5.86 18.047m5.908 1.042-.347 1.97m1.563-8.864c4.924.869 6.14-6.025 1.215-6.893m-1.215 6.893-6.914-1.218m6.914 1.218-.346 1.966m.693-3.932L14.228 2m-8.02 16.047-1.85-5.52.002-.002c-.484-1.441.084-3.3 1.236-4.044l.003-.002c.965-.622 2.043-.467 2.992-.07m5.636 1.748L5.248 7.96m8.98 1.582 1.696-1.218m-8.742 9.09L5.554 5.57',
+	],
+	clock: [
+		'M12 12 12 8',
+		'M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z',
+	],
+	pickaxe: [
+		'M14.531 12.469 6.619 20.38a1 1 0 1 1-3-3l7.912-7.912',
+		'M15.686 4.314A12.5 12.5 0 0 0 5.461 2.958 1 1 0 0 0 5.58 4.71a22 22 0 0 1 6.318 3.393',
+		'M17.7 3.7a1 1 0 0 0-1.4 0l-4.6 4.6a1 1 0 0 0 0 1.4l2.6 2.6a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4z',
+		'M19.686 8.314a12.5 12.5 0 0 1 1.356 10.225 1 1 0 0 1-1.751-.119 22 22 0 0 0-3.393-6.318',
+	],
+	wallet: [
+		'M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1',
+		'M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4',
+	],
+	zap: [
+		'M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z',
+	],
+	landmark: [
+		'M3 22h18',
+		'M6 18v-7',
+		'M10 18v-7',
+		'M14 18v-7',
+		'M18 18v-7',
+		'M12 2 20 7 4 7z',
+	],
+	'bar-chart-3': ['M3 3v18h18', 'M18 17V9', 'M13 17V5', 'M8 17v-3'],
+	hourglass: [
+		'M5 22h14',
+		'M5 2h14',
+		'M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22',
+		'M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2',
+	],
+	'file-text': [
+		'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z',
+		'M14 2v4a2 2 0 0 0 2 2h4',
+		'M10 9H8',
+		'M16 13H8',
+		'M16 17H8',
+	],
+};
 ---
 
-<!-- Hidden card containers: Astro renders MDX content here, React reads it on mount -->{
-	sorted.map((item) => {
-		const meta = JSON.stringify({
-			title: item.title,
-			description: item.description || '',
-			bentoSize: item.bentoSize || 'medium',
-			bentoColor: item.bentoColor || 'from-zinc-700/30 to-zinc-900/60',
-			icon: item.icon || '',
-			bentoOrder: item.bentoOrder ?? 99,
-		});
-		return (
-			<div
-				data-bento-id={item.bentoId}
-				data-bento-meta={meta}
-				style="display:none;">
-				{item.Content && <item.Content />}
-			</div>
-		);
-	})
-}
+<div class="not-content bento-grid" data-bento-page={pageKey}>
+	{
+		sorted.map((item) => {
+			const sizeClass =
+				sizeClassMap[item.bentoSize || 'medium'] || 'bento-medium';
+			const gradient =
+				item.bentoColor || 'from-zinc-700/30 to-zinc-900/60';
+			const defSize = item.bentoSize || 'medium';
+			return (
+				<div
+					id={`bento-${item.bentoId}`}
+					class={`bento-card ${sizeClass}`}
+					data-bento-id={item.bentoId}
+					data-bento-icon={item.icon || 'file-text'}
+					data-bento-title={item.title}
+					data-bento-default-size={defSize}>
+					<div
+						class={`bento-card-inner bg-gradient-to-br ${gradient}`}>
+						<div class="bento-card-controls">
+							<button
+								class="bento-card-ctrl-btn bento-card-ctrl-hide"
+								data-action="hide"
+								aria-label={`Hide ${item.title}`}>
+								<svg
+									width="12"
+									height="12"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2">
+									<>
+										<path d="M18 6 6 18" />
+										<path d="M6 6 18 18" />
+									</>
+								</svg>
+							</button>
+							<div class="bento-unit-picker">
+								<span class="bento-unit-label">W</span>
+								<button
+									class="bento-unit-btn"
+									data-action="set-col"
+									data-col="1">
+									1
+								</button>
+								<button
+									class="bento-unit-btn"
+									data-action="set-col"
+									data-col="2">
+									2
+								</button>
+								<button
+									class="bento-unit-btn"
+									data-action="set-col"
+									data-col="3">
+									3
+								</button>
+								<button
+									class="bento-unit-btn"
+									data-action="set-col"
+									data-col="4">
+									4
+								</button>
+								<span class="bento-unit-sep" />
+								<span class="bento-unit-label">H</span>
+								<button
+									class="bento-unit-btn"
+									data-action="set-row"
+									data-row="1">
+									1
+								</button>
+								<button
+									class="bento-unit-btn"
+									data-action="set-row"
+									data-row="2">
+									2
+								</button>
+								<button
+									class="bento-unit-btn"
+									data-action="set-row"
+									data-row="3">
+									3
+								</button>
+							</div>
+						</div>
+						<div class="bento-shine" />
+						<div class="bento-card-header">
+							{item.icon && lucideIcons[item.icon] && (
+								<div class="bento-card-icon">
+									<svg
+										width="22"
+										height="22"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.5">
+										{lucideIcons[item.icon].map((d) => (
+											<path d={d} />
+										))}
+									</svg>
+								</div>
+							)}
+							<div class="bento-card-titles">
+								<h3 class="bento-card-title">{item.title}</h3>
+								{item.description && (
+									<p class="bento-card-desc">
+										{item.description}
+									</p>
+								)}
+							</div>
+						</div>
+						<div class="bento-card-divider" />
+						<div class="bento-card-content">
+							{item.Content && <item.Content />}
+						</div>
+					</div>
+				</div>
+			);
+		})
+	}
+</div>
 
-<!-- React island takes over layout — defaultLayout is precomputed at build time -->
-<ReactBentoGrid
-	client:only="react"
-	pageKey={pageKey}
-	defaultLayout={defaultLayout}
-/>
+<script is:inline data-astro-rerun define:vars={{ pageKey }}>
+	(function () {
+		var HIDDEN_KEY = 'bento-hidden:' + pageKey;
+		var SIZES_KEY = 'bento-sizes:' + pageKey;
+		var ALL_SIZES = [
+			'bento-small',
+			'bento-medium',
+			'bento-large',
+			'bento-wide',
+			'bento-tall',
+		];
+		var SIZE_MAP = {
+			small: 'bento-small',
+			medium: 'bento-medium',
+			large: 'bento-large',
+			wide: 'bento-wide',
+			tall: 'bento-tall',
+		};
+
+		function getHidden() {
+			try {
+				return JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]');
+			} catch (e) {
+				return [];
+			}
+		}
+		function saveHidden(ids) {
+			localStorage.setItem(HIDDEN_KEY, JSON.stringify(ids));
+		}
+
+		function getSizes() {
+			try {
+				return JSON.parse(localStorage.getItem(SIZES_KEY) || '{}');
+			} catch (e) {
+				return {};
+			}
+		}
+		function saveSizes(map) {
+			localStorage.setItem(SIZES_KEY, JSON.stringify(map));
+		}
+
+		function applyHidden() {
+			var ids = getHidden();
+			var grid = document.querySelector(
+				'[data-bento-page="' + pageKey + '"]',
+			);
+			if (!grid) return;
+			grid.querySelectorAll('[data-bento-id]').forEach(function (card) {
+				var id = card.getAttribute('data-bento-id');
+				if (ids.indexOf(id) !== -1) {
+					card.setAttribute('hidden', '');
+				} else {
+					card.removeAttribute('hidden');
+				}
+			});
+			window.dispatchEvent(
+				new CustomEvent('bento-hidden-changed', {
+					detail: { pageKey: pageKey, hiddenIds: ids },
+				}),
+			);
+		}
+
+		function applySizes() {
+			var sizes = getSizes();
+			var grid = document.querySelector(
+				'[data-bento-page="' + pageKey + '"]',
+			);
+			if (!grid) return;
+			grid.querySelectorAll('[data-bento-id]').forEach(function (card) {
+				var id = card.getAttribute('data-bento-id');
+				var size = sizes[id];
+				if (size && SIZE_MAP[size]) {
+					ALL_SIZES.forEach(function (c) {
+						card.classList.remove(c);
+					});
+					card.classList.add(SIZE_MAP[size]);
+					// Update active state on buttons
+					card.querySelectorAll('[data-action="resize"]').forEach(
+						function (btn) {
+							btn.classList.toggle(
+								'active',
+								btn.getAttribute('data-size') === size,
+							);
+						},
+					);
+				}
+			});
+		}
+
+		function hideCard(bentoId) {
+			var ids = getHidden();
+			if (ids.indexOf(bentoId) === -1) ids.push(bentoId);
+			saveHidden(ids);
+			applyHidden();
+		}
+
+		function showCard(bentoId) {
+			var ids = getHidden().filter(function (id) {
+				return id !== bentoId;
+			});
+			saveHidden(ids);
+			applyHidden();
+		}
+
+		function resizeCard(bentoId, newSize) {
+			var sizes = getSizes();
+			sizes[bentoId] = newSize;
+			saveSizes(sizes);
+			applySizes();
+		}
+
+		function resetCards() {
+			localStorage.removeItem(HIDDEN_KEY);
+			localStorage.removeItem(SIZES_KEY);
+			// Restore default sizes from data attributes
+			var grid = document.querySelector(
+				'[data-bento-page="' + pageKey + '"]',
+			);
+			if (grid) {
+				grid.querySelectorAll('[data-bento-id]').forEach(
+					function (card) {
+						var defSize =
+							card.getAttribute('data-bento-default-size') ||
+							'medium';
+						ALL_SIZES.forEach(function (c) {
+							card.classList.remove(c);
+						});
+						card.classList.add(SIZE_MAP[defSize] || 'bento-medium');
+						card.querySelectorAll('[data-action="resize"]').forEach(
+							function (btn) {
+								btn.classList.toggle(
+									'active',
+									btn.getAttribute('data-size') === defSize,
+								);
+							},
+						);
+					},
+				);
+			}
+			applyHidden();
+		}
+
+		window.__bentoGrid = window.__bentoGrid || {};
+		window.__bentoGrid[pageKey] = {
+			hide: hideCard,
+			show: showCard,
+			resize: resizeCard,
+			reset: resetCards,
+			getHidden: getHidden,
+		};
+
+		// Event delegation
+		var grid = document.querySelector(
+			'[data-bento-page="' + pageKey + '"]',
+		);
+		if (grid) {
+			grid.addEventListener('click', function (e) {
+				var hideBtn = e.target.closest('[data-action="hide"]');
+				if (hideBtn) {
+					var card = hideBtn.closest('[data-bento-id]');
+					if (card) {
+						e.stopPropagation();
+						hideCard(card.getAttribute('data-bento-id'));
+					}
+					return;
+				}
+				var sizeBtn = e.target.closest('[data-action="resize"]');
+				if (sizeBtn) {
+					var card = sizeBtn.closest('[data-bento-id]');
+					if (card) {
+						e.stopPropagation();
+						resizeCard(
+							card.getAttribute('data-bento-id'),
+							sizeBtn.getAttribute('data-size'),
+						);
+					}
+					return;
+				}
+			});
+		}
+
+		// Init
+		applyHidden();
+		applySizes();
+	})();
+</script>
+
+<style>
+	.bento-grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 0.875rem;
+		padding: 1.5rem 0;
+	}
+
+	.bento-small {
+		grid-column: span 1;
+		grid-row: span 1;
+	}
+	.bento-medium {
+		grid-column: span 2;
+		grid-row: span 2;
+	}
+	.bento-large {
+		grid-column: span 2;
+		grid-row: span 3;
+	}
+	.bento-wide {
+		grid-column: span 3;
+		grid-row: span 1;
+	}
+	.bento-tall {
+		grid-column: span 1;
+		grid-row: span 3;
+	}
+
+	.bento-card[hidden] {
+		display: none !important;
+	}
+
+	.bento-card {
+		min-height: 0;
+		border-radius: 1rem;
+		overflow: hidden;
+		transition: opacity 0.2s;
+	}
+
+	.bento-card-inner {
+		height: 100%;
+		padding: 1.25rem 1.375rem;
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		border-radius: 1rem;
+		backdrop-filter: blur(16px) saturate(1.3);
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		position: relative;
+	}
+
+	.bento-card-inner:hover {
+		border-color: rgba(255, 255, 255, 0.12);
+	}
+
+	.bento-shine {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			135deg,
+			rgba(255, 255, 255, 0.04) 0%,
+			transparent 40%,
+			transparent 60%,
+			rgba(255, 255, 255, 0.02) 100%
+		);
+		pointer-events: none;
+		z-index: 1;
+		border-radius: inherit;
+		transition: background 0.3s;
+	}
+	.bento-card-inner:hover .bento-shine {
+		background: linear-gradient(
+			135deg,
+			rgba(255, 255, 255, 0.08) 0%,
+			transparent 40%,
+			transparent 60%,
+			rgba(255, 255, 255, 0.04) 100%
+		);
+	}
+
+	/* Controls */
+	.bento-card-controls {
+		position: absolute;
+		top: 0.5rem;
+		right: 0.5rem;
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		z-index: 10;
+		opacity: 0;
+		transform: translateY(-4px);
+		transition:
+			opacity 0.2s,
+			transform 0.2s;
+		pointer-events: none;
+	}
+	.bento-card-inner:hover .bento-card-controls {
+		opacity: 1;
+		transform: translateY(0);
+		pointer-events: auto;
+	}
+
+	.bento-card-ctrl-btn {
+		width: 1.5rem;
+		height: 1.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0.375rem;
+		background: rgba(0, 0, 0, 0.5);
+		backdrop-filter: blur(8px);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		color: rgba(255, 255, 255, 0.6);
+		cursor: pointer;
+		transition:
+			background 0.15s,
+			color 0.15s,
+			border-color 0.15s;
+		padding: 0;
+	}
+	.bento-card-ctrl-btn:hover {
+		background: rgba(255, 255, 255, 0.12);
+		color: var(--sl-color-white, #fff);
+		border-color: rgba(255, 255, 255, 0.2);
+	}
+	.bento-card-ctrl-hide:hover {
+		background: rgba(239, 68, 68, 0.2);
+		color: #ef4444;
+		border-color: rgba(239, 68, 68, 0.3);
+	}
+
+	/* Size presets */
+	.bento-size-presets {
+		display: flex;
+		gap: 2px;
+		background: rgba(0, 0, 0, 0.4);
+		backdrop-filter: blur(8px);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 0.375rem;
+		padding: 2px;
+	}
+	.bento-size-btn {
+		width: 1.25rem;
+		height: 1.25rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: none;
+		border-radius: 0.25rem;
+		background: transparent;
+		color: rgba(255, 255, 255, 0.4);
+		font-size: 0.6rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition:
+			background 0.15s,
+			color 0.15s;
+		padding: 0;
+		line-height: 1;
+	}
+	.bento-size-btn:hover {
+		background: rgba(255, 255, 255, 0.12);
+		color: var(--sl-color-white, #fff);
+	}
+	.bento-size-btn.active {
+		background: rgba(56, 189, 248, 0.2);
+		color: #38bdf8;
+	}
+
+	/* Header */
+	.bento-card-header {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.75rem;
+		position: relative;
+		z-index: 2;
+		flex-shrink: 0;
+	}
+	.bento-card-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.5rem;
+		height: 2.5rem;
+		flex-shrink: 0;
+		border-radius: 0.625rem;
+		background: rgba(255, 255, 255, 0.06);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		color: var(--sl-color-text-accent, #38bdf8);
+		transition: background 0.2s;
+	}
+	.bento-card-inner:hover .bento-card-icon {
+		background: rgba(255, 255, 255, 0.1);
+	}
+	.bento-card-titles {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		min-width: 0;
+		flex: 1;
+	}
+	.bento-card-title {
+		font-size: 1.05rem;
+		font-weight: 700;
+		color: var(--sl-color-white, #fff);
+		margin: 0;
+		line-height: 1.3;
+		letter-spacing: -0.01em;
+	}
+	.bento-card-desc {
+		font-size: 0.775rem;
+		color: var(--sl-color-gray-3, #9ca3af);
+		margin: 0;
+		line-height: 1.4;
+		opacity: 0.85;
+	}
+
+	.bento-card-divider {
+		height: 1px;
+		margin: 0.75rem 0;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			rgba(255, 255, 255, 0.08) 20%,
+			rgba(255, 255, 255, 0.08) 80%,
+			transparent
+		);
+		position: relative;
+		z-index: 2;
+		flex-shrink: 0;
+	}
+
+	.bento-card-content {
+		flex: 1;
+		overflow-y: auto;
+		overflow-x: hidden;
+		font-size: 0.8rem;
+		color: var(--sl-color-gray-2, #d1d5db);
+		line-height: 1.6;
+		position: relative;
+		z-index: 2;
+		min-height: 0;
+		mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
+		-webkit-mask-image: linear-gradient(
+			to bottom,
+			black 75%,
+			transparent 100%
+		);
+	}
+	.bento-card-content::-webkit-scrollbar {
+		width: 3px;
+	}
+	.bento-card-content::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	.bento-card-content::-webkit-scrollbar-thumb {
+		background: rgba(255, 255, 255, 0.1);
+		border-radius: 3px;
+	}
+
+	/* MDX content */
+	.bento-card-content h2 {
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: var(--sl-color-white, #fff);
+		margin: 0.625rem 0 0.3rem;
+		padding-bottom: 0;
+		border: none;
+		letter-spacing: 0.02em;
+		text-transform: uppercase;
+		opacity: 0.9;
+	}
+	.bento-card-content h2:first-child {
+		margin-top: 0;
+	}
+	.bento-card-content ul {
+		padding-left: 1.125rem;
+		margin: 0.375rem 0;
+	}
+	.bento-card-content li {
+		margin: 0.2rem 0;
+	}
+	.bento-card-content li::marker {
+		color: var(--sl-color-text-accent, #38bdf8);
+		opacity: 0.6;
+	}
+	.bento-card-content strong {
+		color: var(--sl-color-text-accent, #38bdf8);
+		font-weight: 600;
+	}
+	.bento-card-content p {
+		margin: 0.375rem 0;
+	}
+	.bento-card-content table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.75rem;
+		margin: 0.5rem 0;
+	}
+	.bento-card-content th {
+		text-align: left;
+		color: var(--sl-color-white, #fff);
+		font-weight: 600;
+		padding: 0.3rem 0.5rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		opacity: 0.7;
+	}
+	.bento-card-content td {
+		padding: 0.25rem 0.5rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+	}
+	.bento-card-content tr:last-child td {
+		border-bottom: none;
+	}
+
+	/* TradingView */
+	.bento-card-content tv-widget,
+	.bento-card-content tv-widget > div,
+	.bento-card-content .tradingview-widget-container {
+		width: 100% !important;
+		height: 100% !important;
+		min-height: 0;
+	}
+	.bento-card-content:has(tv-widget) {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		mask-image: none;
+		-webkit-mask-image: none;
+	}
+	.bento-card-content iframe {
+		width: 100% !important;
+		height: 100% !important;
+		min-height: 0;
+		flex: 1;
+		border-radius: 0.5rem;
+	}
+
+	/* Responsive */
+	@media (max-width: 1024px) {
+		.bento-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+		.bento-wide {
+			grid-column: span 2;
+		}
+		.bento-large {
+			grid-column: span 2;
+			grid-row: span 2;
+		}
+	}
+	@media (max-width: 640px) {
+		.bento-grid {
+			grid-template-columns: 1fr;
+		}
+		.bento-small,
+		.bento-medium,
+		.bento-large,
+		.bento-wide,
+		.bento-tall {
+			grid-column: span 1;
+			grid-row: span 1;
+		}
+		.bento-card-controls {
+			display: none;
+		}
+	}
+</style>
