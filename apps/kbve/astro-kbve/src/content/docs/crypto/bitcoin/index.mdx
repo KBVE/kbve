@@ -1,0 +1,39 @@
+---
+title: Bitcoin
+description: |
+    Bitcoin analysis, history, and data compilation.
+sidebar:
+    label: Bitcoin
+    order: 1
+unsplash: 1518546305927-5a555bb7020d
+img: https://images.unsplash.com/photo-1518546305927-5a555bb7020d?fit=crop&w=1400&h=700&q=75
+tags:
+  - bitcoin
+  - crypto
+  - blockchain
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import BentoGrid from '@/components/bento/BentoGrid.astro';
+
+export const contentModules = import.meta.glob('./_content/*.mdx', { eager: true });
+
+export const bentoItems = Object.entries(contentModules).map(([path, mod]) => {
+    const frontmatter = mod.frontmatter || {};
+    return {
+        bentoId: frontmatter.bentoId || path.split('/').pop().replace('.mdx', ''),
+        title: frontmatter.title || path.split('/').pop().replace('.mdx', ''),
+        description: frontmatter.description || '',
+        bentoSize: frontmatter.bentoSize || 'medium',
+        bentoOrder: frontmatter.bentoOrder ?? 99,
+        bentoColor: frontmatter.bentoColor || 'from-zinc-700/30 to-zinc-900/60',
+        icon: frontmatter.icon || 'file-text',
+        Content: mod.Content,
+    };
+});
+
+<Aside title="Not Financial Advice" type="danger">
+This is not financial advice. The data compiled here is for reference purposes only.
+</Aside>
+
+<BentoGrid items={bentoItems} pageKey="bitcoin" />

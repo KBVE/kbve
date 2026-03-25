@@ -1327,7 +1327,7 @@ dependencies = [
 
 [[package]]
 name = "axum-discordsh"
-version = "0.1.37"
+version = "0.1.38"
 dependencies = [
  "anyhow",
  "askama",
@@ -1425,7 +1425,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.74"
+version = "1.0.75"
 dependencies = [
  "anyhow",
  "askama",
@@ -12978,7 +12978,7 @@ dependencies = [
 
 [[package]]
 name = "rows"
-version = "0.1.8"
+version = "0.1.10"
 dependencies = [
  "anyhow",
  "argon2",

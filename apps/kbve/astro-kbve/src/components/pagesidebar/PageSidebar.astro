@@ -1,5 +1,6 @@
 ---
 import Default from '@astrojs/starlight/components/PageSidebar.astro';
+import BentoDock from '../bento/BentoDock.tsx';
 // TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
 // import { PageGraph, PageBacklinks } from 'starlight-site-graph/components';
 ---
@@ -51,6 +52,9 @@ import Default from '@astrojs/starlight/components/PageSidebar.astro';
 	<h2 slot="title">Das {Astro.locals.t('starlight-site-graph.graph')}</h2>
 </PageGraph>
 -->
+
+<!-- Bento card dock — hidden cards appear here as restore buttons -->
+<BentoDock client:only="react" />
 
 <Default>
 	<slot />

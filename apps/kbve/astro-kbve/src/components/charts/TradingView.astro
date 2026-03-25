@@ -9,13 +9,14 @@ const { data, widget } = Astro.props;
 <tv-widget data-data={data}>
 	<div {...Astro.props}>
 		<!-- TradingView Widget BEGIN -->
-		<div class="tradingview-widget-container">
-			<div id="tradingview_1fdf2" class="w-full h-96"></div>
-			<br />
-			<br />
-			<br />
-			<br />
-			<div class="tradingview-widget-copyright">
+		<div
+			class="tradingview-widget-container"
+			style="width:100%;height:100%;display:flex;flex-direction:column;">
+			<div id="tradingview_1fdf2" style="width:100%;flex:1;min-height:0;">
+			</div>
+			<div
+				class="tradingview-widget-copyright"
+				style="flex-shrink:0;padding-top:0.25rem;">
 				<a href="#tradingview" rel="noopener" target="_blank">
 					<span class="blue-text">Stock charts {data}</span>
 				</a> by TradingView
@@ -62,8 +63,7 @@ const { data, widget } = Astro.props;
 							}
 							if (window.TradingView) {
 								this.widget = new TradingView.widget({
-									width: '100%',
-									autosize: false,
+									autosize: true,
 									symbol: data,
 									interval: 'H',
 									timezone: 'Etc/UTC',
