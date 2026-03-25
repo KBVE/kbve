@@ -19,6 +19,10 @@ import {
 	type BentoCardDef,
 	type BentoLayoutItem,
 } from './bentoStore';
+import BentoTooltip, {
+	showBentoTooltip,
+	hideBentoTooltip,
+} from './BentoTooltip';
 import './bento-grid.css';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -217,6 +221,9 @@ export default function ReactBentoGrid({ pageKey, defaultLayout }: Props) {
 
 	return (
 		<div className="not-content bento-rgl-container">
+			{/* Custom tooltip — single shared instance */}
+			<BentoTooltip />
+
 			{/* Grid */}
 			<ResponsiveGridLayout
 				layouts={{ lg: layout, md: layout, sm: layout }}
@@ -239,7 +246,8 @@ export default function ReactBentoGrid({ pageKey, defaultLayout }: Props) {
 								className={`bento-card-rgl bg-gradient-to-br ${meta.bentoColor || 'from-zinc-700/30 to-zinc-900/60'} ${isUnlocked ? 'bento-card-unlocked' : ''}`}>
 								{/* Per-card hover controls — top-right corner */}
 								<div
-									className={`bento-card-controls ${isUnlocked ? 'bento-card-controls-expanded' : ''}`}>
+									className={`bento-card-controls ${isUnlocked ? 'bento-card-controls-expanded' : ''}`}
+									onMouseLeave={hideBentoTooltip}>
 									{isUnlocked && (
 										<>
 											{/* X — stash to sidebar (far left) */}
@@ -247,9 +255,15 @@ export default function ReactBentoGrid({ pageKey, defaultLayout }: Props) {
 												className="bento-card-ctrl-btn bento-card-ctrl-hide"
 												onClick={(e) => {
 													e.stopPropagation();
+													hideBentoTooltip();
 													hideCard(l.i);
 												}}
-												title="Stash to sidebar">
+												onMouseEnter={(e) =>
+													showBentoTooltip(
+														e.currentTarget,
+														'Stash to sidebar',
+													)
+												}>
 												<svg
 													width="12"
 													height="12"
@@ -267,7 +281,12 @@ export default function ReactBentoGrid({ pageKey, defaultLayout }: Props) {
 											{/* Drag handle */}
 											<button
 												className="bento-card-ctrl-btn bento-drag-handle"
-												title="Drag to reorder">
+												onMouseEnter={(e) =>
+													showBentoTooltip(
+														e.currentTarget,
+														'Drag to reorder',
+													)
+												}>
 												<svg
 													width="12"
 													height="12"
@@ -317,15 +336,35 @@ export default function ReactBentoGrid({ pageKey, defaultLayout }: Props) {
 										className={`bento-card-ctrl-btn ${isUnlocked ? 'bento-card-ctrl-unlocked' : ''}`}
 										onClick={(e) => {
 											e.stopPropagation();
-											if (editMode) toggleCardLock(l.i);
+											if (!editMode) {
+												showBentoTooltip(
+													e.currentTarget,
+													'Open right sidebar and click Unlock first',
+													3000,
+												);
+												return;
+											}
+											toggleCardLock(l.i);
+											const msg = cardUnlocked.has(l.i)
+												? 'Locked'
+												: 'Unlocked';
+											showBentoTooltip(
+												e.currentTarget,
+												msg,
+												1500,
+											);
 										}}
-										title={
-											!editMode
-												? 'Locked — open right sidebar and click Unlock first'
+										onMouseEnter={(e) => {
+											const msg = !editMode
+												? 'Locked'
 												: isUnlocked
-													? 'Unlocked — click to lock'
-													: 'Locked — click to unlock'
-										}
+													? 'Unlocked'
+													: 'Locked';
+											showBentoTooltip(
+												e.currentTarget,
+												msg,
+											);
+										}}
 										style={{ opacity: editMode ? 1 : 0.5 }}>
 										{isUnlocked ? (
 											<svg
