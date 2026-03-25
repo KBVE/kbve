@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # ── Stage 1: Build ──────────────────────────────────────────
 FROM rust:1.94-slim-bookworm AS builder
 
@@ -18,18 +19,23 @@ COPY packages/data/proto/ packages/data/proto/
 COPY apps/ows/rows/proto/ apps/ows/rows/proto/
 COPY apps/ows/rows/build.rs apps/ows/rows/build.rs
 
-# Dummy sources for dependency layer caching
+# Dummy sources — build deps only (mount caches persist cargo registry + target across builds)
 RUN mkdir -p apps/ows/rows/src && echo 'fn main() {}' > apps/ows/rows/src/main.rs && \
     mkdir -p packages/rust/jedi/src && echo '' > packages/rust/jedi/src/lib.rs && \
-    mkdir -p packages/rust/kbve/src && echo '' > packages/rust/kbve/src/lib.rs && \
+    mkdir -p packages/rust/kbve/src && echo '' > packages/rust/kbve/src/lib.rs
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/src/target \
     cargo build --release -p rows 2>/dev/null || true
 
-# Copy real sources and rebuild
+# Copy real sources and rebuild (mount caches reuse compiled deps + registry)
 COPY packages/rust/jedi/ packages/rust/jedi/
 COPY packages/rust/kbve/ packages/rust/kbve/
 COPY apps/ows/rows/src/ apps/ows/rows/src/
-RUN touch apps/ows/rows/src/main.rs && \
-    cargo build --release -p rows
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/src/target \
+    touch apps/ows/rows/src/main.rs && \
+    cargo build --release -p rows && \
+    cp /src/target/release/rows /usr/local/bin/rows
 
 # ── Stage 2: Runtime ───────────────────────────────────────
 FROM debian:bookworm-slim
@@ -40,7 +46,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN groupadd -r rows && useradd -r -g rows rows
 
-COPY --from=builder /src/target/release/rows /usr/local/bin/rows
+COPY --from=builder /usr/local/bin/rows /usr/local/bin/rows
 
 USER rows
 
@@ -49,7 +55,7 @@ ENV HTTP_PORT=4322
 ENV RUST_LOG=rows=info,tower_http=info
 
 EXPOSE 4322
-EXPOSE 50051
+EXPOSE 4323
 
 HEALTHCHECK --interval=15s --timeout=3s --start-period=5s \
     CMD ["/usr/local/bin/rows", "--health-check"] || exit 1
