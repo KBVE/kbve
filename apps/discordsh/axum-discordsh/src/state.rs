@@ -9,6 +9,7 @@ use kbve::{FontDb, MemberCache};
 
 use crate::api::rate_limit::RateLimiter;
 use crate::discord::game::{ProfileStore, SessionStore};
+use crate::discord::github_cache::GitHubCache;
 use crate::discord::github_permissions::GitHubCommandGuard;
 use crate::health::HealthMonitor;
 use crate::tracker::ShardTracker;
@@ -78,6 +79,9 @@ pub struct AppState {
 
     /// Discord-level guard for `/github` commands (rate limit + permissions).
     pub github_guard: GitHubCommandGuard,
+
+    /// Cached GitHub labels and issues for reduced API calls.
+    pub github_cache: GitHubCache,
 }
 
 /// Resolve the default GitHub repo from env vars (checked once at startup).
@@ -148,6 +152,7 @@ impl AppState {
             default_repo: resolve_default_repo(),
             github_repo_policy: jedi::entity::github::RepoPolicy::from_env(),
             github_guard: GitHubCommandGuard::from_env(),
+            github_cache: GitHubCache::new(),
         }
     }
 }

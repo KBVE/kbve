@@ -1,0 +1,124 @@
+---
+import SidebarRestorePoint from '@astrojs/starlight/components/SidebarRestorePoint.astro';
+
+interface SidebarLink {
+	type: 'link';
+	label: string;
+	href: string;
+	isCurrent: boolean;
+	badge: any;
+	attrs: Record<string, any>;
+}
+
+interface SidebarGroup {
+	type: 'group';
+	label: string;
+	entries: SidebarEntry[];
+	collapsed: boolean;
+	badge: any;
+}
+
+type SidebarEntry = SidebarLink | SidebarGroup;
+
+function flattenSidebar(entries: SidebarEntry[]): SidebarLink[] {
+	return entries.flatMap((entry) =>
+		entry.type === 'link' ? [entry] : flattenSidebar(entry.entries),
+	);
+}
+
+interface Props {
+	sublist: SidebarEntry[];
+	nested?: boolean;
+	iconMap?: Map<string, string>;
+}
+
+const { sublist, nested, iconMap } = Astro.props;
+---
+
+<ul class:list={{ 'top-level': !nested }}>
+	{
+		sublist.map((entry) => (
+			<li>
+				{entry.type === 'link' ? (
+					<a
+						href={entry.href}
+						aria-current={entry.isCurrent ? 'page' : undefined}
+						class:list={[{ large: !nested }, entry.attrs.class]}
+						{...entry.attrs}>
+						{!nested && iconMap?.get(entry.label) && (
+							<svg
+								class="sl-sidebar-group-icon"
+								xmlns="http://www.w3.org/2000/svg"
+								width="18"
+								height="18"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round">
+								<path d={iconMap.get(entry.label)} />
+							</svg>
+						)}
+						<span class:list={{ 'sl-sidebar-group-text': !nested }}>
+							{entry.label}
+						</span>
+					</a>
+				) : (
+					<details
+						open={
+							flattenSidebar(entry.entries).some(
+								(i) => i.isCurrent,
+							) || !entry.collapsed
+						}>
+						<summary>
+							{!nested && iconMap?.get(entry.label) && (
+								<svg
+									class="sl-sidebar-group-icon"
+									xmlns="http://www.w3.org/2000/svg"
+									width="18"
+									height="18"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.5"
+									stroke-linecap="round"
+									stroke-linejoin="round">
+									<path d={iconMap.get(entry.label)} />
+								</svg>
+							)}
+							<span
+								class:list={[
+									'group-label',
+									{ 'sl-sidebar-group-text': !nested },
+								]}>
+								<span class="large">{entry.label}</span>
+							</span>
+							<svg
+								class="sl-sidebar-caret"
+								xmlns="http://www.w3.org/2000/svg"
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round">
+								<polyline points="9 6 15 12 9 18" />
+							</svg>
+						</summary>
+						<SidebarRestorePoint />
+						<Astro.self
+							sublist={entry.entries}
+							nested
+							iconMap={iconMap}
+						/>
+					</details>
+				)}
+			</li>
+		))
+	}
+</ul>
+
+<!-- All styles in global.css for full collapse control -->

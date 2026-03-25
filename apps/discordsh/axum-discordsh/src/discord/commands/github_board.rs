@@ -80,7 +80,15 @@ fn parse_label_color(labels: &[jedi::entity::github::GitHubLabel]) -> Option<u32
 #[poise::command(
     slash_command,
     check = "github_permission_check",
-    subcommands("noticeboard", "taskboard", "issues", "pulls", "repo", "commits")
+    subcommands(
+        "noticeboard",
+        "taskboard",
+        "issues",
+        "pulls",
+        "repo",
+        "commits",
+        "view"
+    )
 )]
 pub async fn github(_ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
@@ -635,6 +643,194 @@ async fn commits(
         Ok(Err(msg)) => send_error(ctx, &msg).await,
         Err(_) => {
             warn!("commits command timed out");
+            send_error(ctx, "The request timed out — please try again.").await
+        }
+    }
+}
+
+// ── /github view ────────────────────────────────────────────────────
+
+/// View a single issue or PR by number.
+#[poise::command(slash_command)]
+async fn view(
+    ctx: Context<'_>,
+    #[description = "Issue or PR number"] number: u64,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
+) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Read).await? {
+        return Ok(());
+    }
+
+    let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
+    view_issue_impl(ctx, &owner, &repo_name, number).await
+}
+
+/// Shared implementation for `/github view` and `/gh`.
+pub async fn view_issue_impl(
+    ctx: Context<'_>,
+    owner: &str,
+    repo_name: &str,
+    number: u64,
+) -> Result<(), Error> {
+    ctx.defer().await?;
+
+    let full_name = format!("{}/{}", owner, repo_name);
+    let owner_owned = owner.to_owned();
+    let repo_owned = repo_name.to_owned();
+
+    let inner = async {
+        let gh = get_github_client(ctx).await?;
+        let issue = ctx
+            .data()
+            .app
+            .github_cache
+            .get_or_fetch_issue(&gh, &owner_owned, &repo_owned, number)
+            .await?;
+
+        let fontdb = ctx.data().app.fontdb.clone();
+        let issue_clone = issue.clone();
+
+        let png_result = tokio::task::spawn_blocking(move || {
+            github_cards::render_issue_detail_card_blocking(&issue_clone, &fontdb)
+        })
+        .await
+        .map_err(|e| format!("Task panicked: {e}"))?;
+
+        let mut reply = poise::CreateReply::default();
+
+        match png_result {
+            Ok(png_bytes) => {
+                let attachment =
+                    poise::serenity_prelude::CreateAttachment::bytes(png_bytes, "issue.png");
+
+                let issue_color = if issue.state == "open" {
+                    0x238636u32
+                } else {
+                    0x8b949eu32
+                };
+
+                let embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!("#{} — {}", number, truncate(&issue.title, 60)))
+                    .url(&issue.html_url)
+                    .image("attachment://issue.png")
+                    .color(issue_color);
+
+                reply = reply.embed(embed).attachment(attachment);
+
+                // Add interactive components for Board+ tier users
+                let guard = &ctx.data().app.github_guard;
+                let can_manage = if let Some(member) = ctx.author_member().await {
+                    let perms = member
+                        .permissions
+                        .unwrap_or_else(poise::serenity_prelude::Permissions::empty);
+                    guard.has_tier_permission(
+                        crate::discord::github_permissions::CommandTier::Board,
+                        perms,
+                    )
+                } else {
+                    false
+                };
+
+                if can_manage {
+                    let priority = github_cards::priority_from_labels(&issue.labels);
+
+                    let priority_options: Vec<poise::serenity_prelude::CreateSelectMenuOption> = (0
+                        ..=6u8)
+                        .map(|level| {
+                            let label = match level {
+                                0 => "None",
+                                1 => "P1 Low",
+                                2 => "P2 Medium",
+                                3 => "P3 High",
+                                4 => "P4 Critical",
+                                5 => "P5 Blocker",
+                                6 => "P6 Emergency",
+                                _ => "",
+                            };
+                            let mut opt = poise::serenity_prelude::CreateSelectMenuOption::new(
+                                label,
+                                level.to_string(),
+                            );
+                            if level == priority {
+                                opt = opt.default_selection(true);
+                            }
+                            opt
+                        })
+                        .collect();
+
+                    let priority_menu = poise::serenity_prelude::CreateSelectMenu::new(
+                        format!("gh|{full_name}|{number}|priority"),
+                        poise::serenity_prelude::CreateSelectMenuKind::String {
+                            options: priority_options,
+                        },
+                    )
+                    .placeholder("Set priority...");
+
+                    let mut rows = vec![poise::serenity_prelude::CreateActionRow::SelectMenu(
+                        priority_menu,
+                    )];
+
+                    // Type dropdown (only shown when no type is set)
+                    if issue.issue_type.is_none() {
+                        let type_options: Vec<poise::serenity_prelude::CreateSelectMenuOption> =
+                            github_cards::ISSUE_TYPES
+                                .iter()
+                                .map(|t| {
+                                    poise::serenity_prelude::CreateSelectMenuOption::new(*t, *t)
+                                })
+                                .collect();
+
+                        let type_menu = poise::serenity_prelude::CreateSelectMenu::new(
+                            format!("gh|{full_name}|{number}|settype"),
+                            poise::serenity_prelude::CreateSelectMenuKind::String {
+                                options: type_options,
+                            },
+                        )
+                        .placeholder("Set issue type...");
+
+                        rows.push(poise::serenity_prelude::CreateActionRow::SelectMenu(
+                            type_menu,
+                        ));
+                    }
+
+                    reply = reply.components(rows);
+                }
+            }
+            Err(e) => {
+                warn!(error = %e, "Issue detail card render failed, falling back to text");
+                let body_preview = issue
+                    .body
+                    .as_deref()
+                    .unwrap_or("")
+                    .lines()
+                    .take(3)
+                    .collect::<Vec<_>>()
+                    .join("\n");
+
+                let issue_color = if issue.state == "open" {
+                    0x238636u32
+                } else {
+                    0x8b949eu32
+                };
+
+                let embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!("#{} {}", number, truncate(&issue.title, 60)))
+                    .url(&issue.html_url)
+                    .description(body_preview)
+                    .color(issue_color);
+                reply = reply.embed(embed);
+            }
+        }
+
+        ctx.send(reply).await.map_err(|e| e.to_string())?;
+        Ok::<(), String>(())
+    };
+
+    match tokio::time::timeout(COMMAND_TIMEOUT, inner).await {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(msg)) => send_error(ctx, &msg).await,
+        Err(_) => {
+            warn!("view command timed out");
             send_error(ctx, "The request timed out — please try again.").await
         }
     }

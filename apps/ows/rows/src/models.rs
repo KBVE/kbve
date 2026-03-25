@@ -25,7 +25,7 @@ pub struct Character {
     pub rx: f64,
     pub ry: f64,
     pub rz: f64,
-    // Core stats
+    // Core stats (double precision in DB)
     pub perception: f64,
     pub acrobatics: f64,
     pub climb: f64,
@@ -36,17 +36,17 @@ pub struct Character {
     pub team_number: i32,
     pub thirst: f64,
     pub hunger: f64,
-    pub gold: f64,
-    pub score: f64,
+    pub gold: i32,
+    pub score: i32,
     #[sqlx(rename = "characterlevel")]
     #[serde(rename = "level")]
-    pub character_level: i32,
-    pub gender: i32,
-    pub xp: f64,
+    pub character_level: i16,
+    pub gender: i16,
+    pub xp: i32,
     #[sqlx(rename = "hitdie")]
-    pub hit_die: i32,
+    pub hit_die: i16,
     pub wounds: f64,
-    pub size: f64,
+    pub size: i16,
     pub weight: f64,
     // Vitals
     #[sqlx(rename = "maxhealth")]
@@ -69,7 +69,7 @@ pub struct Character {
     pub stamina: f64,
     #[sqlx(rename = "staminaregenrate")]
     pub stamina_regen_rate: f64,
-    // Abilities
+    // Abilities (double precision in DB)
     pub strength: f64,
     pub dexterity: f64,
     pub constitution: f64,
@@ -77,7 +77,7 @@ pub struct Character {
     pub wisdom: f64,
     pub charisma: f64,
     pub agility: f64,
-    // Combat
+    // Combat (double precision in DB)
     #[sqlx(rename = "baseattack")]
     pub base_attack: f64,
     #[sqlx(rename = "baseattackbonus")]
@@ -91,13 +91,13 @@ pub struct Character {
     #[sqlx(rename = "critmultiplier")]
     pub crit_multiplier: f64,
     pub defense: f64,
-    // Currencies
-    pub silver: f64,
-    pub copper: f64,
+    // Currencies (integer in DB)
+    pub silver: i32,
+    pub copper: i32,
     #[sqlx(rename = "freecurrency")]
-    pub free_currency: f64,
+    pub free_currency: i32,
     #[sqlx(rename = "premiumcurrency")]
-    pub premium_currency: f64,
+    pub premium_currency: i32,
     pub fame: f64,
     pub alignment: f64,
     // Admin flags
@@ -105,9 +105,9 @@ pub struct Character {
     pub is_admin: bool,
     #[sqlx(rename = "ismoderator")]
     pub is_moderator: bool,
-    #[sqlx(default)]
+    #[sqlx(rename = "classid")]
     #[serde(rename = "className")]
-    pub class_name: Option<String>,
+    pub class_id: Option<i32>,
     #[sqlx(rename = "createdate")]
     pub create_date: Option<NaiveDateTime>,
 }
