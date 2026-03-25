@@ -125,12 +125,19 @@ spec:
                         value: '/etc/ssl/webtransport/tls.crt'
                       - name: GAME_WT_KEY
                         value: '/etc/ssl/webtransport/tls.key'
+                      - name: GAME_WT_SELFSIGNED_CERT
+                        value: '/etc/ssl/webtransport-selfsigned/tls.crt'
+                      - name: GAME_WT_SELFSIGNED_KEY
+                        value: '/etc/ssl/webtransport-selfsigned/tls.key'
                   volumeMounts:
                       - name: argocd-ca
                         mountPath: /etc/ssl/argocd
                         readOnly: true
                       - name: wt-tls
                         mountPath: /etc/ssl/webtransport
+                        readOnly: true
+                      - name: wt-selfsigned-tls
+                        mountPath: /etc/ssl/webtransport-selfsigned
                         readOnly: true
                   resources:
                       requests:
@@ -149,6 +156,10 @@ spec:
                 - name: wt-tls
                   secret:
                       secretName: kbve-wt-tls
+                - name: wt-selfsigned-tls
+                  secret:
+                      secretName: kbve-wt-selfsigned
+                      optional: true
 ---
 apiVersion: v1
 kind: Service

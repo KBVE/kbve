@@ -751,7 +751,7 @@ async fn get_current_world_time(
         .get_current_world_time(customer_guid, body.request.world_server_id)
         .await
     {
-        Ok(time) => Json(serde_json::json!({"currentWorldTime": time})),
+        Ok(time) => Json(serde_json::json!({"CurrentWorldTime": time})),
         Err(e) => Json(serde_json::json!({"error": e.to_string()})),
     }
 }

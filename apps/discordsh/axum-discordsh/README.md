@@ -111,14 +111,22 @@ Auto-posts notice board and task board embeds to a Discord thread on a recurring
 
 All `/github` subcommands are gated by the permission check (`GITHUB_REQUIRED_PERMISSIONS`) and per-user rate limiter (`GITHUB_CMD_RATE_LIMIT`). Each accepts an optional `repo` argument in `owner/repo` format — defaults to `GITHUB_DEFAULT_REPO` / `GH_REPO` / `KBVE/kbve`.
 
-| Command               | Parameters                                   | Description                                                                                                      |
-| --------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `/github noticeboard` | `repo?`, `stale_days?` (default: 3)          | Fetches open issues + PRs, filters stale items, and posts a priority-sorted notice board embed (critical first). |
-| `/github taskboard`   | `repo?`, `phase?` (default: "Current Phase") | Groups open issues by department label (programming, qa, devops, etc.) and shows progress counts.                |
-| `/github issues`      | `repo?`, `limit?` (default: 10, max: 25)     | Lists open issues with labels, assignees, and links. Embed sidebar color matches the first label.                |
-| `/github pulls`       | `repo?`, `limit?` (default: 10, max: 25)     | Lists open PRs with branch, labels, assignees, and `[DRAFT]` markers.                                            |
-| `/github repo`        | `repo?`                                      | Shows repository info — description, default branch, and open issue count.                                       |
-| `/github commits`     | `repo?`, `limit?` (default: 10, max: 25)     | Shows recent commits with author, short SHA, and first line of the commit message.                               |
+| Command               | Parameters                                    | Description                                                                                                      |
+| --------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `/github noticeboard` | `repo?`, `stale_days?` (default: 3)           | Fetches open issues + PRs, filters stale items, and posts a priority-sorted notice board embed (critical first). |
+| `/github taskboard`   | `repo?`, `phase?` (default: "Current Phase")  | Groups open issues by department label (programming, qa, devops, etc.) and shows progress counts.                |
+| `/github issues`      | `repo?`, `limit?` (default: 10, max: 25)      | Lists open issues with labels, assignees, and links. Embed sidebar color matches the first label.                |
+| `/github pulls`       | `repo?`, `limit?` (default: 10, max: 25)      | Lists open PRs with branch, labels, assignees, and `[DRAFT]` markers.                                            |
+| `/github repo`        | `repo?`                                       | Shows repository info — description, default branch, and open issue count.                                       |
+| `/github commits`     | `repo?`, `limit?` (default: 10, max: 25)      | Shows recent commits with author, short SHA, and first line of the commit message.                               |
+| `/github view`        | `number`, `repo?`                             | Detailed issue/PR card with priority badge and interactive dropdowns (Board+ tier).                              |
+| `/gh`                 | `number`                                      | Top-level shortcut for `/github view` using the default repo.                                                    |
+| `/github create`      | `title`, `body?`, `labels?`, `type?`, `repo?` | Create a new issue. Labels are comma-separated. **(Admin tier)**                                                 |
+| `/github close`       | `number`, `repo?`                             | Close an issue or PR. **(Admin tier)**                                                                           |
+| `/github reopen`      | `number`, `repo?`                             | Reopen a closed issue or PR. **(Admin tier)**                                                                    |
+| `/github comment`     | `number`, `text`, `repo?`                     | Post a comment on an issue/PR. Attributed to the Discord user. **(Board tier)**                                  |
+| `/github assign`      | `number`, `username`, `repo?`                 | Assign a GitHub user to an issue. **(Board tier)**                                                               |
+| `/github unassign`    | `number`, `username`, `repo?`                 | Remove a GitHub user from an issue. **(Board tier)**                                                             |
 
 ## Development
 
