@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
-import { requireJsonContentType } from "../_shared/validators.ts";
+import { requireJsonContentType, enforceBodySizeLimit } from "../_shared/validators.ts";
 import { extractToken, jsonResponse, parseJwt } from "./_shared.ts";
 import { handleVote, VOTE_ACTIONS } from "./vote.ts";
 import { handleServer, SERVER_ACTIONS } from "./server.ts";
@@ -51,6 +51,8 @@ serve(async (req) => {
 
   const ctErr = requireJsonContentType(req);
   if (ctErr) return ctErr;
+  const sizeErr = enforceBodySizeLimit(req);
+  if (sizeErr) return sizeErr;
 
   try {
     const body = await req.json();
