@@ -16,7 +16,7 @@ on:
                 required: true
                 type: string
             version_target_path:
-                description: 'Path to Cargo.toml/package.json to sync version into'
+                description: 'Path to Cargo.toml/package.json/.csproj to sync version into'
                 required: false
                 type: string
                 default: ''
@@ -45,20 +45,74 @@ jobs:
             pull-requests: write
             actions: write
         steps:
+            # ── Input validation ─────────────────────────────────────────────
+            - name: Validate inputs
+              id: validate
+              run: |
+                  APP="${{ inputs.app_name }}"
+                  VERSION="${{ inputs.version }}"
+                  VTOML="${{ inputs.version_toml_path }}"
+                  VTARGET="${{ inputs.version_target_path }}"
+                  IMAGE="${{ inputs.image_name }}"
+                  DYAML="${{ inputs.deployment_yaml }}"
+
+                  # Semver check — must be x.y.z with optional pre-release
+                  if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
+                    echo "::error::Invalid version format: '$VERSION' — must be semver (x.y.z)"
+                    exit 1
+                  fi
+
+                  # App name — alphanumeric, hyphens, underscores only
+                  if ! echo "$APP" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+                    echo "::error::Invalid app_name: '$APP' — only alphanumeric, hyphens, underscores allowed"
+                    exit 1
+                  fi
+
+                  # Path traversal check — reject .. in any path
+                  for PATH_VAL in "$VTOML" "$VTARGET" "$IMAGE" "$DYAML"; do
+                    if echo "$PATH_VAL" | grep -q '\.\.'; then
+                      echo "::error::Path traversal detected in input: '$PATH_VAL'"
+                      exit 1
+                    fi
+                  done
+
+                  # Reject absolute paths
+                  for PATH_VAL in "$VTOML" "$VTARGET" "$DYAML"; do
+                    if [ -n "$PATH_VAL" ] && echo "$PATH_VAL" | grep -qE '^/'; then
+                      echo "::error::Absolute path rejected: '$PATH_VAL' — must be relative"
+                      exit 1
+                    fi
+                  done
+
+                  # Reject shell metacharacters in all inputs
+                  for VAL in "$APP" "$VERSION" "$VTOML" "$VTARGET" "$IMAGE" "$DYAML"; do
+                    if echo "$VAL" | grep -qE '[;|&`$(){}!#%^]'; then
+                      echo "::error::Shell metacharacter detected in input: '$VAL'"
+                      exit 1
+                    fi
+                  done
+
+                  echo "All inputs validated."
+                  echo "app=$APP" >> "$GITHUB_OUTPUT"
+                  echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+            # ── Checkout ─────────────────────────────────────────────────────
             - name: Checkout dev
               uses: actions/checkout@v6
               with:
                   ref: dev
                   token: ${{ secrets.TRIGGER_PAT }}
 
+            # ── Version file updates ─────────────────────────────────────────
             - name: Update version.toml
               run: |
                   VTOML="${{ inputs.version_toml_path }}"
-                  VERSION="${{ inputs.version }}"
+                  VERSION="${{ steps.validate.outputs.version }}"
 
                   if [ -f "$VTOML" ] && grep -q '^version' "$VTOML"; then
                     sed -i "s/^version = .*/version = \"${VERSION}\"/" "$VTOML"
                   else
+                    mkdir -p "$(dirname "$VTOML")"
                     printf 'version = "%s"\npublish = true\n' "$VERSION" > "$VTOML"
                   fi
                   echo "Updated $VTOML to $VERSION"
@@ -67,7 +121,7 @@ jobs:
               if: inputs.version_target_path != ''
               run: |
                   TARGET="${{ inputs.version_target_path }}"
-                  VERSION="${{ inputs.version }}"
+                  VERSION="${{ steps.validate.outputs.version }}"
 
                   if [ ! -f "$TARGET" ]; then
                     echo "::warning::version_target '$TARGET' not found — skipping."
@@ -81,6 +135,13 @@ jobs:
                     *.json)
                       jq --arg v "$VERSION" '.version = $v' "$TARGET" > "$TARGET.tmp" && mv "$TARGET.tmp" "$TARGET"
                       ;;
+                    *.csproj)
+                      if grep -q '<Version>' "$TARGET"; then
+                        sed -i "s|<Version>[^<]*</Version>|<Version>${VERSION}</Version>|" "$TARGET"
+                      else
+                        sed -i "s|</PropertyGroup>|  <Version>${VERSION}</Version>\n  </PropertyGroup>|" "$TARGET"
+                      fi
+                      ;;
                     *)
                       echo "::warning::Unknown file type '$TARGET' — skipping."
                       exit 0
@@ -92,7 +153,7 @@ jobs:
               if: inputs.deployment_yaml != '' && inputs.image_name != ''
               run: |
                   FILE="${{ inputs.deployment_yaml }}"
-                  VERSION="${{ inputs.version }}"
+                  VERSION="${{ steps.validate.outputs.version }}"
                   IMAGE="${{ inputs.image_name }}"
 
                   if [ ! -f "$FILE" ]; then
@@ -110,19 +171,48 @@ jobs:
 
                   echo "Updated $FILE: $OLD_TAG → $VERSION"
 
+            # ── Safety check — verify only expected files changed ────────────
+            - name: Verify changed files
+              run: |
+                  EXPECTED_FILES="${{ inputs.version_toml_path }}"
+                  if [ -n "${{ inputs.version_target_path }}" ]; then
+                    EXPECTED_FILES="$EXPECTED_FILES ${{ inputs.version_target_path }}"
+                  fi
+                  if [ -n "${{ inputs.deployment_yaml }}" ]; then
+                    EXPECTED_FILES="$EXPECTED_FILES ${{ inputs.deployment_yaml }}"
+                  fi
+
+                  CHANGED=$(git diff --name-only)
+                  for f in $CHANGED; do
+                    FOUND=false
+                    for expected in $EXPECTED_FILES; do
+                      if [ "$f" = "$expected" ]; then
+                        FOUND=true
+                        break
+                      fi
+                    done
+                    if [ "$FOUND" != "true" ]; then
+                      echo "::error::Unexpected file modified: '$f' — aborting."
+                      git checkout -- "$f"
+                      exit 1
+                    fi
+                  done
+                  echo "All modified files are expected."
+
+            # ── Push (TRIGGER_PAT — needed to trigger CI on atom branch) ─────
             - name: Commit and push atom branch
               id: push
               env:
                   GITHUB_TOKEN: ${{ secrets.TRIGGER_PAT }}
               run: |
-                  APP="${{ inputs.app_name }}"
-                  VERSION="${{ inputs.version }}"
+                  APP="${{ steps.validate.outputs.app }}"
+                  VERSION="${{ steps.validate.outputs.version }}"
                   BRANCH="atom-post-publish-${APP}-v${VERSION}"
 
                   git config user.name "github-actions[bot]"
                   git config user.email "github-actions[bot]@users.noreply.github.com"
 
-                  # Stage all changed files
+                  # Stage only the explicitly listed files
                   git add "${{ inputs.version_toml_path }}"
                   if [ -n "${{ inputs.version_target_path }}" ] && [ -f "${{ inputs.version_target_path }}" ]; then
                     git add "${{ inputs.version_target_path }}"
@@ -150,19 +240,16 @@ jobs:
 
                   echo "pushed=true" >> "$GITHUB_OUTPUT"
                   echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
-                  echo "app=$APP" >> "$GITHUB_OUTPUT"
-                  echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-            # PR creation uses GITHUB_TOKEN so the author is github-actions[bot],
-            # which allows the auto-merge bot to approve and merge it.
+            # ── PR creation (GITHUB_TOKEN — author becomes github-actions[bot]) ──
             - name: Create PR and trigger auto-merge
               if: steps.push.outputs.pushed == 'true'
               env:
                   GITHUB_TOKEN: ${{ github.token }}
               run: |
                   BRANCH="${{ steps.push.outputs.branch }}"
-                  APP="${{ steps.push.outputs.app }}"
-                  VERSION="${{ steps.push.outputs.version }}"
+                  APP="${{ steps.validate.outputs.app }}"
+                  VERSION="${{ steps.validate.outputs.version }}"
 
                   CHANGED=$(git diff --name-only HEAD~1 | sed 's/^/- `/' | sed 's/$/`/')
                   BODY=$(cat <<PREOF
