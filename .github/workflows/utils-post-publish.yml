@@ -56,6 +56,24 @@ jobs:
                   IMAGE="${{ inputs.image_name }}"
                   DYAML="${{ inputs.deployment_yaml }}"
 
+                  # ASCII-only check — reject any non-ASCII character in ALL inputs.
+                  # Blocks Unicode homoglyphs, RTL overrides, punycode (xn--),
+                  # Arabic/Cyrillic/CJK substitutions, zero-width chars, etc.
+                  for VAL in "$APP" "$VERSION" "$VTOML" "$VTARGET" "$IMAGE" "$DYAML"; do
+                    if echo "$VAL" | grep -qP '[^\x20-\x7E]'; then
+                      echo "::error::Non-ASCII characters detected in input: '$VAL' — only English ASCII allowed"
+                      exit 1
+                    fi
+                  done
+
+                  # Punycode / IDN attack check — reject xn-- anywhere
+                  for VAL in "$APP" "$VERSION" "$VTOML" "$VTARGET" "$IMAGE" "$DYAML"; do
+                    if echo "$VAL" | grep -qi 'xn--'; then
+                      echo "::error::Punycode/IDN pattern (xn--) detected in input: '$VAL'"
+                      exit 1
+                    fi
+                  done
+
                   # Semver check — must be x.y.z with optional pre-release
                   if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
                     echo "::error::Invalid version format: '$VERSION' — must be semver (x.y.z)"
