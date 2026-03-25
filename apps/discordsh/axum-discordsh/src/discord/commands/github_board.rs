@@ -766,9 +766,34 @@ pub async fn view_issue_impl(
                     )
                     .placeholder("Set priority...");
 
-                    reply = reply.components(vec![
-                        poise::serenity_prelude::CreateActionRow::SelectMenu(priority_menu),
-                    ]);
+                    let mut rows = vec![poise::serenity_prelude::CreateActionRow::SelectMenu(
+                        priority_menu,
+                    )];
+
+                    // Type dropdown (only shown when no type is set)
+                    if issue.issue_type.is_none() {
+                        let type_options: Vec<poise::serenity_prelude::CreateSelectMenuOption> =
+                            github_cards::ISSUE_TYPES
+                                .iter()
+                                .map(|t| {
+                                    poise::serenity_prelude::CreateSelectMenuOption::new(*t, *t)
+                                })
+                                .collect();
+
+                        let type_menu = poise::serenity_prelude::CreateSelectMenu::new(
+                            format!("gh|{full_name}|{number}|settype"),
+                            poise::serenity_prelude::CreateSelectMenuKind::String {
+                                options: type_options,
+                            },
+                        )
+                        .placeholder("Set issue type...");
+
+                        rows.push(poise::serenity_prelude::CreateActionRow::SelectMenu(
+                            type_menu,
+                        ));
+                    }
+
+                    reply = reply.components(rows);
                 }
             }
             Err(e) => {

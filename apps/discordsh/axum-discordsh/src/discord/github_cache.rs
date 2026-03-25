@@ -132,6 +132,7 @@ mod tests {
             assignees: vec![],
             body: None,
             comments: 0,
+            issue_type: None,
         };
         cache
             .issues

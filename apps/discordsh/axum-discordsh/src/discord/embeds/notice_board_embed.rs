@@ -292,6 +292,7 @@ mod tests {
             assignees: Vec::new(),
             body: None,
             comments: 0,
+            issue_type: None,
         }
     }
 

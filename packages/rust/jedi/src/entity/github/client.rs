@@ -297,6 +297,36 @@ impl GitHubClient {
         }
     }
 
+    // ── Issue Updates ─────────────────────────────────────────────────
+
+    /// Update an issue's type via PATCH. Pass `None` to clear the type.
+    pub async fn set_issue_type(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: u64,
+        type_name: Option<&str>,
+    ) -> Result<GitHubIssue, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!(
+            "{}/repos/{}/{}/issues/{}",
+            self.base_url, owner, repo, number
+        );
+
+        let body = serde_json::json!({ "type": type_name });
+        let resp = self
+            .client
+            .patch(&url)
+            .bearer_auth(&self.token)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
     // ── Stagnation Detection ────────────────────────────────────────
 
     /// Filter issues that haven't been updated within `threshold_days`.
@@ -403,6 +433,7 @@ mod tests {
             assignees: Vec::new(),
             body: None,
             comments: 0,
+            issue_type: None,
         }
     }
 

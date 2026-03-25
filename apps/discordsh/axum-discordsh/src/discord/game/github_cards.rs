@@ -125,6 +125,35 @@ pub fn priority_level_label(level: u8) -> &'static str {
     }
 }
 
+// ── Issue Type Helpers ───────────────────────────────────────────────
+
+/// Default issue types available in GitHub orgs.
+pub const ISSUE_TYPES: &[&str] = &["Bug", "Feature", "Task"];
+
+/// Map a GitHub issue type color name to a hex color.
+pub fn issue_type_color(color: Option<&str>, name: &str) -> &'static str {
+    // GitHub returns color as an enum name (gray, blue, green, etc.)
+    match color {
+        Some("red") => "#da3633",
+        Some("orange") => "#d29922",
+        Some("yellow") => "#f1c40f",
+        Some("green") => "#238636",
+        Some("blue") => "#1f6feb",
+        Some("purple") => "#8957e5",
+        Some("pink") => "#bf3989",
+        Some("gray") => "#6e7681",
+        _ => {
+            // Fallback: derive from name
+            match name.to_lowercase().as_str() {
+                "bug" => "#da3633",
+                "feature" => "#238636",
+                "task" => "#1f6feb",
+                _ => "#6e7681",
+            }
+        }
+    }
+}
+
 // ── Templates ───────────────────────────────────────────────────────
 
 #[derive(Template)]
@@ -145,6 +174,8 @@ pub struct IssueDetailCardTemplate {
     pub body_lines: Vec<String>,
     pub priority_level: u8,
     pub priority_color: String,
+    pub type_name: String,
+    pub type_color: String,
 }
 
 #[derive(Template)]
@@ -557,6 +588,16 @@ pub fn build_issue_detail_card(issue: &GitHubIssue) -> IssueDetailCardTemplate {
         body_lines,
         priority_level: priority,
         priority_color: p_color.to_owned(),
+        type_name: issue
+            .issue_type
+            .as_ref()
+            .map(|t| t.name.clone())
+            .unwrap_or_default(),
+        type_color: issue
+            .issue_type
+            .as_ref()
+            .map(|t| issue_type_color(t.color.as_deref(), &t.name).to_owned())
+            .unwrap_or_default(),
     }
 }
 

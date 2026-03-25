@@ -114,6 +114,19 @@ pub async fn handle_github_component(
             )
             .await;
         }
+        "settype" => {
+            handle_set_type(
+                ctx,
+                component,
+                &gh,
+                app,
+                owner,
+                repo_name,
+                number,
+                &selected_value,
+            )
+            .await;
+        }
         _ => {
             let _ = component
                 .create_response(
@@ -222,4 +235,58 @@ async fn handle_priority_change(
                 .content(format!("Priority set to **{level_name}** for #{number}.")),
         )
         .await;
+}
+
+async fn handle_set_type(
+    ctx: &serenity::Context,
+    component: &serenity::ComponentInteraction,
+    gh: &jedi::entity::github::GitHubClient,
+    app: &Arc<AppState>,
+    owner: &str,
+    repo_name: &str,
+    number: u64,
+    type_name: &str,
+) {
+    let _ = component
+        .create_response(
+            ctx,
+            serenity::CreateInteractionResponse::Defer(
+                serenity::CreateInteractionResponseMessage::new().ephemeral(true),
+            ),
+        )
+        .await;
+
+    match gh
+        .set_issue_type(owner, repo_name, number, Some(type_name))
+        .await
+    {
+        Ok(_) => {
+            app.github_cache.invalidate_issue(owner, repo_name, number);
+
+            info!(
+                user = %component.user.name,
+                issue = number,
+                issue_type = type_name,
+                "Issue type set via Discord component"
+            );
+
+            let _ = component
+                .edit_response(
+                    ctx,
+                    serenity::EditInteractionResponse::new()
+                        .content(format!("Issue type set to **{type_name}** for #{number}.")),
+                )
+                .await;
+        }
+        Err(e) => {
+            warn!(error = %e, "Failed to set issue type");
+            let _ = component
+                .edit_response(
+                    ctx,
+                    serenity::EditInteractionResponse::new()
+                        .content(format!("Failed to set issue type: {e}")),
+                )
+                .await;
+        }
+    }
 }

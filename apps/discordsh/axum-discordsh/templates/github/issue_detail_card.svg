@@ -33,6 +33,12 @@
   <text x="{{ title_x }}" y="29" font-family="sans-serif" font-size="14" fill="#484f58">#{{ number }}</text>
   <text x="{{ title_x + 50 }}" y="29" font-family="sans-serif" font-size="14" font-weight="bold" fill="#c9d1d9">{{ title }}</text>
 
+  <!-- Type badge (if set) -->
+  {% if !type_name.is_empty() %}
+  <rect x="640" y="14" width="68" height="22" rx="11" fill="{{ type_color }}" opacity="0.9"/>
+  <text x="674" y="29" font-family="sans-serif" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">{{ type_name }}</text>
+  {% endif %}
+
   <!-- Priority badge (if set) -->
   {% if priority_level > 0 %}
   <rect x="720" y="14" width="64" height="22" rx="11" fill="{{ priority_color }}" opacity="0.9"/>

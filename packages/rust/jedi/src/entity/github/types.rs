@@ -24,6 +24,9 @@ pub struct GitHubIssue {
     pub body: Option<String>,
     #[serde(default)]
     pub comments: u64,
+    /// Native GitHub issue type (Bug, Feature, Task, etc.). Requires org-level setup.
+    #[serde(default, rename = "type")]
+    pub issue_type: Option<GitHubIssueType>,
 }
 
 impl GitHubIssue {
@@ -127,6 +130,17 @@ pub struct GitHubUser {
 #[derive(Debug, Clone, Deserialize)]
 pub struct GitHubLabel {
     pub name: String,
+    #[serde(default)]
+    pub color: Option<String>,
+}
+
+/// Native GitHub issue type (org-level: Bug, Feature, Task, or custom).
+#[derive(Debug, Clone, Deserialize)]
+pub struct GitHubIssueType {
+    pub id: u64,
+    pub name: String,
+    #[serde(default)]
+    pub description: Option<String>,
     #[serde(default)]
     pub color: Option<String>,
 }
