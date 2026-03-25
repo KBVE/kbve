@@ -327,6 +327,171 @@ impl GitHubClient {
         self.parse_response(resp).await
     }
 
+    /// Create a new issue.
+    pub async fn create_issue(
+        &self,
+        owner: &str,
+        repo: &str,
+        request: &CreateIssueRequest,
+    ) -> Result<GitHubIssue, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!("{}/repos/{}/{}/issues", self.base_url, owner, repo);
+
+        let resp = self
+            .client
+            .post(&url)
+            .bearer_auth(&self.token)
+            .json(request)
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
+    /// Update an issue (title, body, state, labels, assignees, type).
+    pub async fn update_issue(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: u64,
+        request: &UpdateIssueRequest,
+    ) -> Result<GitHubIssue, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!(
+            "{}/repos/{}/{}/issues/{}",
+            self.base_url, owner, repo, number
+        );
+
+        let resp = self
+            .client
+            .patch(&url)
+            .bearer_auth(&self.token)
+            .json(request)
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
+    // ── Comments ─────────────────────────────────────────────────────
+
+    /// List comments on an issue or pull request.
+    pub async fn list_comments(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: u64,
+        per_page: Option<u8>,
+    ) -> Result<Vec<GitHubComment>, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!(
+            "{}/repos/{}/{}/issues/{}/comments",
+            self.base_url, owner, repo, number
+        );
+
+        let resp = self
+            .client
+            .get(&url)
+            .bearer_auth(&self.token)
+            .query(&[("per_page", per_page.unwrap_or(30).to_string())])
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
+    /// Post a comment on an issue or pull request.
+    pub async fn create_comment(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: u64,
+        body: &str,
+    ) -> Result<GitHubComment, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!(
+            "{}/repos/{}/{}/issues/{}/comments",
+            self.base_url, owner, repo, number
+        );
+
+        let payload = serde_json::json!({ "body": body });
+        let resp = self
+            .client
+            .post(&url)
+            .bearer_auth(&self.token)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
+    // ── Assignees ────────────────────────────────────────────────────
+
+    /// Add assignees to an issue.
+    pub async fn add_assignees(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: u64,
+        assignees: &[&str],
+    ) -> Result<GitHubIssue, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!(
+            "{}/repos/{}/{}/issues/{}/assignees",
+            self.base_url, owner, repo, number
+        );
+
+        let payload = serde_json::json!({ "assignees": assignees });
+        let resp = self
+            .client
+            .post(&url)
+            .bearer_auth(&self.token)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
+    /// Remove assignees from an issue.
+    pub async fn remove_assignees(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: u64,
+        assignees: &[&str],
+    ) -> Result<GitHubIssue, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!(
+            "{}/repos/{}/{}/issues/{}/assignees",
+            self.base_url, owner, repo, number
+        );
+
+        let payload = serde_json::json!({ "assignees": assignees });
+        let resp = self
+            .client
+            .delete(&url)
+            .bearer_auth(&self.token)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
     // ── Stagnation Detection ────────────────────────────────────────
 
     /// Filter issues that haven't been updated within `threshold_days`.
@@ -857,5 +1022,187 @@ mod tests {
 
         let err = client.list_issues("o", "r", None, None).await.unwrap_err();
         assert!(matches!(err, JediError::Parse(_)), "got: {err:?}");
+    }
+
+    // ── create_issue ────────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn create_issue_success() {
+        let body = r#"{
+            "number": 100, "title": "New issue", "state": "open",
+            "user": {"login": "creator"}, "labels": [],
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z",
+            "html_url": "https://github.com/test/repo/issues/100"
+        }"#;
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/issues",
+            axum::routing::post(move || async move { body }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let req = CreateIssueRequest {
+            title: "New issue".to_string(),
+            body: Some("Description".to_string()),
+            labels: vec!["bug".to_string()],
+            assignees: vec![],
+            issue_type: None,
+        };
+        let issue = client.create_issue("o", "r", &req).await.unwrap();
+        assert_eq!(issue.number, 100);
+        assert_eq!(issue.title, "New issue");
+    }
+
+    // ── update_issue ────────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn update_issue_success() {
+        let body = r#"{
+            "number": 42, "title": "Updated", "state": "closed",
+            "user": {"login": "u"}, "labels": [],
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-02T00:00:00Z",
+            "html_url": "https://github.com/test/repo/issues/42"
+        }"#;
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/issues/{number}",
+            axum::routing::patch(move || async move { body }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let req = UpdateIssueRequest {
+            state: Some("closed".to_string()),
+            ..Default::default()
+        };
+        let issue = client.update_issue("o", "r", 42, &req).await.unwrap();
+        assert_eq!(issue.state, "closed");
+    }
+
+    // ── create_comment ──────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn create_comment_success() {
+        let body = r#"{
+            "id": 1,
+            "body": "Hello from bot",
+            "user": {"login": "bot"},
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z",
+            "html_url": "https://github.com/test/repo/issues/1#issuecomment-1"
+        }"#;
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/issues/{number}/comments",
+            axum::routing::post(move || async move { body }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let comment = client
+            .create_comment("o", "r", 1, "Hello from bot")
+            .await
+            .unwrap();
+        assert_eq!(comment.body, "Hello from bot");
+        assert_eq!(comment.user.login, "bot");
+    }
+
+    // ── list_comments ───────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn list_comments_success() {
+        let body = r#"[{
+            "id": 1,
+            "body": "First comment",
+            "user": {"login": "user1"},
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z",
+            "html_url": "https://github.com/test/repo/issues/1#issuecomment-1"
+        }]"#;
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/issues/{number}/comments",
+            get(move || async move { body }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let comments = client.list_comments("o", "r", 1, None).await.unwrap();
+        assert_eq!(comments.len(), 1);
+        assert_eq!(comments[0].body, "First comment");
+    }
+
+    // ── add_assignees ───────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn add_assignees_success() {
+        let body = r#"{
+            "number": 42, "title": "Issue", "state": "open",
+            "user": {"login": "u"},
+            "labels": [],
+            "assignees": [{"login": "dev1"}, {"login": "dev2"}],
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z",
+            "html_url": "https://github.com/test/repo/issues/42"
+        }"#;
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/issues/{number}/assignees",
+            axum::routing::post(move || async move { body }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let issue = client
+            .add_assignees("o", "r", 42, &["dev1", "dev2"])
+            .await
+            .unwrap();
+        assert_eq!(issue.assignees.len(), 2);
+    }
+
+    // ── remove_assignees ────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn remove_assignees_success() {
+        let body = r#"{
+            "number": 42, "title": "Issue", "state": "open",
+            "user": {"login": "u"},
+            "labels": [],
+            "assignees": [],
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z",
+            "html_url": "https://github.com/test/repo/issues/42"
+        }"#;
+        let app = Router::new().route(
+            "/repos/{owner}/{repo}/issues/{number}/assignees",
+            axum::routing::delete(move || async move { body }),
+        );
+        let base = mock_server(app).await;
+        let client = GitHubClient::new("tok").with_base_url(&base);
+
+        let issue = client
+            .remove_assignees("o", "r", 42, &["dev1"])
+            .await
+            .unwrap();
+        assert!(issue.assignees.is_empty());
+    }
+
+    // ── policy blocks write operations ──────────────────────────────
+
+    #[tokio::test]
+    async fn policy_blocks_create_issue() {
+        let client =
+            GitHubClient::new("tok").with_policy(super::RepoPolicy::from_allowed(&["only/this"]));
+
+        let req = CreateIssueRequest {
+            title: "test".to_string(),
+            body: None,
+            labels: vec![],
+            assignees: vec![],
+            issue_type: None,
+        };
+        let err = client
+            .create_issue("not", "allowed", &req)
+            .await
+            .unwrap_err();
+        assert!(matches!(err, JediError::Forbidden));
     }
 }
