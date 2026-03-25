@@ -14,3 +14,4 @@ resources:
     - kbve-deployment.yaml
     - kbve-gateway.yaml
     - kbve-wt-lb.yaml
+    - kbve-wt-selfsigned-cronjob.yaml

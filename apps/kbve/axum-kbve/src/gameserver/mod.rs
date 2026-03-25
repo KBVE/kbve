@@ -322,10 +322,72 @@ fn load_webtransport_identity() -> Option<lightyear::webtransport::prelude::Iden
         }
     }
 
-    // --- Dev path: self-signed cert ---
-    tracing::info!("[wt-cert] generating self-signed cert...");
-    let identity =
-        Identity::self_signed(&["localhost", "127.0.0.1", "::1"]).expect("self-signed cert");
+    // --- Fallback path: pre-generated self-signed cert from CronJob ---
+    // In production, a CronJob rotates a self-signed cert every 12 days
+    // (WebTransport spec limit for hash-pinned certs) and stores it in
+    // the kbve-wt-selfsigned Secret mounted at GAME_WT_SELFSIGNED_CERT/KEY.
+    let ss_cert_path = std::env::var("GAME_WT_SELFSIGNED_CERT").ok();
+    let ss_key_path = std::env::var("GAME_WT_SELFSIGNED_KEY").ok();
+    if let (Some(sc), Some(sk)) = (ss_cert_path, ss_key_path) {
+        if std::path::Path::new(&sc).exists() && std::path::Path::new(&sk).exists() {
+            tracing::info!("[wt-cert] loading pre-generated self-signed cert from {sc}");
+            let identity = tokio::task::block_in_place(|| {
+                tokio::runtime::Handle::current().block_on(Identity::load_pemfiles(&sc, &sk))
+            });
+            match identity {
+                Ok(id) => {
+                    WT_ENABLED.store(true, std::sync::atomic::Ordering::Relaxed);
+                    // Self-signed = NOT trusted, must use hash pinning
+                    let cert_chain = id.certificate_chain();
+                    if let Some(cert) = cert_chain.as_slice().first() {
+                        let digest = cert.hash();
+                        let raw_bytes: &[u8] = digest.as_ref();
+                        let digest_hex: String =
+                            raw_bytes.iter().map(|b| format!("{b:02X}")).collect();
+                        tracing::info!(
+                            "[wt-cert] pre-generated self-signed cert digest: {digest_hex}"
+                        );
+                        let _ = CERT_DIGEST.set(digest_hex);
+                    }
+                    tracing::info!("[wt-cert] using pre-generated self-signed cert (hash-pinned)");
+                    return Some(id);
+                }
+                Err(e) => {
+                    tracing::warn!(
+                        "[wt-cert] failed to load pre-generated self-signed cert: {e} — generating at runtime"
+                    );
+                }
+            }
+        }
+    }
+
+    // --- Last resort: generate self-signed cert at runtime ---
+    // Include production hostname + public IP in SANs so the cert works
+    // both locally and in production.
+    let mut sans = vec![
+        "localhost".to_string(),
+        "127.0.0.1".to_string(),
+        "::1".to_string(),
+    ];
+    if let Ok(host) = std::env::var("GAME_SERVER_HOST") {
+        if !host.is_empty() && host != "localhost" {
+            tracing::info!("[wt-cert] adding GAME_SERVER_HOST '{host}' to self-signed SANs");
+            sans.push(host.clone());
+            // Also resolve and add the IP so both hostname and IP connections work
+            if let Ok(addrs) = std::net::ToSocketAddrs::to_socket_addrs(&(host.as_str(), 0)) {
+                for addr in addrs {
+                    let ip = addr.ip().to_string();
+                    if !sans.contains(&ip) {
+                        tracing::info!("[wt-cert] adding resolved IP '{ip}' to self-signed SANs");
+                        sans.push(ip);
+                    }
+                }
+            }
+        }
+    }
+    let san_refs: Vec<&str> = sans.iter().map(|s| s.as_str()).collect();
+    tracing::info!("[wt-cert] generating self-signed cert with SANs: {san_refs:?}");
+    let identity = Identity::self_signed(&san_refs).expect("self-signed cert");
     WT_ENABLED.store(true, std::sync::atomic::Ordering::Relaxed);
     tracing::info!("[wt-cert] self-signed identity created OK");
 

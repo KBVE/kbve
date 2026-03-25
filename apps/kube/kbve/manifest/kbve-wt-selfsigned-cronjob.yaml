@@ -1,0 +1,113 @@
+---
+# ServiceAccount for the cert rotation CronJob
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: kbve-wt-cert-rotator
+    namespace: kbve
+---
+# RBAC: allow the CronJob to manage the selfsigned cert Secret
+# and trigger deployment rollouts
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: kbve-wt-cert-rotator
+    namespace: kbve
+rules:
+    - apiGroups: ['']
+      resources: [secrets]
+      resourceNames: [kbve-wt-selfsigned]
+      verbs: [get, update, patch]
+    - apiGroups: ['']
+      resources: [secrets]
+      verbs: [create]
+    - apiGroups: [apps]
+      resources: [deployments]
+      resourceNames: [kbve-deployment]
+      verbs: [get, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: kbve-wt-cert-rotator
+    namespace: kbve
+subjects:
+    - kind: ServiceAccount
+      name: kbve-wt-cert-rotator
+      namespace: kbve
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: kbve-wt-cert-rotator
+---
+# CronJob: generate a self-signed cert every 12 days for WebTransport
+# hash pinning. The cert includes wt.kbve.com + the LB public IP as SANs.
+# After creating the Secret, it patches the deployment annotation to
+# trigger a rolling restart so the server picks up the new cert.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: kbve-wt-cert-rotator
+    namespace: kbve
+    labels:
+        app: kbve
+        component: webtransport-cert-rotator
+spec:
+    # Every 12 days at 03:00 UTC (288 hours)
+    schedule: '0 3 1,13,25 * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 2
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        spec:
+            backoffLimit: 2
+            activeDeadlineSeconds: 300
+            template:
+                spec:
+                    serviceAccountName: kbve-wt-cert-rotator
+                    restartPolicy: OnFailure
+                    containers:
+                        - name: certgen
+                          image: alpine/openssl:latest
+                          command:
+                              - /bin/sh
+                              - -c
+                              - |
+                                  set -e
+
+                                  # Install kubectl
+                                  apk add --no-cache curl
+                                  curl -LO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                                  chmod +x kubectl && mv kubectl /usr/local/bin/
+
+                                  HOSTNAME="wt.kbve.com"
+                                  PUBLIC_IP="142.132.206.71"
+                                  SECRET_NAME="kbve-wt-selfsigned"
+                                  DEPLOY_NAME="kbve-deployment"
+                                  DAYS=13
+
+                                  echo "Generating self-signed cert for ${HOSTNAME} / ${PUBLIC_IP} (${DAYS} days)"
+
+                                  # Generate ECDSA key + self-signed cert with SANs
+                                  openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
+                                    -keyout /tmp/tls.key -out /tmp/tls.crt \
+                                    -days ${DAYS} -nodes \
+                                    -subj "/CN=${HOSTNAME}" \
+                                    -addext "subjectAltName=DNS:${HOSTNAME},DNS:localhost,IP:${PUBLIC_IP},IP:127.0.0.1"
+
+                                  echo "Cert generated:"
+                                  openssl x509 -in /tmp/tls.crt -noout -subject -dates -ext subjectAltName
+
+                                  # Create or update the Secret
+                                  kubectl create secret tls "${SECRET_NAME}" \
+                                    --cert=/tmp/tls.crt --key=/tmp/tls.key \
+                                    --dry-run=client -o yaml | kubectl apply -f -
+
+                                  echo "Secret ${SECRET_NAME} updated"
+
+                                  # Trigger rollout restart by patching annotation
+                                  TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+                                  kubectl patch deployment "${DEPLOY_NAME}" \
+                                    -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"wt-cert-rotated\":\"${TIMESTAMP}\"}}}}}"
+
+                                  echo "Deployment ${DEPLOY_NAME} rollout triggered at ${TIMESTAMP}"
