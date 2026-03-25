@@ -586,7 +586,7 @@ async fn register_launcher(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<RegisterLauncherWrapper>,
-) -> Json<SuccessResponse> {
+) -> Json<serde_json::Value> {
     let customer_guid = extract_customer_guid(&headers);
     let r = &body.request;
     let repo = crate::repo::InstanceRepo(&hs.app.db);
@@ -603,9 +603,16 @@ async fn register_launcher(
     {
         Ok(id) => {
             tracing::info!(world_server_id = id, "Launcher registered");
-            Json(SuccessResponse::ok())
+            Json(serde_json::json!({
+                "success": true,
+                "errorMessage": "",
+                "worldServerId": id
+            }))
         }
-        Err(e) => Json(SuccessResponse::err(e.to_string())),
+        Err(e) => Json(serde_json::json!({
+            "success": false,
+            "errorMessage": e.to_string()
+        })),
     }
 }
 
