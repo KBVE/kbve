@@ -87,7 +87,7 @@ jobs:
                       const sanitize = (s) => {
                         const asciiOnly = s.replace(/[^\x20-\x7E]/g, '');
                         const stripped = asciiOnly.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
-                        return stripped.replace(/[^a-zA-Z0-9\-_.\/@: ()]/g, '');
+                        return stripped.replace(/[^a-zA-Z0-9\-_.\/@: ()\[\]]/g, '');
                       };
 
                       // Sanitize and verify every field — reject if ANY field
