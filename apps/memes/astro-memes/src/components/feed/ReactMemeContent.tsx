@@ -32,7 +32,7 @@ import { PLACEHOLDER_MEMES } from '../../lib/stores/placeholders';
 const SIGNIN_MODAL = 'signin';
 
 export default function ReactMemeContent() {
-	const auth = useStore($auth);
+	useStore($auth);
 	const memes = useStore($feedMemes);
 	const hasMore = useStore($feedHasMore);
 	const feedLoading = useStore($feedLoading);
