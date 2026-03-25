@@ -141,6 +141,13 @@ async fn main() -> anyhow::Result<()> {
         info!("KubeVirt proxy not configured (KUBEVIRT_API_URL not set)");
     }
 
+    // Initialize ChuckRPG/ROWS Swagger proxy (optional - for /dashboard/chuckrpg)
+    if transport::proxy::init_chuckrpg_proxy() {
+        info!("ChuckRPG proxy initialized - /dashboard/chuckrpg/proxy enabled");
+    } else {
+        info!("ChuckRPG proxy not configured (CHUCKRPG_UPSTREAM_URL not set)");
+    }
+
     // Initialize game server (headless Bevy + lightyear + avian3d)
     // Runs in its own thread; lightyear binds WebSocket on GAME_WS_ADDR (default :5000)
     gameserver::init_gameserver();

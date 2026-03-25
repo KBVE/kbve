@@ -2,6 +2,7 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
 use std::borrow::Cow;
+use utoipa::ToSchema;
 
 #[derive(Debug, thiserror::Error)]
 pub enum RowsError {
@@ -74,7 +75,7 @@ impl IntoResponse for RowsError {
 }
 
 /// OWS-compatible success/error response.
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SuccessResponse {
     pub success: bool,

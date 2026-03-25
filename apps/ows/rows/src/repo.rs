@@ -586,8 +586,10 @@ impl<'a> CharsRepo<'a> {
         _class_name: &str,
     ) -> Result<(), RowsError> {
         sqlx::query(
-            "INSERT INTO characters (customerguid, userguid, charname, createdate)
-             VALUES ($1, $2, $3, NOW())",
+            "INSERT INTO characters (customerguid, userguid, charname, email, createdate)
+             SELECT $1, $2, $3, u.email, NOW()
+             FROM users u
+             WHERE u.customerguid = $1 AND u.userguid = $2",
         )
         .bind(customer_guid)
         .bind(user_guid)
@@ -608,11 +610,12 @@ impl<'a> CharsRepo<'a> {
     ) -> Result<(), RowsError> {
         // Insert character using defaults from DefaultCharacterValues table
         sqlx::query(
-            "INSERT INTO characters (customerguid, userguid, charname, createdate,
+            "INSERT INTO characters (customerguid, userguid, charname, email, createdate,
                 mapname, x, y, z, rx, ry, rz)
-             SELECT $1, $2, $3, NOW(),
+             SELECT $1, $2, $3, u.email, NOW(),
                     dcv.startingmapname, dcv.x, dcv.y, dcv.z, dcv.rx, dcv.ry, dcv.rz
              FROM defaultcharactervalues dcv
+             JOIN users u ON u.customerguid = $1 AND u.userguid = $2
              WHERE dcv.customerguid = $1
                AND dcv.defaultsetname = $4",
         )
