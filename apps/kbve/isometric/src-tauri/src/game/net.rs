@@ -174,6 +174,8 @@ struct TokenFetchResult {
     server_wt_url: String,
     /// SHA-256 cert digest for self-signed WebTransport certs.
     cert_digest: String,
+    /// "trusted" or "self-signed" — controls whether hash pinning is used.
+    cert_type: String,
 }
 
 /// Resource tracking whether a WASM token fetch is in flight.
@@ -539,6 +541,7 @@ fn poll_ws_fallback(
         ws_url,
         wt_url: String::new(),
         cert_digest: String::new(),
+        cert_type: String::new(),
     };
     connect_to_server(&mut commands, &transport, &token_bytes);
 }
@@ -770,6 +773,7 @@ fn poll_go_online_request(
             ws_url: resolved_ws.clone(),
             wt_url,
             cert_digest,
+            cert_type: "self-signed".to_string(),
         };
 
         // Arm WS fallback if trying WebTransport on desktop
@@ -817,6 +821,7 @@ fn poll_go_online_request(
                             server_url: ws,
                             server_wt_url: result.server_wt_url,
                             cert_digest: result.cert_digest,
+                            cert_type: result.cert_type,
                         });
                     }
                 }
@@ -879,6 +884,7 @@ fn poll_token_fetch_result(
         ws_url,
         wt_url,
         cert_digest: result.cert_digest.clone(),
+        cert_type: result.cert_type.clone(),
     };
 
     // Arm WS fallback if we're about to try WebTransport
@@ -937,6 +943,7 @@ struct GameTokenResult {
     server_url: String,
     server_wt_url: String,
     cert_digest: String,
+    cert_type: String,
 }
 
 /// Fetch a ConnectToken from the auth API (WASM only).
@@ -1001,6 +1008,7 @@ async fn fetch_game_token(
         .unwrap_or("")
         .to_owned();
     let cert_digest = token_resp["cert_digest"].as_str().unwrap_or("").to_owned();
+    let cert_type = token_resp["cert_type"].as_str().unwrap_or("").to_owned();
 
     let token_bytes = bevy_kbve_net::net_config::base64_to_token_bytes(token_b64)?;
     Ok(GameTokenResult {
@@ -1008,6 +1016,7 @@ async fn fetch_game_token(
         server_url,
         server_wt_url,
         cert_digest,
+        cert_type,
     })
 }
 
@@ -1441,7 +1450,12 @@ struct TransportConfig {
     /// WebTransport URL (empty = not available).
     wt_url: String,
     /// Certificate digest for self-signed WebTransport certs (hex, 64 chars).
+    /// Empty when cert_type is "trusted" (CA-signed, browser validates via CA chain).
     cert_digest: String,
+    /// "trusted" = CA-signed cert (no hash pinning, connect via hostname),
+    /// "self-signed" = must use serverCertificateHashes with cert_digest.
+    /// Empty = WebTransport not available.
+    cert_type: String,
 }
 
 /// Initiate a Netcode connection to the game server.
@@ -1485,10 +1499,16 @@ fn connect_to_server(commands: &mut Commands, transport: &TransportConfig, token
     if !transport.wt_url.is_empty() {
         use lightyear::webtransport::prelude::client::*;
 
+        let is_trusted = transport.cert_type == "trusted";
         info!(
-            "[net] connect_to_server — using WebTransport: {} (digest={}...)",
+            "[net] connect_to_server — using WebTransport: {} (cert_type={}, digest={}...)",
             transport.wt_url,
-            &transport.cert_digest[..16.min(transport.cert_digest.len())]
+            transport.cert_type,
+            if transport.cert_digest.len() >= 16 {
+                &transport.cert_digest[..16]
+            } else {
+                &transport.cert_digest
+            }
         );
 
         // Parse the server address from the URL (https://host:port)
@@ -1496,22 +1516,47 @@ fn connect_to_server(commands: &mut Commands, transport: &TransportConfig, token
             .wt_url
             .trim_start_matches("https://")
             .trim_start_matches("http://");
-        let server_addr: std::net::SocketAddr = addr_str
-            .parse()
-            .unwrap_or_else(|_| "127.0.0.1:5001".parse().unwrap());
+
+        // For trusted certs, addr_str is "wt.kbve.com:5001" — resolve to IP for SocketAddr.
+        // For self-signed, addr_str is already "IP:port".
+        let server_addr: std::net::SocketAddr = if addr_str.parse::<std::net::SocketAddr>().is_ok()
+        {
+            addr_str.parse().unwrap()
+        } else {
+            // Hostname — resolve via DNS
+            use std::net::ToSocketAddrs;
+            addr_str
+                .to_socket_addrs()
+                .ok()
+                .and_then(|mut addrs| addrs.find(|a| a.is_ipv4()))
+                .unwrap_or_else(|| "127.0.0.1:5001".parse().unwrap())
+        };
+
+        // Belt and suspenders:
+        // - Trusted (CA-signed): empty digest → browser validates via CA chain
+        // - Self-signed: pass digest → browser uses serverCertificateHashes
+        let digest = if is_trusted {
+            info!("[net] trusted cert — no hash pinning, browser will validate via CA chain");
+            String::new()
+        } else {
+            info!("[net] self-signed cert — using hash pinning with cert_digest");
+            transport.cert_digest.clone()
+        };
 
         let client_entity = commands
             .spawn((
                 netcode,
                 PeerAddr(server_addr),
                 WebTransportClientIo {
-                    certificate_digest: transport.cert_digest.clone(),
+                    certificate_digest: digest,
                 },
                 ReplicationReceiver::default(),
             ))
             .id();
 
-        info!("[net] NetcodeClient+WebTransport entity spawned: {client_entity:?}");
+        info!(
+            "[net] NetcodeClient+WebTransport entity spawned: {client_entity:?} addr={server_addr}"
+        );
         commands.trigger(Connect {
             entity: client_entity,
         });
