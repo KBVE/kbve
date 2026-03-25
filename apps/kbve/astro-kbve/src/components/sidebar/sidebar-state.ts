@@ -33,7 +33,13 @@ export function toggleSidebar(side: Side) {
 
 export function restoreSavedState(side: Side) {
 	const saved = localStorage.getItem(getStorageKey(side));
-	if (saved === 'true') {
-		document.documentElement.setAttribute(getAttr(side), 'true');
+	if (side === 'left') {
+		// Default to collapsed if no saved preference
+		const collapsed = saved !== 'false';
+		document.documentElement.setAttribute(getAttr(side), String(collapsed));
+	} else {
+		// Right sidebar: default to collapsed, always set attribute explicitly
+		const collapsed = saved !== 'false';
+		document.documentElement.setAttribute(getAttr(side), String(collapsed));
 	}
 }
