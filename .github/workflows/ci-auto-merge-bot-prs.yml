@@ -79,18 +79,35 @@ jobs:
                         pull_number: prNumber,
                       });
 
-                      // Two-pass sanitizer:
-                      // Pass 1 (blocklist): strip known-dangerous Unicode — RTL overrides,
-                      //   zero-width chars, bidi embeddings, control characters.
-                      // Pass 2 (allowlist): strip anything not in the safe character set.
+                      // Three-pass sanitizer (English ASCII only):
+                      // Pass 1: reject non-ASCII entirely (Unicode homoglyphs, Arabic,
+                      //         Cyrillic, CJK, RTL overrides, zero-width, punycode xn--)
+                      // Pass 2 (blocklist): strip known-dangerous control characters
+                      // Pass 3 (allowlist): strip anything not in the safe ASCII set
                       const sanitize = (s) => {
-                        const stripped = s.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u2028-\u202F\u2060-\u206F\uFEFF\uFFF0-\uFFFF]/g, '');
+                        const asciiOnly = s.replace(/[^\x20-\x7E]/g, '');
+                        const stripped = asciiOnly.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
                         return stripped.replace(/[^a-zA-Z0-9\-_.\/@: ()]/g, '');
                       };
 
                       // Sanitize and verify every field — reject if ANY field
-                      // contained characters that were stripped.
+                      // contained characters that were stripped. Also reject punycode.
                       const verifiedSanitize = (raw, fieldName) => {
+                        // Reject punycode / IDN attacks
+                        if (/xn--/i.test(raw)) {
+                          core.setFailed(
+                            `Field '${fieldName}' contains punycode/IDN pattern (xn--) — aborting.`
+                          );
+                          return null;
+                        }
+                        // Reject any non-ASCII (homoglyphs, RTL, zero-width, etc.)
+                        if (/[^\x20-\x7E]/.test(raw)) {
+                          core.setFailed(
+                            `Field '${fieldName}' contains non-ASCII characters — only English ASCII allowed. ` +
+                            `Raw bytes: ${JSON.stringify(raw)}`
+                          );
+                          return null;
+                        }
                         const clean = sanitize(raw);
                         if (clean !== raw) {
                           core.setFailed(
