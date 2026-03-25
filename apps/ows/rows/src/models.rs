@@ -199,16 +199,21 @@ pub struct LoginResult {
 }
 
 /// Zone instance info from GetZoneInstancesForWorldServer
+/// PascalCase matches UE's FZoneInstance UPROPERTY names for JsonArrayToUStruct.
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "PascalCase")]
 pub struct ZoneInstance {
     #[sqlx(rename = "customerguid")]
+    #[serde(rename = "CustomerGUID")]
     pub customer_guid: Uuid,
     #[sqlx(rename = "mapinstanceid")]
+    #[serde(rename = "MapInstanceID")]
     pub map_instance_id: i32,
     #[sqlx(rename = "worldserverid")]
+    #[serde(rename = "WorldServerID")]
     pub world_server_id: i32,
     #[sqlx(rename = "mapid")]
+    #[serde(rename = "MapID")]
     pub map_id: i32,
     pub port: i32,
     pub status: i32,
@@ -255,7 +260,7 @@ pub struct JoinMapResult {
 
 /// Global data key-value pair
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "PascalCase")]
 pub struct GlobalData {
     pub global_data_key: String,
     pub global_data_value: Option<String>,
@@ -263,7 +268,7 @@ pub struct GlobalData {
 
 /// Custom character data
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "PascalCase")]
 pub struct CustomCharacterData {
     pub custom_field_name: String,
     pub field_value: Option<String>,
@@ -271,10 +276,11 @@ pub struct CustomCharacterData {
 
 /// Character ability
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "PascalCase")]
 pub struct CharacterAbility {
     pub ability_name: String,
     pub ability_level: i32,
+    #[serde(rename = "CharHasAbilitiesCustomJSON")]
     pub custom_json: Option<String>,
 }
 
@@ -286,46 +292,53 @@ pub struct CustomDataRows {
 
 /// Ability bar
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "PascalCase")]
 pub struct AbilityBar {
+    #[serde(rename = "CharAbilityBarID")]
     pub char_ability_bar_id: i32,
     pub ability_bar_name: String,
     pub max_number_of_slots: i32,
     pub number_of_unlocked_slots: i32,
+    #[serde(rename = "CharAbilityBarsCustomJSON")]
     pub custom_json: Option<String>,
 }
 
 /// Ability bar with abilities
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "PascalCase")]
 pub struct AbilityBarAbility {
+    #[serde(rename = "CharAbilityBarID")]
     pub char_ability_bar_id: i32,
     pub ability_bar_name: String,
     pub ability_name: String,
     pub ability_level: i32,
     pub in_slot_number: i32,
+    #[serde(rename = "CharAbilityBarAbilitiesCustomJSON")]
     pub custom_json: Option<String>,
 }
 
 /// Server instance info from GetZoneInstance / GetServerInstanceFromPort
+/// PascalCase matches UE's FGetServerInstanceFromPort UPROPERTY names.
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "PascalCase")]
 pub struct ServerInstanceInfo {
     pub map_name: String,
     pub zone_name: Option<String>,
     pub world_comp_contains_filter: Option<String>,
     pub world_comp_list_filter: Option<String>,
+    #[serde(rename = "MapInstanceID")]
     pub map_instance_id: i32,
     pub status: i32,
     pub max_number_of_instances: i32,
     pub active_start_time: Option<NaiveDateTime>,
     pub server_status: i16,
+    #[serde(rename = "InternalServerIP")]
     pub internal_server_ip: Option<String>,
 }
 
 /// Character online/offline status
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "PascalCase")]
 pub struct CharacterStatus {
     pub char_name: String,
     pub map_name: Option<String>,
