@@ -2,7 +2,7 @@
 //! issues, and pull request embeds powered by the guild's GitHub PAT.
 
 use askama::Template;
-use jedi::entity::github::GitHubClient;
+use jedi::entity::github::{CreateIssueRequest, GitHubClient, UpdateIssueRequest};
 use tracing::{info, warn};
 
 use crate::discord::bot::{Context, Error};
@@ -87,7 +87,13 @@ fn parse_label_color(labels: &[jedi::entity::github::GitHubLabel]) -> Option<u32
         "pulls",
         "repo",
         "commits",
-        "view"
+        "view",
+        "create",
+        "close",
+        "reopen",
+        "comment",
+        "assign",
+        "unassign"
     )
 )]
 pub async fn github(_ctx: Context<'_>) -> Result<(), Error> {
@@ -843,5 +849,340 @@ fn truncate(s: &str, max: usize) -> String {
         s.to_string()
     } else {
         format!("{}…", &s[..max - 1])
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Write Commands (Admin / Board tier)
+// ═══════════════════════════════════════════════════════════════════
+
+// ── /github create ──────────────────────────────────────────────────
+
+/// Create a new issue.
+#[poise::command(slash_command)]
+async fn create(
+    ctx: Context<'_>,
+    #[description = "Issue title"] title: String,
+    #[description = "Issue body (optional)"] body: Option<String>,
+    #[description = "Comma-separated labels (optional)"] labels: Option<String>,
+    #[description = "Issue type: Bug, Feature, or Task (optional)"] issue_type: Option<String>,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
+) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Admin).await? {
+        return Ok(());
+    }
+    ctx.defer().await?;
+
+    match tokio::time::timeout(COMMAND_TIMEOUT, async {
+        let gh = get_github_client(ctx).await?;
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
+        let full_name = format!("{}/{}", owner, repo_name);
+
+        let label_list: Vec<String> = labels
+            .as_deref()
+            .unwrap_or("")
+            .split(',')
+            .map(|s| s.trim().to_owned())
+            .filter(|s| !s.is_empty())
+            .collect();
+
+        let req = CreateIssueRequest {
+            title: title.clone(),
+            body,
+            labels: label_list,
+            assignees: vec![],
+            issue_type,
+        };
+
+        match gh.create_issue(&owner, &repo_name, &req).await {
+            Ok(issue) => {
+                info!(
+                    user = %ctx.author().name,
+                    repo = full_name,
+                    issue = issue.number,
+                    "Issue created via Discord"
+                );
+
+                let embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!(
+                        "Created #{} — {}",
+                        issue.number,
+                        truncate(&issue.title, 60)
+                    ))
+                    .url(&issue.html_url)
+                    .description(format!("Issue created in `{full_name}`"))
+                    .color(0x238636);
+
+                ctx.send(poise::CreateReply::default().embed(embed))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            Err(e) => {
+                warn!(error = %e, repo = full_name, "Failed to create issue");
+                Err(format!("Failed to create issue in `{full_name}`: {e}"))
+            }
+        }
+    })
+    .await
+    {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(msg)) => send_error(ctx, &msg).await,
+        Err(_) => send_error(ctx, "The request timed out — please try again.").await,
+    }
+}
+
+// ── /github close ───────────────────────────────────────────────────
+
+/// Close an issue or pull request.
+#[poise::command(slash_command)]
+async fn close(
+    ctx: Context<'_>,
+    #[description = "Issue or PR number"] number: u64,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
+) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Admin).await? {
+        return Ok(());
+    }
+    ctx.defer().await?;
+
+    match tokio::time::timeout(COMMAND_TIMEOUT, async {
+        let gh = get_github_client(ctx).await?;
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
+        let full_name = format!("{}/{}", owner, repo_name);
+
+        let req = UpdateIssueRequest {
+            state: Some("closed".to_owned()),
+            ..Default::default()
+        };
+
+        match gh.update_issue(&owner, &repo_name, number, &req).await {
+            Ok(_) => {
+                ctx.data()
+                    .app
+                    .github_cache
+                    .invalidate_issue(&owner, &repo_name, number);
+                info!(user = %ctx.author().name, issue = number, "Issue closed via Discord");
+
+                let embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!("Closed #{number}"))
+                    .description(format!("Issue closed in `{full_name}`"))
+                    .color(0x8b949e);
+
+                ctx.send(poise::CreateReply::default().embed(embed))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            Err(e) => Err(format!("Failed to close #{number}: {e}")),
+        }
+    })
+    .await
+    {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(msg)) => send_error(ctx, &msg).await,
+        Err(_) => send_error(ctx, "The request timed out — please try again.").await,
+    }
+}
+
+// ── /github reopen ──────────────────────────────────────────────────
+
+/// Reopen a closed issue or pull request.
+#[poise::command(slash_command)]
+async fn reopen(
+    ctx: Context<'_>,
+    #[description = "Issue or PR number"] number: u64,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
+) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Admin).await? {
+        return Ok(());
+    }
+    ctx.defer().await?;
+
+    match tokio::time::timeout(COMMAND_TIMEOUT, async {
+        let gh = get_github_client(ctx).await?;
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
+        let full_name = format!("{}/{}", owner, repo_name);
+
+        let req = UpdateIssueRequest {
+            state: Some("open".to_owned()),
+            ..Default::default()
+        };
+
+        match gh.update_issue(&owner, &repo_name, number, &req).await {
+            Ok(_) => {
+                ctx.data()
+                    .app
+                    .github_cache
+                    .invalidate_issue(&owner, &repo_name, number);
+                info!(user = %ctx.author().name, issue = number, "Issue reopened via Discord");
+
+                let embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!("Reopened #{number}"))
+                    .description(format!("Issue reopened in `{full_name}`"))
+                    .color(0x238636);
+
+                ctx.send(poise::CreateReply::default().embed(embed))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            Err(e) => Err(format!("Failed to reopen #{number}: {e}")),
+        }
+    })
+    .await
+    {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(msg)) => send_error(ctx, &msg).await,
+        Err(_) => send_error(ctx, "The request timed out — please try again.").await,
+    }
+}
+
+// ── /github comment ─────────────────────────────────────────────────
+
+/// Post a comment on an issue or pull request.
+#[poise::command(slash_command)]
+async fn comment(
+    ctx: Context<'_>,
+    #[description = "Issue or PR number"] number: u64,
+    #[description = "Comment text"] text: String,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
+) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Board).await? {
+        return Ok(());
+    }
+    ctx.defer().await?;
+
+    match tokio::time::timeout(COMMAND_TIMEOUT, async {
+        let gh = get_github_client(ctx).await?;
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
+        let full_name = format!("{}/{}", owner, repo_name);
+
+        // Prepend Discord author attribution
+        let comment_body = format!("**{}** (via Discord):\n\n{}", ctx.author().name, text);
+
+        match gh
+            .create_comment(&owner, &repo_name, number, &comment_body)
+            .await
+        {
+            Ok(c) => {
+                info!(
+                    user = %ctx.author().name,
+                    issue = number,
+                    comment_id = c.id,
+                    "Comment posted via Discord"
+                );
+
+                let embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!("Commented on #{number}"))
+                    .url(&c.html_url)
+                    .description(truncate(&text, 200))
+                    .color(0x58a6ff);
+
+                ctx.send(poise::CreateReply::default().embed(embed))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            Err(e) => Err(format!("Failed to comment on #{number}: {e}")),
+        }
+    })
+    .await
+    {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(msg)) => send_error(ctx, &msg).await,
+        Err(_) => send_error(ctx, "The request timed out — please try again.").await,
+    }
+}
+
+// ── /github assign ──────────────────────────────────────────────────
+
+/// Assign a user to an issue.
+#[poise::command(slash_command)]
+async fn assign(
+    ctx: Context<'_>,
+    #[description = "Issue or PR number"] number: u64,
+    #[description = "GitHub username to assign"] username: String,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
+) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Board).await? {
+        return Ok(());
+    }
+    ctx.defer().await?;
+
+    match tokio::time::timeout(COMMAND_TIMEOUT, async {
+        let gh = get_github_client(ctx).await?;
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
+        let full_name = format!("{}/{}", owner, repo_name);
+
+        match gh.add_assignees(&owner, &repo_name, number, &[username.as_str()]).await {
+            Ok(_) => {
+                ctx.data().app.github_cache.invalidate_issue(&owner, &repo_name, number);
+                info!(user = %ctx.author().name, issue = number, assignee = %username, "Assignee added via Discord");
+
+                let embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!("Assigned `{username}` to #{number}"))
+                    .description(format!("in `{full_name}`"))
+                    .color(0x58a6ff);
+
+                ctx.send(poise::CreateReply::default().embed(embed))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            Err(e) => Err(format!("Failed to assign `{username}` to #{number}: {e}")),
+        }
+    })
+    .await
+    {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(msg)) => send_error(ctx, &msg).await,
+        Err(_) => send_error(ctx, "The request timed out — please try again.").await,
+    }
+}
+
+// ── /github unassign ────────────────────────────────────────────────
+
+/// Remove a user from an issue.
+#[poise::command(slash_command)]
+async fn unassign(
+    ctx: Context<'_>,
+    #[description = "Issue or PR number"] number: u64,
+    #[description = "GitHub username to remove"] username: String,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
+) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Board).await? {
+        return Ok(());
+    }
+    ctx.defer().await?;
+
+    match tokio::time::timeout(COMMAND_TIMEOUT, async {
+        let gh = get_github_client(ctx).await?;
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
+        let full_name = format!("{}/{}", owner, repo_name);
+
+        match gh.remove_assignees(&owner, &repo_name, number, &[username.as_str()]).await {
+            Ok(_) => {
+                ctx.data().app.github_cache.invalidate_issue(&owner, &repo_name, number);
+                info!(user = %ctx.author().name, issue = number, assignee = %username, "Assignee removed via Discord");
+
+                let embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!("Unassigned `{username}` from #{number}"))
+                    .description(format!("in `{full_name}`"))
+                    .color(0x8b949e);
+
+                ctx.send(poise::CreateReply::default().embed(embed))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            Err(e) => Err(format!("Failed to unassign `{username}` from #{number}: {e}")),
+        }
+    })
+    .await
+    {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(msg)) => send_error(ctx, &msg).await,
+        Err(_) => send_error(ctx, "The request timed out — please try again.").await,
     }
 }
