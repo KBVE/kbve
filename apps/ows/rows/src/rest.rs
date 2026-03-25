@@ -576,9 +576,13 @@ struct RegisterLauncherWrapper {
 struct RegisterLauncherPayload {
     #[serde(alias = "launcherGUID", alias = "LauncherGUID")]
     launcher_guid: String,
+    #[serde(alias = "serverIP")]
     server_ip: String,
+    #[serde(alias = "maxNumberOfInstances")]
     max_number_of_instances: i32,
+    #[serde(alias = "internalServerIP")]
     internal_server_ip: String,
+    #[serde(alias = "startingInstancePort")]
     starting_instance_port: i32,
 }
 
