@@ -71,7 +71,81 @@ pub struct DepartmentSection {
     pub tasks: Vec<TaskRow>,
 }
 
+// ── Priority Levels ──────────────────────────────────────────────────
+
+/// Priority level (0-6) derived from `priority:*` labels.
+pub fn priority_from_labels(labels: &[jedi::entity::github::GitHubLabel]) -> u8 {
+    for label in labels {
+        let name = label.name.to_lowercase();
+        if name == "priority:emergency" {
+            return 6;
+        }
+        if name == "priority:blocker" {
+            return 5;
+        }
+        if name == "priority:critical" {
+            return 4;
+        }
+        if name == "priority:high" {
+            return 3;
+        }
+        if name == "priority:medium" {
+            return 2;
+        }
+        if name == "priority:low" {
+            return 1;
+        }
+    }
+    0
+}
+
+/// Get the hex color for a priority level.
+pub fn priority_level_color(level: u8) -> &'static str {
+    match level {
+        1 => "#2ecc71",
+        2 => "#f1c40f",
+        3 => "#e67e22",
+        4 => "#e74c3c",
+        5 => "#9b59b6",
+        6 => "#c0392b",
+        _ => "#30363d",
+    }
+}
+
+/// Get the label name for a priority level.
+pub fn priority_level_label(level: u8) -> &'static str {
+    match level {
+        1 => "priority:low",
+        2 => "priority:medium",
+        3 => "priority:high",
+        4 => "priority:critical",
+        5 => "priority:blocker",
+        6 => "priority:emergency",
+        _ => "",
+    }
+}
+
 // ── Templates ───────────────────────────────────────────────────────
+
+#[derive(Template)]
+#[template(path = "github/issue_detail_card.svg")]
+pub struct IssueDetailCardTemplate {
+    pub number: u64,
+    pub title: String,
+    pub title_x: u32,
+    pub state_color: String,
+    pub state_label: String,
+    pub is_pr: bool,
+    pub author: String,
+    pub created_at: String,
+    pub updated_at: String,
+    pub comments: u64,
+    pub labels: Vec<LabelBadge>,
+    pub assignees: Vec<String>,
+    pub body_lines: Vec<String>,
+    pub priority_level: u8,
+    pub priority_color: String,
+}
 
 #[derive(Template)]
 #[template(path = "github/issues_card.svg")]
@@ -413,6 +487,88 @@ pub fn render_taskboard_card_blocking(
         .render()
         .map_err(|e| format!("Taskboard SVG template: {e}"))?;
     kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Taskboard PNG render: {e}"))
+}
+
+pub fn build_issue_detail_card(issue: &GitHubIssue) -> IssueDetailCardTemplate {
+    let is_pr = issue.is_pull_request();
+    let state_color = match issue.state.as_str() {
+        "open" => "#238636",
+        "closed" => "#8b949e",
+        _ => "#8b949e",
+    };
+    let state_label = issue.state.to_uppercase();
+    let title_x: u32 = if is_pr { 100 } else { 80 };
+
+    let priority = priority_from_labels(&issue.labels);
+    let p_color = priority_level_color(priority);
+
+    let labels: Vec<LabelBadge> = issue
+        .labels
+        .iter()
+        .filter(|l| !l.name.starts_with("priority:"))
+        .take(8)
+        .map(|l| {
+            let bg = l
+                .color
+                .as_deref()
+                .map(|c| format!("#{c}"))
+                .unwrap_or_else(|| "#30363d".to_owned());
+            let text = contrast_color(l.color.as_deref().unwrap_or("30363d"));
+            LabelBadge {
+                name: truncate(&l.name, 12),
+                bg_color: bg,
+                text_color: text,
+            }
+        })
+        .collect();
+
+    let assignees: Vec<String> = issue
+        .assignees
+        .iter()
+        .take(4)
+        .map(|a| a.login.clone())
+        .collect();
+
+    let body_text = issue.body.as_deref().unwrap_or("");
+    let body_lines: Vec<String> = body_text
+        .lines()
+        .filter(|l| !l.trim().is_empty())
+        .take(5)
+        .map(|l| truncate(l.trim(), 90))
+        .collect();
+
+    // Format dates to just YYYY-MM-DD
+    let created_short = issue.created_at.get(..10).unwrap_or(&issue.created_at);
+    let updated_short = issue.updated_at.get(..10).unwrap_or(&issue.updated_at);
+
+    IssueDetailCardTemplate {
+        number: issue.number,
+        title: truncate(&issue.title, 60),
+        title_x,
+        state_color: state_color.to_owned(),
+        state_label,
+        is_pr,
+        author: issue.user.login.clone(),
+        created_at: created_short.to_owned(),
+        updated_at: updated_short.to_owned(),
+        comments: issue.comments,
+        labels,
+        assignees,
+        body_lines,
+        priority_level: priority,
+        priority_color: p_color.to_owned(),
+    }
+}
+
+pub fn render_issue_detail_card_blocking(
+    issue: &GitHubIssue,
+    fontdb: &kbve::FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_issue_detail_card(issue);
+    let svg = template
+        .render()
+        .map_err(|e| format!("Issue detail SVG template: {e}"))?;
+    kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Issue detail PNG render: {e}"))
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────

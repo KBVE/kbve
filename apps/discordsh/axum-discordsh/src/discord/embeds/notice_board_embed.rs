@@ -290,6 +290,8 @@ mod tests {
             html_url: format!("https://github.com/test/repo/issues/{number}"),
             pull_request: None,
             assignees: Vec::new(),
+            body: None,
+            comments: 0,
         }
     }
 

@@ -20,6 +20,10 @@ pub struct GitHubIssue {
     pub pull_request: Option<serde_json::Value>,
     #[serde(default)]
     pub assignees: Vec<GitHubUser>,
+    #[serde(default)]
+    pub body: Option<String>,
+    #[serde(default)]
+    pub comments: u64,
 }
 
 impl GitHubIssue {

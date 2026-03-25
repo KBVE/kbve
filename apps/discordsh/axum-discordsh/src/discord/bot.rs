@@ -82,6 +82,10 @@ async fn event_handler(
                     .map(|_| ())
             } else if custom_id.starts_with("dng|") {
                 super::game::router::handle_game_component(component, ctx, data).await
+            } else if custom_id.starts_with("gh|") {
+                components::github_components::handle_github_component(ctx, component, &data.app)
+                    .await;
+                Ok(())
             } else {
                 Ok(())
             };
