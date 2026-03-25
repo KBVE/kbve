@@ -3,21 +3,25 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// Character — maps to the OWS Characters table and GetCharByCharName stored proc.
+/// Uses PascalCase serde renames to match UE's case-sensitive GetStringField calls.
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "PascalCase")]
 pub struct Character {
     #[sqlx(rename = "customerguid")]
+    #[serde(rename = "CustomerGUID")]
     pub customer_guid: Uuid,
     #[sqlx(rename = "characterid")]
+    #[serde(rename = "CharacterID")]
     pub character_id: i32,
     #[sqlx(rename = "userguid")]
+    #[serde(rename = "UserGUID")]
     pub user_guid: Option<Uuid>,
     pub email: String,
     #[sqlx(rename = "charname")]
-    #[serde(rename = "characterName")]
+    #[serde(rename = "CharacterName")]
     pub char_name: String,
     #[sqlx(rename = "mapname")]
-    #[serde(rename = "zoneName")]
+    #[serde(rename = "ZoneName")]
     pub map_name: Option<String>,
     pub x: f64,
     pub y: f64,
@@ -39,7 +43,7 @@ pub struct Character {
     pub gold: i32,
     pub score: i32,
     #[sqlx(rename = "characterlevel")]
-    #[serde(rename = "level")]
+    #[serde(rename = "Level")]
     pub character_level: i16,
     pub gender: i16,
     pub xp: i32,
@@ -106,7 +110,7 @@ pub struct Character {
     #[sqlx(rename = "ismoderator")]
     pub is_moderator: bool,
     #[sqlx(rename = "classid")]
-    #[serde(rename = "className")]
+    #[serde(rename = "ClassName")]
     pub class_id: Option<i32>,
     #[sqlx(rename = "createdate")]
     pub create_date: Option<NaiveDateTime>,
@@ -226,13 +230,20 @@ pub struct ZoneInstance {
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct JoinMapResult {
+    #[serde(rename = "serverip")]
     pub server_ip: String,
+    #[serde(rename = "worldserverip")]
     pub world_server_ip: String,
+    #[serde(rename = "worldserverport")]
     pub world_server_port: i32,
     pub port: i32,
+    #[serde(rename = "mapinstanceid")]
     pub map_instance_id: i32,
+    #[serde(rename = "mapnametostart")]
     pub map_name_to_start: String,
+    #[serde(rename = "worldserverid")]
     pub world_server_id: i32,
+    #[serde(rename = "mapinstancestatus")]
     pub map_instance_status: i32,
     pub need_to_startup_map: bool,
     pub enable_auto_loopback: bool,
@@ -320,15 +331,20 @@ pub struct CharacterStatus {
     pub is_online: bool,
 }
 
-/// Player group membership
+/// Player group membership — PascalCase to match UE's case-sensitive GetNumberField/GetStringField
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
-#[serde(rename_all = "camelCase")]
 pub struct PlayerGroupMembership {
+    #[serde(rename = "PlayerGroupID")]
     pub player_group_id: i32,
+    #[serde(skip_serializing)]
     pub customer_guid: Uuid,
+    #[serde(rename = "PlayerGroupName")]
     pub player_group_name: Option<String>,
+    #[serde(rename = "PlayerGroupTypeID")]
     pub player_group_type_id: i32,
+    #[serde(rename = "ReadyState")]
     pub ready_state: i32,
+    #[serde(rename = "DateAdded")]
     pub create_date: Option<NaiveDateTime>,
 }
 

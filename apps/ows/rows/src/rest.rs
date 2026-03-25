@@ -784,17 +784,26 @@ async fn get_player_groups(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<GetPlayerGroupsDto>,
-) -> ApiResult<Vec<crate::models::PlayerGroupMembership>> {
+) -> Json<serde_json::Value> {
     let customer_guid = extract_customer_guid(&headers);
-    let groups = hs
+    match hs
         .svc
         .get_player_groups_character_is_in(
             customer_guid,
             &body.character_name,
             body.player_group_type_id,
         )
-        .await?;
-    Ok(Json(groups))
+        .await
+    {
+        Ok(groups) => Json(serde_json::json!({
+            "success": "true",
+            "rows": groups,
+        })),
+        Err(e) => Json(serde_json::json!({
+            "success": "false",
+            "errmsg": e.to_string(),
+        })),
+    }
 }
 
 async fn get_default_custom_data(
