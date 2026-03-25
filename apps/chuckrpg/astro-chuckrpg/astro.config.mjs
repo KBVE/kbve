@@ -58,6 +58,10 @@ export default defineConfig({
 					label: 'Game',
 					autogenerate: { directory: 'game' },
 				},
+				{
+					label: 'Account',
+					autogenerate: { directory: 'auth' },
+				},
 			],
 		}),
 		react(),
