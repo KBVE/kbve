@@ -152,10 +152,6 @@ COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
 # Application source (most frequently changing — placed last for cache)
 COPY apps/chuckrpg/axum-chuckrpg apps/chuckrpg/axum-chuckrpg
 
-# Copy Askama templates, then overwrite with Astro-generated versions
-COPY apps/chuckrpg/axum-chuckrpg/templates/askama /app/apps/chuckrpg/axum-chuckrpg/templates/askama
-RUN cp -a /app/apps/chuckrpg/axum-chuckrpg/templates/dist/askama/. /app/apps/chuckrpg/axum-chuckrpg/templates/askama/
-
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     cargo build --release -p axum-chuckrpg && \
@@ -214,7 +210,6 @@ WORKDIR /app
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-chuckrpg /app/axum-chuckrpg
 
 COPY --from=builder --chown=10001:10001 /app/apps/chuckrpg/axum-chuckrpg/templates/dist /app/templates/dist
-COPY --from=builder --chown=10001:10001 /app/apps/chuckrpg/axum-chuckrpg/templates/askama /app/templates/askama
 
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:10000,muzzy_decay_ms:10000,lg_tcache_max:32,oversize_threshold:4194304"
