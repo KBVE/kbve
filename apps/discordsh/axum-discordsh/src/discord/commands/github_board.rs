@@ -221,11 +221,41 @@ async fn taskboard(
                     "Task board generated"
                 );
 
-                let repo_url = format!("https://github.com/{}", full_name);
-                let embed = build_task_board_embed(&tasks, phase_title, "", &repo_url);
-                ctx.send(poise::CreateReply::default().embed(embed))
-                    .await
-                    .map_err(|e| e.to_string())?;
+                let fontdb = ctx.data().app.fontdb.clone();
+                let card_template =
+                    github_cards::build_taskboard_card(&tasks, &full_name, phase_title);
+
+                let png_result = tokio::task::spawn_blocking(move || {
+                    let svg = card_template
+                        .render()
+                        .map_err(|e| format!("Taskboard SVG template: {e}"))?;
+                    kbve::render_svg_to_png(&svg, &fontdb)
+                        .map_err(|e| format!("Taskboard PNG render: {e}"))
+                })
+                .await
+                .map_err(|e| format!("Task panicked: {e}"))?;
+
+                let mut reply = poise::CreateReply::default();
+                match png_result {
+                    Ok(png_bytes) => {
+                        let attachment = poise::serenity_prelude::CreateAttachment::bytes(
+                            png_bytes,
+                            "taskboard.png",
+                        );
+                        let embed = poise::serenity_prelude::CreateEmbed::new()
+                            .title(format!("Task Board — {}", full_name))
+                            .image("attachment://taskboard.png")
+                            .color(0x3498DB);
+                        reply = reply.embed(embed).attachment(attachment);
+                    }
+                    Err(e) => {
+                        warn!(error = %e, "Taskboard card render failed, falling back to text");
+                        let repo_url = format!("https://github.com/{}", full_name);
+                        let embed = build_task_board_embed(&tasks, phase_title, "", &repo_url);
+                        reply = reply.embed(embed);
+                    }
+                }
+                ctx.send(reply).await.map_err(|e| e.to_string())?;
                 Ok(())
             }
             Err(e) => {
@@ -377,41 +407,49 @@ async fn pulls(
             .await
         {
             Ok(pulls) => {
-                let mut embed = poise::serenity_prelude::CreateEmbed::new()
-                    .title(format!("Open PRs — {}", full_name))
-                    .color(0x8957E5);
+                let fontdb = ctx.data().app.fontdb.clone();
+                let pulls_clone = pulls.clone();
+                let repo_clone = full_name.clone();
 
-                if pulls.is_empty() {
-                    embed = embed.description("No open pull requests!");
-                } else {
-                    for pr in &pulls {
-                        let draft = if pr.draft { " [DRAFT]" } else { "" };
-                        let labels = pr
-                            .labels
-                            .iter()
-                            .map(|l| format!("`{}`", l.name))
-                            .collect::<Vec<_>>()
-                            .join(" ");
-                        let label_str = if labels.is_empty() {
-                            String::new()
-                        } else {
-                            format!("\n{}", labels)
-                        };
-                        let assignees = format_assignees(&pr.assignees);
-                        embed = embed.field(
-                            format!("#{} {}{}", pr.number, truncate(&pr.title, 70), draft),
-                            format!(
-                                "by `{}` → `{}`{assignees} | [view]({}){label_str}",
-                                pr.user.login, pr.head.ref_name, pr.html_url
-                            ),
-                            false,
+                let png_result = tokio::task::spawn_blocking(move || {
+                    github_cards::render_pulls_card_blocking(&pulls_clone, &repo_clone, &fontdb)
+                })
+                .await
+                .map_err(|e| format!("Task panicked: {e}"))?;
+
+                let mut reply = poise::CreateReply::default();
+                match png_result {
+                    Ok(png_bytes) => {
+                        let attachment = poise::serenity_prelude::CreateAttachment::bytes(
+                            png_bytes,
+                            "pulls.png",
                         );
+                        let embed = poise::serenity_prelude::CreateEmbed::new()
+                            .title(format!("Open PRs — {}", full_name))
+                            .image("attachment://pulls.png")
+                            .color(0x8957E5);
+                        reply = reply.embed(embed).attachment(attachment);
+                    }
+                    Err(e) => {
+                        warn!(error = %e, "Pulls card render failed, falling back to text");
+                        let mut embed = poise::serenity_prelude::CreateEmbed::new()
+                            .title(format!("Open PRs — {}", full_name))
+                            .color(0x8957E5);
+                        if pulls.is_empty() {
+                            embed = embed.description("No open pull requests!");
+                        } else {
+                            for pr in &pulls {
+                                embed = embed.field(
+                                    format!("#{} {}", pr.number, truncate(&pr.title, 70)),
+                                    format!("by `{}` | [view]({})", pr.user.login, pr.html_url),
+                                    false,
+                                );
+                            }
+                        }
+                        reply = reply.embed(embed);
                     }
                 }
-
-                ctx.send(poise::CreateReply::default().embed(embed))
-                    .await
-                    .map_err(|e| e.to_string())?;
+                ctx.send(reply).await.map_err(|e| e.to_string())?;
                 Ok(())
             }
             Err(e) => {
@@ -535,30 +573,51 @@ async fn commits(
 
         match gh.list_commits(&owner, &repo_name, None, Some(count)).await {
             Ok(commits) => {
-                let mut embed = poise::serenity_prelude::CreateEmbed::new()
-                    .title(format!("Recent Commits — {}", full_name))
-                    .color(0x2EA043);
+                let fontdb = ctx.data().app.fontdb.clone();
+                let commits_clone = commits.clone();
+                let repo_clone = full_name.clone();
 
-                if commits.is_empty() {
-                    embed = embed.description("No commits found.");
-                } else {
-                    for c in &commits {
-                        let first_line = c.commit.message.lines().next().unwrap_or("");
-                        let short_sha = &c.sha[..7.min(c.sha.len())];
-                        embed = embed.field(
-                            truncate(first_line, 80),
-                            format!(
-                                "by `{}` | `{}` | [view]({})",
-                                c.commit.author.name, short_sha, c.html_url
-                            ),
-                            false,
+                let png_result = tokio::task::spawn_blocking(move || {
+                    github_cards::render_commits_card_blocking(&commits_clone, &repo_clone, &fontdb)
+                })
+                .await
+                .map_err(|e| format!("Task panicked: {e}"))?;
+
+                let mut reply = poise::CreateReply::default();
+                match png_result {
+                    Ok(png_bytes) => {
+                        let attachment = poise::serenity_prelude::CreateAttachment::bytes(
+                            png_bytes,
+                            "commits.png",
                         );
+                        let embed = poise::serenity_prelude::CreateEmbed::new()
+                            .title(format!("Recent Commits — {}", full_name))
+                            .image("attachment://commits.png")
+                            .color(0x2EA043);
+                        reply = reply.embed(embed).attachment(attachment);
+                    }
+                    Err(e) => {
+                        warn!(error = %e, "Commits card render failed, falling back to text");
+                        let mut embed = poise::serenity_prelude::CreateEmbed::new()
+                            .title(format!("Recent Commits — {}", full_name))
+                            .color(0x2EA043);
+                        if commits.is_empty() {
+                            embed = embed.description("No commits found.");
+                        } else {
+                            for c in &commits {
+                                let first_line = c.commit.message.lines().next().unwrap_or("");
+                                let short_sha = &c.sha[..7.min(c.sha.len())];
+                                embed = embed.field(
+                                    truncate(first_line, 80),
+                                    format!("by `{}` | `{}`", c.commit.author.name, short_sha),
+                                    false,
+                                );
+                            }
+                        }
+                        reply = reply.embed(embed);
                     }
                 }
-
-                ctx.send(poise::CreateReply::default().embed(embed))
-                    .await
-                    .map_err(|e| e.to_string())?;
+                ctx.send(reply).await.map_err(|e| e.to_string())?;
                 Ok(())
             }
             Err(e) => {

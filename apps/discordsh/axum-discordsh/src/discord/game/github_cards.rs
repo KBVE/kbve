@@ -4,9 +4,10 @@
 //! Askama SVG template → resvg PNG rendering via `spawn_blocking`.
 
 use askama::Template;
-use jedi::entity::github::{GitHubIssue, GitHubRepo};
+use jedi::entity::github::{GitHubCommit, GitHubIssue, GitHubPull, GitHubRepo};
 
 use crate::discord::embeds::notice_board_embed::NoticeItem;
+use crate::discord::embeds::task_board_embed::TaskItem;
 
 // ── Display structs ─────────────────────────────────────────────────
 
@@ -34,6 +35,40 @@ pub struct NoticeRow {
     pub priority_label: String,
     pub stale_days: u64,
     pub reporter: String,
+}
+
+/// Row in the pulls card.
+pub struct PullRow {
+    pub number: u64,
+    pub title: String,
+    pub title_x: u32,
+    pub branch: String,
+    pub author: String,
+    pub is_draft: bool,
+    pub status_color: String,
+}
+
+/// Row in the commits card.
+pub struct CommitRow {
+    pub short_sha: String,
+    pub message: String,
+    pub author: String,
+}
+
+/// Task row within a department section.
+pub struct TaskRow {
+    pub number: u64,
+    pub title: String,
+    pub assignee: String,
+    pub status_color: String,
+}
+
+/// Department section in the taskboard card.
+pub struct DepartmentSection {
+    pub name: String,
+    pub open: usize,
+    pub total: usize,
+    pub tasks: Vec<TaskRow>,
 }
 
 // ── Templates ───────────────────────────────────────────────────────
@@ -65,6 +100,33 @@ pub struct NoticeboardCardTemplate {
     pub critical_count: usize,
     pub high_count: usize,
     pub header_color: String,
+}
+
+#[derive(Template)]
+#[template(path = "github/pulls_card.svg")]
+pub struct PullsCardTemplate {
+    pub repo_name: String,
+    pub pull_count: usize,
+    pub pulls: Vec<PullRow>,
+}
+
+#[derive(Template)]
+#[template(path = "github/commits_card.svg")]
+pub struct CommitsCardTemplate {
+    pub repo_name: String,
+    pub commit_count: usize,
+    pub commits: Vec<CommitRow>,
+}
+
+#[derive(Template)]
+#[template(path = "github/taskboard_card.svg")]
+pub struct TaskboardCardTemplate {
+    pub repo_name: String,
+    pub phase_title: String,
+    pub open_count: usize,
+    pub total_count: usize,
+    pub progress_width: u32,
+    pub departments: Vec<DepartmentSection>,
 }
 
 // ── Builders ────────────────────────────────────────────────────────
@@ -169,6 +231,116 @@ pub fn build_noticeboard_card(notices: &[NoticeItem], repo_name: &str) -> Notice
     }
 }
 
+pub fn build_pulls_card(pulls: &[GitHubPull], repo_name: &str) -> PullsCardTemplate {
+    let rows: Vec<PullRow> = pulls
+        .iter()
+        .take(10)
+        .map(|pr| {
+            let status_color = if pr.draft {
+                "#30363d".to_owned()
+            } else {
+                "#238636".to_owned()
+            };
+            PullRow {
+                number: pr.number,
+                title: truncate(&pr.title, 50),
+                title_x: if pr.draft { 116 } else { 72 },
+                branch: truncate(&pr.head.ref_name, 20),
+                author: pr.user.login.clone(),
+                is_draft: pr.draft,
+                status_color,
+            }
+        })
+        .collect();
+
+    PullsCardTemplate {
+        repo_name: repo_name.to_owned(),
+        pull_count: pulls.len(),
+        pulls: rows,
+    }
+}
+
+pub fn build_commits_card(commits: &[GitHubCommit], repo_name: &str) -> CommitsCardTemplate {
+    let rows: Vec<CommitRow> = commits
+        .iter()
+        .take(10)
+        .map(|c| {
+            let first_line = c.commit.message.lines().next().unwrap_or("");
+            CommitRow {
+                short_sha: c.sha[..7.min(c.sha.len())].to_owned(),
+                message: truncate(first_line, 60),
+                author: c.commit.author.name.clone(),
+            }
+        })
+        .collect();
+
+    CommitsCardTemplate {
+        repo_name: repo_name.to_owned(),
+        commit_count: commits.len(),
+        commits: rows,
+    }
+}
+
+pub fn build_taskboard_card(
+    tasks: &[TaskItem],
+    repo_name: &str,
+    phase_title: &str,
+) -> TaskboardCardTemplate {
+    use std::collections::BTreeMap;
+
+    let mut departments: BTreeMap<&str, Vec<&TaskItem>> = BTreeMap::new();
+    for task in tasks {
+        departments.entry(&task.department).or_default().push(task);
+    }
+
+    let total_count = tasks.len();
+    let open_count = tasks.iter().filter(|t| t.status.label() == "OPEN").count();
+    let closed_count = total_count - open_count;
+    let progress_width = if total_count > 0 {
+        ((closed_count as f32 / total_count as f32) * 768.0) as u32
+    } else {
+        0
+    };
+
+    let sections: Vec<DepartmentSection> = departments
+        .into_iter()
+        .take(6)
+        .map(|(name, items)| {
+            let dept_open = items.iter().filter(|t| t.status.label() == "OPEN").count();
+            let dept_total = items.len();
+            let task_rows: Vec<TaskRow> = items
+                .iter()
+                .take(3)
+                .map(|t| TaskRow {
+                    number: t.number,
+                    title: truncate(&t.title, 50),
+                    assignee: t.assignee.clone(),
+                    status_color: match t.status.label() {
+                        "OPEN" => "#238636".to_owned(),
+                        "CLOSED" => "#8b949e".to_owned(),
+                        _ => "#8957e5".to_owned(),
+                    },
+                })
+                .collect();
+            DepartmentSection {
+                name: name.to_owned(),
+                open: dept_open,
+                total: dept_total,
+                tasks: task_rows,
+            }
+        })
+        .collect();
+
+    TaskboardCardTemplate {
+        repo_name: repo_name.to_owned(),
+        phase_title: phase_title.to_owned(),
+        open_count,
+        total_count,
+        progress_width,
+        departments: sections,
+    }
+}
+
 // ── Blocking PNG renderers ──────────────────────────────────────────
 
 pub fn render_issues_card_blocking(
@@ -204,6 +376,43 @@ pub fn render_noticeboard_card_blocking(
         .render()
         .map_err(|e| format!("Noticeboard SVG template: {e}"))?;
     kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Noticeboard PNG render: {e}"))
+}
+
+pub fn render_pulls_card_blocking(
+    pulls: &[GitHubPull],
+    repo_name: &str,
+    fontdb: &kbve::FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_pulls_card(pulls, repo_name);
+    let svg = template
+        .render()
+        .map_err(|e| format!("Pulls SVG template: {e}"))?;
+    kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Pulls PNG render: {e}"))
+}
+
+pub fn render_commits_card_blocking(
+    commits: &[GitHubCommit],
+    repo_name: &str,
+    fontdb: &kbve::FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_commits_card(commits, repo_name);
+    let svg = template
+        .render()
+        .map_err(|e| format!("Commits SVG template: {e}"))?;
+    kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Commits PNG render: {e}"))
+}
+
+pub fn render_taskboard_card_blocking(
+    tasks: &[TaskItem],
+    repo_name: &str,
+    phase_title: &str,
+    fontdb: &kbve::FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_taskboard_card(tasks, repo_name, phase_title);
+    let svg = template
+        .render()
+        .map_err(|e| format!("Taskboard SVG template: {e}"))?;
+    kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Taskboard PNG render: {e}"))
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────
