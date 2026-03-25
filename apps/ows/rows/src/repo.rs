@@ -579,7 +579,9 @@ impl<'a> CharsRepo<'a> {
     }
 
     /// Default stat columns for character INSERT — all NOT NULL in the DB.
+    /// All NOT NULL columns that need defaults when creating a character.
     const CHAR_DEFAULTS: &'static str = "
+        x, y, z, rx, ry, rz,
         perception, acrobatics, climb, stealth, spirit, magic,
         teamnumber, thirst, hunger, gold, score, characterlevel,
         gender, xp, hitdie, wounds, size, weight,
@@ -597,9 +599,11 @@ impl<'a> CharsRepo<'a> {
         initiative, naturalarmor, physicalarmor, bonusarmor, forcearmor, magicarmor,
         resistance, reloadspeed, range, speed,
         silver, copper, freecurrency, premiumcurrency, fame, alignment,
-        isadmin, ismoderator";
+        defaultpawnclasspath, isinternalnetworktestuser, classid,
+        lastactivity, isadmin, ismoderator";
 
     const CHAR_ZEROS: &'static str = "
+        0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 1,
         0, 0, 0, 0, 1, 0,
@@ -617,7 +621,8 @@ impl<'a> CharsRepo<'a> {
         0, 0, 0, 0, 0, 0,
         0, 0, 0, 0,
         0, 0, 0, 0, 0, 0,
-        false, false";
+        '', false, 0,
+        NOW(), false, false";
 
     pub async fn create_character(
         &self,
