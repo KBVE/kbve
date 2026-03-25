@@ -110,7 +110,8 @@ jobs:
 
                   echo "Updated $FILE: $OLD_TAG → $VERSION"
 
-            - name: Create single atomic PR
+            - name: Commit and push atom branch
+              id: push
               env:
                   GITHUB_TOKEN: ${{ secrets.TRIGGER_PAT }}
               run: |
@@ -132,18 +133,36 @@ jobs:
 
                   if git diff --cached --quiet; then
                     echo "::notice::All files already at v${VERSION} — nothing to commit."
+                    echo "pushed=false" >> "$GITHUB_OUTPUT"
                     exit 0
                   fi
 
                   # Check if branch already exists (handle re-runs)
                   if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
                     echo "::notice::Branch $BRANCH already exists — skipping."
+                    echo "pushed=false" >> "$GITHUB_OUTPUT"
                     exit 0
                   fi
 
                   git checkout -b "$BRANCH"
                   git commit -m "chore(${APP}): post-publish sync to v${VERSION}"
                   git push -u origin "$BRANCH"
+
+                  echo "pushed=true" >> "$GITHUB_OUTPUT"
+                  echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+                  echo "app=$APP" >> "$GITHUB_OUTPUT"
+                  echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+            # PR creation uses GITHUB_TOKEN so the author is github-actions[bot],
+            # which allows the auto-merge bot to approve and merge it.
+            - name: Create PR and trigger auto-merge
+              if: steps.push.outputs.pushed == 'true'
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+              run: |
+                  BRANCH="${{ steps.push.outputs.branch }}"
+                  APP="${{ steps.push.outputs.app }}"
+                  VERSION="${{ steps.push.outputs.version }}"
 
                   CHANGED=$(git diff --name-only HEAD~1 | sed 's/^/- `/' | sed 's/$/`/')
                   BODY=$(cat <<PREOF
