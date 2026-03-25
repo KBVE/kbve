@@ -183,11 +183,11 @@ RUN apt-get update && apt-get install -y wget ca-certificates
 
 WORKDIR /tmp
 
-RUN wget https://go.dev/dl/go1.23.4.linux-amd64.tar.gz && \
-    tar -xvf go1.23.4.linux-amd64.tar.gz && \
-    mv go /usr/local
-
-RUN GOBIN=/usr/local/bin/ /usr/local/go/bin/go install github.com/canonical/chisel/cmd/chisel@latest
+# Install chisel from GitHub releases (avoids 200MB+ Go SDK + verbose tar extraction)
+ARG CHISEL_VERSION=1.1.0
+RUN wget -q "https://github.com/canonical/chisel/releases/download/v${CHISEL_VERSION}/chisel_v${CHISEL_VERSION}_linux_amd64.tar.gz" -O /tmp/chisel.tar.gz && \
+    tar -xzf /tmp/chisel.tar.gz -C /usr/local/bin chisel && \
+    rm /tmp/chisel.tar.gz
 
 WORKDIR /rootfs
 RUN chisel cut --release ubuntu-24.04 --root /rootfs \

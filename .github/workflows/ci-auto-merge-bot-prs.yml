@@ -179,10 +179,12 @@ jobs:
                       }
 
                       let blocked = [];
+                      // Shared identifier — set by whichever path matches
+                      let appName = '';
 
                       if (atomicMatch) {
                         // --- Path A: post-publish sync (manifest-validated) ---
-                        const appName = atomicMatch[1];
+                        appName = atomicMatch[1];
                         core.info(`[atomic] Extracted app name: '${appName}'`);
 
                         const manifestPath = '.github/ci-dispatch-manifest.json';
@@ -231,6 +233,7 @@ jobs:
                         };
 
                         const scope = deployMatch[1];
+                        appName = `deploy:${scope}`;
                         core.info(`[deploy] Extracted scope: '${scope}'`);
 
                         const allowedPrefix = deployAllowlist[scope];

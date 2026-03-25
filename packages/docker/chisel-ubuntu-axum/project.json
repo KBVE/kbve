@@ -1,0 +1,52 @@
+{
+	"name": "chisel-ubuntu-axum",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/docker/chisel-ubuntu-axum",
+	"targets": {
+		"container": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["npx nx run chisel-ubuntu-axum:containerx"]
+			},
+			"configurations": {
+				"local": {},
+				"production": {}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"options": {
+				"engine": "docker",
+				"context": "packages/docker/chisel-ubuntu-axum",
+				"file": "packages/docker/chisel-ubuntu-axum/Dockerfile",
+				"platforms": ["linux/amd64"],
+				"load": true,
+				"push": false,
+				"tags": ["ghcr.io/kbve/chisel-ubuntu-axum:24.04"]
+			},
+			"configurations": {
+				"local": {
+					"tags": ["ghcr.io/kbve/chisel-ubuntu-axum:24.04"]
+				},
+				"production": {
+					"tags": [
+						"ghcr.io/kbve/chisel-ubuntu-axum:24.04",
+						"ghcr.io/kbve/chisel-ubuntu-axum:latest"
+					],
+					"push": true,
+					"metadata": {
+						"images": ["ghcr.io/kbve/chisel-ubuntu-axum"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/chisel-ubuntu-axum:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/chisel-ubuntu-axum:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	},
+	"tags": ["docker", "base-image", "chisel"]
+}
