@@ -59,15 +59,22 @@ Discord bot + HTTP server for the KBVE ecosystem. Combines a [poise](https://git
 
 ### GitHub Command Permissions
 
-Controls who can use `/github` subcommands and how often.
+Commands are organized into three permission tiers with sensible defaults. Each tier can be overridden via env var, or set to `NONE` to make it unrestricted. Discord Administrators bypass all tier checks.
 
-| Variable                      | Required | Default | Description                                                                                           |
-| ----------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------- |
-| `GITHUB_REQUIRED_PERMISSIONS` | No       | (none)  | Comma-separated Discord permission flags required to use `/github` commands (e.g. `MANAGE_MESSAGES`). |
-| `GITHUB_CMD_RATE_LIMIT`       | No       | `5`     | Maximum `/github` commands per user per rate-limit window.                                            |
-| `GITHUB_CMD_RATE_WINDOW`      | No       | `60`    | Rate-limit window duration in seconds.                                                                |
+| Tier      | Commands                             | Default Permission   | Env Override        |
+| --------- | ------------------------------------ | -------------------- | ------------------- |
+| **Read**  | `issues`, `pulls`, `repo`, `commits` | (none — open to all) | `GITHUB_PERM_READ`  |
+| **Board** | `noticeboard`, `taskboard`           | `MANAGE_MESSAGES`    | `GITHUB_PERM_BOARD` |
+| **Admin** | (future write commands)              | `ADMINISTRATOR`      | `GITHUB_PERM_ADMIN` |
 
-> Supported permission flags: `ADMINISTRATOR`, `MANAGE_GUILD`, `MANAGE_MESSAGES`, `MANAGE_CHANNELS`, `MANAGE_ROLES`, `SEND_MESSAGES`, `VIEW_CHANNEL`, `MODERATE_MEMBERS`. Unknown flags are ignored with a warning.
+Per-user rate limiting applies across all tiers:
+
+| Variable                 | Required | Default | Description                                                |
+| ------------------------ | -------- | ------- | ---------------------------------------------------------- |
+| `GITHUB_CMD_RATE_LIMIT`  | No       | `5`     | Maximum `/github` commands per user per rate-limit window. |
+| `GITHUB_CMD_RATE_WINDOW` | No       | `60`    | Rate-limit window duration in seconds.                     |
+
+> Supported permission flags: `ADMINISTRATOR`, `MANAGE_GUILD`, `MANAGE_MESSAGES`, `MANAGE_CHANNELS`, `MANAGE_ROLES`, `SEND_MESSAGES`, `VIEW_CHANNEL`, `MODERATE_MEMBERS`. Set a tier to `NONE` to make it unrestricted. Unknown flags are ignored with a warning.
 
 ### GitHub Board Scheduler
 
