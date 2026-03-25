@@ -158,6 +158,30 @@ jobs:
                   cp -r wasm-dist/* "$DEPLOY_DIR/"
                   rm -rf wasm-dist
 
+            - name: Brotli-compress static assets
+              run: |
+                  DEPLOY_DIR="apps/kbve/astro-kbve/public/isometric"
+                  apt-get update -qq && apt-get install -y -qq brotli > /dev/null 2>&1 || true
+
+                  # Compress static assets that Vite's compression plugin doesn't handle:
+                  # shaders (.wgsl), textures (.png), standalone JS shims, and WASM binaries.
+                  find "$DEPLOY_DIR" -type f \( \
+                    -name "*.wgsl" -o -name "*.png" -o -name "*.wasm" \
+                    -o -name "*.js" -o -name "*.css" \
+                  \) ! -name "*.br" ! -name "*.gz" | while read -r file; do
+                    brotli --best --keep "$file"
+                    echo "  compressed: ${file}.br ($(stat -c%s "${file}.br" 2>/dev/null || stat -f%z "${file}.br") bytes)"
+                  done
+
+                  # Also generate gzip for WASM (tower-http serves .wasm.gz as fallback)
+                  find "$DEPLOY_DIR" -type f -name "*.wasm" ! -name "*.gz" | while read -r file; do
+                    gzip -9 --keep "$file"
+                    echo "  gzipped: ${file}.gz"
+                  done
+
+                  echo "Pre-compression complete:"
+                  find "$DEPLOY_DIR" -name "*.br" -o -name "*.gz" | wc -l | xargs echo "  total compressed files:"
+
             - name: Check for changes
               id: diff
               run: |
