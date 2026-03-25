@@ -1,10 +1,11 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 /// Character — maps to the OWS Characters table and GetCharByCharName stored proc.
 /// Uses PascalCase serde renames to match UE's case-sensitive GetStringField calls.
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "PascalCase")]
 pub struct Character {
     #[sqlx(rename = "customerguid")]
@@ -117,7 +118,7 @@ pub struct Character {
 }
 
 /// User session from GetUserSession stored proc.
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UserSession {
     #[sqlx(rename = "customerguid")]
@@ -139,7 +140,7 @@ pub struct UserSession {
 
 /// User session with selected character data — matches C# GetUserSession stored proc.
 /// UE OWS plugin reads these fields with PascalCase GetStringField/GetNumberField.
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 pub struct UserSessionWithCharacter {
     #[sqlx(rename = "customerguid")]
     #[serde(rename = "CustomerGUID")]
@@ -189,7 +190,7 @@ pub struct UserSessionWithCharacter {
 }
 
 /// Login result
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct LoginResult {
     pub authenticated: bool,
@@ -198,7 +199,7 @@ pub struct LoginResult {
 }
 
 /// Zone instance info from GetZoneInstancesForWorldServer
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ZoneInstance {
     #[sqlx(rename = "customerguid")]
@@ -227,7 +228,7 @@ pub struct ZoneInstance {
 }
 
 /// JoinMapByCharName result
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct JoinMapResult {
     #[serde(rename = "serverip")]
@@ -253,7 +254,7 @@ pub struct JoinMapResult {
 }
 
 /// Global data key-value pair
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct GlobalData {
     pub global_data_key: String,
@@ -261,7 +262,7 @@ pub struct GlobalData {
 }
 
 /// Custom character data
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CustomCharacterData {
     pub custom_field_name: String,
@@ -269,7 +270,7 @@ pub struct CustomCharacterData {
 }
 
 /// Character ability
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CharacterAbility {
     pub ability_name: String,
@@ -278,13 +279,13 @@ pub struct CharacterAbility {
 }
 
 /// Typed wrapper for custom data rows response
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct CustomDataRows {
     pub rows: Vec<CustomCharacterData>,
 }
 
 /// Ability bar
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AbilityBar {
     pub char_ability_bar_id: i32,
@@ -295,7 +296,7 @@ pub struct AbilityBar {
 }
 
 /// Ability bar with abilities
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AbilityBarAbility {
     pub char_ability_bar_id: i32,
@@ -307,7 +308,7 @@ pub struct AbilityBarAbility {
 }
 
 /// Server instance info from GetZoneInstance / GetServerInstanceFromPort
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ServerInstanceInfo {
     pub map_name: String,
@@ -323,7 +324,7 @@ pub struct ServerInstanceInfo {
 }
 
 /// Character online/offline status
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CharacterStatus {
     pub char_name: String,
@@ -332,7 +333,7 @@ pub struct CharacterStatus {
 }
 
 /// Player group membership — PascalCase to match UE's case-sensitive GetNumberField/GetStringField
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 pub struct PlayerGroupMembership {
     #[serde(rename = "PlayerGroupID")]
     pub player_group_id: i32,
@@ -349,7 +350,7 @@ pub struct PlayerGroupMembership {
 }
 
 /// User info for management endpoints
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UserInfo {
     pub user_guid: Uuid,
@@ -361,7 +362,7 @@ pub struct UserInfo {
 }
 
 /// Health check response
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct HealthResponse {
     pub status: &'static str,
     pub service: &'static str,

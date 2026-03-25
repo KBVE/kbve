@@ -45,14 +45,20 @@ pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
         .merge(management)
 }
 
-async fn root() -> Json<serde_json::Value> {
+#[utoipa::path(get, path = "/", tag = "health",
+    responses((status = 200, description = "Service info"))
+)]
+pub async fn root() -> Json<serde_json::Value> {
     Json(serde_json::json!({
         "service": "rows",
         "status": "ok"
     }))
 }
 
-async fn health() -> Json<HealthResponse> {
+#[utoipa::path(get, path = "/health", tag = "health",
+    responses((status = 200, description = "Health check", body = HealthResponse))
+)]
+pub async fn health() -> Json<HealthResponse> {
     Json(HealthResponse {
         status: "healthy",
         service: "rows",

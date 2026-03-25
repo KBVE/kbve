@@ -12,8 +12,9 @@ mod jobs;
 mod middleware;
 mod models;
 mod mq;
+mod openapi;
 mod repo;
-mod rest;
+pub mod rest;
 pub mod service;
 mod state;
 mod trace;
@@ -24,6 +25,8 @@ use std::sync::Arc;
 use tower_http::cors::CorsLayer;
 use tower_http::limit::RequestBodyLimitLayer;
 use tracing::info;
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 use uuid::Uuid;
 
 /// Compiled protobuf types from ows.proto + rows.proto.
@@ -118,9 +121,12 @@ async fn main() -> anyhow::Result<()> {
     // WebSocket routes
     let ws_router = ws::router(svc);
 
-    // Multiplex: gRPC + REST + WebSocket on single port
+    // Multiplex: gRPC + REST + WebSocket + Swagger on single port
     let app = rest_router
         .merge(ws_router)
+        .merge(
+            SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", openapi::ApiDoc::openapi()),
+        )
         .merge(grpc_router.into_axum_router())
         .layer(axum::middleware::from_fn(trace::request_trace))
         .layer(RequestBodyLimitLayer::new(10 * 1024 * 1024)) // 10MB max body
