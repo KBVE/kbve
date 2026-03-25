@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-03-24T08:25:37Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-03-25T08:24:58Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
@@ -29,7 +29,7 @@ Last generated: **2026-03-24T08:25:37Z** — updated daily by `ci-dashboard`.
   <Card title="19 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="26 Medium" icon="information">
+  <Card title="27 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="3 Low" icon="approve-check-circle">
@@ -47,7 +47,7 @@ Last generated: **2026-03-24T08:25:37Z** — updated daily by `ci-dashboard`.
     **35** advisories
   </Card>
   <Card title="Python" icon="seti:python">
-    **0** advisories
+    **1** advisories
   </Card>
   <Card title="CodeQL" icon="magnifier">
     **0** alerts
@@ -64,7 +64,7 @@ pie showData
     title Findings by Severity
     "Critical" : 1
     "High" : 19
-    "Medium" : 26
+    "Medium" : 27
     "Low" : 3
 ```
 
@@ -75,6 +75,7 @@ pie showData
     title Findings by Ecosystem
     "npm" : 42
     "Cargo" : 35
+    "Python" : 1
 ```
 
 <Tabs>
@@ -84,10 +85,10 @@ pie showData
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
 | **npm** | 1 | 19 | 19 | 3 | 42 |
 | **Cargo** | 0 | 0 | 7 | 0 | 35 |
-| **Python** | 0 | 0 | 0 | 0 | 0 |
+| **Python** | 0 | 0 | 1 | 0 | 1 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 19 | 26 | 3 | 77 |
+| **Total** | 1 | 19 | 27 | 3 | 78 |
 
   </TabItem>
   <TabItem label="npm">
@@ -181,9 +182,9 @@ pie showData
   </TabItem>
   <TabItem label="Python">
 
-:::tip[All Clear]
-No python advisories found.
-:::
+| Severity | Package | Advisory | Link |
+|----------|---------|----------|------|
+| Medium | `pygments` | A security flaw has been discovered in pygments up to 2.1... | [Details](https://osv.dev/vulnerability/CVE-2026-4539) |
 
   </TabItem>
   <TabItem label="CodeQL">
