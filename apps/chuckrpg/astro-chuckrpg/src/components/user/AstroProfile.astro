@@ -1,0 +1,71 @@
+---
+import ReactProfile from './ReactProfile';
+---
+
+<ReactProfile client:only="react" />
+
+<style is:global>
+	.ck-profile-guest {
+		text-align: center;
+		padding: 3rem 1rem;
+		color: var(--sl-color-gray-2);
+	}
+
+	.ck-profile-guest p {
+		margin-bottom: 1.5rem;
+		font-size: 1.1rem;
+	}
+
+	.ck-profile {
+		max-width: 600px;
+		margin: 2rem auto;
+		padding: 2rem;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 4px;
+		background: var(--sl-color-gray-6);
+	}
+
+	.ck-profile__header {
+		display: flex;
+		align-items: center;
+		gap: 1.5rem;
+		margin-bottom: 2rem;
+	}
+
+	.ck-profile__avatar {
+		width: 80px;
+		height: 80px;
+		border-radius: 50%;
+		border: 2px solid var(--ck-firelight-dim);
+	}
+
+	.ck-profile__info {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.ck-profile__name {
+		font-family: var(--sl-font);
+		color: var(--ck-parchment);
+		font-size: 1.5rem;
+		margin: 0;
+	}
+
+	.ck-profile__provider {
+		font-size: 0.8rem;
+		color: var(--ck-firelight);
+		text-transform: capitalize;
+		letter-spacing: 0.1em;
+	}
+
+	.ck-profile__email {
+		font-size: 0.875rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.ck-profile__actions {
+		padding-top: 1.5rem;
+		border-top: 1px solid var(--sl-color-hairline);
+	}
+</style>

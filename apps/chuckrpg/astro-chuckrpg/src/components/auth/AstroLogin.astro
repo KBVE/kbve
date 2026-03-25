@@ -1,0 +1,95 @@
+---
+import ReactAuthLogin from './ReactAuthLogin';
+---
+
+<ReactAuthLogin client:only="react" />
+
+<style is:global>
+	.ck-auth-container {
+		max-width: 500px;
+		margin: 2rem auto;
+		padding: 2rem 1rem;
+	}
+
+	.ck-auth-content {
+		text-align: center;
+	}
+
+	.ck-auth-content h2 {
+		font-family: var(--sl-font);
+		color: var(--ck-parchment);
+		margin-bottom: 1rem;
+	}
+
+	.ck-auth-desc {
+		color: var(--sl-color-gray-2);
+		margin-bottom: 2rem;
+		line-height: 1.6;
+	}
+
+	.ck-auth-buttons {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin-bottom: 2rem;
+	}
+
+	.ck-auth-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		padding: 0.875rem 1.5rem;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 4px;
+		font-family: 'Lora', serif;
+		font-size: 1rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.ck-auth-btn:hover:not(:disabled) {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 16px rgba(212, 164, 76, 0.15);
+	}
+
+	.ck-auth-btn:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
+	.ck-auth-btn--github {
+		background: #24292e;
+		color: white;
+	}
+
+	.ck-auth-btn--github:hover:not(:disabled) {
+		background: #2f363d;
+		border-color: var(--ck-firelight-dim);
+	}
+
+	.ck-auth-btn--discord {
+		background: #5865f2;
+		color: white;
+	}
+
+	.ck-auth-btn--discord:hover:not(:disabled) {
+		background: #4752c4;
+		border-color: var(--ck-firelight-dim);
+	}
+
+	.ck-auth-icon {
+		width: 20px;
+		height: 20px;
+	}
+
+	.ck-auth-info {
+		color: var(--sl-color-gray-3);
+		font-size: 0.875rem;
+	}
+
+	.ck-auth-info p {
+		margin: 0;
+	}
+</style>
