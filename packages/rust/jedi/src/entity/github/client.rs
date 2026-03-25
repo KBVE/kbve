@@ -185,6 +185,148 @@ impl GitHubClient {
         self.parse_response(resp).await
     }
 
+    // ── Single Issue/PR ────────────────────────────────────────────
+
+    /// Fetch a single issue or pull request by number.
+    pub async fn get_issue(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: u64,
+    ) -> Result<GitHubIssue, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!(
+            "{}/repos/{}/{}/issues/{}",
+            self.base_url, owner, repo, number
+        );
+
+        let resp = self
+            .client
+            .get(&url)
+            .bearer_auth(&self.token)
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
+    // ── Labels ───────────────────────────────────────────────────────
+
+    /// List all labels for a repository.
+    pub async fn list_labels(
+        &self,
+        owner: &str,
+        repo: &str,
+    ) -> Result<Vec<GitHubLabel>, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!("{}/repos/{}/{}/labels", self.base_url, owner, repo);
+
+        let resp = self
+            .client
+            .get(&url)
+            .bearer_auth(&self.token)
+            .query(&[("per_page", "100")])
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
+    /// Add labels to an issue or pull request.
+    pub async fn add_labels(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: u64,
+        labels: &[&str],
+    ) -> Result<Vec<GitHubLabel>, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!(
+            "{}/repos/{}/{}/issues/{}/labels",
+            self.base_url, owner, repo, number
+        );
+
+        let body = serde_json::json!({ "labels": labels });
+        let resp = self
+            .client
+            .post(&url)
+            .bearer_auth(&self.token)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
+    /// Remove a label from an issue or pull request.
+    pub async fn remove_label(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: u64,
+        label: &str,
+    ) -> Result<(), JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!(
+            "{}/repos/{}/{}/issues/{}/labels/{}",
+            self.base_url, owner, repo, number, label
+        );
+
+        let resp = self
+            .client
+            .delete(&url)
+            .bearer_auth(&self.token)
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        let status = resp.status();
+        if status.is_success() {
+            Ok(())
+        } else {
+            // Reuse parse_response for error mapping
+            let _: serde_json::Value = self.parse_response(resp).await?;
+            Ok(())
+        }
+    }
+
+    // ── Issue Updates ─────────────────────────────────────────────────
+
+    /// Update an issue's type via PATCH. Pass `None` to clear the type.
+    pub async fn set_issue_type(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: u64,
+        type_name: Option<&str>,
+    ) -> Result<GitHubIssue, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!(
+            "{}/repos/{}/{}/issues/{}",
+            self.base_url, owner, repo, number
+        );
+
+        let body = serde_json::json!({ "type": type_name });
+        let resp = self
+            .client
+            .patch(&url)
+            .bearer_auth(&self.token)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
     // ── Stagnation Detection ────────────────────────────────────────
 
     /// Filter issues that haven't been updated within `threshold_days`.
@@ -289,6 +431,9 @@ mod tests {
             html_url: format!("https://github.com/test/repo/issues/{number}"),
             pull_request: None,
             assignees: Vec::new(),
+            body: None,
+            comments: 0,
+            issue_type: None,
         }
     }
 
