@@ -1,7 +1,13 @@
 //! Discord-specific permission guards for `/github` commands.
 //!
-//! Complements the repo-level `RepoPolicy` in the jedi crate with
-//! Discord role checks and per-user command rate limiting.
+//! Three permission tiers with sensible defaults:
+//!
+//! - **Read** (`issues`, `pulls`, `repo`, `commits`) — no permission required
+//! - **Board** (`noticeboard`, `taskboard`) — `MANAGE_MESSAGES` required
+//! - **Admin** (future write commands) — `ADMINISTRATOR` required
+//!
+//! Each tier's default can be overridden via env vars, or set to `NONE` to
+//! make it unrestricted. Per-user rate limiting applies to all tiers.
 
 use std::time::Instant;
 
@@ -10,6 +16,47 @@ use poise::serenity_prelude as serenity;
 use tracing::info;
 
 use crate::discord::bot::{Context, Error};
+
+// ── Command Tiers ───────────────────────────────────────────────────
+
+/// Permission tiers for `/github` subcommands.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CommandTier {
+    /// Read-only queries: issues, pulls, repo, commits.
+    Read,
+    /// Board embeds that post persistent content: noticeboard, taskboard.
+    Board,
+    /// Destructive or write operations (future: create issue, close PR).
+    Admin,
+}
+
+impl CommandTier {
+    /// The default Discord permission for this tier (before env override).
+    fn default_permission(self) -> Option<serenity::Permissions> {
+        match self {
+            CommandTier::Read => None,
+            CommandTier::Board => Some(serenity::Permissions::MANAGE_MESSAGES),
+            CommandTier::Admin => Some(serenity::Permissions::ADMINISTRATOR),
+        }
+    }
+
+    /// The env var name that overrides this tier's permission.
+    fn env_key(self) -> &'static str {
+        match self {
+            CommandTier::Read => "GITHUB_PERM_READ",
+            CommandTier::Board => "GITHUB_PERM_BOARD",
+            CommandTier::Admin => "GITHUB_PERM_ADMIN",
+        }
+    }
+
+    fn label(self) -> &'static str {
+        match self {
+            CommandTier::Read => "read",
+            CommandTier::Board => "board",
+            CommandTier::Admin => "admin",
+        }
+    }
+}
 
 // ── Command Rate Limiter ─────────────────────────────────────────────
 
@@ -60,11 +107,12 @@ impl CommandRateLimiter {
 
 // ── GitHub Command Guard ─────────────────────────────────────────────
 
-/// Bundles per-user rate limiting + optional Discord permission requirement
-/// for all `/github` subcommands.
+/// Bundles per-user rate limiting + tiered Discord permission requirements
+/// for `/github` subcommands.
 pub struct GitHubCommandGuard {
     pub rate_limiter: CommandRateLimiter,
-    required_permissions: Option<serenity::Permissions>,
+    /// Resolved permission for each tier: `[Read, Board, Admin]`.
+    tier_permissions: [Option<serenity::Permissions>; 3],
 }
 
 impl GitHubCommandGuard {
@@ -72,8 +120,11 @@ impl GitHubCommandGuard {
     ///
     /// - `GITHUB_CMD_RATE_LIMIT` — max commands per user per window (default: 5)
     /// - `GITHUB_CMD_RATE_WINDOW` — window in seconds (default: 60)
-    /// - `GITHUB_REQUIRED_PERMISSIONS` — comma-separated Discord permission
-    ///   flags (e.g. `MANAGE_MESSAGES,SEND_MESSAGES`). Unset = unrestricted.
+    /// - `GITHUB_PERM_READ` — permission for read commands (default: NONE)
+    /// - `GITHUB_PERM_BOARD` — permission for board commands (default: MANAGE_MESSAGES)
+    /// - `GITHUB_PERM_ADMIN` — permission for admin commands (default: ADMINISTRATOR)
+    ///
+    /// Set any tier to `NONE` to make it unrestricted.
     pub fn from_env() -> Self {
         let max = std::env::var("GITHUB_CMD_RATE_LIMIT")
             .ok()
@@ -84,27 +135,48 @@ impl GitHubCommandGuard {
             .and_then(|s| s.parse().ok())
             .unwrap_or(60);
 
-        let required_permissions = std::env::var("GITHUB_REQUIRED_PERMISSIONS")
-            .ok()
-            .filter(|s| !s.trim().is_empty())
-            .map(|s| parse_permissions(&s));
+        let tiers = [CommandTier::Read, CommandTier::Board, CommandTier::Admin];
+        let tier_permissions = tiers.map(|tier| resolve_tier_permission(tier));
 
-        if let Some(perms) = &required_permissions {
-            info!(permissions = ?perms, "GitHub commands require Discord permissions");
+        for (tier, perm) in tiers.iter().zip(tier_permissions.iter()) {
+            match perm {
+                Some(p) => info!(tier = tier.label(), permissions = ?p, "GitHub tier permission"),
+                None => info!(tier = tier.label(), "GitHub tier: unrestricted"),
+            }
         }
 
         Self {
             rate_limiter: CommandRateLimiter::new(max, window),
-            required_permissions,
+            tier_permissions,
         }
     }
 
-    /// Check if the member has the required Discord permissions.
-    pub fn has_permission(&self, member_permissions: serenity::Permissions) -> bool {
-        match &self.required_permissions {
-            None => true,
-            Some(required) => member_permissions.contains(*required),
+    /// Check if the member has permission for a specific tier.
+    /// Administrators bypass all tier checks (matching Discord's behavior).
+    pub fn has_tier_permission(
+        &self,
+        tier: CommandTier,
+        member_permissions: serenity::Permissions,
+    ) -> bool {
+        if member_permissions.administrator() {
+            return true;
         }
+        match self.tier_permissions[tier as usize] {
+            None => true,
+            Some(required) => member_permissions.contains(required),
+        }
+    }
+}
+
+/// Resolve a tier's permission: env override → default.
+fn resolve_tier_permission(tier: CommandTier) -> Option<serenity::Permissions> {
+    match std::env::var(tier.env_key())
+        .ok()
+        .map(|s| s.trim().to_uppercase())
+    {
+        Some(ref val) if val == "NONE" || val.is_empty() => None,
+        Some(ref val) => Some(parse_permissions(val)),
+        None => tier.default_permission(),
     }
 }
 
@@ -121,6 +193,7 @@ fn parse_permissions(s: &str) -> serenity::Permissions {
             "SEND_MESSAGES" => serenity::Permissions::SEND_MESSAGES,
             "VIEW_CHANNEL" => serenity::Permissions::VIEW_CHANNEL,
             "MODERATE_MEMBERS" => serenity::Permissions::MODERATE_MEMBERS,
+            "NONE" => serenity::Permissions::empty(),
             other => {
                 tracing::warn!(flag = other, "Unknown Discord permission flag, skipping");
                 serenity::Permissions::empty()
@@ -131,16 +204,13 @@ fn parse_permissions(s: &str) -> serenity::Permissions {
     perms
 }
 
-// ── Poise Check Function ─────────────────────────────────────────────
+// ── Poise Check Functions ────────────────────────────────────────────
 
-/// Pre-command check applied to all `/github` subcommands.
-///
-/// Enforces per-user rate limiting and optional Discord permissions.
+/// Rate-limit check applied to all `/github` subcommands via the parent command.
 pub async fn github_permission_check(ctx: Context<'_>) -> Result<bool, Error> {
     let guard = &ctx.data().app.github_guard;
     let user_id = ctx.author().id.get();
 
-    // Rate limit
     if !guard.rate_limiter.check_user(user_id) {
         ctx.send(
             poise::CreateReply::default()
@@ -151,15 +221,24 @@ pub async fn github_permission_check(ctx: Context<'_>) -> Result<bool, Error> {
         return Ok(false);
     }
 
-    // Discord permissions (skip in DMs — guild-only commands will catch this later)
+    Ok(true)
+}
+
+/// Tier-specific permission check. Call from within each subcommand body.
+pub async fn check_tier(ctx: Context<'_>, tier: CommandTier) -> Result<bool, Error> {
+    let guard = &ctx.data().app.github_guard;
+
     if let Some(member) = ctx.author_member().await {
         let member_perms = member
             .permissions
             .unwrap_or_else(serenity::Permissions::empty);
-        if !guard.has_permission(member_perms) {
+        if !guard.has_tier_permission(tier, member_perms) {
             ctx.send(
                 poise::CreateReply::default()
-                    .content("You don't have permission to use GitHub commands in this server.")
+                    .content(format!(
+                        "You need additional permissions to use this command ({} tier).",
+                        tier.label()
+                    ))
                     .ephemeral(true),
             )
             .await?;
@@ -214,21 +293,81 @@ mod tests {
     }
 
     #[test]
-    fn guard_no_perms_allows_all() {
-        let guard = GitHubCommandGuard {
-            rate_limiter: CommandRateLimiter::new(100, 60),
-            required_permissions: None,
-        };
-        assert!(guard.has_permission(serenity::Permissions::empty()));
+    fn tier_defaults() {
+        assert_eq!(CommandTier::Read.default_permission(), None);
+        assert_eq!(
+            CommandTier::Board.default_permission(),
+            Some(serenity::Permissions::MANAGE_MESSAGES)
+        );
+        assert_eq!(
+            CommandTier::Admin.default_permission(),
+            Some(serenity::Permissions::ADMINISTRATOR)
+        );
     }
 
     #[test]
-    fn guard_with_perms_blocks_missing() {
+    fn guard_read_tier_unrestricted_by_default() {
         let guard = GitHubCommandGuard {
             rate_limiter: CommandRateLimiter::new(100, 60),
-            required_permissions: Some(serenity::Permissions::MANAGE_MESSAGES),
+            tier_permissions: [
+                None,
+                Some(serenity::Permissions::MANAGE_MESSAGES),
+                Some(serenity::Permissions::ADMINISTRATOR),
+            ],
         };
-        assert!(!guard.has_permission(serenity::Permissions::SEND_MESSAGES));
-        assert!(guard.has_permission(serenity::Permissions::MANAGE_MESSAGES));
+        assert!(guard.has_tier_permission(CommandTier::Read, serenity::Permissions::empty()));
+    }
+
+    #[test]
+    fn guard_board_tier_requires_manage_messages() {
+        let guard = GitHubCommandGuard {
+            rate_limiter: CommandRateLimiter::new(100, 60),
+            tier_permissions: [
+                None,
+                Some(serenity::Permissions::MANAGE_MESSAGES),
+                Some(serenity::Permissions::ADMINISTRATOR),
+            ],
+        };
+        assert!(
+            !guard.has_tier_permission(CommandTier::Board, serenity::Permissions::SEND_MESSAGES)
+        );
+        assert!(
+            guard.has_tier_permission(CommandTier::Board, serenity::Permissions::MANAGE_MESSAGES)
+        );
+    }
+
+    #[test]
+    fn guard_admin_tier_requires_administrator() {
+        let guard = GitHubCommandGuard {
+            rate_limiter: CommandRateLimiter::new(100, 60),
+            tier_permissions: [
+                None,
+                Some(serenity::Permissions::MANAGE_MESSAGES),
+                Some(serenity::Permissions::ADMINISTRATOR),
+            ],
+        };
+        assert!(
+            !guard.has_tier_permission(CommandTier::Admin, serenity::Permissions::MANAGE_MESSAGES)
+        );
+        assert!(
+            guard.has_tier_permission(CommandTier::Admin, serenity::Permissions::ADMINISTRATOR)
+        );
+    }
+
+    #[test]
+    fn guard_admin_passes_for_administrator() {
+        let guard = GitHubCommandGuard {
+            rate_limiter: CommandRateLimiter::new(100, 60),
+            tier_permissions: [
+                None,
+                Some(serenity::Permissions::MANAGE_MESSAGES),
+                Some(serenity::Permissions::ADMINISTRATOR),
+            ],
+        };
+        // Administrators should pass all tiers
+        let admin = serenity::Permissions::ADMINISTRATOR;
+        assert!(guard.has_tier_permission(CommandTier::Read, admin));
+        assert!(guard.has_tier_permission(CommandTier::Board, admin));
+        assert!(guard.has_tier_permission(CommandTier::Admin, admin));
     }
 }
