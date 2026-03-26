@@ -37,8 +37,9 @@ COPY apps/discordsh/astro-discordsh/ apps/discordsh/astro-discordsh/
 
 # Build astro site
 WORKDIR /app/apps/discordsh/astro-discordsh
-RUN rm -rf .astro && npx astro sync && \
-    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
+# astro build handles sync internally — avoid separate sync which can
+# leave partial image cache entries that break the optimizer
+RUN UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
 
 # ============================================================================
 # [STAGE B] - Precompress Static Assets
