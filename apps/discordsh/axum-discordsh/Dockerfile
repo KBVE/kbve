@@ -1,15 +1,21 @@
 # ============================================================================
 # axum-discordsh — Multi-stage Docker build
 #
-# Uses shared base images from ghcr.io/kbve/chisel-ubuntu-axum:
-#   - :24.04.2-builder  → Rust 1.94 + cargo-chef + build deps
-#   - :24.04.2          → Chiseled Ubuntu runtime (jemalloc, libpq, CA certs)
+# Runtime uses the shared chisel base image:
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04.2
+#   (chiseled Ubuntu 24.04 + jemalloc + libpq + CA certs)
 # ============================================================================
 
 # ============================================================================
 # [STAGE A] - Build Astro Static Site
 # ============================================================================
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.2-builder AS astro-builder
+FROM --platform=linux/amd64 node:24-alpine AS astro-builder
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Prevent Playwright from downloading browser binaries during pnpm install —
+# they are never used in the Docker build and waste ~600MB + cause timeouts.
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 WORKDIR /app
 
@@ -65,8 +71,22 @@ RUN find . -type f \( \
 # BuildKit layer cache handles incremental rebuilds across runs.
 # ============================================================================
 
-# [STAGE C] - Rust Base (shared builder image)
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.2-builder AS rust-base
+# [STAGE C] - Rust Base Image
+FROM --platform=linux/amd64 rust:1.94-slim AS rust-base
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+        pkg-config \
+        libssl-dev \
+        libpq-dev \
+        libjemalloc-dev \
+        protobuf-compiler \
+        libprotobuf-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN rustup target add x86_64-unknown-linux-gnu && \
+    cargo install cargo-chef --locked
 
 WORKDIR /app
 
