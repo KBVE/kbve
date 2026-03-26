@@ -66,8 +66,7 @@ impl OWSService {
                             "GameServer allocated — creating mapinstance"
                         );
 
-                        // Ensure world server exists for this allocation
-                        // zoneserverguid column is UUID type
+                        // Ensure world server exists — zoneserverguid is UUID type
                         let launcher_uuid = Uuid::new_v4();
                         let world_server_id = match repo
                             .register_launcher(
@@ -81,39 +80,41 @@ impl OWSService {
                             .await
                         {
                             Ok(id) => {
-                                tracing::info!(world_server_id = id, "World server registered");
+                                tracing::info!(world_server_id = id, gs = %alloc.game_server_name, "World server registered");
                                 id
                             }
                             Err(e) => {
-                                tracing::error!(error = %e, "Failed to register world server");
+                                tracing::error!(error = %e, gs = %alloc.game_server_name, "Failed to register world server");
                                 0
                             }
                         };
 
                         if world_server_id > 0 {
-                            if let Err(e) = repo
-                                .spin_up_server_instance(
+                            // Create mapinstance with status=2 (ready) — Agones servers are already running
+                            match repo
+                                .spin_up_server_instance_ready(
                                     customer_guid,
                                     world_server_id,
-                                    0,
                                     &resolved_zone,
                                     alloc.port,
                                 )
                                 .await
                             {
-                                tracing::error!(error = %e, "Failed to create mapinstance after allocation");
-                            }
-                        }
-
-                        // Track the GameServer name for cleanup/deallocation
-                        if let Ok(fresh) = repo
-                            .join_map_by_char_name(customer_guid, char_name, &resolved_zone)
-                            .await
-                        {
-                            if fresh.map_instance_id > 0 {
-                                self.state
-                                    .zone_servers
-                                    .insert(fresh.map_instance_id, alloc.game_server_name);
+                                Ok(instance_id) => {
+                                    tracing::info!(
+                                        instance_id,
+                                        port = alloc.port,
+                                        gs = %alloc.game_server_name,
+                                        "Map instance created (status=2 ready)"
+                                    );
+                                    // Track for cleanup/deallocation
+                                    self.state
+                                        .zone_servers
+                                        .insert(instance_id, alloc.game_server_name.clone());
+                                }
+                                Err(e) => {
+                                    tracing::error!(error = %e, "Failed to create mapinstance");
+                                }
                             }
                         }
                     }
