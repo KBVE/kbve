@@ -93,15 +93,22 @@ async fn handle_ws(mut socket: WebSocket, svc: Arc<OWSService>) {
             Ok(r) => r,
             Err(e) => {
                 let resp = WsResponse::err(None, "PARSE_ERROR", format!("Invalid JSON: {e}"));
-                let _ = socket
-                    .send(Message::Text(serde_json::to_string(&resp).unwrap().into()))
-                    .await;
+                if let Ok(json) = serde_json::to_string(&resp) {
+                    let _ = socket.send(Message::Text(json.into())).await;
+                }
                 continue;
             }
         };
 
         let resp = dispatch(&svc, &req).await;
-        let json = serde_json::to_string(&resp).unwrap();
+        let json = match serde_json::to_string(&resp) {
+            Ok(j) => j,
+            Err(e) => {
+                tracing::error!(error = %e, "WS response serialization failed");
+                let fallback = WsResponse::err(resp.id, "INTERNAL_ERROR", "Serialization failed");
+                serde_json::to_string(&fallback).unwrap_or_default()
+            }
+        };
         if socket.send(Message::Text(json.into())).await.is_err() {
             break;
         }

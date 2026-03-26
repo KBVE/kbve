@@ -78,7 +78,8 @@ async fn update_all_positions(
     let customer_guid = extract_customer_guid(&headers);
 
     // Parse pipe-separated format: CharName:X:Y:Z:RX:RY:RZ|CharName2:...
-    // Zero-alloc: use split iterator instead of collecting into Vec
+    let mut updated = 0u32;
+    let mut failed = 0u32;
     for entry in body.serialized_player_location_data.split('|') {
         let mut it = entry.splitn(8, ':');
         let Some(char_name) = it.next() else { continue };
@@ -109,10 +110,19 @@ async fn update_all_positions(
             .await
         {
             tracing::warn!(char_name, error = %e, "position update failed");
+            failed += 1;
+        } else {
+            updated += 1;
         }
     }
 
-    Json(SuccessResponse::ok())
+    if failed > 0 {
+        Json(SuccessResponse::err(format!(
+            "{failed} position updates failed, {updated} succeeded"
+        )))
+    } else {
+        Json(SuccessResponse::ok())
+    }
 }
 
 #[derive(Deserialize)]
@@ -167,7 +177,13 @@ async fn update_character_stats(
     Json(body): Json<UpdateStatsDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    let stats_json = serde_json::to_string(&body.stats).unwrap_or_default();
+    let stats_json = match serde_json::to_string(&body.stats) {
+        Ok(j) => j,
+        Err(e) => {
+            tracing::error!(error = %e, "Invalid stats JSON");
+            return Json(SuccessResponse::err(format!("Invalid stats JSON: {e}")));
+        }
+    };
     match hs
         .svc
         .update_stats(customer_guid, &body.character_name, &stats_json)
