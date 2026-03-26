@@ -7,6 +7,7 @@ mod allocate;
 mod client;
 mod deallocate;
 mod error;
+pub mod fleet;
 pub mod pipeline;
 
 pub use allocate::AllocationResult;

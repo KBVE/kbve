@@ -23,6 +23,8 @@ pub struct AppState {
     pub mq: Option<MqProducer>,
     /// Agones allocator (None if not in-cluster — non-fatal)
     pub agones: Option<AgonesClient>,
+    /// Instance lifecycle event log (ring buffer, max 200 entries)
+    pub instance_log: crate::rest::system::InstanceEventLog,
 }
 
 pub struct AppConfig {
@@ -89,6 +91,7 @@ impl AppStateBuilder {
             },
             mq: self.mq,
             agones: self.agones,
+            instance_log: crate::rest::system::InstanceEventLog::new(),
         }))
     }
 }

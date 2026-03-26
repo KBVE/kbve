@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { authBridge } from '@/lib/auth';
+import { authBridge, initSupa, getSupa } from '@/lib/supa';
 
 export default function ReactAuthCallback() {
 	const [message, setMessage] = useState('Completing sign-in...');
@@ -12,6 +12,10 @@ export default function ReactAuthCallback() {
 				const session = await authBridge.handleCallback();
 
 				if (session) {
+					await initSupa();
+					const supa = getSupa();
+					await supa.getSession();
+
 					await new Promise((resolve) => setTimeout(resolve, 500));
 					window.location.href = '/';
 				} else {

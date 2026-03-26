@@ -1,7 +1,7 @@
 [package]
 name = "rows"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.16"
+version = "0.1.17"
 edition = "2021"
 publish = false
 description = "Rust OWS — single-binary game backend (REST + gRPC)"
@@ -21,7 +21,7 @@ prost-types = "0.13"
 
 # Tower (shared middleware layer for axum + tonic multiplexing)
 tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit", "steer"] }
-tower-http = { version = "0.6.8", features = ["compression-full", "limit", "trace", "cors", "set-header"] }
+tower-http = { version = "0.6.8", features = ["compression-full", "limit", "trace", "cors", "set-header", "timeout"] }
 hyper = { version = "1", features = ["full"] }
 hyper-util = { version = "0.1", features = ["tokio", "server-auto", "http1", "http2"] }
 http = "1"

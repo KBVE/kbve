@@ -71,6 +71,7 @@ export const ICiProjectSchema = AstroProjectExtensions.extend({
 	target: CiProjectSchema.shape.target,
 	nx_project: CiProjectSchema.shape.nx_project,
 	test_framework: TestFrameworkSchema.optional(),
+	shell_path: CiProjectSchema.shape.shell_path,
 });
 
 export type ICiProject = z.infer<typeof ICiProjectSchema>;

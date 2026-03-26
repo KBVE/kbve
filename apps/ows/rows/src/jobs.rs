@@ -8,7 +8,8 @@ use tracing::{error, info, warn};
 pub fn spawn_all(svc: Arc<OWSService>) {
     tokio::spawn(zone_health_monitor(svc.clone()));
     tokio::spawn(stale_zone_cleanup(svc.clone()));
-    tokio::spawn(spinup_lock_expiry(svc));
+    tokio::spawn(spinup_lock_expiry(svc.clone()));
+    tokio::spawn(session_cache_sweep(svc));
 }
 
 /// Periodic zone health monitor — logs metrics every 30s.
@@ -118,6 +119,43 @@ async fn spinup_lock_expiry(svc: Arc<OWSService>) {
 
         if expired > 0 {
             warn!(expired, "Expired stale spin-up locks");
+        }
+    }
+}
+
+/// Sweep expired sessions from the in-memory cache every 5 minutes.
+/// Sessions older than 24 hours are evicted. Prevents unbounded memory growth
+/// from abandoned sessions that never call PlayerLogout.
+async fn session_cache_sweep(svc: Arc<OWSService>) {
+    let mut interval = tokio::time::interval(Duration::from_secs(300));
+    interval.tick().await;
+
+    loop {
+        interval.tick().await;
+
+        let max_age = Duration::from_secs(24 * 60 * 60); // 24 hours
+        let before = svc.state().sessions.len();
+
+        let stale_keys: Vec<uuid::Uuid> = svc
+            .state()
+            .sessions
+            .iter()
+            .filter(|entry| entry.value().created_at.elapsed() > max_age)
+            .map(|entry| *entry.key())
+            .collect();
+
+        for key in &stale_keys {
+            svc.state().sessions.remove(key);
+        }
+
+        let evicted = stale_keys.len();
+        if evicted > 0 {
+            info!(
+                evicted,
+                before,
+                after = svc.state().sessions.len(),
+                "Session cache sweep"
+            );
         }
     }
 }

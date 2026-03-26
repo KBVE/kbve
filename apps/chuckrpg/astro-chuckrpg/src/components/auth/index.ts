@@ -1,1 +1,1 @@
-export { authBridge } from '@/lib/auth';
+export { authBridge } from '@/lib/supa';

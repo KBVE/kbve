@@ -71,6 +71,15 @@ export interface GraphSummary {
 	e2e: number;
 }
 
+export interface RowsSummary {
+	status: string;
+	version: string;
+	uptime_seconds: number;
+	active_sessions: number;
+	active_instances: number;
+	checks: Record<string, { ok: boolean; latency_ms?: number }>;
+}
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -474,6 +483,26 @@ async function fetchReportSummary(): Promise<ReportSummary | null> {
 	}
 }
 
+const ROWS_PROXY_BASE = '/dashboard/chuckrpg/proxy';
+
+async function fetchRowsSummary(token: string): Promise<RowsSummary | null> {
+	const cached = getCache<RowsSummary>('cache:dashboard:rows-summary');
+	if (cached) return cached;
+
+	try {
+		const resp = await fetch(`${ROWS_PROXY_BASE}/api/System/Health`, {
+			headers: { Authorization: `Bearer ${token}` },
+			signal: AbortSignal.timeout(8000),
+		});
+		if (!resp.ok) return null;
+		const data: RowsSummary = await resp.json();
+		setCache('cache:dashboard:rows-summary', data);
+		return data;
+	} catch {
+		return null;
+	}
+}
+
 async function fetchGraphSummary(): Promise<GraphSummary | null> {
 	const cached = getCache<GraphSummary>('cache:dashboard:graph-summary');
 	if (cached) return cached;
@@ -554,6 +583,7 @@ class HomeService {
 	public readonly $kanban = atom<KanbanSummary | null>(null);
 	public readonly $report = atom<ReportSummary | null>(null);
 	public readonly $graph = atom<GraphSummary | null>(null);
+	public readonly $rows = atom<RowsSummary | null>(null);
 
 	// Loading
 	public readonly $loading = atom<boolean>(true);
@@ -568,6 +598,7 @@ class HomeService {
 	public readonly $kanbanStatus = atom<ServiceStatus>('loading');
 	public readonly $reportStatus = atom<ServiceStatus>('loading');
 	public readonly $graphStatus = atom<ServiceStatus>('loading');
+	public readonly $rowsStatus = atom<ServiceStatus>('loading');
 
 	// Computed
 	public readonly $allOk = computed(
@@ -577,9 +608,15 @@ class HomeService {
 			this.$edgeStatus,
 			this.$clickhouseStatus,
 			this.$securityStatus,
+			this.$rowsStatus,
 		],
-		(g, a, e, c, s) =>
-			g === 'ok' && a === 'ok' && e === 'ok' && c === 'ok' && s === 'ok',
+		(g, a, e, c, s, r) =>
+			g === 'ok' &&
+			a === 'ok' &&
+			e === 'ok' &&
+			c === 'ok' &&
+			s === 'ok' &&
+			r === 'ok',
 	);
 
 	public readonly $anyError = computed(
@@ -588,9 +625,14 @@ class HomeService {
 			this.$argoStatus,
 			this.$edgeStatus,
 			this.$clickhouseStatus,
+			this.$rowsStatus,
 		],
-		(g, a, e, c) =>
-			g === 'error' || a === 'error' || e === 'error' || c === 'error',
+		(g, a, e, c, r) =>
+			g === 'error' ||
+			a === 'error' ||
+			e === 'error' ||
+			c === 'error' ||
+			r === 'error',
 	);
 
 	public readonly $anyLoading = computed(
@@ -600,13 +642,15 @@ class HomeService {
 			this.$edgeStatus,
 			this.$clickhouseStatus,
 			this.$securityStatus,
+			this.$rowsStatus,
 		],
-		(g, a, e, c, s) =>
+		(g, a, e, c, s, r) =>
 			g === 'loading' ||
 			a === 'loading' ||
 			e === 'loading' ||
 			c === 'loading' ||
-			s === 'loading',
+			s === 'loading' ||
+			r === 'loading',
 	);
 
 	// --- Auth ---
@@ -642,6 +686,7 @@ class HomeService {
 		this.$kanbanStatus.set('loading');
 		this.$reportStatus.set('loading');
 		this.$graphStatus.set('loading');
+		this.$rowsStatus.set('loading');
 
 		const token = this.$accessToken.get();
 
@@ -689,6 +734,16 @@ class HomeService {
 				},
 			);
 
+			const rowsPromise = fetchRowsSummary(token).then((r) => {
+				this.$rows.set(r);
+				if (r) {
+					const allOk = Object.values(r.checks).every((c) => c.ok);
+					this.$rowsStatus.set(allOk ? 'ok' : 'unavailable');
+				} else {
+					this.$rowsStatus.set('unavailable');
+				}
+			});
+
 			await Promise.all([
 				grafanaPromise,
 				argoPromise,
@@ -698,6 +753,7 @@ class HomeService {
 				kanbanPromise,
 				reportPromise,
 				graphPromise,
+				rowsPromise,
 			]);
 		} else {
 			await Promise.all([

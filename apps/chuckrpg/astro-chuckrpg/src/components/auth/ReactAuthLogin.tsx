@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { authBridge } from '@/lib/auth';
+import { authBridge } from '@/lib/supa';
 
 export default function ReactAuthLogin() {
 	const [isLoading, setIsLoading] = useState<string | null>(null);

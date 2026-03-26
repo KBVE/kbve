@@ -14,6 +14,7 @@ export const DispatchPipelines = [
 	'crates',
 	'python',
 	'unreal',
+	'ue5_server',
 ] as const;
 
 export type DispatchPipelineValue = (typeof DispatchPipelines)[number];
@@ -86,6 +87,7 @@ export const CiProjectSchema = z.object({
 	target: z.string().max(64).optional(),
 	nx_project: z.string().max(64).optional(),
 	test_framework: TestFrameworkSchema.optional(),
+	shell_path: z.string().max(256).optional(),
 });
 
 export type CiProject = z.infer<typeof CiProjectSchema>;
