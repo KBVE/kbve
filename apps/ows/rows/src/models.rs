@@ -380,3 +380,14 @@ pub struct HealthResponse {
     pub status: &'static str,
     pub service: &'static str,
 }
+
+/// Zone instance info for shutdown routing.
+#[derive(sqlx::FromRow)]
+pub struct ZoneInstanceInfo {
+    pub map_instance_id: i32,
+    pub world_server_id: i32,
+    pub port: i32,
+    pub status: i32,
+    pub map_name: String,
+    pub zone_name: String,
+}

@@ -506,4 +506,106 @@ impl<'a> InstanceRepo<'a> {
         .await?;
         Ok(info)
     }
+
+    /// Delete a map instance by ID. Used during GameServer shutdown cleanup.
+    pub async fn delete_map_instance(
+        &self,
+        customer_guid: Uuid,
+        instance_id: i32,
+    ) -> Result<(), RowsError> {
+        // First clean up char_on_map_instance references
+        sqlx::query(
+            "DELETE FROM charonmapinstance
+             WHERE mapinstanceid = $1 AND customerguid = $2",
+        )
+        .bind(instance_id)
+        .bind(customer_guid)
+        .execute(self.0)
+        .await?;
+
+        // Then delete the instance itself
+        sqlx::query(
+            "DELETE FROM mapinstances
+             WHERE mapinstanceid = $1 AND customerguid = $2",
+        )
+        .bind(instance_id)
+        .bind(customer_guid)
+        .execute(self.0)
+        .await?;
+
+        Ok(())
+    }
+
+    /// Deactivate the world server associated with a map instance.
+    /// Sets serverstatus=0 for the world server that owns this instance.
+    pub async fn deactivate_world_server_by_instance(
+        &self,
+        customer_guid: Uuid,
+        instance_id: i32,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "UPDATE worldservers SET serverstatus = 0
+             WHERE customerguid = $1
+               AND worldserverid = (
+                   SELECT worldserverid FROM mapinstances
+                   WHERE mapinstanceid = $2 AND customerguid = $1
+               )",
+        )
+        .bind(customer_guid)
+        .bind(instance_id)
+        .execute(self.0)
+        .await?;
+
+        Ok(())
+    }
+
+    /// Delete all map instances for a customer. Used during fleet restart.
+    pub async fn delete_all_map_instances(&self, customer_guid: Uuid) -> Result<(), RowsError> {
+        sqlx::query("DELETE FROM charonmapinstance WHERE customerguid = $1")
+            .bind(customer_guid)
+            .execute(self.0)
+            .await?;
+
+        sqlx::query("DELETE FROM mapinstances WHERE customerguid = $1")
+            .bind(customer_guid)
+            .execute(self.0)
+            .await?;
+
+        Ok(())
+    }
+
+    /// Deactivate all world servers for a customer. Used during fleet restart.
+    pub async fn deactivate_all_world_servers(&self, customer_guid: Uuid) -> Result<(), RowsError> {
+        sqlx::query("UPDATE worldservers SET serverstatus = 0 WHERE customerguid = $1")
+            .bind(customer_guid)
+            .execute(self.0)
+            .await?;
+
+        Ok(())
+    }
+
+    /// Get zone instance info by ID (for shutdown routing).
+    pub async fn get_zone_instance_info(
+        &self,
+        customer_guid: Uuid,
+        zone_instance_id: i32,
+    ) -> Result<Option<ZoneInstanceInfo>, RowsError> {
+        let info: Option<ZoneInstanceInfo> = sqlx::query_as(
+            "SELECT mi.mapinstanceid AS map_instance_id,
+                    mi.worldserverid AS world_server_id,
+                    mi.port,
+                    mi.status,
+                    m.mapname AS map_name,
+                    m.zonename AS zone_name
+             FROM mapinstances mi
+             JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
+             WHERE mi.customerguid = $1 AND mi.mapinstanceid = $2",
+        )
+        .bind(customer_guid)
+        .bind(zone_instance_id)
+        .fetch_optional(self.0)
+        .await?;
+
+        Ok(info)
+    }
 }

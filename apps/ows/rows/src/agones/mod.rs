@@ -9,6 +9,7 @@ mod deallocate;
 mod error;
 pub mod fleet;
 pub mod pipeline;
+pub mod watcher;
 
 pub use allocate::AllocationResult;
 pub use client::AgonesClient;
