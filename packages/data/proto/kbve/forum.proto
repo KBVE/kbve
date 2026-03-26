@@ -104,20 +104,34 @@ message ForumSpace {
 
 // Descriptive metadata for cross-cutting discovery.
 // Tags are non-authoritative — they never determine ownership.
-// Tags use integer IDs as the canonical reference — compact, fast indexes,
-// and trivial consolidation: "gamedevelopment" (id=12) merges into "gamedev"
-// (id=5) by setting alias_of=5. All ThreadTag rows stay pointing at 12,
-// but queries resolve through alias_of to the canonical tag.
-// Renaming a tag = single row update, zero junction table changes.
+//
+// ADMIN-CONTROLLED TAXONOMY:
+// Tags are created and managed exclusively by admins. Users select from
+// the approved tag pool when creating threads — they cannot create new tags.
+// This prevents "gamedev" / "gamedevelopment" / "game-dev" fragmentation.
+//
+// ALIAS / CONSOLIDATION:
+// When admins merge tags, alias_of points to the canonical tag ID.
+// The canonical_id field is the resolved ID — always points to the final
+// canonical tag (follows alias chains). Every read path uses canonical_id
+// for aggregation, so merged tags produce consistent counts.
+//
+// Query rule: all read paths (feed, search, counts, tag pages) MUST
+// resolve via canonical_id, never raw tag id. This is enforced by a
+// DB view or RPC function that resolves aliases at query time.
+//
+// Integer IDs: compact B-tree indexes, fast junction joins.
 message ForumTag {
   int32 id = 1;                            // Auto-increment integer (canonical reference)
   string slug = 2;                        // URL-safe identifier (e.g. "networking")
   string name = 3;                        // Display name
   optional string description = 4;
   TagStatus status = 5;
-  optional int32 alias_of = 6;            // Canonical tag ID (if merged/aliased)
-  int32 usage_count = 7;                  // Denormalized count
-  string created_at = 8;
+  optional int32 alias_of = 6;            // Direct alias target (if merged)
+  int32 canonical_id = 7;                 // Resolved canonical tag ID (follows alias chain)
+  int32 usage_count = 8;                  // Denormalized count (on canonical tag only)
+  string created_by = 9;                  // Admin user UUID who created this tag
+  string created_at = 10;
 }
 
 // ---------------------------------------------------------------------------
@@ -257,9 +271,18 @@ message ForumComment {
 
 // Thread ↔ Tag junction (many-to-many).
 // Uses integer tag_id for compact storage and fast joins.
+//
+// IMPORTANT: tag_id here may reference a merged/aliased tag. All read
+// queries MUST join through ForumTag.canonical_id to resolve the true
+// canonical tag. This is enforced by a DB view:
+//   CREATE VIEW thread_tags_resolved AS
+//     SELECT tt.thread_id, ft.canonical_id AS tag_id
+//     FROM forum.thread_tags tt
+//     JOIN forum.tags ft ON ft.id = tt.tag_id;
+// All feed/search/count queries use this view, never the raw table.
 message ThreadTag {
   string thread_id = 1;                   // Thread UUID
-  int32 tag_id = 2;                       // Tag integer ID
+  int32 tag_id = 2;                       // Tag integer ID (may be aliased)
 }
 
 // ---------------------------------------------------------------------------
