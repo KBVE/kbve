@@ -1,0 +1,265 @@
+name: CI - UE5 Dedicated Server (ROWS)
+
+on:
+    workflow_call:
+        inputs:
+            shell_path:
+                description: 'Monorepo shell project path (e.g. apps/chuckrpg/unreal-chuck)'
+                required: true
+                type: string
+        secrets:
+            epic_pat:
+                description: 'PAT with access to ghcr.io/epicgames/unreal-engine and game repo'
+                required: true
+    workflow_dispatch:
+        inputs:
+            shell_path:
+                description: 'Monorepo shell project path (e.g. apps/chuckrpg/unreal-chuck)'
+                required: true
+                type: string
+                default: 'apps/chuckrpg/unreal-chuck'
+
+concurrency:
+    group: ci-ue5-rows-${{ inputs.shell_path }}
+    cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+    # ── Fork Guard ──────────────────────────────────────────
+    guard:
+        name: Fork Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            allowed: ${{ steps.check.outputs.allowed }}
+        steps:
+            - name: Verify origin and actor
+              id: check
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      try {
+                        const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          username: context.actor,
+                        });
+                        const level = data.permission;
+                        if (level === 'admin' || level === 'write') {
+                          core.setOutput('allowed', 'true');
+                        } else {
+                          core.error(`Actor ${context.actor} has ${level} access — insufficient`);
+                          core.setOutput('allowed', 'false');
+                        }
+                      } catch (err) {
+                        core.error(`Permission check failed: ${err.message}`);
+                        core.setOutput('allowed', 'false');
+                      }
+
+    # ── Read Shell Config ───────────────────────────────────
+    config:
+        name: Read Config
+        needs: guard
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        outputs:
+            version: ${{ steps.parse.outputs.version }}
+            project_repo: ${{ steps.parse.outputs.project_repo }}
+            project_path: ${{ steps.parse.outputs.project_path }}
+            server_target: ${{ steps.parse.outputs.server_target }}
+            ue_image_tag: ${{ steps.parse.outputs.ue_image_tag }}
+            server_config: ${{ steps.parse.outputs.server_config }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Parse shell project
+              id: parse
+              run: |
+                  SHELL="${{ inputs.shell_path }}"
+
+                  # --- version.toml ---
+                  if [ -f "${SHELL}/version.toml" ]; then
+                    VERSION=$(grep -m1 '^version' "${SHELL}/version.toml" | sed 's/version = "\(.*\)"/\1/')
+                  else
+                    VERSION="0.0.1"
+                    echo "::warning::${SHELL}/version.toml not found, using fallback ${VERSION}"
+                  fi
+
+                  # --- build.toml ---
+                  BUILD="${SHELL}/build.toml"
+                  if [ ! -f "${BUILD}" ]; then
+                    echo "::error::${BUILD} not found — cannot determine build config"
+                    exit 1
+                  fi
+
+                  get_val() {
+                    grep -m1 "^$1" "${BUILD}" | sed "s/$1 = \"\(.*\)\"/\1/"
+                  }
+
+                  REPO=$(get_val "repo")
+                  PROJECT_PATH=$(get_val "path")
+                  SERVER_TARGET=$(get_val "server_target")
+                  UE_IMAGE_TAG=$(get_val "ue_image_tag")
+                  SERVER_CONFIG=$(get_val "server_config")
+
+                  # Defaults
+                  UE_IMAGE_TAG="${UE_IMAGE_TAG:-dev-5.7.4}"
+                  SERVER_CONFIG="${SERVER_CONFIG:-Development}"
+
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "project_repo=${REPO}" >> "$GITHUB_OUTPUT"
+                  echo "project_path=${PROJECT_PATH}" >> "$GITHUB_OUTPUT"
+                  echo "server_target=${SERVER_TARGET}" >> "$GITHUB_OUTPUT"
+                  echo "ue_image_tag=${UE_IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+                  echo "server_config=${SERVER_CONFIG}" >> "$GITHUB_OUTPUT"
+
+                  echo "::notice::Shell: ${SHELL} | v${VERSION} | ${REPO} | ${SERVER_TARGET} | UE ${UE_IMAGE_TAG} | ${SERVER_CONFIG}"
+
+    # ── Build Dedicated Server ──────────────────────────────
+    build:
+        name: Build ${{ needs.config.outputs.server_target }} (Linux)
+        needs: [guard, config]
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: arc-runner-ue
+        timeout-minutes: 480
+        permissions:
+            contents: read
+            packages: read
+        env:
+            UE_IMAGE: ghcr.io/epicgames/unreal-engine:${{ needs.config.outputs.ue_image_tag }}
+
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::UE5 dedicated server build — repo=${{ needs.config.outputs.project_repo }}, target=${{ needs.config.outputs.server_target }}, image=${{ env.UE_IMAGE }}, version=${{ needs.config.outputs.version }}, actor=${{ github.actor }}"
+
+            - name: Login to GitHub Container Registry
+              run: |
+                  echo "${{ secrets.epic_pat }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            - name: Pull UE image (cached on node)
+              run: |
+                  docker pull "${{ env.UE_IMAGE }}"
+
+            - name: Clone game project
+              run: |
+                  rm -rf /tmp/game-project
+                  git clone --depth=1 \
+                    "https://x-access-token:${{ secrets.epic_pat }}@github.com/${{ needs.config.outputs.project_repo }}.git" \
+                    /tmp/game-project
+
+            - name: Fetch LFS objects
+              run: |
+                  cd /tmp/game-project
+                  git lfs install
+                  git lfs pull
+
+            - name: Build dedicated server
+              env:
+                  PROJECT_PATH: ${{ needs.config.outputs.project_path }}
+                  SERVER_TARGET: ${{ needs.config.outputs.server_target }}
+                  SERVER_CONFIG: ${{ needs.config.outputs.server_config }}
+              run: |
+                  mkdir -p /tmp/ue5-build-output
+
+                  UPROJECT_DIR=$(dirname "${PROJECT_PATH}")
+                  UPROJECT_FILE=$(basename "${PROJECT_PATH}")
+
+                  if [ "${UPROJECT_DIR}" = "." ]; then
+                    PROJECT_MOUNT="/tmp/game-project"
+                  else
+                    PROJECT_MOUNT="/tmp/game-project/${UPROJECT_DIR}"
+                  fi
+
+                  echo "::notice::Mounting ${PROJECT_MOUNT} → /project, building ${UPROJECT_FILE}"
+
+                  docker run --rm \
+                    -v "${PROJECT_MOUNT}:/project" \
+                    -v /tmp/ue5-build-output:/output \
+                    "${{ env.UE_IMAGE }}" \
+                    /bin/bash -c '
+                      set -euo pipefail
+
+                      RUNUAT=""
+                      for candidate in \
+                        /home/ue4/UnrealEngine \
+                        /home/epic/UnrealEngine \
+                        /UnrealEngine; do
+                        if [ -f "$candidate/Engine/Build/BatchFiles/RunUAT.sh" ]; then
+                          RUNUAT="$candidate/Engine/Build/BatchFiles/RunUAT.sh"
+                          echo "::notice::RunUAT located at: $RUNUAT"
+                          break
+                        fi
+                      done
+
+                      if [ -z "$RUNUAT" ]; then
+                        echo "::error::RunUAT.sh not found in container"
+                        find / -name "RunUAT.sh" 2>/dev/null || true
+                        exit 1
+                      fi
+
+                      "$RUNUAT" BuildCookRun \
+                        -project=/project/'"${UPROJECT_FILE}"' \
+                        -targetplatform=Linux \
+                        -target='"${SERVER_TARGET}"' \
+                        -server \
+                        -serverconfig='"${SERVER_CONFIG}"' \
+                        -cook \
+                        -allmaps \
+                        -build \
+                        -stage \
+                        -pak \
+                        -archive \
+                        -archivedirectory=/output \
+                        -unattended \
+                        -utf8output \
+                        -NoP4
+                    '
+
+            - name: Deploy server to PVC
+              run: |
+                  VERSION="${{ needs.config.outputs.version }}"
+                  TARGET="${{ needs.config.outputs.server_target }}"
+                  SERVER_DIR=$(find /tmp/ue5-build-output -name "LinuxServer" -type d | head -1)
+                  if [ -z "${SERVER_DIR}" ]; then
+                    echo "::error::LinuxServer output not found"
+                    find /tmp/ue5-build-output -maxdepth 3 -type d
+                    exit 1
+                  fi
+
+                  DEST="/mnt/longhorn/ows-server/${TARGET}/${VERSION}"
+                  mkdir -p "${DEST}"
+                  cp -r "${SERVER_DIR}/." "${DEST}/"
+                  chmod -R 755 "${DEST}"
+                  ln -sfn "${DEST}" "/mnt/longhorn/ows-server/${TARGET}/latest"
+
+                  echo "::notice::${TARGET} v${VERSION} deployed to PVC ($(du -sh ${DEST} | cut -f1))"
+                  ls -la "${DEST}/" | head -10
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  docker logout ghcr.io 2>/dev/null || true
+                  docker system prune -f 2>/dev/null || true
+                  rm -rf /tmp/game-project /tmp/ue5-build-output 2>/dev/null || true
+
+    # ── Failure Tracker ─────────────────────────────────────
+    track_failure:
+        name: Track Failures
+        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        needs: [build]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - UE5 Dedicated Server (ROWS)'
+            job_name: 'Build ${{ needs.config.outputs.server_target }}'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'failure'
