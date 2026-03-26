@@ -1281,6 +1281,32 @@ impl<'a> InstanceRepo<'a> {
         Ok(())
     }
 
+    /// Create a map instance with status=2 (ready) for Agones-allocated servers.
+    /// Unlike spin_up_server_instance (status=1), Agones servers are already running.
+    pub async fn spin_up_server_instance_ready(
+        &self,
+        customer_guid: Uuid,
+        world_server_id: i32,
+        zone_name: &str,
+        port: i32,
+    ) -> Result<i32, RowsError> {
+        let row: Option<(i32,)> = sqlx::query_as(
+            "INSERT INTO mapinstances (customerguid, worldserverid, mapid, port, status)
+             SELECT $1, $2, m.mapid, $4, 2
+             FROM maps m WHERE m.customerguid = $1 AND m.zonename = $3
+             ON CONFLICT DO NOTHING
+             RETURNING mapinstanceid",
+        )
+        .bind(customer_guid)
+        .bind(world_server_id)
+        .bind(zone_name)
+        .bind(port)
+        .fetch_optional(self.0)
+        .await?;
+
+        Ok(row.map(|r| r.0).unwrap_or(0))
+    }
+
     pub async fn shut_down_server_instance(
         &self,
         customer_guid: Uuid,
