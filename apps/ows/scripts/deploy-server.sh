@@ -53,8 +53,13 @@ case "$PROJECT" in
         SERVER_TARGET="OWSHubWorldMMOServer"
         SERVER_BIN_NAME="OWSHubWorldMMOServer"
         ;;
+    ri)
+        UPROJECT_PATH="RI/RI.uproject"
+        SERVER_TARGET="RIServer"
+        SERVER_BIN_NAME="RIServer"
+        ;;
     *)
-        echo "ERROR: Unknown project '${PROJECT}'. Use: chuck or hubworld"
+        echo "ERROR: Unknown project '${PROJECT}'. Use: chuck, hubworld, or ri"
         exit 1
         ;;
 esac
@@ -81,15 +86,27 @@ if [ "${SKIP_BUILD}" = false ]; then
     mkdir -p "${OUTPUT_DIR}"
     rm -rf "${OUTPUT_DIR:?}"/*
 
+    # Persistent cache for UE build artifacts (Intermediate, DerivedDataCache, Saved)
+    UE_CACHE_DIR="${HOME}/.cache/kbve-ue-build/${PROJECT}"
+    mkdir -p "${UE_CACHE_DIR}/Intermediate" "${UE_CACHE_DIR}/DerivedDataCache" "${UE_CACHE_DIR}/Saved"
+
+    PROJECT_DIR="${UPROJECT_PATH%/*}"
+
     # Mount source as read-only, copy to writable location inside container.
     # UE5 BuildCookRun writes to the project's Intermediate/ directory.
     docker run --rm -t \
         --platform linux/amd64 \
         -v "${CHUCK_DIR}:/tmp/chuck-src:ro" \
         -v "${OUTPUT_DIR}:/tmp/ows-server-output" \
+        -v "${UE_CACHE_DIR}/Intermediate:/tmp/ue-cache/Intermediate" \
+        -v "${UE_CACHE_DIR}/DerivedDataCache:/tmp/ue-cache/DerivedDataCache" \
+        -v "${UE_CACHE_DIR}/Saved:/tmp/ue-cache/Saved" \
         "${UE_IMAGE}" \
         bash -c "
             cp -r /tmp/chuck-src /tmp/chuck && \
+            ln -sf /tmp/ue-cache/Intermediate /tmp/chuck/${PROJECT_DIR}/Intermediate && \
+            ln -sf /tmp/ue-cache/DerivedDataCache /tmp/chuck/${PROJECT_DIR}/DerivedDataCache && \
+            ln -sf /tmp/ue-cache/Saved /tmp/chuck/${PROJECT_DIR}/Saved && \
             /home/ue4/UnrealEngine/Engine/Build/BatchFiles/RunUAT.sh BuildCookRun \
                 -project=/tmp/chuck/${UPROJECT_PATH} \
                 -targetplatform=Linux \
@@ -105,7 +122,8 @@ if [ "${SKIP_BUILD}" = false ]; then
                 -archivedirectory=/tmp/ows-server-output \
                 -unattended \
                 -utf8output \
-                -NoP4
+                -NoP4 || \
+            (echo '=== COOK LOG ===' && cat /home/ue4/Library/Logs/Unreal\ Engine/LocalBuildLogs/Log.txt 2>/dev/null | tail -100 && exit 1)
         "
 
     if [ ! -d "${OUTPUT_DIR}/LinuxServer" ]; then
@@ -149,6 +167,11 @@ spec:
       command: ["sleep", "600"]
       securityContext:
         allowPrivilegeEscalation: false
+      resources:
+        requests:
+          memory: "512Mi"
+        limits:
+          memory: "2Gi"
       volumeMounts:
         - name: server-build
           mountPath: /mnt/ows-server
