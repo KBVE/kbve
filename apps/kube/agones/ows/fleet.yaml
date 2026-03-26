@@ -76,14 +76,14 @@ spec:
                                   # Agones SDK sets AGONES_SDK_GRPC_PORT
                                   # OWS uses command-line args for zone/port config
                                   # h0lybyte 03/25/2026 - Finding Agones
-                                  # Force ChuckGameMode to ensure Agones SDK + ROWS registration runs
+                                  # Force RIGameMode for Agones SDK + ROWS registration
                                   exec "${SERVER_BIN}" \
                                     -server \
                                     -log \
                                     -nosteam \
                                     -unattended \
                                     -port=${GAME_PORT:-7777} \
-                                    -GameMode=/Script/Chuck.ChuckGameMode \
+                                    -GameMode=/Script/RI.RIGameMode \
                                     ${OWS_EXTRA_ARGS:-}
                           env:
                               - name: GAME_PORT
