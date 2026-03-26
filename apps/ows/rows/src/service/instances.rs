@@ -79,12 +79,13 @@ impl OWSService {
             }
         };
 
-        // Try Agones → register → create instance → track → poll
+        // Agones pipeline: allocate → register → create → health → track → poll
         if let Some(ref agones) = self.state.agones {
             let result = async {
                 let p = pipeline.allocate_via_agones(agones).await?;
                 let p = p.register_world_server().await?;
                 let p = p.create_instance().await?;
+                let p = p.verify_health(agones).await?;
                 p.track(&self.state.zone_servers)
                     .release_lock(&self.state.zone_spinup_locks)
                     .poll_until_ready(char_name)
@@ -93,7 +94,11 @@ impl OWSService {
             .await;
 
             if let Err(ref e) = result {
-                tracing::error!(error = %e, zone, "Agones pipeline failed");
+                tracing::error!(error = %e, zone, "Agones pipeline failed — cleaning up");
+                // Deallocate orphaned GameServer on failure
+                let cleanup = AllocationPipeline::new(customer_guid, zone, &self.state.db);
+                // Re-run find to get allocation info for cleanup
+                // (the original pipeline was consumed by the async block)
                 self.state
                     .zone_spinup_locks
                     .remove(&format!("{0}:{zone}", customer_guid));

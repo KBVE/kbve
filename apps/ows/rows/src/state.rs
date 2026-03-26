@@ -4,6 +4,7 @@ use crate::mq::MqProducer;
 use crate::service::CachedSession;
 use dashmap::DashMap;
 use std::sync::Arc;
+use std::time::Instant;
 use uuid::Uuid;
 
 /// Shared application state — single Arc allocation, no Clone on inner fields.
@@ -13,9 +14,10 @@ pub struct AppState {
     pub sessions: DashMap<Uuid, CachedSession>,
     /// Zone instance → GameServer name tracking (Agones)
     pub zone_servers: DashMap<i32, String>,
-    /// Spin-up lock: zone_name → true if allocation is in progress.
+    /// Spin-up lock: zone_key → acquisition timestamp.
     /// Prevents duplicate Agones allocations for the same zone.
-    pub zone_spinup_locks: DashMap<String, bool>,
+    /// Timestamp enables stale lock cleanup (vs old bool that had no age info).
+    pub zone_spinup_locks: DashMap<String, Instant>,
     pub config: AppConfig,
     /// RabbitMQ producer (None if unavailable — non-fatal)
     pub mq: Option<MqProducer>,

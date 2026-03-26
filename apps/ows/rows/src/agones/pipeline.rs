@@ -133,12 +133,17 @@ impl<'a> AllocationPipeline<'a> {
 
     /// Step 2: Acquire a spin-up lock to prevent duplicate allocations.
     /// Returns Err if another allocation is already in progress for this zone.
-    pub fn acquire_lock(self, locks: &DashMap<String, bool>) -> Result<Self, RowsError> {
-        if locks.contains_key(&self.lock_key) {
-            tracing::info!(zone = %self.zone, "Spin-up already in progress, skipping");
-            return Err(RowsError::Conflict("Allocation already in progress".into()));
+    pub fn acquire_lock(self, locks: &DashMap<String, Instant>) -> Result<Self, RowsError> {
+        if let Some(entry) = locks.get(&self.lock_key) {
+            let age = entry.value().elapsed();
+            if age < Duration::from_secs(SPINUP_TIMEOUT_SECS + 10) {
+                tracing::info!(zone = %self.zone, age_secs = age.as_secs(), "Spin-up already in progress, skipping");
+                return Err(RowsError::Conflict("Allocation already in progress".into()));
+            }
+            // Stale lock — expired, allow new allocation
+            tracing::warn!(zone = %self.zone, age_secs = age.as_secs(), "Expired stale spin-up lock");
         }
-        locks.insert(self.lock_key.clone(), true);
+        locks.insert(self.lock_key.clone(), Instant::now());
         Ok(self)
     }
 
@@ -256,6 +261,78 @@ impl<'a> AllocationPipeline<'a> {
         Ok(self)
     }
 
+    /// Step 5b: Verify the allocated server is reachable (health probe).
+    /// Checks that the Agones GameServer is still in Allocated state.
+    /// Call after create_instance() to catch servers that died during boot.
+    #[tracing::instrument(skip(self, agones), fields(zone = %self.zone))]
+    pub async fn verify_health(self, agones: &AgonesClient) -> Result<Self, RowsError> {
+        let alloc = self
+            .allocation
+            .as_ref()
+            .ok_or_else(|| RowsError::Internal("No allocation to verify".into()))?;
+
+        // Query the GameServer status via K8s API
+        let url = format!(
+            "/apis/agones.dev/v1/namespaces/{}/gameservers/{}",
+            agones.namespace(),
+            alloc.game_server_name
+        );
+
+        let req = http::Request::get(&url)
+            .body(Vec::new())
+            .map_err(|e| RowsError::Internal(format!("Failed to build health request: {e}")))?;
+
+        let resp: serde_json::Value = agones
+            .client
+            .request(req)
+            .await
+            .map_err(|e| RowsError::Internal(format!("Health probe failed: {e}")))?;
+
+        let state = resp
+            .pointer("/status/state")
+            .and_then(|v| v.as_str())
+            .unwrap_or("Unknown");
+
+        if state != "Allocated" && state != "Ready" {
+            tracing::error!(
+                gs = %alloc.game_server_name,
+                state,
+                "GameServer is not healthy"
+            );
+            return Err(RowsError::Internal(format!(
+                "GameServer {} is in state {state}, expected Allocated/Ready",
+                alloc.game_server_name
+            )));
+        }
+
+        tracing::info!(
+            gs = %alloc.game_server_name,
+            state,
+            "GameServer health verified"
+        );
+        Ok(self)
+    }
+
+    /// Cleanup: deallocate the GameServer if a pipeline step fails.
+    /// Call this in error paths to prevent orphaned GameServers.
+    #[tracing::instrument(skip(self, agones), fields(zone = %self.zone))]
+    pub async fn deallocate_on_failure(self, agones: &AgonesClient) -> Self {
+        if let Some(ref alloc) = self.allocation {
+            tracing::warn!(
+                gs = %alloc.game_server_name,
+                "Pipeline failed — deallocating orphaned GameServer"
+            );
+            if let Err(e) = agones.deallocate(&alloc.game_server_name).await {
+                tracing::error!(
+                    error = %e,
+                    gs = %alloc.game_server_name,
+                    "Failed to deallocate orphaned GameServer"
+                );
+            }
+        }
+        self
+    }
+
     /// Step 6: Track the allocation for cleanup/deallocation.
     pub fn track(self, zone_servers: &DashMap<i32, String>) -> Self {
         if let Some(ref alloc) = self.allocation {
@@ -272,7 +349,7 @@ impl<'a> AllocationPipeline<'a> {
     }
 
     /// Step 7: Release the spin-up lock.
-    pub fn release_lock(self, locks: &DashMap<String, bool>) -> Self {
+    pub fn release_lock(self, locks: &DashMap<String, Instant>) -> Self {
         locks.remove(&self.lock_key);
         self
     }
