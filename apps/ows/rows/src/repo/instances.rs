@@ -506,4 +506,56 @@ impl<'a> InstanceRepo<'a> {
         .await?;
         Ok(info)
     }
+
+    /// Delete a map instance by ID. Used during GameServer shutdown cleanup.
+    pub async fn delete_map_instance(
+        &self,
+        customer_guid: Uuid,
+        instance_id: i32,
+    ) -> Result<(), RowsError> {
+        // First clean up char_on_map_instance references
+        sqlx::query(
+            "DELETE FROM charonmapinstance
+             WHERE mapinstanceid = $1 AND customerguid = $2",
+        )
+        .bind(instance_id)
+        .bind(customer_guid)
+        .execute(self.0)
+        .await?;
+
+        // Then delete the instance itself
+        sqlx::query(
+            "DELETE FROM mapinstances
+             WHERE mapinstanceid = $1 AND customerguid = $2",
+        )
+        .bind(instance_id)
+        .bind(customer_guid)
+        .execute(self.0)
+        .await?;
+
+        Ok(())
+    }
+
+    /// Deactivate the world server associated with a map instance.
+    /// Sets serverstatus=0 for the world server that owns this instance.
+    pub async fn deactivate_world_server_by_instance(
+        &self,
+        customer_guid: Uuid,
+        instance_id: i32,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "UPDATE worldservers SET serverstatus = 0
+             WHERE customerguid = $1
+               AND worldserverid = (
+                   SELECT worldserverid FROM mapinstances
+                   WHERE mapinstanceid = $2 AND customerguid = $1
+               )",
+        )
+        .bind(customer_guid)
+        .bind(instance_id)
+        .execute(self.0)
+        .await?;
+
+        Ok(())
+    }
 }

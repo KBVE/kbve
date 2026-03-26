@@ -109,6 +109,15 @@ async fn main() -> anyhow::Result<()> {
     // Background jobs (health monitoring, cleanup)
     jobs::spawn_all(svc.clone());
 
+    // GameServer watcher — auto-cleanup DB on server shutdown/delete
+    {
+        let watcher_state = app_state.clone();
+        tokio::spawn(async move {
+            agones::watcher::spawn_gameserver_watcher(watcher_state).await;
+        });
+        info!("GameServer watcher spawned");
+    }
+
     // RabbitMQ consumer (instance launcher handshake)
     // world_server_id=0 is a placeholder — real value comes from register_launcher
     mq::spawn_consumer(&rabbitmq_url, 0, svc.clone()).await;
