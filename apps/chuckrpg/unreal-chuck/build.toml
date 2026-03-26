@@ -1,0 +1,6 @@
+[project]
+repo = "KBVE/chuck"
+path = "Chuck/Chuck.uproject"
+server_target = "ChuckServer"
+ue_image_tag = "dev-5.7.4"
+server_config = "Development"
