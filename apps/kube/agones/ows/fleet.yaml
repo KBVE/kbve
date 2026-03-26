@@ -75,11 +75,10 @@ spec:
 
                                   # Agones SDK sets AGONES_SDK_GRPC_PORT
                                   # OWS uses command-line args for zone/port config
-                                  # h0lybyte 03/26/2026 - MainWorld from DB maps table
-                                  # Server must load Lvl_ThirdPerson (MainWorld zone)
-                                  # GameMode forced to ChuckGameMode for Agones + ROWS
+                                  # h0lybyte 03/26/2026 - ChuckGameMode for Agones + ROWS
+                                  # Map loaded via GlobalDefaultServerGameMode in DefaultEngine.ini
+                                  # NOT via positional arg (crashes shipping builds)
                                   exec "${SERVER_BIN}" \
-                                    /Game/ThirdPerson/Lvl_ThirdPerson \
                                     -server \
                                     -log \
                                     -nosteam \
