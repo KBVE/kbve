@@ -1434,7 +1434,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.76"
+version = "1.0.77"
 dependencies = [
  "anyhow",
  "askama",
@@ -12999,7 +12999,7 @@ dependencies = [
 
 [[package]]
 name = "rows"
-version = "0.1.16"
+version = "0.1.18"
 dependencies = [
  "anyhow",
  "argon2",
