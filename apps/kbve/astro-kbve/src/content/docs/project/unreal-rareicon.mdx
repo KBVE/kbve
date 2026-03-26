@@ -1,0 +1,44 @@
+---
+title: Unreal RareIcon
+description: |
+    RareIcon UE5 Linux dedicated server build — uses stock Epic Docker image for CI.
+sidebar:
+    label: Unreal RareIcon
+    order: 97
+tags:
+    - ue5
+    - server
+    - gaming
+key: unreal_rareicon
+pipeline: ue5_server
+app_name: unreal-rareicon
+shell_path: apps/rareicon/unreal-rareicon
+version: "0.0.1"
+source_path: apps/rareicon/unreal-rareicon
+version_toml: apps/rareicon/unreal-rareicon/version.toml
+runner: arc-runner-ue
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+RareIcon dedicated server build managed via the `ci-ue5-rows.yml` workflow.
+
+Uses the cached `ghcr.io/epicgames/unreal-engine:dev-5.7.4` Docker image on the `arc-runner-ue` Kubernetes runner.
+
+### Shell Project
+
+The build configuration lives in the monorepo at `apps/rareicon/unreal-rareicon/`:
+
+- `build.toml` — game repo, .uproject path, server target, UE image tag
+- `version.toml` — current build version
+
+### Dispatch
+
+Trigger via GitHub Actions:
+
+1. Go to **CI - Unreal Engine** workflow
+2. Select task: `dedicated-server`
+3. Set `shell_path`: `apps/rareicon/unreal-rareicon`

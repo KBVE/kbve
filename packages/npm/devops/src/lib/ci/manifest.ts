@@ -42,12 +42,19 @@ export interface UnrealEntry {
 	itch_game_id?: string;
 }
 
+export interface Ue5ServerEntry {
+	key: string;
+	app_name: string;
+	shell_path: string;
+}
+
 export interface DispatchManifest {
 	docker: DockerEntry[];
 	npm: NpmEntry[];
 	crates: CratesEntry[];
 	python: PythonEntry[];
 	unreal: UnrealEntry[];
+	ue5_server: Ue5ServerEntry[];
 }
 
 // ---------------------------------------------------------------------------
@@ -95,17 +102,32 @@ function toUnreal(p: CiProject): UnrealEntry {
 	return entry;
 }
 
+function toUe5Server(p: CiProject): Ue5ServerEntry {
+	if (!p.app_name)
+		throw new Error(`UE5 server project "${p.key}" missing app_name`);
+	if (!p.shell_path)
+		throw new Error(`UE5 server project "${p.key}" missing shell_path`);
+	return { key: p.key, app_name: p.app_name, shell_path: p.shell_path };
+}
+
 const mappers: Record<
 	string,
 	(
 		p: CiProject,
-	) => DockerEntry | NpmEntry | CratesEntry | PythonEntry | UnrealEntry
+	) =>
+		| DockerEntry
+		| NpmEntry
+		| CratesEntry
+		| PythonEntry
+		| UnrealEntry
+		| Ue5ServerEntry
 > = {
 	docker: toDocker,
 	npm: toNpm,
 	crates: toCrates,
 	python: toPython,
 	unreal: toUnreal,
+	ue5_server: toUe5Server,
 };
 
 /**
@@ -119,6 +141,7 @@ export function buildDispatchManifest(): DispatchManifest {
 		crates: [],
 		python: [],
 		unreal: [],
+		ue5_server: [],
 	};
 
 	for (const project of CI_PROJECTS) {

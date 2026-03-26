@@ -454,6 +454,38 @@ export const CI_PROJECTS: CiProject[] = ProjectArraySchema.parse([
 		tags: ['python'],
 	},
 
+	// ── UE5 Server Builds ─────────────────────────────────────
+	{
+		key: 'unreal_chuck',
+		name: 'Chuck Dedicated Server',
+		pipeline: 'ue5_server',
+		app_name: 'unreal-chuck',
+		shell_path: 'apps/chuckrpg/unreal-chuck',
+		description:
+			'Chuck RPG UE5 Linux dedicated server (stock UE 5.7 Docker)',
+		source_path: 'apps/chuckrpg/unreal-chuck',
+		runner: 'arc-runner-ue',
+		author: 'h0lybyte',
+		license: 'KBVE',
+		status: 'active',
+		tags: ['ue5', 'server', 'gaming'],
+	},
+	{
+		key: 'unreal_rareicon',
+		name: 'RareIcon Dedicated Server',
+		pipeline: 'ue5_server',
+		app_name: 'unreal-rareicon',
+		shell_path: 'apps/rareicon/unreal-rareicon',
+		description:
+			'RareIcon UE5 Linux dedicated server (stock UE 5.7 Docker)',
+		source_path: 'apps/rareicon/unreal-rareicon',
+		runner: 'arc-runner-ue',
+		author: 'h0lybyte',
+		license: 'KBVE',
+		status: 'active',
+		tags: ['ue5', 'server', 'gaming'],
+	},
+
 	// ── Unreal Plugins ─────────────────────────────────────────
 	{
 		key: 'ue_kbvexxhash',

@@ -1,0 +1,44 @@
+---
+title: Unreal Chuck
+description: |
+    Chuck RPG UE5 Linux dedicated server build — uses stock Epic Docker image for CI.
+sidebar:
+    label: Unreal Chuck
+    order: 96
+tags:
+    - ue5
+    - server
+    - gaming
+key: unreal_chuck
+pipeline: ue5_server
+app_name: unreal-chuck
+shell_path: apps/chuckrpg/unreal-chuck
+version: "0.0.1"
+source_path: apps/chuckrpg/unreal-chuck
+version_toml: apps/chuckrpg/unreal-chuck/version.toml
+runner: arc-runner-ue
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+Chuck RPG dedicated server build managed via the `ci-ue5-rows.yml` workflow.
+
+Uses the cached `ghcr.io/epicgames/unreal-engine:dev-5.7.4` Docker image on the `arc-runner-ue` Kubernetes runner.
+
+### Shell Project
+
+The build configuration lives in the monorepo at `apps/chuckrpg/unreal-chuck/`:
+
+- `build.toml` — game repo, .uproject path, server target, UE image tag
+- `version.toml` — current build version
+
+### Dispatch
+
+Trigger via GitHub Actions:
+
+1. Go to **CI - Unreal Engine** workflow
+2. Select task: `dedicated-server`
+3. Set `shell_path`: `apps/chuckrpg/unreal-chuck`
