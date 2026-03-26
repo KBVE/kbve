@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## NX Dependency Graph
 
 :::note[Auto-generated]
-Last generated: **2026-03-25T08:24:47Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-03-26T08:28:05Z** — updated daily by `ci-dashboard`.
 :::
 
 <CardGrid>
@@ -23,11 +23,11 @@ Last generated: **2026-03-25T08:24:47Z** — updated daily by `ci-dashboard`.
   <Card title="16 E2es" icon="approve-check-circle">
     astro-cryptothrone-e2e, astro-e2e, astro-kbve-e2e, axum-chuckrpg-e2e, axum-kbve-e2e, devops-e2e + 10 more
   </Card>
-  <Card title="26 Libs" icon="puzzle">
-    astro, bevy_battle, bevy_cam, bevy_inventory, bevy_items, bevy_kbve_net + 20 more
+  <Card title="27 Libs" icon="puzzle">
+    astro, bevy_battle, bevy_cam, bevy_inventory, bevy_items, bevy_kbve_net + 21 more
   </Card>
-  <Card title="38 Dependencies" icon="random">
-    Across 73 projects in the monorepo.
+  <Card title="40 Dependencies" icon="random">
+    Across 74 projects in the monorepo.
   </Card>
 </CardGrid>
 
@@ -35,10 +35,10 @@ Last generated: **2026-03-25T08:24:47Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="droid" icon="puzzle">
-    **12** projects depend on this lib. Located at `packages/npm/droid`.
+    **13** projects depend on this lib. Located at `packages/npm/droid`.
   </Card>
   <Card title="astro" icon="puzzle">
-    **8** projects depend on this lib. Located at `packages/npm/astro`.
+    **9** projects depend on this lib. Located at `packages/npm/astro`.
   </Card>
   <Card title="devops" icon="puzzle">
     **4** projects depend on this lib. Located at `packages/npm/devops`.
@@ -58,7 +58,7 @@ pie showData
     title Projects by Type
     "Apps" : 31
     "E2es" : 16
-    "Libs" : 26
+    "Libs" : 27
 ```
 
 ### Hub Connectivity
@@ -66,8 +66,8 @@ pie showData
 ```mermaid
 pie showData
     title Dependents per Hub
-    "droid" : 12
-    "astro" : 8
+    "droid" : 13
+    "astro" : 9
     "devops" : 4
     "laser" : 4
     "axum-kbve" : 2
@@ -83,6 +83,8 @@ graph LR
     classDef e2e fill:#f59e0b,stroke:#d97706,color:#fff
     _kbve_source["@kbve/source"] --> devops["devops"]
     astro["astro"] --> droid["droid"]
+    astro_chuckrpg["astro-chuckrpg"] --> astro["astro"]
+    astro_chuckrpg["astro-chuckrpg"] --> droid["droid"]
     astro_cryptothrone["astro-cryptothrone"] --> laser["laser"]
     astro_cryptothrone_e2e["astro-cryptothrone-e2e"] --> astro_cryptothrone["astro-cryptothrone"]
     astro_discordsh["astro-discordsh"] --> astro["astro"]
@@ -120,7 +122,7 @@ graph LR
     memes_e2e["memes-e2e"] --> axum_memes["axum-memes"]
     rows_e2e["rows-e2e"] --> rows["rows"]
     class _kbve_source,angelscript,astro_chuckrpg,astro_cryptothrone,astro_discordsh,astro_herbmail,astro_irc,astro_kbve,astro_mc,astro_memes,axum_chuckrpg,axum_cryptothrone,axum_discordsh,axum_herbmail,axum_kbve,axum_memes,cryptothrone,desktop_kbve,discordsh,edge,herbmail,irc,irc_gateway,isometric,kilobase,mc,memes,notification_bot,ows,pydesk,rows app
-    class astro,bevy_battle,bevy_cam,bevy_inventory,bevy_items,bevy_kbve_net,bevy_mapdb,bevy_npc,bevy_player,bevy_quests,bevy_skills,bevy_statemachine,bevy_tasker,data_proto,devops,droid,erust,holy,jedi,kbve,khashvault,laser,python_fudster,python_kbve,q,soul lib
+    class astro,bevy_battle,bevy_cam,bevy_inventory,bevy_items,bevy_kbve_net,bevy_mapdb,bevy_npc,bevy_player,bevy_quests,bevy_skills,bevy_statemachine,bevy_tasker,chisel_ubuntu_axum,data_proto,devops,droid,erust,holy,jedi,kbve,khashvault,laser,python_fudster,python_kbve,q,soul lib
     class astro_cryptothrone_e2e,astro_e2e,astro_kbve_e2e,axum_chuckrpg_e2e,axum_kbve_e2e,devops_e2e,discordsh_e2e,droid_e2e,edge_e2e,herbmail_e2e,irc_e2e,khashvault_e2e,laser_e2e,mc_e2e,memes_e2e,rows_e2e e2e
 ```
 
@@ -135,8 +137,8 @@ graph LR
 |---------|------|------|:----:|:----------:|
 | **@kbve/source** | app | `.` | 1 | 0 |
 | **angelscript** | app | `apps/angelscript` | 0 | 0 |
-| **astro** | lib | `packages/npm/astro` | 2 | 8 |
-| **astro-chuckrpg** | app | `apps/chuckrpg/astro-chuckrpg` | 0 | 0 |
+| **astro** | lib | `packages/npm/astro` | 2 | 9 |
+| **astro-chuckrpg** | app | `apps/chuckrpg/astro-chuckrpg` | 2 | 0 |
 | **astro-cryptothrone** | app | `apps/cryptothrone/astro-cryptothrone` | 1 | 1 |
 | **astro-cryptothrone-e2e** | e2e | `apps/cryptothrone/astro-cryptothrone-e2e` | 1 | 0 |
 | **astro-discordsh** | app | `apps/discordsh/astro-discordsh` | 2 | 1 |
@@ -167,6 +169,7 @@ graph LR
 | **bevy_skills** | lib | `packages/rust/bevy/bevy_skills` | 0 | 0 |
 | **bevy_statemachine** | lib | `packages/rust/bevy/bevy_statemachine` | 0 | 0 |
 | **bevy_tasker** | lib | `packages/rust/bevy/bevy_tasker` | 0 | 0 |
+| **chisel-ubuntu-axum** | lib | `packages/docker/chisel-ubuntu-axum` | 0 | 0 |
 | **cryptothrone** | app | `apps/cryptothrone` | 0 | 0 |
 | **data-proto** | lib | `packages/data/proto` | 0 | 0 |
 | **desktop-kbve** | app | `apps/kbve/desktop-kbve` | 0 | 0 |
@@ -174,7 +177,7 @@ graph LR
 | **devops-e2e** | e2e | `packages/npm/devops-e2e` | 3 | 0 |
 | **discordsh** | app | `apps/discordsh` | 0 | 0 |
 | **discordsh-e2e** | e2e | `apps/discordsh/discordsh-e2e` | 2 | 0 |
-| **droid** | lib | `packages/npm/droid` | 0 | 12 |
+| **droid** | lib | `packages/npm/droid` | 0 | 13 |
 | **droid-e2e** | e2e | `packages/npm/droid-e2e` | 2 | 0 |
 | **edge** | app | `apps/kbve/edge` | 0 | 1 |
 | **edge-e2e** | e2e | `apps/kbve/edge-e2e` | 1 | 0 |
@@ -218,6 +221,16 @@ graph LR
 | Target | Type |
 |--------|------|
 | devops | static |
+
+</details>
+
+<details>
+<summary><strong>astro-chuckrpg</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| astro | static |
+| droid | static |
 
 </details>
 

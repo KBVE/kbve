@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-25T08:22:07.686Z",
+  "generated_at": "2026-03-26T08:25:06.398Z",
   "summary": {
     "total_protos": 24,
     "registered": 9,
@@ -953,7 +953,17 @@
     "packages/data/proto/kbve/staff.proto",
     "packages/data/proto/meme/meme.proto"
   ],
-  "checked_at": "2026-03-25T08:22:07Z",
-  "drift_detected": false,
-  "drift_files": []
+  "checked_at": "2026-03-26T08:25:06Z",
+  "drift_detected": true,
+  "drift_files": [
+    "packages/data/codegen/generated/ci_registry-schema.ts",
+    "packages/data/codegen/generated/clickhouse-schema.ts",
+    "packages/data/codegen/generated/discordsh-schema.ts",
+    "packages/data/codegen/generated/itemdb-schema.ts",
+    "packages/data/codegen/generated/mapdb-schema.ts",
+    "packages/data/codegen/generated/npcdb-schema.ts",
+    "packages/data/codegen/generated/osrs-schema.ts",
+    "packages/data/codegen/generated/ows-schema.ts",
+    "packages/data/codegen/generated/questdb-schema.ts"
+  ]
 }
