@@ -319,10 +319,28 @@ async fn restart_game_server(
 
 /// Restart the entire fleet — scale to 0, clean all DB entries, scale back up.
 /// Use with caution — disconnects all players.
-async fn restart_fleet(State(hs): State<HandlerState>) -> Json<serde_json::Value> {
+async fn restart_fleet(
+    State(hs): State<HandlerState>,
+    Json(body): Json<serde_json::Value>,
+) -> Json<serde_json::Value> {
     let customer_guid = hs.app.config.customer_guid;
+    let desired_replicas = body.get("replicas").and_then(|v| v.as_i64()).unwrap_or(2) as i32;
 
-    // Clean all zone instance DB entries
+    // Step 1: Scale fleet to 0 (kills all pods including Allocated)
+    if let Some(ref agones) = hs.app.agones {
+        tracing::info!("RestartFleet: scaling to 0");
+        if let Err(e) = agones.scale_fleet(0).await {
+            return Json(serde_json::json!({
+                "success": false,
+                "error": format!("Failed to scale fleet to 0: {e}")
+            }));
+        }
+
+        // Wait for pods to terminate
+        tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+    }
+
+    // Step 2: Clean all zone instance DB entries
     let repo = crate::repo::InstanceRepo(&hs.app.db);
     if let Err(e) = repo.delete_all_map_instances(customer_guid).await {
         return Json(serde_json::json!({
@@ -334,9 +352,20 @@ async fn restart_fleet(State(hs): State<HandlerState>) -> Json<serde_json::Value
         tracing::warn!(error = %e, "Failed to deactivate world servers");
     }
 
-    // Clear tracking maps
+    // Step 3: Clear tracking maps
     hs.app.zone_servers.clear();
     hs.app.zone_spinup_locks.clear();
+
+    // Step 4: Scale fleet back up
+    if let Some(ref agones) = hs.app.agones {
+        tracing::info!(replicas = desired_replicas, "RestartFleet: scaling back up");
+        if let Err(e) = agones.scale_fleet(desired_replicas).await {
+            return Json(serde_json::json!({
+                "success": false,
+                "error": format!("DB cleaned but failed to scale fleet back up: {e}. Manual scale needed.")
+            }));
+        }
+    }
 
     // Log the event
     hs.app.instance_log.push(InstanceEvent {
@@ -350,6 +379,6 @@ async fn restart_fleet(State(hs): State<HandlerState>) -> Json<serde_json::Value
 
     Json(serde_json::json!({
         "success": true,
-        "message": "Fleet DB cleaned. Scale fleet manually via kubectl or ArgoCD to restart pods."
+        "message": format!("Fleet restarted. Scaled 0 → {desired_replicas}. DB cleaned.")
     }))
 }

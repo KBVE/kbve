@@ -18,6 +18,9 @@ rules:
     - apiGroups: ['agones.dev']
       resources: ['gameservers']
       verbs: ['get', 'list', 'watch', 'delete']
+    - apiGroups: ['agones.dev']
+      resources: ['fleets', 'fleets/scale']
+      verbs: ['get', 'patch', 'update']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
