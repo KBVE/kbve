@@ -26,6 +26,7 @@ export default function ReactHomeStatusBanner() {
 	const edgeStatus = useStore(homeService.$edgeStatus);
 	const clickhouseStatus = useStore(homeService.$clickhouseStatus);
 	const securityStatus = useStore(homeService.$securityStatus);
+	const rowsStatus = useStore(homeService.$rowsStatus);
 	const allOk = useStore(homeService.$allOk);
 	const anyError = useStore(homeService.$anyError);
 	const anyLoading = useStore(homeService.$anyLoading);
@@ -57,6 +58,7 @@ export default function ReactHomeStatusBanner() {
 	const services = [
 		{ name: 'Monitoring', status: grafanaStatus },
 		{ name: 'Deployments', status: argoStatus },
+		{ name: 'Game Ops', status: rowsStatus },
 		{ name: 'Edge', status: edgeStatus },
 		{ name: 'Logs', status: clickhouseStatus },
 		{ name: 'Security', status: securityStatus },
