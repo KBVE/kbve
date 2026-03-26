@@ -208,19 +208,11 @@ jobs:
                       -f $(find . -path "*/${{ inputs.project }}/Dockerfile" -print -quit) \
                       -t "${IMAGE}:latest" \
                       --load \
-                      . 2>/dev/null || echo "::warning::Could not re-export image, Trivy may fail"
+                      . 2>/dev/null || echo "::warning::Could not re-export image for daemon"
                   fi
 
-            - name: Scan Docker image with Trivy
-              if: ${{ steps.version_check.outputs.should_publish != 'false' && inputs.image != '' }}
-              uses: aquasecurity/trivy-action@0.35.0
-              with:
-                  image-ref: ${{ inputs.image }}:latest
-                  format: table
-                  exit-code: 1
-                  severity: CRITICAL,HIGH
-                  ignore-unfixed: true
-                  trivyignores: .trivyignore
+            # Trivy removed 03/26/2026 — supply chain compromise (aquasecurity/trivy#10425)
+            # Re-evaluate alternative scanners (grype, docker scout) before re-adding.
 
             - name: Push Docker Images
               if: ${{ steps.version_check.outputs.should_publish != 'false' && inputs.image != '' }}

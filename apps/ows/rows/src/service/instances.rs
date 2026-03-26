@@ -79,12 +79,39 @@ impl OWSService {
             }
         };
 
-        // Agones pipeline: allocate → register → create → health → track → poll
+        // Agones pipeline: allocate → register → create → notify MQ → health → track → poll
         if let Some(ref agones) = self.state.agones {
+            let mq_ref = self.state.mq.as_ref();
+            let instance_log = &self.state.instance_log;
             let result = async {
                 let p = pipeline.allocate_via_agones(agones).await?;
                 let p = p.register_world_server().await?;
                 let p = p.create_instance().await?;
+
+                // Notify server via MQ which map to load (Iris integration)
+                if let Some(mq) = mq_ref {
+                    let msg = crate::mq::SpinUpMessage {
+                        customer_guid: customer_guid.to_string(),
+                        world_server_id: p.world_server_id(),
+                        zone_instance_id: p.instance_id(),
+                        map_name: zone.to_string(),
+                        port: p.port().unwrap_or(0),
+                    };
+                    if let Err(e) = mq.publish_spin_up(p.world_server_id(), &msg).await {
+                        tracing::warn!(error = %e, "MQ spin-up publish failed (non-fatal)");
+                    }
+                }
+
+                // Log the allocation event
+                instance_log.push(crate::rest::system::InstanceEvent {
+                    timestamp: chrono::Utc::now(),
+                    event: "allocated".into(),
+                    zone_instance_id: p.instance_id(),
+                    map_name: zone.to_string(),
+                    game_server: p.game_server_name().unwrap_or("unknown").to_string(),
+                    trigger: "player_request".into(),
+                });
+
                 let p = p.verify_health(agones).await?;
                 p.track(&self.state.zone_servers)
                     .release_lock(&self.state.zone_spinup_locks)
