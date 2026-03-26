@@ -23,13 +23,27 @@ package kbve.forum;
 // Enums
 // ---------------------------------------------------------------------------
 
-// Lifecycle status of a thread or comment.
+// Lifecycle status of a thread.
+// Thread-specific statuses like LOCKED and SOLD don't apply to comments.
 enum ThreadStatus {
   THREAD_STATUS_UNSPECIFIED = 0;
   THREAD_STATUS_ACTIVE = 1;
-  THREAD_STATUS_LOCKED = 2;     // No new comments
+  THREAD_STATUS_LOCKED = 2;     // No new comments allowed
   THREAD_STATUS_REMOVED = 3;    // Hidden by moderator
   THREAD_STATUS_ARCHIVED = 4;   // Read-only, historical
+  THREAD_STATUS_SOLD = 5;       // Marketplace: listing completed
+  THREAD_STATUS_EXPIRED = 6;    // Auction/LFG: past deadline
+  THREAD_STATUS_PENDING = 7;    // Awaiting moderator review before visible
+}
+
+// Lifecycle status of a comment.
+// Separate from ThreadStatus — moderation of comments is a different
+// class of event than thread lifecycle (locked ≠ removed comment).
+enum CommentStatus {
+  COMMENT_STATUS_UNSPECIFIED = 0;
+  COMMENT_STATUS_ACTIVE = 1;
+  COMMENT_STATUS_REMOVED = 2;   // Hidden by moderator
+  COMMENT_STATUS_FLAGGED = 3;   // Reported, pending review
 }
 
 // Thread type — determines rendering, validation rules, and behavior.
@@ -144,7 +158,7 @@ message ForumComment {
   string thread_id = 4;                   // Parent thread UUID
   optional string parent_comment_id = 5;  // Parent comment UUID (null = top-level)
   int32 depth = 6;                        // Nesting depth (0 = top-level, max 5)
-  ThreadStatus status = 7;                // Reuse ThreadStatus for moderation
+  CommentStatus status = 7;               // Comment-specific moderation status
   bool is_accepted = 8;                   // For QUESTION threads: accepted answer
   string created_at = 9;
   optional string edited_at = 10;
