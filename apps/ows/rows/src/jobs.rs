@@ -89,20 +89,35 @@ async fn stale_zone_cleanup(svc: Arc<OWSService>) {
     }
 }
 
-/// Expire stale spin-up locks after 5 minutes.
-/// Prevents permanent lock if MQ consumer crashes mid-allocation.
+/// Expire stale spin-up locks older than 90 seconds.
+/// Uses per-lock timestamps instead of clearing all locks blindly.
 async fn spinup_lock_expiry(svc: Arc<OWSService>) {
-    let mut interval = tokio::time::interval(Duration::from_secs(300));
+    let mut interval = tokio::time::interval(Duration::from_secs(30));
     interval.tick().await;
 
     loop {
         interval.tick().await;
 
-        let locks = svc.state().zone_spinup_locks.len();
-        if locks > 0 {
-            // Clear all locks — if allocation hasn't completed in 5 min, it's stale
-            svc.state().zone_spinup_locks.clear();
-            warn!(expired = locks, "Expired stale spin-up locks");
+        let max_age = Duration::from_secs(90);
+        let mut expired = 0u32;
+
+        // Collect stale keys (can't remove while iterating DashMap)
+        let stale_keys: Vec<String> = svc
+            .state()
+            .zone_spinup_locks
+            .iter()
+            .filter(|entry| entry.value().elapsed() > max_age)
+            .map(|entry| entry.key().clone())
+            .collect();
+
+        for key in stale_keys {
+            svc.state().zone_spinup_locks.remove(&key);
+            expired += 1;
+            warn!(lock_key = %key, "Expired stale spin-up lock");
+        }
+
+        if expired > 0 {
+            warn!(expired, "Expired stale spin-up locks");
         }
     }
 }
