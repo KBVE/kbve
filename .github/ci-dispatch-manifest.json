@@ -17,7 +17,8 @@
 		{
 			"key": "chisel_ubuntu_axum",
 			"app_name": "chisel-ubuntu-axum",
-			"version": "24.04.1",
+			"version": "24.04.2",
+			"version_toml": "packages/docker/chisel-ubuntu-axum/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/chisel.mdx",
 			"source_path": "packages/docker/chisel-ubuntu-axum",
 			"runner": "ubuntu-latest",
@@ -27,7 +28,7 @@
 		{
 			"key": "chuckrpg",
 			"app_name": "axum-chuckrpg",
-			"version": "0.1.4",
+			"version": "0.1.5",
 			"version_toml": "apps/chuckrpg/axum-chuckrpg/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/chuckrpg.mdx",
 			"version_target": "apps/chuckrpg/axum-chuckrpg/Cargo.toml",
@@ -239,7 +240,7 @@
 		{
 			"key": "rows",
 			"app_name": "rows",
-			"version": "0.1.11",
+			"version": "0.1.16",
 			"version_toml": "apps/ows/rows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
 			"version_target": "apps/ows/rows/Cargo.toml",
