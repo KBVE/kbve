@@ -1,0 +1,310 @@
+syntax = "proto3";
+
+package kbve.forum;
+
+// =============================================================================
+// KBVE Forums — Core schema for the tag-first, space-driven discussion platform.
+//
+// /spaces define ownership and moderation (source of truth).
+// #tags define cross-cutting metadata (descriptive, non-authoritative).
+// @users define identity and interaction (Supabase auth).
+//
+// Threads are the top-level content unit. Comments are replies within threads.
+// Thread types enable specialized behavior (marketplace, auctions, polls)
+// without schema changes — the type field selects rendering and validation.
+//
+// This proto generates:
+//   - Zod schemas for frontend validation (@kbve/devops)
+//   - SQL migration templates for Supabase/PostgreSQL
+//   - TypeScript types for edge functions
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+// Lifecycle status of a thread.
+// Thread-specific statuses like LOCKED and SOLD don't apply to comments.
+enum ThreadStatus {
+  THREAD_STATUS_UNSPECIFIED = 0;
+  THREAD_STATUS_ACTIVE = 1;
+  THREAD_STATUS_LOCKED = 2;     // No new comments allowed
+  THREAD_STATUS_REMOVED = 3;    // Hidden by moderator
+  THREAD_STATUS_ARCHIVED = 4;   // Read-only, historical
+  THREAD_STATUS_SOLD = 5;       // Marketplace: listing completed
+  THREAD_STATUS_EXPIRED = 6;    // Auction/LFG: past deadline
+  THREAD_STATUS_PENDING = 7;    // Awaiting moderator review before visible
+}
+
+// Lifecycle status of a comment.
+// Separate from ThreadStatus — moderation of comments is a different
+// class of event than thread lifecycle (locked ≠ removed comment).
+enum CommentStatus {
+  COMMENT_STATUS_UNSPECIFIED = 0;
+  COMMENT_STATUS_ACTIVE = 1;
+  COMMENT_STATUS_REMOVED = 2;   // Hidden by moderator
+  COMMENT_STATUS_FLAGGED = 3;   // Reported, pending review
+}
+
+// Thread type — determines rendering, validation rules, and behavior.
+// New types can be added without schema migration.
+enum ThreadType {
+  THREAD_TYPE_UNSPECIFIED = 0;
+  THREAD_TYPE_DISCUSSION = 1;   // Standard forum thread (title + body + replies)
+  THREAD_TYPE_QUESTION = 2;     // Q&A thread (can mark accepted answer)
+  THREAD_TYPE_ANNOUNCEMENT = 3; // Pinned by moderators, limited replies
+  THREAD_TYPE_MARKETPLACE = 4;  // Buy/sell listing (price, currency, item metadata)
+  THREAD_TYPE_AUCTION = 5;      // Time-limited bidding (start_price, end_time, bids)
+  THREAD_TYPE_POLL = 6;         // Vote on options (poll_options, poll_votes)
+  THREAD_TYPE_GUIDE = 7;        // Long-form tutorial/guide (table of contents)
+  THREAD_TYPE_LFG = 8;          // Looking for group (game, slots, requirements)
+  THREAD_TYPE_SHOWCASE = 9;     // Show off work (gallery, media-heavy)
+  THREAD_TYPE_BUG_REPORT = 10;  // Structured bug report (steps, expected, actual)
+  THREAD_TYPE_ASSET = 11;       // Shared resource (tool, template, script, asset pack)
+}
+
+// Lifecycle status of a space.
+enum SpaceStatus {
+  SPACE_STATUS_UNSPECIFIED = 0;
+  SPACE_STATUS_ACTIVE = 1;
+  SPACE_STATUS_ARCHIVED = 2;
+  SPACE_STATUS_PRIVATE = 3;     // Invite-only
+}
+
+// Lifecycle status of a tag.
+enum TagStatus {
+  TAG_STATUS_UNSPECIFIED = 0;
+  TAG_STATUS_ACTIVE = 1;
+  TAG_STATUS_DEPRECATED = 2;    // Soft-removed, still searchable
+  TAG_STATUS_MERGED = 3;        // Replaced by alias_of
+}
+
+// ---------------------------------------------------------------------------
+// Core entities
+// ---------------------------------------------------------------------------
+
+// A curated discussion domain. Source of truth for ownership and moderation.
+// Spaces may form a hierarchy (parent_space_id) for content aggregation.
+message ForumSpace {
+  string id = 1;                          // UUID
+  string slug = 2;                        // URL-safe identifier (e.g. "unreal")
+  string name = 3;                        // Display name
+  optional string description = 4;        // Markdown description
+  optional string parent_space_id = 5;    // UUID of parent space (hierarchy)
+  optional string rules = 6;              // Markdown rules
+  optional string icon_url = 7;           // Space icon/avatar
+  optional string banner_url = 8;         // Space banner image
+  SpaceStatus status = 9;
+  int32 follower_count = 10;              // Denormalized count
+  int32 thread_count = 11;               // Denormalized count
+  repeated ThreadType allowed_types = 12; // Which thread types this space permits
+  string created_at = 13;                 // ISO 8601 timestamp
+  string updated_at = 14;                 // ISO 8601 timestamp
+}
+
+// Descriptive metadata for cross-cutting discovery.
+// Tags are non-authoritative — they never determine ownership.
+//
+// ADMIN-CONTROLLED TAXONOMY:
+// Tags are created and managed exclusively by admins. Users select from
+// the approved tag pool when creating threads — they cannot create new tags.
+// This prevents "gamedev" / "gamedevelopment" / "game-dev" fragmentation.
+//
+// ALIAS / CONSOLIDATION:
+// When admins merge tags, alias_of points to the canonical tag ID.
+// The canonical_id field is the resolved ID — always points to the final
+// canonical tag (follows alias chains). Every read path uses canonical_id
+// for aggregation, so merged tags produce consistent counts.
+//
+// Query rule: all read paths (feed, search, counts, tag pages) MUST
+// resolve via canonical_id, never raw tag id. This is enforced by a
+// DB view or RPC function that resolves aliases at query time.
+//
+// Integer IDs: compact B-tree indexes, fast junction joins.
+message ForumTag {
+  int32 id = 1;                            // Auto-increment integer (canonical reference)
+  string slug = 2;                        // URL-safe identifier (e.g. "networking")
+  string name = 3;                        // Display name
+  optional string description = 4;
+  TagStatus status = 5;
+  optional int32 alias_of = 6;            // Direct alias target (if merged)
+  int32 canonical_id = 7;                 // Resolved canonical tag ID (follows alias chain)
+  int32 usage_count = 8;                  // Denormalized count (on canonical tag only)
+  string created_by = 9;                  // Admin user UUID who created this tag
+  string created_at = 10;
+}
+
+// ---------------------------------------------------------------------------
+// Type-specific metadata (typed via oneof, stored as JSONB in DB)
+// ---------------------------------------------------------------------------
+// Every thread type maps to exactly one oneof branch — no implicit
+// "unset is valid" logic. The proto → Zod pipeline generates a validator
+// per branch, and the edge layer enforces thread_type ↔ oneof match.
+
+// Metadata for standard threads (DISCUSSION, GUIDE, SHOWCASE, BUG_REPORT).
+// Currently empty — exists so every thread type has an explicit oneof branch.
+// Can be extended later (e.g. guide: table_of_contents, bug: steps_to_reproduce).
+message DiscussionData {}
+
+// Metadata for QUESTION threads (Q&A).
+// accepted_comment_id lives on ForumThread directly since it's a FK.
+message QuestionData {}
+
+// Metadata for ANNOUNCEMENT threads.
+message AnnouncementData {
+  optional string expires_at = 1;         // ISO 8601 — auto-unpin after this time
+}
+
+// Metadata for MARKETPLACE threads.
+message MarketplaceData {
+  string item_name = 1;
+  optional string item_description = 2;
+  int64 price = 3;                        // Price in smallest currency unit (cents)
+  string currency = 4;                    // "gold", "silver", "usd", etc.
+  optional string condition = 5;          // "new", "used", etc.
+  optional string buyer_id = 6;           // Supabase user UUID of buyer (set on sale)
+}
+
+// Metadata for AUCTION threads.
+message AuctionData {
+  string item_name = 1;
+  optional string item_description = 2;
+  int64 start_price = 3;                  // Starting bid
+  int64 current_bid = 4;                  // Highest bid so far
+  optional string current_bidder_id = 5;  // Supabase user UUID
+  string currency = 6;
+  string end_time = 7;                    // ISO 8601 deadline
+  int32 bid_count = 8;
+}
+
+// Metadata for POLL threads.
+message PollData {
+  repeated string options = 1;            // Poll option labels
+  repeated int32 votes = 2;              // Vote count per option (parallel array)
+  bool multiple_choice = 3;              // Allow multiple selections
+  optional string end_time = 4;           // Optional deadline
+}
+
+// Metadata for LFG (Looking for Group) threads.
+message LfgData {
+  string game = 1;                        // Game name or slug
+  int32 slots_total = 2;                 // Total party size
+  int32 slots_filled = 3;                // Current members
+  optional string requirements = 4;       // Level, gear, etc.
+  optional string scheduled_time = 5;     // ISO 8601
+}
+
+// Metadata for ASSET threads (tools, templates, scripts, asset packs).
+// Non-transactional sharing — unlike MARKETPLACE, no price/buyer.
+message AssetData {
+  string asset_name = 1;                  // Display name of the asset
+  optional string asset_description = 2;  // What it does / what's included
+  optional string download_url = 3;       // Direct download or repo link
+  optional string source_url = 4;         // Source code / project page
+  optional string license = 5;            // SPDX identifier (MIT, Apache-2.0, etc.)
+  optional string version = 6;            // Semver or freeform version string
+  optional string engine = 7;             // Target engine/platform (UE5, Unity, Godot, etc.)
+  repeated string file_types = 8;         // File extensions (.fbx, .png, .bp, etc.)
+}
+
+// ---------------------------------------------------------------------------
+// ForumThread
+// ---------------------------------------------------------------------------
+
+// Top-level forum thread. Belongs to exactly one space (source of truth).
+// The thread_type field determines which oneof branch is active.
+// Every type maps to exactly one branch — no implicit "unset is valid."
+// The oneof is the proto contract — Zod validates at write time.
+// DB stores the active branch as JSONB in a `metadata` column.
+message ForumThread {
+  string id = 1;                          // UUID (ULID recommended)
+  string title = 2;                       // Thread title (1-300 chars)
+  string body = 3;                        // Markdown body
+  string author_id = 4;                   // Supabase user UUID
+  string space_id = 5;                    // Primary space UUID (source of truth)
+  // NOTE: tag associations live in ThreadTag (database source of truth).
+  // On create/update, the API writes to ThreadTag and returns expanded tags.
+  reserved 6;                             // Was: repeated string tag_ids (removed — use ThreadTag)
+  ThreadStatus status = 7;
+  ThreadType thread_type = 8;             // Determines which oneof branch is valid
+
+  // Type-specific structured data. Every thread_type maps to exactly one branch.
+  // Validation: edge layer checks thread_type ↔ oneof branch match at write time.
+  oneof type_data {
+    DiscussionData discussion_data = 9;       // DISCUSSION, GUIDE, SHOWCASE, BUG_REPORT
+    QuestionData question_data = 10;          // QUESTION
+    AnnouncementData announcement_data = 11;  // ANNOUNCEMENT
+    MarketplaceData marketplace_data = 12;    // MARKETPLACE
+    AuctionData auction_data = 13;            // AUCTION
+    PollData poll_data = 14;                  // POLL
+    LfgData lfg_data = 15;                    // LFG
+    AssetData asset_data = 24;                // ASSET
+  }
+
+  int32 comment_count = 16;              // Denormalized count
+  int32 view_count = 17;                 // Denormalized count
+  optional string slug = 18;             // URL-safe thread identifier
+  bool pinned = 19;                      // Pinned to top of space
+  optional string accepted_comment_id = 20; // For QUESTION type: accepted answer
+  string created_at = 21;
+  string updated_at = 22;
+  optional string edited_at = 23;         // Set on edit, null if never edited
+}
+
+// A reply within a thread. Threaded via parent_comment_id.
+message ForumComment {
+  string id = 1;                          // UUID (ULID recommended)
+  string body = 2;                        // Markdown body (1-2000 chars)
+  string author_id = 3;                   // Supabase user UUID
+  string thread_id = 4;                   // Parent thread UUID
+  optional string parent_comment_id = 5;  // Parent comment UUID (null = top-level)
+  int32 depth = 6;                        // Nesting depth (0 = top-level, max 5)
+  CommentStatus status = 7;               // Comment-specific moderation status
+  bool is_accepted = 8;                   // For QUESTION threads: accepted answer
+  string created_at = 9;
+  optional string edited_at = 10;
+}
+
+// ---------------------------------------------------------------------------
+// Relationships
+// ---------------------------------------------------------------------------
+
+// Thread ↔ Tag junction (many-to-many).
+// Uses integer tag_id for compact storage and fast joins.
+//
+// IMPORTANT: tag_id here may reference a merged/aliased tag. All read
+// queries MUST join through ForumTag.canonical_id to resolve the true
+// canonical tag. This is enforced by a DB view:
+//   CREATE VIEW thread_tags_resolved AS
+//     SELECT tt.thread_id, ft.canonical_id AS tag_id
+//     FROM forum.thread_tags tt
+//     JOIN forum.tags ft ON ft.id = tt.tag_id;
+// All feed/search/count queries use this view, never the raw table.
+message ThreadTag {
+  string thread_id = 1;                   // Thread UUID
+  int32 tag_id = 2;                       // Tag integer ID (may be aliased)
+}
+
+// ---------------------------------------------------------------------------
+// Aggregates (for API responses)
+// ---------------------------------------------------------------------------
+
+// Feed item — enriched thread for display (read model).
+// Tags are resolved from ThreadTag join, not stored on ForumThread.
+message FeedItem {
+  ForumThread thread = 1;
+  ForumSpace space = 2;
+  repeated ForumTag tags = 3;             // Resolved via ThreadTag join
+  string author_name = 4;                 // Denormalized for display
+  optional string author_avatar_url = 5;
+}
+
+// Space page — space with recent threads and metadata.
+message SpacePage {
+  ForumSpace space = 1;
+  repeated FeedItem threads = 2;
+  repeated ForumTag popular_tags = 3;
+  repeated ForumSpace child_spaces = 4;
+  optional ForumSpace parent_space = 5;
+}
+

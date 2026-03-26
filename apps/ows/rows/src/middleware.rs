@@ -35,12 +35,19 @@ pub async fn require_customer_guid(req: Request, next: Next) -> Response {
     }
 }
 
-/// Extract X-CustomerGUID from request headers. Panics if not present
-/// (must be behind require_customer_guid middleware).
+/// Extract X-CustomerGUID from request headers.
+/// Returns Uuid::nil() if not present — callers behind require_customer_guid
+/// middleware are guaranteed a valid GUID, but this avoids panics if called
+/// from unprotected routes.
 pub fn extract_customer_guid(headers: &axum::http::HeaderMap) -> Uuid {
     headers
         .get(CUSTOMER_GUID_HEADER)
         .and_then(|v| v.to_str().ok())
         .and_then(|s| Uuid::parse_str(s).ok())
-        .expect("require_customer_guid middleware must run first")
+        .unwrap_or_else(|| {
+            tracing::error!(
+                "extract_customer_guid called without valid header — returning nil UUID"
+            );
+            Uuid::nil()
+        })
 }

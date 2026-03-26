@@ -65,10 +65,10 @@ jobs:
         uses: KBVE/kbve/.github/workflows/ci-ue-win-setup.yml@dev
         secrets: inherit
 
-    # ── AngelScript Engine Build ───────────────────────────────
+    # ── AngelScript Engine Build (PAUSED 03/26/2026) ────────────
     engine_build:
         name: Engine Build
-        if: inputs.task == 'engine-build'
+        if: false # inputs.task == 'engine-build' — paused 03/26/2026
         uses: KBVE/kbve/.github/workflows/ci-angelscript-engine.yml@dev
         with:
             platforms: ${{ inputs.platforms }}
