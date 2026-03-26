@@ -9,7 +9,9 @@
 # ============================================================================
 # [STAGE A] - Build Astro Static Site
 # ============================================================================
-FROM --platform=linux/amd64 node:24-alpine AS astro-builder
+# node:24-slim (Debian) instead of Alpine — Sharp image optimizer needs
+# glibc-compatible native binaries for Astro image processing
+FROM --platform=linux/amd64 node:24-slim AS astro-builder
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
