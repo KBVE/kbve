@@ -1,7 +1,7 @@
 ---
 title: 'March: 24'
 category: Daily
-date: 2025-03-24 12:00:00
+date: 2026-03-24 12:00:00
 client: Self
 unsplash: 1615563821068-a15bbe32b305
 img: https://images.unsplash.com/photo-1615563821068-a15bbe32b305?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -16,6 +16,14 @@ import { Adsense } from '@/components/astropad';
 
 
 ## Notes
+
+## 2026
+
+### Agones Unreal
+
+  - 01:06AM
+    - The plan is to build out first in class support for agones and map around making sure that ROWS is full scalable with that system. We could even look at including a Redis/MalKey value system that could help us quickly integrate data between the UE5 and our application.
+
 
 ## 2025
 
@@ -48,7 +56,7 @@ import { Adsense } from '@/components/astropad';
     There is an option to drop back down to RESP2 and use the code below:
 
     ```rust
-    
+
     use futures_util::StreamExt;
     let client = redis::Client::open("redis://redis/")?;
     let (mut sink, mut stream) = client.get_async_pubsub().await?.split();
@@ -67,7 +75,7 @@ import { Adsense } from '@/components/astropad';
 -   09:54PM
 
     The issue might be in our `spawn_pubsub_listner`, which might not be setup the right way.
-    Why can we 
+    Why can we
 
 
 ## 2024
