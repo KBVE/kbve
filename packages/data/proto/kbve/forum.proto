@@ -105,13 +105,18 @@ message ForumSpace {
 
 // Descriptive metadata for cross-cutting discovery.
 // Tags are non-authoritative — they never determine ownership.
+// Tags use integer IDs as the canonical reference — compact, fast indexes,
+// and trivial consolidation: "gamedevelopment" (id=12) merges into "gamedev"
+// (id=5) by setting alias_of=5. All ThreadTag rows stay pointing at 12,
+// but queries resolve through alias_of to the canonical tag.
+// Renaming a tag = single row update, zero junction table changes.
 message ForumTag {
-  string id = 1;                          // UUID
+  int32 id = 1;                            // Auto-increment integer (canonical reference)
   string slug = 2;                        // URL-safe identifier (e.g. "networking")
   string name = 3;                        // Display name
   optional string description = 4;
   TagStatus status = 5;
-  optional string alias_of = 6;           // UUID of canonical tag (if merged)
+  optional int32 alias_of = 6;            // Canonical tag ID (if merged/aliased)
   int32 usage_count = 7;                  // Denormalized count
   string created_at = 8;
 }
@@ -190,14 +195,15 @@ message SpaceMembership {
 message TagFollow {
   string id = 1;                          // UUID
   string user_id = 2;                     // Supabase user UUID
-  string tag_id = 3;                      // Tag UUID
+  int32 tag_id = 3;                       // Tag integer ID
   string created_at = 4;
 }
 
 // Thread ↔ Tag junction (many-to-many).
+// Uses integer tag_id for compact storage and fast joins.
 message ThreadTag {
   string thread_id = 1;                   // Thread UUID
-  string tag_id = 2;                      // Tag UUID
+  int32 tag_id = 2;                       // Tag integer ID
 }
 
 // ---------------------------------------------------------------------------
