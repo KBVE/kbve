@@ -189,7 +189,8 @@ PODEOF
 
     echo ">>> Uploading server files (this may take a minute)..."
     cd "${OUTPUT_DIR}"
-    tar cf - LinuxServer | kubectl exec -i "${PVC_POD}" -n "${PVC_NAMESPACE}" -- tar xf - -C "/mnt/ows-server/${VERSION}/"
+    # Exclude macOS resource forks (._* files) that break server binary detection
+    COPYFILE_DISABLE=1 tar cf - --exclude='._*' --exclude='.DS_Store' LinuxServer | kubectl exec -i "${PVC_POD}" -n "${PVC_NAMESPACE}" -- tar xf - -C "/mnt/ows-server/${VERSION}/"
 
     # Ensure permissions
     kubectl exec "${PVC_POD}" -n "${PVC_NAMESPACE}" -- chmod -R 755 "/mnt/ows-server/${VERSION}/"
