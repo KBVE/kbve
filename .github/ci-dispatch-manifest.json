@@ -240,7 +240,7 @@
 		{
 			"key": "rows",
 			"app_name": "rows",
-			"version": "0.1.16",
+			"version": "0.1.17",
 			"version_toml": "apps/ows/rows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
 			"version_target": "apps/ows/rows/Cargo.toml",
@@ -377,12 +377,29 @@
 			"version_toml": "packages/unreal/UEDevOps/version.toml"
 		}
 	],
+	"ue5_server": [
+		{
+			"key": "unreal_chuck",
+			"app_name": "unreal-chuck",
+			"shell_path": "apps/chuckrpg/unreal-chuck",
+			"version": "0.0.1",
+			"version_toml": "apps/chuckrpg/unreal-chuck/version.toml"
+		},
+		{
+			"key": "unreal_rareicon",
+			"app_name": "unreal-rareicon",
+			"shell_path": "apps/rareicon/unreal-rareicon",
+			"version": "0.0.1",
+			"version_toml": "apps/rareicon/unreal-rareicon/version.toml"
+		}
+	],
 	"summary": {
 		"docker": 18,
 		"npm": 4,
 		"crates": 6,
 		"python": 2,
 		"unreal": 6,
-		"total": 36
+		"ue5_server": 2,
+		"total": 38
 	}
 }

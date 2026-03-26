@@ -19,6 +19,7 @@ enum DispatchPipeline {
   DISPATCH_PIPELINE_CRATES = 3;
   DISPATCH_PIPELINE_PYTHON = 4;
   DISPATCH_PIPELINE_UNREAL = 5;
+  DISPATCH_PIPELINE_UE5_SERVER = 6;
 }
 
 // Language / framework that determines which CI toolchain is needed for tests.
@@ -87,6 +88,9 @@ message CiProject {
 
   // --- Test framework (E2E matrix fan-out) ---
   TestFramework test_framework = 31;       // Which CI toolchain to use for tests
+
+  // --- UE5 server build config (ue5_server pipeline) ---
+  optional string shell_path = 32;         // Monorepo shell project path (e.g. "apps/chuckrpg/unreal-chuck")
 }
 
 // The full registry — a flat list of all tracked items.

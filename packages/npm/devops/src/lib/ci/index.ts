@@ -30,4 +30,5 @@ export {
 	type CratesEntry,
 	type PythonEntry,
 	type UnrealEntry,
+	type Ue5ServerEntry,
 } from './manifest.js';

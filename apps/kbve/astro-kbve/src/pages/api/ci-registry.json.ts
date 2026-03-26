@@ -61,12 +61,21 @@ interface UnrealEntry {
 	version_toml?: string;
 }
 
+interface Ue5ServerEntry {
+	key: string;
+	app_name: string;
+	shell_path: string;
+	version?: string;
+	version_toml?: string;
+}
+
 type ManifestEntry =
 	| DockerEntry
 	| NpmEntry
 	| CratesEntry
 	| PythonEntry
-	| UnrealEntry;
+	| UnrealEntry
+	| Ue5ServerEntry;
 
 interface DispatchManifest {
 	docker: DockerEntry[];
@@ -74,6 +83,7 @@ interface DispatchManifest {
 	crates: CratesEntry[];
 	python: PythonEntry[];
 	unreal: UnrealEntry[];
+	ue5_server: Ue5ServerEntry[];
 	index: Record<string, number>;
 	summary: Record<string, number>;
 }
@@ -140,6 +150,16 @@ function toManifestEntry(
 			if (vt) ue.version_toml = vt;
 			return ue;
 		}
+		case 'ue5_server': {
+			if (!d.app_name || !d.shell_path) return null;
+			return {
+				key: d.key!,
+				app_name: d.app_name,
+				shell_path: d.shell_path,
+				...(ver && { version: ver }),
+				...(vt && { version_toml: vt }),
+			};
+		}
 		default:
 			return null;
 	}
@@ -174,6 +194,7 @@ export const GET = async () => {
 		crates: [],
 		python: [],
 		unreal: [],
+		ue5_server: [],
 		index: {},
 		summary: {},
 	};
@@ -191,7 +212,7 @@ export const GET = async () => {
 
 		const pipeline = d.pipeline as keyof Pick<
 			DispatchManifest,
-			'docker' | 'npm' | 'crates' | 'python' | 'unreal'
+			'docker' | 'npm' | 'crates' | 'python' | 'unreal' | 'ue5_server'
 		>;
 		const arr = manifest[pipeline] as ManifestEntry[];
 		const idx = arr.length;
