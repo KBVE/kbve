@@ -173,20 +173,38 @@ async fn register_launcher(
     }
 }
 
-async fn start_instance_launcher(State(hs): State<HandlerState>, headers: HeaderMap) -> String {
+async fn start_instance_launcher(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+) -> axum::response::Response {
+    use axum::response::IntoResponse;
+
     let customer_guid = extract_customer_guid(&headers);
-    let launcher_guid = headers
+    let launcher_guid = match headers
         .get("x-launcherguid")
         .and_then(|v| v.to_str().ok())
-        .unwrap_or("");
+        .filter(|s| !s.is_empty())
+    {
+        Some(g) => g.to_string(),
+        None => {
+            return (
+                axum::http::StatusCode::BAD_REQUEST,
+                "Missing or empty x-launcherguid header",
+            )
+                .into_response();
+        }
+    };
 
     let repo = crate::repo::InstanceRepo(&hs.app.db);
     match repo
-        .register_launcher(customer_guid, launcher_guid, "", 10, "", 7778)
+        .register_launcher(customer_guid, &launcher_guid, "", 10, "", 7778)
         .await
     {
-        Ok(id) => id.to_string(),
-        Err(_) => "-1".to_string(),
+        Ok(id) => id.to_string().into_response(),
+        Err(e) => {
+            tracing::error!(error = %e, "StartInstanceLauncher failed");
+            (axum::http::StatusCode::INTERNAL_SERVER_ERROR, "-1").into_response()
+        }
     }
 }
 
