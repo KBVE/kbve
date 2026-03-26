@@ -579,9 +579,8 @@ impl<'a> CharsRepo<'a> {
     }
 
     /// Default stat columns for character INSERT — all NOT NULL in the DB.
-    /// All NOT NULL columns that need defaults when creating a character.
+    /// NOT NULL stat columns (excludes x/y/z/rx/ry/rz which are set explicitly).
     const CHAR_DEFAULTS: &'static str = "
-        x, y, z, rx, ry, rz,
         perception, acrobatics, climb, stealth, spirit, magic,
         teamnumber, thirst, hunger, gold, score, characterlevel,
         gender, xp, hitdie, wounds, size, weight,
@@ -603,7 +602,6 @@ impl<'a> CharsRepo<'a> {
         lastactivity, isadmin, ismoderator";
 
     const CHAR_ZEROS: &'static str = "
-        0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 1,
         0, 0, 0, 0, 1, 0,
@@ -632,8 +630,10 @@ impl<'a> CharsRepo<'a> {
         _class_name: &str,
     ) -> Result<(), RowsError> {
         let sql = format!(
-            "INSERT INTO characters (customerguid, userguid, charname, email, createdate, {})
-             SELECT $1, $2, $3, u.email, NOW(), {}
+            "INSERT INTO characters (customerguid, userguid, charname, email, createdate,
+                x, y, z, rx, ry, rz, {})
+             SELECT $1, $2, $3, u.email, NOW(),
+                0, 0, 0, 0, 0, 0, {}
              FROM users u
              WHERE u.customerguid = $1 AND u.userguid = $2",
             Self::CHAR_DEFAULTS,
@@ -1067,7 +1067,7 @@ impl<'a> InstanceRepo<'a> {
         let row: Option<(i32,)> = sqlx::query_as(
             "INSERT INTO worldservers (customerguid, serverip, maxnumberofinstances,
                  internalserverip, startingmapinstanceport, zoneserverguid, serverstatus)
-             VALUES ($1, $2, $3, $4, $5, $6, 1)
+             VALUES ($1, $2, $3, $4, $5, $6::uuid, 1)
              ON CONFLICT (customerguid, zoneserverguid)
              DO UPDATE SET serverip = EXCLUDED.serverip,
                            maxnumberofinstances = EXCLUDED.maxnumberofinstances,
