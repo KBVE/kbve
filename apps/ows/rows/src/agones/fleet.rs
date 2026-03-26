@@ -41,7 +41,10 @@ impl AgonesClient {
             .body(Vec::new())
             .map_err(|e| anyhow::anyhow!("Failed to build fleet status request: {e}"))?;
 
-        let resp: serde_json::Value = self.client.request(req).await?;
+        let resp: serde_json::Value =
+            tokio::time::timeout(std::time::Duration::from_secs(10), self.client.request(req))
+                .await
+                .map_err(|_| anyhow::anyhow!("K8s fleet status request timed out (10s)"))??;
 
         let items = resp
             .get("items")

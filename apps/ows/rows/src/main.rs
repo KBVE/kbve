@@ -24,6 +24,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use tower_http::cors::CorsLayer;
 use tower_http::limit::RequestBodyLimitLayer;
+use tower_http::timeout::TimeoutLayer;
 use tracing::info;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
@@ -126,6 +127,7 @@ async fn main() -> anyhow::Result<()> {
         .merge(ws_router)
         .merge(grpc_router.into_axum_router())
         .layer(axum::middleware::from_fn(trace::request_trace))
+        .layer(TimeoutLayer::new(std::time::Duration::from_secs(90))) // 90s global request timeout
         .layer(RequestBodyLimitLayer::new(10 * 1024 * 1024)) // 10MB max body
         .layer(CorsLayer::permissive());
 
