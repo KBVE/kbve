@@ -1,7 +1,7 @@
 ---
 title: 'March: 26'
 category: Daily
-date: 2025-03-26 12:00:00
+date: 2026-03-26 12:00:00
 client: Self
 unsplash: 1615563821068-a15bbe32b305
 img: https://images.unsplash.com/photo-1615563821068-a15bbe32b305?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -14,12 +14,21 @@ import { Adsense } from '@/components/astropad';
 
 <Adsense />
 
-
 ## Notes
+
+## 2026
+
+### ROWS Dashboard
+
+    1:05AM
+
+      The dashboard needs to be extended to include data from the ROWS deployment.
+      I am going to start off with a basic proof of concept for the dashboard, then slowly look at bumping up the integration, making it easier to build around it.
+
 
 ## 2025
 
-### REDIS v3 
+### REDIS v3
 
 -   10:00PM
 
@@ -57,7 +66,7 @@ I am going to remove the LCA build from the ci-main, saving it here below for re
                 uses: actions/setup-node@v3
                 with:
                     node-version: 18
-            
+
             -   name: Setup pnpm
                 uses: pnpm/action-setup@v3
                 with:
@@ -76,7 +85,7 @@ I am going to remove the LCA build from the ci-main, saving it here below for re
                     key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
                     restore-keys: |
                         ${{ runner.os }}-pnpm-store-
-            
+
             -   name: Install pnpm dependencies
                 run: pnpm install
 
@@ -89,7 +98,7 @@ I am going to remove the LCA build from the ci-main, saving it here below for re
                     create_pull_request: false
                     github_token: ${{ secrets.GITHUB_TOKEN }}
 
-            
+
             -   name: LC Agents -> Deployment
                 uses: dobbelina/copy_file_to_another_repo_action@main
                 env:
@@ -104,7 +113,7 @@ I am going to remove the LCA build from the ci-main, saving it here below for re
                     user_name: 'h0lybyte'
                     commit_message: ${{ github.event.head_commit.message }}
                     rsync_option: "-avrh --delete"
-        
+
 
     # [EXPO] -> [END]
 
@@ -117,7 +126,7 @@ Here is our current `ci-alpha.yml` configuration for the Github Action to build 
 
 ```yaml
 
-        
+
         expo-lcagents-web-build:
             needs: ['alter']
             name: Expo LC Agents We Build
@@ -138,7 +147,7 @@ Here is our current `ci-alpha.yml` configuration for the Github Action to build 
                         version: 8
                         #run_install: false
 
-                
+
                 -   name: LCA Expo Build
                     uses: ./.github/actions/kbve-shell
                     with:
@@ -149,7 +158,7 @@ Here is our current `ci-alpha.yml` configuration for the Github Action to build 
 
 ```
 
-We will push this through and see where the action goes from here! 
+We will push this through and see where the action goes from here!
 
 Ah it seems that by default, the `pnpm/action-setup@v3` does not run the install, so we will go ahead and put that command back in.
 Now the question would be if we want to pass the node-linker as a varible or not.
@@ -158,18 +167,17 @@ Let me see if I can add something that might be missing from the Github Actions?
 
 ```yaml
 
- 
+
                 -   name: Install react-native-cli globally
                     run: pnpm add -g react-native-cli
-                      
+
                 -   name: Install dependencies
                     run: pnpm install
 
                 -   name: Clear Metro Cache
                     run: npx react-native start --reset-cache
-                
+
 
 ```
 
 We will try this next! Hopefully this might solve the issue with the automated builds within the pipeline.
-
