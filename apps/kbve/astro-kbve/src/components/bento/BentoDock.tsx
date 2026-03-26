@@ -1,12 +1,13 @@
 /**
  * BentoDock — Right sidebar dock for hidden bento cards + global controls.
  *
- * Listens for 'bento-hidden-changed' CustomEvents from the vanilla JS
- * bento grid controller. Reads card metadata from DOM data attributes.
- * No nanostores, no react-grid-layout dependency.
+ * Subscribes to bentoStore via nanostores. Reads card metadata from
+ * DOM data attributes. Shows hidden cards as restore buttons.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { useStore } from '@nanostores/react';
+import { $hiddenIds, $pageKey, showCard, resetAll } from './bentoStore';
 
 // ── Lucide icon paths ──
 const ICON_PATHS: Record<string, string[]> = {
@@ -72,75 +73,42 @@ function LucideIcon({ name, size = 14 }: { name: string; size?: number }) {
 	);
 }
 
-// ── Helpers ──
+// ── Component ──
 
-function findPageKey(): string | null {
-	const grid = document.querySelector('[data-bento-page]');
-	return grid ? grid.getAttribute('data-bento-page') : null;
-}
-
-function getGridApi() {
-	const pk = findPageKey();
-	if (!pk) return null;
-	return (window as any).__bentoGrid?.[pk] || null;
-}
-
-interface HiddenCard {
+interface CardMeta {
 	id: string;
 	title: string;
 	icon: string;
 }
 
-// ── Component ──
-
 export default function BentoDock() {
-	const [hiddenCards, setHiddenCards] = useState<HiddenCard[]>([]);
-	const [hasGrid, setHasGrid] = useState(false);
+	const pageKey = useStore($pageKey);
+	const hiddenIds = useStore($hiddenIds);
+	const [cardMeta, setCardMeta] = useState<Map<string, CardMeta>>(new Map());
 
-	// Read hidden card data from DOM
-	const refreshHidden = useCallback(() => {
-		const api = getGridApi();
-		if (!api) return;
+	// Build card metadata map from DOM on mount
+	useEffect(() => {
+		const grid = document.querySelector('[data-bento-page]');
+		if (!grid) return;
 
-		setHasGrid(true);
-		const ids: string[] = api.getHidden();
-
-		const cards: HiddenCard[] = ids.map((id: string) => {
-			const el = document.querySelector(`[data-bento-id="${id}"]`);
-			return {
+		const meta = new Map<string, CardMeta>();
+		grid.querySelectorAll<HTMLElement>('[data-bento-id]').forEach((el) => {
+			const id = el.dataset.bentoId || '';
+			meta.set(id, {
 				id,
-				title: el?.getAttribute('data-bento-title') || id,
-				icon: el?.getAttribute('data-bento-icon') || 'file-text',
-			};
+				title: el.dataset.bentoTitle || id,
+				icon: el.dataset.bentoIcon || 'file-text',
+			});
 		});
-
-		setHiddenCards(cards);
+		setCardMeta(meta);
 	}, []);
 
-	// Listen for events from vanilla JS controller
-	useEffect(() => {
-		// Initial check
-		const timer = setTimeout(refreshHidden, 100);
+	// Don't render if no bento grid on this page
+	if (!pageKey || cardMeta.size === 0) return null;
 
-		const handler = () => refreshHidden();
-		window.addEventListener('bento-hidden-changed', handler);
-		return () => {
-			clearTimeout(timer);
-			window.removeEventListener('bento-hidden-changed', handler);
-		};
-	}, [refreshHidden]);
-
-	if (!hasGrid) return null;
-
-	const showCard = (id: string) => {
-		const api = getGridApi();
-		if (api) api.show(id);
-	};
-
-	const resetAll = () => {
-		const api = getGridApi();
-		if (api) api.reset();
-	};
+	const hiddenCards = hiddenIds
+		.map((id) => cardMeta.get(id))
+		.filter(Boolean) as CardMeta[];
 
 	return (
 		<div
@@ -148,7 +116,6 @@ export default function BentoDock() {
 				padding: '0.75rem',
 				borderTop: '1px solid rgba(255, 255, 255, 0.06)',
 			}}>
-			{/* Header */}
 			<div
 				style={{
 					display: 'flex',
@@ -168,7 +135,6 @@ export default function BentoDock() {
 				</span>
 			</div>
 
-			{/* Controls */}
 			<div style={{ display: 'flex', gap: '0.375rem' }}>
 				<button
 					style={{
@@ -186,7 +152,7 @@ export default function BentoDock() {
 						color: 'var(--sl-color-gray-2, #d1d5db)',
 						cursor: 'pointer',
 					}}
-					onClick={resetAll}
+					onClick={() => resetAll()}
 					title="Reset to default layout">
 					<svg
 						width="13"
@@ -204,7 +170,6 @@ export default function BentoDock() {
 				</button>
 			</div>
 
-			{/* Hidden cards */}
 			{hiddenCards.length > 0 && (
 				<>
 					<div

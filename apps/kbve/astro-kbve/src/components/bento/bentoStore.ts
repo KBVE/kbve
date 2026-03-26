@@ -1,200 +1,153 @@
 /**
- * Bento Dashboard State Store
+ * Bento Grid State Store
  *
- * Manages layout positions, hidden cards, and edit mode for the
- * customizable bento grid. Persists to localStorage per page.
- *
- * Follows patterns from sidebar-state.ts and clickhouseService.ts.
+ * Single source of truth for card visibility and sizes.
+ * Uses nanostores for reactive state shared across React islands.
+ * Persists to localStorage per page key.
  */
 
-import { atom } from 'nanostores';
+import { atom, computed } from 'nanostores';
 
 // ── Types ──
 
-export interface BentoLayoutItem {
-	i: string; // bentoId
-	x: number;
-	y: number;
-	w: number;
-	h: number;
-	minW?: number;
-	minH?: number;
+export interface CardUnits {
+	col: number; // 1–4 grid columns
+	row: number; // 1–3 grid rows
 }
 
-export interface BentoCardDef {
-	bentoId: string;
-	title: string;
-	description?: string;
-	bentoSize?: 'small' | 'medium' | 'large' | 'wide' | 'tall';
-	bentoColor?: string;
-	icon?: string;
-}
-
-interface PersistedState {
-	layout: BentoLayoutItem[];
+interface BentoState {
 	hiddenIds: string[];
+	units: Record<string, CardUnits>;
 }
-
-// ── Size → grid dimensions mapping (4-column grid) ──
-
-const SIZE_MAP: Record<
-	string,
-	{ w: number; h: number; minW: number; minH: number }
-> = {
-	small: { w: 1, h: 1, minW: 1, minH: 1 },
-	medium: { w: 2, h: 2, minW: 1, minH: 1 },
-	large: { w: 2, h: 3, minW: 2, minH: 2 },
-	wide: { w: 3, h: 1, minW: 2, minH: 1 },
-	tall: { w: 1, h: 3, minW: 1, minH: 2 },
-};
 
 // ── Atoms ──
 
-export const $bentoLayout = atom<BentoLayoutItem[]>([]);
-export const $hiddenCardIds = atom<string[]>([]);
-export const $editMode = atom<boolean>(false);
+export const $pageKey = atom<string>('');
+export const $hiddenIds = atom<string[]>([]);
+export const $units = atom<Record<string, CardUnits>>({});
 
-// ── Internal state ──
+// ── Derived ──
 
-let _pageKey = '';
-let _allCards: BentoCardDef[] = [];
-let _defaultLayout: BentoLayoutItem[] = [];
+export const $hiddenCount = computed($hiddenIds, (ids) => ids.length);
 
 // ── localStorage helpers ──
 
-function storageKey(pageKey: string): string {
-	return `bento-layout:${pageKey}`;
+function hiddenKey(pk: string) {
+	return `bento-hidden:${pk}`;
+}
+function unitsKey(pk: string) {
+	return `bento-units:${pk}`;
 }
 
-function loadState(pageKey: string): PersistedState | null {
+function loadHidden(pk: string): string[] {
 	try {
-		const raw = localStorage.getItem(storageKey(pageKey));
-		if (!raw) return null;
-		return JSON.parse(raw) as PersistedState;
+		return JSON.parse(localStorage.getItem(hiddenKey(pk)) || '[]');
 	} catch {
-		return null;
+		return [];
 	}
 }
 
-function saveState(pageKey: string, state: PersistedState): void {
+function loadUnits(pk: string): Record<string, CardUnits> {
 	try {
-		localStorage.setItem(storageKey(pageKey), JSON.stringify(state));
+		return JSON.parse(localStorage.getItem(unitsKey(pk)) || '{}');
 	} catch {
-		/* quota exceeded — ignore */
+		return {};
 	}
 }
 
-// ── Default layout computation ──
-
-function computeDefaultLayout(cards: BentoCardDef[]): BentoLayoutItem[] {
-	return cards.map((card) => {
-		const dims = SIZE_MAP[card.bentoSize || 'medium'] || SIZE_MAP.medium;
-		return {
-			i: card.bentoId,
-			x: 0,
-			y: Infinity, // react-grid-layout compacts this
-			w: dims.w,
-			h: dims.h,
-			minW: dims.minW,
-			minH: dims.minH,
-		};
-	});
-}
-
-// ── Public API ──
-
-export function initBentoLayout(
-	pageKey: string,
-	cards: BentoCardDef[],
-	precomputedLayout?: BentoLayoutItem[],
-): void {
-	_pageKey = pageKey;
-	_allCards = cards;
-	_defaultLayout = precomputedLayout || computeDefaultLayout(cards);
-
-	const saved = loadState(pageKey);
-	if (saved && saved.layout.length > 0) {
-		// Merge saved layout with card defs (handle new/removed cards)
-		const savedIds = new Set(saved.layout.map((l) => l.i));
-		const cardIds = new Set(cards.map((c) => c.bentoId));
-
-		// Keep saved items that still exist
-		const validLayout = saved.layout.filter((l) => cardIds.has(l.i));
-		const validHidden = saved.hiddenIds.filter((id) => cardIds.has(id));
-
-		// Add new cards not in saved state
-		const allKnownIds = new Set([...savedIds, ...saved.hiddenIds]);
-		for (const card of cards) {
-			if (!allKnownIds.has(card.bentoId)) {
-				const dims =
-					SIZE_MAP[card.bentoSize || 'medium'] || SIZE_MAP.medium;
-				validLayout.push({
-					i: card.bentoId,
-					x: 0,
-					y: Infinity,
-					w: dims.w,
-					h: dims.h,
-					minW: dims.minW,
-					minH: dims.minH,
-				});
-			}
-		}
-
-		$bentoLayout.set(validLayout);
-		$hiddenCardIds.set(validHidden);
-	} else {
-		$bentoLayout.set(_defaultLayout);
-		$hiddenCardIds.set([]);
+function saveHidden(pk: string, ids: string[]) {
+	try {
+		localStorage.setItem(hiddenKey(pk), JSON.stringify(ids));
+	} catch {
+		/* quota */
 	}
 }
 
-export function persistLayout(): void {
-	if (!_pageKey) return;
-	saveState(_pageKey, {
-		layout: $bentoLayout.get(),
-		hiddenIds: $hiddenCardIds.get(),
-	});
+function saveUnits(pk: string, u: Record<string, CardUnits>) {
+	try {
+		localStorage.setItem(unitsKey(pk), JSON.stringify(u));
+	} catch {
+		/* quota */
+	}
 }
 
-export function updateLayout(newLayout: BentoLayoutItem[]): void {
-	$bentoLayout.set(newLayout);
-	persistLayout();
+// ── Init ──
+
+export function initBentoStore(pageKey: string): void {
+	$pageKey.set(pageKey);
+	$hiddenIds.set(loadHidden(pageKey));
+	$units.set(loadUnits(pageKey));
 }
+
+// ── Actions ──
 
 export function hideCard(id: string): void {
-	$bentoLayout.set($bentoLayout.get().filter((l) => l.i !== id));
-	$hiddenCardIds.set([...$hiddenCardIds.get(), id]);
-	persistLayout();
+	const pk = $pageKey.get();
+	const next = [...$hiddenIds.get(), id];
+	$hiddenIds.set(next);
+	saveHidden(pk, next);
 }
 
 export function showCard(id: string): void {
-	const card = _allCards.find((c) => c.bentoId === id);
-	const dims = SIZE_MAP[card?.bentoSize || 'medium'] || SIZE_MAP.medium;
-
-	$hiddenCardIds.set($hiddenCardIds.get().filter((hid) => hid !== id));
-	$bentoLayout.set([
-		...$bentoLayout.get(),
-		{
-			i: id,
-			x: 0,
-			y: Infinity,
-			w: dims.w,
-			h: dims.h,
-			minW: dims.minW,
-			minH: dims.minH,
-		},
-	]);
-	persistLayout();
+	const pk = $pageKey.get();
+	const next = $hiddenIds.get().filter((x) => x !== id);
+	$hiddenIds.set(next);
+	saveHidden(pk, next);
 }
 
-export function resetLayout(): void {
-	if (!_pageKey) return;
-	localStorage.removeItem(storageKey(_pageKey));
-	$bentoLayout.set(_defaultLayout);
-	$hiddenCardIds.set([]);
-	$editMode.set(false);
+/**
+ * Read the card's current grid dimensions from the DOM.
+ * Falls back to the CSS class defaults if no inline style is set.
+ */
+function getCurrentDims(id: string): { col: number; row: number } {
+	const saved = $units.get()[id];
+	if (saved) return saved;
+
+	// Read from DOM — the CSS class or inline style determines actual size
+	const el = document.getElementById(`bento-${id}`);
+	if (el) {
+		const cs = getComputedStyle(el);
+		const col =
+			parseInt(cs.gridColumnEnd, 10) - parseInt(cs.gridColumnStart, 10);
+		const row = parseInt(cs.gridRowEnd, 10) - parseInt(cs.gridRowStart, 10);
+		if (col > 0 && row > 0) return { col, row };
+	}
+
+	// Final fallback: read data-bento-default-size
+	const sizeMap: Record<string, { col: number; row: number }> = {
+		small: { col: 1, row: 1 },
+		medium: { col: 2, row: 2 },
+		large: { col: 2, row: 3 },
+		wide: { col: 3, row: 1 },
+		tall: { col: 1, row: 3 },
+	};
+	const defSize = el?.dataset.bentoDefaultSize || 'medium';
+	return sizeMap[defSize] || { col: 2, row: 2 };
 }
 
-export function toggleEditMode(): void {
-	$editMode.set(!$editMode.get());
+export function setCardCol(id: string, col: number): void {
+	const pk = $pageKey.get();
+	const prev = $units.get();
+	const current = getCurrentDims(id);
+	const next = { ...prev, [id]: { col, row: current.row } };
+	$units.set(next);
+	saveUnits(pk, next);
+}
+
+export function setCardRow(id: string, row: number): void {
+	const pk = $pageKey.get();
+	const prev = $units.get();
+	const current = getCurrentDims(id);
+	const next = { ...prev, [id]: { col: current.col, row } };
+	$units.set(next);
+	saveUnits(pk, next);
+}
+
+export function resetAll(): void {
+	const pk = $pageKey.get();
+	if (!pk) return;
+	localStorage.removeItem(hiddenKey(pk));
+	localStorage.removeItem(unitsKey(pk));
+	$hiddenIds.set([]);
+	$units.set({});
 }
