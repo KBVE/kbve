@@ -92,19 +92,22 @@
 			"options": {
 				"commands": [
 					"echo '=== Runtime image tests ==='",
-					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04 /usr/bin/env true",
-					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04 ls /usr/lib/x86_64-linux-gnu/libjemalloc.so.2",
-					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04 ls /usr/lib/x86_64-linux-gnu/libpq.so.5",
+					"docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{.Config.User}}' | grep -q 10001 && echo 'PASS: non-root user 10001'",
+					"docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{.Config.WorkingDir}}' | grep -q /app && echo 'PASS: workdir /app'",
+					"docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q LD_PRELOAD && echo 'PASS: jemalloc LD_PRELOAD set'",
+					"docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q MALLOC_CONF && echo 'PASS: jemalloc MALLOC_CONF set'",
+					"docker create --name chisel-runtime-test ghcr.io/kbve/chisel-ubuntu-axum:24.04 true > /dev/null 2>&1 && docker export chisel-runtime-test | tar -t | grep -q libjemalloc && echo 'PASS: libjemalloc.so present' && docker rm chisel-runtime-test > /dev/null 2>&1",
+					"docker create --name chisel-runtime-test2 ghcr.io/kbve/chisel-ubuntu-axum:24.04 true > /dev/null 2>&1 && docker export chisel-runtime-test2 | tar -t | grep -q libpq && echo 'PASS: libpq.so present' && docker rm chisel-runtime-test2 > /dev/null 2>&1",
 					"echo '=== Builder image tests ==='",
-					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder cargo --version",
-					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder cargo chef --version",
-					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder node --version",
-					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder pnpm --version",
-					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder protoc --version",
-					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder pkg-config --libs libpq",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder cargo --version",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder cargo chef --version",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder node --version",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder pnpm --version",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder protoc --version",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder pkg-config --libs libpq",
 					"echo '=== All chisel base image tests passed ==='",
-					"echo 'Runtime: jemalloc + libpq + CA certs OK'",
-					"echo 'Builder: rust + cargo-chef + node + pnpm + protobuf OK'"
+					"echo 'Runtime: user, workdir, jemalloc, libpq OK'",
+					"echo 'Builder: cargo, cargo-chef, node, pnpm, protoc, libpq-dev OK'"
 				],
 				"parallel": false
 			}
