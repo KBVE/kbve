@@ -60,6 +60,7 @@ enum ThreadType {
   THREAD_TYPE_LFG = 8;          // Looking for group (game, slots, requirements)
   THREAD_TYPE_SHOWCASE = 9;     // Show off work (gallery, media-heavy)
   THREAD_TYPE_BUG_REPORT = 10;  // Structured bug report (steps, expected, actual)
+  THREAD_TYPE_ASSET = 11;       // Shared resource (tool, template, script, asset pack)
 }
 
 // Lifecycle status of a space.
@@ -179,17 +180,26 @@ message LfgData {
   optional string scheduled_time = 5;     // ISO 8601
 }
 
+// Metadata for ASSET threads (tools, templates, scripts, asset packs).
+// Non-transactional sharing — unlike MARKETPLACE, no price/buyer.
+message AssetData {
+  string asset_name = 1;                  // Display name of the asset
+  optional string asset_description = 2;  // What it does / what's included
+  optional string download_url = 3;       // Direct download or repo link
+  optional string source_url = 4;         // Source code / project page
+  optional string license = 5;            // SPDX identifier (MIT, Apache-2.0, etc.)
+  optional string version = 6;            // Semver or freeform version string
+  optional string engine = 7;             // Target engine/platform (UE5, Unity, Godot, etc.)
+  repeated string file_types = 8;         // File extensions (.fbx, .png, .bp, etc.)
+}
+
 // ---------------------------------------------------------------------------
 // ForumThread
 // ---------------------------------------------------------------------------
 
 // Top-level forum thread. Belongs to exactly one space (source of truth).
-// The thread_type field determines which oneof branch is active:
-//   - DISCUSSION, QUESTION, GUIDE, etc.: no extra metadata (body is enough)
-//   - MARKETPLACE: marketplace_data required
-//   - AUCTION: auction_data required
-//   - POLL: poll_data required
-//   - LFG: lfg_data required
+// The thread_type field determines which oneof branch is active.
+// Every type maps to exactly one branch — no implicit "unset is valid."
 // The oneof is the proto contract — Zod validates at write time.
 // DB stores the active branch as JSONB in a `metadata` column.
 message ForumThread {
@@ -214,6 +224,7 @@ message ForumThread {
     AuctionData auction_data = 13;            // AUCTION
     PollData poll_data = 14;                  // POLL
     LfgData lfg_data = 15;                    // LFG
+    AssetData asset_data = 24;                // ASSET
   }
 
   int32 comment_count = 16;              // Denormalized count
