@@ -22,10 +22,12 @@ pub struct OWSService {
 }
 
 /// Cached session data stored in DashMap — avoids DB hit on hot path.
+/// Includes `created_at` for TTL-based eviction (24h default).
 #[derive(Clone)]
 pub struct CachedSession {
     pub customer_guid: uuid::Uuid,
     pub user_guid: uuid::Uuid,
+    pub created_at: std::time::Instant,
 }
 
 impl OWSService {

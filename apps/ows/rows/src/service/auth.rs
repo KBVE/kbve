@@ -19,6 +19,7 @@ impl OWSService {
                             CachedSession {
                                 customer_guid: self.state.config.customer_guid,
                                 user_guid,
+                                created_at: std::time::Instant::now(),
                             },
                         );
                     }
@@ -81,6 +82,7 @@ impl OWSService {
         let cached = CachedSession {
             customer_guid: session.customer_guid,
             user_guid,
+            created_at: std::time::Instant::now(),
         };
 
         self.state.sessions.insert(session_guid, cached.clone());

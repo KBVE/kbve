@@ -65,7 +65,10 @@ impl AgonesClient {
             .body(Vec::new())
             .map_err(|e| anyhow::anyhow!("Failed to build request: {e}"))?;
 
-        let _: serde_json::Value = self.client.request(req).await?;
+        let _: serde_json::Value =
+            tokio::time::timeout(std::time::Duration::from_secs(10), self.client.request(req))
+                .await
+                .map_err(|_| anyhow::anyhow!("K8s deallocation request timed out (10s)"))??;
         Ok(())
     }
 }

@@ -25,9 +25,14 @@ pub async fn connect(database_url: &str) -> anyhow::Result<DbPool> {
     let opts = opts.options([("search_path", "ows,extensions,public")]);
     info!("Database search_path set to: ows,extensions,public");
 
+    let max_conns: u32 = std::env::var("DB_MAX_CONNECTIONS")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(50);
+
     let pool = PgPoolOptions::new()
-        .max_connections(20)
-        .min_connections(2)
+        .max_connections(max_conns)
+        .min_connections(5)
         .acquire_timeout(Duration::from_secs(5))
         .idle_timeout(Duration::from_secs(300))
         .connect_with(opts)
