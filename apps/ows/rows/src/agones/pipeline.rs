@@ -30,12 +30,17 @@ use std::time::{Duration, Instant};
 use uuid::Uuid;
 
 /// Max time to wait for a server to become ready after allocation.
-const SPINUP_TIMEOUT_SECS: u64 = 30;
+const SPINUP_TIMEOUT_SECS: u64 = 60;
 /// How often to poll the DB for instance status during spinup.
 const SPINUP_POLL_INTERVAL_MS: u64 = 2000;
+/// Initial poll delay — give the server a moment to register.
+const SPINUP_INITIAL_DELAY_MS: u64 = 3000;
 
 /// Allocation pipeline state machine.
 /// Progresses through: Init → Found | Allocated → Registered → Tracked → Ready
+///
+/// Pipeline borrows `&'a str` and `&'a DbPool` to avoid allocations.
+/// Each step consumes `self` and returns `Result<Self, RowsError>` for ? chaining.
 pub struct AllocationPipeline<'a> {
     customer_guid: Uuid,
     zone: &'a str,
@@ -46,6 +51,41 @@ pub struct AllocationPipeline<'a> {
     instance_id: i32,
     existing: Option<JoinMapResult>,
     lock_key: String,
+}
+
+/// Pipeline accessor methods — read-only access to pipeline state.
+impl<'a> AllocationPipeline<'a> {
+    /// Get the allocated GameServer name (if allocation succeeded).
+    pub fn game_server_name(&self) -> Option<&str> {
+        self.allocation
+            .as_ref()
+            .map(|a| a.game_server_name.as_str())
+    }
+
+    /// Get the allocated address (if allocation succeeded).
+    pub fn address(&self) -> Option<&str> {
+        self.allocation.as_ref().map(|a| a.address.as_str())
+    }
+
+    /// Get the allocated port (if allocation succeeded).
+    pub fn port(&self) -> Option<i32> {
+        self.allocation.as_ref().map(|a| a.port)
+    }
+
+    /// Get the world server ID (after registration).
+    pub fn world_server_id(&self) -> i32 {
+        self.world_server_id
+    }
+
+    /// Get the map instance ID (after instance creation).
+    pub fn instance_id(&self) -> i32 {
+        self.instance_id
+    }
+
+    /// Get the lock key for this pipeline.
+    pub fn lock_key(&self) -> &str {
+        &self.lock_key
+    }
 }
 
 impl<'a> AllocationPipeline<'a> {
@@ -238,15 +278,17 @@ impl<'a> AllocationPipeline<'a> {
     }
 
     /// Step 8: Poll DB until the instance is ready, or return on timeout.
+    /// Initial delay gives the server time to register before first poll.
     #[tracing::instrument(skip(self), fields(zone = %self.zone, instance_id = self.instance_id))]
     pub async fn poll_until_ready(self, char_name: &str) -> Result<JoinMapResult, RowsError> {
         let repo = InstanceRepo(self.db);
         let start = Instant::now();
         let timeout = Duration::from_secs(SPINUP_TIMEOUT_SECS);
 
-        while start.elapsed() < timeout {
-            tokio::time::sleep(Duration::from_millis(SPINUP_POLL_INTERVAL_MS)).await;
+        // Initial delay — give server time to boot + register
+        tokio::time::sleep(Duration::from_millis(SPINUP_INITIAL_DELAY_MS)).await;
 
+        while start.elapsed() < timeout {
             let poll = repo
                 .join_map_by_char_name(self.customer_guid, char_name, self.zone)
                 .await?;
