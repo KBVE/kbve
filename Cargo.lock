@@ -12999,7 +12999,7 @@ dependencies = [
 
 [[package]]
 name = "rows"
-version = "0.1.12"
+version = "0.1.17"
 dependencies = [
  "anyhow",
  "argon2",
