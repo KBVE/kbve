@@ -64,13 +64,6 @@ enum TagStatus {
   TAG_STATUS_MERGED = 3;        // Replaced by alias_of
 }
 
-// Vote direction.
-enum VoteDirection {
-  VOTE_DIRECTION_UNSPECIFIED = 0;
-  VOTE_DIRECTION_UP = 1;
-  VOTE_DIRECTION_DOWN = 2;
-}
-
 // User role within a space.
 enum SpaceRole {
   SPACE_ROLE_UNSPECIFIED = 0;
@@ -142,15 +135,14 @@ message ForumThread {
   ThreadStatus status = 7;
   ThreadType thread_type = 8;             // Determines rendering + validation
   optional string metadata = 9;           // JSON blob for type-specific data
-  int32 score = 10;                       // Computed: upvotes - downvotes
-  int32 comment_count = 11;              // Denormalized count
-  int32 view_count = 12;                 // Denormalized count
-  optional string slug = 13;             // URL-safe thread identifier
-  bool pinned = 14;                      // Pinned to top of space
-  optional string accepted_comment_id = 15; // For QUESTION type: accepted answer
-  string created_at = 16;
-  string updated_at = 17;
-  optional string edited_at = 18;         // Set on edit, null if never edited
+  int32 comment_count = 10;               // Denormalized count
+  int32 view_count = 11;                 // Denormalized count
+  optional string slug = 12;             // URL-safe thread identifier
+  bool pinned = 13;                      // Pinned to top of space
+  optional string accepted_comment_id = 14; // For QUESTION type: accepted answer
+  string created_at = 15;
+  string updated_at = 16;
+  optional string edited_at = 17;         // Set on edit, null if never edited
 }
 
 // A reply within a thread. Threaded via parent_comment_id.
@@ -161,21 +153,10 @@ message ForumComment {
   string thread_id = 4;                   // Parent thread UUID
   optional string parent_comment_id = 5;  // Parent comment UUID (null = top-level)
   int32 depth = 6;                        // Nesting depth (0 = top-level, max 5)
-  int32 score = 7;                        // Computed: upvotes - downvotes
-  ThreadStatus status = 8;                // Reuse ThreadStatus for moderation
-  bool is_accepted = 9;                   // For QUESTION threads: accepted answer
-  string created_at = 10;
-  optional string edited_at = 11;
-}
-
-// Vote on a thread or comment. One vote per user per target.
-message ForumVote {
-  string id = 1;                          // UUID
-  string user_id = 2;                     // Supabase user UUID
-  string target_id = 3;                   // Thread or comment UUID
-  string target_type = 4;                 // "thread" or "comment"
-  VoteDirection direction = 5;
-  string created_at = 6;
+  ThreadStatus status = 7;                // Reuse ThreadStatus for moderation
+  bool is_accepted = 8;                   // For QUESTION threads: accepted answer
+  string created_at = 9;
+  optional string edited_at = 10;
 }
 
 // ---------------------------------------------------------------------------
