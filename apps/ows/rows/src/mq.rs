@@ -242,46 +242,36 @@ async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
             "Processing spin-up message"
         );
 
-        // Allocate via Agones if available
+        // Allocate via pipeline (Agones if available)
+        let guid = svc.state().config.customer_guid;
         if let Some(ref agones) = svc.state().agones {
-            match agones.allocate(&msg.map_name, msg.zone_instance_id).await {
-                Ok(result) => {
+            use crate::agones::AllocationPipeline;
+
+            let pipeline = AllocationPipeline::new(guid, &msg.map_name, &svc.state().db);
+
+            match async {
+                let p = pipeline.allocate_via_agones(agones).await?;
+                let p = p.register_world_server().await?;
+                let p = p.create_instance().await?;
+                let p = p.verify_health(agones).await?;
+                Ok::<_, crate::error::RowsError>(p)
+            }
+            .await
+            {
+                Ok(p) => {
+                    p.track(&svc.state().zone_servers)
+                        .release_lock(&svc.state().zone_spinup_locks);
+
                     info!(
                         zone = msg.zone_instance_id,
-                        gs = %result.game_server_name,
-                        addr = %result.address,
-                        port = result.port,
-                        "GameServer allocated"
+                        map = %msg.map_name,
+                        "MQ spin-up: pipeline completed"
                     );
-
-                    // Create mapinstance record in DB so join_map_by_char_name can find it.
-                    // Status=1 (launching) — UE5 server will set status=2 (ready) via UpdateNumberOfPlayers.
-                    let guid = svc.state().config.customer_guid;
-                    if let Err(e) = svc
-                        .spin_up_server_instance(
-                            guid,
-                            msg.world_server_id,
-                            msg.zone_instance_id,
-                            &msg.map_name,
-                            result.port,
-                        )
-                        .await
-                    {
-                        error!(error = %e, "Failed to create mapinstance record after allocation");
-                    }
-
-                    svc.state()
-                        .zone_servers
-                        .insert(msg.zone_instance_id, result.game_server_name);
-
-                    // Release spin-up lock
-                    let lock_key = format!("{}:{}", msg.customer_guid, msg.map_name);
-                    svc.state().zone_spinup_locks.remove(&lock_key);
                 }
                 Err(e) => {
-                    error!(error = %e, zone = msg.zone_instance_id, "Agones allocation failed");
-                    // Dead letter: reject without requeue after 3 delivery attempts.
-                    // RabbitMQ will route to DLX if configured, otherwise discard.
+                    error!(error = %e, zone = msg.zone_instance_id, "MQ spin-up: pipeline failed");
+
+                    // DLQ after 3 attempts
                     if delivery.delivery_tag > 2 {
                         warn!(
                             zone = msg.zone_instance_id,
@@ -290,7 +280,6 @@ async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
                         let _ = delivery.reject(BasicRejectOptions { requeue: false }).await;
                         continue;
                     }
-                    // Requeue for retry
                     let _ = delivery.reject(BasicRejectOptions { requeue: true }).await;
                     continue;
                 }
