@@ -64,15 +64,6 @@ enum TagStatus {
   TAG_STATUS_MERGED = 3;        // Replaced by alias_of
 }
 
-// User role within a space.
-enum SpaceRole {
-  SPACE_ROLE_UNSPECIFIED = 0;
-  SPACE_ROLE_FOLLOWER = 1;      // Subscribed to feed
-  SPACE_ROLE_MEMBER = 2;        // Can create threads (if space requires membership)
-  SPACE_ROLE_MODERATOR = 3;     // Can moderate content
-  SPACE_ROLE_OWNER = 4;         // Full control over space
-}
-
 // ---------------------------------------------------------------------------
 // Core entities
 // ---------------------------------------------------------------------------
@@ -162,23 +153,6 @@ message ForumComment {
 // ---------------------------------------------------------------------------
 // Relationships
 // ---------------------------------------------------------------------------
-
-// User ↔ Space relationship (follow, moderate, own).
-message SpaceMembership {
-  string id = 1;                          // UUID
-  string user_id = 2;                     // Supabase user UUID
-  string space_id = 3;                    // Space UUID
-  SpaceRole role = 4;
-  string created_at = 5;
-}
-
-// User ↔ Tag follow relationship.
-message TagFollow {
-  string id = 1;                          // UUID
-  string user_id = 2;                     // Supabase user UUID
-  int32 tag_id = 3;                       // Tag integer ID
-  string created_at = 4;
-}
 
 // Thread ↔ Tag junction (many-to-many).
 // Uses integer tag_id for compact storage and fast joins.
