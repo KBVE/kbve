@@ -370,13 +370,15 @@ This ensures:
 
 Define the core data model as protobuf:
 
-- `ForumSpace` — space definition (slug, name, parent, rules)
+- `ForumSpace` — space definition (slug, name, parent, rules, allowed thread types)
 - `ForumTag` — tag definition (slug, name, aliases)
-- `ForumPost` — post (title, body, author, space, tags, status)
-- `ForumComment` — comment (body, author, parent, depth)
+- `ForumThread` — top-level thread (title, body, author, space, tags, thread_type, metadata)
+- `ForumComment` — replies within a thread (body, author, parent, depth)
 - `ForumVote` — vote (user, target, direction)
 - `SpaceMembership` — user ↔ space relationship (follow, moderate)
 - `TagFollow` — user ↔ tag follow relationship
+- `ThreadTag` — thread ↔ tag junction
+- Type-specific metadata: `MarketplaceMetadata`, `AuctionMetadata`, `PollMetadata`, `LfgMetadata`
 
 Proto lives at: `packages/data/proto/kbve/forum.proto`
 
