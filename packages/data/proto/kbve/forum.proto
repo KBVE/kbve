@@ -122,11 +122,23 @@ message ForumTag {
 // ---------------------------------------------------------------------------
 // Type-specific metadata (typed via oneof, stored as JSONB in DB)
 // ---------------------------------------------------------------------------
-// Each thread type that carries structured data gets its own message.
-// The proto → Zod pipeline generates validators for each, so the edge
-// layer enforces the correct shape at write time. DISCUSSION, QUESTION,
-// ANNOUNCEMENT, GUIDE, SHOWCASE, and BUG_REPORT don't need extra
-// metadata — the thread body is sufficient.
+// Every thread type maps to exactly one oneof branch — no implicit
+// "unset is valid" logic. The proto → Zod pipeline generates a validator
+// per branch, and the edge layer enforces thread_type ↔ oneof match.
+
+// Metadata for standard threads (DISCUSSION, GUIDE, SHOWCASE, BUG_REPORT).
+// Currently empty — exists so every thread type has an explicit oneof branch.
+// Can be extended later (e.g. guide: table_of_contents, bug: steps_to_reproduce).
+message DiscussionData {}
+
+// Metadata for QUESTION threads (Q&A).
+// accepted_comment_id lives on ForumThread directly since it's a FK.
+message QuestionData {}
+
+// Metadata for ANNOUNCEMENT threads.
+message AnnouncementData {
+  optional string expires_at = 1;         // ISO 8601 — auto-unpin after this time
+}
 
 // Metadata for MARKETPLACE threads.
 message MarketplaceData {
@@ -192,23 +204,26 @@ message ForumThread {
   ThreadStatus status = 7;
   ThreadType thread_type = 8;             // Determines which oneof branch is valid
 
-  // Type-specific structured data. Exactly one branch active per thread_type.
-  // Types without extra data (DISCUSSION, QUESTION, etc.) leave this unset.
+  // Type-specific structured data. Every thread_type maps to exactly one branch.
+  // Validation: edge layer checks thread_type ↔ oneof branch match at write time.
   oneof type_data {
-    MarketplaceData marketplace_data = 9;
-    AuctionData auction_data = 10;
-    PollData poll_data = 11;
-    LfgData lfg_data = 12;
+    DiscussionData discussion_data = 9;       // DISCUSSION, GUIDE, SHOWCASE, BUG_REPORT
+    QuestionData question_data = 10;          // QUESTION
+    AnnouncementData announcement_data = 11;  // ANNOUNCEMENT
+    MarketplaceData marketplace_data = 12;    // MARKETPLACE
+    AuctionData auction_data = 13;            // AUCTION
+    PollData poll_data = 14;                  // POLL
+    LfgData lfg_data = 15;                    // LFG
   }
 
-  int32 comment_count = 13;              // Denormalized count
-  int32 view_count = 14;                 // Denormalized count
-  optional string slug = 15;             // URL-safe thread identifier
-  bool pinned = 16;                      // Pinned to top of space
-  optional string accepted_comment_id = 17; // For QUESTION type: accepted answer
-  string created_at = 18;
-  string updated_at = 19;
-  optional string edited_at = 20;         // Set on edit, null if never edited
+  int32 comment_count = 16;              // Denormalized count
+  int32 view_count = 17;                 // Denormalized count
+  optional string slug = 18;             // URL-safe thread identifier
+  bool pinned = 19;                      // Pinned to top of space
+  optional string accepted_comment_id = 20; // For QUESTION type: accepted answer
+  string created_at = 21;
+  string updated_at = 22;
+  optional string edited_at = 23;         // Set on edit, null if never edited
 }
 
 // A reply within a thread. Threaded via parent_comment_id.
