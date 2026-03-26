@@ -7,7 +7,9 @@ mod allocate;
 mod client;
 mod deallocate;
 mod error;
+pub mod pipeline;
 
 pub use allocate::AllocationResult;
 pub use client::AgonesClient;
 pub use error::AgonesError;
+pub use pipeline::AllocationPipeline;
