@@ -4,6 +4,7 @@ mod characters;
 mod global_data;
 mod instances;
 mod management;
+pub mod system;
 mod zones;
 
 use crate::models::HealthResponse;
@@ -28,6 +29,7 @@ pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
     let abilities = abilities::abilities_routes(hs.clone());
     let zones = zones::zones_routes(hs.clone());
     let management = management::management_routes(hs.clone());
+    let system = system::system_routes(hs.clone());
 
     Router::new()
         .route("/", get(root))
@@ -40,6 +42,7 @@ pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
         .merge(abilities)
         .merge(zones)
         .merge(management)
+        .merge(system)
 }
 
 #[utoipa::path(get, path = "/", tag = "health",
