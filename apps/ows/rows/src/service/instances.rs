@@ -67,17 +67,28 @@ impl OWSService {
                         );
 
                         // Ensure world server exists for this allocation
-                        let world_server_id = repo
+                        // zoneserverguid column is UUID type
+                        let launcher_uuid = Uuid::new_v4();
+                        let world_server_id = match repo
                             .register_launcher(
                                 customer_guid,
-                                &alloc.game_server_name,
+                                &launcher_uuid.to_string(),
                                 &alloc.address,
                                 10,
                                 &alloc.address,
                                 alloc.port,
                             )
                             .await
-                            .unwrap_or(0);
+                        {
+                            Ok(id) => {
+                                tracing::info!(world_server_id = id, "World server registered");
+                                id
+                            }
+                            Err(e) => {
+                                tracing::error!(error = %e, "Failed to register world server");
+                                0
+                            }
+                        };
 
                         if world_server_id > 0 {
                             if let Err(e) = repo
