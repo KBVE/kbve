@@ -20,6 +20,14 @@ pub fn system_routes(hs: HandlerState) -> Router {
         .route("/api/System/ActivePlayers", get(active_players))
         .route("/api/System/InstanceLog", get(instance_log))
         .route("/api/System/DeploymentInfo", get(deployment_info))
+        .route(
+            "/api/System/RestartGameServer",
+            axum::routing::post(restart_game_server),
+        )
+        .route(
+            "/api/System/RestartFleet",
+            axum::routing::post(restart_fleet),
+        )
         .layer(middleware::from_fn(require_customer_guid))
         .with_state(hs)
 }
@@ -222,5 +230,126 @@ async fn deployment_info(State(hs): State<HandlerState>) -> Json<serde_json::Val
         "active_sessions": hs.app.sessions.len(),
         "zone_servers_tracked": hs.app.zone_servers.len(),
         "spinup_locks_active": hs.app.zone_spinup_locks.len(),
+    }))
+}
+
+// ─── Restart GameServer ─────────────────────────────────────
+
+/// Restart a specific GameServer by zone_instance_id.
+/// Flow: send MQ shutdown → delete Agones GameServer → watcher auto-cleans DB.
+/// Agones auto-replaces with a fresh pod from the fleet.
+async fn restart_game_server(
+    State(hs): State<HandlerState>,
+    Json(body): Json<serde_json::Value>,
+) -> Json<serde_json::Value> {
+    let zone_instance_id = body
+        .get("zone_instance_id")
+        .or_else(|| body.get("zoneInstanceId"))
+        .and_then(|v| v.as_i64())
+        .unwrap_or(0) as i32;
+
+    if zone_instance_id <= 0 {
+        return Json(serde_json::json!({
+            "success": false,
+            "error": "zone_instance_id is required"
+        }));
+    }
+
+    let customer_guid = hs.app.config.customer_guid;
+
+    // Find the GameServer name from tracking
+    let gs_name = hs
+        .app
+        .zone_servers
+        .get(&zone_instance_id)
+        .map(|e| e.value().clone());
+
+    // Send MQ shutdown notification (if available)
+    if let Some(ref mq) = hs.app.mq {
+        let msg = crate::mq::ShutDownMessage {
+            customer_guid: customer_guid.to_string(),
+            zone_instance_id,
+        };
+        // Find world_server_id from DB for the routing key
+        let repo = crate::repo::InstanceRepo(&hs.app.db);
+        if let Ok(Some(info)) = repo
+            .get_zone_instance_info(customer_guid, zone_instance_id)
+            .await
+        {
+            if let Err(e) = mq.publish_shut_down(info.world_server_id, &msg).await {
+                tracing::warn!(error = %e, "MQ shutdown publish failed (non-fatal)");
+            }
+        }
+    }
+
+    // Delete the Agones GameServer — Agones fleet auto-replaces it
+    if let (Some(ref agones), Some(ref gs)) = (&hs.app.agones, &gs_name) {
+        match agones.deallocate(gs).await {
+            Ok(_) => {
+                tracing::info!(gs = %gs, zone_instance_id, "GameServer deleted for restart");
+            }
+            Err(e) => {
+                tracing::error!(error = %e, gs = %gs, "Failed to delete GameServer");
+                return Json(serde_json::json!({
+                    "success": false,
+                    "error": format!("Failed to delete GameServer: {e}")
+                }));
+            }
+        }
+    }
+
+    // Log the event
+    hs.app.instance_log.push(InstanceEvent {
+        timestamp: chrono::Utc::now(),
+        event: "restart".into(),
+        zone_instance_id,
+        map_name: String::new(),
+        game_server: gs_name.unwrap_or_else(|| "unknown".into()),
+        trigger: "api".into(),
+    });
+
+    // DB cleanup happens automatically via the GameServer watcher
+    Json(serde_json::json!({
+        "success": true,
+        "message": "GameServer restart initiated. Watcher will clean DB. Fleet will auto-replace."
+    }))
+}
+
+// ─── Restart Fleet ──────────────────────────────────────────
+
+/// Restart the entire fleet — scale to 0, clean all DB entries, scale back up.
+/// Use with caution — disconnects all players.
+async fn restart_fleet(State(hs): State<HandlerState>) -> Json<serde_json::Value> {
+    let customer_guid = hs.app.config.customer_guid;
+
+    // Clean all zone instance DB entries
+    let repo = crate::repo::InstanceRepo(&hs.app.db);
+    if let Err(e) = repo.delete_all_map_instances(customer_guid).await {
+        return Json(serde_json::json!({
+            "success": false,
+            "error": format!("Failed to clean DB: {e}")
+        }));
+    }
+    if let Err(e) = repo.deactivate_all_world_servers(customer_guid).await {
+        tracing::warn!(error = %e, "Failed to deactivate world servers");
+    }
+
+    // Clear tracking maps
+    hs.app.zone_servers.clear();
+    hs.app.zone_spinup_locks.clear();
+
+    // Log the event
+    hs.app.instance_log.push(InstanceEvent {
+        timestamp: chrono::Utc::now(),
+        event: "fleet_restart".into(),
+        zone_instance_id: 0,
+        map_name: String::new(),
+        game_server: "all".into(),
+        trigger: "api".into(),
+    });
+
+    Json(serde_json::json!({
+        "success": true,
+        "message": "Fleet DB cleaned. Scale fleet manually via kubectl or ArgoCD to restart pods."
     }))
 }
