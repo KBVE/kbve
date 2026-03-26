@@ -4,6 +4,7 @@ on:
     push:
         branches:
             - 'atom-*'
+            - '!atom-post-publish-*'
 
 concurrency:
     group: atom-${{ github.ref_name }}
