@@ -1,24 +1,76 @@
 # ============================================================================
-# chisel-ubuntu-axum — Shared chiseled Ubuntu runtime base for KBVE Axum services
+# chisel-ubuntu-axum — Shared base images for KBVE Axum services
 #
-# Includes: chiseled Ubuntu 24.04 rootfs + jemalloc + libpq + CA certs
-# Published to: ghcr.io/kbve/chisel-ubuntu-axum:24.04
+# Two targets:
+#   builder  → Rust build environment (cargo-chef, protobuf, ssl, pq, jemalloc-dev)
+#   runtime  → Minimal chiseled Ubuntu (jemalloc, libpq, CA certs)
 #
-# Usage in service Dockerfiles:
-#   FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04 AS runtime
+# Published as:
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04.X          (runtime)
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04.X-builder  (builder)
+#
+# Service Dockerfile usage:
+#   FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04.2-builder AS builder
+#   COPY src/ src/
+#   RUN cargo build --release -p my-service
+#
+#   FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04.2
+#   COPY --from=builder /app/target/release/my-service /app/my-service
+#   ENTRYPOINT ["/app/my-service"]
 # ============================================================================
 
-# ── Stage 1: Chisel the Ubuntu rootfs ────────────────────────────────
-FROM --platform=linux/amd64 ubuntu:24.04 AS chisel-builder
+# ╔═══════════════════════════════════════════════════════════════════╗
+# ║  BUILDER TARGET                                                    ║
+# ║  Rust 1.94 + cargo-chef + build deps + jemalloc-dev               ║
+# ╚═══════════════════════════════════════════════════════════════════╝
+
+FROM --platform=linux/amd64 rust:1.94-slim AS builder
+
+# ── System build dependencies ────────────────────────────────────────
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+        pkg-config \
+        libssl-dev \
+        libpq-dev \
+        libjemalloc-dev \
+        protobuf-compiler \
+        libprotobuf-dev \
+        curl \
+        ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# ── Rust tooling ─────────────────────────────────────────────────────
+RUN rustup target add x86_64-unknown-linux-gnu && \
+    cargo install cargo-chef --locked
+
+# ── Node.js + pnpm (for Astro frontend builds) ──────────────────────
+ARG NODE_VERSION=24
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    rm -rf /var/lib/apt/lists/* && \
+    corepack enable && \
+    corepack prepare pnpm@latest --activate
+
+# Prevent Playwright from downloading browsers during pnpm install
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+
+WORKDIR /app
+
+# ╔═══════════════════════════════════════════════════════════════════╗
+# ║  RUNTIME TARGET                                                    ║
+# ║  Chiseled Ubuntu 24.04 + jemalloc + libpq + CA certs             ║
+# ╚═══════════════════════════════════════════════════════════════════╝
+
+# ── Chisel the Ubuntu rootfs ─────────────────────────────────────────
+FROM --platform=linux/amd64 ubuntu:24.04 AS chisel-stage
 
 RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates
 
-# Install chisel from GitHub releases (avoids 200MB+ Go SDK)
 ARG CHISEL_VERSION=1.1.0
 RUN wget -q "https://github.com/canonical/chisel/releases/download/v${CHISEL_VERSION}/chisel_v${CHISEL_VERSION}_linux_amd64.tar.gz" -O /tmp/chisel.tar.gz && \
     tar -xzf /tmp/chisel.tar.gz -C /usr/local/bin chisel && \
-    rm /tmp/chisel.tar.gz && \
-    chisel --version
+    rm /tmp/chisel.tar.gz
 
 WORKDIR /rootfs
 RUN chisel cut --release ubuntu-24.04 --root /rootfs \
@@ -33,28 +85,27 @@ RUN chisel cut --release ubuntu-24.04 --root /rootfs \
     echo 'appgroup:x:10001:' >> /rootfs/etc/group && \
     mkdir -p /rootfs/app && chown 10001:10001 /rootfs/app
 
-# ── Stage 2: Extract jemalloc ────────────────────────────────────────
-FROM --platform=linux/amd64 ubuntu:24.04 AS jemalloc
+# ── Extract jemalloc runtime lib ─────────────────────────────────────
+FROM --platform=linux/amd64 ubuntu:24.04 AS jemalloc-stage
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends libjemalloc-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# ── Stage 3: Extract libpq ──────────────────────────────────────────
-FROM --platform=linux/amd64 ubuntu:24.04 AS libpq-runtime
+# ── Extract libpq runtime lib ───────────────────────────────────────
+FROM --platform=linux/amd64 ubuntu:24.04 AS libpq-stage
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends libpq5 && \
     rm -rf /var/lib/apt/lists/*
 
-# ── Final: Assemble runtime image ───────────────────────────────────
-FROM --platform=linux/amd64 scratch
+# ── Assemble runtime image ──────────────────────────────────────────
+FROM --platform=linux/amd64 scratch AS runtime
 
-COPY --from=chisel-builder /rootfs /
-COPY --from=jemalloc /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
-COPY --from=libpq-runtime /usr/lib/x86_64-linux-gnu/libpq.so.5* /usr/lib/x86_64-linux-gnu/
+COPY --from=chisel-stage /rootfs /
+COPY --from=jemalloc-stage /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+COPY --from=libpq-stage /usr/lib/x86_64-linux-gnu/libpq.so.5* /usr/lib/x86_64-linux-gnu/
 
-# Default jemalloc configuration for Axum services
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:10000,muzzy_decay_ms:10000,lg_tcache_max:32,oversize_threshold:4194304"
 
