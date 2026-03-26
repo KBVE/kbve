@@ -1,0 +1,56 @@
+---
+import ReactHomeAuth from './ReactHomeAuth';
+import ReactRowsDashboard from './ReactRowsDashboard';
+---
+
+<section
+	id="rows-dashboard-wrapper"
+	class="rows-dashboard-wrapper"
+	aria-label="ROWS Game Operations Dashboard">
+	<div id="rows-dashboard-content" class="rows-dashboard-content">
+		<ReactHomeAuth client:only="react">
+			<div class="not-content rows-dashboard">
+				<ReactRowsDashboard client:only="react" />
+			</div>
+		</ReactHomeAuth>
+	</div>
+</section>
+
+<style>
+	.rows-dashboard-wrapper {
+		background: transparent;
+		min-height: 100vh;
+		position: relative;
+		width: 100vw;
+		margin-left: calc(-50vw + 50%);
+	}
+
+	.rows-dashboard-content {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2rem 1rem;
+	}
+
+	@media (min-width: 768px) {
+		.rows-dashboard-content {
+			padding: 2rem 1.5rem;
+		}
+	}
+
+	.rows-dashboard {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		min-height: 60vh;
+	}
+
+	:global(@keyframes spin) {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	:global(.spin) {
+		animation: spin 1s linear infinite;
+	}
+</style>
