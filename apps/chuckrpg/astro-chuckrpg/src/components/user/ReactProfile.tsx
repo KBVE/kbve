@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { authBridge } from '@/lib/auth';
+import { authBridge } from '@/lib/supa';
 import type { Session } from '@supabase/supabase-js';
 
 export default function ReactProfile() {

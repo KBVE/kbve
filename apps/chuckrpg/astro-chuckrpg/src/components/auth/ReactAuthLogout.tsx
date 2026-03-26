@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { authBridge } from '@/lib/auth';
+import { authBridge } from '@/lib/supa';
 
 export default function ReactAuthLogout() {
 	const [message, setMessage] = useState('Signing out...');
