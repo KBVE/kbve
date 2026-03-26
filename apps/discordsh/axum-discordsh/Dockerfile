@@ -1,7 +1,17 @@
 # ============================================================================
+# axum-discordsh — Multi-stage Docker build
+#
+# Runtime uses the shared chisel base image:
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04.2
+#   (chiseled Ubuntu 24.04 + jemalloc + libpq + CA certs)
+# ============================================================================
+
+# ============================================================================
 # [STAGE A] - Build Astro Static Site
 # ============================================================================
-FROM --platform=linux/amd64 node:24-alpine AS astro-builder
+# node:24-slim (Debian) instead of Alpine — Sharp image optimizer needs
+# glibc-compatible native binaries for Astro image processing
+FROM --platform=linux/amd64 node:24-slim AS astro-builder
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
@@ -29,8 +39,9 @@ COPY apps/discordsh/astro-discordsh/ apps/discordsh/astro-discordsh/
 
 # Build astro site
 WORKDIR /app/apps/discordsh/astro-discordsh
-RUN rm -rf .astro && npx astro sync && \
-    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
+# astro build handles sync internally — avoid separate sync which can
+# leave partial image cache entries that break the optimizer
+RUN UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
 
 # ============================================================================
 # [STAGE B] - Precompress Static Assets
@@ -72,6 +83,7 @@ RUN apt-get update && \
         pkg-config \
         libssl-dev \
         libpq-dev \
+        libjemalloc-dev \
         protobuf-compiler \
         libprotobuf-dev && \
     rm -rf /var/lib/apt/lists/*
@@ -153,7 +165,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # ============================================================================
 FROM foundation AS builder
 
-# Astro build output (precompressed) → placed into templates/dist
+# Astro build output (precompressed) -> placed into templates/dist
 COPY --from=astro-precompressor /static /app/apps/discordsh/axum-discordsh/templates/dist
 
 # Foundation crate source (cargo needs source to verify fingerprints)
@@ -175,77 +187,19 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     strip target/release/axum-discordsh
 
 # ============================================================================
-# [STAGE D] - Chisel Ubuntu Base (Minimal Runtime)
+# [STAGE Z] - Runtime Image (shared chisel base)
 # ============================================================================
-FROM --platform=linux/amd64 ubuntu:24.04 AS chisel-builder
-
-RUN apt-get update && apt-get install -y wget ca-certificates
-
-WORKDIR /tmp
-
-# Install chisel from GitHub releases (avoids 200MB+ Go SDK + verbose tar extraction)
-ARG CHISEL_VERSION=1.1.0
-RUN wget -q "https://github.com/canonical/chisel/releases/download/v${CHISEL_VERSION}/chisel_v${CHISEL_VERSION}_linux_amd64.tar.gz" -O /tmp/chisel.tar.gz && \
-    tar -xzf /tmp/chisel.tar.gz -C /usr/local/bin chisel && \
-    rm /tmp/chisel.tar.gz
-
-WORKDIR /rootfs
-RUN chisel cut --release ubuntu-24.04 --root /rootfs \
-        base-files_base \
-        base-files_release-info \
-        ca-certificates_data \
-        libgcc-s1_libs \
-        libc6_libs \
-        libstdc++6_libs \
-        openssl_config && \
-    echo 'appuser:x:10001:10001::/nonexistent:/usr/sbin/nologin' >> /rootfs/etc/passwd && \
-    echo 'appgroup:x:10001:' >> /rootfs/etc/group && \
-    mkdir -p /rootfs/app && chown 10001:10001 /rootfs/app
-
-# ============================================================================
-# [STAGE E] - Jemalloc
-# ============================================================================
-FROM --platform=linux/amd64 ubuntu:24.04 AS jemalloc
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends libjemalloc-dev && \
-    apt-get autoremove -y && \
-    apt-get purge -y --auto-remove && \
-    rm -rf /var/lib/apt/lists/*
-
-# ============================================================================
-# [STAGE F] - libpq runtime (needed by diesel postgres)
-# ============================================================================
-FROM --platform=linux/amd64 ubuntu:24.04 AS libpq-runtime
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends libpq5 && \
-    rm -rf /var/lib/apt/lists/*
-
-# ============================================================================
-# [STAGE Z] - Runtime Image (Scratch + Chisel + Jemalloc)
-# ============================================================================
-FROM --platform=linux/amd64 scratch AS runtime
-
-COPY --from=chisel-builder /rootfs /
-
-COPY --from=jemalloc /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
-
-COPY --from=libpq-runtime /usr/lib/x86_64-linux-gnu/libpq.so.5* /usr/lib/x86_64-linux-gnu/
-
-WORKDIR /app
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.2 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-discordsh /app/axum-discordsh
 
 COPY --from=builder --chown=10001:10001 /app/apps/discordsh/axum-discordsh/templates/dist /app/templates/dist
 COPY --from=builder --chown=10001:10001 /app/apps/discordsh/axum-discordsh/templates/askama /app/templates/askama
 
-# Game card fonts (SVG → PNG rendering via resvg)
+# Game card fonts (SVG -> PNG rendering via resvg)
 COPY --chown=10001:10001 apps/discordsh/axum-discordsh/alagard.ttf /app/alagard.ttf
 COPY --chown=10001:10001 apps/discordsh/axum-discordsh/NotoSansSymbols-Regular.ttf /app/NotoSansSymbols-Regular.ttf
 
-ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
-ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:10000,muzzy_decay_ms:10000,lg_tcache_max:32,oversize_threshold:4194304"
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4321
 ENV RUST_LOG=axum_discordsh=debug,tower_http=debug,kbve=debug
@@ -253,7 +207,5 @@ ENV FONT_PATH=/app/alagard.ttf
 ENV SYMBOL_FONT_PATH=/app/NotoSansSymbols-Regular.ttf
 
 EXPOSE 4321
-
-USER 10001:10001
 
 ENTRYPOINT ["/app/axum-discordsh"]
