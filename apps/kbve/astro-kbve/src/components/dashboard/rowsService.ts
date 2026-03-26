@@ -125,14 +125,31 @@ async function fetchRows<T>(path: string): Promise<T | null> {
 		const headers = await getAuthHeaders();
 		if (!headers.Authorization) return null;
 
-		const resp = await fetch(`${PROXY_BASE}${path}`, { headers });
+		const resp = await fetch(`${PROXY_BASE}${path}`, {
+			headers,
+			signal: AbortSignal.timeout(8000),
+		});
 		if (!resp.ok) {
-			console.warn(`[rows] ${path} returned ${resp.status}`);
+			if (resp.status === 502) {
+				console.warn(
+					`[rows] ${path} — ROWS unreachable (502 Bad Gateway)`,
+				);
+			} else if (resp.status === 503) {
+				console.warn(`[rows] ${path} — proxy not configured (503)`);
+			} else if (resp.status === 401 || resp.status === 403) {
+				console.warn(`[rows] ${path} — auth rejected (${resp.status})`);
+			} else {
+				console.warn(`[rows] ${path} returned ${resp.status}`);
+			}
 			return null;
 		}
 		return (await resp.json()) as T;
 	} catch (e) {
-		console.error(`[rows] fetch ${path} failed:`, e);
+		if (e instanceof DOMException && e.name === 'TimeoutError') {
+			console.warn(`[rows] ${path} timed out after 8s`);
+		} else {
+			console.error(`[rows] fetch ${path} failed:`, e);
+		}
 		return null;
 	}
 }

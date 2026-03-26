@@ -21,6 +21,7 @@ import {
 	Kanban,
 	FileText,
 	Network,
+	Gamepad2,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -376,6 +377,7 @@ export default function ReactHomeServiceCards() {
 	const kanban = useStore(homeService.$kanban);
 	const report = useStore(homeService.$report);
 	const graph = useStore(homeService.$graph);
+	const rows = useStore(homeService.$rows);
 
 	const grafanaStatus = useStore(homeService.$grafanaStatus);
 	const argoStatus = useStore(homeService.$argoStatus);
@@ -385,6 +387,7 @@ export default function ReactHomeServiceCards() {
 	const kanbanStatus = useStore(homeService.$kanbanStatus);
 	const reportStatus = useStore(homeService.$reportStatus);
 	const graphStatus = useStore(homeService.$graphStatus);
+	const rowsStatus = useStore(homeService.$rowsStatus);
 
 	return (
 		<div
@@ -472,6 +475,39 @@ export default function ReactHomeServiceCards() {
 								color="#ef4444"
 							/>
 						)}
+					</>
+				) : (
+					<UnavailableMessage />
+				)}
+			</ServiceCard>
+
+			{/* ROWS — Game Server Operations */}
+			<ServiceCard
+				title="Game Ops (ROWS)"
+				description="ChuckRPG game server backend"
+				href="/dashboard/rows/"
+				icon={<Gamepad2 size={18} />}
+				accentColor="#f97316"
+				status={rowsStatus}>
+				{rowsStatus === 'loading' ? (
+					<LoadingPlaceholder />
+				) : rows ? (
+					<>
+						<MetricValue
+							label="Sessions"
+							value={rows.active_sessions}
+							color="#f97316"
+						/>
+						<MetricValue
+							label="Instances"
+							value={rows.active_instances}
+							color="#06b6d4"
+						/>
+						<MetricValue
+							label="Version"
+							value={`v${rows.version}`}
+							color="var(--sl-color-gray-3, #8b949e)"
+						/>
 					</>
 				) : (
 					<UnavailableMessage />
