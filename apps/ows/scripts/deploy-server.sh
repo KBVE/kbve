@@ -53,8 +53,13 @@ case "$PROJECT" in
         SERVER_TARGET="OWSHubWorldMMOServer"
         SERVER_BIN_NAME="OWSHubWorldMMOServer"
         ;;
+    ri)
+        UPROJECT_PATH="RI/RI.uproject"
+        SERVER_TARGET="RIServer"
+        SERVER_BIN_NAME="RIServer"
+        ;;
     *)
-        echo "ERROR: Unknown project '${PROJECT}'. Use: chuck or hubworld"
+        echo "ERROR: Unknown project '${PROJECT}'. Use: chuck, hubworld, or ri"
         exit 1
         ;;
 esac
@@ -149,6 +154,11 @@ spec:
       command: ["sleep", "600"]
       securityContext:
         allowPrivilegeEscalation: false
+      resources:
+        requests:
+          memory: "512Mi"
+        limits:
+          memory: "2Gi"
       volumeMounts:
         - name: server-build
           mountPath: /mnt/ows-server
