@@ -119,14 +119,67 @@ message ForumTag {
   string created_at = 8;
 }
 
+// ---------------------------------------------------------------------------
+// Type-specific metadata (typed via oneof, stored as JSONB in DB)
+// ---------------------------------------------------------------------------
+// Each thread type that carries structured data gets its own message.
+// The proto → Zod pipeline generates validators for each, so the edge
+// layer enforces the correct shape at write time. DISCUSSION, QUESTION,
+// ANNOUNCEMENT, GUIDE, SHOWCASE, and BUG_REPORT don't need extra
+// metadata — the thread body is sufficient.
+
+// Metadata for MARKETPLACE threads.
+message MarketplaceData {
+  string item_name = 1;
+  optional string item_description = 2;
+  int64 price = 3;                        // Price in smallest currency unit (cents)
+  string currency = 4;                    // "gold", "silver", "usd", etc.
+  optional string condition = 5;          // "new", "used", etc.
+  optional string buyer_id = 6;           // Supabase user UUID of buyer (set on sale)
+}
+
+// Metadata for AUCTION threads.
+message AuctionData {
+  string item_name = 1;
+  optional string item_description = 2;
+  int64 start_price = 3;                  // Starting bid
+  int64 current_bid = 4;                  // Highest bid so far
+  optional string current_bidder_id = 5;  // Supabase user UUID
+  string currency = 6;
+  string end_time = 7;                    // ISO 8601 deadline
+  int32 bid_count = 8;
+}
+
+// Metadata for POLL threads.
+message PollData {
+  repeated string options = 1;            // Poll option labels
+  repeated int32 votes = 2;              // Vote count per option (parallel array)
+  bool multiple_choice = 3;              // Allow multiple selections
+  optional string end_time = 4;           // Optional deadline
+}
+
+// Metadata for LFG (Looking for Group) threads.
+message LfgData {
+  string game = 1;                        // Game name or slug
+  int32 slots_total = 2;                 // Total party size
+  int32 slots_filled = 3;                // Current members
+  optional string requirements = 4;       // Level, gear, etc.
+  optional string scheduled_time = 5;     // ISO 8601
+}
+
+// ---------------------------------------------------------------------------
+// ForumThread
+// ---------------------------------------------------------------------------
+
 // Top-level forum thread. Belongs to exactly one space (source of truth).
-// The thread_type field determines rendering and validation:
-//   - DISCUSSION: standard title + body + replies
-//   - MARKETPLACE: title + body + metadata (price, currency, item)
-//   - AUCTION: title + body + metadata (start_price, end_time)
-//   - POLL: title + body + metadata (options[])
-// Type-specific data lives in the metadata JSON field — this avoids
-// schema migrations when adding new thread types.
+// The thread_type field determines which oneof branch is active:
+//   - DISCUSSION, QUESTION, GUIDE, etc.: no extra metadata (body is enough)
+//   - MARKETPLACE: marketplace_data required
+//   - AUCTION: auction_data required
+//   - POLL: poll_data required
+//   - LFG: lfg_data required
+// The oneof is the proto contract — Zod validates at write time.
+// DB stores the active branch as JSONB in a `metadata` column.
 message ForumThread {
   string id = 1;                          // UUID (ULID recommended)
   string title = 2;                       // Thread title (1-300 chars)
@@ -134,20 +187,28 @@ message ForumThread {
   string author_id = 4;                   // Supabase user UUID
   string space_id = 5;                    // Primary space UUID (source of truth)
   // NOTE: tag associations live in ThreadTag (database source of truth).
-  // tag_ids is populated on READ only — never written directly.
   // On create/update, the API writes to ThreadTag and returns expanded tags.
   reserved 6;                             // Was: repeated string tag_ids (removed — use ThreadTag)
   ThreadStatus status = 7;
-  ThreadType thread_type = 8;             // Determines rendering + validation
-  optional string metadata = 9;           // JSON blob for type-specific data
-  int32 comment_count = 10;               // Denormalized count
-  int32 view_count = 11;                 // Denormalized count
-  optional string slug = 12;             // URL-safe thread identifier
-  bool pinned = 13;                      // Pinned to top of space
-  optional string accepted_comment_id = 14; // For QUESTION type: accepted answer
-  string created_at = 15;
-  string updated_at = 16;
-  optional string edited_at = 17;         // Set on edit, null if never edited
+  ThreadType thread_type = 8;             // Determines which oneof branch is valid
+
+  // Type-specific structured data. Exactly one branch active per thread_type.
+  // Types without extra data (DISCUSSION, QUESTION, etc.) leave this unset.
+  oneof type_data {
+    MarketplaceData marketplace_data = 9;
+    AuctionData auction_data = 10;
+    PollData poll_data = 11;
+    LfgData lfg_data = 12;
+  }
+
+  int32 comment_count = 13;              // Denormalized count
+  int32 view_count = 14;                 // Denormalized count
+  optional string slug = 15;             // URL-safe thread identifier
+  bool pinned = 16;                      // Pinned to top of space
+  optional string accepted_comment_id = 17; // For QUESTION type: accepted answer
+  string created_at = 18;
+  string updated_at = 19;
+  optional string edited_at = 20;         // Set on edit, null if never edited
 }
 
 // A reply within a thread. Threaded via parent_comment_id.
@@ -198,50 +259,3 @@ message SpacePage {
   optional ForumSpace parent_space = 5;
 }
 
-// ---------------------------------------------------------------------------
-// Type-specific metadata schemas (JSON stored in ForumThread.metadata)
-// ---------------------------------------------------------------------------
-// These are NOT database tables — they define the expected JSON shape
-// for each thread type. Validation happens at the edge function layer.
-
-// Metadata for MARKETPLACE threads.
-message MarketplaceMetadata {
-  string item_name = 1;
-  optional string item_description = 2;
-  int64 price = 3;                       // Price in smallest currency unit (cents)
-  string currency = 4;                   // "gold", "silver", "usd", etc.
-  optional string condition = 5;         // "new", "used", etc.
-  bool sold = 6;                         // Listing closed
-  optional string buyer_id = 7;          // Supabase user UUID of buyer
-}
-
-// Metadata for AUCTION threads.
-message AuctionMetadata {
-  string item_name = 1;
-  optional string item_description = 2;
-  int64 start_price = 3;                // Starting bid
-  int64 current_bid = 4;                // Highest bid so far
-  optional string current_bidder_id = 5; // Supabase user UUID
-  string currency = 6;
-  string end_time = 7;                   // ISO 8601 deadline
-  int32 bid_count = 8;
-  bool ended = 9;
-}
-
-// Metadata for POLL threads.
-message PollMetadata {
-  repeated string options = 1;           // Poll option labels
-  repeated int32 votes = 2;             // Vote count per option (parallel array)
-  bool multiple_choice = 3;             // Allow multiple selections
-  optional string end_time = 4;          // Optional deadline
-}
-
-// Metadata for LFG (Looking for Group) threads.
-message LfgMetadata {
-  string game = 1;                       // Game name or slug
-  int32 slots_total = 2;                // Total party size
-  int32 slots_filled = 3;               // Current members
-  optional string requirements = 4;      // Level, gear, etc.
-  optional string scheduled_time = 5;    // ISO 8601
-  bool closed = 6;                       // Group is full or cancelled
-}
