@@ -130,7 +130,10 @@ message ForumThread {
   string body = 3;                        // Markdown body
   string author_id = 4;                   // Supabase user UUID
   string space_id = 5;                    // Primary space UUID (source of truth)
-  repeated string tag_ids = 6;            // Tag UUIDs (max 5)
+  // NOTE: tag associations live in ThreadTag (database source of truth).
+  // tag_ids is populated on READ only — never written directly.
+  // On create/update, the API writes to ThreadTag and returns expanded tags.
+  reserved 6;                             // Was: repeated string tag_ids (removed — use ThreadTag)
   ThreadStatus status = 7;
   ThreadType thread_type = 8;             // Determines rendering + validation
   optional string metadata = 9;           // JSON blob for type-specific data
@@ -201,11 +204,12 @@ message ThreadTag {
 // Aggregates (for API responses)
 // ---------------------------------------------------------------------------
 
-// Feed item — enriched thread for display.
+// Feed item — enriched thread for display (read model).
+// Tags are resolved from ThreadTag join, not stored on ForumThread.
 message FeedItem {
   ForumThread thread = 1;
   ForumSpace space = 2;
-  repeated ForumTag tags = 3;
+  repeated ForumTag tags = 3;             // Resolved via ThreadTag join
   string author_name = 4;                 // Denormalized for display
   optional string author_avatar_url = 5;
 }
