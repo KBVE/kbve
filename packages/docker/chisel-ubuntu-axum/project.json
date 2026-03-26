@@ -7,19 +7,24 @@
 		"container": {
 			"executor": "nx:run-commands",
 			"options": {
-				"commands": ["npx nx run chisel-ubuntu-axum:containerx"]
+				"commands": [
+					"npx nx run chisel-ubuntu-axum:containerx-runtime",
+					"npx nx run chisel-ubuntu-axum:containerx-builder"
+				],
+				"parallel": false
 			},
 			"configurations": {
 				"local": {},
 				"production": {}
 			}
 		},
-		"containerx": {
+		"containerx-runtime": {
 			"executor": "@nx-tools/nx-container:build",
 			"options": {
 				"engine": "docker",
 				"context": "packages/docker/chisel-ubuntu-axum",
 				"file": "packages/docker/chisel-ubuntu-axum/Dockerfile",
+				"target": "runtime",
 				"platforms": ["linux/amd64"],
 				"load": true,
 				"push": false,
@@ -39,12 +44,72 @@
 						"images": ["ghcr.io/kbve/chisel-ubuntu-axum"]
 					},
 					"cache-from": [
-						"type=registry,ref=ghcr.io/kbve/chisel-ubuntu-axum:buildcache"
+						"type=registry,ref=ghcr.io/kbve/chisel-ubuntu-axum:buildcache-runtime"
 					],
 					"cache-to": [
-						"type=registry,ref=ghcr.io/kbve/chisel-ubuntu-axum:buildcache,mode=max"
+						"type=registry,ref=ghcr.io/kbve/chisel-ubuntu-axum:buildcache-runtime,mode=max"
 					]
 				}
+			}
+		},
+		"containerx-builder": {
+			"executor": "@nx-tools/nx-container:build",
+			"options": {
+				"engine": "docker",
+				"context": "packages/docker/chisel-ubuntu-axum",
+				"file": "packages/docker/chisel-ubuntu-axum/Dockerfile",
+				"target": "builder",
+				"platforms": ["linux/amd64"],
+				"load": true,
+				"push": false,
+				"tags": ["ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder"]
+			},
+			"configurations": {
+				"local": {
+					"tags": ["ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder"]
+				},
+				"production": {
+					"tags": [
+						"ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder",
+						"ghcr.io/kbve/chisel-ubuntu-axum:builder"
+					],
+					"push": true,
+					"metadata": {
+						"images": ["ghcr.io/kbve/chisel-ubuntu-axum"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/chisel-ubuntu-axum:buildcache-builder"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/chisel-ubuntu-axum:buildcache-builder,mode=max"
+					]
+				}
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["container"],
+			"options": {
+				"commands": [
+					"echo '=== Runtime image tests ==='",
+					"docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{.Config.User}}' | grep -q 10001 && echo 'PASS: non-root user 10001'",
+					"docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{.Config.WorkingDir}}' | grep -q /app && echo 'PASS: workdir /app'",
+					"docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q LD_PRELOAD && echo 'PASS: jemalloc LD_PRELOAD set'",
+					"docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q MALLOC_CONF && echo 'PASS: jemalloc MALLOC_CONF set'",
+					"docker create --name chisel-runtime-test ghcr.io/kbve/chisel-ubuntu-axum:24.04 true > /dev/null 2>&1 && docker export chisel-runtime-test | tar -t | grep -q libjemalloc && echo 'PASS: libjemalloc.so present' && docker rm chisel-runtime-test > /dev/null 2>&1",
+					"docker create --name chisel-runtime-test2 ghcr.io/kbve/chisel-ubuntu-axum:24.04 true > /dev/null 2>&1 && docker export chisel-runtime-test2 | tar -t | grep -q libpq && echo 'PASS: libpq.so present' && docker rm chisel-runtime-test2 > /dev/null 2>&1",
+					"echo '=== Builder image tests ==='",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder cargo --version",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder cargo chef --version",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder node --version",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder pnpm --version",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder protoc --version",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder pkg-config --libs libpq",
+					"echo '=== All chisel base image tests passed ==='",
+					"echo 'Runtime: user, workdir, jemalloc, libpq OK'",
+					"echo 'Builder: cargo, cargo-chef, node, pnpm, protoc, libpq-dev OK'"
+				],
+				"parallel": false
 			}
 		}
 	},

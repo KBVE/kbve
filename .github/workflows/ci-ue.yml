@@ -1,6 +1,6 @@
 name: CI - Unreal Engine
 
-run-name: 'CI - UE / ${{ inputs.task }}'
+run-name: 'CI - UE / ${{ inputs.task }} ${{ inputs.shell_path }}'
 
 on:
     workflow_dispatch:
@@ -10,9 +10,15 @@ on:
                 required: true
                 type: choice
                 options:
+                    - dedicated-server
                     - ows-server
                     - win-setup
                     - engine-build
+            shell_path:
+                description: 'Shell project path (for dedicated-server, e.g. apps/chuckrpg/unreal-chuck)'
+                required: false
+                type: string
+                default: 'apps/chuckrpg/unreal-chuck'
             engine_ref:
                 description: 'Engine git branch/tag (for ows-server and engine-build)'
                 required: false
@@ -34,9 +40,18 @@ on:
 permissions: {}
 
 jobs:
-    # ── OWS UE5 Dedicated Server Build ─────────────────────────
+    # ── UE5 Dedicated Server (Stock UE Docker) ────────────────
+    dedicated_server:
+        name: Dedicated Server (${{ inputs.shell_path }})
+        if: inputs.task == 'dedicated-server'
+        uses: KBVE/kbve/.github/workflows/ci-ue5-rows.yml@dev
+        with:
+            shell_path: ${{ inputs.shell_path }}
+        secrets: inherit
+
+    # ── OWS UE5 Dedicated Server Build (AngelScript) ──────────
     ows_server:
-        name: OWS Server
+        name: OWS Server (AngelScript)
         if: inputs.task == 'ows-server'
         uses: KBVE/kbve/.github/workflows/ci-ue5-ows.yml@dev
         with:
@@ -65,7 +80,7 @@ jobs:
     track_failure:
         name: Track Failures
         if: ${{ always() && contains(needs.*.result, 'failure') }}
-        needs: [ows_server, win_setup, engine_build]
+        needs: [dedicated_server, ows_server, win_setup, engine_build]
         permissions:
             issues: write
             contents: read

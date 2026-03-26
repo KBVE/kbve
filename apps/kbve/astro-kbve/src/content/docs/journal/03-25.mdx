@@ -1,7 +1,7 @@
 ---
 title: 'March: 25'
 category: Daily
-date: 2025-03-25 12:00:00
+date: 2026-03-25 12:00:00
 client: Self
 unsplash: 1615563821068-a15bbe32b305
 img: https://images.unsplash.com/photo-1615563821068-a15bbe32b305?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -18,6 +18,12 @@ import { Adsense } from '@/components/astropad';
 
 ## Notes
 
+## 2026
+
+### Blueprint Blueballs
+
+  - 11:00PM
+    - I am getting too old!
 
 ## 2025
 
@@ -45,7 +51,7 @@ import { Adsense } from '@/components/astropad';
 Time to test case the LC Agents Expo deployment using Github Actions.
 There will be three main test cases that we will perform, the first would be for the web, then Android and finally iOS.
 
-Instead of bulking up the main `deployment`, I am thinking that it would be wise to start splitting up the actions a bit. 
+Instead of bulking up the main `deployment`, I am thinking that it would be wise to start splitting up the actions a bit.
 However I am thinking before I add new action files for each deployment, I will at least try to keep them within the same `ci-main` for now.
 
 ```yaml
@@ -66,7 +72,7 @@ However I am thinking before I add new action files for each deployment, I will 
               uses: actions/setup-node@v3
               with:
                 node-version: 18
-            
+
             - name: Setup pnpm
               uses: pnpm/action-setup@v3
               with:
@@ -85,7 +91,7 @@ However I am thinking before I add new action files for each deployment, I will 
                 key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: |
                     ${{ runner.os }}-pnpm-store-
-            
+
             - name: Install pnpm dependencies
               run: pnpm install
 
@@ -105,7 +111,7 @@ Okay now we have to work out the build phase, which is below:
                     create_pull_request: false
                     github_token: ${{ secrets.GITHUB_TOKEN }}
 
-            
+
             -   name: LC Agents -> Deployment
                 uses: dobbelina/copy_file_to_another_repo_action@main
                 env:
@@ -120,6 +126,5 @@ Okay now we have to work out the build phase, which is below:
                     user_name: 'h0lybyte'
                     commit_message: ${{ github.event.head_commit.message }}
                     rsync_option: "-avrh --delete"
-        
-    ```
 
+    ```
