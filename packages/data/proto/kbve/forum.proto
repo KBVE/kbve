@@ -1,0 +1,187 @@
+syntax = "proto3";
+
+package kbve.forum;
+
+// =============================================================================
+// KBVE Forums — Core schema for the tag-first, space-driven discussion platform.
+//
+// /spaces define ownership and moderation (source of truth).
+// #tags define cross-cutting metadata (descriptive, non-authoritative).
+// @users define identity and interaction (Supabase auth).
+//
+// This proto generates:
+//   - Zod schemas for frontend validation (@kbve/devops)
+//   - SQL migration templates for Supabase/PostgreSQL
+//   - TypeScript types for edge functions
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+// Lifecycle status of a post.
+enum PostStatus {
+  POST_STATUS_UNSPECIFIED = 0;
+  POST_STATUS_ACTIVE = 1;
+  POST_STATUS_LOCKED = 2;     // No new comments
+  POST_STATUS_REMOVED = 3;    // Hidden by moderator
+  POST_STATUS_ARCHIVED = 4;   // Read-only, historical
+}
+
+// Lifecycle status of a space.
+enum SpaceStatus {
+  SPACE_STATUS_UNSPECIFIED = 0;
+  SPACE_STATUS_ACTIVE = 1;
+  SPACE_STATUS_ARCHIVED = 2;
+  SPACE_STATUS_PRIVATE = 3;   // Invite-only
+}
+
+// Lifecycle status of a tag.
+enum TagStatus {
+  TAG_STATUS_UNSPECIFIED = 0;
+  TAG_STATUS_ACTIVE = 1;
+  TAG_STATUS_DEPRECATED = 2;  // Soft-removed, still searchable
+  TAG_STATUS_MERGED = 3;      // Replaced by alias_of
+}
+
+// Vote direction.
+enum VoteDirection {
+  VOTE_DIRECTION_UNSPECIFIED = 0;
+  VOTE_DIRECTION_UP = 1;
+  VOTE_DIRECTION_DOWN = 2;
+}
+
+// User role within a space.
+enum SpaceRole {
+  SPACE_ROLE_UNSPECIFIED = 0;
+  SPACE_ROLE_FOLLOWER = 1;    // Subscribed to feed
+  SPACE_ROLE_MEMBER = 2;      // Can post (if space requires membership)
+  SPACE_ROLE_MODERATOR = 3;   // Can moderate content
+  SPACE_ROLE_OWNER = 4;       // Full control over space
+}
+
+// ---------------------------------------------------------------------------
+// Core entities
+// ---------------------------------------------------------------------------
+
+// A curated discussion domain. Source of truth for ownership and moderation.
+// Spaces may form a hierarchy (parent_space_id) for content aggregation.
+message ForumSpace {
+  string id = 1;                          // UUID
+  string slug = 2;                        // URL-safe identifier (e.g. "unreal")
+  string name = 3;                        // Display name
+  optional string description = 4;        // Markdown description
+  optional string parent_space_id = 5;    // UUID of parent space (hierarchy)
+  optional string rules = 6;             // Markdown rules
+  optional string icon_url = 7;          // Space icon/avatar
+  optional string banner_url = 8;        // Space banner image
+  SpaceStatus status = 9;
+  int32 follower_count = 10;             // Denormalized count
+  int32 post_count = 11;                 // Denormalized count
+  string created_at = 12;               // ISO 8601 timestamp
+  string updated_at = 13;               // ISO 8601 timestamp
+}
+
+// Descriptive metadata for cross-cutting discovery.
+// Tags are non-authoritative — they never determine ownership.
+message ForumTag {
+  string id = 1;                          // UUID
+  string slug = 2;                        // URL-safe identifier (e.g. "networking")
+  string name = 3;                        // Display name
+  optional string description = 4;
+  TagStatus status = 5;
+  optional string alias_of = 6;          // UUID of canonical tag (if merged)
+  int32 usage_count = 7;                 // Denormalized count
+  string created_at = 8;
+}
+
+// The primary unit of content. Belongs to exactly one space (source of truth).
+message ForumPost {
+  string id = 1;                          // UUID (ULID recommended)
+  string title = 2;                       // Post title (1-300 chars)
+  string body = 3;                        // Markdown body
+  string author_id = 4;                   // Supabase user UUID
+  string space_id = 5;                    // Primary space UUID (source of truth)
+  repeated string tag_ids = 6;           // Tag UUIDs (max 5)
+  PostStatus status = 7;
+  int32 score = 8;                       // Computed: upvotes - downvotes
+  int32 comment_count = 9;              // Denormalized count
+  int32 view_count = 10;                // Denormalized count
+  optional string slug = 11;            // URL-safe post identifier
+  string created_at = 12;
+  string updated_at = 13;
+  optional string edited_at = 14;        // Set on edit, null if never edited
+}
+
+// A comment on a post or another comment (threaded).
+message ForumComment {
+  string id = 1;                          // UUID (ULID recommended)
+  string body = 2;                        // Markdown body (1-2000 chars)
+  string author_id = 3;                   // Supabase user UUID
+  string post_id = 4;                    // Parent post UUID
+  optional string parent_comment_id = 5; // Parent comment UUID (null = top-level)
+  int32 depth = 6;                       // Nesting depth (0 = top-level, max 5)
+  int32 score = 7;                       // Computed: upvotes - downvotes
+  PostStatus status = 8;                 // Reuse PostStatus for moderation
+  string created_at = 9;
+  optional string edited_at = 10;
+}
+
+// Vote on a post or comment. One vote per user per target.
+message ForumVote {
+  string id = 1;                          // UUID
+  string user_id = 2;                    // Supabase user UUID
+  string target_id = 3;                  // Post or comment UUID
+  string target_type = 4;               // "post" or "comment"
+  VoteDirection direction = 5;
+  string created_at = 6;
+}
+
+// ---------------------------------------------------------------------------
+// Relationships
+// ---------------------------------------------------------------------------
+
+// User ↔ Space relationship (follow, moderate, own).
+message SpaceMembership {
+  string id = 1;                          // UUID
+  string user_id = 2;                    // Supabase user UUID
+  string space_id = 3;                   // Space UUID
+  SpaceRole role = 4;
+  string created_at = 5;
+}
+
+// User ↔ Tag follow relationship.
+message TagFollow {
+  string id = 1;                          // UUID
+  string user_id = 2;                    // Supabase user UUID
+  string tag_id = 3;                     // Tag UUID
+  string created_at = 4;
+}
+
+// Post ↔ Tag junction (many-to-many).
+message PostTag {
+  string post_id = 1;                    // Post UUID
+  string tag_id = 2;                     // Tag UUID
+}
+
+// ---------------------------------------------------------------------------
+// Aggregates (for API responses)
+// ---------------------------------------------------------------------------
+
+// Feed item — enriched post for display.
+message FeedItem {
+  ForumPost post = 1;
+  ForumSpace space = 2;
+  repeated ForumTag tags = 3;
+  string author_name = 4;               // Denormalized for display
+  optional string author_avatar_url = 5;
+}
+
+// Space page — space with recent posts and metadata.
+message SpacePage {
+  ForumSpace space = 1;
+  repeated FeedItem posts = 2;
+  repeated ForumTag popular_tags = 3;
+  repeated ForumSpace child_spaces = 4;
+  optional ForumSpace parent_space = 5;
+}

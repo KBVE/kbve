@@ -263,3 +263,148 @@ This enables:
 - Better content discovery
 - Scalable moderation
 - Flexible, future-proof architecture
+
+---
+
+## 13. Space Source of Truth Model
+
+### Core Rule
+
+Every thread belongs to exactly **one `/space`**, which acts as the **source of truth**.
+
+### What `/space` represents
+
+The `/space` defines:
+
+- Ownership of the thread
+- Moderation authority
+- Rules and governance
+- Canonical location (URL)
+- Primary discovery context
+
+Example: Thread in `/unreal` → owned and moderated by `/unreal`
+
+### What `#tags` represent
+
+`#tags` are **non-authoritative metadata** used for:
+
+- Describing content
+- Cross-topic discovery
+- Filtering and search
+- Feed relevance
+
+Example: `/unreal` thread with `#networking #replication`
+
+### Relationship Between Spaces
+
+Spaces can be linked (typically via hierarchy):
+
+```
+/gamedev
+  /unreal
+  /unity
+```
+
+This allows:
+
+- Parent spaces to aggregate content from child spaces
+- Broader discovery without changing ownership
+
+### Key Constraint
+
+- Tags (`#`) **never** determine ownership
+- Spaces (`/`) **always** determine ownership
+
+### Example
+
+```
+Thread:
+  Primary space: /unreal
+  Tags: #gamedev #networking
+  Space structure: /unreal → child of /gamedev
+
+Result:
+  Thread belongs to /unreal
+  /gamedev can surface it via hierarchy
+  Tags improve discoverability, not ownership
+```
+
+### Design Principle
+
+- Ownership is **singular** (`/space`)
+- Discovery is **plural** (`#tags`, space relationships)
+
+### Final Model
+
+```
+/space = source of truth
+#tag   = descriptive linking
+@user  = identity
+```
+
+This ensures:
+
+- No ambiguity
+- Clean moderation
+- Consistent routing
+- Scalable discovery
+
+---
+
+## 14. Battle Plan — Implementation Roadmap
+
+### What We Already Have
+
+| Component                | Status | Notes                                        |
+| ------------------------ | ------ | -------------------------------------------- |
+| `@users` (Supabase auth) | Done   | JWT, sessions, profiles                      |
+| Supabase PostgreSQL      | Done   | Database layer                               |
+| Edge functions           | Done   | Serverless API                               |
+| Proto → Zod pipeline     | Done   | `packages/data/proto/kbve/` → `@kbve/devops` |
+| Astro content framework  | Done   | MDX pages, components                        |
+| Dashboard proxy pattern  | Done   | JWT-gated proxy in axum-kbve                 |
+
+### What We Need to Build
+
+#### Phase 1: Schema (forum.proto)
+
+Define the core data model as protobuf:
+
+- `ForumSpace` — space definition (slug, name, parent, rules)
+- `ForumTag` — tag definition (slug, name, aliases)
+- `ForumPost` — post (title, body, author, space, tags, status)
+- `ForumComment` — comment (body, author, parent, depth)
+- `ForumVote` — vote (user, target, direction)
+- `SpaceMembership` — user ↔ space relationship (follow, moderate)
+- `TagFollow` — user ↔ tag follow relationship
+
+Proto lives at: `packages/data/proto/kbve/forum.proto`
+
+#### Phase 2: Database Migration
+
+- Generate SQL from proto schema
+- Create dbmate migration: `packages/data/sql/dbmate/migrations/`
+- Tables in `forum` schema (isolated from OWS/meme schemas)
+- RLS policies for Supabase Row-Level Security
+
+#### Phase 3: Edge Functions
+
+- `forum/` edge function module
+- CRUD: spaces, posts, comments, tags, votes
+- Feed generation (followed spaces + tags)
+- Search (space + tag intersection queries)
+
+#### Phase 4: Frontend (Astro)
+
+- Space pages: `/forums/{space}`
+- Tag pages: `/forums/tag/{tag}`
+- Post pages: `/forums/{space}/{post-slug}`
+- User forum profile: `/forums/user/{username}`
+- Post creation form with space selector + tag picker
+
+#### Phase 5: Moderation
+
+- Space moderator assignment
+- Post/comment visibility controls
+- Tag governance (approve, merge, alias, deprecate)
+- Report system (reuse meme report pattern)
