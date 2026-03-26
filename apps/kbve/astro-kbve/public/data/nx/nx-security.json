@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-03-25T08:24:58Z",
+  "generated_at": "2026-03-26T08:28:12Z",
   "summary": {
     "critical": 1,
-    "high": 19,
-    "medium": 27,
+    "high": 22,
+    "medium": 33,
     "low": 3,
     "info": 28
   },
   "ecosystems": {
     "npm": {
-      "total": 42,
+      "total": 51,
       "severities": {
         "critical": 1,
-        "high": 19,
-        "medium": 19,
+        "high": 22,
+        "medium": 25,
         "low": 3,
         "info": 0
       },
@@ -285,13 +285,6 @@
           "url": "https://github.com/advisories/GHSA-wr4h-v87w-p3r7"
         },
         {
-          "id": "1114934",
-          "title": "Prototype Pollution via parse() in NodeJS flatted",
-          "severity": "high",
-          "package": "flatted",
-          "url": "https://github.com/advisories/GHSA-rf6f-7fwh-wjgh"
-        },
-        {
           "id": "1115114",
           "title": "h3: SSE Event Injection via Unsanitized Carriage Return (`\\r`) in EventStream Data and Comment Fields (Bypass of CVE Fix)",
           "severity": "medium",
@@ -311,6 +304,76 @@
           "severity": "high",
           "package": "h3",
           "url": "https://github.com/advisories/GHSA-22cc-p3c6-wpvm"
+        },
+        {
+          "id": "1115357",
+          "title": "Prototype Pollution via parse() in NodeJS flatted",
+          "severity": "high",
+          "package": "flatted",
+          "url": "https://github.com/advisories/GHSA-rf6f-7fwh-wjgh"
+        },
+        {
+          "id": "1115368",
+          "title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
+          "severity": "medium",
+          "package": "yaml",
+          "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
+        },
+        {
+          "id": "1115369",
+          "title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
+          "severity": "medium",
+          "package": "yaml",
+          "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
+        },
+        {
+          "id": "1115382",
+          "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+          "severity": "high",
+          "package": "picomatch",
+          "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
+        },
+        {
+          "id": "1115383",
+          "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+          "severity": "high",
+          "package": "picomatch",
+          "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
+        },
+        {
+          "id": "1115384",
+          "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+          "severity": "high",
+          "package": "picomatch",
+          "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
+        },
+        {
+          "id": "1115393",
+          "title": "smol-toml: Denial of Service via TOML documents containing thousands of consecutive commented lines",
+          "severity": "medium",
+          "package": "smol-toml",
+          "url": "https://github.com/advisories/GHSA-v3rj-xjv7-4jmq"
+        },
+        {
+          "id": "1115394",
+          "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+          "severity": "medium",
+          "package": "picomatch",
+          "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
+        },
+        {
+          "id": "1115395",
+          "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+          "severity": "medium",
+          "package": "picomatch",
+          "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
+        },
+        {
+          "id": "1115396",
+          "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+          "severity": "medium",
+          "package": "picomatch",
+          "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
         }
       ]
     },
