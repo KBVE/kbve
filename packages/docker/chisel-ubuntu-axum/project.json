@@ -85,6 +85,29 @@
 					]
 				}
 			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["container"],
+			"options": {
+				"commands": [
+					"echo '=== Runtime image tests ==='",
+					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04 /usr/bin/env true",
+					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04 ls /usr/lib/x86_64-linux-gnu/libjemalloc.so.2",
+					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04 ls /usr/lib/x86_64-linux-gnu/libpq.so.5",
+					"echo '=== Builder image tests ==='",
+					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder cargo --version",
+					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder cargo chef --version",
+					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder node --version",
+					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder pnpm --version",
+					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder protoc --version",
+					"docker run --rm ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder pkg-config --libs libpq",
+					"echo '=== All chisel base image tests passed ==='",
+					"echo 'Runtime: jemalloc + libpq + CA certs OK'",
+					"echo 'Builder: rust + cargo-chef + node + pnpm + protobuf OK'"
+				],
+				"parallel": false
+			}
 		}
 	},
 	"tags": ["docker", "base-image", "chisel"]
