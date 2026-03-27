@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-03-26T08:25:06.398Z",
+  "generated_at": "2026-03-27T08:22:24.977Z",
   "summary": {
-    "total_protos": 24,
+    "total_protos": 25,
     "registered": 9,
-    "orphaned": 14,
+    "orphaned": 15,
     "utility_only": 1,
-    "total_messages": 446,
-    "total_enums": 83
+    "total_messages": 461,
+    "total_enums": 88
   },
   "protos": [
     {
@@ -309,6 +309,43 @@
       ],
       "message_count": 0,
       "enum_count": 10,
+      "codegen": {
+        "registered": false,
+        "name": null,
+        "zod_config": null,
+        "zod_output": null,
+        "binpb": null
+      }
+    },
+    {
+      "proto": "packages/data/proto/kbve/forum.proto",
+      "package": "kbve.forum",
+      "messages": [
+        "ForumSpace",
+        "ForumTag",
+        "DiscussionData",
+        "QuestionData",
+        "AnnouncementData",
+        "MarketplaceData",
+        "AuctionData",
+        "PollData",
+        "LfgData",
+        "AssetData",
+        "ForumThread",
+        "ForumComment",
+        "ThreadTag",
+        "FeedItem",
+        "SpacePage"
+      ],
+      "enums": [
+        "ThreadStatus",
+        "CommentStatus",
+        "ThreadType",
+        "SpaceStatus",
+        "TagStatus"
+      ],
+      "message_count": 15,
+      "enum_count": 5,
       "codegen": {
         "registered": false,
         "name": null,
@@ -943,6 +980,7 @@
     "packages/data/proto/jedi/redis.proto",
     "packages/data/proto/jedi/twitch.proto",
     "packages/data/proto/kbve/common.proto",
+    "packages/data/proto/kbve/forum.proto",
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto",
     "packages/data/proto/kbve/minecraft.proto",
@@ -953,7 +991,7 @@
     "packages/data/proto/kbve/staff.proto",
     "packages/data/proto/meme/meme.proto"
   ],
-  "checked_at": "2026-03-26T08:25:06Z",
+  "checked_at": "2026-03-27T08:22:25Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/ci_registry-schema.ts",

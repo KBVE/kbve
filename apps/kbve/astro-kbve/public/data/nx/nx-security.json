@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-03-26T08:28:12Z",
+  "generated_at": "2026-03-27T08:25:22Z",
   "summary": {
     "critical": 1,
-    "high": 22,
-    "medium": 33,
-    "low": 3,
+    "high": 27,
+    "medium": 35,
+    "low": 4,
     "info": 28
   },
   "ecosystems": {
     "npm": {
-      "total": 51,
+      "total": 59,
       "severities": {
         "critical": 1,
-        "high": 22,
-        "medium": 25,
-        "low": 3,
+        "high": 27,
+        "medium": 27,
+        "low": 4,
         "info": 0
       },
       "advisories": [
@@ -374,6 +374,62 @@
           "severity": "medium",
           "package": "picomatch",
           "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
+        },
+        {
+          "id": "1115427",
+          "title": "Astro: Remote allowlist bypass via unanchored matchPathname wildcard",
+          "severity": "low",
+          "package": "astro",
+          "url": "https://github.com/advisories/GHSA-g735-7g2w-hh3f"
+        },
+        {
+          "id": "1115432",
+          "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+          "severity": "medium",
+          "package": "brace-expansion",
+          "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
+        },
+        {
+          "id": "1115450",
+          "title": "Forge has Denial of Service via Infinite Loop in BigInteger.modInverse() with Zero Input",
+          "severity": "high",
+          "package": "node-forge",
+          "url": "https://github.com/advisories/GHSA-5m6q-g25r-mvwx"
+        },
+        {
+          "id": "1115465",
+          "title": "Forge has a basicConstraints bypass in its certificate chain verification (RFC 5280 violation)",
+          "severity": "high",
+          "package": "node-forge",
+          "url": "https://github.com/advisories/GHSA-2328-f5f3-gj25"
+        },
+        {
+          "id": "1115466",
+          "title": "Forge has signature forgery in Ed25519 due to missing S > L check",
+          "severity": "high",
+          "package": "node-forge",
+          "url": "https://github.com/advisories/GHSA-q67f-28xg-22rw"
+        },
+        {
+          "id": "1115467",
+          "title": "Forge has signature forgery in RSA-PKCS due to ASN.1 extra field  ",
+          "severity": "high",
+          "package": "node-forge",
+          "url": "https://github.com/advisories/GHSA-ppp5-5v6c-4jwp"
+        },
+        {
+          "id": "1115468",
+          "title": "Happy DOM ECMAScriptModuleCompiler: unsanitized export names are interpolated as executable code",
+          "severity": "high",
+          "package": "happy-dom",
+          "url": "https://github.com/advisories/GHSA-6q6h-j7hj-3r64"
+        },
+        {
+          "id": "1115469",
+          "title": "Handlebars.js has Prototype Pollution Leading to XSS through Partial Template Injection",
+          "severity": "medium",
+          "package": "handlebars",
+          "url": "https://github.com/advisories/GHSA-2qvq-rjwj-gvw9"
         }
       ]
     },
