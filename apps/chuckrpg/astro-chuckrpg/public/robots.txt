@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Disallow: /auth/callback/
+Disallow: /auth/logout/
+
+Sitemap: https://chuckrpg.com/sitemap-index.xml

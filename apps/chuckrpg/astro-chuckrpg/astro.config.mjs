@@ -27,6 +27,27 @@ export default defineConfig({
 			},
 			head: [
 				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:type',
+						content: 'website',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:site_name',
+						content: 'ChuckRPG',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						name: 'twitter:card',
+						content: 'summary_large_image',
+					},
+				},
+				{
 					tag: 'link',
 					attrs: {
 						rel: 'preconnect',
