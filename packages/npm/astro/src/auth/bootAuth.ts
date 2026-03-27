@@ -2,6 +2,17 @@ import { $auth, DroidEvents, type SupabaseGateway } from '@kbve/droid';
 import type { AuthBridge } from './AuthBridge';
 
 let _booted = false;
+let _healthInterval: ReturnType<typeof setInterval> | null = null;
+const HEALTH_CHECK_MS = 5 * 60 * 1000; // 5 minutes
+
+/** Check whether a session's access token has expired (with 30s buffer). */
+function isSessionExpired(session: any): boolean {
+	if (!session?.expires_at) return false;
+	// expires_at is a Unix timestamp in seconds
+	const expiresMs = session.expires_at * 1000;
+	const bufferMs = 30_000;
+	return Date.now() >= expiresMs - bufferMs;
+}
 
 function pushSession(session: any) {
 	if (!session?.user) {
@@ -49,15 +60,41 @@ export async function bootAuth(
 	_booted = true;
 
 	try {
-		const s = await gateway.getSession().catch(() => null);
-		pushSession(s?.session ?? null);
+		const strategy = gateway.getStrategyType();
 
-		// If the gateway found no session but an AuthBridge is provided,
-		// check its IDB storage as a fallback (OAuth sessions land there).
-		if ($auth.get().tone !== 'auth' && bridge) {
+		// For direct strategy (no worker), the bridge IS the primary client.
+		// Check bridge first since there's no worker to propagate to.
+		if (strategy === 'direct' && bridge) {
 			try {
 				const bridgeSession = await bridge.getSession();
-				if (bridgeSession?.user) {
+				if (bridgeSession?.user && !isSessionExpired(bridgeSession)) {
+					pushSession(bridgeSession);
+				}
+			} catch {
+				// Bridge has no session — fall through to gateway
+			}
+		}
+
+		// Gateway session check (worker-backed for shared/web strategies)
+		if ($auth.get().tone !== 'auth') {
+			let s = await gateway.getSession().catch(() => null);
+
+			// Belt: if the session is expired, force a refresh before trusting it.
+			// Supabase's autoRefreshToken handles background refresh, but if the
+			// tab was dormant the token may be stale by the time bootAuth runs.
+			if (s?.session && isSessionExpired(s.session)) {
+				console.log('[bootAuth] Session expired, forcing refresh');
+				s = await gateway.getSession().catch(() => null);
+			}
+
+			pushSession(s?.session ?? null);
+		}
+
+		// For worker strategies, check bridge as fallback (OAuth sessions land there).
+		if ($auth.get().tone !== 'auth' && bridge && strategy !== 'direct') {
+			try {
+				const bridgeSession = await bridge.getSession();
+				if (bridgeSession?.user && !isSessionExpired(bridgeSession)) {
 					pushSession(bridgeSession);
 				}
 			} catch {
@@ -65,7 +102,36 @@ export async function bootAuth(
 			}
 		}
 
-		gateway.on('auth', (msg: any) => pushSession(msg.session ?? null));
+		// Suspenders: reactive listener also validates expiry before pushing
+		gateway.on('auth', (msg: any) => {
+			const sess = msg.session ?? null;
+			if (sess && isSessionExpired(sess)) {
+				console.log(
+					'[bootAuth] Received expired session from gateway, ignoring',
+				);
+				return;
+			}
+			pushSession(sess);
+		});
+
+		// Periodic health check: if the session silently expired (autoRefreshToken
+		// failed, tab was dormant, network was offline), reset to anon so the UI
+		// doesn't show stale authenticated state with broken API calls.
+		if (_healthInterval) clearInterval(_healthInterval);
+		_healthInterval = setInterval(async () => {
+			if ($auth.get().tone !== 'auth') return;
+			try {
+				const check = await gateway.getSession().catch(() => null);
+				if (!check?.session || isSessionExpired(check.session)) {
+					console.log(
+						'[bootAuth] Health check: session expired, resetting to anon',
+					);
+					pushSession(null);
+				}
+			} catch {
+				// Health check failure is non-fatal — try again next interval
+			}
+		}, HEALTH_CHECK_MS);
 
 		// Emit auth-ready event so consumers (e.g. navbar) can react
 		const state = $auth.get();

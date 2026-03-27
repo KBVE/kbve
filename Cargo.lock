@@ -1276,7 +1276,7 @@ dependencies = [
 
 [[package]]
 name = "axum-chuckrpg"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "anyhow",
  "axum",
@@ -12999,7 +12999,7 @@ dependencies = [
 
 [[package]]
 name = "rows"
-version = "0.1.19"
+version = "0.1.20"
 dependencies = [
  "anyhow",
  "argon2",

@@ -9,14 +9,31 @@ export default function ReactAuthCallback() {
 	useEffect(() => {
 		const handleCallback = async () => {
 			try {
-				const session = await authBridge.handleCallback();
+				const session = await Promise.race([
+					authBridge.handleCallback(),
+					new Promise<null>((_, reject) =>
+						setTimeout(
+							() => reject(new Error('Auth callback timed out')),
+							10_000,
+						),
+					),
+				]);
 
 				if (session) {
 					await initSupa();
 					const supa = getSupa();
-					await supa.getSession();
 
-					await new Promise((resolve) => setTimeout(resolve, 500));
+					// Retry getSession to bridge IDB write → worker read race
+					let workerSession = await supa
+						.getSession()
+						.catch(() => null);
+					if (!workerSession?.session) {
+						await new Promise((r) => setTimeout(r, 300));
+						workerSession = await supa
+							.getSession()
+							.catch(() => null);
+					}
+
 					window.location.href = '/';
 				} else {
 					setIsLoading(false);

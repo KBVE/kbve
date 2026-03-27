@@ -8,6 +8,7 @@ export class AuthBridge {
 	private storage = new IDBStorage();
 	private url: string;
 	private anonKey: string;
+	private _sealed = false;
 
 	constructor(url: string, anonKey: string) {
 		this.url = url;
@@ -17,11 +18,14 @@ export class AuthBridge {
 	private ensureClient(): SupabaseClient {
 		if (this.client) return this.client;
 
+		// After handleCallback() seeds the session, the bridge is sealed.
+		// autoRefreshToken is disabled post-seal so only the SharedWorker
+		// owns token refresh writes — prevents IDB contention.
 		this.client = createClient(this.url, this.anonKey, {
 			auth: {
 				storage: this.storage,
 				persistSession: true,
-				autoRefreshToken: true,
+				autoRefreshToken: !this._sealed,
 				detectSessionInUrl: true,
 			},
 		});
@@ -46,6 +50,8 @@ export class AuthBridge {
 		const client = this.ensureClient();
 		const { data, error } = await client.auth.getSession();
 		if (error) throw error;
+		// Seal after callback — SharedWorker now owns token refresh
+		this._sealed = true;
 		return data.session;
 	}
 
