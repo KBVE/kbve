@@ -9,57 +9,45 @@ export default function ReactAuthLogout() {
 
 	useEffect(() => {
 		const handleLogout = async () => {
+			let success = true;
+
+			// Each step is independent — failures must not block subsequent cleanup.
 			try {
-				console.log('[Logout] Starting sign-out process...');
+				await authBridge.signOut();
+				console.log('[Logout] AuthBridge sign-out complete');
+			} catch (err) {
+				console.log('[Logout] signOut skipped:', err);
+			}
 
-				// Sign out via AuthBridge (tells Supabase to revoke the session)
-				try {
-					await authBridge.signOut();
-					console.log('[Logout] AuthBridge sign-out complete');
-				} catch (err) {
-					console.log(
-						'[Logout] AuthBridge sign-out skipped (no session):',
-						err,
-					);
-				}
+			try {
+				await authBridge.destroy();
+				console.log('[Logout] AuthBridge destroyed');
+			} catch (err) {
+				console.warn('[Logout] destroy error:', err);
+				success = false;
+			}
 
-				// Clear all auth data from IndexedDB and close the local
-				// Dexie connection. This avoids the race condition where
-				// deleteDatabase() gets blocked by open connections held by
-				// SharedWorker, DB workers, and WorkerCommunication.
-				try {
-					await authBridge.destroy();
-					console.log(
-						'[Logout] AuthBridge destroyed (IDB data cleared, connection closed)',
-					);
-				} catch (err) {
-					console.warn('[Logout] AuthBridge destroy error:', err);
-				}
-
-				// Clear localStorage as a precaution
+			try {
 				Object.keys(localStorage).forEach((key) => {
 					if (key.includes('supabase') || key.includes('sb-')) {
 						localStorage.removeItem(key);
 					}
 				});
-
-				setIsLoading(false);
-				setMessage('Signed out successfully');
-				setSubMessage('Redirecting to home...');
-
-				setTimeout(() => {
-					window.location.href = '/?_=' + Date.now();
-				}, 500);
-			} catch (error) {
-				console.error('[Logout] Sign-out error:', error);
-				setIsLoading(false);
-				setMessage('Sign-out error occurred');
-				setSubMessage('Redirecting to home...');
-
-				setTimeout(() => {
-					window.location.href = '/?_=' + Date.now();
-				}, 1000);
+			} catch (err) {
+				console.warn('[Logout] localStorage cleanup error:', err);
 			}
+
+			// Always redirect — even if cleanup partially failed
+			setIsLoading(false);
+			setMessage(
+				success
+					? 'Signed out successfully'
+					: 'Sign-out completed with warnings',
+			);
+			setSubMessage('Redirecting to home...');
+			setTimeout(() => {
+				window.location.href = '/?_=' + Date.now();
+			}, 500);
 		};
 
 		handleLogout();

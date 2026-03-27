@@ -77,6 +77,20 @@ class AuthBridge {
 	}
 
 	/**
+	 * Full cleanup: clear all auth data from IndexedDB and close the connection.
+	 * Call this during logout to avoid blocking deleteDatabase from other tabs.
+	 */
+	async destroy() {
+		try {
+			await this.storage.clearAll();
+		} catch {
+			// best-effort
+		}
+		this.storage.close();
+		this.client = null;
+	}
+
+	/**
 	 * Get current session from window client
 	 */
 	async getSession() {
