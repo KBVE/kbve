@@ -56,6 +56,7 @@ pub(super) fn instance_mgmt_routes(hs: HandlerState) -> Router {
             "/api/Instance/GetCurrentWorldTime",
             post(get_current_world_time),
         )
+        .route("/api/Instance/GetZoneAssignment", post(get_zone_assignment))
         .layer(middleware::from_fn(require_customer_guid))
         .with_state(hs)
 }
@@ -419,4 +420,53 @@ async fn get_server_instance_from_port(
         .get_server_instance_from_port(customer_guid, body.port)
         .await?;
     Ok(Json(info))
+}
+
+// ─── Zone Assignment (Iris Integration) ─────────────────────
+
+/// GET /api/Instance/GetZoneAssignment
+/// Called by the dedicated server to check if it has been assigned a zone.
+/// Returns the zone/map info if an allocation exists for this world server,
+/// or empty if no assignment yet (server should keep polling).
+///
+/// Flow:
+///   Server starts on Entry → registers with ROWS → polls this endpoint every 5s
+///   ROWS allocates → creates mapinstance → this returns the zone info
+///   Server receives → ServerTravel to the map → stops polling
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ZoneAssignmentDto {
+    world_server_id: i32,
+}
+
+async fn get_zone_assignment(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<ZoneAssignmentDto>,
+) -> Json<serde_json::Value> {
+    let customer_guid = extract_customer_guid(&headers);
+    let repo = crate::repo::InstanceRepo(&hs.app.db);
+
+    // Look for an active mapinstance assigned to this world server
+    match repo
+        .get_zone_assignment(customer_guid, body.world_server_id)
+        .await
+    {
+        Ok(Some(assignment)) => Json(serde_json::json!({
+            "assigned": true,
+            "zoneInstanceId": assignment.zone_instance_id,
+            "mapName": assignment.map_name,
+            "zoneName": assignment.zone_name,
+            "port": assignment.port,
+            "worldServerId": body.world_server_id
+        })),
+        Ok(None) => Json(serde_json::json!({
+            "assigned": false,
+            "message": "No zone assignment yet. Keep polling."
+        })),
+        Err(e) => Json(serde_json::json!({
+            "assigned": false,
+            "error": e.to_string()
+        })),
+    }
 }
