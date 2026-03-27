@@ -1,0 +1,177 @@
+{
+	"include": [
+		"kbve.forum.ForumSpace",
+		"kbve.forum.ForumTag",
+		"kbve.forum.ForumThread",
+		"kbve.forum.ForumComment",
+		"kbve.forum.ThreadTag",
+		"kbve.forum.FeedItem",
+		"kbve.forum.SpacePage",
+		"kbve.forum.DiscussionData",
+		"kbve.forum.QuestionData",
+		"kbve.forum.AnnouncementData",
+		"kbve.forum.MarketplaceData",
+		"kbve.forum.AuctionData",
+		"kbve.forum.PollData",
+		"kbve.forum.LfgData",
+		"kbve.forum.AssetData"
+	],
+
+	"enums": {
+		"kbve.forum.ThreadStatus": {
+			"mode": "const_array",
+			"stripPrefix": "THREAD_STATUS_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.forum.CommentStatus": {
+			"mode": "const_array",
+			"stripPrefix": "COMMENT_STATUS_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.forum.ThreadType": {
+			"mode": "const_array",
+			"stripPrefix": "THREAD_TYPE_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.forum.SpaceStatus": {
+			"mode": "const_array",
+			"stripPrefix": "SPACE_STATUS_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.forum.TagStatus": {
+			"mode": "const_array",
+			"stripPrefix": "TAG_STATUS_",
+			"caseTransform": "lowercase"
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "ThreadStatuses",
+			"sourceEnum": "kbve.forum.ThreadStatus",
+			"typeName": "ThreadStatusValue",
+			"zodSchemaName": "ThreadStatusSchema"
+		},
+		{
+			"name": "CommentStatuses",
+			"sourceEnum": "kbve.forum.CommentStatus",
+			"typeName": "CommentStatusValue",
+			"zodSchemaName": "CommentStatusSchema"
+		},
+		{
+			"name": "ThreadTypes",
+			"sourceEnum": "kbve.forum.ThreadType",
+			"typeName": "ThreadTypeValue",
+			"zodSchemaName": "ThreadTypeSchema"
+		},
+		{
+			"name": "SpaceStatuses",
+			"sourceEnum": "kbve.forum.SpaceStatus",
+			"typeName": "SpaceStatusValue",
+			"zodSchemaName": "SpaceStatusSchema"
+		},
+		{
+			"name": "TagStatuses",
+			"sourceEnum": "kbve.forum.TagStatus",
+			"typeName": "TagStatusValue",
+			"zodSchemaName": "TagStatusSchema"
+		}
+	],
+
+	"refinements": {
+		"kbve.forum.ForumThread.title": ".min(1, 'Title is required').max(300, 'Title must be 300 characters or less')",
+		"kbve.forum.ForumThread.body": ".min(1, 'Body is required')",
+		"kbve.forum.ForumComment.body": ".min(1, 'Comment body is required').max(2000, 'Comment must be 2000 characters or less')",
+		"kbve.forum.ForumSpace.name": ".min(1, 'Space name is required').max(100, 'Space name must be 100 characters or less')",
+		"kbve.forum.ForumTag.name": ".min(1, 'Tag name is required').max(50, 'Tag name must be 50 characters or less')"
+	},
+
+	"fieldOverrides": {
+		"kbve.forum.ForumSpace.id": "z.string().uuid()",
+		"kbve.forum.ForumSpace.slug": "z.string().min(1).max(50).regex(/^[a-z0-9][a-z0-9-]*$/, 'Slug must be lowercase alphanumeric with hyphens')",
+		"kbve.forum.ForumSpace.description": "z.string().max(2000).optional()",
+		"kbve.forum.ForumSpace.parent_space_id": "z.string().uuid().optional()",
+		"kbve.forum.ForumSpace.rules": "z.string().max(5000).optional()",
+		"kbve.forum.ForumSpace.icon_url": "z.string().url().max(512).optional()",
+		"kbve.forum.ForumSpace.banner_url": "z.string().url().max(512).optional()",
+		"kbve.forum.ForumSpace.follower_count": "z.number().int().min(0).default(0)",
+		"kbve.forum.ForumSpace.thread_count": "z.number().int().min(0).default(0)",
+		"kbve.forum.ForumSpace.allowed_types": "z.array(ThreadTypeSchema).default([])",
+		"kbve.forum.ForumSpace.created_at": "z.string().datetime()",
+		"kbve.forum.ForumSpace.updated_at": "z.string().datetime()",
+
+		"kbve.forum.ForumTag.id": "z.number().int().positive()",
+		"kbve.forum.ForumTag.slug": "z.string().min(1).max(50).regex(/^[a-z0-9][a-z0-9-]*$/, 'Tag slug must be lowercase alphanumeric with hyphens')",
+		"kbve.forum.ForumTag.description": "z.string().max(500).optional()",
+		"kbve.forum.ForumTag.alias_of": "z.number().int().positive().optional()",
+		"kbve.forum.ForumTag.canonical_id": "z.number().int().positive()",
+		"kbve.forum.ForumTag.usage_count": "z.number().int().min(0).default(0)",
+		"kbve.forum.ForumTag.created_by": "z.string().uuid()",
+		"kbve.forum.ForumTag.created_at": "z.string().datetime()",
+
+		"kbve.forum.ForumThread.id": "z.string().min(1)",
+		"kbve.forum.ForumThread.author_id": "z.string().uuid()",
+		"kbve.forum.ForumThread.space_id": "z.string().uuid()",
+		"kbve.forum.ForumThread.comment_count": "z.number().int().min(0).default(0)",
+		"kbve.forum.ForumThread.view_count": "z.number().int().min(0).default(0)",
+		"kbve.forum.ForumThread.slug": "z.string().min(1).max(300).regex(/^[a-z0-9][a-z0-9-]*$/).optional()",
+		"kbve.forum.ForumThread.pinned": "z.boolean().default(false)",
+		"kbve.forum.ForumThread.accepted_comment_id": "z.string().min(1).optional()",
+		"kbve.forum.ForumThread.created_at": "z.string().datetime()",
+		"kbve.forum.ForumThread.updated_at": "z.string().datetime()",
+		"kbve.forum.ForumThread.edited_at": "z.string().datetime().optional()",
+
+		"kbve.forum.ForumComment.id": "z.string().min(1)",
+		"kbve.forum.ForumComment.author_id": "z.string().uuid()",
+		"kbve.forum.ForumComment.thread_id": "z.string().min(1)",
+		"kbve.forum.ForumComment.parent_comment_id": "z.string().min(1).optional()",
+		"kbve.forum.ForumComment.depth": "z.number().int().min(0).max(5)",
+		"kbve.forum.ForumComment.is_accepted": "z.boolean().default(false)",
+		"kbve.forum.ForumComment.created_at": "z.string().datetime()",
+		"kbve.forum.ForumComment.edited_at": "z.string().datetime().optional()",
+
+		"kbve.forum.ThreadTag.thread_id": "z.string().min(1)",
+		"kbve.forum.ThreadTag.tag_id": "z.number().int().positive()",
+
+		"kbve.forum.FeedItem.author_name": "z.string().min(1).max(128)",
+		"kbve.forum.FeedItem.author_avatar_url": "z.string().url().max(512).optional()",
+
+		"kbve.forum.MarketplaceData.item_name": "z.string().min(1).max(200)",
+		"kbve.forum.MarketplaceData.item_description": "z.string().max(2000).optional()",
+		"kbve.forum.MarketplaceData.price": "z.number().int().min(0)",
+		"kbve.forum.MarketplaceData.currency": "z.string().min(1).max(32)",
+		"kbve.forum.MarketplaceData.condition": "z.string().max(50).optional()",
+		"kbve.forum.MarketplaceData.buyer_id": "z.string().uuid().optional()",
+
+		"kbve.forum.AuctionData.item_name": "z.string().min(1).max(200)",
+		"kbve.forum.AuctionData.item_description": "z.string().max(2000).optional()",
+		"kbve.forum.AuctionData.start_price": "z.number().int().min(0)",
+		"kbve.forum.AuctionData.current_bid": "z.number().int().min(0).default(0)",
+		"kbve.forum.AuctionData.current_bidder_id": "z.string().uuid().optional()",
+		"kbve.forum.AuctionData.currency": "z.string().min(1).max(32)",
+		"kbve.forum.AuctionData.end_time": "z.string().datetime()",
+		"kbve.forum.AuctionData.bid_count": "z.number().int().min(0).default(0)",
+
+		"kbve.forum.PollData.options": "z.array(z.string().min(1).max(200)).min(2).max(20)",
+		"kbve.forum.PollData.votes": "z.array(z.number().int().min(0)).default([])",
+		"kbve.forum.PollData.multiple_choice": "z.boolean().default(false)",
+		"kbve.forum.PollData.end_time": "z.string().datetime().optional()",
+
+		"kbve.forum.LfgData.game": "z.string().min(1).max(100)",
+		"kbve.forum.LfgData.slots_total": "z.number().int().min(1).max(100)",
+		"kbve.forum.LfgData.slots_filled": "z.number().int().min(0).default(0)",
+		"kbve.forum.LfgData.requirements": "z.string().max(1000).optional()",
+		"kbve.forum.LfgData.scheduled_time": "z.string().datetime().optional()",
+
+		"kbve.forum.AssetData.asset_name": "z.string().min(1).max(200)",
+		"kbve.forum.AssetData.asset_description": "z.string().max(2000).optional()",
+		"kbve.forum.AssetData.download_url": "z.string().url().max(512).optional()",
+		"kbve.forum.AssetData.source_url": "z.string().url().max(512).optional()",
+		"kbve.forum.AssetData.license": "z.string().max(64).optional()",
+		"kbve.forum.AssetData.version": "z.string().max(32).optional()",
+		"kbve.forum.AssetData.engine": "z.string().max(64).optional()",
+		"kbve.forum.AssetData.file_types": "z.array(z.string().min(1).max(16)).max(20).default([])",
+
+		"kbve.forum.AnnouncementData.expires_at": "z.string().datetime().optional()"
+	}
+}
