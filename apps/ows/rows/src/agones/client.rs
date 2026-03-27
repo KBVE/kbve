@@ -93,27 +93,21 @@ impl AgonesClient {
     }
 
     /// Scale the fleet to a given number of replicas.
-    /// Used by RestartFleet to scale 0 → wait → scale back up.
+    /// Uses JSON Merge Patch on the fleet spec (not the scale subresource).
     pub async fn scale_fleet(&self, replicas: i32) -> Result<(), super::AgonesError> {
         let url = format!(
-            "/apis/agones.dev/v1/namespaces/{}/fleets/{}/scale",
+            "/apis/agones.dev/v1/namespaces/{}/fleets/{}",
             self.namespace, self.fleet
         );
 
         let body = serde_json::json!({
-            "apiVersion": "agones.dev/v1",
-            "kind": "Scale",
-            "metadata": {
-                "name": &self.fleet,
-                "namespace": &self.namespace
-            },
             "spec": {
                 "replicas": replicas
             }
         });
 
-        let req = http::Request::put(&url)
-            .header("Content-Type", "application/json")
+        let req = http::Request::patch(&url)
+            .header("Content-Type", "application/merge-patch+json")
             .body(serde_json::to_vec(&body).unwrap())
             .map_err(|e| anyhow::anyhow!("Failed to build scale request: {e}"))?;
 
