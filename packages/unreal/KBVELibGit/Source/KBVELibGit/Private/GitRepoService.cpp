@@ -23,13 +23,18 @@ FGitRepoService::FGitResult FGitRepoService::CloneRepo(const FString& RepoUrl, c
 
 	git_clone_options CloneOpts = GIT_CLONE_OPTIONS_INIT;
 
+	// Convert strings up front so the backing memory outlives the git_clone call
+	auto BranchUtf8 = StringCast<UTF8CHAR>(*Branch);
+	auto RepoUrlUtf8 = StringCast<UTF8CHAR>(*RepoUrl);
+	auto LocalPathUtf8 = StringCast<UTF8CHAR>(*LocalPath);
+
 	if (!Branch.IsEmpty())
 	{
-		CloneOpts.checkout_branch = TCHAR_TO_UTF8(*Branch);
+		CloneOpts.checkout_branch = (const char*)BranchUtf8.Get();
 	}
 
 	git_repository* Repo = nullptr;
-	int32 Err = git_clone(&Repo, TCHAR_TO_UTF8(*RepoUrl), TCHAR_TO_UTF8(*LocalPath), &CloneOpts);
+	int32 Err = git_clone(&Repo, (const char*)RepoUrlUtf8.Get(), (const char*)LocalPathUtf8.Get(), &CloneOpts);
 
 	if (Err != 0)
 	{
