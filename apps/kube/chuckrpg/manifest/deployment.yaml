@@ -22,7 +22,7 @@ spec:
         spec:
             containers:
                 - name: chuckrpg
-                  image: ghcr.io/kbve/chuckrpg:0.1.5
+                  image: ghcr.io/kbve/chuckrpg:0.1.6
                   imagePullPolicy: Always
                   ports:
                       - name: http
