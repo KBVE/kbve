@@ -17,7 +17,7 @@ rules:
       verbs: ['create']
     - apiGroups: ['agones.dev']
       resources: ['gameservers']
-      verbs: ['get', 'list', 'watch', 'delete']
+      verbs: ['get', 'list', 'watch', 'delete', 'patch']
     - apiGroups: ['agones.dev']
       resources: ['fleets', 'fleets/scale']
       verbs: ['get', 'patch', 'update']
