@@ -8,42 +8,36 @@ export default function ReactAuthLogout() {
 
 	useEffect(() => {
 		const handleLogout = async () => {
+			// Each step is independent — failures must not block subsequent cleanup.
 			try {
-				try {
-					await authBridge.signOut();
-				} catch (err) {
-					console.log('[Logout] signOut skipped:', err);
-				}
+				await authBridge.signOut();
+			} catch (err) {
+				console.log('[Logout] signOut skipped:', err);
+			}
 
-				try {
-					await authBridge.destroy();
-				} catch (err) {
-					console.warn('[Logout] destroy error:', err);
-				}
+			try {
+				await authBridge.destroy();
+			} catch (err) {
+				console.warn('[Logout] destroy error:', err);
+			}
 
+			try {
 				Object.keys(localStorage).forEach((key) => {
 					if (key.includes('supabase') || key.includes('sb-')) {
 						localStorage.removeItem(key);
 					}
 				});
-
-				setIsLoading(false);
-				setMessage('Signed out successfully');
-				setSubMessage('Returning to the realm...');
-
-				setTimeout(() => {
-					window.location.href = '/?_=' + Date.now();
-				}, 500);
-			} catch (error) {
-				console.error('[Logout] error:', error);
-				setIsLoading(false);
-				setMessage('Sign-out error occurred');
-				setSubMessage('Returning to the realm...');
-
-				setTimeout(() => {
-					window.location.href = '/?_=' + Date.now();
-				}, 1000);
+			} catch (err) {
+				console.warn('[Logout] localStorage cleanup error:', err);
 			}
+
+			// Always redirect — even if cleanup partially failed
+			setIsLoading(false);
+			setMessage('Signed out successfully');
+			setSubMessage('Returning to the realm...');
+			setTimeout(() => {
+				window.location.href = '/?_=' + Date.now();
+			}, 500);
 		};
 
 		handleLogout();

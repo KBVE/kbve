@@ -11,39 +11,43 @@ export default function ReactAuthCallback() {
 	useEffect(() => {
 		const handleCallback = async () => {
 			try {
-				// Handle the OAuth callback - this stores session in IndexedDB
-				const session = await authBridge.handleCallback();
+				// Handle the OAuth callback — stores session in IndexedDB
+				const session = await Promise.race([
+					authBridge.handleCallback(),
+					new Promise<null>((_, reject) =>
+						setTimeout(
+							() => reject(new Error('Auth callback timed out')),
+							10_000,
+						),
+					),
+				]);
 
 				if (session) {
-					// Session is now in IndexedDB
 					// Initialize the SharedWorker so it picks up the session
 					await initSupa();
 					const supa = getSupa();
 
-					// Force the worker to check the session
-					await supa.getSession();
-
-					// Connect WebSocket for real-time communication
-					try {
-						await supa.connectWebSocket();
-						console.log(
-							'[Auth Callback] WebSocket connection initiated',
-						);
-					} catch (wsError) {
-						console.error(
-							'[Auth Callback] Failed to connect WebSocket:',
-							wsError,
-						);
-						// Non-fatal - continue with redirect
+					// Retry getSession to bridge IDB write → worker read race.
+					// The worker may not have picked up the IDB session yet.
+					let workerSession = await supa
+						.getSession()
+						.catch(() => null);
+					if (!workerSession?.session) {
+						await new Promise((r) => setTimeout(r, 300));
+						workerSession = await supa
+							.getSession()
+							.catch(() => null);
 					}
 
-					// Give the worker a moment to process
-					await new Promise((resolve) => setTimeout(resolve, 500));
+					// Connect WebSocket (non-fatal)
+					try {
+						await supa.connectWebSocket();
+					} catch {
+						// WebSocket failure should never block auth
+					}
 
-					// Success! Redirect to home
 					window.location.href = '/';
 				} else {
-					// No session - show error
 					setIsLoading(false);
 					setMessage('Authentication failed');
 					setSubMessage('Redirecting...');
