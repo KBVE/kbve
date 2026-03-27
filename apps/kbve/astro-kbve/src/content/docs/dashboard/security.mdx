@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-03-26T08:28:12Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-03-27T08:25:22Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**23** critical/high severity findings across the monorepo.
+**28** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,13 +26,13 @@ Last generated: **2026-03-26T08:28:12Z** — updated daily by `ci-dashboard`.
   <Card title="1 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="22 High" icon="error">
+  <Card title="27 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="33 Medium" icon="information">
+  <Card title="35 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
-  <Card title="3 Low" icon="approve-check-circle">
+  <Card title="4 Low" icon="approve-check-circle">
     Low-severity findings across all ecosystems.
   </Card>
 </CardGrid>
@@ -41,7 +41,7 @@ Last generated: **2026-03-26T08:28:12Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **51** advisories
+    **59** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **35** advisories
@@ -63,9 +63,9 @@ Last generated: **2026-03-26T08:28:12Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 1
-    "High" : 22
-    "Medium" : 33
-    "Low" : 3
+    "High" : 27
+    "Medium" : 35
+    "Low" : 4
 ```
 
 ### Findings by Ecosystem
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 51
+    "npm" : 59
     "Cargo" : 35
     "Python" : 1
 ```
@@ -83,12 +83,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 22 | 25 | 3 | 51 |
+| **npm** | 1 | 27 | 27 | 4 | 59 |
 | **Cargo** | 0 | 0 | 7 | 0 | 35 |
 | **Python** | 0 | 0 | 1 | 0 | 1 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 22 | 33 | 3 | 87 |
+| **Total** | 1 | 27 | 35 | 4 | 95 |
 
   </TabItem>
   <TabItem label="npm">
@@ -118,6 +118,11 @@ pie showData
 | High | `picomatch` | Picomatch has a ReDoS vulnerability via extglob quantifiers | [Details](https://github.com/advisories/GHSA-c2c7-rcm5-vvqj) |
 | High | `picomatch` | Picomatch has a ReDoS vulnerability via extglob quantifiers | [Details](https://github.com/advisories/GHSA-c2c7-rcm5-vvqj) |
 | High | `picomatch` | Picomatch has a ReDoS vulnerability via extglob quantifiers | [Details](https://github.com/advisories/GHSA-c2c7-rcm5-vvqj) |
+| High | `node-forge` | Forge has Denial of Service via Infinite Loop in BigInteg... | [Details](https://github.com/advisories/GHSA-5m6q-g25r-mvwx) |
+| High | `node-forge` | Forge has a basicConstraints bypass in its certificate ch... | [Details](https://github.com/advisories/GHSA-2328-f5f3-gj25) |
+| High | `node-forge` | Forge has signature forgery in Ed25519 due to missing S &gt;... | [Details](https://github.com/advisories/GHSA-q67f-28xg-22rw) |
+| High | `node-forge` | Forge has signature forgery in RSA-PKCS due to ASN.1 extr... | [Details](https://github.com/advisories/GHSA-ppp5-5v6c-4jwp) |
+| High | `happy-dom` | Happy DOM ECMAScriptModuleCompiler: unsanitized export na... | [Details](https://github.com/advisories/GHSA-6q6h-j7hj-3r64) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `lodash-es` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
@@ -143,9 +148,12 @@ pie showData
 | Medium | `picomatch` | Picomatch: Method Injection in POSIX Character Classes ca... | [Details](https://github.com/advisories/GHSA-3v7f-55p6-f55p) |
 | Medium | `picomatch` | Picomatch: Method Injection in POSIX Character Classes ca... | [Details](https://github.com/advisories/GHSA-3v7f-55p6-f55p) |
 | Medium | `picomatch` | Picomatch: Method Injection in POSIX Character Classes ca... | [Details](https://github.com/advisories/GHSA-3v7f-55p6-f55p) |
+| Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
+| Medium | `handlebars` | Handlebars.js has Prototype Pollution Leading to XSS thro... | [Details](https://github.com/advisories/GHSA-2qvq-rjwj-gvw9) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
+| Low | `astro` | Astro: Remote allowlist bypass via unanchored matchPathna... | [Details](https://github.com/advisories/GHSA-g735-7g2w-hh3f) |
 
   </TabItem>
   <TabItem label="Cargo">
