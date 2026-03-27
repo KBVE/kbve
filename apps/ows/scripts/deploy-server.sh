@@ -149,6 +149,10 @@ fi
 if [ "${SKIP_DEPLOY}" = false ]; then
     echo ">>> Deploying to PVC (${PVC_NAMESPACE}/ows-server-build) as version ${VERSION}..."
 
+    # Delete stale sync pod from previous run (Completed pods can't restart)
+    kubectl delete pod "${PVC_POD}" -n "${PVC_NAMESPACE}" --ignore-not-found --grace-period=0 2>/dev/null
+    sleep 2
+
     # Create temp pod
     kubectl apply -f - <<PODEOF
 apiVersion: v1
@@ -199,10 +203,24 @@ PODEOF
     kubectl exec "${PVC_POD}" -n "${PVC_NAMESPACE}" -- \
         ln -sfn "${VERSION}" /mnt/ows-server/latest
 
+    # Prune old versions (keep latest 3 + lost+found)
+    echo ">>> Pruning old versions (keeping latest 3)..."
+    kubectl exec "${PVC_POD}" -n "${PVC_NAMESPACE}" -- sh -c '
+        cd /mnt/ows-server
+        KEEP=3
+        DIRS=$(ls -dt [0-9]* 2>/dev/null | tail -n +$((KEEP+1)))
+        if [ -n "$DIRS" ]; then
+            echo "Removing: $DIRS"
+            echo "$DIRS" | xargs rm -rf
+        else
+            echo "Nothing to prune."
+        fi
+    '
+
     # Show result
     echo ""
     kubectl exec "${PVC_POD}" -n "${PVC_NAMESPACE}" -- sh -c \
-        "echo '=== PVC Contents ===' && ls -la /mnt/ows-server/ && echo '' && du -sh /mnt/ows-server/${VERSION}/"
+        "echo '=== PVC Contents ===' && ls -la /mnt/ows-server/ && echo '' && du -sh /mnt/ows-server/${VERSION}/ && echo '' && df -h /mnt/ows-server/"
 
     # Cleanup temp pod
     kubectl delete pod "${PVC_POD}" -n "${PVC_NAMESPACE}" --grace-period=0

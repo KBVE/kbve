@@ -12,7 +12,7 @@ tags:
 key: rows
 pipeline: docker
 app_name: rows
-version: "0.1.21"
+version: "0.1.22"
 source_path: apps/ows/rows
 version_toml: apps/ows/rows/version.toml
 version_target: apps/ows/rows/Cargo.toml
@@ -63,3 +63,129 @@ ROWS deploys as a single Docker image (`ghcr.io/kbve/rows`) into the `ows` Kuber
 
 The container exposes:
 - **Port 4322** — REST + gRPC multiplexed (Axum + Tonic on a single port)
+
+---
+
+### Procedural World — Seed-Based Multi-Zone Architecture
+
+<Aside type="caution" title="Roadmap">
+    This section describes the planned seed-based procedural world system.
+    Current deployment uses single-zone with `ServerDefaultMap=Lvl_ThirdPerson`.
+</Aside>
+
+#### Overview
+
+Each game zone is a procedurally generated region driven by a deterministic **seed**. The same seed always produces identical terrain, foliage, and spawn layouts. This enables:
+
+- **One map, many worlds** — a single `Lvl_Procedural` map generates different zones from different seeds
+- **Elastic scaling** — any server pod can host any zone, just give it a seed
+- **Crash recovery** — replace a dead server, give it the same seed, world is identical
+- **Discovery** — new zones are just new seeds, no additional map packaging required
+
+#### Data Model
+
+The `maps` table gains a `seed` column:
+
+```sql
+ALTER TABLE ows.maps ADD COLUMN seed BIGINT DEFAULT 0;
+
+-- Example zones
+INSERT INTO maps (customerguid, mapname, zonename, seed) VALUES
+  ('83d88046-...', 'Lvl_Procedural', 'Grassland',    0xA1B2C3D4),
+  ('83d88046-...', 'Lvl_Procedural', 'Arctic',       0xDEAD0002),
+  ('83d88046-...', 'Lvl_Procedural', 'Desert',       0xCAFE0003),
+  ('83d88046-...', 'Lvl_Procedural', 'Marshlands',   0xBEEF0004),
+  ('83d88046-...', 'Lvl_PvPArena',   'PvPArena',     0);  -- static map, no seed
+```
+
+#### ROWS Flow
+
+```
+1. Player → GetServerToConnectTo(zoneName: "Arctic")
+2. ROWS → Agones allocate → server starts on Entry
+3. ROWS → GetZoneAssignment returns:
+   {
+     "assigned": true,
+     "mapName": "Lvl_Procedural",
+     "zoneName": "Arctic",
+     "seed": 3735552002,
+     "zoneInstanceId": 42
+   }
+4. Server → ServerTravel("/Game/Procedural/Lvl_Procedural?listen?seed=3735552002")
+5. Lvl_Procedural BeginPlay → reads seed → PCG generates Arctic biome
+6. Server reports ready → players connect to deterministic world
+```
+
+#### UE5 Integration
+
+**PCG (Procedural Content Generation) Framework:**
+
+| Layer | Driven By | Examples |
+|-------|-----------|----------|
+| Terrain heightmap | Seed + biome type | Mountain ranges, valleys, coastlines |
+| Biome selection | Seed bits [0:7] | Grassland, Arctic, Desert, Marshland, Tropic |
+| Foliage placement | Seed + density rules | Trees, bushes, grass patches |
+| Resource nodes | Seed + spawn tables | Ore veins, herb clusters, fishing spots |
+| Mob spawns | Seed + difficulty curve | Creature type, patrol routes, density |
+| Landmarks | Fixed coordinates | Towns, dungeons, POIs (handcrafted, placed at deterministic positions) |
+| Weather | Seed + time-of-day | Rain cycles, fog density, wind patterns |
+
+**Hybrid approach:**
+- **Handcrafted landmarks** are pre-built actors placed at coordinates derived from the seed
+- **Procedural fill** generates the terrain and natural environment between landmarks
+- **Biome blending** uses seed-derived Voronoi regions for smooth transitions
+
+**GameMode seed consumption:**
+```cpp
+// In Lvl_Procedural's GameMode BeginPlay
+FString SeedStr = UGameplayStatics::ParseOption(OptionsString, TEXT("seed"));
+int64 Seed = FCString::Atoi64(*SeedStr);
+FRandomStream WorldRNG(Seed);
+
+// Feed to PCG subsystem
+UPCGSubsystem* PCG = GetWorld()->GetSubsystem<UPCGSubsystem>();
+PCG->SetGlobalSeed(Seed);
+```
+
+#### Zone Travel
+
+Players move between zones via **zone portals** or **world map travel**:
+
+```
+Player enters Arctic→Desert portal
+  → Client calls SetSelectedCharacterAndGetUserSession
+  → Client calls GetServerToConnectTo(zoneName: "Desert")
+  → ROWS finds/allocates Desert server (seed: 0xCAFE0003)
+  → Client disconnects from Arctic, connects to Desert
+  → Character position saved on Arctic, loaded on Desert
+```
+
+#### Seed Registry
+
+Seeds can be:
+- **Static** — admin-created zones with curated seeds (main world regions)
+- **Dynamic** — player-triggered instanced content (dungeons, events) with random seeds
+- **Seasonal** — time-limited zones that rotate seeds periodically
+
+```
+GET /api/System/SeedRegistry
+{
+  "zones": [
+    { "zoneName": "Grassland",  "seed": 2712847316, "type": "static",  "biome": "grassland" },
+    { "zoneName": "Arctic",     "seed": 3735552002, "type": "static",  "biome": "arctic" },
+    { "zoneName": "Dungeon_42", "seed": 8827361024, "type": "dynamic", "biome": "cave",  "expires": "2026-04-01T00:00:00Z" }
+  ]
+}
+```
+
+#### Implementation Phases
+
+| Phase | Scope | Dependencies |
+|-------|-------|-------------|
+| **Phase 1** | Add `seed` column to maps table, include in `GetZoneAssignment` response | dbmate migration |
+| **Phase 2** | `Lvl_Procedural` map with basic PCG — terrain heightmap from seed | UE5 PCG framework |
+| **Phase 3** | Biome system — seed bits select biome, PCG generates appropriate flora/fauna | Biome data tables |
+| **Phase 4** | Handcrafted landmarks — POI actors placed at seed-derived coordinates | Level design |
+| **Phase 5** | Zone portals — client-side travel between seed-based zones | OWS travel flow |
+| **Phase 6** | Dynamic instances — player-triggered dungeons with random seeds | Instance lifecycle |
+| **Phase 7** | Seed registry API — admin tools for zone management | Dashboard integration |
