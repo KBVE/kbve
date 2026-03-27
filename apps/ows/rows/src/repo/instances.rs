@@ -608,4 +608,32 @@ impl<'a> InstanceRepo<'a> {
 
         Ok(info)
     }
+
+    /// Get zone assignment for a world server (Iris integration).
+    /// Returns the first active mapinstance assigned to this world server.
+    pub async fn get_zone_assignment(
+        &self,
+        customer_guid: Uuid,
+        world_server_id: i32,
+    ) -> Result<Option<ZoneAssignment>, RowsError> {
+        let assignment: Option<ZoneAssignment> = sqlx::query_as(
+            "SELECT mi.mapinstanceid AS zone_instance_id,
+                    m.mapname AS map_name,
+                    m.zonename AS zone_name,
+                    mi.port
+             FROM mapinstances mi
+             JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
+             WHERE mi.customerguid = $1
+               AND mi.worldserverid = $2
+               AND mi.status > 0
+             ORDER BY mi.mapinstanceid DESC
+             LIMIT 1",
+        )
+        .bind(customer_guid)
+        .bind(world_server_id)
+        .fetch_optional(self.0)
+        .await?;
+
+        Ok(assignment)
+    }
 }

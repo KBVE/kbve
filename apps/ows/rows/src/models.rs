@@ -391,3 +391,13 @@ pub struct ZoneInstanceInfo {
     pub map_name: String,
     pub zone_name: String,
 }
+
+/// Zone assignment for Iris integration.
+/// Returned by GetZoneAssignment — tells the server which map to load.
+#[derive(sqlx::FromRow)]
+pub struct ZoneAssignment {
+    pub zone_instance_id: i32,
+    pub map_name: String,
+    pub zone_name: String,
+    pub port: i32,
+}
