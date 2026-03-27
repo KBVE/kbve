@@ -261,7 +261,39 @@ impl<'a> AllocationPipeline<'a> {
         Ok(self)
     }
 
-    /// Step 5b: Verify the allocated server is reachable (health probe).
+    /// Step 5c: Tag the GameServer with allocation metadata via K8s API.
+    /// Sets labels (zone, map, instance ID) and annotations (timestamp, customer).
+    /// Belt-and-suspenders: makes allocation visible in `kubectl get gs --show-labels`.
+    #[tracing::instrument(skip(self, agones), fields(zone = %self.zone))]
+    pub async fn tag_gameserver(self, agones: &AgonesClient) -> Result<Self, RowsError> {
+        let alloc = self
+            .allocation
+            .as_ref()
+            .ok_or_else(|| RowsError::Internal("No allocation to tag".into()))?;
+
+        // Non-fatal: tagging failure shouldn't block the pipeline
+        if let Err(e) = agones
+            .tag_allocated(
+                &alloc.game_server_name,
+                self.zone,
+                self.zone, // map_name matches zone for now
+                self.instance_id,
+                self.world_server_id,
+                &self.customer_guid.to_string(),
+            )
+            .await
+        {
+            tracing::warn!(
+                error = %e,
+                gs = %alloc.game_server_name,
+                "Failed to tag GameServer (non-fatal)"
+            );
+        }
+
+        Ok(self)
+    }
+
+    /// Step 5d: Verify the allocated server is reachable (health probe).
     /// Checks that the Agones GameServer is still in Allocated state.
     /// Call after create_instance() to catch servers that died during boot.
     #[tracing::instrument(skip(self, agones), fields(zone = %self.zone))]
