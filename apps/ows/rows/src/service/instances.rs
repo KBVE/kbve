@@ -87,6 +87,7 @@ impl OWSService {
                 let p = pipeline.allocate_via_agones(agones).await?;
                 let p = p.register_world_server().await?;
                 let p = p.create_instance().await?;
+                let p = p.tag_gameserver(agones).await?;
 
                 // Notify server via MQ which map to load (Iris integration)
                 if let Some(mq) = mq_ref {

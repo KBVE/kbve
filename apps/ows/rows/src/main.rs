@@ -25,7 +25,7 @@ use std::sync::Arc;
 use tower_http::cors::CorsLayer;
 use tower_http::limit::RequestBodyLimitLayer;
 use tower_http::timeout::TimeoutLayer;
-use tracing::info;
+use tracing::{info, warn};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 use uuid::Uuid;
@@ -105,6 +105,21 @@ async fn main() -> anyhow::Result<()> {
 
     // Transport-agnostic service layer
     let svc = Arc::new(service::OWSService::new(app_state.clone()));
+
+    // Reconcile: rebuild tracking map from live Agones allocations (crash recovery)
+    if let Some(ref agones) = app_state.agones {
+        match agones.reconcile_allocations().await {
+            Ok(allocs) => {
+                for (instance_id, gs_name) in &allocs {
+                    app_state.zone_servers.insert(*instance_id, gs_name.clone());
+                }
+                info!(recovered = allocs.len(), "Startup reconciliation complete");
+            }
+            Err(e) => {
+                warn!(error = %e, "Startup reconciliation failed (non-fatal)");
+            }
+        }
+    }
 
     // Background jobs (health monitoring, cleanup)
     jobs::spawn_all(svc.clone());
