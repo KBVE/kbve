@@ -11,29 +11,14 @@ on:
                 type: choice
                 options:
                     - dedicated-server
-                    - ows-server
                     - win-setup
-                    - engine-build
             shell_path:
                 description: 'Shell project path (for dedicated-server, e.g. apps/chuckrpg/unreal-chuck)'
                 required: false
                 type: string
                 default: 'apps/chuckrpg/unreal-chuck'
-            engine_ref:
-                description: 'Engine git branch/tag (for ows-server and engine-build)'
-                required: false
-                type: string
-                default: 'angelscript-master'
-            platforms:
-                description: 'Engine build platforms (comma-separated: windows,mac,linux)'
-                required: false
-                type: string
-                default: 'linux'
-            skip_version_gate:
-                description: 'Skip version gate for engine build'
-                required: false
-                type: boolean
-                default: false
+            # engine_ref, platforms, skip_version_gate removed 03/26/2026
+            # — AngelScript engine build paused, OWS migrated to ROWS
 
 # No workflow-level concurrency — tasks fan out independently.
 
@@ -49,14 +34,9 @@ jobs:
             shell_path: ${{ inputs.shell_path }}
         secrets: inherit
 
-    # ── OWS UE5 Dedicated Server Build (AngelScript) ──────────
-    ows_server:
-        name: OWS Server (AngelScript)
-        if: inputs.task == 'ows-server'
-        uses: KBVE/kbve/.github/workflows/ci-ue5-ows.yml@dev
-        with:
-            engine_ref: ${{ inputs.engine_ref }}
-        secrets: inherit
+    # ── OWS Server — DEPRECATED 03/26/2026 ─────────────────────
+    # Migrated to ci-ue5-rows.yml via build.toml (apps/chuckrpg/unreal-chuck).
+    # Use task: dedicated-server instead.
 
     # ── Windows VM Setup ───────────────────────────────────────
     win_setup:
@@ -66,21 +46,24 @@ jobs:
         secrets: inherit
 
     # ── AngelScript Engine Build (PAUSED 03/26/2026) ────────────
-    engine_build:
-        name: Engine Build
-        if: false # inputs.task == 'engine-build' — paused 03/26/2026
-        uses: KBVE/kbve/.github/workflows/ci-angelscript-engine.yml@dev
-        with:
-            platforms: ${{ inputs.platforms }}
-            engine_ref: ${{ inputs.engine_ref }}
-            skip_version_gate: ${{ inputs.skip_version_gate }}
-        secrets: inherit
+    # OWS migrated to ROWS, engine build paused until further notice.
+    # To re-enable: restore inputs (engine_ref, platforms, skip_version_gate)
+    # and uncomment the job below.
+    # engine_build:
+    #     name: Engine Build
+    #     if: inputs.task == 'engine-build'
+    #     uses: KBVE/kbve/.github/workflows/ci-angelscript-engine.yml@dev
+    #     with:
+    #         platforms: ${{ inputs.platforms }}
+    #         engine_ref: ${{ inputs.engine_ref }}
+    #         skip_version_gate: ${{ inputs.skip_version_gate }}
+    #     secrets: inherit
 
     # ── Failure Tracker ────────────────────────────────────────
     track_failure:
         name: Track Failures
         if: ${{ always() && contains(needs.*.result, 'failure') }}
-        needs: [dedicated_server, ows_server, win_setup, engine_build]
+        needs: [dedicated_server, win_setup]
         permissions:
             issues: write
             contents: read

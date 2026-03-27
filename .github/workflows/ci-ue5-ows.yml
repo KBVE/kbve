@@ -1,16 +1,17 @@
-name: CI - OWS UE5 Server
+name: CI - OWS UE5 Server (DEPRECATED)
 
+# ┌──────────────────────────────────────────────────────────────────┐
+# │ DEPRECATED 03/26/2026 — Migrated to ci-ue5-rows.yml.           │
+# │ Use task: dedicated-server with shell_path:                     │
+# │   apps/chuckrpg/unreal-chuck                                   │
+# │ All triggers disabled. Safe to delete after confirming ROWS     │
+# │ pipeline is stable.                                             │
+# └──────────────────────────────────────────────────────────────────┘
 on:
-    workflow_call:
-        inputs:
-            engine_ref:
-                required: false
-                type: string
-                default: 'angelscript-master'
     workflow_dispatch:
         inputs:
             engine_ref:
-                description: 'Engine git branch/tag (KBVE/UnrealEngine-Angelscript)'
+                description: 'DEPRECATED — use ci-ue5-rows.yml instead'
                 required: false
                 type: string
                 default: 'angelscript-master'
