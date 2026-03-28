@@ -1547,9 +1547,9 @@ fn connect_to_server(commands: &mut Commands, transport: &TransportConfig, token
             .spawn((
                 netcode,
                 PeerAddr(server_addr),
-                WebTransportClientIo {
-                    certificate_digest: digest,
-                },
+                WebTransportClientIo::new(digest)
+                    .with_keep_alive(Some(Duration::from_secs(4)))
+                    .with_max_idle_timeout(Some(Duration::from_secs(30))),
                 ReplicationReceiver::default(),
             ))
             .id();

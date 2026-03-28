@@ -21,6 +21,12 @@ void FMCPAIHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("ai.add_task"), MCPProtocolHelpers::MakeStub(TEXT("ai.add_task")));
 	Registry.RegisterHandler(TEXT("ai.set_blackboard"), &HandleSetBlackboard);
 	Registry.RegisterHandler(TEXT("ai.get_info"), &HandleGetInfo);
+
+	// TODO: ChiR24 — advanced AI systems
+	Registry.RegisterHandler(TEXT("ai.create_controller"), MCPProtocolHelpers::MakeStub(TEXT("ai.create_controller")));
+	Registry.RegisterHandler(TEXT("ai.create_eqs"), MCPProtocolHelpers::MakeStub(TEXT("ai.create_eqs")));
+	Registry.RegisterHandler(TEXT("ai.set_perception"), MCPProtocolHelpers::MakeStub(TEXT("ai.set_perception")));
+	Registry.RegisterHandler(TEXT("ai.create_state_tree"), MCPProtocolHelpers::MakeStub(TEXT("ai.create_state_tree")));
 }
 
 void FMCPAIHandlers::HandleCreateBehaviorTree(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

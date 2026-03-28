@@ -199,6 +199,8 @@ impl<'a> AllocationPipeline<'a> {
             zone_instance_id: existing.map_instance_id,
             map_name: existing.map_name_to_start.clone(),
             port: existing.port,
+            seed: 0,     // TODO(fastnoise): look up seed from maps table
+            biome: None, // TODO(fastnoise): look up biome from maps table
         };
 
         mq.publish_spin_up(existing.world_server_id, &msg)

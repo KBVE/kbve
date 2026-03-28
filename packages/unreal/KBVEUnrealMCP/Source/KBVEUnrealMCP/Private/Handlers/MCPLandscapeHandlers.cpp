@@ -16,6 +16,9 @@ void FMCPLandscapeHandlers::Register(FMCPHandlerRegistry& Registry)
 	// paint_layer requires weight map manipulation with specific layer info
 	Registry.RegisterHandler(TEXT("landscape.paint_layer"), MCPProtocolHelpers::MakeStub(TEXT("landscape.paint_layer")));
 	Registry.RegisterHandler(TEXT("landscape.get_info"), &HandleGetInfo);
+
+	// TODO: SpecialAgent — landscape material painting
+	Registry.RegisterHandler(TEXT("landscape.paint_material"), MCPProtocolHelpers::MakeStub(TEXT("landscape.paint_material")));
 }
 
 ALandscapeProxy* FMCPLandscapeHandlers::FindLandscape(UWorld* World, const FString& Name)

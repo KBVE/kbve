@@ -12,6 +12,10 @@ void FMCPGeometryHandlers::Register(FMCPHandlerRegistry& Registry)
 	// set_vertices requires ProceduralMeshComponent which is in a separate plugin module
 	Registry.RegisterHandler(TEXT("geometry.set_vertices"), MCPProtocolHelpers::MakeStub(TEXT("geometry.set_vertices")));
 	Registry.RegisterHandler(TEXT("geometry.get_info"), &HandleGetInfo);
+
+	// TODO: ChiR24 — advanced geometry operations
+	Registry.RegisterHandler(TEXT("geometry.create_static_mesh"), MCPProtocolHelpers::MakeStub(TEXT("geometry.create_static_mesh")));
+	Registry.RegisterHandler(TEXT("geometry.merge_meshes"), MCPProtocolHelpers::MakeStub(TEXT("geometry.merge_meshes")));
 }
 
 void FMCPGeometryHandlers::HandleCreateProceduralMesh(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

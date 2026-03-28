@@ -12,6 +12,12 @@ void FMCPAssetHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("asset.get_dependents"), &HandleGetDependents);
 	Registry.RegisterHandler(TEXT("asset.list"), &HandleList);
 	Registry.RegisterHandler(TEXT("asset.validate"), &HandleValidate);
+
+	// TODO: runreal — asset export and advanced search
+	Registry.RegisterHandler(TEXT("asset.export_text"), MCPProtocolHelpers::MakeStub(TEXT("asset.export_text")));
+	// TODO: AssetToolkit — semantic search and tag filtering
+	Registry.RegisterHandler(TEXT("asset.semantic_search"), MCPProtocolHelpers::MakeStub(TEXT("asset.semantic_search")));
+	Registry.RegisterHandler(TEXT("asset.filter_by_tag"), MCPProtocolHelpers::MakeStub(TEXT("asset.filter_by_tag")));
 }
 
 void FMCPAssetHandlers::HandleSearch(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

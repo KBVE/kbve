@@ -16,6 +16,13 @@ void FMCPGameplayHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("gameplay.add_attribute"), MCPProtocolHelpers::MakeStub(TEXT("gameplay.add_attribute")));
 	Registry.RegisterHandler(TEXT("gameplay.create_interaction"), &HandleCreateInteraction);
 	Registry.RegisterHandler(TEXT("gameplay.get_info"), &HandleGetInfo);
+
+	// TODO: ChiR24+GenAISupport — gameplay systems
+	Registry.RegisterHandler(TEXT("gameplay.create_game_mode"), MCPProtocolHelpers::MakeStub(TEXT("gameplay.create_game_mode")));
+	Registry.RegisterHandler(TEXT("gameplay.create_character"), MCPProtocolHelpers::MakeStub(TEXT("gameplay.create_character")));
+	Registry.RegisterHandler(TEXT("gameplay.create_combat"), MCPProtocolHelpers::MakeStub(TEXT("gameplay.create_combat")));
+	Registry.RegisterHandler(TEXT("gameplay.create_inventory"), MCPProtocolHelpers::MakeStub(TEXT("gameplay.create_inventory")));
+	Registry.RegisterHandler(TEXT("gameplay.create_interactable"), MCPProtocolHelpers::MakeStub(TEXT("gameplay.create_interactable")));
 }
 
 void FMCPGameplayHandlers::HandleCreateInteraction(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

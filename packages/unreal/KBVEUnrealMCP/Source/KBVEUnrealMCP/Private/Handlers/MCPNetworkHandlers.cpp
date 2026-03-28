@@ -11,6 +11,11 @@ void FMCPNetworkHandlers::Register(FMCPHandlerRegistry& Registry)
 	// Session creation requires online subsystem which varies per project
 	Registry.RegisterHandler(TEXT("network.create_session"), MCPProtocolHelpers::MakeStub(TEXT("network.create_session")));
 	Registry.RegisterHandler(TEXT("network.get_info"), &HandleGetInfo);
+
+	// TODO: ChiR24 — networking systems
+	Registry.RegisterHandler(TEXT("network.set_rpc"), MCPProtocolHelpers::MakeStub(TEXT("network.set_rpc")));
+	Registry.RegisterHandler(TEXT("network.manage_prediction"), MCPProtocolHelpers::MakeStub(TEXT("network.manage_prediction")));
+	Registry.RegisterHandler(TEXT("network.manage_session"), MCPProtocolHelpers::MakeStub(TEXT("network.manage_session")));
 }
 
 void FMCPNetworkHandlers::HandleSetReplication(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

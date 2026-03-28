@@ -20,6 +20,12 @@ pub struct SpinUpMessage {
     pub zone_instance_id: i32,
     pub map_name: String,
     pub port: i32,
+    /// Procedural world seed — 0 means handcrafted (no PCG).
+    #[serde(default)]
+    pub seed: i64,
+    /// Biome hint for the procedural generator.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub biome: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

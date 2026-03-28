@@ -7,6 +7,10 @@ void FMCPPythonHandlers::Register(FMCPHandlerRegistry& Registry)
 {
 	Registry.RegisterHandler(TEXT("python.execute"), &HandleExecute);
 	Registry.RegisterHandler(TEXT("python.evaluate"), &HandleEvaluate);
+
+	// TODO: UnrealClaude — script management
+	Registry.RegisterHandler(TEXT("python.get_history"), MCPProtocolHelpers::MakeStub(TEXT("python.get_history")));
+	Registry.RegisterHandler(TEXT("python.cleanup_scripts"), MCPProtocolHelpers::MakeStub(TEXT("python.cleanup_scripts")));
 }
 
 void FMCPPythonHandlers::HandleExecute(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

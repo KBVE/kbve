@@ -97,6 +97,8 @@ impl OWSService {
                         zone_instance_id: p.instance_id(),
                         map_name: zone.to_string(),
                         port: p.port().unwrap_or(0),
+                        seed: 0,     // TODO(fastnoise): look up seed from maps table
+                        biome: None, // TODO(fastnoise): look up biome from maps table
                     };
                     if let Err(e) = mq.publish_spin_up(p.world_server_id(), &msg).await {
                         tracing::warn!(error = %e, "MQ spin-up publish failed (non-fatal)");
@@ -123,13 +125,29 @@ impl OWSService {
 
             if let Err(ref e) = result {
                 tracing::error!(error = %e, zone, "Agones pipeline failed — cleaning up");
-                // Deallocate orphaned GameServer on failure
-                let cleanup = AllocationPipeline::new(customer_guid, zone, &self.state.db);
-                // Re-run find to get allocation info for cleanup
-                // (the original pipeline was consumed by the async block)
-                self.state
-                    .zone_spinup_locks
-                    .remove(&format!("{0}:{zone}", customer_guid));
+
+                // Release spinup lock
+                let lock_key = format!("{customer_guid}:{zone}");
+                self.state.zone_spinup_locks.remove(&lock_key);
+
+                // Best-effort cleanup: delete any DB entries created during the failed pipeline
+                let repo = crate::repo::InstanceRepo(&self.state.db);
+                if let Err(cleanup_err) = repo.delete_all_map_instances(customer_guid).await {
+                    tracing::warn!(error = %cleanup_err, "Failed to clean up stale mapinstances after pipeline failure");
+                }
+                if let Err(cleanup_err) = repo.deactivate_all_world_servers(customer_guid).await {
+                    tracing::warn!(error = %cleanup_err, "Failed to deactivate world servers after pipeline failure");
+                }
+
+                // Log the failure event
+                instance_log.push(crate::rest::system::InstanceEvent {
+                    timestamp: chrono::Utc::now(),
+                    event: "allocation_failed".into(),
+                    zone_instance_id: 0,
+                    map_name: zone.to_string(),
+                    game_server: "unknown".into(),
+                    trigger: format!("error: {e}"),
+                });
             }
             result
         } else if let Some(ref mq) = self.state.mq {
