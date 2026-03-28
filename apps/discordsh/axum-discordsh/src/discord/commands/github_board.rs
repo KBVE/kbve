@@ -2,7 +2,9 @@
 //! issues, and pull request embeds powered by the guild's GitHub PAT.
 
 use askama::Template;
-use jedi::entity::github::{CreateIssueRequest, GitHubClient, UpdateIssueRequest};
+use jedi::entity::github::{
+    CreateIssueRequest, GitHubClient, MergePullRequest, UpdateIssueRequest,
+};
 use tracing::{info, warn};
 
 use crate::discord::bot::{Context, Error};
@@ -93,7 +95,13 @@ fn parse_label_color(labels: &[jedi::entity::github::GitHubLabel]) -> Option<u32
         "reopen",
         "comment",
         "assign",
-        "unassign"
+        "unassign",
+        "search",
+        "labels",
+        "comments",
+        "workflows",
+        "dispatch",
+        "merge"
     )
 )]
 pub async fn github(_ctx: Context<'_>) -> Result<(), Error> {
@@ -1177,6 +1185,448 @@ async fn unassign(
                 Ok(())
             }
             Err(e) => Err(format!("Failed to unassign `{username}` from #{number}: {e}")),
+        }
+    })
+    .await
+    {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(msg)) => send_error(ctx, &msg).await,
+        Err(_) => send_error(ctx, "The request timed out — please try again.").await,
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Search, Labels, Comments, Workflows, Merge
+// ═══════════════════════════════════════════════════════════════════
+
+// ── /github search ─────────────────────────────────────────────────
+
+/// Search issues and pull requests by keyword.
+#[poise::command(slash_command)]
+async fn search(
+    ctx: Context<'_>,
+    #[description = "Search query (supports GitHub search syntax)"] query: String,
+    #[description = "Max results (default: 10, max: 25)"] limit: Option<u8>,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
+) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Read).await? {
+        return Ok(());
+    }
+    ctx.defer().await?;
+
+    match tokio::time::timeout(COMMAND_TIMEOUT, async {
+        let gh = get_github_client(ctx).await?;
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
+        let full_name = format!("{}/{}", owner, repo_name);
+        let count = limit.unwrap_or(10).min(25);
+
+        match gh
+            .search_issues(&owner, &repo_name, &query, Some(count))
+            .await
+        {
+            Ok(result) => {
+                let mut embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!(
+                        "Search: \"{}\" — {} result{}",
+                        truncate(&query, 40),
+                        result.total_count,
+                        if result.total_count == 1 { "" } else { "s" }
+                    ))
+                    .color(0x58a6ff);
+
+                if result.items.is_empty() {
+                    embed = embed
+                        .description(format!("No results found in `{full_name}` for that query."));
+                } else {
+                    for item in &result.items {
+                        let kind = if item.is_pull_request() {
+                            "PR"
+                        } else {
+                            "Issue"
+                        };
+                        let state_icon = match item.state.as_str() {
+                            "open" => "🟢",
+                            "closed" => "🔴",
+                            _ => "⚪",
+                        };
+                        embed = embed.field(
+                            format!(
+                                "{state_icon} #{} {}",
+                                item.number,
+                                truncate(&item.title, 60)
+                            ),
+                            format!(
+                                "{kind} by `{}` | [view]({}){}",
+                                item.user.login,
+                                item.html_url,
+                                format_assignees(&item.assignees)
+                            ),
+                            false,
+                        );
+                    }
+                    if result.total_count > result.items.len() as u64 {
+                        embed =
+                            embed.footer(poise::serenity_prelude::CreateEmbedFooter::new(format!(
+                                "Showing {} of {} results",
+                                result.items.len(),
+                                result.total_count
+                            )));
+                    }
+                }
+
+                ctx.send(poise::CreateReply::default().embed(embed))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            Err(e) => {
+                warn!(error = %e, repo = full_name, query = %query, "GitHub search failed");
+                Err(format!("Search failed for `{full_name}`: {e}"))
+            }
+        }
+    })
+    .await
+    {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(msg)) => send_error(ctx, &msg).await,
+        Err(_) => send_error(ctx, "The request timed out — please try again.").await,
+    }
+}
+
+// ── /github labels ─────────────────────────────────────────────────
+
+/// List all labels for a repository.
+#[poise::command(slash_command)]
+async fn labels(
+    ctx: Context<'_>,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
+) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Read).await? {
+        return Ok(());
+    }
+    ctx.defer().await?;
+
+    match tokio::time::timeout(COMMAND_TIMEOUT, async {
+        let gh = get_github_client(ctx).await?;
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
+        let full_name = format!("{}/{}", owner, repo_name);
+
+        match gh.list_labels(&owner, &repo_name).await {
+            Ok(labels) => {
+                let mut embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!("Labels — {full_name}"))
+                    .color(0xE8EAED);
+
+                if labels.is_empty() {
+                    embed = embed.description("No labels configured.");
+                } else {
+                    let label_lines: Vec<String> = labels
+                        .iter()
+                        .map(|l| {
+                            let color_dot = l
+                                .color
+                                .as_deref()
+                                .map(|c| format!("`#{c}` "))
+                                .unwrap_or_default();
+                            format!("{color_dot}**{}**", l.name)
+                        })
+                        .collect();
+
+                    // Discord embed description limit is 4096 chars — chunk if needed
+                    let desc = label_lines.join("\n");
+                    if desc.len() <= 4000 {
+                        embed = embed.description(desc);
+                    } else {
+                        embed = embed.description(format!(
+                            "{}\n\n*…and {} more*",
+                            label_lines[..50].join("\n"),
+                            labels.len() - 50
+                        ));
+                    }
+
+                    embed = embed.footer(poise::serenity_prelude::CreateEmbedFooter::new(format!(
+                        "{} labels",
+                        labels.len()
+                    )));
+                }
+
+                ctx.send(poise::CreateReply::default().embed(embed))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            Err(e) => {
+                warn!(error = %e, repo = full_name, "Failed to fetch labels");
+                Err(format!("Failed to fetch labels for `{full_name}`: {e}"))
+            }
+        }
+    })
+    .await
+    {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(msg)) => send_error(ctx, &msg).await,
+        Err(_) => send_error(ctx, "The request timed out — please try again.").await,
+    }
+}
+
+// ── /github comments ───────────────────────────────────────────────
+
+/// View comments on an issue or pull request.
+#[poise::command(slash_command)]
+async fn comments(
+    ctx: Context<'_>,
+    #[description = "Issue or PR number"] number: u64,
+    #[description = "Max results (default: 10, max: 25)"] limit: Option<u8>,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
+) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Read).await? {
+        return Ok(());
+    }
+    ctx.defer().await?;
+
+    match tokio::time::timeout(COMMAND_TIMEOUT, async {
+        let gh = get_github_client(ctx).await?;
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
+        let full_name = format!("{}/{}", owner, repo_name);
+        let count = limit.unwrap_or(10).min(25);
+
+        match gh
+            .list_comments(&owner, &repo_name, number, Some(count))
+            .await
+        {
+            Ok(comments) => {
+                let mut embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!("Comments on #{number} — {full_name}"))
+                    .color(0x58a6ff);
+
+                if comments.is_empty() {
+                    embed = embed.description("No comments yet.");
+                } else {
+                    for c in &comments {
+                        let body_preview =
+                            truncate(&c.body.lines().take(3).collect::<Vec<_>>().join("\n"), 200);
+                        embed = embed.field(
+                            format!("`{}` — {}", c.user.login, &c.created_at[..10]),
+                            format!("{body_preview}\n[view]({})", c.html_url),
+                            false,
+                        );
+                    }
+                }
+
+                ctx.send(poise::CreateReply::default().embed(embed))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            Err(e) => {
+                warn!(error = %e, repo = full_name, issue = number, "Failed to fetch comments");
+                Err(format!(
+                    "Failed to fetch comments for #{number} in `{full_name}`: {e}"
+                ))
+            }
+        }
+    })
+    .await
+    {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(msg)) => send_error(ctx, &msg).await,
+        Err(_) => send_error(ctx, "The request timed out — please try again.").await,
+    }
+}
+
+// ── /github workflows ──────────────────────────────────────────────
+
+/// List GitHub Actions workflows for a repository.
+#[poise::command(slash_command)]
+async fn workflows(
+    ctx: Context<'_>,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
+) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Read).await? {
+        return Ok(());
+    }
+    ctx.defer().await?;
+
+    match tokio::time::timeout(COMMAND_TIMEOUT, async {
+        let gh = get_github_client(ctx).await?;
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
+        let full_name = format!("{}/{}", owner, repo_name);
+
+        match gh.list_workflows(&owner, &repo_name).await {
+            Ok(wfs) => {
+                let active: Vec<_> = wfs.iter().filter(|w| w.state == "active").collect();
+
+                let mut embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!("Workflows — {full_name}"))
+                    .color(0x2EA043);
+
+                if active.is_empty() {
+                    embed = embed.description("No active workflows found.");
+                } else {
+                    for wf in &active {
+                        let path_short = wf
+                            .path
+                            .strip_prefix(".github/workflows/")
+                            .unwrap_or(&wf.path);
+                        embed = embed.field(
+                            &wf.name,
+                            format!("`{path_short}` | ID: `{}`", wf.id),
+                            false,
+                        );
+                    }
+                    embed = embed.footer(poise::serenity_prelude::CreateEmbedFooter::new(format!(
+                        "{} active of {} total",
+                        active.len(),
+                        wfs.len()
+                    )));
+                }
+
+                ctx.send(poise::CreateReply::default().embed(embed))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            Err(e) => {
+                warn!(error = %e, repo = full_name, "Failed to fetch workflows");
+                Err(format!("Failed to fetch workflows for `{full_name}`: {e}"))
+            }
+        }
+    })
+    .await
+    {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(msg)) => send_error(ctx, &msg).await,
+        Err(_) => send_error(ctx, "The request timed out — please try again.").await,
+    }
+}
+
+// ── /github dispatch ───────────────────────────────────────────────
+
+/// Trigger a GitHub Actions workflow dispatch event.
+#[poise::command(slash_command)]
+async fn dispatch(
+    ctx: Context<'_>,
+    #[description = "Workflow file name (e.g. ci.yml) or numeric ID"] workflow: String,
+    #[description = "Git ref to run against (branch/tag, default: dev)"] git_ref: Option<String>,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
+) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Admin).await? {
+        return Ok(());
+    }
+    ctx.defer().await?;
+
+    match tokio::time::timeout(COMMAND_TIMEOUT, async {
+        let gh = get_github_client(ctx).await?;
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
+        let full_name = format!("{}/{}", owner, repo_name);
+        let ref_name = git_ref.as_deref().unwrap_or("dev");
+
+        match gh
+            .dispatch_workflow(&owner, &repo_name, &workflow, ref_name, None)
+            .await
+        {
+            Ok(()) => {
+                info!(
+                    user = %ctx.author().name,
+                    repo = full_name,
+                    workflow = %workflow,
+                    git_ref = ref_name,
+                    "Workflow dispatched via Discord"
+                );
+
+                let embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!("Dispatched `{workflow}`"))
+                    .description(format!(
+                        "Workflow triggered on `{ref_name}` in `{full_name}`"
+                    ))
+                    .color(0x2EA043);
+
+                ctx.send(poise::CreateReply::default().embed(embed))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            Err(e) => {
+                warn!(error = %e, repo = full_name, workflow = %workflow, "Failed to dispatch workflow");
+                Err(format!(
+                    "Failed to dispatch `{workflow}` in `{full_name}`: {e}"
+                ))
+            }
+        }
+    })
+    .await
+    {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(msg)) => send_error(ctx, &msg).await,
+        Err(_) => send_error(ctx, "The request timed out — please try again.").await,
+    }
+}
+
+// ── /github merge ──────────────────────────────────────────────────
+
+/// Merge a pull request.
+#[poise::command(slash_command)]
+async fn merge(
+    ctx: Context<'_>,
+    #[description = "Pull request number"] number: u64,
+    #[description = "Merge method: merge, squash, or rebase (default: squash)"] method: Option<
+        String,
+    >,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
+) -> Result<(), Error> {
+    if !check_tier(ctx, CommandTier::Admin).await? {
+        return Ok(());
+    }
+    ctx.defer().await?;
+
+    match tokio::time::timeout(COMMAND_TIMEOUT, async {
+        let gh = get_github_client(ctx).await?;
+        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
+        let full_name = format!("{}/{}", owner, repo_name);
+
+        let merge_method = method.as_deref().unwrap_or("squash").to_lowercase();
+
+        if !["merge", "squash", "rebase"].contains(&merge_method.as_str()) {
+            return Err("Invalid merge method. Use `merge`, `squash`, or `rebase`.".to_string());
+        }
+
+        let req = MergePullRequest {
+            commit_title: None,
+            commit_message: None,
+            merge_method: Some(merge_method.clone()),
+        };
+
+        match gh.merge_pull(&owner, &repo_name, number, &req).await {
+            Ok(result) => {
+                info!(
+                    user = %ctx.author().name,
+                    repo = full_name,
+                    pr = number,
+                    method = %merge_method,
+                    sha = %result.sha,
+                    "PR merged via Discord"
+                );
+
+                let embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!("Merged PR #{number}"))
+                    .description(format!(
+                        "{} into `{full_name}` via **{merge_method}**\nCommit: `{}`",
+                        result.message,
+                        &result.sha[..7.min(result.sha.len())]
+                    ))
+                    .color(0x8957E5);
+
+                ctx.send(poise::CreateReply::default().embed(embed))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            Err(e) => {
+                warn!(error = %e, repo = full_name, pr = number, "Failed to merge PR");
+                Err(format!(
+                    "Failed to merge PR #{number} in `{full_name}`: {e}"
+                ))
+            }
         }
     })
     .await
