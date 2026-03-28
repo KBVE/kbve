@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/mapdb.binpb
  * Config: ../mapdb-zod-config.json
- * Generated: 2026-03-23T07:45:50.204Z
+ * Generated: 2026-03-28T13:01:13.867Z
  */
 
 import { z } from 'zod';
@@ -24,6 +24,7 @@ export const Biomes = [
 	'underground',
 	'floating',
 	'void',
+	'coastal',
 ] as const;
 
 export type BiomeValue = (typeof Biomes)[number];
@@ -186,6 +187,53 @@ export const CraftingStationTypes = ['workbench', 'furnace', 'anvil'] as const;
 export type CraftingStationTypeValue = (typeof CraftingStationTypes)[number];
 
 export const CraftingStationTypeSchema = z.enum(CraftingStationTypes);
+
+export const GenerationModes = [
+	'finite_procedural',
+	'infinite_procedural',
+	'instanced',
+	'transit',
+] as const;
+
+export type GenerationModeValue = (typeof GenerationModes)[number];
+
+export const GenerationModeSchema = z.enum(GenerationModes);
+
+export const PersistenceModes = [
+	'deterministic_regen',
+	'delta',
+	'session_only',
+] as const;
+
+export type PersistenceModeValue = (typeof PersistenceModes)[number];
+
+export const PersistenceModeSchema = z.enum(PersistenceModes);
+
+export const StreamingHints = [
+	'chunk_ring',
+	'descriptor_activated',
+	'instance_loaded',
+] as const;
+
+export type StreamingHintValue = (typeof StreamingHints)[number];
+
+export const StreamingHintSchema = z.enum(StreamingHints);
+
+export const ReplicationHints = [
+	'local_dynamic',
+	'chunk_scoped',
+	'full_instance',
+] as const;
+
+export type ReplicationHintValue = (typeof ReplicationHints)[number];
+
+export const ReplicationHintSchema = z.enum(ReplicationHints);
+
+export const TravelTypes = ['gated', 'one_way', 'blocked'] as const;
+
+export type TravelTypeValue = (typeof TravelTypes)[number];
+
+export const TravelTypeSchema = z.enum(TravelTypes);
 
 // MapExtension
 export const MapExtensionSchema = z.object({
@@ -442,6 +490,33 @@ export const DungeonConfigSchema = z.object({
 
 export type DungeonConfig = z.infer<typeof DungeonConfigSchema>;
 
+// EnvironmentConfig
+export const EnvironmentConfigSchema = z.object({
+	sun_pitch: z.number().min(-90).max(90).optional(),
+	sun_yaw: z.number().min(0).max(360).optional(),
+	sun_intensity: z.number().min(0).optional(),
+	sun_color: ColorSchema.optional(),
+	sky_intensity: z.number().min(0).optional(),
+	atmosphere_rayleigh_scale: z.number().optional(),
+	atmosphere_mie_scale: z.number().optional(),
+	fog_density: z.number().min(0).optional(),
+	fog_height_falloff: z.number().min(0).optional(),
+	fog_color: ColorSchema.optional(),
+	fog_start_distance: z.number().min(0).optional(),
+	ambient_sound_ref: z.string().optional(),
+	music_ref: z.string().optional(),
+});
+
+export type EnvironmentConfig = z.infer<typeof EnvironmentConfigSchema>;
+
+// SeedPolicy
+export const SeedPolicySchema = z.object({
+	world_seed: z.number(),
+	content_version: z.number().min(0),
+});
+
+export type SeedPolicy = z.infer<typeof SeedPolicySchema>;
+
 // Zone
 export const ZoneSchema = z.object({
 	id: z.string(),
@@ -475,6 +550,12 @@ export const ZoneSchema = z.object({
 	prerequisite_quest_refs: z.array(z.string()).optional(),
 	event_ref: z.string().optional(),
 	extensions: z.array(MapExtensionSchema).optional(),
+	generation: GenerationModeSchema.optional(),
+	persistence: PersistenceModeSchema.optional(),
+	streaming: StreamingHintSchema.optional(),
+	replication: ReplicationHintSchema.optional(),
+	environment: EnvironmentConfigSchema.optional(),
+	seed_policy: SeedPolicySchema.optional(),
 	credits: z.string().optional(),
 	drafted: z.boolean().optional(),
 });
@@ -536,11 +617,59 @@ export const WorldObjectDefSchema = z.object({
 
 export type WorldObjectDef = z.infer<typeof WorldObjectDefSchema>;
 
+// HexCoord
+export const HexCoordSchema = z.object({
+	q: z.number(),
+	r: z.number(),
+});
+
+export type HexCoord = z.infer<typeof HexCoordSchema>;
+
+// HexTravelLink
+export const HexTravelLinkSchema = z.object({
+	from: HexCoordSchema.optional(),
+	to: HexCoordSchema.optional(),
+	travel_type: TravelTypeSchema,
+	level_requirement: z.number().optional(),
+	quest_requirement: z.string().optional(),
+	tag: z.string().optional(),
+});
+
+export type HexTravelLink = z.infer<typeof HexTravelLinkSchema>;
+
+// HexZoneRecord
+export const HexZoneRecordSchema = z.object({
+	coord: HexCoordSchema.optional(),
+	zone_ref: z.string(),
+	generation: GenerationModeSchema,
+	persistence: PersistenceModeSchema,
+	streaming: StreamingHintSchema,
+	replication: ReplicationHintSchema,
+	seed_policy: SeedPolicySchema.optional(),
+	environment: EnvironmentConfigSchema.optional(),
+	travel_links: z.array(HexTravelLinkSchema).optional(),
+});
+
+export type HexZoneRecord = z.infer<typeof HexZoneRecordSchema>;
+
+// HexWorldMap
+export const HexWorldMapSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	seed_policy: SeedPolicySchema.optional(),
+	hex_size: z.number().min(0),
+	hexes: z.array(HexZoneRecordSchema).optional(),
+});
+
+export type HexWorldMap = z.infer<typeof HexWorldMapSchema>;
+
 // MapRegistry
 export const MapRegistrySchema = z.object({
 	regions: z.array(RegionSchema).optional(),
 	zones: z.array(ZoneSchema).optional(),
 	object_defs: z.array(WorldObjectDefSchema).optional(),
+	hex_worlds: z.array(HexWorldMapSchema).optional(),
 });
 
 export type MapRegistry = z.infer<typeof MapRegistrySchema>;

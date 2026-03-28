@@ -59,6 +59,31 @@
 			"mode": "const_array",
 			"stripPrefix": "CRAFTING_STATION_",
 			"caseTransform": "lowercase"
+		},
+		"map.GenerationMode": {
+			"mode": "const_array",
+			"stripPrefix": "GENERATION_",
+			"caseTransform": "lowercase"
+		},
+		"map.PersistenceMode": {
+			"mode": "const_array",
+			"stripPrefix": "PERSISTENCE_",
+			"caseTransform": "lowercase"
+		},
+		"map.StreamingHint": {
+			"mode": "const_array",
+			"stripPrefix": "STREAMING_",
+			"caseTransform": "lowercase"
+		},
+		"map.ReplicationHint": {
+			"mode": "const_array",
+			"stripPrefix": "REPLICATION_",
+			"caseTransform": "lowercase"
+		},
+		"map.HexTravelLink.TravelType": {
+			"mode": "const_array",
+			"stripPrefix": "TRAVEL_",
+			"caseTransform": "lowercase"
 		}
 	},
 
@@ -134,6 +159,36 @@
 			"sourceEnum": "map.CraftingStationType",
 			"typeName": "CraftingStationTypeValue",
 			"zodSchemaName": "CraftingStationTypeSchema"
+		},
+		{
+			"name": "GenerationModes",
+			"sourceEnum": "map.GenerationMode",
+			"typeName": "GenerationModeValue",
+			"zodSchemaName": "GenerationModeSchema"
+		},
+		{
+			"name": "PersistenceModes",
+			"sourceEnum": "map.PersistenceMode",
+			"typeName": "PersistenceModeValue",
+			"zodSchemaName": "PersistenceModeSchema"
+		},
+		{
+			"name": "StreamingHints",
+			"sourceEnum": "map.StreamingHint",
+			"typeName": "StreamingHintValue",
+			"zodSchemaName": "StreamingHintSchema"
+		},
+		{
+			"name": "ReplicationHints",
+			"sourceEnum": "map.ReplicationHint",
+			"typeName": "ReplicationHintValue",
+			"zodSchemaName": "ReplicationHintSchema"
+		},
+		{
+			"name": "TravelTypes",
+			"sourceEnum": "map.HexTravelLink.TravelType",
+			"typeName": "TravelTypeValue",
+			"zodSchemaName": "TravelTypeSchema"
 		}
 	],
 
@@ -168,6 +223,15 @@
 		"map.WorldObjectDef.footprint_width": ".min(1)",
 		"map.WorldObjectDef.footprint_height": ".min(1)",
 		"map.WorldObjectDef.construction_time_secs": ".min(0)",
-		"map.BuildCost.amount": ".min(1)"
+		"map.BuildCost.amount": ".min(1)",
+		"map.SeedPolicy.content_version": ".min(0)",
+		"map.HexWorldMap.hex_size": ".min(0)",
+		"map.EnvironmentConfig.sun_pitch": ".min(-90).max(90)",
+		"map.EnvironmentConfig.sun_yaw": ".min(0).max(360)",
+		"map.EnvironmentConfig.sun_intensity": ".min(0)",
+		"map.EnvironmentConfig.sky_intensity": ".min(0)",
+		"map.EnvironmentConfig.fog_density": ".min(0)",
+		"map.EnvironmentConfig.fog_height_falloff": ".min(0)",
+		"map.EnvironmentConfig.fog_start_distance": ".min(0)"
 	}
 }
