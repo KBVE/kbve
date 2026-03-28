@@ -4,9 +4,10 @@ package rows;
 import "ows/ows.proto";
 
 // ──────────────────────────────────────────────
-// Public API — player-facing (login, characters, zones)
+// gRPC Services
 // ──────────────────────────────────────────────
 
+// Public API — player-facing operations
 service PublicApi {
   rpc Login(LoginRequest) returns (LoginResponse);
   rpc Register(RegisterRequest) returns (RegisterResponse);
@@ -17,10 +18,7 @@ service PublicApi {
   rpc GetAllCharacters(GetAllCharactersRequest) returns (GetAllCharactersResponse);
 }
 
-// ──────────────────────────────────────────────
-// Instance Management — zone lifecycle
-// ──────────────────────────────────────────────
-
+// Instance Management — server-to-ROWS coordination
 service InstanceManagement {
   rpc RegisterLauncher(RegisterLauncherRequest) returns (RegisterLauncherResponse);
   rpc StartInstanceLauncher(StartInstanceLauncherRequest) returns (StartInstanceLauncherResponse);
@@ -32,10 +30,7 @@ service InstanceManagement {
   rpc UpdateNumberOfPlayers(UpdateNumberOfPlayersRequest) returns (UpdateNumberOfPlayersResponse);
 }
 
-// ──────────────────────────────────────────────
-// Character Persistence — save/load character state
-// ──────────────────────────────────────────────
-
+// Character Persistence — stat/position/ability CRUD
 service CharacterPersistence {
   rpc GetByName(GetCharacterByNameRequest) returns (ows.Character);
   rpc UpdatePosition(UpdatePositionRequest) returns (UpdatePositionResponse);
@@ -45,24 +40,20 @@ service CharacterPersistence {
   rpc LeaveMap(LeaveMapRequest) returns (LeaveMapResponse);
 }
 
-// ──────────────────────────────────────────────
-// Global Data — shared world state
-// ──────────────────────────────────────────────
-
+// Global Data — key/value world state
 service GlobalDataService {
   rpc GetGlobalData(GetGlobalDataRequest) returns (GetGlobalDataResponse);
   rpc SetGlobalData(SetGlobalDataRequest) returns (SetGlobalDataResponse);
 }
 
-// ──────────────────────────────────────────────
-// Game Server Health — bi-directional streaming
-// ──────────────────────────────────────────────
-
+// GameServer Health — bi-directional streaming for heartbeats + commands
 service GameServerHealth {
-  // Bi-directional stream: game server sends heartbeats, ROWS sends commands.
-  // Replaces HTTP polling for UpdateNumberOfPlayers + status updates.
   rpc HealthStream(stream ServerHeartbeat) returns (stream ServerCommand);
 }
+
+// ──────────────────────────────────────────────
+// Health / Heartbeat Messages
+// ──────────────────────────────────────────────
 
 message ServerHeartbeat {
   int32 zone_instance_id = 1;
@@ -78,70 +69,83 @@ message ServerCommand {
 }
 
 // ──────────────────────────────────────────────
-// Request / Response messages
+// Public API Messages
 // ──────────────────────────────────────────────
 
-// Public API
 message LoginRequest {
   string email = 1;
   string password = 2;
 }
+
 message LoginResponse {
   bool success = 1;
   string user_session_guid = 2;
   optional string error = 3;
 }
+
 message RegisterRequest {
   string email = 1;
   string password = 2;
   string first_name = 3;
   string last_name = 4;
 }
+
 message RegisterResponse {
   bool success = 1;
   optional string error = 2;
 }
+
 message GetCharactersRequest {
   string user_session_guid = 1;
 }
+
 message GetCharactersResponse {
   repeated ows.Character characters = 1;
 }
+
 message CreateCharacterRequest {
   string user_session_guid = 1;
   string character_name = 2;
   string class_name = 3;
 }
+
 message CreateCharacterResponse {
   bool success = 1;
   optional string error = 2;
 }
+
 message RemoveCharacterRequest {
-  string user_session_guid = 1;
-  string character_name = 2;
+  string character_name = 1;
 }
+
 message RemoveCharacterResponse {
   bool success = 1;
   optional string error = 2;
 }
+
 message GetServerToConnectToRequest {
-  string user_session_guid = 1;
-  string character_name = 2;
-  int32 zone_id = 3;
+  string character_name = 1;
+  string zone_name = 2;
 }
+
 message GetServerToConnectToResponse {
   string server_ip = 1;
   int32 port = 2;
   optional string error = 3;
 }
+
 message GetAllCharactersRequest {
   string user_session_guid = 1;
 }
+
 message GetAllCharactersResponse {
   repeated ows.Character characters = 1;
 }
 
-// Instance Management
+// ──────────────────────────────────────────────
+// Instance Management Messages
+// ──────────────────────────────────────────────
+
 message RegisterLauncherRequest {
   string launcher_guid = 1;
   string server_ip = 2;
@@ -149,123 +153,199 @@ message RegisterLauncherRequest {
   string internal_server_ip = 4;
   int32 starting_instance_port = 5;
 }
+
 message RegisterLauncherResponse {
   bool success = 1;
+  int32 world_server_id = 2;
+  optional string error = 3;
 }
+
 message StartInstanceLauncherRequest {
-  string launcher_guid = 1;
-}
-message StartInstanceLauncherResponse {
   int32 world_server_id = 1;
 }
+
+message StartInstanceLauncherResponse {
+  bool success = 1;
+}
+
 message ShutDownInstanceLauncherRequest {
   int32 world_server_id = 1;
-  string launcher_guid = 2;
 }
+
 message ShutDownInstanceLauncherResponse {
   bool success = 1;
 }
+
 message GetZoneInstancesRequest {
   int32 world_server_id = 1;
 }
+
 message GetZoneInstancesResponse {
-  repeated ows.MapInstance zone_instances = 1;
+  // TODO: define ZoneInstance message when needed
+  bool success = 1;
 }
+
 message SetZoneInstanceStatusRequest {
   int32 zone_instance_id = 1;
   int32 instance_status = 2;
 }
+
 message SetZoneInstanceStatusResponse {
   bool success = 1;
 }
+
 message SpinUpInstanceRequest {
   int32 world_server_id = 1;
   int32 zone_instance_id = 2;
-  string map_name = 3;
+  string zone_name = 3;
   int32 port = 4;
+  // Procedural world seed — 0 means handcrafted (no PCG)
+  int64 seed = 5;
 }
+
 message SpinUpInstanceResponse {
   bool success = 1;
-  string server_ip = 2;
-  int32 port = 3;
+  optional string error = 2;
 }
+
 message ShutDownInstanceRequest {
   int32 zone_instance_id = 1;
 }
+
 message ShutDownInstanceResponse {
   bool success = 1;
 }
+
 message UpdateNumberOfPlayersRequest {
   int32 zone_instance_id = 1;
   int32 number_of_players = 2;
 }
+
 message UpdateNumberOfPlayersResponse {
   bool success = 1;
 }
 
-// Character Persistence
+// ──────────────────────────────────────────────
+// Character Persistence Messages
+// ──────────────────────────────────────────────
+
 message GetCharacterByNameRequest {
-  string user_session_guid = 1;
-  string character_name = 2;
+  string character_name = 1;
 }
+
 message UpdatePositionRequest {
-  string user_session_guid = 1;
-  string character_name = 2;
-  double x = 3;
-  double y = 4;
-  double z = 5;
-  double rx = 6;
-  double ry = 7;
-  double rz = 8;
+  string character_name = 1;
+  double x = 2;
+  double y = 3;
+  double z = 4;
+  double rx = 5;
+  double ry = 6;
+  double rz = 7;
 }
+
 message UpdatePositionResponse {
   bool success = 1;
 }
+
 message UpdateStatsRequest {
-  string user_session_guid = 1;
-  string character_name = 2;
-  string update_stats_json = 3;
+  string character_name = 1;
+  string update_stats_json = 2;
 }
+
 message UpdateStatsResponse {
   bool success = 1;
 }
+
 message PlayerLogoutRequest {
   string user_session_guid = 1;
   string character_name = 2;
 }
+
 message PlayerLogoutResponse {
   bool success = 1;
 }
+
 message JoinMapRequest {
-  string user_session_guid = 1;
-  string character_name = 2;
-  string zone_name = 3;
+  string character_name = 1;
+  string zone_name = 2;
 }
+
 message JoinMapResponse {
   bool success = 1;
   string server_ip = 2;
   int32 port = 3;
   optional string error = 4;
 }
+
 message LeaveMapRequest {
-  string user_session_guid = 1;
-  string character_name = 2;
+  string character_name = 1;
 }
+
 message LeaveMapResponse {
   bool success = 1;
 }
 
-// Global Data
+// ──────────────────────────────────────────────
+// Global Data Messages
+// ──────────────────────────────────────────────
+
 message GetGlobalDataRequest {
   string global_data_key = 1;
 }
+
 message GetGlobalDataResponse {
   optional string global_data_value = 1;
 }
+
 message SetGlobalDataRequest {
   string global_data_key = 1;
   string global_data_value = 2;
 }
+
 message SetGlobalDataResponse {
   bool success = 1;
 }
+
+// ──────────────────────────────────────────────
+// Iris Zone Assignment (REST + future gRPC)
+// ──────────────────────────────────────────────
+
+// TODO(iris-grpc): Add these as gRPC service methods when
+// InstanceManagement is extended for Iris flow:
+//   rpc GetZoneAssignment(ZoneAssignmentRequest) returns (ZoneAssignmentResponse);
+
+message ZoneAssignmentRequest {
+  int32 world_server_id = 1;
+}
+
+message ZoneAssignmentResponse {
+  bool assigned = 1;
+  int32 zone_instance_id = 2;
+  string map_name = 3;
+  string zone_name = 4;
+  int32 port = 5;
+  // Procedural world seed — 0 means handcrafted (no PCG)
+  int64 seed = 6;
+  optional string biome = 7;
+  optional string message = 8;
+}
+
+// ──────────────────────────────────────────────
+// System / Dashboard (REST-only for now)
+// ──────────────────────────────────────────────
+
+// TODO(system-grpc): Add System service when dashboard uses gRPC:
+//   service System {
+//     rpc FleetStatus(FleetStatusRequest) returns (FleetStatusResponse);
+//     rpc RestartGameServer(RestartServerRequest) returns (RestartServerResponse);
+//     rpc RestartFleet(RestartFleetRequest) returns (RestartFleetResponse);
+//   }
+
+// TODO(prometheus): Add metrics message types for:
+//   - allocation counters
+//   - fleet utilization gauges
+//   - circuit breaker state
+
+// TODO(multi-cluster): Add cluster routing messages:
+//   - ClusterInfo (geographic region, capacity)
+//   - ClusterAllocationRequest (preferred region)

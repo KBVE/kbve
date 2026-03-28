@@ -26,6 +26,7 @@ enum Biome {
   BIOME_UNDERGROUND   = 13;
   BIOME_FLOATING      = 14;
   BIOME_VOID          = 15;
+  BIOME_COASTAL       = 16;
 }
 
 // Zone type — functional classification
@@ -296,6 +297,18 @@ message Zone {
 
   // Extensions
   repeated MapExtension extensions = 31;
+
+  // World behavior policies
+  optional GenerationMode generation = 39;
+  optional PersistenceMode persistence = 34;
+  optional StreamingHint streaming = 35;
+  optional ReplicationHint replication = 36;
+
+  // Environment / atmosphere
+  optional EnvironmentConfig environment = 37;
+
+  // Seed derivation
+  optional SeedPolicy seed_policy = 38;
 
   // Metadata
   optional string credits = 32;
@@ -594,6 +607,132 @@ message Region {
 }
 
 // =============================================================================
+// Hex Grid — Axial coordinate system for hex-based world topology
+// =============================================================================
+
+// Axial hex coordinate (cube coordinate S is implicit: s = -q - r)
+message HexCoord {
+  int32 q = 1;
+  int32 r = 2;
+}
+
+// How a zone's content is generated / authored
+enum GenerationMode {
+  GENERATION_STATIC_AUTHORED         = 0;  // Hand-built, no procedural generation
+  GENERATION_FINITE_PROCEDURAL       = 1;  // Generated once from seed, bounded area
+  GENERATION_INFINITE_PROCEDURAL     = 2;  // Gateway to unbounded chunk-managed generation
+  GENERATION_INSTANCED               = 3;  // Private copy per party (dungeons, raids)
+  GENERATION_TRANSIT                 = 4;  // Transition zone (loading, portals)
+}
+
+// How a hex zone persists its state across sessions
+enum PersistenceMode {
+  PERSISTENCE_CANONICAL              = 0;  // Saved as-is (authored content)
+  PERSISTENCE_DETERMINISTIC_REGEN    = 1;  // Regenerated from seed; only deltas saved
+  PERSISTENCE_DELTA                  = 2;  // Generated base + saved mutations
+  PERSISTENCE_SESSION_ONLY           = 3;  // Lost on session end
+}
+
+// Hint for how a zone should be streamed / loaded
+enum StreamingHint {
+  STREAMING_PARTITIONED              = 0;  // Engine-managed spatial partition (e.g. World Partition)
+  STREAMING_CHUNK_RING               = 1;  // Active ring of chunks around players
+  STREAMING_DESCRIPTOR_ACTIVATED     = 2;  // Loaded on demand from descriptors
+  STREAMING_INSTANCE_LOADED          = 3;  // Fully loaded as a private instance
+}
+
+// Hint for how zone actors should be replicated to clients
+enum ReplicationHint {
+  REPLICATION_STATIC_ONLY            = 0;  // No dynamic replication; visuals only
+  REPLICATION_LOCAL_DYNAMIC          = 1;  // Replicate nearby dynamic actors
+  REPLICATION_CHUNK_SCOPED           = 2;  // Replicate within active chunk radius
+  REPLICATION_FULL_INSTANCE          = 3;  // Replicate everything (instanced zones)
+}
+
+// Deterministic seed derivation policy for a zone
+message SeedPolicy {
+  int64 world_seed = 1;                    // Root world seed
+  int32 content_version = 2;               // Content version for stable regeneration
+  // Derived seeds: region = hash(world_seed, hex_q, hex_r, content_version)
+  //                cell   = hash(region_seed, cell_x, cell_y, content_version)
+}
+
+// Travel link between two hex zones
+message HexTravelLink {
+  HexCoord from = 1;
+  HexCoord to = 2;
+
+  enum TravelType {
+    TRAVEL_OPEN    = 0;                    // Freely traversable
+    TRAVEL_GATED   = 1;                    // Requires key, quest, or level
+    TRAVEL_ONE_WAY = 2;                    // From → To only
+    TRAVEL_BLOCKED = 3;                    // Currently impassable
+  }
+  TravelType travel_type = 3;
+
+  optional int32 level_requirement = 4;
+  optional string quest_requirement = 5;
+  optional string tag = 6;                 // Named route (e.g. "Northern Pass")
+}
+
+// Environment configuration — visual atmosphere for a zone
+message EnvironmentConfig {
+  // Sun / directional light
+  optional float sun_pitch = 1;            // Elevation angle in degrees (-90 to 90)
+  optional float sun_yaw = 2;             // Azimuth angle in degrees (0 to 360)
+  optional float sun_intensity = 3;
+  optional Color sun_color = 4;
+
+  // Sky
+  optional float sky_intensity = 5;
+  optional float atmosphere_rayleigh_scale = 6;
+  optional float atmosphere_mie_scale = 7;
+
+  // Fog
+  optional float fog_density = 8;
+  optional float fog_height_falloff = 9;
+  optional Color fog_color = 10;
+  optional float fog_start_distance = 11;
+
+  // Ambient
+  optional string ambient_sound_ref = 12;
+  optional string music_ref = 13;
+}
+
+// A hex zone record — one tile in the master hex world map
+message HexZoneRecord {
+  HexCoord coord = 1;
+  string zone_ref = 2;                     // Links to Zone.ref for full zone data
+
+  // Generation
+  GenerationMode generation = 9;
+
+  // Behavior policies
+  PersistenceMode persistence = 3;
+  StreamingHint streaming = 4;
+  ReplicationHint replication = 5;
+
+  // Generation
+  optional SeedPolicy seed_policy = 6;
+
+  // Environment override (if different from zone default)
+  optional EnvironmentConfig environment = 7;
+
+  // Travel links originating from this hex
+  repeated HexTravelLink travel_links = 8;
+}
+
+// The master hex world map — top-level world topology
+message HexWorldMap {
+  string id = 1;
+  string name = 2;
+  optional string description = 3;
+  SeedPolicy seed_policy = 4;             // Default seed policy for the world
+  double hex_size = 5;                     // Hex size in world units (center to vertex)
+  repeated HexZoneRecord hexes = 6;
+}
+
+// =============================================================================
 // Extensibility
 // =============================================================================
 
@@ -617,4 +756,5 @@ message MapRegistry {
   repeated Region regions = 1;
   repeated Zone zones = 2;
   repeated WorldObjectDef object_defs = 3;
+  repeated HexWorldMap hex_worlds = 4;
 }

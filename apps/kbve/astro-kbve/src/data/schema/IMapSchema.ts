@@ -10,14 +10,38 @@ import {
 	WorldObjectDefSchema,
 	WorldObjectTypeSchema,
 	BuildCostSchema,
+	ResourceTypeSchema,
+	ContainerTypeSchema,
+	CraftingStationTypeSchema,
+	GenerationModeSchema,
+	PersistenceModeSchema,
+	StreamingHintSchema,
+	ReplicationHintSchema,
 } from '../../../../../../packages/data/codegen/generated/mapdb-schema';
 
 // Re-export generated types for downstream consumers
-export { WorldObjectTypeSchema, BuildCostSchema };
+export {
+	WorldObjectTypeSchema,
+	BuildCostSchema,
+	ResourceTypeSchema,
+	ContainerTypeSchema,
+	CraftingStationTypeSchema,
+	GenerationModeSchema,
+	PersistenceModeSchema,
+	StreamingHintSchema,
+	ReplicationHintSchema,
+};
 export type {
 	WorldObjectDef,
 	WorldObjectTypeValue,
 	BuildCost,
+	ResourceTypeValue,
+	ContainerTypeValue,
+	CraftingStationTypeValue,
+	GenerationModeValue,
+	PersistenceModeValue,
+	StreamingHintValue,
+	ReplicationHintValue,
 } from '../../../../../../packages/data/codegen/generated/mapdb-schema';
 
 // ---------------------------------------------------------------------------

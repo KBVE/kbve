@@ -30,11 +30,31 @@ use std::time::{Duration, Instant};
 use uuid::Uuid;
 
 /// Max time to wait for a server to become ready after allocation.
-const SPINUP_TIMEOUT_SECS: u64 = 60;
+/// Override: ROWS_spinup_timeout_secs() env var.
+fn spinup_timeout_secs() -> u64 {
+    std::env::var("ROWS_spinup_timeout_secs()")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(60)
+}
+
 /// How often to poll the DB for instance status during spinup.
-const SPINUP_POLL_INTERVAL_MS: u64 = 2000;
+/// Override: ROWS_spinup_poll_interval_ms() env var.
+fn spinup_poll_interval_ms() -> u64 {
+    std::env::var("ROWS_spinup_poll_interval_ms()")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(2000)
+}
+
 /// Initial poll delay — give the server a moment to register.
-const SPINUP_INITIAL_DELAY_MS: u64 = 3000;
+/// Override: ROWS_spinup_initial_delay_ms() env var.
+fn spinup_initial_delay_ms() -> u64 {
+    std::env::var("ROWS_spinup_initial_delay_ms()")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(3000)
+}
 
 /// Allocation pipeline state machine.
 /// Progresses through: Init → Found | Allocated → Registered → Tracked → Ready
@@ -136,7 +156,7 @@ impl<'a> AllocationPipeline<'a> {
     pub fn acquire_lock(self, locks: &DashMap<String, Instant>) -> Result<Self, RowsError> {
         if let Some(entry) = locks.get(&self.lock_key) {
             let age = entry.value().elapsed();
-            if age < Duration::from_secs(SPINUP_TIMEOUT_SECS + 10) {
+            if age < Duration::from_secs(spinup_timeout_secs() + 10) {
                 tracing::info!(zone = %self.zone, age_secs = age.as_secs(), "Spin-up already in progress, skipping");
                 return Err(RowsError::Conflict("Allocation already in progress".into()));
             }
@@ -392,10 +412,10 @@ impl<'a> AllocationPipeline<'a> {
     pub async fn poll_until_ready(self, char_name: &str) -> Result<JoinMapResult, RowsError> {
         let repo = InstanceRepo(self.db);
         let start = Instant::now();
-        let timeout = Duration::from_secs(SPINUP_TIMEOUT_SECS);
+        let timeout = Duration::from_secs(spinup_timeout_secs());
 
         // Initial delay — give server time to boot + register
-        tokio::time::sleep(Duration::from_millis(SPINUP_INITIAL_DELAY_MS)).await;
+        tokio::time::sleep(Duration::from_millis(spinup_initial_delay_ms())).await;
 
         while start.elapsed() < timeout {
             let poll = repo

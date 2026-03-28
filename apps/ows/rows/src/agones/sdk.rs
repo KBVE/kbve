@@ -77,7 +77,7 @@ impl AgonesClient {
             .map_err(|e| anyhow::anyhow!("Failed to build label request: {e}"))?;
 
         tokio::time::timeout(
-            Duration::from_secs(10),
+            super::client::api_timeout(),
             self.client.request::<serde_json::Value>(req),
         )
         .await
@@ -114,7 +114,7 @@ impl AgonesClient {
             .map_err(|e| anyhow::anyhow!("Failed to build annotation request: {e}"))?;
 
         tokio::time::timeout(
-            Duration::from_secs(10),
+            super::client::api_timeout(),
             self.client.request::<serde_json::Value>(req),
         )
         .await
@@ -153,7 +153,7 @@ impl AgonesClient {
             .map_err(|e| anyhow::anyhow!("Failed to build labels request: {e}"))?;
 
         tokio::time::timeout(
-            Duration::from_secs(10),
+            super::client::api_timeout(),
             self.client.request::<serde_json::Value>(req),
         )
         .await
@@ -176,7 +176,7 @@ impl AgonesClient {
             .map_err(|e| anyhow::anyhow!("Failed to build request: {e}"))?;
 
         let resp: serde_json::Value =
-            tokio::time::timeout(Duration::from_secs(10), self.client.request(req))
+            tokio::time::timeout(super::client::api_timeout(), self.client.request(req))
                 .await
                 .map_err(|_| anyhow::anyhow!("Get GameServer request timed out"))??;
 
