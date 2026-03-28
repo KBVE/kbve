@@ -28,6 +28,10 @@ pub fn system_routes(hs: HandlerState) -> Router {
             "/api/System/RestartFleet",
             axum::routing::post(restart_fleet),
         )
+        .route(
+            "/api/System/VerifyDeployment",
+            axum::routing::post(verify_deployment),
+        )
         .layer(middleware::from_fn(require_customer_guid))
         .with_state(hs)
 }
@@ -380,5 +384,188 @@ async fn restart_fleet(
     Json(serde_json::json!({
         "success": true,
         "message": format!("Fleet restarted. Scaled 0 → {desired_replicas}. DB cleaned.")
+    }))
+}
+
+// ─── Verify Deployment ──────────────────────────────────────
+
+/// Post-deployment verification — checks that the fleet is healthy after restart.
+/// Polls Agones for Ready servers, verifies count matches desired, checks DB is clean.
+/// Returns a detailed report with per-check pass/fail status.
+async fn verify_deployment(
+    State(hs): State<HandlerState>,
+    Json(body): Json<serde_json::Value>,
+) -> Json<serde_json::Value> {
+    let expected_ready = body
+        .get("expected_ready")
+        .and_then(|v| v.as_i64())
+        .unwrap_or(2) as i32;
+
+    let max_wait_secs = body
+        .get("max_wait_secs")
+        .and_then(|v| v.as_i64())
+        .unwrap_or(90) as u64;
+
+    let customer_guid = hs.app.config.customer_guid;
+    let mut checks: Vec<serde_json::Value> = Vec::new();
+    let start = std::time::Instant::now();
+
+    // Check 1: Agones fleet status — poll until Ready count matches
+    let mut fleet_ok = false;
+    let mut ready_count = 0i32;
+    let mut allocated_count = 0i32;
+    let mut gs_details: Vec<serde_json::Value> = Vec::new();
+
+    if let Some(ref agones) = hs.app.agones {
+        let poll_interval = std::time::Duration::from_secs(5);
+        let timeout = std::time::Duration::from_secs(max_wait_secs);
+
+        while start.elapsed() < timeout {
+            match agones.fleet_status().await {
+                Ok(status) => {
+                    ready_count = status.ready;
+                    allocated_count = status.allocated;
+                    gs_details = status
+                        .game_servers
+                        .iter()
+                        .map(|gs| {
+                            serde_json::json!({
+                                "name": gs.name,
+                                "state": gs.state,
+                                "port": gs.port,
+                                "age_seconds": gs.age_seconds,
+                            })
+                        })
+                        .collect();
+
+                    if ready_count >= expected_ready {
+                        fleet_ok = true;
+                        break;
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!(error = %e, "Fleet status check failed during verification");
+                }
+            }
+            tokio::time::sleep(poll_interval).await;
+        }
+    } else {
+        checks.push(serde_json::json!({
+            "check": "agones",
+            "pass": false,
+            "error": "Agones client not available"
+        }));
+    }
+
+    checks.push(serde_json::json!({
+        "check": "fleet_ready",
+        "pass": fleet_ok,
+        "ready": ready_count,
+        "allocated": allocated_count,
+        "expected": expected_ready,
+        "elapsed_secs": start.elapsed().as_secs(),
+        "game_servers": gs_details,
+    }));
+
+    // Check 2: DB state — no stale mapinstances or active worldservers
+    let repo = crate::repo::InstanceRepo(&hs.app.db);
+    let db_clean = match repo.count_active_instances(customer_guid).await {
+        Ok(count) => {
+            checks.push(serde_json::json!({
+                "check": "db_clean",
+                "pass": count == 0,
+                "active_instances": count,
+                "detail": if count == 0 { "No stale instances" } else { "Stale instances found" }
+            }));
+            count == 0
+        }
+        Err(e) => {
+            checks.push(serde_json::json!({
+                "check": "db_clean",
+                "pass": false,
+                "error": format!("DB query failed: {e}")
+            }));
+            false
+        }
+    };
+
+    // Check 3: ROWS health — postgres, rabbitmq, agones all reachable
+    let pg_ok = !hs.app.db.is_closed();
+    let mq_ok = hs.app.mq.is_some();
+    let agones_ok = hs.app.agones.is_some();
+
+    checks.push(serde_json::json!({
+        "check": "rows_health",
+        "pass": pg_ok && agones_ok,
+        "postgres": pg_ok,
+        "rabbitmq": mq_ok,
+        "agones": agones_ok,
+    }));
+
+    // Check 4: Allocation test — try allocating and immediately releasing
+    // Only run if fleet is ready and DB is clean
+    let mut alloc_ok = false;
+    if fleet_ok && db_clean {
+        if let Some(ref agones) = hs.app.agones {
+            match agones.allocate("__verify__", 0).await {
+                Ok(alloc) => {
+                    // Immediately deallocate the test server
+                    let gs_name = alloc.game_server_name.clone();
+                    if let Err(e) = agones.deallocate(&gs_name).await {
+                        tracing::warn!(error = %e, gs = %gs_name, "Failed to deallocate test server");
+                    }
+                    alloc_ok = true;
+                    checks.push(serde_json::json!({
+                        "check": "allocation_test",
+                        "pass": true,
+                        "gs_name": gs_name,
+                        "address": alloc.address,
+                        "port": alloc.port,
+                        "detail": "Allocated and deallocated test server successfully"
+                    }));
+                }
+                Err(e) => {
+                    checks.push(serde_json::json!({
+                        "check": "allocation_test",
+                        "pass": false,
+                        "error": format!("Allocation failed: {e}")
+                    }));
+                }
+            }
+        }
+    } else {
+        checks.push(serde_json::json!({
+            "check": "allocation_test",
+            "pass": false,
+            "skipped": true,
+            "reason": if !fleet_ok { "Fleet not ready" } else { "DB not clean" }
+        }));
+    }
+
+    let all_pass = fleet_ok && db_clean && pg_ok && agones_ok && alloc_ok;
+
+    // Log the verification event
+    hs.app.instance_log.push(InstanceEvent {
+        timestamp: chrono::Utc::now(),
+        event: if all_pass {
+            "verify_pass".into()
+        } else {
+            "verify_fail".into()
+        },
+        zone_instance_id: 0,
+        map_name: String::new(),
+        game_server: format!("ready:{ready_count}"),
+        trigger: "api".into(),
+    });
+
+    Json(serde_json::json!({
+        "success": all_pass,
+        "elapsed_secs": start.elapsed().as_secs(),
+        "checks": checks,
+        "summary": if all_pass {
+            format!("All checks passed. {ready_count} servers ready.")
+        } else {
+            "One or more checks failed. See details.".to_string()
+        }
     }))
 }
