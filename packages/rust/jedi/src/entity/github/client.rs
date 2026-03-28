@@ -492,6 +492,147 @@ impl GitHubClient {
         self.parse_response(resp).await
     }
 
+    // ── Search ──────────────────────────────────────────────────────
+
+    /// Search issues and pull requests using the GitHub search API.
+    ///
+    /// The `query` string follows GitHub search syntax — callers can include
+    /// qualifiers like `repo:owner/name`, `is:issue`, `is:pr`, `label:bug`, etc.
+    /// When `owner` and `repo` are provided the `repo:` qualifier is prepended
+    /// automatically so callers only need to supply the free-text portion.
+    pub async fn search_issues(
+        &self,
+        owner: &str,
+        repo: &str,
+        query: &str,
+        per_page: Option<u8>,
+    ) -> Result<GitHubSearchResult, JediError> {
+        self.policy.check(owner, repo)?;
+        let full_query = format!("repo:{owner}/{repo} {query}");
+        let url = format!("{}/search/issues", self.base_url);
+
+        let resp = self
+            .client
+            .get(&url)
+            .bearer_auth(&self.token)
+            .query(&[
+                ("q", full_query.as_str()),
+                ("per_page", &per_page.unwrap_or(20).to_string()),
+            ])
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
+    // ── Workflows ───────────────────────────────────────────────────
+
+    /// List workflows defined in a repository.
+    pub async fn list_workflows(
+        &self,
+        owner: &str,
+        repo: &str,
+    ) -> Result<Vec<GitHubWorkflow>, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!(
+            "{}/repos/{}/{}/actions/workflows",
+            self.base_url, owner, repo
+        );
+
+        let resp = self
+            .client
+            .get(&url)
+            .bearer_auth(&self.token)
+            .query(&[("per_page", "100")])
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        let wrapper: GitHubWorkflowsResponse = self.parse_response(resp).await?;
+        Ok(wrapper.workflows)
+    }
+
+    /// Trigger a workflow_dispatch event.
+    ///
+    /// `workflow_id` can be the workflow file name (e.g. `"ci.yml"`) or numeric ID.
+    /// `ref_name` is the git ref to run against (branch, tag, or SHA).
+    pub async fn dispatch_workflow(
+        &self,
+        owner: &str,
+        repo: &str,
+        workflow_id: &str,
+        ref_name: &str,
+        inputs: Option<&serde_json::Value>,
+    ) -> Result<(), JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!(
+            "{}/repos/{}/{}/actions/workflows/{}/dispatches",
+            self.base_url, owner, repo, workflow_id
+        );
+
+        let mut body = serde_json::json!({ "ref": ref_name });
+        if let Some(inp) = inputs {
+            body["inputs"] = inp.clone();
+        }
+
+        let resp = self
+            .client
+            .post(&url)
+            .bearer_auth(&self.token)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        let status = resp.status();
+        if status == StatusCode::NO_CONTENT || status.is_success() {
+            Ok(())
+        } else {
+            let body = resp.text().await.unwrap_or_default();
+            match status {
+                StatusCode::UNAUTHORIZED => Err(JediError::Unauthorized),
+                StatusCode::FORBIDDEN => Err(JediError::Forbidden),
+                StatusCode::NOT_FOUND => Err(JediError::NotFound),
+                _ => Err(JediError::Internal(Cow::Owned(format!(
+                    "GitHub API error {status}: {body}"
+                )))),
+            }
+        }
+    }
+
+    // ── Merge Pull Request ──────────────────────────────────────────
+
+    /// Merge a pull request.
+    pub async fn merge_pull(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: u64,
+        request: &MergePullRequest,
+    ) -> Result<GitHubMergeResult, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!(
+            "{}/repos/{}/{}/pulls/{}/merge",
+            self.base_url, owner, repo, number
+        );
+
+        let resp = self
+            .client
+            .put(&url)
+            .bearer_auth(&self.token)
+            .json(request)
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
     // ── Stagnation Detection ────────────────────────────────────────
 
     /// Filter issues that haven't been updated within `threshold_days`.

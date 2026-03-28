@@ -1,0 +1,182 @@
+syntax = "proto3";
+
+package github;
+
+// ── Users & Shared ─────────────────────────────────────────────────
+
+message GitHubUser {
+  string login = 1;
+}
+
+message GitHubLabel {
+  string name = 1;
+  string color = 2; // hex without '#', e.g. "d73a4a"
+}
+
+message GitHubIssueType {
+  uint64 id = 1;
+  string name = 2;
+  string description = 3;
+  string color = 4;
+}
+
+// ── Issues ─────────────────────────────────────────────────────────
+
+message GitHubIssue {
+  uint64 number = 1;
+  string title = 2;
+  string state = 3;
+  GitHubUser user = 4;
+  repeated GitHubLabel labels = 5;
+  string created_at = 6;
+  string updated_at = 7;
+  string html_url = 8;
+  bool is_pull_request = 9;
+  repeated GitHubUser assignees = 10;
+  string body = 11;
+  uint64 comments = 12;
+  GitHubIssueType issue_type = 13;
+}
+
+message CreateIssueRequest {
+  string title = 1;
+  string body = 2;
+  repeated string labels = 3;
+  repeated string assignees = 4;
+  string issue_type = 5;
+}
+
+message UpdateIssueRequest {
+  string title = 1;
+  string body = 2;
+  string state = 3;
+  repeated string labels = 4;
+  repeated string assignees = 5;
+  string issue_type = 6;
+}
+
+// ── Pull Requests ──────────────────────────────────────────────────
+
+message GitHubRef {
+  string ref_name = 1;
+  string sha = 2;
+}
+
+message GitHubPull {
+  uint64 number = 1;
+  string title = 2;
+  string state = 3;
+  GitHubUser user = 4;
+  GitHubRef head = 5;
+  string created_at = 6;
+  string updated_at = 7;
+  string html_url = 8;
+  bool draft = 9;
+  repeated GitHubLabel labels = 10;
+  repeated GitHubUser assignees = 11;
+}
+
+message MergePullRequest {
+  string commit_title = 1;
+  string commit_message = 2;
+  string merge_method = 3; // "merge", "squash", or "rebase"
+}
+
+message GitHubMergeResult {
+  string sha = 1;
+  bool merged = 2;
+  string message = 3;
+}
+
+// ── Commits ────────────────────────────────────────────────────────
+
+message GitHubCommitAuthor {
+  string name = 1;
+  string date = 2;
+}
+
+message GitHubCommitDetail {
+  string message = 1;
+  GitHubCommitAuthor author = 2;
+}
+
+message GitHubCommit {
+  string sha = 1;
+  GitHubCommitDetail commit = 2;
+  string html_url = 3;
+}
+
+// ── Repository ─────────────────────────────────────────────────────
+
+message GitHubRepo {
+  string name = 1;
+  string full_name = 2;
+  string description = 3;
+  string html_url = 4;
+  string default_branch = 5;
+  uint64 open_issues_count = 6;
+}
+
+// ── Branch Protection ──────────────────────────────────────────────
+
+message GitHubStatusChecks {
+  bool strict = 1;
+  repeated string contexts = 2;
+}
+
+message GitHubEnforceAdmins {
+  bool enabled = 1;
+}
+
+message GitHubBranchProtection {
+  GitHubStatusChecks required_status_checks = 1;
+  GitHubEnforceAdmins enforce_admins = 2;
+}
+
+// ── Comments ───────────────────────────────────────────────────────
+
+message GitHubComment {
+  uint64 id = 1;
+  string body = 2;
+  GitHubUser user = 3;
+  string created_at = 4;
+  string updated_at = 5;
+  string html_url = 6;
+}
+
+// ── Search ─────────────────────────────────────────────────────────
+
+message GitHubSearchResult {
+  uint64 total_count = 1;
+  bool incomplete_results = 2;
+  repeated GitHubIssue items = 3;
+}
+
+// ── Workflows ──────────────────────────────────────────────────────
+
+message GitHubWorkflow {
+  uint64 id = 1;
+  string name = 2;
+  string path = 3;
+  string state = 4;
+  string html_url = 5;
+}
+
+message GitHubWorkflowsResponse {
+  uint64 total_count = 1;
+  repeated GitHubWorkflow workflows = 2;
+}
+
+message DispatchWorkflowRequest {
+  string workflow_id = 1; // file name or numeric ID
+  string ref = 2;         // git ref (branch, tag, sha)
+  map<string, string> inputs = 3;
+}
+
+// ── Rate Limit ─────────────────────────────────────────────────────
+
+message GitHubRateLimit {
+  uint32 remaining = 1;
+  uint32 limit = 2;
+  uint64 reset = 3;
+}

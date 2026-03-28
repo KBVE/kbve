@@ -302,6 +302,99 @@ fn main() {
             "clickhouse.TailRequest",
             "#[derive(serde::Serialize, serde::Deserialize)]",
         )
+        // GitHub
+        .type_attribute(
+            "github.GitHubUser",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubLabel",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubIssueType",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubIssue",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.CreateIssueRequest",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.UpdateIssueRequest",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubRef",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubPull",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.MergePullRequest",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubMergeResult",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubCommitAuthor",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubCommitDetail",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubCommit",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubRepo",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubStatusChecks",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubEnforceAdmins",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubBranchProtection",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubComment",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubSearchResult",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubWorkflow",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubWorkflowsResponse",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.DispatchWorkflowRequest",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "github.GitHubRateLimit",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
         // .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
         // .field_attribute("status.StatusMessage.type", "#[bitflags]")
         .compile_protos(
@@ -311,6 +404,7 @@ fn main() {
                 "../../data/proto/jedi/jedi.proto",
                 "../../data/proto/jedi/twitch.proto",
                 "../../data/proto/jedi/clickhouse.proto",
+                "../../data/proto/jedi/github.proto",
             ],
             &["../../data/proto/jedi", "../../data/proto"],
         )

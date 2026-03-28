@@ -190,6 +190,55 @@ pub struct UpdateIssueRequest {
     pub issue_type: Option<String>,
 }
 
+// ── Search ──────────────────────────────────────────────────────────
+
+/// Wrapper for the GitHub search/issues response.
+#[derive(Debug, Clone, Deserialize)]
+pub struct GitHubSearchResult {
+    pub total_count: u64,
+    pub incomplete_results: bool,
+    pub items: Vec<GitHubIssue>,
+}
+
+// ── Workflows ──────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct GitHubWorkflowsResponse {
+    pub total_count: u64,
+    pub workflows: Vec<GitHubWorkflow>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct GitHubWorkflow {
+    pub id: u64,
+    pub name: String,
+    pub path: String,
+    pub state: String,
+    #[serde(default)]
+    pub html_url: String,
+}
+
+// ── Merge ───────────────────────────────────────────────────────────
+
+/// Payload for merging a pull request via PUT `/repos/{owner}/{repo}/pulls/{number}/merge`.
+#[derive(Debug, Clone, Serialize)]
+pub struct MergePullRequest {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub commit_title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub commit_message: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub merge_method: Option<String>,
+}
+
+/// Response from merging a pull request.
+#[derive(Debug, Clone, Deserialize)]
+pub struct GitHubMergeResult {
+    pub sha: String,
+    pub merged: bool,
+    pub message: String,
+}
+
 // ── Rate Limit ──────────────────────────────────────────────────────
 
 #[derive(Debug, Clone)]
