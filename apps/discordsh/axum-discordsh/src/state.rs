@@ -127,6 +127,10 @@ impl AppState {
             );
         }
 
+        // Map CSS generic families (sans-serif, monospace, etc.) to Alagard
+        // so SVG templates render text even in containers without system fonts.
+        fontdb.set_generic_families("Alagard");
+
         tracing::info!(fonts = fontdb.len(), "Font database initialized");
 
         let http_client = reqwest::Client::builder()

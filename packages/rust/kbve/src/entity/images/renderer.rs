@@ -53,6 +53,24 @@ impl FontDb {
         }
     }
 
+    /// Map CSS generic font families (`sans-serif`, `serif`, `monospace`,
+    /// `cursive`, `fantasy`) to a concrete font family name loaded in this
+    /// database.
+    ///
+    /// Call this **after** loading all font files so that resvg/usvg can
+    /// resolve `font-family="sans-serif"` in SVG templates to an actual
+    /// typeface. Without this mapping, text using generic families renders
+    /// as blank when system fonts are unavailable (e.g. in containers).
+    pub fn set_generic_families(&mut self, family: &str) {
+        if let Some(db) = Arc::get_mut(&mut self.inner) {
+            db.set_sans_serif_family(family);
+            db.set_serif_family(family);
+            db.set_monospace_family(family);
+            db.set_cursive_family(family);
+            db.set_fantasy_family(family);
+        }
+    }
+
     /// Return the number of loaded font faces.
     pub fn len(&self) -> usize {
         self.inner.len()
