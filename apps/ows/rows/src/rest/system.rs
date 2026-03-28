@@ -72,20 +72,45 @@ async fn aggregated_health(State(hs): State<HandlerState>) -> Json<serde_json::V
     // RabbitMQ
     let mq_ok = hs.app.mq.is_some();
 
-    // Agones
-    let (agones_ok, agones_err) = match &hs.app.agones {
+    // Agones — check circuit breaker state + fleet connectivity
+    let (agones_ok, agones_err, circuit_state) = match &hs.app.agones {
         Some(agones) => {
-            // Check circuit breaker state
+            let cb_state = if agones.is_circuit_open() {
+                "open"
+            } else {
+                "closed"
+            };
+            let failures = agones.consecutive_failure_count();
+
             match agones.fleet_status().await {
-                Ok(_) => (true, None),
-                Err(e) => (false, Some(format!("{e}"))),
+                Ok(_) => (
+                    true,
+                    None,
+                    serde_json::json!({
+                        "state": cb_state,
+                        "consecutive_failures": failures,
+                    }),
+                ),
+                Err(e) => (
+                    false,
+                    Some(format!("{e}")),
+                    serde_json::json!({
+                        "state": cb_state,
+                        "consecutive_failures": failures,
+                    }),
+                ),
             }
         }
-        None => (false, Some("Not configured".into())),
+        None => (
+            false,
+            Some("Not configured".into()),
+            serde_json::json!(null),
+        ),
     };
 
     let active_sessions = hs.app.sessions.len();
     let active_instances = hs.app.zone_servers.len();
+    let spinup_locks = hs.app.zone_spinup_locks.len();
 
     let overall = if pg_ok && agones_ok {
         "healthy"
@@ -104,10 +129,12 @@ async fn aggregated_health(State(hs): State<HandlerState>) -> Json<serde_json::V
             "agones": {
                 "ok": agones_ok,
                 "error": agones_err,
+                "circuit_breaker": circuit_state,
             }
         },
         "active_sessions": active_sessions,
-        "active_instances": active_instances
+        "active_instances": active_instances,
+        "spinup_locks": spinup_locks
     }))
 }
 

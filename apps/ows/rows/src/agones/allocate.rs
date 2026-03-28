@@ -109,7 +109,7 @@ impl AgonesClient {
             .map_err(|e| anyhow::anyhow!("Failed to build request: {e}"))?;
 
         let resp: serde_json::Value =
-            tokio::time::timeout(std::time::Duration::from_secs(10), self.client.request(req))
+            tokio::time::timeout(super::client::api_timeout(), self.client.request(req))
                 .await
                 .map_err(|_| anyhow::anyhow!("K8s allocation request timed out (10s)"))??;
 
@@ -144,6 +144,23 @@ impl AgonesClient {
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
+
+        // Validate: reject allocations with missing critical fields
+        if address.is_empty() {
+            return Err(AgonesError::Other(anyhow::anyhow!(
+                "Allocated GameServer has empty address"
+            )));
+        }
+        if port <= 0 {
+            return Err(AgonesError::Other(anyhow::anyhow!(
+                "Allocated GameServer has invalid port: {port}"
+            )));
+        }
+        if gs_name.is_empty() {
+            return Err(AgonesError::Other(anyhow::anyhow!(
+                "Allocated GameServer has empty name"
+            )));
+        }
 
         Ok(AllocationResult {
             game_server_name: gs_name,

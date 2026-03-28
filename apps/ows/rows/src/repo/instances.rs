@@ -326,15 +326,21 @@ impl<'a> InstanceRepo<'a> {
         Ok(zones)
     }
 
+    /// Get active world servers sorted by instance load (least loaded first).
+    /// Uses LEFT JOIN + GROUP BY instead of correlated subquery (N+1 fix).
     pub async fn get_active_world_servers_by_load(
         &self,
         customer_guid: Uuid,
     ) -> Result<Vec<(i32, String, i32)>, RowsError> {
         let servers: Vec<(i32, String, i32)> = sqlx::query_as(
             "SELECT ws.worldserverid, ws.serverip,
-                    COALESCE((SELECT COUNT(*) FROM mapinstances mi WHERE mi.worldserverid = ws.worldserverid AND mi.customerguid = ws.customerguid), 0)::int AS instance_count
+                    COALESCE(COUNT(mi.mapinstanceid), 0)::int AS instance_count
              FROM worldservers ws
+             LEFT JOIN mapinstances mi
+                    ON mi.worldserverid = ws.worldserverid
+                   AND mi.customerguid = ws.customerguid
              WHERE ws.customerguid = $1 AND ws.serverstatus = 1
+             GROUP BY ws.worldserverid, ws.serverip
              ORDER BY instance_count ASC",
         )
         .bind(customer_guid)
