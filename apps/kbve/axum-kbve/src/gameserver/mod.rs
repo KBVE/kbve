@@ -239,10 +239,38 @@ pub fn init_gameserver() {
         profile_bridge_task(req_rx, resp_tx).await;
     });
 
+    // Belt: verify UDP port is bindable before handing off to Bevy/lightyear.
+    // A silent bind failure inside wtransport is the #1 cause of
+    // ERR_QUIC_PROTOCOL_ERROR / QUIC_NETWORK_IDLE_TIMEOUT on the client.
+    if wt_identity.is_some() {
+        match std::net::UdpSocket::bind(wt_addr) {
+            Ok(sock) => {
+                drop(sock); // release immediately so lightyear can bind
+                tracing::info!(
+                    "[gameserver] UDP pre-check OK — port {} is available for WebTransport",
+                    wt_addr.port()
+                );
+            }
+            Err(e) => {
+                tracing::error!(
+                    "[gameserver] UDP pre-check FAILED on {wt_addr}: {e} — \
+                     WebTransport will NOT work! Clients will see QUIC_NETWORK_IDLE_TIMEOUT. \
+                     Check firewall / another process on port {}.",
+                    wt_addr.port()
+                );
+            }
+        }
+    }
+
     std::thread::spawn(move || {
         tracing::info!("game server starting on ws://{ws_addr}");
         if wt_identity.is_some() {
-            tracing::info!("WebTransport enabled on https://{wt_addr}");
+            tracing::info!(
+                "WebTransport enabled on https://{wt_addr} \
+                 (keep_alive={}s, idle_timeout={}s)",
+                std::env::var("GAME_WT_KEEP_ALIVE_SECS").unwrap_or_else(|_| "4".into()),
+                std::env::var("GAME_WT_IDLE_TIMEOUT_SECS").unwrap_or_else(|_| "30".into()),
+            );
         }
         run_bevy_app(ws_addr, wt_addr, jwt_secret, wt_identity, req_tx, resp_rx);
     });
@@ -753,10 +781,27 @@ fn start_server(
     ));
 
     if let Some(identity) = wt_identity {
+        // Configurable QUIC timeouts — read from env or use generous defaults.
+        // keep_alive must be < idle_timeout so the server pings before the
+        // connection is considered dead. 30s idle + 4s keep-alive gives plenty
+        // of headroom for transient network stalls and slow QUIC handshakes.
+        let keep_alive_secs: u64 = std::env::var("GAME_WT_KEEP_ALIVE_SECS")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(4);
+        let idle_timeout_secs: u64 = std::env::var("GAME_WT_IDLE_TIMEOUT_SECS")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(30);
+
+        tracing::info!(
+            "[gameserver] WT QUIC config: keep_alive={keep_alive_secs}s, idle_timeout={idle_timeout_secs}s"
+        );
+
         entity_cmds.insert(
-            lightyear::webtransport::prelude::server::WebTransportServerIo {
-                certificate: identity,
-            },
+            lightyear::webtransport::prelude::server::WebTransportServerIo::new(identity)
+                .with_keep_alive(Some(Duration::from_secs(keep_alive_secs)))
+                .with_max_idle_timeout(Some(Duration::from_secs(idle_timeout_secs))),
         );
     }
 
