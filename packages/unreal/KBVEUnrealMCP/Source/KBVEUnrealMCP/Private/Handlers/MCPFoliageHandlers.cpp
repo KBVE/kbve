@@ -12,6 +12,10 @@ void FMCPFoliageHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("foliage.paint"), &HandlePaint);
 	Registry.RegisterHandler(TEXT("foliage.remove"), &HandleRemove);
 	Registry.RegisterHandler(TEXT("foliage.get_info"), &HandleGetInfo);
+
+	// TODO: SpecialAgent — foliage density and type control
+	Registry.RegisterHandler(TEXT("foliage.set_density"), MCPProtocolHelpers::MakeStub(TEXT("foliage.set_density")));
+	Registry.RegisterHandler(TEXT("foliage.add_type"), MCPProtocolHelpers::MakeStub(TEXT("foliage.add_type")));
 }
 
 void FMCPFoliageHandlers::HandlePaint(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

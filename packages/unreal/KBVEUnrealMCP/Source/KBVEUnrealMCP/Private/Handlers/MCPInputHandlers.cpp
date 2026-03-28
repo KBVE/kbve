@@ -13,6 +13,9 @@ void FMCPInputHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("input.create_mapping"), &HandleCreateMapping);
 	Registry.RegisterHandler(TEXT("input.bind_action"), &HandleBindAction);
 	Registry.RegisterHandler(TEXT("input.get_info"), &HandleGetInfo);
+
+	// TODO: chongdashu+GenAISupport — input mapping context creation
+	Registry.RegisterHandler(TEXT("input.create_mapping_context"), MCPProtocolHelpers::MakeStub(TEXT("input.create_mapping_context")));
 }
 
 void FMCPInputHandlers::HandleCreateAction(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

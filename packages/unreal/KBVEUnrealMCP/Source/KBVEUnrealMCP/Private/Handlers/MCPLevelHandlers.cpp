@@ -14,6 +14,12 @@ void FMCPLevelHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("level.open"), &HandleOpen);
 	Registry.RegisterHandler(TEXT("level.save"), &HandleSave);
 	Registry.RegisterHandler(TEXT("level.get_world_outliner"), &HandleGetWorldOutliner);
+
+	// TODO: ChiR24 — World Partition and level structure management
+	Registry.RegisterHandler(TEXT("level.world_partition"), MCPProtocolHelpers::MakeStub(TEXT("level.world_partition")));
+	Registry.RegisterHandler(TEXT("level.data_layers"), MCPProtocolHelpers::MakeStub(TEXT("level.data_layers")));
+	Registry.RegisterHandler(TEXT("level.hlod"), MCPProtocolHelpers::MakeStub(TEXT("level.hlod")));
+	Registry.RegisterHandler(TEXT("level.create"), MCPProtocolHelpers::MakeStub(TEXT("level.create")));
 }
 
 void FMCPLevelHandlers::HandleGetInfo(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

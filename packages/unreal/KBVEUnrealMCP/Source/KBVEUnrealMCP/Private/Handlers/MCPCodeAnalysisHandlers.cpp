@@ -13,6 +13,11 @@ void FMCPCodeAnalysisHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("codeanalysis.list_classes"), &HandleListClasses);
 	Registry.RegisterHandler(TEXT("codeanalysis.list_functions"), &HandleListFunctions);
 	Registry.RegisterHandler(TEXT("codeanalysis.list_properties"), &HandleListProperties);
+
+	// TODO: unreal-analyzer-mcp — pattern detection and documentation
+	Registry.RegisterHandler(TEXT("codeanalysis.detect_patterns"), MCPProtocolHelpers::MakeStub(TEXT("codeanalysis.detect_patterns")));
+	Registry.RegisterHandler(TEXT("codeanalysis.get_best_practices"), MCPProtocolHelpers::MakeStub(TEXT("codeanalysis.get_best_practices")));
+	Registry.RegisterHandler(TEXT("codeanalysis.query_api"), MCPProtocolHelpers::MakeStub(TEXT("codeanalysis.query_api")));
 }
 
 void FMCPCodeAnalysisHandlers::HandleAnalyzeClass(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

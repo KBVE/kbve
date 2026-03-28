@@ -11,6 +11,9 @@ void FMCPSplineHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("spline.add_point"), &HandleAddPoint);
 	Registry.RegisterHandler(TEXT("spline.set_properties"), &HandleSetProperties);
 	Registry.RegisterHandler(TEXT("spline.get_info"), &HandleGetInfo);
+
+	// TODO: ChiR24 — spline mesh deformation
+	Registry.RegisterHandler(TEXT("spline.deform_mesh"), MCPProtocolHelpers::MakeStub(TEXT("spline.deform_mesh")));
 }
 
 void FMCPSplineHandlers::HandleCreate(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

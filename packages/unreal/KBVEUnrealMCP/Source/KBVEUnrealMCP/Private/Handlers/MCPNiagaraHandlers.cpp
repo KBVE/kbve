@@ -14,6 +14,10 @@ void FMCPNiagaraHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("niagara.activate"), &HandleActivate);
 	Registry.RegisterHandler(TEXT("niagara.deactivate"), &HandleDeactivate);
 	Registry.RegisterHandler(TEXT("niagara.get_info"), &HandleGetInfo);
+
+	// TODO: ChiR24 — GPU particle simulations
+	Registry.RegisterHandler(TEXT("niagara.create_gpu_sim"), MCPProtocolHelpers::MakeStub(TEXT("niagara.create_gpu_sim")));
+	Registry.RegisterHandler(TEXT("niagara.add_emitter"), MCPProtocolHelpers::MakeStub(TEXT("niagara.add_emitter")));
 }
 
 void FMCPNiagaraHandlers::HandleCreateSystem(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
