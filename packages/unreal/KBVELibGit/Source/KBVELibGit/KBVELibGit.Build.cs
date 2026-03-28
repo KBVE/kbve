@@ -18,7 +18,9 @@ public class KBVELibGit : ModuleRules
 			"HTTP",
 			"Json",
 			"JsonUtilities",
-			"Projects"
+			"Projects",
+			"ToolMenus",
+			"InputCore"
 		});
 
 		string ThirdPartyDir = Path.Combine(ModuleDirectory, "..", "..", "ThirdParty", "libgit2");
@@ -37,6 +39,8 @@ public class KBVELibGit : ModuleRules
 		{
 			LibDir = Path.Combine(ThirdPartyDir, "lib", "Mac");
 			PublicAdditionalLibraries.Add(Path.Combine(LibDir, "libgit2.a"));
+			// libgit2 uses iconv for Unicode path normalization on macOS
+			PublicAdditionalLibraries.Add("iconv");
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Linux)
 		{

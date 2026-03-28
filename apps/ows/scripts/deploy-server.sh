@@ -173,9 +173,9 @@ spec:
         allowPrivilegeEscalation: false
       resources:
         requests:
-          memory: "512Mi"
+          memory: "128Mi"
         limits:
-          memory: "2Gi"
+          memory: "512Mi"
       volumeMounts:
         - name: server-build
           mountPath: /mnt/ows-server
@@ -188,13 +188,78 @@ PODEOF
 
     kubectl wait --for=condition=Ready "pod/${PVC_POD}" -n "${PVC_NAMESPACE}" --timeout=120s
 
-    # Create version directory and copy
+    # Clean destination and create fresh directory
+    kubectl exec "${PVC_POD}" -n "${PVC_NAMESPACE}" -- rm -rf "/mnt/ows-server/${VERSION}"
     kubectl exec "${PVC_POD}" -n "${PVC_NAMESPACE}" -- mkdir -p "/mnt/ows-server/${VERSION}"
 
-    echo ">>> Uploading server files (this may take a minute)..."
+    echo ">>> Uploading server files..."
     cd "${OUTPUT_DIR}"
-    # Exclude macOS resource forks (._* files) that break server binary detection
-    COPYFILE_DISABLE=1 tar cf - --exclude='._*' --exclude='.DS_Store' LinuxServer | kubectl exec -i "${PVC_POD}" -n "${PVC_NAMESPACE}" -- tar xf - -C "/mnt/ows-server/${VERSION}/"
+
+    # Strip macOS resource forks before upload
+    find LinuxServer -name '._*' -delete 2>/dev/null || true
+    find LinuxServer -name '.DS_Store' -delete 2>/dev/null || true
+
+    TOTAL_SIZE=$(du -sh LinuxServer | cut -f1)
+    # macOS uses -k (1024-byte blocks), multiply to get bytes
+    TOTAL_BYTES=$(du -sk LinuxServer | awk '{print $1 * 1024}')
+    TOTAL_FILES=$(find LinuxServer -type f | wc -l | tr -d ' ')
+    echo "    Size: ${TOTAL_SIZE}, Files: ${TOTAL_FILES}"
+    # Compress locally first — 920MB binary compresses to ~300MB, 3x faster transfer
+    echo "    Compressing..."
+    COMPRESS_START=$(date +%s)
+    COPYFILE_DISABLE=1 tar czf /tmp/ows-server-upload.tar.gz -C "${OUTPUT_DIR}" LinuxServer
+    COMPRESSED_SIZE=$(du -sh /tmp/ows-server-upload.tar.gz | cut -f1)
+    COMPRESS_DURATION=$(( $(date +%s) - COMPRESS_START ))
+    echo "    Compressed: ${TOTAL_SIZE} → ${COMPRESSED_SIZE} in ${COMPRESS_DURATION}s"
+
+    echo "    Uploading..."
+    UPLOAD_START=$(date +%s)
+
+    # Stream compressed tar through kubectl exec — busybox decompresses to disk
+    # Memory usage is minimal (streaming, not buffering)
+    kubectl exec -i "${PVC_POD}" -n "${PVC_NAMESPACE}" -- \
+        tar xzf - -C "/mnt/ows-server/${VERSION}/" < /tmp/ows-server-upload.tar.gz &
+    CP_PID=$!
+
+    # Poll PVC every 5s for progress
+    while kill -0 "${CP_PID}" 2>/dev/null; do
+        REMOTE_BYTES=$(kubectl exec "${PVC_POD}" -n "${PVC_NAMESPACE}" -- sh -c \
+            "du -sb /mnt/ows-server/${VERSION}/LinuxServer 2>/dev/null | cut -f1" 2>/dev/null || echo "0")
+        REMOTE_BYTES="${REMOTE_BYTES:-0}"
+        if [ "${TOTAL_BYTES}" -gt 0 ] 2>/dev/null; then
+            PCT=$((REMOTE_BYTES * 100 / TOTAL_BYTES))
+            [ "${PCT}" -gt 100 ] && PCT=100
+            REMOTE_MB=$((REMOTE_BYTES / 1048576))
+            TOTAL_MB=$((TOTAL_BYTES / 1048576))
+            ELAPSED=$(( $(date +%s) - UPLOAD_START ))
+            printf "\r    Progress: %dMB / %dMB (%d%%) — %ds elapsed" "${REMOTE_MB}" "${TOTAL_MB}" "${PCT}" "${ELAPSED}"
+        fi
+        sleep 5
+    done
+
+    # Wait and capture exit code
+    wait "${CP_PID}"
+    CP_EXIT=$?
+
+    UPLOAD_END=$(date +%s)
+    UPLOAD_DURATION=$((UPLOAD_END - UPLOAD_START))
+    rm -f /tmp/ows-server-upload.tar.gz
+    echo ""
+
+    if [ "${CP_EXIT}" -ne 0 ]; then
+        echo "    ERROR: upload failed (exit ${CP_EXIT})"
+        exit 1
+    fi
+
+    echo "    Upload complete: ${COMPRESSED_SIZE} transferred in ${UPLOAD_DURATION}s"
+
+    # Verify upload landed
+    REMOTE_FILES=$(kubectl exec "${PVC_POD}" -n "${PVC_NAMESPACE}" -- sh -c "find /mnt/ows-server/${VERSION}/LinuxServer -type f 2>/dev/null | wc -l" | tr -d ' ')
+    if [ "${REMOTE_FILES}" -eq "${TOTAL_FILES}" ]; then
+        echo "    Verified: ${REMOTE_FILES}/${TOTAL_FILES} files on PVC"
+    else
+        echo "    WARNING: Expected ${TOTAL_FILES} files, found ${REMOTE_FILES} on PVC"
+    fi
 
     # Ensure permissions
     kubectl exec "${PVC_POD}" -n "${PVC_NAMESPACE}" -- chmod -R 755 "/mnt/ows-server/${VERSION}/"
@@ -203,17 +268,24 @@ PODEOF
     kubectl exec "${PVC_POD}" -n "${PVC_NAMESPACE}" -- \
         ln -sfn "${VERSION}" /mnt/ows-server/latest
 
-    # Prune old versions (keep latest 3 + lost+found)
+    # Prune old versions (keep latest 3, skip busy ones)
     echo ">>> Pruning old versions (keeping latest 3)..."
     kubectl exec "${PVC_POD}" -n "${PVC_NAMESPACE}" -- sh -c '
         cd /mnt/ows-server
         KEEP=3
         DIRS=$(ls -dt [0-9]* 2>/dev/null | tail -n +$((KEEP+1)))
         if [ -n "$DIRS" ]; then
-            echo "Removing: $DIRS"
-            echo "$DIRS" | xargs rm -rf
+            for DIR in $DIRS; do
+                # Check for NFS lock files (active game server mounts)
+                if find "$DIR" -name ".nfs*" -print -quit 2>/dev/null | grep -q .; then
+                    echo "  Skipping $DIR (in use by running server)"
+                else
+                    echo "  Removing $DIR"
+                    rm -rf "$DIR"
+                fi
+            done
         else
-            echo "Nothing to prune."
+            echo "  Nothing to prune."
         fi
     '
 

@@ -22,4 +22,8 @@ public:
 	{
 		return FModuleManager::Get().IsModuleLoaded("KBVELibGit");
 	}
+
+private:
+	/** Registers the top-level KBVE menu in the editor menu bar */
+	void RegisterMenus();
 };

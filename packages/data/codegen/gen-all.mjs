@@ -68,6 +68,11 @@ const protos = [
 		protoFile: 'ows/ows.proto',
 		package: 'ows',
 	},
+	{
+		name: 'forum',
+		protoFile: 'kbve/forum.proto',
+		package: 'kbve.forum',
+	},
 ];
 
 // Optional filter: pass a proto name as CLI arg to regenerate only that one

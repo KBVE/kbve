@@ -128,6 +128,33 @@ a:not(.ck-btn):hover {
 	background: var(--ck-firelight-dim);
 }
 
+/* ── Focus styles: firelight ring for keyboard navigation ── */
+:focus-visible {
+	outline: 2px solid var(--ck-firelight);
+	outline-offset: 2px;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+	outline: 2px solid var(--ck-firelight);
+	outline-offset: 2px;
+}
+
+/* ── Reduced motion: respect vestibular preferences ── */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
 /* ── Code blocks: parchment-on-dark ── */
 pre {
 	border: 1px solid var(--sl-color-hairline-light);
