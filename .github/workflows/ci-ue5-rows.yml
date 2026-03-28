@@ -9,8 +9,8 @@ on:
                 type: string
         secrets:
             epic_pat:
-                description: 'PAT with access to ghcr.io/epicgames/unreal-engine and game repo'
-                required: true
+                description: 'PAT with access to ghcr.io/epicgames/unreal-engine and game repo (falls back to UNITY_PAT)'
+                required: false
     workflow_dispatch:
         inputs:
             shell_path:
@@ -134,13 +134,30 @@ jobs:
             UE_IMAGE: ghcr.io/epicgames/unreal-engine:${{ needs.config.outputs.ue_image_tag }}
 
         steps:
+            - name: Resolve PAT (epic_pat → UNITY_PAT fallback)
+              id: pat
+              run: |
+                  TOKEN="${{ secrets.epic_pat }}"
+                  if [ -z "${TOKEN}" ]; then
+                    TOKEN="${{ secrets.UNITY_PAT }}"
+                    echo "::notice::Using UNITY_PAT (epic_pat not provided)"
+                  else
+                    echo "::notice::Using epic_pat"
+                  fi
+                  if [ -z "${TOKEN}" ]; then
+                    echo "::error::No PAT available — set epic_pat or UNITY_PAT"
+                    exit 1
+                  fi
+                  echo "::add-mask::${TOKEN}"
+                  echo "token=${TOKEN}" >> "$GITHUB_OUTPUT"
+
             - name: Audit log
               run: |
                   echo "::notice::UE5 dedicated server build — repo=${{ needs.config.outputs.project_repo }}, target=${{ needs.config.outputs.server_target }}, image=${{ env.UE_IMAGE }}, version=${{ needs.config.outputs.version }}, actor=${{ github.actor }}"
 
             - name: Login to GitHub Container Registry
               run: |
-                  echo "${{ secrets.epic_pat }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+                  echo "${{ steps.pat.outputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             - name: Pull UE image (cached on node)
               run: |
@@ -150,7 +167,7 @@ jobs:
               run: |
                   rm -rf /tmp/game-project
                   git clone --depth=1 \
-                    "https://x-access-token:${{ secrets.epic_pat }}@github.com/${{ needs.config.outputs.project_repo }}.git" \
+                    "https://x-access-token:${{ steps.pat.outputs.token }}@github.com/${{ needs.config.outputs.project_repo }}.git" \
                     /tmp/game-project
 
             - name: Fetch LFS objects
