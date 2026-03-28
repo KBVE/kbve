@@ -6,9 +6,32 @@ use std::time::{Duration, Instant};
 use tracing::{error, info, warn};
 
 /// Circuit breaker opens after this many consecutive failures.
-const CIRCUIT_BREAKER_THRESHOLD: u32 = 5;
+/// Override: AGONES_circuit_breaker_threshold() env var.
+fn circuit_breaker_threshold() -> u32 {
+    std::env::var("AGONES_circuit_breaker_threshold()")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(5)
+}
+
 /// Seconds to wait before allowing a retry after circuit opens.
-const CIRCUIT_BREAKER_RESET_SECS: u64 = 30;
+/// Override: AGONES_circuit_breaker_reset_secs() env var.
+fn circuit_breaker_reset_secs() -> u64 {
+    std::env::var("AGONES_circuit_breaker_reset_secs()")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(30)
+}
+
+/// Timeout for individual K8s API calls (seconds).
+/// Override: AGONES_API_TIMEOUT_SECS env var.
+pub(crate) fn api_timeout() -> Duration {
+    let secs = std::env::var("AGONES_API_TIMEOUT_SECS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(10u64);
+    Duration::from_secs(secs)
+}
 
 /// Agones GameServer manager via kube-rs.
 pub struct AgonesClient {
@@ -45,10 +68,10 @@ impl AgonesClient {
     /// Check if the circuit breaker allows an operation.
     pub(crate) fn check_circuit(&self) -> Result<(), super::AgonesError> {
         let failures = self.consecutive_failures.load(Ordering::Relaxed);
-        if failures >= CIRCUIT_BREAKER_THRESHOLD {
+        if failures >= circuit_breaker_threshold() {
             let mut opened = self.circuit_opened_at.lock().unwrap();
             if let Some(opened_at) = *opened {
-                if opened_at.elapsed() < Duration::from_secs(CIRCUIT_BREAKER_RESET_SECS) {
+                if opened_at.elapsed() < Duration::from_secs(circuit_breaker_reset_secs()) {
                     return Err(super::AgonesError::CircuitOpen {
                         consecutive_failures: failures,
                     });
@@ -70,12 +93,13 @@ impl AgonesClient {
     /// Record a failed operation — may trip the circuit breaker.
     pub(crate) fn record_failure(&self) {
         let prev = self.consecutive_failures.fetch_add(1, Ordering::Relaxed);
-        if prev + 1 >= CIRCUIT_BREAKER_THRESHOLD {
+        if prev + 1 >= circuit_breaker_threshold() {
             let mut opened = self.circuit_opened_at.lock().unwrap();
             if opened.is_none() {
                 warn!(
                     failures = prev + 1,
-                    "Circuit breaker opened — pausing operations for {CIRCUIT_BREAKER_RESET_SECS}s"
+                    reset_secs = circuit_breaker_reset_secs(),
+                    "Circuit breaker opened — pausing operations"
                 );
                 *opened = Some(Instant::now());
             }
@@ -90,6 +114,23 @@ impl AgonesClient {
     /// Get the fleet this client targets.
     pub fn fleet(&self) -> &str {
         &self.fleet
+    }
+
+    /// Check if the circuit breaker is currently open.
+    pub fn is_circuit_open(&self) -> bool {
+        let failures = self.consecutive_failures.load(Ordering::Relaxed);
+        if failures >= circuit_breaker_threshold() {
+            let opened = self.circuit_opened_at.lock().unwrap();
+            if let Some(opened_at) = *opened {
+                return opened_at.elapsed() < Duration::from_secs(circuit_breaker_reset_secs());
+            }
+        }
+        false
+    }
+
+    /// Get the current consecutive failure count.
+    pub fn consecutive_failure_count(&self) -> u32 {
+        self.consecutive_failures.load(Ordering::Relaxed)
     }
 
     /// Scale the fleet to a given number of replicas.
@@ -112,7 +153,7 @@ impl AgonesClient {
             .map_err(|e| anyhow::anyhow!("Failed to build scale request: {e}"))?;
 
         let _resp: serde_json::Value =
-            tokio::time::timeout(Duration::from_secs(10), self.client.request(req))
+            tokio::time::timeout(api_timeout(), self.client.request(req))
                 .await
                 .map_err(|_| anyhow::anyhow!("Fleet scale request timed out"))??;
 

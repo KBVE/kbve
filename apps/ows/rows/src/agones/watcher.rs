@@ -19,15 +19,48 @@ use std::time::Instant;
 use tracing::{error, info, warn};
 use uuid::Uuid;
 
-/// Spawn a background watcher that monitors GameServer state transitions.
-/// When a GameServer enters Shutdown or is deleted, it cleans up DB entries.
+/// Max backoff between watcher restart attempts.
+const MAX_BACKOFF_SECS: u64 = 60;
+
+/// Spawn a background watcher with auto-restart and exponential backoff.
+/// If the watch stream dies (network blip, API error), it restarts automatically.
 pub async fn spawn_gameserver_watcher(state: Arc<AppState>) {
+    let mut backoff_secs: u64 = 1;
+
+    loop {
+        match run_watcher(&state).await {
+            WatcherExit::NotInCluster => {
+                warn!("GameServer watcher unavailable (not in cluster) — exiting");
+                return;
+            }
+            WatcherExit::StreamEnded => {
+                warn!(backoff_secs, "GameServer watcher stream ended — restarting");
+            }
+            WatcherExit::ClientError(e) => {
+                warn!(
+                    error = %e,
+                    backoff_secs,
+                    "GameServer watcher client error — restarting"
+                );
+            }
+        }
+
+        tokio::time::sleep(std::time::Duration::from_secs(backoff_secs)).await;
+        backoff_secs = (backoff_secs * 2).min(MAX_BACKOFF_SECS);
+    }
+}
+
+enum WatcherExit {
+    NotInCluster,
+    StreamEnded,
+    ClientError(String),
+}
+
+/// Single run of the watcher — returns when the stream ends or errors.
+async fn run_watcher(state: &AppState) -> WatcherExit {
     let client = match Client::try_default().await {
         Ok(c) => c,
-        Err(e) => {
-            warn!(error = %e, "GameServer watcher unavailable (not in cluster)");
-            return;
-        }
+        Err(e) => return WatcherExit::ClientError(e.to_string()),
     };
 
     let namespace = &state.config.agones_namespace;
@@ -62,22 +95,22 @@ pub async fn spawn_gameserver_watcher(state: Arc<AppState>) {
 
                 if gs_state == "Shutdown" {
                     info!(gs = name, "GameServer shutdown detected — cleaning up");
-                    cleanup_shutdown_server(name, &state).await;
+                    cleanup_shutdown_server(name, state).await;
                 }
             }
             Ok(Event::Delete(gs)) => {
                 let name = gs.metadata.name.as_deref().unwrap_or("");
                 info!(gs = name, "GameServer deleted — cleaning up");
-                cleanup_shutdown_server(name, &state).await;
+                cleanup_shutdown_server(name, state).await;
             }
             Ok(Event::Init) | Ok(Event::InitDone) => {}
             Err(e) => {
-                warn!(error = %e, "GameServer watcher error (will retry)");
+                warn!(error = %e, "GameServer watcher error (stream will retry)");
             }
         }
     }
 
-    warn!("GameServer watcher stream ended unexpectedly");
+    WatcherExit::StreamEnded
 }
 
 /// Clean up DB entries for a shutdown/deleted GameServer.
