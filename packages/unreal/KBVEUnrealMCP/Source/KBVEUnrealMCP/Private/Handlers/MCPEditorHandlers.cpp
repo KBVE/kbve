@@ -24,6 +24,12 @@ void FMCPEditorHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("editor.add_tag"), &HandleAddTag);
 	Registry.RegisterHandler(TEXT("editor.remove_tag"), &HandleRemoveTag);
 	Registry.RegisterHandler(TEXT("editor.find_by_tag"), &HandleFindByTag);
+
+	// TODO: runreal — project information endpoint
+	Registry.RegisterHandler(TEXT("editor.get_project_info"), MCPProtocolHelpers::MakeStub(TEXT("editor.get_project_info")));
+	// TODO: ChiR24 — CVar management
+	Registry.RegisterHandler(TEXT("editor.set_cvar"), MCPProtocolHelpers::MakeStub(TEXT("editor.set_cvar")));
+	Registry.RegisterHandler(TEXT("editor.get_cvar"), MCPProtocolHelpers::MakeStub(TEXT("editor.get_cvar")));
 }
 
 void FMCPEditorHandlers::HandleUndo(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

@@ -21,6 +21,13 @@ void FMCPAnimationHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("animation.set_sequence"), &HandleSetSequence);
 	Registry.RegisterHandler(TEXT("animation.get_tracks"), &HandleGetTracks);
 	Registry.RegisterHandler(TEXT("animation.add_notify"), &HandleAddNotify);
+
+	// TODO: ChiR24+UnrealClaude — state machines and skeletal systems
+	Registry.RegisterHandler(TEXT("animation.create_state_machine"), MCPProtocolHelpers::MakeStub(TEXT("animation.create_state_machine")));
+	Registry.RegisterHandler(TEXT("animation.create_control_rig"), MCPProtocolHelpers::MakeStub(TEXT("animation.create_control_rig")));
+	Registry.RegisterHandler(TEXT("animation.manage_skeleton"), MCPProtocolHelpers::MakeStub(TEXT("animation.manage_skeleton")));
+	Registry.RegisterHandler(TEXT("animation.create_montage"), MCPProtocolHelpers::MakeStub(TEXT("animation.create_montage")));
+	Registry.RegisterHandler(TEXT("animation.set_ik"), MCPProtocolHelpers::MakeStub(TEXT("animation.set_ik")));
 }
 
 void FMCPAnimationHandlers::HandleCreateAnimBP(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

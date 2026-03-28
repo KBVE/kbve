@@ -43,6 +43,13 @@ void FMCPBlueprintHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("blueprint.snapshot_graph"), &HandleSnapshotGraph);
 	Registry.RegisterHandler(TEXT("blueprint.diff_graph"), &HandleDiffGraph);
 	Registry.RegisterHandler(TEXT("blueprint.restore_graph"), &HandleRestoreGraph);
+
+	// TODO: GenAISupport — bulk operations and node introspection
+	Registry.RegisterHandler(TEXT("blueprint.bulk_add_nodes"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.bulk_add_nodes")));
+	Registry.RegisterHandler(TEXT("blueprint.get_node_suggestions"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.get_node_suggestions")));
+	Registry.RegisterHandler(TEXT("blueprint.get_node_guid"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.get_node_guid")));
+	Registry.RegisterHandler(TEXT("blueprint.add_self_reference"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.add_self_reference")));
+	Registry.RegisterHandler(TEXT("blueprint.add_component_reference"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.add_component_reference")));
 }
 
 void FMCPBlueprintHandlers::HandleCreate(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

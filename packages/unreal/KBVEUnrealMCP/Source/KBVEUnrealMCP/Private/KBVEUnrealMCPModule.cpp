@@ -36,6 +36,15 @@
 #include "Handlers/MCPPlacementHandlers.h"
 #include "Handlers/MCPStreamingHandlers.h"
 
+// Phase 10 — New handler categories from competitor analysis
+#include "Handlers/MCPSequencerHandlers.h"
+#include "Handlers/MCPVolumeHandlers.h"
+#include "Handlers/MCPBuildHandlers.h"
+#include "Handlers/MCPCharacterHandlers.h"
+#include "Handlers/MCPTaskQueueHandlers.h"
+#include "Handlers/MCPProjectHandlers.h"
+#include "Handlers/MCPTextureHandlers.h"
+
 DEFINE_LOG_CATEGORY_STATIC(LogKBVEUnrealMCP, Log, All);
 
 void FKBVEUnrealMCPModule::StartupModule()
@@ -148,6 +157,15 @@ void FKBVEUnrealMCPModule::RegisterAllHandlers()
 	FMCPFoliageHandlers::Register(*Registry);
 	FMCPPlacementHandlers::Register(*Registry);
 	FMCPStreamingHandlers::Register(*Registry);
+
+	// Phase 10 — New categories from competitor analysis
+	FMCPSequencerHandlers::Register(*Registry);
+	FMCPVolumeHandlers::Register(*Registry);
+	FMCPBuildHandlers::Register(*Registry);
+	FMCPCharacterHandlers::Register(*Registry);
+	FMCPTaskQueueHandlers::Register(*Registry);
+	FMCPProjectHandlers::Register(*Registry);
+	FMCPTextureHandlers::Register(*Registry);
 }
 
 IMPLEMENT_MODULE(FKBVEUnrealMCPModule, KBVEUnrealMCP)

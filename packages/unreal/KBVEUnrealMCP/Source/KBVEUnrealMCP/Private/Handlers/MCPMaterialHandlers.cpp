@@ -22,6 +22,10 @@ void FMCPMaterialHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("material.get_info"), &HandleGetInfo);
 	Registry.RegisterHandler(TEXT("material.set_parameter"), &HandleSetParameter);
 	Registry.RegisterHandler(TEXT("material.create_instance"), &HandleCreateInstance);
+
+	// TODO: ChiR24 — material expression graph authoring
+	Registry.RegisterHandler(TEXT("material.add_expression"), MCPProtocolHelpers::MakeStub(TEXT("material.add_expression")));
+	Registry.RegisterHandler(TEXT("material.connect_expressions"), MCPProtocolHelpers::MakeStub(TEXT("material.connect_expressions")));
 }
 
 void FMCPMaterialHandlers::HandleCreate(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

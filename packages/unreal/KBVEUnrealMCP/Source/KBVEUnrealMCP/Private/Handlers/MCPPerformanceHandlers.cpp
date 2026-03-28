@@ -8,6 +8,10 @@ void FMCPPerformanceHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("performance.get_stats"), &HandleGetStats);
 	Registry.RegisterHandler(TEXT("performance.profile_gpu"), &HandleProfileGpu);
 	Registry.RegisterHandler(TEXT("performance.get_memory_info"), &HandleGetMemoryInfo);
+
+	// TODO: SpecialAgent+ChiR24 — overlap analysis and profiling
+	Registry.RegisterHandler(TEXT("performance.analyze_overlaps"), MCPProtocolHelpers::MakeStub(TEXT("performance.analyze_overlaps")));
+	Registry.RegisterHandler(TEXT("performance.get_draw_calls"), MCPProtocolHelpers::MakeStub(TEXT("performance.get_draw_calls")));
 }
 
 void FMCPPerformanceHandlers::HandleGetStats(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
