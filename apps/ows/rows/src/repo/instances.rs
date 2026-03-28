@@ -636,4 +636,16 @@ impl<'a> InstanceRepo<'a> {
 
         Ok(assignment)
     }
+
+    /// Count active mapinstances for a customer. Used by deployment verification.
+    pub async fn count_active_instances(&self, customer_guid: Uuid) -> Result<i64, RowsError> {
+        let row: (i64,) = sqlx::query_as(
+            "SELECT COUNT(*) FROM mapinstances WHERE customerguid = $1 AND status > 0",
+        )
+        .bind(customer_guid)
+        .fetch_one(self.0)
+        .await?;
+
+        Ok(row.0)
+    }
 }
