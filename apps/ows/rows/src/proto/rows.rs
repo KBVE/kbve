@@ -19,7 +19,6 @@ pub struct ServerCommand {
     #[prost(string, tag = "2")]
     pub payload: ::prost::alloc::string::String,
 }
-/// Public API
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct LoginRequest {
     #[prost(string, tag = "1")]
@@ -83,8 +82,6 @@ pub struct CreateCharacterResponse {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RemoveCharacterRequest {
     #[prost(string, tag = "1")]
-    pub user_session_guid: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
     pub character_name: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -97,11 +94,9 @@ pub struct RemoveCharacterResponse {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetServerToConnectToRequest {
     #[prost(string, tag = "1")]
-    pub user_session_guid: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
     pub character_name: ::prost::alloc::string::String,
-    #[prost(int32, tag = "3")]
-    pub zone_id: i32,
+    #[prost(string, tag = "2")]
+    pub zone_name: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetServerToConnectToResponse {
@@ -122,7 +117,6 @@ pub struct GetAllCharactersResponse {
     #[prost(message, repeated, tag = "1")]
     pub characters: ::prost::alloc::vec::Vec<super::ows::Character>,
 }
-/// Instance Management
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RegisterLauncherRequest {
     #[prost(string, tag = "1")]
@@ -136,27 +130,29 @@ pub struct RegisterLauncherRequest {
     #[prost(int32, tag = "5")]
     pub starting_instance_port: i32,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RegisterLauncherResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
+    #[prost(int32, tag = "2")]
+    pub world_server_id: i32,
+    #[prost(string, optional, tag = "3")]
+    pub error: ::core::option::Option<::prost::alloc::string::String>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct StartInstanceLauncherRequest {
-    #[prost(string, tag = "1")]
-    pub launcher_guid: ::prost::alloc::string::String,
+    #[prost(int32, tag = "1")]
+    pub world_server_id: i32,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct StartInstanceLauncherResponse {
-    #[prost(int32, tag = "1")]
-    pub world_server_id: i32,
+    #[prost(bool, tag = "1")]
+    pub success: bool,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ShutDownInstanceLauncherRequest {
     #[prost(int32, tag = "1")]
     pub world_server_id: i32,
-    #[prost(string, tag = "2")]
-    pub launcher_guid: ::prost::alloc::string::String,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ShutDownInstanceLauncherResponse {
@@ -168,10 +164,11 @@ pub struct GetZoneInstancesRequest {
     #[prost(int32, tag = "1")]
     pub world_server_id: i32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct GetZoneInstancesResponse {
-    #[prost(message, repeated, tag = "1")]
-    pub zone_instances: ::prost::alloc::vec::Vec<super::ows::MapInstance>,
+    /// TODO: define ZoneInstance message when needed
+    #[prost(bool, tag = "1")]
+    pub success: bool,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct SetZoneInstanceStatusRequest {
@@ -192,18 +189,19 @@ pub struct SpinUpInstanceRequest {
     #[prost(int32, tag = "2")]
     pub zone_instance_id: i32,
     #[prost(string, tag = "3")]
-    pub map_name: ::prost::alloc::string::String,
+    pub zone_name: ::prost::alloc::string::String,
     #[prost(int32, tag = "4")]
     pub port: i32,
+    /// Procedural world seed — 0 means handcrafted (no PCG)
+    #[prost(int64, tag = "5")]
+    pub seed: i64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SpinUpInstanceResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
-    #[prost(string, tag = "2")]
-    pub server_ip: ::prost::alloc::string::String,
-    #[prost(int32, tag = "3")]
-    pub port: i32,
+    #[prost(string, optional, tag = "2")]
+    pub error: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ShutDownInstanceRequest {
@@ -227,31 +225,26 @@ pub struct UpdateNumberOfPlayersResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
 }
-/// Character Persistence
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetCharacterByNameRequest {
     #[prost(string, tag = "1")]
-    pub user_session_guid: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
     pub character_name: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdatePositionRequest {
     #[prost(string, tag = "1")]
-    pub user_session_guid: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
     pub character_name: ::prost::alloc::string::String,
-    #[prost(double, tag = "3")]
+    #[prost(double, tag = "2")]
     pub x: f64,
-    #[prost(double, tag = "4")]
+    #[prost(double, tag = "3")]
     pub y: f64,
-    #[prost(double, tag = "5")]
+    #[prost(double, tag = "4")]
     pub z: f64,
-    #[prost(double, tag = "6")]
+    #[prost(double, tag = "5")]
     pub rx: f64,
-    #[prost(double, tag = "7")]
+    #[prost(double, tag = "6")]
     pub ry: f64,
-    #[prost(double, tag = "8")]
+    #[prost(double, tag = "7")]
     pub rz: f64,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -262,10 +255,8 @@ pub struct UpdatePositionResponse {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateStatsRequest {
     #[prost(string, tag = "1")]
-    pub user_session_guid: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
     pub character_name: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
+    #[prost(string, tag = "2")]
     pub update_stats_json: ::prost::alloc::string::String,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -288,10 +279,8 @@ pub struct PlayerLogoutResponse {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct JoinMapRequest {
     #[prost(string, tag = "1")]
-    pub user_session_guid: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
     pub character_name: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
+    #[prost(string, tag = "2")]
     pub zone_name: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -308,8 +297,6 @@ pub struct JoinMapResponse {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct LeaveMapRequest {
     #[prost(string, tag = "1")]
-    pub user_session_guid: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
     pub character_name: ::prost::alloc::string::String,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -317,7 +304,6 @@ pub struct LeaveMapResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
 }
-/// Global Data
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetGlobalDataRequest {
     #[prost(string, tag = "1")]
@@ -339,6 +325,31 @@ pub struct SetGlobalDataRequest {
 pub struct SetGlobalDataResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ZoneAssignmentRequest {
+    #[prost(int32, tag = "1")]
+    pub world_server_id: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ZoneAssignmentResponse {
+    #[prost(bool, tag = "1")]
+    pub assigned: bool,
+    #[prost(int32, tag = "2")]
+    pub zone_instance_id: i32,
+    #[prost(string, tag = "3")]
+    pub map_name: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub zone_name: ::prost::alloc::string::String,
+    #[prost(int32, tag = "5")]
+    pub port: i32,
+    /// Procedural world seed — 0 means handcrafted (no PCG)
+    #[prost(int64, tag = "6")]
+    pub seed: i64,
+    #[prost(string, optional, tag = "7")]
+    pub biome: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "8")]
+    pub message: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// Generated server implementations.
 pub mod public_api_server {
@@ -382,6 +393,7 @@ pub mod public_api_server {
             request: tonic::Request<super::GetAllCharactersRequest>,
         ) -> std::result::Result<tonic::Response<super::GetAllCharactersResponse>, tonic::Status>;
     }
+    /// Public API — player-facing operations
     #[derive(Debug)]
     pub struct PublicApiServer<T> {
         inner: Arc<T>,
@@ -819,6 +831,7 @@ pub mod instance_management_server {
             request: tonic::Request<super::UpdateNumberOfPlayersRequest>,
         ) -> std::result::Result<tonic::Response<super::UpdateNumberOfPlayersResponse>, tonic::Status>;
     }
+    /// Instance Management — server-to-ROWS coordination
     #[derive(Debug)]
     pub struct InstanceManagementServer<T> {
         inner: Arc<T>,
@@ -1309,6 +1322,7 @@ pub mod character_persistence_server {
             request: tonic::Request<super::LeaveMapRequest>,
         ) -> std::result::Result<tonic::Response<super::LeaveMapResponse>, tonic::Status>;
     }
+    /// Character Persistence — stat/position/ability CRUD
     #[derive(Debug)]
     pub struct CharacterPersistenceServer<T> {
         inner: Arc<T>,
@@ -1686,6 +1700,7 @@ pub mod global_data_service_server {
             request: tonic::Request<super::SetGlobalDataRequest>,
         ) -> std::result::Result<tonic::Response<super::SetGlobalDataResponse>, tonic::Status>;
     }
+    /// Global Data — key/value world state
     #[derive(Debug)]
     pub struct GlobalDataServiceServer<T> {
         inner: Arc<T>,
@@ -1895,13 +1910,12 @@ pub mod game_server_health_server {
                 Item = std::result::Result<super::ServerCommand, tonic::Status>,
             > + std::marker::Send
             + 'static;
-        /// Bi-directional stream: game server sends heartbeats, ROWS sends commands.
-        /// Replaces HTTP polling for UpdateNumberOfPlayers + status updates.
         async fn health_stream(
             &self,
             request: tonic::Request<tonic::Streaming<super::ServerHeartbeat>>,
         ) -> std::result::Result<tonic::Response<Self::HealthStreamStream>, tonic::Status>;
     }
+    /// GameServer Health — bi-directional streaming for heartbeats + commands
     #[derive(Debug)]
     pub struct GameServerHealthServer<T> {
         inner: Arc<T>,
