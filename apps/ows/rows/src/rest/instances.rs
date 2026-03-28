@@ -458,7 +458,9 @@ async fn get_zone_assignment(
             "mapName": assignment.map_name,
             "zoneName": assignment.zone_name,
             "port": assignment.port,
-            "worldServerId": body.world_server_id
+            "worldServerId": body.world_server_id,
+            "seed": assignment.seed,
+            "biome": assignment.biome,
         })),
         Ok(None) => Json(serde_json::json!({
             "assigned": false,

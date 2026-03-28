@@ -394,10 +394,20 @@ pub struct ZoneInstanceInfo {
 
 /// Zone assignment for Iris integration.
 /// Returned by GetZoneAssignment — tells the server which map to load.
+/// Seed field supports procedural world generation (0 = handcrafted map).
 #[derive(sqlx::FromRow)]
 pub struct ZoneAssignment {
     pub zone_instance_id: i32,
     pub map_name: String,
     pub zone_name: String,
     pub port: i32,
+    /// Procedural world seed — 0 means handcrafted (no PCG).
+    /// When non-zero, the server passes this to the PCG framework
+    /// via URL option: ServerTravel("...?seed=<value>")
+    #[sqlx(default)]
+    pub seed: i64,
+    /// Biome hint for the procedural generator (e.g. "Arctic", "Desert").
+    /// Optional — PCG can derive biome from seed if not set.
+    #[sqlx(default)]
+    pub biome: Option<String>,
 }
