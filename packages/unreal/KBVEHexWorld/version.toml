@@ -1,2 +1,7 @@
 version = "0.1.0"
 publish = false
+
+[thirdparty.FastNoiseLite]
+version = "1.1.1"
+url = "https://github.com/Auburn/FastNoiseLite"
+license = "MIT"
