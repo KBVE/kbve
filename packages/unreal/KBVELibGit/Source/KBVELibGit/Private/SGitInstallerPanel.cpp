@@ -248,7 +248,7 @@ TSharedRef<ITableRow> SGitInstallerPanel::OnGenerateRegistryRow(
 	}
 
 	// Capture for lambda
-	TWeakPtr<SGitInstallerPanel> WeakThis = SharedThis(this);
+	TWeakPtr<SGitInstallerPanel> WeakPanel = SharedThis(this);
 	TSharedPtr<FKBVEPluginEntry> CapturedEntry = Entry;
 
 	return SNew(STableRow<TSharedPtr<FKBVEPluginEntry>>, OwnerTable)
@@ -298,9 +298,9 @@ TSharedRef<ITableRow> SGitInstallerPanel::OnGenerateRegistryRow(
 				SNew(SButton)
 				.Text(ButtonText)
 				.IsEnabled(bButtonEnabled)
-				.OnClicked_Lambda([WeakThis, CapturedEntry]() -> FReply
+				.OnClicked_Lambda([WeakPanel, CapturedEntry]() -> FReply
 				{
-					TSharedPtr<SGitInstallerPanel> Panel = WeakThis.Pin();
+					TSharedPtr<SGitInstallerPanel> Panel = WeakPanel.Pin();
 					if (Panel.IsValid())
 					{
 						if (CapturedEntry->bInstalled && CapturedEntry->bUpdateAvailable)
@@ -332,10 +332,10 @@ FReply SGitInstallerPanel::OnCheckForUpdatesClicked()
 	RegistryStagingPath = FPaths::Combine(
 		FPaths::ProjectIntermediateDir(), TEXT("GitStaging"), TEXT("_kbve_registry"));
 
-	TWeakPtr<SGitInstallerPanel> WeakThis = SharedThis(this);
+	TWeakPtr<SGitInstallerPanel> WeakPanel = SharedThis(this);
 	FString CapturedStagingPath = RegistryStagingPath;
 
-	Async(EAsyncExecution::Thread, [WeakThis, CapturedStagingPath]()
+	Async(EAsyncExecution::Thread, [WeakPanel, CapturedStagingPath]()
 	{
 		FGitRepoService::FGitResult Result;
 
@@ -357,9 +357,9 @@ FReply SGitInstallerPanel::OnCheckForUpdatesClicked()
 				FKBVEPluginRegistry::DefaultBranch);
 		}
 
-		AsyncTask(ENamedThreads::GameThread, [WeakThis, CapturedStagingPath, Result]()
+		AsyncTask(ENamedThreads::GameThread, [WeakPanel, CapturedStagingPath, Result]()
 		{
-			TSharedPtr<SGitInstallerPanel> Panel = WeakThis.Pin();
+			TSharedPtr<SGitInstallerPanel> Panel = WeakPanel.Pin();
 			if (!Panel.IsValid())
 			{
 				return;
@@ -515,16 +515,16 @@ void SGitInstallerPanel::RunCloneAsync(const FString& RepoUrl, const FString& Br
 		IFileManager::Get().DeleteDirectory(*CustomStagingPath, false, true);
 	}
 
-	TWeakPtr<SGitInstallerPanel> WeakThis = SharedThis(this);
+	TWeakPtr<SGitInstallerPanel> WeakPanel = SharedThis(this);
 	FString CapturedStagingPath = CustomStagingPath;
 
-	Async(EAsyncExecution::Thread, [WeakThis, RepoUrl, CapturedStagingPath, Branch]()
+	Async(EAsyncExecution::Thread, [WeakPanel, RepoUrl, CapturedStagingPath, Branch]()
 	{
 		FGitRepoService::FGitResult CloneResult = FGitRepoService::CloneRepo(RepoUrl, CapturedStagingPath, Branch);
 
-		AsyncTask(ENamedThreads::GameThread, [WeakThis, CloneResult, CapturedStagingPath]()
+		AsyncTask(ENamedThreads::GameThread, [WeakPanel, CloneResult, CapturedStagingPath]()
 		{
-			TSharedPtr<SGitInstallerPanel> Panel = WeakThis.Pin();
+			TSharedPtr<SGitInstallerPanel> Panel = WeakPanel.Pin();
 			if (!Panel.IsValid())
 			{
 				return;
