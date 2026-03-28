@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-03-27T08:25:22Z",
+  "generated_at": "2026-03-28T08:20:53Z",
   "summary": {
-    "critical": 1,
-    "high": 27,
-    "medium": 35,
+    "critical": 2,
+    "high": 32,
+    "medium": 39,
     "low": 4,
     "info": 28
   },
   "ecosystems": {
     "npm": {
-      "total": 59,
+      "total": 69,
       "severities": {
-        "critical": 1,
-        "high": 27,
-        "medium": 27,
+        "critical": 2,
+        "high": 32,
+        "medium": 31,
         "low": 4,
         "info": 0
       },
@@ -187,13 +187,6 @@
           "url": "https://github.com/advisories/GHSA-v8jm-5vwx-cfxm"
         },
         {
-          "id": "1114017",
-          "title": "DOMPurify contains a Cross-site Scripting vulnerability",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-v2wj-7wpq-c8vv"
-        },
-        {
           "id": "1114150",
           "title": "SVGO DoS through entity expansion in DOCTYPE (Billion Laughs)",
           "severity": "high",
@@ -313,67 +306,11 @@
           "url": "https://github.com/advisories/GHSA-rf6f-7fwh-wjgh"
         },
         {
-          "id": "1115368",
-          "title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
-          "severity": "medium",
-          "package": "yaml",
-          "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
-        },
-        {
-          "id": "1115369",
-          "title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
-          "severity": "medium",
-          "package": "yaml",
-          "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
-        },
-        {
-          "id": "1115382",
-          "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
-          "severity": "high",
-          "package": "picomatch",
-          "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
-        },
-        {
-          "id": "1115383",
-          "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
-          "severity": "high",
-          "package": "picomatch",
-          "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
-        },
-        {
-          "id": "1115384",
-          "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
-          "severity": "high",
-          "package": "picomatch",
-          "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
-        },
-        {
           "id": "1115393",
           "title": "smol-toml: Denial of Service via TOML documents containing thousands of consecutive commented lines",
           "severity": "medium",
           "package": "smol-toml",
           "url": "https://github.com/advisories/GHSA-v3rj-xjv7-4jmq"
-        },
-        {
-          "id": "1115394",
-          "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
-          "severity": "medium",
-          "package": "picomatch",
-          "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
-        },
-        {
-          "id": "1115395",
-          "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
-          "severity": "medium",
-          "package": "picomatch",
-          "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
-        },
-        {
-          "id": "1115396",
-          "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
-          "severity": "medium",
-          "package": "picomatch",
-          "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
         },
         {
           "id": "1115427",
@@ -383,41 +320,6 @@
           "url": "https://github.com/advisories/GHSA-g735-7g2w-hh3f"
         },
         {
-          "id": "1115432",
-          "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
-          "severity": "medium",
-          "package": "brace-expansion",
-          "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
-        },
-        {
-          "id": "1115450",
-          "title": "Forge has Denial of Service via Infinite Loop in BigInteger.modInverse() with Zero Input",
-          "severity": "high",
-          "package": "node-forge",
-          "url": "https://github.com/advisories/GHSA-5m6q-g25r-mvwx"
-        },
-        {
-          "id": "1115465",
-          "title": "Forge has a basicConstraints bypass in its certificate chain verification (RFC 5280 violation)",
-          "severity": "high",
-          "package": "node-forge",
-          "url": "https://github.com/advisories/GHSA-2328-f5f3-gj25"
-        },
-        {
-          "id": "1115466",
-          "title": "Forge has signature forgery in Ed25519 due to missing S > L check",
-          "severity": "high",
-          "package": "node-forge",
-          "url": "https://github.com/advisories/GHSA-q67f-28xg-22rw"
-        },
-        {
-          "id": "1115467",
-          "title": "Forge has signature forgery in RSA-PKCS due to ASN.1 extra field  ",
-          "severity": "high",
-          "package": "node-forge",
-          "url": "https://github.com/advisories/GHSA-ppp5-5v6c-4jwp"
-        },
-        {
           "id": "1115468",
           "title": "Happy DOM ECMAScriptModuleCompiler: unsanitized export names are interpolated as executable code",
           "severity": "high",
@@ -425,11 +327,179 @@
           "url": "https://github.com/advisories/GHSA-6q6h-j7hj-3r64"
         },
         {
-          "id": "1115469",
+          "id": "1115514",
+          "title": "Handlebars.js has JavaScript Injection in CLI Precompiler via Unescaped Names and Options",
+          "severity": "high",
+          "package": "handlebars",
+          "url": "https://github.com/advisories/GHSA-xjpj-3mr7-gcpf"
+        },
+        {
+          "id": "1115515",
+          "title": "Handlebars.js has JavaScript Injection via AST Type Confusion when passing an object as dynamic partial",
+          "severity": "high",
+          "package": "handlebars",
+          "url": "https://github.com/advisories/GHSA-xhpv-hc6g-r9c6"
+        },
+        {
+          "id": "1115516",
+          "title": "Handlebars.js has Denial of Service via Malformed Decorator Syntax in Template Compilation",
+          "severity": "high",
+          "package": "handlebars",
+          "url": "https://github.com/advisories/GHSA-9cx6-37pm-9jff"
+        },
+        {
+          "id": "1115519",
+          "title": "Serialize JavaScript has CPU Exhaustion Denial of Service via crafted array-like objects",
+          "severity": "medium",
+          "package": "serialize-javascript",
+          "url": "https://github.com/advisories/GHSA-qj8w-gfj5-8c6v"
+        },
+        {
+          "id": "1115527",
+          "title": "path-to-regexp vulnerable to Regular Expression Denial of Service via multiple route parameters",
+          "severity": "high",
+          "package": "path-to-regexp",
+          "url": "https://github.com/advisories/GHSA-37ch-88jc-xwx2"
+        },
+        {
+          "id": "1115529",
+          "title": "DOMPurify is vulnerable to mutation-XSS via Re-Contextualization ",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-h8r8-wccr-v5f2"
+        },
+        {
+          "id": "1115538",
+          "title": "Handlebars.js has JavaScript Injection via AST Type Confusion by tampering @partial-block",
+          "severity": "high",
+          "package": "handlebars",
+          "url": "https://github.com/advisories/GHSA-3mfm-83xf-c92r"
+        },
+        {
+          "id": "1115539",
+          "title": "Handlebars.js has JavaScript Injection via AST Type Confusion",
+          "severity": "critical",
+          "package": "handlebars",
+          "url": "https://github.com/advisories/GHSA-2w6w-674q-4c4q"
+        },
+        {
+          "id": "1115540",
+          "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+          "severity": "medium",
+          "package": "brace-expansion",
+          "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
+        },
+        {
+          "id": "1115541",
+          "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+          "severity": "medium",
+          "package": "brace-expansion",
+          "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
+        },
+        {
+          "id": "1115543",
+          "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+          "severity": "medium",
+          "package": "brace-expansion",
+          "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
+        },
+        {
+          "id": "1115544",
           "title": "Handlebars.js has Prototype Pollution Leading to XSS through Partial Template Injection",
           "severity": "medium",
           "package": "handlebars",
           "url": "https://github.com/advisories/GHSA-2qvq-rjwj-gvw9"
+        },
+        {
+          "id": "1115545",
+          "title": "Forge has a basicConstraints bypass in its certificate chain verification (RFC 5280 violation)",
+          "severity": "high",
+          "package": "node-forge",
+          "url": "https://github.com/advisories/GHSA-2328-f5f3-gj25"
+        },
+        {
+          "id": "1115546",
+          "title": "Forge has signature forgery in Ed25519 due to missing S > L check",
+          "severity": "high",
+          "package": "node-forge",
+          "url": "https://github.com/advisories/GHSA-q67f-28xg-22rw"
+        },
+        {
+          "id": "1115547",
+          "title": "Forge has signature forgery in RSA-PKCS due to ASN.1 extra field  ",
+          "severity": "high",
+          "package": "node-forge",
+          "url": "https://github.com/advisories/GHSA-ppp5-5v6c-4jwp"
+        },
+        {
+          "id": "1115548",
+          "title": "Forge has Denial of Service via Infinite Loop in BigInteger.modInverse() with Zero Input",
+          "severity": "high",
+          "package": "node-forge",
+          "url": "https://github.com/advisories/GHSA-5m6q-g25r-mvwx"
+        },
+        {
+          "id": "1115549",
+          "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+          "severity": "medium",
+          "package": "picomatch",
+          "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
+        },
+        {
+          "id": "1115550",
+          "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+          "severity": "medium",
+          "package": "picomatch",
+          "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
+        },
+        {
+          "id": "1115551",
+          "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+          "severity": "medium",
+          "package": "picomatch",
+          "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
+        },
+        {
+          "id": "1115552",
+          "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+          "severity": "high",
+          "package": "picomatch",
+          "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
+        },
+        {
+          "id": "1115553",
+          "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+          "severity": "high",
+          "package": "picomatch",
+          "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
+        },
+        {
+          "id": "1115554",
+          "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+          "severity": "high",
+          "package": "picomatch",
+          "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
+        },
+        {
+          "id": "1115555",
+          "title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
+          "severity": "medium",
+          "package": "yaml",
+          "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
+        },
+        {
+          "id": "1115556",
+          "title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
+          "severity": "medium",
+          "package": "yaml",
+          "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
+        },
+        {
+          "id": "1115568",
+          "title": "DOMPurify contains a Cross-site Scripting vulnerability",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-v2wj-7wpq-c8vv"
         }
       ]
     },
