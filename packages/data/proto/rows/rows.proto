@@ -1,0 +1,342 @@
+syntax = "proto3";
+package rows;
+
+import "ows/ows.proto";
+
+// ──────────────────────────────────────────────
+// ROWS gRPC Services
+// ──────────────────────────────────────────────
+
+// Public API — player-facing operations (login, characters, server connect)
+service PublicApi {
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc GetAllCharacters(GetAllCharactersRequest) returns (GetAllCharactersResponse);
+  rpc GetServerToConnectTo(GetServerRequest) returns (GetServerResponse);
+  rpc SetSelectedCharacter(SetSelectedCharRequest) returns (SetSelectedCharResponse);
+}
+
+// Instance Management — server-to-ROWS coordination
+service InstanceManagement {
+  rpc RegisterLauncher(RegisterLauncherRequest) returns (RegisterLauncherResponse);
+  rpc GetZoneAssignment(ZoneAssignmentRequest) returns (ZoneAssignmentResponse);
+  rpc UpdateNumberOfPlayers(UpdatePlayersRequest) returns (UpdatePlayersResponse);
+  rpc SpinUpServerInstance(SpinUpRequest) returns (SpinUpResponse);
+  rpc ShutDownServerInstance(ShutDownRequest) returns (ShutDownResponse);
+}
+
+// Character Persistence — stat/position/ability CRUD
+service CharacterPersistence {
+  rpc GetCharacterByName(GetCharByNameRequest) returns (GetCharByNameResponse);
+  rpc UpdateCharacterStats(UpdateStatsRequest) returns (UpdateStatsResponse);
+  rpc GetCustomData(GetCustomDataRequest) returns (GetCustomDataResponse);
+  rpc AddOrUpdateCustomData(AddCustomDataRequest) returns (AddCustomDataResponse);
+}
+
+// Global Data — key/value world state
+service GlobalDataService {
+  rpc GetGlobalDataItem(GetGlobalDataRequest) returns (GetGlobalDataResponse);
+  rpc AddOrUpdateGlobalDataItem(AddGlobalDataRequest) returns (AddGlobalDataResponse);
+}
+
+// GameServer Health — gRPC health check (L7 load balancer compatible)
+service GameServerHealth {
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+// ──────────────────────────────────────────────
+// Auth Messages
+// ──────────────────────────────────────────────
+
+message LoginRequest {
+  string customer_guid = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message LoginResponse {
+  bool success = 1;
+  string user_session_guid = 2;
+  optional string error_message = 3;
+}
+
+message GetAllCharactersRequest {
+  string customer_guid = 1;
+  string user_session_guid = 2;
+}
+
+message GetAllCharactersResponse {
+  repeated ows.Character characters = 1;
+}
+
+// ──────────────────────────────────────────────
+// Server Connection Messages
+// ──────────────────────────────────────────────
+
+message GetServerRequest {
+  string customer_guid = 1;
+  string character_name = 2;
+  string zone_name = 3;
+  int32 player_group_type = 4;
+}
+
+message GetServerResponse {
+  bool success = 1;
+  string server_ip = 2;
+  int32 port = 3;
+  int32 world_server_id = 4;
+  int32 map_instance_id = 5;
+  string map_name_to_start = 6;
+  bool need_to_startup_map = 7;
+  bool enable_auto_loopback = 8;
+  bool no_port_forwarding = 9;
+  optional string error_message = 10;
+}
+
+message SetSelectedCharRequest {
+  string customer_guid = 1;
+  string user_session_guid = 2;
+  string selected_character_name = 3;
+}
+
+message SetSelectedCharResponse {
+  bool success = 1;
+  optional string error_message = 2;
+}
+
+// ──────────────────────────────────────────────
+// Instance Management Messages
+// ──────────────────────────────────────────────
+
+message RegisterLauncherRequest {
+  string customer_guid = 1;
+  string launcher_guid = 2;
+  string server_ip = 3;
+  int32 max_number_of_instances = 4;
+  string internal_server_ip = 5;
+  int32 starting_instance_port = 6;
+}
+
+message RegisterLauncherResponse {
+  bool success = 1;
+  int32 world_server_id = 2;
+  optional string error_message = 3;
+}
+
+// ──────────────────────────────────────────────
+// Iris Zone Assignment Messages
+// ──────────────────────────────────────────────
+
+message ZoneAssignmentRequest {
+  string customer_guid = 1;
+  int32 world_server_id = 2;
+}
+
+message ZoneAssignmentResponse {
+  bool assigned = 1;
+  int32 zone_instance_id = 2;
+  string map_name = 3;
+  string zone_name = 4;
+  int32 port = 5;
+  // Procedural world seed — 0 means handcrafted (no PCG)
+  int64 seed = 6;
+  optional string biome = 7;
+  optional string message = 8;
+}
+
+message SpinUpRequest {
+  string customer_guid = 1;
+  int32 world_server_id = 2;
+  int32 zone_instance_id = 3;
+  string map_name = 4;
+  int32 port = 5;
+  // Procedural seed for PCG-driven worlds
+  int64 seed = 6;
+}
+
+message ShutDownRequest {
+  string customer_guid = 1;
+  int32 zone_instance_id = 2;
+}
+
+message SpinUpResponse {
+  bool success = 1;
+  optional string error_message = 2;
+}
+
+message ShutDownResponse {
+  bool success = 1;
+  optional string error_message = 2;
+}
+
+message UpdatePlayersRequest {
+  string customer_guid = 1;
+  int32 zone_instance_id = 2;
+  int32 number_of_players = 3;
+}
+
+message UpdatePlayersResponse {
+  bool success = 1;
+}
+
+// ──────────────────────────────────────────────
+// System / Dashboard Messages
+// ──────────────────────────────────────────────
+
+message FleetStatusRequest {
+  string customer_guid = 1;
+}
+
+message FleetStatusResponse {
+  string fleet_name = 1;
+  string namespace = 2;
+  int32 ready = 3;
+  int32 allocated = 4;
+  int32 shutdown = 5;
+  int32 desired = 6;
+  repeated GameServerInfo game_servers = 7;
+}
+
+message GameServerInfo {
+  string name = 1;
+  string state = 2;
+  string address = 3;
+  int32 port = 4;
+  int32 zone_instance_id = 5;
+  string map_name = 6;
+  int32 players = 7;
+  int64 age_seconds = 8;
+  // Procedural seed (0 = handcrafted)
+  int64 seed = 9;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  string status = 1;
+  string version = 2;
+  int64 uptime_seconds = 3;
+  map<string, SubsystemHealth> checks = 4;
+  int32 active_sessions = 5;
+  int32 active_instances = 6;
+}
+
+message SubsystemHealth {
+  bool ok = 1;
+  optional int64 latency_ms = 2;
+  optional string error = 3;
+}
+
+message RestartServerRequest {
+  string customer_guid = 1;
+  int32 zone_instance_id = 2;
+}
+
+message RestartServerResponse {
+  bool success = 1;
+  optional string message = 2;
+}
+
+message RestartFleetRequest {
+  string customer_guid = 1;
+  int32 replicas = 2;
+}
+
+message RestartFleetResponse {
+  bool success = 1;
+  optional string message = 2;
+}
+
+// ──────────────────────────────────────────────
+// Character Persistence Messages
+// ──────────────────────────────────────────────
+
+message GetCharByNameRequest {
+  string customer_guid = 1;
+  string character_name = 2;
+}
+
+message GetCharByNameResponse {
+  bool success = 1;
+  optional ows.Character character = 2;
+  optional string error_message = 3;
+}
+
+message UpdateStatsRequest {
+  string customer_guid = 1;
+  string character_name = 2;
+  // Stats as JSON — flexible for different stat sets
+  string stats_json = 3;
+}
+
+message UpdateStatsResponse {
+  bool success = 1;
+  optional string error_message = 2;
+}
+
+message GetCustomDataRequest {
+  string customer_guid = 1;
+  string character_name = 2;
+  optional string custom_field_name = 3;
+}
+
+message GetCustomDataResponse {
+  bool success = 1;
+  repeated ows.CustomCharacterData custom_data = 2;
+  optional string error_message = 3;
+}
+
+message AddCustomDataRequest {
+  string customer_guid = 1;
+  string character_name = 2;
+  string custom_field_name = 3;
+  string field_value = 4;
+}
+
+message AddCustomDataResponse {
+  bool success = 1;
+  optional string error_message = 2;
+}
+
+// ──────────────────────────────────────────────
+// Global Data Messages
+// ──────────────────────────────────────────────
+
+message GetGlobalDataRequest {
+  string customer_guid = 1;
+  string global_data_key = 2;
+}
+
+message GetGlobalDataResponse {
+  bool success = 1;
+  optional string global_data_value = 2;
+  optional string error_message = 3;
+}
+
+message AddGlobalDataRequest {
+  string customer_guid = 1;
+  string global_data_key = 2;
+  string global_data_value = 3;
+}
+
+message AddGlobalDataResponse {
+  bool success = 1;
+  optional string error_message = 2;
+}
+
+// ──────────────────────────────────────────────
+// Health Check (grpc.health.v1 compatible)
+// ──────────────────────────────────────────────
+
+message HealthCheckRequest {
+  optional string service = 1;
+}
+
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+    SERVICE_UNKNOWN = 3;
+  }
+  ServingStatus status = 1;
+}
