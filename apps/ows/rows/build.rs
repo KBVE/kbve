@@ -7,6 +7,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
+    // All .proto sources live in packages/data/proto/ (single source of truth).
+    // Compiled .rs outputs are vendored in src/proto/ for CI builds.
+    let proto_root = "../../../packages/data/proto";
     let out_dir = "src/proto";
     std::fs::create_dir_all(out_dir)?;
 
@@ -16,10 +19,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .out_dir(out_dir)
         .compile_protos(
             &[
-                "../../../packages/data/proto/ows/ows.proto",
-                "proto/rows.proto",
+                &format!("{proto_root}/ows/ows.proto"),
+                &format!("{proto_root}/rows/rows.proto"),
             ],
-            &["../../../packages/data/proto", "proto"],
+            &[proto_root],
         )?;
+
+    println!("cargo:warning=Protobuf compilation complete (ows + rows)");
     Ok(())
 }
