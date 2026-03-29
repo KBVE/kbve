@@ -161,10 +161,23 @@ pre {
 	border-radius: 4px;
 }
 
-/* ── Sidebar active item: firelight glow ── */
+/* ── Sidebar active item: dark text on firelight bg ── */
 nav[aria-label='Main'] a[aria-current='page'] {
-	color: var(--ck-firelight) !important;
+	color: var(--ck-stone) !important;
 	border-left-color: var(--ck-firelight) !important;
+}
+
+/* ── Auth-gated sidebar: hide items until auth state resolves ── */
+a[data-auth-visibility] {
+	display: none;
+}
+
+html[data-auth-tone='auth'] a[data-auth-visibility='auth'] {
+	display: block;
+}
+
+html[data-auth-tone='anon'] a[data-auth-visibility='anon'] {
+	display: block;
 }
 
 /* ── Skeleton pulse animation ── */
