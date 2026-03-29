@@ -1,8 +1,30 @@
 //! Supabase integration module — JWT validation + service key auth.
 //!
-//! Two auth paths for ROWS:
+//! ## Existing Supabase crates in the monorepo
 //!
-//! ## A) Player Auth (JWT)
+//! - `packages/rust/erust/src/supabase/` — client-side SDK (ehttp, for Bevy/game clients)
+//!   - `auth.rs`: sign_in_with_password, sign_out, sign_up
+//!   - `session.rs`: Session, SupabaseUser, AuthResponse
+//!   - `config.rs`: SupabaseConfig (url + anon_key), auth_url, functions_url, realtime_url
+//!   - `functions.rs`: Edge function invocation
+//!   - `client.rs`: Full client with auth + functions + session management
+//!
+//! - `packages/rust/kbve/src/entity/client/supabase.rs` — server-side PostgREST client (reqwest)
+//!   - SupabaseClient: query builder (from/select/eq/insert), RPC calls, JWT support
+//!   - Used by discordsh for member lookups
+//!
+//! ## This module (ROWS-specific)
+//!
+//! Neither existing crate validates INCOMING JWTs — they're clients that SEND tokens.
+//! ROWS needs the inverse: validate tokens received from UE5 clients and dashboards.
+//!
+//! TODO(reuse): When SupabaseConfig is needed for PostgREST queries from ROWS,
+//! depend on `kbve` crate's SupabaseClient instead of duplicating.
+//! Current module only handles JWT validation + service key auth.
+//!
+//! ## Two auth paths for ROWS:
+//!
+//! ### A) Player Auth (JWT)
 //! Client logs in via Supabase Auth → gets JWT → sends as Authorization: Bearer <jwt>
 //! ROWS validates JWT locally using Supabase JWT secret (no round-trip).
 //!
@@ -12,7 +34,7 @@
 //!   3. ROWS: validate JWT signature, extract user_id + customer_guid from claims
 //!   4. ROWS: proceed with request using extracted identities
 //!
-//! ## B) Service Key Auth
+//! ### B) Service Key Auth
 //! Dashboard/CI/admin tools use the Supabase service_role key.
 //! Required for /api/System/* endpoints.
 //!
