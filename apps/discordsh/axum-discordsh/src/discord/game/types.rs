@@ -334,10 +334,107 @@ pub struct ItemDef {
     pub use_effect: Option<UseEffect>,
 }
 
+/// Legacy item stack — thin wrapper kept for serialization compatibility
+/// with persistence and rendering code. New code should prefer
+/// `bevy_inventory::Inventory<ProtoItemKind>` directly.
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct ItemStack {
     pub item_id: ItemId,
     pub qty: u16,
+}
+
+/// Type alias for the bevy_inventory-backed inventory used in PlayerState.
+pub type GameInventory = bevy_inventory::Inventory<bevy_items::inventory_adapter::ProtoItemKind>;
+
+/// Re-export for convenience.
+pub type ProtoItemKind = bevy_items::inventory_adapter::ProtoItemKind;
+
+// ── Inventory bridge helpers ──────────────────────────────────────
+
+/// Add an item by game ID string (e.g. `"smoke_bomb"`) to a `GameInventory`.
+/// Returns `true` if the item was added (or stacked), `false` if inventory was
+/// full or the item ID could not be resolved.
+pub fn inv_add(inv: &mut GameInventory, game_id: &str) -> bool {
+    inv_add_qty(inv, game_id, 1)
+}
+
+/// Add `qty` of an item by game ID string to a `GameInventory`.
+/// Returns `true` if all items fit.
+pub fn inv_add_qty(inv: &mut GameInventory, game_id: &str, qty: u32) -> bool {
+    let Some(kind) = super::proto_bridge::game_id_to_proto_item_kind(game_id) else {
+        return false;
+    };
+    inv.add(kind, qty) == 0
+}
+
+/// Remove one of an item by game ID string from a `GameInventory`.
+/// Returns `true` if the item was found and removed.
+pub fn inv_remove(inv: &mut GameInventory, game_id: &str) -> bool {
+    inv_remove_qty(inv, game_id, 1)
+}
+
+/// Remove `qty` of an item by game ID string from a `GameInventory`.
+/// Returns `true` if the requested quantity was fully removed.
+pub fn inv_remove_qty(inv: &mut GameInventory, game_id: &str, qty: u32) -> bool {
+    let Some(kind) = super::proto_bridge::game_id_to_proto_item_kind(game_id) else {
+        return false;
+    };
+    inv.remove(kind, qty) == qty
+}
+
+/// Check if inventory contains at least one of the given game ID.
+pub fn inv_contains(inv: &GameInventory, game_id: &str) -> bool {
+    let Some(kind) = super::proto_bridge::game_id_to_proto_item_kind(game_id) else {
+        return false;
+    };
+    inv.contains(kind)
+}
+
+/// Count how many of a given game ID are in inventory.
+pub fn inv_count(inv: &GameInventory, game_id: &str) -> u32 {
+    let Some(kind) = super::proto_bridge::game_id_to_proto_item_kind(game_id) else {
+        return 0;
+    };
+    inv.count(kind)
+}
+
+/// Check if the inventory can fit one more item of the given game ID.
+pub fn inv_has_room_for(inv: &GameInventory, game_id: &str) -> bool {
+    let Some(kind) = super::proto_bridge::game_id_to_proto_item_kind(game_id) else {
+        return false;
+    };
+    inv.has_room_for(kind, 1)
+}
+
+/// Build a `GameInventory` from a list of `(game_id, qty)` pairs.
+pub fn inv_from_pairs(pairs: &[(&str, u32)]) -> GameInventory {
+    let mut inv = GameInventory::new(MAX_INVENTORY_SLOTS);
+    for &(id, qty) in pairs {
+        inv_add_qty(&mut inv, id, qty);
+    }
+    inv
+}
+
+/// Convert a `GameInventory` to legacy `Vec<ItemStack>` for rendering/serialization.
+pub fn inv_to_legacy(inv: &GameInventory) -> Vec<ItemStack> {
+    inv.iter()
+        .filter_map(|stack| {
+            let game_id = super::proto_bridge::proto_item_kind_to_game_id(&stack.kind)?;
+            Some(ItemStack {
+                item_id: game_id.to_owned(),
+                qty: stack.quantity as u16,
+            })
+        })
+        .collect()
+}
+
+/// Build a `GameInventory` from a legacy `Vec<ItemStack>`.
+pub fn inv_from_legacy(items: &[ItemStack]) -> GameInventory {
+    let mut inv = GameInventory::new(MAX_INVENTORY_SLOTS);
+    for stack in items {
+        inv_add_qty(&mut inv, &stack.item_id, stack.qty as u32);
+    }
+    inv
 }
 
 // ── Equipment / Gear ────────────────────────────────────────────────
@@ -406,7 +503,7 @@ pub struct PlayerState {
     pub armor: i32,
     pub gold: i32,
     pub effects: Vec<EffectInstance>,
-    pub inventory: Vec<ItemStack>,
+    pub inventory: GameInventory,
     pub accuracy: f32,
     pub alive: bool,
     pub member_status: MemberStatusTag,
@@ -440,7 +537,7 @@ impl Default for PlayerState {
             armor: 5,
             gold: 0,
             effects: Vec::new(),
-            inventory: Vec::new(),
+            inventory: GameInventory::new(MAX_INVENTORY_SLOTS),
             accuracy: 1.0,
             alive: true,
             member_status: MemberStatusTag::Guest,
@@ -480,14 +577,28 @@ impl PlayerState {
             .sum()
     }
 
-    /// Number of occupied inventory slots (stacks with qty > 0).
+    /// Number of occupied inventory slots.
     pub fn inventory_slots_used(&self) -> usize {
-        self.inventory.iter().filter(|s| s.qty > 0).count()
+        self.inventory.slot_count()
     }
 
     /// Whether the inventory is at capacity.
     pub fn inventory_full(&self) -> bool {
-        self.inventory_slots_used() >= MAX_INVENTORY_SLOTS
+        !self.inventory.has_room()
+    }
+
+    /// Convert inventory to legacy `Vec<ItemStack>` for rendering/serialization.
+    pub fn inventory_as_legacy(&self) -> Vec<ItemStack> {
+        self.inventory
+            .iter()
+            .filter_map(|stack| {
+                let game_id = super::proto_bridge::proto_item_kind_to_game_id(&stack.kind)?;
+                Some(ItemStack {
+                    item_id: game_id.to_owned(),
+                    qty: stack.quantity as u16,
+                })
+            })
+            .collect()
     }
 }
 
@@ -1191,30 +1302,41 @@ mod tests {
     #[test]
     fn inventory_slots_used_counts_nonzero_qty() {
         let mut p = PlayerState::default();
-        p.inventory.push(ItemStack {
-            item_id: "potion".to_owned(),
-            qty: 3,
-        });
-        p.inventory.push(ItemStack {
-            item_id: "bomb".to_owned(),
-            qty: 0,
-        });
-        p.inventory.push(ItemStack {
-            item_id: "ward".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut p.inventory, "potion", 3);
+        // Note: inv_add_qty with 0 is a no-op, so we skip the "bomb" with qty 0
+        inv_add_qty(&mut p.inventory, "ward", 1);
         assert_eq!(p.inventory_slots_used(), 2);
         assert!(!p.inventory_full());
     }
 
+    // Real item IDs from the proto database (each is unique → occupies its own slot).
+    // Each pair is (item_id, max_stack) so slots are completely full and
+    // `has_room()` returns false once all MAX_INVENTORY_SLOTS are occupied.
+    const FILL_ITEMS_FULL: &[(&str, u32)] = &[
+        ("campfire_kit", 1),
+        ("chain_mail", 1),
+        ("crystal_armor", 1),
+        ("dragon_scale", 1),
+        ("elixir", 1),
+        ("excalibur", 1),
+        ("flame_axe", 1),
+        ("glass_stiletto", 1),
+        ("iron_mace", 1),
+        ("leather_vest", 1),
+        ("phoenix_feather", 1),
+        ("runeguard_plate", 1),
+        ("rusty_sword", 1),
+        ("shadow_cloak", 1),
+        ("shadow_dagger", 1),
+        ("smoke_bomb", 1),
+        ("spiked_plate", 1),
+    ];
+
     #[test]
     fn inventory_full_at_max_slots() {
         let mut p = PlayerState::default();
-        for i in 0..MAX_INVENTORY_SLOTS {
-            p.inventory.push(ItemStack {
-                item_id: format!("item_{i}"),
-                qty: 1,
-            });
+        for &(id, qty) in FILL_ITEMS_FULL.iter().take(MAX_INVENTORY_SLOTS) {
+            inv_add_qty(&mut p.inventory, id, qty);
         }
         assert_eq!(p.inventory_slots_used(), MAX_INVENTORY_SLOTS);
         assert!(p.inventory_full());
@@ -1223,19 +1345,12 @@ mod tests {
     #[test]
     fn inventory_full_boundary() {
         let mut p = PlayerState::default();
-        // Fill to MAX - 1
-        for i in 0..(MAX_INVENTORY_SLOTS - 1) {
-            p.inventory.push(ItemStack {
-                item_id: format!("item_{i}"),
-                qty: 1,
-            });
+        for &(id, qty) in FILL_ITEMS_FULL.iter().take(MAX_INVENTORY_SLOTS - 1) {
+            inv_add_qty(&mut p.inventory, id, qty);
         }
         assert!(!p.inventory_full(), "should not be full at MAX-1");
-        // Add one more
-        p.inventory.push(ItemStack {
-            item_id: "last_item".to_owned(),
-            qty: 1,
-        });
+        let (id, qty) = FILL_ITEMS_FULL[MAX_INVENTORY_SLOTS - 1];
+        inv_add_qty(&mut p.inventory, id, qty);
         assert!(p.inventory_full(), "should be full at MAX");
     }
 
@@ -1301,10 +1416,7 @@ mod tests {
             stacks: 2,
             turns_left: 3,
         });
-        player.inventory.push(ItemStack {
-            item_id: "potion".to_owned(),
-            qty: 5,
-        });
+        inv_add_qty(&mut player.inventory, "potion", 5);
         players.insert(owner, player);
 
         let session = SessionState {
@@ -1365,8 +1477,10 @@ mod tests {
         assert_eq!(p["name"], "TestHero");
         assert_eq!(p["gold"], 100);
         assert_eq!(p["weapon"], "rusty_sword");
-        assert_eq!(p["inventory"][0]["item_id"], "potion");
-        assert_eq!(p["inventory"][0]["qty"], 5);
+        // Inventory serializes as bevy_inventory format: { items: [...], max_slots: N }
+        assert!(p["inventory"]["items"].is_array());
+        assert_eq!(p["inventory"]["items"].as_array().unwrap().len(), 1);
+        assert_eq!(p["inventory"]["items"][0]["quantity"], 5);
         assert_eq!(p["effects"][0]["kind"], "Poison");
 
         // Enemies

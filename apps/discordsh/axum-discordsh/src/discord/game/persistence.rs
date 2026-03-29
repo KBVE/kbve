@@ -12,7 +12,10 @@ use tracing::{debug, error, warn};
 
 use kbve::SupabaseClient;
 
-use super::types::{ClassType, GameOverReason, ItemStack, PlayerState, QuestJournal, SessionState};
+use super::types::{
+    ClassType, GameInventory, GameOverReason, ItemStack, PlayerState, QuestJournal, SessionState,
+    inv_add_qty, inv_from_pairs, inv_to_legacy,
+};
 
 const SCHEMA: &str = "discordsh";
 const CACHE_CAP: usize = 512;
@@ -273,10 +276,7 @@ pub fn apply_profile_to_player(
     // Restore inventory from JSONB
     if let Ok(slots) = serde_json::from_value::<Vec<InventorySlot>>(profile.inventory.clone()) {
         for slot in slots {
-            player.inventory.push(ItemStack {
-                item_id: slot.item_id,
-                qty: slot.qty,
-            });
+            inv_add_qty(&mut player.inventory, &slot.item_id, slot.qty as u32);
         }
     }
 
@@ -460,8 +460,9 @@ fn reason_to_outcome(reason: &GameOverReason) -> i16 {
     }
 }
 
-fn inventory_to_json(inv: &[ItemStack]) -> serde_json::Value {
-    let slots: Vec<InventorySlot> = inv
+fn inventory_to_json(inv: &GameInventory) -> serde_json::Value {
+    let legacy = inv_to_legacy(inv);
+    let slots: Vec<InventorySlot> = legacy
         .iter()
         .map(|s| InventorySlot {
             item_id: s.item_id.clone(),
@@ -502,20 +503,11 @@ mod tests {
 
     #[test]
     fn inventory_json_round_trip() {
-        let inv = vec![
-            ItemStack {
-                item_id: "potion_hp".to_owned(),
-                qty: 3,
-            },
-            ItemStack {
-                item_id: "gold_coin".to_owned(),
-                qty: 10,
-            },
-        ];
+        let inv = inv_from_pairs(&[("potion", 3), ("bomb", 2)]);
         let json = inventory_to_json(&inv);
         let slots: Vec<InventorySlot> = serde_json::from_value(json).unwrap();
         assert_eq!(slots.len(), 2);
-        assert_eq!(slots[0].item_id, "potion_hp");
+        assert_eq!(slots[0].item_id, "potion");
         assert_eq!(slots[0].qty, 3);
     }
 

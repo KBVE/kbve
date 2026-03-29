@@ -194,21 +194,8 @@ pub fn find_item(id: &str) -> Option<&'static ItemDef> {
 }
 
 /// Default starting inventory for a new session.
-pub fn starting_inventory() -> Vec<ItemStack> {
-    vec![
-        ItemStack {
-            item_id: "potion".to_owned(),
-            qty: 2,
-        },
-        ItemStack {
-            item_id: "bandage".to_owned(),
-            qty: 1,
-        },
-        ItemStack {
-            item_id: "bomb".to_owned(),
-            qty: 1,
-        },
-    ]
+pub fn starting_inventory() -> GameInventory {
+    inv_from_pairs(&[("potion", 2), ("bandage", 1), ("bomb", 1)])
 }
 
 // ── Gear registry (proto-driven) ────────────────────────────────────
@@ -2686,9 +2673,10 @@ mod tests {
     #[test]
     fn starting_inventory_has_items() {
         let inv = starting_inventory();
-        assert_eq!(inv.len(), 3);
-        assert_eq!(inv[0].item_id, "potion");
-        assert_eq!(inv[0].qty, 2);
+        let legacy = inv_to_legacy(&inv);
+        assert_eq!(legacy.len(), 3);
+        assert_eq!(legacy[0].item_id, "potion");
+        assert_eq!(legacy[0].qty, 2);
     }
 
     #[test]
