@@ -31,58 +31,62 @@ enum Biome {
 
 // Zone type — functional classification
 enum ZoneType {
-  ZONE_TYPE_OVERWORLD    = 0;
-  ZONE_TYPE_DUNGEON      = 1;
-  ZONE_TYPE_INSTANCE     = 2;    // Private per-party instance
-  ZONE_TYPE_CITY         = 3;
-  ZONE_TYPE_ARENA        = 4;    // PvP / challenge
-  ZONE_TYPE_SAFE         = 5;    // No combat
-  ZONE_TYPE_WILDERNESS   = 6;    // Open PvP / high danger
-  ZONE_TYPE_RAID         = 7;
-  ZONE_TYPE_TUTORIAL     = 8;
-  ZONE_TYPE_EVENT        = 9;    // Seasonal / limited-time
+  ZONE_TYPE_UNSPECIFIED  = 0;
+  ZONE_TYPE_OVERWORLD    = 1;
+  ZONE_TYPE_DUNGEON      = 2;
+  ZONE_TYPE_INSTANCE     = 3;    // Private per-party instance
+  ZONE_TYPE_CITY         = 4;
+  ZONE_TYPE_ARENA        = 5;    // PvP / challenge
+  ZONE_TYPE_SAFE         = 6;    // No combat
+  ZONE_TYPE_WILDERNESS   = 7;    // Open PvP / high danger
+  ZONE_TYPE_RAID         = 8;
+  ZONE_TYPE_TUTORIAL     = 9;
+  ZONE_TYPE_EVENT        = 10;   // Seasonal / limited-time
 }
 
 // Room type — for tile-based dungeons (discordsh-style)
 enum RoomType {
-  ROOM_TYPE_EMPTY            = 0;
-  ROOM_TYPE_COMBAT           = 1;
-  ROOM_TYPE_TREASURE         = 2;
-  ROOM_TYPE_TRAP             = 3;
-  ROOM_TYPE_REST_SHRINE      = 4;
-  ROOM_TYPE_MERCHANT         = 5;
-  ROOM_TYPE_BOSS             = 6;
-  ROOM_TYPE_STORY            = 7;
-  ROOM_TYPE_HALLWAY          = 8;
-  ROOM_TYPE_UNDERGROUND_CITY = 9;
-  ROOM_TYPE_PUZZLE           = 10;
-  ROOM_TYPE_SECRET           = 11;
-  ROOM_TYPE_PORTAL           = 12;
+  ROOM_TYPE_UNSPECIFIED      = 0;
+  ROOM_TYPE_EMPTY            = 1;
+  ROOM_TYPE_COMBAT           = 2;
+  ROOM_TYPE_TREASURE         = 3;
+  ROOM_TYPE_TRAP             = 4;
+  ROOM_TYPE_REST_SHRINE      = 5;
+  ROOM_TYPE_MERCHANT         = 6;
+  ROOM_TYPE_BOSS             = 7;
+  ROOM_TYPE_STORY            = 8;
+  ROOM_TYPE_HALLWAY          = 9;
+  ROOM_TYPE_UNDERGROUND_CITY = 10;
+  ROOM_TYPE_PUZZLE           = 11;
+  ROOM_TYPE_SECRET           = 12;
+  ROOM_TYPE_PORTAL           = 13;
 }
 
 // Compass direction for tile exits / adjacency
 enum Direction {
-  DIRECTION_NORTH = 0;
-  DIRECTION_SOUTH = 1;
-  DIRECTION_EAST  = 2;
-  DIRECTION_WEST  = 3;
-  DIRECTION_UP    = 4;
-  DIRECTION_DOWN  = 5;
+  DIRECTION_UNSPECIFIED = 0;
+  DIRECTION_NORTH = 1;
+  DIRECTION_SOUTH = 2;
+  DIRECTION_EAST  = 3;
+  DIRECTION_WEST  = 4;
+  DIRECTION_UP    = 5;
+  DIRECTION_DOWN  = 6;
 }
 
 // Room modifier — environmental effects on combat / exploration
 enum RoomModifier {
-  ROOM_MODIFIER_NONE     = 0;
-  ROOM_MODIFIER_FOG      = 1;    // Reduced accuracy / vision
-  ROOM_MODIFIER_BLESSING = 2;    // Healing bonus
-  ROOM_MODIFIER_CURSED   = 3;    // Damage multiplier on players
-  ROOM_MODIFIER_FLOODED  = 4;    // Movement penalty
-  ROOM_MODIFIER_BURNING  = 5;    // Periodic fire damage
-  ROOM_MODIFIER_FROZEN   = 6;    // Slow / ice hazards
-  ROOM_MODIFIER_TOXIC    = 7;    // Poison buildup
-  ROOM_MODIFIER_DARK     = 8;    // Requires light source
-  ROOM_MODIFIER_HOLY     = 9;    // Bonus vs undead, heal over time
-  ROOM_MODIFIER_ARCANE   = 10;   // Magic amplification
+  ROOM_MODIFIER_UNSPECIFIED = 0;
+  ROOM_MODIFIER_NONE     = 1;
+  ROOM_MODIFIER_FOG      = 2;    // Reduced accuracy / vision
+  ROOM_MODIFIER_BLESSING = 3;    // Healing bonus
+  ROOM_MODIFIER_CURSED   = 4;    // Damage multiplier on players
+  ROOM_MODIFIER_FLOODED  = 5;    // Movement penalty
+  ROOM_MODIFIER_BURNING  = 6;    // Periodic fire damage
+  ROOM_MODIFIER_FROZEN   = 7;    // Slow / ice hazards
+  ROOM_MODIFIER_TOXIC    = 8;    // Poison buildup
+  ROOM_MODIFIER_DARK     = 9;    // Requires light source
+  ROOM_MODIFIER_HOLY     = 10;   // Bonus vs undead, heal over time
+  ROOM_MODIFIER_ARCANE   = 11;   // Magic amplification
 }
 
 // World object archetype — gameplay role, not physical shape.
@@ -153,25 +157,26 @@ enum CraftingStationType {
 
 // Point of interest type
 enum PoiType {
-  POI_CITY         = 0;
-  POI_TOWN         = 1;
-  POI_VILLAGE      = 2;
-  POI_DUNGEON      = 3;
-  POI_LANDMARK     = 4;
-  POI_SHRINE       = 5;
-  POI_MERCHANT     = 6;
-  POI_CAMP         = 7;
-  POI_RUINS        = 8;
-  POI_MINE         = 9;
-  POI_FARM         = 10;
-  POI_PORT         = 11;
-  POI_TOWER        = 12;
-  POI_CAVE         = 13;
-  POI_ARENA        = 14;
-  POI_GUILD_HALL   = 15;
-  POI_SPAWN_POINT  = 16;
-  POI_QUEST_HUB    = 17;
-  POI_CUSTOM       = 18;
+  POI_UNSPECIFIED  = 0;
+  POI_CITY         = 1;
+  POI_TOWN         = 2;
+  POI_VILLAGE      = 3;
+  POI_DUNGEON      = 4;
+  POI_LANDMARK     = 5;
+  POI_SHRINE       = 6;
+  POI_MERCHANT     = 7;
+  POI_CAMP         = 8;
+  POI_RUINS        = 9;
+  POI_MINE         = 10;
+  POI_FARM         = 11;
+  POI_PORT         = 12;
+  POI_TOWER        = 13;
+  POI_CAVE         = 14;
+  POI_ARENA        = 15;
+  POI_GUILD_HALL   = 16;
+  POI_SPAWN_POINT  = 17;
+  POI_QUEST_HUB    = 18;
+  POI_CUSTOM       = 19;
 }
 
 // Terrain band type — height-based visual classification
@@ -188,13 +193,14 @@ enum TerrainBand {
 
 // Spawn category — what kind of entity spawns here
 enum SpawnCategory {
-  SPAWN_CATEGORY_NPC        = 0;
-  SPAWN_CATEGORY_RESOURCE   = 1;   // Ore, tree, herb node
-  SPAWN_CATEGORY_OBJECT     = 2;   // Chest, crate, decoration
-  SPAWN_CATEGORY_ENEMY      = 3;
-  SPAWN_CATEGORY_BOSS       = 4;
-  SPAWN_CATEGORY_EVENT      = 5;   // Seasonal / triggered spawn
-  SPAWN_CATEGORY_AMBIENT    = 6;   // Critters, birds, particles
+  SPAWN_CATEGORY_UNSPECIFIED = 0;
+  SPAWN_CATEGORY_NPC        = 1;
+  SPAWN_CATEGORY_RESOURCE   = 2;   // Ore, tree, herb node
+  SPAWN_CATEGORY_OBJECT     = 3;   // Chest, crate, decoration
+  SPAWN_CATEGORY_ENEMY      = 4;
+  SPAWN_CATEGORY_BOSS       = 5;
+  SPAWN_CATEGORY_EVENT      = 6;   // Seasonal / triggered spawn
+  SPAWN_CATEGORY_AMBIENT    = 7;   // Critters, birds, particles
 }
 
 // =============================================================================
@@ -618,35 +624,39 @@ message HexCoord {
 
 // How a zone's content is generated / authored
 enum GenerationMode {
-  GENERATION_STATIC_AUTHORED         = 0;  // Hand-built, no procedural generation
-  GENERATION_FINITE_PROCEDURAL       = 1;  // Generated once from seed, bounded area
-  GENERATION_INFINITE_PROCEDURAL     = 2;  // Gateway to unbounded chunk-managed generation
-  GENERATION_INSTANCED               = 3;  // Private copy per party (dungeons, raids)
-  GENERATION_TRANSIT                 = 4;  // Transition zone (loading, portals)
+  GENERATION_UNSPECIFIED             = 0;
+  GENERATION_STATIC_AUTHORED         = 1;  // Hand-built, no procedural generation
+  GENERATION_FINITE_PROCEDURAL       = 2;  // Generated once from seed, bounded area
+  GENERATION_INFINITE_PROCEDURAL     = 3;  // Gateway to unbounded chunk-managed generation
+  GENERATION_INSTANCED               = 4;  // Private copy per party (dungeons, raids)
+  GENERATION_TRANSIT                 = 5;  // Transition zone (loading, portals)
 }
 
 // How a hex zone persists its state across sessions
 enum PersistenceMode {
-  PERSISTENCE_CANONICAL              = 0;  // Saved as-is (authored content)
-  PERSISTENCE_DETERMINISTIC_REGEN    = 1;  // Regenerated from seed; only deltas saved
-  PERSISTENCE_DELTA                  = 2;  // Generated base + saved mutations
-  PERSISTENCE_SESSION_ONLY           = 3;  // Lost on session end
+  PERSISTENCE_UNSPECIFIED            = 0;
+  PERSISTENCE_CANONICAL              = 1;  // Saved as-is (authored content)
+  PERSISTENCE_DETERMINISTIC_REGEN    = 2;  // Regenerated from seed; only deltas saved
+  PERSISTENCE_DELTA                  = 3;  // Generated base + saved mutations
+  PERSISTENCE_SESSION_ONLY           = 4;  // Lost on session end
 }
 
 // Hint for how a zone should be streamed / loaded
 enum StreamingHint {
-  STREAMING_PARTITIONED              = 0;  // Engine-managed spatial partition (e.g. World Partition)
-  STREAMING_CHUNK_RING               = 1;  // Active ring of chunks around players
-  STREAMING_DESCRIPTOR_ACTIVATED     = 2;  // Loaded on demand from descriptors
-  STREAMING_INSTANCE_LOADED          = 3;  // Fully loaded as a private instance
+  STREAMING_UNSPECIFIED              = 0;
+  STREAMING_PARTITIONED              = 1;  // Engine-managed spatial partition (e.g. World Partition)
+  STREAMING_CHUNK_RING               = 2;  // Active ring of chunks around players
+  STREAMING_DESCRIPTOR_ACTIVATED     = 3;  // Loaded on demand from descriptors
+  STREAMING_INSTANCE_LOADED          = 4;  // Fully loaded as a private instance
 }
 
 // Hint for how zone actors should be replicated to clients
 enum ReplicationHint {
-  REPLICATION_STATIC_ONLY            = 0;  // No dynamic replication; visuals only
-  REPLICATION_LOCAL_DYNAMIC          = 1;  // Replicate nearby dynamic actors
-  REPLICATION_CHUNK_SCOPED           = 2;  // Replicate within active chunk radius
-  REPLICATION_FULL_INSTANCE          = 3;  // Replicate everything (instanced zones)
+  REPLICATION_UNSPECIFIED            = 0;
+  REPLICATION_STATIC_ONLY            = 1;  // No dynamic replication; visuals only
+  REPLICATION_LOCAL_DYNAMIC          = 2;  // Replicate nearby dynamic actors
+  REPLICATION_CHUNK_SCOPED           = 3;  // Replicate within active chunk radius
+  REPLICATION_FULL_INSTANCE          = 4;  // Replicate everything (instanced zones)
 }
 
 // Deterministic seed derivation policy for a zone
@@ -663,10 +673,11 @@ message HexTravelLink {
   HexCoord to = 2;
 
   enum TravelType {
-    TRAVEL_OPEN    = 0;                    // Freely traversable
-    TRAVEL_GATED   = 1;                    // Requires key, quest, or level
-    TRAVEL_ONE_WAY = 2;                    // From → To only
-    TRAVEL_BLOCKED = 3;                    // Currently impassable
+    TRAVEL_UNSPECIFIED = 0;
+    TRAVEL_OPEN    = 1;                    // Freely traversable
+    TRAVEL_GATED   = 2;                    // Requires key, quest, or level
+    TRAVEL_ONE_WAY = 3;                    // From → To only
+    TRAVEL_BLOCKED = 4;                    // Currently impassable
   }
   TravelType travel_type = 3;
 
