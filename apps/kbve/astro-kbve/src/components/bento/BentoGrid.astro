@@ -294,6 +294,35 @@ const lucideIcons: Record<string, string[]> = {
 		border-color: rgba(56, 189, 248, 0.3) !important;
 	}
 
+	/* Resize handle — bottom-right corner */
+	:global(.bento-resize-handle) {
+		position: absolute;
+		bottom: 0;
+		right: 0;
+		width: 1.5rem;
+		height: 1.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: nwse-resize;
+		color: rgba(255, 255, 255, 0.15);
+		z-index: 10;
+		opacity: 0;
+		transition:
+			opacity 0.2s,
+			color 0.2s;
+		border-radius: 0 0 1rem 0;
+	}
+	:global(.bento-card:hover .bento-resize-handle) {
+		opacity: 1;
+	}
+	:global(.bento-resize-handle:hover) {
+		color: rgba(56, 189, 248, 0.6);
+	}
+	:global(.bento-resize-handle:active) {
+		color: #38bdf8;
+	}
+
 	/* React unit picker */
 	:global(.bento-card-controls-overlay .bento-unit-picker) {
 		display: flex;

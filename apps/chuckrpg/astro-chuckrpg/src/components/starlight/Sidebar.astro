@@ -1,0 +1,18 @@
+---
+import StarlightSidebar from '@astrojs/starlight/components/Sidebar.astro';
+---
+
+<StarlightSidebar />
+<script>
+	import { $auth } from '@kbve/droid';
+
+	function sync() {
+		const tone = $auth.get().tone;
+		if (tone === 'auth' || tone === 'anon') {
+			document.documentElement.dataset.authTone = tone;
+		}
+	}
+
+	$auth.subscribe(sync);
+	sync();
+</script>

@@ -1,10 +1,22 @@
 ---
-import ReactProfile from './ReactProfile';
+import ReactProfileCard from './ReactProfileCard';
 ---
 
-<ReactProfile client:only="react" />
+<div class="ck-profile">
+	<ReactProfileCard client:load />
+</div>
 
 <style is:global>
+	.ck-profile {
+		max-width: 600px;
+		margin: 2rem auto;
+		padding: 2rem;
+		min-height: 200px;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 4px;
+		background: var(--sl-color-gray-6);
+	}
+
 	.ck-profile-guest {
 		text-align: center;
 		padding: 3rem 1rem;
@@ -16,13 +28,25 @@ import ReactProfile from './ReactProfile';
 		font-size: 1.1rem;
 	}
 
-	.ck-profile {
-		max-width: 600px;
-		margin: 2rem auto;
-		padding: 2rem;
-		border: 1px solid var(--sl-color-hairline-light);
+	.ck-profile-signin-btn {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.625rem 1.5rem;
+		border: 1px solid var(--ck-firelight-dim);
 		border-radius: 4px;
-		background: var(--sl-color-gray-6);
+		font-family: var(--sl-font);
+		font-size: 0.875rem;
+		font-weight: 600;
+		letter-spacing: 0.05em;
+		color: var(--ck-stone);
+		background: var(--ck-parchment);
+		text-decoration: none;
+		transition: all 0.2s;
+	}
+
+	.ck-profile-signin-btn:hover {
+		background: var(--ck-firelight-bright);
+		color: var(--ck-stone);
 	}
 
 	.ck-profile__header {
@@ -67,5 +91,26 @@ import ReactProfile from './ReactProfile';
 	.ck-profile__actions {
 		padding-top: 1.5rem;
 		border-top: 1px solid var(--sl-color-hairline);
+	}
+
+	.ck-profile-signout-btn {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.5rem 1.25rem;
+		border: 1px solid var(--ck-firelight-dim);
+		border-radius: 4px;
+		font-family: var(--sl-font);
+		font-size: 0.8rem;
+		letter-spacing: 0.05em;
+		color: var(--ck-firelight);
+		background: transparent;
+		text-decoration: none;
+		transition: all 0.2s;
+	}
+
+	.ck-profile-signout-btn:hover {
+		background: rgba(212, 164, 76, 0.15);
+		border-color: var(--ck-firelight);
+		color: var(--ck-firelight-bright);
 	}
 </style>

@@ -120,11 +120,42 @@ jobs:
 
                   echo "::notice::Shell: ${SHELL} | v${VERSION} | ${REPO} | ${SERVER_TARGET} | UE ${UE_IMAGE_TAG} | ${SERVER_CONFIG}"
 
+    # ── Version Gate ───────────────────────────────────────
+    version_gate:
+        name: Version Gate
+        needs: [guard, config]
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: arc-runner-ue
+        timeout-minutes: 5
+        outputs:
+            should_build: ${{ steps.check.outputs.should_build }}
+        steps:
+            - name: Check if version already deployed
+              id: check
+              run: |
+                  VERSION="${{ needs.config.outputs.version }}"
+                  TARGET="${{ needs.config.outputs.server_target }}"
+                  DEST="/mnt/longhorn/ows-server/${TARGET}/${VERSION}"
+
+                  if [ -d "${DEST}/LinuxServer" ]; then
+                    FILE_COUNT=$(find "${DEST}/LinuxServer" -type f 2>/dev/null | wc -l)
+                    if [ "${FILE_COUNT}" -gt 0 ]; then
+                      echo "::notice::v${VERSION} already deployed (${FILE_COUNT} files). Skipping build."
+                      echo "should_build=false" >> "$GITHUB_OUTPUT"
+                    else
+                      echo "::notice::v${VERSION} directory exists but is empty. Will rebuild."
+                      echo "should_build=true" >> "$GITHUB_OUTPUT"
+                    fi
+                  else
+                    echo "::notice::v${VERSION} not found on PVC. Will build."
+                    echo "should_build=true" >> "$GITHUB_OUTPUT"
+                  fi
+
     # ── Build Dedicated Server ──────────────────────────────
     build:
         name: Build ${{ needs.config.outputs.server_target }} (Linux)
-        needs: [guard, config]
-        if: needs.guard.outputs.allowed == 'true'
+        needs: [guard, config, version_gate]
+        if: needs.guard.outputs.allowed == 'true' && needs.version_gate.outputs.should_build == 'true'
         runs-on: arc-runner-ue
         timeout-minutes: 480
         permissions:
@@ -238,10 +269,17 @@ jobs:
                         -NoP4
                     '
 
-            - name: Deploy server to PVC
+            - name: Write BUILD_INFO
               run: |
                   VERSION="${{ needs.config.outputs.version }}"
                   TARGET="${{ needs.config.outputs.server_target }}"
+                  CONFIG="${{ needs.config.outputs.server_config }}"
+                  REPO="${{ needs.config.outputs.project_repo }}"
+                  UE_TAG="${{ needs.config.outputs.ue_image_tag }}"
+
+                  # Get Chuck repo commit SHA
+                  CHUCK_SHA=$(cd /tmp/game-project && git rev-parse HEAD)
+
                   SERVER_DIR=$(find /tmp/ue5-build-output -name "LinuxServer" -type d | head -1)
                   if [ -z "${SERVER_DIR}" ]; then
                     echo "::error::LinuxServer output not found"
@@ -249,14 +287,63 @@ jobs:
                     exit 1
                   fi
 
+                  cat > "${SERVER_DIR}/BUILD_INFO" <<-BUILDEOF
+                  version=${VERSION}
+                  server_target=${TARGET}
+                  server_config=${CONFIG}
+                  source_repo=${REPO}
+                  source_commit=${CHUCK_SHA}
+                  ue_image=ghcr.io/epicgames/unreal-engine:${UE_TAG}
+                  build_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+                  build_run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  actor=${{ github.actor }}
+                  BUILDEOF
+
+                  echo "::notice::BUILD_INFO written — source ${REPO}@${CHUCK_SHA:0:8}, config ${CONFIG}"
+
+            - name: Deploy server to PVC
+              run: |
+                  VERSION="${{ needs.config.outputs.version }}"
+                  TARGET="${{ needs.config.outputs.server_target }}"
+                  SERVER_DIR=$(find /tmp/ue5-build-output -name "LinuxServer" -type d | head -1)
+
                   DEST="/mnt/longhorn/ows-server/${TARGET}/${VERSION}"
+
+                  # Clean destination if partial deploy exists
+                  rm -rf "${DEST}" 2>/dev/null || true
                   mkdir -p "${DEST}"
                   cp -r "${SERVER_DIR}/." "${DEST}/"
                   chmod -R 755 "${DEST}"
-                  ln -sfn "${DEST}" "/mnt/longhorn/ows-server/${TARGET}/latest"
+
+                  # Update latest symlink
+                  ln -sfn "${VERSION}" "/mnt/longhorn/ows-server/${TARGET}/latest"
 
                   echo "::notice::${TARGET} v${VERSION} deployed to PVC ($(du -sh ${DEST} | cut -f1))"
                   ls -la "${DEST}/" | head -10
+                  cat "${DEST}/BUILD_INFO"
+
+            - name: Prune old versions
+              run: |
+                  TARGET="${{ needs.config.outputs.server_target }}"
+                  PVC_DIR="/mnt/longhorn/ows-server/${TARGET}"
+                  KEEP=3
+
+                  echo "Pruning old versions in ${PVC_DIR} (keeping latest ${KEEP})..."
+                  cd "${PVC_DIR}"
+                  DIRS=$(ls -dt [0-9]* 2>/dev/null | tail -n +$((KEEP+1)))
+                  if [ -n "${DIRS}" ]; then
+                    for DIR in ${DIRS}; do
+                      # Skip if in use by running game server (NFS lock files)
+                      if find "${DIR}" -name ".nfs*" -print -quit 2>/dev/null | grep -q .; then
+                        echo "  Skipping ${DIR} (in use by running server)"
+                      else
+                        echo "  Removing ${DIR}"
+                        rm -rf "${DIR}"
+                      fi
+                    done
+                  else
+                    echo "  Nothing to prune."
+                  fi
 
             - name: Cleanup
               if: always()
@@ -269,7 +356,7 @@ jobs:
     track_failure:
         name: Track Failures
         if: ${{ always() && contains(needs.*.result, 'failure') }}
-        needs: [build]
+        needs: [build, version_gate]
         permissions:
             issues: write
             contents: read

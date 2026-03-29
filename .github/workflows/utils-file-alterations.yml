@@ -29,6 +29,43 @@ on:
             holy_crate:
                 description: 'Holy Crate package changed'
                 value: ${{ jobs.alter.outputs.holy_crate }}
+            # ? Bevy Crates
+            bevy_battle_crate:
+                description: 'bevy_battle crate changed'
+                value: ${{ jobs.alter.outputs.bevy_battle_crate }}
+            bevy_cam_crate:
+                description: 'bevy_cam crate changed'
+                value: ${{ jobs.alter.outputs.bevy_cam_crate }}
+            bevy_inventory_crate:
+                description: 'bevy_inventory crate changed'
+                value: ${{ jobs.alter.outputs.bevy_inventory_crate }}
+            bevy_items_crate:
+                description: 'bevy_items crate changed'
+                value: ${{ jobs.alter.outputs.bevy_items_crate }}
+            bevy_kbve_net_crate:
+                description: 'bevy_kbve_net crate changed'
+                value: ${{ jobs.alter.outputs.bevy_kbve_net_crate }}
+            bevy_mapdb_crate:
+                description: 'bevy_mapdb crate changed'
+                value: ${{ jobs.alter.outputs.bevy_mapdb_crate }}
+            bevy_npc_crate:
+                description: 'bevy_npc crate changed'
+                value: ${{ jobs.alter.outputs.bevy_npc_crate }}
+            bevy_player_crate:
+                description: 'bevy_player crate changed'
+                value: ${{ jobs.alter.outputs.bevy_player_crate }}
+            bevy_quests_crate:
+                description: 'bevy_quests crate changed'
+                value: ${{ jobs.alter.outputs.bevy_quests_crate }}
+            bevy_skills_crate:
+                description: 'bevy_skills crate changed'
+                value: ${{ jobs.alter.outputs.bevy_skills_crate }}
+            bevy_statemachine_crate:
+                description: 'bevy_statemachine crate changed'
+                value: ${{ jobs.alter.outputs.bevy_statemachine_crate }}
+            bevy_tasker_crate:
+                description: 'bevy_tasker crate changed'
+                value: ${{ jobs.alter.outputs.bevy_tasker_crate }}
             # ? Docker
             kilobase:
                 description: 'Kilobase package changed'
@@ -143,6 +180,18 @@ jobs:
             kbve_crate: ${{ steps.delta.outputs.kbve_crate_any_changed_files }}
             erust_crate: ${{ steps.delta.outputs.erust_crate_any_changed }}
             holy_crate: ${{ steps.delta.outputs.holy_crate_any_changed }}
+            bevy_battle_crate: ${{ steps.delta.outputs.bevy_battle_crate_any_changed }}
+            bevy_cam_crate: ${{ steps.delta.outputs.bevy_cam_crate_any_changed }}
+            bevy_inventory_crate: ${{ steps.delta.outputs.bevy_inventory_crate_any_changed }}
+            bevy_items_crate: ${{ steps.delta.outputs.bevy_items_crate_any_changed }}
+            bevy_kbve_net_crate: ${{ steps.delta.outputs.bevy_kbve_net_crate_any_changed }}
+            bevy_mapdb_crate: ${{ steps.delta.outputs.bevy_mapdb_crate_any_changed }}
+            bevy_npc_crate: ${{ steps.delta.outputs.bevy_npc_crate_any_changed }}
+            bevy_player_crate: ${{ steps.delta.outputs.bevy_player_crate_any_changed }}
+            bevy_quests_crate: ${{ steps.delta.outputs.bevy_quests_crate_any_changed }}
+            bevy_skills_crate: ${{ steps.delta.outputs.bevy_skills_crate_any_changed }}
+            bevy_statemachine_crate: ${{ steps.delta.outputs.bevy_statemachine_crate_any_changed }}
+            bevy_tasker_crate: ${{ steps.delta.outputs.bevy_tasker_crate_any_changed }}
             kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
             # py_atlas: ${{ steps.delta.outputs.py_atlas_any_changed }}  # Atlas migrated into pydesk
             py_lib_fudster: ${{ steps.delta.outputs.py_lib_fudster_any_changed }}
@@ -197,6 +246,30 @@ jobs:
                           - 'packages/rust/erust/src/**'
                       holy_crate:
                           - 'packages/rust/holy/src/**'
+                      bevy_battle_crate:
+                          - 'packages/rust/bevy/bevy_battle/src/**'
+                      bevy_cam_crate:
+                          - 'packages/rust/bevy/bevy_cam/src/**'
+                      bevy_inventory_crate:
+                          - 'packages/rust/bevy/bevy_inventory/src/**'
+                      bevy_items_crate:
+                          - 'packages/rust/bevy/bevy_items/src/**'
+                      bevy_kbve_net_crate:
+                          - 'packages/rust/bevy/bevy_kbve_net/src/**'
+                      bevy_mapdb_crate:
+                          - 'packages/rust/bevy/bevy_mapdb/src/**'
+                      bevy_npc_crate:
+                          - 'packages/rust/bevy/bevy_npc/src/**'
+                      bevy_player_crate:
+                          - 'packages/rust/bevy/bevy_player/src/**'
+                      bevy_quests_crate:
+                          - 'packages/rust/bevy/bevy_quests/src/**'
+                      bevy_skills_crate:
+                          - 'packages/rust/bevy/bevy_skills/src/**'
+                      bevy_statemachine_crate:
+                          - 'packages/rust/bevy/bevy_statemachine/src/**'
+                      bevy_tasker_crate:
+                          - 'packages/rust/bevy/bevy_tasker/src/**'
                       kilobase:
                           -  'apps/kbve/kilobase/README.md'
                       droid:

@@ -16,7 +16,6 @@ use bevy_battle::{
     Messages, MinimalPlugins, PlayerClass, PlayerTag, TickEffectsRequest, UseItemIntent,
 };
 use bevy_inventory::Inventory;
-use bevy_items::inventory_adapter::ProtoItemKind;
 
 use super::content;
 use super::proto_bridge as pb;
@@ -275,39 +274,16 @@ impl EntityMap {
 
 // ── Inventory conversion ──────────────────────────────────────────
 
-/// Convert a player's `Vec<ItemStack>` into an `Inventory<ProtoItemKind>`.
-///
-/// Items that can't be resolved to a `ProtoItemKind` (e.g. unknown IDs)
-/// are silently skipped.
-fn session_inventory_to_ecs(items: &[ItemStack], max_slots: usize) -> Inventory<ProtoItemKind> {
+/// Clone a `GameInventory` into an ECS-ready `Inventory<ProtoItemKind>`,
+/// ensuring the proto-bridge lookup tables are initialized.
+fn session_inventory_to_ecs(inv: &GameInventory) -> Inventory<ProtoItemKind> {
     pb::ensure_inventory_init();
-    let mut inv = Inventory::default();
-    inv.max_slots = max_slots;
-    for stack in items {
-        if stack.qty == 0 {
-            continue;
-        }
-        if let Some(kind) = pb::game_id_to_proto_item_kind(&stack.item_id) {
-            inv.add(kind, stack.qty as u32);
-        }
-    }
-    inv
+    inv.clone()
 }
 
-/// Convert an `Inventory<ProtoItemKind>` back to the game's `Vec<ItemStack>` format.
-///
-/// Items that can't be resolved back to a game ID are silently skipped.
-fn ecs_inventory_to_session(inv: &Inventory<ProtoItemKind>) -> Vec<ItemStack> {
-    let mut items = Vec::new();
-    for stack in &inv.items {
-        if let Some(game_id) = pb::proto_item_kind_to_game_id(&stack.kind) {
-            items.push(ItemStack {
-                item_id: game_id.to_owned(),
-                qty: stack.quantity as u16,
-            });
-        }
-    }
-    items
+/// Clone an `Inventory<ProtoItemKind>` back to a `GameInventory` for the session.
+fn ecs_inventory_to_session(inv: &Inventory<ProtoItemKind>) -> GameInventory {
+    inv.clone()
 }
 
 // ── Session-level inventory operations ────────────────────────────
@@ -318,54 +294,30 @@ fn ecs_inventory_to_session(inv: &Inventory<ProtoItemKind>) -> Vec<ItemStack> {
 
 /// Consume one unit of an item from a player's session inventory.
 ///
-/// Converts to `Inventory<ProtoItemKind>`, removes the item using
-/// `bevy_inventory::Inventory::remove()` (which handles stacking and
-/// auto-removes empty slots), then writes back.
+/// Uses `inv_remove` which handles stacking and auto-removes empty slots.
 ///
 /// Returns `true` if the item was found and consumed.
-pub fn consume_from_session(inventory: &mut Vec<ItemStack>, game_id: &str) -> bool {
-    let Some(kind) = pb::game_id_to_proto_item_kind(game_id) else {
-        return false;
-    };
-    let mut inv = session_inventory_to_ecs(inventory, MAX_INVENTORY_SLOTS as usize);
-    if inv.remove(kind, 1) == 0 {
-        return false;
-    }
-    *inventory = ecs_inventory_to_session(&inv);
-    true
+pub fn consume_from_session(inventory: &mut GameInventory, game_id: &str) -> bool {
+    inv_remove(inventory, game_id)
 }
 
 /// Add items to a player's session inventory via bevy_inventory stacking.
 ///
-/// Returns the number of items that could NOT fit (overflow).
-pub fn add_to_session(inventory: &mut Vec<ItemStack>, game_id: &str, qty: u32) -> u32 {
-    let Some(kind) = pb::game_id_to_proto_item_kind(game_id) else {
-        return qty;
-    };
-    let mut inv = session_inventory_to_ecs(inventory, MAX_INVENTORY_SLOTS as usize);
-    let overflow = inv.add(kind, qty);
-    *inventory = ecs_inventory_to_session(&inv);
-    overflow
+/// Returns `true` if all items fit, `false` otherwise.
+pub fn add_to_session(inventory: &mut GameInventory, game_id: &str, qty: u32) -> bool {
+    inv_add_qty(inventory, game_id, qty)
 }
 
 /// Check how many of an item a player has in their session inventory.
 #[allow(dead_code)]
-pub fn count_in_session(inventory: &[ItemStack], game_id: &str) -> u32 {
-    let Some(kind) = pb::game_id_to_proto_item_kind(game_id) else {
-        return 0;
-    };
-    let inv = session_inventory_to_ecs(inventory, MAX_INVENTORY_SLOTS as usize);
-    inv.count(kind)
+pub fn count_in_session(inventory: &GameInventory, game_id: &str) -> u32 {
+    inv_count(inventory, game_id)
 }
 
 /// Check whether a player's session inventory has room for an item.
 #[allow(dead_code)]
-pub fn has_room_in_session(inventory: &[ItemStack], game_id: &str, qty: u32) -> bool {
-    let Some(kind) = pb::game_id_to_proto_item_kind(game_id) else {
-        return false;
-    };
-    let inv = session_inventory_to_ecs(inventory, MAX_INVENTORY_SLOTS as usize);
-    inv.has_room_for(kind, qty)
+pub fn has_room_in_session(inventory: &GameInventory, game_id: &str) -> bool {
+    inv_has_room_for(inventory, game_id)
 }
 
 // ── CombatWorld ────────────────────────────────────────────────────
@@ -422,10 +374,7 @@ impl CombatWorld {
                 continue;
             }
             // Sync inventory into ECS format
-            inventories.insert(
-                *uid,
-                session_inventory_to_ecs(&ps.inventory, MAX_INVENTORY_SLOTS as usize),
-            );
+            inventories.insert(*uid, session_inventory_to_ecs(&ps.inventory));
             let effects: Vec<bevy_battle::EffectInstance> =
                 ps.effects.iter().map(to_bb_effect_instance).collect();
 
@@ -1070,7 +1019,7 @@ mod tests {
                 armor: 5,
                 gold: 0,
                 effects: vec![],
-                inventory: vec![],
+                inventory: GameInventory::new(MAX_INVENTORY_SLOTS),
                 accuracy: 1.0,
                 alive: true,
                 member_status: MemberStatusTag::Guest,
@@ -1267,16 +1216,7 @@ mod tests {
     fn inventory_syncs_from_session() {
         let mut session = test_session();
         let owner = session.owner;
-        session.player_mut(owner).inventory = vec![
-            ItemStack {
-                item_id: "potion".to_owned(),
-                qty: 3,
-            },
-            ItemStack {
-                item_id: "bomb".to_owned(),
-                qty: 2,
-            },
-        ];
+        session.player_mut(owner).inventory = inv_from_pairs(&[("potion", 3), ("bomb", 2)]);
 
         let combat = CombatWorld::from_session(&session);
         let inv = combat
@@ -1284,30 +1224,15 @@ mod tests {
             .get(&owner)
             .expect("should have inventory");
         assert_eq!(inv.slot_count(), 2, "Should have 2 occupied slots");
-        assert_eq!(
-            inv.count(pb::game_id_to_proto_item_kind("potion").unwrap()),
-            3
-        );
-        assert_eq!(
-            inv.count(pb::game_id_to_proto_item_kind("bomb").unwrap()),
-            2
-        );
+        assert_eq!(inv_count(inv, "potion"), 3);
+        assert_eq!(inv_count(inv, "bomb"), 2);
     }
 
     #[test]
     fn inventory_syncs_back_to_session() {
         let mut session = test_session();
         let owner = session.owner;
-        session.player_mut(owner).inventory = vec![
-            ItemStack {
-                item_id: "potion".to_owned(),
-                qty: 5,
-            },
-            ItemStack {
-                item_id: "bandage".to_owned(),
-                qty: 1,
-            },
-        ];
+        session.player_mut(owner).inventory = inv_from_pairs(&[("potion", 5), ("bandage", 1)]);
 
         let mut combat = CombatWorld::from_session(&session);
         // Consume one potion via the bridge
@@ -1315,32 +1240,23 @@ mod tests {
         combat.sync_out(&mut session);
 
         let player = session.player(owner);
-        let potion_stack = player
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "potion")
-            .expect("potion should still exist");
         assert_eq!(
-            potion_stack.qty, 4,
+            inv_count(&player.inventory, "potion"),
+            4,
             "Should have 4 potions after consuming 1"
         );
-
-        let bandage_stack = player
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "bandage")
-            .expect("bandage should still exist");
-        assert_eq!(bandage_stack.qty, 1, "Bandage should be untouched");
+        assert_eq!(
+            inv_count(&player.inventory, "bandage"),
+            1,
+            "Bandage should be untouched"
+        );
     }
 
     #[test]
     fn consume_item_removes_last_stack() {
         let mut session = test_session();
         let owner = session.owner;
-        session.player_mut(owner).inventory = vec![ItemStack {
-            item_id: "bomb".to_owned(),
-            qty: 1,
-        }];
+        session.player_mut(owner).inventory = inv_from_pairs(&[("bomb", 1)]);
 
         let mut combat = CombatWorld::from_session(&session);
         assert!(combat.consume_item(owner, "bomb"));
@@ -1349,7 +1265,7 @@ mod tests {
         combat.sync_out(&mut session);
         let player = session.player(owner);
         assert!(
-            !player.inventory.iter().any(|s| s.item_id == "bomb"),
+            !inv_contains(&player.inventory, "bomb"),
             "Bomb stack should be removed entirely"
         );
     }
@@ -1366,10 +1282,7 @@ mod tests {
     fn item_count_works() {
         let mut session = test_session();
         let owner = session.owner;
-        session.player_mut(owner).inventory = vec![ItemStack {
-            item_id: "potion".to_owned(),
-            qty: 3,
-        }];
+        session.player_mut(owner).inventory = inv_from_pairs(&[("potion", 3)]);
 
         let combat = CombatWorld::from_session(&session);
         assert_eq!(combat.item_count(owner, "potion"), 3);
@@ -1380,33 +1293,15 @@ mod tests {
     fn inventory_roundtrip_preserves_items() {
         let mut session = test_session();
         let owner = session.owner;
-        let original = vec![
-            ItemStack {
-                item_id: "potion".to_owned(),
-                qty: 5,
-            },
-            ItemStack {
-                item_id: "fire_flask".to_owned(),
-                qty: 2,
-            },
-            ItemStack {
-                item_id: "smoke_bomb".to_owned(),
-                qty: 1,
-            },
-        ];
-        session.player_mut(owner).inventory = original.clone();
+        let pairs: &[(&str, u32)] = &[("potion", 5), ("fire_flask", 2), ("smoke_bomb", 1)];
+        session.player_mut(owner).inventory = inv_from_pairs(pairs);
 
         let combat = CombatWorld::from_session(&session);
         combat.sync_out(&mut session);
 
         let player = session.player(owner);
-        for orig in &original {
-            let stack = player
-                .inventory
-                .iter()
-                .find(|s| s.item_id == orig.item_id)
-                .unwrap_or_else(|| panic!("{} should exist", orig.item_id));
-            assert_eq!(stack.qty, orig.qty, "{} qty mismatch", orig.item_id);
+        for &(id, qty) in pairs {
+            assert_eq!(inv_count(&player.inventory, id), qty, "{id} qty mismatch");
         }
     }
 }

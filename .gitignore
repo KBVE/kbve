@@ -117,3 +117,5 @@ vitest.config.*.timestamp*
 *.user
 *.suo
 *.userprefs
+
+.fake

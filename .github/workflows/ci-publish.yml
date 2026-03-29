@@ -43,6 +43,16 @@ on:
                 required: false
                 type: string
                 default: ''
+            version_source:
+                description: 'Path to version source file (overrides default path convention). E.g. packages/rust/bevy/bevy_items/Cargo.toml'
+                required: false
+                type: string
+                default: ''
+            version_toml_path_override:
+                description: 'Path to version.toml (overrides default path convention). E.g. packages/rust/bevy/bevy_items/version.toml'
+                required: false
+                type: string
+                default: ''
             dispatched_at:
                 description: 'Unix timestamp when this was dispatched (queue guard)'
                 required: true
@@ -109,8 +119,19 @@ jobs:
                       VTOML="packages/npm/${NAME}/version.toml"
                       ;;
                     crates)
-                      LOCAL=$(grep -m1 '^version' "packages/rust/${NAME}/Cargo.toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
-                      VTOML="packages/rust/${NAME}/version.toml"
+                      # Support override paths for crates in non-standard locations (e.g. bevy crates)
+                      CRATE_SRC="${{ inputs.version_source }}"
+                      if [ -n "$CRATE_SRC" ] && [ -f "$CRATE_SRC" ]; then
+                        LOCAL=$(grep -m1 '^version' "$CRATE_SRC" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                      else
+                        LOCAL=$(grep -m1 '^version' "packages/rust/${NAME}/Cargo.toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                      fi
+                      VTOML_OVERRIDE="${{ inputs.version_toml_path_override }}"
+                      if [ -n "$VTOML_OVERRIDE" ]; then
+                        VTOML="$VTOML_OVERRIDE"
+                      else
+                        VTOML="packages/rust/${NAME}/version.toml"
+                      fi
                       ;;
                     python)
                       PYPI="${{ inputs.pypi_name }}"
@@ -313,7 +334,7 @@ jobs:
             package_type: crates
             package_name: ${{ inputs.package_name }}
             version: ${{ needs.version_gate.outputs.local_version }}
-            version_toml_path: packages/rust/${{ inputs.package_name }}/version.toml
+            version_toml_path: ${{ inputs.version_toml_path_override != '' && inputs.version_toml_path_override || format('packages/rust/{0}/version.toml', inputs.package_name) }}
 
     update_version_python:
         name: Update version.toml (python)
