@@ -313,7 +313,11 @@ impl OSRSCacheActor {
 
 /// Fetch item mapping from OSRS Wiki API
 async fn fetch_item_mapping() -> Result<Vec<OSRSItem>, reqwest::Error> {
-    let client = reqwest::Client::builder().user_agent(USER_AGENT).build()?;
+    let client = reqwest::Client::builder()
+        .user_agent(USER_AGENT)
+        .connect_timeout(std::time::Duration::from_secs(5))
+        .timeout(std::time::Duration::from_secs(15))
+        .build()?;
 
     let items: Vec<OSRSItem> = client
         .get("https://prices.runescape.wiki/api/v1/osrs/mapping")
@@ -327,7 +331,11 @@ async fn fetch_item_mapping() -> Result<Vec<OSRSItem>, reqwest::Error> {
 
 /// Fetch latest prices from OSRS Wiki API
 async fn fetch_latest_prices() -> Result<HashMap<String, OSRSPrice>, reqwest::Error> {
-    let client = reqwest::Client::builder().user_agent(USER_AGENT).build()?;
+    let client = reqwest::Client::builder()
+        .user_agent(USER_AGENT)
+        .connect_timeout(std::time::Duration::from_secs(5))
+        .timeout(std::time::Duration::from_secs(15))
+        .build()?;
 
     #[derive(Deserialize)]
     struct PriceResponse {
