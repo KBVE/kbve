@@ -1092,7 +1092,8 @@ pub fn build_inventory_card(player: &PlayerState) -> InventoryCardTemplate {
     let mut items = Vec::with_capacity(MAX_INVENTORY_SLOTS);
 
     // Occupied slots
-    for stack in owner.inventory.iter().filter(|s| s.qty > 0) {
+    let legacy_inv = owner.inventory_as_legacy();
+    for stack in legacy_inv.iter().filter(|s| s.qty > 0) {
         if items.len() >= MAX_INVENTORY_SLOTS {
             break;
         }
@@ -1832,16 +1833,7 @@ mod tests {
     #[test]
     fn test_build_inventory_card_with_items() {
         let mut session = test_session();
-        session.player_mut(OWNER).inventory = vec![
-            ItemStack {
-                item_id: "potion".to_owned(),
-                qty: 3,
-            },
-            ItemStack {
-                item_id: "bomb".to_owned(),
-                qty: 1,
-            },
-        ];
+        session.player_mut(OWNER).inventory = inv_from_pairs(&[("potion", 3), ("bomb", 1)]);
         let template = build_inventory_card(session.owner_player());
         assert_eq!(template.slots_used, 2);
         assert!(template.items[0].occupied);
@@ -1923,11 +1915,26 @@ mod tests {
         let mut session = test_session();
         let player = session.player_mut(OWNER);
         player.gold = 42;
-        for i in 0..MAX_INVENTORY_SLOTS {
-            player.inventory.push(ItemStack {
-                item_id: format!("item_{i}"),
-                qty: (i as u16) + 1,
-            });
+        let fill_ids: &[&str] = &[
+            "potion",
+            "bandage",
+            "bomb",
+            "fire_flask",
+            "iron_skin_potion",
+            "ward",
+            "campfire_kit",
+            "rage_draught",
+            "phoenix_feather",
+            "teleport_rune",
+            "rations",
+            "vitality_potion",
+            "antidote",
+            "elixir",
+            "smoke_bomb",
+            "trap_kit",
+        ];
+        for (i, &id) in fill_ids.iter().enumerate() {
+            inv_add_qty(&mut player.inventory, id, (i as u32) + 1);
         }
         player.weapon = Some("rusty_sword".to_owned());
         let player = session.owner_player();

@@ -197,16 +197,7 @@ fn check_quest_completions(session: &mut SessionState, logs: &mut Vec<String>) {
                     let alive_ids = session.alive_player_ids();
                     if let Some(&first_alive) = alive_ids.first() {
                         let player = session.player_mut(first_alive);
-                        if let Some(existing) =
-                            player.inventory.iter_mut().find(|s| s.item_id == game_id)
-                        {
-                            existing.qty += item_reward.amount as u16;
-                        } else if !player.inventory_full() {
-                            player.inventory.push(ItemStack {
-                                item_id: game_id.clone(),
-                                qty: item_reward.amount as u16,
-                            });
-                        }
+                        inv_add_qty(&mut player.inventory, &game_id, item_reward.amount as u32);
                     }
                 }
 
@@ -1612,15 +1603,14 @@ fn apply_item(
     actor: serenity::UserId,
     target_idx: Option<u8>,
 ) -> Result<String, String> {
-    let player = session.player_mut(actor);
-    let stack = player
-        .inventory
-        .iter_mut()
-        .find(|s| s.item_id == item_id)
-        .ok_or_else(|| "You don't have that item.".to_owned())?;
-
-    if stack.qty == 0 {
-        return Err("No more of that item remaining.".to_owned());
+    {
+        let player = session.player_mut(actor);
+        if !inv_contains(&player.inventory, item_id) {
+            return Err("You don't have that item.".to_owned());
+        }
+        if inv_count(&player.inventory, item_id) == 0 {
+            return Err("No more of that item remaining.".to_owned());
+        }
     }
 
     let def = content::find_item(item_id).ok_or_else(|| "Unknown item.".to_owned())?;
@@ -1827,7 +1817,7 @@ fn apply_item(
     }
 
     // Consume one unit via bevy_inventory (handles stacking + empty slot cleanup)
-    battle_bridge::consume_from_session(&mut session.player_mut(actor).inventory, item_id);
+    inv_remove(&mut session.player_mut(actor).inventory, item_id);
     session.show_items = false;
 
     Ok(msg)
@@ -2119,10 +2109,7 @@ fn apply_gift(
 
     // Find the item in the giver's inventory
     let giver = session.player(actor);
-    let has_item = giver
-        .inventory
-        .iter()
-        .any(|s| s.item_id == item_id && s.qty > 0);
+    let has_item = inv_contains(&giver.inventory, item_id);
     if !has_item {
         return Err("You don't have that item.".to_owned());
     }
@@ -2135,7 +2122,7 @@ fn apply_gift(
 
     // Check receiver has inventory space (try stacking first)
     let receiver = session.player(target_uid);
-    let can_stack = receiver.inventory.iter().any(|s| s.item_id == item_id);
+    let can_stack = inv_contains(&receiver.inventory, item_id);
     if !can_stack && receiver.inventory_full() {
         return Err(format!("{}'s inventory is full!", receiver.name));
     }
@@ -2144,13 +2131,13 @@ fn apply_gift(
     let receiver_name = session.player(target_uid).name.clone();
 
     // Remove 1 qty from giver
-    battle_bridge::consume_from_session(&mut session.player_mut(actor).inventory, item_id);
+    inv_remove(&mut session.player_mut(actor).inventory, item_id);
 
     // Add 1 qty to receiver
-    let added = add_item_to_inventory(&mut session.player_mut(target_uid).inventory, item_id);
+    let added = inv_add(&mut session.player_mut(target_uid).inventory, item_id);
     if !added {
         // Shouldn't happen since we checked above, but restore item if it does
-        battle_bridge::add_to_session(&mut session.player_mut(actor).inventory, item_id, 1);
+        inv_add(&mut session.player_mut(actor).inventory, item_id);
         return Err("Failed to add item to receiver's inventory.".to_owned());
     }
 
@@ -2226,10 +2213,7 @@ fn apply_equip(
     let player = session.player_mut(actor);
 
     // Check player has gear in inventory
-    let has_gear = player
-        .inventory
-        .iter()
-        .any(|s| s.item_id == gear_id && s.qty > 0);
+    let has_gear = inv_contains(&player.inventory, gear_id);
     if !has_gear {
         return Err("You don't have that gear.".to_owned());
     }
@@ -2238,13 +2222,13 @@ fn apply_equip(
     match gear_slot {
         EquipSlot::Weapon => {
             if let Some(old) = player.weapon.take() {
-                add_item_to_inventory(&mut player.inventory, &old);
+                inv_add(&mut player.inventory, &old);
             }
             player.weapon = Some(gear_id.to_owned());
         }
         EquipSlot::Armor => {
             if let Some(old) = player.armor_gear.take() {
-                add_item_to_inventory(&mut player.inventory, &old);
+                inv_add(&mut player.inventory, &old);
                 if let Some(old_gear) = content::find_gear(&old) {
                     player.armor -= old_gear.bonus_armor;
                     player.max_hp -= old_gear.bonus_hp;
@@ -2259,7 +2243,7 @@ fn apply_equip(
     }
 
     // Remove gear from inventory
-    battle_bridge::consume_from_session(&mut player.inventory, gear_id);
+    inv_remove(&mut player.inventory, gear_id);
 
     Ok(format!("Equipped {}!", gear_name))
 }
@@ -2279,7 +2263,7 @@ fn apply_unequip(
             let name = content::find_gear(&old_id)
                 .map(|g| g.name.to_owned())
                 .unwrap_or_else(|| old_id.clone());
-            add_item_to_inventory(&mut player.inventory, &old_id);
+            inv_add(&mut player.inventory, &old_id);
             Ok(format!("Unequipped {}.", name))
         }
         "armor" => {
@@ -2293,7 +2277,7 @@ fn apply_unequip(
                 player.max_hp -= g.bonus_hp;
                 player.hp = player.hp.min(player.max_hp);
             }
-            add_item_to_inventory(&mut player.inventory, &old_id);
+            inv_add(&mut player.inventory, &old_id);
             Ok(format!("Unequipped {}.", name))
         }
         _ => Err("Invalid equipment slot.".to_owned()),
@@ -2348,7 +2332,7 @@ fn apply_buy(
             offer.price, player.gold
         ));
     }
-    if player.inventory_full() && !player.inventory.iter().any(|s| s.item_id == item_id) {
+    if player.inventory_full() && !inv_contains(&player.inventory, item_id) {
         return Err("Inventory full! Sell or use items first.".to_owned());
     }
 
@@ -2373,10 +2357,7 @@ fn apply_sell(
     actor: serenity::UserId,
 ) -> Result<String, String> {
     let player = session.player(actor);
-    let has_item = player
-        .inventory
-        .iter()
-        .any(|s| s.item_id == item_id && s.qty > 0);
+    let has_item = inv_contains(&player.inventory, item_id);
     if !has_item {
         return Err("You don't have that item.".to_owned());
     }
@@ -2755,7 +2736,7 @@ fn apply_rest_choice(
 #[cfg(test)]
 fn roll_and_add_loot(
     loot_table_id: &str,
-    inventory: &mut Vec<ItemStack>,
+    inventory: &mut GameInventory,
 ) -> (Vec<String>, Option<&'static str>) {
     let mut logs = Vec::new();
     if let Some(item_id) = content::roll_loot(loot_table_id) {
@@ -2771,8 +2752,8 @@ fn roll_and_add_loot(
     (logs, None)
 }
 
-fn add_item_to_inventory(inventory: &mut Vec<ItemStack>, item_id: &str) -> bool {
-    battle_bridge::add_to_session(inventory, item_id, 1) == 0
+fn add_item_to_inventory(inventory: &mut GameInventory, item_id: &str) -> bool {
+    inv_add(inventory, item_id)
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -4094,14 +4075,8 @@ mod tests {
         // Potion is Common -> base 10 / 2 = 5 gold
         assert_eq!(session.player(OWNER).gold, gold_before + 5);
         // Verify qty decreased
-        let potion_stack = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "potion");
         // Starting inventory has 2 potions, so after selling 1 we should have 1
-        assert!(potion_stack.is_some());
-        assert_eq!(potion_stack.unwrap().qty, 1);
+        assert_eq!(inv_count(&session.player(OWNER).inventory, "potion"), 1);
     }
 
     #[test]
@@ -4130,11 +4105,7 @@ mod tests {
         );
         assert!(result.is_ok());
         assert_eq!(session.player(OWNER).gold, 75);
-        let has_sword = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .any(|s| s.item_id == "rusty_sword" && s.qty > 0);
+        let has_sword = inv_contains(&session.player(OWNER).inventory, "rusty_sword");
         assert!(has_sword);
     }
 
@@ -5151,13 +5122,7 @@ mod tests {
         }];
 
         let gold_before_buy = session.player(OWNER).gold;
-        let potion_qty_before = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "potion")
-            .map(|s| s.qty)
-            .unwrap_or(0);
+        let potion_qty_before = inv_count(&session.player(OWNER).inventory, "potion");
 
         // Buy a potion
         let buy_result = apply_action(&mut session, GameAction::Buy("potion".to_owned()), OWNER);
@@ -5168,13 +5133,7 @@ mod tests {
             "Gold should decrease by 10"
         );
 
-        let potion_qty_after_buy = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "potion")
-            .map(|s| s.qty)
-            .unwrap_or(0);
+        let potion_qty_after_buy = inv_count(&session.player(OWNER).inventory, "potion");
         assert_eq!(
             potion_qty_after_buy,
             potion_qty_before + 1,
@@ -5193,13 +5152,7 @@ mod tests {
             "Gold should increase by sell price (5 for Common)"
         );
 
-        let potion_qty_after_sell = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "potion")
-            .map(|s| s.qty)
-            .unwrap_or(0);
+        let potion_qty_after_sell = inv_count(&session.player(OWNER).inventory, "potion");
         assert_eq!(
             potion_qty_after_sell,
             potion_qty_after_buy - 1,
@@ -5232,13 +5185,7 @@ mod tests {
         );
 
         // rusty_sword should no longer be in inventory (qty consumed)
-        let sword_qty = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "rusty_sword")
-            .map(|s| s.qty)
-            .unwrap_or(0);
+        let sword_qty = inv_count(&session.player(OWNER).inventory, "rusty_sword");
         assert_eq!(
             sword_qty, 0,
             "Equipped weapon should be removed from inventory"
@@ -5258,13 +5205,7 @@ mod tests {
         );
 
         // rusty_sword should be back in inventory
-        let old_sword_qty = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "rusty_sword")
-            .map(|s| s.qty)
-            .unwrap_or(0);
+        let old_sword_qty = inv_count(&session.player(OWNER).inventory, "rusty_sword");
         assert_eq!(
             old_sword_qty, 1,
             "Old weapon (rusty_sword) should be returned to inventory"
@@ -5299,13 +5240,7 @@ mod tests {
         );
 
         // Weapon should be back in inventory
-        let qty = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "rusty_sword")
-            .map(|s| s.qty)
-            .unwrap_or(0);
+        let qty = inv_count(&session.player(OWNER).inventory, "rusty_sword");
         assert_eq!(qty, 1, "Unequipped weapon should return to inventory");
     }
 
@@ -5340,13 +5275,7 @@ mod tests {
         );
 
         // Armor should be back in inventory
-        let qty = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "leather_vest")
-            .map(|s| s.qty)
-            .unwrap_or(0);
+        let qty = inv_count(&session.player(OWNER).inventory, "leather_vest");
         assert_eq!(qty, 1, "Unequipped armor should return to inventory");
     }
 
@@ -6225,19 +6154,17 @@ mod tests {
         session.phase = GamePhase::Combat;
         session.enemies = vec![test_enemy()];
 
-        // Add item with qty=0
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "health_potion".to_owned(),
-            qty: 0,
-        });
+        // Add item with qty=0 (no-op, inventory stays empty for this item).
+        // Use "ward" which is NOT in the starting inventory.
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "ward", 0);
 
         let result = apply_action(
             &mut session,
-            GameAction::UseItem("health_potion".to_owned(), None),
+            GameAction::UseItem("ward".to_owned(), None),
             OWNER,
         );
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("No more"));
+        assert!(result.unwrap_err().contains("don't have"));
     }
 
     #[test]
@@ -6246,10 +6173,7 @@ mod tests {
         session.phase = GamePhase::Combat;
         session.enemies = Vec::new(); // no enemies
 
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "bomb".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "bomb", 1);
 
         let result = apply_action(
             &mut session,
@@ -6415,7 +6339,8 @@ mod tests {
     #[test]
     fn test_all_item_ids_in_inventory_exist_in_registry() {
         let inv = content::starting_inventory();
-        for stack in &inv {
+        let legacy = inv_to_legacy(&inv);
+        for stack in &legacy {
             assert!(
                 content::find_item(&stack.item_id).is_some(),
                 "Starting inventory item '{}' not found in registry",
@@ -6614,14 +6539,8 @@ mod tests {
     #[test]
     fn test_smoke_equip_armor_and_weapon() {
         let mut session = test_session();
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "rusty_sword".to_owned(),
-            qty: 1,
-        });
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "leather_vest".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "rusty_sword", 1);
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "leather_vest", 1);
 
         // Equip weapon
         let r1 = apply_action(
@@ -6654,7 +6573,8 @@ mod tests {
 
         // Try to sell starting inventory item
         let inv = content::starting_inventory();
-        if let Some(stack) = inv.first() {
+        let legacy = inv_to_legacy(&inv);
+        if let Some(stack) = legacy.first() {
             session.player_mut(OWNER).inventory = inv.clone();
             let sell_result =
                 apply_action(&mut session, GameAction::Sell(stack.item_id.clone()), OWNER);
@@ -7013,109 +6933,89 @@ mod tests {
 
     #[test]
     fn test_add_item_to_inventory_stacks_existing() {
-        let mut inv = vec![ItemStack {
-            item_id: "potion".to_owned(),
-            qty: 1,
-        }];
+        let mut inv = inv_from_pairs(&[("potion", 1)]);
         assert!(add_item_to_inventory(&mut inv, "potion"));
-        assert_eq!(inv.len(), 1);
-        assert_eq!(inv[0].qty, 2);
+        assert_eq!(inv_count(&inv, "potion"), 2);
     }
 
     #[test]
     fn test_add_item_to_inventory_new_item() {
-        let mut inv = Vec::new();
+        let mut inv = GameInventory::new(MAX_INVENTORY_SLOTS);
         assert!(add_item_to_inventory(&mut inv, "bomb"));
-        assert_eq!(inv.len(), 1);
-        assert_eq!(inv[0].item_id, "bomb");
-        assert_eq!(inv[0].qty, 1);
+        assert_eq!(inv_count(&inv, "bomb"), 1);
     }
 
     #[test]
     fn test_add_item_to_inventory_full_rejects_new() {
         // Use real proto item IDs that exist in the embedded itemdb.json.
-        let real_ids = [
-            "potion",
-            "bomb",
-            "fire_flask",
-            "smoke_bomb",
-            "bandage",
-            "antidote",
-            "phoenix_feather",
-            "whetstone",
-            "ward",
-            "campfire_kit",
-            "teleport_rune",
-            "vitality_potion",
-            "iron_skin_potion",
-            "rage_draught",
-            "trap_kit",
-            "elixir",
+        let real_ids: &[(&str, u32)] = &[
+            ("potion", 1),
+            ("bomb", 1),
+            ("fire_flask", 1),
+            ("smoke_bomb", 1),
+            ("bandage", 1),
+            ("antidote", 1),
+            ("phoenix_feather", 1),
+            ("whetstone", 1),
+            ("ward", 1),
+            ("campfire_kit", 1),
+            ("teleport_rune", 1),
+            ("vitality_potion", 1),
+            ("iron_skin_potion", 1),
+            ("rage_draught", 1),
+            ("trap_kit", 1),
+            ("elixir", 1),
         ];
         assert_eq!(real_ids.len(), MAX_INVENTORY_SLOTS);
-        let mut inv: Vec<ItemStack> = real_ids
-            .iter()
-            .map(|id| ItemStack {
-                item_id: id.to_string(),
-                qty: 1,
-            })
-            .collect();
+        let mut inv = inv_from_pairs(real_ids);
         // New item should be rejected when at capacity
         assert!(!add_item_to_inventory(&mut inv, "rations"));
-        assert_eq!(inv.len(), MAX_INVENTORY_SLOTS);
+        assert_eq!(inv_to_legacy(&inv).len(), MAX_INVENTORY_SLOTS);
     }
 
     #[test]
     fn test_add_item_to_inventory_full_allows_stacking() {
         // Use real proto item IDs that exist in the embedded itemdb.json.
-        let real_ids = [
-            "potion",
-            "bomb",
-            "fire_flask",
-            "smoke_bomb",
-            "bandage",
-            "antidote",
-            "phoenix_feather",
-            "whetstone",
-            "ward",
-            "campfire_kit",
-            "teleport_rune",
-            "vitality_potion",
-            "iron_skin_potion",
-            "rage_draught",
-            "trap_kit",
-            "elixir",
+        let real_ids: &[(&str, u32)] = &[
+            ("potion", 1),
+            ("bomb", 1),
+            ("fire_flask", 1),
+            ("smoke_bomb", 1),
+            ("bandage", 1),
+            ("antidote", 1),
+            ("phoenix_feather", 1),
+            ("whetstone", 1),
+            ("ward", 1),
+            ("campfire_kit", 1),
+            ("teleport_rune", 1),
+            ("vitality_potion", 1),
+            ("iron_skin_potion", 1),
+            ("rage_draught", 1),
+            ("trap_kit", 1),
+            ("elixir", 1),
         ];
         assert_eq!(real_ids.len(), MAX_INVENTORY_SLOTS);
-        let mut inv: Vec<ItemStack> = real_ids
-            .iter()
-            .map(|id| ItemStack {
-                item_id: id.to_string(),
-                qty: 1,
-            })
-            .collect();
+        let mut inv = inv_from_pairs(real_ids);
         // Stacking on existing item should succeed even at capacity
         // ("potion" has max_stack=5 in the proto database)
         assert!(add_item_to_inventory(&mut inv, "potion"));
-        let potion = inv.iter().find(|s| s.item_id == "potion").unwrap();
-        assert_eq!(potion.qty, 2);
+        assert_eq!(inv_count(&inv, "potion"), 2);
     }
 
     #[test]
     fn test_consuming_last_unit_frees_slot() {
         // bevy_inventory auto-removes empty stacks, so consuming the last
         // unit of an item should free the slot for a new item.
-        let mut inv = vec![ItemStack {
-            item_id: "potion".to_owned(),
-            qty: 1,
-        }];
+        let mut inv = inv_from_pairs(&[("potion", 1)]);
         assert!(battle_bridge::consume_from_session(&mut inv, "potion"));
         // Slot freed — inventory should be empty
-        assert!(inv.is_empty(), "empty stack should be auto-removed");
+        assert!(
+            !inv_contains(&inv, "potion"),
+            "empty stack should be auto-removed"
+        );
         // Can now add a new item into the freed slot
         assert!(add_item_to_inventory(&mut inv, "bomb"));
-        assert_eq!(inv.len(), 1);
-        assert_eq!(inv[0].item_id, "bomb");
+        assert_eq!(inv_count(&inv, "bomb"), 1);
     }
 
     #[test]
@@ -7187,14 +7087,27 @@ mod tests {
 
         let player = session.player_mut(OWNER);
         player.gold = 1000;
-        // Fill inventory to capacity with unique items
-        player.inventory.clear();
-        for i in 0..MAX_INVENTORY_SLOTS {
-            player.inventory.push(ItemStack {
-                item_id: format!("filler_{i}"),
-                qty: 1,
-            });
-        }
+        // Fill inventory to capacity with max-stack items (no "potion" so it can't stack).
+        // All items have max_stack=1 so each slot is truly full.
+        let filler_ids: &[(&str, u32)] = &[
+            ("campfire_kit", 1),
+            ("chain_mail", 1),
+            ("crystal_armor", 1),
+            ("dragon_scale", 1),
+            ("elixir", 1),
+            ("excalibur", 1),
+            ("flame_axe", 1),
+            ("glass_stiletto", 1),
+            ("iron_mace", 1),
+            ("leather_vest", 1),
+            ("phoenix_feather", 1),
+            ("runeguard_plate", 1),
+            ("rusty_sword", 1),
+            ("shadow_cloak", 1),
+            ("shadow_dagger", 1),
+            ("smoke_bomb", 1),
+        ];
+        player.inventory = inv_from_pairs(filler_ids);
 
         let result = apply_action(&mut session, GameAction::Buy("potion".to_owned()), OWNER);
         assert!(result.is_err());
@@ -7218,32 +7131,31 @@ mod tests {
 
         let player = session.player_mut(OWNER);
         player.gold = 1000;
-        player.inventory.clear();
         // Fill inventory, including a "potion" stack
-        player.inventory.push(ItemStack {
-            item_id: "potion".to_owned(),
-            qty: 1,
-        });
-        for i in 1..MAX_INVENTORY_SLOTS {
-            player.inventory.push(ItemStack {
-                item_id: format!("filler_{i}"),
-                qty: 1,
-            });
-        }
+        let filler_ids: &[(&str, u32)] = &[
+            ("potion", 1),
+            ("bomb", 1),
+            ("fire_flask", 1),
+            ("smoke_bomb", 1),
+            ("bandage", 1),
+            ("antidote", 1),
+            ("phoenix_feather", 1),
+            ("whetstone", 1),
+            ("ward", 1),
+            ("campfire_kit", 1),
+            ("teleport_rune", 1),
+            ("vitality_potion", 1),
+            ("iron_skin_potion", 1),
+            ("rage_draught", 1),
+            ("trap_kit", 1),
+            ("elixir", 1),
+        ];
+        player.inventory = inv_from_pairs(filler_ids);
 
         // Buying potion should succeed (stacks on existing)
         let result = apply_action(&mut session, GameAction::Buy("potion".to_owned()), OWNER);
         assert!(result.is_ok(), "stacking buy should succeed: {:?}", result);
-        assert_eq!(
-            session
-                .player(OWNER)
-                .inventory
-                .iter()
-                .find(|s| s.item_id == "potion")
-                .unwrap()
-                .qty,
-            2
-        );
+        assert_eq!(inv_count(&session.player(OWNER).inventory, "potion"), 2);
     }
 
     // ── DamageReduction gear tests ──────────────────────────────────
@@ -7345,10 +7257,7 @@ mod tests {
         session.players.insert(p2, player2);
         session.party.push(p2);
         // Give owner a potion
-        session.player_mut(OWNER).inventory = vec![ItemStack {
-            item_id: "potion".to_owned(),
-            qty: 3,
-        }];
+        session.player_mut(OWNER).inventory = inv_from_pairs(&[("potion", 3)]);
         session.phase = GamePhase::Exploring;
         session
     }
@@ -7369,23 +7278,11 @@ mod tests {
         assert!(logs[0].contains("Bob"));
 
         // Giver lost 1
-        let giver_qty = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "potion")
-            .map(|s| s.qty)
-            .unwrap_or(0);
+        let giver_qty = inv_count(&session.player(OWNER).inventory, "potion");
         assert_eq!(giver_qty, 2);
 
         // Receiver gained 1
-        let recv_qty = session
-            .player(p2)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "potion")
-            .map(|s| s.qty)
-            .unwrap_or(0);
+        let recv_qty = inv_count(&session.player(p2).inventory, "potion");
         assert_eq!(recv_qty, 1);
     }
 
@@ -7394,10 +7291,7 @@ mod tests {
         let mut session = party_session_for_gift();
         let p2 = serenity::UserId::new(2);
         // Give receiver an existing potion stack
-        session.player_mut(p2).inventory.push(ItemStack {
-            item_id: "potion".to_owned(),
-            qty: 2,
-        });
+        inv_add_qty(&mut session.player_mut(p2).inventory, "potion", 2);
         let result = apply_action(
             &mut session,
             GameAction::Gift("potion".to_owned(), p2),
@@ -7406,13 +7300,7 @@ mod tests {
         assert!(result.is_ok());
 
         // Receiver should have 3 (stacked)
-        let recv_qty = session
-            .player(p2)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "potion")
-            .map(|s| s.qty)
-            .unwrap_or(0);
+        let recv_qty = inv_count(&session.player(p2).inventory, "potion");
         assert_eq!(recv_qty, 3);
     }
 
@@ -7423,10 +7311,7 @@ mod tests {
         let p2 = serenity::UserId::new(2);
         session.players.insert(p2, PlayerState::default());
         session.party.push(p2);
-        session.player_mut(OWNER).inventory = vec![ItemStack {
-            item_id: "potion".to_owned(),
-            qty: 1,
-        }];
+        session.player_mut(OWNER).inventory = inv_from_pairs(&[("potion", 1)]);
         let result = apply_action(
             &mut session,
             GameAction::Gift("potion".to_owned(), p2),
@@ -7478,8 +7363,13 @@ mod tests {
     fn gift_zero_qty_rejected() {
         let mut session = party_session_for_gift();
         let p2 = serenity::UserId::new(2);
-        // Set potion qty to 0
-        session.player_mut(OWNER).inventory[0].qty = 0;
+        // Remove all potions so qty is 0
+        let potion_count = inv_count(&session.player(OWNER).inventory, "potion");
+        inv_remove_qty(
+            &mut session.player_mut(OWNER).inventory,
+            "potion",
+            potion_count,
+        );
         let result = apply_action(
             &mut session,
             GameAction::Gift("potion".to_owned(), p2),
@@ -7493,13 +7383,26 @@ mod tests {
     fn gift_receiver_full_inventory_no_stack() {
         let mut session = party_session_for_gift();
         let p2 = serenity::UserId::new(2);
-        // Fill receiver's inventory to max with different items
-        for i in 0..MAX_INVENTORY_SLOTS {
-            session.player_mut(p2).inventory.push(ItemStack {
-                item_id: format!("filler_{i}"),
-                qty: 1,
-            });
-        }
+        // Fill receiver's inventory to max with max-stack items (no "potion" so can't stack).
+        // All items have max_stack=1 so each slot is truly full.
+        session.player_mut(p2).inventory = inv_from_pairs(&[
+            ("campfire_kit", 1),
+            ("chain_mail", 1),
+            ("crystal_armor", 1),
+            ("dragon_scale", 1),
+            ("elixir", 1),
+            ("excalibur", 1),
+            ("flame_axe", 1),
+            ("glass_stiletto", 1),
+            ("iron_mace", 1),
+            ("leather_vest", 1),
+            ("phoenix_feather", 1),
+            ("runeguard_plate", 1),
+            ("rusty_sword", 1),
+            ("shadow_cloak", 1),
+            ("shadow_dagger", 1),
+            ("smoke_bomb", 1),
+        ]);
         let result = apply_action(
             &mut session,
             GameAction::Gift("potion".to_owned(), p2),
@@ -7514,16 +7417,24 @@ mod tests {
         let mut session = party_session_for_gift();
         let p2 = serenity::UserId::new(2);
         // Fill receiver's inventory to max, but one slot is a potion (can stack)
-        session.player_mut(p2).inventory.push(ItemStack {
-            item_id: "potion".to_owned(),
-            qty: 1,
-        });
-        for i in 1..MAX_INVENTORY_SLOTS {
-            session.player_mut(p2).inventory.push(ItemStack {
-                item_id: format!("filler_{i}"),
-                qty: 1,
-            });
-        }
+        session.player_mut(p2).inventory = inv_from_pairs(&[
+            ("potion", 1),
+            ("bomb", 1),
+            ("fire_flask", 1),
+            ("smoke_bomb", 1),
+            ("bandage", 1),
+            ("antidote", 1),
+            ("phoenix_feather", 1),
+            ("whetstone", 1),
+            ("ward", 1),
+            ("campfire_kit", 1),
+            ("teleport_rune", 1),
+            ("vitality_potion", 1),
+            ("iron_skin_potion", 1),
+            ("rage_draught", 1),
+            ("trap_kit", 1),
+            ("elixir", 1),
+        ]);
         let result = apply_action(
             &mut session,
             GameAction::Gift("potion".to_owned(), p2),
@@ -7533,13 +7444,7 @@ mod tests {
             result.is_ok(),
             "should succeed by stacking onto existing slot"
         );
-        let recv_qty = session
-            .player(p2)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "potion")
-            .map(|s| s.qty)
-            .unwrap_or(0);
+        let recv_qty = inv_count(&session.player(p2).inventory, "potion");
         assert_eq!(recv_qty, 2);
     }
 
@@ -7630,23 +7535,14 @@ mod tests {
     fn gift_last_item_leaves_zero_qty() {
         let mut session = party_session_for_gift();
         let p2 = serenity::UserId::new(2);
-        session.player_mut(OWNER).inventory = vec![ItemStack {
-            item_id: "potion".to_owned(),
-            qty: 1,
-        }];
+        session.player_mut(OWNER).inventory = inv_from_pairs(&[("potion", 1)]);
         let result = apply_action(
             &mut session,
             GameAction::Gift("potion".to_owned(), p2),
             OWNER,
         );
         assert!(result.is_ok());
-        let giver_qty = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "potion")
-            .map(|s| s.qty)
-            .unwrap_or(0);
+        let giver_qty = inv_count(&session.player(OWNER).inventory, "potion");
         assert_eq!(giver_qty, 0, "gifting last item should leave qty=0");
     }
 
@@ -7691,21 +7587,9 @@ mod tests {
             );
             assert!(result.is_ok(), "gift #{} should succeed", i + 1);
         }
-        let giver_qty = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "potion")
-            .map(|s| s.qty)
-            .unwrap_or(0);
+        let giver_qty = inv_count(&session.player(OWNER).inventory, "potion");
         assert_eq!(giver_qty, 0);
-        let recv_qty = session
-            .player(p2)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "potion")
-            .map(|s| s.qty)
-            .unwrap_or(0);
+        let recv_qty = inv_count(&session.player(p2).inventory, "potion");
         assert_eq!(recv_qty, 3);
     }
 
@@ -7714,10 +7598,7 @@ mod tests {
         let mut session = party_session_for_gift();
         let p2 = serenity::UserId::new(2);
         // Give p2 a bomb
-        session.player_mut(p2).inventory.push(ItemStack {
-            item_id: "bomb".to_owned(),
-            qty: 2,
-        });
+        inv_add_qty(&mut session.player_mut(p2).inventory, "bomb", 2);
         // Owner gifts potion to p2
         let r1 = apply_action(
             &mut session,
@@ -7729,21 +7610,9 @@ mod tests {
         let r2 = apply_action(&mut session, GameAction::Gift("bomb".to_owned(), OWNER), p2);
         assert!(r2.is_ok());
         // Owner should have bomb
-        assert!(
-            session
-                .player(OWNER)
-                .inventory
-                .iter()
-                .any(|s| s.item_id == "bomb" && s.qty > 0)
-        );
+        assert!(inv_contains(&session.player(OWNER).inventory, "bomb"));
         // P2 should have potion
-        assert!(
-            session
-                .player(p2)
-                .inventory
-                .iter()
-                .any(|s| s.item_id == "potion" && s.qty > 0)
-        );
+        assert!(inv_contains(&session.player(p2).inventory, "potion"));
     }
 
     #[test]
@@ -7751,21 +7620,14 @@ mod tests {
         let mut session = party_session_for_gift();
         let p2 = serenity::UserId::new(2);
         // Give owner a gear item (rusty_sword is in the content registry)
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "rusty_sword".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "rusty_sword", 1);
         let result = apply_action(
             &mut session,
             GameAction::Gift("rusty_sword".to_owned(), p2),
             OWNER,
         );
         assert!(result.is_ok());
-        let recv_has = session
-            .player(p2)
-            .inventory
-            .iter()
-            .any(|s| s.item_id == "rusty_sword" && s.qty > 0);
+        let recv_has = inv_contains(&session.player(p2).inventory, "rusty_sword");
         assert!(recv_has, "receiver should have the gear item");
     }
 
@@ -7774,10 +7636,7 @@ mod tests {
         let mut session = party_session_for_gift();
         let p2 = serenity::UserId::new(2);
         // Give p2 some items
-        session.player_mut(p2).inventory.push(ItemStack {
-            item_id: "potion".to_owned(),
-            qty: 5,
-        });
+        inv_add_qty(&mut session.player_mut(p2).inventory, "potion", 5);
         // P2 gifts to owner
         let result = apply_action(
             &mut session,
@@ -7785,16 +7644,7 @@ mod tests {
             p2,
         );
         assert!(result.is_ok());
-        assert_eq!(
-            session
-                .player(p2)
-                .inventory
-                .iter()
-                .find(|s| s.item_id == "potion")
-                .unwrap()
-                .qty,
-            4
-        );
+        assert_eq!(inv_count(&session.player(p2).inventory, "potion"), 4);
     }
 
     // ── Loot balance tests ──────────────────────────────────────────
@@ -7805,7 +7655,7 @@ mod tests {
         let mut got_some = false;
         let mut got_none = false;
         for _ in 0..200 {
-            let mut inv = Vec::new();
+            let mut inv = GameInventory::new(MAX_INVENTORY_SLOTS);
             let (_, dropped) = roll_and_add_loot("boss", &mut inv);
             if dropped.is_some() {
                 got_some = true;
@@ -7823,11 +7673,14 @@ mod tests {
     #[test]
     fn roll_and_add_loot_adds_item_to_inventory() {
         // Boss table has 100% drop, so item always lands
-        let mut inv = Vec::new();
+        let mut inv = GameInventory::new(MAX_INVENTORY_SLOTS);
         let (logs, dropped) = roll_and_add_loot("boss", &mut inv);
         assert!(dropped.is_some());
         assert!(!logs.is_empty());
-        assert!(inv.iter().any(|s| s.qty > 0), "item should be in inventory");
+        assert!(
+            inv_to_legacy(&inv).iter().any(|s| s.qty > 0),
+            "item should be in inventory"
+        );
     }
 
     #[test]
@@ -7864,14 +7717,12 @@ mod tests {
                 .collect();
 
             // Clear inventory to avoid full-inventory noise
-            session.player_mut(OWNER).inventory.clear();
+            session.player_mut(OWNER).inventory = GameInventory::new(MAX_INVENTORY_SLOTS);
 
             let _logs = handle_enemy_deaths(&mut session, OWNER);
 
             // Count Rare+ items in inventory
-            let rare_count: usize = session
-                .player(OWNER)
-                .inventory
+            let rare_count: usize = inv_to_legacy(&session.player(OWNER).inventory)
                 .iter()
                 .filter(|s| s.qty > 0 && content::is_rare_or_above(&s.item_id))
                 .map(|s| s.qty as usize)
@@ -7918,10 +7769,13 @@ mod tests {
                 })
                 .collect();
 
-            session.player_mut(OWNER).inventory.clear();
+            session.player_mut(OWNER).inventory = GameInventory::new(MAX_INVENTORY_SLOTS);
             let _logs = handle_enemy_deaths(&mut session, OWNER);
 
-            let total_items: u16 = session.player(OWNER).inventory.iter().map(|s| s.qty).sum();
+            let total_items: u16 = inv_to_legacy(&session.player(OWNER).inventory)
+                .iter()
+                .map(|s| s.qty)
+                .sum();
             if total_items > 0 {
                 any_drop = true;
                 break;
@@ -7959,12 +7813,10 @@ mod tests {
                 personality: Personality::Feral,
             }];
 
-            session.player_mut(OWNER).inventory.clear();
+            session.player_mut(OWNER).inventory = GameInventory::new(MAX_INVENTORY_SLOTS);
             let _logs = handle_enemy_deaths(&mut session, OWNER);
 
-            let has_rare = session
-                .player(OWNER)
-                .inventory
+            let has_rare = inv_to_legacy(&session.player(OWNER).inventory)
                 .iter()
                 .any(|s| s.qty > 0 && content::is_rare_or_above(&s.item_id));
             if has_rare {
@@ -8028,10 +7880,7 @@ mod tests {
         session.phase = GamePhase::Exploring;
         session.player_mut(OWNER).hp = 30;
         session.player_mut(OWNER).max_hp = 100;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "campfire_kit".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "campfire_kit", 1);
 
         let result = apply_action(
             &mut session,
@@ -8059,10 +7908,7 @@ mod tests {
 
         session.player_mut(OWNER).hp = 40;
         session.player_mut(OWNER).max_hp = 100;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "campfire_kit".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "campfire_kit", 1);
 
         let result = apply_action(
             &mut session,
@@ -8099,10 +7945,7 @@ mod tests {
                 turns_left: 5,
             },
         ];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "campfire_kit".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "campfire_kit", 1);
 
         let result = apply_action(
             &mut session,
@@ -8122,10 +7965,7 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Combat;
         session.enemies = vec![test_enemy()];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "campfire_kit".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "campfire_kit", 1);
 
         let result = apply_action(
             &mut session,
@@ -8141,10 +7981,7 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::WaitingForActions;
         session.enemies = vec![test_enemy()];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "campfire_kit".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "campfire_kit", 1);
 
         let result = apply_action(
             &mut session,
@@ -8160,10 +7997,7 @@ mod tests {
         session.phase = GamePhase::Exploring;
         session.player_mut(OWNER).hp = 90;
         session.player_mut(OWNER).max_hp = 100;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "campfire_kit".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "campfire_kit", 1);
 
         let _ = apply_action(
             &mut session,
@@ -8178,22 +8012,17 @@ mod tests {
     fn campfire_consumes_item() {
         let mut session = test_session();
         session.phase = GamePhase::Exploring;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "campfire_kit".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "campfire_kit", 1);
 
         let _ = apply_action(
             &mut session,
             GameAction::UseItem("campfire_kit".to_owned(), None),
             OWNER,
         );
-        let stack = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "campfire_kit");
-        assert!(stack.is_none() || stack.unwrap().qty == 0);
+        assert_eq!(
+            inv_count(&session.player(OWNER).inventory, "campfire_kit"),
+            0
+        );
     }
 
     #[test]
@@ -8212,10 +8041,7 @@ mod tests {
 
         session.player_mut(OWNER).hp = 50;
         session.player_mut(OWNER).max_hp = 100;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "campfire_kit".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "campfire_kit", 1);
 
         let _ = apply_action(
             &mut session,
@@ -8234,10 +8060,7 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Exploring;
         session.map.position = MapPos::new(3, 2);
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "teleport_rune".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "teleport_rune", 1);
 
         let result = apply_action(
             &mut session,
@@ -8253,10 +8076,7 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Combat;
         session.enemies = vec![test_enemy()];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "teleport_rune".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "teleport_rune", 1);
 
         let result = apply_action(
             &mut session,
@@ -8272,10 +8092,7 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::WaitingForActions;
         session.enemies = vec![test_enemy()];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "teleport_rune".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "teleport_rune", 1);
 
         let result = apply_action(
             &mut session,
@@ -8290,10 +8107,7 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Exploring;
         session.enemies = vec![test_enemy()]; // leftover from something
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "teleport_rune".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "teleport_rune", 1);
 
         let _ = apply_action(
             &mut session,
@@ -8311,32 +8125,24 @@ mod tests {
     fn teleport_consumes_item() {
         let mut session = test_session();
         session.phase = GamePhase::Exploring;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "teleport_rune".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "teleport_rune", 1);
 
         let _ = apply_action(
             &mut session,
             GameAction::UseItem("teleport_rune".to_owned(), None),
             OWNER,
         );
-        let stack = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "teleport_rune");
-        assert!(stack.is_none() || stack.unwrap().qty == 0);
+        assert_eq!(
+            inv_count(&session.player(OWNER).inventory, "teleport_rune"),
+            0
+        );
     }
 
     #[test]
     fn teleport_message_mentions_city() {
         let mut session = test_session();
         session.phase = GamePhase::Exploring;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "teleport_rune".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "teleport_rune", 1);
 
         let result = apply_action(
             &mut session,
@@ -8354,10 +8160,7 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Combat;
         session.enemies = vec![test_enemy()];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "fire_flask".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "fire_flask", 1);
 
         let enemy_hp_before = session.enemies[0].hp;
         let result = apply_action(
@@ -8384,10 +8187,7 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Combat;
         session.enemies = vec![];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "fire_flask".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "fire_flask", 1);
 
         let result = apply_action(
             &mut session,
@@ -8402,23 +8202,14 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Combat;
         session.enemies = vec![test_enemy()];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "fire_flask".to_owned(),
-            qty: 3,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "fire_flask", 3);
 
         let _ = apply_action(
             &mut session,
             GameAction::UseItem("fire_flask".to_owned(), None),
             OWNER,
         );
-        let stack = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "fire_flask")
-            .unwrap();
-        assert_eq!(stack.qty, 2);
+        assert_eq!(inv_count(&session.player(OWNER).inventory, "fire_flask"), 2);
     }
 
     // ── Vitality potion tests ───────────────────────────────────────
@@ -8429,10 +8220,11 @@ mod tests {
         session.phase = GamePhase::Exploring;
         session.player_mut(OWNER).hp = 30;
         session.player_mut(OWNER).max_hp = 100;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "vitality_potion".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(
+            &mut session.player_mut(OWNER).inventory,
+            "vitality_potion",
+            1,
+        );
 
         let result = apply_action(
             &mut session,
@@ -8451,10 +8243,11 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Combat;
         session.enemies = vec![test_enemy()];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "iron_skin_potion".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(
+            &mut session.player_mut(OWNER).inventory,
+            "iron_skin_potion",
+            1,
+        );
 
         let result = apply_action(
             &mut session,
@@ -8479,10 +8272,7 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Combat;
         session.enemies = vec![test_enemy()];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "rage_draught".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "rage_draught", 1);
 
         let result = apply_action(
             &mut session,
@@ -8585,10 +8375,7 @@ mod tests {
         let mut enemy = test_enemy();
         enemy.hp = 5; // less than fire flask's 8 damage
         session.enemies = vec![enemy];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "fire_flask".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "fire_flask", 1);
 
         let result = apply_action(
             &mut session,
@@ -8608,10 +8395,7 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Combat;
         session.enemies = vec![test_enemy()];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "fire_flask".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "fire_flask", 1);
 
         let _ = apply_action(
             &mut session,
@@ -8638,10 +8422,7 @@ mod tests {
         enemy1.name = "Slime B".to_owned();
         enemy1.index = 1;
         session.enemies = vec![enemy0, enemy1];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "fire_flask".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "fire_flask", 1);
 
         let hp_before_0 = session.enemies[0].hp;
         let hp_before_1 = session.enemies[1].hp;
@@ -8678,10 +8459,7 @@ mod tests {
         let mut enemy1 = test_enemy();
         enemy1.index = 1;
         session.enemies = vec![enemy0, enemy1];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "fire_flask".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "fire_flask", 1);
 
         let hp_before_0 = session.enemies[0].hp;
         let _ = apply_action(
@@ -8704,10 +8482,7 @@ mod tests {
         session.phase = GamePhase::Treasure;
         session.player_mut(OWNER).hp = 30;
         session.player_mut(OWNER).max_hp = 100;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "campfire_kit".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "campfire_kit", 1);
 
         let result = apply_action(
             &mut session,
@@ -8724,10 +8499,7 @@ mod tests {
         session.phase = GamePhase::Merchant;
         session.player_mut(OWNER).hp = 20;
         session.player_mut(OWNER).max_hp = 100;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "campfire_kit".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "campfire_kit", 1);
 
         let result = apply_action(
             &mut session,
@@ -8744,10 +8516,7 @@ mod tests {
         session.phase = GamePhase::Rest;
         session.player_mut(OWNER).hp = 10;
         session.player_mut(OWNER).max_hp = 100;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "campfire_kit".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "campfire_kit", 1);
 
         let result = apply_action(
             &mut session,
@@ -8764,10 +8533,7 @@ mod tests {
         session.phase = GamePhase::Hallway;
         session.player_mut(OWNER).hp = 40;
         session.player_mut(OWNER).max_hp = 100;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "campfire_kit".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "campfire_kit", 1);
 
         let result = apply_action(
             &mut session,
@@ -8784,10 +8550,7 @@ mod tests {
         session.phase = GamePhase::City;
         session.player_mut(OWNER).hp = 50;
         session.player_mut(OWNER).max_hp = 100;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "campfire_kit".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "campfire_kit", 1);
 
         let result = apply_action(
             &mut session,
@@ -8821,10 +8584,7 @@ mod tests {
                 turns_left: 4,
             },
         ];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "campfire_kit".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "campfire_kit", 1);
 
         let _ = apply_action(
             &mut session,
@@ -8854,10 +8614,7 @@ mod tests {
 
         session.player_mut(OWNER).hp = 40;
         session.player_mut(OWNER).max_hp = 100;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "campfire_kit".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "campfire_kit", 1);
 
         let result = apply_action(
             &mut session,
@@ -8880,10 +8637,7 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Exploring;
         session.map.position = MapPos::new(0, 0);
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "teleport_rune".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "teleport_rune", 1);
 
         let result = apply_action(
             &mut session,
@@ -8907,10 +8661,7 @@ mod tests {
         p2_state.name = "Mage".to_owned();
         session.players.insert(p2, p2_state);
 
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "teleport_rune".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "teleport_rune", 1);
 
         let result = apply_action(
             &mut session,
@@ -8931,10 +8682,7 @@ mod tests {
         session.phase = GamePhase::Exploring;
         session.map.position = MapPos::new(1, 0);
         let rooms_before = session.player(OWNER).lifetime_rooms_cleared;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "teleport_rune".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "teleport_rune", 1);
 
         let _ = apply_action(
             &mut session,
@@ -8952,10 +8700,7 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Treasure;
         session.map.position = MapPos::new(2, 1);
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "teleport_rune".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "teleport_rune", 1);
 
         let result = apply_action(
             &mut session,
@@ -8971,10 +8716,7 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Looting;
         session.map.position = MapPos::new(1, 1);
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "teleport_rune".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "teleport_rune", 1);
 
         let result = apply_action(
             &mut session,
@@ -8995,10 +8737,11 @@ mod tests {
         session.player_mut(OWNER).max_hp = 100;
         session.player_mut(OWNER).hp = 100;
         session.player_mut(OWNER).armor = 0; // no armor so damage is clear
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "iron_skin_potion".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(
+            &mut session.player_mut(OWNER).inventory,
+            "iron_skin_potion",
+            1,
+        );
 
         let _ = apply_action(
             &mut session,
@@ -9031,10 +8774,7 @@ mod tests {
         // removes itself from the vec before the test can assert.
         enemy.intent = Intent::Defend { armor: 0 };
         session.enemies = vec![enemy];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "rage_draught".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "rage_draught", 1);
 
         // Use rage draught first — applies Sharpened
         let _ = apply_action(
@@ -9072,10 +8812,7 @@ mod tests {
         enemy.hp = 500;
         enemy.max_hp = 500;
         session.enemies = vec![enemy];
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "fire_flask".to_owned(),
-            qty: 3,
-        });
+        inv_add_qty(&mut session.player_mut(OWNER).inventory, "fire_flask", 3);
 
         // Use two fire flasks
         let _ = apply_action(
@@ -9104,13 +8841,7 @@ mod tests {
             );
         }
         // Should have used 2 of 3
-        let stack = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .find(|s| s.item_id == "fire_flask")
-            .unwrap();
-        assert_eq!(stack.qty, 1);
+        assert_eq!(inv_count(&session.player(OWNER).inventory, "fire_flask"), 1);
     }
 
     // ── Phoenix Feather / ReviveAlly tests ──────────────────────────
@@ -9130,10 +8861,11 @@ mod tests {
         p2_state.max_hp = 100;
         session.players.insert(p2, p2_state);
 
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "phoenix_feather".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(
+            &mut session.player_mut(OWNER).inventory,
+            "phoenix_feather",
+            1,
+        );
 
         let result = apply_action(
             &mut session,
@@ -9160,10 +8892,11 @@ mod tests {
         p2_state.max_hp = 100;
         session.players.insert(p2, p2_state);
 
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "phoenix_feather".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(
+            &mut session.player_mut(OWNER).inventory,
+            "phoenix_feather",
+            1,
+        );
 
         let _ = apply_action(
             &mut session,
@@ -9171,11 +8904,7 @@ mod tests {
             OWNER,
         );
         // bevy_inventory auto-removes empty stacks, so the item should be gone entirely
-        let has_feather = session
-            .player(OWNER)
-            .inventory
-            .iter()
-            .any(|s| s.item_id == "phoenix_feather");
+        let has_feather = inv_contains(&session.player(OWNER).inventory, "phoenix_feather");
         assert!(
             !has_feather,
             "phoenix_feather should be consumed and removed"
@@ -9208,10 +8937,11 @@ mod tests {
         ];
         session.players.insert(p2, p2_state);
 
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "phoenix_feather".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(
+            &mut session.player_mut(OWNER).inventory,
+            "phoenix_feather",
+            1,
+        );
 
         let _ = apply_action(
             &mut session,
@@ -9226,10 +8956,11 @@ mod tests {
         let mut session = test_session();
         session.mode = SessionMode::Solo;
         session.phase = GamePhase::Exploring;
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "phoenix_feather".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(
+            &mut session.player_mut(OWNER).inventory,
+            "phoenix_feather",
+            1,
+        );
 
         let result = apply_action(
             &mut session,
@@ -9254,10 +8985,11 @@ mod tests {
         p2_state.max_hp = 100;
         session.players.insert(p2, p2_state);
 
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "phoenix_feather".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(
+            &mut session.player_mut(OWNER).inventory,
+            "phoenix_feather",
+            1,
+        );
 
         let result = apply_action(
             &mut session,
@@ -9293,10 +9025,11 @@ mod tests {
         p3_state.max_hp = 80;
         session.players.insert(p3, p3_state);
 
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "phoenix_feather".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(
+            &mut session.player_mut(OWNER).inventory,
+            "phoenix_feather",
+            1,
+        );
 
         let _ = apply_action(
             &mut session,
@@ -9329,10 +9062,11 @@ mod tests {
         p2_state.max_hp = 100;
         session.players.insert(p2, p2_state);
 
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "phoenix_feather".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(
+            &mut session.player_mut(OWNER).inventory,
+            "phoenix_feather",
+            1,
+        );
 
         let result = apply_action(
             &mut session,
@@ -9357,10 +9091,11 @@ mod tests {
         p2_state.max_hp = 77; // 30% of 77 = 23.1 → ceil = 24
         session.players.insert(p2, p2_state);
 
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "phoenix_feather".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(
+            &mut session.player_mut(OWNER).inventory,
+            "phoenix_feather",
+            1,
+        );
 
         let _ = apply_action(
             &mut session,
@@ -9385,10 +9120,11 @@ mod tests {
         p2_state.max_hp = 100;
         session.players.insert(p2, p2_state);
 
-        session.player_mut(OWNER).inventory.push(ItemStack {
-            item_id: "phoenix_feather".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(
+            &mut session.player_mut(OWNER).inventory,
+            "phoenix_feather",
+            1,
+        );
 
         let result = apply_action(
             &mut session,
@@ -9419,10 +9155,7 @@ mod tests {
         p2_state.alive = true;
         p2_state.hp = 50;
         p2_state.max_hp = 100;
-        p2_state.inventory.push(ItemStack {
-            item_id: "phoenix_feather".to_owned(),
-            qty: 1,
-        });
+        inv_add_qty(&mut p2_state.inventory, "phoenix_feather", 1);
         session.players.insert(p2, p2_state);
 
         // Kill the owner
