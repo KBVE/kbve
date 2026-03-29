@@ -4,6 +4,33 @@ use std::sync::Arc;
 use std::time::Duration;
 use tracing::{error, info, warn};
 
+// ─── Edge Case Notes ─────────────────────────────────────────
+//
+// TODO(crash-recovery): On ROWS startup, reconcile all running jobs:
+//   - Scan Agones for Allocated GameServers with no matching DB entry
+//     (orphaned from a previous ROWS crash during allocation)
+//   - Deallocate orphaned GameServers
+//   - Partially done via reconcile_allocations() in main.rs startup,
+//     but doesn't handle the inverse (DB entry with no live GameServer)
+//
+// TODO(db-reconcile): Periodic DB → Agones reconciliation:
+//   - Every 5 minutes, compare mapinstances (status > 0) with live GameServers
+//   - If mapinstance exists but GameServer is gone → delete mapinstance
+//   - If GameServer is Allocated but no mapinstance → deallocate GameServer
+//   - This catches any state drift between DB and Agones
+//
+// TODO(health-escalation): Escalate repeated health failures:
+//   - If DB unreachable for 3+ consecutive checks → set readiness to false
+//   - K8s will stop routing traffic → gives DB time to recover
+//   - Re-enable readiness once DB comes back
+//
+// TODO(session-limit): Cap total sessions per customer:
+//   - Prevents a single customer from consuming all memory
+//   - Track session count per customer_guid, reject above limit
+//   - Default: 10000 sessions per customer
+//
+// ──────────────────────────────────────────────────────────────
+
 /// Spawn all background jobs as tokio tasks.
 pub fn spawn_all(svc: Arc<OWSService>) {
     tokio::spawn(zone_health_monitor(svc.clone()));

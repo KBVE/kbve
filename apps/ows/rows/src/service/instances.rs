@@ -5,6 +5,32 @@ use crate::models::*;
 use crate::repo::{CharsRepo, InstanceRepo};
 use uuid::Uuid;
 
+// ─── Edge Case Notes ─────────────────────────────────────────
+//
+// TODO(concurrent-allocation): Two players requesting the same zone simultaneously
+//   can both trigger allocation. The spinup lock prevents duplicate Agones allocations
+//   but the second request still polls for 60s. Consider:
+//   - Returning the in-progress allocation immediately (skip poll, return "pending")
+//   - Using a tokio::sync::watch channel to notify waiters when allocation completes
+//
+// TODO(zone-capacity): Check zone player cap before allocation:
+//   - Query mapinstances.numberofreportedplayers for the zone
+//   - If above soft_player_cap, try to allocate a new instance instead of joining existing
+//   - If above hard_player_cap, return error "Zone is full"
+//
+// TODO(graceful-travel): Handle client disconnect during GetServerToConnectTo:
+//   - Client HTTP timeout (30s) vs server allocation time (up to 60s)
+//   - If client disconnects, the allocated server is still created
+//   - Consider: allocation should be idempotent per character — same char gets same instance
+//
+// TODO(cross-zone-travel): Support ServerTravel between zones:
+//   - Player on Zone A wants to enter Zone B
+//   - Save position on Zone A → allocate on Zone B → return Zone B IP:port
+//   - Client does ClientTravel → new server handles the rest
+//   - Requires: character position save before zone handoff (partially done in OWS)
+//
+// ──────────────────────────────────────────────────────────────
+
 impl OWSService {
     /// Get a server for a player to connect to.
     /// Resolves zone name → finds or allocates a GameServer → returns IP + port.
