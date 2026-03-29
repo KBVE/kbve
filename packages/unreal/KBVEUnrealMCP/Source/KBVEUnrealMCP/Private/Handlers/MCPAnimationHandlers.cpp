@@ -28,6 +28,20 @@ void FMCPAnimationHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("animation.manage_skeleton"), MCPProtocolHelpers::MakeStub(TEXT("animation.manage_skeleton")));
 	Registry.RegisterHandler(TEXT("animation.create_montage"), MCPProtocolHelpers::MakeStub(TEXT("animation.create_montage")));
 	Registry.RegisterHandler(TEXT("animation.set_ik"), MCPProtocolHelpers::MakeStub(TEXT("animation.set_ik")));
+
+	// TODO: BlueprintMCP+UnrealClaude — blend spaces and transitions
+	Registry.RegisterHandler(TEXT("animation.create_blend_space"), MCPProtocolHelpers::MakeStub(TEXT("animation.create_blend_space")));
+	Registry.RegisterHandler(TEXT("animation.set_blend_space_samples"), MCPProtocolHelpers::MakeStub(TEXT("animation.set_blend_space_samples")));
+	Registry.RegisterHandler(TEXT("animation.create_aim_offset"), MCPProtocolHelpers::MakeStub(TEXT("animation.create_aim_offset")));
+	Registry.RegisterHandler(TEXT("animation.set_transition_rule"), MCPProtocolHelpers::MakeStub(TEXT("animation.set_transition_rule")));
+	Registry.RegisterHandler(TEXT("animation.add_condition_node"), MCPProtocolHelpers::MakeStub(TEXT("animation.add_condition_node")));
+	Registry.RegisterHandler(TEXT("animation.list_anim_slots"), MCPProtocolHelpers::MakeStub(TEXT("animation.list_anim_slots")));
+	Registry.RegisterHandler(TEXT("animation.list_sync_groups"), MCPProtocolHelpers::MakeStub(TEXT("animation.list_sync_groups")));
+	Registry.RegisterHandler(TEXT("animation.validate"), MCPProtocolHelpers::MakeStub(TEXT("animation.validate")));
+	// TODO: UnrealClaude — batch and state animation
+	Registry.RegisterHandler(TEXT("animation.batch_operations"), MCPProtocolHelpers::MakeStub(TEXT("animation.batch_operations")));
+	Registry.RegisterHandler(TEXT("animation.set_state_animation"), MCPProtocolHelpers::MakeStub(TEXT("animation.set_state_animation")));
+	Registry.RegisterHandler(TEXT("animation.find_animations"), MCPProtocolHelpers::MakeStub(TEXT("animation.find_animations")));
 }
 
 void FMCPAnimationHandlers::HandleCreateAnimBP(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

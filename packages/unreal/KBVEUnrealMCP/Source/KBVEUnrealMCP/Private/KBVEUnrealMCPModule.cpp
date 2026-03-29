@@ -45,6 +45,11 @@
 #include "Handlers/MCPProjectHandlers.h"
 #include "Handlers/MCPTextureHandlers.h"
 
+// Phase 11 — Deep audit: PIE control, tool management, context
+#include "Handlers/MCPPIEHandlers.h"
+#include "Handlers/MCPToolManagementHandlers.h"
+#include "Handlers/MCPContextHandlers.h"
+
 DEFINE_LOG_CATEGORY_STATIC(LogKBVEUnrealMCP, Log, All);
 
 void FKBVEUnrealMCPModule::StartupModule()
@@ -166,6 +171,11 @@ void FKBVEUnrealMCPModule::RegisterAllHandlers()
 	FMCPTaskQueueHandlers::Register(*Registry);
 	FMCPProjectHandlers::Register(*Registry);
 	FMCPTextureHandlers::Register(*Registry);
+
+	// Phase 11 — Deep audit: PIE control, tool management, context
+	FMCPPIEHandlers::Register(*Registry);
+	FMCPToolManagementHandlers::Register(*Registry);
+	FMCPContextHandlers::Register(*Registry);
 }
 
 IMPLEMENT_MODULE(FKBVEUnrealMCPModule, KBVEUnrealMCP)

@@ -15,6 +15,11 @@ void FMCPViewportHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("viewport.set_camera"), &HandleSetCamera);
 	Registry.RegisterHandler(TEXT("viewport.take_screenshot"), &HandleTakeScreenshot);
 	Registry.RegisterHandler(TEXT("viewport.focus_actor"), &HandleFocusActor);
+
+	// TODO: ChiR24+SpecialAgent — viewport operations
+	Registry.RegisterHandler(TEXT("viewport.trace_from_screen"), MCPProtocolHelpers::MakeStub(TEXT("viewport.trace_from_screen")));
+	Registry.RegisterHandler(TEXT("viewport.set_view_mode"), MCPProtocolHelpers::MakeStub(TEXT("viewport.set_view_mode")));
+	Registry.RegisterHandler(TEXT("viewport.set_resolution"), MCPProtocolHelpers::MakeStub(TEXT("viewport.set_resolution")));
 }
 
 static FEditorViewportClient* GetActiveViewportClient()

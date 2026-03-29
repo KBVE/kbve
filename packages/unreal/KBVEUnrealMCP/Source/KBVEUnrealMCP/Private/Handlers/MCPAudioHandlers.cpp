@@ -18,6 +18,12 @@ void FMCPAudioHandlers::Register(FMCPHandlerRegistry& Registry)
 	// TODO: ChiR24 — sound cue and MetaSound creation
 	Registry.RegisterHandler(TEXT("audio.create_sound_cue"), MCPProtocolHelpers::MakeStub(TEXT("audio.create_sound_cue")));
 	Registry.RegisterHandler(TEXT("audio.create_metasound"), MCPProtocolHelpers::MakeStub(TEXT("audio.create_metasound")));
+
+	// TODO: ChiR24 — audio environment and dialogue
+	Registry.RegisterHandler(TEXT("audio.create_ambient_sound"), MCPProtocolHelpers::MakeStub(TEXT("audio.create_ambient_sound")));
+	Registry.RegisterHandler(TEXT("audio.set_attenuation"), MCPProtocolHelpers::MakeStub(TEXT("audio.set_attenuation")));
+	Registry.RegisterHandler(TEXT("audio.create_reverb_zone"), MCPProtocolHelpers::MakeStub(TEXT("audio.create_reverb_zone")));
+	Registry.RegisterHandler(TEXT("audio.create_dialogue_voice"), MCPProtocolHelpers::MakeStub(TEXT("audio.create_dialogue_voice")));
 }
 
 void FMCPAudioHandlers::HandleSpawnSource(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

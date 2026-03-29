@@ -9,6 +9,11 @@ void FMCPNavigationHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("navigation.rebuild_navmesh"), &HandleRebuildNavmesh);
 	Registry.RegisterHandler(TEXT("navigation.test_path"), &HandleTestPath);
 	Registry.RegisterHandler(TEXT("navigation.get_info"), &HandleGetInfo);
+
+	// TODO: ChiR24 — advanced navigation
+	Registry.RegisterHandler(TEXT("navigation.add_nav_modifier"), MCPProtocolHelpers::MakeStub(TEXT("navigation.add_nav_modifier")));
+	Registry.RegisterHandler(TEXT("navigation.create_nav_link"), MCPProtocolHelpers::MakeStub(TEXT("navigation.create_nav_link")));
+	Registry.RegisterHandler(TEXT("navigation.set_nav_area_cost"), MCPProtocolHelpers::MakeStub(TEXT("navigation.set_nav_area_cost")));
 }
 
 void FMCPNavigationHandlers::HandleRebuildNavmesh(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

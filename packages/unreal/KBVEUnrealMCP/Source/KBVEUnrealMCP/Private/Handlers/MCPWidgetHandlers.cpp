@@ -19,6 +19,26 @@ void FMCPWidgetHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("widget.add_to_viewport"), MCPProtocolHelpers::MakeStub(TEXT("widget.add_to_viewport")));
 	Registry.RegisterHandler(TEXT("widget.remove"), MCPProtocolHelpers::MakeStub(TEXT("widget.remove")));
 	Registry.RegisterHandler(TEXT("widget.get_info"), &HandleGetInfo);
+
+	// TODO: ChiR24 — widget layout containers
+	Registry.RegisterHandler(TEXT("widget.add_canvas_panel"), MCPProtocolHelpers::MakeStub(TEXT("widget.add_canvas_panel")));
+	Registry.RegisterHandler(TEXT("widget.add_horizontal_box"), MCPProtocolHelpers::MakeStub(TEXT("widget.add_horizontal_box")));
+	Registry.RegisterHandler(TEXT("widget.add_vertical_box"), MCPProtocolHelpers::MakeStub(TEXT("widget.add_vertical_box")));
+	// TODO: ChiR24+chongdashu — widget elements
+	Registry.RegisterHandler(TEXT("widget.add_text_block"), MCPProtocolHelpers::MakeStub(TEXT("widget.add_text_block")));
+	Registry.RegisterHandler(TEXT("widget.add_button"), MCPProtocolHelpers::MakeStub(TEXT("widget.add_button")));
+	Registry.RegisterHandler(TEXT("widget.add_image"), MCPProtocolHelpers::MakeStub(TEXT("widget.add_image")));
+	Registry.RegisterHandler(TEXT("widget.add_slider"), MCPProtocolHelpers::MakeStub(TEXT("widget.add_slider")));
+	Registry.RegisterHandler(TEXT("widget.add_progress_bar"), MCPProtocolHelpers::MakeStub(TEXT("widget.add_progress_bar")));
+	// TODO: ChiR24 — widget animation and HUD prefabs
+	Registry.RegisterHandler(TEXT("widget.create_animation"), MCPProtocolHelpers::MakeStub(TEXT("widget.create_animation")));
+	Registry.RegisterHandler(TEXT("widget.create_hud"), MCPProtocolHelpers::MakeStub(TEXT("widget.create_hud")));
+	Registry.RegisterHandler(TEXT("widget.create_main_menu"), MCPProtocolHelpers::MakeStub(TEXT("widget.create_main_menu")));
+	Registry.RegisterHandler(TEXT("widget.add_health_bar"), MCPProtocolHelpers::MakeStub(TEXT("widget.add_health_bar")));
+	Registry.RegisterHandler(TEXT("widget.add_minimap"), MCPProtocolHelpers::MakeStub(TEXT("widget.add_minimap")));
+	Registry.RegisterHandler(TEXT("widget.add_crosshair"), MCPProtocolHelpers::MakeStub(TEXT("widget.add_crosshair")));
+	// TODO: chongdashu — text binding
+	Registry.RegisterHandler(TEXT("widget.set_text_binding"), MCPProtocolHelpers::MakeStub(TEXT("widget.set_text_binding")));
 }
 
 void FMCPWidgetHandlers::HandleCreate(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
