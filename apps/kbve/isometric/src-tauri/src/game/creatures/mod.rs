@@ -3,6 +3,7 @@ pub mod common;
 pub mod creature;
 mod firefly;
 mod frog;
+mod wraith;
 
 use bevy::prelude::*;
 
@@ -13,6 +14,7 @@ pub use creature::{
     RenderKind, TimeSchedule,
 };
 pub use frog::FrogMaterials;
+pub use wraith::WraithMaterials;
 
 /// Build creature meshes once at Startup to avoid allocating during spawn.
 fn setup_creature_meshes(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>) {
@@ -61,6 +63,7 @@ impl Plugin for CreaturesPlugin {
         app.init_resource::<CreaturePool>();
         app.init_resource::<common::GameTime>();
         app.init_resource::<FrogMaterials>();
+        app.init_resource::<WraithMaterials>();
         app.init_resource::<firefly::FireflyState>();
         app.add_systems(Startup, setup_creature_meshes);
 
@@ -84,6 +87,9 @@ impl Plugin for CreaturesPlugin {
                 // Frogs (unified Creature + SpriteData)
                 frog::spawn_frogs.run_if(|pool: Res<CreaturePool>| !pool.frogs_spawned),
                 frog::animate_frogs.run_if(any_with_component::<creature::SpriteData>),
+                // Wraiths (unified Creature + SpriteData + WraithMarker)
+                wraith::spawn_wraiths.run_if(|pool: Res<CreaturePool>| !pool.wraiths_spawned),
+                wraith::animate_wraiths.run_if(any_with_component::<wraith::WraithMarker>),
             ),
         );
     }
