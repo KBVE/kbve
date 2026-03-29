@@ -129,6 +129,8 @@ spec:
                         value: '/etc/ssl/webtransport-selfsigned/tls.crt'
                       - name: GAME_WT_SELFSIGNED_KEY
                         value: '/etc/ssl/webtransport-selfsigned/tls.key'
+                      - name: CHUCKRPG_UPSTREAM_URL
+                        value: 'http://rows.ows.svc.cluster.local:4322'
                   volumeMounts:
                       - name: argocd-ca
                         mountPath: /etc/ssl/argocd

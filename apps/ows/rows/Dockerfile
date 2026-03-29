@@ -12,7 +12,6 @@ COPY apps/ows/rows/Cargo.toml apps/ows/rows/Cargo.toml
 COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
 COPY packages/data/proto/ packages/data/proto/
-COPY apps/ows/rows/proto/ apps/ows/rows/proto/
 COPY apps/ows/rows/build.rs apps/ows/rows/build.rs
 COPY apps/ows/rows/src/ apps/ows/rows/src/
 COPY packages/rust/jedi/src/ packages/rust/jedi/src/
@@ -38,7 +37,6 @@ COPY apps/ows/rows/Cargo.toml apps/ows/rows/Cargo.toml
 COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
 COPY packages/data/proto/ packages/data/proto/
-COPY apps/ows/rows/proto/ apps/ows/rows/proto/
 COPY apps/ows/rows/build.rs apps/ows/rows/build.rs
 
 # Cook deps from recipe — this layer is cached until Cargo.toml/Cargo.lock change

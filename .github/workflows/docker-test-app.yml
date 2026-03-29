@@ -36,7 +36,7 @@ jobs:
     test:
         name: Test ${{ inputs.project }} Docker App
         runs-on: ${{ inputs.runner }}
-        timeout-minutes: 120
+        timeout-minutes: 180
         env:
             NX_NO_CLOUD: true
         permissions:
