@@ -424,6 +424,245 @@ This crate is a user-friendly, easy-to-integrate, immediate-mode GUI library des
 
 ---
 
+## Bevy
+
+Bevy is a data-driven game engine built in Rust, using an Entity Component System (ECS) architecture.
+The KBVE isometric game (`apps/kbve/isometric`) runs on Bevy 0.18 with WGPU as its rendering backend, targeting both native desktop (via Tauri) and WebAssembly (WebGPU).
+
+### WGPU Rendering Pipeline
+
+The isometric game initializes WGPU directly for desktop builds, bypassing Bevy's default windowing to render inside a Tauri webview surface.
+
+#### Device Configuration
+
+```rust
+// renderer.rs — WGPU initialization
+let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+    backends: wgpu::Backends::all(),     // Vulkan, Metal, DX12, GL
+    ..Default::default()
+});
+
+let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
+    power_preference: wgpu::PowerPreference::HighPerformance,
+    compatible_surface: Some(&surface),
+    force_fallback_adapter: false,
+}).await;
+
+let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
+    required_features: wgpu::Features::empty(),
+    required_limits: wgpu::Limits::default(),
+    ..Default::default()
+}).await;
+```
+
+| Setting | Value | Notes |
+|---|---|---|
+| Backends | `all()` | Auto-selects Vulkan/Metal/DX12 per platform |
+| Power preference | `HighPerformance` | Ensures discrete GPU on switchable laptops |
+| Features | `empty()` | No optional WGPU features requested |
+| Limits | `default()` | Standard limits (2048 textures, 8 bind groups) |
+
+#### Render Architecture
+
+```mermaid
+graph TD
+    A[Tauri WebviewWindow] -->|raw_window_handle| B[wgpu::Surface]
+    B --> C[wgpu::Adapter]
+    C --> D[wgpu::Device + Queue]
+    D -->|RenderCreation::Manual| E[Bevy RenderPlugin]
+    E --> F[Forward Renderer]
+    F --> G[PBR Pipeline]
+    F --> H[Sprite Pipeline]
+    F --> I[Custom Materials]
+    I --> I1[WaterMaterial]
+    I --> I2[PixelateMaterial]
+    I --> I3[OrbMaterial]
+    I --> I4[SmokeMaterial]
+```
+
+On WASM, Bevy's default WebGPU backend is used instead of the manual surface creation.
+
+### Mesh and Texture Pipeline
+
+The game uses two fundamentally different mesh strategies: **static chunk meshes** built once at load time, and **animated sprite meshes** updated per frame via UV shifting.
+
+#### Static Chunk Meshes (Tilemap)
+
+Terrain is divided into 16x16 tile chunks. Each chunk produces up to 4 meshes (body, cap, grass, water), built once and never updated:
+
+```rust
+// tilemap.rs — chunk mesh built via builder pattern (immutable after creation)
+Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default())
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_COLOR, colors)   // vertex colors for terrain bands
+    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)       // tileset UVs
+    .with_inserted_indices(Indices::U32(indices))
+```
+
+Chunk meshes use **vertex colors** as the primary shading mechanism (grass shades, dirt/stone/snow height bands), reducing material count. Only grass cap surfaces use UV-mapped textures from a tileset atlas.
+
+#### UV-Shift Sprite Animation (Creatures)
+
+Sprite creatures (frogs, wraiths) use per-frame mesh UV updates to animate through sprite sheet frames:
+
+```rust
+// Per-frame UV computation from atlas grid position
+fn frame_uvs(anim: &Anim, frame: u32, flip: bool) -> [[f32; 2]; 4] {
+    let col = anim.start_col + (frame % anim.frame_count);
+    let row = anim.row;
+    let u0 = col as f32 * FRAME_W;
+    let u1 = u0 + FRAME_W;
+    let v0 = row as f32 * FRAME_H;
+    let v1 = v0 + FRAME_H;
+    if flip {
+        [[u1, v0], [u0, v0], [u0, v1], [u1, v1]]  // horizontal flip
+    } else {
+        [[u0, v0], [u1, v0], [u1, v1], [u0, v1]]
+    }
+}
+
+// Applied every frame — triggers GPU buffer re-upload
+mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, vec![uvs[0], uvs[1], uvs[2], uvs[3]]);
+```
+
+Each `insert_attribute` call replaces the mesh's UV buffer and triggers a GPU upload via Bevy's render asset system.
+
+### Per-Frame GPU Upload Budget
+
+```mermaid
+graph LR
+    subgraph "Per-Frame Mesh Uploads (Worst Case)"
+        F[Frogs x8] -->|8 UV uploads| GPU
+        W[Wraiths x6] -->|6 UV uploads| GPU
+    end
+    subgraph "Zero Per-Frame Uploads"
+        FF[Fireflies x80] -.->|transform only| GPU
+        BF[Butterflies x14] -.->|transform only| GPU
+        TM[Tilemap chunks] -.->|built once| GPU
+    end
+```
+
+| System | Entities | Per-Frame Uploads | Upload Type |
+|---|---|---|---|
+| Frogs | 8 pool | 8 | `ATTRIBUTE_UV_0` (4 vec2s) |
+| Wraiths | 6 pool | 6 | `ATTRIBUTE_UV_0` (4 vec2s) |
+| Fireflies | 80 pool | 0 | Transform + emissive only |
+| Butterflies | 14 pool | 0 | Transform + vertex morph |
+| Tilemap | ~50 chunks | 0 | Built once at chunk load |
+| **Total** | | **14** | |
+
+At 14 uploads of 32 bytes each (4 vertices x 2 floats x 4 bytes), the total per-frame mesh data is **448 bytes** — negligible on any GPU. The overhead is not the data size but the **draw call overhead** of Bevy's render asset change detection and GPU buffer staging.
+
+### Custom Shader Materials
+
+All custom shaders use Bevy's `Material` trait with `AsBindGroup` for automatic uniform binding:
+
+```rust
+// water.rs — custom material with uniform block
+#[derive(Asset, TypePath, AsBindGroup, Clone)]
+pub struct WaterMaterial {
+    #[uniform(0)]
+    pub uniforms: WaterUniforms,
+}
+
+#[derive(ShaderType, Clone, Copy)]
+pub struct WaterUniforms {
+    pub base_color: Vec4,       // surface color
+    pub deep_color: Vec4,       // depth color
+    pub ripple_speed: f32,      // wave animation speed
+    pub ripple_scale: f32,      // wave pattern density
+    pub highlight_strength: f32, // specular intensity
+    pub foam_intensity: f32,    // edge foam
+}
+```
+
+Bevy's `MaterialPlugin<T>` handles bind group creation, buffer allocation, and shader pipeline setup. Time is accessed in shaders via Bevy's built-in `globals.time` uniform.
+
+| Shader | File | Purpose | Technique |
+|---|---|---|---|
+| `water.wgsl` | Animated water surfaces | Procedural noise + pixelated UV + foam | Value noise, overlay blend |
+| `pixelate.wgsl` | Post-processing | Toon/cel-shading + edge detection | Screen-space quantization |
+| `orb.wgsl` | HUD health/mana orbs | Fake spherical lighting + liquid sim | Meniscus + wobble |
+| `smoke.wgsl` | Particle effects | Multi-lobe silhouette + FBM noise | Stepped pixel drift |
+
+### Optimization Opportunities
+
+<Aside type="tip">
+
+The current UV-shift approach works correctly and performs well at the current entity count (14 sprite creatures).
+These optimizations become relevant when scaling to 50+ sprite creatures or targeting low-end WebGPU devices.
+
+</Aside>
+
+**Uniform-driven UV offset (eliminates per-frame mesh uploads):**
+
+Instead of rewriting the mesh UV buffer each frame, pass the current frame column and row as a shader uniform and compute UVs in the vertex shader:
+
+```wgsl
+// Proposed: sprite_sheet.wgsl
+struct SpriteUniforms {
+    frame_col: f32,
+    frame_row: f32,
+    sheet_cols: f32,
+    sheet_rows: f32,
+    flip: f32,
+};
+
+@group(3) @binding(0) var<uniform> sprite: SpriteUniforms;
+
+@vertex
+fn vertex(in: VertexInput) -> VertexOutput {
+    var out: VertexOutput;
+    let frame_w = 1.0 / sprite.sheet_cols;
+    let frame_h = 1.0 / sprite.sheet_rows;
+    var u = in.uv.x * frame_w + sprite.frame_col * frame_w;
+    let v = in.uv.y * frame_h + sprite.frame_row * frame_h;
+    if (sprite.flip > 0.5) {
+        u = (sprite.frame_col + 1.0) * frame_w - (u - sprite.frame_col * frame_w);
+    }
+    out.uv = vec2(u, v);
+    out.position = mesh_position_local_to_clip(in.position);
+    return out;
+}
+```
+
+This approach:
+- Eliminates all `insert_attribute` calls (zero mesh uploads per frame)
+- Moves UV computation to the GPU (where it belongs)
+- Enables **instanced rendering** — all creatures of the same type can share one mesh
+- Reduces CPU-GPU sync points from 14/frame to 0/frame
+
+```mermaid
+graph LR
+    subgraph "Current: CPU UV Rewrite"
+        CPU1[Compute UVs] --> BUF1[Write to mesh buffer] --> UP1[GPU upload]
+    end
+    subgraph "Proposed: Uniform UV Offset"
+        CPU2[Set frame_col uniform] --> UNI[Uniform buffer update]
+    end
+    style UP1 fill:#f66,stroke:#333
+    style UNI fill:#6f6,stroke:#333
+```
+
+**Texture compression:**
+
+Sprite atlases are stored as uncompressed RGBA8 PNG. GPU-compressed formats reduce VRAM usage by ~4x:
+
+| Format | Platform | Compression | Atlas VRAM |
+|---|---|---|---|
+| RGBA8 (current) | All | None | ~4.8 MB |
+| BC7 | Desktop (Vulkan/DX12/Metal) | 4:1 | ~1.2 MB |
+| ASTC 4x4 | Mobile/WebGPU | 4:1 | ~1.2 MB |
+
+Bevy supports `.ktx2` with basis universal transcoding for cross-platform compressed textures.
+
+**Instanced rendering:**
+
+All sprite creatures of the same type share identical geometry (a quad). With the uniform-driven UV approach, these could use **GPU instancing** — one draw call for all frogs, one for all wraiths — reducing draw calls from 14 to 2.
+
+---
+
 ## Q
 
 Q is a powerful Godot Helper Crate designed for Rust developers using the GDExtension API.
