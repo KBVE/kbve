@@ -1,0 +1,38 @@
+---
+title: 'Sunflower'
+description: 'A tall, golden sunflower that always faces the light. Bright and easy to spot.'
+ref: 'sunflower'
+key: 110
+id: '01KMVPV9ZHQSEG1JXEWWJY2WKV'
+name: 'Sunflower'
+type_flags: 128
+consumable: false
+stackable: true
+max_stack: 32
+rarity: 'common'
+buy_price: 5
+sell_price: 2
+emoji: '🌻'
+weight: 0.15
+skilling:
+  skill: 'foraging'
+  xp_reward: 6
+  gather_time: 0.5
+  respawn_time: 20
+  resource_node: 'flower-sunflower'
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

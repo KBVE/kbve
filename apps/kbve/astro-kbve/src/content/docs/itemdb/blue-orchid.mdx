@@ -1,0 +1,38 @@
+---
+title: 'Blue Orchid'
+description: 'A rare and delicate blue orchid found in damp, shaded areas. Prized by collectors.'
+ref: 'blue-orchid'
+key: 114
+id: '01KMVPV9ZJCX2MW8DR54AV33JS'
+name: 'Blue Orchid'
+type_flags: 128
+consumable: false
+stackable: true
+max_stack: 32
+rarity: 'common'
+buy_price: 7
+sell_price: 3
+emoji: '🏵️'
+weight: 0.1
+skilling:
+  skill: 'foraging'
+  xp_reward: 8
+  gather_time: 0.5
+  respawn_time: 25
+  resource_node: 'flower-blue-orchid'
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
