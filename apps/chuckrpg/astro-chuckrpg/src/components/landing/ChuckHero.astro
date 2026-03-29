@@ -1,13 +1,11 @@
 ---
 interface Props {
-	title?: string;
 	tagline?: string;
 	playLink?: string;
 	guidesLink?: string;
 }
 
 const {
-	title = 'ChuckRPG',
 	tagline = 'Forge your legend in a world of swords, sorcery, and endless adventure.',
 	playLink = '/game/overview/',
 	guidesLink = '/guides/introduction/',
@@ -16,13 +14,7 @@ const {
 
 <section class="ck-hero">
 	<div class="ck-hero__video" aria-hidden="true">
-		<iframe
-			src="https://www.youtube.com/embed/aT66uumZ0Zo?autoplay=1&mute=1&loop=1&playlist=aT66uumZ0Zo&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1"
-			title="ChuckRPG gameplay trailer"
-			frameborder="0"
-			allow="autoplay; encrypted-media"
-			allowfullscreen>
-		</iframe>
+		<div id="ck-yt-player"></div>
 	</div>
 	<div class="ck-hero__video-overlay"></div>
 
@@ -56,6 +48,139 @@ const {
 	</div>
 </section>
 
+<script>
+	declare global {
+		interface Window {
+			YT: typeof YT;
+			onYouTubeIframeAPIReady: () => void;
+		}
+		namespace YT {
+			const PlayerState: {
+				ENDED: number;
+				PLAYING: number;
+				PAUSED: number;
+				BUFFERING: number;
+				CUED: number;
+			};
+			interface PlayerEvent {
+				target: Player;
+			}
+			interface OnStateChangeEvent {
+				target: Player;
+				data: number;
+			}
+			class Player {
+				constructor(id: string, config: any);
+				playVideo(): void;
+				mute(): void;
+				seekTo(seconds: number, allowSeekAhead: boolean): void;
+				getPlayerState(): number;
+				loadVideoById(id: string): void;
+				destroy(): void;
+			}
+		}
+	}
+
+	const VIDEO_ID = 'aT66uumZ0Zo';
+	let player: YT.Player | null = null;
+	let watchdog: ReturnType<typeof setInterval> | null = null;
+
+	function initPlayer() {
+		player = new YT.Player('ck-yt-player', {
+			videoId: VIDEO_ID,
+			playerVars: {
+				autoplay: 1,
+				mute: 1,
+				loop: 1,
+				playlist: VIDEO_ID,
+				controls: 0,
+				showinfo: 0,
+				rel: 0,
+				modestbranding: 1,
+				playsinline: 1,
+				disablekb: 1,
+				fs: 0,
+				iv_load_policy: 3,
+				cc_load_policy: 0,
+			},
+			events: {
+				onReady: onPlayerReady,
+				onStateChange: onPlayerStateChange,
+				onError: onPlayerError,
+			},
+		});
+	}
+
+	function onPlayerReady(event: YT.PlayerEvent) {
+		event.target.mute();
+		event.target.playVideo();
+		startWatchdog();
+	}
+
+	function onPlayerStateChange(event: YT.OnStateChangeEvent) {
+		if (event.data === YT.PlayerState.ENDED) {
+			event.target.seekTo(0, true);
+			event.target.playVideo();
+		} else if (event.data === YT.PlayerState.PAUSED) {
+			setTimeout(() => {
+				if (
+					player &&
+					player.getPlayerState() === YT.PlayerState.PAUSED
+				) {
+					player.playVideo();
+				}
+			}, 1000);
+		}
+	}
+
+	function onPlayerError() {
+		if (player) {
+			setTimeout(() => {
+				player?.loadVideoById(VIDEO_ID);
+			}, 3000);
+		}
+	}
+
+	function startWatchdog() {
+		if (watchdog) clearInterval(watchdog);
+		watchdog = setInterval(() => {
+			if (!player) return;
+			try {
+				const state = player.getPlayerState();
+				if (
+					state === YT.PlayerState.ENDED ||
+					state === YT.PlayerState.PAUSED ||
+					state === -1 // unstarted
+				) {
+					player.seekTo(0, true);
+					player.playVideo();
+				}
+			} catch {
+				// player not ready yet
+			}
+		}, 5000);
+	}
+
+	// Load YouTube IFrame API
+	if (typeof window !== 'undefined') {
+		const existing = document.querySelector(
+			'script[src*="youtube.com/iframe_api"]',
+		);
+		if (!existing) {
+			const tag = document.createElement('script');
+			tag.src = 'https://www.youtube.com/iframe_api';
+			document.head.appendChild(tag);
+		}
+
+		(window as any).onYouTubeIframeAPIReady = initPlayer;
+
+		// If API already loaded (SPA navigation)
+		if ((window as any).YT && (window as any).YT.Player) {
+			initPlayer();
+		}
+	}
+</script>
+
 <style>
 	.ck-hero {
 		position: relative;
@@ -77,7 +202,8 @@ const {
 		overflow: hidden;
 	}
 
-	.ck-hero__video iframe {
+	.ck-hero__video iframe,
+	.ck-hero__video #ck-yt-player {
 		position: absolute;
 		top: 50%;
 		left: 50%;
