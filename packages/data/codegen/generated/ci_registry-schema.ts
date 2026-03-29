@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/ci_registry.binpb
  * Config: ../ci_registry-zod-config.json
- * Generated: 2026-03-23T07:45:50.210Z
+ * Generated: 2026-03-29T18:47:38.481Z
  */
 
 import { z } from 'zod';
@@ -71,6 +71,7 @@ export const CiProjectSchema = z.object({
 		.string()
 		.regex(/^\d+\.\d+\.\d+$/, 'Must be valid semver (x.y.z)')
 		.optional(),
+	version_source: z.string().optional(),
 	author: z.string().min(1).max(128).optional(),
 	license: z.string().min(1).max(64).optional(),
 	repository_url: z.string().url().max(512).optional(),
@@ -87,7 +88,7 @@ export const CiProjectSchema = z.object({
 	target: z.string().max(64).optional(),
 	nx_project: z.string().max(64).optional(),
 	test_framework: TestFrameworkSchema.optional(),
-	shell_path: z.string().max(256).optional(),
+	shell_path: z.string().optional(),
 });
 
 export type CiProject = z.infer<typeof CiProjectSchema>;

@@ -64,6 +64,7 @@ message CiProject {
   // --- CI version tracking ---
   optional string version_toml = 14;        // Path to version.toml relative to repo root
   optional string version = 15;             // Release version (semver x.y.z)
+  optional string version_source = 33;      // Path to version source file (Cargo.toml, package.json, etc.) — overrides default path convention when the project lives in a non-standard location
 
   // --- Project metadata ---
   optional string author = 16;              // Primary maintainer
