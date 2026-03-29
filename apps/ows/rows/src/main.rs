@@ -18,6 +18,7 @@ mod repo;
 pub mod rest;
 pub mod service;
 mod state;
+mod supabase;
 mod trace;
 mod ws;
 
