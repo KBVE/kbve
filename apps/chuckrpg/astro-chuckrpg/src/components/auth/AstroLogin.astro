@@ -1,8 +1,25 @@
 ---
-import ReactAuthLogin from './ReactAuthLogin';
+import ReactLoginButtons from './ReactLoginButtons';
 ---
 
-<ReactAuthLogin client:only="react" />
+<div class="ck-auth-container">
+	<div class="ck-auth-content">
+		<h2>Enter the Realm</h2>
+		<p class="ck-auth-desc">
+			Sign in to save your progress, forge alliances, and compete on the
+			leaderboards.
+		</p>
+
+		<ReactLoginButtons client:load />
+
+		<div class="ck-auth-info">
+			<p>
+				By signing in, you agree to our Terms of Service and Privacy
+				Policy.
+			</p>
+		</div>
+	</div>
+</div>
 
 <style is:global>
 	.ck-auth-container {
@@ -32,6 +49,7 @@ import ReactAuthLogin from './ReactAuthLogin';
 		flex-direction: column;
 		gap: 1rem;
 		margin-bottom: 2rem;
+		min-height: 120px;
 	}
 
 	.ck-auth-btn {
