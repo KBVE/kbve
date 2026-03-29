@@ -119,6 +119,8 @@ spec:
                         value: 'https://kubernetes.default.svc'
                       - name: KUBEVIRT_CA_CERT_PATH
                         value: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt'
+                      - name: GAME_WS_PLAIN
+                        value: '1'
                       - name: GAME_SERVER_HOST
                         value: 'wt.kbve.com'
                       - name: GAME_WT_CERT

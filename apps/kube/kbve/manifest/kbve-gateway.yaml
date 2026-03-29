@@ -60,6 +60,11 @@ spec:
               - path:
                     type: PathPrefix
                     value: /ws
+          timeouts:
+              # WebSocket connections are long-lived — set a generous
+              # backend timeout so the Cilium proxy doesn't kill them.
+              # Default Cilium/Envoy timeout is ~15s which breaks game sessions.
+              backendRequest: 3600s
           backendRefs:
               - name: kbve-service
                 port: 5000
