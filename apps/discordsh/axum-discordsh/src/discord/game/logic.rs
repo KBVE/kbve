@@ -2606,6 +2606,32 @@ fn apply_treasure_choice(
         _ => return Err("Invalid treasure choice.".to_owned()),
     }
 
+    // Roll for bonus item loot from the treasure table
+    if let Some(item_id) = super::content::roll_loot("treasure") {
+        let alive_ids = session.alive_player_ids();
+        if let Some(&uid) = alive_ids.first() {
+            let player = session.player_mut(uid);
+            add_item_to_inventory(&mut player.inventory, item_id);
+            let emoji = super::content::find_item(item_id)
+                .map(|d| d.emoji.as_ref())
+                .unwrap_or("📦");
+            logs.push(format!("You also found {emoji} **{}**!", item_id));
+        }
+    }
+
+    // Roll for bonus gear loot from the treasure table
+    if let Some(gear_id) = super::content::roll_gear_loot("treasure") {
+        let alive_ids = session.alive_player_ids();
+        if let Some(&uid) = alive_ids.first() {
+            let player = session.player_mut(uid);
+            add_item_to_inventory(&mut player.inventory, gear_id);
+            let emoji = super::content::find_gear(gear_id)
+                .map(|d| d.emoji.as_ref())
+                .unwrap_or("⚔️");
+            logs.push(format!("You found {emoji} **{}** in the chest!", gear_id));
+        }
+    }
+
     if session.all_players_dead() {
         session.phase = GamePhase::GameOver(GameOverReason::Defeated);
         logs.push("The trap proved fatal...".to_owned());

@@ -258,6 +258,10 @@ fn loot_tables() -> &'static [LootTable] {
                     item_id: "vitality_potion",
                     weight: 1,
                 },
+                LootEntry {
+                    item_id: "whetstone",
+                    weight: 1,
+                },
             ],
             drop_chance: 0.3,
         },
@@ -279,6 +283,14 @@ fn loot_tables() -> &'static [LootTable] {
                 LootEntry {
                     item_id: "iron_skin_potion",
                     weight: 1,
+                },
+                LootEntry {
+                    item_id: "trap_kit",
+                    weight: 1,
+                },
+                LootEntry {
+                    item_id: "whetstone",
+                    weight: 2,
                 },
             ],
             drop_chance: 0.4,
@@ -304,6 +316,14 @@ fn loot_tables() -> &'static [LootTable] {
                 },
                 LootEntry {
                     item_id: "phoenix_feather",
+                    weight: 1,
+                },
+                LootEntry {
+                    item_id: "antidote",
+                    weight: 2,
+                },
+                LootEntry {
+                    item_id: "smoke_bomb",
                     weight: 1,
                 },
             ],
@@ -340,8 +360,67 @@ fn loot_tables() -> &'static [LootTable] {
                     item_id: "phoenix_feather",
                     weight: 1,
                 },
+                LootEntry {
+                    item_id: "elixir",
+                    weight: 1,
+                },
+                LootEntry {
+                    item_id: "antidote",
+                    weight: 1,
+                },
+                LootEntry {
+                    item_id: "smoke_bomb",
+                    weight: 1,
+                },
             ],
             drop_chance: 1.0,
+        },
+        // Treasure room loot — rolled when opening chests
+        LootTable {
+            id: "treasure",
+            entries: &[
+                LootEntry {
+                    item_id: "potion",
+                    weight: 4,
+                },
+                LootEntry {
+                    item_id: "vitality_potion",
+                    weight: 3,
+                },
+                LootEntry {
+                    item_id: "bomb",
+                    weight: 2,
+                },
+                LootEntry {
+                    item_id: "ward",
+                    weight: 2,
+                },
+                LootEntry {
+                    item_id: "iron_skin_potion",
+                    weight: 2,
+                },
+                LootEntry {
+                    item_id: "rage_draught",
+                    weight: 1,
+                },
+                LootEntry {
+                    item_id: "campfire_kit",
+                    weight: 1,
+                },
+                LootEntry {
+                    item_id: "smoke_bomb",
+                    weight: 1,
+                },
+                LootEntry {
+                    item_id: "trap_kit",
+                    weight: 1,
+                },
+                LootEntry {
+                    item_id: "antidote",
+                    weight: 1,
+                },
+            ],
+            drop_chance: 0.75,
         },
     ];
     TABLES
@@ -466,6 +545,45 @@ fn gear_loot_tables() -> &'static [GearLootTable] {
                 },
             ],
             drop_chance: 0.50,
+        },
+        // Treasure chests — mix of tiers, lower drop chance than combat
+        GearLootTable {
+            id: "treasure",
+            entries: &[
+                GearLootEntry {
+                    gear_id: "rusty_sword",
+                    weight: 4,
+                },
+                GearLootEntry {
+                    gear_id: "leather_vest",
+                    weight: 4,
+                },
+                GearLootEntry {
+                    gear_id: "iron_mace",
+                    weight: 3,
+                },
+                GearLootEntry {
+                    gear_id: "chain_mail",
+                    weight: 3,
+                },
+                GearLootEntry {
+                    gear_id: "shadow_dagger",
+                    weight: 2,
+                },
+                GearLootEntry {
+                    gear_id: "shadow_cloak",
+                    weight: 2,
+                },
+                GearLootEntry {
+                    gear_id: "flame_axe",
+                    weight: 1,
+                },
+                GearLootEntry {
+                    gear_id: "spiked_plate",
+                    weight: 1,
+                },
+            ],
+            drop_chance: 0.25,
         },
     ];
     TABLES
