@@ -21,6 +21,10 @@ data:
                 - https://*.meme.sh
                 - https://kbve.com
                 - https://*.kbve.com
+                - https://chuckrpg.com
+                - https://*.chuckrpg.com
+                - https://cryptothrone.com
+                - https://*.cryptothrone.com
                 - http://localhost:4321
                 - http://localhost:3000
               methods:
