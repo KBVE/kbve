@@ -162,22 +162,26 @@ async fn noticeboard(
 
                 let mut reply = poise::CreateReply::default();
 
+                let summary_embed = build_notice_board_summary(&notices, &full_name);
+
                 match png_result {
                     Ok(png_bytes) => {
                         let attachment = poise::serenity_prelude::CreateAttachment::bytes(
                             png_bytes,
                             "noticeboard.png",
                         );
-                        let embed = poise::serenity_prelude::CreateEmbed::new()
+                        let card_embed = poise::serenity_prelude::CreateEmbed::new()
                             .title(format!("Notice Board — {}", full_name))
                             .image("attachment://noticeboard.png")
                             .color(0xE67E22);
-                        reply = reply.embed(embed).attachment(attachment);
+                        reply = reply
+                            .embed(card_embed)
+                            .embed(summary_embed)
+                            .attachment(attachment);
                     }
                     Err(e) => {
                         warn!(error = %e, "Noticeboard card render failed, falling back to text");
-                        let embed = build_notice_board_summary(&notices, &full_name);
-                        reply = reply.embed(embed);
+                        reply = reply.embed(summary_embed);
                     }
                 }
 
@@ -258,23 +262,27 @@ async fn taskboard(
                 .map_err(|e| format!("Task panicked: {e}"))?;
 
                 let mut reply = poise::CreateReply::default();
+                let repo_url = format!("https://github.com/{}", full_name);
+                let detail_embed = build_task_board_embed(&tasks, phase_title, "", &repo_url);
+
                 match png_result {
                     Ok(png_bytes) => {
                         let attachment = poise::serenity_prelude::CreateAttachment::bytes(
                             png_bytes,
                             "taskboard.png",
                         );
-                        let embed = poise::serenity_prelude::CreateEmbed::new()
+                        let card_embed = poise::serenity_prelude::CreateEmbed::new()
                             .title(format!("Task Board — {}", full_name))
                             .image("attachment://taskboard.png")
                             .color(0x3498DB);
-                        reply = reply.embed(embed).attachment(attachment);
+                        reply = reply
+                            .embed(card_embed)
+                            .embed(detail_embed)
+                            .attachment(attachment);
                     }
                     Err(e) => {
                         warn!(error = %e, "Taskboard card render failed, falling back to text");
-                        let repo_url = format!("https://github.com/{}", full_name);
-                        let embed = build_task_board_embed(&tasks, phase_title, "", &repo_url);
-                        reply = reply.embed(embed);
+                        reply = reply.embed(detail_embed);
                     }
                 }
                 ctx.send(reply).await.map_err(|e| e.to_string())?;
@@ -345,38 +353,44 @@ async fn issues(
 
                 let mut reply = poise::CreateReply::default();
 
+                // Build text detail embed (always used)
+                let mut detail_embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!("Open Issues — {}", full_name))
+                    .color(0x238636);
+                if issues.is_empty() {
+                    detail_embed = detail_embed.description("No open issues!");
+                } else {
+                    for issue in &issues {
+                        detail_embed = detail_embed.field(
+                            format!("#{} {}", issue.number, truncate(&issue.title, 80)),
+                            format!(
+                                "by `{}` | [view]({}){}",
+                                issue.user.login,
+                                issue.html_url,
+                                format_assignees(&issue.assignees)
+                            ),
+                            false,
+                        );
+                    }
+                }
+
                 match png_result {
                     Ok(png_bytes) => {
                         let attachment = poise::serenity_prelude::CreateAttachment::bytes(
                             png_bytes,
                             "issues.png",
                         );
-                        let embed = poise::serenity_prelude::CreateEmbed::new()
-                            .title(format!("Open Issues — {}", full_name))
+                        let card_embed = poise::serenity_prelude::CreateEmbed::new()
                             .image("attachment://issues.png")
                             .color(0x238636);
-                        reply = reply.embed(embed).attachment(attachment);
+                        reply = reply
+                            .embed(card_embed)
+                            .embed(detail_embed)
+                            .attachment(attachment);
                     }
                     Err(e) => {
                         warn!(error = %e, "Issues card render failed, falling back to text");
-                        let mut embed = poise::serenity_prelude::CreateEmbed::new()
-                            .title(format!("Open Issues — {}", full_name))
-                            .color(0x238636);
-                        if issues.is_empty() {
-                            embed = embed.description("No open issues!");
-                        } else {
-                            for issue in &issues {
-                                embed = embed.field(
-                                    format!("#{} {}", issue.number, truncate(&issue.title, 80)),
-                                    format!(
-                                        "by `{}` | [view]({})",
-                                        issue.user.login, issue.html_url
-                                    ),
-                                    false,
-                                );
-                            }
-                        }
-                        reply = reply.embed(embed);
+                        reply = reply.embed(detail_embed);
                     }
                 }
 
@@ -440,35 +454,46 @@ async fn pulls(
                 .map_err(|e| format!("Task panicked: {e}"))?;
 
                 let mut reply = poise::CreateReply::default();
+
+                let mut detail_embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!("Open PRs — {}", full_name))
+                    .color(0x8957E5);
+                if pulls.is_empty() {
+                    detail_embed = detail_embed.description("No open pull requests!");
+                } else {
+                    for pr in &pulls {
+                        let draft_tag = if pr.draft { " `draft`" } else { "" };
+                        detail_embed = detail_embed.field(
+                            format!("#{} {}", pr.number, truncate(&pr.title, 70)),
+                            format!(
+                                "by `{}` | `{}`{} | [view]({})",
+                                pr.user.login,
+                                truncate(&pr.head.ref_name, 20),
+                                draft_tag,
+                                pr.html_url
+                            ),
+                            false,
+                        );
+                    }
+                }
+
                 match png_result {
                     Ok(png_bytes) => {
                         let attachment = poise::serenity_prelude::CreateAttachment::bytes(
                             png_bytes,
                             "pulls.png",
                         );
-                        let embed = poise::serenity_prelude::CreateEmbed::new()
-                            .title(format!("Open PRs — {}", full_name))
+                        let card_embed = poise::serenity_prelude::CreateEmbed::new()
                             .image("attachment://pulls.png")
                             .color(0x8957E5);
-                        reply = reply.embed(embed).attachment(attachment);
+                        reply = reply
+                            .embed(card_embed)
+                            .embed(detail_embed)
+                            .attachment(attachment);
                     }
                     Err(e) => {
                         warn!(error = %e, "Pulls card render failed, falling back to text");
-                        let mut embed = poise::serenity_prelude::CreateEmbed::new()
-                            .title(format!("Open PRs — {}", full_name))
-                            .color(0x8957E5);
-                        if pulls.is_empty() {
-                            embed = embed.description("No open pull requests!");
-                        } else {
-                            for pr in &pulls {
-                                embed = embed.field(
-                                    format!("#{} {}", pr.number, truncate(&pr.title, 70)),
-                                    format!("by `{}` | [view]({})", pr.user.login, pr.html_url),
-                                    false,
-                                );
-                            }
-                        }
-                        reply = reply.embed(embed);
+                        reply = reply.embed(detail_embed);
                     }
                 }
                 ctx.send(reply).await.map_err(|e| e.to_string())?;
@@ -525,28 +550,30 @@ async fn repo(
 
                 let mut reply = poise::CreateReply::default();
 
+                let desc = info.description.as_deref().unwrap_or("No description");
+                let detail_embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(&info.full_name)
+                    .url(&info.html_url)
+                    .description(desc)
+                    .field("Default Branch", &info.default_branch, true)
+                    .field("Open Issues", info.open_issues_count.to_string(), true)
+                    .color(0x0d1117);
+
                 match png_result {
                     Ok(png_bytes) => {
                         let attachment =
                             poise::serenity_prelude::CreateAttachment::bytes(png_bytes, "repo.png");
-                        let embed = poise::serenity_prelude::CreateEmbed::new()
-                            .title(&info.full_name)
-                            .url(&info.html_url)
+                        let card_embed = poise::serenity_prelude::CreateEmbed::new()
                             .image("attachment://repo.png")
                             .color(0x0d1117);
-                        reply = reply.embed(embed).attachment(attachment);
+                        reply = reply
+                            .embed(card_embed)
+                            .embed(detail_embed)
+                            .attachment(attachment);
                     }
                     Err(e) => {
                         warn!(error = %e, "Repo card render failed, falling back to text");
-                        let desc = info.description.as_deref().unwrap_or("No description");
-                        let embed = poise::serenity_prelude::CreateEmbed::new()
-                            .title(&info.full_name)
-                            .url(&info.html_url)
-                            .description(desc)
-                            .field("Default Branch", &info.default_branch, true)
-                            .field("Open Issues", info.open_issues_count.to_string(), true)
-                            .color(0x0d1117);
-                        reply = reply.embed(embed);
+                        reply = reply.embed(detail_embed);
                     }
                 }
 
@@ -606,37 +633,41 @@ async fn commits(
                 .map_err(|e| format!("Task panicked: {e}"))?;
 
                 let mut reply = poise::CreateReply::default();
+
+                let mut detail_embed = poise::serenity_prelude::CreateEmbed::new()
+                    .title(format!("Recent Commits — {}", full_name))
+                    .color(0x2EA043);
+                if commits.is_empty() {
+                    detail_embed = detail_embed.description("No commits found.");
+                } else {
+                    for c in &commits {
+                        let first_line = c.commit.message.lines().next().unwrap_or("");
+                        let short_sha = &c.sha[..7.min(c.sha.len())];
+                        detail_embed = detail_embed.field(
+                            truncate(first_line, 80),
+                            format!("by `{}` | `{}`", c.commit.author.name, short_sha),
+                            false,
+                        );
+                    }
+                }
+
                 match png_result {
                     Ok(png_bytes) => {
                         let attachment = poise::serenity_prelude::CreateAttachment::bytes(
                             png_bytes,
                             "commits.png",
                         );
-                        let embed = poise::serenity_prelude::CreateEmbed::new()
-                            .title(format!("Recent Commits — {}", full_name))
+                        let card_embed = poise::serenity_prelude::CreateEmbed::new()
                             .image("attachment://commits.png")
                             .color(0x2EA043);
-                        reply = reply.embed(embed).attachment(attachment);
+                        reply = reply
+                            .embed(card_embed)
+                            .embed(detail_embed)
+                            .attachment(attachment);
                     }
                     Err(e) => {
                         warn!(error = %e, "Commits card render failed, falling back to text");
-                        let mut embed = poise::serenity_prelude::CreateEmbed::new()
-                            .title(format!("Recent Commits — {}", full_name))
-                            .color(0x2EA043);
-                        if commits.is_empty() {
-                            embed = embed.description("No commits found.");
-                        } else {
-                            for c in &commits {
-                                let first_line = c.commit.message.lines().next().unwrap_or("");
-                                let short_sha = &c.sha[..7.min(c.sha.len())];
-                                embed = embed.field(
-                                    truncate(first_line, 80),
-                                    format!("by `{}` | `{}`", c.commit.author.name, short_sha),
-                                    false,
-                                );
-                            }
-                        }
-                        reply = reply.embed(embed);
+                        reply = reply.embed(detail_embed);
                     }
                 }
                 ctx.send(reply).await.map_err(|e| e.to_string())?;
@@ -712,24 +743,73 @@ pub async fn view_issue_impl(
 
         let mut reply = poise::CreateReply::default();
 
+        let issue_color = if issue.state == "open" {
+            0x238636u32
+        } else {
+            0x8b949eu32
+        };
+
+        // Build the text detail embed (always shown)
+        let body_preview = issue
+            .body
+            .as_deref()
+            .unwrap_or("")
+            .lines()
+            .take(3)
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        let mut detail_embed = poise::serenity_prelude::CreateEmbed::new()
+            .title(format!("#{} — {}", number, truncate(&issue.title, 60)))
+            .url(&issue.html_url)
+            .color(issue_color);
+
+        if !body_preview.is_empty() {
+            detail_embed = detail_embed.description(body_preview);
+        }
+
+        let state_icon = if issue.state == "open" {
+            "Open"
+        } else {
+            "Closed"
+        };
+        detail_embed = detail_embed
+            .field("State", state_icon, true)
+            .field("Author", format!("`{}`", issue.user.login), true)
+            .field("Comments", issue.comments.to_string(), true);
+
+        if !issue.labels.is_empty() {
+            let label_list: Vec<_> = issue
+                .labels
+                .iter()
+                .take(6)
+                .map(|l| format!("`{}`", l.name))
+                .collect();
+            detail_embed = detail_embed.field("Labels", label_list.join(" "), false);
+        }
+
+        if !issue.assignees.is_empty() {
+            let names: Vec<_> = issue
+                .assignees
+                .iter()
+                .map(|a| format!("`{}`", a.login))
+                .collect();
+            detail_embed = detail_embed.field("Assignees", names.join(", "), false);
+        }
+
         match png_result {
             Ok(png_bytes) => {
                 let attachment =
                     poise::serenity_prelude::CreateAttachment::bytes(png_bytes, "issue.png");
 
-                let issue_color = if issue.state == "open" {
-                    0x238636u32
-                } else {
-                    0x8b949eu32
-                };
-
-                let embed = poise::serenity_prelude::CreateEmbed::new()
-                    .title(format!("#{} — {}", number, truncate(&issue.title, 60)))
-                    .url(&issue.html_url)
+                let card_embed = poise::serenity_prelude::CreateEmbed::new()
                     .image("attachment://issue.png")
                     .color(issue_color);
 
-                reply = reply.embed(embed).attachment(attachment);
+                reply = reply
+                    .embed(card_embed)
+                    .embed(detail_embed)
+                    .attachment(attachment);
 
                 // Add interactive components for Board+ tier users
                 let guard = &ctx.data().app.github_guard;
@@ -812,27 +892,7 @@ pub async fn view_issue_impl(
             }
             Err(e) => {
                 warn!(error = %e, "Issue detail card render failed, falling back to text");
-                let body_preview = issue
-                    .body
-                    .as_deref()
-                    .unwrap_or("")
-                    .lines()
-                    .take(3)
-                    .collect::<Vec<_>>()
-                    .join("\n");
-
-                let issue_color = if issue.state == "open" {
-                    0x238636u32
-                } else {
-                    0x8b949eu32
-                };
-
-                let embed = poise::serenity_prelude::CreateEmbed::new()
-                    .title(format!("#{} {}", number, truncate(&issue.title, 60)))
-                    .url(&issue.html_url)
-                    .description(body_preview)
-                    .color(issue_color);
-                reply = reply.embed(embed);
+                reply = reply.embed(detail_embed);
             }
         }
 
