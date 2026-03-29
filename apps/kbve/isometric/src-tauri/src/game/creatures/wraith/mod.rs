@@ -4,12 +4,13 @@
 //! patrol in slow gliding arcs and occasionally perform attack or skill
 //! animations. Uses the same UV-shift system as the frog module.
 //!
-//! Atlas layout: 20 columns × 5 rows of 100×100 frames (2000×500 texture).
+//! Atlas layout: 20 columns × 6 rows of 100×100 frames (2000×600 texture).
 //!   Row 0: idle       (4 frames)
-//!   Row 1: idle2      (8 frames)
+//!   Row 1: idle2      (4 frames)
 //!   Row 2: attacking  (13 frames)
 //!   Row 3: skill1     (12 frames)
-//!   Row 4: death      (18 frames)
+//!   Row 4: death      (20 frames)
+//!   Row 5: summon     (5 frames)
 //!
 //! Asset reference: Undead Executioner by DarkPixel Kronovi
 //! https://darkpixel-kronovi.itch.io/undead-executioner
@@ -33,7 +34,7 @@ const NPC_REF: &str = "wraith-executioner";
 // ---------------------------------------------------------------------------
 
 const SHEET_COLS: u32 = 20;
-const SHEET_ROWS: u32 = 5;
+const SHEET_ROWS: u32 = 6;
 const FRAME_W: f32 = 1.0 / SHEET_COLS as f32;
 const FRAME_H: f32 = 1.0 / SHEET_ROWS as f32;
 
@@ -68,7 +69,7 @@ const ANIM_IDLE: Anim = Anim {
 const ANIM_IDLE2: Anim = Anim {
     row: 1,
     start_col: 0,
-    frame_count: 8,
+    frame_count: 4,
 };
 const ANIM_ATTACK: Anim = Anim {
     row: 2,
@@ -83,7 +84,12 @@ const ANIM_SKILL: Anim = Anim {
 const _ANIM_DEATH: Anim = Anim {
     row: 4,
     start_col: 0,
-    frame_count: 18,
+    frame_count: 20,
+};
+const ANIM_SUMMON: Anim = Anim {
+    row: 5,
+    start_col: 0,
+    frame_count: 5,
 };
 
 // ---------------------------------------------------------------------------
@@ -348,7 +354,7 @@ pub(super) fn animate_wraiths(
                         state = SpriteHopState::Emote {
                             remaining_frames: ANIM_ATTACK.frame_count,
                         };
-                    } else if roll < 0.65 {
+                    } else if roll < 0.60 {
                         // Skill emote
                         sd.anim_row = ANIM_SKILL.row;
                         sd.anim_frames = ANIM_SKILL.frame_count;
@@ -356,6 +362,15 @@ pub(super) fn animate_wraiths(
                         sd.frame_timer = 0.0;
                         state = SpriteHopState::Emote {
                             remaining_frames: ANIM_SKILL.frame_count,
+                        };
+                    } else if roll < 0.75 {
+                        // Summon emote
+                        sd.anim_row = ANIM_SUMMON.row;
+                        sd.anim_frames = ANIM_SUMMON.frame_count;
+                        sd.current_frame = 0;
+                        sd.frame_timer = 0.0;
+                        state = SpriteHopState::Emote {
+                            remaining_frames: ANIM_SUMMON.frame_count,
                         };
                     } else {
                         // Extended idle2
