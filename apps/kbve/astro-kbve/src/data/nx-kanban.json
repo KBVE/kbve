@@ -1,9 +1,9 @@
 {
-	"generated_at": "2026-03-28T08:17:01.706Z",
+	"generated_at": "2026-03-29T08:17:11.412Z",
 	"project": {
 		"title": "KBVE",
 		"url": "https://github.com/orgs/KBVE/projects/5",
-		"total_items": 457
+		"total_items": 465
 	},
 	"summary": {
 		"Theory": 22,
@@ -14,7 +14,7 @@
 		"Support": 0,
 		"Staging": 4,
 		"Review": 2,
-		"Done": 403
+		"Done": 411
 	},
 	"columns": {
 		"Theory": [
@@ -908,10 +908,10 @@
 			},
 			{
 				"type": "PULL_REQUEST",
-				"number": 9234,
-				"title": "Release: 1 fix, 1 CI → Main",
+				"number": 9262,
+				"title": "Release: 1 feature, 1 chore → Main",
 				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/pull/9234",
+				"url": "https://github.com/KBVE/kbve/pull/9262",
 				"assignees": [],
 				"labels": [
 					"auto-pr",
@@ -970,21 +970,6 @@
 				],
 				"matrix": null,
 				"date": "2026-03-07",
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 7943,
-				"title": "Release: 10 features, 6 fixes, 1 refactor, 2 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/7943",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
 				"milestone": null
 			},
 			{
@@ -6970,6 +6955,139 @@
 				"labels": [
 					"auto-pr",
 					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 9234,
+				"title": "Release: 2 fixes, 1 CI, 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/9234",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 9237,
+				"title": "chore(dashboard): daily sync — 2026-03-28",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/9237",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 9238,
+				"title": "Release: 6 features, 3 fixes, 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/9238",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 9248,
+				"title": "Release: 0 commits → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/9248",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 9253,
+				"title": "deploy(isometric): update WASM build",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/9253",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 9254,
+				"title": "Atomic: discordsh v0.1.40 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/9254",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 9255,
+				"title": "Release: 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/9255",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 9259,
+				"title": "Release: 1 feature, 2 fixes → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/9259",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 9261,
+				"title": "Atomic: rows v0.1.23 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/9261",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
 				],
 				"matrix": null,
 				"date": null,

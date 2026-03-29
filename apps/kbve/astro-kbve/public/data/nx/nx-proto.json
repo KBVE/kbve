@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-03-28T08:17:45.728Z",
+  "generated_at": "2026-03-29T08:18:03.508Z",
   "summary": {
-    "total_protos": 25,
-    "registered": 9,
-    "orphaned": 15,
+    "total_protos": 27,
+    "registered": 10,
+    "orphaned": 16,
     "utility_only": 1,
-    "total_messages": 461,
-    "total_enums": 88
+    "total_messages": 539,
+    "total_enums": 92
   },
   "protos": [
     {
@@ -82,6 +82,45 @@
         "zod_config": "packages/data/codegen/clickhouse-zod-config.json",
         "zod_output": "packages/data/codegen/generated/clickhouse-schema.ts",
         "binpb": "packages/data/codegen/descriptors/clickhouse.binpb"
+      }
+    },
+    {
+      "proto": "packages/data/proto/jedi/github.proto",
+      "package": "github",
+      "messages": [
+        "GitHubUser",
+        "GitHubLabel",
+        "GitHubIssueType",
+        "GitHubIssue",
+        "CreateIssueRequest",
+        "UpdateIssueRequest",
+        "GitHubRef",
+        "GitHubPull",
+        "MergePullRequest",
+        "GitHubMergeResult",
+        "GitHubCommitAuthor",
+        "GitHubCommitDetail",
+        "GitHubCommit",
+        "GitHubRepo",
+        "GitHubStatusChecks",
+        "GitHubEnforceAdmins",
+        "GitHubBranchProtection",
+        "GitHubComment",
+        "GitHubSearchResult",
+        "GitHubWorkflow",
+        "GitHubWorkflowsResponse",
+        "DispatchWorkflowRequest",
+        "GitHubRateLimit"
+      ],
+      "enums": [],
+      "message_count": 23,
+      "enum_count": 0,
+      "codegen": {
+        "registered": false,
+        "name": null,
+        "zod_config": null,
+        "zod_output": null,
+        "binpb": null
       }
     },
     {
@@ -347,11 +386,11 @@
       "message_count": 15,
       "enum_count": 5,
       "codegen": {
-        "registered": false,
-        "name": null,
-        "zod_config": null,
-        "zod_output": null,
-        "binpb": null
+        "registered": true,
+        "name": "forum",
+        "zod_config": "packages/data/codegen/forum-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/forum-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/forum.binpb"
       }
     },
     {
@@ -699,6 +738,12 @@
         "WorldObjectPlacement",
         "SpawnPoint",
         "Region",
+        "HexCoord",
+        "SeedPolicy",
+        "HexTravelLink",
+        "EnvironmentConfig",
+        "HexZoneRecord",
+        "HexWorldMap",
         "MapExtension",
         "MapRegistry"
       ],
@@ -714,10 +759,14 @@
         "CraftingStationType",
         "PoiType",
         "TerrainBand",
-        "SpawnCategory"
+        "SpawnCategory",
+        "GenerationMode",
+        "PersistenceMode",
+        "StreamingHint",
+        "ReplicationHint"
       ],
-      "message_count": 22,
-      "enum_count": 12,
+      "message_count": 28,
+      "enum_count": 16,
       "codegen": {
         "registered": true,
         "name": "mapdb",
@@ -972,15 +1021,80 @@
         "zod_output": "packages/data/codegen/generated/questdb-schema.ts",
         "binpb": "packages/data/codegen/descriptors/questdb.binpb"
       }
+    },
+    {
+      "proto": "packages/data/proto/rows/rows.proto",
+      "package": "rows",
+      "messages": [
+        "ServerHeartbeat",
+        "ServerCommand",
+        "LoginRequest",
+        "LoginResponse",
+        "RegisterRequest",
+        "RegisterResponse",
+        "GetCharactersRequest",
+        "GetCharactersResponse",
+        "CreateCharacterRequest",
+        "CreateCharacterResponse",
+        "RemoveCharacterRequest",
+        "RemoveCharacterResponse",
+        "GetServerToConnectToRequest",
+        "GetServerToConnectToResponse",
+        "GetAllCharactersRequest",
+        "GetAllCharactersResponse",
+        "RegisterLauncherRequest",
+        "RegisterLauncherResponse",
+        "StartInstanceLauncherRequest",
+        "StartInstanceLauncherResponse",
+        "ShutDownInstanceLauncherRequest",
+        "ShutDownInstanceLauncherResponse",
+        "GetZoneInstancesRequest",
+        "GetZoneInstancesResponse",
+        "SetZoneInstanceStatusRequest",
+        "SetZoneInstanceStatusResponse",
+        "SpinUpInstanceRequest",
+        "SpinUpInstanceResponse",
+        "ShutDownInstanceRequest",
+        "ShutDownInstanceResponse",
+        "UpdateNumberOfPlayersRequest",
+        "UpdateNumberOfPlayersResponse",
+        "GetCharacterByNameRequest",
+        "UpdatePositionRequest",
+        "UpdatePositionResponse",
+        "UpdateStatsRequest",
+        "UpdateStatsResponse",
+        "PlayerLogoutRequest",
+        "PlayerLogoutResponse",
+        "JoinMapRequest",
+        "JoinMapResponse",
+        "LeaveMapRequest",
+        "LeaveMapResponse",
+        "GetGlobalDataRequest",
+        "GetGlobalDataResponse",
+        "SetGlobalDataRequest",
+        "SetGlobalDataResponse",
+        "ZoneAssignmentRequest",
+        "ZoneAssignmentResponse"
+      ],
+      "enums": [],
+      "message_count": 49,
+      "enum_count": 0,
+      "codegen": {
+        "registered": false,
+        "name": null,
+        "zod_config": null,
+        "zod_output": null,
+        "binpb": null
+      }
     }
   ],
   "orphaned_protos": [
+    "packages/data/proto/jedi/github.proto",
     "packages/data/proto/jedi/groq.proto",
     "packages/data/proto/jedi/jedi.proto",
     "packages/data/proto/jedi/redis.proto",
     "packages/data/proto/jedi/twitch.proto",
     "packages/data/proto/kbve/common.proto",
-    "packages/data/proto/kbve/forum.proto",
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto",
     "packages/data/proto/kbve/minecraft.proto",
@@ -989,14 +1103,16 @@
     "packages/data/proto/kbve/schema.proto",
     "packages/data/proto/kbve/snapshot.proto",
     "packages/data/proto/kbve/staff.proto",
-    "packages/data/proto/meme/meme.proto"
+    "packages/data/proto/meme/meme.proto",
+    "packages/data/proto/rows/rows.proto"
   ],
-  "checked_at": "2026-03-28T08:17:45Z",
+  "checked_at": "2026-03-29T08:18:03Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/ci_registry-schema.ts",
     "packages/data/codegen/generated/clickhouse-schema.ts",
     "packages/data/codegen/generated/discordsh-schema.ts",
+    "packages/data/codegen/generated/forum-schema.ts",
     "packages/data/codegen/generated/itemdb-schema.ts",
     "packages/data/codegen/generated/mapdb-schema.ts",
     "packages/data/codegen/generated/npcdb-schema.ts",
