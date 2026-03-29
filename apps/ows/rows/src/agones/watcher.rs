@@ -3,21 +3,16 @@
 //! Watches for Shutdown/Delete events and auto-cleans stale DB entries
 //! (worldservers + mapinstances) so clients never connect to dead ports.
 
-use crate::db::DbPool;
 use crate::repo::InstanceRepo;
 use crate::state::AppState;
-use dashmap::DashMap;
 use futures_lite::StreamExt;
 use kube::{
     Api, Client,
-    api::{ApiResource, DynamicObject, ListParams},
+    api::{ApiResource, DynamicObject},
     runtime::watcher::{self, Event},
 };
-use serde_json::Value;
 use std::sync::Arc;
-use std::time::Instant;
 use tracing::{error, info, warn};
-use uuid::Uuid;
 
 /// Max backoff between watcher restart attempts.
 const MAX_BACKOFF_SECS: u64 = 60;

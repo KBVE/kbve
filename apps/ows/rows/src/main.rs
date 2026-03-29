@@ -1,6 +1,7 @@
-// Allow structural warnings for WIP code — OWS parity requires many-arg functions
-// and some methods are implemented but not yet wired to routes.
+// OWS parity requires many-arg functions in repo/service layers.
 #![allow(clippy::too_many_arguments)]
+// SDK proxy, pipeline accessors, and repo methods are wired incrementally.
+// Dead code warnings suppressed until Iris/FastNoise/dashboard features are complete.
 #![allow(dead_code)]
 
 mod agones;
@@ -151,7 +152,10 @@ async fn main() -> anyhow::Result<()> {
         .merge(ws_router)
         .merge(grpc_router.into_axum_router())
         .layer(axum::middleware::from_fn(trace::request_trace))
-        .layer(TimeoutLayer::new(std::time::Duration::from_secs(90))) // 90s global request timeout
+        .layer(TimeoutLayer::with_status_code(
+            http::StatusCode::GATEWAY_TIMEOUT,
+            std::time::Duration::from_secs(90),
+        )) // 90s global request timeout → 504
         .layer(RequestBodyLimitLayer::new(10 * 1024 * 1024)) // 10MB max body
         .layer(CorsLayer::permissive());
 

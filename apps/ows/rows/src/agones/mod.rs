@@ -16,4 +16,3 @@ pub use allocate::AllocationResult;
 pub use client::AgonesClient;
 pub use error::AgonesError;
 pub use pipeline::AllocationPipeline;
-pub use sdk::GameServerInfo;
