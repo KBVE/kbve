@@ -20,6 +20,11 @@ void FMCPLightingHandlers::Register(FMCPHandlerRegistry& Registry)
 	// TODO: ChiR24 — global illumination and shadow settings
 	Registry.RegisterHandler(TEXT("lighting.set_gi"), MCPProtocolHelpers::MakeStub(TEXT("lighting.set_gi")));
 	Registry.RegisterHandler(TEXT("lighting.set_shadows"), MCPProtocolHelpers::MakeStub(TEXT("lighting.set_shadows")));
+
+	// TODO: ChiR24 — lighting environment
+	Registry.RegisterHandler(TEXT("lighting.set_exposure"), MCPProtocolHelpers::MakeStub(TEXT("lighting.set_exposure")));
+	Registry.RegisterHandler(TEXT("lighting.set_ambient_occlusion"), MCPProtocolHelpers::MakeStub(TEXT("lighting.set_ambient_occlusion")));
+	Registry.RegisterHandler(TEXT("lighting.setup_volumetric_fog"), MCPProtocolHelpers::MakeStub(TEXT("lighting.setup_volumetric_fog")));
 }
 
 void FMCPLightingHandlers::HandleSpawnLight(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

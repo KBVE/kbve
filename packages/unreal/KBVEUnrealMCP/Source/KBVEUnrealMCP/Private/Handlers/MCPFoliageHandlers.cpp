@@ -16,6 +16,10 @@ void FMCPFoliageHandlers::Register(FMCPHandlerRegistry& Registry)
 	// TODO: SpecialAgent — foliage density and type control
 	Registry.RegisterHandler(TEXT("foliage.set_density"), MCPProtocolHelpers::MakeStub(TEXT("foliage.set_density")));
 	Registry.RegisterHandler(TEXT("foliage.add_type"), MCPProtocolHelpers::MakeStub(TEXT("foliage.add_type")));
+
+	// TODO: ChiR24 — procedural foliage
+	Registry.RegisterHandler(TEXT("foliage.create_procedural"), MCPProtocolHelpers::MakeStub(TEXT("foliage.create_procedural")));
+	Registry.RegisterHandler(TEXT("foliage.get_instances"), MCPProtocolHelpers::MakeStub(TEXT("foliage.get_instances")));
 }
 
 void FMCPFoliageHandlers::HandlePaint(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

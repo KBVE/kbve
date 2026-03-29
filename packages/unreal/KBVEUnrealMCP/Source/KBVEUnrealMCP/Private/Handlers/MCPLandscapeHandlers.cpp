@@ -19,6 +19,11 @@ void FMCPLandscapeHandlers::Register(FMCPHandlerRegistry& Registry)
 
 	// TODO: SpecialAgent — landscape material painting
 	Registry.RegisterHandler(TEXT("landscape.paint_material"), MCPProtocolHelpers::MakeStub(TEXT("landscape.paint_material")));
+
+	// TODO: ChiR24 — landscape creation and setup
+	Registry.RegisterHandler(TEXT("landscape.create"), MCPProtocolHelpers::MakeStub(TEXT("landscape.create")));
+	Registry.RegisterHandler(TEXT("landscape.set_material"), MCPProtocolHelpers::MakeStub(TEXT("landscape.set_material")));
+	Registry.RegisterHandler(TEXT("landscape.create_grass_type"), MCPProtocolHelpers::MakeStub(TEXT("landscape.create_grass_type")));
 }
 
 ALandscapeProxy* FMCPLandscapeHandlers::FindLandscape(UWorld* World, const FString& Name)

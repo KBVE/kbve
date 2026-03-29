@@ -26,6 +26,20 @@ void FMCPMaterialHandlers::Register(FMCPHandlerRegistry& Registry)
 	// TODO: ChiR24 — material expression graph authoring
 	Registry.RegisterHandler(TEXT("material.add_expression"), MCPProtocolHelpers::MakeStub(TEXT("material.add_expression")));
 	Registry.RegisterHandler(TEXT("material.connect_expressions"), MCPProtocolHelpers::MakeStub(TEXT("material.connect_expressions")));
+
+	// TODO: ChiR24+BlueprintMCP — material authoring
+	Registry.RegisterHandler(TEXT("material.set_blend_mode"), MCPProtocolHelpers::MakeStub(TEXT("material.set_blend_mode")));
+	Registry.RegisterHandler(TEXT("material.set_shading_model"), MCPProtocolHelpers::MakeStub(TEXT("material.set_shading_model")));
+	Registry.RegisterHandler(TEXT("material.set_domain"), MCPProtocolHelpers::MakeStub(TEXT("material.set_domain")));
+	Registry.RegisterHandler(TEXT("material.create_landscape_material"), MCPProtocolHelpers::MakeStub(TEXT("material.create_landscape_material")));
+	Registry.RegisterHandler(TEXT("material.create_decal_material"), MCPProtocolHelpers::MakeStub(TEXT("material.create_decal_material")));
+	Registry.RegisterHandler(TEXT("material.create_post_process_material"), MCPProtocolHelpers::MakeStub(TEXT("material.create_post_process_material")));
+	Registry.RegisterHandler(TEXT("material.create_function"), MCPProtocolHelpers::MakeStub(TEXT("material.create_function")));
+	// TODO: BlueprintMCP — material snapshot/diff/restore
+	Registry.RegisterHandler(TEXT("material.snapshot_graph"), MCPProtocolHelpers::MakeStub(TEXT("material.snapshot_graph")));
+	Registry.RegisterHandler(TEXT("material.diff_graph"), MCPProtocolHelpers::MakeStub(TEXT("material.diff_graph")));
+	Registry.RegisterHandler(TEXT("material.restore_graph"), MCPProtocolHelpers::MakeStub(TEXT("material.restore_graph")));
+	Registry.RegisterHandler(TEXT("material.validate"), MCPProtocolHelpers::MakeStub(TEXT("material.validate")));
 }
 
 void FMCPMaterialHandlers::HandleCreate(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

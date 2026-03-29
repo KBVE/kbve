@@ -23,6 +23,12 @@ void FMCPGameplayHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("gameplay.create_combat"), MCPProtocolHelpers::MakeStub(TEXT("gameplay.create_combat")));
 	Registry.RegisterHandler(TEXT("gameplay.create_inventory"), MCPProtocolHelpers::MakeStub(TEXT("gameplay.create_inventory")));
 	Registry.RegisterHandler(TEXT("gameplay.create_interactable"), MCPProtocolHelpers::MakeStub(TEXT("gameplay.create_interactable")));
+
+	// TODO: ChiR24 — Gameplay Ability System (GAS)
+	Registry.RegisterHandler(TEXT("gameplay.add_gas_component"), MCPProtocolHelpers::MakeStub(TEXT("gameplay.add_gas_component")));
+	Registry.RegisterHandler(TEXT("gameplay.create_attribute_set"), MCPProtocolHelpers::MakeStub(TEXT("gameplay.create_attribute_set")));
+	Registry.RegisterHandler(TEXT("gameplay.create_gameplay_effect"), MCPProtocolHelpers::MakeStub(TEXT("gameplay.create_gameplay_effect")));
+	Registry.RegisterHandler(TEXT("gameplay.create_gameplay_cue"), MCPProtocolHelpers::MakeStub(TEXT("gameplay.create_gameplay_cue")));
 }
 
 void FMCPGameplayHandlers::HandleCreateInteraction(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

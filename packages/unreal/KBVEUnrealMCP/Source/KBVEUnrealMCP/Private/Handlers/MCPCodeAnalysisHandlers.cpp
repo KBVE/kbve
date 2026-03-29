@@ -18,6 +18,9 @@ void FMCPCodeAnalysisHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("codeanalysis.detect_patterns"), MCPProtocolHelpers::MakeStub(TEXT("codeanalysis.detect_patterns")));
 	Registry.RegisterHandler(TEXT("codeanalysis.get_best_practices"), MCPProtocolHelpers::MakeStub(TEXT("codeanalysis.get_best_practices")));
 	Registry.RegisterHandler(TEXT("codeanalysis.query_api"), MCPProtocolHelpers::MakeStub(TEXT("codeanalysis.query_api")));
+
+	// TODO: unreal-analyzer-mcp — subsystem analysis
+	Registry.RegisterHandler(TEXT("codeanalysis.analyze_subsystem"), MCPProtocolHelpers::MakeStub(TEXT("codeanalysis.analyze_subsystem")));
 }
 
 void FMCPCodeAnalysisHandlers::HandleAnalyzeClass(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

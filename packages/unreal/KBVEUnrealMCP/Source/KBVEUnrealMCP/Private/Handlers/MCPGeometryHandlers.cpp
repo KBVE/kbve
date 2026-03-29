@@ -16,6 +16,19 @@ void FMCPGeometryHandlers::Register(FMCPHandlerRegistry& Registry)
 	// TODO: ChiR24 — advanced geometry operations
 	Registry.RegisterHandler(TEXT("geometry.create_static_mesh"), MCPProtocolHelpers::MakeStub(TEXT("geometry.create_static_mesh")));
 	Registry.RegisterHandler(TEXT("geometry.merge_meshes"), MCPProtocolHelpers::MakeStub(TEXT("geometry.merge_meshes")));
+
+	// TODO: ChiR24 — Geometry Script operations
+	Registry.RegisterHandler(TEXT("geometry.boolean_union"), MCPProtocolHelpers::MakeStub(TEXT("geometry.boolean_union")));
+	Registry.RegisterHandler(TEXT("geometry.boolean_subtract"), MCPProtocolHelpers::MakeStub(TEXT("geometry.boolean_subtract")));
+	Registry.RegisterHandler(TEXT("geometry.boolean_intersection"), MCPProtocolHelpers::MakeStub(TEXT("geometry.boolean_intersection")));
+	Registry.RegisterHandler(TEXT("geometry.extrude"), MCPProtocolHelpers::MakeStub(TEXT("geometry.extrude")));
+	Registry.RegisterHandler(TEXT("geometry.bevel"), MCPProtocolHelpers::MakeStub(TEXT("geometry.bevel")));
+	Registry.RegisterHandler(TEXT("geometry.simplify_mesh"), MCPProtocolHelpers::MakeStub(TEXT("geometry.simplify_mesh")));
+	Registry.RegisterHandler(TEXT("geometry.auto_uv"), MCPProtocolHelpers::MakeStub(TEXT("geometry.auto_uv")));
+	Registry.RegisterHandler(TEXT("geometry.generate_collision"), MCPProtocolHelpers::MakeStub(TEXT("geometry.generate_collision")));
+	Registry.RegisterHandler(TEXT("geometry.generate_lods"), MCPProtocolHelpers::MakeStub(TEXT("geometry.generate_lods")));
+	Registry.RegisterHandler(TEXT("geometry.convert_to_nanite"), MCPProtocolHelpers::MakeStub(TEXT("geometry.convert_to_nanite")));
+	Registry.RegisterHandler(TEXT("geometry.recalculate_normals"), MCPProtocolHelpers::MakeStub(TEXT("geometry.recalculate_normals")));
 }
 
 void FMCPGeometryHandlers::HandleCreateProceduralMesh(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

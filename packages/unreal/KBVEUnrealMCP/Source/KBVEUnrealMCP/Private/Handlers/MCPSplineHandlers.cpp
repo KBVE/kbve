@@ -14,6 +14,12 @@ void FMCPSplineHandlers::Register(FMCPHandlerRegistry& Registry)
 
 	// TODO: ChiR24 — spline mesh deformation
 	Registry.RegisterHandler(TEXT("spline.deform_mesh"), MCPProtocolHelpers::MakeStub(TEXT("spline.deform_mesh")));
+
+	// TODO: ChiR24 — spline prefabs and scattering
+	Registry.RegisterHandler(TEXT("spline.scatter_meshes"), MCPProtocolHelpers::MakeStub(TEXT("spline.scatter_meshes")));
+	Registry.RegisterHandler(TEXT("spline.create_road"), MCPProtocolHelpers::MakeStub(TEXT("spline.create_road")));
+	Registry.RegisterHandler(TEXT("spline.create_river"), MCPProtocolHelpers::MakeStub(TEXT("spline.create_river")));
+	Registry.RegisterHandler(TEXT("spline.create_fence"), MCPProtocolHelpers::MakeStub(TEXT("spline.create_fence")));
 }
 
 void FMCPSplineHandlers::HandleCreate(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

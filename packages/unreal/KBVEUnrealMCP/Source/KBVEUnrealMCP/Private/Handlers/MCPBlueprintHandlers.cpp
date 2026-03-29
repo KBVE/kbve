@@ -50,6 +50,41 @@ void FMCPBlueprintHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("blueprint.get_node_guid"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.get_node_guid")));
 	Registry.RegisterHandler(TEXT("blueprint.add_self_reference"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.add_self_reference")));
 	Registry.RegisterHandler(TEXT("blueprint.add_component_reference"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.add_component_reference")));
+
+	// TODO: BlueprintMCP — graph management
+	Registry.RegisterHandler(TEXT("blueprint.create_graph"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.create_graph")));
+	Registry.RegisterHandler(TEXT("blueprint.delete_graph"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.delete_graph")));
+	Registry.RegisterHandler(TEXT("blueprint.rename_graph"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.rename_graph")));
+	// TODO: BlueprintMCP — variable/function parameter operations
+	Registry.RegisterHandler(TEXT("blueprint.change_variable_type"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.change_variable_type")));
+	Registry.RegisterHandler(TEXT("blueprint.set_variable_metadata"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.set_variable_metadata")));
+	Registry.RegisterHandler(TEXT("blueprint.add_function_parameter"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.add_function_parameter")));
+	Registry.RegisterHandler(TEXT("blueprint.remove_function_parameter"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.remove_function_parameter")));
+	Registry.RegisterHandler(TEXT("blueprint.change_function_parameter_type"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.change_function_parameter_type")));
+	// TODO: BlueprintMCP — pin introspection
+	Registry.RegisterHandler(TEXT("blueprint.get_pin_info"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.get_pin_info")));
+	Registry.RegisterHandler(TEXT("blueprint.check_pin_compatibility"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.check_pin_compatibility")));
+	// TODO: BlueprintMCP — dispatchers and interfaces
+	Registry.RegisterHandler(TEXT("blueprint.add_event_dispatcher"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.add_event_dispatcher")));
+	Registry.RegisterHandler(TEXT("blueprint.list_event_dispatchers"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.list_event_dispatchers")));
+	Registry.RegisterHandler(TEXT("blueprint.add_interface"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.add_interface")));
+	Registry.RegisterHandler(TEXT("blueprint.remove_interface"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.remove_interface")));
+	Registry.RegisterHandler(TEXT("blueprint.list_interfaces"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.list_interfaces")));
+	// TODO: BlueprintMCP — validation and diff
+	Registry.RegisterHandler(TEXT("blueprint.find_disconnected_pins"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.find_disconnected_pins")));
+	Registry.RegisterHandler(TEXT("blueprint.validate_all"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.validate_all")));
+	Registry.RegisterHandler(TEXT("blueprint.diff_blueprints"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.diff_blueprints")));
+	// TODO: BlueprintMCP — user types
+	Registry.RegisterHandler(TEXT("blueprint.create_struct"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.create_struct")));
+	Registry.RegisterHandler(TEXT("blueprint.create_enum"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.create_enum")));
+	// TODO: BlueprintMCP+GenAISupport — batch/utility
+	Registry.RegisterHandler(TEXT("blueprint.connect_nodes_bulk"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.connect_nodes_bulk")));
+	Registry.RegisterHandler(TEXT("blueprint.duplicate_nodes"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.duplicate_nodes")));
+	Registry.RegisterHandler(TEXT("blueprint.move_node"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.move_node")));
+	Registry.RegisterHandler(TEXT("blueprint.set_node_comment"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.set_node_comment")));
+	Registry.RegisterHandler(TEXT("blueprint.refresh_all_nodes"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.refresh_all_nodes")));
+	// TODO: GenAISupport — component with auto-wired events
+	Registry.RegisterHandler(TEXT("blueprint.add_component_with_events"), MCPProtocolHelpers::MakeStub(TEXT("blueprint.add_component_with_events")));
 }
 
 void FMCPBlueprintHandlers::HandleCreate(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

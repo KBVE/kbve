@@ -18,6 +18,15 @@ void FMCPAssetHandlers::Register(FMCPHandlerRegistry& Registry)
 	// TODO: AssetToolkit — semantic search and tag filtering
 	Registry.RegisterHandler(TEXT("asset.semantic_search"), MCPProtocolHelpers::MakeStub(TEXT("asset.semantic_search")));
 	Registry.RegisterHandler(TEXT("asset.filter_by_tag"), MCPProtocolHelpers::MakeStub(TEXT("asset.filter_by_tag")));
+
+	// TODO: ChiR24+runreal — asset management operations
+	Registry.RegisterHandler(TEXT("asset.import"), MCPProtocolHelpers::MakeStub(TEXT("asset.import")));
+	Registry.RegisterHandler(TEXT("asset.duplicate"), MCPProtocolHelpers::MakeStub(TEXT("asset.duplicate")));
+	Registry.RegisterHandler(TEXT("asset.move"), MCPProtocolHelpers::MakeStub(TEXT("asset.move")));
+	Registry.RegisterHandler(TEXT("asset.bulk_rename"), MCPProtocolHelpers::MakeStub(TEXT("asset.bulk_rename")));
+	Registry.RegisterHandler(TEXT("asset.bulk_delete"), MCPProtocolHelpers::MakeStub(TEXT("asset.bulk_delete")));
+	Registry.RegisterHandler(TEXT("asset.fixup_redirectors"), MCPProtocolHelpers::MakeStub(TEXT("asset.fixup_redirectors")));
+	Registry.RegisterHandler(TEXT("asset.get_source_control"), MCPProtocolHelpers::MakeStub(TEXT("asset.get_source_control")));
 }
 
 void FMCPAssetHandlers::HandleSearch(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

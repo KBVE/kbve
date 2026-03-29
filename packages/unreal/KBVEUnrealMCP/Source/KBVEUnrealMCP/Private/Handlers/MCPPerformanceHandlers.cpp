@@ -12,6 +12,12 @@ void FMCPPerformanceHandlers::Register(FMCPHandlerRegistry& Registry)
 	// TODO: SpecialAgent+ChiR24 — overlap analysis and profiling
 	Registry.RegisterHandler(TEXT("performance.analyze_overlaps"), MCPProtocolHelpers::MakeStub(TEXT("performance.analyze_overlaps")));
 	Registry.RegisterHandler(TEXT("performance.get_draw_calls"), MCPProtocolHelpers::MakeStub(TEXT("performance.get_draw_calls")));
+
+	// TODO: ChiR24 — scalability and optimization
+	Registry.RegisterHandler(TEXT("performance.set_scalability"), MCPProtocolHelpers::MakeStub(TEXT("performance.set_scalability")));
+	Registry.RegisterHandler(TEXT("performance.configure_lod"), MCPProtocolHelpers::MakeStub(TEXT("performance.configure_lod")));
+	Registry.RegisterHandler(TEXT("performance.configure_nanite"), MCPProtocolHelpers::MakeStub(TEXT("performance.configure_nanite")));
+	Registry.RegisterHandler(TEXT("performance.merge_actors"), MCPProtocolHelpers::MakeStub(TEXT("performance.merge_actors")));
 }
 
 void FMCPPerformanceHandlers::HandleGetStats(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)
