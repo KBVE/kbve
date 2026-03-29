@@ -20,17 +20,18 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import { Adsense } from '@/components/astropad';
 
 ## Information.
 
 Virtualization soft scripting for automation.
 
 v01d is a powerful virtualization software designed to streamline automation through soft scripting.
-It enables developers and IT administrators to easily create, manage, and orchestrate virtual environments without the need for complex configurations.
+It enables developers, agents and IT administrators to easily create, manage, and orchestrate virtual environments without the need for complex configurations.
 With support for various hypervisors and cloud platforms, v01d simplifies the deployment and scaling of virtual machines and containers.
-The software's scripting capabilities offer fine-grained control over automation workflows, making it ideal for both small-scale testing and large-scale production setups.
-By leveraging v01d, teams can reduce overhead and enhance operational efficiency across their virtualized infrastructure.
+The software's scripting capabilities offer fine grained control (RBAC) over automation workflows, making it ideal for both small scale testing and large scale production setups.
+By leveraging **v01d**, teams can reduce overhead and enhance operational efficiency across their virtualized infrastructure.
+
 
 <Adsense />
 
@@ -40,8 +41,8 @@ By leveraging v01d, teams can reduce overhead and enhance operational efficiency
 
     -   Linux
 
-        -   `void_install_ubuntu.sh` - (chmod 777) - Installation for Ubuntu 18+
-        -   `void_install_debian.sh` - (chmod 777) - Installation for Debian 9+
+        -   `void_install_ubuntu.sh` - (chmod 777) - Installation for Ubuntu 24+ , after the install script runs, it will delete itself.
+        -   `void_install_debian.sh` - (chmod 777) - Installation for Debian 11+ , after the install script runs, it will delete itself.
 
     -   Windows
 
@@ -83,4 +84,3 @@ By leveraging v01d, teams can reduce overhead and enhance operational efficiency
 
 -   `r00t` - (environ) - an embed that sits on-top of the operating system.
     -   `r00t` - Disabled as of `tr33._02` because the design induced significant flaws and exploits; uncle ben does not approve of such power for any man.
-
