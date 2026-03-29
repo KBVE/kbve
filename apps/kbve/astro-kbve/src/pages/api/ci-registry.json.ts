@@ -41,6 +41,7 @@ interface CratesEntry {
 	package_name: string;
 	version?: string;
 	version_toml?: string;
+	version_source?: string;
 }
 
 interface PythonEntry {
@@ -117,7 +118,6 @@ function toManifestEntry(
 				...(d.nx_project && { nx_project: d.nx_project }),
 			};
 		case 'npm':
-		case 'crates':
 			return d.package_name
 				? {
 						key: d.key!,
@@ -126,6 +126,19 @@ function toManifestEntry(
 						...(vt && { version_toml: vt }),
 					}
 				: null;
+		case 'crates': {
+			if (!d.package_name) return null;
+			// version_source overrides the default Cargo.toml path convention
+			// for crates in non-standard locations (e.g. packages/rust/bevy/*).
+			const vs = d.version_source || undefined;
+			return {
+				key: d.key!,
+				package_name: d.package_name,
+				...(ver && { version: ver }),
+				...(vt && { version_toml: vt }),
+				...(vs && { version_source: vs }),
+			};
+		}
 		case 'python':
 			return d.package_name && d.pypi_name
 				? {

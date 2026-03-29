@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.76",
+			"version": "1.0.79",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -28,7 +28,7 @@
 		{
 			"key": "chuckrpg",
 			"app_name": "axum-chuckrpg",
-			"version": "0.1.5",
+			"version": "0.1.6",
 			"version_toml": "apps/chuckrpg/axum-chuckrpg/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/chuckrpg.mdx",
 			"version_target": "apps/chuckrpg/axum-chuckrpg/Cargo.toml",
@@ -56,7 +56,7 @@
 		{
 			"key": "discordsh",
 			"app_name": "discordsh",
-			"version": "0.1.39",
+			"version": "0.1.40",
 			"version_toml": "apps/discordsh/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx",
 			"version_target": "apps/discordsh/axum-discordsh/Cargo.toml",
@@ -240,7 +240,7 @@
 		{
 			"key": "rows",
 			"app_name": "rows",
-			"version": "0.1.17",
+			"version": "0.1.23",
 			"version_toml": "apps/ows/rows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
 			"version_target": "apps/ows/rows/Cargo.toml",
@@ -278,6 +278,90 @@
 		}
 	],
 	"crates": [
+		{
+			"key": "bevy_battle_crate",
+			"package_name": "bevy_battle",
+			"version": "0.1.0",
+			"version_toml": "packages/rust/bevy/bevy_battle/version.toml",
+			"version_source": "packages/rust/bevy/bevy_battle/Cargo.toml"
+		},
+		{
+			"key": "bevy_cam_crate",
+			"package_name": "bevy_cam",
+			"version": "0.1.0",
+			"version_toml": "packages/rust/bevy/bevy_cam/version.toml",
+			"version_source": "packages/rust/bevy/bevy_cam/Cargo.toml"
+		},
+		{
+			"key": "bevy_inventory_crate",
+			"package_name": "bevy_inventory",
+			"version": "0.1.0",
+			"version_toml": "packages/rust/bevy/bevy_inventory/version.toml",
+			"version_source": "packages/rust/bevy/bevy_inventory/Cargo.toml"
+		},
+		{
+			"key": "bevy_items_crate",
+			"package_name": "bevy_items",
+			"version": "0.1.0",
+			"version_toml": "packages/rust/bevy/bevy_items/version.toml",
+			"version_source": "packages/rust/bevy/bevy_items/Cargo.toml"
+		},
+		{
+			"key": "bevy_kbve_net_crate",
+			"package_name": "bevy_kbve_net",
+			"version": "0.1.0",
+			"version_toml": "packages/rust/bevy/bevy_kbve_net/version.toml",
+			"version_source": "packages/rust/bevy/bevy_kbve_net/Cargo.toml"
+		},
+		{
+			"key": "bevy_mapdb_crate",
+			"package_name": "bevy_mapdb",
+			"version": "0.1.0",
+			"version_toml": "packages/rust/bevy/bevy_mapdb/version.toml",
+			"version_source": "packages/rust/bevy/bevy_mapdb/Cargo.toml"
+		},
+		{
+			"key": "bevy_npc_crate",
+			"package_name": "bevy_npc",
+			"version": "0.1.0",
+			"version_toml": "packages/rust/bevy/bevy_npc/version.toml",
+			"version_source": "packages/rust/bevy/bevy_npc/Cargo.toml"
+		},
+		{
+			"key": "bevy_player_crate",
+			"package_name": "bevy_player",
+			"version": "0.1.0",
+			"version_toml": "packages/rust/bevy/bevy_player/version.toml",
+			"version_source": "packages/rust/bevy/bevy_player/Cargo.toml"
+		},
+		{
+			"key": "bevy_quests_crate",
+			"package_name": "bevy_quests",
+			"version": "0.1.0",
+			"version_toml": "packages/rust/bevy/bevy_quests/version.toml",
+			"version_source": "packages/rust/bevy/bevy_quests/Cargo.toml"
+		},
+		{
+			"key": "bevy_skills_crate",
+			"package_name": "bevy_skills",
+			"version": "0.1.0",
+			"version_toml": "packages/rust/bevy/bevy_skills/version.toml",
+			"version_source": "packages/rust/bevy/bevy_skills/Cargo.toml"
+		},
+		{
+			"key": "bevy_statemachine_crate",
+			"package_name": "bevy_statemachine",
+			"version": "0.1.0",
+			"version_toml": "packages/rust/bevy/bevy_statemachine/version.toml",
+			"version_source": "packages/rust/bevy/bevy_statemachine/Cargo.toml"
+		},
+		{
+			"key": "bevy_tasker_crate",
+			"package_name": "bevy_tasker",
+			"version": "0.1.0",
+			"version_toml": "packages/rust/bevy/bevy_tasker/version.toml",
+			"version_source": "packages/rust/bevy/bevy_tasker/Cargo.toml"
+		},
 		{
 			"key": "erust_crate",
 			"package_name": "erust",
@@ -396,10 +480,10 @@
 	"summary": {
 		"docker": 18,
 		"npm": 4,
-		"crates": 6,
+		"crates": 18,
 		"python": 2,
 		"unreal": 6,
 		"ue5_server": 2,
-		"total": 38
+		"total": 50
 	}
 }
