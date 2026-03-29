@@ -285,6 +285,58 @@ pub fn build_creature_registry() -> CreatureRegistry {
         },
     );
 
+    // --- Wraith Executioner ---
+    registry.register(
+        npc_types::Npc {
+            r#ref: "wraith-executioner".into(),
+            name: "Wraith Executioner".into(),
+            family: npc_types::CreatureFamily::Undead as i32,
+            rarity: npc_types::NpcRarity::Epic as i32,
+            level: 4,
+            stats: Some(npc_types::NpcStats {
+                hp: 40,
+                max_hp: 40,
+                attack: 14,
+                defense: 5,
+                speed: 4,
+                armor: Some(4),
+                ..Default::default()
+            }),
+            spawn_rules: vec![npc_types::SpawnRule {
+                zone: Some("grassland".into()),
+                spawn_weight: 0.20,
+                ..Default::default()
+            }],
+            spatial: Some(npc_types::SpatialProperties {
+                walk_speed: Some(1.2),
+                ..Default::default()
+            }),
+            behavior: Some(npc_types::BehaviorTraits {
+                wander_radius: Some(4.0),
+                ..Default::default()
+            }),
+            interaction: Some(npc_types::InteractionFlags {
+                is_interactable: Some(true),
+                is_targetable: Some(true),
+                ..Default::default()
+            }),
+            phase_rules: vec![npc_types::PhaseRule {
+                time_start: Some(1900),
+                time_end: Some(530),
+                ..Default::default()
+            }],
+            ..Default::default()
+        },
+        CreatureConfig {
+            render_kind: RenderKind::Sprite,
+            pool_size: 6,
+            chunk_size: 20.0,
+            per_chunk: 1,
+            spawn_chance: 0.20,
+            schedule: TimeSchedule::Night,
+        },
+    );
+
     registry
 }
 
