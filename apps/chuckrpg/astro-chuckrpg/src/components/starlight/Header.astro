@@ -1,0 +1,282 @@
+---
+import config from 'virtual:starlight/user-config';
+
+import Search from 'virtual:starlight/components/Search';
+import SiteTitle from 'virtual:starlight/components/SiteTitle';
+import SocialIcons from 'virtual:starlight/components/SocialIcons';
+import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
+import LanguageSelect from 'virtual:starlight/components/LanguageSelect';
+
+import ReactNavAuth from '../navigation/ReactNavAuth';
+
+const shouldRenderSearch =
+	config.pagefind ||
+	config.components.Search !== '@astrojs/starlight/components/Search.astro';
+---
+
+<div class="header ck-header">
+	<div class="title-wrapper sl-flex">
+		<SiteTitle />
+	</div>
+
+	<div class="sl-flex print:hidden">
+		{shouldRenderSearch && <Search />}
+	</div>
+
+	<div class="sl-hidden md:sl-flex print:hidden right-group">
+		<div class="sl-flex social-icons">
+			<SocialIcons />
+		</div>
+		<ThemeSelect />
+		<LanguageSelect />
+		<div class="ck-nav-auth">
+			<ReactNavAuth client:load />
+		</div>
+	</div>
+</div>
+
+<style>
+	@layer starlight.core {
+		.header {
+			display: flex;
+			gap: var(--sl-nav-gap);
+			justify-content: space-between;
+			align-items: center;
+			height: 100%;
+		}
+
+		.title-wrapper {
+			overflow: clip;
+			padding: 0.25rem;
+			margin: -0.25rem;
+			min-width: 0;
+		}
+
+		.right-group,
+		.social-icons {
+			gap: 1rem;
+			align-items: center;
+		}
+		.social-icons::after {
+			content: '';
+			height: 2rem;
+			border-inline-end: 1px solid var(--sl-color-gray-5);
+		}
+
+		@media (min-width: 50rem) {
+			:global(:root[data-has-sidebar]) {
+				--__sidebar-pad: calc(2 * var(--sl-nav-pad-x));
+			}
+			:global(:root:not([data-has-toc])) {
+				--__toc-width: 0rem;
+			}
+			.header {
+				--__sidebar-width: max(
+					0rem,
+					var(--sl-content-inline-start, 0rem) - var(--sl-nav-pad-x)
+				);
+				--__main-column-fr: calc(
+					(
+							100% + var(--__sidebar-pad, 0rem) -
+								var(--__toc-width, var(--sl-sidebar-width)) -
+								(2 * var(--__toc-width, var(--sl-nav-pad-x))) -
+								var(--sl-content-inline-start, 0rem) -
+								var(--sl-content-width)
+						) /
+						2
+				);
+				display: grid;
+				grid-template-columns:
+					minmax(
+						calc(
+							var(--__sidebar-width) +
+								max(
+									0rem,
+									var(--__main-column-fr) - var(--sl-nav-gap)
+								)
+						),
+						auto
+					)
+					auto
+					1fr
+					auto;
+				align-content: center;
+			}
+		}
+	}
+</style>
+
+<style is:global>
+	/* ── Nav auth area ── */
+	.ck-nav-auth {
+		display: flex;
+		align-items: center;
+		min-width: 70px;
+		height: 32px;
+		border-left: 1px solid var(--sl-color-gray-5);
+		padding-left: 1rem;
+		margin-left: 0.5rem;
+	}
+
+	.ck-nav-auth-inner {
+		display: flex;
+		align-items: center;
+	}
+
+	/* Sign In link (anonymous state) */
+	.ck-nav-signin {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.25rem 0.75rem;
+		border-radius: 4px;
+		font-family: var(--sl-font);
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.05em;
+		color: var(--ck-stone);
+		background: var(--ck-firelight);
+		text-decoration: none;
+		transition: background 0.2s;
+		white-space: nowrap;
+	}
+
+	.ck-nav-signin:hover {
+		background: var(--ck-firelight-bright);
+		color: var(--ck-stone);
+	}
+
+	/* Avatar button (authenticated state) */
+	.ck-nav-avatar-btn {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.125rem 0.375rem;
+		border: none;
+		border-radius: 9999px;
+		background: transparent;
+		color: var(--sl-color-white);
+		cursor: pointer;
+		transition: background 0.15s;
+	}
+
+	.ck-nav-avatar-btn:hover {
+		background: rgba(255, 255, 255, 0.06);
+	}
+
+	.ck-nav-avatar {
+		width: 28px;
+		height: 28px;
+		border-radius: 50%;
+		border: 2px solid var(--ck-firelight-dim);
+		object-fit: cover;
+	}
+
+	.ck-nav-avatar--fallback {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--sl-color-accent-low);
+		color: var(--ck-firelight);
+		font-family: var(--sl-font);
+		font-size: 0.75rem;
+		font-weight: 700;
+	}
+
+	.ck-nav-username {
+		font-size: 0.75rem;
+		font-weight: 500;
+		max-width: 5rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.ck-nav-chevron {
+		color: var(--sl-color-gray-3);
+		flex-shrink: 0;
+	}
+
+	/* ── Dropdown menu ── */
+	.ck-nav-dropdown {
+		width: 14rem;
+		border-radius: 4px;
+		border: 1px solid var(--sl-color-hairline-light);
+		background: linear-gradient(
+			160deg,
+			var(--ck-iron) 0%,
+			var(--sl-color-gray-5) 100%
+		);
+		box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+		padding: 0.5rem 0;
+		font-family: 'Lora', serif;
+	}
+
+	.ck-nav-dropdown__header {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.625rem 0.75rem;
+	}
+
+	.ck-nav-dropdown__avatar {
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		border: 2px solid var(--ck-firelight-dim);
+		object-fit: cover;
+		flex-shrink: 0;
+	}
+
+	.ck-nav-dropdown__info {
+		min-width: 0;
+	}
+
+	.ck-nav-dropdown__name {
+		font-family: var(--sl-font);
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--ck-parchment);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.ck-nav-dropdown__divider {
+		height: 1px;
+		background: var(--sl-color-hairline-light);
+		margin: 0.25rem 0.75rem;
+	}
+
+	.ck-nav-dropdown__menu {
+		list-style: none;
+		margin: 0;
+		padding: 0.25rem 0.5rem;
+	}
+
+	.ck-nav-dropdown__item {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 0.5rem 0.625rem;
+		border-radius: 4px;
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-2);
+		text-decoration: none;
+		transition: all 0.15s;
+	}
+
+	.ck-nav-dropdown__item:hover {
+		background: rgba(212, 164, 76, 0.12);
+		color: var(--ck-firelight);
+	}
+
+	.ck-nav-dropdown__item--danger {
+		color: var(--ck-blood);
+	}
+
+	.ck-nav-dropdown__item--danger:hover {
+		background: rgba(139, 32, 32, 0.2);
+		color: #c44040;
+	}
+</style>
