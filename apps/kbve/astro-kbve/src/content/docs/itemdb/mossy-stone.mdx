@@ -1,0 +1,38 @@
+---
+title: 'Mossy Stone'
+description: 'A weathered stone covered in moss. Slightly more valuable than ordinary stone.'
+ref: 'mossy-stone'
+key: 101
+id: '01KMVPV9ZHNPTTYJPWD3RD00Y2'
+name: 'Mossy Stone'
+type_flags: 384
+consumable: false
+stackable: true
+max_stack: 64
+rarity: 'uncommon'
+buy_price: 8
+sell_price: 4
+emoji: '🪨'
+weight: 3.0
+skilling:
+  skill: 'mining'
+  xp_reward: 15
+  gather_time: 2.5
+  respawn_time: 35
+  resource_node: 'mossy-rock'
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

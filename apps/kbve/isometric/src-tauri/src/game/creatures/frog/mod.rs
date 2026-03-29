@@ -13,6 +13,7 @@ use super::creature::{
     Creature, CreaturePoolIndex, CreatureRegistry, CreatureState, RenderKind, SpriteData,
     SpriteHopState,
 };
+use super::wraith::WraithMarker;
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
 
@@ -221,7 +222,7 @@ pub(super) fn animate_frogs(
             &mut Visibility,
             &Mesh3d,
         ),
-        Without<IsometricCamera>,
+        (Without<IsometricCamera>, Without<WraithMarker>),
     >,
 ) {
     let Ok(cam_tf) = camera_q.single() else {

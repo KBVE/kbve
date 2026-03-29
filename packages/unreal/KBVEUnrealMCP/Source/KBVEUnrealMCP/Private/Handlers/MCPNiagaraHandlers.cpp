@@ -18,6 +18,15 @@ void FMCPNiagaraHandlers::Register(FMCPHandlerRegistry& Registry)
 	// TODO: ChiR24 — GPU particle simulations
 	Registry.RegisterHandler(TEXT("niagara.create_gpu_sim"), MCPProtocolHelpers::MakeStub(TEXT("niagara.create_gpu_sim")));
 	Registry.RegisterHandler(TEXT("niagara.add_emitter"), MCPProtocolHelpers::MakeStub(TEXT("niagara.add_emitter")));
+
+	// TODO: ChiR24 — Niagara authoring
+	Registry.RegisterHandler(TEXT("niagara.create_emitter"), MCPProtocolHelpers::MakeStub(TEXT("niagara.create_emitter")));
+	Registry.RegisterHandler(TEXT("niagara.add_spawn_module"), MCPProtocolHelpers::MakeStub(TEXT("niagara.add_spawn_module")));
+	Registry.RegisterHandler(TEXT("niagara.add_force_module"), MCPProtocolHelpers::MakeStub(TEXT("niagara.add_force_module")));
+	Registry.RegisterHandler(TEXT("niagara.add_renderer"), MCPProtocolHelpers::MakeStub(TEXT("niagara.add_renderer")));
+	Registry.RegisterHandler(TEXT("niagara.add_data_interface"), MCPProtocolHelpers::MakeStub(TEXT("niagara.add_data_interface")));
+	Registry.RegisterHandler(TEXT("niagara.add_event"), MCPProtocolHelpers::MakeStub(TEXT("niagara.add_event")));
+	Registry.RegisterHandler(TEXT("niagara.validate"), MCPProtocolHelpers::MakeStub(TEXT("niagara.validate")));
 }
 
 void FMCPNiagaraHandlers::HandleCreateSystem(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

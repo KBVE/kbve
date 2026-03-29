@@ -23,6 +23,15 @@ void FMCPActorHandlers::Register(FMCPHandlerRegistry& Registry)
 	Registry.RegisterHandler(TEXT("actor.attach"), &HandleAttach);
 	Registry.RegisterHandler(TEXT("actor.detach"), &HandleDetach);
 	Registry.RegisterHandler(TEXT("actor.add_component"), &HandleAddComponent);
+
+	// TODO: ChiR24+SpecialAgent — advanced actor operations
+	Registry.RegisterHandler(TEXT("actor.set_visibility"), MCPProtocolHelpers::MakeStub(TEXT("actor.set_visibility")));
+	Registry.RegisterHandler(TEXT("actor.get_bounds"), MCPProtocolHelpers::MakeStub(TEXT("actor.get_bounds")));
+	Registry.RegisterHandler(TEXT("actor.apply_force"), MCPProtocolHelpers::MakeStub(TEXT("actor.apply_force")));
+	Registry.RegisterHandler(TEXT("actor.set_collision"), MCPProtocolHelpers::MakeStub(TEXT("actor.set_collision")));
+	Registry.RegisterHandler(TEXT("actor.call_function"), MCPProtocolHelpers::MakeStub(TEXT("actor.call_function")));
+	Registry.RegisterHandler(TEXT("actor.find_by_class"), MCPProtocolHelpers::MakeStub(TEXT("actor.find_by_class")));
+	Registry.RegisterHandler(TEXT("actor.create_snapshot"), MCPProtocolHelpers::MakeStub(TEXT("actor.create_snapshot")));
 }
 
 AActor* FMCPActorHandlers::FindActorByName(UWorld* World, const FString& Name)

@@ -1,0 +1,40 @@
+---
+title: 'Iron Ore'
+description: 'Dense iron ore extracted from deep rock. Smelts into sturdy iron bars for smithing.'
+ref: 'iron-ore'
+key: 103
+id: '01KMVPV9ZHGWG5M1Q4R3YPYSG7'
+name: 'Iron Ore'
+type_flags: 384
+consumable: false
+stackable: true
+max_stack: 32
+rarity: 'uncommon'
+buy_price: 25
+sell_price: 12
+emoji: '⛏️'
+weight: 5.0
+skilling:
+  skill: 'mining'
+  skill_level: 15
+  xp_reward: 35
+  gather_time: 4.0
+  respawn_time: 60
+  resource_node: 'ore-iron'
+  tool_required: 'pickaxe'
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

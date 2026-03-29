@@ -2,22 +2,39 @@
 //!
 //! Watches for Shutdown/Delete events and auto-cleans stale DB entries
 //! (worldservers + mapinstances) so clients never connect to dead ports.
+//!
+//! # Edge Cases
+//!
+//! TODO(orphan-detection): Detect GameServers not in tracking map:
+//!   - On every Init/InitDone cycle, compare Allocated GameServers with tracking map
+//!   - If Allocated GS has no entry in zone_servers → it's orphaned from a previous ROWS
+//!   - Options: adopt it (add to tracking), deallocate it, or log for manual review
+//!
+//! TODO(partial-cleanup): Handle DB failures during cleanup:
+//!   - If deactivate_world_server succeeds but delete_map_instance fails,
+//!     the worldserver is inactive but mapinstance remains → stale data
+//!   - Consider: retry cleanup with exponential backoff, or mark as "needs_cleanup"
+//!
+//! TODO(event-ordering): Handle out-of-order events:
+//!   - Watcher may receive Shutdown for a GS that was just re-allocated
+//!   - Check GS creation timestamp before cleaning up — if it's newer than the
+//!     event, skip cleanup (it's a different GS with the same name)
+//!
+//! TODO(multi-customer): Support multiple customers on one fleet:
+//!   - Current cleanup uses a single customer_guid from config
+//!   - If fleet serves multiple customers, need to look up customer from GS labels
+//!   - Or use ows.kbve.com/customer-guid annotation set during tag_allocated()
 
-use crate::db::DbPool;
 use crate::repo::InstanceRepo;
 use crate::state::AppState;
-use dashmap::DashMap;
 use futures_lite::StreamExt;
 use kube::{
     Api, Client,
-    api::{ApiResource, DynamicObject, ListParams},
+    api::{ApiResource, DynamicObject},
     runtime::watcher::{self, Event},
 };
-use serde_json::Value;
 use std::sync::Arc;
-use std::time::Instant;
 use tracing::{error, info, warn};
-use uuid::Uuid;
 
 /// Max backoff between watcher restart attempts.
 const MAX_BACKOFF_SECS: u64 = 60;

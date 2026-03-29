@@ -1336,7 +1336,7 @@ dependencies = [
 
 [[package]]
 name = "axum-discordsh"
-version = "0.1.39"
+version = "0.1.40"
 dependencies = [
  "anyhow",
  "askama",
@@ -8037,6 +8037,7 @@ dependencies = [
  "bevy",
  "bevy_cam",
  "bevy_inventory",
+ "bevy_items",
  "bevy_kbve_net",
  "bevy_tasker",
  "console_error_panic_hook",
@@ -12997,7 +12998,7 @@ dependencies = [
 
 [[package]]
 name = "rows"
-version = "0.1.22"
+version = "0.1.23"
 dependencies = [
  "anyhow",
  "argon2",

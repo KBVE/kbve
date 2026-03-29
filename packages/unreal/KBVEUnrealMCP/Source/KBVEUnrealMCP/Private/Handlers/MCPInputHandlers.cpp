@@ -16,6 +16,12 @@ void FMCPInputHandlers::Register(FMCPHandlerRegistry& Registry)
 
 	// TODO: chongdashu+GenAISupport — input mapping context creation
 	Registry.RegisterHandler(TEXT("input.create_mapping_context"), MCPProtocolHelpers::MakeStub(TEXT("input.create_mapping_context")));
+
+	// TODO: UnrealClaude — trigger and modifier support
+	Registry.RegisterHandler(TEXT("input.add_trigger"), MCPProtocolHelpers::MakeStub(TEXT("input.add_trigger")));
+	Registry.RegisterHandler(TEXT("input.add_modifier"), MCPProtocolHelpers::MakeStub(TEXT("input.add_modifier")));
+	Registry.RegisterHandler(TEXT("input.query_context"), MCPProtocolHelpers::MakeStub(TEXT("input.query_context")));
+	Registry.RegisterHandler(TEXT("input.query_action"), MCPProtocolHelpers::MakeStub(TEXT("input.query_action")));
 }
 
 void FMCPInputHandlers::HandleCreateAction(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

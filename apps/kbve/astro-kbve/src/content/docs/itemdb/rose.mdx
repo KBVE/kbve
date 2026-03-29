@@ -1,0 +1,38 @@
+---
+title: 'Rose'
+description: 'A classic red rose with sharp thorns. Valued for its beauty and alchemical properties.'
+ref: 'rose'
+key: 111
+id: '01KMVPV9ZHZ93N2B6DB35FDJAM'
+name: 'Rose'
+type_flags: 128
+consumable: false
+stackable: true
+max_stack: 32
+rarity: 'common'
+buy_price: 6
+sell_price: 3
+emoji: '🌹'
+weight: 0.1
+skilling:
+  skill: 'foraging'
+  xp_reward: 6
+  gather_time: 0.5
+  respawn_time: 20
+  resource_node: 'flower-rose'
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

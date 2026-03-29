@@ -39,6 +39,21 @@ pub async fn require_customer_guid(req: Request, next: Next) -> Response {
 /// Returns Uuid::nil() if not present — callers behind require_customer_guid
 /// middleware are guaranteed a valid GUID, but this avoids panics if called
 /// from unprotected routes.
+///
+/// # Edge cases
+/// - Nil UUID (all zeros) will query DB and return empty results — safe but wasteful
+/// - Malformed UUIDs are logged and fall back to nil
+///
+/// TODO(auth): Replace with Supabase JWT validation for production:
+///   1. Parse Authorization: Bearer <jwt> header
+///   2. Validate JWT signature against Supabase JWT secret
+///   3. Extract customer_guid from JWT claims
+///   4. Cache validated tokens in sessions map (avoid re-validation per request)
+///
+/// TODO(rate-limit): Add per-GUID rate limiting:
+///   - Track request count per customer_guid per minute
+///   - Return 429 Too Many Requests when exceeded
+///   - Separate limits for read (100/min) vs write (20/min) operations
 pub fn extract_customer_guid(headers: &axum::http::HeaderMap) -> Uuid {
     headers
         .get(CUSTOMER_GUID_HEADER)
@@ -51,3 +66,14 @@ pub fn extract_customer_guid(headers: &axum::http::HeaderMap) -> Uuid {
             Uuid::nil()
         })
 }
+
+// TODO(service-key): Add SERVICE_KEY middleware for system endpoints:
+//   - Reads SERVICE_KEY from env var (separate from OWS_API_KEY)
+//   - Dashboard sends Authorization: Bearer <service-key>
+//   - Validates against stored hash (not plaintext compare)
+//   - Required for /api/System/* endpoints (RestartFleet, VerifyDeployment, etc.)
+//
+// TODO(ip-allowlist): Add IP allowlist for admin endpoints:
+//   - ADMIN_ALLOWED_IPS env var (comma-separated CIDRs)
+//   - Check X-Forwarded-For / X-Real-IP against allowlist
+//   - Return 403 for non-allowed IPs on /api/System/* routes

@@ -26,12 +26,13 @@ pub mod virtual_joystick;
 pub mod water;
 pub mod weather;
 
-use bevy::app::{PluginGroup, PluginGroupBuilder};
+use bevy::app::{Plugin, PluginGroup, PluginGroupBuilder};
+use bevy::prelude::Startup;
 
 use actions::ActionsPlugin;
 use camera::IsometricCameraPlugin;
 use creatures::CreaturesPlugin;
-use inventory::{InventoryPlugin, ItemKind};
+use inventory::{BevyItemsPlugin, InventoryPlugin, ItemKind};
 use net::NetPlugin;
 use object_registry::ObjectRegistryPlugin;
 use orb_hud::OrbHudPlugin;
@@ -47,6 +48,15 @@ use trees::TreesPlugin;
 use virtual_joystick::VirtualJoystickPlugin;
 use water::WaterPlugin;
 use weather::WeatherPlugin;
+
+/// Loads the baked itemdb at startup so ProtoItemKind can resolve display names.
+struct ItemDbLoaderPlugin;
+
+impl Plugin for ItemDbLoaderPlugin {
+    fn build(&self, app: &mut bevy::app::App) {
+        app.add_systems(Startup, inventory::load_baked_itemdb);
+    }
+}
 
 /// All game-logic plugins bundled together.
 /// Used by both desktop (main.rs) and WASM (lib.rs) entry points.
@@ -68,6 +78,8 @@ impl PluginGroup for GamePluginGroup {
             .add(SceneObjectsPlugin)
             .add(TreesPlugin)
             .add(WaterPlugin)
+            .add(BevyItemsPlugin)
+            .add(ItemDbLoaderPlugin)
             .add(InventoryPlugin::<ItemKind>::new(16))
             .add(WeatherPlugin)
             .add(CreaturesPlugin)

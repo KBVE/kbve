@@ -35,7 +35,7 @@ spec:
             # terminationGracePeriodSeconds: 60
             containers:
                 - name: rows
-                  image: ghcr.io/kbve/rows:0.1.22
+                  image: ghcr.io/kbve/rows:0.1.23
                   imagePullPolicy: Always
                   # TODO(security): Enable after verifying compatibility
                   # securityContext:

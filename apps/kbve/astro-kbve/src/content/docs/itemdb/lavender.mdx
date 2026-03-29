@@ -1,0 +1,38 @@
+---
+title: 'Lavender'
+description: 'Fragrant purple lavender prized for its calming scent. Used in herblore and alchemy.'
+ref: 'lavender'
+key: 107
+id: '01KMVPV9ZH2X5XSMVAE90D21YM'
+name: 'Lavender'
+type_flags: 128
+consumable: false
+stackable: true
+max_stack: 32
+rarity: 'common'
+buy_price: 6
+sell_price: 3
+emoji: '💜'
+weight: 0.1
+skilling:
+  skill: 'foraging'
+  xp_reward: 7
+  gather_time: 0.5
+  respawn_time: 20
+  resource_node: 'flower-lavender'
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

@@ -1,0 +1,38 @@
+---
+title: 'Log'
+description: 'A freshly chopped log. Essential raw material for crafting and construction.'
+ref: 'log'
+key: 99
+id: '01KMVPV9ZG6TPG7BVB5Q9QV69M'
+name: 'Log'
+type_flags: 384
+consumable: false
+stackable: true
+max_stack: 64
+rarity: 'common'
+buy_price: 5
+sell_price: 2
+emoji: '🪵'
+weight: 2.5
+skilling:
+  skill: 'woodcutting'
+  xp_reward: 10
+  gather_time: 2.5
+  respawn_time: 30
+  resource_node: 'tree'
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

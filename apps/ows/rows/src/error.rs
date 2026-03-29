@@ -101,3 +101,25 @@ impl SuccessResponse {
 /// Handler return type — axum serializes Json<T> directly (single pass),
 /// errors go through RowsError::into_response (typed ApiErrorBody).
 pub type ApiResult<T> = Result<axum::Json<T>, RowsError>;
+
+// ─── Edge Case Notes ─────────────────────────────────────────
+//
+// TODO(error-context): Add request context to errors:
+//   - Include request_id, customer_guid, endpoint path in error responses
+//   - Makes debugging from client-side logs easier
+//   - Example: {"code": "NOT_FOUND", "request_id": "abc123", "path": "/api/Users/GetAllCharacters"}
+//
+// TODO(error-telemetry): Forward errors to observability stack:
+//   - 5xx errors → Vector → ClickHouse for alerting
+//   - Track error rates per endpoint for SLO monitoring
+//   - Circuit breaker state changes → alert on Agones degradation
+//
+// TODO(retry-header): Add Retry-After header on transient errors:
+//   - 503 (Agones allocation in progress) → Retry-After: 5
+//   - 429 (rate limited) → Retry-After: <seconds until reset>
+//   - Helps UE5 HTTP client implement exponential backoff
+//
+// TODO(timeout-variant): Add RowsError::Timeout for explicit timeout handling:
+//   - Distinguish between "server busy" (503) and "operation timed out" (504)
+//   - Allocation timeout → RowsError::Timeout("Allocation timed out after 60s")
+//   - DB query timeout → RowsError::Timeout("Query timed out after 30s")

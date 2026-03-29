@@ -30,6 +30,12 @@ void FMCPEditorHandlers::Register(FMCPHandlerRegistry& Registry)
 	// TODO: ChiR24 — CVar management
 	Registry.RegisterHandler(TEXT("editor.set_cvar"), MCPProtocolHelpers::MakeStub(TEXT("editor.set_cvar")));
 	Registry.RegisterHandler(TEXT("editor.get_cvar"), MCPProtocolHelpers::MakeStub(TEXT("editor.get_cvar")));
+
+	// TODO: ChiR24+SpecialAgent — editor operations
+	Registry.RegisterHandler(TEXT("editor.save_all"), MCPProtocolHelpers::MakeStub(TEXT("editor.save_all")));
+	Registry.RegisterHandler(TEXT("editor.open_asset"), MCPProtocolHelpers::MakeStub(TEXT("editor.open_asset")));
+	Registry.RegisterHandler(TEXT("editor.select_at_screen"), MCPProtocolHelpers::MakeStub(TEXT("editor.select_at_screen")));
+	Registry.RegisterHandler(TEXT("editor.get_selection_bounds"), MCPProtocolHelpers::MakeStub(TEXT("editor.get_selection_bounds")));
 }
 
 void FMCPEditorHandlers::HandleUndo(const TSharedPtr<FJsonObject>& Params, FMCPResponseDelegate OnComplete)

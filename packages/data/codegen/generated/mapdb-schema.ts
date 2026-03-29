@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/mapdb.binpb
  * Config: ../mapdb-zod-config.json
- * Generated: 2026-03-28T13:01:13.867Z
+ * Generated: 2026-03-29T10:20:48.810Z
  */
 
 import { z } from 'zod';
@@ -32,6 +32,7 @@ export type BiomeValue = (typeof Biomes)[number];
 export const BiomeSchema = z.enum(Biomes);
 
 export const ZoneTypes = [
+	'overworld',
 	'dungeon',
 	'instance',
 	'city',
@@ -48,6 +49,7 @@ export type ZoneTypeValue = (typeof ZoneTypes)[number];
 export const ZoneTypeSchema = z.enum(ZoneTypes);
 
 export const RoomTypes = [
+	'empty',
 	'combat',
 	'treasure',
 	'trap',
@@ -66,13 +68,21 @@ export type RoomTypeValue = (typeof RoomTypes)[number];
 
 export const RoomTypeSchema = z.enum(RoomTypes);
 
-export const Directions = ['south', 'east', 'west', 'up', 'down'] as const;
+export const Directions = [
+	'north',
+	'south',
+	'east',
+	'west',
+	'up',
+	'down',
+] as const;
 
 export type DirectionValue = (typeof Directions)[number];
 
 export const DirectionSchema = z.enum(Directions);
 
 export const RoomModifiers = [
+	'none',
 	'fog',
 	'blessing',
 	'cursed',
@@ -111,6 +121,7 @@ export type WorldObjectTypeValue = (typeof WorldObjectTypes)[number];
 export const WorldObjectTypeSchema = z.enum(WorldObjectTypes);
 
 export const PoiTypes = [
+	'city',
 	'town',
 	'village',
 	'dungeon',
@@ -150,6 +161,7 @@ export type TerrainBandValue = (typeof TerrainBands)[number];
 export const TerrainBandSchema = z.enum(TerrainBands);
 
 export const SpawnCategories = [
+	'npc',
 	'resource',
 	'object',
 	'enemy',
@@ -189,6 +201,7 @@ export type CraftingStationTypeValue = (typeof CraftingStationTypes)[number];
 export const CraftingStationTypeSchema = z.enum(CraftingStationTypes);
 
 export const GenerationModes = [
+	'static_authored',
 	'finite_procedural',
 	'infinite_procedural',
 	'instanced',
@@ -200,6 +213,7 @@ export type GenerationModeValue = (typeof GenerationModes)[number];
 export const GenerationModeSchema = z.enum(GenerationModes);
 
 export const PersistenceModes = [
+	'canonical',
 	'deterministic_regen',
 	'delta',
 	'session_only',
@@ -210,6 +224,7 @@ export type PersistenceModeValue = (typeof PersistenceModes)[number];
 export const PersistenceModeSchema = z.enum(PersistenceModes);
 
 export const StreamingHints = [
+	'partitioned',
 	'chunk_ring',
 	'descriptor_activated',
 	'instance_loaded',
@@ -220,6 +235,7 @@ export type StreamingHintValue = (typeof StreamingHints)[number];
 export const StreamingHintSchema = z.enum(StreamingHints);
 
 export const ReplicationHints = [
+	'static_only',
 	'local_dynamic',
 	'chunk_scoped',
 	'full_instance',
@@ -229,7 +245,7 @@ export type ReplicationHintValue = (typeof ReplicationHints)[number];
 
 export const ReplicationHintSchema = z.enum(ReplicationHints);
 
-export const TravelTypes = ['gated', 'one_way', 'blocked'] as const;
+export const TravelTypes = ['open', 'gated', 'one_way', 'blocked'] as const;
 
 export type TravelTypeValue = (typeof TravelTypes)[number];
 

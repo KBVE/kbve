@@ -2,10 +2,8 @@
 //! All endpoints require X-CustomerGUID header (existing auth pattern).
 
 use crate::middleware::require_customer_guid;
-use crate::state::AppState;
 use axum::{Json, Router, extract::State, http::HeaderMap, middleware, routing::get};
 use serde::Serialize;
-use std::sync::Arc;
 use std::time::Instant;
 use utoipa::ToSchema;
 
