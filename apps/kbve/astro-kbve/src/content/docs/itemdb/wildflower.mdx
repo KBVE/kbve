@@ -1,0 +1,38 @@
+---
+title: 'Wildflower'
+description: 'A hardy wildflower that thrives in untamed fields. The most common forageable bloom.'
+ref: 'wildflower'
+key: 109
+id: '01KMVPV9ZHCFW48C0G9S0CZA2J'
+name: 'Wildflower'
+type_flags: 128
+consumable: false
+stackable: true
+max_stack: 32
+rarity: 'common'
+buy_price: 3
+sell_price: 1
+emoji: '🌸'
+weight: 0.1
+skilling:
+  skill: 'foraging'
+  xp_reward: 4
+  gather_time: 0.5
+  respawn_time: 20
+  resource_node: 'flower-wildflower'
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

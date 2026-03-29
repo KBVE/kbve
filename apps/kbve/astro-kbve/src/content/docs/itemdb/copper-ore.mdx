@@ -1,0 +1,40 @@
+---
+title: 'Copper Ore'
+description: 'Raw copper ore mined from veins in the earth. Can be smelted into copper bars.'
+ref: 'copper-ore'
+key: 102
+id: '01KMVPV9ZHV1GFHM1MPDN4FV70'
+name: 'Copper Ore'
+type_flags: 384
+consumable: false
+stackable: true
+max_stack: 32
+rarity: 'common'
+buy_price: 12
+sell_price: 6
+emoji: '🟤'
+weight: 4.0
+skilling:
+  skill: 'mining'
+  skill_level: 1
+  xp_reward: 18
+  gather_time: 3.0
+  respawn_time: 40
+  resource_node: 'ore-copper'
+  tool_required: 'pickaxe'
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

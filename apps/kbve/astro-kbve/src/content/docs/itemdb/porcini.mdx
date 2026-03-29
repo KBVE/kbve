@@ -1,0 +1,41 @@
+---
+title: 'Porcini'
+description: 'A prized edible mushroom with a rich, nutty flavor. Found near the base of trees.'
+ref: 'porcini'
+key: 115
+id: '01KMVPV9ZJB35BQJ3SNZ4W9GDA'
+name: 'Porcini'
+type_flags: 136
+consumable: true
+stackable: true
+max_stack: 32
+rarity: 'common'
+buy_price: 8
+sell_price: 4
+emoji: '🍄'
+weight: 0.2
+skilling:
+  skill: 'foraging'
+  xp_reward: 8
+  gather_time: 0.5
+  respawn_time: 25
+  resource_node: 'mushroom-porcini'
+food:
+  heals: 3
+  doses: 1
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

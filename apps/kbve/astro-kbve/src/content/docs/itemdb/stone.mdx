@@ -1,0 +1,38 @@
+---
+title: 'Stone'
+description: 'A rough chunk of stone broken from a boulder. Used in basic crafting and construction.'
+ref: 'stone'
+key: 100
+id: '01KMVPV9ZHPBRJZZEN7C0Q9R4Q'
+name: 'Stone'
+type_flags: 384
+consumable: false
+stackable: true
+max_stack: 64
+rarity: 'common'
+buy_price: 3
+sell_price: 1
+emoji: '🪨'
+weight: 3.0
+skilling:
+  skill: 'mining'
+  xp_reward: 8
+  gather_time: 2.0
+  respawn_time: 25
+  resource_node: 'boulder'
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

@@ -1,0 +1,38 @@
+---
+title: 'Fly Agaric'
+description: 'An iconic red-capped mushroom with white spots. Toxic if consumed raw, but useful in alchemy.'
+ref: 'fly-agaric'
+key: 117
+id: '01KMVPV9ZJTK4QB8KGBH5XAEW4'
+name: 'Fly Agaric'
+type_flags: 160
+consumable: false
+stackable: true
+max_stack: 32
+rarity: 'uncommon'
+buy_price: 15
+sell_price: 8
+emoji: '🍄'
+weight: 0.2
+skilling:
+  skill: 'foraging'
+  xp_reward: 12
+  gather_time: 0.5
+  respawn_time: 30
+  resource_node: 'mushroom-fly-agaric'
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

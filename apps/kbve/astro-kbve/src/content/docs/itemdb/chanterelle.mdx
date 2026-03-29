@@ -1,0 +1,41 @@
+---
+title: 'Chanterelle'
+description: 'A golden funnel-shaped mushroom with a fruity aroma. A favorite among foragers.'
+ref: 'chanterelle'
+key: 116
+id: '01KMVPV9ZJF97SBP3WTVTPV93C'
+name: 'Chanterelle'
+type_flags: 136
+consumable: true
+stackable: true
+max_stack: 32
+rarity: 'common'
+buy_price: 10
+sell_price: 5
+emoji: '🍄'
+weight: 0.15
+skilling:
+  skill: 'foraging'
+  xp_reward: 10
+  gather_time: 0.5
+  respawn_time: 25
+  resource_node: 'mushroom-chanterelle'
+food:
+  heals: 4
+  doses: 1
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

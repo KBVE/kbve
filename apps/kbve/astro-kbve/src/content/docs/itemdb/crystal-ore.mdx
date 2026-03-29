@@ -1,0 +1,40 @@
+---
+title: 'Crystal Ore'
+description: 'A shimmering crystalline ore pulsing with faint energy. Rare and highly sought after.'
+ref: 'crystal-ore'
+key: 104
+id: '01KMVPV9ZHRQSBQJDRNEAJN368'
+name: 'Crystal Ore'
+type_flags: 384
+consumable: false
+stackable: true
+max_stack: 16
+rarity: 'rare'
+buy_price: 75
+sell_price: 35
+emoji: '💎'
+weight: 3.5
+skilling:
+  skill: 'mining'
+  skill_level: 30
+  xp_reward: 65
+  gather_time: 5.0
+  respawn_time: 90
+  resource_node: 'ore-crystal'
+  tool_required: 'pickaxe'
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

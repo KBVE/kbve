@@ -1,0 +1,38 @@
+---
+title: 'Daisy'
+description: 'A cheerful white daisy with a golden center. Found across open fields.'
+ref: 'daisy'
+key: 106
+id: '01KMVPV9ZH852GF5HWAQJQD0G1'
+name: 'Daisy'
+type_flags: 128
+consumable: false
+stackable: true
+max_stack: 32
+rarity: 'common'
+buy_price: 4
+sell_price: 2
+emoji: '🌼'
+weight: 0.1
+skilling:
+  skill: 'foraging'
+  xp_reward: 5
+  gather_time: 0.5
+  respawn_time: 20
+  resource_node: 'flower-daisy'
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
