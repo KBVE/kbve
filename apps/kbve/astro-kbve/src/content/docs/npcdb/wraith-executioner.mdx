@@ -1,0 +1,64 @@
+---
+title: 'Wraith Executioner'
+description: |
+    A spectral headsman draped in tattered judicial robes, carrying an impossibly large phantom axe that cleaves through armor and soul alike.
+ref: 'wraith-executioner'
+id: '01KMWEP3FYXD54R527KQ6CM2N5'
+name: 'Wraith Executioner'
+type_flags: 33
+rarity: 'epic'
+personality: 'stoic'
+rank: 'elite'
+family: 'undead'
+element: 'shadow'
+level: 4
+stats:
+    hp: 40
+    max_hp: 40
+    attack: 14
+    defense: 5
+    speed: 4
+    armor: 4
+behavior:
+    movement_type: 'patrol'
+    first_strike: true
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The Wraith Executioner raises its phantom axe and brings it down on {target} with the weight of a thousand sentences! {dmg} damage!"
+        - "A spectral blade arcs through {target}'s guard — the Executioner does not miss. {dmg} damage."
+        - "\"Guilty.\" The word echoes before the axe falls on {target}. {dmg} damage."
+    - action: 'heavy_attack'
+      messages:
+        - "The Executioner grips its axe with both hands — the blade ignites with black fire and cleaves through {target}! {dmg} damage!"
+        - "\"BY DECREE OF THE HOLLOW COURT!\" The phantom axe splits the air and crashes into {target}! {dmg} damage!"
+    - action: 'defend'
+      messages:
+        - "The Executioner plants its axe and stands motionless. Its tattered robes harden into spectral plate. (+{armor} armor)"
+    - action: 'charge'
+      messages:
+        - "The Wraith Executioner raises one skeletal hand. The names of the condemned scroll across the air in burning glyphs."
+        - "A spectral chopping block materializes. The Executioner runs one finger along the edge of its axe."
+    - action: 'death'
+      messages:
+        - "The phantom axe clatters to the ground and dissolves. The Executioner looks at its empty hands and whispers, \"...pardoned.\" Then it is gone."
+        - "The tattered robes collapse in a heap. A long list of names burns away to ash where the Wraith stood."
+        - "The Executioner falls to its knees, grasping at the phantom axe as it fades. \"My sentence... is served.\""
+    - action: 'wounded'
+      messages:
+        - "*The Executioner's robes tear further, revealing the hollow void beneath. It shows no pain — only cold resolve.*"
+    - action: 'near_death'
+      messages:
+        - "*The phantom axe flickers in and out of existence. The Executioner's form wavers like a candle about to die.*"
+        - "*\"One... final... verdict...\" The Wraith Executioner's voice is barely audible, but the malice is undiminished.*"
+lore: |
+    In life, the Executioner served a kingdom long since swallowed by darkness. Tasked with carrying out the sentences of a corrupt court, it executed hundreds — guilty and innocent alike. When the kingdom fell, the Executioner's guilt bound its soul to an eternal sentence of its own: to wander the ruins, forever seeking absolution through the only craft it ever knew. Its phantom axe is said to sever not just flesh, but the ties between a soul and its body — those slain by the Wraith Executioner do not rest easily.
+credits: |
+    Asset reference: [Undead Executioner by DarkPixel Kronovi](https://darkpixel-kronovi.itch.io/undead-executioner).
+    Future integration: UV-ready shader for apps/kbve/isometric.
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+A spectral headsman draped in tattered judicial robes, carrying an impossibly large phantom axe that cleaves through armor and soul alike.
