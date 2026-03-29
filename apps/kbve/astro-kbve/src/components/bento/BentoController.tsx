@@ -100,6 +100,97 @@ function refreshIframes(el: HTMLElement | null) {
 	});
 }
 
+// ── Resize Handle Hook ──
+
+function useResizeHandle(
+	cardRef: React.RefObject<HTMLDivElement | null>,
+	onResize: (col: number, row: number) => void,
+) {
+	const resizing = useRef(false);
+	const startPos = useRef({ x: 0, y: 0 });
+	const startSize = useRef({ w: 0, h: 0 });
+
+	const onMouseDown = useCallback(
+		(e: React.MouseEvent) => {
+			e.preventDefault();
+			e.stopPropagation();
+
+			const el = cardRef.current;
+			if (!el) return;
+
+			resizing.current = true;
+			startPos.current = { x: e.clientX, y: e.clientY };
+			const rect = el.getBoundingClientRect();
+			startSize.current = { w: rect.width, h: rect.height };
+
+			// Disable iframes during resize
+			disableIframes(el);
+
+			const grid = el.parentElement;
+			if (!grid) return;
+
+			// Measure grid cell size (column width + row height)
+			const gridRect = grid.getBoundingClientRect();
+			const gridStyle = getComputedStyle(grid);
+			const cols = gridStyle.gridTemplateColumns.split(' ').length;
+			const gap = parseFloat(gridStyle.gap) || 14;
+			const colW = (gridRect.width - (cols - 1) * gap) / cols;
+			const rowH = 176; // matches grid-auto-rows: minmax(176px, auto)
+
+			const onMouseMove = (ev: MouseEvent) => {
+				if (!resizing.current) return;
+
+				const dx = ev.clientX - startPos.current.x;
+				const dy = ev.clientY - startPos.current.y;
+
+				const newW = startSize.current.w + dx;
+				const newH = startSize.current.h + dy;
+
+				// Snap to grid units
+				const newCol = Math.max(
+					1,
+					Math.min(4, Math.round((newW + gap / 2) / (colW + gap))),
+				);
+				const newRow = Math.max(
+					1,
+					Math.min(3, Math.round((newH + gap / 2) / (rowH + gap))),
+				);
+
+				// Live preview via inline styles
+				el.style.gridColumn = `span ${newCol}`;
+				el.style.gridRow = `span ${newRow}`;
+			};
+
+			const onMouseUp = () => {
+				resizing.current = false;
+				document.removeEventListener('mousemove', onMouseMove);
+				document.removeEventListener('mouseup', onMouseUp);
+
+				// Read final snapped size from inline style
+				const finalCol =
+					parseInt(el.style.gridColumn.replace('span ', ''), 10) || 2;
+				const finalRow =
+					parseInt(el.style.gridRow.replace('span ', ''), 10) || 2;
+
+				// Clear inline styles — React will re-apply via className
+				el.style.gridColumn = '';
+				el.style.gridRow = '';
+
+				enableIframes(el);
+				refreshIframes(el);
+
+				onResize(finalCol, finalRow);
+			};
+
+			document.addEventListener('mousemove', onMouseMove);
+			document.addEventListener('mouseup', onMouseUp);
+		},
+		[cardRef, onResize],
+	);
+
+	return onMouseDown;
+}
+
 // ── Sortable Card ──
 
 interface SortableCardProps {
@@ -109,8 +200,7 @@ interface SortableCardProps {
 	isDragging: boolean;
 	slotRef: (el: HTMLDivElement | null) => void;
 	onHide: () => void;
-	onSetCol: (col: number) => void;
-	onSetRow: (row: number) => void;
+	onResize: (col: number, row: number) => void;
 }
 
 function SortableCard({
@@ -120,11 +210,12 @@ function SortableCard({
 	isDragging,
 	slotRef,
 	onHide,
-	onSetCol,
-	onSetRow,
+	onResize,
 }: SortableCardProps) {
 	const { attributes, listeners, setNodeRef, transform, transition } =
 		useSortable({ id: card.id });
+	const cardElRef = useRef<HTMLDivElement | null>(null);
+	const resizeMouseDown = useResizeHandle(cardElRef, onResize);
 
 	const style = {
 		transform: CSS.Transform.toString(transform),
@@ -135,10 +226,13 @@ function SortableCard({
 
 	return (
 		<div
-			ref={setNodeRef}
+			ref={(el) => {
+				setNodeRef(el);
+				cardElRef.current = el;
+			}}
 			style={style}
 			className={cn('bento-card', `col-span-${col}`, `row-span-${row}`)}>
-			{/* Controls overlay */}
+			{/* Controls — top-right: X + drag */}
 			<div className="bento-card-controls-overlay">
 				<button
 					className="bento-card-ctrl-btn bento-card-ctrl-hide"
@@ -158,7 +252,6 @@ function SortableCard({
 					</svg>
 				</button>
 
-				{/* Drag handle */}
 				<button
 					className="bento-card-ctrl-btn bento-drag-handle"
 					{...attributes}
@@ -181,35 +274,24 @@ function SortableCard({
 						<circle cx="15" cy="18" r="1" />
 					</svg>
 				</button>
+			</div>
 
-				{/* Unit picker */}
-				<div className="bento-unit-picker">
-					<span className="bento-unit-label">W</span>
-					{[1, 2, 3, 4].map((c) => (
-						<button
-							key={c}
-							className={cn(
-								'bento-unit-btn',
-								c === col && 'active',
-							)}
-							onClick={() => onSetCol(c)}>
-							{c}
-						</button>
-					))}
-					<span className="bento-unit-sep" />
-					<span className="bento-unit-label">H</span>
-					{[1, 2, 3].map((r) => (
-						<button
-							key={r}
-							className={cn(
-								'bento-unit-btn',
-								r === row && 'active',
-							)}
-							onClick={() => onSetRow(r)}>
-							{r}
-						</button>
-					))}
-				</div>
+			{/* Resize handle — bottom-right corner */}
+			<div
+				className="bento-resize-handle"
+				onMouseDown={resizeMouseDown}
+				aria-label="Resize card">
+				<svg
+					width="10"
+					height="10"
+					viewBox="0 0 10 10"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="1.5"
+					strokeLinecap="round">
+					<line x1="9" y1="1" x2="1" y2="9" />
+					<line x1="9" y1="5" x2="5" y2="9" />
+				</svg>
 			</div>
 
 			{/* Slot for Astro's real DOM node */}
@@ -375,14 +457,10 @@ export default function BentoController({ pageKey }: Props) {
 		[pageKey],
 	);
 
-	// ── Resize handlers ──
+	// ── Resize handler ──
 
-	const handleSetCol = useCallback((id: string, col: number) => {
+	const handleResize = useCallback((id: string, col: number, row: number) => {
 		setCardCol(id, col);
-		setTimeout(() => refreshIframes(slotRefs.current.get(id) || null), 50);
-	}, []);
-
-	const handleSetRow = useCallback((id: string, row: number) => {
 		setCardRow(id, row);
 		setTimeout(() => refreshIframes(slotRefs.current.get(id) || null), 50);
 	}, []);
@@ -421,8 +499,7 @@ export default function BentoController({ pageKey }: Props) {
 									if (el) slotRefs.current.set(id, el);
 								}}
 								onHide={() => hideCard(id)}
-								onSetCol={(c) => handleSetCol(id, c)}
-								onSetRow={(r) => handleSetRow(id, r)}
+								onResize={(c, r) => handleResize(id, c, r)}
 							/>
 						);
 					})}
