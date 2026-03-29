@@ -60,6 +60,3 @@ panic = 'unwind'
 opt-level = 3
 lto = 'fat'
 codegen-units = 1
-
-[patch.crates-io]
-lightyear_webtransport = { path = "packages/rust/lightyear_webtransport_patch" }
