@@ -1276,7 +1276,7 @@ dependencies = [
 
 [[package]]
 name = "axum-chuckrpg"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "anyhow",
  "axum",
@@ -1336,7 +1336,7 @@ dependencies = [
 
 [[package]]
 name = "axum-discordsh"
-version = "0.1.40"
+version = "0.1.41"
 dependencies = [
  "anyhow",
  "askama",
@@ -9439,6 +9439,8 @@ dependencies = [
 [[package]]
 name = "lightyear_webtransport"
 version = "0.26.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8c100a3f88ced77327f04ab3e583ecca627e53d93031c5aaf7c2260d6c9faf25"
 dependencies = [
  "aeronet_io",
  "aeronet_webtransport",
