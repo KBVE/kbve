@@ -1,0 +1,4375 @@
+{
+	"items": [
+		{
+			"title": "Alchemist Stardust",
+			"description": "An ethereal substance harvested from the exits of black holes. \nThis spinozian object shimmers with the memory of ancient stars and forgotten constants.\n",
+			"ref": "alchemist-stardust",
+			"key": 9,
+			"id": "01J2GHZQ9CXY89NB7NS5Q2DRSD",
+			"name": "Alchemist Stardust",
+			"type_flags": 397,
+			"img": "/assets/items/materials/alchemist_stardust.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 30,
+			"consumable": false,
+			"stackable": true,
+			"rarity": "mythic",
+			"weight": 0.1,
+			"effects": "Used in transdimensional crafting. Resonates with 5D equations.",
+			"buy_price": 10000,
+			"durability": 999,
+			"equipped": false,
+			"level_requirement": 10,
+			"cooldown": 0,
+			"action": "transmute",
+			"credits": "Collected by DeepCore Alchemy Arrays during stellar decay events. Data courtesy of KBVE AstroQuant and illustrations by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"quantumFlux": true,
+				"elementAffinity": 1,
+				"timeHarmonics": 0.85
+			},
+			"scripts": [
+				{
+					"guid": "fc721e1beaa145c8aab2ebde8121e173",
+					"vars": {
+						"quantumFlux": true,
+						"affinityBoost": 1,
+						"harmonicSync": 0.85,
+						"dimensionalEnergy": "5D"
+					}
+				}
+			]
+		},
+		{
+			"title": "Allium",
+			"description": "A round purple allium with a striking spherical bloom. Mildly aromatic.",
+			"ref": "allium",
+			"key": 113,
+			"id": "01KMVPV9ZJ37XD5AAAP211W0XM",
+			"name": "Allium",
+			"type_flags": 128,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 32,
+			"rarity": "common",
+			"buy_price": 4,
+			"sell_price": 2,
+			"emoji": "🟣",
+			"weight": 0.1,
+			"skilling": {
+				"skill": "foraging",
+				"xp_reward": 5,
+				"gather_time": 0.5,
+				"respawn_time": 20,
+				"resource_node": "flower-allium"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Anime Body Pillow",
+			"description": "A full-length comfort pillow featuring a vaguely familiar animated figure.\nOne side smiles. The other... doesn't.\n",
+			"ref": "anime-body-pillow",
+			"key": 30,
+			"id": "01JWFA5N2C1SFDP1S7331YF4A6",
+			"name": "Anime Body Pillow",
+			"type_flags": 418,
+			"img": "/assets/items/set/memes/lewdchat/anime-body-pillow.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 135,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "uncommon",
+			"weight": 3.4,
+			"effects": "Restores morale. Reduces loneliness debuff. May alter dreams.",
+			"buy_price": 160,
+			"durability": 999,
+			"equipped": false,
+			"level_requirement": 0,
+			"cooldown": 69,
+			"action": "snuggle",
+			"credits": "Art & Printed by KBVE Pixel Workshop under assumed identity.\n",
+			"bonuses": {
+				"moraleBoost": 2,
+				"sleepQuality": 1,
+				"dreamInfluence": true
+			},
+			"scripts": [
+				{
+					"guid": "dd838b8d3a9442e0a4b0dc3ddcfa71d5",
+					"vars": {
+						"sleepModifier": 1,
+						"comfortAura": true,
+						"dreamFlag": "anime"
+					}
+				}
+			]
+		},
+		{
+			"title": "Antidote",
+			"description": "A cleansing tonic that removes all negative status effects.",
+			"ref": "antidote",
+			"key": 75,
+			"id": "01KKR7QNRC81EVK4PF70V5E3FR",
+			"name": "Antidote",
+			"type_flags": 544,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 2,
+			"rarity": "uncommon",
+			"buy_price": 45,
+			"emoji": "🧴",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "remove_all_negative"
+				}
+			]
+		},
+		{
+			"title": "Auto Cooker 9000",
+			"description": "An intelligent cooking device capable of preparing meals from raw code, DNA, or grocery leftovers. It hums with culinary ambition.",
+			"ref": "auto-cooker-9000",
+			"key": 55,
+			"id": "01JWN7TN1P44J963328VP0YNFF",
+			"name": "Auto Cooker 9000",
+			"type_flags": 4096,
+			"img": "/assets/items/skills/cooking/structures/auto_cooker_9000.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 63,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "rare",
+			"weight": 12.5,
+			"effects": "Can be deployed to automate cooking, enhance food quality, and reveal hidden recipe traits.",
+			"buy_price": 850,
+			"durability": 500,
+			"equipped": false,
+			"level_requirement": 6,
+			"cooldown": 120,
+			"action": "deploy",
+			"credits": "Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"cookingSpeed": 2,
+				"foodQuality": 1,
+				"recipeDiscovery": true
+			},
+			"scripts": [
+				{
+					"guid": "acf8fd9f713247ea99cde9a43b6781ab",
+					"vars": {
+						"deployableType": "cooker",
+						"speedMultiplier": 2,
+						"foodQualityBonus": 1,
+						"traits": "cooker"
+					}
+				}
+			]
+		},
+		{
+			"title": "Bandage",
+			"description": "A simple cloth bandage that heals 5 HP and stops bleeding.",
+			"ref": "bandage",
+			"key": 68,
+			"id": "01KKR7QNRCPH4QEYXHHXV2301B",
+			"name": "Bandage",
+			"type_flags": 544,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 5,
+			"rarity": "common",
+			"buy_price": 10,
+			"emoji": "🧷",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "heal",
+					"amount": 5
+				},
+				{
+					"type": "remove_effect",
+					"status_effect": "bleed"
+				}
+			]
+		},
+		{
+			"title": "Beer",
+			"description": "A frothy, golden beverage brewed from hops, grain, and patience. \nGrants mild strength, courage, and unfortunate honesty.\n",
+			"ref": "beer",
+			"key": 50,
+			"id": "01JWJAVCGHH345RKABKR1D04XF",
+			"name": "Beer",
+			"type_flags": 400,
+			"img": "/assets/items/skills/cooking/materials/liquor/beer.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 58,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "common",
+			"weight": 0.75,
+			"effects": "Boosts morale, slightly improves strength, lowers charisma temporarily.",
+			"buy_price": 35,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 1,
+			"cooldown": 30,
+			"action": "consume",
+			"credits": "Pixel art crafted by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"strength": 1,
+				"charisma": -1,
+				"buzzed": true
+			},
+			"scripts": [
+				{
+					"guid": "cd2023aa19234f07bbf31fbc7265eb1c",
+					"vars": {
+						"buffDuration": 90,
+						"traits": "buzzed"
+					}
+				}
+			]
+		},
+		{
+			"title": "Bellflower",
+			"description": "A delicate bell-shaped bloom that sways gently in the breeze. Found in shaded groves.",
+			"ref": "bellflower",
+			"key": 108,
+			"id": "01KMVPV9ZHMZNVQDYGK8F47P5D",
+			"name": "Bellflower",
+			"type_flags": 128,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 32,
+			"rarity": "common",
+			"buy_price": 4,
+			"sell_price": 2,
+			"emoji": "🔔",
+			"weight": 0.1,
+			"skilling": {
+				"skill": "foraging",
+				"xp_reward": 5,
+				"gather_time": 0.5,
+				"respawn_time": 20,
+				"resource_node": "flower-bell"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Blue Orchid",
+			"description": "A rare and delicate blue orchid found in damp, shaded areas. Prized by collectors.",
+			"ref": "blue-orchid",
+			"key": 114,
+			"id": "01KMVPV9ZJCX2MW8DR54AV33JS",
+			"name": "Blue Orchid",
+			"type_flags": 128,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 32,
+			"rarity": "common",
+			"buy_price": 7,
+			"sell_price": 3,
+			"emoji": "🏵️",
+			"weight": 0.1,
+			"skilling": {
+				"skill": "foraging",
+				"xp_reward": 8,
+				"gather_time": 0.5,
+				"respawn_time": 25,
+				"resource_node": "flower-blue-orchid"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Blue Shark",
+			"description": "A heavy fish that heals the consumer's health and provides mana.",
+			"ref": "blue-shark",
+			"key": 2,
+			"id": "01J263S362R0Q3TV8T4DFMR8Z5",
+			"name": "Blue Shark",
+			"type_flags": 392,
+			"img": "/assets/items/food/blue_shark.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 10,
+			"consumable": true,
+			"stackable": false,
+			"rarity": "common",
+			"weight": 10,
+			"effects": "Heals 50 health and increases mana by 25 for 10 minutes.",
+			"buy_price": 500,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 0,
+			"cooldown": 120,
+			"action": "consume",
+			"credits": "Shark fish asset was by Roku6 - https://roku6.itch.io/pixelfishes\n",
+			"bonuses": {
+				"health": 50,
+				"mana": 25
+			},
+			"scripts": [
+				{
+					"guid": "dd238a91353c4a1991cf275041730ab0",
+					"vars": {
+						"health": 50,
+						"mana": 25,
+						"duration": 600,
+						"tickRate": 5
+					}
+				}
+			]
+		},
+		{
+			"title": "Bomb",
+			"description": "An explosive device that deals 10 damage to a single enemy.",
+			"ref": "bomb",
+			"key": 69,
+			"id": "01KKR7QNRCXEWSCSYHRKEVJ20N",
+			"name": "Bomb",
+			"type_flags": 8704,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 3,
+			"rarity": "uncommon",
+			"buy_price": 50,
+			"emoji": "💣",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "damage_enemy",
+					"amount": 10
+				}
+			]
+		},
+		{
+			"title": "Bone",
+			"description": "A simple piece of organic matter. Alchemists value it. Dogs adore it. Spirits… tolerate it.\n",
+			"ref": "bone",
+			"key": 13,
+			"id": "01JW9Z6VRWVN2RXGWNEVVG9RTJ",
+			"name": "Bone",
+			"type_flags": 401,
+			"img": "/assets/items/set/bones/bone.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 50,
+			"consumable": false,
+			"stackable": true,
+			"rarity": "common",
+			"weight": 0.5,
+			"effects": "Used in alchemy or pet enrichment. May occasionally harbor residual spirit echoes.",
+			"buy_price": 30,
+			"durability": 120,
+			"equipped": false,
+			"level_requirement": 1,
+			"cooldown": 0,
+			"action": "toss",
+			"credits": "Lore by h0lybyte and Asset by CraftPix (https://free-game-assets.itch.io/free-undead-loot-pixel-art-icons).\n",
+			"bonuses": {
+				"chewValue": true,
+				"alchemyUse": true,
+				"spiritualEcho": 0.05
+			},
+			"scripts": [
+				{
+					"guid": "dd319f2f47ab4f0faaba2917ee7832af",
+					"vars": {
+						"useCase": "alchemy",
+						"chewChance": 1,
+						"spiritEchoChance": 0.05
+					}
+				}
+			]
+		},
+		{
+			"title": "Brainrot Laptop",
+			"description": "A decrepit notebook exuding fumes of outdated code and decaying circuits.\nBooting it may infect you with ancient memes and unpatched exploits.\n",
+			"ref": "brainrot-laptop",
+			"key": 61,
+			"id": "01JX4H5YJKEBYQT4QZ2PHTYMY5",
+			"name": "Brainrot Laptop",
+			"type_flags": 411,
+			"img": "/assets/items/tools/brainrot_laptop.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 65,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "rare",
+			"weight": 3.2,
+			"effects": "Causes random glitches and nostalgic pop-ups.",
+			"buy_price": 550,
+			"durability": 250,
+			"equipped": false,
+			"level_requirement": 3,
+			"cooldown": 60,
+			"action": "boot",
+			"credits": "Salvaged from a landfill server farm. Pixel art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"confusion": 5,
+				"memeticInfection": true
+			},
+			"scripts": [
+				{
+					"guid": "b0c0ffee0c0ffee0deadbeef12345678",
+					"vars": {
+						"glitchChance": 0.3,
+						"confusionRate": 5,
+						"runtime": 300
+					}
+				}
+			]
+		},
+		{
+			"title": "Brown Curry Sauce",
+			"description": "A savory, aromatic sauce made from a mysterious brown roux, aged spices, and memory-triggering heat.\nOften paired with rice, dreams, or cold mornings.\n",
+			"ref": "brown-curry-sauce",
+			"key": 44,
+			"id": "01JWG7MYCBHXK5WP2WS6AQYMSC",
+			"name": "Brown Curry Sauce",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/materials/sauce/brown_curry_sauce.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 52,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "uncommon",
+			"weight": 0.85,
+			"effects": "Restores stamina and focus. May trigger nostalgic hallucinations.",
+			"buy_price": 90,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 1,
+			"cooldown": 45,
+			"action": "consume",
+			"credits": "Artwork by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"stamina": 20,
+				"focus": 2,
+				"nostalgia": true
+			},
+			"scripts": [
+				{
+					"guid": "cc12495f03df489fb2e94a967f7a7981",
+					"vars": {
+						"buffDuration": 120
+					}
+				}
+			]
+		},
+		{
+			"title": "Butter",
+			"description": "\"A smooth, golden block of churned dairy. Adds flavor, enhances potions, and is surprisingly useful in rituals requiring softness or slip.\"\n",
+			"ref": "butter",
+			"key": 49,
+			"id": "01JWJ9XF2P7MFM2W96T55XTGA7",
+			"name": "Butter",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/materials/butter.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 57,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "common",
+			"weight": 0.5,
+			"effects": "Enhances crafted meals. May cause mild speed boost when applied oddly.",
+			"buy_price": 25,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 0,
+			"cooldown": 15,
+			"action": "consume",
+			"credits": "Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"flavorBoost": 1,
+				"speed": 0.5
+			},
+			"scripts": [
+				{
+					"guid": "ab1f253d95ac4db2b774eb3ce18e42d1",
+					"vars": {
+						"effectContext": "cooking",
+						"flavorBoost": 1,
+						"mobilityBonus": 0.5
+					}
+				}
+			]
+		},
+		{
+			"title": "Campfire Kit",
+			"description": "Set up camp and rest. Heals 50% HP and clears debuffs for the whole party.",
+			"ref": "campfire-kit",
+			"key": 77,
+			"id": "01KKR7QNRCDVADFBQ4TTESGDQA",
+			"name": "Campfire Kit",
+			"type_flags": 8704,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 1,
+			"rarity": "rare",
+			"buy_price": 150,
+			"emoji": "🔥",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "campfire_rest",
+					"percent": 50
+				}
+			]
+		},
+		{
+			"title": "Chain Mail",
+			"description": "Interlocking metal rings providing solid defense. +4 armor, +5 HP.",
+			"ref": "chain-mail",
+			"key": 93,
+			"id": "01KKR7QNRCHKCKBSFQW8Z8DC7G",
+			"name": "Chain Mail",
+			"type_flags": 514,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "uncommon",
+			"buy_price": 80,
+			"emoji": "⛓️",
+			"action": "equip",
+			"tags": ["discordsh"],
+			"equipment": {
+				"slot": "chest",
+				"bonuses": {
+					"armor": 4,
+					"health": 5
+				}
+			}
+		},
+		{
+			"title": "Chanterelle",
+			"description": "A golden funnel-shaped mushroom with a fruity aroma. A favorite among foragers.",
+			"ref": "chanterelle",
+			"key": 116,
+			"id": "01KMVPV9ZJF97SBP3WTVTPV93C",
+			"name": "Chanterelle",
+			"type_flags": 136,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 32,
+			"rarity": "common",
+			"buy_price": 10,
+			"sell_price": 5,
+			"emoji": "🍄",
+			"weight": 0.15,
+			"skilling": {
+				"skill": "foraging",
+				"xp_reward": 10,
+				"gather_time": 0.5,
+				"respawn_time": 25,
+				"resource_node": "mushroom-chanterelle"
+			},
+			"food": {
+				"heals": 4,
+				"doses": 1
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Cheddar Cheese",
+			"description": "A dense wedge of aged cheddar, sharp enough to wake the senses and smooth enough to win hearts.\nCrumbles perfectly.\nSmells like victory.\n",
+			"ref": "cheddar-cheese",
+			"key": 38,
+			"id": "01JWG4CAABY3EHB65EBTG77J5A",
+			"name": "Cheddar Cheese",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/materials/cheddar_cheese.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 46,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "common",
+			"weight": 0.6,
+			"effects": "Restores health and stamina. Increases charm with food-based NPCs.",
+			"buy_price": 60,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 0,
+			"cooldown": 35,
+			"action": "consume",
+			"credits": "Illustrated and art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 25,
+				"stamina": 8,
+				"charm": 1
+			},
+			"scripts": [
+				{
+					"guid": "cf3d881412c44a50a87ff7382f8ad552",
+					"vars": {
+						"healAmount": 25,
+						"staminaBoost": 8,
+						"charmModifier": 1,
+						"duration": 120
+					}
+				}
+			]
+		},
+		{
+			"title": "Copper Ore",
+			"description": "Raw copper ore mined from veins in the earth. Can be smelted into copper bars.",
+			"ref": "copper-ore",
+			"key": 102,
+			"id": "01KMVPV9ZHV1GFHM1MPDN4FV70",
+			"name": "Copper Ore",
+			"type_flags": 384,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 32,
+			"rarity": "common",
+			"buy_price": 12,
+			"sell_price": 6,
+			"emoji": "🟤",
+			"weight": 4,
+			"skilling": {
+				"skill": "mining",
+				"skill_level": 1,
+				"xp_reward": 18,
+				"gather_time": 3,
+				"respawn_time": 40,
+				"resource_node": "ore-copper",
+				"tool_required": "pickaxe"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Cornflower",
+			"description": "A striking blue cornflower found along field edges. Used in dyes and herblore.",
+			"ref": "cornflower",
+			"key": 112,
+			"id": "01KMVPV9ZJHTX417X4HV0DY663",
+			"name": "Cornflower",
+			"type_flags": 128,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 32,
+			"rarity": "common",
+			"buy_price": 5,
+			"sell_price": 2,
+			"emoji": "🔵",
+			"weight": 0.1,
+			"skilling": {
+				"skill": "foraging",
+				"xp_reward": 5,
+				"gather_time": 0.5,
+				"respawn_time": 20,
+				"resource_node": "flower-cornflower"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Crystal Armor",
+			"description": "Armor forged from enchanted crystal. +6 armor, +10 HP.",
+			"ref": "crystal-armor",
+			"key": 95,
+			"id": "01KKR7QNRC18GWKPEPKM2VDYWM",
+			"name": "Crystal Armor",
+			"type_flags": 514,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "epic",
+			"buy_price": 400,
+			"emoji": "💎",
+			"action": "equip",
+			"tags": ["discordsh"],
+			"equipment": {
+				"slot": "chest",
+				"bonuses": {
+					"armor": 6,
+					"health": 10
+				}
+			}
+		},
+		{
+			"title": "Crystal Ore",
+			"description": "A shimmering crystalline ore pulsing with faint energy. Rare and highly sought after.",
+			"ref": "crystal-ore",
+			"key": 104,
+			"id": "01KMVPV9ZHRQSBQJDRNEAJN368",
+			"name": "Crystal Ore",
+			"type_flags": 384,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 16,
+			"rarity": "rare",
+			"buy_price": 75,
+			"sell_price": 35,
+			"emoji": "💎",
+			"weight": 3.5,
+			"skilling": {
+				"skill": "mining",
+				"skill_level": 30,
+				"xp_reward": 65,
+				"gather_time": 5,
+				"respawn_time": 90,
+				"resource_node": "ore-crystal",
+				"tool_required": "pickaxe"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Daisy",
+			"description": "A cheerful white daisy with a golden center. Found across open fields.",
+			"ref": "daisy",
+			"key": 106,
+			"id": "01KMVPV9ZH852GF5HWAQJQD0G1",
+			"name": "Daisy",
+			"type_flags": 128,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 32,
+			"rarity": "common",
+			"buy_price": 4,
+			"sell_price": 2,
+			"emoji": "🌼",
+			"weight": 0.1,
+			"skilling": {
+				"skill": "foraging",
+				"xp_reward": 5,
+				"gather_time": 0.5,
+				"respawn_time": 20,
+				"resource_node": "flower-daisy"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Data CD",
+			"description": "A disc etched with quantum-layer encoding.\nLooks like a Blu-ray.\nReads like a library.\nFeels like infinity.\n",
+			"ref": "data-cd",
+			"key": 27,
+			"id": "01JWCWVCGTZRJQ3FD5Z0MVS5XH",
+			"name": "Data CD",
+			"type_flags": 415,
+			"img": "/assets/items/set/data/data-cd.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 120,
+			"consumable": false,
+			"stackable": true,
+			"rarity": "rare",
+			"weight": 0.1,
+			"effects": "Holds infinite digital data. Compatible with quantum and legacy disc readers.",
+			"buy_price": 777,
+			"durability": 999,
+			"equipped": false,
+			"level_requirement": 1,
+			"cooldown": 0,
+			"action": "read",
+			"credits": "Engineered by PostCore Archives using polyphase crystalline layering. Art by KBVE Pixel Workshop. Handle with light gloves.\n",
+			"bonuses": {
+				"infiniteStorage": true,
+				"quantumCompatible": true,
+				"memoryPressure": 0.6
+			},
+			"scripts": [
+				{
+					"guid": "eebc1d58adf84d0e913f9c63c7f7d9be",
+					"vars": {
+						"storageLayers": "infinite",
+						"readSignal": "quantum-optical",
+						"emotionalLeakChance": 0.1
+					}
+				}
+			]
+		},
+		{
+			"title": "Dragon Scale",
+			"description": "Scales shed by an ancient dragon, forged into legendary armor. +8 armor, +15 HP, 10% damage reduction.",
+			"ref": "dragon-scale",
+			"key": 98,
+			"id": "01KKR7QNRCD9Z8VG601R379C71",
+			"name": "Dragon Scale",
+			"type_flags": 514,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "legendary",
+			"buy_price": 1500,
+			"emoji": "🐉",
+			"action": "equip",
+			"tags": ["discordsh"],
+			"equipment": {
+				"slot": "chest",
+				"bonuses": {
+					"armor": 8,
+					"health": 15
+				},
+				"special": "damage_reduction",
+				"special_value": 0.1
+			}
+		},
+		{
+			"title": "Ecto Cooler Drank Type 95",
+			"description": "A magical ectoplasmic brew that heals wounds and restores energy.",
+			"ref": "ecto-cooler-drank-type-95",
+			"key": 3,
+			"id": "01J27QABD2GPFNRVK69S51HSGB",
+			"name": "Ecto Cooler Drank Type 95",
+			"type_flags": 392,
+			"img": "/assets/items/potion/ecto_cooler_drank_type_95.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 10,
+			"consumable": true,
+			"stackable": false,
+			"rarity": "rare",
+			"weight": 0.5,
+			"effects": "Heals 20 health and restores 10 energy.",
+			"buy_price": 50,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 5,
+			"cooldown": 60,
+			"action": "consume",
+			"credits": "The Ecto Cooler recipe was created by AndSam and the asset was provided by CraftPix.net (https://free-game-assets.itch.io/48-free-magic-potions-pixel-art-icons).\n",
+			"bonuses": {
+				"health": 20,
+				"energy": 10
+			},
+			"scripts": [
+				{
+					"guid": "dd238a91353c4a1991cf275041730ab0",
+					"vars": {
+						"health": 20,
+						"energy": 10,
+						"duration": 600,
+						"tickRate": 5
+					}
+				}
+			]
+		},
+		{
+			"title": "Ed's Jelly Jam",
+			"description": "Jar of rich, purple jelly jam made from mysterious grapes and questionable sugar ratios.\nSweet, strange, and wildly energizing.\n",
+			"ref": "eds-jelly-jam",
+			"key": 41,
+			"id": "01J2GHZQ9CXY89NB7NS5Q2DRJJ",
+			"name": "Ed's Jelly Jam",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/materials/sauce/eds_jelly_jam.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 49,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "uncommon",
+			"weight": 0.5,
+			"effects": "Restores energy, improves sugar-tolerance, and makes you jittery.",
+			"buy_price": 88,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 0,
+			"cooldown": 30,
+			"action": "consume",
+			"credits": "Originally concocted by Ed and Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"energy": 30,
+				"speed": 2,
+				"sugarSync": true
+			},
+			"scripts": [
+				{
+					"guid": "3af2a457d47b42ba845f3e9f5ff23192",
+					"vars": {
+						"energyBoost": 30,
+						"speedModifier": 2,
+						"sugarBuff": true,
+						"duration": 90
+					}
+				}
+			]
+		},
+		{
+			"title": "Elixir",
+			"description": "A legendary potion that fully restores HP to maximum.",
+			"ref": "elixir",
+			"key": 73,
+			"id": "01KKR7QNRCNNPNQD46DYT110R9",
+			"name": "Elixir",
+			"type_flags": 33312,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 1,
+			"rarity": "legendary",
+			"buy_price": 500,
+			"emoji": "✨",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "full_heal"
+				}
+			]
+		},
+		{
+			"title": "Excalibur",
+			"description": "The legendary blade of kings. +6 attack, +5 HP, +10% crit chance.",
+			"ref": "excalibur",
+			"key": 90,
+			"id": "01KKR7QNRCNZ64AGRD8M3H09YP",
+			"name": "Excalibur",
+			"type_flags": 513,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "legendary",
+			"buy_price": 1000,
+			"emoji": "⚔️",
+			"action": "equip",
+			"tags": ["discordsh"],
+			"equipment": {
+				"slot": "main_hand",
+				"bonuses": {
+					"attack": 6,
+					"health": 5,
+					"crit_chance": 0.1
+				},
+				"special": "crit_bonus",
+				"special_value": 0.1
+			}
+		},
+		{
+			"title": "Fire Flask",
+			"description": "A flask of volatile liquid that deals 8 damage and inflicts Burning for 3 turns.",
+			"ref": "fire-flask",
+			"key": 80,
+			"id": "01KKR7QNRC7V62X0C8J3ZX22DA",
+			"name": "Fire Flask",
+			"type_flags": 8704,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 3,
+			"rarity": "uncommon",
+			"buy_price": 65,
+			"emoji": "🔥",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "damage_and_apply",
+					"amount": 8,
+					"status_effect": "burning",
+					"stacks": 2,
+					"turns": 3
+				}
+			]
+		},
+		{
+			"title": "Flame Axe",
+			"description": "An axe wreathed in smoldering embers. +4 attack damage.",
+			"ref": "flame-axe",
+			"key": 86,
+			"id": "01KKR7QNRC0XKBPFD6BNWV57SR",
+			"name": "Flame Axe",
+			"type_flags": 513,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "rare",
+			"buy_price": 150,
+			"emoji": "🪓",
+			"action": "equip",
+			"tags": ["discordsh"],
+			"equipment": {
+				"slot": "main_hand",
+				"bonuses": {
+					"attack": 4
+				}
+			}
+		},
+		{
+			"title": "Fly Agaric",
+			"description": "An iconic red-capped mushroom with white spots. Toxic if consumed raw, but useful in alchemy.",
+			"ref": "fly-agaric",
+			"key": 117,
+			"id": "01KMVPV9ZJTK4QB8KGBH5XAEW4",
+			"name": "Fly Agaric",
+			"type_flags": 160,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 32,
+			"rarity": "uncommon",
+			"buy_price": 15,
+			"sell_price": 8,
+			"emoji": "🍄",
+			"weight": 0.2,
+			"skilling": {
+				"skill": "foraging",
+				"xp_reward": 12,
+				"gather_time": 0.5,
+				"respawn_time": 30,
+				"resource_node": "mushroom-fly-agaric"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Fresh Milk",
+			"description": "A cold bottle of nutrient-rich milk.\nSourced from friendly creatures or brave robots.\n",
+			"ref": "fresh-milk",
+			"key": 35,
+			"id": "01JWG25PJN79DJP822GGKN8B1R",
+			"name": "Fresh Milk",
+			"type_flags": 393,
+			"img": "/assets/items/materials/fresh_milk.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 20,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "common",
+			"weight": 0.6,
+			"effects": "Restores minor health and improves bone-based effects.",
+			"buy_price": 45,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 0,
+			"cooldown": 45,
+			"action": "consume",
+			"credits": "Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 15,
+				"boneBoost": 3,
+				"calm": true
+			},
+			"scripts": [
+				{
+					"guid": "d4f83b9d9c384db78aefea39000e17c3",
+					"vars": {
+						"healAmount": 15,
+						"calciumInfusion": 3,
+						"calmEffect": true,
+						"duration": 90
+					}
+				}
+			]
+		},
+		{
+			"title": "Fried Fish Taco",
+			"description": "A warm, folded miracle of fried fish, spice, and crunchy greens. \nIt smells way too good to survive long in your pack.\n",
+			"ref": "fried-fish-taco",
+			"key": 31,
+			"id": "01JWFY6R3G5BQ7FZ7Q3KPKHY2C",
+			"name": "Fish Taco",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/dish/fried_fish_taco.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 40,
+			"consumable": true,
+			"stackable": false,
+			"rarity": "common",
+			"weight": 0.4,
+			"effects": "Restores health and boosts reflexes for a short time.",
+			"buy_price": 90,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 0,
+			"cooldown": 60,
+			"action": "consume",
+			"credits": "Concept by h0lybyte and Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 25,
+				"agility": 5,
+				"reflex": 3
+			},
+			"scripts": [
+				{
+					"guid": "eef4995c21cb4e7a812aa5e5ec2f449b",
+					"vars": {
+						"healAmount": 25,
+						"dexterityBoost": 5,
+						"duration": 180
+					}
+				}
+			]
+		},
+		{
+			"title": "Frozen Pizza Rolls",
+			"description": "A bag of bite-sized molten pockets of faux-Italian fury. \nCaution: may cause tongue trauma when overheated.\n",
+			"ref": "frozen-pizza-rolls",
+			"key": 21,
+			"id": "01JWAXYK9QWKYVTDG21614F3KT",
+			"name": "Frozen Pizza Rolls",
+			"type_flags": 409,
+			"img": "/assets/items/skills/cooking/materials/frozen_pizza_rolls.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 90,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "common",
+			"weight": 0.8,
+			"effects": "Restores health and stamina. Can be cooked for enhanced effects.",
+			"buy_price": 95,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 0,
+			"cooldown": 30,
+			"action": "consume",
+			"credits": "Concept by Chip, h0lybyte and Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 15,
+				"stamina": 10,
+				"tasteTempVariance": true
+			},
+			"scripts": [
+				{
+					"guid": "a912c38f3f514b76afcce028b1c09cb2",
+					"vars": {
+						"healthRestore": 15,
+						"staminaRestore": 10,
+						"burnChance": 0.1,
+						"cookable": true
+					}
+				}
+			]
+		},
+		{
+			"title": "Garlic Bread",
+			"description": "A warm slice of bread slathered in butter and garlic.\nComfort food that boosts morale for weary adventurers.\n",
+			"ref": "garlic-bread",
+			"key": 59,
+			"id": "01JX11B4TZ6BN2WB3DBVETSZYW",
+			"name": "Garlic Bread",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/dish/garlic_bread.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 60,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "uncommon",
+			"weight": 0.3,
+			"effects": "Restores health and briefly improves morale.",
+			"buy_price": 40,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 0,
+			"cooldown": 20,
+			"action": "consume",
+			"credits": "Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 10,
+				"morale": 2
+			},
+			"scripts": [
+				{
+					"guid": "22cc8a2063a2a58b99190df93f083d07",
+					"vars": {
+						"healAmount": 10,
+						"moraleBoost": 2,
+						"aroma": "garlic"
+					}
+				}
+			]
+		},
+		{
+			"title": "Gin",
+			"description": "A clear, fragrant spirit infused with juniper berries and botanical madness. \nSmoother than truth and sharper than betrayal.\n",
+			"ref": "gin",
+			"key": 43,
+			"id": "01J2GHZQ9CXY89NB7NS5Q2DRGN",
+			"name": "Gin",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/materials/liquor/gin.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 51,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "uncommon",
+			"weight": 0.75,
+			"effects": "Increases charm and clarity briefly, but risks hallucination or truth leaks.",
+			"buy_price": 140,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 2,
+			"cooldown": 60,
+			"action": "consume",
+			"credits": "Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"charm": 2,
+				"perception": 1,
+				"hallucinationChance": true
+			},
+			"scripts": [
+				{
+					"guid": "fd49c54d37de48cb8703e8b63e832a12",
+					"vars": {
+						"buffDuration": 90,
+						"effectRisk": "hallucination"
+					}
+				}
+			]
+		},
+		{
+			"title": "Glass Stiletto",
+			"description": "A razor-thin blade of enchanted glass. +3 attack, +15% crit chance.",
+			"ref": "glass-stiletto",
+			"key": 89,
+			"id": "01KKR7QNRC6837QFCM9K0BD1N9",
+			"name": "Glass Stiletto",
+			"type_flags": 513,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "rare",
+			"buy_price": 180,
+			"emoji": "🔪",
+			"action": "equip",
+			"tags": ["discordsh"],
+			"equipment": {
+				"slot": "main_hand",
+				"bonuses": {
+					"attack": 3,
+					"crit_chance": 0.15
+				},
+				"special": "crit_bonus",
+				"special_value": 0.15
+			}
+		},
+		{
+			"title": "Gravity Boots",
+			"description": "Heavy-duty boots fitted with microthrusters and magnetic soles.\nWearing them lets you defy gravity for short bursts.\n",
+			"ref": "gravity-boots",
+			"key": 62,
+			"id": "01JX55ZPSYC91ERYPHP47FPQAN",
+			"name": "Gravity Boots",
+			"type_flags": 419,
+			"img": "/assets/items/equipment/gravity_boots.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 120,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "epic",
+			"weight": 4.2,
+			"effects": "Enables ceiling walks and high leaps.",
+			"buy_price": 1800,
+			"durability": 600,
+			"equipped": true,
+			"level_requirement": 6,
+			"cooldown": 60,
+			"action": "leap",
+			"credits": "Concept and pixel art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"mobility": 2,
+				"fallDamageReduction": true,
+				"zeroG": true
+			},
+			"scripts": [
+				{
+					"guid": "6bb9f15edc0e49679ec3d4fb01fc1caa",
+					"vars": {
+						"leapBoost": 10,
+						"duration": 5,
+						"zeroGControl": true
+					}
+				}
+			]
+		},
+		{
+			"title": "Green Pasta Sauce",
+			"description": "A vibrant, verdant sauce made from wild herbs, synthesized basil, and mysterious nutrient gels.\nRefreshing, revitalizing, and oddly photoreactive.\n",
+			"ref": "green-pasta-sauce",
+			"key": 45,
+			"id": "01JWG89BEEKCWWYQ9XVAM53CJ6",
+			"name": "Green Pasta Sauce",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/materials/sauce/green_pasta_sauce.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 53,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "uncommon",
+			"weight": 0.8,
+			"effects": "Restores stamina, enhances regeneration, and improves photosensitivity.",
+			"buy_price": 85,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 1,
+			"cooldown": 40,
+			"action": "consume",
+			"credits": "Pixel artwork by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"stamina": 24,
+				"regenRate": 1.5,
+				"plantAffinity": true
+			},
+			"scripts": [
+				{
+					"guid": "6bb9f15edc0e49679ec3d4fb01fc1caa",
+					"vars": {
+						"buffDuration": 100,
+						"traits": "photosynthetic-resonance"
+					}
+				}
+			]
+		},
+		{
+			"title": "Grilled Fish Burrito",
+			"description": "A tightly wrapped masterpiece of grilled fish, rice, beans, and smoldering spices.\nWarm, heavy, and oddly inspiring.\n",
+			"ref": "grilled-fish-burrito",
+			"key": 32,
+			"id": "01JWFZBV4K5T7KNFYKY7Q5YF29",
+			"name": "Grilled Fish Burrito",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/dish/grilled_fish_burrito.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 42,
+			"consumable": true,
+			"stackable": false,
+			"rarity": "uncommon",
+			"weight": 0.9,
+			"effects": "Restores health and grants a temporary strength/resistance buff.",
+			"buy_price": 120,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 1,
+			"cooldown": 90,
+			"action": "consume",
+			"credits": "Concept by h0lybyte and Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 40,
+				"strength": 6,
+				"resistance": 4
+			},
+			"scripts": [
+				{
+					"guid": "ba39cbfaabfc4a2ba1d3ed6a5aefeecc",
+					"vars": {
+						"healAmount": 40,
+						"strengthBoost": 6,
+						"resistanceBoost": 4,
+						"duration": 240
+					}
+				}
+			]
+		},
+		{
+			"title": "Herbal Medi-Wrap",
+			"description": "A bandage infused with crushed herbs and natural oils.\nCools the skin, closes wounds, and smells faintly of mint and earth.\n",
+			"ref": "herbal-medi-wrap",
+			"key": 18,
+			"id": "01JWAPWQT370ZK76K32JGVBZWV",
+			"name": "Herbal Medi-Wrap",
+			"type_flags": 406,
+			"img": "/assets/items/skills/medical/materials/herbal_medi_wrap.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 75,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "uncommon",
+			"weight": 0.4,
+			"effects": "Heals wounds over time. Reduces bleeding and restores vitality.",
+			"buy_price": 210,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 2,
+			"cooldown": 60,
+			"action": "apply",
+			"credits": "Concept by h0lybyte and Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"healingOverTime": 35,
+				"bleedingReduction": true,
+				"aromaEffect": "calming"
+			},
+			"scripts": [
+				{
+					"guid": "dd2931f8821244c9bfaebfef1182d93a",
+					"vars": {
+						"healPerTick": 7,
+						"ticks": 5,
+						"reduceBleed": true,
+						"aroma": "calming",
+						"cooldown": 60
+					}
+				}
+			]
+		},
+		{
+			"title": "Holographic Arcade Token",
+			"description": "A translucent coin shimmering with neon hues.\nInsert it into any retro cabinet to unlock hidden game modes.\n",
+			"ref": "holographic-arcade-token",
+			"key": 65,
+			"id": "01JX5617TYSVQC68T3R8ZA91ND",
+			"name": "Holographic Arcade Token",
+			"type_flags": 420,
+			"img": "/assets/items/set/data/arcade_token.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 140,
+			"consumable": false,
+			"stackable": true,
+			"rarity": "rare",
+			"weight": 0.1,
+			"effects": "Activates secret features in vintage arcade machines.",
+			"buy_price": 120,
+			"durability": 100,
+			"equipped": false,
+			"level_requirement": 1,
+			"cooldown": 0,
+			"action": "use",
+			"credits": "Pixel art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"nostalgia": true,
+				"highScoreBoost": 5
+			},
+			"scripts": [
+				{
+					"guid": "dd2931f8821244c9bfaebfef1182d93a",
+					"vars": {
+						"secretModes": true,
+						"scoreMultiplier": 1.05
+					}
+				}
+			]
+		},
+		{
+			"title": "Ink Pasta Sauce",
+			"description": "A jet-black sauce made from harvested squid ink, deep ocean salts, and forbidden emulsifiers. Dark, savory, and a little bit cursed.",
+			"ref": "ink-pasta-sauce",
+			"key": 46,
+			"id": "01JWG8KEBJPJ3WRW8RDMD3066S",
+			"name": "Ink Pasta Sauce",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/materials/sauce/ink_pasta_sauce.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 54,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "rare",
+			"weight": 0.9,
+			"effects": "Enhances stealth and vision in darkness. May attract deep sea entities.",
+			"buy_price": 120,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 3,
+			"cooldown": 60,
+			"action": "consume",
+			"credits": "Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"stealth": 3,
+				"darkVision": true,
+				"entityAttractionChance": true
+			},
+			"scripts": [
+				{
+					"guid": "74fadb2721794f4eab189d3f813b29fb",
+					"vars": {
+						"buffDuration": 150,
+						"traits": "dark-vision'"
+					}
+				}
+			]
+		},
+		{
+			"title": "Iron Mace",
+			"description": "A heavy blunt weapon forged from solid iron. +3 attack damage.",
+			"ref": "iron-mace",
+			"key": 88,
+			"id": "01KKR7QNRCCDST7FEYK9CFPX26",
+			"name": "Iron Mace",
+			"type_flags": 513,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "uncommon",
+			"buy_price": 70,
+			"emoji": "🔨",
+			"action": "equip",
+			"tags": ["discordsh"],
+			"equipment": {
+				"slot": "main_hand",
+				"bonuses": {
+					"attack": 3
+				}
+			}
+		},
+		{
+			"title": "Iron Ore",
+			"description": "Dense iron ore extracted from deep rock. Smelts into sturdy iron bars for smithing.",
+			"ref": "iron-ore",
+			"key": 103,
+			"id": "01KMVPV9ZHGWG5M1Q4R3YPYSG7",
+			"name": "Iron Ore",
+			"type_flags": 384,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 32,
+			"rarity": "uncommon",
+			"buy_price": 25,
+			"sell_price": 12,
+			"emoji": "⛏️",
+			"weight": 5,
+			"skilling": {
+				"skill": "mining",
+				"skill_level": 15,
+				"xp_reward": 35,
+				"gather_time": 4,
+				"respawn_time": 60,
+				"resource_node": "ore-iron",
+				"tool_required": "pickaxe"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Iron Skin Potion",
+			"description": "A metallic brew that grants the Shielded effect for 3 turns.",
+			"ref": "iron-skin-potion",
+			"key": 81,
+			"id": "01KKR7QNRCWS11606Z2MJC11QA",
+			"name": "Iron Skin Potion",
+			"type_flags": 544,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 2,
+			"rarity": "uncommon",
+			"buy_price": 55,
+			"emoji": "🛡️",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "apply_effect",
+					"status_effect": "shielded",
+					"stacks": 1,
+					"turns": 3
+				}
+			]
+		},
+		{
+			"title": "Jar of Honey",
+			"description": "A golden jar of concentrated sweetness. \nRestores health, soothes minds, and binds the tongue of liars.\n",
+			"ref": "jar-of-honey",
+			"key": 17,
+			"id": "01JWAB140RVZX5C7M8622AZXGA",
+			"name": "Jar of Honey",
+			"type_flags": 405,
+			"img": "/assets/items/skills/farming/materials/jar_of_honey.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 70,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "common",
+			"weight": 0.9,
+			"effects": "Heals and energizes. Used in alchemy, medicine, and mead production.",
+			"buy_price": 150,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 1,
+			"cooldown": 45,
+			"action": "consume",
+			"credits": "concept by h0lybyte and Jar model by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 20,
+				"stamina": 10,
+				"sweetnessRating": 100
+			},
+			"scripts": [
+				{
+					"guid": "c2a993bc552a4982b54d08ae2191a34e",
+					"vars": {
+						"healthRestore": 20,
+						"staminaBoost": 10,
+						"sweetness": 100,
+						"alchemyBase": true
+					}
+				}
+			]
+		},
+		{
+			"title": "Jared's Teddy Bear",
+			"description": "A ziplock bag stuffed with old newspaper and sealed with tape. \nA smiley face is drawn in marker. It crinkles when hugged.\n",
+			"ref": "jareds-teddy-bear",
+			"key": 20,
+			"id": "01JWAWYPGZHJW1Q103D8M2Q29W",
+			"name": "Jared's Teddy Bear",
+			"type_flags": 408,
+			"img": "/assets/items/set/memes/sv/jareds_ziplock_teddy.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 85,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "mythic",
+			"weight": 0.3,
+			"effects": "Boosts morale slightly. May trigger unknown emotional responses in NPCs.",
+			"buy_price": 2,
+			"durability": 999,
+			"equipped": false,
+			"level_requirement": 0,
+			"cooldown": 5,
+			"action": "hug",
+			"credits": "Concept from silicon valley and item art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"moraleBoost": 1,
+				"npcReactionModifier": true,
+				"crinkleSound": true
+			},
+			"scripts": [
+				{
+					"guid": "ffa910eb43c34711b928f22dd1cf2001",
+					"vars": {
+						"moraleBonus": 1,
+						"reactionFlags": "emotional",
+						"soundEffect": "crinkle"
+					}
+				}
+			]
+		},
+		{
+			"title": "Kiwi Jigsaw",
+			"description": "A taxidermy kiwi bird stitched atop a grim ceramic mask. \nEqual parts adorable and unnerving.\nIt watches. It judges.\n",
+			"ref": "kiwi-jigsaw",
+			"key": 23,
+			"id": "01JWB04MV4JB6P79G5ZF3XQ122",
+			"name": "Kiwi Jigsaw",
+			"type_flags": 411,
+			"img": "/assets/items/set/memes/kbve/kiwi_jigsaw.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 100,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "mythic",
+			"weight": 1.4,
+			"effects": "Emits a faint presence. May trigger fear or laughter depending on who is looking.",
+			"buy_price": 666,
+			"durability": 999,
+			"equipped": false,
+			"level_requirement": 0,
+			"cooldown": 42069,
+			"action": "stare",
+			"credits": "Crafted as a cursed novelty or a misunderstood cultural fusion. Origin unknown. Art by KBVE Pixel Workshop. Warning label missing.\n",
+			"bonuses": {
+				"uncannyEffect": true,
+				"npcEmotionRoll": true,
+				"cursedPresence": 0.3
+			},
+			"scripts": [
+				{
+					"guid": "ccbbac00277c46f4b109e8ba3cfa05e2",
+					"vars": {
+						"rollEmotions": "fear",
+						"auraTrigger": "visual",
+						"curseChance": 0.3
+					}
+				}
+			]
+		},
+		{
+			"title": "Krispee Air Fryer",
+			"description": "A countertop relic of culinary efficiency.\nInfuses meals with crispiness, joy, and possibly low-level radiation.\n",
+			"ref": "krispee-air-fryer",
+			"key": 12,
+			"id": "01JW9Y29NQCWSS8B2ET09YZ6T7",
+			"name": "Krispee Air Fryer",
+			"type_flags": 400,
+			"img": "/assets/items/skills/cooking/krispee_air_fryer.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 45,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "rare",
+			"weight": 4.2,
+			"effects": "Cooks food faster with enhanced stats. May trigger food-based buffs.",
+			"buy_price": 1250,
+			"durability": 500,
+			"equipped": true,
+			"level_requirement": 5,
+			"cooldown": 60,
+			"action": "cook",
+			"credits": "Manufactured by KrispeeTech Culinary Systems before the Great Banquet Collapse of 2042.\nArtwork by KBVE Pixel Workshop and Chip schematic reverse-engineered from salvaged appliances.\n",
+			"bonuses": {
+				"cookTimeReduction": 0.25,
+				"buffChance": 0.15,
+				"tasteScore": 9.5
+			},
+			"scripts": [
+				{
+					"guid": "aa1487bc20484d91adbbd913fd7aefbb",
+					"vars": {
+						"reduceCookTime": 0.25,
+						"applyFoodBuffChance": 0.15,
+						"tasteAmplifier": 9.5,
+						"usableTags": "cooking"
+					}
+				}
+			]
+		},
+		{
+			"title": "Kryptonite Book",
+			"description": "A tattered manual on the undoing of the invincible.\nIt reads like both scripture and strategy.\nThe margins are deeply unnerving.\n",
+			"ref": "kryptonite-book",
+			"key": 29,
+			"id": "01JWCXER3NRHA3J4DNCJN250MX",
+			"name": "Kryptonite Book",
+			"type_flags": 417,
+			"img": "/assets/items/set/data/kryptonite-book.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 130,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "mythic",
+			"weight": 1.3,
+			"effects": "Provides theoretical knowledge on dismantling godlike figures.",
+			"buy_price": 1337,
+			"durability": 999,
+			"equipped": false,
+			"level_requirement": 10,
+			"cooldown": 2,
+			"action": "read",
+			"credits": "Authorship unknown.\n",
+			"bonuses": {
+				"divineAnalysis": true,
+				"vulnerabilityTheories": 5,
+				"forbiddenKnowledge": 1
+			},
+			"scripts": [
+				{
+					"guid": "dede93bbd7fc4b999b1e289187d3eeb9",
+					"vars": {
+						"mythResistance": true,
+						"spiritualParadox": true,
+						"contentRating": "unstable"
+					}
+				}
+			]
+		},
+		{
+			"title": "Lavender",
+			"description": "Fragrant purple lavender prized for its calming scent. Used in herblore and alchemy.",
+			"ref": "lavender",
+			"key": 107,
+			"id": "01KMVPV9ZH2X5XSMVAE90D21YM",
+			"name": "Lavender",
+			"type_flags": 128,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 32,
+			"rarity": "common",
+			"buy_price": 6,
+			"sell_price": 3,
+			"emoji": "💜",
+			"weight": 0.1,
+			"skilling": {
+				"skill": "foraging",
+				"xp_reward": 7,
+				"gather_time": 0.5,
+				"respawn_time": 20,
+				"resource_node": "flower-lavender"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Leather Vest",
+			"description": "A basic leather vest offering modest protection. +2 armor.",
+			"ref": "leather-vest",
+			"key": 92,
+			"id": "01KKR7QNRC3B4Y2629KQY1YDB6",
+			"name": "Leather Vest",
+			"type_flags": 514,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "common",
+			"buy_price": 25,
+			"emoji": "🥋",
+			"action": "equip",
+			"tags": ["discordsh"],
+			"equipment": {
+				"slot": "chest",
+				"bonuses": {
+					"armor": 2
+				}
+			}
+		},
+		{
+			"title": "Lobster Soup",
+			"description": "A rich and creamy soup made from deep-sea lobster, bone broth, and rare roots.\nIt nourishes the body and stirs forgotten tides in the mind.\n",
+			"ref": "lobster-soup",
+			"key": 48,
+			"id": "01JWG9ZCRB9JW5F4DHMRXQ2VM8",
+			"name": "Lobster Soup",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/dish/lobster_soup.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 56,
+			"consumable": true,
+			"stackable": false,
+			"rarity": "rare",
+			"weight": 2.5,
+			"effects": "Restores large health, boosts regeneration, and grants temporary sea affinity.",
+			"buy_price": 520,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 6,
+			"cooldown": 120,
+			"action": "consume",
+			"credits": "Prepared using ancestral cooking methods, this soup connects landfolk to ocean memory. Served in coastal shrines and submarine kitchens alike. Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 90,
+				"regenRate": 2,
+				"seaAffinity": true
+			},
+			"scripts": [
+				{
+					"guid": "e5cba389843f4d8f973c82459ef10551",
+					"vars": {
+						"buffDuration": 180,
+						"traits": "sea-affinity"
+					}
+				}
+			]
+		},
+		{
+			"title": "Lobster",
+			"description": "A large, armored crustacean pulled from the deep.\nIts meat is prized, its shell revered, and its behavior is disturbingly strategic.\n",
+			"ref": "lobster",
+			"key": 47,
+			"id": "01JWG9JF11KYG4DAXF1VTKYZWS",
+			"name": "Lobster",
+			"type_flags": 392,
+			"img": "/assets/items/food/lobster.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 55,
+			"consumable": true,
+			"stackable": false,
+			"rarity": "rare",
+			"weight": 5.2,
+			"effects": "Restores a large amount of health and grants minor natural armor.",
+			"buy_price": 400,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 5,
+			"cooldown": 90,
+			"action": "consume",
+			"credits": "Pixel artwork by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 75,
+				"armor": 2,
+				"seaAffinity": true
+			},
+			"scripts": [
+				{
+					"guid": "83a1f3fd6c12406aa8ef9cdd54aacf99",
+					"vars": {
+						"traits": "shell-hardened"
+					}
+				}
+			]
+		},
+		{
+			"title": "Log",
+			"description": "A freshly chopped log. Essential raw material for crafting and construction.",
+			"ref": "log",
+			"key": 99,
+			"id": "01KMVPV9ZG6TPG7BVB5Q9QV69M",
+			"name": "Log",
+			"type_flags": 384,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 64,
+			"rarity": "common",
+			"buy_price": 5,
+			"sell_price": 2,
+			"emoji": "🪵",
+			"weight": 2.5,
+			"skilling": {
+				"skill": "woodcutting",
+				"xp_reward": 10,
+				"gather_time": 2.5,
+				"respawn_time": 30,
+				"resource_node": "tree"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Lunar Lantern",
+			"description": "A lantern forged with moonstone dust.\nIlluminates hidden paths and dispels minor illusions when bathed in moonlight.\n",
+			"ref": "lunar-lantern",
+			"key": 66,
+			"id": "01JX727N5R6EKJ61NME0QD08RW",
+			"name": "Lunar Lantern",
+			"type_flags": 402,
+			"img": "/assets/items/utility/magic/lunar_lantern.png",
+			"pixel_density": 128,
+			"sorting_layer": "Ground",
+			"sorting_order": 50,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "rare",
+			"weight": 1.2,
+			"effects": "Reveals secrets and sheds bright silver light at night.",
+			"buy_price": 850,
+			"durability": 300,
+			"equipped": true,
+			"level_requirement": 4,
+			"cooldown": 30,
+			"action": "illuminate",
+			"credits": "Concept and pixel art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"lightRadius": 6,
+				"revealIllusions": true,
+				"nightVision": 2
+			},
+			"scripts": [
+				{
+					"guid": "3e4071deb6e4448982bca27c7302c1c8",
+					"vars": {
+						"lightRadius": 6,
+						"reveals": true,
+						"nightVision": 2,
+						"cooldown": 30
+					}
+				}
+			]
+		},
+		{
+			"title": "Magic Nemo",
+			"description": "A magical fish that will fuel your wizard powers. You are now a harry wizard, be careful of pots.",
+			"ref": "magic-nemo",
+			"key": 56,
+			"id": "01J269PK47V1DWX2S1251DEASD",
+			"name": "Magic Nemo",
+			"type_flags": 392,
+			"img": "/assets/items/food/magic_nemo.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 10,
+			"consumable": true,
+			"stackable": false,
+			"rarity": "common",
+			"weight": 1,
+			"effects": "Heals 10 health and 100 mana, but may have strange side effects.",
+			"buy_price": 500,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 0,
+			"cooldown": 120,
+			"action": "consume",
+			"credits": "Magic Nemo asset was made by Roku6 - https://roku6.itch.io/pixelfishes\n",
+			"bonuses": {
+				"health": 10,
+				"mana": 100
+			},
+			"scripts": [
+				{
+					"guid": "b1e9402b4e560b693c348283c7a72859",
+					"vars": {
+						"health": 10,
+						"mana": 100,
+						"duration": 120
+					}
+				}
+			]
+		},
+		{
+			"title": "Microchip Motherboard",
+			"description": "A core circuit board etched with microscopic pathways and ancient logic gates.\n",
+			"ref": "microchip-motherboard",
+			"key": 19,
+			"id": "01J2GHZQ9CXY89NB7NS5Q2DRMM",
+			"name": "Microchip Motherboard",
+			"type_flags": 407,
+			"img": "/assets/items/skills/technology/materials/microchip_motherboard.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 80,
+			"consumable": false,
+			"stackable": true,
+			"rarity": "rare",
+			"weight": 0.7,
+			"effects": "Core component for robots, drones, and terminal upgrades.",
+			"buy_price": 650,
+			"durability": 300,
+			"equipped": false,
+			"level_requirement": 4,
+			"cooldown": 2,
+			"action": "install",
+			"credits": "Concept by h0lybyte and Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"processingPower": 12,
+				"systemCompat": "technology",
+				"heatSensitivity": true
+			},
+			"scripts": [
+				{
+					"guid": "bfc81da8f92e4b8bbd46e2385b28dc33",
+					"vars": {
+						"coreLogicBoost": 12,
+						"compatTags": "technology",
+						"overheatRisk": 0.2
+					}
+				}
+			]
+		},
+		{
+			"title": "Mossy Stone",
+			"description": "A weathered stone covered in moss. Slightly more valuable than ordinary stone.",
+			"ref": "mossy-stone",
+			"key": 101,
+			"id": "01KMVPV9ZHNPTTYJPWD3RD00Y2",
+			"name": "Mossy Stone",
+			"type_flags": 384,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 64,
+			"rarity": "uncommon",
+			"buy_price": 8,
+			"sell_price": 4,
+			"emoji": "🪨",
+			"weight": 3,
+			"skilling": {
+				"skill": "mining",
+				"xp_reward": 15,
+				"gather_time": 2.5,
+				"respawn_time": 35,
+				"resource_node": "mossy-rock"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Natural Beeswax",
+			"description": "Golden, pliable, and faintly fragrant.\nHarvested from industrious bees and used in candles, salves, and alchemical seals.\n",
+			"ref": "natural-beeswax",
+			"key": 16,
+			"id": "01JWA62X4JRK6MMNJBFEZENK0V",
+			"name": "Natural Beeswax",
+			"type_flags": 404,
+			"img": "/assets/items/skills/farming/materials/natural_beeswax.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 65,
+			"consumable": false,
+			"stackable": true,
+			"rarity": "common",
+			"weight": 0.2,
+			"effects": "Used for crafting candles, medicine, and magical warding items.",
+			"buy_price": 80,
+			"durability": 100,
+			"equipped": false,
+			"level_requirement": 1,
+			"cooldown": 0,
+			"action": "craft",
+			"credits": "Concept by h0lybyte and Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"candleCrafting": true,
+				"potionBinding": true,
+				"scentSoothing": 0.3
+			},
+			"scripts": [
+				{
+					"guid": "bbee1f99a3bb4e59be3f91ee1253f010",
+					"vars": {
+						"craftingTags": "wax",
+						"potionStabilityBonus": 0.1,
+						"aromaValue": 0.3
+					}
+				}
+			]
+		},
+		{
+			"title": "Noodles Girthy Pharma Potion",
+			"description": "A thick, glistening potion infused with unknown pharmaceutical enhancers. It buzzes with dubious vitality.",
+			"ref": "noodles-girthy-pharma-potion",
+			"key": 4,
+			"id": "01J2GHZQ9CXY89NB7NS5Q2DRJW",
+			"name": "Noodles Girthy Pharma Potion",
+			"type_flags": 392,
+			"img": "/assets/items/potion/noodles_girthy_pharma_potion.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 10,
+			"consumable": true,
+			"stackable": false,
+			"rarity": "uncommon",
+			"weight": 0.6,
+			"effects": "Heals 15 health and provides a temporary strength boost.",
+			"buy_price": 75,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 4,
+			"cooldown": 45,
+			"action": "consume",
+			"credits": "This potion was formulated by NoodlesTech Labs, using proprietary compounds. Asset provided by CraftPix.net (https://free-game-assets.itch.io/48-free-magic-potions-pixel-art-icons).\n",
+			"bonuses": {
+				"health": 15,
+				"mana": 25,
+				"energy": 25,
+				"strength": 5
+			},
+			"scripts": [
+				{
+					"guid": "dd238a91353c4a1991cf275041730ab0",
+					"vars": {
+						"health": 15,
+						"mana": 25,
+						"energy": 25,
+						"strength": 5,
+						"duration": 300,
+						"tickRate": 3
+					}
+				}
+			]
+		},
+		{
+			"title": "Paradox Sack of Potatoes",
+			"description": "An ordinary sack of potatoes, except for the hum. It vibrates with an energy that predates logic and the redshift.",
+			"ref": "paradox-sack-of-potatoes",
+			"key": 5,
+			"id": "01J2GHZQ9CXY89NB7NS5Q2DRPX",
+			"name": "Paradox Sack of Potatoes",
+			"type_flags": 392,
+			"img": "/assets/items/food/paradox_sack_of_potatoes.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 10,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "rare",
+			"weight": 3.5,
+			"effects": "Restores health and briefly disorients reality.",
+			"buy_price": 120,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 2,
+			"cooldown": 30,
+			"action": "consume",
+			"credits": "The Paradox Potatoes were discovered accidentally by a rogue chef in a temporal rift. Concept was by Paradox from GDL and Asset artwork from KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 35,
+				"mana": 10,
+				"timeBend": true
+			},
+			"scripts": [
+				{
+					"guid": "bb384b99932c4874bafd29170d2e9ed5",
+					"vars": {
+						"health": 35,
+						"mana": 10,
+						"realityBend": true,
+						"duration": 120,
+						"tickRate": 6
+					}
+				}
+			]
+		},
+		{
+			"title": "Phoenix Feather",
+			"description": "A radiant feather that revives a fallen party member at 30% HP.",
+			"ref": "phoenix-feather",
+			"key": 83,
+			"id": "01KKR7QNRCKPV43AZDEN3GMME7",
+			"name": "Phoenix Feather",
+			"type_flags": 10784,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 1,
+			"rarity": "epic",
+			"buy_price": 300,
+			"emoji": "🔥",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "revive_ally",
+					"percent": 30
+				}
+			]
+		},
+		{
+			"title": "Pied Piper Jacket",
+			"description": "A vibrant coat woven from misdirection and melody. Whistles faintly when no one’s speaking. Creatures tend to follow.",
+			"ref": "pied-piper-jacket",
+			"key": 22,
+			"id": "01J2GHZQ9CXY89NB7NS5Q2DRPP",
+			"name": "Pied Piper Jacket",
+			"type_flags": 410,
+			"img": "/assets/items/set/memes/sv/pied_piper_jacket.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 95,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "epic",
+			"weight": 2.1,
+			"effects": "Boosts charm and minor control over low-intelligence creatures.",
+			"buy_price": 2200,
+			"durability": 850,
+			"equipped": true,
+			"level_requirement": 6,
+			"cooldown": 90,
+			"action": "command",
+			"credits": "Inspired from Silicon Valley with Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"charm": 3,
+				"creatureInfluence": 0.25,
+				"passiveWhistle": true
+			},
+			"scripts": [
+				{
+					"guid": "bbf29ce88a4c445fbbc210efbde2188b",
+					"vars": {
+						"charmBoost": 3,
+						"tameChance": 0.25,
+						"whistleTrigger": "ambient",
+						"cooldown": 90
+					}
+				}
+			]
+		},
+		{
+			"title": "Pocket Prophet of Profit",
+			"description": "A whispering idol from the subprime depths. It glows faintly with insider congressional knowledge and financial dread.",
+			"ref": "pocket-prophet-of-profit",
+			"key": 6,
+			"id": "01J2GHZQ9CXY89NB7NS5Q2DRZZ",
+			"name": "Pocket Prophet of Profit",
+			"type_flags": 393,
+			"img": "/assets/items/utility/pocket_prophet_of_profit.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 15,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "legendary",
+			"weight": 0.3,
+			"effects": "Reveals future market trends and causes minor existential dread.",
+			"buy_price": 9999,
+			"durability": 999,
+			"equipped": true,
+			"level_requirement": 9,
+			"cooldown": 666,
+			"action": "activate",
+			"credits": "Originally forged beneath Wall Street in 2007 Q4 by The Black Vault Syndicate. Allegedly blessed by a former CFO turned lich. Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"foresight": true,
+				"profitBoost": "7%",
+				"dreadAura": true
+			},
+			"scripts": [
+				{
+					"guid": "cc498b99932c4874bafd29170d2e9edf",
+					"vars": {
+						"foresight": true,
+						"marketSurgeChance": 0.2,
+						"profitBoost": 0.07,
+						"dreadAura": true,
+						"duration": 300,
+						"tickRate": 12
+					}
+				}
+			]
+		},
+		{
+			"title": "Porcini",
+			"description": "A prized edible mushroom with a rich, nutty flavor. Found near the base of trees.",
+			"ref": "porcini",
+			"key": 115,
+			"id": "01KMVPV9ZJB35BQJ3SNZ4W9GDA",
+			"name": "Porcini",
+			"type_flags": 136,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 32,
+			"rarity": "common",
+			"buy_price": 8,
+			"sell_price": 4,
+			"emoji": "🍄",
+			"weight": 0.2,
+			"skilling": {
+				"skill": "foraging",
+				"xp_reward": 8,
+				"gather_time": 0.5,
+				"respawn_time": 25,
+				"resource_node": "mushroom-porcini"
+			},
+			"food": {
+				"heals": 3,
+				"doses": 1
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Portable Powerbank",
+			"description": "A compact energy reservoir built to survive collapse and recharge whatever still runs.\nBuzzes faintly when shaken.\n",
+			"ref": "portable-powerbank",
+			"key": 25,
+			"id": "01JWCKTE3TC42CNP3X24TM0BA1",
+			"name": "Portable Powerbank",
+			"type_flags": 413,
+			"img": "/assets/items/skills/technology/structures/portable_powerbank.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 110,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "uncommon",
+			"weight": 1.9,
+			"effects": "Recharges devices and tools. May overheat if pushed too far.",
+			"buy_price": 440,
+			"durability": 400,
+			"equipped": true,
+			"level_requirement": 2,
+			"cooldown": 60,
+			"action": "recharge",
+			"credits": "Concept by h0lybyte and Pixel art by KBVE Workshop.\n",
+			"bonuses": {
+				"energyRestore": 25,
+				"overloadChance": 0.05,
+				"chargeSlots": 2
+			},
+			"scripts": [
+				{
+					"guid": "af148fdc10d842f08bb29a10d38cdabb",
+					"vars": {
+						"chargeAmount": 25,
+						"chargeTargets": "tools",
+						"overheatChance": 0.05,
+						"maxConnections": 2
+					}
+				}
+			]
+		},
+		{
+			"title": "Potion",
+			"description": "A basic healing potion that restores 15 HP.",
+			"ref": "potion",
+			"key": 67,
+			"id": "01KKR7QNRATCW9JB66FKPMYB65",
+			"name": "Potion",
+			"type_flags": 544,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 5,
+			"rarity": "common",
+			"buy_price": 25,
+			"emoji": "🧪",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "heal",
+					"amount": 15
+				}
+			]
+		},
+		{
+			"title": "Propagandist Laptop",
+			"description": "An outdated laptop brimming with influence campaigns and forgotten scripts. The fan runs louder when lies are typed.\nWhy does it keep saying that it runs arch? Oh god, its update is several exa-holy-bytes, are those just node modules?!\n",
+			"ref": "propagandist-laptop",
+			"key": 7,
+			"id": "01JW8GK1Z1DYXTB7KB8RRKP87B",
+			"name": "Propagandist Laptop",
+			"type_flags": 395,
+			"img": "/assets/items/tools/propagandist_laptop.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 20,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "epic",
+			"weight": 2.7,
+			"effects": "Enables narrative injection and cyber surveillance.",
+			"buy_price": 3750,
+			"durability": 450,
+			"equipped": true,
+			"level_requirement": 6,
+			"cooldown": 90,
+			"action": "deploy",
+			"credits": "Originally distributed during the \"Algorithmic Spring\" by black-budget operatives. Digital archeology by KBVE SIGINT. Assets by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"influence": 12,
+				"hackPower": 8,
+				"stealthScripts": true
+			},
+			"scripts": [
+				{
+					"guid": "dd912f1e871c4a3e8a8fbcacafee205c",
+					"vars": {
+						"influenceBoost": 12,
+						"hackPower": 8,
+						"stealthEnabled": true,
+						"duration": 600,
+						"tickRate": 15
+					}
+				}
+			]
+		},
+		{
+			"title": "Punk Skateboard",
+			"description": "This is a custom board wrapped in duct tape, spray paint, and noise. \nBuilt for speed, flair, and unfiltered rebellion.\n",
+			"ref": "punk-skateboard",
+			"key": 53,
+			"id": "01JWJGBXT7E6VSVV6E6D6N2AT5",
+			"name": "Punk Skateboard",
+			"type_flags": 4096,
+			"img": "/assets/items/skills/crafting/production/punk_skateboard.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 61,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "uncommon",
+			"weight": 4.2,
+			"effects": "Increases movement speed. Can be used for combat tricks and distraction.",
+			"buy_price": 180,
+			"durability": 150,
+			"equipped": true,
+			"level_requirement": 3,
+			"cooldown": 10,
+			"action": "equip",
+			"credits": "Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"speed": 1.25,
+				"evasion": 5,
+				"stylePoints": true
+			},
+			"scripts": [
+				{
+					"guid": "e78ccfd540b445f78f137a21a0f77e5c",
+					"vars": {
+						"speedMultiplier": 1.25,
+						"evasionBonus": 5,
+						"traits": "grind-ready"
+					}
+				}
+			]
+		},
+		{
+			"title": "Quantum Coffee",
+			"description": "A steaming cup of dark roast vibrating with quantum particles.\nSip carefully, as time may bend around you.\n",
+			"ref": "quantum-coffee",
+			"key": 58,
+			"id": "01JX0YM8XTR59QQ83STSSM0P93",
+			"name": "Quantum Coffee",
+			"type_flags": 392,
+			"img": "/assets/items/potion/space/quantum_coffee.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 59,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "rare",
+			"weight": 0.6,
+			"effects": "Grants a brief surge of energy and may slow enemies around you.",
+			"buy_price": 150,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 2,
+			"cooldown": 45,
+			"action": "consume",
+			"credits": "Brewed by KBVE Coffee Consortium.\n",
+			"bonuses": {
+				"energy": 5,
+				"intelligence": 1,
+				"timeWarp": true
+			},
+			"scripts": [
+				{
+					"guid": "1234567890abcdef1234567890abcdef",
+					"vars": {
+						"hasteDuration": 60,
+						"slowChance": 0.1
+					}
+				}
+			]
+		},
+		{
+			"title": "Quantum Energy Drink",
+			"description": "A neon can fizzing with entangled particles.\nQuenches your thirst while amplifying raw reaction speed.\n",
+			"ref": "quantum-energy-drink",
+			"key": 60,
+			"id": "01JX4H2NVFGJ1F74KGHYQFTN6M",
+			"name": "Quantum Energy Drink",
+			"type_flags": 392,
+			"img": "/assets/items/potion/space/quantum_energy_drink.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 61,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "rare",
+			"weight": 0.4,
+			"effects": "Restores stamina and temporarily boosts speed.",
+			"buy_price": 180,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 2,
+			"cooldown": 30,
+			"action": "consume",
+			"credits": "Concept by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"stamina": 20,
+				"speed": 5
+			},
+			"scripts": [
+				{
+					"guid": "abcdef1234567890abcdef1234567890",
+					"vars": {
+						"staminaBoost": 20,
+						"speedBoost": 5,
+						"duration": 45
+					}
+				}
+			]
+		},
+		{
+			"title": "Quick Toolbelt",
+			"description": "A compact set of precision tools designed for on-the-fly fixes. Ideal for rapid-response engineers and grease-streaked survivalists.\n",
+			"ref": "quick-toolbelt",
+			"key": 11,
+			"id": "01JW9MMAPMYMX7F6C1XYMNT9BN",
+			"name": "Quick Toolbelt",
+			"type_flags": 398,
+			"img": "/assets/items/tools/quick_toolbelt.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 40,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "common",
+			"weight": 1.6,
+			"effects": "Improves repair efficiency by 1%. Compatible with bots, drones, and ships.",
+			"buy_price": 450,
+			"durability": 300,
+			"equipped": true,
+			"level_requirement": 2,
+			"cooldown": 15,
+			"action": "repair",
+			"credits": "Designed by KBVE MicroForge Systems for maintenance in zero-G and radiation-heavy zones. Commonly issued in early planetary expeditions.\n",
+			"bonuses": {
+				"repairBoost": 0.01,
+				"multiTargetCompat": true,
+				"toolGrade": "Class-B"
+			},
+			"scripts": [
+				{
+					"guid": "ee541e1cf4214c4cbbb4e1fa99d7fbbb",
+					"vars": {
+						"repairModifier": 0.01,
+						"usableOn": "technocraft",
+						"toolQuality": "Class-B",
+						"cooldown": 15
+					}
+				}
+			]
+		},
+		{
+			"title": "Rage Draught",
+			"description": "A fiery tonic that sharpens your weapon for 4 turns with doubled potency (+6 dmg).",
+			"ref": "rage-draught",
+			"key": 82,
+			"id": "01KKR7QNRC4PXBN13CNS1YR9HY",
+			"name": "Rage Draught",
+			"type_flags": 544,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 2,
+			"rarity": "rare",
+			"buy_price": 100,
+			"emoji": "🧪",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "apply_effect",
+					"status_effect": "sharpened",
+					"stacks": 2,
+					"turns": 4
+				}
+			]
+		},
+		{
+			"title": "Rations",
+			"description": "Dried travel food that heals 8 HP. Best used out of combat.",
+			"ref": "rations",
+			"key": 71,
+			"id": "01KKR7QNRCTKXB470J4ENW4KCK",
+			"name": "Rations",
+			"type_flags": 520,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 3,
+			"rarity": "common",
+			"buy_price": 15,
+			"emoji": "🍞",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "heal",
+					"amount": 8
+				}
+			]
+		},
+		{
+			"title": "Rebel Radio",
+			"description": "Scrappy handheld transceiver patched together with stolen parts and righteous fury.\nTuned to voices the regime can not and must not hear.\n",
+			"ref": "rebel-radio",
+			"key": 28,
+			"id": "01JWCX61HFPET0VWXTZFDG4D06",
+			"name": "Rebel Radio",
+			"type_flags": 416,
+			"img": "/assets/items/set/data/rebel-radio.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 125,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "rare",
+			"weight": 1.2,
+			"effects": "Used to contact rebel factions, call support, or jam surveillance signals.",
+			"buy_price": 975,
+			"durability": 800,
+			"equipped": true,
+			"level_requirement": 5,
+			"cooldown": 180,
+			"action": "transmit",
+			"credits": "Concept by h0lybyte and inspired from Andor, with the pixel art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"signalAccess": "encrypted",
+				"supportChance": 0.2,
+				"jamBoost": true
+			},
+			"scripts": [
+				{
+					"guid": "c3aa918a7f244a0c83d2e9d552e61aad",
+					"vars": {
+						"contactChannels": "encrypted",
+						"backupChance": 0.2,
+						"jammingField": true,
+						"cooldownSeconds": 180
+					}
+				}
+			]
+		},
+		{
+			"title": "Retro CRT Monitor",
+			"description": "A bulky, curved-screen terminal from the golden age of glass and static.\nDisplays 8-bit data streams and shell interfaces with haunting clarity.\n",
+			"ref": "retro-crt-monitor",
+			"key": 36,
+			"id": "01J2GHZQ9CXY89NB7NS5Q2DRRC",
+			"name": "Retro CRT Monitor",
+			"type_flags": 410,
+			"img": "/assets/items/tools/retro_crt_monitor.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 60,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "uncommon",
+			"weight": 4.8,
+			"effects": "Enables access to classic shell terminals and renders retro data feeds.",
+			"buy_price": 200,
+			"durability": 750,
+			"equipped": false,
+			"level_requirement": 3,
+			"cooldown": 0,
+			"action": "access",
+			"credits": "Salvaged from forgotten broadcast towers and basement bunkers. CRT manufactured pre-Singularity by CathoTech Industries. Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"terminalAccess": true,
+				"retroInterface": true,
+				"glitchImmunity": 1
+			},
+			"scripts": [
+				{
+					"guid": "fc0c8a95eb5f4e06ae0875c3b6e0c9cc",
+					"vars": {
+						"enableShell": true,
+						"displayMode": "8-bit",
+						"resolution": "320x240"
+					}
+				}
+			]
+		},
+		{
+			"title": "Rose",
+			"description": "A classic red rose with sharp thorns. Valued for its beauty and alchemical properties.",
+			"ref": "rose",
+			"key": 111,
+			"id": "01KMVPV9ZHZ93N2B6DB35FDJAM",
+			"name": "Rose",
+			"type_flags": 128,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 32,
+			"rarity": "common",
+			"buy_price": 6,
+			"sell_price": 3,
+			"emoji": "🌹",
+			"weight": 0.1,
+			"skilling": {
+				"skill": "foraging",
+				"xp_reward": 6,
+				"gather_time": 0.5,
+				"respawn_time": 20,
+				"resource_node": "flower-rose"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Rubber Tire",
+			"description": "A durable circular frame of vulcanized rubber.\nOnce part of a vehicle, now part of your future project—or a makeshift barricade.\n",
+			"ref": "rubber-tire",
+			"key": 24,
+			"id": "01JWCCEP0B8M6NPSXCW8XQPW6G",
+			"name": "Rubber Tire",
+			"type_flags": 412,
+			"img": "/assets/items/skills/technology/materials/rubber_tire.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 105,
+			"consumable": false,
+			"stackable": true,
+			"rarity": "common",
+			"weight": 7.2,
+			"effects": "Used in crafting vehicles, playgrounds, traps, or bonfires.",
+			"buy_price": 90,
+			"durability": 600,
+			"equipped": false,
+			"level_requirement": 1,
+			"cooldown": 2,
+			"action": "salvage",
+			"credits": "Concept by h0lybyte and Artwork by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"tractionMaterial": true,
+				"bounceFactor": 0.2,
+				"burnable": true
+			},
+			"scripts": [
+				{
+					"guid": "afe31a1e0a7344b98b56a4e0c09b9ea1",
+					"vars": {
+						"usableIn": "vehicle",
+						"materialTags": "rubber",
+						"bouncePhysics": 0.2
+					}
+				}
+			]
+		},
+		{
+			"title": "Runeguard Plate",
+			"description": "Ancient plate armor inscribed with protective runes. +5 armor, +5 HP, reflects 2 damage.",
+			"ref": "runeguard-plate",
+			"key": 97,
+			"id": "01KKR7QNRC5MQGKPW28R7FR2X6",
+			"name": "Runeguard Plate",
+			"type_flags": 514,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "rare",
+			"buy_price": 220,
+			"emoji": "🛡️",
+			"action": "equip",
+			"tags": ["discordsh"],
+			"equipment": {
+				"slot": "chest",
+				"bonuses": {
+					"armor": 5,
+					"health": 5
+				},
+				"special": "thorns",
+				"special_value": 2
+			}
+		},
+		{
+			"title": "Rusty Sword",
+			"description": "A worn but serviceable blade. Adds +2 attack damage.",
+			"ref": "rusty-sword",
+			"key": 84,
+			"id": "01KKR7QNRCH0N5SPC9X86XRC96",
+			"name": "Rusty Sword",
+			"type_flags": 513,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "common",
+			"buy_price": 30,
+			"emoji": "⚔️",
+			"action": "equip",
+			"tags": ["discordsh"],
+			"equipment": {
+				"slot": "main_hand",
+				"bonuses": {
+					"attack": 2
+				}
+			}
+		},
+		{
+			"title": "Salmon",
+			"description": "A fresh salmon, delicious and nutritious! It can be used for cooking!",
+			"ref": "salmon",
+			"key": 1,
+			"id": "01JW0R6C62QK3WVJHR05XZ5K1T",
+			"name": "Salmon",
+			"type_flags": 392,
+			"img": "/assets/items/food/salmon.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 10,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "common",
+			"weight": 0.4,
+			"effects": "Restores 15 health over 5 seconds.",
+			"buy_price": 6,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 0,
+			"cooldown": 5,
+			"action": "consume",
+			"credits": "Salmon fish asset was by Roku6 - https://roku6.itch.io/pixelfishes\n",
+			"bonuses": {
+				"health": 15
+			},
+			"scripts": [
+				{
+					"guid": "dd238a91353c4a1991cf275041730ab0",
+					"vars": {
+						"health": 15,
+						"duration": 5,
+						"tickRate": 1
+					}
+				}
+			]
+		},
+		{
+			"title": "Shadow Cloak",
+			"description": "A cloak woven from shadow threads. +3 armor, +1 attack.",
+			"ref": "shadow-cloak",
+			"key": 96,
+			"id": "01KKR7QNRC1W3SZRYP385BX2ST",
+			"name": "Shadow Cloak",
+			"type_flags": 514,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "uncommon",
+			"buy_price": 85,
+			"emoji": "🧥",
+			"action": "equip",
+			"tags": ["discordsh"],
+			"equipment": {
+				"slot": "chest",
+				"bonuses": {
+					"armor": 3,
+					"attack": 1
+				}
+			}
+		},
+		{
+			"title": "Shadow Dagger",
+			"description": "A dark-forged dagger that strikes with precision. +3 attack, +5% crit chance.",
+			"ref": "shadow-dagger",
+			"key": 85,
+			"id": "01KKR7QNRCCGPJS1BY1R6NEN8B",
+			"name": "Shadow Dagger",
+			"type_flags": 513,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "uncommon",
+			"buy_price": 75,
+			"emoji": "🗡️",
+			"action": "equip",
+			"tags": ["discordsh"],
+			"equipment": {
+				"slot": "main_hand",
+				"bonuses": {
+					"attack": 3,
+					"crit_chance": 0.05
+				},
+				"special": "crit_bonus",
+				"special_value": 0.05
+			}
+		},
+		{
+			"title": "Smoke Bomb",
+			"description": "Releases a thick cloud of smoke, guaranteeing escape from combat.",
+			"ref": "smoke-bomb",
+			"key": 72,
+			"id": "01KKR7QNRCN8GS74B9NMC7DDDW",
+			"name": "Smoke Bomb",
+			"type_flags": 8704,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 1,
+			"rarity": "rare",
+			"buy_price": 120,
+			"emoji": "💨",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "guaranteed_flee"
+				}
+			]
+		},
+		{
+			"title": "Spicy Nacho Supreme",
+			"description": "A mountain of crunchy chips smothered in molten cheese and blistering peppers.\nSo hot it might actually cause hallucinations, but totally worth it.\n",
+			"ref": "spicy-nacho-supreme",
+			"key": 57,
+			"id": "01JX0YKWS3482FA3MBZ9EZQD31",
+			"name": "Spicy Nacho Supreme",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/dish/spicy_nacho_supreme.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 45,
+			"consumable": true,
+			"stackable": false,
+			"rarity": "uncommon",
+			"weight": 0.6,
+			"effects": "Restores health and ignites your agility with fiery enthusiasm.",
+			"buy_price": 125,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 1,
+			"cooldown": 70,
+			"action": "consume",
+			"credits": "Concept by KBVE Culinary Arts and Pixel art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 20,
+				"agility": 4,
+				"spiceTolerance": 2
+			},
+			"scripts": [
+				{
+					"guid": "e8c51214a153466b814a7e947d95323b",
+					"vars": {
+						"healAmount": 20,
+						"agilityBoost": 4,
+						"duration": 120
+					}
+				}
+			]
+		},
+		{
+			"title": "Spicy Ramen",
+			"description": "A bowl of fiery noodles swirling with chili oil and cosmic broth.\nRumored to restore courage and ignite the senses.\n",
+			"ref": "spicy-ramen",
+			"key": 64,
+			"id": "01FC6AB642E4FA4FF6A771F20D",
+			"name": "Spicy Ramen",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/dish/spicy_ramen.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 64,
+			"consumable": true,
+			"stackable": false,
+			"rarity": "rare",
+			"weight": 0.8,
+			"effects": "Restores health and grants temporary fire resistance.",
+			"buy_price": 150,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 5,
+			"cooldown": 80,
+			"action": "consume",
+			"credits": "Recipe inspired by KBVE Culinary Arts with pixel art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 25,
+				"fireResist": 5,
+				"bravery": 3
+			},
+			"scripts": [
+				{
+					"guid": "d6732c3b0f2e4bb6a8e0c6f47c77a7aa",
+					"vars": {
+						"healAmount": 25,
+						"fireResist": 5,
+						"braveryBoost": 3,
+						"duration": 150
+					}
+				}
+			]
+		},
+		{
+			"title": "Spiked Plate",
+			"description": "Armor covered in sharp spikes that damage attackers. +5 armor, reflects 3 damage.",
+			"ref": "spiked-plate",
+			"key": 94,
+			"id": "01KKR7QNRCF2PAF55RNCVZ5H5S",
+			"name": "Spiked Plate",
+			"type_flags": 514,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "rare",
+			"buy_price": 200,
+			"emoji": "🛡️",
+			"action": "equip",
+			"tags": ["discordsh"],
+			"equipment": {
+				"slot": "chest",
+				"bonuses": {
+					"armor": 5
+				},
+				"special": "thorns",
+				"special_value": 3
+			}
+		},
+		{
+			"title": "Spooky Skull Candle",
+			"description": "A macabre light source carved from bone and wax.\nFlickers when nearby spirits grow restless.\n",
+			"ref": "spooky-skull-candle",
+			"key": 14,
+			"id": "01J2GHZQ9CXY89NB7NS5Q2DRSC",
+			"name": "Spooky Skull Candle",
+			"type_flags": 402,
+			"img": "/assets/items/utility/necro/spooky_skull_candle.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 55,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "uncommon",
+			"weight": 1.1,
+			"effects": "Provides soft ambient light and detects lesser evil spirits.",
+			"buy_price": 275,
+			"durability": 240,
+			"equipped": true,
+			"level_requirement": 3,
+			"cooldown": 30,
+			"action": "illuminate",
+			"credits": "Lore by h0lybyte and Asset by CraftPix (https://free-game-assets.itch.io/free-undead-loot-pixel-art-icons).\n",
+			"bonuses": {
+				"lightRadius": 4,
+				"detectSpirits": true,
+				"warningFlicker": true
+			},
+			"scripts": [
+				{
+					"guid": "caa98fef44bc41e49ae2399823fcb077",
+					"vars": {
+						"lightRadius": 4,
+						"spiritDetection": "minor",
+						"flickerOnPresence": true,
+						"cooldown": 30
+					}
+				}
+			]
+		},
+		{
+			"title": "Steel Beehive",
+			"description": "A durable apiary unit engineered for optimal wax and honey yield.\nBuzzes softly even when no bees are visible.\n",
+			"ref": "steel-beehive",
+			"key": 15,
+			"id": "01J2GHZQ9CXY89NB7NS5Q2DRBH",
+			"name": "Steel Beehive",
+			"type_flags": 403,
+			"img": "/assets/items/skills/farming/structures/steel_beehive.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 60,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "common",
+			"weight": 6.8,
+			"effects": "Generates beeswax and honey over time. Supports crafting of candles, drinks, and medicine.",
+			"buy_price": 700,
+			"durability": 1200,
+			"equipped": false,
+			"level_requirement": 4,
+			"cooldown": 300,
+			"action": "deploy",
+			"credits": "Developed by AgriForge BioMechanics for semi-automated apiary expansion in industrial settlements.\nPixel asset by KBVE Workshop. \nField-tested by forest monks and space ranchers alike.\n",
+			"bonuses": {
+				"honeyYield": 3,
+				"waxYield": 2,
+				"harvestInterval": 300
+			},
+			"scripts": [
+				{
+					"guid": "eec189cc32a249bcbcb23bdee61a889d",
+					"vars": {
+						"honeyOutput": 3,
+						"waxOutput": 2,
+						"cooldownSeconds": 300,
+						"tag": "harvestable"
+					}
+				}
+			]
+		},
+		{
+			"title": "Stone",
+			"description": "A rough chunk of stone broken from a boulder. Used in basic crafting and construction.",
+			"ref": "stone",
+			"key": 100,
+			"id": "01KMVPV9ZHPBRJZZEN7C0Q9R4Q",
+			"name": "Stone",
+			"type_flags": 384,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 64,
+			"rarity": "common",
+			"buy_price": 3,
+			"sell_price": 1,
+			"emoji": "🪨",
+			"weight": 3,
+			"skilling": {
+				"skill": "mining",
+				"xp_reward": 8,
+				"gather_time": 2,
+				"respawn_time": 25,
+				"resource_node": "boulder"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Sunflower",
+			"description": "A tall, golden sunflower that always faces the light. Bright and easy to spot.",
+			"ref": "sunflower",
+			"key": 110,
+			"id": "01KMVPV9ZHQSEG1JXEWWJY2WKV",
+			"name": "Sunflower",
+			"type_flags": 128,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 32,
+			"rarity": "common",
+			"buy_price": 5,
+			"sell_price": 2,
+			"emoji": "🌻",
+			"weight": 0.15,
+			"skilling": {
+				"skill": "foraging",
+				"xp_reward": 6,
+				"gather_time": 0.5,
+				"respawn_time": 20,
+				"resource_node": "flower-sunflower"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Surfer Longboard",
+			"description": "A sleek, ocean-worn board designed for smooth cruising. \nWhether it's sand, boardwalk, or soft metal tiles, this ride flows with tidal grace.\n",
+			"ref": "surfer-longboard",
+			"key": 54,
+			"id": "01JWJGC4NYQ7K4MW6YBVD6GYQ5",
+			"name": "Surfer Longboard",
+			"type_flags": 4096,
+			"img": "/assets/items/skills/crafting/production/surfer_longboard.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 62,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "uncommon",
+			"weight": 4,
+			"effects": "Boosts mobility and style. Grants temporary water affinity.",
+			"buy_price": 220,
+			"durability": 180,
+			"equipped": true,
+			"level_requirement": 3,
+			"cooldown": 8,
+			"action": "equip",
+			"credits": "Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"speed": 1.15,
+				"waterAffinity": true,
+				"stylePoints": true
+			},
+			"scripts": [
+				{
+					"guid": "bdf9fa9a29c94492a409c6a3abf0833f",
+					"vars": {
+						"speedMultiplier": 1.15,
+						"buffDuration": 120,
+						"traits": "tidal-grace"
+					}
+				}
+			]
+		},
+		{
+			"title": "Swiss Cheese",
+			"description": "A wedge of holey delight, aged with care and mystery.\nSmells mild but lingers forever.\n",
+			"ref": "swiss-cheese",
+			"key": 37,
+			"id": "01JWG6FTDT249H8AGN439GEXQQ",
+			"name": "Swiss Cheese",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/materials/swiss_cheese.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 45,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "common",
+			"weight": 0.5,
+			"effects": "Restores health and slightly improves focus. May attract unwanted attention.",
+			"buy_price": 55,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 0,
+			"cooldown": 30,
+			"action": "consume",
+			"credits": "Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 20,
+				"focus": 2,
+				"rodentAffinity": true
+			},
+			"scripts": [
+				{
+					"guid": "dc19274fa1914cc69a5c7b3dbb5e12f1",
+					"vars": {
+						"healAmount": 20,
+						"focusBoost": 2,
+						"npcAffinity": "rodent",
+						"duration": 120
+					}
+				}
+			]
+		},
+		{
+			"title": "Synthwave Popcorn",
+			"description": "A technicolor bag of popcorn that crackles with neon butter.\nPopular at retro arcades and midnight holo-concerts.\n",
+			"ref": "synthwave-popcorn",
+			"key": 63,
+			"id": "01JX5620BTQ558YAXW4704SRG5",
+			"name": "Synthwave Popcorn",
+			"type_flags": 392,
+			"img": "/assets/items/food/synthwave_popcorn.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 63,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "uncommon",
+			"weight": 0.5,
+			"effects": "Restores a small amount of stamina and boosts morale.",
+			"buy_price": 75,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 1,
+			"cooldown": 30,
+			"action": "consume",
+			"credits": "Concept art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"stamina": 15,
+				"morale": 3
+			},
+			"scripts": [
+				{
+					"guid": "baf123abc7890defbaf123abc7890def",
+					"vars": {
+						"staminaGain": 15,
+						"moraleBoost": 3,
+						"duration": 60
+					}
+				}
+			]
+		},
+		{
+			"title": "Teleport Rune",
+			"description": "An inscribed stone that teleports the party back to the nearest city.",
+			"ref": "teleport-rune",
+			"key": 78,
+			"id": "01KKR7QNRC3336DJ0D3SJA8SA7",
+			"name": "Teleport Rune",
+			"type_flags": 10752,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 1,
+			"rarity": "rare",
+			"buy_price": 200,
+			"emoji": "🌀",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "teleport_city"
+				}
+			]
+		},
+		{
+			"title": "Tex-Mex Pizza",
+			"description": "A greasy flatbread of defiance topped with beans, jalapeños, questionable meats, and destiny. Spicy. Regretful. Legendary.\n",
+			"ref": "tex-mex-pizza",
+			"key": 33,
+			"id": "01JWFZW7DF410GYBT5202S753D",
+			"name": "Tex-Mex Pizza",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/dish/tex_mex_pizza.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 43,
+			"consumable": true,
+			"stackable": false,
+			"rarity": "uncommon",
+			"weight": 0.7,
+			"effects": "Restores health and grants a temporary speed burst.",
+			"buy_price": 110,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 1,
+			"cooldown": 75,
+			"action": "consume",
+			"credits": "Concept inspired by TB , h0lybyte and Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 30,
+				"speed": 6
+			},
+			"scripts": [
+				{
+					"guid": "a7b459f6f19149f0b1d3a4c50e4e9981",
+					"vars": {
+						"healAmount": 30,
+						"speedBoost": 6,
+						"duration": 150
+					}
+				}
+			]
+		},
+		{
+			"title": "Texas BBQ Brisket",
+			"description": "A thick-cut slab of smoked brisket slathered in secret sauce.\nTender enough to cry over.\nBold enough to punch fate in the face.\n",
+			"ref": "texas-bbq-brisket",
+			"key": 34,
+			"id": "01JWG0HJSK6K77SAKSRC31VH4T",
+			"name": "Texas BBQ Brisket",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/dish/texas_bbq_brisket.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 44,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "rare",
+			"weight": 1.3,
+			"effects": "Restores major health and briefly boosts strength and morale.",
+			"buy_price": 160,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 2,
+			"cooldown": 90,
+			"action": "consume",
+			"credits": "Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 60,
+				"strength": 8,
+				"morale": 5
+			},
+			"scripts": [
+				{
+					"guid": "c34bcb0f22164804b930fa4cd9e9cfeb",
+					"vars": {
+						"healAmount": 60,
+						"strengthBoost": 8,
+						"moraleBoost": 5,
+						"duration": 180
+					}
+				}
+			]
+		},
+		{
+			"title": "Tomato Pasta Sauce",
+			"description": "A hearty, slow-simmered sauce made with sun-ripened tomatoes, garlic, herbs, and just enough ambition to feed a village or start a rebellion.\n",
+			"ref": "tomato-pasta-sauce",
+			"key": 39,
+			"id": "01JWG51QXSF2QB8G743A60W5TV",
+			"name": "Tomato Pasta Sauce",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/materials/sauce/tomato_pasta_sauce.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 47,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "common",
+			"weight": 0.9,
+			"effects": "Restores health and used as a base for advanced cooking.",
+			"buy_price": 70,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 0,
+			"cooldown": 40,
+			"action": "consume",
+			"credits": "Illustrated by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 22,
+				"crafting": true,
+				"warmth": 1
+			},
+			"scripts": [
+				{
+					"guid": "fba1237c9b3e423f930fcb84e9e82314",
+					"vars": {
+						"healAmount": 22,
+						"warmthBoost": 1
+					}
+				}
+			]
+		},
+		{
+			"title": "Trap Kit",
+			"description": "Deploys a trap that reflects 5 damage back to attackers for 2 turns.",
+			"ref": "trap-kit",
+			"key": 76,
+			"id": "01KKR7QNRCECPB1TANAW22C8B2",
+			"name": "Trap Kit",
+			"type_flags": 8704,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 2,
+			"rarity": "uncommon",
+			"buy_price": 55,
+			"emoji": "🪤",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "apply_effect",
+					"status_effect": "thorns",
+					"stacks": 5,
+					"turns": 2
+				}
+			]
+		},
+		{
+			"title": "Tulip",
+			"description": "A vibrant tulip with soft petals. Commonly foraged in meadows and grasslands.",
+			"ref": "tulip",
+			"key": 105,
+			"id": "01KMVPV9ZHDT45T6PYS5PH82F7",
+			"name": "Tulip",
+			"type_flags": 128,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 32,
+			"rarity": "common",
+			"buy_price": 4,
+			"sell_price": 2,
+			"emoji": "🌷",
+			"weight": 0.1,
+			"skilling": {
+				"skill": "foraging",
+				"xp_reward": 5,
+				"gather_time": 0.5,
+				"respawn_time": 20,
+				"resource_node": "flower-tulip"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Undead Humanoid Skull",
+			"description": "The cranium of a fallen being, drained of soul but rich in residue.\nStill warm in places it shouldn’t be.\n",
+			"ref": "undead-humanoid-skull",
+			"key": 10,
+			"id": "01J2GHZQ9CXY89NB7NS5Q2DRSK",
+			"name": "Undead Humanoid Skull",
+			"type_flags": 398,
+			"img": "/assets/items/set/bones/undead_humanoid_skull.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 35,
+			"consumable": false,
+			"stackable": true,
+			"rarity": "uncommon",
+			"weight": 2.3,
+			"effects": "Used in necromantic rituals, dark crafting, or calcium-based agriculture.",
+			"buy_price": 220,
+			"durability": 666,
+			"equipped": false,
+			"level_requirement": 3,
+			"cooldown": 0,
+			"action": "ritual",
+			"credits": "Commonly found in cursed lands or battlefield remnants. Asset by CraftPix (https://free-game-assets.itch.io/free-undead-loot-pixel-art-icons).\n",
+			"bonuses": {
+				"necroAffinity": true,
+				"boneDustYield": 5,
+				"ritualPower": 0.4
+			},
+			"scripts": [
+				{
+					"guid": "ae331c1f28b94be2afdabf3e5b82d992",
+					"vars": {
+						"yieldType": "bone_dust",
+						"yieldAmount": 5,
+						"ritualPower": 0.4,
+						"necroTrigger": true
+					}
+				}
+			]
+		},
+		{
+			"title": "Vampire Blood Champagne",
+			"description": "A luxurious sparkling crimson drink brewed from fermented nightberries and a drop of ancient blood. \nThe bottle fizzes with forbidden joy and primal allure.\n",
+			"ref": "vampirie-blood-champagne",
+			"key": 51,
+			"id": "01JWJC0PYN7P81PD279GGNVYA4",
+			"name": "Vampire Blood Champagne",
+			"type_flags": 400,
+			"img": "/assets/items/skills/cooking/materials/liquor/vampire_blood_champagne.png",
+			"pixel_density": 256,
+			"sorting_layer": "Ground",
+			"sorting_order": 59,
+			"consumable": true,
+			"stackable": false,
+			"rarity": "epic",
+			"weight": 1,
+			"effects": "Restores vitality, enhances charisma, and briefly halts aging.",
+			"buy_price": 1000,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 10,
+			"cooldown": 180,
+			"action": "consume",
+			"credits": "Concept inspired by True Blood and Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 100,
+				"charisma": 3,
+				"haltAging": true
+			},
+			"scripts": [
+				{
+					"guid": "8dc2aa7c8f1f4dd6b95f28a61db5123e",
+					"vars": {
+						"buffDuration": 240,
+						"traits": "blood-euphoric'"
+					}
+				}
+			]
+		},
+		{
+			"title": "Vampire Blood Gelato",
+			"description": "\"A rich, frozen dessert crafted from distilled vampire blood, bitter nightfruit, and crowned with a candied heart. Sweetness meets sin.\"\n",
+			"ref": "vampire-blood-gelato",
+			"key": 52,
+			"id": "01JWJCC6PEH1BFGXGTD6ETW0TV",
+			"name": "Vampire Blood Gelato",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/dish/vampire_blood_gelato.png",
+			"pixel_density": 32,
+			"sorting_layer": "Ground",
+			"sorting_order": 60,
+			"consumable": true,
+			"stackable": false,
+			"rarity": "epic",
+			"weight": 0.8,
+			"effects": "Heals moderately, boosts dark resistance, and restores mana when eaten under moonlight.",
+			"buy_price": 600,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 7,
+			"cooldown": 90,
+			"action": "consume",
+			"credits": "Concept by Andsam, inspired by true blood and Pixel art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 50,
+				"mana": 40,
+				"darkResist": 15
+			},
+			"scripts": [
+				{
+					"guid": "ea539c07b0cb43da9fa5f6db3fbc7db1",
+					"vars": {
+						"buffDuration": 120,
+						"traits": "blood-infused"
+					}
+				}
+			]
+		},
+		{
+			"title": "Vampiric Blade",
+			"description": "A cursed sword that siphons life force. +3 attack, 20% lifesteal.",
+			"ref": "vampiric-blade",
+			"key": 87,
+			"id": "01KKR7QNRCAJDADA45HXS0KGWF",
+			"name": "Vampiric Blade",
+			"type_flags": 513,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "epic",
+			"buy_price": 350,
+			"emoji": "🩸",
+			"action": "equip",
+			"tags": ["discordsh"],
+			"equipment": {
+				"slot": "main_hand",
+				"bonuses": {
+					"attack": 3
+				},
+				"special": "life_steal",
+				"special_value": 0.2
+			}
+		},
+		{
+			"title": "VHS Tape",
+			"description": "A magnetic black rectangle filled with grainy memories and static secrets.\nNo label.\nNo mercy.\n",
+			"ref": "vhs-tape",
+			"key": 26,
+			"id": "01JWCWCH9FEJXHMW48JYJ94Q8F",
+			"name": "VHS Tape",
+			"type_flags": 414,
+			"img": "/assets/items/set/data/vhs_tape.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 115,
+			"consumable": false,
+			"stackable": true,
+			"rarity": "uncommon",
+			"weight": 0.5,
+			"effects": "Can be played on analog equipment. May contain lore, static, or psychological interference.",
+			"buy_price": 30,
+			"durability": 150,
+			"equipped": false,
+			"level_requirement": 1,
+			"cooldown": 0,
+			"action": "play",
+			"credits": "Concept by h0lybyte and Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"memoryArtifact": true,
+				"analogSignal": true,
+				"distortionEffect": 0.2
+			},
+			"scripts": [
+				{
+					"guid": "cc910ee42e5a4a5c9f7e1e5a8d309ba7",
+					"vars": {
+						"contentTags": "signal",
+						"staticDistortion": 0.2,
+						"playbackTriggers": "signal"
+					}
+				}
+			]
+		},
+		{
+			"title": "Vitality Potion",
+			"description": "A potent healing potion that restores 25 HP.",
+			"ref": "vitality-potion",
+			"key": 79,
+			"id": "01KKR7QNRCYBZP4ZZ0WCCBBKA4",
+			"name": "Vitality Potion",
+			"type_flags": 544,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 3,
+			"rarity": "uncommon",
+			"buy_price": 60,
+			"emoji": "💊",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "heal",
+					"amount": 25
+				}
+			]
+		},
+		{
+			"title": "Vodka Sauce",
+			"description": "A smooth and creamy tomato sauce spiked with ethanol extract.\nComfort food with an edge, best used warm… or as improvised fuel.\n",
+			"ref": "vodka-sauce",
+			"key": 40,
+			"id": "01J2GHZQ9CXY89NB7NS5Q2DRVK",
+			"name": "Vodka Sauce",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/materials/sauce/vodka_sauce.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 48,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "uncommon",
+			"weight": 1,
+			"effects": "Restores health and adds a fiery buff. Can be used in advanced pasta crafting.",
+			"buy_price": 95,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 1,
+			"cooldown": 50,
+			"action": "consume",
+			"credits": "Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"health": 28,
+				"fireBuff": true,
+				"cookingBoost": 2
+			},
+			"scripts": [
+				{
+					"guid": "ebf7925d2ce24b06b4b9a2232b7349c7",
+					"vars": {
+						"healAmount": 28,
+						"elementalFlavor": "fire",
+						"unlockRecipeTags": "pasta",
+						"duration": 150
+					}
+				}
+			]
+		},
+		{
+			"title": "Vodka",
+			"description": "A clear, high-proof spirit distilled from fermented starch. \nBurns the throat, blurs the edges, and briefly silences the voices.\n",
+			"ref": "vodka",
+			"key": 42,
+			"id": "01JWG6H44RKRK9TKTHNGRNMA2N",
+			"name": "Vodka",
+			"type_flags": 392,
+			"img": "/assets/items/skills/cooking/materials/liquor/vodka.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 50,
+			"consumable": true,
+			"stackable": true,
+			"rarity": "uncommon",
+			"weight": 0.8,
+			"effects": "Temporarily increases strength and pain resistance. May impair coordination.",
+			"buy_price": 120,
+			"durability": 1,
+			"equipped": false,
+			"level_requirement": 2,
+			"cooldown": 60,
+			"action": "consume",
+			"credits": "Art by KBVE Pixel Workshop.\n",
+			"bonuses": {
+				"strength": 3,
+				"health": 15,
+				"damageResistance": 2,
+				"focus": -1
+			},
+			"scripts": [
+				{
+					"guid": "a238f44a1e8c4d54b21c42a6c4f78b66",
+					"vars": {
+						"buffDuration": 120
+					}
+				}
+			]
+		},
+		{
+			"title": "Void Scythe",
+			"description": "A weapon from beyond the veil. +7 attack, 15% lifesteal.",
+			"ref": "void-scythe",
+			"key": 91,
+			"id": "01KKR7QNRCF2G0B210XXC8HSVA",
+			"name": "Void Scythe",
+			"type_flags": 513,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "legendary",
+			"buy_price": 1200,
+			"emoji": "🌀",
+			"action": "equip",
+			"tags": ["discordsh"],
+			"equipment": {
+				"slot": "main_hand",
+				"bonuses": {
+					"attack": 7
+				},
+				"special": "life_steal",
+				"special_value": 0.15
+			}
+		},
+		{
+			"title": "Ward",
+			"description": "A protective charm that grants the Shielded effect for 2 turns.",
+			"ref": "ward",
+			"key": 70,
+			"id": "01KKR7QNRCT4AA6ZG8P0Z37NM0",
+			"name": "Ward",
+			"type_flags": 2592,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 2,
+			"rarity": "rare",
+			"buy_price": 80,
+			"emoji": "🧿",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "apply_effect",
+					"status_effect": "shielded",
+					"stacks": 1,
+					"turns": 2
+				}
+			]
+		},
+		{
+			"title": "Whetstone",
+			"description": "Sharpens your weapon, granting +3 bonus damage for 3 turns.",
+			"ref": "whetstone",
+			"key": 74,
+			"id": "01KKR7QNRCB0P53ECK35DY6AZQ",
+			"name": "Whetstone",
+			"type_flags": 8704,
+			"consumable": true,
+			"stackable": true,
+			"max_stack": 2,
+			"rarity": "uncommon",
+			"buy_price": 40,
+			"emoji": "🪨",
+			"action": "consume",
+			"tags": ["discordsh"],
+			"use_effects": [
+				{
+					"type": "apply_effect",
+					"status_effect": "sharpened",
+					"stacks": 1,
+					"turns": 3
+				}
+			]
+		},
+		{
+			"title": "Wildflower",
+			"description": "A hardy wildflower that thrives in untamed fields. The most common forageable bloom.",
+			"ref": "wildflower",
+			"key": 109,
+			"id": "01KMVPV9ZHCFW48C0G9S0CZA2J",
+			"name": "Wildflower",
+			"type_flags": 128,
+			"consumable": false,
+			"stackable": true,
+			"max_stack": 32,
+			"rarity": "common",
+			"buy_price": 3,
+			"sell_price": 1,
+			"emoji": "🌸",
+			"weight": 0.1,
+			"skilling": {
+				"skill": "foraging",
+				"xp_reward": 4,
+				"gather_time": 0.5,
+				"respawn_time": 20,
+				"resource_node": "flower-wildflower"
+			},
+			"tags": ["isometric"]
+		},
+		{
+			"title": "Z90 MurderBot",
+			"description": "A pocket-sized murder console with a glitched smile. Booting it unleashes unpredictable swarms—some helpful, some... not.",
+			"ref": "z90-murderbot",
+			"key": 8,
+			"id": "01J2GHZQ9CXY89NB7NS5Q2DRMB",
+			"name": "Z90 MurderBot",
+			"type_flags": 396,
+			"img": "/assets/items/utility/z90_murderbot.png",
+			"pixel_density": 64,
+			"sorting_layer": "Ground",
+			"sorting_order": 25,
+			"consumable": false,
+			"stackable": false,
+			"rarity": "legendary",
+			"weight": 1.2,
+			"effects": "Deploys randomized AI drones with unknown allegiance.",
+			"buy_price": 6400,
+			"durability": 900,
+			"equipped": true,
+			"level_requirement": 8,
+			"cooldown": 300,
+			"action": "deploy",
+			"credits": "Inspired by early pocket consoles and banned AI frameworks from before the 2031 Safety Accords. Concept by Ziggy Z90 Manufactured in defiance by KBVE BlackCell Division.\n",
+			"bonuses": {
+				"chaosSwarm": true,
+				"allyChance": 0.4,
+				"foeChance": 0.5,
+				"glitchFactor": 0.9
+			},
+			"scripts": [
+				{
+					"guid": "fe991e2232444ee3a0b55ff347ec774d",
+					"vars": {
+						"deploySwarm": true,
+						"swarmSize": "3-8",
+						"chaosLevel": 99,
+						"friendlyChance": 0.4,
+						"hostileChance": 0.5,
+						"duration": 45
+					}
+				}
+			]
+		}
+	],
+	"index": {
+		"1": 84,
+		"2": 9,
+		"3": 26,
+		"4": 63,
+		"5": 64,
+		"6": 67,
+		"7": 71,
+		"8": 116,
+		"9": 0,
+		"10": 104,
+		"11": 75,
+		"12": 51,
+		"13": 11,
+		"14": 91,
+		"15": 92,
+		"16": 62,
+		"17": 48,
+		"18": 42,
+		"19": 60,
+		"20": 49,
+		"21": 35,
+		"22": 66,
+		"23": 50,
+		"24": 81,
+		"25": 69,
+		"26": 108,
+		"27": 24,
+		"28": 78,
+		"29": 52,
+		"30": 2,
+		"31": 34,
+		"32": 41,
+		"33": 99,
+		"34": 100,
+		"35": 33,
+		"36": 79,
+		"37": 96,
+		"38": 18,
+		"39": 101,
+		"40": 110,
+		"41": 27,
+		"42": 111,
+		"43": 37,
+		"44": 13,
+		"45": 40,
+		"46": 44,
+		"47": 56,
+		"48": 55,
+		"49": 14,
+		"50": 6,
+		"51": 105,
+		"52": 106,
+		"53": 72,
+		"54": 95,
+		"55": 4,
+		"56": 59,
+		"57": 88,
+		"58": 73,
+		"59": 36,
+		"60": 74,
+		"61": 12,
+		"62": 39,
+		"63": 97,
+		"64": 89,
+		"65": 43,
+		"66": 58,
+		"67": 70,
+		"68": 5,
+		"69": 10,
+		"70": 113,
+		"71": 77,
+		"72": 87,
+		"73": 28,
+		"74": 114,
+		"75": 3,
+		"76": 102,
+		"77": 15,
+		"78": 98,
+		"79": 109,
+		"80": 30,
+		"81": 47,
+		"82": 76,
+		"83": 65,
+		"84": 83,
+		"85": 86,
+		"86": 31,
+		"87": 107,
+		"88": 45,
+		"89": 38,
+		"90": 29,
+		"91": 112,
+		"92": 54,
+		"93": 16,
+		"94": 90,
+		"95": 21,
+		"96": 85,
+		"97": 82,
+		"98": 25,
+		"99": 57,
+		"100": 93,
+		"101": 61,
+		"102": 19,
+		"103": 46,
+		"104": 22,
+		"105": 103,
+		"106": 23,
+		"107": 53,
+		"108": 7,
+		"109": 115,
+		"110": 94,
+		"111": 80,
+		"112": 20,
+		"113": 1,
+		"114": 8,
+		"115": 68,
+		"116": 17,
+		"117": 32,
+		"01J2GHZQ9CXY89NB7NS5Q2DRSD": 0,
+		"Alchemist Stardust": 0,
+		"alchemist-stardust": 0,
+		"01KMVPV9ZJ37XD5AAAP211W0XM": 1,
+		"Allium": 1,
+		"allium": 1,
+		"01JWFA5N2C1SFDP1S7331YF4A6": 2,
+		"Anime Body Pillow": 2,
+		"anime-body-pillow": 2,
+		"01KKR7QNRC81EVK4PF70V5E3FR": 3,
+		"Antidote": 3,
+		"antidote": 3,
+		"01JWN7TN1P44J963328VP0YNFF": 4,
+		"Auto Cooker 9000": 4,
+		"auto-cooker-9000": 4,
+		"01KKR7QNRCPH4QEYXHHXV2301B": 5,
+		"Bandage": 5,
+		"bandage": 5,
+		"01JWJAVCGHH345RKABKR1D04XF": 6,
+		"Beer": 6,
+		"beer": 6,
+		"01KMVPV9ZHMZNVQDYGK8F47P5D": 7,
+		"Bellflower": 7,
+		"bellflower": 7,
+		"01KMVPV9ZJCX2MW8DR54AV33JS": 8,
+		"Blue Orchid": 8,
+		"blue-orchid": 8,
+		"01J263S362R0Q3TV8T4DFMR8Z5": 9,
+		"Blue Shark": 9,
+		"blue-shark": 9,
+		"01KKR7QNRCXEWSCSYHRKEVJ20N": 10,
+		"Bomb": 10,
+		"bomb": 10,
+		"01JW9Z6VRWVN2RXGWNEVVG9RTJ": 11,
+		"Bone": 11,
+		"bone": 11,
+		"01JX4H5YJKEBYQT4QZ2PHTYMY5": 12,
+		"Brainrot Laptop": 12,
+		"brainrot-laptop": 12,
+		"01JWG7MYCBHXK5WP2WS6AQYMSC": 13,
+		"Brown Curry Sauce": 13,
+		"brown-curry-sauce": 13,
+		"01JWJ9XF2P7MFM2W96T55XTGA7": 14,
+		"Butter": 14,
+		"butter": 14,
+		"01KKR7QNRCDVADFBQ4TTESGDQA": 15,
+		"Campfire Kit": 15,
+		"campfire-kit": 15,
+		"01KKR7QNRCHKCKBSFQW8Z8DC7G": 16,
+		"Chain Mail": 16,
+		"chain-mail": 16,
+		"01KMVPV9ZJF97SBP3WTVTPV93C": 17,
+		"Chanterelle": 17,
+		"chanterelle": 17,
+		"01JWG4CAABY3EHB65EBTG77J5A": 18,
+		"Cheddar Cheese": 18,
+		"cheddar-cheese": 18,
+		"01KMVPV9ZHV1GFHM1MPDN4FV70": 19,
+		"Copper Ore": 19,
+		"copper-ore": 19,
+		"01KMVPV9ZJHTX417X4HV0DY663": 20,
+		"Cornflower": 20,
+		"cornflower": 20,
+		"01KKR7QNRC18GWKPEPKM2VDYWM": 21,
+		"Crystal Armor": 21,
+		"crystal-armor": 21,
+		"01KMVPV9ZHRQSBQJDRNEAJN368": 22,
+		"Crystal Ore": 22,
+		"crystal-ore": 22,
+		"01KMVPV9ZH852GF5HWAQJQD0G1": 23,
+		"Daisy": 23,
+		"daisy": 23,
+		"01JWCWVCGTZRJQ3FD5Z0MVS5XH": 24,
+		"Data CD": 24,
+		"data-cd": 24,
+		"01KKR7QNRCD9Z8VG601R379C71": 25,
+		"Dragon Scale": 25,
+		"dragon-scale": 25,
+		"01J27QABD2GPFNRVK69S51HSGB": 26,
+		"Ecto Cooler Drank Type 95": 26,
+		"ecto-cooler-drank-type-95": 26,
+		"01J2GHZQ9CXY89NB7NS5Q2DRJJ": 27,
+		"Ed's Jelly Jam": 27,
+		"eds-jelly-jam": 27,
+		"01KKR7QNRCNNPNQD46DYT110R9": 28,
+		"Elixir": 28,
+		"elixir": 28,
+		"01KKR7QNRCNZ64AGRD8M3H09YP": 29,
+		"Excalibur": 29,
+		"excalibur": 29,
+		"01KKR7QNRC7V62X0C8J3ZX22DA": 30,
+		"Fire Flask": 30,
+		"fire-flask": 30,
+		"01KKR7QNRC0XKBPFD6BNWV57SR": 31,
+		"Flame Axe": 31,
+		"flame-axe": 31,
+		"01KMVPV9ZJTK4QB8KGBH5XAEW4": 32,
+		"Fly Agaric": 32,
+		"fly-agaric": 32,
+		"01JWG25PJN79DJP822GGKN8B1R": 33,
+		"Fresh Milk": 33,
+		"fresh-milk": 33,
+		"01JWFY6R3G5BQ7FZ7Q3KPKHY2C": 34,
+		"Fish Taco": 34,
+		"fried-fish-taco": 34,
+		"01JWAXYK9QWKYVTDG21614F3KT": 35,
+		"Frozen Pizza Rolls": 35,
+		"frozen-pizza-rolls": 35,
+		"01JX11B4TZ6BN2WB3DBVETSZYW": 36,
+		"Garlic Bread": 36,
+		"garlic-bread": 36,
+		"01J2GHZQ9CXY89NB7NS5Q2DRGN": 37,
+		"Gin": 37,
+		"gin": 37,
+		"01KKR7QNRC6837QFCM9K0BD1N9": 38,
+		"Glass Stiletto": 38,
+		"glass-stiletto": 38,
+		"01JX55ZPSYC91ERYPHP47FPQAN": 39,
+		"Gravity Boots": 39,
+		"gravity-boots": 39,
+		"01JWG89BEEKCWWYQ9XVAM53CJ6": 40,
+		"Green Pasta Sauce": 40,
+		"green-pasta-sauce": 40,
+		"01JWFZBV4K5T7KNFYKY7Q5YF29": 41,
+		"Grilled Fish Burrito": 41,
+		"grilled-fish-burrito": 41,
+		"01JWAPWQT370ZK76K32JGVBZWV": 42,
+		"Herbal Medi-Wrap": 42,
+		"herbal-medi-wrap": 42,
+		"01JX5617TYSVQC68T3R8ZA91ND": 43,
+		"Holographic Arcade Token": 43,
+		"holographic-arcade-token": 43,
+		"01JWG8KEBJPJ3WRW8RDMD3066S": 44,
+		"Ink Pasta Sauce": 44,
+		"ink-pasta-sauce": 44,
+		"01KKR7QNRCCDST7FEYK9CFPX26": 45,
+		"Iron Mace": 45,
+		"iron-mace": 45,
+		"01KMVPV9ZHGWG5M1Q4R3YPYSG7": 46,
+		"Iron Ore": 46,
+		"iron-ore": 46,
+		"01KKR7QNRCWS11606Z2MJC11QA": 47,
+		"Iron Skin Potion": 47,
+		"iron-skin-potion": 47,
+		"01JWAB140RVZX5C7M8622AZXGA": 48,
+		"Jar of Honey": 48,
+		"jar-of-honey": 48,
+		"01JWAWYPGZHJW1Q103D8M2Q29W": 49,
+		"Jared's Teddy Bear": 49,
+		"jareds-teddy-bear": 49,
+		"01JWB04MV4JB6P79G5ZF3XQ122": 50,
+		"Kiwi Jigsaw": 50,
+		"kiwi-jigsaw": 50,
+		"01JW9Y29NQCWSS8B2ET09YZ6T7": 51,
+		"Krispee Air Fryer": 51,
+		"krispee-air-fryer": 51,
+		"01JWCXER3NRHA3J4DNCJN250MX": 52,
+		"Kryptonite Book": 52,
+		"kryptonite-book": 52,
+		"01KMVPV9ZH2X5XSMVAE90D21YM": 53,
+		"Lavender": 53,
+		"lavender": 53,
+		"01KKR7QNRC3B4Y2629KQY1YDB6": 54,
+		"Leather Vest": 54,
+		"leather-vest": 54,
+		"01JWG9ZCRB9JW5F4DHMRXQ2VM8": 55,
+		"Lobster Soup": 55,
+		"lobster-soup": 55,
+		"01JWG9JF11KYG4DAXF1VTKYZWS": 56,
+		"Lobster": 56,
+		"lobster": 56,
+		"01KMVPV9ZG6TPG7BVB5Q9QV69M": 57,
+		"Log": 57,
+		"log": 57,
+		"01JX727N5R6EKJ61NME0QD08RW": 58,
+		"Lunar Lantern": 58,
+		"lunar-lantern": 58,
+		"01J269PK47V1DWX2S1251DEASD": 59,
+		"Magic Nemo": 59,
+		"magic-nemo": 59,
+		"01J2GHZQ9CXY89NB7NS5Q2DRMM": 60,
+		"Microchip Motherboard": 60,
+		"microchip-motherboard": 60,
+		"01KMVPV9ZHNPTTYJPWD3RD00Y2": 61,
+		"Mossy Stone": 61,
+		"mossy-stone": 61,
+		"01JWA62X4JRK6MMNJBFEZENK0V": 62,
+		"Natural Beeswax": 62,
+		"natural-beeswax": 62,
+		"01J2GHZQ9CXY89NB7NS5Q2DRJW": 63,
+		"Noodles Girthy Pharma Potion": 63,
+		"noodles-girthy-pharma-potion": 63,
+		"01J2GHZQ9CXY89NB7NS5Q2DRPX": 64,
+		"Paradox Sack of Potatoes": 64,
+		"paradox-sack-of-potatoes": 64,
+		"01KKR7QNRCKPV43AZDEN3GMME7": 65,
+		"Phoenix Feather": 65,
+		"phoenix-feather": 65,
+		"01J2GHZQ9CXY89NB7NS5Q2DRPP": 66,
+		"Pied Piper Jacket": 66,
+		"pied-piper-jacket": 66,
+		"01J2GHZQ9CXY89NB7NS5Q2DRZZ": 67,
+		"Pocket Prophet of Profit": 67,
+		"pocket-prophet-of-profit": 67,
+		"01KMVPV9ZJB35BQJ3SNZ4W9GDA": 68,
+		"Porcini": 68,
+		"porcini": 68,
+		"01JWCKTE3TC42CNP3X24TM0BA1": 69,
+		"Portable Powerbank": 69,
+		"portable-powerbank": 69,
+		"01KKR7QNRATCW9JB66FKPMYB65": 70,
+		"Potion": 70,
+		"potion": 70,
+		"01JW8GK1Z1DYXTB7KB8RRKP87B": 71,
+		"Propagandist Laptop": 71,
+		"propagandist-laptop": 71,
+		"01JWJGBXT7E6VSVV6E6D6N2AT5": 72,
+		"Punk Skateboard": 72,
+		"punk-skateboard": 72,
+		"01JX0YM8XTR59QQ83STSSM0P93": 73,
+		"Quantum Coffee": 73,
+		"quantum-coffee": 73,
+		"01JX4H2NVFGJ1F74KGHYQFTN6M": 74,
+		"Quantum Energy Drink": 74,
+		"quantum-energy-drink": 74,
+		"01JW9MMAPMYMX7F6C1XYMNT9BN": 75,
+		"Quick Toolbelt": 75,
+		"quick-toolbelt": 75,
+		"01KKR7QNRC4PXBN13CNS1YR9HY": 76,
+		"Rage Draught": 76,
+		"rage-draught": 76,
+		"01KKR7QNRCTKXB470J4ENW4KCK": 77,
+		"Rations": 77,
+		"rations": 77,
+		"01JWCX61HFPET0VWXTZFDG4D06": 78,
+		"Rebel Radio": 78,
+		"rebel-radio": 78,
+		"01J2GHZQ9CXY89NB7NS5Q2DRRC": 79,
+		"Retro CRT Monitor": 79,
+		"retro-crt-monitor": 79,
+		"01KMVPV9ZHZ93N2B6DB35FDJAM": 80,
+		"Rose": 80,
+		"rose": 80,
+		"01JWCCEP0B8M6NPSXCW8XQPW6G": 81,
+		"Rubber Tire": 81,
+		"rubber-tire": 81,
+		"01KKR7QNRC5MQGKPW28R7FR2X6": 82,
+		"Runeguard Plate": 82,
+		"runeguard-plate": 82,
+		"01KKR7QNRCH0N5SPC9X86XRC96": 83,
+		"Rusty Sword": 83,
+		"rusty-sword": 83,
+		"01JW0R6C62QK3WVJHR05XZ5K1T": 84,
+		"Salmon": 84,
+		"salmon": 84,
+		"01KKR7QNRC1W3SZRYP385BX2ST": 85,
+		"Shadow Cloak": 85,
+		"shadow-cloak": 85,
+		"01KKR7QNRCCGPJS1BY1R6NEN8B": 86,
+		"Shadow Dagger": 86,
+		"shadow-dagger": 86,
+		"01KKR7QNRCN8GS74B9NMC7DDDW": 87,
+		"Smoke Bomb": 87,
+		"smoke-bomb": 87,
+		"01JX0YKWS3482FA3MBZ9EZQD31": 88,
+		"Spicy Nacho Supreme": 88,
+		"spicy-nacho-supreme": 88,
+		"01FC6AB642E4FA4FF6A771F20D": 89,
+		"Spicy Ramen": 89,
+		"spicy-ramen": 89,
+		"01KKR7QNRCF2PAF55RNCVZ5H5S": 90,
+		"Spiked Plate": 90,
+		"spiked-plate": 90,
+		"01J2GHZQ9CXY89NB7NS5Q2DRSC": 91,
+		"Spooky Skull Candle": 91,
+		"spooky-skull-candle": 91,
+		"01J2GHZQ9CXY89NB7NS5Q2DRBH": 92,
+		"Steel Beehive": 92,
+		"steel-beehive": 92,
+		"01KMVPV9ZHPBRJZZEN7C0Q9R4Q": 93,
+		"Stone": 93,
+		"stone": 93,
+		"01KMVPV9ZHQSEG1JXEWWJY2WKV": 94,
+		"Sunflower": 94,
+		"sunflower": 94,
+		"01JWJGC4NYQ7K4MW6YBVD6GYQ5": 95,
+		"Surfer Longboard": 95,
+		"surfer-longboard": 95,
+		"01JWG6FTDT249H8AGN439GEXQQ": 96,
+		"Swiss Cheese": 96,
+		"swiss-cheese": 96,
+		"01JX5620BTQ558YAXW4704SRG5": 97,
+		"Synthwave Popcorn": 97,
+		"synthwave-popcorn": 97,
+		"01KKR7QNRC3336DJ0D3SJA8SA7": 98,
+		"Teleport Rune": 98,
+		"teleport-rune": 98,
+		"01JWFZW7DF410GYBT5202S753D": 99,
+		"Tex-Mex Pizza": 99,
+		"tex-mex-pizza": 99,
+		"01JWG0HJSK6K77SAKSRC31VH4T": 100,
+		"Texas BBQ Brisket": 100,
+		"texas-bbq-brisket": 100,
+		"01JWG51QXSF2QB8G743A60W5TV": 101,
+		"Tomato Pasta Sauce": 101,
+		"tomato-pasta-sauce": 101,
+		"01KKR7QNRCECPB1TANAW22C8B2": 102,
+		"Trap Kit": 102,
+		"trap-kit": 102,
+		"01KMVPV9ZHDT45T6PYS5PH82F7": 103,
+		"Tulip": 103,
+		"tulip": 103,
+		"01J2GHZQ9CXY89NB7NS5Q2DRSK": 104,
+		"Undead Humanoid Skull": 104,
+		"undead-humanoid-skull": 104,
+		"01JWJC0PYN7P81PD279GGNVYA4": 105,
+		"Vampire Blood Champagne": 105,
+		"vampirie-blood-champagne": 105,
+		"01JWJCC6PEH1BFGXGTD6ETW0TV": 106,
+		"Vampire Blood Gelato": 106,
+		"vampire-blood-gelato": 106,
+		"01KKR7QNRCAJDADA45HXS0KGWF": 107,
+		"Vampiric Blade": 107,
+		"vampiric-blade": 107,
+		"01JWCWCH9FEJXHMW48JYJ94Q8F": 108,
+		"VHS Tape": 108,
+		"vhs-tape": 108,
+		"01KKR7QNRCYBZP4ZZ0WCCBBKA4": 109,
+		"Vitality Potion": 109,
+		"vitality-potion": 109,
+		"01J2GHZQ9CXY89NB7NS5Q2DRVK": 110,
+		"Vodka Sauce": 110,
+		"vodka-sauce": 110,
+		"01JWG6H44RKRK9TKTHNGRNMA2N": 111,
+		"Vodka": 111,
+		"vodka": 111,
+		"01KKR7QNRCF2G0B210XXC8HSVA": 112,
+		"Void Scythe": 112,
+		"void-scythe": 112,
+		"01KKR7QNRCT4AA6ZG8P0Z37NM0": 113,
+		"Ward": 113,
+		"ward": 113,
+		"01KKR7QNRCB0P53ECK35DY6AZQ": 114,
+		"Whetstone": 114,
+		"whetstone": 114,
+		"01KMVPV9ZHCFW48C0G9S0CZA2J": 115,
+		"Wildflower": 115,
+		"wildflower": 115,
+		"01J2GHZQ9CXY89NB7NS5Q2DRMB": 116,
+		"Z90 MurderBot": 116,
+		"z90-murderbot": 116
+	}
+}

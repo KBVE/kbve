@@ -25,7 +25,7 @@ use bevy_kbve_net::{
 
 use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
 use super::creatures::{Creature, CreaturePoolIndex, CreatureState, RenderKind};
-use super::inventory::{ItemKind, LootEvent};
+use super::inventory::{ITEM_LOG, ITEM_PORCINI, ITEM_STONE, ITEM_WILDFLOWER, ItemKind, LootEvent};
 use super::player::{FallDamageEvent, Player};
 use super::scene_objects::CollectEvent;
 use super::state::PlayerState;
@@ -1351,10 +1351,14 @@ fn receive_object_removed(
             // Grant loot to the collecting player (server-confirmed)
             if is_mine {
                 let (kind, qty) = match msg.kind {
-                    bevy_kbve_net::WorldObjectKind::Tree => (ItemKind::Log, 1),
-                    bevy_kbve_net::WorldObjectKind::Rock => (ItemKind::Stone, 1),
-                    bevy_kbve_net::WorldObjectKind::Flower => (ItemKind::Wildflower, 1),
-                    bevy_kbve_net::WorldObjectKind::Mushroom => (ItemKind::Porcini, 1),
+                    bevy_kbve_net::WorldObjectKind::Tree => (ItemKind::from_ref(ITEM_LOG), 1),
+                    bevy_kbve_net::WorldObjectKind::Rock => (ItemKind::from_ref(ITEM_STONE), 1),
+                    bevy_kbve_net::WorldObjectKind::Flower => {
+                        (ItemKind::from_ref(ITEM_WILDFLOWER), 1)
+                    }
+                    bevy_kbve_net::WorldObjectKind::Mushroom => {
+                        (ItemKind::from_ref(ITEM_PORCINI), 1)
+                    }
                 };
                 commands.trigger(LootEvent {
                     kind,
@@ -1403,7 +1407,7 @@ fn receive_object_removed(
                                 original_scale: Vec3::ONE,
                                 smoke_spawned: false,
                                 loot_dropped: true,
-                                loot_item: ItemKind::Stone,
+                                loot_item: ItemKind::from_ref(ITEM_STONE),
                             });
                         }
                         bevy_kbve_net::WorldObjectKind::Flower => {
@@ -1411,7 +1415,7 @@ fn receive_object_removed(
                                 timer: Timer::from_seconds(0.5, TimerMode::Once),
                                 original_scale: Vec3::ONE,
                                 loot_dropped: true,
-                                loot_item: ItemKind::Wildflower,
+                                loot_item: ItemKind::from_ref(ITEM_WILDFLOWER),
                             });
                         }
                         bevy_kbve_net::WorldObjectKind::Mushroom => {
@@ -1419,7 +1423,7 @@ fn receive_object_removed(
                                 timer: Timer::from_seconds(0.5, TimerMode::Once),
                                 original_scale: Vec3::ONE,
                                 loot_dropped: true,
-                                loot_item: ItemKind::Porcini,
+                                loot_item: ItemKind::from_ref(ITEM_PORCINI),
                             });
                         }
                     }

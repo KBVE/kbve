@@ -4,7 +4,10 @@ use bevy::render::render_resource::{AsBindGroup, ShaderType};
 use bevy::shader::ShaderRef;
 use std::f32::consts::PI;
 
-use super::inventory::{ItemKind, LootEvent};
+use super::inventory::{
+    ITEM_LOG, ITEM_PORCINI, ITEM_STONE, ITEM_WILDFLOWER, ItemKind, LootEvent,
+    item_from_flower_archetype, item_from_mushroom_kind, item_from_rock_kind,
+};
 use super::scene_objects::{
     CollectEvent, FlowerArchetype, HoverOutline, Interactable, InteractableKind, MushroomKind,
     RockKind,
@@ -232,8 +235,8 @@ fn process_action_buffer(
                 // Read RockKind before removing components
                 let loot_item = rock_query
                     .get(entity)
-                    .map(ItemKind::from_rock_kind)
-                    .unwrap_or(ItemKind::Stone);
+                    .map(item_from_rock_kind)
+                    .unwrap_or(ItemKind::from_ref(ITEM_STONE));
 
                 ec.remove::<RigidBody>();
                 ec.remove::<Collider>();
@@ -253,8 +256,8 @@ fn process_action_buffer(
             "collect_flower" => {
                 let loot_item = flower_query
                     .get(entity)
-                    .map(ItemKind::from_flower_archetype)
-                    .unwrap_or(ItemKind::Wildflower);
+                    .map(item_from_flower_archetype)
+                    .unwrap_or(ItemKind::from_ref(ITEM_WILDFLOWER));
 
                 ec.remove::<RigidBody>();
                 ec.remove::<Collider>();
@@ -273,8 +276,8 @@ fn process_action_buffer(
             "collect_mushroom" => {
                 let loot_item = mushroom_query
                     .get(entity)
-                    .map(ItemKind::from_mushroom_kind)
-                    .unwrap_or(ItemKind::Porcini);
+                    .map(item_from_mushroom_kind)
+                    .unwrap_or(ItemKind::from_ref(ITEM_PORCINI));
 
                 ec.remove::<RigidBody>();
                 ec.remove::<Collider>();
@@ -336,7 +339,7 @@ fn animate_tree_chop(
         if t > 0.9 && !chop.loot_dropped {
             chop.loot_dropped = true;
             commands.trigger(LootEvent {
-                kind: ItemKind::Log,
+                kind: ItemKind::from_ref(ITEM_LOG),
                 quantity: 1,
             });
         }
