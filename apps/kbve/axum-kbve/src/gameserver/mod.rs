@@ -262,16 +262,28 @@ pub fn init_gameserver() {
         }
     }
 
+    let ws_plain = std::env::var("GAME_WS_PLAIN")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false);
+
     std::thread::spawn(move || {
-        tracing::info!("game server starting on ws://{ws_addr}");
-        if wt_identity.is_some() {
-            tracing::info!(
-                "WebTransport enabled on https://{wt_addr} \
-                 (keep_alive={}s, idle_timeout={}s)",
-                std::env::var("GAME_WT_KEEP_ALIVE_SECS").unwrap_or_else(|_| "4".into()),
-                std::env::var("GAME_WT_IDLE_TIMEOUT_SECS").unwrap_or_else(|_| "30".into()),
-            );
-        }
+        tracing::info!(
+            target: "gameserver.startup",
+            ws_addr = %ws_addr,
+            ws_plain = ws_plain,
+            wt_enabled = wt_identity.is_some(),
+            wt_addr = %wt_addr,
+            "game server starting — WS on {ws_addr} (plain={ws_plain}), WT: {}",
+            if wt_identity.is_some() {
+                format!(
+                    "on {wt_addr} (keep_alive={}s, idle_timeout={}s)",
+                    std::env::var("GAME_WT_KEEP_ALIVE_SECS").unwrap_or_else(|_| "4".into()),
+                    std::env::var("GAME_WT_IDLE_TIMEOUT_SECS").unwrap_or_else(|_| "30".into()),
+                )
+            } else {
+                "disabled".to_string()
+            }
+        );
         run_bevy_app(ws_addr, wt_addr, jwt_secret, wt_identity, req_tx, resp_rx);
     });
 }
@@ -758,10 +770,29 @@ fn start_server(
         }
     );
 
-    let ws_identity = load_ws_identity();
-    let ws_config = ServerConfig::builder()
-        .with_bind_address(ws_addr)
-        .with_identity(ws_identity);
+    // GAME_WS_PLAIN=1 disables TLS on the WebSocket listener.
+    // Required when running behind a TLS-terminating gateway (Cilium, nginx, etc.)
+    // that forwards plain HTTP to the backend. Without this, the server responds
+    // with a TLS ServerHello that the gateway can't parse → "bad response".
+    let ws_plain = std::env::var("GAME_WS_PLAIN")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false);
+
+    let ws_config = if ws_plain {
+        tracing::info!(
+            "[gameserver] GAME_WS_PLAIN=1 — WebSocket listening WITHOUT TLS on {ws_addr} \
+             (expects TLS-terminating gateway in front)"
+        );
+        ServerConfig::builder()
+            .with_bind_address(ws_addr)
+            .with_no_encryption()
+    } else {
+        let ws_identity = load_ws_identity();
+        tracing::info!("[gameserver] WebSocket listening WITH TLS on {ws_addr}");
+        ServerConfig::builder()
+            .with_bind_address(ws_addr)
+            .with_identity(ws_identity)
+    };
 
     let netcode_config = lightyear::netcode::prelude::server::NetcodeConfig {
         protocol_id: bevy_kbve_net::net_config::KBVE_PROTOCOL_ID,
@@ -867,7 +898,10 @@ fn load_pem_identity(
 fn debug_on_linking_added(trigger: On<Add, Linking>) {
     let entity = trigger.entity;
     tracing::info!(
-        "[gameserver][link-debug] LINKING added — entity {entity:?} (transport connecting)"
+        target: "gameserver.transport",
+        event = "linking",
+        entity = ?entity,
+        "[gameserver][link] LINKING — entity {entity:?} (transport connecting)"
     );
 }
 
@@ -875,7 +909,10 @@ fn debug_on_linking_added(trigger: On<Add, Linking>) {
 fn debug_on_linked_added(trigger: On<Add, Linked>) {
     let entity = trigger.entity;
     tracing::info!(
-        "[gameserver][link-debug] LINKED added — entity {entity:?} (transport ready, packets can flow)"
+        target: "gameserver.transport",
+        event = "linked",
+        entity = ?entity,
+        "[gameserver][link] LINKED — entity {entity:?} (transport ready, packets flowing)"
     );
 }
 
@@ -883,7 +920,10 @@ fn debug_on_linked_added(trigger: On<Add, Linked>) {
 fn debug_on_unlinked_added(trigger: On<Add, Unlinked>) {
     let entity = trigger.entity;
     tracing::warn!(
-        "[gameserver][link-debug] UNLINKED added — entity {entity:?} (transport closed)"
+        target: "gameserver.transport",
+        event = "unlinked",
+        entity = ?entity,
+        "[gameserver][link] UNLINKED — entity {entity:?} (transport closed or failed)"
     );
 }
 
@@ -891,6 +931,9 @@ fn debug_on_unlinked_added(trigger: On<Add, Unlinked>) {
 fn on_server_connecting(trigger: On<Add, Connecting>) {
     let entity = trigger.entity;
     tracing::info!(
+        target: "gameserver.lifecycle",
+        event = "connecting",
+        entity = ?entity,
         "[gameserver][lifecycle] CONNECTING — client entity {entity:?} starting handshake"
     );
 }
@@ -899,6 +942,9 @@ fn on_server_connecting(trigger: On<Add, Connecting>) {
 fn on_server_connected(trigger: On<Add, Connected>) {
     let entity = trigger.entity;
     tracing::info!(
+        target: "gameserver.lifecycle",
+        event = "connected",
+        entity = ?entity,
         "[gameserver][lifecycle] CONNECTED — client entity {entity:?} handshake complete"
     );
 }
@@ -917,12 +963,21 @@ fn on_server_disconnected(
     let player_entity = client_player_map.0.remove(&client_entity);
 
     tracing::warn!(
+        target: "gameserver.lifecycle",
+        event = "disconnected",
+        client = ?client_entity,
+        user_id = ?user_id,
+        player = ?player_entity,
         "[gameserver][lifecycle] DISCONNECTED — client {client_entity:?} user={user_id:?} player={player_entity:?}"
     );
 
     if let Some(player_entity) = player_entity {
         commands.entity(player_entity).despawn();
         tracing::info!(
+            target: "gameserver.lifecycle",
+            event = "player_despawned",
+            client = ?client_entity,
+            player = ?player_entity,
             "[gameserver] despawned player entity {player_entity:?} for disconnected client {client_entity:?}"
         );
     }

@@ -2,6 +2,11 @@
 ## Bypasses the Cilium Gateway / L7 proxy — QUIC needs direct
 ## UDP path with connection-ID awareness that L7 proxies lack.
 ## Shares the public IP with other kbve LoadBalancers via Cilium LB-IPAM.
+##
+## externalTrafficPolicy: Cluster ensures UDP reaches the pod even if it
+## lands on a different node than where Cilium L2 announces the IP.
+## Trade-off: client source IP is SNATed, but QUIC doesn't need it
+## (Netcode uses its own client-ID for identity).
 apiVersion: v1
 kind: Service
 metadata:
@@ -14,7 +19,7 @@ metadata:
         lbipam.cilium.io/sharing-key: kbve-shared
 spec:
     type: LoadBalancer
-    externalTrafficPolicy: Local
+    externalTrafficPolicy: Cluster
     selector:
         app: kbve
     ports:
