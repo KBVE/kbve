@@ -55,6 +55,7 @@ export const ICiProjectSchema = AstroProjectExtensions.extend({
 	source_path: CiProjectSchema.shape.source_path,
 	version_toml: CiProjectSchema.shape.version_toml,
 	version: CiProjectSchema.shape.version,
+	version_source: CiProjectSchema.shape.version_source,
 	author: CiProjectSchema.shape.author,
 	license: CiProjectSchema.shape.license,
 	repository_url: CiProjectSchema.shape.repository_url,
