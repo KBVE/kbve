@@ -192,7 +192,7 @@ spec:
                       - name: KONG_CLUSTER_LISTEN
                         value: 'off'
                       - name: RESTART_TRIGGER
-                        value: 'cors-preflight-fix-2026-03-20'
+                        value: 'cors-chuckrpg-cryptothrone-2026-03-28'
                       - name: KONG_STREAM_LISTEN
                         value: 'off'
                       - name: KONG_PREFIX
