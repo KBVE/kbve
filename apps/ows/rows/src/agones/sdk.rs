@@ -17,7 +17,7 @@ use super::client::AgonesClient;
 use super::error::AgonesError;
 use serde_json::json;
 use std::time::Duration;
-use tracing::{info, warn};
+use tracing::info;
 
 /// Labels used by ROWS on GameServer resources.
 pub mod labels {
