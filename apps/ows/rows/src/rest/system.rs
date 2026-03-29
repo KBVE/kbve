@@ -259,6 +259,11 @@ async fn deployment_info(State(hs): State<HandlerState>) -> Json<serde_json::Val
         "active_sessions": hs.app.sessions.len(),
         "zone_servers_tracked": hs.app.zone_servers.len(),
         "spinup_locks_active": hs.app.zone_spinup_locks.len(),
+        "supabase": {
+            "jwt_configured": hs.app.supabase.jwt_enabled(),
+            "service_key_configured": hs.app.supabase.service_key_enabled(),
+            "url_configured": hs.app.supabase.url.is_some(),
+        },
     }))
 }
 

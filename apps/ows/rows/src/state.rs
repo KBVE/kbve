@@ -2,6 +2,7 @@ use crate::agones::AgonesClient;
 use crate::db::DbPool;
 use crate::mq::MqProducer;
 use crate::service::CachedSession;
+use crate::supabase::SupabaseConfig;
 use dashmap::DashMap;
 use std::sync::Arc;
 use std::time::Instant;
@@ -23,6 +24,8 @@ pub struct AppState {
     pub mq: Option<MqProducer>,
     /// Agones allocator (None if not in-cluster — non-fatal)
     pub agones: Option<AgonesClient>,
+    /// Supabase auth config (None fields if not configured — legacy mode)
+    pub supabase: SupabaseConfig,
     /// Instance lifecycle event log (ring buffer, max 200 entries)
     pub instance_log: crate::rest::system::InstanceEventLog,
 }
@@ -91,6 +94,7 @@ impl AppStateBuilder {
             },
             mq: self.mq,
             agones: self.agones,
+            supabase: SupabaseConfig::from_env(),
             instance_log: crate::rest::system::InstanceEventLog::new(),
         }))
     }
