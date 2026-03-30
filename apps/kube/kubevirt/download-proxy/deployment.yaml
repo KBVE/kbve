@@ -1,0 +1,141 @@
+# Download proxy for KubeVirt VMs — aria2c with retry + resume.
+#
+# Solves: Cilium VXLAN masquerade NAT drops long-lived TCP connections,
+# causing large downloads (UE5 ~40GB, VS Build Tools ~5GB) to fail.
+#
+# Architecture:
+#   This pod runs on the SAME node as the VM (via node affinity).
+#   The VM accesses it via ClusterIP service at download-proxy.angelscript.svc:6800
+#   aria2c handles retries, resume, and multi-connection downloads.
+#
+# Usage from inside the VM:
+#   1. Add a download:
+#      curl -d '{"jsonrpc":"2.0","id":"1","method":"aria2.addUri","params":[["https://example.com/file.zip"],{"dir":"/downloads"}]}' \
+#        http://download-proxy.angelscript.svc:6800/jsonrpc
+#   2. Check status:
+#      curl -d '{"jsonrpc":"2.0","id":"1","method":"aria2.tellActive","params":[]}' \
+#        http://download-proxy.angelscript.svc:6800/jsonrpc
+#   3. Download the file from the shared PVC:
+#      curl http://download-proxy.angelscript.svc:8080/file.zip -o C:\file.zip
+#
+# The proxy pod has stable internet (runs as a normal pod, not through masquerade).
+# Downloaded files land on the shared PVC which is also mounted in the VM.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: download-proxy
+    namespace: angelscript
+    labels:
+        app: download-proxy
+        component: kubevirt-tooling
+spec:
+    replicas: 0
+    selector:
+        matchLabels:
+            app: download-proxy
+    template:
+        metadata:
+            labels:
+                app: download-proxy
+                component: kubevirt-tooling
+        spec:
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                fsGroup: 1000
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                # aria2c — download engine with retry, resume, multi-connection
+                - name: aria2
+                  image: p3terx/aria2-pro:latest
+                  env:
+                      - name: PUID
+                        value: '1000'
+                      - name: PGID
+                        value: '1000'
+                      # RPC secret — set to empty for internal-only access
+                      - name: RPC_SECRET
+                        value: ''
+                      # Max concurrent downloads
+                      - name: CUSTOM_TRACKER_URL
+                        value: ''
+                  ports:
+                      - containerPort: 6800
+                        name: rpc
+                        protocol: TCP
+                  volumeMounts:
+                      - name: downloads
+                        mountPath: /downloads
+                      - name: aria2-config
+                        mountPath: /config
+                  resources:
+                      requests:
+                          cpu: 100m
+                          memory: 128Mi
+                      limits:
+                          cpu: '2'
+                          memory: 1Gi
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
+                # HTTP file server — serves completed downloads to the VM
+                - name: file-server
+                  image: python:3.12-alpine
+                  command:
+                      [
+                          'python3',
+                          '-m',
+                          'http.server',
+                          '8080',
+                          '--directory',
+                          '/downloads',
+                      ]
+                  ports:
+                      - containerPort: 8080
+                        name: http
+                  volumeMounts:
+                      - name: downloads
+                        mountPath: /downloads
+                  resources:
+                      requests:
+                          cpu: 50m
+                          memory: 64Mi
+                      limits:
+                          cpu: 500m
+                          memory: 256Mi
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
+            volumes:
+                - name: downloads
+                  persistentVolumeClaim:
+                      claimName: builder-shared-storage
+                - name: aria2-config
+                  emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: download-proxy
+    namespace: angelscript
+    labels:
+        app: download-proxy
+        component: kubevirt-tooling
+spec:
+    selector:
+        app: download-proxy
+    ports:
+        - port: 6800
+          targetPort: 6800
+          name: rpc
+          protocol: TCP
+        - port: 8080
+          targetPort: 8080
+          name: http
+          protocol: TCP

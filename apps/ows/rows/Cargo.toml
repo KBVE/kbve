@@ -15,9 +15,10 @@ axum = { version = "0.8.5", features = ["macros"] }
 axum-extra = { version = "0.12.1", features = ["cookie"] }
 
 # gRPC (tonic)
-tonic = "0.13"
-prost = "0.13"
-prost-types = "0.13"
+tonic = "0.14.5"
+tonic-prost = "0.14.5"
+prost = "0.14"
+prost-types = "0.14"
 
 # Tower (shared middleware layer for axum + tonic multiplexing)
 tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit", "steer"] }
@@ -72,7 +73,7 @@ jedi = { path = "../../../packages/rust/jedi" }
 kbve = { path = "../../../packages/rust/kbve" }
 
 [build-dependencies]
-tonic-build = "0.13"
+tonic-prost-build = "0.14.5"
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.6", optional = true }

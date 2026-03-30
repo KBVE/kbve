@@ -1,5 +1,6 @@
 mod discord;
 mod health;
+mod health_server;
 mod state;
 mod tracker;
 
@@ -40,6 +41,9 @@ async fn main() -> anyhow::Result<()> {
 
     let app_state = Arc::new(state::AppState::new(health_monitor, tracker));
 
+    // Minimal health HTTP server for k8s probes and e2e tests
+    let health_http = tokio::spawn(health_server::serve(Arc::clone(&app_state)));
+
     // Bot restart loop: restarts when restart_flag is set, exits otherwise
     loop {
         let app = Arc::clone(&app_state);
@@ -69,6 +73,9 @@ async fn main() -> anyhow::Result<()> {
             }
         }
     }
+
+    // Let health server wind down
+    health_http.abort();
 
     Ok(())
 }

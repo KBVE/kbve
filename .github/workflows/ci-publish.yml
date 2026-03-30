@@ -53,6 +53,11 @@ on:
                 required: false
                 type: string
                 default: ''
+            manifest_version:
+                description: 'Version from the MDX manifest (source of truth). When provided, Cargo.toml/package.json are patched to match before publish.'
+                required: false
+                type: string
+                default: ''
             dispatched_at:
                 description: 'Unix timestamp when this was dispatched (queue guard)'
                 required: true
@@ -115,16 +120,27 @@ jobs:
 
                   case "$TYPE" in
                     npm)
-                      LOCAL=$(jq -r '.version' "packages/npm/${NAME}/package.json" 2>/dev/null || echo "0.0.0")
+                      MANIFEST_V="${{ inputs.manifest_version }}"
+                      if [ -n "$MANIFEST_V" ] && [ "$MANIFEST_V" != "0.0.0" ]; then
+                        LOCAL="$MANIFEST_V"
+                      else
+                        LOCAL=$(jq -r '.version' "packages/npm/${NAME}/package.json" 2>/dev/null || echo "0.0.0")
+                      fi
                       VTOML="packages/npm/${NAME}/version.toml"
                       ;;
                     crates)
-                      # Support override paths for crates in non-standard locations (e.g. bevy crates)
-                      CRATE_SRC="${{ inputs.version_source }}"
-                      if [ -n "$CRATE_SRC" ] && [ -f "$CRATE_SRC" ]; then
-                        LOCAL=$(grep -m1 '^version' "$CRATE_SRC" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                      # Prefer manifest_version (MDX source of truth) over Cargo.toml
+                      MANIFEST_V="${{ inputs.manifest_version }}"
+                      if [ -n "$MANIFEST_V" ] && [ "$MANIFEST_V" != "0.0.0" ]; then
+                        LOCAL="$MANIFEST_V"
                       else
-                        LOCAL=$(grep -m1 '^version' "packages/rust/${NAME}/Cargo.toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                        # Fallback: read from version_source override or Cargo.toml
+                        CRATE_SRC="${{ inputs.version_source }}"
+                        if [ -n "$CRATE_SRC" ] && [ -f "$CRATE_SRC" ]; then
+                          LOCAL=$(grep -m1 '^version' "$CRATE_SRC" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                        else
+                          LOCAL=$(grep -m1 '^version' "packages/rust/${NAME}/Cargo.toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                        fi
                       fi
                       VTOML_OVERRIDE="${{ inputs.version_toml_path_override }}"
                       if [ -n "$VTOML_OVERRIDE" ]; then
@@ -135,7 +151,12 @@ jobs:
                       ;;
                     python)
                       PYPI="${{ inputs.pypi_name }}"
-                      LOCAL=$(grep -m1 '^version' "packages/python/${PYPI}/pyproject.toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                      MANIFEST_V="${{ inputs.manifest_version }}"
+                      if [ -n "$MANIFEST_V" ] && [ "$MANIFEST_V" != "0.0.0" ]; then
+                        LOCAL="$MANIFEST_V"
+                      else
+                        LOCAL=$(grep -m1 '^version' "packages/python/${PYPI}/pyproject.toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                      fi
                       VTOML="packages/python/${PYPI}/version.toml"
                       ;;
                     unreal)
@@ -214,12 +235,59 @@ jobs:
             NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     # ===========================================================================
-    # Rust Crates — test then publish (only runs when package_type == 'crates')
+    # Rust Crates — sync Cargo.toml version from manifest, test, then publish.
+    # The MDX frontmatter is the version source of truth. When manifest_version
+    # is provided, Cargo.toml is patched to match before test & publish.
     # ===========================================================================
+    sync_crate_version:
+        name: Sync Crate Version — ${{ inputs.package_name }}
+        needs: [queue_guard, version_gate]
+        if: inputs.package_type == 'crates' && inputs.manifest_version != '' && needs.version_gate.outputs.should_publish == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: write
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Patch Cargo.toml with manifest version
+              run: |
+                  NAME="${{ inputs.package_name }}"
+                  VERSION="${{ inputs.manifest_version }}"
+                  CRATE_SRC="${{ inputs.version_source }}"
+                  CARGO="${CRATE_SRC:-packages/rust/${NAME}/Cargo.toml}"
+
+                  if [ ! -f "$CARGO" ]; then
+                    echo "::error::Cargo.toml not found: $CARGO"
+                    exit 1
+                  fi
+
+                  CURRENT=$(grep -m1 '^version' "$CARGO" | sed 's/version = "\(.*\)"/\1/')
+                  echo "Current Cargo.toml version: $CURRENT"
+                  echo "Manifest version: $VERSION"
+
+                  if [ "$CURRENT" = "$VERSION" ]; then
+                    echo "Already in sync — no patch needed."
+                    exit 0
+                  fi
+
+                  sed -i "s/^version = \"$CURRENT\"/version = \"$VERSION\"/" "$CARGO"
+                  echo "Patched $CARGO: $CURRENT → $VERSION"
+
+                  # Commit the version sync so publish uses the correct version
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git add "$CARGO"
+                  git commit -m "chore($NAME): sync Cargo.toml version to $VERSION [skip ci]" || echo "No changes to commit"
+                  git push
+
     test_crates:
         name: Test Crate — ${{ inputs.package_name }}
-        needs: [queue_guard]
-        if: inputs.package_type == 'crates'
+        needs: [queue_guard, sync_crate_version]
+        if: always() && inputs.package_type == 'crates' && (needs.sync_crate_version.result == 'success' || needs.sync_crate_version.result == 'skipped')
         permissions:
             contents: read
         uses: KBVE/kbve/.github/workflows/rust-test-crate.yml@main

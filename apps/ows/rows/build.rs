@@ -13,16 +13,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let out_dir = "src/proto";
     std::fs::create_dir_all(out_dir)?;
 
-    tonic_build::configure()
+    tonic_prost_build::configure()
         .build_server(true)
         .build_client(false)
         .out_dir(out_dir)
         .compile_protos(
             &[
-                &format!("{proto_root}/ows/ows.proto"),
-                &format!("{proto_root}/rows/rows.proto"),
+                format!("{proto_root}/ows/ows.proto"),
+                format!("{proto_root}/rows/rows.proto"),
             ],
-            &[proto_root],
+            &[proto_root.to_string()],
         )?;
 
     println!("cargo:warning=Protobuf compilation complete (ows + rows)");

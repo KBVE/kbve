@@ -13,7 +13,8 @@ try:
     import cv2
     import numpy as np
     from humancursor import SystemCursor
-except ImportError:
+except (ImportError, KeyError):
+    # KeyError: 'DISPLAY' raised by mouseinfo on headless CI runners
     pyautogui = None
     cv2 = None
     np = None

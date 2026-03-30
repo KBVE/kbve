@@ -113,10 +113,6 @@
 			"options": {
 				"testTargetName": "test"
 			}
-		},
-		{
-			"plugin": "@nx/dotnet",
-			"include": ["apps/ows/**"]
 		}
 	],
 	"defaultProject": "kbve.com",

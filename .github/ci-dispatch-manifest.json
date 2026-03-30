@@ -77,9 +77,9 @@
 			"source_path": "apps/discordsh/discordsh-bot",
 			"runner": "ubuntu-latest",
 			"image": "kbve/discordsh-bot",
-			"e2e_name": "discordsh-bot",
+			"e2e_name": "discordsh-bot-e2e",
 			"deployment_yaml": "apps/kube/discordsh-bot/manifest/deployment.yaml",
-			"has_test": false
+			"has_test": true
 		},
 		{
 			"key": "edge",
@@ -160,96 +160,6 @@
 			"e2e_name": "memes",
 			"deployment_yaml": "apps/kube/memes/manifest/memes-deployment.yaml",
 			"has_test": true
-		},
-		{
-			"key": "ows_characterpersistence",
-			"app_name": "ows-characterpersistence",
-			"version": "0.10.6",
-			"version_toml": "apps/ows/ows-character-persistence/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-characterpersistence.mdx",
-			"version_target": "apps/ows/ows-character-persistence/OWSCharacterPersistence.csproj",
-			"source_path": "apps/ows",
-			"runner": "ubuntu-latest",
-			"image": "kbve/ows-characterpersistence",
-			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
-			"has_test": false,
-			"target": "container-characterpersistence",
-			"nx_project": "ows"
-		},
-		{
-			"key": "ows_globaldata",
-			"app_name": "ows-globaldata",
-			"version": "0.10.6",
-			"version_toml": "apps/ows/ows-global-data/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-globaldata.mdx",
-			"version_target": "apps/ows/ows-global-data/OWSGlobalData.csproj",
-			"source_path": "apps/ows",
-			"runner": "ubuntu-latest",
-			"image": "kbve/ows-globaldata",
-			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
-			"has_test": false,
-			"target": "container-globaldata",
-			"nx_project": "ows"
-		},
-		{
-			"key": "ows_instancelauncher",
-			"app_name": "ows-instancelauncher",
-			"version": "0.10.8",
-			"version_toml": "apps/ows/ows-instance-launcher/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-instancelauncher.mdx",
-			"version_target": "apps/ows/ows-instance-launcher/OWSInstanceLauncher.csproj",
-			"source_path": "apps/ows",
-			"runner": "ubuntu-latest",
-			"image": "kbve/ows-instancelauncher",
-			"deployment_yaml": "apps/kube/ows/manifest/instance-launcher.yaml",
-			"has_test": false,
-			"target": "container-instancelauncher",
-			"nx_project": "ows"
-		},
-		{
-			"key": "ows_instancemanagement",
-			"app_name": "ows-instancemanagement",
-			"version": "0.10.6",
-			"version_toml": "apps/ows/ows-instance-management/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-instancemanagement.mdx",
-			"version_target": "apps/ows/ows-instance-management/OWSInstanceManagement.csproj",
-			"source_path": "apps/ows",
-			"runner": "ubuntu-latest",
-			"image": "kbve/ows-instancemanagement",
-			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
-			"has_test": false,
-			"target": "container-instancemanagement",
-			"nx_project": "ows"
-		},
-		{
-			"key": "ows_management",
-			"app_name": "ows-management",
-			"version": "0.10.6",
-			"version_toml": "apps/ows/ows-management/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-management.mdx",
-			"version_target": "apps/ows/ows-management/OWSManagement.csproj",
-			"source_path": "apps/ows",
-			"runner": "ubuntu-latest",
-			"image": "kbve/ows-management",
-			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
-			"has_test": false,
-			"target": "container-management",
-			"nx_project": "ows"
-		},
-		{
-			"key": "ows_publicapi",
-			"app_name": "ows-publicapi",
-			"version": "0.10.6",
-			"version_toml": "apps/ows/ows-public-api/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/ows-publicapi.mdx",
-			"version_target": "apps/ows/ows-public-api/OWSPublicAPI.csproj",
-			"source_path": "apps/ows",
-			"runner": "ubuntu-latest",
-			"image": "kbve/ows-publicapi",
-			"deployment_yaml": "apps/kube/ows/manifest/deployment.yaml",
-			"has_test": false,
-			"target": "container-publicapi",
-			"nx_project": "ows"
 		},
 		{
 			"key": "rows",
@@ -492,12 +402,12 @@
 		}
 	],
 	"summary": {
-		"docker": 18,
+		"docker": 13,
 		"npm": 4,
 		"crates": 18,
 		"python": 2,
 		"unreal": 6,
 		"ue5_server": 2,
-		"total": 50
+		"total": 44
 	}
 }

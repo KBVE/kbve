@@ -74,19 +74,18 @@ spec:
                       limits:
                           memory: '512Mi'
                           cpu: '500m'
+                  ports:
+                      - name: health
+                        containerPort: 4322
                   livenessProbe:
-                      exec:
-                          command:
-                              - /bin/sh
-                              - -c
-                              - 'test $(( $(date +%s) - $(stat -c %Y /tmp/bot-heartbeat 2>/dev/null || echo 0) )) -lt 120'
+                      httpGet:
+                          path: /health
+                          port: 4322
                       initialDelaySeconds: 30
                       periodSeconds: 30
                   readinessProbe:
-                      exec:
-                          command:
-                              - /bin/sh
-                              - -c
-                              - 'test -f /tmp/bot-heartbeat'
+                      httpGet:
+                          path: /healthz
+                          port: 4322
                       initialDelaySeconds: 10
                       periodSeconds: 10

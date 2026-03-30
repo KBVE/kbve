@@ -53,7 +53,6 @@ install_brew_toolchain() {
     brew_install pnpm pnpm
     brew_install python3 python@3.12
     brew_install poetry poetry
-    brew_install dotnet dotnet
     brew_install protoc protobuf
     brew_install tmux tmux
 
@@ -64,7 +63,6 @@ install_brew_toolchain() {
     echo "pnpm:     $(pnpm --version 2>/dev/null || echo 'not found')"
     echo "Python:   $(python3 --version 2>/dev/null || echo 'not found')"
     echo "Poetry:   $(poetry --version 2>/dev/null || echo 'not found')"
-    echo ".NET:     $(dotnet --version 2>/dev/null || echo 'not found')"
     echo "Protobuf: $(protoc --version 2>/dev/null || echo 'not found')"
 }
 
@@ -79,12 +77,6 @@ install_node_pnpm() {
     brew_check
     brew_install node node
     brew_install pnpm pnpm
-}
-
-# Function to install and prepare DotNet
-install_dotnet() {
-    brew_check
-    brew_install dotnet dotnet
 }
 
 # Function to install and prepare Python + Poetry
@@ -851,9 +843,6 @@ case "$1" in
     -installnode)
         install_node_pnpm
         ;;
-    -installnet)
-        install_dotnet
-        ;;
     -installpy)
         install_python_and_poetry
         ;;
@@ -1058,7 +1047,6 @@ case "$1" in
         echo "  -install           Run pnpm install for monorepo"
         echo "  -installrust       Install Rust via Homebrew"
         echo "  -installnode       Install Node.js + pnpm via Homebrew"
-        echo "  -installnet        Install .NET via Homebrew"
         echo "  -installpy         Install Python + Poetry via Homebrew"
         echo ""
         echo "Development:"
