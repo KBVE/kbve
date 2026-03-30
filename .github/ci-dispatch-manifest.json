@@ -134,20 +134,6 @@
 			"has_test": false
 		},
 		{
-			"key": "mc",
-			"app_name": "mc",
-			"version": "0.1.14",
-			"version_toml": "apps/mc/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
-			"version_target": "apps/mc/plugins/kbve-mc-plugin/Cargo.toml",
-			"source_path": "apps/mc",
-			"runner": "ubuntu-latest",
-			"image": "kbve/mc",
-			"e2e_name": "mc",
-			"deployment_yaml": "apps/kube/mc/manifest/deployment.yaml",
-			"has_test": true
-		},
-		{
 			"key": "memes",
 			"app_name": "memes",
 			"version": "0.1.7",
