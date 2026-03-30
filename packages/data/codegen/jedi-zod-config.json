@@ -1,0 +1,31 @@
+{
+	"enums": {
+		"jedi.PayloadFormat": {
+			"mode": "const_array",
+			"stripPrefix": "PAYLOAD_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
+		},
+		"jedi.MessageKind": {
+			"mode": "const_array",
+			"stripPrefix": "",
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "PayloadFormats",
+			"sourceEnum": "jedi.PayloadFormat",
+			"typeName": "PayloadFormatValue",
+			"zodSchemaName": "PayloadFormatSchema"
+		},
+		{
+			"name": "MessageKinds",
+			"sourceEnum": "jedi.MessageKind",
+			"typeName": "MessageKindValue",
+			"zodSchemaName": "MessageKindSchema"
+		}
+	]
+}

@@ -73,6 +73,71 @@ const protos = [
 		protoFile: 'kbve/forum.proto',
 		package: 'kbve.forum',
 	},
+	{
+		name: 'meme',
+		protoFile: 'meme/meme.proto',
+		package: 'meme',
+	},
+	{
+		name: 'schema',
+		protoFile: 'kbve/schema.proto',
+		package: 'kbve.schema',
+	},
+	{
+		name: 'redis',
+		protoFile: 'jedi/redis.proto',
+		package: 'redis',
+	},
+	{
+		name: 'kbveproto',
+		protoFile: 'kbve/kbveproto.proto',
+		package: '',
+	},
+	{
+		name: 'twitch',
+		protoFile: 'jedi/twitch.proto',
+		package: 'twitch',
+	},
+	{
+		name: 'staff',
+		protoFile: 'kbve/staff.proto',
+		package: 'kbve.staff',
+	},
+	{
+		name: 'profile',
+		protoFile: 'kbve/profile.proto',
+		package: 'kbve.profile',
+	},
+	{
+		name: 'github',
+		protoFile: 'jedi/github.proto',
+		package: 'github',
+	},
+	{
+		name: 'snapshot',
+		protoFile: 'kbve/snapshot.proto',
+		package: 'kbve.snapshot',
+	},
+	{
+		name: 'groq',
+		protoFile: 'jedi/groq.proto',
+		package: 'groq',
+	},
+	{
+		name: 'jedi',
+		protoFile: 'jedi/jedi.proto',
+		package: 'jedi',
+	},
+	{
+		name: 'pool',
+		protoFile: 'kbve/pool.proto',
+		package: 'kbve.pool',
+	},
+	{
+		name: 'rows',
+		protoFile: 'rows/rows.proto',
+		package: 'rows',
+	},
 ];
 
 // Optional filter: pass a proto name as CLI arg to regenerate only that one

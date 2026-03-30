@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="300" viewBox="0 0 800 300">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#161b22"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </linearGradient>
+    <linearGradient id="header-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1c2128"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="300" fill="url(#bg)" rx="12"/>
+
+  <!-- State stripe -->
+  <rect x="0" y="0" width="4" height="300" fill="{{ state_color }}" rx="2"/>
+
+  <!-- Header bar -->
+  <rect x="4" y="0" width="796" height="52" fill="url(#header-bg)" rx="10"/>
+  <rect x="4" y="40" width="796" height="12" fill="url(#header-bg)"/>
+
+  <!-- State badge -->
+  <rect x="16" y="14" width="56" height="22" rx="11" fill="{{ state_color }}" opacity="0.9"/>
+  <text x="44" y="29" font-family="sans-serif" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">{{ state_label }}</text>
+
+  <!-- Issue/PR indicator -->
+  {% if is_pr %}
+  <text x="82" y="29" font-family="sans-serif" font-size="11" fill="#8b949e">PR</text>
+  {% endif %}
+
+  <!-- Number + Title -->
+  <text x="{{ title_x }}" y="29" font-family="sans-serif" font-size="14" fill="#484f58">#{{ number }}</text>
+  <text x="{{ title_x + 50 }}" y="29" font-family="sans-serif" font-size="14" font-weight="bold" fill="#c9d1d9">{{ title }}</text>
+
+  <!-- Type badge (if set) -->
+  {% if !type_name.is_empty() %}
+  <rect x="640" y="14" width="68" height="22" rx="11" fill="{{ type_color }}" opacity="0.9"/>
+  <text x="674" y="29" font-family="sans-serif" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">{{ type_name }}</text>
+  {% endif %}
+
+  <!-- Priority badge (if set) -->
+  {% if priority_level > 0 %}
+  <rect x="720" y="14" width="64" height="22" rx="11" fill="{{ priority_color }}" opacity="0.9"/>
+  <text x="752" y="29" font-family="sans-serif" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">P{{ priority_level }}</text>
+  {% endif %}
+
+  <!-- Divider -->
+  <line x1="16" y1="52" x2="784" y2="52" stroke="#21262d" stroke-width="1"/>
+
+  <!-- Meta row -->
+  <g transform="translate(16, 62)">
+    <!-- Author -->
+    <text x="0" y="14" font-family="sans-serif" font-size="12" fill="#8b949e">by {{ author }}</text>
+
+    <!-- Created -->
+    <text x="200" y="14" font-family="sans-serif" font-size="11" fill="#484f58">created {{ created_at }}</text>
+
+    <!-- Updated -->
+    <text x="420" y="14" font-family="sans-serif" font-size="11" fill="#484f58">updated {{ updated_at }}</text>
+
+    <!-- Comments -->
+    <text x="640" y="14" font-family="sans-serif" font-size="11" fill="#484f58">{{ comments }} comments</text>
+  </g>
+
+  <!-- Labels row -->
+  {% if !labels.is_empty() %}
+  <g transform="translate(16, 90)">
+    {% for label in labels %}
+    <rect x="{{ loop.index0 * 86 }}" y="0" width="80" height="20" rx="10" fill="{{ label.bg_color }}" opacity="0.85"/>
+    <text x="{{ loop.index0 * 86 + 40 }}" y="14" font-family="sans-serif" font-size="10" fill="{{ label.text_color }}" text-anchor="middle">{{ label.name }}</text>
+    {% endfor %}
+  </g>
+  {% endif %}
+
+  <!-- Assignees row -->
+  {% if !assignees.is_empty() %}
+  <g transform="translate(16, 118)">
+    <text x="0" y="12" font-family="sans-serif" font-size="11" fill="#484f58">assigned:</text>
+    {% for assignee in assignees %}
+    <text x="{{ 70 + loop.index0 * 100 }}" y="12" font-family="sans-serif" font-size="11" fill="#58a6ff">{{ assignee }}</text>
+    {% endfor %}
+  </g>
+  {% endif %}
+
+  <!-- Body preview -->
+  <g transform="translate(16, 142)">
+    <rect x="0" y="0" width="768" height="1" fill="#21262d"/>
+    {% for line in body_lines %}
+    <text x="0" y="{{ 20 + loop.index0 * 18 }}" font-family="sans-serif" font-size="12" fill="#8b949e">{{ line }}</text>
+    {% endfor %}
+  </g>
+
+  <!-- Footer -->
+  <rect x="0" y="280" width="800" height="20" fill="#0d1117" rx="0"/>
+  <rect x="0" y="280" width="800" height="1" stroke="#21262d" stroke-width="1"/>
+  <text x="400" y="294" font-family="sans-serif" font-size="10" fill="#30363d" text-anchor="middle">discord.sh</text>
+</svg>

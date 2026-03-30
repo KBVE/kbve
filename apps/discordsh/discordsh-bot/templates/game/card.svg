@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0f0f1a"/>
+    </linearGradient>
+    <linearGradient id="header-bg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="{{ phase_color }}"/>
+      <stop offset="100%" stop-color="{{ phase_color_dark }}"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bg)" rx="12"/>
+
+  <!-- Header bar -->
+  <rect x="0" y="0" width="800" height="52" fill="url(#header-bg)" rx="12"/>
+  <rect x="0" y="26" width="800" height="26" fill="url(#header-bg)"/>
+  <text x="400" y="36" text-anchor="middle" font-family="Alagard, sans-serif" font-size="22" fill="#ffffff" font-weight="bold">
+    Room {{ room_number }}: {{ room_name }}
+  </text>
+
+  <!-- ─── Player Panel(s) (left) ─── -->
+  {% for p in players %}
+  {% if p.compact %}
+  <!-- Compact player: {{ p.name }} -->
+  <text x="30" y="{{ p.y_name }}" font-family="Alagard, sans-serif" font-size="13" fill="{% if p.alive %}#e0e0e0{% else %}#666666{% endif %}">{{ p.name }}{% if !p.alive %} [DEFEATED]{% endif %}</text>
+  <rect x="30" y="{{ p.y_bar }}" width="340" height="16" rx="3" fill="#2a2a3a"/>
+  {% if p.alive %}<rect x="30" y="{{ p.y_bar }}" width="{{ p.hp_width }}" height="16" rx="3" fill="{{ p.hp_color }}"/>{% endif %}
+  <text x="200" y="{{ p.y_bar_text }}" text-anchor="middle" font-family="Alagard, sans-serif" font-size="11" fill="#ffffff">HP {{ p.hp }}/{{ p.max_hp }}</text>
+  <text x="30" y="{{ p.y_stats }}" font-family="Alagard, sans-serif" font-size="11" fill="#5dade2">DEF {{ p.armor }}</text>
+  <text x="120" y="{{ p.y_stats }}" font-family="Alagard, sans-serif" font-size="11" fill="#f1c40f">Gold {{ p.gold }}</text>
+  {% for effect in p.effects %}
+  <circle cx="{{ effect.x }}" cy="{{ p.y_effects }}" r="5" fill="{{ effect.color }}"/>
+  <text x="{{ effect.label_x }}" y="{{ p.y_effects_text }}" font-family="Alagard, sans-serif" font-size="9" fill="#cccccc">{{ effect.label }} {{ effect.turns }}t</text>
+  {% endfor %}
+  {% else %}
+  <!-- Full player: {{ p.name }} -->
+  <text x="30" y="{{ p.y_name }}" font-family="Alagard, sans-serif" font-size="18" fill="{% if p.alive %}#e0e0e0{% else %}#666666{% endif %}">{{ p.name }}{% if !p.alive %} [DEFEATED]{% endif %}</text>
+  <rect x="30" y="{{ p.y_bar }}" width="340" height="22" rx="4" fill="#2a2a3a"/>
+  {% if p.alive %}<rect x="30" y="{{ p.y_bar }}" width="{{ p.hp_width }}" height="22" rx="4" fill="{{ p.hp_color }}"/>{% endif %}
+  <text x="200" y="{{ p.y_bar_text }}" text-anchor="middle" font-family="Alagard, sans-serif" font-size="14" fill="#ffffff">HP {{ p.hp }}/{{ p.max_hp }}</text>
+  <!-- XP bar (full mode) -->
+  <rect x="30" y="{{ p.y_xp_bar }}" width="340" height="4" rx="2" fill="#2a2a3a"/>
+  <rect x="30" y="{{ p.y_xp_bar }}" width="{{ p.xp_width }}" height="4" rx="2" fill="#9b59b6"/>
+  <text x="375" y="{{ p.y_xp_bar_text }}" text-anchor="end" font-family="Alagard, sans-serif" font-size="9" fill="#9b59b6">Lv.{{ p.level }} {{ p.class_label }}</text>
+  <!-- Equipment display -->
+  {% if !p.weapon_display.is_empty() %}
+  <text x="30" y="{{ p.y_gear }}" font-family="Alagard, sans-serif" font-size="11" fill="#e67e22">{{ p.weapon_display }}</text>
+  {% endif %}
+  {% if !p.armor_display.is_empty() %}
+  <text x="200" y="{{ p.y_gear }}" font-family="Alagard, sans-serif" font-size="11" fill="#3498db">{{ p.armor_display }}</text>
+  {% endif %}
+  <text x="30" y="{{ p.y_stats }}" font-family="Alagard, sans-serif" font-size="14" fill="#5dade2">DEF {{ p.armor }}</text>
+  <text x="140" y="{{ p.y_stats }}" font-family="Alagard, sans-serif" font-size="14" fill="#f1c40f">Gold {{ p.gold }}</text>
+  {% for effect in p.effects %}
+  <circle cx="{{ effect.x }}" cy="{{ p.y_effects }}" r="7" fill="{{ effect.color }}"/>
+  <text x="{{ effect.label_x }}" y="{{ p.y_effects_text }}" font-family="Alagard, sans-serif" font-size="10" fill="#cccccc">{{ effect.label }} {{ effect.turns }}t</text>
+  {% endfor %}
+  {% endif %}
+  {% endfor %}
+
+  {% if has_enemy %}
+  <!-- Divider -->
+  <line x1="400" y1="62" x2="400" y2="325" stroke="#3a3a5a" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- ─── Enemy Panels (right) ─── -->
+  {% for e in enemies %}
+  <text x="430" y="{{ e.y_name }}" font-family="Alagard, sans-serif" font-size="{{ e.font_size_name }}" fill="#ff6b6b">{{ e.name }}</text>
+  <text x="770" y="{{ e.y_name }}" text-anchor="end" font-family="Alagard, sans-serif" font-size="{{ e.font_size_stats }}" fill="#999999">Lv.{{ e.level }}</text>
+
+  <rect x="430" y="{{ e.y_hp_bar }}" width="340" height="{{ e.hp_bar_height }}" rx="4" fill="#2a2a3a"/>
+  <rect x="430" y="{{ e.y_hp_bar }}" width="{{ e.hp_width }}" height="{{ e.hp_bar_height }}" rx="4" fill="#e74c3c"/>
+  <text x="600" y="{{ e.y_hp_text }}" text-anchor="middle" font-family="Alagard, sans-serif" font-size="{{ e.font_size_stats }}" fill="#ffffff">HP {{ e.hp }}/{{ e.max_hp }}</text>
+
+  <text x="430" y="{{ e.y_def }}" font-family="Alagard, sans-serif" font-size="{{ e.font_size_stats }}" fill="#5dade2">DEF {{ e.armor }}</text>
+
+  <rect x="430" y="{{ e.y_intent_box }}" width="340" height="22" rx="6" fill="#2a2a3a" opacity="0.6"/>
+  <text x="440" y="{{ e.y_intent_text }}" font-family="Alagard, sans-serif" font-size="{{ e.font_size_stats }}" fill="#ffd700">{{ e.intent_icon }} {{ e.intent_text }}</text>
+
+  {% for effect in e.effects %}
+  <circle cx="{{ effect.x }}" cy="{{ e.y_effects }}" r="6" fill="{{ effect.color }}"/>
+  <text x="{{ effect.label_x }}" y="{{ e.y_effects_text }}" font-family="Alagard, sans-serif" font-size="9" fill="#cccccc">{{ effect.label }} {{ effect.turns }}t</text>
+  {% endfor %}
+  {% endfor %}
+  {% endif %}
+
+  {% if has_quests %}
+  <!-- ─── Quest tracker ─── -->
+  {% for qt in quest_trackers %}
+  <text x="780" y="{{ qt.y }}" text-anchor="end" font-family="Alagard, sans-serif" font-size="9" fill="#f39c12">{{ qt.title }} [{{ qt.progress }}]</text>
+  {% endfor %}
+  {% endif %}
+
+  <!-- ─── Room badges strip ─── -->
+  {% for badge in room_badges %}
+  <rect x="{{ badge.x }}" y="345" width="{{ badge.width }}" height="26" rx="8" fill="{{ badge.color }}" opacity="0.7"/>
+  <text x="{{ badge.text_x }}" y="363" text-anchor="middle" font-family="Alagard, sans-serif" font-size="11" fill="#ffffff">{{ badge.label }}</text>
+  {% endfor %}
+
+  <!-- Turn indicator -->
+  <text x="780" y="392" text-anchor="end" font-family="Alagard, sans-serif" font-size="10" fill="#555555">Turn {{ turn }}</text>
+
+  <!-- Phase label -->
+  <text x="20" y="392" font-family="Alagard, sans-serif" font-size="10" fill="#555555">{{ phase_label }}</text>
+
+  {% if is_party_mode %}
+  <!-- Party indicator -->
+  <text x="400" y="392" text-anchor="middle" font-family="Alagard, sans-serif" font-size="10" fill="#9b59b6">Party {{ party_alive }}/{{ party_count }}</text>
+  {% endif %}
+</svg>

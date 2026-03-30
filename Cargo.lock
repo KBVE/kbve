@@ -4914,6 +4914,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "discordsh-bot"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "askama",
+ "bevy_battle",
+ "bevy_inventory",
+ "bevy_items",
+ "bevy_npc",
+ "bevy_quests",
+ "chrono",
+ "dashmap 6.1.0",
+ "dotenvy",
+ "jedi",
+ "kbve",
+ "lru",
+ "poise",
+ "rand 0.10.0",
+ "rand_chacha 0.10.0",
+ "reqwest 0.13.2",
+ "serde",
+ "serde_json",
+ "serenity",
+ "serial_test",
+ "sysinfo 0.38.4",
+ "thiserror 2.0.18",
+ "tikv-jemallocator",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
 name = "dispatch"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
