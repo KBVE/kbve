@@ -1,0 +1,21 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "KBVE ROWS",
+	"Description": "Rust Open World Server — unified backend integration plugin for UE5. Provides auth, instance management, character persistence, and global data subsystems via ROWS REST API.",
+	"Category": "Game",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"DocsURL": "https://kbve.com/project/rows/",
+	"EnabledByDefault": true,
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"Modules": [
+		{
+			"Name": "ROWS",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
