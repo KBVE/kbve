@@ -158,28 +158,6 @@
 				"parallel": false
 			}
 		},
-		"e2e": {
-			"executor": "nx:run-commands",
-			"cache": false,
-			"defaultConfiguration": "local",
-			"options": {
-				"parallel": false
-			},
-			"configurations": {
-				"local": {
-					"commands": [
-						"nx container mc --configuration=local --no-cloud",
-						"nx e2e mc-e2e --no-cloud"
-					]
-				},
-				"ci": {
-					"commands": [
-						"nx container mc --configuration=ci --no-cloud",
-						"nx e2e mc-e2e --no-cloud"
-					]
-				}
-			}
-		},
 		"build-plugin": {
 			"executor": "nx:run-commands",
 			"options": {
