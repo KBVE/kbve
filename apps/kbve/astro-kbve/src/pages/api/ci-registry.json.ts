@@ -128,9 +128,9 @@ function toManifestEntry(
 				: null;
 		case 'crates': {
 			if (!d.package_name) return null;
-			// version_source overrides the default Cargo.toml path convention
-			// for crates in non-standard locations (e.g. packages/rust/bevy/*).
-			const vs = d.version_source || undefined;
+			// Default version_source to the MDX file (source of truth for version).
+			// Explicit version_source in frontmatter overrides (e.g. bevy crates).
+			const vs = d.version_source || mdxPath;
 			return {
 				key: d.key!,
 				package_name: d.package_name,
