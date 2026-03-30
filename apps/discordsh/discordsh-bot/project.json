@@ -1,0 +1,52 @@
+{
+	"name": "discordsh-bot",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "apps/discordsh/discordsh-bot/src",
+	"projectType": "application",
+	"targets": {
+		"container": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"pnpm nx run discordsh-bot:containerx",
+						"VERSION=$(grep '^version' apps/discordsh/discordsh-bot/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/discordsh-bot:latest kbve/discordsh-bot:$VERSION && echo \"Tagged kbve/discordsh-bot:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"pnpm nx run discordsh-bot:containerx --configuration=production",
+						"VERSION=$(grep '^version' apps/discordsh/discordsh-bot/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/discordsh-bot:latest kbve/discordsh-bot:$VERSION && docker tag kbve/discordsh-bot:latest ghcr.io/kbve/discordsh-bot:latest && docker tag kbve/discordsh-bot:latest ghcr.io/kbve/discordsh-bot:$VERSION && echo \"Tagged kbve/discordsh-bot:$VERSION and ghcr.io/kbve/discordsh-bot:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/discordsh/discordsh-bot/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"tags": ["kbve/discordsh-bot:latest"]
+				},
+				"production": {
+					"push": true,
+					"tags": [
+						"kbve/discordsh-bot:latest",
+						"ghcr.io/kbve/discordsh-bot:latest"
+					]
+				}
+			}
+		}
+	}
+}

@@ -38,6 +38,9 @@ COPY apps/discordsh/discordsh-bot/NotoSansSymbols-Regular.ttf /app/NotoSansSymbo
 
 ENV RUST_LOG=discordsh_bot=debug,kbve=debug \
     FONT_PATH=/app/alagard.ttf \
-    SYMBOL_FONT_PATH=/app/NotoSansSymbols-Regular.ttf
+    SYMBOL_FONT_PATH=/app/NotoSansSymbols-Regular.ttf \
+    HEALTH_PORT=4322
+
+EXPOSE 4322
 
 ENTRYPOINT ["/app/discordsh-bot"]
