@@ -6,7 +6,8 @@ from .runelite import RuneLiteClient  # noqa: F401, E402
 
 try:
     from .screen_client import ScreenClient  # noqa: F401, E402
-except ImportError:
+except (ImportError, KeyError):
+    # KeyError: 'DISPLAY' raised by pyautogui/mouseinfo on headless CI
     _logger.debug("ScreenClient unavailable — install fudster[automation]")
 
 try:
