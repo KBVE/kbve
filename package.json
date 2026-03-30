@@ -85,7 +85,7 @@
 		"grpc_tools_node_protoc_ts": "^5.3.3",
 		"husky": "^9.1.7",
 		"install": "^0.13.0",
-		"jiti": "2.4.2",
+		"jiti": "2.6.1",
 		"jsdom": "~29.0.0",
 		"jsonc-eslint-parser": "^2.1.0",
 		"lint-staged": "^16.4.0",
