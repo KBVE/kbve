@@ -2,7 +2,11 @@ export {
 	$auth,
 	setAuth,
 	resetAuth,
+	AuthFlags,
+	AuthPresets,
+	hasAuthFlag,
 	type AuthTone,
+	type AuthFlag,
 	type AuthState,
 } from './auth';
 
