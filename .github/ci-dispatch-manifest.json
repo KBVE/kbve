@@ -391,7 +391,7 @@
 		{
 			"key": "jedi_crate",
 			"package_name": "jedi",
-			"version": "0.2.1",
+			"version": "0.2.2",
 			"version_toml": "packages/rust/jedi/version.toml"
 		},
 		{
