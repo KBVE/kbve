@@ -77,9 +77,9 @@
 			"source_path": "apps/discordsh/discordsh-bot",
 			"runner": "ubuntu-latest",
 			"image": "kbve/discordsh-bot",
-			"e2e_name": "discordsh-bot",
+			"e2e_name": "discordsh-bot-e2e",
 			"deployment_yaml": "apps/kube/discordsh-bot/manifest/deployment.yaml",
-			"has_test": false
+			"has_test": true
 		},
 		{
 			"key": "edge",

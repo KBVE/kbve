@@ -1,0 +1,49 @@
+---
+title: DiscordSH Bot
+description: |
+    Standalone Discord gateway bot for DiscordSH — slash commands, embed dungeon game, GitHub integration.
+sidebar:
+    label: DiscordSH Bot
+    order: 421
+tags:
+    - discord
+    - bot
+key: discordsh_bot
+pipeline: docker
+app_name: discordsh-bot
+version: "0.1.0"
+source_path: apps/discordsh/discordsh-bot
+version_toml: apps/discordsh/discordsh-bot/version.toml
+version_target: apps/discordsh/discordsh-bot/Cargo.toml
+runner: ubuntu-latest
+image: kbve/discordsh-bot
+deployment_yaml: apps/kube/discordsh-bot/manifest/deployment.yaml
+---
+
+import {
+    Adsense,
+    MDXLayer,
+    Widget,
+    Heading,
+} from '@kbve/astro-ve';
+
+<MDXLayer title={frontmatter.title} description={frontmatter.description}>
+
+## Overview
+
+`discordsh-bot` is the standalone Discord gateway bot extracted from the axum-discordsh monolith. It handles all Discord interactions independently of the HTTP server.
+
+### Features
+
+- Poise/serenity Discord gateway with shard support
+- Slash commands: `/github`, `/gh`, `/dungeon`, `/ping`, `/status`, `/health`, `/admin`
+- Embed Dungeon game with bevy_battle combat, bevy_inventory item management
+- GitHub issue/PR management with SVG card rendering
+- Player persistence via Supabase
+- Minimal health HTTP server for k8s probes
+
+### Related
+
+- [DiscordSH](/project/discordsh/) — HTTP server (Astro site, REST API)
+
+</MDXLayer>
