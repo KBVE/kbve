@@ -1,34 +1,23 @@
 # Local Postgres + Forgejo for testing schema isolation.
 #
-# Runs both services together so you can verify:
-#   - Forgejo boots with SCHEMA=forgejo
+# All-in-one: Postgres starts, dbmate runs all migrations (creates
+# schemas + forgejo role), then Forgejo boots with the scoped role.
+#
+# Verifies:
+#   - dbmate migrations apply cleanly
+#   - forgejo role is created with schema ownership
 #   - xorm creates all 125 tables in the forgejo schema
 #   - Zero tables leak into public schema
-#   - Existing schemas (mc, meme, discordsh, n8n, etc.) are unaffected
 #   - Forgejo web UI is accessible at http://localhost:3333
 #
-# Usage (two-phase — superuser bootstraps, then forgejo role takes over):
-#
+# Usage:
 #   cd packages/data/sql/dbmate
 #   cp forgejo-docker-compose.yml docker-compose.yml
-#
-#   # Phase 1: Bootstrap with superuser (creates schema + forgejo role)
-#   docker compose up -d postgres
-#   sleep 5
-#   DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres?sslmode=disable&search_path=dbmate,public" \
-#     dbmate --no-dump-schema --migrations-dir migrations up
-#
-#   # Phase 2: Start Forgejo with the scoped forgejo role
-#   docker compose up -d forgejo
-#   sleep 15
-#
-#   # Verify: tables in forgejo schema, none in public
-#   psql "postgresql://forgejo:forgejo-local-dev@localhost:54322/postgres" -c "\dt forgejo.*"
-#   psql "postgresql://postgres:postgres@localhost:54322/postgres" -c "\dt public.*"
-#
-#   # Open Forgejo:
+#   docker compose up -d
+#   # Wait ~30s, then verify:
+#   psql "postgresql://forgejo:forgejo-local-dev@localhost:54322/postgres" \
+#     -c "\dt forgejo.*"
 #   open http://localhost:3333
-#
 #   # Tear down:
 #   docker compose down -v
 
@@ -49,6 +38,18 @@ services:
             interval: 5s
             timeout: 3s
             retries: 5
+
+    dbmate-init:
+        image: ghcr.io/amacneil/dbmate:2
+        depends_on:
+            postgres:
+                condition: service_healthy
+        environment:
+            DATABASE_URL: 'postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable&search_path=dbmate,public'
+        volumes:
+            - ./migrations:/db/migrations:ro
+        command:
+            ['--no-dump-schema', '--migrations-dir', '/db/migrations', 'up']
 
     forgejo:
         image: codeberg.org/forgejo/forgejo:12
@@ -71,8 +72,8 @@ services:
         volumes:
             - forgejo-data:/data
         depends_on:
-            postgres:
-                condition: service_healthy
+            dbmate-init:
+                condition: service_completed_successfully
 
 volumes:
     pgdata:
