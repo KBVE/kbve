@@ -1,4 +1,9 @@
-import { $auth, DroidEvents, type SupabaseGateway } from '@kbve/droid';
+import {
+	$auth,
+	DroidEvents,
+	AuthPresets,
+	type SupabaseGateway,
+} from '@kbve/droid';
 import type { AuthBridge } from './AuthBridge';
 
 let _booted = false;
@@ -18,6 +23,7 @@ function pushSession(session: any) {
 	if (!session?.user) {
 		$auth.set({
 			tone: 'anon',
+			flags: AuthPresets.GUEST,
 			name: '',
 			username: undefined,
 			avatar: undefined,
@@ -29,8 +35,12 @@ function pushSession(session: any) {
 	const u = session.user;
 	// Preserve existing username if already set (profile fetch fills it later)
 	const currentUsername = $auth.get().username;
+	// Preserve existing flags if already upgraded (e.g. staff resolved)
+	const currentFlags = $auth.get().flags;
 	$auth.set({
 		tone: 'auth',
+		flags:
+			currentFlags > AuthPresets.USER ? currentFlags : AuthPresets.USER,
 		name:
 			u.user_metadata?.full_name ||
 			u.user_metadata?.name ||
@@ -147,6 +157,7 @@ export async function bootAuth(
 		// The UI shows the guest experience; user can retry sign-in manually.
 		$auth.set({
 			tone: 'anon',
+			flags: AuthPresets.GUEST,
 			name: '',
 			username: undefined,
 			avatar: undefined,
@@ -157,5 +168,60 @@ export async function bootAuth(
 			timestamp: Date.now(),
 			message,
 		});
+	}
+}
+
+/**
+ * Resolve staff permissions for the current authenticated user.
+ * Calls the Supabase RPC `staff_permissions` and upgrades auth flags
+ * to include STAFF if the user has any permissions.
+ *
+ * Call this after bootAuth completes and the user is authenticated.
+ * Safe to call for non-staff users — they stay at USER flags.
+ */
+export async function resolveStaffFlag(
+	gateway: SupabaseGateway,
+): Promise<void> {
+	const state = $auth.get();
+	if (state.tone !== 'auth' || !state.id) return;
+
+	try {
+		const session = await gateway.getSession().catch(() => null);
+		const token = session?.session?.access_token;
+		if (!token) return;
+
+		// Call the Supabase RPC that returns the user's staff permission bitmask.
+		// This is the same RPC the axum-kbve backend uses via PostgREST.
+		const supabaseUrl =
+			(typeof import.meta !== 'undefined' &&
+				(import.meta as any).env?.PUBLIC_SUPABASE_URL) ||
+			'';
+		if (!supabaseUrl) return;
+
+		const res = await fetch(
+			`${supabaseUrl}/rest/v1/rpc/staff_permissions`,
+			{
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json',
+					apikey: token,
+				},
+				body: '{}',
+			},
+		);
+
+		if (!res.ok) return;
+
+		const permissions = await res.json();
+		// staff_permissions returns an integer bitmask; any non-zero value means staff
+		if (typeof permissions === 'number' && permissions > 0) {
+			$auth.set({
+				...state,
+				flags: AuthPresets.STAFF,
+			});
+		}
+	} catch {
+		// Staff check failure is non-fatal — user stays at USER flags
 	}
 }

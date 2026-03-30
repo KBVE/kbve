@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: discordsh-bot-sa
+    namespace: discordsh-bot
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: discordsh-bot-external-secrets
+    namespace: discordsh-bot
+---
+# Allow reading Redis secrets from the redis namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: discordsh-bot-redis-reader
+    namespace: redis
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['redis']
+      verbs: ['get']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: discordsh-bot-redis-binding
+    namespace: redis
+subjects:
+    - kind: ServiceAccount
+      name: discordsh-bot-external-secrets
+      namespace: discordsh-bot
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: discordsh-bot-redis-reader
+---
+# Allow reading Supabase secrets from the kilobase namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: discordsh-bot-supabase-reader
+    namespace: kilobase
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['supabase-cluster-app', 'supabase-service-role']
+      verbs: ['get']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: discordsh-bot-supabase-binding
+    namespace: kilobase
+subjects:
+    - kind: ServiceAccount
+      name: discordsh-bot-external-secrets
+      namespace: discordsh-bot
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: discordsh-bot-supabase-reader
+---
+# NetworkPolicy: allow bot to reach Redis
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: discordsh-bot-egress-redis
+    namespace: discordsh-bot
+spec:
+    podSelector:
+        matchLabels:
+            app: discordsh-bot
+    policyTypes:
+        - Egress
+    egress:
+        - to:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: redis
+                podSelector:
+                    matchLabels:
+                        app.kubernetes.io/name: redis
+          ports:
+              - protocol: TCP
+                port: 6379

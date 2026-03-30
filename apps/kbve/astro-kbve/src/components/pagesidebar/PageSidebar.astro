@@ -1,8 +1,14 @@
 ---
 import Default from '@astrojs/starlight/components/PageSidebar.astro';
 import BentoDock from '../bento/BentoDock.tsx';
-// TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
-// import { PageGraph, PageBacklinks } from 'starlight-site-graph/components';
+import SiteGraphLoader from '../sitegraph/SiteGraphLoader.tsx';
+
+// Derive the current page slug from the URL
+const url = Astro.url.pathname;
+const currentSlug = url
+	.replace(/^\//, '')
+	.replace(/\/$/, '')
+	.replace(/^docs\//, '');
 ---
 
 <div class="sl-right-sidebar-toggle-wrap">
@@ -47,11 +53,8 @@ import BentoDock from '../bento/BentoDock.tsx';
 	</a>
 </div>
 
-<!-- TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
-<PageGraph class="right-sidebar-panel slsg-graph-panel graph-panel">
-	<h2 slot="title">Das {Astro.locals.t('starlight-site-graph.graph')}</h2>
-</PageGraph>
--->
+<!-- Site graph + backlinks — lazy-loaded on right sidebar expand -->
+<SiteGraphLoader client:only="react" currentSlug={currentSlug} />
 
 <!-- Bento card dock — hidden cards appear here as restore buttons -->
 <BentoDock client:only="react" />
@@ -59,11 +62,5 @@ import BentoDock from '../bento/BentoDock.tsx';
 <Default>
 	<slot />
 </Default>
-
-<!-- TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
-<PageBacklinks class="right-sidebar-panel backlinks-panel">
-	<h2 slot="title">{Astro.locals.t('starlight-site-graph.backlinks')}</h2>
-</PageBacklinks>
--->
 
 <br />
