@@ -1,0 +1,19 @@
+[workspace]
+resolver = "2"
+members = [
+    "apps/discordsh/discordsh-bot",
+    "packages/rust/jedi",
+    "packages/rust/kbve",
+    "packages/rust/bevy/bevy_inventory",
+    "packages/rust/bevy/bevy_items",
+    "packages/rust/bevy/bevy_battle",
+    "packages/rust/bevy/bevy_npc",
+    "packages/rust/bevy/bevy_quests",
+]
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+codegen-units = 1
+panic = "abort"
