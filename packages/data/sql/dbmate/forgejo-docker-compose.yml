@@ -7,18 +7,28 @@
 #   - Existing schemas (mc, meme, discordsh, n8n, etc.) are unaffected
 #   - Forgejo web UI is accessible at http://localhost:3333
 #
-# Usage:
+# Usage (two-phase — superuser bootstraps, then forgejo role takes over):
+#
+#   cd packages/data/sql/dbmate
 #   cp forgejo-docker-compose.yml docker-compose.yml
-#   docker compose up -d
-#   # Wait for postgres to be healthy, then apply migrations:
+#
+#   # Phase 1: Bootstrap with superuser (creates schema + forgejo role)
+#   docker compose up -d postgres
+#   sleep 5
 #   DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres?sslmode=disable&search_path=dbmate,public" \
 #     dbmate --no-dump-schema --migrations-dir migrations up
-#   # Wait ~15s for Forgejo to run xorm migrations, then verify:
-#   psql "postgresql://postgres:postgres@localhost:54322/postgres" -c "\dt forgejo.*"
-#   # Confirm zero tables in public:
+#
+#   # Phase 2: Start Forgejo with the scoped forgejo role
+#   docker compose up -d forgejo
+#   sleep 15
+#
+#   # Verify: tables in forgejo schema, none in public
+#   psql "postgresql://forgejo:forgejo-local-dev@localhost:54322/postgres" -c "\dt forgejo.*"
 #   psql "postgresql://postgres:postgres@localhost:54322/postgres" -c "\dt public.*"
+#
 #   # Open Forgejo:
 #   open http://localhost:3333
+#
 #   # Tear down:
 #   docker compose down -v
 
@@ -49,15 +59,13 @@ services:
             - FORGEJO__database__DB_TYPE=postgres
             - FORGEJO__database__HOST=postgres:5432
             - FORGEJO__database__NAME=postgres
-            - FORGEJO__database__USER=postgres
-            - FORGEJO__database__PASSWD=postgres
+            - FORGEJO__database__USER=forgejo
+            - FORGEJO__database__PASSWD=forgejo-local-dev
             - FORGEJO__database__SCHEMA=forgejo
             - FORGEJO__database__SSL_MODE=disable
             - FORGEJO__security__INSTALL_LOCK=true
             - FORGEJO__server__ROOT_URL=http://localhost:3333
-            - FORGEJO__server__LFS_START_SERVER=true
-            - FORGEJO__lfs__STORAGE_TYPE=local
-            - FORGEJO__lfs__PATH=/data/lfs
+            - FORGEJO__server__LFS_START_SERVER=false
             - FORGEJO__service__DISABLE_REGISTRATION=false
             - FORGEJO__actions__ENABLED=true
         volumes:
