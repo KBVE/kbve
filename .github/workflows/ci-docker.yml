@@ -160,7 +160,7 @@ jobs:
             source_path: ${{ steps.resolve.outputs.source_path }}
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
               with:
                   sparse-checkout: .github/ci-dispatch-manifest.json
                   sparse-checkout-cone-mode: false
@@ -230,7 +230,7 @@ jobs:
         timeout-minutes: 10
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
             - name: Check for .sln file
               id: detect
               run: |
