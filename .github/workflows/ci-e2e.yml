@@ -61,13 +61,11 @@ jobs:
                   # Get all projects with an e2e target, excluding:
                   #   q           — desktop-only app
                   #   bevy_*      — need Rust + wasm32 toolchain (not in docker-test-app.yml)
-                  #   mc-e2e      — needs pre-built kbve/mc:local Docker image
                   #   kilobase    — needs pgrx/PostgreSQL build environment
                   #   astro-e2e   — shared Astro harness (not a standalone test project)
                   PROJECTS=$(pnpm nx show projects --with-target e2e 2>/dev/null \
                     | grep -v '^q$' \
                     | grep -v '^bevy_' \
-                    | grep -v '^mc-e2e$' \
                     | grep -v '^kilobase$' \
                     | grep -v '^astro-e2e$' \
                     | sort)
@@ -93,7 +91,7 @@ jobs:
                     PLAYWRIGHT="true"
 
                     case "$project" in
-                      axum-kbve-e2e|mc-e2e|edge-e2e)
+                      axum-kbve-e2e|edge-e2e)
                         RUNNER="arc-runner-set"
                         PLAYWRIGHT="false"
                         ;;
