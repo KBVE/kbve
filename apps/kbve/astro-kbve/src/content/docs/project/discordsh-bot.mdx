@@ -20,15 +20,6 @@ image: kbve/discordsh-bot
 deployment_yaml: apps/kube/discordsh-bot/manifest/deployment.yaml
 ---
 
-import {
-    Adsense,
-    MDXLayer,
-    Widget,
-    Heading,
-} from '@kbve/astro-ve';
-
-<MDXLayer title={frontmatter.title} description={frontmatter.description}>
-
 ## Overview
 
 `discordsh-bot` is the standalone Discord gateway bot extracted from the axum-discordsh monolith. It handles all Discord interactions independently of the HTTP server.
@@ -45,5 +36,3 @@ import {
 ### Related
 
 - [DiscordSH](/project/discordsh/) — HTTP server (Astro site, REST API)
-
-</MDXLayer>
