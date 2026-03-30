@@ -84,13 +84,6 @@ jobs:
               with:
                   node-version: 24
 
-            - name: Setup .NET SDK
-              uses: actions/setup-dotnet@v5
-              with:
-                  dotnet-version: |
-                      8.0.x
-                      10.0.x
-
             - name: Setup pnpm v10
               uses: pnpm/action-setup@v5
               with:
