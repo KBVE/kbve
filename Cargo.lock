@@ -4970,6 +4970,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "askama",
+ "axum",
  "bevy_battle",
  "bevy_inventory",
  "bevy_items",
