@@ -4,6 +4,48 @@
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
 
+/* ── Auth-gated sidebar: hide links until auth state resolves ── */
+/* Links and group labels with data-auth-visibility are hidden by default */
+a[data-auth-visibility],
+details[data-auth-visibility],
+li[data-auth-visibility] {
+	display: none;
+}
+
+/* Guest (ANON): show anon links */
+html[data-auth-tone='anon'] a[data-auth-visibility='anon'],
+html[data-auth-tone='anon'] details[data-auth-visibility='anon'],
+html[data-auth-tone='anon'] li[data-auth-visibility='anon'] {
+	display: block;
+}
+
+/* Authenticated (AUTH): show auth links */
+html[data-auth-tone='auth'] a[data-auth-visibility='auth'],
+html[data-auth-tone='auth'] details[data-auth-visibility='auth'],
+html[data-auth-tone='auth'] li[data-auth-visibility='auth'] {
+	display: block;
+}
+
+/* Staff: show auth + staff links */
+html[data-auth-tone='staff'] a[data-auth-visibility='auth'],
+html[data-auth-tone='staff'] a[data-auth-visibility='staff'],
+html[data-auth-tone='staff'] details[data-auth-visibility='auth'],
+html[data-auth-tone='staff'] details[data-auth-visibility='staff'],
+html[data-auth-tone='staff'] li[data-auth-visibility='auth'],
+html[data-auth-tone='staff'] li[data-auth-visibility='staff'] {
+	display: block;
+}
+
+/* Hide anon-only links when authenticated or staff */
+html[data-auth-tone='auth'] a[data-auth-visibility='anon'],
+html[data-auth-tone='auth'] details[data-auth-visibility='anon'],
+html[data-auth-tone='auth'] li[data-auth-visibility='anon'],
+html[data-auth-tone='staff'] a[data-auth-visibility='anon'],
+html[data-auth-tone='staff'] details[data-auth-visibility='anon'],
+html[data-auth-tone='staff'] li[data-auth-visibility='anon'] {
+	display: none;
+}
+
 /* Right sidebar is off-canvas, left sidebar stays in flow */
 /* Content uses all freed space */
 @layer my-overrides {
