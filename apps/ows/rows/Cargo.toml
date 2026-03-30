@@ -15,7 +15,7 @@ axum = { version = "0.8.5", features = ["macros"] }
 axum-extra = { version = "0.12.1", features = ["cookie"] }
 
 # gRPC (tonic)
-tonic = "0.13"
+tonic = "0.14"
 prost = "0.13"
 prost-types = "0.13"
 
