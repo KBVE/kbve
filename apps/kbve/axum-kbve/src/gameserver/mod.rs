@@ -640,6 +640,11 @@ fn run_bevy_app(
     app.add_observer(debug_on_linked_added);
     app.add_observer(debug_on_unlinked_added);
 
+    // Diagnostic: log Link buffer states every tick to trace packet flow
+    app.add_systems(Update, debug_link_packet_flow);
+    // Diagnostic: log ALL Link entities (even orphaned ones not in Server collection)
+    app.add_systems(Update, debug_all_links);
+
     // Process auth messages from clients (steps 2-3 of handshake)
     app.add_systems(Update, process_auth_messages);
     // Verify AuthAck echo (step 4 of handshake)
@@ -876,6 +881,83 @@ fn load_pem_identity(
 // ---------------------------------------------------------------------------
 // Debug observers — transport + link lifecycle tracing
 // ---------------------------------------------------------------------------
+
+/// Diagnostic: log Link buffer states every tick for entities in the Server collection.
+/// If the server's Netcode receive system processes packets, link.recv will be empty
+/// after Update. If packets pile up, they're not being consumed.
+fn debug_link_packet_flow(
+    server_q: Query<(Entity, &Server), Without<Stopped>>,
+    link_q: Query<(Entity, &Link, Has<Linked>, Has<Linking>, Option<&Name>)>,
+) {
+    for (server_entity, server) in &server_q {
+        for &client_entity in server.collection() {
+            if let Ok((entity, link, is_linked, is_linking, name)) = link_q.get(client_entity) {
+                let send_len = link.send.len();
+                let recv_len = link.recv.len();
+                let name_str = name.map(|n| n.as_str()).unwrap_or("?");
+                // Only log when there's activity or the entity just appeared
+                if send_len > 0 || recv_len > 0 || is_linking {
+                    tracing::info!(
+                        target: "gameserver.packet_debug",
+                        server = ?server_entity,
+                        client = ?entity,
+                        name = name_str,
+                        send = send_len,
+                        recv = recv_len,
+                        linked = is_linked,
+                        linking = is_linking,
+                        "[packet-debug] server={server_entity:?} client={entity:?}({name_str}) send={send_len} recv={recv_len} linked={is_linked} linking={is_linking}"
+                    );
+                }
+            }
+        }
+        // Also log the collection size periodically
+        let collection_size = server.collection().len();
+        if collection_size > 0 {
+            tracing::debug!(
+                target: "gameserver.packet_debug",
+                server = ?server_entity,
+                clients = collection_size,
+                "[packet-debug] server={server_entity:?} has {collection_size} clients in collection"
+            );
+        }
+    }
+}
+
+/// Diagnostic: log ALL Link entities to detect orphans not in Server collection.
+fn debug_all_links(
+    all_links: Query<(
+        Entity,
+        &Link,
+        Has<Linked>,
+        Has<Linking>,
+        Option<&lightyear::link::prelude::LinkOf>,
+        Option<&Name>,
+    )>,
+) {
+    for (entity, link, is_linked, is_linking, link_of, name) in &all_links {
+        let send_len = link.send.len();
+        let recv_len = link.recv.len();
+        if send_len == 0 && recv_len == 0 && !is_linking {
+            continue;
+        }
+        let name_str = name.map(|n| n.as_str()).unwrap_or("?");
+        let server_str = link_of
+            .map(|l| format!("{:?}", l.server))
+            .unwrap_or_else(|| "ORPHAN(no LinkOf)".to_string());
+        tracing::info!(
+            target: "gameserver.packet_debug",
+            entity = ?entity,
+            name = name_str,
+            send = send_len,
+            recv = recv_len,
+            linked = is_linked,
+            linking = is_linking,
+            server = %server_str,
+            "[all-links] entity={entity:?}({name_str}) send={send_len} recv={recv_len} linked={is_linked} linking={is_linking} server={server_str}"
+        );
+    }
+}
 
 /// Fires when Linking is added to a Link entity (transport connecting).
 fn debug_on_linking_added(trigger: On<Add, Linking>) {
