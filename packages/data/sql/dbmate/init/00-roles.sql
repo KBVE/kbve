@@ -74,6 +74,11 @@ DO $$ BEGIN
         CREATE ROLE supabase_read_only_user NOLOGIN;
     END IF;
 
+    -- App-specific roles
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'forgejo') THEN
+        CREATE ROLE forgejo LOGIN PASSWORD 'forgejo-local-dev';
+    END IF;
+
     -- Grant service_role the ability to act as anon/authenticated
     GRANT anon TO authenticator;
     GRANT authenticated TO authenticator;
