@@ -44,7 +44,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 
 # Messaging (RabbitMQ)
-lapin = "4.3.0"
+lapin = "4.4.0"
 
 # K8s / Agones
 kube = { version = "0.99", features = ["runtime", "derive", "client"] }
