@@ -577,4 +577,61 @@ winget install --id Microsoft.VisualStudio.2022.BuildTools -e --source winget
     See [issue #9328](https://github.com/KBVE/kbve/issues/9328).
 </Aside>
 
+---
+
+## macOS VM Tooling (KubeVirt)
+
+<Aside type="caution" title="Apple EULA">
+    macOS VMs must run on genuine Apple hardware (Mac Pro, Mac Mini, etc.)
+    per Apple's EULA. Only deploy on Apple-branded physical hosts.
+</Aside>
+
+### Status: Not Yet Provisioned
+
+The macOS KubeVirt VM (`macos-builder`) manifest exists but hasn't been set up yet.
+Uses the [OSX-KVM](https://github.com/kholia/OSX-KVM) approach for KVM-based macOS.
+
+### Provisioning Checklist
+
+- [ ] Apple hardware node added to cluster (Mac Mini / Mac Pro with Talos)
+- [ ] Upload macOS install image via virtctl (`BaseSystem.img`)
+- [ ] Install macOS via VNC (`virtctl vnc macos-builder -n angelscript`)
+- [ ] Install Xcode + Command Line Tools
+- [ ] Install GitHub Actions runner (label: `UE5-Mac`)
+- [ ] Configure download-proxy access for large downloads
+- [ ] Test UE5 source build (`GenerateProjectFiles.sh` + `xcodebuild`)
+
+### Required Tools (inside macOS VM)
+
+| Tool | Purpose | Size |
+|------|---------|------|
+| Xcode | Metal shader compiler, iOS/macOS SDK | ~13GB |
+| Command Line Tools | `clang`, `make`, `git` without full Xcode | ~3GB |
+| Homebrew | Package manager for cmake, ninja, etc. | ~500MB |
+| GitHub Actions Runner | Self-hosted runner for CI jobs | ~200MB |
+
+### Xcode Installation (Offline via download-proxy)
+
+```bash
+# Stage Xcode .xip on the download proxy (from a machine with Apple ID auth)
+# Then inside the macOS VM:
+curl http://download-proxy.angelscript.svc:8080/Xcode_16.2.xip -o /tmp/Xcode.xip
+xip -x /tmp/Xcode.xip -C /Applications/
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+xcodebuild -license accept
+```
+
+### CI Workflow
+
+The `ci-ue-mac-setup.yml` workflow (stub) follows the same two-job pattern as Windows:
+1. **Linux runner**: stages downloads via download-proxy (aria2c)
+2. **macOS VM runner**: installs from staged files on the shared PVC
+
+### Challenges
+
+- Xcode download requires Apple Developer account authentication
+- Metal shader compilation needs GPU passthrough (not available on non-Apple hosts)
+- Same masquerade NAT issue as Windows — use download-proxy
+- OSX-KVM requires specific CPU feature flags (`invtsc`, `vmx`, `avx2` — already configured)
+
 <Giscus />
