@@ -1,0 +1,139 @@
+{
+	"enums": {
+		"meme.MemeFormat": {
+			"mode": "const_array",
+			"stripPrefix": "MEME_FORMAT_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		},
+		"meme.MemeStatus": {
+			"mode": "const_array",
+			"stripPrefix": "MEME_STATUS_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		},
+		"meme.ReactionType": {
+			"mode": "const_array",
+			"stripPrefix": "REACTION_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		},
+		"meme.MemeRarity": {
+			"mode": "const_array",
+			"stripPrefix": "MEME_RARITY_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		},
+		"meme.MemeElement": {
+			"mode": "const_array",
+			"stripPrefix": "MEME_ELEMENT_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		},
+		"meme.AbilityTrigger": {
+			"mode": "const_array",
+			"stripPrefix": "ABILITY_TRIGGER_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		},
+		"meme.AbilityEffect": {
+			"mode": "const_array",
+			"stripPrefix": "ABILITY_EFFECT_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		},
+		"meme.FeedSort": {
+			"mode": "const_array",
+			"stripPrefix": "FEED_SORT_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		},
+		"meme.FeedTimeWindow": {
+			"mode": "const_array",
+			"stripPrefix": "FEED_TIME_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		},
+		"meme.ReportReason": {
+			"mode": "const_array",
+			"stripPrefix": "REPORT_REASON_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		},
+		"meme.BattleStatus": {
+			"mode": "const_array",
+			"stripPrefix": "BATTLE_STATUS_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "MemeFormats",
+			"sourceEnum": "meme.MemeFormat",
+			"typeName": "MemeFormatValue",
+			"zodSchemaName": "MemeFormatSchema"
+		},
+		{
+			"name": "MemeStatuses",
+			"sourceEnum": "meme.MemeStatus",
+			"typeName": "MemeStatusValue",
+			"zodSchemaName": "MemeStatusSchema"
+		},
+		{
+			"name": "ReactionTypes",
+			"sourceEnum": "meme.ReactionType",
+			"typeName": "ReactionTypeValue",
+			"zodSchemaName": "ReactionTypeSchema"
+		},
+		{
+			"name": "MemeRarities",
+			"sourceEnum": "meme.MemeRarity",
+			"typeName": "MemeRarityValue",
+			"zodSchemaName": "MemeRaritySchema"
+		},
+		{
+			"name": "MemeElements",
+			"sourceEnum": "meme.MemeElement",
+			"typeName": "MemeElementValue",
+			"zodSchemaName": "MemeElementSchema"
+		},
+		{
+			"name": "AbilityTriggers",
+			"sourceEnum": "meme.AbilityTrigger",
+			"typeName": "AbilityTriggerValue",
+			"zodSchemaName": "AbilityTriggerSchema"
+		},
+		{
+			"name": "AbilityEffects",
+			"sourceEnum": "meme.AbilityEffect",
+			"typeName": "AbilityEffectValue",
+			"zodSchemaName": "AbilityEffectSchema"
+		},
+		{
+			"name": "FeedSorts",
+			"sourceEnum": "meme.FeedSort",
+			"typeName": "FeedSortValue",
+			"zodSchemaName": "FeedSortSchema"
+		},
+		{
+			"name": "FeedTimeWindows",
+			"sourceEnum": "meme.FeedTimeWindow",
+			"typeName": "FeedTimeWindowValue",
+			"zodSchemaName": "FeedTimeWindowSchema"
+		},
+		{
+			"name": "ReportReasons",
+			"sourceEnum": "meme.ReportReason",
+			"typeName": "ReportReasonValue",
+			"zodSchemaName": "ReportReasonSchema"
+		},
+		{
+			"name": "BattleStatuses",
+			"sourceEnum": "meme.BattleStatus",
+			"typeName": "BattleStatusValue",
+			"zodSchemaName": "BattleStatusSchema"
+		}
+	]
+}

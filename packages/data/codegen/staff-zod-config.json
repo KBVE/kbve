@@ -1,0 +1,19 @@
+{
+	"enums": {
+		"kbve.staff.StaffPermission": {
+			"mode": "const_array",
+			"stripPrefix": "STAFF_PERM_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "StaffPermissions",
+			"sourceEnum": "kbve.staff.StaffPermission",
+			"typeName": "StaffPermissionValue",
+			"zodSchemaName": "StaffPermissionSchema"
+		}
+	]
+}

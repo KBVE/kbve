@@ -1,0 +1,19 @@
+{
+	"enums": {
+		"kbve.profile.UsernameErrorType": {
+			"mode": "const_array",
+			"stripPrefix": "USERNAME_ERROR_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "UsernameErrorTypes",
+			"sourceEnum": "kbve.profile.UsernameErrorType",
+			"typeName": "UsernameErrorTypeValue",
+			"zodSchemaName": "UsernameErrorTypeSchema"
+		}
+	]
+}
