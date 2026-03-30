@@ -1,0 +1,68 @@
+# macOS KubeVirt VM Setup — install Xcode + UE build deps
+#
+# TODO(implement): This is a stub workflow for the macOS build pipeline.
+# Mirrors ci-ue-win-setup.yml but for macOS on KubeVirt.
+#
+# Prerequisites (not yet done):
+#   1. Provision macOS VM in KubeVirt (vm-macos-builder.yaml)
+#      - Upload BaseSystem.img via virtctl
+#      - Install macOS via VNC
+#      - Install GitHub Actions runner
+#   2. Apple hardware requirement — macOS VMs must run on Apple-branded hosts
+#      (Mac Pro, Mac Mini cluster node) per Apple EULA
+#   3. KEDA ScaledJob for UE5-Mac label already exists (scaled-jobs.yaml)
+#
+# Pipeline (when implemented):
+#   Job 1 (Linux runner): Stage downloads via download-proxy
+#     - Xcode .xip (requires Apple Developer account)
+#     - Command Line Tools .dmg
+#     - UE5 source (from KBVE/UnrealEngine-Angelscript)
+#   Job 2 (macOS VM runner): Install from staged files
+#     - xip -x Xcode.xip
+#     - xcode-select --install
+#     - Build UE5 from source (GenerateProjectFiles + xcodebuild)
+#
+# Challenges:
+#   - Xcode requires Apple ID auth for download (~13GB)
+#   - macOS VMs need GPU passthrough for Metal shader compilation
+#   - KubeVirt macOS networking uses same masquerade NAT (download-proxy needed)
+#   - OSX-KVM approach needs specific CPU feature flags (already in VM manifest)
+
+name: UE Mac Setup
+on:
+    workflow_dispatch:
+        inputs:
+            xcode_version:
+                description: 'Xcode version (e.g. 16.2)'
+                required: false
+                default: '16.2'
+# TODO: Uncomment and implement when macOS VM is provisioned
+# jobs:
+#   stage-downloads:
+#     name: Stage Downloads
+#     runs-on: arc-runner-set
+#     steps:
+#       - name: Scale up download proxy
+#         run: kubectl scale deploy download-proxy -n angelscript --replicas=1
+#
+#       - name: Wait for proxy
+#         run: kubectl wait --for=condition=Ready pod -l app=download-proxy -n angelscript --timeout=60s
+#
+#       - name: Stage Xcode CLI Tools
+#         run: |
+#           # TODO: Download Command Line Tools from Apple
+#           # Requires Apple Developer session cookie or API token
+#           echo "Staging Xcode CLI tools..."
+#
+#   install:
+#     name: Install on macOS VM
+#     runs-on: UE5-Mac
+#     needs: stage-downloads
+#     steps:
+#       - name: Install from staged files
+#         run: |
+#           # TODO: Install from download-proxy
+#           # curl http://download-proxy.angelscript.svc:8080/CommandLineTools.dmg -o /tmp/CLT.dmg
+#           # hdiutil attach /tmp/CLT.dmg
+#           # installer -pkg /Volumes/Command\ Line\ Tools/CommandLineTools.pkg -target /
+#           echo "Installing build tools..."
