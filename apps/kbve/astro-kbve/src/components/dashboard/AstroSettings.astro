@@ -1,0 +1,46 @@
+---
+import ReactSettingsPanel from './ReactSettingsPanel';
+---
+
+<section id="settings-wrapper" class="settings-wrapper" aria-label="Settings">
+	<div id="settings-content" class="settings-content">
+		<div class="not-content settings-panel">
+			<ReactSettingsPanel client:only="react" />
+		</div>
+	</div>
+</section>
+
+<style>
+	.settings-wrapper {
+		background: transparent;
+		min-height: 100vh;
+		position: relative;
+		width: 100vw;
+		margin-left: calc(-50vw + 50%);
+	}
+
+	.settings-content {
+		max-width: 900px;
+		margin: 0 auto;
+		padding: 2rem 1rem;
+	}
+
+	@media (min-width: 768px) {
+		.settings-content {
+			padding: 2rem 1.5rem;
+		}
+	}
+
+	.settings-panel {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		min-height: 60vh;
+	}
+
+	:global(@keyframes spin) {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+</style>
