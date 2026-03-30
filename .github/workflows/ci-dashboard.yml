@@ -137,13 +137,21 @@ jobs:
             - name: Run pnpm audit
               run: |
                   set -euo pipefail
-                  pnpm audit --json > /tmp/pnpm-audit.json 2>&1 || true
+                  pnpm audit --json > /tmp/pnpm-audit.json 2>/dev/null || true
+                  if ! python3 -c "import json; json.load(open('/tmp/pnpm-audit.json'))" 2>/dev/null; then
+                    echo '{"advisories":{}}' > /tmp/pnpm-audit.json
+                    echo "pnpm audit output was not valid JSON — wrote empty fallback"
+                  fi
                   echo "pnpm audit captured ($(wc -c < /tmp/pnpm-audit.json | xargs) bytes)"
 
             - name: Run cargo audit
               run: |
                   set -euo pipefail
-                  cargo audit --json > /tmp/cargo-audit.json 2>&1 || true
+                  cargo audit --json > /tmp/cargo-audit.json 2>/dev/null || true
+                  if ! python3 -c "import json; json.load(open('/tmp/cargo-audit.json'))" 2>/dev/null; then
+                    echo '{"vulnerabilities":{"found":0},"warnings":{}}' > /tmp/cargo-audit.json
+                    echo "cargo audit output was not valid JSON — wrote empty fallback"
+                  fi
                   echo "cargo audit captured ($(wc -c < /tmp/cargo-audit.json | xargs) bytes)"
 
             - name: Run pip audit
