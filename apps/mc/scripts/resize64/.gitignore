@@ -1,5 +1,0 @@
-.venv/
-input/*
-output/*
-!input/.gitkeep
-!output/.gitkeep
