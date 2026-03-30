@@ -235,6 +235,7 @@ jobs:
                   while IFS= read -r entry; do
                     key=$(echo "$entry" | jq -r '.key')
                     pkg=$(echo "$entry" | jq -r '.package_name')
+                    VER=$(echo "$entry" | jq -r '.version // empty')
                     SRC=$(echo "$entry" | jq -r '.version_source // empty')
                     VTOML=$(echo "$entry" | jq -r '.version_toml // empty')
                     altered=$(is_altered "$key")
@@ -248,13 +249,17 @@ jobs:
                     if [ -n "$SRC" ]; then
                       EXTRA_FIELDS="--field version_source=${SRC} --field version_toml_path_override=${VTOML}"
                     fi
+                    # Pass manifest version so ci-publish can sync Cargo.toml
+                    if [ -n "$VER" ] && [ "$VER" != "0.0.0" ]; then
+                      EXTRA_FIELDS="$EXTRA_FIELDS --field manifest_version=${VER}"
+                    fi
 
                     if [ "$altered" = "true" ]; then
-                      echo "  ✓ $pkg — files changed, dispatching"
+                      echo "  ✓ $pkg — files changed, dispatching (v$VER)"
                       dispatch_publish crates --field package_name="$pkg" $EXTRA_FIELDS
                       DISPATCHED=$((DISPATCHED + 1))
                     elif [ "$(check_version "$cargo_src" "$cargo_vtoml")" = "true" ]; then
-                      echo "  ✓ $pkg — unpublished version, dispatching"
+                      echo "  ✓ $pkg — unpublished version, dispatching (v$VER)"
                       dispatch_publish crates --field package_name="$pkg" $EXTRA_FIELDS
                       DISPATCHED=$((DISPATCHED + 1))
                     else
