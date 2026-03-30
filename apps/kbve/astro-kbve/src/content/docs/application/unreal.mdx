@@ -473,4 +473,108 @@ The following methods are registered but return `NOT_IMPLEMENTED`. Each is track
 | **KBVEWASM** | WebAssembly runtime integration | Various |
 | **UEDevOps** | DevOps toolkit: telemetry, error reporting, GitHub integration | KBVE (MIT) |
 
+---
+
+## Windows VM Tooling (KubeVirt)
+
+<Aside type="caution" title="KubeVirt VMs">
+    These instructions are for headless Windows Server VMs running inside KubeVirt
+    on the KBVE cluster. For local development, use the standard installers.
+</Aside>
+
+### Visual Studio Build Tools (Offline Install)
+
+UE5 requires Visual Studio Build Tools for C++ compilation. On a headless Windows VM
+without internet reliability (Cilium masquerade NAT drops long connections), use the
+offline layout approach:
+
+<Steps>
+
+1. **Download the bootstrapper** on a machine with stable internet:
+
+   | Edition | Download |
+   |---------|----------|
+   | Build Tools | `vs_buildtools.exe` |
+   | Professional | `vs_professional.exe` |
+   | Community | `vs_community.exe` |
+
+   All available from Microsoft's Visual Studio downloads page (version 17 release channel).
+
+2. **Create an offline layout** with the UE5 workload:
+
+   ```powershell
+   # Download all required components for UE5 C++ development
+   vs_buildtools.exe --layout C:\VSLayout --lang en-US `
+     --add Microsoft.VisualStudio.Workload.VCTools `
+     --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+     --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
+     --includeRecommended
+   ```
+
+3. **Transfer the layout** to the VM via the sidecar HTTP proxy or PVC mount.
+
+4. **Install from the layout** inside the VM:
+
+   ```powershell
+   # Run from the layout directory (no internet required)
+   C:\VSLayout\vs_buildtools.exe --noweb --passive --norestart `
+     --add Microsoft.VisualStudio.Workload.VCTools `
+     --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+     --add Microsoft.VisualStudio.Component.Windows11SDK.22621
+   ```
+
+</Steps>
+
+### Git Bash Integration
+
+To use Git Bash inside Visual Studio's terminal:
+
+1. Open `View > Terminal`
+2. Click the gear icon in the terminal's upper right
+3. Navigate to `Environment > Terminal` in Options
+4. Add a new profile:
+   - **Name**: Git Bash
+   - **Shell Location**: `C:\Program Files\Git\bin\bash.exe`
+   - **Arguments**: `--login -i`
+5. Set as default (optional), click OK
+
+### VS Code CLI (Headless Server)
+
+For remote development on headless Windows VMs via VS Code tunnels:
+
+```powershell
+# Download VS Code CLI (no GUI needed)
+Invoke-WebRequest -Uri "https://code.visualstudio.com/sha/download?build=stable&os=cli-win32-x64" `
+  -OutFile "$env:TEMP\vscode-cli.zip"
+Expand-Archive "$env:TEMP\vscode-cli.zip" -DestinationPath "C:\vscode-cli"
+
+# Start a tunnel (connects to your local VS Code via tunnel)
+C:\vscode-cli\code.exe tunnel --accept-server-license-terms
+```
+
+This creates a remote tunnel that your local VS Code can connect to via the
+Remote - Tunnels extension, allowing full IDE access to the Windows VM without
+VNC or RDP.
+
+### winget (Windows Package Manager)
+
+For VMs with internet access (or via sidecar proxy):
+
+```powershell
+# Install Git
+winget install --id Git.Git -e --source winget
+
+# Install VS Code (full GUI — only if VM has display)
+winget install --id Microsoft.VisualStudioCode -e --source winget
+
+# Install VS Build Tools
+winget install --id Microsoft.VisualStudio.2022.BuildTools -e --source winget
+```
+
+<Aside type="tip" title="Issue #9328">
+    Downloads on KubeVirt VMs drop due to Cilium VXLAN masquerade NAT.
+    Use the sidecar HTTP proxy with aria2c for reliable large downloads.
+    See [issue #9328](https://github.com/KBVE/kbve/issues/9328).
+</Aside>
+
 <Giscus />
