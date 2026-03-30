@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: discordsh-bot-headless
+    namespace: discordsh-bot
+    labels:
+        app: discordsh-bot
+spec:
+    clusterIP: None
+    selector:
+        app: discordsh-bot
+    ports:
+        - name: health
+          port: 4322
+          targetPort: 4322
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+    name: discordsh-bot
+    namespace: discordsh-bot
+    labels:
+        app: discordsh-bot
+spec:
+    serviceName: discordsh-bot-headless
+    replicas: 1
+    selector:
+        matchLabels:
+            app: discordsh-bot
+    template:
+        metadata:
+            labels:
+                app: discordsh-bot
+        spec:
+            containers:
+                - name: discordsh-bot
+                  image: ghcr.io/kbve/discordsh-bot:0.1.0
+                  imagePullPolicy: Always
+                  env:
+                      - name: RUST_LOG
+                        value: 'discordsh_bot=debug,kbve=debug'
+                      - name: FONT_PATH
+                        value: '/app/alagard.ttf'
+                      - name: SYMBOL_FONT_PATH
+                        value: '/app/NotoSansSymbols-Regular.ttf'
+                      - name: SHARD_COUNT
+                        value: '1'
+                      - name: DISCORD_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: discordsh-bot-secrets
+                                key: DISCORD_TOKEN
+                      - name: SUPABASE_URL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: discordsh-bot-config
+                                key: PUBLIC_SUPABASE_URL
+                      - name: SUPABASE_SERVICE_ROLE_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: discordsh-bot-supabase
+                                key: service-role-key
+                      - name: REDIS_URL
+                        value: 'redis://:$(REDIS_PASSWORD)@redis-master.redis.svc.cluster.local:6379'
+                      - name: REDIS_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: discordsh-bot-redis
+                                key: redis-password
+                  resources:
+                      requests:
+                          memory: '256Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '512Mi'
+                          cpu: '500m'
+                  livenessProbe:
+                      exec:
+                          command:
+                              - /bin/sh
+                              - -c
+                              - 'test $(( $(date +%s) - $(stat -c %Y /tmp/bot-heartbeat 2>/dev/null || echo 0) )) -lt 120'
+                      initialDelaySeconds: 30
+                      periodSeconds: 30
+                  readinessProbe:
+                      exec:
+                          command:
+                              - /bin/sh
+                              - -c
+                              - 'test -f /tmp/bot-heartbeat'
+                      initialDelaySeconds: 10
+                      periodSeconds: 10

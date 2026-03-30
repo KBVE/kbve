@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: discordsh-bot-config
+    namespace: discordsh-bot
+data:
+    PUBLIC_SUPABASE_URL: 'https://api.kbve.com'
+    RUST_LOG: 'discordsh_bot=debug,kbve=debug'

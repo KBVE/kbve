@@ -68,6 +68,20 @@
 			"has_test": true
 		},
 		{
+			"key": "discordsh_bot",
+			"app_name": "discordsh-bot",
+			"version": "0.1.0",
+			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
+			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
+			"source_path": "apps/discordsh/discordsh-bot",
+			"runner": "ubuntu-latest",
+			"image": "kbve/discordsh-bot",
+			"e2e_name": "discordsh-bot",
+			"deployment_yaml": "apps/kube/discordsh-bot/manifest/deployment.yaml",
+			"has_test": false
+		},
+		{
 			"key": "edge",
 			"app_name": "edge",
 			"version": "0.1.21",

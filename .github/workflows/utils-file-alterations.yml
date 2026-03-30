@@ -106,6 +106,9 @@ on:
             discordsh:
                 description: 'Discordsh app changed'
                 value: ${{ jobs.alter.outputs.discordsh }}
+            discordsh_bot:
+                description: 'Discordsh Bot changed'
+                value: ${{ jobs.alter.outputs.discordsh_bot }}
             proxy:
                 description: 'Proxy changed'
                 value: ${{ jobs.alter.outputs.proxy }}
@@ -204,6 +207,7 @@ jobs:
             irc_gateway: ${{ steps.delta.outputs.irc_gateway_any_changed }}
             droid: ${{ steps.delta.outputs.droid_any_changed }}
             discordsh: ${{ steps.delta.outputs.discordsh_any_changed}}
+            discordsh_bot: ${{ steps.delta.outputs.discordsh_bot_any_changed }}
             proxy: ${{ steps.delta.outputs.proxy_any_changed }}
             saber: ${{ steps.delta.outputs.saber_any_changed }}
             cryptothrone: ${{ steps.delta.outputs.cryptothrone_any_changed }}
@@ -293,6 +297,8 @@ jobs:
                           - 'apps/irc/**'
                       discordsh:
                           - 'apps/discordsh/**'
+                      discordsh_bot:
+                          - 'apps/discordsh/discordsh-bot/**'
                       proxy:
                           - 'apps/proxy/**'
                       saber:

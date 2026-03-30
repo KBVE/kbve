@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: discordsh-bot
+    labels:
+        app.kubernetes.io/name: discordsh-bot
+        app.kubernetes.io/part-of: discordsh
