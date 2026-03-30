@@ -92,7 +92,7 @@ jobs:
               run: pnpm install
 
             - name: Setup Python
-              uses: actions/setup-python@v5
+              uses: actions/setup-python@v6
               with:
                   python-version: '3.12'
 
@@ -137,13 +137,21 @@ jobs:
             - name: Run pnpm audit
               run: |
                   set -euo pipefail
-                  pnpm audit --json > /tmp/pnpm-audit.json 2>&1 || true
+                  pnpm audit --json > /tmp/pnpm-audit.json 2>/dev/null || true
+                  if ! python3 -c "import json; json.load(open('/tmp/pnpm-audit.json'))" 2>/dev/null; then
+                    echo '{"advisories":{}}' > /tmp/pnpm-audit.json
+                    echo "pnpm audit output was not valid JSON — wrote empty fallback"
+                  fi
                   echo "pnpm audit captured ($(wc -c < /tmp/pnpm-audit.json | xargs) bytes)"
 
             - name: Run cargo audit
               run: |
                   set -euo pipefail
-                  cargo audit --json > /tmp/cargo-audit.json 2>&1 || true
+                  cargo audit --json > /tmp/cargo-audit.json 2>/dev/null || true
+                  if ! python3 -c "import json; json.load(open('/tmp/cargo-audit.json'))" 2>/dev/null; then
+                    echo '{"vulnerabilities":{"found":0},"warnings":{}}' > /tmp/cargo-audit.json
+                    echo "cargo audit output was not valid JSON — wrote empty fallback"
+                  fi
                   echo "cargo audit captured ($(wc -c < /tmp/cargo-audit.json | xargs) bytes)"
 
             - name: Run pip audit
@@ -253,7 +261,7 @@ jobs:
                   echo "OK: $JSON ($(wc -c < "$JSON" | xargs) bytes)"
 
             - name: Upload security artifacts
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: dashboard-security
                   retention-days: 1
@@ -544,7 +552,7 @@ jobs:
                   done
 
             - name: Upload report artifacts
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: dashboard-report
                   retention-days: 1
@@ -985,7 +993,7 @@ jobs:
 
             - name: Upload kanban artifacts
               if: steps.token_check.outputs.skip != 'true'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: dashboard-kanban
                   retention-days: 1
@@ -1072,7 +1080,7 @@ jobs:
 
             - name: Upload proto artifacts
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: dashboard-proto
                   retention-days: 1
@@ -1100,7 +1108,7 @@ jobs:
                   fetch-depth: 1
 
             - name: Download all artifacts
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   path: /tmp/dashboard-artifacts
                   merge-multiple: true

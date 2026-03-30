@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-03-29T08:17:11.412Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-03-30T08:39:39.327Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -21,7 +21,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 
 <CardGrid>
   <Card title="Theory" icon="star">
-    **22** items
+    **21** items
   </Card>
   <Card title="AI" icon="rocket">
     **1** items
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **2** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **411** items
+    **405** items
   </Card>
 </CardGrid>
 
@@ -55,14 +55,14 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 ```mermaid
 pie showData
     title Items by Status
-    "Theory" : 22
+    "Theory" : 21
     "AI" : 1
     "Todo" : 5
     "Backlog" : 7
     "Error" : 12
     "Staging" : 4
     "Review" : 2
-    "Done" : 411
+    "Done" : 405
 ```
 
 ```mermaid
@@ -70,8 +70,8 @@ pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 11
     "Blocked (Error+Support)" : 12
-    "Done" : 411
-    "Planning (Theory+AI+Backlog)" : 30
+    "Done" : 405
+    "Planning (Theory+AI+Backlog)" : 29
 ```
 
   </TabItem>
@@ -83,7 +83,7 @@ flowchart LR
     classDef active fill:#3b82f6,stroke:#1d4ed8,color:#fff
     classDef blocked fill:#ef4444,stroke:#b91c1c,color:#fff
     classDef done fill:#10b981,stroke:#059669,color:#fff
-    Theory["Theory<br/><strong>22</strong>"]
+    Theory["Theory<br/><strong>21</strong>"]
     Theory --> AI
     AI["AI<br/><strong>1</strong>"]
     AI --> Todo
@@ -99,7 +99,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>2</strong>"]
     Review --> Done
-    Done["Done<br/><strong>411</strong>"]
+    Done["Done<br/><strong>405</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,7 +116,7 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 397
+    "Pull Request" : 390
     "Issue" : 67
 ```
 
@@ -124,9 +124,9 @@ pie showData
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 397 |
-| dev→main | 211 |
-| atomic | 167 |
+| auto-pr | 390 |
+| dev→main | 205 |
+| atomic | 164 |
 | enhancement | 35 |
 | 0 | 23 |
 | bug | 17 |
@@ -138,7 +138,7 @@ pie showData
   </TabItem>
 </Tabs>
 
-### Theory (22)
+### Theory (21)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -159,7 +159,6 @@ pie showData
 | [#8180](https://github.com/KBVE/kbve/issues/8180) | [DISCORDSH] POC: Mockoon docker-compose for local E2E testing | — | h0lybyte | 1, enhancement |
 | [#8189](https://github.com/KBVE/kbve/issues/8189) | [BEVY] NPC Creatures — Performance Audit | — | — | enhancement |
 | [#8245](https://github.com/KBVE/kbve/issues/8245) | perf(dashboard): migrate ClickHouse queries to @kbve/droid worker pipeline with  | — | — | enhancement |
-| [#8341](https://github.com/KBVE/kbve/issues/8341) | [PROTO] Zod codegen for 10 uncovered proto schemas | — | — | 6, enhancement |
 | [#8935](https://github.com/KBVE/kbve/issues/8935) | [UE5] [OWS] Persist GameServer allocations to database | — | — | enhancement |
 | [#8931](https://github.com/KBVE/kbve/issues/8931) | [UE5] [OWS] Add retry and circuit breaker for K8s API calls | — | — | enhancement |
 | [#8933](https://github.com/KBVE/kbve/issues/8933) | [UE5] [OWS] Extract hardcoded cleanup config to options pattern | — | — | enhancement |
@@ -224,31 +223,15 @@ pie showData
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
 | [#8050](https://github.com/KBVE/kbve/pull/8050) | Release: 4 features, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#9262](https://github.com/KBVE/kbve/pull/9262) | Release: 1 feature, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#9297](https://github.com/KBVE/kbve/pull/9297) | Release: 4 features, 1 chore → Main | — | — | auto-pr, dev→main |
 
-### Done (411)
+### Done (405)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
 | [#5442](https://github.com/KBVE/kbve/issues/5442) | [Suggestion] : [Godot] : Pirate 17 - Airship - Dialogue System Improvements | — | h0lybyte | 0, bug, godot |
 | [#7705](https://github.com/KBVE/kbve/issues/7705) | [VAULT] Guild Vault End-to-End Integration: Bot, OAuth, UI, Tests | — | — | enhancement, security |
 | [#7727](https://github.com/KBVE/kbve/issues/7727) | [DISCORDSH] Rust-First Server Submission Pipeline — Belt &amp; Suspenders Valida | — | h0lybyte | enhancement |
-| [#7965](https://github.com/KBVE/kbve/pull/7965) | Release: 4 features, 3 fixes, 1 doc, 1 refactor, 8 chores → Main | — | — | auto-pr, dev→main |
-| [#7972](https://github.com/KBVE/kbve/pull/7972) | Atomic: kube axum-kbve v1.0.44 | — | — | auto-pr, atomic |
-| [#7980](https://github.com/KBVE/kbve/pull/7980) | Release: 3 features, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#7984](https://github.com/KBVE/kbve/pull/7984) | Atomic: kube discordsh v0.1.31 | — | — | auto-pr, atomic |
-| [#7988](https://github.com/KBVE/kbve/pull/7988) | Release: 1 feature, 2 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#7990](https://github.com/KBVE/kbve/pull/7990) | Atomic: remove v atlas workflow | — | — | auto-pr, atomic |
-| [#7993](https://github.com/KBVE/kbve/pull/7993) | Release: 2 features, 4 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#7999](https://github.com/KBVE/kbve/pull/7999) | Atomic: fix nx report gh cli | — | — | auto-pr, atomic |
-| [#8001](https://github.com/KBVE/kbve/pull/8001) | Release: 4 features, 4 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#8012](https://github.com/KBVE/kbve/pull/8012) | Release: 5 features → Main | — | — | auto-pr, dev→main |
-| [#8019](https://github.com/KBVE/kbve/pull/8019) | Atomic: kube axum-kbve v1.0.47 | — | — | auto-pr, atomic |
-| [#8021](https://github.com/KBVE/kbve/pull/8021) | Release: 4 features, 5 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#8031](https://github.com/KBVE/kbve/pull/8031) | Atomic: kube axum-kbve v1.0.48 | — | — | auto-pr, atomic |
-| [#8032](https://github.com/KBVE/kbve/pull/8032) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#8034](https://github.com/KBVE/kbve/pull/8034) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
-| [#8037](https://github.com/KBVE/kbve/pull/8037) | Release: 4 features, 2 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#8042](https://github.com/KBVE/kbve/pull/8042) | Release: 1 feature, 6 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#8047](https://github.com/KBVE/kbve/pull/8047) | Release: 1 feature, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#8049](https://github.com/KBVE/kbve/pull/8049) | Atomic: kube axum-kbve v1.0.50 | — | — | auto-pr, atomic |
@@ -316,6 +299,7 @@ pie showData
 | [#8329](https://github.com/KBVE/kbve/pull/8329) | Atomic: cilium phase1 done | — | — | auto-pr, atomic |
 | [#8336](https://github.com/KBVE/kbve/pull/8336) | Release: 2 features, 1 fix, 1 refactor → Main | — | — | auto-pr, dev→main |
 | [#8338](https://github.com/KBVE/kbve/pull/8338) | Atomic: gateway api crds | — | — | auto-pr, atomic |
+| [#8341](https://github.com/KBVE/kbve/issues/8341) | [PROTO] Zod codegen for 10 uncovered proto schemas | — | — | 6, enhancement |
 | [#8343](https://github.com/KBVE/kbve/pull/8343) | Release: 1 feature → Main | — | — | auto-pr, dev→main |
 | [#8344](https://github.com/KBVE/kbve/pull/8344) | Release: 1 feature, 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#8348](https://github.com/KBVE/kbve/pull/8348) | Atomic: wildcard cert | — | — | auto-pr, atomic |
@@ -641,6 +625,15 @@ pie showData
 | [#9255](https://github.com/KBVE/kbve/pull/9255) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
 | [#9259](https://github.com/KBVE/kbve/pull/9259) | Release: 1 feature, 2 fixes → Main | — | — | auto-pr, dev→main |
 | [#9261](https://github.com/KBVE/kbve/pull/9261) | Atomic: rows v0.1.23 post-publish sync | — | — | auto-pr, atomic |
+| [#9262](https://github.com/KBVE/kbve/pull/9262) | Release: 6 features, 4 fixes, 2 docs, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#9266](https://github.com/KBVE/kbve/pull/9266) | chore(dashboard): daily sync — 2026-03-29 | — | — | auto-pr |
+| [#9280](https://github.com/KBVE/kbve/pull/9280) | deploy(isometric): update WASM build | — | — | auto-pr |
+| [#9281](https://github.com/KBVE/kbve/pull/9281) | Release: 6 features, 2 docs, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#9289](https://github.com/KBVE/kbve/pull/9289) | Atomic: axum-chuckrpg v0.1.7 post-publish sync | — | — | auto-pr, atomic |
+| [#9290](https://github.com/KBVE/kbve/pull/9290) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
+| [#9291](https://github.com/KBVE/kbve/pull/9291) | Atomic: discordsh v0.1.41 post-publish sync | — | — | auto-pr, atomic |
+| [#9293](https://github.com/KBVE/kbve/pull/9293) | Atomic: axum-kbve v1.0.79 post-publish sync | — | — | auto-pr, atomic |
+| [#9294](https://github.com/KBVE/kbve/pull/9294) | Release: 2 features, 1 chore → Main | — | — | auto-pr, dev→main |
 
 ---
 
