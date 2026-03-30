@@ -12,21 +12,21 @@ pub struct ServerHeartbeat {
     #[prost(double, tag = "5")]
     pub memory_usage_mb: f64,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ServerCommand {
     #[prost(string, tag = "1")]
     pub command: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub payload: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct LoginRequest {
     #[prost(string, tag = "1")]
     pub email: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub password: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct LoginResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
@@ -35,7 +35,7 @@ pub struct LoginResponse {
     #[prost(string, optional, tag = "3")]
     pub error: ::core::option::Option<::prost::alloc::string::String>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RegisterRequest {
     #[prost(string, tag = "1")]
     pub email: ::prost::alloc::string::String,
@@ -46,14 +46,14 @@ pub struct RegisterRequest {
     #[prost(string, tag = "4")]
     pub last_name: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RegisterResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
     #[prost(string, optional, tag = "2")]
     pub error: ::core::option::Option<::prost::alloc::string::String>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetCharactersRequest {
     #[prost(string, tag = "1")]
     pub user_session_guid: ::prost::alloc::string::String,
@@ -63,7 +63,7 @@ pub struct GetCharactersResponse {
     #[prost(message, repeated, tag = "1")]
     pub characters: ::prost::alloc::vec::Vec<super::ows::Character>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CreateCharacterRequest {
     #[prost(string, tag = "1")]
     pub user_session_guid: ::prost::alloc::string::String,
@@ -72,33 +72,33 @@ pub struct CreateCharacterRequest {
     #[prost(string, tag = "3")]
     pub class_name: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CreateCharacterResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
     #[prost(string, optional, tag = "2")]
     pub error: ::core::option::Option<::prost::alloc::string::String>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RemoveCharacterRequest {
     #[prost(string, tag = "1")]
     pub character_name: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RemoveCharacterResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
     #[prost(string, optional, tag = "2")]
     pub error: ::core::option::Option<::prost::alloc::string::String>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetServerToConnectToRequest {
     #[prost(string, tag = "1")]
     pub character_name: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub zone_name: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetServerToConnectToResponse {
     #[prost(string, tag = "1")]
     pub server_ip: ::prost::alloc::string::String,
@@ -107,7 +107,7 @@ pub struct GetServerToConnectToResponse {
     #[prost(string, optional, tag = "3")]
     pub error: ::core::option::Option<::prost::alloc::string::String>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetAllCharactersRequest {
     #[prost(string, tag = "1")]
     pub user_session_guid: ::prost::alloc::string::String,
@@ -117,7 +117,7 @@ pub struct GetAllCharactersResponse {
     #[prost(message, repeated, tag = "1")]
     pub characters: ::prost::alloc::vec::Vec<super::ows::Character>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RegisterLauncherRequest {
     #[prost(string, tag = "1")]
     pub launcher_guid: ::prost::alloc::string::String,
@@ -130,7 +130,7 @@ pub struct RegisterLauncherRequest {
     #[prost(int32, tag = "5")]
     pub starting_instance_port: i32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RegisterLauncherResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
@@ -139,50 +139,50 @@ pub struct RegisterLauncherResponse {
     #[prost(string, optional, tag = "3")]
     pub error: ::core::option::Option<::prost::alloc::string::String>,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct StartInstanceLauncherRequest {
     #[prost(int32, tag = "1")]
     pub world_server_id: i32,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct StartInstanceLauncherResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ShutDownInstanceLauncherRequest {
     #[prost(int32, tag = "1")]
     pub world_server_id: i32,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ShutDownInstanceLauncherResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetZoneInstancesRequest {
     #[prost(int32, tag = "1")]
     pub world_server_id: i32,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetZoneInstancesResponse {
     /// TODO: define ZoneInstance message when needed
     #[prost(bool, tag = "1")]
     pub success: bool,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SetZoneInstanceStatusRequest {
     #[prost(int32, tag = "1")]
     pub zone_instance_id: i32,
     #[prost(int32, tag = "2")]
     pub instance_status: i32,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SetZoneInstanceStatusResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SpinUpInstanceRequest {
     #[prost(int32, tag = "1")]
     pub world_server_id: i32,
@@ -196,36 +196,36 @@ pub struct SpinUpInstanceRequest {
     #[prost(int64, tag = "5")]
     pub seed: i64,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SpinUpInstanceResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
     #[prost(string, optional, tag = "2")]
     pub error: ::core::option::Option<::prost::alloc::string::String>,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ShutDownInstanceRequest {
     #[prost(int32, tag = "1")]
     pub zone_instance_id: i32,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ShutDownInstanceResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UpdateNumberOfPlayersRequest {
     #[prost(int32, tag = "1")]
     pub zone_instance_id: i32,
     #[prost(int32, tag = "2")]
     pub number_of_players: i32,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UpdateNumberOfPlayersResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetCharacterByNameRequest {
     #[prost(string, tag = "1")]
     pub character_name: ::prost::alloc::string::String,
@@ -247,43 +247,43 @@ pub struct UpdatePositionRequest {
     #[prost(double, tag = "7")]
     pub rz: f64,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UpdatePositionResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UpdateStatsRequest {
     #[prost(string, tag = "1")]
     pub character_name: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub update_stats_json: ::prost::alloc::string::String,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct UpdateStatsResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PlayerLogoutRequest {
     #[prost(string, tag = "1")]
     pub user_session_guid: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub character_name: ::prost::alloc::string::String,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PlayerLogoutResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct JoinMapRequest {
     #[prost(string, tag = "1")]
     pub character_name: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub zone_name: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct JoinMapResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
@@ -294,44 +294,44 @@ pub struct JoinMapResponse {
     #[prost(string, optional, tag = "4")]
     pub error: ::core::option::Option<::prost::alloc::string::String>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct LeaveMapRequest {
     #[prost(string, tag = "1")]
     pub character_name: ::prost::alloc::string::String,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct LeaveMapResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetGlobalDataRequest {
     #[prost(string, tag = "1")]
     pub global_data_key: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetGlobalDataResponse {
     #[prost(string, optional, tag = "1")]
     pub global_data_value: ::core::option::Option<::prost::alloc::string::String>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SetGlobalDataRequest {
     #[prost(string, tag = "1")]
     pub global_data_key: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub global_data_value: ::prost::alloc::string::String,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SetGlobalDataResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ZoneAssignmentRequest {
     #[prost(int32, tag = "1")]
     pub world_server_id: i32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ZoneAssignmentResponse {
     #[prost(bool, tag = "1")]
     pub assigned: bool,
@@ -489,7 +489,7 @@ pub mod public_api_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = LoginSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -527,7 +527,7 @@ pub mod public_api_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = RegisterSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -568,7 +568,7 @@ pub mod public_api_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetCharactersSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -609,7 +609,7 @@ pub mod public_api_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = CreateCharacterSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -650,7 +650,7 @@ pub mod public_api_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = RemoveCharacterSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -692,7 +692,7 @@ pub mod public_api_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetServerToConnectToSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -733,7 +733,7 @@ pub mod public_api_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetAllCharactersSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -932,7 +932,7 @@ pub mod instance_management_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = RegisterLauncherSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -975,7 +975,7 @@ pub mod instance_management_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = StartInstanceLauncherSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1020,7 +1020,7 @@ pub mod instance_management_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = ShutDownInstanceLauncherSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1065,7 +1065,7 @@ pub mod instance_management_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetZoneInstancesForWorldServerSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1108,7 +1108,7 @@ pub mod instance_management_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = SetZoneInstanceStatusSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1150,7 +1150,7 @@ pub mod instance_management_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = SpinUpInstanceSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1192,7 +1192,7 @@ pub mod instance_management_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = ShutDownInstanceSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1235,7 +1235,7 @@ pub mod instance_management_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = UpdateNumberOfPlayersSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1423,7 +1423,7 @@ pub mod character_persistence_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetByNameSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1465,7 +1465,7 @@ pub mod character_persistence_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = UpdatePositionSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1507,7 +1507,7 @@ pub mod character_persistence_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = UpdateStatsSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1549,7 +1549,7 @@ pub mod character_persistence_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = PlayerLogoutSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1588,7 +1588,7 @@ pub mod character_persistence_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = JoinMapSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1629,7 +1629,7 @@ pub mod character_persistence_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = LeaveMapSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1801,7 +1801,7 @@ pub mod global_data_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetGlobalDataSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1843,7 +1843,7 @@ pub mod global_data_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = SetGlobalDataSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -2018,7 +2018,7 @@ pub mod game_server_health_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = HealthStreamSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
