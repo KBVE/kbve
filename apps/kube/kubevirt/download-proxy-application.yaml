@@ -1,0 +1,35 @@
+# Download proxy for reliable VM downloads via aria2c.
+# No selfHeal — KEDA manages replicas (0 idle, 1 when jobs are queued).
+# Manual override: kubectl scale deploy download-proxy -n angelscript --replicas=1
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: kubevirt-download-proxy
+    namespace: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '3'
+    finalizers:
+        - resources-finalizer.argocd.argoproj.io
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/KBVE/kbve
+        targetRevision: main
+        path: apps/kube/kubevirt/download-proxy
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: angelscript
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: false
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+        retry:
+            limit: 3
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m
+    revisionHistoryLimit: 3
