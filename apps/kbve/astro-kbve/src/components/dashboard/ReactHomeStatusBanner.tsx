@@ -21,6 +21,7 @@ function StatusDot({ status }: { status: ServiceStatus }) {
 }
 
 export default function ReactHomeStatusBanner() {
+	const isStaff = useStore(homeService.$isStaff);
 	const grafanaStatus = useStore(homeService.$grafanaStatus);
 	const argoStatus = useStore(homeService.$argoStatus);
 	const edgeStatus = useStore(homeService.$edgeStatus);
@@ -38,7 +39,7 @@ export default function ReactHomeStatusBanner() {
 		if (authState === 'authenticated') {
 			homeService.fetchAll();
 		}
-	}, [authState]);
+	}, [authState, isStaff]);
 
 	const overallColor = anyLoading
 		? '#94a3b8'
@@ -56,11 +57,15 @@ export default function ReactHomeStatusBanner() {
 				: 'Partial Degradation';
 
 	const services = [
-		{ name: 'Monitoring', status: grafanaStatus },
-		{ name: 'Deployments', status: argoStatus },
-		{ name: 'Game Ops', status: rowsStatus },
+		...(isStaff
+			? [
+					{ name: 'Monitoring', status: grafanaStatus },
+					{ name: 'Deployments', status: argoStatus },
+					{ name: 'Game Ops', status: rowsStatus },
+					{ name: 'Logs', status: clickhouseStatus },
+				]
+			: []),
 		{ name: 'Edge', status: edgeStatus },
-		{ name: 'Logs', status: clickhouseStatus },
 		{ name: 'Security', status: securityStatus },
 	];
 
@@ -86,7 +91,7 @@ export default function ReactHomeStatusBanner() {
 							verticalAlign: 'middle',
 						}}
 					/>
-					Infrastructure Dashboard
+					{isStaff ? 'Infrastructure Dashboard' : 'Dashboard'}
 				</h1>
 				<p
 					style={{
@@ -94,8 +99,9 @@ export default function ReactHomeStatusBanner() {
 						margin: '0.25rem 0 0',
 						fontSize: '0.85rem',
 					}}>
-					Real-time cluster monitoring, deployment status, and service
-					health
+					{isStaff
+						? 'Real-time cluster monitoring, deployment status, and service health'
+						: 'Project status, service health, and workspace overview'}
 				</p>
 			</header>
 

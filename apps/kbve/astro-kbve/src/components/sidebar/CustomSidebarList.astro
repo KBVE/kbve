@@ -26,19 +26,30 @@ function flattenSidebar(entries: SidebarEntry[]): SidebarLink[] {
 	);
 }
 
+interface QuickLink {
+	label: string;
+	href: string;
+}
+
 interface Props {
 	sublist: SidebarEntry[];
 	nested?: boolean;
 	iconMap?: Map<string, string>;
+	quicklinksMap?: Map<string, QuickLink[]>;
 }
 
-const { sublist, nested, iconMap } = Astro.props;
+const { sublist, nested, iconMap, quicklinksMap } = Astro.props;
 ---
 
 <ul class:list={{ 'top-level': !nested }}>
 	{
 		sublist.map((entry) => (
-			<li>
+			<li
+				data-quicklinks={
+					!nested && quicklinksMap?.get(entry.label)
+						? JSON.stringify(quicklinksMap.get(entry.label))
+						: undefined
+				}>
 				{entry.type === 'link' ? (
 					<a
 						href={entry.href}
@@ -113,6 +124,7 @@ const { sublist, nested, iconMap } = Astro.props;
 							sublist={entry.entries}
 							nested
 							iconMap={iconMap}
+							quicklinksMap={quicklinksMap}
 						/>
 					</details>
 				)}

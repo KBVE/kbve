@@ -69,6 +69,7 @@ export default function SiteGraphLoader({ currentSlug }: SiteGraphLoaderProps) {
 							letterSpacing: '0.05em',
 							color: 'var(--sl-color-gray-3)',
 							margin: '0 0 8px 0',
+							padding: '0 8px',
 						}}>
 						Graph
 					</h3>

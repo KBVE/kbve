@@ -34,6 +34,32 @@ import { Adsense } from '@/components/astropad';
   The website needs a couple tweaks with the sidebar, seems that the icons do not load correct or dont have the proper events hooked in.
   While I am working on, maybe I should look at the redraw, making the website feel way smoother when going from page to page.
   Let me start with the pre-fetch, making sure that it is all hooked up.
+  The first issue is that the dashboard is currently staff only, we could make one that is agonstic but limit what it presents if they are a user, staff or guest.
+  Afterwards I am thinking that when going from page to page, we should have the sidebar collapse.
+  I do think the prefetch tags are missing or we might have skipped that whole integration?
+  Actually, I just had a great idea, what if I make it so that when I hover over the icons on the sidebar, I could have a drop down menu appear?
+  This way we can create a quick link, making it easier to navigate around the website.
+
+### KubeVirt
+
+- 01:16PM
+
+  A while back we deployed the windows server but we were missing some core features within our deployment.
+  Three major issues that we left off from, the first is having a vnc that we easily access through the dashboard.
+  The second isssue was making the the TCP and networking from the kubevirt was not stable and finally the third issue was getting a proper iac hooked into the windows server.
+  I am going to loop through this again and see if we can hook all of them up, making it easy to manage the mac and windows deployment through the dashboard.
+  This is going to happen while I am handling some of the tweaks for the website, the vnc should be easy but we will need a way to make sure that the connection is secure.
+
+### KBVE Community Forums
+
+- 01:19PM
+
+  I am currently looking at an agent build out the sql schema and migrations, this way we can have our amazing forum system back.
+  That same agent will then shift focus on rebuilding our media and marketplace concept.
+  For reference material, I am looking at some older marketplaces that were taken offline or went out of service, hopefully we can find gaps to fill.
+  My goal would be not only to make it easy for people to sell different assets, tools and services but have it agent ready too.
+  Imagine being able to rent a user's agent or help provide tooling ontop of an exisiting service.
+
 
 ## 2025
 
