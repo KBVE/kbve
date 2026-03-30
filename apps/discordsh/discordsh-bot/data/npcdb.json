@@ -1,0 +1,2088 @@
+[
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Bone Archer fires with shaking hands — the arrow finds {target} anyway! {dmg} damage!",
+					"A bony finger releases the bowstring with a snap. {target} takes an arrow! {dmg} damage!",
+					"The archer flinches as it shoots, but the arrow still strikes {target}! {dmg} damage!"
+				]
+			},
+			{
+				"action": "flee",
+				"messages": [
+					"The Bone Archer drops its bow and scrambles away, jawbone chattering in panic!",
+					"It fumbles an arrow, looks at you, and bolts — bones rattling with every step!"
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Bone Archer's bow clatters to the ground. Its skeleton follows, finally free from the fear.",
+					"With a last trembling shot that goes wide, the archer crumbles into a pile of relieved bones."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*The Bone Archer's hands shake even worse now. Its next shot might go anywhere.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The archer is barely holding together. It nocks an arrow with one remaining arm.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTA6KARZ9EQB9Y476S4",
+		"ref": "bone-archer",
+		"name": "Bone Archer",
+		"title": "Bone Archer",
+		"description": "A skeletal figure that draws a creaking bow with trembling, bony fingers.\n",
+		"lore": "In life they were conscript archers, and in death their muscle memory persists — though their aim wavers with fear.\n",
+		"type_flags": 1,
+		"rarity": 1,
+		"personality": 3,
+		"rank": 2,
+		"family": 2,
+		"level": 2,
+		"stats": {
+			"hp": 22,
+			"max_hp": 22,
+			"attack": 7,
+			"defense": 1,
+			"speed": 4,
+			"armor": 1
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Cave Spider drops from above and sinks its fangs into {target}! {dmg} damage!",
+					"Pale legs wrap around {target}'s arm as mandibles find flesh! {dmg} damage!",
+					"The spider strikes from the shadows — two puncture wounds on {target}! {dmg} damage!"
+				]
+			},
+			{
+				"action": "debuff",
+				"messages": [
+					"Venom drips from the Cave Spider's fangs as it bites deep! {target} feels {effect} spreading!",
+					"The spider's bite burns cold. {effect} courses through {target}'s veins!"
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The Cave Spider retreats into its web, watching with eight unblinking eyes. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Cave Spider curls inward, legs folding like a closing fist. Still at last.",
+					"It lets out a thin hiss and collapses, venom pooling beneath its body."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*Ichor leaks from a crack in the spider's carapace. It backs away, hissing.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The Cave Spider drags itself on its remaining legs, trailing a line of silk behind it.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTARVPDS4ENXBK4MBD2",
+		"ref": "cave-spider",
+		"name": "Cave Spider",
+		"title": "Cave Spider",
+		"description": "A pale spider that lurks in dungeon shadows, striking first with venomous fangs.\n",
+		"lore": "Cave Spiders weave nearly invisible webs across dungeon passages, paralyzing prey with a single bite.\n",
+		"type_flags": 1,
+		"rarity": 1,
+		"personality": 5,
+		"element": 4,
+		"rank": 2,
+		"family": 1,
+		"level": 1,
+		"stats": {
+			"hp": 14,
+			"max_hp": 14,
+			"attack": 3,
+			"defense": 0,
+			"speed": 7,
+			"armor": 0
+		},
+		"behavior": {
+			"first_strike": true,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"\"NONE SHALL PASS!\" The Corrupted Warden brings its halberd down on {target}! {dmg} damage!",
+					"Shadow tendrils erupt from the warden's armor and lash {target}! {dmg} damage!",
+					"The warden grabs {target} by the throat and slams them into the wall! {dmg} damage!"
+				]
+			},
+			{
+				"action": "charge",
+				"messages": [
+					"The Corrupted Warden slams its halberd into the ground. Dark energy spirals up its body. \"I WILL PROTECT THIS PLACE!\"",
+					"The warden's eyes blaze with corrupted light. The dungeon itself seems to empower it."
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The warden raises a barrier of pure shadow. \"THIS IS MY DOMAIN!\" (+{armor} armor)",
+					"Dark armor plates materialize over the warden's already formidable defenses. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "aoe",
+				"messages": [
+					"The Corrupted Warden releases a shockwave of dark energy! \"ALL OF YOU WILL FALL!\" {dmg} damage to all!"
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The corruption drains away. For one lucid moment, the warden looks at its hands. \"What... what have I become?\" It falls.",
+					"\"I was supposed to... protect...\" The warden's voice fades as the shadow leaves its body. It collapses, finally at peace."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*The corruption flares where the warden is struck. Its attacks grow wilder, less controlled.*",
+					"*\"YOU DARE?!\" The warden's voice echoes with both rage and pain.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The corruption is consuming the warden faster than it can fight. Beneath the shadow, something human pleads for release.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTB3TXCY87HZXFHYFYG",
+		"ref": "corrupted-warden",
+		"name": "Corrupted Warden",
+		"title": "Corrupted Warden",
+		"description": "Once a noble guardian, now twisted by dark energy into a relentless engine of destruction.\n",
+		"lore": "The Corrupted Warden was the dungeon's most loyal protector until dark magic seeped into its very soul, turning devotion into obsession.\n",
+		"type_flags": 33,
+		"rarity": 3,
+		"personality": 1,
+		"element": 5,
+		"rank": 3,
+		"family": 5,
+		"level": 5,
+		"stats": {
+			"hp": 50,
+			"max_hp": 50,
+			"attack": 8,
+			"defense": 10,
+			"speed": 4,
+			"armor": 10
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The statue swings a weathered stone fist at {target}. {dmg} damage.",
+					"Grinding forward on cracked legs, the statue brings its arm down on {target}. {dmg} damage."
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The Crumbling Statue crosses its stone arms and braces. Dust falls, but it holds. (+{armor} armor)",
+					"Ancient runes flicker briefly across its surface as it fortifies. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The statue freezes mid-swing. A long crack splits it from crown to base, and it crumbles.",
+					"Its eyes go dark. The Crumbling Statue returns to what it always was — rubble.",
+					"It collapses with a heavy thud, and for a moment you hear something like a sigh in the settling dust."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*Chunks of stone fall from the statue's shoulder. It doesn't seem to notice.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The statue is more rubble than guardian now. Only its duty holds it together.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTADGEX9BC9H29E0YB9",
+		"ref": "crumbling-statue",
+		"name": "Crumbling Statue",
+		"title": "Crumbling Statue",
+		"description": "An ancient stone figure that stirs to life when intruders approach, defending its post with weathered resolve.\n",
+		"lore": "Once proud guardians of a forgotten temple, these statues continue their vigil long after their creators turned to dust.\n",
+		"type_flags": 1,
+		"rarity": 1,
+		"personality": 4,
+		"element": 8,
+		"rank": 2,
+		"family": 11,
+		"level": 1,
+		"stats": {
+			"hp": 22,
+			"max_hp": 22,
+			"attack": 4,
+			"defense": 3,
+			"speed": 1,
+			"armor": 2
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Crystal Bat dive-bombs {target}, raking with gemstone talons! {dmg} damage!",
+					"A high-pitched screech precedes a blur of crystalline wings slashing {target}! {dmg} damage!",
+					"The bat swoops low, dragging razor-sharp wing edges across {target}! {dmg} damage!"
+				]
+			},
+			{
+				"action": "flee",
+				"messages": [
+					"The Crystal Bat shrieks and spirals upward into the darkness!",
+					"With a panicked flutter of gem-studded wings, the bat vanishes into a crack in the ceiling."
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Crystal Bat spirals down and shatters on impact like a thrown ornament.",
+					"Its wings fold and it drops, crystalline feathers scattering like confetti."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*A crack runs along one of the bat's wings. Its flight becomes erratic.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The Crystal Bat can barely stay aloft, dragging one shattered wing.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTAMADFK3GY8Q47GQ6N",
+		"ref": "crystal-bat",
+		"name": "Crystal Bat",
+		"title": "Crystal Bat",
+		"description": "A small bat with crystalline wings that catch the light, darting through dark caverns.\n",
+		"lore": "Crystal Bats roost in mineral-rich caves, their wings slowly encrusted with gemstone formations.\n",
+		"type_flags": 1,
+		"rarity": 1,
+		"personality": 5,
+		"rank": 2,
+		"family": 1,
+		"level": 1,
+		"stats": {
+			"hp": 15,
+			"max_hp": 15,
+			"attack": 4,
+			"defense": 0,
+			"speed": 6,
+			"armor": 0
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Crystal Golem swings a prismatic arm at {target}. The impact sends rainbows scattering. {dmg} damage.",
+					"Light concentrates into a beam from the golem's core, scorching {target}. {dmg} damage."
+				]
+			},
+			{
+				"action": "charge",
+				"messages": [
+					"The Crystal Golem plants its feet. Every facet of its body begins to glow brighter and brighter...",
+					"A low hum builds as the golem draws energy from the earth itself. The air crackles with static."
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The Crystal Golem's surface shifts, angling its facets to deflect incoming blows. (+{armor} armor)",
+					"It stands immovable. Striking it feels like punching a diamond. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Crystal Golem's core dims. Fracture lines race across its body, and it topples — a falling cathedral of light.",
+					"It reaches out as if to steady itself, then shatters. Crystal shards ring like bells as they scatter."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*A facet cracks. Prismatic light leaks from the wound like blood.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The golem's core pulses erratically. Its body is more crack than crystal now.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTBC89E1XJHM3CZ5SRK",
+		"ref": "crystal-golem",
+		"name": "Crystal Golem",
+		"title": "Crystal Golem",
+		"description": "A towering construct of living crystal that charges through obstacles, its body refracting light into blinding rainbows.\n",
+		"lore": "Crystal Golems were forged in the heart of a dying star, their bodies nearly indestructible and infused with raw magical energy.\n",
+		"type_flags": 1,
+		"rarity": 3,
+		"personality": 4,
+		"element": 7,
+		"rank": 2,
+		"family": 11,
+		"level": 3,
+		"stats": {
+			"hp": 45,
+			"max_hp": 45,
+			"attack": 8,
+			"defense": 8,
+			"speed": 2,
+			"armor": 8
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Cursed Knight swings its blackened greatsword with unbridled fury! {dmg} damage to {target}!",
+					"\"KNEEL!\" the knight bellows, bringing its blade down on {target}! {dmg} damage!",
+					"Dark energy crackles along the knight's sword as it slashes {target}! {dmg} damage!"
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The Cursed Knight slams its tower shield into the ground. \"You cannot break me!\" (+{armor} armor)",
+					"Shadow coils around the knight's armor, reinforcing it. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "charge",
+				"messages": [
+					"The Cursed Knight raises its sword overhead, dark flames licking along the blade! Something terrible is coming!",
+					"\"YOUR END APPROACHES!\" The knight's eyes blaze with cursed fire as power builds!"
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Cursed Knight drops to one knee. \"Free... at last...\" The curse unravels and the armor falls empty.",
+					"Dark energy erupts from the knight's visor as it collapses, the curse finally spent."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*The knight's rage intensifies. Cracks in its armor leak shadow like blood.*",
+					"*\"Is that... all?\" The Cursed Knight's voice drips with contempt and pain.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The curse flickers. For a moment you see the face of the knight it used to be — terrified.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTBV72R8B4V4JBNG308",
+		"ref": "cursed-knight",
+		"name": "Cursed Knight",
+		"title": "Cursed Knight",
+		"description": "A heavily armored undead warrior consumed by rage, cursed to fight for eternity.\n",
+		"lore": "Once noble champions, these knights fell to a dark curse that twisted their valor into unending fury.\n",
+		"type_flags": 1,
+		"rarity": 2,
+		"personality": 1,
+		"element": 5,
+		"rank": 2,
+		"family": 2,
+		"level": 2,
+		"stats": {
+			"hp": 35,
+			"max_hp": 35,
+			"attack": 6,
+			"defense": 5,
+			"speed": 3,
+			"armor": 5
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"You barely see it — the Dust Mite darts in and bites {target}! {dmg} damage!",
+					"A tiny blur zips across {target}'s face, leaving a stinging cut! {dmg} damage!",
+					"The Dust Mite burrows into {target}'s sleeve and bites viciously! {dmg} damage!",
+					"Something impossibly small and impossibly angry stabs {target}! {dmg} damage!"
+				]
+			},
+			{
+				"action": "flee",
+				"messages": [
+					"The Dust Mite vanishes into a crack so small you didn't know it existed.",
+					"One moment it's there, the next — just dust."
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"You squish it. There's a tiny, unsatisfying crunch.",
+					"The Dust Mite curls up and stops moving. You almost feel bad."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*The mite's movements become frantic, buzzing in tight circles.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The Dust Mite limps on three legs, dragging itself forward with desperate clicks.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTA8JDZGRMHM21CR2J1",
+		"ref": "dust-mite",
+		"name": "Dust Mite",
+		"title": "Dust Mite",
+		"description": "A near-invisible arthropod that strikes with surprising ferocity for its minuscule size.\n",
+		"lore": "Dust Mites thrive in forgotten ruins, feeding on magical residue left behind by ancient civilizations.\n",
+		"type_flags": 1,
+		"rarity": 1,
+		"personality": 5,
+		"rank": 2,
+		"family": 1,
+		"level": 1,
+		"stats": {
+			"hp": 12,
+			"max_hp": 12,
+			"attack": 6,
+			"defense": 0,
+			"speed": 8,
+			"armor": 0
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Ember Wisp darts at {target} and scorches exposed skin! {dmg} damage!",
+					"A tendril of pale flame lashes out from the wisp and singes {target}! {dmg} damage!"
+				]
+			},
+			{
+				"action": "debuff",
+				"messages": [
+					"The Ember Wisp flares in panic, showering {target} with burning embers! {effect} takes hold!",
+					"Desperate heat radiates from the wisp. {target} can feel {effect} seeping in!"
+				]
+			},
+			{
+				"action": "flee",
+				"messages": [
+					"The Ember Wisp flickers rapidly and zips away like a frightened firefly!",
+					"It dims almost to nothing and drifts away, too scared to maintain its own flame."
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Ember Wisp gutters once, twice, and goes out. A tiny curl of smoke is all that remains.",
+					"The light fades. The wisp dies the way all fires do — quietly, when there's nothing left to burn."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*The wisp's flame shifts to a sickly blue. It bobs erratically, looking for an escape.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The Ember Wisp is barely a spark now, flickering between being and not-being.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTBPWP2WD71838AMPZB",
+		"ref": "ember-wisp",
+		"name": "Ember Wisp",
+		"title": "Ember Wisp",
+		"description": "A floating orb of pale fire that drifts through corridors, leaving trails of burning air.\n",
+		"lore": "Ember Wisps are fragments of dying fire elementals, flickering between existence and oblivion.\n",
+		"type_flags": 1,
+		"rarity": 1,
+		"personality": 3,
+		"element": 1,
+		"rank": 2,
+		"family": 4,
+		"level": 2,
+		"stats": {
+			"hp": 16,
+			"max_hp": 16,
+			"attack": 4,
+			"defense": 0,
+			"speed": 5,
+			"armor": 0
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Fire Imp hurls a sputtering fireball at {target}! It cackles as it connects! {dmg} damage!",
+					"\"Hee hee hee!\" The imp snaps its fingers and {target} catches fire! {dmg} damage!",
+					"The imp does a little jig and flings a flame bolt at {target}! {dmg} damage!"
+				]
+			},
+			{
+				"action": "debuff",
+				"messages": [
+					"The Fire Imp panics and sneezes fire everywhere! {target} is caught in the {effect}!",
+					"Frantic flames spiral out of the imp's hands! {target} suffers {effect}!"
+				]
+			},
+			{
+				"action": "flee",
+				"messages": [
+					"The Fire Imp shrieks \"NOPE NOPE NOPE!\" and rockets away on a jet of flame!",
+					"The imp squeaks in terror and dives headfirst into a torch sconce, vanishing!"
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Fire Imp's flame gutters out. It lets out one tiny \"oh\" and turns to ash.",
+					"With a final pop and a puff of sulfurous smoke, the imp is gone."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*The imp's flame dims to a nervous flicker. It keeps glancing at the exits.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The Fire Imp is barely a candle flame now, whimpering and clutching its own tail.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTBNKBVAN8J4168AFRW",
+		"ref": "fire-imp",
+		"name": "Fire Imp",
+		"title": "Fire Imp",
+		"description": "A small demonic creature wreathed in flame, cackling as it hurls fireballs at anything that moves.\n",
+		"lore": "Fire Imps are summoned servants that outlived their masters, now running wild in the dungeon depths.\n",
+		"type_flags": 1,
+		"rarity": 1,
+		"personality": 3,
+		"element": 1,
+		"rank": 2,
+		"family": 3,
+		"level": 2,
+		"stats": {
+			"hp": 18,
+			"max_hp": 18,
+			"attack": 8,
+			"defense": 0,
+			"speed": 6,
+			"armor": 0
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Fungal Brute swings a massive arm like a tree trunk into {target}! {dmg} damage!",
+					"Spore clouds burst from the brute's fist as it hammers {target} into the ground! {dmg} damage!",
+					"The ground shakes as the brute stomps toward {target} and delivers a crushing blow! {dmg} damage!"
+				]
+			},
+			{
+				"action": "heavy_attack",
+				"messages": [
+					"The Fungal Brute roars — a wet, echoing bellow — and bodyslams {target}! {dmg} damage!",
+					"Mushrooms burst from the walls as the brute channels its full mass into {target}! {dmg} damage!"
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The Fungal Brute's skin hardens into bark-like armor. Spores cloud the air. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Fungal Brute topples like a felled tree, releasing a final cloud of spores as it decomposes.",
+					"It groans — a sound like creaking wood — and collapses. Mushrooms begin sprouting from the corpse immediately."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*Chunks of fungal matter slough off the brute. New growth is already filling the gaps.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The brute is rotting faster than it can regenerate. Its movements are sluggish and desperate.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTB7S5FY2HNXJN5Y4NY",
+		"ref": "fungal-brute",
+		"name": "Fungal Brute",
+		"title": "Fungal Brute",
+		"description": "A massive fungal creature that lumbers forward with devastating force, its body thick with toxic spores.\n",
+		"lore": "Fungal Brutes grow in the deepest caverns, their bodies an amalgamation of countless smaller fungi merged into one hulking mass.\n",
+		"type_flags": 1,
+		"rarity": 1,
+		"personality": 5,
+		"element": 4,
+		"rank": 2,
+		"family": 9,
+		"level": 2,
+		"stats": {
+			"hp": 38,
+			"max_hp": 38,
+			"attack": 10,
+			"defense": 2,
+			"speed": 2,
+			"armor": 2
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"You see the blade a heartbeat too late — the Glass Assassin is already withdrawing it from {target}! {dmg} damage!",
+					"A shimmer in the air is the only warning before {target} is slashed! {dmg} damage!",
+					"The assassin's arm extends into a crystal blade and pierces {target}'s defense! {dmg} damage!",
+					"Light bends around the assassin. {target} doesn't see the cut coming. {dmg} damage."
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The Glass Assassin goes completely still. It becomes nearly invisible against the stone walls. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "flee",
+				"messages": [
+					"The Glass Assassin refracts the light around itself and simply... disappears.",
+					"One moment it's there. Then just empty air and a faint tinkling sound."
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Glass Assassin shatters into a thousand razor fragments. Each one catches the light one final time.",
+					"A web of cracks spreads across its body. It looks down at itself, then breaks apart in silence."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*A fracture line appears across the assassin's torso. Its movements remain precise.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The Glass Assassin is riddled with cracks. Light bleeds through it from every angle.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTBH0QF9K030QMZFQWC",
+		"ref": "glass-assassin",
+		"name": "Glass Assassin",
+		"title": "Glass Assassin",
+		"description": "A humanoid figure made of living glass that strikes with lethal precision, its transparent body nearly invisible.\n",
+		"lore": "Glass Assassins were created as perfect killers — transparent, silent, and razor-sharp.\n",
+		"type_flags": 1,
+		"rarity": 2,
+		"personality": 2,
+		"rank": 2,
+		"family": 11,
+		"level": 3,
+		"stats": {
+			"hp": 22,
+			"max_hp": 22,
+			"attack": 10,
+			"defense": 1,
+			"speed": 9,
+			"armor": 1
+		},
+		"behavior": {
+			"first_strike": true,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Glass Golem drives a massive crystalline fist into {target}. The impact echoes through the chamber. {dmg} damage.",
+					"Razor edges along the golem's arm open a deep gash in {target} as it sweeps past. {dmg} damage.",
+					"The golem stamps the ground and a shard of glass erupts beneath {target}! {dmg} damage."
+				]
+			},
+			{
+				"action": "charge",
+				"messages": [
+					"The Glass Golem's body begins to resonate. A deep hum fills the chamber as every facet ignites with light.",
+					"It lowers its head and the room goes dark — all light is being drawn into the golem's core."
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The golem rearranges its glass plates into an interlocking shield wall. Light bounces everywhere. (+{armor} armor)",
+					"It becomes a fortress. Your reflection stares back at you from a hundred mirrored surfaces. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "aoe",
+				"messages": [
+					"The Glass Golem detonates its outer shell! Razor shards fly in every direction! {dmg} damage to all!",
+					"A blinding flash erupts from the golem's core. When you can see again, everything hurts. {dmg} damage to all."
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The golem's core fractures with a sound like a cathedral bell. It collapses in slow motion, a cascade of glittering ruin.",
+					"Silence. Then the Glass Golem simply falls apart — not with fury, but with the quiet acceptance of stone returning to sand."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*Deep fractures web across the golem's torso. Light bleeds from every crack.*",
+					"*A massive glass plate falls from the golem's shoulder and shatters on the ground. It does not look down.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The golem is more hole than wall now. Its core pulses weakly, visible through the ruin of its body.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTBJ3ZFEHR24YGT6VYX",
+		"ref": "glass-golem",
+		"name": "Glass Golem",
+		"title": "Glass Golem",
+		"description": "An enormous golem of fused glass that towers over all challengers, its body a maze of razor-sharp edges.\n",
+		"lore": "The Glass Golem was created as a final guardian, its body forged from the crystallized tears of a dying god.\n",
+		"type_flags": 33,
+		"rarity": 3,
+		"personality": 4,
+		"element": 7,
+		"rank": 3,
+		"family": 11,
+		"level": 5,
+		"stats": {
+			"hp": 60,
+			"max_hp": 60,
+			"attack": 10,
+			"defense": 8,
+			"speed": 3,
+			"armor": 8
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Glass Slime squelches forward and engulfs {target}'s arm! {dmg} damage!",
+					"A razor-thin pseudopod lashes out from the slime's body! {dmg} damage to {target}!",
+					"The slime launches a glob of molten glass at {target}! {dmg} damage!",
+					"Shards of crystal churn inside the slime as it slams into {target}! {dmg} damage!"
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The Glass Slime compresses into a dense, glittering sphere. (+{armor} armor)",
+					"Light refracts wildly as the slime hardens its outer membrane. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Glass Slime shudders and bursts into a thousand glittering fragments.",
+					"With a wet pop, the slime collapses into a puddle of liquid crystal.",
+					"The slime's glow dims and it melts into the stone floor, leaving only glass dust."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*Cracks spider-web across the slime's translucent body. It pulses angrily.*",
+					"*The slime's color shifts from clear to a murky, agitated crimson.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The Glass Slime is barely holding its shape, fragments sloughing off with each movement.*"
+				]
+			}
+		],
+		"id": "01KKR5QWT9998CCD18XN2B3726",
+		"ref": "glass-slime",
+		"name": "Glass Slime",
+		"title": "Glass Slime",
+		"description": "A translucent blob of living glass that oozes through dungeon corridors, absorbing anything it touches.\n",
+		"lore": "Born from shattered crystal and ambient mana, Glass Slimes are among the first threats dungeon delvers encounter.\n",
+		"type_flags": 1,
+		"rarity": 1,
+		"personality": 5,
+		"rank": 2,
+		"family": 8,
+		"level": 1,
+		"stats": {
+			"hp": 20,
+			"max_hp": 20,
+			"attack": 5,
+			"defense": 0,
+			"speed": 3,
+			"armor": 0
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [
+			{
+				"zone": "grassland",
+				"spawn_weight": 1
+			}
+		],
+		"phase_rules": [
+			{
+				"time_start": 700,
+				"time_end": 1800
+			}
+		],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [],
+		"id": "01KKWBVKEN10357T9ZZ4BNJCG9",
+		"ref": "green-toad",
+		"name": "Green Toad",
+		"title": "Green Toad",
+		"description": "A small amphibian that sits idle in the grass, croaks occasionally, and hops to nearby spots during the day.\n",
+		"lore": "Green Toads are common grassland amphibians known for their rhythmic croaking and sudden, arcing hops.\nThey use a sprite-sheet animation with idle, croak emote, and hop cycles across a 9x5 frame grid.\nOccasionally they pause to puff up their throat in a charming display before launching to a new spot.\n",
+		"type_flags": 1,
+		"rarity": 0,
+		"personality": 11,
+		"element": 10,
+		"rank": 1,
+		"family": 1,
+		"level": 1,
+		"stats": {
+			"hp": 3,
+			"max_hp": 3,
+			"attack": 0,
+			"defense": 0,
+			"speed": 1,
+			"armor": 0
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"spatial": {
+			"walk_speed": 2,
+			"can_fly": false
+		},
+		"credits": "KBVE Isometric ambient creature system.\n",
+		"creature_config": {
+			"render_kind": "sprite",
+			"pool_size": 8,
+			"chunk_size": 16,
+			"per_chunk": 1,
+			"spawn_chance": 0.35,
+			"schedule": "day"
+		}
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [
+			{
+				"zone": "grassland",
+				"spawn_weight": 0.55
+			}
+		],
+		"phase_rules": [
+			{
+				"time_start": 1900,
+				"time_end": 530
+			}
+		],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [],
+		"id": "01KKWBVKEK4SR70NMKE1SST5H4",
+		"ref": "meadow-firefly",
+		"name": "Meadow Firefly",
+		"title": "Meadow Firefly",
+		"description": "A tiny luminescent spirit that drifts through grasslands at night, pulsing with a soft green glow.\n",
+		"lore": "Meadow Fireflies are gentle spirits of fading starlight, drawn to open grasslands after dusk.\nTheir synchronized double-pulse glow has inspired countless folk tales about fairy lanterns\nguiding lost travelers home.\n",
+		"type_flags": 1,
+		"rarity": 0,
+		"personality": 11,
+		"element": 11,
+		"rank": 1,
+		"family": 10,
+		"level": 1,
+		"stats": {
+			"hp": 1,
+			"max_hp": 1,
+			"attack": 0,
+			"defense": 0,
+			"speed": 3,
+			"armor": 0
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"spatial": {
+			"walk_speed": 0.7,
+			"can_fly": true
+		},
+		"credits": "KBVE Isometric ambient creature system.\n",
+		"creature_config": {
+			"render_kind": "emissive",
+			"pool_size": 80,
+			"chunk_size": 12,
+			"per_chunk": 3,
+			"spawn_chance": 0.55,
+			"schedule": "night"
+		}
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Mushroom Sprite bounces off a wall and headbutts {target}! {dmg} damage!",
+					"A puff of toxic spores erupts as the sprite slams into {target}! {dmg} damage!",
+					"The sprite giggles — a wet, gurgling sound — and body-checks {target}! {dmg} damage!"
+				]
+			},
+			{
+				"action": "debuff",
+				"messages": [
+					"The Mushroom Sprite releases a thick cloud of glowing spores! {target} chokes on {effect}!",
+					"Tiny mushrooms sprout where the sprite touches {target}. {effect} takes hold!"
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Mushroom Sprite pops like a cork, releasing one final cloud of harmless spores.",
+					"It deflates with a sad little wheeze and crumbles into compost."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*The sprite's cap is dented. Spore dust leaks from the cracks.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The Mushroom Sprite wobbles drunkenly, its cap nearly split in half.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTAJEKFBFF31JNDW8Q9",
+		"ref": "mushroom-sprite",
+		"name": "Mushroom Sprite",
+		"title": "Mushroom Sprite",
+		"description": "A tiny fungal creature that bounces erratically, releasing clouds of irritating spores.\n",
+		"lore": "Mushroom Sprites are animated by deep earth magic, tending underground fungal gardens when not disturbed.\n",
+		"type_flags": 1,
+		"rarity": 1,
+		"personality": 5,
+		"element": 4,
+		"rank": 2,
+		"family": 9,
+		"level": 1,
+		"stats": {
+			"hp": 18,
+			"max_hp": 18,
+			"attack": 4,
+			"defense": 0,
+			"speed": 4,
+			"armor": 0
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Phantom Knight charges through a pillar and swings at {target}! {dmg} damage!",
+					"\"FOR THE FALLEN!\" The knight's spectral blade cleaves through {target}! {dmg} damage!",
+					"Ghostly hooves thunder as the knight rides down {target}! {dmg} damage!"
+				]
+			},
+			{
+				"action": "charge",
+				"messages": [
+					"The Phantom Knight raises its banner high. The air crackles with ghostly war drums!",
+					"\"STEEL YOURSELVES!\" The knight's form blazes with spectral fire as it prepares to charge!"
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The Phantom Knight plants a ghostly shield. The emblem on it glows with forgotten honor. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Phantom Knight salutes — a reflex from a life long ended — and fades like morning mist.",
+					"Its spectral armor clatters to the ground, piece by piece, until nothing remains.",
+					"\"The battle... is finally over...\" The knight kneels, and is gone."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*The knight's spectral form wavers. Through the gaps you glimpse the battlefield where it died.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*\"I will NOT retreat again!\" The Phantom Knight's voice cracks with ancient grief.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTB1TRDD9W2D6MFNME5",
+		"ref": "phantom-knight",
+		"name": "Phantom Knight",
+		"title": "Phantom Knight",
+		"description": "The ghost of a fallen knight that charges through the battlefield, armor clanking with otherworldly echoes.\n",
+		"lore": "Phantom Knights died in battles they believed unjust, and now fight an eternal war against all who cross their path.\n",
+		"type_flags": 1,
+		"rarity": 2,
+		"personality": 1,
+		"element": 5,
+		"rank": 2,
+		"family": 10,
+		"level": 3,
+		"stats": {
+			"hp": 28,
+			"max_hp": 28,
+			"attack": 8,
+			"defense": 4,
+			"speed": 5,
+			"armor": 4
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Shade Stalker materializes behind {target} and drives a spectral blade home! {dmg} damage!",
+					"\"You never saw me.\" A cold slash opens across {target}'s back. {dmg} damage.",
+					"Shadows ripple and {target} staggers — the Stalker struck from nowhere. {dmg} damage."
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The Shade Stalker dissolves into the shadows, watching and waiting. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "flee",
+				"messages": [
+					"The Shade Stalker melts into the darkness. You hear a whisper: \"Next time.\"",
+					"It was there. Now it isn't. Only the chill remains."
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Shade Stalker's form unravels like smoke. Its last words: \"The hunt... ends...\"",
+					"Shadow pours from its wounds like ink. The Stalker fades, finally at rest."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*The Stalker's form flickers. For the first time, it looks uncertain.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The Shade Stalker can barely hold its shape. It phases in and out, desperate.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTBAF71Q1NJTD7RZKEW",
+		"ref": "shade-stalker",
+		"name": "Shade Stalker",
+		"title": "Shade Stalker",
+		"description": "A dark figure that moves between shadows, striking before its prey even knows it is there.\n",
+		"lore": "Shade Stalkers are remnants of assassins who died mid-hunt, their killing intent crystallized into spectral form.\n",
+		"type_flags": 1,
+		"rarity": 2,
+		"personality": 2,
+		"element": 5,
+		"rank": 2,
+		"family": 10,
+		"level": 2,
+		"stats": {
+			"hp": 20,
+			"max_hp": 20,
+			"attack": 8,
+			"defense": 1,
+			"speed": 8,
+			"armor": 1
+		},
+		"behavior": {
+			"first_strike": true,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Shadow Wraith's claws pass through {target}'s guard like it isn't there! {dmg} damage!",
+					"Darkness coalesces into a fist and slams into {target}! {dmg} damage!",
+					"The wraith whispers something hateful and {target} reels from an unseen blow! {dmg} damage!"
+				]
+			},
+			{
+				"action": "heavy_attack",
+				"messages": [
+					"The Shadow Wraith screams — a sound that scrapes the inside of your skull — and tears into {target}! {dmg} damage!",
+					"The wraith's entire form surges forward, engulfing {target} in freezing darkness! {dmg} damage!"
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The wraith's form thins to near-transparency. Attacks pass through harmlessly. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Shadow Wraith unravels like a torn curtain, its malice dissipating into cold air.",
+					"It reaches toward {target} one last time, then dissolves. The room grows warmer."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*The wraith flickers. Its hunger is now tinged with something like desperation.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The Shadow Wraith is barely a stain on the air. Its hatred is the only thing holding it together.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTBF2XX7BG384X7V5V1",
+		"ref": "shadow-wraith",
+		"name": "Shadow Wraith",
+		"title": "Shadow Wraith",
+		"description": "A ghostly figure that phases through walls, delivering devastating blows from the darkness.\n",
+		"lore": "Shadow Wraiths are formed from concentrated malice, hunting the living to feed their insatiable hunger.\n",
+		"type_flags": 1,
+		"rarity": 2,
+		"personality": 2,
+		"element": 5,
+		"rank": 2,
+		"family": 10,
+		"level": 3,
+		"stats": {
+			"hp": 25,
+			"max_hp": 25,
+			"attack": 12,
+			"defense": 2,
+			"speed": 7,
+			"armor": 2
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Skeleton Guard thrusts its rusted sword at {target} with mechanical precision. {dmg} damage.",
+					"Bones rattle as the guard delivers a disciplined strike to {target}. {dmg} damage.",
+					"The guard steps forward and swings. No wasted motion. {dmg} damage to {target}."
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The Skeleton Guard plants its shield and holds the line. (+{armor} armor)",
+					"It raises a dented shield without urgency. This is just another watch. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Skeleton Guard's jawbone drops. The rest follows, clattering to the floor in a heap of old bones.",
+					"Its eye sockets dim. The guard collapses, armor and all, finally relieved of duty.",
+					"The bones scatter as if the oath holding them together has finally been fulfilled."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*A rib cracks loose and falls to the ground. The guard doesn't flinch.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The Skeleton Guard is missing half its ribcage. It fights on regardless.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTAEV48Y4WK51JWBXTX",
+		"ref": "skeleton-guard",
+		"name": "Skeleton Guard",
+		"title": "Skeleton Guard",
+		"description": "A reanimated skeleton clad in rusted armor, standing eternal watch over dusty corridors.\n",
+		"lore": "Skeleton Guards are bound by ancient oaths that persist beyond death, endlessly patrolling their designated posts.\n",
+		"type_flags": 1,
+		"rarity": 1,
+		"personality": 4,
+		"rank": 2,
+		"family": 2,
+		"level": 2,
+		"stats": {
+			"hp": 30,
+			"max_hp": 30,
+			"attack": 5,
+			"defense": 5,
+			"speed": 3,
+			"armor": 3
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Stone Sentinel brings down a granite fist on {target}. The floor cracks. {dmg} damage.",
+					"It swings with the inevitability of a landslide. {target} takes {dmg} damage.",
+					"The sentinel's arm arcs slowly but unstoppably into {target}. {dmg} damage."
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The Stone Sentinel crosses its massive arms. You might as well attack a mountain. (+{armor} armor)",
+					"Ancient glyphs pulse across its surface. The stone hardens further. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "charge",
+				"messages": [
+					"The Stone Sentinel plants both feet. The ground trembles. It is gathering everything it has."
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The sentinel's glyph-eyes dim. It lowers itself to one knee and goes still — a monument to duty.",
+					"Cracks race across its body. The Stone Sentinel crumbles, and the vault it guarded lies open at last."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*Stone chips fall from the sentinel's torso. It does not acknowledge the damage.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The sentinel is held together by willpower and ancient mortar. One more blow might end it.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTB0Y8E1VSW19X56NVW",
+		"ref": "stone-sentinel",
+		"name": "Stone Sentinel",
+		"title": "Stone Sentinel",
+		"description": "A massive stone construct that defends its territory with unwavering determination and crushing force.\n",
+		"lore": "Stone Sentinels were crafted by master artisans to guard vaults of immense importance, and they have never abandoned their duty.\n",
+		"type_flags": 1,
+		"rarity": 2,
+		"personality": 4,
+		"element": 8,
+		"rank": 2,
+		"family": 11,
+		"level": 3,
+		"stats": {
+			"hp": 40,
+			"max_hp": 40,
+			"attack": 6,
+			"defense": 6,
+			"speed": 2,
+			"armor": 6
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"\"You remind me of my generals. They also thought they could win.\" The King strikes {target}. {dmg} damage.",
+					"A fragment of crown orbits into {target} like a guided missile. {dmg} damage.",
+					"The Shattered King gestures lazily. Dark force hammers {target}. {dmg} damage.",
+					"\"Kneel.\" The word itself is a weapon. {target} staggers from {dmg} damage."
+				]
+			},
+			{
+				"action": "heavy_attack",
+				"messages": [
+					"\"I RULED CONTINENTS!\" The chamber shakes as the King unleashes his full fury on {target}! {dmg} damage!",
+					"Crown fragments orbit faster, faster — then converge on {target} all at once! {dmg} damage!"
+				]
+			},
+			{
+				"action": "aoe",
+				"messages": [
+					"\"ALL EMPIRES FALL!\" The Shattered King releases a wave of ancient power! {dmg} damage to all!",
+					"The King raises what remains of his crown. The room fills with blinding, terrible light. {dmg} damage to all!"
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"Crown fragments orbit the King like a shield. \"Time is on my side. It always has been.\" (+{armor} armor)"
+				]
+			},
+			{
+				"action": "charge",
+				"messages": [
+					"The King closes his eyes. \"Do you hear them? My subjects. They still cry out for their king.\" Power builds...",
+					"The fragments of his crown begin to reassemble. The air grows heavy with the weight of ages."
+				]
+			},
+			{
+				"action": "heal",
+				"messages": [
+					"\"I have died a thousand deaths. One more heals nothing.\" The King draws life from the ruins. +{amount} HP.",
+					"The dungeon walls pulse. The King's wounds close. \"This place remembers its master.\""
+				]
+			},
+			{
+				"action": "debuff",
+				"messages": [
+					"\"Carry this burden.\" The King speaks a word of royal decree. {target} is bound by {effect}.",
+					"The weight of a dead empire settles on {target}'s shoulders. {effect} takes hold."
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The crown fragments clatter to the ground. The King smiles. \"At last... a worthy successor. Rule well.\" He crumbles to dust.",
+					"\"My empire... my people... forgive me.\" The Shattered King's form dissolves. The dungeon falls silent for the first time in centuries.",
+					"He reaches for his crown one final time. His fingers pass through it. \"So this is how it ends.\" And he is gone."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*\"Interesting. Pain. I had forgotten what that felt like.\" The King regards his wound with curiosity.*",
+					"*Crown fragments orbit more erratically. The King's composure shows its first crack.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*\"I have ruled... I have fallen... I have endured...\" The King's voice is barely a whisper now.*",
+					"*The crown fragments fall to the ground one by one. The King watches them go with ancient, tired eyes.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTCHDFP2XHQEZMR3J4F",
+		"ref": "the-shattered-king",
+		"name": "The Shattered King",
+		"title": "The Shattered King",
+		"description": "An ancient ruler whose fractured body radiates immense power, speaking in riddles of ages past.\n",
+		"lore": "The Shattered King once ruled an empire that spanned continents. When his kingdom fell, his rage shattered his own crown and bound his soul to the ruins forever.\n",
+		"type_flags": 33,
+		"rarity": 4,
+		"personality": 6,
+		"element": 5,
+		"rank": 4,
+		"family": 2,
+		"level": 5,
+		"stats": {
+			"hp": 55,
+			"max_hp": 55,
+			"attack": 8,
+			"defense": 6,
+			"speed": 5,
+			"armor": 6
+		},
+		"behavior": {
+			"first_strike": true,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Venomfang Lurker strikes from the shadows — two punctures in {target}'s leg! {dmg} damage!",
+					"Coiled muscles unwind as the lurker launches itself at {target}'s throat! {dmg} damage!"
+				]
+			},
+			{
+				"action": "debuff",
+				"messages": [
+					"The lurker sinks its fangs deep and holds. Venom pumps into {target}! {effect} takes hold!",
+					"Green ichor drips from the Venomfang's jaws as {target} feels {effect} burning through their veins!",
+					"A double-strike — fang, fang — and {target} stumbles as {effect} sets in!"
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The Venomfang Lurker coils tightly, scales gleaming with toxic sheen. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Venomfang Lurker thrashes once and goes still. Venom pools beneath its body.",
+					"It hisses its last breath and uncoils, fangs bared even in death."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*The lurker recoils, hissing through damaged scales. Its strikes become more desperate.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*The Venomfang drags itself forward on pure instinct, leaving a trail of venom behind it.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTBD4Y94FSMS25SR13H",
+		"ref": "venomfang-lurker",
+		"name": "Venomfang Lurker",
+		"title": "Venomfang Lurker",
+		"description": "A serpentine creature that coils in darkness, delivering multiple doses of deadly venom before its prey can react.\n",
+		"lore": "Venomfang Lurkers have evolved venom so potent that a single bite can fell creatures many times their size.\n",
+		"type_flags": 1,
+		"rarity": 2,
+		"personality": 5,
+		"element": 4,
+		"rank": 2,
+		"family": 1,
+		"level": 3,
+		"stats": {
+			"hp": 26,
+			"max_hp": 26,
+			"attack": 6,
+			"defense": 3,
+			"speed": 7,
+			"armor": 3
+		},
+		"behavior": {
+			"first_strike": true,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [],
+		"phase_rules": [],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [
+			{
+				"action": "attack",
+				"messages": [
+					"The Void Walker's arm stretches impossibly and strikes {target} from ten feet away! {dmg} damage!",
+					"Reality folds. {target} is suddenly standing where the Walker's fist is. {dmg} damage.",
+					"The Walker steps sideways through nothing and appears behind {target}! {dmg} damage!"
+				]
+			},
+			{
+				"action": "heavy_attack",
+				"messages": [
+					"The Void Walker tears open a rift and pulls {target} halfway through! {dmg} damage!",
+					"Space inverts around {target}. Everything hurts at once. {dmg} damage."
+				]
+			},
+			{
+				"action": "defend",
+				"messages": [
+					"The Void Walker shifts partially out of phase. Attacks slide through empty space. (+{armor} armor)"
+				]
+			},
+			{
+				"action": "death",
+				"messages": [
+					"The Void Walker collapses inward like a punctured balloon, reality snapping shut behind it.",
+					"It reaches for a crack in the air, but there are none left. It dissipates with a soft pop."
+				]
+			},
+			{
+				"action": "wounded",
+				"messages": [
+					"*The Walker's movements become erratic. The space around it warps unpredictably.*"
+				]
+			},
+			{
+				"action": "near_death",
+				"messages": [
+					"*Reality is reasserting itself. The Void Walker is losing its grip on this plane.*"
+				]
+			}
+		],
+		"id": "01KKR5QWTBFFJ36ZASQAVP8WN0",
+		"ref": "void-walker",
+		"name": "Void Walker",
+		"title": "Void Walker",
+		"description": "A being that exists between planes, striking from impossible angles with reality-bending attacks.\n",
+		"lore": "Void Walkers slip through cracks in reality, drawn to places where the boundaries between worlds grow thin.\n",
+		"type_flags": 1,
+		"rarity": 2,
+		"personality": 2,
+		"element": 7,
+		"rank": 2,
+		"family": 8,
+		"level": 3,
+		"stats": {
+			"hp": 30,
+			"max_hp": 30,
+			"attack": 10,
+			"defense": 3,
+			"speed": 6,
+			"armor": 3
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"credits": "Ported from KBVE DiscordSH dungeon crawler.\n"
+	},
+	{
+		"tags": [],
+		"abilities": [],
+		"weaknesses": [],
+		"resistances": [],
+		"status_immunities": [],
+		"intent_weights": [],
+		"spawn_rules": [
+			{
+				"zone": "grassland",
+				"spawn_weight": 1
+			}
+		],
+		"phase_rules": [
+			{
+				"time_start": 700,
+				"time_end": 1800
+			}
+		],
+		"difficulty_overrides": [],
+		"dialogue": [],
+		"quest_refs": [],
+		"extensions": [],
+		"flavor_text": [],
+		"id": "01KKWBVKEMG5SA4RHTXPQMEC63",
+		"ref": "woodland-butterfly",
+		"name": "Woodland Butterfly",
+		"title": "Woodland Butterfly",
+		"description": "A colorful butterfly that flutters through sunlit meadows, entering from the edges and wandering lazily on the breeze.\n",
+		"lore": "Woodland Butterflies come in seven distinct color morphs — from monarch orange to purple emperor.\nThey drift in from the edges of the visible world, flutter around a wander anchor, and glide away\nwhen they stray too far. Gentle wind pushes them along their path.\n",
+		"type_flags": 1,
+		"rarity": 0,
+		"personality": 11,
+		"element": 10,
+		"rank": 1,
+		"family": 1,
+		"level": 1,
+		"stats": {
+			"hp": 1,
+			"max_hp": 1,
+			"attack": 0,
+			"defense": 0,
+			"speed": 2,
+			"armor": 0
+		},
+		"behavior": {
+			"first_strike": false,
+			"movement_type": 1
+		},
+		"spatial": {
+			"walk_speed": 0.35,
+			"can_fly": true
+		},
+		"credits": "KBVE Isometric ambient creature system.\n",
+		"creature_config": {
+			"render_kind": "billboard",
+			"pool_size": 14,
+			"chunk_size": 16,
+			"per_chunk": 2,
+			"spawn_chance": 0.45,
+			"schedule": "day"
+		}
+	}
+]

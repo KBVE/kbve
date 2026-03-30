@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#161b22"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </linearGradient>
+    <linearGradient id="header-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1c2128"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bg)" rx="12"/>
+
+  <!-- Header bar -->
+  <rect x="0" y="0" width="800" height="52" fill="url(#header-bg)" rx="12"/>
+  <rect x="0" y="40" width="800" height="12" fill="url(#header-bg)"/>
+
+  <!-- Header: board icon (grid) -->
+  <g transform="translate(20, 14)">
+    <rect x="0" y="0" width="10" height="10" rx="2" fill="none" stroke="#3498db" stroke-width="1.5"/>
+    <rect x="14" y="0" width="10" height="10" rx="2" fill="none" stroke="#3498db" stroke-width="1.5"/>
+    <rect x="0" y="14" width="10" height="10" rx="2" fill="none" stroke="#3498db" stroke-width="1.5"/>
+    <rect x="14" y="14" width="10" height="10" rx="2" fill="none" stroke="#3498db" stroke-width="1.5"/>
+  </g>
+
+  <!-- Header text -->
+  <text x="56" y="36" font-family="sans-serif" font-size="16" font-weight="bold" fill="#c9d1d9">{{ repo_name }} — {{ phase_title }}</text>
+
+  <!-- Progress summary -->
+  <text x="780" y="36" font-family="sans-serif" font-size="14" fill="#8b949e" text-anchor="end">{{ open_count }} open / {{ total_count }} total</text>
+
+  <!-- Progress bar -->
+  <rect x="16" y="56" width="768" height="6" rx="3" fill="#21262d"/>
+  {% if progress_width > 0 %}
+  <rect x="16" y="56" width="{{ progress_width }}" height="6" rx="3" fill="#238636"/>
+  {% endif %}
+
+  <!-- Department sections -->
+  {% for dept in departments %}
+  <g transform="translate(0, {{ 76 + loop.index0 * 50 }})">
+    <!-- Department header -->
+    <rect x="16" y="0" width="768" height="20" rx="4" fill="#1c2128"/>
+    <text x="28" y="14" font-family="sans-serif" font-size="12" font-weight="bold" fill="#58a6ff">{{ dept.name }}</text>
+    <text x="780" y="14" font-family="sans-serif" font-size="11" fill="#8b949e" text-anchor="end">{{ dept.open }}/{{ dept.total }}</text>
+
+    <!-- Task items (compact row) -->
+    {% for task in dept.tasks %}
+    <g transform="translate(28, {{ 24 + loop.index0 * 22 }})">
+      <!-- Status dot -->
+      <circle cx="6" cy="8" r="3" fill="{{ task.status_color }}"/>
+      <!-- Title -->
+      <text x="16" y="12" font-family="sans-serif" font-size="11" fill="#c9d1d9">#{{ task.number }} {{ task.title }}</text>
+      <!-- Assignee -->
+      <text x="740" y="12" font-family="sans-serif" font-size="10" fill="#484f58" text-anchor="end">{{ task.assignee }}</text>
+    </g>
+    {% endfor %}
+  </g>
+  {% endfor %}
+
+  <!-- Footer -->
+  <rect x="0" y="380" width="800" height="20" fill="#0d1117" rx="0"/>
+  <rect x="0" y="380" width="800" height="1" stroke="#21262d" stroke-width="1"/>
+  <text x="400" y="394" font-family="sans-serif" font-size="10" fill="#30363d" text-anchor="middle">discord.sh</text>
+</svg>
