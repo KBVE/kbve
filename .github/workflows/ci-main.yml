@@ -254,22 +254,12 @@ jobs:
                       EXTRA_FIELDS="$EXTRA_FIELDS --field manifest_version=${VER}"
                     fi
 
-                    # Read published version from version.toml for manifest comparison
-                    pub_v="0.0.0"
-                    if [ -f "$cargo_vtoml" ]; then
-                      pub_v=$(grep -m1 '^version' "$cargo_vtoml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
-                    fi
-
                     if [ "$altered" = "true" ]; then
                       echo "  ✓ $pkg — files changed, dispatching (v$VER)"
                       dispatch_publish crates --field package_name="$pkg" $EXTRA_FIELDS
                       DISPATCHED=$((DISPATCHED + 1))
-                    elif [ -n "$VER" ] && [ "$(is_newer "$VER" "$pub_v")" = "true" ]; then
-                      echo "  ✓ $pkg — MDX version $VER > published $pub_v, dispatching"
-                      dispatch_publish crates --field package_name="$pkg" $EXTRA_FIELDS
-                      DISPATCHED=$((DISPATCHED + 1))
                     elif [ "$(check_version "$cargo_src" "$cargo_vtoml")" = "true" ]; then
-                      echo "  ✓ $pkg — Cargo.toml unpublished version, dispatching (v$VER)"
+                      echo "  ✓ $pkg — unpublished version, dispatching (v$VER)"
                       dispatch_publish crates --field package_name="$pkg" $EXTRA_FIELDS
                       DISPATCHED=$((DISPATCHED + 1))
                     else
