@@ -17,6 +17,8 @@
 #   # Wait ~30s, then verify:
 #   psql "postgresql://forgejo:forgejo-local-dev@localhost:54322/postgres" \
 #     -c "\dt forgejo.*"
+#   # Check migration log:
+#   docker compose exec forgejo cat /var/log/dbmate/migration.log
 #   open http://localhost:3333
 #   # Tear down:
 #   docker compose down -v
@@ -48,8 +50,17 @@ services:
             DATABASE_URL: 'postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable&search_path=dbmate,public'
         volumes:
             - ./migrations:/db/migrations:ro
+            - dbmate-logs:/var/log/dbmate
+        entrypoint: ['/bin/sh', '-c']
         command:
-            ['--no-dump-schema', '--migrations-dir', '/db/migrations', 'up']
+            - |
+                LOG=/var/log/dbmate/migration.log
+                echo "=== dbmate migration started at $$(date -u +%Y-%m-%dT%H:%M:%SZ) ===" | tee "$$LOG"
+                /usr/local/bin/dbmate --no-dump-schema --migrations-dir /db/migrations up 2>&1 | tee -a "$$LOG"
+                EXIT=$$?
+                echo "" | tee -a "$$LOG"
+                echo "=== dbmate migration finished (exit $$EXIT) at $$(date -u +%Y-%m-%dT%H:%M:%SZ) ===" | tee -a "$$LOG"
+                exit $$EXIT
 
     forgejo:
         image: codeberg.org/forgejo/forgejo:12
@@ -71,6 +82,7 @@ services:
             - FORGEJO__actions__ENABLED=true
         volumes:
             - forgejo-data:/data
+            - dbmate-logs:/var/log/dbmate:ro
         depends_on:
             dbmate-init:
                 condition: service_completed_successfully
@@ -78,3 +90,4 @@ services:
 volumes:
     pgdata:
     forgejo-data:
+    dbmate-logs:
