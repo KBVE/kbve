@@ -6,6 +6,16 @@ on:
             project:
                 required: true
                 type: string
+            version_source:
+                description: 'Path to MDX/JSON with version field (source of truth)'
+                required: false
+                type: string
+                default: ''
+            version_target:
+                description: 'Path to package.json to patch with the version before publish'
+                required: false
+                type: string
+                default: ''
         secrets:
             NPM_TOKEN:
                 required: true
@@ -55,6 +65,28 @@ jobs:
 
             - name: Install pnpm dependencies
               run: pnpm install
+
+            - name: Sync version from source to package.json
+              if: ${{ inputs.version_source != '' && inputs.version_target != '' }}
+              run: |
+                  SRC="${{ inputs.version_source }}"
+                  TGT="${{ inputs.version_target }}"
+                  case "$SRC" in
+                    *.mdx) VER=$(sed -n 's/^version: *"\([^"]*\)"/\1/p' "$SRC" | head -1) ;;
+                    *.json) VER=$(jq -r '.version // ""' "$SRC" 2>/dev/null) ;;
+                    *) VER="" ;;
+                  esac
+                  if [ -z "$VER" ] || [ ! -f "$TGT" ]; then
+                    echo "::warning::Skipping version sync (VER=$VER, TGT=$TGT)"
+                    exit 0
+                  fi
+                  CURRENT=$(jq -r '.version' "$TGT")
+                  echo "Source ($SRC): $VER"
+                  echo "Target ($TGT): $CURRENT"
+                  if [ "$CURRENT" != "$VER" ]; then
+                    jq --arg v "$VER" '.version = $v' "$TGT" > "$TGT.tmp" && mv "$TGT.tmp" "$TGT"
+                    echo "Patched $TGT: $CURRENT → $VER"
+                  fi
 
             - name: Check version against npm registry
               id: version_check
