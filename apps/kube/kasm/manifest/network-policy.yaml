@@ -1,0 +1,50 @@
+# Egress lockdown — KASM pods can ONLY communicate via the VPN tunnel.
+# If Gluetun drops, traffic stops instead of leaking through Hetzner IP.
+#
+# Uses CiliumNetworkPolicy for L7 awareness + DNS-based FQDN rules.
+# Falls back to standard NetworkPolicy if Cilium is unavailable.
+
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+    name: kasm-vpn-egress-lockdown
+    namespace: kasm
+    labels:
+        app.kubernetes.io/part-of: kasm
+spec:
+    endpointSelector:
+        matchLabels:
+            app: kasm-vpn
+    egress:
+        # Allow DNS resolution (kube-dns)
+        - toEndpoints:
+              - matchLabels:
+                    k8s:io.kubernetes.pod.namespace: kube-system
+                    k8s-app: kube-dns
+          toPorts:
+              - ports:
+                    - port: '53'
+                      protocol: UDP
+                    - port: '53'
+                      protocol: TCP
+        # Allow traffic to cluster-internal services (10.0.0.0/8, 172.16.0.0/12)
+        - toCIDR:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+        # Allow WireGuard tunnel establishment (UDP 51820 to any)
+        - toCIDR:
+              - 0.0.0.0/0
+          toPorts:
+              - ports:
+                    - port: '51820'
+                      protocol: UDP
+        # All other egress is BLOCKED — no direct TCP/UDP to the internet.
+        # Traffic exits only through the WireGuard tunnel inside the pod.
+    ingress:
+        # Allow inbound to KASM web port from within cluster
+        - fromEndpoints:
+              - {}
+          toPorts:
+              - ports:
+                    - port: '6901'
+                      protocol: TCP

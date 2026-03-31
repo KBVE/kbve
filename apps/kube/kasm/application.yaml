@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: kasm
+    namespace: argocd
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/KBVE/kbve
+        targetRevision: main
+        path: apps/kube/kasm/manifest
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: kasm
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=true

@@ -60,6 +60,8 @@ resources:
     - ows/application.yaml
     # ChuckRPG — game website + API
     - chuckrpg/application.yaml
+    # KASM — VPN-tunneled desktop workspaces (Gluetun + WireGuard)
+    - kasm/application.yaml
     - rentearth/application.yaml
     - cryptothrone/application.yaml
     # AngelScript UE dedicated server
