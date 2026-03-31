@@ -166,25 +166,33 @@
 			"key": "devops",
 			"package_name": "devops",
 			"version": "0.0.19",
-			"version_toml": "packages/npm/devops/version.toml"
+			"version_toml": "packages/npm/devops/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/devops.mdx",
+			"version_target": "packages/npm/devops/package.json"
 		},
 		{
 			"key": "droid",
 			"package_name": "droid",
 			"version": "0.1.1",
-			"version_toml": "packages/npm/droid/version.toml"
+			"version_toml": "packages/npm/droid/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/droid.mdx",
+			"version_target": "packages/npm/droid/package.json"
 		},
 		{
 			"key": "khashvault",
 			"package_name": "khashvault",
 			"version": "1.0.12",
-			"version_toml": "packages/npm/khashvault/version.toml"
+			"version_toml": "packages/npm/khashvault/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/khashvault.mdx",
+			"version_target": "packages/npm/khashvault/package.json"
 		},
 		{
 			"key": "laser",
 			"package_name": "laser",
 			"version": "0.1.0",
-			"version_toml": "packages/npm/laser/version.toml"
+			"version_toml": "packages/npm/laser/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/laser.mdx",
+			"version_target": "packages/npm/laser/package.json"
 		}
 	],
 	"crates": [
@@ -327,14 +335,18 @@
 			"package_name": "python-fudster",
 			"pypi_name": "fudster",
 			"version": "1.0.3",
-			"version_toml": "packages/python/fudster/version.toml"
+			"version_toml": "packages/python/fudster/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/fudster.mdx",
+			"version_target": "packages/python/fudster/pyproject.toml"
 		},
 		{
 			"key": "py_lib_kbve",
 			"package_name": "python-kbve",
 			"pypi_name": "kbve",
 			"version": "1.0.13",
-			"version_toml": "packages/python/kbve/version.toml"
+			"version_toml": "packages/python/kbve/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/python-kbve.mdx",
+			"version_target": "packages/python/kbve/pyproject.toml"
 		}
 	],
 	"unreal": [
