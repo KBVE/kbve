@@ -84,16 +84,19 @@ spec:
                           memory: '256Mi'
                           cpu: '200m'
 
-                # ── KASM workspace ──
+                # ── KASM Discord workspace ──
                 # Uses Gluetun's network namespace — all traffic exits via VPN.
-                # Replace image with your custom KASM image (Discord client, etc.)
+                # Browser profile persisted via PVC so Discord session survives restarts.
                 - name: workspace
-                  image: kasmweb/ubuntu-noble-desktop:1.16.1
+                  image: kasmweb/discord:1.16.1
                   env:
                       - name: VNC_PW
                         value: 'changeme'
                       - name: KASM_PORT
                         value: '6901'
+                  volumeMounts:
+                      - name: discord-profile
+                        mountPath: /home/kasm-user
                   # Network shared with gluetun — no ports needed here
                   resources:
                       requests:
@@ -102,6 +105,10 @@ spec:
                       limits:
                           memory: '4Gi'
                           cpu: '2'
+            volumes:
+                - name: discord-profile
+                  persistentVolumeClaim:
+                      claimName: kasm-discord-profile
 
 ---
 apiVersion: v1

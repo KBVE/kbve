@@ -1,0 +1,20 @@
+# Persistent volume for Discord browser profile.
+# Survives pod restarts so the user stays logged into Discord.
+# Stores: browser localStorage/IndexedDB (Discord session), user preferences, cache.
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: kasm-discord-profile
+    namespace: kasm
+    labels:
+        app: kasm-vpn
+        app.kubernetes.io/part-of: kasm
+        app.kubernetes.io/component: storage
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn
+    resources:
+        requests:
+            storage: 5Gi
