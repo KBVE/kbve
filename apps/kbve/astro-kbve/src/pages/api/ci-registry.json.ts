@@ -42,6 +42,7 @@ interface CratesEntry {
 	version?: string;
 	version_toml?: string;
 	version_source?: string;
+	version_target?: string;
 }
 
 interface PythonEntry {
@@ -128,15 +129,19 @@ function toManifestEntry(
 				: null;
 		case 'crates': {
 			if (!d.package_name) return null;
-			// Default version_source to the MDX file (source of truth for version).
-			// Explicit version_source in frontmatter overrides (e.g. bevy crates).
+			// version_source: where to READ version (MDX by default, Cargo.toml for bevy)
+			// version_target: where to WRITE version (Cargo.toml — same as Docker apps)
 			const vs = d.version_source || mdxPath;
+			const vtgt =
+				d.version_target ||
+				`packages/rust/${d.package_name}/Cargo.toml`;
 			return {
 				key: d.key!,
 				package_name: d.package_name,
 				...(ver && { version: ver }),
 				...(vt && { version_toml: vt }),
 				...(vs && { version_source: vs }),
+				version_target: vtgt,
 			};
 		}
 		case 'python':

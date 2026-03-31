@@ -6,13 +6,13 @@ on:
             package:
                 required: true
                 type: string
-            version:
-                description: 'Target version from MDX manifest. When provided, Cargo.toml is patched to this version before publish.'
+            version_source:
+                description: 'Path to MDX/JSON with version field (source of truth)'
                 required: false
                 type: string
                 default: ''
-            version_source:
-                description: 'Path to Cargo.toml (overrides default convention)'
+            version_target:
+                description: 'Path to Cargo.toml to patch with the version before publish'
                 required: false
                 type: string
                 default: ''
@@ -34,27 +34,38 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v6
 
-            - name: Patch Cargo.toml with manifest version
-              if: inputs.version != ''
+            - name: Sync version from source to Cargo.toml
+              if: ${{ inputs.version_source != '' && inputs.version_target != '' }}
               run: |
-                  NAME="${{ inputs.package }}"
-                  VERSION="${{ inputs.version }}"
                   SRC="${{ inputs.version_source }}"
-                  CARGO="${SRC:-packages/rust/${NAME}/Cargo.toml}"
+                  TGT="${{ inputs.version_target }}"
 
-                  if [ ! -f "$CARGO" ]; then
-                    echo "::error::Cargo.toml not found: $CARGO"
+                  # Read version from source (MDX or JSON)
+                  case "$SRC" in
+                    *.mdx) VER=$(sed -n 's/^version: *"\([^"]*\)"/\1/p' "$SRC" | head -1) ;;
+                    *.json) VER=$(jq -r '.version // ""' "$SRC" 2>/dev/null) ;;
+                    *) VER=$(grep -m1 '^version' "$SRC" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null) ;;
+                  esac
+
+                  if [ -z "$VER" ]; then
+                    echo "::warning::Could not read version from $SRC — skipping patch"
+                    exit 0
+                  fi
+
+                  if [ ! -f "$TGT" ]; then
+                    echo "::error::Target file not found: $TGT"
                     exit 1
                   fi
 
-                  CURRENT=$(grep -m1 '^version' "$CARGO" | sed 's/version = "\(.*\)"/\1/')
-                  echo "Cargo.toml version: $CURRENT → $VERSION"
+                  CURRENT=$(grep -m1 '^version' "$TGT" | sed 's/version = "\(.*\)"/\1/')
+                  echo "Source ($SRC): $VER"
+                  echo "Target ($TGT): $CURRENT"
 
-                  if [ "$CURRENT" != "$VERSION" ]; then
-                    sed -i "s/^version = \"$CURRENT\"/version = \"$VERSION\"/" "$CARGO"
-                    echo "Patched $CARGO"
+                  if [ "$CURRENT" != "$VER" ]; then
+                    sed -i "s/^version = \"$CURRENT\"/version = \"$VER\"/" "$TGT"
+                    echo "Patched $TGT: $CURRENT → $VER"
                   else
-                    echo "Already at $VERSION — no patch needed"
+                    echo "Already at $VER — no patch needed"
                   fi
 
             - name: Rust ToolChain
