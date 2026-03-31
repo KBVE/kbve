@@ -32,6 +32,7 @@ use bevy::prelude::Startup;
 use actions::ActionsPlugin;
 use camera::IsometricCameraPlugin;
 use creatures::CreaturesPlugin;
+use input_bridge::InputBridgePlugin;
 use inventory::{BevyItemsPlugin, InventoryPlugin, ItemKind};
 use net::NetPlugin;
 use object_registry::ObjectRegistryPlugin;
@@ -75,6 +76,7 @@ impl PluginGroup for GamePluginGroup {
             .add(TilemapPlugin)
             .add(PlayerPlugin)
             .add(ObjectRegistryPlugin)
+            .add(InputBridgePlugin)
             .add(SceneObjectsPlugin)
             .add(TreesPlugin)
             .add(WaterPlugin)

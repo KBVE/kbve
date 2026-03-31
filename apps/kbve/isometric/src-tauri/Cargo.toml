@@ -44,6 +44,7 @@ bevy = { version = "0.18", default-features = false, features = [
     "bevy_picking",
     "mesh_picking",
     "bevy_gizmos",
+    "default_font",
 ] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -76,6 +77,7 @@ tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 wgpu = "27"
 pollster = "0.4"
+ureq = { version = "3", features = ["json"] }
 
 # --- Linux-only Bevy features (x11/wayland) ---
 [target.'cfg(target_os = "linux")'.dependencies.bevy]

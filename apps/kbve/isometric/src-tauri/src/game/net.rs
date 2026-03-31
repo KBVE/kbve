@@ -715,19 +715,100 @@ fn poll_go_online_request(
         return;
     }
 
-    // --- Desktop path: generate token locally ---
+    // --- Desktop path: generate token locally or fetch from remote ---
     #[cfg(not(target_arch = "wasm32"))]
     {
         use bevy_kbve_net::net_config;
+
+        // Determine if this is a remote server (hostname, not IP:port).
+        // Remote servers require fetching the ConnectToken from the API
+        // so the embedded addresses match the production topology.
+        let stripped = resolved_ws
+            .trim_start_matches("ws://")
+            .trim_start_matches("wss://");
+        let is_remote = stripped.contains("kbve.com")
+            || stripped.contains("chuckrpg.com")
+            || (!stripped.starts_with("127.0.0.1")
+                && !stripped.starts_with("localhost")
+                && stripped.parse::<std::net::SocketAddr>().is_err());
+
+        if is_remote {
+            // Fetch token from the server's API endpoint
+            let api_base = resolved_ws
+                .replace("ws://", "http://")
+                .replace("wss://", "https://")
+                .trim_end_matches("/ws")
+                .to_string();
+            let token_url = format!("{api_base}/api/v1/auth/game-token");
+            let jwt_body = jwt.clone().unwrap_or_default();
+            // Force websocket transport for now — WebTransport (QUIC) needs
+            // additional work for production routing through Cilium/Cloudflare.
+            let transport_hint = "websocket";
+
+            info!("[net] desktop: fetching token from {token_url} (remote server)");
+            match ureq::post(&token_url)
+                .header("Content-Type", "application/json")
+                .send_json(&serde_json::json!({
+                    "jwt": jwt_body,
+                    "transport": transport_hint,
+                })) {
+                Ok(mut resp) => {
+                    let body: serde_json::Value = resp.body_mut().read_json().unwrap_or_default();
+                    let token_b64 = body["token"].as_str().unwrap_or("");
+                    let server_url = body["server_url"].as_str().unwrap_or(&resolved_ws);
+                    let server_wt_url = body["server_wt_url"].as_str().unwrap_or("");
+                    let cert_digest = body["cert_digest"].as_str().unwrap_or("");
+                    let cert_type = body["cert_type"].as_str().unwrap_or("");
+
+                    if token_b64.is_empty() {
+                        warn!("[net] desktop: server returned empty token — cannot connect");
+                        return;
+                    }
+
+                    let token_bytes = net_config::base64_to_token_bytes(token_b64)
+                        .expect("base64_to_token_bytes failed");
+
+                    info!(
+                        "[net] desktop: token received — ws={server_url} wt={server_wt_url} cert_type={cert_type}"
+                    );
+
+                    let transport = TransportConfig {
+                        ws_url: server_url.to_string(),
+                        wt_url: server_wt_url.to_string(),
+                        cert_digest: cert_digest.to_string(),
+                        cert_type: cert_type.to_string(),
+                    };
+
+                    // Arm WS fallback if trying WebTransport
+                    if !transport.wt_url.is_empty() && !transport.ws_url.is_empty() {
+                        *ws_fallback = WsFallbackInfo {
+                            ws_url: transport.ws_url.clone(),
+                            token_bytes: Some(token_bytes.clone()),
+                            armed: true,
+                        };
+                        info!(
+                            "[net] desktop: WS fallback armed for {}",
+                            ws_fallback.ws_url
+                        );
+                    }
+
+                    connect_to_server(&mut commands, &transport, &token_bytes);
+                    info!("[net] desktop: remote connection initiated");
+                    return;
+                }
+                Err(e) => {
+                    warn!("[net] desktop: token fetch failed: {e} — falling back to local token");
+                    // Fall through to local token generation
+                }
+            }
+        }
 
         let private_key = net_config::load_private_key();
         let protocol_id = net_config::KBVE_PROTOCOL_ID;
         let client_id = rand::random::<u64>().max(1);
 
-        // Parse the WS address for the token (needs a SocketAddr)
-        let socket_addr: std::net::SocketAddr = resolved_ws
-            .trim_start_matches("ws://")
-            .trim_start_matches("wss://")
+        // Parse the WS address for the token (needs a SocketAddr for local servers)
+        let socket_addr: std::net::SocketAddr = stripped
             .parse()
             .unwrap_or_else(|_| "127.0.0.1:5000".parse().unwrap());
 
