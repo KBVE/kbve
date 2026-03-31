@@ -1,0 +1,168 @@
+# Apache Guacamole — browser-based RDP gateway for KubeVirt Windows VMs.
+#
+# Architecture:
+#   Browser → Ingress (TLS) → guacamole (web) → guacd (proxy) → ClusterIP → VM RDP (3389)
+#
+# RDP is NEVER exposed publicly. Guacamole is the single audited entry point.
+# KEDA manages replicas: 0 when idle, 1 when VM is running.
+#
+# Components:
+#   - guacd: protocol proxy daemon (translates web → RDP/VNC/SSH)
+#   - guacamole: web frontend (Tomcat + auth + connection management)
+#   - PostgreSQL: stores connections, users, history (uses existing Supabase cluster)
+#
+# Setup (one-time after deploy):
+#   1. Access Guacamole at https://guac.kbve.com/guacamole/
+#   2. Default login: guacadmin / guacadmin (CHANGE IMMEDIATELY)
+#   3. Add RDP connection:
+#      - Protocol: RDP
+#      - Hostname: windows-builder-rdp.angelscript.svc.cluster.local
+#      - Port: 3389
+#      - Username: <Windows admin user>
+#      - Password: <from sealed secret>
+#   4. Test connection from browser
+---
+# guacd — protocol proxy daemon
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: guacd
+    namespace: angelscript
+    labels:
+        app: guacd
+        component: guacamole
+spec:
+    replicas: 0
+    selector:
+        matchLabels:
+            app: guacd
+    template:
+        metadata:
+            labels:
+                app: guacd
+                component: guacamole
+        spec:
+            containers:
+                - name: guacd
+                  image: guacamole/guacd:1.5.5
+                  ports:
+                      - containerPort: 4822
+                        name: guacd
+                        protocol: TCP
+                  resources:
+                      requests:
+                          cpu: 100m
+                          memory: 256Mi
+                      limits:
+                          cpu: '2'
+                          memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: guacd
+    namespace: angelscript
+    labels:
+        app: guacd
+        component: guacamole
+spec:
+    selector:
+        app: guacd
+    ports:
+        - port: 4822
+          targetPort: 4822
+          name: guacd
+          protocol: TCP
+---
+# guacamole — web frontend
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: guacamole
+    namespace: angelscript
+    labels:
+        app: guacamole
+        component: guacamole
+spec:
+    replicas: 0
+    selector:
+        matchLabels:
+            app: guacamole
+    template:
+        metadata:
+            labels:
+                app: guacamole
+                component: guacamole
+        spec:
+            containers:
+                - name: guacamole
+                  image: guacamole/guacamole:1.5.5
+                  env:
+                      - name: GUACD_HOSTNAME
+                        value: guacd.angelscript.svc.cluster.local
+                      - name: GUACD_PORT
+                        value: '4822'
+                      # TODO(db): Switch to PostgreSQL for production
+                      # For initial testing, use user-mapping.xml (initdb not needed)
+                      # Production: set POSTGRESQL_HOSTNAME, POSTGRESQL_DATABASE, etc.
+                      # and run the initdb.sh script to create the schema
+                  ports:
+                      - containerPort: 8080
+                        name: http
+                        protocol: TCP
+                  resources:
+                      requests:
+                          cpu: 100m
+                          memory: 256Mi
+                      limits:
+                          cpu: '1'
+                          memory: 512Mi
+                  # TODO(user-mapping): Mount a ConfigMap with user-mapping.xml for initial testing:
+                  #   <user-mapping>
+                  #     <authorize username="admin" password="<hash>" encoding="sha256">
+                  #       <connection name="Windows Builder">
+                  #         <protocol>rdp</protocol>
+                  #         <param name="hostname">windows-builder-rdp.angelscript.svc.cluster.local</param>
+                  #         <param name="port">3389</param>
+                  #         <param name="username">Administrator</param>
+                  #         <param name="security">nla</param>
+                  #         <param name="ignore-cert">true</param>
+                  #       </connection>
+                  #     </authorize>
+                  #   </user-mapping>
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: guacamole
+    namespace: angelscript
+    labels:
+        app: guacamole
+        component: guacamole
+spec:
+    selector:
+        app: guacamole
+    ports:
+        - port: 8080
+          targetPort: 8080
+          name: http
+          protocol: TCP
+---
+# RDP Service — targets the Windows VM's virt-launcher pod
+apiVersion: v1
+kind: Service
+metadata:
+    name: windows-builder-rdp
+    namespace: angelscript
+    labels:
+        app: angelscript
+        component: windows-builder
+spec:
+    type: ClusterIP
+    selector:
+        vm.kubevirt.io/name: windows-builder
+    ports:
+        - name: rdp
+          port: 3389
+          targetPort: 3389
+          protocol: TCP
