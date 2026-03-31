@@ -281,25 +281,29 @@ metadata:
 automountServiceAccountToken: false
 
 ---
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
+# KEDA ScaledObject: Scale Kong based on Prometheus CPU utilization.
+# Replaces the HPA which required metrics-server (not installed).
+# Uses the existing kube-prometheus-stack as the metrics source.
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
 metadata:
-    name: kong-kong
+    name: kong-kong-scaledobject
     namespace: kilobase
     labels:
         app.kubernetes.io/instance: kong
         app.kubernetes.io/name: kong
 spec:
     scaleTargetRef:
-        apiVersion: apps/v1
-        kind: Deployment
         name: kong-kong
-    minReplicas: 2
-    maxReplicas: 5
-    metrics:
-        - type: Resource
-          resource:
-              name: cpu
-              target:
-                  type: Utilization
-                  averageUtilization: 80
+    pollingInterval: 30
+    cooldownPeriod: 300
+    minReplicaCount: 2
+    maxReplicaCount: 5
+    triggers:
+        - type: prometheus
+          metadata:
+              serverAddress: http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
+              query: |
+                  avg(rate(container_cpu_usage_seconds_total{namespace="kilobase",pod=~"kong-kong-.*",container="kong"}[5m])) / avg(kube_pod_container_resource_limits{namespace="kilobase",pod=~"kong-kong-.*",container="kong",resource="cpu"}) * 100
+              threshold: '80'
+              activationThreshold: '50'
