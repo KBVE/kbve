@@ -122,6 +122,14 @@ export interface VMInfo {
 	vmi?: VirtualMachineInstance;
 	phase: VMPhase;
 	osType: 'windows' | 'macos' | 'linux' | 'unknown';
+	/** Minutes since VMI started — undefined if not running */
+	uptimeMinutes?: number;
+	/** Runner label from VM labels (e.g. "UE5-Win") — signals KEDA-managed */
+	runnerLabel?: string;
+	/** True if the VM is KEDA-managed (has a runner label) */
+	isKedaManaged: boolean;
+	/** True if uptime is under the idle timeout — a job may be active */
+	mayHaveActiveJob: boolean;
 }
 
 interface CachedData {
@@ -348,11 +356,42 @@ class VMService {
 				const vmi = vmis.find(
 					(i) => i.metadata.name === vm.metadata.name,
 				);
+				const phase = getPhase(vm, vmi);
+
+				// Runner label detection — VMs managed by KEDA have a runner label
+				const labels = vm.metadata.labels ?? {};
+				const runnerLabel =
+					labels['runner'] ??
+					labels['github-actions-runner'] ??
+					labels['actions-runner'] ??
+					undefined;
+				const isKedaManaged = !!runnerLabel;
+
+				// Uptime calculation from VMI creation timestamp
+				let uptimeMinutes: number | undefined;
+				if (vmi?.metadata.creationTimestamp && phase === 'Running') {
+					const created = new Date(
+						vmi.metadata.creationTimestamp,
+					).getTime();
+					uptimeMinutes = Math.floor((Date.now() - created) / 60000);
+				}
+
+				// A KEDA-managed VM running for < 30 min likely has an active job
+				const mayHaveActiveJob =
+					isKedaManaged &&
+					phase === 'Running' &&
+					uptimeMinutes !== undefined &&
+					uptimeMinutes < 30;
+
 				return {
 					vm,
 					vmi,
-					phase: getPhase(vm, vmi),
+					phase,
 					osType: detectOS(vm),
+					uptimeMinutes,
+					runnerLabel,
+					isKedaManaged,
+					mayHaveActiveJob,
 				};
 			}),
 	);
@@ -488,9 +527,9 @@ class VMService {
 	}
 
 	public getVNCWebSocketURL(name: string): string {
-		// Build WebSocket URL for noVNC
+		// Dedicated VNC WebSocket bridge — axum handles auth + upstream relay
 		const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		return `${proto}//${window.location.host}${PROXY_BASE}/apis/subresources.kubevirt.io/v1/namespaces/${VM_NAMESPACE}/virtualmachineinstances/${name}/vnc`;
+		return `${proto}//${window.location.host}/dashboard/vm/vnc/${name}`;
 	}
 
 	private _startAutoRefresh(): void {

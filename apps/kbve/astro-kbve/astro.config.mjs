@@ -96,6 +96,7 @@ export default defineConfig({
 						{ label: 'Edge', link: '/dashboard/edge/', attrs: { 'data-auth-visibility': 'auth' } },
 						{ label: 'Forgejo', link: '/dashboard/forgejo/', attrs: { 'data-auth-visibility': 'staff' } },
 						{ label: 'Grafana', link: '/dashboard/grafana/', attrs: { 'data-auth-visibility': 'staff' } },
+						{ label: 'Virtual Machines', link: '/dashboard/vm/', attrs: { 'data-auth-visibility': 'staff' } },
 					],
 				},
 				{
@@ -221,11 +222,18 @@ export default defineConfig({
 		plugins: [tailwindcss()],
 		build: {
 			rollupOptions: {
-				external: ['fsevents', /^\.\.\/pkg/],
+				external: ['fsevents', /^\.\.\/pkg/, /@novnc\/novnc/],
 			},
 		},
 		optimizeDeps: {
-			exclude: ['fsevents'],
+			exclude: ['fsevents', '@novnc/novnc'],
+			esbuildOptions: {
+				supported: { 'top-level-await': true },
+			},
+		},
+		ssr: {
+			noExternal: [],
+			external: ['@novnc/novnc'],
 		},
 	},
 });

@@ -230,6 +230,10 @@ fn router(state: AppState) -> Router {
             any(super::proxy::kubevirt_proxy_handler),
         )
         .route(
+            "/dashboard/vm/vnc/{name}",
+            axum::routing::get(super::proxy::kubevirt_vnc_handler),
+        )
+        .route(
             "/dashboard/edge/proxy/{*path}",
             any(super::proxy::edge_proxy_handler),
         )

@@ -47,20 +47,33 @@ spec:
                 seccompProfile:
                     type: RuntimeDefault
             containers:
-                # aria2c — download engine with retry, resume, multi-connection
+                # aria2c — minimal Alpine image, runs as non-root
+                # RPC on port 6800, downloads to /downloads (shared PVC)
                 - name: aria2
-                  image: p3terx/aria2-pro:latest
-                  env:
-                      - name: PUID
-                        value: '1000'
-                      - name: PGID
-                        value: '1000'
-                      # RPC secret — set to empty for internal-only access
-                      - name: RPC_SECRET
-                        value: ''
-                      # Max concurrent downloads
-                      - name: CUSTOM_TRACKER_URL
-                        value: ''
+                  image: alpine:3.21
+                  command:
+                      - /bin/sh
+                      - -c
+                      - |
+                          apk add --no-cache aria2 && \
+                          exec aria2c \
+                            --enable-rpc=true \
+                            --rpc-listen-all=true \
+                            --rpc-listen-port=6800 \
+                            --rpc-allow-origin-all=true \
+                            --dir=/downloads \
+                            --max-connection-per-server=16 \
+                            --split=16 \
+                            --min-split-size=10M \
+                            --max-concurrent-downloads=5 \
+                            --max-tries=10 \
+                            --retry-wait=5 \
+                            --continue=true \
+                            --auto-file-renaming=false \
+                            --allow-overwrite=true \
+                            --file-allocation=falloc \
+                            --console-log-level=notice \
+                            --summary-interval=30
                   ports:
                       - containerPort: 6800
                         name: rpc
@@ -68,8 +81,6 @@ spec:
                   volumeMounts:
                       - name: downloads
                         mountPath: /downloads
-                      - name: aria2-config
-                        mountPath: /config
                   resources:
                       requests:
                           cpu: 100m
@@ -116,8 +127,6 @@ spec:
                 - name: downloads
                   persistentVolumeClaim:
                       claimName: builder-shared-storage
-                - name: aria2-config
-                  emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
