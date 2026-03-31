@@ -853,6 +853,51 @@
           "implicitDependencies": []
         }
       },
+      "discordsh-bot-e2e": {
+        "name": "discordsh-bot-e2e",
+        "type": "e2e",
+        "data": {
+          "root": "apps/discordsh/discordsh-bot-e2e",
+          "name": "discordsh-bot-e2e",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/discordsh/discordsh-bot-e2e",
+          "projectType": "application",
+          "implicitDependencies": [
+            "discordsh-bot"
+          ],
+          "targets": {
+            "e2e": {
+              "executor": "@nx/playwright:playwright",
+              "cache": false,
+              "defaultConfiguration": "local",
+              "options": {
+                "config": "apps/discordsh/discordsh-bot-e2e/playwright.config.ts"
+              },
+              "configurations": {
+                "local": {},
+                "ci": {
+                  "config": "apps/discordsh/discordsh-bot-e2e/playwright.docker.config.ts"
+                }
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "e2e:docker": {
+              "executor": "@nx/playwright:playwright",
+              "cache": false,
+              "options": {
+                "config": "apps/discordsh/discordsh-bot-e2e/playwright.docker.config.ts"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "tags": []
+        }
+      },
       "axum-chuckrpg-e2e": {
         "name": "axum-chuckrpg-e2e",
         "type": "e2e",
@@ -2431,6 +2476,69 @@
             }
           },
           "implicitDependencies": []
+        }
+      },
+      "discordsh-bot": {
+        "name": "discordsh-bot",
+        "type": "app",
+        "data": {
+          "root": "apps/discordsh/discordsh-bot",
+          "name": "discordsh-bot",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/discordsh/discordsh-bot/src",
+          "projectType": "application",
+          "targets": {
+            "container": {
+              "executor": "nx:run-commands",
+              "defaultConfiguration": "local",
+              "options": {
+                "parallel": false
+              },
+              "configurations": {
+                "local": {
+                  "commands": [
+                    "pnpm nx run discordsh-bot:containerx",
+                    "VERSION=$(grep '^version' apps/discordsh/discordsh-bot/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/discordsh-bot:latest kbve/discordsh-bot:$VERSION && echo \"Tagged kbve/discordsh-bot:$VERSION\""
+                  ]
+                },
+                "production": {
+                  "commands": [
+                    "pnpm nx run discordsh-bot:containerx --configuration=production",
+                    "VERSION=$(grep '^version' apps/discordsh/discordsh-bot/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/discordsh-bot:latest kbve/discordsh-bot:$VERSION && docker tag kbve/discordsh-bot:latest ghcr.io/kbve/discordsh-bot:latest && docker tag kbve/discordsh-bot:latest ghcr.io/kbve/discordsh-bot:$VERSION && echo \"Tagged kbve/discordsh-bot:$VERSION and ghcr.io/kbve/discordsh-bot:$VERSION\""
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "containerx": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/discordsh/discordsh-bot/Dockerfile",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "tags": [
+                    "kbve/discordsh-bot:latest"
+                  ]
+                },
+                "production": {
+                  "push": true,
+                  "tags": [
+                    "kbve/discordsh-bot:latest",
+                    "ghcr.io/kbve/discordsh-bot:latest"
+                  ]
+                }
+              },
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": [],
+          "tags": []
         }
       },
       "discordsh-e2e": {
@@ -8260,98 +8368,6 @@
           "implicitDependencies": []
         }
       },
-      "soul": {
-        "name": "soul",
-        "type": "lib",
-        "data": {
-          "root": "packages/rust/soul",
-          "name": "soul",
-          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-          "projectType": "library",
-          "sourceRoot": "packages/rust/soul/src",
-          "tags": [],
-          "targets": {
-            "build": {
-              "executor": "@monodon/rust:build",
-              "outputs": [
-                "{options.target-dir}"
-              ],
-              "options": {
-                "target-dir": "dist/target/soul"
-              },
-              "configurations": {
-                "production": {
-                  "release": true
-                }
-              },
-              "parallelism": true,
-              "dependsOn": [
-                "^build"
-              ],
-              "inputs": [
-                "production",
-                "^production"
-              ],
-              "cache": true
-            },
-            "test": {
-              "executor": "@monodon/rust:test",
-              "outputs": [
-                "{options.target-dir}"
-              ],
-              "options": {
-                "target-dir": "dist/target/soul"
-              },
-              "configurations": {
-                "production": {
-                  "release": true
-                }
-              },
-              "parallelism": true,
-              "inputs": [
-                "default",
-                "^production"
-              ],
-              "cache": true
-            },
-            "e2e": {
-              "executor": "nx:run-commands",
-              "options": {
-                "commands": [
-                  "nx test soul"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true,
-              "inputs": [
-                "default",
-                "^production"
-              ],
-              "cache": true
-            },
-            "lint": {
-              "executor": "@monodon/rust:lint",
-              "outputs": [
-                "{options.target-dir}"
-              ],
-              "options": {
-                "target-dir": "dist/target/soul"
-              },
-              "configurations": {},
-              "parallelism": true,
-              "inputs": [
-                "default",
-                "{workspaceRoot}/.eslintrc.json",
-                "{workspaceRoot}/.eslintignore",
-                "{workspaceRoot}/eslint.config.js"
-              ],
-              "cache": true
-            }
-          },
-          "implicitDependencies": []
-        }
-      },
       "cryptothrone": {
         "name": "cryptothrone",
         "type": "app",
@@ -8517,97 +8533,6 @@
           },
           "implicitDependencies": [],
           "tags": []
-        }
-      },
-      "astro-mc": {
-        "name": "astro-mc",
-        "type": "app",
-        "data": {
-          "root": "apps/mc/astro-mc",
-          "name": "astro-mc",
-          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-          "projectType": "application",
-          "sourceRoot": "apps/mc/astro-mc/src",
-          "tags": [],
-          "targets": {
-            "dev": {
-              "executor": "nx:run-commands",
-              "options": {
-                "cwd": "apps/mc/astro-mc",
-                "commands": [
-                  "rm -rf .astro",
-                  "nx exec -- astro sync",
-                  "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro dev"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "build": {
-              "executor": "nx:run-commands",
-              "options": {
-                "cwd": "apps/mc/astro-mc",
-                "commands": [
-                  "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true,
-              "dependsOn": [
-                "^build"
-              ],
-              "inputs": [
-                "production",
-                "^production"
-              ],
-              "cache": true
-            },
-            "preview": {
-              "dependsOn": [
-                {
-                  "target": "build",
-                  "projects": "self"
-                }
-              ],
-              "executor": "nx:run-commands",
-              "options": {
-                "cwd": "apps/mc/astro-mc",
-                "commands": [
-                  "nx exec -- astro preview"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "check": {
-              "executor": "nx:run-commands",
-              "options": {
-                "cwd": "apps/mc/astro-mc",
-                "commands": [
-                  "nx exec -- astro check"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "sync": {
-              "executor": "nx:run-commands",
-              "options": {
-                "cwd": "apps/mc/astro-mc",
-                "commands": [
-                  "nx exec -- astro sync"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            }
-          },
-          "implicitDependencies": []
         }
       },
       "irc-e2e": {
@@ -9013,117 +8938,6 @@
             }
           },
           "implicitDependencies": []
-        }
-      },
-      "mc-e2e": {
-        "name": "mc-e2e",
-        "type": "e2e",
-        "data": {
-          "root": "apps/mc/mc-e2e",
-          "metadata": {
-            "targetGroups": {},
-            "js": {
-              "packageName": "mc-e2e",
-              "packageVersion": "0.0.0",
-              "isInPackageManagerWorkspaces": false
-            }
-          },
-          "targets": {
-            "test": {
-              "executor": "nx:noop",
-              "cache": false,
-              "options": {},
-              "configurations": {},
-              "parallelism": true,
-              "inputs": [
-                "default",
-                "^production"
-              ]
-            },
-            "typecheck": {
-              "cache": true,
-              "inputs": [
-                "production",
-                "^production",
-                {
-                  "externalDependencies": [
-                    "typescript"
-                  ]
-                }
-              ],
-              "options": {
-                "cwd": "apps/mc/mc-e2e",
-                "command": "tsc --noEmit -p tsconfig.json"
-              },
-              "metadata": {
-                "description": "Runs type-checking for the project.",
-                "technologies": [
-                  "typescript"
-                ],
-                "help": {
-                  "command": "pnpm exec tsc -p tsconfig.json --help",
-                  "example": {
-                    "options": {
-                      "noEmit": true
-                    }
-                  }
-                }
-              },
-              "executor": "nx:run-commands",
-              "configurations": {},
-              "parallelism": true
-            },
-            "build-deps": {
-              "dependsOn": [
-                "^build"
-              ],
-              "configurations": {},
-              "options": {},
-              "parallelism": true,
-              "executor": "nx:noop"
-            },
-            "watch-deps": {
-              "continuous": true,
-              "dependsOn": [
-                "build-deps"
-              ],
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "pnpm exec nx watch --projects mc-e2e --includeDependentProjects -- pnpm exec nx build-deps mc-e2e"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "e2e": {
-              "executor": "nx:run-commands",
-              "cache": false,
-              "options": {
-                "commands": [
-                  "docker rm -f mc-e2e-test 2>/dev/null || true",
-                  "docker run -d --name mc-e2e-test -p 25565:25565 -p 8080:8080 kbve/mc:local",
-                  "npx vitest run; EC=$?; docker rm -f mc-e2e-test 2>/dev/null || true; exit $EC"
-                ],
-                "parallel": false,
-                "cwd": "apps/mc/mc-e2e"
-              },
-              "configurations": {},
-              "parallelism": true,
-              "inputs": [
-                "default",
-                "^production"
-              ]
-            }
-          },
-          "projectType": "application",
-          "name": "mc-e2e",
-          "tags": [
-            "npm:private"
-          ],
-          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-          "sourceRoot": "apps/mc/mc-e2e/e2e",
-          "implicitDependencies": [
-            "mc"
-          ]
         }
       },
       "herbmail": {
@@ -9547,726 +9361,12 @@
           "projectType": "application",
           "sourceRoot": "apps/ows",
           "tags": [
-            "scope:ows",
-            "type:app"
+            "scope:ows"
           ],
-          "targets": {
-            "container": {
-              "executor": "nx:run-commands",
-              "defaultConfiguration": "local",
-              "options": {
-                "parallel": false
-              },
-              "configurations": {
-                "local": {
-                  "commands": [
-                    "./kbve.sh -nx ows:container-publicapi --no-cloud",
-                    "./kbve.sh -nx ows:container-instancemanagement --no-cloud",
-                    "./kbve.sh -nx ows:container-characterpersistence --no-cloud",
-                    "./kbve.sh -nx ows:container-globaldata --no-cloud",
-                    "./kbve.sh -nx ows:container-management --no-cloud"
-                  ]
-                },
-                "production": {
-                  "commands": [
-                    "./kbve.sh -nx ows:container-publicapi --configuration=production --no-cloud",
-                    "./kbve.sh -nx ows:container-instancemanagement --configuration=production --no-cloud",
-                    "./kbve.sh -nx ows:container-characterpersistence --configuration=production --no-cloud",
-                    "./kbve.sh -nx ows:container-globaldata --configuration=production --no-cloud",
-                    "./kbve.sh -nx ows:container-management --configuration=production --no-cloud"
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "container-publicapi": {
-              "executor": "nx:run-commands",
-              "defaultConfiguration": "local",
-              "options": {
-                "parallel": false
-              },
-              "configurations": {
-                "local": {
-                  "commands": [
-                    "./kbve.sh -nx ows:containerx-publicapi --no-cloud",
-                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-public-api/OWSPublicAPI.csproj | head -1) && docker tag kbve/ows-publicapi:latest kbve/ows-publicapi:$VERSION && echo \"Tagged kbve/ows-publicapi:$VERSION\""
-                  ]
-                },
-                "production": {
-                  "commands": [
-                    "./kbve.sh -nx ows:containerx-publicapi --configuration=production --no-cloud",
-                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-public-api/OWSPublicAPI.csproj | head -1) && docker tag kbve/ows-publicapi:latest kbve/ows-publicapi:$VERSION && docker tag ghcr.io/kbve/ows-publicapi:latest ghcr.io/kbve/ows-publicapi:$VERSION && echo \"Tagged kbve/ows-publicapi:$VERSION\""
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "containerx-publicapi": {
-              "executor": "@nx-tools/nx-container:build",
-              "defaultConfiguration": "local",
-              "options": {
-                "engine": "docker",
-                "context": "apps/ows",
-                "file": "apps/ows/Dockerfile",
-                "target": "publicapi",
-                "load": true
-              },
-              "configurations": {
-                "local": {
-                  "load": true,
-                  "push": false,
-                  "tags": [
-                    "kbve/ows-publicapi:latest"
-                  ],
-                  "cache-from": [
-                    "type=registry,ref=ghcr.io/kbve/ows-publicapi:buildcache"
-                  ]
-                },
-                "production": {
-                  "load": true,
-                  "push": false,
-                  "metadata": {
-                    "images": [
-                      "ghcr.io/kbve/ows-publicapi",
-                      "kbve/ows-publicapi"
-                    ],
-                    "tags": [
-                      "latest"
-                    ]
-                  },
-                  "cache-from": [
-                    "type=gha",
-                    "type=registry,ref=ghcr.io/kbve/ows-publicapi:buildcache"
-                  ],
-                  "cache-to": [
-                    "type=registry,ref=ghcr.io/kbve/ows-publicapi:buildcache,mode=max"
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "container-instancemanagement": {
-              "executor": "nx:run-commands",
-              "defaultConfiguration": "local",
-              "options": {
-                "parallel": false
-              },
-              "configurations": {
-                "local": {
-                  "commands": [
-                    "./kbve.sh -nx ows:containerx-instancemanagement --no-cloud",
-                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-instance-management/OWSInstanceManagement.csproj | head -1) && docker tag kbve/ows-instancemanagement:latest kbve/ows-instancemanagement:$VERSION && echo \"Tagged kbve/ows-instancemanagement:$VERSION\""
-                  ]
-                },
-                "production": {
-                  "commands": [
-                    "./kbve.sh -nx ows:containerx-instancemanagement --configuration=production --no-cloud",
-                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-instance-management/OWSInstanceManagement.csproj | head -1) && docker tag kbve/ows-instancemanagement:latest kbve/ows-instancemanagement:$VERSION && docker tag ghcr.io/kbve/ows-instancemanagement:latest ghcr.io/kbve/ows-instancemanagement:$VERSION && echo \"Tagged kbve/ows-instancemanagement:$VERSION\""
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "containerx-instancemanagement": {
-              "executor": "@nx-tools/nx-container:build",
-              "defaultConfiguration": "local",
-              "options": {
-                "engine": "docker",
-                "context": "apps/ows",
-                "file": "apps/ows/Dockerfile",
-                "target": "instancemanagement",
-                "load": true
-              },
-              "configurations": {
-                "local": {
-                  "load": true,
-                  "push": false,
-                  "tags": [
-                    "kbve/ows-instancemanagement:latest"
-                  ],
-                  "cache-from": [
-                    "type=registry,ref=ghcr.io/kbve/ows-instancemanagement:buildcache"
-                  ]
-                },
-                "production": {
-                  "load": true,
-                  "push": false,
-                  "metadata": {
-                    "images": [
-                      "ghcr.io/kbve/ows-instancemanagement",
-                      "kbve/ows-instancemanagement"
-                    ],
-                    "tags": [
-                      "latest"
-                    ]
-                  },
-                  "cache-from": [
-                    "type=gha",
-                    "type=registry,ref=ghcr.io/kbve/ows-instancemanagement:buildcache"
-                  ],
-                  "cache-to": [
-                    "type=registry,ref=ghcr.io/kbve/ows-instancemanagement:buildcache,mode=max"
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "container-characterpersistence": {
-              "executor": "nx:run-commands",
-              "defaultConfiguration": "local",
-              "options": {
-                "parallel": false
-              },
-              "configurations": {
-                "local": {
-                  "commands": [
-                    "./kbve.sh -nx ows:containerx-characterpersistence --no-cloud",
-                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-character-persistence/OWSCharacterPersistence.csproj | head -1) && docker tag kbve/ows-characterpersistence:latest kbve/ows-characterpersistence:$VERSION && echo \"Tagged kbve/ows-characterpersistence:$VERSION\""
-                  ]
-                },
-                "production": {
-                  "commands": [
-                    "./kbve.sh -nx ows:containerx-characterpersistence --configuration=production --no-cloud",
-                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-character-persistence/OWSCharacterPersistence.csproj | head -1) && docker tag kbve/ows-characterpersistence:latest kbve/ows-characterpersistence:$VERSION && docker tag ghcr.io/kbve/ows-characterpersistence:latest ghcr.io/kbve/ows-characterpersistence:$VERSION && echo \"Tagged kbve/ows-characterpersistence:$VERSION\""
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "containerx-characterpersistence": {
-              "executor": "@nx-tools/nx-container:build",
-              "defaultConfiguration": "local",
-              "options": {
-                "engine": "docker",
-                "context": "apps/ows",
-                "file": "apps/ows/Dockerfile",
-                "target": "characterpersistence",
-                "load": true
-              },
-              "configurations": {
-                "local": {
-                  "load": true,
-                  "push": false,
-                  "tags": [
-                    "kbve/ows-characterpersistence:latest"
-                  ],
-                  "cache-from": [
-                    "type=registry,ref=ghcr.io/kbve/ows-characterpersistence:buildcache"
-                  ]
-                },
-                "production": {
-                  "load": true,
-                  "push": false,
-                  "metadata": {
-                    "images": [
-                      "ghcr.io/kbve/ows-characterpersistence",
-                      "kbve/ows-characterpersistence"
-                    ],
-                    "tags": [
-                      "latest"
-                    ]
-                  },
-                  "cache-from": [
-                    "type=gha",
-                    "type=registry,ref=ghcr.io/kbve/ows-characterpersistence:buildcache"
-                  ],
-                  "cache-to": [
-                    "type=registry,ref=ghcr.io/kbve/ows-characterpersistence:buildcache,mode=max"
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "container-globaldata": {
-              "executor": "nx:run-commands",
-              "defaultConfiguration": "local",
-              "options": {
-                "parallel": false
-              },
-              "configurations": {
-                "local": {
-                  "commands": [
-                    "./kbve.sh -nx ows:containerx-globaldata --no-cloud",
-                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-global-data/OWSGlobalData.csproj | head -1) && docker tag kbve/ows-globaldata:latest kbve/ows-globaldata:$VERSION && echo \"Tagged kbve/ows-globaldata:$VERSION\""
-                  ]
-                },
-                "production": {
-                  "commands": [
-                    "./kbve.sh -nx ows:containerx-globaldata --configuration=production --no-cloud",
-                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-global-data/OWSGlobalData.csproj | head -1) && docker tag kbve/ows-globaldata:latest kbve/ows-globaldata:$VERSION && docker tag ghcr.io/kbve/ows-globaldata:latest ghcr.io/kbve/ows-globaldata:$VERSION && echo \"Tagged kbve/ows-globaldata:$VERSION\""
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "containerx-globaldata": {
-              "executor": "@nx-tools/nx-container:build",
-              "defaultConfiguration": "local",
-              "options": {
-                "engine": "docker",
-                "context": "apps/ows",
-                "file": "apps/ows/Dockerfile",
-                "target": "globaldata",
-                "load": true
-              },
-              "configurations": {
-                "local": {
-                  "load": true,
-                  "push": false,
-                  "tags": [
-                    "kbve/ows-globaldata:latest"
-                  ],
-                  "cache-from": [
-                    "type=registry,ref=ghcr.io/kbve/ows-globaldata:buildcache"
-                  ]
-                },
-                "production": {
-                  "load": true,
-                  "push": false,
-                  "metadata": {
-                    "images": [
-                      "ghcr.io/kbve/ows-globaldata",
-                      "kbve/ows-globaldata"
-                    ],
-                    "tags": [
-                      "latest"
-                    ]
-                  },
-                  "cache-from": [
-                    "type=gha",
-                    "type=registry,ref=ghcr.io/kbve/ows-globaldata:buildcache"
-                  ],
-                  "cache-to": [
-                    "type=registry,ref=ghcr.io/kbve/ows-globaldata:buildcache,mode=max"
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "container-management": {
-              "executor": "nx:run-commands",
-              "defaultConfiguration": "local",
-              "options": {
-                "parallel": false
-              },
-              "configurations": {
-                "local": {
-                  "commands": [
-                    "./kbve.sh -nx ows:containerx-management --no-cloud",
-                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-management/OWSManagement.csproj | head -1) && docker tag kbve/ows-management:latest kbve/ows-management:$VERSION && echo \"Tagged kbve/ows-management:$VERSION\""
-                  ]
-                },
-                "production": {
-                  "commands": [
-                    "./kbve.sh -nx ows:containerx-management --configuration=production --no-cloud",
-                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-management/OWSManagement.csproj | head -1) && docker tag kbve/ows-management:latest kbve/ows-management:$VERSION && docker tag ghcr.io/kbve/ows-management:latest ghcr.io/kbve/ows-management:$VERSION && echo \"Tagged kbve/ows-management:$VERSION\""
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "containerx-management": {
-              "executor": "@nx-tools/nx-container:build",
-              "defaultConfiguration": "local",
-              "options": {
-                "engine": "docker",
-                "context": "apps/ows",
-                "file": "apps/ows/Dockerfile",
-                "target": "management",
-                "load": true
-              },
-              "configurations": {
-                "local": {
-                  "load": true,
-                  "push": false,
-                  "tags": [
-                    "kbve/ows-management:latest"
-                  ],
-                  "cache-from": [
-                    "type=registry,ref=ghcr.io/kbve/ows-management:buildcache"
-                  ]
-                },
-                "production": {
-                  "load": true,
-                  "push": false,
-                  "metadata": {
-                    "images": [
-                      "ghcr.io/kbve/ows-management",
-                      "kbve/ows-management"
-                    ],
-                    "tags": [
-                      "latest"
-                    ]
-                  },
-                  "cache-from": [
-                    "type=gha",
-                    "type=registry,ref=ghcr.io/kbve/ows-management:buildcache"
-                  ],
-                  "cache-to": [
-                    "type=registry,ref=ghcr.io/kbve/ows-management:buildcache,mode=max"
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "container-instancelauncher": {
-              "executor": "nx:run-commands",
-              "defaultConfiguration": "local",
-              "options": {
-                "parallel": false
-              },
-              "configurations": {
-                "local": {
-                  "commands": [
-                    "./kbve.sh -nx ows:containerx-instancelauncher --no-cloud",
-                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-instance-launcher/OWSInstanceLauncher.csproj | head -1) && docker tag kbve/ows-instancelauncher:latest kbve/ows-instancelauncher:$VERSION && echo \"Tagged kbve/ows-instancelauncher:$VERSION\""
-                  ]
-                },
-                "production": {
-                  "commands": [
-                    "./kbve.sh -nx ows:containerx-instancelauncher --configuration=production --no-cloud",
-                    "VERSION=$(sed -n 's/.*<Version>\\(.*\\)<\\/Version>.*/\\1/p' apps/ows/ows-instance-launcher/OWSInstanceLauncher.csproj | head -1) && docker tag kbve/ows-instancelauncher:latest kbve/ows-instancelauncher:$VERSION && docker tag ghcr.io/kbve/ows-instancelauncher:latest ghcr.io/kbve/ows-instancelauncher:$VERSION && echo \"Tagged kbve/ows-instancelauncher:$VERSION\""
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "containerx-instancelauncher": {
-              "executor": "@nx-tools/nx-container:build",
-              "defaultConfiguration": "local",
-              "options": {
-                "engine": "docker",
-                "context": "apps/ows",
-                "file": "apps/ows/Dockerfile",
-                "target": "instancelauncher",
-                "load": true
-              },
-              "configurations": {
-                "local": {
-                  "load": true,
-                  "push": false,
-                  "tags": [
-                    "kbve/ows-instancelauncher:latest"
-                  ],
-                  "cache-from": [
-                    "type=registry,ref=ghcr.io/kbve/ows-instancelauncher:buildcache"
-                  ]
-                },
-                "production": {
-                  "load": true,
-                  "push": false,
-                  "metadata": {
-                    "images": [
-                      "ghcr.io/kbve/ows-instancelauncher",
-                      "kbve/ows-instancelauncher"
-                    ],
-                    "tags": [
-                      "latest"
-                    ]
-                  },
-                  "cache-from": [
-                    "type=gha",
-                    "type=registry,ref=ghcr.io/kbve/ows-instancelauncher:buildcache"
-                  ],
-                  "cache-to": [
-                    "type=registry,ref=ghcr.io/kbve/ows-instancelauncher:buildcache,mode=max"
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "restore": {
-              "executor": "nx:run-commands",
-              "options": {
-                "commands": [
-                  "dotnet restore apps/ows/OWS.sln"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "test": {
-              "executor": "nx:run-commands",
-              "options": {
-                "commands": [
-                  "dotnet test apps/ows/OWS.sln --verbosity normal"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true,
-              "inputs": [
-                "default",
-                "^production"
-              ],
-              "cache": true
-            }
-          },
-          "implicitDependencies": []
-        }
-      },
-      "mc": {
-        "name": "mc",
-        "type": "app",
-        "data": {
-          "root": "apps/mc",
-          "name": "mc",
-          "$schema": "../../node_modules/nx/schemas/project-schema.json",
-          "projectType": "application",
-          "sourceRoot": "apps/mc",
-          "tags": [],
-          "targets": {
-            "container": {
-              "executor": "nx:run-commands",
-              "defaultConfiguration": "local",
-              "options": {
-                "parallel": false
-              },
-              "configurations": {
-                "local": {
-                  "commands": [
-                    "./kbve.sh -nx mc:containerx",
-                    "VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/mc:latest kbve/mc:$VERSION && docker tag kbve/mc:latest kbve/mc:local && echo \"Tagged kbve/mc:$VERSION and kbve/mc:local\""
-                  ]
-                },
-                "production": {
-                  "commands": [
-                    "./kbve.sh -nx mc:containerx --configuration=production",
-                    "VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/mc:latest kbve/mc:$VERSION && docker tag ghcr.io/kbve/mc:latest ghcr.io/kbve/mc:$VERSION && echo \"Tagged kbve/mc:$VERSION and ghcr.io/kbve/mc:$VERSION\""
-                  ]
-                },
-                "ci": {
-                  "commands": [
-                    "./kbve.sh -nx mc:containerx --configuration=ci",
-                    "VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/mc:latest kbve/mc:$VERSION && docker tag kbve/mc:latest kbve/mc:local && echo \"Tagged kbve/mc:$VERSION and kbve/mc:local\""
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "containerx": {
-              "executor": "@nx-tools/nx-container:build",
-              "defaultConfiguration": "local",
-              "options": {
-                "engine": "docker",
-                "context": ".",
-                "file": "apps/mc/Dockerfile",
-                "load": true
-              },
-              "configurations": {
-                "local": {
-                  "load": true,
-                  "push": false,
-                  "tags": [
-                    "kbve/mc:latest"
-                  ],
-                  "cache-from": [
-                    "type=registry,ref=ghcr.io/kbve/mc:buildcache"
-                  ]
-                },
-                "production": {
-                  "load": true,
-                  "push": false,
-                  "metadata": {
-                    "images": [
-                      "ghcr.io/kbve/mc",
-                      "kbve/mc"
-                    ],
-                    "tags": [
-                      "latest"
-                    ]
-                  },
-                  "cache-from": [
-                    "type=gha",
-                    "type=registry,ref=ghcr.io/kbve/mc:buildcache"
-                  ],
-                  "cache-to": [
-                    "type=registry,ref=ghcr.io/kbve/mc:buildcache,mode=max"
-                  ]
-                },
-                "ci": {
-                  "load": true,
-                  "push": false,
-                  "tags": [
-                    "kbve/mc:latest"
-                  ],
-                  "cache-from": [
-                    "type=gha",
-                    "type=registry,ref=ghcr.io/kbve/mc:buildcache"
-                  ],
-                  "cache-to": [
-                    "type=gha,mode=max"
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "container-dev": {
-              "executor": "nx:run-commands",
-              "defaultConfiguration": "local",
-              "options": {
-                "parallel": false
-              },
-              "configurations": {
-                "local": {
-                  "commands": [
-                    "./kbve.sh -nx mc:containerx-dev",
-                    "VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/mc:dev kbve/mc:dev-$VERSION && echo \"Tagged kbve/mc:dev-$VERSION\""
-                  ]
-                },
-                "ci": {
-                  "commands": [
-                    "./kbve.sh -nx mc:containerx-dev --configuration=ci",
-                    "VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/mc:dev kbve/mc:dev-$VERSION && echo \"Tagged kbve/mc:dev-$VERSION\""
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "containerx-dev": {
-              "executor": "@nx-tools/nx-container:build",
-              "defaultConfiguration": "local",
-              "options": {
-                "engine": "docker",
-                "context": ".",
-                "file": "apps/mc/Dockerfile",
-                "build-args": [
-                  "VARIANT=dev"
-                ],
-                "load": true
-              },
-              "configurations": {
-                "local": {
-                  "load": true,
-                  "push": false,
-                  "tags": [
-                    "kbve/mc:dev"
-                  ]
-                },
-                "ci": {
-                  "load": true,
-                  "push": false,
-                  "tags": [
-                    "kbve/mc:dev"
-                  ],
-                  "cache-from": [
-                    "type=gha,scope=mc-dev"
-                  ],
-                  "cache-to": [
-                    "type=gha,scope=mc-dev,mode=max"
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "run": {
-              "executor": "nx:run-commands",
-              "options": {
-                "commands": [
-                  "docker run --rm -p 25565:25565 -p 8080:8080 -p 25575:25575 kbve/mc:local"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "run-dev": {
-              "executor": "nx:run-commands",
-              "options": {
-                "commands": [
-                  "docker rm -f kbve-mc-dev 2>/dev/null; mkdir -p apps/mc/logs apps/mc/world && docker run -d --name kbve-mc-dev -p 25565:25565 -p 8080:8080 -p 25575:25575 -e KBVE_TRACE=${KBVE_TRACE:-1} -v $PWD/apps/mc/logs:/pumpkin/logs -v $PWD/apps/mc/world:/pumpkin/world kbve/mc:dev && echo 'Started kbve-mc-dev (detached). Logs: nx stop-dev to stop.'"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "stop-dev": {
-              "executor": "nx:run-commands",
-              "options": {
-                "commands": [
-                  "docker stop kbve-mc-dev 2>/dev/null && docker rm kbve-mc-dev 2>/dev/null && echo 'Stopped kbve-mc-dev' || echo 'kbve-mc-dev is not running'"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "restart-dev": {
-              "executor": "nx:run-commands",
-              "options": {
-                "commands": [
-                  "nx stop-dev mc --no-cloud && nx run-dev mc --no-cloud"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "e2e": {
-              "executor": "nx:run-commands",
-              "cache": false,
-              "defaultConfiguration": "local",
-              "options": {
-                "parallel": false
-              },
-              "configurations": {
-                "local": {
-                  "commands": [
-                    "nx container mc --configuration=local --no-cloud",
-                    "nx e2e mc-e2e --no-cloud"
-                  ]
-                },
-                "ci": {
-                  "commands": [
-                    "nx container mc --configuration=ci --no-cloud",
-                    "nx e2e mc-e2e --no-cloud"
-                  ]
-                }
-              },
-              "parallelism": true,
-              "inputs": [
-                "default",
-                "^production"
-              ]
-            },
-            "build-plugin": {
-              "executor": "nx:run-commands",
-              "options": {
-                "commands": [
-                  "cargo build --release --manifest-path apps/mc/plugins/kbve-mc-plugin/Cargo.toml"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "reload-plugin": {
-              "executor": "nx:run-commands",
-              "options": {
-                "commands": [
-                  "sh apps/mc/scripts/reload-plugin.sh"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "dev": {
-              "executor": "nx:run-commands",
-              "options": {
-                "commands": [
-                  "./kbve.sh -nx mc:build-plugin --no-cloud",
-                  "./kbve.sh -nx mc:reload-plugin --no-cloud"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            }
-          },
-          "implicitDependencies": []
+          "implicitDependencies": [
+            "rows"
+          ],
+          "targets": {}
         }
       },
       "@kbve/source": {
@@ -10349,6 +9449,13 @@
       "chisel-ubuntu-axum": [],
       "bevy_inventory": [],
       "bevy_kbve_net": [],
+      "discordsh-bot-e2e": [
+        {
+          "source": "discordsh-bot-e2e",
+          "target": "discordsh-bot",
+          "type": "implicit"
+        }
+      ],
       "axum-chuckrpg-e2e": [
         {
           "source": "axum-chuckrpg-e2e",
@@ -10401,6 +9508,7 @@
           "type": "static"
         }
       ],
+      "discordsh-bot": [],
       "discordsh-e2e": [
         {
           "source": "discordsh-e2e",
@@ -10608,7 +9716,6 @@
       "kbve": [],
       "kilobase": [],
       "laser": [],
-      "soul": [],
       "cryptothrone": [],
       "rows-e2e": [
         {
@@ -10618,18 +9725,6 @@
         }
       ],
       "angelscript": [],
-      "astro-mc": [
-        {
-          "source": "astro-mc",
-          "target": "astro",
-          "type": "static"
-        },
-        {
-          "source": "astro-mc",
-          "target": "droid",
-          "type": "static"
-        }
-      ],
       "irc-e2e": [
         {
           "source": "irc-e2e",
@@ -10645,20 +9740,18 @@
       "q": [],
       "discordsh": [],
       "edge": [],
-      "mc-e2e": [
-        {
-          "source": "mc-e2e",
-          "target": "mc",
-          "type": "implicit"
-        }
-      ],
       "herbmail": [],
       "rows": [],
       "pydesk": [],
       "memes": [],
       "irc": [],
-      "ows": [],
-      "mc": [],
+      "ows": [
+        {
+          "source": "ows",
+          "target": "rows",
+          "type": "implicit"
+        }
+      ],
       "@kbve/source": [
         {
           "source": "@kbve/source",
