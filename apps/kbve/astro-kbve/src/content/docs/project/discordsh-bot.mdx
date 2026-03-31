@@ -11,7 +11,7 @@ tags:
 key: discordsh_bot
 pipeline: docker
 app_name: discordsh-bot
-version: "0.1.0"
+version: "0.1.1"
 source_path: apps/discordsh/discordsh-bot
 version_toml: apps/discordsh/discordsh-bot/version.toml
 version_target: apps/discordsh/discordsh-bot/Cargo.toml
@@ -19,15 +19,6 @@ runner: ubuntu-latest
 image: kbve/discordsh-bot
 deployment_yaml: apps/kube/discordsh-bot/manifest/deployment.yaml
 ---
-
-import {
-    Adsense,
-    MDXLayer,
-    Widget,
-    Heading,
-} from '@kbve/astro-ve';
-
-<MDXLayer title={frontmatter.title} description={frontmatter.description}>
 
 ## Overview
 
@@ -45,5 +36,3 @@ import {
 ### Related
 
 - [DiscordSH](/project/discordsh/) — HTTP server (Astro site, REST API)
-
-</MDXLayer>

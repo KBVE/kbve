@@ -88,15 +88,6 @@ spec:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: twitch-client-secret
-                      - name: MC_RCON_HOST
-                        value: 'mc-service.mc.svc.cluster.local'
-                      - name: MC_RCON_PORT
-                        value: '25575'
-                      - name: MC_RCON_PASSWORD
-                        valueFrom:
-                            secretKeyRef:
-                                name: mc-rcon
-                                key: rcon-password
                       - name: GRAFANA_UPSTREAM_URL
                         value: 'http://monitoring-grafana.monitoring.svc.cluster.local:80'
                       - name: ARGOCD_UPSTREAM_URL

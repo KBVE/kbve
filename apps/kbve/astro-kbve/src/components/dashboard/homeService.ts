@@ -1,5 +1,6 @@
 import { atom, computed } from 'nanostores';
 import { initSupa, getSupa } from '@/lib/supa';
+import { $auth, AuthFlags, hasAuthFlag } from '@kbve/droid';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -573,6 +574,7 @@ class HomeService {
 	// Auth
 	public readonly $authState = atom<AuthState>('loading');
 	public readonly $accessToken = atom<string | null>(null);
+	public readonly $isStaff = atom<boolean>(false);
 
 	// Data
 	public readonly $grafana = atom<GrafanaSummary | null>(null);
@@ -600,7 +602,7 @@ class HomeService {
 	public readonly $graphStatus = atom<ServiceStatus>('loading');
 	public readonly $rowsStatus = atom<ServiceStatus>('loading');
 
-	// Computed
+	// Computed — staff-aware: exclude infrastructure services for regular users
 	public readonly $allOk = computed(
 		[
 			this.$grafanaStatus,
@@ -609,14 +611,12 @@ class HomeService {
 			this.$clickhouseStatus,
 			this.$securityStatus,
 			this.$rowsStatus,
+			this.$isStaff,
 		],
-		(g, a, e, c, s, r) =>
-			g === 'ok' &&
-			a === 'ok' &&
+		(g, a, e, c, s, r, staff) =>
 			e === 'ok' &&
-			c === 'ok' &&
 			s === 'ok' &&
-			r === 'ok',
+			(!staff || (g === 'ok' && a === 'ok' && c === 'ok' && r === 'ok')),
 	);
 
 	public readonly $anyError = computed(
@@ -626,13 +626,15 @@ class HomeService {
 			this.$edgeStatus,
 			this.$clickhouseStatus,
 			this.$rowsStatus,
+			this.$isStaff,
 		],
-		(g, a, e, c, r) =>
-			g === 'error' ||
-			a === 'error' ||
+		(g, a, e, c, r, staff) =>
 			e === 'error' ||
-			c === 'error' ||
-			r === 'error',
+			(staff &&
+				(g === 'error' ||
+					a === 'error' ||
+					c === 'error' ||
+					r === 'error')),
 	);
 
 	public readonly $anyLoading = computed(
@@ -643,14 +645,16 @@ class HomeService {
 			this.$clickhouseStatus,
 			this.$securityStatus,
 			this.$rowsStatus,
+			this.$isStaff,
 		],
-		(g, a, e, c, s, r) =>
-			g === 'loading' ||
-			a === 'loading' ||
+		(g, a, e, c, s, r, staff) =>
 			e === 'loading' ||
-			c === 'loading' ||
 			s === 'loading' ||
-			r === 'loading',
+			(staff &&
+				(g === 'loading' ||
+					a === 'loading' ||
+					c === 'loading' ||
+					r === 'loading')),
 	);
 
 	// --- Auth ---
@@ -669,6 +673,16 @@ class HomeService {
 
 			this.$accessToken.set(session.access_token as string);
 			this.$authState.set('authenticated');
+
+			// Sync staff flag from the global $auth store.
+			// The staff_permissions RPC may resolve after the initial session,
+			// so we subscribe to catch the late upgrade.
+			const syncStaff = () => {
+				const { flags } = $auth.get();
+				this.$isStaff.set(hasAuthFlag(flags, AuthFlags.STAFF));
+			};
+			syncStaff();
+			$auth.subscribe(syncStaff);
 		} catch {
 			this.$authState.set('unauthenticated');
 		}
@@ -678,17 +692,29 @@ class HomeService {
 
 	public async fetchAll(): Promise<void> {
 		this.$loading.set(true);
-		this.$grafanaStatus.set('loading');
-		this.$argoStatus.set('loading');
+
+		const token = this.$accessToken.get();
+		const isStaff = this.$isStaff.get();
+
+		// User-visible services — always load
 		this.$edgeStatus.set('loading');
-		this.$clickhouseStatus.set('loading');
 		this.$securityStatus.set('loading');
 		this.$kanbanStatus.set('loading');
 		this.$reportStatus.set('loading');
 		this.$graphStatus.set('loading');
-		this.$rowsStatus.set('loading');
 
-		const token = this.$accessToken.get();
+		// Staff services — only load for staff, otherwise mark unavailable
+		if (isStaff) {
+			this.$grafanaStatus.set('loading');
+			this.$argoStatus.set('loading');
+			this.$clickhouseStatus.set('loading');
+			this.$rowsStatus.set('loading');
+		} else {
+			this.$grafanaStatus.set('unavailable');
+			this.$argoStatus.set('unavailable');
+			this.$clickhouseStatus.set('unavailable');
+			this.$rowsStatus.set('unavailable');
+		}
 
 		// Static JSON fetches (no auth required)
 		const edgePromise = fetchEdgeSummary().then((e) => {
@@ -716,55 +742,43 @@ class HomeService {
 			this.$graphStatus.set(g ? 'ok' : 'unavailable');
 		});
 
-		if (token) {
-			const grafanaPromise = fetchGrafanaSummary(token).then((g) => {
-				this.$grafana.set(g);
-				this.$grafanaStatus.set(g ? 'ok' : 'unavailable');
-			});
+		const allPromises: Promise<void>[] = [
+			edgePromise,
+			securityPromise,
+			kanbanPromise,
+			reportPromise,
+			graphPromise,
+		];
 
-			const argoPromise = fetchArgoSummary(token).then((a) => {
-				this.$argo.set(a);
-				this.$argoStatus.set(a ? 'ok' : 'unavailable');
-			});
-
-			const clickhousePromise = fetchClickHouseSummary(token).then(
-				(ch) => {
+		if (token && isStaff) {
+			allPromises.push(
+				fetchGrafanaSummary(token).then((g) => {
+					this.$grafana.set(g);
+					this.$grafanaStatus.set(g ? 'ok' : 'unavailable');
+				}),
+				fetchArgoSummary(token).then((a) => {
+					this.$argo.set(a);
+					this.$argoStatus.set(a ? 'ok' : 'unavailable');
+				}),
+				fetchClickHouseSummary(token).then((ch) => {
 					this.$clickhouse.set(ch);
 					this.$clickhouseStatus.set(ch ? 'ok' : 'unavailable');
-				},
+				}),
+				fetchRowsSummary(token).then((r) => {
+					this.$rows.set(r);
+					if (r) {
+						const allOk = Object.values(r.checks).every(
+							(c) => c.ok,
+						);
+						this.$rowsStatus.set(allOk ? 'ok' : 'unavailable');
+					} else {
+						this.$rowsStatus.set('unavailable');
+					}
+				}),
 			);
-
-			const rowsPromise = fetchRowsSummary(token).then((r) => {
-				this.$rows.set(r);
-				if (r) {
-					const allOk = Object.values(r.checks).every((c) => c.ok);
-					this.$rowsStatus.set(allOk ? 'ok' : 'unavailable');
-				} else {
-					this.$rowsStatus.set('unavailable');
-				}
-			});
-
-			await Promise.all([
-				grafanaPromise,
-				argoPromise,
-				edgePromise,
-				clickhousePromise,
-				securityPromise,
-				kanbanPromise,
-				reportPromise,
-				graphPromise,
-				rowsPromise,
-			]);
-		} else {
-			await Promise.all([
-				edgePromise,
-				securityPromise,
-				kanbanPromise,
-				reportPromise,
-				graphPromise,
-			]);
 		}
 
+		await Promise.all(allPromises);
 		this.$lastUpdated.set(new Date());
 		this.$loading.set(false);
 	}

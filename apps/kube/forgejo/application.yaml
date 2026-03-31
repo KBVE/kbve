@@ -56,7 +56,7 @@ spec:
                               DB_TYPE: postgres
                               HOST: supabase-cluster-rw.kilobase.svc.cluster.local:5432
                               NAME: supabase
-                              USER: postgres
+                              USER: forgejo
                               SSL_MODE: require
                               SCHEMA: forgejo
                           lfs:

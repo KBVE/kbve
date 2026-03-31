@@ -89,6 +89,58 @@ impl OWSService {
         Ok(cached)
     }
 
+    /// External login via Supabase JWT — validates token, finds-or-creates OWS user, creates session.
+    ///
+    /// Flow:
+    ///   1. Validate Supabase JWT → extract email
+    ///   2. Find existing OWS user by email, or create a new one under customer_guid
+    ///   3. Delete old sessions, create new session
+    ///   4. Cache session in DashMap
+    ///   5. Return LoginResult with session GUID
+    pub async fn external_login(&self, access_token: &str) -> Result<LoginResult, RowsError> {
+        let validated = crate::supabase::validate_jwt(access_token, &self.state.supabase)
+            .map_err(|e| RowsError::BadRequest(format!("Invalid access token: {e}")))?;
+
+        let email = validated
+            .email
+            .ok_or_else(|| RowsError::BadRequest("No email in token".into()))?;
+
+        let customer_guid = self.state.config.customer_guid;
+        let repo = UsersRepo(&self.state.db);
+
+        // Derive display name from email prefix
+        let name_part = email.split('@').next().unwrap_or("Player");
+
+        let user_guid = repo
+            .find_or_create_by_email(customer_guid, &email, name_part, "")
+            .await?;
+
+        let session_guid = repo.create_session(customer_guid, user_guid).await?;
+
+        // Cache session
+        self.state.sessions.insert(
+            session_guid,
+            CachedSession {
+                customer_guid,
+                user_guid,
+                created_at: std::time::Instant::now(),
+            },
+        );
+
+        tracing::info!(
+            email = %email,
+            user_guid = %user_guid,
+            session_guid = %session_guid,
+            "External login succeeded"
+        );
+
+        Ok(LoginResult {
+            authenticated: true,
+            user_session_guid: Some(session_guid),
+            error_message: String::new(),
+        })
+    }
+
     pub async fn set_selected_character_and_get_session(
         &self,
         session_guid: Uuid,

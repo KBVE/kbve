@@ -134,20 +134,6 @@
 			"has_test": false
 		},
 		{
-			"key": "mc",
-			"app_name": "mc",
-			"version": "0.1.14",
-			"version_toml": "apps/mc/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
-			"version_target": "apps/mc/plugins/kbve-mc-plugin/Cargo.toml",
-			"source_path": "apps/mc",
-			"runner": "ubuntu-latest",
-			"image": "kbve/mc",
-			"e2e_name": "mc",
-			"deployment_yaml": "apps/kube/mc/manifest/deployment.yaml",
-			"has_test": true
-		},
-		{
 			"key": "memes",
 			"app_name": "memes",
 			"version": "0.1.7",
@@ -290,37 +276,43 @@
 			"key": "erust_crate",
 			"package_name": "erust",
 			"version": "0.1.7",
-			"version_toml": "packages/rust/erust/version.toml"
+			"version_toml": "packages/rust/erust/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/erust-crate.mdx"
 		},
 		{
 			"key": "holy_crate",
 			"package_name": "holy",
 			"version": "0.2.0",
-			"version_toml": "packages/rust/holy/version.toml"
+			"version_toml": "packages/rust/holy/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/holy-crate.mdx"
 		},
 		{
 			"key": "jedi_crate",
 			"package_name": "jedi",
-			"version": "0.2.1",
-			"version_toml": "packages/rust/jedi/version.toml"
+			"version": "0.2.2",
+			"version_toml": "packages/rust/jedi/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/jedi-crate.mdx"
 		},
 		{
 			"key": "kbve_crate",
 			"package_name": "kbve",
 			"version": "0.1.26",
-			"version_toml": "packages/rust/kbve/version.toml"
+			"version_toml": "packages/rust/kbve/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbve-crate.mdx"
 		},
 		{
 			"key": "q_crate",
 			"package_name": "q",
 			"version": "0.1.1",
-			"version_toml": "packages/rust/q/version.toml"
+			"version_toml": "packages/rust/q/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/q-crate.mdx"
 		},
 		{
 			"key": "soul_crate",
 			"package_name": "soul",
 			"version": "0.1.1",
-			"version_toml": "packages/rust/soul/version.toml"
+			"version_toml": "packages/rust/soul/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/soul-crate.mdx"
 		}
 	],
 	"python": [

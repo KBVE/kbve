@@ -70,33 +70,60 @@ async fn login(
     Ok(Json(result))
 }
 
-/// External login stub — future Supabase OAuth integration.
+/// External login via Supabase JWT.
 ///
-/// TODO(supabase): Implement external auth flow:
-///   1. Accept provider_token (Discord, GitHub, Google) from Supabase Auth
-///   2. Verify token against Supabase JWT / provider API
-///   3. Find-or-create OWS user from Supabase user.id
-///   4. Create session and return UserSessionGUID
+/// The client authenticates via Supabase OAuth (GitHub/Discord) and receives a JWT.
+/// This endpoint validates that JWT, finds-or-creates an OWS user by email,
+/// creates a session, and returns a UserSessionGUID for subsequent API calls.
 ///
-/// This enables direct Supabase Auth → OWS session bridging,
-/// removing the need for separate OWS account creation.
+/// Accepts either:
+///   - { "accessToken": "<jwt>" } (new format)
+///   - { "provider": "...", "providerToken": "<jwt>" } (legacy format, uses providerToken)
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ExternalLoginDto {
-    provider: String,
-    provider_token: String,
+    #[serde(default)]
+    access_token: Option<String>,
+    // Legacy fields for backward compat
+    #[serde(default)]
+    provider: Option<String>,
+    #[serde(default)]
+    provider_token: Option<String>,
 }
 
-async fn external_login(Json(body): Json<ExternalLoginDto>) -> Json<crate::models::LoginResult> {
-    tracing::info!(provider = %body.provider, "ExternalLogin called (not yet implemented)");
-    Json(crate::models::LoginResult {
-        authenticated: false,
-        user_session_guid: None,
-        error_message: format!(
-            "External login via '{}' not yet implemented. Future: Supabase OAuth integration.",
-            body.provider
-        ),
-    })
+async fn external_login(
+    State(hs): State<HandlerState>,
+    Json(body): Json<ExternalLoginDto>,
+) -> Json<crate::models::LoginResult> {
+    let token = body
+        .access_token
+        .or(body.provider_token)
+        .unwrap_or_default();
+
+    if token.is_empty() {
+        return Json(crate::models::LoginResult {
+            authenticated: false,
+            user_session_guid: None,
+            error_message: "Missing accessToken or providerToken".into(),
+        });
+    }
+
+    if !hs.app.supabase.jwt_enabled() {
+        return Json(crate::models::LoginResult {
+            authenticated: false,
+            user_session_guid: None,
+            error_message: "External auth not configured (SUPABASE_JWT_SECRET not set)".into(),
+        });
+    }
+
+    match hs.svc.external_login(&token).await {
+        Ok(result) => Json(result),
+        Err(e) => Json(crate::models::LoginResult {
+            authenticated: false,
+            user_session_guid: None,
+            error_message: e.to_string(),
+        }),
+    }
 }
 
 async fn get_user_session(

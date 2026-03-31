@@ -76,8 +76,7 @@ export default function ReactHomeAuth({ children }: { children: ReactNode }) {
 						margin: 0,
 						fontSize: '0.85rem',
 					}}>
-					Authentication is required to access the infrastructure
-					dashboard.
+					Authentication is required to access the dashboard.
 				</p>
 			</div>
 		);

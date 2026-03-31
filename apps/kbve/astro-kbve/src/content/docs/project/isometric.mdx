@@ -1,0 +1,110 @@
+---
+title: Isometric
+description: |
+    KBVE Isometric — multiplayer browser game built with Bevy, lightyear, and avian3d. Runs as WASM (WebGPU) and Tauri desktop.
+sidebar:
+    label: Isometric
+    order: 10
+tags:
+    - game
+    - bevy
+    - rust
+    - wasm
+key: isometric
+source_path: apps/kbve/isometric
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+import {
+    Aside,
+    Steps,
+    Card,
+    CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+The **Isometric** game is KBVE's flagship multiplayer browser experience — an isometric 3D world built entirely in Rust with Bevy 0.18, networked via lightyear, and rendered through WebGPU in the browser.
+
+<CardGrid>
+    <Card title="Bevy 0.18" icon="rocket">
+        Full ECS game engine compiled to WASM with WebGPU rendering
+    </Card>
+    <Card title="Multiplayer" icon="star">
+        lightyear networking with WebSocket and WebTransport (QUIC)
+    </Card>
+    <Card title="Physics" icon="puzzle">
+        avian3d rigid-body physics with isometric collision
+    </Card>
+    <Card title="Cross-platform" icon="laptop">
+        WASM web app + Tauri 2 native desktop
+    </Card>
+</CardGrid>
+
+## Architecture
+
+The game runs as a **client** that connects to an **authoritative server** hosted inside `axum-kbve`. The server runs a headless Bevy app with lightyear server plugins and avian3d physics.
+
+### Transport Layer
+
+| Transport      | Protocol | Path                        | Use Case                  |
+| -------------- | -------- | --------------------------- | ------------------------- |
+| WebSocket      | TCP/TLS  | `wss://kbve.com/ws`        | Primary (all browsers)    |
+| WebTransport   | QUIC/UDP | `https://wt.kbve.com:5001` | Low-latency (Chrome/Edge) |
+
+WebTransport is preferred when available. Safari and older browsers fall back to WebSocket automatically.
+
+### Shared Crates
+
+| Crate            | Purpose                                              |
+| ---------------- | ---------------------------------------------------- |
+| `bevy_inventory` | Slot-based inventory with auto-stacking              |
+| `bevy_items`     | Proto-driven item database from Astro itemdb         |
+| `bevy_cam`       | Isometric camera controller                          |
+| `bevy_kbve_net`  | Protocol types shared between client and server      |
+| `bevy_tasker`    | Async task bridge for WASM/native                    |
+
+## Features
+
+- Procedural isometric terrain with tile-based collision
+- Day/night cycle with dynamic lighting and fireflies
+- Resource gathering (trees, rocks, ores, flowers, mushrooms)
+- 16-slot inventory backed by 117+ proto-driven item definitions
+- Creature system (frogs, fireflies) with behavioral AI
+- Server-authoritative physics and entity replication
+- JWT authentication with Supabase
+- Pixel-art post-processing shader
+
+## Running Locally
+
+<Steps>
+1. **Full local stack** (game + server):
+   ```sh
+   nx run isometric:quick
+   ```
+
+2. **WASM dev only** (no server):
+   ```sh
+   nx run isometric:dev
+   ```
+
+3. **Desktop build** (Tauri):
+   ```sh
+   nx run isometric:build:tauri
+   ```
+
+4. **Connect desktop to production**:
+   ```sh
+   GAME_SERVER_URL=wss://kbve.com/ws cargo run -p isometric-game
+   ```
+</Steps>
+
+## Item Database
+
+Items are defined as MDX files in the [itemdb collection](/itemdb/) and baked into the game binary at compile time. To regenerate after adding items:
+
+```sh
+node apps/kbve/isometric/scripts/sync-itemdb.mjs
+```

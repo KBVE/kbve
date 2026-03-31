@@ -7,6 +7,7 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import worker from '@astropub/worker';
 import mermaid from 'astro-mermaid';
+import rehypeLinkAttrs from './src/lib/rehype-link-attrs.mjs';
 
 export default defineConfig({
 	site: 'https://kbve.com',
@@ -17,6 +18,9 @@ export default defineConfig({
 		domains: ['images.unsplash.com'],
 	},
 	prefetch: true,
+	markdown: {
+		rehypePlugins: [rehypeLinkAttrs],
+	},
 	integrations: [
 		worker(),
 		mermaid({
@@ -73,6 +77,7 @@ export default defineConfig({
 				PageSidebar: './src/components/pagesidebar/PageSidebar.astro',
 				Footer: './src/components/footer/AstroFooter.astro',
 				Sidebar: './src/components/sidebar/Sidebar.astro',
+				ThemeProvider: './src/components/theme/ThemeProvider.astro',
 			},
 			// TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
 			// plugins: [starlightSiteGraph({ ... })],
@@ -81,14 +86,14 @@ export default defineConfig({
 					label: 'Dashboard',
 					collapsed: true,
 					items: [
-						{ label: 'Overview', link: '/dashboard/', attrs: { 'data-auth-visibility': 'staff' } },
-						{ label: 'Kanban', link: '/dashboard/kanban/', attrs: { 'data-auth-visibility': 'staff' } },
-						{ label: 'Report', link: '/dashboard/report/', attrs: { 'data-auth-visibility': 'staff' } },
-						{ label: 'Graph', link: '/dashboard/graph/', attrs: { 'data-auth-visibility': 'staff' } },
-						{ label: 'Security', link: '/dashboard/security/', attrs: { 'data-auth-visibility': 'staff' } },
+						{ label: 'Overview', link: '/dashboard/', attrs: { 'data-auth-visibility': 'auth' } },
+						{ label: 'Kanban', link: '/dashboard/kanban/', attrs: { 'data-auth-visibility': 'auth' } },
+						{ label: 'Report', link: '/dashboard/report/', attrs: { 'data-auth-visibility': 'auth' } },
+						{ label: 'Graph', link: '/dashboard/graph/', attrs: { 'data-auth-visibility': 'auth' } },
+						{ label: 'Security', link: '/dashboard/security/', attrs: { 'data-auth-visibility': 'auth' } },
 						{ label: 'ArgoCD', link: '/dashboard/argo/', attrs: { 'data-auth-visibility': 'staff' } },
 						{ label: 'ClickHouse', link: '/dashboard/clickhouse/', attrs: { 'data-auth-visibility': 'staff' } },
-						{ label: 'Edge', link: '/dashboard/edge/', attrs: { 'data-auth-visibility': 'staff' } },
+						{ label: 'Edge', link: '/dashboard/edge/', attrs: { 'data-auth-visibility': 'auth' } },
 						{ label: 'Forgejo', link: '/dashboard/forgejo/', attrs: { 'data-auth-visibility': 'staff' } },
 						{ label: 'Grafana', link: '/dashboard/grafana/', attrs: { 'data-auth-visibility': 'staff' } },
 					],

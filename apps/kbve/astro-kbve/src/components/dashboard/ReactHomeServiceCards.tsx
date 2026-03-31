@@ -369,6 +369,7 @@ function KanbanColumnBar({ columns }: { columns: Record<string, number> }) {
 }
 
 export default function ReactHomeServiceCards() {
+	const isStaff = useStore(homeService.$isStaff);
 	const grafana = useStore(homeService.$grafana);
 	const argo = useStore(homeService.$argo);
 	const edge = useStore(homeService.$edge);
@@ -396,123 +397,133 @@ export default function ReactHomeServiceCards() {
 				gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
 				gap: '1rem',
 			}}>
-			{/* Grafana - Cluster Monitoring */}
-			<ServiceCard
-				title="Cluster Monitoring"
-				description="Prometheus metrics & node health"
-				href="/dashboard/grafana/"
-				icon={<BarChart3 size={18} />}
-				accentColor="#06b6d4"
-				status={grafanaStatus}>
-				{grafanaStatus === 'loading' ? (
-					<LoadingPlaceholder />
-				) : grafana ? (
-					<>
-						<MetricValue
-							label="Nodes"
-							value={grafana.nodeCount}
-							color="#06b6d4"
-						/>
-						{grafana.cpuPercent != null && (
+			{/* Grafana - Cluster Monitoring (staff only) */}
+			{isStaff && (
+				<ServiceCard
+					title="Cluster Monitoring"
+					description="Prometheus metrics & node health"
+					href="/dashboard/grafana/"
+					icon={<BarChart3 size={18} />}
+					accentColor="#06b6d4"
+					status={grafanaStatus}>
+					{grafanaStatus === 'loading' ? (
+						<LoadingPlaceholder />
+					) : grafana ? (
+						<>
 							<MetricValue
-								label="CPU"
-								value={grafana.cpuPercent}
-								unit="%"
-								color={getThresholdColor(grafana.cpuPercent)}
+								label="Nodes"
+								value={grafana.nodeCount}
+								color="#06b6d4"
 							/>
-						)}
-						{grafana.memoryPercent != null && (
-							<MetricValue
-								label="Memory"
-								value={grafana.memoryPercent}
-								unit="%"
-								color={getThresholdColor(grafana.memoryPercent)}
-							/>
-						)}
-						{grafana.podCount != null && (
-							<MetricValue
-								label="Pods"
-								value={grafana.podCount}
-							/>
-						)}
-					</>
-				) : (
-					<UnavailableMessage />
-				)}
-			</ServiceCard>
+							{grafana.cpuPercent != null && (
+								<MetricValue
+									label="CPU"
+									value={grafana.cpuPercent}
+									unit="%"
+									color={getThresholdColor(
+										grafana.cpuPercent,
+									)}
+								/>
+							)}
+							{grafana.memoryPercent != null && (
+								<MetricValue
+									label="Memory"
+									value={grafana.memoryPercent}
+									unit="%"
+									color={getThresholdColor(
+										grafana.memoryPercent,
+									)}
+								/>
+							)}
+							{grafana.podCount != null && (
+								<MetricValue
+									label="Pods"
+									value={grafana.podCount}
+								/>
+							)}
+						</>
+					) : (
+						<UnavailableMessage />
+					)}
+				</ServiceCard>
+			)}
 
-			{/* ArgoCD - Deployments */}
-			<ServiceCard
-				title="Deployments"
-				description="ArgoCD application sync & health"
-				href="/dashboard/argo/"
-				icon={<GitBranch size={18} />}
-				accentColor="#8b5cf6"
-				status={argoStatus}>
-				{argoStatus === 'loading' ? (
-					<LoadingPlaceholder />
-				) : argo ? (
-					<>
-						<MetricValue
-							label="Apps"
-							value={argo.totalApps}
-							color="#8b5cf6"
-						/>
-						<MetricValue
-							label="Healthy"
-							value={argo.healthyCount}
-							color="#22c55e"
-						/>
-						<MetricValue
-							label="Synced"
-							value={argo.syncedCount}
-							color="#06b6d4"
-						/>
-						{argo.degradedCount > 0 && (
+			{/* ArgoCD - Deployments (staff only) */}
+			{isStaff && (
+				<ServiceCard
+					title="Deployments"
+					description="ArgoCD application sync & health"
+					href="/dashboard/argo/"
+					icon={<GitBranch size={18} />}
+					accentColor="#8b5cf6"
+					status={argoStatus}>
+					{argoStatus === 'loading' ? (
+						<LoadingPlaceholder />
+					) : argo ? (
+						<>
 							<MetricValue
-								label="Degraded"
-								value={argo.degradedCount}
-								color="#ef4444"
+								label="Apps"
+								value={argo.totalApps}
+								color="#8b5cf6"
 							/>
-						)}
-					</>
-				) : (
-					<UnavailableMessage />
-				)}
-			</ServiceCard>
+							<MetricValue
+								label="Healthy"
+								value={argo.healthyCount}
+								color="#22c55e"
+							/>
+							<MetricValue
+								label="Synced"
+								value={argo.syncedCount}
+								color="#06b6d4"
+							/>
+							{argo.degradedCount > 0 && (
+								<MetricValue
+									label="Degraded"
+									value={argo.degradedCount}
+									color="#ef4444"
+								/>
+							)}
+						</>
+					) : (
+						<UnavailableMessage />
+					)}
+				</ServiceCard>
+			)}
 
-			{/* ROWS — Game Server Operations */}
-			<ServiceCard
-				title="Game Ops (ROWS)"
-				description="ChuckRPG game server backend"
-				href="/dashboard/rows/"
-				icon={<Gamepad2 size={18} />}
-				accentColor="#f97316"
-				status={rowsStatus}>
-				{rowsStatus === 'loading' ? (
-					<LoadingPlaceholder />
-				) : rows ? (
-					<>
-						<MetricValue
-							label="Sessions"
-							value={rows.active_sessions}
-							color="#f97316"
-						/>
-						<MetricValue
-							label="Instances"
-							value={rows.active_instances}
-							color="#06b6d4"
-						/>
-						<MetricValue
-							label="Version"
-							value={`v${rows.version}`}
-							color="var(--sl-color-gray-3, #8b949e)"
-						/>
-					</>
-				) : (
-					<UnavailableMessage />
-				)}
-			</ServiceCard>
+			{/* ROWS — Game Server Operations (staff only) */}
+			{isStaff && (
+				<ServiceCard
+					title="Game Ops (ROWS)"
+					description="ChuckRPG game server backend"
+					href="/dashboard/rows/"
+					icon={<Gamepad2 size={18} />}
+					accentColor="#f97316"
+					status={rowsStatus}>
+					{rowsStatus === 'loading' ? (
+						<LoadingPlaceholder />
+					) : rows ? (
+						<>
+							<MetricValue
+								label="Sessions"
+								value={rows.active_sessions}
+								color="#f97316"
+							/>
+							<MetricValue
+								label="Instances"
+								value={rows.active_instances}
+								color="#06b6d4"
+							/>
+							<MetricValue
+								label="Version"
+								value={`v${rows.version}`}
+								color="var(--sl-color-gray-3, #8b949e)"
+							/>
+						</>
+					) : (
+						<UnavailableMessage />
+					)}
+				</ServiceCard>
+			)}
 
 			{/* Edge Functions */}
 			<ServiceCard
@@ -546,44 +557,50 @@ export default function ReactHomeServiceCards() {
 				)}
 			</ServiceCard>
 
-			{/* ClickHouse Logs */}
-			<ServiceCard
-				title="Log Aggregation"
-				description="ClickHouse cluster log analytics"
-				href="/dashboard/clickhouse/"
-				icon={<Database size={18} />}
-				accentColor="#f59e0b"
-				status={clickhouseStatus}>
-				{clickhouseStatus === 'loading' ? (
-					<LoadingPlaceholder />
-				) : clickhouse ? (
-					<>
-						<MetricValue
-							label="Logs/hr"
-							value={clickhouse.totalLogs.toLocaleString()}
-							color="#f59e0b"
-						/>
-						<MetricValue
-							label="Errors"
-							value={clickhouse.errors}
-							color={
-								clickhouse.errors > 0 ? '#ef4444' : '#22c55e'
-							}
-						/>
-						<MetricValue
-							label="Warns"
-							value={clickhouse.warns}
-							color={clickhouse.warns > 0 ? '#f59e0b' : '#22c55e'}
-						/>
-						<MetricValue
-							label="Namespaces"
-							value={clickhouse.namespaces}
-						/>
-					</>
-				) : (
-					<UnavailableMessage />
-				)}
-			</ServiceCard>
+			{/* ClickHouse Logs (staff only) */}
+			{isStaff && (
+				<ServiceCard
+					title="Log Aggregation"
+					description="ClickHouse cluster log analytics"
+					href="/dashboard/clickhouse/"
+					icon={<Database size={18} />}
+					accentColor="#f59e0b"
+					status={clickhouseStatus}>
+					{clickhouseStatus === 'loading' ? (
+						<LoadingPlaceholder />
+					) : clickhouse ? (
+						<>
+							<MetricValue
+								label="Logs/hr"
+								value={clickhouse.totalLogs.toLocaleString()}
+								color="#f59e0b"
+							/>
+							<MetricValue
+								label="Errors"
+								value={clickhouse.errors}
+								color={
+									clickhouse.errors > 0
+										? '#ef4444'
+										: '#22c55e'
+								}
+							/>
+							<MetricValue
+								label="Warns"
+								value={clickhouse.warns}
+								color={
+									clickhouse.warns > 0 ? '#f59e0b' : '#22c55e'
+								}
+							/>
+							<MetricValue
+								label="Namespaces"
+								value={clickhouse.namespaces}
+							/>
+						</>
+					) : (
+						<UnavailableMessage />
+					)}
+				</ServiceCard>
+			)}
 
 			{/* Security Audit */}
 			<ServiceCard

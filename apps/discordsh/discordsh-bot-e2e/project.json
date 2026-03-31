@@ -7,12 +7,21 @@
 	"targets": {
 		"e2e": {
 			"executor": "@nx/playwright:playwright",
+			"cache": false,
+			"defaultConfiguration": "local",
 			"options": {
 				"config": "apps/discordsh/discordsh-bot-e2e/playwright.config.ts"
+			},
+			"configurations": {
+				"local": {},
+				"ci": {
+					"config": "apps/discordsh/discordsh-bot-e2e/playwright.docker.config.ts"
+				}
 			}
 		},
 		"e2e:docker": {
 			"executor": "@nx/playwright:playwright",
+			"cache": false,
 			"options": {
 				"config": "apps/discordsh/discordsh-bot-e2e/playwright.docker.config.ts"
 			}

@@ -119,3 +119,5 @@ vitest.config.*.timestamp*
 *.userprefs
 
 .fake
+*.log.gz
+*.log

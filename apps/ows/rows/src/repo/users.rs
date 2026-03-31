@@ -299,6 +299,87 @@ impl<'a> UsersRepo<'a> {
         Ok(groups)
     }
 
+    // ─── External Auth (Supabase OAuth bridge) ────────────────
+
+    /// Find an existing OWS user by email, or create a new one.
+    /// Used by external_login to bridge Supabase OAuth → OWS user.
+    /// The password is set to a random argon2 hash (user authenticates via OAuth, not password).
+    pub async fn find_or_create_by_email(
+        &self,
+        customer_guid: Uuid,
+        email: &str,
+        first_name: &str,
+        last_name: &str,
+    ) -> Result<Uuid, RowsError> {
+        // Try to find existing user
+        let existing: Option<(Uuid,)> =
+            sqlx::query_as("SELECT userguid FROM users WHERE customerguid = $1 AND email = $2")
+                .bind(customer_guid)
+                .bind(email)
+                .fetch_optional(self.0)
+                .await?;
+
+        if let Some((user_guid,)) = existing {
+            return Ok(user_guid);
+        }
+
+        // Create new user with a random password hash (OAuth users don't use passwords)
+        use argon2::{
+            Argon2, PasswordHasher,
+            password_hash::{SaltString, rand_core::OsRng},
+        };
+        let salt = SaltString::generate(&mut OsRng);
+        // Random password — OAuth users never use it, but the column is NOT NULL
+        let random_pw = Uuid::new_v4().to_string();
+        let password_hash = Argon2::default()
+            .hash_password(random_pw.as_bytes(), &salt)
+            .map_err(|e| RowsError::Internal(format!("Hash error: {e}")))?
+            .to_string();
+
+        let user_guid = Uuid::new_v4();
+        sqlx::query(
+            "INSERT INTO users (customerguid, userguid, email, passwordhash, firstname, lastname, role, createdate)
+             VALUES ($1, $2, $3, $4, $5, $6, 'Player', NOW())",
+        )
+        .bind(customer_guid)
+        .bind(user_guid)
+        .bind(email)
+        .bind(&password_hash)
+        .bind(first_name)
+        .bind(last_name)
+        .execute(self.0)
+        .await?;
+
+        tracing::info!(email = %email, user_guid = %user_guid, "Created OWS user from external auth");
+        Ok(user_guid)
+    }
+
+    /// Create a new session for a user (used by external_login after find-or-create).
+    pub async fn create_session(
+        &self,
+        customer_guid: Uuid,
+        user_guid: Uuid,
+    ) -> Result<Uuid, RowsError> {
+        // Delete old sessions for this user
+        sqlx::query("DELETE FROM usersessions WHERE userguid = $1")
+            .bind(user_guid)
+            .execute(self.0)
+            .await?;
+
+        let session_guid = Uuid::new_v4();
+        sqlx::query(
+            "INSERT INTO usersessions (customerguid, usersessionguid, userguid, logindate)
+             VALUES ($1, $2, $3, NOW())",
+        )
+        .bind(customer_guid)
+        .bind(session_guid)
+        .bind(user_guid)
+        .execute(self.0)
+        .await?;
+
+        Ok(session_guid)
+    }
+
     // ─── Management (Admin) ──────────────────────────────────
 
     pub async fn list_users(&self, customer_guid: Uuid) -> Result<Vec<UserInfo>, RowsError> {
