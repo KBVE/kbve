@@ -3,10 +3,18 @@ import { useStore } from '@nanostores/react';
 import { vmService } from './vmService';
 import { X, Maximize2, Minimize2, Keyboard } from 'lucide-react';
 
-// noVNC RFB client — handles the full VNC/RFB protocol over WebSocket
-// including framebuffer rendering, keyboard, and mouse forwarding.
-// @ts-expect-error — noVNC ships without TypeScript declarations
-import RFB from '@novnc/novnc/core/rfb';
+// noVNC RFB client — dynamically imported to avoid Vite pre-bundling issues
+// (noVNC 1.6.0 uses `await` in non-async function which breaks Rollup).
+// Loaded at runtime only when VNC viewer is actually opened.
+let RFB: any = null;
+async function loadRFB() {
+	if (!RFB) {
+		// @ts-expect-error — noVNC ships without TypeScript declarations
+		const mod = await import('@novnc/novnc/lib/rfb');
+		RFB = mod.default ?? mod;
+	}
+	return RFB;
+}
 
 export default function ReactVMVncViewer() {
 	const vncTarget = useStore(vmService.$vncTarget);
@@ -42,46 +50,49 @@ export default function ReactVMVncViewer() {
 		const wsUrl = vmService.getVNCWebSocketURL(vncTarget);
 		setStatus('Connecting...');
 
-		try {
-			const rfb = new RFB(target, wsUrl, {
-				wsProtocols: ['binary.k8s.io', 'base64.binary.k8s.io'],
-			});
+		(async () => {
+			try {
+				const RFBClass = await loadRFB();
+				const rfb = new RFBClass(target, wsUrl, {
+					wsProtocols: ['binary.k8s.io', 'base64.binary.k8s.io'],
+				});
 
-			rfb.scaleViewport = true;
-			rfb.resizeSession = false;
-			rfb.clipViewport = false;
-			rfb.showDotCursor = true;
-			rfb.qualityLevel = 6;
-			rfb.compressionLevel = 2;
+				rfb.scaleViewport = true;
+				rfb.resizeSession = false;
+				rfb.clipViewport = false;
+				rfb.showDotCursor = true;
+				rfb.qualityLevel = 6;
+				rfb.compressionLevel = 2;
 
-			rfb.addEventListener('connect', () => {
-				setConnected(true);
-				setStatus(`Connected to ${vncTarget}`);
-			});
+				rfb.addEventListener('connect', () => {
+					setConnected(true);
+					setStatus(`Connected to ${vncTarget}`);
+				});
 
-			rfb.addEventListener(
-				'disconnect',
-				(e: { detail: { clean: boolean } }) => {
-					setConnected(false);
-					setStatus(
-						e.detail.clean
-							? 'Disconnected cleanly'
-							: 'Connection lost — VM may have stopped',
-					);
-					rfbRef.current = null;
-				},
-			);
+				rfb.addEventListener(
+					'disconnect',
+					(e: { detail: { clean: boolean } }) => {
+						setConnected(false);
+						setStatus(
+							e.detail.clean
+								? 'Disconnected cleanly'
+								: 'Connection lost — VM may have stopped',
+						);
+						rfbRef.current = null;
+					},
+				);
 
-			rfb.addEventListener('securityfailure', () => {
-				setStatus('Security handshake failed');
-			});
+				rfb.addEventListener('securityfailure', () => {
+					setStatus('Security handshake failed');
+				});
 
-			rfbRef.current = rfb;
-		} catch (err) {
-			setStatus(
-				`Failed to connect: ${err instanceof Error ? err.message : 'Unknown error'}`,
-			);
-		}
+				rfbRef.current = rfb;
+			} catch (err) {
+				setStatus(
+					`Failed to connect: ${err instanceof Error ? err.message : 'Unknown error'}`,
+				);
+			}
+		})();
 
 		return cleanup;
 	}, [vncTarget, cleanup]);
