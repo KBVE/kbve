@@ -235,59 +235,14 @@ jobs:
             NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     # ===========================================================================
-    # Rust Crates — sync Cargo.toml version from manifest, test, then publish.
-    # The MDX frontmatter is the version source of truth. When manifest_version
-    # is provided, Cargo.toml is patched to match before test & publish.
+    # Rust Crates — test then publish (only runs when package_type == 'crates')
+    # When manifest_version is provided, rust-publish-crate patches Cargo.toml
+    # inline before publishing — no separate sync job or git push needed.
     # ===========================================================================
-    sync_crate_version:
-        name: Sync Crate Version — ${{ inputs.package_name }}
-        needs: [queue_guard, version_gate]
-        if: inputs.package_type == 'crates' && inputs.manifest_version != '' && needs.version_gate.outputs.should_publish == 'true'
-        runs-on: ubuntu-latest
-        timeout-minutes: 5
-        permissions:
-            contents: write
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v6
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-
-            - name: Patch Cargo.toml with manifest version
-              run: |
-                  NAME="${{ inputs.package_name }}"
-                  VERSION="${{ inputs.manifest_version }}"
-                  CRATE_SRC="${{ inputs.version_source }}"
-                  CARGO="${CRATE_SRC:-packages/rust/${NAME}/Cargo.toml}"
-
-                  if [ ! -f "$CARGO" ]; then
-                    echo "::error::Cargo.toml not found: $CARGO"
-                    exit 1
-                  fi
-
-                  CURRENT=$(grep -m1 '^version' "$CARGO" | sed 's/version = "\(.*\)"/\1/')
-                  echo "Current Cargo.toml version: $CURRENT"
-                  echo "Manifest version: $VERSION"
-
-                  if [ "$CURRENT" = "$VERSION" ]; then
-                    echo "Already in sync — no patch needed."
-                    exit 0
-                  fi
-
-                  sed -i "s/^version = \"$CURRENT\"/version = \"$VERSION\"/" "$CARGO"
-                  echo "Patched $CARGO: $CURRENT → $VERSION"
-
-                  # Commit the version sync so publish uses the correct version
-                  git config user.name "github-actions[bot]"
-                  git config user.email "github-actions[bot]@users.noreply.github.com"
-                  git add "$CARGO"
-                  git commit -m "chore($NAME): sync Cargo.toml version to $VERSION [skip ci]" || echo "No changes to commit"
-                  git push
-
     test_crates:
         name: Test Crate — ${{ inputs.package_name }}
-        needs: [queue_guard, sync_crate_version]
-        if: always() && inputs.package_type == 'crates' && (needs.sync_crate_version.result == 'success' || needs.sync_crate_version.result == 'skipped')
+        needs: [queue_guard]
+        if: inputs.package_type == 'crates'
         permissions:
             contents: read
         uses: KBVE/kbve/.github/workflows/rust-test-crate.yml@main
@@ -307,6 +262,8 @@ jobs:
         uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
         with:
             package: ${{ inputs.package_name }}
+            version: ${{ inputs.manifest_version }}
+            version_source: ${{ inputs.version_source }}
         secrets:
             CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 

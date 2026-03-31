@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-03-29T08:21:31Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-03-31T08:34:03Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
@@ -29,10 +29,10 @@ Last generated: **2026-03-29T08:21:31Z** — updated daily by `ci-dashboard`.
   <Card title="32 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="39 Medium" icon="information">
+  <Card title="33 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
-  <Card title="4 Low" icon="approve-check-circle">
+  <Card title="5 Low" icon="approve-check-circle">
     Low-severity findings across all ecosystems.
   </Card>
 </CardGrid>
@@ -41,13 +41,13 @@ Last generated: **2026-03-29T08:21:31Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **69** advisories
+    **70** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
-    **35** advisories
+    **27** advisories
   </Card>
   <Card title="Python" icon="seti:python">
-    **1** advisories
+    **0** advisories
   </Card>
   <Card title="CodeQL" icon="magnifier">
     **0** alerts
@@ -64,8 +64,8 @@ pie showData
     title Findings by Severity
     "Critical" : 2
     "High" : 32
-    "Medium" : 39
-    "Low" : 4
+    "Medium" : 33
+    "Low" : 5
 ```
 
 ### Findings by Ecosystem
@@ -73,9 +73,8 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 69
-    "Cargo" : 35
-    "Python" : 1
+    "npm" : 70
+    "Cargo" : 27
 ```
 
 <Tabs>
@@ -83,12 +82,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 2 | 32 | 31 | 4 | 69 |
-| **Cargo** | 0 | 0 | 7 | 0 | 35 |
-| **Python** | 0 | 0 | 1 | 0 | 1 |
+| **npm** | 2 | 32 | 31 | 5 | 70 |
+| **Cargo** | 0 | 0 | 2 | 0 | 27 |
+| **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 2 | 32 | 39 | 4 | 105 |
+| **Total** | 2 | 32 | 33 | 5 | 97 |
 
   </TabItem>
   <TabItem label="npm">
@@ -116,19 +115,19 @@ pie showData
 | High | `undici` | Undici has Unhandled Exception in WebSocket Client Due to... | [Details](https://github.com/advisories/GHSA-v9p9-hfj2-hcw8) |
 | High | `h3` | h3 has a Server-Sent Events Injection via Unsanitized New... | [Details](https://github.com/advisories/GHSA-22cc-p3c6-wpvm) |
 | High | `flatted` | Prototype Pollution via parse() in NodeJS flatted | [Details](https://github.com/advisories/GHSA-rf6f-7fwh-wjgh) |
-| High | `happy-dom` | Happy DOM ECMAScriptModuleCompiler: unsanitized export na... | [Details](https://github.com/advisories/GHSA-6q6h-j7hj-3r64) |
-| High | `handlebars` | Handlebars.js has JavaScript Injection in CLI Precompiler... | [Details](https://github.com/advisories/GHSA-xjpj-3mr7-gcpf) |
-| High | `handlebars` | Handlebars.js has JavaScript Injection via AST Type Confu... | [Details](https://github.com/advisories/GHSA-xhpv-hc6g-r9c6) |
-| High | `handlebars` | Handlebars.js has Denial of Service via Malformed Decorat... | [Details](https://github.com/advisories/GHSA-9cx6-37pm-9jff) |
 | High | `path-to-regexp` | path-to-regexp vulnerable to Regular Expression Denial of... | [Details](https://github.com/advisories/GHSA-37ch-88jc-xwx2) |
 | High | `handlebars` | Handlebars.js has JavaScript Injection via AST Type Confu... | [Details](https://github.com/advisories/GHSA-3mfm-83xf-c92r) |
 | High | `node-forge` | Forge has a basicConstraints bypass in its certificate ch... | [Details](https://github.com/advisories/GHSA-2328-f5f3-gj25) |
 | High | `node-forge` | Forge has signature forgery in Ed25519 due to missing S &gt;... | [Details](https://github.com/advisories/GHSA-q67f-28xg-22rw) |
-| High | `node-forge` | Forge has signature forgery in RSA-PKCS due to ASN.1 extr... | [Details](https://github.com/advisories/GHSA-ppp5-5v6c-4jwp) |
 | High | `node-forge` | Forge has Denial of Service via Infinite Loop in BigInteg... | [Details](https://github.com/advisories/GHSA-5m6q-g25r-mvwx) |
 | High | `picomatch` | Picomatch has a ReDoS vulnerability via extglob quantifiers | [Details](https://github.com/advisories/GHSA-c2c7-rcm5-vvqj) |
 | High | `picomatch` | Picomatch has a ReDoS vulnerability via extglob quantifiers | [Details](https://github.com/advisories/GHSA-c2c7-rcm5-vvqj) |
-| High | `picomatch` | Picomatch has a ReDoS vulnerability via extglob quantifiers | [Details](https://github.com/advisories/GHSA-c2c7-rcm5-vvqj) |
+| High | `happy-dom` | Happy DOM's fetch credentials include uses page-origin co... | [Details](https://github.com/advisories/GHSA-w4gp-fjgq-3q4g) |
+| High | `node-forge` | Forge has signature forgery in RSA-PKCS due to ASN.1 extr... | [Details](https://github.com/advisories/GHSA-ppp5-5v6c-4jwp) |
+| High | `handlebars` | Handlebars.js has JavaScript Injection in CLI Precompiler... | [Details](https://github.com/advisories/GHSA-xjpj-3mr7-gcpf) |
+| High | `handlebars` | Handlebars.js has JavaScript Injection via AST Type Confu... | [Details](https://github.com/advisories/GHSA-xhpv-hc6g-r9c6) |
+| High | `handlebars` | Handlebars.js has Denial of Service via Malformed Decorat... | [Details](https://github.com/advisories/GHSA-9cx6-37pm-9jff) |
+| High | `happy-dom` | Happy DOM ECMAScriptModuleCompiler: unsanitized export na... | [Details](https://github.com/advisories/GHSA-6q6h-j7hj-3r64) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `lodash-es` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
@@ -156,30 +155,25 @@ pie showData
 | Medium | `handlebars` | Handlebars.js has Prototype Pollution Leading to XSS thro... | [Details](https://github.com/advisories/GHSA-2qvq-rjwj-gvw9) |
 | Medium | `picomatch` | Picomatch: Method Injection in POSIX Character Classes ca... | [Details](https://github.com/advisories/GHSA-3v7f-55p6-f55p) |
 | Medium | `picomatch` | Picomatch: Method Injection in POSIX Character Classes ca... | [Details](https://github.com/advisories/GHSA-3v7f-55p6-f55p) |
-| Medium | `picomatch` | Picomatch: Method Injection in POSIX Character Classes ca... | [Details](https://github.com/advisories/GHSA-3v7f-55p6-f55p) |
 | Medium | `yaml` | yaml is vulnerable to Stack Overflow via deeply nested YA... | [Details](https://github.com/advisories/GHSA-48c2-rrv3-qjmp) |
 | Medium | `yaml` | yaml is vulnerable to Stack Overflow via deeply nested YA... | [Details](https://github.com/advisories/GHSA-48c2-rrv3-qjmp) |
+| Medium | `handlebars` | Handlebars.js has a Prototype Method Access Control Gap v... | [Details](https://github.com/advisories/GHSA-7rx3-28cr-v5wh) |
 | Medium | `dompurify` | DOMPurify contains a Cross-site Scripting vulnerability | [Details](https://github.com/advisories/GHSA-v2wj-7wpq-c8vv) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
 | Low | `astro` | Astro: Remote allowlist bypass via unanchored matchPathna... | [Details](https://github.com/advisories/GHSA-g735-7g2w-hh3f) |
+| Low | `handlebars` | Handlebars.js has a Property Access Validation Bypass in ... | [Details](https://github.com/advisories/GHSA-442j-39wm-28r2) |
 
   </TabItem>
   <TabItem label="Cargo">
 
 | Severity | Package | Advisory | Link |
 |----------|---------|----------|------|
-| Medium | `aws-lc-sys` | AWS-LC X.509 Name Constraints Bypass via Wildcard/Unicode CN |  |
-| Medium | `aws-lc-sys` | CRL Distribution Point Scope Check Logic Error in AWS-LC | [Details](https://aws.amazon.com/security/security-bulletins/2026-010-AWS) |
-| Medium | `curve25519-dalek` | Timing variability in `curve25519-dalek`'s `Scalar29::sub... | [Details](https://github.com/dalek-cryptography/curve25519-dalek/pull/659) |
-| Medium | `ed25519-dalek` | Double Public Key Signing Function Oracle Attack on `ed25... | [Details](https://github.com/MystenLabs/ed25519-unsafe-libs) |
 | Medium | `rsa` | Marvin Attack: potential key recovery through timing side... | [Details](https://github.com/RustCrypto/RSA/issues/19#issuecomment-1822995643) |
-| Medium | `rustls-webpki` | CRLs not considered authoritative by Distribution Point d... |  |
 | Medium | `rustls-webpki` | CRLs not considered authoritative by Distribution Point d... |  |
 | Info | `atk` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `atk-sys` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
-| Info | `atty` | `atty` is unmaintained | [Details](https://github.com/softprops/atty/issues/57) |
 | Info | `bincode` | Bincode is unmaintained | [Details](https://git.sr.ht/~stygianentity/bincode/tree/v3.0/item/README.md) |
 | Info | `bincode` | Bincode is unmaintained | [Details](https://git.sr.ht/~stygianentity/bincode/tree/v3.0/item/README.md) |
 | Info | `derivative` | `derivative` is unmaintained; consider using an alternative | [Details](https://github.com/mcarton/rust-derivative/issues/117) |
@@ -192,7 +186,6 @@ pie showData
 | Info | `gtk` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `gtk-sys` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `gtk3-macros` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
-| Info | `number_prefix` | number_prefix crate is unmaintained | [Details](https://github.com/ogham/rust-number-prefix/pull/8) |
 | Info | `paste` | paste - no longer maintained | [Details](https://github.com/dtolnay/paste) |
 | Info | `proc-macro-error` | proc-macro-error is unmaintained | [Details](https://gitlab.com/CreepySkeleton/proc-macro-error/-/issues/20) |
 | Info | `rustls-pemfile` | rustls-pemfile is unmaintained | [Details](https://github.com/rustls/pemfile/issues/61) |
@@ -203,15 +196,14 @@ pie showData
 | Info | `unic-common` | `unic-common` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-ucd-ident` | `unic-ucd-ident` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-ucd-version` | `unic-ucd-version` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
-| Info | `atty` | Potential unaligned read | [Details](https://github.com/softprops/atty/issues/50) |
 | Info | `glib` | Unsoundness in `Iterator` and `DoubleEndedIterator` impls... | [Details](https://github.com/gtk-rs/gtk-rs-core/pull/1343) |
 
   </TabItem>
   <TabItem label="Python">
 
-| Severity | Package | Advisory | Link |
-|----------|---------|----------|------|
-| Medium | `pygments` | A security flaw has been discovered in pygments up to 2.1... | [Details](https://osv.dev/vulnerability/CVE-2026-4539) |
+:::tip[All Clear]
+No python advisories found.
+:::
 
   </TabItem>
   <TabItem label="CodeQL">

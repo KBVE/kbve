@@ -6,6 +6,16 @@ on:
             package:
                 required: true
                 type: string
+            version:
+                description: 'Target version from MDX manifest. When provided, Cargo.toml is patched to this version before publish.'
+                required: false
+                type: string
+                default: ''
+            version_source:
+                description: 'Path to Cargo.toml (overrides default convention)'
+                required: false
+                type: string
+                default: ''
         secrets:
             CRATES_TOKEN:
                 required: true
@@ -23,6 +33,29 @@ jobs:
         steps:
             - name: Checkout repository
               uses: actions/checkout@v6
+
+            - name: Patch Cargo.toml with manifest version
+              if: inputs.version != ''
+              run: |
+                  NAME="${{ inputs.package }}"
+                  VERSION="${{ inputs.version }}"
+                  SRC="${{ inputs.version_source }}"
+                  CARGO="${SRC:-packages/rust/${NAME}/Cargo.toml}"
+
+                  if [ ! -f "$CARGO" ]; then
+                    echo "::error::Cargo.toml not found: $CARGO"
+                    exit 1
+                  fi
+
+                  CURRENT=$(grep -m1 '^version' "$CARGO" | sed 's/version = "\(.*\)"/\1/')
+                  echo "Cargo.toml version: $CURRENT → $VERSION"
+
+                  if [ "$CURRENT" != "$VERSION" ]; then
+                    sed -i "s/^version = \"$CURRENT\"/version = \"$VERSION\"/" "$CARGO"
+                    echo "Patched $CARGO"
+                  else
+                    echo "Already at $VERSION — no patch needed"
+                  fi
 
             - name: Rust ToolChain
               uses: dtolnay/rust-toolchain@stable
@@ -53,4 +86,4 @@ jobs:
             - name: Cargo Publish
               if: steps.version_check.outputs.should_publish == 'true'
               run: |
-                  cargo publish -p ${{ inputs.package }}
+                  cargo publish -p ${{ inputs.package }} --allow-dirty

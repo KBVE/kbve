@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-30T08:40:31.698Z",
+  "generated_at": "2026-03-31T08:31:18.104Z",
   "summary": {
     "total_protos": 26,
     "registered": 22,
@@ -1023,7 +1023,7 @@
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto"
   ],
-  "checked_at": "2026-03-30T08:40:31Z",
+  "checked_at": "2026-03-31T08:31:18Z",
   "drift_detected": false,
   "drift_files": []
 }
