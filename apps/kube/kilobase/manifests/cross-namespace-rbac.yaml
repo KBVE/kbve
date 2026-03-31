@@ -58,9 +58,6 @@ subjects:
       name: rentearth-external-secrets
       namespace: rentearth
     - kind: ServiceAccount
-      name: mc-external-secrets
-      namespace: mc
-    - kind: ServiceAccount
       name: n8n-external-secrets
       namespace: n8n
     - kind: ServiceAccount

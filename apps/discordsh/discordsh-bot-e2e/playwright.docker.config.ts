@@ -13,6 +13,11 @@ const cargoToml = readFileSync(
 const version = cargoToml.match(/^version\s*=\s*"(.+)"/m)?.[1] ?? '0.1.0';
 
 const killPort = `docker rm -f discordsh-bot-e2e-test 2>/dev/null; lsof -ti:${port} | xargs kill -9 2>/dev/null; sleep 1;`;
+const imageName = `kbve/discordsh-bot:${version}`;
+const dockerfile = 'apps/discordsh/discordsh-bot/Dockerfile';
+
+// Build the image if it doesn't exist locally (first-ever build or clean CI runner)
+const ensureImage = `docker image inspect ${imageName} >/dev/null 2>&1 || docker build -f ${dockerfile} -t ${imageName} .`;
 
 export default defineConfig({
 	testDir: './e2e',
@@ -31,10 +36,10 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: `${killPort} docker run --rm --name discordsh-bot-e2e-test -e HEALTH_PORT=${port} -p ${port}:${port} kbve/discordsh-bot:${version}`,
+		command: `${killPort} ${ensureImage} && docker run --rm --name discordsh-bot-e2e-test -e HEALTH_PORT=${port} -p ${port}:${port} ${imageName}`,
 		url: `${baseURL}/health`,
 		reuseExistingServer: false,
-		timeout: 60_000,
+		timeout: 600_000,
 	},
 	globalTeardown: resolve(__dirname, 'docker-teardown.ts'),
 });

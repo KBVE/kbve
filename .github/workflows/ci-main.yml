@@ -237,19 +237,26 @@ jobs:
                     pkg=$(echo "$entry" | jq -r '.package_name')
                     VER=$(echo "$entry" | jq -r '.version // empty')
                     SRC=$(echo "$entry" | jq -r '.version_source // empty')
+                    TGT=$(echo "$entry" | jq -r '.version_target // empty')
                     VTOML=$(echo "$entry" | jq -r '.version_toml // empty')
                     altered=$(is_altered "$key")
 
-                    # Resolve paths: use manifest overrides or fall back to convention
+                    # Resolve paths: version_source (MDX) for dispatch check,
+                    # version_target (Cargo.toml) for patching before publish
                     cargo_src="${SRC:-packages/rust/${pkg}/Cargo.toml}"
                     cargo_vtoml="${VTOML:-packages/rust/${pkg}/version.toml}"
 
-                    # Build extra dispatch fields for non-standard paths
+                    # Build dispatch fields — same pattern as Docker apps
                     EXTRA_FIELDS=""
                     if [ -n "$SRC" ]; then
-                      EXTRA_FIELDS="--field version_source=${SRC} --field version_toml_path_override=${VTOML}"
+                      EXTRA_FIELDS="--field version_source=${SRC}"
                     fi
-                    # Pass manifest version so ci-publish can sync Cargo.toml
+                    if [ -n "$TGT" ]; then
+                      EXTRA_FIELDS="$EXTRA_FIELDS --field version_target=${TGT}"
+                    fi
+                    if [ -n "$VTOML" ]; then
+                      EXTRA_FIELDS="$EXTRA_FIELDS --field version_toml_path_override=${VTOML}"
+                    fi
                     if [ -n "$VER" ] && [ "$VER" != "0.0.0" ]; then
                       EXTRA_FIELDS="$EXTRA_FIELDS --field manifest_version=${VER}"
                     fi

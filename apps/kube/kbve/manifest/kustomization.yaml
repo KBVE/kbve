@@ -5,7 +5,6 @@ namespace: kbve
 resources:
     - kbve-serviceaccount.yaml
     - kbve-externalsecret.yaml
-    - mc-rcon-externalsecret.yaml
     - forgejo-externalsecret.yaml
     - argocd-auth-sealedsecret.yaml
     - kbve-internal-ca-cert.yaml
