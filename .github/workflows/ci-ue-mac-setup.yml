@@ -36,8 +36,14 @@ on:
                 description: 'Xcode version (e.g. 16.2)'
                 required: false
                 default: '16.2'
-# TODO: Uncomment and implement when macOS VM is provisioned
-# jobs:
+jobs:
+    stub:
+        name: macOS Setup (not yet implemented)
+        runs-on: ubuntu-latest
+        steps:
+            - name: Stub
+              run: echo "macOS VM not yet provisioned — see workflow comments for implementation plan"
+# TODO: Uncomment and replace stub when macOS VM is provisioned
 #   stage-downloads:
 #     name: Stage Downloads
 #     runs-on: arc-runner-set
