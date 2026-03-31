@@ -14,9 +14,16 @@ spec:
     destination:
         server: https://kubernetes.default.svc
         namespace: arc-runners
+    ignoreDifferences:
+        # FleetAutoscaler manages replica count — ArgoCD should not fight it.
+        - group: agones.dev
+          kind: Fleet
+          jsonPointers:
+              - /spec/replicas
     syncPolicy:
         automated:
             prune: true
         syncOptions:
             - CreateNamespace=false
             - ServerSideApply=true
+            - RespectIgnoreDifferences=true

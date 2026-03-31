@@ -34,7 +34,6 @@ spec:
                   containerPort: 7777
                   protocol: UDP
             health:
-                disabled: false
                 initialDelaySeconds: 30
                 periodSeconds: 15
                 failureThreshold: 5
