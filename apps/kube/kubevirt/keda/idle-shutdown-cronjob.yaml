@@ -1,4 +1,11 @@
-# CronJob to stop idle VMs — runs every 15 minutes.
+# DEPRECATED — replaced by KEDA ScaledJobs in scaled-jobs.yaml
+# The vm-stop-windows-builder and vm-stop-macos-builder ScaledJobs
+# now handle idle shutdown with smart checks (GitHub + session detection).
+#
+# This CronJob is kept as a fallback — set suspend: true to disable.
+# Remove entirely once KEDA shutdown ScaledJobs are verified working.
+#
+# Original CronJob to stop idle VMs — runs every 15 minutes.
 #
 # Checks THREE conditions before stopping a VM:
 #   1. VM has been running for > IDLE_THRESHOLD_MINUTES (30 min)
