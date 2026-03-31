@@ -69,17 +69,21 @@ spec:
                               annotations:
                                   cert-manager.io/http01-ingress-path-type: 'Prefix'
 
-            # --- Solver 6: CHUCKRPG.COM domains ---
+            # --- Solver 6: CHUCKRPG.COM domains (Cilium Gateway API) ---
+            # Uses gatewayHTTPRoute solver — cert-manager creates an HTTPRoute
+            # that attaches to the HTTP listener on the Cilium-managed gateway.
+            # sectionName: http ensures the route binds to port 80 (not HTTPS).
             - selector:
                   dnsZones:
                       - chuckrpg.com
               http01:
-                  ingress:
-                      ingressClassName: nginx
-                      ingressTemplate:
-                          metadata:
-                              annotations:
-                                  cert-manager.io/http01-ingress-path-type: 'Prefix'
+                  gatewayHTTPRoute:
+                      serviceType: ClusterIP
+                      parentRefs:
+                          - name: kbve-gateway
+                            namespace: kbve
+                            kind: Gateway
+                            sectionName: http
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer

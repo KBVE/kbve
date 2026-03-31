@@ -15,8 +15,7 @@ resources:
     - cnpg/application.yaml
     - cnpg/plugins-application.yaml
     # MetalLB removed — Cilium LB IPAM handles IP allocation + L2 announcements
-    # ingress-nginx — kept for cert-manager HTTP-01 solver (domains not on Cloudflare DNS)
-    - ingress/application.yaml
+    # ingress-nginx removed — Cilium Gateway API handles ingress + ACME HTTP-01 challenges
     - cert-manager/application.yaml
     - sealed-secrets/application.yaml
     - keda/application.yaml
