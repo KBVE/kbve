@@ -1,7 +1,23 @@
-# CronJob to stop idle VMs — runs every 15 minutes.
-# Checks if the GitHub runner agent inside the VM has been idle for 30+ minutes.
-# This is the "scale down" side — KEDA ScaledJobs handle "scale up".
-# VMs can always be manually started/stopped via virtctl regardless.
+# DEPRECATED — replaced by KEDA ScaledJobs in scaled-jobs.yaml
+# The vm-stop-windows-builder and vm-stop-macos-builder ScaledJobs
+# now handle idle shutdown with smart checks (GitHub + session detection).
+#
+# This CronJob is kept as a fallback — set suspend: true to disable.
+# Remove entirely once KEDA shutdown ScaledJobs are verified working.
+#
+# Original CronJob to stop idle VMs — runs every 15 minutes.
+#
+# Checks THREE conditions before stopping a VM:
+#   1. VM has been running for > IDLE_THRESHOLD_MINUTES (30 min)
+#   2. No GitHub Actions jobs queued/in-progress for the VM's runner label
+#   3. No active VNC/RDP connections (checks kubevirt websocket connections)
+#
+# All three must be true to stop the VM. This prevents:
+#   - Killing a VM someone is actively using via VNC/RDP/Guacamole
+#   - Killing a VM that's about to pick up a queued CI job
+#   - Killing a freshly started VM before it's had time to boot
+#
+# KEDA ScaledJobs handle "scale up" — this handles "scale down".
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -23,6 +39,13 @@ spec:
                     containers:
                         - name: idle-checker
                           image: registry.k8s.io/kubectl:v1.33.2
+                          env:
+                              # GitHub PAT for checking Actions job queue
+                              - name: GITHUB_TOKEN
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: github-arc-token
+                                        key: github_token
                           command:
                               - /bin/sh
                               - -c
@@ -30,37 +53,95 @@ spec:
                                   set -e
                                   NAMESPACE="angelscript"
                                   IDLE_THRESHOLD_MINUTES=30
+                                  GITHUB_ORG="KBVE"
 
-                                  for VM_NAME in windows-builder macos-builder; do
-                                      # Skip if VM is not running
+                                  # VM name → runner label mapping
+                                  check_vm() {
+                                      VM_NAME="$1"
+                                      RUNNER_LABEL="$2"
+
+                                      echo "=== Checking ${VM_NAME} (label: ${RUNNER_LABEL}) ==="
+
+                                      # ── Check 1: Is the VM running? ──
                                       STATUS=$(kubectl get vm "${VM_NAME}" -n "${NAMESPACE}" -o jsonpath='{.status.printableStatus}' 2>/dev/null || echo "Unknown")
                                       if [ "${STATUS}" != "Running" ]; then
-                                          echo "${VM_NAME}: not running (${STATUS}), skipping."
-                                          continue
+                                          echo "  SKIP: not running (${STATUS})"
+                                          return
                                       fi
 
-                                      # Check how long the VMI has been running
+                                      # ── Check 2: Has it been running long enough? ──
                                       CREATED=$(kubectl get vmi "${VM_NAME}" -n "${NAMESPACE}" -o jsonpath='{.metadata.creationTimestamp}' 2>/dev/null || echo "")
                                       if [ -z "${CREATED}" ]; then
-                                          echo "${VM_NAME}: no VMI found, skipping."
-                                          continue
+                                          echo "  SKIP: no VMI found"
+                                          return
                                       fi
 
-                                      # Calculate age in minutes
-                                      CREATED_EPOCH=$(date -d "${CREATED}" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "${CREATED}" +%s 2>/dev/null || echo "0")
+                                      CREATED_EPOCH=$(date -d "${CREATED}" +%s 2>/dev/null || echo "0")
                                       NOW_EPOCH=$(date +%s)
                                       AGE_MINUTES=$(( (NOW_EPOCH - CREATED_EPOCH) / 60 ))
+                                      echo "  Age: ${AGE_MINUTES} minutes"
 
-                                      echo "${VM_NAME}: running for ${AGE_MINUTES} minutes."
-
-                                      if [ "${AGE_MINUTES}" -gt "${IDLE_THRESHOLD_MINUTES}" ]; then
-                                          echo "${VM_NAME}: idle for >${IDLE_THRESHOLD_MINUTES}m, stopping..."
-                                          kubectl proxy --port=8001 &
-                                          sleep 2
-                                          curl -s -X PUT \
-                                              "http://localhost:8001/apis/subresources.kubevirt.io/v1/namespaces/${NAMESPACE}/virtualmachines/${VM_NAME}/stop" \
-                                              -H "Content-Type: application/json" -d '{}'
-                                          kill %1 2>/dev/null || true
-                                          echo "${VM_NAME}: stop requested."
+                                      if [ "${AGE_MINUTES}" -le "${IDLE_THRESHOLD_MINUTES}" ]; then
+                                          echo "  KEEP: under idle threshold (${IDLE_THRESHOLD_MINUTES}m)"
+                                          return
                                       fi
-                                  done
+
+                                      # ── Check 3: Any queued/in-progress GitHub Actions jobs? ──
+                                      if [ -n "${GITHUB_TOKEN}" ]; then
+                                          QUEUED=$(curl -sf -H "Authorization: token ${GITHUB_TOKEN}" \
+                                              -H "Accept: application/vnd.github.v3+json" \
+                                              "https://api.github.com/orgs/${GITHUB_ORG}/actions/runners?per_page=100" 2>/dev/null \
+                                              | grep -c "\"busy\": true" 2>/dev/null || echo "0")
+
+                                          # Also check for queued workflow runs targeting this label
+                                          PENDING=$(curl -sf -H "Authorization: token ${GITHUB_TOKEN}" \
+                                              -H "Accept: application/vnd.github.v3+json" \
+                                              "https://api.github.com/repos/${GITHUB_ORG}/kbve/actions/runs?status=queued&per_page=10" 2>/dev/null \
+                                              | grep -ci "${RUNNER_LABEL}" 2>/dev/null || echo "0")
+
+                                          echo "  GitHub: ${QUEUED} busy runners, ${PENDING} pending jobs for ${RUNNER_LABEL}"
+
+                                          if [ "${QUEUED}" -gt 0 ] || [ "${PENDING}" -gt 0 ]; then
+                                              echo "  KEEP: GitHub Actions activity detected"
+                                              return
+                                          fi
+                                      else
+                                          echo "  WARN: No GITHUB_TOKEN — skipping GitHub Actions check"
+                                      fi
+
+                                      # ── Check 4: Any active VNC/websocket connections? ──
+                                      # Check if any VNC proxy pods are connected to this VM
+                                      POD_NAME=$(kubectl get pods -n "${NAMESPACE}" -l "vm.kubevirt.io/name=${VM_NAME}" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+                                      if [ -n "${POD_NAME}" ]; then
+                                          # Check for established websocket connections (VNC)
+                                          VNC_CONNS=$(kubectl exec "${POD_NAME}" -n "${NAMESPACE}" -c compute -- \
+                                              sh -c "ss -tn state established | grep -c ':5900' || echo 0" 2>/dev/null || echo "0")
+                                          # Check for established RDP connections
+                                          RDP_CONNS=$(kubectl exec "${POD_NAME}" -n "${NAMESPACE}" -c compute -- \
+                                              sh -c "ss -tn state established | grep -c ':3389' || echo 0" 2>/dev/null || echo "0")
+
+                                          echo "  Connections: VNC=${VNC_CONNS}, RDP=${RDP_CONNS}"
+
+                                          if [ "${VNC_CONNS}" -gt 0 ] || [ "${RDP_CONNS}" -gt 0 ]; then
+                                              echo "  KEEP: active VNC/RDP session"
+                                              return
+                                          fi
+                                      fi
+
+                                      # ── All checks passed — stop the VM ──
+                                      echo "  STOP: idle for ${AGE_MINUTES}m, no jobs, no sessions"
+                                      kubectl proxy --port=8001 &
+                                      PROXY_PID=$!
+                                      sleep 2
+                                      curl -s -X PUT \
+                                          "http://localhost:8001/apis/subresources.kubevirt.io/v1/namespaces/${NAMESPACE}/virtualmachines/${VM_NAME}/stop" \
+                                          -H "Content-Type: application/json" -d '{}'
+                                      kill "${PROXY_PID}" 2>/dev/null || true
+                                      echo "  ${VM_NAME}: stop requested."
+                                  }
+
+                                  # Check each VM with its runner label
+                                  check_vm "windows-builder" "UE5-Win"
+                                  check_vm "macos-builder" "UE5-Mac"
+
+                                  echo "=== Idle shutdown check complete ==="

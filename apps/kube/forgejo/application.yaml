@@ -40,6 +40,12 @@ spec:
                       accessModes:
                           - ReadWriteOnce
 
+                  deployment:
+                      annotations:
+                          # Bump this value to force a pod rollout when config/secrets change.
+                          # ArgoCD detects the annotation change → new ReplicaSet → pod restart.
+                          kbve.com/config-revision: '2026-03-31-forgejo-role'
+
                   gitea:
                       admin:
                           existingSecret: forgejo-admin

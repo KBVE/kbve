@@ -1,6 +1,8 @@
 # KEDA ScaledJobs for KubeVirt VM lifecycle.
-# Watches GitHub Actions for queued jobs targeting specific runner labels.
-# When jobs are queued → starts the VM. After idle → stops the VM.
+#
+# Full lifecycle managed by KEDA (no CronJobs):
+#   Scale UP:   github-runner trigger → start VM when jobs are queued
+#   Scale DOWN: cron trigger (every 15min) → stop VM if idle + no sessions
 #
 # The GitHub PAT needs workflow + admin:org scope for the KEDA GitHub runner scaler.
 # Uses the same github-arc-token secret as the ARC runners.
@@ -104,3 +106,122 @@ spec:
               targetWorkflowQueueLength: '1'
           authenticationRef:
               name: github-runner-auth
+---
+# ──────────────────────────────────────────────────────────────
+# SCALE DOWN — KEDA cron-triggered idle shutdown
+# Runs every 15 minutes, checks: age > 30min + no GitHub jobs + no sessions
+# ──────────────────────────────────────────────────────────────
+
+# Windows VM shutdown
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+    name: vm-stop-windows-builder
+    namespace: angelscript
+spec:
+    jobTargetRef:
+        parallelism: 1
+        completions: 1
+        backoffLimit: 1
+        ttlSecondsAfterFinished: 300
+        template:
+            spec:
+                serviceAccountName: vm-scaler
+                restartPolicy: OnFailure
+                containers:
+                    - name: idle-checker
+                      image: registry.k8s.io/kubectl:v1.33.2
+                      command: ['/bin/sh', '/scripts/idle-shutdown.sh']
+                      env:
+                          - name: VM_NAME
+                            value: windows-builder
+                          - name: RUNNER_LABEL
+                            value: UE5-Win
+                          - name: NAMESPACE
+                            value: angelscript
+                          - name: IDLE_THRESHOLD_MINUTES
+                            value: '30'
+                          - name: GITHUB_ORG
+                            value: KBVE
+                          - name: GITHUB_TOKEN
+                            valueFrom:
+                                secretKeyRef:
+                                    name: github-arc-token
+                                    key: github_token
+                      volumeMounts:
+                          - name: script
+                            mountPath: /scripts
+                volumes:
+                    - name: script
+                      configMap:
+                          name: vm-idle-shutdown-script
+                          defaultMode: 0755
+    pollingInterval: 900
+    minReplicaCount: 0
+    maxReplicaCount: 1
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    triggers:
+        - type: cron
+          metadata:
+              timezone: UTC
+              start: '0 */1 * * *'
+              end: '15 */1 * * *'
+              desiredReplicas: '1'
+---
+# macOS VM shutdown
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+    name: vm-stop-macos-builder
+    namespace: angelscript
+spec:
+    jobTargetRef:
+        parallelism: 1
+        completions: 1
+        backoffLimit: 1
+        ttlSecondsAfterFinished: 300
+        template:
+            spec:
+                serviceAccountName: vm-scaler
+                restartPolicy: OnFailure
+                containers:
+                    - name: idle-checker
+                      image: registry.k8s.io/kubectl:v1.33.2
+                      command: ['/bin/sh', '/scripts/idle-shutdown.sh']
+                      env:
+                          - name: VM_NAME
+                            value: macos-builder
+                          - name: RUNNER_LABEL
+                            value: UE5-Mac
+                          - name: NAMESPACE
+                            value: angelscript
+                          - name: IDLE_THRESHOLD_MINUTES
+                            value: '30'
+                          - name: GITHUB_ORG
+                            value: KBVE
+                          - name: GITHUB_TOKEN
+                            valueFrom:
+                                secretKeyRef:
+                                    name: github-arc-token
+                                    key: github_token
+                      volumeMounts:
+                          - name: script
+                            mountPath: /scripts
+                volumes:
+                    - name: script
+                      configMap:
+                          name: vm-idle-shutdown-script
+                          defaultMode: 0755
+    pollingInterval: 900
+    minReplicaCount: 0
+    maxReplicaCount: 1
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    triggers:
+        - type: cron
+          metadata:
+              timezone: UTC
+              start: '0 */1 * * *'
+              end: '15 */1 * * *'
+              desiredReplicas: '1'
