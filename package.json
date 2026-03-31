@@ -132,7 +132,6 @@
 		"@tauri-apps/plugin-store": "^2.0.0",
 		"@types/d3-force": "^3.0.10",
 		"astro-mermaid": "^2.0.1",
-		"axios": "1.6.7",
 		"bitecs": "^0.4.0",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.1",
