@@ -277,42 +277,48 @@
 			"package_name": "erust",
 			"version": "0.1.7",
 			"version_toml": "packages/rust/erust/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/erust-crate.mdx"
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/erust-crate.mdx",
+			"version_target": "packages/rust/erust/Cargo.toml"
 		},
 		{
 			"key": "holy_crate",
 			"package_name": "holy",
 			"version": "0.2.0",
 			"version_toml": "packages/rust/holy/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/holy-crate.mdx"
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/holy-crate.mdx",
+			"version_target": "packages/rust/holy/Cargo.toml"
 		},
 		{
 			"key": "jedi_crate",
 			"package_name": "jedi",
 			"version": "0.2.2",
 			"version_toml": "packages/rust/jedi/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/jedi-crate.mdx"
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/jedi-crate.mdx",
+			"version_target": "packages/rust/jedi/Cargo.toml"
 		},
 		{
 			"key": "kbve_crate",
 			"package_name": "kbve",
 			"version": "0.1.26",
 			"version_toml": "packages/rust/kbve/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbve-crate.mdx"
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbve-crate.mdx",
+			"version_target": "packages/rust/kbve/Cargo.toml"
 		},
 		{
 			"key": "q_crate",
 			"package_name": "q",
 			"version": "0.1.1",
 			"version_toml": "packages/rust/q/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/q-crate.mdx"
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/q-crate.mdx",
+			"version_target": "packages/rust/q/Cargo.toml"
 		},
 		{
 			"key": "soul_crate",
 			"package_name": "soul",
 			"version": "0.1.1",
 			"version_toml": "packages/rust/soul/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/soul-crate.mdx"
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/soul-crate.mdx",
+			"version_target": "packages/rust/soul/Cargo.toml"
 		}
 	],
 	"python": [

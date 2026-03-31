@@ -53,6 +53,11 @@ on:
                 required: false
                 type: string
                 default: ''
+            version_target:
+                description: 'Path to Cargo.toml/package.json to patch with version before publish. E.g. packages/rust/jedi/Cargo.toml'
+                required: false
+                type: string
+                default: ''
             manifest_version:
                 description: 'Version from the MDX manifest (source of truth). When provided, Cargo.toml/package.json are patched to match before publish.'
                 required: false
@@ -236,8 +241,8 @@ jobs:
 
     # ===========================================================================
     # Rust Crates — test then publish (only runs when package_type == 'crates')
-    # When manifest_version is provided, rust-publish-crate patches Cargo.toml
-    # inline before publishing — no separate sync job or git push needed.
+    # Uses the same version_source/version_target pattern as Docker apps:
+    # version_source (MDX) is read, version_target (Cargo.toml) is patched.
     # ===========================================================================
     test_crates:
         name: Test Crate — ${{ inputs.package_name }}
@@ -262,8 +267,8 @@ jobs:
         uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
         with:
             package: ${{ inputs.package_name }}
-            version: ${{ inputs.manifest_version }}
             version_source: ${{ inputs.version_source }}
+            version_target: ${{ inputs.version_target }}
         secrets:
             CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 
@@ -360,6 +365,7 @@ jobs:
             package_name: ${{ inputs.package_name }}
             version: ${{ needs.version_gate.outputs.local_version }}
             version_toml_path: ${{ inputs.version_toml_path_override != '' && inputs.version_toml_path_override || format('packages/rust/{0}/version.toml', inputs.package_name) }}
+            version_target_path: ${{ inputs.version_target }}
 
     update_version_python:
         name: Update version.toml (python)
