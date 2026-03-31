@@ -88,7 +88,7 @@ spec:
                 # Uses Gluetun's network namespace — all traffic exits via VPN.
                 # Browser profile persisted via PVC so Discord session survives restarts.
                 - name: workspace
-                  image: kasmweb/discord:1.16.1
+                  image: kasmweb/discord:1.18.0-rolling-daily
                   env:
                       - name: VNC_PW
                         value: 'changeme'
