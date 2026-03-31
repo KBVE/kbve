@@ -84,9 +84,6 @@ importers:
             astro-mermaid:
                 specifier: ^2.0.1
                 version: 2.0.1(astro@6.1.1(@planetscale/database@1.19.0)(@types/node@18.19.17)(jiti@2.6.1)(less@4.1.3)(lightningcss@1.30.2)(rollup@4.57.1)(sass-embedded@1.85.1)(sass@1.85.1)(stylus@0.64.0)(terser@5.44.1)(typescript@5.9.3)(yaml@2.8.3))(mermaid@11.12.0)
-            axios:
-                specifier: 1.6.7
-                version: 1.6.7
             bitecs:
                 specifier: ^0.4.0
                 version: 0.4.0
@@ -10705,12 +10702,6 @@ packages:
                 integrity: sha512-cz4ur7Vb0xS4/KUN0tPWe44eqxrIu31me+fbang3ijiNscE129POzipJJA6zniq2C/Z6sJCjMimjS8Lc/GAs8Q==,
             }
 
-    axios@1.6.7:
-        resolution:
-            {
-                integrity: sha512-/hDJGff6/c7u0hDkvkGxR/oy6CbCs8ziCsC7SqmhjfozqiJGc8Z11wrv9z9lYfY4K8l+H9TpjcMDX0xOZmx+RA==,
-            }
-
     axobject-query@4.1.0:
         resolution:
             {
@@ -14693,18 +14684,6 @@ packages:
             debug:
                 optional: true
 
-    follow-redirects@1.15.9:
-        resolution:
-            {
-                integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==,
-            }
-        engines: { node: '>=4.0' }
-        peerDependencies:
-            debug: '*'
-        peerDependenciesMeta:
-            debug:
-                optional: true
-
     fontace@0.4.1:
         resolution:
             {
@@ -14779,13 +14758,6 @@ packages:
                 integrity: sha512-yDYSgNMraqvnxiEXO4hi88+YZxaHC6QKzb5N84iRCTDeRO7ZALpir/lVmf/uXUhnwUr2O4HU8s/n6x+yNjQkHw==,
             }
         engines: { node: '>= 14.17' }
-
-    form-data@4.0.2:
-        resolution:
-            {
-                integrity: sha512-hGfm/slu0ZabnNt4oaRZ6uREyfCj6P4fT/n6A1rGV+Z0VdGXjfOhVUpkn6qVQONHGIFwmveGXyDs75+nr6FM8w==,
-            }
-        engines: { node: '>= 6' }
 
     form-data@4.0.5:
         resolution:
@@ -34995,14 +34967,6 @@ snapshots:
         transitivePeerDependencies:
             - debug
 
-    axios@1.6.7:
-        dependencies:
-            follow-redirects: 1.15.9
-            form-data: 4.0.2
-            proxy-from-env: 1.1.0
-        transitivePeerDependencies:
-            - debug
-
     axobject-query@4.1.0: {}
 
     b4a@1.6.7: {}
@@ -37844,8 +37808,6 @@ snapshots:
         optionalDependencies:
             debug: 4.4.3
 
-    follow-redirects@1.15.9: {}
-
     fontace@0.4.1:
         dependencies:
             fontkitten: 1.0.2
@@ -37910,13 +37872,6 @@ snapshots:
     form-data-encoder@1.7.2: {}
 
     form-data-encoder@2.1.4: {}
-
-    form-data@4.0.2:
-        dependencies:
-            asynckit: 0.4.0
-            combined-stream: 1.0.8
-            es-set-tostringtag: 2.1.0
-            mime-types: 2.1.35
 
     form-data@4.0.5:
         dependencies:
