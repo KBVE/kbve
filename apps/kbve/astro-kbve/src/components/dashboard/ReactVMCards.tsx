@@ -20,6 +20,9 @@ import {
 	Monitor,
 	Apple,
 	Network,
+	Bot,
+	Clock,
+	ShieldAlert,
 } from 'lucide-react';
 
 function OSIcon({ osType }: { osType: VMInfo['osType'] }) {
@@ -261,6 +264,80 @@ function VMCard({ info }: { info: VMInfo }) {
 						{vmi.status.guestOSInfo.prettyName}
 					</div>
 				)}
+
+				{/* KEDA runner banner */}
+				{info.isKedaManaged && isRunning && (
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'flex-start',
+							gap: 8,
+							padding: '0.5rem 0.75rem',
+							borderRadius: 8,
+							fontSize: '0.7rem',
+							lineHeight: 1.4,
+							marginBottom: 10,
+							...(info.mayHaveActiveJob
+								? {
+										background: 'rgba(245, 158, 11, 0.1)',
+										border: '1px solid rgba(245, 158, 11, 0.3)',
+										color: '#f59e0b',
+									}
+								: {
+										background: 'rgba(6, 182, 212, 0.08)',
+										border: '1px solid rgba(6, 182, 212, 0.2)',
+										color: '#06b6d4',
+									}),
+						}}>
+						{info.mayHaveActiveJob ? (
+							<ShieldAlert
+								size={14}
+								style={{ flexShrink: 0, marginTop: 1 }}
+							/>
+						) : (
+							<Bot
+								size={14}
+								style={{ flexShrink: 0, marginTop: 1 }}
+							/>
+						)}
+						<div>
+							<div style={{ fontWeight: 600 }}>
+								{info.mayHaveActiveJob
+									? 'Possible active CI job'
+									: 'KEDA auto-managed'}
+							</div>
+							<div style={{ opacity: 0.85 }}>
+								{info.runnerLabel && (
+									<span>
+										Runner:{' '}
+										<code style={{ fontSize: '0.65rem' }}>
+											{info.runnerLabel}
+										</code>{' '}
+										·{' '}
+									</span>
+								)}
+								{info.uptimeMinutes !== undefined && (
+									<span>
+										<Clock
+											size={10}
+											style={{
+												display: 'inline',
+												verticalAlign: 'middle',
+											}}
+										/>{' '}
+										Up {info.uptimeMinutes}m
+									</span>
+								)}
+								{info.mayHaveActiveJob && (
+									<span>
+										{' '}
+										· Stopping may kill an in-progress build
+									</span>
+								)}
+							</div>
+						</div>
+					</div>
+				)}
 			</div>
 
 			{/* Actions */}
@@ -289,7 +366,15 @@ function VMCard({ info }: { info: VMInfo }) {
 							color="#ef4444"
 							loading={currentAction === 'stop'}
 							disabled={!!currentAction}
-							onClick={() => vmService.stopVM(name)}
+							onClick={() => {
+								if (info.mayHaveActiveJob) {
+									const ok = window.confirm(
+										`⚠️ ${name} may be running a GitHub Actions build job (uptime: ${info.uptimeMinutes}m, runner: ${info.runnerLabel ?? 'unknown'}).\n\nStopping this VM will kill any in-progress CI jobs.\n\nAre you sure?`,
+									);
+									if (!ok) return;
+								}
+								vmService.stopVM(name);
+							}}
 						/>
 						<ActionButton
 							icon={<RotateCw size={13} />}
@@ -297,7 +382,15 @@ function VMCard({ info }: { info: VMInfo }) {
 							color="#f59e0b"
 							loading={currentAction === 'restart'}
 							disabled={!!currentAction}
-							onClick={() => vmService.restartVM(name)}
+							onClick={() => {
+								if (info.mayHaveActiveJob) {
+									const ok = window.confirm(
+										`⚠️ ${name} may be running a GitHub Actions build job.\n\nRestarting will kill any in-progress CI jobs.\n\nAre you sure?`,
+									);
+									if (!ok) return;
+								}
+								vmService.restartVM(name);
+							}}
 						/>
 						<ActionButton
 							icon={<Monitor size={13} />}
