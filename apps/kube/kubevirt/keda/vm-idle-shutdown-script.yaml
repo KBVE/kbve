@@ -1,0 +1,108 @@
+# ConfigMap with the smart idle shutdown script used by KEDA ScaledJobs.
+#
+# Checks THREE conditions before stopping a VM:
+#   1. Age > IDLE_THRESHOLD_MINUTES (VM has been running long enough)
+#   2. No GitHub Actions jobs queued/in-progress for RUNNER_LABEL
+#   3. No active VNC (5900) or RDP (3389) connections
+#
+# All three must be true → stop VM. Any one fails → keep running.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: vm-idle-shutdown-script
+    namespace: angelscript
+data:
+    idle-shutdown.sh: |
+        #!/bin/sh
+        set -e
+        VM_NAME="${VM_NAME:?VM_NAME required}"
+        RUNNER_LABEL="${RUNNER_LABEL:?RUNNER_LABEL required}"
+        NAMESPACE="${NAMESPACE:-angelscript}"
+        IDLE_THRESHOLD_MINUTES="${IDLE_THRESHOLD_MINUTES:-30}"
+        GITHUB_ORG="${GITHUB_ORG:-KBVE}"
+
+        echo "=== Idle shutdown check: ${VM_NAME} (label: ${RUNNER_LABEL}) ==="
+
+        # ── Check 1: Is the VM running? ──
+        STATUS=$(kubectl get vm "${VM_NAME}" -n "${NAMESPACE}" -o jsonpath='{.status.printableStatus}' 2>/dev/null || echo "Unknown")
+        if [ "${STATUS}" != "Running" ]; then
+            echo "SKIP: VM not running (${STATUS})"
+            exit 0
+        fi
+
+        # ── Check 2: Has it been running long enough? ──
+        CREATED=$(kubectl get vmi "${VM_NAME}" -n "${NAMESPACE}" -o jsonpath='{.metadata.creationTimestamp}' 2>/dev/null || echo "")
+        if [ -z "${CREATED}" ]; then
+            echo "SKIP: no VMI found"
+            exit 0
+        fi
+
+        CREATED_EPOCH=$(date -d "${CREATED}" +%s 2>/dev/null || echo "0")
+        NOW_EPOCH=$(date +%s)
+        AGE_MINUTES=$(( (NOW_EPOCH - CREATED_EPOCH) / 60 ))
+        echo "Age: ${AGE_MINUTES} minutes (threshold: ${IDLE_THRESHOLD_MINUTES})"
+
+        if [ "${AGE_MINUTES}" -le "${IDLE_THRESHOLD_MINUTES}" ]; then
+            echo "KEEP: under idle threshold"
+            exit 0
+        fi
+
+        # ── Check 3: Any queued/in-progress GitHub Actions jobs? ──
+        if [ -n "${GITHUB_TOKEN}" ]; then
+            # Check for busy runners
+            BUSY_RUNNERS=$(curl -sf \
+                -H "Authorization: token ${GITHUB_TOKEN}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/orgs/${GITHUB_ORG}/actions/runners?per_page=100" 2>/dev/null \
+                | grep -c '"busy": true' 2>/dev/null || echo "0")
+
+            # Check for queued runs mentioning our runner label
+            QUEUED_RUNS=$(curl -sf \
+                -H "Authorization: token ${GITHUB_TOKEN}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/repos/${GITHUB_ORG}/kbve/actions/runs?status=queued&per_page=10" 2>/dev/null \
+                | grep -ci "${RUNNER_LABEL}" 2>/dev/null || echo "0")
+
+            # Check for in-progress runs
+            ACTIVE_RUNS=$(curl -sf \
+                -H "Authorization: token ${GITHUB_TOKEN}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/repos/${GITHUB_ORG}/kbve/actions/runs?status=in_progress&per_page=10" 2>/dev/null \
+                | grep -ci "${RUNNER_LABEL}" 2>/dev/null || echo "0")
+
+            echo "GitHub: busy=${BUSY_RUNNERS}, queued=${QUEUED_RUNS}, active=${ACTIVE_RUNS}"
+
+            if [ "${QUEUED_RUNS}" -gt 0 ] || [ "${ACTIVE_RUNS}" -gt 0 ]; then
+                echo "KEEP: GitHub Actions activity detected"
+                exit 0
+            fi
+        else
+            echo "WARN: no GITHUB_TOKEN — skipping GitHub check"
+        fi
+
+        # ── Check 4: Any active VNC/RDP connections? ──
+        POD_NAME=$(kubectl get pods -n "${NAMESPACE}" -l "vm.kubevirt.io/name=${VM_NAME}" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+        if [ -n "${POD_NAME}" ]; then
+            VNC_CONNS=$(kubectl exec "${POD_NAME}" -n "${NAMESPACE}" -c compute -- \
+                sh -c "ss -tn state established 2>/dev/null | grep -c ':5900' || echo 0" 2>/dev/null || echo "0")
+            RDP_CONNS=$(kubectl exec "${POD_NAME}" -n "${NAMESPACE}" -c compute -- \
+                sh -c "ss -tn state established 2>/dev/null | grep -c ':3389' || echo 0" 2>/dev/null || echo "0")
+
+            echo "Sessions: VNC=${VNC_CONNS}, RDP=${RDP_CONNS}"
+
+            if [ "${VNC_CONNS}" -gt 0 ] || [ "${RDP_CONNS}" -gt 0 ]; then
+                echo "KEEP: active VNC/RDP session"
+                exit 0
+            fi
+        fi
+
+        # ── All checks passed — stop the VM ──
+        echo "STOP: idle ${AGE_MINUTES}m, no jobs, no sessions"
+        kubectl proxy --port=8001 &
+        PROXY_PID=$!
+        sleep 2
+        curl -s -X PUT \
+            "http://localhost:8001/apis/subresources.kubevirt.io/v1/namespaces/${NAMESPACE}/virtualmachines/${VM_NAME}/stop" \
+            -H "Content-Type: application/json" -d '{}'
+        kill "${PROXY_PID}" 2>/dev/null || true
+        echo "${VM_NAME}: stop requested."
