@@ -1,94 +1,103 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { vmService } from './vmService';
-import { X, Maximize2, Minimize2 } from 'lucide-react';
-import { useState } from 'react';
+import { X, Maximize2, Minimize2, Keyboard } from 'lucide-react';
+
+// noVNC RFB client — handles the full VNC/RFB protocol over WebSocket
+// including framebuffer rendering, keyboard, and mouse forwarding.
+// @ts-expect-error — noVNC ships without TypeScript declarations
+import RFB from '@novnc/novnc/core/rfb';
 
 export default function ReactVMVncViewer() {
 	const vncTarget = useStore(vmService.$vncTarget);
-	const accessToken = useStore(vmService.$accessToken);
-	const canvasRef = useRef<HTMLCanvasElement>(null);
-	const wsRef = useRef<WebSocket | null>(null);
+	const rfbRef = useRef<InstanceType<typeof RFB> | null>(null);
+	const containerRef = useRef<HTMLDivElement>(null);
+	const viewerRef = useRef<HTMLDivElement>(null);
 	const [fullscreen, setFullscreen] = useState(false);
 	const [connected, setConnected] = useState(false);
 	const [status, setStatus] = useState('Connecting...');
-	const containerRef = useRef<HTMLDivElement>(null);
+	const [keyboardVisible, setKeyboardVisible] = useState(false);
 
 	const cleanup = useCallback(() => {
-		if (wsRef.current) {
-			wsRef.current.close();
-			wsRef.current = null;
+		if (rfbRef.current) {
+			rfbRef.current.disconnect();
+			rfbRef.current = null;
 		}
 		setConnected(false);
 		setStatus('Disconnected');
 	}, []);
 
 	useEffect(() => {
-		if (!vncTarget || !accessToken) {
+		if (!vncTarget) {
 			cleanup();
 			return;
 		}
 
+		const target = viewerRef.current;
+		if (!target) return;
+
+		// Clear previous content
+		target.innerHTML = '';
+
 		const wsUrl = vmService.getVNCWebSocketURL(vncTarget);
 		setStatus('Connecting...');
 
-		const ws = new WebSocket(wsUrl, ['base64.binary.k8s.io']);
-		wsRef.current = ws;
+		try {
+			const rfb = new RFB(target, wsUrl, {
+				wsProtocols: ['binary.k8s.io', 'base64.binary.k8s.io'],
+			});
 
-		ws.binaryType = 'arraybuffer';
+			rfb.scaleViewport = true;
+			rfb.resizeSession = false;
+			rfb.clipViewport = false;
+			rfb.showDotCursor = true;
+			rfb.qualityLevel = 6;
+			rfb.compressionLevel = 2;
 
-		ws.onopen = () => {
-			setConnected(true);
-			setStatus(`Connected to ${vncTarget}`);
-		};
+			rfb.addEventListener('connect', () => {
+				setConnected(true);
+				setStatus(`Connected to ${vncTarget}`);
+			});
 
-		ws.onclose = () => {
-			setConnected(false);
-			setStatus('Connection closed');
-		};
-
-		ws.onerror = () => {
-			setConnected(false);
-			setStatus('Connection error — VNC may not be available');
-		};
-
-		ws.onmessage = (event) => {
-			// Raw VNC/RFB frames — for a full implementation you would use
-			// a noVNC library here. This minimal viewer renders a placeholder
-			// with connection status. To get full interactive VNC, integrate
-			// @novnc/novnc or a similar library.
-			const canvas = canvasRef.current;
-			if (!canvas) return;
-			const ctx = canvas.getContext('2d');
-			if (!ctx) return;
-
-			// Draw a simple "connected" indicator
-			ctx.fillStyle = '#0a0a0a';
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
-			ctx.fillStyle = '#22c55e';
-			ctx.font = '14px monospace';
-			ctx.fillText(`VNC stream active — ${vncTarget}`, 20, 30);
-			ctx.fillStyle = '#8b949e';
-			ctx.font = '11px monospace';
-			ctx.fillText('Receiving framebuffer data...', 20, 50);
-			ctx.fillText(
-				'Full noVNC integration renders interactive desktop here.',
-				20,
-				70,
+			rfb.addEventListener(
+				'disconnect',
+				(e: { detail: { clean: boolean } }) => {
+					setConnected(false);
+					setStatus(
+						e.detail.clean
+							? 'Disconnected cleanly'
+							: 'Connection lost — VM may have stopped',
+					);
+					rfbRef.current = null;
+				},
 			);
-		};
+
+			rfb.addEventListener('securityfailure', () => {
+				setStatus('Security handshake failed');
+			});
+
+			rfbRef.current = rfb;
+		} catch (err) {
+			setStatus(
+				`Failed to connect: ${err instanceof Error ? err.message : 'Unknown error'}`,
+			);
+		}
 
 		return cleanup;
-	}, [vncTarget, accessToken, cleanup]);
+	}, [vncTarget, cleanup]);
 
-	// Handle keyboard events
-	const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-		if (e.key === 'Escape') {
-			vmService.closeVNC();
-		}
-		// In a full noVNC implementation, key events would be forwarded
-		// to the VM via the WebSocket connection
+	// Ctrl+Alt+Del sender
+	const sendCtrlAltDel = useCallback(() => {
+		rfbRef.current?.sendCtrlAltDel();
 	}, []);
+
+	// Toggle virtual keyboard (mobile/tablet)
+	const toggleKeyboard = useCallback(() => {
+		if (rfbRef.current) {
+			rfbRef.current.focusOnClick = !keyboardVisible;
+			setKeyboardVisible(!keyboardVisible);
+		}
+	}, [keyboardVisible]);
 
 	if (!vncTarget) return null;
 
@@ -96,8 +105,6 @@ export default function ReactVMVncViewer() {
 		<div
 			ref={containerRef}
 			className="not-content"
-			onKeyDown={handleKeyDown}
-			tabIndex={0}
 			style={{
 				position: fullscreen ? 'fixed' : 'relative',
 				top: fullscreen ? 0 : undefined,
@@ -143,66 +150,56 @@ export default function ReactVMVncViewer() {
 					</span>
 				</div>
 				<div style={{ display: 'flex', gap: 4 }}>
-					<button
-						onClick={() => setFullscreen(!fullscreen)}
-						style={{
-							display: 'flex',
-							alignItems: 'center',
-							padding: 4,
-							borderRadius: 4,
-							border: 'none',
-							background: 'transparent',
-							color: 'var(--sl-color-gray-3, #8b949e)',
-							cursor: 'pointer',
-						}}>
+					{connected && (
+						<>
+							<ToolbarButton
+								title="Send Ctrl+Alt+Del"
+								onClick={sendCtrlAltDel}>
+								<span
+									style={{
+										fontSize: '0.6rem',
+										fontWeight: 700,
+									}}>
+									CAD
+								</span>
+							</ToolbarButton>
+							<ToolbarButton
+								title="Toggle keyboard"
+								onClick={toggleKeyboard}>
+								<Keyboard size={14} />
+							</ToolbarButton>
+						</>
+					)}
+					<ToolbarButton
+						title={fullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+						onClick={() => setFullscreen(!fullscreen)}>
 						{fullscreen ? (
 							<Minimize2 size={14} />
 						) : (
 							<Maximize2 size={14} />
 						)}
-					</button>
-					<button
+					</ToolbarButton>
+					<ToolbarButton
+						title="Close VNC"
 						onClick={() => vmService.closeVNC()}
-						style={{
-							display: 'flex',
-							alignItems: 'center',
-							padding: 4,
-							borderRadius: 4,
-							border: 'none',
-							background: 'transparent',
-							color: '#ef4444',
-							cursor: 'pointer',
-						}}>
+						color="#ef4444">
 						<X size={14} />
-					</button>
+					</ToolbarButton>
 				</div>
 			</div>
 
-			{/* Canvas */}
+			{/* noVNC renders into this container */}
 			<div
+				ref={viewerRef}
 				style={{
 					flex: 1,
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
 					minHeight: fullscreen ? undefined : 480,
-					padding: '1rem',
-				}}>
-				<canvas
-					ref={canvasRef}
-					width={1024}
-					height={768}
-					style={{
-						maxWidth: '100%',
-						maxHeight: '100%',
-						borderRadius: 4,
-						background: '#0a0a0a',
-						cursor: connected ? 'default' : 'not-allowed',
-					}}
-				/>
-			</div>
+					background: '#0a0a0a',
+					cursor: connected ? 'default' : 'not-allowed',
+				}}
+			/>
 
-			{/* Hint */}
+			{/* Status bar */}
 			<div
 				style={{
 					padding: '0.4rem 1rem',
@@ -211,9 +208,40 @@ export default function ReactVMVncViewer() {
 					color: 'var(--sl-color-gray-3, #8b949e)',
 					textAlign: 'center',
 				}}>
-				Press Escape to close · Full noVNC integration renders
-				interactive desktop with keyboard and mouse forwarding
+				{connected
+					? 'Click inside to capture keyboard · Ctrl+Alt+Del via toolbar'
+					: 'Waiting for VNC connection...'}
 			</div>
 		</div>
+	);
+}
+
+function ToolbarButton({
+	title,
+	onClick,
+	color,
+	children,
+}: {
+	title: string;
+	onClick: () => void;
+	color?: string;
+	children: React.ReactNode;
+}) {
+	return (
+		<button
+			title={title}
+			onClick={onClick}
+			style={{
+				display: 'flex',
+				alignItems: 'center',
+				padding: 4,
+				borderRadius: 4,
+				border: 'none',
+				background: 'transparent',
+				color: color ?? 'var(--sl-color-gray-3, #8b949e)',
+				cursor: 'pointer',
+			}}>
+			{children}
+		</button>
 	);
 }
