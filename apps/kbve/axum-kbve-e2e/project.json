@@ -21,8 +21,9 @@
 			"options": {
 				"commands": [
 					"docker rm -f axum-kbve-e2e 2>/dev/null || true",
-					"docker run -d --name axum-kbve-e2e -p 4323:4321 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4321 -e RUST_LOG=info kbve/kbve:latest",
-					"npx vitest run; EC=$?; docker rm -f axum-kbve-e2e 2>/dev/null || true; exit $EC"
+					"docker run -d --name axum-kbve-e2e -p 4323:4321 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4321 -e RUST_LOG=info -e GAME_WT_DISABLE=1 kbve/kbve:latest",
+					"echo 'Waiting for axum-kbve container to become ready...' && for i in $(seq 1 120); do if docker logs axum-kbve-e2e 2>&1 | grep -q 'HTTP listening'; then echo 'Container ready after '\"$i\"'s'; break; fi; if [ $i -eq 120 ]; then echo 'Container did not become ready in 120s'; docker logs axum-kbve-e2e 2>&1 | tail -30; docker rm -f axum-kbve-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+					"npx vitest run; EC=$?; echo '--- container logs ---'; docker logs axum-kbve-e2e 2>&1 | tail -50; docker rm -f axum-kbve-e2e 2>/dev/null || true; exit $EC"
 				],
 				"parallel": false,
 				"cwd": "apps/kbve/axum-kbve-e2e"

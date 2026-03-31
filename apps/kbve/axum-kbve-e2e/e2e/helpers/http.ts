@@ -8,7 +8,7 @@ export const BASE_URL = `http://${AXUM_HOST}:${AXUM_PORT}`;
  * TCP-only checks are insufficient — the server accepts TCP
  * connections before the HTTP handler is fully initialized.
  */
-export async function waitForReady(timeoutMs = 30_000): Promise<void> {
+export async function waitForReady(timeoutMs = 60_000): Promise<void> {
 	const deadline = Date.now() + timeoutMs;
 
 	while (Date.now() < deadline) {
