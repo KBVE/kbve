@@ -145,6 +145,21 @@ pub struct Zone {
     /// Extensions
     #[prost(message, repeated, tag = "31")]
     pub extensions: ::prost::alloc::vec::Vec<MapExtension>,
+    /// World behavior policies
+    #[prost(enumeration = "GenerationMode", optional, tag = "39")]
+    pub generation: ::core::option::Option<i32>,
+    #[prost(enumeration = "PersistenceMode", optional, tag = "34")]
+    pub persistence: ::core::option::Option<i32>,
+    #[prost(enumeration = "StreamingHint", optional, tag = "35")]
+    pub streaming: ::core::option::Option<i32>,
+    #[prost(enumeration = "ReplicationHint", optional, tag = "36")]
+    pub replication: ::core::option::Option<i32>,
+    /// Environment / atmosphere
+    #[prost(message, optional, tag = "37")]
+    pub environment: ::core::option::Option<EnvironmentConfig>,
+    /// Seed derivation
+    #[prost(message, optional, tag = "38")]
+    pub seed_policy: ::core::option::Option<SeedPolicy>,
     /// Metadata
     #[prost(string, optional, tag = "32")]
     pub credits: ::core::option::Option<::prost::alloc::string::String>,
@@ -424,9 +439,16 @@ pub struct WorldObjectDef {
     pub description: ::core::option::Option<::prost::alloc::string::String>,
     #[prost(enumeration = "WorldObjectType", tag = "5")]
     pub r#type: i32,
-    /// Variant within type (e.g. "conifer", "ore_copper")
+    /// Free-form variant (e.g. "coal", "oak", "ruby")
     #[prost(string, optional, tag = "6")]
     pub sub_kind: ::core::option::Option<::prost::alloc::string::String>,
+    /// Typed subtypes — use the one matching the archetype in `type`
+    #[prost(enumeration = "ResourceType", optional, tag = "37")]
+    pub resource_type: ::core::option::Option<i32>,
+    #[prost(enumeration = "ContainerType", optional, tag = "38")]
+    pub container_type: ::core::option::Option<i32>,
+    #[prost(enumeration = "CraftingStationType", optional, tag = "39")]
+    pub crafting_station_type: ::core::option::Option<i32>,
     /// Visual
     #[prost(string, optional, tag = "7")]
     pub model_ref: ::core::option::Option<::prost::alloc::string::String>,
@@ -522,9 +544,9 @@ pub struct WorldObjectDef {
     #[prost(message, repeated, tag = "24")]
     pub extensions: ::prost::alloc::vec::Vec<MapExtension>,
     /// Metadata
-    #[prost(string, optional, tag = "37")]
+    #[prost(string, optional, tag = "40")]
     pub credits: ::core::option::Option<::prost::alloc::string::String>,
-    #[prost(bool, optional, tag = "38")]
+    #[prost(bool, optional, tag = "41")]
     pub drafted: ::core::option::Option<bool>,
 }
 /// Resource cost for constructing a structure
@@ -653,6 +675,182 @@ pub struct Region {
     #[prost(message, repeated, tag = "11")]
     pub extensions: ::prost::alloc::vec::Vec<MapExtension>,
 }
+/// Axial hex coordinate (cube coordinate S is implicit: s = -q - r)
+#[derive(
+    serde::Serialize, serde::Deserialize, Clone, Copy, PartialEq, Eq, Hash, ::prost::Message,
+)]
+pub struct HexCoord {
+    #[prost(int32, tag = "1")]
+    pub q: i32,
+    #[prost(int32, tag = "2")]
+    pub r: i32,
+}
+/// Deterministic seed derivation policy for a zone
+#[derive(
+    serde::Serialize, serde::Deserialize, Clone, Copy, PartialEq, Eq, Hash, ::prost::Message,
+)]
+pub struct SeedPolicy {
+    /// Root world seed
+    #[prost(int64, tag = "1")]
+    pub world_seed: i64,
+    /// Content version for stable regeneration
+    #[prost(int32, tag = "2")]
+    pub content_version: i32,
+}
+/// Travel link between two hex zones
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct HexTravelLink {
+    #[prost(message, optional, tag = "1")]
+    pub from: ::core::option::Option<HexCoord>,
+    #[prost(message, optional, tag = "2")]
+    pub to: ::core::option::Option<HexCoord>,
+    #[prost(enumeration = "hex_travel_link::TravelType", tag = "3")]
+    pub travel_type: i32,
+    #[prost(int32, optional, tag = "4")]
+    pub level_requirement: ::core::option::Option<i32>,
+    #[prost(string, optional, tag = "5")]
+    pub quest_requirement: ::core::option::Option<::prost::alloc::string::String>,
+    /// Named route (e.g. "Northern Pass")
+    #[prost(string, optional, tag = "6")]
+    pub tag: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Nested message and enum types in `HexTravelLink`.
+pub mod hex_travel_link {
+    #[derive(
+        serde::Serialize,
+        serde::Deserialize,
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration,
+    )]
+    #[repr(i32)]
+    pub enum TravelType {
+        TravelUnspecified = 0,
+        /// Freely traversable
+        TravelOpen = 1,
+        /// Requires key, quest, or level
+        TravelGated = 2,
+        /// From → To only
+        TravelOneWay = 3,
+        /// Currently impassable
+        TravelBlocked = 4,
+    }
+    impl TravelType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::TravelUnspecified => "TRAVEL_UNSPECIFIED",
+                Self::TravelOpen => "TRAVEL_OPEN",
+                Self::TravelGated => "TRAVEL_GATED",
+                Self::TravelOneWay => "TRAVEL_ONE_WAY",
+                Self::TravelBlocked => "TRAVEL_BLOCKED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "TRAVEL_UNSPECIFIED" => Some(Self::TravelUnspecified),
+                "TRAVEL_OPEN" => Some(Self::TravelOpen),
+                "TRAVEL_GATED" => Some(Self::TravelGated),
+                "TRAVEL_ONE_WAY" => Some(Self::TravelOneWay),
+                "TRAVEL_BLOCKED" => Some(Self::TravelBlocked),
+                _ => None,
+            }
+        }
+    }
+}
+/// Environment configuration — visual atmosphere for a zone
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct EnvironmentConfig {
+    /// Sun / directional light
+    ///
+    /// Elevation angle in degrees (-90 to 90)
+    #[prost(float, optional, tag = "1")]
+    pub sun_pitch: ::core::option::Option<f32>,
+    /// Azimuth angle in degrees (0 to 360)
+    #[prost(float, optional, tag = "2")]
+    pub sun_yaw: ::core::option::Option<f32>,
+    #[prost(float, optional, tag = "3")]
+    pub sun_intensity: ::core::option::Option<f32>,
+    #[prost(message, optional, tag = "4")]
+    pub sun_color: ::core::option::Option<Color>,
+    /// Sky
+    #[prost(float, optional, tag = "5")]
+    pub sky_intensity: ::core::option::Option<f32>,
+    #[prost(float, optional, tag = "6")]
+    pub atmosphere_rayleigh_scale: ::core::option::Option<f32>,
+    #[prost(float, optional, tag = "7")]
+    pub atmosphere_mie_scale: ::core::option::Option<f32>,
+    /// Fog
+    #[prost(float, optional, tag = "8")]
+    pub fog_density: ::core::option::Option<f32>,
+    #[prost(float, optional, tag = "9")]
+    pub fog_height_falloff: ::core::option::Option<f32>,
+    #[prost(message, optional, tag = "10")]
+    pub fog_color: ::core::option::Option<Color>,
+    #[prost(float, optional, tag = "11")]
+    pub fog_start_distance: ::core::option::Option<f32>,
+    /// Ambient
+    #[prost(string, optional, tag = "12")]
+    pub ambient_sound_ref: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "13")]
+    pub music_ref: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// A hex zone record — one tile in the master hex world map
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct HexZoneRecord {
+    #[prost(message, optional, tag = "1")]
+    pub coord: ::core::option::Option<HexCoord>,
+    /// Links to Zone.ref for full zone data
+    #[prost(string, tag = "2")]
+    pub zone_ref: ::prost::alloc::string::String,
+    /// Generation
+    #[prost(enumeration = "GenerationMode", tag = "9")]
+    pub generation: i32,
+    /// Behavior policies
+    #[prost(enumeration = "PersistenceMode", tag = "3")]
+    pub persistence: i32,
+    #[prost(enumeration = "StreamingHint", tag = "4")]
+    pub streaming: i32,
+    #[prost(enumeration = "ReplicationHint", tag = "5")]
+    pub replication: i32,
+    /// Generation
+    #[prost(message, optional, tag = "6")]
+    pub seed_policy: ::core::option::Option<SeedPolicy>,
+    /// Environment override (if different from zone default)
+    #[prost(message, optional, tag = "7")]
+    pub environment: ::core::option::Option<EnvironmentConfig>,
+    /// Travel links originating from this hex
+    #[prost(message, repeated, tag = "8")]
+    pub travel_links: ::prost::alloc::vec::Vec<HexTravelLink>,
+}
+/// The master hex world map — top-level world topology
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct HexWorldMap {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "3")]
+    pub description: ::core::option::Option<::prost::alloc::string::String>,
+    /// Default seed policy for the world
+    #[prost(message, optional, tag = "4")]
+    pub seed_policy: ::core::option::Option<SeedPolicy>,
+    /// Hex size in world units (center to vertex)
+    #[prost(double, tag = "5")]
+    pub hex_size: f64,
+    #[prost(message, repeated, tag = "6")]
+    pub hexes: ::prost::alloc::vec::Vec<HexZoneRecord>,
+}
 /// Generic extension slot
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
 pub struct MapExtension {
@@ -686,6 +884,8 @@ pub struct MapRegistry {
     pub zones: ::prost::alloc::vec::Vec<Zone>,
     #[prost(message, repeated, tag = "3")]
     pub object_defs: ::prost::alloc::vec::Vec<WorldObjectDef>,
+    #[prost(message, repeated, tag = "4")]
+    pub hex_worlds: ::prost::alloc::vec::Vec<HexWorldMap>,
 }
 /// Biome classification — drives terrain generation, visuals, and spawn tables
 #[derive(
@@ -719,6 +919,7 @@ pub enum Biome {
     Underground = 13,
     Floating = 14,
     Void = 15,
+    Coastal = 16,
 }
 impl Biome {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -743,6 +944,7 @@ impl Biome {
             Self::Underground => "BIOME_UNDERGROUND",
             Self::Floating => "BIOME_FLOATING",
             Self::Void => "BIOME_VOID",
+            Self::Coastal => "BIOME_COASTAL",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -764,6 +966,7 @@ impl Biome {
             "BIOME_UNDERGROUND" => Some(Self::Underground),
             "BIOME_FLOATING" => Some(Self::Floating),
             "BIOME_VOID" => Some(Self::Void),
+            "BIOME_COASTAL" => Some(Self::Coastal),
             _ => None,
         }
     }
@@ -784,21 +987,22 @@ impl Biome {
 )]
 #[repr(i32)]
 pub enum ZoneType {
-    Overworld = 0,
-    Dungeon = 1,
+    Unspecified = 0,
+    Overworld = 1,
+    Dungeon = 2,
     /// Private per-party instance
-    Instance = 2,
-    City = 3,
+    Instance = 3,
+    City = 4,
     /// PvP / challenge
-    Arena = 4,
+    Arena = 5,
     /// No combat
-    Safe = 5,
+    Safe = 6,
     /// Open PvP / high danger
-    Wilderness = 6,
-    Raid = 7,
-    Tutorial = 8,
+    Wilderness = 7,
+    Raid = 8,
+    Tutorial = 9,
     /// Seasonal / limited-time
-    Event = 9,
+    Event = 10,
 }
 impl ZoneType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -807,6 +1011,7 @@ impl ZoneType {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
+            Self::Unspecified => "ZONE_TYPE_UNSPECIFIED",
             Self::Overworld => "ZONE_TYPE_OVERWORLD",
             Self::Dungeon => "ZONE_TYPE_DUNGEON",
             Self::Instance => "ZONE_TYPE_INSTANCE",
@@ -822,6 +1027,7 @@ impl ZoneType {
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
+            "ZONE_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
             "ZONE_TYPE_OVERWORLD" => Some(Self::Overworld),
             "ZONE_TYPE_DUNGEON" => Some(Self::Dungeon),
             "ZONE_TYPE_INSTANCE" => Some(Self::Instance),
@@ -852,19 +1058,20 @@ impl ZoneType {
 )]
 #[repr(i32)]
 pub enum RoomType {
-    Empty = 0,
-    Combat = 1,
-    Treasure = 2,
-    Trap = 3,
-    RestShrine = 4,
-    Merchant = 5,
-    Boss = 6,
-    Story = 7,
-    Hallway = 8,
-    UndergroundCity = 9,
-    Puzzle = 10,
-    Secret = 11,
-    Portal = 12,
+    Unspecified = 0,
+    Empty = 1,
+    Combat = 2,
+    Treasure = 3,
+    Trap = 4,
+    RestShrine = 5,
+    Merchant = 6,
+    Boss = 7,
+    Story = 8,
+    Hallway = 9,
+    UndergroundCity = 10,
+    Puzzle = 11,
+    Secret = 12,
+    Portal = 13,
 }
 impl RoomType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -873,6 +1080,7 @@ impl RoomType {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
+            Self::Unspecified => "ROOM_TYPE_UNSPECIFIED",
             Self::Empty => "ROOM_TYPE_EMPTY",
             Self::Combat => "ROOM_TYPE_COMBAT",
             Self::Treasure => "ROOM_TYPE_TREASURE",
@@ -891,6 +1099,7 @@ impl RoomType {
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
+            "ROOM_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
             "ROOM_TYPE_EMPTY" => Some(Self::Empty),
             "ROOM_TYPE_COMBAT" => Some(Self::Combat),
             "ROOM_TYPE_TREASURE" => Some(Self::Treasure),
@@ -924,12 +1133,13 @@ impl RoomType {
 )]
 #[repr(i32)]
 pub enum Direction {
-    North = 0,
-    South = 1,
-    East = 2,
-    West = 3,
-    Up = 4,
-    Down = 5,
+    Unspecified = 0,
+    North = 1,
+    South = 2,
+    East = 3,
+    West = 4,
+    Up = 5,
+    Down = 6,
 }
 impl Direction {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -938,6 +1148,7 @@ impl Direction {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
+            Self::Unspecified => "DIRECTION_UNSPECIFIED",
             Self::North => "DIRECTION_NORTH",
             Self::South => "DIRECTION_SOUTH",
             Self::East => "DIRECTION_EAST",
@@ -949,6 +1160,7 @@ impl Direction {
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
+            "DIRECTION_UNSPECIFIED" => Some(Self::Unspecified),
             "DIRECTION_NORTH" => Some(Self::North),
             "DIRECTION_SOUTH" => Some(Self::South),
             "DIRECTION_EAST" => Some(Self::East),
@@ -975,27 +1187,28 @@ impl Direction {
 )]
 #[repr(i32)]
 pub enum RoomModifier {
-    None = 0,
+    Unspecified = 0,
+    None = 1,
     /// Reduced accuracy / vision
-    Fog = 1,
+    Fog = 2,
     /// Healing bonus
-    Blessing = 2,
+    Blessing = 3,
     /// Damage multiplier on players
-    Cursed = 3,
+    Cursed = 4,
     /// Movement penalty
-    Flooded = 4,
+    Flooded = 5,
     /// Periodic fire damage
-    Burning = 5,
+    Burning = 6,
     /// Slow / ice hazards
-    Frozen = 6,
+    Frozen = 7,
     /// Poison buildup
-    Toxic = 7,
+    Toxic = 8,
     /// Requires light source
-    Dark = 8,
+    Dark = 9,
     /// Bonus vs undead, heal over time
-    Holy = 9,
+    Holy = 10,
     /// Magic amplification
-    Arcane = 10,
+    Arcane = 11,
 }
 impl RoomModifier {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -1004,6 +1217,7 @@ impl RoomModifier {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
+            Self::Unspecified => "ROOM_MODIFIER_UNSPECIFIED",
             Self::None => "ROOM_MODIFIER_NONE",
             Self::Fog => "ROOM_MODIFIER_FOG",
             Self::Blessing => "ROOM_MODIFIER_BLESSING",
@@ -1020,6 +1234,7 @@ impl RoomModifier {
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
+            "ROOM_MODIFIER_UNSPECIFIED" => Some(Self::Unspecified),
             "ROOM_MODIFIER_NONE" => Some(Self::None),
             "ROOM_MODIFIER_FOG" => Some(Self::Fog),
             "ROOM_MODIFIER_BLESSING" => Some(Self::Blessing),
@@ -1035,7 +1250,8 @@ impl RoomModifier {
         }
     }
 }
-/// World object archetype — what kind of thing is placed in the world
+/// World object archetype — gameplay role, not physical shape.
+/// Use sub_kind for the specific variant (e.g. "oak", "coal", "furnace").
 #[derive(
     serde::Serialize,
     serde::Deserialize,
@@ -1052,27 +1268,37 @@ impl RoomModifier {
 #[repr(i32)]
 pub enum WorldObjectType {
     WorldObjectUnspecified = 0,
-    WorldObjectTree = 1,
-    WorldObjectRock = 2,
-    WorldObjectFlower = 3,
-    WorldObjectMushroom = 4,
-    WorldObjectCrystal = 5,
-    WorldObjectCrate = 6,
-    WorldObjectPillar = 7,
-    WorldObjectLight = 8,
-    WorldObjectChest = 9,
-    WorldObjectSign = 10,
-    WorldObjectBarrier = 11,
-    WorldObjectPortal = 12,
-    WorldObjectStatue = 13,
-    WorldObjectCampfire = 14,
-    WorldObjectWorkbench = 15,
-    WorldObjectFurnace = 16,
-    WorldObjectAnvil = 17,
-    WorldObjectWaterSource = 18,
+    /// Harvestable / gatherable nodes (tree, rock, flower, mushroom, crystal, water)
+    WorldObjectResourceNode = 1,
+    /// Loot / storage containers (crate, chest, barrel)
+    WorldObjectContainer = 2,
+    /// Crafting stations (workbench, furnace, anvil)
+    WorldObjectCraftingStation = 3,
+    /// Decorative / utility props (statue, pillar, sign, campfire, etc.)
+    WorldObjectProp = 4,
+    /// Light sources — distinct for rendering/lighting system
+    WorldObjectLight = 5,
+    /// Navigation / movement
+    WorldObjectPortal = 6,
+    WorldObjectBarrier = 7,
+    /// Gameplay markers
+    ///
     /// Where an NPC stands
-    WorldObjectNpcMarker = 19,
-    WorldObjectCustom = 20,
+    WorldObjectNpcMarker = 8,
+    /// Boss activation, quest zone, cutscene, spawn area
+    WorldObjectTrigger = 9,
+    /// World structures
+    ///
+    /// City / outpost / bazaar (zone-level safe area)
+    WorldObjectSettlement = 10,
+    /// Individual structure (inn, tavern, smithy)
+    WorldObjectBuilding = 11,
+    /// Boss encounter room
+    WorldObjectArena = 12,
+    /// Story / lore point of interest
+    WorldObjectLandmark = 13,
+    /// Escape hatch
+    WorldObjectCustom = 100,
 }
 impl WorldObjectType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -1082,25 +1308,19 @@ impl WorldObjectType {
     pub fn as_str_name(&self) -> &'static str {
         match self {
             Self::WorldObjectUnspecified => "WORLD_OBJECT_UNSPECIFIED",
-            Self::WorldObjectTree => "WORLD_OBJECT_TREE",
-            Self::WorldObjectRock => "WORLD_OBJECT_ROCK",
-            Self::WorldObjectFlower => "WORLD_OBJECT_FLOWER",
-            Self::WorldObjectMushroom => "WORLD_OBJECT_MUSHROOM",
-            Self::WorldObjectCrystal => "WORLD_OBJECT_CRYSTAL",
-            Self::WorldObjectCrate => "WORLD_OBJECT_CRATE",
-            Self::WorldObjectPillar => "WORLD_OBJECT_PILLAR",
+            Self::WorldObjectResourceNode => "WORLD_OBJECT_RESOURCE_NODE",
+            Self::WorldObjectContainer => "WORLD_OBJECT_CONTAINER",
+            Self::WorldObjectCraftingStation => "WORLD_OBJECT_CRAFTING_STATION",
+            Self::WorldObjectProp => "WORLD_OBJECT_PROP",
             Self::WorldObjectLight => "WORLD_OBJECT_LIGHT",
-            Self::WorldObjectChest => "WORLD_OBJECT_CHEST",
-            Self::WorldObjectSign => "WORLD_OBJECT_SIGN",
-            Self::WorldObjectBarrier => "WORLD_OBJECT_BARRIER",
             Self::WorldObjectPortal => "WORLD_OBJECT_PORTAL",
-            Self::WorldObjectStatue => "WORLD_OBJECT_STATUE",
-            Self::WorldObjectCampfire => "WORLD_OBJECT_CAMPFIRE",
-            Self::WorldObjectWorkbench => "WORLD_OBJECT_WORKBENCH",
-            Self::WorldObjectFurnace => "WORLD_OBJECT_FURNACE",
-            Self::WorldObjectAnvil => "WORLD_OBJECT_ANVIL",
-            Self::WorldObjectWaterSource => "WORLD_OBJECT_WATER_SOURCE",
+            Self::WorldObjectBarrier => "WORLD_OBJECT_BARRIER",
             Self::WorldObjectNpcMarker => "WORLD_OBJECT_NPC_MARKER",
+            Self::WorldObjectTrigger => "WORLD_OBJECT_TRIGGER",
+            Self::WorldObjectSettlement => "WORLD_OBJECT_SETTLEMENT",
+            Self::WorldObjectBuilding => "WORLD_OBJECT_BUILDING",
+            Self::WorldObjectArena => "WORLD_OBJECT_ARENA",
+            Self::WorldObjectLandmark => "WORLD_OBJECT_LANDMARK",
             Self::WorldObjectCustom => "WORLD_OBJECT_CUSTOM",
         }
     }
@@ -1108,26 +1328,168 @@ impl WorldObjectType {
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
             "WORLD_OBJECT_UNSPECIFIED" => Some(Self::WorldObjectUnspecified),
-            "WORLD_OBJECT_TREE" => Some(Self::WorldObjectTree),
-            "WORLD_OBJECT_ROCK" => Some(Self::WorldObjectRock),
-            "WORLD_OBJECT_FLOWER" => Some(Self::WorldObjectFlower),
-            "WORLD_OBJECT_MUSHROOM" => Some(Self::WorldObjectMushroom),
-            "WORLD_OBJECT_CRYSTAL" => Some(Self::WorldObjectCrystal),
-            "WORLD_OBJECT_CRATE" => Some(Self::WorldObjectCrate),
-            "WORLD_OBJECT_PILLAR" => Some(Self::WorldObjectPillar),
+            "WORLD_OBJECT_RESOURCE_NODE" => Some(Self::WorldObjectResourceNode),
+            "WORLD_OBJECT_CONTAINER" => Some(Self::WorldObjectContainer),
+            "WORLD_OBJECT_CRAFTING_STATION" => Some(Self::WorldObjectCraftingStation),
+            "WORLD_OBJECT_PROP" => Some(Self::WorldObjectProp),
             "WORLD_OBJECT_LIGHT" => Some(Self::WorldObjectLight),
-            "WORLD_OBJECT_CHEST" => Some(Self::WorldObjectChest),
-            "WORLD_OBJECT_SIGN" => Some(Self::WorldObjectSign),
-            "WORLD_OBJECT_BARRIER" => Some(Self::WorldObjectBarrier),
             "WORLD_OBJECT_PORTAL" => Some(Self::WorldObjectPortal),
-            "WORLD_OBJECT_STATUE" => Some(Self::WorldObjectStatue),
-            "WORLD_OBJECT_CAMPFIRE" => Some(Self::WorldObjectCampfire),
-            "WORLD_OBJECT_WORKBENCH" => Some(Self::WorldObjectWorkbench),
-            "WORLD_OBJECT_FURNACE" => Some(Self::WorldObjectFurnace),
-            "WORLD_OBJECT_ANVIL" => Some(Self::WorldObjectAnvil),
-            "WORLD_OBJECT_WATER_SOURCE" => Some(Self::WorldObjectWaterSource),
+            "WORLD_OBJECT_BARRIER" => Some(Self::WorldObjectBarrier),
             "WORLD_OBJECT_NPC_MARKER" => Some(Self::WorldObjectNpcMarker),
+            "WORLD_OBJECT_TRIGGER" => Some(Self::WorldObjectTrigger),
+            "WORLD_OBJECT_SETTLEMENT" => Some(Self::WorldObjectSettlement),
+            "WORLD_OBJECT_BUILDING" => Some(Self::WorldObjectBuilding),
+            "WORLD_OBJECT_ARENA" => Some(Self::WorldObjectArena),
+            "WORLD_OBJECT_LANDMARK" => Some(Self::WorldObjectLandmark),
             "WORLD_OBJECT_CUSTOM" => Some(Self::WorldObjectCustom),
+            _ => None,
+        }
+    }
+}
+/// Subtype for WORLD_OBJECT_RESOURCE_NODE — what resource the node yields
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum ResourceType {
+    ResourceUnspecified = 0,
+    ResourceWood = 1,
+    ResourceStone = 2,
+    ResourceFlower = 3,
+    ResourceMushroom = 4,
+    ResourceCrystal = 5,
+    ResourceWater = 6,
+    /// sub_kind further specifies: coal, iron, gold, etc.
+    ResourceOre = 7,
+}
+impl ResourceType {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::ResourceUnspecified => "RESOURCE_UNSPECIFIED",
+            Self::ResourceWood => "RESOURCE_WOOD",
+            Self::ResourceStone => "RESOURCE_STONE",
+            Self::ResourceFlower => "RESOURCE_FLOWER",
+            Self::ResourceMushroom => "RESOURCE_MUSHROOM",
+            Self::ResourceCrystal => "RESOURCE_CRYSTAL",
+            Self::ResourceWater => "RESOURCE_WATER",
+            Self::ResourceOre => "RESOURCE_ORE",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "RESOURCE_UNSPECIFIED" => Some(Self::ResourceUnspecified),
+            "RESOURCE_WOOD" => Some(Self::ResourceWood),
+            "RESOURCE_STONE" => Some(Self::ResourceStone),
+            "RESOURCE_FLOWER" => Some(Self::ResourceFlower),
+            "RESOURCE_MUSHROOM" => Some(Self::ResourceMushroom),
+            "RESOURCE_CRYSTAL" => Some(Self::ResourceCrystal),
+            "RESOURCE_WATER" => Some(Self::ResourceWater),
+            "RESOURCE_ORE" => Some(Self::ResourceOre),
+            _ => None,
+        }
+    }
+}
+/// Subtype for WORLD_OBJECT_CONTAINER
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum ContainerType {
+    ContainerUnspecified = 0,
+    ContainerCrate = 1,
+    ContainerChest = 2,
+    ContainerBarrel = 3,
+}
+impl ContainerType {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::ContainerUnspecified => "CONTAINER_UNSPECIFIED",
+            Self::ContainerCrate => "CONTAINER_CRATE",
+            Self::ContainerChest => "CONTAINER_CHEST",
+            Self::ContainerBarrel => "CONTAINER_BARREL",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "CONTAINER_UNSPECIFIED" => Some(Self::ContainerUnspecified),
+            "CONTAINER_CRATE" => Some(Self::ContainerCrate),
+            "CONTAINER_CHEST" => Some(Self::ContainerChest),
+            "CONTAINER_BARREL" => Some(Self::ContainerBarrel),
+            _ => None,
+        }
+    }
+}
+/// Subtype for WORLD_OBJECT_CRAFTING_STATION
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum CraftingStationType {
+    CraftingStationUnspecified = 0,
+    CraftingStationWorkbench = 1,
+    CraftingStationFurnace = 2,
+    CraftingStationAnvil = 3,
+}
+impl CraftingStationType {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::CraftingStationUnspecified => "CRAFTING_STATION_UNSPECIFIED",
+            Self::CraftingStationWorkbench => "CRAFTING_STATION_WORKBENCH",
+            Self::CraftingStationFurnace => "CRAFTING_STATION_FURNACE",
+            Self::CraftingStationAnvil => "CRAFTING_STATION_ANVIL",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "CRAFTING_STATION_UNSPECIFIED" => Some(Self::CraftingStationUnspecified),
+            "CRAFTING_STATION_WORKBENCH" => Some(Self::CraftingStationWorkbench),
+            "CRAFTING_STATION_FURNACE" => Some(Self::CraftingStationFurnace),
+            "CRAFTING_STATION_ANVIL" => Some(Self::CraftingStationAnvil),
             _ => None,
         }
     }
@@ -1148,25 +1510,26 @@ impl WorldObjectType {
 )]
 #[repr(i32)]
 pub enum PoiType {
-    PoiCity = 0,
-    PoiTown = 1,
-    PoiVillage = 2,
-    PoiDungeon = 3,
-    PoiLandmark = 4,
-    PoiShrine = 5,
-    PoiMerchant = 6,
-    PoiCamp = 7,
-    PoiRuins = 8,
-    PoiMine = 9,
-    PoiFarm = 10,
-    PoiPort = 11,
-    PoiTower = 12,
-    PoiCave = 13,
-    PoiArena = 14,
-    PoiGuildHall = 15,
-    PoiSpawnPoint = 16,
-    PoiQuestHub = 17,
-    PoiCustom = 18,
+    PoiUnspecified = 0,
+    PoiCity = 1,
+    PoiTown = 2,
+    PoiVillage = 3,
+    PoiDungeon = 4,
+    PoiLandmark = 5,
+    PoiShrine = 6,
+    PoiMerchant = 7,
+    PoiCamp = 8,
+    PoiRuins = 9,
+    PoiMine = 10,
+    PoiFarm = 11,
+    PoiPort = 12,
+    PoiTower = 13,
+    PoiCave = 14,
+    PoiArena = 15,
+    PoiGuildHall = 16,
+    PoiSpawnPoint = 17,
+    PoiQuestHub = 18,
+    PoiCustom = 19,
 }
 impl PoiType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -1175,6 +1538,7 @@ impl PoiType {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
+            Self::PoiUnspecified => "POI_UNSPECIFIED",
             Self::PoiCity => "POI_CITY",
             Self::PoiTown => "POI_TOWN",
             Self::PoiVillage => "POI_VILLAGE",
@@ -1199,6 +1563,7 @@ impl PoiType {
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
+            "POI_UNSPECIFIED" => Some(Self::PoiUnspecified),
             "POI_CITY" => Some(Self::PoiCity),
             "POI_TOWN" => Some(Self::PoiTown),
             "POI_VILLAGE" => Some(Self::PoiVillage),
@@ -1295,17 +1660,18 @@ impl TerrainBand {
 )]
 #[repr(i32)]
 pub enum SpawnCategory {
-    Npc = 0,
+    Unspecified = 0,
+    Npc = 1,
     /// Ore, tree, herb node
-    Resource = 1,
+    Resource = 2,
     /// Chest, crate, decoration
-    Object = 2,
-    Enemy = 3,
-    Boss = 4,
+    Object = 3,
+    Enemy = 4,
+    Boss = 5,
     /// Seasonal / triggered spawn
-    Event = 5,
+    Event = 6,
     /// Critters, birds, particles
-    Ambient = 6,
+    Ambient = 7,
 }
 impl SpawnCategory {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -1314,6 +1680,7 @@ impl SpawnCategory {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
+            Self::Unspecified => "SPAWN_CATEGORY_UNSPECIFIED",
             Self::Npc => "SPAWN_CATEGORY_NPC",
             Self::Resource => "SPAWN_CATEGORY_RESOURCE",
             Self::Object => "SPAWN_CATEGORY_OBJECT",
@@ -1326,6 +1693,7 @@ impl SpawnCategory {
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
+            "SPAWN_CATEGORY_UNSPECIFIED" => Some(Self::Unspecified),
             "SPAWN_CATEGORY_NPC" => Some(Self::Npc),
             "SPAWN_CATEGORY_RESOURCE" => Some(Self::Resource),
             "SPAWN_CATEGORY_OBJECT" => Some(Self::Object),
@@ -1333,6 +1701,218 @@ impl SpawnCategory {
             "SPAWN_CATEGORY_BOSS" => Some(Self::Boss),
             "SPAWN_CATEGORY_EVENT" => Some(Self::Event),
             "SPAWN_CATEGORY_AMBIENT" => Some(Self::Ambient),
+            _ => None,
+        }
+    }
+}
+/// How a zone's content is generated / authored
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum GenerationMode {
+    GenerationUnspecified = 0,
+    /// Hand-built, no procedural generation
+    GenerationStaticAuthored = 1,
+    /// Generated once from seed, bounded area
+    GenerationFiniteProcedural = 2,
+    /// Gateway to unbounded chunk-managed generation
+    GenerationInfiniteProcedural = 3,
+    /// Private copy per party (dungeons, raids)
+    GenerationInstanced = 4,
+    /// Transition zone (loading, portals)
+    GenerationTransit = 5,
+}
+impl GenerationMode {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::GenerationUnspecified => "GENERATION_UNSPECIFIED",
+            Self::GenerationStaticAuthored => "GENERATION_STATIC_AUTHORED",
+            Self::GenerationFiniteProcedural => "GENERATION_FINITE_PROCEDURAL",
+            Self::GenerationInfiniteProcedural => "GENERATION_INFINITE_PROCEDURAL",
+            Self::GenerationInstanced => "GENERATION_INSTANCED",
+            Self::GenerationTransit => "GENERATION_TRANSIT",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "GENERATION_UNSPECIFIED" => Some(Self::GenerationUnspecified),
+            "GENERATION_STATIC_AUTHORED" => Some(Self::GenerationStaticAuthored),
+            "GENERATION_FINITE_PROCEDURAL" => Some(Self::GenerationFiniteProcedural),
+            "GENERATION_INFINITE_PROCEDURAL" => Some(Self::GenerationInfiniteProcedural),
+            "GENERATION_INSTANCED" => Some(Self::GenerationInstanced),
+            "GENERATION_TRANSIT" => Some(Self::GenerationTransit),
+            _ => None,
+        }
+    }
+}
+/// How a hex zone persists its state across sessions
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum PersistenceMode {
+    PersistenceUnspecified = 0,
+    /// Saved as-is (authored content)
+    PersistenceCanonical = 1,
+    /// Regenerated from seed; only deltas saved
+    PersistenceDeterministicRegen = 2,
+    /// Generated base + saved mutations
+    PersistenceDelta = 3,
+    /// Lost on session end
+    PersistenceSessionOnly = 4,
+}
+impl PersistenceMode {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::PersistenceUnspecified => "PERSISTENCE_UNSPECIFIED",
+            Self::PersistenceCanonical => "PERSISTENCE_CANONICAL",
+            Self::PersistenceDeterministicRegen => "PERSISTENCE_DETERMINISTIC_REGEN",
+            Self::PersistenceDelta => "PERSISTENCE_DELTA",
+            Self::PersistenceSessionOnly => "PERSISTENCE_SESSION_ONLY",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "PERSISTENCE_UNSPECIFIED" => Some(Self::PersistenceUnspecified),
+            "PERSISTENCE_CANONICAL" => Some(Self::PersistenceCanonical),
+            "PERSISTENCE_DETERMINISTIC_REGEN" => Some(Self::PersistenceDeterministicRegen),
+            "PERSISTENCE_DELTA" => Some(Self::PersistenceDelta),
+            "PERSISTENCE_SESSION_ONLY" => Some(Self::PersistenceSessionOnly),
+            _ => None,
+        }
+    }
+}
+/// Hint for how a zone should be streamed / loaded
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum StreamingHint {
+    StreamingUnspecified = 0,
+    /// Engine-managed spatial partition (e.g. World Partition)
+    StreamingPartitioned = 1,
+    /// Active ring of chunks around players
+    StreamingChunkRing = 2,
+    /// Loaded on demand from descriptors
+    StreamingDescriptorActivated = 3,
+    /// Fully loaded as a private instance
+    StreamingInstanceLoaded = 4,
+}
+impl StreamingHint {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::StreamingUnspecified => "STREAMING_UNSPECIFIED",
+            Self::StreamingPartitioned => "STREAMING_PARTITIONED",
+            Self::StreamingChunkRing => "STREAMING_CHUNK_RING",
+            Self::StreamingDescriptorActivated => "STREAMING_DESCRIPTOR_ACTIVATED",
+            Self::StreamingInstanceLoaded => "STREAMING_INSTANCE_LOADED",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "STREAMING_UNSPECIFIED" => Some(Self::StreamingUnspecified),
+            "STREAMING_PARTITIONED" => Some(Self::StreamingPartitioned),
+            "STREAMING_CHUNK_RING" => Some(Self::StreamingChunkRing),
+            "STREAMING_DESCRIPTOR_ACTIVATED" => Some(Self::StreamingDescriptorActivated),
+            "STREAMING_INSTANCE_LOADED" => Some(Self::StreamingInstanceLoaded),
+            _ => None,
+        }
+    }
+}
+/// Hint for how zone actors should be replicated to clients
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum ReplicationHint {
+    ReplicationUnspecified = 0,
+    /// No dynamic replication; visuals only
+    ReplicationStaticOnly = 1,
+    /// Replicate nearby dynamic actors
+    ReplicationLocalDynamic = 2,
+    /// Replicate within active chunk radius
+    ReplicationChunkScoped = 3,
+    /// Replicate everything (instanced zones)
+    ReplicationFullInstance = 4,
+}
+impl ReplicationHint {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::ReplicationUnspecified => "REPLICATION_UNSPECIFIED",
+            Self::ReplicationStaticOnly => "REPLICATION_STATIC_ONLY",
+            Self::ReplicationLocalDynamic => "REPLICATION_LOCAL_DYNAMIC",
+            Self::ReplicationChunkScoped => "REPLICATION_CHUNK_SCOPED",
+            Self::ReplicationFullInstance => "REPLICATION_FULL_INSTANCE",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "REPLICATION_UNSPECIFIED" => Some(Self::ReplicationUnspecified),
+            "REPLICATION_STATIC_ONLY" => Some(Self::ReplicationStaticOnly),
+            "REPLICATION_LOCAL_DYNAMIC" => Some(Self::ReplicationLocalDynamic),
+            "REPLICATION_CHUNK_SCOPED" => Some(Self::ReplicationChunkScoped),
+            "REPLICATION_FULL_INSTANCE" => Some(Self::ReplicationFullInstance),
             _ => None,
         }
     }
