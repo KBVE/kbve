@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-03-29T08:21:31Z",
+  "generated_at": "2026-03-31T08:34:03Z",
   "summary": {
     "critical": 2,
     "high": 32,
-    "medium": 39,
-    "low": 4,
-    "info": 28
+    "medium": 33,
+    "low": 5,
+    "info": 25
   },
   "ecosystems": {
     "npm": {
-      "total": 69,
+      "total": 70,
       "severities": {
         "critical": 2,
         "high": 32,
         "medium": 31,
-        "low": 4,
+        "low": 5,
         "info": 0
       },
       "advisories": [
@@ -320,34 +320,6 @@
           "url": "https://github.com/advisories/GHSA-g735-7g2w-hh3f"
         },
         {
-          "id": "1115468",
-          "title": "Happy DOM ECMAScriptModuleCompiler: unsanitized export names are interpolated as executable code",
-          "severity": "high",
-          "package": "happy-dom",
-          "url": "https://github.com/advisories/GHSA-6q6h-j7hj-3r64"
-        },
-        {
-          "id": "1115514",
-          "title": "Handlebars.js has JavaScript Injection in CLI Precompiler via Unescaped Names and Options",
-          "severity": "high",
-          "package": "handlebars",
-          "url": "https://github.com/advisories/GHSA-xjpj-3mr7-gcpf"
-        },
-        {
-          "id": "1115515",
-          "title": "Handlebars.js has JavaScript Injection via AST Type Confusion when passing an object as dynamic partial",
-          "severity": "high",
-          "package": "handlebars",
-          "url": "https://github.com/advisories/GHSA-xhpv-hc6g-r9c6"
-        },
-        {
-          "id": "1115516",
-          "title": "Handlebars.js has Denial of Service via Malformed Decorator Syntax in Template Compilation",
-          "severity": "high",
-          "package": "handlebars",
-          "url": "https://github.com/advisories/GHSA-9cx6-37pm-9jff"
-        },
-        {
           "id": "1115519",
           "title": "Serialize JavaScript has CPU Exhaustion Denial of Service via crafted array-like objects",
           "severity": "medium",
@@ -425,13 +397,6 @@
           "url": "https://github.com/advisories/GHSA-q67f-28xg-22rw"
         },
         {
-          "id": "1115547",
-          "title": "Forge has signature forgery in RSA-PKCS due to ASN.1 extra field  ",
-          "severity": "high",
-          "package": "node-forge",
-          "url": "https://github.com/advisories/GHSA-ppp5-5v6c-4jwp"
-        },
-        {
           "id": "1115548",
           "title": "Forge has Denial of Service via Infinite Loop in BigInteger.modInverse() with Zero Input",
           "severity": "high",
@@ -446,13 +411,6 @@
           "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
         },
         {
-          "id": "1115550",
-          "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
-          "severity": "medium",
-          "package": "picomatch",
-          "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
-        },
-        {
           "id": "1115551",
           "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
           "severity": "medium",
@@ -461,13 +419,6 @@
         },
         {
           "id": "1115552",
-          "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
-          "severity": "high",
-          "package": "picomatch",
-          "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
-        },
-        {
-          "id": "1115553",
           "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
           "severity": "high",
           "package": "picomatch",
@@ -495,65 +446,86 @@
           "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
         },
         {
-          "id": "1115568",
+          "id": "1115588",
+          "title": "Handlebars.js has a Prototype Method Access Control Gap via Missing __lookupSetter__ Blocklist Entry",
+          "severity": "medium",
+          "package": "handlebars",
+          "url": "https://github.com/advisories/GHSA-7rx3-28cr-v5wh"
+        },
+        {
+          "id": "1115589",
+          "title": "Handlebars.js has a Property Access Validation Bypass in container.lookup",
+          "severity": "low",
+          "package": "handlebars",
+          "url": "https://github.com/advisories/GHSA-442j-39wm-28r2"
+        },
+        {
+          "id": "1115611",
+          "title": "Happy DOM's fetch credentials include uses page-origin cookies instead of target-origin cookies",
+          "severity": "high",
+          "package": "happy-dom",
+          "url": "https://github.com/advisories/GHSA-w4gp-fjgq-3q4g"
+        },
+        {
+          "id": "1115612",
+          "title": "Forge has signature forgery in RSA-PKCS due to ASN.1 extra field  ",
+          "severity": "high",
+          "package": "node-forge",
+          "url": "https://github.com/advisories/GHSA-ppp5-5v6c-4jwp"
+        },
+        {
+          "id": "1115668",
           "title": "DOMPurify contains a Cross-site Scripting vulnerability",
           "severity": "medium",
           "package": "dompurify",
           "url": "https://github.com/advisories/GHSA-v2wj-7wpq-c8vv"
+        },
+        {
+          "id": "1115692",
+          "title": "Handlebars.js has JavaScript Injection in CLI Precompiler via Unescaped Names and Options",
+          "severity": "high",
+          "package": "handlebars",
+          "url": "https://github.com/advisories/GHSA-xjpj-3mr7-gcpf"
+        },
+        {
+          "id": "1115693",
+          "title": "Handlebars.js has JavaScript Injection via AST Type Confusion when passing an object as dynamic partial",
+          "severity": "high",
+          "package": "handlebars",
+          "url": "https://github.com/advisories/GHSA-xhpv-hc6g-r9c6"
+        },
+        {
+          "id": "1115694",
+          "title": "Handlebars.js has Denial of Service via Malformed Decorator Syntax in Template Compilation",
+          "severity": "high",
+          "package": "handlebars",
+          "url": "https://github.com/advisories/GHSA-9cx6-37pm-9jff"
+        },
+        {
+          "id": "1115698",
+          "title": "Happy DOM ECMAScriptModuleCompiler: unsanitized export names are interpolated as executable code",
+          "severity": "high",
+          "package": "happy-dom",
+          "url": "https://github.com/advisories/GHSA-6q6h-j7hj-3r64"
         }
       ]
     },
     "cargo": {
-      "total": 35,
+      "total": 27,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 7,
+        "medium": 2,
         "low": 0,
-        "info": 28
+        "info": 25
       },
       "advisories": [
-        {
-          "id": "RUSTSEC-2026-0044",
-          "title": "AWS-LC X.509 Name Constraints Bypass via Wildcard/Unicode CN",
-          "severity": "medium",
-          "package": "aws-lc-sys",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0048",
-          "title": "CRL Distribution Point Scope Check Logic Error in AWS-LC",
-          "severity": "medium",
-          "package": "aws-lc-sys",
-          "url": "https://aws.amazon.com/security/security-bulletins/2026-010-AWS"
-        },
-        {
-          "id": "RUSTSEC-2024-0344",
-          "title": "Timing variability in `curve25519-dalek`'s `Scalar29::sub`/`Scalar52::sub`",
-          "severity": "medium",
-          "package": "curve25519-dalek",
-          "url": "https://github.com/dalek-cryptography/curve25519-dalek/pull/659"
-        },
-        {
-          "id": "RUSTSEC-2022-0093",
-          "title": "Double Public Key Signing Function Oracle Attack on `ed25519-dalek`",
-          "severity": "medium",
-          "package": "ed25519-dalek",
-          "url": "https://github.com/MystenLabs/ed25519-unsafe-libs"
-        },
         {
           "id": "RUSTSEC-2023-0071",
           "title": "Marvin Attack: potential key recovery through timing sidechannels",
           "severity": "medium",
           "package": "rsa",
           "url": "https://github.com/RustCrypto/RSA/issues/19#issuecomment-1822995643"
-        },
-        {
-          "id": "RUSTSEC-2026-0049",
-          "title": "CRLs not considered authoritative by Distribution Point due to faulty matching logic",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
         },
         {
           "id": "RUSTSEC-2026-0049",
@@ -575,13 +547,6 @@
           "severity": "info",
           "package": "atk-sys",
           "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0375",
-          "title": "`atty` is unmaintained",
-          "severity": "info",
-          "package": "atty",
-          "url": "https://github.com/softprops/atty/issues/57"
         },
         {
           "id": "RUSTSEC-2025-0141",
@@ -668,13 +633,6 @@
           "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
         },
         {
-          "id": "RUSTSEC-2025-0119",
-          "title": "number_prefix crate is unmaintained",
-          "severity": "info",
-          "package": "number_prefix",
-          "url": "https://github.com/ogham/rust-number-prefix/pull/8"
-        },
-        {
           "id": "RUSTSEC-2024-0436",
           "title": "paste - no longer maintained",
           "severity": "info",
@@ -745,13 +703,6 @@
           "url": "https://github.com/rustsec/advisory-db/issues/2414"
         },
         {
-          "id": "RUSTSEC-2021-0145",
-          "title": "Potential unaligned read",
-          "severity": "info",
-          "package": "atty",
-          "url": "https://github.com/softprops/atty/issues/50"
-        },
-        {
           "id": "RUSTSEC-2024-0429",
           "title": "Unsoundness in `Iterator` and `DoubleEndedIterator` impls for `glib::VariantStrIter`",
           "severity": "info",
@@ -761,23 +712,15 @@
       ]
     },
     "python": {
-      "total": 1,
+      "total": 0,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 1,
+        "medium": 0,
         "low": 0,
         "info": 0
       },
-      "advisories": [
-        {
-          "id": "CVE-2026-4539",
-          "title": "A security flaw has been discovered in pygments up to 2.19.2. The impacted element is the function AdlLexer of the file pygments/lexers/archetype.py. The manipulation results in inefficient regular expression complexity. The attack is only possible with local access. The exploit has been released to the public and may be used for attacks. The project was informed of the problem early through an issue report but has not responded yet.",
-          "severity": "medium",
-          "package": "pygments",
-          "url": "https://osv.dev/vulnerability/CVE-2026-4539"
-        }
-      ]
+      "advisories": []
     },
     "codeql": {
       "total": 0,
