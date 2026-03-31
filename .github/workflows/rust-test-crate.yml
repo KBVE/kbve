@@ -25,11 +25,16 @@ jobs:
                   sudo apt-get install -y --no-install-recommends \
                     pkg-config libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev
 
-            - name: Rust ToolChain
+            - name: Rust ToolChain (stable)
               uses: dtolnay/rust-toolchain@stable
               with:
                   toolchain: '1.94'
                   components: clippy
+
+            - name: Rust ToolChain (nightly + wasm)
+              uses: dtolnay/rust-toolchain@nightly
+              with:
+                  targets: wasm32-unknown-unknown
 
             - name: Setup Node v24
               uses: actions/setup-node@v6
