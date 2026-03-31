@@ -488,9 +488,9 @@ class VMService {
 	}
 
 	public getVNCWebSocketURL(name: string): string {
-		// Build WebSocket URL for noVNC
+		// Dedicated VNC WebSocket bridge — axum handles auth + upstream relay
 		const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		return `${proto}//${window.location.host}${PROXY_BASE}/apis/subresources.kubevirt.io/v1/namespaces/${VM_NAMESPACE}/virtualmachineinstances/${name}/vnc`;
+		return `${proto}//${window.location.host}/dashboard/vm/vnc/${name}`;
 	}
 
 	private _startAutoRefresh(): void {

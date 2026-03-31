@@ -582,6 +582,154 @@ pub async fn kubevirt_proxy_handler(path: Option<Path<String>>, req: Request<Bod
 }
 
 // ---------------------------------------------------------------------------
+// KubeVirt VNC WebSocket bridge
+// ---------------------------------------------------------------------------
+// Upgrades the browser connection to WebSocket and opens an upstream WebSocket
+// to the KubeVirt VNC subresource, then relays frames bidirectionally.
+// This enables interactive noVNC sessions from the dashboard.
+
+pub async fn kubevirt_vnc_handler(
+    Path(vm_name): Path<String>,
+    ws: axum::extract::ws::WebSocketUpgrade,
+    req: Request<Body>,
+) -> Response {
+    let headers = req.headers().clone();
+
+    // Auth gate — staff only
+    if let Err(resp) = require_dashboard_view(&headers, "KubeVirt-VNC").await {
+        return resp;
+    }
+
+    let kubevirt = match KUBEVIRT.get() {
+        Some(k) => k,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(json!({"error": "KubeVirt proxy not configured"})),
+            )
+                .into_response();
+        }
+    };
+
+    // Sanitize VM name — alphanumeric + hyphens only
+    if !vm_name
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == '-')
+    {
+        return (
+            StatusCode::BAD_REQUEST,
+            axum::Json(json!({"error": "Invalid VM name"})),
+        )
+            .into_response();
+    }
+
+    let upstream_url = format!(
+        "{}/apis/subresources.kubevirt.io/v1/namespaces/{}/virtualmachineinstances/{}/vnc",
+        kubevirt.upstream, VM_NAMESPACE, vm_name
+    );
+    let upstream_token = kubevirt.upstream_token.clone();
+
+    // Accept the WebSocket upgrade and spawn the bridge
+    ws.protocols(["binary.k8s.io", "base64.binary.k8s.io"])
+        .on_upgrade(move |browser_ws| async move {
+            if let Err(e) = vnc_bridge(browser_ws, &upstream_url, upstream_token.as_deref()).await {
+                warn!("VNC bridge error for {vm_name}: {e}");
+            }
+        })
+}
+
+/// Bidirectional WebSocket bridge between the browser and KubeVirt VNC.
+async fn vnc_bridge(
+    browser_ws: axum::extract::ws::WebSocket,
+    upstream_url: &str,
+    token: Option<&str>,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    use axum::extract::ws::Message as AxumMsg;
+    use futures_util::{SinkExt, StreamExt};
+    use tokio_tungstenite::tungstenite::{Message as TungMsg, client::IntoClientRequest};
+
+    // Build upstream request with auth + subprotocol
+    let ws_url = upstream_url
+        .replace("https://", "wss://")
+        .replace("http://", "ws://");
+    let mut request = ws_url.into_client_request()?;
+    if let Some(t) = token {
+        request
+            .headers_mut()
+            .insert("Authorization", format!("Bearer {t}").parse()?);
+    }
+    request
+        .headers_mut()
+        .insert("Sec-WebSocket-Protocol", "base64.binary.k8s.io".parse()?);
+
+    // Connect to K8s API VNC subresource
+    let (upstream_ws, _resp) =
+        tokio_tungstenite::connect_async_tls_with_config(request, None, false, None).await?;
+
+    // Split both sides into sender/receiver
+    let (mut browser_tx, mut browser_rx) = browser_ws.split();
+    let (mut upstream_tx, mut upstream_rx) = upstream_ws.split();
+
+    // Browser → K8s
+    let browser_to_upstream = async {
+        while let Some(msg) = browser_rx.next().await {
+            match msg {
+                Ok(AxumMsg::Binary(data)) => {
+                    if upstream_tx
+                        .send(TungMsg::Binary(data.into()))
+                        .await
+                        .is_err()
+                    {
+                        break;
+                    }
+                }
+                Ok(AxumMsg::Text(text)) => {
+                    let s: String = text.to_string();
+                    if upstream_tx.send(TungMsg::Text(s.into())).await.is_err() {
+                        break;
+                    }
+                }
+                Ok(AxumMsg::Close(_)) | Err(_) => break,
+                _ => {}
+            }
+        }
+        let _ = upstream_tx.close().await;
+    };
+
+    // K8s → Browser
+    let upstream_to_browser = async {
+        while let Some(msg) = upstream_rx.next().await {
+            match msg {
+                Ok(TungMsg::Binary(data)) => {
+                    if browser_tx.send(AxumMsg::Binary(data.into())).await.is_err() {
+                        break;
+                    }
+                }
+                Ok(TungMsg::Text(text)) => {
+                    let s: String = text.to_string();
+                    if browser_tx.send(AxumMsg::Text(s.into())).await.is_err() {
+                        break;
+                    }
+                }
+                Ok(TungMsg::Close(_)) | Err(_) => break,
+                _ => {}
+            }
+        }
+        let _ = browser_tx.close().await;
+    };
+
+    // Run both directions concurrently — when either ends, the other stops
+    tokio::select! {
+        _ = browser_to_upstream => {},
+        _ = upstream_to_browser => {},
+    }
+
+    Ok(())
+}
+
+const VM_NAMESPACE: &str = "angelscript";
+
+// ---------------------------------------------------------------------------
 // Edge Functions proxy singleton (Supabase → internal Kong)
 // ---------------------------------------------------------------------------
 
