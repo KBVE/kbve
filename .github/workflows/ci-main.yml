@@ -212,14 +212,27 @@ jobs:
                   while IFS= read -r entry; do
                     key=$(echo "$entry" | jq -r '.key')
                     pkg=$(echo "$entry" | jq -r '.package_name')
+                    SRC=$(echo "$entry" | jq -r '.version_source // empty')
+                    TGT=$(echo "$entry" | jq -r '.version_target // empty')
+                    VTOML=$(echo "$entry" | jq -r '.version_toml // empty')
+                    VER=$(echo "$entry" | jq -r '.version // empty')
                     altered=$(is_altered "$key")
+
+                    npm_src="${SRC:-packages/npm/${pkg}/package.json}"
+                    npm_vtoml="${VTOML:-packages/npm/${pkg}/version.toml}"
+
+                    EXTRA_FIELDS=""
+                    [ -n "$SRC" ] && EXTRA_FIELDS="$EXTRA_FIELDS --field version_source=${SRC}"
+                    [ -n "$TGT" ] && EXTRA_FIELDS="$EXTRA_FIELDS --field version_target=${TGT}"
+                    [ -n "$VER" ] && [ "$VER" != "0.0.0" ] && EXTRA_FIELDS="$EXTRA_FIELDS --field manifest_version=${VER}"
+
                     if [ "$altered" = "true" ]; then
-                      echo "  ✓ $pkg — files changed, dispatching"
-                      dispatch_publish npm --field package_name="$pkg"
+                      echo "  ✓ $pkg — files changed, dispatching (v$VER)"
+                      dispatch_publish npm --field package_name="$pkg" $EXTRA_FIELDS
                       DISPATCHED=$((DISPATCHED + 1))
-                    elif [ "$(check_version "packages/npm/${pkg}/package.json" "packages/npm/${pkg}/version.toml")" = "true" ]; then
-                      echo "  ✓ $pkg — unpublished version, dispatching"
-                      dispatch_publish npm --field package_name="$pkg"
+                    elif [ "$(check_version "$npm_src" "$npm_vtoml")" = "true" ]; then
+                      echo "  ✓ $pkg — unpublished version, dispatching (v$VER)"
+                      dispatch_publish npm --field package_name="$pkg" $EXTRA_FIELDS
                       DISPATCHED=$((DISPATCHED + 1))
                     else
                       echo "  · $pkg — no changes, version published, skipping"
@@ -283,14 +296,27 @@ jobs:
                     key=$(echo "$entry" | jq -r '.key')
                     pkg=$(echo "$entry" | jq -r '.package_name')
                     pypi=$(echo "$entry" | jq -r '.pypi_name')
+                    SRC=$(echo "$entry" | jq -r '.version_source // empty')
+                    TGT=$(echo "$entry" | jq -r '.version_target // empty')
+                    VTOML=$(echo "$entry" | jq -r '.version_toml // empty')
+                    VER=$(echo "$entry" | jq -r '.version // empty')
                     altered=$(is_altered "$key")
+
+                    py_src="${SRC:-packages/python/${pypi}/pyproject.toml}"
+                    py_vtoml="${VTOML:-packages/python/${pypi}/version.toml}"
+
+                    EXTRA_FIELDS="--field pypi_name=$pypi"
+                    [ -n "$SRC" ] && EXTRA_FIELDS="$EXTRA_FIELDS --field version_source=${SRC}"
+                    [ -n "$TGT" ] && EXTRA_FIELDS="$EXTRA_FIELDS --field version_target=${TGT}"
+                    [ -n "$VER" ] && [ "$VER" != "0.0.0" ] && EXTRA_FIELDS="$EXTRA_FIELDS --field manifest_version=${VER}"
+
                     if [ "$altered" = "true" ]; then
-                      echo "  ✓ $pkg — files changed, dispatching"
-                      dispatch_publish python --field package_name="$pkg" --field pypi_name="$pypi"
+                      echo "  ✓ $pkg — files changed, dispatching (v$VER)"
+                      dispatch_publish python --field package_name="$pkg" $EXTRA_FIELDS
                       DISPATCHED=$((DISPATCHED + 1))
-                    elif [ "$(check_version "packages/python/${pypi}/pyproject.toml" "packages/python/${pypi}/version.toml")" = "true" ]; then
-                      echo "  ✓ $pkg — unpublished version, dispatching"
-                      dispatch_publish python --field package_name="$pkg" --field pypi_name="$pypi"
+                    elif [ "$(check_version "$py_src" "$py_vtoml")" = "true" ]; then
+                      echo "  ✓ $pkg — unpublished version, dispatching (v$VER)"
+                      dispatch_publish python --field package_name="$pkg" $EXTRA_FIELDS
                       DISPATCHED=$((DISPATCHED + 1))
                     else
                       echo "  · $pkg — no changes, version published, skipping"

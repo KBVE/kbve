@@ -34,6 +34,8 @@ interface NpmEntry {
 	package_name: string;
 	version?: string;
 	version_toml?: string;
+	version_source?: string;
+	version_target?: string;
 }
 
 interface CratesEntry {
@@ -51,6 +53,8 @@ interface PythonEntry {
 	pypi_name: string;
 	version?: string;
 	version_toml?: string;
+	version_source?: string;
+	version_target?: string;
 }
 
 interface UnrealEntry {
@@ -118,15 +122,21 @@ function toManifestEntry(
 				...(d.target && { target: d.target }),
 				...(d.nx_project && { nx_project: d.nx_project }),
 			};
-		case 'npm':
-			return d.package_name
-				? {
-						key: d.key!,
-						package_name: d.package_name,
-						...(ver && { version: ver }),
-						...(vt && { version_toml: vt }),
-					}
-				: null;
+		case 'npm': {
+			if (!d.package_name) return null;
+			const npmVs = d.version_source || mdxPath;
+			const npmVtgt =
+				d.version_target ||
+				`packages/npm/${d.package_name}/package.json`;
+			return {
+				key: d.key!,
+				package_name: d.package_name,
+				...(ver && { version: ver }),
+				...(vt && { version_toml: vt }),
+				...(npmVs && { version_source: npmVs }),
+				version_target: npmVtgt,
+			};
+		}
 		case 'crates': {
 			if (!d.package_name) return null;
 			// version_source: where to READ version (MDX by default, Cargo.toml for bevy)
@@ -144,16 +154,22 @@ function toManifestEntry(
 				version_target: vtgt,
 			};
 		}
-		case 'python':
-			return d.package_name && d.pypi_name
-				? {
-						key: d.key!,
-						package_name: d.package_name,
-						pypi_name: d.pypi_name,
-						...(ver && { version: ver }),
-						...(vt && { version_toml: vt }),
-					}
-				: null;
+		case 'python': {
+			if (!d.package_name || !d.pypi_name) return null;
+			const pyVs = d.version_source || mdxPath;
+			const pyVtgt =
+				d.version_target ||
+				`packages/python/${d.pypi_name}/pyproject.toml`;
+			return {
+				key: d.key!,
+				package_name: d.package_name,
+				pypi_name: d.pypi_name,
+				...(ver && { version: ver }),
+				...(vt && { version_toml: vt }),
+				...(pyVs && { version_source: pyVs }),
+				version_target: pyVtgt,
+			};
+		}
 		case 'unreal': {
 			if (!d.plugin_name || !d.plugin_path) return null;
 			const ue: UnrealEntry = {

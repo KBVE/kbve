@@ -27,21 +27,23 @@ export function createChartTooltip(
 	el.setAttribute('aria-hidden', 'true');
 	Object.assign(el.style, {
 		position: 'absolute',
-		transform: 'translate(-50%, -100%) translateY(-12px)',
 		pointerEvents: 'none',
 		zIndex: '10',
 		background: 'var(--sl-color-gray-6, #1a1a1a)',
 		border: '1px solid var(--sl-color-gray-5, #262626)',
 		borderRadius: '6px',
 		padding: '6px 10px',
-		maxWidth: '280px',
+		maxWidth: '340px',
+		minWidth: '120px',
+		width: 'max-content',
 		boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
 		opacity: '0',
 		visibility: 'hidden',
 		transition: 'opacity 0.1s ease',
 		top: '0',
 		left: '0',
-		whiteSpace: 'nowrap',
+		whiteSpace: 'normal',
+		wordBreak: 'break-word',
 	});
 
 	const labelEl = document.createElement('div');
@@ -62,27 +64,65 @@ export function createChartTooltip(
 	el.appendChild(valueEl);
 
 	container.style.position = 'relative';
+	container.style.overflow = 'visible';
 	container.appendChild(el);
 
 	let currentId = '';
+
+	/**
+	 * Position the tooltip near the cursor, clamped to stay within the viewport.
+	 * Uses fixed positioning relative to the viewport for reliable clamping,
+	 * then converts back to container-relative coords.
+	 */
+	function positionTooltip(e: MouseEvent) {
+		// First, place it at cursor in container coords so we can measure
+		const containerRect = container.getBoundingClientRect();
+		const cursorContainerX = e.clientX - containerRect.left;
+		const cursorContainerY = e.clientY - containerRect.top;
+
+		// Temporarily make visible at cursor to measure size
+		el.style.left = `${cursorContainerX}px`;
+		el.style.top = `${cursorContainerY}px`;
+		el.style.transform = 'translate(-50%, -100%) translateY(-12px)';
+
+		const tipRect = el.getBoundingClientRect();
+		const pad = 8;
+
+		// Clamp horizontally: ensure tooltip stays within viewport
+		let finalLeft = e.clientX - tipRect.width / 2;
+		if (finalLeft < pad) {
+			finalLeft = pad;
+		} else if (finalLeft + tipRect.width > window.innerWidth - pad) {
+			finalLeft = window.innerWidth - pad - tipRect.width;
+		}
+
+		// Clamp vertically: if tooltip would go above viewport, show below cursor instead
+		let finalTop = e.clientY - tipRect.height - 12;
+		let flipBelow = false;
+		if (finalTop < pad) {
+			finalTop = e.clientY + 16;
+			flipBelow = true;
+		}
+
+		// Convert back to container-relative
+		el.style.left = `${finalLeft - containerRect.left}px`;
+		el.style.top = `${finalTop - containerRect.top}px`;
+		el.style.transform = flipBelow ? 'none' : 'none';
+	}
 
 	return {
 		el,
 		show(label: string, value: string, e: MouseEvent) {
 			labelEl.textContent = label;
 			valueEl.textContent = value;
-			const rect = container.getBoundingClientRect();
-			el.style.left = `${e.clientX - rect.left}px`;
-			el.style.top = `${e.clientY - rect.top}px`;
 			el.style.opacity = '1';
 			el.style.visibility = 'visible';
+			positionTooltip(e);
 			currentId = `${chartId}-${label}`;
 			openTooltip(currentId);
 		},
 		move(e: MouseEvent) {
-			const rect = container.getBoundingClientRect();
-			el.style.left = `${e.clientX - rect.left}px`;
-			el.style.top = `${e.clientY - rect.top}px`;
+			positionTooltip(e);
 		},
 		hide() {
 			el.style.opacity = '0';

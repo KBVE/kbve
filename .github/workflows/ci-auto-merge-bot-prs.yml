@@ -164,15 +164,18 @@ jobs:
                         return;
                       }
 
-                      // 4. Title — two supported patterns:
+                      // 4. Title — three supported patterns:
                       //    a) "Atomic: <APP> v<VER> ..." — post-publish sync (manifest-validated)
-                      //    b) "deploy(<SCOPE>): ..." — automated deploy PRs (path-prefix-validated)
+                      //    b) "chore(<PKG>): update version.toml to <VER>" — post-publish version sync
+                      //    c) "deploy(<SCOPE>): ..." — automated deploy PRs (path-prefix-validated)
                       const atomicMatch = title.match(/^Atomic:\s+(.+?)\s+v(\d+\.\d+\.\d+)/);
+                      const choreMatch = title.match(/^chore\(([a-zA-Z0-9_-]+)\):\s+update version\.toml to (\d+\.\d+\.\d+)/);
                       const deployMatch = title.match(/^deploy\(([a-zA-Z0-9_-]+)\):/);
 
-                      if (!atomicMatch && !deployMatch) {
+                      if (!atomicMatch && !choreMatch && !deployMatch) {
                         core.setFailed(
-                          `Title '${title}' does not match "Atomic: <app> v<semver> ..." ` +
+                          `Title '${title}' does not match "Atomic: <app> v<semver> ...", ` +
+                          `"chore(<pkg>): update version.toml to <semver>", ` +
                           `or "deploy(<scope>): ..." — aborting.`
                         );
                         return;
@@ -182,10 +185,12 @@ jobs:
                       // Shared identifier — set by whichever path matches
                       let appName = '';
 
-                      if (atomicMatch) {
+                      if (atomicMatch || choreMatch) {
                         // --- Path A: post-publish sync (manifest-validated) ---
-                        appName = atomicMatch[1];
-                        core.info(`[atomic] Extracted app name: '${appName}'`);
+                        // Both "Atomic: <app> v<ver>" and "chore(<pkg>): update version.toml to <ver>"
+                        // follow the same validation — look up the app/package in the manifest.
+                        appName = atomicMatch ? atomicMatch[1] : choreMatch[1];
+                        core.info(`[post-publish] Extracted app name: '${appName}'`);
 
                         const manifestPath = '.github/ci-dispatch-manifest.json';
                         if (!fs.existsSync(manifestPath)) {
