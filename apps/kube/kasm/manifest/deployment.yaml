@@ -1,0 +1,129 @@
+# KASM workspace with Gluetun VPN sidecar.
+# All egress from the KASM container exits through the WireGuard tunnel.
+# The KASM container shares the Gluetun network namespace (no direct internet).
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: kasm-vpn
+    namespace: kasm
+    labels:
+        app: kasm-vpn
+        app.kubernetes.io/part-of: kasm
+        app.kubernetes.io/component: workspace
+spec:
+    replicas: 0 # Manual scale — set to 1 when needed
+    selector:
+        matchLabels:
+            app: kasm-vpn
+    template:
+        metadata:
+            labels:
+                app: kasm-vpn
+                app.kubernetes.io/part-of: kasm
+                app.kubernetes.io/component: workspace
+        spec:
+            containers:
+                # ── Gluetun VPN sidecar ──
+                # Establishes WireGuard tunnel. KASM container routes through it.
+                - name: gluetun
+                  image: ghcr.io/qdm12/gluetun:v3.40.0
+                  securityContext:
+                      capabilities:
+                          add:
+                              - NET_ADMIN
+                  ports:
+                      # KASM web port exposed through Gluetun's network stack
+                      - name: kasm-web
+                        containerPort: 6901
+                        protocol: TCP
+                      # Gluetun health/control API
+                      - name: gluetun-http
+                        containerPort: 8000
+                        protocol: TCP
+                  envFrom:
+                      - secretRef:
+                            name: vpn-wireguard
+                  env:
+                      # Gluetun-specific settings
+                      - name: UPDATER_PERIOD
+                        value: '24h'
+                      - name: TZ
+                        value: 'UTC'
+                      # HTTP proxy for containers sharing the network
+                      - name: HTTPPROXY
+                        value: 'on'
+                      - name: HTTPPROXY_LOG
+                        value: 'off'
+                      # Firewall — only allow KASM port + DNS
+                      - name: FIREWALL_INPUT_PORTS
+                        value: '6901'
+                      - name: FIREWALL_OUTBOUND_SUBNETS
+                        value: '10.0.0.0/8,172.16.0.0/12'
+                      # Health check server
+                      - name: HEALTH_SERVER_ADDRESS
+                        value: '0.0.0.0:9999'
+                  livenessProbe:
+                      httpGet:
+                          path: /
+                          port: 9999
+                      initialDelaySeconds: 30
+                      periodSeconds: 30
+                      failureThreshold: 3
+                  readinessProbe:
+                      httpGet:
+                          path: /
+                          port: 9999
+                      initialDelaySeconds: 10
+                      periodSeconds: 10
+                  resources:
+                      requests:
+                          memory: '64Mi'
+                          cpu: '50m'
+                      limits:
+                          memory: '256Mi'
+                          cpu: '200m'
+
+                # ── KASM Discord workspace ──
+                # Uses Gluetun's network namespace — all traffic exits via VPN.
+                # Browser profile persisted via PVC so Discord session survives restarts.
+                - name: workspace
+                  image: kasmweb/discord:1.18.0-rolling-daily
+                  env:
+                      - name: VNC_PW
+                        value: 'changeme'
+                      - name: KASM_PORT
+                        value: '6901'
+                  volumeMounts:
+                      - name: discord-profile
+                        mountPath: /home/kasm-user
+                  # Network shared with gluetun — no ports needed here
+                  resources:
+                      requests:
+                          memory: '1Gi'
+                          cpu: '500m'
+                      limits:
+                          memory: '4Gi'
+                          cpu: '2'
+            volumes:
+                - name: discord-profile
+                  persistentVolumeClaim:
+                      claimName: kasm-discord-profile
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: kasm-vpn-service
+    namespace: kasm
+    labels:
+        app: kasm-vpn
+spec:
+    type: ClusterIP
+    selector:
+        app: kasm-vpn
+    ports:
+        - name: web
+          port: 6901
+          targetPort: 6901
+          protocol: TCP
