@@ -19,6 +19,25 @@ spec:
     destination:
         server: https://kubernetes.default.svc
         namespace: agones-system
+    ignoreDifferences:
+        # Agones Helm generates TLS certs and webhook configs at install time.
+        # These are not in git and should not cause drift.
+        - group: ''
+          kind: Secret
+          jsonPointers:
+              - /data
+        - group: admissionregistration.k8s.io
+          kind: MutatingWebhookConfiguration
+          jsonPointers:
+              - /webhooks
+        - group: admissionregistration.k8s.io
+          kind: ValidatingWebhookConfiguration
+          jsonPointers:
+              - /webhooks
+        - group: apiregistration.k8s.io
+          kind: APIService
+          jsonPointers:
+              - /spec/caBundle
     syncPolicy:
         automated:
             selfHeal: true
