@@ -1,81 +1,80 @@
-import axios from 'axios';
 import {
-  _isULID,
-  markdownToJsonSafeString,
-  markdownToJsonSafeStringThenStrip,
-  _md2json,
-  __md2json,
+	_isULID,
+	markdownToJsonSafeString,
+	markdownToJsonSafeStringThenStrip,
+	_md2json,
+	__md2json,
 } from './sanitization';
 
 // Prompt Engine Interface
 
 interface FunctionParameter {
-  type: string;
-  properties: {
-    [key: string]: {
-      type: string;
-      description: string;
-    };
-  };
-  required: string[];
+	type: string;
+	properties: {
+		[key: string]: {
+			type: string;
+			description: string;
+		};
+	};
+	required: string[];
 }
 
 interface ToolFunction {
-  name: string;
-  description: string;
-  parameters: FunctionParameter;
+	name: string;
+	description: string;
+	parameters: FunctionParameter;
 }
 
 interface Tool {
-  type: string;
-  function: ToolFunction;
+	type: string;
+	function: ToolFunction;
 }
 
 interface PathwayAction {
-  condition: string;
-  action: string;
+	condition: string;
+	action: string;
 }
 
 interface Pathways {
-  [key: string]: {
-    prompt: string;
-    next: PathwayAction[];
-  };
+	[key: string]: {
+		prompt: string;
+		next: PathwayAction[];
+	};
 }
 
 interface PromptItem {
-  name: string;
-  description: string;
-  items: string[];
-  task: string;
-  tools: Tool[];
-  output: string;
-  pathways: Pathways;
-  ulid: string;
+	name: string;
+	description: string;
+	items: string[];
+	task: string;
+	tools: Tool[];
+	output: string;
+	pathways: Pathways;
+	ulid: string;
 }
 
 interface PromptEngine {
-  key: {
-    [key: string]: PromptItem;
-  };
+	key: {
+		[key: string]: PromptItem;
+	};
 }
 
 export interface GroqResponse {
-  choices?: {
-    message?: {
-      content?: string;
-    };
-  }[];
-  [key: string]: unknown;
+	choices?: {
+		message?: {
+			content?: string;
+		};
+	}[];
+	[key: string]: unknown;
 }
 
 const sanitizationFunctions: {
-  [key: number]: (text: string) => Promise<string>;
+	[key: number]: (text: string) => Promise<string>;
 } = {
-  1: markdownToJsonSafeString,
-  2: markdownToJsonSafeStringThenStrip,
-  3: _md2json,
-  4: __md2json,
+	1: markdownToJsonSafeString,
+	2: markdownToJsonSafeStringThenStrip,
+	3: _md2json,
+	4: __md2json,
 };
 
 /**
@@ -84,25 +83,27 @@ const sanitizationFunctions: {
  * @returns The prompt object.
  */
 export async function _prompt(ulid: string): Promise<PromptItem> {
-  if (!_isULID(ulid)) {
-    throw new Error(`Invalid ULID: ${ulid}`);
-  }
+	if (!_isULID(ulid)) {
+		throw new Error(`Invalid ULID: ${ulid}`);
+	}
 
-  try {
-    const response = await axios.get<PromptEngine>('https://kbve.com/api/prompt/engine.json');
-    const data = response.data.key;
+	try {
+		const res = await fetch('https://kbve.com/api/prompt/engine.json');
+		if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+		const response = (await res.json()) as PromptEngine;
+		const data = response.key;
 
-    const prompt = data[ulid];
+		const prompt = data[ulid];
 
-    if (!prompt) {
-      throw new Error(`Prompt with ULID ${ulid} not found`);
-    }
+		if (!prompt) {
+			throw new Error(`Prompt with ULID ${ulid} not found`);
+		}
 
-    return prompt;
-  } catch (error) {
-    console.error(`Error fetching prompt for ULID ${ulid}:`, error);
-    throw error;
-  }
+		return prompt;
+	} catch (error) {
+		console.error(`Error fetching prompt for ULID ${ulid}:`, error);
+		throw error;
+	}
 }
 
 /**
@@ -111,15 +112,15 @@ export async function _prompt(ulid: string): Promise<PromptItem> {
  * @returns The headers object.
  */
 export function _headers(kbve_api?: string): Record<string, string> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+	const headers: Record<string, string> = {
+		'Content-Type': 'application/json',
+	};
 
-  if (kbve_api) {
-    headers['Authorization'] = `Bearer ${kbve_api}`;
-  }
+	if (kbve_api) {
+		headers['Authorization'] = `Bearer ${kbve_api}`;
+	}
 
-  return headers;
+	return headers;
 }
 
 /**
@@ -131,24 +132,26 @@ export function _headers(kbve_api?: string): Record<string, string> {
  * @throws Error if the response status is not successful.
  */
 export async function _post<T>(
-  url: string,
-  payload: object,
-  headers: Record<string, string>,
+	url: string,
+	payload: object,
+	headers: Record<string, string>,
 ): Promise<T> {
-  try {
-    const response = await axios.post<T>(url, payload, {
-      headers: headers,
-    });
+	try {
+		const response = await fetch(url, {
+			method: 'POST',
+			headers,
+			body: JSON.stringify(payload),
+		});
 
-    if (response.status < 200 || response.status >= 300) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
 
-    return response.data;
-  } catch (error) {
-    console.error(`Error making POST request to ${url}:`, error);
-    throw error;
-  }
+		return (await response.json()) as T;
+	} catch (error) {
+		console.error(`Error making POST request to ${url}:`, error);
+		throw error;
+	}
 }
 
 /**
@@ -158,13 +161,13 @@ export async function _post<T>(
  * @returns The sanitized message.
  */
 export async function _message(
-  message: string,
-  level: number,
+	message: string,
+	level: number,
 ): Promise<string> {
-  if (sanitizationFunctions[level]) {
-    return await sanitizationFunctions[level](message);
-  }
-  return message;
+	if (sanitizationFunctions[level]) {
+		return await sanitizationFunctions[level](message);
+	}
+	return message;
 }
 
 /**
@@ -177,36 +180,36 @@ export async function _message(
  * @returns The response data from the API.
  */
 export async function _groq(
-  system: string,
-  message: string,
-  kbve_api: string,
-  model: string,
-  sanitizationLevel: number,
+	system: string,
+	message: string,
+	kbve_api: string,
+	model: string,
+	sanitizationLevel: number,
 ): Promise<GroqResponse> {
-  try {
-    const headers = _headers(kbve_api);
+	try {
+		const headers = _headers(kbve_api);
 
-    if (_isULID(system)) {
-      const prompt = await _prompt(system);
-      system = prompt.task;
-    }
+		if (_isULID(system)) {
+			const prompt = await _prompt(system);
+			system = prompt.task;
+		}
 
-    message = await _message(message, sanitizationLevel);
+		message = await _message(message, sanitizationLevel);
 
-    const payload = {
-      system,
-      message,
-      model,
-    };
+		const payload = {
+			system,
+			message,
+			model,
+		};
 
-    const apiResponse = await _post<GroqResponse>(
-      'https://rust.kbve.com/api/v1/call_groq',
-      payload,
-      headers,
-    );
-    return apiResponse;
-  } catch (error) {
-    console.error('Error processing groq request:', error);
-    throw error;
-  }
+		const apiResponse = await _post<GroqResponse>(
+			'https://rust.kbve.com/api/v1/call_groq',
+			payload,
+			headers,
+		);
+		return apiResponse;
+	} catch (error) {
+		console.error('Error processing groq request:', error);
+		throw error;
+	}
 }

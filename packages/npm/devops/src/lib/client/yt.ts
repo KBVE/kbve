@@ -1,12 +1,10 @@
-import axios from 'axios';
 import { JSDOM } from 'jsdom';
 
 /**
  * Regular expression to validate YouTube URLs.
  * Note: No /g flag on the module-level regex to avoid lastIndex state bugs.
  */
-const YOUTUBE_URL_REGEX =
-  /https?:\/\/(www\.)?(youtube\.com|youtu\.be)\/[^\s]+/;
+const YOUTUBE_URL_REGEX = /https?:\/\/(www\.)?(youtube\.com|youtu\.be)\/[^\s]+/;
 
 /**
  * Fetches the title of a YouTube video without using the YouTube API.
@@ -14,39 +12,44 @@ const YOUTUBE_URL_REGEX =
  * @returns The title of the YouTube video.
  */
 export async function fetchYoutubeTitle(url: string): Promise<string | null> {
-  // Validate the YouTube URL
-  if (!YOUTUBE_URL_REGEX.test(url)) {
-    console.error('Invalid YouTube URL');
-    return null;
-  }
+	// Validate the YouTube URL
+	if (!YOUTUBE_URL_REGEX.test(url)) {
+		console.error('Invalid YouTube URL');
+		return null;
+	}
 
-  try {
-    const response = await axios.get(url);
-    const dom = new JSDOM(response.data);
+	try {
+		const response = await fetch(url);
+		if (!response.ok)
+			throw new Error(`HTTP error! status: ${response.status}`);
+		const html = await response.text();
+		const dom = new JSDOM(html);
 
-    const videoElement = dom.window.document.querySelector(
-      'meta[property="og:video:url"]',
-    );
+		const videoElement = dom.window.document.querySelector(
+			'meta[property="og:video:url"]',
+		);
 
-    // Check if the meta tag for the video is present
-    if (!videoElement) {
-      console.error('No valid video found on the page');
-      return null;
-    }
+		// Check if the meta tag for the video is present
+		if (!videoElement) {
+			console.error('No valid video found on the page');
+			return null;
+		}
 
-    const titleElement =
-      dom.window.document.querySelector('meta[name="title"]') ||
-      dom.window.document.querySelector('meta[property="og:title"]') ||
-      dom.window.document.querySelector('title');
+		const titleElement =
+			dom.window.document.querySelector('meta[name="title"]') ||
+			dom.window.document.querySelector('meta[property="og:title"]') ||
+			dom.window.document.querySelector('title');
 
-    if (titleElement) {
-      return titleElement.getAttribute('content') || titleElement.textContent;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error fetching YouTube title:', error);
-    return null;
-  }
+		if (titleElement) {
+			return (
+				titleElement.getAttribute('content') || titleElement.textContent
+			);
+		}
+		return null;
+	} catch (error) {
+		console.error('Error fetching YouTube title:', error);
+		return null;
+	}
 }
 
 /**
@@ -55,11 +58,11 @@ export async function fetchYoutubeTitle(url: string): Promise<string | null> {
  * @returns The first YouTube link found in the message, or null if no link is found.
  */
 export function extractYoutubeLink(message: string): string | null {
-  // Use /g flag inline so lastIndex resets each call
-  const urlMatches = message.match(
-    /https?:\/\/(www\.)?(youtube\.com|youtu\.be)\/[^\s]+/g,
-  );
-  return urlMatches ? urlMatches[0] : null;
+	// Use /g flag inline so lastIndex resets each call
+	const urlMatches = message.match(
+		/https?:\/\/(www\.)?(youtube\.com|youtu\.be)\/[^\s]+/g,
+	);
+	return urlMatches ? urlMatches[0] : null;
 }
 
 /**
@@ -68,11 +71,11 @@ export function extractYoutubeLink(message: string): string | null {
  * @returns The YouTube video ID found in the message, or null if no valid ID is found.
  */
 export function extractYoutubeId(message: string): string | null {
-  const url = extractYoutubeLink(message);
-  if (!url) {
-    return null;
-  }
+	const url = extractYoutubeLink(message);
+	if (!url) {
+		return null;
+	}
 
-  const videoIdMatch = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})(?:[?&]|$)/);
-  return videoIdMatch ? videoIdMatch[1] : null;
+	const videoIdMatch = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})(?:[?&]|$)/);
+	return videoIdMatch ? videoIdMatch[1] : null;
 }
