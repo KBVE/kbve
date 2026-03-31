@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Loader2, GitPullRequest, CircleDot, ExternalLink } from 'lucide-react';
 import { openTooltip, closeTooltip } from '@kbve/droid';
+import { showItemModal } from './kanbanItemModal';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -148,11 +149,13 @@ function useKanbanTooltip() {
 
 function ItemRow({
 	item,
+	column,
 	onMouseEnter,
 	onMouseMove,
 	onMouseLeave,
 }: {
 	item: KanbanItem;
+	column: string;
 	onMouseEnter: (item: KanbanItem, e: React.MouseEvent) => void;
 	onMouseMove: (e: React.MouseEvent) => void;
 	onMouseLeave: (num: number) => void;
@@ -165,6 +168,13 @@ function ItemRow({
 			target="_blank"
 			rel="noopener noreferrer"
 			data-astro-prefetch
+			onClick={(e) => {
+				// Left click = modal, ctrl/meta/middle = normal link behavior
+				if (!e.ctrlKey && !e.metaKey && e.button === 0) {
+					e.preventDefault();
+					showItemModal({ ...item, column });
+				}
+			}}
 			onMouseEnter={(e) => onMouseEnter(item, e)}
 			onMouseMove={onMouseMove}
 			onMouseLeave={() => onMouseLeave(item.number)}
@@ -431,6 +441,7 @@ export default function ReactKanbanBrowser() {
 								<ItemRow
 									key={item.number}
 									item={item}
+									column={activeTab}
 									onMouseEnter={show}
 									onMouseMove={move}
 									onMouseLeave={hide}

@@ -9,6 +9,7 @@ import {
 	COLUMN_ORDER,
 	type KanbanItem,
 } from './useKanbanSection';
+import { createChartTooltip, attachItemEvents } from './kanbanChartTooltip';
 
 interface Props {
 	sectionIndex: number;
@@ -18,11 +19,21 @@ export default function ReactKanbanTimeline({ sectionIndex }: Props) {
 	const active = useKanbanSection(sectionIndex);
 	const [data] = useKanbanData();
 	const svgRef = useRef<SVGSVGElement>(null);
+	const wrapRef = useRef<HTMLDivElement>(null);
 	const rendered = useRef(false);
 
 	useEffect(() => {
-		if (!active || !data || rendered.current || !svgRef.current) return;
+		if (
+			!active ||
+			!data ||
+			rendered.current ||
+			!svgRef.current ||
+			!wrapRef.current
+		)
+			return;
 		rendered.current = true;
+
+		const tooltip = createChartTooltip(wrapRef.current, 'timeline');
 
 		// Flatten all items with dates, excluding Done (too many)
 		const items: (KanbanItem & { column: string })[] = [];
@@ -134,12 +145,23 @@ export default function ReactKanbanTimeline({ sectionIndex }: Props) {
 			circle.style.opacity = '0';
 			circle.style.transition = `opacity 0.3s ease ${(i * 0.02).toFixed(2)}s`;
 
-			const title = document.createElementNS(
-				'http://www.w3.org/2000/svg',
-				'title',
+			attachItemEvents(
+				circle,
+				tooltip,
+				`#${item.number} ${item.title}`,
+				`${item.column} · ${item.date}`,
+				{
+					type: item.type,
+					number: item.number,
+					title: item.title,
+					state: item.state,
+					url: item.url,
+					assignees: item.assignees,
+					labels: item.labels,
+					date: item.date,
+					column: item.column,
+				},
 			);
-			title.textContent = `#${item.number} ${item.title} (${item.date})`;
-			circle.appendChild(title);
 			g.appendChild(circle);
 
 			requestAnimationFrame(() => {
@@ -150,6 +172,7 @@ export default function ReactKanbanTimeline({ sectionIndex }: Props) {
 
 	return (
 		<div
+			ref={wrapRef}
 			style={{
 				display: 'flex',
 				flexDirection: 'column',

@@ -4,6 +4,7 @@ import {
 	useKanbanData,
 	COLUMN_ORDER,
 } from './useKanbanSection';
+import { createChartTooltip, attachListEvents } from './kanbanChartTooltip';
 
 interface Props {
 	sectionIndex: number;
@@ -21,13 +22,30 @@ export default function ReactKanbanHeatmap({ sectionIndex }: Props) {
 		rendered.current = true;
 
 		const container = containerRef.current;
+		const tooltip = createChartTooltip(container, 'heatmap');
 
-		// Collect all items with dates
+		// Collect all items with dates + build items-by-date lookup
 		const dateCounts: Record<string, number> = {};
+		const dateItems: Record<
+			string,
+			Array<{
+				type: 'ISSUE' | 'PULL_REQUEST';
+				number: number;
+				title: string;
+				state: string;
+				url: string;
+				assignees: string[];
+				labels: string[];
+				date: string;
+				column: string;
+			}>
+		> = {};
 		for (const col of COLUMN_ORDER) {
 			for (const item of data.columns[col] ?? []) {
 				if (item.date) {
 					dateCounts[item.date] = (dateCounts[item.date] ?? 0) + 1;
+					if (!dateItems[item.date]) dateItems[item.date] = [];
+					dateItems[item.date].push({ ...item, column: col });
 				}
 			}
 		}
@@ -131,12 +149,28 @@ export default function ReactKanbanHeatmap({ sectionIndex }: Props) {
 				rect.style.opacity = '0';
 				rect.style.transition = `opacity 0.15s ease ${(idx * 0.001).toFixed(3)}s`;
 
-				const title = document.createElementNS(
-					'http://www.w3.org/2000/svg',
-					'title',
-				);
-				title.textContent = `${dateStr}: ${count} item${count !== 1 ? 's' : ''}`;
-				rect.appendChild(title);
+				const items = dateItems[dateStr] ?? [];
+				if (count > 0) {
+					attachListEvents(
+						rect,
+						tooltip,
+						dateStr,
+						`${count} item${count !== 1 ? 's' : ''} — click to view`,
+						{
+							title: dateStr,
+							subtitle: `${count} item${count !== 1 ? 's' : ''} created on this date`,
+							accentColor: 'var(--sl-color-accent, #06b6d4)',
+							items,
+						},
+					);
+				} else {
+					// Empty cells just get tooltip, no click
+					rect.addEventListener('mouseenter', (e) =>
+						tooltip.show(dateStr, 'No items', e),
+					);
+					rect.addEventListener('mousemove', (e) => tooltip.move(e));
+					rect.addEventListener('mouseleave', () => tooltip.hide());
+				}
 				svg.appendChild(rect);
 
 				requestAnimationFrame(() => {

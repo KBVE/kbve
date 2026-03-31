@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { CircleDot, GitPullRequest } from 'lucide-react';
 import {
 	useKanbanSection,
@@ -7,6 +7,7 @@ import {
 	COLUMN_ORDER,
 	type KanbanItem,
 } from './useKanbanSection';
+import { showItemModal } from './kanbanItemModal';
 
 interface Props {
 	sectionIndex: number;
@@ -22,13 +23,14 @@ function labelColor(label: string): string {
 
 const MAX_CARDS = 8;
 
-function KanbanCard({ item }: { item: KanbanItem }) {
+function KanbanCard({ item, column }: { item: KanbanItem; column: string }) {
 	const isIssue = item.type === 'ISSUE';
 	return (
-		<a
-			href={item.url}
-			target="_blank"
-			rel="noopener noreferrer"
+		<div
+			onClick={(e) => {
+				e.preventDefault();
+				showItemModal({ ...item, column });
+			}}
 			style={{
 				display: 'block',
 				padding: '8px 10px',
@@ -114,7 +116,7 @@ function KanbanCard({ item }: { item: KanbanItem }) {
 					))}
 				</div>
 			)}
-		</a>
+		</div>
 	);
 }
 
@@ -231,7 +233,11 @@ export default function ReactKanbanBoard({ sectionIndex }: Props) {
 									scrollbarWidth: 'thin',
 								}}>
 								{items.slice(0, MAX_CARDS).map((item) => (
-									<KanbanCard key={item.number} item={item} />
+									<KanbanCard
+										key={item.number}
+										item={item}
+										column={col}
+									/>
 								))}
 								{items.length > MAX_CARDS && (
 									<div

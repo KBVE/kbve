@@ -6,6 +6,7 @@ import {
 	COLUMN_COLORS,
 	COLUMN_ORDER,
 } from './useKanbanSection';
+import { createChartTooltip, attachListEvents } from './kanbanChartTooltip';
 
 interface Props {
 	sectionIndex: number;
@@ -15,12 +16,21 @@ export default function ReactKanbanTreemap({ sectionIndex }: Props) {
 	const active = useKanbanSection(sectionIndex);
 	const [data] = useKanbanData();
 	const svgRef = useRef<SVGSVGElement>(null);
+	const wrapRef = useRef<HTMLDivElement>(null);
 	const rendered = useRef(false);
 
 	useEffect(() => {
-		if (!active || !data || rendered.current || !svgRef.current) return;
+		if (
+			!active ||
+			!data ||
+			rendered.current ||
+			!svgRef.current ||
+			!wrapRef.current
+		)
+			return;
 		rendered.current = true;
 
+		const tooltip = createChartTooltip(wrapRef.current, 'treemap');
 		const summary = data.summary;
 		const children = COLUMN_ORDER.filter((k) => (summary[k] ?? 0) > 0).map(
 			(k) => ({ name: k, value: summary[k], color: COLUMN_COLORS[k] }),
@@ -96,12 +106,21 @@ export default function ReactKanbanTreemap({ sectionIndex }: Props) {
 				g.appendChild(countText);
 			}
 
-			const title = document.createElementNS(
-				'http://www.w3.org/2000/svg',
-				'title',
+			const colItems = (data.columns[leaf.data.name] ?? []).map(
+				(item: any) => ({ ...item, column: leaf.data.name }),
 			);
-			title.textContent = `${leaf.data.name}: ${leaf.data.value} items`;
-			g.appendChild(title);
+			attachListEvents(
+				g,
+				tooltip,
+				leaf.data.name,
+				`${leaf.data.value} items — click to view`,
+				{
+					title: leaf.data.name,
+					subtitle: `${leaf.data.value} items in this column`,
+					accentColor: leaf.data.color,
+					items: colItems,
+				},
+			);
 
 			svg.appendChild(g);
 
@@ -113,6 +132,7 @@ export default function ReactKanbanTreemap({ sectionIndex }: Props) {
 
 	return (
 		<div
+			ref={wrapRef}
 			style={{
 				display: 'flex',
 				flexDirection: 'column',

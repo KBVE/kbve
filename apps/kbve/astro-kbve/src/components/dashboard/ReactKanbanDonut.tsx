@@ -6,6 +6,7 @@ import {
 	COLUMN_COLORS,
 	COLUMN_ORDER,
 } from './useKanbanSection';
+import { createChartTooltip, attachListEvents } from './kanbanChartTooltip';
 
 interface Props {
 	sectionIndex: number;
@@ -15,12 +16,21 @@ export default function ReactKanbanDonut({ sectionIndex }: Props) {
 	const active = useKanbanSection(sectionIndex);
 	const [data] = useKanbanData();
 	const svgRef = useRef<SVGSVGElement>(null);
+	const wrapRef = useRef<HTMLDivElement>(null);
 	const rendered = useRef(false);
 
 	useEffect(() => {
-		if (!active || !data || rendered.current || !svgRef.current) return;
+		if (
+			!active ||
+			!data ||
+			rendered.current ||
+			!svgRef.current ||
+			!wrapRef.current
+		)
+			return;
 		rendered.current = true;
 
+		const tooltip = createChartTooltip(wrapRef.current, 'donut');
 		const summary = data.summary;
 		const entries = COLUMN_ORDER.filter((k) => (summary[k] ?? 0) > 0).map(
 			(k) => ({ name: k, value: summary[k], color: COLUMN_COLORS[k] }),
@@ -43,6 +53,8 @@ export default function ReactKanbanDonut({ sectionIndex }: Props) {
 		// Clear any existing content
 		while (svg.firstChild) svg.removeChild(svg.firstChild);
 
+		const total = entries.reduce((s, e) => s + e.value, 0);
+
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 		g.setAttribute('transform', `translate(${width / 2},${height / 2})`);
 		svg.appendChild(g);
@@ -59,12 +71,23 @@ export default function ReactKanbanDonut({ sectionIndex }: Props) {
 			path.style.opacity = '0';
 			path.style.transition = `opacity 0.4s ease ${(d.index * 0.08).toFixed(2)}s`;
 
-			const title = document.createElementNS(
-				'http://www.w3.org/2000/svg',
-				'title',
+			const pct =
+				total > 0 ? ((d.data.value / total) * 100).toFixed(1) : '0';
+			const colItems = (data.columns[d.data.name] ?? []).map(
+				(item: any) => ({ ...item, column: d.data.name }),
 			);
-			title.textContent = `${d.data.name}: ${d.data.value}`;
-			path.appendChild(title);
+			attachListEvents(
+				path,
+				tooltip,
+				d.data.name,
+				`${d.data.value} items (${pct}%) — click to view`,
+				{
+					title: d.data.name,
+					subtitle: `${d.data.value} items in this column`,
+					accentColor: d.data.color,
+					items: colItems,
+				},
+			);
 			g.appendChild(path);
 
 			// Trigger fade-in
@@ -74,7 +97,6 @@ export default function ReactKanbanDonut({ sectionIndex }: Props) {
 		}
 
 		// Center label
-		const total = entries.reduce((s, e) => s + e.value, 0);
 		const text1 = document.createElementNS(
 			'http://www.w3.org/2000/svg',
 			'text',
@@ -102,6 +124,7 @@ export default function ReactKanbanDonut({ sectionIndex }: Props) {
 
 	return (
 		<div
+			ref={wrapRef}
 			style={{
 				display: 'flex',
 				flexDirection: 'column',

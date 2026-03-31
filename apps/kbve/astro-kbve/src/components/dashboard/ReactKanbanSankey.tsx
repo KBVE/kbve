@@ -6,6 +6,7 @@ import {
 	COLUMN_COLORS,
 	COLUMN_ORDER,
 } from './useKanbanSection';
+import { createChartTooltip, attachTooltipEvents } from './kanbanChartTooltip';
 
 interface Props {
 	sectionIndex: number;
@@ -15,11 +16,21 @@ export default function ReactKanbanSankey({ sectionIndex }: Props) {
 	const active = useKanbanSection(sectionIndex);
 	const [data] = useKanbanData();
 	const svgRef = useRef<SVGSVGElement>(null);
+	const wrapRef = useRef<HTMLDivElement>(null);
 	const rendered = useRef(false);
 
 	useEffect(() => {
-		if (!active || !data || rendered.current || !svgRef.current) return;
+		if (
+			!active ||
+			!data ||
+			rendered.current ||
+			!svgRef.current ||
+			!wrapRef.current
+		)
+			return;
 		rendered.current = true;
+
+		const tooltip = createChartTooltip(wrapRef.current, 'sankey');
 
 		const summary = data.summary;
 		const width = 900;
@@ -127,18 +138,18 @@ export default function ReactKanbanSankey({ sectionIndex }: Props) {
 			path.style.opacity = '0';
 			path.style.transition = `opacity 0.4s ease ${(i * 0.05).toFixed(2)}s`;
 
-			const title = document.createElementNS(
-				'http://www.w3.org/2000/svg',
-				'title',
-			);
 			const srcName =
 				phaseDisplayName[(link.source as any).name] ??
 				(link.source as any).name;
 			const tgtName =
 				phaseDisplayName[(link.target as any).name] ??
 				(link.target as any).name;
-			title.textContent = `${srcName} → ${tgtName}: ${link.value}`;
-			path.appendChild(title);
+			attachTooltipEvents(
+				path,
+				tooltip,
+				`${srcName} → ${tgtName}`,
+				`${link.value} items`,
+			);
 			linkGroup.appendChild(path);
 
 			requestAnimationFrame(() => {
@@ -175,12 +186,12 @@ export default function ReactKanbanSankey({ sectionIndex }: Props) {
 			rect.setAttribute('fill', color);
 			rect.setAttribute('opacity', isPhase ? '0.9' : '0.7');
 
-			const title = document.createElementNS(
-				'http://www.w3.org/2000/svg',
-				'title',
+			attachTooltipEvents(
+				rect,
+				tooltip,
+				displayName,
+				`${node.value ?? 0} items`,
 			);
-			title.textContent = `${displayName}: ${node.value ?? 0}`;
-			rect.appendChild(title);
 			svg.appendChild(rect);
 
 			// Label
@@ -208,6 +219,7 @@ export default function ReactKanbanSankey({ sectionIndex }: Props) {
 
 	return (
 		<div
+			ref={wrapRef}
 			style={{
 				display: 'flex',
 				flexDirection: 'column',
