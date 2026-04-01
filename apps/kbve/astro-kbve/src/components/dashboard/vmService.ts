@@ -20,6 +20,89 @@ export type VMPhase =
 	| 'Migrating'
 	| 'Unknown';
 
+// ---------------------------------------------------------------------------
+// VM State Bitmask — composable flags for UI decisions
+// ---------------------------------------------------------------------------
+// Each flag represents a capability or condition. Combine with bitwise OR.
+// UI components check flags instead of string comparisons:
+//   if (state & VMState.CAN_START) showStartButton();
+//   if (state & VMState.CAN_CONNECT) showVNC/RDP();
+
+export const VMState = {
+	/** VM exists and is known to the cluster */
+	EXISTS: 0b0000_0001,
+	/** VM is actively running (guest OS booted) */
+	RUNNING: 0b0000_0010,
+	/** VM is in a transition state (starting, stopping, migrating) */
+	TRANSITIONING: 0b0000_0100,
+	/** VM can be started (stopped or failed, not already transitioning) */
+	CAN_START: 0b0000_1000,
+	/** VM can be stopped (running or paused) */
+	CAN_STOP: 0b0001_0000,
+	/** VM can be restarted (running) */
+	CAN_RESTART: 0b0010_0000,
+	/** VM has a connectable display (VNC/RDP available) */
+	CAN_CONNECT: 0b0100_0000,
+	/** VM is in an error state (failed, crash loop) */
+	ERROR: 0b1000_0000,
+} as const;
+
+export type VMStateFlags = number;
+
+/** Map any KubeVirt phase string → bitmask flags.
+ *  Handles every known phase + unknown ones gracefully. */
+export function phaseToState(phase: string): VMStateFlags {
+	const PHASE_MAP: Record<string, VMStateFlags> = {
+		// VMI phases (from K8s API)
+		Running:
+			VMState.EXISTS |
+			VMState.RUNNING |
+			VMState.CAN_STOP |
+			VMState.CAN_RESTART |
+			VMState.CAN_CONNECT,
+		Succeeded: VMState.EXISTS | VMState.CAN_START,
+		Failed: VMState.EXISTS | VMState.CAN_START | VMState.ERROR,
+		Pending: VMState.EXISTS | VMState.TRANSITIONING,
+		Scheduling: VMState.EXISTS | VMState.TRANSITIONING,
+
+		// VM printableStatus values
+		Starting: VMState.EXISTS | VMState.TRANSITIONING,
+		Stopping: VMState.EXISTS | VMState.TRANSITIONING,
+		Stopped: VMState.EXISTS | VMState.CAN_START,
+		Paused:
+			VMState.EXISTS |
+			VMState.RUNNING |
+			VMState.CAN_STOP |
+			VMState.CAN_RESTART,
+		Migrating:
+			VMState.EXISTS |
+			VMState.RUNNING |
+			VMState.TRANSITIONING |
+			VMState.CAN_CONNECT,
+		Provisioning: VMState.EXISTS | VMState.TRANSITIONING,
+		WaitingForVolumeBinding: VMState.EXISTS | VMState.TRANSITIONING,
+		ErrorUnschedulable: VMState.EXISTS | VMState.ERROR | VMState.CAN_START,
+		CrashLoopBackOff: VMState.EXISTS | VMState.ERROR | VMState.CAN_START,
+		Unknown: VMState.EXISTS,
+	};
+
+	return PHASE_MAP[phase] ?? VMState.EXISTS;
+}
+
+/** Resolve the display phase from bitmask (for UI labels/colors). */
+export function stateToPhase(state: VMStateFlags): VMPhase {
+	if (state & VMState.ERROR) return 'Stopped';
+	if (state & VMState.RUNNING && !(state & VMState.TRANSITIONING))
+		return 'Running';
+	if (state & VMState.TRANSITIONING) {
+		if (state & VMState.RUNNING) return 'Migrating';
+		if (state & VMState.CAN_START) return 'Stopping';
+		return 'Starting';
+	}
+	if (state & VMState.CAN_START) return 'Stopped';
+	return 'Unknown';
+}
+
 export interface VirtualMachine {
 	metadata: {
 		name: string;
@@ -121,6 +204,8 @@ export interface VMInfo {
 	vm: VirtualMachine;
 	vmi?: VirtualMachineInstance;
 	phase: VMPhase;
+	/** Bitmask state flags — use VMState.CAN_START etc. for UI decisions */
+	state: VMStateFlags;
 	osType: 'windows' | 'macos' | 'linux' | 'unknown';
 	/** Minutes since VMI started — undefined if not running */
 	uptimeMinutes?: number;
@@ -190,7 +275,15 @@ async function apiFetch<T>(
 		throw new Error(`K8s API error ${resp.status}: ${text.slice(0, 200)}`);
 	}
 
-	return resp.json();
+	// KubeVirt subresource actions (start/stop/restart) return empty body.
+	// Only parse JSON if there's actually content to parse.
+	const text = await resp.text();
+	if (!text || text.trim().length === 0) return {} as T;
+	try {
+		return JSON.parse(text) as T;
+	} catch {
+		return {} as T;
+	}
 }
 
 async function fetchVMs(token: string): Promise<VirtualMachine[]> {
@@ -234,19 +327,29 @@ export function detectOS(vm: VirtualMachine): VMInfo['osType'] {
 	return 'unknown';
 }
 
+/** Compute bitmask state from VM + VMI. Single source of truth for UI decisions. */
+export function getVMState(
+	vm: VirtualMachine,
+	vmi?: VirtualMachineInstance,
+): VMStateFlags {
+	if (vmi) {
+		const rawPhase = (vmi.status?.phase as string) ?? 'Unknown';
+		return phaseToState(rawPhase);
+	}
+	const status = vm.status?.printableStatus ?? '';
+	if (status) return phaseToState(status);
+	if (vm.spec.running === false) return phaseToState('Stopped');
+	if (vm.spec.runStrategy === 'Manual' && !vm.status?.ready)
+		return phaseToState('Stopped');
+	return phaseToState('Unknown');
+}
+
+/** Get display phase from VM + VMI. Uses bitmask internally. */
 export function getPhase(
 	vm: VirtualMachine,
 	vmi?: VirtualMachineInstance,
 ): VMPhase {
-	if (vmi) return vmi.status?.phase ?? 'Unknown';
-	const status = vm.status?.printableStatus;
-	if (status === 'Running') return 'Running';
-	if (status === 'Starting') return 'Starting';
-	if (status === 'Stopping') return 'Stopping';
-	if (status === 'Stopped' || status === 'Provisioning') return 'Stopped';
-	if (vm.spec.running === false) return 'Stopped';
-	if (vm.spec.runStrategy === 'Manual' && !vm.status?.ready) return 'Stopped';
-	return (status as VMPhase) ?? 'Unknown';
+	return stateToPhase(getVMState(vm, vmi));
 }
 
 export function phaseColor(phase: VMPhase): string {
@@ -360,7 +463,8 @@ class VMService {
 				const vmi = vmis.find(
 					(i) => i.metadata.name === vm.metadata.name,
 				);
-				const phase = getPhase(vm, vmi);
+				const state = getVMState(vm, vmi);
+				const phase = stateToPhase(state);
 
 				// Runner label detection — VMs managed by KEDA have a runner label
 				const labels = vm.metadata.labels ?? {};
@@ -391,6 +495,7 @@ class VMService {
 					vm,
 					vmi,
 					phase,
+					state,
 					osType: detectOS(vm),
 					uptimeMinutes,
 					runnerLabel,

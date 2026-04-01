@@ -1,15 +1,15 @@
+use std::collections::HashMap;
 use std::net::IpAddr;
+use std::sync::Mutex;
 use std::time::Instant;
-
-use dashmap::DashMap;
 
 /// Simple sliding-window rate limiter keyed by IP address.
 ///
 /// Each IP gets a fixed number of requests per window. Once exhausted,
 /// subsequent requests are rejected until the window resets.
 pub struct RateLimiter {
-    /// Map from IP → (window start, request count).
-    buckets: DashMap<IpAddr, (Instant, u32)>,
+    /// Map from IP -> (window start, request count).
+    buckets: Mutex<HashMap<IpAddr, (Instant, u32)>>,
     /// Maximum requests allowed per window.
     max_requests: u32,
     /// Window duration in seconds.
@@ -19,7 +19,7 @@ pub struct RateLimiter {
 impl RateLimiter {
     pub fn new(max_requests: u32, window_secs: u64) -> Self {
         Self {
-            buckets: DashMap::new(),
+            buckets: Mutex::new(HashMap::new()),
             max_requests,
             window_secs,
         }
@@ -28,32 +28,32 @@ impl RateLimiter {
     /// Returns `true` if the request is allowed, `false` if rate-limited.
     pub fn check(&self, ip: IpAddr) -> bool {
         let now = Instant::now();
+        let mut buckets = self.buckets.lock().unwrap();
 
-        let mut entry = self.buckets.entry(ip).or_insert((now, 0));
-        let (ref mut window_start, ref mut count) = *entry;
+        let entry = buckets.entry(ip).or_insert((now, 0));
 
         // Reset window if expired
-        if now.duration_since(*window_start).as_secs() >= self.window_secs {
-            *window_start = now;
-            *count = 1;
+        if now.duration_since(entry.0).as_secs() >= self.window_secs {
+            entry.0 = now;
+            entry.1 = 1;
             return true;
         }
 
-        if *count >= self.max_requests {
+        if entry.1 >= self.max_requests {
             return false;
         }
 
-        *count += 1;
+        entry.1 += 1;
         true
     }
 
-    /// Prune entries older than 2× the window to prevent unbounded growth.
+    /// Prune entries older than 2x the window to prevent unbounded growth.
     /// Call periodically from a background task.
     pub fn prune(&self) {
         let now = Instant::now();
         let cutoff = self.window_secs * 2;
-        self.buckets
-            .retain(|_, (start, _)| now.duration_since(*start).as_secs() < cutoff);
+        let mut buckets = self.buckets.lock().unwrap();
+        buckets.retain(|_, (start, _)| now.duration_since(*start).as_secs() < cutoff);
     }
 }
 
@@ -86,13 +86,13 @@ mod tests {
 
     #[test]
     fn prune_removes_old_entries() {
-        let limiter = RateLimiter::new(10, 0); // 0-second window → always expired
+        let limiter = RateLimiter::new(10, 0); // 0-second window -> always expired
         let ip = IpAddr::V4(Ipv4Addr::new(1, 2, 3, 4));
 
         limiter.check(ip);
-        assert_eq!(limiter.buckets.len(), 1);
+        assert_eq!(limiter.buckets.lock().unwrap().len(), 1);
 
         limiter.prune();
-        assert_eq!(limiter.buckets.len(), 0);
+        assert_eq!(limiter.buckets.lock().unwrap().len(), 0);
     }
 }

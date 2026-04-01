@@ -571,21 +571,14 @@ fn run_bevy_app(
     // Shared protocol (components, inputs, channels)
     app.add_plugins(ProtocolPlugin);
 
-    // WORKAROUND: Force deferred command flush between BufferToLink and
-    // ApplyConditioner in PreUpdate. When a WebSocket client connects through
-    // a proxy (Cloudflare/Cilium), the on_connection observer inserts
-    // AeronetLinkOf via deferred commands. Without this sync point, the
-    // receive system runs before those commands flush, causing "packets not
-    // consumed" warnings and a stalled Netcode handshake.
-    //
-    // NOTE: Both BufferToLink and ApplyConditioner are .in_set(Receive) and
-    // chained. We must order within the sub-sets, NOT against the parent
-    // Receive set, to avoid a circular in_set + before/after conflict.
+    // WORKAROUND: lightyear's WebSocketServerPlugin::on_connection observer
+    // inserts AeronetLinkOf via deferred commands. When a client connects
+    // through a proxy, the receive system can run before those commands flush,
+    // leaving Session.recv unconsumed. This exclusive system runs early in
+    // PreUpdate and forces a command flush to close the race window.
     app.add_systems(
         PreUpdate,
-        bevy::ecs::schedule::ApplyDeferred
-            .after(lightyear::link::LinkReceiveSystems::BufferToLink)
-            .before(lightyear::link::LinkReceiveSystems::ApplyConditioner),
+        flush_deferred_commands.before(lightyear::link::LinkSystems::Receive),
     );
 
     // lightyear–avian3d bridge
@@ -898,6 +891,14 @@ fn load_pem_identity(
 // ---------------------------------------------------------------------------
 // Debug observers — transport + link lifecycle tracing
 // ---------------------------------------------------------------------------
+
+/// Exclusive system: flush all pending deferred commands (including observer
+/// outputs like AeronetLinkOf inserts). This ensures the entity wiring from
+/// lightyear's on_connection observer is complete before the receive system
+/// tries to drain Session.recv into Link.recv.
+fn flush_deferred_commands(world: &mut World) {
+    world.flush();
+}
 
 /// Diagnostic: log Link buffer states every tick for entities in the Server collection.
 /// If the server's Netcode receive system processes packets, link.recv will be empty
