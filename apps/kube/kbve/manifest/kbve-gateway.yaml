@@ -20,10 +20,11 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
-        # Generic HTTPS listener — serves all domains.
-        # Each domain's cert is referenced here; ReferenceGrant allows
-        # cross-namespace cert access from chuckrpg, ows, etc.
-        # No hostname filter — Envoy uses SNI to select the right cert.
+        # HTTPS listener — Cloudflare terminates public TLS on the edge.
+        # This listener handles origin TLS for Full/Strict SSL modes.
+        # chuckrpg.com and api.chuckrpg.com certs are issued by cert-manager
+        # in the chuckrpg namespace; Cloudflare proxies handle the public edge.
+        # game.chuckrpg.com uses Agones UDP (not HTTPS) — no cert needed here.
         - name: https
           protocol: HTTPS
           port: 443
@@ -31,12 +32,6 @@ spec:
               mode: Terminate
               certificateRefs:
                   - name: kbve-wt-tls
-                  - name: chuckrpg-tls
-                    namespace: chuckrpg
-                  - name: chuckrpg-api-tls
-                    namespace: chuckrpg
-                  - name: game-chuckrpg-tls
-                    namespace: chuckrpg
           allowedRoutes:
               namespaces:
                   from: All
