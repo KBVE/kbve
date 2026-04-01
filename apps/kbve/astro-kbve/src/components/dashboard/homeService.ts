@@ -694,7 +694,15 @@ class HomeService {
 		this.$loading.set(true);
 
 		const token = this.$accessToken.get();
-		const isStaff = this.$isStaff.get();
+		// Re-check staff flag — it may have resolved after the initial auth.
+		// The $auth subscription fires late, so we also check directly.
+		let isStaff = this.$isStaff.get();
+		if (!isStaff) {
+			// Give the RPC a moment to resolve on first load
+			const { flags } = $auth.get();
+			isStaff = hasAuthFlag(flags, AuthFlags.STAFF);
+			if (isStaff) this.$isStaff.set(true);
+		}
 
 		// User-visible services — always load
 		this.$edgeStatus.set('loading');
@@ -703,7 +711,8 @@ class HomeService {
 		this.$reportStatus.set('loading');
 		this.$graphStatus.set('loading');
 
-		// Staff services — only load for staff, otherwise mark unavailable
+		// Staff services — only load for staff, otherwise mark unavailable.
+		// Clear stale 'unavailable' status when staff flag resolves late.
 		if (isStaff) {
 			this.$grafanaStatus.set('loading');
 			this.$argoStatus.set('loading');

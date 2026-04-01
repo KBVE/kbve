@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { IDBStorage } from './IDBStorage';
+import { setSharedToken, clearSharedToken } from './cross-domain';
 
 export type OAuthProvider = 'github' | 'twitch' | 'discord';
 
@@ -50,6 +51,10 @@ export class AuthBridge {
 		const client = this.ensureClient();
 		const { data, error } = await client.auth.getSession();
 		if (error) throw error;
+		// Set shared cookie so other *.kbve.com subdomains can detect the session
+		if (data.session?.access_token) {
+			setSharedToken(data.session.access_token);
+		}
 		// Seal after callback — SharedWorker now owns token refresh
 		this._sealed = true;
 		return data.session;
@@ -58,6 +63,7 @@ export class AuthBridge {
 	async signOut() {
 		const client = this.ensureClient();
 		const { error } = await client.auth.signOut();
+		clearSharedToken();
 		if (error) throw error;
 	}
 

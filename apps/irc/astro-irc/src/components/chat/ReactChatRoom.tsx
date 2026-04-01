@@ -524,16 +524,26 @@ export const ReactChatRoom: React.FC<ReactChatRoomProps> = ({
 				await bootChat();
 				if (cancelled) return;
 
+				// 1. Check IDB session (same-origin, from direct OAuth on chat.kbve.com)
 				const { authBridge } = await import('../../lib/supa');
 				const session = await authBridge.getSession();
-				if (cancelled) return;
-
-				if (session?.access_token) {
+				if (!cancelled && session?.access_token) {
 					setToken(session.access_token);
 					setAuthState('auth');
-				} else {
-					setAuthState('anon');
+					return;
 				}
+
+				// 2. Check shared cookie (cross-origin, from OAuth on kbve.com)
+				const { getSharedToken } = await import('@kbve/astro');
+				const sharedToken = getSharedToken();
+				if (!cancelled && sharedToken) {
+					setToken(sharedToken);
+					setAuthState('auth');
+					return;
+				}
+
+				// 3. No session anywhere — show login
+				if (!cancelled) setAuthState('anon');
 			} catch (err) {
 				console.error('[chat] Boot failed:', err);
 				if (!cancelled) setAuthState('anon');
