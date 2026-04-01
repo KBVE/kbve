@@ -152,16 +152,24 @@ spec:
                                       APP_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
                                       if [ "${APP_KB}" -gt "${APP_CAP_KB}" ]; then
                                           APP_MB=$((APP_KB / 1024))
-                                          echo "  ${APP_NAME}: ${APP_MB}Mi exceeds cap — pruning oldest files..."
-                                          find "${APP_DIR}" -type f 2>/dev/null \
-                                              | xargs ls -tr 2>/dev/null \
-                                              | while IFS= read -r FILE; do
-                                                  rm -f "${FILE}" 2>/dev/null
-                                                  CUR_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
-                                                  [ "${CUR_KB}" -le "${APP_CAP_KB}" ] && break
-                                              done
+                                          OVER_BY=$((APP_KB - APP_CAP_KB))
+                                          OVER_MB=$((OVER_BY / 1024))
+                                          echo "  ${APP_NAME}: ${APP_MB}Mi exceeds cap by ${OVER_MB}Mi"
+                                          # If over 3x the cap, nuke entirely (faster than file-by-file)
+                                          if [ "${APP_KB}" -gt "$((APP_CAP_KB * 3))" ]; then
+                                              echo "  ${APP_NAME}: massively over cap — removing entirely"
+                                              rm -rf "${APP_DIR}"
+                                              mkdir -p "${APP_DIR}" 2>/dev/null || true
+                                          else
+                                              echo "  ${APP_NAME}: pruning oldest files..."
+                                              find "${APP_DIR}" -type f -printf '%T+ %p\n' 2>/dev/null \
+                                                  | sort \
+                                                  | head -n "$((OVER_BY / 1024 + 100))" \
+                                                  | cut -d' ' -f2- \
+                                                  | xargs rm -f 2>/dev/null || true
+                                          fi
                                           NEW_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
-                                          echo "  ${APP_NAME}: reduced to $((NEW_KB / 1024))Mi"
+                                          echo "  ${APP_NAME}: now at $((NEW_KB / 1024))Mi"
                                       else
                                           echo "  ${APP_NAME}: $((APP_KB / 1024))Mi — OK"
                                       fi
@@ -265,16 +273,24 @@ spec:
                                       APP_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
                                       if [ "${APP_KB}" -gt "${APP_CAP_KB}" ]; then
                                           APP_MB=$((APP_KB / 1024))
-                                          echo "  ${APP_NAME}: ${APP_MB}Mi exceeds cap — pruning oldest files..."
-                                          find "${APP_DIR}" -type f 2>/dev/null \
-                                              | xargs ls -tr 2>/dev/null \
-                                              | while IFS= read -r FILE; do
-                                                  rm -f "${FILE}" 2>/dev/null
-                                                  CUR_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
-                                                  [ "${CUR_KB}" -le "${APP_CAP_KB}" ] && break
-                                              done
+                                          OVER_BY=$((APP_KB - APP_CAP_KB))
+                                          OVER_MB=$((OVER_BY / 1024))
+                                          echo "  ${APP_NAME}: ${APP_MB}Mi exceeds cap by ${OVER_MB}Mi"
+                                          # If over 3x the cap, nuke entirely (faster than file-by-file)
+                                          if [ "${APP_KB}" -gt "$((APP_CAP_KB * 3))" ]; then
+                                              echo "  ${APP_NAME}: massively over cap — removing entirely"
+                                              rm -rf "${APP_DIR}"
+                                              mkdir -p "${APP_DIR}" 2>/dev/null || true
+                                          else
+                                              echo "  ${APP_NAME}: pruning oldest files..."
+                                              find "${APP_DIR}" -type f -printf '%T+ %p\n' 2>/dev/null \
+                                                  | sort \
+                                                  | head -n "$((OVER_BY / 1024 + 100))" \
+                                                  | cut -d' ' -f2- \
+                                                  | xargs rm -f 2>/dev/null || true
+                                          fi
                                           NEW_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
-                                          echo "  ${APP_NAME}: reduced to $((NEW_KB / 1024))Mi"
+                                          echo "  ${APP_NAME}: now at $((NEW_KB / 1024))Mi"
                                       else
                                           echo "  ${APP_NAME}: $((APP_KB / 1024))Mi — OK"
                                       fi
