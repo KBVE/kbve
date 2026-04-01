@@ -48,6 +48,19 @@
 				"cwd": "apps/kbve/isometric"
 			}
 		},
+		"run": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo run -p isometric-game",
+				"cwd": "{workspaceRoot}"
+			},
+			"configurations": {
+				"production": {
+					"command": "GAME_SERVER_URL=wss://kbve.com/ws cargo run -p isometric-game",
+					"cwd": "{workspaceRoot}"
+				}
+			}
+		},
 		"build:tauri": {
 			"executor": "nx:run-commands",
 			"options": {
