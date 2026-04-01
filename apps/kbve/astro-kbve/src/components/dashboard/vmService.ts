@@ -169,15 +169,18 @@ async function apiFetch<T>(
 	method = 'GET',
 	body?: unknown,
 ): Promise<T> {
+	const headers: Record<string, string> = {
+		Authorization: `Bearer ${token}`,
+	};
 	const opts: RequestInit = {
 		method,
-		headers: {
-			Authorization: `Bearer ${token}`,
-			'Content-Type': 'application/json',
-		},
+		headers,
 		signal: AbortSignal.timeout(15000),
 	};
-	if (body) opts.body = JSON.stringify(body);
+	if (body !== undefined) {
+		headers['Content-Type'] = 'application/json';
+		opts.body = JSON.stringify(body);
+	}
 
 	const resp = await fetch(`${PROXY_BASE}${path}`, opts);
 
@@ -503,7 +506,6 @@ class VMService {
 				token,
 				`/apis/subresources.kubevirt.io/v1/namespaces/${VM_NAMESPACE}/virtualmachines/${name}/${action}`,
 				'PUT',
-				{},
 			);
 			// Refresh after short delay to let K8s reconcile
 			setTimeout(() => this.fetchData(), 2000);
