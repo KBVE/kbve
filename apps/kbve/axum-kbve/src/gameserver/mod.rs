@@ -571,16 +571,6 @@ fn run_bevy_app(
     // Shared protocol (components, inputs, channels)
     app.add_plugins(ProtocolPlugin);
 
-    // WORKAROUND: lightyear's WebSocketServerPlugin::on_connection observer
-    // inserts AeronetLinkOf via deferred commands. When a client connects
-    // through a proxy, the receive system can run before those commands flush,
-    // leaving Session.recv unconsumed. This exclusive system runs early in
-    // PreUpdate and forces a command flush to close the race window.
-    app.add_systems(
-        PreUpdate,
-        flush_deferred_commands.before(lightyear::link::LinkSystems::Receive),
-    );
-
     // lightyear–avian3d bridge
     app.add_plugins(lightyear_avian3d::prelude::LightyearAvianPlugin::default());
 
@@ -612,13 +602,10 @@ fn run_bevy_app(
     }
     app.insert_resource(WtAddr(wt_addr));
 
-    // Spawn exactly ONE server entity with both transports.
-    // lightyear's Replicate::to_clients(NetworkTarget::All) calls single() on the
-    // Server query — multiple Server entities causes silent replication failure.
-    //
-    // WS binds from its ServerConfig (not LocalAddr), WT binds from LocalAddr.
-    // So we set LocalAddr to the WT address and WS still binds correctly.
-    // Chrome uses WT, Safari falls back to WS — both land in the same Server.collection().
+    // Spawn separate server entities per transport (matching lightyear examples).
+    // lightyear's netcode server_plugin uses Query (not Single) to iterate
+    // over all NetcodeServer entities, so multiple server entities work correctly.
+    // Each client connects to one transport and lands in that server's collection.
     let startup_ws_addr = ws_addr;
     let startup_key = private_key;
     app.add_systems(
@@ -785,18 +772,31 @@ fn start_server(
         }
     );
 
-    // GAME_WS_PLAIN=1 disables TLS on the WebSocket listener.
-    // Required when running behind a TLS-terminating gateway (Cilium, nginx, etc.)
-    // that forwards plain HTTP to the backend. Without this, the server responds
-    // with a TLS ServerHello that the gateway can't parse → "bad response".
+    // lightyear requires ONE server entity per transport (see lightyear examples).
+    // Putting both WebSocketServerIo and WebTransportServerIo on the same entity
+    // breaks the entity hierarchy — aeronet child entities can't resolve their
+    // parent's AeronetLinkOf correctly, causing "packets not consumed" on proxied
+    // connections.
+    //
+    // Solution: spawn separate server entities for WS and WT, each with its own
+    // NetcodeServer. Both share the same protocol_id and private_key so clients
+    // can connect to either.
+
+    let netcode_config = || lightyear::netcode::prelude::server::NetcodeConfig {
+        protocol_id: bevy_kbve_net::net_config::KBVE_PROTOCOL_ID,
+        private_key,
+        client_timeout_secs: 15,
+        ..Default::default()
+    };
+
+    // --- WebSocket server entity ---
     let ws_plain = std::env::var("GAME_WS_PLAIN")
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(false);
 
     let ws_config = if ws_plain {
         tracing::info!(
-            "[gameserver] GAME_WS_PLAIN=1 — WebSocket listening WITHOUT TLS on {ws_addr} \
-             (expects TLS-terminating gateway in front)"
+            "[gameserver] GAME_WS_PLAIN=1 — WebSocket listening WITHOUT TLS on {ws_addr}"
         );
         ServerConfig::builder()
             .with_bind_address(ws_addr)
@@ -809,37 +809,32 @@ fn start_server(
             .with_identity(ws_identity)
     };
 
-    let netcode_config = lightyear::netcode::prelude::server::NetcodeConfig {
-        protocol_id: bevy_kbve_net::net_config::KBVE_PROTOCOL_ID,
-        private_key,
-        client_timeout_secs: 15,
-        ..Default::default()
-    };
+    let ws_entity = commands
+        .spawn((
+            NetcodeServer::new(netcode_config()),
+            LocalAddr(ws_addr),
+            WebSocketServerIo { config: ws_config },
+        ))
+        .id();
 
-    // LocalAddr is set to wt_addr — WT uses it for binding, WS ignores it
-    // (WS binds from its ServerConfig). If WT is disabled, use ws_addr.
-    let local_addr = if has_wt { wt_addr } else { ws_addr };
+    commands.trigger(Start { entity: ws_entity });
+    tracing::info!("[gameserver] WS server entity {ws_entity:?} started on {ws_addr}");
 
-    let mut entity_cmds = commands.spawn((
-        NetcodeServer::new(netcode_config),
-        LocalAddr(local_addr),
-        WebSocketServerIo { config: ws_config },
-    ));
-
+    // --- WebTransport server entity (optional) ---
     if let Some(identity) = wt_identity {
-        entity_cmds.insert(
-            lightyear::webtransport::prelude::server::WebTransportServerIo {
-                certificate: identity,
-            },
-        );
+        let wt_entity = commands
+            .spawn((
+                NetcodeServer::new(netcode_config()),
+                LocalAddr(wt_addr),
+                lightyear::webtransport::prelude::server::WebTransportServerIo {
+                    certificate: identity,
+                },
+            ))
+            .id();
+
+        commands.trigger(Start { entity: wt_entity });
+        tracing::info!("[gameserver] WT server entity {wt_entity:?} started on {wt_addr}");
     }
-
-    let server_entity = entity_cmds.id();
-
-    commands.trigger(Start {
-        entity: server_entity,
-    });
-    tracing::info!("[gameserver] server entity {server_entity:?} started");
 }
 
 /// Load WebSocket TLS identity from PEM files (mkcert/production) or generate self-signed.
@@ -891,14 +886,6 @@ fn load_pem_identity(
 // ---------------------------------------------------------------------------
 // Debug observers — transport + link lifecycle tracing
 // ---------------------------------------------------------------------------
-
-/// Exclusive system: flush all pending deferred commands (including observer
-/// outputs like AeronetLinkOf inserts). This ensures the entity wiring from
-/// lightyear's on_connection observer is complete before the receive system
-/// tries to drain Session.recv into Link.recv.
-fn flush_deferred_commands(world: &mut World) {
-    world.flush();
-}
 
 /// Diagnostic: log Link buffer states every tick for entities in the Server collection.
 /// If the server's Netcode receive system processes packets, link.recv will be empty
