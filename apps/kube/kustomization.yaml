@@ -39,7 +39,6 @@ resources:
     - studio/application.yaml
     - vector/application.yaml
     - discordsh/application.yaml
-    - discordsh-bot/application.yaml
     - functions/application.yaml
     - kbve/application.yaml
     - clickhouse-crds/application.yaml
