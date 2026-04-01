@@ -571,17 +571,21 @@ fn run_bevy_app(
     // Shared protocol (components, inputs, channels)
     app.add_plugins(ProtocolPlugin);
 
-    // WORKAROUND: Force deferred command flush between IoSystems::Poll and
-    // LinkReceiveSystems::BufferToLink in PreUpdate. When a WebSocket client
-    // connects through a proxy (Cloudflare/Cilium), the on_connection observer
-    // inserts AeronetLinkOf via deferred commands. Without this sync point,
-    // the receive system runs before those commands flush, causing "packets
-    // not consumed" warnings and a stalled Netcode handshake.
+    // WORKAROUND: Force deferred command flush between BufferToLink and
+    // ApplyConditioner in PreUpdate. When a WebSocket client connects through
+    // a proxy (Cloudflare/Cilium), the on_connection observer inserts
+    // AeronetLinkOf via deferred commands. Without this sync point, the
+    // receive system runs before those commands flush, causing "packets not
+    // consumed" warnings and a stalled Netcode handshake.
+    //
+    // NOTE: Both BufferToLink and ApplyConditioner are .in_set(Receive) and
+    // chained. We must order within the sub-sets, NOT against the parent
+    // Receive set, to avoid a circular in_set + before/after conflict.
     app.add_systems(
         PreUpdate,
         bevy::ecs::schedule::ApplyDeferred
-            .after(lightyear::link::LinkSystems::Receive)
-            .before(lightyear::link::LinkReceiveSystems::BufferToLink),
+            .after(lightyear::link::LinkReceiveSystems::BufferToLink)
+            .before(lightyear::link::LinkReceiveSystems::ApplyConditioner),
     );
 
     // lightyear–avian3d bridge
