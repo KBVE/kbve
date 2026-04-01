@@ -941,6 +941,48 @@ pub async fn kasm_scale_handler(Path(name): Path<String>, req: Request<Body>) ->
 }
 
 // ---------------------------------------------------------------------------
+// Guacamole proxy singleton (reverse proxy to Apache Guacamole web app)
+// ---------------------------------------------------------------------------
+// guacamole-common-js connects via HTTP tunnel or WebSocket to:
+//   {base}/guacamole/tunnel (HTTP polling)
+//   {base}/guacamole/websocket-tunnel (WebSocket)
+// We proxy /dashboard/guac/proxy/* → guacamole.angelscript.svc.cluster.local:8080
+
+static GUACAMOLE: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_guacamole_proxy() -> bool {
+    let upstream = std::env::var("GUACAMOLE_UPSTREAM_URL")
+        .unwrap_or_else(|_| "http://guacamole.angelscript.svc.cluster.local:8080".into());
+
+    let client = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(60))
+        .build()
+        .expect("failed to build reqwest client for guacamole proxy");
+
+    GUACAMOLE
+        .set(ServiceProxy {
+            name: "Guacamole",
+            client,
+            upstream: upstream.trim_end_matches('/').to_string(),
+            upstream_token: None, // Guacamole uses its own session auth
+        })
+        .is_ok()
+}
+
+pub async fn guacamole_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
+    match GUACAMOLE.get() {
+        Some(proxy) => proxy.handle(path, req).await,
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Guacamole proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Edge Functions proxy singleton (Supabase → internal Kong)
 // ---------------------------------------------------------------------------
 
