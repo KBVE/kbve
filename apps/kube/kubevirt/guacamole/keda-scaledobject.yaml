@@ -19,7 +19,7 @@ metadata:
 spec:
     scaleTargetRef:
         name: guacd
-    pollingInterval: 30
+    pollingInterval: 300
     cooldownPeriod: 300
     idleReplicaCount: 0
     minReplicaCount: 0
@@ -45,7 +45,7 @@ metadata:
 spec:
     scaleTargetRef:
         name: guacamole
-    pollingInterval: 30
+    pollingInterval: 300
     cooldownPeriod: 300
     idleReplicaCount: 0
     minReplicaCount: 0

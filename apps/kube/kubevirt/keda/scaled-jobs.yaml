@@ -42,7 +42,7 @@ spec:
                       configMap:
                           name: vm-scaler-script
                           defaultMode: 0755
-    pollingInterval: 30
+    pollingInterval: 300
     minReplicaCount: 0
     maxReplicaCount: 1
     successfulJobsHistoryLimit: 3
@@ -92,7 +92,7 @@ spec:
                       configMap:
                           name: vm-scaler-script
                           defaultMode: 0755
-    pollingInterval: 30
+    pollingInterval: 300
     minReplicaCount: 0
     maxReplicaCount: 1
     successfulJobsHistoryLimit: 3
