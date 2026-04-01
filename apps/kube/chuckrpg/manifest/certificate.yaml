@@ -25,17 +25,3 @@ spec:
         name: letsencrypt-http
         kind: ClusterIssuer
         group: cert-manager.io
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-    name: game-chuckrpg-tls
-    namespace: chuckrpg
-spec:
-    secretName: game-chuckrpg-tls
-    dnsNames:
-        - game.chuckrpg.com
-    issuerRef:
-        name: letsencrypt-http
-        kind: ClusterIssuer
-        group: cert-manager.io

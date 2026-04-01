@@ -326,6 +326,8 @@ function handleIncoming(raw: string): void {
 					$activeChannel.get(),
 					parsed.trailing ?? 'Welcome to IRC',
 				);
+				// Auto-join default channel after welcome
+				joinChannel($activeChannel.get());
 				break;
 			}
 
