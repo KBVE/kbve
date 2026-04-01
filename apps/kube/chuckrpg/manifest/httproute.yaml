@@ -18,3 +18,23 @@ spec:
           backendRefs:
               - name: chuckrpg-service
                 port: 4322
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+    name: chuckrpg-api-routes
+    namespace: chuckrpg
+spec:
+    parentRefs:
+        - name: kbve-gateway
+          namespace: kbve
+    hostnames:
+        - api.chuckrpg.com
+    rules:
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /
+          backendRefs:
+              - name: chuckrpg-service
+                port: 4322
