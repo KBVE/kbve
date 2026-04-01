@@ -1,12 +1,11 @@
 # KEDA ScaledObjects for Guacamole stack.
 #
-# Lifecycle:
-#   VM starts (via KEDA ScaledJob or manual) → guacd + guacamole scale to 1
-#   VM stops → 5min cooldown → guacd + guacamole scale to 0
+# Previously used github-runner triggers (removed to save API quota).
+# Guacamole now scales based on whether the VM is running — CI workflows
+# that start VMs should also scale up guacd + guacamole via kubectl.
+# Manual override: kubectl scale deploy guacd guacamole -n angelscript --replicas=1
 #
-# Uses the same github-runner trigger as the VM — when UE5-Win jobs
-# are queued, both the VM and Guacamole scale up together.
-# Also supports manual override: kubectl scale deploy guacd guacamole -n angelscript --replicas=1
+# Kept as ScaledObjects with no active triggers so KEDA manages scale-to-zero.
 ---
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
@@ -25,14 +24,12 @@ spec:
     minReplicaCount: 0
     maxReplicaCount: 1
     triggers:
-        - type: github-runner
+        - type: cron
           metadata:
-              owner: KBVE
-              runnerScope: org
-              labels: UE5-Win
-              targetWorkflowQueueLength: '1'
-          authenticationRef:
-              name: github-runner-auth
+              timezone: UTC
+              start: '0 6 * * 1-5'
+              end: '0 7 * * 1-5'
+              desiredReplicas: '0'
 ---
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
@@ -51,11 +48,9 @@ spec:
     minReplicaCount: 0
     maxReplicaCount: 1
     triggers:
-        - type: github-runner
+        - type: cron
           metadata:
-              owner: KBVE
-              runnerScope: org
-              labels: UE5-Win
-              targetWorkflowQueueLength: '1'
-          authenticationRef:
-              name: github-runner-auth
+              timezone: UTC
+              start: '0 6 * * 1-5'
+              end: '0 7 * * 1-5'
+              desiredReplicas: '0'

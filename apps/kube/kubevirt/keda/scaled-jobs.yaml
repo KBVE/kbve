@@ -1,115 +1,15 @@
 # KEDA ScaledJobs for KubeVirt VM lifecycle.
 #
-# Full lifecycle managed by KEDA (no CronJobs):
-#   Scale UP:   github-runner trigger → start VM when jobs are queued
-#   Scale DOWN: cron trigger (every 15min) → stop VM if idle + no sessions
+# Scale UP: removed — VMs are now started via workflow_dispatch from CI.
+# Scale DOWN: cron trigger (every hour) → stop VM if idle + no sessions.
 #
-# The GitHub PAT needs workflow + admin:org scope for the KEDA GitHub runner scaler.
-# Uses the same github-arc-token secret as the ARC runners.
----
-# Windows VM — starts when jobs target 'UE5-Win' label
-apiVersion: keda.sh/v1alpha1
-kind: ScaledJob
-metadata:
-    name: vm-start-windows-builder
-    namespace: angelscript
-spec:
-    jobTargetRef:
-        parallelism: 1
-        completions: 1
-        backoffLimit: 3
-        ttlSecondsAfterFinished: 300
-        template:
-            spec:
-                serviceAccountName: vm-scaler
-                restartPolicy: OnFailure
-                containers:
-                    - name: scaler
-                      image: registry.k8s.io/kubectl:v1.33.2
-                      command: ['/bin/sh', '/scripts/scale.sh']
-                      env:
-                          - name: VM_NAME
-                            value: windows-builder
-                          - name: ACTION
-                            value: start
-                          - name: NAMESPACE
-                            value: angelscript
-                      volumeMounts:
-                          - name: script
-                            mountPath: /scripts
-                volumes:
-                    - name: script
-                      configMap:
-                          name: vm-scaler-script
-                          defaultMode: 0755
-    pollingInterval: 300
-    minReplicaCount: 0
-    maxReplicaCount: 1
-    successfulJobsHistoryLimit: 3
-    failedJobsHistoryLimit: 3
-    triggers:
-        - type: github-runner
-          metadata:
-              owner: KBVE
-              runnerScope: org
-              labels: UE5-Win
-              targetWorkflowQueueLength: '1'
-          authenticationRef:
-              name: github-runner-auth
----
-# macOS VM — starts when jobs target 'UE5-Mac' label
-apiVersion: keda.sh/v1alpha1
-kind: ScaledJob
-metadata:
-    name: vm-start-macos-builder
-    namespace: angelscript
-spec:
-    jobTargetRef:
-        parallelism: 1
-        completions: 1
-        backoffLimit: 3
-        ttlSecondsAfterFinished: 300
-        template:
-            spec:
-                serviceAccountName: vm-scaler
-                restartPolicy: OnFailure
-                containers:
-                    - name: scaler
-                      image: registry.k8s.io/kubectl:v1.33.2
-                      command: ['/bin/sh', '/scripts/scale.sh']
-                      env:
-                          - name: VM_NAME
-                            value: macos-builder
-                          - name: ACTION
-                            value: start
-                          - name: NAMESPACE
-                            value: angelscript
-                      volumeMounts:
-                          - name: script
-                            mountPath: /scripts
-                volumes:
-                    - name: script
-                      configMap:
-                          name: vm-scaler-script
-                          defaultMode: 0755
-    pollingInterval: 300
-    minReplicaCount: 0
-    maxReplicaCount: 1
-    successfulJobsHistoryLimit: 3
-    failedJobsHistoryLimit: 3
-    triggers:
-        - type: github-runner
-          metadata:
-              owner: KBVE
-              runnerScope: org
-              labels: UE5-Mac
-              targetWorkflowQueueLength: '1'
-          authenticationRef:
-              name: github-runner-auth
+# The github-runner trigger was removed to eliminate GitHub API rate limit
+# pressure. CI workflows dispatch VM starts directly instead.
 ---
 # ──────────────────────────────────────────────────────────────
 # SCALE DOWN — KEDA cron-triggered idle shutdown
-# Runs every 15 minutes, checks: age > 30min + no GitHub jobs + no sessions
+# Runs every hour, checks: age > 30min + no active sessions
+# GitHub API check removed — VMs are stopped based on age + connections only.
 # ──────────────────────────────────────────────────────────────
 
 # Windows VM shutdown
@@ -141,13 +41,6 @@ spec:
                             value: angelscript
                           - name: IDLE_THRESHOLD_MINUTES
                             value: '30'
-                          - name: GITHUB_ORG
-                            value: KBVE
-                          - name: GITHUB_TOKEN
-                            valueFrom:
-                                secretKeyRef:
-                                    name: github-arc-token
-                                    key: github_token
                       volumeMounts:
                           - name: script
                             mountPath: /scripts
@@ -198,13 +91,6 @@ spec:
                             value: angelscript
                           - name: IDLE_THRESHOLD_MINUTES
                             value: '30'
-                          - name: GITHUB_ORG
-                            value: KBVE
-                          - name: GITHUB_TOKEN
-                            valueFrom:
-                                secretKeyRef:
-                                    name: github-arc-token
-                                    key: github_token
                       volumeMounts:
                           - name: script
                             mountPath: /scripts
