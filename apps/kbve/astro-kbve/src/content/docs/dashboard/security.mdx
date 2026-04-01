@@ -13,20 +13,20 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-03-31T08:34:03Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-04-01T08:38:56Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**34** critical/high severity findings across the monorepo.
+**30** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
 
 <CardGrid>
-  <Card title="2 Critical" icon="warning">
+  <Card title="1 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="32 High" icon="error">
+  <Card title="29 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
   <Card title="33 Medium" icon="information">
@@ -41,7 +41,7 @@ Last generated: **2026-03-31T08:34:03Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **70** advisories
+    **66** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **27** advisories
@@ -62,8 +62,8 @@ Last generated: **2026-03-31T08:34:03Z** — updated daily by `ci-dashboard`.
 ```mermaid
 pie showData
     title Findings by Severity
-    "Critical" : 2
-    "High" : 32
+    "Critical" : 1
+    "High" : 29
     "Medium" : 33
     "Low" : 5
 ```
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 70
+    "npm" : 66
     "Cargo" : 27
 ```
 
@@ -82,26 +82,21 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 2 | 32 | 31 | 5 | 70 |
+| **npm** | 1 | 29 | 31 | 5 | 66 |
 | **Cargo** | 0 | 0 | 2 | 0 | 27 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 2 | 32 | 33 | 5 | 97 |
+| **Total** | 1 | 29 | 33 | 5 | 93 |
 
   </TabItem>
   <TabItem label="npm">
 
 | Severity | Package | Advisory | Link |
 |----------|---------|----------|------|
-| Critical | `form-data` | form-data uses unsafe random function in form-data for ch... | [Details](https://github.com/advisories/GHSA-fjxv-7rqg-78g4) |
 | Critical | `handlebars` | Handlebars.js has JavaScript Injection via AST Type Confu... | [Details](https://github.com/advisories/GHSA-2w6w-674q-4c4q) |
-| High | `axios` | Server-Side Request Forgery in axios | [Details](https://github.com/advisories/GHSA-8hc4-vh64-cxmj) |
 | High | `playwright` | Playwright downloads and installs browsers without verify... | [Details](https://github.com/advisories/GHSA-7mvr-c777-76hp) |
 | High | `glob` | glob CLI: Command injection via -c/--cmd executes matches... | [Details](https://github.com/advisories/GHSA-5j98-mcp5-4vw2) |
-| High | `axios` | axios Requests Vulnerable To Possible SSRF and Credential... | [Details](https://github.com/advisories/GHSA-jr5f-v2jv-69x6) |
-| High | `axios` | Axios is vulnerable to DoS attack through lack of data si... | [Details](https://github.com/advisories/GHSA-4hjh-wcwx-xvwj) |
-| High | `axios` | Axios is Vulnerable to Denial of Service via __proto__ Ke... | [Details](https://github.com/advisories/GHSA-43fc-jf86-j433) |
 | High | `rollup` | Rollup 4 has Arbitrary File Write via Path Traversal | [Details](https://github.com/advisories/GHSA-mw96-cpmx-2vgc) |
 | High | `koa` | Koa has Host Header Injection via ctx.hostname | [Details](https://github.com/advisories/GHSA-7gcc-r8m5-44qm) |
 | High | `serialize-javascript` | Serialize JavaScript is Vulnerable to RCE via RegExp.flag... | [Details](https://github.com/advisories/GHSA-5c6j-r48x-rmvq) |
@@ -128,6 +123,7 @@ pie showData
 | High | `handlebars` | Handlebars.js has JavaScript Injection via AST Type Confu... | [Details](https://github.com/advisories/GHSA-xhpv-hc6g-r9c6) |
 | High | `handlebars` | Handlebars.js has Denial of Service via Malformed Decorat... | [Details](https://github.com/advisories/GHSA-9cx6-37pm-9jff) |
 | High | `happy-dom` | Happy DOM ECMAScriptModuleCompiler: unsanitized export na... | [Details](https://github.com/advisories/GHSA-6q6h-j7hj-3r64) |
+| High | `@xmldom/xmldom` | xmldom: XML injection via unsafe CDATA serialization allo... | [Details](https://github.com/advisories/GHSA-wh4c-j3r5-mjhp) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `lodash-es` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
@@ -147,7 +143,6 @@ pie showData
 | Medium | `h3` | h3: SSE Event Injection via Unsanitized Carriage Return (... | [Details](https://github.com/advisories/GHSA-4hxc-9384-m385) |
 | Medium | `h3` | h3: Double Decoding in `serveStatic` Bypasses `resolveDot... | [Details](https://github.com/advisories/GHSA-72gr-qfp7-vwhw) |
 | Medium | `smol-toml` | smol-toml: Denial of Service via TOML documents containin... | [Details](https://github.com/advisories/GHSA-v3rj-xjv7-4jmq) |
-| Medium | `serialize-javascript` | Serialize JavaScript has CPU Exhaustion Denial of Service... | [Details](https://github.com/advisories/GHSA-qj8w-gfj5-8c6v) |
 | Medium | `dompurify` | DOMPurify is vulnerable to mutation-XSS via Re-Contextual... | [Details](https://github.com/advisories/GHSA-h8r8-wccr-v5f2) |
 | Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
 | Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
@@ -159,6 +154,7 @@ pie showData
 | Medium | `yaml` | yaml is vulnerable to Stack Overflow via deeply nested YA... | [Details](https://github.com/advisories/GHSA-48c2-rrv3-qjmp) |
 | Medium | `handlebars` | Handlebars.js has a Prototype Method Access Control Gap v... | [Details](https://github.com/advisories/GHSA-7rx3-28cr-v5wh) |
 | Medium | `dompurify` | DOMPurify contains a Cross-site Scripting vulnerability | [Details](https://github.com/advisories/GHSA-v2wj-7wpq-c8vv) |
+| Medium | `serialize-javascript` | Serialize JavaScript has CPU Exhaustion Denial of Service... | [Details](https://github.com/advisories/GHSA-qj8w-gfj5-8c6v) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
