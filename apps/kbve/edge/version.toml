@@ -11,11 +11,6 @@ label = "Meme"
 description = "Meme feed and reactions"
 
 [[functions]]
-name = "mc"
-label = "Minecraft"
-description = "MC data operations"
-
-[[functions]]
 name = "discordsh"
 label = "Discord"
 description = "Discord server integration"
