@@ -28,31 +28,16 @@ askama = "0.15.4"
 socket2 = "0.6.1"
 num_cpus = "1.17.0"
 dotenvy = "0.15"
-serenity = { version = "0.12.5", default-features = false, features = ["client", "gateway", "model", "rustls_backend", "cache"] }
-poise = "0.6.1"
 sysinfo = "0.38.2"
 reqwest = { version = "0.13.2", default-features = false, features = ["json", "rustls"] }
-dashmap = "6.1"
-lru = "0.16"
-uuid = { version = "1", features = ["v4", "serde"] }
-rand = "0.10"
-rand_chacha = "0.10"
-chrono = "0.4"
 
 # Workspace path dependencies
-jedi = { path = "../../../packages/rust/jedi" }
 kbve = { path = "../../../packages/rust/kbve", features = ["supabase", "image-gen"] }
-bevy_items = { path = "../../../packages/rust/bevy/bevy_items", features = ["inventory"] }
-bevy_inventory = { path = "../../../packages/rust/bevy/bevy_inventory", default-features = false }
-bevy_battle = { path = "../../../packages/rust/bevy/bevy_battle" }
-bevy_npc = { path = "../../../packages/rust/bevy/bevy_npc" }
-bevy_quests = { path = "../../../packages/rust/bevy/bevy_quests" }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.6", optional = true }
 
 [dev-dependencies]
-serial_test = "3"
 http-body-util = "0.1"
 
 [features]
