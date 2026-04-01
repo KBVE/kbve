@@ -5,26 +5,34 @@
 	"projectType": "application",
 	"implicitDependencies": ["discordsh-bot"],
 	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
 		"e2e": {
-			"executor": "@nx/playwright:playwright",
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["discordsh-bot"],
+					"params": "forward"
+				}
+			],
 			"cache": false,
-			"defaultConfiguration": "local",
 			"options": {
-				"config": "apps/discordsh/discordsh-bot-e2e/playwright.config.ts"
+				"commands": [
+					"docker rm -f discordsh-bot-e2e 2>/dev/null || true",
+					"docker run -d --name discordsh-bot-e2e -p 4322:4322 -e HEALTH_PORT=4322 -e RUST_LOG=info kbve/discordsh-bot:latest",
+					"sleep 3",
+					"npx vitest run; EC=$?; docker rm -f discordsh-bot-e2e 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false,
+				"cwd": "apps/discordsh/discordsh-bot-e2e"
 			},
 			"configurations": {
-				"local": {},
-				"ci": {
-					"config": "apps/discordsh/discordsh-bot-e2e/playwright.docker.config.ts"
-				}
-			}
-		},
-		"e2e:docker": {
-			"executor": "@nx/playwright:playwright",
-			"cache": false,
-			"options": {
-				"config": "apps/discordsh/discordsh-bot-e2e/playwright.docker.config.ts"
+				"ci": {}
 			}
 		}
-	}
+	},
+	"tags": []
 }
