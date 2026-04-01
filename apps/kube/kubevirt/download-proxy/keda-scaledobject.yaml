@@ -1,14 +1,12 @@
 # KEDA ScaledObject for download-proxy.
 #
-# Lifecycle:
-#   1. GitHub Actions job queued with label 'UE5-Win' or 'UE5-Download'
-#   2. KEDA detects the queued job → scales download-proxy from 0 → 1
-#   3. CI stages downloads via aria2c RPC → files land on shared PVC
-#   4. Job completes → no more queued jobs → cooldown (5 min) → scale to 0
+# Previously used github-runner triggers (removed to save API quota).
+# Now scaled manually or via workflow_dispatch from CI.
+# The proxy can also be started manually:
+#   kubectl scale deploy download-proxy -n angelscript --replicas=1
 #
-# The proxy shares the same trigger as the Windows VM (UE5-Win),
-# so both scale up together. Additional 'UE5-Download' label allows
-# triggering the proxy independently for pre-staging downloads.
+# Kept as a ScaledObject with no triggers so KEDA manages scale-to-zero
+# after the cooldown period when no longer needed.
 ---
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
@@ -27,25 +25,11 @@ spec:
     minReplicaCount: 0
     maxReplicaCount: 1
     triggers:
-        # Scale up when UE5 Windows build jobs are queued
-        - type: github-runner
+        # Placeholder cron trigger — keeps KEDA managing the ScaledObject.
+        # CI workflows scale up via kubectl before staging downloads.
+        - type: cron
           metadata:
-              owner: KBVE
-              runnerScope: org
-              labels: UE5-Win
-              targetWorkflowQueueLength: '1'
-          authenticationRef:
-              name: github-runner-auth
-        # Also scale up for explicit download-staging jobs
-        - type: github-runner
-          metadata:
-              owner: KBVE
-              runnerScope: org
-              labels: UE5-Download
-              targetWorkflowQueueLength: '1'
-          authenticationRef:
-              name: github-runner-auth
-    # TODO(metrics-trigger): Add aria2c active downloads metric trigger:
-    #   When aria2c has active downloads → keep proxy alive regardless of GitHub queue.
-    #   Requires exposing aria2c stats as Prometheus metrics or using KEDA external scaler.
-    #   For now, the 5-minute cooldown handles most cases.
+              timezone: UTC
+              start: '0 6 * * 1-5'
+              end: '0 7 * * 1-5'
+              desiredReplicas: '0'
