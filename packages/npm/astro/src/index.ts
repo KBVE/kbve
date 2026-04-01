@@ -17,7 +17,15 @@ export { TooltipOverlay } from './react/TooltipOverlay';
 export type { TooltipOverlayProps } from './react/TooltipOverlay';
 
 // Auth
-export { AuthBridge, useAuthBridge, bootAuth, IDBStorage } from './auth';
+export {
+	AuthBridge,
+	useAuthBridge,
+	bootAuth,
+	IDBStorage,
+	setSharedToken,
+	getSharedToken,
+	clearSharedToken,
+} from './auth';
 export type { OAuthProvider } from './auth';
 
 // Icons
