@@ -190,7 +190,15 @@ async function apiFetch<T>(
 		throw new Error(`K8s API error ${resp.status}: ${text.slice(0, 200)}`);
 	}
 
-	return resp.json();
+	// KubeVirt subresource actions (start/stop/restart) return empty body.
+	// Only parse JSON if there's actually content to parse.
+	const text = await resp.text();
+	if (!text || text.trim().length === 0) return {} as T;
+	try {
+		return JSON.parse(text) as T;
+	} catch {
+		return {} as T;
+	}
 }
 
 async function fetchVMs(token: string): Promise<VirtualMachine[]> {
