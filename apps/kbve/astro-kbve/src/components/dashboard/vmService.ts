@@ -246,7 +246,16 @@ export function getPhase(
 	vm: VirtualMachine,
 	vmi?: VirtualMachineInstance,
 ): VMPhase {
-	if (vmi) return vmi.status?.phase ?? 'Unknown';
+	if (vmi) {
+		// KubeVirt VMI phase is a string from the API — may include values
+		// not in our VMPhase union (e.g. "Succeeded", "Failed", "Pending").
+		// Cast to string for comparison before mapping to our type.
+		const rawPhase = (vmi.status?.phase as string) ?? 'Unknown';
+		if (rawPhase === 'Succeeded' || rawPhase === 'Failed') return 'Stopped';
+		if (rawPhase === 'Pending' || rawPhase === 'Scheduling')
+			return 'Starting';
+		return (rawPhase as VMPhase) ?? 'Unknown';
+	}
 	const status = vm.status?.printableStatus;
 	if (status === 'Running') return 'Running';
 	if (status === 'Starting') return 'Starting';
