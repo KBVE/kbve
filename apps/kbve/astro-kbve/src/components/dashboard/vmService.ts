@@ -351,6 +351,7 @@ class VMService {
 	public readonly $lastUpdated = atom<Date | null>(null);
 	public readonly $actionInProgress = atom<string | null>(null);
 	public readonly $vncTarget = atom<string | null>(null);
+	public readonly $guacTarget = atom<string | null>(null);
 
 	public readonly $vmInfos = computed(
 		[this.$vms, this.$vmis],
@@ -526,6 +527,16 @@ class VMService {
 
 	public closeVNC(): void {
 		this.$vncTarget.set(null);
+	}
+
+	// --- Guacamole RDP ---
+
+	public openGuac(name: string): void {
+		this.$guacTarget.set(name);
+	}
+
+	public closeGuac(): void {
+		this.$guacTarget.set(null);
 	}
 
 	public getVNCWebSocketURL(name: string): string {

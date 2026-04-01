@@ -250,6 +250,14 @@ fn router(state: AppState) -> Router {
             axum::routing::put(super::proxy::kasm_scale_handler),
         )
         .route(
+            "/dashboard/guac/proxy/{*path}",
+            any(super::proxy::guacamole_proxy_handler),
+        )
+        .route(
+            "/dashboard/guac/proxy",
+            any(super::proxy::guacamole_proxy_handler),
+        )
+        .route(
             "/dashboard/edge/proxy/{*path}",
             any(super::proxy::edge_proxy_handler),
         )

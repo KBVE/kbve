@@ -400,6 +400,14 @@ function VMCard({ info }: { info: VMInfo }) {
 							disabled={false}
 							onClick={() => vmService.openVNC(name)}
 						/>
+						<ActionButton
+							icon={<Monitor size={13} />}
+							label="RDP"
+							color="#3b82f6"
+							loading={false}
+							disabled={false}
+							onClick={() => vmService.openGuac(name)}
+						/>
 					</>
 				)}
 				{isTransitioning && (
