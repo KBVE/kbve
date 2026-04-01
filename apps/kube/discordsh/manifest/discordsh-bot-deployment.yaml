@@ -51,11 +51,8 @@ spec:
                         value: '/app/NotoSansSymbols-Regular.ttf'
                       - name: SHARD_COUNT
                         value: '1'
-                      - name: DISCORD_TOKEN
-                        valueFrom:
-                            secretKeyRef:
-                                name: discordsh-discord-token
-                                key: discord-token
+                      # DISCORD_TOKEN is resolved at runtime from Supabase Vault.
+                      # Set DISCORD_TOKEN env var to override (dev/testing).
                       - name: REDIS_HOST
                         value: 'redis-master.redis.svc.cluster.local'
                       - name: REDIS_PORT
