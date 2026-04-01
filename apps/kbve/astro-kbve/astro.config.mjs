@@ -222,18 +222,18 @@ export default defineConfig({
 		plugins: [tailwindcss()],
 		build: {
 			rollupOptions: {
-				external: ['fsevents', /^\.\.\/pkg/, /@novnc\/novnc/],
+				external: ['fsevents', /^\.\.\/pkg/, /@novnc\/novnc/, /guacamole-common-js/],
 			},
 		},
 		optimizeDeps: {
-			exclude: ['fsevents', '@novnc/novnc'],
+			exclude: ['fsevents', '@novnc/novnc', 'guacamole-common-js'],
 			esbuildOptions: {
 				supported: { 'top-level-await': true },
 			},
 		},
 		ssr: {
 			noExternal: [],
-			external: ['@novnc/novnc'],
+			external: ['@novnc/novnc', 'guacamole-common-js'],
 		},
 	},
 });

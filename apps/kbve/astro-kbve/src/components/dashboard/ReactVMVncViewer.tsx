@@ -3,15 +3,21 @@ import { useStore } from '@nanostores/react';
 import { vmService } from './vmService';
 import { X, Maximize2, Minimize2, Keyboard } from 'lucide-react';
 
-// noVNC RFB client — loaded from CDN at runtime.
-// The npm package uses top-level `await` in CJS which breaks Rollup bundling,
-// so we load the ESM build from esm.sh instead. Only fetched when VNC viewer opens.
-const NOVNC_CDN = 'https://esm.sh/@novnc/novnc@1.6.0/lib/rfb.js';
+// noVNC RFB client — dynamically imported at runtime to avoid Rollup bundling issues.
+// The package is externalized in vite config (build.rollupOptions.external).
+// Only loaded when the VNC viewer is actually opened.
 let RFB: any = null;
 async function loadRFB() {
 	if (!RFB) {
-		const mod = await import(/* @vite-ignore */ NOVNC_CDN);
-		RFB = mod.default ?? mod;
+		try {
+			// @ts-expect-error — noVNC ships without TypeScript declarations
+			const mod = await import(/* @vite-ignore */ '@novnc/novnc/lib/rfb');
+			RFB = mod.default ?? mod;
+		} catch {
+			throw new Error(
+				'noVNC module not available — ensure @novnc/novnc is installed',
+			);
+		}
 	}
 	return RFB;
 }

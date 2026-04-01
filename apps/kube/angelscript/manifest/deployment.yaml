@@ -6,7 +6,9 @@ metadata:
     labels:
         app: angelscript
 spec:
-    replicas: 1
+    # replicas: 0 until a real engine build is published to GHCR
+    # (image ghcr.io/kbve/angelscript-server:0.0.0 does not exist)
+    replicas: 0
     strategy:
         type: Recreate
     selector:
