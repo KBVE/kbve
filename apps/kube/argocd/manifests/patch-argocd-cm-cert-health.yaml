@@ -24,3 +24,95 @@ data:
         hs.status = "Progressing"
         hs.message = "Waiting for Ready=True"
         return hs
+    resource.customizations.health.external-secrets.io_ExternalSecret: |
+        hs = {}
+        if obj.status and obj.status.conditions then
+          for _, c in ipairs(obj.status.conditions) do
+            if c.type == "Ready" then
+              if c.status == "True" then
+                hs.status = "Healthy"
+                hs.message = c.reason or "Secret synced"
+                return hs
+              elseif c.status == "False" then
+                hs.status = "Degraded"
+                hs.message = c.message or "Sync failed"
+                return hs
+              end
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for sync"
+        return hs
+    resource.customizations.health.external-secrets.io_SecretStore: |
+        hs = {}
+        if obj.status and obj.status.conditions then
+          for _, c in ipairs(obj.status.conditions) do
+            if c.type == "Ready" then
+              if c.status == "True" then
+                hs.status = "Healthy"
+                hs.message = c.reason or "Store valid"
+                return hs
+              elseif c.status == "False" then
+                hs.status = "Degraded"
+                hs.message = c.message or "Store invalid"
+                return hs
+              end
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Validating store"
+        return hs
+    resource.customizations.health.keda.sh_ScaledObject: |
+        hs = {}
+        if obj.status and obj.status.conditions then
+          for _, c in ipairs(obj.status.conditions) do
+            if c.type == "Ready" then
+              if c.status == "True" then
+                hs.status = "Healthy"
+                hs.message = c.message or "ScaledObject ready"
+                return hs
+              elseif c.status == "False" then
+                hs.status = "Degraded"
+                hs.message = c.message or "ScaledObject not ready"
+                return hs
+              end
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for ready"
+        return hs
+    resource.customizations.health.keda.sh_ScaledJob: |
+        hs = {}
+        if obj.status and obj.status.conditions then
+          for _, c in ipairs(obj.status.conditions) do
+            if c.type == "Ready" then
+              if c.status == "True" then
+                hs.status = "Healthy"
+                hs.message = c.message or "ScaledJob ready"
+                return hs
+              elseif c.status == "False" then
+                hs.status = "Degraded"
+                hs.message = c.message or "ScaledJob not ready"
+                return hs
+              end
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for ready"
+        return hs
+    resource.customizations.health.actions.github.com_AutoscalingRunnerSet: |
+        hs = {}
+        if obj.status then
+          if obj.status.currentRunners ~= nil then
+            hs.status = "Healthy"
+            hs.message = "Runners: " .. (obj.status.currentRunners or 0)
+            return hs
+          end
+        end
+        hs.status = "Healthy"
+        hs.message = "Runner set configured"
+        return hs
