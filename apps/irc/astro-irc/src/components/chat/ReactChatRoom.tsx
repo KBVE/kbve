@@ -1,11 +1,5 @@
 /** @jsxImportSource react */
-import React, {
-	useState,
-	useEffect,
-	useCallback,
-	useRef,
-	useMemo,
-} from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import { cn } from '@kbve/astro';
 
@@ -521,21 +515,27 @@ export const ReactChatRoom: React.FC<ReactChatRoomProps> = ({
 	);
 	const [token, setToken] = useState('');
 
-	// Check for existing Supabase session on mount
+	// Boot droid workers (provides window.kbve.ws) + check Supabase session
 	useEffect(() => {
 		let cancelled = false;
 		(async () => {
 			try {
+				const { bootChat } = await import('../../lib/boot');
+				await bootChat();
+				if (cancelled) return;
+
 				const { authBridge } = await import('../../lib/supa');
 				const session = await authBridge.getSession();
 				if (cancelled) return;
+
 				if (session?.access_token) {
 					setToken(session.access_token);
 					setAuthState('auth');
 				} else {
 					setAuthState('anon');
 				}
-			} catch {
+			} catch (err) {
+				console.error('[chat] Boot failed:', err);
 				if (!cancelled) setAuthState('anon');
 			}
 		})();
@@ -543,6 +543,17 @@ export const ReactChatRoom: React.FC<ReactChatRoomProps> = ({
 			cancelled = true;
 		};
 	}, []);
+
+	// Auto-connect once authenticated and droid is ready
+	useEffect(() => {
+		if (
+			authState === 'auth' &&
+			token &&
+			$connectionStatus.get() === 'disconnected'
+		) {
+			connect(wsUrl, token);
+		}
+	}, [authState, token, wsUrl]);
 
 	// Graceful disconnect on unmount or page unload
 	useEffect(() => {
