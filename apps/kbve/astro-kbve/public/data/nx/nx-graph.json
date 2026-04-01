@@ -858,44 +858,113 @@
         "type": "e2e",
         "data": {
           "root": "apps/discordsh/discordsh-bot-e2e",
-          "name": "discordsh-bot-e2e",
-          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-          "sourceRoot": "apps/discordsh/discordsh-bot-e2e",
-          "projectType": "application",
-          "implicitDependencies": [
-            "discordsh-bot"
-          ],
+          "metadata": {},
           "targets": {
-            "e2e": {
-              "executor": "@nx/playwright:playwright",
+            "test": {
+              "executor": "nx:noop",
               "cache": false,
-              "defaultConfiguration": "local",
-              "options": {
-                "config": "apps/discordsh/discordsh-bot-e2e/playwright.config.ts"
-              },
-              "configurations": {
-                "local": {},
-                "ci": {
-                  "config": "apps/discordsh/discordsh-bot-e2e/playwright.docker.config.ts"
-                }
-              },
+              "options": {},
+              "configurations": {},
               "parallelism": true,
               "inputs": [
                 "default",
                 "^production"
               ]
             },
-            "e2e:docker": {
-              "executor": "@nx/playwright:playwright",
-              "cache": false,
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
               "options": {
-                "config": "apps/discordsh/discordsh-bot-e2e/playwright.docker.config.ts"
+                "cwd": "apps/discordsh/discordsh-bot-e2e",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects discordsh-bot-e2e --includeDependentProjects -- pnpm exec nx build-deps discordsh-bot-e2e"
               },
               "configurations": {},
               "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "container",
+                  "projects": [
+                    "discordsh-bot"
+                  ],
+                  "params": "forward"
+                }
+              ],
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker rm -f discordsh-bot-e2e 2>/dev/null || true",
+                  "docker run -d --name discordsh-bot-e2e -p 4322:4322 -e HEALTH_PORT=4322 -e RUST_LOG=info kbve/discordsh-bot:latest",
+                  "sleep 3",
+                  "npx vitest run; EC=$?; docker rm -f discordsh-bot-e2e 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false,
+                "cwd": "apps/discordsh/discordsh-bot-e2e"
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
             }
           },
-          "tags": []
+          "projectType": "application",
+          "name": "discordsh-bot-e2e",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/discordsh/discordsh-bot-e2e",
+          "tags": [],
+          "implicitDependencies": [
+            "discordsh-bot"
+          ]
         }
       },
       "axum-chuckrpg-e2e": {
@@ -2506,6 +2575,12 @@
                     "pnpm nx run discordsh-bot:containerx --configuration=production",
                     "VERSION=$(grep '^version' apps/discordsh/discordsh-bot/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/discordsh-bot:latest kbve/discordsh-bot:$VERSION && docker tag kbve/discordsh-bot:latest ghcr.io/kbve/discordsh-bot:latest && docker tag kbve/discordsh-bot:latest ghcr.io/kbve/discordsh-bot:$VERSION && echo \"Tagged kbve/discordsh-bot:$VERSION and ghcr.io/kbve/discordsh-bot:$VERSION\""
                   ]
+                },
+                "ci": {
+                  "commands": [
+                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/discordsh-bot:latest --file apps/discordsh/discordsh-bot/Dockerfile .",
+                    "VERSION=$(grep '^version' apps/discordsh/discordsh-bot/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/discordsh-bot:latest kbve/discordsh-bot:$VERSION && echo \"Tagged kbve/discordsh-bot:$VERSION\""
+                  ]
                 }
               },
               "parallelism": true
@@ -3532,8 +3607,9 @@
               "options": {
                 "commands": [
                   "docker rm -f axum-kbve-e2e 2>/dev/null || true",
-                  "docker run -d --name axum-kbve-e2e -p 4323:4321 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4321 -e RUST_LOG=info kbve/kbve:latest",
-                  "npx vitest run; EC=$?; docker rm -f axum-kbve-e2e 2>/dev/null || true; exit $EC"
+                  "docker run -d --name axum-kbve-e2e -p 4323:4321 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4321 -e RUST_LOG=info -e GAME_WT_DISABLE=1 kbve/kbve:latest",
+                  "echo 'Waiting for axum-kbve container to become ready...' && for i in $(seq 1 120); do if docker logs axum-kbve-e2e 2>&1 | grep -q 'HTTP listening'; then echo 'Container ready after '\"$i\"'s'; break; fi; if [ $i -eq 120 ]; then echo 'Container did not become ready in 120s'; docker logs axum-kbve-e2e 2>&1 | tail -30; docker rm -f axum-kbve-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+                  "npx vitest run; EC=$?; echo '--- container logs ---'; docker logs axum-kbve-e2e 2>&1 | tail -50; docker rm -f axum-kbve-e2e 2>/dev/null || true; exit $EC"
                 ],
                 "parallel": false,
                 "cwd": "apps/kbve/axum-kbve-e2e"
