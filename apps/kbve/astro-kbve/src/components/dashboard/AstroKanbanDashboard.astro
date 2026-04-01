@@ -256,6 +256,143 @@ const sectionNames = [
 						</div>
 					</div>
 
+					<!-- Desktop-only: Phase overview + Quick nav + Recent items -->
+					<div class="hidden lg:grid kb-summary-extras">
+						<!-- Phase mini-bars -->
+						<div class="kb-card kb-summary-phases">
+							<h4 class="kb-mini-title">Work Phases</h4>
+							{
+								phases.map((p) => (
+									<div class="kb-mini-phase">
+										<span
+											class="kb-mini-phase-dot"
+											style={`background:${p.color}`}
+										/>
+										<span class="kb-mini-phase-name">
+											{p.label}
+										</span>
+										<div class="kb-mini-phase-track">
+											<div
+												class="kb-mini-phase-fill"
+												style={`width:${(p.value / phaseTotal) * 100}%;background:${p.color}`}
+											/>
+										</div>
+										<span
+											class="kb-mini-phase-val"
+											style={`color:${p.color}`}>
+											{p.value}
+										</span>
+										<span class="kb-mini-phase-pct">
+											{(
+												(p.value / phaseTotal) *
+												100
+											).toFixed(0)}
+											%
+										</span>
+									</div>
+								))
+							}
+						</div>
+
+						<!-- Quick nav tiles -->
+						<div class="kb-card kb-summary-nav">
+							<h4 class="kb-mini-title">Explore</h4>
+							<div class="kb-nav-tiles">
+								{
+									[
+										{
+											name: 'Donut',
+											hash: '#donut',
+											color: '#8b5cf6',
+											desc: 'Column distribution',
+										},
+										{
+											name: 'Treemap',
+											hash: '#treemap',
+											color: '#3b82f6',
+											desc: 'Size comparison',
+										},
+										{
+											name: 'Timeline',
+											hash: '#timeline',
+											color: '#06b6d4',
+											desc: 'Items by date',
+										},
+										{
+											name: 'Sankey',
+											hash: '#sankey',
+											color: '#22c55e',
+											desc: 'Pipeline flow',
+										},
+										{
+											name: 'Heatmap',
+											hash: '#heatmap',
+											color: '#f59e0b',
+											desc: 'Activity grid',
+										},
+										{
+											name: 'Board',
+											hash: '#board',
+											color: '#f97316',
+											desc: 'Kanban columns',
+										},
+									].map((t) => (
+										<a
+											href={t.hash}
+											class="kb-nav-tile"
+											style={`border-color:${t.color}22`}>
+											<span
+												class="kb-nav-tile-dot"
+												style={`background:${t.color}`}
+											/>
+											<span class="kb-nav-tile-name">
+												{t.name}
+											</span>
+											<span class="kb-nav-tile-desc">
+												{t.desc}
+											</span>
+										</a>
+									))
+								}
+							</div>
+						</div>
+
+						<!-- Type breakdown mini -->
+						<div class="kb-card kb-summary-types">
+							<h4 class="kb-mini-title">Item Types</h4>
+							<div class="kb-type-mini-row">
+								<span
+									class="kb-type-mini-bar"
+									style={`flex:${issueCount}`}>
+									<span
+										class="kb-type-mini-fill"
+										style="background:#22c55e">
+									</span>
+								</span>
+								<span
+									class="kb-type-mini-bar"
+									style={`flex:${prCount}`}>
+									<span
+										class="kb-type-mini-fill"
+										style="background:#8b5cf6">
+									</span>
+								</span>
+							</div>
+							<div class="kb-type-mini-legend">
+								<span>
+									<span style="color:#22c55e">●</span> Issues <strong>
+										{issueCount}
+									</strong>
+								</span>
+								<span>
+									<span style="color:#8b5cf6">●</span> PRs <strong>
+										{prCount}
+									</strong>
+								</span>
+							</div>
+						</div>
+					</div>
+
 					<p class="kb-scroll-hint">
 						Scroll to explore visualizations ↓
 					</p>
@@ -1111,6 +1248,152 @@ const sectionNames = [
 		color: var(--sl-color-gray-3, #8b949e);
 		min-width: 28px;
 		text-align: right;
+	}
+
+	/* ── Summary extras (desktop-only) ── */
+	.kb-summary-extras {
+		grid-template-columns: 1fr 1fr 1fr;
+		gap: 0.75rem;
+		width: 100%;
+	}
+	.kb-mini-title {
+		margin: 0 0 0.6rem;
+		font-size: 0.65rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--sl-color-gray-4, #6b7280);
+	}
+
+	/* Phase mini-bars */
+	.kb-summary-phases {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+	}
+	.kb-mini-phase {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 4px 0;
+	}
+	.kb-mini-phase-dot {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		flex-shrink: 0;
+	}
+	.kb-mini-phase-name {
+		font-size: 0.7rem;
+		color: var(--sl-color-gray-3, #8b949e);
+		min-width: 55px;
+	}
+	.kb-mini-phase-track {
+		flex: 1;
+		height: 5px;
+		border-radius: 3px;
+		background: var(--sl-color-gray-5, #262626);
+		overflow: hidden;
+	}
+	.kb-mini-phase-fill {
+		height: 100%;
+		border-radius: 3px;
+	}
+	.kb-mini-phase-val {
+		font-size: 0.7rem;
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+		min-width: 24px;
+		text-align: right;
+	}
+	.kb-mini-phase-pct {
+		font-size: 0.6rem;
+		color: var(--sl-color-gray-4, #6b7280);
+		min-width: 28px;
+		text-align: right;
+	}
+
+	/* Quick nav tiles */
+	.kb-summary-nav {
+		display: flex;
+		flex-direction: column;
+	}
+	.kb-nav-tiles {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 6px;
+	}
+	.kb-nav-tile {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 8px;
+		border-radius: 6px;
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		background: var(--sl-color-bg-nav, #111);
+		text-decoration: none;
+		transition:
+			border-color 0.15s,
+			background 0.15s;
+		cursor: pointer;
+	}
+	.kb-nav-tile:hover {
+		background: rgba(255, 255, 255, 0.03);
+		border-color: var(--sl-color-gray-4, #4b5563);
+	}
+	.kb-nav-tile-dot {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		flex-shrink: 0;
+	}
+	.kb-nav-tile-name {
+		font-size: 0.7rem;
+		font-weight: 600;
+		color: var(--sl-color-text, #e6edf3);
+	}
+	.kb-nav-tile-desc {
+		display: none;
+	}
+	@media (min-width: 1280px) {
+		.kb-nav-tile-desc {
+			display: block;
+			font-size: 0.6rem;
+			color: var(--sl-color-gray-4, #6b7280);
+			margin-left: auto;
+		}
+	}
+
+	/* Type breakdown mini */
+	.kb-summary-types {
+		display: flex;
+		flex-direction: column;
+	}
+	.kb-type-mini-row {
+		display: flex;
+		height: 8px;
+		border-radius: 4px;
+		overflow: hidden;
+		gap: 2px;
+		margin-bottom: 6px;
+	}
+	.kb-type-mini-bar {
+		min-width: 2px;
+	}
+	.kb-type-mini-fill {
+		display: block;
+		height: 100%;
+		border-radius: 4px;
+	}
+	.kb-type-mini-legend {
+		display: flex;
+		gap: 1rem;
+		font-size: 0.7rem;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+	.kb-type-mini-legend strong {
+		color: var(--sl-color-text, #e6edf3);
+		margin-left: 3px;
 	}
 
 	/* ── Board section ── */

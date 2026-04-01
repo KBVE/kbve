@@ -3,12 +3,20 @@ import { useStore } from '@nanostores/react';
 import { vmService } from './vmService';
 import { X, Maximize2, Minimize2, Keyboard } from 'lucide-react';
 
-// Guacamole client — dynamically imported to avoid SSR issues.
+// Guacamole client — dynamically imported at runtime.
+// The package is externalized in vite config to avoid bundling issues.
+// Only loaded when the Guacamole viewer is actually opened.
 let Guacamole: any = null;
 async function loadGuacamole() {
 	if (!Guacamole) {
-		const mod = await import('guacamole-common-js');
-		Guacamole = mod.default ?? mod;
+		try {
+			const mod = await import(/* @vite-ignore */ 'guacamole-common-js');
+			Guacamole = mod.default ?? mod;
+		} catch {
+			throw new Error(
+				'Guacamole module not available — ensure guacamole-common-js is installed',
+			);
+		}
 	}
 	return Guacamole;
 }
