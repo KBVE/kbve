@@ -93,7 +93,6 @@ serve(async (req: Request) => {
     "user-vault": [],
     "vault-reader": [],
     meme: [],
-    mc: [],
     ows: [],
     logs: ["CLICKHOUSE_URL", "CLICKHOUSE_USER", "CLICKHOUSE_PASSWORD"],
     health: [],
