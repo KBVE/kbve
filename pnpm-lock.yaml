@@ -132,6 +132,9 @@ importers:
             gsap:
                 specifier: ^3.13.0
                 version: 3.13.0
+            guacamole-common-js:
+                specifier: ^1.5.0
+                version: 1.5.0
             happy-dom:
                 specifier: ^20.8.4
                 version: 20.8.4
@@ -15270,6 +15273,12 @@ packages:
         resolution:
             {
                 integrity: sha512-QL7MJ2WMjm1PHWsoFrAQH/J8wUeqZvMtHO58qdekHpCfhvhSL4gSiz6vJf5EeMP0LOn3ZCprL2ki/gjED8ghVw==,
+            }
+
+    guacamole-common-js@1.5.0:
+        resolution:
+            {
+                integrity: sha512-zxztif3GGhKbg1RgOqwmqot8kXgv2HmHFg1EvWwd4q7UfEKvBcYZ0f+7G8HzvU+FUxF0Psqm9Kl5vCbgfrRgJg==,
             }
 
     gunzip-maybe@1.4.2:
@@ -38240,6 +38249,8 @@ snapshots:
 
     gsap@3.13.0: {}
 
+    guacamole-common-js@1.5.0: {}
+
     gunzip-maybe@1.4.2:
         dependencies:
             browserify-zlib: 0.1.4
@@ -45929,7 +45940,7 @@ snapshots:
             fast-json-stable-stringify: 2.1.0
             fs-extra: 9.1.0
             glob: 7.2.3
-            lodash: 4.17.23
+            lodash: 4.17.21
             pretty-bytes: 5.6.0
             rollup: 2.80.0
             source-map: 0.8.0-beta.0

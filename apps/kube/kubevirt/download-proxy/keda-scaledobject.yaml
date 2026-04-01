@@ -21,7 +21,7 @@ metadata:
 spec:
     scaleTargetRef:
         name: download-proxy
-    pollingInterval: 30
+    pollingInterval: 300
     cooldownPeriod: 300
     idleReplicaCount: 0
     minReplicaCount: 0

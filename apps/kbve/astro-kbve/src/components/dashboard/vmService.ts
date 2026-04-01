@@ -169,15 +169,18 @@ async function apiFetch<T>(
 	method = 'GET',
 	body?: unknown,
 ): Promise<T> {
+	const headers: Record<string, string> = {
+		Authorization: `Bearer ${token}`,
+	};
 	const opts: RequestInit = {
 		method,
-		headers: {
-			Authorization: `Bearer ${token}`,
-			'Content-Type': 'application/json',
-		},
+		headers,
 		signal: AbortSignal.timeout(15000),
 	};
-	if (body) opts.body = JSON.stringify(body);
+	if (body !== undefined) {
+		headers['Content-Type'] = 'application/json';
+		opts.body = JSON.stringify(body);
+	}
 
 	const resp = await fetch(`${PROXY_BASE}${path}`, opts);
 
@@ -348,6 +351,7 @@ class VMService {
 	public readonly $lastUpdated = atom<Date | null>(null);
 	public readonly $actionInProgress = atom<string | null>(null);
 	public readonly $vncTarget = atom<string | null>(null);
+	public readonly $guacTarget = atom<string | null>(null);
 
 	public readonly $vmInfos = computed(
 		[this.$vms, this.$vmis],
@@ -503,7 +507,6 @@ class VMService {
 				token,
 				`/apis/subresources.kubevirt.io/v1/namespaces/${VM_NAMESPACE}/virtualmachines/${name}/${action}`,
 				'PUT',
-				{},
 			);
 			// Refresh after short delay to let K8s reconcile
 			setTimeout(() => this.fetchData(), 2000);
@@ -524,6 +527,16 @@ class VMService {
 
 	public closeVNC(): void {
 		this.$vncTarget.set(null);
+	}
+
+	// --- Guacamole RDP ---
+
+	public openGuac(name: string): void {
+		this.$guacTarget.set(name);
+	}
+
+	public closeGuac(): void {
+		this.$guacTarget.set(null);
 	}
 
 	public getVNCWebSocketURL(name: string): string {

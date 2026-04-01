@@ -134,6 +134,20 @@ async fn main() -> anyhow::Result<()> {
         info!("KubeVirt proxy not configured (KUBEVIRT_API_URL not set)");
     }
 
+    // Initialize KASM workspace proxy (optional - for /dashboard/kasm)
+    if transport::proxy::init_kasm_proxy() {
+        info!("KASM proxy initialized - /dashboard/kasm/proxy enabled");
+    } else {
+        info!("KASM proxy not configured (using default cluster URL)");
+    }
+
+    // Initialize Guacamole proxy (optional - for /dashboard/guac)
+    if transport::proxy::init_guacamole_proxy() {
+        info!("Guacamole proxy initialized - /dashboard/guac/proxy enabled");
+    } else {
+        info!("Guacamole proxy not configured (using default cluster URL)");
+    }
+
     // Initialize ChuckRPG/ROWS Swagger proxy (optional - for /dashboard/chuckrpg)
     if transport::proxy::init_chuckrpg_proxy() {
         info!("ChuckRPG proxy initialized - /dashboard/chuckrpg/proxy enabled");

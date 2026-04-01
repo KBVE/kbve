@@ -3,6 +3,7 @@ import ReactVMAuth from './ReactVMAuth';
 import ReactVMHeader from './ReactVMHeader';
 import ReactVMCards from './ReactVMCards';
 import ReactVMVncViewer from './ReactVMVncViewer';
+import ReactVMGuacViewer from './ReactVMGuacViewer';
 ---
 
 <section
@@ -25,6 +26,11 @@ import ReactVMVncViewer from './ReactVMVncViewer';
 				<!-- Island: VNC viewer (shown when a VM VNC is opened) -->
 				<div id="vm-vnc">
 					<ReactVMVncViewer client:only="react" />
+				</div>
+
+				<!-- Island: Guacamole RDP viewer (shown when RDP is opened) -->
+				<div id="vm-guac">
+					<ReactVMGuacViewer client:only="react" />
 				</div>
 			</div>
 		</ReactVMAuth>

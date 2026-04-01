@@ -234,6 +234,30 @@ fn router(state: AppState) -> Router {
             axum::routing::get(super::proxy::kubevirt_vnc_handler),
         )
         .route(
+            "/dashboard/kasm/proxy/{*path}",
+            any(super::proxy::kasm_proxy_handler),
+        )
+        .route(
+            "/dashboard/kasm/proxy",
+            any(super::proxy::kasm_proxy_handler),
+        )
+        .route(
+            "/dashboard/kasm/workspaces",
+            axum::routing::get(super::proxy::kasm_workspaces_handler),
+        )
+        .route(
+            "/dashboard/kasm/scale/{name}",
+            axum::routing::put(super::proxy::kasm_scale_handler),
+        )
+        .route(
+            "/dashboard/guac/proxy/{*path}",
+            any(super::proxy::guacamole_proxy_handler),
+        )
+        .route(
+            "/dashboard/guac/proxy",
+            any(super::proxy::guacamole_proxy_handler),
+        )
+        .route(
             "/dashboard/edge/proxy/{*path}",
             any(super::proxy::edge_proxy_handler),
         )

@@ -728,6 +728,259 @@ async fn vnc_bridge(
 }
 
 const VM_NAMESPACE: &str = "angelscript";
+const KASM_NAMESPACE: &str = "kasm";
+
+// ---------------------------------------------------------------------------
+// KASM workspace proxy singleton (reverse proxy to KASM web UI)
+// ---------------------------------------------------------------------------
+
+static KASM: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_kasm_proxy() -> bool {
+    let upstream = std::env::var("KASM_UPSTREAM_URL")
+        .unwrap_or_else(|_| "https://kasm-vpn-service.kasm.svc.cluster.local:6901".into());
+
+    let mut builder = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(30))
+        .danger_accept_invalid_certs(true); // KASM uses self-signed certs internally
+
+    // Load in-cluster CA if available
+    let ca_path = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt";
+    if let Ok(pem) = std::fs::read(ca_path) {
+        if let Ok(cert) = reqwest::Certificate::from_pem(&pem) {
+            builder = builder.add_root_certificate(cert);
+        }
+    }
+
+    let client = builder
+        .build()
+        .expect("failed to build reqwest client for kasm proxy");
+
+    KASM.set(ServiceProxy {
+        name: "KASM",
+        client,
+        upstream: upstream.trim_end_matches('/').to_string(),
+        upstream_token: None, // KASM uses its own VNC_PW auth
+    })
+    .is_ok()
+}
+
+pub async fn kasm_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
+    match KASM.get() {
+        Some(proxy) => proxy.handle(path, req).await,
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "KASM proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
+/// List KASM workspace deployments via K8s API.
+/// Returns deployment name, replicas, and status for the dashboard.
+pub async fn kasm_workspaces_handler(req: Request<Body>) -> Response {
+    let headers = req.headers().clone();
+    if let Err(resp) = require_dashboard_view(&headers, "KASM-Workspaces").await {
+        return resp;
+    }
+
+    let kubevirt = match KUBEVIRT.get() {
+        Some(k) => k,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(json!({"error": "K8s API not configured"})),
+            )
+                .into_response();
+        }
+    };
+
+    // Query K8s API for deployments in the kasm namespace
+    let url = format!(
+        "{}/apis/apps/v1/namespaces/{}/deployments",
+        kubevirt.upstream, KASM_NAMESPACE
+    );
+
+    let mut upstream_req = kubevirt
+        .client
+        .get(&url)
+        .header("Accept", "application/json");
+    if let Some(ref token) = kubevirt.upstream_token {
+        upstream_req = upstream_req.bearer_auth(token);
+    }
+
+    match upstream_req.send().await {
+        Ok(resp) if resp.status().is_success() => match resp.bytes().await {
+            Ok(body) => Response::builder()
+                .status(StatusCode::OK)
+                .header("Content-Type", "application/json")
+                .body(Body::from(body))
+                .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response()),
+            Err(e) => (
+                StatusCode::BAD_GATEWAY,
+                axum::Json(json!({"error": format!("Failed to read K8s response: {e}")})),
+            )
+                .into_response(),
+        },
+        Ok(resp) => {
+            let status = resp.status();
+            let body = resp.text().await.unwrap_or_default();
+            (
+                StatusCode::BAD_GATEWAY,
+                axum::Json(json!({"error": format!("K8s API returned {status}: {}", &body[..body.len().min(200)])})),
+            )
+                .into_response()
+        }
+        Err(e) => (
+            StatusCode::BAD_GATEWAY,
+            axum::Json(json!({"error": format!("K8s API request failed: {e}")})),
+        )
+            .into_response(),
+    }
+}
+
+/// Scale a KASM workspace deployment (replicas 0 or 1).
+pub async fn kasm_scale_handler(Path(name): Path<String>, req: Request<Body>) -> Response {
+    let headers = req.headers().clone();
+    if let Err(resp) = require_dashboard_view(&headers, "KASM-Scale").await {
+        return resp;
+    }
+
+    // Validate name
+    if !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+        return (
+            StatusCode::BAD_REQUEST,
+            axum::Json(json!({"error": "Invalid deployment name"})),
+        )
+            .into_response();
+    }
+
+    let kubevirt = match KUBEVIRT.get() {
+        Some(k) => k,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(json!({"error": "K8s API not configured"})),
+            )
+                .into_response();
+        }
+    };
+
+    // Parse desired replicas from request body
+    let body_bytes = match axum::body::to_bytes(req.into_body(), 1024).await {
+        Ok(b) => b,
+        Err(_) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                axum::Json(json!({"error": "Invalid request body"})),
+            )
+                .into_response();
+        }
+    };
+
+    let replicas: i32 = match serde_json::from_slice::<serde_json::Value>(&body_bytes)
+        .ok()
+        .and_then(|v| v.get("replicas")?.as_i64())
+        .map(|r| r as i32)
+    {
+        Some(r) if r == 0 || r == 1 => r,
+        _ => {
+            return (
+                StatusCode::BAD_REQUEST,
+                axum::Json(json!({"error": "replicas must be 0 or 1"})),
+            )
+                .into_response();
+        }
+    };
+
+    let url = format!(
+        "{}/apis/apps/v1/namespaces/{}/deployments/{}/scale",
+        kubevirt.upstream, KASM_NAMESPACE, name
+    );
+
+    let scale_body = json!({
+        "apiVersion": "autoscaling/v1",
+        "kind": "Scale",
+        "metadata": { "name": name, "namespace": KASM_NAMESPACE },
+        "spec": { "replicas": replicas }
+    });
+
+    let mut upstream_req = kubevirt
+        .client
+        .put(&url)
+        .header("Content-Type", "application/json")
+        .json(&scale_body);
+    if let Some(ref token) = kubevirt.upstream_token {
+        upstream_req = upstream_req.bearer_auth(token);
+    }
+
+    match upstream_req.send().await {
+        Ok(resp) if resp.status().is_success() => axum::Json(json!({
+            "success": true,
+            "deployment": name,
+            "replicas": replicas,
+        }))
+        .into_response(),
+        Ok(resp) => {
+            let status = resp.status();
+            let body = resp.text().await.unwrap_or_default();
+            (
+                StatusCode::BAD_GATEWAY,
+                axum::Json(json!({"error": format!("Scale failed {status}: {}", &body[..body.len().min(200)])})),
+            )
+                .into_response()
+        }
+        Err(e) => (
+            StatusCode::BAD_GATEWAY,
+            axum::Json(json!({"error": format!("Scale request failed: {e}")})),
+        )
+            .into_response(),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Guacamole proxy singleton (reverse proxy to Apache Guacamole web app)
+// ---------------------------------------------------------------------------
+// guacamole-common-js connects via HTTP tunnel or WebSocket to:
+//   {base}/guacamole/tunnel (HTTP polling)
+//   {base}/guacamole/websocket-tunnel (WebSocket)
+// We proxy /dashboard/guac/proxy/* → guacamole.angelscript.svc.cluster.local:8080
+
+static GUACAMOLE: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_guacamole_proxy() -> bool {
+    let upstream = std::env::var("GUACAMOLE_UPSTREAM_URL")
+        .unwrap_or_else(|_| "http://guacamole.angelscript.svc.cluster.local:8080".into());
+
+    let client = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(60))
+        .build()
+        .expect("failed to build reqwest client for guacamole proxy");
+
+    GUACAMOLE
+        .set(ServiceProxy {
+            name: "Guacamole",
+            client,
+            upstream: upstream.trim_end_matches('/').to_string(),
+            upstream_token: None, // Guacamole uses its own session auth
+        })
+        .is_ok()
+}
+
+pub async fn guacamole_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
+    match GUACAMOLE.get() {
+        Some(proxy) => proxy.handle(path, req).await,
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Guacamole proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Edge Functions proxy singleton (Supabase → internal Kong)

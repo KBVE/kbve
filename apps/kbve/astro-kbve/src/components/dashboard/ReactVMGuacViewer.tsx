@@ -3,90 +3,123 @@ import { useStore } from '@nanostores/react';
 import { vmService } from './vmService';
 import { X, Maximize2, Minimize2, Keyboard } from 'lucide-react';
 
-// noVNC RFB client — loaded from CDN at runtime.
-// The npm package uses top-level `await` in CJS which breaks Rollup bundling,
-// so we load the ESM build from esm.sh instead. Only fetched when VNC viewer opens.
-const NOVNC_CDN = 'https://esm.sh/@novnc/novnc@1.6.0/lib/rfb.js';
-let RFB: any = null;
-async function loadRFB() {
-	if (!RFB) {
-		const mod = await import(/* @vite-ignore */ NOVNC_CDN);
-		RFB = mod.default ?? mod;
+// Guacamole client — dynamically imported to avoid SSR issues.
+let Guacamole: any = null;
+async function loadGuacamole() {
+	if (!Guacamole) {
+		const mod = await import('guacamole-common-js');
+		Guacamole = mod.default ?? mod;
 	}
-	return RFB;
+	return Guacamole;
 }
 
-export default function ReactVMVncViewer() {
-	const vncTarget = useStore(vmService.$vncTarget);
-	const rfbRef = useRef<InstanceType<typeof RFB> | null>(null);
+export default function ReactVMGuacViewer() {
+	const guacTarget = useStore(vmService.$guacTarget);
+	const clientRef = useRef<any>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
-	const viewerRef = useRef<HTMLDivElement>(null);
+	const displayRef = useRef<HTMLDivElement>(null);
 	const [fullscreen, setFullscreen] = useState(false);
 	const [connected, setConnected] = useState(false);
 	const [status, setStatus] = useState('Connecting...');
 	const [keyboardVisible, setKeyboardVisible] = useState(false);
 
 	const cleanup = useCallback(() => {
-		if (rfbRef.current) {
-			rfbRef.current.disconnect();
-			rfbRef.current = null;
+		if (clientRef.current) {
+			clientRef.current.disconnect();
+			clientRef.current = null;
 		}
 		setConnected(false);
 		setStatus('Disconnected');
 	}, []);
 
 	useEffect(() => {
-		if (!vncTarget) {
+		if (!guacTarget) {
 			cleanup();
 			return;
 		}
 
-		const target = viewerRef.current;
+		const target = displayRef.current;
 		if (!target) return;
 
-		// Clear previous content
 		target.innerHTML = '';
-
-		const wsUrl = vmService.getVNCWebSocketURL(vncTarget);
 		setStatus('Connecting...');
 
 		(async () => {
 			try {
-				const RFBClass = await loadRFB();
-				const rfb = new RFBClass(target, wsUrl, {
-					wsProtocols: ['binary.k8s.io', 'base64.binary.k8s.io'],
-				});
+				const GuacLib = await loadGuacamole();
 
-				rfb.scaleViewport = true;
-				rfb.resizeSession = false;
-				rfb.clipViewport = false;
-				rfb.showDotCursor = true;
-				rfb.qualityLevel = 6;
-				rfb.compressionLevel = 2;
+				// Build WebSocket tunnel URL to our Guacamole proxy
+				const proto =
+					window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+				const tunnelUrl = `${proto}//${window.location.host}/dashboard/guac/proxy/guacamole/websocket-tunnel`;
 
-				rfb.addEventListener('connect', () => {
-					setConnected(true);
-					setStatus(`Connected to ${vncTarget}`);
-				});
+				const tunnel = new GuacLib.WebSocketTunnel(tunnelUrl);
+				const client = new GuacLib.Client(tunnel);
 
-				rfb.addEventListener(
-					'disconnect',
-					(e: { detail: { clean: boolean } }) => {
-						setConnected(false);
-						setStatus(
-							e.detail.clean
-								? 'Disconnected cleanly'
-								: 'Connection lost — VM may have stopped',
+				// Attach display to DOM
+				const display = client.getDisplay();
+				target.appendChild(display.getElement());
+
+				// Scale display to fit container
+				const resizeObserver = new ResizeObserver(() => {
+					if (!target || !display) return;
+					const width = target.clientWidth;
+					const height = target.clientHeight;
+					if (width > 0 && height > 0) {
+						const scale = Math.min(
+							width / display.getWidth(),
+							height / display.getHeight(),
 						);
-						rfbRef.current = null;
-					},
+						display.scale(scale);
+					}
+				});
+				resizeObserver.observe(target);
+
+				client.onstatechange = (state: number) => {
+					switch (state) {
+						case 0: // IDLE
+							setStatus('Idle');
+							setConnected(false);
+							break;
+						case 1: // CONNECTING
+							setStatus('Connecting...');
+							break;
+						case 2: // WAITING
+							setStatus('Waiting for server...');
+							break;
+						case 3: // CONNECTED
+							setStatus(`Connected to ${guacTarget}`);
+							setConnected(true);
+							break;
+						case 4: // DISCONNECTING
+							setStatus('Disconnecting...');
+							break;
+						case 5: // DISCONNECTED
+							setStatus('Disconnected');
+							setConnected(false);
+							break;
+					}
+				};
+
+				client.onerror = (error: { message?: string }) => {
+					setStatus(
+						`Error: ${error?.message ?? 'Connection failed'}`,
+					);
+					setConnected(false);
+				};
+
+				// Connect with the connection parameters
+				// The token and connection ID are passed as query params
+				// Guacamole authenticates via its own session system
+				client.connect(
+					`token=${encodeURIComponent(guacTarget)}&GUAC_WIDTH=${window.screen.width}&GUAC_HEIGHT=${window.screen.height}&GUAC_DPI=96`,
 				);
 
-				rfb.addEventListener('securityfailure', () => {
-					setStatus('Security handshake failed');
-				});
+				clientRef.current = client;
 
-				rfbRef.current = rfb;
+				return () => {
+					resizeObserver.disconnect();
+				};
 			} catch (err) {
 				setStatus(
 					`Failed to connect: ${err instanceof Error ? err.message : 'Unknown error'}`,
@@ -95,22 +128,28 @@ export default function ReactVMVncViewer() {
 		})();
 
 		return cleanup;
-	}, [vncTarget, cleanup]);
+	}, [guacTarget, cleanup]);
 
-	// Ctrl+Alt+Del sender
+	// Ctrl+Alt+Del sender for Windows RDP sessions
 	const sendCtrlAltDel = useCallback(() => {
-		rfbRef.current?.sendCtrlAltDel();
+		const client = clientRef.current;
+		if (!client) return;
+		// Press keys
+		client.sendKeyEvent(1, 0xffe3); // Ctrl
+		client.sendKeyEvent(1, 0xffe9); // Alt
+		client.sendKeyEvent(1, 0xffff); // Delete
+		// Release keys
+		client.sendKeyEvent(0, 0xffff);
+		client.sendKeyEvent(0, 0xffe9);
+		client.sendKeyEvent(0, 0xffe3);
 	}, []);
 
-	// Toggle virtual keyboard (mobile/tablet)
 	const toggleKeyboard = useCallback(() => {
-		if (rfbRef.current) {
-			rfbRef.current.focusOnClick = !keyboardVisible;
-			setKeyboardVisible(!keyboardVisible);
-		}
+		setKeyboardVisible(!keyboardVisible);
+		// Guacamole has its own keyboard handling via the display element
 	}, [keyboardVisible]);
 
-	if (!vncTarget) return null;
+	if (!guacTarget) return null;
 
 	return (
 		<div
@@ -141,7 +180,12 @@ export default function ReactVMVncViewer() {
 					background: 'var(--sl-color-gray-6, #161b22)',
 					borderBottom: '1px solid var(--sl-color-gray-5, #30363d)',
 				}}>
-				<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 8,
+					}}>
 					<span
 						style={{
 							width: 8,
@@ -151,6 +195,17 @@ export default function ReactVMVncViewer() {
 							boxShadow: connected ? '0 0 6px #22c55e' : 'none',
 						}}
 					/>
+					<span
+						style={{
+							fontSize: '0.75rem',
+							padding: '2px 8px',
+							borderRadius: 4,
+							background: 'rgba(59, 130, 246, 0.15)',
+							color: '#60a5fa',
+							fontWeight: 500,
+						}}>
+						RDP
+					</span>
 					<span
 						style={{
 							fontSize: '0.8rem',
@@ -191,22 +246,23 @@ export default function ReactVMVncViewer() {
 						)}
 					</ToolbarButton>
 					<ToolbarButton
-						title="Close VNC"
-						onClick={() => vmService.closeVNC()}
+						title="Close RDP"
+						onClick={() => vmService.closeGuac()}
 						color="#ef4444">
 						<X size={14} />
 					</ToolbarButton>
 				</div>
 			</div>
 
-			{/* noVNC renders into this container */}
+			{/* Guacamole renders into this container */}
 			<div
-				ref={viewerRef}
+				ref={displayRef}
 				style={{
 					flex: 1,
 					minHeight: fullscreen ? undefined : 480,
 					background: '#0a0a0a',
 					cursor: connected ? 'default' : 'not-allowed',
+					overflow: 'hidden',
 				}}
 			/>
 
@@ -220,8 +276,8 @@ export default function ReactVMVncViewer() {
 					textAlign: 'center',
 				}}>
 				{connected
-					? 'Click inside to capture keyboard · Ctrl+Alt+Del via toolbar'
-					: 'Waiting for VNC connection...'}
+					? 'Click inside to capture keyboard · Ctrl+Alt+Del via toolbar · RDP via Guacamole'
+					: 'Waiting for RDP connection...'}
 			</div>
 		</div>
 	);
