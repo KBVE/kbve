@@ -4,6 +4,7 @@ import ReactVMHeader from './ReactVMHeader';
 import ReactVMCards from './ReactVMCards';
 import ReactVMVncViewer from './ReactVMVncViewer';
 import ReactVMGuacViewer from './ReactVMGuacViewer';
+import ReactKasmCards from './ReactKasmCards';
 ---
 
 <section
@@ -31,6 +32,11 @@ import ReactVMGuacViewer from './ReactVMGuacViewer';
 				<!-- Island: Guacamole RDP viewer (shown when RDP is opened) -->
 				<div id="vm-guac">
 					<ReactVMGuacViewer client:only="react" />
+				</div>
+
+				<!-- Island: KASM workspaces (start/stop/connect) -->
+				<div id="kasm-cards">
+					<ReactKasmCards client:only="react" />
 				</div>
 			</div>
 		</ReactVMAuth>

@@ -222,17 +222,19 @@ export default defineConfig({
 		plugins: [tailwindcss()],
 		build: {
 			rollupOptions: {
-				external: ['fsevents', /^\.\.\/pkg/, /@novnc\/novnc/, /guacamole-common-js/],
+				external: ['fsevents', /^\.\.\/pkg/],
 			},
 		},
 		optimizeDeps: {
-			exclude: ['fsevents', '@novnc/novnc', 'guacamole-common-js'],
+			exclude: ['fsevents'],
 			esbuildOptions: {
 				supported: { 'top-level-await': true },
 			},
 		},
 		ssr: {
 			noExternal: [],
+			// noVNC + guacamole-common-js are client-only — externalize from SSR
+			// but let Vite bundle them for the client (removed from build.external)
 			external: ['@novnc/novnc', 'guacamole-common-js'],
 		},
 	},
