@@ -20,6 +20,10 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
+        # Generic HTTPS listener — serves all domains.
+        # Each domain's cert is referenced here; ReferenceGrant allows
+        # cross-namespace cert access from chuckrpg, ows, etc.
+        # No hostname filter — Envoy uses SNI to select the right cert.
         - name: https
           protocol: HTTPS
           port: 443
@@ -27,16 +31,10 @@ spec:
               mode: Terminate
               certificateRefs:
                   - name: kbve-wt-tls
-          allowedRoutes:
-              namespaces:
-                  from: All
-        - name: https-game-chuckrpg
-          protocol: HTTPS
-          port: 443
-          hostname: game.chuckrpg.com
-          tls:
-              mode: Terminate
-              certificateRefs:
+                  - name: chuckrpg-tls
+                    namespace: chuckrpg
+                  - name: chuckrpg-api-tls
+                    namespace: chuckrpg
                   - name: game-chuckrpg-tls
                     namespace: chuckrpg
           allowedRoutes:
