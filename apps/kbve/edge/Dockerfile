@@ -36,7 +36,7 @@ RUN set -eu; \
       "$VERSION" "$FUNCS" > "$OUT"
 
 # Stage 2: Production edge-runtime image.
-FROM supabase/edge-runtime:v1.70.5
+FROM supabase/edge-runtime:v1.73.2
 
 COPY ./version.toml /home/deno/version.toml
 COPY ./functions /home/deno/functions
