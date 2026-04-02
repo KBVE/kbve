@@ -147,6 +147,7 @@
 		"framer-motion": "^12.34.3",
 		"grid-engine": "^2.45.5",
 		"gsap": "^3.13.0",
+		"@novnc/novnc": "^1.6.0",
 		"guacamole-common-js": "^1.5.0",
 		"happy-dom": "^20.8.4",
 		"html-react-parser": "^5.1.18",
