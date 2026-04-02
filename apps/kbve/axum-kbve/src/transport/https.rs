@@ -250,6 +250,10 @@ fn router(state: AppState) -> Router {
             axum::routing::put(super::proxy::kasm_scale_handler),
         )
         .route(
+            "/dashboard/guac/proxy/guacamole/websocket-tunnel",
+            axum::routing::get(super::proxy::guacamole_ws_handler),
+        )
+        .route(
             "/dashboard/guac/proxy/{*path}",
             any(super::proxy::guacamole_proxy_handler),
         )
