@@ -49,6 +49,7 @@ impl RateLimiter {
 
     /// Prune entries older than 2x the window to prevent unbounded growth.
     /// Call periodically from a background task.
+    #[allow(dead_code)]
     pub fn prune(&self) {
         let now = Instant::now();
         let cutoff = self.window_secs * 2;

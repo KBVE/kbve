@@ -39,6 +39,7 @@ pub struct SubmitServerRequest {
 
 /// Successful response echoed back to the frontend.
 #[derive(Debug, Serialize)]
+#[allow(dead_code)]
 struct SubmitResponse {
     status: &'static str,
     message: String,
@@ -102,28 +103,32 @@ async fn submit_server(
         return err(StatusCode::BAD_REQUEST, "Invalid invite code").into_response();
     }
 
-    if let Some(ref desc) = req.description {
-        if desc.len() > 2000 || !is_safe_text(desc) {
-            return err(StatusCode::BAD_REQUEST, "Invalid description").into_response();
-        }
+    if let Some(ref desc) = req.description
+        && (desc.len() > 2000 || !is_safe_text(desc))
+    {
+        return err(StatusCode::BAD_REQUEST, "Invalid description").into_response();
     }
 
-    if let Some(ref url) = req.icon_url {
-        if !is_safe_url(url, 2048) {
-            return err(StatusCode::BAD_REQUEST, "Invalid icon URL").into_response();
-        }
+    if let Some(ref url) = req.icon_url
+        && !is_safe_url(url, 2048)
+    {
+        return err(StatusCode::BAD_REQUEST, "Invalid icon URL").into_response();
     }
 
-    if let Some(ref url) = req.banner_url {
-        if !is_safe_url(url, 2048) {
-            return err(StatusCode::BAD_REQUEST, "Invalid banner URL").into_response();
-        }
+    if let Some(ref url) = req.banner_url
+        && !is_safe_url(url, 2048)
+    {
+        return err(StatusCode::BAD_REQUEST, "Invalid banner URL").into_response();
     }
 
     if req.categories.is_empty() || req.categories.len() > MAX_CATEGORIES {
         return err(StatusCode::BAD_REQUEST, "Must have 1-3 categories").into_response();
     }
-    if req.categories.iter().any(|&c| c < 1 || c > MAX_CATEGORY_ID) {
+    if req
+        .categories
+        .iter()
+        .any(|&c| !(1..=MAX_CATEGORY_ID).contains(&c))
+    {
         return err(StatusCode::BAD_REQUEST, "Invalid category ID").into_response();
     }
 
