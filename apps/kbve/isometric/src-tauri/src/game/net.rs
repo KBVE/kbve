@@ -311,6 +311,15 @@ impl Plugin for NetPlugin {
         // Periodic connection-state heartbeat (logs every ~2 seconds)
         app.add_systems(Update, debug_connection_heartbeat);
 
+        // PostUpdate diagnostic: runs AFTER netcode send but BEFORE aeronet drain.
+        // Shows whether netcode actually produces packets. Enabled for WASM debugging.
+        app.add_systems(
+            PostUpdate,
+            debug_post_netcode_send
+                .after(lightyear::prelude::ConnectionSystems::Send)
+                .before(lightyear::prelude::LinkSystems::Send),
+        );
+
         // Deferred cleanup of disconnected client entities (one frame delay)
         app.add_systems(Last, cleanup_pending_despawn);
 
@@ -583,7 +592,8 @@ fn debug_connection_heartbeat(
         let recv_len = link.recv.len();
         if send_len > 0 || recv_len > 0 || is_linked || is_linking {
             info!(
-                "[net][heartbeat] link entity={entity:?} send={send_len} recv={recv_len} linked={is_linked} linking={is_linking}"
+                "[net][heartbeat] link entity={entity:?} send={send_len} recv={recv_len} linked={is_linked} linking={is_linking} link_state={:?}",
+                link.state
             );
         }
     }
@@ -592,7 +602,6 @@ fn debug_connection_heartbeat(
 /// PostUpdate diagnostic: logs link.send AFTER netcode writes packets but BEFORE
 /// aeronet drains them to the WebSocket. Kept as dead code for future debugging;
 /// register in plugin build() when needed.
-#[allow(dead_code)]
 fn debug_post_netcode_send(
     query: Query<
         (
@@ -612,7 +621,7 @@ fn debug_post_netcode_send(
         let pending = client.inner.is_pending();
         let error = client.inner.is_error();
         if is_connecting || is_linked {
-            debug!(
+            info!(
                 "[net][post-send] entity={entity:?} send={send_len} recv={recv_len} \
                  linked={is_linked} connecting={is_connecting} disconnected={is_disconnected} \
                  netcode_pending={pending} netcode_error={error}"
