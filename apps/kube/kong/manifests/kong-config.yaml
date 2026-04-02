@@ -21,12 +21,16 @@ data:
                 - https://*.meme.sh
                 - https://kbve.com
                 - https://*.kbve.com
+                - https://chat.kbve.com
+                - https://supabase.kbve.com
+                - https://forgejo.kbve.com
                 - https://chuckrpg.com
                 - https://*.chuckrpg.com
                 - https://cryptothrone.com
                 - https://*.cryptothrone.com
                 - http://localhost:4321
                 - http://localhost:3000
+                - http://localhost:3333
               methods:
                 - GET
                 - POST
