@@ -59,6 +59,8 @@ spec:
                                 key: secret-key
                       - name: VERIFY_JWT
                         value: 'true'
+                      - name: FIRECRACKER_URL
+                        value: 'http://firecracker-ctl:9001'
                       - name: CLICKHOUSE_ENDPOINT
                         valueFrom:
                             secretKeyRef:
