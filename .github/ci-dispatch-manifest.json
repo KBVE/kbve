@@ -70,7 +70,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.0",
+			"version": "0.1.1",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
