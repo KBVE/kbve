@@ -681,6 +681,100 @@ virtctl start windows-builder -n angelscript && \
 
 ---
 
+## Firecracker MicroVMs
+
+Firecracker is an open-source VMM (Virtual Machine Monitor) built by AWS for serverless workloads. It creates lightweight microVMs with ~5 MB overhead and ~125 ms boot times, using KVM for hardware-level isolation.
+
+### KBVE Integration
+
+The KBVE edge platform uses Firecracker as a composable Tier 2 isolation layer alongside the Deno edge-runtime (Tier 1). Edge functions dispatch VM workloads to the `firecracker-ctl` service via an internal REST API on port 9001.
+
+**Manifests:** `apps/kube/firecracker/manifests/`
+
+### Requirements
+
+- Linux kernel with KVM support (Intel VT-x / AMD-V)
+- `/dev/kvm` exposed via `kubevirt/device-plugin-kvm` (already deployed for KubeVirt)
+- Nodes labeled `kvm=true`
+- Bare metal preferred (nested virt adds latency)
+
+### Deployment
+
+```shell
+# Verify KVM device plugin is running
+kubectl get pods -n kubevirt -l app=kvm-device-plugin
+
+# Check firecracker-ctl deployment
+kubectl get deploy firecracker-ctl -n kilobase
+
+# Check firecracker-ctl service
+kubectl get svc firecracker-ctl -n kilobase
+
+# View firecracker-ctl logs
+kubectl logs -n kilobase -l app=firecracker-ctl -f
+```
+
+### Pod Spec Overview
+
+```yaml
+nodeSelector:
+    kvm: 'true'
+containers:
+    - name: firecracker-ctl
+      image: ghcr.io/kbve/firecracker-ctl:0.1.0
+      resources:
+          requests:
+              devices.kubevirt.io/kvm: '1'
+              cpu: 250m
+              memory: 512Mi
+          limits:
+              devices.kubevirt.io/kvm: '1'
+              cpu: '2'
+              memory: 2Gi
+      securityContext:
+          capabilities:
+              add: ['NET_ADMIN']
+```
+
+### Network Policy
+
+Only edge-runtime pods (`app: functions`) can reach `firecracker-ctl` on port 9001. All other ingress is denied.
+
+### API
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/vm/create` | Create and start a microVM |
+| `GET` | `/vm/{vm_id}` | Get VM status |
+| `GET` | `/vm/{vm_id}/result` | Get stdout/stderr/exit_code |
+| `DELETE` | `/vm/{vm_id}` | Force-terminate a VM |
+| `GET` | `/health` | Health check |
+
+### Rootfs Images
+
+| Image | Size | Contents |
+|-------|------|----------|
+| `alpine-minimal` | ~8 MB | Alpine + busybox |
+| `alpine-python` | ~45 MB | Alpine + Python 3.12 |
+| `alpine-node` | ~40 MB | Alpine + Node.js 22 LTS |
+| `ubuntu-rust` | ~120 MB | Ubuntu minimal + Rust toolchain |
+
+### Troubleshooting
+
+```shell
+# Check if /dev/kvm is available on a node
+kubectl debug node/<node-name> -it --image=busybox -- ls -la /dev/kvm
+
+# Verify device plugin allocations
+kubectl describe node <node-name> | grep -A5 "devices.kubevirt.io/kvm"
+
+# Test firecracker-ctl health from within cluster
+kubectl run -n kilobase --rm -it --restart=Never test-fc \
+  --image=curlimages/curl -- curl -s http://firecracker-ctl:9001/health
+```
+
+---
+
 ## Sealed Secrets
 
 ### Encoding

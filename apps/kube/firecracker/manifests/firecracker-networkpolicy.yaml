@@ -13,7 +13,7 @@ spec:
         - from:
               - podSelector:
                     matchLabels:
-                        app: edge-functions
+                        app: functions
           ports:
               - protocol: TCP
                 port: 9001

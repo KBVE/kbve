@@ -27,4 +27,120 @@ status: active
 
 ## Overview
 
-Supabase edge functions service.
+Supabase edge functions service built on `supabase/edge-runtime:v1.73.2`. Each function runs as an isolated Deno V8 worker with 150 MB memory and a 60-second timeout. The main router (`functions/main/index.ts`) handles JWT verification, per-function env allowlisting, and worker dispatch.
+
+### Function Registry
+
+| Function | Description |
+|----------|-------------|
+| `health` | Core health check (public, no JWT) |
+| `meme` | Meme feed and reactions |
+| `discordsh` | Discord server integration |
+| `user-vault` | User API token management |
+| `guild-vault` | Guild token management |
+| `vault-reader` | System secret access (service_role only) |
+| `argo` | ArgoCD API proxy with diagnostics |
+| `logs` | ClickHouse observability logs |
+| `ows` | OWS admin operations |
+
+### Shared Modules
+
+All functions share utilities under `functions/_shared/`:
+
+- **`cors.ts`** — CORS headers with origin allowlist
+- **`supabase.ts`** — JWT parsing, Supabase client factories, role guards
+- **`validators.ts`** — Input validation, body size limits, SSRF protection
+- **`formats.ts`** — Regex patterns for UUIDs, ULIDs, Discord snowflakes, etc.
+- **`firecracker.ts`** — Firecracker microVM client (Tier 2 dispatch)
+
+---
+
+## Firecracker MicroVM Integration
+
+### Two-Tier Isolation
+
+The edge platform uses a two-tier isolation model. Tier 1 (Deno workers) handles standard TypeScript functions. Tier 2 (Firecracker microVMs) handles workloads that need full OS-level isolation — arbitrary binaries, untrusted code, or long-running processes.
+
+| Tier | Isolation | Boot Time | Use Case |
+|------|-----------|-----------|----------|
+| 1 | V8 isolates (Deno workers) | ~10ms | TypeScript edge functions |
+| 2 | Firecracker microVMs | ~125ms | Arbitrary binaries, untrusted code |
+
+### Architecture
+
+Edge functions in Tier 1 act as the control plane. When a request needs VM-level isolation, the function dispatches to the Firecracker service via an internal REST API. The two tiers are fully independent — a VM crash never affects edge function availability.
+
+```
+Edge Runtime Pod (Tier 1)         Firecracker Service Pod (Tier 2)
+┌─────────────────────┐           ┌──────────────────────────┐
+│ Deno V8 Workers     │  HTTP →   │ REST API → Firecracker   │
+│ health, meme, vault │  :9001    │ /dev/kvm via device plugin│
+│ argo, logs, ows ... │           │ ┌────┐ ┌────┐ ┌────┐    │
+└─────────────────────┘           │ │VM1 │ │VM2 │ │VM3 │    │
+                                  │ └────┘ └────┘ └────┘    │
+                                  └──────────────────────────┘
+```
+
+### Client Library
+
+Edge functions use the shared `firecracker.ts` client to dispatch VM workloads:
+
+```typescript
+import { runVM } from "../_shared/firecracker.ts";
+
+const result = await runVM({
+  rootfs: "alpine-minimal",
+  vcpu_count: 1,
+  mem_size_mib: 128,
+  timeout_ms: 30000,
+  entrypoint: "/usr/local/bin/worker",
+  env: { TASK: "compute", INPUT: payload },
+});
+// result.stdout, result.stderr, result.exit_code, result.duration_ms
+```
+
+### API Endpoints (firecracker-ctl)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/vm/create` | Create and start a microVM |
+| `GET` | `/vm/{vm_id}` | Get VM status |
+| `GET` | `/vm/{vm_id}/result` | Get stdout/stderr/exit_code after completion |
+| `DELETE` | `/vm/{vm_id}` | Force-terminate a running VM |
+| `GET` | `/health` | Service health check |
+
+### Rootfs Images
+
+Pre-built minimal root filesystems stored as OCI artifacts in GHCR:
+
+| Image | Size | Contents |
+|-------|------|----------|
+| `alpine-minimal` | ~8 MB | Alpine + busybox |
+| `alpine-python` | ~45 MB | Alpine + Python 3.12 |
+| `alpine-node` | ~40 MB | Alpine + Node.js 22 LTS |
+| `ubuntu-rust` | ~120 MB | Ubuntu minimal + Rust toolchain |
+
+### Security
+
+- Firecracker jailer enforces cgroup + seccomp + chroot per VM
+- No root inside microVMs — all capabilities dropped
+- Read-only rootfs with tmpfs overlay for scratch
+- Kubernetes NetworkPolicy restricts ingress to edge-runtime pods only
+- VM timeout enforced both client-side (edge function) and server-side (firecracker-ctl)
+
+### Kubernetes Resources
+
+All manifests live in `apps/kube/firecracker/manifests/`:
+
+- **Deployment** — `firecracker-ctl` with `/dev/kvm` device plugin, `kvm=true` node selector
+- **Service** — ClusterIP on port 9001
+- **PVC** — 2Gi Longhorn volume for rootfs image cache
+- **NetworkPolicy** — Ingress only from `app: functions` pods
+- **ArgoCD Application** — `selfHeal: false` during early phases
+
+### Phased Rollout
+
+- **Phase 1** (merged) — Design document, K8s manifests, edge client library
+- **Phase 2** (current) — Environment wiring, documentation, deployment integration
+- **Phase 3** — E2E tests, ClickHouse monitoring, KEDA autoscaling
+- **Phase 4** — TAP networking, warm VM pool, multi-node scheduling

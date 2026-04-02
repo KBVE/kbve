@@ -177,19 +177,23 @@ Start with Option A (MMDS) — sufficient for request/response workloads. Gradua
 
 ## Phased Rollout
 
-### Phase 1: Foundation (current)
+### Phase 1: Foundation (complete)
 
-- [ ] Design document (this file)
+- [x] Design document (this file)
 - [ ] Firecracker binary packaging (Dockerfile)
-- [ ] Kubernetes manifests (deployment, service, RBAC)
+- [x] Kubernetes manifests (deployment, service, PVC, NetworkPolicy)
 - [ ] Health check endpoint
 
-### Phase 2: Core API
+### Phase 2: Core API & Integration (current)
 
 - [ ] VM lifecycle API (create, status, result, delete)
 - [ ] MMDS-based stdin/stdout communication
 - [ ] Alpine-minimal rootfs build pipeline
-- [ ] Edge function client library (`_shared/firecracker.ts`)
+- [x] Edge function client library (`_shared/firecracker.ts`)
+- [x] FIRECRACKER_URL env wired in functions-deployment.yaml
+- [x] Main router env allowlist updated for `ows` function
+- [x] Documentation: edge.mdx expanded with Firecracker design
+- [x] Documentation: kubernetes.mdx Firecracker reference section
 
 ### Phase 3: Integration
 
