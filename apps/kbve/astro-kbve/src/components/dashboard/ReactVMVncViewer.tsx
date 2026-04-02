@@ -4,24 +4,31 @@ import { vmService } from './vmService';
 import { X, Maximize2, Minimize2, Keyboard } from 'lucide-react';
 
 // noVNC RFB client — loaded from vendored ESM source in /vendor/novnc/.
-// The npm package ships broken CJS (top-level await), so we vendor the
-// original ESM files from the noVNC GitHub repo into public/vendor/novnc/.
-// Dynamic import from /vendor/ is same-origin (no CORS/SharedArrayBuffer issues)
-// and completely outside Rollup's module graph.
+// Uses dynamic import with the full origin URL to bypass Vite's module graph.
+// The vendored files are plain ESM from the noVNC GitHub repo, served as
+// static assets from public/vendor/novnc/.
 let RFB: any = null;
 async function loadRFB() {
 	if (!RFB) {
 		try {
-			const url = new URL(
-				'/vendor/novnc/core/rfb.js',
-				window.location.origin,
-			).href;
-			const mod = await import(/* @vite-ignore */ url);
+			// Try vendored ESM first (production path)
+			const vendorUrl = `${window.location.origin}/vendor/novnc/core/rfb.js`;
+			const mod = await import(/* @vite-ignore */ vendorUrl);
 			RFB = mod.default ?? mod;
-		} catch {
-			throw new Error(
-				'noVNC module not available — ensure @novnc/novnc is installed',
-			);
+		} catch (vendorErr) {
+			try {
+				// Fallback: try npm package (works in dev mode)
+				// @ts-expect-error — noVNC ships without TypeScript declarations
+				const mod = await import(
+					/* @vite-ignore */ '@novnc/novnc/lib/rfb'
+				);
+				RFB = mod.default ?? mod;
+			} catch {
+				console.error('noVNC load failed:', vendorErr);
+				throw new Error(
+					'noVNC module not available — check browser console for details',
+				);
+			}
 		}
 	}
 	return RFB;
