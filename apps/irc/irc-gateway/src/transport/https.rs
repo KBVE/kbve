@@ -2,10 +2,10 @@ use anyhow::Result;
 use std::{net::SocketAddr, time::Duration};
 
 use axum::{
-    http::{header, HeaderName, HeaderValue},
+    Json, Router,
+    http::{HeaderName, HeaderValue, header},
     response::IntoResponse,
     routing::get,
-    Router,
 };
 use tokio::net::TcpListener;
 use tower_http::set_header::SetResponseHeaderLayer;
@@ -62,10 +62,16 @@ fn router(static_config: &crate::astro::StaticConfig) -> Router {
                 if err.is::<tower::timeout::error::Elapsed>() {
                     (axum::http::StatusCode::REQUEST_TIMEOUT, "request timed out")
                 } else if err.is::<tower::load_shed::error::Overloaded>() {
-                    (axum::http::StatusCode::SERVICE_UNAVAILABLE, "service overloaded")
+                    (
+                        axum::http::StatusCode::SERVICE_UNAVAILABLE,
+                        "service overloaded",
+                    )
                 } else {
                     tracing::warn!(error = %err, "middleware error");
-                    (axum::http::StatusCode::INTERNAL_SERVER_ERROR, "internal server error")
+                    (
+                        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                        "internal server error",
+                    )
                 }
             },
         ))
@@ -85,12 +91,24 @@ fn router(static_config: &crate::astro::StaticConfig) -> Router {
     static_router.merge(api_router).layer(middleware)
 }
 
+static START_TIME: std::sync::OnceLock<std::time::Instant> = std::sync::OnceLock::new();
+
+pub fn init_start_time() {
+    START_TIME.get_or_init(std::time::Instant::now);
+}
+
 async fn health() -> impl IntoResponse {
-    "OK"
+    let uptime = START_TIME.get().map(|t| t.elapsed().as_secs()).unwrap_or(0);
+
+    Json(serde_json::json!({
+        "status": "ok",
+        "version": env!("CARGO_PKG_VERSION"),
+        "uptime_seconds": uptime,
+    }))
 }
 
 fn tuned_listener(addr: SocketAddr) -> Result<TcpListener> {
-    use socket2::{Socket, Domain, Type, Protocol};
+    use socket2::{Domain, Protocol, Socket, Type};
 
     let domain = match addr {
         SocketAddr::V4(_) => Domain::IPV4,
@@ -164,7 +182,10 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::OK);
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        assert_eq!(&body[..], b"OK");
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["status"], "ok");
+        assert_eq!(json["version"], env!("CARGO_PKG_VERSION"));
+        assert!(json["uptime_seconds"].is_number());
     }
 
     #[tokio::test]
@@ -184,10 +205,7 @@ mod tests {
             response.headers().get("x-content-type-options").unwrap(),
             "nosniff"
         );
-        assert_eq!(
-            response.headers().get("x-frame-options").unwrap(),
-            "DENY"
-        );
+        assert_eq!(response.headers().get("x-frame-options").unwrap(), "DENY");
         assert_eq!(
             response.headers().get("referrer-policy").unwrap(),
             "strict-origin-when-cross-origin"
